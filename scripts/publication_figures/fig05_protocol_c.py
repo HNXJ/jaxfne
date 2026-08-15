@@ -22,6 +22,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.figure import Figure
 from matplotlib.patches import FancyArrowPatch
 
 from _pub_figure_common import (
@@ -249,7 +250,7 @@ def draw_causal_banner(fig) -> None:
     ax.text(9.2, 0.5, "no field feedback", fontsize=7, color="#888888", style="italic")
 
 
-def draw_figure(out_path: Path, spec: dict) -> dict[str, Any]:
+def build_figure(spec: dict) -> Figure:
     c1 = _load_json(spec["authority"]["c1_receipt"])
     c3_exec = _load_json(spec["authority"]["c3_execution"])
     summary = _load_json(spec["authority"]["c3_summary"])
@@ -269,6 +270,15 @@ def draw_figure(out_path: Path, spec: dict) -> dict[str, Any]:
     fig.text(0.5, 0.06, HEADLINE, ha="center", fontsize=9, fontweight="bold", color="#1A4A8A")
     fig.text(0.5, 0.02, SCOPE_QUALIFIER, ha="center", fontsize=7.5, color="#8B4513")
 
+    return fig
+
+
+def draw_figure(out_path: Path, spec: dict) -> dict[str, Any]:
+    c1 = _load_json(spec["authority"]["c1_receipt"])
+    c3_exec = _load_json(spec["authority"]["c3_execution"])
+    c4 = _load_json(spec["authority"]["c4_interpretation"])
+
+    fig = build_figure(spec)
     save_matplotlib_figure(fig, out_path, dpi=200)
     return {"c1_pass": c1["summary"]["c1_pass"], "n_cells": len(c3_exec["cells"]), "outcome": c4["outcome_letter"]}
 

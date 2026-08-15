@@ -1,0 +1,13 @@
+{
+  "schema": "jaxfne.publication.fig7_polish_receipt.v1",
+  "figure": "Fig07.E_integration",
+  "status": "PASSED",
+  "png_300dpi": "figures/publication/final/fig07_e_integration.png",
+  "png_sha256": "17742fbe15741bdb6a121f2619d1d737633f27f293757560b6e70e5ba8f47c12",
+  "pdf_vector": "figures/publication/final/fig07_e_integration.pdf",
+  "pdf_bytes": 58682,
+  "downstream_of_frozen_sha": "fa74ddf210d397c9c1b719d0ac75573045985877312efcccbdedc0aa59e71dce",
+  "checkpoint": "figure_7_polish",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596",
+  "audited_at_utc": "2026-08-15T22:25:23Z"
+}

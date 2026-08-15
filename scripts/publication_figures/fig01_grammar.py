@@ -20,6 +20,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle
 
 from _pub_figure_common import (
@@ -400,7 +401,7 @@ def draw_legend(fig) -> None:
     leg_ax.text(0.38, 0.32, "REPRESENTATIONAL example", fontsize=7, va="center")
 
 
-def draw_figure(output_path: Path) -> None:
+def build_figure() -> Figure:
     fig = plt.figure(figsize=(16, 11), dpi=200)
     fig.patch.set_facecolor("white")
 
@@ -443,6 +444,11 @@ def draw_figure(output_path: Path) -> None:
 
     fig.text(0.5, 0.055, TAKEAWAY, ha="center", fontsize=9, fontweight="bold", color="#1A4A8A")
 
+    return fig
+
+
+def draw_figure(output_path: Path) -> None:
+    fig = build_figure()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     save_matplotlib_figure(fig, output_path, dpi=200)
 

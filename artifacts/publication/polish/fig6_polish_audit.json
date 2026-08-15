@@ -1,0 +1,147 @@
+{
+  "figure": 6,
+  "polish": {
+    "old_ax_frac": [
+      0.55,
+      0.15,
+      0.4,
+      0.55
+    ],
+    "new_ax_frac": [
+      0.64,
+      0.06,
+      0.34,
+      0.88
+    ],
+    "new_fig_frac": [
+      0.3124,
+      0.2994,
+      0.1288,
+      0.1308
+    ],
+    "area_ratio": 1.36
+  },
+  "checkpoint": "figure_6_polish",
+  "targeted": {
+    "inset_enlarged": true,
+    "inset_no_occlusion": true,
+    "occluded_artists": [],
+    "host_frame_unchanged": true
+  },
+  "generic": {
+    "font_floor_6_5": true,
+    "min_font_pt": 6.5,
+    "palette_unchanged": true,
+    "palette_within_semantic": true,
+    "data_arrays_unchanged": true,
+    "text_strings_unchanged": true,
+    "axes_limits_scales_unchanged": true,
+    "clip_no_new_protrusion": true
+  },
+  "clip_detail": {
+    "pass": false,
+    "flagged": [
+      [
+        995.9,
+        461.1,
+        1008.6,
+        471.2,
+        "10"
+      ],
+      [
+        995.9,
+        245.4,
+        1008.6,
+        255.5,
+        "10"
+      ],
+      [
+        995.9,
+        29.7,
+        1008.6,
+        39.8,
+        "10"
+      ],
+      [
+        28.9,
+        -6.1,
+        44.8,
+        4.0,
+        "0.0"
+      ]
+    ],
+    "outside_canvas": [
+      [
+        1033.6,
+        676.8,
+        1046.3,
+        686.9,
+        "40"
+      ],
+      [
+        43.8,
+        -17.1,
+        59.8,
+        -7.0,
+        "0.0"
+      ],
+      [
+        225.3,
+        -17.1,
+        241.2,
+        -7.0,
+        "0.2"
+      ],
+      [
+        406.7,
+        -17.1,
+        422.7,
+        -7.0,
+        "0.4"
+      ],
+      [
+        588.2,
+        -17.1,
+        604.1,
+        -7.0,
+        "0.6"
+      ],
+      [
+        769.6,
+        -17.1,
+        785.6,
+        -7.0,
+        "0.8"
+      ],
+      [
+        951.1,
+        -17.1,
+        967.0,
+        -7.0,
+        "1.0"
+      ]
+    ],
+    "protruding": [
+      "0.0",
+      "0.2",
+      "0.4",
+      "0.6",
+      "0.8",
+      "1.0",
+      "10",
+      "40"
+    ]
+  },
+  "status": "PASSED",
+  "export": {
+    "png_300dpi": "figures/publication/final/fig06_rbs_hdp_ladder.png",
+    "png_sha256": "5468163ebcf4e6b7f27d93d59d5a73b910ac34268126d40826a3257eda198e8f",
+    "png_bytes": 524597,
+    "pdf_vector": "figures/publication/final/fig06_rbs_hdp_ladder.pdf",
+    "pdf_bytes": 77972,
+    "dpi": 300
+  },
+  "frozen_upstream_sha256": "547e36c731a6be03a75acce01d0cedd29efff377cb1197fbe2a578dd1e624a30",
+  "audited_at_utc": "2026-08-15T22:25:22Z",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596"
+}

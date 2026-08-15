@@ -1,0 +1,13 @@
+{
+  "schema": "jaxfne.publication.fig5_polish_receipt.v1",
+  "figure": "Fig05.protocol_C",
+  "status": "PASSED",
+  "png_300dpi": "figures/publication/final/fig05_traveling_wave_no_wave.png",
+  "png_sha256": "3337108c6488394bbbd55a53b542fd862d82f9de4781fa58b818c377616cf09a",
+  "pdf_vector": "figures/publication/final/fig05_traveling_wave_no_wave.pdf",
+  "pdf_bytes": 598485,
+  "downstream_of_frozen_sha": "f7f9a49439c134cde41333512694ad676e08bb9eb174ac1ae6a0f20b7171a1b2",
+  "checkpoint": "figure_5_polish",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596",
+  "audited_at_utc": "2026-08-15T22:25:07Z"
+}

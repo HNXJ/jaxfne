@@ -25,6 +25,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.figure import Figure
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 from _experiment_a_frozen import (
@@ -72,7 +73,7 @@ def _add_semantic_legend(ax, items: list[tuple[str, str]], y: float = 0.02) -> N
         x += 0.28
 
 
-def draw_figure2(bundle, out_path: Path) -> dict[str, Any]:
+def build_figure2(bundle) -> Figure:
     ds = bundle.dataset
     units = pick_display_units(ds.positions, n=4)
     mask = time_window_mask(ds.time_ms, T0_MS, T1_MS)
@@ -136,6 +137,13 @@ def draw_figure2(bundle, out_path: Path) -> dict[str, Any]:
         bbox=dict(boxstyle="round", facecolor="#FFF8E7", edgecolor="#8B4513"),
     )
 
+    return fig
+
+
+def draw_figure2(bundle, out_path: Path) -> dict[str, Any]:
+    ds = bundle.dataset
+    units = pick_display_units(ds.positions, n=4)
+    fig = build_figure2(bundle)
     save_matplotlib_figure(fig, out_path, dpi=200)
     return {
         "figure": 2,
@@ -148,7 +156,7 @@ def draw_figure2(bundle, out_path: Path) -> dict[str, Any]:
     }
 
 
-def draw_figure3(bundle, out_path: Path) -> dict[str, Any]:
+def build_figure3(bundle) -> Figure:
     ds = bundle.dataset
     mask = time_window_mask(ds.time_ms, T0_MS, T1_MS)
     t = ds.time_ms[mask]
@@ -225,19 +233,24 @@ def draw_figure3(bundle, out_path: Path) -> dict[str, Any]:
     )
     ax_csd.grid(True, alpha=0.25)
 
+    return fig
+
+
+def draw_figure3(bundle, out_path: Path) -> dict[str, Any]:
+    fig = build_figure3(bundle)
     save_matplotlib_figure(fig, out_path, dpi=200)
     return {
         "figure": 3,
         "pec_panel_id": "Fig03.lfp_csd_proxy",
         "q_hash": bundle.q_hash,
         "phi_e_shared": True,
-        "b2_invariants": inv,
+        "b2_invariants": bundle.b2_invariants,
         "semantic_status": "relative_proxy / finite-difference CSD semantics",
         "claim_level": "DEMONSTRATED",
     }
 
 
-def draw_figure4(bundle, out_path: Path) -> dict[str, Any]:
+def build_figure4(bundle) -> Figure:
     fig, ax = plt.subplots(figsize=(11, 6.5), dpi=200)
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 7)
@@ -314,6 +327,11 @@ def draw_figure4(bundle, out_path: Path) -> dict[str, Any]:
         color="#555555",
     )
 
+    return fig
+
+
+def draw_figure4(bundle, out_path: Path) -> dict[str, Any]:
+    fig = build_figure4(bundle)
     save_matplotlib_figure(fig, out_path, dpi=200)
     return {
         "figure": 4,

@@ -1,0 +1,9 @@
+{
+  "figure": "Fig05.protocol_C",
+  "schema": "jaxfne.publication.fig5_polish_spec.v1",
+  "status": "FROZEN",
+  "artist_only_polish": true,
+  "downstream_of_frozen_sha": "f7f9a49439c134cde41333512694ad676e08bb9eb174ac1ae6a0f20b7171a1b2",
+  "checkpoint": "figure_5_polish",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596"
+}

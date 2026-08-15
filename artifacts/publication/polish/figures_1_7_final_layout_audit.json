@@ -1,0 +1,49 @@
+{
+  "schema": "jaxfne.publication.figures_1_7_final_layout_audit.v1",
+  "checkpoint": "figures_1_7_final_layout_audit",
+  "status": "PASSED",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596",
+  "audited_at_utc": "2026-08-15T22:25:23Z",
+  "figures": {
+    "fig01": {
+      "status": "PASSED",
+      "png": "3bf21ca467ac",
+      "pdf_bytes": 64947
+    },
+    "fig02": {
+      "status": "PASSED",
+      "png": "3142d1858c7d",
+      "pdf_bytes": 84710
+    },
+    "fig03": {
+      "status": "PASSED",
+      "png": "c0b58d4c168c",
+      "pdf_bytes": 524320
+    },
+    "fig04": {
+      "status": "PASSED",
+      "png": "0aff442c9215",
+      "pdf_bytes": 44849
+    },
+    "fig05": {
+      "status": "PASSED",
+      "png": "3337108c6488",
+      "pdf_bytes": 598485
+    },
+    "fig06": {
+      "status": "PASSED",
+      "png": "5468163ebcf4",
+      "pdf_bytes": 77972
+    },
+    "fig07": {
+      "status": "PASSED",
+      "png": "17742fbe1574",
+      "pdf_bytes": 58682
+    }
+  },
+  "cross_typography": {
+    "font_floor_pt": 6.5,
+    "all_figures_min_font_ok": true,
+    "title_convention": "Figure N - ... suptitle ~12 pt"
+  }
+}

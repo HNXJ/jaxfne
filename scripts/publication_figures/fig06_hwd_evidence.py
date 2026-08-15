@@ -22,6 +22,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.figure import Figure
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 from _pub_figure_common import (
@@ -335,6 +336,22 @@ def build_receipt(spec: dict, audit: dict, *, figure_sha: str, repo_head: str) -
     }
 
 
+def build_figure(ev, mx, h3_curves, counts, d3_counts) -> Figure:
+    fig = plt.figure(figsize=(15, 13), dpi=200)
+    fig.suptitle("Figure 6 — RBS / RBD / HDP evidence ladder", fontsize=12, fontweight="bold", y=0.99)
+    draw_progression_banner(fig)
+    gs = fig.add_gridspec(4, 2, left=0.07, right=0.96, top=0.90, bottom=0.06, hspace=0.55, wspace=0.35)
+    draw_panel_a(fig.add_subplot(gs[0, 0]))
+    draw_panel_b(fig.add_subplot(gs[0, 1]), h3_curves)
+    draw_panel_c(fig.add_subplot(gs[1, 0]), mx, ev.h4_interp)
+    draw_panel_d(fig.add_subplot(gs[1, 1]), ev.w0)
+    draw_panel_e(fig.add_subplot(gs[2, 0]), ev.w2)
+    draw_panel_f(fig.add_subplot(gs[2, 1]), ev.w3b_interp, ev.w3_stability)
+    draw_panel_g(fig.add_subplot(gs[3, :]), ev.d_closure, ev.d3_interp)
+    draw_legend(fig)
+    return fig
+
+
 def main() -> int:
     from jaxfne.publication.fig06_evidence import (
         d3_classification,
@@ -365,18 +382,7 @@ def main() -> int:
 
     dirs = ensure_publication_dirs()
     out_path = dirs["figures"] / FIGURE_NAME
-    fig = plt.figure(figsize=(15, 13), dpi=200)
-    fig.suptitle("Figure 6 — RBS / RBD / HDP evidence ladder", fontsize=12, fontweight="bold", y=0.99)
-    draw_progression_banner(fig)
-    gs = fig.add_gridspec(4, 2, left=0.07, right=0.96, top=0.90, bottom=0.06, hspace=0.55, wspace=0.35)
-    draw_panel_a(fig.add_subplot(gs[0, 0]))
-    draw_panel_b(fig.add_subplot(gs[0, 1]), h3_curves)
-    draw_panel_c(fig.add_subplot(gs[1, 0]), mx, ev.h4_interp)
-    draw_panel_d(fig.add_subplot(gs[1, 1]), ev.w0)
-    draw_panel_e(fig.add_subplot(gs[2, 0]), ev.w2)
-    draw_panel_f(fig.add_subplot(gs[2, 1]), ev.w3b_interp, ev.w3_stability)
-    draw_panel_g(fig.add_subplot(gs[3, :]), ev.d_closure, ev.d3_interp)
-    draw_legend(fig)
+    fig = build_figure(ev, mx, h3_curves, counts, d3_counts)
     save_matplotlib_figure(fig, out_path, dpi=200)
 
     figure_sha = sha256_file(out_path)

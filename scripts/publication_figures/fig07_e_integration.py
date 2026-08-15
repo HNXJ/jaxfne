@@ -22,6 +22,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.figure import Figure
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Rectangle
 
 from _pub_figure_common import (
@@ -329,6 +330,30 @@ def build_receipt(spec: dict, audit: dict, *, figure_sha: str, repo_head: str) -
     }
 
 
+def build_figure(
+    h1: dict[str, Any],
+    delays: list[dict[str, Any]],
+    owner: dict[str, Any],
+    obs: dict[str, str],
+    nulls: dict[str, Any],
+    arms: list[dict[str, Any]],
+    prop: dict[str, Any],
+) -> Figure:
+    fig = plt.figure(figsize=(14, 12), dpi=200)
+    fig.suptitle("Figure 7 — compositional E-integration", fontsize=12, fontweight="bold", y=0.99)
+    draw_headline(fig)
+    draw_reduction_ladder(fig)
+    gs = fig.add_gridspec(3, 2, left=0.07, right=0.96, top=0.90, bottom=0.08, hspace=0.55, wspace=0.35)
+    draw_panel_a(fig.add_subplot(gs[0, 0]), h1)
+    draw_panel_b(fig.add_subplot(gs[0, 1]), delays)
+    draw_panel_c(fig.add_subplot(gs[1, 0]), owner)
+    draw_panel_d(fig.add_subplot(gs[1, 1]), obs)
+    draw_panel_e(fig.add_subplot(gs[2, 0]), arms, nulls)
+    draw_panel_f(fig.add_subplot(gs[2, 1]), prop)
+    fig.text(0.5, 0.03, CONCLUSION, ha="center", fontsize=6.5, color="#333333", wrap=True)
+    return fig
+
+
 def main() -> int:
     from jaxfne.publication.fig07_evidence import (
         e1_hierarchy_summary,
@@ -376,19 +401,7 @@ def main() -> int:
 
     dirs = ensure_publication_dirs()
     out_path = dirs["figures"] / FIGURE_NAME
-    fig = plt.figure(figsize=(14, 12), dpi=200)
-    fig.suptitle("Figure 7 — compositional E-integration", fontsize=12, fontweight="bold", y=0.99)
-    draw_headline(fig)
-    draw_reduction_ladder(fig)
-    gs = fig.add_gridspec(3, 2, left=0.07, right=0.96, top=0.90, bottom=0.08, hspace=0.55, wspace=0.35)
-    draw_panel_a(fig.add_subplot(gs[0, 0]), h1)
-    draw_panel_b(fig.add_subplot(gs[0, 1]), delays)
-    draw_panel_c(fig.add_subplot(gs[1, 0]), owner)
-    draw_panel_d(fig.add_subplot(gs[1, 1]), obs)
-    draw_panel_e(fig.add_subplot(gs[2, 0]), arms, nulls)
-    draw_panel_f(fig.add_subplot(gs[2, 1]), prop)
-    fig.text(0.5, 0.03, CONCLUSION, ha="center", fontsize=6.5, color="#333333", wrap=True)
-
+    fig = build_figure(h1, delays, owner, obs, nulls, arms, prop)
     save_matplotlib_figure(fig, out_path)
     figure_sha = sha256_file(out_path)
     repo_head = repo_sha()

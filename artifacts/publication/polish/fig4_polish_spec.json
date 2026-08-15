@@ -1,0 +1,9 @@
+{
+  "figure": "Fig04.EEG_MEG_analysis_only",
+  "schema": "jaxfne.publication.fig4_polish_spec.v1",
+  "status": "FROZEN",
+  "artist_only_polish": true,
+  "downstream_of_frozen_sha": "b7646a51c1c4002a17e22163a090fc1c338bb1800ea2240f68ed786e588a7913",
+  "checkpoint": "figure_4_polish",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596"
+}

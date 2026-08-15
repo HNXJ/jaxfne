@@ -1,0 +1,13 @@
+{
+  "schema": "jaxfne.publication.fig4_polish_receipt.v1",
+  "figure": "Fig04.EEG_MEG_analysis_only",
+  "status": "PASSED",
+  "png_300dpi": "figures/publication/final/fig04_multiscale_boundary.png",
+  "png_sha256": "0aff442c9215c3d8571e074183be4a6b0e7d1eff381d45b26da6984e1e5a600d",
+  "pdf_vector": "figures/publication/final/fig04_multiscale_boundary.pdf",
+  "pdf_bytes": 44849,
+  "downstream_of_frozen_sha": "b7646a51c1c4002a17e22163a090fc1c338bb1800ea2240f68ed786e588a7913",
+  "checkpoint": "figure_4_polish",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596",
+  "audited_at_utc": "2026-08-15T22:25:05Z"
+}

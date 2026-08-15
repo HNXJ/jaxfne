@@ -1,0 +1,9 @@
+{
+  "figure": "Fig02.canonical_Q",
+  "schema": "jaxfne.publication.fig2_polish_spec.v1",
+  "status": "FROZEN",
+  "artist_only_polish": true,
+  "downstream_of_frozen_sha": "e65ad1f30de3b59beda0a402658d5d01e2eef9b77a1c10b40940cf42ee31ba09",
+  "checkpoint": "figure_2_polish",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596"
+}
