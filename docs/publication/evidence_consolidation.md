@@ -39,8 +39,8 @@ Examples: H4 = `DEMONSTRATED + NEGATIVE`; C3 = `DEMONSTRATED + NEGATIVE`; D3 = `
 2. Figure 1 grammar map (**complete @ fig01_generation_receipt**)
 3. Figures 2–4 Experiment A (**complete @ fig02_04_cross_figure_audit**)
 4. Figure 5 Protocol C (**complete @ fig05_generation_receipt**)
-5. Figure 6 (H / W / D) — **next authorized checkpoint**
-6. Figure 7 (E1–E5)
+5. Figure 6 H/W/D (**complete @ fig06_generation_receipt**)
+6. Figure 7 (E1–E5) — **next authorized checkpoint**
 7. Main-text reconstruction
 8. Supplement
 
@@ -68,6 +68,18 @@ Invariant: one frozen canonical `Q` hash shared across all three figures; no mod
 | Receipt | `artifacts/publication/fig05_generation_receipt.json` |
 
 Polarity: **DEMONSTRATED + NEGATIVE** (validated estimator; prospective NO_WAVE). Outcome letter C.
+
+### Figure 6 authority (H / W / D)
+
+| Artifact | Path |
+|----------|------|
+| Spec | `artifacts/publication/fig06_hwd_spec.json` |
+| Generator | `scripts/publication_figures/fig06_hwd_evidence.py` |
+| Output | `figures/publication/fig06_rbs_hdp_ladder.png` |
+| Semantic audit | `artifacts/publication/fig06_semantic_audit.json` |
+| Receipt | `artifacts/publication/fig06_generation_receipt.json` |
+
+Seven-panel ladder: RBS → RBD → state memory → parameter writing → parameter expression → closed-loop question, with biological RBS containment (D) beneath. Polarity mix: POSITIVE (A,B,D,E,G containment), NEGATIVE (C H4, G D3), UNRESOLVED (F W3b). No E5 content.
 
 ### Figure 1 authority
 

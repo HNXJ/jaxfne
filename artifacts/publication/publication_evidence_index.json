@@ -218,7 +218,12 @@
       "semantic_status": "mechanistic_expression_evidence",
       "null_control": "H_K=1 reference",
       "numeric_values_to_display": {"figure_6_ladder.static_H_K_to_X": "demonstrated"},
-      "figure_generation_entry_point": "DEFERRED: figure_6 phase",
+      "figure_generation_entry_point": "scripts/publication_figures/fig06_hwd_evidence.py",
+      "figure_output": "figures/publication/fig06_rbs_hdp_ladder.png",
+      "generation_receipt": "artifacts/publication/fig06_generation_receipt.json",
+      "semantic_audit": "artifacts/publication/fig06_semantic_audit.json",
+      "figure_sha256": "547e36c731a6be03a75acce01d0cedd29efff377cb1197fbe2a578dd1e624a30",
+      "polarity_combined": "DEMONSTRATED + POSITIVE",
       "reproducibility_sha": {
         "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/protocol_d_biological_rbs/d_closure_interpretation_receipt.json#package_head"
@@ -243,7 +248,12 @@
         "NO_ADAPTATION_count": 9,
         "A_adapt_approx": 0.286
       },
-      "figure_generation_entry_point": "DEFERRED: figure_6 phase",
+      "figure_generation_entry_point": "scripts/publication_figures/fig06_hwd_evidence.py",
+      "figure_output": "figures/publication/fig06_rbs_hdp_ladder.png",
+      "generation_receipt": "artifacts/publication/fig06_generation_receipt.json",
+      "semantic_audit": "artifacts/publication/fig06_semantic_audit.json",
+      "figure_sha256": "547e36c731a6be03a75acce01d0cedd29efff377cb1197fbe2a578dd1e624a30",
+      "polarity_combined": "DEMONSTRATED + NEGATIVE",
       "reproducibility_sha": {
         "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/protocol_d_biological_rbs/d3_interpretation_receipt.json#package_head"
@@ -267,7 +277,12 @@
         "M_X_long_heterogeneous": 0.0,
         "alpha_length": 0.0
       },
-      "figure_generation_entry_point": "DEFERRED: figure_6 phase",
+      "figure_generation_entry_point": "scripts/publication_figures/fig06_hwd_evidence.py",
+      "figure_output": "figures/publication/fig06_rbs_hdp_ladder.png",
+      "generation_receipt": "artifacts/publication/fig06_generation_receipt.json",
+      "semantic_audit": "artifacts/publication/fig06_semantic_audit.json",
+      "figure_sha256": "547e36c731a6be03a75acce01d0cedd29efff377cb1197fbe2a578dd1e624a30",
+      "polarity_combined": "DEMONSTRATED + NEGATIVE",
       "reproducibility_sha": {
         "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json#repository_sha_at_run"
@@ -288,7 +303,12 @@
       "semantic_status": "domain_map / stability_unresolved",
       "null_control": "W3 silent-rest dormancy established separately",
       "numeric_values_to_display": {"N_S": 0, "N_X": 1944, "outcome": "unresolved_not_negative"},
-      "figure_generation_entry_point": "DEFERRED: figure_6 phase",
+      "figure_generation_entry_point": "scripts/publication_figures/fig06_hwd_evidence.py",
+      "figure_output": "figures/publication/fig06_rbs_hdp_ladder.png",
+      "generation_receipt": "artifacts/publication/fig06_generation_receipt.json",
+      "semantic_audit": "artifacts/publication/fig06_semantic_audit.json",
+      "figure_sha256": "547e36c731a6be03a75acce01d0cedd29efff377cb1197fbe2a578dd1e624a30",
+      "polarity_combined": "DEMONSTRATED + UNRESOLVED",
       "reproducibility_sha": {
         "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json#prospective_domain_receipt_sha"

@@ -1,0 +1,35 @@
+{
+  "schema": "jaxfne.publication.fig06_hwd_spec.v1",
+  "checkpoint": "figure_6_generation",
+  "status": "FROZEN",
+  "write_once": true,
+  "pec_panel_ids": [
+    "Fig06.D_containment",
+    "Fig06.D3_NO_ADAPTATION",
+    "Fig06.H4_negative",
+    "Fig06.W3b_unresolved"
+  ],
+  "progression": "RBS -> RBD -> state memory -> parameter writing -> parameter expression -> closed-loop question",
+  "panels": {
+    "A": {"content": "RBS/RBD primitive H->X", "claim_level": "DEMONSTRATED", "polarity": "POSITIVE"},
+    "B": {"content": "Protocol H memory M_H vs M_X", "claim_level": "DEMONSTRATED", "polarity": "POSITIVE"},
+    "C": {"content": "H4 topology/delay extension", "claim_level": "DEMONSTRATED", "polarity": "NEGATIVE"},
+    "D": {"content": "W1 H->omega writing", "claim_level": "DEMONSTRATED", "polarity": "POSITIVE"},
+    "E": {"content": "W2 omega->W->X expression", "claim_level": "DEMONSTRATED", "polarity": "POSITIVE"},
+    "F": {"content": "W3/W3b closed-loop", "claim_level": "DEMONSTRATED", "polarity": "UNRESOLVED"},
+    "G": {"content": "Biological RBS D0-D3", "claim_level": "DEMONSTRATED", "polarity": "MIXED"}
+  },
+  "excluded_content": ["E5", "H1c sign-symmetry as memory", "predictive coding", "W3 closed-loop demonstrated"],
+  "receipt_authority": {
+    "h4": "artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json",
+    "h4_matrix": "artifacts/protocol_h_rbd/h4_matrix/h4_matrix_receipt.json",
+    "w0": "artifacts/protocol_w/w0_mathematical_contract.json",
+    "w2": "artifacts/protocol_w/w2_expression/w2_expression_receipt.json",
+    "w3": "artifacts/protocol_w/w3_stability/w3_stability_receipt.json",
+    "w3b": "artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json",
+    "d_closure": "artifacts/protocol_d_biological_rbs/d_closure_interpretation_receipt.json",
+    "d3": "artifacts/protocol_d_biological_rbs/d3_interpretation_receipt.json",
+    "d1": "artifacts/protocol_d_biological_rbs/d1_static_expression_receipt.json"
+  },
+  "generator_script": "scripts/publication_figures/fig06_hwd_evidence.py"
+}

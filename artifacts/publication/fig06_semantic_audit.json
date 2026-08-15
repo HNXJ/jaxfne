@@ -1,0 +1,33 @@
+{
+  "schema": "jaxfne.publication.fig06_semantic_audit.v1",
+  "status": "PASSED",
+  "checkpoint": "figure_6_generation",
+  "pec_panel_ids": [
+    "Fig06.D_containment",
+    "Fig06.D3_NO_ADAPTATION",
+    "Fig06.H4_negative",
+    "Fig06.W3b_unresolved"
+  ],
+  "figure_path": "figures/publication/fig06_rbs_hdp_ladder.png",
+  "figure_sha256": "547e36c731a6be03a75acce01d0cedd29efff377cb1197fbe2a578dd1e624a30",
+  "spec_path": "artifacts/publication/fig06_hwd_spec.json",
+  "audited_at_utc": "2026-08-15T20:01:13Z",
+  "repo_head": "1eca1f39b74e225322484941f14b119a2a8a6086",
+  "checks": {
+    "h4_remains_negative": true,
+    "short_heterogeneous_exploratory_only": true,
+    "w1_w2_not_closed_loop": true,
+    "w3b_unresolved_not_negative": true,
+    "d3_no_adaptation": true,
+    "no_e5_content": true,
+    "no_w3_closed_loop_memory_claim": true,
+    "x_not_u_preserved": true,
+    "receipt_driven_quantities": true
+  },
+  "excluded_content_verified": [
+    "E5",
+    "H1c sign-symmetry as memory",
+    "predictive coding",
+    "W3 closed-loop demonstrated"
+  ]
+}
