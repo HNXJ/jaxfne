@@ -7,7 +7,7 @@
   "milestone": "0.4.17-D",
   "protocol_d_closed": true,
   "closed_at_checkpoint": "D3",
-  "package_head": "9c6fec4",
+  "package_head": "9c6fec46715b47d2e0ccf0464f639fdf53672fd4",
   "prerequisites": {
     "d3_execution": "artifacts/protocol_d_biological_rbs/d3_execution_receipt.json",
     "d3_interpretation": "artifacts/protocol_d_biological_rbs/d3_interpretation_receipt.json"
