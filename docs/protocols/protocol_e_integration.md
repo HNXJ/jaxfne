@@ -1,6 +1,6 @@
 # Protocol E — integrated TFNE composition (0.4.17-E)
 
-**Status:** E0.1 ladder **frozen**; **E1 implementation authorized** (not yet executed)  
+**Status:** E0.1 ladder **frozen**; **E1 closed** (implementation + execution receipt frozen)
 **Milestone boundary:** `9589933` — 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)
 
 **Specs:**  
@@ -95,7 +95,11 @@ E1 \subset E2 \subset E3 \subset E4
 
 Minimal **A1/A2** laminar hierarchy with **E** and **PV** populations (same Izhikevich family, distinct parameters), explicit **FF** (A1 L2/3 E → A2 L4) and **FB** (A2 L5 E → A1 L2/3), **zero delay**, **no RBS**.
 
-**Structural gates:** construction, identity recovery, FF/FB ownership, finite deterministic execution, reproducibility, no RBS/no delay.
+**Structural gates:** construction, identity round-trip recovery, FF/FB ownership on edge sets, finite deterministic execution, reproducibility, baseline structural reduction (inter-area disabled).
+
+**Diagnostics:** per-edge provenance table (`local_A1`, `local_A2`, `FF_A1_to_A2`, `FB_A2_to_A1`).
+
+**Receipt:** `artifacts/protocol_e_integration/e1_execution_receipt.json`
 
 **Not required:** publication phenotype, spectral claims.
 
@@ -114,5 +118,5 @@ Minimal **A1/A2** laminar hierarchy with **E** and **PV** populations (same Izhi
 |----|--------|
 | E0 | Composition question **frozen** |
 | E0.1 | Implementation ladder + reduction contracts **frozen** |
-| E1 | Hierarchy/runtime spec **frozen**; **implementation authorized** |
+| E1 | Hierarchy/runtime **closed** (G1–G6 pass; execution receipt frozen) |
 | E2–E5 | Not authorized (spec deferred) |

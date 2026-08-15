@@ -58,7 +58,8 @@ def test_e1_validate_spec_passes():
     validate_e1_spec()
 
 
-def test_e1_protocol_receipt_authorizes_implementation():
+def test_e1_protocol_receipt_closed():
     receipt = json.loads((E1_SPEC_PATH.parent / "e1_protocol_receipt.json").read_text())
     assert receipt["implementation_authorized"] is True
-    assert receipt["next_checkpoint"] == "E1_implementation"
+    assert receipt["status"] == "CLOSED"
+    assert receipt["next_checkpoint"] == "E2_specification"
