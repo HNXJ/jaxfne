@@ -86,9 +86,9 @@ def test_e2_validate_spec_passes():
     validate_e2_spec()
 
 
-def test_e2_protocol_receipt_frozen():
+def test_e2_protocol_receipt_closed():
     receipt = json.loads((E2_SPEC_PATH.parent / "e2_protocol_receipt.json").read_text())
-    assert receipt["status"] == "FROZEN"
-    assert receipt["implementation_authorized"] is False
-    assert receipt["next_checkpoint"] == "E2_implementation"
+    assert receipt["status"] == "CLOSED"
+    assert receipt["implementation_authorized"] is True
+    assert receipt["next_checkpoint"] == "E3_specification"
     assert receipt["reduction_contract"] == "R_E2_to_E1"

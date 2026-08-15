@@ -1,6 +1,6 @@
 # Protocol E — integrated TFNE composition (0.4.17-E)
 
-**Status:** E0.1 ladder **frozen**; **E1 closed**; **E2 specification frozen** (implementation not authorized)
+**Status:** E0.1 ladder **frozen**; **E1 closed**; **E2 closed** (implementation + execution receipt frozen)
 **Milestone boundary:** `9589933` — 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)
 
 **Specs:**  
@@ -104,7 +104,7 @@ Minimal **A1/A2** laminar hierarchy with **E** and **PV** populations (same Izhi
 
 **Not required:** publication phenotype, spectral claims.
 
-## E2 — typed delayed coupling (spec frozen)
+## E2 — typed delayed coupling (closed)
 
 **Question:** Does adding typed provenance-class delays preserve everything E1 established?
 
@@ -136,7 +136,11 @@ Bit-exact on \(V_m\), spikes, identity/provenance, and edge structure where orde
 
 **Continuation splits:** primary @ 400 ms; in-flight stress @ 120 ms.
 
-**Not authorized:** E2 implementation, RBS, field/probe evidence, spectral claims.
+**Excluded from E2 evidence:** RBS, field/probe chain, spectral/functional claims.
+
+**Receipt:** `artifacts/protocol_e_integration/e2_execution_receipt.json`
+
+**Closed:** G1–G8 pass; typed delay table and delay occupancy frozen.
 
 ## Explicit blocks (unchanged from E0)
 
@@ -154,5 +158,5 @@ Bit-exact on \(V_m\), spikes, identity/provenance, and edge structure where orde
 | E0 | Composition question **frozen** |
 | E0.1 | Implementation ladder + reduction contracts **frozen** |
 | E1 | Hierarchy/runtime **closed** (G1–G6 pass; execution receipt frozen) |
-| E2 | Delayed-coupling spec **frozen**; implementation **not authorized** |
+| E2 | Delayed coupling **closed** (G1–G8 pass; execution receipt frozen) |
 | E3–E5 | Not authorized (spec deferred) |

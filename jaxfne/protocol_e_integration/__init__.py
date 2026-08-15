@@ -19,11 +19,25 @@ from .e1_protocol import (
     validate_e1_spec,
 )
 from .e2_protocol import (
+    E2_EXECUTION_RECEIPT_PATH,
     E2_SPEC_PATH,
     e2_delay_class_ids,
     e2_gate_ids,
     load_e2_spec,
     validate_e2_spec,
+)
+from .e2_execution import (
+    assert_no_compile_drift,
+    attach_provenance_class_delays,
+    build_e2_model,
+    build_typed_delay_table,
+    delay_step_occupancy,
+    hierarchy_fingerprint,
+    load_e2_execution_receipt,
+    run_e2_delayed_coupling,
+    verify_delayed_continuation,
+    verify_delay_ownership,
+    write_e2_execution_receipt,
 )
 from .e1_execution import (
     build_edge_provenance_table,
@@ -62,4 +76,16 @@ __all__ = [
     "validate_e2_spec",
     "e2_delay_class_ids",
     "e2_gate_ids",
+    "E2_EXECUTION_RECEIPT_PATH",
+    "build_e2_model",
+    "attach_provenance_class_delays",
+    "assert_no_compile_drift",
+    "hierarchy_fingerprint",
+    "build_typed_delay_table",
+    "delay_step_occupancy",
+    "verify_delay_ownership",
+    "verify_delayed_continuation",
+    "run_e2_delayed_coupling",
+    "write_e2_execution_receipt",
+    "load_e2_execution_receipt",
 ]

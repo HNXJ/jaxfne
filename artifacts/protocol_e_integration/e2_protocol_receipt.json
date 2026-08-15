@@ -1,19 +1,20 @@
 {
   "schema": "jaxfne.protocol_e_integration.e2_protocol_receipt.v1",
   "checkpoint": "E2",
-  "status": "FROZEN",
+  "status": "CLOSED",
   "protocol_id": "protocol_e_integration_v0417",
   "milestone": "0.4.17-E",
   "spec": "artifacts/protocol_e_integration/e2_delayed_coupling_spec.json",
   "protocol_doc": "docs/protocols/protocol_e_integration.md",
-  "implementation_authorized": false,
+  "implementation_authorized": true,
   "parent_head": "bbda832d10d38260b59c582fcfe79e16b19975a5",
   "prerequisites": {
     "e1_spec": "artifacts/protocol_e_integration/e1_hierarchy_runtime_spec.json",
     "e1_execution_receipt": "artifacts/protocol_e_integration/e1_execution_receipt.json"
   },
+  "execution_receipt": "artifacts/protocol_e_integration/e2_execution_receipt.json",
   "scope": "typed provenance-class delays with R_E2_to_E1 bit-exact reduction; E1 hierarchy inherited unchanged",
   "reduction_contract": "R_E2_to_E1",
   "p_local_provenance": "E1-receipt-derived (0.2); not E1 preregistration",
-  "next_checkpoint": "E2_implementation"
+  "next_checkpoint": "E3_specification"
 }

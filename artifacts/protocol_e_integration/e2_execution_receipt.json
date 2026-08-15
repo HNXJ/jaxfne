@@ -1,0 +1,170 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e2_execution_receipt.v1",
+  "checkpoint": "E2",
+  "status": "FROZEN",
+  "write_once": true,
+  "package_head": "87e837eaa567da6d311cfbb3661c4100f83c888e",
+  "spec_path": "artifacts/protocol_e_integration/e2_delayed_coupling_spec.json",
+  "scientific_question": "Does adding typed provenance-class delays preserve everything E1 established?",
+  "composition_claim": "hierarchical biological identity + typed pathway delays + exact delayed continuation",
+  "reduction_contract": "R_E2_to_E1",
+  "p_local": {
+    "value": 0.2,
+    "provenance": "E1-receipt-derived execution constant; absent from original E1 preregistration spec",
+    "rule": "Do not retroactively describe p_local as an E1-frozen preregistered parameter"
+  },
+  "typed_delay_table": [
+    {
+      "edge_class": "local_A1",
+      "expected_edges": 334,
+      "actual_edges": 334,
+      "delay_ms": 1.0,
+      "delay_steps": 2
+    },
+    {
+      "edge_class": "local_A2",
+      "expected_edges": 317,
+      "actual_edges": 317,
+      "delay_ms": 1.0,
+      "delay_steps": 2
+    },
+    {
+      "edge_class": "FF_A1_to_A2",
+      "expected_edges": 140,
+      "actual_edges": 140,
+      "delay_ms": 2.0,
+      "delay_steps": 4
+    },
+    {
+      "edge_class": "FB_A2_to_A1",
+      "expected_edges": 140,
+      "actual_edges": 140,
+      "delay_ms": 4.0,
+      "delay_steps": 8
+    }
+  ],
+  "delay_step_occupancy": {
+    "N_d2": 651,
+    "N_d4": 140,
+    "N_d8": 140,
+    "full_histogram": {
+      "2": 651,
+      "4": 140,
+      "8": 140
+    }
+  },
+  "gates": {
+    "G1_e1_reduction": {
+      "passed": true,
+      "path": "E2 provenance delay attachment with tau=0",
+      "seeds": [
+        {
+          "seed": 11,
+          "V_m_bit_exact": true,
+          "spikes_bit_exact": true
+        },
+        {
+          "seed": 12,
+          "V_m_bit_exact": true,
+          "spikes_bit_exact": true
+        },
+        {
+          "seed": 13,
+          "V_m_bit_exact": true,
+          "spikes_bit_exact": true
+        }
+      ]
+    },
+    "G2_provenance_preservation": {
+      "passed": true,
+      "n_edges": 931
+    },
+    "G3_delay_ownership": {
+      "passed": true,
+      "n_violations": 0,
+      "violations_sample": []
+    },
+    "G4_finite_delayed_execution": {
+      "passed": true,
+      "seeds": [
+        {
+          "seed": 11,
+          "finite": true
+        },
+        {
+          "seed": 12,
+          "finite": true
+        },
+        {
+          "seed": 13,
+          "finite": true
+        }
+      ]
+    },
+    "G5_delayed_continuation": {
+      "passed": true,
+      "primary_split_ms": 400.0,
+      "inflight_split_ms": 120.0,
+      "primary": {
+        "passed": true,
+        "split_ms": 400.0,
+        "vm_bit_exact": true,
+        "spikes_bit_exact": true,
+        "sources_bit_exact": true,
+        "synaptic_state_bit_exact": true,
+        "delay_state_bit_exact": true,
+        "event_timing_exact": true,
+        "n_spike_events": 677,
+        "state_error": null
+      },
+      "inflight": {
+        "passed": true,
+        "split_ms": 120.0,
+        "vm_bit_exact": true,
+        "spikes_bit_exact": true,
+        "sources_bit_exact": true,
+        "synaptic_state_bit_exact": true,
+        "delay_state_bit_exact": true,
+        "event_timing_exact": true,
+        "n_spike_events": 677,
+        "state_error": null
+      }
+    },
+    "G6_exact_event_timing": {
+      "passed": true,
+      "primary_n_spike_events": 677,
+      "inflight_n_spike_events": 677
+    },
+    "G7_hierarchy_invariance": {
+      "passed": true,
+      "identity_digest_match": true,
+      "provenance_digest_match": true,
+      "edge_topology_digest_match": true,
+      "pre_delay_fingerprints": {
+        "identity_digest": "aa768b3b8cab0fc1e5c5de76fa7f1d8a2ce35c8940b6b6ced4dc27e1c02d9963",
+        "provenance_digest": "8e0ac2ded42f15e03202125c99d5e07621b95adc2c4d96d1bf0089ce90ce1a86",
+        "edge_topology_digest": "f25a3f3dd140f088600acfb2b84d6dd668325837503882152a88f2dd8253f6ac"
+      },
+      "post_delay_fingerprints": {
+        "identity_digest": "aa768b3b8cab0fc1e5c5de76fa7f1d8a2ce35c8940b6b6ced4dc27e1c02d9963",
+        "provenance_digest": "8e0ac2ded42f15e03202125c99d5e07621b95adc2c4d96d1bf0089ce90ce1a86",
+        "edge_topology_digest": "f25a3f3dd140f088600acfb2b84d6dd668325837503882152a88f2dd8253f6ac"
+      }
+    },
+    "G8_no_scientific_overinterpretation": {
+      "passed": true,
+      "banned_terms_found": [],
+      "reported_evidence": "lag/delay structure and continuation contracts only"
+    }
+  },
+  "e3_deferred": "RBS with H=H* => E3=E2",
+  "explicit_exclusions": [
+    "no_RBS_at_E2",
+    "no_field_proxy_probe_evidence",
+    "no_gamma_beta_spectral_claim",
+    "no_wave_or_memory_claim",
+    "no_FF_FB_functional_claim_beyond_lag",
+    "no_retroactive_p_local_as_E1_preregistration",
+    "no_E3_at_E2"
+  ]
+}

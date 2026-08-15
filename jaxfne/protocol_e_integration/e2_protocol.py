@@ -10,6 +10,9 @@ from jaxfne.protocol_e_integration.e0_protocol import PROTOCOL_ID
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 E2_SPEC_PATH = _REPO_ROOT / "artifacts" / "protocol_e_integration" / "e2_delayed_coupling_spec.json"
+E2_EXECUTION_RECEIPT_PATH = (
+    _REPO_ROOT / "artifacts" / "protocol_e_integration" / "e2_execution_receipt.json"
+)
 
 
 def load_e2_spec(path: Path | None = None) -> dict[str, Any]:
