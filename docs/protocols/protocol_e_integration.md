@@ -1,12 +1,13 @@
 # Protocol E — integrated TFNE composition (0.4.17-E)
 
-**Status:** E0.1 ladder **frozen**; **E1 closed** (implementation + execution receipt frozen)
+**Status:** E0.1 ladder **frozen**; **E1 closed**; **E2 specification frozen** (implementation not authorized)
 **Milestone boundary:** `9589933` — 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)
 
 **Specs:**  
 - E0: `artifacts/protocol_e_integration/e0_composition_spec.json`  
 - E0.1: `artifacts/protocol_e_integration/e0_1_implementation_ladder_spec.json`  
 - E1: `artifacts/protocol_e_integration/e1_hierarchy_runtime_spec.json`
+- E2: `artifacts/protocol_e_integration/e2_delayed_coupling_spec.json`
 
 **Prerequisites:** Protocol D closed @ D3; Protocol C closed @ C4; Protocol H closed @ H4; W3 unresolved
 
@@ -103,6 +104,40 @@ Minimal **A1/A2** laminar hierarchy with **E** and **PV** populations (same Izhi
 
 **Not required:** publication phenotype, spectral claims.
 
+## E2 — typed delayed coupling (spec frozen)
+
+**Question:** Does adding typed provenance-class delays preserve everything E1 established?
+
+**Added DOF:** \(\tau_{ij}>0\) via four provenance classes only (`local_A1`, `local_A2`, `FF_A1_to_A2`, `FB_A2_to_A1`).
+
+**Reduction contract:**
+
+\[
+\boxed{
+R_{E2\rightarrow E1}:\quad
+\tau_{ij}=0\ \forall(i,j)\Rightarrow E2\equiv E1
+}
+\]
+
+Bit-exact on \(V_m\), spikes, identity/provenance, and edge structure where ordering permits.
+
+**Frozen delay values** (dt = 0.5 ms; \(\tau_{\mathrm{local}}\le\tau_{\mathrm{FF}}<\tau_{\mathrm{FB}}\)):
+
+| edge_class | delay_ms | delay_steps |
+|------------|----------|-------------|
+| local_A1 | 1.0 | 2 |
+| local_A2 | 1.0 | 2 |
+| FF_A1_to_A2 | 2.0 | 4 |
+| FB_A2_to_A1 | 4.0 | 8 |
+
+**E1-receipt-derived:** `p_local=0.2` (documented in E1 execution receipt; **not** E1 preregistration).
+
+**Gates (G1–G8):** E1 reduction, provenance preservation, delay ownership, finite delayed execution, delayed continuation (`delay_state`), exact event timing, hierarchy invariance, no spectral/functional overinterpretation.
+
+**Continuation splits:** primary @ 400 ms; in-flight stress @ 120 ms.
+
+**Not authorized:** E2 implementation, RBS, field/probe evidence, spectral claims.
+
 ## Explicit blocks (unchanged from E0)
 
 | Block | Status |
@@ -119,4 +154,5 @@ Minimal **A1/A2** laminar hierarchy with **E** and **PV** populations (same Izhi
 | E0 | Composition question **frozen** |
 | E0.1 | Implementation ladder + reduction contracts **frozen** |
 | E1 | Hierarchy/runtime **closed** (G1–G6 pass; execution receipt frozen) |
-| E2–E5 | Not authorized (spec deferred) |
+| E2 | Delayed-coupling spec **frozen**; implementation **not authorized** |
+| E3–E5 | Not authorized (spec deferred) |

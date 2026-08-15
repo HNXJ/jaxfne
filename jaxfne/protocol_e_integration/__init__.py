@@ -18,6 +18,13 @@ from .e1_protocol import (
     load_e1_spec,
     validate_e1_spec,
 )
+from .e2_protocol import (
+    E2_SPEC_PATH,
+    e2_delay_class_ids,
+    e2_gate_ids,
+    load_e2_spec,
+    validate_e2_spec,
+)
 from .e1_execution import (
     build_edge_provenance_table,
     build_e1_configuration,
@@ -50,4 +57,9 @@ __all__ = [
     "run_e1_hierarchy_runtime",
     "write_e1_execution_receipt",
     "load_e1_execution_receipt",
+    "E2_SPEC_PATH",
+    "load_e2_spec",
+    "validate_e2_spec",
+    "e2_delay_class_ids",
+    "e2_gate_ids",
 ]

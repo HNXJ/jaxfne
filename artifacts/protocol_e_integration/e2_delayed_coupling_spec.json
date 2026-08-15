@@ -1,0 +1,232 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e2_spec.v1",
+  "protocol_id": "protocol_e_integration_v0417",
+  "milestone": "0.4.17-E",
+  "checkpoint": "E2",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_spec": "artifacts/protocol_e_integration/e1_hierarchy_runtime_spec.json",
+  "parent_execution_receipt": "artifacts/protocol_e_integration/e1_execution_receipt.json",
+  "parent_head": "bbda832d10d38260b59c582fcfe79e16b19975a5",
+  "question": "Does adding typed provenance-class delays preserve everything E1 established?",
+  "scientific_scope": {
+    "added_degree_of_freedom": "tau_ij > 0 attached by E1 edge provenance class, not raw matrix index",
+    "inherited_from_e1": [
+      "two-area laminar hierarchy A1/A2",
+      "E/PV populations (common izhikevich F_X family)",
+      "FF A1 L2/3 E -> A2 L4",
+      "FB A2 L5 E -> A1 L2/3",
+      "identity map i <-> (area, layer, cell_type, local_index)",
+      "edge provenance classes local_A1, local_A2, FF_A1_to_A2, FB_A2_to_A1",
+      "explicit connectivity_mode (no hidden default edges)",
+      "simulation_policy duration/dt/seeds/drive/dtype/noise"
+    ],
+    "excluded": [
+      "RBS",
+      "field/proxy/probe evidence chain",
+      "gamma/beta/spectral/wave/memory claims",
+      "FF/FB functional interpretation beyond lag structure"
+    ]
+  },
+  "composition_ladder": {
+    "containment": "E1 subset E2",
+    "display": "hierarchy (E1) subset hierarchy + typed delays (E2)",
+    "e3_deferred_reduction": "H = H* => E3 = E2"
+  },
+  "reduction_contract": {
+    "id": "R_E2_to_E1",
+    "statement": "tau_ij = 0 for all (i,j) => E2 equivalent to E1",
+    "zero_delay_condition": "all delay_classes set to 0 ms / 0 delay_steps",
+    "bit_exact_equalities_required": [
+      "V_m",
+      "spikes",
+      "identity_map",
+      "edge_provenance_table",
+      "edge_class_counts",
+      "ff_fb_ownership_semantics"
+    ],
+    "ordering_note": "Where execution ordering permits, require bit-exact equality; not merely final-state proximity"
+  },
+  "e1_receipt_derived_constants": {
+    "p_local": {
+      "value": 0.2,
+      "symbol": "p_local",
+      "source_receipt": "artifacts/protocol_e_integration/e1_execution_receipt.json",
+      "source_field": "local_within_area_probability",
+      "provenance": "E1-receipt-derived execution constant; absent from original E1 preregistration spec",
+      "rule": "Do not retroactively describe p_local as an E1-frozen preregistered parameter"
+    },
+    "expected_edge_class_counts": {
+      "local_A1": 334,
+      "local_A2": 317,
+      "FF_A1_to_A2": 140,
+      "FB_A2_to_A1": 140,
+      "source_receipt": "artifacts/protocol_e_integration/e1_execution_receipt.json",
+      "source_field": "edge_provenance_summary.edge_class_counts"
+    }
+  },
+  "delay_attachment_policy": {
+    "mode": "provenance_class",
+    "rule": "Each edge delay_steps is determined solely by its E1 edge_class; never by flat index alone",
+    "classes": [
+      {
+        "edge_class": "local_A1",
+        "rule_name": "local_A1",
+        "tau_symbol": "tau_local,A1"
+      },
+      {
+        "edge_class": "local_A2",
+        "rule_name": "local_A2",
+        "tau_symbol": "tau_local,A2"
+      },
+      {
+        "edge_class": "FF_A1_to_A2",
+        "rule_name": "FF",
+        "tau_symbol": "tau_FF"
+      },
+      {
+        "edge_class": "FB_A2_to_A1",
+        "rule_name": "FB",
+        "tau_symbol": "tau_FB"
+      }
+    ]
+  },
+  "delay_values": {
+    "dt_ms": 0.5,
+    "grid_alignment": "edge_delay_steps_from_ms with atol=1e-9 (Protocol D0 / C3)",
+    "ordering_constraint": "tau_local_ms <= tau_FF_ms < tau_FB_ms",
+    "scale_justification": {
+      "rationale": "Small integer multiples of dt_ms at sub-5 ms conduction-scale lags; FF shorter than FB; not tuned to gamma/beta periods or preregistered spectral bands",
+      "modeling_horizon_ms": 1000.0,
+      "note": "Values justify E2 delay machinery scale, not a cortical spectral phenotype"
+    },
+    "classes": [
+      {
+        "edge_class": "local_A1",
+        "tau_ms": 1.0,
+        "delay_steps": 2
+      },
+      {
+        "edge_class": "local_A2",
+        "tau_ms": 1.0,
+        "delay_steps": 2
+      },
+      {
+        "edge_class": "FF_A1_to_A2",
+        "tau_ms": 2.0,
+        "delay_steps": 4
+      },
+      {
+        "edge_class": "FB_A2_to_A1",
+        "tau_ms": 4.0,
+        "delay_steps": 8
+      }
+    ],
+    "zero_reduction_ms": 0.0,
+    "zero_reduction_steps": 0
+  },
+  "typed_delay_table_contract": {
+    "purpose": "Figure 7 provenance; frozen at E2 execution",
+    "columns": ["edge_class", "n_edges", "delay_ms", "delay_steps"],
+    "rows": ["local_A1", "local_A2", "FF_A1_to_A2", "FB_A2_to_A1"],
+    "n_edges_source": "E1 execution receipt edge_class_counts unless compile drift documented"
+  },
+  "simulation_policy": {
+    "inherited_from": "artifacts/protocol_e_integration/e1_hierarchy_runtime_spec.json#simulation_policy",
+    "duration_ms": 1000.0,
+    "dt_ms": 0.5,
+    "n_steps": 2000,
+    "noise_scale": 0.0,
+    "dtype": "float32",
+    "seeds": [11, 12, 13],
+    "emitter_preset": "cortical_eig",
+    "drive": {"E": 8.0, "PV": 6.0},
+    "recurrent_backend": "edge_list",
+    "connectivity_mode": "explicit"
+  },
+  "continuation_segmentation": {
+    "public_state_name": "delay_state",
+    "reference": "Protocol C2 canonical delay_state continuation (tests/test_v0417_c2_delay_continuation.py)",
+    "runtime_path": "Model.simulate with return_state=True and ContinuationState when segmented",
+    "primary_split": {
+      "t_split_ms": 400.0,
+      "t_split_steps": 800,
+      "segment_lengths_ms": [400.0, 600.0],
+      "segment_lengths_steps": [800, 1200]
+    },
+    "inflight_stress_split": {
+      "t_split_ms": 120.0,
+      "t_split_steps": 240,
+      "segment_lengths_ms": [120.0, 880.0],
+      "segment_lengths_steps": [240, 1760],
+      "rationale": "Split while max-class delay buffer (FB, 8 steps = 4 ms) is in-flight after early dynamics"
+    },
+    "equivalence_required": [
+      "V_m bit-exact across segments",
+      "spikes bit-exact across segments",
+      "delay_state bit-exact at segment boundary",
+      "spike/event timing exact (not final-state-only)"
+    ]
+  },
+  "construction_scaffolding": {
+    "field_probe_required_by_construct": true,
+    "evidence_status": "excluded_from_E2_evidence",
+    "note": "Minimal field/probe declarations are construct() bookkeeping only; not Source/Field/Probe chain evidence"
+  },
+  "gates": {
+    "G1_e1_reduction": {
+      "statement": "tau=0 for all classes => E2 identical to E1 on V_m, spikes, identity, provenance, edge structure"
+    },
+    "G2_provenance_preservation": {
+      "statement": "Every edge retains its E1 pathway identity after delay attachment"
+    },
+    "G3_delay_ownership": {
+      "statement": "Every edge delay_steps equals the value prescribed for its provenance class"
+    },
+    "G4_finite_delayed_execution": {
+      "statement": "Nonzero-delay E2 simulation finite for E1 seeds over preregistered horizon"
+    },
+    "G5_delayed_continuation": {
+      "statement": "Segmented vs uninterrupted execution bit-exact on trajectories and canonical delay_state"
+    },
+    "G6_exact_event_timing": {
+      "statement": "Segmentation preserves spike/event timing, not merely final state"
+    },
+    "G7_hierarchy_invariance": {
+      "statement": "Delays do not change neuron identity, edge counts, FF/FB ownership, or local/cross-area classification"
+    },
+    "G8_no_scientific_overinterpretation": {
+      "statement": "E2 reports lag/delay structure only; no gamma/beta, wave, memory, or FF/FB functional claim"
+    }
+  },
+  "success_criteria": {
+    "type": "structural_delay_compositional",
+    "required": [
+      "all_E2_gates_pass",
+      "R_E2_to_E1_bit_exact",
+      "typed_delay_table_frozen_in_receipt",
+      "no_spectral_or_functional_claim"
+    ]
+  },
+  "explicit_prohibitions": [
+    "no_RBS_at_E2",
+    "no_field_proxy_probe_evidence",
+    "no_gamma_beta_spectral_claim",
+    "no_wave_or_memory_claim",
+    "no_FF_FB_functional_claim_beyond_lag",
+    "no_retroactive_p_local_as_E1_preregistration",
+    "no_E3_at_E2"
+  ],
+  "execution_authorization": {
+    "specification_only": true,
+    "implementation_authorized": false,
+    "next_checkpoint": "E2_implementation"
+  },
+  "e3_deferred": {
+    "checkpoint": "E3",
+    "adds": "RBS composition with H=H* reduction to E2",
+    "reduction": "R_E3_to_E2"
+  },
+  "bundle_root": "artifacts/protocol_e_integration",
+  "protocol_doc": "docs/protocols/protocol_e_integration.md"
+}
