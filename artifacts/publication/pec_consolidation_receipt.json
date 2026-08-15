@@ -1,0 +1,31 @@
+{
+  "schema": "jaxfne.publication.pec_consolidation_receipt.v1",
+  "checkpoint": "PEC",
+  "status": "FROZEN",
+  "write_once": true,
+  "artifact_commit_sha": "b99f749cdb32639d9027cfb7ad95bd351db87e04",
+  "spec": "artifacts/publication/pec_consolidation_spec.json",
+  "index": "artifacts/publication/publication_evidence_index.json",
+  "panel_count": 16,
+  "panel_ids": [
+    "Fig01.grammar",
+    "Fig02.canonical_Q",
+    "Fig03.lfp_csd_proxy",
+    "Fig04.EEG_MEG_analysis_only",
+    "Fig05.C1_synthetic",
+    "Fig05.C3_NO_WAVE",
+    "Fig06.D_containment",
+    "Fig06.D3_NO_ADAPTATION",
+    "Fig06.H4_negative",
+    "Fig06.W3b_unresolved",
+    "Fig07.E1_hierarchy",
+    "Fig07.E2_delays",
+    "Fig07.E3_RBD",
+    "Fig07.E4_observation",
+    "Fig07.E5_leakage_test",
+    "Fig07.E5_causal_expression"
+  ],
+  "feature_freeze": "hard scientific feature freeze; publication evidence consolidation authority",
+  "next_checkpoint": "figure_1_generation",
+  "figure_rendering_authorized": false
+}

@@ -1,0 +1,81 @@
+{
+  "schema": "jaxfne.publication.pec_spec.v1",
+  "checkpoint": "PEC",
+  "status": "FROZEN",
+  "write_once": true,
+  "milestone": "0.4.17",
+  "parent_head": "5aa4c60a9f17f9adb095e38fdf5f0b7de371e7e3",
+  "feature_freeze": {
+    "policy": "hard scientific feature freeze after E5 close",
+    "invariant": "no E6, D4, C follow-up, W3c on publication critical path, or new biological mechanism for sparse figures",
+    "backlog_rule": "new scientific questions go to post-0.4.17 backlog, not this publication cycle"
+  },
+  "purpose": "Construct one immutable publication-level evidence index before any Figure 1-7 rendering",
+  "authority_chain": "claim <-> protocol <-> receipt <-> arrays <-> analysis <-> figure panel",
+  "evidence_ladder": {
+    "ordered_levels": [
+      "DEMONSTRATED",
+      "MECHANISTICALLY_SUPPORTED",
+      "REPRESENTATIONAL",
+      "PROSPECTIVE"
+    ],
+    "rule": "DEMONSTRATED > MECHANISTICALLY_SUPPORTED > REPRESENTATIONAL > PROSPECTIVE"
+  },
+  "polarity_axis": {
+    "values": ["POSITIVE", "NEGATIVE", "UNRESOLVED"],
+    "orthogonal_to_claim_level": true,
+    "examples": {
+      "H4": "DEMONSTRATED + NEGATIVE",
+      "C3": "DEMONSTRATED + NEGATIVE",
+      "D3": "DEMONSTRATED + NEGATIVE",
+      "W3b": "DEMONSTRATED + UNRESOLVED",
+      "E5": "DEMONSTRATED + POSITIVE"
+    }
+  },
+  "provenance_fields": {
+    "execution_parent_sha": "git HEAD at simulate/execution when trajectories were generated",
+    "artifact_commit_sha": "immutable commit containing frozen receipt/index on disk",
+    "historical_note": "legacy receipts may use package_head for execution_parent_sha; do not retroactively rewrite write-once receipts"
+  },
+  "publication_sequence": [
+    "evidence_consolidation",
+    "figure_1",
+    "figures_2_4",
+    "figure_5",
+    "figure_6",
+    "figure_7",
+    "main_text_reconstruction",
+    "supplement"
+  ],
+  "private_manuscript_organization": {
+    "location": "scratch/ (gitignored)",
+    "note": "panel-level manuscript prose and figure aesthetics remain private; public repo carries reproducibility index only",
+    "reference_audit_matrix": "scratch/figure_requirements_matrix_v2_0417.md"
+  },
+  "panel_record_required_fields": [
+    "panel_id",
+    "figure",
+    "panel",
+    "scientific_claim",
+    "claim_level",
+    "polarity",
+    "protocol_authority",
+    "raw_receipt",
+    "interpretation_receipt",
+    "source_arrays",
+    "analysis_function",
+    "semantic_status",
+    "null_control",
+    "numeric_values_to_display",
+    "figure_generation_entry_point",
+    "reproducibility_sha"
+  ],
+  "index_artifact": "artifacts/publication/publication_evidence_index.json",
+  "execution_authorization": {
+    "consolidation_only": true,
+    "figure_rendering_authorized": false,
+    "next_checkpoint": "figure_1_generation"
+  },
+  "bundle_root": "artifacts/publication",
+  "protocol_doc": "docs/publication/evidence_consolidation.md"
+}
