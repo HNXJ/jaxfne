@@ -40,12 +40,18 @@ from .e2_execution import (
     write_e2_execution_receipt,
 )
 from .e3_protocol import (
+    E3_EXECUTION_RECEIPT_PATH,
     E3_SPEC_PATH,
     e3_gate_ids,
     e3_owner_flat_indices,
     load_e3_spec,
     resolve_owner_indices_from_e1_identity,
     validate_e3_spec,
+)
+from .e3_execution import (
+    load_e3_execution_receipt,
+    run_e3_rbs_composition,
+    write_e3_execution_receipt,
 )
 from .e1_execution import (
     build_edge_provenance_table,
@@ -102,4 +108,8 @@ __all__ = [
     "e3_gate_ids",
     "e3_owner_flat_indices",
     "resolve_owner_indices_from_e1_identity",
+    "E3_EXECUTION_RECEIPT_PATH",
+    "run_e3_rbs_composition",
+    "write_e3_execution_receipt",
+    "load_e3_execution_receipt",
 ]

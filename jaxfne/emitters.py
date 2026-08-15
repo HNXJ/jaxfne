@@ -1397,6 +1397,234 @@ def simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery(
     return voltages, spikes, sources, final_state
 
 
+def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
+    params: IzhikevichParams,
+    edges: EdgeList,
+    n_steps: int,
+    dt_ms: float,
+    key: jax.Array,
+    *,
+    h_k0: jax.Array,
+    owner_mask: jax.Array,
+    tau_k_ms: float = 100.0,
+    dynamic: bool = False,
+    dtype: str = "float32",
+    drive_schedule: "jax.Array | None" = None,
+    silence_mask: "jax.Array | None" = None,
+    noise_scale: "jax.Array | float | None" = None,
+    init_state: "dict | None" = None,
+    step_indices: "jax.Array | None" = None,
+) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
+    """Protocol E3 — owned D1/D2a ``H_K`` on delayed edge-recurrent Izhikevich.
+
+    Coupling (frozen D1): ``du = a * (H_K * b * v - u)`` on all neurons; non-owners
+    keep ``H_K \\equiv 1`` so ``b_eff = b``.
+
+    Dynamics on owner support only when ``dynamic=True``:
+
+    ``tau_K * dH_K/dt = 1 - H_K`` (D2a F1 Euler).
+
+    When ``dynamic=False``, ``H_K`` is fixed at ``h_k0`` (E3-null / static reference).
+
+    Non-owner semantics: ``H_K`` is held at the reference coordinate ``1``; the F1
+    recurrence is masked off outside ``owner_mask`` (not a separate unallocated
+    coordinate).
+
+    Supports finite edge delays (E2 composition) with ``delay_state`` continuation.
+    """
+    if dynamic and tau_k_ms <= 0:
+        raise ValueError("dynamic owned H_K requires tau_k_ms > 0")
+
+    jdtype = _dtype_from_policy(dtype)
+    h_k_init = jnp.asarray(h_k0, dtype=jdtype)
+    owner = jnp.asarray(owner_mask, dtype=jdtype)
+    n_neurons = params.v0.shape[0]
+    if h_k_init.shape != (n_neurons,):
+        raise ValueError(f"h_k0 must have shape ({n_neurons},), got {h_k_init.shape}")
+    if owner.shape != (n_neurons,):
+        raise ValueError(f"owner_mask must have shape ({n_neurons},), got {owner.shape}")
+
+    a = params.a.astype(jdtype)
+    b = params.b.astype(jdtype)
+    c = params.c.astype(jdtype)
+    d = params.d.astype(jdtype)
+    drive = params.drive.astype(jdtype)
+    source_scale = params.source_scale.astype(jdtype)
+    dt = jnp.asarray(dt_ms, dtype=jdtype)
+    tau_k = jnp.asarray(tau_k_ms, dtype=jdtype)
+    noise_coef = (
+        jnp.asarray(0.5, dtype=jdtype)
+        if noise_scale is None
+        else jnp.asarray(noise_scale, dtype=jdtype)
+    )
+    pre = edges.pre.astype(jnp.int32)
+    post = edges.post.astype(jnp.int32)
+    weight = edges.weight.astype(jdtype)
+    tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    decay = jnp.exp(-dt / tau_ms)
+    delay_steps = edges.delay_steps.astype(jnp.int32)
+    delay_host = _edge_delay_steps_host(edges)
+    max_delay = int(np.max(delay_host)) if delay_host.size else 0
+    bufsize = max_delay + 1
+
+    if silence_mask is not None:
+        s_mask = silence_mask.astype(jdtype)
+    else:
+        s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
+
+    key, noise_key = jax.random.split(key)
+    bulk_noise = jax.random.normal(
+        noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype
+    )
+    time_step_offset = _rbd_continuation_step_offset_array(init_state)
+    if init_state is not None and "v" in init_state:
+        if max_delay > 0:
+            _validate_delayed_init_state(
+                init_state,
+                bufsize=bufsize,
+                n_neurons=n_neurons,
+                n_edges=edges.n_edges,
+            )
+            delay0 = _rbd_delay_state_from_init(
+                init_state, bufsize=bufsize, n_neurons=n_neurons, jdtype=jdtype
+            )
+        else:
+            delay0 = jnp.zeros((bufsize, n_neurons), dtype=jdtype)
+        H0 = jnp.asarray(
+            init_state.get("H_K", init_state.get("H", h_k_init)), dtype=jdtype
+        )
+        init = (
+            jnp.asarray(init_state["v"], dtype=jdtype),
+            jnp.asarray(init_state["u"], dtype=jdtype),
+            jnp.asarray(init_state["prev_spikes"], dtype=jdtype),
+            jnp.asarray(init_state["syn_state"], dtype=jdtype),
+            delay0,
+            H0,
+        )
+    else:
+        init = (
+            params.v0.astype(jdtype),
+            params.u0.astype(jdtype),
+            jnp.zeros_like(params.v0, dtype=jdtype),
+            jnp.zeros((edges.n_edges,), dtype=jdtype),
+            jnp.zeros((bufsize, n_neurons), dtype=jdtype),
+            h_k_init,
+        )
+
+    if step_indices is not None:
+        step_indices = jnp.asarray(step_indices, dtype=jnp.int32).reshape(-1)
+        if int(step_indices.shape[0]) != int(n_steps):
+            raise ValueError(
+                "step_indices must have shape (n_steps,) when provided; got "
+                f"{step_indices.shape} for n_steps={n_steps}"
+            )
+    else:
+        off = time_step_offset
+        if isinstance(off, int):
+            step_indices = jnp.arange(off, off + int(n_steps), dtype=jnp.int32)
+        else:
+            step_indices = jnp.arange(
+                off,
+                off + jnp.asarray(int(n_steps), dtype=jnp.int32),
+                dtype=jnp.int32,
+            )
+
+    one = jnp.asarray(1.0, dtype=jdtype)
+
+    def _h_next(H: jax.Array) -> jax.Array:
+        advanced = _advance_h_k_f1_autonomous(H, dt, tau_k)
+        return jnp.where(owner > 0.5, advanced, one)
+
+    def step_delayed(carry, xs_t):
+        t_idx, noise_t = xs_t
+        v, u, prev_spikes, syn_state, spike_hist, H = carry
+        edge_current = weight * syn_state
+        syn = _segment_sum(edge_current, post, n_neurons)
+        current_native = drive + syn + noise_coef * noise_t
+        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H)
+        v_next = v + dt * dv
+        u_next = u + dt * du
+        v_next = jnp.where(s_mask > 0.5, v_next, c)
+        spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
+        spikes = spikes_bool.astype(jdtype)
+        v_reset = jnp.where(spikes_bool, c, v_next)
+        u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+        presyn = _delayed_presynaptic_spikes(spikes, spike_hist, t_idx, pre, delay_steps)
+        syn_next = syn_state * decay + presyn
+        slot = jnp.mod(t_idx, bufsize)
+        spike_hist_next = spike_hist.at[slot].set(spikes)
+        H_next = _h_next(H) if dynamic else H
+        source_proxy = _source_proxy_from_components(
+            current_native, spikes, source_scale, dtype=jdtype
+        )
+        return (v_reset, u_reset, spikes, syn_next, spike_hist_next, H_next), (
+            v_reset,
+            spikes,
+            source_proxy,
+            H_next,
+        )
+
+    if drive_schedule is not None:
+        sched = drive_schedule.astype(jdtype)
+
+        def step_delayed_sched(carry, xs_t):
+            t_idx, sched_t, noise_t = xs_t
+            v, u, prev_spikes, syn_state, spike_hist, H = carry
+            edge_current = weight * syn_state
+            syn = _segment_sum(edge_current, post, n_neurons)
+            current_native = drive + sched_t + syn + noise_coef * noise_t
+            dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H)
+            v_next = v + dt * dv
+            u_next = u + dt * du
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
+            spikes = spikes_bool.astype(jdtype)
+            v_reset = jnp.where(spikes_bool, c, v_next)
+            u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+            presyn = _delayed_presynaptic_spikes(spikes, spike_hist, t_idx, pre, delay_steps)
+            syn_next = syn_state * decay + presyn
+            slot = jnp.mod(t_idx, bufsize)
+            spike_hist_next = spike_hist.at[slot].set(spikes)
+            H_next = _h_next(H) if dynamic else H
+            source_proxy = _source_proxy_from_components(
+                current_native, spikes, source_scale, dtype=jdtype
+            )
+            return (v_reset, u_reset, spikes, syn_next, spike_hist_next, H_next), (
+                v_reset,
+                spikes,
+                source_proxy,
+                H_next,
+            )
+
+        final, (voltages, spikes, sources, H_trace) = jax.lax.scan(
+            step_delayed_sched,
+            init,
+            xs=(step_indices, sched, bulk_noise),
+        )
+    else:
+        final, (voltages, spikes, sources, H_trace) = jax.lax.scan(
+            step_delayed, init, xs=(step_indices, bulk_noise)
+        )
+
+    final_state = {
+        "v": final[0],
+        "u": final[1],
+        "prev_spikes": final[2],
+        "syn_state": final[3],
+        "delay_state": final[4],
+        "spike_history": final[4],
+        "H_K_final": final[5],
+        "H_K_trace": H_trace,
+        "owner_mask": owner,
+        "h_k_non_owner_semantics": (
+            "fixed_reference_H_K_equals_1_with_F1_recurrence_masked_off"
+        ),
+        "delay_steps_max": jnp.asarray(max_delay, dtype=jnp.int32),
+        "continuation_step_offset": step_indices[-1] + jnp.asarray(1, dtype=jnp.int32),
+    }
+    return voltages, spikes, sources, final_state
+
+
 def _advance_h_a_trace(
     H_A: jax.Array,
     S: jax.Array,

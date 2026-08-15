@@ -83,8 +83,9 @@ def test_e3_validate_spec_passes():
     validate_e3_spec()
 
 
-def test_e3_protocol_receipt_frozen():
+def test_e3_protocol_receipt_closed():
     receipt = json.loads((E3_SPEC_PATH.parent / "e3_protocol_receipt.json").read_text())
-    assert receipt["status"] == "FROZEN"
+    assert receipt["status"] == "CLOSED"
     assert receipt["rbs_owner"]["n_nodes"] == 7
-    assert receipt["next_checkpoint"] == "E3_implementation"
+    assert receipt["next_checkpoint"] == "E4_specification"
+    assert receipt["execution_receipt"] == "artifacts/protocol_e_integration/e3_execution_receipt.json"

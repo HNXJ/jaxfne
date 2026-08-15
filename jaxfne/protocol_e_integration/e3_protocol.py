@@ -11,6 +11,9 @@ from jaxfne.protocol_e_integration.e1_protocol import E1_EXECUTION_RECEIPT_PATH
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 E3_SPEC_PATH = _REPO_ROOT / "artifacts" / "protocol_e_integration" / "e3_rbs_composition_spec.json"
+E3_EXECUTION_RECEIPT_PATH = (
+    _REPO_ROOT / "artifacts" / "protocol_e_integration" / "e3_execution_receipt.json"
+)
 
 
 def load_e3_spec(path: Path | None = None) -> dict[str, Any]:

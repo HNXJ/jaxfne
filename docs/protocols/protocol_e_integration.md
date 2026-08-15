@@ -1,6 +1,6 @@
 # Protocol E — integrated TFNE composition (0.4.17-E)
 
-**Status:** E0.1 ladder **frozen**; **E1 closed**; **E2 closed**; **E3 specification frozen** (implementation not authorized)
+**Status:** E0.1 ladder **frozen**; **E1 closed**; **E2 closed**; **E3 closed** (implementation frozen; E4 not authorized)
 **Milestone boundary:** `9589933` — 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)
 
 **Specs:**  
@@ -143,7 +143,7 @@ Bit-exact on \(V_m\), spikes, identity/provenance, and edge structure where orde
 
 **Closed:** G1–G8 pass; typed delay table and delay occupancy frozen.
 
-## E3 — RBS composition (spec frozen)
+## E3 — RBS composition (closed)
 
 **Question:** Does hierarchy + typed delays compose with sparse D1/D2a \(H_K\) RBS without changing E2 at reference?
 
@@ -166,13 +166,17 @@ E3\equiv E2
 |------|-------|-----------|---------|--------------|
 | A2 | L5 | E | 7 | 70–76 |
 
-**Modes:** `E3-null` (\(H_K=1,\ \dot H_K=0\), must match E2) and `E3-dynamic` (\(\tau_K\dot H_K = 1-H_K\), \(H_K(0)=1+\delta_H=1.2\), \(\tau_K=100\) ms).
+**Modes:** `E3-null` (\(H_K=1,\ \dot H_K=0\), must match E2 through E3 path) and `E3-dynamic` (\(\tau_K\dot H_K = 1-H_K\), \(H_K(0)=1+\delta_H=1.2\) on owners, \(\tau_K=100\) ms).
 
-**Combined continuation:** segmented execution must carry \(H_K\) and \(\mathcal{B}_t\) (`delay_state`) with E2 splits (400 ms / 120 ms).
+**Non-owner semantics:** non-owners carry fixed reference \(H_K=1\) with F1 recurrence masked off (not an unallocated coordinate).
 
-**Gates (G1–G9):** E2 reduction, ownership, non-owner invariance, typed expression, autonomous recovery, delay compatibility, continuation, hierarchy invariance, no phenotype claim.
+**Combined continuation:** segmented execution carries \(H_K\) and \(\mathcal{B}_t\) (`delay_state`); in-flight stress @ 120 ms with both \(H_K\neq 1\) and \(\mathcal{B}_t\neq 0\).
 
-**Not authorized:** E3 implementation, D2b, D3 phenotype, HDP, new delays, field/probe evidence.
+**Gates (G1–G9):** E2 reduction, ownership, non-owner invariance, typed expression, autonomous recovery (D2a Euler recurrence), delay compatibility, continuation, hierarchy invariance, composition-effect-only (no phenotype).
+
+**Receipt:** `artifacts/protocol_e_integration/e3_execution_receipt.json`
+
+**Closed:** G1–G9 pass; E2 delay digest and hierarchy fingerprints inherited unchanged.
 
 ## Explicit blocks (unchanged from E0)
 
@@ -191,5 +195,5 @@ E3\equiv E2
 | E0.1 | Implementation ladder + reduction contracts **frozen** |
 | E1 | Hierarchy/runtime **closed** (G1–G6 pass; execution receipt frozen) |
 | E2 | Delayed coupling **closed** (G1–G8 pass; execution receipt frozen) |
-| E3 | RBS composition spec **frozen**; implementation **not authorized** |
+| E3 | RBS composition **closed** (G1–G9 pass; execution receipt frozen) |
 | E4–E5 | Not authorized (spec deferred) |

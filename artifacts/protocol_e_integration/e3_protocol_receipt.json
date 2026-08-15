@@ -1,12 +1,12 @@
 {
   "schema": "jaxfne.protocol_e_integration.e3_protocol_receipt.v1",
   "checkpoint": "E3",
-  "status": "FROZEN",
+  "status": "CLOSED",
   "protocol_id": "protocol_e_integration_v0417",
   "milestone": "0.4.17-E",
   "spec": "artifacts/protocol_e_integration/e3_rbs_composition_spec.json",
   "protocol_doc": "docs/protocols/protocol_e_integration.md",
-  "implementation_authorized": false,
+  "implementation_authorized": true,
   "parent_head": "6722edf26070b7991e58524cdb75cab225847397",
   "prerequisites": {
     "e2_spec": "artifacts/protocol_e_integration/e2_delayed_coupling_spec.json",
@@ -15,13 +15,15 @@
     "d1_spec": "artifacts/protocol_d_biological_rbs/d1_static_h_k_expression_spec.json",
     "d2a_spec": "artifacts/protocol_d_biological_rbs/d2a_autonomous_h_k_relaxation_spec.json"
   },
-  "scope": "sparse A2:L5:E H_K RBS via D1/D2a primitives; R_E3_to_E2 at H=H*",
+  "execution_receipt": "artifacts/protocol_e_integration/e3_execution_receipt.json",
+  "scope": "sparse A2:L5:E H_K RBS via D1/D2a primitives; R_E3_to_E2 at H=H*; non-owner H_K fixed at reference with masked recurrence",
   "reduction_contract": "R_E3_to_E2",
   "rbs_owner": {
     "area": "A2",
     "layer": "L5",
     "cell_type": "E",
-    "n_nodes": 7
+    "n_nodes": 7,
+    "flat_indices": [70, 71, 72, 73, 74, 75, 76]
   },
-  "next_checkpoint": "E3_implementation"
+  "next_checkpoint": "E4_specification"
 }
