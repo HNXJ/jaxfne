@@ -4,7 +4,7 @@
   "kind": "permanent",
   "title": "Seal (PRP verb node)",
   "generated": {
-    "summary": "4 checkpoint(s) sealed (live from plans.json.checkpoints[]).",
+    "summary": "5 checkpoint(s) sealed (live from plans.json.checkpoints[]).",
     "source_paths": [],
     "links": [
       {
@@ -13,7 +13,7 @@
       }
     ]
   },
-  "status": "verified",
+  "status": "stale",
   "notes": [
     {
       "id": "checkpoint-2026-07-30-dangling-edge-fix",
@@ -31,9 +31,9 @@
   "verification": {
     "checks": {
       "sources_resolve": null,
-      "reproducible": true
+      "reproducible": false
     },
-    "verdict": "verified",
+    "verdict": "stale",
     "checks_run": 1
   }
 }

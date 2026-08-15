@@ -93,7 +93,7 @@
       "date": "2026-08-03",
       "source": "jaxfne/fields/proxy.py cable_filter_sources, commit 9a0d034",
       "confidence": "high",
-      "detail": "Package deep-eval audit: gates green everywhere while jtfne.cable_filter_sources crashed on the JAX Metal backend — root cause was jnp.fft.rfft itself (Metal cannot legalize FFT/complex output; verified standalone). Rewrote the operator as a time-domain matched-pole one-pole IIR cascade (lax.scan, real arithmetic). Verified magnitude/band-power preservation vs the FFT form (ratio 1.000-1.006 in validated bands <=90 Hz; deep:superf gamma 0.0996->0.0993) so documented validated claims carry over; filter is now causal and backend-portable. Also pinned ruff==0.15.17 (CI Lint gate red since 2026-07-30 was unpinned-ruff drift) and made stub fences explicit (GLIF/LIF/NWB).",
+      "detail": "Package deep-eval audit: gates green everywhere while jtfne.cable_filter_sources crashed on the JAX Metal backend \u2014 root cause was jnp.fft.rfft itself (Metal cannot legalize FFT/complex output; verified standalone). Rewrote the operator as a time-domain matched-pole one-pole IIR cascade (lax.scan, real arithmetic). Verified magnitude/band-power preservation vs the FFT form (ratio 1.000-1.006 in validated bands <=90 Hz; deep:superf gamma 0.0996->0.0993) so documented validated claims carry over; filter is now causal and backend-portable. Also pinned ruff==0.15.17 (CI Lint gate red since 2026-07-30 was unpinned-ruff drift) and made stub fences explicit (GLIF/LIF/NWB).",
       "record": "Receipts: cable_filter+tensor_pipeline 9/9 on Metal (was 4 failed) and 30p on CPU; api smoke 34p/1s; ruff 0.15.17 clean; mkdocs --strict exit 0; compileall clean; numerical equivalence 3.3e-16 (FFT form) and band-power ~1.00-1.02 (IIR vs analytic |H|)."
     },
     {
@@ -139,8 +139,7 @@
       "confidence": "high",
       "detail": "P-06 DONE [EVIDENCE] 2026-08-08: benchmark_protocol_v1.py CLI committed (synchronized block_until_ready timing, deterministic fixed seed, warmup-vs-measured, GPU-requested structured SKIP with no fallback, JSON report schema). Workload default N=400/T=200ms verified by probe (N=1000/T=1000ms HDP arm ~143s/run on CPU -> kept as 'large' preset instead of default). 7 focused non-timing tests pass. Two identical CPU smokes (standard ~0.168s, hdp ~5.27s, float32, seed 0) + GPU skip exit 0. Gates: compileall 0, smoke trio 34 passed/1 skipped, audit pass:true, mkdocs strict exit 0. Roadmap: P-06 tagged [DONE][EVIDENCE], P-07 row added (float32 HDP acceptance test: three seeds, matched control, null control, finite/dtype/determinism evidence).",
       "record": "Receipts: artifacts/developer/receipts/P06_cpu_smoke.json, P06_cpu_smoke2.json, P06_gpu_skip.json (gitignored). Commit on dev includes only scripts/benchmark_protocol_v1.py, tests/test_benchmark_protocol_v1.py, docs/fullroadmap.md."
-    }
-  ,
+    },
     {
       "id": "note-P07-float32-hdp-acceptance-2026-08-08",
       "kind": "progress_entry",
@@ -149,8 +148,7 @@
       "confidence": "high",
       "detail": "P-07 DONE [EVIDENCE] 2026-08-08: tests/test_perf_float32_hdp_acceptance.py 6 passed (3 fixed seeds finite float32/shapes/record_weight_trace=False; same-seed repeat bitwise-identical on CPU, full-seed scope emitters.py:422-435; matched non-HDP control metadata has no hdp block; disconnected_null ablation -> w stays at w_floor 1e-3 scale (|w_final|max=1.0038e-3), H in [0.98,1.02] box, spikes nonzero by kernel noise design). Regression 66 passed/1 skipped; audit pass:true; mkdocs strict exit 0. Explicit: no CUDA evidence, no HDP-superiority claim.",
       "record": "Receipts: artifacts/developer/receipts/P07_hdp_acceptance.txt, P07_regression.txt, P07_audit.txt, P07_mkdocs.txt (gitignored). roadmap P-07 tagged [DONE][EVIDENCE]."
-    }
-,
+    },
     {
       "id": "note-P07-ci-green-promotion-2026-08-08",
       "kind": "progress_entry",
@@ -159,8 +157,7 @@
       "confidence": "high",
       "detail": "CI (Fast) on dev df2aa82 = SUCCESS (first green dev push since the orphan gate): compileall, ruff 0.15.17, docs audit, notebook audit, mkdocs strict, orphan check, pytest -m not slow on 3.10/3.12, 18 examples, wheel build+twine+install smoke. Fixes that unblocked CI: (1) scripts/check_docs_orphans.py as_posix() -- win32 backslash paths never matched nav entries (same portability fix as audit_public_docs_language.py C-04); (2) mkdocs.yml exclude_docs added fullroadmap.md (agent-facing roadmap, intentionally non-navigable) -- this single orphan had failed every dev push since the P pivot. Root-cause of MAIN's pre-existing release-CI failure (test_agent_context_hygiene test_report_hygiene_check): docs/ROADMAP_PHASES.md still tracked on main with a forbidden 'claude' line -- deleted on dev in E-M01, so the dev->main merge removes it. Local Windows mirrors showed 19 fails NOT reproduced by CI: cp1252 locale hygiene failures (fixed via PYTHONUTF8=1), optax absent (fallback status string), Unix-only `import resource` in benchmarks/scaling_benchmark.py, bash-required release_scripts, stale local outputs/ manifests, notebook execution kernel absent; none in P-07 paths. Pending: dev->main PR + merge + main CI green + roadmap promotion record.",
       "record": "gh run 31288821938 df2aa82 success. Local receipts: P07_ci_mirror_fast.txt, P07_ci_mirror_fast_utf8.txt, P07_ci_mirror_all.txt (gitignored)."
-    }
-,
+    },
     {
       "id": "note-P07-promotion-to-main-2026-08-08",
       "kind": "progress_entry",
@@ -170,7 +167,7 @@
       "detail": "dev->main promotion COMPLETE 2026-08-08. PR #77 merged normally (no force-push); merge commit a8178bf (main_before 27923e0; main_after a8178bf). Final dev SHA 2bda4e0 with CI (Fast) SUCCESS (run 31290836875). Main CI (Release & Scheduled) on a8178bf SUCCESS (run 31291869518, all 3.10/3.11/3.12 full suites + examples + wheel build/twine/smoke) -- first green main release CI since the ROADMAP_PHASES.md hygiene violation; that file now absent from main. Post-merge local gates on main: compileall 0, 73 passed/1 skipped, audit pass:true, mkdocs strict exit 0. Roadmap Promotion log entry added under Phase P. Remaining phase work: P-03/P-08 CUDA float32 acceptance needs GPU hardware; Phase P exit criteria not yet met.",
       "record": "Receipts: artifacts/developer/receipts/P07_main_postmerge_gate.txt, P07_main_audit.txt, P07_main_mkdocs.txt (gitignored). Commit on main: roadmap Promotion log + this note."
     }
-],
+  ],
   "issues": [],
   "plan": "",
   "verification": {

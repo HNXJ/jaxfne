@@ -4,7 +4,7 @@
   "kind": "doc",
   "title": "AGENTS.md",
   "generated": {
-    "summary": "AGENTS.md \u2014 jaxfne (agent pointer) -- **Clone:** this repo \u00b7 **Import:** `import jaxfne as jtfne`",
+    "summary": "jaxfne \u2014 minimal persistent context -- - **Identity vs integrity.** Workspace identity = (root, git root, remote, workspace id),",
     "source_paths": [
       "AGENTS.md"
     ],
@@ -15,7 +15,7 @@
       }
     ]
   },
-  "status": "verified",
+  "status": "stale",
   "notes": [
     {
       "id": "formation-pass-2026-07-23",
@@ -71,9 +71,9 @@
   "verification": {
     "checks": {
       "sources_resolve": true,
-      "reproducible": true
+      "reproducible": false
     },
-    "verdict": "verified",
+    "verdict": "stale",
     "checks_run": 2
   }
 }

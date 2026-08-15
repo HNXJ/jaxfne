@@ -1,0 +1,30 @@
+{
+  "id": "staging-harness-global-workspace-analysis-jaxfne-agents-md",
+  "schema_version": 3,
+  "kind": "doc",
+  "title": "AGENTS.md",
+  "generated": {
+    "summary": "AGENTS.md \u2014 jaxfne operational context -- jaxfne is a JAX computational scaffold. The public import is:",
+    "source_paths": [
+      "composer_2_5_harness_audit_staging/harness/global/workspace/analysis/jaxfne/AGENTS.md"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-composer-harness-audit-staging",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": null
+    },
+    "verdict": "unconfirmed",
+    "checks_run": 1
+  }
+}

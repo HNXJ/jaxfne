@@ -55,6 +55,9 @@ test_execution_output/
 .cursor/skills/
 .cursor/local/
 
+# Generated OpenCode skill mirror (machine-specific; regenerate from canonical skills/ via scripts/harness/sync_skills.py)
+.opencode/skills/
+
 # Composer harness audit staging (local only)
 composer_2_5_harness_audit_staging/
 composer_2_5_agent_harness_audit.zip

@@ -4,7 +4,7 @@
   "kind": "folder",
   "title": "figures",
   "generated": {
-    "summary": "Folder with 1 files, e.g. none.",
+    "summary": "Folder with 8 files, e.g. none.",
     "source_paths": [
       "figures"
     ],
@@ -15,7 +15,7 @@
       }
     ]
   },
-  "status": "verified",
+  "status": "stale",
   "notes": [
     {
       "id": "formation-pass-2026-07-23",
@@ -41,9 +41,9 @@
   "verification": {
     "checks": {
       "sources_resolve": true,
-      "reproducible": true
+      "reproducible": false
     },
-    "verdict": "verified",
+    "verdict": "stale",
     "checks_run": 2
   }
 }

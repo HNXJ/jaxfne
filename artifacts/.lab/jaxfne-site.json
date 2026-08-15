@@ -4,7 +4,7 @@
   "kind": "folder",
   "title": "site",
   "generated": {
-    "summary": "Folder with 186 files, e.g. index.html, requirements.txt, _theme_override.css, 404.html, sitemap.xml.",
+    "summary": "Folder with 168 files, e.g. index.html, requirements.txt, _theme_override.css, 404.html, sitemap.xml.",
     "source_paths": [
       "site"
     ],
@@ -15,7 +15,7 @@
       }
     ]
   },
-  "status": "verified",
+  "status": "stale",
   "notes": [
     {
       "id": "formation-pass-2026-07-23",
@@ -41,9 +41,9 @@
   "verification": {
     "checks": {
       "sources_resolve": true,
-      "reproducible": true
+      "reproducible": false
     },
-    "verdict": "verified",
+    "verdict": "stale",
     "checks_run": 2
   }
 }

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["scratch/CURRENT_TASK.md"],
+  "permission": {
+    "bash": {
+      "*": "allow",
+      "git push *": "ask",
+      "git push origin dev": "allow",
+      "git push --force*": "deny",
+      "git push -f*": "deny",
+      "git tag *": "ask",
+      "git merge *": "ask",
+      "git checkout main": "ask",
+      "git reset --hard*": "deny",
+      "rm *": "deny",
+      "rm -rf*": "deny",
+      "sudo *": "deny"
+    },
+    "edit": {
+      "*": "allow",
+      "~/.config/opencode/**": "deny",
+      "docs/doctrine/**": "ask",
+      "artifacts/protocol_*/**": "ask",
+      "artifacts/publication/fig01_generation_receipt.json": "deny",
+      "artifacts/publication/fig01_grammar_spec.json": "deny",
+      "artifacts/publication/fig01_semantic_audit.json": "deny",
+      "artifacts/publication/fig02_04_cross_figure_audit.json": "deny",
+      "artifacts/publication/fig02_04_experiment_a_spec.json": "deny",
+      "artifacts/publication/fig02_generation_receipt.json": "deny",
+      "artifacts/publication/fig03_generation_receipt.json": "deny",
+      "artifacts/publication/fig04_generation_receipt.json": "deny",
+      "artifacts/publication/fig05_generation_receipt.json": "deny",
+      "artifacts/publication/fig05_semantic_audit.json": "deny",
+      "artifacts/publication/fig05_wave_spec.json": "deny",
+      "artifacts/publication/fig06_generation_receipt.json": "deny",
+      "artifacts/publication/fig06_hwd_spec.json": "deny",
+      "artifacts/publication/fig06_semantic_audit.json": "deny",
+      "artifacts/publication/fig07_generation_receipt.json": "deny",
+      "artifacts/publication/fig07_integration_spec.json": "deny",
+      "artifacts/publication/fig07_semantic_audit.json": "deny",
+      "artifacts/publication/figures_1_7_cross_figure_audit.json": "deny",
+      "artifacts/publication/pec_consolidation_receipt.json": "deny",
+      "artifacts/publication/pec_consolidation_spec.json": "deny",
+      "artifacts/publication/publication_evidence_index.json": "deny",
+      "figures/publication/fig01_tfne_grammar.png": "deny",
+      "figures/publication/fig02_emitter_source.png": "deny",
+      "figures/publication/fig03_local_observation.png": "deny",
+      "figures/publication/fig04_multiscale_boundary.png": "deny",
+      "figures/publication/fig05_traveling_wave_no_wave.png": "deny",
+      "figures/publication/fig06_rbs_hdp_ladder.png": "deny",
+      "figures/publication/fig07_e_integration.png": "deny"
+    },
+    "external_directory": {
+      "~/.config/opencode/**": "allow"
+    },
+    "webfetch": {
+      "*": "allow"
+    }
+  }
+}

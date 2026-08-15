@@ -4,7 +4,7 @@
   "kind": "folder",
   "title": "jaxfne",
   "generated": {
-    "summary": "Folder with 110 files, e.g. _signals.py, builders.py, sanity_delta.py, bridges.py, connectivity.py.",
+    "summary": "Folder with 170 files, e.g. _signals.py, builders.py, h3_decodability.py, sanity_delta.py, bridges.py.",
     "source_paths": [
       "jaxfne"
     ],
@@ -15,7 +15,7 @@
       }
     ]
   },
-  "status": "verified",
+  "status": "stale",
   "notes": [
     {
       "id": "formation-pass-2026-07-23",
@@ -60,9 +60,9 @@
   "verification": {
     "checks": {
       "sources_resolve": true,
-      "reproducible": true
+      "reproducible": false
     },
-    "verdict": "verified",
+    "verdict": "stale",
     "checks_run": 2
   }
 }

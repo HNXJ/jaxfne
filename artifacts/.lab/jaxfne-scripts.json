@@ -4,7 +4,7 @@
   "kind": "folder",
   "title": "scripts",
   "generated": {
-    "summary": "Folder with 90 files, e.g. characterize_neuron_io_curves.py, hdp_1000_neuronal_tensor_column.py, ed9_hdp_evidence.py, hdp_bifurcation_trace.py, ed9_homeostasis_evidence.py.",
+    "summary": "Folder with 131 files, e.g. characterize_neuron_io_curves.py, audit_agent_context.py, hdp_mvc_readonly_search.py, hdp_1000_neuronal_tensor_column.py, ed9_hdp_evidence.py.",
     "source_paths": [
       "scripts"
     ],
@@ -15,7 +15,7 @@
       }
     ]
   },
-  "status": "verified",
+  "status": "stale",
   "notes": [
     {
       "id": "formation-pass-2026-07-23",
@@ -61,9 +61,9 @@
   "verification": {
     "checks": {
       "sources_resolve": true,
-      "reproducible": true
+      "reproducible": false
     },
-    "verdict": "verified",
+    "verdict": "stale",
     "checks_run": 2
   }
 }
