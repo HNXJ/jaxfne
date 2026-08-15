@@ -1,0 +1,21 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e5_protocol_receipt.v1",
+  "checkpoint": "E5",
+  "status": "FROZEN",
+  "protocol_id": "protocol_e_integration_v0417",
+  "milestone": "0.4.17-E",
+  "spec": "artifacts/protocol_e_integration/e5_causal_perturbation_spec.json",
+  "protocol_doc": "docs/protocols/protocol_e_integration.md",
+  "implementation_authorized": false,
+  "parent_head": "245da93f352c0f1756be8415848a8056b2649ce9",
+  "prerequisites": {
+    "e4_spec": "artifacts/protocol_e_integration/e4_observation_chain_spec.json",
+    "e4_execution_receipt": "artifacts/protocol_e_integration/e4_execution_receipt.json",
+    "e3_execution_receipt": "artifacts/protocol_e_integration/e3_execution_receipt.json",
+    "e1_execution_receipt": "artifacts/protocol_e_integration/e1_execution_receipt.json"
+  },
+  "scope": "prospective N0/N1/D causal perturbation with D-N1 contrast; zero new architecture",
+  "primary_contrast": "D - N1",
+  "owner": "A2:L5:E (flat_indices 70-76)",
+  "next_checkpoint": "E5_implementation"
+}

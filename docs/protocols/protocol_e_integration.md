@@ -1,6 +1,6 @@
 # Protocol E — integrated TFNE composition (0.4.17-E)
 
-**Status:** E0.1 ladder **frozen**; **E1 closed**; **E2 closed**; **E3 closed**; **E4 closed** (implementation frozen; E5 not authorized)
+**Status:** E0.1 ladder **frozen**; **E1–E4 closed**; **E5 specification frozen** (implementation not authorized); TFNE integration architecture complete through observation
 **Milestone boundary:** `9589933` — 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)
 
 **Specs:**  
@@ -10,6 +10,7 @@
 - E2: `artifacts/protocol_e_integration/e2_delayed_coupling_spec.json`
 - E3: `artifacts/protocol_e_integration/e3_rbs_composition_spec.json`
 - E4: `artifacts/protocol_e_integration/e4_observation_chain_spec.json`
+- E5: `artifacts/protocol_e_integration/e5_causal_perturbation_spec.json`
 
 **Prerequisites:** Protocol D closed @ D3; Protocol C closed @ C4; Protocol H closed @ H4; W3 unresolved
 
@@ -222,6 +223,44 @@ E4\equiv E3
 
 **Closed:** G1–G10 pass; Experiment A semantics reused; source aggregation conservation verified.
 
+## E5 — causal perturbation (spec frozen)
+
+**Question:** Does a localized RBS perturbation produce a measurable hierarchical response beyond its matched mechanism-null?
+
+**Adds:** prospective causal evidence only — **zero new TFNE architecture**.
+
+**Owner:** \(\mathcal O_H =\) A2:L5:E (flat indices 70–76); perturbation \(H_K(t_0^+)=1.2\) on owners.
+
+**Arms:**
+
+| ID | \(H_K\) on \(\mathcal O_H\) | \(\Gamma_H\) | \(b_{\mathrm{eff}}\) |
+|----|------------------------------|--------------|----------------------|
+| **N0** | 1 (reference) | identity | \(b\) |
+| **N1** | 1.2, matched dynamics | disabled | \(b\) |
+| **D** | 1.2, matched dynamics | enabled | \(H_K b\) |
+
+**Primary contrast:** \(\boxed{D - N_1}\) (not \(D\) vs N0 alone). Null invariants: \(H_K^{N1}=H_K^{D}\); \(\Gamma_H^{N1}=I\), \(\Gamma_H^{D}(H_K)=H_K\).
+
+**Propagation assay:** \(H_K \rightarrow X_{\mathrm{owner}} \rightarrow X_{\mathrm{A2}} \rightarrow X_{\mathrm{A1}} \rightarrow Q \rightarrow Y\).
+
+**Response vector:** \(\Delta R = (\Delta X_{\mathrm{owner}}, \Delta X_{\mathrm{A2/nonowner}}, \Delta X_{\mathrm{A1}}, \Delta Q, \Delta Y)\) with simple frozen metrics (voltage/spike/source/proxy norms and integrals; **no new spectral pipeline**).
+
+**Primary prediction:** \(D-N_1 \neq 0\) at owner population (required for non-`NO_EFFECT`). Downstream propagation is secondary.
+
+**Classification:** `NO_EFFECT` | `LOCAL_EXPRESSION` | `HIERARCHICAL_PROPAGATION` | `UNRESOLVED` — **HIERARCHICAL_PROPAGATION not required to close E5**.
+
+**A1 interpretation:** any A1 effect is structural propagation via frozen **FB** pathway A2\(\rightarrow\)A1, not FF/FB functional/spectral claim.
+
+**Workflow:** one neural trajectory per arm/seed \(\rightarrow\) freeze \(\rightarrow\) E4 \(F/P\) (no re-simulate per observation).
+
+**Seeds:** `[11, 12, 13]` fixed (no added sample size without spec amendment).
+
+**Post-close policy:** hard 0.4.17 scientific feature freeze; next work is publication evidence (Figures 1–7), not E6.
+
+**Provenance housekeeping (prospective):** distinguish `execution_parent_sha` from `artifact_commit_sha` in publication manifest; do not retroactively rewrite E3/E4 write-once receipts.
+
+**Not authorized:** E5 implementation, new architecture, spectral/adaptation/HDP phenotype claims.
+
 ## Explicit blocks (unchanged from E0)
 
 | Block | Status |
@@ -241,4 +280,4 @@ E4\equiv E3
 | E2 | Delayed coupling **closed** (G1–G8 pass; execution receipt frozen) |
 | E3 | RBS composition **closed** (G1–G9 pass; execution receipt frozen) |
 | E4 | Observation chain **closed** (G1–G10 pass; execution receipt frozen) |
-| E5 | Not authorized (spec deferred) |
+| E5 | Causal perturbation spec **frozen**; implementation **not authorized** |
