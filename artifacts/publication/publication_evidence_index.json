@@ -329,7 +329,12 @@
       "semantic_status": "structural_composition",
       "null_control": "G6 inter-area disabled baseline",
       "numeric_values_to_display": {"edge_count": 931},
-      "figure_generation_entry_point": "DEFERRED: figure_7 phase",
+      "figure_generation_entry_point": "scripts/publication_figures/fig07_e_integration.py",
+      "figure_output": "figures/publication/fig07_e_integration.png",
+      "generation_receipt": "artifacts/publication/fig07_generation_receipt.json",
+      "semantic_audit": "artifacts/publication/fig07_semantic_audit.json",
+      "figure_sha256": "fa74ddf210d397c9c1b719d0ac75573045985877312efcccbdedc0aa59e71dce",
+      "polarity_combined": "DEMONSTRATED + POSITIVE",
       "reproducibility_sha": {
         "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/protocol_e_integration/e1_execution_receipt.json#package_head"
@@ -350,7 +355,12 @@
       "semantic_status": "structural_composition",
       "null_control": "R_E2_to_E1 zero-delay reduction",
       "numeric_values_to_display": {"N_d2": 651, "N_d4": 140, "N_d8": 140},
-      "figure_generation_entry_point": "DEFERRED: figure_7 phase",
+      "figure_generation_entry_point": "scripts/publication_figures/fig07_e_integration.py",
+      "figure_output": "figures/publication/fig07_e_integration.png",
+      "generation_receipt": "artifacts/publication/fig07_generation_receipt.json",
+      "semantic_audit": "artifacts/publication/fig07_semantic_audit.json",
+      "figure_sha256": "fa74ddf210d397c9c1b719d0ac75573045985877312efcccbdedc0aa59e71dce",
+      "polarity_combined": "DEMONSTRATED + POSITIVE",
       "reproducibility_sha": {
         "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/protocol_e_integration/e2_execution_receipt.json#package_head"
@@ -371,7 +381,12 @@
       "semantic_status": "local_RBD_expression_evidence",
       "null_control": "E3-null bit-exact E2",
       "numeric_values_to_display": {"owner_n_nodes": 7, "owner_flat_indices": [70, 71, 72, 73, 74, 75, 76]},
-      "figure_generation_entry_point": "DEFERRED: figure_7 phase",
+      "figure_generation_entry_point": "scripts/publication_figures/fig07_e_integration.py",
+      "figure_output": "figures/publication/fig07_e_integration.png",
+      "generation_receipt": "artifacts/publication/fig07_generation_receipt.json",
+      "semantic_audit": "artifacts/publication/fig07_semantic_audit.json",
+      "figure_sha256": "fa74ddf210d397c9c1b719d0ac75573045985877312efcccbdedc0aa59e71dce",
+      "polarity_combined": "DEMONSTRATED + POSITIVE",
       "reproducibility_sha": {
         "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/protocol_e_integration/e3_execution_receipt.json#package_head"
@@ -392,7 +407,12 @@
       "semantic_status": "native Q + relative_proxy Y",
       "null_control": "R_E4_to_E3 observation disabled",
       "numeric_values_to_display": {"trajectory_invariance": "T_E4"},
-      "figure_generation_entry_point": "DEFERRED: figure_7 phase",
+      "figure_generation_entry_point": "scripts/publication_figures/fig07_e_integration.py",
+      "figure_output": "figures/publication/fig07_e_integration.png",
+      "generation_receipt": "artifacts/publication/fig07_generation_receipt.json",
+      "semantic_audit": "artifacts/publication/fig07_semantic_audit.json",
+      "figure_sha256": "fa74ddf210d397c9c1b719d0ac75573045985877312efcccbdedc0aa59e71dce",
+      "polarity_combined": "DEMONSTRATED + POSITIVE",
       "reproducibility_sha": {
         "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/protocol_e_integration/e4_execution_receipt.json#execution_parent_sha"
@@ -416,7 +436,12 @@
         "N0_equals_N1_V_m_bit_exact": true,
         "N0_equals_N1_Q_bit_exact": true
       },
-      "figure_generation_entry_point": "DEFERRED: figure_7 phase",
+      "figure_generation_entry_point": "scripts/publication_figures/fig07_e_integration.py",
+      "figure_output": "figures/publication/fig07_e_integration.png",
+      "generation_receipt": "artifacts/publication/fig07_generation_receipt.json",
+      "semantic_audit": "artifacts/publication/fig07_semantic_audit.json",
+      "figure_sha256": "fa74ddf210d397c9c1b719d0ac75573045985877312efcccbdedc0aa59e71dce",
+      "polarity_combined": "DEMONSTRATED + POSITIVE",
       "reproducibility_sha": {
         "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/protocol_e_integration/e5_execution_receipt.json#execution_parent_sha"
@@ -444,7 +469,12 @@
         "G_Y": true,
         "d_propagation": "Y"
       },
-      "figure_generation_entry_point": "DEFERRED: figure_7 phase",
+      "figure_generation_entry_point": "scripts/publication_figures/fig07_e_integration.py",
+      "figure_output": "figures/publication/fig07_e_integration.png",
+      "generation_receipt": "artifacts/publication/fig07_generation_receipt.json",
+      "semantic_audit": "artifacts/publication/fig07_semantic_audit.json",
+      "figure_sha256": "fa74ddf210d397c9c1b719d0ac75573045985877312efcccbdedc0aa59e71dce",
+      "polarity_combined": "DEMONSTRATED + POSITIVE",
       "reproducibility_sha": {
         "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/protocol_e_integration/e5_execution_receipt.json#execution_parent_sha"

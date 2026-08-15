@@ -40,9 +40,10 @@ Examples: H4 = `DEMONSTRATED + NEGATIVE`; C3 = `DEMONSTRATED + NEGATIVE`; D3 = `
 3. Figures 2–4 Experiment A (**complete @ fig02_04_cross_figure_audit**)
 4. Figure 5 Protocol C (**complete @ fig05_generation_receipt**)
 5. Figure 6 H/W/D (**complete @ fig06_generation_receipt**)
-6. Figure 7 (E1–E5) — **next authorized checkpoint**
-7. Main-text reconstruction
-8. Supplement
+6. Figure 7 E-integration (**complete @ fig07_generation_receipt** — **MAIN FIGURE EVIDENCE SET COMPLETE**)
+7. Figures 1–7 cross-figure semantic/provenance audit — **next authorized checkpoint**
+8. Main-text reconstruction
+9. Supplement
 
 ### Figures 2–4 authority (coordinated Experiment A)
 
@@ -80,6 +81,18 @@ Polarity: **DEMONSTRATED + NEGATIVE** (validated estimator; prospective NO_WAVE)
 | Receipt | `artifacts/publication/fig06_generation_receipt.json` |
 
 Seven-panel ladder: RBS → RBD → state memory → parameter writing → parameter expression → closed-loop question, with biological RBS containment (D) beneath. Polarity mix: POSITIVE (A,B,D,E,G containment), NEGATIVE (C H4, G D3), UNRESOLVED (F W3b). No E5 content.
+
+### Figure 7 authority (E1–E5 integration)
+
+| Artifact | Path |
+|----------|------|
+| Spec | `artifacts/publication/fig07_integration_spec.json` |
+| Generator | `scripts/publication_figures/fig07_e_integration.py` |
+| Output | `figures/publication/fig07_e_integration.png` |
+| Semantic audit | `artifacts/publication/fig07_semantic_audit.json` |
+| Receipt | `artifacts/publication/fig07_generation_receipt.json` |
+
+Six-panel compositional culmination: E1 hierarchy → E2 delays → E3 sparse RBS → E4 observation → E5 causal N0/N1/D → hierarchical propagation. Polarity: **DEMONSTRATED + POSITIVE** (E5). No new simulation. `main_figure_evidence_set: COMPLETE`.
 
 ### Figure 1 authority
 

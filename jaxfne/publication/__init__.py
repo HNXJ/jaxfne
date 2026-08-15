@@ -55,6 +55,18 @@ from .fig06_protocol import (
     validate_fig06_semantic_audit,
     validate_fig06_spec,
 )
+from .fig07_protocol import (
+    FIG07_AUDIT_PATH,
+    FIG07_PATH,
+    FIG07_RECEIPT_PATH,
+    FIG07_SPEC_PATH,
+    load_fig07_generation_receipt,
+    load_fig07_semantic_audit,
+    load_fig07_spec,
+    validate_fig07_generation_receipt,
+    validate_fig07_semantic_audit,
+    validate_fig07_spec,
+)
 from .pec_protocol import (
     PEC_CONSOLIDATION_RECEIPT_PATH,
     PEC_SPEC_PATH,
@@ -126,4 +138,14 @@ __all__ = [
     "validate_fig06_spec",
     "validate_fig06_semantic_audit",
     "validate_fig06_generation_receipt",
+    "FIG07_SPEC_PATH",
+    "FIG07_AUDIT_PATH",
+    "FIG07_RECEIPT_PATH",
+    "FIG07_PATH",
+    "load_fig07_spec",
+    "load_fig07_semantic_audit",
+    "load_fig07_generation_receipt",
+    "validate_fig07_spec",
+    "validate_fig07_semantic_audit",
+    "validate_fig07_generation_receipt",
 ]
