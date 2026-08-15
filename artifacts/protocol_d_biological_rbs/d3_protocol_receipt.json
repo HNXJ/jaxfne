@@ -7,21 +7,18 @@
   "spec": "artifacts/protocol_d_biological_rbs/d3_adaptation_recovery_phenotype_spec.json",
   "execution_receipt": "artifacts/protocol_d_biological_rbs/d3_execution_receipt.json",
   "interpretation_receipt": "artifacts/protocol_d_biological_rbs/d3_interpretation_receipt.json",
+  "closure_receipt": "artifacts/protocol_d_biological_rbs/d_closure_interpretation_receipt.json",
   "protocol_doc": "docs/protocols/protocol_d_biological_rbs.md",
   "implementation_authorized": true,
+  "protocol_d_closed": true,
+  "closed_at_checkpoint": "D3",
   "parent_head": "69db2a8e99c0a820a0b995becbefb5204fb758d1",
   "prerequisites": {
     "d2b_closed": "artifacts/protocol_d_biological_rbs/d2b_implementation_receipt.json"
   },
   "phenomenon": "activity-dependent adaptation with recovery",
-  "paradigm": "baseline -> repeated stimulation -> recovery interval -> rechallenge",
-  "primary_metric": "R_j = N_spike^(j) in post-stimulus window",
-  "adaptation_index": "A_adapt = 1 - R_late / R_early",
-  "recovery_index": "R_recovery = (R_rechallenge - R_late) / (R_early - R_late)",
-  "classification_labels": ["ADAPTATION", "NO_ADAPTATION", "UNRESOLVED"],
-  "null_hierarchy": ["N0", "N1", "N2", "D"],
-  "primary_contrast": "D_minus_N2",
-  "recovery_intervals_ms": [50.0, 100.0, 250.0],
-  "n_cells_executed": 36,
-  "next_checkpoint": "D4"
+  "d3_outcome": "NO_ADAPTATION",
+  "D4_status": "not_authorized",
+  "next_milestone": "0.4.17-E",
+  "next_checkpoint": "E0_specification"
 }

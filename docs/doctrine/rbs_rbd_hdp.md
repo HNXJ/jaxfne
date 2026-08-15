@@ -10,8 +10,9 @@ semantic migration; this document remains the compact repository index.
 (state memory under \(\dot W=0\), `docs/doctrine/protocol_h_rbd_memory.md`);
 Protocol C (wave evidence, **closed** @ C4,
 `docs/doctrine/protocol_c_wave_evidence.md`); **Protocol D biological RBS**
-(D0–D3 frozen/executed; **D2b** activity-written RBS closed; **D3** adaptation/recovery
-phenotype closed — distinct from edge-delay Protocol D₀/D₁).
+(D0–D3 frozen/executed; **Protocol D closed @ D3**; D4 not authorized —
+distinct from edge-delay Protocol D₀/D₁). **Protocol E (0.4.17-E):** E0 composition
+spec frozen.
 
 **Containment architecture:** `docs/doctrine/tfne_containment_architecture.md`
 — TFNE as composition framework; \(H\) as unified dependency state; typed

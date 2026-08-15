@@ -102,7 +102,6 @@ def test_d3_protocol_receipt_frozen():
 
     receipt = json.loads((D3_SPEC_PATH.parent / "d3_protocol_receipt.json").read_text())
     assert receipt["status"] == "CLOSED"
-    assert receipt["implementation_authorized"] is True
-    assert receipt["next_checkpoint"] == "D4"
-    assert "execution_receipt" in receipt
-    assert "interpretation_receipt" in receipt
+    assert receipt["protocol_d_closed"] is True
+    assert receipt["D4_status"] == "not_authorized"
+    assert receipt["next_checkpoint"] == "E0_specification"

@@ -1,0 +1,105 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e0_spec.v1",
+  "protocol_id": "protocol_e_integration_v0417",
+  "milestone": "0.4.17-E",
+  "checkpoint": "E0",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_milestone": "0.4.17-D",
+  "parent_closure": "artifacts/protocol_d_biological_rbs/d_closure_interpretation_receipt.json",
+  "parent_head": "9c6fec4",
+  "question": "Can independently validated TFNE components compose into a hierarchical multi-area system without semantic or dynamical failure?",
+  "experiment_type": "composition_not_phenotype_manufacturing",
+  "scientific_scope": {
+    "included": "E0 integrated composition specification only",
+    "excluded": "E0 implementation, closed-loop HDP, D4 second RBS class, post-hoc D2b parameter rescue, mandatory adaptation/gamma/beta phenotype success"
+  },
+  "composition_stack": {
+    "display": "geometry + heterogeneous emitters + delays + RBS/RBD + Source -> Field/Proxy -> Probe",
+    "layers": [
+      {
+        "id": "geometry",
+        "content": "structured multi-area/laminar topology with exact identity preservation"
+      },
+      {
+        "id": "emitters",
+        "content": "heterogeneous populations/emitter types within typed grammar"
+      },
+      {
+        "id": "delays",
+        "content": "explicit edge delays with continuation semantics"
+      },
+      {
+        "id": "rbs_rbd",
+        "content": "typed relative biophysical state and dynamics under dot W = 0"
+      },
+      {
+        "id": "observation",
+        "content": "Source bookkeeping, field/proxy operators, probe readouts"
+      }
+    ]
+  },
+  "primary_success_criteria": {
+    "type": "compositional_invariants",
+    "required": [
+      "finite_stable_dynamics_over_preregistered_horizon",
+      "exact_geometry_topology_identity_preserved",
+      "delay_continuation_semantics_honored",
+      "rbs_node_locality_and_typed_coupling_preserved",
+      "source_field_probe_bookkeeping_explicit",
+      "deterministic_reproducibility_under_fixed_seeds"
+    ],
+    "not_required": [
+      "preferred_gamma_beta_spectral_pattern",
+      "adaptation_phenotype",
+      "closed_loop_memory_expression"
+    ]
+  },
+  "secondary_falsifiable_questions": {
+    "status": "deferred_until_E0_substrate_passes",
+    "examples": [
+      "feedforward_feedback_spectral_hypotheses",
+      "population_level_oscillation_claims"
+    ],
+    "rule": "preregister only after compositional substrate gates pass"
+  },
+  "methodological_inheritance_from_D3": {
+    "rule": "every_E_phenotype_claim_requires_mechanism_null_contrast",
+    "source": "D3 showed identical observable attenuation across N0/N1/N2/D",
+    "forbidden": "baseline_versus_perturbation_without_mechanistic_null"
+  },
+  "explicit_blocks": {
+    "W3_closed_loop_HDP": {
+      "status": "unresolved",
+      "rule": "dot W = 0; no closed-loop HDP in E0"
+    },
+    "D3_adaptation_requirement": {
+      "status": "NO_ADAPTATION_frozen",
+      "rule": "do not require D2b mechanism to produce adaptation in E"
+    },
+    "D4_second_RBS_class": {
+      "status": "not_authorized"
+    }
+  },
+  "prerequisites": {
+    "protocol_D_closed": "artifacts/protocol_d_biological_rbs/d_closure_interpretation_receipt.json",
+    "protocol_C_closed": "artifacts/protocol_c/c4_interpretation_receipt.json",
+    "protocol_H_closed": "artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json",
+    "W3b": "FROZEN_UNRESOLVED"
+  },
+  "explicit_prohibitions": [
+    "no_E0_implementation_in_this_checkpoint",
+    "no_closed_loop_HDP",
+    "no_phenotype_manufacturing_success_criterion",
+    "no_post_hoc_D2b_kappa_AK_sensitivity_in_E0",
+    "no_D4_authorization",
+    "no_FF_FB_spectral_claims_before_substrate_gates"
+  ],
+  "execution_authorization": {
+    "specification_only": true,
+    "implementation_authorized": false,
+    "next_checkpoint": "E0_implementation"
+  },
+  "bundle_root": "artifacts/protocol_e_integration",
+  "protocol_doc": "docs/protocols/protocol_e_integration.md"
+}

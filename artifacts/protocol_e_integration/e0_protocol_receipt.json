@@ -1,0 +1,16 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e0_protocol_receipt.v1",
+  "checkpoint": "E0",
+  "status": "FROZEN",
+  "protocol_id": "protocol_e_integration_v0417",
+  "milestone": "0.4.17-E",
+  "spec": "artifacts/protocol_e_integration/e0_composition_spec.json",
+  "protocol_doc": "docs/protocols/protocol_e_integration.md",
+  "implementation_authorized": false,
+  "parent_head": "9c6fec4",
+  "prerequisites": {
+    "protocol_D_closed": "artifacts/protocol_d_biological_rbs/d_closure_interpretation_receipt.json"
+  },
+  "experiment_type": "composition_not_phenotype_manufacturing",
+  "next_checkpoint": "E0_implementation"
+}

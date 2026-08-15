@@ -134,5 +134,6 @@ def test_d3_protocol_receipt_closed_after_execution():
 
     proto = json.loads((D3_SPEC_PATH.parent / "d3_protocol_receipt.json").read_text())
     assert proto["status"] == "CLOSED"
-    assert proto["implementation_authorized"] is True
-    assert proto["n_cells_executed"] == 36
+    assert proto["protocol_d_closed"] is True
+    assert proto["D4_status"] == "not_authorized"
+    assert proto["next_milestone"] == "0.4.17-E"

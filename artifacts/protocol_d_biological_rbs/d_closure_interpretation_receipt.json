@@ -1,0 +1,51 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d_closure_receipt.v1",
+  "checkpoint": "D3_closure",
+  "status": "FROZEN",
+  "write_once": true,
+  "protocol_id": "protocol_d_biological_rbs_v0417",
+  "milestone": "0.4.17-D",
+  "protocol_d_closed": true,
+  "closed_at_checkpoint": "D3",
+  "package_head": "9c6fec4",
+  "prerequisites": {
+    "d3_execution": "artifacts/protocol_d_biological_rbs/d3_execution_receipt.json",
+    "d3_interpretation": "artifacts/protocol_d_biological_rbs/d3_interpretation_receipt.json"
+  },
+  "architectural_claim": {
+    "statement": "A classical emitter can be extended by typed, vector-valued, activity-dependent RBS without creating a separate mechanism subsystem",
+    "status": "DEMONSTRATED",
+    "dot_W": 0
+  },
+  "figure_6_ladder": {
+    "static_H_K_to_X": "demonstrated",
+    "H_K_t_relaxation_to_one": "demonstrated",
+    "S_to_H_A_to_H_K_state_mechanism": "demonstrated",
+    "activity_written_H_K_to_distinct_spike_adaptation": "not_supported"
+  },
+  "d3_separation_principle": {
+    "display": "RBS dynamics != mechanism-strength criterion != observable adaptation phenotype",
+    "frozen_observations": {
+      "S_writes_H_A": true,
+      "H_A_writes_H_K_dynamic": "too_weak_for_preregistered_M2",
+      "H_K_late_approx": 1.006,
+      "theta_H_threshold": 1.01,
+      "R_j_D_equals_R_j_N2": true,
+      "A_adapt_approx": 0.286,
+      "attenuation_attribution": "emitter/stimulation/measurement paradigm, not D2b H_K writing"
+    },
+    "recovery_hidden_state": "T_rec up => |H_K(T_rechallenge)-1| down (state restoration demonstrated)",
+    "recovery_observable_decoupled": "hidden-state recovery does not imply spike-count recovery"
+  },
+  "methodological_lesson_for_E": "Every E phenotype claim requires an appropriate mechanism-null contrast, not baseline-versus-perturbation alone",
+  "explicit_non_actions": [
+    "no_D4_second_RBS_class",
+    "no_post_hoc_kappa_AK_rescue",
+    "no_D3_overlapping_window_retrofix",
+    "no_reinterpret_NO_ADAPTATION_as_failure"
+  ],
+  "D4_status": "not_authorized",
+  "next_milestone": "0.4.17-E",
+  "next_checkpoint": "E0_specification",
+  "protocol_doc": "docs/protocols/protocol_d_biological_rbs.md"
+}

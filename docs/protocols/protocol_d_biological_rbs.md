@@ -1,13 +1,14 @@
 # Protocol D — biological RBS containment (0.4.17-D)
 
-**Status:** D3 **CLOSED** — adaptation/recovery phenotype executed (0.4.17-D complete through D3)  
+**Status:** **0.4.17-D CLOSED @ D3** — biological RBS containment complete; D4 not authorized  
 **D0 spec:** `artifacts/protocol_d_biological_rbs/d0_intrinsic_ionic_rbs_spec.json`  
 **D1 spec/receipt:** static \(b_{\mathrm{eff}}=H_{\mathrm{K}}b\) expression (closed)  
 **D2a spec/receipt:** `d2a_autonomous_h_k_relaxation_spec.json` / `d2a_autonomous_relaxation_receipt.json`  
 **D2b spec/receipt:** `d2b_activity_h_k_coupling_spec.json` / `d2b_implementation_receipt.json`  
 **D3 spec/receipts:** `d3_adaptation_recovery_phenotype_spec.json` /
 `d3_execution_receipt.json` / `d3_interpretation_receipt.json`  
-**Prerequisites:** Protocol C closed @ C4; Protocol H closed @ H4; W2 expression frozen; D2b closed
+**Closure:** `d_closure_interpretation_receipt.json`  
+**Next milestone:** 0.4.17-E (E0 composition spec frozen)  
 
 > **Naming:** This is **0.4.17-D biological RBS**, distinct from **0.4.16 edge-delay
 > Protocol D₀/D₁** (`tests/test_edge_delay_protocol_d016.py`). Do not merge receipts
@@ -333,7 +334,7 @@ D4 &: \text{optional second RBS class (not mandatory for 0.4.17)}.
 |----------|------------|----------------|
 | **C3** | Figure 5 | Tested ring/delay regimes → sufficient-quality oscillatory activity, **no** estimator-supported traveling waves; does **not** generalize to absence of waves in TFNE |
 | **H4** | Figure 6 | Topology/delay memory extension **negative** |
-| **D** | Figure 6 (planned) | Biological RBS containment under \(\dot W=0\) |
+| **D** | Figure 6 | Biological RBS containment under \(\dot W=0\); **closed @ D3** — architectural extension demonstrated; activity-written spike adaptation **not supported** (informative `NO_ADAPTATION`) |
 
 C3 and H4 are joint examples of **falsification discipline** but answer different
 questions — keep separate panels and narrative.
@@ -346,5 +347,37 @@ questions — keep separate panels and narrative.
 | D1 | Static \(H_{\mathrm{K}}\) sweep **executed** |
 | D2a | Autonomous F1 relaxation **executed** |
 | D2b | Two-coordinate \((H_{\mathrm{A}},H_{\mathrm{K}})\) coupling — **executed** |
-| D3 | Adaptation/recovery phenotype — **executed** |
-| D4 | Optional second RBS class — not authorized |
+| D3 | Adaptation/recovery phenotype — **executed** (`NO_ADAPTATION`) |
+| D4 | Optional second RBS class — **not authorized** |
+
+## Protocol D closed @ D3
+
+\[
+\boxed{
+\text{RBS dynamics}
+\neq
+\text{mechanism-strength criterion}
+\neq
+\text{observable adaptation phenotype}
+}
+\]
+
+**Figure 6 ladder (frozen):**
+
+| Step | Status |
+|------|--------|
+| Static \(H_{\mathrm{K}}\to X\) | **demonstrated** |
+| \(H_{\mathrm{K}}(t)\to 1\) | **demonstrated** |
+| \(S\to H_{\mathrm{A}}\to H_{\mathrm{K}}\) state mechanism | **demonstrated** |
+| Activity-written \(H_{\mathrm{K}}\to\) distinct spike adaptation | **not supported** |
+
+**D3 key observations:** \(S\to H_{\mathrm{A}}\) demonstrated; \(H_{\mathrm{A}}\to H_{\mathrm{K}}\)
+dynamic but \(H_{\mathrm{K}}^{\mathrm{late}}\approx 1.006 < 1.01\); \(R_j^{D}=R_j^{N2}\);
+\(A_{\mathrm{adapt}}\approx 0.29\) identical across N0–D (attenuation not attributable to D2b
+\(H_{\mathrm{K}}\) writing). Hidden-state recovery \(T_{\mathrm{rec}}\uparrow\Rightarrow
+|H_{\mathrm{K}}(T_{\mathrm{rechallenge}})-1|\downarrow\) demonstrated separately from
+observable spike recovery.
+
+**Closure receipt:** `artifacts/protocol_d_biological_rbs/d_closure_interpretation_receipt.json`
+
+**Methodological carry-forward to E:** every phenotype claim requires a mechanism-null contrast.
