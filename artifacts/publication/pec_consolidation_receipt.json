@@ -3,7 +3,7 @@
   "checkpoint": "PEC",
   "status": "FROZEN",
   "write_once": true,
-  "artifact_commit_sha": "b99f749cdb32639d9027cfb7ad95bd351db87e04",
+  "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
   "spec": "artifacts/publication/pec_consolidation_spec.json",
   "index": "artifacts/publication/publication_evidence_index.json",
   "panel_count": 16,
