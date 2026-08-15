@@ -1,0 +1,203 @@
+{
+  "schema": "jaxfne.publication.figures_1_7_cross_figure_audit.v1",
+  "status": "PASSED",
+  "checkpoint": "figures_1_7_cross_audit",
+  "write_once": true,
+  "milestone": "0.4.17",
+  "feature_freeze": "hard scientific feature freeze; publication evidence consolidation authority",
+  "pec_authority": "artifacts/publication/publication_evidence_index.json",
+  "audited_at_utc": "2026-08-15T20:07:09Z",
+  "repo_head": "38e5793255408cad9aed3dd2fb876204df2931ef",
+  "figure_audits": {
+    "1": "artifacts/publication/fig01_semantic_audit.json",
+    "5": "artifacts/publication/fig05_semantic_audit.json",
+    "6": "artifacts/publication/fig06_semantic_audit.json",
+    "7": "artifacts/publication/fig07_semantic_audit.json"
+  },
+  "figure_receipts": {
+    "1": "artifacts/publication/fig01_generation_receipt.json",
+    "2": "artifacts/publication/fig02_generation_receipt.json",
+    "3": "artifacts/publication/fig03_generation_receipt.json",
+    "4": "artifacts/publication/fig04_generation_receipt.json",
+    "5": "artifacts/publication/fig05_generation_receipt.json",
+    "6": "artifacts/publication/fig06_generation_receipt.json",
+    "7": "artifacts/publication/fig07_generation_receipt.json"
+  },
+  "cross_figure_234_audit": "artifacts/publication/fig02_04_cross_figure_audit.json",
+  "canonical_q_hash": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+  "terminology_consistency": {
+    "claim_level_axis": [
+      "DEMONSTRATED",
+      "MECHANISTICALLY_SUPPORTED",
+      "REPRESENTATIONAL",
+      "PROSPECTIVE"
+    ],
+    "polarity_axis": [
+      "POSITIVE",
+      "NEGATIVE",
+      "UNRESOLVED"
+    ],
+    "fig01_empirical_results_excluded": true,
+    "fig06_epistemic_legend_claim_level_x_polarity": true,
+    "native_relative_proxy_labels_fig02_04": true,
+    "analysis_only_visible_fig04": true
+  },
+  "frozen_scientific_boundaries": {
+    "H4_demonstrated_negative": true,
+    "C3_demonstrated_negative_NO_WAVE": true,
+    "D3_NO_ADAPTATION": true,
+    "W3b_unresolved_not_negative": true,
+    "X_not_U_preserved": true,
+    "W1_W2_not_closed_loop_HDP": true,
+    "E5_HIERARCHICAL_PROPAGATION": true,
+    "EEG_MEG_analysis_only": true,
+    "CSD_relative_proxy": true,
+    "no_ephaptic_field_feedback_claim": true,
+    "no_predictive_coding_claim": true,
+    "H_K_not_explicit_K_physics": true,
+    "FF_FB_structural_not_functional_predictive": true,
+    "C3_and_H4_separate_falsifications": true
+  },
+  "figure_provenance": {
+    "figure_1": {
+      "pec_panel_ids": [
+        "Fig01.grammar"
+      ],
+      "pec_panel_count": 1,
+      "generation_receipt": "artifacts/publication/fig01_generation_receipt.json",
+      "semantic_audit_status": "PASSED",
+      "figure_png_present": true,
+      "receipt_status": "CLOSED",
+      "semantic_audit_path": "artifacts/publication/fig01_semantic_audit.json"
+    },
+    "figure_2": {
+      "pec_panel_ids": [
+        "Fig02.canonical_Q"
+      ],
+      "pec_panel_count": 1,
+      "generation_receipt": "artifacts/publication/fig02_generation_receipt.json",
+      "semantic_audit_status": null,
+      "figure_png_present": true,
+      "receipt_status": "CLOSED",
+      "cross_figure_audit_status": "PASSED",
+      "canonical_q_hash": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51"
+    },
+    "figure_3": {
+      "pec_panel_ids": [
+        "Fig03.lfp_csd_proxy"
+      ],
+      "pec_panel_count": 1,
+      "generation_receipt": "artifacts/publication/fig03_generation_receipt.json",
+      "semantic_audit_status": null,
+      "figure_png_present": true,
+      "receipt_status": "CLOSED",
+      "cross_figure_audit_status": "PASSED",
+      "canonical_q_hash": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51"
+    },
+    "figure_4": {
+      "pec_panel_ids": [
+        "Fig04.EEG_MEG_analysis_only"
+      ],
+      "pec_panel_count": 1,
+      "generation_receipt": "artifacts/publication/fig04_generation_receipt.json",
+      "semantic_audit_status": null,
+      "figure_png_present": true,
+      "receipt_status": "CLOSED",
+      "cross_figure_audit_status": "PASSED",
+      "canonical_q_hash": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51"
+    },
+    "figure_5": {
+      "pec_panel_ids": [
+        "Fig05.C1_synthetic",
+        "Fig05.C3_NO_WAVE"
+      ],
+      "pec_panel_count": 2,
+      "generation_receipt": "artifacts/publication/fig05_generation_receipt.json",
+      "semantic_audit_status": "PASSED",
+      "figure_png_present": true,
+      "receipt_status": "CLOSED",
+      "semantic_audit_path": "artifacts/publication/fig05_semantic_audit.json"
+    },
+    "figure_6": {
+      "pec_panel_ids": [
+        "Fig06.D_containment",
+        "Fig06.D3_NO_ADAPTATION",
+        "Fig06.H4_negative",
+        "Fig06.W3b_unresolved"
+      ],
+      "pec_panel_count": 4,
+      "generation_receipt": "artifacts/publication/fig06_generation_receipt.json",
+      "semantic_audit_status": "PASSED",
+      "figure_png_present": true,
+      "receipt_status": "CLOSED",
+      "semantic_audit_path": "artifacts/publication/fig06_semantic_audit.json"
+    },
+    "figure_7": {
+      "pec_panel_ids": [
+        "Fig07.E1_hierarchy",
+        "Fig07.E2_delays",
+        "Fig07.E3_RBD",
+        "Fig07.E4_observation",
+        "Fig07.E5_leakage_test",
+        "Fig07.E5_causal_expression"
+      ],
+      "pec_panel_count": 6,
+      "generation_receipt": "artifacts/publication/fig07_generation_receipt.json",
+      "semantic_audit_status": "PASSED",
+      "figure_png_present": true,
+      "receipt_status": "CLOSED",
+      "semantic_audit_path": "artifacts/publication/fig07_semantic_audit.json"
+    }
+  },
+  "prohibited_interpretations_guard": {
+    "post_hoc_scientific_modification_detected": false,
+    "write_once_receipt_rewrite_detected": false,
+    "new_simulation_in_figure_7": true,
+    "e5_in_figure_6_excluded": true
+  },
+  "checks": {
+    "frozen_H4_demonstrated_negative": true,
+    "frozen_C3_demonstrated_negative_NO_WAVE": true,
+    "frozen_D3_NO_ADAPTATION": true,
+    "frozen_W3b_unresolved_not_negative": true,
+    "frozen_X_not_U_preserved": true,
+    "frozen_W1_W2_not_closed_loop_HDP": true,
+    "frozen_E5_HIERARCHICAL_PROPAGATION": true,
+    "frozen_EEG_MEG_analysis_only": true,
+    "frozen_CSD_relative_proxy": true,
+    "frozen_no_ephaptic_field_feedback_claim": true,
+    "frozen_no_predictive_coding_claim": true,
+    "frozen_H_K_not_explicit_K_physics": true,
+    "frozen_FF_FB_structural_not_functional_predictive": true,
+    "frozen_C3_and_H4_separate_falsifications": true,
+    "all_figure_semantic_audits_passed": true,
+    "all_generation_receipts_closed": true,
+    "all_figure_pngs_present": true,
+    "pec_covers_figures_1_through_7": true,
+    "experiment_a_q_hash_invariant_fig02_04": true,
+    "fig06_w1_w2_not_closed_loop": true,
+    "fig06_w3b_unresolved_not_negative": true,
+    "fig07_no_hdp_no_wave_no_d3_adaptation": true,
+    "main_figure_evidence_set_complete": true,
+    "no_contradictions_detected": true
+  },
+  "evidence_summary": {
+    "positive": [
+      "RBS containment (D)",
+      "RBD memory machinery (H1-H3)",
+      "parameter writing/expression (D/W)",
+      "multiscale observation composition (B/E4)",
+      "hierarchical RBS propagation (E5)"
+    ],
+    "negative": [
+      "H4 topology-memory extension",
+      "C3 traveling-wave conjecture",
+      "D3 adaptation attribution"
+    ],
+    "unresolved": [
+      "closed-loop HDP active stability (W3b)"
+    ]
+  },
+  "next_checkpoint": "publication_reconstruction",
+  "handoff_note": "OpenCode handoff at scratch/OPENCODE_HANDOFF_0_4_17_PUBLICATION.md (gitignored)"
+}

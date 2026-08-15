@@ -1,5 +1,10 @@
 """Publication evidence consolidation package."""
 
+from .cross_figure_audit import (
+    load_cross_figure_audit,
+    run_cross_figure_audit,
+    validate_cross_figure_audit,
+)
 from .fig01_protocol import (
     FIG01_AUDIT_PATH,
     FIG01_FIGURE_PATH,
@@ -148,4 +153,7 @@ __all__ = [
     "validate_fig07_spec",
     "validate_fig07_semantic_audit",
     "validate_fig07_generation_receipt",
+    "load_cross_figure_audit",
+    "run_cross_figure_audit",
+    "validate_cross_figure_audit",
 ]

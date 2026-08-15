@@ -41,9 +41,10 @@ Examples: H4 = `DEMONSTRATED + NEGATIVE`; C3 = `DEMONSTRATED + NEGATIVE`; D3 = `
 4. Figure 5 Protocol C (**complete @ fig05_generation_receipt**)
 5. Figure 6 H/W/D (**complete @ fig06_generation_receipt**)
 6. Figure 7 E-integration (**complete @ fig07_generation_receipt** — **MAIN FIGURE EVIDENCE SET COMPLETE**)
-7. Figures 1–7 cross-figure semantic/provenance audit — **next authorized checkpoint**
-8. Main-text reconstruction
-9. Supplement
+7. Figures 1–7 cross-figure semantic/provenance audit (**complete @ figures_1_7_cross_figure_audit**)
+8. Publication reconstruction — **next authorized checkpoint**
+9. Main-text reconstruction
+10. Supplement
 
 ### Figures 2–4 authority (coordinated Experiment A)
 
@@ -93,6 +94,16 @@ Seven-panel ladder: RBS → RBD → state memory → parameter writing → param
 | Receipt | `artifacts/publication/fig07_generation_receipt.json` |
 
 Six-panel compositional culmination: E1 hierarchy → E2 delays → E3 sparse RBS → E4 observation → E5 causal N0/N1/D → hierarchical propagation. Polarity: **DEMONSTRATED + POSITIVE** (E5). No new simulation. `main_figure_evidence_set: COMPLETE`.
+
+### Figures 1–7 cross-figure audit
+
+| Artifact | Path |
+|----------|------|
+| Machine-readable audit | `artifacts/publication/figures_1_7_cross_figure_audit.json` |
+| Human summary | `docs/publication/figures_1_7_cross_audit_summary.md` |
+| Generator | `scripts/publication_figures/figures_1_7_cross_audit.py` |
+
+Verifies terminology, polarity, frozen boundaries (H4−, C3−, D3−, W3b unresolved, E5+), Experiment-A Q provenance, and figure-to-PEC mapping. **Next:** publication reconstruction (polish → Results → Methods → Supplement → prose).
 
 ### Figure 1 authority
 

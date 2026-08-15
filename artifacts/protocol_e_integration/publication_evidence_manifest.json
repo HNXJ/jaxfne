@@ -26,5 +26,5 @@
     "E5_raw": "artifacts/protocol_e_integration/e5_execution_receipt.json",
     "E5_interpretation": "artifacts/protocol_e_integration/e5_interpretation_receipt.json"
   },
-  "next_phase": "figures_1_7_cross_audit; main figure evidence set complete"
+  "next_phase": "publication_reconstruction; figures_1_7_cross_audit complete; main figure evidence set complete"
 }
