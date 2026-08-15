@@ -15,7 +15,7 @@
       }
     ]
   },
-  "status": "stale",
+  "status": "verified",
   "notes": [
     {
       "id": "formation-pass-2026-07-23",
@@ -60,9 +60,9 @@
   "verification": {
     "checks": {
       "sources_resolve": true,
-      "reproducible": false
+      "reproducible": true
     },
-    "verdict": "stale",
+    "verdict": "verified",
     "checks_run": 2
   }
 }

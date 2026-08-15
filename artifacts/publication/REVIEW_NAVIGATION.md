@@ -1,0 +1,87 @@
+# Review Navigation Manifest
+
+Location of every artifact an external reviewer needs for the Figure 1-7
+publication snapshot, and the exact command to regenerate each layer. All
+measurements are stated as Absolute (exact value) or Relative (comparison
+between specific values); nothing else.
+
+Snapshot reference: commit listed in `artifacts/publication/equivalence_report.json`
+with `schema: jaxfne.harness.seam_equivalence.v1`. Frozen evidence baseline:
+`.opencode/frozen_paths.json` (`frozen_at_head` records the manifest head).
+
+## 1. Source of truth and immutable evidence
+
+| Path | Role |
+|---|---|
+| `.opencode/frozen_paths.json` | 28 frozen files (7 figure PNGs, 21 JSON evidence artifacts) with exact SHA-256 per file |
+| `figures/publication/fig0{1..7}_*.png` | Frozen scientific figure PNGs (immutable bytes, recorded in the manifest) |
+| `artifacts/publication/fig0{1..7}_*_{spec,audit,receipt}.json` | Per-figure semantic spec, semantic audit (`status: PASSED`), generation receipt |
+| `artifacts/publication/figures_1_7_cross_figure_audit.json` | Cross-figure layout audit over figures 1-7 |
+| `artifacts/publication/publication_evidence_index.json` | Evidence index (status FROZEN, `write_once: True`) |
+
+## 2. Generator seam and the two-level invariant
+
+- Generators: `scripts/publication_figures/fig0{1,2_04,5,6,7}_*.py`, each exposing
+  `build_figure*()` (Figure-object seam) plus `main()`/`draw_figure*()` wrappers.
+- Level 1 (exact): the seam refactor changed no scientific content —
+  `scripts/publication_figures/equivalence_gate.py` renders all 7 figures from
+  `build_figure*()` and requires W, H, RGBA elementwise identity (zero
+  tolerance) against the frozen PNGs, plus SHA-256 equality recorded per case.
+  Report: `artifacts/publication/equivalence_report.json` — 7/7 cases
+  `decoded_pixel_equal: true`.
+- Level 2 (Relative, presentation-only): `figures/publication/final/fig0{1..7}_*.png`
+  (300 DPI) and `fig0{1..7}_*.pdf` (vector) are deliberately re-rendered from the
+  same `build_figure*()` with artist-only polish and therefore differ from the
+  frozen PNGs at the pixel level.
+
+## 3. Polish layer (presentation-only, Absolute values)
+
+| Path | Role |
+|---|---|
+| `scripts/publication_figures/polish/run_polish.py` | Orchestrates polish: clip check, palette check, font floor, inset geometry, frozen write-guard |
+| `scripts/publication_figures/polish/_polish_common.py` | Shared clip/color/font utilities |
+| `artifacts/publication/polish/fig0{1..7}_polish_{spec,audit,receipt}.json` | Per-figure polish spec, audit (all 7 `PASSED`), receipt |
+| `artifacts/publication/polish/figures_1_7_final_layout_audit.json` | Cross-layout audit of the final set (status `PASSED`) |
+| `figures/publication/final/fig0{1..7}_*.png` | Final 300-DPI raster renders (`dpi_meta: [300.0, 300.0]`) |
+| `figures/publication/final/fig0{1..7}_*.pdf` | Final vector renders |
+
+## 4. Regeneration instructions (run from repo root)
+
+```bash
+# Gate 1: seam equivalence (7/7 exact decoded-pixel identity vs frozen)
+python3 scripts/publication_figures/equivalence_gate.py
+
+# Gate 2: per-figure semantic audit + receipts (regenerates 13 of the frozen
+# JSON artifacts in place, changing only audited_at_utc / repo_head metadata;
+# frozen bytes are write-once, so the affected files must be restored with
+# `git checkout -- <path>` after the run and re-verified via
+# scripts/harness/check_harness_integrity.py)
+python3 scripts/publication_figures/figures_1_7_cross_audit.py
+
+# Gate 3: polish pipeline -> figures/publication/final/** + polish artifacts
+python3 scripts/publication_figures/polish/run_polish.py
+
+# Tests that exercise the layers
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest \
+  tests/test_equivalence_gate_v20260815.py \
+  tests/test_fig01_grammar.py tests/test_fig02_04_experiment_a.py \
+  tests/test_fig05_protocol_c.py tests/test_fig06_hwd_evidence.py \
+  tests/test_fig07_e_integration.py tests/test_figures_1_7_cross_audit.py \
+  -q --tb=short
+```
+
+The equivalence gate writes renders to `scratch/equivalence_render/` (gitignored)
+and its report to `artifacts/publication/equivalence_report.json` (tracked).
+The polish runner refuses any write into a path listed in
+`.opencode/frozen_paths.json` (enforced in `_polish_common.py`) and writes only
+under `figures/publication/final/` and `artifacts/publication/polish/` (both
+designated writable in the checkpoint). The cross-audit script (`Gate 2` above)
+predates that guard; its regenerated JSONs must be restored and re-verified as
+noted.
+
+## 5. Excluded from this snapshot
+
+- `scratch/` and `artifacts/developer/` (local task state, gitignored).
+- `figures/publication/final/` PDF font sub-setting details: the PDFs embed
+  `%PDF` header and render as vector; embedded `/Image` objects are the
+  expected raster heatmap panels, recorded in the polish receipts.

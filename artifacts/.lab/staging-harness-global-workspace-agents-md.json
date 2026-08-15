@@ -15,16 +15,16 @@
       }
     ]
   },
-  "status": "unconfirmed",
+  "status": "verified",
   "notes": [],
   "issues": [],
   "plan": "",
   "verification": {
     "checks": {
       "sources_resolve": true,
-      "reproducible": null
+      "reproducible": true
     },
-    "verdict": "unconfirmed",
-    "checks_run": 1
+    "verdict": "verified",
+    "checks_run": 2
   }
 }

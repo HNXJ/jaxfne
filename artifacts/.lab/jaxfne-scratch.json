@@ -4,7 +4,7 @@
   "kind": "folder",
   "title": "scratch",
   "generated": {
-    "summary": "Folder with 7 files, e.g. observation_operator_architecture_audit_v0414.md, 0415_observation_implementation_plan.md, OPENCODE_HANDOFF_0_4_17_PUBLICATION.md, figure_requirements_matrix_v0414.md, ruff_0_16_2_unselected_debt.txt.",
+    "summary": "Folder with 14 files, e.g. observation_operator_architecture_audit_v0414.md, 0415_observation_implementation_plan.md, OPENCODE_HANDOFF_0_4_17_PUBLICATION.md, figure_requirements_matrix_v0414.md, ruff_0_16_2_unselected_debt.txt.",
     "source_paths": [
       "scratch"
     ],
@@ -15,16 +15,16 @@
       }
     ]
   },
-  "status": "unconfirmed",
+  "status": "stale",
   "notes": [],
   "issues": [],
   "plan": "",
   "verification": {
     "checks": {
       "sources_resolve": true,
-      "reproducible": null
+      "reproducible": false
     },
-    "verdict": "unconfirmed",
-    "checks_run": 1
+    "verdict": "stale",
+    "checks_run": 2
   }
 }

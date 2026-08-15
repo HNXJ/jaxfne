@@ -13,7 +13,7 @@
       }
     ]
   },
-  "status": "stale",
+  "status": "verified",
   "notes": [
     {
       "id": "checkpoint-2026-07-30-dangling-edge-fix",
@@ -31,9 +31,9 @@
   "verification": {
     "checks": {
       "sources_resolve": null,
-      "reproducible": false
+      "reproducible": true
     },
-    "verdict": "stale",
+    "verdict": "verified",
     "checks_run": 1
   }
 }
