@@ -1408,6 +1408,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
     owner_mask: jax.Array,
     tau_k_ms: float = 100.0,
     dynamic: bool = False,
+    gamma_h_enabled: bool = True,
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
@@ -1425,6 +1426,9 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
     ``tau_K * dH_K/dt = 1 - H_K`` (D2a F1 Euler).
 
     When ``dynamic=False``, ``H_K`` is fixed at ``h_k0`` (E3-null / static reference).
+
+    When ``gamma_h_enabled=False``, ``H_K`` may still evolve but coupling uses
+    ``b_eff = b`` (``Gamma_H = I``); used for E5 N1 state-only null arm.
 
     Non-owner semantics: ``H_K`` is held at the reference coordinate ``1``; the F1
     recurrence is masked off outside ``owner_mask`` (not a separate unallocated
@@ -1531,6 +1535,9 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
 
     one = jnp.asarray(1.0, dtype=jdtype)
 
+    def _coupling_h(H: jax.Array) -> jax.Array:
+        return H if gamma_h_enabled else one
+
     def _h_next(H: jax.Array) -> jax.Array:
         advanced = _advance_h_k_f1_autonomous(H, dt, tau_k)
         return jnp.where(owner > 0.5, advanced, one)
@@ -1541,7 +1548,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
         edge_current = weight * syn_state
         syn = _segment_sum(edge_current, post, n_neurons)
         current_native = drive + syn + noise_coef * noise_t
-        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H)
+        dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, _coupling_h(H))
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -1573,7 +1580,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
             current_native = drive + sched_t + syn + noise_coef * noise_t
-            dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H)
+            dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, _coupling_h(H))
             v_next = v + dt * dv
             u_next = u + dt * du
             v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -1618,6 +1625,12 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
         "owner_mask": owner,
         "h_k_non_owner_semantics": (
             "fixed_reference_H_K_equals_1_with_F1_recurrence_masked_off"
+        ),
+        "gamma_h_enabled": jnp.asarray(gamma_h_enabled),
+        "gamma_h_semantics": (
+            "b_eff_equals_H_K_times_b"
+            if gamma_h_enabled
+            else "Gamma_H_identity_b_eff_equals_b"
         ),
         "delay_steps_max": jnp.asarray(max_delay, dtype=jnp.int32),
         "continuation_step_offset": step_indices[-1] + jnp.asarray(1, dtype=jnp.int32),

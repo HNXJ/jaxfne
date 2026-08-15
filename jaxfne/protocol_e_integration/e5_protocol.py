@@ -11,6 +11,12 @@ from jaxfne.protocol_e_integration.e3_protocol import e3_owner_flat_indices, loa
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 E5_SPEC_PATH = _REPO_ROOT / "artifacts" / "protocol_e_integration" / "e5_causal_perturbation_spec.json"
+E5_EXECUTION_RECEIPT_PATH = (
+    _REPO_ROOT / "artifacts" / "protocol_e_integration" / "e5_execution_receipt.json"
+)
+E5_INTERPRETATION_RECEIPT_PATH = (
+    _REPO_ROOT / "artifacts" / "protocol_e_integration" / "e5_interpretation_receipt.json"
+)
 
 
 def load_e5_spec(path: Path | None = None) -> dict[str, Any]:

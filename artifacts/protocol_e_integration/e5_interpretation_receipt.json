@@ -1,0 +1,144 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e5_interpretation_receipt.v1",
+  "checkpoint": "E5",
+  "status": "FROZEN",
+  "write_once": true,
+  "raw_receipt": "artifacts/protocol_e_integration/e5_execution_receipt.json",
+  "aggregate_classification": "HIERARCHICAL_PROPAGATION",
+  "per_seed": [
+    {
+      "seed": 11,
+      "Delta_R": {
+        "Delta_X_owner": {
+          "mean_abs_V_m_deviation": 9.26337202181135,
+          "spike_count_difference": 7.0,
+          "V_m_time_integral_difference": 3745.617073059082
+        },
+        "Delta_X_A2_nonowner": {
+          "mean_abs_V_m_deviation": 2.429512501890009,
+          "spike_count_difference": 0.0
+        },
+        "Delta_X_A1": {
+          "mean_abs_V_m_deviation": 3.161658702468872,
+          "spike_count_difference": 9.0
+        },
+        "Delta_Q": {
+          "L2_norm_difference": 702.2870834852306,
+          "time_integral_absolute_difference": 379.0877697467804
+        },
+        "Delta_Y": {
+          "L2_norm_difference": 96691.515625,
+          "time_integral_absolute_difference": 202.09375
+        }
+      },
+      "evidence_gates": {
+        "G_O": true,
+        "G_A2": true,
+        "G_A1": true,
+        "G_Q": true,
+        "G_Y": true,
+        "d_propagation": "Y",
+        "threshold": 1e-06
+      },
+      "classification": "HIERARCHICAL_PROPAGATION",
+      "quality_finite": true
+    },
+    {
+      "seed": 12,
+      "Delta_R": {
+        "Delta_X_owner": {
+          "mean_abs_V_m_deviation": 9.26337202181135,
+          "spike_count_difference": 7.0,
+          "V_m_time_integral_difference": 3745.617073059082
+        },
+        "Delta_X_A2_nonowner": {
+          "mean_abs_V_m_deviation": 2.429512501890009,
+          "spike_count_difference": 0.0
+        },
+        "Delta_X_A1": {
+          "mean_abs_V_m_deviation": 3.161658702468872,
+          "spike_count_difference": 9.0
+        },
+        "Delta_Q": {
+          "L2_norm_difference": 702.2870834852306,
+          "time_integral_absolute_difference": 379.0877697467804
+        },
+        "Delta_Y": {
+          "L2_norm_difference": 96691.515625,
+          "time_integral_absolute_difference": 202.09375
+        }
+      },
+      "evidence_gates": {
+        "G_O": true,
+        "G_A2": true,
+        "G_A1": true,
+        "G_Q": true,
+        "G_Y": true,
+        "d_propagation": "Y",
+        "threshold": 1e-06
+      },
+      "classification": "HIERARCHICAL_PROPAGATION",
+      "quality_finite": true
+    },
+    {
+      "seed": 13,
+      "Delta_R": {
+        "Delta_X_owner": {
+          "mean_abs_V_m_deviation": 9.26337202181135,
+          "spike_count_difference": 7.0,
+          "V_m_time_integral_difference": 3745.617073059082
+        },
+        "Delta_X_A2_nonowner": {
+          "mean_abs_V_m_deviation": 2.429512501890009,
+          "spike_count_difference": 0.0
+        },
+        "Delta_X_A1": {
+          "mean_abs_V_m_deviation": 3.161658702468872,
+          "spike_count_difference": 9.0
+        },
+        "Delta_Q": {
+          "L2_norm_difference": 702.2870834852306,
+          "time_integral_absolute_difference": 379.0877697467804
+        },
+        "Delta_Y": {
+          "L2_norm_difference": 96691.515625,
+          "time_integral_absolute_difference": 202.09375
+        }
+      },
+      "evidence_gates": {
+        "G_O": true,
+        "G_A2": true,
+        "G_A1": true,
+        "G_Q": true,
+        "G_Y": true,
+        "d_propagation": "Y",
+        "threshold": 1e-06
+      },
+      "classification": "HIERARCHICAL_PROPAGATION",
+      "quality_finite": true
+    }
+  ],
+  "interpretation_rules": {
+    "NO_EFFECT": "typed expression failed under assay (G_O false all seeds)",
+    "LOCAL_EXPRESSION": "owner expression without sufficient downstream propagation",
+    "HIERARCHICAL_PROPAGATION": "G_O true and (G_A1 or G_Q or G_Y) true",
+    "UNRESOLVED": "quality gates insufficient",
+    "HIERARCHICAL_PROPAGATION_requires_G_O": true
+  },
+  "propagation_depth_diagnostic": {
+    "display": "d_propagation = max{owner, A2, A1, Q, Y} passing threshold",
+    "per_seed": [
+      "Y",
+      "Y",
+      "Y"
+    ]
+  },
+  "permissible_A1_statement": "local A2 RBS perturbation propagated through existing hierarchical connectivity into A1",
+  "forbidden_A1_statement": "feedback suppresses/enhances a particular frequency band",
+  "causal_contrast": "D - N1 isolates Gamma_H expression, not hidden-state presence alone",
+  "feature_freeze": {
+    "milestone": "0.4.17-E",
+    "policy": "hard scientific feature freeze after E5 close",
+    "next_phase": "publication evidence consolidation Figures 1-7; no E6"
+  }
+}

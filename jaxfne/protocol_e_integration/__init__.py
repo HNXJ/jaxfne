@@ -68,12 +68,19 @@ from .e4_execution import (
     write_e4_execution_receipt,
 )
 from .e5_protocol import (
+    E5_EXECUTION_RECEIPT_PATH,
+    E5_INTERPRETATION_RECEIPT_PATH,
     E5_SPEC_PATH,
     e5_arm_ids,
     e5_gate_ids,
     e5_result_classes,
     load_e5_spec,
     validate_e5_spec,
+)
+from .e5_execution import (
+    load_e5_execution_receipt,
+    load_e5_interpretation_receipt,
+    write_e5_receipts,
 )
 from .e1_execution import (
     build_edge_provenance_table,
@@ -150,4 +157,9 @@ __all__ = [
     "e5_gate_ids",
     "e5_arm_ids",
     "e5_result_classes",
+    "E5_EXECUTION_RECEIPT_PATH",
+    "E5_INTERPRETATION_RECEIPT_PATH",
+    "write_e5_receipts",
+    "load_e5_execution_receipt",
+    "load_e5_interpretation_receipt",
 ]

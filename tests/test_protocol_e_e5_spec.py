@@ -115,8 +115,9 @@ def test_e5_validate_spec_passes():
     validate_e5_spec()
 
 
-def test_e5_protocol_receipt_frozen():
+def test_e5_protocol_receipt_closed():
     receipt = json.loads((E5_SPEC_PATH.parent / "e5_protocol_receipt.json").read_text())
-    assert receipt["status"] == "FROZEN"
+    assert receipt["status"] == "CLOSED"
     assert receipt["primary_contrast"] == "D - N1"
-    assert receipt["next_checkpoint"] == "E5_implementation"
+    assert receipt["execution_receipt"] == "artifacts/protocol_e_integration/e5_execution_receipt.json"
+    assert receipt["interpretation_receipt"] == "artifacts/protocol_e_integration/e5_interpretation_receipt.json"

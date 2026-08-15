@@ -1,6 +1,6 @@
 # Protocol E — integrated TFNE composition (0.4.17-E)
 
-**Status:** E0.1 ladder **frozen**; **E1–E4 closed**; **E5 specification frozen** (implementation not authorized); TFNE integration architecture complete through observation
+**Status:** **0.4.17-E hard scientific feature freeze** — E1–E5 closed; TFNE integration architecture complete through causal perturbation evidence
 **Milestone boundary:** `9589933` — 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)
 
 **Specs:**  
@@ -261,6 +261,24 @@ E4\equiv E3
 
 **Not authorized:** E5 implementation, new architecture, spectral/adaptation/HDP phenotype claims.
 
+**Closed:** prospective N0/N1/D execution (9 trajectories); raw + interpretation receipts frozen.
+
+## E5 — causal perturbation (closed)
+
+**Question:** Does a localized RBS perturbation produce a measurable hierarchical response beyond its matched mechanism-null?
+
+**Arms:** N0 (reference), N1 (state-only null, \(\Gamma_H=I\)), D (RBS expression). **Contrast:** \(\boxed{D-N_1}\).
+
+**Sanity:** \(\boxed{X^{N1}=X^{N0}}\) bit-exact when \(\Gamma_H\) disabled (leakage test). \(\boxed{H_K^{N1}=H_K^{D}}\).
+
+**Evidence gates:** \(G_O, G_{A2}, G_{A1}, G_Q, G_Y\) with \(d_{\mathrm{propagation}}\) diagnostic.
+
+**Classification:** `NO_EFFECT` | `LOCAL_EXPRESSION` | `HIERARCHICAL_PROPAGATION` | `UNRESOLVED`.
+
+**Receipts:** `e5_execution_receipt.json` (raw 9 trajectories), `e5_interpretation_receipt.json`, `publication_evidence_manifest.json`.
+
+**Post-close:** hard 0.4.17 feature freeze → Figures 1–7; no E6.
+
 ## Explicit blocks (unchanged from E0)
 
 | Block | Status |
@@ -280,4 +298,4 @@ E4\equiv E3
 | E2 | Delayed coupling **closed** (G1–G8 pass; execution receipt frozen) |
 | E3 | RBS composition **closed** (G1–G9 pass; execution receipt frozen) |
 | E4 | Observation chain **closed** (G1–G10 pass; execution receipt frozen) |
-| E5 | Causal perturbation spec **frozen**; implementation **not authorized** |
+| E5 | Causal perturbation **closed** (9 trajectories; interpretation frozen) |

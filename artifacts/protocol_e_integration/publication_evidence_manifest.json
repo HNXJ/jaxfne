@@ -1,0 +1,27 @@
+{
+  "schema": "jaxfne.protocol_e_integration.publication_evidence_manifest.v1",
+  "milestone": "0.4.17-E",
+  "status": "FROZEN",
+  "feature_freeze": "hard scientific feature freeze after E5 causal perturbation close",
+  "provenance_fields": {
+    "execution_parent_sha": "git HEAD at simulate/execution time when trajectories were generated",
+    "artifact_commit_sha": "immutable commit containing the frozen receipt artifact on disk",
+    "historical_note": "E3/E4 receipts may label execution_parent_sha as package_head; do not retroactively rewrite write-once receipts"
+  },
+  "integration_ladder_closed": [
+    "E1 hierarchy",
+    "E2 typed delays",
+    "E3 local RBD",
+    "E4 observation",
+    "E5 causal perturbation evidence"
+  ],
+  "execution_receipts": {
+    "E1": "artifacts/protocol_e_integration/e1_execution_receipt.json",
+    "E2": "artifacts/protocol_e_integration/e2_execution_receipt.json",
+    "E3": "artifacts/protocol_e_integration/e3_execution_receipt.json",
+    "E4": "artifacts/protocol_e_integration/e4_execution_receipt.json",
+    "E5_raw": "artifacts/protocol_e_integration/e5_execution_receipt.json",
+    "E5_interpretation": "artifacts/protocol_e_integration/e5_interpretation_receipt.json"
+  },
+  "next_phase": "publication evidence consolidation and Figures 1-7; no E6 protocol"
+}
