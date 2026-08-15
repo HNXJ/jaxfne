@@ -10,6 +10,12 @@ from jaxfne.protocol_d_biological_rbs.d0_protocol import PROTOCOL_ID
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 D3_SPEC_PATH = _REPO_ROOT / "artifacts" / "protocol_d_biological_rbs" / "d3_adaptation_recovery_phenotype_spec.json"
+D3_EXECUTION_RECEIPT_PATH = (
+    _REPO_ROOT / "artifacts" / "protocol_d_biological_rbs" / "d3_execution_receipt.json"
+)
+D3_INTERPRETATION_RECEIPT_PATH = (
+    _REPO_ROOT / "artifacts" / "protocol_d_biological_rbs" / "d3_interpretation_receipt.json"
+)
 
 
 def load_d3_spec(path: Path | None = None) -> dict[str, Any]:

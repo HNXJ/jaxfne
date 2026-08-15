@@ -45,11 +45,26 @@ from .d2b_execution import (
 )
 
 from .d3_protocol import (
+    D3_EXECUTION_RECEIPT_PATH,
+    D3_INTERPRETATION_RECEIPT_PATH,
     D3_SPEC_PATH,
     d3_null_arm_ids,
     d3_recovery_interval_ms,
     load_d3_spec,
     validate_d3_spec,
+)
+from .d3_execution import (
+    build_d3_response_window_overlap_metadata,
+    classify_d3_cell,
+    load_d3_execution_receipt,
+    run_d3_adaptation_recovery,
+    write_d3_execution_receipt,
+)
+from .d3_interpretation import (
+    build_d3_interpretation,
+    freeze_d3_protocol,
+    load_d3_interpretation_receipt,
+    write_d3_interpretation_receipt,
 )
 
 __all__ = [
@@ -87,4 +102,15 @@ __all__ = [
     "validate_d3_spec",
     "d3_null_arm_ids",
     "d3_recovery_interval_ms",
+    "D3_EXECUTION_RECEIPT_PATH",
+    "D3_INTERPRETATION_RECEIPT_PATH",
+    "load_d3_execution_receipt",
+    "run_d3_adaptation_recovery",
+    "write_d3_execution_receipt",
+    "build_d3_interpretation",
+    "freeze_d3_protocol",
+    "load_d3_interpretation_receipt",
+    "write_d3_interpretation_receipt",
+    "classify_d3_cell",
+    "build_d3_response_window_overlap_metadata",
 ]

@@ -1,0 +1,248 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d3_interpretation_receipt.v1",
+  "checkpoint": "D3",
+  "status": "FROZEN",
+  "write_once": true,
+  "package_head": "5ff2bfab1fe58a88612d7a3744e75041f0ca3fcf",
+  "execution_receipt": "artifacts/protocol_d_biological_rbs/d3_execution_receipt.json",
+  "spec_path": "artifacts/protocol_d_biological_rbs/d3_adaptation_recovery_phenotype_spec.json",
+  "headline": "observable_attenuation_without_formal_ADAPTATION",
+  "narrative": "D arm shows A_adapt > theta_A (0.15) in 9 cells, but formal ADAPTATION classification fails because joint mechanism gates are not satisfied (M2: H_K_late > 1 + theta_H). Observable spike attenuation is identical across N0/N1/N2/D under this frozen paradigm (D\u2212N2 null on A_adapt); hidden-state writing is detectable on D but does not differentiate the preregistered spike-count phenotype from N2.",
+  "questions": {
+    "Q1_mechanism": {
+      "question": "Did activity write the intended RBS state?",
+      "scope": "D arm mechanism checks M1/M2",
+      "n_D_cells": 9,
+      "n_M1_pass": 9,
+      "n_M2_pass": 0,
+      "n_mechanism_ok": 0,
+      "fraction_mechanism_ok": 0.0,
+      "answer": "partial"
+    },
+    "Q2_adaptation": {
+      "question": "Did that state produce adaptation?",
+      "scope": "D arm phenotype classification",
+      "counts": {
+        "ADAPTATION": 0,
+        "NO_ADAPTATION": 9,
+        "UNRESOLVED": 0
+      },
+      "n_A_adapt_above_theta": 9,
+      "observable_A_adapt_invariant_across_null_arms": true,
+      "facilitation": {
+        "n_facilitation": 0,
+        "A_adapt_values": []
+      },
+      "answer": "no_adaptation"
+    },
+    "Q3_recovery": {
+      "question": "Did hidden-state and observable response recover with rest?",
+      "hidden_state": {
+        "per_interval": [
+          {
+            "recovery_interval_id": "short",
+            "mean_abs_H_K_minus_1_at_rechallenge": 0.0055086612701416016,
+            "n": 3
+          },
+          {
+            "recovery_interval_id": "medium",
+            "mean_abs_H_K_minus_1_at_rechallenge": 0.003550887107849121,
+            "n": 3
+          },
+          {
+            "recovery_interval_id": "long",
+            "mean_abs_H_K_minus_1_at_rechallenge": 0.0008025169372558594,
+            "n": 3
+          }
+        ],
+        "T_rec_up_implies_H_K_closer_to_1": true
+      },
+      "observable_response": {
+        "per_interval": [
+          {
+            "recovery_interval_id": "short",
+            "mean_R_rechallenge": 2.0,
+            "mean_R_early": 3.5,
+            "mean_R_recovery": -0.5,
+            "R_recovery_values": [
+              -0.5,
+              -0.5,
+              -0.5
+            ]
+          },
+          {
+            "recovery_interval_id": "medium",
+            "mean_R_rechallenge": 3.0,
+            "mean_R_early": 3.5,
+            "mean_R_recovery": 0.5,
+            "R_recovery_values": [
+              0.5,
+              0.5,
+              0.5
+            ]
+          },
+          {
+            "recovery_interval_id": "long",
+            "mean_R_rechallenge": 3.0,
+            "mean_R_early": 3.5,
+            "mean_R_recovery": 0.5,
+            "R_recovery_values": [
+              0.5,
+              0.5,
+              0.5
+            ]
+          }
+        ]
+      },
+      "note": "hidden-state recovery and spike-count recovery are reported separately"
+    }
+  },
+  "primary_contrast_D_minus_N2": {
+    "pairwise": [
+      {
+        "seed": 11,
+        "recovery_interval_id": "short",
+        "D_classification": "NO_ADAPTATION",
+        "N2_classification": "ADAPTATION",
+        "D_A_adapt": 0.2857142857142857,
+        "N2_A_adapt": 0.2857142857142857,
+        "D_adapts_N2_does_not": false
+      },
+      {
+        "seed": 11,
+        "recovery_interval_id": "medium",
+        "D_classification": "NO_ADAPTATION",
+        "N2_classification": "ADAPTATION",
+        "D_A_adapt": 0.2857142857142857,
+        "N2_A_adapt": 0.2857142857142857,
+        "D_adapts_N2_does_not": false
+      },
+      {
+        "seed": 11,
+        "recovery_interval_id": "long",
+        "D_classification": "NO_ADAPTATION",
+        "N2_classification": "ADAPTATION",
+        "D_A_adapt": 0.2857142857142857,
+        "N2_A_adapt": 0.2857142857142857,
+        "D_adapts_N2_does_not": false
+      },
+      {
+        "seed": 12,
+        "recovery_interval_id": "short",
+        "D_classification": "NO_ADAPTATION",
+        "N2_classification": "ADAPTATION",
+        "D_A_adapt": 0.2857142857142857,
+        "N2_A_adapt": 0.2857142857142857,
+        "D_adapts_N2_does_not": false
+      },
+      {
+        "seed": 12,
+        "recovery_interval_id": "medium",
+        "D_classification": "NO_ADAPTATION",
+        "N2_classification": "ADAPTATION",
+        "D_A_adapt": 0.2857142857142857,
+        "N2_A_adapt": 0.2857142857142857,
+        "D_adapts_N2_does_not": false
+      },
+      {
+        "seed": 12,
+        "recovery_interval_id": "long",
+        "D_classification": "NO_ADAPTATION",
+        "N2_classification": "ADAPTATION",
+        "D_A_adapt": 0.2857142857142857,
+        "N2_A_adapt": 0.2857142857142857,
+        "D_adapts_N2_does_not": false
+      },
+      {
+        "seed": 13,
+        "recovery_interval_id": "short",
+        "D_classification": "NO_ADAPTATION",
+        "N2_classification": "ADAPTATION",
+        "D_A_adapt": 0.2857142857142857,
+        "N2_A_adapt": 0.2857142857142857,
+        "D_adapts_N2_does_not": false
+      },
+      {
+        "seed": 13,
+        "recovery_interval_id": "medium",
+        "D_classification": "NO_ADAPTATION",
+        "N2_classification": "ADAPTATION",
+        "D_A_adapt": 0.2857142857142857,
+        "N2_A_adapt": 0.2857142857142857,
+        "D_adapts_N2_does_not": false
+      },
+      {
+        "seed": 13,
+        "recovery_interval_id": "long",
+        "D_classification": "NO_ADAPTATION",
+        "N2_classification": "ADAPTATION",
+        "D_A_adapt": 0.2857142857142857,
+        "N2_A_adapt": 0.2857142857142857,
+        "D_adapts_N2_does_not": false
+      }
+    ],
+    "n_D_adaptation_N2_not": 0
+  },
+  "classification_counts_all_arms": {
+    "N0": {
+      "ADAPTATION": 9,
+      "NO_ADAPTATION": 0,
+      "UNRESOLVED": 0
+    },
+    "N1": {
+      "ADAPTATION": 9,
+      "NO_ADAPTATION": 0,
+      "UNRESOLVED": 0
+    },
+    "N2": {
+      "ADAPTATION": 9,
+      "NO_ADAPTATION": 0,
+      "UNRESOLVED": 0
+    },
+    "D": {
+      "ADAPTATION": 0,
+      "NO_ADAPTATION": 9,
+      "UNRESOLVED": 0
+    }
+  },
+  "facilitation_all_arms": {
+    "N0": {
+      "n_facilitation": 0,
+      "A_adapt_values": []
+    },
+    "N1": {
+      "n_facilitation": 0,
+      "A_adapt_values": []
+    },
+    "N2": {
+      "n_facilitation": 0,
+      "A_adapt_values": []
+    },
+    "D": {
+      "n_facilitation": 0,
+      "A_adapt_values": []
+    }
+  },
+  "interpretation_rules_applied": [
+    "NO_ADAPTATION is a valid scientific outcome, not a protocol failure",
+    "mechanism_ok with NO_ADAPTATION means this reduced K-associated coupling does not yield adaptation under the frozen paradigm",
+    "D2b state-space contract is not retroactively invalidated by NO_ADAPTATION",
+    "negative A_adapt indicates facilitation and must be reported",
+    "UNRESOLVED must be reported when early response is too sparse",
+    "recovery classification is secondary to adaptation classification",
+    "do not use fatigue as formal microscopic mechanism in D3 receipts"
+  ],
+  "d2b_not_invalidated_by_NO_ADAPTATION": true,
+  "terminology": {
+    "use": [
+      "adaptation",
+      "recovery",
+      "facilitation",
+      "rechallenge"
+    ],
+    "avoid_as_formal_mechanism": [
+      "fatigue"
+    ],
+    "note": "fatigue-like may be used post hoc as phenomenological description only; implemented state is effective K-associated recovery driven by activity history"
+  }
+}

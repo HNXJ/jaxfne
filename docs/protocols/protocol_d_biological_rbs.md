@@ -1,11 +1,12 @@
 # Protocol D — biological RBS containment (0.4.17-D)
 
-**Status:** D3 **specified** — adaptation/recovery phenotype frozen (D2b closed)  
+**Status:** D3 **CLOSED** — adaptation/recovery phenotype executed (0.4.17-D complete through D3)  
 **D0 spec:** `artifacts/protocol_d_biological_rbs/d0_intrinsic_ionic_rbs_spec.json`  
 **D1 spec/receipt:** static \(b_{\mathrm{eff}}=H_{\mathrm{K}}b\) expression (closed)  
 **D2a spec/receipt:** `d2a_autonomous_h_k_relaxation_spec.json` / `d2a_autonomous_relaxation_receipt.json`  
 **D2b spec/receipt:** `d2b_activity_h_k_coupling_spec.json` / `d2b_implementation_receipt.json`  
-**D3:** specified, **not** implemented  
+**D3 spec/receipts:** `d3_adaptation_recovery_phenotype_spec.json` /
+`d3_execution_receipt.json` / `d3_interpretation_receipt.json`  
 **Prerequisites:** Protocol C closed @ C4; Protocol H closed @ H4; W2 expression frozen; D2b closed
 
 > **Naming:** This is **0.4.17-D biological RBS**, distinct from **0.4.16 edge-delay
@@ -215,7 +216,7 @@ admissibility \(H_{\mathrm{K}}>0\); post-stimulus analytic/discrete two-timescal
 
 **Scientific contract ends at state-space writing** — adaptation/recovery phenotype is deferred to D3.
 
-## D3 — activity-dependent adaptation with recovery (specified)
+## D3 — activity-dependent adaptation with recovery (executed)
 
 \[
 \boxed{
@@ -286,8 +287,23 @@ when early response is too sparse — silence is not adaptation.
 
 **Frozen thresholds:** \(\theta_A=0.15\), \(\theta_H=0.01\).
 
+**Response-window semantics (frozen):** 80 ms post-onset windows overlap the next
+pulse (60 ms ISI) by 20 ms for train pulses 1–5; \(R_j\) is **not** an isolated
+single-pulse measure.
+
+**Execution:** 36 cells (3 seeds × 4 null arms × 3 recovery intervals).
+
+**Outcome (frozen interpretation @ execution):** formal `ADAPTATION` classification
+**not** assigned on D arm. \(A_{\mathrm{adapt}}\approx 0.29>\theta_A\) (spike-count
+attenuation) but \(H_{\mathrm{K}}^{\mathrm{late}}\not>1+\theta_H\) (M2 gate).
+Observable \(A_{\mathrm{adapt}}\) is **identical** across N0/N1/N2/D (D−N2 null on
+spike phenotype). Hidden-state recovery with \(T_{\mathrm{rec}}\uparrow\) confirmed
+(\(|H_{\mathrm{K}}(T_{\mathrm{rechallenge}})-1|\) decreases short→long).
+
+**Q1/Q2/Q3 decomposition** recorded in `d3_interpretation_receipt.json` for Figure 6.
+
 **Spec:** `artifacts/protocol_d_biological_rbs/d3_adaptation_recovery_phenotype_spec.json`  
-**Implementation:** not authorized.
+**Receipts:** `d3_execution_receipt.json`, `d3_interpretation_receipt.json`
 
 ## Checkpoint ladder
 
@@ -298,7 +314,7 @@ D0 &: \text{biological RBS specification},\\
 D1 &: \text{static typed-coordinate expression},\\
 D2\mathrm{a} &: \text{autonomous }H_{\mathrm{K}}\text{ relaxation},\\
 D2\mathrm{b} &: \text{activity}\rightarrow H_{\mathrm{K}}\text{ coupling (executed)},\\
-D3 &: \text{adaptation/recovery phenotype (specified)},\\
+D3 &: \text{adaptation/recovery phenotype (executed)},\\
 D4 &: \text{optional second RBS class (not mandatory for 0.4.17)}.
 \end{aligned}}
 \]
@@ -330,5 +346,5 @@ questions — keep separate panels and narrative.
 | D1 | Static \(H_{\mathrm{K}}\) sweep **executed** |
 | D2a | Autonomous F1 relaxation **executed** |
 | D2b | Two-coordinate \((H_{\mathrm{A}},H_{\mathrm{K}})\) coupling — **executed** |
-| D3 | Adaptation/recovery phenotype — **specified, not implemented** |
+| D3 | Adaptation/recovery phenotype — **executed** |
 | D4 | Optional second RBS class — not authorized |
