@@ -37,12 +37,25 @@ Examples: H4 = `DEMONSTRATED + NEGATIVE`; C3 = `DEMONSTRATED + NEGATIVE`; D3 = `
 
 1. Evidence consolidation (**complete @ PEC**)
 2. Figure 1 grammar map (**complete @ fig01_generation_receipt**)
-3. Figures 2–4 (Experiment A) — **next authorized checkpoint**
-4. Figure 5 (Protocol C)
+3. Figures 2–4 Experiment A (**complete @ fig02_04_cross_figure_audit**)
+4. Figure 5 (Protocol C) — **next authorized checkpoint**
 5. Figure 6 (H / W / D)
 6. Figure 7 (E1–E5)
 7. Main-text reconstruction
 8. Supplement
+
+### Figures 2–4 authority (coordinated Experiment A)
+
+| Artifact | Path |
+|----------|------|
+| Spec | `artifacts/publication/fig02_04_experiment_a_spec.json` |
+| Generator | `scripts/publication_figures/fig02_04_experiment_a.py` |
+| Cross audit | `artifacts/publication/fig02_04_cross_figure_audit.json` |
+| Fig 2 | `figures/publication/fig02_emitter_source.png` |
+| Fig 3 | `figures/publication/fig03_local_observation.png` |
+| Fig 4 | `figures/publication/fig04_multiscale_boundary.png` |
+
+Invariant: one frozen canonical `Q` hash shared across all three figures; no modality-specific neural reruns.
 
 ### Figure 1 authority
 

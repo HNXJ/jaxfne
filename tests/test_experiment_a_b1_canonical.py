@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from jaxfne.experiment_a.canonical import (
     array_sha256,
@@ -47,3 +48,12 @@ def test_b1_receipt_schema(tmp_path):
     assert receipt["status"] == "FROZEN"
     assert "cause_hashes" in receipt
     assert receipt["shapes"]["Q"][1] == ds.Q.shape[1]
+
+
+@pytest.mark.skipif(not RECEIPT.parent.joinpath("canonical_source.npz").is_file(), reason="npz missing")
+def test_load_frozen_canonical_from_disk():
+    from jaxfne.experiment_a.canonical import load_frozen_canonical_dataset
+
+    ds = load_frozen_canonical_dataset()
+    frozen = json.loads(RECEIPT.read_text())
+    assert ds.cause_hashes["Q"] == frozen["cause_hashes"]["Q"]

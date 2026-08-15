@@ -85,9 +85,14 @@
       "semantic_status": "native / canonical relative source",
       "null_control": "Q=0 => Y=0 for linear operators",
       "numeric_values_to_display": {"cause_hashes": "b1_canonical_receipt.json#cause_hashes"},
-      "figure_generation_entry_point": "DEFERRED: scripts/evidence_figures/fig02_contracts.py",
+      "figure_generation_entry_point": "scripts/publication_figures/fig02_04_experiment_a.py",
+      "figure_output": "figures/publication/fig02_emitter_source.png",
+      "generation_receipt": "artifacts/publication/fig02_generation_receipt.json",
+      "cross_figure_audit": "artifacts/publication/fig02_04_cross_figure_audit.json",
+      "canonical_q_hash": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+      "figure_sha256": "e65ad1f30de3b59beda0a402658d5d01e2eef9b77a1c10b40940cf42ee31ba09",
       "reproducibility_sha": {
-        "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
+        "artifact_introduction_commit": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/etudes/experiment_a/b3_experiment_a_receipt.json#package_head"
       }
     },
@@ -106,9 +111,14 @@
       "semantic_status": "relative_proxy / finite-difference CSD semantics",
       "null_control": "probe_does_not_mutate_Q",
       "numeric_values_to_display": {"shallow_vs_deep_distinctness": "b2_probe_receipt.json#invariants"},
-      "figure_generation_entry_point": "DEFERRED: scripts/evidence_figures/fig06_readout_family_panel.py",
+      "figure_generation_entry_point": "scripts/publication_figures/fig02_04_experiment_a.py",
+      "figure_output": "figures/publication/fig03_local_observation.png",
+      "generation_receipt": "artifacts/publication/fig03_generation_receipt.json",
+      "cross_figure_audit": "artifacts/publication/fig02_04_cross_figure_audit.json",
+      "canonical_q_hash": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+      "figure_sha256": "ffa0a54232170cf745ffd549dae36e0a20e4732257f30e373c83da6b173c6392",
       "reproducibility_sha": {
-        "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
+        "artifact_introduction_commit": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/etudes/experiment_a/b3_experiment_a_receipt.json#package_head"
       }
     },
@@ -122,13 +132,20 @@
       "protocol_authority": "experiment_a_v0417_b + v0417_a_capability_audit",
       "raw_receipt": "artifacts/audit/v0417_a_capability_audit.json",
       "interpretation_receipt": "artifacts/etudes/experiment_a/b0_protocol_spec.json#semantic_legend",
-      "source_arrays": [],
-      "analysis_function": "capability audit Figure 4 strict audit",
+      "source_arrays": ["artifacts/etudes/experiment_a/canonical_source.npz#Q"],
+      "analysis_function": "scripts/publication_figures/fig02_04_experiment_a.py (boundary diagram)",
       "semantic_status": "analysis_only",
       "null_control": "not_promoted_to_manuscript_physical_claim",
       "numeric_values_to_display": {"EEG_MEG_READY_panels": 0},
-      "figure_generation_entry_point": "DEFERRED: figure_4 phase",
-      "reproducibility_sha": {"artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5"}
+      "figure_generation_entry_point": "scripts/publication_figures/fig02_04_experiment_a.py",
+      "figure_output": "figures/publication/fig04_multiscale_boundary.png",
+      "generation_receipt": "artifacts/publication/fig04_generation_receipt.json",
+      "cross_figure_audit": "artifacts/publication/fig02_04_cross_figure_audit.json",
+      "canonical_q_hash": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+      "figure_sha256": "b7646a51c1c4002a17e22163a090fc1c338bb1800ea2240f68ed786e588a7913",
+      "reproducibility_sha": {
+        "artifact_introduction_commit": "c6d4c893291f568d02c3aba20969ddcd13825bb5"
+      }
     },
     {
       "panel_id": "Fig05.C1_synthetic",

@@ -9,6 +9,7 @@ from .canonical import (
     CanonicalDataset,
     build_experiment_a_config,
     freeze_canonical_dataset,
+    load_frozen_canonical_dataset,
     write_b1_receipt,
     write_canonical_npz,
 )
@@ -27,6 +28,7 @@ __all__ = [
     "CanonicalDataset",
     "build_experiment_a_config",
     "freeze_canonical_dataset",
+    "load_frozen_canonical_dataset",
     "write_b1_receipt",
     "write_canonical_npz",
     "FactorizedObservation",

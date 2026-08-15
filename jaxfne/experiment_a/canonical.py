@@ -152,6 +152,52 @@ def freeze_canonical_dataset(
     )
 
 
+def load_frozen_canonical_dataset(
+    *,
+    npz_path: Path | None = None,
+    receipt_path: Path | None = None,
+    verify_hashes: bool = True,
+) -> CanonicalDataset:
+    """Load committed Experiment A canonical arrays from disk (one simulate frozen)."""
+    root = Path(__file__).resolve().parents[2]
+    npz_path = npz_path or root / "artifacts" / "etudes" / "experiment_a" / "canonical_source.npz"
+    receipt_path = receipt_path or root / "artifacts" / "etudes" / "experiment_a" / "b1_canonical_receipt.json"
+    if not npz_path.is_file():
+        raise FileNotFoundError(f"missing canonical npz: {npz_path}")
+    data = np.load(npz_path)
+    cause_hashes = {
+        "V_m": array_sha256(np.asarray(data["X_V_m"], dtype=np.float32)),
+        "spikes": array_sha256(np.asarray(data["X_spikes"])),
+        "Q": array_sha256(np.asarray(data["Q"], dtype=np.float32)),
+        "H": array_sha256(np.asarray(data["H"], dtype=np.float32)),
+        "positions": array_sha256(np.asarray(data["positions"], dtype=np.float32)),
+    }
+    dataset = CanonicalDataset(
+        seed=int(data["seed"]),
+        time_ms=np.asarray(data["time_ms"], dtype=np.float32),
+        X_V_m=np.asarray(data["X_V_m"], dtype=np.float32),
+        X_spikes=np.asarray(data["X_spikes"]),
+        H=np.asarray(data["H"], dtype=np.float32),
+        Q=np.asarray(data["Q"], dtype=np.float32),
+        positions=np.asarray(data["positions"], dtype=np.float32),
+        H_semantic=str(np.asarray(data["H_semantic"])),
+        cause_hashes=cause_hashes,
+        metadata={},
+        package_head=str(np.asarray(data["package_head"])),
+    )
+    if verify_hashes and receipt_path.is_file():
+        import json
+
+        receipt = json.loads(receipt_path.read_text())
+        expected = receipt.get("cause_hashes", {})
+        for key, digest in cause_hashes.items():
+            if key in expected and expected[key] != digest:
+                raise ValueError(
+                    f"canonical {key} hash mismatch: disk={digest} receipt={expected[key]}"
+                )
+    return dataset
+
+
 def write_canonical_npz(dataset: CanonicalDataset, path: Path) -> None:
     """Persist canonical arrays (local/gitignored .npz)."""
     path.parent.mkdir(parents=True, exist_ok=True)
