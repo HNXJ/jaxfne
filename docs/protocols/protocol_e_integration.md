@@ -1,6 +1,6 @@
 # Protocol E — integrated TFNE composition (0.4.17-E)
 
-**Status:** E0.1 ladder **frozen**; **E1 closed**; **E2 closed** (implementation + execution receipt frozen)
+**Status:** E0.1 ladder **frozen**; **E1 closed**; **E2 closed**; **E3 specification frozen** (implementation not authorized)
 **Milestone boundary:** `9589933` — 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)
 
 **Specs:**  
@@ -8,6 +8,7 @@
 - E0.1: `artifacts/protocol_e_integration/e0_1_implementation_ladder_spec.json`  
 - E1: `artifacts/protocol_e_integration/e1_hierarchy_runtime_spec.json`
 - E2: `artifacts/protocol_e_integration/e2_delayed_coupling_spec.json`
+- E3: `artifacts/protocol_e_integration/e3_rbs_composition_spec.json`
 
 **Prerequisites:** Protocol D closed @ D3; Protocol C closed @ C4; Protocol H closed @ H4; W3 unresolved
 
@@ -142,6 +143,37 @@ Bit-exact on \(V_m\), spikes, identity/provenance, and edge structure where orde
 
 **Closed:** G1–G8 pass; typed delay table and delay occupancy frozen.
 
+## E3 — RBS composition (spec frozen)
+
+**Question:** Does hierarchy + typed delays compose with sparse D1/D2a \(H_K\) RBS without changing E2 at reference?
+
+**Added DOF:** selected population receives \(H_K\) RBD state with \(b_{\mathrm{eff}} = H_K b\) (D1/D2a primitive only; **not** D2b activity writing).
+
+**Reduction contract:**
+
+\[
+\boxed{
+R_{E3\rightarrow E2}:\quad
+H=H^\star,\ \dot H=0
+\Rightarrow
+E3\equiv E2
+}
+\]
+
+**RBS owner** (verified against E1 identity table @ spec freeze):
+
+| area | layer | cell_type | n_nodes | flat_indices |
+|------|-------|-----------|---------|--------------|
+| A2 | L5 | E | 7 | 70–76 |
+
+**Modes:** `E3-null` (\(H_K=1,\ \dot H_K=0\), must match E2) and `E3-dynamic` (\(\tau_K\dot H_K = 1-H_K\), \(H_K(0)=1+\delta_H=1.2\), \(\tau_K=100\) ms).
+
+**Combined continuation:** segmented execution must carry \(H_K\) and \(\mathcal{B}_t\) (`delay_state`) with E2 splits (400 ms / 120 ms).
+
+**Gates (G1–G9):** E2 reduction, ownership, non-owner invariance, typed expression, autonomous recovery, delay compatibility, continuation, hierarchy invariance, no phenotype claim.
+
+**Not authorized:** E3 implementation, D2b, D3 phenotype, HDP, new delays, field/probe evidence.
+
 ## Explicit blocks (unchanged from E0)
 
 | Block | Status |
@@ -159,4 +191,5 @@ Bit-exact on \(V_m\), spikes, identity/provenance, and edge structure where orde
 | E0.1 | Implementation ladder + reduction contracts **frozen** |
 | E1 | Hierarchy/runtime **closed** (G1–G6 pass; execution receipt frozen) |
 | E2 | Delayed coupling **closed** (G1–G8 pass; execution receipt frozen) |
-| E3–E5 | Not authorized (spec deferred) |
+| E3 | RBS composition spec **frozen**; implementation **not authorized** |
+| E4–E5 | Not authorized (spec deferred) |

@@ -1,0 +1,249 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e3_spec.v1",
+  "protocol_id": "protocol_e_integration_v0417",
+  "milestone": "0.4.17-E",
+  "checkpoint": "E3",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_spec": "artifacts/protocol_e_integration/e2_delayed_coupling_spec.json",
+  "parent_execution_receipt": "artifacts/protocol_e_integration/e2_execution_receipt.json",
+  "parent_head": "6722edf26070b7991e58524cdb75cab225847397",
+  "question": "Does hierarchy + typed delays compose with sparse, owned D1/D2a H_K RBS without changing E2 semantics at reference?",
+  "scientific_scope": {
+    "added_degree_of_freedom": "selected population receives validated D1/D2a H_K RBS/RBD state with b_eff = H_K b",
+    "inherited_from_e2": [
+      "E1 hierarchy identity and FF/FB ownership",
+      "typed provenance-class delays unchanged",
+      "edge counts 931 with 334/317/140/140 decomposition",
+      "explicit connectivity_mode",
+      "simulation_policy duration/dt/seeds/drive/dtype/noise",
+      "p_local=0.2 E1-receipt-derived constant"
+    ],
+    "excluded": [
+      "D2b activity-written H_A -> H_K coupling",
+      "D3 adaptation phenotype claims",
+      "HDP / dot_W plasticity",
+      "new delays or delay retuning",
+      "field/proxy/probe evidence chain",
+      "spectral/wave/memory/FF/FB functional phenotype"
+    ]
+  },
+  "composition_ladder": {
+    "containment": "E1 subset E2 subset E3",
+    "display": "hierarchy + delays (E2) -> hierarchy + delays + local RBD (E3)",
+    "reduction_chain": [
+      "tau=0 => E2 -> E1",
+      "H=H* and dot_H=0 => E3 -> E2"
+    ]
+  },
+  "reduction_contract": {
+    "id": "R_E3_to_E2",
+    "statement": "H = H* and dot_H = 0 => E3 equivalent to E2",
+    "reference_state": {
+      "H_K": 1.0,
+      "dot_H_K": 0.0
+    },
+    "bit_exact_equalities_required": [
+      "V_m",
+      "spikes",
+      "sources",
+      "identity_map",
+      "edge_provenance_table",
+      "typed_delay_table",
+      "delay_step_occupancy",
+      "hierarchy_fingerprints"
+    ],
+    "ordering_note": "Where execution ordering permits, require bit-exact equality; not merely final-state proximity"
+  },
+  "rbs_primitive": {
+    "source_protocol": "protocol_d_biological_rbs_v0417",
+    "authorized_kernels": {
+      "static_null": "jaxfne.emitters.simulate_edge_recurrent_izhikevich_static_h_k_recovery",
+      "dynamic_recovery": "jaxfne.emitters.simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery"
+    },
+    "deferred_not_used": {
+      "D2b": "activity-written H_A -> H_K coupling",
+      "D3": "adaptation phenotype interpretation",
+      "reason": "E3 is composition validation, not D3 rehabilitation"
+    },
+    "coordinate": "H_K",
+    "reference": "H_star = 1",
+    "coupling_map": {
+      "display": "b_eff = H_K * b",
+      "recovery_ode": "du/dt = a * (H_K * b * v - u)",
+      "dot_W": 0,
+      "parameter_locality": "only b_eff recovery drive scaled on owner neurons; drive/threshold/reset/weights/geometry/source operator unchanged elsewhere"
+    },
+    "dynamics_F_H": {
+      "null_mode": {
+        "id": "E3-null",
+        "display": "H_K = 1, dot_H_K = 0",
+        "kernel": "static_null"
+      },
+      "dynamic_mode": {
+        "id": "E3-dynamic",
+        "display": "tau_K * dot_H_K = 1 - H_K",
+        "kernel": "dynamic_recovery",
+        "discrete_euler_contract": "H_K^{n+1} = H_K^n + dt * (1 - H_K^n) / tau_K",
+        "analytic_solution": "H_K(t) = 1 + [H_K(0) - 1] * exp(-t / tau_K)",
+        "tau_K_ms": 100.0,
+        "inherits_from": "artifacts/protocol_d_biological_rbs/d2a_autonomous_h_k_relaxation_spec.json"
+      }
+    },
+    "initial_perturbation": {
+      "delta_H": 0.2,
+      "display": "H_K(0) = 1 + delta_H for dynamic mode perturbation arm",
+      "H_K0_dynamic": 1.2,
+      "inherits_delta_from": "artifacts/protocol_d_biological_rbs/d1_static_h_k_expression_spec.json#static_sweep.delta"
+    }
+  },
+  "ownership": {
+    "selector": {
+      "area": "A2",
+      "layer": "L5",
+      "cell_type": "E"
+    },
+    "set_display": "O_H = { i : area=A2, layer=L5, cell_type=E }",
+    "n_nodes": 7,
+    "flat_indices": [70, 71, 72, 73, 74, 75, 76],
+    "identity_verification": {
+      "source": "artifacts/protocol_e_integration/e1_execution_receipt.json#identity_map",
+      "rule": "flat_indices must be resolved from E1 identity table at specification freeze; do not construct owner IDs independently at execution",
+      "verified_at_spec_freeze": true,
+      "note": "Owner population exists in frozen E1 hierarchy (7 excitatory L5 neurons in A2); hierarchy not altered for RBS accommodation"
+    },
+    "non_owner_rule": "All neurons outside flat_indices carry no H_K coordinate update and no b_eff modulation"
+  },
+  "execution_modes": [
+    {
+      "id": "E3-null",
+      "purpose": "R_E3_to_E2 reduction and static reference",
+      "H_K_initial": 1.0,
+      "dot_H_K": 0.0,
+      "must_match_e2": true
+    },
+    {
+      "id": "E3-dynamic",
+      "purpose": "autonomous H_K relaxation on owned population only",
+      "H_K_initial": 1.2,
+      "dot_H_K": "tau_K * dH = 1 - H",
+      "expected_restoration": "H_K(t) -> 1"
+    }
+  ],
+  "combined_state_continuation": {
+    "state_vector_display": "X_t = (X_t, H_t, B_t, ...)",
+    "carried_fields": [
+      "membrane/recovery dynamic state (X)",
+      "owner H_K trace",
+      "delay_state B_t"
+    ],
+    "reference": "Protocol C2 delay_state + D2a H_K recurrence inside hierarchical runtime",
+    "inherited_splits_ms": {
+      "primary": 400.0,
+      "inflight_stress": 120.0,
+      "source": "artifacts/protocol_e_integration/e2_delayed_coupling_spec.json#continuation_segmentation"
+    },
+    "equivalence_required": [
+      "V_m bit-exact across segments",
+      "spikes bit-exact across segments",
+      "sources bit-exact across segments",
+      "synaptic_state bit-exact",
+      "delay_state B_t bit-exact",
+      "owner H_K trace bit-exact",
+      "spike event timing exact"
+    ]
+  },
+  "simulation_policy": {
+    "inherits_from": "artifacts/protocol_e_integration/e2_delayed_coupling_spec.json#simulation_policy",
+    "duration_ms": 1000.0,
+    "dt_ms": 0.5,
+    "n_steps": 2000,
+    "noise_scale": 0.0,
+    "dtype": "float32",
+    "seeds": [11, 12, 13],
+    "emitter_preset": "cortical_eig",
+    "drive": {"E": 8.0, "PV": 6.0},
+    "recurrent_backend": "edge_list",
+    "connectivity_mode": "explicit",
+    "enable_hdp": false,
+    "dot_W": 0
+  },
+  "typed_delay_inheritance": {
+    "rule": "E2 typed delay table unchanged in E3",
+    "source_receipt": "artifacts/protocol_e_integration/e2_execution_receipt.json#typed_delay_table",
+    "must_match_exactly": true
+  },
+  "ownership_receipt_contract": {
+    "required_fields": [
+      "area",
+      "layer",
+      "cell_type",
+      "n_nodes",
+      "flat_indices"
+    ],
+    "verification": "flat_indices must match E1 identity_map lookup for selector"
+  },
+  "gates": {
+    "G1_e2_reduction": {
+      "statement": "E3-null (H_K=1, dot_H_K=0) => E3 bit-exact E2 on trajectories and hierarchy metadata"
+    },
+    "G2_ownership": {
+      "statement": "Only declared A2:L5:E owner population receives H_K coordinate and b_eff modulation"
+    },
+    "G3_non_owner_invariance": {
+      "statement": "No hidden RBS state or parameter modulation on non-owner neurons"
+    },
+    "G4_typed_expression": {
+      "statement": "Owner neurons use b_eff = H_K * b exactly as validated in D1"
+    },
+    "G5_autonomous_recovery": {
+      "statement": "E3-dynamic: H_K(t) -> 1 per D2a tau_K recurrence on owners only"
+    },
+    "G6_delay_compatibility": {
+      "statement": "E2 typed delay/provenance table unchanged"
+    },
+    "G7_continuation": {
+      "statement": "Segmented execution carries H_K and B_t correctly with bit-exact trajectories"
+    },
+    "G8_hierarchy_invariance": {
+      "statement": "Neuron identity, edge provenance, and delay ownership unchanged; only H coordinate added on owners"
+    },
+    "G9_no_phenotype_claim": {
+      "statement": "Activity differences from H_K(0) perturbation are expression evidence only; no adaptation/memory/FF/FB functional claim"
+    }
+  },
+  "success_criteria": {
+    "type": "structural_rbs_compositional",
+    "required": [
+      "all_E3_gates_pass",
+      "R_E3_to_E2_bit_exact",
+      "ownership_cardinality_receipt_frozen",
+      "combined_state_continuation_verified"
+    ]
+  },
+  "explicit_prohibitions": [
+    "no_D2b_H_A_activity_writing",
+    "no_D3_adaptation_phenotype_claim",
+    "no_HDP",
+    "no_dot_W_plasticity",
+    "no_new_delays",
+    "no_delay_retuning",
+    "no_field_proxy_probe_evidence",
+    "no_spectral_analysis",
+    "no_hierarchical_phenotype_hypothesis",
+    "no_hierarchy_modification_for_RBS_ownership",
+    "no_E4_at_E3"
+  ],
+  "execution_authorization": {
+    "specification_only": true,
+    "implementation_authorized": false,
+    "next_checkpoint": "E3_implementation"
+  },
+  "e4_deferred": {
+    "checkpoint": "E4",
+    "adds": "observation chain X,H -> Q -> Phi -> P -> Y",
+    "reduction": "R_E4_to_E3"
+  },
+  "bundle_root": "artifacts/protocol_e_integration",
+  "protocol_doc": "docs/protocols/protocol_e_integration.md"
+}
