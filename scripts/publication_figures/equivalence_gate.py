@@ -104,6 +104,22 @@ def run_case(name: str, frozen_rel: str, render_dir: pathlib.Path, build_call) -
     }
 
 
+def byte_identity_pinned() -> bool:
+    """True when this host can be expected to reproduce the frozen PNG bytes.
+
+    PNG rendering is not cross-platform byte-deterministic (fontconfig vs
+    coretext, freetype versions). The frozen figures and this report were
+    produced on the freeze platform (macOS, matplotlib 3.10.9), so byte
+    identity is asserted only there; on other platforms (CI Linux) the gate
+    still runs and reports dimensions/pixels, and byte identity is recorded
+    as informational -- the paper's reproducibility claims rest on frozen
+    receipts and tracked SHAs, never on cross-platform PNG bytes.
+    """
+    import matplotlib
+
+    return sys.platform == "darwin" and matplotlib.__version__ == "3.10.9"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--render-dir", type=pathlib.Path, default=REPO / "scratch/equivalence_render")
@@ -183,6 +199,7 @@ def main(argv: list[str] | None = None) -> int:
     report = {
         "schema": "jaxfne.harness.seam_equivalence.v1",
         "frozen_manifest": str(FROZEN_MANIFEST.relative_to(REPO)),
+        "byte_identity_pinned": byte_identity_pinned(),
         "cases": results,
     }
     args.report.write_text(json.dumps(report, indent=2) + "\n")

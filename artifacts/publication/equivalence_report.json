@@ -1,11 +1,12 @@
 {
   "schema": "jaxfne.harness.seam_equivalence.v1",
   "frozen_manifest": ".opencode/frozen_paths.json",
+  "byte_identity_pinned": true,
   "cases": [
     {
       "figure": "fig01",
       "frozen_png": "figures/publication/fig01_tfne_grammar.png",
-      "temp_png": "scratch/equivalence_render/post_fig01.png",
+      "temp_png": "../../../../../tmp/eq_render/post_fig01.png",
       "H_equal": true,
       "W_equal": true,
       "RGBA_equal": true,
@@ -17,7 +18,7 @@
     {
       "figure": "fig02",
       "frozen_png": "figures/publication/fig02_emitter_source.png",
-      "temp_png": "scratch/equivalence_render/post_fig02.png",
+      "temp_png": "../../../../../tmp/eq_render/post_fig02.png",
       "H_equal": true,
       "W_equal": true,
       "RGBA_equal": true,
@@ -29,7 +30,7 @@
     {
       "figure": "fig03",
       "frozen_png": "figures/publication/fig03_local_observation.png",
-      "temp_png": "scratch/equivalence_render/post_fig03.png",
+      "temp_png": "../../../../../tmp/eq_render/post_fig03.png",
       "H_equal": true,
       "W_equal": true,
       "RGBA_equal": true,
@@ -41,7 +42,7 @@
     {
       "figure": "fig04",
       "frozen_png": "figures/publication/fig04_multiscale_boundary.png",
-      "temp_png": "scratch/equivalence_render/post_fig04.png",
+      "temp_png": "../../../../../tmp/eq_render/post_fig04.png",
       "H_equal": true,
       "W_equal": true,
       "RGBA_equal": true,
@@ -53,7 +54,7 @@
     {
       "figure": "fig05",
       "frozen_png": "figures/publication/fig05_traveling_wave_no_wave.png",
-      "temp_png": "scratch/equivalence_render/post_fig05.png",
+      "temp_png": "../../../../../tmp/eq_render/post_fig05.png",
       "H_equal": true,
       "W_equal": true,
       "RGBA_equal": true,
@@ -65,7 +66,7 @@
     {
       "figure": "fig06",
       "frozen_png": "figures/publication/fig06_rbs_hdp_ladder.png",
-      "temp_png": "scratch/equivalence_render/post_fig06.png",
+      "temp_png": "../../../../../tmp/eq_render/post_fig06.png",
       "H_equal": true,
       "W_equal": true,
       "RGBA_equal": true,
@@ -77,7 +78,7 @@
     {
       "figure": "fig07",
       "frozen_png": "figures/publication/fig07_e_integration.png",
-      "temp_png": "scratch/equivalence_render/post_fig07.png",
+      "temp_png": "../../../../../tmp/eq_render/post_fig07.png",
       "H_equal": true,
       "W_equal": true,
       "RGBA_equal": true,
