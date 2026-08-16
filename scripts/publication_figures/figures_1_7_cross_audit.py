@@ -55,7 +55,7 @@ def build_summary(audit: dict) -> str:
         "",
         f"**{audit['next_checkpoint']}** — controlled visual polish, Results/Methods/Supplement under hard feature freeze.",
         "",
-        f"*Machine-readable audit: `artifacts/publication/figures_1_7_cross_figure_audit.json`*",
+        "*Machine-readable audit: `artifacts/publication/figures_1_7_cross_figure_audit.json`*",
         "",
     ]
     return "\n".join(lines)

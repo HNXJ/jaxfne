@@ -121,7 +121,7 @@ Protocol H **phase 1** requires scalar support (\(d_H=1\)) with a path to
 |------------|---------|--------|
 | **H1a** | \(x/I \rightarrow H\) via \(\kappa_H I_i^{\mathrm{rel}}\) | Implemented (`simulate_edge_recurrent_izhikevich_rbd`) |
 | **H1b** | Specify minimal \(H \rightarrow x\) gain \(G\) | `docs/doctrine/protocol_h_h1b_h_to_x_gain.md` |
-| **H1c** | Implement selected gain (not authorized) | Blocked on H1b |
+| **H1c** | Postsynaptic recurrent gain \(G_H=1+\beta_H(H-1)\) | `tests/test_protocol_h_rbd_h1c.py` |
 
 **H1a limitation:** \(F_x\) is **unchanged** in the current kernel. With
 \(\kappa_H=0\), a localized \(H_k=1+\delta_H\) perturbation can relax in \(H\)

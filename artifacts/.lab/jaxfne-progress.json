@@ -166,6 +166,14 @@
       "confidence": "high",
       "detail": "dev->main promotion COMPLETE 2026-08-08. PR #77 merged normally (no force-push); merge commit a8178bf (main_before 27923e0; main_after a8178bf). Final dev SHA 2bda4e0 with CI (Fast) SUCCESS (run 31290836875). Main CI (Release & Scheduled) on a8178bf SUCCESS (run 31291869518, all 3.10/3.11/3.12 full suites + examples + wheel build/twine/smoke) -- first green main release CI since the ROADMAP_PHASES.md hygiene violation; that file now absent from main. Post-merge local gates on main: compileall 0, 73 passed/1 skipped, audit pass:true, mkdocs strict exit 0. Roadmap Promotion log entry added under Phase P. Remaining phase work: P-03/P-08 CUDA float32 acceptance needs GPU hardware; Phase P exit criteria not yet met.",
       "record": "Receipts: artifacts/developer/receipts/P07_main_postmerge_gate.txt, P07_main_audit.txt, P07_main_mkdocs.txt (gitignored). Commit on main: roadmap Promotion log + this note."
+    },
+    {
+      "id": "note-phase1-evidence-repro-2026-08-15",
+      "kind": "progress_entry",
+      "date": "2026-08-15",
+      "source": "scratch/CURRENT_TASK.md, artifacts/publication/publication_claim_ledger.json, artifacts/publication/REVIEW_NAVIGATION.md",
+      "confidence": "high",
+      "detail": "Phase 1 (Evidence + Reproducibility) progress on dev@c6f6aaf prior: P1 H1-H3 RESOLVED via frozen H4 interpretation receipt (machinery-level SUPPORTED, P3 geometry NOT supported); P2 claim ledger built (21 claims, 9 tests green); P4 version ambiguity resolved (0.4.16 package vs 0.4.17 milestone); P3 validator-churn defect CLOSED this session: write_json_strict now frozen-manifest aware (metadata-only drift = no-op, content drift = hard error) - all 7 generator mains + pytest suite terminate with clean tree; Pillow declared in viz extra; canonical npz regen verified deterministic vs committed B1 hashes (5/5 arrays match); P5 classification embedded as statistics_classification registry in ledger. Gates green: integrity, docs-language, mkdocs strict, ruff, 33 fig/evidence tests, 34 smoke tests, equivalence 4/4 (8.5min)."
     }
   ],
   "issues": [],

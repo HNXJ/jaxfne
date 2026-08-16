@@ -9,6 +9,16 @@
 
 Immutable claim → protocol → receipt → arrays → analysis → figure-panel index for the **0.4.17 hard feature freeze**. Figures 1–7 must be generated from this index, not from memory or ad hoc scripts.
 
+## Version semantics (resolve the 0.4.16 vs 0.4.17 axes)
+
+`0.4.17` is the **publication milestone / protocol identifier** (PEC milestone, protocol
+IDs such as `protocol_d_biological_rbs_v0417` and `0.4.17-B/C/D` ladder rungs), not the
+package version. The **package version** (`pyproject.toml`, `jaxfne/_model.py
+_JAXFNE_VERSION`) is `0.4.16`, the release cycle preceding the 0.4.17 publication
+cycle. The two are deliberately different axes: the package release cycle and the
+publication evidence cycle. Do not bump the package version merely to make the numbers
+agree; do not cite 0.4.17 as a package version.
+
 ## Evidence ladder (claim level)
 
 ```text
