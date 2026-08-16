@@ -55,6 +55,10 @@ deliberately gitignored derived artifact — arrays are never committed, only
 their SHA-256 hashes (`artifacts/etudes/experiment_a/b1_canonical_receipt.json`,
 `manifest.json`). Regenerate it first from a fresh clone with
 `python3 scripts/run_experiment_a.py`; figures 2-4 consume that bundle.
+That runner is verification-first: canonical arrays regenerate into the local
+`.npz`; committed receipts are compared (hashes byte-exact, analytic metrics
+within rtol 1e-6, run-stamps ignored) and never rewritten — the reviewer tree
+stays clean.
 
 ```bash
 # Gate 1: seam equivalence (7/7 exact decoded-pixel identity vs frozen)

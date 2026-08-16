@@ -215,7 +215,7 @@ def write_canonical_npz(dataset: CanonicalDataset, path: Path) -> None:
     )
 
 
-def write_b1_receipt(dataset: CanonicalDataset, path: Path) -> dict[str, Any]:
+def write_b1_receipt(dataset: CanonicalDataset, path: Path, *, write: bool = True) -> dict[str, Any]:
     """Write committed B1 receipt with hashes (arrays stay in .npz)."""
     receipt = {
         "schema": "jaxfne.experiment_a.b1_canonical_receipt.v1",
@@ -237,8 +237,9 @@ def write_b1_receipt(dataset: CanonicalDataset, path: Path) -> dict[str, Any]:
         "canonical_npz": "artifacts/etudes/experiment_a/canonical_source.npz",
         "next_checkpoint": "B2",
     }
-    path.parent.mkdir(parents=True, exist_ok=True)
-    import json
+    if write:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        import json
 
-    path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
     return receipt

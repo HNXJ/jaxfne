@@ -209,7 +209,16 @@ def run_observation_suite(
 def write_b3_bundle(
     bundle_root: Path | None = None,
 ) -> dict[str, Any]:
-    """Freeze Experiment A receipt (B3). No manuscript figures."""
+    """Freeze Experiment A receipt (B3). No manuscript figures.
+
+    Tracked receipts are write-once provenance of the original freeze run:
+    when a target file already exists, regeneration VERIFIES it (arrays are
+    regenerated into the local gitignored .npz, and the tracked JSONs are
+    compared to the regenerated content) instead of rewriting it. Rewriting
+    happens only when the file does not exist yet (authoring mode). Committed
+    bytes therefore stay byte-identical across reviewer reruns, matching the
+    write-once discipline of the publication frozen set.
+    """
     root = bundle_root or BUNDLE_ROOT
     repo = REPO_ROOT
     spec = load_protocol_spec()
@@ -221,7 +230,13 @@ def write_b3_bundle(
     dataset = freeze_canonical_dataset(spec=spec, package_head=head)
 
     write_canonical_npz(dataset, root / "canonical_source.npz")
-    write_b1_receipt(dataset, root / "b1_canonical_receipt.json")
+
+    verification: dict[str, Any] = {}
+    b1_receipt = _tracked_write(
+        root / "b1_canonical_receipt.json",
+        write_b1_receipt(dataset, root / "b1_canonical_receipt.json", write=False),
+        name="b1_canonical_receipt.json",
+    )
 
     suite = run_observation_suite(dataset, spec)
     cause_hashes = dict(dataset.cause_hashes)
@@ -248,10 +263,10 @@ def write_b3_bundle(
         "q_hash_invariant": True,
     }
     metrics_path = root / "metrics.json"
-    metrics_path.write_text(json.dumps(json_safe(metrics), indent=2, sort_keys=True) + "\n")
+    metrics_ver = _tracked_write(metrics_path, metrics, name="metrics.json")
 
     prov_path = root / "provenance.json"
-    prov_path.write_text(json.dumps(suite["provenance"], indent=2, sort_keys=True) + "\n")
+    prov_ver = _tracked_write(prov_path, suite["provenance"], name="provenance.json")
 
     tables = {
         "r90_laminar": suite["r90"],
@@ -261,7 +276,9 @@ def write_b3_bundle(
         "levels": suite["levels"],
     }
     tables_path = root / "observation_tables.json"
-    tables_path.write_text(json.dumps(json_safe(tables), indent=2, sort_keys=True) + "\n")
+    tables_ver = _tracked_write(
+        tables_path, tables, name="observation_tables.json"
+    )
 
     obs = suite["observation_arrays"]
     np.savez_compressed(
@@ -289,7 +306,7 @@ def write_b3_bundle(
         "manuscript_figures": False,
     }
     manifest_path = root / "manifest.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    manifest_ver = _tracked_write(manifest_path, manifest, name="manifest.json")
 
     receipt = {
         "schema": "jaxfne.experiment_a.b3_receipt.v1",
@@ -306,5 +323,115 @@ def write_b3_bundle(
         ),
     }
     receipt_path = root / "b3_experiment_a_receipt.json"
-    receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
-    return receipt
+    b3_ver = _tracked_write(receipt_path, receipt, name="b3_experiment_a_receipt.json")
+
+    verification = {
+        "canonical_hashes": _verify_canonical_hashes(
+            dataset.cause_hashes, root / "b1_canonical_receipt.json"
+        ),
+        "q_hash_invariant": True,
+        "tracked_receipts": {
+            name: ver
+            for name, ver in [
+                ("b1_canonical_receipt.json", b1_receipt),
+                ("metrics.json", metrics_ver),
+                ("provenance.json", prov_ver),
+                ("observation_tables.json", tables_ver),
+                ("manifest.json", manifest_ver),
+                ("b3_experiment_a_receipt.json", b3_ver),
+            ]
+        },
+    }
+    return {"receipt": receipt, "verification": verification}
+
+
+_TRACKED_METADATA_KEYS = ("package_head", "audited_at_utc", "test_evidence")
+_FLOAT_RTOL = 1e-6
+_FLOAT_ATOL = 1e-12
+
+
+def _verify_canonical_hashes(regenerated: dict[str, Any], b1_path: Path) -> dict[str, bool]:
+    """Compare regenerated array hashes against the committed B1 receipt."""
+    if b1_path.is_file():
+        committed = json.loads(b1_path.read_text(encoding="utf-8"))
+        committed_hashes = committed.get("cause_hashes", {})
+    else:
+        committed_hashes = {}
+    result: dict[str, bool] = {}
+    for key in sorted(regenerated):
+        expected = committed_hashes.get(key)
+        result[key] = expected is not None and regenerated[key] == expected
+    return result
+
+
+def _compare_value(old: Any, new: Any, at: str = "") -> tuple[bool, float, str]:
+    """Compare regenerated vs committed content.
+
+    Returns (equal, max_relative_float_delta, first_difference_path). Top-level
+    keys in _TRACKED_METADATA_KEYS are run-stamp/annotation fields that are
+    never compared (they are committed provenance of the original freeze).
+    Floats compare within (_FLOAT_ATOL + _FLOAT_RTOL * |new|); hashes, counts,
+    integers, booleans, and strings compare exactly.
+    """
+    if isinstance(old, dict) and isinstance(new, dict):
+        max_rel = 0.0
+        for key in sorted(set(old) | set(new), key=str):
+            if at == "" and key in _TRACKED_METADATA_KEYS:
+                continue
+            if key not in old:
+                return False, max_rel, f"{at}.{key}: missing in committed"
+            if key not in new:
+                return False, max_rel, f"{at}.{key}: missing in regeneration"
+            eq, rel, diff = _compare_value(old[key], new[key], f"{at}.{key}")
+            max_rel = max(max_rel, rel)
+            if not eq:
+                return False, max_rel, diff
+        return True, max_rel, ""
+    if isinstance(old, list) and isinstance(new, list):
+        max_rel = 0.0
+        if len(old) != len(new):
+            return False, max_rel, f"{at}: length {len(old)} != {len(new)}"
+        for i, (a, b) in enumerate(zip(old, new)):
+            eq, rel, diff = _compare_value(a, b, f"{at}[{i}]")
+            max_rel = max(max_rel, rel)
+            if not eq:
+                return False, max_rel, diff
+        return True, max_rel, ""
+    if isinstance(old, float) and isinstance(new, float):
+        delta = abs(old - new)
+        denom = max(abs(new), 1e-30)
+        rel = delta / denom if denom > 0 else 0.0
+        if delta <= _FLOAT_ATOL + _FLOAT_RTOL * denom:
+            return True, rel, ""
+        return False, rel, f"{at}: {old!r} vs {new!r}"
+    if isinstance(old, bool) and isinstance(new, bool):
+        return old is new, 0.0, ""
+    if old != new:
+        return False, 0.0, f"{at}: {str(old)[:60]!r} vs {str(new)[:60]!r}"
+    return True, 0.0, ""
+
+
+def _tracked_write(path: Path, obj: dict, *, name: str) -> dict[str, Any]:
+    """Write-or-verify a tracked receipt.
+
+    If the file exists, regeneration verifies instead of rewriting: committed
+    content is compared to the regenerated content under the tolerance rules
+    in _compare_value; on success the committed bytes are left untouched and
+    the verification status (with measured max relative float delta) is
+    returned. On drift beyond tolerance a RuntimeError is raised listing the
+    first differing path.
+    """
+    serialized = json.dumps(json_safe(obj), indent=2, sort_keys=True) + "\n"
+    if path.is_file():
+        committed = json.loads(path.read_text(encoding="utf-8"))
+        equal, max_rel, diff = _compare_value(committed, json_safe(obj), "")
+        if not equal:
+            raise RuntimeError(
+                f"tracked receipt drift at {name}: {diff}. Committed receipts "
+                "are write-once provenance; restore with `git checkout -- <path>` "
+                "or author a fresh bundle before re-running."
+            )
+        return {"status": "verified", "max_relative_float_delta": max_rel}
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(serialized, encoding="utf-8")
+    return {"status": "written"}
