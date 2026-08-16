@@ -103,6 +103,62 @@ def build_ring_params_edges(
     return params, edges
 
 
+def build_ring_params_edges_km(
+    n_neurons: int,
+    k_neighbors: int,
+    *,
+    arc_delay_steps: np.ndarray,
+    weight: float = 6.0,
+    tau_ms: float = 3.0,
+) -> tuple[IzhikevichParams, EdgeList]:
+    """Directed K-neighbor ring; ``arc_delay_steps[m-1]`` = delay steps for skip m.
+
+    Skip m connects neuron i to neuron (i + m) mod n at arc length m*a
+    (a = 2*pi*R/n). Edge ordering mirrors ``build_ring_params_edges``: blocks
+    of skip 1..K, each block ordered by pre index.
+    """
+    if n_neurons < 2:
+        raise ValueError("ring requires n_neurons >= 2")
+    if not 1 <= k_neighbors < n_neurons:
+        raise ValueError(f"k_neighbors must be in [1, {n_neurons})")
+    arc_delay_steps = np.asarray(arc_delay_steps, dtype=np.int32)
+    if arc_delay_steps.shape != (k_neighbors,):
+        raise ValueError(f"arc_delay_steps must have shape ({k_neighbors},)")
+    jdtype = jnp.float32
+    labels = tuple("E" for _ in range(n_neurons))
+    params = IzhikevichParams(
+        v0=jnp.full((n_neurons,), -65.0, dtype=jdtype),
+        u0=jnp.zeros((n_neurons,), dtype=jdtype),
+        a=jnp.full((n_neurons,), 0.02, dtype=jdtype),
+        b=jnp.full((n_neurons,), 0.2, dtype=jdtype),
+        c=jnp.full((n_neurons,), -65.0, dtype=jdtype),
+        d=jnp.full((n_neurons,), 8.0, dtype=jdtype),
+        drive=jnp.zeros((n_neurons,), dtype=jdtype),
+        sign=jnp.ones((n_neurons,), dtype=jdtype),
+        W=jnp.zeros((n_neurons, n_neurons), dtype=jdtype),
+        source_scale=jnp.ones((n_neurons,), dtype=jdtype),
+        labels=labels,
+        layer_labels=labels,
+        source_calibration_status="uncalibrated_izhikevich_native_current",
+    )
+    n_edges = n_neurons * k_neighbors
+    pre_blocks = [np.arange(n_neurons, dtype=np.int32) for _ in range(k_neighbors)]
+    post_blocks = [
+        np.roll(np.arange(n_neurons, dtype=np.int32), -m) for m in range(1, k_neighbors + 1)
+    ]
+    edges = EdgeList(
+        pre=jnp.asarray(np.concatenate(pre_blocks), dtype=jnp.int32),
+        post=jnp.asarray(np.concatenate(post_blocks), dtype=jnp.int32),
+        weight=jnp.full((n_edges,), float(weight), dtype=jdtype),
+        receptor_index=jnp.zeros((n_edges,), dtype=jnp.int32),
+        tau_ms=jnp.full((n_edges,), float(tau_ms), dtype=jdtype),
+        delay_steps=jnp.concatenate(
+            [jnp.full((n_neurons,), int(d), dtype=jnp.int32) for d in arc_delay_steps]
+        ),
+    )
+    return params, edges
+
+
 def ring_delay_pattern(
   n_neurons: int,
   *,

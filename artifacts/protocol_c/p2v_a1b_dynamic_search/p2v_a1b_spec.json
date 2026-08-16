@@ -1,0 +1,109 @@
+{
+  "schema": "jaxfne.protocol_c.p2v_a1b_spec.v1",
+  "protocol_id": "protocol_c_p2v_a1b",
+  "phase": "post-freeze reviewer-motivated validation",
+  "phase_label": "post-freeze_reviewer_motivated_validation",
+  "checkpoint": "A-1b",
+  "status": "FROZEN_SPEC",
+  "write_once": true,
+  "parent_authorities": {
+    "c3_spec": "artifacts/protocol_c/c3_neural_experiment_spec.json",
+    "c3_receipt": "artifacts/protocol_c/c3_execution_receipt.json",
+    "a1a_receipt": "artifacts/protocol_c/p2v_a1a_synthetic_control/p2v_a1a_receipt.json",
+    "a1b_prefreeze_evidence": "artifacts/protocol_c/p2v_a1b_dynamic_search/p2v_a1b_prefreeze_evidence.json",
+    "phase2_review": "artifacts/developer/phase2_review/04_hostile_nature_methods_review.md (F-1, F-2)"
+  },
+  "motivation": "Phase-2 hostile review (F-1/F-2): the frozen C3 experiment contains no positive regime and thus cannot support a statement about whether the model CAN exhibit traveling waves; only a negative statement about the tested regime. A-1b prospectively searches the same codebase (identical substrate, estimator, thresholds) over a predeclared family of distance-dependent conduction delays for a regime in which the estimator classifies TRAVELING_WAVE.",
+  "separation_of_concerns": "A-1a validated the estimator on injected synthetic fields (48-case recovery surface PASS). A-1b runs the actual neural model on the identical estimator. The estimator is the D1-repaired module (see a1a_receipt repairs); its frozen thresholds are unchanged.",
+  "geometry_and_topology": {
+    "n_neurons": 24,
+    "ring_radius_mm": 1.0,
+    "positions": "ordered arc-length positions x_i = R*theta_i, theta_i = 2*pi*i/N (identical to frozen C3 ordered conditions)",
+    "arc_length_mm": 0.2617993877991494,
+    "neuron_type": "E-only Izhikevich (identical to frozen C3)",
+    "directed_edge_convention": "skip m connects neuron i to neuron (i + m) mod n; edge blocks ordered by skip 1..K, each block ordered by pre index",
+    "edge_weight": 6.0,
+    "syn_tau_ms": 3.0,
+    "connectivity_radius_note": "K is the propagation range in ring steps; each neuron receives K presynaptic inputs"
+  },
+  "delay_family": {
+    "arc_definition": "a = 2*pi*R/N mm (nearest-neighbor arc length)",
+    "delay_equation": "delay_steps(m) = ceil(m * a / (v_c * dt_delay))",
+    "units": "v_c in mm/ms, dt_delay = 0.5 ms (simulation dt), delay_steps dimensionless integer >= 1",
+    "computation": "signature vectors were computed and verified identically in float64 and float32 arithmetic BEFORE any outcome was observed (p2v_a1b_prefreeze_evidence.json); the spec embeds the exact integer vectors and the runner uses them verbatim - no runtime ceiling, no adaptive choice",
+    "quantization_note": "15/15 (v_c, K) points map to distinct delay vectors; quantization plateaus (equal integer delays across arcs) are recorded in the pre-freeze evidence, not collapsed",
+    "signatures_per_point": {
+      "vc0.033_k1": [16],
+      "vc0.033_k2": [16, 32],
+      "vc0.033_k4": [16, 32, 48, 64],
+      "vc0.065_k1": [9],
+      "vc0.065_k2": [9, 17],
+      "vc0.065_k4": [9, 17, 25, 33],
+      "vc0.131_k1": [4],
+      "vc0.131_k2": [4, 8],
+      "vc0.131_k4": [4, 8, 12, 16],
+      "vc0.262_k1": [2],
+      "vc0.262_k2": [2, 4],
+      "vc0.262_k4": [2, 4, 6, 8],
+      "vc0.524_k1": [1],
+      "vc0.524_k2": [1, 2],
+      "vc0.524_k4": [1, 2, 3, 4]
+    }
+  },
+  "design_matrix": {
+    "velocity_lattice_mm_per_ms": [0.033, 0.065, 0.131, 0.262, 0.524],
+    "k_neighbor_lattice": [1, 2, 4],
+    "n_points": 15,
+    "seeds": [1001, 1002, 1003],
+    "n_cells": 45,
+    "anchor_point": {
+      "id": "vc0.131_k1",
+      "criterion": "construction identity, not classification identity: edges and emitter bitwise equal to the frozen ordered_uniform path AND V_m traces bitwise equal to the frozen ordered_uniform replay for all three seeds (pre-freeze evidence, all True)",
+      "status_if_failed": "point executed normally but reported with anchor_identity flag false and relabeled 'nearby control' - lattice, criteria, and outcomes unchanged"
+    }
+  },
+  "simulation_policy": {
+    "identical_to_frozen_c3_except_delays": true,
+    "duration_ms": 2000.0,
+    "dt_ms": 0.5,
+    "dtype": "float32",
+    "recurrent_backend": "edge_list",
+    "enable_hdp": false,
+    "enable_homeostasis": false,
+    "noise_scale": 0.0,
+    "drive": [
+      {"onset_ms": 200.0, "duration_ms": 1.0, "amplitude": 50.0, "target_neuron": 0, "is_drive_event": true},
+      {"onset_ms": 800.0, "duration_ms": 1.0, "amplitude": 45.0, "target_neuron": 6, "is_drive_event": true}
+    ],
+    "initialization": "identical to frozen C3: Configuration.runtime(seed=...) + Simulation(seed=...) path; per-neuron Izhikevich initial state v0=-65, u0=0"
+  },
+  "estimator": {
+    "engine": "jaxfne.protocol_c.estimator.estimate_traveling_wave (D1-repaired module, see a1a_receipt)",
+    "estimator_module_sha": "684859a98da51de79887ec26ba8d7134e2fa0e97",
+    "frequency_band_hz": [8.0, 13.0],
+    "minimum_spatial_coherence": 0.55,
+    "R2_phase_traveling_threshold": 0.6,
+    "coherence_traveling_threshold": 0.55,
+    "noise_band_power_floor": 0.0001,
+    "positions_input": "ordered arc-length positions (all points use ordered layout; geometry shuffle is not part of A-1b)",
+    "direction_convention": "wave_vector sign canonicalized as in frozen C1 records (raw k_hat = -k_true convention); direction errors reported in degrees"
+  },
+  "classification_and_outcomes": {
+    "cell_outcome": "estimator classification (TRAVELING_WAVE | NO_WAVE) or INVALID",
+    "invalid_run_criteria": "any NaN/Inf in V_m OR max|V_m| > 150 mV OR estimator outputs non-finite values",
+    "point_outcome": {
+      "POSITIVE": ">= 2 of 3 cells TRAVELING_WAVE",
+      "MARGINAL": "exactly 1 of 3 cells TRAVELING_WAVE",
+      "NEGATIVE": "0 of 3 cells TRAVELING_WAVE",
+      "UNRESOLVED": ">= 1 of 3 cells INVALID"
+    },
+    "domain_outcome": {
+      "POSITIVE_DOMAIN_FOUND": ">= 1 point POSITIVE",
+      "NO_POSITIVE_DOMAIN_IN_TESTED_RANGE": "0 points POSITIVE and 0 points UNRESOLVED",
+      "UNRESOLVED": "0 points POSITIVE and >= 1 point UNRESOLVED"
+    },
+    "marginal_points_note": "MARGINAL points are reported in detail but do not determine the domain outcome",
+    "no_adaptive_extension": "the lattice, criteria, and decision tree are final; no point is added, removed, or redefined after outcomes are observed"
+  },
+  "interpretation_constraint": "POSITIVE_DOMAIN_FOUND supports only: 'within the tested delay family, at least one configuration produced a TRAVELING_WAVE classification by the same estimator that classified all 60 frozen C3 cells NO_WAVE'. It does not claim biophysical generality, physiological velocity realism, or that the frozen C3 regime is other than characterized."
+}
