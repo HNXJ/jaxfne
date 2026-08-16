@@ -1,0 +1,15 @@
+{
+  "schema": "jaxfne.protocol_c.c2_delay_continuation_receipt.v1",
+  "checkpoint": "C2",
+  "package_head": "631293951a5437fe9eb2143d4d9a709b813c90ca",
+  "c2_pass": true,
+  "scope": "canonical_model_simulate_delay_state_continuation",
+  "equivalence_contract": "Sim(T1+T2)(X0) == Sim(T2)(Sim(T1)(X0)) bit-exact on X,H,B_t,synaptic state",
+  "public_state_name": "delay_state",
+  "legacy_alias": "spike_history",
+  "tests": [
+    "tests/test_v0417_c2_delay_continuation.py",
+    "tests/test_continuation_contract.py"
+  ],
+  "pytest_exit_code": 0
+}

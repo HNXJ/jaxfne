@@ -1,0 +1,66 @@
+{
+  "figure": 2,
+  "polish": {
+    "old_fig_frac": [
+      0.72,
+      0.1343,
+      0.8569,
+      0.1571
+    ],
+    "new_center": [
+      0.72,
+      0.905
+    ]
+  },
+  "checkpoint": "figure_2_polish",
+  "targeted": {
+    "annotation_on_data_free_region": true,
+    "annotation_in_canvas": true
+  },
+  "generic": {
+    "font_floor_6_5": true,
+    "min_font_pt": 7.0,
+    "palette_unchanged": true,
+    "palette_within_semantic": true,
+    "data_arrays_unchanged": true,
+    "text_strings_unchanged": true,
+    "axes_limits_scales_unchanged": true,
+    "clip_no_new_protrusion": true
+  },
+  "clip_detail": {
+    "pass": true,
+    "flagged": [],
+    "outside_canvas": [
+      [
+        -45.1,
+        11.2,
+        -25.9,
+        21.3,
+        "300"
+      ],
+      [
+        661.9,
+        11.2,
+        687.4,
+        21.3,
+        "1000"
+      ]
+    ],
+    "protruding": [
+      "1000",
+      "300"
+    ]
+  },
+  "status": "PASSED",
+  "export": {
+    "png_300dpi": "figures/publication/final/fig02_emitter_source.png",
+    "png_sha256": "3142d1858c7dd329487383df83eee2d07c3c9da44898ca4c7eeb54d14c4aa3e9",
+    "png_bytes": 382023,
+    "pdf_vector": "figures/publication/final/fig02_emitter_source.pdf",
+    "pdf_bytes": 84710,
+    "dpi": 300
+  },
+  "frozen_upstream_sha256": "e65ad1f30de3b59beda0a402658d5d01e2eef9b77a1c10b40940cf42ee31ba09",
+  "audited_at_utc": "2026-08-15T22:25:03Z",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596"
+}

@@ -1,0 +1,206 @@
+{
+  "schema": "jaxfne.experiment_a.b0_protocol_spec.v1",
+  "protocol_id": "experiment_a_v0417_b",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_audit": "artifacts/audit/v0417_a_capability_audit.json",
+  "baseline": {
+    "version": "0.4.16",
+    "tag": "v0.4.16",
+    "commit": "15f32b3a885dae0d84cb0163bc47c153302898c4",
+    "audit_commit": "6117e2bf28156bfa56da6abb4d3ab7ae74abb078"
+  },
+  "causal_architecture": {
+    "display": "(X,H) -> S -> Q -> F_{G,M} -> Phi -> P -> Y",
+    "first_class_frozen_artifacts": ["X", "H", "Q", "geometry", "metadata"],
+    "optional_materialized": ["Phi"],
+    "anti_drift_rule": "Exactly one neural simulate per seed; all observation readouts are post-hoc on frozen (X,H,Q). Differences among Y arise from (F,P), not from re-simulated neural trajectories."
+  },
+  "semantic_legend": {
+    "native": "Direct emitter/simulate output without proxy field operator",
+    "relative_proxy": "Computational proxy readout; amplitude_semantics=relative",
+    "calibrated_proxy": "Proxy with declared calibration transform (none in this protocol)",
+    "calibrated_physical": "Empirically validated physical units (explicitly excluded here)",
+    "analysis_only": "Included for operator comparison; not promoted to manuscript physical claim"
+  },
+  "neural_system": {
+    "seeds": [7],
+    "N": 40,
+    "layers": ["L2/3", "L4", "L5"],
+    "layer_thickness": {"L2/3": 0.33, "L4": 0.34, "L5": 0.33},
+    "cell_types": {"E": 0.7, "PV": 0.3},
+    "emitter": {"family": "izhikevich", "preset": "cortical_eig"},
+    "hdp_enabled": false,
+    "agsdr_enabled": false,
+    "H_semantic_when_hdp_off": "identity_RBS_container_H_equals_1",
+    "duration_ms": 2000.0,
+    "dt_ms": 0.5,
+    "spectral_burn_in_ms": 200.0,
+    "dtype": "float32",
+    "jit_simulate": false,
+    "drives": {"E": 8.0, "PV": 8.0},
+    "field_geometry": {
+      "domain": "laminar_column",
+      "conductivity": "proxy",
+      "boundary": "mean_zero_neumann",
+      "gauge": "mean_zero"
+    },
+    "X_recorded": ["V_m", "spikes"],
+    "H_recorded": "ones_identity_when_hdp_off",
+    "Q_recorded": "signals.sources_canonical_relative_source"
+  },
+  "field_operators_F": [
+    {
+      "id": "lfp_ref",
+      "api": "project_laminar_sources",
+      "params": {"n_contacts": 16, "width": 0.10},
+      "output_Phi": ["phi_e_proxy", "csd_proxy", "kernel", "contact_depths"],
+      "semantic": "relative_proxy"
+    },
+    {
+      "id": "lfp_narrow",
+      "api": "project_laminar_sources",
+      "params": {"n_contacts": 16, "width": 0.05},
+      "semantic": "relative_proxy"
+    },
+    {
+      "id": "lfp_wide",
+      "api": "project_laminar_sources",
+      "params": {"n_contacts": 16, "width": 0.25},
+      "semantic": "relative_proxy"
+    },
+    {
+      "id": "lfp_sparse",
+      "api": "project_laminar_sources",
+      "params": {"n_contacts": 8, "width": 0.10},
+      "semantic": "relative_proxy"
+    },
+    {
+      "id": "lfp_dense",
+      "api": "project_laminar_sources",
+      "params": {"n_contacts": 24, "width": 0.10},
+      "semantic": "relative_proxy"
+    }
+  ],
+  "probe_operators_P": [
+    {
+      "id": "lfp_contact_shallow",
+      "api": "lfp_proxy_probe",
+      "requires_frozen_Phi": true,
+      "params": {"probe_contact_depths": [0.20], "probe_width": 0.10},
+      "semantic": "relative_proxy",
+      "B2_independent_P": true
+    },
+    {
+      "id": "lfp_contact_deep",
+      "api": "lfp_proxy_probe",
+      "requires_frozen_Phi": true,
+      "params": {"probe_contact_depths": [0.80], "probe_width": 0.10},
+      "semantic": "relative_proxy",
+      "B2_independent_P": true
+    },
+    {
+      "id": "csd_from_lfp_ref",
+      "api": "csd_proxy_probe",
+      "requires_frozen_Phi": true,
+      "field_id": "lfp_ref",
+      "semantic": "relative_proxy"
+    },
+    {
+      "id": "eeg_superficial",
+      "api": "LinearReadout",
+      "acts_on": "Q",
+      "leadfield_status": "toy_or_declared_proxy",
+      "semantic": "analysis_only",
+      "manuscript_claim": false
+    },
+    {
+      "id": "eeg_deep",
+      "api": "LinearReadout",
+      "acts_on": "Q",
+      "leadfield_status": "toy_or_declared_proxy",
+      "semantic": "analysis_only",
+      "manuscript_claim": false
+    },
+    {
+      "id": "meg_relative",
+      "api": "LinearReadout",
+      "acts_on": "Q",
+      "leadfield_status": "toy_or_declared_proxy",
+      "orientation_claim": "none",
+      "semantic": "analysis_only",
+      "manuscript_claim": false
+    }
+  ],
+  "quantitative_tables": [
+    "r90_laminar_locality",
+    "distinctness_operator_pairs",
+    "spectral_centroids_hz",
+    "band_power_r90",
+    "invariant_checks",
+    "negative_control_identical_W"
+  ],
+  "invariants": [
+    {
+      "id": "Q_zero_implies_Y_zero",
+      "statement": "Q=0 => Y=0 for applicable linear zero-offset operators",
+      "applies_to": ["project_laminar_sources", "LinearReadout", "lfp_proxy_probe", "csd_proxy_probe"]
+    },
+    {
+      "id": "F_superposition",
+      "statement": "F(a Q1 + b Q2) = a F(Q1) + b F(Q2) for declared linear F",
+      "applies_to": ["project_laminar_sources"]
+    },
+    {
+      "id": "P_superposition_on_Q",
+      "statement": "P(a Q1 + b Q2) = a P(Q1) + b P(Q2) for LinearReadout on Q",
+      "applies_to": ["LinearReadout"]
+    },
+    {
+      "id": "probe_does_not_mutate_Q",
+      "statement": "Post-hoc observation operators do not mutate or recompute neural/source state",
+      "check": "SHA256(Q) invariant across all observation passes"
+    },
+    {
+      "id": "finite_source_bookkeeping",
+      "statement": "Source arrays remain finite; no unintended double counting",
+      "check": "jnp.all(isfinite(Q)) and source_contract metadata present"
+    },
+    {
+      "id": "metrics_from_same_arrays",
+      "statement": "All quantitative summaries derive from the same frozen arrays used for visualization inputs",
+      "check": "metrics.json references cause_hashes and observation array hashes"
+    },
+    {
+      "id": "B2_Q_invariant_probe_distinct",
+      "statement": "At fixed (Q,G,M), P1 != P2 => Y1 != Y2 where expected",
+      "applies_to": ["lfp_contact_shallow", "lfp_contact_deep"]
+    }
+  ],
+  "null_controls": [
+    {
+      "id": "identical_W_different_metadata",
+      "description": "Two LinearReadout with identical W must yield identical Y"
+    },
+    {
+      "id": "compiled_kernel_matches_lfp_ref",
+      "description": "LinearReadout(W=K_ref) matches lfp_ref.lfp_proxy within float32 tolerance"
+    }
+  ],
+  "excluded_from_0417_B": [
+    "calibrated_EEG_MEG_solver",
+    "wave_estimator",
+    "ephaptic_feedback",
+    "biological_RBS_phenotype",
+    "multi_area_runtime",
+    "W3_closed_loop_HDP"
+  ],
+  "checkpoints": {
+    "B0": "Freeze protocol/specification before decisive dataset generation",
+    "B1": "One simulate per seed; freeze X(t), H(t), Q(t) + geometry/metadata",
+    "B2": "Independent P at fixed (Q,G,M); fix lfp_proxy_probe contact_depths semantics",
+    "B3": "Immutable Experiment-A receipt bundle (no manuscript figures)"
+  },
+  "bundle_root": "artifacts/etudes/experiment_a",
+  "runner": "scripts/run_experiment_a.py"
+}

@@ -1,0 +1,2190 @@
+{
+  "schema": "jaxfne.protocol_c.p2v_a1b_receipt.v1",
+  "protocol_id": "protocol_c_p2v_a1b",
+  "phase": "post-freeze reviewer-motivated validation",
+  "checkpoint": "A-1b",
+  "status": "FROZEN",
+  "write_once": true,
+  "package_head": "05258eaf83ed47f6b8ae338d70668ccc9343e9bd",
+  "spec_path": "artifacts/protocol_c/p2v_a1b_dynamic_search/p2v_a1b_spec.json",
+  "estimator_module_sha": "684859a98da51de79887ec26ba8d7134e2fa0e97",
+  "n_points": 15,
+  "n_cells": 45,
+  "point_outcomes": {
+    "vc0.033_k1": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.033_k2": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.033_k4": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.065_k1": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.065_k2": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.065_k4": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.131_k1": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.131_k2": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.131_k4": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.262_k1": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.262_k2": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.262_k4": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.524_k1": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.524_k2": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    },
+    "vc0.524_k4": {
+      "outcome": "NEGATIVE",
+      "n_traveling_wave_cells": 0,
+      "n_invalid_cells": 0
+    }
+  },
+  "domain_outcome": "NO_POSITIVE_DOMAIN_IN_TESTED_RANGE",
+  "anchor_identity": {
+    "anchor_point": "vc0.131_k1",
+    "pass": true,
+    "cells": [
+      {
+        "seed": 1001,
+        "vm_max_abs_diff": 0.0,
+        "bitwise": true
+      },
+      {
+        "seed": 1002,
+        "vm_max_abs_diff": 0.0,
+        "bitwise": true
+      },
+      {
+        "seed": 1003,
+        "vm_max_abs_diff": 0.0,
+        "bitwise": true
+      }
+    ]
+  },
+  "no_adaptive_extension_observed": true,
+  "points": [
+    {
+      "point_id": "vc0.033_k1",
+      "velocity_mm_per_ms": 0.033,
+      "k_neighbors": 1,
+      "delay_steps_per_skip": [
+        16
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.033_k1",
+          "velocity_mm_per_ms": 0.033,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            16
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.15995170750134366
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 333.8949983424081,
+            "phase_fit_r2": 0.10926393522307098,
+            "spatial_coherence": 0.42492858879446427,
+            "null_score": 0.5750714112055357,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "6b3e1bde7bc0733fcad03b31dcd3fdaab3e374bc8af5a2f2c989fb935daea396",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.033_k1",
+          "velocity_mm_per_ms": 0.033,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            16
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "synchronous_oscillation_k_near_zero"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.11327359589128251
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 471.4874167346591,
+            "phase_fit_r2": 0.08971312967135148,
+            "spatial_coherence": 0.4519343860575951,
+            "null_score": 0.5480656139424049,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "43ec45de494dbc6c75436e7c4b09087956668c77aec61757ba9a0627a0b4ded0",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.033_k1",
+          "velocity_mm_per_ms": 0.033,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            16
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "synchronous_oscillation_k_near_zero"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.1176928514939754
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 453.7835087950125,
+            "phase_fit_r2": 0.05581090611922834,
+            "spatial_coherence": 0.42587157769485917,
+            "null_score": 0.5741284223051408,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "b3d0e15456bb695fa6e20b9b873c8f2e3379e98ac9768ee5bc560f31f7d66c3d",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.033_k2",
+      "velocity_mm_per_ms": 0.033,
+      "k_neighbors": 2,
+      "delay_steps_per_skip": [
+        16,
+        32
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.033_k2",
+          "velocity_mm_per_ms": 0.033,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            16,
+            32
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.19069989722326258
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 280.0582270293516,
+            "phase_fit_r2": 0.1277726147967826,
+            "spatial_coherence": 0.4326903062879423,
+            "null_score": 0.5673096937120576,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "e2fe0fbf03e1e8d3715a91e01334f90c6b8878b13e91cc019a843258c1d9075d",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.033_k2",
+          "velocity_mm_per_ms": 0.033,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            16,
+            32
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.14726182079099595
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 362.6674913032989,
+            "phase_fit_r2": 0.11606239391775863,
+            "spatial_coherence": 0.4498811686601679,
+            "null_score": 0.5501188313398321,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "e5b940f68cb11ed1088e5a32b00f71b9750ff2bcc62b76f02f6f1597862df586",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.033_k2",
+          "velocity_mm_per_ms": 0.033,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            16,
+            32
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.15142312244471973
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 352.70092340437566,
+            "phase_fit_r2": 0.06587323271937906,
+            "spatial_coherence": 0.43324994089875196,
+            "null_score": 0.566750059101248,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "3b8de995c567f287801f8f52c312f86ef38779d330068e892313f66f8f721491",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.033_k4",
+      "velocity_mm_per_ms": 0.033,
+      "k_neighbors": 4,
+      "delay_steps_per_skip": [
+        16,
+        32,
+        48,
+        64
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.033_k4",
+          "velocity_mm_per_ms": 0.033,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            16,
+            32,
+            48,
+            64
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.21011375168301027
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 254.1817214876991,
+            "phase_fit_r2": 0.14286613583794783,
+            "spatial_coherence": 0.43608538632602245,
+            "null_score": 0.5639146136739775,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "0e176666226b577871e5e70c2b33c902242eaf931d41da75c9aad5c91adeb845",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.033_k4",
+          "velocity_mm_per_ms": 0.033,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            16,
+            32,
+            48,
+            64
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.17725126441813502
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 301.3071601285699,
+            "phase_fit_r2": 0.1610242822935809,
+            "spatial_coherence": 0.4653697807962282,
+            "null_score": 0.5346302192037717,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "a85c654f41eb8049c1685392e3c5b271172fa10cf23e342a4a3c3955a4b512a3",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.033_k4",
+          "velocity_mm_per_ms": 0.033,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            16,
+            32,
+            48,
+            64
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "structured_but_fails_traveling_gates"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.0,
+            "wave_vector": [
+              -0.15313188485911228
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 328.2496163596695,
+            "phase_fit_r2": 0.09319488439566381,
+            "spatial_coherence": 0.4502482565490586,
+            "null_score": 0.5497517434509414,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "abbafbd8e4830875f1f1c742895bf524a133e16d49dc8b57d8fa6e606057e2ec",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.065_k1",
+      "velocity_mm_per_ms": 0.065,
+      "k_neighbors": 1,
+      "delay_steps_per_skip": [
+        9
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.065_k1",
+          "velocity_mm_per_ms": 0.065,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            9
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.16088537214551293
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 331.9573084787497,
+            "phase_fit_r2": 0.11284622164594871,
+            "spatial_coherence": 0.4302529959418942,
+            "null_score": 0.5697470040581059,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "a6d89536402896296b0512c9c55bfe8ec3be79145fda2cead62a3ec8015634de",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.065_k1",
+          "velocity_mm_per_ms": 0.065,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            9
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "synchronous_oscillation_k_near_zero"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.11620948226149665
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 459.5758803128383,
+            "phase_fit_r2": 0.09686562409112809,
+            "spatial_coherence": 0.4552594871725572,
+            "null_score": 0.5447405128274427,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "f1b261bf7ca4fcb8d4bfa3952ec52024900f6b8ec412f7d15f66c9d1249b1ad9",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.065_k1",
+          "velocity_mm_per_ms": 0.065,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            9
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "synchronous_oscillation_k_near_zero"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.12221578408921133
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 436.98999690614454,
+            "phase_fit_r2": 0.061026768054934455,
+            "spatial_coherence": 0.42746897845750825,
+            "null_score": 0.5725310215424917,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "bc157e934f1ed988abb7dcfcf8dfabdfc466574f831e7e9c56487292abf64567",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.065_k2",
+      "velocity_mm_per_ms": 0.065,
+      "k_neighbors": 2,
+      "delay_steps_per_skip": [
+        9,
+        17
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.065_k2",
+          "velocity_mm_per_ms": 0.065,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            9,
+            17
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.1878264867193304
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 284.3426187853517,
+            "phase_fit_r2": 0.13180031171497453,
+            "spatial_coherence": 0.44087960353530425,
+            "null_score": 0.5591203964646958,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "19a40158cc4f53a06d6dd977104359ef55536a0b257658b5e1eddf7e2bd5f260",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.065_k2",
+          "velocity_mm_per_ms": 0.065,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            9,
+            17
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "structured_but_fails_traveling_gates"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.14651222486111617
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 364.5229956862155,
+            "phase_fit_r2": 0.12535551621452612,
+            "spatial_coherence": 0.45762709068389623,
+            "null_score": 0.5423729093161038,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "7e6ce2b8433fcf289690e6eb650faa9add9cefa0018077b308e467ca20a93b8d",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.065_k2",
+          "velocity_mm_per_ms": 0.065,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            9,
+            17
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.15525832165392642
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 343.9884866852536,
+            "phase_fit_r2": 0.07519382138350539,
+            "spatial_coherence": 0.43527220209532974,
+            "null_score": 0.5647277979046703,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "bf65aee5cad7626639b14bc33584efa95a3416f83849a9c53cb5eb8acd2a5ef7",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.065_k4",
+      "velocity_mm_per_ms": 0.065,
+      "k_neighbors": 4,
+      "delay_steps_per_skip": [
+        9,
+        17,
+        25,
+        33
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.065_k4",
+          "velocity_mm_per_ms": 0.065,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            9,
+            17,
+            25,
+            33
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.1843992289409391
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 289.62743183775535,
+            "phase_fit_r2": 0.11093410292490546,
+            "spatial_coherence": 0.4504459885014089,
+            "null_score": 0.5495540114985911,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "038fae49a059cfbd432b6cb0ea5d9ea83c25a746686a95c18a00daa17bdb0c19",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.065_k4",
+          "velocity_mm_per_ms": 0.065,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            9,
+            17,
+            25,
+            33
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "structured_but_fails_traveling_gates"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.13905889922971673
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 384.0608217587088,
+            "phase_fit_r2": 0.11040602069523897,
+            "spatial_coherence": 0.4776030454894284,
+            "null_score": 0.5223969545105716,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "56cb88cbad8a297760db8ee1f6883634cb3a82edc519d4e2a618a499bf9f71fc",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.065_k4",
+          "velocity_mm_per_ms": 0.065,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            9,
+            17,
+            25,
+            33
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.15827200133029212
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 337.43855301085875,
+            "phase_fit_r2": 0.07875990313149817,
+            "spatial_coherence": 0.4567259288439835,
+            "null_score": 0.5432740711560164,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "a0aa8b975a2437611e8534926699686c519fa227bde5a661e1332ef0efa55c98",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.131_k1",
+      "velocity_mm_per_ms": 0.131,
+      "k_neighbors": 1,
+      "delay_steps_per_skip": [
+        4
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.131_k1",
+          "velocity_mm_per_ms": 0.131,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            4
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.16130327692754312
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 331.09727296499227,
+            "phase_fit_r2": 0.1168503100380438,
+            "spatial_coherence": 0.4339755652892579,
+            "null_score": 0.5660244347107422,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "70517e27b1654007f0555265ae835d4edf48c7f3d81f85a5b3fcc7e1b69eb08d",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.131_k1",
+          "velocity_mm_per_ms": 0.131,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            4
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "synchronous_oscillation_k_near_zero"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.11801092027700597
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 452.56044936913077,
+            "phase_fit_r2": 0.10544012071798625,
+            "spatial_coherence": 0.4578882161452184,
+            "null_score": 0.5421117838547815,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "6f9c31ed485ed3880dd936afec721a0251231df9e26f2c9883f8c11c4654cc42",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.131_k1",
+          "velocity_mm_per_ms": 0.131,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            4
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "synchronous_oscillation_k_near_zero"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.12226211060030917
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 436.8244164017518,
+            "phase_fit_r2": 0.06306683916821798,
+            "spatial_coherence": 0.428777773678626,
+            "null_score": 0.571222226321374,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "a3f7e1126d3ad7ecbb9847b22f2146254b8a35810ffedfee95454aa211d4f0f8",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.131_k2",
+      "velocity_mm_per_ms": 0.131,
+      "k_neighbors": 2,
+      "delay_steps_per_skip": [
+        4,
+        8
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.131_k2",
+          "velocity_mm_per_ms": 0.131,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            4,
+            8
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.18536095710072487
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 288.1247267298321,
+            "phase_fit_r2": 0.13937405169539374,
+            "spatial_coherence": 0.4444116750266085,
+            "null_score": 0.5555883249733915,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "72e121a66414b850f3849c509afc7b2bc156a9b1d1c84a2a2bfc57d5f787ecbd",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.131_k2",
+          "velocity_mm_per_ms": 0.131,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            4,
+            8
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "structured_but_fails_traveling_gates"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.1472045138314808
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 362.8086783545694,
+            "phase_fit_r2": 0.13470754304250587,
+            "spatial_coherence": 0.46174634772053347,
+            "null_score": 0.5382536522794665,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "1775e4277cb518a13ddda21cf8b60a2b364dbb859d7dea09c6ad198ed654436b",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.131_k2",
+          "velocity_mm_per_ms": 0.131,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            4,
+            8
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.15103478228548262
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 353.6077869141269,
+            "phase_fit_r2": 0.07641791346552596,
+            "spatial_coherence": 0.4363838276929042,
+            "null_score": 0.5636161723070958,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "5034868802abe49f27fec4ac6d3ff7e689379052522c8da924cc1f114b78e26b",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.131_k4",
+      "velocity_mm_per_ms": 0.131,
+      "k_neighbors": 4,
+      "delay_steps_per_skip": [
+        4,
+        8,
+        12,
+        16
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.131_k4",
+          "velocity_mm_per_ms": 0.131,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            4,
+            8,
+            12,
+            16
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.17589522863837612
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 303.6300388842631,
+            "phase_fit_r2": 0.108279061360544,
+            "spatial_coherence": 0.45363565830729935,
+            "null_score": 0.5463643416927007,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "ace860ab06dd99683d2c78be69b32fb4a79b3b49c058799a5fdb11c62984785d",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.131_k4",
+          "velocity_mm_per_ms": 0.131,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            4,
+            8,
+            12,
+            16
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "structured_but_fails_traveling_gates"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.1322080462892668
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 403.96236545371517,
+            "phase_fit_r2": 0.11036251216215887,
+            "spatial_coherence": 0.4836734714837739,
+            "null_score": 0.5163265285162262,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "99e1dee9c27ac89c91cd8690ce00399b642b73085baa4c7be5570d1168e7112f",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.131_k4",
+          "velocity_mm_per_ms": 0.131,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            4,
+            8,
+            12,
+            16
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.13961758416628506
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 382.52398814907485,
+            "phase_fit_r2": 0.0635814059239207,
+            "spatial_coherence": 0.45815819878070957,
+            "null_score": 0.5418418012192905,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "5815e5aeba37958e4f94c032f8cea210535cffd50043ac58e588e68d1538f2b0",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.262_k1",
+      "velocity_mm_per_ms": 0.262,
+      "k_neighbors": 1,
+      "delay_steps_per_skip": [
+        2
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.262_k1",
+          "velocity_mm_per_ms": 0.262,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            2
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.16078990701054552
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 332.1544001360965,
+            "phase_fit_r2": 0.11764090873534883,
+            "spatial_coherence": 0.43509152401419654,
+            "null_score": 0.5649084759858034,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "53ff164899eafa55b993d38caad71fa589feb30675b0770ea018e47382c281cd",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.262_k1",
+          "velocity_mm_per_ms": 0.262,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            2
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "synchronous_oscillation_k_near_zero"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.11864018870821269
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 450.16006542586916,
+            "phase_fit_r2": 0.10642643282076114,
+            "spatial_coherence": 0.4586076472413356,
+            "null_score": 0.5413923527586644,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "9c16356661155e9ddd9c30f1f9f89ddcff523af9e9199d81c5add10caa02a703",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.262_k1",
+          "velocity_mm_per_ms": 0.262,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            2
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "synchronous_oscillation_k_near_zero"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.1227294688317562
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 435.1609733130975,
+            "phase_fit_r2": 0.06480793418597108,
+            "spatial_coherence": 0.4291641640443263,
+            "null_score": 0.5708358359556738,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "31a4767365c19be3616c17b6fde6ff4396c90ec4d767149efcec7faf1e6fa901",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.262_k2",
+      "velocity_mm_per_ms": 0.262,
+      "k_neighbors": 2,
+      "delay_steps_per_skip": [
+        2,
+        4
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.262_k2",
+          "velocity_mm_per_ms": 0.262,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            2,
+            4
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.1833662123927446
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 291.25908428885504,
+            "phase_fit_r2": 0.14089809495764383,
+            "spatial_coherence": 0.4454402285434974,
+            "null_score": 0.5545597714565026,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "89234720941f76f2b390ab739db9eecb8d517e47bb9b5b0013938ad0629f0b0d",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.262_k2",
+          "velocity_mm_per_ms": 0.262,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            2,
+            4
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "structured_but_fails_traveling_gates"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.1457860684787466
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 366.33867466432457,
+            "phase_fit_r2": 0.13598249927124484,
+            "spatial_coherence": 0.46280700315504225,
+            "null_score": 0.5371929968449578,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "2f695c682146078b3bbd0932062d19a8e0a8d2310719227fd47c56032a9d4b37",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.262_k2",
+          "velocity_mm_per_ms": 0.262,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            2,
+            4
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.15010694806482855
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 355.79349123773346,
+            "phase_fit_r2": 0.07898015991378848,
+            "spatial_coherence": 0.4363414760215719,
+            "null_score": 0.5636585239784281,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "fe249b79e3fe3d055307e6ccafb00b32c6a5bdaf8091d9385fe857660e3409d3",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.262_k4",
+      "velocity_mm_per_ms": 0.262,
+      "k_neighbors": 4,
+      "delay_steps_per_skip": [
+        2,
+        4,
+        6,
+        8
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.262_k4",
+          "velocity_mm_per_ms": 0.262,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            2,
+            4,
+            6,
+            8
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.16984813005437738
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 314.44017131026436,
+            "phase_fit_r2": 0.10674856385358622,
+            "spatial_coherence": 0.4558787436724421,
+            "null_score": 0.5441212563275579,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "574d906404c33bb0b2aab7afed8ac44981904e73fe48111d7969acc281674c8a",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.262_k4",
+          "velocity_mm_per_ms": 0.262,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            2,
+            4,
+            6,
+            8
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.13111505777725044
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 407.3298369875947,
+            "phase_fit_r2": 0.11409128283032177,
+            "spatial_coherence": 0.48602820678602515,
+            "null_score": 0.5139717932139749,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "86c8b1db89b8f0a535d9091a2da3698eee209c1775057e10e6c4b0afd437e84d",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.262_k4",
+          "velocity_mm_per_ms": 0.262,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            2,
+            4,
+            6,
+            8
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.13522884705561466
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 394.9384785412103,
+            "phase_fit_r2": 0.06299126255022758,
+            "spatial_coherence": 0.45775242034664526,
+            "null_score": 0.5422475796533548,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "299a11b40d63234e490a158f82952bce9e26fb0ddb1160188365e561dbfca942",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.524_k1",
+      "velocity_mm_per_ms": 0.524,
+      "k_neighbors": 1,
+      "delay_steps_per_skip": [
+        1
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.524_k1",
+          "velocity_mm_per_ms": 0.524,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            1
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.16165169435048402
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 330.38363950106395,
+            "phase_fit_r2": 0.11841497681582114,
+            "spatial_coherence": 0.43565485981158103,
+            "null_score": 0.564345140188419,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "f305c462ad50ffd7f85a43576f6059eb56c08f411bdfb061677651c14aafbaa1",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.524_k1",
+          "velocity_mm_per_ms": 0.524,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            1
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "synchronous_oscillation_k_near_zero"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.1202515452320683
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 444.1279736402428,
+            "phase_fit_r2": 0.11129708709995279,
+            "spatial_coherence": 0.45941005108177047,
+            "null_score": 0.5405899489182295,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "e4f918ae49363be0179ed292d2881c7948ce260a4d9acc8d743ab696279606bd",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.524_k1",
+          "velocity_mm_per_ms": 0.524,
+          "k_neighbors": 1,
+          "delay_steps_per_skip": [
+            1
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "synchronous_oscillation_k_near_zero"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.1212637156138136
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 440.4209028289307,
+            "phase_fit_r2": 0.06302158308065797,
+            "spatial_coherence": 0.42934082172348714,
+            "null_score": 0.5706591782765129,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "fbe2efa77abc1ae1dd551ea97f68e86631b3011ac9ab29cef3be62c374be0f4f",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.524_k2",
+      "velocity_mm_per_ms": 0.524,
+      "k_neighbors": 2,
+      "delay_steps_per_skip": [
+        1,
+        2
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.524_k2",
+          "velocity_mm_per_ms": 0.524,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            1,
+            2
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.18412721706284899
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 290.05529960731883,
+            "phase_fit_r2": 0.14275629880611995,
+            "spatial_coherence": 0.44573421779593525,
+            "null_score": 0.5542657822040647,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "73ffbe55cf181357bfed5e1a701280b18a5a6bd260cdb87049148470aa52f8c3",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.524_k2",
+          "velocity_mm_per_ms": 0.524,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            1,
+            2
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "structured_but_fails_traveling_gates"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.14556822318339221
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 366.8869066550485,
+            "phase_fit_r2": 0.14225814668551406,
+            "spatial_coherence": 0.46384867787606365,
+            "null_score": 0.5361513221239363,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "85f0dfa205fbd466bd38d5adcfce712fa5f739b7ada659a98ce2d27ee83f7174",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.524_k2",
+          "velocity_mm_per_ms": 0.524,
+          "k_neighbors": 2,
+          "delay_steps_per_skip": [
+            1,
+            2
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.1477090580874556
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 361.5693973175648,
+            "phase_fit_r2": 0.07757926659863434,
+            "spatial_coherence": 0.43622082003194496,
+            "null_score": 0.563779179968055,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "d682e3488bcaadfeb16e3900ad80437bbdefb0b442b7f2495bd8f67067278c4d",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "point_id": "vc0.524_k4",
+      "velocity_mm_per_ms": 0.524,
+      "k_neighbors": 4,
+      "delay_steps_per_skip": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "cells": [
+        {
+          "point_id": "vc0.524_k4",
+          "velocity_mm_per_ms": 0.524,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "seed": 1001,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.17036903034211967
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 313.47877606498804,
+            "phase_fit_r2": 0.10791006254196378,
+            "spatial_coherence": 0.4569012481997774,
+            "null_score": 0.5430987518002226,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.81127166748047,
+          "vm_sha256": "2bf3eee99e941a372ca8b0e55f06d9b78b010c3151de1b4c901124395002bfdc",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.524_k4",
+          "velocity_mm_per_ms": 0.524,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "seed": 1002,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "synchronous_oscillation_k_near_zero"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.12728131277246704
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 419.5987136501257,
+            "phase_fit_r2": 0.11485101927154073,
+            "spatial_coherence": 0.4873267911394245,
+            "null_score": 0.5126732088605754,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 83.08909606933594,
+          "vm_sha256": "da3527ef3fcea672c5911ff1b8d6c1871880a0a94a12e722955ff36673ee5fc1",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        },
+        {
+          "point_id": "vc0.524_k4",
+          "velocity_mm_per_ms": 0.524,
+          "k_neighbors": 4,
+          "delay_steps_per_skip": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "seed": 1003,
+          "invalid": false,
+          "invalid_reason": "",
+          "classification": "NO_WAVE",
+          "quality_reasons": [
+            "standing_or_flipping_spatial_gradient"
+          ],
+          "estimator": {
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.13224196594953674
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 403.85875034107187,
+            "phase_fit_r2": 0.06171514561715097,
+            "spatial_coherence": 0.45691286530323943,
+            "null_score": 0.5430871346967605,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {}
+          },
+          "vm_max_abs": 82.89532470703125,
+          "vm_sha256": "55b749baed59402278596d2fe68cfc6b83503d2f983c4338cd1cccb2072a622d",
+          "activity_summary": {
+            "n_neurons_with_spikes": 2,
+            "mean_spike_rate_hz": 0.041666666666666664,
+            "max_spike_rate_hz": 0.5
+          }
+        }
+      ]
+    }
+  ]
+}

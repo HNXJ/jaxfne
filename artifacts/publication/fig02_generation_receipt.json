@@ -1,0 +1,19 @@
+{
+  "schema": "jaxfne.publication.fig02_generation_receipt.v1",
+  "checkpoint": "figures_2_4_generation",
+  "status": "CLOSED",
+  "write_once": true,
+  "pec_panel_id": "Fig02.canonical_Q",
+  "figure_path": "figures/publication/fig02_emitter_source.png",
+  "figure_sha256": "e65ad1f30de3b59beda0a402658d5d01e2eef9b77a1c10b40940cf42ee31ba09",
+  "generator_script": "scripts/publication_figures/fig02_04_experiment_a.py",
+  "cross_figure_audit": "artifacts/publication/fig02_04_cross_figure_audit.json",
+  "canonical_q_hash": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+  "repo_head": "20f4fcac64230dbde0da1529b59555f280b5efce",
+  "source_arrays": [
+    "artifacts/etudes/experiment_a/canonical_source.npz#Q"
+  ],
+  "neural_rerun": false,
+  "semantic_status": "native / canonical relative source",
+  "claim_level": "DEMONSTRATED"
+}

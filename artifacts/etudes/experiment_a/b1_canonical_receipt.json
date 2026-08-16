@@ -1,0 +1,43 @@
+{
+  "H_semantic": "identity_RBS_container_H_equals_1",
+  "canonical_npz": "artifacts/etudes/experiment_a/canonical_source.npz",
+  "cause_hashes": {
+    "H": "46420b29cb0ba696ab991b3e33c1799b5d3de8184a5b3b00cb54bb4cb8644f46",
+    "Q": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+    "V_m": "57b58914a6efedbfdd03eaa3ed45d0927376a7eb458a77ebc327570fc09ad5fd",
+    "positions": "25cfd8213ccc887b823a48fef8c8ce172a4957990147f252de1faab37de167ef",
+    "spikes": "7461b42b92b8cdb4c4dee49c5a08972ebe351fbd80c0905c0615378cd12b62ac"
+  },
+  "checkpoint": "B1",
+  "next_checkpoint": "B2",
+  "package_head": "5206c54e209141d50604f43bcf2c27b9b5ad6a26",
+  "protocol_id": "experiment_a_v0417_b",
+  "schema": "jaxfne.experiment_a.b1_canonical_receipt.v1",
+  "seed": 7,
+  "shapes": {
+    "H": [
+      4000,
+      40
+    ],
+    "Q": [
+      4000,
+      40
+    ],
+    "X_V_m": [
+      4000,
+      40
+    ],
+    "X_spikes": [
+      4000,
+      40
+    ],
+    "positions": [
+      40,
+      3
+    ],
+    "time_ms": [
+      4000
+    ]
+  },
+  "status": "FROZEN"
+}

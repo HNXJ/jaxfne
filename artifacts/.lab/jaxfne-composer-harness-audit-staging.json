@@ -1,0 +1,30 @@
+{
+  "id": "jaxfne-composer-harness-audit-staging",
+  "schema_version": 3,
+  "kind": "folder",
+  "title": "composer_2_5_harness_audit_staging",
+  "generated": {
+    "summary": "Folder with 214 files, e.g. HARNESS_MANIFEST.md, BUILD_SUMMARY.json, EXCLUSIONS.md, ACTIVATION_QUESTIONS.md, HARNESS_TREE.txt.",
+    "source_paths": [
+      "composer_2_5_harness_audit_staging"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

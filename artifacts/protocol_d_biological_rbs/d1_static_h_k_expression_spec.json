@@ -1,0 +1,102 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d1_spec.v1",
+  "protocol_id": "protocol_d_biological_rbs_v0417",
+  "milestone": "0.4.17-D",
+  "checkpoint": "D1",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_spec": "artifacts/protocol_d_biological_rbs/d0_intrinsic_ionic_rbs_spec.json",
+  "parent_head": "aa01b29cd539d76427cdb26cc56b9c30983eee7b",
+  "question": "Does static H_K typed coupling produce measurable expression sensitivity while recovering the classical emitter at H_K=1?",
+  "implementation": {
+    "kernel": "jaxfne.emitters.simulate_edge_recurrent_izhikevich_static_h_k_recovery",
+    "coupling": "b_eff = H_K * b",
+    "recovery_ode": "du/dt = a * (H_K * b * v - u)",
+    "dH_K_dt": 0,
+    "dot_W": 0,
+    "parameter_locality": "only b_eff recovery drive changes; drive, threshold/reset, weights, geometry, and source operator unchanged"
+  },
+  "static_sweep": {
+    "coordinate": "H_K",
+    "delta": 0.2,
+    "values": [0.8, 1.0, 1.2],
+    "hold_fixed": [
+      "dH_K/dt = 0",
+      "seed",
+      "initial state",
+      "dt_ms",
+      "drive schedule",
+      "all emitter parameters except b_eff map"
+    ]
+  },
+  "expression_criterion": {
+    "statement": "H_K != 1 => X(H_K) != X(1)",
+    "direction_not_preregistered": true,
+    "primary_direct_map_quantity": "u",
+    "phenotypes": [
+      "delta_V(t)",
+      "delta_u(t)",
+      "delta_N_spike",
+      "delta_t_spike_first",
+      "mean_isi_when_multiple_spikes"
+    ]
+  },
+  "gates": {
+    "G1_containment": {
+      "statement": "H_K=1 => bit-exact classical trajectory for V, u, spikes",
+      "reference_kernel": "simulate_edge_recurrent_izhikevich"
+    },
+    "G2_static_state_integrity": {
+      "statement": "H_K(t) = H_K(0) for entire run; no hidden RBD update"
+    },
+    "G3_parameter_locality": {
+      "statement": "only declared b*v recovery contribution scaled by H_K"
+    },
+    "G4_bidirectional_sensitivity": {
+      "statement": "evaluate X(0.8), X(1), X(1.2) without cherry-picking expected biological direction"
+    }
+  },
+  "mathematical_receipt": {
+    "local_jacobian": "partial du_dot / partial H_K = a * b * v",
+    "note": "instantaneous sign of du_dot w.r.t. H_K depends on operating voltage v"
+  },
+  "simulation_policy": {
+    "topology": "isolated_single_neuron",
+    "n_neurons": 1,
+    "edges": "empty",
+    "duration_ms": 500.0,
+    "dt_ms": 0.5,
+    "n_steps": 1000,
+    "noise_scale": 0.0,
+    "dtype": "float32",
+    "seeds": [11, 12, 13],
+    "drive": {
+      "type": "step_pulse",
+      "onset_ms": 50.0,
+      "duration_ms": 400.0,
+      "amplitude": 15.0
+    }
+  },
+  "emitter_baseline": {
+    "family": "izhikevich",
+    "v0": -65.0,
+    "u0": 0.0,
+    "a": 0.02,
+    "b": 0.2,
+    "c": -65.0,
+    "d": 8.0
+  },
+  "documentation_clause": "H_K is an effective relative K-associated recovery coordinate in the Izhikevich realization. It demonstrates typed RBS containment of a reduced biophysical dependency; it is not an explicit potassium concentration, Nernst potential, or Hodgkin-Huxley potassium-conductance model.",
+  "explicit_prohibitions": [
+    "no_F_H_dynamics",
+    "no_HDP",
+    "no_post_result_retuning",
+    "no_directional_firing_prediction_preregistered"
+  ],
+  "execution_authorization": {
+    "implementation_authorized": true,
+    "next_checkpoint": "D2"
+  },
+  "bundle_root": "artifacts/protocol_d_biological_rbs",
+  "protocol_doc": "docs/protocols/protocol_d_biological_rbs.md"
+}

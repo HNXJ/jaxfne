@@ -1,0 +1,20 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d0_protocol_receipt.v1",
+  "checkpoint": "D0",
+  "status": "FROZEN",
+  "protocol_id": "protocol_d_biological_rbs_v0417",
+  "milestone": "0.4.17-D",
+  "spec": "artifacts/protocol_d_biological_rbs/d0_intrinsic_ionic_rbs_spec.json",
+  "protocol_doc": "docs/protocols/protocol_d_biological_rbs.md",
+  "implementation_authorized": false,
+  "parent_head": "f5cc452fc84bbf6a2b918c6b0a6a1fc9af5683c4",
+  "prerequisites": {
+    "protocol_c_closed": "artifacts/protocol_c/c4_interpretation_receipt.json",
+    "protocol_h_closed": "artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json",
+    "w2_expression": "artifacts/protocol_w/w2_expression/w2_expression_receipt.json"
+  },
+  "scientific_question": "Can one biologically interpretable RBS realization extend an existing emitter while recovering the classical emitter when RBS is frozen?",
+  "first_coordinate": "H_K",
+  "static_sweep_delta": 0.2,
+  "next_checkpoint": "D1"
+}

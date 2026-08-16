@@ -1,0 +1,21 @@
+{
+  "schema": "jaxfne.publication.fig04_generation_receipt.v1",
+  "checkpoint": "figures_2_4_generation",
+  "status": "CLOSED",
+  "write_once": true,
+  "pec_panel_id": "Fig04.EEG_MEG_analysis_only",
+  "figure_path": "figures/publication/fig04_multiscale_boundary.png",
+  "figure_sha256": "b7646a51c1c4002a17e22163a090fc1c338bb1800ea2240f68ed786e588a7913",
+  "generator_script": "scripts/publication_figures/fig02_04_experiment_a.py",
+  "cross_figure_audit": "artifacts/publication/fig02_04_cross_figure_audit.json",
+  "canonical_q_hash": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+  "repo_head": "20f4fcac64230dbde0da1529b59555f280b5efce",
+  "source_arrays": [
+    "artifacts/etudes/experiment_a/canonical_source.npz#Q"
+  ],
+  "neural_rerun": false,
+  "semantic_status": "analysis_only boundary (EEG/MEG); local chain demonstrated",
+  "claim_level": "DEMONSTRATED",
+  "polarity": "NEGATIVE for EEG/MEG physical claim",
+  "eeg_meg_ready_panels": 0
+}

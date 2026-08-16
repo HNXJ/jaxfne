@@ -1,0 +1,30 @@
+{
+  "id": "staging-harness-global-claude-claude-md",
+  "schema_version": 3,
+  "kind": "doc",
+  "title": "CLAUDE.md",
+  "generated": {
+    "summary": "Claude / Cowork Global Doctrine -- Project-agnostic principles + pointers only. jaxfne detail lives in `jaxfne/AGENTS.md`; per-repo",
+    "source_paths": [
+      "composer_2_5_harness_audit_staging/harness/global/.claude/CLAUDE.md"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-composer-harness-audit-staging",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

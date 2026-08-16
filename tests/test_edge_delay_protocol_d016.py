@@ -209,7 +209,7 @@ def test_delay_validation_rejects_negative_and_fractional():
 
 def test_nonzero_delay_rejects_init_state_continuation():
     params, edges, drive, dt_ms = _two_neuron_pulse_circuit(delay_steps=2)
-    with pytest.raises(ValueError, match="continuation is not supported"):
+    with pytest.raises(ValueError, match="delay_state"):
         simulate_edge_recurrent_izhikevich(
             params,
             edges,

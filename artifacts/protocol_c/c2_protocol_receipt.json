@@ -1,0 +1,11 @@
+{
+  "schema": "jaxfne.protocol_c.c2_protocol_receipt.v1",
+  "checkpoint": "C2",
+  "status": "FROZEN",
+  "protocol_id": "protocol_c_wave_v0417",
+  "validation_receipt": "artifacts/protocol_c/c2_delay_continuation_receipt.json",
+  "implementation_scope": "canonical_model_simulate_delay_state_continuation",
+  "public_state_name": "delay_state",
+  "legacy_alias": "spike_history",
+  "next_checkpoint": "C3"
+}

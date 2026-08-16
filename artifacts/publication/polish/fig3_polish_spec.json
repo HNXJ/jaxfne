@@ -1,0 +1,9 @@
+{
+  "figure": "Fig03.lfp_csd_proxy",
+  "schema": "jaxfne.publication.fig3_polish_spec.v1",
+  "status": "FROZEN",
+  "artist_only_polish": true,
+  "downstream_of_frozen_sha": "ffa0a54232170cf745ffd549dae36e0a20e4732257f30e373c83da6b173c6392",
+  "checkpoint": "figure_3_polish",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596"
+}

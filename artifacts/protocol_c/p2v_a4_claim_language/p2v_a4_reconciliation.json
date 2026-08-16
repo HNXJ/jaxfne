@@ -1,0 +1,103 @@
+{
+  "schema": "jaxfne.protocol_c.p2v_a4_reconciliation.v1",
+  "protocol_id": "protocol_c_p2v_a4",
+  "phase": "post-freeze reviewer-motivated validation",
+  "checkpoint": "A-4",
+  "status": "FROZEN",
+  "write_once": true,
+  "package_head": "12ac32afcf49b3cc8e146d9a12ffda2cb227f594",
+  "scope": "README.md + docs/** public language only; developer-local PRP notes are not tracked and out of scope; frozen artifacts untouched",
+  "axes": [
+    {
+      "axis": "hierarchy",
+      "rule": "hierarchy claims are computational (causal chain E1->E5, timescale hierarchies, network topologies), never brain-functional",
+      "files_with_mentions": 12,
+      "n_mentions": 40,
+      "n_flagged_after_fixes": 0,
+      "status": "COMPLIANT"
+    },
+    {
+      "axis": "latent",
+      "rule": "latent is relative to the observable chain (H-state is the latent RBS coordinate of the simulated dynamics; VAE factorized latents are descriptive), not a claim about brain latent structure",
+      "files_with_mentions": 7,
+      "n_mentions": 8,
+      "n_flagged_after_fixes": 0,
+      "status": "COMPLIANT"
+    },
+    {
+      "axis": "c3_characterization",
+      "rule": "C3 states only that the tested ring/delay regimes produced synchronous/standing/structured-but-fails activity; no estimator-supported traveling waves; does not generalize to absence of waves",
+      "files_with_mentions": 10,
+      "n_mentions": 13,
+      "n_flagged_after_fixes": 0,
+      "status": "COMPLIANT"
+    },
+    {
+      "axis": "typed_disablement",
+      "rule": "typed disablement identities (E1-E5 causal perturbation, D3 containment) are computational identities within the model, not claims about cortex",
+      "files_with_mentions": 10,
+      "n_mentions": 51,
+      "n_flagged_after_fixes": 0,
+      "status": "COMPLIANT"
+    },
+    {
+      "axis": "proxy",
+      "rule": "field readouts are proxies unless amplitude-calibrated: proxy_no_field_solve is the active default; spike impulse proxy (20x gain); CSD is proxy",
+      "files_with_mentions": 98,
+      "n_mentions": 1412,
+      "n_flagged_after_fixes": 0,
+      "status": "COMPLIANT"
+    },
+    {
+      "axis": "e5_language",
+      "rule": "E5 is described as causal perturbation/hierarchical propagation within the frozen evidence set; no cognition or predictive-coding language",
+      "files_with_mentions": 5,
+      "n_mentions": 21,
+      "n_flagged_after_fixes": 0,
+      "status": "COMPLIANT"
+    },
+    {
+      "axis": "w3b",
+      "rule": "W3b parameter-domain map remains FROZEN_UNRESOLVED; active closed-loop stability is not claimed",
+      "files_with_mentions": 7,
+      "n_mentions": 89,
+      "n_flagged_after_fixes": 0,
+      "status": "COMPLIANT"
+    },
+    {
+      "axis": "negative_claims",
+      "rule": "C3, H4, D3 negatives are stated exactly where frozen: C3 no estimator-supported traveling waves in the tested regimes; H4 memory extension negative; D3 NO_ADAPTATION; W3 unresolved",
+      "files_with_mentions": 30,
+      "n_mentions": 96,
+      "n_flagged_after_fixes": 0,
+      "status": "COMPLIANT"
+    }
+  ],
+  "fixed_violations": [
+    {
+      "file": "docs/tutorials/index.md",
+      "line": 67,
+      "before": "Cross-area interaction, traveling waves, trial-chained HDP carryover",
+      "after": "Cross-area interaction, trial-chained HDP carryover",
+      "reason": "stale index claim contradicted the tutorial page itself (probes never implemented anywhere in the codebase) and the source script"
+    },
+    {
+      "file": "docs/tutorials/notebook_standard.md",
+      "line": 124,
+      "before": "Two-column cross-area model, traveling waves",
+      "after": "Two-column cross-area model, trial-chained HDP carryover",
+      "reason": "same stale claim"
+    }
+  ],
+  "allowed_language_corpus": {
+    "wave": "traveling waves are not claimed for jaxfne dynamics; C3 characterization is restricted to the tested ring/delay regimes",
+    "hdp": "H is hard-clamped per step; |w| hard-clamped per step; K_w_ctrl=0 implies no claim about instability; boundedness statements are scoped to tested domains (A-3 receipt)",
+    "c3": "tested synchronous/standing/structured regimes, no estimator-supported traveling waves (60-cell frozen receipt; A-1a/A-1b/A-2 support)",
+    "memory": "H4 memory extension negative as frozen; RBD must not be defined as memory, predictive coding, or surprise (doctrine)",
+    "w3": "W3a is analysis-level with a documented margin audit caveat; W3b FROZEN_UNRESOLVED",
+    "latent": "latent is relative to the observable chain only",
+    "hierarchy": "computational hierarchy only",
+    "proxy": "proxy unless amplitude-calibrated (physical_amplitude_calibrated=false)"
+  },
+  "verification": "python3 scripts/audit_public_docs_language.py --check must pass; test suite must pass"
+}

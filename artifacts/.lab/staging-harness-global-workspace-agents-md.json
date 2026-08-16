@@ -1,0 +1,30 @@
+{
+  "id": "staging-harness-global-workspace-agents-md",
+  "schema_version": 3,
+  "kind": "doc",
+  "title": "AGENTS.md",
+  "generated": {
+    "summary": "Codex / Cowork Global Gamma Labyrinth Doctrine -- **Status:** Gamma Labyrinth alignment doctrine, global scope.",
+    "source_paths": [
+      "composer_2_5_harness_audit_staging/harness/global/workspace/AGENTS.md"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-composer-harness-audit-staging",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

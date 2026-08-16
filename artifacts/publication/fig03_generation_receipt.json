@@ -1,0 +1,26 @@
+{
+  "schema": "jaxfne.publication.fig03_generation_receipt.v1",
+  "checkpoint": "figures_2_4_generation",
+  "status": "CLOSED",
+  "write_once": true,
+  "pec_panel_id": "Fig03.lfp_csd_proxy",
+  "figure_path": "figures/publication/fig03_local_observation.png",
+  "figure_sha256": "ffa0a54232170cf745ffd549dae36e0a20e4732257f30e373c83da6b173c6392",
+  "generator_script": "scripts/publication_figures/fig02_04_experiment_a.py",
+  "cross_figure_audit": "artifacts/publication/fig02_04_cross_figure_audit.json",
+  "canonical_q_hash": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+  "repo_head": "20f4fcac64230dbde0da1529b59555f280b5efce",
+  "source_arrays": [
+    "artifacts/etudes/experiment_a/canonical_source.npz#Q"
+  ],
+  "neural_rerun": false,
+  "semantic_status": "relative_proxy / finite-difference CSD semantics",
+  "claim_level": "DEMONSTRATED",
+  "b2_invariants": {
+    "q_hash_invariant": true,
+    "shallow_vs_deep_rel_distinctness": 0.11374732106924057,
+    "probe_distinct": true,
+    "Q_zero_implies_Y_zero": true,
+    "phi_e_unchanged_between_probes": true
+  }
+}

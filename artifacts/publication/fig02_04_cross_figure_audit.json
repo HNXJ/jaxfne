@@ -1,0 +1,41 @@
+{
+  "schema": "jaxfne.publication.fig02_04_cross_figure_audit.v1",
+  "status": "PASSED",
+  "checkpoint": "figures_2_4_generation",
+  "spec_path": "artifacts/publication/fig02_04_experiment_a_spec.json",
+  "audited_at_utc": "2026-08-15T18:42:42Z",
+  "repo_head": "20f4fcac64230dbde0da1529b59555f280b5efce",
+  "canonical_source": {
+    "npz": "artifacts/etudes/experiment_a/canonical_source.npz",
+    "b1_receipt": "artifacts/etudes/experiment_a/b1_canonical_receipt.json",
+    "q_hash": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51"
+  },
+  "cross_figure_q_invariant": true,
+  "q_hashes_by_figure": {
+    "Fig02.canonical_Q": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+    "Fig03.lfp_csd_proxy": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+    "Fig04.EEG_MEG_analysis_only": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51"
+  },
+  "neural_rerun_detected": false,
+  "single_simulate_authority": "artifacts/etudes/experiment_a/b0_protocol_spec.json#causal_architecture",
+  "figure_outputs": {
+    "fig02": "e65ad1f30de3b59beda0a402658d5d01e2eef9b77a1c10b40940cf42ee31ba09",
+    "fig03": "ffa0a54232170cf745ffd549dae36e0a20e4732257f30e373c83da6b173c6392",
+    "fig04": "b7646a51c1c4002a17e22163a090fc1c338bb1800ea2240f68ed786e588a7913"
+  },
+  "semantic_statuses": {
+    "Fig02.canonical_Q": "native / canonical relative source",
+    "Fig03.lfp_csd_proxy": "relative_proxy / finite-difference CSD semantics",
+    "Fig04.EEG_MEG_analysis_only": "analysis_only (EEG/MEG); local demonstrated"
+  },
+  "pec_claim_levels_respected": true,
+  "analysis_only_visible_in_fig04": true,
+  "modality_specific_neural_reruns": false,
+  "b2_invariants": {
+    "q_hash_invariant": true,
+    "shallow_vs_deep_rel_distinctness": 0.11374732106924057,
+    "probe_distinct": true,
+    "Q_zero_implies_Y_zero": true,
+    "phi_e_unchanged_between_probes": true
+  }
+}

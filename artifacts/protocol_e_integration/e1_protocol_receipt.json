@@ -1,0 +1,17 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e1_protocol_receipt.v1",
+  "checkpoint": "E1",
+  "status": "CLOSED",
+  "protocol_id": "protocol_e_integration_v0417",
+  "milestone": "0.4.17-E",
+  "spec": "artifacts/protocol_e_integration/e1_hierarchy_runtime_spec.json",
+  "protocol_doc": "docs/protocols/protocol_e_integration.md",
+  "implementation_authorized": true,
+  "parent_head": "958993347163199b718a0274a06721d1d2f06bda",
+  "prerequisites": {
+    "e0_1_ladder": "artifacts/protocol_e_integration/e0_1_implementation_ladder_spec.json"
+  },
+  "scope": "two-area laminar hierarchy, zero delay, no RBS, structural gates only",
+  "execution_receipt": "artifacts/protocol_e_integration/e1_execution_receipt.json",
+  "next_checkpoint": "E2_specification"
+}

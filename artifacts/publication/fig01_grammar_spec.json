@@ -1,0 +1,379 @@
+{
+  "schema": "jaxfne.publication.fig01_grammar_spec.v1",
+  "checkpoint": "figure_1_generation",
+  "status": "FROZEN",
+  "write_once": true,
+  "pec_panel_id": "Fig01.grammar",
+  "artifact_introduction_commit": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
+  "takeaway": "TFNE factorizes neural biophysics into relative finite-dimensional state, typed dynamical operators, and transformable geometry.",
+  "doctrine_authority": [
+    "AGENTS.md",
+    "docs/doctrine/tfne_containment_architecture.md",
+    "docs/doctrine/rbs_rbd_hdp.md",
+    "docs/mathematical_glossary_flow.md",
+    "artifacts/publication/publication_evidence_index.json#Fig01.grammar"
+  ],
+  "visual_grammar": {
+    "solid_arrow": "typed computational dependency",
+    "dashed_arrow": "optional or refinement relationship",
+    "containment_bracket": "model-resolution choice",
+    "rule": "never use the same arrow style for causes, contains, and can-be-refined-into"
+  },
+  "epistemic_styles": {
+    "DEMONSTRATED": "solid border — jaxfne grammar/architecture with demonstrated slices in later figures",
+    "REPRESENTATIONAL": "dashed border — illustrative resolution examples not claimed as fully implemented"
+  },
+  "central_equation": "Neural Biology -> (X,H,Theta,B,G) State -> E->S->F->P Typed operators -> Observation; G conditions operators",
+  "panels": {
+    "A": {
+      "title": "Biological hierarchy -> tensor organization",
+      "claim": "Biological nesting preserved semantically while computation may flatten",
+      "claim_level": "DEMONSTRATED"
+    },
+    "B": {
+      "title": "TFNE complete state",
+      "claim": "Markov state X_t=(X,H,Theta,B,G,...)",
+      "claim_level": "DEMONSTRATED"
+    },
+    "C": {
+      "title": "RBS containment / fidelity ladder",
+      "claim": "d_H=0->1->n user-selected resolution; typed refinement examples",
+      "claim_level": "MIXED"
+    },
+    "D": {
+      "title": "RBD / HDP distinction",
+      "claim": "RBD not equivalent to plasticity; HDP optional",
+      "claim_level": "DEMONSTRATED"
+    },
+    "E": {
+      "title": "Source -> Field -> Probe",
+      "claim": "Q=S->Phi=F[Q]->Y=P[Phi] with calibration boundary C",
+      "claim_level": "DEMONSTRATED"
+    },
+    "F": {
+      "title": "Composition / fidelity space",
+      "claim": "Emitter and geometry/field complexity independently selectable",
+      "claim_level": "REPRESENTATIONAL"
+    }
+  },
+  "excluded_content": [
+    "protocol results",
+    "performance numbers",
+    "H4/C3/D3 negatives",
+    "E5 propagation evidence"
+  ],
+  "semantic_elements": [
+    {
+      "id": "banner.central_flow",
+      "panel": "banner",
+      "symbol": "Neural Biology -> State -> E S F P -> Observation",
+      "claim_level": "REPRESENTATIONAL",
+      "arrow_style": "solid",
+      "doctrine_ref": "AGENTS.md#scientific-grammar"
+    },
+    {
+      "id": "banner.geometry_conditions",
+      "panel": "banner",
+      "symbol": "G conditions operators",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "dashed",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#2-three-separable-concepts"
+    },
+    {
+      "id": "A.hierarchy.area",
+      "panel": "A",
+      "symbol": "Area",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "solid",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#7-fidelity"
+    },
+    {
+      "id": "A.hierarchy.layer",
+      "panel": "A",
+      "symbol": "Layer",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "solid",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#7-fidelity"
+    },
+    {
+      "id": "A.hierarchy.cell_type",
+      "panel": "A",
+      "symbol": "Cell type",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "solid",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#7-fidelity"
+    },
+    {
+      "id": "A.hierarchy.neuron",
+      "panel": "A",
+      "symbol": "Neuron / compartment",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "solid",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#7-fidelity"
+    },
+    {
+      "id": "A.semantic_nesting_bracket",
+      "panel": "A",
+      "symbol": "semantic nesting preserved",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "containment",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#1-central-claim"
+    },
+    {
+      "id": "A.flattened_tensor",
+      "panel": "A",
+      "symbol": "Flattened tensor index",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "solid",
+      "doctrine_ref": "AGENTS.md#purpose"
+    },
+    {
+      "id": "B.state.X",
+      "panel": "B",
+      "symbol": "X_t fast explicit state",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "none",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#2-three-separable-concepts"
+    },
+    {
+      "id": "B.state.H",
+      "panel": "B",
+      "symbol": "H_t RBS",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "none",
+      "doctrine_ref": "docs/doctrine/rbs_rbd_hdp.md#1-semantic-migration"
+    },
+    {
+      "id": "B.state.Theta",
+      "panel": "B",
+      "symbol": "Theta_t persistent parameters",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "none",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#6-parameter-sharing"
+    },
+    {
+      "id": "B.state.B",
+      "panel": "B",
+      "symbol": "B_t delay/history",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "none",
+      "doctrine_ref": "docs/doctrine/rbs_rbd_hdp.md#protocol-d"
+    },
+    {
+      "id": "B.state.G",
+      "panel": "B",
+      "symbol": "G_t geometry",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "none",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#2-three-separable-concepts"
+    },
+    {
+      "id": "C.ladder.d0",
+      "panel": "C",
+      "symbol": "d_H=0",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "containment",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#7-fidelity"
+    },
+    {
+      "id": "C.ladder.d1",
+      "panel": "C",
+      "symbol": "d_H=1",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "containment",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#7-fidelity"
+    },
+    {
+      "id": "C.ladder.dn",
+      "panel": "C",
+      "symbol": "d_H=n",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "containment",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#7-fidelity"
+    },
+    {
+      "id": "C.refinement.H_K",
+      "panel": "C",
+      "symbol": "H_K owned block",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "none",
+      "doctrine_ref": "artifacts/protocol_e_integration/e3_execution_receipt.json"
+    },
+    {
+      "id": "C.refinement.H_gK",
+      "panel": "C",
+      "symbol": "H_{g_K}",
+      "claim_level": "REPRESENTATIONAL",
+      "arrow_style": "dashed",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#3-rbs"
+    },
+    {
+      "id": "C.refinement.H_Ki",
+      "panel": "C",
+      "symbol": "H_{[K]_i}",
+      "claim_level": "REPRESENTATIONAL",
+      "arrow_style": "dashed",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#3-rbs"
+    },
+    {
+      "id": "C.refinement.H_Ko",
+      "panel": "C",
+      "symbol": "H_{[K]_o}",
+      "claim_level": "REPRESENTATIONAL",
+      "arrow_style": "dashed",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#3-rbs"
+    },
+    {
+      "id": "C.refinement.H_avail",
+      "panel": "C",
+      "symbol": "H_avail",
+      "claim_level": "REPRESENTATIONAL",
+      "arrow_style": "dashed",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#3-rbs"
+    },
+    {
+      "id": "D.dynamics.FX",
+      "panel": "D",
+      "symbol": "dot X = F_X(X,U; Gamma(H,Theta))",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "none",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#5-typed-gain"
+    },
+    {
+      "id": "D.dynamics.FH",
+      "panel": "D",
+      "symbol": "dot H = F_H(H,X,...)",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "none",
+      "doctrine_ref": "docs/doctrine/rbs_rbd_hdp.md#rbd"
+    },
+    {
+      "id": "D.dynamics.FTheta",
+      "panel": "D",
+      "symbol": "dot Theta = F_Theta (optional HDP)",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "dashed",
+      "doctrine_ref": "docs/doctrine/rbs_rbd_hdp.md#hdp"
+    },
+    {
+      "id": "D.rbd_not_plasticity",
+      "panel": "D",
+      "symbol": "RBD not=> plasticity",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "none",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#4-rbd"
+    },
+    {
+      "id": "E.source.Q",
+      "panel": "E",
+      "symbol": "Q = S(X,H,Theta)",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "solid",
+      "doctrine_ref": "docs/mathematical_glossary_flow.md#2-source-projection"
+    },
+    {
+      "id": "E.field.Phi",
+      "panel": "E",
+      "symbol": "Phi = F_{G,M}[Q]",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "solid",
+      "doctrine_ref": "docs/mathematical_glossary_flow.md#3-field-operator"
+    },
+    {
+      "id": "E.probe.Y",
+      "panel": "E",
+      "symbol": "Y = P_{G,M}[Phi]",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "solid",
+      "doctrine_ref": "docs/mathematical_glossary_flow.md#4-probe-operator"
+    },
+    {
+      "id": "E.calibration.C",
+      "panel": "E",
+      "symbol": "relative --C--> calibrated",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "solid",
+      "doctrine_ref": "AGENTS.md#mathematical-invariants"
+    },
+    {
+      "id": "E.typed_coupling.Gamma",
+      "panel": "E",
+      "symbol": "H_alpha --Gamma_{alpha->r}--> operator r",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "solid",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#5-typed-gain"
+    },
+    {
+      "id": "E.geometry.conditions",
+      "panel": "E",
+      "symbol": "G conditions F and P",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "dashed",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#2-three-separable-concepts"
+    },
+    {
+      "id": "F.axes.emitter",
+      "panel": "F",
+      "symbol": "emitter complexity axis",
+      "claim_level": "REPRESENTATIONAL",
+      "arrow_style": "none",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#7-fidelity"
+    },
+    {
+      "id": "F.axes.geometry_field",
+      "panel": "F",
+      "symbol": "geometry/field complexity axis",
+      "claim_level": "REPRESENTATIONAL",
+      "arrow_style": "none",
+      "doctrine_ref": "docs/doctrine/tfne_containment_architecture.md#7-fidelity"
+    },
+    {
+      "id": "F.point.E_integration",
+      "panel": "F",
+      "symbol": "E-integration ladder E1-E5",
+      "claim_level": "DEMONSTRATED",
+      "arrow_style": "none",
+      "doctrine_ref": "artifacts/publication/publication_evidence_index.json#development_ledger"
+    },
+    {
+      "id": "legend.solid",
+      "panel": "legend",
+      "symbol": "solid arrow legend",
+      "claim_level": "REPRESENTATIONAL",
+      "arrow_style": "solid",
+      "doctrine_ref": "artifacts/publication/fig01_grammar_spec.json#visual_grammar"
+    },
+    {
+      "id": "legend.dashed",
+      "panel": "legend",
+      "symbol": "dashed arrow legend",
+      "claim_level": "REPRESENTATIONAL",
+      "arrow_style": "dashed",
+      "doctrine_ref": "artifacts/publication/fig01_grammar_spec.json#visual_grammar"
+    },
+    {
+      "id": "legend.containment",
+      "panel": "legend",
+      "symbol": "bracket legend",
+      "claim_level": "REPRESENTATIONAL",
+      "arrow_style": "containment",
+      "doctrine_ref": "artifacts/publication/fig01_grammar_spec.json#visual_grammar"
+    },
+    {
+      "id": "legend.epistemic_demonstrated",
+      "panel": "legend",
+      "symbol": "DEMONSTRATED border style",
+      "claim_level": "REPRESENTATIONAL",
+      "arrow_style": "none",
+      "doctrine_ref": "artifacts/publication/pec_consolidation_spec.json#evidence_ladder"
+    },
+    {
+      "id": "legend.epistemic_representational",
+      "panel": "legend",
+      "symbol": "REPRESENTATIONAL border style",
+      "claim_level": "REPRESENTATIONAL",
+      "arrow_style": "none",
+      "doctrine_ref": "artifacts/publication/pec_consolidation_spec.json#evidence_ladder"
+    }
+  ]
+}

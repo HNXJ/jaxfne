@@ -1,0 +1,14 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d1_protocol_receipt.v1",
+  "checkpoint": "D1",
+  "status": "CLOSED",
+  "protocol_id": "protocol_d_biological_rbs_v0417",
+  "milestone": "0.4.17-D",
+  "spec": "artifacts/protocol_d_biological_rbs/d1_static_h_k_expression_spec.json",
+  "execution_receipt": "artifacts/protocol_d_biological_rbs/d1_static_expression_receipt.json",
+  "protocol_doc": "docs/protocols/protocol_d_biological_rbs.md",
+  "parent_head": "aa01b29cd539d76427cdb26cc56b9c30983eee7b",
+  "coupling": "b_eff = H_K * b",
+  "gates_passed": ["G1_containment", "G2_static_state_integrity", "G3_parameter_locality", "G4_bidirectional_sensitivity"],
+  "next_checkpoint": "D2b_specification"
+}

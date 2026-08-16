@@ -1,0 +1,116 @@
+"""Protocol D (0.4.17-D) — biological RBS containment specification."""
+
+from .d0_protocol import (
+    D0_SPEC_PATH,
+    PROTOCOL_ID,
+    d0_first_coordinate_id,
+    d0_static_sweep_values,
+    load_d0_spec,
+    validate_d0_spec,
+)
+from .d1_protocol import (
+    D1_EXECUTION_RECEIPT_PATH,
+    D1_SPEC_PATH,
+    d1_h_k_sweep_values,
+    load_d1_spec,
+    validate_d1_spec,
+)
+from .d1_execution import (
+    load_d1_execution_receipt,
+    run_d1_static_expression,
+    write_d1_execution_receipt,
+)
+from .d2a_protocol import (
+    D2A_EXECUTION_RECEIPT_PATH,
+    D2A_SPEC_PATH,
+    d2a_h_k0_values,
+    load_d2a_spec,
+    validate_d2a_spec,
+)
+from .d2a_execution import (
+    load_d2a_execution_receipt,
+    run_d2a_autonomous_relaxation,
+    write_d2a_execution_receipt,
+)
+from .d2b_protocol import (
+    D2B_EXECUTION_RECEIPT_PATH,
+    D2B_SPEC_PATH,
+    load_d2b_spec,
+    validate_d2b_spec,
+)
+from .d2b_execution import (
+    load_d2b_execution_receipt,
+    run_d2b_activity_h_k_coupling,
+    write_d2b_execution_receipt,
+)
+
+from .d3_protocol import (
+    D3_EXECUTION_RECEIPT_PATH,
+    D3_INTERPRETATION_RECEIPT_PATH,
+    D3_SPEC_PATH,
+    d3_null_arm_ids,
+    d3_recovery_interval_ms,
+    load_d3_spec,
+    validate_d3_spec,
+)
+from .d3_execution import (
+    build_d3_response_window_overlap_metadata,
+    classify_d3_cell,
+    load_d3_execution_receipt,
+    run_d3_adaptation_recovery,
+    write_d3_execution_receipt,
+)
+from .d3_interpretation import (
+    build_d3_interpretation,
+    freeze_d3_protocol,
+    load_d3_interpretation_receipt,
+    write_d3_interpretation_receipt,
+)
+
+__all__ = [
+    "PROTOCOL_ID",
+    "D0_SPEC_PATH",
+    "load_d0_spec",
+    "validate_d0_spec",
+    "d0_first_coordinate_id",
+    "d0_static_sweep_values",
+    "D1_SPEC_PATH",
+    "D1_EXECUTION_RECEIPT_PATH",
+    "load_d1_spec",
+    "validate_d1_spec",
+    "d1_h_k_sweep_values",
+    "load_d1_execution_receipt",
+    "run_d1_static_expression",
+    "write_d1_execution_receipt",
+    "D2A_SPEC_PATH",
+    "D2A_EXECUTION_RECEIPT_PATH",
+    "load_d2a_spec",
+    "validate_d2a_spec",
+    "d2a_h_k0_values",
+    "load_d2a_execution_receipt",
+    "run_d2a_autonomous_relaxation",
+    "write_d2a_execution_receipt",
+    "D2B_SPEC_PATH",
+    "D2B_EXECUTION_RECEIPT_PATH",
+    "load_d2b_spec",
+    "validate_d2b_spec",
+    "load_d2b_execution_receipt",
+    "run_d2b_activity_h_k_coupling",
+    "write_d2b_execution_receipt",
+    "D3_SPEC_PATH",
+    "load_d3_spec",
+    "validate_d3_spec",
+    "d3_null_arm_ids",
+    "d3_recovery_interval_ms",
+    "D3_EXECUTION_RECEIPT_PATH",
+    "D3_INTERPRETATION_RECEIPT_PATH",
+    "load_d3_execution_receipt",
+    "run_d3_adaptation_recovery",
+    "write_d3_execution_receipt",
+    "build_d3_interpretation",
+    "freeze_d3_protocol",
+    "load_d3_interpretation_receipt",
+    "write_d3_interpretation_receipt",
+    "classify_d3_cell",
+    "build_d3_response_window_overlap_metadata",
+]

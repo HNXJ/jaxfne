@@ -1,0 +1,9 @@
+{
+  "figure": "Fig01.grammar",
+  "schema": "jaxfne.publication.fig1_polish_spec.v1",
+  "status": "FROZEN",
+  "artist_only_polish": true,
+  "downstream_of_frozen_sha": "707c3fec9f4b6747551e994897f70910c41ff88d5ed5a7b6910b441bc2e65678",
+  "checkpoint": "figure_1_polish",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596"
+}

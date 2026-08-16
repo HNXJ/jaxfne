@@ -1,0 +1,222 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d0_spec.v1",
+  "protocol_id": "protocol_d_biological_rbs_v0417",
+  "milestone": "0.4.17-D",
+  "checkpoint": "D0",
+  "status": "FROZEN",
+  "write_once": true,
+  "naming_disambiguation": {
+    "this_protocol": "0.4.17-D biological RBS containment (intrinsic ionic/channel-like realization)",
+    "distinct_from": "0.4.16 edge-delay Protocol D0/D1 (tau_ij construction; tests/test_edge_delay_protocol_d016.py)",
+    "rule": "Do not conflate delay-protocol D with biological-RBS protocol D in receipts or manuscript Figure 5/6."
+  },
+  "parent_heads": {
+    "c4_closed": "f5cc452fc84bbf6a2b918c6b0a6a1fc9af5683c4",
+    "h4_closed": "artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json",
+    "w2_frozen": "artifacts/protocol_w/w2_expression/w2_expression_receipt.json"
+  },
+  "question": "Can one biologically interpretable RBS realization extend an existing emitter while recovering the classical emitter when RBS is frozen?",
+  "containment_thesis": {
+    "display": "classical emitter subset RBS-extended emitter",
+    "formal_null": "H_K equiv 1, dH_K/dt = 0 => E_extended = E_classical",
+    "equivalence_standard": "bit-exact where implementation permits (float32, deterministic drive, noise_scale=0)",
+    "classical_reference": "same emitter kernel without active RBS coordinate coupling (beta_H_to_x=0 and/or g(H) identically 1)"
+  },
+  "causal_chain": {
+    "display": "H_ion --Gamma(H)--> E --X--> phenotype observables",
+    "plasticity": "dot W = 0 (RBD only; HDP out of scope)",
+    "upstream_feed_prohibited": "phenotype metrics do not feed back into F_H tuning after observation",
+    "distinction_from_protocol_c": "Protocol C asked whether activity exhibits propagation; Protocol D asks whether biological RBS extends emitter semantics with a recoverable classical limit.",
+    "distinction_from_protocol_h": "Protocol H validated abstract scalar RBS memory under fixed W; Protocol D requires a named biological coordinate with typed emitter coupling and classical containment."
+  },
+  "rbs_vector_grammar": {
+    "symbol": "H_ion",
+    "typed_coordinates": [
+      {
+        "id": "H_Na",
+        "role": "reserved_ionic_coordinate",
+        "d1_implementation": false
+      },
+      {
+        "id": "H_K",
+        "role": "first_biological_realization",
+        "d1_implementation": true
+      },
+      {
+        "id": "H_Ca",
+        "role": "reserved_ionic_coordinate",
+        "d1_implementation": false
+      }
+    ],
+    "rule": "Grammar defines the vector; D1 implements one coordinate only. Do not implement Na/K/Ca simultaneously in D1.",
+    "resolution_principle": "RBS coordinate != claim of microscopic physical completeness; H_K may later refine into (H_gK, H_[K]i, H_[K]o, H_availability, ...) without changing grammar."
+  },
+  "first_coordinate_H_K": {
+    "id": "H_K",
+    "physical_interpretation": {
+      "is": "effective K-associated recovery state in the reduced Izhikevich realization",
+      "nominal_reference": "H_K = 1 means nominal recovery-drive contribution relative to the declared classical baseline",
+      "is_not": [
+        "potassium concentration",
+        "Nernst potential",
+        "explicit Hodgkin-Huxley potassium conductance g_K",
+        "literal identification of Izhikevich parameter b with g_K",
+        "explicit electrochemical transmembrane K+ dynamics",
+        "STDP or synaptic plasticity coordinate",
+        "neurotransmitter availability"
+      ],
+      "future_refinement_allowed": "H_K^effective -> (H_gK, H_[K]i, H_[K]o, H_availability, ...) under same typed grammar"
+    },
+    "typed_coupling_Gamma": {
+      "grammar_display": "g_K^eff = H_K * g_K^0",
+      "grammar_role": "general typed K-channel availability grammar at the containment layer (not a claim that Izhikevich b is g_K)",
+      "operator_role": "emitter-local typed gain on a declared baseline recovery/conductance parameter in a chosen emitter realization",
+      "normalization": "Gamma(H_K=1) = identity relative to classical baseline",
+      "positivity_gate": "H_K > 0 required wherever multiplicative map is used"
+    },
+    "izhikevich_realization": {
+      "status": "frozen_at_D1_authorization",
+      "map": "b_eff = H_K * b",
+      "recovery_ode": "du/dt = a * (b_eff * v - u) = a * (H_K * b * v - u)",
+      "dv_unchanged": "dv/dt = 0.04*v^2 + 5*v + 140 - u + I",
+      "local_jacobian_receipt": "partial du_dot / partial H_K = a * b * v",
+      "containment_null": "H_K = 1 => b_eff = b => classical Izhikevich emitter",
+      "documentation_clause": "H_K is an effective relative K-associated recovery coordinate in the Izhikevich realization. It demonstrates typed RBS containment of a reduced biophysical dependency; it is not an explicit potassium concentration, Nernst potential, or Hodgkin-Huxley potassium-conductance model."
+    },
+    "dynamics_F_H": {
+      "status": "specified_for_D2_implementation",
+      "reference_equilibrium": "H_K* = 1 when coupling terms vanish",
+      "restoring_template": "tau_H_K * dH_K/dt = R_K(H_K) + activity_coupling",
+      "default_restoring_family": "F1_linear: R_K(H_K) = 1 - H_K",
+      "activity_coupling": "optional kappa_K * I_rel or phenotype-appropriate drive; frozen at D2 not D0",
+      "stability_gate": "trajectories remain finite and H_K stays inside declared admissible interval under frozen drive"
+    },
+    "null_reference_behavior": {
+      "frozen_state": "H_K identically 1",
+      "frozen_derivative": "dH_K/dt identically 0",
+      "coupling_off": "Gamma(H_K) reduces to identity on classical emitter parameters",
+      "required_outcome": "E_extended bitwise matches E_classical on shared observables (V_m, spikes, sources) under identical drive/weights/seeds"
+    }
+  },
+  "static_sweep_before_dynamics": {
+    "rationale": "Validate H -> Gamma(H) -> X separately before testing F_H (mirrors W1/W2 decomposition)",
+    "checkpoint": "D1",
+    "frozen_levels": {
+      "delta": 0.2,
+      "values": [0.8, 1.0, 1.2],
+      "display": "H_K in {1-delta, 1, 1+delta}"
+    },
+    "hold_fixed": [
+      "dH_K/dt = 0",
+      "all other RBS coordinates inactive or at reference",
+      "W fixed",
+      "drive schedule fixed"
+    ],
+    "primary_readouts": [
+      "delta_V(t) relative to H_K=1",
+      "delta_u(t) relative to H_K=1",
+      "delta_N_spike relative to H_K=1",
+      "delta_t_spike (first spike time) relative to H_K=1",
+      "adaptation / inter-spike-interval summaries when applicable"
+    ],
+    "expression_criterion": {
+      "statement": "H_K != 1 => X(H_K) != X(1) under drive where recovery term is active",
+      "direction_not_preregistered": true,
+      "primary_direct_map_quantity": "u (recovery variable)"
+    },
+    "success_d1": "containment gates pass; all three sweep levels evaluated; expression sensitivity recorded without directional cherry-picking"
+  },
+  "dynamic_phenotype_protocol": {
+    "checkpoint": "D3",
+    "status": "specified_not_implemented",
+    "targets": [
+      "excitability (f-I or threshold proxy)",
+      "adaptation / recovery after pulse",
+      "spike width or instantaneous rate trajectory",
+      "other emitter-appropriate phenotype without separate adaptation subsystem"
+    ],
+    "requires": [
+      "D1 static map validated",
+      "D2 F_H stability/recovery validated",
+      "frozen null recovers classical emitter"
+    ]
+  },
+  "checkpoint_ladder": {
+    "D0": {
+      "name": "biological RBS specification",
+      "status": "this_document",
+      "implementation_authorized": false
+    },
+    "D1": {
+      "name": "static typed-coordinate expression",
+      "scope": "H_K fixed sweep; Gamma(H_K) only; dH_K/dt=0",
+      "implementation_authorized": false
+    },
+    "D2": {
+      "name": "dynamic F_H + recovery/stability",
+      "scope": "activate R_K(H_K) and optional activity coupling under dot W=0",
+      "implementation_authorized": false
+    },
+    "D3": {
+      "name": "biological phenotype protocol",
+      "scope": "prospective falsifiable phenotype under frozen drive/nulls",
+      "implementation_authorized": false
+    },
+    "D4": {
+      "name": "optional second RBS class",
+      "mandatory_for_0417": false,
+      "scope": "only if D3 outcome justifies; not Na/K/Ca name-only proliferation",
+      "implementation_authorized": false
+    }
+  },
+  "runtime_contract": {
+    "dot_W": 0,
+    "enable_hdp": false,
+    "enable_homeostasis": false,
+    "plasticity_scope": "RBD on H only; synaptic weights fixed",
+    "emitter_family": "edge_recurrent_izhikevich",
+    "classical_baseline": "same topology/weights/drive as extended model with RBS coupling nulled",
+    "rationale": "First biological RBS example demonstrates RBD containment, not closed-loop HDP (W3 unresolved)."
+  },
+  "falsification_and_stability_gates": {
+    "containment_null": "H_K=1, dH_K/dt=0 => classical equivalence (bit-exact target)",
+    "positivity": "H_K > 0 under multiplicative Gamma",
+    "finiteness": "all state components finite over frozen simulation horizon",
+    "no_hidden_plasticity": "weight tensors unchanged unless a future protocol explicitly authorizes HDP",
+    "valid_negative_outcomes": [
+      "static sweep shows no phenotype separation (falsifies chosen Gamma target)",
+      "dynamic H_K fails stability bounds",
+      "classical null not recovered within tolerance (implementation defect gate)"
+    ]
+  },
+  "explicit_prohibitions": [
+    "no_HDP_dot_W",
+    "no_STDP_coordinate_in_D1",
+    "no_neurotransmitter_coordinate_in_D1",
+    "no_potassium_concentration_claim",
+    "no_Nernst_electrochemical_machinery_in_D1",
+    "no_implement_all_three_ionic_coordinates_in_D1",
+    "no_D4_mandatory_for_0417",
+    "no_post_result_retuning_of_delta_Gamma_F_H_or_drive",
+    "no_conflation_with_protocol_c_wave_outcomes",
+    "no_conflation_with_protocol_h4_topology_memory_negative"
+  ],
+  "manuscript_figure_discipline": {
+    "protocol_c": "Figure 5 — wave estimator negative (60/60 NO_WAVE); narrow claim only",
+    "protocol_h4": "Figure 6 — topology/delay memory extension negative",
+    "rule": "C3 and H4 are joint examples of falsification discipline but answer different scientific questions; keep separate panels and narrative."
+  },
+  "d0_amendment": {
+    "reason": "Separate general K-channel typed grammar from Izhikevich b_eff realization before D1 implementation",
+    "frozen_at": "D1_authorization",
+    "izhikevich_coupling": "b_eff = H_K * b on recovery drive du = a(b_eff*v - u)"
+  },
+  "execution_authorization": {
+    "spec_frozen_at": "D0",
+    "implementation_authorized": false,
+    "next_checkpoint": "D1"
+  },
+  "bundle_root": "artifacts/protocol_d_biological_rbs",
+  "protocol_doc": "docs/protocols/protocol_d_biological_rbs.md",
+  "doctrine_reference": "docs/doctrine/rbs_rbd_hdp.md"
+}

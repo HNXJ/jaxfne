@@ -4,7 +4,7 @@
   "kind": "folder",
   "title": "tests",
   "generated": {
-    "summary": "Folder with 242 files, e.g. test_notebook_execution_suite.py, test_global_superposition.py, test_scan_backends_v012.py, test_connect_ensemble.py, test_ei_20neuron_population_smoke.py.",
+    "summary": "Folder with 312 files, e.g. test_perf_float32_hdp_acceptance.py, test_fig02_04_experiment_a.py, test_protocol_e_e0_1_spec.py, test_notebook_execution_suite.py, test_protocol_e_e0_spec.py.",
     "source_paths": [
       "tests"
     ],
@@ -15,7 +15,7 @@
       }
     ]
   },
-  "status": "verified",
+  "status": "stale",
   "notes": [
     {
       "id": "formation-pass-2026-07-23",
@@ -59,9 +59,9 @@
   "verification": {
     "checks": {
       "sources_resolve": true,
-      "reproducible": true
+      "reproducible": false
     },
-    "verdict": "verified",
+    "verdict": "stale",
     "checks_run": 2
   }
 }

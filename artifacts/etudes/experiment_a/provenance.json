@@ -1,0 +1,485 @@
+{
+  "eeg_deep": {
+    "amplitude_semantics": "relative",
+    "leadfield_status": "toy_or_declared_proxy",
+    "name": "eeg_deep",
+    "observation": {
+      "amplitude_semantics": "relative",
+      "execution_form": "fused",
+      "operator_chain": {
+        "field": {
+          "identity": "compiled_into_leadfield",
+          "note": "P_circ_F_not_separately_materialized"
+        },
+        "probe": {
+          "identity": "linear_leadfield",
+          "leadfield_status": "toy_or_declared_proxy",
+          "matrix_shape": [
+            3,
+            40
+          ]
+        },
+        "source": {
+          "identity": "canonical_relative_source",
+          "n_sources": 40,
+          "representation": "relative"
+        }
+      },
+      "output_identity": "eeg_proxy",
+      "physical_claim": "proxy_readout",
+      "validation_status": "computational"
+    },
+    "operator_status": "simulated_proxy",
+    "physical_amplitude_calibrated": false,
+    "physical_claim": "proxy_readout",
+    "units_or_status": "relative_proxy_units",
+    "validation_status": "computational"
+  },
+  "eeg_superficial": {
+    "amplitude_semantics": "relative",
+    "leadfield_status": "toy_or_declared_proxy",
+    "name": "eeg_superficial",
+    "observation": {
+      "amplitude_semantics": "relative",
+      "execution_form": "fused",
+      "operator_chain": {
+        "field": {
+          "identity": "compiled_into_leadfield",
+          "note": "P_circ_F_not_separately_materialized"
+        },
+        "probe": {
+          "identity": "linear_leadfield",
+          "leadfield_status": "toy_or_declared_proxy",
+          "matrix_shape": [
+            3,
+            40
+          ]
+        },
+        "source": {
+          "identity": "canonical_relative_source",
+          "n_sources": 40,
+          "representation": "relative"
+        }
+      },
+      "output_identity": "eeg_proxy",
+      "physical_claim": "proxy_readout",
+      "validation_status": "computational"
+    },
+    "operator_status": "simulated_proxy",
+    "physical_amplitude_calibrated": false,
+    "physical_claim": "proxy_readout",
+    "units_or_status": "relative_proxy_units",
+    "validation_status": "computational"
+  },
+  "lfp_contact_deep": {
+    "assumptions": [
+      "laminar_proxy_field_no_pde",
+      "contact_sample_from_phi_e_proxy",
+      "not_empirically_calibrated"
+    ],
+    "calibration_status": "uncalibrated_proxy",
+    "calibration_transform": "explicit_boundary_transform",
+    "contact_depths_or_layers": "[0.8]",
+    "data_shape": "(4000, 1)",
+    "field_claim_level": "proxy_readout",
+    "field_contact_depths": "[0.         0.06666667 0.13333334 0.20000002 0.26666668 0.33333334\n 0.40000004 0.4666667  0.53333336 0.6        0.6666667  0.73333335\n 0.8000001  0.86666673 0.9333334  1.        ]",
+    "field_solver_status": "linear_solver",
+    "input_representation": "relative_phi_e_proxy",
+    "kind": "lfp_proxy",
+    "method": "depth_interpolation_on_phi_e_proxy",
+    "name": "lfp_proxy",
+    "operator_status": "simulated_proxy",
+    "operator_type": "direct_readout",
+    "physical_amplitude_calibrated": false,
+    "representation": "relative",
+    "source_calibration_status": "uncalibrated_izhikevich_native_current",
+    "source_decomposition": "proxy_reduced_emitter",
+    "source_projection_mode": "proxy_no_field_solve",
+    "units_or_status": "proxy_voltage_units_or_V_if_calibrated",
+    "validation_status": "computational"
+  },
+  "lfp_contact_shallow": {
+    "assumptions": [
+      "laminar_proxy_field_no_pde",
+      "contact_sample_from_phi_e_proxy",
+      "not_empirically_calibrated"
+    ],
+    "calibration_status": "uncalibrated_proxy",
+    "calibration_transform": "explicit_boundary_transform",
+    "contact_depths_or_layers": "[0.2]",
+    "data_shape": "(4000, 1)",
+    "field_claim_level": "proxy_readout",
+    "field_contact_depths": "[0.         0.06666667 0.13333334 0.20000002 0.26666668 0.33333334\n 0.40000004 0.4666667  0.53333336 0.6        0.6666667  0.73333335\n 0.8000001  0.86666673 0.9333334  1.        ]",
+    "field_solver_status": "linear_solver",
+    "input_representation": "relative_phi_e_proxy",
+    "kind": "lfp_proxy",
+    "method": "depth_interpolation_on_phi_e_proxy",
+    "name": "lfp_proxy",
+    "operator_status": "simulated_proxy",
+    "operator_type": "direct_readout",
+    "physical_amplitude_calibrated": false,
+    "representation": "relative",
+    "source_calibration_status": "uncalibrated_izhikevich_native_current",
+    "source_decomposition": "proxy_reduced_emitter",
+    "source_projection_mode": "proxy_no_field_solve",
+    "units_or_status": "proxy_voltage_units_or_V_if_calibrated",
+    "validation_status": "computational"
+  },
+  "lfp_dense": {
+    "amplitude_semantics": "relative",
+    "csd": {
+      "amplitude_semantics": "relative",
+      "execution_form": "fused",
+      "operator_chain": {
+        "field": {
+          "geometry": "source_positions_z_relative",
+          "identity": "gaussian_laminar_projection",
+          "kernel_width_relative": 0.1,
+          "normalization": "density_preserving",
+          "operator_type": "linear_projection"
+        },
+        "probe": {
+          "identity": "laminar_second_derivative",
+          "input": "phi_e_proxy",
+          "operator_type": "spatial_derivative",
+          "stencil": "negative_second_difference_edge_padded"
+        },
+        "source": {
+          "geometry": "model_or_caller_positions_z_relative",
+          "identity": "canonical_relative_source",
+          "n_sources": 40,
+          "representation": "relative"
+        }
+      },
+      "physical_claim": "proxy_readout",
+      "validation_status": "computational"
+    },
+    "execution_form": "fused",
+    "operator_chain": {
+      "field": {
+        "geometry": "source_positions_z_relative",
+        "identity": "gaussian_laminar_projection",
+        "kernel_width_relative": 0.1,
+        "normalization": "density_preserving",
+        "operator_type": "linear_projection"
+      },
+      "probe": {
+        "geometry": {
+          "construction": "linspace_relative_depth",
+          "kind": "relative_laminar_contacts",
+          "n_contacts": 24,
+          "z_max": 1.0,
+          "z_min": 0.0
+        },
+        "identity": "contact_sampling_compiled_into_kernel"
+      },
+      "source": {
+        "geometry": "model_or_caller_positions_z_relative",
+        "identity": "canonical_relative_source",
+        "n_sources": 40,
+        "representation": "relative"
+      }
+    },
+    "output_identities": {
+      "csd_proxy": "Dzz_of_phi_e_proxy",
+      "lfp_proxy": "alias_of_source_proxy",
+      "phi_e_proxy": "alias_of_source_proxy",
+      "source_proxy": "KQ_relative_field_and_fused_lfp"
+    },
+    "physical_claim": "proxy_readout",
+    "validation_status": "computational"
+  },
+  "lfp_narrow": {
+    "amplitude_semantics": "relative",
+    "csd": {
+      "amplitude_semantics": "relative",
+      "execution_form": "fused",
+      "operator_chain": {
+        "field": {
+          "geometry": "source_positions_z_relative",
+          "identity": "gaussian_laminar_projection",
+          "kernel_width_relative": 0.05,
+          "normalization": "density_preserving",
+          "operator_type": "linear_projection"
+        },
+        "probe": {
+          "identity": "laminar_second_derivative",
+          "input": "phi_e_proxy",
+          "operator_type": "spatial_derivative",
+          "stencil": "negative_second_difference_edge_padded"
+        },
+        "source": {
+          "geometry": "model_or_caller_positions_z_relative",
+          "identity": "canonical_relative_source",
+          "n_sources": 40,
+          "representation": "relative"
+        }
+      },
+      "physical_claim": "proxy_readout",
+      "validation_status": "computational"
+    },
+    "execution_form": "fused",
+    "operator_chain": {
+      "field": {
+        "geometry": "source_positions_z_relative",
+        "identity": "gaussian_laminar_projection",
+        "kernel_width_relative": 0.05,
+        "normalization": "density_preserving",
+        "operator_type": "linear_projection"
+      },
+      "probe": {
+        "geometry": {
+          "construction": "linspace_relative_depth",
+          "kind": "relative_laminar_contacts",
+          "n_contacts": 16,
+          "z_max": 1.0,
+          "z_min": 0.0
+        },
+        "identity": "contact_sampling_compiled_into_kernel"
+      },
+      "source": {
+        "geometry": "model_or_caller_positions_z_relative",
+        "identity": "canonical_relative_source",
+        "n_sources": 40,
+        "representation": "relative"
+      }
+    },
+    "output_identities": {
+      "csd_proxy": "Dzz_of_phi_e_proxy",
+      "lfp_proxy": "alias_of_source_proxy",
+      "phi_e_proxy": "alias_of_source_proxy",
+      "source_proxy": "KQ_relative_field_and_fused_lfp"
+    },
+    "physical_claim": "proxy_readout",
+    "validation_status": "computational"
+  },
+  "lfp_ref": {
+    "amplitude_semantics": "relative",
+    "csd": {
+      "amplitude_semantics": "relative",
+      "execution_form": "fused",
+      "operator_chain": {
+        "field": {
+          "geometry": "source_positions_z_relative",
+          "identity": "gaussian_laminar_projection",
+          "kernel_width_relative": 0.1,
+          "normalization": "density_preserving",
+          "operator_type": "linear_projection"
+        },
+        "probe": {
+          "identity": "laminar_second_derivative",
+          "input": "phi_e_proxy",
+          "operator_type": "spatial_derivative",
+          "stencil": "negative_second_difference_edge_padded"
+        },
+        "source": {
+          "geometry": "model_or_caller_positions_z_relative",
+          "identity": "canonical_relative_source",
+          "n_sources": 40,
+          "representation": "relative"
+        }
+      },
+      "physical_claim": "proxy_readout",
+      "validation_status": "computational"
+    },
+    "execution_form": "fused",
+    "operator_chain": {
+      "field": {
+        "geometry": "source_positions_z_relative",
+        "identity": "gaussian_laminar_projection",
+        "kernel_width_relative": 0.1,
+        "normalization": "density_preserving",
+        "operator_type": "linear_projection"
+      },
+      "probe": {
+        "geometry": {
+          "construction": "linspace_relative_depth",
+          "kind": "relative_laminar_contacts",
+          "n_contacts": 16,
+          "z_max": 1.0,
+          "z_min": 0.0
+        },
+        "identity": "contact_sampling_compiled_into_kernel"
+      },
+      "source": {
+        "geometry": "model_or_caller_positions_z_relative",
+        "identity": "canonical_relative_source",
+        "n_sources": 40,
+        "representation": "relative"
+      }
+    },
+    "output_identities": {
+      "csd_proxy": "Dzz_of_phi_e_proxy",
+      "lfp_proxy": "alias_of_source_proxy",
+      "phi_e_proxy": "alias_of_source_proxy",
+      "source_proxy": "KQ_relative_field_and_fused_lfp"
+    },
+    "physical_claim": "proxy_readout",
+    "validation_status": "computational"
+  },
+  "lfp_sparse": {
+    "amplitude_semantics": "relative",
+    "csd": {
+      "amplitude_semantics": "relative",
+      "execution_form": "fused",
+      "operator_chain": {
+        "field": {
+          "geometry": "source_positions_z_relative",
+          "identity": "gaussian_laminar_projection",
+          "kernel_width_relative": 0.1,
+          "normalization": "density_preserving",
+          "operator_type": "linear_projection"
+        },
+        "probe": {
+          "identity": "laminar_second_derivative",
+          "input": "phi_e_proxy",
+          "operator_type": "spatial_derivative",
+          "stencil": "negative_second_difference_edge_padded"
+        },
+        "source": {
+          "geometry": "model_or_caller_positions_z_relative",
+          "identity": "canonical_relative_source",
+          "n_sources": 40,
+          "representation": "relative"
+        }
+      },
+      "physical_claim": "proxy_readout",
+      "validation_status": "computational"
+    },
+    "execution_form": "fused",
+    "operator_chain": {
+      "field": {
+        "geometry": "source_positions_z_relative",
+        "identity": "gaussian_laminar_projection",
+        "kernel_width_relative": 0.1,
+        "normalization": "density_preserving",
+        "operator_type": "linear_projection"
+      },
+      "probe": {
+        "geometry": {
+          "construction": "linspace_relative_depth",
+          "kind": "relative_laminar_contacts",
+          "n_contacts": 8,
+          "z_max": 1.0,
+          "z_min": 0.0
+        },
+        "identity": "contact_sampling_compiled_into_kernel"
+      },
+      "source": {
+        "geometry": "model_or_caller_positions_z_relative",
+        "identity": "canonical_relative_source",
+        "n_sources": 40,
+        "representation": "relative"
+      }
+    },
+    "output_identities": {
+      "csd_proxy": "Dzz_of_phi_e_proxy",
+      "lfp_proxy": "alias_of_source_proxy",
+      "phi_e_proxy": "alias_of_source_proxy",
+      "source_proxy": "KQ_relative_field_and_fused_lfp"
+    },
+    "physical_claim": "proxy_readout",
+    "validation_status": "computational"
+  },
+  "lfp_wide": {
+    "amplitude_semantics": "relative",
+    "csd": {
+      "amplitude_semantics": "relative",
+      "execution_form": "fused",
+      "operator_chain": {
+        "field": {
+          "geometry": "source_positions_z_relative",
+          "identity": "gaussian_laminar_projection",
+          "kernel_width_relative": 0.25,
+          "normalization": "density_preserving",
+          "operator_type": "linear_projection"
+        },
+        "probe": {
+          "identity": "laminar_second_derivative",
+          "input": "phi_e_proxy",
+          "operator_type": "spatial_derivative",
+          "stencil": "negative_second_difference_edge_padded"
+        },
+        "source": {
+          "geometry": "model_or_caller_positions_z_relative",
+          "identity": "canonical_relative_source",
+          "n_sources": 40,
+          "representation": "relative"
+        }
+      },
+      "physical_claim": "proxy_readout",
+      "validation_status": "computational"
+    },
+    "execution_form": "fused",
+    "operator_chain": {
+      "field": {
+        "geometry": "source_positions_z_relative",
+        "identity": "gaussian_laminar_projection",
+        "kernel_width_relative": 0.25,
+        "normalization": "density_preserving",
+        "operator_type": "linear_projection"
+      },
+      "probe": {
+        "geometry": {
+          "construction": "linspace_relative_depth",
+          "kind": "relative_laminar_contacts",
+          "n_contacts": 16,
+          "z_max": 1.0,
+          "z_min": 0.0
+        },
+        "identity": "contact_sampling_compiled_into_kernel"
+      },
+      "source": {
+        "geometry": "model_or_caller_positions_z_relative",
+        "identity": "canonical_relative_source",
+        "n_sources": 40,
+        "representation": "relative"
+      }
+    },
+    "output_identities": {
+      "csd_proxy": "Dzz_of_phi_e_proxy",
+      "lfp_proxy": "alias_of_source_proxy",
+      "phi_e_proxy": "alias_of_source_proxy",
+      "source_proxy": "KQ_relative_field_and_fused_lfp"
+    },
+    "physical_claim": "proxy_readout",
+    "validation_status": "computational"
+  },
+  "meg_relative": {
+    "amplitude_semantics": "relative",
+    "leadfield_status": "toy_or_declared_proxy",
+    "name": "meg_relative",
+    "observation": {
+      "amplitude_semantics": "relative",
+      "execution_form": "fused",
+      "operator_chain": {
+        "field": {
+          "identity": "not_separately_materialized",
+          "note": "relative_linear_map_on_scalar_Q"
+        },
+        "probe": {
+          "identity": "relative_linear_map",
+          "leadfield_status": "toy_or_declared_proxy",
+          "matrix_shape": [
+            3,
+            40
+          ],
+          "orientation_claim": "none"
+        },
+        "source": {
+          "identity": "canonical_relative_source",
+          "n_sources": 40,
+          "representation": "relative"
+        }
+      },
+      "output_identity": "meg_relative_proxy",
+      "physical_claim": "proxy_readout",
+      "validation_status": "computational"
+    },
+    "operator_status": "simulated_proxy",
+    "physical_amplitude_calibrated": false,
+    "physical_claim": "proxy_readout",
+    "units_or_status": "relative_proxy_units",
+    "validation_status": "computational"
+  }
+}

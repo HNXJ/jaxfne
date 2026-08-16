@@ -1,0 +1,20 @@
+{
+  "schema": "jaxfne.publication.fig06_generation_receipt.v1",
+  "checkpoint": "figure_6_generation",
+  "status": "CLOSED",
+  "write_once": true,
+  "pec_panel_ids": [
+    "Fig06.D_containment",
+    "Fig06.D3_NO_ADAPTATION",
+    "Fig06.H4_negative",
+    "Fig06.W3b_unresolved"
+  ],
+  "figure_path": "figures/publication/fig06_rbs_hdp_ladder.png",
+  "figure_sha256": "547e36c731a6be03a75acce01d0cedd29efff377cb1197fbe2a578dd1e624a30",
+  "generator_script": "scripts/publication_figures/fig06_hwd_evidence.py",
+  "semantic_audit_path": "artifacts/publication/fig06_semantic_audit.json",
+  "semantic_audit_status": "PASSED",
+  "repo_head": "1eca1f39b74e225322484941f14b119a2a8a6086",
+  "next_checkpoint": "figure_7_generation",
+  "feature_freeze": "hard scientific feature freeze; no E5 in Figure 6"
+}

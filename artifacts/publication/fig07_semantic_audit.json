@@ -1,0 +1,45 @@
+{
+  "schema": "jaxfne.publication.fig07_semantic_audit.v1",
+  "status": "PASSED",
+  "checkpoint": "figure_7_generation",
+  "pec_panel_ids": [
+    "Fig07.E1_hierarchy",
+    "Fig07.E2_delays",
+    "Fig07.E3_RBD",
+    "Fig07.E4_observation",
+    "Fig07.E5_leakage_test",
+    "Fig07.E5_causal_expression"
+  ],
+  "figure_path": "figures/publication/fig07_e_integration.png",
+  "figure_sha256": "fa74ddf210d397c9c1b719d0ac75573045985877312efcccbdedc0aa59e71dce",
+  "spec_path": "artifacts/publication/fig07_integration_spec.json",
+  "audited_at_utc": "2026-08-15T20:04:12Z",
+  "repo_head": "49b556c2dfa0fb5e2a25c3fbb59c986c4ba667e8",
+  "checks": {
+    "e1_identity_provenance": true,
+    "e2_delay_classes_exact": true,
+    "e3_seven_node_ownership": true,
+    "e4_proxy_semantics_unchanged": true,
+    "n0_equals_n1_all_seeds": true,
+    "h_k_n1_equals_d_all_seeds": true,
+    "e5_classification": "HIERARCHICAL_PROPAGATION",
+    "all_three_seeds_represented": true,
+    "a1_structural_fb_only": true,
+    "no_hdp": true,
+    "no_d3_adaptation": true,
+    "no_wave_claim": true,
+    "no_eeg_meg_upgrade": true,
+    "no_predictive_coding": true,
+    "receipt_driven_quantities": true
+  },
+  "excluded_content_verified": [
+    "new simulation",
+    "HDP closed-loop",
+    "D3 adaptation phenotype",
+    "traveling wave",
+    "EEG/MEG calibration upgrade",
+    "predictive coding",
+    "surprise minimization",
+    "functional FF/FB spectral claim"
+  ]
+}

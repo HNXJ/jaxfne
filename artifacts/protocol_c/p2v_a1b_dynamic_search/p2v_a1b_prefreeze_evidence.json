@@ -1,0 +1,371 @@
+{
+  "schema": "jaxfne.protocol_c.p2v_a1b_prefreeze_evidence.v1",
+  "phase": "post-freeze reviewer-motivated validation",
+  "checkpoint": "A-1b (pre-freeze)",
+  "package_head": "42866eb9c0a27c1a4b72230162df0fecdef0cd06",
+  "estimator_module_sha": "684859a98da51de79887ec26ba8d7134e2fa0e97",
+  "frozen_parents": {
+    "c3_spec": "artifacts/protocol_c/c3_neural_experiment_spec.json",
+    "c3_receipt": "artifacts/protocol_c/c3_execution_receipt.json",
+    "a1a_receipt": "artifacts/protocol_c/p2v_a1a_synthetic_control/p2v_a1a_receipt.json"
+  },
+  "geometry_and_units": {
+    "n_neurons": 24,
+    "ring_radius_mm": 1.0,
+    "arc_length_mm": 0.2617993877991494,
+    "dt_ms_for_delay": 0.5,
+    "directed_edge_convention": "skip m: neuron i -> neuron (i+m) mod n",
+    "delay_equation": "delay_steps(m) = ceil(m * arc_length_mm / (v_c_mm_per_ms * dt_ms))",
+    "d_frozen_ordered_uniform": 4
+  },
+  "anchor_relation": {
+    "proposed": {
+      "v_c_mm_per_ms": 0.131,
+      "k": 1
+    },
+    "exact_ratio_arc_over_vc_dt": 3.9969372183076244,
+    "ceil_result": 4,
+    "exact_identity_holds": true,
+    "velocity_interval_for_d_frozen": {
+      "lower_inclusive": 0.1308996938995747,
+      "upper_open": 0.17453292519943295,
+      "rationale": "ceil(a/(v_c*dt)) == d_frozen iff ratio in (d_frozen-1, d_frozen], i.e. v_c in [a/(d_frozen*dt), a/((d_frozen-1)*dt))"
+    },
+    "margin_to_next_integer": 0.0030627816923756157,
+    "note": "0.131 mm/ms lies inside the exact interval reproducing d_frozen=4; identity holds by ceiling construction and is additionally verified at tensor and trace level below"
+  },
+  "delay_signatures": {
+    "formula": "delay_steps(m) = ceil(m * a / (v_c * dt)), verified identical in float32 and float64 arithmetic",
+    "lattice_points": {
+      "vc0.033_k1": {
+        "velocity_mm_per_ms": 0.033,
+        "k_neighbors": 1,
+        "delay_steps_per_skip": [
+          16
+        ],
+        "last_skip_ratio": 15.866629563584812
+      },
+      "vc0.033_k2": {
+        "velocity_mm_per_ms": 0.033,
+        "k_neighbors": 2,
+        "delay_steps_per_skip": [
+          16,
+          32
+        ],
+        "last_skip_ratio": 31.733259127169624
+      },
+      "vc0.033_k4": {
+        "velocity_mm_per_ms": 0.033,
+        "k_neighbors": 4,
+        "delay_steps_per_skip": [
+          16,
+          32,
+          48,
+          64
+        ],
+        "last_skip_ratio": 63.46651825433925
+      },
+      "vc0.065_k1": {
+        "velocity_mm_per_ms": 0.065,
+        "k_neighbors": 1,
+        "delay_steps_per_skip": [
+          9
+        ],
+        "last_skip_ratio": 8.055365778435366
+      },
+      "vc0.065_k2": {
+        "velocity_mm_per_ms": 0.065,
+        "k_neighbors": 2,
+        "delay_steps_per_skip": [
+          9,
+          17
+        ],
+        "last_skip_ratio": 16.110731556870732
+      },
+      "vc0.065_k4": {
+        "velocity_mm_per_ms": 0.065,
+        "k_neighbors": 4,
+        "delay_steps_per_skip": [
+          9,
+          17,
+          25,
+          33
+        ],
+        "last_skip_ratio": 32.221463113741464
+      },
+      "vc0.131_k1": {
+        "velocity_mm_per_ms": 0.131,
+        "k_neighbors": 1,
+        "delay_steps_per_skip": [
+          4
+        ],
+        "last_skip_ratio": 3.9969372183076244
+      },
+      "vc0.131_k2": {
+        "velocity_mm_per_ms": 0.131,
+        "k_neighbors": 2,
+        "delay_steps_per_skip": [
+          4,
+          8
+        ],
+        "last_skip_ratio": 7.993874436615249
+      },
+      "vc0.131_k4": {
+        "velocity_mm_per_ms": 0.131,
+        "k_neighbors": 4,
+        "delay_steps_per_skip": [
+          4,
+          8,
+          12,
+          16
+        ],
+        "last_skip_ratio": 15.987748873230498
+      },
+      "vc0.262_k1": {
+        "velocity_mm_per_ms": 0.262,
+        "k_neighbors": 1,
+        "delay_steps_per_skip": [
+          2
+        ],
+        "last_skip_ratio": 1.9984686091538122
+      },
+      "vc0.262_k2": {
+        "velocity_mm_per_ms": 0.262,
+        "k_neighbors": 2,
+        "delay_steps_per_skip": [
+          2,
+          4
+        ],
+        "last_skip_ratio": 3.9969372183076244
+      },
+      "vc0.262_k4": {
+        "velocity_mm_per_ms": 0.262,
+        "k_neighbors": 4,
+        "delay_steps_per_skip": [
+          2,
+          4,
+          6,
+          8
+        ],
+        "last_skip_ratio": 7.993874436615249
+      },
+      "vc0.524_k1": {
+        "velocity_mm_per_ms": 0.524,
+        "k_neighbors": 1,
+        "delay_steps_per_skip": [
+          1
+        ],
+        "last_skip_ratio": 0.9992343045769061
+      },
+      "vc0.524_k2": {
+        "velocity_mm_per_ms": 0.524,
+        "k_neighbors": 2,
+        "delay_steps_per_skip": [
+          1,
+          2
+        ],
+        "last_skip_ratio": 1.9984686091538122
+      },
+      "vc0.524_k4": {
+        "velocity_mm_per_ms": 0.524,
+        "k_neighbors": 4,
+        "delay_steps_per_skip": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "last_skip_ratio": 3.9969372183076244
+      }
+    },
+    "n_nominal_points": 15,
+    "unique_signatures": 15,
+    "unique_count_note": "each of the 15 (v_c, K) points maps to a distinct delay vector; no collapsing required",
+    "quantization_plateaus": {
+      "delay_value": [
+        {
+          "delay_steps": 1,
+          "arcs_aliased": [
+            [
+              0.524,
+              1
+            ]
+          ]
+        },
+        {
+          "delay_steps": 2,
+          "arcs_aliased": [
+            [
+              0.262,
+              1
+            ],
+            [
+              0.524,
+              2
+            ]
+          ]
+        },
+        {
+          "delay_steps": 3,
+          "arcs_aliased": [
+            [
+              0.524,
+              3
+            ]
+          ]
+        },
+        {
+          "delay_steps": 4,
+          "arcs_aliased": [
+            [
+              0.131,
+              1
+            ],
+            [
+              0.262,
+              2
+            ]
+          ]
+        },
+        {
+          "delay_steps": 6,
+          "arcs_aliased": [
+            [
+              0.262,
+              3
+            ]
+          ]
+        },
+        {
+          "delay_steps": 8,
+          "arcs_aliased": [
+            [
+              0.131,
+              2
+            ]
+          ]
+        },
+        {
+          "delay_steps": 9,
+          "arcs_aliased": [
+            [
+              0.065,
+              1
+            ]
+          ]
+        },
+        {
+          "delay_steps": 12,
+          "arcs_aliased": [
+            [
+              0.131,
+              3
+            ]
+          ]
+        },
+        {
+          "delay_steps": 16,
+          "arcs_aliased": [
+            [
+              0.033,
+              1
+            ]
+          ]
+        },
+        {
+          "delay_steps": 17,
+          "arcs_aliased": [
+            [
+              0.065,
+              2
+            ]
+          ]
+        },
+        {
+          "delay_steps": 25,
+          "arcs_aliased": [
+            [
+              0.065,
+              3
+            ]
+          ]
+        },
+        {
+          "delay_steps": 32,
+          "arcs_aliased": [
+            [
+              0.033,
+              2
+            ]
+          ]
+        },
+        {
+          "delay_steps": 48,
+          "arcs_aliased": [
+            [
+              0.033,
+              3
+            ]
+          ]
+        }
+      ],
+      "reading": "identical integer delays across different (v_c, skip) pairs are quantization-equivalent arcs; they do not collapse the lattice because each point keeps its own full per-skip vector"
+    }
+  },
+  "anchor_tensor_identity": {
+    "edges": {
+      "pre": "identical",
+      "post": "identical",
+      "weight": "identical",
+      "receptor_index": "identical",
+      "tau_ms": "identical",
+      "delay_steps": "identical"
+    },
+    "edges_bitwise_identical": true,
+    "emitter": {
+      "v0": "identical",
+      "u0": "identical",
+      "a": "identical",
+      "b": "identical",
+      "c": "identical",
+      "d": "identical",
+      "drive": "identical",
+      "sign": "identical",
+      "W": "identical",
+      "source_scale": "identical"
+    },
+    "emitter_bitwise_identical": true
+  },
+  "anchor_trace_identity": {
+    "seeds": [
+      1001,
+      1002,
+      1003
+    ],
+    "cells": [
+      {
+        "seed": 1001,
+        "vm_max_abs_diff": 0.0,
+        "vm_sha256_replay": "70517e27b1654007f0555265ae835d4edf48c7f3d81f85a5b3fcc7e1b69eb08d",
+        "vm_sha256_anchor": "70517e27b1654007f0555265ae835d4edf48c7f3d81f85a5b3fcc7e1b69eb08d",
+        "estimator_equal_replay_vs_anchor": true
+      },
+      {
+        "seed": 1002,
+        "vm_max_abs_diff": 0.0,
+        "vm_sha256_replay": "6f9c31ed485ed3880dd936afec721a0251231df9e26f2c9883f8c11c4654cc42",
+        "vm_sha256_anchor": "6f9c31ed485ed3880dd936afec721a0251231df9e26f2c9883f8c11c4654cc42",
+        "estimator_equal_replay_vs_anchor": true
+      },
+      {
+        "seed": 1003,
+        "vm_max_abs_diff": 0.0,
+        "vm_sha256_replay": "a3f7e1126d3ad7ecbb9847b22f2146254b8a35810ffedfee95454aa211d4f0f8",
+        "vm_sha256_anchor": "a3f7e1126d3ad7ecbb9847b22f2146254b8a35810ffedfee95454aa211d4f0f8",
+        "estimator_equal_replay_vs_anchor": true
+      }
+    ],
+    "all_traces_bitwise_identical": true,
+    "interpretation": "bitwise V_m equality vs the frozen ordered_uniform replay implies the entire construction (topology, edge ordering, delays, weights, initialization) is identical, not merely classification-equivalent"
+  }
+}

@@ -1,0 +1,207 @@
+{
+  "schema": "jaxfne.v0417_a_capability_audit.v1",
+  "status": "FROZEN",
+  "write_once": true,
+  "audit_mode": "read_only",
+  "baseline": {
+    "version": "0.4.16",
+    "tag": "v0.4.16",
+    "commit": "15f32b3a885dae0d84cb0163bc47c153302898c4",
+    "release_receipt": "artifacts/release/v0_4_16_release_receipt.json"
+  },
+  "question": "What can published jaxfne 0.4.16 actually demonstrate today?",
+  "classification_legend": {
+    "READY": "Executable path + receipt/test supports manuscript panel at declared epistemic level",
+    "ANALYSIS_ONLY": "Demonstrable in analysis/étude/protocol; not default simulate path or not physical claim",
+    "NEEDS_GENERAL_EXTENSION": "Grammar exists; missing general operator/API factorization or runtime wiring",
+    "NEEDS_NEW_SCIENCE": "No defensible operator/receipt; requires new protocol or science",
+    "BLOCKED": "Explicitly prohibited, fail-loud, or unauthorized by frozen receipt"
+  },
+  "operational_debts": [
+    {
+      "id": "jax_lt_0_11_pin",
+      "class": "compatibility_debt",
+      "note": "RC validated with jax<0.11; homeostatic cubic_penalty NaN on JAX 0.11. Track in 0.4.17 debt matrix; not TFNE architecture.",
+      "blocks_publication": false
+    },
+    {
+      "id": "upload_pypi_sh_stale_version",
+      "class": "release_tooling_debt",
+      "note": "scripts/upload_pypi.sh hardcodes 0.1.0; v0.4.16 published via twine directly.",
+      "blocks_publication": false
+    }
+  ],
+  "panels": [
+    {"figure": 1, "panel": "1A", "claim": "E→S→F→P→O→A containment chain", "status": "READY", "evidence": ["jaxfne.construct/Model.simulate/probe", "docs/doctrine/tfne_containment_architecture.md", "tests/test_source_field_probe_v0411.py", "tests/test_observation_provenance_v0415.py"], "gap": null, "in_0417": false},
+    {"figure": 1, "panel": "1B", "claim": "Unified (X,H,Θ) grammar + typed RBS/RBD/HDP", "status": "READY", "evidence": ["docs/doctrine/rbs_rbd_hdp.md", "artifacts/protocol_w/w0_mathematical_contract.json", "tests/test_protocol_h_rbd_h1.py"], "gap": null, "in_0417": false},
+    {"figure": 1, "panel": "1C", "claim": "NeuronalTensor nested biology + 3D geometry", "status": "READY", "evidence": ["jaxfne.NeuronalTensor", "tests/test_neuronal_tensor.py"], "gap": null, "in_0417": false},
+    {"figure": 1, "panel": "1D", "claim": "nested → compile → flat execution", "status": "READY", "evidence": ["jaxfne.construct_neuronal_tensor", "tests/test_neuronal_tensor.py::test_construct_produces_runnable_model"], "gap": null, "in_0417": false},
+    {"figure": 1, "panel": "1E", "claim": "Geometry-conditioned operator reuse 𝒢→𝒪_𝒢", "status": "ANALYSIS_ONLY", "evidence": ["FieldOutput.kernel", "tests/test_observation_provenance_v0415.py::test_o3_same_operator_same_q_identical_y", "artifacts/etudes/multiscale_observation/metrics.json"], "gap": "Dedicated publication demo/receipt for reuse claim", "in_0417": false},
+    {"figure": 1, "panel": "1F", "claim": "Provenance/manifest truth gates", "status": "READY", "evidence": ["Model.manifest", "field.diagnostics observation chain", "artifacts/release/v0_4_16_release_receipt.json"], "gap": null, "in_0417": false},
+
+    {"figure": 2, "panel": "2A", "claim": "Shared source tensor Q contract", "status": "READY", "evidence": ["docs/api/source_schema.md", "tests/test_source_bookkeeping.py"], "gap": null, "in_0417": false},
+    {"figure": 2, "panel": "2B", "claim": "Izhikevich F_X + common Q^(r) composition", "status": "READY", "evidence": ["jaxfne.emitters", "tests/test_source_field_probe_v0411.py"], "gap": null, "in_0417": false},
+    {"figure": 2, "panel": "2C", "claim": "Distinct F_X, common S→F→P (Izh vs HEI)", "status": "READY", "evidence": ["artifacts/etudes/heterogeneous_emitters/metrics.json", "docs/etudes/heterogeneous_emitters.md"], "gap": null, "in_0417": false},
+    {"figure": 2, "panel": "2D", "claim": "Jaxley HH specialized source bridge", "status": "ANALYSIS_ONLY", "evidence": ["jaxfne.bridges", "tests/test_jaxley_emitter_bridge_e2e.py"], "gap": "Commensurate Q map C_{HH→q}", "in_0417": false},
+    {"figure": 2, "panel": "2E", "claim": "GLIF/LIF emitter diversity", "status": "ANALYSIS_ONLY", "evidence": ["emitters.py stubs"], "gap": "Not publication emitters", "in_0417": false},
+    {"figure": 2, "panel": "2F", "claim": "Controlled emitter étude (drive, spectra)", "status": "READY", "evidence": ["artifacts/etudes/heterogeneous_emitters/"], "gap": "HEI drive surface family-specific (documented)", "in_0417": false},
+    {"figure": 2, "panel": "2G", "claim": "AGSDR reduced-emitter fit", "status": "ANALYSIS_ONLY", "evidence": ["Model.tune"], "gap": "Frozen fit protocol + receipt", "in_0417": false},
+    {"figure": 2, "panel": "2H", "claim": "Physically commensurate Q across emitters", "status": "NEEDS_NEW_SCIENCE", "evidence": ["heterogeneous_emitters metrics cross_family_physical_equivalence:false"], "gap": "Explicit calibration transform C_{i→q}", "in_0417": true},
+
+    {"figure": 3, "panel": "3A", "claim": "Q→Φ linear laminar projection KQ", "status": "READY", "evidence": ["project_laminar_sources", "tests/test_tfne_global_assumptions.py"], "gap": "Relative depth [0,1]", "in_0417": false},
+    {"figure": 3, "panel": "3B", "claim": "Contact geometry metadata", "status": "READY", "evidence": ["FieldOutput.contact_depths", "fields/diagnostics.py"], "gap": "Linspace fabrication documented", "in_0417": false},
+    {"figure": 3, "panel": "3C", "claim": "Vary contact count/spacing", "status": "ANALYSIS_ONLY", "evidence": ["project_laminar_sources n_contacts", "multiscale étude"], "gap": "No first-class P spec in simulate", "in_0417": true},
+    {"figure": 3, "panel": "3D", "claim": "Kernel width → locality (R90)", "status": "READY", "evidence": ["tests/test_observation_provenance_v0415.py", "artifacts/etudes/multiscale_observation/metrics.json"], "gap": null, "in_0417": false},
+    {"figure": 3, "panel": "3E", "claim": "LFP-proxy / CSD-proxy chain", "status": "READY", "evidence": ["fields/proxy.py fused csd_proxy", "tests/test_v038_lfp_csd_readout_tutorial.py"], "gap": "lfp_proxy aliases source projection", "in_0417": false},
+    {"figure": 3, "panel": "3F", "claim": "Factorized locality (source+geometry+medium+probe)", "status": "ANALYSIS_ONLY", "evidence": ["multiscale étude operator authority", "gap_review.md NO_GAP on P∘F fusion"], "gap": "Default path fused P∘F not materialized Φ then P", "in_0417": true},
+    {"figure": 3, "panel": "3G", "claim": "lfp_proxy_probe(contact_depths) resampling", "status": "BLOCKED", "evidence": ["fields/probes.py lfp_proxy_probe"], "gap": "contact_depths report-only; returns phi_e unchanged", "in_0417": true},
+    {"figure": 3, "panel": "3H", "claim": "Medium/impedance/anisotropic K_p", "status": "NEEDS_GENERAL_EXTENSION", "evidence": ["docs/scope_and_status.md"], "gap": "No FieldMediumSpec / impedance operator", "in_0417": true},
+    {"figure": 3, "panel": "3I", "claim": "Calibrated physical LFP/CSD amplitude", "status": "NEEDS_NEW_SCIENCE", "evidence": ["physical_amplitude_calibrated=False gates"], "gap": "Calibration transform + validation", "in_0417": false},
+    {"figure": 3, "panel": "3J", "claim": "Probe-sensitivity étude (fixed Q, vary O)", "status": "READY", "evidence": ["artifacts/etudes/multiscale_observation/", "protocol multiscale_observation_v0415"], "gap": null, "in_0417": false},
+
+    {"figure": 4, "panel": "4A", "claim": "One source history → multiple readouts", "status": "READY", "evidence": ["multiscale observation étude frozen Q", "scripts/run_multiscale_observation_etude.py"], "gap": null, "in_0417": false},
+    {"figure": 4, "panel": "4B", "claim": "Local LFP/CSD from same Q", "status": "READY", "evidence": ["multiscale metrics LFP/CSD centroids"], "gap": "Proxy only", "in_0417": false},
+    {"figure": 4, "panel": "4C", "claim": "EEG-proxy Y=Q@L^T", "status": "ANALYSIS_ONLY", "evidence": ["eeg_proxy_transform", "LinearReadout", "tests/test_probe_operators_eeg_meg_emm.py"], "gap": "toy_or_declared_proxy leadfield; not on simulate()", "in_0417": false},
+    {"figure": 4, "panel": "4D", "claim": "MEG-proxy (relative linear map)", "status": "ANALYSIS_ONLY", "evidence": ["meg_proxy_transform orientation_claim:none", "tests/test_observation_provenance_v0415.py"], "gap": "No Maxwell/Biot-Savart; same kernel as EEG", "in_0417": false},
+    {"figure": 4, "panel": "4E", "claim": "EMM-proxy cost functional", "status": "ANALYSIS_ONLY", "evidence": ["emm_proxy_transform", "not_biological_metabolism gate"], "gap": "Within-run relative only", "in_0417": false},
+    {"figure": 4, "panel": "4F", "claim": "Multiscale étude receipt (operator authority)", "status": "READY", "evidence": ["artifacts/etudes/multiscale_observation/metrics.json", "gap_review.md"], "gap": "Weak EEG depth contrast documented ANALYSIS_GAP", "in_0417": false},
+    {"figure": 4, "panel": "4G", "claim": "Calibrated scalp EEG (µV) claims", "status": "NEEDS_NEW_SCIENCE", "evidence": ["docs/limitations_and_future_plans.md", "CalibrationSpec hooks only"], "gap": "Head model + empirical calibration", "in_0417": false},
+    {"figure": 4, "panel": "4H", "claim": "Physical MEG forward model", "status": "NEEDS_NEW_SCIENCE", "evidence": ["meg_proxy_transform metadata"], "gap": "Forward solver + orientation physics", "in_0417": false},
+    {"figure": 4, "panel": "4I", "claim": "signals.get('eeg'|'meg') auto-readout", "status": "BLOCKED", "evidence": ["tests/test_signals_get_v0329.py KeyError by design"], "gap": "Intentional fail-loud; manual transform required", "in_0417": false},
+
+    {"figure": 5, "panel": "5A", "claim": "Raster / population activity", "status": "READY", "evidence": ["Model.simulate spikes", "vis/traces.py"], "gap": null, "in_0417": false},
+    {"figure": 5, "panel": "5B", "claim": "Spectrolaminar PSD / bandpower readouts", "status": "READY", "evidence": ["fields/proxy.py spectrolaminar_*", "tests/test_spectrolaminar_readout.py"], "gap": "ANALYSIS_ONLY amplitude semantics", "in_0417": false},
+    {"figure": 5, "panel": "5C", "claim": "Protocol D finite edge delays (forward)", "status": "READY", "evidence": ["emitters.py delay_steps", "tests/test_edge_delay_protocol_d016.py"], "gap": "Kernel-level not Model.simulate default", "in_0417": false},
+    {"figure": 5, "panel": "5D", "claim": "Delay_state continuation in Model.simulate", "status": "NEEDS_GENERAL_EXTENSION", "evidence": ["tests/test_protocol_h_rbd_h2.py RBD path only", "ContinuationState lacks B_t"], "gap": "Unified runtime carry for delay history", "in_0417": true},
+    {"figure": 5, "panel": "5E", "claim": "Traveling-wave / phase estimator", "status": "NEEDS_NEW_SCIENCE", "evidence": ["docs/guides/tensor_field_workflows.md Reserved"], "gap": "No estimator implementation", "in_0417": true},
+    {"figure": 5, "panel": "5F", "claim": "Geometry/delay intervention on waves", "status": "NEEDS_NEW_SCIENCE", "evidence": ["depends on 5E"], "gap": "Requires wave estimator + controls", "in_0417": true},
+    {"figure": 5, "panel": "5G", "claim": "Delay affects dynamics (not memory extension)", "status": "ANALYSIS_ONLY", "evidence": ["Protocol D READY", "H4 negative on memory extension artifacts/protocol_h_rbd/h4_interpretation_receipt.json"], "gap": "Do not conflate delay with H4 topology claim", "in_0417": false},
+    {"figure": 5, "panel": "5H", "claim": "No-wave valid negative control", "status": "ANALYSIS_ONLY", "evidence": ["master plan falsification: no-wave valid"], "gap": "Formal receipt when 5E exists", "in_0417": true},
+    {"figure": 5, "panel": "5I", "claim": "Field→neuron / ephaptic feedback", "status": "NEEDS_NEW_SCIENCE", "evidence": ["docs/computation_basis.md reserved"], "gap": "One-way grammar only; bridges schema-only", "in_0417": false},
+
+    {"figure": 6, "panel": "6A", "claim": "RBS finite-dimensional relative state H", "status": "READY", "evidence": ["docs/doctrine/rbs_rbd_hdp.md", "emitters HDP H_i"], "gap": null, "in_0417": false},
+    {"figure": 6, "panel": "6B", "claim": "RBD fading memory (fixed W)", "status": "READY", "evidence": ["simulate_edge_recurrent_izhikevich_rbd", "tests/test_protocol_h_rbd_h1.py"], "gap": null, "in_0417": false},
+    {"figure": 6, "panel": "6C", "claim": "Protocol H3 localized perturbation decodability", "status": "READY", "evidence": ["jaxfne/h3_decodability.py", "tests/test_protocol_h_rbd_h3.py"], "gap": null, "in_0417": false},
+    {"figure": 6, "panel": "6D", "claim": "H4 topology/delay extension NEGATIVE", "status": "READY", "evidence": ["artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json"], "gap": "Must remain visible; no H5 rescue", "in_0417": false},
+    {"figure": 6, "panel": "6E", "claim": "H→ω parameter writing", "status": "READY", "evidence": ["w1a/w1b receipts", "tests/test_protocol_w_w1a.py"], "gap": null, "in_0417": false},
+    {"figure": 6, "panel": "6F", "claim": "ω→W→X expression", "status": "READY", "evidence": ["w2_expression_receipt.json", "tests/test_protocol_w_w2.py"], "gap": null, "in_0417": false},
+    {"figure": 6, "panel": "6G", "claim": "Closed-loop HDP stability/domain", "status": "ANALYSIS_ONLY", "evidence": ["w3b_interpretation_receipt.json unresolved N_S=0 N_X=1944"], "gap": "Stability unresolved; not negative domain", "in_0417": false},
+    {"figure": 6, "panel": "6H", "claim": "Closed-loop parameter memory (W3)", "status": "BLOCKED", "evidence": ["w3b_interpretation_receipt w3_kernel_implementation_authorized:false"], "gap": "W3c parallel only", "in_0417": false},
+    {"figure": 6, "panel": "6I", "claim": "Biological phenotype (fatigue/SSA/habituation)", "status": "ANALYSIS_ONLY", "evidence": ["scripts/sphere20_ei_hdp_habituation.py", "tests/test_sphere20_ei_hdp_habituation.py"], "gap": "No frozen Protocol D1-style biological realization receipt", "in_0417": true},
+    {"figure": 6, "panel": "6J", "claim": "Minimal F_W law falsified / new F_W required", "status": "BLOCKED", "evidence": ["w3b prohibited_interpretations"], "gap": "W3b unresolved not negative", "in_0417": false},
+
+    {"figure": 7, "panel": "7A", "claim": "Multi-area configuration API", "status": "READY", "evidence": ["Configuration.areas", "build_multi_area_columns", "tests/test_multi_area_config.py"], "gap": null, "in_0417": false},
+    {"figure": 7, "panel": "7B", "claim": "Hierarchical NeuronalTensor compile", "status": "READY", "evidence": ["NeuronalTensor", "tests/test_neuronal_tensor.py"], "gap": null, "in_0417": false},
+    {"figure": 7, "panel": "7C", "claim": "Inter-area runtime wiring + receipt", "status": "NEEDS_GENERAL_EXTENSION", "evidence": ["tests/test_multi_area_config.py", "multi_area tests partially ignored in release gate"], "gap": "End-to-end multi-area simulate receipt for publication", "in_0417": true},
+    {"figure": 7, "panel": "7D", "claim": "Laminar FF/FB motifs + spectrolaminar scaffold", "status": "ANALYSIS_ONLY", "evidence": ["examples/02_spectrolaminar_oddball_scaffold.py", "suite tutorials"], "gap": "Not integrated hierarchical experiment", "in_0417": false},
+    {"figure": 7, "panel": "7E", "claim": "Perturb RBS → observe RBD → conditional HDP", "status": "NEEDS_NEW_SCIENCE", "evidence": ["Experiment B master plan", "W3b blocks closed-loop memory"], "gap": "Frozen integrated protocol + receipt", "in_0417": true},
+    {"figure": 7, "panel": "7F", "claim": "AGSDR init then freeze; RBD/HDP adapts", "status": "ANALYSIS_ONLY", "evidence": ["Model.tune AGSDR", "master plan box"], "gap": "No hierarchical integrated receipt", "in_0417": true},
+    {"figure": 7, "panel": "7G", "claim": "Publication integrated multi-area figure", "status": "NEEDS_NEW_SCIENCE", "evidence": ["decompose 7A-7F only"], "gap": "Compose validated primitives under Experiment B protocol", "in_0417": true}
+  ],
+  "panel_readiness_map": {
+    "figure_1": {"READY": 5, "ANALYSIS_ONLY": 1, "NEEDS_GENERAL_EXTENSION": 0, "NEEDS_NEW_SCIENCE": 0, "BLOCKED": 0},
+    "figure_2": {"READY": 4, "ANALYSIS_ONLY": 3, "NEEDS_GENERAL_EXTENSION": 0, "NEEDS_NEW_SCIENCE": 1, "BLOCKED": 0},
+    "figure_3": {"READY": 5, "ANALYSIS_ONLY": 2, "NEEDS_GENERAL_EXTENSION": 1, "NEEDS_NEW_SCIENCE": 1, "BLOCKED": 1},
+    "figure_4": {"READY": 3, "ANALYSIS_ONLY": 3, "NEEDS_GENERAL_EXTENSION": 0, "NEEDS_NEW_SCIENCE": 2, "BLOCKED": 1},
+    "figure_5": {"READY": 3, "ANALYSIS_ONLY": 2, "NEEDS_GENERAL_EXTENSION": 1, "NEEDS_NEW_SCIENCE": 3, "BLOCKED": 0},
+    "figure_6": {"READY": 6, "ANALYSIS_ONLY": 2, "NEEDS_GENERAL_EXTENSION": 0, "NEEDS_NEW_SCIENCE": 0, "BLOCKED": 2},
+    "figure_7": {"READY": 2, "ANALYSIS_ONLY": 2, "NEEDS_GENERAL_EXTENSION": 1, "NEEDS_NEW_SCIENCE": 2, "BLOCKED": 0},
+    "totals": {"READY": 28, "ANALYSIS_ONLY": 15, "NEEDS_GENERAL_EXTENSION": 3, "NEEDS_NEW_SCIENCE": 9, "BLOCKED": 4}
+  },
+  "minimal_0417_capability_delta": [
+    {
+      "rank": 1,
+      "capability": "Canonical Multiscale Observation Etude (Experiment A) as publication-facing operator-authority bundle",
+      "gap_class": "NEEDS_GENERAL_EXTENSION",
+      "figures": [2, 3, 4],
+      "scientific_necessity": "high",
+      "reuse": "high",
+      "implementation_risk": "low",
+      "release_target": "0.4.17-B",
+      "note": "Core chain largely READY; extend packaging/receipts not new physics"
+    },
+    {
+      "rank": 2,
+      "capability": "Independent probe operator P with frozen (Q,𝒢,ℳ) — fix lfp_proxy_probe contact_depths semantics",
+      "gap_class": "NEEDS_GENERAL_EXTENSION",
+      "figures": [3, 4],
+      "scientific_necessity": "high",
+      "reuse": "high",
+      "implementation_risk": "medium",
+      "release_target": "0.4.17-B/C",
+      "note": "3G currently BLOCKED; 3F/3C need first-class P spec"
+    },
+    {
+      "rank": 3,
+      "capability": "Geometry/delay/wave protocol with validated estimator + no-wave falsification controls",
+      "gap_class": "NEEDS_NEW_SCIENCE",
+      "figures": [5],
+      "scientific_necessity": "medium",
+      "reuse": "single-figure",
+      "implementation_risk": "high",
+      "release_target": "0.4.17-C",
+      "note": "Separate from Protocol D delay dynamics (READY kernel-level)"
+    },
+    {
+      "rank": 4,
+      "capability": "Model.simulate delay_state (𝒟_t) continuation unified with Protocol D",
+      "gap_class": "NEEDS_GENERAL_EXTENSION",
+      "figures": [5, 6],
+      "scientific_necessity": "medium",
+      "reuse": "medium",
+      "implementation_risk": "medium",
+      "release_target": "0.4.17-C",
+      "note": "H2 RBD path READY; ContinuationState gap"
+    },
+    {
+      "rank": 5,
+      "capability": "One biological RBS phenotype under frozen protocol (fatigue OR SSA OR habituation)",
+      "gap_class": "NEEDS_NEW_SCIENCE",
+      "figures": [6],
+      "scientific_necessity": "medium",
+      "reuse": "medium",
+      "implementation_risk": "medium",
+      "release_target": "0.4.17-D",
+      "note": "sphere20 script is ANALYSIS_ONLY; needs protocol receipt"
+    },
+    {
+      "rank": 6,
+      "capability": "Multi-area runtime integration + frozen hierarchical experiment receipt",
+      "gap_class": "NEEDS_GENERAL_EXTENSION",
+      "figures": [7],
+      "scientific_necessity": "high",
+      "reuse": "high",
+      "implementation_risk": "medium",
+      "release_target": "0.4.17-E",
+      "note": "Decompose capabilities; do not build large model before primitives validated"
+    },
+    {
+      "rank": 7,
+      "capability": "Integrated perturbation/adaptation experiment (Experiment B) respecting W3b blocks",
+      "gap_class": "NEEDS_NEW_SCIENCE",
+      "figures": [6, 7],
+      "scientific_necessity": "high",
+      "reuse": "medium",
+      "implementation_risk": "high",
+      "release_target": "0.4.17-E",
+      "note": "Closed-loop HDP memory BLOCKED; RBD-only path viable"
+    }
+  ],
+  "explicitly_not_in_minimal_delta": [
+    "Calibrated physical EEG/MEG (proxy sufficient at declared epistemic level)",
+    "Cross-emitter physical Q commensurability (NEEDS_NEW_SCIENCE; defer unless manuscript demands)",
+    "Ephaptic field→neuron feedback (reserved)",
+    "W3 closed-loop memory / new F_W (BLOCKED by W3b)",
+    "W3c orbit work (parallel science)"
+  ],
+  "figure_6_frozen_ladder": {
+    "RBS_fading_memory": "demonstrated",
+    "H_to_X_activity_coupling": "demonstrated",
+    "topology_delay_extension_H4": "negative",
+    "H_to_omega_writing": "demonstrated",
+    "omega_to_W_to_X_expression": "demonstrated",
+    "closed_HDP_loop": "unresolved"
+  },
+  "next_step": "0.4.17-B Multiscale Observation Etude (after matrix authority frozen)",
+  "private_matrix_location": "scratch/figure_requirements_matrix_v2_0417.md (gitignored)"
+}

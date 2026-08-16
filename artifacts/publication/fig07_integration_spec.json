@@ -1,0 +1,54 @@
+{
+  "schema": "jaxfne.publication.fig07_integration_spec.v1",
+  "checkpoint": "figure_7_generation",
+  "status": "FROZEN",
+  "write_once": true,
+  "pec_panel_ids": [
+    "Fig07.E1_hierarchy",
+    "Fig07.E2_delays",
+    "Fig07.E3_RBD",
+    "Fig07.E4_observation",
+    "Fig07.E5_leakage_test",
+    "Fig07.E5_causal_expression"
+  ],
+  "progression": "validated TFNE components -> one hierarchical system -> causally attributable multiscale response",
+  "reduction_ladder": [
+    {"step": "E1", "adds": "hierarchy"},
+    {"step": "E2", "adds": "typed delays", "reduction": "tau=0 => E2->E1"},
+    {"step": "E3", "adds": "sparse H_K RBS", "reduction": "H=H* => E3->E2"},
+    {"step": "E4", "adds": "S/F/P observation", "reduction": "observation disabled => E4->E3"},
+    {"step": "E5", "adds": "causal perturbation assay"}
+  ],
+  "panels": {
+    "A": {"content": "E1 hierarchical substrate", "claim_level": "DEMONSTRATED", "polarity": "POSITIVE"},
+    "B": {"content": "E2 typed pathway delays", "claim_level": "DEMONSTRATED", "polarity": "POSITIVE"},
+    "C": {"content": "E3 local RBS ownership", "claim_level": "DEMONSTRATED", "polarity": "POSITIVE"},
+    "D": {"content": "E4 observation composition", "claim_level": "DEMONSTRATED", "polarity": "POSITIVE"},
+    "E": {"content": "E5 causal N0/N1/D experiment", "claim_level": "DEMONSTRATED", "polarity": "POSITIVE"},
+    "F": {"content": "E5 multilevel propagation", "claim_level": "DEMONSTRATED", "polarity": "POSITIVE"}
+  },
+  "excluded_content": [
+    "new simulation",
+    "HDP closed-loop",
+    "D3 adaptation phenotype",
+    "traveling wave",
+    "EEG/MEG calibration upgrade",
+    "predictive coding",
+    "surprise minimization",
+    "functional FF/FB spectral claim"
+  ],
+  "receipt_authority": {
+    "e1": "artifacts/protocol_e_integration/e1_execution_receipt.json",
+    "e1_protocol": "artifacts/protocol_e_integration/e1_protocol_receipt.json",
+    "e2": "artifacts/protocol_e_integration/e2_execution_receipt.json",
+    "e2_protocol": "artifacts/protocol_e_integration/e2_protocol_receipt.json",
+    "e3": "artifacts/protocol_e_integration/e3_execution_receipt.json",
+    "e3_protocol": "artifacts/protocol_e_integration/e3_protocol_receipt.json",
+    "e4": "artifacts/protocol_e_integration/e4_execution_receipt.json",
+    "e4_protocol": "artifacts/protocol_e_integration/e4_protocol_receipt.json",
+    "e5": "artifacts/protocol_e_integration/e5_execution_receipt.json",
+    "e5_interp": "artifacts/protocol_e_integration/e5_interpretation_receipt.json",
+    "e5_spec": "artifacts/protocol_e_integration/e5_causal_perturbation_spec.json"
+  },
+  "generator_script": "scripts/publication_figures/fig07_e_integration.py"
+}

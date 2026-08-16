@@ -1,0 +1,46 @@
+{
+  "schema": "jaxfne.publication.fig05_semantic_audit.v1",
+  "status": "PASSED",
+  "checkpoint": "figure_5_generation",
+  "pec_panel_ids": [
+    "Fig05.C1_synthetic",
+    "Fig05.C3_NO_WAVE"
+  ],
+  "claim_level": "DEMONSTRATED",
+  "polarity": "NEGATIVE",
+  "figure_path": "figures/publication/fig05_traveling_wave_no_wave.png",
+  "figure_sha256": "f7f9a49439c134cde41333512694ad676e08bb9eb174ac1ae6a0f20b7171a1b2",
+  "spec_path": "artifacts/publication/fig05_wave_spec.json",
+  "audited_at_utc": "2026-08-15T18:55:50Z",
+  "repo_head": "a9abb3320349a0b41e815abd7b0c7a35c48460ba",
+  "checks": {
+    "c1_synthetic_validation_represented": true,
+    "all_60_c3_cells_accounted": true,
+    "zero_unresolved": true,
+    "no_wave_field_feedback_conflation": true,
+    "no_geometry_delay_overclaim": true,
+    "no_post_hoc_analysis": true,
+    "representative_rule_frozen": "preregistered primary condition ordered_uniform, seed 1001 (cells[0] in frozen c3_execution_receipt)",
+    "quantities_from_c3_c4_receipts": true,
+    "delta_p_W_zero": true,
+    "outcome_letter_C": true
+  },
+  "classification_counts": {
+    "NO_WAVE": 60
+  },
+  "frozen_quantities_verified": {
+    "N_TW": 0,
+    "N_NW": 10,
+    "N_U": 0,
+    "per_condition_cells": 10,
+    "total_cells": 60,
+    "delta_p_W": 0.0,
+    "outcome_letter": "C",
+    "dominant_rejection": "synchronous_oscillation_k_near_zero",
+    "rejection_counts": {
+      "synchronous_oscillation_k_near_zero": 52,
+      "standing_or_flipping_spatial_gradient": 4,
+      "structured_but_fails_traveling_gates": 4
+    }
+  }
+}

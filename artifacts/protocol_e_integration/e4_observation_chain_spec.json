@@ -1,0 +1,376 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e4_spec.v1",
+  "protocol_id": "protocol_e_integration_v0417",
+  "milestone": "0.4.17-E",
+  "checkpoint": "E4",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_spec": "artifacts/protocol_e_integration/e3_rbs_composition_spec.json",
+  "parent_execution_receipt": "artifacts/protocol_e_integration/e3_execution_receipt.json",
+  "parent_head": "75e7212cdaf7ad679d8006390105f51cbb9dbc3c",
+  "question": "Can the E3 hierarchical trajectory generate independently declared multiscale observations while preserving the underlying neural/source state?",
+  "scientific_scope": {
+    "added_degree_of_freedom": "downstream-only observation chain S -> Q -> F -> Phi -> P -> Y on frozen E3 trajectories",
+    "inherited_from_e3": [
+      "E1 hierarchy identity and FF/FB ownership",
+      "E2 typed provenance-class delays and delay_state continuation",
+      "E3 sparse owned D1/D2a H_K RBS on A2:L5:E (flat_indices 70-76)",
+      "E3-null neural reference path for R_E4_to_E3 reduction",
+      "simulation_policy duration/dt/seeds/drive/dtype/noise",
+      "p_local=0.2 E1-receipt-derived constant"
+    ],
+    "excluded": [
+      "new source definition or integrated-model source variant",
+      "observation feedback into E3 dynamics",
+      "EEG/MEG in primary evidence",
+      "calibrated physical field claims",
+      "wave estimator / ephaptic feedback",
+      "D3 adaptation / FF/FB spectral / memory phenotype",
+      "HDP / dot_W plasticity",
+      "hierarchy/delay/RBS modification for observation accommodation"
+    ]
+  },
+  "composition_ladder": {
+    "containment": "E1 subset E2 subset E3 subset E4",
+    "display": "hierarchy + delays + local RBD (E3) -> hierarchy + delays + local RBD + observation (E4)",
+    "reduction_chain": [
+      "tau=0 => E2 -> E1",
+      "H=H* and dot_H=0 => E3 -> E2",
+      "observation disabled => E4 -> E3"
+    ],
+    "hook_display": "E1 +tau E2 +H E3 +S/F/P E4"
+  },
+  "reduction_contract": {
+    "id": "R_E4_to_E3",
+    "statement": "observation disabled or bypassed => E4 equivalent to E3 neural/source execution",
+    "disable_condition": "no field/probe operators applied; neural simulate path unchanged from E3",
+    "bit_exact_equalities_required": [
+      "V_m",
+      "spikes",
+      "sources_Q",
+      "H_K_trace",
+      "delay_state_B_t",
+      "synaptic_state",
+      "identity_map",
+      "edge_provenance_table",
+      "typed_delay_table",
+      "delay_step_occupancy",
+      "hierarchy_fingerprints",
+      "rbs_owner_metadata"
+    ],
+    "ordering_note": "Where execution ordering permits, require bit-exact equality; not merely final-state proximity"
+  },
+  "trajectory_invariance_contract": {
+    "id": "T_E4_probe_independent_neural_source",
+    "statement": "(X, H, B, Q) under E4 neural execution equals (X, H, B, Q) under E3 for identical simulation conditions regardless of downstream probe selection",
+    "display": "(X, H, B, Q, G)_E4 = (X, H, B, Q, G)_E3",
+    "probe_selection_invariant_fields": [
+      "X_V_m",
+      "X_spikes",
+      "H_K",
+      "delay_state_B_t",
+      "Q",
+      "geometry_G"
+    ],
+    "anti_drift_rule": "Exactly one E3 neural simulate per seed; all observation readouts are post-hoc on frozen arrays"
+  },
+  "causal_architecture": {
+    "display": "(X, H, B) -> S -> Q -> F_{G,M} -> Phi -> P -> Y",
+    "downstream_only": true,
+    "feedback_prohibited": "S/F/P must not mutate E3 dynamics, weights, delays, or RBS state",
+    "first_class_frozen_artifacts": [
+      "X_V_m",
+      "X_spikes",
+      "H_K",
+      "delay_state_B_t",
+      "Q",
+      "geometry_G",
+      "metadata"
+    ],
+    "optional_materialized": ["Phi"],
+    "workflow": {
+      "display": "simulate once -> freeze X,H,Q,B,G -> apply multiple F/P",
+      "steps": [
+        "run E3 neural execution path once per seed",
+        "freeze canonical trajectory arrays and geometry",
+        "apply field operators F at fixed (Q,G)",
+        "apply probe operators P at fixed (Phi) or Q where declared",
+        "never re-simulate hierarchical dynamics per probe"
+      ]
+    }
+  },
+  "experiment_a_inheritance": {
+    "source_protocol": "artifacts/etudes/experiment_a/b0_protocol_spec.json",
+    "protocol_id": "experiment_a_v0417_b",
+    "rule": "Reuse Experiment A validated source/field/probe semantics; do not create an integrated-model variant",
+    "inherited_semantic_legend": "artifacts/etudes/experiment_a/b0_protocol_spec.json#semantic_legend",
+    "inherited_source_contract": {
+      "Q_recorded": "signals.sources_canonical_relative_source",
+      "display": "Q is the canonical relative source array from simulate; not a new E4-specific source operator",
+      "api_reference": "jaxfne.experiment_a.canonical.freeze_canonical_dataset#Q semantics adapted to E3 trajectory"
+    },
+    "inherited_field_api": "jaxfne.fields.project_laminar_sources",
+    "inherited_probe_apis": [
+      "jaxfne.fields.lfp_proxy_probe",
+      "jaxfne.fields.csd_proxy_probe"
+    ],
+    "inherited_invariants": [
+      "Q_zero_implies_Y_zero",
+      "F_superposition",
+      "probe_does_not_mutate_Q",
+      "finite_source_bookkeeping",
+      "B2_Q_invariant_probe_distinct"
+    ],
+    "implementation_reference": "jaxfne.experiment_a.observe"
+  },
+  "semantic_legend": {
+    "native": "Direct E3 neural simulate output without proxy field operator (V_m, spikes, Q)",
+    "relative_proxy": "Computational proxy readout; amplitude_semantics=relative (laminar LFP/CSD)",
+    "calibrated_proxy": "Proxy with declared calibration transform (none in E4 primary evidence)",
+    "calibrated_physical": "Empirically validated physical units (explicitly excluded)",
+    "analysis_only": "Operator comparison only; not promoted to manuscript physical claim (EEG/MEG excluded from E4 primary evidence)"
+  },
+  "neural_execution": {
+    "inherits": "E3 owned H_K delayed kernel path",
+    "reference_mode": "E3-null",
+    "reference_mode_purpose": "R_E4_to_E3 reduction and primary gate neural path",
+    "kernel": "jaxfne.emitters.simulate_edge_recurrent_izhikevich_owned_h_k_delayed",
+    "H_recorded": "H_K_trace from E3 execution",
+    "B_recorded": "delay_state from E2/E3 delayed recurrence",
+    "X_recorded": ["V_m", "spikes"]
+  },
+  "field_geometry": {
+    "inherits_from": [
+      "artifacts/protocol_e_integration/e1_hierarchy_runtime_spec.json#field",
+      "artifacts/etudes/experiment_a/b0_protocol_spec.json#neural_system.field_geometry"
+    ],
+    "domain": "laminar_column",
+    "conductivity": "proxy",
+    "boundary": "mean_zero_neumann",
+    "gauge": "mean_zero",
+    "positions_source": "constructed model.params.positions from E1 hierarchy",
+    "note": "Two-area E1 geometry flattened for laminar field operator; identity attribution uses E1 identity_map"
+  },
+  "native_outputs": [
+    {
+      "id": "V_m",
+      "semantic": "native",
+      "array": "X_V_m"
+    },
+    {
+      "id": "spikes",
+      "semantic": "native",
+      "array": "X_spikes"
+    },
+    {
+      "id": "Q",
+      "semantic": "native",
+      "array": "Q",
+      "first_class": true,
+      "source_contract": "signals.sources_canonical_relative_source"
+    }
+  ],
+  "primary_evidence_operators": {
+    "field_operators_F": [
+      {
+        "id": "lfp_ref",
+        "api": "project_laminar_sources",
+        "params": {"n_contacts": 16, "width": 0.10},
+        "output_Phi": ["phi_e_proxy", "csd_proxy", "kernel", "contact_depths"],
+        "semantic": "relative_proxy",
+        "linearity_declared": true,
+        "inherits_from": "artifacts/etudes/experiment_a/b0_protocol_spec.json#field_operators_F.lfp_ref"
+      }
+    ],
+    "probe_operators_P": [
+      {
+        "id": "lfp_contact_shallow",
+        "api": "lfp_proxy_probe",
+        "requires_frozen_Phi": true,
+        "params": {"probe_contact_depths": [0.20], "probe_width": 0.10},
+        "semantic": "relative_proxy",
+        "field_id": "lfp_ref",
+        "inherits_from": "artifacts/etudes/experiment_a/b0_protocol_spec.json#probe_operators_P.lfp_contact_shallow"
+      },
+      {
+        "id": "lfp_contact_deep",
+        "api": "lfp_proxy_probe",
+        "requires_frozen_Phi": true,
+        "params": {"probe_contact_depths": [0.80], "probe_width": 0.10},
+        "semantic": "relative_proxy",
+        "field_id": "lfp_ref",
+        "inherits_from": "artifacts/etudes/experiment_a/b0_protocol_spec.json#probe_operators_P.lfp_contact_deep"
+      },
+      {
+        "id": "csd_from_lfp_ref",
+        "api": "csd_proxy_probe",
+        "requires_frozen_Phi": true,
+        "field_id": "lfp_ref",
+        "semantic": "relative_proxy",
+        "inherits_from": "artifacts/etudes/experiment_a/b0_protocol_spec.json#probe_operators_P.csd_from_lfp_ref"
+      }
+    ]
+  },
+  "deferred_operators": {
+    "analysis_only_excluded_from_primary_evidence": [
+      {
+        "id": "eeg_superficial",
+        "api": "LinearReadout",
+        "acts_on": "Q",
+        "semantic": "analysis_only",
+        "reason": "Experiment A analysis_only; omitted from E4 primary evidence"
+      },
+      {
+        "id": "eeg_deep",
+        "api": "LinearReadout",
+        "acts_on": "Q",
+        "semantic": "analysis_only",
+        "reason": "Experiment A analysis_only; omitted from E4 primary evidence"
+      },
+      {
+        "id": "meg_relative",
+        "api": "LinearReadout",
+        "acts_on": "Q",
+        "semantic": "analysis_only",
+        "reason": "Experiment A analysis_only; omitted from E4 primary evidence"
+      }
+    ],
+    "alternate_field_widths": {
+      "ids": ["lfp_narrow", "lfp_wide", "lfp_sparse", "lfp_dense"],
+      "status": "deferred_not_in_E4_primary",
+      "source": "artifacts/etudes/experiment_a/b0_protocol_spec.json#field_operators_F"
+    }
+  },
+  "hierarchy_aware_source_table": {
+    "purpose": "Project flattened Q back to biological organization before field/probe transformation",
+    "identity_source": "artifacts/protocol_e_integration/e1_execution_receipt.json#identity_map",
+    "row_schema": {
+      "flat_index": "int",
+      "area": "str",
+      "layer": "str",
+      "cell_type": "str",
+      "time_ms": "float",
+      "Q": "float"
+    },
+    "display": "Q -> (area, layer, cell_type, t)",
+    "rule": "Aggregation uses frozen E1 identity map only; does not redefine Q",
+    "figure_facing": "demonstrates TFNE containment: flattened execution projected to hierarchy before observation"
+  },
+  "simulation_policy": {
+    "inherits_from": "artifacts/protocol_e_integration/e3_rbs_composition_spec.json#simulation_policy",
+    "duration_ms": 1000.0,
+    "dt_ms": 0.5,
+    "n_steps": 2000,
+    "noise_scale": 0.0,
+    "dtype": "float32",
+    "seeds": [11, 12, 13],
+    "neural_mode": "E3-null",
+    "emitter_preset": "cortical_eig",
+    "drive": {"E": 8.0, "PV": 6.0},
+    "recurrent_backend": "edge_list",
+    "connectivity_mode": "explicit",
+    "enable_hdp": false,
+    "dot_W": 0
+  },
+  "typed_delay_and_rbs_inheritance": {
+    "rule": "E3 delay table and RBS ownership unchanged in E4",
+    "e3_execution_receipt": "artifacts/protocol_e_integration/e3_execution_receipt.json",
+    "must_match_exactly": true
+  },
+  "gates": {
+    "G1_e3_reduction_neural_invariance": {
+      "statement": "Observation machinery does not alter E3 neural execution; observation disabled => E4 bit-exact E3 on X,H,B,Q"
+    },
+    "G2_single_source_of_truth": {
+      "statement": "Exactly one frozen (X,H,B,Q,G) dataset per seed feeds every observation operator"
+    },
+    "G3_source_identity": {
+      "statement": "Q identical regardless of downstream probe or field materialization pass"
+    },
+    "G4_probe_independence": {
+      "statement": "At fixed (Q,G,M,F), changing P changes Y where expected while Q and Phi unchanged"
+    },
+    "G5_zero_source_property": {
+      "statement": "Q=0 => Y=0 for applicable zero-offset linear operators",
+      "applies_to": ["project_laminar_sources", "lfp_proxy_probe", "csd_proxy_probe"]
+    },
+    "G6_linearity": {
+      "statement": "F(a Q1 + b Q2) = a F(Q1) + b F(Q2) for declared linear F",
+      "applies_to": ["project_laminar_sources"]
+    },
+    "G7_semantic_status": {
+      "statement": "Every output carries explicit native, relative_proxy, analysis_only, or calibrated status per semantic_legend"
+    },
+    "G8_hierarchy_provenance_preservation": {
+      "statement": "Adding observation does not change identity, connectivity, delay, or RBS ownership metadata"
+    },
+    "G9_reproducibility": {
+      "statement": "Identical frozen arrays + operators produce bit-identical observations"
+    },
+    "G10_no_phenotype_claim": {
+      "statement": "No FF/FB spectral, adaptation, wave, memory, or HDP interpretation from observation outputs"
+    }
+  },
+  "invariants": [
+    {
+      "id": "Q_zero_implies_Y_zero",
+      "inherits_from": "artifacts/etudes/experiment_a/b0_protocol_spec.json#invariants.Q_zero_implies_Y_zero"
+    },
+    {
+      "id": "F_superposition",
+      "inherits_from": "artifacts/etudes/experiment_a/b0_protocol_spec.json#invariants.F_superposition"
+    },
+    {
+      "id": "probe_does_not_mutate_Q",
+      "check": "hash(Q) invariant across all observation passes",
+      "inherits_from": "artifacts/etudes/experiment_a/b0_protocol_spec.json#invariants.probe_does_not_mutate_Q"
+    },
+    {
+      "id": "B2_Q_invariant_probe_distinct",
+      "applies_to": ["lfp_contact_shallow", "lfp_contact_deep"],
+      "inherits_from": "artifacts/etudes/experiment_a/b0_protocol_spec.json#invariants.B2_Q_invariant_probe_distinct"
+    },
+    {
+      "id": "no_neural_resimulate_per_probe",
+      "statement": "Observation passes must not trigger additional E3 neural simulations"
+    }
+  ],
+  "success_criteria": {
+    "type": "structural_observation_compositional",
+    "required": [
+      "all_E4_gates_pass",
+      "R_E4_to_E3_bit_exact",
+      "trajectory_invariance_verified",
+      "hierarchy_aware_source_table_frozen",
+      "experiment_a_semantics_reused_not_redefined"
+    ]
+  },
+  "explicit_prohibitions": [
+    "no_observation_feedback_into_E3_dynamics",
+    "no_new_source_definition",
+    "no_integrated_model_source_variant",
+    "no_EEG_MEG_in_primary_evidence",
+    "no_calibrated_physical_field_claim",
+    "no_wave_estimator",
+    "no_spectral_FF_FB_functional_claim",
+    "no_D3_adaptation_phenotype",
+    "no_HDP",
+    "no_hierarchy_modification_for_observation",
+    "no_delay_or_RBS_retuning",
+    "no_neural_resimulate_per_probe",
+    "no_E5_at_E4"
+  ],
+  "execution_authorization": {
+    "specification_only": true,
+    "implementation_authorized": false,
+    "next_checkpoint": "E4_implementation"
+  },
+  "e5_deferred": {
+    "checkpoint": "E5",
+    "adds": "integrated perturbation with mechanism-null contrasts",
+    "requires": "E1-E4 gates pass",
+    "phenotype_rule": "mechanism attribution requires matched mechanism-null contrast (D3 lesson)"
+  },
+  "bundle_root": "artifacts/protocol_e_integration",
+  "protocol_doc": "docs/protocols/protocol_e_integration.md"
+}

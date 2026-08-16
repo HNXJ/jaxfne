@@ -1,0 +1,34 @@
+{
+  "canonical_npz": "artifacts/etudes/experiment_a/canonical_source.npz",
+  "checkpoint": "B3",
+  "completion_criterion": "One frozen neural/source dataset passes through independently declared observation/probe operators with explicit semantic status and invariants.",
+  "manifest": "artifacts/etudes/experiment_a/manifest.json",
+  "metrics": "artifacts/etudes/experiment_a/metrics.json",
+  "package_head": "5206c54e209141d50604f43bcf2c27b9b5ad6a26",
+  "protocol_id": "experiment_a_v0417_b",
+  "schema": "jaxfne.experiment_a.b3_receipt.v1",
+  "status": "FROZEN",
+  "test_evidence": {
+    "suite_glob": "tests/test_experiment_a_b*.py",
+    "initial_b3_gate_disposition": {
+      "collected": 19,
+      "passed": 18,
+      "skipped": 1,
+      "failed": 0,
+      "skipped_tests": [
+        {
+          "nodeid": "tests/test_experiment_a_b3_receipt.py::test_b3_frozen_receipt_in_repo",
+          "reason": "pytest.mark.skipif until b3_experiment_a_receipt.json exists; cleared after scripts/run_experiment_a.py"
+        }
+      ],
+      "note": "Do not paraphrase this gate as 19 passed."
+    },
+    "post_runner_disposition": {
+      "collected": 19,
+      "passed": 19,
+      "skipped": 0,
+      "failed": 0,
+      "recorded_at_package_head": "c8badca"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "schema": "jaxfne.harness_manifest.v1",
+  "harness_version": "2.1.0",
+  "task_schema_version": 1,
+  "scope": "project",
+  "generated_at": "2026-08-15T15:35:55",
+  "components": {
+    "project_agents": {
+      "file": "AGENTS.md",
+      "sha256": "0fe199f1828f7b69a273f052b8a53bd7128f27c9eeebf4cd2b7acb71b95687f0"
+    },
+    "canonical_skills": {
+      "jaxfne-core": "4e98d1bc214cb2bcc3850d69ff78d2343f8ce487e6933e17b8f9bc1d1a5f3047",
+      "jaxfne-release": "18f2fc8d6a722821a885934bb392ad12691f03b2a1e7fff7169c57ad1a646342",
+      "jaxfne-repo": "d866a43ef743003442cd1d0816daf7185d3a46c329a99d63adf4defda44b7c6d",
+      "jaxfne-science": "27d20c8e9ca597443ebce1f468c027495c77ba37c2c35d39fb419931a4cb9800"
+    },
+    "mirrors": {
+      ".opencode/skills/jaxfne-core/SKILL.md": "4e98d1bc214cb2bcc3850d69ff78d2343f8ce487e6933e17b8f9bc1d1a5f3047",
+      ".opencode/skills/jaxfne-release/SKILL.md": "18f2fc8d6a722821a885934bb392ad12691f03b2a1e7fff7169c57ad1a646342",
+      ".opencode/skills/jaxfne-repo/SKILL.md": "d866a43ef743003442cd1d0816daf7185d3a46c329a99d63adf4defda44b7c6d",
+      ".opencode/skills/jaxfne-science/SKILL.md": "27d20c8e9ca597443ebce1f468c027495c77ba37c2c35d39fb419931a4cb9800",
+      ".cursor/skills/jaxfne-core/SKILL.md": "4e98d1bc214cb2bcc3850d69ff78d2343f8ce487e6933e17b8f9bc1d1a5f3047",
+      ".cursor/skills/jaxfne-release/SKILL.md": "18f2fc8d6a722821a885934bb392ad12691f03b2a1e7fff7169c57ad1a646342",
+      ".cursor/skills/jaxfne-repo/SKILL.md": "d866a43ef743003442cd1d0816daf7185d3a46c329a99d63adf4defda44b7c6d",
+      ".cursor/skills/jaxfne-science/SKILL.md": "27d20c8e9ca597443ebce1f468c027495c77ba37c2c35d39fb419931a4cb9800"
+    },
+    "project_config": {
+      "file": ".opencode/opencode.json",
+      "sha256": "db710cc81a62c64576d06ba6851749410c5cb71da8a1d17bc79d1a00876c2730"
+    },
+    "frozen_paths": {
+      "file": ".opencode/frozen_paths.json",
+      "sha256": "83e8ee44e18738eb8290543a6fb6c3601bf5cd070c696fee5a6e8d3e4266ec20"
+    },
+    "harness_scripts": {
+      "sync_skills": {
+        "file": "scripts/harness/sync_skills.py",
+        "sha256": "08bedc0de21639b4fd8366136661cdfd44536b270e4677d5e78db82bb9605a37"
+      },
+      "check_harness_integrity": {
+        "file": "scripts/harness/check_harness_integrity.py",
+        "sha256": "b32541ec6eef9272e004ccb66dcf0fbaac87ccf03fc76776b6ce9468f20a0c61"
+      },
+      "check_agent_refs": {
+        "file": "scripts/harness/check_agent_refs.py",
+        "sha256": "4dba25c2cc93a0ed02893bc36b2f8ae947f2a7de0c29c000ff55ee7d588b07a7"
+      },
+      "check_memory_hygiene": {
+        "file": "scripts/harness/check_memory_hygiene.py",
+        "sha256": "c4795bb7025e2062c98ae404dc0c9de7ac58d0d2dbf3d16d1e4056d913fdb32f"
+      }
+    },
+    "reference_manifest": "/Users/hamednejat/.config/opencode/harness/HARNESS_MANIFEST.json"
+  }
+}

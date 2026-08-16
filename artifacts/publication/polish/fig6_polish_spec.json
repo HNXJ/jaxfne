@@ -1,0 +1,9 @@
+{
+  "figure": "Fig06.HWD_ladder",
+  "schema": "jaxfne.publication.fig6_polish_spec.v1",
+  "status": "FROZEN",
+  "artist_only_polish": true,
+  "downstream_of_frozen_sha": "547e36c731a6be03a75acce01d0cedd29efff377cb1197fbe2a578dd1e624a30",
+  "checkpoint": "figure_6_polish",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596"
+}

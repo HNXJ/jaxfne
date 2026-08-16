@@ -77,13 +77,19 @@ class ContinuationState(NamedTuple):
     ``dynamic`` so the existing six-field ``DynamicState`` contract remains
     unchanged. The carrier preserves the H-state array as an opaque JAX leaf;
     the current scalar kernel is a ``d_H=1`` special case, not a continuation
-    shape restriction. ``step_index`` is bookkeeping for the caller and is
-    not passed into the numerical transition.
+    shape restriction. ``step_index`` is the global simulation step offset at
+    the start of the next segment (alias ``continuation_step_offset``).
+
+    ``delay_state`` is the canonical public name for the finite-delay ring
+  buffer :math:`\\mathcal B_t` (legacy alias ``spike_history``). It is
+    ``None`` when all edge delays are zero so legacy callers pay no buffer
+    cost unless delayed continuation is active.
     """
 
     dynamic: DynamicState
     prng_key: jax.Array
     step_index: int = 0
+    delay_state: jax.Array | None = None
 
 
 def continuation_noise_schedule(
@@ -315,6 +321,71 @@ def dynamic_state_from_model(
     )
 
 
+def _model_edge_delay_host(model: Model) -> np.ndarray:
+    from .emitters import _edge_delay_steps_host
+
+    return _edge_delay_steps_host(model.params["edge_list"])
+
+
+def model_requires_delay_state(model: Model) -> bool:
+    """True when any edge carries a positive integer delay."""
+    return bool(np.any(_model_edge_delay_host(model) > 0))
+
+
+def _delay_buffer_shape(model: Model) -> tuple[int, int]:
+    delay_host = _model_edge_delay_host(model)
+    max_delay = int(np.max(delay_host)) if delay_host.size else 0
+    n_neurons = model.params["emitter"].n_neurons
+    return max_delay + 1, n_neurons
+
+
+def validate_continuation_delay_state(
+    model: Model,
+    state: ContinuationState,
+    *,
+    continuing: bool,
+) -> None:
+    """Fail explicitly when delayed continuation lacks ``delay_state``."""
+    if not model_requires_delay_state(model):
+        return
+    if continuing and state.delay_state is None:
+        raise ValueError(
+            "delayed continuation requires delay_state (canonical B_t; legacy "
+            "alias spike_history)"
+        )
+    if state.delay_state is None:
+        return
+    bufsize, n_neurons = _delay_buffer_shape(model)
+    ds_host = np.asarray(state.delay_state)
+    if ds_host.shape != (bufsize, n_neurons):
+        raise ValueError(
+            f"delay_state must have shape ({bufsize}, {n_neurons}), got "
+            f"{ds_host.shape}"
+        )
+
+
+def _continuation_init_dict_from_state(
+    state: ContinuationState,
+    *,
+    include_step_offset: bool = True,
+) -> dict[str, jax.Array]:
+    init_state = {
+        "v": state.dynamic.v,
+        "u": state.dynamic.u,
+        "prev_spikes": state.dynamic.prev_spikes,
+        "syn_state": state.dynamic.syn_state,
+        "H_final": state.dynamic.H,
+        "w_final": state.dynamic.w,
+    }
+    if include_step_offset:
+        init_state["continuation_step_offset"] = jnp.asarray(
+            state.step_index, dtype=jnp.int32
+        )
+    if state.delay_state is not None:
+        init_state["delay_state"] = state.delay_state
+    return init_state
+
+
 def compile_step_fn(
     model: Model,
     *,
@@ -324,7 +395,7 @@ def compile_step_fn(
     record_edge_current: bool = False,
     record_weight_trace: bool = True,
     **hdp_kwargs: Any,
-) -> "tuple[callable, DynamicState]":
+) -> "tuple[callable, ContinuationState]":
     """Build a JIT-compiled single-step function over an edge-list carry.
 
     ``kernel="hdp"`` preserves the original canonical HDP behavior. The
@@ -387,13 +458,16 @@ def compile_step_fn(
         simulate_edge_recurrent_izhikevich_hdp,
     )
 
-    def step_fn(carry: DynamicState, xs_t: tuple) -> "tuple[DynamicState, tuple]":
-        sched_t, key_t = xs_t
-        init_state = {
-            "v": carry.v, "u": carry.u,
-            "prev_spikes": carry.prev_spikes, "syn_state": carry.syn_state,
-            "H_final": carry.H, "w_final": carry.w,
-        }
+    use_delays = kernel == "baseline" and model_requires_delay_state(model)
+
+    def step_fn(state: ContinuationState, xs_t: tuple) -> "tuple[ContinuationState, tuple]":
+        sched_t, key_t, t_idx = xs_t
+        init_state = _continuation_init_dict_from_state(
+            state, include_step_offset=not use_delays
+        )
+        kernel_kw = dict(hdp_kwargs)
+        if use_delays:
+            kernel_kw["step_indices"] = jnp.reshape(t_idx, (1,))
         if kernel == "hdp":
             _, _, sources, diag = simulate_edge_recurrent_izhikevich_hdp(
                 emitter, edges, n_steps=1, dt_ms=dt_ms, key=key_t,
@@ -402,8 +476,8 @@ def compile_step_fn(
                 silence_mask=silence_mask,
                 init_state={
                     **init_state,
-                    "H_final": carry.H,
-                    "w_final": carry.w,
+                    "H_final": state.dynamic.H,
+                    "w_final": state.dynamic.w,
                 },
                 record_dH_components=record_dH_components,
                 record_edge_current=record_edge_current,
@@ -416,13 +490,26 @@ def compile_step_fn(
                 drive_schedule=sched_t[None, :],
                 silence_mask=silence_mask,
                 init_state=init_state,
-                **hdp_kwargs,
+                **kernel_kw,
             )
-        new_carry = DynamicState(
+        new_dynamic = DynamicState(
             v=diag["v"], u=diag["u"],
             prev_spikes=diag["prev_spikes"], syn_state=diag["syn_state"],
-            H=diag.get("H_final", carry.H),
-            w=diag.get("w_final", carry.w),
+            H=diag.get("H_final", state.dynamic.H),
+            w=diag.get("w_final", state.dynamic.w),
+        )
+        delay_out = state.delay_state
+        if use_delays:
+            delay_out = diag.get("delay_state", diag.get("spike_history"))
+        step_offset = state.step_index + 1
+        if not use_delays:
+            pass
+        elif "continuation_step_offset" in diag:
+            step_offset = diag["continuation_step_offset"]
+        new_state = state._replace(
+            dynamic=new_dynamic,
+            step_index=step_offset,
+            delay_state=delay_out,
         )
         # Matches the verified per-step output tuple at the real scan call
         # site (emitters.py line ~1368): (v_reset, spikes, source_proxy,
@@ -433,8 +520,8 @@ def compile_step_fn(
             H_trace_t = diag["H_trace"][0]
             w_trace_t = diag["w_trace"][0]
         else:
-            H_trace_t = carry.H
-            w_trace_t = carry.w
+            H_trace_t = state.dynamic.H
+            w_trace_t = state.dynamic.w
         if record_weight_trace:
             outputs = (
                 diag["v"], diag["prev_spikes"], sources[0],
@@ -450,9 +537,9 @@ def compile_step_fn(
             )
         if record_edge_current and kernel == "hdp":
             outputs = outputs + (diag["edge_current_trace"][0],)
-        return new_carry, outputs
+        return new_state, outputs
 
-    init = dynamic_state_from_model(
+    init = continuation_state_from_model(
         model,
         h_state_dim=int(hdp_kwargs.get("h_state_dim", 1)),
     )
@@ -461,10 +548,10 @@ def compile_step_fn(
 
 def scan_network(
     step_fn: "callable",
-    init: DynamicState,
+    init: "DynamicState | ContinuationState",
     drive_schedule: jax.Array,
     keys: jax.Array,
-) -> "tuple[DynamicState, tuple]":
+) -> "tuple[DynamicState | ContinuationState, tuple]":
     """Thin, pure wrapper over ``jax.lax.scan`` -- no branching, no
     Python-side dispatch, no kwargs. All static config was captured at
     ``compile_step_fn`` time.
@@ -473,10 +560,25 @@ def scan_network(
     ``jax.random.split(key, n_steps)``), NOT a pre-sampled noise array --
     see :func:`compile_step_fn`'s docstring for why: the wrapped kernel
     generates its own Gaussian noise internally from a key per call.
+
+    Accepts either a legacy :class:`DynamicState` (HDP-only callers) or a
+    full :class:`ContinuationState` (canonical runtime carry).
     """
-    xs = (drive_schedule, keys)
-    final_carry, outputs = jax.lax.scan(step_fn, init, xs)
-    return DynamicState(*final_carry), outputs
+    if isinstance(init, ContinuationState):
+        state0 = init
+        start = state0.step_index
+    else:
+        state0 = ContinuationState(dynamic=init, prng_key=keys[0])
+        start = 0
+    n_steps = int(drive_schedule.shape[0])
+    t_indices = jnp.arange(n_steps, dtype=jnp.int32) + jnp.asarray(
+        start, dtype=jnp.int32
+    )
+    xs = (drive_schedule, keys, t_indices)
+    final_state, outputs = jax.lax.scan(step_fn, state0, xs)
+    if isinstance(init, ContinuationState):
+        return final_state, outputs
+    return final_state.dynamic, outputs
 
 
 def _advance_prng_key(
@@ -503,10 +605,18 @@ def continuation_state_from_model(
     h_state_dim: int = 1,
 ) -> ContinuationState:
     """Create a cold-start continuation state without running a simulation."""
+    dynamic = dynamic_state_from_model(model, h_state_dim=h_state_dim)
+    delay_state = None
+    if model_requires_delay_state(model):
+        bufsize, n_neurons = _delay_buffer_shape(model)
+        delay_state = jnp.zeros(
+            (bufsize, n_neurons), dtype=model.params["emitter"].v0.dtype
+        )
     return ContinuationState(
-        dynamic=dynamic_state_from_model(model, h_state_dim=h_state_dim),
+        dynamic=dynamic,
         prng_key=jax.random.PRNGKey(int(seed)),
         step_index=int(step_index),
+        delay_state=delay_state,
     )
 
 
@@ -522,12 +632,16 @@ def run_continuation(
             "drive_schedule must have shape (n_steps, n_neurons)"
         )
     next_key, keys = _advance_prng_key(state.prng_key, schedule.shape[0])
-    dynamic, outputs = scan_network(step_fn, state.dynamic, schedule, keys)
+    start = state.step_index
+    final_state, outputs = scan_network(step_fn, state, schedule, keys)
+    if isinstance(start, int):
+        next_index = start + int(schedule.shape[0])
+    else:
+        next_index = int(np.asarray(jax.device_get(start))) + int(schedule.shape[0])
     return (
-        ContinuationState(
-            dynamic=dynamic,
+        final_state._replace(
             prng_key=next_key,
-            step_index=state.step_index + int(schedule.shape[0]),
+            step_index=next_index,
         ),
         outputs,
     )

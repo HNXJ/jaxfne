@@ -1,0 +1,111 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e1_spec.v1",
+  "protocol_id": "protocol_e_integration_v0417",
+  "milestone": "0.4.17-E",
+  "checkpoint": "E1",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_spec": "artifacts/protocol_e_integration/e0_1_implementation_ladder_spec.json",
+  "parent_head": "958993347163199b718a0274a06721d1d2f06bda",
+  "question": "Does a minimal two-area laminar hierarchy execute with correct structural identity, FF/FB ownership, and deterministic reproducibility?",
+  "scientific_scope": {
+    "included": "E1 hierarchy/runtime implementation only",
+    "excluded": "RBS, nonzero delays, field/proxy/probe chain, publication phenotype, closed-loop HDP"
+  },
+  "hierarchy": {
+    "areas": ["A1", "A2"],
+    "laminar_layers_per_area": ["L2", "L3", "L4", "L5"],
+    "populations": [
+      {
+        "cell_type": "E",
+        "role": "excitatory",
+        "emitter_family": "izhikevich",
+        "note": "same F_X family; heterogeneous parameters allowed"
+      },
+      {
+        "cell_type": "PV",
+        "role": "inhibitory",
+        "emitter_family": "izhikevich",
+        "note": "same F_X family; heterogeneous parameters allowed"
+      }
+    ],
+    "heterogeneity_semantics": "population_parameter_heterogeneity_not_different_emitter_equations"
+  },
+  "connectivity": {
+    "feedforward": {
+      "id": "FF",
+      "source": {"area": "A1", "layers": ["L2", "L3"], "cell_type": "E"},
+      "target": {"area": "A2", "layers": ["L4"]},
+      "ownership": "explicit_FF_routing"
+    },
+    "feedback": {
+      "id": "FB",
+      "source": {"area": "A2", "layers": ["L5"], "cell_type": "E"},
+      "target": {"area": "A1", "layers": ["L2", "L3"]},
+      "ownership": "explicit_FB_routing"
+    },
+    "delay_steps": 0,
+    "delay_note": "zero delay only at E1; E2 adds tau_ij"
+  },
+  "rbs": {
+    "enabled": false,
+    "dot_W": 0
+  },
+  "gates": {
+    "G1_construction": {
+      "statement": "Configuration constructs model with declared areas, layers, populations, and compiled edges"
+    },
+    "G2_identity_recovery": {
+      "statement": "neuron_table area/layer/cell_type labels match declared selectors on every edge endpoint"
+    },
+    "G3_ff_fb_ownership": {
+      "statement": "FF edges only A1 L2/3 E -> A2 L4; FB edges only A2 L5 E -> A1 L2/3"
+    },
+    "G4_finite_deterministic_execution": {
+      "statement": "simulate completes with finite V/spikes over preregistered horizon"
+    },
+    "G5_reproducibility": {
+      "statement": "identical seed yields bit-identical trajectories"
+    },
+    "G6_no_rbs_no_delay": {
+      "statement": "no hidden RBS update and all edge delay_steps == 0"
+    }
+  },
+  "simulation_policy": {
+    "n_neurons_per_area": 40,
+    "duration_ms": 1000.0,
+    "dt_ms": 0.5,
+    "n_steps": 2000,
+    "noise_scale": 0.0,
+    "dtype": "float32",
+    "seeds": [11, 12, 13],
+    "emitter_preset": "cortical_eig",
+    "drive": {"E": 8.0, "PV": 6.0}
+  },
+  "success_criteria": {
+    "type": "structural_compositional",
+    "required": [
+      "all_E1_gates_pass",
+      "no_publication_phenotype_claim"
+    ]
+  },
+  "e2_deferred": {
+    "checkpoint": "E2",
+    "adds": "delay_state continuation and tau_ij",
+    "reduction": "delays_zero recovers E1-like coupling"
+  },
+  "explicit_prohibitions": [
+    "no_RBS_at_E1",
+    "no_nonzero_edge_delays",
+    "no_field_proxy_probe",
+    "no_wave_or_spectral_claim",
+    "no_closed_loop_HDP",
+    "no_call_population_heterogeneity_emitter_equation_heterogeneity"
+  ],
+  "execution_authorization": {
+    "implementation_authorized": true,
+    "next_checkpoint": "E2_specification"
+  },
+  "bundle_root": "artifacts/protocol_e_integration",
+  "protocol_doc": "docs/protocols/protocol_e_integration.md"
+}

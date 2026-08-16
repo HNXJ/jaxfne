@@ -1,0 +1,185 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e3_execution_receipt.v1",
+  "checkpoint": "E3",
+  "status": "FROZEN",
+  "write_once": true,
+  "package_head": "1f74cf3d6b647d01907ea944099ca03b743411ef",
+  "spec_path": "artifacts/protocol_e_integration/e3_rbs_composition_spec.json",
+  "scientific_question": "Does hierarchy + typed delays compose with sparse, owned D1/D2a H_K RBS without changing E2 semantics at reference?",
+  "composition_claim": "hierarchy + typed delays + sparse owned local RBD without changing E2 reference",
+  "reduction_contract": "R_E3_to_E2",
+  "rbs_owner": {
+    "area": "A2",
+    "layer": "L5",
+    "cell_type": "E",
+    "n_nodes": 7,
+    "flat_indices": [
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76
+    ],
+    "identity_source": "artifacts/protocol_e_integration/e1_execution_receipt.json#identity_map"
+  },
+  "rbs_primitive": {
+    "semantic_type": "effective_K_associated_recovery",
+    "source_protocol": "D1/D2a",
+    "H_reference": 1.0,
+    "tau_K_ms": 100.0,
+    "initial_dynamic_H": 1.2,
+    "non_owner_H_K_semantics": "fixed reference coordinate H_K=1; F1 recurrence masked off outside owner_mask"
+  },
+  "inherited_e2_delay_digest": "1c9e28c9daec177bd869939fad865d4b13a7aaf0b83f68e4f5f1d744a4165b71",
+  "inherited_e2_hierarchy_fingerprints": {
+    "identity_digest": "aa768b3b8cab0fc1e5c5de76fa7f1d8a2ce35c8940b6b6ced4dc27e1c02d9963",
+    "provenance_digest": "8e0ac2ded42f15e03202125c99d5e07621b95adc2c4d96d1bf0089ce90ce1a86",
+    "edge_topology_digest": "f25a3f3dd140f088600acfb2b84d6dd668325837503882152a88f2dd8253f6ac"
+  },
+  "gates": {
+    "G1_e2_reduction": {
+      "passed": true,
+      "path": "E3-null owned H_K delayed kernel vs E2 delayed reference kernel",
+      "seeds": [
+        {
+          "seed": 11,
+          "V_m_bit_exact": true,
+          "spikes_bit_exact": true,
+          "sources_bit_exact": true
+        },
+        {
+          "seed": 12,
+          "V_m_bit_exact": true,
+          "spikes_bit_exact": true,
+          "sources_bit_exact": true
+        },
+        {
+          "seed": 13,
+          "V_m_bit_exact": true,
+          "spikes_bit_exact": true,
+          "sources_bit_exact": true
+        }
+      ]
+    },
+    "G2_ownership": {
+      "passed": true,
+      "owner_flat_indices": [
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76
+      ],
+      "n_owners": 7
+    },
+    "G3_non_owner_invariance": {
+      "passed": true,
+      "max_abs_H_minus_1_non_owners": 0.0,
+      "max_abs_H_minus_1_owners": 0.19900000095367432,
+      "support_only_on_O_H": true
+    },
+    "G4_typed_expression": {
+      "passed": true,
+      "coupling_map": "b_eff = H_K * b",
+      "kernel": "simulate_edge_recurrent_izhikevich_owned_h_k_delayed"
+    },
+    "G5_autonomous_recovery": {
+      "passed": true,
+      "tau_K_ms": 100.0,
+      "H_K0_dynamic": 1.2,
+      "owner_euler_checks": [
+        {
+          "owner_flat_index": 70,
+          "max_abs_euler_diff": 0.0,
+          "passed": true
+        },
+        {
+          "owner_flat_index": 71,
+          "max_abs_euler_diff": 0.0,
+          "passed": true
+        },
+        {
+          "owner_flat_index": 72,
+          "max_abs_euler_diff": 0.0,
+          "passed": true
+        },
+        {
+          "owner_flat_index": 73,
+          "max_abs_euler_diff": 0.0,
+          "passed": true
+        },
+        {
+          "owner_flat_index": 74,
+          "max_abs_euler_diff": 0.0,
+          "passed": true
+        },
+        {
+          "owner_flat_index": 75,
+          "max_abs_euler_diff": 0.0,
+          "passed": true
+        },
+        {
+          "owner_flat_index": 76,
+          "max_abs_euler_diff": 0.0,
+          "passed": true
+        }
+      ],
+      "H_K_final_owner_mean": 1.000011920928955
+    },
+    "G6_delay_compatibility": {
+      "passed": true,
+      "delay_table_digest_match": true,
+      "delay_step_occupancy": {
+        "2": 651,
+        "4": 140,
+        "8": 140
+      },
+      "expected_occupancy": {
+        "2": 651,
+        "4": 140,
+        "8": 140
+      }
+    },
+    "G7_continuation": {
+      "passed": true,
+      "split_steps": 240,
+      "V_m_bit_exact": true,
+      "spikes_bit_exact": true,
+      "sources_bit_exact": true,
+      "H_K_bit_exact": true,
+      "synaptic_state_bit_exact": true,
+      "delay_state_bit_exact": true,
+      "event_timing_exact": true,
+      "H_K_at_split_ms": 1.0600574016571045
+    },
+    "G8_hierarchy_invariance": {
+      "passed": true,
+      "pre_rbs_fingerprints": {
+        "identity_digest": "aa768b3b8cab0fc1e5c5de76fa7f1d8a2ce35c8940b6b6ced4dc27e1c02d9963",
+        "provenance_digest": "8e0ac2ded42f15e03202125c99d5e07621b95adc2c4d96d1bf0089ce90ce1a86",
+        "edge_topology_digest": "f25a3f3dd140f088600acfb2b84d6dd668325837503882152a88f2dd8253f6ac"
+      },
+      "post_rbs_fingerprints": {
+        "identity_digest": "aa768b3b8cab0fc1e5c5de76fa7f1d8a2ce35c8940b6b6ced4dc27e1c02d9963",
+        "provenance_digest": "8e0ac2ded42f15e03202125c99d5e07621b95adc2c4d96d1bf0089ce90ce1a86",
+        "edge_topology_digest": "f25a3f3dd140f088600acfb2b84d6dd668325837503882152a88f2dd8253f6ac"
+      },
+      "delay_table_digest": "1c9e28c9daec177bd869939fad865d4b13a7aaf0b83f68e4f5f1d744a4165b71"
+    },
+    "G9_no_phenotype_claim": {
+      "passed": true,
+      "composition_effect_observed": true,
+      "statement": "H_K(0)!=1 => X_E3 may differ from X_E2; expression evidence only",
+      "forbidden_metrics_absent": true
+    }
+  },
+  "composition_effect": {
+    "dynamic_sources_differ_from_e2": true,
+    "interpretation": "expression_evidence_only_not_phenotype"
+  },
+  "e4_deferred": "observation chain with R_E4_to_E3"
+}

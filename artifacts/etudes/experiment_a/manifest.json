@@ -1,0 +1,26 @@
+{
+  "cause_hashes": {
+    "H": "46420b29cb0ba696ab991b3e33c1799b5d3de8184a5b3b00cb54bb4cb8644f46",
+    "Q": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+    "V_m": "57b58914a6efedbfdd03eaa3ed45d0927376a7eb458a77ebc327570fc09ad5fd",
+    "positions": "25cfd8213ccc887b823a48fef8c8ce172a4957990147f252de1faab37de167ef",
+    "spikes": "7461b42b92b8cdb4c4dee49c5a08972ebe351fbd80c0905c0615378cd12b62ac"
+  },
+  "checkpoints": {
+    "B0": "frozen",
+    "B1": "frozen",
+    "B2": "frozen",
+    "B3": "frozen"
+  },
+  "etude": "experiment_a_v0417_b",
+  "levels": {
+    "A": true,
+    "B": true,
+    "C": true
+  },
+  "manuscript_figures": false,
+  "metrics_sha256": "e7a7771c5496bdeeb63df47736f060b62283d05fd43796a2d33ba2291e560a69",
+  "package_head": "5206c54e209141d50604f43bcf2c27b9b5ad6a26",
+  "protocol_spec_sha256": "08380cd0ef80ca5fae9da156bdffb72f1423192ff12383bc5466cb29ca1703b8",
+  "representation": "relative_proxy"
+}

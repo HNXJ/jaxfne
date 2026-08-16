@@ -1,0 +1,9 @@
+{
+  "figure": "Fig07.E_integration",
+  "schema": "jaxfne.publication.fig7_polish_spec.v1",
+  "status": "FROZEN",
+  "artist_only_polish": true,
+  "downstream_of_frozen_sha": "fa74ddf210d397c9c1b719d0ac75573045985877312efcccbdedc0aa59e71dce",
+  "checkpoint": "figure_7_polish",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596"
+}

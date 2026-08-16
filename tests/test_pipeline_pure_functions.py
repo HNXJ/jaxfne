@@ -197,17 +197,19 @@ def test_dynamic_state_from_model_shapes():
 def test_compile_step_fn_shape_via_eval_shape():
     model = _small_model()
     step_fn, init = _pipeline.compile_step_fn(model, dt_ms=0.5)
-    assert isinstance(init, _pipeline.DynamicState)
+    assert isinstance(init, _pipeline.ContinuationState)
     n_neurons = model.params["emitter"].n_neurons
 
-    sched_t = jnp.zeros((n_neurons,), dtype=init.v.dtype)
+    sched_t = jnp.zeros((n_neurons,), dtype=init.dynamic.v.dtype)
     key_t = jax.random.PRNGKey(0)
-    out_carry, out_outputs = jax.eval_shape(step_fn, init, (sched_t, key_t))
+    out_carry, out_outputs = jax.eval_shape(
+        step_fn, init, (sched_t, key_t, jnp.int32(0))
+    )
 
-    assert isinstance(out_carry, _pipeline.DynamicState)
-    assert out_carry.v.shape == init.v.shape
-    assert out_carry.H.shape == init.H.shape
-    assert out_carry.w.shape == init.w.shape
+    assert isinstance(out_carry, _pipeline.ContinuationState)
+    assert out_carry.dynamic.v.shape == init.dynamic.v.shape
+    assert out_carry.dynamic.H.shape == init.dynamic.H.shape
+    assert out_carry.dynamic.w.shape == init.dynamic.w.shape
     assert len(out_outputs) == 5  # (v, spikes, sources, H_trace, w_trace) base arity
 
 
@@ -217,16 +219,16 @@ def test_scan_network_shape_via_eval_shape():
     n_neurons = model.params["emitter"].n_neurons
     n_steps = 10
 
-    sched = jnp.zeros((n_steps, n_neurons), dtype=init.v.dtype)
+    sched = jnp.zeros((n_steps, n_neurons), dtype=init.dynamic.v.dtype)
     keys = jax.random.split(jax.random.PRNGKey(0), n_steps)
 
     final_carry, outputs = jax.eval_shape(
         lambda i, s, k: _pipeline.scan_network(step_fn, i, s, k), init, sched, keys
     )
 
-    assert isinstance(final_carry, _pipeline.DynamicState)
-    assert final_carry.v.shape == init.v.shape
-    assert final_carry.w.shape == init.w.shape
+    assert isinstance(final_carry, _pipeline.ContinuationState)
+    assert final_carry.dynamic.v.shape == init.dynamic.v.shape
+    assert final_carry.dynamic.w.shape == init.dynamic.w.shape
     for leaf in outputs:
         assert leaf.shape[0] == n_steps
 
@@ -245,7 +247,7 @@ def test_record_weight_trace_false_drops_w_slot_but_matches_dynamics():
     step_fn_true, init_true = _pipeline.compile_step_fn(model, dt_ms=0.5)
     step_fn_false, init_false = _pipeline.compile_step_fn(model, dt_ms=0.5, record_weight_trace=False)
 
-    sched = jnp.zeros((n_steps, n_neurons), dtype=init_true.v.dtype)
+    sched = jnp.zeros((n_steps, n_neurons), dtype=init_true.dynamic.v.dtype)
     keys = jax.random.split(jax.random.PRNGKey(0), n_steps)
 
     final_true, outputs_true = _pipeline.scan_network(step_fn_true, init_true, sched, keys)
@@ -255,4 +257,4 @@ def test_record_weight_trace_false_drops_w_slot_but_matches_dynamics():
     assert len(outputs_false) == 4
     for a, b in zip(outputs_true[:4], outputs_false[:4]):
         assert jnp.array_equal(a, b)
-    assert jnp.allclose(final_true.w, final_false.w, atol=1e-6)
+    assert jnp.allclose(final_true.dynamic.w, final_false.dynamic.w, atol=1e-6)

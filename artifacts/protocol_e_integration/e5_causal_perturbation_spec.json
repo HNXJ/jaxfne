@@ -1,0 +1,322 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e5_spec.v1",
+  "protocol_id": "protocol_e_integration_v0417",
+  "milestone": "0.4.17-E",
+  "checkpoint": "E5",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_spec": "artifacts/protocol_e_integration/e4_observation_chain_spec.json",
+  "parent_execution_receipt": "artifacts/protocol_e_integration/e4_execution_receipt.json",
+  "parent_head": "245da93f352c0f1756be8415848a8056b2649ce9",
+  "question": "Does a localized RBS perturbation produce a measurable hierarchical response beyond its matched mechanism-null?",
+  "scientific_scope": {
+    "added_degree_of_freedom": "prospective causal perturbation experiment with matched mechanism-null contrast (D vs N1); zero new TFNE architecture",
+    "inherited_from_e4": [
+      "E1 hierarchy identity and FF/FB ownership",
+      "E2 typed provenance-class delays",
+      "E3 sparse owned D1/D2a H_K RBS on A2:L5:E (flat_indices 70-76)",
+      "E4 downstream observation chain S -> Q -> F -> P -> Y",
+      "Experiment A canonical relative Q and conservative primary F/P operators",
+      "simulation_policy duration/dt/seeds/drive/dtype/noise",
+      "single neural trajectory per arm/seed then post-hoc observation"
+    ],
+    "excluded": [
+      "new TFNE layers or operators beyond frozen E1-E4 stack",
+      "new F_H dynamics beyond validated D2a on owners",
+      "D2b activity-written H_A -> H_K coupling",
+      "HDP / dot_W plasticity",
+      "spectral/PSD/band-power analysis pipeline",
+      "adaptation phenotype or memory score",
+      "FF/FB functional predictive-processing claims",
+      "calibrated physical field claims",
+      "E6 or additional integration checkpoints"
+    ],
+    "architecture_rule": "E5 adds causal perturbation evidence only; implementation must not introduce new compile-time topology, delays, RBS ownership, or observation definitions"
+  },
+  "composition_ladder": {
+    "containment": "E1 subset E2 subset E3 subset E4 subset E5_evidence",
+    "display": "hierarchy + delays + local RBD + observation + causal perturbation assay",
+    "final_architecture": {
+      "E1": "hierarchy",
+      "E2": "+ typed delays",
+      "E3": "+ local RBD",
+      "E4": "+ observation",
+      "E5": "+ causal perturbation evidence"
+    },
+    "post_close_policy": "hard 0.4.17 scientific feature freeze; subsequent work is publication evidence consolidation (Figures 1-7), not E6"
+  },
+  "perturbation_target": {
+    "owner_set_display": "O_H = A2:L5:E",
+    "selector": {
+      "area": "A2",
+      "layer": "L5",
+      "cell_type": "E"
+    },
+    "flat_indices": [70, 71, 72, 73, 74, 75, 76],
+    "n_nodes": 7,
+    "identity_source": "artifacts/protocol_e_integration/e1_execution_receipt.json#identity_map",
+    "inherits_from": "artifacts/protocol_e_integration/e3_rbs_composition_spec.json#ownership"
+  },
+  "coupling_operator": {
+    "id": "Gamma_H",
+    "display": "Gamma_H : H_K -> b_eff = H_K * b",
+    "reference": "identity when Gamma_H = I => b_eff = b",
+    "source_protocol": "D1/D2a validated primitive",
+    "deferred": ["D2b activity writing", "HDP", "new F_H families"]
+  },
+  "perturbation_timing": {
+    "t0_ms": 0.0,
+    "display": "H_K(t_0^+) = 1.2 on O_H at simulation onset",
+    "H_K0_perturbed": 1.2,
+    "H_K0_reference": 1.0,
+    "delta_H": 0.2,
+    "tau_K_ms": 100.0,
+    "F_H": "tau_K * dH_K/dt = 1 - H_K on O_H only (D2a autonomous recovery; inherited from E3)"
+  },
+  "experimental_arms": [
+    {
+      "id": "N0",
+      "label": "reference",
+      "H_K_initial_on_O_H": 1.0,
+      "H_K_dynamics": "fixed at reference (dot_H_K = 0)",
+      "Gamma_H": "identity",
+      "b_eff": "b",
+      "purpose": "unperturbed reference arm; aligns with E3-null / E4 reference neural path"
+    },
+    {
+      "id": "N1",
+      "label": "state_only_null",
+      "H_K_initial_on_O_H": 1.2,
+      "H_K_dynamics": "same as D (D2a recovery on O_H)",
+      "Gamma_H": "identity_disabled",
+      "b_eff": "b",
+      "purpose": "matched hidden-state perturbation without RBS expression; tests implementation leakage"
+    },
+    {
+      "id": "D",
+      "label": "RBS_expression",
+      "H_K_initial_on_O_H": 1.2,
+      "H_K_dynamics": "D2a recovery on O_H",
+      "Gamma_H": "enabled",
+      "b_eff": "H_K * b",
+      "purpose": "localized RBS expression arm"
+    }
+  ],
+  "causal_contrast": {
+    "primary": "D - N1",
+    "display": "mechanism attribution requires matched mechanism-null; not D vs N0 alone",
+    "null_invariants": {
+      "H_K_trajectory": "H_K^N1(t) = H_K^D(t) on O_H",
+      "Gamma_H_split": "Gamma_H^N1 = I while Gamma_H^D(H_K) = H_K * b"
+    },
+    "forbidden_interpretation": "D vs N0 without N1 does not establish mechanism attribution"
+  },
+  "propagation_assay": {
+    "display": "H_K -> X_owner -> X_A2 -> X_A1 -> Q -> Y",
+    "levels": [
+      {
+        "id": "X_owner",
+        "selector": "flat_indices in O_H",
+        "metrics": ["mean_abs_V_m_deviation", "spike_count_difference", "V_m_time_integral_difference"]
+      },
+      {
+        "id": "X_A2_nonowner",
+        "selector": "area=A2 excluding O_H",
+        "metrics": ["mean_abs_V_m_deviation", "spike_count_difference"]
+      },
+      {
+        "id": "X_A1",
+        "selector": "area=A1 all populations",
+        "metrics": ["mean_abs_V_m_deviation", "spike_count_difference"]
+      },
+      {
+        "id": "Q",
+        "selector": "canonical relative source array",
+        "metrics": ["L2_norm_difference", "time_integral_absolute_difference"]
+      },
+      {
+        "id": "Y",
+        "selector": "E4 primary relative-proxy probes",
+        "metrics": ["L2_norm_difference", "time_integral_absolute_difference"],
+        "operators_inherit": "artifacts/protocol_e_integration/e4_observation_chain_spec.json#primary_evidence_operators"
+      }
+    ],
+    "primary_prediction": {
+      "statement": "D - N1 != 0 at owner population",
+      "required_for_non_NO_EFFECT": true
+    },
+    "secondary_outcomes": {
+      "statement": "propagation to A2 non-owner, A1, Q, Y is scientifically informative but not required for E5 success",
+      "A1_pathway_interpretation": "any A1 response is structural propagation via frozen FB pathway A2->A1, not FF/FB functional/spectral claim"
+    }
+  },
+  "response_vector": {
+    "id": "Delta_R",
+    "display": "(Delta X_owner, Delta X_A2/nonowner, Delta X_A1, Delta Q, Delta Y)",
+    "contrast": "D - N1",
+    "reference_for_levels": "N1",
+    "components": [
+      "Delta_X_owner",
+      "Delta_X_A2_nonowner",
+      "Delta_X_A1",
+      "Delta_Q",
+      "Delta_Y"
+    ],
+    "metric_policy": "use simple frozen-system metrics only; no new spectral analysis pipeline"
+  },
+  "result_classification": {
+    "enum": [
+      "NO_EFFECT",
+      "LOCAL_EXPRESSION",
+      "HIERARCHICAL_PROPAGATION",
+      "UNRESOLVED"
+    ],
+    "rules": {
+      "NO_EFFECT": "D and N1 remain indistinguishable at owner level despite sufficient numerical/activity quality",
+      "LOCAL_EXPRESSION": "owner-level D-N1 effect passes preregistered threshold; downstream propagation criteria fail",
+      "HIERARCHICAL_PROPAGATION": "owner effect and preregistered downstream propagation criteria pass",
+      "UNRESOLVED": "activity or numerical quality insufficient for classification"
+    },
+    "success_policy": "E5 may close with any classified outcome; HIERARCHICAL_PROPAGATION is not required"
+  },
+  "propagation_thresholds": {
+    "owner_primary": {
+      "metric": "max(mean_abs_V_m_deviation, normalized_spike_count_difference)",
+      "threshold": 1e-6,
+      "note": "any nonzero owner contrast above numerical noise floor at float32 fidelity"
+    },
+    "downstream_secondary": {
+      "metric": "level-wise L2_norm_difference or spike_count_difference",
+      "threshold": 1e-6,
+      "required_for_HIERARCHICAL_PROPAGATION": true,
+      "levels_required_any_one": ["X_A1", "Q", "Y"],
+      "note": "preregistered exploratory propagation; failure still permits LOCAL_EXPRESSION close"
+    }
+  },
+  "observation_workflow": {
+    "inherits": "artifacts/protocol_e_integration/e4_observation_chain_spec.json#causal_architecture.workflow",
+    "rule": "one neural trajectory per arm and seed -> freeze X,H,B,Q,G -> apply E4 F/P; never rerun neural model per observation operator",
+    "arms_per_seed": 3,
+    "simulate_calls_per_seed": 3
+  },
+  "simulation_policy": {
+    "inherits_from": "artifacts/protocol_e_integration/e4_observation_chain_spec.json#simulation_policy",
+    "duration_ms": 1000.0,
+    "dt_ms": 0.5,
+    "n_steps": 2000,
+    "noise_scale": 0.0,
+    "dtype": "float32",
+    "seeds": [11, 12, 13],
+    "sample_size_policy": "fixed at E1-E4 seeds; do not add seeds unless prospectively amended",
+    "emitter_preset": "cortical_eig",
+    "drive": {"E": 8.0, "PV": 6.0},
+    "recurrent_backend": "edge_list",
+    "connectivity_mode": "explicit",
+    "enable_hdp": false,
+    "dot_W": 0
+  },
+  "quality_gates": {
+    "G1_arm_isolation": {
+      "statement": "N1 and D share H_K trajectory on O_H; Gamma_H differs as specified"
+    },
+    "G2_reference_alignment": {
+      "statement": "N0 aligns with E3-null/E4 reference path at H_K=1 and Gamma_H=I"
+    },
+    "G3_owner_contrast_measurable": {
+      "statement": "D-N1 owner response computed for every seed with declared metrics"
+    },
+    "G4_single_source_of_truth": {
+      "statement": "exactly one neural simulate per arm/seed; observation post-hoc only"
+    },
+    "G5_downstream_observation_inheritance": {
+      "statement": "E4 primary F/P operators reused without redefinition"
+    },
+    "G6_zero_architecture_delta": {
+      "statement": "identity, connectivity, delay, RBS ownership, and observation definitions unchanged from E4"
+    },
+    "G7_classification_applied": {
+      "statement": "result classified into NO_EFFECT, LOCAL_EXPRESSION, HIERARCHICAL_PROPAGATION, or UNRESOLVED"
+    },
+    "G8_numerical_quality": {
+      "statement": "finite trajectories; sufficient activity for metric computation or UNRESOLVED"
+    },
+    "G9_structural_pathway_interpretation": {
+      "statement": "A1 effects recorded with FB structural pathway note only"
+    },
+    "G10_no_phenotype_overinterpretation": {
+      "statement": "no spectral, adaptation, memory, or FF/FB functional phenotype claims"
+    }
+  },
+  "gates": {
+    "G1_arm_isolation": {
+      "statement": "N1 and D share H_K trajectory on O_H; Gamma_H differs as specified"
+    },
+    "G2_reference_alignment": {
+      "statement": "N0 aligns with E3-null/E4 reference path at H_K=1 and Gamma_H=I"
+    },
+    "G3_owner_contrast_measurable": {
+      "statement": "D-N1 owner response computed for every seed with declared metrics"
+    },
+    "G4_single_source_of_truth": {
+      "statement": "exactly one neural simulate per arm/seed; observation post-hoc only"
+    },
+    "G5_downstream_observation_inheritance": {
+      "statement": "E4 primary F/P operators reused without redefinition"
+    },
+    "G6_zero_architecture_delta": {
+      "statement": "identity, connectivity, delay, RBS ownership, and observation definitions unchanged from E4"
+    },
+    "G7_classification_applied": {
+      "statement": "result classified into NO_EFFECT, LOCAL_EXPRESSION, HIERARCHICAL_PROPAGATION, or UNRESOLVED"
+    },
+    "G8_numerical_quality": {
+      "statement": "finite trajectories; sufficient activity for metric computation or UNRESOLVED"
+    },
+    "G9_structural_pathway_interpretation": {
+      "statement": "A1 effects recorded with FB structural pathway note only"
+    },
+    "G10_no_phenotype_overinterpretation": {
+      "statement": "no spectral, adaptation, memory, or FF/FB functional phenotype claims"
+    }
+  },
+  "success_criteria": {
+    "type": "prospective_causal_perturbation",
+    "required": [
+      "all_E5_quality_gates_pass",
+      "arms_N0_N1_D_executed_per_seed",
+      "Delta_R_computed",
+      "formal_classification_recorded"
+    ],
+    "not_required": [
+      "HIERARCHICAL_PROPAGATION",
+      "nonzero_A1_effect",
+      "nonzero_observation_effect"
+    ]
+  },
+  "explicit_prohibitions": [
+    "no_new_TFNE_architecture",
+    "no_new_F_H",
+    "no_D2b",
+    "no_HDP",
+    "no_spectral_analysis_pipeline",
+    "no_adaptation_phenotype",
+    "no_memory_score",
+    "no_FF_FB_functional_claim",
+    "no_neural_resimulate_per_probe",
+    "no_additional_seeds_without_spec_amendment",
+    "no_E6_checkpoint"
+  ],
+  "publication_evidence_manifest_note": {
+    "housekeeping": "standardize provenance fields at 0.4.17 publication freeze",
+    "execution_parent_sha": "git HEAD at simulate/execution time (historical E3/E4 receipts may label this package_head)",
+    "artifact_commit_sha": "immutable commit containing the frozen receipt artifact",
+    "rule": "do not retroactively rewrite write-once E3/E4 receipts; apply distinction prospectively in publication manifest"
+  },
+  "execution_authorization": {
+    "specification_only": true,
+    "implementation_authorized": false,
+    "next_checkpoint": "E5_implementation"
+  },
+  "bundle_root": "artifacts/protocol_e_integration",
+  "protocol_doc": "docs/protocols/protocol_e_integration.md"
+}

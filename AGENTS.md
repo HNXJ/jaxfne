@@ -1,5 +1,27 @@
 # jaxfne — minimal persistent context
 
+## Harness (2026-08-15, v2.1)
+
+- **Identity vs integrity.** Workspace identity = (root, git root, remote, workspace id),
+  validated by `~/.config/opencode/gates/workspace-gate.sh` against
+  `workspaces/jaxfne-analysis.json`. Editing rule files (AGENTS.md, skills) never invalidates
+  identity. The gate protects filesystem mutation targeting only; effective injected context
+  is proven by fresh-session launch from this clone.
+- **Integrity.** `HARNESS_MANIFEST.json` records hashes of kernel, router, canonical skills,
+  generated mirrors, gates, schemas. Change flow: edit canonical `skills/` → run
+  `scripts/harness/sync_skills.py --update --manifest` → verify. Mirrors (`.opencode/skills/`,
+  `.cursor/skills/`) are generated, gitignored, never manually edited.
+- **Frozen evidence.** `.opencode/frozen_paths.json` explicitly enumerates the immutable
+  publication artifacts (`artifacts/publication/**`, `figures/publication/*.png`). New polish
+  layer outputs (`figures/publication/final/**`, `fig*_polish_{spec,audit,receipt}.json`) are
+  writable under the authorized publication task; frozen files are not.
+- **Checkpoint.** `scratch/CURRENT_TASK.md` YAML frontmatter is authoritative for
+  workspace/mode/facets/freeze/authorities/next_checkpoint/last_verified_head.
+- **Routing.** mode ∈ {READ, CODE, SCIENCE, RELEASE, PUBLICATION}; facets ⊆ {CODE, REPO,
+  SCIENCE, EVIDENCE_AUDIT, RELEASE}. Skills load compositionally from both.
+- Root freeze patch: `.opencode/` and `scripts/harness/` approved 2026-08-15 as the client
+  harness artifact (same reasoning that kept `skills/`).
+
 ## Purpose
 
 jaxfne expresses neural biophysics as modular Tensor-Field Neural Equations (TFNE): a **containment and composition framework** for neural models of different resolution — not a single prescribed biophysical equation. Nested biological semantics and geometry are preserved while numerical tensors may be computationally flattened.
@@ -50,7 +72,7 @@ Scientific experiments preserve failed prospective receipts. Do not tune a froze
 - Prefer package-native scientific operators over notebook/script-local duplicate engines.
 - Keep reusable plotting in the visualization layer.
 - Use targeted tests during development; broader/release gates are separate evidence tiers.
-- Do not commit, push, tag, release, or mutate remote state without explicit authorization.
+- Do not commit, push, tag, release, or mutate remote state without explicit authorization. Under an explicitly authorized task and the standing completion rule below, routine non-force `git push origin dev` is part of step completion; tagging, main merge, release publication, force push, and other exceptional remote operations always require separate authorization.
 - Public README/docs should be compact mathematical descriptions using positive definitions; engineering history and agent governance stay outside public scientific documentation.
 
 ## Step completion rule (operational)

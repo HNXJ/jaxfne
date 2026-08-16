@@ -1,0 +1,23 @@
+{
+  "schema": "jaxfne.publication.fig05_generation_receipt.v1",
+  "checkpoint": "figure_5_generation",
+  "status": "CLOSED",
+  "write_once": true,
+  "pec_panel_ids": [
+    "Fig05.C1_synthetic",
+    "Fig05.C3_NO_WAVE"
+  ],
+  "claim_level": "DEMONSTRATED",
+  "polarity": "NEGATIVE",
+  "figure_path": "figures/publication/fig05_traveling_wave_no_wave.png",
+  "figure_sha256": "f7f9a49439c134cde41333512694ad676e08bb9eb174ac1ae6a0f20b7171a1b2",
+  "generator_script": "scripts/publication_figures/fig05_protocol_c.py",
+  "semantic_audit_path": "artifacts/publication/fig05_semantic_audit.json",
+  "semantic_audit_status": "PASSED",
+  "repo_head": "a9abb3320349a0b41e815abd7b0c7a35c48460ba",
+  "headline": "A validated traveling-wave estimator detected no traveling waves across the preregistered neural geometry/delay conditions.",
+  "scope_qualifier": "Geometry-derived delays collapsed to the same four-step delay as the uniform condition on this ring; the experiment does not test genuinely distance-heterogeneous conduction.",
+  "outcome_letter": "C",
+  "next_checkpoint": "figure_6_generation",
+  "feature_freeze": "hard scientific feature freeze; no new science on publication path"
+}

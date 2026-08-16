@@ -1,0 +1,13 @@
+{
+  "schema": "jaxfne.publication.fig6_polish_receipt.v1",
+  "figure": "Fig06.HWD_ladder",
+  "status": "PASSED",
+  "png_300dpi": "figures/publication/final/fig06_rbs_hdp_ladder.png",
+  "png_sha256": "5468163ebcf4e6b7f27d93d59d5a73b910ac34268126d40826a3257eda198e8f",
+  "pdf_vector": "figures/publication/final/fig06_rbs_hdp_ladder.pdf",
+  "pdf_bytes": 77972,
+  "downstream_of_frozen_sha": "547e36c731a6be03a75acce01d0cedd29efff377cb1197fbe2a578dd1e624a30",
+  "checkpoint": "figure_6_polish",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596",
+  "audited_at_utc": "2026-08-15T22:25:22Z"
+}

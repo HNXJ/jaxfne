@@ -48,12 +48,20 @@ test_execution_output/
 *.npy
 *.npz
 
+# Exception: the frozen experiment-A canonical source (b1 canonical receipt
+# freezes its hash; figures 2-4 and their receipts depend on it, so fresh
+# checkouts/CI must not regenerate it on the fly).
+!artifacts/etudes/experiment_a/canonical_source.npz
+
 # Agent local state
 .claude/
 
 # Local Cursor skill wiring (machine-specific; never commit)
 .cursor/skills/
 .cursor/local/
+
+# Generated OpenCode skill mirror (machine-specific; regenerate from canonical skills/ via scripts/harness/sync_skills.py)
+.opencode/skills/
 
 # Composer harness audit staging (local only)
 composer_2_5_harness_audit_staging/
@@ -65,7 +73,9 @@ scripts/hdp_mvc_*.py
 
 # Development & local experimentation
 .cursor/
-figures/
+figures/*
+!figures/publication/
+!figures/publication/**
 internal_docs/
 reports/v1_spectrolaminar_10k/
 test_gpu.py

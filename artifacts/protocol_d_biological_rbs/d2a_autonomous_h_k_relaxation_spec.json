@@ -1,0 +1,93 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d2a_spec.v1",
+  "protocol_id": "protocol_d_biological_rbs_v0417",
+  "milestone": "0.4.17-D",
+  "checkpoint": "D2a",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_spec": "artifacts/protocol_d_biological_rbs/d1_static_h_k_expression_spec.json",
+  "parent_head": "c0d3392dffe35d97696f3c228da8d27fa80b84ab",
+  "question": "Does autonomous F1 H_K relaxation restore baseline while preserving the validated D1 recovery map H_K -> b_eff -> X?",
+  "scientific_scope": {
+    "included": "D2a autonomous H_K relaxation only",
+    "excluded": "D2b activity-to-H_K coupling (specified separately; not authorized)"
+  },
+  "coordinate_semantics": {
+    "H_K": "effective K-associated recovery state",
+    "terminology_note": "reserve channel availability for future realizations with explicit availability/inactivation kinetics"
+  },
+  "dynamics_F_H": {
+    "family": "F1_linear",
+    "display": "tau_K * dH_K/dt = 1 - H_K",
+    "kappa_K": 0,
+    "activity_coupling": "none",
+    "analytic_solution": "H_K(t) = 1 + [H_K(0) - 1] * exp(-t / tau_K)",
+    "discrete_euler_contract": "H_K^{n+1} = H_K^n + dt * (1 - H_K^n) / tau_K"
+  },
+  "coupling_Gamma": {
+    "inherits": "D1",
+    "map": "b_eff = H_K(t) * b",
+    "recovery_ode": "du/dt = a * (H_K(t) * b * v - u)",
+    "causal_chain": "H_K(t) -> b_eff(t) -> X(t)"
+  },
+  "initial_conditions": {
+    "H_K0_values": [0.8, 1.0, 1.2],
+    "expected_restoration": {
+      "0.8": "H_K(t) -> 1 from below",
+      "1.2": "H_K(t) -> 1 from above",
+      "1.0": "H_K(t) identically 1"
+    }
+  },
+  "gates": {
+    "G1_discrete_relaxation": {
+      "statement": "H_K trace matches frozen Euler recurrence step-for-step"
+    },
+    "G2_analytic_consistency": {
+      "statement": "Euler H_K grid consistent with analytic F1 solution within float32 contract"
+    },
+    "G3_baseline_invariance": {
+      "statement": "H_K(0)=1 => H_K(t)=1 and bit-exact classical V/spikes"
+    },
+    "G4_positivity": {
+      "statement": "H_K > 0 on preregistered operating range [0.8, 1.2] throughout"
+    },
+    "G5_deterministic_repeatability": {
+      "statement": "identical seed and IC yield identical trajectories"
+    },
+    "G6_classical_convergence": {
+      "statement": "as H_K -> 1, |V_ext - V_class| decays vs peak divergence (not finite-time bit-exact)"
+    }
+  },
+  "simulation_policy": {
+    "inherits_emitter_and_drive": "d1_static_h_k_expression_spec",
+    "duration_ms": 1500.0,
+    "dt_ms": 0.5,
+    "n_steps": 3000,
+    "tau_k_ms": 100.0,
+    "noise_scale": 0.0,
+    "dtype": "float32",
+    "seeds": [11, 12, 13]
+  },
+  "convergence_gate": {
+    "h_k_final_tol": 0.02,
+    "v_diff_tail_fraction": 0.2,
+    "v_diff_requires_decay_vs_peak": true
+  },
+  "explicit_prohibitions": [
+    "no_kappa_K_activity_coupling",
+    "no_HDP",
+    "no_D2b_implementation",
+    "no_post_result_retuning"
+  ],
+  "d2b_deferred": {
+    "checkpoint": "D2b",
+    "status": "specified_not_authorized",
+    "sketch": "d_H=2 vector (H_activity, H_K); S -> A -> H_K -> b_eff -> X"
+  },
+  "execution_authorization": {
+    "implementation_authorized": true,
+    "next_checkpoint": "D2b_specification"
+  },
+  "bundle_root": "artifacts/protocol_d_biological_rbs",
+  "protocol_doc": "docs/protocols/protocol_d_biological_rbs.md"
+}

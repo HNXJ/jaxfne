@@ -1,0 +1,34 @@
+{
+  "distinctness": {
+    "eeg_sup_vs_deep": 0.08190755989294807,
+    "lfp_vs_csd": 0.9921651392040306,
+    "narrow_vs_wide": 0.7686987014688431,
+    "shallow_vs_deep_probe": 0.11374731664980431
+  },
+  "invariant_checks": {
+    "Q_zero_implies_Y_zero": true,
+    "phi_e_unchanged_between_probes": true,
+    "probe_distinct": true,
+    "q_hash_invariant": true,
+    "shallow_vs_deep_rel_distinctness": 0.11374732106924057
+  },
+  "levels": {
+    "A": true,
+    "B": true,
+    "C": true
+  },
+  "r90_laminar": {
+    "lfp_dense": 0.15808389972274503,
+    "lfp_narrow": 0.07976396777667105,
+    "lfp_ref": 0.1627770783379674,
+    "lfp_sparse": 0.15617954917252064,
+    "lfp_wide": 0.3706348310224712
+  },
+  "spectral_centroid_hz": {
+    "CSD": 43.83680068224271,
+    "EEG_deep": 28.20076742669704,
+    "EEG_sup": 27.23970567481704,
+    "LFP": 29.63667852679251,
+    "Q": 46.70724533480392
+  }
+}

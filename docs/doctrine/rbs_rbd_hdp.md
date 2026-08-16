@@ -7,7 +7,11 @@ principal theoretical source. Project sources were aligned in the `4a8e54b`
 semantic migration; this document remains the compact repository index.
 
 **Active protocols:** Protocol D₀/D₁ (delays, frozen `724aa32`); Protocol H
-(state memory under \(\dot W=0\), `docs/doctrine/protocol_h_rbd_memory.md`).
+(state memory under \(\dot W=0\), `docs/doctrine/protocol_h_rbd_memory.md`);
+Protocol C (wave evidence, **closed** @ C4,
+`docs/doctrine/protocol_c_wave_evidence.md`); **Protocol D biological RBS**
+(D0–D3 frozen/executed; **Protocol D closed @ D3**; D4 not authorized —
+distinct from edge-delay Protocol D₀/D₁). **Protocol E (0.4.17-E):** E0.1 ladder frozen; E1 implementation authorized.
 
 **Containment architecture:** `docs/doctrine/tfne_containment_architecture.md`
 — TFNE as composition framework; \(H\) as unified dependency state; typed
@@ -82,6 +86,25 @@ instead represent several unresolved physical variables,
 \[
 H_{ik}=\mathcal R_k(\mathbf z_i).
 \]
+
+**Reference conventions (frozen — Protocol D D2b).** RBS coordinates need not
+universally use reference value \(1\):
+
+\[
+\boxed{
+\text{RBS reference coordinates need not universally equal }1.
+}
+\]
+
+| Convention | Typical use | Example (Protocol D) |
+|------------|-------------|----------------------|
+| \(H^\*=1\) | multiplicative relative gains / availability | \(H_{\mathrm{K}}\) |
+| \(H^\*=0\) | deviation / trace / activity-history coordinates | \(H_{\mathrm{A}}\) |
+
+Forcing every hidden coordinate to baseline one makes STDP traces,
+prediction-error-like deviations, and transient activity traces awkward for
+no benefit. Each coordinate must declare its reference convention explicitly
+in the typed RBS grammar.
 
 RBS may be abstract and dimensionless, but must not become an arbitrary
 latent embedding. Each coordinate should admit a plausible biophysical

@@ -1,0 +1,51 @@
+{
+  "schema": "jaxfne.publication.fig05_wave_spec.v1",
+  "checkpoint": "figure_5_generation",
+  "status": "FROZEN",
+  "write_once": true,
+  "pec_panel_ids": ["Fig05.C1_synthetic", "Fig05.C3_NO_WAVE"],
+  "claim_level": "DEMONSTRATED",
+  "polarity": "NEGATIVE",
+  "polarity_note": "C1 estimator validation is POSITIVE synthetic control; C3 prospective outcome is NEGATIVE (NO_WAVE). Figure polarity = DEMONSTRATED + NEGATIVE for the prospective wave hypothesis.",
+  "scientific_story": "validated wave inference + prospective neural experiment -> NO traveling wave under tested regime",
+  "headline": "A validated traveling-wave estimator detected no traveling waves across the preregistered neural geometry/delay conditions.",
+  "scope_qualifier": "Geometry-derived delays collapsed to the same four-step delay as the uniform condition on this ring; the experiment does not test genuinely distance-heterogeneous conduction.",
+  "causal_chain": "G -> (W, tau) -> X(r,t) -> W_hat (no field-feedback arrow)",
+  "authority": {
+    "c1_receipt": "artifacts/protocol_c/c1_synthetic_validation_receipt.json",
+    "c3_execution": "artifacts/protocol_c/c3_execution_receipt.json",
+    "c3_summary": "artifacts/protocol_c/c3_condition_summary.json",
+    "c4_interpretation": "artifacts/protocol_c/c4_interpretation_receipt.json",
+    "c3_spec": "artifacts/protocol_c/c3_neural_experiment_spec.json"
+  },
+  "representative_c3_cell": {
+    "rule": "preregistered primary condition ordered_uniform, seed 1001 (cells[0] in frozen c3_execution_receipt)",
+    "condition_id": "ordered_uniform",
+    "seed": 1001,
+    "receipt_index": 0
+  },
+  "excluded_content": ["H4", "new delay simulations", "post-hoc analysis", "field-feedback"],
+  "panels": {
+    "A": "C1 planar-wave synthetic positive control",
+    "B": "C1 false-positive controls (sync, standing wave)",
+    "C": "C3 representative neural V_m + estimator diagnostics",
+    "D": "six-condition outcome matrix (60 cells)",
+    "E": "quality/rejection distributions across 60 cells"
+  },
+  "frozen_quantities": {
+    "N_TW": 0,
+    "N_NW": 10,
+    "N_U": 0,
+    "per_condition_cells": 10,
+    "total_cells": 60,
+    "delta_p_W": 0.0,
+    "outcome_letter": "C",
+    "dominant_rejection": "synchronous_oscillation_k_near_zero",
+    "rejection_counts": {
+      "synchronous_oscillation_k_near_zero": 52,
+      "standing_or_flipping_spatial_gradient": 4,
+      "structured_but_fails_traveling_gates": 4
+    }
+  },
+  "generator_script": "scripts/publication_figures/fig05_protocol_c.py"
+}

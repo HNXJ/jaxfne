@@ -13,6 +13,33 @@ import jax
 import jax.numpy as jnp
 
 
+def sample_phi_at_probe_depths(
+    phi_e: jax.Array,
+    field_contact_depths: jax.Array,
+    probe_contact_depths: jax.Array,
+) -> jax.Array:
+    """Interpolate laminar ``phi_e`` along contact depth to probe locations.
+
+    ``phi_e`` is ``(T, C_field)``; ``field_contact_depths`` is ``(C_field,)``;
+    ``probe_contact_depths`` is ``(P,)``. Returns ``(T, P)``.
+    """
+    phi_e = jnp.asarray(phi_e)
+    field_z = jnp.asarray(field_contact_depths, dtype=phi_e.dtype)
+    probe_z = jnp.asarray(probe_contact_depths, dtype=phi_e.dtype)
+    if phi_e.ndim != 2:
+        raise ValueError(f"phi_e must be 2D (T, C); got shape {phi_e.shape}")
+    if field_z.shape[0] != phi_e.shape[1]:
+        raise ValueError(
+            f"field_contact_depths length {field_z.shape[0]} "
+            f"!= phi_e channels {phi_e.shape[1]}"
+        )
+
+    def _interp_row(row: jax.Array) -> jax.Array:
+        return jnp.interp(probe_z, field_z, row)
+
+    return jax.vmap(_interp_row)(phi_e)
+
+
 @dataclass(frozen=True)
 class ProbeReadout:
     """Container for probe operator output and metadata report.
@@ -154,19 +181,28 @@ def source_probe(source: jax.Array) -> ProbeReadout:
 def lfp_proxy_probe(
     phi_e: jax.Array,
     contact_depths: jax.Array = None,
+    field_contact_depths: jax.Array = None,
 ) -> ProbeReadout:
     """LFP-proxy probe operator: sample extracellular potential-like state."""
     phi_e = jnp.asarray(phi_e)
-    extra = {}
+    extra: dict[str, Any] = {}
+    method = "point_or_finite_contact_phi_proxy"
+    data = phi_e
     if contact_depths is not None:
         contact_depths = jnp.asarray(contact_depths)
+        if field_contact_depths is None:
+            n = int(phi_e.shape[-1])
+            field_contact_depths = jnp.linspace(0.0, 1.0, n, dtype=phi_e.dtype)
+        data = sample_phi_at_probe_depths(phi_e, field_contact_depths, contact_depths)
+        method = "depth_interpolation_on_phi_e_proxy"
         extra["contact_depths_or_layers"] = str(contact_depths)
+        extra["field_contact_depths"] = str(field_contact_depths)
 
     report = _make_probe_report(
         kind="lfp_proxy",
-        method="point_or_finite_contact_phi_proxy",
+        method=method,
         input_representation="relative_phi_e_proxy",
-        data_shape=phi_e.shape,
+        data_shape=data.shape,
         units_or_status="proxy_voltage_units_or_V_if_calibrated",
         assumptions=[
             "laminar_proxy_field_no_pde",
@@ -175,7 +211,7 @@ def lfp_proxy_probe(
         ],
         extra_fields=extra,
     )
-    return ProbeReadout(name="lfp_proxy", kind="lfp_proxy", data=phi_e, report=report)
+    return ProbeReadout(name="lfp_proxy", kind="lfp_proxy", data=data, report=report)
 
 
 def csd_proxy_probe(

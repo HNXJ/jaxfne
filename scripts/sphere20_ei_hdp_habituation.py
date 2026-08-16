@@ -499,8 +499,11 @@ def run() -> list[dict[str, Any]]:
 
         row = {"turn": turn, "is_oddball": 1.0 if is_oddball else 0.0, "trial_duration_ms": duration_ms}
         row.update(firing_rates(spikes_np, DT_MS, model))
-        row.update(cell_type_h(model, carry.H))
-        row.update(edge_block_weights(model, carry.w))
+        # compile_step_fn returns a ContinuationState wrapper whose kernel
+        # carry (the six-field DynamicState) lives under `.dynamic` -- the
+        # suite predated the wrapper and accessed carry.H/carry.w directly.
+        row.update(cell_type_h(model, carry.dynamic.H))
+        row.update(edge_block_weights(model, carry.dynamic.w))
         row.update(oscillation_metric(spikes_np, DT_MS))
         row["stim4_shared_response"] = stim_window_response(
             spikes_np, shared, stim4_event.onset_ms, stim4_event.duration_ms

@@ -1,0 +1,13 @@
+{
+  "schema": "jaxfne.publication.fig1_polish_receipt.v1",
+  "figure": "Fig01.grammar",
+  "status": "PASSED",
+  "png_300dpi": "figures/publication/final/fig01_tfne_grammar.png",
+  "png_sha256": "3bf21ca467acade7cd88bfa601bcd0b00a7d24d4ae87692b6d77973786cd53c3",
+  "pdf_vector": "figures/publication/final/fig01_tfne_grammar.pdf",
+  "pdf_bytes": 64947,
+  "downstream_of_frozen_sha": "707c3fec9f4b6747551e994897f70910c41ff88d5ed5a7b6910b441bc2e65678",
+  "checkpoint": "figure_1_polish",
+  "repo_head": "e96d138a723d4d06ac9d4d75c959d4985655d596",
+  "audited_at_utc": "2026-08-15T22:25:02Z"
+}

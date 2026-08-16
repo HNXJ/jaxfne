@@ -1,0 +1,53 @@
+{
+  "schema": "jaxfne.protocol_c.c4_interpretation_receipt.v1",
+  "checkpoint": "C4",
+  "status": "FROZEN",
+  "write_once": true,
+  "package_head": "55e42f3962bc1a3c0d688c5b30266ba1c207832f",
+  "execution_receipt": "artifacts/protocol_c/c3_execution_receipt.json",
+  "condition_summary": "artifacts/protocol_c/c3_condition_summary.json",
+  "outcome_letter": "C",
+  "outcome_description": "sufficient-quality neural activity yields predominantly NO_WAVE",
+  "outcomes_reference": {
+    "A": "wave evidence enriched by organized geometry/delays",
+    "B": "waves occur but are insensitive to the tested organization",
+    "C": "sufficient-quality neural activity yields predominantly NO_WAVE",
+    "D": "activity is predominantly UNRESOLVED for the frozen estimator"
+  },
+  "directional_conjecture": {
+    "statement": "p_W(ordered, geometry_derived) > p_W(ordered, uniform)",
+    "required_for_success": false,
+    "observed_delta_p_W": 0.0,
+    "conjecture_direction_supported": false
+  },
+  "contrasts": {
+    "delta_p_W_ordered_geometry_derived_minus_uniform": 0.0,
+    "p_W_ordered_geometry_derived": 0.0,
+    "p_W_ordered_uniform": 0.0,
+    "p_W_ordered_geometry_derived_vs_ordered_delay_shuffled": {
+      "geometry_derived": 0.0,
+      "delay_shuffled": 0.0,
+      "delta": 0.0
+    },
+    "p_W_ordered_vs_shuffled_geometry_geometry_derived": {
+      "ordered": 0.0,
+      "shuffled": 0.0,
+      "delta": 0.0
+    }
+  },
+  "evidence_level": {
+    "estimator": "C1_VALIDATED_SYNTHETIC_ONLY",
+    "neural_dynamics": "C3_PROSPECTIVE_OBSERVED",
+    "wave_mechanism": "NOT_CLAIMED",
+    "field_mediation": "NOT_CLAIMED",
+    "inferential_statistics": "DESCRIPTIVE_COUNTS_ONLY"
+  },
+  "interpretation_rules": [
+    "UNRESOLVED is not NO_WAVE",
+    "v_phase != v_c is not automatic failure",
+    "no_C3b_or_C5_followup_in_this_protocol",
+    "protocol_C_closed_at_C4"
+  ],
+  "protocol_c_closed": true,
+  "next_work": "0.4.17-D biological RBS (new protocol id for further wave science)"
+}

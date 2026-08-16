@@ -1,0 +1,14 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e0_1_protocol_receipt.v1",
+  "checkpoint": "E0.1",
+  "status": "FROZEN",
+  "protocol_id": "protocol_e_integration_v0417",
+  "milestone": "0.4.17-E",
+  "spec": "artifacts/protocol_e_integration/e0_1_implementation_ladder_spec.json",
+  "protocol_doc": "docs/protocols/protocol_e_integration.md",
+  "implementation_authorized": false,
+  "parent_head": "958993347163199b718a0274a06721d1d2f06bda",
+  "ladder": ["E1", "E2", "E3", "E4", "E5"],
+  "monotonicity": "E1 subset E2 subset E3 subset E4",
+  "next_checkpoint": "E1_implementation"
+}
