@@ -1,0 +1,191 @@
+{
+  "schema": "jaxfne.protocol_c.p2v_a3_receipt.v1",
+  "protocol_id": "protocol_c_p2v_a3",
+  "phase": "post-freeze reviewer-motivated validation",
+  "checkpoint": "A-3",
+  "status": "FROZEN",
+  "write_once": true,
+  "package_head": "c8b7705b6a6a1f21ff4caf123e76b576e5c7e3ec",
+  "spec_path": "artifacts/protocol_c/p2v_a3_hdp_boundedness/p2v_a3_spec.json",
+  "run_domain": "24-neuron C3 ring anchor, weight 6.0, tau 3.0, delay 4; 2000 ms; seeds 1001-1003; K_w_ctrl=0.0 (kernel default)",
+  "runs": [
+    {
+      "preset": "DEFAULT_HDP",
+      "seed": 1001,
+      "H_min_obs": 1.000000238418579,
+      "H_max_obs": 1.0008069276809692,
+      "w_min_obs": 6.0,
+      "w_max_obs": 6.0,
+      "w_abs_growth_ratio": 1.0,
+      "max_abs_v": 82.2665786743164,
+      "mean_spike_rate_hz": 0.0416666679084301,
+      "invariants": {
+        "H_within_0p1_to_10": true,
+        "w_within_0p01_to_10": true,
+        "v_within_m150_to_100": true,
+        "all_finite": true
+      },
+      "invariants_pass": true
+    },
+    {
+      "preset": "DEFAULT_HDP",
+      "seed": 1002,
+      "H_min_obs": 1.000000238418579,
+      "H_max_obs": 1.0008069276809692,
+      "w_min_obs": 6.0,
+      "w_max_obs": 6.0,
+      "w_abs_growth_ratio": 1.0,
+      "max_abs_v": 82.2665786743164,
+      "mean_spike_rate_hz": 0.0416666679084301,
+      "invariants": {
+        "H_within_0p1_to_10": true,
+        "w_within_0p01_to_10": true,
+        "v_within_m150_to_100": true,
+        "all_finite": true
+      },
+      "invariants_pass": true
+    },
+    {
+      "preset": "DEFAULT_HDP",
+      "seed": 1003,
+      "H_min_obs": 1.000000238418579,
+      "H_max_obs": 1.0008069276809692,
+      "w_min_obs": 6.0,
+      "w_max_obs": 6.0,
+      "w_abs_growth_ratio": 1.0,
+      "max_abs_v": 82.2665786743164,
+      "mean_spike_rate_hz": 0.0416666679084301,
+      "invariants": {
+        "H_within_0p1_to_10": true,
+        "w_within_0p01_to_10": true,
+        "v_within_m150_to_100": true,
+        "all_finite": true
+      },
+      "invariants_pass": true
+    },
+    {
+      "preset": "DEFAULT_HDP_DESYNC",
+      "seed": 1001,
+      "H_min_obs": 1.0000097751617432,
+      "H_max_obs": 1.0310019254684448,
+      "w_min_obs": 5.8692240715026855,
+      "w_max_obs": 6.168424606323242,
+      "w_abs_growth_ratio": 1.0000413656234741,
+      "max_abs_v": 82.2665786743164,
+      "mean_spike_rate_hz": 0.0416666679084301,
+      "invariants": {
+        "H_within_0p1_to_10": true,
+        "w_within_0p01_to_10": true,
+        "v_within_m150_to_100": true,
+        "all_finite": true
+      },
+      "invariants_pass": true
+    },
+    {
+      "preset": "DEFAULT_HDP_DESYNC",
+      "seed": 1002,
+      "H_min_obs": 1.0000097751617432,
+      "H_max_obs": 1.0310019254684448,
+      "w_min_obs": 5.8692240715026855,
+      "w_max_obs": 6.168424606323242,
+      "w_abs_growth_ratio": 1.0000413656234741,
+      "max_abs_v": 82.2665786743164,
+      "mean_spike_rate_hz": 0.0416666679084301,
+      "invariants": {
+        "H_within_0p1_to_10": true,
+        "w_within_0p01_to_10": true,
+        "v_within_m150_to_100": true,
+        "all_finite": true
+      },
+      "invariants_pass": true
+    },
+    {
+      "preset": "DEFAULT_HDP_DESYNC",
+      "seed": 1003,
+      "H_min_obs": 1.0000097751617432,
+      "H_max_obs": 1.0310019254684448,
+      "w_min_obs": 5.8692240715026855,
+      "w_max_obs": 6.168424606323242,
+      "w_abs_growth_ratio": 1.0000413656234741,
+      "max_abs_v": 82.2665786743164,
+      "mean_spike_rate_hz": 0.0416666679084301,
+      "invariants": {
+        "H_within_0p1_to_10": true,
+        "w_within_0p01_to_10": true,
+        "v_within_m150_to_100": true,
+        "all_finite": true
+      },
+      "invariants_pass": true
+    }
+  ],
+  "all_hard_bound_invariants_pass": true,
+  "scoped_statement": "trajectories remained bounded over the tested parameter and time domain (24-neuron ring, DEFAULT_HDP / DEFAULT_HDP_DESYNC, 2000 ms, seeds 1001-1003, K_w_ctrl=0.0): every state component stayed within its per-step hard bounds for every step",
+  "classification_reference": {
+    "C-HDP-1": {
+      "claim": "H_i is bounded (docs/doctrine/protocol_w_hdp_parameter_memory.md 'Q: ... bounded, physically sane dynamics?', stability doctrine)",
+      "classification": {
+        "class": "bounded_by_implementation",
+        "detail": "jnp.clip to [0.1, 10.0] every step, unconditional; additionally for K_ctrl > 0 the ODE has a two-sided restoring term (analytically bounded within the band); for K_ctrl = 0 and gamma = delta = 0 the drift is one-sided and only the clamp bounds it (consistently with the rho_sweep observation H pinned near H_max)"
+      },
+      "allowed_language": "H is hard-clamped to [H_min, H_max] = [0.1, 10.0] at every integration step regardless of parameters or inputs"
+    },
+    "C-HDP-2": {
+      "claim": "synaptic weights w are bounded",
+      "classification": {
+        "class": "bounded_by_implementation",
+        "detail": "every-step clip to [w_floor, w_ceiling]; with K_w_ctrl > 0 the continuous-time law additionally contracts toward wmag_baseline (analytically bounded given clamped H)"
+      },
+      "allowed_language": "|w| is hard-clamped to [w_floor, w_ceiling] at every integration step; with K_w_ctrl > 0 an additional restoring term pulls |w| toward its calibrated baseline"
+    },
+    "C-HDP-3": {
+      "claim": "DEFAULT_HDP with K_w_ctrl = 0.0 is safe with no weight-magnitude restoration",
+      "classification": {
+        "class": "not_established",
+        "detail": "per user direction, K_w_ctrl = 0.0 implies nothing about instability; the shipped-preset trials remain the verified domain (see C-HDP-5). Long-horizon drift behavior with K_w_ctrl = 0.0 is not established"
+      },
+      "allowed_language": "with the default K_w_ctrl = 0.0 the weight magnitude has no active restoration; boundedness across arbitrary long horizons was not established and is guaranteed only per-step by the [w_floor, w_ceiling] clamp"
+    },
+    "C-HDP-4": {
+      "claim": "reciprocal/restricting force: 'Exponential admissibility plus linear omega-restoration address positivity and zero-drive drift' (protocol_w_hdp_parameter_memory.md W1)",
+      "classification": {
+        "class": "analytically_bounded",
+        "detail": "architecture-level claim about the W0 exponential-parameterization (W = W0 * exp(omega)) with linear omega-restoration, distinct from the emitter clip-path; per w0_mathematical_contract.json",
+        "scope_in": "W0 exponential-omega architecture only; does not describe the emitter's clip-path w update"
+      },
+      "allowed_language": "in the W0 exponential-omega parameterization the restored omega stays bounded, keeping W = W0 exp(omega) in a bounded tube"
+    },
+    "C-HDP-5": {
+      "claim": "DEFAULT_HDP verified dynamics on its trial lengths ('Verified 5-seed stable (N=500, 2000ms)' etc., hdp_network.py notes; k_w_ctrl_sweep receipt)",
+      "classification": {
+        "class": "numerically_bounded_over_tested_domain",
+        "detail": "20s/5-seed gate note: H=1.0020+-0.0000, rate~10.8Hz, all seeds pass (K_ctrl active); k_w_ctrl sweep: all_finite, growth_ratio_mean 1.0265 (K_w_ctrl=0) / 1.0130 (1e-4) / 0.9980 (1e-3) over its window"
+      },
+      "allowed_language": "trajectories remained bounded over the tested parameter and time domain (see receipts); statements are scoped to those runs"
+    },
+    "C-HDP-6": {
+      "claim": "W3a active-loop instability bracket I_tonic in [8, 10] (artifacts/protocol_w/w3a_stability/w3a_stability_receipt.json)",
+      "classification": {
+        "class": "not_established",
+        "detail": "analysis-level (FROZEN_ANALYSIS), W3 kernel not authorized; margin audit (w3a_margin_audit.json) documented monodromy-period false positives; corrected regime rule in W3b. The bracket is a linearized-analysis finding with known methodology caveats, not a claim about the discrete kernel's per-step clamps"
+      },
+      "allowed_language": "a linearized closed-loop analysis of the W0/HDP slow dynamics flagged a stability margin crossing between I_tonic ~ 8 and 10 under nominal parameters; this analysis is not the discrete-time kernel, and the margin methodology has a documented audit caveat"
+    },
+    "C-HDP-7": {
+      "claim": "W3b parameter-domain map (FROZEN_UNRESOLVED)",
+      "classification": {
+        "class": "not_established",
+        "detail": "receipt status FROZEN_UNRESOLVED; the 2187-point characterization does not resolve which domain simultaneously permits active, bounded, nontrivial, robust HDP"
+      },
+      "allowed_language": "the parameter-domain map is unresolved; no active closed-loop stability claim rests on it"
+    },
+    "C-HDP-8": {
+      "claim": "v, u, syn state finiteness in the HDP kernel",
+      "classification": {
+        "class": "bounded_by_implementation",
+        "detail": "_bound_state clips all three every step; v additionally has the analytic reset structure (spike >= 30mV -> reset to c)"
+      },
+      "allowed_language": "v, u, syn are hard-bounded every step (v in [-150, 100] mV, |u| <= 2000, |syn| <= 1e4), so HDP runs cannot overflow or underflow in float32"
+    }
+  },
+  "no_tuning_observed": true
+}

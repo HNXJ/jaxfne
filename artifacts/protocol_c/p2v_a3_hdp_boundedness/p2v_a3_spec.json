@@ -1,0 +1,132 @@
+{
+  "schema": "jaxfne.protocol_c.p2v_a3_spec.v1",
+  "protocol_id": "protocol_c_p2v_a3",
+  "phase": "post-freeze reviewer-motivated validation",
+  "phase_label": "post-freeze_reviewer_motivated_validation",
+  "checkpoint": "A-3",
+  "status": "FROZEN_SPEC",
+  "write_once": true,
+  "parent_authorities": {
+    "hdp_kernel": "jaxfne/emitters.py simulate_edge_recurrent_izhikevich_hdp",
+    "hdp_presets": "jaxfne/hdp_network.py DEFAULT_HDP / DEFAULT_HDP_DESYNC / BASE_HDP_KWARGS_DEFAULT",
+    "k_w_ctrl_sweep": "artifacts/hdp_k_w_ctrl_sweep/summary.json",
+    "w0_contract": "artifacts/protocol_w/w0_mathematical_contract.json",
+    "w3a_receipt": "artifacts/protocol_w/w3a_stability/w3a_stability_receipt.json",
+    "w3b_receipt": "artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json",
+    "rho_sweep": "artifacts/hdp_v2_rho_sweep/",
+    "phase2_review": "artifacts/developer/phase2_review/04_hostile_nature_methods_review.md (M-4)"
+  },
+  "motivation": "Phase-2 review (M-4, K_w_ctrl) demanded a boundedness classification of every HDP state variable and every manuscript-facing HDP claim. The user direction: do NOT infer instability merely from K_w_ctrl=0.0; classify each claim into one of four classes (analytically bounded / bounded by implementation / numerically bounded over tested domain / not established); prospective domain definition plus a minimal run only; a scoped statement 'trajectories remained bounded over the tested parameter and time domain' is acceptable.",
+  "method": "classification from the live kernel equations and clip/invariant structure, plus one minimal prospective run over a predeclared domain; no parameter tuning, no inference of instability.",
+  "boundedness_classes": {
+    "analytically_bounded": "a mathematical bound holds for the continuous-time/idealized law without reliance on the implementation's clamping",
+    "bounded_by_implementation": "the discrete update clamps the variable at every step for all inputs (jnp.clip/invariants in jaxfne/emitters.py); no property of the ODE is needed",
+    "numerically_bounded_over_tested_domain": "finite and well-behaved over the specific parameter and time domain covered by recorded runs",
+    "not_established": "no claim of boundedness is supported at the stated level; absence of proof, not a claimed instability"
+  },
+  "kernel_facts": {
+    "per_step_clamps_source": "jaxfne/emitters.py simulate_edge_recurrent_izhikevich_hdp",
+    "H": "H_next = clip(H + dt/tau_i * dH, H_min=0.1, H_max=10.0); H_final additionally clipped after spike drain",
+    "w": "wmag_next = clip(wmag + dt*dw, w_floor, w_ceiling) then sign restored via exc_mask; w_floor=0.01, w_ceiling=10.0 in BASE_HDP_KWARGS_DEFAULT (kernel default ceiling 50.0)",
+    "v_u_syn": "_bound_state applies v in [-150, 100], |u| <= 2000, |syn| <= 1e4 at every step; spikes binary",
+    "dw_structure": "dw = +-K_HDP * rule_basis * wmag + K_w_ctrl * (wmag_baseline - wmag); rule_basis in {H_post-H_pre, (H_post-H_pre)|..|, H_pre*H_post} - bounded because H is clamped",
+    "dH_structure": "dH = alpha*syn + beta - gamma*H*spikes - delta*W_burden + rho_passive/H^2 + K_ctrl*(1-H) + barrier_force; barrier denominators floored at barrier_eps=1e-3; syn bounded by decay recursion syn_next = decay*syn + spikes[pre]"
+  },
+  "manuscript_facing_claims": {
+    "C-HDP-1": {
+      "claim": "H_i is bounded (docs/doctrine/protocol_w_hdp_parameter_memory.md 'Q: ... bounded, physically sane dynamics?', stability doctrine)",
+      "classification": {
+        "class": "bounded_by_implementation",
+        "detail": "jnp.clip to [0.1, 10.0] every step, unconditional; additionally for K_ctrl > 0 the ODE has a two-sided restoring term (analytically bounded within the band); for K_ctrl = 0 and gamma = delta = 0 the drift is one-sided and only the clamp bounds it (consistently with the rho_sweep observation H pinned near H_max)"
+      },
+      "allowed_language": "H is hard-clamped to [H_min, H_max] = [0.1, 10.0] at every integration step regardless of parameters or inputs"
+    },
+    "C-HDP-2": {
+      "claim": "synaptic weights w are bounded",
+      "classification": {
+        "class": "bounded_by_implementation",
+        "detail": "every-step clip to [w_floor, w_ceiling]; with K_w_ctrl > 0 the continuous-time law additionally contracts toward wmag_baseline (analytically bounded given clamped H)"
+      },
+      "allowed_language": "|w| is hard-clamped to [w_floor, w_ceiling] at every integration step; with K_w_ctrl > 0 an additional restoring term pulls |w| toward its calibrated baseline"
+    },
+    "C-HDP-3": {
+      "claim": "DEFAULT_HDP with K_w_ctrl = 0.0 is safe with no weight-magnitude restoration",
+      "classification": {
+        "class": "not_established",
+        "detail": "per user direction, K_w_ctrl = 0.0 implies nothing about instability; the shipped-preset trials remain the verified domain (see C-HDP-5). Long-horizon drift behavior with K_w_ctrl = 0.0 is not established"
+      },
+      "allowed_language": "with the default K_w_ctrl = 0.0 the weight magnitude has no active restoration; boundedness across arbitrary long horizons was not established and is guaranteed only per-step by the [w_floor, w_ceiling] clamp"
+    },
+    "C-HDP-4": {
+      "claim": "reciprocal/restricting force: 'Exponential admissibility plus linear omega-restoration address positivity and zero-drive drift' (protocol_w_hdp_parameter_memory.md W1)",
+      "classification": {
+        "class": "analytically_bounded",
+        "detail": "architecture-level claim about the W0 exponential-parameterization (W = W0 * exp(omega)) with linear omega-restoration, distinct from the emitter clip-path; per w0_mathematical_contract.json",
+        "scope_in": "W0 exponential-omega architecture only; does not describe the emitter's clip-path w update"
+      },
+      "allowed_language": "in the W0 exponential-omega parameterization the restored omega stays bounded, keeping W = W0 exp(omega) in a bounded tube"
+    },
+    "C-HDP-5": {
+      "claim": "DEFAULT_HDP verified dynamics on its trial lengths ('Verified 5-seed stable (N=500, 2000ms)' etc., hdp_network.py notes; k_w_ctrl_sweep receipt)",
+      "classification": {
+        "class": "numerically_bounded_over_tested_domain",
+        "detail": "20s/5-seed gate note: H=1.0020+-0.0000, rate~10.8Hz, all seeds pass (K_ctrl active); k_w_ctrl sweep: all_finite, growth_ratio_mean 1.0265 (K_w_ctrl=0) / 1.0130 (1e-4) / 0.9980 (1e-3) over its window"
+      },
+      "allowed_language": "trajectories remained bounded over the tested parameter and time domain (see receipts); statements are scoped to those runs"
+    },
+    "C-HDP-6": {
+      "claim": "W3a active-loop instability bracket I_tonic in [8, 10] (artifacts/protocol_w/w3a_stability/w3a_stability_receipt.json)",
+      "classification": {
+        "class": "not_established",
+        "detail": "analysis-level (FROZEN_ANALYSIS), W3 kernel not authorized; margin audit (w3a_margin_audit.json) documented monodromy-period false positives; corrected regime rule in W3b. The bracket is a linearized-analysis finding with known methodology caveats, not a claim about the discrete kernel's per-step clamps"
+      },
+      "allowed_language": "a linearized closed-loop analysis of the W0/HDP slow dynamics flagged a stability margin crossing between I_tonic ~ 8 and 10 under nominal parameters; this analysis is not the discrete-time kernel, and the margin methodology has a documented audit caveat"
+    },
+    "C-HDP-7": {
+      "claim": "W3b parameter-domain map (FROZEN_UNRESOLVED)",
+      "classification": {
+        "class": "not_established",
+        "detail": "receipt status FROZEN_UNRESOLVED; the 2187-point characterization does not resolve which domain simultaneously permits active, bounded, nontrivial, robust HDP"
+      },
+      "allowed_language": "the parameter-domain map is unresolved; no active closed-loop stability claim rests on it"
+    },
+    "C-HDP-8": {
+      "claim": "v, u, syn state finiteness in the HDP kernel",
+      "classification": {
+        "class": "bounded_by_implementation",
+        "detail": "_bound_state clips all three every step; v additionally has the analytic reset structure (spike >= 30mV -> reset to c)"
+      },
+      "allowed_language": "v, u, syn are hard-bounded every step (v in [-150, 100] mV, |u| <= 2000, |syn| <= 1e4), so HDP runs cannot overflow or underflow in float32"
+    }
+  },
+  "prospective_run": {
+    "domain": "predeclared, minimal: both shipped presets x 3 seeds on the frozen C3 ring construction",
+    "substrate": {
+      "topology": "24-neuron directed one-neighbor ring, edge_weight 6.0, syn_tau_ms 3.0, uniform delay 4 steps, ordered layout (bitwise-identical construction to the frozen C3 anchor)",
+      "duration_ms": 2000.0,
+      "dt_ms": 0.5,
+      "dtype": "float32",
+      "seeds": [1001, 1002, 1003],
+      "drive": "identical to C3: n0 pulse amplitude 50 at 200-201 ms, n6 pulse amplitude 45 at 800-801 ms",
+      "noise_scale": 0.0,
+      "key": "jax.random.PRNGKey(seed)"
+    },
+    "hdp_presets": {
+      "DEFAULT_HDP": "K_HDP=0.01, tau_0_ms=200.0, K_ctrl=5.0, rho_passive=0.0, barrier_c=0.01, barrier_d=0.01 (K_w_ctrl at kernel default 0.0)",
+      "DEFAULT_HDP_DESYNC": "K_HDP=0.01, tau_0_ms=5.0, K_ctrl=0.15, rho_passive=0.0, barrier_c=0.01, barrier_d=0.01, alpha=0.05, gamma=0.5, C_spike=0.0 (K_w_ctrl at kernel default 0.0)",
+      "base_kwargs": "BASE_HDP_KWARGS_DEFAULT: H_min=0.1, H_max=10.0, alpha=0.01, beta=0.0, gamma=0.0, delta=0.0, C_spike=0.0, barrier_eps=1e-3, w_floor=0.01, w_ceiling=10.0, H_boost_gain=4.0",
+      "rule": "hdp_rule=signed_linear, record_weight_trace=True"
+    },
+    "metrics": [
+      "all_finite",
+      "H min/max observed (invariant: within [0.1, 10.0])",
+      "|w| min/max observed (invariant: within [0.01, 10.0])",
+      "|w| growth ratio (final mean |w| / initial mean |w|)",
+      "max |v| (invariant: within [-150, 100])",
+      "mean spike rate Hz",
+      "v/u/syn clip invariants asserted"
+    ],
+    "output_statement": "scoped: 'trajectories remained bounded over the tested parameter and time domain (24-neuron ring, presets DEFAULT_HDP / DEFAULT_HDP_DESYNC, 2000 ms, seeds 1001-1003, K_w_ctrl=0.0): every state component stayed inside its per-step hard bounds for every step; observed |w| growth ratios are recorded'",
+    "no_tuning": "no parameter is swept or adjusted in A-3; the run is executed once on the frozen domain"
+  }
+}
