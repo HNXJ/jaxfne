@@ -17,29 +17,23 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+# The v0.3.42-era evidence scheme (8 main + 10 extended, figures/evidence)
+# was superseded by the publication figure set committed under
+# figures/publication/ (fig01..fig07 manuscript figures). Extended-data
+# figures are assigned during final Supplement assembly; none committed yet.
 MAIN_FIGURES = [
-    "fig01_tfne_architecture.png",
-    "fig02_source_field_contracts.png",
-    "fig03_jaxfne_backend.png",
-    "fig04_minimal_install_run.png",
-    "fig05_runtime_scaling.png",
-    "fig06_readout_family_panel.png",
-    "fig07_reproducibility_artifacts.png",
-    "fig08_adjacent_tools_comparison.png",
+    "fig01_tfne_grammar.png",
+    "fig02_emitter_source.png",
+    "fig03_local_observation.png",
+    "fig04_multiscale_boundary.png",
+    "fig05_traveling_wave_no_wave.png",
+    "fig06_rbs_hdp_ladder.png",
+    "fig07_e_integration.png",
 ]
 
-EXTENDED_DATA = [
-    "ed01_api_stability_snapshot.png",
-    "ed02_json_schema_validation.png",
-    "ed03_notebook_execution_receipts.png",
-    "ed04_optional_dependency_laziness.png",
-    "ed05_manifest_hashes.png",
-    "ed06_benchmark_scaling_tables.png",
-    "ed07_probe_operator_contracts.png",
-    "ed08_tutorial_atlas_coverage.png",
-    "ed09_failure_modes_and_nulls.png",
-    "ed10_release_archive_receipt.png",
-]
+EXTENDED_DATA: list[str] = []
+
+EXTENDED_DATA: list[str] = []
 
 INSPECT_DIRS = [
     "docs/evidence",
@@ -57,30 +51,21 @@ FIGURE_DIR_CANDIDATES = [
     "figures/publication",
 ]
 
+# Publication-figure receipts under artifacts/publication/ are the live
+# manifests for the committed figures (legacy outputs/evidence manifests no
+# longer exist in-tree).
 MANIFEST_PATHS = [
-    "outputs/evidence/inventory.json",
-    "outputs/evidence/fig01_tfne_architecture_manifest.json",
-    "outputs/evidence/fig02_source_field_contracts_manifest.json",
-    "outputs/evidence/fig03_jaxfne_backend_manifest.json",
-    "outputs/evidence/fig04_minimal_install_run_manifest.json",
-    "outputs/evidence/fig05_runtime_scaling_manifest.json",
-    "outputs/evidence/fig06_readout_family_panel_manifest.json",
-    "outputs/evidence/fig07_reproducibility_artifacts_manifest.json",
-    "outputs/evidence/fig08_adjacent_tools_comparison_manifest.json",
-    "outputs/evidence/ed01_api_stability_snapshot_manifest.json",
-    "outputs/evidence/ed02_json_schema_validation_manifest.json",
-    "outputs/evidence/ed03_notebook_execution_receipts_manifest.json",
-    "outputs/evidence/ed04_optional_dependency_laziness_manifest.json",
-    "outputs/evidence/ed05_manifest_hashes_manifest.json",
-    "outputs/evidence/ed06_benchmark_scaling_tables_manifest.json",
-    "outputs/evidence/ed07_probe_operator_contracts_manifest.json",
-    "outputs/evidence/ed08_tutorial_atlas_coverage_manifest.json",
-    "outputs/evidence/ed09_failure_modes_and_nulls_manifest.json",
-    "outputs/evidence/ed10_release_archive_receipt_manifest.json",
-    "docs/evidence/evidence_checklist.json",
+    "artifacts/publication/fig01_generation_receipt.json",
+    "artifacts/publication/fig02_generation_receipt.json",
+    "artifacts/publication/fig03_generation_receipt.json",
+    "artifacts/publication/fig04_generation_receipt.json",
+    "artifacts/publication/fig05_generation_receipt.json",
+    "artifacts/publication/fig06_generation_receipt.json",
+    "artifacts/publication/fig07_generation_receipt.json",
+    "artifacts/publication/figures_1_7_cross_figure_audit.json",
+    "artifacts/publication/publication_evidence_index.json",
+    "artifacts/publication/publication_claim_ledger.json",
     "docs/evidence_artifacts/evidence_checklist.json",
-    "outputs/v029_two_neuron_ei_multimodal/manifest.json",
-    "outputs/v0210_network_100_ei_multimodal/manifest.json",
 ]
 
 

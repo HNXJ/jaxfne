@@ -2,7 +2,7 @@ name: CI (Fast)
 
 on:
   push:
-    branches: [dev]
+    branches: [dev, main]
   pull_request:
     branches: [dev]
 
@@ -17,7 +17,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.12"]
+        # 3.10 dropped: the dev/viz extras pin scipy==1.17.1, which ships no
+        # cp310 wheels, so `pip install -e ".[dev,jaxley]"` cannot resolve on
+        # 3.10 (ResolutionImpossible, confirmed 2026-08-16 on every dev push).
+        # Executed/receipt environment is Python 3.13 (jax 0.10.1, scipy 1.17.1);
+        # 3.12 kept as the oldest actively wheel-supported line.
+        python-version: ["3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v7

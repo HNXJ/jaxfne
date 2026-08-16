@@ -49,6 +49,13 @@ exclude_docs: |
   guides/zenodo_doi.md
   notes/biophysical_model_comparison.md
   reference/glossary_of_methods.md
+  # Manuscript-in-progress working files (Publication phase): deliberately
+  # non-navigable on the public site -- delivery artifacts, not user docs.
+  publication/results_reconstruction/results_draft.md
+  publication/results_reconstruction/traceability_map.md
+  publication/results_reconstruction/methods_draft.md
+  publication/results_reconstruction/methods_traceability_map.md
+  publication/results_reconstruction/supplement_material.md
 
 theme:
   name: material
@@ -137,6 +144,26 @@ nav:
   - Études:
       - Overview: etudes/index.md
       - HDP controllability & reachability: etudes/hdp_controllability_reachability.md
+      - Experiment A: etudes/experiment_a.md
+      - Heterogeneous emitters: etudes/heterogeneous_emitters.md
+      - Multiscale observation: etudes/multiscale_observation.md
+
+  - Protocols & doctrine:
+      - C-series wave protocol: protocols/protocol_c_wave.md
+      - C-series wave evidence: doctrine/protocol_c_wave_evidence.md
+      - C3 neural protocol: protocols/protocol_c_c3_neural.md
+      - D-series biological RBS: protocols/protocol_d_biological_rbs.md
+      - E-series integration: protocols/protocol_e_integration.md
+      - RBS/HDP doctrine: doctrine/rbs_rbd_hdp.md
+      - RBS/HDP inventory: doctrine/rbs_rbd_hdp_inventory.md
+      - H1b H-to-X gain doctrine: doctrine/protocol_h_h1b_h_to_x_gain.md
+      - H-state memory doctrine: doctrine/protocol_h_rbd_memory.md
+      - W-series HDP parameter memory: doctrine/protocol_w_hdp_parameter_memory.md
+      - Containment architecture: doctrine/tfne_containment_architecture.md
+
+  - Publication:
+      - Evidence consolidation: publication/evidence_consolidation.md
+      - Figures 1-7 cross audit: publication/figures_1_7_cross_audit_summary.md
 
   - API:
       - Overview: api/index.md

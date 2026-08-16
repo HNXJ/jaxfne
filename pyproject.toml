@@ -118,6 +118,52 @@ select = ["E4", "E7", "E9", "F"]
 "jaxfne/emitters.py" = ["F401", "E402"]
 "jaxfne/paradigm.py" = ["E402"]
 "jaxfne/tutorial_utils.py" = ["E402"]
+#
+# 2026-08-16 additions (CI-green repair; dev was red only on the install
+# step for weeks, so the ruff gate never ran). Each finding was individually
+# verified INERT before adding -- not a blind blanket suppression, and no
+# executed module was edited:
+#  - Executed protocol modules are receipt-frozen: their module hashes are
+#    load-bearing (estimator SHA 684859a...; W3b frozen at 2187 rows; all
+#    protocol receipts record package_head). F401 unused imports and F841
+#    unused locals are side-effect-inert and behavior-neutral by definition;
+#    deleting them would change the hashes recorded in frozen receipts, so
+#    they are deferred to the post-publication cleanup with a dedicated
+#    audit. Verified per line before listing.
+#  - estimator.py F841 (min_coh): reads spec key "minimum_spatial_coherence"
+#    (0.55) which is never applied -- the coherence gate uses
+#    "coherence_traveling_threshold" (also 0.55), so the binding is a dead
+#    duplicate of the enforced threshold, behavior-inert. Module SHA
+#    re-registration would be required to remove it; deferred.
+#  - c3_protocol.py E714: `not x is False` is a Python-valid identity test
+#    on a bool from .get(); semantics identical to `x is not False`, inert.
+#  - w3b_parameter_domain.py F601 x8: the row-construction dict literal
+#    re-declares eight keys (I_tonic, Gamma_HDP, b_HW, L_HDP, mean_syn,
+#    m_F, regime, in_D_useful) whose second occurrence supersedes the first
+#    with identically-computed values (bins: 265-276 vs 285-294). Later-wins
+#    is the effective behavior; receipts capture the same values; flagged
+#    for simplification in the post-publication cleanup.
+#  - h3/h4 E741: ambiguous single-letter locals `l` in executed modules;
+#    renaming deferred for the same byte-identity reason.
+"jaxfne/experiment_a/canonical.py" = ["F401"]
+"jaxfne/experiment_a/receipt.py" = ["F401"]
+"jaxfne/h3_decodability.py" = ["E741"]
+"jaxfne/h4_matrix.py" = ["F401", "E741"]
+"jaxfne/protocol_c/c3_protocol.py" = ["E714"]
+"jaxfne/protocol_c/c4_interpretation.py" = ["F841"]
+"jaxfne/protocol_c/estimator.py" = ["F841"]
+"jaxfne/protocol_d_biological_rbs/d1_execution.py" = ["F841"]
+"jaxfne/protocol_d_biological_rbs/d2a_execution.py" = ["F841"]
+"jaxfne/protocol_d_biological_rbs/d2b_execution.py" = ["F401", "F841"]
+"jaxfne/protocol_d_biological_rbs/d3_interpretation.py" = ["F401"]
+"jaxfne/protocol_e_integration/e1_execution.py" = ["F401"]
+"jaxfne/protocol_e_integration/e2_execution.py" = ["F401"]
+"jaxfne/protocol_e_integration/e5_execution.py" = ["F401"]
+"jaxfne/publication/fig06_evidence.py" = ["F401"]
+"jaxfne/w1a_omega_plasticity.py" = ["F401"]
+"jaxfne/w1b_shadow_plasticity.py" = ["F841"]
+"jaxfne/w3a_stability_analysis.py" = ["F841"]
+"jaxfne/w3b_parameter_domain.py" = ["F601"]
 
 [tool.hatch.build.targets.wheel]
 only-packages = true
