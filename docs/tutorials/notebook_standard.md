@@ -121,7 +121,7 @@ The tutorial stack is:
 2. **02_two_neuron_ei** — Excitatory-inhibitory pair, recurrent coupling
 3. **03_network_100_ei** — Balanced network (100 neurons), population dynamics
 4. **04_v1_column** — Laminar V1 column (six layers), depth-specific readouts
-5. **05_v1_pfc_dual_column** — Two-column cross-area model, traveling waves
+5. **05_v1_pfc_dual_column** — Two-column cross-area model, trial-chained HDP carryover
 
 Each notebook teaches a progressively more complex workflow using the same source-to-field/readout framework.
 

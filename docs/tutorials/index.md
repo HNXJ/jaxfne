@@ -64,7 +64,7 @@ models to multi-area laminar circuits.
 
 | # | Topic | Focus |
 |---|-------|-------|
-| [**05**](05_v1_pfc_dual_column.md) | V1-PFC Dual Column | Cross-area interaction, traveling waves, trial-chained HDP carryover |
+| [**05**](05_v1_pfc_dual_column.md) | V1-PFC Dual Column | Cross-area interaction, trial-chained HDP carryover |
 | [**11**](11_multi_laminar_cortical_agsdr.md) | Multi-area Laminar Model | Per-event targeting, sequential oddball paradigm backbone |
 | [**12**](12_izhikevich_single_emitter_explorer.md) | TFNE-Izhikevich Explorer | Single-emitter parameter exploration |
 | [**13**](13_canonical_column_etude.md) | Canonical Cortical Column | Canonical 1000-neuron laminar column reference |
