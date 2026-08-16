@@ -3,16 +3,7 @@
   "schema_version": 3,
   "kind": "permanent",
   "title": "Progress (PRP verb node)",
-  "generated": {
-    "summary": "554 entries tracked, average score 92.0/100 (live from progress.json).",
-    "source_paths": [],
-    "links": [
-      {
-        "to": "labyrinth-jaxfne",
-        "relation": "refines"
-      }
-    ]
-  },
+  "generated": "2026-08-16T04:02:36.829064+00:00",
   "status": "verified",
   "notes": [
     {
@@ -174,6 +165,14 @@
       "source": "scratch/CURRENT_TASK.md, artifacts/publication/publication_claim_ledger.json, artifacts/publication/REVIEW_NAVIGATION.md",
       "confidence": "high",
       "detail": "Phase 1 (Evidence + Reproducibility) progress on dev@c6f6aaf prior: P1 H1-H3 RESOLVED via frozen H4 interpretation receipt (machinery-level SUPPORTED, P3 geometry NOT supported); P2 claim ledger built (21 claims, 9 tests green); P4 version ambiguity resolved (0.4.16 package vs 0.4.17 milestone); P3 validator-churn defect CLOSED this session: write_json_strict now frozen-manifest aware (metadata-only drift = no-op, content drift = hard error) - all 7 generator mains + pytest suite terminate with clean tree; Pillow declared in viz extra; canonical npz regen verified deterministic vs committed B1 hashes (5/5 arrays match); P5 classification embedded as statistics_classification registry in ledger. Gates green: integrity, docs-language, mkdocs strict, ruff, 33 fig/evidence tests, 34 smoke tests, equivalence 4/4 (8.5min)."
+    },
+    {
+      "id": "note-phase2-cleanroom-seal-2026-08-15",
+      "kind": "progress_entry",
+      "date": "2026-08-15",
+      "source": "artifacts/developer/phase2_review/*.md, scratch/cleanroom_repro_receipt_v2.json, pyproject.toml, artifacts/publication/publication_claim_ledger.json",
+      "confidence": "high",
+      "detail": "Clean-room seal PASSED @ dev@7d776cb (15/15 stages, fresh clone+venv, byte-identical 7/7 figs, 28/28 frozen SHAs, tree clean, HEAD==origin/dev). Two env-drift vectors found and pinned: matplotlib>=3.10.9,<3.11 (text rendering bytes; f51011b) and scipy==1.17.1 (fig05 estimator numerics; e6a3266); numpy/jax/pandas exonerated by bisection. Receipt.scratch/cleanroom_repro_receipt_v2.json. Experiment-A receipt runner made verification-first (802583e). S_repository=100/100 measured post-falsification; S_NatureMethods re-measured on a NEW 20-dim rubric instantiated 2026-08-15 = 87/100 pre-Results. Phase-2 adversarial review (4 fronts) done; actions: MUST-BEFORE-RESULTS A-1 C3 positive control (distance-dependent delays), A-2 detector power surface, A-3 HDP boundedness, A-4 carved Results language; Results authorization CONDITIONAL on A-1..A-4."
     }
   ],
   "issues": [],
