@@ -1,0 +1,318 @@
+{
+  "checkpoint": "publication_results_reconstruction",
+  "checks": [
+    {
+      "check": "draft_paragraph_ids",
+      "detail": "found [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]",
+      "passed": true
+    },
+    {
+      "check": "q_markers_bare",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "claim_refs_present",
+      "detail": "30 claim refs",
+      "passed": true
+    },
+    {
+      "check": "Q01",
+      "detail": "expect: hash(Q_Fig2) = hash(Q_Fig3) = hash(Q_Fig4)",
+      "passed": true
+    },
+    {
+      "check": "Q02",
+      "detail": "expect: 48 positive cases, all detected",
+      "passed": true
+    },
+    {
+      "check": "Q03",
+      "detail": "expect: zero frequency error",
+      "passed": true
+    },
+    {
+      "check": "Q04",
+      "detail": "expect: wave-number error <= 0.00831 relative",
+      "passed": true
+    },
+    {
+      "check": "Q05",
+      "detail": "expect: zero direction error",
+      "passed": true
+    },
+    {
+      "check": "Q06",
+      "detail": "expect: velocity error <= 0.00824 relative",
+      "passed": true
+    },
+    {
+      "check": "Q07",
+      "detail": "expect: 5/5 negatives rejected",
+      "passed": true
+    },
+    {
+      "check": "Q08",
+      "detail": "expect: freq [8.5,12.5] Hz; velocity [53.407, 39.27] mm/s",
+      "passed": true
+    },
+    {
+      "check": "Q09",
+      "detail": "expect: 60 cells; delay 4 uniform",
+      "passed": true
+    },
+    {
+      "check": "Q10",
+      "detail": "expect: 60/60 NO_WAVE; 52/4/4 quality mix",
+      "passed": true
+    },
+    {
+      "check": "Q11",
+      "detail": "expect: 15 points x 3 seeds = 45 cells",
+      "passed": true
+    },
+    {
+      "check": "Q12",
+      "detail": "expect: 45/45 NO_WAVE, 0 invalid",
+      "passed": true
+    },
+    {
+      "check": "Q13",
+      "detail": "expect: NO_POSITIVE_DOMAIN_IN_TESTED_RANGE",
+      "passed": true
+    },
+    {
+      "check": "Q14",
+      "detail": "expect: anchor vc0.131_k1 bitwise 3 seeds",
+      "passed": true
+    },
+    {
+      "check": "Q15",
+      "detail": "expect: reasons 27/11/7; 2 spiking neurons max 0.5 Hz; no adaptive extension",
+      "passed": true
+    },
+    {
+      "check": "Q16",
+      "detail": "expect: S1 40 cases",
+      "passed": true
+    },
+    {
+      "check": "Q17",
+      "detail": "expect: gamma* = 1.0 on 3 cells x 2 phases",
+      "passed": true
+    },
+    {
+      "check": "Q18",
+      "detail": "expect: S3 12 cases; 6-site parity (NO_WAVE at 500/2000 ms)",
+      "passed": true
+    },
+    {
+      "check": "Q19",
+      "detail": "expect: M_X 0.0/0.0521/0.0/0.0; alpha_length 0.0",
+      "passed": true
+    },
+    {
+      "check": "Q20",
+      "detail": "expect: D 9/9 attenuation 0/9 formal; counts 9/9/9 vs 9; D-N2 0.2857 vs 0.2857",
+      "passed": true
+    },
+    {
+      "check": "Q21",
+      "detail": "expect: 2187 lattice; D=243 S=0 C=0 U=0 X=1944; N_S=0",
+      "passed": true
+    },
+    {
+      "check": "Q22",
+      "detail": "expect: H/w ranges + growth ratios + invariants",
+      "passed": true
+    },
+    {
+      "check": "Q23",
+      "detail": "expect: Fig7E bit-exact (N0==N1 V_m/spikes/Q)",
+      "passed": true
+    },
+    {
+      "check": "Q24",
+      "detail": "expect: 9 trajectories; gates; 3/3 HIERARCHICAL_PROPAGATION",
+      "passed": true
+    },
+    {
+      "check": "Q25",
+      "detail": "expect: 36 cells x 4 arms",
+      "passed": true
+    },
+    {
+      "check": "Q26",
+      "detail": "expect: equivalence gate 7/7 byte-sha-equal",
+      "passed": true
+    },
+    {
+      "check": "Q27",
+      "detail": "expect: 7/7 receipt SHAs match shipped figures",
+      "passed": true
+    },
+    {
+      "check": "Q28",
+      "detail": "expect: pins in pyproject.toml",
+      "passed": true
+    },
+    {
+      "check": "q_markers_all_in_table",
+      "detail": "unused in table: []; in draft but not table: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:empirical\\s+(result|quantity|claim)",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:physical\\s+(amplitude\\s+)?calibrat\\w+",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:\\bcortex\\b|\\bcortical\\b|\\bin\\s+vivo\\b",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:validated\\b",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:\\bmemory\\b",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:extend(s|ed|ing)?\\s+memory\\b",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:recurrent\\s+(geometry|delays).{0,40}memory",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:cognitive\\b|\\bcognition\\b|predictive\\s+(coding|processing)",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:\\badaptation\\b",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:\\bfatigue\\b",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:feedback\\s+(suppresses|enhances|modulat\\w+)",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:closed[- ]?loop",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:robust[- ]?active",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:\\bstability\\b",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:plasticity\\b",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:byte[- ]?for[- ]?byte",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:new\\s+(biological\\s+)?mechanism\\b",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:new[- ]?neuron[- ]?type\\b",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:length\\s+has\\s+no\\s+effect\\b",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:no\\s+traveling\\s+wave\\w*",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:demonstrated\\s+(closed[- ]?loop|feedback)",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "forbidden:spike\\s+(rate\\s+|count\\s+)?attenuation\\b",
+      "detail": "hits: []",
+      "passed": true
+    },
+    {
+      "check": "P14_has_NO_ADAPTATION",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "P15_has_remains_open",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "P12_has_no_positive_effect",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "P13_has_not_demonstrated",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "P18_has_no_closed_loop",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "P19_no_band_claim",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "P9_tested_regime_wording",
+      "detail": "",
+      "passed": true
+    }
+  ],
+  "draft": "docs/publication/results_reconstruction/results_draft.md",
+  "failures": [],
+  "n_checks": 61,
+  "n_failed": 0,
+  "schema": "jaxfne.publication.results_audit_receipt.v1",
+  "status": "PASS",
+  "traceability_map": "docs/publication/results_reconstruction/traceability_map.md",
+  "write_once": true
+}
