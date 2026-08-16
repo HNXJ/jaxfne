@@ -27,6 +27,7 @@ from matplotlib.patches import FancyArrowPatch
 
 from _pub_figure_common import (
     ensure_publication_dirs,
+    figures_match_records,
     repo_root,
     repo_sha,
     save_matplotlib_figure,
@@ -348,6 +349,13 @@ def main() -> int:
     spec = json.loads(SPEC_PATH.read_text())
     dirs = ensure_publication_dirs()
     out_path = dirs["figures"] / FIGURE_NAME
+
+    if figures_match_records(
+        [(out_path, dirs["artifacts"] / "fig05_semantic_audit.json")]
+    ):
+        print("fig05: committed figure byte-matches semantic audit; skipping re-render")
+        return 0
+
     meta = draw_figure(out_path, spec)
     figure_sha = sha256_file(out_path)
     repo_head = repo_sha()

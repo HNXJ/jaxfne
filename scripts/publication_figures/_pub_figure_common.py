@@ -37,6 +37,33 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def figures_match_records(pairs: list[tuple[Path, Path]]) -> bool:
+    """Reuse gate for committed figures.
+
+    PNG rendering is not cross-platform byte-deterministic (font/library
+    backends differ between CI hosts), so a generator must NOT re-render a
+    committed figure whose bytes still match the sha256 recorded in its
+    semantic audit or generation receipt: re-rendering would change the
+    recorded figure_sha256 and trip the write-once guard in
+    write_json_strict on CI. Returns True only when every (figure, record)
+    pair exists on disk and byte-matches. A missing record or mismatch
+    falls through to full regeneration (the write-once guard then protects
+    the frozen record as before).
+    """
+    for figure_path, record_path in pairs:
+        if not figure_path.is_file() or not record_path.is_file():
+            return False
+        try:
+            recorded = json.loads(record_path.read_text(encoding="utf-8")).get(
+                "figure_sha256"
+            )
+        except Exception:
+            return False
+        if not recorded or sha256_file(figure_path) != recorded:
+            return False
+    return True
+
+
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 

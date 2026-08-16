@@ -27,6 +27,7 @@ from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 from _pub_figure_common import (
     ensure_publication_dirs,
+    figures_match_records,
     repo_root,
     repo_sha,
     save_matplotlib_figure,
@@ -382,6 +383,11 @@ def main() -> int:
 
     dirs = ensure_publication_dirs()
     out_path = dirs["figures"] / FIGURE_NAME
+
+    if figures_match_records([(out_path, dirs["artifacts"] / "fig06_semantic_audit.json")]):
+        print(f"fig06: committed figure byte-matches semantic audit; skipping re-render")
+        return 0
+
     fig = build_figure(ev, mx, h3_curves, counts, d3_counts)
     save_matplotlib_figure(fig, out_path, dpi=200)
 

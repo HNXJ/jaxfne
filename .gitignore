@@ -48,6 +48,11 @@ test_execution_output/
 *.npy
 *.npz
 
+# Exception: the frozen experiment-A canonical source (b1 canonical receipt
+# freezes its hash; figures 2-4 and their receipts depend on it, so fresh
+# checkouts/CI must not regenerate it on the fly).
+!artifacts/etudes/experiment_a/canonical_source.npz
+
 # Agent local state
 .claude/
 

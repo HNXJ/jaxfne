@@ -35,6 +35,7 @@ from _experiment_a_frozen import (
 )
 from _pub_figure_common import (
     ensure_publication_dirs,
+    figures_match_records,
     repo_root,
     repo_sha,
     save_matplotlib_figure,
@@ -455,6 +456,17 @@ def main() -> int:
 
     spec = _load_spec()
     dirs = ensure_publication_dirs()
+
+    if figures_match_records(
+        [
+            (dirs["figures"] / FIG02_PATH, dirs["artifacts"] / "fig02_generation_receipt.json"),
+            (dirs["figures"] / FIG03_PATH, dirs["artifacts"] / "fig03_generation_receipt.json"),
+            (dirs["figures"] / FIG04_PATH, dirs["artifacts"] / "fig04_generation_receipt.json"),
+        ]
+    ):
+        print("fig02-04: committed figures byte-match generation receipts; skipping re-render")
+        return 0
+
     bundle = load_experiment_a_bundle()
     repo_head = repo_sha()
 
