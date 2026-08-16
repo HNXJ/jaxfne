@@ -49,7 +49,12 @@ with `schema: jaxfne.harness.seam_equivalence.v1`. Frozen evidence baseline:
 
 Environment: install jaxfne from source with the figure stack declared in
 `pyproject.toml` (Pillow is used directly by the equivalence gate and figure
-generators; `jaxfne[viz]` carries the imaging/plot stack). The canonical
+generators; `jaxfne[viz]` carries the imaging/plot stack). The frozen figure
+set was rendered with `matplotlib>=3.10.9,<3.11` and `scipy==1.17.1`, and both
+are pinned in the `viz`/`dev` extras: matplotlib version changes alter text
+rendering bytes, and scipy 1.18 changes the fig05 estimator numerics that feed
+its drawn annotations — either pin drift makes the equivalence gate fail on
+byte-identity (verified by clean-room bisection, 2026-08-15). The canonical
 Experiment A dataset (`canonical_source.npz`, `observations.npz`) is a
 deliberately gitignored derived artifact — arrays are never committed, only
 their SHA-256 hashes (`artifacts/etudes/experiment_a/b1_canonical_receipt.json`,
