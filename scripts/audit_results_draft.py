@@ -46,19 +46,18 @@ def check(name: str, ok: bool, detail: str = ""):
 # ---------------------------------------------------------------- 1. structure
 
 draft = DRAFT.read_text()
-pids = re.findall(r"\[P(\d+)\]", draft)
-pids = sorted({int(x) for x in pids})
-check("draft_paragraph_ids", pids == sorted(range(1, max(pids) + 1)),
-      f"found {pids}")
+all_heads = re.findall(r"^## (.+)$", draft, flags=re.M)
+heads = [h for h in all_heads if not h.startswith("Appendix")]
+check("draft_paragraph_ids", len(heads) == 20,
+      f"{len(heads)} sections: {heads}")
 
 qin_draft = set(m[1:-1] for m in re.findall(r"\{Q\d{2}\}", draft))
 check("q_markers_bare", True, "")
-for pid in pids:
-    if not re.search(rf"\[P{pid}\]", draft):
-        check(f"P{pid}_present", False)
 
-claimed = re.findall(r"\{CL-\d+", draft)
-check("claim_refs_present", len(claimed) >= 21, f"{len(claimed)} claim refs")
+map_text = TRACE.read_text()
+claimed = re.findall(r"\| CL-(\d{2}) \|", map_text)
+check("claim_refs_present", len(claimed) >= 21,
+      f"{len(claimed)} claim rows in trace map")
 
 # ---------------------------------------------------------------- 2. Q-table
 
@@ -217,6 +216,17 @@ def q_table() -> dict[str, dict]:
                 and _alpha_length(r) == 0.0
             ),
         },
+        # --- H4 supplementary factorial estimates
+        "Q29": {
+            "expect": "alpha_heterogeneity +0.0521, alpha_interaction -0.0521, mu 0.0",
+            "load": lambda: load(ROOT / "artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json"),
+            "cmp": lambda r, _e: (
+                r["factorial_estimates"]["mu"] == 0.0
+                and r["factorial_estimates"]["alpha_length"] == 0.0
+                and abs(r["factorial_estimates"]["alpha_heterogeneity"] - 0.05208333333333385) < 1e-6
+                and abs(r["factorial_estimates"]["alpha_interaction"] + 0.05208333333333385) < 1e-6
+            ),
+        },
         # --- D3
         "Q20": {
             "expect": "D 9/9 attenuation 0/9 formal; counts 9/9/9 vs 9; D-N2 0.2857 vs 0.2857",
@@ -275,6 +285,12 @@ def q_table() -> dict[str, dict]:
                 and r["quality_gates"]["G7_classification_applied"]["per_seed"]
                 == ["HIERARCHICAL_PROPAGATION"] * 3
             ),
+        },
+        # --- E5 propagation magnitudes
+        "Q30": {
+            "expect": "G3: owner 9.263/7, A2 non-owner 2.430/0, A1 3.162/9; gates G_O..G_Y; d Y; seeds equal",
+            "load": lambda: load(ROOT / "artifacts/protocol_e_integration/e5_execution_receipt.json"),
+            "cmp": lambda r, _e: _e5_g3(r),
         },
         # --- provenance / reproducibility
         "Q27": {
@@ -386,6 +402,28 @@ def _e5_sanity(r) -> bool:
     )
 
 
+def _e5_g3(r) -> bool:
+    per_seed = r["quality_gates"]["G3_owner_contrast_measurable"]["per_seed"]
+    if len(per_seed) != 3:
+        return False
+    ref = per_seed[0]["Delta_R"]
+    want = (
+        abs(ref["Delta_X_owner"]["mean_abs_V_m_deviation"] - 9.26337202181135) < 1e-3
+        and ref["Delta_X_owner"]["spike_count_difference"] == 7.0
+        and abs(ref["Delta_X_A2_nonowner"]["mean_abs_V_m_deviation"] - 2.429512501890009) < 1e-3
+        and ref["Delta_X_A2_nonowner"]["spike_count_difference"] == 0.0
+        and abs(ref["Delta_X_A1"]["mean_abs_V_m_deviation"] - 3.161658702468872) < 1e-3
+        and ref["Delta_X_A1"]["spike_count_difference"] == 9.0
+    )
+    gates = per_seed[0]["evidence_gates"]
+    want = want and gates["d_propagation"] == "Y" and all(gates[k] for k in
+                                                           ("G_O", "G_A2", "G_A1", "G_Q", "G_Y"))
+    for s in per_seed[1:]:
+        if s["Delta_R"] != ref or s["evidence_gates"] != gates:
+            return False
+    return want
+
+
 def _figure_hashes_match() -> bool:
     import hashlib
     ok = True
@@ -437,18 +475,17 @@ FORBIDDEN = [
     (r"plasticity\b", [17], r"no\s+HDP"),
     (r"byte[- ]?for[- ]?byte", [20], r"no\s+claim"),
     (r"new\s+(biological\s+)?mechanism\b", [], r"adds?\s+no\s+new"),
-    (r"new[- ]?neuron[- ]?type\b", [], r"adds?\s+no\s+new"),
+    (r"new[- ]?neuron[- ]?type\b", [], r"no\s+new"),
     (r"length\s+has\s+no\s+effect\b", [], None),
     (r"no\s+traveling\s+wave\w*", [6, 9], r"NO_WAVE"),
     (r"demonstrated\s+(closed[- ]?loop|feedback)", [], r"not\s+demonstrated"),
     (r"spike\s+(rate\s+|count\s+)?attenuation\b", [14], None),
 ]
 
-paras = re.split(r"\*\*\[P(\d+)\]", draft)
-# paras: ['', '1', text1, '2', text2, ...]
-paras_by_id: dict[int, str] = {}
-for j in range(1, len(paras), 2):
-    paras_by_id[int(paras[j])] = paras[j + 1]
+parts = re.split(r"^## ", draft, flags=re.M)
+paras_all = parts[1:] if parts else []
+paras_all = [s for s in paras_all if not s.startswith("Appendix")]
+paras_by_id: dict[int, str] = {i: paras_all[i - 1] for i in range(1, 21)}
 
 for pattern, allowed, allow_if in FORBIDDEN:
     hits = []
@@ -465,11 +502,13 @@ for pattern, allowed, allow_if in FORBIDDEN:
 sanity_checks = [
     ("P14_has_NO_ADAPTATION", "NO_ADAPTATION" in paras_by_id[14]),
     ("P15_has_remains_open", "remains open" in paras_by_id[15]),
+    ("P15_has_dormant_gloss", bool(re.search(r"dormant/vanishing\s+feedback", paras_by_id[15]))),
     ("P12_has_no_positive_effect", bool(re.search(r"no\s+positive\s+effect", paras_by_id[12]))),
-    ("P13_has_not_demonstrated", "not\ndemonstrated" in paras_by_id[13]
-     or "not demonstrated" in paras_by_id[13]),
-    ("P18_has_no_closed_loop", "no closed loop" in paras_by_id[18]),
+    ("P13_has_not_demonstrated", "not demonstrated" in paras_by_id[13]),
+    ("P18_never_feed_back", "never feed back" in paras_by_id[18]),
     ("P19_no_band_claim", "suppresses" not in paras_by_id[19] and "enhances" not in paras_by_id[19]),
+    ("P7_has_near_silent_consequence", "near-silent activity" in paras_by_id[7]),
+    ("P8_has_tested_grid_wording", bool(re.search(r"Of the 40\s+tested\s+amplitude/noise\s+cases", paras_by_id[8]))),
     ("P9_tested_regime_wording", "tested" in paras_by_id[9] and "preregistered" in paras_by_id[9]),
 ]
 for name, ok in sanity_checks:

@@ -1,7 +1,12 @@
 # Results draft — evidence traceability map
 
-Checkpoint `publication_results_reconstruction` · baseline `dev@e91582ec` ·
-audited by `scripts/audit_results_draft.py`.
+Checkpoint `publication_results_reconstruction` · baseline `dev@f30c2d5` (revised
+`dev@<post-4R>`) · audited by `scripts/audit_results_draft.py`.
+
+Paragraph labels P1–P20 correspond to the twenty `##` sections of
+`results_draft.md` in order (titles below). All Q markers are inline in the prose;
+claim tags `{CL-xx}` and receipt paths were removed from the prose in the 4R
+revision and are carried exclusively by this map.
 
 ## Sentence/paragraph-level trace
 
@@ -64,6 +69,7 @@ Quantitative markers (post-freeze validation, reported separately):
 | Q | Value quoted | Source |
 |---|---|---|
 | Q19 | M_X 0.0 / 0.0521 / 0.0 / 0.0; α_length = 0.0 | `h4_interpretation_receipt.json` `primary_endpoint_results` / `factorial_estimates` |
+| Q29 | α_heterogeneity = +0.0521; α_interaction = −0.0521 (cancellation) | `h4_interpretation_receipt.json` `factorial_estimates` (mu 0.0, alpha_length 0.0) |
 | Q20 | D: 9/9 attenuation, 0/9 formal; counts 9/9/9 vs 9; D−N2 0.2857 vs 0.2857 | `d3_interpretation_receipt.json` `questions.Q1_mechanism`, `classification_counts_all_arms`, `primary_contrast_D_minus_N2` |
 | Q25 | 36 cells × 4 arms | `d3_execution_receipt.json` `n_cells` |
 | Q21 | 2187 lattice; D=243, S=0, C=0, U=0, X=1944; N_S=0 | `w3b_domain_receipt.json` `regime_counts` / `aggregate_quantities` |
@@ -83,6 +89,7 @@ Quantitative markers (post-freeze validation, reported separately):
 | Q | Value quoted | Source |
 |---|---|---|
 | Q24 | 9 trajectories; N0≡N1 bit-exact (V_m, spikes, Q) 3/3; G1 H_K(N1)≡H_K(D) 3/3; G7 per-seed ×3 | `e5_execution_receipt.json` `design.trajectory_count`, `sanity_checks`, `quality_gates` |
+| Q30 | owner 9.263 mV / +7 spikes; A2 non-owner 2.430 mV / 0; A1 3.162 mV / +9; gates G_O..G_Y true, d_propagation Y, identical seeds 11-13 | `e5_execution_receipt.json` `quality_gates.G3_owner_contrast_measurable.per_seed` |
 | Q23 | — (same evidence as Q24; used for the Fig. 7E bit-exact sentence) | as above |
 
 ### [P20] Provenance — `{CL-20, CL-21}`

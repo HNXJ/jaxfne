@@ -3,7 +3,7 @@
   "checks": [
     {
       "check": "draft_paragraph_ids",
-      "detail": "found [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]",
+      "detail": "20 sections: ['One object grammar', 'One frozen canonical source', 'Relative computational readouts', 'A validated traveling-wave estimator', 'Estimator recovery bounds (secondary registered validation)', 'Preregistered null coverage of ring regimes', 'Predeclared dynamic search (secondary registered validation)', 'Estimator sensitivity floor (secondary registered validation)', 'No traveling waves in the tested regimes', 'Typed vector RBS extends the classical emitter', 'State writing and expression', 'H4: no positive length effect on decoded state memory', 'Expression through a written parameter', 'D3: observable spike attenuation without formal adaptation', 'W3b: the active stability region remains unresolved', 'Boundedness of the tested HDP trajectories (secondary registered validation)', 'Hierarchy, delays, and local RBS compose', 'Observations are downstream', 'Causal disablement and propagation', 'Provenance and reproducibility']",
       "passed": true
     },
     {
@@ -13,7 +13,7 @@
     },
     {
       "check": "claim_refs_present",
-      "detail": "30 claim refs",
+      "detail": "36 claim rows in trace map",
       "passed": true
     },
     {
@@ -157,6 +157,16 @@
       "passed": true
     },
     {
+      "check": "Q29",
+      "detail": "expect: alpha_heterogeneity +0.0521, alpha_interaction -0.0521, mu 0.0",
+      "passed": true
+    },
+    {
+      "check": "Q30",
+      "detail": "expect: G3: owner 9.263/7, A2 non-owner 2.430/0, A1 3.162/9; gates G_O..G_Y; d Y; seeds equal",
+      "passed": true
+    },
+    {
       "check": "q_markers_all_in_table",
       "detail": "unused in table: []; in draft but not table: []",
       "passed": true
@@ -282,6 +292,11 @@
       "passed": true
     },
     {
+      "check": "P15_has_dormant_gloss",
+      "detail": "",
+      "passed": true
+    },
+    {
       "check": "P12_has_no_positive_effect",
       "detail": "",
       "passed": true
@@ -292,12 +307,22 @@
       "passed": true
     },
     {
-      "check": "P18_has_no_closed_loop",
+      "check": "P18_never_feed_back",
       "detail": "",
       "passed": true
     },
     {
       "check": "P19_no_band_claim",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "P7_has_near_silent_consequence",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "P8_has_tested_grid_wording",
       "detail": "",
       "passed": true
     },
@@ -309,7 +334,7 @@
   ],
   "draft": "docs/publication/results_reconstruction/results_draft.md",
   "failures": [],
-  "n_checks": 61,
+  "n_checks": 66,
   "n_failed": 0,
   "schema": "jaxfne.publication.results_audit_receipt.v1",
   "status": "PASS",
