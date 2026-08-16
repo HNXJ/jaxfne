@@ -60,9 +60,18 @@ def _bandpass_rows(phi: np.ndarray, fs_hz: float, band: tuple[float, float]) -> 
 
 
 def _estimate_frequency_hz(phi_bp: np.ndarray, fs_hz: float, band: tuple[float, float]) -> float:
-    mean_trace = np.mean(phi_bp, axis=1)
-    freqs = np.fft.rfftfreq(mean_trace.shape[0], d=1.0 / fs_hz)
-    spec = np.abs(np.fft.rfft(mean_trace))
+    """Dominant in-band frequency from summed site spectral power.
+
+    P2V repair (A-1a, 2026-08-15): the prior implementation argmaxed the
+    power spectrum of the spatial mean trace. On cyclic geometries (the C3
+    ring) integer spatial modes have vanishing spatial mean, so the mean
+    trace is ~0 and the argmax returns a degenerate bin, corrupting f_hat
+    and every downstream quantity. Summed site power (total spectral power)
+    is identical to the mean-trace spectrum for synchronous fields (all
+    sites in phase) and remains well-defined for cancelling ring modes.
+    """
+    freqs = np.fft.rfftfreq(phi_bp.shape[0], d=1.0 / fs_hz)
+    spec = np.sum(np.abs(np.fft.rfft(phi_bp, axis=0)) ** 2, axis=1)
     mask = (freqs >= band[0]) & (freqs <= band[1])
     if not np.any(mask):
         return float("nan")

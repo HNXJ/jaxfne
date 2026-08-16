@@ -1,0 +1,2573 @@
+{
+  "schema": "jaxfne.protocol_c.p2v_a1a_receipt.v1",
+  "protocol_id": "protocol_c_p2v_a1a",
+  "phase": "post-freeze_reviewer_motivated_validation",
+  "checkpoint": "A-1a",
+  "status": "FROZEN",
+  "write_once": true,
+  "package_head": "1b6a0af75d0440c10f8206100ce10ec3383f8003",
+  "spec_path": "artifacts/protocol_c/p2v_a1a_synthetic_control/p2v_a1a_spec.json",
+  "separation": "estimator-only; no neural simulation; not evidence of wave generation",
+  "geometry": {
+    "n_neurons": 24,
+    "ring_radius_mm": 1.0,
+    "coordinates": "ordered_arc_length_shape(N,1)"
+  },
+  "estimator_source": "artifacts/protocol_c/c0_wave_protocol_spec.json preregistered_estimator_parameters",
+  "n_positive_cases": 48,
+  "n_negative_cases": 5,
+  "recovery_tolerances": {
+    "relative_frequency_error": 0.05,
+    "absolute_frequency_error_hz": 0.5,
+    "relative_k_norm_error": 0.1,
+    "direction_deg_error": 15.0,
+    "relative_velocity_error": 0.1,
+    "phase_fit_r2_min": 0.6,
+    "spatial_coherence_min": 0.55
+  },
+  "summary": {
+    "all_positives_pass": true,
+    "all_negatives_pass": true,
+    "a1a_pass": true,
+    "frequency_range_recovered": [
+      8.5,
+      12.5
+    ],
+    "velocity_range_recovered_mm_per_s": [
+      53.407,
+      39.27
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "pos_f8.5_m1_s1_p0_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": 1.0,
+        "mode": 1,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 53.40707511102649
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -1.0007693749143163
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 53.36601663654934,
+        "phase_fit_r2": 0.9998494728943086,
+        "spatial_coherence": 0.9951694926133061,
+        "null_score": 0.004830507386693883,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0007693749143155092,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0007687834316294395
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m1_s1_p0_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": 1.0,
+        "mode": 1,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 53.40707511102649
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -1.0064613957012285
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 53.06420627670111,
+        "phase_fit_r2": 0.9993339002329356,
+        "spatial_coherence": 0.9942703002794117,
+        "null_score": 0.005729699720588344,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.006461395701222039,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.006419914095886972
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m1_s1_p17_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": 1.0,
+        "mode": 1,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 53.40707511102649
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.9981722934809233
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 53.504866303972584,
+        "phase_fit_r2": 0.9998047439117055,
+        "spatial_coherence": 0.9953634761045095,
+        "null_score": 0.004636523895490519,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0018277065190748826,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0018310531468499268
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m1_s1_p17_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": 1.0,
+        "mode": 1,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 53.40707511102649
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -1.0009873948355912
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 53.354393258666775,
+        "phase_fit_r2": 0.9991094884602167,
+        "spatial_coherence": 0.9942834123432716,
+        "null_score": 0.005716587656728445,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0009873948355901946,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.000986420848739453
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m1_s-1_p0_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": -1.0,
+        "mode": 1,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 53.40707511102649
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.9999123442269144
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 53.411756959874666,
+        "phase_fit_r2": 0.9998315069844722,
+        "spatial_coherence": 0.9951882113059064,
+        "null_score": 0.0048117886940935994,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 8.765577308547217e-05,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 8.7663457293738e-05
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m1_s-1_p0_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": -1.0,
+        "mode": 1,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 53.40707511102649
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          1.003036299568233
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 53.24540610745204,
+        "phase_fit_r2": 0.9994457260295092,
+        "spatial_coherence": 0.993091617245265,
+        "null_score": 0.006908382754735043,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0030362995682298886,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.003027108360425154
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m1_s-1_p17_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": -1.0,
+        "mode": 1,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 53.40707511102649
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          1.0028568223883878
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 53.254935219798426,
+        "phase_fit_r2": 0.9997620353282269,
+        "spatial_coherence": 0.9954152250823725,
+        "null_score": 0.004584774917627543,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.002856822388384946,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.002848684203577485
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m1_s-1_p17_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": -1.0,
+        "mode": 1,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 53.40707511102649
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.9942420872651836
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 53.71636927775899,
+        "phase_fit_r2": 0.9993662239459695,
+        "spatial_coherence": 0.9949482080936835,
+        "null_score": 0.0050517919063165495,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.005757912734810648,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0057912582947019205
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m2_s1_p0_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": 2.0,
+        "mode": 2,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 26.703537555513243
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -1.9996927952816521
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 26.707639912011697,
+        "phase_fit_r2": 0.9999232977367664,
+        "spatial_coherence": 0.988586902926022,
+        "null_score": 0.011413097073977974,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00015360235917386645,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.00015362595648329538
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m2_s1_p0_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": 2.0,
+        "mode": 2,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 26.703537555513243
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -2.002562720832219
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 26.669364487536118,
+        "phase_fit_r2": 0.9996568112906186,
+        "spatial_coherence": 0.9876527012439371,
+        "null_score": 0.012347298756062886,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0012813604161088486,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.001279720632746974
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m2_s1_p17_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": 2.0,
+        "mode": 2,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 26.703537555513243
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -2.000658041204244
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 26.694754431336744,
+        "phase_fit_r2": 0.9999091195539641,
+        "spatial_coherence": 0.9881306129995249,
+        "null_score": 0.011869387000475129,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0003290206021218676,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0003289123831717124
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m2_s1_p17_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": 2.0,
+        "mode": 2,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 26.703537555513243
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -1.9994158346323798
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 26.71133947523533,
+        "phase_fit_r2": 0.9995525526142226,
+        "spatial_coherence": 0.9873212321855123,
+        "null_score": 0.012678767814487735,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0002920826838099449,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0002921680210297254
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m2_s-1_p0_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": -2.0,
+        "mode": 2,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 26.703537555513243
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          2.002597583888937
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 26.668900202762064,
+        "phase_fit_r2": 0.999886244832345,
+        "spatial_coherence": 0.9886172149697148,
+        "null_score": 0.011382785030285225,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0012987919444678198,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0012971072719923898
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m2_s-1_p0_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": -2.0,
+        "mode": 2,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 26.703537555513243
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          2.0011618725399476
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 26.688033508873662,
+        "phase_fit_r2": 0.9997602277482766,
+        "spatial_coherence": 0.9886159737933257,
+        "null_score": 0.011384026206674336,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.000580936269973507,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.000580598978968593
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m2_s-1_p17_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": -2.0,
+        "mode": 2,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 26.703537555513243
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          2.0008097314864206
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 26.69273058330732,
+        "phase_fit_r2": 0.9999023791488639,
+        "spatial_coherence": 0.9884583409184095,
+        "null_score": 0.01154165908159055,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00040486574321010063,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.00040470189327749916
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f8.5_m2_s-1_p17_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 8.5,
+        "k_mm1": -2.0,
+        "mode": 2,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 26.703537555513243
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          1.991444833877091
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 26.81825486827555,
+        "phase_fit_r2": 0.9995525528294549,
+        "spatial_coherence": 0.9877855446979275,
+        "null_score": 0.012214455302072547,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0042775830614523985,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.004295959384550404
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m1_s1_p0_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": 1.0,
+        "mode": 1,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 62.83185307179586
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0018081912337309
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.718446127315225,
+        "phase_fit_r2": 0.9997794183768222,
+        "spatial_coherence": 0.9955680894276936,
+        "null_score": 0.004431910572306408,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.001808191233729074,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0018049275795041252
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m1_s1_p0_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": 1.0,
+        "mode": 1,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 62.83185307179586
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.9968512544425989
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 63.0303195103356,
+        "phase_fit_r2": 0.9994415569425885,
+        "spatial_coherence": 0.9935307628555238,
+        "null_score": 0.006469237144476225,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.003148745557397929,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.003158691473144287
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m1_s1_p17_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": 1.0,
+        "mode": 1,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 62.83185307179586
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.9983849554203696
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.93349346930066,
+        "phase_fit_r2": 0.9998985499925125,
+        "spatial_coherence": 0.994918484139858,
+        "null_score": 0.00508151586014205,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0016150445796287384,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0016176571680713017
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m1_s1_p17_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": 1.0,
+        "mode": 1,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 62.83185307179586
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0002379471507896
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.81690596799936,
+        "phase_fit_r2": 0.9988272264516243,
+        "spatial_coherence": 0.991947770886063,
+        "null_score": 0.008052229113936993,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0002379471507893812,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.00023789054541208012
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m1_s-1_p0_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": -1.0,
+        "mode": 1,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 62.83185307179586
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          1.0006080617181023
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 62.79367064453779,
+        "phase_fit_r2": 0.9997918273078938,
+        "spatial_coherence": 0.9947133545634416,
+        "null_score": 0.005286645436558435,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0006080617181017403,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0006076922037368711
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m1_s-1_p0_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": -1.0,
+        "mode": 1,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 62.83185307179586
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          1.00737366689333
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 62.37194313959478,
+        "phase_fit_r2": 0.9993050719086014,
+        "spatial_coherence": 0.9927533738950576,
+        "null_score": 0.007246626104942422,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.007373666893322592,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.007319693908686009
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m1_s-1_p17_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": -1.0,
+        "mode": 1,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 62.83185307179586
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          0.9991186000178546
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 62.887281920958166,
+        "phase_fit_r2": 0.999881731165987,
+        "spatial_coherence": 0.9949727687546899,
+        "null_score": 0.0050272312453101264,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.000881399982144544,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0008821775334075613
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m1_s-1_p17_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": -1.0,
+        "mode": 1,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 62.83185307179586
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          0.9963557412245057
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 63.06166610188495,
+        "phase_fit_r2": 0.9995162966574087,
+        "spatial_coherence": 0.9938002294066641,
+        "null_score": 0.006199770593335874,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.003644258775490702,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0036575879725604626
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m2_s1_p0_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": 2.0,
+        "mode": 2,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 31.41592653589793
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9992473034887004
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.427754316413903,
+        "phase_fit_r2": 0.999902791761279,
+        "spatial_coherence": 0.9881227607562613,
+        "null_score": 0.011877239243738735,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00037634825564961723,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.00037648994698458193
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m2_s1_p0_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": 2.0,
+        "mode": 2,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 31.41592653589793
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9993735833988937
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.4257693477089,
+        "phase_fit_r2": 0.9997623118560441,
+        "spatial_coherence": 0.9878639387749212,
+        "null_score": 0.01213606122507882,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0003132083005529906,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.00031330643072780614
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m2_s1_p17_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": 2.0,
+        "mode": 2,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 31.41592653589793
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -2.001976090091105
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.384916824324577,
+        "phase_fit_r2": 0.9999004581303289,
+        "spatial_coherence": 0.9867251857907202,
+        "null_score": 0.013274814209279784,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0009880450455521162,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.00098706977615062
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m2_s1_p17_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": 2.0,
+        "mode": 2,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 31.41592653589793
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -2.0006929245182277
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.40504587275728,
+        "phase_fit_r2": 0.9998067377134238,
+        "spatial_coherence": 0.9849605085780395,
+        "null_score": 0.015039491421960482,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00034646225911366007,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0003463422645904412
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m2_s-1_p0_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": -2.0,
+        "mode": 2,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 31.41592653589793
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          1.9984247743456471
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 31.440689626342913,
+        "phase_fit_r2": 0.999907666014401,
+        "spatial_coherence": 0.9867749376579694,
+        "null_score": 0.01322506234203058,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0007876128271760377,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0007882336501100685
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m2_s-1_p0_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": -2.0,
+        "mode": 2,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 31.41592653589793
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          2.0052484709473064
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 31.33369953007033,
+        "phase_fit_r2": 0.9997911040763328,
+        "spatial_coherence": 0.9875778106461851,
+        "null_score": 0.012422189353814894,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00262423547365189,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0026173668866216774
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m2_s-1_p17_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": -2.0,
+        "mode": 2,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 31.41592653589793
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          2.000413926298533
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 31.40942594218828,
+        "phase_fit_r2": 0.9999185176678999,
+        "spatial_coherence": 0.9869084646338193,
+        "null_score": 0.013091535366180684,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00020696314926638902,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.00020692032438454985
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f10.0_m2_s-1_p17_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 10.0,
+        "k_mm1": -2.0,
+        "mode": 2,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 31.41592653589793
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          1.9992974285455696
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 31.426966380637122,
+        "phase_fit_r2": 0.9996441364517714,
+        "spatial_coherence": 0.9849943939970653,
+        "null_score": 0.015005606002934657,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0003512857272150358,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0003514091722418445
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m1_s1_p0_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": 1.0,
+        "mode": 1,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 78.53981633974483
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          -1.0004297406086164
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 78.5060790895368,
+        "phase_fit_r2": 0.9998717637621726,
+        "spatial_coherence": 0.9952402426294087,
+        "null_score": 0.004759757370591311,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00042974060861601703,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0004295560109549319
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m1_s1_p0_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": 1.0,
+        "mode": 1,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 78.53981633974483
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          -1.0083061743174542
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 77.89282495756832,
+        "phase_fit_r2": 0.9994435984110502,
+        "spatial_coherence": 0.9945355730980135,
+        "null_score": 0.005464426901986452,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.008306174317445866,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.008237750128899815
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m1_s1_p17_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": 1.0,
+        "mode": 1,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 78.53981633974483
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          -0.9992894408496361
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 78.59566320741578,
+        "phase_fit_r2": 0.9998460281389253,
+        "spatial_coherence": 0.9950692201833903,
+        "null_score": 0.0049307798166097205,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0007105591503631769,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0007110644036824554
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m1_s1_p17_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": 1.0,
+        "mode": 1,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 78.53981633974483
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          -0.9998353331460238
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 78.5527513741848,
+        "phase_fit_r2": 0.9986338495527901,
+        "spatial_coherence": 0.9939407807376095,
+        "null_score": 0.006059219262390503,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00016466685397603837,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.00016469397361471393
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m1_s-1_p0_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": -1.0,
+        "mode": 1,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 78.53981633974483
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          1.0005149104862456
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 78.49939617748909,
+        "phase_fit_r2": 0.999878219987167,
+        "spatial_coherence": 0.9953748490657457,
+        "null_score": 0.004625150934254307,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0005149104862451194,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0005146454898862208
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m1_s-1_p0_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": -1.0,
+        "mode": 1,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 78.53981633974483
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          0.9922139316782915
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 79.15613138680463,
+        "phase_fit_r2": 0.9994797147786998,
+        "spatial_coherence": 0.9945972353345386,
+        "null_score": 0.0054027646654614125,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.007786068321700685,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.007847166899318398
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m1_s-1_p17_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": -1.0,
+        "mode": 1,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 78.53981633974483
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          0.9990825464930886
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 78.61193913899301,
+        "phase_fit_r2": 0.9998460332496405,
+        "spatial_coherence": 0.9950788897505023,
+        "null_score": 0.004921110249497707,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0009174535069104967,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0009182960007977353
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m1_s-1_p17_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": -1.0,
+        "mode": 1,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 78.53981633974483
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          0.9993097010204269
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 78.59406974589092,
+        "phase_fit_r2": 0.9995649459335392,
+        "spatial_coherence": 0.9945343770650833,
+        "null_score": 0.005465622934916703,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0006902989795723771,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0006907758214177663
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m2_s1_p0_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": 2.0,
+        "mode": 2,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 39.269908169872416
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          -2.0012927294325684
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 39.24454188269271,
+        "phase_fit_r2": 0.999905322712724,
+        "spatial_coherence": 0.988058522419802,
+        "null_score": 0.011941477580198034,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0006463647162838858,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0006459471988062288
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m2_s1_p0_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": 2.0,
+        "mode": 2,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 39.269908169872416
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          -2.003502556556291
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 39.20125586200526,
+        "phase_fit_r2": 0.9996977433918363,
+        "spatial_coherence": 0.9872044489581346,
+        "null_score": 0.01279555104186536,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.001751278278144598,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.001748216664275827
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m2_s1_p17_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": 2.0,
+        "mode": 2,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 39.269908169872416
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          -1.9996634534210274
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 39.27651735864792,
+        "phase_fit_r2": 0.9998940970544786,
+        "spatial_coherence": 0.9883364331247227,
+        "null_score": 0.011663566875277254,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00016827328948623623,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.00016830161015188666
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m2_s1_p17_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": 2.0,
+        "mode": 2,
+        "sign": 1,
+        "phase_velocity_mm_per_s": 39.269908169872416
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          -2.0002729271234
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 39.26454998953229,
+        "phase_fit_r2": 0.9996428650373014,
+        "spatial_coherence": 0.9872537938630791,
+        "null_score": 0.012746206136920901,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00013646356169998267,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0001364449419373734
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m2_s-1_p0_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": -2.0,
+        "mode": 2,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 39.269908169872416
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          1.9976831968666264
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 39.31545125019564,
+        "phase_fit_r2": 0.999911133695674,
+        "spatial_coherence": 0.9888142653450444,
+        "null_score": 0.011185734654955648,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.001158401566686205,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0011597450171316334
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m2_s-1_p0_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": -2.0,
+        "mode": 2,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 39.269908169872416
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          1.98815265776079
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 39.50391637843464,
+        "phase_fit_r2": 0.9996129705018543,
+        "spatial_coherence": 0.9887401537646505,
+        "null_score": 0.01125984623534948,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00592367111960205,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.005958970098680959
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m2_s-1_p17_n0",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": -2.0,
+        "mode": 2,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 39.269908169872416
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          2.0020524858272433
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 39.2296490205612,
+        "phase_fit_r2": 0.9999101178984207,
+        "spatial_coherence": 0.988366556457243,
+        "null_score": 0.011633443542756972,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00102624291362112,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.001025190818808785
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "pos_f12.5_m2_s-1_p17_n25",
+      "kind": "positive",
+      "ground_truth": {
+        "frequency_hz": 12.5,
+        "k_mm1": -2.0,
+        "mode": 2,
+        "sign": -1,
+        "phase_velocity_mm_per_s": 39.269908169872416
+      },
+      "estimator": {
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.5,
+        "wave_vector": [
+          2.003883640981572
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 39.193800844281206,
+        "phase_fit_r2": 0.9997566242671276,
+        "spatial_coherence": 0.9877818583061267,
+        "null_score": 0.012218141693873252,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0019418204907849794,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0019380571317351974
+        }
+      },
+      "tolerance_checks": {
+        "frequency": true,
+        "k_norm": true,
+        "direction": true,
+        "velocity": true
+      },
+      "recovery": {
+        "classification_correct": true,
+        "finite": true,
+        "r2_gate": true,
+        "coherence_gate": true,
+        "direction_convention_consistent": true
+      },
+      "pass": true
+    },
+    {
+      "case_id": "sync_oscillation",
+      "kind": "negative",
+      "expected_classification": "NO_WAVE",
+      "observed_reason_finding": "synchronous_oscillation_k_near_zero",
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.0
+        ],
+        "direction": [
+          0.0
+        ],
+        "phase_velocity": NaN,
+        "phase_fit_r2": 1.0,
+        "spatial_coherence": 1.0,
+        "null_score": 0.0,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "pass": true
+    },
+    {
+      "case_id": "standing_wave",
+      "kind": "negative",
+      "expected_classification": "NO_WAVE",
+      "observed_reason_finding": "standing_or_flipping_spatial_gradient",
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.30093154056827703
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 208.79118537440317,
+        "phase_fit_r2": 0.010078584352865572,
+        "spatial_coherence": 0.8260706761771627,
+        "null_score": 0.17392932382283732,
+        "quality_reasons": [
+          "standing_or_flipping_spatial_gradient"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "pass": true
+    },
+    {
+      "case_id": "random_spatial_phases",
+      "kind": "negative",
+      "expected_classification": "NO_WAVE",
+      "observed_reason_finding": "structured_but_fails_traveling_gates",
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          0.477328290613196
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 131.6323677171521,
+        "phase_fit_r2": 0.013023065705531134,
+        "spatial_coherence": 0.19349345278903451,
+        "null_score": 0.8065065472109655,
+        "quality_reasons": [
+          "structured_but_fails_traveling_gates"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "pass": true
+    },
+    {
+      "case_id": "noise_only",
+      "kind": "negative",
+      "expected_classification": "NO_WAVE",
+      "observed_reason_finding": "noise_only_power_below_floor",
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 9.0,
+        "wave_vector": [
+          -1.297733948291785
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 43.574931394105576,
+        "phase_fit_r2": 0.07079140336034395,
+        "spatial_coherence": 0.011775038961377353,
+        "null_score": 0.9882249610386227,
+        "quality_reasons": [
+          "noise_only_power_below_floor"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "pass": true
+    },
+    {
+      "case_id": "shuffled_coordinates_true_wave",
+      "kind": "negative",
+      "expected_classification": "NO_WAVE",
+      "observed_reason_finding": "standing_or_flipping_spatial_gradient",
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          0.2858259473789808
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 219.82557443774056,
+        "phase_fit_r2": 0.0028370483715962624,
+        "spatial_coherence": 0.048052154863000206,
+        "null_score": 0.9519478451369998,
+        "quality_reasons": [
+          "standing_or_flipping_spatial_gradient"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "pass": true
+    }
+  ]
+}

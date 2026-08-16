@@ -1,0 +1,133 @@
+{
+  "schema": "jaxfne.protocol_c.p2v_a1a_spec.v1",
+  "protocol_id": "protocol_c_p2v_a1a",
+  "phase": "post-freeze reviewer-motivated validation",
+  "phase_label": "post-freeze_reviewer_motivated_validation",
+  "checkpoint": "A-1a",
+  "status": "FROZEN_SPEC",
+  "write_once": true,
+  "parent_authorities": {
+    "c0_estimator_parameters": "artifacts/protocol_c/c0_wave_protocol_spec.json",
+    "c1_synthetic_validation": "artifacts/protocol_c/c1_synthetic_validation_receipt.json",
+    "c3_geometry": "artifacts/protocol_c/c3_neural_experiment_spec.json",
+    "phase2_review": "artifacts/developer/phase2_review/04_hostile_nature_methods_review.md (F-2)"
+  },
+  "motivation": "Hostile-review F-2 (Phase 2): the frozen C1 validated one synthetic positive plus false-positive controls but no parameter-recovery surface; an absence claim needs a sensitivity floor and direction/wavevector/frequency/velocity recovery verification over the operating inputs the estimator actually consumes.",
+  "separation_of_concerns": "A-1a tests the ESTIMATOR ONLY (synthetic Phi with known parameters). It is not evidence that the neural model generates waves; the dynamical question is A-1b. Causal chain: geometry -> coupling/delay -> X(r,t) -> Q(r,t) -> Phi(r,t) -> W_hat; estimator last.",
+  "estimator_settings": {
+    "engine": "jaxfne.protocol_c.estimator.estimate_traveling_wave",
+    "spec_source": "artifacts/protocol_c/c0_wave_protocol_spec.json preregistered_estimator_parameters",
+    "frequency_band_hz": [
+      8.0,
+      13.0
+    ],
+    "minimum_spatial_coherence": 0.55,
+    "R2_phase_traveling_threshold": 0.6,
+    "coherence_traveling_threshold": 0.55,
+    "noise_band_power_floor": 0.0001,
+    "dt_ms": 0.5,
+    "duration_ms": 2000.0,
+    "n_steps": 4000,
+    "unchanged": true
+  },
+  "field_injection": {
+    "formula": "Phi(r,t) = A cos(k . r - omega t + phi0) + epsilon(r,t)",
+    "spatial_coordinates": "C3 ordered arc-length positions: x_i = R*theta_i, theta_i = 2*pi*i/N, R = ring_radius_mm, N = n_neurons; column vector shape (N,1) \u2014 identical to the estimator positions consumed by frozen C3",
+    "n_neurons": 24,
+    "ring_radius_mm": 1.0,
+    "substrate_note": "synthetic field injected directly at the estimator input; no simulation involved"
+  },
+  "positive_lattice": {
+    "design": "grid over k (mode m and sign), frequency, phase offset, noise level; amplitude held at A=1.0 relative",
+    "frequency_hz": [
+      8.5,
+      10.0,
+      12.5
+    ],
+    "mode_m": [
+      1,
+      2
+    ],
+    "sign": [
+      1,
+      -1
+    ],
+    "phi0_rad": [
+      0.0,
+      1.7
+    ],
+    "noise_sigma_relative_amplitude": [
+      0.0,
+      0.25
+    ],
+    "k_vector_rule": "k = sign * m / R (rad per mm of arc length)",
+    "noise": "epsilon ~ N(0, sigma^2) per site per step, seeded rng",
+    "n_positive_cases": 48,
+    "fiducial_case": "f=10.0 Hz, m=1, sign=+1, phi0=0, sigma=0"
+  },
+  "negative_controls": [
+    {
+      "id": "sync_oscillation",
+      "generator": "synchronous_oscillation",
+      "expected_classification": "NO_WAVE"
+    },
+    {
+      "id": "standing_wave",
+      "generator": "standing_wave_field k_scalar=1.0 axis=0",
+      "expected_classification": "NO_WAVE"
+    },
+    {
+      "id": "random_spatial_phases",
+      "generator": "random_spatial_phases seed=7",
+      "expected_classification": "NO_WAVE"
+    },
+    {
+      "id": "noise_only",
+      "generator": "noise_only_field amplitude=0.05 seed=11",
+      "expected_classification": "NO_WAVE"
+    },
+    {
+      "id": "shuffled_coordinates_true_wave",
+      "generator": "planar_traveling_wave m=1 f=10 A=1 with Fisher-Yates permutation of site positions (seed=4242)",
+      "expected_classification": "NO_WAVE"
+    }
+  ],
+  "recovery_tolerances": {
+    "origin": "c0 convention, same spirit as C1 tolerances but extended",
+    "relative_frequency_error": 0.05,
+    "absolute_frequency_error_hz": 0.5,
+    "relative_k_norm_error": 0.1,
+    "direction_deg_error": 15.0,
+    "relative_velocity_error": 0.1,
+    "phase_fit_r2_min": 0.6,
+    "spatial_coherence_min": 0.55,
+    "direction_note": "direction = sign of scalar k on the 1-D arc axis; canonicalized before angular error",
+    "frequency_rule": "pass if |err| <= max(abs_tol, rel_tol * f_true)"
+  },
+  "pass_criteria": {
+    "all_positive_cases": "classification == TRAVELING_WAVE AND finite AND all recovery tolerances met",
+    "all_negatives": "classification == NO_WAVE (reason-level expectations recorded as findings; see D2)",
+    "aggregate": "a1a_pass = (all positives AND all negatives)"
+  },
+  "validation_boundary": "A-1a is estimator validation only; it does not certify that any neural regime produces a wave. A-1b addresses the dynamical side.",
+  "repairs": {
+    "D1_frequency_recovery_on_cyclic_geometry": {
+      "status": "REPAIRED_2026_08_15",
+      "demonstration": "ring m=1 f=10 synthetic wave on C3 arc positions: old estimator returned f_hat=9.5 (true 10.0) and k_hat=-0.987 (true +1.0) because integer ring modes have vanishing spatial mean trace, degenerating the mean-trace argmax; all downstream recovery (direction, velocity) corrupt",
+      "repair": "_estimate_frequency_hz now argmaxes summed site power (total spectral power); identical to mean-trace spectrum for synchronous fields, well-defined for cancelling ring modes",
+      "mandate": "user A-1a instruction: repair only on demonstrated genuine implementation defect",
+      "regression": {
+        "c3_cells_60_60_identical": "all 60 frozen C3 cells keep identical classification AND reason (52/4/4 mix) under repaired estimator",
+        "c1_cases_7_7_identical": "all 7 frozen C1 cases keep identical classification and reason",
+        "fig05_byte_identity": "SHA-256 f7f9a49439c134cde41333512694ad676e08bb9eb174ac1ae6a0f20b7171a1b2 == frozen manifest (regenerated after repair)"
+      }
+    },
+    "D2_standing_gate_parity_fragility": {
+      "status": "DOCUMENTED_LIMITATION_no_repair",
+      "demonstration": "the k-stability half-window flip gate fires on phasor degeneracy (off-resonance residue), not a standing signature; on the line geometry the standing control fired at even parity (T=2000) and missed at odd parity (T=1500, classified structured_but_fails); on the arc at exact carrier the halves produce stable-but-degenerate k_hat",
+      "safety_property": "in every tested configuration the standing pattern classifies NO_WAVE (reason may differ: standing_or_flipping or structured_but_fails); the coherence/R2 gates are the backstop \u2014 a standing pattern has never been admitted as TRAVELING_WAVE in any test",
+      "reason": "for real signals the +/-omega sidebands are Hermitian-equal, so no single-frequency phasor method can distinguish standing from traveling; a parity-independent standing discriminator would require a different estimator architecture outside A-1a scope",
+      "consequence": "A-1a standing-wave negative asserts classification == NO_WAVE; reason-level expectation recorded as finding, not gate"
+    }
+  }
+}
