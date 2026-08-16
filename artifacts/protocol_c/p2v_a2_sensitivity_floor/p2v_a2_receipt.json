@@ -1,0 +1,2530 @@
+{
+  "schema": "jaxfne.protocol_c.p2v_a2_receipt.v1",
+  "protocol_id": "protocol_c_p2v_a2",
+  "phase": "post-freeze reviewer-motivated validation",
+  "checkpoint": "A-2",
+  "status": "FROZEN",
+  "write_once": true,
+  "package_head": "36537a757b8c5a6972fa6bbe35672153501d078b",
+  "spec_path": "artifacts/protocol_c/p2v_a2_sensitivity_floor/p2v_a2_spec.json",
+  "estimator_module_sha": "684859a98da51de79887ec26ba8d7134e2fa0e97",
+  "stage_S1": {
+    "n_cases": 40,
+    "cases": [
+      {
+        "mode_m": 1,
+        "amplitude": 0.05,
+        "noise_sigma": 0.0,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0007130081408133
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.787085368789974,
+        "phase_fit_r2": 0.9998779105402487,
+        "spatial_coherence": 0.9955598680418315,
+        "null_score": 0.004440131958168503,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0007130081408126073,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0007125001214262691
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.05,
+        "noise_sigma": 0.1,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.9885822243971846
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 63.55753878753922,
+        "phase_fit_r2": 0.989631745129237,
+        "spatial_coherence": 0.9370516755955428,
+        "null_score": 0.06294832440445719,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.01141777560280401,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.011549646880185085
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.05,
+        "noise_sigma": 0.25,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.1121624406401112
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 56.495212188277684,
+        "phase_fit_r2": 0.8252107615706703,
+        "spatial_coherence": 0.7470269126456662,
+        "null_score": 0.25297308735433377,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.11216244063999899,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.10085077192011044
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.05,
+        "noise_sigma": 0.5,
+        "classification": "NO_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0350518565837559
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 60.70406296277344,
+        "phase_fit_r2": 0.41891171997888177,
+        "spatial_coherence": 0.43466860435489996,
+        "null_score": 0.5653313956451,
+        "quality_reasons": [
+          "structured_but_fails_traveling_gates"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.035051856583720814,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.03386483137032931
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.1,
+        "noise_sigma": 0.0,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0007130081408133
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.787085368789974,
+        "phase_fit_r2": 0.9998779105402487,
+        "spatial_coherence": 0.9955598680418315,
+        "null_score": 0.004440131958168503,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0007130081408126073,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0007125001214262691
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.1,
+        "noise_sigma": 0.1,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.99153769131803
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 63.36809343906515,
+        "phase_fit_r2": 0.9953389135431618,
+        "spatial_coherence": 0.9849058195553025,
+        "null_score": 0.015094180444697458,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00846230868196149,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.008534530514640568
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.1,
+        "noise_sigma": 0.25,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.005658992727325
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.47828888935529,
+        "phase_fit_r2": 0.942656329795209,
+        "spatial_coherence": 0.9222801525638095,
+        "null_score": 0.07771984743619054,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.005658992727319292,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.005627148732571569
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.1,
+        "noise_sigma": 0.5,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.9985743086965944
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.921559792388585,
+        "phase_fit_r2": 0.8290504450477327,
+        "spatial_coherence": 0.7875003406313674,
+        "null_score": 0.21249965936863258,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.001425691303404215,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0014277268020910778
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.2,
+        "noise_sigma": 0.0,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0007130081408133
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.787085368789974,
+        "phase_fit_r2": 0.9998779105402487,
+        "spatial_coherence": 0.9955598680418315,
+        "null_score": 0.004440131958168503,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0007130081408126073,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0007125001214262691
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.2,
+        "noise_sigma": 0.1,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.9971364049837291
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 63.01229476504885,
+        "phase_fit_r2": 0.9965115346551476,
+        "spatial_coherence": 0.9844593792189975,
+        "null_score": 0.01554062078100249,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.002863595016268006,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.002871818743111409
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.2,
+        "noise_sigma": 0.25,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0399432653801068
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 60.41853932178729,
+        "phase_fit_r2": 0.9790021221114564,
+        "spatial_coherence": 0.9755717615635359,
+        "null_score": 0.024428238436464134,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.03994326538006689,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.038409081253587905
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.2,
+        "noise_sigma": 0.5,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.9774965754648035
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 64.27833574958467,
+        "phase_fit_r2": 0.9376133986167898,
+        "spatial_coherence": 0.922638947264585,
+        "null_score": 0.07736105273541505,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.022503424535173986,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.023021486827711803
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.5,
+        "noise_sigma": 0.0,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0018081912337309
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.718446127315225,
+        "phase_fit_r2": 0.9997794183768222,
+        "spatial_coherence": 0.9955680894276936,
+        "null_score": 0.004431910572306408,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.001808191233729074,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0018049275785057945
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.5,
+        "noise_sigma": 0.1,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.002607737232088
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.668430272896714,
+        "phase_fit_r2": 0.9995068301467201,
+        "spatial_coherence": 0.9947263935227593,
+        "null_score": 0.005273606477240733,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0026077372320854617,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.002600954624873645
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.5,
+        "noise_sigma": 0.25,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.009917047838315
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.21486527659356,
+        "phase_fit_r2": 0.9980969288306871,
+        "spatial_coherence": 0.9848940682201412,
+        "null_score": 0.01510593177985875,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.009917047838305123,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.009819665742391223
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 0.5,
+        "noise_sigma": 0.5,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.012146306925754
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.07783661498347,
+        "phase_fit_r2": 0.9919659211885561,
+        "spatial_coherence": 0.9663443012597956,
+        "null_score": 0.033655698740204354,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.012146306925741767,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.01200054462644459
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 1.0,
+        "noise_sigma": 0.0,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0018081912337309
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.718446127315225,
+        "phase_fit_r2": 0.9997794183768222,
+        "spatial_coherence": 0.9955680894276936,
+        "null_score": 0.004431910572306408,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.001808191233729074,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0018049275785057945
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 1.0,
+        "noise_sigma": 0.1,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0007886046994996
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.782342621359064,
+        "phase_fit_r2": 0.9997983257658374,
+        "spatial_coherence": 0.995348172978862,
+        "null_score": 0.0046518270211379775,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0007886046994988068,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0007879832911729196
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 1.0,
+        "noise_sigma": 0.25,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0037411834691863
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.59766372705054,
+        "phase_fit_r2": 0.9994116024659598,
+        "spatial_coherence": 0.9935170601985422,
+        "null_score": 0.006482939801457754,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.003741183469182541,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.00372723918257057
+        }
+      },
+      {
+        "mode_m": 1,
+        "amplitude": 1.0,
+        "noise_sigma": 0.5,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.00001956759467
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.83062362761986,
+        "phase_fit_r2": 0.9976243192377517,
+        "spatial_coherence": 0.9862554236339972,
+        "null_score": 0.013744576366002792,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 1.9567594669902958e-05,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 1.9567210786553692e-05
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.05,
+        "noise_sigma": 0.0,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9985265655250506
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.439088254145247,
+        "phase_fit_r2": 0.9999069739075844,
+        "spatial_coherence": 0.9880827533612646,
+        "null_score": 0.01191724663873539,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.000736717237474336,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0007372603904128263
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.05,
+        "noise_sigma": 0.1,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -2.0128444778191015
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.21545343626031,
+        "phase_fit_r2": 0.9918715160477137,
+        "spatial_coherence": 0.945178279992646,
+        "null_score": 0.05482172000735397,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.006422238909547526,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.006381256952359163
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.05,
+        "noise_sigma": 0.25,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9787029356310843
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.754060672961185,
+        "phase_fit_r2": 0.8947004629270179,
+        "spatial_coherence": 0.7605855006542838,
+        "null_score": 0.23941449934571624,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0106485321844525,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.010763143868850954
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.05,
+        "noise_sigma": 0.5,
+        "classification": "NO_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.868366828467705
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 33.62929169713736,
+        "phase_fit_r2": 0.8621609756422157,
+        "spatial_coherence": 0.5017916440552247,
+        "null_score": 0.4982083559447753,
+        "quality_reasons": [
+          "structured_but_fails_traveling_gates"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.06581658576611454,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.07045360125626211
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.1,
+        "noise_sigma": 0.0,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9985265655250506
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.439088254145247,
+        "phase_fit_r2": 0.9999069739075844,
+        "spatial_coherence": 0.9880827533612646,
+        "null_score": 0.01191724663873539,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.000736717237474336,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0007372603904128263
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.1,
+        "noise_sigma": 0.1,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9873228627695387
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.616328805392605,
+        "phase_fit_r2": 0.9961301141703742,
+        "spatial_coherence": 0.9578452679934487,
+        "null_score": 0.04215473200655129,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.006338568615227464,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.006379002359885361
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.1,
+        "noise_sigma": 0.25,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -2.0582782927400762
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 30.526412921622548,
+        "phase_fit_r2": 0.986177346161691,
+        "spatial_coherence": 0.9132464460916229,
+        "null_score": 0.08675355390837713,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.029139146370023544,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.02831409773140615
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.1,
+        "noise_sigma": 0.5,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -2.1224077379349335
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 29.604044476830914,
+        "phase_fit_r2": 0.9394165540704685,
+        "spatial_coherence": 0.7893135926740324,
+        "null_score": 0.21068640732596755,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.06120386896743616,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.05767399719953439
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.2,
+        "noise_sigma": 0.0,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9985265655250506
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.439088254145247,
+        "phase_fit_r2": 0.9999069739075844,
+        "spatial_coherence": 0.9880827533612646,
+        "null_score": 0.01191724663873539,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.000736717237474336,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0007372603904128263
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.2,
+        "noise_sigma": 0.1,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -2.0028028863708425
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.37196051562001,
+        "phase_fit_r2": 0.9992890519279736,
+        "spatial_coherence": 0.9823162725147657,
+        "null_score": 0.01768372748523428,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0014014431854205353,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.001399481890562509
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.2,
+        "noise_sigma": 0.25,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -2.038536761767669
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 30.822035810290075,
+        "phase_fit_r2": 0.9968954757991386,
+        "spatial_coherence": 0.969671458033316,
+        "null_score": 0.030328541966683997,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0192683808838249,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.01890412892689335
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.2,
+        "noise_sigma": 0.5,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9591927814621781
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 32.070275914809876,
+        "phase_fit_r2": 0.9811295774769025,
+        "spatial_coherence": 0.9005390360415778,
+        "null_score": 0.09946096395842219,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.020403609268900735,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.020828587633099364
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.5,
+        "noise_sigma": 0.0,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9992473034887004
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.427754316413903,
+        "phase_fit_r2": 0.999902791761279,
+        "spatial_coherence": 0.9881227607562613,
+        "null_score": 0.011877239243738735,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00037634825564961723,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0003764899474848382
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.5,
+        "noise_sigma": 0.1,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9974185638579587
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.456528045097308,
+        "phase_fit_r2": 0.999850861184701,
+        "spatial_coherence": 0.9883304028809812,
+        "null_score": 0.011669597119018826,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0012907180710200125,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0012923861777150412
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.5,
+        "noise_sigma": 0.25,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -2.013118297907526
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.21120757637765,
+        "phase_fit_r2": 0.999194010640306,
+        "spatial_coherence": 0.9816345254548025,
+        "null_score": 0.018365474545197547,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.006559148953759804,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.006516406869959473
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 0.5,
+        "noise_sigma": 0.5,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9605266122621128
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 32.04845712310869,
+        "phase_fit_r2": 0.9974930537918717,
+        "spatial_coherence": 0.9706480694182866,
+        "null_score": 0.02935193058171337,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.01973669386893374,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0201340739227918
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 1.0,
+        "noise_sigma": 0.0,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9992473034887004
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.427754316413903,
+        "phase_fit_r2": 0.999902791761279,
+        "spatial_coherence": 0.9881227607562613,
+        "null_score": 0.011877239243738735,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.00037634825564961723,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0003764899474848382
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 1.0,
+        "noise_sigma": 0.1,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9975605512623191
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.45429210247995,
+        "phase_fit_r2": 0.9998879967166793,
+        "spatial_coherence": 0.987822396617978,
+        "null_score": 0.012177603382022006,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0012197243688398258,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.00122121391371056
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 1.0,
+        "noise_sigma": 0.25,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9967225648949598
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.467492868795826,
+        "phase_fit_r2": 0.9997710758661236,
+        "spatial_coherence": 0.98719023553669,
+        "null_score": 0.012809764463309947,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0016387175525192775,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0016414073560652865
+        }
+      },
+      {
+        "mode_m": 2,
+        "amplitude": 1.0,
+        "noise_sigma": 0.5,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.9977372183292579
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 31.45151048662107,
+        "phase_fit_r2": 0.9993784240752152,
+        "spatial_coherence": 0.9853291091988375,
+        "null_score": 0.014670890801162462,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0011313908353704943,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0011326723309658337
+        }
+      }
+    ]
+  },
+  "stage_S2": {
+    "cells": [
+      {
+        "condition_id": "ordered_uniform",
+        "seed": 1001,
+        "frozen_reason": "standing_or_flipping_spatial_gradient",
+        "rms_c3_band": 0.4141903980121205,
+        "gamma_star": {
+          "phi0_0.0": 1.0,
+          "phi0_1.57": 1.0
+        },
+        "cases": [
+          {
+            "gamma": 0.0,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.4141903980121205,
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.1430124917455683
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 373.4434276275833,
+            "phase_fit_r2": 0.10567020193802978,
+            "spatial_coherence": 0.44520729658907443,
+            "null_score": 0.5547927034109256,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 1.5,
+              "epsilon_k": 0.8569875082535746,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 5.992396173196333
+            }
+          },
+          {
+            "gamma": 0.0,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.4141903980121205,
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.1430124917455683
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 373.4434276275833,
+            "phase_fit_r2": 0.10567020193802978,
+            "spatial_coherence": 0.44520729658907443,
+            "null_score": 0.5547927034109256,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 1.5,
+              "epsilon_k": 0.8569875082535746,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 5.992396173196333
+            }
+          },
+          {
+            "gamma": 0.25,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.4141903980121205,
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.15109705716869362
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 353.46204692391655,
+            "phase_fit_r2": 0.1059509288513838,
+            "spatial_coherence": 0.7201153720111756,
+            "null_score": 0.2798846279888244,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 1.5,
+              "epsilon_k": 0.8489029428304574,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 5.6182625839266045
+            }
+          },
+          {
+            "gamma": 0.25,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.4141903980121205,
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.15052313576199877
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 354.8097429718156,
+            "phase_fit_r2": 0.10551553735008068,
+            "spatial_coherence": 0.7750431232781172,
+            "null_score": 0.2249568767218828,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 1.5,
+              "epsilon_k": 0.8494768642371517,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 5.643496994257045
+            }
+          },
+          {
+            "gamma": 0.5,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.4141903980121205,
+            "classification": "NO_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -0.6282370583612328
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 100.01296840987673,
+            "phase_fit_r2": 0.08452918082943162,
+            "spatial_coherence": 0.8936147588553089,
+            "null_score": 0.10638524114469106,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.3717629416383954,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.5917558295741283
+            }
+          },
+          {
+            "gamma": 0.5,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.4141903980121205,
+            "classification": "NO_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -0.5849539361481711
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 107.4133349465663,
+            "phase_fit_r2": 0.06308425195367262,
+            "spatial_coherence": 0.8960419655146664,
+            "null_score": 0.10395803448533358,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.4150460638514138,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.7095363210748437
+            }
+          },
+          {
+            "gamma": 1.0,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.4141903980121205,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.0843259149644668
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 57.94554220707236,
+            "phase_fit_r2": 0.847717377134482,
+            "spatial_coherence": 0.9524677446051789,
+            "null_score": 0.04753225539482109,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.0843259149643825,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.07776805275951434
+            }
+          },
+          {
+            "gamma": 1.0,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.4141903980121205,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.0952900603364613
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 57.365491888509055,
+            "phase_fit_r2": 0.8171329251275588,
+            "spatial_coherence": 0.9530141391457971,
+            "null_score": 0.046985860854202866,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.09529006033636596,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.08699984030366123
+            }
+          },
+          {
+            "gamma": 2.0,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.4141903980121205,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.047174259932707
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 60.00133452080223,
+            "phase_fit_r2": 0.9669487018900667,
+            "spatial_coherence": 0.977207814704877,
+            "null_score": 0.022792185295122946,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.047174259932659786,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.04504910188943874
+            }
+          },
+          {
+            "gamma": 2.0,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.4141903980121205,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.0261852205870081
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 61.22856947389497,
+            "phase_fit_r2": 0.950236575576861,
+            "spatial_coherence": 0.9765484025809661,
+            "null_score": 0.02345159741903391,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.02618522058698193,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.025517050977433526
+            }
+          },
+          {
+            "gamma": 4.0,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.4141903980121205,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.0262714460054114
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 61.22342516335055,
+            "phase_fit_r2": 0.9913813643974553,
+            "spatial_coherence": 0.9911902510751799,
+            "null_score": 0.008809748924820116,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.02627144600538515,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.025598925222628084
+            }
+          },
+          {
+            "gamma": 4.0,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.4141903980121205,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.010538963286488
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 62.17657641567158,
+            "phase_fit_r2": 0.9879167307311891,
+            "spatial_coherence": 0.986137824156303,
+            "null_score": 0.013862175843696978,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.010538963286477528,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.01042905189050084
+            }
+          }
+        ]
+      },
+      {
+        "condition_id": "ordered_uniform",
+        "seed": 1002,
+        "frozen_reason": "synchronous_oscillation_k_near_zero",
+        "rms_c3_band": 0.41890672063135115,
+        "gamma_star": {
+          "phi0_0.0": 1.0,
+          "phi0_1.57": 1.0
+        },
+        "cases": [
+          {
+            "gamma": 0.0,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.41890672063135115,
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.08882047711075496
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 601.2923691507576,
+            "phase_fit_r2": 0.07188025970998957,
+            "spatial_coherence": 0.48885120344251065,
+            "null_score": 0.5111487965574893,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 1.5,
+              "epsilon_k": 0.9111795228883338,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 10.25866503457339
+            }
+          },
+          {
+            "gamma": 0.0,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.41890672063135115,
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.08882047711075496
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 601.2923691507576,
+            "phase_fit_r2": 0.07188025970998957,
+            "spatial_coherence": 0.48885120344251065,
+            "null_score": 0.5111487965574893,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 1.5,
+              "epsilon_k": 0.9111795228883338,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 10.25866503457339
+            }
+          },
+          {
+            "gamma": 0.25,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.41890672063135115,
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.09659817366736198
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 552.8787251706742,
+            "phase_fit_r2": 0.08106841793727582,
+            "spatial_coherence": 0.7538453739471818,
+            "null_score": 0.24615462605281824,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 1.5,
+              "epsilon_k": 0.9034018263317345,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 9.352162593099388
+            }
+          },
+          {
+            "gamma": 0.25,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.41890672063135115,
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.09807647822327635
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 544.5451965500068,
+            "phase_fit_r2": 0.08723318361950527,
+            "spatial_coherence": 0.7508682175133568,
+            "null_score": 0.24913178248664325,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 1.5,
+              "epsilon_k": 0.9019235217758216,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 9.196124678584294
+            }
+          },
+          {
+            "gamma": 0.5,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.41890672063135115,
+            "classification": "NO_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -0.4254007705020654
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 147.70037439669096,
+            "phase_fit_r2": 0.03723909698326244,
+            "spatial_coherence": 0.8987552131734732,
+            "null_score": 0.10124478682652682,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.57459922949736,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 1.3507244681780282
+            }
+          },
+          {
+            "gamma": 0.5,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.41890672063135115,
+            "classification": "NO_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -0.5020590791535279
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 125.14832552720773,
+            "phase_fit_r2": 0.047805260498009705,
+            "spatial_coherence": 0.8971046909620105,
+            "null_score": 0.10289530903798949,
+            "quality_reasons": [
+              "standing_or_flipping_spatial_gradient"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.49794092084597413,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.9917974627348503
+            }
+          },
+          {
+            "gamma": 1.0,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.41890672063135115,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.0668250218566555
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 58.89611865537805,
+            "phase_fit_r2": 0.912622169205281,
+            "spatial_coherence": 0.9544431843818534,
+            "null_score": 0.04555681561814662,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.06682502185658867,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.06263915870604066
+            }
+          },
+          {
+            "gamma": 1.0,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.41890672063135115,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.0994064274362139
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 57.15070560240224,
+            "phase_fit_r2": 0.8118129874050816,
+            "spatial_coherence": 0.9519900744361766,
+            "null_score": 0.04800992556382344,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.09940642743611444,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.09041827021788956
+            }
+          },
+          {
+            "gamma": 2.0,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.41890672063135115,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.040787839495911
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 60.369511140932886,
+            "phase_fit_r2": 0.971839747637455,
+            "spatial_coherence": 0.9772481201691575,
+            "null_score": 0.02275187983084248,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.04078783949587012,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.0391893889869669
+            }
+          },
+          {
+            "gamma": 2.0,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.41890672063135115,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.0262871708506434
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 61.222487093663425,
+            "phase_fit_r2": 0.955854199328499,
+            "spatial_coherence": 0.9774681518298934,
+            "null_score": 0.02253184817010656,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.026287170850617072,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.02561385506539513
+            }
+          },
+          {
+            "gamma": 4.0,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.41890672063135115,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.0226986434406498
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 61.43730948973551,
+            "phase_fit_r2": 0.9915411257996605,
+            "spatial_coherence": 0.991441561150626,
+            "null_score": 0.008558438849374017,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.022698643440627057,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.022194850443220008
+            }
+          },
+          {
+            "gamma": 4.0,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.41890672063135115,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.0099893845098924
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 62.21040937206054,
+            "phase_fit_r2": 0.9896516884869933,
+            "spatial_coherence": 0.9866443954470326,
+            "null_score": 0.01335560455296736,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.009989384509882406,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.009890583665628824
+            }
+          }
+        ]
+      },
+      {
+        "condition_id": "ordered_uniform",
+        "seed": 1009,
+        "frozen_reason": "structured_but_fails_traveling_gates",
+        "rms_c3_band": 0.4099697717545387,
+        "gamma_star": {
+          "phi0_0.0": 1.0,
+          "phi0_1.57": 1.0
+        },
+        "cases": [
+          {
+            "gamma": 0.0,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.4099697717545387,
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.11844815186938097
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 450.8898979692084,
+            "phase_fit_r2": 0.06887852602950928,
+            "spatial_coherence": 0.47153176997216606,
+            "null_score": 0.5284682300278339,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 1.5,
+              "epsilon_k": 0.8815518481297374,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 7.442512476714168
+            }
+          },
+          {
+            "gamma": 0.0,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.4099697717545387,
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.11844815186938097
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 450.8898979692084,
+            "phase_fit_r2": 0.06887852602950928,
+            "spatial_coherence": 0.47153176997216606,
+            "null_score": 0.5284682300278339,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 1.5,
+              "epsilon_k": 0.8815518481297374,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 7.442512476714168
+            }
+          },
+          {
+            "gamma": 0.25,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.4099697717545387,
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.12588693029399897
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 424.2463851195552,
+            "phase_fit_r2": 0.07884866474482821,
+            "spatial_coherence": 0.7530016262382242,
+            "null_score": 0.2469983737617758,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 1.5,
+              "epsilon_k": 0.8741130697051268,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 6.943636385966063
+            }
+          },
+          {
+            "gamma": 0.25,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.4099697717545387,
+            "classification": "NO_WAVE",
+            "frequency_hz": 8.5,
+            "wave_vector": [
+              -0.12299862764860524
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 434.20870730041923,
+            "phase_fit_r2": 0.07145694726500929,
+            "spatial_coherence": 0.7780637153547515,
+            "null_score": 0.2219362846452485,
+            "quality_reasons": [
+              "synchronous_oscillation_k_near_zero"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 1.5,
+              "epsilon_k": 0.8770013723505177,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 7.130172011820192
+            }
+          },
+          {
+            "gamma": 0.5,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.4099697717545387,
+            "classification": "NO_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -0.37524921647784976
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 167.44033115257605,
+            "phase_fit_r2": 0.026931945726530904,
+            "spatial_coherence": 0.9048377178163245,
+            "null_score": 0.0951622821836755,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.6247507835215254,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 1.664895637590274
+            }
+          },
+          {
+            "gamma": 0.5,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.4099697717545387,
+            "classification": "NO_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -0.35363230813004315
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 177.67565809821414,
+            "phase_fit_r2": 0.023572724747205065,
+            "spatial_coherence": 0.9022325386844283,
+            "null_score": 0.09776746131557168,
+            "quality_reasons": [
+              "structured_but_fails_traveling_gates"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.6463676918693104,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 1.8277959253464315
+            }
+          },
+          {
+            "gamma": 1.0,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.4099697717545387,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.0485572418372124
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 59.922196485626344,
+            "phase_fit_r2": 0.907078858261949,
+            "spatial_coherence": 0.9510002353005331,
+            "null_score": 0.048999764699466875,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.04855724183716388,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.04630862283792225
+            }
+          },
+          {
+            "gamma": 1.0,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.4099697717545387,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.055576435400897
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 59.52373600300482,
+            "phase_fit_r2": 0.8538587910070791,
+            "spatial_coherence": 0.9494345189265041,
+            "null_score": 0.0505654810734959,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.05557643540084138,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.05265031838152827
+            }
+          },
+          {
+            "gamma": 2.0,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.4099697717545387,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.0339738993374077
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 60.76734926487007,
+            "phase_fit_r2": 0.9716418034659526,
+            "spatial_coherence": 0.9775641217116879,
+            "null_score": 0.02243587828831206,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.03397389933737371,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.032857598589459774
+            }
+          },
+          {
+            "gamma": 2.0,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.4099697717545387,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.017952850245689
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 61.72373608132344,
+            "phase_fit_r2": 0.9570279554467953,
+            "spatial_coherence": 0.9763385304751804,
+            "null_score": 0.023661469524819623,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.01795285024567098,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.01763622965479733
+            }
+          },
+          {
+            "gamma": 4.0,
+            "phi0_wave_rad": 0.0,
+            "rms_c3_band": 0.4099697717545387,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.019301778835854
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 61.642051820567026,
+            "phase_fit_r2": 0.9919854714265771,
+            "spatial_coherence": 0.9914167739589468,
+            "null_score": 0.008583226041053216,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.01930177883583474,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.018936275042017628
+            }
+          },
+          {
+            "gamma": 4.0,
+            "phi0_wave_rad": 1.57,
+            "rms_c3_band": 0.4099697717545387,
+            "classification": "TRAVELING_WAVE",
+            "frequency_hz": 10.0,
+            "wave_vector": [
+              -1.0055078001979079
+            ],
+            "direction": [
+              -1.0
+            ],
+            "phase_velocity": 62.487683396816074,
+            "phase_fit_r2": 0.9889884886944607,
+            "spatial_coherence": 0.9862672079732,
+            "null_score": 0.0137327920268,
+            "quality_reasons": [
+              "planar_phase_gradient_gates_passed"
+            ],
+            "finite_status": true,
+            "errors": {
+              "epsilon_f": 0.0,
+              "epsilon_k": 0.005507800197902355,
+              "epsilon_theta_rad": 0.0,
+              "epsilon_theta_deg": 0.0,
+              "epsilon_v": 0.0054776305025416895
+            }
+          }
+        ]
+      }
+    ],
+    "summary": {
+      "cells": [
+        {
+          "phi0_0.0": 1.0,
+          "phi0_1.57": 1.0
+        },
+        {
+          "phi0_0.0": 1.0,
+          "phi0_1.57": 1.0
+        },
+        {
+          "phi0_0.0": 1.0,
+          "phi0_1.57": 1.0
+        }
+      ]
+    }
+  },
+  "stage_S3": {
+    "n_cases": 12,
+    "cases": [
+      {
+        "duration_ms": 250.0,
+        "n_sites": 24,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.0,
+        "wave_vector": [
+          -1.0195847088455412
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 73.94993572581839,
+        "phase_fit_r2": 0.9575374300379981,
+        "spatial_coherence": 0.964116872024661,
+        "null_score": 0.03588312797533899,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 2.0,
+          "epsilon_k": 0.019584708845521614,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.019208515658023527
+        }
+      },
+      {
+        "duration_ms": 250.0,
+        "n_sites": 12,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.0,
+        "wave_vector": [
+          -1.017316061083064
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 74.11484647739063,
+        "phase_fit_r2": 0.9654193811494759,
+        "spatial_coherence": 0.9088666656066698,
+        "null_score": 0.09113333439333016,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 2.0,
+          "epsilon_k": 0.017316061083046733,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.01702131888454462
+        }
+      },
+      {
+        "duration_ms": 250.0,
+        "n_sites": 6,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 12.0,
+        "wave_vector": [
+          -0.9964455469150341
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 75.66717912442452,
+        "phase_fit_r2": 0.9895309086086163,
+        "spatial_coherence": 0.8020216008363114,
+        "null_score": 0.19797839916368865,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 2.0,
+          "epsilon_k": 0.0035544530849623813,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.003567132290339906
+        }
+      },
+      {
+        "duration_ms": 500.0,
+        "n_sites": 24,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0063191102804376
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.43730485679249,
+        "phase_fit_r2": 0.9964538397751895,
+        "spatial_coherence": 0.982838459686731,
+        "null_score": 0.017161540313268997,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.006319110280431315,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.006279429869593155
+        }
+      },
+      {
+        "duration_ms": 500.0,
+        "n_sites": 12,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.9973472581708067
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.998973082889066,
+        "phase_fit_r2": 0.9970713696301456,
+        "spatial_coherence": 0.9583191891570402,
+        "null_score": 0.041680810842959826,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0026527418291906308,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0026597975865083243
+        }
+      },
+      {
+        "duration_ms": 500.0,
+        "n_sites": 6,
+        "classification": "NO_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.3039304999678184
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 206.73098974419742,
+        "phase_fit_r2": 0.07677847962728557,
+        "spatial_coherence": 0.904906620760646,
+        "null_score": 0.09509337923935401,
+        "quality_reasons": [
+          "structured_but_fails_traveling_gates"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.6960695000314855,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 2.2902258908101483
+        }
+      },
+      {
+        "duration_ms": 1000.0,
+        "n_sites": 24,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0031452246327706
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.634852391185156,
+        "phase_fit_r2": 0.9994470588410445,
+        "spatial_coherence": 0.9911042079798564,
+        "null_score": 0.008895792020143567,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0031452246327674147,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0031353632101691143
+        }
+      },
+      {
+        "duration_ms": 1000.0,
+        "n_sites": 12,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.9985306825763945
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.92430885516509,
+        "phase_fit_r2": 0.999600309496244,
+        "spatial_coherence": 0.9787137880313067,
+        "null_score": 0.02128621196869329,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0014693174236039845,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0014714794950661414
+        }
+      },
+      {
+        "duration_ms": 1000.0,
+        "n_sites": 6,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.998405297723066
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.93221121230862,
+        "phase_fit_r2": 0.9999092971674759,
+        "spatial_coherence": 0.9518139058268991,
+        "null_score": 0.048186094173100935,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0015947022769324398,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0015972494152133913
+        }
+      },
+      {
+        "duration_ms": 2000.0,
+        "n_sites": 24,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -1.0018081912337315
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.71844612731519,
+        "phase_fit_r2": 0.9997794183768222,
+        "spatial_coherence": 0.9955680894276936,
+        "null_score": 0.004431910572306408,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0018081912337297402,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0018049275785063598
+        }
+      },
+      {
+        "duration_ms": 2000.0,
+        "n_sites": 12,
+        "classification": "TRAVELING_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.9992585290718505
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 62.87847563348445,
+        "phase_fit_r2": 0.9999035327615098,
+        "spatial_coherence": 0.9891561469970583,
+        "null_score": 0.010843853002941661,
+        "quality_reasons": [
+          "planar_phase_gradient_gates_passed"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.0007414709281487265,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.0007420211162354023
+        }
+      },
+      {
+        "duration_ms": 2000.0,
+        "n_sites": 6,
+        "classification": "NO_WAVE",
+        "frequency_hz": 10.0,
+        "wave_vector": [
+          -0.6535092497695334
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 96.14531560793385,
+        "phase_fit_r2": 0.35877057437867377,
+        "spatial_coherence": 0.9756341363212666,
+        "null_score": 0.02436586367873339,
+        "quality_reasons": [
+          "structured_but_fails_traveling_gates"
+        ],
+        "finite_status": true,
+        "errors": {
+          "epsilon_f": 0.0,
+          "epsilon_k": 0.3464907502301201,
+          "epsilon_theta_rad": 0.0,
+          "epsilon_theta_deg": 0.0,
+          "epsilon_v": 0.5302002234148249
+        }
+      }
+    ]
+  },
+  "title": "ESTIMATOR SENSITIVITY CHARACTERISATION: gates, C3-embedding flip thresholds, duration/site limits"
+}

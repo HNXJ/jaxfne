@@ -1,0 +1,78 @@
+{
+  "schema": "jaxfne.protocol_c.p2v_a2_spec.v1",
+  "protocol_id": "protocol_c_p2v_a2",
+  "phase": "post-freeze reviewer-motivated validation",
+  "phase_label": "post-freeze_reviewer_motivated_validation",
+  "checkpoint": "A-2",
+  "status": "FROZEN_SPEC",
+  "write_once": true,
+  "parent_authorities": {
+    "c0_estimator": "artifacts/protocol_c/c0_wave_protocol_spec.json",
+    "c1_receipt": "artifacts/protocol_c/c1_synthetic_validation_receipt.json",
+    "c3_receipt": "artifacts/protocol_c/c3_execution_receipt.json",
+    "a1a_receipt": "artifacts/protocol_c/p2v_a1a_synthetic_control/p2v_a1a_receipt.json",
+    "a1b_receipt": "artifacts/protocol_c/p2v_a1b_dynamic_search/p2v_a1b_receipt.json",
+    "phase2_review": "artifacts/developer/phase2_review/04_hostile_nature_methods_review.md (F-2)"
+  },
+  "motivation": "The frozen C3 cells are all NO_WAVE and the A-1b family produced no TRAVELING_WAVE anywhere. F-2 asks whether an absence claim could be an estimator power artifact: how much coherent traveling structure would have to be present for the classifier to flip, and which gate fails first as amplitude/SNR degrade? A-2 answers this on the estimator's actual operating inputs (the repaired module, identical thresholds), directly on C3-like fields where possible.",
+  "scope": "estimator-only characterisation; no neural simulation beyond reuse of already-frozen C3 V_m traces for the embedding stage. Synthetic fields use the same arc positions and dt as C3.",
+  "substrate": {
+    "positions": "C3 ordered arc-length positions, N=24, R=1.0 mm (identical to estimator inputs of frozen C3)",
+    "dt_ms": 0.5,
+    "fs_hz": 2000.0,
+    "estimator": "jaxfne.protocol_c.estimator.estimate_traveling_wave (D1-repaired, unchanged thresholds)",
+    "band_hz": [8.0, 13.0],
+    "coherence_min": 0.55,
+    "r2_min": 0.6,
+    "noise_floor": 0.0001
+  },
+  "stage_S1_amplitude_noise_floor": {
+    "field": "Phi(t,x) = A*cos(m*x - omega*t + phi0) + epsilon",
+    "wave": {
+      "mode_m": [1, 2],
+      "sign": [1],
+      "f_hz": [10.0],
+      "phi0_rad": [0.0],
+      "k_rule": "k = m/R rad/mm of arc length"
+    },
+    "amplitude_A": [0.05, 0.1, 0.2, 0.5, 1.0],
+    "noise_sigma_abs": [0.0, 0.1, 0.25, 0.5],
+    "duration_ms": 2000.0,
+    "n_cases": 40,
+    "question": "at which (A, sigma) does classification lose TRAVELING_WAVE, and which gate fails first (band power floor, k_norm < k_min, stability, coherence/R2)?"
+  },
+  "stage_S2_c3_regime_embedding": {
+    "question": "could a real traveling component hide in the frozen C3 cells? For representative frozen NO_WAVE cells, embed a known traveling wave and find the flip threshold gamma* (the smallest ratio of wave amplitude to cell band-power RMS at which the classifier returns TRAVELING_WAVE), or report no flip up to the ceiling.",
+    "carrier_cells": [
+      {"condition_id": "ordered_uniform", "seed": 1001, "frozen_reason": "standing_or_flipping_spatial_gradient"},
+      {"condition_id": "ordered_uniform", "seed": 1002, "frozen_reason": "synchronous_oscillation_k_near_zero"},
+      {"condition_id": "ordered_uniform", "seed": 1009, "frozen_reason": "structured_but_fails_traveling_gates"}
+    ],
+    "embedding": {
+      "formula": "Phi_mix = Phi_c3_bp + gamma * rms_c3 * cos(m*x - omega*t + phi0_wave)",
+      "rms_c3": "sqrt(mean(Phi_c3_bandpassed^2)) computed from the frozen cell's own V_m (before embedding)",
+      "wave_params": {"mode_m": 1, "f_hz": 10.0, "k_rule": "k = 1/R rad/mm"},
+      "gamma": [0.0, 0.25, 0.5, 1.0, 2.0, 4.0],
+      "phi0_wave_rad": [0.0, 1.57],
+      "tie_note": "at gamma=1.0 the embedded wave's peak amplitude equals the cell's in-band RMS; its in-band power (A^2/2) is half the cell's broadband in-band power"
+    },
+    "n_cases": 36,
+    "flip_threshold_definition": "gamma* = minimum gamma in the lattice with classification TRAVELING_WAVE for the cell; if none up to gamma=4.0, record NO_FLIP_WITHIN_LATTICE",
+    "cell_traces_source": "frozen C3 replay (deterministic, jaxfne.protocol_c.c3_execution.replay_c3_cell), V_m float64"
+  },
+  "stage_S3_duration_sites": {
+    "field": "Phi(t,x) = 1.0*cos(1*x - omega*t), sigma = 0 (clean wave, m=1 f=10)",
+    "question": "minimum duration and minimum number of sites for reliable TRAVELING_WAVE classification",
+    "duration_ms": [250.0, 500.0, 1000.0, 2000.0],
+    "n_sites": [24, 12, 6],
+    "site_subsampling": "uniform stride of the ordered 24-site arc (every k-th site), positions and field sampled identically",
+    "n_cases": 12,
+    "note": "V_m dtype float64; band-pass stability at short durations is part of what is being measured"
+  },
+  "reporting": {
+    "per_case": ["classification", "quality_reasons", "frequency_hz", "wave_vector", "phase_fit_r2", "spatial_coherence", "band_power", "recovery_errors"],
+    "stage_tables": "S1 first-failing-gate table; S2 gamma* per cell and phi0; S3 duration/site matrix",
+    "headline_field": "S2: per-cell flip thresholds gamma* quantify the hiding power of C3-like field structures against the estimator; ceiling results are reported as such",
+    "no_gate_change": "no threshold, band, or gate is altered in this study; the estimator is called exactly as in C3/A-1a"
+  }
+}
