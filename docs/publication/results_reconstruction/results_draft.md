@@ -2,11 +2,15 @@
 
 ## One object grammar
 
-jaxfne is a JAX-based neural simulator whose computational pipeline follows a single object
-grammar — Configuration → Net → Paradigm → Objective → Trainer → Signals →
-Visualization/Export — with a single `construct()` dispatch entry point unifying three
-configuration tiers onto one `Model`. Fig. 1 is a representational grammar map of this
-pipeline; it reports no empirical quantity.
+jaxfne is a JAX-based neural simulator whose computation follows the repository's two-grammar
+doctrine: the software execution grammar `CircuitSpec → construct → Model → simulate → Signals`,
+with a single `construct()` dispatch entry point unifying its circuit-specification tiers
+(Configuration, NeuronalTensor, and the narrower HDPColumnConfig) onto one `Model`; and the
+TFNE operator grammar `Emitter → Source → Field → Probe → Objective → Optimizer → Manifest`,
+the scientific pipeline this paper's evidence follows. Paradigm, Objective, and Trainer enter
+the API only as optional downstream workflow components, never as stages of either grammar.
+Fig. 1 is a representational grammar map of the execution pipeline; it reports no empirical
+quantity.
 
 ## One frozen canonical source
 

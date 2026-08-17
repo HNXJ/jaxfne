@@ -55,12 +55,16 @@ are pinned in the `viz`/`dev` extras: matplotlib version changes alter text
 rendering bytes, and scipy 1.18 changes the fig05 estimator numerics that feed
 its drawn annotations — either pin drift makes the equivalence gate fail on
 byte-identity (verified by clean-room bisection, 2026-08-15). The canonical
-Experiment A dataset (`canonical_source.npz`, `observations.npz`) is a
-deliberately gitignored derived artifact — arrays are never committed, only
-their SHA-256 hashes (`artifacts/etudes/experiment_a/b1_canonical_receipt.json`,
-`manifest.json`). Regenerate it first from a fresh clone with
+Experiment A dataset (`canonical_source.npz`) is deliberately tracked as a frozen
+publication-evidence exception (`.gitignore` keeps all other `*.npz` out; the
+exception is the single line
+`!artifacts/etudes/experiment_a/canonical_source.npz`, added 2026-08-16 so fresh
+checkouts and CI never need to regenerate it). Its SHA-256 is recorded in
+`artifacts/etudes/experiment_a/b1_canonical_receipt.json` and its `q_hash` in the
+fig02–04 cross-figure audit. Regeneration remains independently available for
+verification from a fresh clone with
 `python3 scripts/run_experiment_a.py`; figures 2-4 consume that bundle.
-That runner is verification-first: canonical arrays regenerate into the local
+That runner is verification-first: canonical arrays regenerate into a local
 `.npz`; committed receipts are compared (hashes byte-exact, analytic metrics
 within rtol 1e-6, run-stamps ignored) and never rewritten — the reviewer tree
 stays clean.
