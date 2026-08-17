@@ -177,6 +177,10 @@
   {
    "ts": "2026-08-17T00:00:00Z",
    "text": "PHASE-6 SEAL: Introduction + external positioning (B-1) done. introduction_draft.md 709 words, P1-P7 mapped to ledger evidence, 14/14 refs verified (2 corrections), R5 adversarial review 1F+3M+6m repaired, forbidden words 0, docs-language PASS, mkdocs strict PASS. S_NatureMethods re-measured on the 2026-08-15 rubric: dim 20 external_positioning 1->4, 92->95/100 (receipt artifacts/developer/phase2_review/11_rubric_remeasure_post_introduction.md). Sealed main@85bc8ef, dev ca5a3c4, trees identical, pushed."
+  },
+  {
+   "ts": "2026-08-17T00:00:00Z",
+   "text": "PHASE-7 SEAL: Discussion + Limitations done. discussion_draft.md 1329 words, 6 movements; proposition review 12D/5I/1B/9L/6F/9U; adversarial review 0 FATAL 2 MAJOR 4 MINOR 1 REJECTED, all repaired (ADAPT: SPECIALIZE/WEAKEN/PRUNE/REWIRE). W3b counts explicit (S=0/U=0/X=1944 of 2187); no global HDP stability, no calibration, no biology-identity claims; A-1b stays bounded negative search; futures explicitly future. S_NatureMethods re-measured: 95/100 no-delta (13_rubric_remeasure_post_discussion.md). DISCUSSION_FINALIZED=YES; ABSTRACT_AUTHORIZED=NO."
   }
  ],
  "issues": [
