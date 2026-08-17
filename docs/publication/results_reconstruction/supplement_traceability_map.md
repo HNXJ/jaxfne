@@ -26,6 +26,7 @@ receipts and fails if the draft and the receipts disagree.
 | S.14 | Negative/unresolved register | `artifacts/publication/publication_evidence_index.json`; per-protocol receipts |
 | S.15 | Reproducibility/provenance | Methods §14; `REVIEW_NAVIGATION.md`; `artifacts/publication/publication_evidence_index.json` (fig SHAs); receipt package heads |
 | S.16 | Displaced material register | results_draft.md, methods_draft.md, receipts above |
+| S.17 | Claim × evidence-regime classification (21 claims) | `artifacts/publication/publication_claim_ledger.json` (evidence_regime, verbatim); Methods §12 family mapping |
 
 ## Verification commands (authority-level)
 
