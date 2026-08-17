@@ -185,6 +185,10 @@
     {
       "ts": "2026-08-17T18:00:00Z",
       "text": "PHASE-8 seal: full manuscript reconciliation. R1: 1 contradiction (Results P1 Objective-vs-grammar) + 1 label drift (Methods object/software execution grammar) + Fig 6/7 orphaned + HDP expansion + H* gloss + 4 micro-terminology fixes, all repaired in G1 (16 mutations). R3: numbers consistent everywhere (machine-derived). R5 B-block: B-2 S.17 claim x regime table (ledger verbatim); B-3 H4 confound in Methods \u00a711 (S.11.3 register kept); B-4 verified; B-5 JAX 0.10.1; B-6 clean/absent; O-1 REJECTED_AS_UNNECESSARY_FOR_SUBMISSION. R6: 0 FATAL, 1 MAJOR (P13 gate counts vs receipt, fixed), 4 MINOR (3 fixed). R7: all audits PASS (70/55/212 + docs-language), mkdocs strict, harness integrity, 21/21 ledger coverage, Fig 1-7 cited. S_NatureMethods 95 -> 97/100 (dims 9, 16). MANUSCRIPT_CORE_FINALIZED=YES; ABSTRACT_AUTHORIZED=NO. Commits 8f260e6 -> main 226c50e."
+    },
+    {
+      "ts": "2026-08-17T18:20:00Z",
+      "text": "PHASE-9 seal: Abstract (user-authorized cycle P_Abstract -> R_compression -> G -> R_adversarial -> G_repair -> S). A = Pi_abstract(M): 147 words (<=150), every sentence mapped to frozen propositions (abstract_traceability_map.md), zero new propositions. R_adversarial: 0 FATAL/0 MAJOR/3 MINOR (M1 modal weakening 'unverifiable'->'hard to verify', M2 'using an estimator', M3 'preregistered geometries and delay policies'), all repaired. Ref-5 journal-version resolved in P: TVB-Optim still bioRxiv (Pille et al. 2025, doi:10.1101/2025.11.18.689003) \u2014 citation correct. Gates: word budget OK, forbidden words 0, citations 0, single paragraph, docs-language PASS, compileall OK, mkdocs --strict PASS. S_NatureMethods 97 -> 98/100 (dim 20 external_positioning 4->5). ABSTRACT_FINALIZED=YES; SUBMISSION_AUTHORIZED=NO. Commits b74529d -> main d80f342."
     }
   ],
   "issues": [
