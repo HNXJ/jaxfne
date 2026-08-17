@@ -7,7 +7,7 @@ doctrine: the software execution grammar `CircuitSpec → construct → Model �
 with a single `construct()` dispatch entry point unifying its circuit-specification tiers
 (Configuration, NeuronalTensor, and the narrower HDPColumnConfig) onto one `Model`; and the
 TFNE operator grammar `Emitter → Source → Field → Probe → Objective → Optimizer → Manifest`,
-the scientific pipeline this paper's evidence follows. Paradigm, Objective, and Trainer enter
+the scientific pipeline this paper's evidence follows. Paradigm and Trainer enter
 the API only as optional downstream workflow components, never as stages of either grammar.
 Fig. 1 is a representational grammar map of the execution pipeline; it reports no empirical
 quantity.
@@ -56,7 +56,7 @@ travelling plane with shuffled sensor coordinates — were all correctly rejecte
 
 The frozen protocol screened 60 cells — 6 conditions (ordered/shuffled geometry ×
 uniform/geometry-derived/delay-shuffled delay policies) × 10 seeds — on the 24-neuron ring,
-2000 ms at dt = 0.5 ms {Q09}. All 60 cells were classified NO_WAVE {Q10}, for three
+2000 ms at Δt = 0.5 ms {Q09}. All 60 cells were classified NO_WAVE {Q10}, for three
 reasons: 52 synchronous oscillations with near-zero wave number, 4 standing/flipping
 spatial gradients, 4 structured-but-fails traveling gates {Q10}. A scope qualifier applies:
 geometry-derived delays collapsed to the same four-step delay as the uniform condition on
@@ -101,7 +101,7 @@ outside the tested geometry/delay domain, and none outside this simulator.
 ## Typed vector RBS extends the classical emitter
 
 Within one mechanism subsystem, the typed vector resting-state (RBS) extension writes
-internal state variables (H_K, H_A) into model parameters; setting H_K = 1 exactly restores
+internal state variables (H_K, H_A) into model parameters (Fig. 6); setting H_K = 1 exactly restores
 the base emitter . The extension re-parameterises the existing Izhikevich machinery:
 it introduces no additional biological mechanism and no new neuron type.
 
@@ -133,9 +133,9 @@ memory persistence through closed-loop dynamics is claimed.
 
 Across 36 cells × 4 arms (N0, N1, N2, D; 3 seeds × 3 recovery intervals) {Q25}, the D arm
 shows observable spike-count attenuation with A_adapt > 0.15 in 9 of 9 cells {Q20}; formal
-ADAPTATION classification failed in 0 of 9 D cells because the joint mechanism gates are
-not satisfied — the state-formation gate passes 9/9 while the late-state gate (H_K_late >
-1 + θ_H) fails 0/9 {Q20}. The all-arms classification counts are N0/N1/N2: 9 ADAPTATION
+ADAPTATION classification fired in 0 of 9 D cells because the joint mechanism gates are not
+satisfied — the state-formation gate passes 9/9 while the late-state gate (H_K_late >
+1 + θ_H) passes 0/9 {Q20}. The all-arms classification counts are N0/N1/N2: 9 ADAPTATION
 each; D: 9 NO_ADAPTATION {Q20}; the mechanism gates are evaluated where H_K is written (the
 D arm), so the null arms' ADAPTATION labels reflect matching observables without the gate,
 not a differing observable. Observably, attenuation is identical across arms (D minus N2
@@ -148,7 +148,7 @@ reported as attenuation, not adaptation.
 Across the frozen W3b lattice of 2187 points {Q21}, 243 are classified D (dormant/vanishing
 feedback), 0 robustly stable S, 0 near-critical C, 0 unstable U, and 1944 remain active but
 stability-unresolved X {Q21}. With N_S = 0, no robustly stable active point was classified
-{Q21}, and no useful robust-active HDP domain is claimed; the stability classification of
+{Q21}, and no useful robust-active hidden-state dynamics (HDP) domain is claimed; the stability classification of
 the active region remains open — this is not a negative result
 .
 
@@ -166,11 +166,11 @@ active region .
 
 ## Hierarchy, delays, and local RBS compose
 
-A minimal two-area laminar hierarchy supports typed feedforward/feedback ownership with
-identity round-trip ; no functional spectral claim and no biological specialization
+A minimal two-area laminar hierarchy supports typed feedforward/feedback ownership (Fig. 7)
+with identity round-trip ; no functional spectral claim and no biological specialization
 claim is made. Typed pathway delays compose with the hierarchy: setting the delay to zero
 recovers the E1 semantics exactly . Sparse, owned H_K RBS composes with the
-hierarchy and delays: setting H = H* recovers the E2 semantics exactly; no plasticity claim
+hierarchy and delays: setting H = H* (the neutral value, 1) recovers the E2 semantics exactly; no plasticity claim
 is made in this composition .
 
 ## Observations are downstream

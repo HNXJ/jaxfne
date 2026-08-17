@@ -69,7 +69,7 @@ Remarks (corrected):
 
 | Quantity | Unit / convention | Status | Basis |
 |---|---|---|---|
-| Simulation time step dt | 0.5 ms (H4: 1.0 ms, declared inline) | Absolute | all executors |
+| Simulation time step Δt | 0.5 ms (H4: 1.0 ms, declared inline) | Absolute | all executors |
 | Duration T | ms | Absolute | specs |
 | Ring radius R | 1.0 mm; contact arc a = 2πR/N | Absolute (geometry normalized to R = 1.0) | C3 spec |
 | Positions x_i | mm along the arc | Absolute (convention) | C3 recording |
@@ -304,7 +304,7 @@ true). no_adaptive_extension_observed = true. Estimator module SHA `684859a98da5
 Per-cell reason distribution across the 45 cells: 27 × standing_or_flipping_spatial_gradient,
 11 × synchronous_oscillation_k_near_zero, 7 × structured_but_fails_traveling_gates;
 0 traveling-wave cells and 0 invalid cells (no cell reached the traveling gates). The two
-"recovered" flanking endpoints (0 of 24 neurons fired, max rate 0.5 Hz, near-silent) and the
+flanking endpoints (0 of 24 neurons fired, max rate 0.5 Hz, near-silent) and the
 no-adaptive-extension observation are recorded in the receipt; the interpretation constraint
 honored in Results: no claim beyond "no TRAVELING_WAVE classification in the tested delay
 family by the same estimator that classified all of A-1a and C3". No point, criterion, or
@@ -562,7 +562,7 @@ polarity_axis), the per-protocol receipts, Results/Methods.
 
 ### S.15.1 Environment (executed)
 
-Python 3.13.7; JAX CPU with float32 default (float64 where declared: A-2 S2/S3 estimator
+Python 3.13.7; JAX 0.10.1 (CPU) with float32 default (float64 where declared: A-2 S2/S3 estimator
 inputs, estimator spectral arithmetic); NumPy; SciPy == 1.17.1; matplotlib >= 3.10.9, <3.11
 (byte-identity pin: darwin + matplotlib 3.10.9, enforced by the equivalence gate
 `byte_identity_pinned()`); jaxfne at baseline `dev@8cc60a6…` (each frozen receipt records its
@@ -611,8 +611,10 @@ or the sealed drafts:
    counts and gate outcomes only.
 2. Full per-arm/per-seed D3 endpoints and mechanism questions (S.10) — Methods §11 reports
    the aggregate 27/9/0 classification.
-3. H4 confound material and methodological limitations (S.11.3) — displaced from Methods to
-   keep the H4 negative-result statement compact.
+3. H4 confound register and methodological limitations (S.11.3) — the Methods §11 protocol
+   carries a compact confound disclosure (class-count asymmetry, single-cell point estimate);
+   the full receipt-backed register with interpretation rules and future-protocol
+   suggestions is assembled here.
 4. A-3 HDP boundedness classification reference C-HDP-1..8 (S.9) — Methods reports the
    scoped statement only.
 5. W3b lattice gates, counts, and three-level interpretation (S.13) — Methods §12 reports
@@ -628,6 +630,42 @@ Declared-not-established register (never collapsed into negatives): H4 bootstrap
 stability classification of X points; standing-pattern reason parity (D2 parity at
 500/2000 ms measured separately); C-HDP-3/6/7 as classified in S.9. Each entry states exactly
 what was not established; none is reported as a negative result.
+
+## S.17 — Claim × evidence-regime classification (21 claims)
+
+The full claim × regime classification block, verbatim from the publication claim ledger
+(`artifacts/publication/publication_claim_ledger.json`, schema
+`jaxfne.publication.claim_ledger.v1`), with each claim mapped to the five-regime taxonomy
+of Methods §12. CL-01 (representational document), CL-04 (method-boundary statement), and
+CL-21 (method reproduction) are non-quantitative classifications outside the five
+quantitative regimes.
+
+| Claim | Ledger evidence regime (verbatim) | Methods §12 family |
+|---|---|---|
+| CL-01 | representational_document | — (Fig. 1 grammar map; no empirical quantity) |
+| CL-02 | deterministic_numerical_property | 1 · deterministic property |
+| CL-03 | deterministic_numerical_property | 1 |
+| CL-04 | method_boundary_statement | — (method-boundary statement) |
+| CL-05 | deterministic_numerical_property | 1 |
+| CL-06 | parameter_space_characterization | 2 · parameter-domain characterization |
+| CL-07 | deterministic_numerical_property | 1 |
+| CL-08 | deterministic_numerical_property (classification of simulated cells) | 1 |
+| CL-09 | deterministic_numerical_property + parameter_space_characterization | 1 + 2 |
+| CL-10 | deterministic_numerical_property (factorial point estimates) | 1 (point estimates; the H4 conclusion carries the regime-5 caveat) |
+| CL-11 | parameter_space_characterization (lattice scan, deterministic gates) | 2 |
+| CL-12 | deterministic_numerical_property | 1 |
+| CL-13 | deterministic_numerical_property | 1 |
+| CL-14 | deterministic_numerical_property | 1 |
+| CL-15 | deterministic_numerical_property | 1 |
+| CL-16 | deterministic_numerical_property | 1 |
+| CL-17 | deterministic_numerical_property | 1 |
+| CL-18 | deterministic_numerical_property across seeds | 1 + 3 · seed robustness |
+| CL-19 | parameter_space_characterization | 2 |
+| CL-20 | deterministic_numerical_property | 1 |
+| CL-21 | method_reproducibility | — (reproduction verification) |
+
+Basis: `publication_claim_ledger.json` (all 21 rows verbatim from the `evidence_regime`
+field); family mapping follows Methods §12.
 
 ---
 
