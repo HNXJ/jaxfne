@@ -77,7 +77,7 @@ explicit transformation with evidence. See [Scope & status](docs/scope_and_statu
 | Site | [jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/) |
 | Tutorials | [docs/tutorials/](docs/tutorials/) |
 | Études | [docs/etudes/](docs/etudes/) |
-| Public API contract (0.4.13) | [docs/public_surface_contract.md](docs/public_surface_contract.md) |
+| Frozen compatibility contract (0.4.13) | [docs/public_surface_contract.md](docs/public_surface_contract.md) |
 | Changelog | [docs/changelog.md](docs/changelog.md) |
 
 ## Citation

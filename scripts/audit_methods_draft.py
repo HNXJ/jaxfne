@@ -279,6 +279,27 @@ def main() -> int:
     for code, label, ok in eq_checks:
         check(code, label, ok)
 
+    # ---------------------------------------------------------------- operator-domain regression guards (2026-08-16)
+    op_checks = [
+        ("E16", "operator signatures: S_ψ: x_t ↦ q_t (source) and E_θ: (x_t, u_t, ξ_t) ↦ x_{t+1} (evolution)",
+         "x_t ↦ q_t" in draft and "(x_t, u_t, ξ_t) ↦ x_{t+1}" in draft
+         and "(x_t, u_t, ξ_t) ↦ q_t" not in draft
+         and "F_γ" in draft and "q_t ↦ φ_t" in draft
+         and "P_η" in draft and "φ_t ↦ y_t" in draft),
+        ("E17", "execution grammar: CircuitSpec → construct → Model → simulate → Signals (no legacy Config → Net → Paradigm chain)",
+         "CircuitSpec → construct → Model → simulate → Signals" in draft
+         and "→ Net → Paradigm →" not in draft
+         and "Config → Net" not in draft
+         and "Configuration → Net" not in draft),
+        ("E18", "figure numbering: Figures 1–7 (7-figure set; no Figures 1–6)",
+         "Figures 1–7" in draft and "Figures 1–6" not in draft),
+        ("E19", "field terminology: linear projection/proxy operators (no 'linear-solver scaffold/proxies')",
+         "linear projection/proxy" in draft
+         and "linear-solver" not in draft),
+    ]
+    for code, label, ok in op_checks:
+        check(code, label, ok)
+
     # ---------------------------------------------------------------- report
     n_pass = sum(1 for c in checks if c["pass"])
     n_fail = sum(1 for c in checks if not c["pass"])

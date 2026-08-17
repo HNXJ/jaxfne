@@ -2,8 +2,8 @@
 
 **Status:** DRAFT (Phase 5, Methods Reconstruction), authoritative baseline `dev@8cc60a677217a54b8bad321ac2bdfd479e3f9c13`.
 **Central invariant:** the mathematics stated here ≡ the operators implemented in `jaxfne` ≡ the configurations executed in the frozen/post-freeze evidences ≡ the results reported in `results_draft.md` (same freeze lineage).
-**Evidence language:** every quantity is stated as **Relative** or **Absolute**; no value below is claimed to be a calibrated physical measurement. All field/readout outputs are proxy readouts from a linear-solver scaffold, not a PDE/volume-conductor solve and not empirically calibrated.
-**Figures:** all figure numbers refer to the same Figures 1–6 described in the Results; no figure is produced in this document.
+**Evidence language:** every quantity is stated as **Relative** or **Absolute**; no value below is claimed to be a calibrated physical measurement. All field/readout outputs are relative proxy readouts from linear projection/proxy operators, not a PDE/volume-conductor solve and not empirically calibrated.
+**Figures:** all figure numbers refer to the same Figures 1–7 described in the Results; no figure is produced in this document.
 
 ---
 
@@ -17,7 +17,7 @@ All simulations follow a single frozen causal architecture (Experiment A lineage
 
 where X are neural state trajectories, H hidden (Relative Biophysical State, RBS) coordinates, S the source operator, Q the canonical relative source, F the field operator, Φ the field-time proxy, P the probe operator, and Y the final readout. In operator terms:
 
-- **S_ψ**: `(x_t, u_t, ξ_t) ↦ q_t` — the source operator maps emitter state to the canonical relative source Q at each time step (layer 3, Eq. 4).
+- **S_ψ**: `x_t ↦ q_t` — the source operator maps the emitter state to the canonical relative source Q at each time step (layer 3, Eq. 4).
 - **E_θ**: `(x_t, u_t, ξ_t) ↦ x_{t+1}` — the evolution operator; for HDP runs the hidden coordinate H becomes part of the carried state (layer 5).
 - **F_γ**: `q_t ↦ φ_t` — the field operator maps the stacked source to field-coordinate proxies Φ (layer 6).
 - **P_η**: `φ_t ↦ y_t` — the probe operator maps field quantities to readout Y (layer 6).
@@ -26,7 +26,7 @@ These operators are not assumed linear, and F, P are applied **post-hoc on froze
 
 ## 2. Circuit specification and construction path
 
-Models are constructed through a single dispatch `construct()` in `jaxfne`, with two call forms that converge on the same object grammar `Config → Net → Paradigm → Objective → Trainer → Signals → Vis/Export`:
+Models are constructed through a single dispatch `construct()` in `jaxfne` (software execution grammar `CircuitSpec → construct → Model → simulate → Signals`; Paradigm, Objective, and Trainer are optional downstream workflow components, not stages of the object grammar), with two supported circuit-specification tiers that converge on one `Model`:
 
 - **Configuration tier** (flat fluent builder): used for the ring-based protocols (C, A-series, H4, A-3). Example path: `laminar_cortex_config` / `build_laminar_column` → `construct` → `simulate`.
 - **NeuronalTensor tier** (structured Areas × Layers × NeuronTypes): used for the multi-area protocols (E-series, Experiment A) with explicit 3-D geometry per layer and area pose. The two tiers are separate, not a hierarchy; neither wraps the other, and only the downward conversion `neuronal_tensor_to_configuration` exists.
@@ -145,7 +145,7 @@ A-3 executed both presets × seeds {1001, 1002, 1003} on the frozen C3 ring (dur
 
 ## 6. Field and probe operators (observations)
 
-All field operators are **linear-solver proxies**, not PDE/volume-conductor solves (field_solver_status = linear_solver; field_claim_level = proxy_readout; physical_amplitude_calibrated = False). The only PDE-family solver in the repository (`experimental_poisson_1d`) is experimental and was **not used** for any figure or protocol reported here.
+All field operators are **linear projection/proxy operators**, not PDE/volume-conductor solves; the legacy `field_solver_status` tag records `linear_solver` and must not be read as evidence of a solver (field_claim_level = proxy_readout; physical_amplitude_calibrated = False). The only PDE-family solver in the repository (`experimental_poisson_1d`) is experimental and was **not used** for any figure or protocol reported here.
 
 - **Laminar field proxy (F, Fig. 2–4 lineage) {Q01}:** sources Q_t (T, N) at positions with relative laminar depth z ∈ [0, 1] are projected onto n_contacts = 16 Gaussian contacts of width 0.10 (relative depth): `Φ_c(t) = Σ_i Q_i(t)·exp(−(z_c − z_i)²/(2·0.10²))` with density-preserving normalization (the default; the alternative row-normalize mode erases source density and is not used in any recorded protocol). Outputs: phi_e_proxy (LFP-like), csd_proxy (second-derivative/divergence-style spatial operator on phi_e, sign convention positive = extracellular source), kernel, contact depths.
 - **LFP-proxy probe (P):** samples phi_e at probe contact depths by interpolation (`depth_interpolation_on_phi_e_proxy`).

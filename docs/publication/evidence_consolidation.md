@@ -52,8 +52,8 @@ Examples: H4 = `DEMONSTRATED + NEGATIVE`; C3 = `DEMONSTRATED + NEGATIVE`; D3 = `
 5. Figure 6 H/W/D (**complete @ fig06_generation_receipt**)
 6. Figure 7 E-integration (**complete @ fig07_generation_receipt** — **MAIN FIGURE EVIDENCE SET COMPLETE**)
 7. Figures 1–7 cross-figure semantic/provenance audit (**complete @ figures_1_7_cross_figure_audit**)
-8. Publication reconstruction — **next authorized checkpoint**
-9. Main-text reconstruction
+8. Publication reconstruction — **complete @ Results draft (audit 66/66, 2026-08-15) + Methods draft (sealed @ `e2f57ad`, audit 51/51, 2026-08-15)**
+9. Supplement assembly — **current checkpoint** (S.1–S.4 pre-material exists at `results_reconstruction/supplement_material.md`; final assembly not begun)
 10. Supplement
 
 ### Figures 2–4 authority (coordinated Experiment A)
@@ -113,7 +113,7 @@ Six-panel compositional culmination: E1 hierarchy → E2 delays → E3 sparse RB
 | Human summary | `docs/publication/figures_1_7_cross_audit_summary.md` |
 | Generator | `scripts/publication_figures/figures_1_7_cross_audit.py` |
 
-Verifies terminology, polarity, frozen boundaries (H4−, C3−, D3−, W3b unresolved, E5+), Experiment-A Q provenance, and figure-to-PEC mapping. **Next:** publication reconstruction (polish → Results → Methods → Supplement → prose).
+Verifies terminology, polarity, frozen boundaries (H4−, C3−, D3−, W3b unresolved, E5+), Experiment-A Q provenance, and figure-to-PEC mapping. **Next:** Supplement assembly (S.1–S.4) → Introduction/literature → Discussion → Abstract → compliance; Results and Methods reconstruction drafts are complete (66/66 and 51/51 audit passes).
 
 ### Figure 1 authority
 

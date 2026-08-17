@@ -330,11 +330,31 @@
       "check": "P9_tested_regime_wording",
       "detail": "",
       "passed": true
+    },
+    {
+      "check": "P1_execution_grammar",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "P1_operator_grammar",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "P1_no_legacy_chain",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "P1_optional_components_disclosed",
+      "detail": "",
+      "passed": true
     }
   ],
   "draft": "docs/publication/results_reconstruction/results_draft.md",
   "failures": [],
-  "n_checks": 66,
+  "n_checks": 70,
   "n_failed": 0,
   "schema": "jaxfne.publication.results_audit_receipt.v1",
   "status": "PASS",

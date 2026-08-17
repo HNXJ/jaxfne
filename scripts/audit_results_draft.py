@@ -510,6 +510,10 @@ sanity_checks = [
     ("P7_has_near_silent_consequence", "near-silent activity" in paras_by_id[7]),
     ("P8_has_tested_grid_wording", bool(re.search(r"Of the 40\s+tested\s+amplitude/noise\s+cases", paras_by_id[8]))),
     ("P9_tested_regime_wording", "tested" in paras_by_id[9] and "preregistered" in paras_by_id[9]),
+    ("P1_execution_grammar", "CircuitSpec → construct → Model → simulate → Signals" in paras_by_id[1]),
+    ("P1_operator_grammar", "Emitter → Source → Field → Probe → Objective → Optimizer → Manifest" in paras_by_id[1]),
+    ("P1_no_legacy_chain", "→ Net → Paradigm →" not in paras_by_id[1]),
+    ("P1_optional_components_disclosed", "optional downstream workflow components" in paras_by_id[1]),
 ]
 for name, ok in sanity_checks:
     check(name, ok)
