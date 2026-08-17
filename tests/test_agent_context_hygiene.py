@@ -143,9 +143,30 @@ class TestAgentContextHygiene:
         """The active guide keeps scientific and software grammars distinct."""
         content = Path("AGENTS.md").read_text(encoding="utf-8")
 
-        assert "Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Evidence" in content
+        assert "Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest" in content
         assert "CircuitSpec -> construct -> Model -> simulate -> Signals" in content
         assert "Config -> Net -> Paradigm -> Objective -> Trainer" not in content
+        assert "optional downstream workflow components" in content
+        assert "not stages of either invariant grammar" in content
+
+    def test_public_surfaces_terminate_in_manifest(self):
+        """No current public-facing grammar may terminate in Evidence or revive the legacy chain."""
+        surfaces = [
+            "README.md",
+            "docs/index.md",
+            "docs/api/index.md",
+            "docs/for_ai_agents.md",
+            "docs/operator_doctrine.md",
+        ]
+        for path in surfaces:
+            content = Path(path).read_text(encoding="utf-8")
+            assert "Optimizer -> Manifest" in content or "Optimizer → Manifest" in content, (
+                f"{path} does not terminate its scientific grammar in Manifest"
+            )
+            assert "Optimizer -> Evidence" not in content, f"{path} uses stale Evidence terminal"
+            assert "Optimizer → Evidence" not in content, f"{path} uses stale Evidence terminal"
+            assert "Config -> Net -> Paradigm" not in content, f"{path} revives the legacy chain"
+            assert "Config → Net → Paradigm" not in content, f"{path} revives the legacy chain"
 
     def test_repository_state_script_is_present(self):
         """Volatile checkout facts have a read-only derivation command."""
