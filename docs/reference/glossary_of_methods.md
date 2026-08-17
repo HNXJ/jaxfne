@@ -22,9 +22,9 @@ Emitter -> Source -> FieldProxy -> Probe -> Objective -> Optimizer -> Manifest
 
 ### Forward Euler and scan integration
 
-```math
+$$
 y_{n+1} = y_n + \Delta t\, f(y_n, t_n)
-```
+$$
 
 `jaxfne` uses explicit state updates for emitter dynamics and wraps hot time loops with `jax.lax.scan` where practical.
 
@@ -32,37 +32,37 @@ y_{n+1} = y_n + \Delta t\, f(y_n, t_n)
 
 ### Source projection
 
-```math
+$$
 \Phi_{k,c} = \sum_n S_{k,n} W_{c,n}
-```
+$$
 
 `S` is the source tensor, `W` is a declared projection kernel, `k` indexes time or sample, `c` indexes channels, and `n` indexes source support.
 
 ### LFP proxy
 
-```math
+$$
 \mathrm{lfp\_proxy}_{k,c} = \sum_n S_{k,n} K_{c,n}
-```
+$$
 
 The kernel `K` encodes the laminar or spatial projection used by the run.
 
 ### CSD proxy
 
-```math
+$$
 \mathrm{csd\_proxy}_{k,c} = D_{zz}\Phi_{k,c}
-```
+$$
 
 `D_{zz}` is the declared depth-axis finite-difference operator.
 
 ### EEG and MEG proxies
 
-```math
+$$
 \mathrm{eeg\_proxy}_{k,c} = \sum_n S_{k,n} L^{\mathrm{eeg}}_{c,n}
-```
+$$
 
-```math
+$$
 \mathrm{meg\_proxy}_{k,c} = \sum_n S_{k,n} L^{\mathrm{meg}}_{c,n}
-```
+$$
 
 `L` is the fixed readout kernel declared for the run.
 
