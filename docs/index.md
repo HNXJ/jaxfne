@@ -3,7 +3,7 @@
 **Tensor-Field Neural Equations (TFNE)** — JAX simulation for layer-resolved neural
 circuits, source operators, field proxies, probes, objectives, and evidence.
 
-**Scientific grammar:** Emitter → Source → Field → Probe → Objective → Optimizer → Evidence
+**Scientific grammar:** Emitter → Source → Field → Probe → Objective → Optimizer → Manifest
 
 **Execution grammar:** CircuitSpec → `construct` → `Model` → `simulate` → `Signals`
 

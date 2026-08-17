@@ -22,7 +22,7 @@ importable from submodules but are not root exports.
 
 ## Grammars
 
-**Scientific:** Emitter → Source → Field → Probe → Objective → Optimizer → Evidence
+**Scientific:** Emitter → Source → Field → Probe → Objective → Optimizer → Manifest
 
 **Execution:** CircuitSpec → `construct` → `Model` → `simulate` → `Signals`
 

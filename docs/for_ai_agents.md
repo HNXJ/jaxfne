@@ -18,11 +18,16 @@ jaxfne treats **AI-agent readability as a first-class design goal**, alongside h
 5. **Roadmap:** `docs/fullroadmap.md` — canonical ordered action list (agent-facing, not in MkDocs nav).
 6. **Backlog:** `artifacts/developer/progress.json` if present locally — verify scores before claiming a file is done. Not in a fresh clone; maintainers keep it locally.
 
-## Object grammar (one line)
+## Object grammar
+
+Two grammars, kept distinct (see [Configuration Grammar](guides/configuration_grammar.md)):
 
 ```text
-Config → Net → Paradigm → Objective → Trainer → Signals → Vis/Export
+Scientific/operator grammar:     Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest
+Software execution grammar:      CircuitSpec -> construct -> Model -> simulate -> Signals
 ```
+
+Paradigm, Objective, and Trainer are optional downstream workflow components, not stages of either grammar.
 
 `construct()` is the single dispatch — extend it, don’t bypass.
 

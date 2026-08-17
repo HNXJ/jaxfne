@@ -14,31 +14,21 @@
 layer-resolved neural circuits, source operators, field proxies, probes, objectives,
 and evidence receipts.
 
-**Scientific grammar**
+**Scientific grammar:** `Emitter → Source → Field → Probe → Objective → Optimizer → Manifest`
 
-\[
-\text{Emitter} \rightarrow \text{Source} \rightarrow \text{Field} \rightarrow \text{Probe}
-\rightarrow \text{Objective} \rightarrow \text{Optimizer} \rightarrow \text{Evidence}
-\]
-
-**Execution grammar**
-
-\[
-\text{CircuitSpec} \rightarrow \texttt{construct} \rightarrow \texttt{Model}
-\rightarrow \texttt{simulate} \rightarrow \texttt{Signals}
-\]
+**Execution grammar:** `CircuitSpec → construct → Model → simulate → Signals`
 
 **Adaptation** (optional HDP family): finite-dimensional hidden biophysical state
-\(H\) and adaptive parameter coordinates \(\Theta\) (synaptic and intrinsic),
+$H$ and adaptive parameter coordinates $\Theta$ (synaptic and intrinsic),
 mediated by
 
-\[
+$$
 \dot X = F_X(X,H,\Theta,U),\quad
 \dot H = F_H(H,X,\Theta,U),\quad
 \dot\Theta = F_\Theta(H,X,\Theta).
-\]
+$$
 
-\(H\)-state is the latent representation; HDP is the adaptive dynamical formulation
+$H$-state is the latent representation; HDP is the adaptive dynamical formulation
 that uses it. See [H-state / HDP guide](docs/guides/hdp.md).
 
 ## Install
