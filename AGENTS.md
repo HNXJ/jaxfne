@@ -29,7 +29,7 @@ jaxfne expresses neural biophysics as modular Tensor-Field Neural Equations (TFN
 Scientific grammar:
 
 ```text
-Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Evidence
+Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest
 ```
 
 Execution grammar:
@@ -39,6 +39,8 @@ CircuitSpec -> construct -> Model -> simulate -> Signals
 ```
 
 `CircuitSpec` includes supported Configuration and NeuronalTensor forms.
+
+Paradigm, Objective, optimization/training utilities, visualization, and export are optional downstream workflow components where they exist — not stages of either invariant grammar.
 
 ## Mathematical invariants
 
