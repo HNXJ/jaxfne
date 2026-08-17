@@ -51,6 +51,8 @@ exclude_docs: |
   reference/glossary_of_methods.md
   # Manuscript-in-progress working files (Publication phase): deliberately
   # non-navigable on the public site -- delivery artifacts, not user docs.
+  publication/results_reconstruction/abstract_draft.md
+  publication/results_reconstruction/abstract_traceability_map.md
   publication/results_reconstruction/results_draft.md
   publication/results_reconstruction/traceability_map.md
   publication/results_reconstruction/methods_draft.md
