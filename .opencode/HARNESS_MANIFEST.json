@@ -7,7 +7,7 @@
   "components": {
     "project_agents": {
       "file": "AGENTS.md",
-      "sha256": "0fe199f1828f7b69a273f052b8a53bd7128f27c9eeebf4cd2b7acb71b95687f0"
+      "sha256": "fd9543df6c6c6c0c19dde39c33e984321d2004dac33cd61d68538e5b63b594f8"
     },
     "canonical_skills": {
       "jaxfne-core": "4e98d1bc214cb2bcc3850d69ff78d2343f8ce487e6933e17b8f9bc1d1a5f3047",

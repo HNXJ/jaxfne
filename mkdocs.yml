@@ -58,6 +58,8 @@ exclude_docs: |
   publication/results_reconstruction/supplement_material.md
   publication/results_reconstruction/supplement.md
   publication/results_reconstruction/supplement_traceability_map.md
+  publication/results_reconstruction/introduction_draft.md
+  publication/results_reconstruction/introduction_traceability_map.md
 
 theme:
   name: material
