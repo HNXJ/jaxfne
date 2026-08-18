@@ -7,7 +7,8 @@
   "version_commit": "6a99ee560bb17b11e5b9afb48f80ac26d0ccc176",
   "tag": null,
   "branches": {
-    "dev": "6a99ee560bb17b11e5b9afb48f80ac26d0ccc176"
+    "dev": "7abe2b85f391e1e71bce9ff427a109c1d2a70bcc",
+    "main": "7abe2b85f391e1e71bce9ff427a109c1d2a70bcc"
   },
   "reconciliation": {
     "method": "multi-model audit reconciliation (H1-H14)",
