@@ -19,6 +19,11 @@ measurement window.
 
 ## AGSDR optimizer spec
 
+AGSDR = **Adaptive Genetic Stochastic Delta Rule** — the canonical black-box
+optimizer for `Model.tune` (multi-parameter engine:
+`jaxfne.optim._run_agsdr_optimization_loop`; scalar engine:
+`propose_blackbox_candidates`).
+
 ```python
 optimizer = jtfne.agsdr(
     parameters={"drive_scale_a": (0.35, 2.25), "drive_scale_b": (0.35, 2.25)},
@@ -47,6 +52,19 @@ the sign already carried by that executable edge. `EdgeParameterSpec` also
 accepts `layer`, `area`, `ids`, `receptor_indices`, and explicit
 `edge_indices` constraints through the shared selector grammar. Use
 `MatrixParameterSpec` for dense backends that consume `emitter.W`.
+
+## AGSDR surface classification
+
+Every AGSDR-labelled callable has a declared relationship to the canonical
+definition above. The single source of truth is
+`jaxfne.optim.AGSDR_SURFACE_CLASSIFICATION`:
+
+| Class | Members | Relationship |
+|---|---|---|
+| **CANONICAL** | `agsdr()`, `AGSDROptimizerSpec`, `OptimizerSpec`, `_resolve_optimizer`, `_run_agsdr_optimization_loop`, `_agsdr_candidates_from_noise`, `propose_blackbox_candidates` | The multi-parameter `Model.tune` engine and its scalar counterpart described above. |
+| **EXPERIMENTAL** | `agsdr_transform` | Optax `GradientTransformation` variant; NOT on the `Model.tune(optimizer="AGSDR")` path; exercised only by tests. |
+| **COMPATIBILITY** | `AGSDR`, `AGSDRState`, `step_agsdr_transform` | Legacy surfaces retained for old notebooks/tests. `AGSDRState`/`step_agsdr_transform` are documented misnomers: they back a plain gradient-descent step, not canonical AGSDR. |
+| **TUTORIAL** | `tune_laminar_agsdr` | Tutorial convenience wrapper; not the canonical engine. |
 
 ## Tune
 

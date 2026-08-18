@@ -17,9 +17,11 @@ so downstream code can gate sharding with a simple `if ctx is not None` check.
 
 **Stub status:** per `jaxfne/sharding_utils.py`'s own module docstring, these
 functions are stubs — they set up the mesh/`PartitionSpec` topology but do not
-yet drive any real multi-device dispatch in the AGSDR loop. Full integration
+yet drive any real multi-device dispatch in the canonical AGSDR optimization
+loop (`jaxfne.optim.core._run_agsdr_optimization_loop`). Full integration
 is planned for v0.3.20+. Do not assume calling these already parallelizes an
-AGSDR sweep across devices.
+AGSDR sweep across devices; the canonical AGSDR engine remains
+single-device as of 0.4.17.
 
 ---
 

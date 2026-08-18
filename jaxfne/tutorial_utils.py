@@ -1664,8 +1664,9 @@ def tune_laminar_agsdr(
     """AGSDR-style fine-tuning of laminar control to hit a target firing rate
     and minimize spike synchrony (kappa).
 
-    Applies the AGSDR algorithm — adaptive greedy selection/deselection with
-    stochastic exploration/restart — to the scaffold control vector (default:
+    TUTORIAL variant -- NOT the canonical AGSDR implementation. Applies an
+    AGSDR-style algorithm -- adaptive greedy selection/deselection with
+    stochastic exploration/restart -- to the scaffold control vector (default:
     local exc/inh gains + feedforward gain), scoring each candidate with REAL
     metrics on a short simulate_laminar_trials run:
 
@@ -1673,6 +1674,8 @@ def tune_laminar_agsdr(
 
     This tunes the tutorial's proxy control knobs; it is distinct from
     ``jtfne.agsdr`` + ``Model.tune`` (which optimizes the core-engine Model).
+    The canonical AGSDR engines are ``_run_agsdr_optimization_loop`` and
+    ``propose_blackbox_candidates`` in ``jaxfne.optim.core``.
     Returns ``(best_control, history)`` where history is a DataFrame if pandas
     is available, else a list of dicts.
     """

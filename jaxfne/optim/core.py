@@ -477,8 +477,11 @@ def _resolve_optimizer(optimizer: Any) -> OptimizerSpec:
 class AGSDR:
     """Legacy AGSDR adapter retained for old notebooks and tests.
 
-    Prefer ``jtfne.agsdr(...)``.  This class only exposes metadata and does not
-    execute optimization directly.
+    COMPATIBILITY surface — NOT the canonical AGSDR implementation. This class
+    only exposes metadata (``status()``) and does not execute optimization
+    directly; ``Model.tune()`` accepts it via ``_resolve_optimizer``'s
+    ``hasattr(optimizer, "status")`` branch. Prefer ``jtfne.agsdr(...)``, which
+    returns the canonical ``OptimizerSpec`` / ``AGSDROptimizerSpec``.
     """
 
     alpha: float = 0.7
@@ -525,6 +528,17 @@ def propose_blackbox_candidates(
     This utility is deliberately small and dependency-free.  It is suitable for
     v0.0.x smoke tuning, but the returned candidates are computational proposals
     only and do not carry biological meaning.
+
+    AGSDR relationship: the ``"AGSDR"`` branch implements the SCALAR
+    single-parameter AGSDR path -- a two-phase stochastic search (Phase 1:
+    uniform proposals across the full bounds; Phase 2: shrinking-radius
+    refinement around the fixed bounds-midpoint center). It is related to but
+    NOT equivalent to the canonical multi-parameter algorithm
+    ``_run_agsdr_optimization_loop``: the scalar path keeps the center fixed at
+    the bounds midpoint and has no population, no elitist anchor, and no
+    delta-rule center update. Do not cite the two as interchangeable; the
+    multi-parameter loop is the canonical AGSDR engine used by
+    ``Model.tune(optimizer="AGSDR", parameters={...})``.
     """
     import random
 
@@ -538,7 +552,7 @@ def propose_blackbox_candidates(
     if optimizer.optimizer == "random_search":
         return [lo + (hi - lo) * rng.random() for _ in range(n)]
     if optimizer.optimizer == "AGSDR":
-        # Adaptive Genetic-Stochastic Delta Rule (improved two-phase scope).
+        # Adaptive Genetic Stochastic Delta Rule (improved two-phase scope).
         # Phase 1: Broad exploration across full bounds.
         # Phase 2: Focused exploitation around promising regions.
         center = 0.5 * (lo + hi)
@@ -634,12 +648,36 @@ def _run_agsdr_optimization_loop(
 
     Notes
     -----
-    The AGSDR scope is two-phase:
-      - Phase 1 (0 to n_population//5): Propose from bounds center with high variance
-      - Phase 2 (remaining): Propose from evolving center with decaying variance
+    Implemented AGSDR mathematics (verified against source 2026-08-18):
 
-    The function uses a simple Numpy random.Random() generator and does not
-    require JAX. It is suitable for integration into Jupyter notebooks and
+      - State: center ``theta_c`` initialized at the bounds midpoint;
+        best-so-far ``theta*`` / ``s*``; generation counter; PRNG key
+        ``PRNGKey(seed)``.
+      - Proposal: candidate 0 is locked to ``clip(theta_c)`` (elitist anchor);
+        candidates ``i >= 1`` are ``clip(theta_c + exploration * (hi - lo) * z_i)``
+        with ``z_i ~ N(0, I_d)`` standard-normal noise, pre-generated for all
+        generations in one vectorized JAX call (deterministic given seed).
+      - Evaluation: ``s_i = evaluate_fn(c_i)`` (black-box; lower is better).
+      - Selection: generation best ``theta*_g = argmin_i s_i``; global best is
+        monotone non-increasing.
+      - Update (delta rule): ``theta_c <- clip(theta_c + alpha * (theta*_g - theta_c),
+        lo, hi)``.
+      - Genetic component: population-based generational competition with an
+        elitist anchor; exploration/exploitation balance is set by the constant
+        ``exploration`` scale (no per-generation variance decay in this loop).
+      - Bounds: all proposals and the center are clipped to ``[lo, hi]``;
+        degenerate (``hi == lo``) and non-finite bounds are rejected.
+      - Termination: fixed ``n_generations``; returns best parameters, best
+        score, per-generation records, all scores, and all candidates.
+
+    The two-phase scope (Phase 1 broad exploration from bounds center, Phase 2
+    shrinking-radius refinement) is implemented in the scalar single-parameter
+    path ``propose_blackbox_candidates``, which is related but NOT equivalent to
+    this multi-parameter loop (fixed center, no population, no delta-rule update).
+
+    The function uses a deterministic JAX PRNG key derived from ``seed`` and
+    requires JAX for noise generation; ``evaluate_fn`` itself is a plain Python
+    callback. It is suitable for integration into Jupyter notebooks and
     Model.tune() as the "multi-parameter" optimization path.
 
     Example
@@ -1149,7 +1187,15 @@ def agsdr_transform(
     alpha_min: float = 0.0,
     alpha_max: float = 1.0,
 ) -> Any:
-    """Return an Optax-compatible GradientTransformation for Adaptive GSDR.
+    """Return an Optax-compatible GradientTransformation for the AGSDR transform variant.
+
+    EXPERIMENTAL: this is NOT the canonical AGSDR algorithm. It is an
+    Optax-integrated GradientTransformation (adaptive variance-ratio mixing of
+    a supervised inner update ``D_t`` and a stochastic base representation
+    ``R_t``) that is NOT on ``Model.tune(optimizer="AGSDR", ...)``'s call path
+    (``_resolve_optimizer`` has no branch for a raw GradientTransformation) and
+    is exercised only by tests. The canonical AGSDR engine is
+    ``_run_agsdr_optimization_loop`` / ``propose_blackbox_candidates``.
 
     Mathematically implements:
     U_{t+1} = U_t + λ * [ α_t * (σ * R_t) + (1 - α_t) * D_t ]

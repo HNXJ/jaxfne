@@ -12,8 +12,38 @@ implementations -- see ``jaxfne/optim/core.py``'s own comment above
 ``_TransformSDRState`` for the full explanation, and each ``step_*_transform``
 function's docstring for which implementation is actually on
 ``Model.tune()``'s call path.
+
+AGSDR surface classification (0.4.17 semantic contract -- single source of
+truth; mirrored in ``tests/test_agsdr_classification.py``):
+``AGSDR_SURFACE_CLASSIFICATION`` below maps every AGSDR-labelled public
+surface to CANONICAL / EXPERIMENTAL / COMPATIBILITY / TUTORIAL. Canonical
+meaning: AGSDR = Adaptive Genetic Stochastic Delta Rule. Do not collapse
+these distinctions in docs, tests, or API descriptions.
 """
 from __future__ import annotations
+
+AGSDR_SURFACE_CLASSIFICATION: dict[str, str] = {
+    # CANONICAL -- the AGSDR algorithm as implemented in jaxfne.optim.core:
+    # multi-parameter engine `_run_agsdr_optimization_loop` (population +
+    # delta-rule center update + elitist anchor) and scalar engine
+    # `propose_blackbox_candidates` (two-phase shrinking-radius search).
+    "agsdr": "CANONICAL",
+    "AGSDROptimizerSpec": "CANONICAL",
+    "OptimizerSpec": "CANONICAL",
+    "_resolve_optimizer": "CANONICAL",
+    "_run_agsdr_optimization_loop": "CANONICAL",
+    "_agsdr_candidates_from_noise": "CANONICAL",
+    "propose_blackbox_candidates": "CANONICAL",
+    # EXPERIMENTAL -- Optax-integrated GradientTransformation variant, NOT on
+    # Model.tune's path, exercised only by tests.
+    "agsdr_transform": "EXPERIMENTAL",
+    # COMPATIBILITY -- retained for old notebooks/tests; NOT canonical.
+    "AGSDR": "COMPATIBILITY",  # v0.0.4 legacy metadata adapter
+    "AGSDRState": "COMPATIBILITY",  # documented misnomer: plain-GD step state
+    "step_agsdr_transform": "COMPATIBILITY",  # documented misnomer: plain GD
+    # TUTORIAL -- scaffold-level variant, explicitly not canonical AGSDR.
+    "tune_laminar_agsdr": "TUTORIAL",
+}
 
 from .base import BaseSDRState
 from .agsdr import AGSDRState, step_agsdr_transform

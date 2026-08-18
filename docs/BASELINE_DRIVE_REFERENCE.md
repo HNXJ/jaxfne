@@ -119,6 +119,11 @@ noise_amplitude_by_cell_type = {
 - **Target gate (7.5 ± 1.5 Hz):** Expected PASS ✓
 - **Min neuron rate gate (≥ 1.0 Hz):** Expected PASS ✓
 
+> Note: "AGSDR Tuning" here refers to the sanity-checker's connectivity-gain
+> **grid search** (`np.linspace` over 64 gain candidates) — a deterministic
+> sweep, not the AGSDR (Adaptive Genetic Stochastic Delta Rule) optimizer.
+> For the canonical AGSDR tuning path see `jtfne.agsdr()` + `Model.tune`.
+
 ### Delta-Test Status
 
 - **Score:** 100/100 ✓

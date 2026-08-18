@@ -93,7 +93,7 @@ trials = jtfne.tutorial_utils.simulate_laminar_trials(model, cfg, cfg.base_contr
 
 ## AGSDR tuning
 
-`tune_laminar_agsdr` applies the AGSDR algorithm (adaptive greedy selection / deselection with stochastic restart) to the control vector, scoring each candidate with the real `population_rate_hz` and `kappa_synchrony` from short simulations:
+`tune_laminar_agsdr` applies an AGSDR-style TUTORIAL variant (adaptive greedy selection / deselection with stochastic restart) to the control vector, scoring each candidate with the real `population_rate_hz` and `kappa_synchrony` from short simulations. It is not the canonical AGSDR implementation — the canonical AGSDR (Adaptive Genetic Stochastic Delta Rule) path is `jtfne.agsdr(...)` + `Model.tune` on the core-engine `Model` (see `docs/api/objectives.md`):
 
 ```python
 best_control, history = jtfne.tutorial_utils.tune_laminar_agsdr(

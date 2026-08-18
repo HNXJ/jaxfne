@@ -96,7 +96,7 @@ a synchrony (`kappa`) term to the same kind of objective.
 ### 7. tune()
 
 ```python
-result = model.tune(objective=objective, optimizer=jtfne.AGSDR(), steps=2, seed=0)
+result = model.tune(objective=objective, optimizer=jtfne.agsdr(), steps=2, seed=0)
 # Model.tune(self, objective=None, optimizer=None, steps=0, seed=0, scope=None,
 #            strict=False, simulation=None, parameter=None, bounds=None,
 #            parameters=None, generations=None, population_size=None,
@@ -105,9 +105,12 @@ result = model.tune(objective=objective, optimizer=jtfne.AGSDR(), steps=2, seed=
 
 Tuning is a method on `Model` (`model.tune(...)`), not a free
 `jtfne.optimize(...)` function — there is no top-level `optimize()`.
-`jtfne.AGSDR(alpha=0.7, exploration=0.05, deselect_factor=2.0)` is a state spec,
-not a stateful optimizer object with its own `.optimize()` method; `model.tune()`
-is the entry point that runs it.
+`jtfne.agsdr(alpha=0.7, exploration=0.05, deselect_factor=2.0)` returns the
+canonical AGSDR (Adaptive Genetic Stochastic Delta Rule) optimizer spec — a
+state spec, not a stateful optimizer object with its own `.optimize()` method;
+`model.tune()` is the entry point that runs it. (The legacy
+`jtfne.AGSDR` class is a COMPATIBILITY adapter retained for old notebooks —
+prefer `jtfne.agsdr(...)`.)
 
 ### 8. Validate
 
