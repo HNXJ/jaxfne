@@ -186,6 +186,6 @@ first-class.
 - [Public surface contract](../public_surface_contract.md) — additive JDNA
   surface (5 root symbols).
 - [NeuronalTensor API](../api/neuronal_tensor.md) — phenotype schema.
-- [RBS / RBD / HDP doctrine](rbs_rbd_hdp.md) — runtime state semantics.
+- [RBS / RBD / HDP doctrine](../doctrine/rbs_rbd_hdp.md) — runtime state semantics.
 - [References](../reference/references.md) — scholarly ancestry for
   developmental/generative neural modeling.
