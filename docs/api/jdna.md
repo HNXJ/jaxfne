@@ -98,7 +98,9 @@ pseudo-random (JAX PRNG), i.e. reproducible. Variation across seeds is
 ## Loaders
 
 - `load_pseudogenome(path | dict)` — load a genome from a JSON file or dict;
-  validates `schema_version` with a forward-compat warning.
+  rejects unknown `schema_version` values explicitly (no silent
+  interpretation as v1; a registered migration path is required for future
+  schemas).
 - `load_canonical_pseudogenome(name)` — load a shipped genome from
   `jaxfne/jdna/genomes/` (package data); supports with/without `.json` suffix.
 - `list_canonical_pseudogenomes()` — shipped genome names.

@@ -405,6 +405,48 @@ def validate_genome(genome: PseudoGenome) -> None:
                         f"{role} {getattr(rule, role)!r} in layer {lname!r}"
                     )
 
+    for raw in genome.area_connections:
+        if not isinstance(raw, Mapping):
+            raise ValueError(
+                f"area_connections entries must be mappings, got {type(raw).__name__}"
+            )
+        for area_role in ("source_area", "target_area"):
+            aname = str(raw.get(area_role, ""))
+            if aname not in area_names:
+                raise ValueError(
+                    f"area_connections entry references unknown {area_role} {aname!r}"
+                )
+        for area_role, layer_role in (
+            ("source_area", "source_layer"),
+            ("target_area", "target_layer"),
+        ):
+            aname = str(raw.get(area_role, ""))
+            lname = str(raw.get(layer_role, ""))
+            layer_map = {l.name: l for l in next(
+                a for a in genome.areas if a.name == aname
+            ).layers}
+            if lname not in layer_map:
+                raise ValueError(
+                    f"area_connections entry references unknown {layer_role} {lname!r} "
+                    f"in area {aname!r}"
+                )
+        for area_role, layer_role, nt_role in (
+            ("source_area", "source_layer", "source_neuron_type"),
+            ("target_area", "target_layer", "target_neuron_type"),
+        ):
+            aname = str(raw.get(area_role, ""))
+            lname = str(raw.get(layer_role, ""))
+            nt = str(raw.get(nt_role, ""))
+            layer = next(
+                l for a in genome.areas if a.name == aname
+                for l in a.layers if l.name == lname
+            )
+            if nt not in layer.cell_type_fractions:
+                raise ValueError(
+                    f"area_connections entry references unknown {nt_role} {nt!r} "
+                    f"in layer {lname!r}"
+                )
+
 
 def declared_constraints(genome: PseudoGenome) -> dict[str, Any]:
     """Machine-readable genome-level constraints (used by tests and audits).

@@ -138,7 +138,7 @@ domains:
 | Symbol | Implementation |
 |---|---|
 | `PseudoGenome`, `AreaGenome`, `LayerGenome`, `ConnectionRuleGenome` | `jaxfne.jdna.genome` (frozen dataclasses). |
-| `develop` | `jaxfne.jdna.genome.develop` — PRNG split per area/layer, jittered-clipped fraction allocation, largest-remainder integer counts, tensor assembly, provenance attach, constraint verification. |
+| `develop` | `jaxfne.jdna.genome.develop` — PRNG split per area/layer, jittered fractions projected onto the box-constrained simplex (bands + sum-to-one), largest-remainder integer counts, tensor assembly, provenance attach, constraint verification. |
 | Canonical genomes | `jaxfne/jdna/genomes/*.json` (shipped package data, `pseudogenome_v1` schema). |
 | Loaders | `load_pseudogenome`, `load_canonical_pseudogenome`, `list_canonical_pseudogenomes`. |
 | Provenance | `NeuronalTensor.provenance`: genome identity hash, schema version, development seed, development parameters, phenotype hash. |

@@ -306,6 +306,36 @@ class TestValidation:
                     f"seed {s}: {ct} count {counts.get(ct, 0)} outside [{lo}, {hi}]"
                 )
 
+    def test_area_connections_references_rejected(self):
+        """J-V6: dangling area_connections references must fail validation."""
+        lg = LayerGenome(name="L1", n_neurons=10, depth_band=(0.0, 0.5),
+                         cell_type_fractions={"E": 1.0})
+        area = AreaGenome(name="A", layers=(lg,), inter_connections=())
+        dangling_area = {"source_area": "A", "source_layer": "L1",
+                         "source_neuron_type": "E",
+                         "target_area": "GHOST", "target_layer": "L1",
+                         "target_neuron_type": "E"}
+        g = PseudoGenome(name="bad", areas=(area,),
+                         area_connections=(dangling_area,))
+        with pytest.raises(ValueError, match="unknown target_area"):
+            validate_genome(g)
+        dangling_layer = {"source_area": "A", "source_layer": "L9",
+                          "source_neuron_type": "E",
+                          "target_area": "A", "target_layer": "L1",
+                          "target_neuron_type": "E"}
+        g2 = PseudoGenome(name="bad", areas=(area,),
+                          area_connections=(dangling_layer,))
+        with pytest.raises(ValueError, match="unknown source_layer"):
+            validate_genome(g2)
+        valid = {"source_area": "A", "source_layer": "L1",
+                 "source_neuron_type": "E",
+                 "target_area": "A", "target_layer": "L1",
+                 "target_neuron_type": "E"}
+        g3 = PseudoGenome(name="ok", areas=(area,), area_connections=(valid,))
+        validate_genome(g3)
+        t = develop(g3, seed=0)
+        assert len(t.area_connections) == 1
+
 
 class TestPrngSeparation:
     def test_development_domain_independent_of_runtime(self):

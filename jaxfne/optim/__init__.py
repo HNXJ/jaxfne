@@ -43,6 +43,10 @@ AGSDR_SURFACE_CLASSIFICATION: dict[str, str] = {
     # canonical AGSDR; classified as hybrid, reachable via
     # `agsdr(parameters={...: MatrixParameterSpec}, inner_optimizer=...)`.
     "_tune_matrix_agsdr_optax": "HYBRID",
+    # HYBRID -- Suite No. 2 two-level variant: AGSDR outer proposals + inner
+    # Adam refinement (vis/report surfaces use the same classification).
+    "suite2_tune_noise_agsdr_adam": "HYBRID",
+    "agsdr_rate_tuning_panel_grid": "TUTORIAL",  # visualization helper; not an optimizer
     # EXPERIMENTAL -- Optax-integrated GradientTransformation variant, NOT on
     # Model.tune's path, exercised only by tests.
     "agsdr_transform": "EXPERIMENTAL",
