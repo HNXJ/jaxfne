@@ -189,6 +189,10 @@
     {
       "ts": "2026-08-17T18:20:00Z",
       "text": "PHASE-9 seal: Abstract (user-authorized cycle P_Abstract -> R_compression -> G -> R_adversarial -> G_repair -> S). A = Pi_abstract(M): 147 words (<=150), every sentence mapped to frozen propositions (abstract_traceability_map.md), zero new propositions. R_adversarial: 0 FATAL/0 MAJOR/3 MINOR (M1 modal weakening 'unverifiable'->'hard to verify', M2 'using an estimator', M3 'preregistered geometries and delay policies'), all repaired. Ref-5 journal-version resolved in P: TVB-Optim still bioRxiv (Pille et al. 2025, doi:10.1101/2025.11.18.689003) \u2014 citation correct. Gates: word budget OK, forbidden words 0, citations 0, single paragraph, docs-language PASS, compileall OK, mkdocs --strict PASS. S_NatureMethods 97 -> 98/100 (dim 20 external_positioning 4->5). ABSTRACT_FINALIZED=YES; SUBMISSION_AUTHORIZED=NO. Commits b74529d -> main d80f342."
+    },
+    {
+      "ts": "2026-08-17T18:45:00Z",
+      "text": "PHASE-9 CI addendum: initial Fast failed (docs orphan check on new abstract pages); fixed via mkdocs.yml nav registration (38e4b90 -> main 93e2467). Both workflows green on 93e2467 (Fast ~25m, R&S ~39m). Deep review: abstract re-read clean, zero new propositions, all local gates PASS (orphans, docs-language, harness integrity, compileall, mkdocs strict), tree clean, package clone untouched. Position: manuscript core + abstract sealed at S_NatureMethods 98/100."
     }
   ],
   "issues": [
