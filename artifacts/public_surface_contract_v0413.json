@@ -12,8 +12,8 @@
   },
   "counts": {
     "advanced": 58,
-    "baseline_all": 260,
-    "canonical": 173,
+    "baseline_all": 265,
+    "canonical": 178,
     "compatibility": 13,
     "experimental_internal": 16,
     "public_exports": 191

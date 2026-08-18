@@ -25,15 +25,24 @@ from __future__ import annotations
 AGSDR_SURFACE_CLASSIFICATION: dict[str, str] = {
     # CANONICAL -- the AGSDR algorithm as implemented in jaxfne.optim.core:
     # multi-parameter engine `_run_agsdr_optimization_loop` (population +
-    # delta-rule center update + elitist anchor) and scalar engine
-    # `propose_blackbox_candidates` (two-phase shrinking-radius search).
+    # delta-rule center update + elitist anchor). This is the only engine
+    # that is the canonical AGSDR.
     "agsdr": "CANONICAL",
     "AGSDROptimizerSpec": "CANONICAL",
     "OptimizerSpec": "CANONICAL",
     "_resolve_optimizer": "CANONICAL",
     "_run_agsdr_optimization_loop": "CANONICAL",
     "_agsdr_candidates_from_noise": "CANONICAL",
-    "propose_blackbox_candidates": "CANONICAL",
+    # COMPATIBILITY -- legacy single-parameter two-phase shrinking-radius
+    # search. Related to but NOT equivalent to the canonical multi-parameter
+    # engine (fixed center, no population, no delta-rule update); preserved
+    # for the legacy `tune(parameter=..., bounds=...)` API and old notebooks.
+    "propose_blackbox_candidates": "COMPATIBILITY",
+    # HYBRID -- matrix/two-level path: canonical AGSDR outer proposals with an
+    # inner Optax (Adam) refinement surrogate. NOT mathematically identical to
+    # canonical AGSDR; classified as hybrid, reachable via
+    # `agsdr(parameters={...: MatrixParameterSpec}, inner_optimizer=...)`.
+    "_tune_matrix_agsdr_optax": "HYBRID",
     # EXPERIMENTAL -- Optax-integrated GradientTransformation variant, NOT on
     # Model.tune's path, exercised only by tests.
     "agsdr_transform": "EXPERIMENTAL",

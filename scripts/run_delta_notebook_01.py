@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """Runner script for delta-test notebook 01 with AGSDR connectivity-gain tuning.
 
+LABEL_ONLY annotation: this runner's "agsdr" labels are historical. The
+tuning step is a linear rate-scaling proxy scaffold (baseline rates scaled
+toward the target), NOT the canonical AGSDR engine
+``jaxfne.optim._run_agsdr_optimization_loop``. Do not cite this script as
+canonical AGSDR evidence.
+
 Validates notebook structure and executes key components including:
 - Multi-area laminar cortex scaffold simulation
 - Baseline firing rate measurement

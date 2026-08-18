@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Structured AGSDR gain optimization script.
+"""Structured inter-area gain optimization script (historical label).
+
+LABEL_ONLY: despite the historical "AGSDR" filename and report labels, this
+script implements a simple coordinate search/perturbation optimizer (see
+line 69), NOT the canonical AGSDR engine
+``jaxfne.optim._run_agsdr_optimization_loop``. The name is retained for
+backward compatibility of the script path; do not cite this script as an
+AGSDR workflow.
 
 Optimizes the inter-area gain matrix G[src_area, dst_area] to drive area-wise
 firing rates toward a target rate of 7.5 Hz.

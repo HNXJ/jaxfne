@@ -38,6 +38,7 @@ from .genome import (
     load_canonical_pseudogenome,
     list_canonical_pseudogenomes,
     save_pseudogenome,
+    pseudogenome_from_dict,
     genomes_dir,
 )
 
@@ -56,5 +57,6 @@ __all__ = [
     "load_canonical_pseudogenome",
     "list_canonical_pseudogenomes",
     "save_pseudogenome",
+    "pseudogenome_from_dict",
     "genomes_dir",
 ]

@@ -19,7 +19,7 @@ import hashlib
 import json
 import math
 import warnings
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping, Optional, Sequence
 
@@ -191,9 +191,27 @@ def _parse_layer(raw: Mapping[str, Any]) -> LayerGenome:
         fraction_tolerance={
             k: tuple(float(x) for x in v) for k, v in raw.get("fraction_tolerance", {}).items()
         },
-        geometry=dict(raw.get("geometry", {})),
+        geometry=_canonical_geometry(dict(raw.get("geometry", {}))),
         relative_sizes=dict(raw.get("relative_sizes", {})),
     )
+
+
+def _canonical_geometry(geometry: Mapping[str, Any]) -> dict[str, Any]:
+    """Normalize geometry range values (``x_range``/``y_range``/``z_range``)
+    to tuples so a load(save(G)) roundtrip is semantically equal to G."""
+    out = dict(geometry)
+    for key in ("x_range", "y_range", "z_range"):
+        if key in out and not isinstance(out[key], tuple):
+            out[key] = tuple(float(x) for x in out[key])
+    return out
+
+
+def _canonical_pose(pose: Mapping[str, Any]) -> dict[str, Any]:
+    """Normalize pose ``translation`` to a tuple (semantic roundtrip)."""
+    out = dict(pose)
+    if "translation" in out and not isinstance(out["translation"], tuple):
+        out["translation"] = tuple(float(x) for x in out["translation"])
+    return out
 
 
 def _parse_rule(raw: Mapping[str, Any]) -> ConnectionRuleGenome:
@@ -207,26 +225,32 @@ def _parse_rule(raw: Mapping[str, Any]) -> ConnectionRuleGenome:
 
 
 def pseudogenome_from_dict(raw: Mapping[str, Any]) -> PseudoGenome:
-    """Build a :class:`PseudoGenome` from a JSON-safe dict (``pseudogenome_v1``)."""
-    if raw.get("schema_version") != PSEUDOGENOME_SCHEMA_VERSION:
-        warnings.warn(
-            f"PseudoGenome declares schema_version={raw.get('schema_version')!r}, "
-            f"expected {PSEUDOGENOME_SCHEMA_VERSION!r}; loading anyway",
-            stacklevel=2,
+    """Build a :class:`PseudoGenome` from a JSON-safe dict (``pseudogenome_v1``).
+
+    Unknown schema versions are rejected explicitly (no silent
+    interpretation as v1); a registered migration path is the only way to
+    consume a future schema.
+    """
+    declared = str(raw.get("schema_version", PSEUDOGENOME_SCHEMA_VERSION))
+    if declared != PSEUDOGENOME_SCHEMA_VERSION:
+        raise ValueError(
+            f"PseudoGenome declares schema_version={declared!r}; "
+            f"this package only supports {PSEUDOGENOME_SCHEMA_VERSION!r}. "
+            f"Register a migration path to load future schemas."
         )
     areas = []
     for area_raw in raw.get("areas", []):
         areas.append(
             AreaGenome(
                 name=str(area_raw["name"]),
-                layers=[_parse_layer(l) for l in area_raw.get("layers", [])],
-                inter_connections=[_parse_rule(c) for c in area_raw.get("inter_connections", [])],
-                pose=dict(area_raw.get("pose", {})),
+                layers=tuple(_parse_layer(l) for l in area_raw.get("layers", [])),
+                inter_connections=tuple(_parse_rule(c) for c in area_raw.get("inter_connections", [])),
+                pose=_canonical_pose(dict(area_raw.get("pose", {}))),
             )
         )
     return PseudoGenome(
         name=str(raw["name"]),
-        schema_version=str(raw.get("schema_version", PSEUDOGENOME_SCHEMA_VERSION)),
+        schema_version=declared,
         description=str(raw.get("description", "")),
         areas=tuple(areas),
         area_connections=tuple(dict(c) for c in raw.get("area_connections", [])),
@@ -266,9 +290,13 @@ def load_canonical_pseudogenome(name: str) -> PseudoGenome:
 
 
 def save_pseudogenome(genome: PseudoGenome, path: str | Path) -> str:
-    """Serialize a PseudoGenome as JSON (data, never code)."""
+    """Serialize a PseudoGenome as JSON (data, never code).
+
+    ``schema_version`` is preserved verbatim from the in-memory genome;
+    serialization never silently upgrades or downgrades schema versions.
+    """
     payload = dict(_area_to_dict_outer(genome))
-    payload["schema_version"] = PSEUDOGENOME_SCHEMA_VERSION
+    payload["schema_version"] = genome.schema_version
     save_json(payload, Path(path))
     return str(path)
 
@@ -321,6 +349,12 @@ def validate_genome(genome: PseudoGenome) -> None:
                 raise ValueError(
                     f"layer {layer.name!r}: cell_type_fractions must sum to 1, got {total}"
                 )
+            for ct, frac in layer.cell_type_fractions.items():
+                if not (0.0 <= float(frac) <= 1.0):
+                    raise ValueError(
+                        f"layer {layer.name!r}: cell type {ct!r} fraction must be in "
+                        f"[0, 1], got {frac}"
+                    )
             for ct, (tlo, thi) in layer.fraction_tolerance.items():
                 if ct not in layer.cell_type_fractions:
                     raise ValueError(
@@ -331,6 +365,26 @@ def validate_genome(genome: PseudoGenome) -> None:
                         f"layer {layer.name!r}: tolerance band {ct!r} must satisfy "
                         f"0 <= lo <= hi <= 1, got {(tlo, thi)}"
                     )
+                base = float(layer.cell_type_fractions[ct])
+                if not (tlo <= base <= thi):
+                    raise ValueError(
+                        f"layer {layer.name!r}: base fraction {ct!r}={base} lies outside "
+                        f"its declared tolerance band {(tlo, thi)}"
+                    )
+            frac_lower_sum = sum(
+                float(layer.fraction_tolerance.get(ct, (f, f))[0])
+                for ct, f in layer.cell_type_fractions.items()
+            )
+            frac_upper_sum = sum(
+                float(layer.fraction_tolerance.get(ct, (f, f))[1])
+                for ct, f in layer.cell_type_fractions.items()
+            )
+            if not (frac_lower_sum <= 1.0 + 1e-9 and frac_upper_sum >= 1.0 - 1e-9):
+                raise ValueError(
+                    f"layer {layer.name!r}: tolerance bands jointly infeasible "
+                    f"(sum lo={frac_lower_sum:.4f}, sum hi={frac_upper_sum:.4f}); "
+                    f"a feasible probability vector requires sum(lo) <= 1 <= sum(hi)"
+                )
         layer_map = {l.name: l for l in area.layers}
         for rule in area.inter_connections:
             for role in ("source_layer", "target_layer"):
@@ -382,6 +436,52 @@ def declared_constraints(genome: PseudoGenome) -> dict[str, Any]:
 # --------------------------------------------------------------------------- #
 
 
+def _project_box_simplex(
+    z: Sequence[float],
+    lo: Sequence[float],
+    hi: Sequence[float],
+) -> list[float]:
+    """Project ``z`` onto the box-constrained simplex.
+
+    ``C = {p : sum_i p_i = 1, lo_i <= p_i <= hi_i}``.
+
+    Deterministic KKT bisection on the dual variable ``mu``:
+
+        p_i = clip(z_i - mu, lo_i, hi_i),   sum(p) = 1.
+
+    ``p`` is non-increasing in ``mu``, so a simple bisection on ``f(mu) =
+    sum(clip(z - mu, lo, hi)) - 1`` converges deterministically. Requires
+    ``sum(lo) <= 1 <= sum(hi)`` (joint feasibility, enforced by
+    ``validate_genome``); raises ``ValueError`` otherwise.
+    """
+    n = len(z)
+    lo_f = [float(x) for x in lo]
+    hi_f = [float(x) for x in hi]
+    if sum(lo_f) > 1.0 + 1e-9 or sum(hi_f) < 1.0 - 1e-9:
+        raise ValueError(
+            f"box-constrained simplex infeasible: sum(lo)={sum(lo_f):.4f}, "
+            f"sum(hi)={sum(hi_f):.4f}"
+        )
+
+    def f(mu: float) -> float:
+        return sum(min(max(z[i] - mu, lo_f[i]), hi_f[i]) for i in range(n)) - 1.0
+
+    mu_lo = min(z) - max(hi_f)
+    mu_hi = max(z) - min(lo_f)
+    for _ in range(200):
+        mid = 0.5 * (mu_lo + mu_hi)
+        if f(mid) > 0.0:
+            mu_lo = mid
+        else:
+            mu_hi = mid
+    mu = 0.5 * (mu_lo + mu_hi)
+    p = [min(max(z[i] - mu, lo_f[i]), hi_f[i]) for i in range(n)]
+    s = sum(p)
+    if abs(s - 1.0) > 1e-9:
+        raise ValueError(f"box-simplex projection did not converge (sum={s:.12f})")
+    return p
+
+
 def _allocate_counts(
     layer: LayerGenome,
     sigma: float,
@@ -390,10 +490,11 @@ def _allocate_counts(
     """Allocate exact integer cell-type counts for ``n_neurons`` neurons.
 
     With declared tolerance bands and ``sigma > 0``, base fractions are
-    jittered with Gaussian noise (deterministic in the PRNG key) and clipped
-    to the declared bands; counts are then allocated by the largest-remainder
-    method so they sum exactly to ``n_neurons``. Without declared tolerance,
-    base fractions are used exactly.
+    jittered with Gaussian noise (deterministic in the PRNG key) and then
+    projected onto the box-constrained simplex (bands + sum-to-one) by
+    ``_project_box_simplex``; counts are then allocated by the
+    largest-remainder method so they sum exactly to ``n_neurons``. Without
+    declared tolerance, base fractions are used exactly.
     """
     n = layer.n_neurons
     types = list(layer.cell_type_fractions.keys())
@@ -402,18 +503,15 @@ def _allocate_counts(
 
     if sigma > 0.0 and bands:
         z = jax.random.normal(key, shape=(len(types),))
-        raw: dict[str, float] = {}
-        for i, ct in enumerate(types):
-            if ct in bands:
-                lo, hi = bands[ct]
-                raw[ct] = min(max(base[ct] + sigma * float(z[i]), lo), hi)
-            else:
-                raw[ct] = base[ct]
-        total = sum(raw.values())
-        if total <= 0.0:
-            raw = {ct: 1.0 / len(types) for ct in types}
-            total = 1.0
-        weighted = {ct: n * raw[ct] / total for ct in types}
+        lo = [
+            bands[ct][0] if ct in bands else float(base[ct]) for ct in types
+        ]
+        hi = [
+            bands[ct][1] if ct in bands else float(base[ct]) for ct in types
+        ]
+        jittered = [base[ct] + sigma * float(z[i]) for i, ct in enumerate(types)]
+        p = _project_box_simplex(jittered, lo, hi)
+        weighted = {ct: n * p[i] for i, ct in enumerate(types)}
     else:
         weighted = {ct: n * base[ct] for ct in types}
 

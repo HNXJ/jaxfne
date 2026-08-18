@@ -1,8 +1,8 @@
 """JDNA visual review (campaign Block L): compare the canonical fixed
 NeuronalTensor against phenotypes developed from the canonical PseudoGenome.
 
-Run:  python3 scripts/jdna_visual_review.py
-Writes: figures/jdna_visual_review.png (and -composition, -edges panels)
+Run:  python3 scripts/jdna_visual_review.py [OUTPUT_DIR]
+Writes: <OUTPUT_DIR>/jdna_visual_review.png (default: figures/)
 Prints a numeric comparison table to stdout.
 """
 
@@ -25,8 +25,8 @@ import matplotlib.pyplot as plt  # noqa: E402
 import jaxfne as jtfne  # noqa: E402
 from jaxfne.jdna import develop, load_canonical_pseudogenome  # noqa: E402
 
-FIG_DIR = ROOT / "figures"
-FIG_DIR.mkdir(exist_ok=True)
+FIG_DIR = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "figures"
+FIG_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _tensor_layers(tensor):

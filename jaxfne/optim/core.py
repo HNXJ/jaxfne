@@ -181,6 +181,11 @@ class AGSDROptimizerSpec:
     This spec defines both the AGSDR algorithm parameters (alpha, exploration)
     and the execution context (parameters, generations, population_size, seed).
     When passed to Model.tune(), it triggers multi-parameter optimization.
+
+    CANONICAL ``alpha`` semantic: ``alpha`` is the delta-rule step size in
+    the center update ``theta_c <- clip(theta_c + alpha * (theta*_g - theta_c))``.
+    It is NOT an exploration-phase fraction; the legacy scalar path that
+    reinterprets ``alpha`` as a phase-1 fraction is classified COMPATIBILITY.
     """
 
     parameters: dict  # {"param_name": (lower, upper) or MatrixParameterSpec, ...}
@@ -268,7 +273,11 @@ def agsdr(
     exploration : float
         Standard deviation scale for proposal distribution (default 0.05 for legacy, 0.18 for multi-param).
     deselect_factor : float
-        Deselection factor for genetic algorithm (default 2.0).
+        Deselection factor for genetic algorithm (default 2.0). Accepted for
+        API compatibility and carried in the spec, but currently has NO
+        effect on the canonical multi-parameter engine (classified:
+        compatibility-only, ignored-by-design). It is consumed only by the
+        legacy scalar path ``propose_blackbox_candidates``.
     metadata : dict, optional
         Custom metadata (legacy path only).
     parameters : dict, optional
@@ -524,6 +533,13 @@ def propose_blackbox_candidates(
     bounds: tuple[float, float],
 ) -> list[float]:
     """Return deterministic scalar candidates for black-box tuning.
+
+    COMPATIBILITY classification: this is the legacy single-parameter
+    two-phase shrinking-radius search, retained for the legacy
+    ``tune(parameter=..., bounds=...)`` API and old notebooks. It is
+    related to but NOT equivalent to the canonical multi-parameter AGSDR
+    engine ``_run_agsdr_optimization_loop``; do not cite the two as
+    interchangeable.
 
     This utility is deliberately small and dependency-free.  It is suitable for
     v0.0.x smoke tuning, but the returned candidates are computational proposals

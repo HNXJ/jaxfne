@@ -12,9 +12,11 @@ These are background references; none is a dependency of the package.
 - Kitano, H. (1990). Designing neural networks using genetic algorithms with
   graph generation system. *Complex Systems*, 4, 461–476. — Grammar-based
   network development; early "rules-not-phenotype" encoding.
-- Gruau, F. (1993). *Neural Network Development Using Programmable Graph
-  Grammars*. MIT AI Lab Memo 1453. — Cellular encoding: a program (genome)
-  whose execution develops a network.
+- Gruau, F. (1995). Cellular encoding applied to neurocontrol. *Proc. 6th
+  International Conference on Genetic Algorithms* (ICGA), 460–468. — Cellular
+  encoding: a program (genome) whose execution develops a network. (Also
+  circulated as an MIT AI Lab memo; the memo number could not be verified
+  against a primary record on 2026-08-18 and is therefore omitted.)
 - Elman, J. L. (1993). Learning and development in neural networks: the
   importance of starting small. *Cognition*, 48(1), 71–99. — Developmental
   staging as a computational device; the developmental operator is not the
@@ -29,10 +31,12 @@ These are background references; none is a dependency of the package.
   networks can learn from animal brains. *Nature Communications*, 10, 3770.
   — Genomes as compressed prior structure; motivates rule-compressed
   phenotype generation.
-- van der Plas, T. L., & White, S. P. (2024). The genomic bottleneck: a
-  generative model of neural development. arXiv:2402.15828. — Generative
-  model of a connectome from a small genome; closest published analogue to
-  the PseudoGenome idea (computational analogy only).
+- Palm, R. B., Najarro, E., & Risi, S. (2021). Testing the genomic bottleneck
+  hypothesis in Hebbian meta-learning. *JMLR*, 148 (NeurIPS pre-registration
+  workshop 2020); arXiv:2011.06811. — The genomic-bottleneck hypothesis:
+  limiting the number of learned Hebbian rules regularizes generalization;
+  computational analogue of genome-constrained learning (verified against
+  the arXiv primary record on 2026-08-18).
 
 ## Framework-adjacent
 

@@ -95,7 +95,6 @@ from .jdna import (
     load_canonical_pseudogenome,
     list_canonical_pseudogenomes,
 )
-from .jdna import genome as _jdna_genome_module
 from .tutorial_utils import (
     select_neurons,
     kappa_synchrony,

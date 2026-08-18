@@ -9,7 +9,8 @@ import jaxfne as jtfne
 The root public contract is **191 symbols** (178 CANONICAL + 13 COMPATIBILITY) in
 `jaxfne.__all__`. The 5-symbol JDNA additive surface (`PseudoGenome`,
 `develop`, `load_pseudogenome`, `load_canonical_pseudogenome`,
-`list_canonical_pseudogenomes`) was added in 0.4.17 on top of the frozen
+`list_canonical_pseudogenomes`) is added in the upcoming 0.4.17 release
+(installed package version at the time of writing: 0.4.16) on top of the frozen
 0.4.13 contract. Tier membership is authoritative in
 [`jaxfne/public_surface.py`](https://github.com/HNXJ/jaxfne/blob/main/jaxfne/public_surface.py)
 and [`artifacts/public_surface_contract_v0413.json`](https://github.com/HNXJ/jaxfne/blob/main/artifacts/public_surface_contract_v0413.json).

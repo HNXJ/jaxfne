@@ -103,7 +103,21 @@ def test_mkdocs_nav_registers_jdna_pages():
     assert "reference/references.md" in nav
 
 
-def test_visual_review_script_executes():
-    out = ROOT / "figures" / "jdna_visual_review.png"
-    assert out.exists(), "run scripts/jdna_visual_review.py first"
+def test_visual_review_script_executes(tmp_path):
+    """H11: the visual review must self-generate its output in an isolated
+    temporary directory — never depend on a gitignored pre-existing PNG."""
+    import subprocess
+    import sys
+
+    script = ROOT / "scripts" / "jdna_visual_review.py"
+    result = subprocess.run(
+        [sys.executable, str(script), str(tmp_path)],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+    )
+    assert result.returncode == 0, f"visual review script failed:\n{result.stdout}\n{result.stderr}"
+    assert "jdna_visual_review" in result.stdout
+    out = tmp_path / "jdna_visual_review.png"
+    assert out.exists(), "generator must produce the figure in the given output dir"
     assert out.stat().st_size > 0

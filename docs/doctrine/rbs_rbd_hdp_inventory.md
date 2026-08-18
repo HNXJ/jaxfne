@@ -213,7 +213,7 @@ Authority: `docs/doctrine/rbs_rbd_hdp.md`; campaign definitions:
 
 | State (symbol) | Where it lives | Dynamics / semantics | Class |
 |---|---|---|---|
-| Node-local HDP trace `H_i(t) ∈ R^{d_H}` | `emitters.simulate_edge_recurrent_izhikevich_hdp` | `τ_i dH_i/dt = α·I_syn + β − γ·H_i·r_i − δ·W_i + ρ/H_i² − dC/dH_i`; spike event `H_i ← H_i − C_spike`; `τ_i = τ_0·size_i³`; bounds `H_min`/`H_max`; carries through DynamicState.H | **HDP_STATE** |
+| Node-local HDP trace `H_i(t) ∈ R^{d_H}` | `emitters.simulate_edge_recurrent_izhikevich_hdp` | `τ_i dH_i/dt = α·I_syn + β − γ·H_i·r_i − δ·W_i + ρ/H_i² − dC/dH_i + K_ctrl·(1 − H_i)` (live restoring term, emitters.py `K_ctrl`); generalized-state coupling `H@coupling.T` (D1 map, d_H > 1); spike event `H_i ← H_i − C_spike`; `τ_i = τ_0·size_i³`; bounds `H_min`/`H_max`; carries through DynamicState.H | **HDP_STATE** |
 | Weight plasticity `W` under H | same emitter (w_rules `signed_linear`/`signed_quadratic`/`hebbian_product`) | `dW/dt = F_W(H, …)` per declared rule; typed coupling to H | **HDP_STATE** |
 | Population-restoring H | `_hdp_adaptive.py` | `dH = (−e_vec − λ·H)/τ_H`, `dθ = (B@H)/τ_θ`, deviation convention `H* = 0`; population locality; continuation rejected | **HDP_STATE** |
 | Homeostatic EI traces `x`, `G`, `H` | `emitters_homeostatic_ei.py` | three-timescale homeostatic traces (B-class naming preserved) | **HOMEOSTATIC_TRACE** |

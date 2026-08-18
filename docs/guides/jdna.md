@@ -172,7 +172,7 @@ first-class.
   connection schemes. Positions and edges are realized by the ordinary
   construct path under `K_S`.
 - No birth, death, migration, or developmental-time structural mutation in
-  0.4.17.
+  0.4.17 (upcoming release target; installed package version 0.4.16).
 - No genome-level optimization: AGSDR optimizes runtime parameters
   (\(\Theta_R'\)), never \(\Theta_D\) or \(\Theta_G\).
 - No developmental RBS (`H_D`) is declared by the canonical genome; the
