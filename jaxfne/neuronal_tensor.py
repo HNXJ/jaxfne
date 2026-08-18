@@ -261,6 +261,7 @@ class NeuronalTensor:
     )
     name: str = "untitled"
     connectivity_mode: ConnectivityMode | None = None
+    provenance: Optional[dict] = None
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name == "area_connections" and "_connectivity_initialized" in self.__dict__:
@@ -400,6 +401,7 @@ def save_neuronal_tensor(tensor: NeuronalTensor, path: str | Path) -> str:
     """Save a NeuronalTensor as a JSON config file. Configs are data, never code."""
     path = Path(path)
     payload = dict(tensor.to_dict())
+    payload.pop("provenance", None)
     payload["schema_version"] = NEURONAL_TENSOR_SCHEMA_VERSION
     save_json(payload, path)
     return str(path)

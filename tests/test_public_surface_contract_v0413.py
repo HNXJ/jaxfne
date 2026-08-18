@@ -82,9 +82,9 @@ def test_public_h_state_localities():
 
 
 def test_public_symbol_count_contraction_from_baseline():
-    """259 baseline → 186 public exports (discoverability contraction)."""
+    """259 baseline → 191 public exports (discoverability contraction; +5 JDNA additive surface 0.4.17)."""
     summary = public_surface_summary()
-    assert summary["counts"]["baseline_all"] == 260
-    assert summary["counts"]["public_exports"] == 186
+    assert summary["counts"]["baseline_all"] == 265
+    assert summary["counts"]["public_exports"] == 191
     assert summary["counts"]["compatibility"] == 13
     assert summary["counts"]["experimental_internal"] == 16

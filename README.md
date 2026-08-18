@@ -51,6 +51,20 @@ model   = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms
 signals = jtfne.simulate(model)
 ```
 
+### Optional: generative development (JDNA)
+
+Instead of loading a fixed tensor, generate one from a PseudoGenome:
+
+```python
+genome  = jtfne.load_canonical_pseudogenome("canonical-v1-column-1000n")
+tensor  = jtfne.develop(genome, seed=0)   # K_D: development seed
+model   = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=1, duration_ms=1000.0, dt_ms=0.5))
+signals = jtfne.simulate(model)
+```
+
+JDNA is an optional path; the direct `Configuration`/`NeuronalTensor` paths
+remain first-class. See [JDNA guide](docs/guides/jdna.md).
+
 Import convention: `import jaxfne as jtfne`. Builder paths, paradigms, and
 optimization: [Quickstart](docs/quickstart.md).
 

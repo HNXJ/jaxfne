@@ -105,7 +105,7 @@ def test_api_index_md_structural_contract_reference():
     root_dir = Path(__file__).resolve().parent.parent
     content = (root_dir / "docs" / "api" / "index.md").read_text(encoding="utf-8")
 
-    assert "186" in content
+    assert "191" in content
     assert "public_surface_contract" in content
     assert "Latest PyPI release" not in content
 

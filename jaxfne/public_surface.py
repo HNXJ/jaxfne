@@ -192,6 +192,12 @@ _CANONICAL: Final[frozenset[str]] = frozenset(
         "merge_neuronal_tensors",
         "neuronal_tensor_to_configuration",
         "save_neuronal_tensor",
+        # JDNA (PseudoGenome / development)
+        "PseudoGenome",
+        "develop",
+        "load_pseudogenome",
+        "load_canonical_pseudogenome",
+        "list_canonical_pseudogenomes",
         # Source / field / probe
         "FieldOutput",
         "LinearReadout",

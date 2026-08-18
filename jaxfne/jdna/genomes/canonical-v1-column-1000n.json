@@ -1,0 +1,208 @@
+{
+  "schema_version": "pseudogenome_v1",
+  "name": "canonical-v1-column-1000n",
+  "description": "Canonical generative specification of the 1000-neuron V1 laminar column. Declares six laminar bands (L1-L6), per-layer E/PV/SST/VIP base fractions with declared tolerance bands, uniform-random relative geometry, and the typed within-area and cross-layer connection scheme of the canonical v1 column. Development realizes population composition within the declared bands; geometry positions and edge realization are resolved by the ordinary construct/simulate pipeline under the runtime seed.",
+  "development_parameters": {
+    "fraction_jitter_sigma": 0.01
+  },
+  "areas": [
+    {
+      "name": "V1",
+      "pose": {
+        "plane": "xy",
+        "rotation_deg": 0.0,
+        "translation": [0.0, 0.0, 0.0],
+        "value_tag": "relative"
+      },
+      "layers": [
+        {
+          "name": "L1",
+          "n_neurons": 100,
+          "depth_band": [0.0, 0.1],
+          "cell_type_fractions": {
+            "E": 0.5,
+            "SST": 0.15,
+            "VIP": 0.35
+          },
+          "fraction_tolerance": {
+            "E": [0.45, 0.55],
+            "SST": [0.1, 0.2],
+            "VIP": [0.3, 0.4]
+          },
+          "geometry": {
+            "distribution": "uniform_random",
+            "x_range": [0.0, 1.0],
+            "y_range": [0.0, 1.0],
+            "value_tag": "relative"
+          }
+        },
+        {
+          "name": "L2",
+          "n_neurons": 250,
+          "depth_band": [0.1, 0.35],
+          "cell_type_fractions": {
+            "E": 0.648,
+            "PV": 0.2,
+            "SST": 0.1,
+            "VIP": 0.052
+          },
+          "fraction_tolerance": {
+            "E": [0.6, 0.7],
+            "PV": [0.15, 0.25],
+            "SST": [0.05, 0.15],
+            "VIP": [0.03, 0.08]
+          },
+          "geometry": {
+            "distribution": "uniform_random",
+            "x_range": [0.0, 1.0],
+            "y_range": [0.0, 1.0],
+            "value_tag": "relative"
+          }
+        },
+        {
+          "name": "L3",
+          "n_neurons": 200,
+          "depth_band": [0.35, 0.55],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.08,
+            "SST": 0.08,
+            "VIP": 0.04
+          },
+          "fraction_tolerance": {
+            "E": [0.75, 0.85],
+            "PV": [0.04, 0.12],
+            "SST": [0.04, 0.12],
+            "VIP": [0.02, 0.06]
+          },
+          "geometry": {
+            "distribution": "uniform_random",
+            "x_range": [0.0, 1.0],
+            "y_range": [0.0, 1.0],
+            "value_tag": "relative"
+          }
+        },
+        {
+          "name": "L4",
+          "n_neurons": 100,
+          "depth_band": [0.55, 0.65],
+          "cell_type_fractions": {
+            "E": 0.75,
+            "PV": 0.18,
+            "SST": 0.04,
+            "VIP": 0.03
+          },
+          "fraction_tolerance": {
+            "E": [0.7, 0.8],
+            "PV": [0.13, 0.23],
+            "SST": [0.02, 0.06],
+            "VIP": [0.015, 0.05]
+          },
+          "geometry": {
+            "distribution": "uniform_random",
+            "x_range": [0.0, 1.0],
+            "y_range": [0.0, 1.0],
+            "value_tag": "relative"
+          }
+        },
+        {
+          "name": "L5",
+          "n_neurons": 200,
+          "depth_band": [0.65, 0.85],
+          "cell_type_fractions": {
+            "E": 0.88,
+            "PV": 0.06,
+            "SST": 0.04,
+            "VIP": 0.02
+          },
+          "fraction_tolerance": {
+            "E": [0.83, 0.93],
+            "PV": [0.03, 0.09],
+            "SST": [0.02, 0.06],
+            "VIP": [0.01, 0.04]
+          },
+          "geometry": {
+            "distribution": "uniform_random",
+            "x_range": [0.0, 1.0],
+            "y_range": [0.0, 1.0],
+            "value_tag": "relative"
+          }
+        },
+        {
+          "name": "L6",
+          "n_neurons": 150,
+          "depth_band": [0.85, 1.0],
+          "cell_type_fractions": {
+            "E": 0.9,
+            "PV": 0.0533,
+            "SST": 0.0267,
+            "VIP": 0.02
+          },
+          "fraction_tolerance": {
+            "E": [0.85, 0.95],
+            "PV": [0.035, 0.075],
+            "SST": [0.015, 0.045],
+            "VIP": [0.01, 0.04]
+          },
+          "geometry": {
+            "distribution": "uniform_random",
+            "x_range": [0.0, 1.0],
+            "y_range": [0.0, 1.0],
+            "value_tag": "relative"
+          }
+        }
+      ],
+      "inter_connections": [
+        {"source_layer": "L1", "source_neuron_type": "E", "target_layer": "L1", "target_neuron_type": "SST", "mechanism": "AMPA"},
+        {"source_layer": "L1", "source_neuron_type": "E", "target_layer": "L1", "target_neuron_type": "VIP", "mechanism": "AMPA"},
+        {"source_layer": "L1", "source_neuron_type": "SST", "target_layer": "L1", "target_neuron_type": "E", "mechanism": "GABA_A"},
+        {"source_layer": "L1", "source_neuron_type": "VIP", "target_layer": "L1", "target_neuron_type": "SST", "mechanism": "GABA_A"},
+        {"source_layer": "L2", "source_neuron_type": "E", "target_layer": "L2", "target_neuron_type": "PV", "mechanism": "AMPA"},
+        {"source_layer": "L2", "source_neuron_type": "E", "target_layer": "L2", "target_neuron_type": "SST", "mechanism": "AMPA"},
+        {"source_layer": "L2", "source_neuron_type": "E", "target_layer": "L2", "target_neuron_type": "VIP", "mechanism": "AMPA"},
+        {"source_layer": "L2", "source_neuron_type": "PV", "target_layer": "L2", "target_neuron_type": "E", "mechanism": "GABA_A"},
+        {"source_layer": "L2", "source_neuron_type": "SST", "target_layer": "L2", "target_neuron_type": "E", "mechanism": "GABA_A"},
+        {"source_layer": "L2", "source_neuron_type": "VIP", "target_layer": "L2", "target_neuron_type": "SST", "mechanism": "GABA_A"},
+        {"source_layer": "L2", "source_neuron_type": "PV", "target_layer": "L2", "target_neuron_type": "PV", "mechanism": "GABA_A"},
+        {"source_layer": "L3", "source_neuron_type": "E", "target_layer": "L3", "target_neuron_type": "PV", "mechanism": "AMPA"},
+        {"source_layer": "L3", "source_neuron_type": "E", "target_layer": "L3", "target_neuron_type": "SST", "mechanism": "AMPA"},
+        {"source_layer": "L3", "source_neuron_type": "E", "target_layer": "L3", "target_neuron_type": "VIP", "mechanism": "AMPA"},
+        {"source_layer": "L3", "source_neuron_type": "PV", "target_layer": "L3", "target_neuron_type": "E", "mechanism": "GABA_A"},
+        {"source_layer": "L3", "source_neuron_type": "SST", "target_layer": "L3", "target_neuron_type": "E", "mechanism": "GABA_A"},
+        {"source_layer": "L3", "source_neuron_type": "VIP", "target_layer": "L3", "target_neuron_type": "SST", "mechanism": "GABA_A"},
+        {"source_layer": "L3", "source_neuron_type": "PV", "target_layer": "L3", "target_neuron_type": "PV", "mechanism": "GABA_A"},
+        {"source_layer": "L4", "source_neuron_type": "E", "target_layer": "L4", "target_neuron_type": "PV", "mechanism": "AMPA"},
+        {"source_layer": "L4", "source_neuron_type": "E", "target_layer": "L4", "target_neuron_type": "SST", "mechanism": "AMPA"},
+        {"source_layer": "L4", "source_neuron_type": "E", "target_layer": "L4", "target_neuron_type": "VIP", "mechanism": "AMPA"},
+        {"source_layer": "L4", "source_neuron_type": "PV", "target_layer": "L4", "target_neuron_type": "E", "mechanism": "GABA_A"},
+        {"source_layer": "L4", "source_neuron_type": "SST", "target_layer": "L4", "target_neuron_type": "E", "mechanism": "GABA_A"},
+        {"source_layer": "L4", "source_neuron_type": "VIP", "target_layer": "L4", "target_neuron_type": "SST", "mechanism": "GABA_A"},
+        {"source_layer": "L4", "source_neuron_type": "PV", "target_layer": "L4", "target_neuron_type": "PV", "mechanism": "GABA_A"},
+        {"source_layer": "L5", "source_neuron_type": "E", "target_layer": "L5", "target_neuron_type": "PV", "mechanism": "AMPA"},
+        {"source_layer": "L5", "source_neuron_type": "E", "target_layer": "L5", "target_neuron_type": "SST", "mechanism": "AMPA"},
+        {"source_layer": "L5", "source_neuron_type": "E", "target_layer": "L5", "target_neuron_type": "VIP", "mechanism": "AMPA"},
+        {"source_layer": "L5", "source_neuron_type": "PV", "target_layer": "L5", "target_neuron_type": "E", "mechanism": "GABA_A"},
+        {"source_layer": "L5", "source_neuron_type": "SST", "target_layer": "L5", "target_neuron_type": "E", "mechanism": "GABA_A"},
+        {"source_layer": "L5", "source_neuron_type": "VIP", "target_layer": "L5", "target_neuron_type": "SST", "mechanism": "GABA_A"},
+        {"source_layer": "L5", "source_neuron_type": "PV", "target_layer": "L5", "target_neuron_type": "PV", "mechanism": "GABA_A"},
+        {"source_layer": "L6", "source_neuron_type": "E", "target_layer": "L6", "target_neuron_type": "PV", "mechanism": "AMPA"},
+        {"source_layer": "L6", "source_neuron_type": "E", "target_layer": "L6", "target_neuron_type": "SST", "mechanism": "AMPA"},
+        {"source_layer": "L6", "source_neuron_type": "E", "target_layer": "L6", "target_neuron_type": "VIP", "mechanism": "AMPA"},
+        {"source_layer": "L6", "source_neuron_type": "PV", "target_layer": "L6", "target_neuron_type": "E", "mechanism": "GABA_A"},
+        {"source_layer": "L6", "source_neuron_type": "SST", "target_layer": "L6", "target_neuron_type": "E", "mechanism": "GABA_A"},
+        {"source_layer": "L6", "source_neuron_type": "VIP", "target_layer": "L6", "target_neuron_type": "SST", "mechanism": "GABA_A"},
+        {"source_layer": "L6", "source_neuron_type": "PV", "target_layer": "L6", "target_neuron_type": "PV", "mechanism": "GABA_A"},
+        {"source_layer": "L1", "source_neuron_type": "E", "target_layer": "L2", "target_neuron_type": "E", "mechanism": "AMPA"},
+        {"source_layer": "L4", "source_neuron_type": "E", "target_layer": "L2", "target_neuron_type": "E", "mechanism": "AMPA"},
+        {"source_layer": "L4", "source_neuron_type": "E", "target_layer": "L3", "target_neuron_type": "E", "mechanism": "AMPA"},
+        {"source_layer": "L2", "source_neuron_type": "E", "target_layer": "L3", "target_neuron_type": "E", "mechanism": "AMPA"},
+        {"source_layer": "L2", "source_neuron_type": "E", "target_layer": "L5", "target_neuron_type": "E", "mechanism": "AMPA"},
+        {"source_layer": "L3", "source_neuron_type": "E", "target_layer": "L5", "target_neuron_type": "E", "mechanism": "AMPA"},
+        {"source_layer": "L5", "source_neuron_type": "E", "target_layer": "L6", "target_neuron_type": "E", "mechanism": "AMPA"},
+        {"source_layer": "L6", "source_neuron_type": "E", "target_layer": "L4", "target_neuron_type": "E", "mechanism": "AMPA"},
+        {"source_layer": "L6", "source_neuron_type": "E", "target_layer": "L1", "target_neuron_type": "E", "mechanism": "AMPA"}
+      ]
+    }
+  ],
+  "area_connections": []
+}

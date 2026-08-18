@@ -170,6 +170,7 @@ only-packages = true
 
 [tool.hatch.build.targets.wheel.force-include]
 "jaxfne/configs" = "jaxfne/configs"
+"jaxfne/jdna/genomes" = "jaxfne/jdna/genomes"
 
 [tool.hatch.build.targets.sdist]
 exclude = [
