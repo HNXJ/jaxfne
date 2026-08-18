@@ -1,0 +1,47 @@
+{
+  "schema": "jaxfne.release_receipt.v1",
+  "version": "0.4.17",
+  "status": "RELEASE_READY",
+  "write_once": true,
+  "rc_commit": "cadd279bb1ddd2aa7b190c012d22887ea5d67cff",
+  "version_commit": null,
+  "tag": null,
+  "branches": {
+    "dev": "cadd279bb1ddd2aa7b190c012d22887ea5d67cff"
+  },
+  "reconciliation": {
+    "method": "multi-model audit reconciliation (H1-H14)",
+    "findings": 30,
+    "true_defects": 19,
+    "false_positives": 2,
+    "stale": 1,
+    "limitations": 9,
+    "rejected": 1,
+    "independent_review": {
+      "model": "fresh-context independent reviewer (same harness family)",
+      "verdict_before": "NO-GO",
+      "major_findings": [
+        "F1 area_connections reference validation gap",
+        "F2 objectives.md AGSDR registry contradiction"
+      ],
+      "residual_commit": "cadd279bb1ddd2aa7b190c012d22887ea5d67cff"
+    }
+  },
+  "release_gates": {
+    "broad": "3458 passed",
+    "slow": "36 passed",
+    "examples": "13/13 OK",
+    "docs_language": "pass",
+    "mkdocs_strict": "clean",
+    "wheel_sdist": "built",
+    "clean_room_install": "workflows OK",
+    "compileall": "OK"
+  },
+  "distribution": {
+    "pypi": "NOT_UPLOADED (requires separate authorization)",
+    "github_release": "NOT_CREATED (requires separate authorization)",
+    "wheel": "jaxfne-0.4.17-py3-none-any.whl",
+    "sdist": "jaxfne-0.4.17.tar.gz"
+  },
+  "notes": "Version bump to 0.4.17 applied in the version_commit following rc_commit. No PyPI upload, no tag, no main promotion without separate authorization per the 0.4.17 reconciliation plan."
+}

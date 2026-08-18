@@ -4,6 +4,43 @@ All notable changes are documented here in [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+## v0.4.17 (2026-08-18)
+
+JDNA reconciliation release: multi-model audit reconciliation (H1–H14),
+bounded-simplex JDNA development with strict validation, serialization
+schema/roundtrip guarantees, AGSDR surface reclassification, verified
+scholarly references, and harness evidence discipline.
+
+### Added
+- JDNA: box-constrained simplex projection for cell-type fraction allocation
+  (deterministic, bounds-respecting, sum-to-one); `validate_genome` strict
+  checks — fraction domain, tolerance bands, joint feasibility, and
+  inter-/area-connection reference integrity.
+- JDNA serialization: `pseudogenome_from_dict` (exported) rejects unknown
+  schemas; `save_pseudogenome` preserves schema version; tuple
+  geometry/pose canonicalization restores exact roundtrip equality.
+- PRNG separation: behavioral tests for \(K_D\) (development), \(K_S\)
+  (runtime seed), \(K_A\) (optimizer seed) independence.
+- Harness: H1–H14 review/evidence discipline rules in AGENTS.md.
+
+### Changed
+- AGSDR surface classification: `propose_blackbox_candidates` →
+  COMPATIBILITY, `_tune_matrix_agsdr_optax` → HYBRID (documented in
+  `jaxfne.optim.AGSDR_SURFACE_CLASSIFICATION` and objectives API).
+- RBS inventory: node HDP kernel includes \(K_{\mathrm{ctrl}}(1-H)\) and
+  \(H C^\top\) coupling terms.
+- References: verified primary sources (Palm/Najarro/Risi 2021, Zador
+  2019); removed unverifiable memo number.
+
+### Fixed
+- Fresh-clone test isolation: visual review self-generates into a
+  temporary directory (H11).
+- Dead imports (`asdict`, `_jdna_genome_module`, `REPO_ROOT`) removed.
+
+### Unchanged
+- Public root contract: 191 symbols (178 CANONICAL + 13 COMPATIBILITY) from
+  0.4.13; frozen publication evidence untouched.
+
 ## v0.4.16 (2026-08-13)
 
 RBS/RBD/HDP containment release: finite edge-delay recurrent kernel (Protocol D),
