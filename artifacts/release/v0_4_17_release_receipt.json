@@ -4,10 +4,10 @@
   "status": "RELEASE_READY",
   "write_once": true,
   "rc_commit": "cadd279bb1ddd2aa7b190c012d22887ea5d67cff",
-  "version_commit": null,
+  "version_commit": "6a99ee560bb17b11e5b9afb48f80ac26d0ccc176",
   "tag": null,
   "branches": {
-    "dev": "cadd279bb1ddd2aa7b190c012d22887ea5d67cff"
+    "dev": "6a99ee560bb17b11e5b9afb48f80ac26d0ccc176"
   },
   "reconciliation": {
     "method": "multi-model audit reconciliation (H1-H14)",
