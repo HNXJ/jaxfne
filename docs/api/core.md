@@ -168,9 +168,9 @@ equivalence from the Izhikevich `paradigm` contract.
 
 ### Supported method surface per emitter family
 
-Methods that are Izhikevich-only raise a clear `NotImplementedError` on other
-families (never an `AttributeError`). This is the intended one-month-workbench
-boundary:
+Methods that require the Izhikevich emitter raise a clear
+`NotImplementedError` on other families (never an `AttributeError`). This is
+the intended one-month-workbench boundary:
 
 | Method | Izhikevich family | `homeostatic_ei` family |
 |---|---|---|
