@@ -36,7 +36,7 @@ shapes:
 | `[-1, +inf)` | upper-unbounded signed | — |
 | `(-inf, +1]` | lower-unbounded signed | — |
 | `[0, +inf)` | nonnegative unbounded | weight magnitude `m \in [w_floor, w_ceiling]` (bounded in practice by explicit clamps) |
-| `(-inf, 0]` | nonpositive unbounded | population-H deviation coordinate (signed, unnormalized controller state) |
+| `(-inf, +inf)` | fully unbounded signed | population-H deviation coordinate (signed, unnormalized controller state; can be positive or negative) |
 | `(-inf, +inf)` | fully unbounded signed | — |
 
 Rules:
@@ -118,7 +118,7 @@ The concrete HDP mappings:
 
 | Parameter | Base `p0` | Relative `r_p` | `p_eff = C_p(p0, r_p)` |
 |---|---|---|---|
-| Synaptic weight magnitude (node HDP) | `m0 = \|edges.weight\|` | H-derived basis `basis(H_post − H_pre)` | weight is an **integrated ODE state**: `dm/dt = ±K_HDP·basis·m + K_w_ctrl·(m0 − m)`; `K_HDP=0 ∧ K_w_ctrl=0 ⇒ w = w0` (exact null recovery) |
+| Synaptic weight magnitude (node HDP) | `m0 = \|edges.weight\|` | H-derived basis `basis(H_post − H_pre)` | weight is an **integrated ODE state**: `dm/dt = ±K_HDP·basis·m + K_w_ctrl·(m0 − m)`; `K_HDP=0 ∧ K_w_ctrl=0 ⇒ w = w0` for in-range weights (edges with `\|w0\| ∈ [w_floor, w_ceiling]` recover exactly; edges with `\|w0\| < w_floor` or `\|w0\| = 0` are clipped to `w_floor`) |
 | Edge weight (population restoring) | sign of `w_baseline` (base magnitude not carried) | `θ_0 ∈ [0.1, 5.0]` | `w_eff = sign(w_baseline)·θ_0` — **magnitude-replacing**, not multiplicative on base magnitude; θ=1 gives unit magnitude, so the base magnitude is not recovered. Documented limitation of this controller. |
 | Intrinsic `a` (population restoring) | `a_base` | `θ_1 ∈ [0.25, 4.0]` | `a_eff = a_base·θ_1` — multiplicative; θ=1 ⇒ `a_eff = a_base` (exact recovery) |
 

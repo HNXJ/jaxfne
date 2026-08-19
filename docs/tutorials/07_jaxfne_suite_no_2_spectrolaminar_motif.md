@@ -228,7 +228,7 @@ config to reach for when the goal is a **long, stationary** run.
 tau_0_ms * size_i**3` (E cells default to `size=5`, so `tau_i=25000` ms) makes `H_i`
 almost static (`H_std ≈ 0.0006`). Lacking a per-neuron variability driver, population
 spiking reads as near-regular ("ECG-like") rather than async-irregular — exactly the
-high-synchrony failure mode the **low synchrony** prerequisite above warns about.
+high-synchrony failure mode the **low synchrony** condition above warns about.
 `jaxfne.hdp_network.DEFAULT_HDP_DESYNC` (paired with `DRIVE_SCALE_DESYNC=1.2`) trades
 some of that overdamping for faster `H` integration (`tau_0_ms=5`, 40x faster) plus a
 genuine rate-drain term (`gamma=0.5`), so `H_i` fluctuates instead of sitting pinned:

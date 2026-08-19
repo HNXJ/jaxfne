@@ -168,3 +168,54 @@ class TestHdpOffNullConsistency:
         b = run(12)
         assert np.array_equal(a1, a2)
         assert not np.array_equal(a1, b)
+
+    def test_population_h_can_be_positive_unbounded_signed(self):
+        """F2: population-H is a fully unbounded signed controller state — it
+        can be positive when the rate exceeds the setpoint. The grammar doc
+        declares domain (-inf,+inf)."""
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from test_hdp_population_restoring import _mcc3_model
+        model, mei_mask, e_mask = _mcc3_model()
+        hp = {
+            "K_HDP": 0.0, "h_state_locality": "population", "h_state_dim": 2,
+            "controller_B": [[1.0, 0.0], [0.0, 1.0]], "controller_lambda": 0.45,
+            "controller_tau_H_s": 0.2, "controller_tau_theta_s": 2.0,
+            "controller_rate_setpoint_E_hz": 100.0,
+            "controller_rate_setpoint_I_hz": 100.0,
+            "controller_theta_S_init": (1.0, 1.0),
+            "m_ei_edge_mask": mei_mask.astype(bool),
+            "e_neuron_mask": e_mask.astype(bool),
+            "theta_m_EI_bounds": (0.1, 5.0), "theta_eta_a_bounds": (0.25, 4.0),
+        }
+        runtime = jtfne.RuntimeConfig(enable_hdp=True, recurrent_backend="edge_list",
+                                      jit=False, hdp_params=hp)
+        model.simulate(jtfne.simulation(duration_ms=300.0, dt_ms=0.1, seed=17,
+                                        runtime=runtime))
+        diag = model.last_hdp_diagnostics()
+        H = np.asarray(diag["H_trace"])
+        assert float(H.max()) > 0.0, "population-H must be able to be positive"
+
+    def test_null_recovery_clips_subfloor_weights(self):
+        """F3: K_HDP=0 ^ K_w_ctrl=0 recovers w0 only for in-range weights;
+        edges with |w0| < w_floor are clipped to w_floor (documented)."""
+        import jax.numpy as jnp
+        from dataclasses import replace
+        cfg = jtfne.suite2_net1_config(seed=7, n=3, duration_ms=60.0, dt_ms=1.0)
+        m = jtfne.construct(cfg)
+        edges = m.params["edge_list"]
+        w0 = np.asarray(edges.weight).copy()
+        w_mod = w0.copy(); w_mod[0] = 0.0
+        ne = replace(edges, weight=jnp.asarray(w_mod, dtype=jnp.float32))
+        object.__setattr__(m, "params", {**m.params, "edge_list": ne})
+        rt = jtfne.RuntimeConfig(recurrent_backend="edge_list", enable_hdp=True,
+                                 hdp_params={"K_HDP": 0.0, "K_w_ctrl": 0.0,
+                                             "noise_scale": 0.0})
+        m.simulate(jtfne.simulation(duration_ms=60.0, dt_ms=1.0, seed=7, runtime=rt))
+        diag = m.last_hdp_diagnostics()
+        wf = np.asarray(diag["w_final"]).reshape(-1)
+        # edge 0 base 0.0 clipped to w_floor (1e-3)
+        assert abs(wf[0]) >= 1.0e-3 - 1e-6
+        # in-range edges recover exactly
+        assert np.allclose(wf[1:], w0[1:], atol=1e-5)

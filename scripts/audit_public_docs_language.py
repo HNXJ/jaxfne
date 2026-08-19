@@ -77,9 +77,6 @@ NEGATIVE_CLAIM_PATTERNS = [
 SEMANTIC_ESCALATION_PATTERNS = [
     # a relative/proxy quantity asserted to be a physical measurement
     re.compile(r"\b(relative|proxy|relative-value|relative value)\b[^.\n]{0,60}\bis a physical (measurement|amplitude|quantity)\b", re.I),
-    # "measured in <unit>" claimed for a quantity that carries no calibrated
-    # physical meaning in the same sentence (proxy/relative/uncalibrated absent)
-    re.compile(r"\bmeasured in\b[^.\n]{0,30}\b(µV|uV|mV|μA|nA|pA)\b(?![^.\n]{0,40}\b(proxy|relative|uncalibrated|not physical)\b)", re.I),
     # "effective" implies empirically calibrated (effective != calibrated)
     re.compile(r"\beffective\b[^.\n]{0,50}\b(therefore|thus|hence|implies)\b[^.\n]{0,30}\bcalibrated\b", re.I),
     # "calibrated" used as an unqualified synonym for "relative"/"normalized"
@@ -89,6 +86,27 @@ SEMANTIC_ESCALATION_PATTERNS = [
     # "physical" applied to an uncalibrated proxy readout
     re.compile(r"\bphysical\b[^.\n]{0,30}\b(proxy|readout)\b[^.\n]{0,20}\b(measurement|amplitude)\b", re.I),
 ]
+
+# A relative/proxy subject asserted to be "measured in" an absolute amplitude
+# unit, without an in-sentence qualifier/caveat. Sentence-aware (handles a
+# qualifier placed either before or after the unit).
+_RELATIVE_WORD = re.compile(r"\b(relative|proxy|relative-value|relative value)\b", re.I)
+_UNIT = re.compile(r"\bmeasured in\b[^.\n]{0,30}\b(µV|uV|mV|μA|nA|pA)\b", re.I)
+_QUALIFIER = re.compile(r"\b(uncalibrated|not physical|caveat)\b", re.I)
+
+
+def _find_measured_in_escalation(text: str) -> list[dict]:
+    hits = []
+    for m in _UNIT.finditer(text):
+        s = text.rfind(".", 0, m.start())
+        e = text.find(".", m.end())
+        sentence = text[s + 1: e if e != -1 else len(text)]
+        has_relative = bool(_RELATIVE_WORD.search(sentence))
+        has_qualifier = bool(_QUALIFIER.search(sentence))
+        if has_relative and not has_qualifier:
+            line_no = text.count("\n", 0, m.start()) + 1
+            hits.append({"line": line_no, "match": m.group(0)[:80]})
+    return hits
 
 # String-concatenation identifier obfuscation: two adjacent quoted string
 # literals joined with `+`, used to build a dict key/value at runtime instead
@@ -124,6 +142,9 @@ def audit_docs() -> list[dict]:
                 for m in pat.finditer(text):
                     line_no = text.count("\n", 0, m.start()) + 1
                     hits.append({"category": label, "pattern": pat.pattern, "line": line_no, "match": m.group(0)[:80]})
+        for h in _find_measured_in_escalation(text):
+            hits.append({"category": "semantic_escalation",
+                         "pattern": "measured-in-unit (sentence-aware)", **h})
         if hits:
             results.append({"path": rel, "hits": hits})
     return results

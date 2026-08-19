@@ -567,6 +567,15 @@ def _simulate_continuation_arrays(
         raise ValueError(
             "full-state continuation requires recurrent_backend='edge_list'"
         )
+    if runtime_cfg.enable_hdp and "edge_list" in self.params:
+        edges_cont: EdgeList = self.params["edge_list"]
+        if int(jnp.asarray(edges_cont.delay_steps).sum()) != 0:
+            raise ValueError(
+                "enable_hdp does not support nonzero edge delay_steps in this "
+                "release: the HDP kernel has no finite-delay path (see "
+                "jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp). "
+                "This guard also applies to the full-state continuation path."
+            )
     if runtime_cfg.synaptic_kernel != "exponential":
         raise ValueError(
             "full-state continuation temporarily supports only "

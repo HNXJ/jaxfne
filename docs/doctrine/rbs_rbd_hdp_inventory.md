@@ -50,7 +50,7 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 | `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` | **Principal** — §8 HDP, H as homeostatic state, null naming |
 | `artifacts/project_sources/1_global_rules_and_restrictions.md` | Continuation lists "H state" generically → RBS |
 | `artifacts/project_sources/2_jaxfne_objective_grammar.md` | HDP nulls, "H-state null" |
-| `artifacts/project_sources/5_docs_tutorials_etudes_and_suites.md` | HDP/adaptation tutorial taxonomy |
+| `artifacts/project_sources/5_docs_tutorials_etudes_and_suites.md` | HDP/adaptation tutorial types |
 | `artifacts/project_sources/6_other_important_notes.md` | HDP continuation/stability notes |
 | `artifacts/project_sources/3_jaxfne_visualization_rules.md` | HDP H trajectories (label → RBS) |
 | `artifacts/project_sources/README.md` | Index prose only |

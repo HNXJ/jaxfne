@@ -82,6 +82,7 @@ def gate_dev() -> None:
         ]
     )
     _run([sys.executable, "scripts/audit_public_docs_language.py", "--check"])
+    _run([sys.executable, "scripts/audit_vocabulary.py", "--check"])
 
 
 def gate_broad() -> None:

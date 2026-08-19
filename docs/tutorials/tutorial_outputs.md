@@ -257,7 +257,7 @@ Tutorials validated: 3/4
   - Simulated mechanism-readout outputs
   - Status notes of physical amplitude accuracy
   - No calibration to biological parameters
-  - No whole-brain simulation capability
+  - No whole-brain simulation function
 
 **Proxy-Field Language:**
 - All field readouts (LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy) are **simulated** proxies

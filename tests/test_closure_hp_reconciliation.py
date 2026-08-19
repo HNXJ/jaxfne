@@ -112,6 +112,24 @@ class TestHdpDelayRejection:
         s = jtfne.simulate(model)
         assert s.V_m.shape[1] == 3
 
+    def test_hdp_nonzero_delay_rejected_on_continuation_path(self):
+        """F1: the HDP+delay loud-fail must also fire on the full-state
+        continuation path (return_state=True), which previously dropped the
+        delay silently."""
+        from dataclasses import replace
+        import jax.numpy as jnp
+        cfg = jtfne.suite2_net1_config(seed=7, n=3, duration_ms=80.0, dt_ms=1.0)
+        model = jtfne.construct(cfg)
+        edges = model.params["edge_list"]
+        ds = jnp.full((edges.n_edges,), 8, dtype=jnp.int32)
+        new_edges = replace(edges, delay_steps=ds)
+        object.__setattr__(model, "params", {**model.params, "edge_list": new_edges})
+        rt = jtfne.RuntimeConfig(recurrent_backend="edge_list", enable_hdp=True,
+                                 hdp_params={"noise_scale": 0.0})
+        with pytest.raises(ValueError, match="enable_hdp does not support nonzero edge delay_steps"):
+            model.simulate(jtfne.simulation(duration_ms=40.0, dt_ms=1.0, seed=7,
+                                            runtime=rt), return_state=True)
+
 
 # --------------------------------------------------------------------------- #
 # HP-07 — population-restoring H domain
