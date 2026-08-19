@@ -272,6 +272,19 @@ def _simulate_arrays(
             )
         # HDP is sparse-edge based; edge_list always exists from construct().
         edges: EdgeList = self.params["edge_list"]
+        # The HDP recurrent kernel does not consume per-edge finite delays
+        # (it has no spike-history ring buffer). Reject nonzero delays loudly
+        # instead of silently ignoring them, so an HDP run with declared
+        # delays is never mistaken for a delayed simulation.
+        if int(jnp.asarray(edges.delay_steps).sum()) != 0:
+            raise ValueError(
+                "enable_hdp does not support nonzero edge delay_steps in this "
+                "release: the HDP kernel has no finite-delay path (see "
+                "jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp). "
+                "Use the non-HDP finite-delay recurrent kernel "
+                "(recurrent_backend='edge_list', enable_hdp=False) for delayed "
+                "simulations."
+            )
         if ablation_mode == "disconnected_null":
             edges = replace(edges, weight=jnp.zeros_like(edges.weight))
         hp = dict(runtime_cfg.hdp_params or {})

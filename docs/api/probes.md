@@ -299,7 +299,12 @@ All probe/readout paths here are computational proxies:
 - **Simulated, not measured:** results carry no empirical validation.
 - **Amplitude scale:** `physical_amplitude_calibrated=False` throughout; state mV/µV claims only alongside separate calibration evidence.
 - **Relative metrics only:** use for comparative analysis rather than absolute scaling.
-- **Sign convention:** CSD-proxy positive = extracellular source = inward current (declared here; independent verification is a separate step).
+- **Sign convention:** `csd_proxy = -d²φ/dz²` (spatial second difference along
+  the depth axis). By the standard current-source-density convention, **positive
+  CSD-proxy = extracellular current source = outward transmembrane current**;
+  **negative CSD-proxy = extracellular current sink = inward transmembrane
+  current**. This is an uncalibrated proxy — the sign is an operator
+  convention, distinct from a calibrated physiological measurement.
 - **Proxy field solver:** laminar field readouts are convolution-based proxies (`field_solver_status="linear_solver"`) rather than a solved Poisson/volume-conductor equation. EEG-proxy/MEG-proxy require a caller-supplied leadfield matrix and remain "toy" projections short of a realistic head model.
 
 **Safe statements:**

@@ -123,7 +123,7 @@ The evoked firing rate increase is proportional to drive amplitude. Higher L4 dr
 
 ### Field readout polarity
 
-The LFP-proxy shows a source in L4 (depolarization sink) during the stimulus, reflecting inward synaptic current. The CSD-proxy (second spatial derivative) is negative in L4, indicating current influx (source density).
+The LFP-proxy shows a depolarizing sink in L4 during the stimulus, reflecting inward synaptic current (negative CSD-proxy = current sink = inward current, per the convention `csd_proxy = -d²φ/dz²`).
 
 ### Post-stimulus suppression
 

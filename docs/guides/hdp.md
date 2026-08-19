@@ -108,6 +108,18 @@ RBS equation or `K_w_ctrl`. `K_ctrl` and `K_w_ctrl` are independent controls:
 the former restores `H` toward 1, while the latter restores edge magnitude
 `m_ij` toward its declared baseline `m0_ij`.
 
+### `disconnected_null` under HDP — floor-constrained adaptive null
+
+`ablation="disconnected_null"` zeroes every edge weight before the HDP kernel
+entry (`_model_simulate.py`). It is **not** a literal disconnection on the HDP
+path: the HDP weight dynamics still run and re-clip each edge to the adaptive
+floor `|w| ≈ w_floor` (default `1e-3`), so a floor-strength recurrent current
+contribution remains. The causal property this null guarantees is that
+weights **never grow** beyond the floor scale — not that transmission is
+exactly zero. For a strictly zero-current control, use `disconnected_null`
+with `enable_hdp=False` (the non-HDP kernel keeps the zeroed weights, giving
+no recurrent contribution), or silence the population directly.
+
 ### Generalized RBS
 
 The general RBS associated with entity `i` is:

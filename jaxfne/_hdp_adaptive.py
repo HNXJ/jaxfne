@@ -101,6 +101,13 @@ def parse_population_restoring_layout(
     if hp.get("controller_B") is None:
         raise ValueError("population restoring HDP requires controller_B in hdp_params")
     h_dim = int(hp.get("h_state_dim", 2))
+    if h_dim != 2:
+        raise ValueError(
+            f"population-restoring HDP is a two-coordinate controller "
+            f"(rate error channels E/I, theta channels edge/intrinsic); "
+            f"h_state_dim must be exactly 2, got {h_dim}. The node-locality "
+            f"path supports other h_state_dim values."
+        )
     B = jnp.asarray(hp["controller_B"], dtype=dtype)
     if B.shape != (h_dim, h_dim):
         raise ValueError(f"controller_B must be ({h_dim}, {h_dim}), got {B.shape}")

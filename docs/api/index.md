@@ -29,6 +29,12 @@ importable from submodules but are not root exports.
 
 **Execution:** CircuitSpec → `construct` → `Model` → `simulate` → `Signals`
 
+`CircuitSpec` is a **conceptual category** (`Configuration | NeuronalTensor`),
+not a concrete public production class — `construct` accepts either a
+`Configuration` or a `NeuronalTensor` (+ `RuntimeConfiguration`). It is
+unrelated to the experimental `jaxfne.experimental_hpc.CircuitSpec` contract
+type, which production `construct` does not accept.
+
 ## Structural map
 
 ### Core execution

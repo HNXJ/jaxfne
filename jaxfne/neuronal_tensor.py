@@ -45,6 +45,7 @@ along x with no rotation, so this step happens post-construct).
 """
 from __future__ import annotations
 
+import hashlib
 import math
 import warnings
 from dataclasses import dataclass, field, asdict, replace
@@ -710,6 +711,10 @@ def _construct_neuronal_tensor_impl(
     duration_ms: float = 1000.0,
     dt_ms: float = 0.1,
     emitter: str = "izhikevich",
+    dtype: str = "float32",
+    backend: "str | None" = None,
+    jit: "bool | str | None" = None,
+    vmap: "bool | str | None" = None,
 ) -> Model:
     """Bridge + construct + apply each Area's Pose3D placement, in one call.
 
@@ -737,6 +742,7 @@ def _construct_neuronal_tensor_impl(
     """
     cfg = neuronal_tensor_to_configuration(
         tensor, seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, emitter=emitter,
+        dtype=dtype, backend=backend, jit=jit, vmap=vmap,
     )
     model = construct(cfg)
     rows = model.neuron_table()
@@ -865,13 +871,39 @@ def _wire_connection(
     return cfg
 
 
-def neuronal_tensor_to_configuration(
-    tensor: NeuronalTensor,
+def _tensor_identity_digest(tensor: NeuronalTensor) -> str:
+    """Deterministic structural digest of a NeuronalTensor.
+
+    Includes areas, layers, neuron types, geometry, pose, connections, and
+    provenance (genome rules hash, schema version, development seed,
+    phenotype hash when present). Runtime knobs (seed/duration/dt/emitter)
+    are excluded — they belong to ``RuntimeConfiguration``, not the tensor.
+    Written into config metadata so receipt identity distinguishes tensors
+    that the Configuration bridge would otherwise collapse together.
+    """
+    import json as _json
+
+    try:
+        payload = dict(tensor.to_dict())
+    except Exception:  # defensive: never block construction on hashing
+        return ""
+    blob = _json.dumps(
+        payload, sort_keys=True, separators=(",", ":"),
+        default=lambda o: o if isinstance(o, (str, int, float, bool)) or o is None else repr(o),
+    ).encode("utf-8")
+    return hashlib.sha256(blob).hexdigest()
+
+
+def neuronal_tensor_to_configuration(    tensor: NeuronalTensor,
     *,
     seed: int = 0,
     duration_ms: float = 1000.0,
     dt_ms: float = 0.1,
     emitter: str = "izhikevich",
+    dtype: str = "float32",
+    backend: "str | None" = None,
+    jit: "bool | str | None" = None,
+    vmap: "bool | str | None" = None,
 ) -> Configuration:
     """Bridge a :class:`NeuronalTensor` into the existing construct/simulate pipeline.
 
@@ -951,7 +983,21 @@ def neuronal_tensor_to_configuration(
             if any(area.connectivity_mode == "explicit" for area in tensor.areas)
             else "unspecified"
         )
-    cfg = Configuration().runtime(seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
+    _runtime_kw: dict[str, Any] = {"seed": seed, "duration_ms": duration_ms,
+                                   "dt_ms": dt_ms, "dtype": dtype}
+    if backend is not None:
+        _runtime_kw["backend"] = backend
+    if jit is not None:
+        _runtime_kw["jit"] = jit
+    if vmap is not None:
+        _runtime_kw["vmap"] = vmap
+    cfg = Configuration().runtime(**_runtime_kw)
+    # Tensor identity: a deterministic structural digest (areas, layers,
+    # neuron types, geometry, connections, provenance) written into config
+    # metadata so run receipts/config hashes are distinct for tensors with
+    # scientifically different structure/geometry — the Configuration bridge
+    # alone can collapse distinct tensors to equal metadata.
+    cfg = cfg.update_metadata(tensor_identity=_tensor_identity_digest(tensor))
     cfg = cfg.update_metadata(connectivity_mode=connectivity_mode)
     fallback_weight: dict[str, float] = {}
     area_n_by_name: dict[str, int] = {}

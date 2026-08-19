@@ -18,6 +18,13 @@ and evidence receipts.
 
 **Execution grammar:** `CircuitSpec → construct → Model → simulate → Signals`
 
+`CircuitSpec` is a **conceptual category** (`Configuration | NeuronalTensor`),
+not a concrete public production class — `construct` accepts either a
+`Configuration` (original path) or a `NeuronalTensor` with a
+`RuntimeConfiguration` (tensor-first path). It is unrelated to the
+experimental `jaxfne.experimental_hpc.CircuitSpec` contract type, which is
+not accepted by production `construct`.
+
 **Adaptation** (optional HDP family): finite-dimensional hidden biophysical state
 $H$ and adaptive parameter coordinates $\Theta$ (synaptic and intrinsic),
 mediated by

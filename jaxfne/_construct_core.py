@@ -90,6 +90,14 @@ def simulate(
             if override_dtype is not None:
                 runtime_cfg = replace(runtime_cfg, dtype=str(override_dtype))
             kwargs["runtime"] = runtime_cfg
+            # Inherit the tensor/Configuration-declared duration, dt, and seed
+            # so a no-argument simulate(model) honors them (HP-01 tensor path).
+            if "duration_ms" not in kwargs and cfg_meta.get("duration_ms") is not None:
+                kwargs["duration_ms"] = cfg_meta["duration_ms"]
+            if "dt_ms" not in kwargs and cfg_meta.get("dt_ms") is not None:
+                kwargs["dt_ms"] = cfg_meta["dt_ms"]
+            if "seed" not in kwargs and cfg_meta.get("seed") is not None:
+                kwargs["seed"] = cfg_meta["seed"]
         elif "dtype" in kwargs:
             raise ValueError(
                 "Specify dtype via runtime=RuntimeConfig(dtype=...), not both "
@@ -754,6 +762,8 @@ def construct(
         return _construct_neuronal_tensor_impl(
             cfg, seed=runtime.seed, duration_ms=runtime.duration_ms,
             dt_ms=runtime.dt_ms, emitter=runtime.emitter,
+            dtype=runtime.dtype, backend=runtime.device,
+            jit=runtime.jit, vmap=runtime.vmap,
         )
 
     if runtime is not None:

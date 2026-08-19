@@ -85,7 +85,10 @@ rejected scores and do not terminate the search.
 ## Single objective
 
 ```python
-objective = jtfne.objective(name="rate", metric="spike_rate_hz", target=10.0)
+objective = (
+    jtfne.objective()                     # fresh empty Objective
+    .loss(name="rate", metric="spike_rate_hz", target=10.0)
+)
 result = model.tune(objective=objective, parameter="drive_gain", bounds=(0.5, 2.0))
 ```
 
