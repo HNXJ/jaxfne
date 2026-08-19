@@ -53,6 +53,20 @@ adaptive-parameter coefficients (`controller_*`, channel masks, bounds).
 The runtime resolves the internal dispatch; callers do not supply MVC-specific
 rule identifiers.
 
+### Population-branch parameter scope (H7 classification)
+
+The population-restoring branch (`h_state_locality="population"`) is a
+**two-coordinate signed controller** and does **not** consume the node-branch
+gain parameters. The following `hdp_params` keys are accepted for API
+compatibility but are **inert on the population branch by design** (they have
+no effect there, and are not silently reinterpreted): `alpha`, `beta`,
+`gamma`, `delta`, `C_spike`, `rho_passive`, `K_ctrl`, `K_HDP`, `K_w_ctrl`,
+`H_boost_gain`, `h_state_readout`, `h_state_coupling`, `H_min`, `H_max`. The
+population branch uses `controller_*` coefficients, the channel masks
+(`m_ei_edge_mask`, `e_neuron_mask`), and channel bounds
+(`theta_m_EI_bounds`, `theta_eta_a_bounds`) instead. This is a documented
+inert-by-design surface, not a hidden behavior change.
+
 ## Continuation scope
 
 | capability | status |
@@ -113,12 +127,24 @@ the former restores `H` toward 1, while the latter restores edge magnitude
 `ablation="disconnected_null"` zeroes every edge weight before the HDP kernel
 entry (`_model_simulate.py`). It is **not** a literal disconnection on the HDP
 path: the HDP weight dynamics still run and re-clip each edge to the adaptive
-floor `|w| ≈ w_floor` (default `1e-3`), so a floor-strength recurrent current
-contribution remains. The causal property this null guarantees is that
-weights **never grow** beyond the floor scale — not that transmission is
-exactly zero. For a strictly zero-current control, use `disconnected_null`
-with `enable_hdp=False` (the non-HDP kernel keeps the zeroed weights, giving
-no recurrent contribution), or silence the population directly.
+floor `|w| ≈ w_floor` (kernel default `1e-3`; the shipped `DEFAULT_HDP` preset
+ships `0.01` — see `jaxfne/hdp_network.py`), so a floor-strength recurrent
+current contribution remains.
+
+**Guaranteed property (default/standard HDP gain regimes, including the
+shipped `K_HDP=0.01`, `K_ctrl=5.0` acceptance runtime):** weights stay at the
+floor scale — they never grow beyond ≈ a few × `w_floor`. This is the causal
+property the null is designed to test.
+
+**Boundary:** the guarantee holds for the gain regimes exercised by the
+acceptance suite. With explicitly elevated HDP gains (`C_spike > 0`,
+`K_HDP > 1`, `alpha/beta/gamma/delta > 0`), the weight ODEs are no longer
+null and can drive `|w|` above the floor (up to the hard `w_ceiling` clip) even
+with zeroed initial weights. `disconnected_null` zeroes the *initial* weights;
+it does not freeze the adaptive dynamics. For a strictly zero-current control,
+use `disconnected_null` with `enable_hdp=False` (the non-HDP kernel keeps the
+zeroed weights, giving no recurrent contribution), or silence the population
+directly.
 
 ### Generalized RBS
 
@@ -139,6 +165,19 @@ $$\dot{\Theta}=G_\Theta(H_{\mathrm{pre}},H_{\mathrm{post}},X,\Theta).$$
 follow componentwise dynamics by default. An optional `h_state_coupling`
 matrix supplies the initial supported coupling mechanism; omitting it means
 zero coupling.
+
+### Per-coordinate H inventory
+
+Each H coordinate is declared by its `(meaning, domain, R_k, Gamma_k)` tuple
+(see [relative-quantity grammar](../doctrine/relative_quantity_grammar.md)). The
+shipped kernels declare:
+
+| Coordinate | Meaning | Admissible domain | Reference | Update rule `R_k` | Gain mapping `Gamma_k` |
+|---|---|---|---|---|---|
+| Node `H_i` (default `d_H=1`, shape `(N,)` or `(N, d_H)`) | relative hidden biophysical state (availability for the difference/product weight families) | `[H_min, H_max] = [0.1, 10.0]` via explicit clamp; per-coordinate arrays allowed | `H* = 1` (multiplicative availability; init `1.0`) | `τ_i·dH/dt = α·I_syn + β − γ·H·r − δ·W_i + ρ/H_i² + K_ctrl·(1−H_i) − dC/dH_i + H@coupling.T`; spike drain `H ← H − C_spike`; `τ_i = τ_0_ms·size_i³` | `h = H@readout` → `basis(H_post−H_pre)` (signed_linear), `(H_post−H_pre)·\|·\|` (signed_quadratic), `H_pre·H_post` (hebbian_product) → `dm = ±K_HDP·basis·m`; `H_boost` scales drive |
+| Population `H_pop ∈ R²` (`h_state_locality="population"`, `h_state_dim` must be exactly 2) | signed deviation controller state (E/I rate-error channels) | **unbounded** — no `[H_min, H_max]` clamp on this branch; equilibrium `H* = −e/λ` (Hz-scale magnitude) | `H* = 0` deviation convention (init `0`) | `dH = (−e_vec − λ·H)/τ_H` with `τ_H` in seconds; `e_vec` = E/I rate error in Hz | `dθ = (B@H)/τ_θ` → `θ_0` edge channel and `θ_1` intrinsic channel (below) |
+| `θ_0` edge channel | relative edge-magnitude gain | `[0.1, 5.0]` (`theta_m_EI_bounds`) via clip | `1.0` | `dθ = (B@H)/τ_θ` | `w_eff = sign(w_baseline)·θ_0` — **magnitude-replacing** (base magnitude not recovered at θ=1; documented limitation) |
+| `θ_1` intrinsic channel | relative intrinsic-gain modulator | `[0.25, 4.0]` (`theta_eta_a_bounds`) via clip | `1.0` | `dθ = (B@H)/τ_θ` | `a_eff = a_base·θ_1` (multiplicative; θ=1 ⇒ `a_eff = a_base`) |
 
 The current scalar HDP weight rule uses one supported adaptation-specific
 readout:

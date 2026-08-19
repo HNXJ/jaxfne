@@ -686,7 +686,7 @@ padding, the input is `phi_e_proxy`, and the output is the relative
 - **No 3D conductivity:** Anatomy is declared, not solved
 - **No extracellular detail:** Simplified layer-to-layer projections
 - **Proxy LFP/CSD:** Spatial convolution, not source localization
-- **Sign convention:** Positive CSD = extracellular source (inward current)
+- **Sign convention:** Positive CSD = extracellular current source (outward transmembrane current); negative CSD = extracellular current sink (inward transmembrane current). `csd_proxy = -d²φ/dz²` along the depth axis.
 - **Field model status:** `"proxy_readout"` — not physical amplitude
 
 **Use for:**

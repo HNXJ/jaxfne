@@ -166,6 +166,24 @@ kernel argument `drive_schedule` on `simulate_homeostatic_ei(...)`, or the
 family's declared baseline drive in params. Do not infer cross-family stimulus
 equivalence from the Izhikevich `paradigm` contract.
 
+### Supported method surface per emitter family
+
+Methods that are Izhikevich-only raise a clear `NotImplementedError` on other
+families (never an `AttributeError`). This is the intended one-month-workbench
+boundary:
+
+| Method | Izhikevich family | `homeostatic_ei` family |
+|---|---|---|
+| `construct` / `simulate` / `probe` / `evaluate` / `run_receipt` | ✅ | ✅ |
+| `tune` (scalar + matrix/multi-parameter) | ✅ | ✅ (matrix-parameter tuning) |
+| `summary` / `neuron_table` | ✅ | ❌ `NotImplementedError` |
+| `checkpoint` / `simulate_batch` | ✅ | ❌ `NotImplementedError` |
+| `with_emitter_parameters` | ✅ | ❌ `NotImplementedError` |
+
+If your planned workbench experiments use `homeostatic_ei` and need
+`summary`/`neuron_table`/`checkpoint`/`simulate_batch`, use the Izhikevich
+family instead (the canonical edge-list path).
+
 **Example:**
 ```python
 model = jtfne.construct(cfg)

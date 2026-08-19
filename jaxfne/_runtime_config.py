@@ -125,6 +125,11 @@ class RuntimeConfig:
                 f"Previously any unrecognized value silently fell back to float32 -- "
                 f"that silent fallback is now an explicit error."
             )
+        if self.backend not in {"auto", "cpu", "gpu", "tpu"}:
+            raise ValueError(
+                f"backend must be one of {{'auto', 'cpu', 'gpu', 'tpu'}}; "
+                f"got {self.backend!r}."
+            )
 
     def resolve_jit(self, n_steps: int, n_units: int, batch: int = 1) -> bool:
         """Resolve the effective JIT compilation status based on policy and parameters."""

@@ -207,9 +207,9 @@ The current jaxfne convention:
 $$\mathrm{CSD}(x,t) = \nabla \cdot \mathbf{J}_e(x,t) = -\nabla \cdot (\sigma_e \nabla \phi_e)$$
 
 **Sign convention in jaxfne:**
-- **Positive CSD** = extracellular current diverging (flowing outward)
-- **Negative CSD** = extracellular current converging (flowing inward)
-- **Interpretation:** Positive CSD suggests membrane **sink** (inward membrane current); negative CSD suggests **source** (outward membrane current)
+- **Positive CSD** = extracellular current diverging (flowing outward) = current source = outward transmembrane current
+- **Negative CSD** = extracellular current converging (flowing inward) = current sink = inward transmembrane current
+- **Interpretation:** Positive CSD suggests an extracellular current **source**; negative CSD suggests an extracellular current **sink**
 
 **Declared in Manifest:**
 ```python

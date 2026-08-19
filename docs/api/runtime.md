@@ -32,7 +32,10 @@ requested and actual dtype policy.
 - `jit` (bool | str): `True`/`False`/`"auto"`
 - `vmap` (bool | str): `True`/`False`/`"auto"`
 - `precision` (str): `"default"` | `"high"`
-- `seed` (int): default `0`
+ - `seed` (int): default `0`. **H7 note:** `RuntimeConfig.seed` is effectively
+   dead on the canonical `simulate` path — `Simulation.resolved_runtime`
+   overrides it with `Simulation.seed`. Set the seed on `simulation(...)` /
+   `Simulation` instead. Retained for forward compatibility.
 - `n_steps` (int): default `0`
 - `recurrent_backend` (str): `"dense"` | `"edge_list"`
 - `synaptic_kernel` (str): `"exponential"` | `"receptor_exponential"`

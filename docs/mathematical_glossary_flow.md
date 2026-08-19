@@ -184,8 +184,8 @@ $$\mathrm{CSD} = \partial_i J_e^i$$
 
 **Term glossary:**
 - $\mathrm{CSD}$: current-source density (A/m³)
-- Positive CSD: extracellular current divergence (current flowing outward, suggesting membrane sink)
-- Negative CSD: current convergence (current flowing inward, suggesting membrane source)
+- Positive CSD: extracellular current divergence (current flowing outward) = current source = outward transmembrane current
+- Negative CSD: current convergence (current flowing inward) = current sink = inward transmembrane current
 
 **Worded-equation:**
 

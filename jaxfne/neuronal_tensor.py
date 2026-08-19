@@ -665,6 +665,13 @@ class RuntimeConfiguration:
     ``dtype``, ``emitter``, ``device`` (mapped to ``RuntimeConfig.backend``),
     ``jit``, ``vmap``.
 
+    ``duration_ms``/``dt_ms``/``seed`` are inherited by a *no-argument*
+    ``jtfne.simulate(model)`` (and by ``construct`` itself). Passing an
+    explicit ``runtime=`` to ``simulate`` opts into runtime control: the
+    ``Simulation``'s own ``duration_ms``/``dt_ms``/``seed`` (defaults
+    ``1000.0``/``0.05``/``0``) then apply unless you also pass them to
+    ``simulate``.
+
     **Reserved, declared but not yet consumed** (forward-compatible
     placeholders for the TFNE-grammar stages they name; setting them has no
     effect today -- not silently ignored, just honestly not wired yet):
@@ -874,10 +881,16 @@ def _wire_connection(
 def _tensor_identity_digest(tensor: NeuronalTensor) -> str:
     """Deterministic structural digest of a NeuronalTensor.
 
-    Includes areas, layers, neuron types, geometry, pose, connections, and
-    provenance (genome rules hash, schema version, development seed,
-    phenotype hash when present). Runtime knobs (seed/duration/dt/emitter)
-    are excluded — they belong to ``RuntimeConfiguration``, not the tensor.
+    Includes areas, layers, neuron types, geometry, pose, and connections —
+    the persisted content of the tensor (the same surface as
+    ``save_neuronal_tensor``, which intentionally strips in-memory
+    ``provenance``). Runtime knobs (seed/duration/dt/emitter) are excluded —
+    they belong to ``RuntimeConfiguration``, not the tensor. Provenance
+    (genome rules hash, schema version, development seed, phenotype hash) is
+    deliberately excluded so receipt identity is stable across the documented
+    save/load roundtrip; provenance identity is carried separately on the
+    in-memory tensor and in the JDNA genome persistence owner.
+
     Written into config metadata so receipt identity distinguishes tensors
     that the Configuration bridge would otherwise collapse together.
     """
@@ -887,6 +900,7 @@ def _tensor_identity_digest(tensor: NeuronalTensor) -> str:
         payload = dict(tensor.to_dict())
     except Exception:  # defensive: never block construction on hashing
         return ""
+    payload.pop("provenance", None)
     blob = _json.dumps(
         payload, sort_keys=True, separators=(",", ":"),
         default=lambda o: o if isinstance(o, (str, int, float, bool)) or o is None else repr(o),
@@ -894,7 +908,8 @@ def _tensor_identity_digest(tensor: NeuronalTensor) -> str:
     return hashlib.sha256(blob).hexdigest()
 
 
-def neuronal_tensor_to_configuration(    tensor: NeuronalTensor,
+def neuronal_tensor_to_configuration(
+    tensor: NeuronalTensor,
     *,
     seed: int = 0,
     duration_ms: float = 1000.0,

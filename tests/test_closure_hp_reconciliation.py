@@ -94,8 +94,16 @@ class TestHdpDelayRejection:
         ds = jnp.full((edges.n_edges,), 10, dtype=jnp.int32)
         new_edges = replace(edges, delay_steps=ds)
         object.__setattr__(model, "params", {**model.params, "edge_list": new_edges})
+        sim = jtfne.simulation(
+            duration_ms=50.0, dt_ms=1.0, seed=7,
+            runtime=jtfne.RuntimeConfig(enable_hdp=True, recurrent_backend="edge_list",
+                                        hdp_params={"noise_scale": 0.0}),
+        )
         with pytest.raises(ValueError, match="enable_hdp does not support nonzero edge delay_steps"):
-            jtfne.simulate(model)
+            jtfne.simulate(model, sim)
+        # simulate_batch must also reject (same guard, F1)
+        with pytest.raises(ValueError, match="enable_hdp does not support nonzero edge delay_steps"):
+            model.simulate_batch(sim, n_seeds=2)
 
     def test_hdp_zero_delay_still_works(self):
         cfg = jtfne.suite2_net1_config(seed=7, n=3, duration_ms=50.0, dt_ms=1.0)
@@ -175,6 +183,76 @@ class TestProvenanceIdentity:
         m = jtfne.construct(dt, RuntimeConfiguration(seed=1, duration_ms=20.0, dt_ms=1.0))
         assert "tensor_identity" in m.cfg.metadata
         assert len(m.cfg.metadata["tensor_identity"]) == 64
+
+    def test_receipt_stable_across_save_load_roundtrip(self, tmp_path):
+        """F5: receipt identity is stable across the documented persistence
+        path (save_neuronal_tensor strips in-memory provenance; the structural
+        digest must still match so the same phenotype gets the same receipt)."""
+        import os
+        from jaxfne.neuronal_tensor import save_neuronal_tensor, load_neuronal_tensor
+        g = jtfne.load_canonical_pseudogenome("canonical-v1-column-1000n")
+        dt = jtfne.develop(g, seed=0)
+        m = jtfne.construct(dt, RuntimeConfiguration(seed=1, duration_ms=20.0, dt_ms=1.0))
+        r = m.run_receipt(jtfne.simulate(m))
+        p = os.path.join(str(tmp_path), "t.json")
+        save_neuronal_tensor(dt, p)
+        dt2 = load_neuronal_tensor(p)
+        m2 = jtfne.construct(dt2, RuntimeConfiguration(seed=1, duration_ms=20.0, dt_ms=1.0))
+        r2 = m2.run_receipt(jtfne.simulate(m2))
+        assert r.receipt_id == r2.receipt_id
+
+
+# --------------------------------------------------------------------------- #
+# Fresh-review residuals — F7 backend validation, F3 null boundary
+# --------------------------------------------------------------------------- #
+
+class TestBackendValidation:
+    def test_bogus_backend_rejected(self):
+        with pytest.raises(ValueError, match="backend must be one of"):
+            jtfne.RuntimeConfig(backend="bogus")
+
+    def test_valid_backends_accepted(self):
+        for b in ("auto", "cpu", "gpu", "tpu"):
+            jtfne.RuntimeConfig(backend=b)
+
+    def test_tensor_device_forwarded_and_validated(self):
+        # tensor-path device maps to RuntimeConfig.backend; bogus rejected
+        t = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")
+        with pytest.raises(ValueError, match="backend must be one of"):
+            jtfne.simulate(
+                jtfne.construct(t, RuntimeConfiguration(seed=1, duration_ms=20.0,
+                                                        dt_ms=1.0, device="bogus"))
+            )
+
+
+class TestDisconnectedNullHdpBoundary:
+    def test_default_gains_floor_scale(self):
+        """Shipped/default HDP gains: disconnected_null keeps |w| at floor."""
+        cfg = jtfne.suite2_net1_config(seed=7, n=3, duration_ms=100.0, dt_ms=1.0)
+        cfg = cfg.hdp(enable_hdp=True, hdp_params={"noise_scale": 0.0})
+        model = jtfne.construct(cfg)
+        jtfne.simulate(model, ablation="disconnected_null")
+        diag = model.last_hdp_diagnostics()
+        wf = np.asarray(diag["w_final"]).reshape(-1)
+        assert np.abs(wf).max() <= 2.0 * 1.0e-3
+
+    def test_elevated_gains_can_grow_above_floor(self):
+        """Boundary documented in guides/hdp.md: explicit elevated HDP gains
+        (C_spike>0) can drive |w| above the floor even with zeroed initial
+        weights — disconnected_null zeroes initial weights, not the dynamics."""
+        cfg = jtfne.suite2_net1_config(seed=7, n=3, duration_ms=100.0, dt_ms=1.0)
+        model = jtfne.construct(cfg)
+        sim = jtfne.simulation(
+            duration_ms=100.0, dt_ms=1.0, seed=7, ablation="disconnected_null",
+            runtime=jtfne.RuntimeConfig(
+                enable_hdp=True, recurrent_backend="edge_list",
+                hdp_params={"K_HDP": 2.0, "C_spike": 0.5},
+            ),
+        )
+        model.simulate(sim)
+        diag = model.last_hdp_diagnostics()
+        wf = np.asarray(diag["w_final"]).reshape(-1)
+        assert np.abs(wf).max() > 2.0 * 1.0e-3
 
 
 # --------------------------------------------------------------------------- #

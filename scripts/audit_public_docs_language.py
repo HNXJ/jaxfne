@@ -67,6 +67,29 @@ NEGATIVE_CLAIM_PATTERNS = [
     re.compile(r"\bno substitute for\b", re.I),
 ]
 
+# Semantic-escalation patterns (relative-quantity grammar): a relative/proxy
+# quantity must not be described as though it were a physical measurement, and
+# "effective"/"normalized" must not silently imply calibration or physicality.
+# Curated to catch escalation, not legitimate technical prose (e.g. a page
+# *about* calibration is fine, and "uncalibrated relative to mV" is a
+# legitimate qualifier). Each pattern anchors on an UNQUALIFIED physical claim
+# about a quantity the grammar declares relative/proxy/normalized/effective.
+SEMANTIC_ESCALATION_PATTERNS = [
+    # a relative/proxy quantity asserted to be a physical measurement
+    re.compile(r"\b(relative|proxy|relative-value|relative value)\b[^.\n]{0,60}\bis a physical (measurement|amplitude|quantity)\b", re.I),
+    # "measured in <unit>" claimed for a quantity that carries no calibrated
+    # physical meaning in the same sentence (proxy/relative/uncalibrated absent)
+    re.compile(r"\bmeasured in\b[^.\n]{0,30}\b(µV|uV|mV|μA|nA|pA)\b(?![^.\n]{0,40}\b(proxy|relative|uncalibrated|not physical)\b)", re.I),
+    # "effective" implies empirically calibrated (effective != calibrated)
+    re.compile(r"\beffective\b[^.\n]{0,50}\b(therefore|thus|hence|implies)\b[^.\n]{0,30}\bcalibrated\b", re.I),
+    # "calibrated" used as an unqualified synonym for "relative"/"normalized"
+    re.compile(r"\bcalibrated (relative|proxy|normalized)\b", re.I),
+    # "normalized" equated to "relative" as if universal synonyms
+    re.compile(r"\bnormalized\b[^.\n]{0,30}\bsame as\b[^.\n]{0,20}\brelative\b", re.I),
+    # "physical" applied to an uncalibrated proxy readout
+    re.compile(r"\bphysical\b[^.\n]{0,30}\b(proxy|readout)\b[^.\n]{0,20}\b(measurement|amplitude)\b", re.I),
+]
+
 # String-concatenation identifier obfuscation: two adjacent quoted string
 # literals joined with `+`, used to build a dict key/value at runtime instead
 # of a plain literal. Legitimate f-strings/format calls don't match this shape.
@@ -95,6 +118,7 @@ def audit_docs() -> list[dict]:
             ("leaked_instruction", LEAKED_INSTRUCTION_PATTERNS),
             ("comparison_bragging", COMPARISON_PATTERNS),
             ("negative_claim", NEGATIVE_CLAIM_PATTERNS),
+            ("semantic_escalation", SEMANTIC_ESCALATION_PATTERNS),
         ):
             for pat in patterns:
                 for m in pat.finditer(text):

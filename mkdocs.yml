@@ -165,6 +165,7 @@ nav:
       - E-series integration: protocols/protocol_e_integration.md
       - RBS/HDP doctrine: doctrine/rbs_rbd_hdp.md
       - RBS/HDP inventory: doctrine/rbs_rbd_hdp_inventory.md
+      - Relative-quantity grammar: doctrine/relative_quantity_grammar.md
       - H1b H-to-X gain doctrine: doctrine/protocol_h_h1b_h_to_x_gain.md
       - H-state memory doctrine: doctrine/protocol_h_rbd_memory.md
       - W-series HDP parameter memory: doctrine/protocol_w_hdp_parameter_memory.md
@@ -186,6 +187,7 @@ nav:
       - Objectives: api/objectives.md
       - NeuronalTensor: api/neuronal_tensor.md
       - Validation: api/validation.md
+      - Visualization: api/vis.md
       - JDNA: api/jdna.md
 
   - Appendix:

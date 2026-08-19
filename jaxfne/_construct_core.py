@@ -372,6 +372,7 @@ def _simulate_hdp_metadata(
             "theta_distinct_from_synaptic_storage_W": True,
         },
         "method": "homeostasis_dependent_plasticity_master_state_controller",
+        "family": "hdp",  # migrated terminology: Hidden-state Dependent Plasticity
         "claim_status": "computational_control_proxy_not_biological_mechanism",
         "biological_learning_claim": False,
         "mechanism_claim_status": "not_claimed",

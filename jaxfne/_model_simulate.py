@@ -1048,6 +1048,15 @@ def simulate_batch(self, sim: Simulation, n_seeds: int = 4, seed: int | None = N
             # utility -- use simulate() for full diagnostics passthrough).
             from ._pipeline import continuation_noise_schedule
 
+            # Same guard as Model.simulate: the HDP kernel has no finite-delay
+            # path, so nonzero edge delays must be rejected loudly here too.
+            edges_batch: EdgeList = self.params["edge_list"]
+            if int(jnp.asarray(edges_batch.delay_steps).sum()) != 0:
+                raise ValueError(
+                    "enable_hdp does not support nonzero edge delay_steps in this "
+                    "release: the HDP kernel has no finite-delay path. Use the "
+                    "non-HDP finite-delay recurrent kernel for delayed runs."
+                )
             kernel_kwargs = _hdp_kernel_kwargs(_hdp)
             kernel_kwargs["record_weight_trace"] = False
             return simulate_edge_recurrent_izhikevich_hdp(
