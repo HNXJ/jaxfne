@@ -4,11 +4,12 @@
   "status": "RELEASE_READY",
   "write_once": true,
   "supersedes": "artifacts/release/v0_4_17_release_receipt.json (v1, candidate cadd279/6a99ee5/7abe2b8)",
-  "final_candidate": "4a34e30b74e9af5223a8eb0156796e315fc87759",
+  "final_candidate": "cd5738ad8214527962541f68568bb018bd8b3fb8",
+  "seal_commit": "f421aa2236eb805169b52ed7afaa6f0542425cbd",
   "tag": null,
   "branches": {
-    "dev": "4a34e30b74e9af5223a8eb0156796e315fc87759",
-    "main": "4a34e30b74e9af5223a8eb0156796e315fc87759"
+    "dev": "f421aa2236eb805169b52ed7afaa6f0542425cbd",
+    "main": "f421aa2236eb805169b52ed7afaa6f0542425cbd"
   },
   "reconciliation": {
     "method": "multi-model audit reconciliation (H1-H14) + A-L closure contract + hostile-review closure",
