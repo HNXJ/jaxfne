@@ -575,7 +575,7 @@ def _check_realized_constraints(genome: PseudoGenome, tensor: NeuronalTensor) ->
     for area in genome.areas:
         for layer in area.layers:
             realized = next(
-                (layer for a in tensor.areas if a.name == area.name for layer in a.layers if layer.name == layer.name),
+                (cand for a in tensor.areas if a.name == area.name for cand in a.layers if cand.name == layer.name),
                 None,
             )
             if realized is None:
