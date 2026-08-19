@@ -1,42 +1,52 @@
 {
-  "schema": "jaxfne.release_receipt.v1",
+  "schema": "jaxfne.release_receipt.v2",
   "version": "0.4.17",
   "status": "RELEASE_READY",
   "write_once": true,
-  "rc_commit": "cadd279bb1ddd2aa7b190c012d22887ea5d67cff",
-  "version_commit": "6a99ee560bb17b11e5b9afb48f80ac26d0ccc176",
+  "supersedes": "artifacts/release/v0_4_17_release_receipt.json (v1, candidate cadd279/6a99ee5/7abe2b8)",
+  "final_candidate": "cd5738ad8214527962541f68568bb018bd8b3fb8",
   "tag": null,
   "branches": {
-    "dev": "7abe2b85f391e1e71bce9ff427a109c1d2a70bcc",
-    "main": "7abe2b85f391e1e71bce9ff427a109c1d2a70bcc"
+    "dev": "cd5738ad8214527962541f68568bb018bd8b3fb8",
+    "main": "cd5738ad8214527962541f68568bb018bd8b3fb8"
   },
   "reconciliation": {
-    "method": "multi-model audit reconciliation (H1-H14)",
-    "findings": 30,
+    "method": "multi-model audit reconciliation (H1-H14) + A-L closure contract + hostile-review closure",
+    "multi_model_findings": 30,
     "true_defects": 19,
     "false_positives": 2,
     "stale": 1,
     "limitations": 9,
     "rejected": 1,
-    "independent_review": {
-      "model": "fresh-context independent reviewer (same harness family)",
-      "verdict_before": "NO-GO",
-      "major_findings": [
-        "F1 area_connections reference validation gap",
-        "F2 objectives.md AGSDR registry contradiction"
-      ],
-      "residual_commit": "cadd279bb1ddd2aa7b190c012d22887ea5d67cff"
-    }
+    "hostile_review_rounds": [
+      {
+        "candidate": "f8779f9",
+        "verdict": "NO-GO",
+        "findings": "F1-F7 (2 MAJOR + 5 MINOR) — all repaired"
+      },
+      {
+        "candidate": "cf043aa",
+        "verdict": "NO-GO",
+        "findings": "F1 continuation-delay guard, F2 pop-H domain, F3 null-clip, F4 redactor, F5 colab notebook, F6 receipt/branch drift — all repaired"
+      },
+      {
+        "candidate": "cd5738a",
+        "verdict": "GO",
+        "result": "12/12 focus areas PASS; 15 findings REJECTED (no defect reproduced); 2 MINOR non-blocking (recompile-guard intentional; working-tree drift environmental)"
+      }
+    ]
   },
   "release_gates": {
-    "broad": "3458 passed",
-    "slow": "36 passed",
+    "broad": "3492 passed",
+    "slow": "37 passed",
     "examples": "13/13 OK",
     "docs_language": "pass",
+    "vocabulary_audit": "pass",
     "mkdocs_strict": "clean",
-    "wheel_sdist": "built",
-    "clean_room_install": "workflows OK",
-    "compileall": "OK"
+    "wheel_sdist": "built (leak-free: no .opencode/.cursor/node_modules/receipts)",
+    "clean_room_install": "tensor + JDNA + AGSDR workflows OK",
+    "compileall": "OK",
+    "hostile_review": "GO (fresh independent reviewer, immutable cd5738a)"
   },
   "distribution": {
     "pypi": "NOT_UPLOADED (requires separate authorization)",
@@ -44,5 +54,5 @@
     "wheel": "jaxfne-0.4.17-py3-none-any.whl",
     "sdist": "jaxfne-0.4.17.tar.gz"
   },
-  "notes": "Version bump to 0.4.17 applied in the version_commit following rc_commit. No PyPI upload, no tag, no main promotion without separate authorization per the 0.4.17 reconciliation plan."
+  "notes": "Final candidate cd5738a passed the full A-L closure contract, the vocabulary-reduction audit, and a fresh independent hostile review (GO). No PyPI upload and no tag without separate authorization per the 0.4.17 reconciliation plan."
 }
