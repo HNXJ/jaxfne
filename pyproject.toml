@@ -96,6 +96,14 @@ select = ["E4", "E7", "E9", "F"]
 # jaxfne/paradigm.py and jaxfne/tutorial_utils.py's E402 hits are deliberate
 # deferred imports placed after the code that motivates deferring them
 # (matching the same staging rationale as jaxfne/__init__.py above).
+# jaxfne/optim/__init__.py's E402 hits are the same staged re-export pattern
+# as jaxfne/__init__.py: the AGSDR_SURFACE_CLASSIFICATION constant (the
+# file's single source of truth, referenced by tests) is placed first for
+# documentation-first readability, and the `from .<module> import ...` block
+# re-exports the sub-package surface below it. Moving the imports above the
+# constant would not change load order semantics but would split the
+# re-export block away from its classification doc; ignored with the same
+# rationale as the other aggregator files.
 #
 # 2026-07-20: jaxfne/_model.py's E402 hits are the same deferred-import
 # pattern -- Phase 2 defragmentation split _model.py's non-lifecycle Model
@@ -113,7 +121,7 @@ select = ["E4", "E7", "E9", "F"]
 "jaxfne/_signals.py" = ["F401", "E402", "F811"]
 "jaxfne/_model.py" = ["F401", "E402"]
 "jaxfne/fields/proxy.py" = ["F401"]
-"jaxfne/optim/__init__.py" = ["F401"]
+"jaxfne/optim/__init__.py" = ["F401", "E402"]
 "jaxfne/vis/__init__.py" = ["F401"]
 "jaxfne/emitters.py" = ["F401", "E402"]
 "jaxfne/paradigm.py" = ["E402"]

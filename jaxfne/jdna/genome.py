@@ -18,7 +18,6 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Mapping, Optional, Sequence
@@ -35,7 +34,6 @@ from ..neuronal_tensor import (
     NeuronalTensor,
     NeuronType,
     Pose3D,
-    RuntimeConfiguration,
 )
 
 PSEUDOGENOME_SCHEMA_VERSION = "pseudogenome_v1"
@@ -243,7 +241,7 @@ def pseudogenome_from_dict(raw: Mapping[str, Any]) -> PseudoGenome:
         areas.append(
             AreaGenome(
                 name=str(area_raw["name"]),
-                layers=tuple(_parse_layer(l) for l in area_raw.get("layers", [])),
+                layers=tuple(_parse_layer(layer) for layer in area_raw.get("layers", [])),
                 inter_connections=tuple(_parse_rule(c) for c in area_raw.get("inter_connections", [])),
                 pose=_canonical_pose(dict(area_raw.get("pose", {}))),
             )
@@ -385,7 +383,7 @@ def validate_genome(genome: PseudoGenome) -> None:
                     f"(sum lo={frac_lower_sum:.4f}, sum hi={frac_upper_sum:.4f}); "
                     f"a feasible probability vector requires sum(lo) <= 1 <= sum(hi)"
                 )
-        layer_map = {l.name: l for l in area.layers}
+        layer_map = {layer.name: layer for layer in area.layers}
         for rule in area.inter_connections:
             for role in ("source_layer", "target_layer"):
                 if getattr(rule, role) not in layer_map:
@@ -422,7 +420,7 @@ def validate_genome(genome: PseudoGenome) -> None:
         ):
             aname = str(raw.get(area_role, ""))
             lname = str(raw.get(layer_role, ""))
-            layer_map = {l.name: l for l in next(
+            layer_map = {layer.name: layer for layer in next(
                 a for a in genome.areas if a.name == aname
             ).layers}
             if lname not in layer_map:
@@ -438,8 +436,8 @@ def validate_genome(genome: PseudoGenome) -> None:
             lname = str(raw.get(layer_role, ""))
             nt = str(raw.get(nt_role, ""))
             layer = next(
-                l for a in genome.areas if a.name == aname
-                for l in a.layers if l.name == lname
+                layer for a in genome.areas if a.name == aname
+                for layer in a.layers if layer.name == lname
             )
             if nt not in layer.cell_type_fractions:
                 raise ValueError(
@@ -577,7 +575,7 @@ def _check_realized_constraints(genome: PseudoGenome, tensor: NeuronalTensor) ->
     for area in genome.areas:
         for layer in area.layers:
             realized = next(
-                (l for a in tensor.areas if a.name == area.name for l in a.layers if l.name == layer.name),
+                (layer for a in tensor.areas if a.name == area.name for layer in a.layers if layer.name == layer.name),
                 None,
             )
             if realized is None:
