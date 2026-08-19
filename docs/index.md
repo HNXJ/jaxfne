@@ -9,7 +9,7 @@ circuits, source operators, field proxies, probes, objectives, and evidence.
 
 `CircuitSpec` is a **conceptual category** (`Configuration | NeuronalTensor`),
 not a concrete production class; the experimental `experimental_hpc.CircuitSpec`
-is an unrelated contract type not accepted by `construct`.
+is an unrelated type not accepted by `construct`.
 
 [Jaxley](https://jaxley.readthedocs.io) provides compartmental biophysical detail;
 jaxfne provides population/field-scale circuits and proxy readouts. Jaxley models

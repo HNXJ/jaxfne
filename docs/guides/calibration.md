@@ -7,7 +7,7 @@ without claiming shipped outputs are already physically calibrated.
 
 ## Calibration-ready design
 
-jaxfne is designed to support calibration workflows. The framework:
+jaxfne is designed to support calibration workflows. The package:
 
 - **Preserves source identity** — track source origin (emitter type, cell type)
 - **Declares assumptions** — metadata fields state conductivity, solver, geometry models

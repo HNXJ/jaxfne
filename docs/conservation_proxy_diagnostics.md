@@ -179,7 +179,7 @@ Elliptic (Poisson) and volumetric (Maxwell) field solvers, Poynting-flux and str
 
 ## See Also
 
-- [Computation Basis](computation_basis.md) — Field regime gating doctrine
+- [Computation Basis](computation_basis.md) — Field regime gating rules
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Source/field equations
 - [Source/Field Equations](source_field_equations.md) — Source modes and bookkeeping
 - [Probe Operators](guides/probe_operators.md) — Readout operator statement boundaries

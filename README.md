@@ -22,7 +22,7 @@ and evidence receipts.
 not a concrete public production class — `construct` accepts either a
 `Configuration` (original path) or a `NeuronalTensor` with a
 `RuntimeConfiguration` (tensor-first path). It is unrelated to the
-experimental `jaxfne.experimental_hpc.CircuitSpec` contract type, which is
+experimental `jaxfne.experimental_hpc.CircuitSpec` type, which is
 not accepted by production `construct`.
 
 **Adaptation** (optional HDP family): finite-dimensional hidden biophysical state

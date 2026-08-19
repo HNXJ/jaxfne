@@ -32,7 +32,7 @@ is time-by-neuron, normalization is per-neuron `source_scale`, and the
 representation is `relative` until an explicit calibration transform is
 declared.
 
-The canonical source metadata records this contract and its helper-backed
+The canonical source metadata records this rule and its helper-backed
 decomposition test. Specialized and experimental source constructors
 declare their own `source_mode_class` and input representation.
 
@@ -81,7 +81,7 @@ differs, and only on the homeostatic E/I path.
 
 ## Source-mode ownership
 
-| Family | Class | Contract |
+| Family | Class | Source contract |
 |---|---|---|
 | Dense, edge, homeostasis-Izhikevich, HDP-Izhikevich | canonical | canonical native-current plus spike-impulse source |
 | Receptor-exponential | specialized | canonical source composition with receptor-indexed edge dynamics |

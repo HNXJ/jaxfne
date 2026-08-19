@@ -27,7 +27,7 @@ single per-stage contract table, gathered from where each fact is actually decla
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — the formal
   equation, term glossary, and run boundary for each stage.
 - [Computation Basis](computation_basis.md) — canonical tensor shapes and the
-  `field_regime` gating doctrine.
+  `field_regime` gating rule.
 - [Source/Field Equations](source_field_equations.md) — source bookkeeping and the
   forbidden double-counting pattern.
 - [Tensor-Field Workflows](guides/tensor_field_workflows.md) — the probe-operator
@@ -91,6 +91,6 @@ and the "Full electrodynamic solver" row in [Limitations and future plans](limit
 - [Tensor Operator Registry](api/tensor_operators.md) — the live `operator_status()` registry and symbol mapping
 - [Tensor-Network Ancestry](tensor_network_ancestry.md) — basis-transform cascade and historical context
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — per-equation glossary and run boundary
-- [Computation Basis](computation_basis.md) — canonical tensor shapes and the field-regime gating doctrine
+- [Computation Basis](computation_basis.md) — canonical tensor shapes and the field-regime gating rule
 - [Tensor Electromagnetics Scope](tensor_electromagnetics_scope.md) — reserved field-solver stages
 - [Limitations and future plans](limitations_and_future_plans.md) — scope boundaries and reserved regimes

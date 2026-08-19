@@ -13,7 +13,7 @@ The 4 core jaxfne example scripts generate self-contained evidence bundles. Each
 2. **Static figures** — deterministic PNG visualizations generated from simulation data
 3. **Hashed artifacts** — SHA256 integrity verification for all outputs
 
-This contract ensures tutorials are reproducible, verifiable, and scientifically honest about their scope and scope notes.
+These rules ensure tutorials are reproducible, verifiable, and scientifically honest about their scope and scope notes.
 
 **Key principle:** All outputs are **computational evidence**, not biological proof. No empirical validation. No mechanism statements. Status checks are frozen: `amplitude_status=False`.
 
@@ -198,7 +198,7 @@ The validation script enforces strict gates on all tutorial outputs. **Any gate 
 ### Hard Gates
 
 1. **Directory exists:** Output directory must exist
-2. **Contract files present:** All 5 JSON files must exist
+2. **Result files present:** All 5 JSON files must exist
 3. **JSON structure valid:** Each JSON must parse without errors
 4. **JSON is safe:** No NaN/Infinity values allowed
 5. **Figures directory exists:** `figures/` subdirectory must exist

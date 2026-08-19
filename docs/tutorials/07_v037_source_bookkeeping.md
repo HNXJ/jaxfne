@@ -17,7 +17,7 @@ The core concepts:
 3. **Probe Readout (Configurable):** Multiple readout modes (`source`, `LFP-proxy`, `CSD-proxy`) extract different field perspectives
 4. **Scope Clarity (Metadata):** Manifest keys (`amplitude_status=False`) prevent misinterpretation
 
-This is **not a biophysical validation tutorial**. It is a **computational scaffold** for understanding how neural sources map to observable fields in the jaxfne framework.
+This is **not a biophysical validation tutorial**. It is a **computational scaffold** for understanding how neural sources map to observable fields in the jaxfne model.
 
 ---
 
@@ -79,7 +79,7 @@ $$R_k(t) = Q_k \cdot Y(t)$$
 
 ## Configuration API & Source Declaration
 
-### The Implicit Contract
+### The Implicit Rule
 
 Sources are **not explicitly declared**. Instead, they are **inferred** from two decisions:
 
@@ -108,7 +108,7 @@ signals = jtfne.simulate(model, duration_ms=1000, dt_ms=0.1, seed=42)
 
 ---
 
-## Signals API Contract
+## Signals API Rules
 
 After `jtfne.simulate()`, the returned `signals` object has:
 

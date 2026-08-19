@@ -16,7 +16,7 @@ extending or validating a future PDE path.
 This document specifies the mathematical contract for the elliptic field regime in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.
 
 **Status:** Specification of the admissibility conditions. The elliptic field regime is reserved; see
-[../computation_basis.md](../computation_basis.md) for the `solved_poisson` regime gating doctrine.
+[../computation_basis.md](../computation_basis.md) for the `solved_poisson` regime gating rule.
 
 ⚠️ **Critical invariant:**
 - **Physical amplitude claims are disallowed**, even if admissibility gates pass on synthetic data.

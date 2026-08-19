@@ -1,13 +1,13 @@
 # TFNE containment and composition architecture
 
-**Status:** FROZEN (doctrine; implementation follows incrementally)  
+**Status:** FROZEN (rule; implementation follows incrementally)  
 **Baseline:** `dev` @ `6003958` (H1a/H1b)  
 **Authority:** complements `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md`
 
 ## 1. Central claim
 
 \[
-\boxed{\text{TFNE is a containment and composition framework for neural biophysics.}}
+\boxed{\text{TFNE is a containment and composition model for neural biophysics.}}
 \]
 
 TFNE does **not** compete with Hodgkin–Huxley, Izhikevich, Jaxley, STDP, BCM,

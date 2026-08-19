@@ -2,7 +2,7 @@
 
 ## Definition
 
-**JDNA** (JAX Developmental Neural Architecture) is the theory and framework
+**JDNA** (JAX Developmental Neural Architecture) is the theory and model
 governing *pseudo-genomic generation*: the production of neuronal phenotypes
 from generative specifications.
 
@@ -87,12 +87,28 @@ base fractions with tolerance bands, geometry, and typed connection schemes.
 Development realizes a phenotype within the declared constraints. The genome
 never stores positions, edges, or population arrays.
 
-### Developmental versus runtime state
+ ### Developmental versus runtime state
 
 Do not assume \(H_D = H_R\). Developmental state lives in
 \(\mathbb R^{d_D}\); runtime RBS lives in \(\mathbb R^{d_R}\); in general
 \(d_D \ne d_R\). No developmental-to-runtime state projection exists in 0.4.17
 unless an implementation requires and scientifically defines one.
+
+### Build-time scope (0.4.17)
+
+v0.4.17 pseudogenomes are **build-time generative specifications**:
+
+\[
+\boxed{G,\,K_D \xrightarrow{\mathrm{develop}} \mathcal N}
+\]
+
+`develop` runs at build time and returns a terminal `NeuronalTensor`
+structure, which is then passed to ordinary `construct`/`simulate`. It does
+**not** mutate network topology during the simulation clock. In particular,
+**activity-dependent structural growth is not implemented in 0.4.17** — no
+runtime H-triggered layer insertion (the proposed
+\(\mathcal N(t) \to \mathcal N(t^+)\) developmental-growth experiment) is
+present. That remains future work after the frozen-use period.
 
 ### PRNG separation
 
@@ -125,7 +141,7 @@ domains:
 | Concept | Relationship |
 |---|---|
 | PseudoGenome | Generative specification (rules + constraints). |
-| JDNA | Theory/framework governing pseudo-genomic generation. |
+| JDNA | Theory/model governing pseudo-genomic generation. |
 | develop | `(G, K_D) -> NeuronalTensor`. |
 | NeuronalTensor | Terminal structural phenotype; ordinary pipeline input. |
 | construct | Ordinary `(NeuronalTensor, RuntimeConfiguration) -> Model`. |

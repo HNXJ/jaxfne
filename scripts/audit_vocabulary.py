@@ -42,7 +42,20 @@ SOURCES = (
     "tests/**/*.py",
 )
 
-# Exempt: dated snapshots / archived / generated material not live public text.
+# Docs-only sources used by --check: release-facing prose. Code identifiers,
+# file names, and docstrings are excluded from the hard gate because they must
+# not be renamed before freeze.
+DOC_SOURCES = (
+    "README.md",
+    "CITATION.cff",
+    "docs/**/*.md",
+)
+
+# Exempt: dated snapshots / archived / frozen evidence / generated material not
+# live release-facing prose. docs/publication/, docs/etudes/, docs/doctrine/
+# protocol_*.md, and docs/protocols/ are frozen evidence surfaces; docs/releases/
+# are dated snapshots; fullroadmap and inventory records are dated planning
+# documents.
 EXEMPT_PREFIXES = (
     "docs/releases/",
     "docs/v047_refactor_audit.md",
@@ -50,6 +63,13 @@ EXEMPT_PREFIXES = (
     "docs/changelog.md",
     "docs/_generated/",
     "docs/evidence_artifacts/",
+    "docs/publication/",
+    "docs/etudes/",
+    "docs/doctrine/protocol_",
+    "docs/protocols/",
+    "docs/fullroadmap.md",
+    "docs/doctrine/rbs_rbd_hdp_inventory.md",
+    "docs/HDP_REPORT.md",
 )
 
 # Protected scientific/technical terms that must never be merged away. These
@@ -68,8 +88,10 @@ PROTECTED_TERMS = (
     "evidence", "test", "result", "validation", "verification",
     # provenance / schema
     "provenance", "schema",
-    # scientific procedure (frozen experiments)
-    "protocol",
+    # NOTE: "protocol" is intentionally NOT protected here. It is allowed only
+    # where it literally names a fixed scientific experimental protocol or an
+    # existing identifier/file (see ALLOW_PROTOCOL_PREFIXES). Ordinary prose
+    # uses "rule"/"condition"/"steps" instead.
 )
 
 # Synonym clusters to examine for redundant meta-language. Words in the same
@@ -96,8 +118,6 @@ CLUSTERS = {
 PREFERRED_WORDS = {
     # keep scientific distinctions; do not collapse
     "invariant": "invariant",  # mathematical
-    "protocol": "protocol",    # frozen scientific procedure
-    "doctrine": "doctrine",    # mathematical/architectural statement (file type)
     "schema": "schema",        # JSON/data schema
     "mechanism": "mechanism",  # synaptic mechanism
     "provenance": "provenance",# metadata identity
@@ -113,7 +133,19 @@ PREFERRED_WORDS = {
     "capability": "function",
     "functionality": "function",
     "feature": "function",
+    # meta-language reduction per the final-closure goal
+    "contract": "rule",
+    "doctrine": "rule",
+    "framework": "model",
+    "protocol": "steps",  # unless a fixed experiment name (allowlisted)
 }
+
+# Fixed scientific experiment / file / identifier names that legitimately keep
+# "protocol". Ordinary prose "protocol" uses "steps"/"rule".
+ALLOW_PROTOCOL_PREFIXES = (
+    "protocol_", "protocols/", "docs/protocols/", "Protocol C", "Protocol D",
+    "Protocol E", "Protocol H", "Protocol W", "Protocol B",
+)
 
 # Words to flag in --check mode (discouraged meta-language that has a preferred
 # replacement, unless protected). Only pure-meta, non-scientific words with no
@@ -125,13 +157,75 @@ PREFERRED_WORDS = {
 # ontology", "tutorial taxonomy"). The audit still REPORTS their counts for
 # human review (see --clusters and the JSON report).
 DISCOURAGED = (
-    "functionality",
+    "functionality", "contract", "doctrine", "framework", "protocol",
 )
 
 # Exact phrases that legitimately use a discouraged word and must not be
 # flagged (fixed technical phrases, not generalizable meta-language).
 ALLOW_PHRASES = (
     "must not delete functionality",
+    # the frozen release artifact and its file name
+    "public surface contract",
+    "public api contract",
+    "public export contract",
+    "frozen public export contract",
+    # operator_doctrine.md defines the seven-stage "contract table" term
+    "per-stage contract table",
+    "per-operator domain/codomain contract table",
+    "per-stage contract",
+    "per-operator contract",
+    "contract table",
+    # established package technical terms (data-interface conventions)
+    "metadata contract",
+    "source contract",
+    "trace contract",
+    "shape contract",
+    "solver contract",
+    "probe operator contract",
+    "probe contract",
+    "output contract",
+    "status contract",
+    "recurrent continuation contract",
+    "continuation contract",
+    "paradigm contract",
+    "computation contract",
+    "mathematical contract",
+    "reduction contract",
+    "analytic contract",
+    "discrete euler contract",
+    "schema/contract",
+    "contract description",
+    "contract objects",
+    "contract json files",
+    "shadow contract",
+    "scientific contract",
+    # public-surface artifact shorthand
+    "public contract",
+    "compatibility contract",
+    "0.4.13 contract",
+    "0.2.5 contract",
+    # source-schema stable data contract
+    "stable contract",
+    # package API terms (Izhikevich paradigm contract, JAX pytree protocol)
+    "paradigm contract",
+    "paradigm` contract",
+    "vertical-slice` contract",
+    "vertical-slice** contract",
+    "pytree protocol",
+    # baseline-drive reference fixed iteration procedure
+    "iteration protocol",
+    # protocol-ID table column headers (cells name fixed experiments)
+    "| test | claim | protocol |",
+    # operator_doctrine.md scope line and its own title
+    "per-stage operator contract",
+    "tfne operator doctrine",
+    # tutorial output-link description
+    "8-operator contract",
+    # heading category label in references
+    "framework-adjacent",
+    # tutorial headings/terminology that name the standard working model
+    "mathematical framework",
+    "standard framework terminology",
 )
 
 
@@ -143,11 +237,19 @@ def iter_source_files() -> list[Path]:
     return sorted(out)
 
 
+def iter_doc_files() -> list[Path]:
+    out: set[Path] = set()
+    for glob in DOC_SOURCES:
+        for p in ROOT.glob(glob):
+            out.add(p)
+    return sorted(out)
+
+
 def is_exempt(rel: str) -> bool:
     return any(rel.startswith(prefix) for prefix in EXEMPT_PREFIXES)
 
 
-def scan() -> dict:
+def scan(*, docs_only: bool = False) -> dict:
     total_words = Counter()
     cluster_hits = Counter()
     discouraged_hits = Counter()
@@ -161,10 +263,11 @@ def scan() -> dict:
         r"\b(" + "|".join(DISCOURAGED) + r")\b", re.I
     )
     allow_pat = re.compile(
-        r"\b(" + "|".join(re.escape(p) for p in ALLOW_PHRASES) + r")\b", re.I
+        "|".join(re.escape(p) for p in ALLOW_PHRASES), re.I
     )
 
-    for p in iter_source_files():
+    files = iter_doc_files() if docs_only else iter_source_files()
+    for p in files:
         rel = p.relative_to(ROOT).as_posix()
         if is_exempt(rel):
             continue
@@ -180,14 +283,37 @@ def scan() -> dict:
             w = m.group(1).lower()
             cluster_hits[w] += 1
             occurrence.setdefault(w, []).append((rel, text.count("\n", 0, m.start()) + 1))
+        # mask spans that are identifiers, not prose (docs-only): markdown
+        # links `[text](dest)`, inline code `` `...` ``, and .md path tokens
+        masked_spans: list[tuple[int, int]] = []
+        if docs_only:
+            masked_spans += [(mm.start(), mm.end()) for mm in re.finditer(r"``[^`]*``", text)]
+            masked_spans += [(mm.start(), mm.end()) for mm in re.finditer(r"`[^`]*`", text)]
+            masked_spans += [(mm.start(), mm.end()) for mm in re.finditer(r"\[[^\]]*\]\([^)]*\)", text)]
+            masked_spans += [
+                (mm.start(), mm.end())
+                for mm in re.finditer(r"[A-Za-z0-9_.\-/]*\.[A-Za-z0-9_.\-/]*\.md\b", text, re.I)
+            ]
         for m in disc_pat.finditer(text):
             w = m.group(1).lower()
-            # skip discouraged words that occur inside an allowed fixed phrase
+            # skip discouraged words inside an allowed fixed phrase
             in_allow = any(
                 ap.start() <= m.start() and ap.end() >= m.end()
                 for ap in allow_pat.finditer(text)
             )
-            if not in_allow:
+            # skip masked identifier spans (links, code, .md path tokens)
+            in_link_or_code = any(
+                s <= m.start() and e >= m.end() for s, e in masked_spans
+            )
+            # "protocol" is allowed when it names a fixed scientific experiment
+            # or an existing identifier/file (protocol_C, Protocol D, ...)
+            if w == "protocol":
+                line_start = text.rfind("\n", 0, m.start()) + 1
+                line_end = text.find("\n", m.end())
+                line = text[line_start: line_end if line_end != -1 else len(text)]
+                if any(pre.lower() in line.lower() for pre in ALLOW_PROTOCOL_PREFIXES):
+                    continue
+            if not in_allow and not in_link_or_code:
                 discouraged_hits[w] += 1
 
     protected = set(PROTECTED_TERMS)
@@ -213,7 +339,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({k: v for k, v in CLUSTERS.items()}, indent=2))
         return 0
 
-    data = scan()
+    data = scan(docs_only=args.check)
     if args.check:
         bad = data["discouraged_hits"]
         if bad:

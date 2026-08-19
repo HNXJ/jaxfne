@@ -24,7 +24,7 @@ This is a **computational scaffold**, not a biophysically validated model.
 
 ---
 
-## Mathematical Framework
+## Mathematical Model
 
 ### Source Bookkeeping
 
@@ -120,7 +120,7 @@ csd = readouts['CSD-proxy']      # [T, C]
 
 ---
 
-## Signals API Contract
+## Signals API Rules
 
 After `jtfne.simulate()`, the returned `signals` object has:
 

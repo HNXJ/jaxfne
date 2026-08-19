@@ -170,7 +170,7 @@ equivalence from the Izhikevich `paradigm` contract.
 
 Methods that require the Izhikevich emitter raise a clear
 `NotImplementedError` on other families (never an `AttributeError`). This is
-the intended one-month-workbench boundary:
+the intended boundary. Supported methods by emitter family:
 
 | Method | Izhikevich family | `homeostatic_ei` family |
 |---|---|---|

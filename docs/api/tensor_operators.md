@@ -52,7 +52,7 @@ Three more are name-evident — the English word in the symbol names the stage:
 | `O_optimizer` | Optimizer |
 | `C_constraints` | Constraints (cross-cutting; not a pipeline stage) |
 
-Two symbols have no confirmed stage mapping in any docstring, contract, or
+Two symbols have no confirmed stage mapping in any docstring, rule, or
 existing documentation page as of this writing — they are listed here rather
 than force-mapped:
 
@@ -142,7 +142,7 @@ and [Validation](validation.md):
 `tests/test_operator_stage_coverage_v04.py` already exercises the full chain —
 config build, construct+simulate, source tensor, field projection, probe
 readout, objective evaluation, optimizer tuning, manifest/receipt export,
-validation report, and schema migration — checking finiteness and contract
+validation report, and schema migration — checking finiteness and rule
 fields at every stage. That test is the composability proof for this registry;
 this page does not duplicate it.
 

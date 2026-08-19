@@ -123,7 +123,7 @@ The tutorial stack is:
 4. **04_v1_column** — Laminar V1 column (six layers), depth-specific readouts
 5. **05_v1_pfc_dual_column** — Two-column cross-area model, trial-chained HDP carryover
 
-Each notebook teaches a progressively more complex workflow using the same source-to-field/readout framework.
+Each notebook teaches a progressively more complex workflow using the same source-to-field/readout model.
 
 ## Next Steps
 

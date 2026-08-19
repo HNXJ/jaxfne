@@ -228,6 +228,6 @@ why `Configuration` is the deepest, most important surface in the package.
 - [Objective Grammar](objective_grammar.md) — the user-facing run sequence (construct/simulate/probe/tune/validate/export) this builder feeds into.
 - [NeuronalTensor API reference](../api/neuronal_tensor.md) · [HDP](hdp.md) — the second, tensor-first on-ramp into `construct()`.
 - [Tensor-Field Workflows](tensor_field_workflows.md) — the operator chain in depth.
-- [TFNE Operator Doctrine](../operator_doctrine.md) — the per-stage contract table for this same operator chain.
+- [TFNE Operator Doctrine](../operator_doctrine.md) — the per-stage rule table for this same operator chain.
 - [Jaxley Interoperability](jaxley_interop.md) — real channels/morphology as emitters.
 - [Bridges API](../api/bridges.md) · [Fields API](../api/fields.md) · [Objectives API](../api/objectives.md)

@@ -1,4 +1,4 @@
-# Tensor-Network Ancestry and Basis-Transform Doctrine
+# Tensor-Network Ancestry and Basis-Transform Rule
 
 **Status:** conceptual documentation  
 **Version:** current  
@@ -11,7 +11,7 @@
 
 This document situates TFNE within two distinct meanings of **tensor network**:
 
-1. **Pellionisz/Llinás (1980s–2000s):** Tensor network as a geometric framework for sensorimotor transforms and cerebellar learning in neuroscience
+1. **Pellionisz/Llinás (1980s–2000s):** Tensor network as a geometric model for sensorimotor transforms and cerebellar learning in neuroscience
 2. **Modern ML/Physics (2010s–present):** Tensor network as a factorized state compression and contraction algorithm (tensor trains, MPS, PEPS, etc.)
 
 jaxfne adopts the **basis-transform architecture** from the first tradition (multi-scale coordinate projections: emitter basis → source basis → field basis → readout basis) while remaining distinct from both traditions' full scope.
@@ -69,7 +69,7 @@ TFNE adopts the **coordinate-transformation philosophy** (Pellionisz/Llinás) bu
 - Cerebellar learning dynamics
 - Full sensorimotor circuit models
 
-### TFNE Basis Contract
+### TFNE Basis Rule
 
 TFNE organizes computation as **cascaded basis transforms**:
 
@@ -150,7 +150,7 @@ catalogued in [Limitations and future plans](limitations_and_future_plans.md).
 
 ---
 
-## Part 5: Relationship to BasisSpec Contract
+## Part 5: Relationship to BasisSpec Rule
 
 jaxfne's `BasisSpec` (introduced in v0.2.25) formalizes the basis-transform idea:
 
@@ -170,7 +170,7 @@ basis = BasisSpec(
 # implementation in the current package (False for reserved/future regimes).
 ```
 
-**Doctrine:** BasisSpec makes the tensor-coordinate structure explicit and testable. It is the operational instantiation of "basis transform" as a software contract.
+**Basis rule:** BasisSpec makes the tensor-coordinate structure explicit and testable. It is the operational instantiation of "basis transform" as a software rule.
 
 ---
 
@@ -196,7 +196,7 @@ A **reserved cerebellar/sensorimotor tutorial** could use jaxfne's basis-transfo
 This path is **deferred and not promised.** If pursued, it would:
 - Require separate validation evidence
 - Use separate status checks (distinct from computational_scaffold)
-- Be a distinct research module, not a core jaxfne feature
+- Be a distinct research module, not a core jaxfne function
 
 ---
 
@@ -211,10 +211,10 @@ This path is **deferred and not promised.** If pursued, it would:
 
 ---
 
-## Summary: Why Basis-Transform Doctrine Matters
+## Summary: Why Basis-Transform Rule Matters
 
 1. **Architecture:** Basis transforms make TFNE's modularity explicit. Users understand why sources can exist without fields.
-2. **Extensibility:** New bases (ionic channels, spectral, population-level) fit the same framework.
+2. **Extensibility:** New bases (ionic channels, spectral, population-level) fit the same model.
 3. **Statement clarity:** Each basis transform has its own status status and status check.
 4. **Teaching:** The basis-coordinate idea connects TFNE to classical computational neuroscience (Pellionisz, Koch, Arleo) while remaining distinct.
 5. **Humility:** By referencing Pellionisz/Llinás and NOT stating their results, we honor the intellectual history while respecting scope boundaries.
@@ -223,10 +223,10 @@ This path is **deferred and not promised.** If pursued, it would:
 
 ## See Also
 
-- **[Computation Basis](computation_basis.md)** — Collapsible tensor-field scaffold and dimension contracts
+- **[Computation Basis](computation_basis.md)** — Collapsible tensor-field scaffold and dimension rules
 - **[Mathematical Glossary Flow](mathematical_glossary_flow.md)** — Seven core TFNE equations with statement boundaries
 - **[Source/Field Equations](source_field_equations.md)** — Source bookkeeping and field proxy details
-- **[TFNE Operator Doctrine](operator_doctrine.md)** — Per-stage contract table built on this basis-transform cascade
+- **[TFNE Operator Doctrine](operator_doctrine.md)** — Per-stage rule table built on this basis-transform cascade
 
 ---
 

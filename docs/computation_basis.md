@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This document describes the computation basis of TFNE (Tensor-Field Neural Equations): a principled framework for composing neural emitters, source projections, field approximations, and readout operators into reproducible, extensible workflows.
+This document describes the computation basis of TFNE (Tensor-Field Neural Equations): a principled model for composing neural emitters, source projections, field approximations, and readout operators into reproducible, extensible workflows.
 
-The key principle: **TFNE is collapsible.** Every operator (emitter, source, field, probe) has a well-defined input/output shape contract. When not computed or not stated, operators can be "collapsed" to identity or proxy equivalents without breaking the pipeline. This enables safe modularity and reduces the barrier to adding new domains (whole-brain, ephaptic, ionic, etc.).
+The key principle: **TFNE is collapsible.** Every operator (emitter, source, field, probe) has a well-defined input/output shape rule. When not computed or not stated, operators can be "collapsed" to identity or proxy equivalents without breaking the pipeline. This enables safe modularity and reduces the barrier to adding new domains (whole-brain, ephaptic, ionic, etc.).
 
-This is a **doctrine document**, not an implementation guide. It complements [Mathematical Glossary Flow](mathematical_glossary_flow.md) (equations) and [Source/Field Equations](source_field_equations.md) (implementation detail).
+This is a **rule document**, not an implementation guide. It complements [Mathematical Glossary Flow](mathematical_glossary_flow.md) (equations) and [Source/Field Equations](source_field_equations.md) (implementation detail).
 
 ---
 
@@ -111,7 +111,7 @@ When adding a new dimension:
 ## Basis Changes and Canonical Representations
 
 TFNE supports multiple **basis choices** for the same underlying computation. Each basis is valid if:
-1. It preserves the input/output shape contract
+1. It preserves the input/output shape rule
 2. It is documented in Manifest
 3. It is tested for numerical equivalence
 
@@ -133,7 +133,7 @@ $$\hat{q}_f(t) = \mathcal{F}[\sum_n \phi_f(n) \cdot I_n(t)]$$
 - $\hat{q}_f$: spectral component at frequency $f$
 - Implementation: `jaxfne.fields.project_laminar_sources(..., basis="spectral")`
 
-**Contract:** All bases must have output shape $[T, X]$ for some $X$. Basis choice is documented in Manifest.
+**Rule:** All bases must have output shape $[T, X]$ for some $X$. Basis choice is documented in Manifest.
 
 ---
 
@@ -161,9 +161,9 @@ proxy operators rather than a volume-conductor solve, consistent with
 (conservation diagnostics, elliptic solver, calibrated physical field) are catalogued in
 [Limitations and future plans](limitations_and_future_plans.md).
 
-## Extensibility Doctrine: Adding New Domains
+## Extensibility Rule: Adding New Domains
 
-When extending TFNE to a new domain (whole-brain, multi-area, ephaptic coupling, etc.), follow this framework:
+When extending TFNE to a new domain (whole-brain, multi-area, ephaptic coupling, etc.), follow this model:
 
 ### Step 1: Define Input/Output Shapes
 
@@ -235,7 +235,7 @@ readouts = model_full.compute_readout(signals_full, [
 
 ## Numerical Stability and Determinism
 
-### PRNG Contract
+### PRNG Rule
 
 TFNE uses JAX's deterministic PRNG. All simulations with the same seed are reproducible:
 
@@ -272,17 +272,17 @@ for seed in range(10):
 
 ---
 
-## Doctrine Summary
+## Rule Summary
 
 | Principle | Rule | Example |
 |-----------|------|---------|
 | **Canonical shapes** | Every operator has explicit I/O shape [T, X] or similar | Emitter: [T,N]; Source: [T,X]; Field: [T,X] |
-| **Collapse safety** | Operators can be None or proxy without breaking contract | Field=None, field_solver=proxy are both valid |
+| **Collapse safety** | Operators can be None or proxy without breaking the rule | Field=None, field_solver=proxy are both valid |
 | **No fake dimensions** | Never add dimensions not grounded in the problem | Batch, stochasticity, features must be explicit |
 | **Basis choice** | Multiple bases allowed if input/output shapes preserved | Spatial/layer/spectral projection bases equivalent |
 | **Reserved regimes** | Elliptic/electrodynamic solver and conductivity modes are catalogued in [Limitations and future plans](limitations_and_future_plans.md) | reserved |
 | **Extensibility** | New domains follow: shapes → dimensions → basis → statements → test | Whole-brain extension example above |
-| **Determinism** | Same seed → same trajectory (PRNG contract) | `seed=42` reproducible across runs |
+| **Determinism** | Same seed → same trajectory (PRNG rule) | `seed=42` reproducible across runs |
 | **Finiteness** | All outputs are JSON-safe (no NaN/Inf before serialization) | `json.dumps(manifest, allow_nan=False)` enforced |
 
 ---
@@ -291,14 +291,14 @@ for seed in range(10):
 
 ## Implemented
 
-The following computation-basis contract objects are implemented in jaxfne:
+The following computation-basis objects are implemented in jaxfne:
 
 | Object / Function | Location | Purpose |
 |-------------------|----------|---------|
 | `AxisSpec` | `jaxfne.core` | Typed descriptor for one tensor axis (name, status, size, units) |
 | `BasisSpec` | `jaxfne.core` | Typed descriptor for the full computation basis (space, time, field regime, source mode, probe basis) |
 | `default_basis_spec()` | `jaxfne.core` | Returns the default BasisSpec matching the current laminar-proxy scaffold |
-| `validate_basis_spec(spec)` | `jaxfne.validation` | Validates a BasisSpec or dict against computation-basis contracts |
+| `validate_basis_spec(spec)` | `jaxfne.validation` | Validates a BasisSpec or dict against computation-basis rules |
 | `manifest["basis"]` | `jaxfne.core.Model.manifest()` | Nested basis metadata block in every run manifest (populated by `jaxfne.core._default_basis_dict()`) |
 
 > **Note (re-verified 2026-07-03):** `basis_statement_gate()` does not exist —
@@ -322,7 +322,7 @@ The following computation-basis contract objects are implemented in jaxfne:
 | `reserved_admittive` | Declared reserved (v0.3.x) | **False** | **False** |
 | `reserved_maxwell` | Declared reserved (v0.3.x) | **False** | **False** |
 
-`solved_poisson`, `reserved_maxwell`, and `reserved_admittive` are **reserved markers** — they are named reserved-doctrine markers only. `implemented=False`, `status_enabled=False` are structurally enforced and cannot be escalated. An elliptic-equation field solve for this regime requires separate approval before any implementation begins.
+`solved_poisson`, `reserved_maxwell`, and `reserved_admittive` are **reserved markers** — they are named reserved markers only. `implemented=False`, `status_enabled=False` are structurally enforced and cannot be escalated. An elliptic-equation field solve for this regime requires separate approval before any implementation begins.
 
 ---
 
@@ -330,8 +330,8 @@ The following computation-basis contract objects are implemented in jaxfne:
 
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Core TFNE equations
 - [Source/Field Equations](source_field_equations.md) — Source modes, forbidden patterns, field metadata
-- [Tensor-Network Ancestry](tensor_network_ancestry.md) — conceptual context: basis-transform doctrine and historical parallels
+- [Tensor-Network Ancestry](tensor_network_ancestry.md) — conceptual context: basis-transform rule and historical parallels
 - [Probe Operators](guides/probe_operators.md) — Readout operators and their statement boundaries
 - [Scope and Limitations](limitations_and_future_plans.md) — What TFNE statements and stays scoped to
-- [TFNE Operator Doctrine](operator_doctrine.md) — Per-stage contract table built on these tensor shapes
+- [TFNE Operator Doctrine](operator_doctrine.md) — Per-stage rule table built on these tensor shapes
 - [Tensor Electromagnetics Scope](tensor_electromagnetics_scope.md) — Reserved field-solver stages referenced by the reserved markers above

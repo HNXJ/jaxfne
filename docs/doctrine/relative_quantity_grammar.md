@@ -1,23 +1,25 @@
 # Relative-Quantity Numerical Grammar
 
 This page is the single authoritative statement of how jaxfne distinguishes
-**base**, **relative**, and **effective** quantities, and why physical time is
-treated differently from the relative-value convention. It is a *semantic
-contract*: equations, code, tests, and documentation must describe the same
-system under these rules.
+**base**, **relative**, **effective**, and **time** quantities. Equations,
+code, tests, and documentation must describe the same system under these
+rules.
 
-## 1. Three quantity kinds
+## 1. Quantity kinds
 
 Every numerical quantity in a jaxfne model belongs to exactly one of these
 kinds. The distinction is semantic, not a Python wrapper — inside JAX hot
 kernels the values are plain arrays; the grammar governs *what the numbers
 mean* and *how they combine*.
 
+$$B,\quad R,\quad E,\quad T$$
+
 | Kind | Meaning | Units | Example |
 |---|---|---|---|
-| **BaseValue** | Physical/model baseline. Retains its actual units and semantics. Static/shared baseline that relative state modulates around. | physical (or declared model) units | `edges.weight` baseline `m0`; base drive `b`; base intrinsic `a_base`; `dt_ms`, `duration_ms` |
-| **RelativeValue** | Dimensionless internal dynamic state or modulation. Zero (or another declared reference) represents the reference/base state where applicable. Its admissible domain is fixed by its geometry. | dimensionless | `H_i` (RBS coordinate), `r_p` relative gain modulation, `fraction` cell-type fractions |
-| **EffectiveValue** | The quantity actually used in dynamics, produced from a base and a relative modulation through an explicit mapping. | inherits base units | `p_eff = C_p(p0, r_p)` |
+| **B** — base/model quantity | Physical/model baseline. Retains its actual units and semantics. Static/shared baseline that relative state modulates around. | physical (or declared model) units | `edges.weight` baseline `m0`; base drive `b`; base intrinsic `a_base` |
+| **R** — relative quantity | Dimensionless internal dynamic state or modulation. Zero (or another declared reference) represents the reference/base state where applicable. Its admissible domain is fixed by its geometry. | dimensionless | `H_i` (RBS coordinate), `r_p` relative gain modulation, `fraction` cell-type fractions |
+| **E** — effective quantity | The quantity actually used in dynamics, produced from a base and a relative modulation through an explicit mapping. | inherits base units | `p_eff = C_p(p0, r_p)` |
+| **T** — physical time quantity | Dimensional time (clock, delays, time constants, integration windows, timescales). Not a relative quantity; never normalized into the R convention. | milliseconds (or seconds where the controller law declares `s`) | `dt_ms`, `duration_ms`, `delay_steps`, `tau_0_ms`, `tau_H_s`, timestamps |
 
 Effective physical values must be produced through **explicit mappings**; a
 relative value must never be silently treated as a physical quantity.
@@ -54,10 +56,10 @@ Rules:
   must either be preserved by the dynamics or explicitly constrained by
   documented clamps (e.g. node H `[H_min, H_max]`).
 
-## 3. Physical time exception
+## 3. Physical time (class T)
 
-**Time remains physical and dimensional.** It is never normalized into the
-relative-value convention.
+**Time is a distinct dimensional class, not a relative quantity.** It is never
+normalized into the relative-value convention.
 
 - `dt_ms`, `duration_ms`, delays (`delay_steps`, delay_ms), time constants
   (`tau_0_ms`, `tau_syn_ms`, `tau_r_ms`, `tau_H_s`, `tau_theta_s`),

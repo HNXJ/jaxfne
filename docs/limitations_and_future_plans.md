@@ -67,4 +67,4 @@ documents the admissibility mathematics for that regime.
 - [Quickstart](quickstart.md)
 - [Tutorials](tutorials/index.md)
 - [Tensor Electromagnetics Scope](tensor_electromagnetics_scope.md) — the same regime table, expanded into a scope ladder with per-stage requirements
-- [TFNE Operator Doctrine](operator_doctrine.md) — per-stage operator contract referencing this scope table
+- [TFNE Operator Doctrine](operator_doctrine.md) — per-stage operator rule referencing this scope table

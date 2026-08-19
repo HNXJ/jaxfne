@@ -37,7 +37,7 @@ into this specific bridge. If you plan to use jax-fem in a commercial
 product, review its license (and consider contacting its author about a
 commercial license) independently of jaxfne's own licensing.
 
-## Current contract
+## Current status
 
 ```python
 import jaxfne as jtfne

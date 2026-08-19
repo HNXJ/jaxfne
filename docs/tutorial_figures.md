@@ -1,6 +1,6 @@
 # Tutorial Figures
 
-**Status:** Stable contract, regenerated with visual confirmation; introduced in jaxfne 0.2.27/2026-05-22, still exercised by `tests/test_tutorial_figure_manifest_v028.py` (current development tree: 0.4.8).
+**Status:** Stable output, regenerated with visual confirmation; introduced in jaxfne 0.2.27/2026-05-22, still exercised by `tests/test_tutorial_figure_manifest_v028.py` (current development tree: 0.4.8).
 
 ---
 
@@ -226,7 +226,7 @@ All figures are:
 
 - **[Index](index.md)** — Documentation index
 - **[Computation Basis](computation_basis.md)** — Computation contract
-- **[Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md)** — Conservation diagnostic framework
+- **[Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md)** — Conservation diagnostic model
 
 ---
 

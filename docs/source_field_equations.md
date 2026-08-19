@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document specifies source bookkeeping modes, field metadata contracts, forbidden patterns, and the mappings between jaxfne core equations and runtime manifest/report fields.
+This document specifies source bookkeeping modes, field metadata rules, forbidden patterns, and the mappings between jaxfne core equations and runtime manifest/report fields.
 
 It complements the [Mathematical Glossary Flow](mathematical_glossary_flow.md) by grounding source and field equations in implementation detail: which manifest field controls which equation, what modes are allowed, what combinations are forbidden, and how to interpret statement boundaries in code.
 
@@ -104,7 +104,7 @@ q_cap(x,t) = χ(x) · I_cap(t)
 q_ion(x,t) = χ(x) · I_ion(t)
 q_syn(x,t) = χ(x) · I_syn(t)
 → Keep separate in Signals, sum only at field boundary
-→ Requires explicit source_decomposition contract
+→ Requires explicit source_decomposition rule
 ```
 
 **Option C: Proxy current (current default)**
@@ -416,4 +416,4 @@ Before releasing a model, verify:
 - [Probe Operators](guides/probe_operators.md) — Readout modalities (SPK, Vm, source, LFP, CSD, EEG, MEG, EMM)
 - [Output Bundles](guides/output_bundles.md) — Manifest and report schema
 - [Scope and Limitations](limitations_and_future_plans.md) — What jaxfne statements and stays scoped to
-- [TFNE Operator Doctrine](operator_doctrine.md) — Per-stage contract table for the Source and Field stages defined here
+- [TFNE Operator Doctrine](operator_doctrine.md) — Per-stage rule table for the Source and Field stages defined here

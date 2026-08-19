@@ -69,7 +69,7 @@ inert-by-design surface, not a hidden behavior change.
 
 ## Continuation scope
 
-| capability | status |
+| function | status |
 |------------|--------|
 | Node-local RBS continuation (`DynamicState`, `return_state=True`) | supported for scalar and vector \(d_H\) on the edge-list HDP kernel |
 | Population-local RBS continuation | not supported in 0.4.13+ (explicit error) |
@@ -79,7 +79,7 @@ inert-by-design surface, not a hidden behavior change.
 
 The scalar node realization uses one RBS coordinate per neuron, \(d_H=1\), and
 couples activity, synaptic budget, and weight adaptation in one loop. The
-generalized contract supports \(d_H>1\) with optional readout and coupling.
+generalized rule supports \(d_H>1\) with optional readout and coupling.
 
 ## Node control law
 
@@ -205,7 +205,7 @@ signals, state = jtfne.simulate(
 
 The continuation state carries vector `H` without a second state
 representation. Ordinary and continuation HDP dispatch share the same
-deterministic per-step PRNG contract, so matched scalar runs remain identical.
+deterministic per-step PRNG rule, so matched scalar runs remain identical.
 Readout and coupling dimensions are validated explicitly.
 
 ## Built-in emitter (per-step kernel)

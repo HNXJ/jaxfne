@@ -1,7 +1,7 @@
 # References
 
 Scholarly ancestry for the JDNA (PseudoGenome → NeuronalTensor development)
-framework and for the developmental/generative modeling concepts it uses.
+model and for the developmental/generative modeling concepts it uses.
 These are background references; none is a dependency of the package.
 
 ## Developmental and generative neural modeling

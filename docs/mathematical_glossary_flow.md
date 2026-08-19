@@ -277,7 +277,7 @@ EMM-proxy is a **relative within-run cost/activity index**, not a biological ene
 
 ---
 
-## Conservation-Law Doctrine (Reserved Reference)
+## Conservation-Law Rules (Reserved Reference)
 
 ### Poynting's Theorem
 
@@ -400,7 +400,7 @@ When adding a new equation to jaxfne documentation:
 ## See Also
 
 - [Source-Field Equations](source_field_equations.md) — source bookkeeping, forbidden patterns
-- [Computation Basis](computation_basis.md) — extensibility doctrine
+- [Computation Basis](computation_basis.md) — extensibility rules
 - [Probe Operators](guides/probe_operators.md) — detailed operator statements
 - [Scope and Limitations](limitations_and_future_plans.md) — boundary conditions
 - [TFNE Operator Doctrine](operator_doctrine.md) — per-stage contract table indexing these equations

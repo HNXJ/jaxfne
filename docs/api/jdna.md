@@ -2,7 +2,7 @@
 
 ## Overview
 
-JDNA is the theory/framework governing pseudo-genomic generation; the concrete
+JDNA is the theory/model governing pseudo-genomic generation; the concrete
 specification object is a `PseudoGenome`. The root API is deliberately small:
 five symbols.
 

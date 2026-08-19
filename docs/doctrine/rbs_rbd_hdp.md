@@ -1,4 +1,4 @@
-# jaxfne doctrine — RBS / RBD / HDP
+# jaxfne rules — RBS / RBD / HDP
 
 Repository-facing realization of the jaxfne hidden-state refactor. **Upstream
 authority:** the six project-source markdowns under
@@ -14,7 +14,7 @@ Protocol C (wave evidence, **closed** @ C4,
 distinct from edge-delay Protocol D₀/D₁). **Protocol E (0.4.17-E):** E0.1 ladder frozen; E1 implementation authorized.
 
 **Containment architecture:** `docs/doctrine/tfne_containment_architecture.md`
-— TFNE as composition framework; \(H\) as unified dependency state; typed
+— TFNE as composition model; \(H\) as unified dependency state; typed
 operator couplings.
 
 ## Mission
@@ -23,7 +23,7 @@ operator couplings.
 > operator, and geometry grammar in which neural models of different physical
 > resolution can be composed.**
 
-Refactor jaxfne's hidden-state doctrine around a physically disciplined,
+Refactor jaxfne's hidden-state rules around a physically disciplined,
 relative state-space formulation while preserving validated behavior and
 compatibility.
 
@@ -133,7 +133,7 @@ maps — see `docs/doctrine/tfne_containment_architecture.md`.
 **Kernel-specific homeostasis is not erased.** A mechanism that genuinely
 implements homeostatic regulation (e.g. `homeostatic_ei`, legacy
 `enable_homeostasis` trace dynamics) retains homeostatic terminology for
-that kernel. The migration applies to **generic** `H` doctrine:
+that kernel. The migration applies to **generic** `H` rules:
 
 \[
 H_{\text{generic}}:\quad \text{“homeostatic state”}\rightarrow\text{RBS},
@@ -243,7 +243,7 @@ The operator chain remains:
 
 Do not break or blur Source -> Field -> Probe semantics.
 
-## 5. Relative-computation doctrine
+## 5. Relative-computation rule
 
 Adopt:
 
@@ -405,7 +405,7 @@ H-factor
 Classify each occurrence:
 
 ```text
-A. generic doctrine requiring migration
+A. generic rule requiring migration
 B. kernel-specific homeostatic behavior that should remain homeostatic
 C. historical material to preserve/archive as historical
 D. API identifier requiring compatibility handling
@@ -491,4 +491,4 @@ a memory claim lacks quantitative retention/decoding evidence
 surprise minimization is asserted rather than derived/tested
 ```
 
-Do not invent equations to make doctrine appear complete.
+Do not invent equations to make the rules appear complete.

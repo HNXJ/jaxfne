@@ -237,4 +237,4 @@ Performance measurements are **audit artifacts** (reproducibility, determinism),
 
 ---
 
-*jaxfne — Tensor-Field Neural Equations source-to-field computational framework*
+*jaxfne — Tensor-Field Neural Equations source-to-field computational model*

@@ -217,7 +217,7 @@ calibration step. See [Scope & status](scope_and_status.md).
 
 ### What v0.4.8 is
 
-- Exploratory computational neuroscience framework
+- Exploratory computational neuroscience model
 - Multi-scale emitter (Izhikevich, HH) to field-proxy pipeline
 - Teaching tool for understanding circuit behavior
 - Optimization sandbox for fitness/plasticity experiments

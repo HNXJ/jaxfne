@@ -12,7 +12,7 @@ Related views (unchanged):
 
 - [Configuration Grammar](configuration_grammar.md) — builder methods on `Configuration`
   (`.runtime()`, `.column()`, `.connectivity()`, …).
-- [TFNE Operator Doctrine](../operator_doctrine.md) — internal tensor-operator contracts.
+- [TFNE Operator Doctrine](../operator_doctrine.md) — internal tensor-operator rules.
 
 Every call below was run against the installed package before being written
 here — none of it is illustrative pseudocode.
@@ -141,8 +141,8 @@ to write a full artifact bundle at once.
 
 ## Why this page exists separately
 
-`Configuration` exposes ~30 builder methods; the operator doctrine describes
-7 tensor stages with domain/codomain contracts. Neither answers "what do I
+`Configuration` exposes ~30 builder methods; the operator rules describe
+7 tensor stages with domain/codomain rules. Neither answers "what do I
 actually type, in order, to run something." This page is that answer, kept
 honest by running every example against the installed package rather than
 transcribing it from a proposal or an older skill file.
@@ -150,6 +150,6 @@ transcribing it from a proposal or an older skill file.
 ## See also
 
 - [Configuration Grammar](configuration_grammar.md) — the builder-method reference this chain's step 1 draws from.
-- [TFNE Operator Doctrine](../operator_doctrine.md) — the tensor contract each stage satisfies internally.
+- [TFNE Operator Doctrine](../operator_doctrine.md) — the tensor rule each stage satisfies internally.
 - [Tensor Operator Registry](../api/tensor_operators.md) — per-operator inventory.
 - [Operator Inventory (generated)](../_generated/operator_inventory.md) — the full live export surface, regenerated from code.

@@ -147,7 +147,7 @@ downstream call in Chain 1 (`csd_tensor`, `eeg_proxy_transform`,
 
 [Configuration Grammar](configuration_grammar.md) documents the ~30
 builder methods that *specify* a model. [Operator Doctrine](../operator_doctrine.md)
-documents the 7-stage *contract* each tensor operator satisfies on its own.
+documents the 7-stage *rule* each tensor operator satisfies on its own.
 Neither one shows that the codomain of one operator is the domain of the
 next without a conversion step — that the chain actually typechecks, not
 just on paper. `tests/test_tensor_pipeline_custom_cfg.py` is what makes that
