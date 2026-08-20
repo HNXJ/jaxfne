@@ -1,7 +1,6 @@
 """Dtype-keyed declarative numeric defaults (epsilon, dither scale).
 
-Scope, deliberately narrow (see plans.json item
-bf16-quantized-tfne-izhikevich-mode, sections 5 and 7): a single shared
+Scope, deliberately narrow: a single shared
 resolution point for "how small is negligible at this storage dtype", so
 callers stop hand-picking epsilon/dither constants per call site (jaxfne-
 modular-grammar rule 6). This module does NOT touch dt_ms/dxyz -- those are

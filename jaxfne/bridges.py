@@ -155,10 +155,9 @@ class JaxFemFieldBridge:
     yet). This mirrors :class:`JaxleyEmitterBridge`'s own schema-first
     landing pattern: the optional-dependency plumbing and public contract
     land first, the real numerical implementation is separate follow-on
-    work (tracked as `plans.json`/`progress.json`'s
-    `novelty::tfne-differentiable-field-solver`).
+    work.
 
-    Scoping notes (2026-07-18, see plans.json for the full trail): jax-fem
+    Scoping notes (2026-07-18): jax-fem
     (https://github.com/deepmodeling/jax-fem) is a real, actively-maintained
     differentiable GPU-accelerated FEM library in JAX -- proof the general
     approach (a differentiable elliptic solve composing with jaxfne's

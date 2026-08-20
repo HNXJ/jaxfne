@@ -44,8 +44,7 @@ def step_gsdr_transform(
     and silently falls through to the same generic blackbox path instead of
     calling its ``init``/``update``). ``gsdr_transform`` is exercised only
     by ``tests/test_optim_tune.py`` directly, not by any confirmed
-    production call path -- see ``jaxfne/optim/core.py::agsdr_transform-
-    production-path-unconfirmed`` in ``progress.json``. Kept for backward
+    production call path. Kept for backward
     compatibility with any caller using the lower-level
     ``step(u_t, grad_l, state, hyperparams)`` signature.
     """

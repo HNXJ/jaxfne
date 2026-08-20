@@ -165,8 +165,7 @@ def experimental_poisson_1d_from_neuron_table(
     """Bridge real per-neuron depth positions and source values into
     :func:`experimental_poisson_1d`'s 1D depth grid -- the first real
     integration of the (previously standalone) experimental solver with the
-    Model/Signals object model, toward
-    ``plans.json:novelty::tfne-differentiable-field-solver``. Does NOT
+    Model/Signals object model. Does NOT
     touch the existing ``project_laminar_sources``/``simulate()`` dispatch
     (that machinery is unchanged) -- this is a separate, explicitly opt-in
     accessor a caller invokes after ``construct()``/``simulate()``, not a new

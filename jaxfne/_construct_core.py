@@ -783,9 +783,7 @@ def construct(
 # "cubic" activation's self-damping is required for that regime). These
 # numeric constants are fixed for this pass -- only the three rule names and
 # the network size (n_neurons, via Configuration.network(n=...)) are
-# configurable via the grammar; exposing per-neuron overrides is deferred
-# (see artifacts/developer/plans.json entry
-# homeostatic-ei-milestones-4-6-regime-sweep).
+# configurable via the grammar; exposing per-neuron overrides is deferred.
 _HOMEOSTATIC_EI_CANONICAL_DEFAULTS: dict[str, Any] = {
     "x0_value": 0.1,
     "G0_e_value": 0.5,

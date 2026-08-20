@@ -175,6 +175,10 @@ select = ["E4", "E7", "E9", "F"]
 
 [tool.hatch.build.targets.wheel]
 only-packages = true
+packages = ["jaxfne"]
+exclude = [
+  "jaxfne/publication",
+]
 
 [tool.hatch.build.targets.wheel.force-include]
 "jaxfne/configs" = "jaxfne/configs"
@@ -204,6 +208,7 @@ exclude = [
   "artifacts/legacy",
   "artifacts/msvc_hdp_diagnostic",
   "scripts/hdp_mvc_*.py",
+  "jaxfne/publication",
 ]
 
 [tool.pytest.ini_options]

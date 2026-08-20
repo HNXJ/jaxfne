@@ -226,8 +226,7 @@ def _candidate_pairs_localized(
     """Distance-limited edge sampling with a constant per-post in-degree cap.
 
     Unlike ``_candidate_pairs``'s ``probability`` mode (a target edge *density*
-    that scales as O(n_pre*n_post) and is memory-catastrophic at large N --
-    see plans.json item localized-distance-limited-connectivity-rule), this
+    that scales as O(n_pre*n_post) and is memory-catastrophic at large N), this
     targets a CONSTANT in-degree per post-neuron, independent of N, matching
     real cortical anatomy (fan-in bounded by dendritic arbor reach, not by
     total tissue volume).
@@ -445,7 +444,7 @@ def compile_connection_rules(
     constant per-post-neuron in-degree cap with spatially-local, Gaussian
     distance-weighted sampling (``spatial_sigma``, default 0.1, same units as
     neuron ``x``/``y``/``z``) rather than a flat O(n_pre*n_post) density
-    target -- see plans.json item localized-distance-limited-connectivity-rule.
+    target.
     Requires every selected neuron row to carry ``x``/``y``/``z``.
     """
     artifacts = dict(artifacts or {})
