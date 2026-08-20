@@ -94,3 +94,42 @@ explicit transformation with evidence. See [Scope & status](docs/scope_and_statu
 ## Citation
 
 [`CITATION.cff`](CITATION.cff) · [citation guide](docs/citation.md)
+
+## Visual examples
+
+Real package outputs (simulated proxy scaffolds; calibration requires an
+explicit transformation with evidence):
+circuit geometry from `Model.neuron_table()`, a 10 s spike raster, a
+laminar spectrolaminar readout, and long-timescale firing-rate dynamics
+with homeostasis on/off. More: [showcases](docs/guides/showcases.md).
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="docs/guides/showcases.md">
+        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/showcases/circuit_geometry_column.png" alt="Circuit geometry" width="340">
+      </a><br>
+      <sub>Canonical laminar column — geometry from `neuron_table()`</sub>
+    </td>
+    <td align="center">
+      <a href="docs/guides/showcases.md">
+        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/showcases/homeostasis_full_raster_10s.png" alt="Spike raster" width="340">
+      </a><br>
+      <sub>10 s spike raster — homeostasis on (proxy)</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="docs/guides/showcases.md">
+        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/showcases/spectrolaminar_slow_homeostasis_suite.png" alt="Spectrolaminar readout" width="340">
+      </a><br>
+      <sub>Spectrolaminar proxy readout — depth-graded homeostasis</sub>
+    </td>
+    <td align="center">
+      <a href="docs/guides/showcases.md">
+        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/showcases/homeostasis_rate_change_10s.png" alt="Long-timescale dynamics" width="340">
+      </a><br>
+      <sub>Population rate over 10 s — homeostasis off vs on (r*=10 Hz)</sub>
+    </td>
+  </tr>
+</table>
