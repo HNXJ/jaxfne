@@ -106,3 +106,75 @@ requires separate authorization.
 - **evidence:** final-hostile-review check 23 note
 - **possible future change:** when quoting observed values in docs, cite the
   exact checkpoint artifact and version
+
+### I-005
+- **date:** 2026-08-20
+- **type:** FRICTION
+- **area:** CI gate / release hygiene
+- **observation:** the pre-freeze CI-gate precondition (freeze only when
+  main==dev and both main workflows are green on the exact candidate)
+  exposed that CI (Fast) had been RED since 2026-08-18: the ruff 0.16.2 hard
+  gate failed on the frozen candidate itself (`jaxfne/jdna/genome.py`
+  F401 unused imports `warnings`/`RuntimeConfiguration` + E741 ambiguous
+  `l` x5; `jaxfne/optim/__init__.py` E402 staged imports), and the
+  sdist-hygiene test could not run on main because `build` was not in the
+  dev extras (only the separate build job installed it). The lint breakage
+  originated with JDNA commit 70ae496; candidate cd5738a therefore never
+  had green remote gates.
+- **severity:** MAJOR as release-process friction (caught before release;
+  repaired in 53e9870/2845c92/0ff37e4 without core-semantic changes)
+- **minimal reproduction:** `gh run list --branch dev` for 2026-08-18..19;
+  `python -m ruff check jaxfne` under ruff==0.16.2
+- **expected behavior:** every candidate that reaches a freeze/release gate
+  has green remote CI on the exact commit
+- **actual behavior:** candidates cd5738a and 2845c92 both had red main
+  workflows; only 0ff37e4 (with `build` in dev extras) returned both green
+- **evidence:** CI run 32285103287 (dev green), 32321936243 + 32321936278
+  (main Fast + Release & Scheduled green at 0ff37e4); receipt v3
+- **possible future change:** the pre-freeze CI-gate precondition is kept as
+  a standing rule: freeze/release candidates must show green remote gates on
+  the exact commit being frozen, not a predecessor
+
+### I-006
+- **date:** 2026-08-20
+- **type:** FRICTION
+- **area:** harness / code hygiene
+- **observation:** the mechanical lint repair `l -> layer` in
+  `jaxfne/jdna/genome.py` (`_check_realized_constraints`) introduced a
+  semantic regression: the comprehension local shadowed the outer loop
+  variable, turning `layer.name == layer.name` into an always-true
+  self-comparison. CI caught it (`ValueError: layer 'L2': developed 100
+  neurons, genome declares 250`), and renaming the local to `cand` restored
+  behavior (50/50 JDNA tests pass). Renaming a variable can change semantics
+  when comprehension/loop scopes interact.
+- **severity:** MINOR (caught by the behavioral tests; the pre-freeze
+  condition turned a lint fix into a test-validated repair)
+- **minimal reproduction:** commit 53e9870 CI run
+  (tests/test_jdna_pseudogenome.py failures); fix in 2845c92
+- **expected behavior:** lint repairs are behavior-inert
+- **actual behavior:** a rename shadowed an outer loop variable and altered
+  constraint-checking semantics
+- **evidence:** CI run 32320214843 (green at 0ff37e4); 50/50 JDNA tests pass
+- **possible future change:** when renaming locals, prefer fresh names not
+  used in the enclosing scope; keep the behavioral test suite as the
+  authority over lint tooling
+
+### I-007
+- **date:** 2026-08-20
+- **type:** DOC
+- **area:** release receipt / provenance
+- **observation:** receipt v2 recorded `final_candidate=cd5738a`, but the
+  pre-freeze CI precondition moved the frozen core to `0ff37e4` (lint repair
+  + sdist-gate fix). Receipt v3 supersedes v2 and records
+  `core_candidate=0ff37e4`, with `release_candidate` left null until S2
+  finalizes the docs/README identity. This is the receipt-branch-drift
+  pattern of I-002, resolved at the release identity level.
+- **severity:** MINOR (evidence hygiene; v3 is authoritative)
+- **minimal reproduction:** `git rev-parse main` vs `core_candidate` in v3
+- **expected behavior:** receipt records the exact frozen core and, after
+  S2, the exact release identity; if they differ, both are recorded
+- **actual behavior:** v2 stale; v3 records the true frozen core
+- **evidence:** receipt v3 `pre_freeze_ci_gates` history table
+- **possible future change:** S2 completion must update
+  `release_candidate`/`tag` in the receipt (or supersede v3) before any
+  PyPI/GitHub release action

@@ -1,17 +1,18 @@
 {
-  "schema": "jaxfne.release_receipt.v2",
+  "schema": "jaxfne.release_receipt.v3",
   "version": "0.4.17",
-  "status": "RELEASE_READY",
+  "status": "CORE_FROZEN_RELEASE_PENDING",
   "write_once": true,
-  "supersedes": "artifacts/release/v0_4_17_release_receipt.json (v1, candidate cadd279/6a99ee5/7abe2b8)",
-  "final_candidate": "cd5738ad8214527962541f68568bb018bd8b3fb8",
+  "supersedes": "artifacts/release/v0_4_17_release_receipt.json (v2, candidate cd5738a)",
+  "core_candidate": "0ff37e40375e1c76d07f354803dccffbabb9d3a6",
+  "release_candidate": null,
   "tag": null,
   "branches": {
-    "dev": "cd5738ad8214527962541f68568bb018bd8b3fb8",
-    "main": "cd5738ad8214527962541f68568bb018bd8b3fb8"
+    "dev": "0ff37e40375e1c76d07f354803dccffbabb9d3a6",
+    "main": "0ff37e40375e1c76d07f354803dccffbabb9d3a6"
   },
   "reconciliation": {
-    "method": "multi-model audit reconciliation (H1-H14) + A-L closure contract + hostile-review closure",
+    "method": "multi-model audit reconciliation (H1-H14) + A-L closure contract + hostile-review closure + pre-freeze CI-gate precondition",
     "multi_model_findings": 30,
     "true_defects": 19,
     "false_positives": 2,
@@ -36,6 +37,29 @@
       }
     ]
   },
+  "pre_freeze_ci_gates": {
+    "rule": "freeze only when main == dev and both main workflows are green on the exact candidate",
+    "history": [
+      {
+        "candidate": "cd5738a",
+        "ci_fast": "RED",
+        "ci_release_scheduled": "RED",
+        "cause": "ruff 0.16.2 hard gate (genome.py F401/E741, optim/__init__.py E402) — red since JDNA commit 70ae496 (2026-08-18); sdist-hygiene test also unmaterialized because 'build' not in dev extras"
+      },
+      {
+        "candidate": "2845c92",
+        "ci_fast": "RED",
+        "ci_release_scheduled": "RED",
+        "cause": "test_sdist_excludes_harness_trees: python -m build unavailable in test job ('build' only installed in separate build job)"
+      },
+      {
+        "candidate": "0ff37e4",
+        "ci_fast": "GREEN",
+        "ci_release_scheduled": "GREEN",
+        "cause": "added 'build' to dev extras; dev CI green 27m46s; main CI (Fast) + CI (Release & Scheduled: 3.11/3.12/3.13 + examples + build job) both green"
+      }
+    ]
+  },
   "release_gates": {
     "broad": "3492 passed",
     "slow": "37 passed",
@@ -46,7 +70,15 @@
     "wheel_sdist": "built (leak-free: no .opencode/.cursor/node_modules/receipts)",
     "clean_room_install": "tensor + JDNA + AGSDR workflows OK",
     "compileall": "OK",
-    "hostile_review": "GO (fresh independent reviewer, immutable cd5738a)"
+    "hostile_review": "GO (fresh independent reviewer, immutable cd5738a)",
+    "ci_fast_main_0ff37e4": "GREEN (full suite incl. slow, 3.12/3.13, 2026-08-20)",
+    "ci_release_scheduled_main_0ff37e4": "GREEN (3.11/3.12/3.13 matrix, examples, build job, 2026-08-20)"
+  },
+  "freeze": {
+    "declared": "2026-08-20",
+    "core_candidate": "0ff37e40375e1c76d07f354803dccffbabb9d3a6",
+    "rule": "delta_C_core = 0 until the 40-day frozen-use period ends; docs/skills/artifacts remain editable as non-core release material",
+    "issue_log": "artifacts/issue_log/ISSUE_LOG.md (I-001..I-006)"
   },
   "distribution": {
     "pypi": "NOT_UPLOADED (requires separate authorization)",
@@ -54,5 +86,5 @@
     "wheel": "jaxfne-0.4.17-py3-none-any.whl",
     "sdist": "jaxfne-0.4.17.tar.gz"
   },
-  "notes": "Final candidate cd5738a passed the full A-L closure contract, the vocabulary-reduction audit, and a fresh independent hostile review (GO). No PyPI upload and no tag without separate authorization per the 0.4.17 reconciliation plan."
+  "notes": "Core frozen at 0ff37e4 after both main workflows returned green on the exact candidate (pre-freeze CI-gate precondition). C_release (final docs/README identity) to be recorded when S2 completes; tag/GitHub/PyPI require separate authorization."
 }
