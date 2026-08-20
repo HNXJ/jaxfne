@@ -36,3 +36,39 @@ def _reset_compilation_registry():
     compilation_registry.reset()
     yield
     compilation_registry.reset()
+
+
+def pytest_collection_modifyitems(config, items):
+    """Dynamically assign smoke, fast, slow, and notebook markers based on module taxonomies."""
+    smoke_modules = {
+        "test_api_smoke",
+        "test_root_import_lightweight",
+        "test_public_surface_contract_v0413",
+        "test_continuation_contract",
+        "test_public_docs_hygiene",
+        "test_agent_context_hygiene",
+        "test_core_class_hygiene",
+    }
+
+    fast_modules = smoke_modules | {
+        "test_signals_get_v0329",
+        "test_neuronal_tensor_connectivity",
+        "test_neuronal_tensor",
+        "test_connection_rule_compile_v0330",
+        "test_mcc",
+        "test_relative_grammar_invariants",
+        "test_closure_hp_reconciliation",
+        "test_agsdr_classification",
+        "test_jdna_truth_gate",
+    }
+
+    marker_smoke = pytest.mark.smoke
+    marker_fast = pytest.mark.fast
+
+    for item in items:
+        mod_name = item.module.__name__.split(".")[-1]
+        if mod_name in smoke_modules:
+            item.add_marker(marker_smoke)
+        if mod_name in fast_modules:
+            item.add_marker(marker_fast)
+

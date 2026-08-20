@@ -525,7 +525,7 @@ assert manifest["convergence_status"] == "converged"
 Bridges real per-neuron depth positions (from `Model.neuron_table()`) and
 source values (e.g. a time-slice of `Signals.sources`) into
 `experimental_poisson_1d`'s 1D depth grid — providing direct integration of the
-finite-difference Poisson solver with the Model/Signals object model. This is a
+finite-difference experimental 1D field operator with the Model/Signals object model. This is a
 separate, explicitly opt-in accessor called after `construct()`/`simulate()`,
 kept fully independent of `project_laminar_sources` and the default
 `simulate()` field dispatch, which stay exactly as they are today.
