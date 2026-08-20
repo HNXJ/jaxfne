@@ -3,27 +3,36 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-08-18T11:58:14",
+  "generated_at": "2026-08-20T00:32:40",
   "components": {
     "project_agents": {
       "file": "AGENTS.md",
-      "sha256": "fd9543df6c6c6c0c19dde39c33e984321d2004dac33cd61d68538e5b63b594f8"
+      "sha256": "a5aedc77783d174d1b82be7349c80962781a3b232b16ba9da001782d522aef36"
     },
     "canonical_skills": {
-      "jaxfne-core": "4e98d1bc214cb2bcc3850d69ff78d2343f8ce487e6933e17b8f9bc1d1a5f3047",
-      "jaxfne-release": "18f2fc8d6a722821a885934bb392ad12691f03b2a1e7fff7169c57ad1a646342",
-      "jaxfne-repo": "d866a43ef743003442cd1d0816daf7185d3a46c329a99d63adf4defda44b7c6d",
-      "jaxfne-science": "27d20c8e9ca597443ebce1f468c027495c77ba37c2c35d39fb419931a4cb9800"
+      "jaxfne-audit": "078bd11efc8baedcd313e197d8492347a28a031f427ca73cfc778e503ac399a7",
+      "jaxfne-core": "24a5a9961bfa1815c65cbabc6302b8138155ec9566467267060d63617e3a7f22",
+      "jaxfne-frozen-use": "44aee9a8d73169cfab54d4a803c482428f409e70e74c089df0071eaa8846f130",
+      "jaxfne-release": "8aabde6c437022611631824882f036450925764572399347114950e3850950c1",
+      "jaxfne-repo": "591a85b7c262dc5db47af7cbdadf61440b514a03860fd339e70d8506ca162829",
+      "jaxfne-science": "0b952dab0643a0b6b71766a8cfda181e7246ace9cb2dc8789e0af1c04ba41550",
+      "jaxfne-seal": "6c7191e91c3bce46e50708015bc0512ae2894f6077ef15e1eb4ff2b3d9be0f4a"
     },
     "mirrors": {
-      ".opencode/skills/jaxfne-core/SKILL.md": "4e98d1bc214cb2bcc3850d69ff78d2343f8ce487e6933e17b8f9bc1d1a5f3047",
-      ".opencode/skills/jaxfne-release/SKILL.md": "18f2fc8d6a722821a885934bb392ad12691f03b2a1e7fff7169c57ad1a646342",
-      ".opencode/skills/jaxfne-repo/SKILL.md": "d866a43ef743003442cd1d0816daf7185d3a46c329a99d63adf4defda44b7c6d",
-      ".opencode/skills/jaxfne-science/SKILL.md": "27d20c8e9ca597443ebce1f468c027495c77ba37c2c35d39fb419931a4cb9800",
-      ".cursor/skills/jaxfne-core/SKILL.md": "4e98d1bc214cb2bcc3850d69ff78d2343f8ce487e6933e17b8f9bc1d1a5f3047",
-      ".cursor/skills/jaxfne-release/SKILL.md": "18f2fc8d6a722821a885934bb392ad12691f03b2a1e7fff7169c57ad1a646342",
-      ".cursor/skills/jaxfne-repo/SKILL.md": "d866a43ef743003442cd1d0816daf7185d3a46c329a99d63adf4defda44b7c6d",
-      ".cursor/skills/jaxfne-science/SKILL.md": "27d20c8e9ca597443ebce1f468c027495c77ba37c2c35d39fb419931a4cb9800"
+      ".opencode/skills/jaxfne-audit/SKILL.md": "078bd11efc8baedcd313e197d8492347a28a031f427ca73cfc778e503ac399a7",
+      ".opencode/skills/jaxfne-core/SKILL.md": "24a5a9961bfa1815c65cbabc6302b8138155ec9566467267060d63617e3a7f22",
+      ".opencode/skills/jaxfne-frozen-use/SKILL.md": "44aee9a8d73169cfab54d4a803c482428f409e70e74c089df0071eaa8846f130",
+      ".opencode/skills/jaxfne-release/SKILL.md": "8aabde6c437022611631824882f036450925764572399347114950e3850950c1",
+      ".opencode/skills/jaxfne-repo/SKILL.md": "591a85b7c262dc5db47af7cbdadf61440b514a03860fd339e70d8506ca162829",
+      ".opencode/skills/jaxfne-science/SKILL.md": "0b952dab0643a0b6b71766a8cfda181e7246ace9cb2dc8789e0af1c04ba41550",
+      ".opencode/skills/jaxfne-seal/SKILL.md": "6c7191e91c3bce46e50708015bc0512ae2894f6077ef15e1eb4ff2b3d9be0f4a",
+      ".cursor/skills/jaxfne-audit/SKILL.md": "078bd11efc8baedcd313e197d8492347a28a031f427ca73cfc778e503ac399a7",
+      ".cursor/skills/jaxfne-core/SKILL.md": "24a5a9961bfa1815c65cbabc6302b8138155ec9566467267060d63617e3a7f22",
+      ".cursor/skills/jaxfne-frozen-use/SKILL.md": "44aee9a8d73169cfab54d4a803c482428f409e70e74c089df0071eaa8846f130",
+      ".cursor/skills/jaxfne-release/SKILL.md": "8aabde6c437022611631824882f036450925764572399347114950e3850950c1",
+      ".cursor/skills/jaxfne-repo/SKILL.md": "591a85b7c262dc5db47af7cbdadf61440b514a03860fd339e70d8506ca162829",
+      ".cursor/skills/jaxfne-science/SKILL.md": "0b952dab0643a0b6b71766a8cfda181e7246ace9cb2dc8789e0af1c04ba41550",
+      ".cursor/skills/jaxfne-seal/SKILL.md": "6c7191e91c3bce46e50708015bc0512ae2894f6077ef15e1eb4ff2b3d9be0f4a"
     },
     "project_config": {
       "file": ".opencode/opencode.json",

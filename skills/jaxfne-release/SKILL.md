@@ -6,47 +6,29 @@ metadata:
 ---
 # jaxfne release procedure
 
-## WHEN TO USE
-Release-checkpoint work: stable-surface contraction, documentation freeze,
-packaging, and explicitly authorized release operations.
+## WHEN
+Release-checkpoint work: stable-surface contraction, documentation freeze, packaging, and release operations.
 
-## AUTHORITIES TO READ
-1. Repository AGENTS.md (branches, root freeze, completion rule).
-2. The release checkpoint definition and its required artifact list.
+## AUTHORITIES
+1. Repository `AGENTS.md` (release identities, completion rule).
+2. Release receipt: `artifacts/release/v0_4_17_release_receipt.json`.
 
-## INVARIANTS
-- Release work is verification/contraction, not a reason to add breadth.
-- Public surfaces are classified: stable, namespaced, experimental,
-  compatibility, remove. Stable root symbols represent supported first-class
-  TFNE concepts.
-- Dev, broad, release, and publication gates are distinct; a repository-wide
-  non-slow suite is not the curated dev gate.
-- Release/tag/push/upload happens only with explicit authorization; never
-  force-push unless explicitly requested and justified.
-- Exact immutable SHAs and receipts are recorded for published artifacts.
+## RULES
+- Distinguish C_core, C_release, C_receipt, and C_head explicitly.
+- Delta C_core = 0 during release candidate polish.
+- Release/tag/push/upload happens only with explicit user authorization.
 
-## PROCEDURE
-1. Classify public surfaces: stable, namespaced, experimental, compatibility, remove.
-2. Prefer deleting/merging stale docs over rewriting duplicates.
-3. Keep README compact, mathematical, neutral, and positive.
-4. Verify package build/install/import, API snapshot, docs, tests,
-   examples/publication artifacts, artifact hashes, version metadata, and
-   clean Git state as required by the release checkpoint.
-5. Record exact immutable SHA and receipts for published artifacts.
+## STEPS
+1. Run Gate 0 to verify branch alignment.
+2. Build and verify wheel/sdist packages; ensure zero leaks (.opencode, receipts, etc.).
+3. Verify clean-room install, mkdocs strict, and test gates.
+4. Record exact immutable SHAs and receipts.
 
-## STOP CONDITIONS
-- Missing explicit authorization for any remote/release operation;
-  dirty repository state; gate confusion (dev vs broad vs release vs publication).
+## STOP
+- Missing explicit authorization for any remote/release operation; gate confusion.
 
-## REQUIRED VERIFICATION
-- Package build/install/import, API snapshot, docs, tests,
-  examples/publication artifacts, artifact hashes, version metadata,
-  clean Git state, and the recorded immutable SHA.
+## VERIFY
+- Package hashes match release receipt; clean checkout install passes smoke test.
 
-## FORBIDDEN INFERENCES
-- Releasing without authorization; force-push without explicit request;
-  calling the broad suite the curated dev gate.
-
-## COMPLETION
-- Release checkpoint verified, receipts recorded, exactly the authorized
-  remote operations performed.
+## DONE
+- Release candidate finalized and ready for independent seal.

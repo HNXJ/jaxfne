@@ -6,43 +6,30 @@ metadata:
 ---
 # jaxfne core
 
-## WHEN TO USE
-Unfamiliar jaxfne tasks, or any task needing to establish the governing
-authority before acting.
+## WHEN
+Unfamiliar jaxfne tasks, or establishing governing authority before acting.
 
-## AUTHORITIES TO READ
-1. Repository AGENTS.md.
-2. The authoritative project-source section for the relevant TFNE stage
-   (structure, dynamics/H, source/field/probe, objective/optimization,
-   evidence/release). Read only the relevant section; do not duplicate it.
-3. Live `jaxfne/` code and tests before naming helpers or claiming capability.
+## AUTHORITIES
+1. Gate 0: `scripts/harness/gate0_git_reality.py`.
+2. Repository `AGENTS.md`.
+3. Authoritative project-source sections under `docs/doctrine/`.
 
-## INVARIANTS
-- Symbols are verified against live code before use (no invented names).
-- Authoritative source is referenced, never copied into memory.
+## RULES
+- Symbols must be verified against live code before use (no invented names).
+- Authoritative source is referenced, never duplicated into memory.
+- Epistemic separation: E -> S -> F -> P is distinct from manifest bookkeeping.
 
-## PROCEDURE
-1. Read repository AGENTS.md.
-2. Identify the relevant TFNE stage: structure, dynamics/H, source/field/probe,
-   objective/optimization, evidence/release.
-3. Inspect live API/code/tests before naming helpers or claiming capability.
-4. If an authoritative project-source file governs the mathematics, read only
-   the relevant source section; do not duplicate it into memory.
-5. State the invariant being tested or changed and the stop condition.
-6. Route implementation to `jaxfne-repo`, scientific experiments to
-   `jaxfne-science`, release work to `jaxfne-release`.
+## STEPS
+1. Run Gate 0 to verify Git reality.
+2. Identify the relevant TFNE stage (dynamics, source, field, probe, objective, evidence).
+3. Inspect live code and tests before naming helpers or claiming capability.
+4. Route implementation to `jaxfne-repo`, scientific experiments to `jaxfne-science`, release to `jaxfne-release`, audit to `jaxfne-audit`, seal to `jaxfne-seal`.
 
-## STOP CONDITIONS
-- Unverified symbol or binding; ambiguous stage mapping; contradiction
-  between authority and live code (surface it before proceeding).
+## STOP
+- Unverified symbol or binding; ambiguous stage mapping; contradiction between authority and live code.
 
-## REQUIRED VERIFICATION
-- Live-code existence check for any named symbol; relevant receipt when
-  claiming capability.
+## VERIFY
+- Live-code existence check for any named symbol; relevant receipt when claiming capability.
 
-## FORBIDDEN INFERENCES
-- Capability claims without live verification; duplicating authoritative
-  source into memory or docs.
-
-## COMPLETION
+## DONE
 - Task routed to the matching skill with a stated invariant and stop condition.
