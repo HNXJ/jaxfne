@@ -1,15 +1,15 @@
 {
-  "schema": "jaxfne.release_receipt.v3",
+  "schema": "jaxfne.release_receipt.v4",
   "version": "0.4.17",
-  "status": "CORE_FROZEN_RELEASE_PENDING",
+  "status": "C_R_IDENTIFIED_AWAITING_RELEASE_AUTHORIZATION",
   "write_once": true,
-  "supersedes": "artifacts/release/v0_4_17_release_receipt.json (v2, candidate cd5738a)",
+  "supersedes": "artifacts/release/v0_4_17_release_receipt.json (v3, core_candidate 0ff37e4)",
   "core_candidate": "0ff37e40375e1c76d07f354803dccffbabb9d3a6",
-  "release_candidate": null,
+  "release_candidate": "867398e9d5c1d8812736369a6599604a42a296ce",
   "tag": null,
   "branches": {
-    "dev": "0ff37e40375e1c76d07f354803dccffbabb9d3a6",
-    "main": "0ff37e40375e1c76d07f354803dccffbabb9d3a6"
+    "dev": "867398e9d5c1d8812736369a6599604a42a296ce",
+    "main": "1fec3c8289c0014d416fe4826de318a6c2d68e4a"
   },
   "reconciliation": {
     "method": "multi-model audit reconciliation (H1-H14) + A-L closure contract + hostile-review closure + pre-freeze CI-gate precondition",
@@ -72,19 +72,21 @@
     "compileall": "OK",
     "hostile_review": "GO (fresh independent reviewer, immutable cd5738a)",
     "ci_fast_main_0ff37e4": "GREEN (full suite incl. slow, 3.12/3.13, 2026-08-20)",
-    "ci_release_scheduled_main_0ff37e4": "GREEN (3.11/3.12/3.13 matrix, examples, build job, 2026-08-20)"
+    "ci_release_scheduled_main_0ff37e4": "GREEN (3.11/3.12/3.13 matrix, examples, build job, 2026-08-20)",
+    "ci_fast_dev_867398e": "GREEN (non-core README delta, 26m56s, 2026-08-20)",
+    "diff_core_vs_release": "empty: diff(C_core=0ff37e4, C_R=867398e) restricted to README.md + scripts/generate_readme_geometry_figure.py + docs/assets/showcases/circuit_geometry_column.png"
   },
   "freeze": {
     "declared": "2026-08-20",
     "core_candidate": "0ff37e40375e1c76d07f354803dccffbabb9d3a6",
     "rule": "delta_C_core = 0 until the 40-day frozen-use period ends; docs/skills/artifacts remain editable as non-core release material",
-    "issue_log": "artifacts/issue_log/ISSUE_LOG.md (I-001..I-006)"
+    "issue_log": "artifacts/issue_log/ISSUE_LOG.md (I-001..I-007)"
   },
   "distribution": {
     "pypi": "NOT_UPLOADED (requires separate authorization)",
     "github_release": "NOT_CREATED (requires separate authorization)",
-    "wheel": "jaxfne-0.4.17-py3-none-any.whl",
-    "sdist": "jaxfne-0.4.17.tar.gz"
+    "wheel": "jaxfne-0.4.17-py3-none-any.whl (sha256 02f8a4bb152a811ce2a57099a1439876025214de3032a1540bda69714f96e9b0)",
+    "sdist": "jaxfne-0.4.17.tar.gz (sha256 87146f94191c853428a80be2606ae70fc6278d9ecb982750ac04190aaeafcb2c)"
   },
-  "notes": "Core frozen at 0ff37e4 after both main workflows returned green on the exact candidate (pre-freeze CI-gate precondition). C_release (final docs/README identity) to be recorded when S2 completes; tag/GitHub/PyPI require separate authorization."
+  "notes": "Core frozen at 0ff37e4 after both main workflows returned green on the exact candidate (pre-freeze CI-gate precondition). C_R=867398e identified (README visual section + geometry generator; non-core only; diff vs core empty). wheel/sdist built from C_R with recorded hashes; clean-room install smoke OK. tag/GitHub release/PyPI NOT authorized yet — awaiting explicit approval; tag will point at C_R and receipt will record the final identities."
 }
