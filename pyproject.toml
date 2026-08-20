@@ -195,9 +195,15 @@ exclude = [
   "/internal_docs",
   "/outputs",
   "/test_execution_output",
-  "/site",
-  "/artifacts/msvc_hdp_diagnostic",
-  "/scripts/hdp_mvc_*.py",
+  "scratch",
+  "skills",
+  "scripts/harness",
+  "artifacts/private_acceptance",
+  "artifacts/.lab",
+  "artifacts/legacy/**",
+  "artifacts/legacy",
+  "artifacts/msvc_hdp_diagnostic",
+  "scripts/hdp_mvc_*.py",
 ]
 
 [tool.pytest.ini_options]

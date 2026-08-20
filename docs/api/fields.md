@@ -472,13 +472,11 @@ from the fenced multi-dimensional placeholder below.
 - `conductivity` (float or `jax.Array`): conductivity scalar (uniform medium,
   original behavior, unchanged), or a per-face array of shape `(N-1,)` giving
   the conductivity between each pair of adjacent grid nodes (a piecewise-
-  constant "layered" medium, e.g. distinct cortical-layer conductivities —
-  added 2026-07-18 toward `plans.json`'s
-  `novelty::tfne-differentiable-field-solver`). The layered case discretizes
-  the variable-coefficient flux divergence at cell faces, the standard
-  finite-difference treatment for `d/dx(sigma(x) dphi/dx)`. Passing a scalar
-  is bit-identical to the pre-2026-07-18 implementation (verified in
-  `tests/test_experimental_poisson_1d_layered.py`).
+  constant "layered" medium, e.g. distinct cortical-layer conductivities).
+  The layered case discretizes the variable-coefficient flux divergence at
+  cell faces, the standard finite-difference treatment for `d/dx(sigma(x) dphi/dx)`.
+  Passing a scalar is bit-identical to the uniform conductivity formulation
+  (verified in `tests/test_experimental_poisson_1d_layered.py`).
 - `dx` (float): grid spacing.
 - `boundary` (str, default `"mean_zero_neumann"`): boundary condition declaration.
 - `gauge` (str, default `"mean_zero"`): gauge choice; the returned `phi` is the
@@ -495,12 +493,11 @@ A separate discrete-flux-conservation check (current is exactly zero outside
 a source/sink span and exactly constant within it) is verified directly
 against the solver's own output in `tests/test_experimental_poisson_1d_convergence.py`.
 
-**Known limitation (confirmed 2026-07-18):** the dense `jnp.linalg.lstsq`
-solve's residual grows sharply above roughly N~150-200 grid points in
-float32, on both the scalar and layered paths — `convergence_status`
-correctly self-reports `"failed"` in that regime rather than returning a
-silently wrong answer. Not yet fixed; treat this function as validated only
-up to roughly N~150 until a better-conditioned or sparse solve replaces it.
+**Known limitation:** the dense `jnp.linalg.lstsq` solve's residual grows
+sharply above roughly N~150-200 grid points in float32, on both the scalar and
+layered paths — `convergence_status` correctly self-reports `"failed"` in that
+regime rather than returning a silently wrong answer. Treat this function as
+validated up to roughly N~150 until a sparse/preconditioned solve replaces it.
 
 **Returns:** `(phi, residual, manifest)` —
 - `phi` (`jax.Array`): solved potential array.
@@ -527,9 +524,8 @@ assert manifest["convergence_status"] == "converged"
 
 Bridges real per-neuron depth positions (from `Model.neuron_table()`) and
 source values (e.g. a time-slice of `Signals.sources`) into
-`experimental_poisson_1d`'s 1D depth grid — the first integration of the
-experimental solver with the Model/Signals object model (added 2026-07-18,
-toward `plans.json:novelty::tfne-differentiable-field-solver`). This is a
+`experimental_poisson_1d`'s 1D depth grid — providing direct integration of the
+finite-difference Poisson solver with the Model/Signals object model. This is a
 separate, explicitly opt-in accessor called after `construct()`/`simulate()`,
 kept fully independent of `project_laminar_sources` and the default
 `simulate()` field dispatch, which stay exactly as they are today.
