@@ -209,7 +209,10 @@ exclude = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
-  "slow: long-running tests",
-  "release: release-gate tests including docs/notebooks/full examples",
-  "notebook: notebook execution tests",
+  "smoke: T0 tiny mathematical invariants, hygiene, and surface contracts (~10s)",
+  "fast: T1 fast development unit tests (<= 60s)",
+  "integration: multi-component end-to-end integration workflows",
+  "slow: long-running multi-trial simulations and parameter sweeps",
+  "notebook: interactive tutorial notebook execution tests",
+  "release: complete T2 release-gate tests including docs and full examples",
 ]
