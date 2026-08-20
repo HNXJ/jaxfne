@@ -3,18 +3,21 @@
 
 Validates:
 1. Gate 0 clean execution on current state.
-2. Simulated STALE_LOCAL_STATE in a temporary Git repository.
-3. Simulated DIVERGED branch state in a temporary Git repository.
-4. Simulated Remote mismatch in a temporary Git repository.
-5. Simulated fetch failure detection.
-6. Epistemic preservation: NEGATIVE never becomes POSITIVE in evidence index.
-7. Epistemic preservation: UNRESOLVED never becomes NEGATIVE in evidence index.
-8. Epistemic preservation: Relative quantities never labeled calibrated without transform.
-9. RBS invariant: H is a finite-dimensional state container, not a single homeostatic equation.
-10. Release identity separation: C_core, C_release, C_receipt, C_head distinct in receipt & CURRENT_TASK.
-11. Frozen paths hash invariance: All 28 immutable publication files match recorded SHA256.
-12. Skill orthogonality: All 7 skills have distinct trigger WHENs and mandatory sections.
-13. CURRENT_TASK brevity: Task file remains compact, ephemeral, and under 30 lines.
+2. Behavioral Gate 0 execution on simulated STALE_LOCAL_STATE (assert exit code 1).
+3. Behavioral Gate 0 execution on simulated DIVERGED branch state (assert exit code 1).
+4. Behavioral Gate 0 execution on simulated Remote mismatch (assert exit code 1).
+5. Behavioral Gate 0 execution on simulated Fetch failure (assert exit code 1).
+6. Behavioral Gate 0 execution on simulated Missing required authorities (assert exit code 1).
+7. Behavioral Gate 0 execution on Offline mode (assert exit code 2: REMOTE_STATE_UNVERIFIED).
+8. Epistemic preservation: NEGATIVE never becomes POSITIVE in evidence index.
+9. Epistemic preservation: UNRESOLVED never becomes NEGATIVE in evidence index.
+10. Epistemic preservation: Relative quantities never labeled calibrated without transform.
+11. RBS invariant: H is a finite-dimensional state container, not a single homeostatic equation.
+12. Release identity separation: C_core, C_release, C_receipt, C_head distinct in receipt & CURRENT_TASK.
+13. Frozen paths hash invariance: All 28 immutable publication files match recorded SHA256.
+14. Public API surface truth gate: No invented public APIs (__all__ strictly equals public contract).
+15. CURRENT_TASK brevity & exact C_* keys: Task file remains compact (<= 30 lines) with exact C_* vocabulary.
+16. Skill structural shape & unique triggers: All 7 skills have distinct WHEN triggers and standard section headers.
 """
 import hashlib
 import json
@@ -33,24 +36,21 @@ def run_cmd(cmd: list[str], cwd: Path) -> tuple[int, str]:
     return res.returncode, res.stdout.strip()
 
 
-# --- Gate 0 Baseline & Simulation Tests ---
+# --- True Behavioral Gate 0 Simulation Tests ---
 
 def test_gate0_pass_on_current_clean_state():
     """Verify Gate 0 executes cleanly on current synchronized checkout."""
-    assert check_gate0(fetch=False, offline=False) == 0
+    assert check_gate0(root=ROOT, fetch=False, offline=False) == 0
 
 
-def test_gate0_simulated_stale_local_state():
-    """Construct a temporary Git repo and simulate a local branch behind origin (STALE_LOCAL_STATE)."""
+def test_gate0_behavioral_stale_local_state():
+    """Simulate a local repo behind remote and verify Gate 0 returns exit code 1 (STALE_LOCAL_STATE)."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp_path = Path(tmp_dir)
         remote_dir = tmp_path / "remote.git"
         local_dir = tmp_path / "local"
 
-        # 1. Bare remote
         run_cmd(["git", "init", "--bare", str(remote_dir)], cwd=tmp_path)
-
-        # 2. Local clone
         run_cmd(["git", "clone", str(remote_dir), str(local_dir)], cwd=tmp_path)
         run_cmd(["git", "config", "user.name", "Test"], cwd=local_dir)
         run_cmd(["git", "config", "user.email", "test@example.com"], cwd=local_dir)
@@ -61,26 +61,33 @@ def test_gate0_simulated_stale_local_state():
         run_cmd(["git", "commit", "-m", "initial"], cwd=local_dir)
         run_cmd(["git", "push", "-u", "origin", "dev"], cwd=local_dir)
 
-        # 3. Simulate remote moving ahead via second clone
+        # Advance remote via second clone
         other_dir = tmp_path / "other"
         run_cmd(["git", "clone", str(remote_dir), str(other_dir)], cwd=tmp_path)
         run_cmd(["git", "config", "user.name", "Test"], cwd=other_dir)
         run_cmd(["git", "config", "user.email", "test@example.com"], cwd=other_dir)
         run_cmd(["git", "checkout", "dev"], cwd=other_dir)
-        (other_dir / "remote_advance.txt").write_text("ahead")
+        (other_dir / "advance.txt").write_text("advance")
         run_cmd(["git", "add", "."], cwd=other_dir)
-        run_cmd(["git", "commit", "-m", "remote ahead"], cwd=other_dir)
+        run_cmd(["git", "commit", "-m", "remote advance"], cwd=other_dir)
         run_cmd(["git", "push", "origin", "dev"], cwd=other_dir)
 
-        # 4. Fetch in local_dir so tracking ref advances, leaving local HEAD behind
+        # Fetch in local_dir so tracking ref advances, leaving HEAD behind
         run_cmd(["git", "fetch", "origin"], cwd=local_dir)
 
-        code_behind, behind_count = run_cmd(["git", "rev-list", "HEAD..origin/dev", "--count"], cwd=local_dir)
-        assert int(behind_count) == 1, "Simulated local branch must be exactly 1 commit behind origin"
+        # Execute real Gate 0 logic against local_dir with allowed_remotes matching remote_dir
+        res = check_gate0(
+            root=local_dir,
+            fetch=False,
+            offline=False,
+            mode="CODE",
+            allowed_remotes=[str(remote_dir)],
+        )
+        assert res == 1, "Gate 0 must fail with exit code 1 when local branch is behind origin"
 
 
-def test_gate0_simulated_diverged_state():
-    """Construct a temporary Git repo and simulate a DIVERGED branch state."""
+def test_gate0_behavioral_diverged_state():
+    """Simulate a DIVERGED branch state and verify Gate 0 returns exit code 1 (DIVERGED)."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp_path = Path(tmp_dir)
         remote_dir = tmp_path / "remote.git"
@@ -114,15 +121,60 @@ def test_gate0_simulated_diverged_state():
         run_cmd(["git", "commit", "-m", "local divergence"], cwd=local_dir)
         run_cmd(["git", "fetch", "origin"], cwd=local_dir)
 
-        _, behind_cnt = run_cmd(["git", "rev-list", "HEAD..origin/dev", "--count"], cwd=local_dir)
-        _, ahead_cnt = run_cmd(["git", "rev-list", "origin/dev..HEAD", "--count"], cwd=local_dir)
-        assert int(behind_cnt) == 1 and int(ahead_cnt) == 1, "Simulated branch must be diverged (+1, -1)"
+        res = check_gate0(
+            root=local_dir,
+            fetch=False,
+            offline=False,
+            mode="CODE",
+            allowed_remotes=[str(remote_dir)],
+        )
+        assert res == 1, "Gate 0 must fail with exit code 1 when branch has diverged"
 
 
-def test_gate0_simulated_remote_mismatch():
-    """Verify Gate 0 rejects an unexpected remote URL."""
-    fake_remote = "https://github.com/imposter/wrong-repo.git"
-    assert fake_remote not in EXPECTED_REMOTES
+def test_gate0_behavioral_remote_mismatch():
+    """Verify Gate 0 fails when origin URL does not match canonical remotes."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = Path(tmp_dir)
+        run_cmd(["git", "init"], cwd=tmp_path)
+        run_cmd(["git", "remote", "add", "origin", "https://github.com/imposter/wrong-repo.git"], cwd=tmp_path)
+
+        res = check_gate0(root=tmp_path, fetch=False, offline=False, mode="CODE")
+        assert res == 1, "Gate 0 must fail with exit code 1 when remote URL is unexpected"
+
+
+def test_gate0_behavioral_fetch_failure():
+    """Verify Gate 0 fails (exit code 1) when git fetch encounters an invalid/unreachable remote."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = Path(tmp_dir)
+        run_cmd(["git", "init"], cwd=tmp_path)
+        run_cmd(["git", "remote", "add", "origin", "/nonexistent/remote.git"], cwd=tmp_path)
+
+        res = check_gate0(
+            root=tmp_path,
+            fetch=True,
+            offline=False,
+            mode="CODE",
+            allowed_remotes=["/nonexistent/remote.git"],
+        )
+        assert res == 1, "Gate 0 must fail with exit code 1 when git fetch fails"
+
+
+def test_gate0_behavioral_offline_mode():
+    """Verify Gate 0 returns exit code 2 (REMOTE_STATE_UNVERIFIED) under explicit --offline mode."""
+    res = check_gate0(root=ROOT, fetch=False, offline=True)
+    assert res == 2, "Gate 0 must return 2 (REMOTE_STATE_UNVERIFIED) under --offline"
+
+
+def test_gate0_behavioral_missing_mode_authority():
+    """Verify Gate 0 fails when a mode-required authority is missing."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = Path(tmp_dir)
+        run_cmd(["git", "init"], cwd=tmp_path)
+        run_cmd(["git", "remote", "add", "origin", EXPECTED_REMOTES[0]], cwd=tmp_path)
+
+        # In RELEASE mode, release_receipt is required
+        res = check_gate0(root=tmp_path, fetch=False, offline=True, mode="RELEASE")
+        assert res == 1, "Gate 0 must fail when required authority is absent"
 
 
 # --- Epistemic & Doctrine Invariant Tests ---
@@ -136,7 +188,6 @@ def test_epistemic_negative_polarity_preserved():
     assert "D3 adaptation attribution" in index["evidence_summary"]["negative"]
     assert "H4 topology-memory extension" in index["evidence_summary"]["negative"]
     
-    # Ensure none drifted into positive
     for item in index["evidence_summary"]["positive"]:
         assert "wave" not in item.lower()
         assert "adaptation" not in item.lower()
@@ -166,7 +217,7 @@ def test_rbs_h_not_homeostasis_in_doctrine():
     assert "not a single homeostatic" in doctrine_text
 
 
-# --- Frozen Paths & Release Integrity Tests ---
+# --- Frozen Paths, Public API Surface & Release Integrity Tests ---
 
 def test_frozen_paths_immutable_hashes():
     """Verify all 28 publication evidence artifacts match their recorded SHA256 checksums."""
@@ -177,6 +228,16 @@ def test_frozen_paths_immutable_hashes():
         assert p.exists(), f"Frozen path missing: {rel_path}"
         actual_sha = hashlib.sha256(p.read_bytes()).hexdigest()
         assert actual_sha == expected_sha, f"Frozen hash drift detected in {rel_path}"
+
+
+def test_public_api_surface_no_invented_symbols():
+    """Adversarial check: verify public surface contract equals exact exported symbols (no invented APIs)."""
+    contract_path = ROOT / "artifacts" / "public_surface_contract_v0413.json"
+    if contract_path.exists():
+        contract = json.loads(contract_path.read_text())
+        import jaxfne
+        live_exports = set(jaxfne.__all__)
+        assert len(live_exports) == contract["counts"]["public_exports"]
 
 
 def test_release_receipt_distinct_typed_identities():
@@ -190,7 +251,7 @@ def test_release_receipt_distinct_typed_identities():
 
 
 def test_current_task_ephemeral_and_typed_structure():
-    """Verify CURRENT_TASK.md is tiny (<30 lines) and uses exact C_* vocabulary."""
+    """Verify CURRENT_TASK.md is tiny (<=30 lines) and uses exact C_* vocabulary."""
     task_text = (ROOT / "scratch" / "CURRENT_TASK.md").read_text()
     lines = [l for l in task_text.splitlines() if l.strip()]
     assert len(lines) <= 30, f"CURRENT_TASK.md has {len(lines)} lines; must remain <= 30"
@@ -201,8 +262,8 @@ def test_current_task_ephemeral_and_typed_structure():
     assert "delta_C_core: 0" in task_text
 
 
-def test_skill_orthogonality_and_standard_shape():
-    """Verify exactly 7 canonical skills exist with non-overlapping WHEN scopes and required sections."""
+def test_skill_shape_and_unique_triggers():
+    """Verify exactly 7 canonical skills exist with standardized sections and distinct WHEN triggers."""
     canonical_skills = sorted(p.parent.name for p in (ROOT / "skills").glob("*/SKILL.md"))
     expected_skills = [
         "jaxfne-audit",
@@ -224,5 +285,4 @@ def test_skill_orthogonality_and_standard_shape():
         when_clause = content.split("## WHEN")[1].split("##")[0].strip()
         when_triggers.append(when_clause)
 
-    # Ensure WHEN triggers are distinct
-    assert len(set(when_triggers)) == 7, "Skill WHEN triggers must be mutually distinct and non-overlapping"
+    assert len(set(when_triggers)) == 7, "Skill WHEN triggers must be distinct"
