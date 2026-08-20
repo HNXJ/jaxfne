@@ -3,7 +3,7 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-08-20T00:41:35",
+  "generated_at": "2026-08-20T00:44:47",
   "components": {
     "project_agents": {
       "file": "AGENTS.md",
@@ -16,7 +16,7 @@
       "jaxfne-release": "8aabde6c437022611631824882f036450925764572399347114950e3850950c1",
       "jaxfne-repo": "591a85b7c262dc5db47af7cbdadf61440b514a03860fd339e70d8506ca162829",
       "jaxfne-science": "0b952dab0643a0b6b71766a8cfda181e7246ace9cb2dc8789e0af1c04ba41550",
-      "jaxfne-seal": "6c7191e91c3bce46e50708015bc0512ae2894f6077ef15e1eb4ff2b3d9be0f4a"
+      "jaxfne-seal": "6692454f6f24ab16f302f636424c3e3eecb938ae2333645f1aed98dfa01cdc44"
     },
     "mirrors": {
       ".opencode/skills/jaxfne-audit/SKILL.md": "078bd11efc8baedcd313e197d8492347a28a031f427ca73cfc778e503ac399a7",
@@ -25,14 +25,14 @@
       ".opencode/skills/jaxfne-release/SKILL.md": "8aabde6c437022611631824882f036450925764572399347114950e3850950c1",
       ".opencode/skills/jaxfne-repo/SKILL.md": "591a85b7c262dc5db47af7cbdadf61440b514a03860fd339e70d8506ca162829",
       ".opencode/skills/jaxfne-science/SKILL.md": "0b952dab0643a0b6b71766a8cfda181e7246ace9cb2dc8789e0af1c04ba41550",
-      ".opencode/skills/jaxfne-seal/SKILL.md": "6c7191e91c3bce46e50708015bc0512ae2894f6077ef15e1eb4ff2b3d9be0f4a",
+      ".opencode/skills/jaxfne-seal/SKILL.md": "6692454f6f24ab16f302f636424c3e3eecb938ae2333645f1aed98dfa01cdc44",
       ".cursor/skills/jaxfne-audit/SKILL.md": "078bd11efc8baedcd313e197d8492347a28a031f427ca73cfc778e503ac399a7",
       ".cursor/skills/jaxfne-core/SKILL.md": "24a5a9961bfa1815c65cbabc6302b8138155ec9566467267060d63617e3a7f22",
       ".cursor/skills/jaxfne-frozen-use/SKILL.md": "44aee9a8d73169cfab54d4a803c482428f409e70e74c089df0071eaa8846f130",
       ".cursor/skills/jaxfne-release/SKILL.md": "8aabde6c437022611631824882f036450925764572399347114950e3850950c1",
       ".cursor/skills/jaxfne-repo/SKILL.md": "591a85b7c262dc5db47af7cbdadf61440b514a03860fd339e70d8506ca162829",
       ".cursor/skills/jaxfne-science/SKILL.md": "0b952dab0643a0b6b71766a8cfda181e7246ace9cb2dc8789e0af1c04ba41550",
-      ".cursor/skills/jaxfne-seal/SKILL.md": "6c7191e91c3bce46e50708015bc0512ae2894f6077ef15e1eb4ff2b3d9be0f4a"
+      ".cursor/skills/jaxfne-seal/SKILL.md": "6692454f6f24ab16f302f636424c3e3eecb938ae2333645f1aed98dfa01cdc44"
     },
     "project_config": {
       "file": ".opencode/opencode.json",
