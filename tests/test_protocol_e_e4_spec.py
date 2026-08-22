@@ -107,7 +107,7 @@ def test_e4_validate_spec_passes():
 
 
 def test_e4_protocol_receipt_closed():
-    receipt = json.loads((E4_SPEC_PATH.parent / "e4_protocol_receipt.json").read_text())
+    receipt = json.loads((E4_SPEC_PATH.parent / "e4_protocol_receipt.json").read_text(encoding="utf-8"))
     assert receipt["status"] == "CLOSED"
     assert receipt["reduction_contract"] == "R_E4_to_E3"
     assert receipt["next_checkpoint"] == "E5_specification"

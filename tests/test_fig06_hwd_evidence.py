@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import subprocess
+import os
 import sys
 from pathlib import Path
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 from jaxfne.publication.fig06_evidence import h4_primary_mx, load_fig06_evidence, w3b_counts
 from jaxfne.publication.fig06_protocol import (
@@ -39,9 +41,11 @@ def test_receipt_quantities():
 def test_fig06_generator():
     result = subprocess.run(
         [sys.executable, str(GENERATOR)],
+        env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
         cwd=GENERATOR.parent,
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     assert result.returncode == 0, result.stderr or result.stdout
     validate_fig06_spec()

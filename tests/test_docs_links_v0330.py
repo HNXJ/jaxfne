@@ -22,6 +22,7 @@ class TestDocsLinksV0330:
             ["mkdocs", "build", "--strict"],
             capture_output=True,
             text=True,
+        encoding="utf-8",
             cwd=pathlib.Path.cwd(),
             timeout=120,
         )

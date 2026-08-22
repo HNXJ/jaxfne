@@ -100,7 +100,7 @@ def test_d3_validate_spec_passes():
 def test_d3_protocol_receipt_frozen():
     from jaxfne.protocol_d_biological_rbs.d3_protocol import D3_SPEC_PATH
 
-    receipt = json.loads((D3_SPEC_PATH.parent / "d3_protocol_receipt.json").read_text())
+    receipt = json.loads((D3_SPEC_PATH.parent / "d3_protocol_receipt.json").read_text(encoding="utf-8"))
     assert receipt["status"] == "CLOSED"
     assert receipt["protocol_d_closed"] is True
     assert receipt["D4_status"] == "not_authorized"

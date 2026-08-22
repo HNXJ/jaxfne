@@ -300,9 +300,14 @@ class TestEndToEndIntegration:
 
     def test_builder_script_executable(self):
         """Assert builder script exists and is executable."""
+        import platform
+        import stat as _stat
+
+        if platform.system() == "Windows":
+            pytest.skip("POSIX executable bit is not representable on Windows; enforced on POSIX CI")
         script_path = Path("scripts/build_v037_source_column_3d.py")
         assert script_path.exists(), f"Expected {script_path}"
-        assert script_path.stat().st_mode & 0o100, "Script not executable"
+        assert script_path.stat().st_mode & _stat.S_IXUSR, "Script not executable"
 
     def test_all_artifacts_exist(self):
         """Assert all expected output artifacts exist."""

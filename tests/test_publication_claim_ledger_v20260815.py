@@ -14,7 +14,7 @@ INDEX_PATH = "artifacts/publication/publication_evidence_index.json"
 def ledger():
     import pathlib
 
-    return json.loads(pathlib.Path(LEDGER_PATH).read_text())
+    return json.loads(pathlib.Path(LEDGER_PATH).read_text(encoding="utf-8"))
 
 
 def test_ledger_schema_and_status(ledger):
@@ -47,7 +47,7 @@ def test_duplicate_claim_ids(ledger):
 
 
 def test_protected_polarities_preserved(ledger):
-    index = json.loads(__import__("pathlib").Path(INDEX_PATH).read_text())
+    index = json.loads(__import__("pathlib").Path(INDEX_PATH).read_text(encoding="utf-8"))
     index_polarity = {p["panel_id"]: p["polarity"] for p in index["panels"]}
 
     h4 = next(c for c in ledger["ledger"] if "H4" in c["claim"] and "negative" in c["claim"].lower())

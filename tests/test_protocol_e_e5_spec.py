@@ -116,7 +116,7 @@ def test_e5_validate_spec_passes():
 
 
 def test_e5_protocol_receipt_closed():
-    receipt = json.loads((E5_SPEC_PATH.parent / "e5_protocol_receipt.json").read_text())
+    receipt = json.loads((E5_SPEC_PATH.parent / "e5_protocol_receipt.json").read_text(encoding="utf-8"))
     assert receipt["status"] == "CLOSED"
     assert receipt["primary_contrast"] == "D - N1"
     assert receipt["execution_receipt"] == "artifacts/protocol_e_integration/e5_execution_receipt.json"

@@ -85,7 +85,7 @@ def scan_docs() -> dict:
     findings = {}
     for f in files:
         rel = str(f.relative_to(REPO_ROOT))
-        text = f.read_text()
+        text = f.read_text(encoding="utf-8")
         lines = text.splitlines()
         for axis, spec in AXES.items():
             hits = []

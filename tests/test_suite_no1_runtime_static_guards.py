@@ -28,7 +28,7 @@ NOTEBOOK_PATH = (
 
 def _load_code() -> str:
     """Return all code cell sources concatenated from the notebook."""
-    with open(NOTEBOOK_PATH) as f:
+    with open(NOTEBOOK_PATH, encoding="utf-8") as f:
         nb = json.load(f)
     return "\n".join(
         "".join(cell.get("source", []))
@@ -46,7 +46,7 @@ class TestSuiteNo1RuntimeStaticGuards:
 
     def test_notebook_is_valid_json(self):
         """Notebook parses as valid JSON with a 'cells' key."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
         assert "cells" in nb
 

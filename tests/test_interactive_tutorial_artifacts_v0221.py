@@ -9,9 +9,12 @@ Truth status: computational scaffold, not empirically validated.
 """
 
 import json
+import os
 import pathlib
 import tempfile
 import pytest
+from pathlib import Path
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 # Check if Plotly is available
@@ -52,9 +55,11 @@ class TestStaticPNGGeneration:
 
         result = subprocess.run(
             [sys.executable, "scripts/run_all_tutorials.py", "--help"],
-            cwd=pathlib.Path(__file__).parent.parent,
+            env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=pathlib.Path(__file__).parent.parent,
             capture_output=True,
             text=True,
+        encoding="utf-8",
         )
         assert result.returncode == 0
         assert "--write-interactive" in result.stdout
@@ -66,9 +71,11 @@ class TestStaticPNGGeneration:
 
         result = subprocess.run(
             [sys.executable, "scripts/validate_tutorial_outputs.py", "--help"],
-            cwd=pathlib.Path(__file__).parent.parent,
+            env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=pathlib.Path(__file__).parent.parent,
             capture_output=True,
             text=True,
+        encoding="utf-8",
         )
         assert result.returncode == 0
         assert "--require-interactive" in result.stdout

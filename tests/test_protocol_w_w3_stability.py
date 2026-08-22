@@ -67,7 +67,7 @@ def test_nominal_discrete_stability_gate_passes_marginally():
 
 def test_frozen_receipt_on_disk_matches_exporter():
     assert RECEIPT.is_file()
-    frozen = json.loads(RECEIPT.read_text())
+    frozen = json.loads(RECEIPT.read_text(encoding="utf-8"))
     live = export_w3_stability_receipt()
     assert frozen["schema"] == live["schema"]
     assert frozen["stability_gate"]["discrete_pass"] == live["stability_gate"]["discrete_pass"]

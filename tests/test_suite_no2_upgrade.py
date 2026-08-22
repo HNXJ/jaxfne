@@ -12,7 +12,7 @@ NOTEBOOK = Path("tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb")
 
 
 def test_suite2_notebook_uses_short_code_cells_and_no_local_functions():
-    nb = json.loads(NOTEBOOK.read_text())
+    nb = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
     code_cells = [cell for cell in nb["cells"] if cell["cell_type"] == "code"]
     assert code_cells
     for cell in code_cells:

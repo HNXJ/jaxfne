@@ -247,7 +247,7 @@ def restore_state(path: str | Path) -> tuple[list, dict]:
     """
     path = Path(path)
     with np.load(path.with_suffix(".npz"), allow_pickle=False) as arrays_npz:
-        meta = json.loads(path.with_suffix(".json").read_text())
+        meta = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))
         if meta["schema"] != "checkpoint_v1":
             raise ValueError(f"Unknown checkpoint schema: {meta['schema']!r}")
         dtype_names = meta.get("leaf_dtypes")

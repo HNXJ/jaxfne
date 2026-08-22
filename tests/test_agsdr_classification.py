@@ -197,6 +197,7 @@ class TestDocsClassification:
             ["grep", "-rn", "Genetic-Stochastic", "jaxfne/"],
             capture_output=True,
             text=True,
+        encoding="utf-8",
             cwd=REPO_ROOT,
         )
         assert out.returncode == 1, f"Found non-canonical acronym variant:\n{out.stdout}"

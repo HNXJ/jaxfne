@@ -417,6 +417,7 @@ def test_v033_syntax_check():
         [sys.executable, "-m", "py_compile", script_path],
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     assert result.returncode == 0, \
         f"py_compile failed:\n{result.stderr}"

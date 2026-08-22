@@ -160,6 +160,6 @@ def test_d2a_sweep_levels():
 
 
 def test_d2a_protocol_receipt():
-    meta = json.loads((D2A_SPEC_PATH.parent / "d2a_protocol_receipt.json").read_text())
+    meta = json.loads((D2A_SPEC_PATH.parent / "d2a_protocol_receipt.json").read_text(encoding="utf-8"))
     assert meta["checkpoint"] == "D2a"
     assert meta["status"] == "CLOSED"

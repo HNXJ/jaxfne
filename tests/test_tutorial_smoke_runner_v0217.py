@@ -1,9 +1,11 @@
 """Tests for tutorial smoke runner (v0.2.17)."""
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import pytest
 
@@ -27,6 +29,7 @@ class TestTutorialSmokeRunner:
             [sys.executable, str(repo_root / "scripts" / "run_tutorial_smoke.py"), "--help"],
             capture_output=True,
             text=True,
+        encoding="utf-8",
         )
         assert result.returncode == 0, f"Help failed: {result.stderr}"
         assert "usage" in result.stdout.lower() or "help" in result.stdout.lower()
@@ -37,7 +40,9 @@ class TestTutorialSmokeRunner:
             [sys.executable, str(repo_root / "scripts" / "run_tutorial_smoke.py")],
             capture_output=True,
             text=True,
-            cwd=repo_root,
+        encoding="utf-8",
+            env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=repo_root,
         )
         assert result.returncode == 0, f"Smoke run failed: {result.stderr}"
         assert "pass" in result.stdout.lower() or "PASS" in result.stdout
@@ -52,7 +57,9 @@ class TestTutorialSmokeRunner:
             ],
             capture_output=True,
             text=True,
-            cwd=repo_root,
+        encoding="utf-8",
+            env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=repo_root,
         )
         assert result.returncode == 0
         assert "skipped" in result.stdout.lower()
@@ -67,7 +74,9 @@ class TestTutorialSmokeRunner:
             ],
             capture_output=True,
             text=True,
-            cwd=repo_root,
+        encoding="utf-8",
+            env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=repo_root,
         )
         assert result.returncode == 0
         assert "skipped" in result.stdout.lower()
@@ -84,7 +93,9 @@ class TestTutorialSmokeRunner:
             ],
             capture_output=True,
             text=True,
-            cwd=repo_root,
+        encoding="utf-8",
+            env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=repo_root,
         )
         assert result.returncode == 0
         assert report_path.exists()
@@ -109,7 +120,8 @@ class TestTutorialSmokeRunner:
                 str(report_path),
             ],
             capture_output=True,
-            cwd=repo_root,
+            env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=repo_root,
         )
 
         with open(report_path) as f:
@@ -136,7 +148,8 @@ class TestTutorialSmokeRunner:
                 str(report_path),
             ],
             capture_output=True,
-            cwd=repo_root,
+            env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=repo_root,
         )
 
         with open(report_path) as f:
@@ -164,7 +177,8 @@ class TestTutorialSmokeRunner:
                 str(report_path),
             ],
             capture_output=True,
-            cwd=repo_root,
+            env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=repo_root,
         )
 
         with open(report_path) as f:
@@ -240,7 +254,9 @@ class TestTutorialSmokeRunner:
             [sys.executable, "-c", "import jaxfne; print(jaxfne.__version__)"],
             capture_output=True,
             text=True,
-            cwd=repo_root,
+        encoding="utf-8",
+            env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=repo_root,
         )
         assert result.returncode == 0
         version = result.stdout.strip()
@@ -250,7 +266,7 @@ class TestTutorialSmokeRunner:
 
         from pathlib import Path
 
-        content = Path("pyproject.toml").read_text()
+        content = Path("pyproject.toml").read_text(encoding="utf-8")
 
         project_section = re.search(r"\[project\](.*?)(?:\[|\Z)", content, re.DOTALL)
 

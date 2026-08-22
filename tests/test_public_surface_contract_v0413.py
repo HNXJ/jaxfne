@@ -27,7 +27,7 @@ def test_public_exports_match_contract_module():
 
 def test_contract_artifact_matches_module():
     assert CONTRACT_PATH.exists(), "artifacts/public_surface_contract_v0413.json required"
-    artifact = json.loads(CONTRACT_PATH.read_text())
+    artifact = json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
     summary = public_surface_summary()
     assert artifact["public_exports"] == summary["public_exports"]
     assert artifact["counts"]["public_exports"] == len(PUBLIC_EXPORTS)

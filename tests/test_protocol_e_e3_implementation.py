@@ -136,7 +136,7 @@ def test_e3_run_gates_and_write_receipt(tmp_path, monkeypatch):
         receipt["rbs_primitive"]["non_owner_H_K_semantics"]
         == "fixed reference coordinate H_K=1; F1 recurrence masked off outside owner_mask"
     )
-    on_disk = json.loads((tmp_path / "e3_execution_receipt.json").read_text())
+    on_disk = json.loads((tmp_path / "e3_execution_receipt.json").read_text(encoding="utf-8"))
     assert on_disk["status"] == "FROZEN"
 
 

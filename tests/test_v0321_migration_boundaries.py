@@ -39,6 +39,7 @@ else:
         [sys.executable, "-c", code],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
     )
     assert result.returncode == 0, f"Graphics isolation failed: {result.stdout}\nError: {result.stderr}"

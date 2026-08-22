@@ -22,7 +22,7 @@ def test_reports_strict_json_schema():
         # 1. Validation Report
         val_path = path / "validation_report.json"
         assert val_path.exists()
-        val_data = json.loads(val_path.read_text())
+        val_data = json.loads(val_path.read_text(encoding="utf-8"))
         assert "valid" in val_data
         assert "checks" in val_data
         assert "generated_at" in val_data
@@ -31,7 +31,7 @@ def test_reports_strict_json_schema():
         # 2. Backup/Resume Report
         br_path = path / "backup_resume_report.json"
         assert br_path.exists()
-        br_data = json.loads(br_path.read_text())
+        br_data = json.loads(br_path.read_text(encoding="utf-8"))
         assert "vm_max_abs_error" in br_data
         assert "spk_mismatch_count" in br_data
         assert "source_max_abs_error" in br_data
@@ -48,7 +48,7 @@ def test_reports_strict_json_schema():
         # 3. Probe Report
         pr_path = path / "probe_report.json"
         assert pr_path.exists()
-        pr_data = json.loads(pr_path.read_text())
+        pr_data = json.loads(pr_path.read_text(encoding="utf-8"))
         assert pr_data["proxy_safe_names"] is True
         assert pr_data["physical_amplitude_calibrated"] is False
         assert "readouts_present" in pr_data
@@ -58,7 +58,7 @@ def test_reports_strict_json_schema():
         # 4. Plasticity Report
         pl_path = path / "plasticity_report.json"
         assert pl_path.exists()
-        pl_data = json.loads(pl_path.read_text())
+        pl_data = json.loads(pl_path.read_text(encoding="utf-8"))
         assert pl_data["enabled"] is True
         assert pl_data["biological_learning_claim"] is False
         assert "pre_weight_min" in pl_data

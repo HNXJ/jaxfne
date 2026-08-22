@@ -45,7 +45,7 @@ def check(name: str, ok: bool, detail: str = ""):
 
 # ---------------------------------------------------------------- 1. structure
 
-draft = DRAFT.read_text()
+draft = DRAFT.read_text(encoding="utf-8")
 all_heads = re.findall(r"^## (.+)$", draft, flags=re.M)
 heads = [h for h in all_heads if not h.startswith("Appendix")]
 check("draft_paragraph_ids", len(heads) == 20,
@@ -54,7 +54,7 @@ check("draft_paragraph_ids", len(heads) == 20,
 qin_draft = set(m[1:-1] for m in re.findall(r"\{Q\d{2}\}", draft))
 check("q_markers_bare", True, "")
 
-map_text = TRACE.read_text()
+map_text = TRACE.read_text(encoding="utf-8")
 claimed = re.findall(r"\| CL-(\d{2}) \|", map_text)
 check("claim_refs_present", len(claimed) >= 21,
       f"{len(claimed)} claim rows in trace map")

@@ -577,7 +577,7 @@ class Model:
         from pathlib import Path
 
         p = Path(path)
-        meta = _json.loads(p.with_suffix(".json").read_text())
+        meta = _json.loads(p.with_suffix(".json").read_text(encoding="utf-8"))
         if meta["schema"] != "model_checkpoint_v1":
             raise ValueError(f"Unknown checkpoint schema: {meta['schema']!r}")
         with _np.load(p.with_suffix(".npz")) as z:

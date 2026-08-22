@@ -55,6 +55,7 @@ def test_legacy_inventory_wrapper_executes(tmp_path):
         [sys.executable, "scripts/evidence_figures_inventory.py"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
     )
     assert result.returncode == 0, result.stderr

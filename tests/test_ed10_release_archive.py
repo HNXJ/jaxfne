@@ -44,6 +44,6 @@ def test_ed10_release_archive_structure_and_gates(tmp_path):
     assert (pathlib.Path(out) / "ed10_release_archive.json").exists()
     receipt_path = pathlib.Path(out) / "ed10_receipt.json"
     assert receipt_path.exists()
-    receipt = json.loads(receipt_path.read_text())
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
     assert receipt["sha256"] == digest
     assert receipt["truth_status"].startswith("provenance")

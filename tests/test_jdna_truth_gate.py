@@ -69,7 +69,7 @@ def test_no_jdna_branches_in_construct_simulate():
         assert "import jdna" not in text, f"{label} must not import JDNA"
         assert "from jaxfne.jdna" not in text, f"{label} must not import JDNA"
         assert "PseudoGenome" not in text, f"{label} must not reference PseudoGenome"
-    assert "provenance" in (ROOT / "jaxfne" / "neuronal_tensor.py").read_text()
+    assert "provenance" in (ROOT / "jaxfne" / "neuronal_tensor.py").read_text(encoding="utf-8")
 
 
 def test_provenance_semantics_documented_and_real(tmp_path):
@@ -114,6 +114,7 @@ def test_visual_review_script_executes(tmp_path):
         [sys.executable, str(script), str(tmp_path)],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         cwd=ROOT,
     )
     assert result.returncode == 0, f"visual review script failed:\n{result.stdout}\n{result.stderr}"

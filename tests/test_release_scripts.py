@@ -5,6 +5,7 @@ invariants without making any remote mutations.
 """
 
 import json
+import platform
 import subprocess
 import sys
 import os
@@ -12,6 +13,7 @@ import tempfile
 import tarfile
 import zipfile
 from pathlib import Path
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import pytest
 
@@ -29,6 +31,7 @@ def run_script(script_name: str, args: list[str], extra_env: dict | None = None)
         [sys.executable, str(SCRIPTS_DIR / script_name), *args],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         env=env,
         cwd=str(REPO_ROOT),
     )
@@ -37,10 +40,14 @@ def run_script(script_name: str, args: list[str], extra_env: dict | None = None)
 
 def run_bash_script(script_name: str, args: list[str]):
     """Run a shell script and return (exit_code, stdout, stderr)."""
+    if platform.system() != "Linux" and platform.system() != "Darwin":
+        pytest.skip("POSIX shell-script gates run on Linux/macOS CI only")
     result = subprocess.run(
         ["bash", str(SCRIPTS_DIR / script_name), *args],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
         cwd=str(REPO_ROOT),
     )
     return result.returncode, result.stdout, result.stderr
@@ -138,7 +145,9 @@ class TestAssertReleaseFreeze:
                 [sys.executable, str(SCRIPTS_DIR / "assert_release_freeze.py")],
                 capture_output=True,
                 text=True,
-                cwd=tmpdir,
+        encoding="utf-8",
+                env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=tmpdir,
             )
             assert result.returncode == 0
             assert "not active" in result.stdout.lower() or "pass" in result.stdout.lower()
@@ -147,10 +156,11 @@ class TestAssertReleaseFreeze:
         """Exits 1 when AGENTS.md RELEASE_STATE block declares freeze=true and SHA mismatches."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a fake git repo
-            subprocess.run(["git", "init"], cwd=tmpdir, capture_output=True)
+            subprocess.run(["git", "init"], env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=tmpdir, capture_output=True)
             subprocess.run(
                 ["git", "commit", "--allow-empty", "-m", "init"],
-                cwd=tmpdir,
+        cwd=tmpdir,
                 capture_output=True,
                 env={**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "test@test.com",
                      "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "test@test.com"},
@@ -168,7 +178,8 @@ class TestAssertReleaseFreeze:
                 [sys.executable, str(SCRIPTS_DIR / "assert_release_freeze.py")],
                 capture_output=True,
                 text=True,
-                cwd=tmpdir,
+        encoding="utf-8",
+        cwd=tmpdir,
                 env={**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "test@test.com"},
             )
             # Freeze active + SHA mismatch => exit 1
@@ -182,10 +193,11 @@ class TestAssertReleaseFreeze:
                 "intended_release_sha": "b" * 40,
             }
             Path(tmpdir, ".release_target.json").write_text(json.dumps(lockfile))
-            subprocess.run(["git", "init"], cwd=tmpdir, capture_output=True)
+            subprocess.run(["git", "init"], env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=tmpdir, capture_output=True)
             subprocess.run(
                 ["git", "commit", "--allow-empty", "-m", "init"],
-                cwd=tmpdir,
+        cwd=tmpdir,
                 capture_output=True,
                 env={**os.environ, "GIT_AUTHOR_NAME": "test", "GIT_AUTHOR_EMAIL": "test@test.com",
                      "GIT_COMMITTER_NAME": "test", "GIT_COMMITTER_EMAIL": "test@test.com"},
@@ -194,7 +206,8 @@ class TestAssertReleaseFreeze:
                 [sys.executable, str(SCRIPTS_DIR / "assert_release_freeze.py")],
                 capture_output=True,
                 text=True,
-                cwd=tmpdir,
+        encoding="utf-8",
+        cwd=tmpdir,
                 env={**os.environ},
             )
             # Freeze active + SHA mismatch => exit 1
@@ -212,7 +225,9 @@ class TestValidateReleaseArtifacts:
                  "--version", "0.3.14"],
                 capture_output=True,
                 text=True,
-                cwd=tmpdir,
+        encoding="utf-8",
+                env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=tmpdir,
             )
             assert result.returncode == 1
             assert "not found" in result.stdout.lower() or "error" in result.stdout.lower()
@@ -225,7 +240,9 @@ class TestValidateReleaseArtifacts:
                  "--version", "0.3.14", "--allow-missing-dist"],
                 capture_output=True,
                 text=True,
-                cwd=tmpdir,
+        encoding="utf-8",
+                env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=tmpdir,
             )
             assert result.returncode == 0
             assert "skipping" in result.stdout.lower() or "allow-missing" in result.stdout.lower()
@@ -239,7 +256,9 @@ class TestValidateReleaseArtifacts:
                  "--version", "0.3.14"],
                 capture_output=True,
                 text=True,
-                cwd=tmpdir,
+        encoding="utf-8",
+                env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=tmpdir,
             )
             assert result.returncode == 1
 
@@ -259,7 +278,9 @@ class TestValidateReleaseArtifacts:
                  "--version", "0.3.14"],
                 capture_output=True,
                 text=True,
-                cwd=tmpdir,
+        encoding="utf-8",
+                env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=tmpdir,
             )
             assert result.returncode == 1
             assert "9.9.9" in result.stdout
@@ -292,7 +313,9 @@ class TestValidateReleaseArtifacts:
                  "--version", "0.3.14"],
                 capture_output=True,
                 text=True,
-                cwd=tmpdir,
+        encoding="utf-8",
+                env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
+        cwd=tmpdir,
             )
             assert result.returncode == 0
             assert "valid" in result.stdout.lower()

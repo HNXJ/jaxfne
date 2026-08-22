@@ -99,7 +99,7 @@ def test_d2b_validate_spec_passes():
 
 
 def test_d2b_protocol_receipt_closed_after_implementation():
-    receipt = json.loads((D2B_SPEC_PATH.parent / "d2b_protocol_receipt.json").read_text())
+    receipt = json.loads((D2B_SPEC_PATH.parent / "d2b_protocol_receipt.json").read_text(encoding="utf-8"))
     assert receipt["status"] == "CLOSED"
     assert receipt["implementation_authorized"] is True
     assert receipt["next_checkpoint"] == "D3"

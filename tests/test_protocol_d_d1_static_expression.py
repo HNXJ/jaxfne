@@ -169,6 +169,6 @@ def test_d1_documentation_clause_present():
 
 
 def test_d1_protocol_receipt_pointer():
-    meta = json.loads((D1_SPEC_PATH.parent / "d1_protocol_receipt.json").read_text())
+    meta = json.loads((D1_SPEC_PATH.parent / "d1_protocol_receipt.json").read_text(encoding="utf-8"))
     assert meta["checkpoint"] == "D1"
     assert meta["status"] == "CLOSED"

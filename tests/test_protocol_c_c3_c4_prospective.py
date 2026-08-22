@@ -46,7 +46,7 @@ def test_c3_each_cell_has_full_estimator_contract():
 
 
 def test_c3_condition_summary_counts_sum_to_10():
-    summary = json.loads(C3_CONDITION_SUMMARY_PATH.read_text())
+    summary = json.loads(C3_CONDITION_SUMMARY_PATH.read_text(encoding="utf-8"))
     for row in summary["per_condition"]:
         assert row["N_TW"] + row["N_NW"] + row["N_U"] == 10
         assert row["p_W"] == row["N_TW"] / 10.0
@@ -54,7 +54,7 @@ def test_c3_condition_summary_counts_sum_to_10():
 
 
 def test_c4_preregistered_delta_p_w_recorded():
-    summary = json.loads(C3_CONDITION_SUMMARY_PATH.read_text())
+    summary = json.loads(C3_CONDITION_SUMMARY_PATH.read_text(encoding="utf-8"))
     c = summary["contrasts"]
     og = next(r for r in summary["per_condition"] if r["condition_id"] == "ordered_geometry_derived")
     ou = next(r for r in summary["per_condition"] if r["condition_id"] == "ordered_uniform")
@@ -83,5 +83,5 @@ def test_c3_raw_receipt_before_interpretation_paths():
 
 def test_summarize_matches_frozen_receipt():
     summary = summarize_conditions(load_c3_execution_receipt())
-    frozen = json.loads(C3_CONDITION_SUMMARY_PATH.read_text())
+    frozen = json.loads(C3_CONDITION_SUMMARY_PATH.read_text(encoding="utf-8"))
     assert summary["per_condition"] == frozen["per_condition"]

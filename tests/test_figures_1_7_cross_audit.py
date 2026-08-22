@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import subprocess
+import os
 import sys
 from pathlib import Path
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 from jaxfne.publication.cross_figure_audit import (
     load_cross_figure_audit,
@@ -26,9 +28,11 @@ def test_cross_audit_logic_passes():
 def test_cross_audit_generator():
     result = subprocess.run(
         [sys.executable, str(GENERATOR)],
+        env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
         cwd=GENERATOR.parent,
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     assert result.returncode == 0, result.stderr or result.stdout
     validate_cross_figure_audit()

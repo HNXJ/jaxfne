@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import pytest
 
@@ -39,9 +41,11 @@ def test_validate_fig05_spec():
 def test_fig05_generator_and_audit():
     result = subprocess.run(
         [sys.executable, str(GENERATOR)],
+        env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
         cwd=GENERATOR.parent,
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     assert result.returncode == 0, result.stderr or result.stdout
     audit = load_fig05_semantic_audit()

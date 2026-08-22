@@ -158,4 +158,4 @@ class TestManifest:
         assert path.exists()
 
         import json
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))

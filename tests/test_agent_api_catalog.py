@@ -34,7 +34,7 @@ def text() -> str:
     # absent in clean checkouts / CI. Skip rather than fail when it is not present.
     if not CATALOG.exists():
         pytest.skip(f"internal catalog not present (gitignored): {CATALOG}")
-    return CATALOG.read_text()
+    return CATALOG.read_text(encoding="utf-8")
 
 
 def _api_rows(text: str) -> list[str]:

@@ -115,6 +115,7 @@ def _run_example(example_path: str) -> subprocess.CompletedProcess:
         [sys.executable, example_path],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=120,
         env=env,
     )

@@ -62,15 +62,15 @@ def test_preserves_silent_rest_sha_reference():
 def test_frozen_spec_and_receipt_exist():
     assert SPEC.is_file()
     assert RECEIPT.is_file()
-    spec = json.loads(SPEC.read_text())
+    spec = json.loads(SPEC.read_text(encoding="utf-8"))
     assert spec["preserved_prerequisite"]["silent_rest_w3_sha"] == W3_SILENT_REST_SHA
-    frozen = json.loads(RECEIPT.read_text())
+    frozen = json.loads(RECEIPT.read_text(encoding="utf-8"))
     assert frozen["schema"] == "protocol_w_w3a_stability_receipt.v1"
     assert frozen["gates"]["W3a_FP"]["active_fp_found"] is False
 
 
 def test_exporter_matches_frozen_receipt_fp_gate():
     live = export_w3a_stability_receipt(cfg=_fast_cfg())
-    frozen = json.loads(RECEIPT.read_text())
+    frozen = json.loads(RECEIPT.read_text(encoding="utf-8"))
     assert live["gates"]["W3a_FP"]["active_fp_found"] is False
     assert frozen["gates"]["W3a_FP"]["active_fp_found"] is False

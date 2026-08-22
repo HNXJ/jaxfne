@@ -32,7 +32,7 @@ _FIELDS_DIR = pathlib.Path(diagnostics.__file__).parent
 
 
 def _top_level_defs(module_path):
-    tree = ast.parse(pathlib.Path(module_path).read_text())
+    tree = ast.parse(pathlib.Path(module_path).read_text(encoding="utf-8"))
     return {
         n.name
         for n in tree.body

@@ -59,7 +59,7 @@ def test_restore_rejects_unknown_schema(tmp_path):
 
     import json
     meta_path = path.with_suffix(".json")
-    meta = json.loads(meta_path.read_text())
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
     meta["schema"] = "some_other_schema_v99"
     meta_path.write_text(json.dumps(meta))
 

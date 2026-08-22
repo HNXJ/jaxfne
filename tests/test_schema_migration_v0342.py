@@ -77,11 +77,11 @@ def _tracked(patterns):
 
 @pytest.mark.parametrize("term", RETIRED)
 def test_no_retired_terms_in_public_docs(term):
-    offenders = [str(p) for p in _tracked(["docs/**/*.md", "docs/*.md"]) if term in p.read_text()]
+    offenders = [str(p) for p in _tracked(["docs/**/*.md", "docs/*.md"]) if term in p.read_text(encoding="utf-8")]
     assert not offenders, f"retired term {term!r} present in docs: {offenders}"
 
 
 @pytest.mark.parametrize("term", RETIRED)
 def test_no_retired_terms_in_notebooks(term):
-    offenders = [str(p) for p in _tracked(["tutorials/**/*.ipynb"]) if term in p.read_text()]
+    offenders = [str(p) for p in _tracked(["tutorials/**/*.ipynb"]) if term in p.read_text(encoding="utf-8")]
     assert not offenders, f"retired term {term!r} present in notebooks: {offenders}"

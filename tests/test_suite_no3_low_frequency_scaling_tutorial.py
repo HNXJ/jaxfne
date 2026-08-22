@@ -25,21 +25,21 @@ class TestNotebookStructure:
 
     def test_notebook_is_valid_json(self):
         """Notebook is valid JSON."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
         assert nb is not None
         assert "cells" in nb
 
     def test_notebook_has_cells(self):
         """Notebook has substantial cells."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
         cells = nb["cells"]
         assert len(cells) > 10, f"Expected > 10 cells, got {len(cells)}"
 
     def test_section_headers_present(self):
         """Expected learning objectives and glossary headers are present."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         full_text = " ".join(
@@ -64,7 +64,7 @@ class TestPublicAPIUsage:
 
     def test_configuration_api_used(self):
         """Notebook uses jtfne.Configuration with method chaining."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -80,7 +80,7 @@ class TestPublicAPIUsage:
 
     def test_construct_simulate_used(self):
         """Notebook uses construct() and simulate()."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -97,7 +97,7 @@ class TestMetadataFormatting:
 
     def test_run_metadata_structure(self):
         """Notebook defines metadata with key public keys."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -128,7 +128,7 @@ class TestFigureReferences:
 
     def test_figure_filenames_declared(self):
         """Notebook saves figures with expected filenames."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -154,7 +154,7 @@ class TestJSONSafety:
 
     def test_json_serialization_safety(self):
         """Notebook uses allow_nan=False in json.dumps."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(

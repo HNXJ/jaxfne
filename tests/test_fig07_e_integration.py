@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import subprocess
+import os
 import sys
 from pathlib import Path
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 from jaxfne.publication.fig07_evidence import (
     e2_delay_classes,
@@ -48,9 +50,11 @@ def test_frozen_receipt_quantities():
 def test_fig07_generator():
     result = subprocess.run(
         [sys.executable, str(GENERATOR)],
+        env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
         cwd=GENERATOR.parent,
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     assert result.returncode == 0, result.stderr or result.stdout
     validate_fig07_spec()

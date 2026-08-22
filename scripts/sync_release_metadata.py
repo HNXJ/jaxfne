@@ -12,7 +12,7 @@ def get_version_from_pyproject():
     pyproject_path = Path("pyproject.toml")
     if not pyproject_path.exists():
         return None
-    content = pyproject_path.read_text()
+    content = pyproject_path.read_text(encoding="utf-8")
     match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
     return match.group(1) if match else None
 
@@ -30,7 +30,7 @@ def get_version_from_mkdocs():
     mkdocs_path = Path("mkdocs.yml")
     if not mkdocs_path.exists():
         return None
-    content = mkdocs_path.read_text()
+    content = mkdocs_path.read_text(encoding="utf-8")
     match = re.search(r'jaxfne_version:\s*["\']([^"\']+)["\']', content)
     return match.group(1) if match else None
 
@@ -39,7 +39,7 @@ def get_version_from_doc_version():
     doc_path = Path("docs/_generated/version.md")
     if not doc_path.exists():
         return None
-    content = doc_path.read_text()
+    content = doc_path.read_text(encoding="utf-8")
     match = re.search(r'Current source version:\s*([^\s\n]+)', content)
     return match.group(1) if match else None
 

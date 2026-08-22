@@ -116,9 +116,31 @@ class TestPhysicalTimeMonotonicity:
         ds = jnp.full((edges.n_edges,), 8, dtype=jnp.int32)
         new_edges = replace(edges, delay_steps=ds)
         object.__setattr__(model, "params", {**model.params, "edge_list": new_edges})
-        s = jtfne.simulate(model)
+        sim_kwargs = dict(duration_ms=120.0, dt_ms=1.0, seed=1)
+        s = model.simulate(
+            jtfne.Simulation(
+                runtime=jtfne.RuntimeConfig(
+                    dtype="float32", recurrent_backend="edge_list",
+                    enable_hdp=False, hdp_params={"noise_scale": 0.0},
+                ),
+                **sim_kwargs,
+            )
+        )
         tms = np.asarray(s.time_ms)
         assert np.all(np.diff(tms) > 0)
+        null_model = jtfne.construct(cfg)
+        s_null = null_model.simulate(
+            jtfne.Simulation(
+                runtime=jtfne.RuntimeConfig(
+                    dtype="float32", recurrent_backend="edge_list",
+                    enable_hdp=False, hdp_params={"noise_scale": 0.0},
+                ),
+                **sim_kwargs,
+            )
+        )
+        assert not np.array_equal(
+            np.asarray(s.V_m), np.asarray(s_null.V_m)
+        ), "nonzero delays must be consumed by the finite-delay kernel"
 
 
 class TestEffectiveMappingCorrectness:

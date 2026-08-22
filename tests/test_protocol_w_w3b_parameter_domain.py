@@ -26,13 +26,13 @@ SPEC = Path("artifacts/protocol_w/w3b_parameter_domain/w3b_parameter_domain_spec
 
 
 def test_margin_audit_documents_period_one_issue():
-    audit = json.loads(AUDIT.read_text())
+    audit = json.loads(AUDIT.read_text(encoding="utf-8"))
     assert audit["root_causes"][0]["id"] == "period_one_false_positive"
     assert audit["W3b_blocking_rule"]
 
 
 def test_w3b_spec_exists_and_allows_empty_domain():
-    spec = json.loads(SPEC.read_text())
+    spec = json.loads(SPEC.read_text(encoding="utf-8"))
     assert spec["D_useful"]["may_be_empty"] is True
     assert "m_F > 0.02" in spec["frozen_gates_before_scan"]["robust_stability"]
 
@@ -72,7 +72,7 @@ def test_frozen_lattice_size():
 
 def test_frozen_domain_receipt_three_branch_interpretation():
     receipt = json.loads(
-        Path("artifacts/protocol_w/w3b_parameter_domain/w3b_domain_receipt.json").read_text()
+        Path("artifacts/protocol_w/w3b_parameter_domain/w3b_domain_receipt.json").read_text(encoding="utf-8")
     )
     agg = receipt["aggregate_quantities"]
     assert agg["N_S"] == 0
@@ -83,7 +83,7 @@ def test_frozen_domain_receipt_three_branch_interpretation():
 
 def test_frozen_interpretation_receipt_unresolved_not_negative():
     interp = json.loads(
-        Path("artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json").read_text()
+        Path("artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json").read_text(encoding="utf-8")
     )
     assert interp["status"] == "FROZEN_UNRESOLVED"
     assert interp["w3b_outcome"] == "unresolved, not negative"

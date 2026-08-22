@@ -13,7 +13,7 @@ def test_version_comparison():
 
     # Also verify pyproject.toml carries the same runtime version.
     pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
-    content = pyproject_path.read_text()
+    content = pyproject_path.read_text(encoding="utf-8")
     assert f'version = "{jaxfne.__version__}"' in content
 
 

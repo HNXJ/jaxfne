@@ -36,13 +36,14 @@ _EXAMPLE_OUTPUT_REL = Path("outputs/v0210_network_100_ei_multimodal")
 def example_output_dir(tmp_path_factory):
     """Run the example script in an isolated temp cwd and return its output bundle."""
     workdir = tmp_path_factory.mktemp("network_100_ei_run")
-    env = {**os.environ, "PYTHONPATH": str(_REPO_ROOT)}
+    env = {**os.environ, "PYTHONPATH": str(_REPO_ROOT), "PYTHONIOENCODING": "utf-8"}
     result = subprocess.run(
         [sys.executable, str(_EXAMPLE_SCRIPT)],
         cwd=workdir,
         env=env,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=120,
     )
     assert result.returncode == 0, f"Script failed: {result.stderr}"
@@ -279,7 +280,7 @@ class TestNetwork100EINotebook:
 
         from pathlib import Path
 
-        content = Path("pyproject.toml").read_text()
+        content = Path("pyproject.toml").read_text(encoding="utf-8")
 
         project_section = re.search(r"\[project\](.*?)(?:\[|\Z)", content, re.DOTALL)
 

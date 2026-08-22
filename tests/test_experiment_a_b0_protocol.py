@@ -60,6 +60,6 @@ def test_b0_excludes_out_of_scope_capabilities():
 
 
 def test_b0_spec_roundtrip_json():
-    raw = json.loads(PROTOCOL_SPEC_PATH.read_text())
+    raw = json.loads(PROTOCOL_SPEC_PATH.read_text(encoding="utf-8"))
     assert raw["schema"] == "jaxfne.experiment_a.b0_protocol_spec.v1"
     assert raw["checkpoints"]["B0"].startswith("Freeze")

@@ -25,7 +25,7 @@ def test_release_facing_notebook_list_matches_status_doc():
     and every notebook on disk must be classified there (release-facing,
     archived, or template) so an unclassified notebook can't silently
     appear."""
-    status_text = (TUTORIALS_DIR / "NOTEBOOK_STATUS.md").read_text()
+    status_text = (TUTORIALS_DIR / "NOTEBOOK_STATUS.md").read_text(encoding="utf-8")
 
     execution_tested = {
         nb.rsplit("/", 1)[-1] for nb in RELEASE_FACING_NOTEBOOKS

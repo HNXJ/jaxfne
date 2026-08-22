@@ -277,7 +277,7 @@ def test_canonical_json_config_library_loads_and_constructs():
 def test_canonical_configs_declare_current_schema_version():
     import json
     for path in sorted(jtfne.configs_dir().glob("*.json")):
-        raw = json.loads(path.read_text())
+        raw = json.loads(path.read_text(encoding="utf-8"))
         assert raw.get("schema_version") == nt.NEURONAL_TENSOR_SCHEMA_VERSION, (
             f"{path.name} missing/stale schema_version"
         )
@@ -300,7 +300,7 @@ def test_schema_version_mismatch_warns_not_raises(tmp_path):
     path = tmp_path / "legacy.json"
     nt.save_neuronal_tensor(tensor, path)
     import json
-    raw = json.loads(path.read_text())
+    raw = json.loads(path.read_text(encoding="utf-8"))
     raw["schema_version"] = "neuronal_tensor_v999_future"
     path.write_text(json.dumps(raw))
     with pytest.warns(UserWarning, match="schema_version"):
@@ -313,7 +313,7 @@ def test_legacy_json_without_schema_version_loads_silently(tmp_path):
     path = tmp_path / "legacy_no_version.json"
     nt.save_neuronal_tensor(tensor, path)
     import json
-    raw = json.loads(path.read_text())
+    raw = json.loads(path.read_text(encoding="utf-8"))
     del raw["schema_version"]
     path.write_text(json.dumps(raw))
     import warnings

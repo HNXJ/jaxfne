@@ -199,7 +199,7 @@ def test_population_continuation_rejected_explicitly():
 @pytest.mark.slow
 def test_population_restoring_etude_regression_metrics():
     """Scientific regression against committed Etude metrics (MVC #2, alpha_U=1.2)."""
-    metrics = json.loads(ETUDE_METRICS.read_text())
+    metrics = json.loads(ETUDE_METRICS.read_text(encoding="utf-8"))
     expected = metrics["mvc2_recovery"]
 
     model, mei_mask, e_mask = _mcc3_model()

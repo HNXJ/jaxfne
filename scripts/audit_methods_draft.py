@@ -30,7 +30,7 @@ FLOAT_RE = re.compile(r"[-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?|\b\d+\b")
 
 
 def load_json(rel: str) -> dict:
-    with open(A / rel) as fh:
+    with open(A / rel, encoding="utf-8") as fh:
         return json.load(fh)
 
 
@@ -57,10 +57,10 @@ def section_text(lines: list[str], start_pat: str, end_pat: str | None = None) -
 
 
 def main() -> int:
-    draft = DRAFT.read_text()
+    draft = DRAFT.read_text(encoding="utf-8")
     dlines = draft.splitlines()
-    trace = TRACE.read_text()
-    results = RESULTS.read_text()
+    trace = TRACE.read_text(encoding="utf-8")
+    results = RESULTS.read_text(encoding="utf-8")
     checks: list[dict] = []
 
     def check(code: str, label: str, ok: bool, detail: str = "") -> None:

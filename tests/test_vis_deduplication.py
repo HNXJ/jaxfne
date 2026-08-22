@@ -13,7 +13,7 @@ def test_no_duplicate_vis_functions():
     from pathlib import Path
 
     vis_path = Path(__file__).parent.parent / "jaxfne" / "vis" / "__init__.py"
-    code = vis_path.read_text()
+    code = vis_path.read_text(encoding="utf-8")
     tree = ast.parse(code)
 
     top_funcs = {}

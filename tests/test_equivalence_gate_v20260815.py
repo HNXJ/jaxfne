@@ -4,9 +4,11 @@ authorized no scientific change (exact decoded-pixel identity vs frozen PNGs).""
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import pytest
 
@@ -28,18 +30,20 @@ def _run_gate(*, report_dir: Path) -> dict:
             "--report",
             str(report),
         ],
+        env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
         cwd=ROOT,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
     )
     assert result.returncode == 0, result.stderr or result.stdout
-    return json.loads(report.read_text())
+    return json.loads(report.read_text(encoding="utf-8"))
 
 
 def test_equivalence_gate_tracked_report_exists_and_schema():
     assert TRACKED_REPORT.is_file()
-    report = json.loads(TRACKED_REPORT.read_text())
+    report = json.loads(TRACKED_REPORT.read_text(encoding="utf-8"))
     assert report["schema"] == "jaxfne.harness.seam_equivalence.v1"
     assert len(report["cases"]) == 7
     assert all(c["decoded_pixel_equal"] for c in report["cases"])
@@ -75,7 +79,7 @@ def test_equivalence_gate_tracked_report_matches_fresh_run(tmp_path):
         # design; the frozen tracked report encodes freeze-platform runs
         # only, so cross-platform comparison is undefined here.
         pytest.skip("byte identity is only pinned on the freeze platform")
-    tracked = json.loads(TRACKED_REPORT.read_text())
+    tracked = json.loads(TRACKED_REPORT.read_text(encoding="utf-8"))
     keys = {"figure", "frozen_png", "H_equal", "W_equal", "RGBA_equal",
             "decoded_pixel_equal", "byte_sha_equal", "sha256_frozen", "sha256_post"}
     fresh_cases = [{k: c[k] for k in keys} for c in fresh["cases"]]
@@ -85,7 +89,7 @@ def test_equivalence_gate_tracked_report_matches_fresh_run(tmp_path):
 
 @pytest.mark.skipif(not FROZEN_MANIFEST.is_file(), reason="frozen manifest missing")
 def test_equivalence_gate_frozen_manifest_selfcheck(tmp_path):
-    manifest = json.loads(FROZEN_MANIFEST.read_text())
+    manifest = json.loads(FROZEN_MANIFEST.read_text(encoding="utf-8"))
     files = manifest["files"]
     expected = [
         "figures/publication/fig01_tfne_grammar.png",

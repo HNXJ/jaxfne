@@ -44,7 +44,7 @@ def test_c0_synthetic_controls_preregistered():
 
 def test_c0_no_implementation_at_c0():
     receipt = json.loads(
-        (PROTOCOL_SPEC_PATH.parent / "c0_wave_protocol_receipt.json").read_text()
+        (PROTOCOL_SPEC_PATH.parent / "c0_wave_protocol_receipt.json").read_text(encoding="utf-8")
     )
     assert receipt["checkpoint"] == "C0"
     assert receipt["implementation_authorized"] is False

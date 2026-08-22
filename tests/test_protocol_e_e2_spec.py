@@ -87,7 +87,7 @@ def test_e2_validate_spec_passes():
 
 
 def test_e2_protocol_receipt_closed():
-    receipt = json.loads((E2_SPEC_PATH.parent / "e2_protocol_receipt.json").read_text())
+    receipt = json.loads((E2_SPEC_PATH.parent / "e2_protocol_receipt.json").read_text(encoding="utf-8"))
     assert receipt["status"] == "CLOSED"
     assert receipt["implementation_authorized"] is True
     assert receipt["next_checkpoint"] == "E3_specification"

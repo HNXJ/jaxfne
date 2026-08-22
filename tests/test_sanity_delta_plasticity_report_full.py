@@ -29,7 +29,7 @@ def test_plasticity_bounds_and_report():
         report_path = Path(tmpdir) / "plasticity_report.json"
         assert report_path.exists()
         
-        report = json.loads(report_path.read_text())
+        report = json.loads(report_path.read_text(encoding="utf-8"))
         
         # Verify keys
         assert report["enabled"] is True
@@ -62,7 +62,7 @@ def test_plasticity_disabled_export_flags_placeholders():
 
     with tempfile.TemporaryDirectory() as tmpdir:
         episode.export(tmpdir)
-        report = json.loads((Path(tmpdir) / "plasticity_report.json").read_text())
+        report = json.loads((Path(tmpdir) / "plasticity_report.json").read_text(encoding="utf-8"))
 
     assert report["enabled"] is False
     assert report.get("placeholder_values") is True

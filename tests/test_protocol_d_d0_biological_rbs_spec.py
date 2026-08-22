@@ -105,7 +105,7 @@ def test_d0_implementation_not_authorized():
 
 
 def test_d0_protocol_receipt_frozen():
-    receipt = json.loads((D0_SPEC_PATH.parent / "d0_protocol_receipt.json").read_text())
+    receipt = json.loads((D0_SPEC_PATH.parent / "d0_protocol_receipt.json").read_text(encoding="utf-8"))
     assert receipt["checkpoint"] == "D0"
     assert receipt["status"] == "FROZEN"
     assert receipt["implementation_authorized"] is False

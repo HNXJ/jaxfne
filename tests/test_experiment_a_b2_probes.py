@@ -64,5 +64,5 @@ def test_b2_receipt_writes(tmp_path):
     ds = freeze_canonical_dataset(duration_ms=40.0, package_head="test")
     receipt = write_b2_receipt(verify_b2_invariants(ds), tmp_path / "b2.json")
     assert receipt["checkpoint"] == "B2"
-    loaded = json.loads((tmp_path / "b2.json").read_text())
+    loaded = json.loads((tmp_path / "b2.json").read_text(encoding="utf-8"))
     assert loaded["invariants"]["probe_distinct"]

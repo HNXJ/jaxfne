@@ -231,7 +231,7 @@ class TestDeltaAGSDR:
         import pathlib
         runner_path = pathlib.Path("scripts/run_delta_notebook_01.py")
         if runner_path.exists():
-            content = runner_path.read_text()
+            content = runner_path.read_text(encoding="utf-8")
             # Check for forbidden phrases
             forbidden_phrases = [
                 "biological learning",
@@ -262,7 +262,7 @@ class TestDeltaAGSDR:
         import pathlib
         runner_path = pathlib.Path("scripts/run_delta_notebook_01.py")
         if runner_path.exists():
-            content = runner_path.read_text()
+            content = runner_path.read_text(encoding="utf-8")
             assert "agsdr" in content.lower()
             assert "connectivity_gain" in content.lower()
             assert "agsdr_objective" in content.lower()

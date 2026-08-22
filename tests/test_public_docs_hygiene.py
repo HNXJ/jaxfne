@@ -170,7 +170,7 @@ class TestPublicDocsHardRules:
     def _extract_markdown_from_notebook(notebook_path):
         """Extract text from all markdown cells in a Jupyter notebook."""
         try:
-            notebook = json.loads(Path(notebook_path).read_text())
+            notebook = json.loads(Path(notebook_path).read_text(encoding="utf-8"))
             markdown_texts = []
             for cell in notebook.get('cells', []):
                 if cell.get('cell_type') == 'markdown':
@@ -222,7 +222,7 @@ class TestPublicDocsHardRules:
         if not path.exists():
             pytest.skip(f"File not found: {file_path}")
 
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         clean_text = self._clean_text_for_scanning(text)
 
         hits = [m for m in self.NATIVE_PATTERN.finditer(clean_text)]
@@ -236,7 +236,7 @@ class TestPublicDocsHardRules:
         if not path.exists():
             pytest.skip(f"File not found: {file_path}")
 
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         clean_text = self._clean_text_for_scanning(text)
 
         found = {}
@@ -256,7 +256,7 @@ class TestPublicDocsHardRules:
         if not path.exists():
             pytest.skip(f"File not found: {file_path}")
 
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         clean_text = self._clean_text_for_scanning(text)
 
         found = {}
@@ -279,7 +279,7 @@ class TestPublicDocsHardRules:
         if not path.exists():
             pytest.skip(f"File not found: {file_path}")
 
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         clean_text = self._clean_text_for_scanning(text)
 
         # Technical terms allowed in specific context files
@@ -310,7 +310,7 @@ class TestPublicDocsHardRules:
         if not path.exists():
             pytest.skip(f"File not found: {file_path}")
 
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         clean_text = self._clean_text_for_scanning(text)
 
         found = {}
@@ -373,7 +373,7 @@ class TestPublicDocsHardRules:
             pytest.skip(f"Notebook not found: {notebook_path}")
 
         try:
-            notebook = json.loads(path.read_text())
+            notebook = json.loads(path.read_text(encoding="utf-8"))
             all_code = '\n'.join(
                 ''.join(cell.get('source', []))
                 for cell in notebook.get('cells', [])
@@ -426,7 +426,7 @@ class TestColabLinkCoverage:
         if not doc_file.exists():
             pytest.skip(f"Doc file not found: {doc_path}")
 
-        content = doc_file.read_text()
+        content = doc_file.read_text(encoding="utf-8")
         assert "colab.research.google.com" in content, \
             f"Markdown doc {doc_path} missing Colab link"
 
@@ -438,7 +438,7 @@ class TestColabLinkCoverage:
             pytest.skip(f"Notebook not found: {notebook_path}")
 
         try:
-            notebook = json.loads(notebook_file.read_text())
+            notebook = json.loads(notebook_file.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             pytest.skip(f"Could not parse notebook: {notebook_path}")
 
@@ -471,7 +471,7 @@ class TestVersionReferences:
         if not file.exists():
             pytest.skip(f"File {file_path} not found")
 
-        content = file.read_text()
+        content = file.read_text(encoding="utf-8")
 
         # v0.2.30 may appear in release notes, but not in main content
         # Rough heuristic: if it appears in first 30 lines, flag it
@@ -503,7 +503,7 @@ class TestNotebookJSONValidity:
             pytest.skip(f"Notebook not found: {notebook_path}")
 
         try:
-            notebook = json.loads(notebook_file.read_text())
+            notebook = json.loads(notebook_file.read_text(encoding="utf-8"))
             assert isinstance(notebook, dict), f"{notebook_path} root is not a dict"
             assert 'cells' in notebook, f"{notebook_path} has no 'cells' key"
         except json.JSONDecodeError as e:

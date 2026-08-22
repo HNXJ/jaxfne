@@ -25,15 +25,15 @@ def test_b3_observation_suite_levels_and_semantics():
 
 @pytest.mark.skipif(not (BUNDLE / "b3_experiment_a_receipt.json").exists(), reason="run runner first")
 def test_b3_frozen_receipt_in_repo():
-    receipt = json.loads((BUNDLE / "b3_experiment_a_receipt.json").read_text())
+    receipt = json.loads((BUNDLE / "b3_experiment_a_receipt.json").read_text(encoding="utf-8"))
     assert receipt["checkpoint"] == "B3"
     assert receipt["status"] == "FROZEN"
-    metrics = json.loads((BUNDLE / "metrics.json").read_text())
+    metrics = json.loads((BUNDLE / "metrics.json").read_text(encoding="utf-8"))
     assert metrics["q_hash_invariant"] is True
 
 
 def test_b3_receipt_preserves_exact_test_disposition():
-    receipt = json.loads((BUNDLE / "b3_experiment_a_receipt.json").read_text())
+    receipt = json.loads((BUNDLE / "b3_experiment_a_receipt.json").read_text(encoding="utf-8"))
     ev = receipt["test_evidence"]
     gate = ev["initial_b3_gate_disposition"]
     assert gate["collected"] == 19

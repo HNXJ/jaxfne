@@ -59,6 +59,6 @@ def test_e0_1_validate_spec_passes():
 
 
 def test_e0_1_protocol_receipt_frozen():
-    receipt = json.loads((E0_1_SPEC_PATH.parent / "e0_1_protocol_receipt.json").read_text())
+    receipt = json.loads((E0_1_SPEC_PATH.parent / "e0_1_protocol_receipt.json").read_text(encoding="utf-8"))
     assert receipt["status"] == "FROZEN"
     assert receipt["ladder"] == ["E1", "E2", "E3", "E4", "E5"]

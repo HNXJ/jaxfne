@@ -17,6 +17,7 @@ def test_root_import_does_not_load_heavy_optional_modules():
         [sys.executable, "-c", check_code],
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=True
     )
     

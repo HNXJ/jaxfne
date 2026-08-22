@@ -157,7 +157,7 @@ def test_c1_full_validation_receipt_passes():
 
 def test_c1_frozen_receipt_in_repo():
     assert RECEIPT.is_file()
-    receipt = json.loads(RECEIPT.read_text())
+    receipt = json.loads(RECEIPT.read_text(encoding="utf-8"))
     assert receipt["checkpoint"] == "C1"
     assert receipt["status"] == "FROZEN"
     assert receipt["summary"]["c1_pass"] is True

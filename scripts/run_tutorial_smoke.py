@@ -71,7 +71,7 @@ class TutorialSmokeRunner:
 
             # Basic compile check
             try:
-                compile(path.read_text(), str(path), "exec")
+                compile(path.read_text(encoding="utf-8"), str(path), "exec")
                 self.report["examples"]["checked"].append(example.replace(".py", ""))
             except SyntaxError as e:
                 self.report["examples"]["errors"].append(f"{example}: {e}")
@@ -107,7 +107,7 @@ class TutorialSmokeRunner:
                 continue
 
             try:
-                nb_data = json.loads(path.read_text())
+                nb_data = json.loads(path.read_text(encoding="utf-8"))
             except json.JSONDecodeError as e:
                 self.report["notebooks"]["errors"].append(
                     f"{notebook}: invalid JSON - {e}"
@@ -197,7 +197,7 @@ class TutorialSmokeRunner:
             if md_file.name == "notebook_standard.md":
                 continue
 
-            content = md_file.read_text()
+            content = md_file.read_text(encoding="utf-8")
 
             # Look for example and notebook references
             for match in re.finditer(r"examples/(\d+_\S+\.py)", content):

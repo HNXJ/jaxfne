@@ -39,7 +39,7 @@ class TestTutorialFileExistence:
 
     def test_notebook_is_valid_json(self):
         """Notebook is valid JSON."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
         assert isinstance(nb, dict), "Notebook is not a JSON object"
         assert "cells" in nb, "Notebook missing cells key"
@@ -51,7 +51,7 @@ class TestNotebookStructure:
 
     def test_notebook_has_13_sections(self):
         """Notebook contains 13 markdown/code sections."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         # Count markdown cells that look like section headers
@@ -63,7 +63,7 @@ class TestNotebookStructure:
 
     def test_section_1_learning_objectives(self):
         """Section 1 contains learning objectives."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
         content = "\n".join([cell["source"][0] if cell["source"] else ""
                             for cell in nb["cells"][:10]])
@@ -71,7 +71,7 @@ class TestNotebookStructure:
 
     def test_section_2_biological_question(self):
         """Section 2 contains biological question."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
         content = "\n".join(["\n".join(cell["source"]) if cell["source"] else ""
                             for cell in nb["cells"][:15]])
@@ -79,7 +79,7 @@ class TestNotebookStructure:
 
     def test_section_3_mathematical_glossary(self):
         """Section 3 contains mathematical glossary."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
         content = "\n".join(["\n".join(cell["source"]) if cell["source"] else ""
                             for cell in nb["cells"][:20]])
@@ -87,7 +87,7 @@ class TestNotebookStructure:
 
     def test_section_4_canonical_import(self):
         """Section 4 contains canonical import (import jaxfne as jtfne)."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         # Look for the import in code cells
@@ -102,7 +102,7 @@ class TestNotebookStructure:
 
     def test_section_5_configuration_block(self):
         """Section 5 contains chainable configuration."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         code_cells = [c for c in nb["cells"] if c["cell_type"] == "code"]
@@ -116,7 +116,7 @@ class TestNotebookStructure:
 
     def test_configuration_uses_all_required_methods(self):
         """Configuration block uses all required chainable methods."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         code_cells = [c for c in nb["cells"] if c["cell_type"] == "code"]
@@ -135,7 +135,7 @@ class TestNotebookStructure:
 
     def test_n_equals_100(self):
         """Configuration specifies n=100 neurons."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         code_cells = [c for c in nb["cells"] if c["cell_type"] == "code"]
@@ -144,7 +144,7 @@ class TestNotebookStructure:
 
     def test_ei_ratio_75_25(self):
         """Configuration specifies 75% E, 25% I."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         code_cells = [c for c in nb["cells"] if c["cell_type"] == "code"]
@@ -153,7 +153,7 @@ class TestNotebookStructure:
 
     def test_duration_1000ms(self):
         """Configuration specifies 1000 ms duration."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         code_cells = [c for c in nb["cells"] if c["cell_type"] == "code"]
@@ -162,7 +162,7 @@ class TestNotebookStructure:
 
     def test_dt_01ms(self):
         """Configuration specifies 0.1 ms timestep."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         code_cells = [c for c in nb["cells"] if c["cell_type"] == "code"]
@@ -171,7 +171,7 @@ class TestNotebookStructure:
 
     def test_float32_dtype(self):
         """Configuration specifies float32 dtype."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         code_cells = [c for c in nb["cells"] if c["cell_type"] == "code"]
@@ -180,7 +180,7 @@ class TestNotebookStructure:
 
     def test_seed_42(self):
         """Configuration and simulation use seed=42."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         code_cells = [c for c in nb["cells"] if c["cell_type"] == "code"]
@@ -189,7 +189,7 @@ class TestNotebookStructure:
 
     def test_probes_multimodal(self):
         """Configuration includes all multimodal probes."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         code_cells = [c for c in nb["cells"] if c["cell_type"] == "code"]
@@ -200,7 +200,7 @@ class TestNotebookStructure:
 
     def test_cortical_eig_preset(self):
         """Configuration uses cortical_eig preset."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         code_cells = [c for c in nb["cells"] if c["cell_type"] == "code"]
@@ -209,7 +209,7 @@ class TestNotebookStructure:
 
     def test_readout_api_correct(self):
         """Readout code uses correct jaxfne API (not .results attribute)."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         code_cells = [c for c in nb["cells"] if c["cell_type"] == "code"]
@@ -228,14 +228,14 @@ class TestDocumentationContent:
 
     def test_docs_contains_colab_link(self):
         """Documentation includes Colab link."""
-        with open(TUTORIAL_DOCS, 'r') as f:
+        with open(TUTORIAL_DOCS, 'r', encoding='utf-8') as f:
             content = f.read()
         assert "colab.research.google.com" in content, "Colab link missing"
         assert "jaxfne_v036_100_neuron_ei_population" in content, "Correct notebook not referenced"
 
     def test_docs_contains_configuration_example(self):
         """Documentation includes configuration code example."""
-        with open(TUTORIAL_DOCS, 'r') as f:
+        with open(TUTORIAL_DOCS, 'r', encoding='utf-8') as f:
             content = f.read()
         assert "cfg = jtfne.Configuration()" in content, "Configuration example missing"
         assert "cfg.runtime(" in content, "runtime example missing"
@@ -243,13 +243,13 @@ class TestDocumentationContent:
 
     def test_docs_contains_results_table(self):
         """Documentation includes expected results table."""
-        with open(TUTORIAL_DOCS, 'r') as f:
+        with open(TUTORIAL_DOCS, 'r', encoding='utf-8') as f:
             content = f.read()
         assert "Excitatory rate" in content or "firing rate" in content, "Results table missing"
 
     def test_docs_avoids_forbidden_claims(self):
         """Documentation avoids forbidden scientific claims."""
-        with open(TUTORIAL_DOCS, 'r') as f:
+        with open(TUTORIAL_DOCS, 'r', encoding='utf-8') as f:
             content = f.read()
 
         forbidden_terms = [
@@ -422,7 +422,7 @@ class TestPublicWordingScan:
 
     def test_colab_link_present_in_notebook_cell(self):
         """First cell includes Colab badge and link."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         first_cells_content = "\n".join([
@@ -433,7 +433,7 @@ class TestPublicWordingScan:
 
     def test_notebook_title_matches_docs(self):
         """Notebook and docs have matching titles."""
-        with open(TUTORIAL_NOTEBOOK, 'r') as f:
+        with open(TUTORIAL_NOTEBOOK, 'r', encoding='utf-8') as f:
             nb = json.load(f)
 
         notebook_title = "\n".join([
@@ -441,7 +441,7 @@ class TestPublicWordingScan:
             for cell in nb["cells"][:2]
         ])
 
-        with open(TUTORIAL_DOCS, 'r') as f:
+        with open(TUTORIAL_DOCS, 'r', encoding='utf-8') as f:
             docs_content = f.read()
 
         assert "v0.3.6" in notebook_title, "Notebook title missing v0.3.6"

@@ -59,7 +59,7 @@ def round_str(x: float, nd: int) -> str:
     return f"{x:.{nd}f}"
 
 
-draft = DRAFT.read_text()
+draft = DRAFT.read_text(encoding="utf-8")
 
 # ---------------------------------------------------------------- 1. structure
 

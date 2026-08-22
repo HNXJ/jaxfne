@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import pytest
 
@@ -58,12 +60,14 @@ def test_fig01_generator_runs():
     script = root / "scripts" / "publication_figures" / "fig01_grammar.py"
     result = subprocess.run(
         [sys.executable, str(script)],
+        env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
         cwd=root / "scripts" / "publication_figures",
         capture_output=True,
         text=True,
+        encoding="utf-8",
         check=False,
     )
     assert result.returncode == 0, result.stderr or result.stdout
     assert FIG01_FIGURE_PATH.is_file()
-    audit = json.loads(FIG01_AUDIT_PATH.read_text())
+    audit = json.loads(FIG01_AUDIT_PATH.read_text(encoding="utf-8"))
     assert audit["status"] == "PASSED"

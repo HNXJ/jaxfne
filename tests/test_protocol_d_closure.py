@@ -38,7 +38,7 @@ def test_d_closure_next_milestone_E():
 
 
 def test_d3_protocol_receipt_points_to_closure():
-    proto = json.loads((D3_SPEC_PATH.parent / "d3_protocol_receipt.json").read_text())
+    proto = json.loads((D3_SPEC_PATH.parent / "d3_protocol_receipt.json").read_text(encoding="utf-8"))
     assert proto["protocol_d_closed"] is True
     assert proto["D4_status"] == "not_authorized"
     assert proto["next_milestone"] == "0.4.17-E"

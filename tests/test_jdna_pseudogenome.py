@@ -55,7 +55,7 @@ class TestCanonicalGenomeSurface:
     def test_genome_is_rules_not_phenotype(self):
         """E: a PseudoGenome stores generative rules, never terminal phenotype."""
         raw = json.loads(
-            (pathlib.Path(jtfne.jdna.genomes_dir()) / f"{CANONICAL}.json").read_text()
+            (pathlib.Path(jtfne.jdna.genomes_dir()) / f"{CANONICAL}.json").read_text(encoding="utf-8")
         )
         rules = {k: v for k, v in raw.items() if k != "description"}
         blob = json.dumps(rules)
@@ -192,7 +192,7 @@ class TestProvenance:
                          areas=(), area_connections=())
         p = tmp_path / "g.json"
         save_pseudogenome(g, p)
-        raw = json.loads(p.read_text())
+        raw = json.loads(p.read_text(encoding="utf-8"))
         assert raw["schema_version"] == "pseudogenome_v2"
 
     def test_unknown_schema_rejected_on_load(self):
@@ -407,6 +407,6 @@ class TestCompatibility:
         t = develop(load_canonical(), seed=0)
         p = tmp_path / "t.json"
         jtfne.save_neuronal_tensor(t, p)
-        raw = json.loads(p.read_text())
+        raw = json.loads(p.read_text(encoding="utf-8"))
         assert "provenance" not in raw
         assert raw["schema_version"] == "neuronal_tensor_v1"

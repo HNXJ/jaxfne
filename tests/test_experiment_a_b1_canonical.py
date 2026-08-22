@@ -55,5 +55,5 @@ def test_load_frozen_canonical_from_disk():
     from jaxfne.experiment_a.canonical import load_frozen_canonical_dataset
 
     ds = load_frozen_canonical_dataset()
-    frozen = json.loads(RECEIPT.read_text())
+    frozen = json.loads(RECEIPT.read_text(encoding="utf-8"))
     assert ds.cause_hashes["Q"] == frozen["cause_hashes"]["Q"]

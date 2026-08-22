@@ -87,7 +87,7 @@ def test_json_artifacts_exist_and_conform_to_contract():
     assert ui_path.exists(), f"Expected UI visualizer file at {ui_path}"
 
     # Verify manifest truth gates
-    manifest = json.loads(manifest_path.read_text())
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["claim_level"] == "computational_scaffold"
     assert manifest["field_solver_status"] == "linear_solver"
     assert manifest["field_claim_level"] == "proxy_readout"
@@ -95,21 +95,21 @@ def test_json_artifacts_exist_and_conform_to_contract():
     assert manifest["n_neurons"] == 1000
 
     # Verify validation report gates
-    validation = json.loads(validation_path.read_text())
+    validation = json.loads(validation_path.read_text(encoding="utf-8"))
     assert validation["notebook_execution"] == "pass"
     assert validation["finite_outputs"] is True
     assert validation["strict_json_pass"] is True
     assert validation["physical_amplitude_calibrated"] is False
 
     # Verify metrics are finite
-    metrics = json.loads(metrics_path.read_text())
+    metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
     assert jnp.isfinite(metrics["mean_firing_rate_hz"])
     assert jnp.isfinite(metrics["voltage_mean_mv"])
     assert jnp.isfinite(metrics["voltage_std_mv"])
     
     # Assert JSON-safeness with strict deserialization (no NaN/Inf allowed)
     for path in [manifest_path, validation_path, metrics_path, hashes_path]:
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         json.dumps(data, allow_nan=False)
 
 def test_git_ignored_and_no_leaks():

@@ -108,7 +108,7 @@ def test_e1_run_gates_and_write_receipt(tmp_path, monkeypatch):
     assert receipt["checkpoint"] == "E1"
     assert all(receipt["gates"][g]["passed"] for g in receipt["gates"])
     assert receipt["edge_provenance_summary"]["n_edges"] > 0
-    loaded = json.loads((tmp_path / "e1_execution_receipt.json").read_text())
+    loaded = json.loads((tmp_path / "e1_execution_receipt.json").read_text(encoding="utf-8"))
     assert loaded["schema"].endswith("e1_execution_receipt.v1")
 
 

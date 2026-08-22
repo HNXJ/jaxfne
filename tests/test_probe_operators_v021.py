@@ -12,6 +12,7 @@ H. Existing examples still run
 """
 
 import json
+import os
 import pytest
 import jax
 import jax.numpy as jnp
@@ -29,6 +30,8 @@ from jaxfne.fields import (
     emm_proxy_probe,
 )
 from jaxfne.io import json_safe
+from pathlib import Path
+_SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 # ─── A. Probe Operator Report Structure ─────────────────────────────────────
@@ -351,10 +354,15 @@ def test_h_example_02_spectrolaminar_still_runs():
     # This is a smoke test that imports and runs the example
     import subprocess
     import sys
+
+    _repo_root = Path(__file__).resolve().parents[1]
     result = subprocess.run(
-        [sys.executable, "examples/02_spectrolaminar_oddball_scaffold.py"],
+        [sys.executable, str(_repo_root / "examples" / "02_spectrolaminar_oddball_scaffold.py")],
         capture_output=True,
-        timeout=60,
+        timeout=120,
         text=True,
+        encoding="utf-8",
+        cwd=str(_repo_root / "tests"),
+        env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
     )
     assert result.returncode == 0, f"Example failed:\n{result.stderr}"

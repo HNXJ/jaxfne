@@ -131,7 +131,7 @@ def test_f_save_receipt_creates_file():
         path = Path(tmp) / "receipt.json"
         jtfne.save_receipt(receipt, path)
         assert path.exists()
-        loaded = json.loads(path.read_text())
+        loaded = json.loads(path.read_text(encoding="utf-8"))
         assert loaded["receipt_id"] == receipt.receipt_id
         assert loaded["truth"]["physical_amplitude_calibrated"] is False
 
@@ -155,7 +155,7 @@ def test_h_save_receipt_overwrite_true_succeeds():
         jtfne.save_receipt(receipt, path)
         # Should not raise
         jtfne.save_receipt(receipt, path, overwrite=True)
-        loaded = json.loads(path.read_text())
+        loaded = json.loads(path.read_text(encoding="utf-8"))
         assert loaded["receipt_id"] == receipt.receipt_id
 
 

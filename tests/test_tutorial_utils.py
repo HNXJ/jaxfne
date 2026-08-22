@@ -473,7 +473,7 @@ class TestExportArtifacts:
 
         # Read and re-serialize with allow_nan=False (should not fail)
         manifest_path = Path(paths['manifest_path'])
-        text = manifest_path.read_text()
+        text = manifest_path.read_text(encoding="utf-8")
         data = json.loads(text)
         json_text = json.dumps(data, allow_nan=False)  # Should not raise
         assert json.loads(json_text) == data

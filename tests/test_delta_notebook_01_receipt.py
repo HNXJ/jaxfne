@@ -52,7 +52,7 @@ FORBIDDEN_PHRASES = [
 @pytest.fixture(scope="module")
 def notebook() -> dict:
     assert NOTEBOOK.exists(), f"notebook not found: {NOTEBOOK}"
-    return json.loads(NOTEBOOK.read_text())
+    return json.loads(NOTEBOOK.read_text(encoding="utf-8"))
 
 
 @pytest.fixture(scope="module")

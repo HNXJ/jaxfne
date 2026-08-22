@@ -67,6 +67,6 @@ def test_write_consolidation_receipt(tmp_path, monkeypatch):
     reason="frozen PEC receipt not present",
 )
 def test_frozen_pec_receipt_on_disk():
-    receipt = json.loads(PEC_CONSOLIDATION_RECEIPT_PATH.read_text())
+    receipt = json.loads(PEC_CONSOLIDATION_RECEIPT_PATH.read_text(encoding="utf-8"))
     assert receipt["status"] == "FROZEN"
     assert receipt["next_checkpoint"] == "figure_1_generation"

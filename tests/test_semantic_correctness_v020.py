@@ -359,7 +359,7 @@ def test_v_jaxfne_version_is_028():
 
     from pathlib import Path
 
-    content = Path("pyproject.toml").read_text()
+    content = Path("pyproject.toml").read_text(encoding="utf-8")
 
     project_section = re.search(r"\[project\](.*?)(?:\[|\Z)", content, re.DOTALL)
 

@@ -30,21 +30,21 @@ class TestNotebookStructure:
 
     def test_notebook_is_valid_json(self):
         """Notebook is valid JSON."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
         assert nb is not None
         assert "cells" in nb
 
     def test_notebook_has_cells(self):
         """Notebook has at least 11 sections (cells)."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
         cells = nb["cells"]
         assert len(cells) > 10, f"Expected > 10 cells, got {len(cells)}"
 
     def test_section_headers_present(self):
         """Expected section headers are present."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         full_text = " ".join(
@@ -71,7 +71,7 @@ class TestPublicAPIUsage:
 
     def test_configuration_api_used(self):
         """Notebook uses jtfne.Configuration with method chaining."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -87,7 +87,7 @@ class TestPublicAPIUsage:
 
     def test_construct_simulate_used(self):
         """Notebook uses jtfne.construct() and jtfne.simulate()."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -100,7 +100,7 @@ class TestPublicAPIUsage:
 
     def test_correct_signals_attributes(self):
         """Notebook accesses signals with correct attribute names."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -120,7 +120,7 @@ class TestMetadataFormatting:
 
     def test_run_metadata_structure(self):
         """Notebook defines metadata with public keys."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -148,7 +148,7 @@ class TestMetadataFormatting:
 
     def test_scope_metadata_values_correct(self):
         """Metadata has correct public-facing values."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -166,7 +166,7 @@ class TestPublicWording:
 
     def test_scope_clarified(self):
         """Notebook clarifies scope and scope notes."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         md_text = " ".join(
@@ -180,7 +180,7 @@ class TestPublicWording:
 
     def test_colab_link_present(self):
         """Notebook has Colab badge."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         full_text = " ".join(
@@ -197,7 +197,7 @@ class TestFigureGeneration:
 
     def test_display_helpers_defined(self):
         """Notebook imports display helpers from tutorial_utils."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -213,7 +213,7 @@ class TestFigureGeneration:
 
     def test_figure_references_present(self):
         """Notebook saves figures with expected names."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -230,7 +230,7 @@ class TestJSONSafety:
 
     def test_json_serialization_safety(self):
         """Notebook uses allow_nan=False in JSON."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -244,7 +244,7 @@ class TestJSONSafety:
 
     def test_manifest_writing_present(self):
         """Notebook writes manifest to file."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -261,7 +261,7 @@ class TestConfiguration:
 
     def test_three_models_configured(self):
         """Notebook has three separate cfg objects."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -275,7 +275,7 @@ class TestConfiguration:
 
     def test_emitter_preset_specified(self):
         """Notebook specifies izhikevich preset."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(
@@ -288,7 +288,7 @@ class TestConfiguration:
 
     def test_cell_types_declared(self):
         """Notebook declares E/I or E/PV composition."""
-        with open(NOTEBOOK_PATH) as f:
+        with open(NOTEBOOK_PATH, encoding="utf-8") as f:
             nb = json.load(f)
 
         code = " ".join(

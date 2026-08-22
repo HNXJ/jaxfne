@@ -42,7 +42,7 @@ def sha256_json(obj: Any) -> str:
 
 def notebook_source_sha256(path: PathLike) -> str:
     """Hash notebook cell type + source only, ignoring outputs/execution counts."""
-    nb = json.loads(Path(path).read_text())
+    nb = json.loads(Path(path).read_text(encoding="utf-8"))
     source_only = [
         {
             "cell_type": cell.get("cell_type"),

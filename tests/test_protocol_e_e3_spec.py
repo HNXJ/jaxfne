@@ -84,7 +84,7 @@ def test_e3_validate_spec_passes():
 
 
 def test_e3_protocol_receipt_closed():
-    receipt = json.loads((E3_SPEC_PATH.parent / "e3_protocol_receipt.json").read_text())
+    receipt = json.loads((E3_SPEC_PATH.parent / "e3_protocol_receipt.json").read_text(encoding="utf-8"))
     assert receipt["status"] == "CLOSED"
     assert receipt["rbs_owner"]["n_nodes"] == 7
     assert receipt["next_checkpoint"] == "E4_specification"

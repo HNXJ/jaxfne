@@ -106,7 +106,7 @@ def test_c3_prospective_run_not_authorized():
 
 def test_c3_protocol_receipt_closed():
     receipt = json.loads(
-        (C3_SPEC_PATH.parent / "c3_protocol_receipt.json").read_text()
+        (C3_SPEC_PATH.parent / "c3_protocol_receipt.json").read_text(encoding="utf-8")
     )
     assert receipt["checkpoint"] == "C3"
     assert receipt["status"] == "CLOSED"

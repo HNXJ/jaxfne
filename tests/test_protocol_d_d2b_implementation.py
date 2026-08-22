@@ -233,7 +233,7 @@ def test_d2b_run_in_memory_matches_receipt_schema():
 
 def test_d2b_protocol_receipt_closed_after_implementation():
     proto = json.loads(
-        (D2B_SPEC_PATH.parent / "d2b_protocol_receipt.json").read_text()
+        (D2B_SPEC_PATH.parent / "d2b_protocol_receipt.json").read_text(encoding="utf-8")
     )
     if D2B_EXECUTION_RECEIPT_PATH.exists():
         assert proto.get("implementation_authorized") is True or proto.get("status") == "CLOSED"

@@ -34,7 +34,7 @@ FORBIDDEN_TOKENS = (
 
 def _notebook_source() -> str:
     assert NOTEBOOK_PATH.exists(), f"Notebook not found: {NOTEBOOK_PATH}"
-    nb = json.loads(NOTEBOOK_PATH.read_text())
+    nb = json.loads(NOTEBOOK_PATH.read_text(encoding="utf-8"))
     return "\n".join("".join(cell.get("source", [])) for cell in nb.get("cells", []))
 
 
