@@ -180,6 +180,9 @@ def run_cross_figure_audit(*, repo_head: str | None = None) -> dict[str, Any]:
         "checks": checks,
         "evidence_summary": index["evidence_summary"],
         "next_checkpoint": "publication_reconstruction",
+        # Retained verbatim: this key is part of the FROZEN
+        # figures_1_7_cross_figure_audit.json payload; removing it would break
+        # write-once bit-reproducibility of the sealed artifact.
         "handoff_note": "OpenCode handoff at scratch/OPENCODE_HANDOFF_0_4_17_PUBLICATION.md (gitignored)",
     }
 
