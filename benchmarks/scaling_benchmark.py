@@ -25,7 +25,10 @@ from __future__ import annotations
 
 import json
 import platform
-import resource
+try:
+    import resource  # POSIX; Windows uses GetProcessMemoryInfo in workers
+except ImportError:  # pragma: no cover
+    resource = None
 import subprocess
 import sys
 import time
@@ -33,7 +36,11 @@ from pathlib import Path
 from typing import Any
 
 _CASE_WORKER_SRC = """
-import json, platform, resource, time
+import json, platform, time
+try:
+    import resource
+except ImportError:
+    resource = None
 import jax
 import jaxfne as jtfne
 
@@ -70,8 +77,30 @@ t0 = time.perf_counter()
 _ = model.probe(signals, modes=["spikes", "V_m"])
 timings["probe_ms"] = (time.perf_counter() - t0) * 1000.0
 
-raw_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-peak_rss_mb = raw_rss / (1024.0 * 1024.0) if platform.system() == "Darwin" else raw_rss / 1024.0
+if platform.system() == "Windows":
+    import ctypes
+    import ctypes.wintypes as _wt
+
+    class _PMC(ctypes.Structure):
+        _fields_ = [("cb", _wt.DWORD), ("PageFaultCount", _wt.DWORD),
+                    ("PeakWorkingSetSize", ctypes.c_size_t), ("WorkingSetSize", ctypes.c_size_t),
+                    ("QuotaPeakPagedPoolUsage", ctypes.c_size_t), ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t), ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                    ("PagefileUsage", ctypes.c_size_t), ("PeakPagefileUsage", ctypes.c_size_t)]
+    _pmc = _PMC()
+    _pmc.cb = ctypes.sizeof(_pmc)
+    psapi = ctypes.windll.psapi
+    psapi.GetProcessMemoryInfo.argtypes = [_wt.HANDLE, ctypes.POINTER(_PMC), _wt.DWORD]
+    if psapi.GetProcessMemoryInfo(ctypes.windll.kernel32.GetCurrentProcess(), ctypes.byref(_pmc), _pmc.cb):
+        peak_rss_mb = _pmc.PeakWorkingSetSize / (1024.0 * 1024.0)
+    else:
+        peak_rss_mb = None
+elif resource is not None and platform.system() == "Darwin":
+    peak_rss_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / (1024.0 * 1024.0)
+elif resource is not None:
+    peak_rss_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0
+else:
+    peak_rss_mb = None
 
 print(json.dumps({{
     "n_neurons": n_neurons,
@@ -85,7 +114,11 @@ print(json.dumps({{
 
 
 _SPARSE_CASE_WORKER_SRC = """
-import json, platform, resource, time
+import json, platform, time
+try:
+    import resource
+except ImportError:
+    resource = None
 import jax
 import jaxfne as jtfne
 
@@ -121,8 +154,30 @@ t0 = time.perf_counter()
 _ = model.probe(signals, modes=["spikes", "V_m"])
 timings["probe_ms"] = (time.perf_counter() - t0) * 1000.0
 
-raw_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-peak_rss_mb = raw_rss / (1024.0 * 1024.0) if platform.system() == "Darwin" else raw_rss / 1024.0
+if platform.system() == "Windows":
+    import ctypes
+    import ctypes.wintypes as _wt
+
+    class _PMC(ctypes.Structure):
+        _fields_ = [("cb", _wt.DWORD), ("PageFaultCount", _wt.DWORD),
+                    ("PeakWorkingSetSize", ctypes.c_size_t), ("WorkingSetSize", ctypes.c_size_t),
+                    ("QuotaPeakPagedPoolUsage", ctypes.c_size_t), ("QuotaPagedPoolUsage", ctypes.c_size_t),
+                    ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t), ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+                    ("PagefileUsage", ctypes.c_size_t), ("PeakPagefileUsage", ctypes.c_size_t)]
+    _pmc = _PMC()
+    _pmc.cb = ctypes.sizeof(_pmc)
+    psapi = ctypes.windll.psapi
+    psapi.GetProcessMemoryInfo.argtypes = [_wt.HANDLE, ctypes.POINTER(_PMC), _wt.DWORD]
+    if psapi.GetProcessMemoryInfo(ctypes.windll.kernel32.GetCurrentProcess(), ctypes.byref(_pmc), _pmc.cb):
+        peak_rss_mb = _pmc.PeakWorkingSetSize / (1024.0 * 1024.0)
+    else:
+        peak_rss_mb = None
+elif resource is not None and platform.system() == "Darwin":
+    peak_rss_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / (1024.0 * 1024.0)
+elif resource is not None:
+    peak_rss_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0
+else:
+    peak_rss_mb = None
 
 print(json.dumps({{
     "n_neurons": n_neurons,
