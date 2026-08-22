@@ -369,7 +369,7 @@
       "status": "SUPPORTED"
     },
     {
-      "allowed_manuscript_language": "A local RBS perturbation, expressed through its typed Gamma_H coupling, propagates through existing hierarchical connectivity across the network (per-seed classification HIERARCHICAL_PROPAGATION on 3 seeds)",
+      "allowed_manuscript_language": "A local RBS perturbation, expressed through its typed Gamma_H coupling, propagates through existing hierarchical connectivity across the network (outcome classification HIERARCHICAL_PROPAGATION, reproduced identically in all three protocol runs). Protocol E is deterministic by construction (spec noise_scale=0); the recorded seeds 11/12/13 are nominal run metadata, NOT independent stochastic replicates.",
       "claim": "Typed Gamma_H expression (not hidden-state storage) drives hierarchical propagation H_K->X through FF/FB ownership (E5 causal)",
       "claim_id": "CL-18",
       "evidence_artifacts": [
@@ -394,7 +394,7 @@
           13
         ]
       },
-      "statistical_validation": "per-seed classification consistency (3 seeds), evidence gates with threshold 1e-06; small fixed seed set - no inferential statistics claimed",
+      "statistical_validation": "Deterministic-by-construction numerical property: identical outcome across three nominal seed runs (noise_scale=0); evidence gates with threshold 1e-06; no inferential statistics claimed and none implied by the repeated runs.",
       "status": "SUPPORTED"
     },
     {
@@ -467,7 +467,7 @@
   "statistics_classification": {
     "statistics_regime": {
       "deterministic_numerical_property": "Exact numeric value from a fixed-configuration run; no inference from randomness; report as Absolute",
-      "deterministic_numerical_property across seeds": "Fixed configuration repeated over multiple seeds; property holds per seed (e.g. E5 causal outcome, 3/3)",
+      "deterministic_numerical_property across seeds": "Fixed configuration repeated over multiple recorded seeds; property holds per run (e.g. E5 causal outcome, 3/3). For protocols with spec noise_scale=0 these are deterministic repetitions, not stochastic replication units.",
       "factorial_point_estimates": "Finite factorial of factors (e.g. H4 2x2 delay x heterogeneity); point estimates only, no bootstrap CIs computed (exploratory)",
       "lattice_scan_deterministic_gates": "Deterministic pass/fail gates over a scan (e.g. A_adapt domain classification)",
       "method_boundary_statement": "Statement defining method scope, not an empirical result",
@@ -478,7 +478,7 @@
     "validation_floor": [
       "No claim cites a bootstrap or parametric CI that was not computed; H4 exploratory point estimates explicitly exclude bootstrap CIs",
       "Null-gated comparisons are certified via CHANCE_MARGIN=0.12 / ABOVE_CHANCE=0.08 gates in the H3 analysis",
-      "Seed robustness is claimed only where multiple fixed seeds were run (E5: 11/12/13)"
+      "No seed-robustness claim is made anywhere: all Protocol D/E specs set noise_scale=0, so recorded seeds are nominal metadata of deterministic runs (corrected 2026-08-21, ox-alpha resolution pass; original wording claimed seed robustness for E5: 11/12/13)"
     ]
   },
   "status": "ACTIVE",
@@ -486,5 +486,18 @@
     "evidence_ladder": "artifacts/publication/pec_consolidation_spec.json#evidence_ladder",
     "polarity_axis": "artifacts/publication/pec_consolidation_spec.json#polarity_axis"
   },
-  "write_once": false
+  "write_once": false,
+  "label_correction_log": [
+    {
+      "date": "2026-08-21",
+      "reviewer": "ox-alpha (independent resolution pass)",
+      "scope": [
+        "CL-18",
+        "statistics_regime.deterministic_numerical_property across seeds",
+        "validation_floor[seed]"
+      ],
+      "reason": "F03: receipts d1/d2a/d2b/d3/e5 show bit-identical outputs across seeds because every protocol spec sets noise_scale=0; prior wording framed nominal seeds as stochastic replication.",
+      "frozen_evidence_touched": false
+    }
+  ]
 }

@@ -1,5 +1,14 @@
 # JaxFNE v0.4.17 --- Final 100/100 Goals
 
+> **SUPERSEDED AS EVALUATION TARGET (2026-08-21).** The current project-goal
+> source is the supplied TFNE submission project-source set v2, whose final
+> acceptance list contains goals 1–100. This checkout-local copy enumerates
+> goals 1–95 only and is retained verbatim as a historical snapshot of the
+> seal-review instrument at the time of the PEC checkpoint; rows 96–100 must
+> come from the authoritative v2 source, not from this file. Precedence rule
+> unchanged: frozen executable/evidence truth > matching definitions >
+> current private project goals.
+
 ## Purpose
 
 This file is the final acceptance set for JaxFNE v0.4.17. It replaces
