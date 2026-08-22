@@ -62,10 +62,40 @@ Network-size scaling up to 10,000 neurons IS now measured; see "Scaling Evidence
 
 ## Scaling Evidence (N=100 / 1,000 / 10,000)
 
-**Added:** measured, not assumed. `benchmarks/scaling_benchmark.py` runs construct+simulate+probe
+**Measured, not assumed.** `benchmarks/scaling_benchmark.py` runs construct+simulate+probe
 at three network sizes with `duration_ms`/`dt_ms` held fixed, each case in its own subprocess
-(so `peak_rss_mb` is per-case, not a cumulative process maximum). Receipt:
-`outputs/benchmarks_scaling/scaling_report.json`.
+(so `peak_rss_mb` is per-case, not a cumulative process maximum).
+
+### Current receipt (2026-08-21, ox-alpha resolution pass)
+
+Environment: Windows 11 (10.0.26200, AMD64), Python 3.14.3, jax 0.10.1,
+CPU-only (`JAX_PLATFORMS=cpu`), single device. Generator:
+`benchmarks/scaling_benchmark.py` (now cross-platform: peak RSS on Windows
+uses `GetProcessMemoryInfo`; POSIX keeps `resource.getrusage`). Receipt path:
+`outputs/benchmarks_scaling/scaling_report.json` (local output tree; not tracked).
+
+| N | construct (ms) | simulate (ms) | peak RSS (MB) |
+|---|---|---|---|
+| 100 | 1,831 | 1,684 | 413 |
+| 1,000 | 1,945 | 1,680 | 467 |
+| 10,000 | 2,832 | 92,513 | 3,365 |
+
+Growth ratio per 10x step in N (this environment, single run):
+
+| N step | construct ratio | simulate ratio | RSS ratio |
+|---|---|---|---|
+| 100 → 1,000 | 1.1x | 1.0x | 1.1x |
+| 1,000 → 10,000 | 1.5x | 55.1x | 7.2x |
+
+The generator's additional sparse case (N=100,000, `p_connect` bounded to
+mean degree ~50) ran at construct 35,320 ms / simulate 3,826 ms /
+peak RSS 822 MB — recorded for completeness; no scaling claim is drawn from it.
+
+### Historical receipt (Apple Silicon, 2026-05-23; original artifact not retained)
+
+The original measurement below was taken on macOS / Apple Silicon with Python 3.11.15,
+JAX 0.10.0 (`outputs/benchmarks_scaling/scaling_report.json` from that run was a local
+untracked file and was not preserved in the tree). It is kept verbatim for provenance.
 
 | N | construct (ms) | simulate (ms) | peak RSS (MB) |
 |---|---|---|---|
@@ -73,17 +103,18 @@ at three network sizes with `duration_ms`/`dt_ms` held fixed, each case in its o
 | 1,000 | 1,058 | 864 | 482 |
 | 10,000 | 1,305 | 17,783 | 4,211 |
 
-Growth ratio per 10x step in N (single run, Apple Silicon CPU, jax 0.10.1):
+Growth ratio per 10x step in N (single run, Apple Silicon CPU, jax 0.10.0):
 
 | N step | construct ratio | simulate ratio | RSS ratio |
 |---|---|---|---|
 | 100 → 1,000 | 1.0x | 1.0x | 1.2x |
 | 1,000 → 10,000 | 1.2x | 20.6x | 8.7x |
 
-**Reading this honestly:** `construct` stays flat across all three sizes in this configuration —
+**Reading this honestly:** `construct` stays flat across all three sizes in both environments —
 the measured cost here is dominated by fixed JAX/JIT setup overhead, not network-size-dependent
 work, at least up to N=10,000. `simulate` and `peak_rss_mb` are a different story: going from
-N=1,000 to N=10,000 (a 10x step) costs ~20.6x more simulate wall-clock and ~8.7x more peak memory.
+N=1,000 to N=10,000 (a 10x step) costs 20.6x more simulate wall-clock / 8.7x more peak
+memory on Apple Silicon (2026-05-23) and 55.1x / 7.2x on Windows (2026-08-21).
 Both ratios are well above the ~10x a linear-in-N path would show, and are in the direction
 consistent with the dense (`recurrent_backend="dense"`) O(N²) recurrent weight matrix documented
 in `jaxfne/core.py` (search `O(N^2)` there for the exact call sites). This is **evidence that the
@@ -131,7 +162,7 @@ Example:
 
 ## Hardware Metadata (Local Receipt)
 
-**Platform for baseline measurements:**
+**Platform for the historical baseline measurements (2026-05-23, as recorded then):**
 ```
 Platform: macOS 13.0 (Apple Silicon M2/M3)
 Python: 3.11.15
@@ -141,7 +172,11 @@ CPU: 1× Apple Neural Engine (fallback to CPU in jaxfne)
 Device: CpuDevice(id=0)
 ```
 
-**Important:** Measurements are CPU-based on Apple Silicon. JAX does not currently accelerate jaxfne's Izhikevich kernel on Apple GPUs. Results on other platforms (Linux/NVIDIA, Intel, etc.) may differ significantly.
+**Current receipt environment (2026-08-21):** Windows 11 (AMD64), Python 3.14.3,
+jax/jaxlib 0.10.1, CPU-only. See the scaling tables above for the per-environment
+split.
+
+**Important:** Measurements are CPU-based. Results on other platforms (Linux/NVIDIA, Intel, etc.) may differ significantly.
 
 ---
 
@@ -152,7 +187,8 @@ Device: CpuDevice(id=0)
 ✓ "jaxfne simulates 50 neurons for 100 ms in ~150 ms wall-clock on CPU" (with hardware/date caveat)  
 ✓ "Time scales roughly linearly with neuron count up to N=1,000 on the dense backend" (measured)  
 ✓ "Simulate cost and peak memory grow faster than linearly between N=1,000 and N=10,000 on the
-  dense recurrent backend (measured ~20.6x time, ~8.7x memory for a 10x step in N)"  
+  dense recurrent backend (measured 20.6x/8.7x on Apple Silicon 2026-05-23 and
+  55.1x/7.2x on Windows 2026-08-21 for a 10x step in N)"  
 ✓ "Core simulation dominates total time at large N; overhead phases are negligible by comparison"  
 ✓ "Configuration and construction are negligible overhead at the tested sizes"
 

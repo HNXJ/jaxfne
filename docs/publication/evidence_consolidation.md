@@ -11,13 +11,15 @@ Immutable claim → protocol → receipt → arrays → analysis → figure-pane
 
 ## Version semantics (resolve the 0.4.16 vs 0.4.17 axes)
 
-`0.4.17` is the **publication milestone / protocol identifier** (PEC milestone, protocol
-IDs such as `protocol_d_biological_rbs_v0417` and `0.4.17-B/C/D` ladder rungs), not the
-package version. The **package version** (`pyproject.toml`, `jaxfne/_model.py
-_JAXFNE_VERSION`) is `0.4.16`, the release cycle preceding the 0.4.17 publication
-cycle. The two are deliberately different axes: the package release cycle and the
-publication evidence cycle. Do not bump the package version merely to make the numbers
-agree; do not cite 0.4.17 as a package version.
+`0.4.17` is simultaneously the **package version** (`pyproject.toml`,
+`jaxfne/_model.py _JAXFNE_VERSION`, both `0.4.17` at the PEC checkpoint) and the
+**publication milestone / protocol identifier** (PEC milestone, protocol IDs such
+as `protocol_d_biological_rbs_v0417`). Historically, during the evidence run the
+package cycle was `0.4.16` while the publication ladder already carried `0.4.17`
+identifiers; the package was then bumped to `0.4.17` for the release cycle, so
+the two axes now agree at this checkpoint. Frozen receipts generated under the
+earlier package version keep their recorded identity; do not rewrite them to
+match.
 
 ## Evidence ladder (claim level)
 

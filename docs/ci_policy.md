@@ -93,4 +93,4 @@ python scripts/validate_tutorial_outputs.py outputs/
 ## Performance benchmarks
 
 Deterministic benchmark scripts exist for documentation; they are **not**
-automatic CI gates. See `docs/performance_baseline.md`.
+automatic CI gates. See the repository-local performance baseline notes (not part of the built site).

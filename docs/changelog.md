@@ -2,6 +2,11 @@
 
 All notable changes are documented here in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
 
+Scope note: entries are preserved verbatim as history. Early entries reference
+internal governance documents (for example `AGENTS.md` review rules) that live
+in maintainer-facing areas outside this public documentation tree; they record
+the rules those releases were held to and are historical context for readers.
+
 ## [Unreleased]
 
 ## v0.4.17 (2026-08-18)

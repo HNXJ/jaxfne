@@ -30,10 +30,13 @@ value without an explicit calibration step:
 
 ## Plausible ranges (Izhikevich path)
 
-Quick checks on a finished run:
+Quick checks on a finished run. The mV values below are the model's nominal
+internal units (the Izhikevich preset's declared numerical scale), not
+calibrated physiological measurements; jaxfne outputs remain relative/proxy
+quantities per the truth gates above.
 
-- Resting membrane voltage ≈ −66 mV
-- Spike peak ≈ +30 mV (hard reset)
+- Resting membrane voltage ≈ −66 (nominal model mV)
+- Spike peak ≈ +30, then hard reset to `c`
 - Mean population rate roughly 8–25 Hz for canonical drive
 - `|Vm| > 150` or NaN/Inf indicates a numerical blowup
 

@@ -34,6 +34,7 @@ exclude_docs: |
   operator_doctrine.md
   tensor_electromagnetics_scope.md
   tensor_network_ancestry.md
+  doctrine/rbs_rbd_hdp_inventory.md
   tutorial_figures.md
   _generated/operator_inventory.md
   api/bridges.md
@@ -164,7 +165,6 @@ nav:
       - D-series biological RBS: protocols/protocol_d_biological_rbs.md
       - E-series integration: protocols/protocol_e_integration.md
       - RBS/HDP doctrine: doctrine/rbs_rbd_hdp.md
-      - RBS/HDP inventory: doctrine/rbs_rbd_hdp_inventory.md
       - Relative-quantity grammar: doctrine/relative_quantity_grammar.md
       - H1b H-to-X gain doctrine: doctrine/protocol_h_h1b_h_to_x_gain.md
       - H-state memory doctrine: doctrine/protocol_h_rbd_memory.md

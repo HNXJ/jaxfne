@@ -236,11 +236,11 @@ The **source_calibration_status** field documents the empirical grounding of the
 
 **Current constraint:**
 ```
-amplitude_status = False
+physical_amplitude_calibrated = False
 ```
 
 This immutable field means:
-- Status note that readout values are in physical units (pA, mV, μA/mm³)
+- Readout values are NOT in physical units (no pA, mV, μA/mm³ claims)
 - Voltage and current are computational proxies
 - CSD and LFP are readout proxies (derived from proxy source + proxy field)
 - Biological interpretation requires separate calibration and validation
@@ -285,10 +285,14 @@ manifest["conductivity_status"]          # E.g. "proxy" (not "calibrated_physica
 
 **Validation gates (immutable):**
 ```python
-manifest["amplitude_status"]  # Always False
-manifest["scope_status"]                      # Always "computational_scaffold"
-manifest["run_status"]                        # Always "tutorial_scaffold"
+manifest["physical_amplitude_calibrated"]  # Always False
+manifest["claim_level"]                    # "computational_scaffold" family
 ```
+
+The historical keys `amplitude_status`, `scope_status`, and `run_status`
+were never written by any manifest builder and have been retired from this
+document; the single immutable amplitude gate is
+`physical_amplitude_calibrated=False`.
 
 ### Readout Report Fields
 
@@ -386,7 +390,7 @@ signals = jaxley_trace_to_signals(
 print(f"Source calibration: {signals.metadata.get('source_calibration_status')}")
 # → "uncalibrated_jaxley_voltage_proxy"
 
-print(f"Physical amplitude allowed: {signals.metadata.get('amplitude_status')}")
+print(f"Physical amplitude calibrated: {signals.metadata.get('physical_amplitude_calibrated')}")
 # → False
 
 # Signals.sources [T, N] = voltage proxy (no field computation)
@@ -404,7 +408,7 @@ Before releasing a model, verify:
 - [ ] Field solver status is declared and is either "linear_solver" or a reserved solver name
 - [ ] Boundary condition and gauge are documented (metadata-only)
 - [ ] CSD sign convention is documented: positive = extracellular source (current flowing outward)
-- [ ] amplitude_status is False
+- [ ] physical_amplitude_calibrated is False
 - [ ] No forbidden synaptic double-counting pattern in source computation
 - [ ] Manifest JSON is NaN/Inf-free and JSON-safe
 
@@ -416,4 +420,4 @@ Before releasing a model, verify:
 - [Probe Operators](guides/probe_operators.md) — Readout modalities (SPK, Vm, source, LFP, CSD, EEG, MEG, EMM)
 - [Output Bundles](guides/output_bundles.md) — Manifest and report schema
 - [Scope and Limitations](limitations_and_future_plans.md) — What jaxfne statements and stays scoped to
-- [TFNE Operator Doctrine](operator_doctrine.md) — Per-stage rule table for the Source and Field stages defined here
+- [Computation Basis](computation_basis.md) — Per-stage source/field/probe semantics and rule boundaries

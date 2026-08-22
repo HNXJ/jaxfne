@@ -8,7 +8,7 @@ expectations for human contributors.
 - [Changelog](changelog.md)
 - [Documentation](https://jaxfne.readthedocs.io/)
 - [Scope & status](scope_and_status.md)
-- [For AI agents](for_ai_agents.md) — agent workflows, skills, and maintainer backlog
+- Maintainer agent workflows, skills, and the internal backlog live outside this public documentation tree
 - [Code of Conduct](https://github.com/HNXJ/jaxfne/blob/main/.github/CODE_OF_CONDUCT.md)
 - [GitHub Issues](https://github.com/HNXJ/jaxfne/issues) · [Discussions](https://github.com/HNXJ/jaxfne/discussions)
 
@@ -30,7 +30,7 @@ Use **`python3`** (3.10–3.12 tested). Canonical import: `import jaxfne as jtfn
 4. **Tests:** Add or extend tests for behavior you change. Do not weaken tests to hide failures.
 5. **Docs:** User-facing behavior changes need matching docs in the same PR.
 6. **Skills:** If you change agent-facing workflows, update `skills/` and note that in the PR body
-   (details in [For AI agents](for_ai_agents.md)).
+   (maintainer-internal; not part of the public documentation tree).
 
 ### Validation commands
 

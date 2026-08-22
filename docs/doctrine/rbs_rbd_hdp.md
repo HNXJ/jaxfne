@@ -142,6 +142,15 @@ H_{\text{generic}}:\quad \text{“homeostatic state”}\rightarrow\text{RBS},
 \text{homeostasis}\rightarrow\text{definition of }H.
 \]
 
+**Ruling on `PlasticParams.H` naming (F13, 2026-08-21).** The
+`NeuronalTensor.PlasticParams.H` field docstring calls the seeding scalar a
+"homeostatic H-factor". This falls under the kernel-specific carve-out above:
+the label describes the *seeding role of that parameter inside the
+HDP/RBD kernels it feeds* (a legacy per-neuron balance trace), not the
+definition of RBS. RBS itself remains a finite-dimensional dependency-state
+container, not intrinsically homeostatic; no code or doc may generalize the
+"homeostatic" qualifier from `PlasticParams.H` to `H` at large.
+
 ## 2. RBD — Relative Biophysical Dynamics
 
 RBD is the general dynamics involving RBS:

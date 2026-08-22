@@ -465,7 +465,7 @@ from the fenced multi-dimensional placeholder below.
   multi-dimensional solver. Construction is inert; `.validate()` /
   `solve_physical_field()` raise `NotImplementedError` pending
   boundary/gauge/calibration validation (see
-  [Tensor Electromagnetics Scope](../tensor_electromagnetics_scope.md)).
+  the tensor-electromagnetics scope statement (repository doc, excluded from the built site)).
 
 **Parameters:**
 - `sources` (`jax.Array`): 1D array of current/charge sources.
