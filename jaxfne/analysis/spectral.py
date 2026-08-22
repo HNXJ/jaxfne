@@ -13,17 +13,26 @@ import jax
 import jax.numpy as jnp
 
 
-@partial(jax.jit, static_argnames=("fs",))
+@partial(jax.jit, static_argnames=("fs", "window"))
 def spectrolaminar_psd_jax(
     signal: jax.Array,          # (n_trials, n_steps, n_contacts)
     fs: float = 1000.0,
     freqs: jax.Array | None = None,   # (n_freqs,)
+    window: str = "rectangular",
 ) -> jax.Array:
     """Compute spectrolaminar PSD averaged across trials in a JAX-native way.
 
     Projects each contact's timeseries onto a bank of complex exponentials and
     averages the magnitude spectrum across trials — a JIT-compilable, batchable
     DFT at the requested target frequencies.
+
+    Window/normalization convention: ``window`` selects the taper applied to
+    each timeseries before projection — ``"rectangular"`` (default, no taper;
+    the historical behavior, bit-identical) or ``"hann"``. The projection uses
+    an unnormalized rectangular DFT basis and divides by ``n_steps``; band
+    profiles derived downstream are additionally peak-normalized per contact
+    (see :func:`bandpower_jax`), so absolute amplitude scale is not preserved
+    by ``bandpower_jax`` by construction.
 
     Parameters
     ----------
@@ -35,20 +44,33 @@ def spectrolaminar_psd_jax(
     freqs : jax.Array, optional
         Target frequencies of shape ``(n_freqs,)``. Default: 96 points linearly
         spaced over 1–150 Hz, the canonical spectrolaminar band.
+    window : str, default "rectangular"
+        Taper convention (static under JIT): ``"rectangular"`` or ``"hann"``.
 
     Returns
     -------
     jax.Array
         PSD heatmap of shape ``(n_freqs, n_contacts)``.
     """
+    if window == "rectangular":
+        taper = jnp.ones_like(signal)
+    elif window == "hann":
+        n_steps = jnp.shape(signal)[1]
+        taper = jnp.hanning(n_steps).astype(signal.dtype)[None, :, None]
+    else:
+        raise ValueError(
+            f"unsupported spectral window {window!r}; "
+            "expected 'rectangular' or 'hann'"
+        )
+    tapered = signal * taper
     if freqs is None:
         freqs = jnp.linspace(1.0, 150.0, 96, dtype=jnp.float32)
-    n_trials, n_steps, n_contacts = signal.shape
+    n_trials, n_steps, n_contacts = tapered.shape
     sample_idx = jnp.arange(n_steps, dtype=freqs.dtype)
     # basis: (n_freqs, n_steps)
     basis = jnp.exp(-1j * 2.0 * jnp.pi * (freqs[:, None] / fs) * sample_idx[None, :])
     # DFT projection: (n_freqs, n_steps) @ (n_trials, n_steps, n_contacts) -> (n_trials, n_freqs, n_contacts)
-    spec = jnp.einsum("fs,tsc->tfc", basis, signal)
+    spec = jnp.einsum("fs,tsc->tfc", basis, tapered)
     # Average magnitude across trials, normalized by timesteps
     psd = jnp.mean(jnp.abs(spec), axis=0) / float(n_steps)
     return psd.astype(jnp.float32)

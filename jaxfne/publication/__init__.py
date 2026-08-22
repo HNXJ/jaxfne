@@ -1,4 +1,11 @@
-"""Publication evidence consolidation package."""
+"""Publication evidence consolidation package.
+
+Checkout-coupled by design: loaders resolve spec/receipt/figure paths
+against the repository root ``artifacts/`` and ``figures/`` trees. This
+package is not part of the stable public API surface; it functions only
+inside a full checkout and is excluded from the wheel-facing public
+surface contract.
+"""
 
 from .cross_figure_audit import (
     load_cross_figure_audit,

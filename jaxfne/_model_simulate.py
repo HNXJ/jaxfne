@@ -149,6 +149,23 @@ def _simulate_arrays(
     if emitter.W.shape[0] != n_neurons and "edge_list" in self.params:
         runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
 
+    if "edge_list" in self.params:
+        import numpy as np
+
+        _delay_host = np.asarray(self.params["edge_list"].delay_steps)
+        if _delay_host.size and int(_delay_host.min()) < 0:
+            raise ValueError("edge delay_steps must be >= 0")
+        if (
+            runtime_cfg.recurrent_backend != "edge_list"
+            and _delay_host.size
+            and int(_delay_host.sum()) != 0
+        ):
+            raise ValueError(
+                "recurrent_backend='dense' has no finite-delay path; "
+                "edge delay_steps must be all zero (use "
+                "recurrent_backend='edge_list' for delayed runs)"
+            )
+
     if not hasattr(self, "_silence_masks"):
         object.__setattr__(self, "_silence_masks", {})
 

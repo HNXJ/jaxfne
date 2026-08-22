@@ -434,6 +434,13 @@ def simulate_eig_izhikevich(
 ) -> tuple[jax.Array, jax.Array, jax.Array]:
     """Simulate a reduced EIG Izhikevich scaffold using ``jax.lax.scan``.
 
+    Synaptic semantics: the dense backend couples ``weights @ prev_spikes``
+    — an instantaneous one-step spike-jump current with no synaptic time
+    constant. This is a distinct supported synaptic model, NOT a
+    trajectory-equivalent representation of the edge-list backend, whose
+    synapses are receptor-filtered exponentials with per-edge ``tau_ms``
+    (see :func:`simulate_edge_recurrent_izhikevich`).
+
     When ``drive_schedule`` is None the existing scan path is preserved exactly.
     When provided, it must have shape ``(n_steps, n_neurons)`` and is added to
     ``params.drive`` at each timestep as native (uncalibrated) current.
@@ -663,6 +670,15 @@ def make_edge_list_from_dense(
 
     The dense matrix uses rows as postsynaptic targets and columns as
     presynaptic sources, matching ``weights @ spikes`` in the baseline backend.
+
+    Semantics: this is a representation conversion, NOT a dynamics
+    conversion. The dense backend couples ``weights @ prev_spikes``
+    (instantaneous one-step spike jump, no synaptic time constant) while the
+    edge-list backend applies receptor-filtered exponential synapses. The
+    ``tau_exc``/``tau_inh`` defaults assigned here (2.0 ms / 5.0 ms by weight
+    sign) are declared conversion defaults for that filter; simulated
+    trajectories under the two backends are therefore not
+    trajectory-equivalent and parity claims are statistical only.
     """
 
     jdtype = _dtype_from_policy(dtype)
@@ -753,6 +769,8 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
     delay_steps = edges.delay_steps.astype(jnp.int32)
+    if int(np.min(_edge_delay_steps_host(edges))) < 0:
+        raise ValueError("edge delay_steps must be >= 0")
     n_neurons = params.v0.shape[0]
     max_delay = int(np.max(_edge_delay_steps_host(edges)))
     bufsize = max_delay + 1
@@ -909,6 +927,11 @@ def simulate_edge_recurrent_izhikevich(
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate reduced Izhikevich emitters with sparse recurrent synapses.
 
+    Synaptic semantics: each edge carries a receptor-filtered exponential
+    synaptic state (``tau_ms`` per edge); this is a distinct supported
+    synaptic model and is NOT trajectory-equivalent to the dense backend's
+    instantaneous ``weights @ prev_spikes`` coupling.
+
     The implementation uses ``jax.lax.scan`` over time and
     ``jax.ops.segment_sum`` over edges. It is JIT/vmap compatible and preserves
     the uncalibrated proxy-source truth status.
@@ -920,6 +943,10 @@ def simulate_edge_recurrent_izhikevich(
     scalar or ``(n_neurons,)`` array gives per-neuron control of internal noise.
     ``init_state`` optionally supplies ``v``, ``u``, ``prev_spikes``, and
     ``syn_state`` for deterministic or explicitly keyed segmented continuation.
+    ``prev_spikes`` is an interface-parity compatibility carry: it is part of
+    the canonical state tuple shared across kernels but is not read by this
+    kernel's update (dead-by-design on this path, retained for checkpoint and
+    continuation-contract stability).
     Nonzero ``edges.delay_steps`` select the finite-delay kernel; segmented
     continuation with positive delays requires full ``init_state`` including
     ``delay_state`` (legacy alias ``spike_history``).
@@ -3715,7 +3742,21 @@ def simulate_receptor_exponential_izhikevich(
     When ``drive_schedule`` is None the existing scan path is preserved exactly.
     When provided, it must have shape ``(n_steps, n_neurons)`` and is added as
     native uncalibrated current at each timestep.
+
+    Delay contract: this kernel has no finite-delay path; ``edges.delay_steps``
+    must be all zero (negative values are rejected outright). Nonzero delays
+    select ``simulate_edge_recurrent_izhikevich`` instead.
     """
+
+    delay_host = _edge_delay_steps_host(edges)
+    if np.any(delay_host < 0):
+        raise ValueError("edge delay_steps must be >= 0")
+    if np.any(delay_host != 0):
+        raise ValueError(
+            "receptor_exponential synaptic_kernel has no finite-delay path; "
+            "edges.delay_steps must be all zero (use the default exponential "
+            "synaptic kernel for finite edge delays)"
+        )
 
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)

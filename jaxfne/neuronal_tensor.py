@@ -129,9 +129,15 @@ class StaticParams:
 
 @dataclass
 class PlasticParams:
-    """Trainable/gradientable: per-connection gain (wMech) and homeostatic H-factor."""
+    """Trainable/gradientable: per-connection gain (wMech) and H-factor.
+
+    ``H`` is a legacy kernel-specific label (see
+    ``docs/doctrine/rbs_rbd_hdp.md`` §1 carve-out ruling): it names the
+    seeding role of this scalar inside the RBD/HDP kernels it feeds, not the
+    definition of RBS. RBS/H is not intrinsically homeostatic.
+    """
     w_mech: float = 1.0   # connection gain; scale up to a matrix per-synapse if needed
-    H: float = 0.0         # homeostatic H-factor: passive ionic charge income / relative accumulated charge
+    H: float = 0.0         # legacy "homeostatic H-factor" seeding label (kernel-specific; see docstring above)
     value_tag: ValueTag = "relative"
 
 

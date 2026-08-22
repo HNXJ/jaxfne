@@ -226,6 +226,8 @@ def estimate_traveling_wave(
     direction = k_hat / k_norm if k_norm > 1e-9 else np.zeros_like(k_hat)
 
     extent = float(np.max(np.linalg.norm(positions - positions.mean(axis=0), axis=1)) + 1e-9)
+    # Declared heuristic (preregistered c0 spec scale): k_min is one-eighth of
+    # the smallest resolvable half-wave across the array extent; not fitted.
     k_min = np.pi / extent / 8.0
     k_stability = _k_stability_score(phi_bp, positions, fs_hz, f_hat)
 

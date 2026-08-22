@@ -6,15 +6,33 @@ import dataclasses
 import hashlib
 import json
 import math
+import warnings
 from pathlib import Path
 from typing import Any, Optional
 
 import numpy as np
 
 
-def json_safe(obj: Any) -> Any:
-    """Convert common scientific Python/JAX objects into strict JSON values."""
+def _warn_nonfinite() -> None:
+    """Declared NaN/Inf → None substitution point for strict JSON output."""
+    warnings.warn(
+        "json_safe: non-finite float (NaN/Inf) substituted with None; "
+        "validate finiteness before serialization if this is unexpected",
+        UserWarning,
+        stacklevel=3,
+    )
+    return None
 
+
+def json_safe(obj: Any) -> Any:
+    """Convert an object into strictly JSON-serializable equivalents.
+
+    Non-finite floats (NaN, +Inf, -Inf) are substituted with ``None`` so the
+    serialized manifest stays strict-JSON valid. The substitution is declared,
+    not silent: a :class:`UserWarning` is emitted each time it occurs, and
+    callers that require loud failure should validate finiteness before
+    serialization (see goal "explicit failure" in project doctrine).
+    """
     if dataclasses.is_dataclass(obj):
         return json_safe(dataclasses.asdict(obj))
     if isinstance(obj, dict):
@@ -31,9 +49,9 @@ def json_safe(obj: Any) -> Any:
         return int(obj)
     if isinstance(obj, np.floating):
         value = float(obj)
-        return value if math.isfinite(value) else None
+        return value if math.isfinite(value) else _warn_nonfinite()
     if isinstance(obj, float):
-        return obj if math.isfinite(obj) else None
+        return obj if math.isfinite(obj) else _warn_nonfinite()
     if isinstance(obj, (str, int, bool)) or obj is None:
         return obj
     return str(obj)
