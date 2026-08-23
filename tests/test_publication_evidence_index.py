@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from jaxfne.publication.pec_protocol import (
+from scripts.internal.publication.pec_protocol import (
     PEC_CONSOLIDATION_RECEIPT_PATH,
     PEC_SPEC_PATH,
     PUBLICATION_EVIDENCE_INDEX_PATH,
@@ -54,7 +54,7 @@ def test_validate_pec_spec():
 
 def test_write_consolidation_receipt(tmp_path, monkeypatch):
     monkeypatch.setattr(
-        "jaxfne.publication.pec_protocol.PEC_CONSOLIDATION_RECEIPT_PATH",
+        "scripts.internal.publication.pec_protocol.PEC_CONSOLIDATION_RECEIPT_PATH",
         tmp_path / "pec_consolidation_receipt.json",
     )
     receipt = write_pec_consolidation_receipt(artifact_commit_sha="abc123")

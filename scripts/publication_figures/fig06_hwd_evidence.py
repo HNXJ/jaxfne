@@ -354,7 +354,8 @@ def build_figure(ev, mx, h3_curves, counts, d3_counts) -> Figure:
 
 
 def main() -> int:
-    from jaxfne.publication.fig06_evidence import (
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from scripts.internal.publication.fig06_evidence import (
         d3_classification,
         h3_memory_curves_beta_comparison,
         h4_primary_mx,

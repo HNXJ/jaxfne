@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-_REPO = Path(__file__).resolve().parents[2]
+_REPO = Path(__file__).resolve().parents[3]
 
 FIGURE_AUDITS = {
     1: "artifacts/publication/fig01_semantic_audit.json",
@@ -52,7 +52,7 @@ def _pec_panels_by_figure(index: dict[str, Any]) -> dict[int, list[dict[str, Any
 
 def run_cross_figure_audit(*, repo_head: str | None = None) -> dict[str, Any]:
     """Run read-only cross-figure audit; does not mutate frozen evidence."""
-    from jaxfne.publication.pec_protocol import load_publication_evidence_index, validate_publication_evidence_index
+    from .pec_protocol import load_publication_evidence_index, validate_publication_evidence_index
 
     validate_publication_evidence_index()
     index = load_publication_evidence_index()

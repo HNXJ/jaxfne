@@ -7,7 +7,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
+_REPO_ROOT = Path(__file__).resolve().parents[3]
 PEC_SPEC_PATH = _REPO_ROOT / "artifacts" / "publication" / "pec_consolidation_spec.json"
 PUBLICATION_EVIDENCE_INDEX_PATH = (
     _REPO_ROOT / "artifacts" / "publication" / "publication_evidence_index.json"

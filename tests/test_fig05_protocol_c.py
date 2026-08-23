@@ -11,7 +11,7 @@ _SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import pytest
 
-from jaxfne.publication.fig05_protocol import (
+from scripts.internal.publication.fig05_protocol import (
     FIG05_AUDIT_PATH,
     FIG05_PATH,
     FIG05_RECEIPT_PATH,

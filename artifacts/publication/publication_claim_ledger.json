@@ -478,7 +478,8 @@
     "validation_floor": [
       "No claim cites a bootstrap or parametric CI that was not computed; H4 exploratory point estimates explicitly exclude bootstrap CIs",
       "Null-gated comparisons are certified via CHANCE_MARGIN=0.12 / ABOVE_CHANCE=0.08 gates in the H3 analysis",
-      "No seed-robustness claim is made anywhere: all Protocol D/E specs set noise_scale=0, so recorded seeds are nominal metadata of deterministic runs (corrected 2026-08-21, ox-alpha resolution pass; original wording claimed seed robustness for E5: 11/12/13)"
+      "No seed-robustness claim is made anywhere: all Protocol D/E specs set noise_scale=0, so recorded seeds are nominal metadata of deterministic runs (corrected 2026-08-21, ox-alpha resolution pass; original wording claimed seed robustness for E5: 11/12/13)",
+      "Historical environment provenance limitation (accepted 2026-08-22, owner ruling): sealed receipts generated before this date record SHA/version/seed identity but not wall-clock/python/jax/platform; that absence is permanent and must NOT be reconstructed as contemporaneous metadata. All post-ruling evidence carries the full provenance schema."
     ]
   },
   "status": "ACTIVE",
@@ -497,6 +498,15 @@
         "validation_floor[seed]"
       ],
       "reason": "F03: receipts d1/d2a/d2b/d3/e5 show bit-identical outputs across seeds because every protocol spec sets noise_scale=0; prior wording framed nominal seeds as stochastic replication.",
+      "frozen_evidence_touched": false
+    },
+    {
+      "date": "2026-08-22",
+      "reviewer": "ox-alpha W5 pass / owner directive",
+      "scope": [
+        "statistics_classification.validation_floor[env-provenance]"
+      ],
+      "reason": "#51 resolved as permanent historical limitation: immutable-evidence rule forbids retrofitting environment provenance into sealed receipts; forward runs satisfy the improved standard.",
       "frozen_evidence_touched": false
     }
   ]

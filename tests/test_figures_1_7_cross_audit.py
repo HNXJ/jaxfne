@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 _SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
-from jaxfne.publication.cross_figure_audit import (
+from scripts.internal.publication.cross_figure_audit import (
     load_cross_figure_audit,
     run_cross_figure_audit,
     validate_cross_figure_audit,

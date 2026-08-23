@@ -161,7 +161,7 @@ def main(argv: list[str] | None = None) -> int:
     spec5 = _json.loads((REPO / "artifacts/publication/fig05_wave_spec.json").read_text())
     results.append(run_case("fig05", FROZEN_FIGURES[4], args.render_dir, fig05_protocol_c.build_figure(spec5)))
 
-    from jaxfne.publication.fig06_evidence import (
+    from scripts.internal.publication.fig06_evidence import (
         d3_classification,
         h3_memory_curves_beta_comparison,
         h4_primary_mx,
@@ -185,7 +185,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     )
 
-    from jaxfne.publication.fig07_evidence import (
+    from scripts.internal.publication.fig07_evidence import (
         e1_hierarchy_summary,
         e2_delay_classes,
         e3_owner,

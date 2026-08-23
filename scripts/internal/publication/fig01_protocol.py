@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
+_REPO_ROOT = Path(__file__).resolve().parents[3]
 FIG01_SPEC_PATH = _REPO_ROOT / "artifacts" / "publication" / "fig01_grammar_spec.json"
 FIG01_AUDIT_PATH = _REPO_ROOT / "artifacts" / "publication" / "fig01_semantic_audit.json"
 FIG01_RECEIPT_PATH = _REPO_ROOT / "artifacts" / "publication" / "fig01_generation_receipt.json"

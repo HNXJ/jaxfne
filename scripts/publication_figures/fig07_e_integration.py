@@ -356,7 +356,8 @@ def build_figure(
 
 
 def main() -> int:
-    from jaxfne.publication.fig07_evidence import (
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from scripts.internal.publication.fig07_evidence import (
         e1_hierarchy_summary,
         e2_delay_classes,
         e3_owner,

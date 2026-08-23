@@ -9,7 +9,7 @@ from typing import Any
 
 import numpy as np
 
-_REPO = Path(__file__).resolve().parents[2]
+_REPO = Path(__file__).resolve().parents[3]
 
 
 def _load(rel: str) -> dict[str, Any]:

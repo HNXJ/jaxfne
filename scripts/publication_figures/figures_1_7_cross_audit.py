@@ -13,7 +13,7 @@ from __future__ import annotations
 import sys
 
 from _pub_figure_common import ensure_publication_dirs, repo_root, repo_sha, utc_now_iso, write_json_strict
-from jaxfne.publication.cross_figure_audit import run_cross_figure_audit
+from scripts.internal.publication.cross_figure_audit import run_cross_figure_audit
 
 SUMMARY_PATH = repo_root() / "docs" / "publication" / "figures_1_7_cross_audit_summary.md"
 

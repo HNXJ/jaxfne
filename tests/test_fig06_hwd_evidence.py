@@ -8,8 +8,8 @@ import sys
 from pathlib import Path
 _SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
-from jaxfne.publication.fig06_evidence import h4_primary_mx, load_fig06_evidence, w3b_counts
-from jaxfne.publication.fig06_protocol import (
+from scripts.internal.publication.fig06_evidence import h4_primary_mx, load_fig06_evidence, w3b_counts
+from scripts.internal.publication.fig06_protocol import (
     FIG06_PATH,
     load_fig06_generation_receipt,
     load_fig06_semantic_audit,

@@ -8,14 +8,14 @@ import sys
 from pathlib import Path
 _SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
-from jaxfne.publication.fig07_evidence import (
+from scripts.internal.publication.fig07_evidence import (
     e2_delay_classes,
     e3_owner,
     e5_null_controls,
     e5_propagation_metrics,
     load_fig07_evidence,
 )
-from jaxfne.publication.fig07_protocol import (
+from scripts.internal.publication.fig07_protocol import (
     FIG07_PATH,
     load_fig07_generation_receipt,
     load_fig07_semantic_audit,
