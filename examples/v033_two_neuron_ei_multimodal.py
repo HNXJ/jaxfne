@@ -21,6 +21,7 @@ Scope: Tutorial demonstrating jaxfne TFNE pipeline; not biological validation.
 """
 
 import dataclasses
+import os
 import hashlib
 import json
 import shutil
@@ -49,7 +50,9 @@ from jaxfne.fields import (
 # Collector-visible output directory (v030_03 prefix required by collector)
 OUT = Path("outputs/v030_03_two_neuron_ei_multimodal")
 # Docs-stable figures directory
-STATIC_FIGS = Path("docs/tutorials_v030/_static/figures")
+STATIC_FIGS = Path(
+    os.environ.get("JAXFNE_TUTORIAL_STATIC_DIR", "docs/tutorials_v030/_static/figures")
+)
 
 # Simulation parameters
 DURATION_MS = 1000.0  # hard gate: >= 1000 ms

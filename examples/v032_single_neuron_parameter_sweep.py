@@ -23,6 +23,7 @@ Model status: computational_scaffold
 import hashlib
 import json
 import shutil
+import os
 from pathlib import Path
 from datetime import datetime
 from typing import Any
@@ -36,7 +37,9 @@ import jaxfne as jtfne
 # Collector-visible output directory (v030_02 prefix required by collector)
 OUT = Path("outputs/v030_02_single_neuron_parameter_sweep")
 # Docs-stable figures directory
-STATIC_FIGS = Path("docs/tutorials_v030/_static/figures")
+STATIC_FIGS = Path(
+    os.environ.get("JAXFNE_TUTORIAL_STATIC_DIR", "docs/tutorials_v030/_static/figures")
+)
 
 # Sweep grid
 A_VALUES = [0.02, 0.05, 0.10]          # recovery time scale (slow → fast)

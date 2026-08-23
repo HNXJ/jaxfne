@@ -16,6 +16,7 @@ Model status: computational_scaffold
 import hashlib
 import json
 import shutil
+import os
 from pathlib import Path
 from datetime import datetime
 from typing import Any
@@ -39,7 +40,9 @@ from jaxfne.fields import (
 # Collector-visible output directory (v030_01 prefix required by collector)
 OUT = Path("outputs/v030_01_single_neuron_izhikevich")
 # Docs-stable figures directory
-STATIC_FIGS = Path("docs/tutorials_v030/_static/figures")
+STATIC_FIGS = Path(
+    os.environ.get("JAXFNE_TUTORIAL_STATIC_DIR", "docs/tutorials_v030/_static/figures")
+)
 
 
 def sha256_file(path: Path) -> str:

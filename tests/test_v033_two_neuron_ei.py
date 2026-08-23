@@ -23,8 +23,11 @@ import numpy as np
 # Group 0: Existing tests (7 tests — preserved)
 # ============================================================================
 
-def test_v033_tutorial_import():
+def test_v033_tutorial_import(tmp_path, monkeypatch):
     """Test that the v0.3.3 tutorial script can be imported."""
+    # Module-level STATIC_FIGS resolves at import time; keep the resolution
+    # away from the tracked documentation tree even on the bare-import path.
+    monkeypatch.setenv("JAXFNE_TUTORIAL_STATIC_DIR", str(tmp_path / "static_figs"))
     examples_path = pathlib.Path(__file__).parent.parent / "examples"
     sys.path.insert(0, str(examples_path))
     try:
@@ -33,10 +36,14 @@ def test_v033_tutorial_import():
         sys.path.pop(0)
 
 
-def test_v033_tutorial_runs():
+def test_v033_tutorial_runs(tmp_path, monkeypatch):
     """Test that the v0.3.3 tutorial runs without exceptions."""
     # Skip if matplotlib is not available (optional for [viz] extra)
     pytest.importorskip("matplotlib")
+
+    # Regenerated figures must not mutate the tracked documentation tree;
+    # route them to a temp directory for the duration of the run.
+    monkeypatch.setenv("JAXFNE_TUTORIAL_STATIC_DIR", str(tmp_path / "static_figs"))
 
     examples_path = pathlib.Path(__file__).parent.parent / "examples"
     sys.path.insert(0, str(examples_path))
