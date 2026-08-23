@@ -1,0 +1,85 @@
+{
+  "schema": "jaxfne.inventory.etude_template_audit.v1",
+  "generated_at_utc": "2026-08-23T02:50:48.405103+00:00",
+  "template": [
+    "configuration",
+    "construction",
+    "equations_glossary",
+    "failure_modes",
+    "figures",
+    "interpretation",
+    "manifest_hashes",
+    "metrics",
+    "nulls_controls",
+    "objective",
+    "question",
+    "readout",
+    "sanity_checks",
+    "simulation"
+  ],
+  "pages": [
+    {
+      "page": "etudes/index.md",
+      "points_present": 6,
+      "points_total": 14,
+      "missing": [
+        "configuration",
+        "construction",
+        "sanity_checks",
+        "simulation",
+        "objective",
+        "figures",
+        "interpretation",
+        "failure_modes"
+      ]
+    },
+    {
+      "page": "etudes/hdp_controllability_reachability.md",
+      "points_present": 11,
+      "points_total": 14,
+      "missing": [
+        "configuration",
+        "construction",
+        "simulation"
+      ]
+    },
+    {
+      "page": "etudes/experiment_a.md",
+      "points_present": 7,
+      "points_total": 14,
+      "missing": [
+        "configuration",
+        "construction",
+        "sanity_checks",
+        "simulation",
+        "nulls_controls",
+        "objective",
+        "failure_modes"
+      ]
+    },
+    {
+      "page": "etudes/heterogeneous_emitters.md",
+      "points_present": 11,
+      "points_total": 14,
+      "missing": [
+        "configuration",
+        "construction",
+        "figures"
+      ]
+    },
+    {
+      "page": "etudes/multiscale_observation.md",
+      "points_present": 9,
+      "points_total": 14,
+      "missing": [
+        "configuration",
+        "construction",
+        "sanity_checks",
+        "simulation",
+        "failure_modes"
+      ]
+    }
+  ],
+  "fully_compliant_pages": [],
+  "verdict_79": "0/5 nav'd \u00e9tude pages satisfy all 14 template points mechanically; gaps listed per page are documentation-index findings, not scientific deficiencies \u2014 no polarity or evidence is reinterpreted here."
+}

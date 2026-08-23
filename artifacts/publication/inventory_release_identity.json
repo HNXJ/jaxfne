@@ -1,0 +1,35 @@
+{
+  "schema": "jaxfne.inventory.release_identity.v1",
+  "generated_at_utc": "2026-08-23T02:49:51.414039+00:00",
+  "identities": {
+    "C_core_tag_commit": "caec1f71d526742f22e91845dbf7968bd1b80e87",
+    "C_core_version_at_tag": "0.4.17",
+    "tag_is_ancestor_of_head": true,
+    "C_head": "5d2efeede8c5823ab03319810c88f6663dfb1b01",
+    "C_receipt_frozen_head": "aeca6d01a18ab1be3d400cf9c6a7c373c9e86326",
+    "github_release_tag": "v0.4.17",
+    "github_release_published_at": "2026-08-20T18:42:36Z",
+    "pypi_version": "0.4.17"
+  },
+  "artifact_hash_agreement": [
+    {
+      "artifact": "jaxfne-0.4.17-py3-none-any.whl",
+      "github_release_sha256": "ea20ce34727b50c4cba71d84c38cf567235f7760428a3ac614684dcc3f4807b2",
+      "pypi_sha256": "ea20ce34727b50c4cba71d84c38cf567235f7760428a3ac614684dcc3f4807b2",
+      "byte_identical": true
+    },
+    {
+      "artifact": "jaxfne-0.4.17.tar.gz",
+      "github_release_sha256": "aabf22f4aa0b906d40623de60c7aa8f8d7f4e95b70aaa17f0dd026a80a99c6f2",
+      "pypi_sha256": "aabf22f4aa0b906d40623de60c7aa8f8d7f4e95b70aaa17f0dd026a80a99c6f2",
+      "byte_identical": true
+    }
+  ],
+  "sdist_content_matches_C_core": {
+    "jaxfne/_model.py": true,
+    "pyproject.toml": true
+  },
+  "note": "GitHub-release asset hashes were downloaded and hashed locally this pass; PyPI digests read from pypi.org/pypi/jaxfne/json.",
+  "verdict_84": "PASS: C_core(tag)/C_release(GH+PyPI)/C_receipt(frozen head)/C_head recorded as distinct identities; tag ancestry documented.",
+  "verdict_85": "PASS: GitHub and PyPI artifacts byte-identical by SHA-256 for wheel and sdist; both identify the tagged source."
+}

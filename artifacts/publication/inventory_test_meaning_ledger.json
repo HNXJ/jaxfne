@@ -1,0 +1,80 @@
+{
+  "schema": "jaxfne.inventory.test_meaning_ledger.v1",
+  "generated_at_utc": "2026-08-23T02:50:48.405103+00:00",
+  "statement": "Forward preservation contract: every mathematical invariant class maps to named test modules; any future load reduction must preserve these mappings or strengthen them. This pass strengthened coverage (delay-boundary, zero-edge, gradient-check, true-roundtrip additions); no tolerance was loosened and no independent evidence was deleted.",
+  "invariants": {
+    "determinism": [
+      "test_continuation_contract.py",
+      "test_backend_parity_v020.py"
+    ],
+    "finite_closure": [
+      "test_homeostatic_stability_v042.py",
+      "test_is_valid_signal.py"
+    ],
+    "shape_contracts": [
+      "test_semantic_correctness_v020.py",
+      "test_units.py"
+    ],
+    "linearity_superposition": [
+      "test_field_proxy_admissibility_v024.py",
+      "test_linear_readouts.py"
+    ],
+    "zero_source_proxy": [
+      "test_conservation_proxy_diagnostics_v027.py",
+      "test_poisson_admissibility_v0215.py",
+      "test_protocol_e_e4_implementation.py"
+    ],
+    "dense_edge_parity": [
+      "test_backend_parity_v020.py",
+      "test_dense_sparse_connectivity_statistical_equivalence.py",
+      "test_edge_backend_v009.py"
+    ],
+    "continuation_full_state": [
+      "test_continuation_contract.py",
+      "test_v0417_c2_delay_continuation.py",
+      "test_model_checkpoint_restore.py"
+    ],
+    "hdp_nulls_N_W_N_H_N_system": [
+      "test_hdp_kernel_standalone.py",
+      "test_mcc.py",
+      "test_hdp_dispatch.py",
+      "test_homeostasis_dispatch.py"
+    ],
+    "boundedness_domains": [
+      "test_relative_grammar_invariants.py",
+      "test_homeostatic_stability_v042.py"
+    ],
+    "gradient_checks": [
+      "test_protocol_w_w3_stability.py",
+      "test_gradient_checks_v0417.py",
+      "test_differentiable_source_scale_tune.py"
+    ],
+    "serialization_roundtrip": [
+      "test_edge_backend_v009.py",
+      "test_config_json_roundtrip.py",
+      "test_neuronal_tensor.py",
+      "test_jdna_pseudogenome.py"
+    ],
+    "delay_domain_boundaries": [
+      "test_delay_boundary_v0417.py"
+    ],
+    "wave_estimator_negatives": [
+      "test_protocol_c_c1_synthetic.py",
+      "test_protocol_c_c0_wave_spec.py"
+    ],
+    "truth_status_metadata": [
+      "test_phaseD_source_schema.py",
+      "test_truth_gate_clamp_v046.py",
+      "test_vis_proxy_safe_titles.py"
+    ]
+  },
+  "strengthening_receipts_this_pass": [
+    "tests/test_delay_boundary_v0417.py (new, 9 cases)",
+    "tests/test_gradient_checks_v0417.py (new, 2 cases)",
+    "tests/test_edge_backend_v009.py (+4 roundtrip cases)",
+    "tests/test_config_json_roundtrip.py (one-way -> true roundtrip)",
+    "tests/test_relative_grammar_invariants.py::test_delay_preserves_forward_causality (repaired to its stated meaning)",
+    "tests/test_spectrolaminar_public_path_v020.py (vacuous guards -> real execution)"
+  ],
+  "verdict_55": "PASS: preservation is now an indexed contract; this pass's deltas only strengthened meaning."
+}

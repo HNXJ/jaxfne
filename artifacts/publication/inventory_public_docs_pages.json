@@ -1,0 +1,497 @@
+{
+  "schema": "jaxfne.inventory.docs_pages.v1",
+  "generated_at_utc": "2026-08-23T02:49:51.414039+00:00",
+  "nav_page_count": 80,
+  "counts": {
+    "KEEP": 80,
+    "UPDATE": 0,
+    "MERGE": 0,
+    "REMOVE": 0
+  },
+  "unreviewed_pages": [],
+  "pages": [
+    {
+      "page": "api/core.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "api/emitters.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "api/field_schema.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "api/fields.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "api/index.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "api/jdna.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "api/neuronal_tensor.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "api/objectives.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "api/probes.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "api/runtime.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "api/source_schema.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "api/validation.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "api/vis.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "changelog.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "ci_policy.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "citation.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "colab.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "computation_basis.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "contributing.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "doctrine/protocol_c_wave_evidence.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "doctrine/protocol_h_h1b_h_to_x_gain.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "doctrine/protocol_h_rbd_memory.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "doctrine/protocol_w_hdp_parameter_memory.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "doctrine/rbs_rbd_hdp.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "doctrine/relative_quantity_grammar.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "doctrine/tfne_containment_architecture.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "etudes/experiment_a.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "etudes/hdp_controllability_reachability.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "etudes/heterogeneous_emitters.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "etudes/index.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "etudes/multiscale_observation.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "faq.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "guides/calibration.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "guides/configuration_grammar.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "guides/hdp.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "guides/homeostasis.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "guides/index.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "guides/jaxley_interop.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "guides/jdna.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "guides/objective_grammar.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "guides/operator_composition.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "guides/output_bundles.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "guides/probe_operators.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "guides/tensor_field_workflows.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "index.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "install.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "limitations_and_future_plans.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "mathematical_glossary_flow.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "migration_guide.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "protocols/protocol_c_c3_neural.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "protocols/protocol_c_wave.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "protocols/protocol_d_biological_rbs.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "protocols/protocol_e_integration.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "public_surface_contract.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "publication/evidence_consolidation.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "publication/figures_1_7_cross_audit_summary.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "quickstart.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "reference/references.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "scope_and_status.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "source_field_equations.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/01_single_neuron_multimodal.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/02_two_neuron_ei.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/03_network_100_ei.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/04_v1_column.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/05_v1_pfc_dual_column.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/06_jaxfne_suite_no_1_computational_biophysics.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/06_v036_100_neuron_ei_population.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/07_v037_source_bookkeeping.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/08_v038_lfp_csd_readout.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/10_v0313_omission_oddball.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/11_multi_laminar_cortical_agsdr.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/12_izhikevich_single_emitter_explorer.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/13_canonical_column_etude.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/index.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/notebook_standard.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    },
+    {
+      "page": "tutorials/tutorial_outputs.md",
+      "exists": true,
+      "status": "KEEP",
+      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
+    }
+  ],
+  "excluded_from_site_count": 57,
+  "method": "mechanical nav enumeration from mkdocs.yml; status KEEP requires existence plus green language/orphan/strict gates at HEAD 4e365ac lineage; no UPDATE/MERGE candidates remained after the F09/F12/70 repair commits.",
+  "verdict_92": "PASS: zero unreviewed pages; full inventory emitted above."
+}
