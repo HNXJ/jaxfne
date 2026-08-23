@@ -66,6 +66,78 @@ def population_rate_hz(spikes: np.ndarray, dt_ms: float) -> float:
     return float(spikes.mean() * (1000.0 / dt_ms)) if spikes.size else 0.0
 
 
+def hann_absolute_psd(
+    y: np.ndarray, dt_ms: float, window: str = "hann"
+) -> tuple[np.ndarray, np.ndarray]:
+    """Absolute power spectral density (host-side numpy, tutorial helper).
+
+    Demeans, tapers (``"hann"`` or ``"rectangular"``), and returns
+    ``(freqs_hz, psd)`` with density scaling ``sum(w^2) * fs`` so values are
+    comparable across window choices and signal lengths. This is the canonical
+    home of the estimator previously inlined in the low-frequency-scaling
+    tutorial; keep formulas synchronized via this function only.
+    """
+    y = np.asarray(y, dtype=np.float64)
+    if y.ndim != 1:
+        raise ValueError("hann_absolute_psd expects a 1-D signal")
+    if dt_ms <= 0:
+        raise ValueError("dt_ms must be positive")
+    fs = 1000.0 / dt_ms
+    y = y - np.mean(y)
+    if window == "hann":
+        w = np.hanning(y.size)
+    elif window == "rectangular":
+        w = np.ones(y.size)
+    else:
+        raise ValueError(f"unsupported window {window!r}; expected 'hann' or 'rectangular'")
+    yw = y * w
+    scale = np.sum(w**2) * fs
+    spec = np.abs(np.fft.rfft(yw)) ** 2 / max(scale, 1e-15)
+    freq = np.fft.rfftfreq(y.size, d=1.0 / fs)
+    return freq, spec
+
+
+def log_log_power_law_exponent(
+    freq: np.ndarray,
+    psd: np.ndarray,
+    band: tuple[float, float],
+) -> float:
+    """Power-law exponent from a log-log fit over ``band`` (tutorial helper).
+
+    Canonical home of the estimator previously inlined in the
+    low-frequency-scaling tutorial; returns 0.0 when the band is empty.
+    """
+    freq = np.asarray(freq)
+    psd = np.asarray(psd)
+    mask = (freq >= band[0]) & (freq <= band[1]) & (freq > 0)
+    if not np.any(mask):
+        return 0.0
+    log_f = np.log10(freq[mask])
+    log_p = np.log10(psd[mask])
+    p = np.polyfit(log_f, log_p, 1)
+    return float(-p[0])
+
+
+def absolute_band_power(
+    x: np.ndarray, dt_ms: float, lo_hz: float, hi_hz: float
+) -> np.ndarray:
+    """Per-channel absolute band power via rectangular-window rfft bins.
+
+    Sums ``|rfft|**2`` bins with ``lo_hz <= f < hi_hz`` for a 1-D or 2-D
+    ``(n_steps, n_channels)`` array. Rectangular by definition; callers needing
+    tapering should use :func:`hann_absolute_psd` per channel instead.
+    """
+    x = np.asarray(x)
+    if dt_ms <= 0:
+        raise ValueError("dt_ms must be positive")
+    if x.ndim not in (1, 2):
+        raise ValueError("absolute_band_power expects 1-D or 2-D input")
+    f = np.fft.rfftfreq(x.shape[0], d=dt_ms / 1000.0)
+    spec = np.abs(np.fft.rfft(x, axis=0)) ** 2
+    m = (f >= lo_hz) & (f < hi_hz)
+    return spec[m].sum(axis=0)
+
+
 def display_run_summary(label: str, spikes: np.ndarray, V_m: np.ndarray,
                        dt_ms: float, finite: bool) -> None:
     """Print a compact simulation summary."""
