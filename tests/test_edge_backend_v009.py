@@ -3,8 +3,18 @@ import json
 
 import jax
 import jax.numpy as jnp
+import pytest
 
 import jaxfne as jtfne
+
+model = None  # set lazily by _get_model for rejection tests
+
+
+def _get_model():
+    global model
+    if model is None:
+        model = jtfne.construct(_cfg())
+    return model
 
 
 def _cfg(n=6):
@@ -26,6 +36,50 @@ def test_edge_list_export_and_json_safety():
     assert payload["backend"] == "edge_list_recurrent_v0.0.9"
     assert payload["physical_amplitude_calibrated"] is False
     json.dumps(payload, allow_nan=False)
+
+
+def test_edge_list_roundtrip_bit_exact():
+    """Full to_dict/from_dict cycle restores every array bit-exactly."""
+    import numpy as np
+    from dataclasses import replace
+
+    model = jtfne.construct(_cfg())
+    edges = model.params["edge_list"]
+    delayed = replace(
+        edges,
+        delay_steps=jax.random.randint(jax.random.PRNGKey(0), (edges.n_edges,), 0, 4, dtype=jnp.int32),
+    )
+    restored = type(edges).from_dict(delayed.to_dict())
+    for name in ("pre", "post", "weight", "receptor_index", "tau_ms", "delay_steps"):
+        a = np.asarray(getattr(delayed, name))
+        b = np.asarray(getattr(restored, name))
+        assert a.dtype == b.dtype, f"{name}: dtype drift {a.dtype} vs {b.dtype}"
+        assert np.array_equal(a, b), f"{name}: values differ after roundtrip"
+    assert restored.source_calibration_status == delayed.source_calibration_status
+
+
+def test_edge_list_roundtrip_survives_json_text():
+    """The documented persistence path is JSON text; roundtrip through it."""
+    import numpy as np
+
+    model = jtfne.construct(_cfg())
+    edges = model.params["edge_list"]
+    payload = json.loads(json.dumps(edges.to_dict(), allow_nan=False))
+    restored = type(edges).from_dict(payload)
+    assert np.array_equal(np.asarray(edges.weight), np.asarray(restored.weight))
+    assert np.array_equal(np.asarray(edges.tau_ms), np.asarray(restored.tau_ms))
+
+
+def test_edge_list_from_dict_rejects_summary_only_payload():
+    with pytest.raises(ValueError, match="cannot be reconstructed"):
+        type(_get_model().params["edge_list"]).from_dict(
+            {"backend": "edge_list_recurrent_v0.0.9", "n_edges": 3}
+        )
+
+
+def test_edge_list_from_dict_rejects_unknown_backend():
+    with pytest.raises(ValueError, match="unsupported EdgeList payload backend"):
+        type(_get_model().params["edge_list"]).from_dict({"backend": "something_else"})
 
 
 def test_edge_list_is_jax_pytree():

@@ -649,15 +649,86 @@ class EdgeList:
         )
 
     def to_dict(self) -> dict:
-        """Documented public function `to_dict`."""
+        """JSON-safe serialization including full edge payloads.
+
+        The summary keys are the historical surface; ``pre``/``post``/``weight``/
+        ``receptor_index``/``tau_ms``/``delay_steps`` carry the complete state so
+        :meth:`from_dict` restores a bit-exact copy under the recorded dtypes.
+        """
         from .io import json_safe
+
         return json_safe({
             "backend": "edge_list_recurrent_v0.0.9",
             "n_edges": self.n_edges,
             "receptors": {"0": "excitatory_native", "1": "inhibitory_native"},
             "source_calibration_status": self.source_calibration_status,
             "physical_amplitude_calibrated": False,
+            "pre": self.pre,
+            "post": self.post,
+            "weight": self.weight,
+            "receptor_index_arr": self.receptor_index,
+            "tau_ms": self.tau_ms,
+            "delay_steps": self.delay_steps,
+            "array_dtypes": {
+                "pre": str(self.pre.dtype),
+                "post": str(self.post.dtype),
+                "weight": str(self.weight.dtype),
+                "receptor_index": str(self.receptor_index.dtype),
+                "tau_ms": str(self.tau_ms.dtype),
+                "delay_steps": str(self.delay_steps.dtype),
+            },
         })
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "EdgeList":
+        """Reconstruct an :class:`EdgeList` from :meth:`to_dict` output.
+
+        Bit-exact for payloads produced by the same backend version: arrays are
+        rebuilt with their recorded dtypes and equality-checked lengths. Older
+        summary-only payloads (no array keys) raise a clear error directing the
+        caller to the constructor.
+        """
+        if d.get("backend") != "edge_list_recurrent_v0.0.9":
+            raise ValueError(f"unsupported EdgeList payload backend: {d.get('backend')!r}")
+        required = ("pre", "post", "weight", "receptor_index_arr", "tau_ms", "delay_steps")
+        missing = [k for k in required if k not in d]
+        if missing:
+            raise ValueError(
+                "EdgeList payload lacks full array fields "
+                f"(missing: {missing}); only summary payloads predate this "
+                "serializer and cannot be reconstructed"
+            )
+        dtypes = d.get("array_dtypes", {})
+
+        def _arr(key: str):
+            dtype = dtypes.get(key, None)
+            arr = jnp.asarray(d[key])
+            return arr if dtype is None else arr.astype(dtype)
+
+        pre = _arr("pre").astype(jnp.int32)
+        post = _arr("post").astype(jnp.int32)
+        weight = _arr("weight")
+        receptor_index = _arr("receptor_index_arr")
+        tau_ms = _arr("tau_ms")
+        delay_steps = _arr("delay_steps")
+        n = int(d["n_edges"])
+        for name, arr in (("pre", pre), ("post", post), ("weight", weight),
+                          ("receptor_index", receptor_index), ("tau_ms", tau_ms),
+                          ("delay_steps", delay_steps)):
+            if int(arr.shape[0]) != n:
+                raise ValueError(
+                    f"EdgeList payload length mismatch: {name} has {arr.shape[0]} "
+                    f"rows, n_edges={n}"
+                )
+        return cls(
+            pre,
+            post,
+            weight,
+            receptor_index,
+            tau_ms,
+            d.get("source_calibration_status", "uncalibrated_izhikevich_native_current"),
+            delay_steps.astype(jnp.int32),
+        )
 
 
 def make_edge_list_from_dense(
