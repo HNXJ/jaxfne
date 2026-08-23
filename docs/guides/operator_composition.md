@@ -4,8 +4,8 @@
 proxies. This page shows real composed pipelines — shapes and dtypes at every
 handoff — not isolated operator definitions.
 
-For single-operator contracts see [Operator Doctrine](../operator_doctrine.md) and
-the [Tensor Operator Registry](../api/tensor_operators.md). The chains here were
+For single-operator contracts see Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) and
+the Tensor Operator Registry (`docs/api/tensor_operators.md` — repository-internal reference, excluded from the built site). The chains here were
 verified in
 [`tests/test_tensor_pipeline_custom_cfg.py`](https://github.com/HNXJ/jaxfne/blob/main/tests/test_tensor_pipeline_custom_cfg.py)
 on a non-canonical 3-layer configuration, not only the default column.
@@ -146,7 +146,7 @@ downstream call in Chain 1 (`csd_tensor`, `eeg_proxy_transform`,
 ## Why composition is the missing piece
 
 [Configuration Grammar](configuration_grammar.md) documents the ~30
-builder methods that *specify* a model. [Operator Doctrine](../operator_doctrine.md)
+builder methods that *specify* a model. Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site)
 documents the 7-stage *rule* each tensor operator satisfies on its own.
 Neither one shows that the codomain of one operator is the domain of the
 next without a conversion step — that the chain actually typechecks, not
@@ -155,8 +155,8 @@ claim checkable; this page is what makes it readable.
 
 ## See also
 
-- [TFNE Operator Doctrine](../operator_doctrine.md) — the per-operator domain/codomain contract table.
-- [Tensor Operator Registry](../api/tensor_operators.md) — the full operator inventory.
-- [Operator Inventory (generated)](../_generated/operator_inventory.md) — the live export surface.
+- TFNE Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) — the per-operator domain/codomain contract table.
+- Tensor Operator Registry (`docs/api/tensor_operators.md` — repository-internal reference, excluded from the built site) — the full operator inventory.
+- Operator Inventory (generated) (`docs/_generated/operator_inventory.md` — repository-internal reference, excluded from the built site) — the live export surface.
 - [Objective Grammar](objective_grammar.md) — the user-facing run sequence this composition feeds into via `probe()`.
 - `tests/test_tensor_pipeline_custom_cfg.py` — the executable proof this page documents.

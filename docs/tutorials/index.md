@@ -107,7 +107,7 @@ by theme.
 | Étude | Topic |
 |-------|-------|
 | [No. 2 — Spectrolaminar Power](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_2_spectrolaminar_power.ipynb) | TFNE-Izhikevich spectrolaminar motif, single-trial |
-| [No. 3 — V1 Spectrolaminar 1k](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb) | 1000-neuron scalable spectrolaminar V1 column (see [showcases](../guides/showcases.md)) |
+| [No. 3 — V1 Spectrolaminar 1k](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb) | 1000-neuron scalable spectrolaminar V1 column (see showcases (`docs/guides/showcases.md` — repository-internal reference, excluded from the built site)) |
 | [No. 7 — Multi-trial Spectrolaminar](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_7_multitrial_spectrolaminar.ipynb) | Multi-trial continuous simulation → spectrolaminar motif aggregation |
 
 **Homeostasis & plasticity family**

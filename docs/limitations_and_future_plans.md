@@ -58,7 +58,7 @@ the intended direction:
 
 The elliptic and electrodynamic regimes are reserved for a future release and require
 boundary, gauge, residual, convergence, and calibration validation before any
-physical-amplitude reporting. The [elliptic field equation specification](guides/poisson_admissibility.md)
+physical-amplitude reporting. The elliptic field equation specification (`docs/guides/poisson_admissibility.md` — repository-internal reference, excluded from the built site)
 documents the admissibility mathematics for that regime.
 
 ## Related pages
@@ -66,5 +66,5 @@ documents the admissibility mathematics for that regime.
 - [Probe operators](guides/probe_operators.md)
 - [Quickstart](quickstart.md)
 - [Tutorials](tutorials/index.md)
-- [Tensor Electromagnetics Scope](tensor_electromagnetics_scope.md) — the same regime table, expanded into a scope ladder with per-stage requirements
-- [TFNE Operator Doctrine](operator_doctrine.md) — per-stage operator rule referencing this scope table
+- Tensor Electromagnetics Scope (`docs/tensor_electromagnetics_scope.md` — repository-internal reference, excluded from the built site) — the same regime table, expanded into a scope ladder with per-stage requirements
+- TFNE Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) — per-stage operator rule referencing this scope table

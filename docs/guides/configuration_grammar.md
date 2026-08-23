@@ -138,7 +138,7 @@ spike/current proxy, or reconstructed HH ionic current via the Jaxley bridge).
 Specificity dial: a voltage/spike proxy source is coarse; a real transmembrane
 **current** source (Jaxley HH) is the physically meaningful generator. Choosing
 the emitter therefore chooses the source's fidelity. See
-`JaxleyBridge.simulate_laminar_field` in the [Bridges API](../api/bridges.md).
+`JaxleyBridge.simulate_laminar_field` in the Bridges API (`docs/api/bridges.md` — repository-internal reference, excluded from the built site).
 
 ## Fields
 
@@ -228,6 +228,6 @@ why `Configuration` is the deepest, most important surface in the package.
 - [Objective Grammar](objective_grammar.md) — the user-facing run sequence (construct/simulate/probe/tune/validate/export) this builder feeds into.
 - [NeuronalTensor API reference](../api/neuronal_tensor.md) · [HDP](hdp.md) — the second, tensor-first on-ramp into `construct()`.
 - [Tensor-Field Workflows](tensor_field_workflows.md) — the operator chain in depth.
-- [TFNE Operator Doctrine](../operator_doctrine.md) — the per-stage rule table for this same operator chain.
+- TFNE Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) — the per-stage rule table for this same operator chain.
 - [Jaxley Interoperability](jaxley_interop.md) — real channels/morphology as emitters.
-- [Bridges API](../api/bridges.md) · [Fields API](../api/fields.md) · [Objectives API](../api/objectives.md)
+- Bridges API (`docs/api/bridges.md` — repository-internal reference, excluded from the built site) · [Fields API](../api/fields.md) · [Objectives API](../api/objectives.md)

@@ -211,7 +211,7 @@ GitHub Release / TestPyPI / PyPI since v0.4.5.
 - Pre-0.4.7 four-chapter polish (P–S): human docs de-parrot agent jargon; `clamp_truth_gate_metadata` blocks claim escalation on update_metadata/manifest/migrate_schema; dual-ask re-score leak 92 / overall 93.
 - Root declutter: contributing guide under `docs/` + `.github/CONTRIBUTING.md`; changelog lives under `docs/changelog.md`.
 - API docs export note links [Scope & status](scope_and_status.md) instead of repeating gate jargon.
-- README: drop "Built for AI agents too" manifesto; quiet Documentation-table link to [for_ai_agents](for_ai_agents.md); states the Jaxley/jaxfne population-vs-compartment relationship.
+- README: drop "Built for AI agents too" manifesto; quiet Documentation-table link to for_ai_agents (`docs/for_ai_agents.md` — repository-internal reference, excluded from the built site); states the Jaxley/jaxfne population-vs-compartment relationship.
 
 ### Removed
 - Root `SECURITY.md` and `CODE_OF_CONDUCT.md`.

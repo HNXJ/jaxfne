@@ -931,4 +931,4 @@ The following figures are referenced in the notebook but not yet committed as PN
 
 These placeholders mark where final PNG or PDF figures should be placed once the notebook is executed and validated.
 
-For a current, corrected spectrolaminar readout (depth-distribution crossings, absolute-power-vs-1/f check, slow-deep-homeostasis suite) generated on the canonical column, see the [Showcases guide](../guides/showcases.md#spectrolaminar-motif-with-depth-graded-slow-deep-homeostasis) instead.
+For a current, corrected spectrolaminar readout (depth-distribution crossings, absolute-power-vs-1/f check, slow-deep-homeostasis suite) generated on the canonical column, see the Showcases guide (`docs/guides/showcases.md` — repository-internal reference, excluded from the built site) instead.

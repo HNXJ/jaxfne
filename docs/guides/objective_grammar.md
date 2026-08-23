@@ -12,7 +12,7 @@ Related views (unchanged):
 
 - [Configuration Grammar](configuration_grammar.md) — builder methods on `Configuration`
   (`.runtime()`, `.column()`, `.connectivity()`, …).
-- [TFNE Operator Doctrine](../operator_doctrine.md) — internal tensor-operator rules.
+- TFNE Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) — internal tensor-operator rules.
 
 Every call below was run against the installed package before being written
 here — none of it is illustrative pseudocode.
@@ -150,6 +150,6 @@ transcribing it from a proposal or an older skill file.
 ## See also
 
 - [Configuration Grammar](configuration_grammar.md) — the builder-method reference this chain's step 1 draws from.
-- [TFNE Operator Doctrine](../operator_doctrine.md) — the tensor rule each stage satisfies internally.
-- [Tensor Operator Registry](../api/tensor_operators.md) — per-operator inventory.
-- [Operator Inventory (generated)](../_generated/operator_inventory.md) — the full live export surface, regenerated from code.
+- TFNE Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) — the tensor rule each stage satisfies internally.
+- Tensor Operator Registry (`docs/api/tensor_operators.md` — repository-internal reference, excluded from the built site) — per-operator inventory.
+- Operator Inventory (generated) (`docs/_generated/operator_inventory.md` — repository-internal reference, excluded from the built site) — the full live export surface, regenerated from code.

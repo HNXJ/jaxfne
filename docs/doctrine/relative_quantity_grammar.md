@@ -101,7 +101,7 @@ h_k = (meaning, domain, R_k, Gamma_k)
 
 The concrete per-coordinate table for the shipped HDP kernels lives in
 [`docs/guides/hdp.md`](../guides/hdp.md) and
-[`docs/doctrine/rbs_rbd_hdp_inventory.md`](rbs_rbd_hdp_inventory.md).
+`docs/doctrine/rbs_rbd_hdp_inventory.md` (`docs/doctrine/rbs_rbd_hdp_inventory.md` — repository-internal reference, excluded from the built site).
 
 ## 5. Effective-parameter mappings
 

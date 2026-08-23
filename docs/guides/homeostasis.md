@@ -97,7 +97,7 @@ signals, diag = bridge.simulate_homeostatic(
 The injected current is hard-bounded (`current_clip_nA`) and finiteness is
 verified (`strict_finite=True` raises rather than masking) — the controller keeps
 the implicit solver in a finite, stable regime even under heterogeneous drive. See
-[`JaxleyBridge.simulate_homeostatic` in the Bridges API](../api/bridges.md).
+`JaxleyBridge.simulate_homeostatic` in the Bridges API (`docs/api/bridges.md` — repository-internal reference, excluded from the built site).
 
 !!! warning "Stay in the monotonic f-I band (Jaxley path)"
     Jaxley single-compartment HH has a non-monotonic f-I curve (high current →
@@ -121,7 +121,7 @@ units recovering) to the controller. Report the null alongside the result.
 
 ## See also
 
-- [Bridges API](../api/bridges.md) — `simulate_homeostatic` parameters in full.
+- Bridges API (`docs/api/bridges.md` — repository-internal reference, excluded from the built site) — `simulate_homeostatic` parameters in full.
 - [Configuration Grammar](configuration_grammar.md) — where the runtime and emitter fit in the chain.
 - [Jaxley Interoperability](jaxley_interop.md) — real channels/morphology as emitters.
 - [HDP](hdp.md) — the more structured per-neuron `H_i` controller (also works tensor-first, on a `NeuronalTensor`-built `Model`) if a single `k_gain` dial here isn't enough.

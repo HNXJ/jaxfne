@@ -301,4 +301,4 @@ Indicates a simulation issue (e.g., numerical instability). Check:
 ## See Also
 
 - [Computation Basis](computation_basis.md) — Detailed computation contract
-- [Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md) — Diagnostics reference
+- Conservation Proxy Diagnostics (`docs/conservation_proxy_diagnostics.md` — repository-internal reference, excluded from the built site) — Diagnostics reference

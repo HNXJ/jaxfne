@@ -15,13 +15,13 @@ field proxies, tuning objectives, and exporting manifests.
 
 ## Showcases
 
-- **[Showcases](showcases.md)** — runnable demonstrations: interactive 3D multi-area network, homeostasis firing-rate change + full raster, closed-loop plasticity under random stimulation, spectrolaminar motif with depth-graded homeostasis
+- **Showcases (`docs/guides/showcases.md` — repository-internal reference, excluded from the built site)** — runnable demonstrations: interactive 3D multi-area network, homeostasis firing-rate change + full raster, closed-loop plasticity under random stimulation, spectrolaminar motif with depth-graded homeostasis
 
 ## Probe and readout workflows
 
 - **[Probe operators](probe_operators.md)** — Using the eight readout channels
 - **[Output bundles](output_bundles.md)** — Understanding JSON manifests and validation
-- **[Plotly Visualization](plotly_visualization.md)** — interactive `jaxfne.vis` plots and 3D network views
+- **Plotly Visualization (`docs/guides/plotly_visualization.md` — repository-internal reference, excluded from the built site)** — interactive `jaxfne.vis` plots and 3D network views
 
 ## Advanced workflows
 
@@ -29,7 +29,7 @@ field proxies, tuning objectives, and exporting manifests.
 - **[Tensor-field workflows](tensor_field_workflows.md)** — Pipeline overview and organization (source/field tensors — not to be confused with `NeuronalTensor`, the circuit-definition data model covered in Configuration Grammar above)
 - **[Jaxley interoperability](jaxley_interop.md)** — Using Jaxley-style models with jaxfne
 - **[Calibration](calibration.md)** — Preparing workflows for empirical validation
-- **[Poisson Admissibility](poisson_admissibility.md)** — admissibility conditions for the elliptic field equation specification
+- **Poisson Admissibility (`docs/guides/poisson_admissibility.md` — repository-internal reference, excluded from the built site)** — admissibility conditions for the elliptic field equation specification
 
 ## Next steps
 

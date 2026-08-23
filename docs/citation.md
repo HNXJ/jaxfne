@@ -59,7 +59,7 @@ citable snapshots) but is **not** equivalent to a peer-reviewed methods paper.
    - This page (replace the placeholder BibTeX above)
    - Optional: `README.md` citation line
 
-Detailed checklist: [Zenodo release DOI guide](guides/zenodo_doi.md).
+Detailed checklist: Zenodo release DOI guide (`docs/guides/zenodo_doi.md` — repository-internal reference, excluded from the built site).
 
 ## Component citations
 

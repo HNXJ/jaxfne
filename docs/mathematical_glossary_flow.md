@@ -333,7 +333,7 @@ Gaussian kernel is linear in source amplitude but not in neuron placement.
 **Code:** `jaxfne/fields/proxy.py` (`project_laminar_sources`), `validate_projection_invariants`.
 
 **Boundary:** superposition holds for the **proxy operator**, not for a future
-nonlinear PDE solve (P2+ in [Tensor Electromagnetics Scope](tensor_electromagnetics_scope.md)).
+nonlinear PDE solve (P2+ in Tensor Electromagnetics Scope (`docs/tensor_electromagnetics_scope.md` — repository-internal reference, excluded from the built site)).
 
 ### Source projection
 
@@ -366,7 +366,7 @@ full projection chain.
 Values near zero indicate spatial balance of the **proxy source**, not enforced
 continuity at a tissue boundary.
 
-**Code:** `jaxfne/fields/diagnostics.py`, [Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md).
+**Code:** `jaxfne/fields/diagnostics.py`, Conservation Proxy Diagnostics (`docs/conservation_proxy_diagnostics.md` — repository-internal reference, excluded from the built site).
 
 ### Proxy-vs-solver ladder
 
@@ -403,4 +403,4 @@ When adding a new equation to jaxfne documentation:
 - [Computation Basis](computation_basis.md) — extensibility rules
 - [Probe Operators](guides/probe_operators.md) — detailed operator statements
 - [Scope and Limitations](limitations_and_future_plans.md) — boundary conditions
-- [TFNE Operator Doctrine](operator_doctrine.md) — per-stage contract table indexing these equations
+- TFNE Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) — per-stage contract table indexing these equations

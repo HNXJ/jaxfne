@@ -307,7 +307,7 @@ The following computation-basis objects are implemented in jaxfne:
 > false and has been removed. Physical-amplitude/claim-level eligibility is
 > represented directly in report dicts (`claim_level`,
 > `physical_amplitude_calibrated`, etc. — see
-> [Tensor Operators — Report shapes](api/tensor_operators.md#report-shapes))
+> Tensor Operators — Report shapes (`docs/api/tensor_operators.md` — repository-internal reference, excluded from the built site))
 > rather than through a dedicated gate function. `AxisSpec`, `BasisSpec`, and
 > `default_basis_spec()` all exist in `jaxfne.core` and are re-exported at the
 > `jaxfne` top level (`jaxfne.AxisSpec` works directly) as documented.
@@ -330,8 +330,8 @@ The following computation-basis objects are implemented in jaxfne:
 
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Core TFNE equations
 - [Source/Field Equations](source_field_equations.md) — Source modes, forbidden patterns, field metadata
-- [Tensor-Network Ancestry](tensor_network_ancestry.md) — conceptual context: basis-transform rule and historical parallels
+- Tensor-Network Ancestry (`docs/tensor_network_ancestry.md` — repository-internal reference, excluded from the built site) — conceptual context: basis-transform rule and historical parallels
 - [Probe Operators](guides/probe_operators.md) — Readout operators and their statement boundaries
 - [Scope and Limitations](limitations_and_future_plans.md) — What TFNE statements and stays scoped to
-- [TFNE Operator Doctrine](operator_doctrine.md) — Per-stage rule table built on these tensor shapes
-- [Tensor Electromagnetics Scope](tensor_electromagnetics_scope.md) — Reserved field-solver stages referenced by the reserved markers above
+- TFNE Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) — Per-stage rule table built on these tensor shapes
+- Tensor Electromagnetics Scope (`docs/tensor_electromagnetics_scope.md` — repository-internal reference, excluded from the built site) — Reserved field-solver stages referenced by the reserved markers above
