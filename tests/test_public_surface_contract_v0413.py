@@ -82,9 +82,25 @@ def test_public_h_state_localities():
 
 
 def test_public_symbol_count_contraction_from_baseline():
-    """259 baseline → 191 public exports (discoverability contraction; +5 JDNA additive surface 0.4.17)."""
+    """259 baseline → 189 public exports (+5 JDNA additive surface 0.4.17;
+    −2 SurrogateConfig pair re-classified EXPERIMENTAL_INTERNAL on 2026-08-22
+    W4: declaration-only dormant metadata, zero manuscript/example/doc usage)."""
     summary = public_surface_summary()
     assert summary["counts"]["baseline_all"] == 265
-    assert summary["counts"]["public_exports"] == 191
+    assert summary["counts"]["public_exports"] == 189
     assert summary["counts"]["compatibility"] == 13
-    assert summary["counts"]["experimental_internal"] == 16
+    assert summary["counts"]["experimental_internal"] == 18
+
+
+def test_surrogate_config_pair_is_experimental_not_public():
+    """W4 reclassification: declaration-only surrogate metadata is fenced at
+    its earned tier while remaining importable (contraction idiom)."""
+    assert "SurrogateConfig" not in jtfne.__all__
+    assert "surrogate_config" not in jtfne.__all__
+    assert hasattr(jtfne, "SurrogateConfig")
+    assert hasattr(jtfne, "surrogate_config")
+    assert symbol_tier("SurrogateConfig") == "EXPERIMENTAL_INTERNAL"
+    assert symbol_tier("surrogate_config") == "EXPERIMENTAL_INTERNAL"
+    # construction semantics unchanged
+    s = jtfne.surrogate_config(method="straight_through", beta=8.0)
+    assert s is not None

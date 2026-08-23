@@ -666,6 +666,12 @@ class RuntimeConfiguration:
     -- areas, layers, populations, geometry, mechanisms, and plastic
     parameters all belong on :class:`NeuronalTensor`, never here.
 
+    Ownership (2026-08-22 W4 scoping): this is the canonical runtime type of
+    the *tensor workflow*; it carries no execution-policy semantics beyond the
+    wired fields below and is bridged by ``construct`` into
+    :class:`jaxfne.RuntimeConfig`, the single owner of execution-policy
+    semantics. The two are path-scoped views of one resolved runtime.
+
     **Wired** (actually consumed by :func:`jaxfne.construct` /
     :func:`jaxfne.simulate` today): ``duration_ms``, ``dt_ms``, ``seed``,
     ``dtype``, ``emitter``, ``device`` (mapped to ``RuntimeConfig.backend``),

@@ -23,6 +23,13 @@ _ALLOWED_DTYPES = ("float32", "float64", "bfloat16")
 class RuntimeConfig:
     """JAX runtime, dtype policy, and emitter control.
 
+    Ownership (2026-08-22 W4 scoping): this class is the single canonical owner
+    of execution-policy semantics — backend, dtype, jit/vmap, recurrent/synaptic
+    kernel selection — for the Configuration construction path. The tensor
+    workflow uses :class:`jaxfne.neuronal_tensor.RuntimeConfiguration`, which
+    ``construct(tensor, runtime=...)`` bridges into these same resolved
+    semantics; the two types are path-scoped views, not competing policies.
+
     ``dtype='float64'`` is honored only when JAX x64 is enabled.  The manifest
     always reports both requested and actual dtype policy.
 

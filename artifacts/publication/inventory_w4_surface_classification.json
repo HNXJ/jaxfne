@@ -1,0 +1,87 @@
+{
+  "schema": "jaxfne.inventory.w4_surface_classification.v1",
+  "generated_at_utc": "2026-08-23T19:04:04.656864+00:00",
+  "head_at_inventory": "9a47aab",
+  "symbols": [
+    {
+      "symbol": "SurrogateConfig",
+      "current_import_path": "jaxfne (root) <- jaxfne._runtime_config.SurrogateConfig",
+      "current_tier": "CANONICAL",
+      "proposed_tier": "EXPERIMENTAL_INTERNAL",
+      "documented": false,
+      "documented_note": "appears only in docs/_generated/operator_inventory.md (auto-generated, excluded from built site)",
+      "used_by_manuscript": false,
+      "used_by_public_examples": false,
+      "used_internally": true,
+      "used_internally_note": "definition + root re-export + one declaration-only unit test (tests/test_v006_v008.py::test_surrogate_config_is_declaration_only_and_json_safe)",
+      "compatibility_requirement": "root attribute must remain importable (hasattr) with unchanged construction semantics; only __all__/tier membership changes (0.4.13 contraction idiom)",
+      "reason_for_transition": "declaration-only by its own docstring ('records the declaration only'); no effect on any reachable canonical path (H7 dormant parameter); zero manuscript/example/doc usage -> CANONICAL misrepresents an inert metadata object as stable API (goal 42/93)"
+    },
+    {
+      "symbol": "surrogate_config",
+      "current_import_path": "jaxfne (root factory) <- jaxfne._runtime_config.surrogate_config",
+      "current_tier": "CANONICAL",
+      "proposed_tier": "EXPERIMENTAL_INTERNAL",
+      "documented": false,
+      "used_by_manuscript": false,
+      "used_by_public_examples": false,
+      "used_internally": true,
+      "used_internally_note": "factory for SurrogateConfig; same single unit test",
+      "compatibility_requirement": "same as SurrogateConfig",
+      "reason_for_transition": "companion factory of an EXPERIMENTAL_INTERNAL-class object; keeping it CANONICAL while the class moves would leave an ambiguous stable-looking path (goal 93)"
+    },
+    {
+      "symbol": "RuntimeConfig",
+      "current_import_path": "jaxfne (root) <- jaxfne._runtime_config.RuntimeConfig",
+      "current_tier": "CANONICAL",
+      "proposed_tier": "CANONICAL (ownership scoped: execution-policy owner; canonical runtime type for the Configuration path)",
+      "documented": true,
+      "used_by_manuscript": false,
+      "used_by_public_examples": true,
+      "used_internally": true,
+      "compatibility_requirement": "unchanged; becomes the declared single owner of execution-policy semantics",
+      "reason_for_transition": "goal-48 ownership scoping: RuntimeConfig owns execution policy (backend/dtype/jit/vmap/kernels) across both construction paths"
+    },
+    {
+      "symbol": "RuntimeConfiguration",
+      "current_import_path": "jaxfne (root) <- jaxfne.neuronal_tensor.RuntimeConfiguration",
+      "current_tier": "CANONICAL",
+      "proposed_tier": "CANONICAL (scoped: tensor-workflow execution config; bridged into construct())",
+      "documented": true,
+      "used_by_manuscript": false,
+      "used_by_public_examples": true,
+      "used_internally": true,
+      "compatibility_requirement": "type-enforced argument of construct(tensor, runtime); demotion would break observable 0.4.17 behavior -> remains importable and CANONICAL with documented scope boundary",
+      "reason_for_transition": "demotion rejected (working public import, actively type-enforced); ambiguity resolved by documented ownership boundary instead; structural merge deferred post-freeze"
+    },
+    {
+      "symbol": "GLIFEmitter / LIFEmitter",
+      "current_import_path": "jaxfne (root attr) <- jaxfne.emitters",
+      "current_tier": "EXPERIMENTAL_INTERNAL",
+      "proposed_tier": "EXPERIMENTAL_INTERNAL (verified: raises NotImplementedError on construction; excluded from __all__)",
+      "documented": false,
+      "used_by_manuscript": false,
+      "used_by_public_examples": false,
+      "used_internally": false,
+      "compatibility_requirement": "keep importable + raising (observable behavior since <=0.4.x); no removal during freeze",
+      "reason_for_transition": "no tier change needed; verified already fenced at earned status (contract tests :51-55 pin this)"
+    },
+    {
+      "symbol": "write_nwb / read_nwb",
+      "current_import_path": "jaxfne (root attr) <- jaxfne.pynwb_compat",
+      "current_tier": "EXPERIMENTAL_INTERNAL",
+      "proposed_tier": "EXPERIMENTAL_INTERNAL (verified: always raise NotImplementedError; PyNWB advertised nowhere as working export)",
+      "documented": false,
+      "used_by_manuscript": false,
+      "used_by_public_examples": false,
+      "used_internally": false,
+      "compatibility_requirement": "keep importable + raising; project source forbids advertising PyNWB as completed export path",
+      "reason_for_transition": "no tier change needed; verified fenced at earned status (contract tests :47-48)"
+    }
+  ],
+  "decisions": {
+    "surrogate_pair": "MOVE CANONICAL -> EXPERIMENTAL_INTERNAL (via established 0.4.13 contraction idiom: drop from PUBLIC_EXPORTS/__all__, retain root hasattr/import, regenerate pinned contract artifact, update counts assertions)",
+    "runtime_ownership": "SCOPE, do not merge: RuntimeConfig = execution-policy owner; RuntimeConfiguration = tensor-workflow execution config (type-enforced construct arg); cross-referenced docstrings; structural single-config merge deferred post-freeze",
+    "stubs": "NO TIER CHANGE; status verified against behavior; messaging already explicit (NotImplementedError)"
+  }
+}

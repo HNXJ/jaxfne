@@ -126,6 +126,12 @@ _CANONICAL: Final[frozenset[str]] = frozenset(
         "ReadoutResult",
         "ReadoutSpec",
         "RunReceipt",
+        # Runtime ownership (2026-08-22 W4 scoping): RuntimeConfig is the single
+        # owner of execution-policy semantics (backend/dtype/jit/vmap/kernels)
+        # for the Configuration path; RuntimeConfiguration is the tensor-workflow
+        # execution config consumed by construct(tensor, runtime) and bridged
+        # into the same resolved semantics. One concept, one owner per path;
+        # structural merge deferred past the 0.4.17 freeze.
         "RuntimeConfig",
         "RuntimeConfiguration",
         "SelectorSpec",
@@ -133,7 +139,6 @@ _CANONICAL: Final[frozenset[str]] = frozenset(
         "Signals",
         "Simulation",
         "StimulusSchedule",
-        "SurrogateConfig",
         "TrialBatch",
         "TrialBatchResult",
         "TrialResult",
@@ -168,7 +173,6 @@ _CANONICAL: Final[frozenset[str]] = frozenset(
         "simulate",
         "simulation",
         "stimulus_schedule",
-        "surrogate_config",
         "trial_batch",
         "with_emitter_parameters",
         # NeuronalTensor
@@ -398,6 +402,8 @@ _EXPERIMENTAL_INTERNAL: Final[frozenset[str]] = frozenset(
         "Manifest",
         "SanityDeltaConfig",
         "SanityDeltaModel",
+        "SurrogateConfig",
+        "surrogate_config",
         "TaskEpisode",
         "get_sharding_context",
         "make_candidate_sharding",
@@ -431,6 +437,8 @@ ADVANCED_NAMESPACE: Final[dict[str, str]] = {
     "write_nwb": "jaxfne.pynwb_compat",
     "read_nwb": "jaxfne.pynwb_compat",
     "SanityDeltaConfig": "jaxfne.sanity_delta",
+    "SurrogateConfig": "jaxfne._runtime_config",
+    "surrogate_config": "jaxfne._runtime_config",
     "GLIFEmitter": "jaxfne.emitters",
     "LIFEmitter": "jaxfne.emitters",
     "solve_volume_conductor_experimental": "jaxfne.solvers",

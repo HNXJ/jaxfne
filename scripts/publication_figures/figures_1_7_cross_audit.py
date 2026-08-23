@@ -67,7 +67,7 @@ def main() -> int:
     dirs = ensure_publication_dirs()
     out = dirs["artifacts"] / "figures_1_7_cross_figure_audit.json"
     write_json_strict(out, audit)
-    SUMMARY_PATH.write_text(build_summary(audit))
+    SUMMARY_PATH.write_text(build_summary(audit), encoding="utf-8")
     print(f"wrote: {out.relative_to(repo_root())}")
     print(f"wrote: {SUMMARY_PATH.relative_to(repo_root())}")
     print(f"status: {audit['status']}")

@@ -1,79 +1,14 @@
 {
-  "compatibility_deprecations": {
-    "AGSDR": "Use agsdr() instead; AGSDR is a legacy adapter.",
-    "Config": "Use Configuration instead; Config is a compatibility alias removed after 0.4.14.",
-    "Net": "Use Model instead; Net is a compatibility alias removed after 0.4.14.",
-    "agsdr_transform": "Advanced Optax transform; prefer agsdr() spec at root.",
-    "construct_neuronal_tensor": "Use construct(tensor, RuntimeConfiguration(...)) instead.",
-    "gsdr_transform": "Advanced Optax transform; prefer gsdr() spec at root.",
-    "load_neuronal_tensor": "Use load(path) instead.",
-    "sdr_transform": "Advanced Optax transform.",
-    "step_gsgd_transform": "Advanced Optax transform; prefer gsgd() spec at root."
-  },
+  "schema": "jaxfne.public_surface_contract.v0.4.13-pass1",
+  "version": "0.4.13-pass1",
   "counts": {
+    "canonical": 176,
     "advanced": 58,
-    "baseline_all": 265,
-    "canonical": 178,
     "compatibility": 13,
-    "experimental_internal": 16,
-    "public_exports": 191
+    "experimental_internal": 18,
+    "public_exports": 189,
+    "baseline_all": 265
   },
-  "generated_at": null,
-  "hdp_param_groups": {
-    "h_dynamics": [
-      "C_spike",
-      "H_boost_gain",
-      "H_max",
-      "H_min",
-      "K_HDP",
-      "K_ctrl",
-      "K_w_ctrl",
-      "alpha",
-      "barrier_c",
-      "barrier_d",
-      "barrier_eps",
-      "beta",
-      "delta",
-      "gamma",
-      "hdp_rule",
-      "noise_scale",
-      "record_dH_components",
-      "record_edge_current",
-      "record_weight_trace",
-      "rho_passive",
-      "size_scale_by_cell_type",
-      "size_scale_override",
-      "syn_abs_max",
-      "tau_0_ms",
-      "u_abs_max",
-      "v_ceiling",
-      "v_floor",
-      "w_ceiling",
-      "w_floor"
-    ],
-    "h_state": [
-      "h_state_coupling",
-      "h_state_dim",
-      "h_state_locality",
-      "h_state_readout"
-    ],
-    "theta_adaptation": [
-      "controller_B",
-      "controller_lambda",
-      "controller_rate_setpoint_E_hz",
-      "controller_rate_setpoint_I_hz",
-      "controller_tau_H_s",
-      "controller_tau_theta_s",
-      "controller_theta_S_init",
-      "e_neuron_mask",
-      "m_ei_edge_mask",
-      "theta_eta_a_bounds",
-      "theta_m_EI_bounds"
-    ]
-  },
-  "internal_hdp_rule_ids": [
-    "population_vector_restoring"
-  ],
   "public_exports": [
     "AGSDR",
     "AGSDROptimizerSpec",
@@ -140,7 +75,6 @@
     "Simulation",
     "StaticParams",
     "StimulusSchedule",
-    "SurrogateConfig",
     "TrialBatch",
     "TrialBatchResult",
     "TrialResult",
@@ -256,7 +190,6 @@
     "suite2_single_neuron_config",
     "suite2_tune_noise_agsdr_adam",
     "suite2_v1_v4_config",
-    "surrogate_config",
     "trial_batch",
     "validate_model",
     "validate_neuronal_tensor",
@@ -267,10 +200,74 @@
     "vis",
     "with_emitter_parameters"
   ],
+  "compatibility_deprecations": {
+    "Net": "Use Model instead; Net is a compatibility alias removed after 0.4.14.",
+    "Config": "Use Configuration instead; Config is a compatibility alias removed after 0.4.14.",
+    "AGSDR": "Use agsdr() instead; AGSDR is a legacy adapter.",
+    "construct_neuronal_tensor": "Use construct(tensor, RuntimeConfiguration(...)) instead.",
+    "load_neuronal_tensor": "Use load(path) instead.",
+    "agsdr_transform": "Advanced Optax transform; prefer agsdr() spec at root.",
+    "gsdr_transform": "Advanced Optax transform; prefer gsdr() spec at root.",
+    "sdr_transform": "Advanced Optax transform.",
+    "step_gsgd_transform": "Advanced Optax transform; prefer gsgd() spec at root."
+  },
+  "hdp_param_groups": {
+    "h_state": [
+      "h_state_coupling",
+      "h_state_dim",
+      "h_state_locality",
+      "h_state_readout"
+    ],
+    "h_dynamics": [
+      "C_spike",
+      "H_boost_gain",
+      "H_max",
+      "H_min",
+      "K_HDP",
+      "K_ctrl",
+      "K_w_ctrl",
+      "alpha",
+      "barrier_c",
+      "barrier_d",
+      "barrier_eps",
+      "beta",
+      "delta",
+      "gamma",
+      "hdp_rule",
+      "noise_scale",
+      "record_dH_components",
+      "record_edge_current",
+      "record_weight_trace",
+      "rho_passive",
+      "size_scale_by_cell_type",
+      "size_scale_override",
+      "syn_abs_max",
+      "tau_0_ms",
+      "u_abs_max",
+      "v_ceiling",
+      "v_floor",
+      "w_ceiling",
+      "w_floor"
+    ],
+    "theta_adaptation": [
+      "controller_B",
+      "controller_lambda",
+      "controller_rate_setpoint_E_hz",
+      "controller_rate_setpoint_I_hz",
+      "controller_tau_H_s",
+      "controller_tau_theta_s",
+      "controller_theta_S_init",
+      "e_neuron_mask",
+      "m_ei_edge_mask",
+      "theta_eta_a_bounds",
+      "theta_m_EI_bounds"
+    ]
+  },
+  "internal_hdp_rule_ids": [
+    "population_vector_restoring"
+  ],
   "public_h_state_localities": [
     "node",
     "population"
-  ],
-  "schema": "jaxfne.public_surface_contract.v0.4.13-pass1",
-  "version": "0.4.13-pass1"
+  ]
 }
