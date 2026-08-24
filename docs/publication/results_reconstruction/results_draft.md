@@ -92,11 +92,29 @@ at 500 ms and 2000 ms) .
 
 ## No traveling waves in the tested regimes
 
-Taken together, the validated traveling-wave estimator detected no traveling waves across
-the preregistered neural geometry/delay conditions (Fig. 5, outcome letter C): the frozen
-60-cell grid, the predeclared 45-cell delay-family search, and the sensitivity floor all
-return NO_WAVE or grid-defined positive detection only. No claim is made for regimes
-outside the tested geometry/delay domain, and none outside this simulator.
+Geometry and finite transmission delays were therefore insufficient to generate traveling
+waves in the tested network. In the original ring, distance-derived delays collapsed after
+timestep discretization to the same four-step delay as the uniform condition {Q09}.
+Expanding velocity and connection range changed the delay structure but still produced
+only standing/flipping, synchronous, or structured gate-failing states across all 45
+predeclared cases {Q12–Q15}. Activity in this search was sparse, with only 2 of 24
+neurons spiking per cell at rates ≤0.5 Hz {Q11}, consistent with a regime in which
+local activity was not regenerated as a propagating population mode. Together with the
+60-cell grid, which was dominated by synchronous states (52/60 synchronous {Q10}), these
+results locate the negative result more specifically: geometry and delay determine where
+and when interactions arrive, but were not sufficient here to place the recurrent system
+in a regenerative traveling-wave regime. We did not introduce or tune an additional
+propagation mechanism after observing this result.
+
+Schematically, a traveling mode requires site-to-site regeneration. With local
+propagation gain $G_{\mathrm{prop}} = |\partial X_{i+1}/\partial X_i|$, the tested
+regime remained closer to $|G_{\mathrm{prop}}| \ll 1$ (extinction/near-silence) or fell
+into synchrony, standing/flipping, or structured gate-failing states; $G_{\mathrm{prop}}$
+is used here only as a schematic concept and was not numerically estimated. An
+additional spatially structured recurrent/excitable regime consistent with these
+observations would be one candidate dynamical requirement, not claimed as the unique
+missing biological mechanism. No claim is made for regimes outside the tested
+geometry/delay domain, and none outside this simulator.
 
 ## Typed vector RBS extends the classical emitter
 
