@@ -1,11 +1,11 @@
 {
   "schema": "jaxfne.inventory.release_identity.v1",
-  "generated_at_utc": "2026-08-23T02:49:51.414039+00:00",
+  "generated_at_utc": "2026-08-24T16:47:57.000126+00:00",
   "identities": {
     "C_core_tag_commit": "caec1f71d526742f22e91845dbf7968bd1b80e87",
     "C_core_version_at_tag": "0.4.17",
     "tag_is_ancestor_of_head": true,
-    "C_head": "5d2efeede8c5823ab03319810c88f6663dfb1b01",
+    "C_head": "ff6878d99ae4f7659d783703f4eaee1e8e7495da",
     "C_receipt_frozen_head": "aeca6d01a18ab1be3d400cf9c6a7c373c9e86326",
     "github_release_tag": "v0.4.17",
     "github_release_published_at": "2026-08-20T18:42:36Z",
