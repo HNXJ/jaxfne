@@ -1,9 +1,9 @@
 {
   "schema": "jaxfne.inventory.docs_pages.v1",
-  "generated_at_utc": "2026-08-23T02:49:51.414039+00:00",
-  "nav_page_count": 80,
+  "generated_at_utc": "2026-08-24T14:39:38.646363+00:00",
+  "nav_page_count": 77,
   "counts": {
-    "KEEP": 80,
+    "KEEP": 77,
     "UPDATE": 0,
     "MERGE": 0,
     "REMOVE": 0
@@ -90,12 +90,6 @@
     },
     {
       "page": "changelog.md",
-      "exists": true,
-      "status": "KEEP",
-      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
-    },
-    {
-      "page": "ci_policy.md",
       "exists": true,
       "status": "KEEP",
       "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
@@ -335,18 +329,6 @@
       "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
     },
     {
-      "page": "publication/evidence_consolidation.md",
-      "exists": true,
-      "status": "KEEP",
-      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
-    },
-    {
-      "page": "publication/figures_1_7_cross_audit_summary.md",
-      "exists": true,
-      "status": "KEEP",
-      "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
-    },
-    {
       "page": "quickstart.md",
       "exists": true,
       "status": "KEEP",
@@ -491,7 +473,7 @@
       "basis": "language-audit pass; orphan-check pass; strict build pass; post-resolution currency fixes applied (anchors/keys/links/version)"
     }
   ],
-  "excluded_from_site_count": 57,
+  "excluded_from_site_count": 60,
   "method": "mechanical nav enumeration from mkdocs.yml; status KEEP requires existence plus green language/orphan/strict gates at HEAD 4e365ac lineage; no UPDATE/MERGE candidates remained after the F09/F12/70 repair commits.",
   "verdict_92": "PASS: zero unreviewed pages; full inventory emitted above."
 }

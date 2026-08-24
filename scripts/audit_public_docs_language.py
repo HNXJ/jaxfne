@@ -67,6 +67,48 @@ NEGATIVE_CLAIM_PATTERNS = [
     re.compile(r"\bno substitute for\b", re.I),
 ]
 
+# Governance/process machinery vocabulary (goal-60 closure, 2026-08-23):
+# nav'd public pages must not expose agent-harness operation, internal
+# auditor/seal roles, or work-handoff machinery. Applied ONLY to pages that
+# are members of the mkdocs navigation; docs/changelog.md carries a permanent
+# historical-scope exemption (entries preserved verbatim as history; see its
+# scope note), and physics terminology such as "field handoff" is not matched
+# because every pattern anchors on process-specific context.
+GOVERNANCE_NAV_PAGES_FILE = ROOT / "mkdocs.yml"
+GOVERNANCE_EXEMPT_PAGES = {"docs/changelog.md"}
+GOVERNANCE_PATTERNS = [
+    re.compile(r"\bCURRENT_TASK\b"),
+    re.compile(r"\binternal auditor\b|\bauditor role\b", re.I),
+    re.compile(r"\bseal (review|agent|checkpoint)\b|\bSEAL_[A-Z]{2,}\b"),
+    re.compile(r"\bharness\b", re.I),
+    re.compile(r"\bAGENTS\.md\b"),
+    re.compile(r"worker-context-router|OPENCODE_HANDOFF|agent handoff|handoff note", re.I),
+]
+
+
+def _nav_page_paths() -> set[str]:
+    """Return repo-relative posix paths of every mkdocs-nav markdown page."""
+    try:
+        import yaml
+
+        cfg = yaml.safe_load(GOVERNANCE_NAV_PAGES_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return set()
+    pages: set[str] = set()
+
+    def walk(node):
+        if isinstance(node, dict):
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v)
+        elif isinstance(node, str) and node.endswith(".md"):
+            pages.add(f"docs/{node}")
+
+    walk(cfg.get("nav") or cfg.get("pages") or [])
+    return pages
+
 # Semantic-escalation patterns (relative-quantity grammar): a relative/proxy
 # quantity must not be described as though it were a physical measurement, and
 # "effective"/"normalized" must not silently imply calibration or physicality.
@@ -145,6 +187,13 @@ def audit_docs() -> list[dict]:
         for h in _find_measured_in_escalation(text):
             hits.append({"category": "semantic_escalation",
                          "pattern": "measured-in-unit (sentence-aware)", **h})
+        if rel in _nav_page_paths() and rel not in GOVERNANCE_EXEMPT_PAGES:
+            for pat in GOVERNANCE_PATTERNS:
+                for m in pat.finditer(text):
+                    line_no = text.count("\n", 0, m.start()) + 1
+                    hits.append({"category": "governance_vocabulary",
+                                 "pattern": pat.pattern, "line": line_no,
+                                 "match": m.group(0)[:80]})
         if hits:
             results.append({"path": rel, "hits": hits})
     return results
