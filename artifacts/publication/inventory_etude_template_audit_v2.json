@@ -1,0 +1,63 @@
+{
+  "schema": "jaxfne.inventory.etude_template_audit.v2_synonym_map",
+  "fields": [
+    "question",
+    "equations_definitions",
+    "configuration_spec_pointer",
+    "construction",
+    "sanity_finiteness",
+    "simulation",
+    "readout_chain",
+    "metrics_quantification",
+    "nulls_controls",
+    "objective_optimization",
+    "figures_assets",
+    "interpretation_claims",
+    "failure_modes_limits",
+    "manifest_provenance"
+  ],
+  "pages": [
+    {
+      "page": "index.md",
+      "present": 8,
+      "missing": [
+        "sanity_finiteness",
+        "simulation",
+        "objective_optimization",
+        "figures_assets",
+        "interpretation_claims",
+        "failure_modes_limits"
+      ]
+    },
+    {
+      "page": "hdp_controllability_reachability.md",
+      "present": 12,
+      "missing": [
+        "simulation",
+        "failure_modes_limits"
+      ]
+    },
+    {
+      "page": "experiment_a.md",
+      "present": 13,
+      "missing": [
+        "question"
+      ]
+    },
+    {
+      "page": "heterogeneous_emitters.md",
+      "present": 13,
+      "missing": [
+        "figures_assets"
+      ]
+    },
+    {
+      "page": "multiscale_observation.md",
+      "present": 13,
+      "missing": [
+        "failure_modes_limits"
+      ]
+    }
+  ],
+  "fully_satisfying_field_set": []
+}
