@@ -1,29 +1,6 @@
 # RBS, RBD, and HDP
 
-**Relative Biophysical State (RBS)** is a finite-dimensional hidden biophysical
-state \(\mathbf H_i(t)\in\mathbb R^{d_H}\) carried with the neural dynamics.
-**Relative Biophysical Dynamics (RBD)** is the coupled evolution of activity
-\(\mathbf x\) and RBS. **HDP (Hidden-state Dependent Plasticity)** is the
-optional subset in which persistent parameters (e.g. synaptic weights) evolve
-from RBS and activity:
-
-\[
-\dot{\mathbf x}_i = F_x(\mathbf x_i,\mathbf I_i;\mathbf H_i),
-\qquad
-\dot{\mathbf H}_i = F_H(\mathbf H_i,\mathbf x_i,\mathbf I_i,\ldots),
-\qquad
-\dot{\mathbf W} = F_W(\mathbf W,\mathbf H,\mathbf x,\ldots)\quad\text{(HDP only)}.
-\]
-
-RBS is **relative biophysical state**, not necessarily a normalized copy of
-individually identifiable physical variables. Coordinates may be
-\(H_k=z_k/z_k^\star\) or reduced \(H_k=\mathcal R_k(\mathbf z)\). Homeostasis
-is a possible **regime** of selected \(F_H\) or kernel-specific mechanisms (see
-[Homeostasis](homeostasis.md), `homeostatic_ei`); it is **not** the definition
-of RBS.
-
-RBD remains meaningful with \(\dot W=0\). Adaptation, memory, and delayed
-recurrent coupling are RBD phenomena and do not require plasticity.
+See [RBS/RBD/HDP doctrine](../doctrine/rbs_rbd_hdp.md) for the canonical RBS container definition (\(\mathbf H_i(t)\in\mathbb R^{d_H}\), finite-dimensional dependency-state, typed gain maps) and the coupled dynamics \(\dot{\mathbf x}=F_x,\ \dot{\mathbf H}=F_H,\ \dot{\mathbf W}=F_W\) (HDP only, \(\dot W=0\) remains RBD). Coordinates may be \(H_k=z_k/z_k^\star\) or reduced \(H_k=\mathcal R_k(\mathbf z)\); RBD covers adaptation, memory and delayed coupling without requiring plasticity. RBS is relative, not necessarily normalized physical variables; homeostasis is a regime of selected \(F_H\), not the definition.
 
 Full Markov continuation requires the complete dynamical state
 \(\mathcal X_t=(\mathbf x_t,\mathbf H_t,\mathbf W_t,\mathcal B_t,\ldots)\),

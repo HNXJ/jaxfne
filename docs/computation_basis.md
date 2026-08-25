@@ -139,27 +139,7 @@ $$\hat{q}_f(t) = \mathcal{F}[\sum_n \phi_f(n) \cdot I_n(t)]$$
 
 ## Proxy field regime
 
-The shipped field regime is the laminar proxy:
-
-```
-Field solver status: linear_solver
-Regime: proxy readout (no PDE solve)
-Equation: CSD_proxy = nabla . q  (kernel convolution)
-Conductivity: scalar proxy (uncalibrated)
-Boundary / gauge: metadata fields
-```
-
-**Computed:**
-- Source projection: $q(x,t)$ from emitter state
-- Proxy CSD: $\mathrm{CSD}_\mathrm{proxy} = \nabla \cdot q$ (kernel convolution)
-- Proxy LFP: $\mathrm{LFP}_\mathrm{proxy} = \sum_x K_\mathrm{LFP}(x) \cdot q(x)$ (spatial filter)
-
-The field potential $\phi_e$ and current density $\mathbf{J}_e$ are represented by
-proxy operators rather than a volume-conductor solve, consistent with
-`field_solver_status = "linear_solver"` and
-`physical_amplitude_calibrated = False`. Reserved field regimes
-(conservation diagnostics, elliptic solver, calibrated physical field) are catalogued in
-[Limitations and future plans](limitations_and_future_plans.md).
+See [Source/Field equations](source_field_equations.md) for the shipped laminar proxy (`proxy_no_field_solve`, `linear_solver`, CSD proxy = ∇·q and LFP proxy = Σ K_LFP·q, scalar uncalibrated conductivity, `physical_amplitude_calibrated=false`). Reserved regimes in [Limitations](limitations_and_future_plans.md).
 
 ## Extensibility Rule: Adding New Domains
 
