@@ -1,0 +1,24 @@
+{
+  "schema": "e2_ssa_amendment_receipt.v4",
+  "from": {
+    "schema": "e2_ssa_spec.v4",
+    "spec_hash": "69738a383ad3fc5f96bb6eab0e6e331c2a93486f1fd19226b178e592f0d442ad"
+  },
+  "to": {
+    "schema": "e2_ssa_spec.v5",
+    "spec_hash": "fb9ace28413b731e006a388267344e3473fe5eecc6869e1b25fe453e9df304a5",
+    "sha256": "82016256BD8F62BD04B54F4C37FBCF8D9186BA8114C99CFB35D1E6ABB63696AC",
+    "path": "artifacts/e2/preregistration/e2_ssa_spec.v5.json"
+  },
+  "closes_N": "stale fabricated washout leaf superseded; canonical first-2-event rule with verified counts 78/78/38/18",
+  "closes_L_residuals": [
+    "d_rec alias",
+    "SI_std_ctrl/SI_dev_ctrl definitions",
+    "SI_many definition",
+    "adequacy G_A/G_B/stable operationalization",
+    "permutation tag bindings",
+    "block_execution declarations (fresh init, drive application, memory rule, onsets)"
+  ],
+  "prospective": true,
+  "write_once": true
+}
