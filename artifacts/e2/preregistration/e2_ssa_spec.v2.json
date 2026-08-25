@@ -1,0 +1,398 @@
+{
+  "INVALID_rules": [
+    "INVALID_NUMERIC_NONFINITE",
+    "INVALID_NUMERIC_DIVERGENCE",
+    "INVALID_NUMERIC_ADMISSIBILITY",
+    "INVALID_CONFIG_SEED_DOMAIN",
+    "INVALID_CONFIG_SPEC_MISMATCH",
+    "INVALID_DELAY_STATE",
+    "INVALID_CONFIG_PROBE_LEAKAGE",
+    "INVALID_CONFIG_GEOMETRY"
+  ],
+  "SSA": {
+    "ISI_ms": 200,
+    "W_primary_ms": [
+      30,
+      110
+    ],
+    "adequacy": {
+      "G_A": "R_A_early >= 1.0 and stable",
+      "G_B": "R_B_early >= 1.0 and stable",
+      "G_adequate_SSA": "G_A && G_B && G_finite && G_stable",
+      "G_finite": "all rates finite and not NaN and rate < 200 and |H_K| <= 10",
+      "G_stable": "drift <= 3 SD",
+      "ordering": "INVALID; !G_adequate_SSA -> UNRESOLVED; S4>S3>S2>S1>S0"
+    },
+    "early_window_ms": [
+      30,
+      70
+    ],
+    "late_window_ms": [
+      70,
+      110
+    ],
+    "metrics": {
+      "R": "mean spike count per window",
+      "R_floor": 1.0,
+      "SI": "(R(B_control)-R(A_repeated))/(R(B_control)+R(A_repeated)+epsilon)",
+      "W_baseline_ms": [
+        -50,
+        0
+      ],
+      "W_early_ms": [
+        30,
+        70
+      ],
+      "W_primary_ms": [
+        30,
+        110
+      ],
+      "delta_global": 0.5,
+      "delta_leak_max": 0.05,
+      "delta_mech": 0.6,
+      "delta_min": 0.8,
+      "delta_rec": 0.5,
+      "epsilon": 1e-09,
+      "shuf_max": 0.03,
+      "swap_max": 0.1,
+      "theta_H": 0.01,
+      "theta_SI": 0.1,
+      "theta_mech": 0.08
+    },
+    "stim_duration_ms": 80
+  },
+  "classifiers": {
+    "S0_no_decrement": "abs(SI)<0.10 && abs(dR)<0.5 && BCa CI includes 0",
+    "S1_global": "R_std<R_control && R_dev<R_control && SI_std_ctrl>0.10 && SI_dev_ctrl>0.10 && abs(SI_std_ctrl-SI_dev_ctrl)<0.08",
+    "S2_gate": "SI>0.10 and controls pass",
+    "S2_stimulus_specific": "SI>0.10 lower_BCa>0.10 && dR>0.8 && g>0.40 && p_perm<0.025 && SI_source sign==SI && |SI_shuf|<0.03 && |SI_many|<0.10 && abs(swap)<=0.10",
+    "S3_recovery": "d_rec>0.5 lower_BCa>0 && p_rec<0.025 && I_rec>0.20 && rho>=0.20",
+    "S4_mechanistic": "S2 in D && (SI_D-SI_N1)>0.08 lower>0.08 && dR_DN1>0.6 && p_mech<0.025 && abs(SI_N1-SI_N0)<0.05 && mean(H_K_late_D)-1>0.01",
+    "controls": {
+      "many_standards": "p=0.5 equal-count block, |SI_many|<0.10",
+      "role_swap": "A<->B flip blocks, |SI_A->B - SI_B->A|<=0.10 && each SI>=0.10",
+      "shuffled_history": "shuffle std/dev labels 2000 draws K_analysis D_A, |SI_shuf|<0.03"
+    },
+    "gray_zones": {
+      "PLV": "0.35-0.40 -> UNRESOLVED",
+      "SI": "0.08-0.10 -> UNRESOLVED"
+    },
+    "labels": [
+      "INVALID",
+      "UNRESOLVED",
+      "S0",
+      "S1",
+      "S2",
+      "S3",
+      "S4"
+    ],
+    "mutual_exclusion": true,
+    "ordering": "INVALID; !G_adequate_SSA -> UNRESOLVED; S4>S3>S2>S1>S0",
+    "unreachable_labels": []
+  },
+  "code_head": "35291f897bffc8e52154825b5ab7136aca107613",
+  "delays": {
+    "bufsize": 7,
+    "causality": "delay>0 -> delayed kernel",
+    "discrete_grid_ms": [
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0
+    ],
+    "discrete_steps": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "dispatch": "any delay_steps>0 => _simulate_edge_recurrent_izhikevich_delayed",
+    "distribution": "discrete_grid_uniform_choice",
+    "dt_ms": 0.5,
+    "grid_alignment_atol": 1e-09
+  },
+  "factors": {
+    "confirmatory": {
+      "mechanism_matrix": [
+        "H_write x Gamma_H x HDP 8 cells"
+      ],
+      "recovery": [
+        "recovery interval 500ms"
+      ],
+      "stimulus_specificity": [
+        "SI>0.10 with many-standards and swap"
+      ]
+    },
+    "exploratory": {
+      "ISI_sweep": [
+        "100,200,300"
+      ],
+      "amplitude_sweep": [
+        "0.5,1.0,2.0"
+      ]
+    }
+  },
+  "frozen_at": "2026-08-24T14:00:00Z",
+  "masks": {
+    "owner_mask": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "owner_mask_construction_rule": "build_owner_mask(n_neurons=1000, owners=[0,1,2,3,4,5,6,7,8,9]) -> float32",
+    "owner_mask_spec": {
+      "construction": "build_owner_mask",
+      "dtype": "float32",
+      "n_neurons": 1000,
+      "owners": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    "owner_mask_spec_hash": "51105b0326c87b6fb33e830f4cea0aee2a2d6c83361b0fbba05fefb9ba808a3b",
+    "owner_mask_spec_hash_8": "51105b03",
+    "owner_mask_spec_hash_definition": "h_rule = SHA256(canonical JSON of owner_mask_spec, sort_keys, separators (',',':'))",
+    "owner_mask_bytes_hash": "83af8971f8f04e6e082d1df674dbc1c98ce8bbec1578536a8d78c2812315299f",
+    "owner_mask_bytes_hash_8": "83af8971",
+    "owner_mask_bytes_hash_definition": "h_bytes = SHA256(float32(M_H).tobytes()) where M_H = build_owner_mask(1000, [0..9]) materialized mask length 1000, 10 ones / 990 zeros",
+    "owner_mask_implementation_hash": "027bdd97",
+    "owner_mask_implementation_hash_definition": "h_impl = truncated SHA256 of jaxfne/emitters.py:1498 simulate_edge_recurrent_izhikevich_owned_h_k_delayed implementation (distinct from mask hashes)",
+    "owner_mask_length": 1000,
+    "population_masks_nonempty": true
+  },
+  "mechanism": {
+    "Gamma_H": "I vs Gamma, b_eff = H_K * b",
+    "HDP": "w = W0*exp(omega), tau_W, lambda_W (separate hypothesis)",
+    "H_write": "kappa_AK > 0 vs 0"
+  },
+  "parent_e1": "07b1c04af9ea98176bc45350528f3312375f7d24",
+  "provenance": {
+    "cpu": "24 cores",
+    "e1_frozen_manifest_sha": "aeca6d01a18ab1be3d400cf9c6a7c373c9e86326",
+    "jax": "0.10.1",
+    "platform": "linux-x86_64",
+    "python": "3.14.3",
+    "repository_sha": "35291f897bffc8e52154825b5ab7136aca107613",
+    "wall_clock": "2026-08-24T14:00:00Z"
+  },
+  "schema": "e2_ssa_spec.v2",
+  "seeds": {
+    "K0": "PRNGKey(101)",
+    "K_analysis": [
+      3000,
+      3999
+    ],
+    "K_probe": [
+      4000,
+      4099
+    ],
+    "K_runtime": [
+      1000,
+      1999
+    ],
+    "K_stimulus": [
+      2000,
+      2999
+    ],
+    "K_structure": [
+      0,
+      999
+    ],
+    "canonical_order": [
+      "structure",
+      "stimulus",
+      "runtime",
+      "probe",
+      "analysis"
+    ],
+    "cardinalities": {
+      "n_per_cell": 20
+    },
+    "derivation": "fold_in(K0, encode(s,r,u,a)) with splitmix64, canonical order structure->stimulus->runtime->probe->analysis",
+    "factor_to_key_mapping": {
+      "ISI_sweep": "K_analysis",
+      "amplitude_sweep": "K_analysis",
+      "mechanism_matrix": "K_structure",
+      "recovery": "K_stimulus",
+      "stimulus_specificity": "K_stimulus"
+    },
+    "offsets": {
+      "K0": 0,
+      "K_analysis": 20480,
+      "K_probe": 16384,
+      "K_runtime": 12288,
+      "K_stimulus": 8192,
+      "K_structure": 4096
+    }
+  },
+  "topology": {
+    "N_E": 800,
+    "N_I": 200,
+    "N_total": 1000,
+    "construction": "sparse EdgeList via _construct_core._neuron_population_from_config",
+    "geometry": "relative_laminar_depth_proxy",
+    "labels": {
+      "E": "excitatory",
+      "I": "PV-like fast-spiking"
+    },
+    "mean_degree": 80,
+    "p_EE": 0.05,
+    "p_EI": 0.05,
+    "p_IE": 0.2,
+    "p_II": 0.2,
+    "receptor_specs": {
+      "AMPA": {
+        "tau_ms": 2.0
+      },
+      "GABA_A": {
+        "tau_ms": 5.0
+      }
+    },
+    "source_scale": 1.0,
+    "spike_gain_alias": "DEFAULT_SPIKE_IMPULSE_GAIN=20.0",
+    "weight_distributions": {
+      "E_E": {
+        "mu": 0.35,
+        "sigma": 0.1,
+        "sign": 1
+      },
+      "E_I": {
+        "mu": 0.45,
+        "sigma": 0.12,
+        "sign": 1
+      },
+      "I_E": {
+        "mu": -0.6,
+        "sigma": 0.15,
+        "sign": -1
+      },
+      "I_I": {
+        "mu": -0.4,
+        "sigma": 0.12,
+        "sign": -1
+      }
+    }
+  },
+  "write_once": true,
+  "parent_spec": {
+    "schema": "e2_ssa_spec.v1",
+    "spec_hash": "6ca10a960fc408819618f2f0b4032be900d00c7420620409766066955a1781b0",
+    "sha256": "D4DEBFD8AF6CE5B685AC2A8DA00C70E51E8FB8708FD7DB40353385B6C3FF964A",
+    "preserved_immutable": true
+  },
+  "execution_grammar": {
+    "time": {
+      "dt_ms": 0.5,
+      "burn_in_discard_ms": 0,
+      "note": "block duration derived: events x ISI_ms; n_steps = duration/dt"
+    },
+    "paradigm": {
+      "family": "general_sequential_oddball",
+      "events_per_block": 80,
+      "p_deviant": 0.15,
+      "p_standard": 0.85,
+      "isi_ms_onset_to_onset": 200,
+      "stim_duration_ms": 80,
+      "stimulus_identity_mapping": {
+        "A": "drive pulse train to E-subpopulation [0,400) at relative amplitude 1.0",
+        "B": "drive pulse train to E-subpopulation [400,800) at relative amplitude 1.0",
+        "identity_is_spatial_not_energy": true,
+        "pulse_waveform": "rectangular native-current pulse, duration stim_duration_ms, amplitude 1.0 added to drive_E during stimulus window"
+      },
+      "blocks_per_replicate": [
+        {
+          "name": "oddball_A_std",
+          "standard": "A",
+          "deviant": "B",
+          "events": 80
+        },
+        {
+          "name": "oddball_B_std_flip",
+          "standard": "B",
+          "deviant": "A",
+          "events": 80
+        },
+        {
+          "name": "many_standards_control",
+          "p_each": 0.5,
+          "events": 80
+        },
+        {
+          "name": "recovery_isi500",
+          "standard_only": "A",
+          "isi_ms": 500,
+          "events": 40
+        }
+      ]
+    },
+    "replicates": {
+      "n_outer_per_battery": 20,
+      "resolves_cardinality": "v1 seeds.cardinalities.n_per_cell=20 applies here; V1-PING executed 5/arm under its 4/5 rule (documented UNRESOLVED_CARDINALITY there)"
+    },
+    "seed_derivation": {
+      "scheme": "master=PRNGKey(101); chained jax.random.fold_in through canonical_order with data=offset_domain+replicate_idx; child seeds via sha256(parent_bytes+tag)",
+      "canonical_order": [
+        "structure",
+        "stimulus",
+        "runtime",
+        "probe",
+        "analysis"
+      ],
+      "offsets": {
+        "K0": 0,
+        "K_analysis": 20480,
+        "K_probe": 16384,
+        "K_runtime": 12288,
+        "K_stimulus": 8192,
+        "K_structure": 4096
+      },
+      "consumed_keys_must_lie_in_declared_domains": true
+    },
+    "response_extraction": {
+      "R_event": "population mean spikes over [onset+W_primary[0], onset+W_primary[1]) / window_seconds; W_primary inherited [30,110] ms",
+      "SI_epsilon_theta": "inherited unchanged from SSA.metrics"
+    },
+    "factor_staging": {
+      "confirmatory_now": [
+        "S0_no_decrement",
+        "S1_global",
+        "S2_gate",
+        "S2_stimulus_specific",
+        "S3_recovery"
+      ],
+      "controls_executed": [
+        "many_standards(p=0.5)",
+        "role_swap(flip block)",
+        "shuffled_history(2000 draws, K_analysis)"
+      ],
+      "CONFIRMATORY_DEFERRED_v3": [
+        "mechanism_matrix H_write x Gamma_H x HDP 8 cells"
+      ],
+      "deferral_reason": "S4 requires S2-in-D context and 8-cell matrix x 20 replicates exceeds authorized compute envelope; zero SSA trajectories exist so staging is prospective; thresholds/semantics untouched"
+    },
+    "executor_rules_from_corrigendum": [
+      "gate conjuncts generated from this JSON only (no code literals)",
+      "typed unit wrappers for deg/ms/dB/Hz",
+      "stable seed derivation above; hash() forbidden",
+      "independent frozen-only rescoring required before interpretation"
+    ]
+  },
+  "spec_hash": "3e25ac2812f1aec843a9887d2fc83734e35307ee277fd43f507bc24a8cfc2dc7"
+}

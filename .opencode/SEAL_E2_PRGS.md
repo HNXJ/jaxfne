@@ -47,3 +47,10 @@ Only after minimized repo sealed, synchronized (dev==origin/dev), replay PASS, a
 E2a --adequacy-only--> theta* --write-once freeze--> E2b
 
 JDNA deferred: `define/inherit, A-80, A*0.08` compiler concept survives as future design item, not on E2 path. Current E2 audit packet and DESIGN_READY receipts relocated with provenance, not rewritten.
+
+## Harness rules promoted from E2b defects (2026-08-25, durable)
+
+- R-A Classifier implementation must be GENERATED from executable JSON (parsed gate strings), never retyped constants. Implemented: artifacts/e2/e2_exec/e2_exec_lib.py compile_gate/PingGates.
+- R-B Units belong to fields/types (Deg/Ms/dB/Hz wrappers), not variable-name convention. Root cause of dphi-deg vs dt-ms conflation.
+- R-C Seed derivation must use stable declared PRNG functions (fold_in chain in frozen canonical order, splitmix64 child tags); language-level hash() is salted per-process and forbidden.
+- R-D Receipt code and independent rescoring MUST be different implementations; independent rescoring is what preserved the scientific interpretation under executor defects (v1_rescored_frozen_only.json: 0/5 PING_LIKE confirms NEGATIVE).

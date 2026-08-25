@@ -1,0 +1,525 @@
+{
+  "schema": "v1_rescored_frozen_only.v1",
+  "implementation": "independent rescorer (artifacts/e2/e2_exec/), shares no analysis code with e2b_v1_executor.py",
+  "conjuncts": "exactly the four frozen classifier strings; no added criteria",
+  "intact_labels": [
+    "NO_PING",
+    "NO_PING",
+    "NO_PING",
+    "NO_PING",
+    "NO_PING"
+  ],
+  "intact_ping_like": 0,
+  "all_rows": [
+    {
+      "key": "C0_intact_s1",
+      "arm": "C0_intact",
+      "seed": 1,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 5.359,
+      "dphi_deg": -88.027,
+      "plv": 0.9389,
+      "ac_min": -0.0666,
+      "n_cycles": 3
+    },
+    {
+      "key": "C0_intact_s2",
+      "arm": "C0_intact",
+      "seed": 2,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 5.297,
+      "dphi_deg": -85.572,
+      "plv": 0.9411,
+      "ac_min": -0.067,
+      "n_cycles": 3
+    },
+    {
+      "key": "C0_intact_s3",
+      "arm": "C0_intact",
+      "seed": 3,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 37.109375,
+      "prom_dB": 5.824,
+      "dphi_deg": -93.81,
+      "plv": 0.8518,
+      "ac_min": -0.0638,
+      "n_cycles": 3
+    },
+    {
+      "key": "C0_intact_s4",
+      "arm": "C0_intact",
+      "seed": 4,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 37.109375,
+      "prom_dB": 5.817,
+      "dphi_deg": -92.325,
+      "plv": 0.8571,
+      "ac_min": -0.064,
+      "n_cycles": 4
+    },
+    {
+      "key": "C0_intact_s5",
+      "arm": "C0_intact",
+      "seed": 5,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 5.233,
+      "dphi_deg": -88.479,
+      "plv": 0.9403,
+      "ac_min": -0.0658,
+      "n_cycles": 3
+    },
+    {
+      "key": "C1_E_to_I_zero_s1",
+      "arm": "C1_E_to_I_zero",
+      "seed": 1,
+      "label": "INSUFFICIENT_SIGNAL"
+    },
+    {
+      "key": "C1_E_to_I_zero_s2",
+      "arm": "C1_E_to_I_zero",
+      "seed": 2,
+      "label": "INSUFFICIENT_SIGNAL"
+    },
+    {
+      "key": "C1_E_to_I_zero_s3",
+      "arm": "C1_E_to_I_zero",
+      "seed": 3,
+      "label": "INSUFFICIENT_SIGNAL"
+    },
+    {
+      "key": "C1_E_to_I_zero_s4",
+      "arm": "C1_E_to_I_zero",
+      "seed": 4,
+      "label": "INSUFFICIENT_SIGNAL"
+    },
+    {
+      "key": "C1_E_to_I_zero_s5",
+      "arm": "C1_E_to_I_zero",
+      "seed": 5,
+      "label": "INSUFFICIENT_SIGNAL"
+    },
+    {
+      "key": "C2_I_to_E_zero_s1",
+      "arm": "C2_I_to_E_zero",
+      "seed": 1,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 3.764,
+      "dphi_deg": -76.923,
+      "plv": 0.7595,
+      "ac_min": -0.0529,
+      "n_cycles": 3
+    },
+    {
+      "key": "C2_I_to_E_zero_s2",
+      "arm": "C2_I_to_E_zero",
+      "seed": 2,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 3.741,
+      "dphi_deg": -75.998,
+      "plv": 0.7638,
+      "ac_min": -0.0526,
+      "n_cycles": 3
+    },
+    {
+      "key": "C2_I_to_E_zero_s3",
+      "arm": "C2_I_to_E_zero",
+      "seed": 3,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 3.727,
+      "dphi_deg": -74.257,
+      "plv": 0.7455,
+      "ac_min": -0.0527,
+      "n_cycles": 3
+    },
+    {
+      "key": "C2_I_to_E_zero_s4",
+      "arm": "C2_I_to_E_zero",
+      "seed": 4,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 3.77,
+      "dphi_deg": -76.561,
+      "plv": 0.7597,
+      "ac_min": -0.0529,
+      "n_cycles": 3
+    },
+    {
+      "key": "C2_I_to_E_zero_s5",
+      "arm": "C2_I_to_E_zero",
+      "seed": 5,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 3.732,
+      "dphi_deg": -75.171,
+      "plv": 0.7586,
+      "ac_min": -0.0527,
+      "n_cycles": 3
+    },
+    {
+      "key": "C3a_degree_rewire_s1",
+      "arm": "C3a_degree_rewire",
+      "seed": 1,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": true,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 37.109375,
+      "prom_dB": 6.029,
+      "dphi_deg": -95.307,
+      "plv": 0.8665,
+      "ac_min": -0.0642,
+      "n_cycles": 3
+    },
+    {
+      "key": "C3a_degree_rewire_s2",
+      "arm": "C3a_degree_rewire",
+      "seed": 2,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 37.109375,
+      "prom_dB": 5.543,
+      "dphi_deg": -96.259,
+      "plv": 0.8898,
+      "ac_min": -0.0646,
+      "n_cycles": 8
+    },
+    {
+      "key": "C3a_degree_rewire_s3",
+      "arm": "C3a_degree_rewire",
+      "seed": 3,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 37.109375,
+      "prom_dB": 5.672,
+      "dphi_deg": -100.073,
+      "plv": 0.8813,
+      "ac_min": -0.0636,
+      "n_cycles": 7
+    },
+    {
+      "key": "C3a_degree_rewire_s4",
+      "arm": "C3a_degree_rewire",
+      "seed": 4,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 37.109375,
+      "prom_dB": 5.989,
+      "dphi_deg": -95.568,
+      "plv": 0.8605,
+      "ac_min": -0.0634,
+      "n_cycles": 4
+    },
+    {
+      "key": "C3a_degree_rewire_s5",
+      "arm": "C3a_degree_rewire",
+      "seed": 5,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 5.381,
+      "dphi_deg": -89.267,
+      "plv": 0.9394,
+      "ac_min": -0.0675,
+      "n_cycles": 3
+    },
+    {
+      "key": "C3b_weight_shuffle_s1",
+      "arm": "C3b_weight_shuffle",
+      "seed": 1,
+      "label": "INSUFFICIENT_SIGNAL"
+    },
+    {
+      "key": "C3b_weight_shuffle_s2",
+      "arm": "C3b_weight_shuffle",
+      "seed": 2,
+      "label": "INSUFFICIENT_SIGNAL"
+    },
+    {
+      "key": "C3b_weight_shuffle_s3",
+      "arm": "C3b_weight_shuffle",
+      "seed": 3,
+      "label": "INSUFFICIENT_SIGNAL"
+    },
+    {
+      "key": "C3b_weight_shuffle_s4",
+      "arm": "C3b_weight_shuffle",
+      "seed": 4,
+      "label": "INSUFFICIENT_SIGNAL"
+    },
+    {
+      "key": "C3b_weight_shuffle_s5",
+      "arm": "C3b_weight_shuffle",
+      "seed": 5,
+      "label": "INSUFFICIENT_SIGNAL"
+    },
+    {
+      "key": "C3c_delay_shuffle_s1",
+      "arm": "C3c_delay_shuffle",
+      "seed": 1,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 5.335,
+      "dphi_deg": -89.112,
+      "plv": 0.9383,
+      "ac_min": -0.0677,
+      "n_cycles": 3
+    },
+    {
+      "key": "C3c_delay_shuffle_s2",
+      "arm": "C3c_delay_shuffle",
+      "seed": 2,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 5.277,
+      "dphi_deg": -86.491,
+      "plv": 0.9398,
+      "ac_min": -0.0656,
+      "n_cycles": 3
+    },
+    {
+      "key": "C3c_delay_shuffle_s3",
+      "arm": "C3c_delay_shuffle",
+      "seed": 3,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 5.321,
+      "dphi_deg": -89.974,
+      "plv": 0.9368,
+      "ac_min": -0.0664,
+      "n_cycles": 3
+    },
+    {
+      "key": "C3c_delay_shuffle_s4",
+      "arm": "C3c_delay_shuffle",
+      "seed": 4,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 37.109375,
+      "prom_dB": 5.939,
+      "dphi_deg": -93.167,
+      "plv": 0.8526,
+      "ac_min": -0.0639,
+      "n_cycles": 4
+    },
+    {
+      "key": "C3c_delay_shuffle_s5",
+      "arm": "C3c_delay_shuffle",
+      "seed": 5,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 5.216,
+      "dphi_deg": -87.343,
+      "plv": 0.9392,
+      "ac_min": -0.0673,
+      "n_cycles": 3
+    },
+    {
+      "key": "C3d_matched_count_s1",
+      "arm": "C3d_matched_count",
+      "seed": 1,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 37.109375,
+      "prom_dB": 5.753,
+      "dphi_deg": -94.335,
+      "plv": 0.8638,
+      "ac_min": -0.0641,
+      "n_cycles": 4
+    },
+    {
+      "key": "C3d_matched_count_s2",
+      "arm": "C3d_matched_count",
+      "seed": 2,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 35.15625,
+      "prom_dB": 5.235,
+      "dphi_deg": -87.835,
+      "plv": 0.9439,
+      "ac_min": -0.066,
+      "n_cycles": 3
+    },
+    {
+      "key": "C3d_matched_count_s3",
+      "arm": "C3d_matched_count",
+      "seed": 3,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 37.109375,
+      "prom_dB": 5.8,
+      "dphi_deg": -95.952,
+      "plv": 0.8618,
+      "ac_min": -0.0639,
+      "n_cycles": 4
+    },
+    {
+      "key": "C3d_matched_count_s4",
+      "arm": "C3d_matched_count",
+      "seed": 4,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 37.109375,
+      "prom_dB": 5.704,
+      "dphi_deg": -93.767,
+      "plv": 0.8641,
+      "ac_min": -0.0652,
+      "n_cycles": 6
+    },
+    {
+      "key": "C3d_matched_count_s5",
+      "arm": "C3d_matched_count",
+      "seed": 5,
+      "label": "NO_PING",
+      "gates": {
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false
+      },
+      "fpk_E": 37.109375,
+      "prom_dB": 5.704,
+      "dphi_deg": -94.448,
+      "plv": 0.8639,
+      "ac_min": -0.0639,
+      "n_cycles": 3
+    }
+  ]
+}

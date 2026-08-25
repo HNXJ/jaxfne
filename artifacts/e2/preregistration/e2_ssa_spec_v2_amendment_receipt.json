@@ -1,0 +1,27 @@
+{
+  "schema": "e2_ssa_amendment_receipt.v1",
+  "generated_at": "2026-08-25",
+  "from": {
+    "schema": "e2_ssa_spec.v1",
+    "spec_hash": "6ca10a960fc408819618f2f0b4032be900d00c7420620409766066955a1781b0"
+  },
+  "to": {
+    "schema": "e2_ssa_spec.v2",
+    "spec_hash": "3e25ac2812f1aec843a9887d2fc83734e35307ee277fd43f507bc24a8cfc2dc7",
+    "sha256": "ECDC3850190BD01662DBD0EB9582C83FB59E832F6FFD79A058D3EB0460BD213F",
+    "path": "artifacts/e2/preregistration/e2_ssa_spec.v2.json"
+  },
+  "natures": "prospective specification: ZERO SSA trajectories generated before this amendment",
+  "fields_missing_in_v1_now_filled": [
+    "time block",
+    "paradigm event counts/probabilities",
+    "stimulus identity mapping + waveform",
+    "block schedule incl. flip + many-standards + recovery",
+    "explicit replicate count",
+    "exact seed derivation scheme",
+    "response extraction definition",
+    "factor staging (mechanism matrix deferred to v3)"
+  ],
+  "fields_untouched": "all v1 fields byte-equal (asserted): thresholds theta_SI/delta_*/epsilon, SI form, adequacy gates, S0-S4 classifiers, controls definitions, topology, delays, masks",
+  "write_once": true
+}
