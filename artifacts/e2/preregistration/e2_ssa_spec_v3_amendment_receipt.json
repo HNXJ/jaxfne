@@ -1,0 +1,21 @@
+{
+  "schema": "e2_ssa_amendment_receipt.v2",
+  "from": {
+    "schema": "e2_ssa_spec.v2",
+    "spec_hash": "3e25ac2812f1aec843a9887d2fc83734e35307ee277fd43f507bc24a8cfc2dc7"
+  },
+  "to": {
+    "schema": "e2_ssa_spec.v3",
+    "spec_hash": "207060631267e2646d1bc8148d25cb3f64584fa385b14b1e366a28c7b68c96ef",
+    "sha256": "B72944F3806205F8E28575F77E4B1F790D3CBF8CB6B31F45F59E3BD8E85A30FE",
+    "path": "artifacts/e2/preregistration/e2_ssa_spec.v3.json"
+  },
+  "closes_LFNI_blockers": [
+    "B1 operating point pinned by inheritance from write-once E2a theta*",
+    "B2 deviant placement rule (no-consecutive, gap>=2, K_stimulus-derived, hashed)",
+    "B3 full estimator/inference definitions incl. BCa 5000 + perm 2000 + keys",
+    "F S3 recovery contrast fully defined (R_early/R_late/R_rec, delta/I_rec, rho via 500/1000 ladder)"
+  ],
+  "prospective": "zero SSA trajectories exist; v2 and v1 preserved immutable",
+  "write_once": true
+}
