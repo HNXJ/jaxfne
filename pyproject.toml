@@ -57,7 +57,7 @@ jaxley = ["jaxley>=0.13.0"]  # tested floor; bridge installs a JAX clip-compat s
 jax-fem = ["jax-fem>=0.0.12"]  # GPLv3 (or paid commercial from the author) -- optional, NOT a core dependency; see docs/guides/jax_fem_interop.md
 viz = ["matplotlib>=3.10.9,<3.11", "scipy==1.17.1", "plotly", "kaleido", "pandas", "ipywidgets", "Pillow"]
 io = ["pyyaml", "zarr", "h5py"]
-dev = ["pytest", "pytest-cov", "pytest-xdist", "ruff==0.16.2", "build", "optax>=0.2", "matplotlib>=3.10.9,<3.11", "scipy==1.17.1", "plotly", "kaleido", "pandas", "ipywidgets", "nbformat", "nbclient", "ipykernel"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "ruff==0.16.4", "build", "optax>=0.2", "matplotlib>=3.10.9,<3.11", "scipy==1.17.1", "plotly", "kaleido", "pandas", "ipywidgets", "nbformat", "nbclient", "ipykernel"]
 all = ["jaxfne[opt,jaxley,viz,io,dev]"]
 
 [tool.ruff]
