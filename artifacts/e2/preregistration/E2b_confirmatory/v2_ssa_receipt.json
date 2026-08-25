@@ -1,0 +1,15 @@
+{
+  "schema": "e2b_v2_confirmatory_receipt.v1",
+  "generated_at": "2026-08-25T18:48:43.472250+00:00",
+  "outcome": "NOT_EXECUTED_FREEZE_GAP",
+  "missing_frozen_fields": [
+    "time.duration_ms/n_steps/burn_in",
+    "events_per_block",
+    "block_length_trials",
+    "n_outer_replicates_explicit",
+    "primary_amplitude_level"
+  ],
+  "reason": "e2_ssa_spec.v1 pins ISI/stim/windows/thresholds/factors but no total duration, no events per block, no block length, no explicit replicate count. Executing would require inventing parameters -> prohibited (measure->classify, never tune). Requires explicit write-once amendment e2_ssa_spec.v2 before V2 execution.",
+  "status_label": "UNRESOLVED",
+  "write_once": true
+}
