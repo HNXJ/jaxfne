@@ -1,0 +1,13 @@
+{
+  "schema": "v2_rescored_frozen_only.v1",
+  "implementation": "independent vectorized rescorer; no shared code with aggregate_v2.py",
+  "pooled_SI": -0.08434169565295932,
+  "percentile_bootstrap": [
+    -0.11110176219463391,
+    -0.0590440633170533
+  ],
+  "swap_max_observed": 0.4260290155938084,
+  "SI_many_mean": 0.028338937275817343,
+  "label": "NEGATIVE:FAIL_swap_asymmetry,SIGN_neg",
+  "agreement_note": "compare against v2_ssa_confirmatory_receipt.json verdict"
+}
