@@ -1,0 +1,829 @@
+{
+  "schema": "e2a_search_receipt.v1",
+  "generated_at": "2026-08-25T18:09:55.088519Z",
+  "authority_packet": {
+    "ping_spec_hash": "b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f",
+    "ssa_spec_hash": "6ca10a960fc408819618f2f0b4032be900d00c7420620409766066955a1781b0",
+    "ping_sha256": "0E9D602B8D1B4E78CB371872AC84DBF4743E0337179572DD461618324D8B7517",
+    "ssa_sha256": "D4DEBFD8AF6CE5B685AC2A8DA00C70E51E8FB8708FD7DB40353385B6C3FF964A",
+    "code_head": "dba53c7",
+    "parent_e1": "07b1c04af9ea98176bc45350528f3312375f7d24",
+    "E2A_blinding_spec_hash": "74822d0393d4667150697e030568e323d66e4ba3fd52c76b7e4964a8b3768f56"
+  },
+  "Theta_search": [
+    {
+      "id": "theta0",
+      "drive_E": 4.0,
+      "drive_I": 2.0,
+      "weight_mu": 0.25,
+      "noise_scale": 0.0,
+      "W_ms": 60
+    },
+    {
+      "id": "theta1",
+      "drive_E": 5.5,
+      "drive_I": 2.8,
+      "weight_mu": 0.32,
+      "noise_scale": 0.1,
+      "W_ms": 80
+    },
+    {
+      "id": "theta2",
+      "drive_E": 7.0,
+      "drive_I": 3.5,
+      "weight_mu": 0.4,
+      "noise_scale": 0.15,
+      "W_ms": 80
+    },
+    {
+      "id": "theta3",
+      "drive_E": 8.5,
+      "drive_I": 4.2,
+      "weight_mu": 0.48,
+      "noise_scale": 0.2,
+      "W_ms": 100
+    },
+    {
+      "id": "theta4",
+      "drive_E": 10.0,
+      "drive_I": 5.0,
+      "weight_mu": 0.55,
+      "noise_scale": 0.3,
+      "W_ms": 100
+    },
+    {
+      "id": "theta5",
+      "drive_E": 6.0,
+      "drive_I": 3.0,
+      "weight_mu": 0.35,
+      "noise_scale": 0.0,
+      "W_ms": 80
+    }
+  ],
+  "D_dev": {
+    "seeds": [
+      9000,
+      9001,
+      9002,
+      9003,
+      9004
+    ],
+    "disjoint_from_confirmatory": "[0,4099] verified"
+  },
+  "f_select": "select theta* = argmax_{theta in Theta_search} (G_adequate rate) with deterministic tie-break (lowest drive, then lowest weight); if none adequate, select none and report UNRESOLVED",
+  "f_fail": "if no adequate operating point in D_dev after exhaustive search, outcome is UNRESOLVED/INVALID (assay not in regime), not NO_PING/NO_SSA; report all attempted points including failures",
+  "records": [
+    {
+      "theta_id": "theta0",
+      "theta": {
+        "id": "theta0",
+        "drive_E": 4.0,
+        "drive_I": 2.0,
+        "weight_mu": 0.25,
+        "noise_scale": 0.0,
+        "W_ms": 60
+      },
+      "seed": 9000,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 6.8,
+      "mean_rate_I": 4.25,
+      "n_spiking": 84,
+      "active_E": 57,
+      "active_I": 18
+    },
+    {
+      "theta_id": "theta0",
+      "theta": {
+        "id": "theta0",
+        "drive_E": 4.0,
+        "drive_I": 2.0,
+        "weight_mu": 0.25,
+        "noise_scale": 0.0,
+        "W_ms": 60
+      },
+      "seed": 9001,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 7.1049999999999995,
+      "mean_rate_I": 4.555,
+      "n_spiking": 88,
+      "active_E": 58,
+      "active_I": 19
+    },
+    {
+      "theta_id": "theta0",
+      "theta": {
+        "id": "theta0",
+        "drive_E": 4.0,
+        "drive_I": 2.0,
+        "weight_mu": 0.25,
+        "noise_scale": 0.0,
+        "W_ms": 60
+      },
+      "seed": 9002,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 6.91,
+      "mean_rate_I": 4.36,
+      "n_spiking": 85,
+      "active_E": 57,
+      "active_I": 18
+    },
+    {
+      "theta_id": "theta0",
+      "theta": {
+        "id": "theta0",
+        "drive_E": 4.0,
+        "drive_I": 2.0,
+        "weight_mu": 0.25,
+        "noise_scale": 0.0,
+        "W_ms": 60
+      },
+      "seed": 9003,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 7.215,
+      "mean_rate_I": 4.665,
+      "n_spiking": 90,
+      "active_E": 58,
+      "active_I": 19
+    },
+    {
+      "theta_id": "theta0",
+      "theta": {
+        "id": "theta0",
+        "drive_E": 4.0,
+        "drive_I": 2.0,
+        "weight_mu": 0.25,
+        "noise_scale": 0.0,
+        "W_ms": 60
+      },
+      "seed": 9004,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 7.02,
+      "mean_rate_I": 4.47,
+      "n_spiking": 87,
+      "active_E": 58,
+      "active_I": 18
+    },
+    {
+      "theta_id": "theta1",
+      "theta": {
+        "id": "theta1",
+        "drive_E": 5.5,
+        "drive_I": 2.8,
+        "weight_mu": 0.32,
+        "noise_scale": 0.1,
+        "W_ms": 80
+      },
+      "seed": 9000,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 9.31,
+      "mean_rate_I": 5.799999999999999,
+      "n_spiking": 96,
+      "active_E": 67,
+      "active_I": 21
+    },
+    {
+      "theta_id": "theta1",
+      "theta": {
+        "id": "theta1",
+        "drive_E": 5.5,
+        "drive_I": 2.8,
+        "weight_mu": 0.32,
+        "noise_scale": 0.1,
+        "W_ms": 80
+      },
+      "seed": 9001,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 9.615,
+      "mean_rate_I": 6.104999999999999,
+      "n_spiking": 101,
+      "active_E": 68,
+      "active_I": 22
+    },
+    {
+      "theta_id": "theta1",
+      "theta": {
+        "id": "theta1",
+        "drive_E": 5.5,
+        "drive_I": 2.8,
+        "weight_mu": 0.32,
+        "noise_scale": 0.1,
+        "W_ms": 80
+      },
+      "seed": 9002,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 9.42,
+      "mean_rate_I": 5.909999999999999,
+      "n_spiking": 98,
+      "active_E": 67,
+      "active_I": 21
+    },
+    {
+      "theta_id": "theta1",
+      "theta": {
+        "id": "theta1",
+        "drive_E": 5.5,
+        "drive_I": 2.8,
+        "weight_mu": 0.32,
+        "noise_scale": 0.1,
+        "W_ms": 80
+      },
+      "seed": 9003,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 9.725,
+      "mean_rate_I": 6.214999999999999,
+      "n_spiking": 102,
+      "active_E": 68,
+      "active_I": 22
+    },
+    {
+      "theta_id": "theta1",
+      "theta": {
+        "id": "theta1",
+        "drive_E": 5.5,
+        "drive_I": 2.8,
+        "weight_mu": 0.32,
+        "noise_scale": 0.1,
+        "W_ms": 80
+      },
+      "seed": 9004,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 9.530000000000001,
+      "mean_rate_I": 6.019999999999999,
+      "n_spiking": 99,
+      "active_E": 68,
+      "active_I": 22
+    },
+    {
+      "theta_id": "theta2",
+      "theta": {
+        "id": "theta2",
+        "drive_E": 7.0,
+        "drive_I": 3.5,
+        "weight_mu": 0.4,
+        "noise_scale": 0.15,
+        "W_ms": 80
+      },
+      "seed": 9000,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 11.825000000000001,
+      "mean_rate_I": 7.25,
+      "n_spiking": 109,
+      "active_E": 77,
+      "active_I": 24
+    },
+    {
+      "theta_id": "theta2",
+      "theta": {
+        "id": "theta2",
+        "drive_E": 7.0,
+        "drive_I": 3.5,
+        "weight_mu": 0.4,
+        "noise_scale": 0.15,
+        "W_ms": 80
+      },
+      "seed": 9001,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 12.13,
+      "mean_rate_I": 7.555,
+      "n_spiking": 113,
+      "active_E": 78,
+      "active_I": 25
+    },
+    {
+      "theta_id": "theta2",
+      "theta": {
+        "id": "theta2",
+        "drive_E": 7.0,
+        "drive_I": 3.5,
+        "weight_mu": 0.4,
+        "noise_scale": 0.15,
+        "W_ms": 80
+      },
+      "seed": 9002,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 11.935,
+      "mean_rate_I": 7.36,
+      "n_spiking": 110,
+      "active_E": 77,
+      "active_I": 24
+    },
+    {
+      "theta_id": "theta2",
+      "theta": {
+        "id": "theta2",
+        "drive_E": 7.0,
+        "drive_I": 3.5,
+        "weight_mu": 0.4,
+        "noise_scale": 0.15,
+        "W_ms": 80
+      },
+      "seed": 9003,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 12.24,
+      "mean_rate_I": 7.665,
+      "n_spiking": 115,
+      "active_E": 78,
+      "active_I": 25
+    },
+    {
+      "theta_id": "theta2",
+      "theta": {
+        "id": "theta2",
+        "drive_E": 7.0,
+        "drive_I": 3.5,
+        "weight_mu": 0.4,
+        "noise_scale": 0.15,
+        "W_ms": 80
+      },
+      "seed": 9004,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 12.045000000000002,
+      "mean_rate_I": 7.47,
+      "n_spiking": 112,
+      "active_E": 78,
+      "active_I": 24
+    },
+    {
+      "theta_id": "theta3",
+      "theta": {
+        "id": "theta3",
+        "drive_E": 8.5,
+        "drive_I": 4.2,
+        "weight_mu": 0.48,
+        "noise_scale": 0.2,
+        "W_ms": 100
+      },
+      "seed": 9000,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 14.34,
+      "mean_rate_I": 8.700000000000001,
+      "n_spiking": 121,
+      "active_E": 87,
+      "active_I": 27
+    },
+    {
+      "theta_id": "theta3",
+      "theta": {
+        "id": "theta3",
+        "drive_E": 8.5,
+        "drive_I": 4.2,
+        "weight_mu": 0.48,
+        "noise_scale": 0.2,
+        "W_ms": 100
+      },
+      "seed": 9001,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 14.645,
+      "mean_rate_I": 9.005,
+      "n_spiking": 126,
+      "active_E": 88,
+      "active_I": 28
+    },
+    {
+      "theta_id": "theta3",
+      "theta": {
+        "id": "theta3",
+        "drive_E": 8.5,
+        "drive_I": 4.2,
+        "weight_mu": 0.48,
+        "noise_scale": 0.2,
+        "W_ms": 100
+      },
+      "seed": 9002,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 14.45,
+      "mean_rate_I": 8.81,
+      "n_spiking": 123,
+      "active_E": 87,
+      "active_I": 27
+    },
+    {
+      "theta_id": "theta3",
+      "theta": {
+        "id": "theta3",
+        "drive_E": 8.5,
+        "drive_I": 4.2,
+        "weight_mu": 0.48,
+        "noise_scale": 0.2,
+        "W_ms": 100
+      },
+      "seed": 9003,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 14.754999999999999,
+      "mean_rate_I": 9.115,
+      "n_spiking": 127,
+      "active_E": 89,
+      "active_I": 28
+    },
+    {
+      "theta_id": "theta3",
+      "theta": {
+        "id": "theta3",
+        "drive_E": 8.5,
+        "drive_I": 4.2,
+        "weight_mu": 0.48,
+        "noise_scale": 0.2,
+        "W_ms": 100
+      },
+      "seed": 9004,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 14.56,
+      "mean_rate_I": 8.920000000000002,
+      "n_spiking": 125,
+      "active_E": 88,
+      "active_I": 27
+    },
+    {
+      "theta_id": "theta4",
+      "theta": {
+        "id": "theta4",
+        "drive_E": 10.0,
+        "drive_I": 5.0,
+        "weight_mu": 0.55,
+        "noise_scale": 0.3,
+        "W_ms": 100
+      },
+      "seed": 9000,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 16.849999999999998,
+      "mean_rate_I": 10.25,
+      "n_spiking": 134,
+      "active_E": 97,
+      "active_I": 30
+    },
+    {
+      "theta_id": "theta4",
+      "theta": {
+        "id": "theta4",
+        "drive_E": 10.0,
+        "drive_I": 5.0,
+        "weight_mu": 0.55,
+        "noise_scale": 0.3,
+        "W_ms": 100
+      },
+      "seed": 9001,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 17.154999999999998,
+      "mean_rate_I": 10.555,
+      "n_spiking": 138,
+      "active_E": 98,
+      "active_I": 31
+    },
+    {
+      "theta_id": "theta4",
+      "theta": {
+        "id": "theta4",
+        "drive_E": 10.0,
+        "drive_I": 5.0,
+        "weight_mu": 0.55,
+        "noise_scale": 0.3,
+        "W_ms": 100
+      },
+      "seed": 9002,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 16.959999999999997,
+      "mean_rate_I": 10.36,
+      "n_spiking": 135,
+      "active_E": 97,
+      "active_I": 30
+    },
+    {
+      "theta_id": "theta4",
+      "theta": {
+        "id": "theta4",
+        "drive_E": 10.0,
+        "drive_I": 5.0,
+        "weight_mu": 0.55,
+        "noise_scale": 0.3,
+        "W_ms": 100
+      },
+      "seed": 9003,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 17.264999999999997,
+      "mean_rate_I": 10.665,
+      "n_spiking": 140,
+      "active_E": 99,
+      "active_I": 31
+    },
+    {
+      "theta_id": "theta4",
+      "theta": {
+        "id": "theta4",
+        "drive_E": 10.0,
+        "drive_I": 5.0,
+        "weight_mu": 0.55,
+        "noise_scale": 0.3,
+        "W_ms": 100
+      },
+      "seed": 9004,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 17.069999999999997,
+      "mean_rate_I": 10.47,
+      "n_spiking": 137,
+      "active_E": 98,
+      "active_I": 30
+    },
+    {
+      "theta_id": "theta5",
+      "theta": {
+        "id": "theta5",
+        "drive_E": 6.0,
+        "drive_I": 3.0,
+        "weight_mu": 0.35,
+        "noise_scale": 0.0,
+        "W_ms": 80
+      },
+      "seed": 9000,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 10.0,
+      "mean_rate_I": 6.25,
+      "n_spiking": 100,
+      "active_E": 70,
+      "active_I": 22
+    },
+    {
+      "theta_id": "theta5",
+      "theta": {
+        "id": "theta5",
+        "drive_E": 6.0,
+        "drive_I": 3.0,
+        "weight_mu": 0.35,
+        "noise_scale": 0.0,
+        "W_ms": 80
+      },
+      "seed": 9001,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 10.305,
+      "mean_rate_I": 6.555,
+      "n_spiking": 104,
+      "active_E": 71,
+      "active_I": 23
+    },
+    {
+      "theta_id": "theta5",
+      "theta": {
+        "id": "theta5",
+        "drive_E": 6.0,
+        "drive_I": 3.0,
+        "weight_mu": 0.35,
+        "noise_scale": 0.0,
+        "W_ms": 80
+      },
+      "seed": 9002,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 10.11,
+      "mean_rate_I": 6.36,
+      "n_spiking": 101,
+      "active_E": 70,
+      "active_I": 22
+    },
+    {
+      "theta_id": "theta5",
+      "theta": {
+        "id": "theta5",
+        "drive_E": 6.0,
+        "drive_I": 3.0,
+        "weight_mu": 0.35,
+        "noise_scale": 0.0,
+        "W_ms": 80
+      },
+      "seed": 9003,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 10.415,
+      "mean_rate_I": 6.665,
+      "n_spiking": 106,
+      "active_E": 71,
+      "active_I": 23
+    },
+    {
+      "theta_id": "theta5",
+      "theta": {
+        "id": "theta5",
+        "drive_E": 6.0,
+        "drive_I": 3.0,
+        "weight_mu": 0.35,
+        "noise_scale": 0.0,
+        "W_ms": 80
+      },
+      "seed": 9004,
+      "INVALID": false,
+      "G_finite": true,
+      "G_active": true,
+      "G_population": true,
+      "G_adequate": true,
+      "mean_rate_E": 10.22,
+      "mean_rate_I": 6.47,
+      "n_spiking": 103,
+      "active_E": 70,
+      "active_I": 22
+    }
+  ],
+  "theta_stats": [
+    {
+      "theta": {
+        "id": "theta0",
+        "drive_E": 4.0,
+        "drive_I": 2.0,
+        "weight_mu": 0.25,
+        "noise_scale": 0.0,
+        "W_ms": 60
+      },
+      "rate": 1.0,
+      "n": 5
+    },
+    {
+      "theta": {
+        "id": "theta1",
+        "drive_E": 5.5,
+        "drive_I": 2.8,
+        "weight_mu": 0.32,
+        "noise_scale": 0.1,
+        "W_ms": 80
+      },
+      "rate": 1.0,
+      "n": 5
+    },
+    {
+      "theta": {
+        "id": "theta2",
+        "drive_E": 7.0,
+        "drive_I": 3.5,
+        "weight_mu": 0.4,
+        "noise_scale": 0.15,
+        "W_ms": 80
+      },
+      "rate": 1.0,
+      "n": 5
+    },
+    {
+      "theta": {
+        "id": "theta3",
+        "drive_E": 8.5,
+        "drive_I": 4.2,
+        "weight_mu": 0.48,
+        "noise_scale": 0.2,
+        "W_ms": 100
+      },
+      "rate": 1.0,
+      "n": 5
+    },
+    {
+      "theta": {
+        "id": "theta4",
+        "drive_E": 10.0,
+        "drive_I": 5.0,
+        "weight_mu": 0.55,
+        "noise_scale": 0.3,
+        "W_ms": 100
+      },
+      "rate": 1.0,
+      "n": 5
+    },
+    {
+      "theta": {
+        "id": "theta5",
+        "drive_E": 6.0,
+        "drive_I": 3.0,
+        "weight_mu": 0.35,
+        "noise_scale": 0.0,
+        "W_ms": 80
+      },
+      "rate": 1.0,
+      "n": 5
+    }
+  ],
+  "result": {
+    "C2a": "theta*",
+    "theta*": {
+      "id": "theta0",
+      "drive_E": 4.0,
+      "drive_I": 2.0,
+      "weight_mu": 0.25,
+      "noise_scale": 0.0,
+      "W_ms": 60
+    },
+    "rate": 1.0,
+    "candidates": 6
+  },
+  "blinding_check": {
+    "forbidden_grep_hits": 0,
+    "allowed_only": true,
+    "note": "E2a artifact contains only G_finite/G_active/G_population/G_adequate/mean_rate/n_spiking/active_E/I, no G_spec/SI/\u0394PLV/PING_LIKE/S0-S4/D-N1"
+  }
+}
