@@ -1,0 +1,52 @@
+{
+  "schema": "e2a_blinding_spec.v1",
+  "purpose": "Enforce blinding technically for E2a adequacy-only search: forbidden observables must not exist in E2a artifact, preventing leakage into theta* selection",
+  "forbidden_observables": [
+    "G_spec",
+    "G_phase",
+    "G_rate",
+    "G_cycle",
+    "PING_LIKE",
+    "NO_PING",
+    "SI",
+    "SI_source",
+    "S0",
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "delta_PLV",
+    "PLV",
+    "D-N1_mechanistic_contrast",
+    "f_peak_prominence_classification"
+  ],
+  "allowed_observables": [
+    "G_finite",
+    "G_active",
+    "G_population",
+    "G_adequate_PING",
+    "G_A",
+    "G_B",
+    "G_adequate_SSA",
+    "G_stable",
+    "mean_rate_E",
+    "mean_rate_I",
+    "n_spiking",
+    "active_E",
+    "active_I",
+    "INVALID_rules"
+  ],
+  "enforcement": {
+    "artifact_path": "artifacts/e2/preregistration/E2a_search/",
+    "check": "grep -R forbidden_observables in E2a artifact must be 0 hits; E2a analysis script must not import classifiers/G_spec/SI",
+    "write_once": true,
+    "blinding_mechanism": "E2a search script operates only on adequacy gates and raw rates, imports only e2_ping_prereg.json adequacy_gates and e2_ssa_spec.json SSA.adequacy, never classifiers"
+  },
+  "f_select_blinded": "theta* = argmax_{theta in Theta_search} (G_adequate rate) with deterministic tie-break; no forbidden observable may influence selection",
+  "f_fail_blinded": "if no adequate point, UNRESOLVED/INVALID, not NO_PING/NO_SSA",
+  "provenance": {
+    "derived_from": "36_AUDIT_INPUT_MANIFEST.json E2a_identifiability A_allowed/A_forbidden",
+    "parent_e1": "07b1c04af9ea98176bc45350528f3312375f7d24",
+    "code_head": "fea8b8d"
+  }
+}
