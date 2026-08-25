@@ -1,0 +1,44 @@
+{
+  "schema": "e2b_v1_corrigendum.v1",
+  "generated_at": "2026-08-25",
+  "corrects": "artifacts/e2/preegistration/../../preregistration/E2b_confirmatory/v1_ping_receipt.json @ b4bc1ac (write-once, NOT edited)",
+  "auditor_basis": ["mathematics+PING-biophysics", "SSA+statistics", "numerics+provenance", "manuscript+adversary", "all independent recomputation from v1_rates_window.npz"],
+  "verdict_status": {
+    "V1_verdict": "NEGATIVE / NEGATIVE_NOT_PING_LIKE — CONFIRMED ROBUST",
+    "robustness_proof": "0/5 PING_LIKE under EVERY scoring combination: frozen-only strings, sign-flipped dphi, and with all four executor-added conjuncts struck. Intact runs fail >=3 frozen gates each: prom_dB 5.41-5.65 (<6, gray [5,6)); dphi -85..-91 deg outside [15,90] under recorded convention; AC sidepeak at gamma period NEGATIVE (E -0.10, I -0.06 vs required >=0.25); n_cycles 3-4 <10."
+  },
+  "corrections": [
+    {"id":"C1_direction","was":"degenerate note says 'dphi ~-6.8 deg, I leads E'","correct":"dphi_deg is -85.3..-90.5; -6.8 is dt_lag_ms (ms, not deg). Under the recorded convention (dph=phi_I-phi_E) negative means E LEADS I by ~6.8 ms; pulse-timing rederivation confirms E-first by median +16 ms. Direction is CANONICAL-PING-LIKE, but rides on a non-gamma carrier."},
+    {"id":"C2_mechanism","was":"implied two discordant population oscillators","correct":"Single ~7.2 Hz globally synchronous population-pulse train (envelope interpulse 138.5 ms, participation 1.0, FF~0). fpk_E=36.1~=5x7.22 and fpk_I=43.3~=6x7.22 are adjacent HARMONIC COMB TEETH of one slow rhythm; |dfp|=7.2 equals one harmonic spacing, so OptionA 'discordance' is a comb artifact, not two oscillators. Neither canonical PING nor ING: C2 (I->E zeroed) preserves the full phenotype (not loop-dependent), C1 (E->I zeroed) silences I entirely (I not autonomous)."},
+    {"id":"C3_collapse_table","was":"all six arms collapsed 5/5; loop_dependence_ok=true","correct":"EXECUTOR BUG e2b_v1_executor.py:354 reads key 'dphi' but rows store 'dphi_deg' -> cond_b auto-true -> table vacuous. Corrected frozen-rule rescoring: C1_E_to_I_zero 5/5 collapsed (adequacy dead, PLV->0.11), C3b_weight_shuffle 5/5 (I silenced), C2_I_to_E_zero 0/5, C3a/C3c/C3d 0/5. loop_dependence_ok=true is UNFOUNDED; corrected value FALSE-but-moot since intact_ping=0."},
+    {"id":"C4_units_bins","was":"'W-window population rates (2x2000 bins)'","correct":"npz arrays are (2,1000): 500 ms at 1 ms archived resolution. W1 stationarity and spike-level surrogates are therefore NOT independently auditable from the archive."},
+    {"id":"C5_failure_modes_ordering","was":"intact_failure_modes foregrounds 'G_phase: dphi negative sign'","correct":"Convention-fragile criterion listed first. Convention-ROBUST failures (prominence gray, negative AC sidepeak, cycle count) are primary evidence; dphi sign should be last."}
+  ],
+  "executor_deviations_disclosed": [
+    {"dev":"D1 invented conjuncts","detail":"Four gate terms absent from frozen classifier strings were added post-freeze: xcorr_shifted<0.20 (linear-roll null, JSON-undefined), plv_surr<0.25, stationarity(3dB/5Hz), OptionA |dfp|<=5 folded into g_spec. Proven VERDICT-NEUTRAL by adversary rescoring, but violates the executor's own no-new-thresholds pledge; any reuse must go through a spec amendment."},
+    {"dev":"D2 salted hash","detail":"np.random.default_rng([structure_seed, hash(arm)]) uses Python's per-process salted str hash -> C3a_degree_rewire runs not bit-reproducible from recorded seeds. Replay violation (H4/H13); use sha256/crc32-derived child seeds in any future executor."},
+    {"dev":"D3 seed-domain infidelity","detail":"Consumed PRNG keys (runtime*100+arm_idx ~110000+, analysis*1000+arm ~3.1e6) lie OUTSIDE declared K_runtime/K_analysis domains; declared fold_in(K0=101,splitmix64,offsets) scheme never implemented. Recorded seeds_plan values are in-domain but were not the consumed keys. Stimulus domain unused (noise_scale=0, no stimulus path)."},
+    {"dev":"D4 gray-exemption breadth","detail":"hard-fail exemption excuses whole gate conjunction when any single metric sits in its own gray band (latent; did not fire here)."},
+    {"dev":"D5 collapse clause broadening","detail":"Clause-1 prefix-match {NO_PING,UNRESOLVED,INVALID} extends frozen '==NO_PING'; combined with C3 bug produced vacuous table."},
+    {"dev":"D6 minor","detail":"Composite labels fall outside frozen 4-label set; surrogate is phase-randomization labeled IAAFT-style; rayleigh_p stored as exact 0.0 (underflow; log-p needed); burn_in_ms never discarded as segment; theta*.W_ms=60 dead parameter in V1 (H7: compatibility-only for unexecuted V2)."}
+  ],
+  "licensed_claims": [
+    "At tie-break-selected theta*: adequacy 5/5 confirmatory (vs 6/6 synthetic-proxy E2a; category mismatch noted, no material difference claimed either way).",
+    "Zero PING_LIKE in any seed under frozen classifiers AND under relaxed rescoring.",
+    "Characterization: ~7 Hz synchronous population-pulse regime, E-leading-I ordering (+6.8 ms phase / +16 ms pulses), sub-gate gamma-band prominences 5.4-5.9 dB (UNRESOLVED_PROMINENCE band).",
+    "V2 NOT_EXECUTED_FREEZE_GAP preserves unresolved_not_negative; gap list accurate plus additional unpinned items (sequence rule/deviant probability, block count, stimulus content identity)."
+  ],
+  "forbidden_claims": [
+    "Any PING-capability or PING-timing claim about the model class from this arm.",
+    "'Controls validated loop dependence' or citation of loop_dependence_ok=true.",
+    "'Two discordant oscillator frequencies'.",
+    "Calibration validation citing 6/6->5/5 without the synthetic-proxy caveat.",
+    "Merging with CL-06 NO_WAVE in either direction."
+  ],
+  "required_boundary_sentence": "In the preregistered confirmatory arm (V1: 7 arms x 5 seeds at the tie-break-selected operating point theta*), networks met adequacy gates in 5/5 seeds but satisfied none of the four frozen PING-classifier criteria in any seed (verdict NEGATIVE_NOT_PING_LIKE), instead exhibiting a ~7 Hz globally synchronous population-pulse rhythm whose gamma-band spectral peaks fall below the frozen prominence gate; the V2 arm was not executed (frozen-specification gap, NOT_EXECUTED_FREEZE_GAP), the control-collapse table was vacuous because the intact arm itself fell outside the frozen phase window, and theta* was chosen from a six-way adequacy tie by lexicographic tie-break rather than as an optimized operating point - these results therefore support only the bounded statement that no PING-like signature was detected at theta* under the frozen criteria, carry no implication about other regions of the parameter space, and are independent of the CL-06 NO_WAVE result.",
+  "escalation_flags": [
+    "SPEC_AMENDMENT_REQUIRED_BEFORE_V2: duration/events/blocks/replicates/sequence-rule/stimulus-content must be frozen in e2_ssa_spec.v2 (write-once).",
+    "EXECUTOR_RULES_FOR_ANY_RERUN: no conjuncts beyond JSON; stable child-seed derivation implementing fold_in/splitmix64; consumed keys inside declared domains; per-metric gray exemption; exact-key access; store log-p and full-W+W1 rates."
+  ],
+  "write_once": true
+}
