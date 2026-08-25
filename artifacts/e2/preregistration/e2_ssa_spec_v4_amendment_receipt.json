@@ -1,0 +1,21 @@
+{
+  "schema": "e2_ssa_amendment_receipt.v3",
+  "from": {
+    "schema": "e2_ssa_spec.v3",
+    "spec_hash": "207060631267e2646d1bc8148d25cb3f64584fa385b14b1e366a28c7b68c96ef"
+  },
+  "to": {
+    "schema": "e2_ssa_spec.v4",
+    "spec_hash": "69738a383ad3fc5f96bb6eab0e6e331c2a93486f1fd19226b178e592f0d442ad",
+    "sha256": "9882F6A426983A93C4975603F162DF8A16F457C61EBA85E2BE9181B1204FB1C3",
+    "path": "artifacts/e2/preregistration/e2_ssa_spec.v4.json"
+  },
+  "closes": [
+    "N/H3 steps arithmetic 176000=88s (was 156000)",
+    "N/H3 washout single mechanical rule, sequence-realized counts hashed (fabricated 10/66/19/9 removed)",
+    "L dR formula pinned",
+    "L g bound to Hedges g over replicates"
+  ],
+  "prospective": true,
+  "write_once": true
+}
