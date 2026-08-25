@@ -3,7 +3,7 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-08-20T00:44:47",
+  "generated_at": "2026-08-25T03:00:51.878083",
   "components": {
     "project_agents": {
       "file": "AGENTS.md",
@@ -36,7 +36,7 @@
     },
     "project_config": {
       "file": ".opencode/opencode.json",
-      "sha256": "db710cc81a62c64576d06ba6851749410c5cb71da8a1d17bc79d1a00876c2730"
+      "sha256": "ad5ce6a49dfd4c5d66c62362a51ffa6ebbfb678fa30e0b149fa163445869d458"
     },
     "frozen_paths": {
       "file": ".opencode/frozen_paths.json",

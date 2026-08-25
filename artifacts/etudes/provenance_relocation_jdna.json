@@ -1,0 +1,17 @@
+{
+  "schema": "jaxfne.provenance_relocation.v1",
+  "old_path": "experiments/jdna_v0_drive_experiment.py",
+  "new_path": "artifacts/etudes/jdna_v0_drive_experiment.py",
+  "sha256_before": "e762c1f5e949245732cb35d59c9a768d59a493c20e414352b86cd1e0235385d8",
+  "spec_hash": null,
+  "relocated_at": "2026-08-25T03:00:12.725414Z",
+  "relocated_by": "PRGS single-writer",
+  "reason": "C_root minimization: root has no functional meaning for etude (0 consumers per PRGS 2/7), owner artifacts/etudes per rule protocol evidence->artifacts/protocols, developer->artifacts/developer",
+  "consumer_patches": 0,
+  "delta_science": 0,
+  "delta_api": 0,
+  "delta_e1": 0,
+  "delta_e2_semantics": 0,
+  "sha256_after": "e762c1f5e949245732cb35d59c9a768d59a493c20e414352b86cd1e0235385d8",
+  "verified": true
+}

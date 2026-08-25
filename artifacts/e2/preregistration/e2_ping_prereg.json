@@ -1,0 +1,310 @@
+{
+  "INVALID_rules": [
+    "INVALID_NUMERIC_NONFINITE",
+    "INVALID_NUMERIC_DIVERGENCE",
+    "INVALID_NUMERIC_ADMISSIBILITY",
+    "INVALID_CONFIG_SEED_DOMAIN",
+    "INVALID_CONFIG_SPEC_MISMATCH",
+    "INVALID_DELAY_STATE",
+    "INVALID_CONFIG_PROBE_LEAKAGE",
+    "INVALID_CONFIG_GEOMETRY"
+  ],
+  "adequacy_gates": {
+    "G_active": "mean_rate_E >= 0.5 and mean_rate_I >= 0.5 and n_spiking >= 10",
+    "G_adequate_PING": "G_finite && G_active && G_population",
+    "G_finite": "all V_m, u, spikes, sources, Q, H_K finite and not NaN and rate < 200 and |H_K| <= 20",
+    "G_population": "active_E >= 20 and active_I >= 5",
+    "ordering": "INVALID; !G_adequate -> UNRESOLVED; all PING gates true -> PING_LIKE else NO_PING"
+  },
+  "classifiers": {
+    "G_cycle": "CV_T <= 0.35 and FF <= 0.60 and median p_i >= 0.10 and N_cycles >= 10",
+    "G_phase": "delta_phi in [15,90] deg and PLV >= 0.40 and delta_t in [2,8] ms and Rayleigh p < 0.01",
+    "G_rate": "MD >= 0.50 and AC >= 0.25 and |xcorr| >= 0.40",
+    "G_spec": "prominence >= 6 dB and bandpower >= 0.25 and f_peak in [35,75]",
+    "PING_LIKE": "G_spec && G_rate && G_phase && G_cycle",
+    "collapse_definition": {
+      "cross_seed_aggregation": ">=4/5 seeds collapse per arm",
+      "delta_PLV": "PLV_intact - PLV_ablated",
+      "direction": "positive means intact higher (collapse is drop)",
+      "per_seed_collapse": "((PING_LIKE_Cx==NO_PING or prominence_Cx<3.0 or |f_peak(C0)-f_peak(Cx)|>10) and (delta_PLV>=0.20 or PLV_Cx<0.25 or delta_phi not in [15,90]))",
+      "reference_arm": "C0_intact"
+    },
+    "gray_zones": {
+      "PLV": "0.35-0.40 -> UNRESOLVED",
+      "delta_phi": "12-15 deg -> UNRESOLVED",
+      "prominence": "5.0-6.0 dB -> UNRESOLVED"
+    },
+    "labels": [
+      "INVALID",
+      "UNRESOLVED",
+      "PING_LIKE",
+      "NO_PING"
+    ],
+    "mutual_exclusion": true,
+    "unreachable_labels": []
+  },
+  "code_head": "35291f897bffc8e52154825b5ab7136aca107613",
+  "delays": {
+    "bufsize": 7,
+    "causality": "delay>0 -> delayed kernel",
+    "discrete_grid_ms": [
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0
+    ],
+    "discrete_steps": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "dispatch": "any delay_steps>0 => _simulate_edge_recurrent_izhikevich_delayed",
+    "distribution": "discrete_grid_uniform_choice",
+    "dt_ms": 0.5,
+    "grid_alignment_atol": 1e-09
+  },
+  "frozen_at": "2026-08-24T14:00:00Z",
+  "inhibitory_model": {
+    "a": 0.1,
+    "b": 0.2,
+    "c": -65,
+    "d": 2.0,
+    "model_status": "PV-like model parameterization"
+  },
+  "interventions": {
+    "C0_intact": {
+      "edit": "none"
+    },
+    "C1_E_to_I_zero": {
+      "edges": 8000,
+      "edit": "weight[E->I, rec 0] = 0"
+    },
+    "C2_I_to_E_zero": {
+      "edges": 32000,
+      "edit": "weight[I->E, rec 1] = 0"
+    },
+    "C3a_degree_rewire": {
+      "edit": "permute pre/post preserving degree"
+    },
+    "C3b_weight_shuffle": {
+      "edit": "permute weight preserving distribution"
+    },
+    "C3c_delay_shuffle": {
+      "edit": "permute delay_steps"
+    },
+    "C3d_matched_count": {
+      "capped": true,
+      "edges": 8000,
+      "edit": "random E->E mask matched count",
+      "target": "C2"
+    }
+  },
+  "masks": {
+    "owner_mask": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "owner_mask_construction_rule": "build_owner_mask(n_neurons=1000, owners=[0,1,2,3,4,5,6,7,8,9]) -> float32",
+    "owner_mask_spec": {
+      "construction": "build_owner_mask",
+      "dtype": "float32",
+      "n_neurons": 1000,
+      "owners": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    "owner_mask_spec_hash": "51105b0326c87b6fb33e830f4cea0aee2a2d6c83361b0fbba05fefb9ba808a3b",
+    "owner_mask_spec_hash_8": "51105b03",
+    "owner_mask_spec_hash_definition": "h_rule = SHA256(canonical JSON of owner_mask_spec, sort_keys, separators (',',':'))",
+    "owner_mask_bytes_hash": "83af8971f8f04e6e082d1df674dbc1c98ce8bbec1578536a8d78c2812315299f",
+    "owner_mask_bytes_hash_8": "83af8971",
+    "owner_mask_bytes_hash_definition": "h_bytes = SHA256(float32(M_H).tobytes()) where M_H = build_owner_mask(1000, [0..9]) materialized mask length 1000, 10 ones / 990 zeros",
+    "owner_mask_implementation_hash": "027bdd97",
+    "owner_mask_implementation_hash_definition": "h_impl = truncated SHA256 of jaxfne/emitters.py:1498 simulate_edge_recurrent_izhikevich_owned_h_k_delayed implementation (distinct from mask hashes)",
+    "owner_mask_length": 1000,
+    "population_masks_nonempty": true
+  },
+  "method": {
+    "detrend": "segment_mean",
+    "estimator": "Welch",
+    "filter_edge_exclusion_ms": 50,
+    "filter_family": "Butterworth",
+    "filter_forward_backward": true,
+    "filter_order": 4,
+    "filter_padding": "odd, padlen=36",
+    "filter_type": "bandpass",
+    "nfft": 1024,
+    "overlap_percent": 50,
+    "overlap_samples": 256,
+    "peak_pick": "parabolic interpolation",
+    "ping_classification_band_hz": [
+      35,
+      75
+    ],
+    "sampling_rate_hz": 2000,
+    "sampling_rate_derivation": "fs = 1000/dt_ms with dt_ms=0.5 => 2000 Hz native simulation rate; no downsampling",
+    "sampling_rate_downsampling": {
+      "factor": 1,
+      "operator": "none",
+      "antialias": "none",
+      "from_dt_ms": 0.5,
+      "to_fs_hz": 2000
+    },
+    "search_band_hz": [
+      30,
+      90
+    ],
+    "segment_ms": 256,
+    "segment_samples": 512,
+    "spectral_signal": "Option_A: both r_E and r_I with |f_peak_E - f_peak_I| <= 5 Hz",
+    "stationarity": "W1 vs W bandpower within 3dB and freq within 5 Hz",
+    "surrogate": "jitter +-20ms and IAAFT",
+    "window": "Hann"
+  },
+  "parent_e1": "07b1c04af9ea98176bc45350528f3312375f7d24",
+  "provenance": {
+    "cpu": "24 cores",
+    "e1_frozen_manifest_sha": "aeca6d01a18ab1be3d400cf9c6a7c373c9e86326",
+    "jax": "0.10.1",
+    "platform": "linux-x86_64",
+    "python": "3.14.3",
+    "repository_sha": "35291f897bffc8e52154825b5ab7136aca107613",
+    "wall_clock": "2026-08-24T14:00:00Z"
+  },
+  "schema": "e2_ping_prereg.v1",
+  "seeds": {
+    "K0": "PRNGKey(101)",
+    "K_analysis": [
+      3000,
+      3999
+    ],
+    "K_probe": [
+      4000,
+      4099
+    ],
+    "K_runtime": [
+      1000,
+      1999
+    ],
+    "K_stimulus": [
+      2000,
+      2999
+    ],
+    "K_structure": [
+      0,
+      999
+    ],
+    "canonical_order": [
+      "structure",
+      "stimulus",
+      "runtime",
+      "probe",
+      "analysis"
+    ],
+    "cardinalities": {
+      "n_per_cell": 20
+    },
+    "derivation": "fold_in(K0, encode(s,r,u,a)) with splitmix64, canonical order structure->stimulus->runtime->probe->analysis",
+    "factor_to_key_mapping": {
+      "adequacy_gates": "K_analysis",
+      "delays": "K_structure",
+      "inhibitory_model": "K_structure",
+      "method": "K_analysis",
+      "topology": "K_structure"
+    },
+    "offsets": {
+      "K0": 0,
+      "K_analysis": 20480,
+      "K_probe": 16384,
+      "K_runtime": 12288,
+      "K_stimulus": 8192,
+      "K_structure": 4096
+    }
+  },
+  "time": {
+    "W": [
+      1500,
+      2000
+    ],
+    "W1": [
+      1000,
+      1500
+    ],
+    "burn_in_ms": 200,
+    "dt_ms": 0.5,
+    "dtype": "float32",
+    "duration_ms": 2000,
+    "n_steps": 4000,
+    "platform": "cpu"
+  },
+  "topology": {
+    "N_E": 800,
+    "N_I": 200,
+    "N_total": 1000,
+    "construction": "sparse EdgeList via _construct_core._neuron_population_from_config",
+    "geometry": "relative_laminar_depth_proxy",
+    "labels": {
+      "E": "excitatory",
+      "I": "PV-like fast-spiking"
+    },
+    "mean_degree": 80,
+    "p_EE": 0.05,
+    "p_EI": 0.05,
+    "p_IE": 0.2,
+    "p_II": 0.2,
+    "receptor_specs": {
+      "AMPA": {
+        "tau_ms": 2.0
+      },
+      "GABA_A": {
+        "tau_ms": 5.0
+      }
+    },
+    "source_scale": 1.0,
+    "spike_gain_alias": "DEFAULT_SPIKE_IMPULSE_GAIN=20.0",
+    "weight_distributions": {
+      "E_E": {
+        "mu": 0.35,
+        "sigma": 0.1,
+        "sign": 1
+      },
+      "E_I": {
+        "mu": 0.45,
+        "sigma": 0.12,
+        "sign": 1
+      },
+      "I_E": {
+        "mu": -0.6,
+        "sigma": 0.15,
+        "sign": -1
+      },
+      "I_I": {
+        "mu": -0.4,
+        "sigma": 0.12,
+        "sign": -1
+      }
+    }
+  },
+  "write_once": true,
+  "spec_hash": "b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f"
+}
