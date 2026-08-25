@@ -9,8 +9,9 @@ sys.path.insert(0, '.')
 import json, hashlib, pathlib, datetime
 import numpy as np
 import jax, jax.numpy as jnp
-from jaxfne.emitters import simulate_edge_recurrent_izhikevich, EdgeList, IZHIKEVICH_CELL_TYPE_DEFAULTS
-from jaxfne.emitters import IzhikevichParams
+from jaxfne.emitters import (
+    simulate_edge_recurrent_izhikevich, _simulate_edge_recurrent_izhikevich_delayed,
+    EdgeList, IZHIKEVICH_CELL_TYPE_DEFAULTS, IzhikevichParams)
 
 REPO = pathlib.Path('.').resolve()
 PR = REPO / 'artifacts/e2/preregistration'
@@ -19,7 +20,7 @@ OUTD.mkdir(parents=True, exist_ok=True)
 sys.path.insert(0, str(REPO / 'artifacts/e2/e2_exec'))
 import e2_exec_lib as lib
 
-spec = json.loads((PR / 'e2_ssa_spec.v5.json').read_bytes())
+spec = json.loads((PR / 'e2_ssa_spec.v6.json').read_bytes())
 ping = json.loads((PR / 'e2_ping_prereg.json').read_bytes())
 e2a = json.loads((PR / 'E2a_search/e2a_search_receipt.json').read_bytes())
 assert lib.canon_spec_hash(spec) == spec['spec_hash']
@@ -95,6 +96,37 @@ def block_schedule(n_events, isi_steps, std_pop, dev_pop, pos):
         sched[onset:onset + STIM_STEPS, pop[0]:pop[1]] = 1.0
     return sched, np.array(onsets), np.isin(np.arange(n_events), pos)
 
+def _make_block_fn(params, edges, n_events, isi_steps):
+    """JIT'd block runner with params/edges CLOSED OVER as constants (kernel's host-side
+    delay guards then operate on real arrays). Outputs limited to per-event R/Q + flags:
+    final_state/presyn_trace never returned -> DCE'd under jit (frozen memory_rule)."""
+    W0s, W1s = int(round(W0 / DT)), int(round(W1 / DT))
+    nev, isi = n_events, isi_steps
+    n_steps = n_events * isi_steps
+
+    @jax.jit
+    def fn(rk, sched):
+        out = _simulate_edge_recurrent_izhikevich_delayed(
+            params, edges, n_steps, DT, rk, dtype='float32',
+            drive_schedule=sched, noise_scale=TH['noise_scale'])
+        spk, src = out[1], out[2]
+        fin = jnp.isfinite(spk).all() & jnp.isfinite(src).all()
+        sp_e = spk[:, :N_E].reshape(nev, isi, N_E)
+        win = sp_e[:, W0s:W1s, :]
+        R = win.sum(axis=(1, 2)) / (N_E * 0.08)
+        Q = jnp.abs(src).reshape(nev, isi, N).sum(axis=1).mean(axis=1)
+        mean_rate = spk.mean() * (1000.0 / DT)
+        return R, Q, fin, mean_rate
+    return fn
+
+_BLOCK_FNS = {}
+
+def get_block_fn(n_events, isi_steps):
+    k = (n_events, isi_steps)
+    if k not in _BLOCK_FNS:
+        _BLOCK_FNS[k] = _make_block_fn(n_events, isi_steps)
+    return _BLOCK_FNS[k]
+
 A_POP, B_POP = (0, 400), (400, 800)
 
 def run_block(params, edges, name, n_events, isi_steps, mode, rep):
@@ -122,28 +154,19 @@ def run_block(params, edges, name, n_events, isi_steps, mode, rep):
             o = int(onsets[k]); sched[o:o + STIM_STEPS, pop[0]:pop[1]] = 1.0
         is_dev = np.zeros(n_events, bool); pos = np.array([], int); seed_used = 0
     rk = keys['runtime']
-    v, spk, src, fst = simulate_edge_recurrent_izhikevich(
-        params, edges, sched.shape[0], DT, rk, dtype='float32',
-        drive_schedule=jnp.asarray(sched), noise_scale=TH['noise_scale'])
-    sp = np.asarray(spk); sr = np.asarray(src)
+    fn = _make_block_fn(params, edges, n_events, isi_steps)
+    R_arr, Q_arr, fin, mean_rate_j = fn(rk, jnp.asarray(sched))
+    R_h = np.asarray(R_arr); Q_h = np.asarray(Q_arr)
     inv = {}
-    if not (np.isfinite(sp).all() and np.isfinite(sr).all()):
+    if not bool(fin):
         inv['INVALID_NUMERIC_NONFINITE'] = True
-    W0s, W1s = int(round(W0 / DT)), int(round(W1 / DT))
-    ev_R, ev_Q, ev_ids = [], [], []
-    for k in range(n_events):
-        o = int(onsets[k])
-        sl = slice(o + W0s, o + W1s)
-        ev_R.append(float(sp[sl, :N_E].mean() / 0.08))
-        ev_Q.append(float(np.abs(sr[sl, :]).mean()))
-        ev_ids.append(bool(is_dev[k]))
+    ev_R = [float(x) for x in R_h]
+    ev_Q = [float(x) for x in Q_h]
+    ev_ids = [bool(b) for b in is_dev]
     seq_hash = hashlib.sha256(json.dumps({'pos': pos.tolist(), 'onsets': [int(o) for o in onsets]}).encode()).hexdigest()
-    ds = fst.get('delay_state')
-    if ds is not None and not np.isfinite(np.asarray(ds)).all():
-        inv['INVALID_DELAY_STATE'] = True
     return dict(name=name, R=ev_R, Q=ev_Q, is_dev=ev_ids, seq_hash=seq_hash,
-                stim_seed=int(seed_used), INVALID=inv,
-                mean_rate=float(sp.mean() * (1000.0 / DT)))
+                stim_seed=(int(seed_used) if mode[0] == 'oddball' else None), INVALID=inv,
+                mean_rate=float(mean_rate_j))
 
 _KEYSHOLDER = {}
 _KEYS = None
@@ -152,7 +175,12 @@ def main(rep: int):
     global _KEYS
     out_path = OUTD / f'rep_{rep:02d}.json'
     if out_path.exists():
-        print(f'rep {rep} already done'); return
+        try:
+            j = json.loads(out_path.read_bytes())
+            assert j.get('schema') == 'e2b_v2_replicate.v1' and j.get('spec_hash') == spec['spec_hash']
+            print(f'rep {rep} already done (validated)'); return
+        except Exception:
+            out_path.unlink()  # stale/corrupt -> re-run
     params, edges, keys = build_circuit(rep)
     _KEYS = keys
     blocks = []
@@ -175,12 +203,21 @@ def main(rep: int):
         print(f"rep{rep} {nm}: INVALID={bl['INVALID']} mean_rate={bl['mean_rate']:.2f} "
               f"dev_events={sum(bl['is_dev'])}")
     any_inv = any(b['INVALID'] for b in blocks)
-    receipt = dict(schema='e2b_v2_replicate.v1', replicate=rep, generated_at=datetime.datetime.now(datetime.UTC).isoformat(),
-                   spec_hash=spec['spec_hash'], theta=dict(drive_E=TH['drive_E'], drive_I=TH['drive_I'],
-                   weight_mu=TH['weight_mu'], noise_scale=TH['noise_scale']),
+    import subprocess
+    code_head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True, cwd=REPO).strip()
+    executor_hash = hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest()
+    receipt = dict(schema='e2b_v2_replicate.v1', replicate=rep,
+                   generated_at=datetime.datetime.now(datetime.UTC).isoformat(),
+                   spec_hash=spec['spec_hash'],
+                   code_head=code_head, executor_sha256=executor_hash,
+                   theta=dict(drive_E=TH['drive_E'], drive_I=TH['drive_I'],
+                              weight_mu=TH['weight_mu'], noise_scale=TH['noise_scale']),
                    seed_domains={k: int(lib.child_seed(v, 'identity')) for k, v in keys.items()},
                    blocks=blocks, INVALID=any_inv, write_once=True)
-    out_path.write_text(json.dumps(receipt))
+    tmp = out_path.with_suffix('.tmp')
+    tmp.write_text(json.dumps(receipt))
+    import os
+    os.replace(tmp, out_path)
     print(f'rep {rep} written -> {out_path.name}')
 
 if __name__ == '__main__':

@@ -1,0 +1,8 @@
+{
+  "schema": "e2_ssa_amendment_receipt_correction.v1",
+  "corrects": "e2_ssa_spec_v6_amendment_receipt.json",
+  "finding": "The v6 amendment receipt stated 'steps/rep now 216000 (108 s)'. That arithmetic is FALSE (H3 violation). Correct value from the frozen decomposition 3x80x400 + 40x1000 + 20x2000 = 96000+40000+40000 = 176000 steps = 88 s biological at dt_ms 0.5, exactly matching e2_ssa_spec.v6.json execution_grammar.time.steps_per_replicate_derived.",
+  "supersession": "This correction supersedes the steps/duration sentence of the prior receipt in full; all other v6 amendment content (blocks append, hashes) remains valid. The spec file itself (ssa_v6_spec_hash 0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570, sha256 0BC86A301BE7D5511141C0DC964ADD3257B59CB33189158C34697F50FEE25CFF) was always correct and is unchanged.",
+  "root_cause": "hardcoded string in author_ssa_spec_v6.py not derived from the decomposition (rule R-A violated inside tooling; corrected practice: derive such strings programmatically)",
+  "write_once": true
+}
