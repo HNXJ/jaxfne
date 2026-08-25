@@ -1,0 +1,16 @@
+{
+  "schema": "e2_ssa_amendment_receipt.v5",
+  "from": {
+    "schema": "e2_ssa_spec.v5",
+    "spec_hash": "fb9ace28413b731e006a388267344e3473fe5eecc6869e1b25fe453e9df304a5"
+  },
+  "to": {
+    "schema": "e2_ssa_spec.v6",
+    "spec_hash": "0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570",
+    "sha256": "0BC86A301BE7D5511141C0DC964ADD3257B59CB33189158C34697F50FEE25CFF",
+    "path": "artifacts/e2/preregistration/e2_ssa_spec.v6.json"
+  },
+  "change": "blocks_per_replicate += recovery_isi1000 {standard_only A, isi 1000 ms, 20 events}; steps/rep now 216000 (108 s)",
+  "prospective": true,
+  "write_once": true
+}

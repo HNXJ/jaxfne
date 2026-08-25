@@ -6,6 +6,7 @@ R3: stable declared seed derivation (jax fold_in chain in canonical order), neve
 """
 import json, re, hashlib, pathlib
 from typing import NamedTuple
+import numpy as np
 import jax, jax.numpy as jnp
 
 # ---------- R2: typed units ----------
@@ -118,14 +119,16 @@ def domain_keys(master_seed: int, replicate_idx: int, offsets: dict, canonical_o
     key = jax.random.PRNGKey(master_seed)
     out = {}
     for dom in canonical_order:
-        key = jax.random.fold_in(key, jnp.uint32(offsets[dom] + replicate_idx))
+        off = offsets.get(dom, offsets.get(f'K_{dom}'))
+        assert off is not None, f'no offset for {dom}'
+        key = jax.random.fold_in(key, jnp.uint32(off + replicate_idx))
         out[dom] = key
     return out
 
 def child_seed(parent_key: jax.Array, tag: str) -> int:
     """Stable named child seed (replaces salted hash())."""
     h = hashlib.sha256()
-    h.update(bytes(jax.dtypes.result_type(parent_key)) and parent_key.tobytes())
+    h.update(np.asarray(parent_key).tobytes())
     h.update(tag.encode())
     return int.from_bytes(h.digest()[:8], "little")
 
