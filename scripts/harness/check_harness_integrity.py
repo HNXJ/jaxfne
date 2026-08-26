@@ -15,9 +15,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-PROJECT_MANIFEST = ROOT / ".opencode" / "HARNESS_MANIFEST.json"
+PROJECT_MANIFEST = ROOT / "scripts" / "harness" / "HARNESS_MANIFEST.json"
 GLOBAL_MANIFEST = Path.home() / ".config" / "opencode" / "harness" / "HARNESS_MANIFEST.json"
-FROZEN_PATHS = ROOT / ".opencode" / "frozen_paths.json"
+FROZEN_PATHS = ROOT / "artifacts" / "publication" / "frozen_manifest.json"
+# Fallback for migration: new primary, old secondary
+_FROZEN_PATHS_OLD = ROOT / ".opencode" / "frozen_paths.json"
 MIRROR_PREFIXES = (".opencode/skills/", ".cursor/skills/")
 
 
@@ -73,9 +75,11 @@ def verify_manifest(manifest: Path, base: Path):
 
 
 def verify_frozen() -> list[str]:
-    if not FROZEN_PATHS.exists():
-        return ["frozen_paths.json missing"]
-    m = json.loads(FROZEN_PATHS.read_text())
+    # Migration: prefer new neutral owner, fallback to old .opencode path
+    path = FROZEN_PATHS if FROZEN_PATHS.exists() else _FROZEN_PATHS_OLD
+    if not path.exists():
+        return ["frozen_paths.json missing (checked %s and %s)" % (FROZEN_PATHS, _FROZEN_PATHS_OLD)]
+    m = json.loads(path.read_text())
     bad = []
     for rel, want in m.get("files", {}).items():
         f = ROOT / rel

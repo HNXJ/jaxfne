@@ -15,7 +15,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 GATE = ROOT / "scripts" / "publication_figures" / "equivalence_gate.py"
 TRACKED_REPORT = ROOT / "artifacts" / "publication" / "equivalence_report.json"
-FROZEN_MANIFEST = ROOT / ".opencode" / "frozen_paths.json"
+FROZEN_MANIFEST = ROOT / "artifacts/publication/frozen_manifest.json"
 
 
 def _run_gate(*, report_dir: Path) -> dict:

@@ -6,7 +6,7 @@ main()/draw_figure*()), render to an output directory, and require exact
 decoded-pixel equivalence (W, H, RGBA elementwise, zero tolerance) against the
 frozen semantic PNG. Byte-SHA equality is recorded additionally but is not the
 primary criterion. Before rendering, every frozen PNG is re-hashed against
-.opencode/frozen_paths.json and the gate refuses to run if any drifted.
+artifacts/publication/frozen_manifest.json and the gate refuses to run if any drifted.
 
 Semantic identity is asserted in the frozen manifest's own terms:
     F_i^pre-seam = F_i^post-seam  exactly, for i = 1..7,
@@ -45,7 +45,7 @@ from _pub_figure_common import save_matplotlib_figure
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 
-FROZEN_MANIFEST = REPO / ".opencode/frozen_paths.json"
+FROZEN_MANIFEST = REPO / "artifacts/publication/frozen_manifest.json"
 FROZEN_FIGURES = [
     "figures/publication/fig01_tfne_grammar.png",
     "figures/publication/fig02_emitter_source.png",
@@ -62,7 +62,7 @@ def sha256(p: pathlib.Path) -> str:
 
 
 def check_frozen_manifest() -> None:
-    """Refuse to run if any frozen figure drifted from .opencode/frozen_paths.json."""
+    """Refuse to run if any frozen figure drifted from artifacts/publication/frozen_manifest.json."""
     manifest = json.loads(FROZEN_MANIFEST.read_text())
     files = manifest["files"]
     drifted = [
@@ -73,7 +73,7 @@ def check_frozen_manifest() -> None:
     if drifted:
         raise SystemExit(
             f"frozen figure drift: {len(drifted)} of {len(FROZEN_FIGURES)} no longer "
-            f"match .opencode/frozen_paths.json (first: {drifted[0]}). "
+            f"match artifacts/publication/frozen_manifest.json (first: {drifted[0]}). "
             "Restore the frozen bytes before running the equivalence gate."
         )
 

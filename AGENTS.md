@@ -11,7 +11,7 @@
   generated mirrors, gates, schemas. Change flow: edit canonical `skills/` → run
   `scripts/harness/sync_skills.py --update --manifest` → verify. Mirrors (`.opencode/skills/`,
   `.cursor/skills/`) are generated, gitignored, never manually edited.
-- **Frozen evidence.** `.opencode/frozen_paths.json` explicitly enumerates the immutable
+- **Frozen evidence.** `artifacts/publication/frozen_manifest.json` explicitly enumerates the immutable
   publication artifacts (`artifacts/publication/**`, `figures/publication/*.png`). New polish
   layer outputs (`figures/publication/final/**`, `fig*_polish_{spec,audit,receipt}.json`) are
   writable under the authorized publication task; frozen files are not.

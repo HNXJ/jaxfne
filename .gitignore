@@ -54,6 +54,7 @@ test_execution_output/
 !artifacts/etudes/experiment_a/canonical_source.npz
 
 # Agent local state
+.opencode/
 .claude/
 
 # Local Cursor skill wiring (machine-specific; never commit)

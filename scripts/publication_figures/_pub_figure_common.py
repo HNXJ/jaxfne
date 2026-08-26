@@ -91,7 +91,7 @@ _METADATA_IGNORE_KEYS = ("repo_head", "audited_at_utc")
 def _frozen_path_set() -> set[str]:
     global _FROZEN_MANIFEST
     if _FROZEN_MANIFEST is None:
-        manifest_path = _REPO_ROOT / ".opencode" / "frozen_paths.json"
+        manifest_path = _REPO_ROOT / "artifacts/publication/frozen_manifest.json"
         _FROZEN_MANIFEST = json.loads(manifest_path.read_text(encoding="utf-8"))
     files = _FROZEN_MANIFEST.get("files") or _FROZEN_MANIFEST.get("paths") or []
     return {str(p) for p in files}

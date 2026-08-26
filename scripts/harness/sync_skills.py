@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CANONICAL = ROOT / "skills"
 MIRRORS = [ROOT / ".opencode/skills", ROOT / ".cursor/skills"]
-MANIFEST = ROOT / ".opencode" / "HARNESS_MANIFEST.json"
+MANIFEST = ROOT / "scripts/harness/HARNESS_MANIFEST.json"
 
 
 def sha(p: Path) -> str:

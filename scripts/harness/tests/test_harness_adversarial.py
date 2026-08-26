@@ -221,7 +221,7 @@ def test_rbs_h_not_homeostasis_in_doctrine():
 
 def test_frozen_paths_immutable_hashes():
     """Verify all 28 publication evidence artifacts match their recorded SHA256 checksums."""
-    frozen_manifest = json.loads((ROOT / ".opencode" / "frozen_paths.json").read_text())
+    frozen_manifest = json.loads((ROOT / "artifacts/publication/frozen_manifest.json").read_text())
     assert len(frozen_manifest["files"]) == 28
     for rel_path, expected_sha in frozen_manifest["files"].items():
         p = ROOT / rel_path

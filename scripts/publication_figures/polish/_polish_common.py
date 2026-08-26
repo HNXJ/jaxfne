@@ -3,7 +3,7 @@
 Phase B, downstream of the frozen 0.4.17 scientific set. Every write passes a
 fail-closed guard: only ``figures/publication/final/`` and
 ``artifacts/publication/polish/`` are writable, and nothing on
-``.opencode/frozen_paths.json`` may be touched. Purely additive reads are fine.
+``artifacts/publication/frozen_manifest.json`` may be touched. Purely additive reads are fine.
 """
 from __future__ import annotations
 
@@ -14,8 +14,7 @@ from pathlib import Path
 from matplotlib.figure import Figure
 
 _REPO = Path(__file__).resolve().parents[3]
-CONFIG_DIR = _REPO / ".opencode"
-FROZEN_MANIFEST = CONFIG_DIR / "frozen_paths.json"
+FROZEN_MANIFEST = _REPO / "artifacts/publication/frozen_manifest.json"
 FINAL_DIR = _REPO / "figures" / "publication" / "final"
 POLISH_DIR = _REPO / "artifacts" / "publication" / "polish"
 
