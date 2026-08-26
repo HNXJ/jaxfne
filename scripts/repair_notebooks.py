@@ -180,7 +180,7 @@ def main():
     print(f"=== {mode} JAXFNE JUPYTER NOTEBOOKS (ROBUST) ===")
 
     # Scan both notebooks and tutorials directories
-    nb_files = list(Path("tutorials").glob("*.ipynb")) + list(Path("notebooks").glob("**/*.ipynb"))
+    nb_files = list(Path("artifacts/tutorials").glob("*.ipynb")) + list(Path("notebooks").glob("**/*.ipynb"))
 
     repaired_count = 0
     for nb in nb_files:

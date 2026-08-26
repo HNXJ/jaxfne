@@ -13,7 +13,7 @@ revision and are carried exclusively by this map.
 ### [P1] Grammar map — `{CL-01}`
 | Claim | Artifact |
 |---|---|
-| CL-01 (representational_document) | `artifacts/publication/fig01_grammar_spec.json`, `artifacts/publication/fig01_generation_receipt.json`, `figures/publication/fig01_tfne_grammar.png` |
+| CL-01 (representational_document) | `artifacts/publication/fig01_grammar_spec.json`, `artifacts/publication/fig01_generation_receipt.json`, `artifacts/figures/publication/fig01_tfne_grammar.png` |
 
 No empirical quantity; forbidden: presenting Fig. 1 as an empirical/demonstrated result.
 
@@ -101,7 +101,7 @@ Quantitative markers (post-freeze validation, reported separately):
 
 | Q | Value quoted | Source |
 |---|---|---|
-| Q27 | 7/7 receipts' `figure_sha256` match shipped PNGs | computed by auditor over `figures/publication/*.png` |
+| Q27 | 7/7 receipts' `figure_sha256` match shipped PNGs | computed by auditor over `artifacts/figures/publication/*.png` |
 | Q26 | equivalence gate 7/7 byte-sha-equal | `equivalence_report.json` cases `byte_sha_equal` |
 | Q28 | pins present (matplotlib ≥3.10.9,<3.11; scipy ==1.17.1) | parsed from `pyproject.toml` |
 

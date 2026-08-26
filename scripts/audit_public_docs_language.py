@@ -3,7 +3,7 @@
 
 Public docs (README.md, docs/**/*.md) are read by humans deciding whether to use
 jaxfne. They must never quote or paraphrase agent-facing instructions (that content
-belongs in AGENTS.md/skills/, not human docs), and every value/amplitude/unit claim
+belongs in artifacts/AGENTS.md / artifacts/skills/, not human docs), and every value/amplitude/unit claim
 must use the public Relative/Absolute vocabulary, not ad hoc words like "calibrated"
 or "validated" that don't map to a defined status.
 

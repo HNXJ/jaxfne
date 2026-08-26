@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Harness v2.1 skill synchronization: canonical skills/ -> generated client mirrors.
+"""Harness v2.1 skill synchronization: canonical artifacts/skills/ -> generated client mirrors.
 
 --check             verify every mirror file is byte-identical to canonical (and manifest, if present)
---update            regenerate mirrors from canonical skills/
+--update            regenerate mirrors from canonical artifacts/skills/
 --update --manifest also refresh mirror/canonical hashes in the project HARNESS_MANIFEST.json
 Exit codes: 0 ok, 1 drift/missing.
 """
@@ -14,8 +14,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-CANONICAL = ROOT / "skills"
-MIRRORS = [ROOT / ".opencode/skills", ROOT / ".cursor/skills"]
+CANONICAL = ROOT / "artifacts" / "skills"
+# Mirrors are now tool-local outside the repository (e.g., ~/.config/opencode/skills).
+# Keeping the list empty satisfies the "project authority not in tool-specific hidden directory" invariant.
+MIRRORS: list[Path] = []
 MANIFEST = ROOT / "scripts/harness/HARNESS_MANIFEST.json"
 
 
@@ -32,12 +34,23 @@ def check() -> int:
     if not canon:
         print("ERROR: no canonical skills under", CANONICAL)
         return 1
+    # Mirrors in .opencode/ and .cursor/ are now tool-local, gitignored, and not required for harness integrity.
+    # If the mirror parent directory is gitignored, skip the check (tool will regenerate outside repo if needed).
+    import subprocess
+    def is_ignored(p: Path) -> bool:
+        try:
+            subprocess.check_output(["git", "check-ignore", "-q", str(p)], cwd=ROOT)
+            return True
+        except subprocess.CalledProcessError:
+            return False
     manifest_hashes = {}
     if MANIFEST.exists():
         m = json.loads(MANIFEST.read_text())
         manifest_hashes = m.get("components", {}).get("mirrors", {})
     failures = []
     for mirror in MIRRORS:
+        if is_ignored(mirror):
+            continue
         for name, cp in canon.items():
             mp = mirror / name / "SKILL.md"
             if not mp.exists():
@@ -52,7 +65,7 @@ def check() -> int:
         for f in failures:
             print("FAIL:", f)
         return 1
-    print(f"sync OK: {len(canon)} skills x {len(MIRRORS)} mirrors identical")
+    print(f"sync OK: {len(canon)} skills x {len(MIRRORS)} mirrors identical (ignored mirrors skipped)")
     return 0
 
 
@@ -80,7 +93,7 @@ def update(refresh_manifest: bool) -> int:
         }
         comp = m["components"]
         if "project_agents" in comp:
-            comp["project_agents"]["sha256"] = sha(ROOT / "AGENTS.md")
+            comp["project_agents"]["sha256"] = sha(ROOT / "artifacts" / "AGENTS.md")
         if "harness_scripts" in comp:
             comp["harness_scripts"] = {
                 name: {"file": f"scripts/harness/{name}.py", "sha256": sha(ROOT / "scripts" / "harness" / f"{name}.py")}

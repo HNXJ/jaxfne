@@ -5,7 +5,7 @@ Authority: PEC panel Fig01.grammar + frozen doctrine only.
 No protocol results, performance numbers, or empirical negatives.
 
 Outputs:
-  figures/publication/fig01_tfne_grammar.png
+  artifacts/figures/publication/fig01_tfne_grammar.png
   artifacts/publication/fig01_semantic_audit.json
   artifacts/publication/fig01_generation_receipt.json
 """
@@ -461,7 +461,7 @@ def build_semantic_audit(spec: dict, *, figure_sha: str, repo_head: str) -> dict
         "status": "PASSED",
         "checkpoint": "figure_1_generation",
         "pec_panel_id": spec["pec_panel_id"],
-        "figure_path": f"figures/publication/{FIGURE_BASENAME}.png",
+        "figure_path": f"artifacts/figures/publication/{FIGURE_BASENAME}.png",
         "figure_sha256": figure_sha,
         "spec_path": "artifacts/publication/fig01_grammar_spec.json",
         "spec_sha256": sha256_file(SPEC_PATH),
@@ -495,7 +495,7 @@ def build_generation_receipt(
         "write_once": True,
         "pec_panel_id": spec["pec_panel_id"],
         "pec_authority": "artifacts/publication/publication_evidence_index.json#Fig01.grammar",
-        "figure_path": f"figures/publication/{FIGURE_BASENAME}.png",
+        "figure_path": f"artifacts/figures/publication/{FIGURE_BASENAME}.png",
         "figure_sha256": figure_sha,
         "generator_script": "scripts/publication_figures/fig01_grammar.py",
         "spec_path": "artifacts/publication/fig01_grammar_spec.json",

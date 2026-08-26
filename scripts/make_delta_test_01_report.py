@@ -41,7 +41,7 @@ OUT_DIR = REPO_ROOT / "outputs" / RUN_ID
 FIG_DIR = OUT_DIR / "figures"
 REPORT_DIR = OUT_DIR / "report"
 
-NOTEBOOK_PATH = "tutorials/jaxfne-sanity-checker-notebook-01.ipynb"
+NOTEBOOK_PATH = "artifacts/tutorials/jaxfne-sanity-checker-notebook-01.ipynb"
 EXECUTED_NOTEBOOK_PATH = (
     "outputs/delta_test_01/jaxfne-sanity-checker-notebook-01.executed.ipynb"
 )

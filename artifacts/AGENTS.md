@@ -8,18 +8,18 @@
   identity. The gate protects filesystem mutation targeting only; effective injected context
   is proven by fresh-session launch from this clone.
 - **Integrity.** `HARNESS_MANIFEST.json` records hashes of kernel, router, canonical skills,
-  generated mirrors, gates, schemas. Change flow: edit canonical `skills/` → run
-  `scripts/harness/sync_skills.py --update --manifest` → verify. Mirrors (`.opencode/skills/`,
-  `.cursor/skills/`) are generated, gitignored, never manually edited.
+  generated mirrors, gates, schemas. Change flow: edit canonical `artifacts/skills/` → run
+  `scripts/harness/sync_skills.py --update --manifest` → verify. Mirrors (tool-local,
+  outside the repository, e.g. `~/.config/opencode/skills/`) are generated, never manually edited.
 - **Frozen evidence.** `artifacts/publication/frozen_manifest.json` explicitly enumerates the immutable
-  publication artifacts (`artifacts/publication/**`, `figures/publication/*.png`). New polish
-  layer outputs (`figures/publication/final/**`, `fig*_polish_{spec,audit,receipt}.json`) are
+  publication artifacts (`artifacts/publication/**`, `artifacts/figures/publication/*.png`). New polish
+  layer outputs (`artifacts/figures/publication/final/**`, `fig*_polish_{spec,audit,receipt}.json`) are
   writable under the authorized publication task; frozen files are not.
 - **Checkpoint.** `scratch/CURRENT_TASK.md` YAML frontmatter is authoritative for
   workspace/mode/facets/freeze/authorities/next_checkpoint/last_verified_head.
 - **Routing.** mode ∈ {READ, CODE, SCIENCE, RELEASE, PUBLICATION}; facets ⊆ {CODE, REPO,
   SCIENCE, EVIDENCE_AUDIT, RELEASE}. Skills load compositionally from both.
-- Root freeze patch: `.opencode/` and `scripts/harness/` approved 2026-08-15 as the client
+- Root freeze patch: .opencode/ and `scripts/harness/` approved 2026-08-15 as the client
   harness artifact (same reasoning that kept `skills/`).
 
 ## Purpose
@@ -69,7 +69,7 @@ Scientific experiments preserve failed prospective receipts. Do not tune a froze
 
 ## Repository behavior
 
-- Read the smallest relevant skill under `skills/` for procedure.
+- Read the smallest relevant skill under `artifacts/skills/` for procedure.
 - Verify unfamiliar public symbols against live code before using them.
 - Prefer package-native scientific operators over notebook/script-local duplicate engines.
 - Keep reusable plotting in the visualization layer.

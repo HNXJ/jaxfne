@@ -1,7 +1,7 @@
 """Shared polish layer: frozen-path guard, vector export, typography floor.
 
 Phase B, downstream of the frozen 0.4.17 scientific set. Every write passes a
-fail-closed guard: only ``figures/publication/final/`` and
+fail-closed guard: only ``artifacts/figures/publication/final/`` and
 ``artifacts/publication/polish/`` are writable, and nothing on
 ``artifacts/publication/frozen_manifest.json`` may be touched. Purely additive reads are fine.
 """
@@ -15,7 +15,7 @@ from matplotlib.figure import Figure
 
 _REPO = Path(__file__).resolve().parents[3]
 FROZEN_MANIFEST = _REPO / "artifacts/publication/frozen_manifest.json"
-FINAL_DIR = _REPO / "figures" / "publication" / "final"
+FINAL_DIR = _REPO / "artifacts" / "figures" / "publication" / "final"
 POLISH_DIR = _REPO / "artifacts" / "publication" / "polish"
 
 # Cross-figure typography budget (approved)
@@ -55,8 +55,8 @@ def sha256_file(p: Path) -> str:
 
 def export_final(fig: Figure, basename: str, *, dpi: int = 300) -> dict:
     """300-DPI PNG + true vector PDF, both emitted from the live Figure."""
-    png = guarded_path(f"figures/publication/final/{basename}.png")
-    pdf = guarded_path(f"figures/publication/final/{basename}.pdf")
+    png = guarded_path(f"artifacts/figures/publication/final/{basename}.png")
+    pdf = guarded_path(f"artifacts/figures/publication/final/{basename}.pdf")
     fig.savefig(png, dpi=dpi, bbox_inches="tight", facecolor="white")
     fig.savefig(pdf, format="pdf", bbox_inches="tight", facecolor="white")
     return {

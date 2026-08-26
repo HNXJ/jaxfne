@@ -75,4 +75,4 @@ def test_v0313_json_safety_and_wording_gates():
 def test_v0313_docs_and_notebooks_exist():
     """Verify that omission docs and notebooks are present in their corresponding paths."""
     assert os.path.exists("docs/tutorials/10_v0313_omission_oddball.md")
-    assert os.path.exists("tutorials/jaxfne_v0313_omission_oddball.ipynb")
+    assert os.path.exists("artifacts/tutorials/jaxfne_v0313_omission_oddball.ipynb")

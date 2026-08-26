@@ -1,5 +1,5 @@
 {
-  "description": "Explicit frozen-path manifest for publication evidence. Files listed here are write-once at every permission level; nothing else in artifacts/publication/ or figures/publication/ is frozen by this manifest.",
+  "description": "Explicit frozen-path manifest for publication evidence. Files listed here are write-once at every permission level; nothing else in artifacts/publication/ or artifacts/figures/publication/ is frozen by this manifest.",
   "files": {
     "artifacts/publication/fig01_generation_receipt.json": "1f5891ab4ed10f9a1dc413c2b5bf1a6536a61ab4fe562d957ffe1b9a146ccfc4",
     "artifacts/publication/fig01_grammar_spec.json": "0bc77b2e3859d5f2ae18758bdea1dff681f98963397abee56a969b9d71b8c873",
@@ -22,13 +22,13 @@
     "artifacts/publication/pec_consolidation_receipt.json": "fe8f5b1b43167f259ef65fc835093bdd97b8adb4d65bffd7b876edf3209f27b7",
     "artifacts/publication/pec_consolidation_spec.json": "8e46ada96f257fbd9be28a2139f954662851fc8723c977019aafe94bc1c2f9b2",
     "artifacts/publication/publication_evidence_index.json": "67fc691dff28feca1e7a58c7106c50987b9e4e887d101b09b2a77021f22262cd",
-    "figures/publication/fig01_tfne_grammar.png": "707c3fec9f4b6747551e994897f70910c41ff88d5ed5a7b6910b441bc2e65678",
-    "figures/publication/fig02_emitter_source.png": "e65ad1f30de3b59beda0a402658d5d01e2eef9b77a1c10b40940cf42ee31ba09",
-    "figures/publication/fig03_local_observation.png": "ffa0a54232170cf745ffd549dae36e0a20e4732257f30e373c83da6b173c6392",
-    "figures/publication/fig04_multiscale_boundary.png": "b7646a51c1c4002a17e22163a090fc1c338bb1800ea2240f68ed786e588a7913",
-    "figures/publication/fig05_traveling_wave_no_wave.png": "f7f9a49439c134cde41333512694ad676e08bb9eb174ac1ae6a0f20b7171a1b2",
-    "figures/publication/fig06_rbs_hdp_ladder.png": "547e36c731a6be03a75acce01d0cedd29efff377cb1197fbe2a578dd1e624a30",
-    "figures/publication/fig07_e_integration.png": "fa74ddf210d397c9c1b719d0ac75573045985877312efcccbdedc0aa59e71dce"
+    "artifacts/figures/publication/fig01_tfne_grammar.png": "707c3fec9f4b6747551e994897f70910c41ff88d5ed5a7b6910b441bc2e65678",
+    "artifacts/figures/publication/fig02_emitter_source.png": "e65ad1f30de3b59beda0a402658d5d01e2eef9b77a1c10b40940cf42ee31ba09",
+    "artifacts/figures/publication/fig03_local_observation.png": "ffa0a54232170cf745ffd549dae36e0a20e4732257f30e373c83da6b173c6392",
+    "artifacts/figures/publication/fig04_multiscale_boundary.png": "b7646a51c1c4002a17e22163a090fc1c338bb1800ea2240f68ed786e588a7913",
+    "artifacts/figures/publication/fig05_traveling_wave_no_wave.png": "f7f9a49439c134cde41333512694ad676e08bb9eb174ac1ae6a0f20b7171a1b2",
+    "artifacts/figures/publication/fig06_rbs_hdp_ladder.png": "547e36c731a6be03a75acce01d0cedd29efff377cb1197fbe2a578dd1e624a30",
+    "artifacts/figures/publication/fig07_e_integration.png": "fa74ddf210d397c9c1b719d0ac75573045985877312efcccbdedc0aa59e71dce"
   },
   "frozen_at_head": "aeca6d01a18ab1be3d400cf9c6a7c373c9e86326",
   "schema": "jaxfne.frozen_paths.v1"

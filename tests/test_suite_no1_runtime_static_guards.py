@@ -21,6 +21,7 @@ import pytest
 
 NOTEBOOK_PATH = (
     Path(__file__).parent.parent
+    / "artifacts"
     / "tutorials"
     / "jaxfne_suite_no_1_computational_biophysics.ipynb"
 )

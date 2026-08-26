@@ -5,7 +5,7 @@ Seven panels A–G with strict claim level x polarity visual grammar.
 No E5 content. Quantities from frozen receipts via jaxfne.publication.fig06_evidence.
 
 Outputs:
-  figures/publication/fig06_rbs_hdp_ladder.png
+  artifacts/figures/publication/fig06_rbs_hdp_ladder.png
   artifacts/publication/fig06_semantic_audit.json
   artifacts/publication/fig06_generation_receipt.json
 """
@@ -309,7 +309,7 @@ def build_semantic_audit(spec: dict, checks: dict, *, figure_sha: str, repo_head
         "status": "PASSED" if all(checks.values()) else "FAILED",
         "checkpoint": "figure_6_generation",
         "pec_panel_ids": spec["pec_panel_ids"],
-        "figure_path": f"figures/publication/{FIGURE_NAME}",
+        "figure_path": f"artifacts/figures/publication/{FIGURE_NAME}",
         "figure_sha256": figure_sha,
         "spec_path": "artifacts/publication/fig06_hwd_spec.json",
         "audited_at_utc": utc_now_iso(),
@@ -326,7 +326,7 @@ def build_receipt(spec: dict, audit: dict, *, figure_sha: str, repo_head: str) -
         "status": "CLOSED",
         "write_once": True,
         "pec_panel_ids": spec["pec_panel_ids"],
-        "figure_path": f"figures/publication/{FIGURE_NAME}",
+        "figure_path": f"artifacts/figures/publication/{FIGURE_NAME}",
         "figure_sha256": figure_sha,
         "generator_script": spec["generator_script"],
         "semantic_audit_path": "artifacts/publication/fig06_semantic_audit.json",

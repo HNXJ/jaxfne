@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 
 # Path to notebook and assets
-NOTEBOOK_PATH = Path(__file__).parent.parent / "tutorials" / "jaxfne_suite_no_1_computational_biophysics.ipynb"
+NOTEBOOK_PATH = Path(__file__).parent.parent / "artifacts" / "tutorials" / "jaxfne_suite_no_1_computational_biophysics.ipynb"
 
 
 class TestNotebookStructure:

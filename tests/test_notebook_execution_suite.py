@@ -2,7 +2,7 @@
 
 Suite No. 1 and Suite No. 4 already have dedicated execution tests
 (test_suite_no1_notebook_execution.py, test_suite_no4_notebook_execution.py).
-The other 26 release-facing notebooks (see tutorials/NOTEBOOK_STATUS.md)
+The other 26 release-facing notebooks (see artifacts/tutorials/NOTEBOOK_STATUS.md)
 previously had zero execution coverage -- only structural/grammar checks.
 
 Each notebook below is executed end-to-end in a fresh kernel via nbclient;
@@ -28,10 +28,10 @@ nbformat = pytest.importorskip("nbformat")
 
 from _notebook_exec_helpers import execute_notebook_via_nbclient, format_cell_errors
 
-TUTORIALS_DIR = Path(__file__).parent.parent / "tutorials"
+TUTORIALS_DIR = Path(__file__).parent.parent / "artifacts" / "tutorials"
 
 # Release-facing notebooks not already covered by a dedicated execution test.
-# Keep in sync with tutorials/NOTEBOOK_STATUS.md's release-facing list.
+# Keep in sync with artifacts/tutorials/NOTEBOOK_STATUS.md's release-facing list.
 RELEASE_FACING_NOTEBOOKS = [
     "jaxfne-sanity-checker-notebook-01.ipynb",
     "jaxfne-sanity-delta-test-hierarchical-global-local-oddball.ipynb",

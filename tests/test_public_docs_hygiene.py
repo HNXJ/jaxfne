@@ -72,14 +72,14 @@ class TestPublicDocsHardRules:
     ]
 
     PUBLIC_ACTIVE_NOTEBOOKS = [
-        "tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb",
-        "tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
-        "tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb",
-        "tutorials/jaxfne_v031_single_neuron.ipynb",
-        "tutorials/jaxfne_v032_parameter_sweep.ipynb",
-        "tutorials/jaxfne_v033_two_neuron_ei.ipynb",
-        "tutorials/jaxfne_v035_small_recurrent_ei.ipynb",
-        "tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb",
+        "artifacts/tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb",
+        "artifacts/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
+        "artifacts/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb",
+        "artifacts/tutorials/jaxfne_v031_single_neuron.ipynb",
+        "artifacts/tutorials/jaxfne_v032_parameter_sweep.ipynb",
+        "artifacts/tutorials/jaxfne_v033_two_neuron_ei.ipynb",
+        "artifacts/tutorials/jaxfne_v035_small_recurrent_ei.ipynb",
+        "artifacts/tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb",
     ]
 
     # Hard-rule forbidden terms
@@ -410,13 +410,13 @@ class TestColabLinkCoverage:
     ]
 
     ACTIVE_NOTEBOOKS = [
-        "tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb",
-        "tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
-        "tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb",
-        "tutorials/jaxfne_v031_single_neuron.ipynb",
-        "tutorials/jaxfne_v032_parameter_sweep.ipynb",
-        "tutorials/jaxfne_v033_two_neuron_ei.ipynb",
-        "tutorials/jaxfne_v035_small_recurrent_ei.ipynb",
+        "artifacts/tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb",
+        "artifacts/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
+        "artifacts/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb",
+        "artifacts/tutorials/jaxfne_v031_single_neuron.ipynb",
+        "artifacts/tutorials/jaxfne_v032_parameter_sweep.ipynb",
+        "artifacts/tutorials/jaxfne_v033_two_neuron_ei.ipynb",
+        "artifacts/tutorials/jaxfne_v035_small_recurrent_ei.ipynb",
     ]
 
     @pytest.mark.parametrize("doc_path", ACTIVE_MARKDOWN_TUTORIALS)
@@ -486,13 +486,13 @@ class TestNotebookJSONValidity:
     """Test notebooks are valid JSON."""
 
     ACTIVE_NOTEBOOKS = [
-        "tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb",
-        "tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
-        "tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb",
-        "tutorials/jaxfne_v031_single_neuron.ipynb",
-        "tutorials/jaxfne_v032_parameter_sweep.ipynb",
-        "tutorials/jaxfne_v033_two_neuron_ei.ipynb",
-        "tutorials/jaxfne_v035_small_recurrent_ei.ipynb",
+        "artifacts/tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb",
+        "artifacts/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
+        "artifacts/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb",
+        "artifacts/tutorials/jaxfne_v031_single_neuron.ipynb",
+        "artifacts/tutorials/jaxfne_v032_parameter_sweep.ipynb",
+        "artifacts/tutorials/jaxfne_v033_two_neuron_ei.ipynb",
+        "artifacts/tutorials/jaxfne_v035_small_recurrent_ei.ipynb",
     ]
 
     @pytest.mark.parametrize("notebook_path", ACTIVE_NOTEBOOKS)

@@ -34,7 +34,7 @@ Use this when:
 Full reference: [NeuronalTensor API](api/neuronal_tensor.md) ·
 [Configuration Grammar guide](guides/configuration_grammar.md) § "NeuronalTensor: a second on-ramp" ·
 runnable example: [`examples/08_neuronal_tensor_first.py`](https://github.com/HNXJ/jaxfne/blob/main/examples/08_neuronal_tensor_first.py) /
-[`tutorials/jaxfne_neuronal_tensor_first.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/tutorials/jaxfne_neuronal_tensor_first.ipynb).
+[`artifacts/tutorials/jaxfne_neuronal_tensor_first.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_neuronal_tensor_first.ipynb).
 
 ## Supported: `Configuration`
 

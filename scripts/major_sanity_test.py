@@ -49,7 +49,7 @@ def action_4_enable_hdp(model: jtfne.Model, sim):
     """Enable HDP via an explicit RuntimeConfig(enable_hdp=True,
     hdp_params=DEFAULT_HDP) on Simulation.runtime; confirm Model.simulate()
     needs it explicit -- regression-checks the Model.simulate()/jtfne.simulate()
-    inheritance gap (F-031/AGENTS.md): unlike top-level jtfne.simulate(), which
+    inheritance gap (F-031/artifacts/AGENTS.md): unlike top-level jtfne.simulate(), which
     derives runtime from Configuration.hdp(...)/.metadata automatically,
     Model.simulate() ignores cfg.metadata entirely and needs an explicit
     runtime= kwarg on Simulation. Returns
@@ -99,7 +99,7 @@ def action_6_check_hdp_signals(diag_hdp: dict) -> None:
 def action_7_check_target_indices(model: jtfne.Model, sim) -> None:
     """Inject a StimulusSchedule with target_indices on a neuron subset --
     confirms per-neuron targeting works. target_indices lives on the EVENT
-    dict, not the schedule constructor (see AGENTS.md's "Per-event layer
+    dict, not the schedule constructor (see artifacts/AGENTS.md's "Per-event layer
     targeting" note). Targets only the 2 PV neurons (indices 6, 7)."""
     schedule = jtfne.StimulusSchedule(
         events=({"onset_ms": 10.0, "duration_ms": 50.0, "amplitude": 20.0,

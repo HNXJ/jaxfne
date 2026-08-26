@@ -42,7 +42,7 @@ Usage:
     PYTHONPATH=. python scripts/spectrolaminar_tfne_izhikevich_pipeline.py
 
 Claim status: computational scaffold / proxy diagnostics only (see
-jaxfne/AGENTS.md SS13 claim-language rules). No biological-validation
+artifacts/AGENTS.md SS13 claim-language rules). No biological-validation
 claim; HDP's calibration is an open question this script is meant to
 inform, not a validated result.
 """

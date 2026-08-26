@@ -10,7 +10,7 @@ metadata:
 Release-checkpoint work: stable-surface contraction, documentation freeze, packaging, and release operations.
 
 ## AUTHORITIES
-1. Repository `AGENTS.md` (release identities, completion rule).
+1. Repository `artifacts/AGENTS.md` (release identities, completion rule).
 2. Release receipt: `artifacts/release/v0_4_17_release_receipt.json`.
 
 ## RULES

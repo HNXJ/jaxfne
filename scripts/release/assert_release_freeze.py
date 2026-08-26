@@ -2,7 +2,7 @@
 """
 Release freeze guard for jaxfne.
 
-Checks whether a release freeze is active by reading AGENTS.md and/or
+Checks whether a release freeze is active by reading artifacts/AGENTS.md and/or
 .release_target.json. If a freeze is active, verifies that HEAD and
 origin/main both match the declared intended_release_sha.
 
@@ -37,7 +37,7 @@ def run_cmd(args):
 
 
 def read_freeze_from_agents_md():
-    """Read release freeze state from the dedicated RELEASE_STATE block in AGENTS.md.
+    """Read release freeze state from the dedicated RELEASE_STATE block in artifacts/AGENTS.md.
 
     Only reads lines within the marked block:
         <!-- RELEASE_STATE_BEGIN -->
@@ -48,7 +48,7 @@ def read_freeze_from_agents_md():
     Returns (freeze_active: bool | None, intended_sha: str)
     freeze_active=None means no valid RELEASE_STATE block was found.
     """
-    agents_path = Path("AGENTS.md")
+    agents_path = Path("artifacts/AGENTS.md")
     if not agents_path.exists():
         return None, ""
 
@@ -101,7 +101,7 @@ def main():
     lock_freeze, lock_sha = read_freeze_from_lockfile()
     agents_freeze, agents_sha = read_freeze_from_agents_md()
 
-    # Resolve freeze state: lockfile overrides AGENTS.md
+    # Resolve freeze state: lockfile overrides artifacts/AGENTS.md
     if lock_freeze is not None:
         freeze_active = lock_freeze
         intended_sha = lock_sha or agents_sha
@@ -109,10 +109,10 @@ def main():
     elif agents_freeze is not None:
         freeze_active = agents_freeze
         intended_sha = agents_sha
-        source = "AGENTS.md"
+        source = "artifacts/AGENTS.md"
     else:
         # No freeze declaration found in either source — not active
-        print("Release freeze is not active (no declaration found in AGENTS.md or .release_target.json). Pass.")
+        print("Release freeze is not active (no declaration found in artifacts/AGENTS.md or .release_target.json). Pass.")
         sys.exit(0)
 
     if not freeze_active:

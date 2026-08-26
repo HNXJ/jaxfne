@@ -21,7 +21,7 @@ class TestNotebookStructureV0330:
     def test_etude_no_1_cells_have_ids(self):
         """Etude No. 1: All cells must have 'id' field."""
         nb_path = pathlib.Path(
-            "tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb"
+            "artifacts/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb"
         )
         nb = _load_notebook(nb_path)
         missing_ids = []
@@ -33,7 +33,7 @@ class TestNotebookStructureV0330:
     def test_etude_no_1_no_adjacent_code_cells(self):
         """Etude No. 1: Code cells must be separated by markdown cells."""
         nb_path = pathlib.Path(
-            "tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb"
+            "artifacts/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb"
         )
         nb = _load_notebook(nb_path)
         adjacent_code = []
@@ -50,8 +50,8 @@ class TestNotebookStructureV0330:
     def test_etude_no_1_execution_clean(self):
         """Etude No. 1: Execution must complete without cell errors."""
         nb_path = pathlib.Path(
-            "tutorials/outputs/executed/"
-            "tutorials__etudes__jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb"
+            "artifacts/tutorials/outputs/executed/"
+            "artifacts__tutorials__etudes__jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb"
         )
         if not nb_path.exists():
             pytest.skip("Executed Etude notebook not found; run nbconvert first")

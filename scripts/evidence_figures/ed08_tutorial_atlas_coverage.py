@@ -54,24 +54,24 @@ SCOPE_STATUS = (
 )
 
 KNOWN_RECEIPT_PATHS: dict[str, list[str]] = {
-    "tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb": [
-        "tutorials/suite_no3_v0310_execution_receipt.json",
+    "artifacts/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb": [
+        "artifacts/tutorials/suite_no3_v0310_execution_receipt.json",
         "outputs/suite_no3_v0310_execution_receipt.json",
     ],
-    "tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb": [
-        "tutorials/suite_no4_v0310_execution_receipt.json",
+    "artifacts/tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb": [
+        "artifacts/tutorials/suite_no4_v0310_execution_receipt.json",
         "outputs/suite_no4_v0310_execution_receipt.json",
     ],
-    "tutorials/etudes/jaxfne_etude_no_1_base.ipynb": [
+    "artifacts/tutorials/etudes/jaxfne_etude_no_1_base.ipynb": [
         "outputs/etude_no_1/cell_execution_receipt.json",
     ],
 }
 
 CI_EXECUTION_TESTS: dict[str, str] = {
-    "tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb": (
+    "artifacts/tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb": (
         "tests/test_suite_no1_notebook_execution.py"
     ),
-    "tutorials/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb": (
+    "artifacts/tutorials/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb": (
         "tests/test_suite_no4_notebook_execution.py"
     ),
 }
@@ -94,7 +94,7 @@ def _read_json_if_exists(path: Path) -> dict | None:
 
 def _discover_notebooks(root: Path) -> list[Path]:
     notebooks: list[Path] = []
-    for path in sorted((root / "tutorials").rglob("*.ipynb")):
+    for path in sorted((root / "artifacts" / "tutorials").rglob("*.ipynb")):
         rel = str(path.relative_to(root))
         if any(skip in rel for skip in ("archive", "test_execution", "artifacts/legacy")):
             continue
@@ -153,7 +153,7 @@ def _notebook_artifact_coverage(root: Path, rel: str, nb_path: Path) -> dict[str
     receipt_candidates.append(f"outputs/evidence/smoke_receipts/{stem}.json")
     has_receipt = any((root / p).is_file() for p in receipt_candidates)
     has_output_bundle = any(outputs_dir.rglob(f"*{stem}*manifest.json")) if outputs_dir.is_dir() else False
-    has_png = any((root / "tutorials").rglob(f"{stem}*.png")) or any(
+    has_png = any((root / "artifacts" / "tutorials").rglob(f"{stem}*.png")) or any(
         (root / "figures").rglob(f"{stem}*.png")
     )
     nb = json.loads(nb_path.read_text(encoding="utf-8"))

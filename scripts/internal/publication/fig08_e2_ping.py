@@ -7,8 +7,8 @@ E2b_confirmatory v1_ping_receipt.json (35 runs), v1_rescored_frozen_only.json,
 v1_corrigendum_and_adjudication.json.
 
 Outputs (supplement-only, not main-text):
-  figures/publication/final/e2_fig08_ping_combined.png (combined 7-panel)
-  figures/publication/final/e2_fig08_A_adequacy.png … G_collapse.png (7 panels)
+  artifacts/figures/publication/final/e2_fig08_ping_combined.png (combined 7-panel)
+  artifacts/figures/publication/final/e2_fig08_A_adequacy.png … G_collapse.png (7 panels)
   artifacts/publication/final/e2_fig08_ping_receipt.json (provenance + sha256)
 
 Provenance hashes: spec_hash, ping_sha256, ssa_sha256, receipt sha256, git head,
@@ -39,7 +39,7 @@ V1_RECEIPT = REPO / "artifacts/e2/preregistration/E2b_confirmatory/v1_ping_recei
 V1_RESCORED = REPO / "artifacts/e2/preregistration/E2b_confirmatory/v1_rescored_frozen_only.json"
 V1_CORRIG = REPO / "artifacts/e2/preregistration/E2b_confirmatory/v1_corrigendum_and_adjudication.json"
 
-OUT_FIG_DIR = REPO / "figures/publication/final"
+OUT_FIG_DIR = REPO / "artifacts/figures/publication/final"
 OUT_ART_DIR = REPO / "artifacts/publication/final"
 
 PING_SPEC_HASH_EXPECTED = "b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f"
@@ -336,7 +336,7 @@ def main():
         "provenance_note": "All quantities from frozen receipts only; no new simulation.",
     }
     for pp in panel_paths:
-        prov["files"][pp.name] = {"path": f"figures/publication/final/{pp.name}", "sha256": sha256_file(pp), "bytes": pp.stat().st_size}
+        prov["files"][pp.name] = {"path": f"artifacts/figures/publication/final/{pp.name}", "sha256": sha256_file(pp), "bytes": pp.stat().st_size}
     receipt_path = OUT_ART_DIR / "e2_fig08_ping_receipt.json"
     receipt_path.write_text(json.dumps(prov, indent=2))
     print(f"Fig08: wrote {len(panel_paths)} PNGs to {OUT_FIG_DIR}")

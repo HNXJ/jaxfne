@@ -13,7 +13,7 @@ from jaxfne.vis.evidence_export import save_matplotlib_evidence_figure
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _PUBLICATION_ARTIFACTS = _REPO_ROOT / "artifacts" / "publication"
-_PUBLICATION_FIGURES = _REPO_ROOT / "figures" / "publication"
+_PUBLICATION_FIGURES = _REPO_ROOT / "artifacts" / "figures" / "publication"
 
 
 def repo_root() -> Path:

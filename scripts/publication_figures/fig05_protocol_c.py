@@ -4,7 +4,7 @@
 Authority: frozen C1/C3/C4 receipts only. No new science or post-hoc analysis.
 
 Outputs:
-  figures/publication/fig05_traveling_wave_no_wave.png
+  artifacts/figures/publication/fig05_traveling_wave_no_wave.png
   artifacts/publication/fig05_semantic_audit.json
   artifacts/publication/fig05_generation_receipt.json
 """
@@ -308,7 +308,7 @@ def build_semantic_audit(spec: dict, meta: dict, *, figure_sha: str, repo_head: 
         "pec_panel_ids": spec["pec_panel_ids"],
         "claim_level": spec["claim_level"],
         "polarity": spec["polarity"],
-        "figure_path": f"figures/publication/{FIGURE_NAME}",
+        "figure_path": f"artifacts/figures/publication/{FIGURE_NAME}",
         "figure_sha256": figure_sha,
         "spec_path": "artifacts/publication/fig05_wave_spec.json",
         "audited_at_utc": utc_now_iso(),
@@ -328,7 +328,7 @@ def build_receipt(spec: dict, audit: dict, *, figure_sha: str, repo_head: str) -
         "pec_panel_ids": spec["pec_panel_ids"],
         "claim_level": spec["claim_level"],
         "polarity": spec["polarity"],
-        "figure_path": f"figures/publication/{FIGURE_NAME}",
+        "figure_path": f"artifacts/figures/publication/{FIGURE_NAME}",
         "figure_sha256": figure_sha,
         "generator_script": spec["generator_script"],
         "semantic_audit_path": "artifacts/publication/fig05_semantic_audit.json",

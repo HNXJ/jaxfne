@@ -7,8 +7,8 @@ E2b_confirmatory/v2_ssa_confirmatory_receipt.json (20 reps ×5 blocks),
 v2_rescored_frozen_only.json, v2_runs/rep_*.json, H3 correction receipt.
 
 Outputs (supplement-only):
-  figures/publication/final/e2_fig09_ssa_combined.png (combined 6-panel)
-  figures/publication/final/e2_fig09_A_adequacy.png … F_ladder.png (6 panels)
+  artifacts/figures/publication/final/e2_fig09_ssa_combined.png (combined 6-panel)
+  artifacts/figures/publication/final/e2_fig09_A_adequacy.png … F_ladder.png (6 panels)
   artifacts/publication/final/e2_fig09_ssa_receipt.json
 
 Provenance as in Fig08. G1 28/28, G5 pixel identity, S18 preserved.
@@ -36,7 +36,7 @@ V2_RECEIPT = REPO / "artifacts/e2/preregistration/E2b_confirmatory/v2_ssa_confir
 V2_RESCORED = REPO / "artifacts/e2/preregistration/E2b_confirmatory/v2_rescored_frozen_only.json"
 SSA_V6_CORR = REPO / "artifacts/e2/preregistration/e2_ssa_spec_v6_amendment_receipt_CORRECTION.json"
 
-OUT_FIG_DIR = REPO / "figures/publication/final"
+OUT_FIG_DIR = REPO / "artifacts/figures/publication/final"
 OUT_ART_DIR = REPO / "artifacts/publication/final"
 
 PING_SPEC_HASH = "b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f"
@@ -273,7 +273,7 @@ def main():
         "provenance_note":"All quantities from frozen receipts only; no new simulation. Recovery 176000 steps =88 s (H3 corrected).",
     }
     for pp in panel_paths:
-        prov["files"][pp.name]={"path":f"figures/publication/final/{pp.name}","sha256":sha256_file(pp),"bytes":pp.stat().st_size}
+        prov["files"][pp.name]={"path":f"artifacts/figures/publication/final/{pp.name}","sha256":sha256_file(pp),"bytes":pp.stat().st_size}
     receipt=OUT_ART_DIR/"e2_fig09_ssa_receipt.json"
     receipt.write_text(json.dumps(prov, indent=2))
     print(f"Fig09: wrote {len(panel_paths)} PNGs to {OUT_FIG_DIR}")

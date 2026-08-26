@@ -19,7 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # The v0.3.42-era evidence scheme (8 main + 10 extended, figures/evidence)
 # was superseded by the publication figure set committed under
-# figures/publication/ (fig01..fig07 manuscript figures). Extended-data
+# artifacts/figures/publication/ (fig01..fig07 manuscript figures). Extended-data
 # figures are assigned during final Supplement assembly; none committed yet.
 MAIN_FIGURES = [
     "fig01_tfne_grammar.png",
@@ -38,17 +38,17 @@ EXTENDED_DATA: list[str] = []
 INSPECT_DIRS = [
     "docs/evidence",
     "docs/evidence_artifacts",
-    "tutorials",
+    "artifacts/tutorials",
     "examples",
     "outputs/evidence",
     "outputs/publication",
     "figures/evidence",
-    "figures/publication",
+    "artifacts/figures/publication",
 ]
 
 FIGURE_DIR_CANDIDATES = [
     "figures/evidence",
-    "figures/publication",
+    "artifacts/figures/publication",
 ]
 
 # Publication-figure receipts under artifacts/publication/ are the live
@@ -95,7 +95,7 @@ def inventory_asset(filename: str, figure_dirs: list[Path]) -> dict:
     """Inventory one PNG from canonical or compatibility figure directories.
 
     The v0.3.42 evidence scripts write to ``figures/evidence``. Some release
-    bundles still contain the previously tracked ``figures/publication`` assets.
+    bundles still contain the previously tracked ``artifacts/figures/publication`` assets.
     Treat the latter as a compatibility source so inventory reports do not false
     fail before the evidence figures are regenerated.
     """

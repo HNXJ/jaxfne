@@ -40,9 +40,6 @@ EXCLUDED_FILES = {
     # Governance/context sources intentionally name mirror directories and
     # audit exclusions; scripts/audit_agent_context.py checks those surfaces.
     Path("scripts/audit_agent_context.py"),
-    Path("skills/README.md"),
-    Path("skills/PATCH.md"),
-    Path("skills/ANTIGRAVITY_PROMPT.md"),
     Path("tests/test_agent_context_hygiene.py"),
     Path("pyproject.toml"), # references /.claude
 }
@@ -120,9 +117,9 @@ def scan_file(path: Path) -> list[str]:
     return violations
 
 def main() -> int:
-    # 1. Gather all files in scan areas: docs/, outputs/, tutorials/, examples/
+    # 1. Gather all files in scan areas: docs/, outputs/, artifacts/tutorials/, examples/
     scan_paths: set[Path] = set()
-    scan_dirs = ["docs", "outputs", "tutorials", "examples"]
+    scan_dirs = ["docs", "outputs", "artifacts/tutorials", "examples"]
     for dname in scan_dirs:
         dir_path = REPO_ROOT / dname
         if dir_path.is_dir():

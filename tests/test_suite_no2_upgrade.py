@@ -8,7 +8,7 @@ import jax.numpy as jnp
 import jaxfne as jtfne
 
 
-NOTEBOOK = Path("tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb")
+NOTEBOOK = Path("artifacts/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb")
 
 
 def test_suite2_notebook_uses_short_code_cells_and_no_local_functions():

@@ -13,7 +13,7 @@ def test_evidence_inventory_wrapper_command_exists():
 def test_agent_context_inventory_commands_resolve():
     command_refs = []
     for path in [
-        Path("AGENTS.md"),
+        Path("artifacts/AGENTS.md"),
         Path(".github/CONTRIBUTING.md"),
         Path("docs/contributing.md"),
         Path("internal_docs/loop_context/AGENT_QUICKREF.md"),
@@ -38,14 +38,14 @@ def test_inventory_accepts_publication_figure_compatibility_paths():
     inventory = build_inventory()
     summary = inventory["summary"]
     assert "figures/evidence" in summary["figure_dir_candidates"]
-    assert "figures/publication" in summary["figure_dir_candidates"]
+    assert "artifacts/figures/publication" in summary["figure_dir_candidates"]
     # In source zips that already contain publication PNGs but have not rerun the
     # evidence generators, inventory should not report a false 0/18 state.
     # The v0.3.42-era 8-main/10-extended scheme was superseded by the committed
     # publication figure set (7 main figures); extended-data figures are
     # assigned during Supplement assembly, so the extended assertion tracks
     # whatever the inventory enumerates rather than a stale fixed floor.
-    if Path("figures/publication").is_dir():
+    if Path("artifacts/figures/publication").is_dir():
         assert summary["main_figures_present"] >= 7
         assert summary["extended_data_present"] >= summary["extended_data_total"]
 

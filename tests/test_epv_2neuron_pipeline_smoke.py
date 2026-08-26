@@ -1,5 +1,5 @@
 """Config #1 of the jaxfne-modular-grammar smoke-test matrix (plans.json:
-vis-smoke-test-coverage-gap follow-on; see AGENTS.md jaxfne-modular-grammar rule 4).
+vis-smoke-test-coverage-gap follow-on; see artifacts/AGENTS.md jaxfne-modular-grammar rule 4).
 
 Smallest possible end-to-end pipeline pin: 2 neurons (1 E, 1 PV), native
 Izhikevich emitter, dt=0.1ms / 100ms, full chain

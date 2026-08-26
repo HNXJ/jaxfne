@@ -602,35 +602,35 @@ def main() -> int:
     plans = {}
 
     # fig01
-    rec = run_figure(1, m01.build_figure(), polish_fig01, audit_fig01, "fig01_tfne_grammar", FROZEN["figures/publication/fig01_tfne_grammar.png"])
+    rec = run_figure(1, m01.build_figure(), polish_fig01, audit_fig01, "fig01_tfne_grammar", FROZEN["artifacts/figures/publication/fig01_tfne_grammar.png"])
     write_figure_artifacts(rec, "Fig01.grammar")
     plans["fig01"] = rec
 
     bundle, bf2, bf3, bf4 = load_fig02_04()
-    rec = run_figure(2, bf2(bundle), polish_fig02, audit_fig02, "fig02_emitter_source", FROZEN["figures/publication/fig02_emitter_source.png"])
+    rec = run_figure(2, bf2(bundle), polish_fig02, audit_fig02, "fig02_emitter_source", FROZEN["artifacts/figures/publication/fig02_emitter_source.png"])
     write_figure_artifacts(rec, "Fig02.canonical_Q")
     plans["fig02"] = rec
 
-    rec = run_figure(3, bf3(bundle), polish_fig03, audit_fig03, "fig03_local_observation", FROZEN["figures/publication/fig03_local_observation.png"])
+    rec = run_figure(3, bf3(bundle), polish_fig03, audit_fig03, "fig03_local_observation", FROZEN["artifacts/figures/publication/fig03_local_observation.png"])
     write_figure_artifacts(rec, "Fig03.lfp_csd_proxy")
     plans["fig03"] = rec
 
-    rec = run_figure(4, bf4(bundle), polish_fig04, audit_fig04, "fig04_multiscale_boundary", FROZEN["figures/publication/fig04_multiscale_boundary.png"])
+    rec = run_figure(4, bf4(bundle), polish_fig04, audit_fig04, "fig04_multiscale_boundary", FROZEN["artifacts/figures/publication/fig04_multiscale_boundary.png"])
     write_figure_artifacts(rec, "Fig04.EEG_MEG_analysis_only")
     plans["fig04"] = rec
 
     spec5 = json.loads((REPO / "artifacts/publication/fig05_wave_spec.json").read_text())
-    rec = run_figure(5, build_fig05(spec5), polish_fig05, audit_fig05, "fig05_traveling_wave_no_wave", FROZEN["figures/publication/fig05_traveling_wave_no_wave.png"])
+    rec = run_figure(5, build_fig05(spec5), polish_fig05, audit_fig05, "fig05_traveling_wave_no_wave", FROZEN["artifacts/figures/publication/fig05_traveling_wave_no_wave.png"])
     write_figure_artifacts(rec, "Fig05.protocol_C")
     plans["fig05"] = rec
 
     m6, d6 = load_fig06()
-    rec = run_figure(6, m6.build_figure(d6["ev"], d6["mx"], d6["h3"], d6["counts"], d6["d3"]), polish_fig06, audit_fig06, "fig06_rbs_hdp_ladder", FROZEN["figures/publication/fig06_rbs_hdp_ladder.png"])
+    rec = run_figure(6, m6.build_figure(d6["ev"], d6["mx"], d6["h3"], d6["counts"], d6["d3"]), polish_fig06, audit_fig06, "fig06_rbs_hdp_ladder", FROZEN["artifacts/figures/publication/fig06_rbs_hdp_ladder.png"])
     write_figure_artifacts(rec, "Fig06.HWD_ladder")
     plans["fig06"] = rec
 
     m7, d7 = load_fig07()
-    rec = run_figure(7, m7.build_figure(d7["h1"], d7["delays"], d7["owner"], d7["obs"], d7["nulls"], d7["arms"], d7["prop"]), polish_fig07, audit_fig07, "fig07_e_integration", FROZEN["figures/publication/fig07_e_integration.png"])
+    rec = run_figure(7, m7.build_figure(d7["h1"], d7["delays"], d7["owner"], d7["obs"], d7["nulls"], d7["arms"], d7["prop"]), polish_fig07, audit_fig07, "fig07_e_integration", FROZEN["artifacts/figures/publication/fig07_e_integration.png"])
     write_figure_artifacts(rec, "Fig07.E_integration")
     plans["fig07"] = rec
 

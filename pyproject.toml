@@ -193,6 +193,7 @@ exclude = [
   "/.cursor",
   "/.claude",
   "/.ipynb_checkpoints",
+  "/AGENTS.md",
   "/node_modules",
   "/receipts",
   "/docs/tutorials_v030",
@@ -207,6 +208,7 @@ exclude = [
   "artifacts/legacy/**",
   "artifacts/legacy",
   "artifacts/msvc_hdp_diagnostic",
+  "artifacts/tutorials",
   "scripts/hdp_mvc_*.py",
   "jaxfne/publication",
 ]

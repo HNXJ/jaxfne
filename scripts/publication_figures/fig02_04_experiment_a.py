@@ -4,9 +4,9 @@
 Single frozen canonical Q is the source of truth across all three figures.
 
 Outputs:
-  figures/publication/fig02_emitter_source.png
-  figures/publication/fig03_local_observation.png
-  figures/publication/fig04_multiscale_boundary.png
+  artifacts/figures/publication/fig02_emitter_source.png
+  artifacts/figures/publication/fig03_local_observation.png
+  artifacts/figures/publication/fig04_multiscale_boundary.png
   artifacts/publication/fig02_generation_receipt.json
   artifacts/publication/fig03_generation_receipt.json
   artifacts/publication/fig04_generation_receipt.json
@@ -435,7 +435,7 @@ def build_figure_receipt(
         "status": "CLOSED",
         "write_once": True,
         "pec_panel_id": pec_panel_id,
-        "figure_path": f"figures/publication/{figure_path.name}",
+        "figure_path": f"artifacts/figures/publication/{figure_path.name}",
         "figure_sha256": figure_sha,
         "generator_script": "scripts/publication_figures/fig02_04_experiment_a.py",
         "cross_figure_audit": cross_audit_path,

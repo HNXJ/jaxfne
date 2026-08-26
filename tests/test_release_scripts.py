@@ -138,7 +138,7 @@ class TestAssertReleaseFreeze:
 
     def test_passes_when_no_freeze_declared(self):
         """Exits 0 and prints pass message when no freeze declaration found."""
-        # Run from a temp dir with no AGENTS.md/lockfile
+        # Run from a temp dir with no artifacts/AGENTS.md/lockfile
         with tempfile.TemporaryDirectory() as tmpdir:
             Path(tmpdir, "pyproject.toml").write_text('[project]\nversion = "0.3.14"\n')
             result = subprocess.run(
@@ -153,7 +153,7 @@ class TestAssertReleaseFreeze:
             assert "not active" in result.stdout.lower() or "pass" in result.stdout.lower()
 
     def test_reads_agents_md_freeze_true(self):
-        """Exits 1 when AGENTS.md RELEASE_STATE block declares freeze=true and SHA mismatches."""
+        """Exits 1 when artifacts/AGENTS.md RELEASE_STATE block declares freeze=true and SHA mismatches."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a fake git repo
             subprocess.run(["git", "init"], env={**os.environ, "PYTHONPATH": str(_SCRIPT_REPO_ROOT), "PYTHONIOENCODING": "utf-8"},
@@ -173,7 +173,9 @@ class TestAssertReleaseFreeze:
                 "intended_release_sha: " + "a" * 40 + "\n"
                 "<!-- RELEASE_STATE_END -->\n"
             )
-            Path(tmpdir, "AGENTS.md").write_text(agents_content)
+            agents_file = Path(tmpdir, "artifacts", "AGENTS.md")
+            agents_file.parent.mkdir(parents=True, exist_ok=True)
+            agents_file.write_text(agents_content)
             result = subprocess.run(
                 [sys.executable, str(SCRIPTS_DIR / "assert_release_freeze.py")],
                 capture_output=True,

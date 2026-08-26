@@ -28,6 +28,7 @@ from _notebook_exec_helpers import execute_notebook_via_nbclient, format_cell_er
 
 NOTEBOOK_PATH = (
     Path(__file__).parent.parent
+    / "artifacts"
     / "tutorials"
     / "jaxfne_suite_no_1_computational_biophysics.ipynb"
 )

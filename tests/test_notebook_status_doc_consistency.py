@@ -1,5 +1,5 @@
 """Cheap, fast-lane guard against drift between the notebook-execution test
-suite and tutorials/NOTEBOOK_STATUS.md.
+suite and artifacts/tutorials/NOTEBOOK_STATUS.md.
 
 Deliberately has no nbclient/nbformat/slow/notebook markers -- this runs on
 every push, unlike the real notebook executions in test_notebook_execution_suite.py
@@ -12,7 +12,7 @@ from pathlib import Path
 
 from test_notebook_execution_suite import RELEASE_FACING_NOTEBOOKS
 
-TUTORIALS_DIR = Path(__file__).parent.parent / "tutorials"
+TUTORIALS_DIR = Path(__file__).parent.parent / "artifacts" / "tutorials"
 
 EXECUTED_ELSEWHERE = {
     "jaxfne_suite_no_1_computational_biophysics.ipynb",

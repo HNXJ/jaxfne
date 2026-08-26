@@ -20,26 +20,26 @@ class TestNotebookStructure:
 
     def test_notebook_exists(self):
         """Assert notebook file exists."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         assert nb_path.exists(), f"Expected {nb_path}"
 
     def test_notebook_is_valid_json(self):
         """Assert notebook is valid JSON."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         assert isinstance(content, dict), "Notebook is not valid JSON"
         assert "cells" in content, "Notebook missing cells key"
 
     def test_notebook_has_cells(self):
         """Assert notebook has expected cell count."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         cells = content.get("cells", [])
         assert len(cells) >= 12, f"Expected >= 12 cells, got {len(cells)}"
 
     def test_first_cell_is_title_markdown(self):
         """Assert first cell is markdown with title."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         first_cell = content["cells"][0]
         assert first_cell["cell_type"] == "markdown", "First cell should be markdown"
@@ -48,7 +48,7 @@ class TestNotebookStructure:
 
     def test_second_cell_imports_jaxfne(self):
         """Assert second code cell imports jaxfne."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         code_cells = [c for c in content["cells"] if c["cell_type"] == "code"]
         assert len(code_cells) >= 1, "No code cells found"
@@ -62,7 +62,7 @@ class TestCanonicalImports:
 
     def test_notebook_defines_helper_functions(self):
         """Assert helper functions are defined."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -72,7 +72,7 @@ class TestCanonicalImports:
 
     def test_notebook_uses_public_api_workflow(self):
         """Assert notebook uses public API workflow."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -91,7 +91,7 @@ class TestConfigurationAPI:
 
     def test_notebook_single_neuron_config(self):
         """Assert single neuron example exists."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -100,7 +100,7 @@ class TestConfigurationAPI:
 
     def test_notebook_laminar_config(self):
         """Assert laminar column example exists."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -109,7 +109,7 @@ class TestConfigurationAPI:
 
     def test_notebook_probes_lfp_csd(self):
         """Assert LFP-proxy and CSD-proxy probes are specified."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -118,7 +118,7 @@ class TestConfigurationAPI:
 
     def test_notebook_has_n_contacts_16(self):
         """Assert n_contacts=16 is specified."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -131,7 +131,7 @@ class TestFigureDeclaration:
 
     def test_figure_filenames_declared(self):
         """Assert all expected figure names are mentioned."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -149,7 +149,7 @@ class TestFigureDeclaration:
 
     def test_figures_directory_created(self):
         """Assert figures output directory is created."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -161,7 +161,7 @@ class TestMetadataManifest:
 
     def test_notebook_declares_manifest_keys(self):
         """Assert manifest keys are declared."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -182,7 +182,7 @@ class TestMetadataManifest:
 
     def test_notebook_physical_amplitude_false(self):
         """Assert physical_amplitude_calibrated is False."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -197,7 +197,7 @@ class TestPublicWording:
 
     def test_no_negative_prose_patterns(self):
         """Assert no negative prose patterns in public text."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
 
         forbidden_patterns = [
@@ -217,7 +217,7 @@ class TestPublicWording:
 
     def test_approved_scope_language(self):
         """Assert approved scope language is present."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -465,7 +465,7 @@ class TestExecutionSmoke:
 
     def test_notebook_syntax_valid(self):
         """Assert notebook can be parsed without errors."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
+        nb_path = Path("artifacts/tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
 
         # Basic validation

@@ -65,9 +65,9 @@ Examples: H4 = `DEMONSTRATED + NEGATIVE`; C3 = `DEMONSTRATED + NEGATIVE`; D3 = `
 | Spec | `artifacts/publication/fig02_04_experiment_a_spec.json` |
 | Generator | `scripts/publication_figures/fig02_04_experiment_a.py` |
 | Cross audit | `artifacts/publication/fig02_04_cross_figure_audit.json` |
-| Fig 2 | `figures/publication/fig02_emitter_source.png` |
-| Fig 3 | `figures/publication/fig03_local_observation.png` |
-| Fig 4 | `figures/publication/fig04_multiscale_boundary.png` |
+| Fig 2 | `artifacts/figures/publication/fig02_emitter_source.png` |
+| Fig 3 | `artifacts/figures/publication/fig03_local_observation.png` |
+| Fig 4 | `artifacts/figures/publication/fig04_multiscale_boundary.png` |
 
 Invariant: one frozen canonical `Q` hash shared across all three figures; no modality-specific neural reruns.
 
@@ -77,7 +77,7 @@ Invariant: one frozen canonical `Q` hash shared across all three figures; no mod
 |----------|------|
 | Spec | `artifacts/publication/fig05_wave_spec.json` |
 | Generator | `scripts/publication_figures/fig05_protocol_c.py` |
-| Output | `figures/publication/fig05_traveling_wave_no_wave.png` |
+| Output | `artifacts/figures/publication/fig05_traveling_wave_no_wave.png` |
 | Semantic audit | `artifacts/publication/fig05_semantic_audit.json` |
 | Receipt | `artifacts/publication/fig05_generation_receipt.json` |
 
@@ -89,7 +89,7 @@ Polarity: **DEMONSTRATED + NEGATIVE** (validated estimator; prospective NO_WAVE)
 |----------|------|
 | Spec | `artifacts/publication/fig06_hwd_spec.json` |
 | Generator | `scripts/publication_figures/fig06_hwd_evidence.py` |
-| Output | `figures/publication/fig06_rbs_hdp_ladder.png` |
+| Output | `artifacts/figures/publication/fig06_rbs_hdp_ladder.png` |
 | Semantic audit | `artifacts/publication/fig06_semantic_audit.json` |
 | Receipt | `artifacts/publication/fig06_generation_receipt.json` |
 
@@ -101,7 +101,7 @@ Seven-panel ladder: RBS → RBD → state memory → parameter writing → param
 |----------|------|
 | Spec | `artifacts/publication/fig07_integration_spec.json` |
 | Generator | `scripts/publication_figures/fig07_e_integration.py` |
-| Output | `figures/publication/fig07_e_integration.png` |
+| Output | `artifacts/figures/publication/fig07_e_integration.png` |
 | Semantic audit | `artifacts/publication/fig07_semantic_audit.json` |
 | Receipt | `artifacts/publication/fig07_generation_receipt.json` |
 
@@ -123,7 +123,7 @@ Verifies terminology, polarity, frozen boundaries (H4−, C3−, D3−, W3b unre
 |----------|------|
 | Spec | `artifacts/publication/fig01_grammar_spec.json` |
 | Generator | `scripts/publication_figures/fig01_grammar.py` |
-| Output | `figures/publication/fig01_tfne_grammar.png` |
+| Output | `artifacts/figures/publication/fig01_tfne_grammar.png` |
 | Semantic audit | `artifacts/publication/fig01_semantic_audit.json` |
 | Receipt | `artifacts/publication/fig01_generation_receipt.json` |
 

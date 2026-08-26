@@ -9,7 +9,7 @@ Canonical schema:
 This is the designated *migration test*: it is the one place permitted to name the
 retired, pre-v0.4.x wording, checking that it never leaks into public docs/notebooks
 or a fresh manifest. Named as plain literals, not string concatenation -- this file
-only greps *other* files (docs/, tutorials/) for these terms, never itself, so there
+only greps *other* files (docs/, artifacts/tutorials/) for these terms, never itself, so there
 is no reason to hide the literal here.
 """
 import json
@@ -83,5 +83,5 @@ def test_no_retired_terms_in_public_docs(term):
 
 @pytest.mark.parametrize("term", RETIRED)
 def test_no_retired_terms_in_notebooks(term):
-    offenders = [str(p) for p in _tracked(["tutorials/**/*.ipynb"]) if term in p.read_text(encoding="utf-8")]
+    offenders = [str(p) for p in _tracked(["artifacts/tutorials/**/*.ipynb"]) if term in p.read_text(encoding="utf-8")]
     assert not offenders, f"retired term {term!r} present in notebooks: {offenders}"

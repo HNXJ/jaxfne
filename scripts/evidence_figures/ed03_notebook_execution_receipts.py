@@ -61,31 +61,31 @@ SCOPE_STATUS = (
 
 # Controlled smoke subset (short runtime notebooks only).
 SMOKE_NOTEBOOKS = [
-    "tutorials/jaxfne_suite_no_2_evoked_l4_drive.ipynb",
-    "tutorials/jaxfne_v031_single_neuron.ipynb",
+    "artifacts/tutorials/jaxfne_suite_no_2_evoked_l4_drive.ipynb",
+    "artifacts/tutorials/jaxfne_v031_single_neuron.ipynb",
 ]
 
 # Notebooks with dedicated slow pytest execution gates in tests/.
 CI_EXECUTION_TESTS: dict[str, str] = {
-    "tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb": (
+    "artifacts/tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb": (
         "tests/test_suite_no1_notebook_execution.py"
     ),
-    "tutorials/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb": (
+    "artifacts/tutorials/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb": (
         "tests/test_suite_no4_notebook_execution.py"
     ),
 }
 
 # Known external receipt locations (relative to repo root).
 KNOWN_RECEIPT_PATHS: dict[str, list[str]] = {
-    "tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb": [
-        "tutorials/suite_no3_v0310_execution_receipt.json",
+    "artifacts/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb": [
+        "artifacts/tutorials/suite_no3_v0310_execution_receipt.json",
         "outputs/suite_no3_v0310_execution_receipt.json",
     ],
-    "tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb": [
-        "tutorials/suite_no4_v0310_execution_receipt.json",
+    "artifacts/tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb": [
+        "artifacts/tutorials/suite_no4_v0310_execution_receipt.json",
         "outputs/suite_no4_v0310_execution_receipt.json",
     ],
-    "tutorials/etudes/jaxfne_etude_no_1_base.ipynb": [
+    "artifacts/tutorials/etudes/jaxfne_etude_no_1_base.ipynb": [
         "outputs/etude_no_1/cell_execution_receipt.json",
     ],
 }
@@ -531,7 +531,7 @@ def main() -> int:
         raise RuntimeError("SKIP_NOTEBOOK_EXECUTION=1 blocks --run-smoke")
 
     root = repo_root()
-    tutorials = root / "tutorials"
+    tutorials = root / "artifacts" / "tutorials"
     notebooks = _discover_notebooks(tutorials)
     prior_ed03 = _load_prior_ed03_receipt(root)
     prior_aggregate = _load_aggregate_receipt(root)

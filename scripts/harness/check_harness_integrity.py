@@ -18,7 +18,8 @@ ROOT = Path(__file__).resolve().parents[2]
 PROJECT_MANIFEST = ROOT / "scripts" / "harness" / "HARNESS_MANIFEST.json"
 GLOBAL_MANIFEST = Path.home() / ".config" / "opencode" / "harness" / "HARNESS_MANIFEST.json"
 FROZEN_PATHS = ROOT / "artifacts" / "publication" / "frozen_manifest.json"
-# Fallback for migration: new primary, old secondary
+# DEPRECATED: legacy .opencode/frozen_paths.json fallback kept for migration from the
+# pre-artifacts layout; do not add new references to it.
 _FROZEN_PATHS_OLD = ROOT / ".opencode" / "frozen_paths.json"
 MIRROR_PREFIXES = (".opencode/skills/", ".cursor/skills/")
 
@@ -59,7 +60,7 @@ def verify_manifest(manifest: Path, base: Path):
                 else:
                     want = item
                     if comp == "canonical_skills":
-                        f = base / "skills" / rel / "SKILL.md"
+                        f = base / "artifacts" / "skills" / rel / "SKILL.md"
                     else:
                         f = base / rel
                 got = None if not f.exists() else sha(f)

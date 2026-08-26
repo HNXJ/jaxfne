@@ -8,6 +8,7 @@ from pathlib import Path
 
 NOTEBOOK_PATH = (
     Path(__file__).parent.parent
+    / "artifacts"
     / "tutorials"
     / "etudes"
     / "jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb"

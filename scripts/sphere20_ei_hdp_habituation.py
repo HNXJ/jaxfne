@@ -25,7 +25,7 @@ A transfers to B through the 2 shared cells, versus B's unique cells which
 were never driven by A.
 
 This is a computational scaffold / proxy diagnostic, not a physical or
-biological validation claim (see AGENTS.md truth gates).
+biological validation claim (see artifacts/AGENTS.md truth gates).
 """
 from __future__ import annotations
 

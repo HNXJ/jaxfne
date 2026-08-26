@@ -5,7 +5,7 @@ from pathlib import Path
 import jaxfne as jtfne
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-NOTEBOOK_PATH = REPO_ROOT / "tutorials" / "etudes" / "jaxfne_etude_tcm_v1_6pop.ipynb"
+NOTEBOOK_PATH = REPO_ROOT / "artifacts" / "tutorials" / "etudes" / "jaxfne_etude_tcm_v1_6pop.ipynb"
 OUTPUT_DIR = REPO_ROOT / "local" / "tcm_v1"
 
 def test_notebook_file_exists():

@@ -8,7 +8,7 @@ import pytest
 import jax.numpy as jnp
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-NOTEBOOK_PATH = REPO_ROOT / "tutorials" / "etudes" / "jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb"
+NOTEBOOK_PATH = REPO_ROOT / "artifacts" / "tutorials" / "etudes" / "jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb"
 OUTPUT_DIR = REPO_ROOT / "local" / "etude3"
 
 REQUIRED_TOKENS = [
@@ -76,7 +76,7 @@ def test_json_artifacts_exist_and_conform_to_contract():
     if not manifest_path.exists():
         pytest.skip(
             "Etude 3 artifacts not generated (run "
-            "tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb first); "
+            "artifacts/tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb first); "
             "artifact-contract checks skipped on a fresh checkout."
         )
 
@@ -122,7 +122,7 @@ def test_git_ignored_and_no_leaks():
     assert res.returncode == 0, f"Output path {manifest_path} must be gitignored."
 
     # 2. Check no newly generated .png or .html files leak outside local/ in the etude source folder
-    etudes_dir = REPO_ROOT / "tutorials" / "etudes"
+    etudes_dir = REPO_ROOT / "artifacts" / "tutorials" / "etudes"
     for p in etudes_dir.glob("*.png"):
         assert False, f"Leaked figure found in etudes source folder: {p}"
     for p in etudes_dir.glob("*.html"):

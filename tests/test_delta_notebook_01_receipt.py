@@ -1,7 +1,7 @@
 """Receipt / portability gate for the v0.3.31 delta-test sanity notebook.
 
 These checks guard the *release* properties of
-``tutorials/jaxfne-sanity-checker-notebook-01.ipynb`` independent of execution:
+``artifacts/tutorials/jaxfne-sanity-checker-notebook-01.ipynb`` independent of execution:
 
 - no user-specific absolute path is baked into the notebook,
 - the portable bootstrap and required structure are present,
@@ -23,7 +23,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-NOTEBOOK = REPO_ROOT / "tutorials" / "jaxfne-sanity-checker-notebook-01.ipynb"
+NOTEBOOK = REPO_ROOT / "artifacts" / "tutorials" / "jaxfne-sanity-checker-notebook-01.ipynb"
 
 REQUIRED_PNG_NAMES = [
     "raster.png",

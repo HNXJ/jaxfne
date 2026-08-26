@@ -5,7 +5,7 @@ Six panels A–F: compositional hierarchy -> delays -> RBS -> observation -> cau
 No new simulation. Quantities from frozen E receipts via jaxfne.publication.fig07_evidence.
 
 Outputs:
-  figures/publication/fig07_e_integration.png
+  artifacts/figures/publication/fig07_e_integration.png
   artifacts/publication/fig07_semantic_audit.json
   artifacts/publication/fig07_generation_receipt.json
 """
@@ -302,7 +302,7 @@ def build_semantic_audit(spec: dict, checks: dict, *, figure_sha: str, repo_head
         "status": "PASSED" if all(v is True or (isinstance(v, str) and v) for k, v in checks.items() if k != "e5_classification") and checks.get("e5_classification") == "HIERARCHICAL_PROPAGATION" else "FAILED",
         "checkpoint": "figure_7_generation",
         "pec_panel_ids": spec["pec_panel_ids"],
-        "figure_path": f"figures/publication/{FIGURE_NAME}",
+        "figure_path": f"artifacts/figures/publication/{FIGURE_NAME}",
         "figure_sha256": figure_sha,
         "spec_path": "artifacts/publication/fig07_integration_spec.json",
         "audited_at_utc": utc_now_iso(),
@@ -319,7 +319,7 @@ def build_receipt(spec: dict, audit: dict, *, figure_sha: str, repo_head: str) -
         "status": "CLOSED",
         "write_once": True,
         "pec_panel_ids": spec["pec_panel_ids"],
-        "figure_path": f"figures/publication/{FIGURE_NAME}",
+        "figure_path": f"artifacts/figures/publication/{FIGURE_NAME}",
         "figure_sha256": figure_sha,
         "generator_script": spec["generator_script"],
         "semantic_audit_path": "artifacts/publication/fig07_semantic_audit.json",

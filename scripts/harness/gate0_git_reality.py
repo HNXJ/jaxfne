@@ -55,7 +55,7 @@ MODE_AUTHORITIES = {
         "scratch/CURRENT_TASK.md",
     ],
     "CODE": [
-        "AGENTS.md",
+        "artifacts/AGENTS.md",
         "scratch/CURRENT_TASK.md",
     ],
 }

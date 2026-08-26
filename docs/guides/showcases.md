@@ -107,7 +107,7 @@ real, measured STDP effect rather than a flat line.
 The deep-α/β vs superficial-γ spectrolaminar crossover is a **regime property**
 (band-limited layer-local oscillations while global κ stays low), not a connectivity-
 weight or neuron-count effect alone — see `jaxfne-spectrolaminar-suite` and
-`tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb`. This run uses the
+`artifacts/tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb`. This run uses the
 canonical 10,000-neuron V1 column and layers a depth-graded homeostatic profile: deep layers (L5/L6) get a
 **slower** rate-integration time constant and a **wider** excitability-bias
 range than superficial layers, i.e. more homeostatic "capacity" and slower

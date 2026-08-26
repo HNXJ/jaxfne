@@ -141,7 +141,7 @@ class TestAgentContextHygiene:
 
     def test_active_context_uses_current_grammars(self):
         """The active guide keeps scientific and software grammars distinct."""
-        content = Path("AGENTS.md").read_text(encoding="utf-8")
+        content = Path("artifacts/AGENTS.md").read_text(encoding="utf-8")
 
         assert "Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest" in content
         assert "CircuitSpec -> construct -> Model -> simulate -> Signals" in content

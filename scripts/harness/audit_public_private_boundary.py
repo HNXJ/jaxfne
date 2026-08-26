@@ -82,7 +82,7 @@ def audit_distributions() -> list[str]:
         return ["No dist/ directory found. Build packages before running distribution audit."]
 
     forbidden_pkg_prefixes = (
-        "skills/",
+        "artifacts/skills/",
         ".opencode/",
         ".cursor/",
         "scratch/",

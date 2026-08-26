@@ -9,6 +9,7 @@ docs_dir: docs
 
 exclude_docs: |
   _generated/version.md
+  subagent-pool.md
   fullroadmap.md
   for_ai_agents.md
   v047_refactor_audit.md

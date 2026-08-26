@@ -10,7 +10,7 @@ artifacts/publication/frozen_manifest.json and the gate refuses to run if any dr
 
 Semantic identity is asserted in the frozen manifest's own terms:
     F_i^pre-seam = F_i^post-seam  exactly, for i = 1..7,
-where F_i^pre-seam is the frozen figures/publication/figNN_*.png byte set and
+where F_i^pre-seam is the frozen artifacts/figures/publication/figNN_*.png byte set and
 the post-seam render comes from build_figure*() under HEAD.
 
 Usage (from repo root):
@@ -47,13 +47,13 @@ REPO = pathlib.Path(__file__).resolve().parents[2]
 
 FROZEN_MANIFEST = REPO / "artifacts/publication/frozen_manifest.json"
 FROZEN_FIGURES = [
-    "figures/publication/fig01_tfne_grammar.png",
-    "figures/publication/fig02_emitter_source.png",
-    "figures/publication/fig03_local_observation.png",
-    "figures/publication/fig04_multiscale_boundary.png",
-    "figures/publication/fig05_traveling_wave_no_wave.png",
-    "figures/publication/fig06_rbs_hdp_ladder.png",
-    "figures/publication/fig07_e_integration.png",
+    "artifacts/figures/publication/fig01_tfne_grammar.png",
+    "artifacts/figures/publication/fig02_emitter_source.png",
+    "artifacts/figures/publication/fig03_local_observation.png",
+    "artifacts/figures/publication/fig04_multiscale_boundary.png",
+    "artifacts/figures/publication/fig05_traveling_wave_no_wave.png",
+    "artifacts/figures/publication/fig06_rbs_hdp_ladder.png",
+    "artifacts/figures/publication/fig07_e_integration.png",
 ]
 
 

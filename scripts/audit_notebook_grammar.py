@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-NOTEBOOK_GLOBS = ("tutorials/**/*.ipynb",)
+NOTEBOOK_GLOBS = ("artifacts/tutorials/**/*.ipynb",)
 
 SECTION_PATTERNS = {
     "setup": re.compile(r"\b(setup|install|import|runtime|version)\b", re.I),

@@ -14,7 +14,7 @@ from pathlib import Path
 
 def test_suite_no1_part4_uses_public_api():
     """Verify Suite No. 1 Part 4 uses only public composition grammar."""
-    notebook_path = Path(__file__).parent.parent / "tutorials" / "jaxfne_suite_no_1_computational_biophysics.ipynb"
+    notebook_path = Path(__file__).parent.parent / "artifacts" / "tutorials" / "jaxfne_suite_no_1_computational_biophysics.ipynb"
 
     assert notebook_path.exists(), f"Notebook not found: {notebook_path}"
 
@@ -66,7 +66,7 @@ def test_suite_no1_part4_uses_public_api():
 
 def test_suite_no1_part4_target_values():
     """Verify Suite No. 1 Part 4 has correct target values: 5 Hz / 10 Hz."""
-    notebook_path = Path(__file__).parent.parent / "tutorials" / "jaxfne_suite_no_1_computational_biophysics.ipynb"
+    notebook_path = Path(__file__).parent.parent / "artifacts" / "tutorials" / "jaxfne_suite_no_1_computational_biophysics.ipynb"
 
     with open(notebook_path, "r") as f:
         notebook = json.load(f)
@@ -98,7 +98,7 @@ def test_suite_no1_part4_target_values():
 
 def test_suite_no1_part4_parameter_names():
     """Verify Suite No. 1 Part 4 uses correct parameter names: gAMPA_first_half/second_half."""
-    notebook_path = Path(__file__).parent.parent / "tutorials" / "jaxfne_suite_no_1_computational_biophysics.ipynb"
+    notebook_path = Path(__file__).parent.parent / "artifacts" / "tutorials" / "jaxfne_suite_no_1_computational_biophysics.ipynb"
 
     with open(notebook_path, "r") as f:
         notebook = json.load(f)
@@ -174,7 +174,7 @@ def test_suite_no1_optimizes_gampa_not_drive_scale():
     """Suite No. 1 Part 4 must use gAMPA, not drive_scale_a/b."""
     import json
     from pathlib import Path
-    notebook_path = Path(__file__).parent.parent / "tutorials" / "jaxfne_suite_no_1_computational_biophysics.ipynb"
+    notebook_path = Path(__file__).parent.parent / "artifacts" / "tutorials" / "jaxfne_suite_no_1_computational_biophysics.ipynb"
     with open(notebook_path) as f:
         nb = json.load(f)
     code = " ".join(

@@ -92,13 +92,13 @@ def test_equivalence_gate_frozen_manifest_selfcheck(tmp_path):
     manifest = json.loads(FROZEN_MANIFEST.read_text(encoding="utf-8"))
     files = manifest["files"]
     expected = [
-        "figures/publication/fig01_tfne_grammar.png",
-        "figures/publication/fig02_emitter_source.png",
-        "figures/publication/fig03_local_observation.png",
-        "figures/publication/fig04_multiscale_boundary.png",
-        "figures/publication/fig05_traveling_wave_no_wave.png",
-        "figures/publication/fig06_rbs_hdp_ladder.png",
-        "figures/publication/fig07_e_integration.png",
+        "artifacts/figures/publication/fig01_tfne_grammar.png",
+        "artifacts/figures/publication/fig02_emitter_source.png",
+        "artifacts/figures/publication/fig03_local_observation.png",
+        "artifacts/figures/publication/fig04_multiscale_boundary.png",
+        "artifacts/figures/publication/fig05_traveling_wave_no_wave.png",
+        "artifacts/figures/publication/fig06_rbs_hdp_ladder.png",
+        "artifacts/figures/publication/fig07_e_integration.png",
     ]
     for rel in expected:
         assert rel in files, f"{rel} not in .opencode/frozen_paths.json"

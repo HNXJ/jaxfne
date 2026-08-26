@@ -17,7 +17,7 @@ from nbclient import NotebookClient
 @pytest.mark.slow
 def test_suite_no4_notebook_structure():
     """Verify Suite No. 4 notebook structure is valid (alternative to nbclient)."""
-    notebook_path = "tutorials/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb"
+    notebook_path = "artifacts/tutorials/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb"
 
     # Read and validate notebook structure
     with open(notebook_path, "r", encoding="utf-8") as f:
@@ -46,7 +46,7 @@ def test_suite_no4_notebook_structure():
 @pytest.mark.slow
 def test_suite_no4_notebook_content_validation():
     """Validate that Suite No. 4 notebook contains required content."""
-    notebook_path = "tutorials/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb"
+    notebook_path = "artifacts/tutorials/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb"
 
     with open(notebook_path, "r", encoding="utf-8") as f:
         nb = nbformat.read(f, as_version=4)
@@ -104,7 +104,7 @@ def test_suite_no4_notebook_execution():
     except ImportError:
         pytest.skip("Optax not installed; skipping Suite No. 4 notebook execution")
 
-    notebook_path = "tutorials/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb"
+    notebook_path = "artifacts/tutorials/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb"
     # Read notebook
     with open(notebook_path, "r", encoding="utf-8") as f:
         nb = nbformat.read(f, as_version=4)

@@ -1,7 +1,7 @@
 """
 NeuronalTensor-first tutorial notebook execution test.
 
-Validates that tutorials/jaxfne_neuronal_tensor_first.ipynb runs without
+Validates that artifacts/tutorials/jaxfne_neuronal_tensor_first.ipynb runs without
 errors using nbclient. This test is marked as 'slow' because it executes the
 full notebook.
 """
@@ -17,7 +17,7 @@ from nbclient import NotebookClient
 @pytest.mark.slow
 def test_neuronal_tensor_notebook_structure():
     """Verify the notebook structure is valid (alternative to nbclient)."""
-    notebook_path = "tutorials/jaxfne_neuronal_tensor_first.ipynb"
+    notebook_path = "artifacts/tutorials/jaxfne_neuronal_tensor_first.ipynb"
 
     with open(notebook_path, "r") as f:
         nb = nbformat.read(f, as_version=4)
@@ -37,7 +37,7 @@ def test_neuronal_tensor_notebook_structure():
 @pytest.mark.slow
 def test_neuronal_tensor_notebook_content_validation():
     """Validate that the notebook contains the required tensor-first + HDP terms."""
-    notebook_path = "tutorials/jaxfne_neuronal_tensor_first.ipynb"
+    notebook_path = "artifacts/tutorials/jaxfne_neuronal_tensor_first.ipynb"
 
     with open(notebook_path, "r") as f:
         nb = nbformat.read(f, as_version=4)
@@ -69,7 +69,7 @@ def test_neuronal_tensor_notebook_content_validation():
 @pytest.mark.notebook
 def test_neuronal_tensor_notebook_execution():
     """Execute the NeuronalTensor-first notebook using nbclient."""
-    notebook_path = "tutorials/jaxfne_neuronal_tensor_first.ipynb"
+    notebook_path = "artifacts/tutorials/jaxfne_neuronal_tensor_first.ipynb"
     with open(notebook_path, "r") as f:
         nb = nbformat.read(f, as_version=4)
 

@@ -10,7 +10,7 @@ metadata:
 CODE work on jaxfne: bounded implementation, debugging, testing, API changes, and repository verification.
 
 ## AUTHORITIES
-1. Repository `AGENTS.md` (branches, root freeze, step completion rule).
+1. Repository `artifacts/AGENTS.md` (branches, root freeze, step completion rule).
 2. Live code and executable bindings.
 
 ## RULES

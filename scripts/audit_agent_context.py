@@ -40,15 +40,15 @@ RETIRED_STATUS_KEYS = (
 
 
 def _active_files() -> list[Path]:
-    paths = [ROOT / "AGENTS.md", ROOT / "skills" / "README.md"]
+    paths = [ROOT / "artifacts" / "AGENTS.md", ROOT / "artifacts" / "skills" / "README.md"]
     paths.extend(
         sorted(
             path
-            for path in (ROOT / "skills").glob("*.md")
+            for path in (ROOT / "artifacts" / "skills").glob("*.md")
             if path.name not in {"PATCH.md", "ANTIGRAVITY_PROMPT.md", "FRICTIONS_STACK.md"}
         )
     )
-    paths.extend(sorted((ROOT / "skills").glob("*/SKILL.md")))
+    paths.extend(sorted((ROOT / "artifacts" / "skills").glob("*/SKILL.md")))
     return [path for path in paths if path.is_file()]
 
 
@@ -89,23 +89,23 @@ def build_report() -> dict:
     checks = {
         "current_grammars": (
             "Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest/Validation"
-            in contents.get("AGENTS.md", "")
+            in contents.get("artifacts/AGENTS.md", "")
             and "CircuitSpec -> construct -> Model -> simulate -> Signals"
-            in contents.get("AGENTS.md", "")
+            in contents.get("artifacts/AGENTS.md", "")
         ),
         "obsolete_grammar_absent": not old_grammar_hits,
         "volatile_facts_absent": not volatile_hits,
         "retired_status_keys_absent": not retired_hits,
-        "canonical_harden_skill": (ROOT / "skills/jaxfne-harden/SKILL.md").is_file(),
+        "canonical_harden_skill": (ROOT / "artifacts/skills/jaxfne-harden/SKILL.md").is_file(),
         "mirror_direction_declared": (
-            "canonical editable skill source" in contents.get("skills/README.md", "").lower()
-            and "--check" in (ROOT / "skills/SYNC_GLOBAL.sh").read_text(encoding="utf-8")
-            and "--apply" in (ROOT / "skills/SYNC_GLOBAL.sh").read_text(encoding="utf-8")
+            "canonical editable skill source" in contents.get("artifacts/skills/README.md", "").lower()
+            and "--check" in (ROOT / "artifacts/skills/SYNC_GLOBAL.sh").read_text(encoding="utf-8")
+            and "--apply" in (ROOT / "artifacts/skills/SYNC_GLOBAL.sh").read_text(encoding="utf-8")
         ),
         "semantic_delta_report_declared": (
-            "API delta:" in contents.get("AGENTS.md", "")
-            and "Mathematical delta:" in contents.get("AGENTS.md", "")
-            and "Compatibility delta:" in contents.get("AGENTS.md", "")
+            "API delta:" in contents.get("artifacts/AGENTS.md", "")
+            and "Mathematical delta:" in contents.get("artifacts/AGENTS.md", "")
+            and "Compatibility delta:" in contents.get("artifacts/AGENTS.md", "")
         ),
         "archived_context_marked": (
             "ARCHIVAL ONLY"

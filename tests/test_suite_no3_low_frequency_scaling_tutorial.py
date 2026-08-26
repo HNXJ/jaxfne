@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 import pytest
 
-NOTEBOOK_PATH = Path(__file__).parent.parent / "tutorials" / "jaxfne_suite_no_3_low_frequency_scaling.ipynb"
+NOTEBOOK_PATH = Path(__file__).parent.parent / "artifacts" / "tutorials" / "jaxfne_suite_no_3_low_frequency_scaling.ipynb"
 
 
 class TestNotebookStructure:

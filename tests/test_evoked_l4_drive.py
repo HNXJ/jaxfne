@@ -143,7 +143,7 @@ class TestEvokedDocumentation:
     def test_tutorial_notebook_exists(self):
         """Evoked L4 tutorial notebook should exist."""
         import os
-        notebook_path = "tutorials/jaxfne_suite_no_2_evoked_l4_drive.ipynb"
+        notebook_path = "artifacts/tutorials/jaxfne_suite_no_2_evoked_l4_drive.ipynb"
         assert os.path.exists(notebook_path), f"Tutorial notebook not found: {notebook_path}"
 
     def test_markdown_docs_exist(self):

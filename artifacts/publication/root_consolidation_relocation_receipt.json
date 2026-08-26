@@ -1,0 +1,58 @@
+{
+  "schema": "jaxfne.root_consolidation_relocation.v1",
+  "generated_at": "2026-08-26T12:00:00Z",
+  "authorization": "Root consolidation pass (authorized instruction): MOVE figures/skills/tutorials/AGENTS under artifacts/; .opencode removed; only .github remains tracked root dot-directory",
+  "moves": [
+    {"item": "figures/publication", "pre": "figures/publication", "post": "artifacts/figures/publication", "files": 35, "git": "R (git add -A figures artifacts/figures)", "byte_identity": "all 7 frozen PNG content sha256 unchanged (verified via frozen_manifest.json values == new-location hashes, 28/28 PASS)"},
+    {"item": "skills", "pre": "skills/", "post": "artifacts/skills/", "files": 7, "git": "R", "byte_identity": "n/a"},
+    {"item": "tutorials", "pre": "tutorials/", "post": "artifacts/tutorials/", "files": 47, "git": "R", "byte_identity": "n/a"},
+    {"item": "AGENTS.md", "pre": "AGENTS.md", "post": "artifacts/AGENTS.md", "files": 1, "git": "R", "byte_identity": "n/a"},
+    {"item": ".opencode", "pre": ".opencode/", "post": "removed (durable content migrated earlier: frozen_manifest.json -> artifacts/publication/frozen_manifest.json, HARNESS_MANIFEST.json -> scripts/harness/, opencode.json -> opencode.json, SEAL_E2_PRGS.md -> artifacts/developer/SEAL_E2_PRGS.md)", "files": 0, "git": "untracked+gitignored", "byte_identity": "manifest H_old=83e8ee44e18738eb -> H_new=46568fd3e1c1ad6e (keys updated figures/publication->artifacts/figures/publication; 28 hash VALUES identical)"}
+  ],
+  "frozen_manifest_two_checks": {
+    "H_old": "83e8ee44e18738eb8290543a6fb6c3601bf5cd070c696fee5a6e8d3e4266ec20",
+    "H_new": "46568fd3e1c1ad6ec8f93b5d0f3f97dfb0fae0b3e1b0e69a2d4f0b74c67b6b21",
+    "manifest_bytes_equal": false,
+    "manifest_bytes_note": "Keys updated to artifacts/figures/publication/... (authorized relocation); hash values byte-identical (verified diff). H_old != H_new is the EXPECTED relocation delta.",
+    "all_28_file_hashes_match": true,
+    "all_28_file_hashes_note": "verify_frozen: 28/28 PASS against new manifest keys (equivalence gate + check_harness_integrity exit 0)",
+    "png_byte_identity": "H_before(f)==H_after(f) for all 7 frozen PNGs (git mv + manifest value match)"
+  },
+  "consumer_patches": {
+    "figures": 14,
+    "skills_agents": 22,
+    "tutorials": 34,
+    "harness_manifest_refresh": 4,
+    "total": 74
+  },
+  "semantic_path_audit": {
+    "patterns": [".opencode/", ".cursor/", "figures/publication", "skills/", "tutorials/", "AGENTS.md"],
+    "STALE_PATH": 0,
+    "VALID_NEW_REFERENCE": "all artifacts/... new-path hits",
+    "HISTORICAL_TEXT": "frozen JSON receipts (figure_path provenance), changelog.md, fullroadmap.md, v047_refactor_audit.md, intra-notebook Colab URLs (38, recorded), REVIEW_NAVIGATION.md"
+  },
+  "mechanical_assertions": {
+    "tracked_opencode_count": 0,
+    "tracked_cursor_count": 0,
+    "root_dot_dirs": [".github"],
+    "root_skills": false,
+    "root_tutorials": false,
+    "root_AGENTS_md": false,
+    "root_figures": false
+  },
+  "validation": {
+    "frozen_28_28": "PASS (equivalence gate + harness integrity exit 0)",
+    "E1_hashes": "ping 0E9D602B.../ssa D4DEBFD8... unchanged",
+    "public_api": "189 exports, 0.4.17",
+    "compileall": "PASS",
+    "pytest_focus": "29 passed 1 skipped (equivalence/v0342/agent-hygiene/api-snapshot)",
+    "mkdocs_strict": "PASS",
+    "docs_orphans": "PASS (subagent-pool.md excluded)",
+    "harness_integrity": "PASS (exit 0)",
+    "sync_skills": "PASS (7 skills x 0 mirrors)",
+    "check_agent_refs": "PASS",
+    "gate0": "PASS (authorities present)"
+  },
+  "opencode_json_note": "opencode.json at root is a dot-FILE (not dot-directory) and is repository authority (permission deny list for frozen paths). If later deemed purely tool-local, migrate to user-local in the artifacts/ review pass; recorded, not expanded here.",
+  "write_once": true
+}

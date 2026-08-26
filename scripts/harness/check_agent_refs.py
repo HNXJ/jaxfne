@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Harness v2.1 reference checker.
 
-Every repo-relative path referenced in agent-facing markdown (AGENTS.md,
-docs/**, skills/**) must exist on disk OR be explicitly marked optional
+Every repo-relative path referenced in agent-facing markdown (artifacts/AGENTS.md,
+docs/**, artifacts/skills/**) must exist on disk OR be explicitly marked optional
 via an inline `<!-- optional -->` marker in the same paragraph.
 
 Exit codes: 0 clean, 1 broken (unmarked) references found.
@@ -12,9 +12,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-GOVERNED = [ROOT / "AGENTS.md", ROOT / "docs/for_ai_agents.md",
-            *list((ROOT / "skills").rglob("*.md"))]
-PREFIXES = ("skills/", "scripts/", "docs/", "artifacts/", "scratch/", ".opencode/", ".cursor/", "tests/", "jaxfne/")
+GOVERNED = [ROOT / "artifacts" / "AGENTS.md", ROOT / "docs/for_ai_agents.md",
+            *list((ROOT / "artifacts" / "skills").rglob("*.md"))]
+PREFIXES = ("artifacts/skills/", "scripts/", "docs/", "artifacts/", "scratch/", ".opencode/", ".cursor/", "tests/", "jaxfne/")
 BACKTICK = re.compile(r"`([A-Za-z0-9_.\-/]+(?:/[A-Za-z0-9_.\-]+)*)`")
 LINK = re.compile(r"\]\(([^)#]+)\)")
 
@@ -68,8 +68,8 @@ def main() -> int:
                     help="scan every docs/*.md (may report pre-existing historical debt)")
     a = ap.parse_args()
     if a.all:
-        scan = [ROOT / "AGENTS.md", *list((ROOT / "docs").rglob("*.md")),
-                *list((ROOT / "skills").rglob("*.md"))]
+        scan = [ROOT / "artifacts" / "AGENTS.md", *list((ROOT / "docs").rglob("*.md")),
+                *list((ROOT / "artifacts" / "skills").rglob("*.md"))]
     else:
         scan = GOVERNED
     return run(scan)

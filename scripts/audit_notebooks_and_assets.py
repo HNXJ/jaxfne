@@ -92,7 +92,7 @@ def main():
     print("=== STARTING JAXFNE COMPLETE RELEASE AUDIT ===")
     
     # 1. Notebook Audits (recursive, excluding archive paths)
-    nb_files = [p for p in Path("tutorials").rglob("*.ipynb")
+    nb_files = [p for p in Path("artifacts/tutorials").rglob("*.ipynb")
                 if "archive" not in str(p) and "test_execution" not in str(p)]
     nb_reports = []
     all_nb_valid = True
