@@ -1,0 +1,583 @@
+{
+  "adequacy_gates": {
+    "G_active": "mean_rate_E>=0.5 and mean_rate_I>=0.5 and n_spiking>=10",
+    "G_adequate": "G_finite && G_active && G_population",
+    "G_adequate_for_T": "G_adequate && mean_rate_E>5 (for T interpretation; 0.5-5 is adequate but silent for T)",
+    "G_finite": "all V_m,u,spikes,sources,Q,H_K finite and not NaN and rate<200 and |H_K|<=20",
+    "G_population": "active_E>=20 and active_I>=5",
+    "inherit_from": "e2_ping_prereg.json adequacy_gates",
+    "ordering": "INVALID; !G_adequate -> UNRESOLVED; else T analysis proceeds"
+  },
+  "battery": {
+    "a_E_levels": [
+      0.01,
+      0.02,
+      0.04
+    ],
+    "analysis_arms": 5,
+    "conditions": [
+      {
+        "a_E": 0.01,
+        "arm": "a_scan",
+        "d_E": 8.0,
+        "id": "e2_c_a01_d8",
+        "role": "a_E scan: slow recovery (tau 100 ms), native jump d=8",
+        "tau_u_ms": 100.0
+      },
+      {
+        "a_E": 0.02,
+        "arm": "shared_baseline",
+        "d_E": 8.0,
+        "id": "e2_c_a02_d8_baseline",
+        "role": "baseline theta* native E (a=0.02,tau 50 ms,d=8); belongs to both a_scan and d_scan; counted once for distinct combos",
+        "tau_u_ms": 50.0
+      },
+      {
+        "a_E": 0.04,
+        "arm": "a_scan",
+        "d_E": 8.0,
+        "id": "e2_c_a04_d8",
+        "role": "a_E scan: fast recovery (tau 25 ms), native jump d=8",
+        "tau_u_ms": 25.0
+      },
+      {
+        "a_E": 0.02,
+        "arm": "d_scan",
+        "d_E": 0,
+        "id": "e2_c_a02_d0",
+        "role": "d_E scan: same tau 50 ms but zero post-spike jump (tests d necessity)",
+        "tau_u_ms": 50.0
+      },
+      {
+        "a_E": 0.02,
+        "arm": "d_scan",
+        "d_E": 8.0,
+        "id": "e2_c_a02_d8_dscan_ref",
+        "role": "d_E scan reference: same params as baseline but listed as second arm for independent-arm count parity with R2; distinct_combos counts this as duplicate of e2_c_a02_d8_baseline (analysis_arms=5, distinct=4)",
+        "tau_u_ms": 50.0
+      }
+    ],
+    "conditions_distinct_summary": "Distinct combos (4): (0.01,8),(0.02,8),(0.04,8),(0.02,0). Analysis arms (5): 3 a_scan + 2 d_scan where (0.02,8) serves as reference for both scans; listed as 5 entries with duplicate baseline to make arm count explicit. R2 factorial would additionally include (0.01,0) and (0.04,0) for 6 distinct combos.",
+    "contrast_to_R2": "R2 described 6-condition factorial battery (a_E x d_E full factorial 3*2=6 combos). This prereg implements 5 analysis arms on same principle vs the 6-condition battery described by R2: independent arms (3 a_E levels at native d_E + 2 d_E levels at native a_E) = 5 arms conceptual, 4 distinct parameter combinations due to shared baseline (0.02,8.0) counted once. Distinct_combos=4, analysis_arms=5.",
+    "d_E_levels": [
+      0,
+      8.0
+    ],
+    "design": "independent_arms_not_factorial",
+    "distinct_parameter_combinations": 4,
+    "execution_grammar": {
+      "CircuitSpec": "Configuration via suite2 presets + _construct_core._neuron_population_from_config; per-condition override a_E/d_E for E neurons only (800 E, 200 I unchanged)",
+      "Signals": "spikes, V_m, u, sources, population rates r_E/r_I",
+      "construct": "Model via jaxfne.construct; E params per condition: a_E varied, d_E varied, b_E/c_E fixed",
+      "simulate": "Signals via simulate_edge_recurrent_izhikevich_owned_h_k_delayed with delay grid [1,1.5,2,2.5,3] ms"
+    },
+    "inheritance_note": "All non-varied parameters (topology N_E800/N_I200 mean_degree80, delays discrete_grid [1.0,1.5,2.0,2.5,3.0] ms dt0.5 bufsize7, masks owner_mask [0..9], source_scale, spike_gain_alias) identical across all e2_c conditions; only a_E/d_E per-neuron E overrides differ",
+    "principle": "same principle as R2 full-factorial 3x2=6 battery but implemented as independent arms to reduce compute while preserving a_E-scan and d_E-scan contrasts",
+    "seed_domain": {
+      "W_analysis_window": [
+        1500,
+        2000
+      ],
+      "canonical_order": [
+        "structure",
+        "stimulus",
+        "runtime",
+        "probe",
+        "analysis"
+      ],
+      "derivation": "fold_in(K0, encode(s,r,u,a)) with splitmix64, canonical order structure->stimulus->runtime->probe->analysis; same as e2_ping_prereg.json",
+      "same_seeds_across_conditions": "All e2_c conditions run on same seeds W=[1500,2000) for paired d_zero vs d8 and a_scan comparisons",
+      "seeds": [
+        100,
+        101,
+        102,
+        103,
+        104
+      ]
+    },
+    "tau_u_map": {
+      "0.01": 100.0,
+      "0.02": 50.0,
+      "0.04": 25.0
+    }
+  },
+  "blinding": {
+    "A_allowed": [
+      "G_finite",
+      "G_active",
+      "G_adequate",
+      "mean_rate"
+    ],
+    "A_allowed_detail": {
+      "G_active": "mean rates and n_spiking",
+      "G_adequate": "conjunction of above",
+      "G_finite": "finite/NaN/rate bounds",
+      "mean_rate": "mean_rate_E, mean_rate_I, n_spiking, active_E/I"
+    },
+    "A_forbidden": [
+      "PING_LIKE",
+      "SI",
+      "G_spec",
+      "G_phase",
+      "G_rate",
+      "G_cycle",
+      "PLV",
+      "delta_PLV",
+      "S0",
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "f_peak",
+      "prominence",
+      "T_period",
+      "tau_u_correlation",
+      "rho_T_tau"
+    ],
+    "A_forbidden_note": "PING_LIKE,SI etc \u2014 any phenotype/detector output including T vs tau correlation and period itself must not appear in adequacy-only logs; T is computed only after unblinding adequacy pass",
+    "f_fail": "if no adequate operating point in battery after exhaustive seeds, outcome is UNRESOLVED/INVALID (assay not in regime), not FALSIFIED/NEGATIVE; report all attempted points including failures",
+    "f_select": "select condition* = argmax_{condition in battery} (G_adequate rate) with deterministic tie-break (lowest a_E, then lowest d_E; baseline preferred if tie); if none adequate, select none and report UNRESOLVED; f_select = argmax adequacy rate deterministic tie-break",
+    "grep_0_hits_enforcement": {
+      "artifact_path": "artifacts/e2/preregistration/E2c_blinded/",
+      "check": "grep -R forbidden observables in E2c adequacy artifact must be 0 hits; adequacy script must not import classifiers/PING_LIKE/SI/T_period computation",
+      "mechanism": "E2c adequacy script operates only on adequacy gates and raw rates, imports only e2_ping_prereg.json adequacy_gates; forbidden metrics computed in separate unblinded script after adequacy freeze"
+    },
+    "provenance_blinding_spec": "mirrors E2A_BLINDING_SPEC.json v1: forbidden 17 vs allowed 14 split; grep 0-hits enforced; E2a_blinding_spec_hash 74822d0393d4667150697e030568e323d66e4ba3fd52c76b7e4964a8b3768f56 incorporated",
+    "purpose": "E2c adequacy-only selection blinded same as E2a: theta* already selected; this battery runs no phenotype selection \u2014 blinding prevents analysts from using T/PING_LIKE/SI to influence adequacy reporting"
+  },
+  "blinding_check": {
+    "allowed_only": true,
+    "forbidden_grep_hits": 0,
+    "note": "E2c prereg itself contains forbidden terms only in prereg definition, not in blinded execution artifact; execution artifact must contain only G_finite/G_active/G_adequate/mean_rate"
+  },
+  "delays": {
+    "bufsize": 7,
+    "discrete_grid_ms": [
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0
+    ],
+    "discrete_steps": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "distribution": "discrete_grid_uniform_choice",
+    "dt_ms": 0.5,
+    "inherit_from": "e2_ping_prereg.json delays"
+  },
+  "disclosure": {
+    "executor_rules": [
+      "gate conjuncts generated from this JSON only",
+      "typed unit wrappers for ms/Hz",
+      "stable seed derivation fold_in/splitmix64; hash() forbidden",
+      "independent frozen-only rescoring required before interpretation"
+    ],
+    "frozen_V1_verdict": "E2 V1 NEGATIVE_NOT_PING_LIKE at theta* remains frozen and untouched; this prereg is a new hypothesis test branching from theta*, not a repair",
+    "pre_registration": "write_once:true; spec_hash locks spec; analysis code must be generated from this JSON only (no retyped literals)",
+    "v2_amendment": "Causal discriminator H_clock vs H_excit: jointly examine T0,f0,r_E,r_I,rho_volley,CV_T; regime-preservation guard and UNRESOLVED_MECHANISM verdict per MASTER DAG fix 2",
+    "amendment_reason": "Second fix of MASTER DAG 4-item fix: Changing (a) or (d) changes not only recovery time but general excitability. Must distinguish H_clock (T0 tracks tau_u) from H_excit (T0 changes merely because mean excitability/rate changes). Add joint examination of T0,f0,r_E,r_I,rho_volley with regime guards.",
+    "parent_write_once_preserved": "v1 file preserved immutable; v2 carries parent_spec pointer and new joint examination rule",
+    "pre_registration_v2": "write_once:true for v2; spec_hash locks v2 spec; parent v1 preserved immutable via parent_spec; analysis code must be generated from v2 JSON only (no retyped literals); joint T0,f0,r_E,r_I,rho_volley,CV_T table required."
+  },
+  "falsifiers_per_R3_patch": {
+    "F1_d_zero_leaves_T_unchanged": {
+      "BCa": "bias-corrected accelerated bootstrap over seeds, 5000 draws, alpha 0.05, key via fold_in(K_analysis, tag='bca_T_d_comparison')",
+      "IQR_overlap_def": "IQR = [Q25,Q75] per condition; overlap = length(intersection)/min(length(IQR0),length(IQR8)); >0.80 indicates distributions coincide",
+      "decision": "If FALSIFIED, u-recovery pacemaker hypothesis rejected on d-necessity leg; if not falsified (T shifts outside CI or IQR disjoint), hypothesis survives this leg",
+      "direction": "Falsifies pacemaker claim that d matters: if T unchanged when d zeroed, d not causal for period",
+      "formal": "Let T_{a=0.02,d=0} and T_{a=0.02,d=8} be per-seed T distributions (n=5 seeds, same seeds paired) in W=[1500,2000). FALSIFIED if ALL: (i) median(T_d0) in BCa 95% CI of median(T_d8) (5000 draws, K_analysis key), (ii) IQR overlap >80% (overlap length / min(IQR_Td0,IQR_Td8) >0.80), (iii) mean_rate_E >5 Hz in both conditions (not silent) on same seeds. Metric T = median peak-to-peak of r_E.",
+      "id": "d_zero_leaves_T_unchanged",
+      "verbatim": "d_zero_leaves_T_unchanged: FALSIFIED if median T(d=0) within BCa 95% CI of T(d=8) on same seeds W=[1500,2000) AND IQR overlap >80% AND rate>5Hz (not silent); metric T = median peak-to-peak of r_E"
+    },
+    "F2_a_scan_does_not_track_tau_u": {
+      "decision": "If FALSIFIED, u-recovery pacemaker hypothesis rejected on tau-tracking leg; requires monotonic T(tau) with significant rho and correct slope",
+      "formal": "Across a_E scan at fixed d=8 (a in {0.01,0.02,0.04} => tau_u in {100,50,25} ms), with T per seed per a level (n=15 total: 5 seeds x3 tau), compute Spearman rho(T,tau_u) and linear slope of T vs tau_u (or T vs log tau). FALSIFIED if EITHER: (i) rho <0.40 with p >=0.05 (no monotonic tracking), OR (ii) slope not within 30% of predicted ln-ratio slope. Predicted slope: for recovery pacemaker, T ~ k*tau_u or T ~ k*ln(tau_u / tau0) per Izh single-cell scaling; predicted slope = (T_baseline / tau_baseline) * tau scale or derived ln-ratio: slope_pred = DeltaT_pred / Deltatau = T_{a=0.02} * ln(4)/ln( (1/0.01)/(1/0.04) )? Operationally: slope_pred = linear regression slope of log-spaced tau predictor vs observed T_baseline scaling; tolerance +-30% (0.70*slope_pred <= slope_obs <=1.30*slope_pred). If rho >=0.40 with p<0.05 AND slope within 30%, hypothesis survives this leg; else FALSIFIED.",
+      "id": "a_scan_does_not_track_tau_u",
+      "p_threshold": 0.05,
+      "predicted_slope_note": "Predicted ln-ratio slope derived from single-E Izh scaling: T scales with tau_u (or ln tau), so going 25->100 ms (4x tau) predicts T ratio ~ ln(4)/ln(2) ~2 or linear ~4 depending on regime; prereg locks to linear tau scaling as default (slope_pred = T_{0.02}/50) and allows log-slope variant as sensitivity check reported separately \u2014 primary gate is linear within 30%",
+      "rho_threshold": 0.4,
+      "slope_tolerance": "within 30% of predicted ln-ratio slope (i.e., observed slope in [0.70*pred, 1.30*pred])",
+      "tau_u_values": {
+        "0.01": 100.0,
+        "0.02": 50.0,
+        "0.04": 25.0
+      },
+      "verbatim": "a_scan_does_not_track_tau_u: FALSIFIED if Spearman rho(T,tau_u) <0.40 with p>=0.05 OR slope of T vs tau_u not within 30% of predicted ln-ratio slope"
+    },
+    "joint_verdict": "Hypothesis REJECTED if either falsifier fires (FALSIFIED); hypothesis SUPPORTED only if neither falsifier fires AND adequacy guards pass; otherwise UNRESOLVED_silent or INVALID [SUPERSEDED by joint_verdict_v2 in v2; regime_guard now required for SUPPORTED; see joint_examination_rule and regime_guard.]",
+    "patch": "R3",
+    "joint_examination_rule": {
+      "observables": [
+        "T0_ms",
+        "f0_Hz (=1000/T0)",
+        "r_E_Hz",
+        "r_I_Hz",
+        "rho_volley (median per-cycle participation)",
+        "CV_T",
+        "N_cycles"
+      ],
+      "requirement": "All observables must be reported jointly per seed per condition in the same receipt; T0 shift must not be interpreted without r_E/r_I/rho_volley/CV_T. Changing (a) or (d) changes general excitability as well as tau_u, so joint table is mandatory.",
+      "H_clock_vs_H_excit": "H_clock predicts T0 vs tau_u ordering and slope within 30% with stable r_E/r_I/rho_volley/CV_T; H_excit predicts T0 shift covaries with r_E/r_I >2x or rho_volley collapse, not tau_u ordering. Distinguish by Spearman rho(T0,tau_u) vs rho(T0,r_E) and by regime guard.",
+      "verbatim_rule": "A convincing recovery-clock result requires the period shift to follow predicted recovery ordering (Spearman rho vs tau_u, slope within 30% of ln-ratio) WHILE the phenomenon remains the same pulse regime (participation within delta, CV_T bounded). If intervention destroys regime or massively changes firing (rate changes >2x or participation collapses), outcome becomes UNRESOLVED_MECHANISM, not clock support."
+    },
+    "joint_verdict_v2": "Hypothesis REJECTED if either falsifier fires (FALSIFIED) per F1/F2. Hypothesis SUPPORTED only if neither falsifier fires AND adequacy guards pass AND regime_guard preserved (participation within 0.20, CV_T<=0.35, rates within 2x, no collapse) AND joint T0,f0,r_E,r_I,rho_volley table shows clock ordering. If period tracking appears to pass but regime guard fails (rate>2x or rho collapse or CV_T unbounded), outcome is UNRESOLVED_MECHANISM, not SUPPORTED. Ordering: INVALID > UNRESOLVED_silent > UNRESOLVED_MECHANISM > FALSIFIED > NEGATIVE > SUPPORTED. Preserves frozen E2 V1 NEGATIVE.",
+    "joint_verdict_v1_preserved": "Hypothesis REJECTED if either falsifier fires (FALSIFIED); hypothesis SUPPORTED only if neither falsifier fires AND adequacy guards pass; otherwise UNRESOLVED_silent or INVALID",
+    "patch_v2": "R3 + H_clock_vs_H_excit discriminator (MASTER DAG fix 2)"
+  },
+  "frozen_at": "2026-08-26T06:00:00Z",
+  "hypothesis": {
+    "alternative": "T tracks tau_u=1/a_E and depends on d_E after-spike jump",
+    "name": "u_recovery_pacemaker",
+    "not_a_repair": "This battery does not alter, re-score, or re-interpret frozen E2 V1 NEGATIVE_NOT_PING_LIKE verdict; V1/V2 remain sealed negatives. e2_c is a new prospective experiment branching from theta*.",
+    "null_like": "T is independent of a_E/d_E (delay/topology or noise pacemaker)",
+    "scope": "Tested at frozen theta* only; no claim about other operating points; bounded interpretation per E2_SYNTHESIS",
+    "statement": "Population pulse period T at theta* is set by the E-cell recovery variable u (a_E/d_E), not by E-I loop delay or network topology. Under Izhikevich dynamics dv/dt=0.04v^2+5v+140-u+I, du/dt=a(bv-u), spike reset v<-65,u+=d, tau_u=1/a sets recovery timescale. Here u is an intrinsic recovery-state clock with u in X (emitter state: du/dt=a(bv-u), spike reset v<-65, u<-u+d), not automatically an RBS coordinate H (RBS is RBS container H in R^{d_H} with typed coupling maps; this hypothesis tests emitter recovery dynamics specifically).",
+    "tfne_semantics": "u in X (intrinsic recovery-state, emitter coordinate), not RBS H; RBS is separate finite-dimensional container"
+  },
+  "izhi_E_recovery": {
+    "d_E_definition": "post-spike increment of u (adaptation step); d_E in {0, 8.0}; 8.0 is native E value, 0 tests necessity of spike-triggered jump vs pure tau",
+    "equations": "dv/dt = 0.04 v^2 + 5 v + 140 - u + I; du/dt = a*(b*v - u); if v>=30: v<-65, u+=d",
+    "fixed_E": {
+      "b_E": 0.2,
+      "c_E": -65.0
+    },
+    "fixed_I": {
+      "a_I": 0.1,
+      "b_I": 0.2,
+      "c_I": -65,
+      "d_I": 2.0
+    },
+    "model": "Izhikevich",
+    "tau_u_definition": "tau_u = 1 / a_E (ms) in reduced units; a_E in {0.01,0.02,0.04} => tau_u in {100,50,25} ms",
+    "varied": [
+      "a_E",
+      "d_E"
+    ]
+  },
+  "masks": {
+    "inherit_from": "e2_ping_prereg.json masks",
+    "owner_mask": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "owner_mask_bytes_hash": "83af8971f8f04e6e082d1df674dbc1c98ce8bbec1578536a8d78c2812315299f",
+    "owner_mask_implementation_hash": "027bdd97",
+    "owner_mask_spec": {
+      "construction": "build_owner_mask",
+      "dtype": "float32",
+      "n_neurons": 1000,
+      "owners": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    "owner_mask_spec_hash": "51105b0326c87b6fb33e830f4cea0aee2a2d6c83361b0fbba05fefb9ba808a3b"
+  },
+  "metric": {
+    "W": [
+      1500,
+      2000
+    ],
+    "W_primary_note": "W=[1500,2000) is the frozen E2 V1 adequacy window; kept identical for comparability; no tuning",
+    "computation": "r_E = mean spikes per ms across 800 E neurons smoothed with same filtering as E2 pulse characterization only for peak detection; median peak-to-peak interval across detected pulses within W; returns T_ms per seed per condition",
+    "definition": "median peak-to-peak interval of r_E (excitatory population rate) in analysis window W=[1500,2000) ms; r_E binned at dt_ms 0.5 native (fs 2000 Hz); peak picking via parabolic interpolation consistent with e2_ping_prereg method",
+    "name": "T",
+    "rate_guard": "mean_rate_E >5 Hz required for T interpretation (not silent); if rate <=5 Hz, condition is UNRESOLVED_silent, not used for falsifier comparison",
+    "window_units": "ms",
+    "joint_observables_note": "v2 joint examination: per seed per condition report T0_ms, f0_Hz=1000/T0, r_E_Hz, r_I_Hz, rho_volley median, CV_T, N_cycles alongside T. Regime guard uses rho_volley delta 0.20 and CV_T bound 0.35; see causal_discriminator_H_clock_vs_H_excit and regime_guard.",
+    "f0_derivation": "f0_Hz = 1000.0 / T0_ms per seed; median f0 and IQR derived by transform; reciprocal consistency check: reporting both T0 and f0 mandatory."
+  },
+  "parallelizable": true,
+  "parent_e1": "07b1c04af9ea98176bc45350528f3312375f7d24",
+  "provenance": {
+    "authority_packet": {
+      "ping_sha256": "0E9D602B8D1B4E78CB371872AC84DBF4743E0337179572DD461618324D8B7517",
+      "ping_spec_hash": "b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f",
+      "ssa_sha256": "D4DEBFD8AF6CE5B685AC2A8DA00C70E51E8FB8708FD7DB40353385B6C3FF964A",
+      "ssa_spec_hash": "6ca10a960fc408819618f2f0b4032be900d00c7420620409766066955a1781b0"
+    },
+    "code_head_at_prereg": "5e026ce",
+    "derived_from": "artifacts/e2/preregistration/E2a_search/e2a_search_receipt.json result.theta* (write-once) + E2_SYNTHESIS.md pulse-regime diagnosis",
+    "e2a_blinding_spec_hash": "74822d0393d4667150697e030568e323d66e4ba3fd52c76b7e4964a8b3768f56",
+    "inheritance": "theta* inherited verbatim from E2a receipt; only Izhikevich E-cell recovery parameters a_E and d_E are varied; all other drives/weights/topology/delays/masks/seeds inherited unchanged from e2_ping_prereg.json and e2_ssa_spec.v6.json",
+    "parent_e1_note": "E1 07b1c04af9ea98176bc45350528f3312375f7d24 frozen; V1/V2 verdicts independent and untouchable by this prereg",
+    "theta_star_source": "E2a_search_receipt.json result.theta* id=theta0 drive_E=4.0 drive_I=2.0 weight_mu=0.25 noise_scale=0.0 W_ms=60",
+    "theta_star_verbatim": {
+      "W_ms": 60,
+      "drive_E": 4.0,
+      "drive_I": 2.0,
+      "id": "theta0",
+      "noise_scale": 0.0,
+      "weight_mu": 0.25
+    },
+    "v2_derived_from": "e2_c_recovery_clock_prereg.json v1 spec_hash c87a4d412c2006651ddbcd2a8be5c4cab62ff5a16dff2eb79d235d17ce62a9de plus MASTER DAG fix 2 H_clock vs H_excit discriminator",
+    "code_head_at_v2": "0b8c22e"
+  },
+  "purpose": "C1 Preregister V1 recovery-clock battery (e2_c_*.json) testing the u-recovery pacemaker hypothesis. This is a new hypothesis test, explicitly NOT a repair of the frozen V1 NEGATIVE \u2014 E2 V1 verdict stays untouched (NEGATIVE_NOT_PING_LIKE at theta*).",
+  "schema": "e2_c_recovery_clock_prereg.v3",
+  "seeds": {
+    "K0": "PRNGKey(101)",
+    "K_analysis": [
+      3000,
+      3999
+    ],
+    "K_probe": [
+      4000,
+      4099
+    ],
+    "K_runtime": [
+      1000,
+      1999
+    ],
+    "K_stimulus": [
+      2000,
+      2999
+    ],
+    "K_structure": [
+      0,
+      999
+    ],
+    "canonical_order": [
+      "structure",
+      "stimulus",
+      "runtime",
+      "probe",
+      "analysis"
+    ],
+    "cardinalities": {
+      "n_per_condition": 5
+    },
+    "derivation": "fold_in(K0, encode(s,r,u,a)) with splitmix64, canonical order structure->stimulus->runtime->probe->analysis",
+    "offsets": {
+      "K0": 0,
+      "K_analysis": 20480,
+      "K_probe": 16384,
+      "K_runtime": 12288,
+      "K_stimulus": 8192,
+      "K_structure": 4096
+    }
+  },
+  "spec_hash": "f2c6586b3e8dac9ae67f5f471c02546f3e01e195508b78eae59de6c3c3af2c6b",
+  "taxonomy": {
+    "FALSIFIED_vs_NEGATIVE": {
+      "FALSIFIED": "per frozen ordering: falsifier criterion met (d_zero leaves T unchanged OR a_scan does not track tau_u) with adequate rates => hypothesis falsified",
+      "NEGATIVE": "adequate but no falsifier fired and effect size absent yet not meeting falsifier contrarian threshold (e.g., rho 0.2 n.s.) => NEGATIVE (no evidence for pacemaker, but not falsified by strict contrarian)",
+      "frozen_ordering_note": "INVALID; !G_adequate -> UNRESOLVED; FALSIFIED per R3 falsifiers; NEGATIVE vs FALSIFIED per frozen ordering (E2 V1 NEGATIVE_NOT_PING_LIKE ordering preserved; this battery independent)",
+      "labels": [
+        "INVALID",
+        "UNRESOLVED",
+        "FALSIFIED",
+        "NEGATIVE",
+        "SUPPORTED"
+      ]
+    },
+    "INVALID": {
+      "handling": "INVALID_* runs excluded from all aggregations, never pooled with valid; reported separately with seed/reason",
+      "inherit_from": "e2_ping_prereg.json INVALID_rules and e2_ssa_spec.v6 INVALID_rules",
+      "never_pooled": true,
+      "rules": [
+        "INVALID_NUMERIC_NONFINITE",
+        "INVALID_NUMERIC_DIVERGENCE",
+        "INVALID_NUMERIC_ADMISSIBILITY",
+        "INVALID_CONFIG_SEED_DOMAIN",
+        "INVALID_CONFIG_SPEC_MISMATCH",
+        "INVALID_DELAY_STATE",
+        "INVALID_CONFIG_PROBE_LEAKAGE",
+        "INVALID_CONFIG_GEOMETRY"
+      ]
+    },
+    "UNRESOLVED": {
+      "G_adequate": "G_finite && G_active && G_population with G_finite: all V_m,u,spikes,sources,Q,H_K finite not NaN rate<200 |H_K|<=20; G_active: mean_rate_E>=0.5 && mean_rate_I>=0.5 && n_spiking>=10; G_population: active_E>=20 && active_I>=5 (inherited from e2_ping_prereg adequacy_gates)",
+      "additional_UNRESOLVED": "rate<=5 Hz => UNRESOLVED_silent (silent not falsifier-applicable); also gray-zone T unmeasurable",
+      "definition": "UNRESOLVED = !G_adequate",
+      "handling": "UNRESOLVED never counts as FALSIFIED or NEGATIVE; reported as assay not in regime",
+      "UNRESOLVED_MECHANISM": {
+        "definition": "Intervention destroys pulse regime or massively changes firing, so period shift cannot be attributed to recovery clock vs excitability. Triggers: rate ratio >2x (E or I) vs baseline, OR rho_volley collapse (<0.60 or delta>0.40), OR CV_T >0.35 unbounded/irregular, despite apparent T0 tracking.",
+        "handling": "UNRESOLVED_MECHANISM is not SUPPORTED and not FALSIFIED; it is a mechanism-unresolved outcome distinct from UNRESOLVED_silent (rate<=5). Report T0,f0,r_E,r_I,rho_volley,CV_T jointly; do not claim clock support. Ordering: supersedes SUPPORTED but is superseded by INVALID and UNRESOLVED_silent and FALSIFIED.",
+        "verbatim": "If intervention destroys regime or massively changes firing (rate changes >2x or participation collapses), outcome becomes UNRESOLVED_MECHANISM, not clock support."
+      },
+      "subtypes": [
+        "UNRESOLVED_silent",
+        "UNRESOLVED_MECHANISM"
+      ]
+    },
+    "mutual_exclusion": true,
+    "ordering": "INVALID_* > UNRESOLVED > FALSIFIED > NEGATIVE > SUPPORTED, per frozen E2 ordering: INVALID never pooled, !G_adequate -> UNRESOLVED, then falsifier logic, then negative vs support",
+    "unreachable_labels": [],
+    "ordering_v2": "INVALID_* > UNRESOLVED_silent > UNRESOLVED_MECHANISM > FALSIFIED > NEGATIVE > SUPPORTED, per frozen E2 ordering plus v2 regime guard: UNRESOLVED_MECHANISM supersedes SUPPORTED but not FALSIFIED or silent. Original ordering preserved for v1 compat; v2 adds mechanism guard."
+  },
+  "theta_star": {
+    "W_ms": 60,
+    "drive_E": 4.0,
+    "drive_I": 2.0,
+    "e_cell_params_native": {
+      "a": 0.02,
+      "b": 0.2,
+      "c": -65.0,
+      "d": 8.0,
+      "drive": 5.0,
+      "role": "excitatory_pyramidal_like",
+      "source": "suite2_celltype_presets E + e2b_v1_executor.py E defaults"
+    },
+    "i_cell_params": {
+      "a": 0.1,
+      "b": 0.2,
+      "c": -65,
+      "d": 2.0,
+      "model_status": "PV-like model parameterization"
+    },
+    "id": "theta0",
+    "noise_scale": 0.0,
+    "note": "verbatim from E2a_search_receipt.json result.theta*; six-way adequacy tie lexicographic selection, NOT optimum",
+    "weight_mu": 0.25,
+    "weight_scale_reading": "weight_mu scales all projection mus proportionally to nominal mu_EE=0.35: mu_X = mu_X_nom * weight_mu/0.35; sigmas unchanged (frozen)"
+  },
+  "time": {
+    "W": [
+      1500,
+      2000
+    ],
+    "W1": [
+      1000,
+      1500
+    ],
+    "burn_in_ms": 200,
+    "dt_ms": 0.5,
+    "duration_ms": 2000,
+    "inherit_from": "e2_ping_prereg.json time",
+    "n_steps": 4000
+  },
+  "topology": {
+    "N_E": 800,
+    "N_I": 200,
+    "N_total": 1000,
+    "construction": "sparse EdgeList via _construct_core._neuron_population_from_config",
+    "inherit_from": "e2_ping_prereg.json topology",
+    "mean_degree": 80,
+    "p_EE": 0.05,
+    "p_EI": 0.05,
+    "p_IE": 0.2,
+    "p_II": 0.2,
+    "receptor_specs": {
+      "AMPA": {
+        "tau_ms": 2.0
+      },
+      "GABA_A": {
+        "tau_ms": 5.0
+      }
+    }
+  },
+  "write_once": true,
+  "parent_spec": {
+    "schema": "e2_c_recovery_clock_prereg.v2",
+    "spec_hash": "b78400698d5c9bedae44237396c22ba112fc3e0479afd65d011a3a4d50b47970",
+    "sha256": "F225EA27F284BEC8A1C4844200863B8D84B9724918477DA4B04432E7D663B525"
+  },
+  "causal_discriminator_H_clock_vs_H_excit": {
+    "rationale": "Changing (a) or (d) changes not only recovery timescale tau_u=1/a_E and after-spike jump d_E but also general excitability and mean firing rates. A shift in T0 could therefore arise via H_clock (period set by u-recovery dynamics) or via H_excit (period shortens/lengthens merely because excitability/rate changed, not because tau_u governs inter-volley recovery). C2 must distinguish these.",
+    "hypotheses": {
+      "H_clock": "T0=median peak-to-peak interval of r_E tracks tau_u (and independent of mean rate): Spearman rho(T0,tau_u) >=0.40 p<0.05 and slope within 30% of predicted ln-ratio, while r_E,r_I,rho_volley,CV_T remain in same pulse regime. f0=T0^-1 shows reciprocal tracking.",
+      "H_excit": "T0 change is epiphenomenal to excitability: T0 shift correlates with r_E/r_I change or occurs only when rates change >2x or rho_volley collapses / CV_T degrades, not with tau_u ordering per se. T0 vs tau_u rho <0.40 n.s. or slope outside 30%, but rates/participation move strongly.",
+      "distinction_required": "Report T0,f0,r_E,r_I,rho_volley,CV_T jointly per condition per seed; do not interpret T0 shift in isolation."
+    },
+    "joint_observables": {
+      "T0_ms": {
+        "definition": "Same as metric.T: median peak-to-peak interval of excitatory population rate r_E in W=[1500,2000) ms; per seed per condition; ms. Peak detection via parabolic interpolation on r_E smoothed as in E2 pulse characterization. Units ms.",
+        "per_seed_per_condition": true,
+        "units": "ms"
+      },
+      "f0_Hz": {
+        "definition": "f0 = 1 / T0, derived per seed per condition; f0_Hz = 1000.0 / T0_ms. Tracks reciprocal of T0; reported jointly to distinguish clock-frequency vs period representation. Units Hz.",
+        "derivation": "f0_Hz = 1000.0 / T0_ms per seed; median f0 and distribution reported alongside T0; same BCa/ IQR checks apply to f0 if T0 used (f0 CI derived by transform).",
+        "units": "Hz"
+      },
+      "r_E_Hz": {
+        "definition": "Mean firing rate of E population (800 E neurons) in W=[1500,2000) ms: total E spikes in W / (800 * window_duration_s). Hz per neuron mean. Same as mean_rate_E in adequacy_gates.",
+        "window": "[1500,2000) ms",
+        "units": "Hz"
+      },
+      "r_I_Hz": {
+        "definition": "Mean firing rate of I population (200 I neurons) in W=[1500,2000) ms: total I spikes in W / (200 * window_duration_s). Hz per neuron mean.",
+        "window": "[1500,2000) ms",
+        "units": "Hz"
+      },
+      "rho_volley": {
+        "definition": "Volley participation: per detected cycle (consecutive r_E peaks), fraction of E neurons firing at least one spike within [peak - D/2, peak + D/2] or within inter-peak partition; rho_volley per cycle in [0,1]; reported as median over cycles in W per seed per condition, and as distribution. Equivalent to per-cycle rho_c; median rho_volley characterizes dense synchronous recruitment (baseline ~1.0 at theta*).",
+        "computation": "Detected cycles = intervals between successive r_E peaks in W (requires N_cycles >=3 for stable rho). For each cycle c (partition by midpoints between peaks), rho_c = N_E_firing_in_cycle / 800. rho_volley_median = median_c rho_c. Also report mean and IQR. If N_cycles <3, rho_volley = UNDEFINED and regime guard FAIL -> UNRESOLVED.",
+        "range": "[0,1]",
+        "baseline_at_theta_star": "~1.0 (globally synchronous pulse regime; see S_PULSE_CHARACTERIZATION.md and 11_E2_NEGATIVE_MECHANISTIC_INTERPRETATION.md)",
+        "units": "dimensionless"
+      },
+      "CV_T": {
+        "definition": "Coefficient of variation of inter-volley periods: CV_T = std(T_cycle) / mean(T_cycle), where T_cycle are per-cycle peak-to-peak intervals (same T values used for median T0) in W per seed per condition. Dimensionless; bounded regime has CV_T <=0.35.",
+        "computation": "From detected peak times t_k in W (after smoothing), T_k = t_{k+1}-t_k; CV_T = sigma_T / mu_T if len(T_k) >=3 else None/UNDEFINED.",
+        "threshold_regime_bounded": 0.35,
+        "origin": "e2_ping_prereg.json G_cycle CV_T <=0.35; S_PULSE pulse irregularity guard",
+        "units": "dimensionless"
+      }
+    },
+    "reporting_requirement": "Per condition per seed, report table row: T0_ms, f0_Hz, r_E_Hz, r_I_Hz, rho_volley_median, CV_T, N_cycles, mean_rate_E/I; aggregates: median/IQR per condition and deltas vs baseline (a=0.02,d=8). All five joint observables must appear together in the same receipt; T0 alone is insufficient for a clock claim."
+  },
+  "regime_guard": {
+    "purpose": "Ensure phenomenon remains the same pulse regime across a_E/d_E interventions; distinguishes true recovery-clock tracking from excitability-driven regime change or destruction.",
+    "baseline_reference": "Baseline condition e2_c_a02_d8_baseline (a=0.02,tau 50ms,d=8) is the frozen theta* pulse regime: dense synchronous pulses, participation ~1.0, CV_T ~0.002, interpulse ~138ms, rate >5 Hz.",
+    "regime_preserved_criteria": {
+      "participation_within_delta": {
+        "metric": "rho_volley_median",
+        "delta_rho": 0.2,
+        "formal": "|rho_volley_median(condition) - rho_volley_median(baseline)| <= 0.20 absolute, evaluated on median over seeds (pooled median-of-medians or per-seed median delta median). Baseline ~1.0 => requires rho_condition >=0.80 median.",
+        "per_seed_also": "Per-seed rho_volley_median >=0.60 absolute in each seed ( floor to avoid single-cycle dropout ); if any seed reports rho <0.60 in a condition, flag collapse.",
+        "collapse_definition": "rho_volley_median <0.60 absolute OR delta_rho >0.40 (i.e., baseline 1.0 -> condition <0.60) in median => participation collapses."
+      },
+      "CV_T_bounded": {
+        "metric": "CV_T",
+        "bound": 0.35,
+        "formal": "CV_T <=0.35 per condition per seed median; regime-preserved requires median CV_T <=0.35 and |CV_T(condition)-CV_T(baseline)| <=0.15 absolute median. If baseline CV_T ~0.002, condition CV_T >0.35 => irregular / destroyed regime.",
+        "units": "dimensionless"
+      },
+      "N_cycles_sufficient": "N_cycles >=3 per seed per condition for T0/rho/CV_T interpretation; <3 => T undefined => UNRESOLVED_silent (not regime comparison).",
+      "rate_guard_for_regime": "Mean_rate_E >5 Hz per condition (already in metric.rate_guard) for T interpretability; additionally adequacy G_adequate must pass."
+    },
+    "mechanism_unresolved_triggers": {
+      "rate_change_gt_2x": {
+        "definition": "Massively changes firing: ratio of mean rates between condition and baseline exceeds 2x in either direction for E or I.",
+        "formal_E": "ratio_E = median_r_E(condition) / median_r_E(baseline) (pooled medians over 5 seeds); triggers if ratio_E >2.0 or ratio_E <0.50 (i.e., max(ratio_E, 1/ratio_E) >2.0).",
+        "formal_I": "ratio_I = median_r_I(condition) / median_r_I(baseline); triggers if max(ratio_I, 1/ratio_I) >2.0.",
+        "trigger": "If either E or I ratio exceeds 2x, OR per-seed mean ratio median >2x, then intervention massively changes excitability => UNRESOLVED_MECHANISM, not clock support. Report both r_E and r_I ratios.",
+        "rationale": "Large rate excursions indicate excitability change dominates; period shift could be rate-mediated, not tau_u-mediated."
+      },
+      "participation_collapses": {
+        "definition": "Volley participation collapses as above: median rho_volley <0.60 or delta_rho >0.40.",
+        "trigger": "If rho_volley collapse holds, regime destroyed => UNRESOLVED_MECHANISM."
+      },
+      "CV_T_degrades": {
+        "definition": "CV_T >0.50 or delta CV_T >0.30 (substantially irregular) indicates rhythm degraded.",
+        "trigger": "CV_T median >0.35 already fails regime-preserved; >0.50 or irregular => UNRESOLVED_MECHANISM if T shift otherwise appears to track."
+      },
+      "silent_or_insufficient": "If any condition silent (rate<=5) or N_cycles<3, outcome is UNRESOLVED_silent, not Mechanism verdict."
+    },
+    "verbatim_rule": "A convincing recovery-clock result requires the period shift to follow predicted recovery ordering (Spearman rho vs tau_u, slope within 30% of ln-ratio) WHILE the phenomenon remains the same pulse regime (participation within delta, CV_T bounded). If intervention destroys regime or massively changes firing (rate changes >2x or participation collapses), outcome becomes UNRESOLVED_MECHANISM, not clock support.",
+    "consequence": "Regime guard is conjunctive with falsifier tests: SUPPORTED (H_clock) requires BOTH (i) T0 tracking passes (rho>=0.40 p<0.05 and slope within 30%) AND (ii) regime preserved (participation within 0.20, CV_T<=0.35, rates within 2x, no collapse). If (i) passes but (ii) fails (rate>2x or rho collapse or CV unbounded), verdict is UNRESOLVED_MECHANISM, not SUPPORTED. If (i) fails, verdict is FALSIFIED or NEGATIVE regardless of (ii), per joint_verdict ordering: INVALID > UNRESOLVED_silent > UNRESOLVED_MECHANISM > FALSIFIED > NEGATIVE > SUPPORTED, where UNRESOLVED_MECHANISM supersedes SUPPORTED but not FALSIFIED."
+  }
+}

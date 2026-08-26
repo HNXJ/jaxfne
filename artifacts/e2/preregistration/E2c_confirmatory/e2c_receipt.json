@@ -1,0 +1,2193 @@
+{
+  "schema": "e2c_confirmatory_receipt.v1",
+  "generated_at": "2026-08-26T15:11:27.502632+00:00",
+  "authority": {
+    "prereg": "e2_c_recovery_clock_prereg.v3.json",
+    "spec_hash": "f2c6586b3e8dac9ae67f5f471c02546f3e01e195508b78eae59de6c3c3af2c6b",
+    "parent_chain": [
+      "c87a4d412c2006651ddbcd2a8be5c4cab62ff5a16dff2eb79d235d17ce62a9de",
+      "b78400698d5c9bedae44237396c22ba112fc3e0479afd65d011a3a4d50b47970",
+      "f2c6586b3e8dac9ae67f5f471c02546f3e01e195508b78eae59de6c3c3af2c6b"
+    ],
+    "code_head": "17eab62393475825755b17b27f72978d36c2e52b"
+  },
+  "battery": {
+    "conditions": [
+      {
+        "a_E": 0.01,
+        "arm": "a_scan",
+        "d_E": 8.0,
+        "id": "e2_c_a01_d8",
+        "role": "a_E scan: slow recovery (tau 100 ms), native jump d=8",
+        "tau_u_ms": 100.0
+      },
+      {
+        "a_E": 0.02,
+        "arm": "shared_baseline",
+        "d_E": 8.0,
+        "id": "e2_c_a02_d8_baseline",
+        "role": "baseline theta* native E (a=0.02,tau 50 ms,d=8); belongs to both a_scan and d_scan; counted once for distinct combos",
+        "tau_u_ms": 50.0
+      },
+      {
+        "a_E": 0.04,
+        "arm": "a_scan",
+        "d_E": 8.0,
+        "id": "e2_c_a04_d8",
+        "role": "a_E scan: fast recovery (tau 25 ms), native jump d=8",
+        "tau_u_ms": 25.0
+      },
+      {
+        "a_E": 0.02,
+        "arm": "d_scan",
+        "d_E": 0,
+        "id": "e2_c_a02_d0",
+        "role": "d_E scan: same tau 50 ms but zero post-spike jump (tests d necessity)",
+        "tau_u_ms": 50.0
+      },
+      {
+        "a_E": 0.02,
+        "arm": "d_scan",
+        "d_E": 8.0,
+        "id": "e2_c_a02_d8_dscan_ref",
+        "role": "d_E scan reference: same params as baseline but listed as second arm for independent-arm count parity with R2; distinct_combos counts this as duplicate of e2_c_a02_d8_baseline (analysis_arms=5, distinct=4)",
+        "tau_u_ms": 50.0
+      }
+    ],
+    "seeds": [
+      100,
+      101,
+      102,
+      103,
+      104
+    ],
+    "distinct_combos": [
+      "0.01_8.0",
+      "0.02_8.0",
+      "0.04_8.0",
+      "0.02_0"
+    ],
+    "a_E_levels": [
+      0.01,
+      0.02,
+      0.04
+    ],
+    "d_E_levels": [
+      0,
+      8.0
+    ]
+  },
+  "execution_grammar": {
+    "CircuitSpec": "Configuration via suite2 presets + _neuron_population_from_config with per-condition a_E/d_E for E only (manual build_base identical to V1)",
+    "delays": {
+      "bufsize": 7,
+      "discrete_grid_ms": [
+        1.0,
+        1.5,
+        2.0,
+        2.5,
+        3.0
+      ],
+      "discrete_steps": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "distribution": "discrete_grid_uniform_choice",
+      "dt_ms": 0.5,
+      "inherit_from": "e2_ping_prereg.json delays"
+    },
+    "topology": {
+      "N_E": 800,
+      "N_I": 200,
+      "N_total": 1000,
+      "construction": "sparse EdgeList via _construct_core._neuron_population_from_config",
+      "inherit_from": "e2_ping_prereg.json topology",
+      "mean_degree": 80,
+      "p_EE": 0.05,
+      "p_EI": 0.05,
+      "p_IE": 0.2,
+      "p_II": 0.2,
+      "receptor_specs": {
+        "AMPA": {
+          "tau_ms": 2.0
+        },
+        "GABA_A": {
+          "tau_ms": 5.0
+        }
+      }
+    },
+    "theta_star": {
+      "W_ms": 60,
+      "drive_E": 4.0,
+      "drive_I": 2.0,
+      "e_cell_params_native": {
+        "a": 0.02,
+        "b": 0.2,
+        "c": -65.0,
+        "d": 8.0,
+        "drive": 5.0,
+        "role": "excitatory_pyramidal_like",
+        "source": "suite2_celltype_presets E + e2b_v1_executor.py E defaults"
+      },
+      "i_cell_params": {
+        "a": 0.1,
+        "b": 0.2,
+        "c": -65,
+        "d": 2.0,
+        "model_status": "PV-like model parameterization"
+      },
+      "id": "theta0",
+      "noise_scale": 0.0,
+      "note": "verbatim from E2a_search_receipt.json result.theta*; six-way adequacy tie lexicographic selection, NOT optimum",
+      "weight_mu": 0.25,
+      "weight_scale_reading": "weight_mu scales all projection mus proportionally to nominal mu_EE=0.35: mu_X = mu_X_nom * weight_mu/0.35; sigmas unchanged (frozen)"
+    }
+  },
+  "per_seed_results": {
+    "0.01_8.0": [
+      {
+        "seed": 100,
+        "a_E": 0.01,
+        "d_E": 8.0,
+        "tau_u": 100.0,
+        "id": "e2_c_a01_d8",
+        "INVALID": {},
+        "meanE": 4.0,
+        "meanI": 3.9200000762939453,
+        "n_spiking": 996,
+        "active_E": 800,
+        "active_I": 196,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 253.0,
+        "f0": 3.952569169960474,
+        "CV_T": 0.0,
+        "N_cycles": 1,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          53,
+          559
+        ],
+        "periods": [
+          253.0
+        ]
+      },
+      {
+        "seed": 101,
+        "a_E": 0.01,
+        "d_E": 8.0,
+        "tau_u": 100.0,
+        "id": "e2_c_a01_d8",
+        "INVALID": {},
+        "meanE": 4.0,
+        "meanI": 3.9700000286102295,
+        "n_spiking": 999,
+        "active_E": 800,
+        "active_I": 199,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 253.0,
+        "f0": 3.952569169960474,
+        "CV_T": 0.0,
+        "N_cycles": 1,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          53,
+          559
+        ],
+        "periods": [
+          253.0
+        ]
+      },
+      {
+        "seed": 102,
+        "a_E": 0.01,
+        "d_E": 8.0,
+        "tau_u": 100.0,
+        "id": "e2_c_a01_d8",
+        "INVALID": {},
+        "meanE": 4.0,
+        "meanI": 3.9000000953674316,
+        "n_spiking": 996,
+        "active_E": 800,
+        "active_I": 196,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 253.0,
+        "f0": 3.952569169960474,
+        "CV_T": 0.0,
+        "N_cycles": 1,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          53,
+          559
+        ],
+        "periods": [
+          253.0
+        ]
+      },
+      {
+        "seed": 103,
+        "a_E": 0.01,
+        "d_E": 8.0,
+        "tau_u": 100.0,
+        "id": "e2_c_a01_d8",
+        "INVALID": {},
+        "meanE": 4.0,
+        "meanI": 3.940000057220459,
+        "n_spiking": 997,
+        "active_E": 800,
+        "active_I": 197,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 253.0,
+        "f0": 3.952569169960474,
+        "CV_T": 0.0,
+        "N_cycles": 1,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          53,
+          559
+        ],
+        "periods": [
+          253.0
+        ]
+      },
+      {
+        "seed": 104,
+        "a_E": 0.01,
+        "d_E": 8.0,
+        "tau_u": 100.0,
+        "id": "e2_c_a01_d8",
+        "INVALID": {},
+        "meanE": 4.0,
+        "meanI": 3.990000009536743,
+        "n_spiking": 1000,
+        "active_E": 800,
+        "active_I": 200,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 253.0,
+        "f0": 3.952569169960474,
+        "CV_T": 0.0,
+        "N_cycles": 1,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          53,
+          559
+        ],
+        "periods": [
+          253.0
+        ]
+      }
+    ],
+    "0.02_8.0": [
+      {
+        "seed": 100,
+        "a_E": 0.02,
+        "d_E": 8.0,
+        "tau_u": 50.0,
+        "id": "e2_c_a02_d8_dscan_ref",
+        "INVALID": {},
+        "meanE": 8.0,
+        "meanI": 7.650000095367432,
+        "n_spiking": 993,
+        "active_E": 800,
+        "active_I": 193,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 138.5,
+        "f0": 7.2202166064981945,
+        "CV_T": 0.0016997759163138162,
+        "N_cycles": 3,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          91,
+          369,
+          646,
+          923
+        ],
+        "periods": [
+          139.0,
+          138.5,
+          138.5
+        ]
+      },
+      {
+        "seed": 101,
+        "a_E": 0.02,
+        "d_E": 8.0,
+        "tau_u": 50.0,
+        "id": "e2_c_a02_d8_dscan_ref",
+        "INVALID": {},
+        "meanE": 8.0,
+        "meanI": 7.769999980926514,
+        "n_spiking": 995,
+        "active_E": 800,
+        "active_I": 195,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 139.0,
+        "f0": 7.194244604316546,
+        "CV_T": 0.001697735368995312,
+        "N_cycles": 3,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          91,
+          369,
+          646,
+          924
+        ],
+        "periods": [
+          139.0,
+          138.5,
+          139.0
+        ]
+      },
+      {
+        "seed": 102,
+        "a_E": 0.02,
+        "d_E": 8.0,
+        "tau_u": 50.0,
+        "id": "e2_c_a02_d8_dscan_ref",
+        "INVALID": {},
+        "meanE": 8.0,
+        "meanI": 7.670000076293945,
+        "n_spiking": 993,
+        "active_E": 800,
+        "active_I": 193,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 138.5,
+        "f0": 7.2202166064981945,
+        "CV_T": 0.0016997759163138162,
+        "N_cycles": 3,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          91,
+          369,
+          646,
+          923
+        ],
+        "periods": [
+          139.0,
+          138.5,
+          138.5
+        ]
+      },
+      {
+        "seed": 103,
+        "a_E": 0.02,
+        "d_E": 8.0,
+        "tau_u": 50.0,
+        "id": "e2_c_a02_d8_dscan_ref",
+        "INVALID": {},
+        "meanE": 8.0,
+        "meanI": 7.539999961853027,
+        "n_spiking": 991,
+        "active_E": 800,
+        "active_I": 191,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 138.5,
+        "f0": 7.2202166064981945,
+        "CV_T": 0.0,
+        "N_cycles": 3,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          91,
+          368,
+          645,
+          922
+        ],
+        "periods": [
+          138.5,
+          138.5,
+          138.5
+        ]
+      },
+      {
+        "seed": 104,
+        "a_E": 0.02,
+        "d_E": 8.0,
+        "tau_u": 50.0,
+        "id": "e2_c_a02_d8_dscan_ref",
+        "INVALID": {},
+        "meanE": 8.0,
+        "meanI": 7.78000020980835,
+        "n_spiking": 996,
+        "active_E": 800,
+        "active_I": 196,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 138.5,
+        "f0": 7.2202166064981945,
+        "CV_T": 0.0029476410863816826,
+        "N_cycles": 3,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          91,
+          368,
+          646,
+          922
+        ],
+        "periods": [
+          138.5,
+          139.0,
+          138.0
+        ]
+      }
+    ],
+    "0.04_8.0": [
+      {
+        "seed": 100,
+        "a_E": 0.04,
+        "d_E": 8.0,
+        "tau_u": 25.0,
+        "id": "e2_c_a04_d8",
+        "INVALID": {},
+        "meanE": 14.164999961853027,
+        "meanI": 10.579999923706055,
+        "n_spiking": 955,
+        "active_E": 800,
+        "active_I": 155,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 70.0,
+        "f0": 14.285714285714286,
+        "CV_T": 0.0,
+        "N_cycles": 6,
+        "rho_volley_median": 1.0,
+        "rho_mean": 0.999375,
+        "peaks": [
+          41,
+          181,
+          321,
+          461,
+          601,
+          741,
+          881
+        ],
+        "periods": [
+          70.0,
+          70.0,
+          70.0,
+          70.0,
+          70.0,
+          70.0
+        ]
+      },
+      {
+        "seed": 101,
+        "a_E": 0.04,
+        "d_E": 8.0,
+        "tau_u": 25.0,
+        "id": "e2_c_a04_d8",
+        "INVALID": {},
+        "meanE": 14.882499694824219,
+        "meanI": 11.630000114440918,
+        "n_spiking": 968,
+        "active_E": 800,
+        "active_I": 168,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 69.5,
+        "f0": 14.388489208633093,
+        "CV_T": 0.020306650717373496,
+        "N_cycles": 7,
+        "rho_volley_median": 1.0,
+        "rho_mean": 0.9926785714285715,
+        "peaks": [
+          29,
+          168,
+          307,
+          446,
+          585,
+          724,
+          863,
+          994
+        ],
+        "periods": [
+          69.5,
+          69.5,
+          69.5,
+          69.5,
+          69.5,
+          69.5,
+          65.5
+        ]
+      },
+      {
+        "seed": 102,
+        "a_E": 0.04,
+        "d_E": 8.0,
+        "tau_u": 25.0,
+        "id": "e2_c_a04_d8",
+        "INVALID": {},
+        "meanE": 14.114999771118164,
+        "meanI": 10.239999771118164,
+        "n_spiking": 951,
+        "active_E": 800,
+        "active_I": 151,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 70.0,
+        "f0": 14.285714285714286,
+        "CV_T": 0.0968239511847439,
+        "N_cycles": 7,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          45,
+          186,
+          326,
+          466,
+          606,
+          747,
+          887,
+          990
+        ],
+        "periods": [
+          70.5,
+          70.0,
+          70.0,
+          70.0,
+          70.5,
+          70.0,
+          51.5
+        ]
+      },
+      {
+        "seed": 103,
+        "a_E": 0.04,
+        "d_E": 8.0,
+        "tau_u": 25.0,
+        "id": "e2_c_a04_d8",
+        "INVALID": {},
+        "meanE": 14.15999984741211,
+        "meanI": 10.619999885559082,
+        "n_spiking": 956,
+        "active_E": 800,
+        "active_I": 156,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 70.0,
+        "f0": 14.285714285714286,
+        "CV_T": 0.002665158495232168,
+        "N_cycles": 6,
+        "rho_volley_median": 1.0,
+        "rho_mean": 0.999375,
+        "peaks": [
+          41,
+          181,
+          321,
+          461,
+          601,
+          740,
+          880
+        ],
+        "periods": [
+          70.0,
+          70.0,
+          70.0,
+          70.0,
+          69.5,
+          70.0
+        ]
+      },
+      {
+        "seed": 104,
+        "a_E": 0.04,
+        "d_E": 8.0,
+        "tau_u": 25.0,
+        "id": "e2_c_a04_d8",
+        "INVALID": {},
+        "meanE": 14.154999732971191,
+        "meanI": 10.539999961853027,
+        "n_spiking": 955,
+        "active_E": 800,
+        "active_I": 155,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 70.0,
+        "f0": 14.285714285714286,
+        "CV_T": 0.0026588204250889294,
+        "N_cycles": 6,
+        "rho_volley_median": 1.0,
+        "rho_mean": 0.9970833333333333,
+        "peaks": [
+          39,
+          179,
+          319,
+          460,
+          600,
+          740,
+          880
+        ],
+        "periods": [
+          70.0,
+          70.0,
+          70.5,
+          70.0,
+          70.0,
+          70.0
+        ]
+      }
+    ],
+    "0.02_0": [
+      {
+        "seed": 100,
+        "a_E": 0.02,
+        "d_E": 0,
+        "tau_u": 50.0,
+        "id": "e2_c_a02_d0",
+        "INVALID": {},
+        "meanE": 38.997501373291016,
+        "meanI": 19.389999389648438,
+        "n_spiking": 996,
+        "active_E": 800,
+        "active_I": 196,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 53.5,
+        "f0": 18.69158878504673,
+        "CV_T": 0.0038773651676413897,
+        "N_cycles": 9,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          23,
+          130,
+          237,
+          345,
+          452,
+          559,
+          666,
+          774,
+          881,
+          988
+        ],
+        "periods": [
+          53.5,
+          53.5,
+          54.0,
+          53.5,
+          53.5,
+          53.5,
+          54.0,
+          53.5,
+          53.5
+        ]
+      },
+      {
+        "seed": 101,
+        "a_E": 0.02,
+        "d_E": 0,
+        "tau_u": 50.0,
+        "id": "e2_c_a02_d0",
+        "INVALID": {},
+        "meanE": 37.345001220703125,
+        "meanI": 19.520000457763672,
+        "n_spiking": 998,
+        "active_E": 800,
+        "active_I": 198,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 53.5,
+        "f0": 18.69158878504673,
+        "CV_T": 0.0029401529363266015,
+        "N_cycles": 9,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          11,
+          118,
+          225,
+          332,
+          439,
+          546,
+          653,
+          760,
+          867,
+          973
+        ],
+        "periods": [
+          53.5,
+          53.5,
+          53.5,
+          53.5,
+          53.5,
+          53.5,
+          53.5,
+          53.5,
+          53.0
+        ]
+      },
+      {
+        "seed": 102,
+        "a_E": 0.02,
+        "d_E": 0,
+        "tau_u": 50.0,
+        "id": "e2_c_a02_d0",
+        "INVALID": {},
+        "meanE": 35.29249954223633,
+        "meanI": 17.31999969482422,
+        "n_spiking": 996,
+        "active_E": 800,
+        "active_I": 196,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 54.25,
+        "f0": 18.433179723502302,
+        "CV_T": 0.004608294930875576,
+        "N_cycles": 8,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          50,
+          158,
+          267,
+          376,
+          485,
+          593,
+          702,
+          810,
+          918
+        ],
+        "periods": [
+          54.0,
+          54.5,
+          54.5,
+          54.5,
+          54.0,
+          54.5,
+          54.0,
+          54.0
+        ]
+      },
+      {
+        "seed": 103,
+        "a_E": 0.02,
+        "d_E": 0,
+        "tau_u": 50.0,
+        "id": "e2_c_a02_d0",
+        "INVALID": {},
+        "meanE": 36.907501220703125,
+        "meanI": 17.34000015258789,
+        "n_spiking": 997,
+        "active_E": 800,
+        "active_I": 197,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 54.0,
+        "f0": 18.51851851851852,
+        "CV_T": 0.04410704736884522,
+        "N_cycles": 9,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          37,
+          145,
+          253,
+          360,
+          468,
+          576,
+          684,
+          792,
+          900,
+          993
+        ],
+        "periods": [
+          54.0,
+          54.0,
+          53.5,
+          54.0,
+          54.0,
+          54.0,
+          54.0,
+          54.0,
+          46.5
+        ]
+      },
+      {
+        "seed": 104,
+        "a_E": 0.02,
+        "d_E": 0,
+        "tau_u": 50.0,
+        "id": "e2_c_a02_d0",
+        "INVALID": {},
+        "meanE": 39.02000045776367,
+        "meanI": 19.780000686645508,
+        "n_spiking": 1000,
+        "active_E": 800,
+        "active_I": 200,
+        "G_finite": true,
+        "G_active": true,
+        "G_pop": true,
+        "G_adequate": true,
+        "T0": 53.5,
+        "f0": 18.69158878504673,
+        "CV_T": 0.004391967585009612,
+        "N_cycles": 9,
+        "rho_volley_median": 1.0,
+        "rho_mean": 1.0,
+        "peaks": [
+          23,
+          131,
+          238,
+          345,
+          452,
+          559,
+          666,
+          774,
+          881,
+          989
+        ],
+        "periods": [
+          54.0,
+          53.5,
+          53.5,
+          53.5,
+          53.5,
+          53.5,
+          54.0,
+          53.5,
+          54.0
+        ]
+      }
+    ]
+  },
+  "aggregates": {
+    "0.01_8.0": {
+      "median_T0": 253.0,
+      "iqr_T0": [
+        253.0,
+        253.0
+      ],
+      "median_f0": 3.952569169960474,
+      "iqr_f0": [
+        3.952569169960474,
+        3.952569169960474
+      ],
+      "median_rE": 4.0,
+      "iqr_rE": [
+        4.0,
+        4.0
+      ],
+      "median_rI": 3.940000057220459,
+      "iqr_rI": [
+        3.9200000762939453,
+        3.9700000286102295
+      ],
+      "median_rho": 1.0,
+      "iqr_rho": [
+        1.0,
+        1.0
+      ],
+      "median_CV": 0.0,
+      "iqr_CV": [
+        0.0,
+        0.0
+      ],
+      "median_N": 1,
+      "Ts": [
+        253.0,
+        253.0,
+        253.0,
+        253.0,
+        253.0
+      ],
+      "fs": [
+        3.952569169960474,
+        3.952569169960474,
+        3.952569169960474,
+        3.952569169960474,
+        3.952569169960474
+      ],
+      "rEs": [
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0
+      ],
+      "rIs": [
+        3.9200000762939453,
+        3.9700000286102295,
+        3.9000000953674316,
+        3.940000057220459,
+        3.990000009536743
+      ],
+      "rhos": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "CVs": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "per": [
+        {
+          "seed": 100,
+          "a_E": 0.01,
+          "d_E": 8.0,
+          "tau_u": 100.0,
+          "id": "e2_c_a01_d8",
+          "INVALID": {},
+          "meanE": 4.0,
+          "meanI": 3.9200000762939453,
+          "n_spiking": 996,
+          "active_E": 800,
+          "active_I": 196,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 253.0,
+          "f0": 3.952569169960474,
+          "CV_T": 0.0,
+          "N_cycles": 1,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            53,
+            559
+          ],
+          "periods": [
+            253.0
+          ]
+        },
+        {
+          "seed": 101,
+          "a_E": 0.01,
+          "d_E": 8.0,
+          "tau_u": 100.0,
+          "id": "e2_c_a01_d8",
+          "INVALID": {},
+          "meanE": 4.0,
+          "meanI": 3.9700000286102295,
+          "n_spiking": 999,
+          "active_E": 800,
+          "active_I": 199,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 253.0,
+          "f0": 3.952569169960474,
+          "CV_T": 0.0,
+          "N_cycles": 1,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            53,
+            559
+          ],
+          "periods": [
+            253.0
+          ]
+        },
+        {
+          "seed": 102,
+          "a_E": 0.01,
+          "d_E": 8.0,
+          "tau_u": 100.0,
+          "id": "e2_c_a01_d8",
+          "INVALID": {},
+          "meanE": 4.0,
+          "meanI": 3.9000000953674316,
+          "n_spiking": 996,
+          "active_E": 800,
+          "active_I": 196,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 253.0,
+          "f0": 3.952569169960474,
+          "CV_T": 0.0,
+          "N_cycles": 1,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            53,
+            559
+          ],
+          "periods": [
+            253.0
+          ]
+        },
+        {
+          "seed": 103,
+          "a_E": 0.01,
+          "d_E": 8.0,
+          "tau_u": 100.0,
+          "id": "e2_c_a01_d8",
+          "INVALID": {},
+          "meanE": 4.0,
+          "meanI": 3.940000057220459,
+          "n_spiking": 997,
+          "active_E": 800,
+          "active_I": 197,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 253.0,
+          "f0": 3.952569169960474,
+          "CV_T": 0.0,
+          "N_cycles": 1,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            53,
+            559
+          ],
+          "periods": [
+            253.0
+          ]
+        },
+        {
+          "seed": 104,
+          "a_E": 0.01,
+          "d_E": 8.0,
+          "tau_u": 100.0,
+          "id": "e2_c_a01_d8",
+          "INVALID": {},
+          "meanE": 4.0,
+          "meanI": 3.990000009536743,
+          "n_spiking": 1000,
+          "active_E": 800,
+          "active_I": 200,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 253.0,
+          "f0": 3.952569169960474,
+          "CV_T": 0.0,
+          "N_cycles": 1,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            53,
+            559
+          ],
+          "periods": [
+            253.0
+          ]
+        }
+      ]
+    },
+    "0.02_8.0": {
+      "median_T0": 138.5,
+      "iqr_T0": [
+        138.5,
+        138.5
+      ],
+      "median_f0": 7.2202166064981945,
+      "iqr_f0": [
+        7.2202166064981945,
+        7.2202166064981945
+      ],
+      "median_rE": 8.0,
+      "iqr_rE": [
+        8.0,
+        8.0
+      ],
+      "median_rI": 7.670000076293945,
+      "iqr_rI": [
+        7.650000095367432,
+        7.769999980926514
+      ],
+      "median_rho": 1.0,
+      "iqr_rho": [
+        1.0,
+        1.0
+      ],
+      "median_CV": 0.0016997759163138162,
+      "iqr_CV": [
+        0.001697735368995312,
+        0.0016997759163138162
+      ],
+      "median_N": 3,
+      "Ts": [
+        138.5,
+        139.0,
+        138.5,
+        138.5,
+        138.5
+      ],
+      "fs": [
+        7.2202166064981945,
+        7.194244604316546,
+        7.2202166064981945,
+        7.2202166064981945,
+        7.2202166064981945
+      ],
+      "rEs": [
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0
+      ],
+      "rIs": [
+        7.650000095367432,
+        7.769999980926514,
+        7.670000076293945,
+        7.539999961853027,
+        7.78000020980835
+      ],
+      "rhos": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "CVs": [
+        0.0016997759163138162,
+        0.001697735368995312,
+        0.0016997759163138162,
+        0.0,
+        0.0029476410863816826
+      ],
+      "per": [
+        {
+          "seed": 100,
+          "a_E": 0.02,
+          "d_E": 8.0,
+          "tau_u": 50.0,
+          "id": "e2_c_a02_d8_dscan_ref",
+          "INVALID": {},
+          "meanE": 8.0,
+          "meanI": 7.650000095367432,
+          "n_spiking": 993,
+          "active_E": 800,
+          "active_I": 193,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 138.5,
+          "f0": 7.2202166064981945,
+          "CV_T": 0.0016997759163138162,
+          "N_cycles": 3,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            91,
+            369,
+            646,
+            923
+          ],
+          "periods": [
+            139.0,
+            138.5,
+            138.5
+          ]
+        },
+        {
+          "seed": 101,
+          "a_E": 0.02,
+          "d_E": 8.0,
+          "tau_u": 50.0,
+          "id": "e2_c_a02_d8_dscan_ref",
+          "INVALID": {},
+          "meanE": 8.0,
+          "meanI": 7.769999980926514,
+          "n_spiking": 995,
+          "active_E": 800,
+          "active_I": 195,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 139.0,
+          "f0": 7.194244604316546,
+          "CV_T": 0.001697735368995312,
+          "N_cycles": 3,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            91,
+            369,
+            646,
+            924
+          ],
+          "periods": [
+            139.0,
+            138.5,
+            139.0
+          ]
+        },
+        {
+          "seed": 102,
+          "a_E": 0.02,
+          "d_E": 8.0,
+          "tau_u": 50.0,
+          "id": "e2_c_a02_d8_dscan_ref",
+          "INVALID": {},
+          "meanE": 8.0,
+          "meanI": 7.670000076293945,
+          "n_spiking": 993,
+          "active_E": 800,
+          "active_I": 193,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 138.5,
+          "f0": 7.2202166064981945,
+          "CV_T": 0.0016997759163138162,
+          "N_cycles": 3,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            91,
+            369,
+            646,
+            923
+          ],
+          "periods": [
+            139.0,
+            138.5,
+            138.5
+          ]
+        },
+        {
+          "seed": 103,
+          "a_E": 0.02,
+          "d_E": 8.0,
+          "tau_u": 50.0,
+          "id": "e2_c_a02_d8_dscan_ref",
+          "INVALID": {},
+          "meanE": 8.0,
+          "meanI": 7.539999961853027,
+          "n_spiking": 991,
+          "active_E": 800,
+          "active_I": 191,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 138.5,
+          "f0": 7.2202166064981945,
+          "CV_T": 0.0,
+          "N_cycles": 3,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            91,
+            368,
+            645,
+            922
+          ],
+          "periods": [
+            138.5,
+            138.5,
+            138.5
+          ]
+        },
+        {
+          "seed": 104,
+          "a_E": 0.02,
+          "d_E": 8.0,
+          "tau_u": 50.0,
+          "id": "e2_c_a02_d8_dscan_ref",
+          "INVALID": {},
+          "meanE": 8.0,
+          "meanI": 7.78000020980835,
+          "n_spiking": 996,
+          "active_E": 800,
+          "active_I": 196,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 138.5,
+          "f0": 7.2202166064981945,
+          "CV_T": 0.0029476410863816826,
+          "N_cycles": 3,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            91,
+            368,
+            646,
+            922
+          ],
+          "periods": [
+            138.5,
+            139.0,
+            138.0
+          ]
+        }
+      ]
+    },
+    "0.04_8.0": {
+      "median_T0": 70.0,
+      "iqr_T0": [
+        70.0,
+        70.0
+      ],
+      "median_f0": 14.285714285714286,
+      "iqr_f0": [
+        14.285714285714286,
+        14.285714285714286
+      ],
+      "median_rE": 14.15999984741211,
+      "iqr_rE": [
+        14.154999732971191,
+        14.164999961853027
+      ],
+      "median_rI": 10.579999923706055,
+      "iqr_rI": [
+        10.539999961853027,
+        10.619999885559082
+      ],
+      "median_rho": 1.0,
+      "iqr_rho": [
+        1.0,
+        1.0
+      ],
+      "median_CV": 0.002665158495232168,
+      "iqr_CV": [
+        0.0026588204250889294,
+        0.020306650717373496
+      ],
+      "median_N": 6,
+      "Ts": [
+        70.0,
+        69.5,
+        70.0,
+        70.0,
+        70.0
+      ],
+      "fs": [
+        14.285714285714286,
+        14.388489208633093,
+        14.285714285714286,
+        14.285714285714286,
+        14.285714285714286
+      ],
+      "rEs": [
+        14.164999961853027,
+        14.882499694824219,
+        14.114999771118164,
+        14.15999984741211,
+        14.154999732971191
+      ],
+      "rIs": [
+        10.579999923706055,
+        11.630000114440918,
+        10.239999771118164,
+        10.619999885559082,
+        10.539999961853027
+      ],
+      "rhos": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "CVs": [
+        0.0,
+        0.020306650717373496,
+        0.0968239511847439,
+        0.002665158495232168,
+        0.0026588204250889294
+      ],
+      "per": [
+        {
+          "seed": 100,
+          "a_E": 0.04,
+          "d_E": 8.0,
+          "tau_u": 25.0,
+          "id": "e2_c_a04_d8",
+          "INVALID": {},
+          "meanE": 14.164999961853027,
+          "meanI": 10.579999923706055,
+          "n_spiking": 955,
+          "active_E": 800,
+          "active_I": 155,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 70.0,
+          "f0": 14.285714285714286,
+          "CV_T": 0.0,
+          "N_cycles": 6,
+          "rho_volley_median": 1.0,
+          "rho_mean": 0.999375,
+          "peaks": [
+            41,
+            181,
+            321,
+            461,
+            601,
+            741,
+            881
+          ],
+          "periods": [
+            70.0,
+            70.0,
+            70.0,
+            70.0,
+            70.0,
+            70.0
+          ]
+        },
+        {
+          "seed": 101,
+          "a_E": 0.04,
+          "d_E": 8.0,
+          "tau_u": 25.0,
+          "id": "e2_c_a04_d8",
+          "INVALID": {},
+          "meanE": 14.882499694824219,
+          "meanI": 11.630000114440918,
+          "n_spiking": 968,
+          "active_E": 800,
+          "active_I": 168,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 69.5,
+          "f0": 14.388489208633093,
+          "CV_T": 0.020306650717373496,
+          "N_cycles": 7,
+          "rho_volley_median": 1.0,
+          "rho_mean": 0.9926785714285715,
+          "peaks": [
+            29,
+            168,
+            307,
+            446,
+            585,
+            724,
+            863,
+            994
+          ],
+          "periods": [
+            69.5,
+            69.5,
+            69.5,
+            69.5,
+            69.5,
+            69.5,
+            65.5
+          ]
+        },
+        {
+          "seed": 102,
+          "a_E": 0.04,
+          "d_E": 8.0,
+          "tau_u": 25.0,
+          "id": "e2_c_a04_d8",
+          "INVALID": {},
+          "meanE": 14.114999771118164,
+          "meanI": 10.239999771118164,
+          "n_spiking": 951,
+          "active_E": 800,
+          "active_I": 151,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 70.0,
+          "f0": 14.285714285714286,
+          "CV_T": 0.0968239511847439,
+          "N_cycles": 7,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            45,
+            186,
+            326,
+            466,
+            606,
+            747,
+            887,
+            990
+          ],
+          "periods": [
+            70.5,
+            70.0,
+            70.0,
+            70.0,
+            70.5,
+            70.0,
+            51.5
+          ]
+        },
+        {
+          "seed": 103,
+          "a_E": 0.04,
+          "d_E": 8.0,
+          "tau_u": 25.0,
+          "id": "e2_c_a04_d8",
+          "INVALID": {},
+          "meanE": 14.15999984741211,
+          "meanI": 10.619999885559082,
+          "n_spiking": 956,
+          "active_E": 800,
+          "active_I": 156,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 70.0,
+          "f0": 14.285714285714286,
+          "CV_T": 0.002665158495232168,
+          "N_cycles": 6,
+          "rho_volley_median": 1.0,
+          "rho_mean": 0.999375,
+          "peaks": [
+            41,
+            181,
+            321,
+            461,
+            601,
+            740,
+            880
+          ],
+          "periods": [
+            70.0,
+            70.0,
+            70.0,
+            70.0,
+            69.5,
+            70.0
+          ]
+        },
+        {
+          "seed": 104,
+          "a_E": 0.04,
+          "d_E": 8.0,
+          "tau_u": 25.0,
+          "id": "e2_c_a04_d8",
+          "INVALID": {},
+          "meanE": 14.154999732971191,
+          "meanI": 10.539999961853027,
+          "n_spiking": 955,
+          "active_E": 800,
+          "active_I": 155,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 70.0,
+          "f0": 14.285714285714286,
+          "CV_T": 0.0026588204250889294,
+          "N_cycles": 6,
+          "rho_volley_median": 1.0,
+          "rho_mean": 0.9970833333333333,
+          "peaks": [
+            39,
+            179,
+            319,
+            460,
+            600,
+            740,
+            880
+          ],
+          "periods": [
+            70.0,
+            70.0,
+            70.5,
+            70.0,
+            70.0,
+            70.0
+          ]
+        }
+      ]
+    },
+    "0.02_0": {
+      "median_T0": 53.5,
+      "iqr_T0": [
+        53.5,
+        54.0
+      ],
+      "median_f0": 18.69158878504673,
+      "iqr_f0": [
+        18.51851851851852,
+        18.69158878504673
+      ],
+      "median_rE": 37.345001220703125,
+      "iqr_rE": [
+        36.907501220703125,
+        38.997501373291016
+      ],
+      "median_rI": 19.389999389648438,
+      "iqr_rI": [
+        17.34000015258789,
+        19.520000457763672
+      ],
+      "median_rho": 1.0,
+      "iqr_rho": [
+        1.0,
+        1.0
+      ],
+      "median_CV": 0.004391967585009612,
+      "iqr_CV": [
+        0.0038773651676413897,
+        0.004608294930875576
+      ],
+      "median_N": 9,
+      "Ts": [
+        53.5,
+        53.5,
+        54.25,
+        54.0,
+        53.5
+      ],
+      "fs": [
+        18.69158878504673,
+        18.69158878504673,
+        18.433179723502302,
+        18.51851851851852,
+        18.69158878504673
+      ],
+      "rEs": [
+        38.997501373291016,
+        37.345001220703125,
+        35.29249954223633,
+        36.907501220703125,
+        39.02000045776367
+      ],
+      "rIs": [
+        19.389999389648438,
+        19.520000457763672,
+        17.31999969482422,
+        17.34000015258789,
+        19.780000686645508
+      ],
+      "rhos": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "CVs": [
+        0.0038773651676413897,
+        0.0029401529363266015,
+        0.004608294930875576,
+        0.04410704736884522,
+        0.004391967585009612
+      ],
+      "per": [
+        {
+          "seed": 100,
+          "a_E": 0.02,
+          "d_E": 0,
+          "tau_u": 50.0,
+          "id": "e2_c_a02_d0",
+          "INVALID": {},
+          "meanE": 38.997501373291016,
+          "meanI": 19.389999389648438,
+          "n_spiking": 996,
+          "active_E": 800,
+          "active_I": 196,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 53.5,
+          "f0": 18.69158878504673,
+          "CV_T": 0.0038773651676413897,
+          "N_cycles": 9,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            23,
+            130,
+            237,
+            345,
+            452,
+            559,
+            666,
+            774,
+            881,
+            988
+          ],
+          "periods": [
+            53.5,
+            53.5,
+            54.0,
+            53.5,
+            53.5,
+            53.5,
+            54.0,
+            53.5,
+            53.5
+          ]
+        },
+        {
+          "seed": 101,
+          "a_E": 0.02,
+          "d_E": 0,
+          "tau_u": 50.0,
+          "id": "e2_c_a02_d0",
+          "INVALID": {},
+          "meanE": 37.345001220703125,
+          "meanI": 19.520000457763672,
+          "n_spiking": 998,
+          "active_E": 800,
+          "active_I": 198,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 53.5,
+          "f0": 18.69158878504673,
+          "CV_T": 0.0029401529363266015,
+          "N_cycles": 9,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            11,
+            118,
+            225,
+            332,
+            439,
+            546,
+            653,
+            760,
+            867,
+            973
+          ],
+          "periods": [
+            53.5,
+            53.5,
+            53.5,
+            53.5,
+            53.5,
+            53.5,
+            53.5,
+            53.5,
+            53.0
+          ]
+        },
+        {
+          "seed": 102,
+          "a_E": 0.02,
+          "d_E": 0,
+          "tau_u": 50.0,
+          "id": "e2_c_a02_d0",
+          "INVALID": {},
+          "meanE": 35.29249954223633,
+          "meanI": 17.31999969482422,
+          "n_spiking": 996,
+          "active_E": 800,
+          "active_I": 196,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 54.25,
+          "f0": 18.433179723502302,
+          "CV_T": 0.004608294930875576,
+          "N_cycles": 8,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            50,
+            158,
+            267,
+            376,
+            485,
+            593,
+            702,
+            810,
+            918
+          ],
+          "periods": [
+            54.0,
+            54.5,
+            54.5,
+            54.5,
+            54.0,
+            54.5,
+            54.0,
+            54.0
+          ]
+        },
+        {
+          "seed": 103,
+          "a_E": 0.02,
+          "d_E": 0,
+          "tau_u": 50.0,
+          "id": "e2_c_a02_d0",
+          "INVALID": {},
+          "meanE": 36.907501220703125,
+          "meanI": 17.34000015258789,
+          "n_spiking": 997,
+          "active_E": 800,
+          "active_I": 197,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 54.0,
+          "f0": 18.51851851851852,
+          "CV_T": 0.04410704736884522,
+          "N_cycles": 9,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            37,
+            145,
+            253,
+            360,
+            468,
+            576,
+            684,
+            792,
+            900,
+            993
+          ],
+          "periods": [
+            54.0,
+            54.0,
+            53.5,
+            54.0,
+            54.0,
+            54.0,
+            54.0,
+            54.0,
+            46.5
+          ]
+        },
+        {
+          "seed": 104,
+          "a_E": 0.02,
+          "d_E": 0,
+          "tau_u": 50.0,
+          "id": "e2_c_a02_d0",
+          "INVALID": {},
+          "meanE": 39.02000045776367,
+          "meanI": 19.780000686645508,
+          "n_spiking": 1000,
+          "active_E": 800,
+          "active_I": 200,
+          "G_finite": true,
+          "G_active": true,
+          "G_pop": true,
+          "G_adequate": true,
+          "T0": 53.5,
+          "f0": 18.69158878504673,
+          "CV_T": 0.004391967585009612,
+          "N_cycles": 9,
+          "rho_volley_median": 1.0,
+          "rho_mean": 1.0,
+          "peaks": [
+            23,
+            131,
+            238,
+            345,
+            452,
+            559,
+            666,
+            774,
+            881,
+            989
+          ],
+          "periods": [
+            54.0,
+            53.5,
+            53.5,
+            53.5,
+            53.5,
+            53.5,
+            54.0,
+            53.5,
+            54.0
+          ]
+        }
+      ]
+    }
+  },
+  "table": [
+    {
+      "a_E": 0.01,
+      "d_E": 8.0,
+      "tau_u": 100.0,
+      "median_T0_ms": 253.0,
+      "iqr_T0": [
+        253.0,
+        253.0
+      ],
+      "median_f0_Hz": 3.952569169960474,
+      "iqr_f0": [
+        3.952569169960474,
+        3.952569169960474
+      ],
+      "median_rE_Hz": 4.0,
+      "median_rI_Hz": 3.940000057220459,
+      "median_rho_volley": 1.0,
+      "median_CV_T": 0.0,
+      "median_N_cycles": 1,
+      "causal_classifier": "UNRESOLVED_silent"
+    },
+    {
+      "a_E": 0.02,
+      "d_E": 0,
+      "tau_u": 50.0,
+      "median_T0_ms": 53.5,
+      "iqr_T0": [
+        53.5,
+        54.0
+      ],
+      "median_f0_Hz": 18.69158878504673,
+      "iqr_f0": [
+        18.51851851851852,
+        18.69158878504673
+      ],
+      "median_rE_Hz": 37.345001220703125,
+      "median_rI_Hz": 19.389999389648438,
+      "median_rho_volley": 1.0,
+      "median_CV_T": 0.004391967585009612,
+      "median_N_cycles": 9,
+      "causal_classifier": "UNRESOLVED_MECHANISM (H_excit confound: rate>2x or collapse)"
+    },
+    {
+      "a_E": 0.02,
+      "d_E": 8.0,
+      "tau_u": 50.0,
+      "median_T0_ms": 138.5,
+      "iqr_T0": [
+        138.5,
+        138.5
+      ],
+      "median_f0_Hz": 7.2202166064981945,
+      "iqr_f0": [
+        7.2202166064981945,
+        7.2202166064981945
+      ],
+      "median_rE_Hz": 8.0,
+      "median_rI_Hz": 7.670000076293945,
+      "median_rho_volley": 1.0,
+      "median_CV_T": 0.0016997759163138162,
+      "median_N_cycles": 3,
+      "causal_classifier": "baseline"
+    },
+    {
+      "a_E": 0.04,
+      "d_E": 8.0,
+      "tau_u": 25.0,
+      "median_T0_ms": 70.0,
+      "iqr_T0": [
+        70.0,
+        70.0
+      ],
+      "median_f0_Hz": 14.285714285714286,
+      "iqr_f0": [
+        14.285714285714286,
+        14.285714285714286
+      ],
+      "median_rE_Hz": 14.15999984741211,
+      "median_rI_Hz": 10.579999923706055,
+      "median_rho_volley": 1.0,
+      "median_CV_T": 0.002665158495232168,
+      "median_N_cycles": 6,
+      "causal_classifier": "UNRESOLVED_silent"
+    }
+  ],
+  "falsifiers": {
+    "F1_d_zero_leaves_T_unchanged": {
+      "median_T_d8": 138.5,
+      "median_T_d0": 53.5,
+      "bca_CI_95_d8": [
+        138.5,
+        138.5
+      ],
+      "median_zero_in_CI": false,
+      "iqr_overlap": 0.0,
+      "rates_ok_for_T": true,
+      "FALSIFIED": false,
+      "silent": false,
+      "per_seed_T_d8": [
+        138.5,
+        139.0,
+        138.5,
+        138.5,
+        138.5
+      ],
+      "per_seed_T_d0": [
+        53.5,
+        53.5,
+        54.25,
+        54.0,
+        53.5
+      ]
+    },
+    "F2_a_scan_does_not_track_tau_u": {
+      "taus": [
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        100.0,
+        50.0,
+        50.0,
+        50.0,
+        50.0,
+        50.0,
+        25.0,
+        25.0,
+        25.0,
+        25.0,
+        25.0
+      ],
+      "Ts": [
+        253.0,
+        253.0,
+        253.0,
+        253.0,
+        253.0,
+        138.5,
+        139.0,
+        138.5,
+        138.5,
+        138.5,
+        70.0,
+        69.5,
+        70.0,
+        70.0,
+        70.0
+      ],
+      "spearman_rho": null,
+      "pval": null,
+      "slope_obs": null,
+      "slope_pred": null,
+      "slope_within_30pct": null,
+      "rates_ok": false,
+      "FALSIFIED": false,
+      "silent": true
+    }
+  },
+  "regime_guard": {
+    "0.01_8.0": {
+      "ratioE": 0.5,
+      "ratioI": 0.5136897024809707,
+      "max_ratioE": 2.0,
+      "max_ratioI": 1.9467004987063068,
+      "rate_trigger": false,
+      "rho_delta": 0.0,
+      "rho_collapse": false,
+      "per_rho_collapse": false,
+      "cv_trigger": false,
+      "N_insuf": true,
+      "silent": true,
+      "regime_preserved": false,
+      "mechanism_trigger": false
+    },
+    "0.04_8.0": {
+      "ratioE": 1.7699999809265137,
+      "ratioI": 1.3794002370881575,
+      "max_ratioE": 1.7699999809265137,
+      "max_ratioI": 1.3794002370881575,
+      "rate_trigger": false,
+      "rho_delta": 0.0,
+      "rho_collapse": false,
+      "per_rho_collapse": false,
+      "cv_trigger": false,
+      "N_insuf": false,
+      "silent": false,
+      "regime_preserved": true,
+      "mechanism_trigger": false
+    },
+    "0.02_0": {
+      "ratioE": 4.668125152587891,
+      "ratioI": 2.528031186020204,
+      "max_ratioE": 4.668125152587891,
+      "max_ratioI": 2.528031186020204,
+      "rate_trigger": true,
+      "rho_delta": 0.0,
+      "rho_collapse": false,
+      "per_rho_collapse": false,
+      "cv_trigger": false,
+      "N_insuf": false,
+      "silent": false,
+      "regime_preserved": false,
+      "mechanism_trigger": true
+    }
+  },
+  "joint_verdict": {
+    "ordering": "INVALID > UNRESOLVED_silent > UNRESOLVED_MECHANISM > FALSIFIED > NEGATIVE > SUPPORTED",
+    "verdict": "UNRESOLVED_silent",
+    "reason": "F1_silent False F2_silent True (rate<=5 or N<3)",
+    "tracking_passed": false
+  },
+  "causal_discriminator": {
+    "0.01_8.0": "UNRESOLVED_silent",
+    "0.02_8.0": "baseline",
+    "0.04_8.0": "UNRESOLVED_silent",
+    "0.02_0": "UNRESOLVED_MECHANISM (H_excit confound: rate>2x or collapse)"
+  },
+  "raw_evidence_note": "Every run's raw evidence preserved: per-seed T0,f0,r_E,r_I,rho,CV_T,N_cycles,peaks,periods + adequacy gates; binned rates available at DT0.5 if needed; no fictitious frequency generated when N_cycles<2",
+  "write_once": true
+}

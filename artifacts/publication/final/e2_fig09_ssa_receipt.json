@@ -1,0 +1,102 @@
+{
+  "schema": "e2_fig09_ssa_receipt.v1",
+  "generated_at": "2026-08-26T15:20:25Z",
+  "repo_head": "17eab62393475825755b17b27f72978d36c2e52b",
+  "python": "3.14.3",
+  "jax": "0.10.1",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "authority": {
+    "ssa_spec_hash": "0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570",
+    "ssa_sha256": "0bc86a301be7d5511141c0dc964add3257b59cb33189158c34697f50fee25cff",
+    "ping_spec_hash": "b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f",
+    "ping_sha256": "0e9d602b8d1b4e78cb371872ac84dbf4743e0337179572dd461618324d8b7517",
+    "v2_receipt_sha256": "e02828e4be745681d7e3eb3ca8dfaa8a6d8bdd9eb7200cb2d36eeed879a61701",
+    "v2_rescored_sha256": "6f3508ad56e6e66026a7dd32fccea6cb4d49ec53b84cc8a815497e539123a942",
+    "v6_correction_sha256": "efe7ae49fa44dc95eb6f8f26b04dee73a716e16fcc55e96d8d39e5a2a61f0c2b",
+    "steps_provenance": {
+      "schema": "e2_ssa_amendment_receipt_correction.v1",
+      "corrects": "e2_ssa_spec_v6_amendment_receipt.json",
+      "finding": "The v6 amendment receipt stated 'steps/rep now 216000 (108 s)'. That arithmetic is FALSE (H3 violation). Correct value from the frozen decomposition 3x80x400 + 40x1000 + 20x2000 = 96000+40000+40000 = 176000 steps = 88 s biological at dt_ms 0.5, exactly matching e2_ssa_spec.v6.json execution_grammar.time.steps_per_replicate_derived.",
+      "supersession": "This correction supersedes the steps/duration sentence of the prior receipt in full; all other v6 amendment content (blocks append, hashes) remains valid. The spec file itself (ssa_v6_spec_hash 0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570, sha256 0BC86A301BE7D5511141C0DC964ADD3257B59CB33189158C34697F50FEE25CFF) was always correct and is unchanged.",
+      "root_cause": "hardcoded string in author_ssa_spec_v6.py not derived from the decomposition (rule R-A violated inside tooling; corrected practice: derive such strings programmatically)",
+      "write_once": true
+    }
+  },
+  "theta_star": {
+    "drive_E": 4.0,
+    "drive_I": 2.0,
+    "weight_mu": 0.25,
+    "noise_scale": 0.0
+  },
+  "verdict": {
+    "V2_polarity": "NEGATIVE",
+    "subclass": "NEGATIVE:FAIL_SI_gate,FAIL_swap_asymmetry,SIGN_deviant_below_standard",
+    "n_S0_per_replicate": 2,
+    "arithmetic": "n=20 runs; INVALID=0; UNRESOLVED=0; classified=20; n_total = n_INVALID + n_UNRESOLVED + classified"
+  },
+  "pooled": {
+    "SI": -0.08434169565295932,
+    "dR": -1.1871863162878786,
+    "g": -6.190836199573305,
+    "BCa_lower": -0.10778443051093865,
+    "BCa_upper": -0.03374917812677185,
+    "BCa_raw_percentile": [
+      -0.11098888269828612,
+      -0.058994375391149614
+    ],
+    "p_perm": 1.0,
+    "SI_source_pool": 0.002593402098527678,
+    "SI_shuf_mean": -0.009084887913823876,
+    "SI_many_pool": 0.028338937275817343,
+    "swap_max_observed": 0.4260290155938084,
+    "adequacy_all": true
+  },
+  "S3": {
+    "delta_rec": 3.998578559027778,
+    "BCa_lower": 3.8988027533742344,
+    "p_rec": 0.0004997501249375312,
+    "I_rec_all_gt_02": false,
+    "rho": -0.7694183864915572,
+    "gate_pass": false
+  },
+  "files": {
+    "e2_fig09_ssa_combined.png": {
+      "path": "figures/publication/final/e2_fig09_ssa_combined.png",
+      "sha256": "db36dfc34f307e36473fbe2a40725ae11f93ea968fbf6e6d0cce833aca510ac3",
+      "bytes": 402818
+    },
+    "e2_fig09_A_adequacy.png": {
+      "path": "figures/publication/final/e2_fig09_A_adequacy.png",
+      "sha256": "9d68254cfa6aaefdbd1d731842c56a83d6c75b57c53a742a547b34dc1d507993",
+      "bytes": 57177
+    },
+    "e2_fig09_B_SI.png": {
+      "path": "figures/publication/final/e2_fig09_B_SI.png",
+      "sha256": "24fc9aaef193e18a7d77c0f6778a573a9cc3c333594ada5cb83179862897e57e",
+      "bytes": 54041
+    },
+    "e2_fig09_C_swap.png": {
+      "path": "figures/publication/final/e2_fig09_C_swap.png",
+      "sha256": "7bc997cbcb83598a9d098d50f48ef8b226787421579d0c3231051c5060e72d2c",
+      "bytes": 59192
+    },
+    "e2_fig09_D_recovery.png": {
+      "path": "figures/publication/final/e2_fig09_D_recovery.png",
+      "sha256": "94b4a48da82b1f18d60b3d7e5ab01084cb8134566c07815b88c9e89d7ea69884",
+      "bytes": 54297
+    },
+    "e2_fig09_E_source.png": {
+      "path": "figures/publication/final/e2_fig09_E_source.png",
+      "sha256": "7176c501b479fb31493f6d188d4b1c6416ee88b356421866c3f2e2b02ad8138b",
+      "bytes": 82438
+    },
+    "e2_fig09_F_ladder.png": {
+      "path": "figures/publication/final/e2_fig09_F_ladder.png",
+      "sha256": "a18b80b2fa3f88f80a97cda1d1f0cf5436490b01eacc8efbd77a151fc98be920",
+      "bytes": 92564
+    }
+  },
+  "S18_preserved": true,
+  "disposition": "supplement-only (S18), not main-text; frozen 28/28 preserved",
+  "provenance_note": "All quantities from frozen receipts only; no new simulation. Recovery 176000 steps =88 s (H3 corrected)."
+}

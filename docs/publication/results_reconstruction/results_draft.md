@@ -93,7 +93,7 @@ at 500 ms and 2000 ms) .
 ## No traveling waves in the tested regimes
 
 Geometry and finite transmission delays were therefore insufficient to generate traveling
-waves in the tested network. In the original ring, distance-derived delays collapsed after
+waves in the tested, preregistered network. In the original ring, distance-derived delays collapsed after
 timestep discretization to the same four-step delay as the uniform condition {Q09}.
 Expanding velocity and connection range changed the delay structure but still produced
 only standing/flipping, synchronous, or structured gate-failing states across all 45

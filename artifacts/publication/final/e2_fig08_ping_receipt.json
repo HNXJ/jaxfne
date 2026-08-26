@@ -1,0 +1,75 @@
+{
+  "schema": "e2_fig08_ping_receipt.v1",
+  "generated_at": "2026-08-26T15:20:15Z",
+  "repo_head": "17eab62393475825755b17b27f72978d36c2e52b",
+  "python": "3.14.3",
+  "jax": "0.10.1",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "authority": {
+    "ping_spec_hash": "b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f",
+    "ping_sha256": "0e9d602b8d1b4e78cb371872ac84dbf4743e0337179572dd461618324d8b7517",
+    "ssa_spec_hash": "0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570",
+    "ssa_sha256": "0bc86a301be7d5511141c0dc964add3257b59cb33189158c34697f50fee25cff",
+    "v1_receipt_sha256": "bfa7b1feabaea529e0de23e6b83cdd6014e69f50c20ea80a7ba0dd8a0efd7ac2",
+    "v1_rescored_sha256": "ee742ced0d149bbafb019372a24a7f19496d23e529a273476dd0c90ee0270991",
+    "corrigendum_sha256": "11e6bf0f96027c0d0a97d17f01c7c52de31e218a8c62a3864be0fccc747da00c"
+  },
+  "theta_star": {
+    "id": "theta0",
+    "drive_E": 4.0,
+    "drive_I": 2.0,
+    "weight_mu": 0.25,
+    "noise_scale": 0.0,
+    "W_ms": 60
+  },
+  "verdict": {
+    "V1": "NEGATIVE",
+    "subclass": "NEGATIVE_NOT_PING_LIKE",
+    "arithmetic": "runs=35 = 7 arms x 5 seeds; labels preserved for every run incl. INVALID"
+  },
+  "files": {
+    "e2_fig08_ping_combined.png": {
+      "path": "figures/publication/final/e2_fig08_ping_combined.png",
+      "sha256": "f626df8c0a4e8fa56d219ce18ffad15e8d9455d959beedc36648ad0ed5355d5f",
+      "bytes": 372482
+    },
+    "e2_fig08_A_adequacy.png": {
+      "path": "figures/publication/final/e2_fig08_A_adequacy.png",
+      "sha256": "564311bda81e6c796b05c753e71399bd400bef9bcfe10cfb100231be93c63379",
+      "bytes": 37987
+    },
+    "e2_fig08_B_spectral.png": {
+      "path": "figures/publication/final/e2_fig08_B_spectral.png",
+      "sha256": "e7ac9b7dc50fdc48ebfa75b3d301c3d5ce4e92d8195ae221ed172060b4e22e48",
+      "bytes": 62314
+    },
+    "e2_fig08_C_phase.png": {
+      "path": "figures/publication/final/e2_fig08_C_phase.png",
+      "sha256": "39c01ed62c41f7bb6b37e5b67d89dfcc4277c9c5d18c07f0527b8c070dae0b19",
+      "bytes": 49938
+    },
+    "e2_fig08_D_rate.png": {
+      "path": "figures/publication/final/e2_fig08_D_rate.png",
+      "sha256": "a938dffd320f8cd0270da184e967c13caa3cf17479e4c3e2f492acec09d10451",
+      "bytes": 48953
+    },
+    "e2_fig08_E_cycle.png": {
+      "path": "figures/publication/final/e2_fig08_E_cycle.png",
+      "sha256": "d7696115e2bb949a86b786da660a4ef113a939cc9eb0eadcf94d4d394c491c35",
+      "bytes": 37497
+    },
+    "e2_fig08_F_comb.png": {
+      "path": "figures/publication/final/e2_fig08_F_comb.png",
+      "sha256": "7e12b1ffc997f116a4c4c5622989b7f439f948283c5799c1f94561580278689b",
+      "bytes": 48988
+    },
+    "e2_fig08_G_collapse.png": {
+      "path": "figures/publication/final/e2_fig08_G_collapse.png",
+      "sha256": "bdc2760ca421a30ea5a9c90a7b6844f64649b1877303008aa49519a1bb443d8c",
+      "bytes": 71285
+    }
+  },
+  "S18_preserved": true,
+  "disposition": "supplement-only (S18), not main-text; frozen 28/28 preserved per .opencode/frozen_paths.json",
+  "provenance_note": "All quantities from frozen receipts only; no new simulation."
+}

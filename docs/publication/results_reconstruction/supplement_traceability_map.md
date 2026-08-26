@@ -27,6 +27,12 @@ receipts and fails if the draft and the receipts disagree.
 | S.15 | Reproducibility/provenance | Methods §14; `REVIEW_NAVIGATION.md`; `artifacts/publication/publication_evidence_index.json` (fig SHAs); receipt package heads |
 | S.16 | Displaced material register | results_draft.md, methods_draft.md, receipts above |
 | S.17 | Claim × evidence-regime classification (21 claims) | `artifacts/publication/publication_claim_ledger.json` (evidence_regime, verbatim); Methods §12 family mapping |
+| S.18 | E2 V1/V2 confirmatory negatives (supplement-first) | `artifacts/e2/E2_SYNTHESIS.md:43-61` (V1/V2/Joint boundary sentences), `artifacts/e2/S_PULSE_CHARACTERIZATION.md` (pulse-regime reuse), `artifacts/e2/preregistration/e2_ping_prereg.json` (spec_hash b89a09c...), `artifacts/e2/preregistration/e2_ssa_spec.v6.json` (spec_hash 0df9bfe...), `artifacts/e2/preregistration/E2a_search/e2a_search_receipt.json` (theta* six-way tie), `artifacts/e2/preregistration/E2b_confirmatory/v1_ping_receipt.json` + `v1_rescored_frozen_only.json` + `v1_corrigendum_and_adjudication.json`, `artifacts/e2/preregistration/E2b_confirmatory/v2_ssa_confirmatory_receipt.json` + `v2_rescored_frozen_only.json`, `artifacts/e2/audit/claim_ledger_delta.json` (CL-22..29) |
+| S.18-1 | V1/V2 adequacy 5/5 & 20/20 + six-way tie | `e2_ping_prereg.json:12-17` G_adequate_PING, `e2_ssa_spec.v6.json:14-24` SSA.adequacy, `E2a_search/e2a_search_receipt.json:13-22,62-829` |
+| S.18-2 | V1 pulse f0 7.22 Hz harmonic comb | `E2b_confirmatory/v1_ping_receipt.json:74-1591`, `v1_corrigendum_and_adjudication.json:1-44`, `S_PULSE_CHARACTERIZATION.md:27-55` |
+| S.18-3 | V1 phase outside window | `e2_ping_prereg.json:classified G_phase`, `e2_exec/e2_exec_lib.py:13-31` typed units, receipt phase metrics |
+| S.18-4 | V2 SSA pooled SI −0.084 swap 0.426 | `E2b_confirmatory/v2_ssa_confirmatory_receipt.json:1-364`, `v2_rescored_frozen_only.json`, `v2_runs/rep_*.json` |
+| S.18-5 | R-A..R-D disclosure + H3 correction | `artifacts/e2/E2_SYNTHESIS.md:34-42`, `v1_corrigendum_and_adjudication.json:18-20`, `e2_ssa_spec_v6_amendment_receipt_CORRECTION.json:4-6` (176000/88 s) |
 
 ## Verification commands (authority-level)
 
