@@ -1,0 +1,1272 @@
+{
+  "schema": "jaxfne.audit.claim_ledger_delta.v1",
+  "description": "Additive claim-ledger delta: base 21 rows CL-01..21 bit-identical to publication_claim_ledger.json; delta rows CL-22..29 extend per 28:147-158 and 34; polarity NEGATIVE/UNRESOLVED with forbidden_overclaim preserved; publication_claim_ledger.json NOT rewritten",
+  "generated_at": "2026-08-26T02:14:38Z",
+  "parent_e1": "07b1c04af9ea98176bc45350528f3312375f7d24",
+  "parent_e1_short": "07b1c04",
+  "authority_packet": {
+    "ping_spec_hash": "b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f",
+    "ssa_v6_spec_hash": "0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570",
+    "ping_sha256": "0E9D602B8D1B4E78CB371872AC84DBF4743E0337179572DD461618324D8B7517",
+    "ssa_sha256": "0BC86A301BE7D5511141C0DC964ADD3257B59CB33189158C34697F50FEE25CFF",
+    "ssa_sha256_lower": "0bc86a301be7d5511141c0dc964add3257b59cb33189158c34697f50fee25cff",
+    "parent_e1": "07b1c04af9ea98176bc45350528f3312375f7d24",
+    "e1_frozen_manifest_sha": "aeca6d01a18ab1be3d400cf9c6a7c373c9e86326",
+    "e1_frozen_paths_json_sha256": "83e8ee44e18738eb8290543a6fb6c3601bf5cd070c696fee5a6e8d3e4266ec20",
+    "code_head_audited": "5e026ce",
+    "frozen_at": "2026-08-25T00:00:00Z"
+  },
+  "parent_hashes": {
+    "b89a09c": "b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f",
+    "0df9bfe": "0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570",
+    "07b1c04": "07b1c04af9ea98176bc45350528f3312375f7d24"
+  },
+  "base_ledger": {
+    "path": "artifacts/publication/publication_claim_ledger.json",
+    "sha256": "823b6e9c8e398df3ca865b87a06a8a9afef92ca61bd8345c1621c7bb1ce1e8be",
+    "sha256_8": "823b6e9c",
+    "claim_rows": 21,
+    "claim_ids": [
+      "CL-01",
+      "CL-02",
+      "CL-03",
+      "CL-04",
+      "CL-05",
+      "CL-06",
+      "CL-07",
+      "CL-08",
+      "CL-09",
+      "CL-10",
+      "CL-11",
+      "CL-12",
+      "CL-13",
+      "CL-14",
+      "CL-15",
+      "CL-16",
+      "CL-17",
+      "CL-18",
+      "CL-19",
+      "CL-20",
+      "CL-21"
+    ],
+    "bit_identical": true,
+    "verification": "SHA-256 recomputed on read; ledger length 21; claim_ids CL-01..CL-21 sequential; negative_ids 4 + unresolved_ids 2 forbidden_overclaim strings preserved verbatim",
+    "e1_seal_head": "07b1c04af9ea98176bc45350528f3312375f7d24",
+    "milestone": "0.4.17",
+    "schema": "jaxfne.publication.claim_ledger.v1"
+  },
+  "e1_claim_polarities": {
+    "negative_ids": [
+      "CL-04",
+      "CL-06",
+      "CL-08",
+      "CL-10"
+    ],
+    "unresolved_ids": [
+      "CL-11",
+      "CL-19"
+    ],
+    "supported_ids": [
+      "CL-02",
+      "CL-03",
+      "CL-05",
+      "CL-07",
+      "CL-09",
+      "CL-12",
+      "CL-13",
+      "CL-14",
+      "CL-15",
+      "CL-16",
+      "CL-17",
+      "CL-18"
+    ],
+    "method_only_ids": [
+      "CL-01",
+      "CL-21"
+    ],
+    "representational_ids": [
+      "CL-01"
+    ],
+    "negative_plus_unresolved_verbatim_forbidden": true
+  },
+  "delta_ledger": [
+    {
+      "claim_id": "CL-22",
+      "claim": "V1 ~1000-neuron sparse E/I circuit PING-like rhythm not detected at theta* under frozen conjunctive criteria (intact 0/5 PING_LIKE); ~7 Hz synchronous population-pulse regime with harmonic-comb gamma peaks, not PING oscillator (V1 NEGATIVE_NOT_PING_LIKE)",
+      "allowed_manuscript_language": "In the preregistered confirmatory arm (V1: 7 arms x 5 seeds at theta*), networks met adequacy gates in 5/5 seeds but satisfied none of the four frozen PING-classifier criteria in any seed (verdict NEGATIVE_NOT_PING_LIKE), instead exhibiting a ~7 Hz globally synchronous population-pulse rhythm whose gamma-band spectral peaks fall below the frozen prominence gate; these results therefore support only the bounded statement that no PING-like signature was detected at theta* under the frozen criteria, carry no implication about other regions of the parameter space, and are independent of the CL-06 NO_WAVE result",
+      "evidence_artifacts": [
+        "artifacts/e2/preregistration/e2_ping_prereg.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v1_ping_receipt.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v1_rescored_frozen_only.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v1_corrigendum_and_adjudication.json",
+        "artifacts/e2/S_PULSE_CHARACTERIZATION.md",
+        "artifacts/e2/E2_SYNTHESIS.md"
+      ],
+      "evidence_regime": "deterministic_numerical_property across seeds (frozen conjunctive gates)",
+      "figure_or_table_destination": "Fig. 8 (V1 PING, supplement) + Supplement S-Pulse Table 1",
+      "forbidden_overclaim": "Do not claim PING capability or PING-timing homology; do not claim in-vivo PING; do not claim loop-dependence from the vacuous collapse table (executor bug dphi vs dphi_deg); do not claim two discordant oscillators; do not merge with CL-06 NO_WAVE in either direction; no tuning-until-positive",
+      "manuscript_destination": "Results (negative outcome, supplement-first) + Discussion boundary + Supplement S-Pulse",
+      "null_or_control": "Adequacy 5/5 confirmatory C0_G_adequate; controls: Poisson jitter null, IAAFT phase-randomized PLV null, collapse arms C1..C3d; loop-dependence vacuous on corrected rescoring (C2/C3a/C3c/C3d 0/5 collapse, not 5/5); theta* six-way adequacy tie lexicographic, not optimum",
+      "provenance": "e2_ping_prereg.v1 spec_hash b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f; parent_e1 07b1c04af9ea98176bc45350528f3312375f7d24; code_head 34b77ad; theta* {id:theta0, drive_E:4.0, drive_I:2.0, weight_mu:0.25, noise_scale:0.0, W_ms:60}; seeds 100..104 vs 1100..1104 runtime, 2100..2104 stimulus, 3100..3104 analysis; vm/u/spikes/sources Q finite",
+      "quantitative_result": {
+        "intact_PING_LIKE": 0,
+        "intact_UNRESOLVED": 0,
+        "intact_NO_PING": 5,
+        "n_seeds_C0": 5,
+        "C0_G_adequate": 5,
+        "theta_star": {
+          "id": "theta0",
+          "drive_E": 4.0,
+          "drive_I": 2.0,
+          "weight_mu": 0.25,
+          "noise_scale": 0.0,
+          "W_ms": 60
+        },
+        "fpk_E_median_Hz": 36.12,
+        "fpk_I_median_Hz": 43.33,
+        "prom_dB_range": [
+          5.41,
+          5.65
+        ],
+        "prominence_gray": "UNRESOLVED_PROMINENCE in 5/5 intact (threshold 6.0 dB, gray [5.0,6.0))",
+        "band_ratio_median": 0.355,
+        "f0_envelope_Hz": 7.22,
+        "interpulse_interval_ms": 138.5,
+        "duty_cycle": 0.05,
+        "participation": 1.0,
+        "ff": 0.0,
+        "cycles_per_seed": [
+          3,
+          3,
+          3,
+          3,
+          4
+        ],
+        "ac_sidepeak_E": -0.1,
+        "ac_sidepeak_I": -0.06,
+        "ac_min_rescored": [
+          -0.0666,
+          -0.067,
+          -0.0638,
+          -0.064,
+          -0.0658
+        ],
+        "xcorr_EI_median": 0.975,
+        "dt_lag_ms_median": -6.8,
+        "dphi_deg_range": [
+          -90.48,
+          -85.27
+        ],
+        "PLV_median": 0.913,
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false,
+        "failure_taxonomy": "FAIL_spectral_prominence + FAIL_rate_AC_negative + FAIL_phase_dphi_outside_window + FAIL_cycle_n_lt_10",
+        "rescored_frozen_only": "0/5 PING_LIKE independent implementation artifacts/e2/e2_exec/rescore_v1_frozen_only.py; labels NO_PING x5",
+        "harmonic_comb_diagnosis": "E fpk ~5*f0, I fpk ~6*f0; |f_E-f_I| ~7.2 Hz equals one harmonic spacing, not two oscillators (corrigendum C2)"
+      },
+      "statistical_validation": "exact_property_test across seeds (deterministic-by-construction noise_scale=0, seeds nominal metadata); independent frozen-only rescoring with exactly four strings; no bootstrap CI claimed; no inferential statistics implied by repeated nominal seeds",
+      "status": "NEGATIVE"
+    },
+    {
+      "claim_id": "CL-23",
+      "claim": "V1/V2 field/probe observation is pure downstream composition of accepted source (linear F, Q=0=>Y=0, probe-invariance (X,H,B,Q,G)_P1 = (X,H,B,Q,G)_P2, observation_off => E4->E3) on ~1000-neuron rhythm/oddball windows",
+      "allowed_manuscript_language": "Field and probe readouts are linear downstream compositions of the frozen relative source; downstream LFP-like readouts are proxy-level and not calibrated to physical amplitude",
+      "evidence_artifacts": [
+        "artifacts/e2/preregistration/e2_ping_prereg.json#masks",
+        "artifacts/e2/preregistration/e2_ssa_spec.v6.json#masks",
+        "artifacts/publication/fig02_04_cross_figure_audit.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property (observation-purity gates, staged)",
+      "figure_or_table_destination": "Fig. 8 observation-purity panel (staged) + Methods observation boundary",
+      "forbidden_overclaim": "Do not claim downstream LFP/CSD/EEG/MEG proxy is licensed for inference beyond method illustration; physical_amplitude_calibrated=false; no field-feedback or inversion claim; if gate fails downstream LFP proxy claims withheld per purity hygiene",
+      "manuscript_destination": "Methods (observation boundary) + Fig. 8 caption purity note",
+      "null_or_control": "Linearity check F(aQ1+bQ2)=aF(Q1)+bF(Q2); zero-source gate Q=0 => Y=0; probe-invariance (X,H,B,Q,G) bit-exact when probes differ; continuation/delay_state bit-exact; staged: neural CL-22 stays even if purity FAIL",
+      "provenance": "Inherited from E1 CL-03/CL-16 purity discipline (probe-independence receipts) + E2 masks owner_mask_spec_hash 51105b03, owner_mask_bytes_hash 83af8971; to be re-verified on V1/V2 carriers under e2b_v* executors when phase-matched control executes; parent_e1 07b1c04",
+      "quantitative_result": {
+        "purity_reverified_on_V1V2_carriers": false,
+        "staged_status": "UNRESOLVED_DEFERRED",
+        "downstream_proxy_licensed": false,
+        "field_claim_level": "proxy_readout",
+        "physical_amplitude_calibrated": false
+      },
+      "statistical_validation": "none_required (staged method gate); decoded-pixel and bit-exact identity checks to be applied when raw->summary carries LFP/probe hashes",
+      "status": "UNRESOLVED"
+    },
+    {
+      "claim_id": "CL-24",
+      "claim": "V2 SSA multi-channel oddball shows no stimulus-specific adaptation at theta* (pooled SI -0.084 BCa [-0.108,-0.034], deviant below standard, pooled swap asymmetry 0.426 >> 0.10; V2 NEGATIVE: FAIL_SI_gate + FAIL_swap_asymmetry + SIGN_deviant_below_standard)",
+      "allowed_manuscript_language": "In the confirmatory SSA arm (V2: 20 replicates x 5 blocks under e2_ssa_spec.v6), networks met adequacy gates in 20/20 replicates but showed no stimulus-specific adaptation: pooled SI = -0.084 (BCa [-0.108, -0.034], deviant below standard) with role-reversal asymmetry 0.426 >> 0.10 (frozen S2 falsifier), i.e., spatial-identity attenuation rather than deviance detection; verdict NEGATIVE with failure taxonomy retained",
+      "evidence_artifacts": [
+        "artifacts/e2/preregistration/e2_ssa_spec.v6.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v2_ssa_confirmatory_receipt.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v2_rescored_frozen_only.json",
+        "artifacts/e2/E2_SYNTHESIS.md"
+      ],
+      "evidence_regime": "deterministic_numerical_property (parameter_space_characterization 20x5 blocks, BCa over replicates)",
+      "figure_or_table_destination": "Fig. 9 (V2 SSA, supplement) + Table V2 pooled SI/swap",
+      "forbidden_overclaim": "Do not claim SSA; do not claim deviance detection or prediction/predictive-coding; do not claim rarity penalty without phase-matched control; do not substitute max_over_reps 0.426 for pooled mean; do not claim fixed spatial preference without per-channel CI (already falsified by 11/20 A>B flip); no in-vivo SSA homology; V2 not a repair of D3 CL-08",
+      "manuscript_destination": "Results (negative outcome, supplement-first) + Discussion boundary + Supplement V2 failure taxonomy",
+      "null_or_control": "Adequacy G_A/G_B 20/20 true; controls: many-standards SI_many 0.028 (<0.10, clean), shuffled |SI_shuf| -0.009 (<0.03, clean), role-swap pooled falsifier |swap| 0.426 >>0.10 BCa excludes 0 (S2 falsifier); permutation p_perm 1.0; Hedges g -6.19; per-channel Delta_R_A/B both negative with BCa upper<0 (sign-inverted carryover) vs fixed-preference falsifier",
+      "provenance": "e2_ssa_spec.v6 spec_hash 0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570; ping_spec_hash b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f; parent_e1 07b1c04af9ea98176bc45350528f3312375f7d24; operating_point theta* {theta0 4.0,2.0,0.25,0.0,60}; blocks_per_replicate 5 (oddball_A_std, oddball_B_std_flip, many_standards 78, recovery_isi500 38, recovery_isi1000 18 post-washout), n_outer 20, dt 0.5, steps 176000 (88s)",
+      "quantitative_result": {
+        "theta_star": {
+          "id": "theta0",
+          "drive_E": 4.0,
+          "drive_I": 2.0,
+          "weight_mu": 0.25,
+          "noise_scale": 0.0,
+          "W_ms": 60
+        },
+        "n_replicates": 20,
+        "n_blocks_per_replicate": 5,
+        "G_A_pass": 20,
+        "G_B_pass": 20,
+        "adequacy_all": true,
+        "pooled_SI": -0.08434169565295932,
+        "BCa_lower": -0.10778443051093865,
+        "BCa_upper": -0.03374917812677185,
+        "BCa_raw_percentile": [
+          -0.11098888269828612,
+          -0.058994375391149614
+        ],
+        "p_perm": 1.0,
+        "g_Hedges": -6.190836199573305,
+        "dR_pooled_Hz": -1.1871863162878786,
+        "SI_source_pool": 0.002593402098527678,
+        "SI_many_pool": 0.028338937275817343,
+        "SI_shuf_mean": -0.009084887913823876,
+        "swap_max_observed": 0.4260290155938084,
+        "swap_median_for_audit": 0.105,
+        "per_replicate_SI": [
+          -0.0526,
+          -0.12038,
+          -0.05623,
+          -0.04935,
+          -0.02299,
+          -0.13064,
+          -0.11134,
+          -0.03271,
+          -0.03395,
+          -0.07481,
+          -0.17666,
+          -0.0454,
+          -0.22473,
+          -0.07817,
+          -0.02601,
+          -0.11335,
+          -0.09314,
+          0.03267,
+          -0.15599,
+          -0.12098
+        ],
+        "S2_gate": "FAIL (SI>0.10 lower_BCa>0.10 requires SI positive; observed SI negative)",
+        "swap_asymmetry_gate": "FAIL (|swap| 0.426 >>0.10 and BCa excludes 0)",
+        "sign_deviant_below_standard": true,
+        "S3_recovery": {
+          "delta_rec_Hz": 3.998578559027778,
+          "BCa_lower": 3.8988027533742344,
+          "p_rec": 0.00049975,
+          "I_rec_all_gt_02": false,
+          "rho": -0.7694183864915572,
+          "gate_pass": false,
+          "interpretation": "delta_rec +4.0 Hz p<0.001 BUT rho -0.77 inverted ladder, I_rec guard fails — reported as-is, gate not passed"
+        },
+        "S4_status": "CONFIRMATORY_DEFERRED_v3_per_spec_factor_staging",
+        "per_channel_posthoc_BCa": {
+          "Delta_R_A_Hz": -1.3,
+          "Delta_R_A_BCa": [
+            -1.77,
+            -0.79
+          ],
+          "Delta_R_B_Hz": -1.08,
+          "Delta_R_B_BCa": [
+            -1.68,
+            -0.5
+          ],
+          "note": "Both channels deviant below standard when stimulus identity held fixed, role varies — channel-specific SSA contradicted, uniform rarity-penalty pattern"
+        },
+        "rescored_frozen_only": {
+          "pooled_SI": -0.08434,
+          "swap_max": 0.426,
+          "agreement": true
+        }
+      },
+      "statistical_validation": "BCa bootstrap over 20 outer replicates, 5000 draws, alpha 0.05, key via fold_in(K_analysis, tag=bca_{contrast}); permutation within-replicate std/dev label shuffle 2000 draws (1+#{perm>=obs})/2001; Hedges g over per-replicate SI; swap pooled vs max discipline per 12:R7",
+      "status": "NEGATIVE"
+    },
+    {
+      "claim_id": "CL-25",
+      "claim": "SSA mechanistic attribution via typed H_K->b_eff expression (D(1,Gamma,0) vs N1(1,I,0) Delta_mech SI >=0.08 with H_K>1+theta_H, leak |Delta_leak|<0.05) not demonstrated; mechanism-matrix S4 CONFIRMATORY_DEFERRED_v3 (8 cells H_write x Gamma_H x HDP) — no D vs N1 contrast executed (UNRESOLVED)",
+      "allowed_manuscript_language": "Mechanistic attribution of SSA to the tested RBS path was not assessed in this epoch; mechanism-matrix remains deferred and no D-C contrast is reported",
+      "evidence_artifacts": [
+        "artifacts/e2/preregistration/e2_ssa_spec.v6.json#factor_staging.CONFIRMATORY_DEFERRED_v3",
+        "artifacts/e2/preregistration/E2b_confirmatory/v2_ssa_confirmatory_receipt.json#S4_status"
+      ],
+      "evidence_regime": "method_boundary_statement (deferred battery)",
+      "figure_or_table_destination": "Fig. 9 mechanistic strip (deferred) + Methods factor-staging footnote",
+      "forbidden_overclaim": "Do not claim SSA is mediated by H_K->b_eff; do not claim rarity-penalty mechanism without D vs N1 and phase-matched control; do not infer HDP or predictive coding; S4 thresholds/semantics untouched",
+      "manuscript_destination": "Methods (deferred) + Results footnote + Discussion limitation",
+      "null_or_control": "Leakage gate N1==N0 bit-exact and Gamma=I invisibility to be checked when battery executes; sham HDP contrast HDP=0 vs HDP!=0 likewise deferred",
+      "provenance": "e2_ssa_spec.v6 spec_hash 0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570; parent_e1 07b1c04; factor_staging.confirmatory_now [S0,S1,S2,S2_stimulus_specific,S3_recovery]; CONFIRMATORY_DEFERRED_v3 [mechanism_matrix H_write x Gamma_H x HDP 8 cells]; deferred reason: S2-in-D context + 8-cell x20 replicates exceeds authorized envelope; zero SSA trajectories so staging prospective",
+      "quantitative_result": {
+        "S4_executed": false,
+        "deferral": "CONFIRMATORY_DEFERRED_v3",
+        "mechanism_cells_8": "not executed",
+        "Delta_mech_SI": null,
+        "H_K_gate": null
+      },
+      "statistical_validation": "not_applicable (battery not executed)",
+      "status": "UNRESOLVED"
+    },
+    {
+      "claim_id": "CL-26",
+      "claim": "Typed H state as contingency on V1/V2 circuits: H=H* recovery => bit-exact baseline, H!=H* with Gamma_H=I causally invisible to rhythm/SSA on W (latent storage vs expression separation) — tiered gates 94/95 not executed in this epoch (UNRESOLVED)",
+      "allowed_manuscript_language": "Typed H-state contingency was declared but not executed on the V1/V2 ~1000-neuron carriers in this epoch; H=H* and Gamma=I invisibility remain to be demonstrated per 28 Block D",
+      "evidence_artifacts": [
+        "artifacts/e2/preregistration/e2_ping_prereg.json#delays",
+        "artifacts/e2/preregistration/e2_ssa_spec.v6.json#masks"
+      ],
+      "evidence_regime": "method_boundary_statement (not executed)",
+      "figure_or_table_destination": "Fig. 6 discipline panels (tier 0/1 echo) — not rendered for V1/V2 in this epoch",
+      "forbidden_overclaim": "Do not claim H-mediated modulation of V1 rhythm or V2 SSA without tier 0/1 bit-exact gates; do not claim Gamma-expression without Gamma=I leakage control (CL-17/95 pattern)",
+      "manuscript_destination": "Methods (TFNE state layering) + Discussion conditional",
+      "null_or_control": "Tier 0 H=H* => X bit-exact to no-H baseline; Tier 1 H!=H* Gamma=I => X bit-exact to H=H* (leakage null); Tier 2 H!=H* Gamma!=I paired Delta isolates expression through declared map; all paired per seed on window W",
+      "provenance": "Declared in 28 goals 94-96 and 34 CL-26; parent_e1 07b1c04; coordinate H_K with H*=1, b_eff=H_K*b, tau_K per D2a; to be executed when H-layer authorized",
+      "quantitative_result": {},
+      "statistical_validation": "not_executed (bit-exact identity gates when executed)",
+      "status": "UNRESOLVED"
+    },
+    {
+      "claim_id": "CL-27",
+      "claim": "Neutral HDP ride-along on V1/V2 (W=W0*exp(omega), tau dω/dt=κΔH - λω, ω(t)=ω0 exp(-λt/tau), latent disablement Gamma=I still invisible while ω logged, W frozen during readout or applied post-assay) — optional gated, not authorized in this epoch; closed-loop stability remains UNRESOLVED per W3b 0 S/1944 X/243 D discipline",
+      "allowed_manuscript_language": "Neutral HDP staging, if ever authorized, would keep W frozen during rhythm/SSA readout; closed-loop stability is not claimed and remains flagged-open",
+      "evidence_artifacts": [
+        "artifacts/protocol_w/w0_mathematical_contract.json",
+        "artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json"
+      ],
+      "evidence_regime": "method_boundary_statement (not authorized)",
+      "figure_or_table_destination": "Fig. 6 F flagged-open echo — no new HDP panel in this epoch",
+      "forbidden_overclaim": "Do not claim HDP closed-loop stability, boundedness, or persistent memory; W3b remains unresolved_not_negative with N_S=0, N_X=1944; no SURPRISE/predictive-coding or field-feedback claim",
+      "manuscript_destination": "Discussion (HDP boundary) + Limitations flagged-open",
+      "null_or_control": "W lattice dormancy syn*=0 => dI_rec/dω=0; silent-rest; HDP-neutral recovery discipline; latent disablement precedes any ω->W->X inference",
+      "provenance": "34 CL-27 + 28 goals 94-96; requires hdp_authorized:true and 94 pre-pass; not authorized in V1/V2 epoch; W3b receipt FROZEN_UNRESOLVED outcome_classification unresolved_not_negative (N_S=0,N_X=1944,X=1944,D=243,total 2187)",
+      "quantitative_result": {
+        "W3b_N_S": 0,
+        "W3b_N_X": 1944,
+        "W3b_D": 243,
+        "W3b_total": 2187,
+        "hdp_authorized": false,
+        "omega_trace": null
+      },
+      "statistical_validation": "not_authorized (when executed: boundedness |ω|<1, dormancy check)",
+      "status": "UNRESOLVED"
+    },
+    {
+      "claim_id": "CL-28",
+      "claim": "Evidence layering & manifests green (directory lattice prereg->exploratory->confirmatory raw->summary->figures->manifests->audits, provenance sidecar wall_clock/python/jax/platform, hash replay, decoded-pixel reproducibility) — lattice exists but manifest green not claimed until cross_e2_audit PASS in this epoch (UNRESOLVED pending audit generator)",
+      "allowed_manuscript_language": "Evidence layering follows the preregistry-tolerated file lattice; manifest and audit green are to be assessed by the cross-audit generator",
+      "evidence_artifacts": [
+        "artifacts/e2/preregistration/e2_ping_prereg.json",
+        "artifacts/e2/preregistration/e2_ssa_spec.v6.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v1_ping_receipt.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v2_ssa_confirmatory_receipt.json"
+      ],
+      "evidence_regime": "method_reproducibility (lattice discipline)",
+      "figure_or_table_destination": "Table (provenance) + Supplement evidence inventory",
+      "forbidden_overclaim": "Do not claim cross-e2 audit green before generator passes G1..G10; do not claim figures are promoted to final until decoded-pixel identical; no gitignored-artifact dependency",
+      "manuscript_destination": "Methods / Supplementary inventory + Code availability",
+      "null_or_control": "Explorer vs confirmatory separation by spec_hash; W window/threshold co-location check; n_total = n_NF + n_UNRES + sum n_labels arithmetic",
+      "provenance": "28 §2.3/35 §5.2; parent_e1 07b1c04; e1_frozen_manifest_sha aeca6d0 variant; lattice under artifacts/e2/{preregistration,confirmatory/audits}; to be checked by artifacts/e2/audit/cross_e2_audit.json when generator runs",
+      "quantitative_result": {
+        "prereg_rows_frozen": 2,
+        "confirmatory_V1_runs": 35,
+        "confirmatory_V2_reps": 20,
+        "cross_audit_green": false,
+        "note": "pending generator: G1 drift 28/28, G2 phasing, G3 provenance, G4 raw->summary, G5 figures, G6 polarity, G7 arithmetic, G8 write_once, G9 gate co-location, G10 probe purity"
+      },
+      "statistical_validation": "mechanical lattice checks (not yet green)",
+      "status": "UNRESOLVED"
+    },
+    {
+      "claim_id": "CL-29",
+      "claim": "Figure synthesis Figs.8-9 first-class (fig08_e2_ping_spec.json Fig08.V1_A..H, fig09_e2_ssa_spec.json Fig09.V2_A..F, pinned generators scripts/internal/publication/fig08/09) not yet promoted; generation awaits supplement S-Pulse/S18 freeze and manifest green (UNRESOLVED pending render)",
+      "allowed_manuscript_language": "New figures are first-class, generated from frozen specs+raw+summaries via pinned scripts with receipt authority and excluded-content lists; no hand-retouched data pixels",
+      "evidence_artifacts": [
+        "artifacts/developer/resolution/34_E2_FIGURE_CLAIM_REMAP.md",
+        "artifacts/developer/resolution/35_E2_EVIDENCE_VERSIONING_PLAN.md"
+      ],
+      "evidence_regime": "method_reproducibility (figure generation discipline)",
+      "figure_or_table_destination": "Fig. 8 V1 PING (supplement S-Pulse) + Fig. 9 V2 SSA (supplement) — to be promoted to publication/final when green",
+      "forbidden_overclaim": "Do not claim hand-polished Figs.8/9 data pixels; no manual retouching; decorative annotation only via code-reviewed commit and new hash; Figs.1-7 PNGs remain byte-identical to frozen hashes",
+      "manuscript_destination": "Figures + Supplementary",
+      "null_or_control": "Decoded-pixel reproducibility 7/7 gate pattern reused for Fig.8/9; spec-listed generation scripts fig08_e2_ping.py / fig09_e2_ssa.py reproduce PNGs decoded-pixel identical from summary+raw",
+      "provenance": "34 §§2.1/3.2 + 35 §5.3; parent_e1 07b1c04; existing E1 spec hashes be227d/a4c444 etc unchanged; E2 spec hashes b89a09c/0df9bfe parent; generation not yet run in this delta epoch",
+      "quantitative_result": {
+        "fig08_panels": 7,
+        "fig09_panels": 6,
+        "promoted_hashes": null,
+        "decoded_pixel_repro": "pending"
+      },
+      "statistical_validation": "decoded-pixel equality (pending generation)",
+      "status": "UNRESOLVED"
+    }
+  ],
+  "ledger": [
+    {
+      "allowed_manuscript_language": "Representational grammar map; no empirical quantity in this figure",
+      "claim": "TFNE factorizes neural biophysics into relative finite-dimensional state, typed dynamical operators, and transformable geometry (grammar map; no empirical results)",
+      "claim_id": "CL-01",
+      "evidence_artifacts": [
+        "artifacts/publication/fig01_grammar_spec.json",
+        "artifacts/publication/fig01_semantic_audit.json",
+        "figures/publication/fig01_tfne_grammar.png"
+      ],
+      "evidence_regime": "representational_document",
+      "figure_or_table_destination": "Fig. 1 (conceptual panel)",
+      "forbidden_overclaim": "Do not present Fig01 as an empirical/demonstrated result; no mechanism claim",
+      "manuscript_destination": "Results intro / methods grammar",
+      "null_or_control": "not_applicable",
+      "provenance": "Fig01.grammar; receipt artifacts/publication/fig01_generation_receipt.json; claim_level REPRESENTATIONAL; frozen SHA 707c3fec...",
+      "quantitative_result": {},
+      "statistical_validation": "none_required",
+      "status": "METHOD_ONLY"
+    },
+    {
+      "allowed_manuscript_language": "A single canonical relative source Q underlies the emitter-source, local-observation and multiscale-boundary figures",
+      "claim": "One neural simulate freezes an inspectable canonical relative source Q (X, H, B, Q, G) separate from probes",
+      "claim_id": "CL-02",
+      "evidence_artifacts": [
+        "artifacts/publication/fig02_04_experiment_a_spec.json",
+        "figures/publication/fig02_emitter_source.png"
+      ],
+      "evidence_regime": "deterministic_numerical_property",
+      "figure_or_table_destination": "Fig. 2",
+      "forbidden_overclaim": "Do not claim multiple independent canonical datasets; no physical calibration",
+      "manuscript_destination": "Results (canonical source)",
+      "null_or_control": "cross-figure shared Q invariant; no modality-specific neural reruns",
+      "provenance": "Fig02.canonical_Q; receipt artifacts/publication/fig02_generation_receipt.json; DEMONSTRATED+POSITIVE",
+      "quantitative_result": {
+        "canonical_Q_frozen": "one shared frozen representation across Fig2-4; hash recorded in fig02_04_cross_figure_audit"
+      },
+      "statistical_validation": "exact_property_test (single canonical hash invariant)",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "LFP/CSD are relative computational readouts of one frozen source Q",
+      "claim": "Laminar LFP/CSD relative proxies are distinct computational readouts of the frozen Q, not new simulations",
+      "claim_id": "CL-03",
+      "evidence_artifacts": [
+        "artifacts/publication/fig02_04_experiment_a_spec.json",
+        "figures/publication/fig03_local_observation.png"
+      ],
+      "evidence_regime": "deterministic_numerical_property",
+      "figure_or_table_destination": "Fig. 3",
+      "forbidden_overclaim": "No claim that proxies equal experimental LFP/CSD; proxy_readout claim_level",
+      "manuscript_destination": "Results (observation readouts)",
+      "null_or_control": "shared Q invariant against probe-specific readout",
+      "provenance": "Fig03.lfp_csd_proxy; receipt fig03_generation_receipt.json; DEMONSTRATED+POSITIVE",
+      "quantitative_result": {
+        "readout_distinctness": "relative proxy readouts from frozen Q; no neural rerun"
+      },
+      "statistical_validation": "exact_property_test",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "Toy EEG/MEG leadfields are analysis-only computational readouts; physical amplitude calibration not performed",
+      "claim": "EEG/MEG toy leadfields are analysis-only readouts, not calibrated physical claims",
+      "claim_id": "CL-04",
+      "evidence_artifacts": [
+        "artifacts/publication/fig02_04_experiment_a_spec.json",
+        "figures/publication/fig04_multiscale_boundary.png"
+      ],
+      "evidence_regime": "method_boundary_statement",
+      "figure_or_table_destination": "Fig. 4",
+      "forbidden_overclaim": "No physical/quantitative EEG/MEG amplitude interpretation",
+      "manuscript_destination": "Methods limitations / Results (readout boundary)",
+      "null_or_control": "analysis-only design; no calibration protocol",
+      "provenance": "Fig04.EEG_MEG_analysis_only; receipt fig04_generation_receipt.json; DEMONSTRATED+NEGATIVE",
+      "quantitative_result": {
+        "physical_amplitude_calibrated": false
+      },
+      "statistical_validation": "none_required",
+      "status": "NEGATIVE"
+    },
+    {
+      "allowed_manuscript_language": "A validated traveling-wave estimator detected no traveling waves across the preregistered neural geometry/delay conditions",
+      "claim": "The frozen traveling-wave estimator passes synthetic validation gates (sync, standing-wave false-positive controls)",
+      "claim_id": "CL-05",
+      "evidence_artifacts": [
+        "artifacts/publication/fig05_wave_spec.json",
+        "figures/publication/fig05_traveling_wave_no_wave.png"
+      ],
+      "evidence_regime": "deterministic_numerical_property",
+      "figure_or_table_destination": "Fig. 5",
+      "forbidden_overclaim": "No claim that no traveling wave exists outside the tested geometry/delay regime; estimator validated on synthetic controls only",
+      "manuscript_destination": "Results (C3) + Methods (estimator validation)",
+      "null_or_control": "C1 false-positive controls (sync, standing wave)",
+      "provenance": "Fig05.C1_synthetic; receipt fig05_generation_receipt.json; DEMONSTRATED+POSITIVE",
+      "quantitative_result": {
+        "synthetic_controls": "sync + standing-wave false-positive controls pass"
+      },
+      "statistical_validation": "exact_property_test + synthetic false-positive controls",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "No traveling waves were detected across the preregistered ring geometry/delay conditions",
+      "claim": "Prospective neural regimes yield predominantly NO_WAVE under the frozen estimator; C3 = negative outcome",
+      "claim_id": "CL-06",
+      "evidence_artifacts": [
+        "artifacts/publication/fig05_wave_spec.json",
+        "figures/publication/fig05_traveling_wave_no_wave.png"
+      ],
+      "evidence_regime": "parameter_space_characterization",
+      "figure_or_table_destination": "Fig. 5",
+      "forbidden_overclaim": "Do not generalize to distance-heterogeneous conduction (scope_qualifier: delays collapsed to 4 steps on this ring); no claim of wave absence in cortex",
+      "manuscript_destination": "Results (negative outcome)",
+      "null_or_control": "C1 synthetic positives + sync/standing-wave false-positive controls",
+      "provenance": "Fig05.C3_NO_WAVE; receipt fig05_generation_receipt.json; DEMONSTRATED+NEGATIVE; outcome_letter C",
+      "quantitative_result": {
+        "no_wave_conditions": "six-condition outcome: NO_WAVE predominant; structured-but-fails-traveling-gates minority"
+      },
+      "statistical_validation": "domain coverage over preregistered conditions; no inferential statistics claimed",
+      "status": "NEGATIVE"
+    },
+    {
+      "allowed_manuscript_language": "Typed vector RBS extends the classical emitter within one mechanism subsystem; H_K=1 restores the base emitter",
+      "claim": "A classical emitter can be extended by typed, vector-valued, activity-dependent RBS without creating a separate mechanism subsystem (D containment)",
+      "claim_id": "CL-07",
+      "evidence_artifacts": [
+        "artifacts/protocol_d_biological_rbs/d_closure_interpretation_receipt.json",
+        "artifacts/publication/fig06_hwd_spec.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property",
+      "figure_or_table_destination": "Fig. 6",
+      "forbidden_overclaim": "No claim that RBS adds new biological mechanisms; no new-neuron-type claim",
+      "manuscript_destination": "Results (containment) + Methods",
+      "null_or_control": "H_K=1 reference; dot_W=0 throughout",
+      "provenance": "Fig06.D_containment; protocol_d_biological_rbs d_closure receipt (milestone 0.4.17-D); DEMONSTRATED+POSITIVE",
+      "quantitative_result": {
+        "architectural_claim": "DEMONSTRATED"
+      },
+      "statistical_validation": "exact property (identity restoration at H_K=1)",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "Observable spike attenuation was detected in 9/9 cells but formal ADAPTATION classification failed (0/9 cells satisfy joint mechanism gates); D3 = NO_ADAPTATION",
+      "claim": "Activity-written spike adaptation phenotype is not supported under the frozen D3 paradigm (NO_ADAPTATION)",
+      "claim_id": "CL-08",
+      "evidence_artifacts": [
+        "artifacts/protocol_d_biological_rbs/d3_interpretation_receipt.json",
+        "artifacts/publication/fig06_hwd_spec.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property (classification of simulated cells)",
+      "figure_or_table_destination": "Fig. 6",
+      "forbidden_overclaim": "Do not present attenuation as adaptation; no claim that hidden-state writing differentiates the spike phenotype from N2",
+      "manuscript_destination": "Results (negative outcome)",
+      "null_or_control": "D-N2 null on A_adapt; mechanism gates M1/M2 (M2: H_K_late > 1 + theta_H fails in all 9 cells)",
+      "provenance": "Fig06.D3_NO_ADAPTATION; d3_interpretation_receipt FROZEN; DEMONSTRATED+NEGATIVE",
+      "quantitative_result": {
+        "ADAPTATION_count": 0,
+        "A_adapt_approx": 0.286,
+        "NO_ADAPTATION_count": 9,
+        "n_mechanism_ok": 0
+      },
+      "statistical_validation": "mechanism-gate classification; no inferential statistics claimed",
+      "status": "NEGATIVE"
+    },
+    {
+      "allowed_manuscript_language": "RBS state retains perturbation history across time and, with the H1c-coupling (beta_H), that history is decodably expressed in neural activity (P1/P2) - machinery-level claim",
+      "claim": "RBD memory machinery (H1-H3): RBS retains perturbation history (P1) and can influence neural activity through H1c/H3 beta_H coupling (P2)",
+      "claim_id": "CL-09",
+      "evidence_artifacts": [
+        "artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json",
+        "artifacts/protocol_h_rbd/h4_matrix/h4_matrix_receipt.json",
+        "artifacts/publication/fig06_hwd_spec.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property + parameter_space_characterization",
+      "figure_or_table_destination": "Fig. 6 (panels A/B state-memory)",
+      "forbidden_overclaim": "Do not claim that recurrent geometry/delays extend memory (P3) - that is H4 NEGATIVE; do not claim sign-symmetry as memory (excluded content in fig06 spec); do not cite H1-H3 as if they had standalone frozen publication receipts; no cognition/predictive-coding language",
+      "manuscript_destination": "Results (state memory) + Methods (protocol references)",
+      "null_or_control": "H3 nulls: delta_H=0 near chance; F0 null near chance; label-shuffle baseline near chance; beta_H=0 -> M_H above chance, M_X near chance; beta_H>0 -> M_X above chance",
+      "provenance": "H4 interpretation receipt proposition_separation P1/P2 (protocol_id protocol_h_rbd_memory_h4, status FROZEN_NEGATIVE_RESULT for P3, but P1/P2 certified supported); fig06 Generation receipt + semantic audit; 85/85 H-protocol tests; NOTE: no standalone frozen receipts exist for H1/H2/H3 checkpoints - certification is via the frozen H4 interpretation receipt + frozen fig06 + tests; implementation commits d3acad6 (H1c), cfb5313 (H2), 8f01ae7 (H3)",
+      "quantitative_result": {
+        "M_X_long_heterogeneous": 0.0,
+        "M_X_long_uniform": 0.0,
+        "M_X_short_heterogeneous": 0.0521,
+        "M_X_short_uniform": 0.0,
+        "P1_RBS_retains_perturbation_history": "supported (H1-H3 machinery)",
+        "P2_RBS_influences_neural_activity": "supported (H1c, H3 beta_H null structure)"
+      },
+      "statistical_validation": "H3 null-shuffle decodability gates (CHANCE_MARGIN 0.12, ABOVE_CHANCE 0.08) over 10 train/10 test seeds",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "Under the preregistered H4 regime, longer recurrent length and heterogeneous delays did not produce a positive memory-extension effect (alpha_length=0.0; short-heterogeneous +0.052 exploratory only)",
+      "claim": "Increased recurrent length and heterogeneous delays did not extend activity-expressed memory (H4 negative)",
+      "claim_id": "CL-10",
+      "evidence_artifacts": [
+        "artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json",
+        "artifacts/protocol_h_rbd/h4_matrix/h4_matrix_receipt.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property (factorial point estimates)",
+      "figure_or_table_destination": "Fig. 6 (panel C)",
+      "forbidden_overclaim": "Do not conclude 'length has no effect on memory' generally - only 'no positive effect detected by the preregistered assay'; do not present the +0.052 as a confirmed heterogeneity effect (bootstrap CI not computed, exploratory only)",
+      "manuscript_destination": "Results (negative outcome)",
+      "null_or_control": "preregistered directional conjecture M_X{long,hetero} > M_X{short,uniform} falsified; factorial gates; loop-aligned secondary peaks absent",
+      "provenance": "h4_interpretation_receipt FROZEN_NEGATIVE_RESULT (repository_sha 8f01ae7); h4_matrix_receipt config_hash 324fc820b687eab5; fig06 receipt panel C; protocol H CLOSED at H4 (90cf246)",
+      "quantitative_result": {
+        "M_X_long_heterogeneous": 0.0,
+        "M_X_long_uniform": 0.0,
+        "M_X_short_heterogeneous": 0.0521,
+        "M_X_short_uniform": 0.0,
+        "alpha_heterogeneity": 0.0521,
+        "alpha_interaction": -0.0521,
+        "alpha_length": 0.0,
+        "directional_conjecture_supported": false
+      },
+      "statistical_validation": "preregistered factorial contrasts; bootstrap CI explicitly not computed - exploratory point estimate only",
+      "status": "NEGATIVE"
+    },
+    {
+      "allowed_manuscript_language": "Across the frozen W3b lattice, no robust-active point was classified (N_S=0) while 1944 active points remain unresolved (X); stability classification of the active region remains open",
+      "claim": "Useful robust-active HDP domain not demonstrated; large unresolved active region remains (W3b)",
+      "claim_id": "CL-11",
+      "evidence_artifacts": [
+        "artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json",
+        "artifacts/protocol_w/w3_stability/w3_stability_receipt.json"
+      ],
+      "evidence_regime": "parameter_space_characterization (lattice scan, deterministic gates)",
+      "figure_or_table_destination": "Fig. 6 (panel F)",
+      "forbidden_overclaim": "Do not present W3b as negative; do not claim a useful robust-active HDP domain exists; no closed-loop HDP stability claim",
+      "manuscript_destination": "Results (unresolved outcome) or explicitly flagged open question",
+      "null_or_control": "silent-rest dormancy (W3) established separately: syn*=0 => dI_rec/domega=0",
+      "provenance": "w3b_interpretation_receipt FROZEN_UNRESOLVED, outcome_classification unresolved_not_negative; modification_policy: W3c must not retroactively alter W3b claims",
+      "quantitative_result": {
+        "C": 0,
+        "D": 243,
+        "N_S": 0,
+        "N_X": 1944,
+        "S": 0,
+        "U": 0,
+        "X": 1944,
+        "total": 2187
+      },
+      "statistical_validation": "full preregistered lattice scan under frozen gates; count classification; no inferential statistics claimed",
+      "status": "UNRESOLVED"
+    },
+    {
+      "allowed_manuscript_language": "A written parameter omega, frozen during expression, changes neural dynamics through W in the minimal A<->B pair (W1/W2)",
+      "claim": "W1 (H -> omega) parameter writing is implemented and W2 (omega -> W -> X) expression is a frozen positive result",
+      "claim_id": "CL-12",
+      "evidence_artifacts": [
+        "artifacts/protocol_w/w0_mathematical_contract.json",
+        "artifacts/protocol_w/w2_expression/w2_expression_receipt.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property",
+      "figure_or_table_destination": "Fig. 6 (panels D/E)",
+      "forbidden_overclaim": "Closed-loop feedback (W3) is NOT demonstrated; do not claim memory persistence through closed-loop HDP",
+      "manuscript_destination": "Results (parameter memory feedforward) + Methods",
+      "null_or_control": "W1/W2 composition note: evidence frozen before W3 closed-loop feedback; BA edge weight zero isolates AB",
+      "provenance": "w2_expression_receipt FROZEN_POSITIVE_RESULT (repository_sha 6e9cc1f); w0_mathematical_contract W0_FROZEN",
+      "quantitative_result": {
+        "causal_graph": "omega_star -> W_star -> X; dot_omega = 0 during expression",
+        "omega_levels": [
+          -0.25,
+          0.0,
+          0.25
+        ]
+      },
+      "statistical_validation": "monotonicity checks over omega levels; no inferential statistics claimed",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "A minimal two-area laminar hierarchy supports typed FF/FB ownership and identity round-trip",
+      "claim": "Minimal two-area laminar hierarchy with FF/FB ownership and identity round-trip (E1)",
+      "claim_id": "CL-13",
+      "evidence_artifacts": [
+        "artifacts/protocol_e_integration/e1_execution_receipt.json",
+        "artifacts/publication/fig07_integration_spec.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property",
+      "figure_or_table_destination": "Fig. 7 (panel A)",
+      "forbidden_overclaim": "No functional FF/FB spectral claim (excluded content); no biological specialization claim absent direct evidence",
+      "manuscript_destination": "Results (hierarchy substrate)",
+      "null_or_control": "ownership tags: FF vs FB distinguish owner paths",
+      "provenance": "Fig07.E1_hierarchy; e1 receipts; DEMONSTRATED+POSITIVE",
+      "quantitative_result": {
+        "identity_round_trip": "R_E1 identity preserved"
+      },
+      "statistical_validation": "none beyond identity/ownership assertions",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "Typed pathway delays compose with the hierarchy; setting delay to zero recovers E1 semantics",
+      "claim": "Typed provenance-class delays attach without breaking E1 semantics; R_E2_to_E1 at tau=0 (E2)",
+      "claim_id": "CL-14",
+      "evidence_artifacts": [
+        "artifacts/protocol_e_integration/e2_execution_receipt.json",
+        "artifacts/publication/fig07_integration_spec.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property",
+      "figure_or_table_destination": "Fig. 7 (panel B)",
+      "forbidden_overclaim": "No claim about delay-dependent spectral/oscillatory function",
+      "manuscript_destination": "Results (typed delays)",
+      "null_or_control": "reduction ladder step: tau=0 collapses E2 onto E1",
+      "provenance": "Fig07.E2_delays; e2 receipts; DEMONSTRATED+POSITIVE",
+      "quantitative_result": {
+        "reduction": "tau=0 => E2->E1"
+      },
+      "statistical_validation": "reduction identity test",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "Sparse owned H_K RBS composes with the hierarchy and delays; H=H* recovers E2 semantics",
+      "claim": "Sparse owned D1/D2a H_K RBS composes with hierarchy and delays; R_E3_to_E2 at H*=1 (E3)",
+      "claim_id": "CL-15",
+      "evidence_artifacts": [
+        "artifacts/protocol_e_integration/e3_execution_receipt.json",
+        "artifacts/publication/fig07_integration_spec.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property",
+      "figure_or_table_destination": "Fig. 7 (panel C)",
+      "forbidden_overclaim": "No HDP/plasticity claim in this composition",
+      "manuscript_destination": "Results (RBS composition)",
+      "null_or_control": "reduction ladder step: setting H to H* collapses E3 onto E2",
+      "provenance": "Fig07.E3_RBD; e3 receipts; DEMONSTRATED+POSITIVE",
+      "quantitative_result": {
+        "reduction": "H=H* => E3->E2"
+      },
+      "statistical_validation": "reduction identity test",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "Observations are pure downstream compositions of the frozen state; disabling observation recovers the substrate state",
+      "claim": "The observation chain (S/F/P) is pure downstream composition; T_E4 probe-independent (X,H,B,Q,G) (E4)",
+      "claim_id": "CL-16",
+      "evidence_artifacts": [
+        "artifacts/protocol_e_integration/e4_execution_receipt.json",
+        "artifacts/publication/fig07_integration_spec.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property",
+      "figure_or_table_destination": "Fig. 7 (panel D)",
+      "forbidden_overclaim": "No claim that observations feed back into the substrate (no closed loop here)",
+      "manuscript_destination": "Results (observation boundary)",
+      "null_or_control": "observation-disabled reduction",
+      "provenance": "Fig07.E4_observation; e4 receipts; DEMONSTRATED+POSITIVE",
+      "quantitative_result": {
+        "probe_independence": "T_E4 independent of probes"
+      },
+      "statistical_validation": "reduction/independence identity test",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "With expression disabled (Gamma_H=I), perturbing H_K leaves X unchanged bit-exactly",
+      "claim": "Perturbed H_K is causally invisible to X when Gamma_H=I; N0==N1 bit-exact (E5 leakage test)",
+      "claim_id": "CL-17",
+      "evidence_artifacts": [
+        "artifacts/protocol_e_integration/e5_interpretation_receipt.json",
+        "artifacts/protocol_e_integration/e5_execution_receipt.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property",
+      "figure_or_table_destination": "Fig. 7 (panel E)",
+      "forbidden_overclaim": "Do not claim expression exists when disabled; this is the negative control of CL-18",
+      "manuscript_destination": "Results (causal discipline)",
+      "null_or_control": "Gamma_H=I disables expression: hidden-state storage without expression is causally invisible",
+      "provenance": "Fig07.E5_leakage_test; e5_interpretation_receipt FROZEN; DEMONSTRATED+POSITIVE",
+      "quantitative_result": {
+        "N0_equals_N1": "bit-exact identity when Gamma_H=I"
+      },
+      "statistical_validation": "bit-exact identity (N0==N1)",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "A local RBS perturbation, expressed through its typed Gamma_H coupling, propagates through existing hierarchical connectivity across the network (outcome classification HIERARCHICAL_PROPAGATION, reproduced identically in all three protocol runs). Protocol E is deterministic by construction (spec noise_scale=0); the recorded seeds 11/12/13 are nominal run metadata, NOT independent stochastic replicates.",
+      "claim": "Typed Gamma_H expression (not hidden-state storage) drives hierarchical propagation H_K->X through FF/FB ownership (E5 causal)",
+      "claim_id": "CL-18",
+      "evidence_artifacts": [
+        "artifacts/protocol_e_integration/e5_interpretation_receipt.json",
+        "artifacts/protocol_e_integration/e5_execution_receipt.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property across seeds",
+      "figure_or_table_destination": "Fig. 7 (panels E/F)",
+      "forbidden_overclaim": "Forbidden A1 statement: 'feedback suppresses/enhances a particular frequency band'; no cognition, no predictive processing, no biological FF/FB specialization claim (excluded content in fig07 spec)",
+      "manuscript_destination": "Results (causal propagation)",
+      "null_or_control": "causal contrast D-N1 isolates Gamma_H expression, not hidden-state presence alone; leakage control (CL-17) N0==N1",
+      "provenance": "e5_interpretation_receipt FROZEN, aggregate_classification HIERARCHICAL_PROPAGATION; evidence gates G_O/G_A2/G_A1/G_Q/G_Y all true; permissible_A1_statement: 'local A2 RBS perturbation propagated through existing hierarchical connectivity into A1'",
+      "quantitative_result": {
+        "per_seed_classification": [
+          "HIERARCHICAL_PROPAGATION",
+          "HIERARCHICAL_PROPAGATION",
+          "HIERARCHICAL_PROPAGATION"
+        ],
+        "seeds": [
+          11,
+          12,
+          13
+        ]
+      },
+      "statistical_validation": "Deterministic-by-construction numerical property: identical outcome across three nominal seed runs (noise_scale=0); evidence gates with threshold 1e-06; no inferential statistics claimed and none implied by the repeated runs.",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "The active HDP stability region remains unresolved (1944 X points of 2187); no robust-active point was demonstrated",
+      "claim": "HDP closed-loop active stability (W3b active region) is unresolved, not negative",
+      "claim_id": "CL-19",
+      "evidence_artifacts": [
+        "artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json"
+      ],
+      "evidence_regime": "parameter_space_characterization",
+      "figure_or_table_destination": "Fig. 6 (panel F)",
+      "forbidden_overclaim": "Do not convert W3b into negative or positive; do not claim boundedness/stability of HDP closed-loop without W3b-classification evidence",
+      "manuscript_destination": "Results (flagged open) or Discussion",
+      "null_or_control": "N_A_adapt... not applicable; silent-rest dormancy established by W3",
+      "provenance": "w3b_interpretation_receipt FROZEN_UNRESOLVED; outcome_classification unresolved_not_negative",
+      "quantitative_result": {
+        "N_S": 0,
+        "N_X": 1944
+      },
+      "statistical_validation": "frozen-detector lattice classification; no inferential statistics claimed",
+      "status": "UNRESOLVED"
+    },
+    {
+      "allowed_manuscript_language": "All main figures were rendered from a single frozen evidence set with per-file SHA-256 provenance",
+      "claim": "Publication figure origin: all Fig 1-7 PNGs are generated from frozen specs/receipts at a frozen SHA with hash provenance (reproducibility doctrine)",
+      "claim_id": "CL-20",
+      "evidence_artifacts": [
+        ".opencode/frozen_paths.json",
+        "artifacts/publication/fig0*_generation_receipt.json",
+        "artifacts/publication/figures_1_7_cross_figure_audit.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property",
+      "figure_or_table_destination": "Table (provenance)",
+      "forbidden_overclaim": "No claim of external byte-for-byte reproducibility across environments beyond the recorded equivalence gate",
+      "manuscript_destination": "Methods / Supplementary",
+      "null_or_control": "equivalence gate: post-seam renders decoded-pixel identical to frozen set (7/7)",
+      "provenance": "commit c6f6aaf; scripts/publication_figures/equivalence_gate.py; artifacts/publication/equivalence_report.json (schema jaxfne.harness.seam_equivalence.v1)",
+      "quantitative_result": {
+        "frozen_files": 28,
+        "frozen_sha_preserved": "28/28 PASS"
+      },
+      "statistical_validation": "SHA-256 exactness + decoded-pixel equivalence",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "The figure regeneration path is reproducible from a clean checkout per documented entrypoint",
+      "claim": "RBD machinery reproduction from clean environment (P3 reviewer path) is executable and PASSing",
+      "claim_id": "CL-21",
+      "evidence_artifacts": [
+        "scripts/publication_figures/equivalence_gate.py",
+        "tests/test_equivalence_gate_v20260815.py"
+      ],
+      "evidence_regime": "method_reproducibility",
+      "figure_or_table_destination": "Supplementary reproduction appendix",
+      "forbidden_overclaim": "No claim that every downstream environment reproduces bit-identical artifacts beyond the tested path",
+      "manuscript_destination": "Code availability / Methods",
+      "null_or_control": "gate refuses to run if frozen PNGs drift",
+      "provenance": "Phase-1 reproduction closure (fresh clone run, see P3)",
+      "quantitative_result": {
+        "equivalence": 7,
+        "frozen_manifest_selfcheck": "PASS"
+      },
+      "statistical_validation": "clean-environment execution receipt (P3)",
+      "status": "METHOD_ONLY"
+    },
+    {
+      "claim_id": "CL-22",
+      "claim": "V1 ~1000-neuron sparse E/I circuit PING-like rhythm not detected at theta* under frozen conjunctive criteria (intact 0/5 PING_LIKE); ~7 Hz synchronous population-pulse regime with harmonic-comb gamma peaks, not PING oscillator (V1 NEGATIVE_NOT_PING_LIKE)",
+      "allowed_manuscript_language": "In the preregistered confirmatory arm (V1: 7 arms x 5 seeds at theta*), networks met adequacy gates in 5/5 seeds but satisfied none of the four frozen PING-classifier criteria in any seed (verdict NEGATIVE_NOT_PING_LIKE), instead exhibiting a ~7 Hz globally synchronous population-pulse rhythm whose gamma-band spectral peaks fall below the frozen prominence gate; these results therefore support only the bounded statement that no PING-like signature was detected at theta* under the frozen criteria, carry no implication about other regions of the parameter space, and are independent of the CL-06 NO_WAVE result",
+      "evidence_artifacts": [
+        "artifacts/e2/preregistration/e2_ping_prereg.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v1_ping_receipt.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v1_rescored_frozen_only.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v1_corrigendum_and_adjudication.json",
+        "artifacts/e2/S_PULSE_CHARACTERIZATION.md",
+        "artifacts/e2/E2_SYNTHESIS.md"
+      ],
+      "evidence_regime": "deterministic_numerical_property across seeds (frozen conjunctive gates)",
+      "figure_or_table_destination": "Fig. 8 (V1 PING, supplement) + Supplement S-Pulse Table 1",
+      "forbidden_overclaim": "Do not claim PING capability or PING-timing homology; do not claim in-vivo PING; do not claim loop-dependence from the vacuous collapse table (executor bug dphi vs dphi_deg); do not claim two discordant oscillators; do not merge with CL-06 NO_WAVE in either direction; no tuning-until-positive",
+      "manuscript_destination": "Results (negative outcome, supplement-first) + Discussion boundary + Supplement S-Pulse",
+      "null_or_control": "Adequacy 5/5 confirmatory C0_G_adequate; controls: Poisson jitter null, IAAFT phase-randomized PLV null, collapse arms C1..C3d; loop-dependence vacuous on corrected rescoring (C2/C3a/C3c/C3d 0/5 collapse, not 5/5); theta* six-way adequacy tie lexicographic, not optimum",
+      "provenance": "e2_ping_prereg.v1 spec_hash b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f; parent_e1 07b1c04af9ea98176bc45350528f3312375f7d24; code_head 34b77ad; theta* {id:theta0, drive_E:4.0, drive_I:2.0, weight_mu:0.25, noise_scale:0.0, W_ms:60}; seeds 100..104 vs 1100..1104 runtime, 2100..2104 stimulus, 3100..3104 analysis; vm/u/spikes/sources Q finite",
+      "quantitative_result": {
+        "intact_PING_LIKE": 0,
+        "intact_UNRESOLVED": 0,
+        "intact_NO_PING": 5,
+        "n_seeds_C0": 5,
+        "C0_G_adequate": 5,
+        "theta_star": {
+          "id": "theta0",
+          "drive_E": 4.0,
+          "drive_I": 2.0,
+          "weight_mu": 0.25,
+          "noise_scale": 0.0,
+          "W_ms": 60
+        },
+        "fpk_E_median_Hz": 36.12,
+        "fpk_I_median_Hz": 43.33,
+        "prom_dB_range": [
+          5.41,
+          5.65
+        ],
+        "prominence_gray": "UNRESOLVED_PROMINENCE in 5/5 intact (threshold 6.0 dB, gray [5.0,6.0))",
+        "band_ratio_median": 0.355,
+        "f0_envelope_Hz": 7.22,
+        "interpulse_interval_ms": 138.5,
+        "duty_cycle": 0.05,
+        "participation": 1.0,
+        "ff": 0.0,
+        "cycles_per_seed": [
+          3,
+          3,
+          3,
+          3,
+          4
+        ],
+        "ac_sidepeak_E": -0.1,
+        "ac_sidepeak_I": -0.06,
+        "ac_min_rescored": [
+          -0.0666,
+          -0.067,
+          -0.0638,
+          -0.064,
+          -0.0658
+        ],
+        "xcorr_EI_median": 0.975,
+        "dt_lag_ms_median": -6.8,
+        "dphi_deg_range": [
+          -90.48,
+          -85.27
+        ],
+        "PLV_median": 0.913,
+        "G_spec": false,
+        "G_rate": false,
+        "G_phase": false,
+        "G_cycle": false,
+        "failure_taxonomy": "FAIL_spectral_prominence + FAIL_rate_AC_negative + FAIL_phase_dphi_outside_window + FAIL_cycle_n_lt_10",
+        "rescored_frozen_only": "0/5 PING_LIKE independent implementation artifacts/e2/e2_exec/rescore_v1_frozen_only.py; labels NO_PING x5",
+        "harmonic_comb_diagnosis": "E fpk ~5*f0, I fpk ~6*f0; |f_E-f_I| ~7.2 Hz equals one harmonic spacing, not two oscillators (corrigendum C2)"
+      },
+      "statistical_validation": "exact_property_test across seeds (deterministic-by-construction noise_scale=0, seeds nominal metadata); independent frozen-only rescoring with exactly four strings; no bootstrap CI claimed; no inferential statistics implied by repeated nominal seeds",
+      "status": "NEGATIVE"
+    },
+    {
+      "claim_id": "CL-23",
+      "claim": "V1/V2 field/probe observation is pure downstream composition of accepted source (linear F, Q=0=>Y=0, probe-invariance (X,H,B,Q,G)_P1 = (X,H,B,Q,G)_P2, observation_off => E4->E3) on ~1000-neuron rhythm/oddball windows",
+      "allowed_manuscript_language": "Field and probe readouts are linear downstream compositions of the frozen relative source; downstream LFP-like readouts are proxy-level and not calibrated to physical amplitude",
+      "evidence_artifacts": [
+        "artifacts/e2/preregistration/e2_ping_prereg.json#masks",
+        "artifacts/e2/preregistration/e2_ssa_spec.v6.json#masks",
+        "artifacts/publication/fig02_04_cross_figure_audit.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property (observation-purity gates, staged)",
+      "figure_or_table_destination": "Fig. 8 observation-purity panel (staged) + Methods observation boundary",
+      "forbidden_overclaim": "Do not claim downstream LFP/CSD/EEG/MEG proxy is licensed for inference beyond method illustration; physical_amplitude_calibrated=false; no field-feedback or inversion claim; if gate fails downstream LFP proxy claims withheld per purity hygiene",
+      "manuscript_destination": "Methods (observation boundary) + Fig. 8 caption purity note",
+      "null_or_control": "Linearity check F(aQ1+bQ2)=aF(Q1)+bF(Q2); zero-source gate Q=0 => Y=0; probe-invariance (X,H,B,Q,G) bit-exact when probes differ; continuation/delay_state bit-exact; staged: neural CL-22 stays even if purity FAIL",
+      "provenance": "Inherited from E1 CL-03/CL-16 purity discipline (probe-independence receipts) + E2 masks owner_mask_spec_hash 51105b03, owner_mask_bytes_hash 83af8971; to be re-verified on V1/V2 carriers under e2b_v* executors when phase-matched control executes; parent_e1 07b1c04",
+      "quantitative_result": {
+        "purity_reverified_on_V1V2_carriers": false,
+        "staged_status": "UNRESOLVED_DEFERRED",
+        "downstream_proxy_licensed": false,
+        "field_claim_level": "proxy_readout",
+        "physical_amplitude_calibrated": false
+      },
+      "statistical_validation": "none_required (staged method gate); decoded-pixel and bit-exact identity checks to be applied when raw->summary carries LFP/probe hashes",
+      "status": "UNRESOLVED"
+    },
+    {
+      "claim_id": "CL-24",
+      "claim": "V2 SSA multi-channel oddball shows no stimulus-specific adaptation at theta* (pooled SI -0.084 BCa [-0.108,-0.034], deviant below standard, pooled swap asymmetry 0.426 >> 0.10; V2 NEGATIVE: FAIL_SI_gate + FAIL_swap_asymmetry + SIGN_deviant_below_standard)",
+      "allowed_manuscript_language": "In the confirmatory SSA arm (V2: 20 replicates x 5 blocks under e2_ssa_spec.v6), networks met adequacy gates in 20/20 replicates but showed no stimulus-specific adaptation: pooled SI = -0.084 (BCa [-0.108, -0.034], deviant below standard) with role-reversal asymmetry 0.426 >> 0.10 (frozen S2 falsifier), i.e., spatial-identity attenuation rather than deviance detection; verdict NEGATIVE with failure taxonomy retained",
+      "evidence_artifacts": [
+        "artifacts/e2/preregistration/e2_ssa_spec.v6.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v2_ssa_confirmatory_receipt.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v2_rescored_frozen_only.json",
+        "artifacts/e2/E2_SYNTHESIS.md"
+      ],
+      "evidence_regime": "deterministic_numerical_property (parameter_space_characterization 20x5 blocks, BCa over replicates)",
+      "figure_or_table_destination": "Fig. 9 (V2 SSA, supplement) + Table V2 pooled SI/swap",
+      "forbidden_overclaim": "Do not claim SSA; do not claim deviance detection or prediction/predictive-coding; do not claim rarity penalty without phase-matched control; do not substitute max_over_reps 0.426 for pooled mean; do not claim fixed spatial preference without per-channel CI (already falsified by 11/20 A>B flip); no in-vivo SSA homology; V2 not a repair of D3 CL-08",
+      "manuscript_destination": "Results (negative outcome, supplement-first) + Discussion boundary + Supplement V2 failure taxonomy",
+      "null_or_control": "Adequacy G_A/G_B 20/20 true; controls: many-standards SI_many 0.028 (<0.10, clean), shuffled |SI_shuf| -0.009 (<0.03, clean), role-swap pooled falsifier |swap| 0.426 >>0.10 BCa excludes 0 (S2 falsifier); permutation p_perm 1.0; Hedges g -6.19; per-channel Delta_R_A/B both negative with BCa upper<0 (sign-inverted carryover) vs fixed-preference falsifier",
+      "provenance": "e2_ssa_spec.v6 spec_hash 0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570; ping_spec_hash b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f; parent_e1 07b1c04af9ea98176bc45350528f3312375f7d24; operating_point theta* {theta0 4.0,2.0,0.25,0.0,60}; blocks_per_replicate 5 (oddball_A_std, oddball_B_std_flip, many_standards 78, recovery_isi500 38, recovery_isi1000 18 post-washout), n_outer 20, dt 0.5, steps 176000 (88s)",
+      "quantitative_result": {
+        "theta_star": {
+          "id": "theta0",
+          "drive_E": 4.0,
+          "drive_I": 2.0,
+          "weight_mu": 0.25,
+          "noise_scale": 0.0,
+          "W_ms": 60
+        },
+        "n_replicates": 20,
+        "n_blocks_per_replicate": 5,
+        "G_A_pass": 20,
+        "G_B_pass": 20,
+        "adequacy_all": true,
+        "pooled_SI": -0.08434169565295932,
+        "BCa_lower": -0.10778443051093865,
+        "BCa_upper": -0.03374917812677185,
+        "BCa_raw_percentile": [
+          -0.11098888269828612,
+          -0.058994375391149614
+        ],
+        "p_perm": 1.0,
+        "g_Hedges": -6.190836199573305,
+        "dR_pooled_Hz": -1.1871863162878786,
+        "SI_source_pool": 0.002593402098527678,
+        "SI_many_pool": 0.028338937275817343,
+        "SI_shuf_mean": -0.009084887913823876,
+        "swap_max_observed": 0.4260290155938084,
+        "swap_median_for_audit": 0.105,
+        "per_replicate_SI": [
+          -0.0526,
+          -0.12038,
+          -0.05623,
+          -0.04935,
+          -0.02299,
+          -0.13064,
+          -0.11134,
+          -0.03271,
+          -0.03395,
+          -0.07481,
+          -0.17666,
+          -0.0454,
+          -0.22473,
+          -0.07817,
+          -0.02601,
+          -0.11335,
+          -0.09314,
+          0.03267,
+          -0.15599,
+          -0.12098
+        ],
+        "S2_gate": "FAIL (SI>0.10 lower_BCa>0.10 requires SI positive; observed SI negative)",
+        "swap_asymmetry_gate": "FAIL (|swap| 0.426 >>0.10 and BCa excludes 0)",
+        "sign_deviant_below_standard": true,
+        "S3_recovery": {
+          "delta_rec_Hz": 3.998578559027778,
+          "BCa_lower": 3.8988027533742344,
+          "p_rec": 0.00049975,
+          "I_rec_all_gt_02": false,
+          "rho": -0.7694183864915572,
+          "gate_pass": false,
+          "interpretation": "delta_rec +4.0 Hz p<0.001 BUT rho -0.77 inverted ladder, I_rec guard fails — reported as-is, gate not passed"
+        },
+        "S4_status": "CONFIRMATORY_DEFERRED_v3_per_spec_factor_staging",
+        "per_channel_posthoc_BCa": {
+          "Delta_R_A_Hz": -1.3,
+          "Delta_R_A_BCa": [
+            -1.77,
+            -0.79
+          ],
+          "Delta_R_B_Hz": -1.08,
+          "Delta_R_B_BCa": [
+            -1.68,
+            -0.5
+          ],
+          "note": "Both channels deviant below standard when stimulus identity held fixed, role varies — channel-specific SSA contradicted, uniform rarity-penalty pattern"
+        },
+        "rescored_frozen_only": {
+          "pooled_SI": -0.08434,
+          "swap_max": 0.426,
+          "agreement": true
+        }
+      },
+      "statistical_validation": "BCa bootstrap over 20 outer replicates, 5000 draws, alpha 0.05, key via fold_in(K_analysis, tag=bca_{contrast}); permutation within-replicate std/dev label shuffle 2000 draws (1+#{perm>=obs})/2001; Hedges g over per-replicate SI; swap pooled vs max discipline per 12:R7",
+      "status": "NEGATIVE"
+    },
+    {
+      "claim_id": "CL-25",
+      "claim": "SSA mechanistic attribution via typed H_K->b_eff expression (D(1,Gamma,0) vs N1(1,I,0) Delta_mech SI >=0.08 with H_K>1+theta_H, leak |Delta_leak|<0.05) not demonstrated; mechanism-matrix S4 CONFIRMATORY_DEFERRED_v3 (8 cells H_write x Gamma_H x HDP) — no D vs N1 contrast executed (UNRESOLVED)",
+      "allowed_manuscript_language": "Mechanistic attribution of SSA to the tested RBS path was not assessed in this epoch; mechanism-matrix remains deferred and no D-C contrast is reported",
+      "evidence_artifacts": [
+        "artifacts/e2/preregistration/e2_ssa_spec.v6.json#factor_staging.CONFIRMATORY_DEFERRED_v3",
+        "artifacts/e2/preregistration/E2b_confirmatory/v2_ssa_confirmatory_receipt.json#S4_status"
+      ],
+      "evidence_regime": "method_boundary_statement (deferred battery)",
+      "figure_or_table_destination": "Fig. 9 mechanistic strip (deferred) + Methods factor-staging footnote",
+      "forbidden_overclaim": "Do not claim SSA is mediated by H_K->b_eff; do not claim rarity-penalty mechanism without D vs N1 and phase-matched control; do not infer HDP or predictive coding; S4 thresholds/semantics untouched",
+      "manuscript_destination": "Methods (deferred) + Results footnote + Discussion limitation",
+      "null_or_control": "Leakage gate N1==N0 bit-exact and Gamma=I invisibility to be checked when battery executes; sham HDP contrast HDP=0 vs HDP!=0 likewise deferred",
+      "provenance": "e2_ssa_spec.v6 spec_hash 0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570; parent_e1 07b1c04; factor_staging.confirmatory_now [S0,S1,S2,S2_stimulus_specific,S3_recovery]; CONFIRMATORY_DEFERRED_v3 [mechanism_matrix H_write x Gamma_H x HDP 8 cells]; deferred reason: S2-in-D context + 8-cell x20 replicates exceeds authorized envelope; zero SSA trajectories so staging prospective",
+      "quantitative_result": {
+        "S4_executed": false,
+        "deferral": "CONFIRMATORY_DEFERRED_v3",
+        "mechanism_cells_8": "not executed",
+        "Delta_mech_SI": null,
+        "H_K_gate": null
+      },
+      "statistical_validation": "not_applicable (battery not executed)",
+      "status": "UNRESOLVED"
+    },
+    {
+      "claim_id": "CL-26",
+      "claim": "Typed H state as contingency on V1/V2 circuits: H=H* recovery => bit-exact baseline, H!=H* with Gamma_H=I causally invisible to rhythm/SSA on W (latent storage vs expression separation) — tiered gates 94/95 not executed in this epoch (UNRESOLVED)",
+      "allowed_manuscript_language": "Typed H-state contingency was declared but not executed on the V1/V2 ~1000-neuron carriers in this epoch; H=H* and Gamma=I invisibility remain to be demonstrated per 28 Block D",
+      "evidence_artifacts": [
+        "artifacts/e2/preregistration/e2_ping_prereg.json#delays",
+        "artifacts/e2/preregistration/e2_ssa_spec.v6.json#masks"
+      ],
+      "evidence_regime": "method_boundary_statement (not executed)",
+      "figure_or_table_destination": "Fig. 6 discipline panels (tier 0/1 echo) — not rendered for V1/V2 in this epoch",
+      "forbidden_overclaim": "Do not claim H-mediated modulation of V1 rhythm or V2 SSA without tier 0/1 bit-exact gates; do not claim Gamma-expression without Gamma=I leakage control (CL-17/95 pattern)",
+      "manuscript_destination": "Methods (TFNE state layering) + Discussion conditional",
+      "null_or_control": "Tier 0 H=H* => X bit-exact to no-H baseline; Tier 1 H!=H* Gamma=I => X bit-exact to H=H* (leakage null); Tier 2 H!=H* Gamma!=I paired Delta isolates expression through declared map; all paired per seed on window W",
+      "provenance": "Declared in 28 goals 94-96 and 34 CL-26; parent_e1 07b1c04; coordinate H_K with H*=1, b_eff=H_K*b, tau_K per D2a; to be executed when H-layer authorized",
+      "quantitative_result": {},
+      "statistical_validation": "not_executed (bit-exact identity gates when executed)",
+      "status": "UNRESOLVED"
+    },
+    {
+      "claim_id": "CL-27",
+      "claim": "Neutral HDP ride-along on V1/V2 (W=W0*exp(omega), tau dω/dt=κΔH - λω, ω(t)=ω0 exp(-λt/tau), latent disablement Gamma=I still invisible while ω logged, W frozen during readout or applied post-assay) — optional gated, not authorized in this epoch; closed-loop stability remains UNRESOLVED per W3b 0 S/1944 X/243 D discipline",
+      "allowed_manuscript_language": "Neutral HDP staging, if ever authorized, would keep W frozen during rhythm/SSA readout; closed-loop stability is not claimed and remains flagged-open",
+      "evidence_artifacts": [
+        "artifacts/protocol_w/w0_mathematical_contract.json",
+        "artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json"
+      ],
+      "evidence_regime": "method_boundary_statement (not authorized)",
+      "figure_or_table_destination": "Fig. 6 F flagged-open echo — no new HDP panel in this epoch",
+      "forbidden_overclaim": "Do not claim HDP closed-loop stability, boundedness, or persistent memory; W3b remains unresolved_not_negative with N_S=0, N_X=1944; no SURPRISE/predictive-coding or field-feedback claim",
+      "manuscript_destination": "Discussion (HDP boundary) + Limitations flagged-open",
+      "null_or_control": "W lattice dormancy syn*=0 => dI_rec/dω=0; silent-rest; HDP-neutral recovery discipline; latent disablement precedes any ω->W->X inference",
+      "provenance": "34 CL-27 + 28 goals 94-96; requires hdp_authorized:true and 94 pre-pass; not authorized in V1/V2 epoch; W3b receipt FROZEN_UNRESOLVED outcome_classification unresolved_not_negative (N_S=0,N_X=1944,X=1944,D=243,total 2187)",
+      "quantitative_result": {
+        "W3b_N_S": 0,
+        "W3b_N_X": 1944,
+        "W3b_D": 243,
+        "W3b_total": 2187,
+        "hdp_authorized": false,
+        "omega_trace": null
+      },
+      "statistical_validation": "not_authorized (when executed: boundedness |ω|<1, dormancy check)",
+      "status": "UNRESOLVED"
+    },
+    {
+      "claim_id": "CL-28",
+      "claim": "Evidence layering & manifests green (directory lattice prereg->exploratory->confirmatory raw->summary->figures->manifests->audits, provenance sidecar wall_clock/python/jax/platform, hash replay, decoded-pixel reproducibility) — lattice exists but manifest green not claimed until cross_e2_audit PASS in this epoch (UNRESOLVED pending audit generator)",
+      "allowed_manuscript_language": "Evidence layering follows the preregistry-tolerated file lattice; manifest and audit green are to be assessed by the cross-audit generator",
+      "evidence_artifacts": [
+        "artifacts/e2/preregistration/e2_ping_prereg.json",
+        "artifacts/e2/preregistration/e2_ssa_spec.v6.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v1_ping_receipt.json",
+        "artifacts/e2/preregistration/E2b_confirmatory/v2_ssa_confirmatory_receipt.json"
+      ],
+      "evidence_regime": "method_reproducibility (lattice discipline)",
+      "figure_or_table_destination": "Table (provenance) + Supplement evidence inventory",
+      "forbidden_overclaim": "Do not claim cross-e2 audit green before generator passes G1..G10; do not claim figures are promoted to final until decoded-pixel identical; no gitignored-artifact dependency",
+      "manuscript_destination": "Methods / Supplementary inventory + Code availability",
+      "null_or_control": "Explorer vs confirmatory separation by spec_hash; W window/threshold co-location check; n_total = n_NF + n_UNRES + sum n_labels arithmetic",
+      "provenance": "28 §2.3/35 §5.2; parent_e1 07b1c04; e1_frozen_manifest_sha aeca6d0 variant; lattice under artifacts/e2/{preregistration,confirmatory/audits}; to be checked by artifacts/e2/audit/cross_e2_audit.json when generator runs",
+      "quantitative_result": {
+        "prereg_rows_frozen": 2,
+        "confirmatory_V1_runs": 35,
+        "confirmatory_V2_reps": 20,
+        "cross_audit_green": false,
+        "note": "pending generator: G1 drift 28/28, G2 phasing, G3 provenance, G4 raw->summary, G5 figures, G6 polarity, G7 arithmetic, G8 write_once, G9 gate co-location, G10 probe purity"
+      },
+      "statistical_validation": "mechanical lattice checks (not yet green)",
+      "status": "UNRESOLVED"
+    },
+    {
+      "claim_id": "CL-29",
+      "claim": "Figure synthesis Figs.8-9 first-class (fig08_e2_ping_spec.json Fig08.V1_A..H, fig09_e2_ssa_spec.json Fig09.V2_A..F, pinned generators scripts/internal/publication/fig08/09) not yet promoted; generation awaits supplement S-Pulse/S18 freeze and manifest green (UNRESOLVED pending render)",
+      "allowed_manuscript_language": "New figures are first-class, generated from frozen specs+raw+summaries via pinned scripts with receipt authority and excluded-content lists; no hand-retouched data pixels",
+      "evidence_artifacts": [
+        "artifacts/developer/resolution/34_E2_FIGURE_CLAIM_REMAP.md",
+        "artifacts/developer/resolution/35_E2_EVIDENCE_VERSIONING_PLAN.md"
+      ],
+      "evidence_regime": "method_reproducibility (figure generation discipline)",
+      "figure_or_table_destination": "Fig. 8 V1 PING (supplement S-Pulse) + Fig. 9 V2 SSA (supplement) — to be promoted to publication/final when green",
+      "forbidden_overclaim": "Do not claim hand-polished Figs.8/9 data pixels; no manual retouching; decorative annotation only via code-reviewed commit and new hash; Figs.1-7 PNGs remain byte-identical to frozen hashes",
+      "manuscript_destination": "Figures + Supplementary",
+      "null_or_control": "Decoded-pixel reproducibility 7/7 gate pattern reused for Fig.8/9; spec-listed generation scripts fig08_e2_ping.py / fig09_e2_ssa.py reproduce PNGs decoded-pixel identical from summary+raw",
+      "provenance": "34 §§2.1/3.2 + 35 §5.3; parent_e1 07b1c04; existing E1 spec hashes be227d/a4c444 etc unchanged; E2 spec hashes b89a09c/0df9bfe parent; generation not yet run in this delta epoch",
+      "quantitative_result": {
+        "fig08_panels": 7,
+        "fig09_panels": 6,
+        "promoted_hashes": null,
+        "decoded_pixel_repro": "pending"
+      },
+      "statistical_validation": "decoded-pixel equality (pending generation)",
+      "status": "UNRESOLVED"
+    }
+  ],
+  "ledger_counts": {
+    "base_rows": 21,
+    "delta_rows": 8,
+    "total_rows": 29,
+    "delta_claim_ids": [
+      "CL-22",
+      "CL-23",
+      "CL-24",
+      "CL-25",
+      "CL-26",
+      "CL-27",
+      "CL-28",
+      "CL-29"
+    ]
+  },
+  "polarity_summary": {
+    "NEGATIVE_delta": [
+      "CL-22",
+      "CL-24"
+    ],
+    "UNRESOLVED_delta": [
+      "CL-23",
+      "CL-25",
+      "CL-26",
+      "CL-27",
+      "CL-28",
+      "CL-29"
+    ],
+    "SUPPORTED_delta": []
+  },
+  "audit": {
+    "e1_ledger_claim_rows": 21,
+    "e1_bit_identical": true,
+    "e1_hash_match": "823b6e9c8e398df3ca865b87a06a8a9afef92ca61bd8345c1621c7bb1ce1e8be",
+    "negative_preserved": true,
+    "negative_ids_preserved": [
+      "CL-04",
+      "CL-06",
+      "CL-08",
+      "CL-10"
+    ],
+    "unresolved_not_downgraded": true,
+    "unresolved_ids_preserved": [
+      "CL-11",
+      "CL-19"
+    ],
+    "forbidden_overclaim_audit": "PASS",
+    "forbidden_overclaim_detail": "All 6 E1 NEGATIVE/UNRESOLVED rows retain exact forbidden_overclaim strings; delta rows CL-22..29 each carry explicit forbidden_overclaim (NEGATIVE/UNRESOLVED discipline)",
+    "W3b_discipline": "N_S=0, N_X=1944, X=1944, D=243, total 2187 preserved as unresolved_not_negative in CL-11/CL-19 and CL-27",
+    "publication_claim_ledger_not_rewritten": true,
+    "publication_claim_ledger_rows_stays": 21,
+    "delta_is_additive": true,
+    "parent_hashes_present": {
+      "b89a09c": "b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f",
+      "0df9bfe": "0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570",
+      "07b1c04": "07b1c04af9ea98176bc45350528f3312375f7d24"
+    },
+    "G6_negative_UNRESOLVED_preserved": "PASS",
+    "G7_arithmetic": "n_total checks: V1 7x5=35 runs, V2 20 reps; no hand-edited summary; BCa arithmetic retained",
+    "write_once": true
+  },
+  "provenance": {
+    "generating_code": "artifacts/e2/audit/claim_ledger_delta.json generated by CL-22..29 additive pass; no E1 receipt edited; git diff --name-only 07b1c04 -- artifacts/publication/publication_claim_ledger.json must be empty",
+    "base_ledger_snapshot_embedded": "ledger[0:21] is exact deep copy of artifacts/publication/publication_claim_ledger.json ledger at sha 823b6e9c",
+    "delta_ledger_definition": "delta rows CL-22..29 per 28_E2_REVISED_FINAL_GOALS.md:147-158 Block B/C/D/E/F and 34_E2_FIGURE_CLAIM_REMAP.md s3.2 prospectives, now instantiated with observed E2 negatives (V1 0/5, V2 pooled SI -0.084) and staged UNRESOLVED for not-yet-executed H/HDP/manifest/figure gates",
+    "E2_SYNTHESIS_source": "artifacts/e2/E2_SYNTHESIS.md HEAD d84fa80 + artifacts/e2/S_PULSE_CHARACTERIZATION.md",
+    "receipt_shas": {
+      "v1_ping_receipt": "bfa7b1feabae",
+      "v2_ssa_receipt": "e02828e4be74"
+    }
+  },
+  "write_once": true,
+  "status": "ACTIVE_DELTA_PRIVATE"
+}

@@ -71,6 +71,14 @@ See `artifacts/developer/phase2_review/12_discussion_adversarial_review.md`:
 E2 REWIRE, N3 SPECIALIZE, E3), 1 REJECTED; all repairs applied in G2 with
 ADAPT vocabulary; Final Review gates all PASS.
 
+## E2 bounded claims (supplement-first) traceability — S18 annex
+
+| Discussion subsection | Supplement annex | Manuscript sentences | Authority | Guard |
+|---|---|---|---|---|
+| `### E2 bounded claims (supplement-first)` in `discussion_draft.md` | `supplement.md` S18 (S18-1 adequacy 5/5 & 20/20 + six-way tie, S18-2 V1 pulse f0 ~7.2 Hz comb 36.1/43.3 Hz, S18-3 phase, S18-4 V2 SI −0.084 swap 0.426, S18-5 disclosure) | V1: "In the preregistered confirmatory arm (V1: 7 arms x 5 seeds at the tie-break-selected operating point theta*)..." ; V2: "In the confirmatory SSA arm (V2: 20 replicates x 5 blocks under e2_ssa_spec.v6)..." ; Joint verbatim: "Across both preregistered phenotypes, the TFNE scaffold at theta* supports synchronized population pulsing with pattern-selective attenuation, and neither PING-like gamma nor SSA is licensed at this operating point; these results are independent of, and do not alter, any E1 claim including CL-06 NO_WAVE." (`artifacts/e2/E2_SYNTHESIS.md:43-61`, `supplement.md` S18 boundary sentence) | `artifacts/e2/E2_SYNTHESIS.md:43-61` (V1/V2/Joint), `E2_SYNTHESIS.md:63-69` disposition supplement-first, `e2_ping_prereg.json` (spec_hash b89a09c466...), `e2_ssa_spec.v6.json` (spec_hash 0df9bfe24bae...), `E2a_search/e2a_search_receipt.json` (theta* tie), `E2b_confirmatory/v1_ping_receipt.json` + `v1_rescored_frozen_only.json` (0/5 PING_LIKE), `E2b_confirmatory/v2_ssa_confirmatory_receipt.json` + `v2_rescored_frozen_only.json` (SI −0.084, swap 0.426), `supplement.md` S18 | `NO_DOUBLE_COUNT`: E1 CL-06 NO_WAVE (parameter_space_characterization, C3 60/60 + A-1b NO_POSITIVE_DOMAIN_IN_TESTED_RANGE) and E2 V1 NEGATIVE_NOT_PING_LIKE / V2 NEGATIVE are independent bounded results — no double-counting, no compounding, no alteration of E1 claims; each licensed only at its tested detector/operating point |
+
+Mapping rule: this subsection is append-only to Discussion; frozen E1 sections (Principal contribution, What experiments reveal CL-06, Limitations, Future directions wave search) are unchanged. Supplement-first provenance is exclusive: Discussion summarizes bounded claims, evidence lives in S18.
+
 ## Remaining Discussion debt
 
 1. Body length 1329 words (above the ~1200 planning target); further PRUNE

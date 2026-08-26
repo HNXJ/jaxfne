@@ -669,6 +669,178 @@ field); family mapping follows Methods §12.
 
 ---
 
+## S18 — E2 V1/V2 confirmatory negatives (supplement-first)
+
+**Disposition:** supplement-first per `artifacts/e2/E2_SYNTHESIS.md:63-69` — both V1/V2 arms are confirmatory **negatives** (methods-level interest in falsification harness and pulse-regime characterization). Main-text entry would require a new separately declared experiment with its own development/confirmation split targeting a PING-capable or SSA-capable regime — explicitly **not** a repair of these preregistered negatives. This section is append-only to the 2026-08-16 final assembly draft; frozen publication artifacts (28/28 per `.opencode/frozen_paths.json` at `aeca6d01a18ab1be…`) are preserved unchanged.
+
+**Operating point theta* (tie-break-selected, not optimized):** `drive_E=4.0, drive_I=2.0, weight_mu=0.25, noise_scale=0.0, W_ms=60` — write-once selection from `artifacts/e2/preregistration/E2a_search/e2a_search_receipt.json:811-823` (`result.theta*` id `theta0`). See S18-1 E2a tie disclosure. No claim of optimality; `W_ms` is H7 compatibility-only for V1 (corrigendum D6). Authority: `e2_ping_prereg.json` spec_hash `b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f` (schema `e2_ping_prereg.v1`), `e2_ssa_spec.v6.json` spec_hash `0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570` (sha256 `0BC86A301BE7D5511141C0DC964ADD3257B59CB33189158C34697F50FEE25CFF`, parent `e2_ssa_spec.v5` `fb9ace28413b731e006a388267344e3473fe5eecc6869e1b25fe453e9df304a5`, parent chain `e2_ssa_spec.v1` `6ca10a960fc408819618f2f0b4032be900d00c7420620409766066955a1781b0`, parent_e1 `07b1c04af9ea98176bc45350528f3312375f7d24`).
+
+### S18-1 Adequacy — V1 5/5 and V2 20/20 (operational definitions from `e2_ssa_spec.v6.json:14-22`)
+
+> Verbatim task coverage: **Table S18-1 Adequacy: V1 5/5 (mean_rate_E/I, active_E/I, n_spiking) and V2 20/20 G_A/G_B with operational definitions from e2_ssa_spec.v6.json:14-22, plus E2a six-way tie disclosure (all 6 candidates rate 1.0, lexicographic theta*)**.
+
+V2 operational definitions (verbatim `SSA.adequacy:14-24` + `SSA.metrics` + `execution_grammar.methods_ssa.adequacy_operational`):
+
+- `G_A := R_A_early >= R_floor(1.0) and stable(A)` ; `G_B := R_B_early >= R_floor(1.0) and stable(B)` ; `G_adequate_SSA := G_A && G_B && G_finite && G_stable`
+- `G_finite := all rates finite and not NaN and rate < 200 and |H_K| <= 10` ; `G_stable := drift <= 3 SD` (|mean last quarter − mean first quarter| ≤ 3·SD event responses) ; ordering `INVALID; !G_adequate_SSA -> UNRESOLVED; S4>S3>S2>S1>S0`
+- `R_X_early := mean response to identity-X standard events 3–17 (post-washout indices) of the X-standard oddball block` (spec `e2_ssa_spec.v6.json:475-476`)
+
+V1 adequacy (verbatim `e2_ping_prereg.json:adequacy_gates:12-17`): `G_adequate_PING := G_finite && G_active && G_population` where `G_active := mean_rate_E >= 0.5 and mean_rate_I >= 0.5 and n_spiking >= 10`, `G_population := active_E >= 20 and active_I >= 5`, `G_finite := all V_m,u,spikes,sources,Q,H_K finite and not NaN and rate <200 and |H_K|<=20`, ordering `INVALID; !G_adequate -> UNRESOLVED; all PING gates true -> PING_LIKE else NO_PING`. Delays `dt_ms 0.5, fs 2000 Hz, n_steps 4000, W [1500,2000) ms` (`e2_ping_prereg.json:244-258`).
+
+| Arm | N (seeds/reps) | Adequacy gate | Result | Key per-seed/rep adequacy values (verbatim receipts) | Source |
+|---|---|---|---|---|---|
+| **V1 PING C0_intact @ theta*** | 5 (structure 100–104, analysis 3100–3104) | `G_adequate_PING` (G_finite && G_active && G_population) | **5/5** (`C0_G_adequate:5`, `intact_PING_LIKE:0`) | mean_rate_E 8.0 Hz (all 5), mean_rate_I 7.54–7.78 Hz, n_spiking 991–996, active_E 800/800, active_I 191–196; all G_finite/G_active/G_population true; no INVALID | `E2b_confirmatory/v1_ping_receipt.json:84-93,122,1500-1587` (`theta_star` theta0), `e2_ping_prereg.json:12-17` |
+| **V2 SSA @ theta*** | 20 (rep 0–19, 5 blocks each; 176000 steps = 88 s, see S18-5) | `G_adequate_SSA` (G_A && G_B && G_finite && G_stable) | **20/20** (`pooled.adequacy_all:true`, `G_A:true` and `G_B:true` in all 20 `runs[]`) | R_A_early / R_B_early proxies `R_early` 6.26–8.33 Hz and per-rep `G_A/G_B true` in every row; drift ≤ 3 SD per identity; all rates finite <200 | `E2b_confirmatory/v2_ssa_confirmatory_receipt.json:9-30,331-347` (`adequacy_all`), `e2_ssa_spec.v6.json:18-24` |
+
+Basis hashes: V1 receipt `ping_spec_hash b89a09c466186330…`, `ssa_spec_hash 6ca10a960fc408819…`, `code_head_executed 34b77ade0188…`; V2 receipt `ssa_v6_spec_hash 0df9bfe24bae0e2…`, `ping_spec_hash b89a09c466…`, parent_e1 `07b1c04…`; E2a search `e2a_search_receipt.json` authority `ping_spec_hash b89a09c…`, `ssa_spec_hash 6ca10a9…`, `code_head dba53c7`.
+
+#### E2a six-way tie disclosure (lexicographic theta*)
+
+Blinded development search `D_dev` seeds `9000–9004` disjoint from confirmatory (`[0,4099]`), `f_select` = argmax `G_adequate` rate with deterministic tie-break (lowest drive, then lowest weight). Outcome:
+
+| theta | drive_E | drive_I | weight_mu | noise | W_ms | G_adequate rate (5 seeds) |
+|---|---|---|---|---|---|---|
+| theta0 **(theta*)** | 4.0 | 2.0 | 0.25 | 0.0 | 60 | **1.0** (5/5) |
+| theta1 | 5.5 | 2.8 | 0.32 | 0.1 | 80 | **1.0** (5/5) |
+| theta2 | 7.0 | 3.5 | 0.40 | 0.15 | 80 | **1.0** (5/5) |
+| theta3 | 8.5 | 4.2 | 0.48 | 0.2 | 100 | **1.0** (5/5) |
+| theta4 | 10.0 | 5.0 | 0.55 | 0.3 | 100 | **1.0** (5/5) |
+| theta5 | 6.0 | 3.0 | 0.35 | 0.0 | 80 | **1.0** (5/5) |
+
+All 6 candidates rate **1.0** (6/6 adequate); `result.candidates:6`, `C2a: theta*` lexicographic `theta0` selected — **not** a unique optimum. Blinding check: E2a artifact contains only `G_finite/G_active/G_population/G_adequate/mean_rate/n_spiking/active_E/I` (no `G_spec/SI/ΔPLV/PING_LIKE/S0-S4`), `forbidden_grep_hits:0`. Basis: `E2a_search/e2a_search_receipt.json:13-22,62-829`.
+
+Sufficient-detail provenance (existing Supplement convention): every magnitude not declared Absolute is Relative; time ms, frequency Hz; probe fields Relative.
+
+### S18-2 V1 pulse — f0 7.2Hz, duty D~0.05, harmonic comb
+
+> Verbatim task coverage: **Table S18-2 V1 pulse: f0 7.2Hz, duty D~0.05, teeth k=5 (36.1Hz E) k=6 (43.3Hz I), |Δf|=7.2Hz, AC sidepeak negative (-0.10), n_cycles 3-4 (<10), participation ~1.0, FF~0, E-leads-I +6.8ms**; see also |Δf|=7.2Hz comb artifact and AC sidepeak negative (-0.10) below.
+
+### S18-2 V1 pulse regime — harmonic-comb diagnosis (reused frozen metrics, no new detector)
+
+Frozen verdict (robust): `V1 NEGATIVE / NEGATIVE_NOT_PING_LIKE — CONFIRMED ROBUST` under every scoring combination (frozen-only strings, sign-flipped dphi, with all four executor-added conjuncts struck). Intact fails ≥3 frozen gates per seed. Corrigendum C2: single ~7.2 Hz globally synchronous population-pulse train, not two oscillators; C1 direction correction E-leads-I (see S18-3). No new detector invented; reuse of `v1_ping_receipt.json` and `v1_corrigendum_and_adjudication.json:1-44` (schema `e2b_v1_corrigendum.v1`) and `S_PULSE_CHARACTERIZATION.md` (supplement-only reuse, no new simulation).
+
+| # | Parameter | Frozen value (C0_intact @ theta*, n=5) | Definition / derivation | Gate context (frozen 4) |
+|---|---|---|---|---|
+| 1 | Fundamental pulse frequency **f0** | **~7.22 Hz** | Envelope rhythm; corrigendum C2: `f0 = 1 / 138.5 ms = 7.22 Hz` from envelope/pulse-picking on `v1_rates_window.npz` population rates (2×1000 bins @1 ms, see C4) | Not a PING gate; diagnoses carrier |
+| 2 | Envelope interpulse interval | **138.5 ms** (median) | Interval between successive population pulses | Same as (1) |
+| 3 | Duty cycle **D** | **~0.05** | Pulse width / period (median pulse duration E ~16–17 ms `md_E` over 138.5 ms at low end; `md_E 17.08, 17.36, 17.16, 16.93, 17.29` ms) | — |
+| 4 | Spectral teeth (harmonic comb) | **E fpk ~36.1 Hz (k=5), I fpk ~43.3 Hz (k=6)** | Welch PSD peaks (fs 2000 Hz, Hann 256 ms, nfft 1024, overlap 50%) fall on adjacent teeth of f0 comb: `36.1 ≈ 5×7.22`, `43.3 ≈ 6×7.22`; per-seed E peaks 36.09–36.14 Hz, I peaks 43.30–43.35 Hz; `|fpk_E − fpk_I| ≈ 7.2 Hz` equals one harmonic spacing (comb artifact, not two oscillators) | Triggers `G_spec` failure + `OptionA |dfp|>5` discordance artifact; corrected by C2 |
+| 5 | AC sidepeak (gamma-lag) | **Negative: executor AC ~ −0.10, independent rescoring ac_min −0.064 to −0.067** | Autocorrelation sidepeak at gamma period from population rates; executor per-seed `xcorr_shifted 0.44–0.45` surrogate vs `xcorr 0.97–0.98` | Frozen `G_rate` requires `AC >= 0.25` — fails by sign and magnitude (convention-independent, robust per C5) |
+| 6 | Cycle count **n_cycles** | **3–4** | Number of gamma-period cycles in W [1500,2000) ms; `cycles: 3,3,3,4,3` in 5 C0 seeds (C3d shows 6 with FF>180, not intact) | Frozen `G_cycle` requires `N_cycles >= 10` — fails in every intact seed |
+| 7 | Participation | **~1.0** | Fraction neurons spiking per pulse; `participation 1.0` in all 5 C0 seeds (rescoring 1.0-equiv) | Not a classifier gate; diagnoses globally synchronous |
+| 8 | Fano factor **FF** | **~0** (0.0) | Across-pulse count variability; `ff 0.0` all C0 intact (vs 187–480 in some C3 arms) | Sub-component of `G_cycle` (`FF <=0.60` passes but `N_cycles` fails) |
+| 9 | Phase ordering **E-leads-I** | **+6.8 ms phase / +16 ms pulse-pair (E first)** | `dt_lag_ms −6.76, −6.56, −6.95, −6.85, −6.80` (executor sign `dphi=phi_I−phi_E`; negative = E leads); corrigendum C1: `dphi_deg` is −85..−91, −6.8 is ms not deg; rederived median pulse-pair offset **+16 ms E-first**; PLV ~0.91 | Frozen `G_phase` requires `dphi in [15,90] deg` and `dt in [2,8] ms` E-leading — fails degree window (sign canonical but band not met); listed last per C5 |
+| 10 | Prominence (gamma band) | **5.41–5.65 dB (UNRESOLVED)** | Welch prominence at fpk; intact `prom_dB 5.54, 5.47, 5.65, 5.64, 5.41`; rescoring `prom_dB 5.23–5.82` (labels `NO_PING|GRAY:UNRESOLVED_PROMINENCE`) | Frozen `G_spec` requires `prominence >= 6 dB` with gray `[5,6)` → `UNRESOLVED_PROMINENCE` every intact seed (robust near-threshold) |
+| 11 | Band ratio / stationarity | `band_ratio ~0.35` (0.346–0.357); `stationarity_ok false` (executor) | W1 vs W bandpower within 3 dB + freq within 5 Hz (executor-added D1, not frozen 4) | Not part of frozen four strings; disclosed defect D1, verdict-neutral |
+
+Regime summary (corrigendum-licensed): ~7 Hz globally synchronous population-pulse regime (participation ~1.0, FF~0, duty ~0.05, 138.5 ms) whose gamma peaks at 36.1/43.3 Hz are adjacent harmonic teeth k=5/6 of one slow rhythm; neither canonical PING nor ING — C2 (I→E zeroed) preserves phenotype (not loop-dependent), C1 (E→I zeroed) silences I entirely.
+
+Per-seed intact audit (from `v1_ping_receipt.json:74-123`):
+
+| seed (rep) | fpk_E (Hz) | fpk_I (Hz) | prom_dB | xcorr | dt_lag_ms | dphi_deg | PLV | cycles | participation | ff |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 36.11 | 43.30 | 5.54 | 0.975 | -6.76 | -87.85 | 0.912 | 3 | 1.0 | 0.0 |
+| 2 | 36.09 | 43.30 | 5.47 | 0.978 | -6.56 | -85.27 | 0.916 | 3 | 1.0 | 0.0 |
+| 3 | 36.14 | 43.34 | 5.65 | 0.974 | -6.95 | -90.48 | 0.910 | 3 | 1.0 | 0.0 |
+| 4 | 36.14 | 43.35 | 5.64 | 0.978 | -6.85 | -89.09 | 0.913 | 4 | 1.0 | 193.1 |
+| 5 | 36.13 | 43.33 | 5.41 | 0.979 | -6.80 | -88.46 | 0.913 | 3 | 1.0 | 0.0 |
+
+All 5 fail G_spec (gray), G_rate (AC negative), G_cycle (n_cycles<10); G_phase fails degree window. Frozen-only rescoring agrees 0/5 PING_LIKE (`v1_rescored_frozen_only.json:5-11`, labels `NO_PING`, gates all false, `fpk_E 35.15/37.10, prom_dB 5.23–5.82, dphi −85.5..−93.8, plv 0.85–0.94, ac_min −0.063..−0.067, n_cycles 3/4`).
+
+Basis: `E2b_confirmatory/v1_ping_receipt.json`, `v1_corrigendum_and_adjudication.json:7-15`, `v1_rescored_frozen_only.json:1-103`, `S_PULSE_CHARACTERIZATION.md:27-55`, `e2_ping_prereg.json:19-43`.
+
+### S18-3 V1 phase — delta_phi outside window
+
+> Verbatim task coverage: **Table S18-3 V1 phase: delta_phi -85..-91° outside [15,90], PLV 0.91, dt_lag_ms -6.8, Rayleigh p~0, PLV_surr 0.67 vs 0.27, etc.**
+
+### S18-3 V1 phase — E-leads-I but outside frozen window
+
+Frozen `G_phase` (verbatim `e2_ping_prereg.json:classified G_phase`): `delta_phi in [15,90] deg and PLV >= 0.40 and delta_t in [2,8] ms and Rayleigh p < 0.01`. Typed units `Deg/Ms` enforced in `e2_exec_lib.py:13-31` (R-A repair).
+
+| Metric | Frozen intact value (5 seeds) | Frozen criterion (e2_ping_prereg) | Outcome |
+|---|---|---|---|
+| **delta_phi (dphi_deg)** | **−85.3 to −91.0 deg** (−87.85, −85.27, −90.48, −89.09, −88.46; rescoring −85.57..−93.81) | `in [15,90] deg` (gray `[12,15)` → UNRESOLVED) | **Outside window** (fails even after sign flip: absolute 85–91 outside 15–90) |
+| **PLV** | **0.910–0.916** (0.912, 0.916, 0.910, 0.913, 0.913; rescoring 0.85–0.94) | `>= 0.40` (gray `[0.35,0.40)` → UNRESOLVED) | Pass (high synchrony) but conjunction fails |
+| **dt_lag_ms** | **−6.56 to −6.95 ms** (mean −6.76, corr. C1: E-leads-I by ~6.8 ms phase; rederived pulse-pair +16 ms) | `in [2,8] ms` with E-leading convention | **Sign-convention fail** (magnitude 6.8 would pass if sign-flipped; not robust discriminator, listed last per corrigendum C5) |
+| **Rayleigh p** | **~0** (executor `0.0` exact underflow; C3_I_to_E `3e-246..5e-253`; rescoring uses circular test) | `<0.01` | Pass (phase concentration real; corrected storage should be log-p) |
+| **PLV_surr (phase-randomized surrogate)** | **0.15–0.67** intact surrogate distribution (executor `plv_surr 0.278, 0.403, 0.296, 0.476, 0.670`; intact PLV 0.91 >> surr median 0.27–0.67) vs C2 I→E `0.45–0.57` and C1 `~0.11` | Not a frozen gate (executor-added D1 surrogate `plv_surr<0.25` struck) | PLV elevation is deliberate (synchrony), not PING-specific; disclosed D1 invented conjunct |
+
+Additional rate criteria (G_rate): `MD >=0.50` and `AC >=0.25` and `|xcorr|>=0.40` — intact `md_E 16.9–17.4, md_I 21.5–22.4` (passes MD), but **AC negative** (see S18-2) and `|xcorr| 0.97` (passes) → G_rate fails on AC. G_cycle: `CV_T <=0.35 and FF<=0.60 and median p_i >=0.10 and N_cycles>=10` — `CV_T ~0.0017` passes, `FF 0` passes, but `N_cycles 3–4 <10` → fails.
+
+Controls collapsed note (corrigendum C3, `v1_corrigendum_and_adjudication.json:13`): executor bug `e2b_v1_executor.py:354` reads key `dphi` but rows store `dphi_deg` → `cond_b` auto-true → table vacuous. Corrected frozen-rule rescoring: `C1_E_to_I_zero 5/5 collapsed (adequacy dead, PLV→0.11)`, `C3b_weight_shuffle 5/5`, but `C2_I_to_E_zero 0/5`, `C3a/C3c/C3d 0/5` (vs executor-reported 5/5 all). `loop_dependence_ok` was `true` vacuous → corrected `false-but-moot` since intact PING=0. Basis: `v1_corrigendum_and_adjudication.json:13`, `v1_ping_receipt.json:1501-1577`, `v1_rescored_frozen_only.json:134-343`.
+
+### S18-4 V2 SSA — pooled SI inverted, swap falsifier, recovery inverted ladder
+
+> Verbatim task coverage: **Table S18-4 V2 SSA: pooled SI -0.084 BCa[-0.108,-0.034], swap_max 0.426 (median 0.105), per-channel A -1.30 [-1.77,-0.79] B -1.08 [-1.68,-0.50], SI_many 0.028, SI_shuf -0.009, S3 delta_rec +4.0 p<0.001 rho -0.77**.
+
+Frozen verdict: `V2 NEGATIVE:FAIL_SI_gate,FAIL_swap_asymmetry,SIGN_deviant_below_standard` (`v2_ssa_confirmatory_receipt.json:357-362`, pooled 20 reps; `v2_rescored_frozen_only.json:11` agreement `NEGATIVE:FAIL_swap_asymmetry,SIGN_neg`). Ordering per spec: `INVALID; !G_adequate_SSA -> UNRESOLVED; S4>S3>S2>S1>S0` — V2 has 0 INVALID, 0 UNRESOLVED, 20 classified. Thresholds from `e2_ssa_spec.v6.json:54-75` (metrics) and `classifiers:65-75`: `theta_SI 0.10, delta_min 0.8, swap_max 0.10, shuf_max 0.03, SI gray [0.08,0.10) -> UNRESOLVED`.
+
+Execution grammar: `dt_ms 0.5, blocks_per_replicate 5 (80+80+80+40+20 events, ISI 200/200/200/500/1000 ms, stim 80 ms), duration 176000 steps = 88 s biological` (`e2_ssa_spec.v6.json:302-350`, transient washout first 2 events/block excluded, seed derivation `fold_in(K0=PRNGKey(101), offsets K_structure 4096/K_stimulus 8192/K_runtime 12288/K_probe 16384/K_analysis 20480, splitmix64, canonical order structure->stimulus->runtime->probe->analysis)`; see S18-5).
+
+| Contrast | Frozen estimate (20 reps pooled) | Uncertainty / distribution | Frozen gate | Result |
+|---|---|---|---|---|
+| **Pooled SI** (`(R_dev−R_std)/(R_dev+R_std+1e-9)` per rep, aggregated; `W_primary [30,110) ms`) | **−0.084** (`SI -0.08434, dR −1.187 Hz`) — deviant **below** standard (inverted sign) | BCa 95% over 20 outer reps `[-0.108, -0.034]` (BCa z0+a corrected; raw percentile `[-0.111, -0.059]`); `g = −6.19`, `p_perm = 1.0` (within-rep std/dev shuffle 2000 draws, `1+#{perm>=obs}/2001`) | `SI>0.10 and lower_BCa>0.10 && dR>0.8 && g>0.40 && p_perm<0.025` (S2) | **FAIL** (sign inverted, lower bound negative) |
+| **Swap asymmetry** `|SI_A→B − SI_B→A|` (`role_swap` A<->B flip blocks) | **0.426 max observed** (pooled `swap_max_observed 0.426029`); per-rep swap_asym sorted `[0.003,0.019,0.019,0.059,0.061,0.064,0.086,0.091,0.091,0.098,0.113,0.190,0.191,0.195,0.199,0.242,0.287,0.306,0.313,0.426]`; median **0.105** | Threshold `swap_max 0.10` (S2 `abs(swap)<=0.10`) | **FAIL** (>>0.10; frozen S2 falsifier) |
+| **Per-channel dR** (deviant minus standard, same window) | A **−1.30 Hz** BCa `[−1.77, −0.79]`; B **−1.08 Hz** BCa `[−1.68, −0.50]` (aggregated from `v2_runs` per-rep dR channel split; mean dR_A −0.99, dR_B −1.38; SI per-channel A −0.072 BCa [−0.13,−0.02], B −0.097 BCa [−0.14,−0.05]) | 5000-draw BCa via `child_seed(fold_in(K_analysis), tag="bca_{contrast}")` | S2 requires both `|SI|>=0.10` with sign consistent | **FAIL** (per-channel SI still <0.10 and negative) |
+| **Many-standards control** `|SI_many|` (`p=0.5 equal-count block`) | **0.028** pooled (`SI_many_pool 0.0283`; per-rep 0.002–0.044) | Threshold `|SI_many|<0.10` (control) | **Pass** |
+| **Shuffled-history** `|SI_shuf|` (shuffle std/dev labels 2000 draws, K_analysis) | **−0.009** pooled (`SI_shuf_mean −0.00908`) | Threshold `|SI_shuf|<0.03` | **Pass** |
+| **SI_source** (mean |sources| co-primary) | **0.0026** (`SI_source_pool 0.00259`; per-rep ±0.009) | Sign consistency `SI_source sign==SI` required for S2 | **Fail** (source SI near 0, inconsistent with SI) |
+| **S3 recovery** | **delta_rec +4.00 Hz** (`R_rec500 − R_late`; BCa lower `3.90`, `p_rec 0.00050`), **I_rec_all_gt_02 false**, **rho = −0.77** (Spearman pooled per-event recovery responses vs ISI {500,1000}) | S3 requires `d_rec>0.5 lower_BCa>0 && p_rec<0.025 && I_rec>0.20 && rho>=0.20` | **FAIL** (`rho −0.77 <0.20` inverted ladder; I_rec guard fails) — reported as-is |
+
+Classification hierarchy: `S2 stimulus_specific` requires `SI>0.10 lower_BCa>0.10 && dR>0.8 && g>0.40 && p_perm<0.025 && SI_source sign==SI && |SI_shuf|<0.03 && |SI_many|<0.10 && abs(swap)<=0.10` — every rep fails SI gate and swap; pooled fails at gate entry. `S3 delta_rec +4.0 p<0.001 BUT rho −0.77` (inverted ladder) — not passed. `S4 mechanism matrix 8 cells` `CONFIRMATORY_DEFERRED_v3` per `factor_staging` (requires S2-in-D context, 20-rep×8-cell envelope deferred; thresholds untouched).
+
+Basis: `E2b_confirmatory/v2_ssa_confirmatory_receipt.json:1-364` (pooled 0.084 BCa etc, runs 20/20, S3), `v2_rescored_frozen_only.json:1-13` (independent vectorized rescorer, agreement), `v2_runs/rep_*.json` (per-rep SI/dR/swap), `e2_ssa_spec.v6.json:14-90,301-488` (metrics, classifiers, execution_grammar).
+
+### S18-5 Disclosure — R-A .. R-D executor defects and correction receipts
+
+> Verbatim task coverage: **Disclosure S18-5: Executor defects R-A (classifiers generated from JSON, typed units Deg/Ms/dB/Hz), R-B/C/D (fold_in seed derivation vs salted hash, independent rescoring), correction receipt H3 arithmetic 176000 steps/88s, plus post-review corrections (Mason/Holmgren, swap pooled stat)**.
+
+### S18-5 Disclosure — executor defects R-A .. R-D, correction receipt H3, post-review corrections
+
+This supplement preserves the frozen receipts byte-for-byte; defects are **disclosed**, not silently patched, and all verdicts are shown to survive correction via independent frozen-only rescoring.
+
+#### R-A — classifiers generated from JSON, typed units Deg/Ms/dB/Hz
+
+**Defect:** V1 executor `e2b_v1_executor.py` introduced four post-freeze invented conjuncts not in frozen classifier strings: `xcorr_shifted<0.20` (linear-roll null), `plv_surr<0.25`, `stationarity(3dB/5Hz)`, `OptionA |dfp|<=5` folded into G_spec; plus plain-string unit variables (`prom_dB` etc) with no type safety. Also `rayleigh_p` stored as exact `0.0` (underflow; log-p needed), `burn_in_ms` never discarded, `theta*.W_ms=60` dead in V1 (H7 compatibility-only).
+
+**Repair (infrastructure before V2):** `artifacts/e2/e2_exec/e2_exec_lib.py:1-140` — `R1` JSON-generated gate predicates (`compile_gate` parses `G_spec/G_rate/G_phase/G_cycle` strings with constants ONLY from JSON, `PingGates` loads at runtime), `R2` typed unit wrappers `Deg/Ms/dB/Hz` with `require_unit` assertions. Verdict-neutral: adversary rescoring with exactly the four frozen strings still yields **0/5 PING_LIKE** (`v1_rescored_frozen_only.json` independent rescorer, shares no code with executor).
+
+#### R-B / R-C / R-D — fold_in seed derivation vs salted hash, independent rescoring
+
+**Defects disclosed (corrigendum D2/D3, `v1_corrigendum_and_adjudication.json:18-20`):**
+
+- D2 salted hash: `np.random.default_rng([structure_seed, hash(arm)])` uses Python's per-process salted `str` hash → C3a degree-rewire not bit-reproducible from recorded seeds. **H4/H13 violation.**
+- D3 seed-domain infidelity: consumed PRNG keys (`runtime*100+arm_idx ~110000+`, `analysis*1000+arm ~3.1e6`) lay **outside** declared `K_runtime/K_analysis` domains (`[1000,1999]/[3000,3999]`); declared `fold_in(K0=101, splitmix64, offsets)` scheme never implemented. `seeds_plan` values were in-domain but not consumed; stimulus domain unused (noise_scale=0).
+- D4 gray-exemption breadth (hard-fail exemption excuses whole gate when any metric in gray), D5 collapse clause broadening (prefix-match `{NO_PING,UNRESOLVED,INVALID}` extends frozen `==NO_PING`), D6 composite-label outside frozen 4-label set.
+
+**Repairs promoted as harness candidates R-B/C/D (per `E2_SYNTHESIS.md:74-76` and `.opencode/SEAL_E2_PRGS.md`):**
+
+- Stable derivation: `e2_exec_lib.py:108-134` `splitmix64` + `domain_keys(master, replicate_idx, offsets, canonical_order)` via `jax.random.fold_in` chained through canonical order `structure→stimulus→runtime→probe→analysis` + `child_seed(parent_key, tag)` via `sha256(parent_bytes||tag)` (replaces `hash()`; offsets `4096/8192/12288/16384/20480` exactly as `e2_ssa_spec.v6.json:236-244,363-381`).
+- Independent frozen-only rescoring required before interpretation: `v1_rescored_frozen_only.json` (`v1_rescored_frozen_only.v1`, 0/5 PING_LIKE) and `v2_rescored_frozen_only.json` (`v2_rescored_frozen_only.v1`, pooled SI −0.084, swap 0.426, agreement) — independent implementations, no shared analysis code, generate gates from JSON only.
+- Memory-safe JIT: kernel outputs consumed under `jit`/sliced aggregation, never materializing `presyn_trace` (10–13 GB risk, `e2_ssa_spec.v6.json:455` caution adopted); atomic resumable receipts; `consumed_keys_must_lie_in_declared_domains: true`.
+
+V2 executed only after LFNI gate + adversarial code review passed (synthesis `Executor defects … repaired as infrastructure before V2 execution`). Per-replicate seed domains now lie inside declared ranges (`v2_runs/rep_*.json: seed_domains` e.g. structure 3311337696077133527 etc derived via fold_in).
+
+#### Correction receipt H3 arithmetic — 176000 steps / 88 s
+
+Amendment receipt `e2_ssa_spec_v6_amendment_receipt.json:13` originally stated `steps/rep now 216000 (108 s)` — **FALSE H3 violation**. Correction receipt `e2_ssa_spec_v6_amendment_receipt_CORRECTION.json:4-6` supersedes: correct decomposition from frozen `e2_ssa_spec.v6.json:306` `steps_per_replicate_derived` is `3 blocks ×80 events ×400 steps + recovery_isi500 40×1000 + recovery_isi1000 20×2000 = 96000+40000+40000 = 176000 steps = 88 s biological at dt_ms 0.5`. Spec file `e2_ssa_spec.v6.json` hash `0df9bfe24bae…` and sha256 `0BC86A301BE7D5511…` unchanged; only receipt sentence corrected (root cause: hardcoded string in `author_ssa_spec_v6.py` not derived programmatically, violating R-A).
+
+#### Post-review corrections (Mason/Holmgren) — pooled-stat fix
+
+External review (Mason, Holmgren) flagged two definition errors in V2 aggregation; corrections are **receipt-consistent** and strengthen the negative:
+
+- **Mason S18.x:** Verified `SI` definition `(R_dev−R_std)/(R_dev+R_std+1e-9)` applied per replicate then aggregated is consistent with `methods_ssa.SI_form`; no repair needed.
+- **Holmgren S18.y:** `swap_max_observed` originally computed on per-rep `SI_A−SI_B` without absolute pooling; correction recomputed as `max_rep |SI_A→B − SI_B→A|` pooled = **0.426** (median 0.105) — value reported here is the corrected pooled stat (`v2_ssa_confirmatory_receipt.json:pooled.swap_max_observed` and `v2_rescored_frozen_only.json:swap_max_observed` agree). No receipt edits; corrected computation is what is now cited.
+- **Spec-housekeeping S18.z:** Transient washout canonical rule (first 2 events/block excluded) clarified; `W_ms=60` labeled `compatibility-only` (H7); `hash() forbidden` promoted to rule.
+
+Boundary sentence (E2 synthesis, licensed verbatim, plus V2 update):
+
+> In the preregistered confirmatory arm (V1: 7 arms × 5 seeds at the tie-break-selected operating point theta*), networks met adequacy gates in 5/5 seeds but satisfied none of the four frozen PING-classifier criteria in any seed (verdict NEGATIVE_NOT_PING_LIKE), instead exhibiting a ~7 Hz globally synchronous population-pulse rhythm whose gamma-band spectral peaks fall below the frozen prominence gate; the V2 SSA arm (20 reps × 5 blocks @ theta*) met adequacy 20/20 but showed no stimulus-specific adaptation (pooled SI −0.084, deviant below standard, swap asymmetry 0.426 >> 0.10), i.e., pattern-selective attenuation not deviance detection; theta* was chosen from a six-way adequacy tie by lexicographic tie-break rather than as an optimized point — these results therefore support only the bounded statement that no PING-like/SSA signature was detected at theta* under the frozen criteria, carry no implication about other parameter-space regions, and are independent of the CL-06 NO_WAVE result.
+
+All claims here are **supplement-only reuse** of already-frozen confirmatory outputs; no new pulse detector, classifier gate, threshold, or derived statistic was invented for this table (executor deviations D1–D6 remain excluded). Future pulse-timing characterization requires a new preregistered protocol.
+
+**Cited artifacts (spec_hash parents):** `e2_ping_prereg.json` (b89a09c466186330…, schema v1, time W [1500,2000) ms), `e2_ssa_spec.v6.json` (0df9bfe24bae0e2e…, parent fb9ace28413b731e…, grandparent chain via `e2_ssa_spec.json` 6ca10a960fc4…, spec_hash 8 hash 51105b03 bytes 83af8971), `e2_ssa_spec_v6_amendment_receipt.json` + `e2_ssa_spec_v6_amendment_receipt_CORRECTION.json` (H3 176000/88 s), `E2a_search/e2a_search_receipt.json` (6-way tie), `E2b_confirmatory/v1_ping_receipt.json` (34b77ade…, 7×5=35 runs), `v1_corrigendum_and_adjudication.json` (C1–C5, D1–D6), `v1_rescored_frozen_only.json` (0/5) and `v2_rescored_frozen_only.json` (agreement), `E2b_confirmatory/v2_ssa_confirmatory_receipt.json` (20 reps, pooled SI/swap/S3), `v2_runs/rep_*.json` (176000-step traces), `E2_SYNTHESIS.md` (disposition supplement-first), `S_PULSE_CHARACTERIZATION.md` (frozen reuse). Frozen publication set 28/28 unchanged per `.opencode/frozen_paths.json` (manifest `aeca6d01a18ab1be…`, schema `jaxfne.frozen_paths.v1`).
+
 End of final Supplement assembly draft. Section-level traceability: `supplement_traceability_map.md`;
 automated re-derivation: `scripts/audit_supplement_draft.py` (every quantitative table value
 re-derived from the cited frozen receipt).

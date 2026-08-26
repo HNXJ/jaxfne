@@ -1,0 +1,651 @@
+{
+  "schema": "e2_d_rarity_penalty_prereg.v1",
+  "parent_e1": "07b1c04af9ea98176bc45350528f3312375f7d24",
+  "write_once": true,
+  "frozen_at": "2026-08-26T00:00:00Z",
+  "provenance": {
+    "authority_packet": {
+      "ping_spec_hash": "b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f",
+      "ping_sha256": "0E9D602B8D1B4E78CB371872AC84DBF4743E0337179572DD461618324D8B7517",
+      "ssa_v6_spec_hash": "0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570",
+      "ssa_v6_sha256": "0BC86A301BE7D5511141C0DC964ADD3257B59CB33189158C34697F50FEE25CFF",
+      "parent_e1": "07b1c04af9ea98176bc45350528f3312375f7d24",
+      "e1_frozen_manifest_sha": "aeca6d01a18ab1be3d400cf9c6a7c373c9e86326",
+      "code_head_at_prereg": "0b8c22e"
+    },
+    "derived_from": "artifacts/e2/preregistration/e2_ssa_spec.v6.json + artifacts/e2/preregistration/e2_c_recovery_clock_prereg.json (blinding/taxonomy template) + 11_E2_NEGATIVE_MECHANISTIC_INTERPRETATION.md:45 + 12_BIOPHYSICAL_SIMULATION_RULES.md:R7",
+    "inheritance": "V2 paradigm inherited verbatim from e2_ssa_spec.v6.json; operating point theta* inherited verbatim from E2a_search_receipt.json result.theta*",
+    "e2a_blinding_spec_hash": "74822d0393d4667150697e030568e323d66e4ba3fd52c76b7e4964a8b3768f56",
+    "theta_star_source": "E2a_search_receipt.json result.theta* id=theta0 drive_E=4.0 drive_I=2.0 weight_mu=0.25 noise_scale=0.0 W_ms=60",
+    "theta_star_verbatim": {
+      "W_ms": 60,
+      "drive_E": 4.0,
+      "drive_I": 2.0,
+      "id": "theta0",
+      "noise_scale": 0.0,
+      "weight_mu": 0.25
+    }
+  },
+  "purpose": "D1 Preregister V2 rarity-penalty discrimination (e2_d_*.json): new hypothesis test explicitly NOT a repair of V2 NEGATIVE (pooled SI -0.084 BCa[-0.108,-0.034] swap_max 0.426). Tests sign-inverted cross-channel carryover / rarity-penalty vs channel-specific SSA at theta*.",
+  "not_a_repair": "This prereg does not alter, re-score, or re-interpret frozen V2 SSA NEGATIVE verdict (e2_ssa_spec.v6, V2_RUNS_MANIFEST 20 reps). V2 NEGATIVE remains sealed. e2_d is a new prospective discrimination battery branching from theta*.",
+  "hypothesis": {
+    "name": "rarity_penalty_vs_channel_SSA",
+    "statement": "At theta* the V2 circuit shows a uniform rarity/context penalty (deviant-below-standard) carried across channels by pulse-cycle entrainment, not channel-specific SSA. Channel-specific SSA would require deviant > standard within each channel when role controls are applied.",
+    "H1_SSA": "Channel-specific SSA: Delta_R_A >0 and Delta_R_B >0 with BCa lower>0, si_a+si_b>0, and pooled swap |mean|<=0.10 CI including 0, SI_many<0.10.",
+    "H2_rarity_penalty": "Uniform rarity penalty: Delta_R_A <0 and/or Delta_R_B <0 (BCa upper<0), si_a+si_b<=0, many-standards clean, phase-matched control predicts penalty vanishes when deviant phase aligned.",
+    "H3_fixed_preference": "Fixed spatial preference (pre-adversarial): would produce swap asymmetry but no per-channel inversion; already falsified by per-channel flip sign analysis (11/20 A>B) and per-channel negative contrasts.",
+    "null_like": "No systematic per-channel effect: Delta_R CIs include 0",
+    "scope": "Tested at frozen theta* only (drive_E 4.0 drive_I 2.0 weight_mu 0.25); no claim about other operating points; bounded interpretation per E2_SYNTHESIS.",
+    "best_supported_after_review": "Sign-inverted cross-channel carryover / rarity-penalty (H2), not fixed preference; per 11_E2_NEGATIVE_MECHANISTIC_INTERPRETATION.md REVISED attribution"
+  },
+  "paradigm_inheritance": {
+    "source_spec": "artifacts/e2/preregistration/e2_ssa_spec.v6.json",
+    "source_schema": "e2_ssa_spec.v6",
+    "source_spec_hash": "0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570",
+    "source_sha256_upper": "0BC86A301BE7D5511141C0DC964ADD3257B59CB33189158C34697F50FEE25CFF",
+    "inherits": "verbatim",
+    "family": "general_sequential_oddball",
+    "events_per_block": 80,
+    "p_deviant": 0.15,
+    "p_standard": 0.85,
+    "isi_ms_onset_to_onset": 200,
+    "stim_duration_ms": 80,
+    "stimulus_identity_mapping": {
+      "A": "drive pulse train to E-subpopulation [0,400) at relative amplitude 1.0",
+      "B": "drive pulse train to E-subpopulation [400,800) at relative amplitude 1.0",
+      "identity_is_spatial_not_energy": true,
+      "pulse_waveform": "rectangular native-current pulse, duration stim_duration_ms, amplitude 1.0 added to drive_E during stimulus window"
+    },
+    "blocks_per_replicate": [
+      {
+        "name": "oddball_A_std",
+        "standard": "A",
+        "deviant": "B",
+        "events": 80
+      },
+      {
+        "name": "oddball_B_std_flip",
+        "standard": "B",
+        "deviant": "A",
+        "events": 80
+      },
+      {
+        "name": "many_standards_control",
+        "p_each": 0.5,
+        "events": 80
+      },
+      {
+        "name": "recovery_isi500",
+        "standard_only": "A",
+        "isi_ms": 500,
+        "events": 40
+      },
+      {
+        "name": "recovery_isi1000",
+        "standard_only": "A",
+        "isi_ms": 1000,
+        "events": 20
+      }
+    ],
+    "deviant_placement_rule": {
+      "constraint": "no two consecutive deviants; at least 2 standards between consecutive deviants",
+      "realization": "positions sampled without replacement from legal slots using fold_in-chained K_stimulus key child_seed(tag=\"devpos_block{name}_rep{idx}\"); full sequences hashed into receipt",
+      "transient_washout": "SUPERSEDED (contained fabricated counts 10/66/19/9 - non-normative). Canonical washout lives at paradigm.transient_washout in this schema version."
+    },
+    "transient_washout": "Canonical rule: exactly the first 2 events of every block are excluded from all analyses. Post-washout realized event counts by block design: oddball blocks 78 each (80-2), many_standards 78 (80-2), recovery_isi500 38 (40-2), recovery_isi1000 18 (20-2). Per-type splits inside oddball blocks are sequence-realized under deviant_placement_rule and hashed per replicate. No analytic event-count threshold exists.",
+    "note": "V2 paradigm parameters events 80, p_dev 0.15, blocks (oddball_A_std, oddball_B_std_flip, many_standards_control, recovery_isi500, recovery_isi1000), transient washout exactly first 2 events excluded \u2014 inherited verbatim, no tuning"
+  },
+  "execution_grammar": {
+    "paradigm": {
+      "family": "general_sequential_oddball",
+      "events_per_block": 80,
+      "p_deviant": 0.15,
+      "p_standard": 0.85,
+      "isi_ms_onset_to_onset": 200,
+      "stim_duration_ms": 80,
+      "stimulus_identity_mapping": {
+        "A": "drive pulse train to E-subpopulation [0,400) at relative amplitude 1.0",
+        "B": "drive pulse train to E-subpopulation [400,800) at relative amplitude 1.0",
+        "identity_is_spatial_not_energy": true,
+        "pulse_waveform": "rectangular native-current pulse, duration stim_duration_ms, amplitude 1.0 added to drive_E during stimulus window"
+      },
+      "blocks_per_replicate": [
+        {
+          "name": "oddball_A_std",
+          "standard": "A",
+          "deviant": "B",
+          "events": 80
+        },
+        {
+          "name": "oddball_B_std_flip",
+          "standard": "B",
+          "deviant": "A",
+          "events": 80
+        },
+        {
+          "name": "many_standards_control",
+          "p_each": 0.5,
+          "events": 80
+        },
+        {
+          "name": "recovery_isi500",
+          "standard_only": "A",
+          "isi_ms": 500,
+          "events": 40
+        },
+        {
+          "name": "recovery_isi1000",
+          "standard_only": "A",
+          "isi_ms": 1000,
+          "events": 20
+        }
+      ],
+      "deviant_placement_rule": {
+        "constraint": "no two consecutive deviants; at least 2 standards between consecutive deviants",
+        "realization": "positions sampled without replacement from legal slots using fold_in-chained K_stimulus key child_seed(tag=\"devpos_block{name}_rep{idx}\"); full sequences hashed into receipt",
+        "transient_washout": "SUPERSEDED (contained fabricated counts 10/66/19/9 - non-normative). Canonical washout lives at paradigm.transient_washout in this schema version."
+      },
+      "transient_washout": "Canonical rule: exactly the first 2 events of every block are excluded from all analyses. Post-washout realized event counts by block design: oddball blocks 78 each (80-2), many_standards 78 (80-2), recovery_isi500 38 (40-2), recovery_isi1000 18 (20-2). Per-type splits inside oddball blocks are sequence-realized under deviant_placement_rule and hashed per replicate. No analytic event-count threshold exists."
+    },
+    "methods_ssa": {
+      "population_R": "mean spikes per neuron over [onset+30, onset+110) ms across all 800 E neurons, divided by 0.08 s (Hz); co-primary SI_source uses mean |sources| over same window",
+      "SI_form": "(R_dev - R_std)/(R_dev + R_std + 1e-9) computed per replicate (event-averaged), then aggregated",
+      "uncertainty": {
+        "method": "BCa bootstrap over 20 outer replicates",
+        "draws": 5000,
+        "alpha": 0.05,
+        "key": "child_seed(fold_in-chained K_analysis, tag=\"bca_{contrast}\")"
+      },
+      "permutation": {
+        "scheme": "within-replicate std/dev label shuffle preserving counts; pooled statistic recomputed",
+        "draws": 2000,
+        "one_sided_p": "(1 + #{perm >= observed})/(2001)",
+        "key": "child_seed(fold_in-chained K_analysis, tag=\"perm_{contrast}\")"
+      },
+      "shuffled_history_control": {
+        "draws": 2000,
+        "key_tag": "shuf_oddball"
+      },
+      "S1_symbols": {
+        "R_control": "event-matched mean response of many_standards_control block (both identities pooled)"
+      },
+      "S3_recovery_definition": {
+        "R_late": "mean response to A-standards in events 65-80 of oddball_A_std block (short-ISI late)",
+        "R_early": "mean response to A-standards in events 3-17 of oddball_A_std block (post-washout early)",
+        "R_rec(ISI)": "mean response to A-standards in recovery_isi{ISI} blocks",
+        "delta_rec": "R_rec(500) - R_late",
+        "I_rec": "(R_rec(500) - R_late)/(R_early - R_late), undefined -> UNRESOLVED if R_early <= R_late",
+        "rho": "Spearman over pooled per-event recovery responses (both ISIs, all replicates) vs their ISI in {500,1000}"
+      },
+      "new_block_recovery_isi1000": {
+        "standard_only": "A",
+        "isi_ms": 1000,
+        "events": 20
+      },
+      "implementation_cautions_adopted": [
+        "kernel outputs consumed under jit/sliced aggregation; never materialize presyn_trace (10-13 GB risk)",
+        "n_events<8 exclusion NOT implemented (external-packet construct; design counts are fixed)"
+      ],
+      "dR": "dR = R_dev - R_std in Hz, identical population/window/R definitions as R_event",
+      "g": "g = Hedges' g of per-replicate SI values across n_outer=20 replicates (mean diff / pooled SD)",
+      "alias_d_rec": "classifiers.S3_recovery token 'd_rec' denotes delta_rec (identical quantity)",
+      "S1_definitions": {
+        "R_control": "event-matched mean response of many_standards_control block, both identities pooled",
+        "SI_std_ctrl": "(R_control - R_std)/(R_control + R_std + eps) per replicate",
+        "SI_dev_ctrl": "(R_control - R_dev)/(R_control + R_dev + eps) per replicate",
+        "note": "S1 requires both > theta_SI and |SI_std_ctrl - SI_dev_ctrl| < delta_global_leak=0.08"
+      },
+      "SI_many_definition": "|(R_A - R_B)/(R_A + R_B + eps)| computed on many_standards_control block events",
+      "permutation_tags": {
+        "S2": "perm_S2",
+        "S3": "perm_S3",
+        "shuffled_history": "shuf_oddball",
+        "BCa": "bca_{contrast}"
+      },
+      "adequacy_operational": {
+        "R_X_early": "mean response to identity-X standard events 3-17 (post-washout indices) of the X-standard oddball block",
+        "stable": "|mean(response last quarter) - mean(response first quarter)| <= 3 * SD(event responses of that identity within its standard block)",
+        "G_A": "R_A_early >= R_floor(1.0) and stable(A)",
+        "G_B": "R_B_early >= R_floor(1.0) and stable(B)",
+        "G_stable_block": "drift <= 3 SD as defined above, evaluated per identity"
+      }
+    },
+    "response_extraction": {
+      "R_event": "population mean spikes over [onset+W_primary[0], onset+W_primary[1]) / window_seconds; W_primary inherited [30,110] ms",
+      "SI_epsilon_theta": "inherited unchanged from SSA.metrics"
+    },
+    "seed_derivation": {
+      "scheme": "master=PRNGKey(101); chained jax.random.fold_in through canonical_order with data=offset_domain+replicate_idx; child seeds via sha256(parent_bytes+tag)",
+      "canonical_order": [
+        "structure",
+        "stimulus",
+        "runtime",
+        "probe",
+        "analysis"
+      ],
+      "offsets": {
+        "K0": 0,
+        "K_analysis": 20480,
+        "K_probe": 16384,
+        "K_runtime": 12288,
+        "K_stimulus": 8192,
+        "K_structure": 4096
+      },
+      "consumed_keys_must_lie_in_declared_domains": true
+    },
+    "block_execution": {
+      "init": "fresh params.v0/u0 at every block start; no cross-block state carry",
+      "drive_application": "drive_schedule array (n_steps, n_neurons): rectangular pulse amplitude 1.0 added to drive_E columns of the targeted E-subpopulation for stim_duration_ms from each onset",
+      "memory_rule": "kernel consumed under jit with sliced per-event window aggregation; presyn_trace never materialized",
+      "onsets": "event k onset step = k * round(ISI_ms/dt_ms): 400 (200 ms), 1000 (500 ms), 2000 (1000 ms)"
+    },
+    "replicates": {
+      "n_outer_per_battery": 20,
+      "resolves_cardinality": "v1 seeds.cardinalities.n_per_cell=20 applies here; V1-PING executed 5/arm under its 4/5 rule (documented UNRESOLVED_CARDINALITY there)"
+    },
+    "time": {
+      "dt_ms": 0.5,
+      "burn_in_discard_ms": 0,
+      "note": "block duration derived: events x ISI_ms; n_steps = duration/dt",
+      "steps_per_replicate_derived": "3 blocks x 80 events x 400 steps + recovery_isi500 40 x 1000 + recovery_isi1000 20 x 2000 = 96000 + 40000 + 40000 = 176000 steps (88 s biological at dt_ms 0.5)"
+    },
+    "operating_point": {
+      "inherited_from": "artifacts/e2/preregistration/E2a_search/e2a_search_receipt.json result.theta* (write-once)",
+      "drive_E": 4.0,
+      "drive_I": 2.0,
+      "weight_mu": 0.25,
+      "noise_scale": 0.0,
+      "W_ms_note": "W_ms=60 is an E2a candidate-window knob, unused by SSA (H7 compatibility-only here)",
+      "interpretation_note": "six-way adequacy tie in E2a; lexicographic tie-break selection, NOT unique optimum"
+    },
+    "inheritance_note": "All execution_grammar fields inherited verbatim from e2_ssa_spec.v6.json; no new timing or block added; methods_ssa operational definitions (population_R, SI_form, uncertainty, permutation, SI_many_definition, adequacy_operational, etc.) are authoritative and frozen."
+  },
+  "controls": {
+    "per_channel_role_controlled_contrasts": {
+      "definition": "Role-controlled contrasts isolate channel history from identity gain. For channel A: Delta_R_A = R(A_as_deviant in oddball_B_std_flip) - R(A_as_standard in oddball_A_std). For channel B: Delta_R_B = R(B_as_deviant in oddball_A_std) - R(B_as_standard in oddball_B_std_flip). R is population_R mean spikes per 0.08s Hz in W_primary [30,110) ms across 800 E neurons, event-averaged post-washout per replicate, then pooled across n_outer=20 replicates.",
+      "Delta_R_A_formal": "Delta_R_A[r] = R_A_dev[r] - R_A_std[r] per replicate r; R_A_dev = mean_R over A-deviant events (events where stimulus==A and block==oddball_B_std_flip, post-washout, deviant positions per hashed sequence); R_A_std = mean_R over A-standard events (block==oddball_A_std, post-washout, standard events). Pooled Delta_R_A = mean_r Delta_R_A[r].",
+      "Delta_R_B_formal": "Delta_R_B[r] = R_B_dev[r] - R_B_std[r]; R_B_dev from oddball_A_std deviant events, R_B_std from oddball_B_std_flip standard events; pooled Delta_R_B = mean_r Delta_R_B[r].",
+      "SI_per_channel_form": "si_A[r] = (R_A_dev[r] - R_A_std[r])/(R_A_dev[r] + R_A_std[r] + epsilon) with epsilon=1e-09 frozen; si_B similarly; pooled si_A = mean_r si_A[r]; pooled si_B = mean_r si_B[r]. Direction: si>0 means deviant>standard (SSA-like); si<0 means rarity penalty.",
+      "historical_reference": "V2 receipts post-hoc per-channel: channel A -1.30 Hz [BCa -1.77,-0.79]; channel B -1.08 Hz [-1.68,-0.50] (BCa over 20 reps, same W_primary) \u2014 same stimulus deviant BELOW standard in both channels, per 11:45",
+      "uncertainty": {
+        "method": "BCa bootstrap over 20 outer replicates, bias-corrected and accelerated",
+        "draws": 5000,
+        "alpha": 0.05,
+        "key": "child_seed(fold_in-chained K_analysis, tag=bca_DeltaR_A) and tag=bca_DeltaR_B and tag=bca_si_A/bca_si_B",
+        "derivation": "K_analysis in [3000,3999], offsets 20480, fold_in(K0=PRNGKey(101), encode(s,r,u,a)) canonical_order structure->stimulus->runtime->probe->analysis per e2_ssa_spec.v6 seeds"
+      },
+      "pass_criteria_for_SSA": "Channel-specific SSA requires Delta_R_A >0 with BCa 95% CI lower>0 AND Delta_R_B >0 with BCa lower>0 (and si_A>0 si_B>0 with lower>theta_SI/2). Both channels must independently show deviant>standard.",
+      "falsifier_per_channel": "FALSIFIED_channel_SSA_contradicted if BCa 95% CI upper<0 for Delta_R_A OR for Delta_R_B (or for si_A/si_B): i.e., upper bound below zero => deviant significantly below standard within that channel => channel-specific SSA actively CONTRADICTED, not merely unsupported (per 11:45). Single-channel contradiction defeats universal channel-specific SSA claim; joint V2 receipts show both channels contradicted.",
+      "verbatim_per_channel_falsifiers": [
+        "FALSIFIER_Delta_R_A: channel-specific SSA contradicted if BCa 95% CI for Delta_R_A has upper < 0 Hz (deviant below standard when stimulus identity held fixed, role varies) \u2014 per 11:45",
+        "FALSIFIER_Delta_R_B: channel-specific SSA contradicted if BCa 95% CI for Delta_R_B has upper < 0 Hz \u2014 per 11:45",
+        "FALSIFIER_si_A: channel-specific SSA contradicted if BCa 95% CI for si_A has upper < 0",
+        "FALSIFIER_si_B: channel-specific SSA contradicted if BCa 95% CI for si_B has upper < 0"
+      ]
+    },
+    "swap_pooled": {
+      "definition": "Pooled role-reversal asymmetry statistic: per replicate SI_swap[r] = SI_A_std_block[r] - SI_B_std_block[r] where SI_A_std_block = (R_B_dev - R_A_std)/(R_B_dev+R_A_std+eps) computed on oddball_A_std block, SI_B_std_block = (R_A_dev - R_B_std)/(R_A_dev+R_B_std+eps) on oddball_B_std_flip block (signed swap asymmetry). Pooled swap_pooled = mean_r SI_swap[r] (signed mean across 20 replicates). Absolute gate applied to pooled value.",
+      "uncertainty": {
+        "method": "BCa bootstrap over 20 outer replicates",
+        "draws": 5000,
+        "alpha": 0.05,
+        "key": "child_seed(fold_in-chained K_analysis, tag=bca_swap_pooled)",
+        "citation": "K_analysis domain [3000,3999] per e2_ssa_spec.v6 seeds; B=5000 same as SI BCa"
+      },
+      "pass_criteria": "PASS requires |swap_pooled| <= 0.10 AND BCa 95% CI includes 0 (i.e., lower <=0 <= upper). CI including 0 indicates no systematic channel gain bias; |mean|<=0.10 ensures bias small. Both conditions required.",
+      "falsifier": "FALSIFIER_swap_pooled_BCa: pooled swap asymmetry falsifies specificity if |swap_pooled| > 0.10 OR BCa 95% CI excludes 0 (entirely above or below zero) \u2014 indicates fixed/preferential gain or asymmetric history transfer not consistent with stimulus-specific adaptation.",
+      "verbatim_falsifier": "FALSIFIER_swap_pooled_BCa: swap_pooled = mean_r SI_swap[r] with BCa B=5000 key K_analysis; FALSIFIED if |swap_pooled| > 0.10 OR BCa 95% CI excludes 0; max_over_reps FORBIDDEN per 12:R7",
+      "forbidden": {
+        "max_over_reps": "FORBIDDEN per 12:R7: swap_max = max_r |SI_swap[r]| or max_r swap_asym[r] is an extreme-value statistic (V2 sample max 0.426, median 0.105, only 10/20 exceed 0.10) and MUST NOT be used as gate. Do not report max_over_reps as pooled signature; do not gate on max. Pooled mean+CI is the only licensed swap gate.",
+        "un_pooled_SI": "FORBIDDEN: un-pooled single-block SI (e.g., SI computed collapsed across blocks without per-channel role separation) must not be substituted for per-channel or pooled swap contrasts",
+        "note": "max_over_reps appears in V2 receipts as swap_max_observed=0.426 diagnostic only; it is retained for archaeological record but is not a gate"
+      }
+    },
+    "many_standards": {
+      "definition": "SI_many[r] = (R_A_many[r] - R_B_many[r])/(R_A_many[r] + R_B_many[r] + epsilon) absolute or signed per SI_many_definition; R_A_many = mean_R on many_standards_control block events where stimulus==A, R_B_many similarly; post-washout events 78 realized (80-2). Methods: same W_primary [30,110) ms, same population_R.",
+      "SI_many_definition_inherited": "|(R_A - R_B)/(R_A + R_B + eps)| computed on many_standards_control block events",
+      "pooled": "SI_many_pool = mean_r SI_many[r] (or mean absolute); with BCa B=5000 key tag bca_SI_many",
+      "pass": "|SI_many_pool| < 0.10 (many-standards clean: no stimulus-energy bias at equal probability p_each=0.5) with BCa CI including 0 preferred",
+      "falsifier": "If |SI_many_pool| >= 0.10 with CI excluding 0, indicates stimulus-energy or fixed channel bias contaminant; S2 gate fails regardless of per-channel Delta_R",
+      "V2_reference": "V2 pooled SI_many 0.028 clean, shuffled -0.009 clean \u2014 retained as control gate"
+    },
+    "phase_matched_rarity_control_declaration": {
+      "status": "declared_prospective_control (not yet executed; required for any future rarity-penalty claim)",
+      "definition": "When a carrier pulse regime is present (E2 theta* ~7.2 Hz, T~138 ms), rarity controls must be phase-matched to the carrier cycle. Deviant events must be compared at matched phase of the underlying population pulse: deviant timing aligned vs misaligned to pulse peak within +/- 5 ms window. This isolates true rarity/history effects from entrainment/phase-dependent excitability.",
+      "rationale": "Per 12:R7: rarity controls must be phase-matched to the carrier cycle when a pulse regime is present; otherwise apparent penalty may be phase entrainment artifact (population pulse suppresses off-phase inputs). V2 200 ms ISI is not phase-locked to 138 ms carrier, producing mixed phases.",
+      "prospective_implementation": "Future e2_d execution must include (or declare as second battery) a phase-matched rarity block: isochronous train at theta* period (T~138 ms) or triggered deviants at fixed phases (peak vs trough), with condition pulse-phase as covariate; analysis: stratify deviant responses by carrier phase quartile and test penalty vanishing when deviant phase aligns to pulse cycle => entrainment mechanism. If penalty vanishes on alignment, rarity-penalty = entrainment; if persists across phases, true cross-channel suppression.",
+      "acceptance": "Declaration present in prereg suffices for D1; execution of phase-matched control is required before any positive rarity-penalty mechanism is claimed beyond discrimination.",
+      "citation": "12_BIOPHYSICAL_SIMULATION_RULES.md R7 rarity-controls phase-matched clause; 11_E2_NEGATIVE_MECHANISTIC_INTERPRETATION.md:50 phase-matched rarity control falsifier"
+    }
+  },
+  "falsifiers": {
+    "per_channel_falsifiers_explicit": [
+      "FALSIFIER_Delta_R_A_BCa_upper_lt_0: BCa 95% CI for Delta_R_A has upper < 0 Hz => channel-specific SSA contradicted for channel A (per 11:45); SSA would require Delta_R_A>0.",
+      "FALSIFIER_Delta_R_B_BCa_upper_lt_0: BCa 95% CI for Delta_R_B has upper < 0 Hz => channel-specific SSA contradicted for channel B (per 11:45)",
+      "FALSIFIER_si_A_BCa_upper_lt_0: BCa 95% CI for si_A has upper < 0 => normalized channel-specific SSA contradicted for A",
+      "FALSIFIER_si_B_BCa_upper_lt_0: BCa 95% CI for si_B has upper < 0 => normalized channel-specific SSA contradicted for B"
+    ],
+    "per_channel_falsifiers_note": "Either channel upper<0 suffices to contradict universal channel-specific SSA; both channels upper<0 (as in V2 post-hoc -1.30 [-1.77,-0.79] and -1.08 [-1.68,-0.50]) is stronger contradiction proving uniform penalty.",
+    "swap_pooled_BCa_falsifier": "FALSIFIER_swap_pooled_BCa: swap_pooled = mean_r SI_swap[r] with BCa B=5000 key K_analysis; FALSIFIED if |swap_pooled| > 0.10 OR BCa 95% CI excludes 0; PASS requires |swap_pooled| <=0.10 CI including 0; max_over_reps FORBIDDEN per 12:R7 and must not be used (extreme-value 0.426 in V2 is max_over_reps statistic, not pooled signature).",
+    "ulanovsky_diagonal": {
+      "definition": "Ulanovsky-2003 diagnostic: genuine SSA requires each frequency channel SI above diagonal: SI(f1)+SI(f2)>0. Adapted to channels: si_a = per-channel SI for A (A_dev vs A_std), si_b = per-channel SI for B (B_dev vs B_std); pooled sum S = si_a_pool + si_b_pool (where si_a_pool=mean_r si_A[r], si_b_pool=mean_r si_B[r]). Also per-replicate S[r]=si_A[r]+si_B[r] may be pooled.",
+      "check": "Compute S = si_a_pool + si_b_pool with BCa B=5000 key tag bca_ulanovsky_S (or BCa on sum). Genuine SSA predicts S > 0 with BCa lower > 0 (above diagonal).",
+      "falsifier": "FALSIFIER_ulanovsky_diagonal: SSA falsified if si_a + si_b <= 0 (below diagonal) with BCa 95% CI upper <=0 or point estimate negative below diagonal; V2 observed S ~ -0.169 lies BELOW diagonal \u2014 defeating both canonical accounts simultaneously per 11:48 and strengthening frozen NEGATIVE.",
+      "verbatim": "FALSIFIER_ulanovsky_diagonal: genuine SSA requires si_a + si_b > 0 with BCa lower >0; FALSIFIED if si_a+si_b <=0 (BCa upper<=0) \u2014 below gain-bias diagonal per Ulanovsky Las & Nelken 2003 Nat Neurosci",
+      "citation": "Ulanovsky N, Las L, Nelken I (2003) Processing of low-probability sounds by cortical neurons. Nat Neurosci 6(4):391-398 doi:10.1038/nn1032; 11_E2_NEGATIVE_MECHANISTIC_INTERPRETATION.md:48; 09_SSA_DEVIANCE.md:14"
+    },
+    "SI_many_falsifier": "FALSIFIER_SI_many: SSA stimulus-specificity falsified if |SI_many_pool| >= 0.10 with BCa CI excluding 0 (many-standards fails: stimulus identity bias not history).",
+    "joint_logic": "Hypothesis discrimination: FALSIFIED_SSA (channel-specific SSA contradicted) if per-channel upper<0 OR ulanovsky S<=0; SUPPORTED_SSA only if per-channel lower>0 AND swap_pooled PASS AND SI_many PASS AND S>0; rarity-penalty SUPPORTED if per-channel upper<0 (penalty direction) AND SI_many clean AND phase-matched control shows penalty phase-dependent or history-dependent pattern. max_over_reps must never contribute to SUPPORTED/FALSIFIED verdict."
+  },
+  "blinding": {
+    "A_allowed": [
+      "G_finite",
+      "G_active",
+      "G_adequate_SSA",
+      "G_A",
+      "G_B",
+      "G_stable",
+      "mean_rate_E",
+      "mean_rate_I",
+      "n_spiking",
+      "active_E",
+      "active_I",
+      "adequacy_operational"
+    ],
+    "A_allowed_detail": {
+      "G_finite": "finite/NaN/rate bounds rate<200 |H_K|<=10",
+      "G_active": "mean_rate_E>=0.5 etc",
+      "G_adequate_SSA": "G_A && G_B && G_finite && G_stable",
+      "G_A": "R_A_early >=1.0 and stable",
+      "G_B": "R_B_early >=1.0 and stable",
+      "mean_rate": "mean_rate_E, mean_rate_I, n_spiking, active_E/I, R_X_early"
+    },
+    "A_forbidden": [
+      "PING_LIKE",
+      "SI",
+      "SI_source",
+      "si_A",
+      "si_B",
+      "Delta_R_A",
+      "Delta_R_B",
+      "swap_pooled",
+      "SI_swap",
+      "SI_many",
+      "SI_shuf",
+      "S0",
+      "S1",
+      "S2",
+      "S3",
+      "S4",
+      "G_spec",
+      "G_phase",
+      "G_rate",
+      "G_cycle",
+      "PLV",
+      "delta_PLV",
+      "D-N1_mechanistic_contrast",
+      "f_peak",
+      "prominence",
+      "T_period",
+      "si_a_plus_si_b",
+      "ulanovsky_S"
+    ],
+    "A_forbidden_note": "Any phenotype/detector output including per-channel contrasts, swap statistics, SI_many, ulanovsky diagonal sum, S0-S4, PING_LIKE, spectral peaks must not appear in adequacy-only logs; these are computed only after unblinding adequacy pass, per 11_E2_NEGATIVE and 12:R7 discrimination requirement",
+    "f_fail": "if no adequate operating point in battery after exhaustive seeds, outcome is UNRESOLVED/INVALID (assay not in regime), not FALSIFIED/NEGATIVE; report all attempted points including failures",
+    "f_select": "No selection among operating points: theta* frozen (theta0). Adequacy-only gate: report G_adequate_SSA rate; f_select = adequacy rate only, not phenotype. If no adequate replicates, outcome is UNRESOLVED/INVALID, not NEGATIVE/SUPPORTED; report all attempted points including failures",
+    "grep_0_hits_enforcement": {
+      "artifact_path": "artifacts/e2/preregistration/E2d_blinded/",
+      "check": "grep -R forbidden observables in E2d adequacy artifact must be 0 hits; adequacy script must not import classifiers/SI/T_period/swap/ulanovsky computation",
+      "mechanism": "E2d adequacy script operates only on adequacy gates and raw rates, imports only e2_ssa_spec.v6 adequacy.operational; forbidden metrics (SI, Delta_R, swap_pooled, ulanovsky) computed in separate unblinded script after adequacy freeze, using distinct K_analysis child seeds"
+    },
+    "provenance_blinding_spec": "mirrors E2A_BLINDING_SPEC.json v1 and e2_c_recovery_clock_prereg.v1 blinding: forbidden vs allowed split; grep 0-hits enforced; E2a_blinding_spec_hash 74822d0393d4667150697e030568e323d66e4ba3fd52c76b7e4964a8b3768f56 incorporated",
+    "purpose": "Blinding prevents analysts from using per-channel Delta_R, swap_pooled, SI_many, or ulanovsky S to influence adequacy reporting; adequacy must be reported before any phenotype unblinding"
+  },
+  "blinding_check": {
+    "allowed_only": true,
+    "forbidden_grep_hits": 0,
+    "note": "E2d prereg itself contains forbidden terms only in prereg definition, not in blinded execution artifact; execution artifact must contain only G_finite/G_adequate_SSA/G_A/G_B/mean_rate/adequacy_operational"
+  },
+  "taxonomy": {
+    "FALSIFIED_vs_NEGATIVE": {
+      "FALSIFIED": "per frozen ordering: falsifier criterion met (d_zero leaves T unchanged OR a_scan does not track tau_u) with adequate rates => hypothesis falsified",
+      "NEGATIVE": "adequate but no falsifier fired and effect size absent yet not meeting falsifier contrarian threshold (e.g., rho 0.2 n.s.) => NEGATIVE (no evidence for pacemaker, but not falsified by strict contrarian)",
+      "frozen_ordering_note": "INVALID; !G_adequate -> UNRESOLVED; FALSIFIED per R3 falsifiers; NEGATIVE vs FALSIFIED per frozen ordering (E2 V1 NEGATIVE_NOT_PING_LIKE ordering preserved; this battery independent)",
+      "labels": [
+        "INVALID",
+        "UNRESOLVED",
+        "FALSIFIED",
+        "NEGATIVE",
+        "SUPPORTED"
+      ]
+    },
+    "INVALID": {
+      "handling": "INVALID_* runs excluded from all aggregations, never pooled with valid; reported separately with seed/reason",
+      "inherit_from": "e2_ping_prereg.json INVALID_rules and e2_ssa_spec.v6 INVALID_rules",
+      "never_pooled": true,
+      "rules": [
+        "INVALID_NUMERIC_NONFINITE",
+        "INVALID_NUMERIC_DIVERGENCE",
+        "INVALID_NUMERIC_ADMISSIBILITY",
+        "INVALID_CONFIG_SEED_DOMAIN",
+        "INVALID_CONFIG_SPEC_MISMATCH",
+        "INVALID_DELAY_STATE",
+        "INVALID_CONFIG_PROBE_LEAKAGE",
+        "INVALID_CONFIG_GEOMETRY"
+      ]
+    },
+    "UNRESOLVED": {
+      "G_adequate": "G_finite && G_active && G_population with G_finite: all V_m,u,spikes,sources,Q,H_K finite not NaN rate<200 |H_K|<=20; G_active: mean_rate_E>=0.5 && mean_rate_I>=0.5 && n_spiking>=10; G_population: active_E>=20 && active_I>=5 (inherited from e2_ping_prereg adequacy_gates)",
+      "additional_UNRESOLVED": "rate<=5 Hz => UNRESOLVED_silent (silent not falsifier-applicable); also gray-zone T unmeasurable",
+      "definition": "UNRESOLVED = !G_adequate",
+      "handling": "UNRESOLVED never counts as FALSIFIED or NEGATIVE; reported as assay not in regime"
+    },
+    "mutual_exclusion": true,
+    "ordering": "INVALID_* > UNRESOLVED > FALSIFIED > NEGATIVE > SUPPORTED, per frozen E2 ordering: INVALID never pooled, !G_adequate -> UNRESOLVED, then falsifier logic, then negative vs support",
+    "unreachable_labels": []
+  },
+  "masks": {
+    "inherit_from": "e2_ping_prereg.json masks and e2_ssa_spec.v6 masks",
+    "owner_mask": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "owner_mask_construction_rule": "build_owner_mask(n_neurons=1000, owners=[0,1,2,3,4,5,6,7,8,9]) -> float32",
+    "owner_mask_spec": {
+      "construction": "build_owner_mask",
+      "dtype": "float32",
+      "n_neurons": 1000,
+      "owners": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    "owner_mask_spec_hash": "51105b0326c87b6fb33e830f4cea0aee2a2d6c83361b0fbba05fefb9ba808a3b",
+    "owner_mask_bytes_hash": "83af8971f8f04e6e082d1df674dbc1c98ce8bbec1578536a8d78c2812315299f",
+    "owner_mask_implementation_hash": "027bdd97"
+  },
+  "topology": {
+    "N_E": 800,
+    "N_I": 200,
+    "N_total": 1000,
+    "construction": "sparse EdgeList via _construct_core._neuron_population_from_config",
+    "geometry": "relative_laminar_depth_proxy",
+    "labels": {
+      "E": "excitatory",
+      "I": "PV-like fast-spiking"
+    },
+    "mean_degree": 80,
+    "p_EE": 0.05,
+    "p_EI": 0.05,
+    "p_IE": 0.2,
+    "p_II": 0.2,
+    "receptor_specs": {
+      "AMPA": {
+        "tau_ms": 2.0
+      },
+      "GABA_A": {
+        "tau_ms": 5.0
+      }
+    },
+    "source_scale": 1.0,
+    "spike_gain_alias": "DEFAULT_SPIKE_IMPULSE_GAIN=20.0",
+    "weight_distributions": {
+      "E_E": {
+        "mu": 0.35,
+        "sigma": 0.1,
+        "sign": 1
+      },
+      "E_I": {
+        "mu": 0.45,
+        "sigma": 0.12,
+        "sign": 1
+      },
+      "I_E": {
+        "mu": -0.6,
+        "sigma": 0.15,
+        "sign": -1
+      },
+      "I_I": {
+        "mu": -0.4,
+        "sigma": 0.12,
+        "sign": -1
+      }
+    }
+  },
+  "delays": {
+    "bufsize": 7,
+    "causality": "delay>0 -> delayed kernel",
+    "discrete_grid_ms": [
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0
+    ],
+    "discrete_steps": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "dispatch": "any delay_steps>0 => _simulate_edge_recurrent_izhikevich_delayed",
+    "distribution": "discrete_grid_uniform_choice",
+    "dt_ms": 0.5,
+    "grid_alignment_atol": 1e-09
+  },
+  "seeds": {
+    "K0": "PRNGKey(101)",
+    "K_analysis": [
+      3000,
+      3999
+    ],
+    "K_probe": [
+      4000,
+      4099
+    ],
+    "K_runtime": [
+      1000,
+      1999
+    ],
+    "K_stimulus": [
+      2000,
+      2999
+    ],
+    "K_structure": [
+      0,
+      999
+    ],
+    "canonical_order": [
+      "structure",
+      "stimulus",
+      "runtime",
+      "probe",
+      "analysis"
+    ],
+    "cardinalities": {
+      "n_per_cell": 20
+    },
+    "derivation": "fold_in(K0, encode(s,r,u,a)) with splitmix64, canonical order structure->stimulus->runtime->probe->analysis",
+    "factor_to_key_mapping": {
+      "ISI_sweep": "K_analysis",
+      "amplitude_sweep": "K_analysis",
+      "mechanism_matrix": "K_structure",
+      "recovery": "K_stimulus",
+      "stimulus_specificity": "K_stimulus"
+    },
+    "offsets": {
+      "K0": 0,
+      "K_analysis": 20480,
+      "K_probe": 16384,
+      "K_runtime": 12288,
+      "K_stimulus": 8192,
+      "K_structure": 4096
+    }
+  },
+  "time": {
+    "inherit_from": "e2_ssa_spec.v6 execution_grammar.time",
+    "dt_ms": 0.5,
+    "W_primary_ms": [
+      30,
+      110
+    ],
+    "isi_ms": 200,
+    "burn_in_discard_ms": 0,
+    "note": "time base dt 0.5 ms, W_primary [30,110) ms post onset, ISI 200 ms onset-to-onset, inherited verbatim"
+  },
+  "theta_star": {
+    "W_ms": 60,
+    "drive_E": 4.0,
+    "drive_I": 2.0,
+    "e_cell_params_native": {
+      "a": 0.02,
+      "b": 0.2,
+      "c": -65.0,
+      "d": 8.0,
+      "drive": 5.0,
+      "role": "excitatory_pyramidal_like",
+      "source": "suite2_celltype_presets E + e2b_v1_executor.py E defaults"
+    },
+    "i_cell_params": {
+      "a": 0.1,
+      "b": 0.2,
+      "c": -65,
+      "d": 2.0,
+      "model_status": "PV-like model parameterization"
+    },
+    "id": "theta0",
+    "noise_scale": 0.0,
+    "note": "verbatim from E2a_search_receipt.json result.theta*; six-way adequacy tie lexicographic selection, NOT optimum",
+    "weight_mu": 0.25,
+    "weight_scale_reading": "weight_mu scales all projection mus proportionally to nominal mu_EE=0.35: mu_X = mu_X_nom * weight_mu/0.35; sigmas unchanged (frozen)"
+  },
+  "disclosure": {
+    "executor_rules": [
+      "gate conjuncts generated from this JSON only (no code literals)",
+      "typed unit wrappers for ms/Hz/dB",
+      "stable seed derivation fold_in/splitmix64 canonical_order structure->stimulus->runtime->probe->analysis; hash() forbidden",
+      "independent frozen-only rescoring required before interpretation",
+      "kernel outputs consumed under jit/sliced aggregation; never materialize presyn_trace (10-13 GB risk)"
+    ],
+    "frozen_V2_verdict": "E2 V2 NEGATIVE (pooled SI -0.084 BCa[-0.108,-0.034] swap_max 0.426) remains frozen and untouched; this prereg is a new hypothesis test branching from theta*, not a repair; e2_ssa_spec.v6 and V2_RUNS_MANIFEST remain sealed",
+    "pre_registration": "write_once:true; spec_hash locks spec; analysis code must be generated from this JSON only (no retyped literals); LFNI PASS required before execution"
+  },
+  "spec_hash": "5303efd6bf1962b72b91c86a6c600bb97ec340d76969e8ca8e9f2f7923d2be96"
+}
