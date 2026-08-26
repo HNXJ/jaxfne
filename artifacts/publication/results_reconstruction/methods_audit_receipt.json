@@ -6,7 +6,7 @@
   "checks_pass": 55,
   "checks_fail": 0,
   "checks_skip": 0,
-  "draft": "docs/publication/results_reconstruction/methods_draft.md",
-  "trace_map": "docs/publication/results_reconstruction/methods_traceability_map.md",
+  "draft": "docs\\publication\\results_reconstruction\\methods_draft.md",
+  "trace_map": "docs\\publication\\results_reconstruction\\methods_traceability_map.md",
   "failures": []
 }

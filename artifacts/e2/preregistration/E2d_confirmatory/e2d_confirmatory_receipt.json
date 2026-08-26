@@ -1,12 +1,12 @@
 {
   "schema": "e2d_confirmatory_receipt.v1",
-  "generated_at": "2026-08-26T15:18:41.164785+00:00",
+  "generated_at": "2026-08-26T15:44:57.237462+00:00",
   "authority_packet": {
     "prereg": "e2_d_rarity_penalty_prereg.json",
     "spec_hash": "5303efd6bf1962b72b91c86a6c600bb97ec340d76969e8ca8e9f2f7923d2be96",
     "parent_e1": "07b1c04af9ea98176bc45350528f3312375f7d24",
     "v6_spec_hash": "0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570",
-    "code_head": "17eab62393475825755b17b27f72978d36c2e52b",
+    "code_head": "2f5adb6eb915c94afefa29d0bdc3ed52da7b4fad",
     "executor_sha256": "4343dc1306c7fb828d0c565804c8ceeb9276d1569deaba30a7b30ea8fa010d16",
     "theta_star": {
       "W_ms": 60,
@@ -750,7 +750,7 @@
     "verdict": "FALSIFIED"
   },
   "git": {
-    "code_head": "17eab62393475825755b17b27f72978d36c2e52b"
+    "code_head": "2f5adb6eb915c94afefa29d0bdc3ed52da7b4fad"
   },
   "write_once": true
 }
