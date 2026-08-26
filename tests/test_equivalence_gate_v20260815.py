@@ -101,4 +101,4 @@ def test_equivalence_gate_frozen_manifest_selfcheck(tmp_path):
         "artifacts/figures/publication/fig07_e_integration.png",
     ]
     for rel in expected:
-        assert rel in files, f"{rel} not in .opencode/frozen_paths.json"
+        assert rel in files, f"{rel} not in artifacts/publication/frozen_manifest.json"

@@ -1,6 +1,6 @@
 {
   "schema": "jaxfne.harness.seam_equivalence.v1",
-  "frozen_manifest": ".opencode/frozen_paths.json",
+  "frozen_manifest": "artifacts/publication/frozen_manifest.json",
   "byte_identity_pinned": true,
   "cases": [
     {

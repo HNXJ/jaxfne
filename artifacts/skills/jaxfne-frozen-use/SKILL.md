@@ -16,7 +16,7 @@ All daily development, simulation experiments, documentation, and tooling during
 ## RULES
 - Invariant: Delta C_core = 0 (jaxfne/ core physics and dynamics are FROZEN).
 - Operational mode: observe -> reproduce -> log (NOT observe -> patch core).
-- Writable areas: docs/, skills/, figures/publication/final/, artifacts/issue_log/, scratch/.
+- Writable areas: docs/, skills/, artifacts/figures/publication/final/, artifacts/issue_log/, scratch/.
 - Structured observation logging required for all findings.
 
 ## STEPS

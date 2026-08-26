@@ -1,6 +1,6 @@
 # 100-Neuron Excitatory-Inhibitory Population
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v036_100_neuron_ei_population.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_v036_100_neuron_ei_population.ipynb)
 
 **Duration:** 15–20 minutes | **Difficulty:** Intermediate
 

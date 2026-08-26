@@ -38,7 +38,7 @@ See [Scope & status](scope_and_status.md) for the authoritative gate table.
 ## Skills sync
 
 Repo skills mirror to client installs via `scripts/harness/sync_skills.py --update`
-(canonical `artifacts/skills/` → `.opencode/skills/` and `.cursor/skills/`; mirrors are generated and
+(canonical `artifacts/skills/` → local tool mirrors; mirrors are generated and
 never edited by hand). After changing a skill, run sync and update the harness manifest
 together with the change. Local handoff notes live in `artifacts/developer/AGENT_CHANNEL.md`
 <!-- optional: local-only, not present in a fresh clone -->.

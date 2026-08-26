@@ -8,7 +8,7 @@
       "evidence_artifacts": [
         "artifacts/publication/fig01_grammar_spec.json",
         "artifacts/publication/fig01_semantic_audit.json",
-        "figures/publication/fig01_tfne_grammar.png"
+        "artifacts/figures/publication/fig01_tfne_grammar.png"
       ],
       "evidence_regime": "representational_document",
       "figure_or_table_destination": "Fig. 1 (conceptual panel)",
@@ -26,7 +26,7 @@
       "claim_id": "CL-02",
       "evidence_artifacts": [
         "artifacts/publication/fig02_04_experiment_a_spec.json",
-        "figures/publication/fig02_emitter_source.png"
+        "artifacts/figures/publication/fig02_emitter_source.png"
       ],
       "evidence_regime": "deterministic_numerical_property",
       "figure_or_table_destination": "Fig. 2",
@@ -46,7 +46,7 @@
       "claim_id": "CL-03",
       "evidence_artifacts": [
         "artifacts/publication/fig02_04_experiment_a_spec.json",
-        "figures/publication/fig03_local_observation.png"
+        "artifacts/figures/publication/fig03_local_observation.png"
       ],
       "evidence_regime": "deterministic_numerical_property",
       "figure_or_table_destination": "Fig. 3",
@@ -66,7 +66,7 @@
       "claim_id": "CL-04",
       "evidence_artifacts": [
         "artifacts/publication/fig02_04_experiment_a_spec.json",
-        "figures/publication/fig04_multiscale_boundary.png"
+        "artifacts/figures/publication/fig04_multiscale_boundary.png"
       ],
       "evidence_regime": "method_boundary_statement",
       "figure_or_table_destination": "Fig. 4",
@@ -86,7 +86,7 @@
       "claim_id": "CL-05",
       "evidence_artifacts": [
         "artifacts/publication/fig05_wave_spec.json",
-        "figures/publication/fig05_traveling_wave_no_wave.png"
+        "artifacts/figures/publication/fig05_traveling_wave_no_wave.png"
       ],
       "evidence_regime": "deterministic_numerical_property",
       "figure_or_table_destination": "Fig. 5",
@@ -106,7 +106,7 @@
       "claim_id": "CL-06",
       "evidence_artifacts": [
         "artifacts/publication/fig05_wave_spec.json",
-        "figures/publication/fig05_traveling_wave_no_wave.png"
+        "artifacts/figures/publication/fig05_traveling_wave_no_wave.png"
       ],
       "evidence_regime": "parameter_space_characterization",
       "figure_or_table_destination": "Fig. 5",
@@ -422,7 +422,7 @@
       "claim": "Publication figure origin: all Fig 1-7 PNGs are generated from frozen specs/receipts at a frozen SHA with hash provenance (reproducibility doctrine)",
       "claim_id": "CL-20",
       "evidence_artifacts": [
-        ".opencode/frozen_paths.json",
+        "artifacts/publication/frozen_manifest.json",
         "artifacts/publication/fig0*_generation_receipt.json",
         "artifacts/publication/figures_1_7_cross_figure_audit.json"
       ],

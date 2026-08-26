@@ -2,7 +2,7 @@
 
 **A tutorial demonstrating separate projection pathways for scalp potential, magnetic field, and metabolic activity proxies.**
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb)
 
 ---
 

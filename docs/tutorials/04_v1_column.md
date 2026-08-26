@@ -1,7 +1,7 @@
 # V1 Six-layer Column
 
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_4_homeostatic_V1_column.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_4_homeostatic_V1_column.ipynb)
 
 A laminar model inspired by primate V1 with six layers and depth-specific readouts.
 

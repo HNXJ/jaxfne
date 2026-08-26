@@ -30,9 +30,9 @@ workflow arc (models → circuits → readouts → optimization).
 | **[Suite 2 (Evoked L4)](08_jaxfne_suite_no_2_evoked_l4_drive.md)** | Evoked L4 Drive | Baseline-vs-driven L4 layer contrast within the spectrolaminar motif |
 | **[Suite 3](08_jaxfne_suite_no_3_low_frequency_scaling.md)** | Low-Frequency Scaling | Scale-dependent proxy configs → population PSD/bandpower → synchrony/Fano diagnostics |
 
-[![Open Suite 1 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb)
-[![Open Suite 2 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb)
-[![Open Suite 3 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb)
+[![Open Suite 1 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb)
+[![Open Suite 2 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb)
+[![Open Suite 3 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb)
 
 ---
 
@@ -69,7 +69,7 @@ models to multi-area laminar circuits.
 | [**12**](12_izhikevich_single_emitter_explorer.md) | TFNE-Izhikevich Explorer | Single-emitter parameter exploration |
 | [**13**](13_canonical_column_etude.md) | Canonical Cortical Column | Canonical 1000-neuron laminar column reference |
 
-**NeuronalTensor (tensor-first circuits)** — [`jaxfne_neuronal_tensor_first.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/tutorials/jaxfne_neuronal_tensor_first.ipynb)
+**NeuronalTensor (tensor-first circuits)** — [`jaxfne_neuronal_tensor_first.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_neuronal_tensor_first.ipynb)
 (script version: [`08_neuronal_tensor_first.py`](https://github.com/HNXJ/jaxfne/blob/main/examples/08_neuronal_tensor_first.py)).
 `NeuronalTensor` is a second, declarative `Areas x Layers x NeuronTypes` circuit
 definition that JSON round-trips and converges on the same `Model`/`Signals` as
@@ -99,45 +99,45 @@ by theme.
 
 | Étude | Topic |
 |-------|-------|
-| [No. 1 — Base](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_1_base.ipynb) | Computational-scaffold base circuit; tensor-first vs `Configuration` comparison |
+| [No. 1 — Base](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_1_base.ipynb) | Computational-scaffold base circuit; tensor-first vs `Configuration` comparison |
 | [No. 1 — Multi-laminar AGSDR](11_multi_laminar_cortical_agsdr.md) | Multi-area laminar model with AGSDR tuning (also a versioned tutorial, above) |
 
 **Spectrolaminar family**
 
 | Étude | Topic |
 |-------|-------|
-| [No. 2 — Spectrolaminar Power](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_2_spectrolaminar_power.ipynb) | TFNE-Izhikevich spectrolaminar motif, single-trial |
-| [No. 3 — V1 Spectrolaminar 1k](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb) | 1000-neuron scalable spectrolaminar V1 column (see showcases (`docs/guides/showcases.md` — repository-internal reference, excluded from the built site)) |
-| [No. 7 — Multi-trial Spectrolaminar](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_7_multitrial_spectrolaminar.ipynb) | Multi-trial continuous simulation → spectrolaminar motif aggregation |
+| [No. 2 — Spectrolaminar Power](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_2_spectrolaminar_power.ipynb) | TFNE-Izhikevich spectrolaminar motif, single-trial |
+| [No. 3 — V1 Spectrolaminar 1k](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb) | 1000-neuron scalable spectrolaminar V1 column (see showcases (`docs/guides/showcases.md` — repository-internal reference, excluded from the built site)) |
+| [No. 7 — Multi-trial Spectrolaminar](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_7_multitrial_spectrolaminar.ipynb) | Multi-trial continuous simulation → spectrolaminar motif aggregation |
 
 **Homeostasis & plasticity family**
 
 | Étude | Topic |
 |-------|-------|
 | [No. 4 — Homeostatic V1 Column](04_v1_column.md) | Continuous pause/resume simulation with HDP homeostasis (also a versioned tutorial, above) |
-| [No. 8 — Continuous Adaptation](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb) | Continuous drive adaptation via HDP |
+| [No. 8 — Continuous Adaptation](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb) | Continuous drive adaptation via HDP |
 
 **Biophysical & multi-area family**
 
 | Étude | Topic |
 |-------|-------|
-| [No. 5 — Enhanced Biophysical Column](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_5_enhanced_biophysical_column.ipynb) | Enhanced biophysical cortical column |
-| [No. 6 — Multi-Area Network](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_6_multi_area_network.ipynb) | Connecting multiple cortical columns |
+| [No. 5 — Enhanced Biophysical Column](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_5_enhanced_biophysical_column.ipynb) | Enhanced biophysical cortical column |
+| [No. 6 — Multi-Area Network](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_6_multi_area_network.ipynb) | Connecting multiple cortical columns |
 
 **Oddball / omission paradigm family**
 
 | Étude | Topic |
 |-------|-------|
-| [No. 9 — Local Oddball](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb) | Simple local oddball task |
-| [No. 10 — Global/Local Oddball](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb) | Combined global/local oddball task |
-| [No. 11 — Local Omission](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_11_omission_local.ipynb) | Local omission task |
-| [No. 12 — Continuous Omission (COOP)](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb) | Continuous omission oddball paradigm (COOP) |
+| [No. 9 — Local Oddball](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb) | Simple local oddball task |
+| [No. 10 — Global/Local Oddball](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb) | Combined global/local oddball task |
+| [No. 11 — Local Omission](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_11_omission_local.ipynb) | Local omission task |
+| [No. 12 — Continuous Omission (COOP)](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb) | Continuous omission oddball paradigm (COOP) |
 
 **Thalamocortical**
 
 | Étude | Topic |
 |-------|-------|
-| [TCM V1 6-Population](https://github.com/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_tcm_v1_6pop.ipynb) | Thalamocortical model, 6-population cortical column |
+| [TCM V1 6-Population](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_tcm_v1_6pop.ipynb) | Thalamocortical model, 6-population cortical column |
 
 ---
 

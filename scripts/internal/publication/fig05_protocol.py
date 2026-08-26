@@ -9,7 +9,7 @@ _REPO = Path(__file__).resolve().parents[3]
 FIG05_SPEC_PATH = _REPO / "artifacts" / "publication" / "fig05_wave_spec.json"
 FIG05_AUDIT_PATH = _REPO / "artifacts" / "publication" / "fig05_semantic_audit.json"
 FIG05_RECEIPT_PATH = _REPO / "artifacts" / "publication" / "fig05_generation_receipt.json"
-FIG05_PATH = _REPO / "figures" / "publication" / "fig05_traveling_wave_no_wave.png"
+FIG05_PATH = _REPO / "artifacts" / "figures" / "publication" / "fig05_traveling_wave_no_wave.png"
 
 
 def load_fig05_spec(path: Path | None = None) -> dict:

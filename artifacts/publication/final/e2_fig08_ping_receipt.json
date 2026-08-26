@@ -70,6 +70,6 @@
     }
   },
   "S18_preserved": true,
-  "disposition": "supplement-only (S18), not main-text; frozen 28/28 preserved per .opencode/frozen_paths.json",
+  "disposition": "supplement-only (S18), not main-text; frozen 28/28 preserved per artifacts/publication/frozen_manifest.json",
   "provenance_note": "All quantities from frozen receipts only; no new simulation."
 }

@@ -1,6 +1,6 @@
 # Suite No. 2 Upgrade: Izhikevich to V1-V4 Spectrolaminar Proxy Readouts
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb)
 
 Pipeline: `Emitter -> Source -> Field -> Probe -> Objective -> Optimizer`.
 

@@ -2,7 +2,7 @@
 
 **Status:** `PREREGISTRATION — DOCUMENTATION_ONLY` — design doc, not implementation.  
 **Scope:** Private étude in `artifacts/etudes/` — not part of shipped package.  
-**Frozen?** No. No `artifacts/publication/**` outputs, no `figures/publication/**` writes.  
+**Frozen?** No. No `artifacts/publication/**` outputs, no `artifacts/figures/publication/**` writes.  
 **Code change in this task:** **None.** This document explicitly makes **zero** changes to `jaxfne/jdna/*.py` (no new parser, no DSL execution, no new genome schema). All implementation, if pursued, is a future step after this preregistration is reviewed.  
 **Authority:** `jaxfne.jdna.genome` (`PseudoGenome` / `AreaGenome` / `LayerGenome` / `ConnectionRuleGenome` / `develop` / `genome_rules_hash` / `validate_genome` / `declared_constraints`) remains the sole implemented truth at `0.4.17`. This doc is a compiler-design sketch on top of that truth.  
 **H11 note:** Any executable validation of the grammar proposed here **must** use isolated `tmp_path` testing — generators write only to a test-provided temporary directory (or `tmp_path` fixture), never to a pre-existing gitignored `artifacts/etudes/.../*.png` or `*.json`. No test may depend on an untracked pre-generated artifact. See §11.  
@@ -22,7 +22,7 @@ Propose a compact, human-writable surface grammar for JDNA `PseudoGenome` author
 - composes with the existing `NeuronalTensor` unifier `merge_neuronal_tensors` and the existing `develop(G, K_D)` determinism;
 - records provenance via the existing `genome_rules_hash` (no new hash surface).
 
-This is the `define / inherit / use` + `A-80` + `A*0.08` compiler concept referenced as deferred in `artifacts/etudes/provenance_relocation_jdna.json` / `.opencode/SEAL_E2_PRGS.md:49`. E2 does not depend on it.
+This is the `define / inherit / use` + `A-80` + `A*0.08` compiler concept referenced as deferred in `artifacts/etudes/provenance_relocation_jdna.json` / `artifacts/developer/SEAL_E2_PRGS.md:49`. E2 does not depend on it.
 
 ---
 

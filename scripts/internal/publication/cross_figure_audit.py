@@ -40,7 +40,12 @@ def _load(rel: str) -> dict[str, Any]:
 
 def _figure_png_exists(receipt: dict[str, Any]) -> bool:
     path = receipt.get("figure_path")
-    return bool(path) and (_REPO / path).is_file()
+    if not path:
+        return False
+    # Check both old and new paths (relocation: figures/publication -> artifacts/figures/publication)
+    old_path = _REPO / path
+    new_path = _REPO / path.replace("figures/publication/", "artifacts/figures/publication/", 1)
+    return old_path.is_file() or new_path.is_file()
 
 
 def _pec_panels_by_figure(index: dict[str, Any]) -> dict[int, list[dict[str, Any]]]:

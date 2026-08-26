@@ -1,6 +1,6 @@
 # Tutorial: Multi-area Laminar Model
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb)
 
 A thin, Colab-ready, maximally customizable tutorial. Heavy computation lives in `jaxfne`; the notebook exposes the controls and runs entirely through the package engine (`import jaxfne as jtfne`) — there is no local simulator.
 

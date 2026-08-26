@@ -835,7 +835,7 @@
       "claim": "Publication figure origin: all Fig 1-7 PNGs are generated from frozen specs/receipts at a frozen SHA with hash provenance (reproducibility doctrine)",
       "claim_id": "CL-20",
       "evidence_artifacts": [
-        ".opencode/frozen_paths.json",
+        "artifacts/publication/frozen_manifest.json",
         "artifacts/publication/fig0*_generation_receipt.json",
         "artifacts/publication/figures_1_7_cross_figure_audit.json"
       ],

@@ -2,7 +2,7 @@
 
 **A tutorial demonstrating expected sensory stimuli, unexpected deviants, and sensory omission detection under package-native paradigm configuration.**
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v0313_omission_oddball.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_v0313_omission_oddball.ipynb)
 
 ---
 

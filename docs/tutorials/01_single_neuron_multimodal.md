@@ -8,7 +8,7 @@ Extract spikes, voltage, field readouts, and reproducible output bundles.
 
 **Recommended:** Open the full interactive tutorial in Colab:
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v031_single_neuron.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_v031_single_neuron.ipynb)
 
 Or run headless: `python examples/v031_single_izhikevich_neuron.py`
 

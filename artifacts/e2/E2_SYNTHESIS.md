@@ -73,4 +73,4 @@ negatives.
 - e2_ssa_spec.v3 mechanism-matrix (S4, 8 cells) remains deferred; requires its own staged
   freeze if pursued.
 - JDNA define/inherit compiler concept stays deferred in artifacts/etudes.
-- Harness rule candidates R-A..R-D promoted in .opencode/SEAL_E2_PRGS.md.
+- Harness rule candidates R-A..R-D promoted in `artifacts/developer/SEAL_E2_PRGS.md`.

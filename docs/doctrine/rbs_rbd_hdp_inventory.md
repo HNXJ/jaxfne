@@ -87,7 +87,7 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 | File | Notes |
 |------|-------|
 | `skills/jaxfne-science/SKILL.md` | F_H/F_Theta grammar — add RBS/RBD labels |
-| `.cursor/skills/jaxfne-core/SKILL.md` | dynamics/H routing |
+| `.cursor/skills/jaxfne-core/SKILL.md` | dynamics/H routing | **REMOVED** — `.cursor/skills/` is gitignored, not tracked |
 
 ---
 

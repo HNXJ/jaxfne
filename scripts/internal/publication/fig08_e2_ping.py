@@ -332,7 +332,7 @@ def main():
         "verdict": v1["verdict"],
         "files": {},
         "S18_preserved": True,
-        "disposition": "supplement-only (S18), not main-text; frozen 28/28 preserved per .opencode/frozen_paths.json",
+        "disposition": "supplement-only (S18), not main-text; frozen 28/28 preserved per artifacts/publication/frozen_manifest.json",
         "provenance_note": "All quantities from frozen receipts only; no new simulation.",
     }
     for pp in panel_paths:

@@ -9,7 +9,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 FIG01_SPEC_PATH = _REPO_ROOT / "artifacts" / "publication" / "fig01_grammar_spec.json"
 FIG01_AUDIT_PATH = _REPO_ROOT / "artifacts" / "publication" / "fig01_semantic_audit.json"
 FIG01_RECEIPT_PATH = _REPO_ROOT / "artifacts" / "publication" / "fig01_generation_receipt.json"
-FIG01_FIGURE_PATH = _REPO_ROOT / "figures" / "publication" / "fig01_tfne_grammar.png"
+FIG01_FIGURE_PATH = _REPO_ROOT / "artifacts" / "figures" / "publication" / "fig01_tfne_grammar.png"
 
 _CLAIM_LEVELS = frozenset(
     {"DEMONSTRATED", "MECHANISTICALLY_SUPPORTED", "REPRESENTATIONAL", "PROSPECTIVE", "MIXED"}

@@ -11,9 +11,9 @@ FIG02_04_AUDIT_PATH = _REPO / "artifacts" / "publication" / "fig02_04_cross_figu
 FIG02_RECEIPT_PATH = _REPO / "artifacts" / "publication" / "fig02_generation_receipt.json"
 FIG03_RECEIPT_PATH = _REPO / "artifacts" / "publication" / "fig03_generation_receipt.json"
 FIG04_RECEIPT_PATH = _REPO / "artifacts" / "publication" / "fig04_generation_receipt.json"
-FIG02_PATH = _REPO / "figures" / "publication" / "fig02_emitter_source.png"
-FIG03_PATH = _REPO / "figures" / "publication" / "fig03_local_observation.png"
-FIG04_PATH = _REPO / "figures" / "publication" / "fig04_multiscale_boundary.png"
+FIG02_PATH = _REPO / "artifacts" / "figures" / "publication" / "fig02_emitter_source.png"
+FIG03_PATH = _REPO / "artifacts" / "figures" / "publication" / "fig03_local_observation.png"
+FIG04_PATH = _REPO / "artifacts" / "figures" / "publication" / "fig04_multiscale_boundary.png"
 CANONICAL_NPZ = _REPO / "artifacts" / "etudes" / "experiment_a" / "canonical_source.npz"
 
 

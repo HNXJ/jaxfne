@@ -7,14 +7,14 @@ between specific values); nothing else.
 
 Snapshot reference: commit listed in `artifacts/publication/equivalence_report.json`
 with `schema: jaxfne.harness.seam_equivalence.v1`. Frozen evidence baseline:
-`.opencode/frozen_paths.json` (`frozen_at_head` records the manifest head).
+`artifacts/publication/frozen_manifest.json` (`frozen_at_head` records the manifest head).
 
 ## 1. Source of truth and immutable evidence
 
 | Path | Role |
 |---|---|
-| `.opencode/frozen_paths.json` | 28 frozen files (7 figure PNGs, 21 JSON evidence artifacts) with exact SHA-256 per file |
-| `figures/publication/fig0{1..7}_*.png` | Frozen scientific figure PNGs (immutable bytes, recorded in the manifest) |
+| `artifacts/publication/frozen_manifest.json` | 28 frozen files (7 figure PNGs, 21 JSON evidence artifacts) with exact SHA-256 per file |
+| `artifacts/figures/publication/fig0{1..7}_*.png` | Frozen scientific figure PNGs (immutable bytes, recorded in the manifest) |
 | `artifacts/publication/fig0{1..7}_*_{spec,audit,receipt}.json` | Per-figure semantic spec, semantic audit (`status: PASSED`), generation receipt |
 | `artifacts/publication/figures_1_7_cross_figure_audit.json` | Cross-figure layout audit over figures 1-7 |
 | `artifacts/publication/publication_evidence_index.json` | Evidence index (status FROZEN, `write_once: True`) |
@@ -29,7 +29,7 @@ with `schema: jaxfne.harness.seam_equivalence.v1`. Frozen evidence baseline:
   tolerance) against the frozen PNGs, plus SHA-256 equality recorded per case.
   Report: `artifacts/publication/equivalence_report.json` — 7/7 cases
   `decoded_pixel_equal: true`.
-- Level 2 (Relative, presentation-only): `figures/publication/final/fig0{1..7}_*.png`
+- Level 2 (Relative, presentation-only): `artifacts/figures/publication/final/fig0{1..7}_*.png`
   (300 DPI) and `fig0{1..7}_*.pdf` (vector) are deliberately re-rendered from the
   same `build_figure*()` with artist-only polish and therefore differ from the
   frozen PNGs at the pixel level.
@@ -42,8 +42,8 @@ with `schema: jaxfne.harness.seam_equivalence.v1`. Frozen evidence baseline:
 | `scripts/publication_figures/polish/_polish_common.py` | Shared clip/color/font utilities |
 | `artifacts/publication/polish/fig0{1..7}_polish_{spec,audit,receipt}.json` | Per-figure polish spec, audit (all 7 `PASSED`), receipt |
 | `artifacts/publication/polish/figures_1_7_final_layout_audit.json` | Cross-layout audit of the final set (status `PASSED`) |
-| `figures/publication/final/fig0{1..7}_*.png` | Final 300-DPI raster renders (`dpi_meta: [300.0, 300.0]`) |
-| `figures/publication/final/fig0{1..7}_*.pdf` | Final vector renders |
+| `artifacts/figures/publication/final/fig0{1..7}_*.png` | Final 300-DPI raster renders (`dpi_meta: [300.0, 300.0]`) |
+| `artifacts/figures/publication/final/fig0{1..7}_*.pdf` | Final vector renders |
 
 ## 4. Regeneration instructions (run from repo root)
 
@@ -76,7 +76,7 @@ python3 scripts/publication_figures/equivalence_gate.py
 # Gate 2: per-figure semantic audit + receipts (write-once enforced)
 python3 scripts/publication_figures/figures_1_7_cross_audit.py
 
-# Gate 3: polish pipeline -> figures/publication/final/** + polish artifacts
+# Gate 3: polish pipeline -> artifacts/figures/publication/final/** + polish artifacts
 python3 scripts/publication_figures/polish/run_polish.py
 
 # Tests that exercise the layers
@@ -93,8 +93,8 @@ The equivalence gate writes renders to `scratch/equivalence_render/` (gitignored
 and its report to `artifacts/publication/equivalence_report.json` (tracked).
 
 The polish runner refuses any write into a path listed in
-`.opencode/frozen_paths.json` (enforced in `_polish_common.py`) and writes only
-under `figures/publication/final/` and `artifacts/publication/polish/` (both
+`artifacts/publication/frozen_manifest.json` (enforced in `_polish_common.py`) and writes only
+under `artifacts/figures/publication/final/` and `artifacts/publication/polish/` (both
 designated writable in the checkpoint). The cross-audit script and the other
 generators (`fig0{1,2_04,5,6,7}_*.py`) now enforce the same write-once rule via
 `_pub_figure_common.write_json_strict`: a regeneration whose content matches the
@@ -124,6 +124,6 @@ Provenance semantics of the tracked evidence:
 ## 5. Excluded from this snapshot
 
 - `scratch/` and `artifacts/developer/` (local task state, gitignored).
-- `figures/publication/final/` PDF font sub-setting details: the PDFs embed
+- `artifacts/figures/publication/final/` PDF font sub-setting details: the PDFs embed
   `%PDF` header and render as vector; embedded `/Image` objects are the
   expected raster heatmap panels, recorded in the polish receipts.
