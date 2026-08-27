@@ -72,7 +72,7 @@ signals = jtfne.simulate(model)
 JDNA is an optional path; the direct `Configuration`/`NeuronalTensor` paths
 remain first-class. See [JDNA guide](docs/guides/jdna.md).
 
-JaxFNE composes established neural dynamical models, source/readout operators, and JAX-native execution under the TFNE typed state/map grammar. See [TFNE theory](docs/doctrine/tfne_containment_architecture.md) and [References](docs/reference/references.md).
+JaxFNE composes established neural dynamical models, source/readout operators, and `JAX-native` execution under the TFNE typed state/map grammar. See [TFNE theory](docs/doctrine/tfne_containment_architecture.md) and [References](docs/reference/references.md).
 
 Import convention: `import jaxfne as jtfne`. Builder paths, paradigms, and
 optimization: [Quickstart](docs/quickstart.md).

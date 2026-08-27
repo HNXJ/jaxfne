@@ -225,7 +225,12 @@ class TestPublicDocsHardRules:
         text = path.read_text(encoding="utf-8")
         clean_text = self._clean_text_for_scanning(text)
 
-        hits = [m for m in self.NATIVE_PATTERN.finditer(clean_text)]
+        # "native" is banned as anti-rule-language drift, but is legitimate in
+        # its scientific/technical senses "JAX-native" and "package-native".
+        scoped = re.sub(
+            r"\bJAX-native\b|\bpackage-native\b", "", clean_text, flags=re.IGNORECASE
+        )
+        hits = [m for m in self.NATIVE_PATTERN.finditer(scoped)]
         assert len(hits) == 0, \
             f"{file_path}: Found {len(hits)} 'native' hits in prose"
 
