@@ -3,7 +3,7 @@
   "kind": "permanent",
   "title": "Brainstorm (PRP verb node)",
   "generated": {
-    "summary": "18 raw idea(s) logged (live from plans.json.brainstorm[]).",
+    "summary": "Public stub: history pruned (local-only notes removed). See docs/fullroadmap.md and artifacts/publication/publication_evidence_index.json.",
     "source_paths": [],
     "links": [
       {
@@ -13,5 +13,7 @@
     ]
   },
   "status": "unconfirmed",
-  "notes": []
+  "notes": [],
+  "issues": [],
+  "plan": ""
 }

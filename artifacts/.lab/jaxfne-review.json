@@ -4,7 +4,7 @@
   "kind": "permanent",
   "title": "Review (PRP verb node)",
   "generated": {
-    "summary": "0 entries pending -- caught up (live from review.json).",
+    "summary": "Public stub: history pruned (local-only notes removed). See docs/fullroadmap.md and artifacts/publication/publication_evidence_index.json.",
     "source_paths": [],
     "links": [
       {
@@ -16,32 +16,17 @@
   "status": "verified",
   "notes": [
     {
-      "id": "review-2026-07-30-session",
+      "id": "review-public-stub-2026-08-27",
       "kind": "session_review",
-      "date": "2026-07-30",
-      "source": "this session: git log/status, lab_balance.py output, direct file reads",
+      "date": "2026-08-27",
+      "source": "public evidence",
       "confidence": "high",
-      "score": 88,
-      "score_basis": "100 = every claim this session carried a verified receipt and no unscoped work was done. Deducted 12: two separate messages this session asserted detailed prior work (commit 386a638, a 'labyrinth lobby', cross-repo checkpoint numbers) that did not verify against git/filesystem state and had to be rejected rather than acted on -- costly to catch, not free. Everything actually executed (dev checkout, dangling-edge fix a7e3f0f, seal note 5a5f460) verified clean on first check.",
-      "detail": "Session arc: (1) verified main==origin/main, checked out dev per request; (2) found .lab/ absent on dev at that point -- correct, since the tracking commits hadn't landed yet; (3) rejected a fabricated narrative (nonexistent commit 386a638, nonexistent second repo, unverifiable node counts) against direct git/filesystem checks; (4) rejected a second, partially-real narrative -- correctly separated the two real commits (8f0e5d9, 68f0f92, verified via git cat-file + pull) from unverifiable claims about plans.json/review.json/scorecard/test counts that live in files absent from this checkout; (5) pulled dev, confirmed 104 tracked nodes matched the claim; (6) found and fixed the one real dangling edge (10 rebalance-phase-* nodes -> untracked plan-lab-graph-rebalance), repointed to jaxfne-plan, verified via lab_balance.py before and after, committed a7e3f0f; (7) sealed via a hand-authored note on jaxfne-seal (plans.json absent, so no fabricated checkpoints.json entry); (8) adapt: declined to fabricate a meta-proposal, nothing new to propose.",
-      "record": "Net: 1 real defect found and fixed with before/after receipts, 2 fabricated narratives caught and rejected without acting on them, 0 unverified claims propagated as fact.",
-      "next_review_trigger": "rebalance-phase-04 (lateral relation vocabulary) is the next open phase -- unblocks the star-topology gate failure (gini 0.495, max degree 40, 63 pendants) still visible in lab_balance.py --gate."
-    },
-    {
-      "id": "review-2026-07-30-vocab-proposal",
-      "kind": "session_review",
-      "date": "2026-07-30",
-      "source": "this segment: verbatim docs cross-check, rebalance-phase-04.json edits, lab_balance.py before/after",
-      "confidence": "high",
-      "score": 94,
-      "score_basis": "100 = the proposal is fully grounded in verbatim source and correctly scoped; no fabrication, no overreach. Deducted 6 only because the proposal itself is unverified against the actual labyrinth codebase beyond the pasted excerpts -- I did not independently grep clients/repo_mapper.py or server/tools.py myself, I verified the pasted grep lines were internally consistent with the pasted docs, which is a weaker check than running the grep firsthand. No defects introduced: lab_balance.py showed 0 new defects after each edit.",
-      "detail": "Asked for repo_mapper's actual relation/kind vocabulary before drafting anything (declined to write against my own guess or the earlier fabricated-narrative numbers). Received verbatim clients/repo_mapper.md + docs/DESIGN.md. Cross-checked them against jaxfne's own measured state and found a real drift jaxfne had not flagged before: 9 depends_on edges already in the graph, hand-added, unvalidated by any .lab/-side grammar check. Revised the original 8-relation ask down to 6 concrete ones (dropped constrains, co_evolves_with) once the docs showed 5 of the 8 had no precedent in either doc. Recorded as a draft issue on rebalance-phase-04, explicitly marked not-sent, not-self-confirmed.",
-      "record": "1 new drift finding (unvalidated depends_on), 1 scoped-down proposal drafted and recorded, 0 unscoped edits (server/tools.py's separate vocabulary was explicitly excluded), 0 upstream actions taken without approval.",
-      "next_review_trigger": "Awaiting explicit decision on whether to send the rebalance-phase-04 vocabulary proposal upstream to labyrinth; no other open review item this session."
+      "detail": "Public review stub: private session history pruned. See publication evidence index and receipts.",
+      "record": "Sanitized."
     }
   ],
   "issues": [],
-  "plan": "Next session: (1) get explicit go/no-go on sending the rebalance-phase-04 vocabulary proposal upstream to labyrinth -- if yes, that's an outbound action needing separate confirmation, not something to do silently; (2) if approved and landed upstream, phases 5-10 of the rebalance plan become actionable; (3) independent of that, jaxfne's own 9 depends_on edges are currently unvalidated drift -- worth deciding whether to formalize them locally regardless of the upstream proposal's outcome.",
+  "plan": "",
   "verification": {
     "checks": {
       "sources_resolve": null,

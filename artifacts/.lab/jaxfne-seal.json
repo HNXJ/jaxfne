@@ -4,7 +4,7 @@
   "kind": "permanent",
   "title": "Seal (PRP verb node)",
   "generated": {
-    "summary": "5 checkpoint(s) sealed (live from plans.json.checkpoints[]).",
+    "summary": "Public stub: history pruned (local-only notes removed). See docs/fullroadmap.md and artifacts/publication/publication_evidence_index.json.",
     "source_paths": [],
     "links": [
       {
@@ -16,14 +16,13 @@
   "status": "verified",
   "notes": [
     {
-      "id": "checkpoint-2026-07-30-dangling-edge-fix",
+      "id": "seal-public-stub-2026-08-27",
       "kind": "checkpoint",
-      "date": "2026-07-30",
-      "source": "scripts/lab_balance.py, git log/status",
+      "date": "2026-08-27",
+      "source": "artifacts/publication/frozen_manifest.json",
       "confidence": "high",
-      "detail": "Fixed the one dangling edge in the tracked .lab graph (all 10 rebalance-phase-* nodes pointed at the untracked plan-lab-graph-rebalance; repointed to jaxfne-plan). Committed a7e3f0f, pushed to origin/dev, HEAD == origin/dev, tree clean.",
-      "record": "lab_balance.py defects section now empty. --gate still fails on the pre-existing, separately-tracked star-topology targets (gini 0.495, max degree 40, 63 pendants) -- out of scope here, owned by rebalance-phase-04 as an upstream repo_mapper gap, not touched by this checkpoint.",
-      "caveat": "This note is hand-authored directly on the tracked node, not appended to plans.json.checkpoints[] -- artifacts/developer/plans.json does not exist in this checkout (gitignored, local-only). No fabricated checkpoint entry was written to a file that isn't present."
+      "detail": "Public seal stub: frozen 28/28 per frozen_manifest.json; private checkpoint history pruned.",
+      "record": "Sanitized."
     }
   ],
   "issues": [],

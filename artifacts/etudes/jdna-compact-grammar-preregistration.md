@@ -22,7 +22,7 @@ Propose a compact, human-writable surface grammar for JDNA `PseudoGenome` author
 - composes with the existing `NeuronalTensor` unifier `merge_neuronal_tensors` and the existing `develop(G, K_D)` determinism;
 - records provenance via the existing `genome_rules_hash` (no new hash surface).
 
-This is the `define / inherit / use` + `A-80` + `A*0.08` compiler concept referenced as deferred in `artifacts/etudes/provenance_relocation_jdna.json` / `artifacts/developer/SEAL_E2_PRGS.md:49`. E2 does not depend on it.
+This is the `define / inherit / use` + `A-80` + `A*0.08` compiler concept referenced as deferred in `artifacts/etudes/provenance_relocation_jdna.json` (harness synthesis Section 4). E2 does not depend on it.
 
 ---
 

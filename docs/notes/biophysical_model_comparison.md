@@ -129,7 +129,7 @@ HDP-style homeostasis; jaxfne has the plasticity mechanism and the JAX substrate
 its field projection is not yet a differentiable solve. Building that solve (replacing
 the current `linear_solver` placeholder) is the concrete target that would turn "field"
 in Tensor-Field Neural Equations into a demonstrated capability rather than a name.
-Tracked as `plans.json:nature-methods-publication-readiness-100`.
+Tracked via `artifacts/publication/publication_evidence_index.json`.
 
 **Update (2026-07-18):** `fig08_adjacent_tools_comparison.py`'s "no speedup claims"
 disclaimer covers a *general, systematic* performance claim, which still doesn't exist.

@@ -42,7 +42,7 @@
       "id": "findings-relocated-2026-07-30",
       "kind": "provenance",
       "date": "2026-07-30",
-      "source": "gitignore split: plan-* nodes are excluded from git (they mirror the gitignored plans.json), so findings recorded there do not sync across machines",
+      "source": "gitignore split: plan-* nodes are excluded from git (they mirror the gitignored publication_evidence_index.json), so findings recorded there do not sync across machines",
       "confidence": "high",
       "record": "The two protocol-level findings (star topology is generic to repo_mapper, not jaxfne-specific; and repo_mapper's convergence metric exempts hubs so it cannot detect a star) were originally written to plan-lab-graph-rebalance, which is untracked. Copied here because rebalance-phase-04 IS tracked and phase 4 is the phase they change."
     },

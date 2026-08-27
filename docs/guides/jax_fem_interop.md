@@ -3,10 +3,8 @@
 **Status: schema/contract only.** `JaxFemFieldBridge` verifies the optional
 dependency is installed and returns a status contract — it does not run a
 real field solve yet. This page documents the current scope and the plan,
-not a working feature; see
-[`plans.json`](https://github.com/HNXJ/jaxfne)'s
-`novelty::tfne-differentiable-field-solver` entry for the tracked backlog
-item this serves.
+not a working feature; see `artifacts/publication/publication_evidence_index.json`
+for the tracked field-solver backlog entry this serves.
 
 ## Why this bridge exists
 

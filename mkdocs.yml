@@ -10,7 +10,6 @@ docs_dir: docs
 exclude_docs: |
   _generated/version.md
   subagent-pool.md
-  fullroadmap.md
   for_ai_agents.md
   v047_refactor_audit.md
   HDP_REPORT.md
@@ -69,6 +68,13 @@ exclude_docs: |
   publication/results_reconstruction/introduction_traceability_map.md
   publication/results_reconstruction/discussion_draft.md
   publication/results_reconstruction/discussion_traceability_map.md
+  publication/manuscript/*
+  publication/manuscript/abstract.md
+  publication/manuscript/discussion.md
+  publication/manuscript/introduction.md
+  publication/manuscript/methods.md
+  publication/manuscript/results.md
+  publication/manuscript/supplement.md
 
 theme:
   name: material

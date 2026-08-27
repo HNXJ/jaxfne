@@ -148,8 +148,8 @@
     },
     {
       "check": "Q27",
-      "detail": "expect: 7/7 receipt SHAs match shipped figures",
-      "passed": true
+      "detail": "exception: [Errno 2] No such file or directory: 'C:\\\\workspace\\\\jaxfne\\\\figures\\\\publication\\\\fig01_tfne_grammar.png'",
+      "passed": false
     },
     {
       "check": "Q28",
@@ -353,11 +353,13 @@
     }
   ],
   "draft": "docs\\publication\\results_reconstruction\\results_draft.md",
-  "failures": [],
+  "failures": [
+    "Q27: exception: [Errno 2] No such file or directory: 'C:\\\\workspace\\\\jaxfne\\\\figures\\\\publication\\\\fig01_tfne_grammar.png'"
+  ],
   "n_checks": 70,
-  "n_failed": 0,
+  "n_failed": 1,
   "schema": "jaxfne.publication.results_audit_receipt.v1",
-  "status": "PASS",
+  "status": "FAIL",
   "traceability_map": "docs\\publication\\results_reconstruction\\traceability_map.md",
   "write_once": true
 }

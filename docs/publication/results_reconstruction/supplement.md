@@ -813,7 +813,7 @@ This supplement preserves the frozen receipts byte-for-byte; defects are **discl
 - D3 seed-domain infidelity: consumed PRNG keys (`runtime*100+arm_idx ~110000+`, `analysis*1000+arm ~3.1e6`) lay **outside** declared `K_runtime/K_analysis` domains (`[1000,1999]/[3000,3999]`); declared `fold_in(K0=101, splitmix64, offsets)` scheme never implemented. `seeds_plan` values were in-domain but not consumed; stimulus domain unused (noise_scale=0).
 - D4 gray-exemption breadth (hard-fail exemption excuses whole gate when any metric in gray), D5 collapse clause broadening (prefix-match `{NO_PING,UNRESOLVED,INVALID}` extends frozen `==NO_PING`), D6 composite-label outside frozen 4-label set.
 
-**Repairs promoted as harness candidates R-B/C/D (per `E2_SYNTHESIS.md:74-76` and `artifacts/developer/SEAL_E2_PRGS.md`):**
+**Repairs promoted as harness candidates R-B/C/D (per `E2_SYNTHESIS.md:74-76` and `artifacts/publication/publication_evidence_index.json`):**
 
 - Stable derivation: `e2_exec_lib.py:108-134` `splitmix64` + `domain_keys(master, replicate_idx, offsets, canonical_order)` via `jax.random.fold_in` chained through canonical order `structure→stimulus→runtime→probe→analysis` + `child_seed(parent_key, tag)` via `sha256(parent_bytes||tag)` (replaces `hash()`; offsets `4096/8192/12288/16384/20480` exactly as `e2_ssa_spec.v6.json:236-244,363-381`).
 - Independent frozen-only rescoring required before interpretation: `v1_rescored_frozen_only.json` (`v1_rescored_frozen_only.v1`, 0/5 PING_LIKE) and `v2_rescored_frozen_only.json` (`v2_rescored_frozen_only.v1`, pooled SI −0.084, swap 0.426, agreement) — independent implementations, no shared analysis code, generate gates from JSON only.

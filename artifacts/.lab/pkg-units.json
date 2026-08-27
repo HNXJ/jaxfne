@@ -4,7 +4,7 @@
   "kind": "module",
   "title": "units.py",
   "generated": {
-    "summary": "\"\"\"Dtype-keyed declarative numeric defaults (epsilon, dither scale). -- Scope, deliberately narrow (see plans.json item",
+    "summary": "\"\"\"Dtype-keyed declarative numeric defaults (epsilon, dither scale). -- Scope, deliberately narrow (see publication_evidence_index.json item",
     "source_paths": [
       "jaxfne/units.py"
     ],

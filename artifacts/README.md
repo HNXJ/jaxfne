@@ -5,7 +5,7 @@ installable PyPI package** (excluded from the wheel/sdist via `pyproject.toml`).
 
 | Path | Purpose |
 |------|---------|
-| `developer/` | Canonical PRP backlog (`plans.json`, `progress.json`, `review.json`, `AGENT_CHANNEL.md`) — stable path; do not relocate without updating all references |
+| `developer/` | Local-only developer working notes — gitignored, not present in a fresh clone |
 | `legacy/` | Frozen pre-0.4.x notebooks, internal docs, and scratch archives (moved from root `.legacy/` 2026-07-11) |
 | Other subdirs | Evidence bundles, import-cost snapshots, release receipts — session-scoped |
 

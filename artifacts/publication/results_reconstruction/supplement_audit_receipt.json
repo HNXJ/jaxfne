@@ -268,7 +268,7 @@
   {
    "check": "s6_shuffled_uniform_reasons",
    "passed": true,
-   "detail": "shuffled_uniform reasons {'structured_but_fails_traveling_gates', 'standing_or_flipping_spatial_gradient', 'synchronous_oscillation_k_near_zero'}"
+   "detail": "shuffled_uniform reasons {'standing_or_flipping_spatial_gradient', 'synchronous_oscillation_k_near_zero', 'structured_but_fails_traveling_gates'}"
   },
   {
    "check": "s6_shuffled_geometry_derived_r2_1001",

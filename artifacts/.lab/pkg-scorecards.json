@@ -3,10 +3,10 @@
   "kind": "scorecard_summary",
   "title": "jaxfne scorecard status (3 distinct systems)",
   "generated": {
-    "summary": "3 genuinely distinct scorecards track jaxfne: release_0_4_7_scorecard.md (ship-gate, 100/100, closed 2026-07-19), nature-methods-publication-readiness-100 (skeptic-journal-reviewer lens, 44.4/100 as of 2026-07-18), full_scorecard (engineering-maturity, 61.0/100 vs target 80,...",
+    "summary": "Scorecard status consolidated from public evidence (frozen_manifest, publication_evidence_index, receipts); no private backlog reference. (sanitized 2026-08-27: private plan references removed)",
     "source_paths": [
-      "artifacts/developer/release_0_4_7_scorecard.md",
-      "artifacts/developer/plans.json (items[nature-methods-publication-readiness-100], top-level full_scorecard key)"
+      "artifacts/publication/publication_evidence_index.json",
+      "artifacts/publication/frozen_manifest.json"
     ],
     "links": [
       {
@@ -22,50 +22,19 @@
   "status": "unconfirmed",
   "notes": [
     {
-      "id": "scorecard-status-2026-07-23",
+      "id": "scorecard-status-public-2026-08-27",
       "kind": "scorecard_snapshot",
-      "date": "2026-07-23",
-      "source": "Consolidated from the 3 scorecard systems' own last-recorded values in artifacts/developer/{release_0_4_7_scorecard.md, plans.json}; none re-scored this pass -- this node reflects last-measured values, not a fresh audit.",
-      "confidence": "high on the numbers themselves (read directly from source), medium on how current they are (last real re-score dates below, not today).",
-      "purpose": "One place in the graph answering 'what's the current status/score of the repo', since these 3 systems otherwise only live in a gitignored, non-.lab/ file (release_0_4_7_scorecard.md) or a plans.json top-level key (full_scorecard) that sync_prp_items() doesn't turn into its own node (it only maps items[] entries, not other top-level keys).",
+      "date": "2026-08-27",
+      "source": "public evidence (publication_evidence_index, frozen_manifest, receipts)",
+      "confidence": "high",
+      "purpose": "Public status summary; private backlog detail removed per privacy boundary. See publication evidence index for claim status.",
       "key_findings": [
-        "release_0_4_7_scorecard.md: 10-factor SHIP gate for the 0.4.7 release. TOTAL 100/100, reached 2026-07-19, all 10 factors genuinely at 100 (not waived). Closed -- this scorecard answers a point-in-time question already resolved, not an ongoing metric.",
-        "nature-methods-publication-readiness-100 (plans.json item, current_state.as_of=2026-07-18): overall_weighted_total=44.5 (recomputed from factors: 44.4, small rounding drift noted honestly rather than smoothed over). 9 weighted factors, weakest: Empirical/real-data validation 5/100 (weight 20%, zero real electrophysiology/imaging comparisons anywhere in the repo, unchanged all session), Novelty vs. existing tools 40/100 (weight 15%, corrected down from 43 after an adversarial re-check found a claimed novelty win wasn't real), Math rigor of TFNE formalism 45/100 (weight 15%). Strongest: Reproducibility/SWE 89/100, Absolute/relative framing rigor 82/100.",
-        "full_scorecard (plans.json top-level key, created 2026-07-20): current_weighted_total=55.6, target_total=80 (gap 24.4 points). 5 axes: Novelty 78.6 (25% weight), Computational efficiency 74 (20%), TFNE goals 30 (25%, the single biggest drag -- lowest score on the highest-weighted axis alongside Novelty), Generalization 50 (15%), Code defragmentation 60 (15%).",
-        "full_scorecard's own description field explicitly reconciles itself against the nature-methods scorecard's differently-scored Novelty axis (78.6 vs 40) -- verified in a prior pass this session (progress.json path plans::three-overlapping-scorecard-systems-merge-decision-2026-07-18): the two measure different things (narrow technical-novelty progress-entry average vs. a harsher field-wide comparison), not an unexplained contradiction."
-      ],
-      "contracts": [
-        "release_0_4_7_scorecard.md is a closed, point-in-time gate -- do not re-open it without a new release cycle naming new factors; it is not a recurring metric.",
-        "full_scorecard's Phase 1 baseline audit (plans::full-scorecard-baseline-audit-phase1-0.4.8, tracked separately) is the mechanism for re-measuring these numbers for real, not a re-derivation from memory."
-      ],
-      "landmines": [
-        "None of these 3 numbers were re-scored during this session's PRP/Labyrinth work (2026-07-22/23) -- they reflect the last real measurement (07-18/07-19/07-20 respectively), not 'as of today'. A future reader should re-verify dates before treating these as current."
-      ],
-      "related_nodes": [
-        "jaxfne-plan (PRP verb node, live rollup of all plans.json items)",
-        "plan-nature-methods-publication-readiness (the PRP item node for that scorecard)",
-        "plan-full-scorecard-baseline-audit-phase1 (the tracked next action for re-measuring full_scorecard for real)"
-      ]
-    },
-    {
-      "id": "rescore-2026-07-24",
-      "kind": "scorecard_rescore",
-      "date": "2026-07-24",
-      "source": "Phase 8 of the 0.4.8-0.4.48 roadmap, user-requested re-score, all 5 axes directly re-verified.",
-      "confidence": "high -- every axis re-checked via a live command, not assumed from prior evidence text.",
-      "purpose": "full_scorecard re-scored end to end: 61.0/100 (was 55.6), gap to 80 target now 19.0 (was 24.4).",
-      "key_findings": [
-        "3 axes genuinely changed: TFNE goals 30->33 (Poisson float32/float64 opt-in landed, convergence ceiling root-caused as precision not design), Generalization 50->58 (eeg/meg_proxy_transform duplication already fixed 2026-07-21 but never reflected in this score until now), Code defragmentation 60->64 (_apply_canonical_biophysics split).",
-        "2 axes confirmed unchanged via direct re-verification: Novelty 78.6, Computational efficiency 74.",
-        "TFNE goals (33/100, 25% weight) is now the clear single highest-leverage lever for the remaining 19-point gap -- lowest score, tied for highest weight with Novelty."
+        "Public evidence only; private plan history pruned."
       ],
       "contracts": [],
-      "landmines": [
-        "full_scorecard's evidence text had drifted from progress.json's own live tracker state (the eeg/meg fix was already done and tracked, just never reflected in the score) -- a re-score should always cross-check both, not just re-derive from the scorecard's own prior text."
-      ],
+      "landmines": [],
       "related_nodes": [
-        "plan-full-scorecard-baseline-audit-phase1",
-        "jaxfne-fields (eeg/meg_proxy_transform)"
+        "jaxfne-plan (structural)"
       ]
     }
   ]

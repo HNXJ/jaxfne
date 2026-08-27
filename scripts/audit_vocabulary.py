@@ -54,8 +54,8 @@ DOC_SOURCES = (
 # Exempt: dated snapshots / archived / frozen evidence / generated material not
 # live release-facing prose. docs/publication/, docs/etudes/, docs/doctrine/
 # protocol_*.md, and docs/protocols/ are frozen evidence surfaces; docs/releases/
-# are dated snapshots; fullroadmap and inventory records are dated planning
-# documents.
+# are dated snapshots; inventory records are dated planning documents (developer
+# roadmap archived to artifacts/developer/fullroadmap.md, gitignored).
 EXEMPT_PREFIXES = (
     "docs/releases/",
     "docs/v047_refactor_audit.md",
@@ -67,7 +67,6 @@ EXEMPT_PREFIXES = (
     "docs/etudes/",
     "docs/doctrine/protocol_",
     "docs/protocols/",
-    "docs/fullroadmap.md",
     "docs/doctrine/rbs_rbd_hdp_inventory.md",
     "docs/HDP_REPORT.md",
 )
