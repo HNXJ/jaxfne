@@ -15,7 +15,7 @@ Until a Zenodo DOI is minted (see below), cite the GitHub release or PyPI packag
   year = {2026},
   url = {https://github.com/HNXJ/jaxfne},
   version = {0.4.17},
-  note = {Computational scaffold / proxy readouts; tag v0.4.8}
+  note = {Computational scaffold / proxy readouts; tag v0.4.17}
 }
 ```
 

@@ -13,7 +13,7 @@ description = "JAX Field Neural Equations: a source-to-field neurophysiology eng
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-authors = [{name = "H N"}]
+authors = [{name = "Hamed Nejat"}]
 keywords = [
   "neuroscience",
   "neural simulation",

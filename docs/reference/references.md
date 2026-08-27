@@ -18,6 +18,7 @@ Verified bibliography for JaxFNE/TFNE. Every entry is DOI-resolved with title/au
 - Montbrió, E., Pazó, D. & Roxin, A. Macroscopic Description for Networks of Spiking Neurons. *Phys. Rev. X* 5, 021028 (2015). doi:10.1103/PhysRevX.5.021028
 - Coombes, S. Waves, bumps, and patterns in neural field theories. *Biol. Cybern.* 93, 91–108 (2005). doi:10.1007/s00422-005-0574-y
 - Cook et al. Neural Field Models: A mathematical overview and unifying framework. *Math. Neurosci. Appl.* 2, 7284 (2022). doi:10.46298/mna.7284
+- Ermentrout, G. B. & Kleinfeld, D. Traveling electrical waves in cortex: insights from phase dynamics and speculation on a computational role. *Neuron* 29, 33–44 (2001). doi:10.1016/S0896-6273(01)00178-7
 - Muller, L. et al. Cortical travelling waves. *Nat. Rev. Neurosci.* 19, 255–268 (2018). doi:10.1038/nrn.2018.20
 
 ## Sources and extracellular observation
@@ -41,6 +42,7 @@ Verified bibliography for JaxFNE/TFNE. Every entry is DOI-resolved with title/au
 - Yavuz, E. et al. GeNN. *Sci. Rep.* 6, 18854 (2016). doi:10.1038/srep18854
 - Vitay, J. et al. ANNarchy. *Front. Neuroinform.* 9 (2015). doi:10.3389/fninf.2015.00019
 - Bekolay, T. et al. Nengo. *Front. Neuroinform.* 7 (2014). doi:10.3389/fninf.2013.00048
+- Hines, M. L. & Carnevale, N. T. The NEURON simulation environment. *Neural Comput.* 9, 1179–1209 (1997). doi:10.1162/neco.1997.9.6.1179
 - Gewaltig, M.-O. & Diesmann, M. NEST. *Scholarpedia* 2, 1430 (2007). doi:10.4249/scholarpedia.1430
 - Akar, N. A. et al. Arbor — morphologically-detailed library. *Proc. PDP 2019*, 274–282 (2019). doi:10.1109/EMPDP.2019.8671560
 
@@ -48,10 +50,15 @@ Verified bibliography for JaxFNE/TFNE. Every entry is DOI-resolved with title/au
 
 - Wang, C. et al. BrainPy. *eLife* 12, e86365 (2023). doi:10.7554/eLife.86365
 - Deistler, M. et al. Jaxley. *Nature Methods* 22, 2649–2657 (2025). doi:10.1038/s41592-025-02895-w
+- Pille, M. et al. Fast and easy whole-brain network model parameter estimation with automatic differentiation. *bioRxiv* (2025). doi:10.1101/2025.11.18.689003
+- Huh, D. & Sejnowski, T. J. Gradient descent for spiking neural networks. *Adv. Neural Inf. Process. Syst.* 31, 1433–1443 (2018).
 - Kidger, P. & Garcia, C. Equinox. *arXiv* 2111.00254 (2021) — workshop preprint, differentiable JAX composition.
 
 ## Reproducibility and provenance
 
+- Nosek, B. A. et al. Promoting an open research culture. *Science* 348, 1422–1425 (2015). doi:10.1126/science.aab2374
+- Grant, S. et al. (on behalf of the TOP Advisory Board). TOP 2025: An update to the Transparency and Openness Promotion guidelines. *Res. Integr. Peer Rev.* 11, 2 (2026). doi:10.1186/s41073-026-00223-0
+- Heil, B. J. et al. Reproducibility standards for machine learning in the life sciences. *Nat. Methods* 18, 1132–1135 (2021). doi:10.1038/s41592-021-01256-7
 - Miłkowski, M. et al. Replicability or reproducibility? *J. Comput. Neurosci.* 45, 163–172 (2018). doi:10.1007/s10827-018-0702-z
 - Wilkinson, M. D. et al. The FAIR Guiding Principles. *Sci. Data* 3, 160018 (2016). doi:10.1038/sdata.2016.18
 - Rübel, O. et al. The Neurodata Without Borders ecosystem. *eLife* 11, e78362 (2022). doi:10.7554/eLife.78362
