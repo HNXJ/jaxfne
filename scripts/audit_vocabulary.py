@@ -219,6 +219,7 @@ ALLOW_PHRASES = (
     # operator_doctrine.md scope line and its own title
     "per-stage operator contract",
     "tfne operator doctrine",
+    "operator doctrine",
     # tutorial output-link description
     "8-operator contract",
     # heading category label in references
@@ -226,6 +227,8 @@ ALLOW_PHRASES = (
     # tutorial headings/terminology that name the standard working model
     "mathematical framework",
     "standard framework terminology",
+    # bibliography titles (verbatim, cannot be rephrased)
+    "unifying framework",
 )
 
 
