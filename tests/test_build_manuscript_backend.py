@@ -41,6 +41,11 @@ def test_inject_scientific_captions_no_audit_language(tmp_path):
 
 
 def test_build_reportlab_always_pdf(tmp_path):
+    try:
+        import reportlab  # noqa: F401
+    except ImportError:
+        import pytest
+        pytest.skip("reportlab not installed (viz extra not in dev CI)")
     out = tmp_path / "manuscript.pdf"
     res = bm.build(out, backend="reportlab")
     assert res.suffix == ".pdf", f"reportlab backend returned {res.suffix}, expected .pdf"
@@ -50,6 +55,11 @@ def test_build_reportlab_always_pdf(tmp_path):
 
 
 def test_build_auto_always_pdf_without_pandoc(monkeypatch, tmp_path):
+    try:
+        import reportlab  # noqa: F401
+    except ImportError:
+        import pytest
+        pytest.skip("reportlab not installed (viz extra not in dev CI)")
     # Simulate pandoc absent
     monkeypatch.setattr(bm.shutil, "which", lambda x: None)
     out = tmp_path / "auto_no_pandoc.pdf"
@@ -61,6 +71,11 @@ def test_build_auto_always_pdf_without_pandoc(monkeypatch, tmp_path):
 
 def test_build_auto_always_pdf_with_mock_pandoc_no_pdf_engine(monkeypatch, tmp_path):
     """Reproduced defect: pandoc present but no pdf engine must not return .tex when .pdf requested."""
+    try:
+        import reportlab  # noqa: F401
+    except ImportError:
+        import pytest
+        pytest.skip("reportlab not installed (viz extra not in dev CI)")
     monkeypatch.setattr(bm.shutil, "which", lambda cmd: "/usr/bin/pandoc" if cmd == "pandoc" else None)
 
     orig_run = bm.subprocess.run
@@ -87,6 +102,11 @@ def test_build_auto_always_pdf_with_mock_pandoc_no_pdf_engine(monkeypatch, tmp_p
 
 
 def test_build_pandoc_backend_fallback_to_reportlab_when_no_pdf_engine(monkeypatch, tmp_path):
+    try:
+        import reportlab  # noqa: F401
+    except ImportError:
+        import pytest
+        pytest.skip("reportlab not installed (viz extra not in dev CI)")
     monkeypatch.setattr(bm.shutil, "which", lambda cmd: "/usr/bin/pandoc" if cmd == "pandoc" else None)
     orig_run = bm.subprocess.run
 
