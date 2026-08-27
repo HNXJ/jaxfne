@@ -20,9 +20,7 @@
   "artifacts": {
     "figure_png": "artifacts/mcc3_10s_checkpoint/mcc3_10s_pre_post.png",
     "metrics_json": "artifacts/mcc3_10s_checkpoint/mcc3_10s_metrics.json",
-    "rates_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_rates.csv",
-    "weights_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_weights.csv",
-    "H_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_H.csv"
+    "rates_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_rates.csv"
   },
   "hashes": {
     "mcc3_10s_pre_post.png": "5699bca1b50b956b972e3cf01db894629e711869c7ae83a2b875974751d1efae",
