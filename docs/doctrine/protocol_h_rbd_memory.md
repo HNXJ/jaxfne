@@ -1,4 +1,6 @@
-# Protocol H — RBD state memory (fixed weights)
+# RBD State Memory
+
+*Fixed weights — protocol H, RBD state memory. Protocol identifier and fixed-weight qualifier retained in opening sentence and provenance.*
 
 **Status:** Protocol H **CLOSED** at H4 (prospective negative result frozen)  
 **H4 interpretation:** `artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json`  

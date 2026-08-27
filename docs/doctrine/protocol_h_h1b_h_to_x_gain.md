@@ -1,4 +1,6 @@
-# Protocol H1b — \(H \rightarrow x\) gain interface (specification)
+# H-to-X Gain
+
+*H-to-X gain interface — protocol H1b, specification. Typed gain map from hidden state to emitter; protocol identifier in provenance.*
 
 **Status:** CLOSED (H1c-C implemented); see `protocol_h_rbd_memory.md`  
 **Architecture:** `docs/doctrine/tfne_containment_architecture.md` — H1b is the

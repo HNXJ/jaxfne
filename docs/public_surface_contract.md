@@ -1,6 +1,6 @@
-# Public surface contract (0.4.13 Pass 1)
+# Public API
 
-This page records the **frozen public export contract** for jaxfne 0.4.13.
+This page records the **frozen public export contract** for jaxfne 0.4.13 — frozen public API at 0.4.13 Pass 1.
 Implementation checkpoint: `dev @ 0678557` (Pass 1); closure reconciles
 documentation, tutorial metadata, and public evidence semantics.
 

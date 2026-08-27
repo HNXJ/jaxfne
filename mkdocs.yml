@@ -118,13 +118,13 @@ nav:
       - Welcome: index.md
       - Installation: install.md
       - Quickstart: quickstart.md
-      - Public API contract: public_surface_contract.md
+      - Public API: public_surface_contract.md
       - Scope & status: scope_and_status.md
 
   - Tutorials:
       - Overview: tutorials/index.md
       - Notebook standard: tutorials/notebook_standard.md
-      - Output contract: tutorials/tutorial_outputs.md
+      - Tutorial Outputs: tutorials/tutorial_outputs.md
       - Suites:
           - Computational biophysics: tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
           - Corticospectrolaminar motif: tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
@@ -157,29 +157,29 @@ nav:
       - Calibration: guides/calibration.md
       - Homeostasis: guides/homeostasis.md
       - H-state and HDP: guides/hdp.md
-      - JDNA (PseudoGenome development): guides/jdna.md
+      - PseudoGenome: guides/jdna.md
       - Output bundles: guides/output_bundles.md
       - Jaxley interoperability: guides/jaxley_interop.md
 
   - Études:
       - Overview: etudes/index.md
       - HDP controllability & reachability: etudes/hdp_controllability_reachability.md
-      - Experiment A: etudes/experiment_a.md
+      - Canonical Multiscale Observation: etudes/experiment_a.md
       - Heterogeneous emitters: etudes/heterogeneous_emitters.md
       - Multiscale observation: etudes/multiscale_observation.md
 
-  - Protocols & doctrine:
-      - C-series wave protocol: protocols/protocol_c_wave.md
-      - C-series wave evidence: doctrine/protocol_c_wave_evidence.md
-      - C3 neural protocol: protocols/protocol_c_c3_neural.md
-      - D-series biological RBS: protocols/protocol_d_biological_rbs.md
-      - E-series integration: protocols/protocol_e_integration.md
-      - RBS/HDP doctrine: doctrine/rbs_rbd_hdp.md
-      - Relative-quantity grammar: doctrine/relative_quantity_grammar.md
-      - H1b H-to-X gain doctrine: doctrine/protocol_h_h1b_h_to_x_gain.md
-      - H-state memory doctrine: doctrine/protocol_h_rbd_memory.md
-      - W-series HDP parameter memory: doctrine/protocol_w_hdp_parameter_memory.md
-      - Containment architecture: doctrine/tfne_containment_architecture.md
+  - Theory and Experiments:
+      - Traveling Waves: protocols/protocol_c_wave.md
+      - Traveling-Wave Evidence: doctrine/protocol_c_wave_evidence.md
+      - Neural Geometry and Delays: protocols/protocol_c_c3_neural.md
+      - Biological RBS: protocols/protocol_d_biological_rbs.md
+      - Integrated TFNE Composition: protocols/protocol_e_integration.md
+      - RBS, RBD and HDP: doctrine/rbs_rbd_hdp.md
+      - Relative Quantities: doctrine/relative_quantity_grammar.md
+      - H-to-X Gain: doctrine/protocol_h_h1b_h_to_x_gain.md
+      - RBD State Memory: doctrine/protocol_h_rbd_memory.md
+      - HDP Parameter Memory: doctrine/protocol_w_hdp_parameter_memory.md
+      - TFNE Containment and Composition: doctrine/tfne_containment_architecture.md
 
   - API:
       - Overview: api/index.md

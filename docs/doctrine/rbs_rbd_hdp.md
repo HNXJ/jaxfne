@@ -1,4 +1,4 @@
-# jaxfne rules — RBS / RBD / HDP
+# RBS, RBD and HDP
 
 Repository-facing realization of the jaxfne hidden-state refactor. **Upstream
 authority:** the six project-source markdowns under

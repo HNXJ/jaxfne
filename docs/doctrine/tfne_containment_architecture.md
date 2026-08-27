@@ -1,4 +1,4 @@
-# TFNE containment and composition architecture
+# TFNE Containment and Composition
 
 **Status:** FROZEN (rule; implementation follows incrementally)  
 **Baseline:** `dev` @ `6003958` (H1a/H1b)  

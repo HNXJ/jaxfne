@@ -1,4 +1,4 @@
-# Relative-Quantity Numerical Grammar
+# Relative Quantities
 
 This page is the single authoritative statement of how jaxfne distinguishes
 **base**, **relative**, **effective**, and **time** quantities. Equations,

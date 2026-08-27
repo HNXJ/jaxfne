@@ -1,4 +1,6 @@
-# Protocol C — wave inference (0.4.17-C)
+# Traveling Waves
+
+*Detector specification — protocol C, 0.4.17-C. The scientific content is traveling-wave inference; protocol identifier retained in provenance.*
 
 **Status:** C0 frozen (specification only)  
 **Spec:** `artifacts/protocol_c/c0_wave_protocol_spec.json`  

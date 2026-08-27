@@ -260,7 +260,9 @@ Each operator returns a JSON-safe report $R_k$ declaring operator type, computat
 
 ---
 
-## Current Status: Simulated / Proxy (verified as of v0.4.8 development tree)
+## Current Status: Simulated / Proxy
+
+*Verified as of v0.4.8 development tree — status moved from title parenthetical to sentence.*
 
 All eight operators remain simulated or proxy readouts as of v0.4.8:
 

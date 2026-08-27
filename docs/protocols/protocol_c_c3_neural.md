@@ -1,4 +1,6 @@
-# Protocol C3 — prospective neural geometry/delay experiment (0.4.17-C)
+# Neural Geometry and Delays
+
+*Prospective neural geometry/delay experiment — protocol C3, 0.4.17-C. Internal code retained in provenance.*
 
 **Status:** C3 **CLOSED** — prospective run executed; C4 interpretation frozen  
 **Spec:** `artifacts/protocol_c/c3_neural_experiment_spec.json`  

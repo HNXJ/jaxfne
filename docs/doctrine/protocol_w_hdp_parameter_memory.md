@@ -1,4 +1,6 @@
-# Protocol W — HDP parameter memory (W0 frozen; implementation closed)
+# HDP Parameter Memory
+
+*Protocol W — HDP parameter memory, W0 frozen and implementation closed. Protocol identifier in provenance.*
 
 **Status:** **W0 FROZEN** · **W1a IMPLEMENTED** · **W1b IMPLEMENTED** · **W2 FROZEN** · **W3 SPEC OPEN** · W3 implementation **not** authorized  
 **Prerequisite:** Protocol H **closed** at H4 (`docs/doctrine/protocol_h_rbd_memory.md`)  

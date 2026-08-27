@@ -1,4 +1,6 @@
-# Protocol D — biological RBS containment (0.4.17-D)
+# Biological RBS Containment
+
+*Protocol D, 0.4.17-D — biological RBS containment. Biological RBS realization; protocol identifier in provenance.*
 
 **Status:** **0.4.17-D CLOSED @ D3** — biological RBS containment complete; D4 not authorized  
 **D0 spec:** `artifacts/protocol_d_biological_rbs/d0_intrinsic_ionic_rbs_spec.json`  

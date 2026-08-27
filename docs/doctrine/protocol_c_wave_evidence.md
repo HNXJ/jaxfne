@@ -1,4 +1,6 @@
-# Protocol C wave evidence (0.4.17-C)
+# Traveling-Wave Evidence
+
+*Protocol C, 0.4.17-C — evidence tiers for the traveling-wave detector.*
 
 **Status:** Protocol C **CLOSED** at C4 (`c4_interpretation_receipt.json`)
 

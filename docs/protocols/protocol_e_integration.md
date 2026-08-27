@@ -1,4 +1,6 @@
-# Protocol E — integrated TFNE composition (0.4.17-E)
+# Integrated TFNE Composition
+
+*Protocol E, 0.4.17-E — integrated TFNE composition. Composition experiment identifier retained in provenance.*
 
 **Status:** **0.4.17-E hard scientific feature freeze** — E1–E5 closed; TFNE integration architecture complete through causal perturbation evidence
 **Milestone boundary:** `9589933` — 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)

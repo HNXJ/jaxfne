@@ -53,7 +53,9 @@ Pick **one path per script** — they return different types:
 Per-event subset drive (e.g. L4-E only): put `target_indices` on each **event dict**
 in `StimulusSchedule`, built from `model.neuron_table()`.
 
-## NeuronalTensor (preferred)
+## NeuronalTensor
+
+*Preferred path — NeuronalTensor is the preferred CircuitSpec.*
 
 ```python
 tensor  = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")
@@ -88,7 +90,9 @@ signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0, runtime=r
 API: [neuronal_tensor.md](api/neuronal_tensor.md) · Migration: [migration_guide.md](migration_guide.md)
 · Example: [examples/08_neuronal_tensor_first.py](https://github.com/HNXJ/jaxfne/blob/main/examples/08_neuronal_tensor_first.py)
 
-## Configuration (supported, compatibility)
+## Configuration
+
+*Supported compatibility path — Configuration remains supported for migration.*
 
 ```python
 cfg = (jtfne.build_laminar_column(n=1000, ei_profile="canonical")

@@ -28,7 +28,9 @@ value without an explicit calibration step:
 | `field_claim_level` | `proxy_readout` | LFP/CSD/EEG outputs are Relative-value channels |
 | `field_solver_status` | `linear_solver` | Laminar readouts use a Relative projection, not a full elliptic solve |
 
-## Plausible ranges (Izhikevich path)
+## Plausible ranges
+
+*Izhikevich path — nominal mV ranges for the shipped preset; see body for calibration caveat.*
 
 Quick checks on a finished run. The mV values below are the model's nominal
 internal units (the Izhikevich preset's declared numerical scale), not
