@@ -62,4 +62,4 @@ Verified bibliography for JaxFNE/TFNE. Every entry is DOI-resolved with title/au
 
 - Waddington (1957), Kitano (1990), Gruau (1995), Elman (1993), Stanley (2002, 2009), Zador (2019), Palm (2021) — retained for JDNA theory; not counted toward 40–45 manuscript bibliography.
 
-*RBS/RBD/HDP semantics follow `docs/doctrine/rbs_rbd_hdp.md` and `tfne_containment_architecture.md`; see HDP guide.*
+*RBS/RBD/HDP semantics follow `docs/doctrine/rbs_rbd_hdp.md` and `tfne_containment_architecture.md`; see HDP guide [`../guides/hdp.md`](../guides/hdp.md).*
