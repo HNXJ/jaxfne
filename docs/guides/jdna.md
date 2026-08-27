@@ -1,27 +1,28 @@
-# JDNA: PseudoGenome → NeuronalTensor development
+# PseudoGenome
 
 ## Definition
 
-**JDNA** (JAX Developmental Neural Architecture) is the theory and model
-governing *pseudo-genomic generation*: the production of neuronal phenotypes
-from generative specifications.
+A **PseudoGenome** is a finite, model-defined generative specification whose coordinates and rules determine the development of a neuronal phenotype. In JaxFNE, this model is implemented by **JDNA** (JAX Developmental Neural Architecture). JDNA develops a `PseudoGenome` into a `NeuronalTensor`. The genome analogy is computational: its components need not correspond to literal genes, DNA sequences, chromosomes, or molecular genomic mechanisms.
 
-A **PseudoGenome** is:
-
-> A finite, model-defined generative specification whose coordinates and rules
-> determine the development of a neuronal phenotype. The genome analogy is
-> computational: its components need not correspond to literal genes, DNA
-> sequences, chromosomes, or molecular genomic mechanisms.
-
-`PseudoGenome` is the concrete specification object. `JDNA` is the theory
-governing it. The terminal structural phenotype is a
-[NeuronalTensor](../api/neuronal_tensor.md).
+```text
+PseudoGenome --[JDNA/develop; K_D]--> NeuronalTensor  (K_D: developmental random key/domain)
+```
 
 Canonical grammar:
 
 ```text
 PseudoGenome --develop--> NeuronalTensor --construct--> Model --simulate--> Signals
 ```
+
+`PseudoGenome` is the scientific object; `JDNA` is the implementation; `development` is the `PseudoGenome` → `NeuronalTensor` map; `phenotype` is the realization. The terminal structural phenotype is a [NeuronalTensor](../api/neuronal_tensor.md). No literal genetics implication is made.
+
+## Illustrative examples
+
+**Rules → realization.** A PseudoGenome may declare per-layer population fractions (e.g., excitatory/inhibitory base fractions), bounded developmental ranges (fraction tolerance bands), laminar geometry (depth bands, x/y ranges, distribution), and distance- or class-dependent connection rules. Development realizes these rules as explicit arrays and edges in the NeuronalTensor: integer counts per cell type within declared bands, concrete positions, per-neuron parameters, edges, weights, and delays.
+
+**Cortical column (1000 neurons).** The canonical 6-layer cortical-column PseudoGenome declares layer-wise counts and composition rules, geometry, and typed inter-layer connection schemes. Developing it with a given `K_D` realizes a concrete 1000-neuron phenotype — specific counts, positions, parameters, edges, weights, and delays — within the declared constraints. The PseudoGenome stores the generative rules, not 1000 per-neuron records.
+
+**Same genome, different K_D; same K_D, same phenotype.** Two developments of the same PseudoGenome with different `K_D` values (e.g., `seed=0` vs `seed=1`) share the same rules but realize different phenotypes within the same constraint bands. Conversely, development is deterministic in `K_D`: the same PseudoGenome and the same `K_D` reproduce the same phenotype.
 
 ## Mathematics
 
@@ -167,14 +168,10 @@ Root exports: `jtfne.PseudoGenome`, `jtfne.develop`, `jtfne.load_pseudogenome`,
 
 ```python
 import jaxfne as jtfne
-
+jtfne.enable_x64()
 genome = jtfne.load_canonical_pseudogenome("canonical-v1-column-1000n")
-tensor = jtfne.develop(genome, seed=0)          # K_D
-
-model = jtfne.construct(
-    tensor,
-    jtfne.RuntimeConfiguration(seed=1, duration_ms=1000.0, dt_ms=0.5),
-)                                               # K_S
+tensor = jtfne.develop(genome, seed=0)
+model = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=1, duration_ms=1000.0, dt_ms=0.5))
 signals = jtfne.simulate(model)
 ```
 
