@@ -290,7 +290,7 @@ class TuneResult:
         yield self.summary
 
 
-_JAXFNE_VERSION = "0.4.17"
+_JAXFNE_VERSION = "0.4.18"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 

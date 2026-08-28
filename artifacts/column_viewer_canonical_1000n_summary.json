@@ -1,0 +1,156 @@
+{
+  "task": "canonical cortical column interactive viewer",
+  "head": "350730a",
+  "viewer_module": "jaxfne.vis.column_viewer",
+  "viewer_function": "render_column_viewer / collect_column_viewer_data",
+  "output_html": "artifacts\\column_viewer_canonical_1000n.html",
+  "output_html_sha256": "fb117d595b52d776de4ff2baf5eae92ff78df18a3ff7e0a391aabc528f9c03d2",
+  "output_html_bytes": 561610,
+  "config_hash": "d923709b0ec9889f",
+  "n_neurons": 1000,
+  "n_edges_realized": 999000,
+  "n_edges_expected_all_to_all": 999000,
+  "edge_category_counts": {
+    "E\u2192E": 430992,
+    "E\u2192I": 225351,
+    "I\u2192E": 225351,
+    "I\u2192I": 117306
+  },
+  "mean_degree": 999.0,
+  "weight_mean": 0.002798277707350719,
+  "weight_std": 0.010326391307460797,
+  "delay_unique": [
+    0
+  ],
+  "tau_unique": [
+    2.0,
+    5.0
+  ],
+  "layers": [
+    "L1",
+    "L2/3",
+    "L4",
+    "L5",
+    "L6"
+  ],
+  "layer_counts": {
+    "L1": 100,
+    "L2/3": 450,
+    "L4": 100,
+    "L5": 200,
+    "L6": 150
+  },
+  "celltype_counts": {
+    "E": 657,
+    "PV": 147,
+    "SST": 91,
+    "VIP": 105
+  },
+  "phenotype_counts": {
+    "L1/E": 50,
+    "L1/PV": 5,
+    "L1/SST": 10,
+    "L1/VIP": 35,
+    "L2/3/E": 225,
+    "L2/3/PV": 112,
+    "L2/3/SST": 58,
+    "L2/3/VIP": 55,
+    "L4/E": 70,
+    "L4/PV": 20,
+    "L4/SST": 5,
+    "L4/VIP": 5,
+    "L5/E": 170,
+    "L5/PV": 10,
+    "L5/SST": 10,
+    "L5/VIP": 10,
+    "L6/E": 142,
+    "L6/SST": 8
+  },
+  "h_info": {
+    "present": false,
+    "enabled": false,
+    "mean": null,
+    "note": ""
+  },
+  "FF_FB": {
+    "FF": 0,
+    "FB": 0,
+    "local": 999000
+  },
+  "configured_slice": {
+    "connectivity": {
+      "within_area": "all_to_all_uniform_random",
+      "within_gain": 0.45
+    },
+    "canonical_biophysics": true,
+    "layer_fractions": {
+      "L1": [
+        0.0,
+        0.1
+      ],
+      "L2/3": [
+        0.1,
+        0.55
+      ],
+      "L4": [
+        0.55,
+        0.65
+      ],
+      "L5": [
+        0.65,
+        0.85
+      ],
+      "L6": [
+        0.85,
+        1.0
+      ]
+    },
+    "layer_cell_types": {
+      "L1": {
+        "E": 0.5,
+        "PV": 0.05,
+        "SST": 0.1,
+        "VIP": 0.35
+      },
+      "L2/3": {
+        "E": 0.5,
+        "PV": 0.25,
+        "SST": 0.13,
+        "VIP": 0.12
+      },
+      "L4": {
+        "E": 0.7,
+        "PV": 0.2,
+        "SST": 0.05,
+        "VIP": 0.05
+      },
+      "L5": {
+        "E": 0.85,
+        "PV": 0.05,
+        "SST": 0.05,
+        "VIP": 0.05
+      },
+      "L6": {
+        "E": 0.95,
+        "PV": 0.0,
+        "SST": 0.05,
+        "VIP": 0.0
+      }
+    }
+  },
+  "verification": {
+    "realized_sum_equals_n_edges": true,
+    "n_edges_equals_N_times_Nminus1": true,
+    "spikes_bit_identical_before_after_viewer": true,
+    "viewer_did_not_mutate_edge_list": true,
+    "viewer_optional_no_import_overhead": "jaxfne.vis.column_viewer not in sys.modules after import jaxfne",
+    "delta_science": 0,
+    "kernels_unchanged": true
+  },
+  "artifacts": [
+    "artifacts\\column_viewer_canonical_1000n.html",
+    "artifacts/column_viewer_multi_V1V4.html",
+    "artifacts/column_viewer_H_ownership.html"
+  ],
+  "notes": "All numerics are realized EdgeList reads; configured shown only for comparison. Viewer is optional (lazy Plotly CDN) and read-only. Canonical 1000n verified: all-to-all 999k edges, E/I toggles populated, FF/FB zero for single area (correct), multi-area demo shows FF/FB populated."
+}

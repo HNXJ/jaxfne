@@ -1,0 +1,413 @@
+{
+  "task": "PseudoGenome G\u2192D(K_D)\u2192N development viewer \u2014 configured vs realized, same-genome different K_D",
+  "head": "350730a",
+  "viewer_module": "jaxfne.vis.pseudogenome_viewer",
+  "viewer_function": "render_pseudogenome_development_viewer / collect_pseudogenome_development_data",
+  "output_html": "artifacts\\pseudogenome_development_viewer.html",
+  "output_html_sha256": "88e5e2fd3084c9fe14f1ad5b6f62663daaa0bacaa8c549138d85a3316f87bfec",
+  "output_html_bytes": 267031,
+  "genome": "canonical-v1-column-1000n",
+  "genome_rules_hash": "07282b0928e9be9e49be5fa0a616da6fa65eaf72184976cd53a1cc6ce5dd0e76",
+  "seeds_KD": [
+    0,
+    1
+  ],
+  "construct_seed_KS": 7,
+  "phenotype_hash_0": "cbe6f7f96e12cdf337dc8e55518b06deb542dca7b7646b22e55623e02b916042",
+  "phenotype_hash_1": "90c1715c66667c888ea305e260dac84738dd84a535500e55216c2c58e1995dbf",
+  "deterministic_same_KD": true,
+  "same_genome_different_KD_has_diff": true,
+  "diff_layers": 6,
+  "realized": {
+    "seed_0": {
+      "n_neurons": 1000,
+      "n_edges": 215190,
+      "weight_mean": 0.022815305263813646,
+      "delay_unique": [
+        0
+      ],
+      "tau_unique": [
+        0.10000000149011612
+      ]
+    },
+    "seed_1": {
+      "n_neurons": 1000,
+      "n_edges": 215079,
+      "weight_mean": 0.023364763772965855,
+      "delay_unique": [
+        0
+      ],
+      "tau_unique": [
+        0.10000000149011612
+      ]
+    }
+  },
+  "layers_seed0": [
+    {
+      "layer": "L1",
+      "n_neurons": 100,
+      "counts": {
+        "E": 49,
+        "SST": 15,
+        "VIP": 36
+      },
+      "bands": {
+        "E": [
+          45,
+          56
+        ],
+        "SST": [
+          10,
+          20
+        ],
+        "VIP": [
+          30,
+          40
+        ]
+      }
+    },
+    {
+      "layer": "L2",
+      "n_neurons": 250,
+      "counts": {
+        "E": 162,
+        "PV": 49,
+        "SST": 29,
+        "VIP": 10
+      },
+      "bands": {
+        "E": [
+          150,
+          175
+        ],
+        "PV": [
+          37,
+          63
+        ],
+        "SST": [
+          12,
+          38
+        ],
+        "VIP": [
+          7,
+          20
+        ]
+      }
+    },
+    {
+      "layer": "L3",
+      "n_neurons": 200,
+      "counts": {
+        "E": 160,
+        "PV": 14,
+        "SST": 18,
+        "VIP": 8
+      },
+      "bands": {
+        "E": [
+          150,
+          170
+        ],
+        "PV": [
+          8,
+          24
+        ],
+        "SST": [
+          8,
+          24
+        ],
+        "VIP": [
+          4,
+          12
+        ]
+      }
+    },
+    {
+      "layer": "L4",
+      "n_neurons": 100,
+      "counts": {
+        "E": 75,
+        "PV": 18,
+        "SST": 3,
+        "VIP": 4
+      },
+      "bands": {
+        "E": [
+          70,
+          80
+        ],
+        "PV": [
+          13,
+          23
+        ],
+        "SST": [
+          2,
+          6
+        ],
+        "VIP": [
+          1,
+          5
+        ]
+      }
+    },
+    {
+      "layer": "L5",
+      "n_neurons": 200,
+      "counts": {
+        "E": 172,
+        "PV": 15,
+        "SST": 9,
+        "VIP": 4
+      },
+      "bands": {
+        "E": [
+          166,
+          186
+        ],
+        "PV": [
+          6,
+          18
+        ],
+        "SST": [
+          4,
+          12
+        ],
+        "VIP": [
+          2,
+          8
+        ]
+      }
+    },
+    {
+      "layer": "L6",
+      "n_neurons": 150,
+      "counts": {
+        "E": 135,
+        "PV": 9,
+        "SST": 3,
+        "VIP": 3
+      },
+      "bands": {
+        "E": [
+          127,
+          143
+        ],
+        "PV": [
+          5,
+          12
+        ],
+        "SST": [
+          2,
+          7
+        ],
+        "VIP": [
+          1,
+          6
+        ]
+      }
+    }
+  ],
+  "layers_seed1": [
+    {
+      "layer": "L1",
+      "n_neurons": 100,
+      "counts": {
+        "E": 50,
+        "SST": 15,
+        "VIP": 35
+      },
+      "bands": {
+        "E": [
+          45,
+          56
+        ],
+        "SST": [
+          10,
+          20
+        ],
+        "VIP": [
+          30,
+          40
+        ]
+      }
+    },
+    {
+      "layer": "L2",
+      "n_neurons": 250,
+      "counts": {
+        "E": 162,
+        "PV": 48,
+        "SST": 28,
+        "VIP": 12
+      },
+      "bands": {
+        "E": [
+          150,
+          175
+        ],
+        "PV": [
+          37,
+          63
+        ],
+        "SST": [
+          12,
+          38
+        ],
+        "VIP": [
+          7,
+          20
+        ]
+      }
+    },
+    {
+      "layer": "L3",
+      "n_neurons": 200,
+      "counts": {
+        "E": 161,
+        "PV": 15,
+        "SST": 14,
+        "VIP": 10
+      },
+      "bands": {
+        "E": [
+          150,
+          170
+        ],
+        "PV": [
+          8,
+          24
+        ],
+        "SST": [
+          8,
+          24
+        ],
+        "VIP": [
+          4,
+          12
+        ]
+      }
+    },
+    {
+      "layer": "L4",
+      "n_neurons": 100,
+      "counts": {
+        "E": 74,
+        "PV": 18,
+        "SST": 3,
+        "VIP": 5
+      },
+      "bands": {
+        "E": [
+          70,
+          80
+        ],
+        "PV": [
+          13,
+          23
+        ],
+        "SST": [
+          2,
+          6
+        ],
+        "VIP": [
+          1,
+          5
+        ]
+      }
+    },
+    {
+      "layer": "L5",
+      "n_neurons": 200,
+      "counts": {
+        "E": 176,
+        "PV": 10,
+        "SST": 8,
+        "VIP": 6
+      },
+      "bands": {
+        "E": [
+          166,
+          186
+        ],
+        "PV": [
+          6,
+          18
+        ],
+        "SST": [
+          4,
+          12
+        ],
+        "VIP": [
+          2,
+          8
+        ]
+      }
+    },
+    {
+      "layer": "L6",
+      "n_neurons": 150,
+      "counts": {
+        "E": 137,
+        "PV": 8,
+        "SST": 4,
+        "VIP": 1
+      },
+      "bands": {
+        "E": [
+          127,
+          143
+        ],
+        "PV": [
+          5,
+          12
+        ],
+        "SST": [
+          2,
+          7
+        ],
+        "VIP": [
+          1,
+          6
+        ]
+      }
+    }
+  ],
+  "verification": {
+    "genome_is_rules_not_storage": true,
+    "genome_rules_hash": "07282b0928e9be9e49be5fa0a616da6fa65eaf72184976cd53a1cc6ce5dd0e76",
+    "phenotype_hash_0": "cbe6f7f96e12cdf337dc8e55518b06deb542dca7b7646b22e55623e02b916042",
+    "phenotype_hash_1": "90c1715c66667c888ea305e260dac84738dd84a535500e55216c2c58e1995dbf",
+    "same_seed_reproduces": true,
+    "same_genome_different_KD_has_diff": true,
+    "diff_layers": 6,
+    "n_edges_0": 215190,
+    "n_edges_1": 215079,
+    "positions_shape_0": [
+      1000,
+      3
+    ],
+    "positions_shape_1": [
+      1000,
+      3
+    ],
+    "weight_mean_0": 0.022815305263813646,
+    "weight_mean_1": 0.023364763772965855,
+    "delay_unique_0": [
+      0
+    ],
+    "delay_unique_1": [
+      0
+    ],
+    "tau_unique_0": [
+      0.10000000149011612
+    ],
+    "tau_unique_1": [
+      0.10000000149011612
+    ],
+    "\u0394science": 0,
+    "kernels_unchanged": true
+  },
+  "delta_science": 0,
+  "kernels_unchanged": true,
+  "notes": "Genome JSON rules (fractions, bands, depth, geometry, connection rules) vs realized NeuronalTensor arrays (counts, positions Nx3, EdgeList pre/post/weights/delays/degree) and Model EdgeList (n_edges, weight mean/std, tau, delay). Same G different K_D \u2192 different N within bands; same (G,K_D) \u2192 same N. Held K_S fixed to isolate development effect."
+}

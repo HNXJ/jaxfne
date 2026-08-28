@@ -125,12 +125,21 @@ nav:
       - Overview: tutorials/index.md
       - Notebook standard: tutorials/notebook_standard.md
       - Tutorial Outputs: tutorials/tutorial_outputs.md
+      - Cumulative (canonical 1000n):
+          - Define (PseudoGenome): tutorials/01_define_genome.md
+          - Develop (G→N): tutorials/02_develop_genome.md
+          - Inspect (realized vs configured): tutorials/03_inspect_tensor.md
+          - Simulate (construct→Signals): tutorials/04_simulate_tensor.md
+          - Observe (field & probe): tutorials/05_observe_fields.md
+          - Add state (H / RBS): tutorials/06_add_state.md
+          - Add dynamics (HDP): tutorials/07_add_dynamics.md
+          - Compare (nulls & lesions): tutorials/08_compare_nulls.md
       - Suites:
           - Computational biophysics: tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
           - Corticospectrolaminar motif: tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
           - Evoked L4 drive: tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md
           - Low-frequency scaling: tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md
-      - Circuit construction:
+      - Circuit construction (archive):
           - Single-neuron multimodal: tutorials/01_single_neuron_multimodal.md
           - Two-neuron E/I: tutorials/02_two_neuron_ei.md
           - Population E/I network: tutorials/03_network_100_ei.md
@@ -138,11 +147,11 @@ nav:
           - V1–PFC dual column: tutorials/05_v1_pfc_dual_column.md
           - Configuration API population: tutorials/06_v036_100_neuron_ei_population.md
           - Canonical cortical column: tutorials/13_canonical_column_etude.md
-      - Source, field, and readout:
+      - Source, field, and readout (archive):
           - Source bookkeeping: tutorials/07_v037_source_bookkeeping.md
           - LFP and CSD proxies: tutorials/08_v038_lfp_csd_readout.md
           - EEG, MEG, EMM proxies: tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md
-      - Paradigms and optimization:
+      - Paradigms and optimization (archive):
           - Sensory omission oddball: tutorials/10_v0313_omission_oddball.md
           - Multi-area laminar AGSDR: tutorials/11_multi_laminar_cortical_agsdr.md
           - Izhikevich emitter explorer: tutorials/12_izhikevich_single_emitter_explorer.md
@@ -197,6 +206,7 @@ nav:
       - JDNA: api/jdna.md
 
   - Appendix:
+      - Fundamental laws: appendix/fundamental_laws.md
       - Source and field equations: source_field_equations.md
       - Computation basis: computation_basis.md
       - Mathematical glossary: mathematical_glossary_flow.md
@@ -210,4 +220,4 @@ nav:
       - Limitations: limitations_and_future_plans.md
 
 extra:
-  jaxfne_version: "0.4.17"
+  jaxfne_version: "0.4.18"

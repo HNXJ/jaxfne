@@ -25,13 +25,13 @@ def neuron_table_arrays(model) -> dict[str, np.ndarray]:
     """Pull neuron_table() into flat numpy arrays, once."""
     nt = model.neuron_table()
     return {
-        "neuron_id": np.array([r["neuron_id"] for r in nt]),
-        "area": np.array([r["area"] for r in nt]),
-        "layer": np.array([r["layer"] for r in nt]),
-        "cell_type": np.array([r["cell_type"] for r in nt]),
-        "x": np.array([r["x"] for r in nt], dtype=float),
-        "y": np.array([r["y"] for r in nt], dtype=float),
-        "z": np.array([r["z"] for r in nt], dtype=float),
+        "neuron_id": np.array([r.get("neuron_id", i) for i, r in enumerate(nt)]),
+        "area": np.array([r.get("area", "network") for r in nt]),
+        "layer": np.array([r.get("layer", "unspecified") for r in nt]),
+        "cell_type": np.array([r.get("cell_type", "unknown") for r in nt]),
+        "x": np.array([r.get("x", 0.0) for r in nt], dtype=float),
+        "y": np.array([r.get("y", 0.0) for r in nt], dtype=float),
+        "z": np.array([r.get("z", 0.0) for r in nt], dtype=float),
     }
 
 

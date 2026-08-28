@@ -140,6 +140,11 @@ from .report_plots import (
     gain_matrix_heatmap,
     celltype_sweep_heatmap_grid,
 )
+from .visualize import visualize, PANEL_KEYS as VISUALIZE_PANEL_KEYS
+from .pseudogenome_viewer import (
+    collect_pseudogenome_development_data,
+    render_pseudogenome_development_viewer,
+)
 
 __all__ = [
     "FigureResult",
@@ -268,4 +273,8 @@ __all__ = [
     "pdf_figure_page",
     "gain_matrix_heatmap",
     "celltype_sweep_heatmap_grid",
+    "visualize",
+    "VISUALIZE_PANEL_KEYS",
+    "collect_pseudogenome_development_data",
+    "render_pseudogenome_development_viewer",
 ]

@@ -1,0 +1,214 @@
+{
+  "schema": "visualize_bundle_receipt_v1",
+  "jaxfne_version": "0.4.18",
+  "panels": [
+    "01_network_structure",
+    "02_connectivity",
+    "03_parameter_summary",
+    "04_raster",
+    "05_population_rates",
+    "06_state_traces",
+    "07_source",
+    "08_field_probe"
+  ],
+  "panels_desc": {
+    "01_network_structure": "positions/layers/E-I (geometry3d / plot_network_3d)",
+    "02_connectivity": "matrix/sparse (edge_list scatter + weight hist)",
+    "03_parameter_summary": "weights/delays/state ownership + calibration",
+    "04_raster": "spike raster",
+    "05_population_rates": "mean rate + per-type",
+    "06_state_traces": "V, H, W (H/W optional, from last_hdp_diagnostics)",
+    "07_source": "source proxy Q(t) + |Q|",
+    "08_field_probe": "LFP-like (lfp_proxy heatmap / lfp_traces)"
+  },
+  "backend_support": [
+    "static",
+    "plotly",
+    "both"
+  ],
+  "large_handling": {
+    "LARGE_N_RASTER": 2000,
+    "LARGE_N_CONNECTIVITY": 600,
+    "LARGE_N_GEOMETRY": 5000,
+    "MAX_RASTER_POINTS": 200000,
+    "MAX_CONNECTIVITY_EDGES": 8000,
+    "evidence": "N=80 (full) + N=2000 (sampled) bundles exported without OOM; dense NxN never allocated for N>600"
+  },
+  "timings_s": {
+    "static_80": 0.574,
+    "plotly_80": 0.503,
+    "large_2000": 0.399
+  },
+  "exports": {
+    "static": {
+      "01_network_structure": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\static\\png\\01_network_structure.png"
+      },
+      "02_connectivity": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\static\\png\\02_connectivity.png"
+      },
+      "03_parameter_summary": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\static\\png\\03_parameter_summary.png"
+      },
+      "04_raster": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\static\\png\\04_raster.png"
+      },
+      "05_population_rates": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\static\\png\\05_population_rates.png"
+      },
+      "06_state_traces": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\static\\png\\06_state_traces.png"
+      },
+      "07_source": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\static\\png\\07_source.png"
+      },
+      "08_field_probe": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\static\\png\\08_field_probe.png"
+      }
+    },
+    "plotly": {
+      "01_network_structure": {
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\html\\01_network_structure.html",
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\png\\01_network_structure.png"
+      },
+      "02_connectivity": {
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\html\\02_connectivity.html",
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\png\\02_connectivity.png"
+      },
+      "03_parameter_summary": {
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\html\\03_parameter_summary.html",
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\png\\03_parameter_summary.png"
+      },
+      "04_raster": {
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\html\\04_raster.html",
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\png\\04_raster.png"
+      },
+      "05_population_rates": {
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\html\\05_population_rates.html",
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\png\\05_population_rates.png"
+      },
+      "06_state_traces": {
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\html\\06_state_traces.html",
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\png\\06_state_traces.png"
+      },
+      "07_source": {
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\html\\07_source.html",
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\png\\07_source.png"
+      },
+      "08_field_probe": {
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\html\\08_field_probe.html",
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\plotly\\png\\08_field_probe.png"
+      }
+    },
+    "both": {
+      "01_network_structure_static": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\01_network_structure_static.png"
+      },
+      "01_network_structure_plotly": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\01_network_structure_plotly.png",
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\html\\01_network_structure_plotly.html"
+      },
+      "02_connectivity_static": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\02_connectivity_static.png"
+      },
+      "02_connectivity_plotly": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\02_connectivity_plotly.png",
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\html\\02_connectivity_plotly.html"
+      },
+      "03_parameter_summary_static": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\03_parameter_summary_static.png"
+      },
+      "03_parameter_summary_plotly": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\03_parameter_summary_plotly.png",
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\html\\03_parameter_summary_plotly.html"
+      },
+      "04_raster_static": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\04_raster_static.png"
+      },
+      "04_raster_plotly": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\04_raster_plotly.png",
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\html\\04_raster_plotly.html"
+      },
+      "05_population_rates_static": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\05_population_rates_static.png"
+      },
+      "05_population_rates_plotly": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\05_population_rates_plotly.png",
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\html\\05_population_rates_plotly.html"
+      },
+      "06_state_traces_static": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\06_state_traces_static.png"
+      },
+      "06_state_traces_plotly": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\06_state_traces_plotly.png",
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\html\\06_state_traces_plotly.html"
+      },
+      "07_source_static": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\07_source_static.png"
+      },
+      "07_source_plotly": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\07_source_plotly.png",
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\html\\07_source_plotly.html"
+      },
+      "08_field_probe_static": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\08_field_probe_static.png"
+      },
+      "08_field_probe_plotly": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\png\\08_field_probe_plotly.png",
+        "html": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\both\\html\\08_field_probe_plotly.html"
+      }
+    },
+    "large": {
+      "01_network_structure": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\large_network\\png\\01_network_structure.png"
+      },
+      "02_connectivity": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\large_network\\png\\02_connectivity.png"
+      },
+      "03_parameter_summary": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\large_network\\png\\03_parameter_summary.png"
+      },
+      "04_raster": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\large_network\\png\\04_raster.png"
+      },
+      "05_population_rates": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\large_network\\png\\05_population_rates.png"
+      },
+      "06_state_traces": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\large_network\\png\\06_state_traces.png"
+      },
+      "07_source": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\large_network\\png\\07_source.png"
+      },
+      "08_field_probe": {
+        "png": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle\\large_network\\png\\08_field_probe.png"
+      }
+    }
+  },
+  "hdp_panel_evidence": {
+    "hdp_enabled": true,
+    "note": "State traces panel shows V + H mean\u00b1std + W hist when enable_hdp=True"
+  },
+  "zero_overhead": {
+    "pass": true,
+    "detail": "loaded:[]"
+  },
+  "simulate_contract": "signals = jtfne.simulate(model, sim) ; visualize(model, signals) is optional post-hoc, not called inside simulate()",
+  "vis_layer_reuse": [
+    "geometry3d",
+    "connectivity_matrix",
+    "raster",
+    "rate",
+    "vm",
+    "source",
+    "lfp",
+    "plot_network_3d",
+    "plot_raster",
+    "plot_population_rate",
+    "plot_lfp"
+  ],
+  "simulate_source_inspection": {
+    "simulate_mentions_visualize": false
+  },
+  "artifacts_dir": "C:\\workspace\\jaxfne\\artifacts\\visualize_bundle"
+}

@@ -9,6 +9,30 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+## v0.4.18 (2026-08-28)
+
+Structure/docs/CI/manuscript-tooling release — no scientific kernel change (Δscience=0). Hygiene guards only; 0.4.17 frozen evidence and public API contract unchanged.
+
+### Added
+- Manuscript: deterministic build pipeline `scripts/build_manuscript.py` (`M_submission` → `PDF_submission`) with DejaVu font, equation split, deterministic ID, and pagination; manuscript sources under `docs/publication/manuscript/`.
+- CI: split curated dev gate (~90 s) vs broad main gate; viz capability boundary and `reportlab` guard for build tests.
+- Docs inventory: `_generated/operator_inventory.md` regeneration; `artifacts/publication/final/` figure finalization (E2 ping/SSA combined figures).
+
+### Changed
+- Docs/nav: PseudoGenome (JDNA) labeling, subtractive compaction (C→R→E words-before-symbols, PseudoGenome G→D(K_D)→N), link consolidation, and `_generated` densification.
+- Structure: tutorials/figures/skills/`AGENTS.md` consolidated under `artifacts/` with frozen manifest relocation; `.opencode` authorities migrated to neutral harness owners (`opencode.json`).
+- JDNA docs: retitled PseudoGenome with compact `K_D` grammar and illustrative examples.
+- Doctrine/metadata: `pyproject.toml` authors and citation tag alignment; `README`/`CITATION.cff`/`bibliography` sync (TRUE_DEFECT D1–D3).
+
+### Fixed
+- Build: `--out X.pdf` always produces PDF with deterministic backend and scientific captions (P1); `reportlab`-dependent build tests skip cleanly when viz extra absent.
+- Hygiene guards (no trajectory change): `Model.checkpoint`/`restore_state` UTF-8 read consistency; `EdgeList.to_dict`/`from_dict` full-payload roundtrip with dtype preservation and backend version check; edge `delay_steps >= 0` validation and dense-backend nonzero-delay rejection; `json_safe` declared `NaN/Inf → None` with `UserWarning`; `spectrolaminar_psd_jax` `window="rectangular" | "hann"` taper (default rectangular, bit-identical).
+- Path hygiene: stale `artifacts/` references corrected after relocation; JAX-native/package-native prose allowlist for vocab gate.
+
+### Unchanged
+- Public root contract: 191 symbols (178 CANONICAL + 13 COMPATIBILITY) from 0.4.17; frozen publication evidence, receipts, and TFNE computational scaffold semantics unchanged.
+- Scientific kernels (`emitters`, `fields`, `_pipeline`, `_model_simulate` numerics): no trajectory or claim change beyond declared hygiene guards.
+
 ## v0.4.17 (2026-08-18)
 
 JDNA reconciliation release: multi-model audit reconciliation (H1–H14),

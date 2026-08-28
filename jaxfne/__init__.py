@@ -247,6 +247,8 @@ from .util import (
     validate_model,
     model_diff,
     configuration_diff,
+    canonical_compact_summary,
+    format_canonical_text_bundle,
 )
 from .optim import (
     AGSDR,
@@ -361,12 +363,15 @@ class _RuntimeModuleWrapper(_ModuleType):
             # Return the runtime function from core, not the module
             from .core import runtime as _runtime_fn
             return _runtime_fn
-        if name in ("vis", "plot_raster", "plot_stdp_adaptation_suite", "plot_spectrolaminar_suite"):
+        if name in ("vis", "visualize", "plot_raster", "plot_stdp_adaptation_suite", "plot_spectrolaminar_suite"):
             # importlib.import_module (not `from . import vis`) deliberately --
             # `from . import vis` triggers hasattr(self, "vis") internally,
             # which re-enters this __getattr__ and recurses infinitely since
             # "vis" isn't in __dict__ yet.
             import importlib
+            if name == "visualize":
+                _viz_mod = importlib.import_module(".vis.visualize", __name__)
+                return _viz_mod.visualize
             _vis_mod = importlib.import_module(".vis", __name__)
             if name == "vis":
                 return _vis_mod

@@ -1,9 +1,16 @@
 # Tutorials
 
-Tutorials teach **how to use the jaxfne grammar**: progressively detailed
-examples organized by mathematical purpose (circuit construction, source/field
-readout, paradigms, optimization). For frozen scientific demonstrations, see
-**[Études](../etudes/index.md)**.
+Tutorials teach **how to use the jaxfne grammar** as a cumulative arc that
+reuses the same model from definition to comparison. Each step carries the same
+variables forward (`genome → tensor → model → signals → H → dynamics → compare`), endpoint is the
+canonical **1000-neuron PseudoGenome** `canonical-v1-column-1000n`. For frozen scientific
+demonstrations, see **[Études](../etudes/index.md)**.
+
+> **Canonical invariant (endpoint 1000n, Δscience=0):** every step below starts from
+> `load_canonical_pseudogenome("canonical-v1-column-1000n")` and reuses the prior step's object.
+> Smoke mode (`SMOKE=1`, `n≈100`, `duration_ms≈100`) runs in ~30 s; the documented main path is 1000n
+> (`duration_ms=1000.0`, `dt_ms=0.5`). `PseudoGenome --develop(K_D)--> NeuronalTensor --construct(K_S)--> Model --simulate(K_S)--> Signals`
+> with `K_D ≠ K_S ≠ K_A` (see [PseudoGenome guide](../guides/jdna.md)). No new API.
 
 ## Notebook standard
 
@@ -36,108 +43,78 @@ workflow arc (models → circuits → readouts → optimization).
 
 ---
 
-## Single-topic progression
+## Cumulative (canonical 1000n) progression — define → develop → inspect → simulate → observe → add state → add dynamics → compare
 
-Progressive lessons on the source-to-field/readout workflow, from single-neuron
-models to multi-area laminar circuits.
+Each row reuses the same `genome → tensor → model → signals` chain. Endpoint is the
+frozen `canonical-v1-column-1000n` PseudoGenome (6 layers 100/250/200/100/200/150,
+48 intra-area rules, `fraction_jitter_sigma=0.01`); see `artifacts/tutorial_cumulative_audit.md`
+(full audit, this repo) for the table and receipts.
 
-**Beginner**
+| # | Verb | Topic | Focus | Reuses |
+|---|------|-------|-------|--------|
+| [**01**](01_define_genome.md) | define | PseudoGenome (generative rules) | Load `canonical-v1-column-1000n`, `validate_genome`, `genome_rules_hash`, `declared_constraints`, tolerance bands | — (origin) |
+| [**02**](02_develop_genome.md) | develop | Genome → Phenotype | `develop(G,K_D)` determinism, `seed=0` vs `1` jitter within bands, `phenotype_sha256`, provenance | `genome` from 01 |
+| [**03**](03_inspect_tensor.md) | inspect | Realized vs configured | `neuron_table()`, per-layer counts, 48 rules, configured vs realized vs effective, `save/load_neuronal_tensor` round-trip | `tensor` from 02 |
+| [**04**](04_simulate_tensor.md) | simulate | Construct → Signals | `construct(tensor, RuntimeConfiguration)` → `simulate` → `Signals`; `EdgeList.n_edges≈215k` (p=1.0 bipartite), positions after `Pose3D` | `tensor` from 02 |
+| [**05**](05_observe_fields.md) | observe | Field & probe operators | LFP/CSD/EEG/MEG/PSD post-hoc on *frozen* `X,Q`; authority `K_a≠K_b ⇒ Y_a≠Y_b`; LFP-not-CSD for crossover | `model,signals` from 04 |
+| [**06**](06_add_state.md) | add state | H / RBS container | `PlasticParams.H` → `h_state`, `with_hdp_initial_state`, `checkpoint/restore` (inert until dynamics) | `tensor,model` from 04 |
+| [**07**](07_add_dynamics.md) | add dynamics | HDP adaptation | `enable_hdp` (`DEFAULT_HDP` stable vs `DESYNC`), `H_trace/w_trace`, `K_HDP/K_ctrl/K_w_ctrl` | `model` from 06 |
+| [**08**](08_compare_nulls.md) | compare | Nulls, lesions, authority | Shuffled, `LESION_SPEC`, multi-area 3000n via `merge_neuronal_tensors`, `kappa`, effective = ΔX | all prior |
 
-| # | Topic | Focus |
-|---|-------|-------|
-| [**01**](01_single_neuron_multimodal.md) | Single-neuron Multimodal | Izhikevich emitter, spikes, voltage, field readouts |
-| [**02**](02_two_neuron_ei.md) | Two-neuron E/I | Coupling, recurrent dynamics |
+> **One chain, one model.** The first cell of 02-08 is `# continued — genome/tensor/model/signals from previous step` and does not rebuild a different `n` or `Configuration`. The fluent `Configuration` builder remains first-class (see box below) but the cumulative main line uses `develop(G,K_D)`; both converge on `construct → simulate` per [Configuration Grammar](../guides/configuration_grammar.md).
 
-**Intermediate**
+**Archive (pre-cumulative, isolated tutorials) — still reachable, not the recommended path:**
 
-| # | Topic | Focus |
-|---|-------|-------|
-| [**03**](03_network_100_ei.md) | 100-neuron Network | Population dynamics, stability |
-| [**04**](04_v1_column.md) | V1 Six-layer Column | Laminar anatomy, depth-specific readouts |
-| [**06**](06_v036_100_neuron_ei_population.md) | Chainable Configuration | Fluent `Configuration` method-chaining API |
-| [**07**](07_v037_source_bookkeeping.md) | Source Bookkeeping | Source/field/probe workflow and metadata |
-| [**08**](08_v038_lfp_csd_readout.md) | LFP/CSD Readout | Laminar contact projection, Gaussian kernels, CSD-proxy |
-| [**09**](09_v0310_eeg_meg_emm_proxy_bundle.md) | EEG/MEG/EMM Proxy Bundle | Scalp potential, magnetic field, metabolic proxy pathways |
-| [**10**](10_v0313_omission_oddball.md) | Sensory Omission & Oddball | Expected stimuli, deviants, sensory omissions |
-
-**Advanced**
-
-| # | Topic | Focus |
-|---|-------|-------|
-| [**05**](05_v1_pfc_dual_column.md) | V1-PFC Dual Column | Cross-area interaction, trial-chained HDP carryover |
-| [**11**](11_multi_laminar_cortical_agsdr.md) | Multi-area Laminar Model | Per-event targeting, sequential oddball paradigm backbone |
-| [**12**](12_izhikevich_single_emitter_explorer.md) | TFNE-Izhikevich Explorer | Single-emitter parameter exploration |
-| [**13**](13_canonical_column_etude.md) | Canonical Cortical Column | Canonical 1000-neuron laminar column reference |
+| # | Topic | Focus | Relation to cumulative |
+|---|-------|-------|------------------------|
+| [**01**](01_single_neuron_multimodal.md) | Single-neuron Multimodal | Izhikevich emitter, spikes, voltage, field readouts | Folded into 03 as 5-line *n=1 vs 1000* contrast box |
+| [**02**](02_two_neuron_ei.md) | Two-neuron E/I | Coupling, recurrent dynamics | Same — boxed contrast in 03 |
+| [**03**](03_network_100_ei.md) | 100-neuron Network | Population dynamics, stability | Smoke preamble for 02-05 (`if SMOKE: n=100`) |
+| [**04**](04_v1_column.md) | V1 Six-layer Column (600n) | Laminar anatomy, depth-specific readouts | Historical 600n example → redirect to 01 canonical 1000n |
+| [**06**](06_v036_100_neuron_ei_population.md) | Chainable Configuration | Fluent `Configuration` method-chaining API | Box in 04: `Configuration` vs `NeuronalTensor` two on-ramps, one compiler |
+| [**07**](07_v037_source_bookkeeping.md) | Source Bookkeeping | Source/field/probe workflow and metadata | Merged into 05 §1 |
+| [**08**](08_v038_lfp_csd_readout.md) | LFP/CSD Readout | Laminar contact projection, Gaussian kernels, CSD-proxy | Merged into 05 §2 |
+| [**09**](09_v0310_eeg_meg_emm_proxy_bundle.md) | EEG/MEG/EMM Proxy Bundle | Scalp potential, magnetic field, metabolic proxy pathways | Merged into 05 §3 |
+| [**10**](10_v0313_omission_oddball.md) | Sensory Omission & Oddball | Expected stimuli, deviants, sensory omissions | Variant box in 08 (`omission_oddball_paradigm`) |
+| [**05**](05_v1_pfc_dual_column.md) | V1-PFC Dual Column | Cross-area interaction, trial-chained HDP carryover | Multi-area variant in 08 (`merge_neuronal_tensors` / `canonical-v1-v4-pfc-multiarea`) |
+| [**11**](11_multi_laminar_cortical_agsdr.md) | Multi-area Laminar Model | Per-event targeting, sequential oddball paradigm backbone | Tuning demo in 07 (AGSDR) + knock-out demo in 08 |
+| [**12**](12_izhikevich_single_emitter_explorer.md) | TFNE-Izhikevich Explorer | Single-emitter parameter exploration | Prerequisite appendix (browser Euler ≠ JAX kernel) |
+| [**13**](13_canonical_column_etude.md) | Canonical Cortical Column | Canonical 1000-neuron laminar column reference | **Rewritten** to cross-link to 01-08; code blocks now `load_canonical_pseudogenome → develop → construct` |
 
 **NeuronalTensor (tensor-first circuits)** — [`jaxfne_neuronal_tensor_first.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_neuronal_tensor_first.ipynb)
 (script version: [`08_neuronal_tensor_first.py`](https://github.com/HNXJ/jaxfne/blob/main/examples/08_neuronal_tensor_first.py)).
-`NeuronalTensor` is a second, declarative `Areas x Layers x NeuronTypes` circuit
-definition that JSON round-trips and converges on the same `Model`/`Signals` as
-the `Configuration` path used above. Carries the canonical 1000-neuron V1
-column and is the path for **H-state / HDP adaptation** — see the
-[H-state / HDP guide](../guides/hdp.md) and the
-[API reference](../api/neuronal_tensor.md).
+`NeuronalTensor` is the phenotype data model: the declarative `Areas x Layers x
+NeuronTypes` object that `develop(G,K_D)` returns and `construct` compiles. It
+JSON round-trips and converges on the same `Model`/`Signals` as the `Configuration`
+path, but is the object the cumulative arc carries (steps 02→04). It is also the
+path for **H-state / HDP adaptation** — see the [H-state / HDP guide](../guides/hdp.md) and the
+[API reference](../api/neuronal_tensor.md). The cumulative path uses `develop(G,K_D)`; `Configuration`
+is the fluent builder for bespoke circuits — both converge on `construct → simulate`
+per [Configuration Grammar](../guides/configuration_grammar.md).
 
 ```python
-tensor = jtfne.NeuronalTensor(areas=[...])
-model  = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5))
-signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
+# cumulative main line (steps 01→04):
+genome = jtfne.load_canonical_pseudogenome("canonical-v1-column-1000n")
+tensor = jtfne.develop(genome, seed=0)   # G --D(K_D)--> N
+model  = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=1, duration_ms=1000.0, dt_ms=0.5))
+signals = jtfne.simulate(model)          # same compiler regardless of on-ramp
 ```
 
 ---
 
-## Étude notebooks
+## Études (frozen demonstrations — not tutorials)
 
-Notebook études under
-[`tutorials/etudes/`](https://github.com/HNXJ/jaxfne/tree/main/tutorials/etudes)
-remain runnable from the repository. The primary **documented étude** with
-committed metrics is indexed under **[Études](../etudes/index.md)** (HDP
-controllability / reachability). The table below lists legacy notebook études
-by theme.
+Notebook études under [`tutorials/etudes/`](https://github.com/HNXJ/jaxfne/tree/main/tutorials/etudes)
+remain runnable from the repository. The four **documented études** with committed
+metrics/bundles are indexed under **[Études](../etudes/index.md)** (HDP controllability/reachability,
+multiscale observation, Experiment A, heterogeneous emitters). Those are publication-grade
+frozen protocols; they are **not** the tutorial progression.
 
-**Foundational**
-
-| Étude | Topic |
-|-------|-------|
-| [No. 1 — Base](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_1_base.ipynb) | Computational-scaffold base circuit; tensor-first vs `Configuration` comparison |
-| [No. 1 — Multi-laminar AGSDR](11_multi_laminar_cortical_agsdr.md) | Multi-area laminar model with AGSDR tuning (also a versioned tutorial, above) |
-
-**Spectrolaminar family**
-
-| Étude | Topic |
-|-------|-------|
-| [No. 2 — Spectrolaminar Power](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_2_spectrolaminar_power.ipynb) | TFNE-Izhikevich spectrolaminar motif, single-trial |
-| [No. 3 — V1 Spectrolaminar 1k](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb) | 1000-neuron scalable spectrolaminar V1 column (see showcases (`docs/guides/showcases.md` — repository-internal reference, excluded from the built site)) |
-| [No. 7 — Multi-trial Spectrolaminar](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_7_multitrial_spectrolaminar.ipynb) | Multi-trial continuous simulation → spectrolaminar motif aggregation |
-
-**Homeostasis & plasticity family**
-
-| Étude | Topic |
-|-------|-------|
-| [No. 4 — Homeostatic V1 Column](04_v1_column.md) | Continuous pause/resume simulation with HDP homeostasis (also a versioned tutorial, above) |
-| [No. 8 — Continuous Adaptation](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb) | Continuous drive adaptation via HDP |
-
-**Biophysical & multi-area family**
-
-| Étude | Topic |
-|-------|-------|
-| [No. 5 — Enhanced Biophysical Column](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_5_enhanced_biophysical_column.ipynb) | Enhanced biophysical cortical column |
-| [No. 6 — Multi-Area Network](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_6_multi_area_network.ipynb) | Connecting multiple cortical columns |
-
-**Oddball / omission paradigm family**
-
-| Étude | Topic |
-|-------|-------|
-| [No. 9 — Local Oddball](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb) | Simple local oddball task |
-| [No. 10 — Global/Local Oddball](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb) | Combined global/local oddball task |
-| [No. 11 — Local Omission](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_11_omission_local.ipynb) | Local omission task |
-| [No. 12 — Continuous Omission (COOP)](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb) | Continuous omission oddball paradigm (COOP) |
-
-**Thalamocortical**
-
-| Étude | Topic |
-|-------|-------|
-| [TCM V1 6-Population](https://github.com/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_tcm_v1_6pop.ipynb) | Thalamocortical model, 6-population cortical column |
+Legacy notebook études (12 + TCM) remain under `artifacts/tutorials/etudes/` for
+runnable archival use; see [Études](../etudes/index.md). The table formerly duplicated here has been
+removed to avoid implying those notebooks are the tutorial path. For evidence reuse,
+the observations in cumulative step 05 and comparison in step 08 are derived from the same
+observation stack those études freeze (see [Multiscale observation](../etudes/multiscale_observation.md)).
 
 ---
 
@@ -157,19 +134,23 @@ Or execute headless:
 python examples/v031_single_izhikevich_neuron.py
 ```
 
-## Quick example: Single-neuron primer
+## Quick example: Canonical 1000n primer (same chain as steps 01→04)
 
 ```python
 import jaxfne as jtfne
 
-cfg = jtfne.suite2_four_celltype_config(seed=0, duration_ms=100.0, dt_ms=0.1)
-model = jtfne.construct(cfg)
-signals = jtfne.simulate(model, duration_ms=100.0, dt_ms=0.1, seed=0)
+genome = jtfne.load_canonical_pseudogenome("canonical-v1-column-1000n")  # define (01)
+tensor = jtfne.develop(genome, seed=0)                                   # develop (02)
+# inspect (03): len(tensor.areas[0].layers)==6, sum(n_neurons)==1000, rules==48
+model   = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=1, duration_ms=1000.0, dt_ms=0.5))  # simulate (04)
+signals = jtfne.simulate(model)
 
-idx_e = model.select(cell_type="E")
-spk = signals.get("spk", cell_type="E")
-print(f"E spike count: {int(spk.sum())}")
+print(f"neurons: {len(model.neuron_table())}")         # 1000
+print(f"spike count: {int(signals.get('spikes').sum())}")
+# observe (05): LFP/CSD on frozen signals; add state (06) / dynamics (07) / compare (08) carry this same model
 ```
+
+> The former single-neuron primer (`suite2_four_celltype_config(n=1)`) is retained as a 5-line contrast box inside step 03; it is not the canonical model. For the fluent-builder on-ramp, see [Configuration Grammar](../guides/configuration_grammar.md).
 
 ## Next steps
 

@@ -2,7 +2,7 @@
 
 **Run jaxfne examples in Google Colab without local setup.**
 
-**Version:** latest PyPI release `jaxfne==0.4.17` (tag `v0.4.17`)
+**Version:** latest PyPI release `jaxfne==0.4.18` (tag `v0.4.18`)
 **Last updated:** 2026-07-20  
 **run_status:** tutorial_scaffold, exploratory_simulated_proxy
 
