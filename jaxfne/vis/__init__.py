@@ -145,6 +145,10 @@ from .pseudogenome_viewer import (
     collect_pseudogenome_development_data,
     render_pseudogenome_development_viewer,
 )
+from .column_viewer import (
+    collect_column_viewer_data,
+    render_column_viewer,
+)
 
 __all__ = [
     "FigureResult",
@@ -277,4 +281,6 @@ __all__ = [
     "VISUALIZE_PANEL_KEYS",
     "collect_pseudogenome_development_data",
     "render_pseudogenome_development_viewer",
+    "collect_column_viewer_data",
+    "render_column_viewer",
 ]
