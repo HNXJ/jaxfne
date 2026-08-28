@@ -30,7 +30,7 @@ Structure/docs/CI/manuscript-tooling release — no scientific kernel change (Δ
 - Path hygiene: stale `artifacts/` references corrected after relocation; JAX-native/package-native prose allowlist for vocab gate.
 
 ### Unchanged
-- Public root contract: 191 symbols (178 CANONICAL + 13 COMPATIBILITY) from 0.4.17; frozen publication evidence, receipts, and TFNE computational scaffold semantics unchanged.
+- Public root contract: 189 symbols (176 CANONICAL + 13 COMPATIBILITY) from 0.4.17 — SurrogateConfig/surrogate_config reclassified to EXPERIMENTAL_INTERNAL (W4 scoping), otherwise frozen; frozen publication evidence, receipts, and TFNE computational scaffold semantics unchanged.
 - Scientific kernels (`emitters`, `fields`, `_pipeline`, `_model_simulate` numerics): no trajectory or claim change beyond declared hygiene guards.
 
 ## v0.4.17 (2026-08-18)
