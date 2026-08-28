@@ -2,9 +2,7 @@
 
 ## Purpose
 
-This document specifies source bookkeeping modes, field metadata rules, forbidden patterns, and the mappings between jaxfne core equations and runtime manifest/report fields.
-
-It complements the [Mathematical Glossary Flow](mathematical_glossary_flow.md) by grounding source and field equations in implementation detail: which manifest field controls which equation, what modes are allowed, what combinations are forbidden, and how to interpret statement boundaries in code.
+Canonical source/field equations and manifest mappings. See [Mathematical Glossary Flow](mathematical_glossary_flow.md) for format.
 
 ---
 

@@ -12,12 +12,23 @@ Do not hand-edit the output file; regenerate it instead.
 """
 
 import inspect
+import json
 from pathlib import Path
 
 import jaxfne as jtfne
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 OUTPUT_PATH = ROOT_DIR / "docs" / "_generated" / "operator_inventory.md"
+
+
+def _load_public_tiers() -> tuple[set[str], set[str]]:
+    try:
+        data = json.loads((ROOT_DIR / "artifacts" / "public_surface_contract_v0413.json").read_text(encoding="utf-8"))
+        public = set(data.get("public_exports", []))
+        compat = set(data.get("compatibility_deprecations", {}).keys())
+        return public, compat
+    except Exception:
+        return set(), set()
 
 
 def describe(name: str) -> tuple[str, str, str]:
@@ -36,32 +47,62 @@ def describe(name: str) -> tuple[str, str, str]:
     return module, kind, signature
 
 
+def _split_sig(sig: str) -> tuple[str, str]:
+    if not sig:
+        return "", ""
+    if "->" in sig:
+        inp, out = sig.rsplit("->", 1)
+        return inp.strip(), out.strip()
+    return sig.strip(), ""
+
+
+def _state_effect(name: str, kind: str) -> str:
+    if kind == "value":
+        return "—"
+    if kind == "class":
+        return "constructs"
+    n = name.lower()
+    if any(k in n for k in ("simulate", "construct", "tune", "build", "make_", "save_", "load_", "checkpoint", "restore", "run_", "optimize")):
+        return "stateful"
+    return "pure"
+
+
+def _public_tier(name: str, public: set[str], compat: set[str]) -> str:
+    if name in compat:
+        return "COMPATIBILITY"
+    if name in public:
+        return "CANONICAL"
+    # __all__ entries not in contract are treated as CANONICAL (frozen 0.4.13 pass1 exports)
+    return "CANONICAL"
+
+
 def build_lines() -> list[str]:
     names = sorted(jtfne.__all__)
-    by_module: dict[str, list[tuple[str, str, str]]] = {}
-    for name in names:
-        module, kind, signature = describe(name)
-        by_module.setdefault(module, []).append((name, kind, signature))
-
+    public, compat = _load_public_tiers()
     lines = [
         "# Operator Inventory (generated)",
         "",
         f"Generated from the live `jaxfne.__all__` export surface ({len(names)} "
-        "entries) by `scripts/generate_operator_inventory.py`. Grouped by each "
-        "export's real defining submodule, not a hand-maintained category list "
-        "— do not hand-edit; regenerate after any export change.",
+        "entries) by `scripts/generate_operator_inventory.py`. Deterministic dense table "
+        "Operator|Input|Output|State effect|Public — do not hand-edit; regenerate after any export change.",
         "",
+        "| Operator | Input | Output | State effect | Public |",
+        "|---|---|---|---|---|",
     ]
-    for module in sorted(by_module):
-        entries = by_module[module]
-        lines.append(f"## `{module}` ({len(entries)})")
-        lines.append("")
-        lines.append("| Name | Kind | Signature |")
-        lines.append("|---|---|---|")
-        for name, kind, signature in entries:
-            signature_cell = f"`{signature}`" if signature else ""
-            lines.append(f"| `{name}` | {kind} | {signature_cell} |")
-        lines.append("")
+    for name in names:
+        _, kind, sig = describe(name)
+        inp, out = _split_sig(sig)
+        inp_cell = f"`{inp}`" if inp else "—"
+        out_cell = f"`{out}`" if out else "—"
+        # Truncate very long signatures deterministically to keep table dense but complete
+        if len(inp_cell) > 120:
+            inp_cell = inp_cell[:117] + "...`"
+        if len(out_cell) > 60:
+            out_cell = out_cell[:57] + "...`"
+        state = _state_effect(name, kind)
+        tier = _public_tier(name, public, compat)
+        lines.append(f"| `{name}` | {inp_cell} | {out_cell} | {state} | {tier} |")
+    lines.append("")
     return lines
 
 

@@ -2,7 +2,7 @@
 
 **Status:** FROZEN (rule; implementation follows incrementally)  
 **Baseline:** `dev` @ `6003958` (H1a/H1b)  
-**Authority:** complements `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md`
+Complements `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md`.
 
 ## 1. Central claim
 
@@ -51,9 +51,7 @@ implementations of typed roles**, not one universal physical equation.
 is a **finite-dimensional state-space container**, not a single homeostatic
 equation.
 
-> **RBS is a finite-dimensional relative biophysical state whose coordinates may
-> represent explicit physical quantities or reduced sufficient states, and whose
-> influence on TFNE operators is declared through typed gain/coupling maps.**
+See [RBS/RBD/HDP](rbs_rbd_hdp.md) for the canonical RBS definition.
 
 Coordinates may represent **different physics** while sharing one interface:
 

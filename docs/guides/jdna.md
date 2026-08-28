@@ -16,6 +16,12 @@ PseudoGenome --develop--> NeuronalTensor --construct--> Model --simulate--> Sign
 
 `PseudoGenome` is the scientific object; `JDNA` is the implementation; `development` is the `PseudoGenome` → `NeuronalTensor` map; `phenotype` is the realization. The terminal structural phenotype is a [NeuronalTensor](../api/neuronal_tensor.md). No literal genetics implication is made.
 
+Legend — G is the PseudoGenome, D is JDNA develop, K_D is the developmental key, N is the NeuronalTensor:
+
+\[
+\boxed{G \xrightarrow{D(K_D)} N}
+\]
+
 ## Illustrative examples
 
 **Rules → realization.** A PseudoGenome may declare per-layer population fractions (e.g., excitatory/inhibitory base fractions), bounded developmental ranges (fraction tolerance bands), laminar geometry (depth bands, x/y ranges, distribution), and distance- or class-dependent connection rules. Development realizes these rules as explicit arrays and edges in the NeuronalTensor: integer counts per cell type within declared bands, concrete positions, per-neuron parameters, edges, weights, and delays.
@@ -23,6 +29,12 @@ PseudoGenome --develop--> NeuronalTensor --construct--> Model --simulate--> Sign
 **Cortical column (1000 neurons).** The canonical 6-layer cortical-column PseudoGenome declares layer-wise counts and composition rules, geometry, and typed inter-layer connection schemes. Developing it with a given `K_D` realizes a concrete 1000-neuron phenotype — specific counts, positions, parameters, edges, weights, and delays — within the declared constraints. The PseudoGenome stores the generative rules, not 1000 per-neuron records.
 
 **Same genome, different K_D; same K_D, same phenotype.** Two developments of the same PseudoGenome with different `K_D` values (e.g., `seed=0` vs `seed=1`) share the same rules but realize different phenotypes within the same constraint bands. Conversely, development is deterministic in `K_D`: the same PseudoGenome and the same `K_D` reproduce the same phenotype.
+
+## Configured → Realized → Effective (words before symbols)
+
+Configured requests a specification (for example, an E→I connection probability `p_EI`). Realized constructs the concrete `NeuronalTensor` and, after `construct`, the inspectable `EdgeList` in `model.params['edge_list']` plus `model.params['positions']`, `EdgeList.weight`, `EdgeList.delay_steps`/`tau_ms`, `model.neuron_table()` and `NeuronalTensor.provenance` via `develop`/`construct`. Effective measures change `ΔX` under intervention; realization does not imply effectiveness.
+
+Compact: `p_EI` (configured E→I connectivity) → `E_EI` (realized E→I edge set inspectable via `model.params['edge_list']`) → `ΔX` (measured change under intervention).
 
 ## Mathematics
 
@@ -192,7 +204,9 @@ first-class.
   `H_D \subset Z_D` possibility is documented but not exercised by an
   implemented genome.
 - The stochastic variation produced is *computational pseudo-genomic /
-  developmental variation*, not biological genetic variability.
+   developmental variation*, not biological genetic variability.
+
+Realization of `N` via `develop` does not establish effectiveness (`ΔX` under intervention).
 
 ## References
 

@@ -122,32 +122,7 @@ csd = readouts['CSD-proxy']      # [T, C]
 
 ## Signals API Rules
 
-After `jtfne.simulate()`, the returned `signals` object has:
-
-```python
-signals.spikes       # np.ndarray, shape (T, N), boolean spike indicator
-signals.V_m          # np.ndarray, shape (T, N), membrane voltage
-signals.sources      # np.ndarray, shape (T, N), source currents
-signals.time_ms      # np.ndarray, shape (T,), time axis in milliseconds
-signals.metadata     # dict, scope/readout metadata
-```
-
-### Metadata Keys (Scope Clarity)
-
-```python
-signals.metadata = {
-    "scope_status": "computational_scaffold",
-    "readout_status": "simulated_proxy",
-    "field_mode": "proxy_convolution_no_pde",
-    "amplitude_status": False,
-    "duration_ms": 1000.0,
-    "dt_ms": 0.1,
-    "dtype": "float32",
-    "seed": 42,
-}
-```
-
-**Critical key:** `amplitude_status=False` gates statements about real-world amplitude.
+See [Source Bookkeeping](07_v037_source_bookkeeping.md#signals-api-rules) and [Source/Field Equations](../source_field_equations.md) for `Signals` fields and `metadata` (`amplitude_status=False` gates physical claims).
 
 ---
 
@@ -218,105 +193,19 @@ for layer, indices in layer_indices.items():
 
 ## Probe Modes & Field Computation
 
-### Available Modes
-
-| Mode | Shape | Description |
-|------|-------|-------------|
-| `spikes` | (T, N) | Spike detection (boolean) |
-| `V_m` | (T, N) | Membrane voltage |
-| `source` | (T, N) | Raw source currents from emitter |
-| `LFP-proxy` | (T, C) | Local-field-potential proxy via Gaussian projection |
-| `CSD-proxy` | (T, C) | Current-source-density proxy (second spatial derivative) |
-
-### How Proxy Fields Are Computed
-
-**Not PDE-solved.** Instead:
-
-1. Extract source currents from neurons: $S(t)$ [T, N]
-2. Apply fixed Gaussian kernel: $Y(t) = S @ K^T$ [T, C]
-3. Optionally compute spatial derivatives (for CSD)
-
-This is **fast** (no solver loop) but **approximate** (proxy-scoped for tutorial data).
+See [Probe Operators](../guides/probe_operators.md) for the eight operators; available here: `spikes`, `V_m`, `source`, `LFP-proxy`, `CSD-proxy` (see table in [Source Bookkeeping](07_v037_source_bookkeeping.md)). Proxy fields are fast convolution, not PDE-solved.
 
 ---
 
 ## Validation & JSON Safety
 
-### Run Manifest Template
-
-```python
-import json
-
-RUN_METADATA = {
-    "scope_status": "computational_scaffold",
-    "readout_status": "simulated_proxy",
-    "field_mode": "proxy_laminar_gaussian_kernel",
-    "amplitude_status": False,
-    "duration_ms": 1000.0,
-    "dt_ms": 0.1,
-    "dtype": "float32",
-    "seed": 42,
-    "n_neurons": 48,
-    "n_contacts": 16,
-    "layers": ["L2/3", "L4", "L5", "L6"],
-    "mean_population_rate_hz": 4.5,
-    "source_shape": [10000, 48],
-    "lfp_proxy_shape": [10000, 16],
-    "csd_proxy_shape": [10000, 16],
-    "finite_outputs": True,
-    "equations": {
-        "source_bookkeeping": "S(t) ∈ ℝ^{T×N}",
-        "source_projection": "Y(t,c) = Σ_n K(c,n) · S(t,n)",
-        "lfp_proxy": "lfp_proxy = Y, spatially-smoothed field",
-        "csd_proxy": "csd_proxy ≈ -d²Y/dz², second spatial derivative",
-    },
-}
-
-# Validate JSON safety (no NaN/Inf)
-json.dumps(RUN_METADATA, allow_nan=False)
-```
-
-### JSON Safety
-
-All manifest outputs must serialize with `allow_nan=False`:
-
-```python
-# OK
-json.dumps(manifest, allow_nan=False)
-
-# Will fail if NaN/Inf present
-manifest["rate"] = float('nan')
-json.dumps(manifest, allow_nan=False)  # ← JSONDecodeError
-```
+See [Source Bookkeeping](07_v037_source_bookkeeping.md) for the run manifest template and `json.dumps(..., allow_nan=False)` gate.
 
 ---
 
 ## Interpretation & Statement Gates
 
-### The Gate: `amplitude_status`
-
-This boolean key prevents misinterpretation:
-
-```python
-if not metadata["amplitude_status"]:
-    # BLOCKED: Stating real-world amplitude
-    # ✗ "The LFP-proxy amplitude is 50 µV"
-    # ✗ "CSD-proxy indicates a sink at L5"
-    
-    # ALLOWED: Relative or tutorial statements
-    # ✓ "LFP-proxy increases during high firing rate"
-    # ✓ "Layer 5 sources dominate the field"
-    # ✓ "The kernel width of 0.10 produces smoother estimates than 0.05"
-```
-
-### Tutorial scope
-
-- No biophysical compartments (soma, dendrite, axon)
-- No temperature sensitivity, frequency-dependent effects
-- No subject-specific anatomy
-- No experimental validation
-- Kernels are fixed defaults (not tunable in this tutorial)
-- Amplitudes are uncalibrated (proxy-scale only)
+See [Source Bookkeeping](07_v037_source_bookkeeping.md) for `amplitude_status` gate and scope limits (no compartments, no calibration, proxy-scale only).
 
 ### Reserved extensions
 
@@ -329,35 +218,13 @@ if not metadata["amplitude_status"]:
 
 ## Summary & Next Steps
 
-### What You've Learned
+See [Source Bookkeeping](07_v037_source_bookkeeping.md) for workflow summary; this tutorial adds laminar CSD/LFP specifics.
 
-1. **Implicit sources:** Emitter + probes determine field computation
-2. **Spatial projection:** Gaussian kernels map point sources to contacts
-3. **LFP/CSD computation:** Source projection + spatial derivatives
-4. **Multimodal readouts:** Different operators extract different field perspectives
-5. **Metadata gates:** `amplitude_status=False` prevents misinterpretation
-
-### How to Use This in Your Work
-
-```python
-# Step 1: Configure a column
-cfg = jtfne.Configuration().set_emitter(...).probes([...])
-
-# Step 2: Simulate
-model = jtfne.construct(cfg)
-signals = jtfne.simulate(model, ...)
-
-# Step 3: Check scope before interpreting
-assert not signals.metadata["amplitude_status"]
-
-# Step 4: Use relative comparisons, not absolute statements
-layer5_rate = signals.spikes[layer5_idx].mean()
-layer23_rate = signals.spikes[layer23_idx].mean()
-print(f"L5 rate is {layer5_rate / layer23_rate:.1f}x L2/3 rate")  # ✓ OK
-
-# Step 5: Document scope in your output
-json.dump(signals.metadata, fp, allow_nan=False)
-```
+| Use | Pattern |
+|---|---|
+| Check scope | `assert not signals.metadata["amplitude_status"]` |
+| Compare relatively | `L5_rate / L23_rate` |
+| Document | `json.dump(signals.metadata, fp, allow_nan=False)` |
 
 ---
 

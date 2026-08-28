@@ -79,7 +79,8 @@ same `(genome, seed)` reproduces the identical phenotype. Optional
 exact (`n_neurons`), whose cell-type counts respect the declared tolerance
 bands, and whose `provenance` records: genome identity hash (`genome_sha256`),
 schema version, development seed, development parameters, and phenotype hash
-(`phenotype_sha256`).
+(`phenotype_sha256`). Realization of `N` via `develop` does not establish
+effectiveness (`ΔX` under intervention).
 
 **Ownership.** `jaxfne.jdna.genome`.
 

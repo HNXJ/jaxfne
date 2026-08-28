@@ -1,10 +1,6 @@
 # RBS, RBD and HDP
 
-Repository-facing realization of the jaxfne hidden-state refactor. **Upstream
-authority:** the six project-source markdowns under
-`artifacts/project_sources/`, with `4_tfne_theory_and_neural_tensor.md` as the
-principal theoretical source. Project sources were aligned in the `4a8e54b`
-semantic migration; this document remains the compact repository index.
+Repository-facing realization of the jaxfne hidden-state refactor. Upstream: `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` (principal).
 
 **Active protocols:** Protocol D₀/D₁ (delays, frozen `724aa32`); Protocol H
 (state memory under \(\dot W=0\), `docs/doctrine/protocol_h_rbd_memory.md`);
@@ -19,9 +15,7 @@ operator couplings.
 
 ## Mission
 
-> **TFNE does not prescribe a neural model; it provides a common relative state,
-> operator, and geometry grammar in which neural models of different physical
-> resolution can be composed.**
+See [TFNE Containment](tfne_containment_architecture.md) for the canonical TFNE grammar.
 
 Refactor jaxfne's hidden-state rules around a physically disciplined,
 relative state-space formulation while preserving validated behavior and

@@ -2,11 +2,7 @@
 
 ## Purpose
 
-This document describes the computation basis of TFNE (Tensor-Field Neural Equations): a principled model for composing neural emitters, source projections, field approximations, and readout operators into reproducible, extensible workflows.
-
-The key principle: **TFNE is collapsible.** Every operator (emitter, source, field, probe) has a well-defined input/output shape rule. When not computed or not stated, operators can be "collapsed" to identity or proxy equivalents without breaking the pipeline. This enables safe modularity and reduces the barrier to adding new domains (whole-brain, ephaptic, ionic, etc.).
-
-This is a **rule document**, not an implementation guide. It complements [Mathematical Glossary Flow](mathematical_glossary_flow.md) (equations) and [Source/Field Equations](source_field_equations.md) (implementation detail).
+Canonical computation basis: collapsible TFNE operator shapes and collapse rules. See [Mathematical Glossary Flow](mathematical_glossary_flow.md) and [Source/Field Equations](source_field_equations.md).
 
 ---
 

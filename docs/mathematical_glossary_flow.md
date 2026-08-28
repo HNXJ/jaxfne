@@ -2,18 +2,16 @@
 
 ## Purpose
 
-Mathematical glossary flow is the documentation format used to teach TFNE/jaxfne equations by connecting formal mathematics to physical intuition, computational implementation, and statement boundaries.
+Canonical equation flow: formal → glossary → worded → bridge → boundary → implementation. See [Source/Field Equations](source_field_equations.md) and [Computation Basis](computation_basis.md).
 
-Each important equation is presented in:
-1. Simple/familiar form
-2. Tensor/general form (when useful)
-3. Complete term glossary
-4. Worded-equation (plain-language translation)
-5. Critical bridge term (how this equation connects the pipeline)
-6. Run boundary (what scientific status this equation carries)
-7. Implementation location (where in code/report this shows up)
-
-This structure ensures that equations remain teachable, grounded, and appropriately stated.
+| Element | Role |
+|---|---|
+| Formal | equation |
+| Glossary | terms |
+| Worded | plain language |
+| Bridge | pipeline link |
+| Boundary | claim status |
+| Location | code/report |
 
 ---
 

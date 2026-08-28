@@ -61,6 +61,8 @@ boundary, gauge, residual, convergence, and calibration validation before any
 physical-amplitude reporting. The elliptic field equation specification (`docs/guides/poisson_admissibility.md` — repository-internal reference, excluded from the built site)
 documents the admissibility mathematics for that regime.
 
+PseudoGenome realization via `develop` does not establish effectiveness (`ΔX` under intervention); see [PseudoGenome guide](guides/jdna.md).
+
 ## Related pages
 
 - [Probe operators](guides/probe_operators.md)

@@ -53,18 +53,17 @@ amperes — every kernel in this module sets `source_calibration_status` to a va
 
 ### Canonical source representation
 
-The canonical emitter source is the relative state-to-source map
+Canonical `Q^(r)` map (see [Source/Field Equations](../source_field_equations.md) and [Source Schema](source_schema.md)):
 
 ```text
 Q^(r) = source_scale * (current_native + DEFAULT_SPIKE_IMPULSE_GAIN * spikes)
 current_native = drive + recurrent_synaptic + noise
 ```
 
-`DEFAULT_SPIKE_IMPULSE_GAIN` is defined once in
-`jaxfne.presets` and shared by the dense, edge, homeostasis, HDP, and
-receptor-exponential Izhikevich kernels. The source support is
-time-by-neuron, signs are carried by recurrent weights and the positive spike
-impulse, and normalization is per-neuron `source_scale`.
+| Field | Source |
+|---|---|
+| `source_scale` | per-neuron scale |
+| `DEFAULT_SPIKE_IMPULSE_GAIN` | `jaxfne.presets` (shared across kernels) |
 
 ### Parameters
 
