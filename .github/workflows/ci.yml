@@ -32,10 +32,17 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install package and dev deps
+      - name: Install package and dev deps (dev — no viz/reportlab)
+        if: github.ref != 'refs/heads/main'
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev,jaxley]"
+
+      - name: Install package and dev+viz deps (main — with reportlab)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,viz,jaxley]"
 
       - name: Compileall
         run: python -m compileall -q jaxfne tests examples
@@ -76,21 +83,24 @@ jobs:
         # class of regression fixed manually 2026-07-08 (16 orphaned pages).
         run: PYTHONPATH=. python scripts/check_docs_orphans.py
 
-      - name: Run fast tests (skip slow notebook execution)
+      - name: Run fast tests (curated dev gate ~90s, viz boundary — reportlab skips)
         if: github.ref != 'refs/heads/main'
         run: |
-          PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -m "not slow" -p pytest_cov \
-            --cov=jaxfne --cov-report=term-missing:skip-covered --cov-report=xml
+          # Invariant: G_dev ⊂ G_broad ⊆ G_release (dev optimized for fast regression, not exhaustive).
+          # Dev installs .[dev,jaxley] only (no reportlab) → builder reportlab tests skip via pytest.skip
+          # (intentional capability boundary, not environmental debt). Broad/release install .[dev,viz,jaxley]
+          # and must run all 8 builder tests.
+          PYTHONPATH=. python scripts/run_test_gate.py dev
 
       # Real notebook execution (the `notebook` marker) is covered by the
       # dedicated, scheduled/manual notebook_execution.yml workflow instead
       # of every main push -- 28 release-facing notebooks can take well over
       # an hour combined. Other `slow` tests still run here on main.
-      - name: Run all tests (including slow, excluding notebook execution)
+      - name: Run all tests (broad gate — comprehensive non-slow, with viz)
         if: github.ref == 'refs/heads/main'
         run: |
-          PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -m "not notebook" -p pytest_cov \
-            --cov=jaxfne --cov-report=term-missing:skip-covered --cov-report=xml
+          # Broad gate: not slow (3573 tests) with viz/reportlab present → all 8 builder tests run.
+          PYTHONPATH=. python scripts/run_test_gate.py broad
 
       - name: Upload coverage report
         if: always()
