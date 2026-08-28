@@ -157,7 +157,7 @@ nav:
       - Calibration: guides/calibration.md
       - Homeostasis: guides/homeostasis.md
       - H-state and HDP: guides/hdp.md
-      - PseudoGenome: guides/jdna.md
+      - PseudoGenome (JDNA): guides/jdna.md
       - Output bundles: guides/output_bundles.md
       - Jaxley interoperability: guides/jaxley_interop.md
 
