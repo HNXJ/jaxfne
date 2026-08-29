@@ -30,11 +30,11 @@ Legend — G is the PseudoGenome, D is JDNA develop, K_D is the developmental ke
 
 **Same genome, different K_D; same K_D, same phenotype.** Two developments of the same PseudoGenome with different `K_D` values (e.g., `seed=0` vs `seed=1`) share the same rules but realize different phenotypes within the same constraint bands. Conversely, development is deterministic in `K_D`: the same PseudoGenome and the same `K_D` reproduce the same phenotype.
 
-## Configured → Realized → Effective (words before symbols)
+## Configured → Realized → Executed → Effective (words before symbols)
 
-Configured requests a specification (for example, an E→I connection probability `p_EI`). Realized constructs the concrete `NeuronalTensor` and, after `construct`, the inspectable `EdgeList` in `model.params['edge_list']` plus `model.params['positions']`, `EdgeList.weight`, `EdgeList.delay_steps`/`tau_ms`, `model.neuron_table()` and `NeuronalTensor.provenance` via `develop`/`construct`. Effective measures change `ΔX` under intervention; realization does not imply effectiveness.
+Configured requests a specification (for example, an E→I connection probability `p_EI`). Realized constructs the concrete `NeuronalTensor` and, after `construct`, the inspectable `EdgeList` in `model.params['edge_list']` plus `model.params['positions']`, `EdgeList.weight`, `EdgeList.delay_steps`/`tau_ms`, `model.neuron_table()` and `NeuronalTensor.provenance` via `develop`/`construct`. Executed is the runtime-realized quantity after `simulate` — the actual `Signals` time axis, `dt_ms`, `n_steps`, `dtype`, and `H`/`W` sizes, which may differ from realized via dtype downgrade, dt rounding, or capped duration. Effective measures change `ΔX` under intervention; realization and execution do not imply effectiveness (`effective` is reserved for causal evidence, `executed` for post-simulate runtime).
 
-Compact: `p_EI` (configured E→I connectivity) → `E_EI` (realized E→I edge set inspectable via `model.params['edge_list']`) → `ΔX` (measured change under intervention).
+Compact: `p_EI` (configured E→I connectivity) → `E_EI` (realized E→I edge set inspectable via `model.params['edge_list']`) → `T_executed` (executed time axis / dtype / H/W after `simulate`) → `ΔX` (effective causal change under intervention).
 
 ## Mathematics
 

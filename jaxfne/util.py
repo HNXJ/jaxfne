@@ -319,10 +319,27 @@ def canonical_compact_summary(
 
     Returns a JSON-safe dict with:
 
-    - ``Theta``: decomposition ``Θ_static``, ``X``, ``H``, ``W`` with sizes.
-    - ``N_static``: Σ|θ| for θ∈Θ_static.
-    - ``output_basis``: minimal independent basis STATE/SOURCE/FIELD/PROBE/DERIVED
-      (not flattened signals).
+    - ``taxonomy``: universal six-class split — Fixed parameters (constant),
+      Dynamic state (v,u), History state (delay/continuation buffers),
+      Mutable parameters (coordinates permitted to change: EdgeList.weight),
+      Trainable/free parameters (optimizer-exposed subset), Recorded outputs
+      (X→Q→Φ→Y trajectory). Stored ≠ plastic (permitted) ≠ free ≠ optimizer.
+    - ``Theta``: legacy decomposition ``Θ_static``, ``X``, ``H``, ``W`` with sizes
+      (kept for backward compat; maps onto taxonomy).
+    - ``N_static``: Σ|θ| for θ∈fixed per-neuron set.
+    - ``N_static_counterexamples``: 4 concrete mis-counts showing why
+      stored/plastic/free/optimizer cannot be substituted for N_static.
+    - ``output_basis``: typed observation graph ``X→Q→Φ→Y`` (not minimal
+      independent; not flattened signals). Each node carries
+      ``depends_on``, ``shape``, ``recorded``, ``calibrated``; roles
+      X=STATE, Q=SOURCE, Φ=FIELD, Y=PROBE/DERIVED.
+    - ``counts``: configured vs realized vs executed (neurons, populations,
+      edges, duration, dt, n_steps, state sizes); ``effective`` is reserved
+      for causal evidence ``ΔX`` under intervention, not runtime.
+    - ``provenance``: config_hash, tensor_identity, versions.
+    - ``text_bundle``: human-readable example (like jaxfne summary).
+      ``depends_on``, ``shape``, ``recorded``, ``calibrated``; roles
+      X=STATE, Q=SOURCE, Φ=FIELD, Y=PROBE/DERIVED.
     - ``counts``: configured vs realized vs effective (neurons, populations,
       edges, duration, dt, n_steps, state sizes).
     - ``provenance``: config_hash, tensor_identity, versions.
@@ -354,9 +371,13 @@ def canonical_compact_summary(
       (canonical 1000n). When enabled, ``|H| = N × h_state_dim``.
     - ``W`` = synaptic storage (EdgeList). ``|W| = n_edges`` (weights) plus
       ``tau_ms`` catalog (kept separate in diagnostics).
-    - Output basis is minimal independent: STATE (V_m, spikes, u), SOURCE
-      (sources), FIELD (lfp/csd/phi_e proxy on contacts), PROBE (eeg/meg/emm
-      if declared), DERIVED (scalar metrics from Signals.summary). This avoids
+    - Observation graph is typed ``X→Q→Φ→Y`` (deterministic): ``X``=STATE (V_m, spikes, u; depends_on=[]), ``Q``=SOURCE
+      (sources; depends_on=[X]), ``Φ``=FIELD (lfp/csd/phi_e proxy on contacts;
+      depends_on=[Q]), ``Y``=PROBE/DERIVED (eeg/meg/emm + scalar metrics;
+      depends_on=[Φ] transitively X→Q→Φ→Y). Each node/member reports
+      ``depends_on``, ``shape``, ``recorded``, ``calibrated``
+      (``calibrated=False`` while ``physical_amplitude_calibrated=False``);
+      this distinguishes state/source/field/probe/derived correctly and avoids
       a flattened “signals is one vector” view.
     - configured vs realized vs effective: configured = declared in
       NeuronalTensor/Configuration (pre-compile), realized = after
@@ -468,6 +489,7 @@ def canonical_compact_summary(
         eff_combos = _Counter((r.get("layer"), _eff_cell(str(r.get("cell_type")))) for r in rows)
         populations_inventory = {
             "realized_detailed": n_populations_realized,
+            "EI_collapsed": int(len(eff_combos)),
             "effective_EI_collapsed": int(len(eff_combos)),
             "per_layer": dict(_Counter(r.get("layer") for r in rows)),
             "per_cell_type": dict(_Counter(r.get("cell_type") for r in rows)),
@@ -512,58 +534,89 @@ def canonical_compact_summary(
         # no signals given: effective == realized == configured (if known)
         n_steps_effective = n_steps_realized
 
-    # --- output basis: minimal independent (STATE/SOURCE/FIELD/PROBE/DERIVED) ---
-    # Use existing Signals field names; probe readouts are optional.
-    output_basis: dict[str, Any] = {
-        "STATE": {
-            "V_m": {"shape": [None, n_neurons_realized], "units": "mV (Izhikevich proxy)", "axis": "T×N"},
-            "spikes": {"shape": [None, n_neurons_realized], "units": "binary", "axis": "T×N"},
-            "u": {"shape": [n_neurons_realized], "units": "recovery proxy", "axis": "N", "note": "per-step state; trajectory T×N if recorded"},
-        },
-        "SOURCE": {
-            "sources": {"shape": [None, n_neurons_realized], "units": "native_current+spike_impulse proxy", "axis": "T×N"},
-        },
-        "FIELD": {
-            "lfp_proxy": {"shape": [None, 16], "units": "proxy", "axis": "T×X", "note": "n_contacts from static"},
-            "csd_proxy": {"shape": [None, 16], "units": "proxy", "axis": "T×X"},
-            "phi_e_proxy": {"shape": [None, 16], "units": "proxy", "axis": "T×X"},
-        },
-        "PROBE": {
-            "eeg_proxy": {"shape": [None, 16], "units": "proxy", "axis": "T×X", "status": "declared_not_computed_in_laminar_proxy"},
-            "meg_proxy": {"shape": [None, 16], "units": "proxy", "axis": "T×X", "status": "declared_not_computed"},
-        },
-        "DERIVED": {
-            "spike_rate_hz_mean": {"units": "Hz", "source": "mean(spikes)/dt"},
-            "mean_V_m": {"units": "mV", "source": "mean(V_m)"},
-            "spike_count_total": {"units": "count", "source": "sum(spikes)"},
-        },
-    }
-    # enrich with realized shapes from signals if available (existing API: signals.field, signals.V_m shape)
-    if signals is not None:
-        try:
-            T = int(signals.time_ms.shape[0])
-            output_basis["STATE"]["V_m"]["shape"] = [T, n_neurons_realized]
-            output_basis["STATE"]["spikes"]["shape"] = [T, n_neurons_realized]
-            if signals.sources is not None:
-                output_basis["SOURCE"]["sources"]["shape"] = [T, n_neurons_realized]
-            else:
-                output_basis["SOURCE"]["sources"]["status"] = "not_recorded (record_sources=False)"
-            if signals.field is not None:
-                # existing API: FieldOutput diagnostics shape
-                for k in ("lfp_proxy", "csd_proxy", "phi_e_proxy"):
-                    arr = getattr(signals.field, k, None)
-                    if arr is not None:
-                        output_basis["FIELD"][k]["shape"] = [int(arr.shape[0]), int(arr.shape[1])]
-        except Exception:
-            pass
-    # n_contacts realized
+    # --- output basis: typed observation graph X→Q→Φ→Y (dependent chain, not flattened) ---
+    # Deterministic structure: X (STATE) -> Q (SOURCE) -> Φ (FIELD) -> Y (PROBE/DERIVED)
+    # Each node/member carries depends_on, shape, recorded, calibrated.
+    # Roles: X=STATE (V_m, spikes, u), Q=SOURCE (sources), Φ=FIELD (lfp/csd/phi_e), Y=PROBE/DERIVED
     try:
         n_contacts_realized = int(model.static.get("n_contacts", 16))
-        for k in ("lfp_proxy", "csd_proxy", "phi_e_proxy"):
-            if output_basis["FIELD"][k]["shape"][1] == 16:
-                output_basis["FIELD"][k]["shape"][1] = n_contacts_realized
     except Exception:
         n_contacts_realized = 16
+    # realized time steps
+    T_eff: Any = None
+    if signals is not None:
+        try:
+            T_eff = int(signals.time_ms.shape[0])
+        except Exception:
+            T_eff = None
+    # recorded flags (existing API: signals.field, signals.sources)
+    sources_recorded = bool(signals is not None and getattr(signals, "sources", None) is not None)
+    field_recorded: dict[str, bool] = {}
+    if signals is not None and getattr(signals, "field", None) is not None:
+        for _k in ("lfp_proxy", "csd_proxy", "phi_e_proxy"):
+            try:
+                field_recorded[_k] = getattr(signals.field, _k, None) is not None
+            except Exception:
+                field_recorded[_k] = False
+    else:
+        for _k in ("lfp_proxy", "csd_proxy", "phi_e_proxy"):
+            field_recorded[_k] = False
+    # shapes
+    _shape_TN = [T_eff, n_neurons_realized] if T_eff is not None else [None, n_neurons_realized]
+    _shape_TN_u = [n_neurons_realized]
+    _shape_TX = [T_eff, n_contacts_realized] if T_eff is not None else [None, n_contacts_realized]
+    _cal = False
+    _state_members: dict[str, Any] = {
+        "V_m": {"shape": list(_shape_TN), "units": "mV (Izhikevich proxy)", "axis": "T×N", "depends_on": [], "recorded": T_eff is not None, "calibrated": _cal},
+        "spikes": {"shape": list(_shape_TN), "units": "binary", "axis": "T×N", "depends_on": [], "recorded": T_eff is not None, "calibrated": _cal},
+        "u": {"shape": list(_shape_TN_u), "units": "recovery proxy", "axis": "N", "note": "per-step state; trajectory T×N if recorded", "depends_on": [], "recorded": T_eff is not None, "calibrated": _cal},
+    }
+    _source_members: dict[str, Any] = {
+        "sources": {"shape": list(_shape_TN), "units": "native_current+spike_impulse proxy", "axis": "T×N", "depends_on": ["X"], "recorded": sources_recorded, "calibrated": _cal, **({"status": "not_recorded (record_sources=False)"} if not sources_recorded and T_eff is not None else {})},
+    }
+    _field_members: dict[str, Any] = {
+        "lfp_proxy": {"shape": list(_shape_TX), "units": "proxy", "axis": "T×X", "note": "n_contacts from static", "depends_on": ["Q"], "recorded": field_recorded["lfp_proxy"], "calibrated": _cal},
+        "csd_proxy": {"shape": list(_shape_TX), "units": "proxy", "axis": "T×X", "depends_on": ["Q"], "recorded": field_recorded["csd_proxy"], "calibrated": _cal},
+        "phi_e_proxy": {"shape": list(_shape_TX), "units": "proxy", "axis": "T×X", "depends_on": ["Q"], "recorded": field_recorded["phi_e_proxy"], "calibrated": _cal},
+    }
+    _probe_members: dict[str, Any] = {
+        "eeg_proxy": {"shape": list(_shape_TX), "units": "proxy", "axis": "T×X", "status": "declared_not_computed_in_laminar_proxy", "depends_on": ["Phi"], "recorded": False, "calibrated": _cal},
+        "meg_proxy": {"shape": list(_shape_TX), "units": "proxy", "axis": "T×X", "status": "declared_not_computed", "depends_on": ["Phi"], "recorded": False, "calibrated": _cal},
+    }
+    _derived_members: dict[str, Any] = {
+        "spike_rate_hz_mean": {"units": "Hz", "source": "mean(spikes)/dt", "depends_on": ["X"], "shape": [], "recorded": T_eff is not None, "calibrated": _cal},
+        "mean_V_m": {"units": "mV", "source": "mean(V_m)", "depends_on": ["X"], "shape": [], "recorded": T_eff is not None, "calibrated": _cal},
+        "spike_count_total": {"units": "count", "source": "sum(spikes)", "depends_on": ["X"], "shape": [], "recorded": T_eff is not None, "calibrated": _cal},
+    }
+    if signals is not None and field_recorded:
+        try:
+            for _k in ("lfp_proxy", "csd_proxy", "phi_e_proxy"):
+                if field_recorded[_k]:
+                    arr = getattr(signals.field, _k, None)
+                    if arr is not None:
+                        _field_members[_k]["shape"] = [int(arr.shape[0]), int(arr.shape[1])]
+        except Exception:
+            pass
+    X_node: dict[str, Any] = {"role": "STATE", "depends_on": [], "shape": list(_shape_TN), "recorded": T_eff is not None, "calibrated": _cal, "members": _state_members}
+    Q_node: dict[str, Any] = {"role": "SOURCE", "depends_on": ["X"], "shape": list(_shape_TN), "recorded": sources_recorded, "calibrated": _cal, "members": _source_members}
+    Phi_node: dict[str, Any] = {"role": "FIELD", "depends_on": ["Q"], "shape": list(_shape_TX), "recorded": any(field_recorded.values()), "calibrated": _cal, "members": _field_members}
+    Y_node: dict[str, Any] = {"role": "PROBE/DERIVED", "depends_on": ["Phi"], "shape": list(_shape_TX), "recorded": any(field_recorded.values()), "calibrated": _cal, "members": {**_probe_members, **_derived_members}, "probe": _probe_members, "derived": _derived_members}
+    output_basis: dict[str, Any] = {
+        "structure": "X->Q->Phi->Y",
+        "deterministic_structure": "X->Q->Phi->Y",
+        "deterministic": True,
+        "note": "typed observation graph X->Q->Phi->Y; Phi depends_on Q, Q depends_on X, Y depends_on Phi (dependent, not an independent basis); each node/member has depends_on, shape, recorded, calibrated; calibrated=False in proxy regime",
+        "nodes": {"X": X_node, "Q": Q_node, "Phi": Phi_node, "Y": Y_node},
+        "X": X_node,
+        "Q": Q_node,
+        "Phi": Phi_node,
+        "Y": Y_node,
+        "STATE": _state_members,
+        "SOURCE": _source_members,
+        "FIELD": _field_members,
+        "PROBE": _probe_members,
+        "DERIVED": _derived_members,
+    }
 
     # --- provenance (existing API: config_hash, tensor_identity, neuronal_tensor provenance) ---
     provenance: dict[str, Any] = {}
@@ -594,6 +647,124 @@ def canonical_compact_summary(
     except Exception:
         pass
 
+    # --- universal taxonomy: Fixed / Dynamic / History / Mutable / Trainable / Recorded ---
+    _history_syn_state = int(W_size)
+    _history_prev_spikes = int(n_neurons_realized)
+    _history_delay_max = 0
+    _history_delay_buffer = 0
+    try:
+        import numpy as _np_hist
+        if edge_list is not None and getattr(edge_list, "delay_steps", None) is not None:
+            _dh = _np_hist.asarray(edge_list.delay_steps)
+            if _dh.size:
+                _history_delay_max = int(_np_hist.max(_dh))
+                _history_delay_buffer = int((_history_delay_max + 1) * n_neurons_realized) if _history_delay_max > 0 else 0
+    except Exception:
+        _history_delay_max = 0
+        _history_delay_buffer = 0
+    _history_total = int(_history_syn_state + _history_prev_spikes + _history_delay_buffer)
+    _n_trainable = 0
+    _trainable_note = "0 unless EdgeParameterSpec/MatrixParameterSpec declared (optimizer-exposed subset of mutable weight coordinates); stored ≠ free ≠ optimizer"
+    try:
+        _opt_meta = model.cfg.metadata.get("optimizer") if isinstance(getattr(model.cfg, "metadata", None), dict) else None
+        if isinstance(_opt_meta, dict) and _opt_meta.get("n_trainable"):
+            _n_trainable = int(_opt_meta.get("n_trainable", 0))
+    except Exception:
+        pass
+    N_static_counterexamples = [
+        {
+            "misconception": "N_static includes stored EdgeList.weight (n_edges)",
+            "wrong": int(N_static + W_size),
+            "correct": int(N_static),
+            "explanation": "weights are mutable storage (|W|=n_edges; 215785 for canonical 1000n), not fixed per-neuron params; counting them inflates 6001→221786",
+            "class_confused": "stored weights (mutable) vs fixed parameters",
+        },
+        {
+            "misconception": "N_static includes geometry positions (N×3=3000)",
+            "wrong": int(N_static + positions_size),
+            "correct": int(N_static),
+            "explanation": "positions are fixed geometry (N,3), not per-neuron Izhikevich params; counted separately as geometry",
+            "class_confused": "geometry vs fixed parameters",
+        },
+        {
+            "misconception": "N_static equals number of mutable coordinates (n_edges) or plastic H-factor count (48 rules)",
+            "wrong_rules": int(n_edges_configured_rules) if n_edges_configured_rules is not None else 0,
+            "wrong_edges": int(W_size),
+            "correct": int(N_static),
+            "explanation": "plastic rule count (48 declared inter/area connections) and realized mutable storage (215785 edges) are W, not Θ_static; N_static=6·N+1=6001",
+            "class_confused": "plastic declaration (rule) / mutable storage (edge) vs fixed",
+        },
+        {
+            "misconception": "N_static equals trainable/free optimizer coordinates",
+            "wrong": int(_n_trainable),
+            "correct": int(N_static),
+            "explanation": "trainable/free is optimizer-exposed subset of mutable (0 when no EdgeParameterSpec/MatrixParameterSpec); N_static is fixed count, independent of optimizer declaration",
+            "class_confused": "optimizer/free (trainable subset) vs fixed",
+        },
+        {
+            "misconception": "N_static includes history buffers (syn_state+prev_spikes+B_t)",
+            "wrong": int(N_static + _history_total),
+            "correct": int(N_static),
+            "explanation": f"history state (syn_state {W_size}+prev_spikes {n_neurons_realized}+B_t {_history_delay_buffer}={_history_total}) is carry, not fixed parameter",
+            "class_confused": "history buffers vs fixed",
+        },
+    ]
+    taxonomy: dict[str, Any] = {
+        "fixed_parameters": {
+            "members": dict(theta_static_sized),
+            "N_static": int(N_static),
+            "tau_catalog": int(tau_catalog_size),
+            "positions_excluded": {"shape": positions_shape, "size": int(positions_size)},
+            "note": "constant per-neuron {a,b,c,d,drive,sign}+source_scale; tau/receptor catalog and pre/post structure are fixed discrete; positions are fixed geometry kept separate; N_static=6·N+1",
+            "counterexamples": "see N_static_counterexamples",
+        },
+        "dynamic_state": {
+            "v": int(v_size),
+            "u": int(u_size),
+            "per_step": int(X_per_step),
+            "with_prev_spikes": int(X_with_prev),
+            "canonical_4N": int(X_canonical_4N),
+            "note": "fast ODE state [v,u] (2·N per step); trajectory T·|X|; H is separate hidden state, not part of X",
+        },
+        "history_state": {
+            "syn_state": int(_history_syn_state),
+            "prev_spikes": int(_history_prev_spikes),
+            "delay_max_steps": int(_history_delay_max),
+            "delay_buffer_Bt": int(_history_delay_buffer),
+            "continuation_prng_key": "scalar (not counted in element count)",
+            "continuation_step_offset": "scalar",
+            "total_buffer_elements": int(_history_total),
+            "note": "delay/continuation buffers carried between steps; O(E)+O(N)+O((Dmax+1)·N); distinct from dynamic X and mutable W",
+        },
+        "mutable_parameters": {
+            "weight": int(W_size),
+            "total_mutable": int(W_size),
+            "tau_catalog_mutable": False,
+            "positions_mutable": False,
+            "note": "coordinates permitted to change: EdgeList.weight (n_edges) may evolve via HDP dW/dt=F_W(H) or optimizer; unchanged when HDP disabled and no tune, but *permitted*",
+        },
+        "trainable_parameters": {
+            "n_trainable": int(_n_trainable),
+            "n_free": int(_n_trainable),
+            "note": _trainable_note,
+            "declaration_api": "EdgeParameterSpec / MatrixParameterSpec (trainable=True)",
+            "relation_to_mutable": f"subset of mutable (≤{W_size}); stored ({W_size}) ≠ plastic (permitted) ≠ free/trainable ({_n_trainable})",
+        },
+        "recorded_outputs": {
+            "structure": "X->Q->Phi->Y",
+            "X_state": ["V_m", "spikes", "u"],
+            "Q_source": ["sources"],
+            "Phi_field": ["lfp_proxy", "csd_proxy", "phi_e_proxy"],
+            "Y_probe_derived": ["eeg_proxy", "meg_proxy", "spike_rate_hz_mean", "mean_V_m", "spike_count_total"],
+            "note": "saved trajectory / observation graph; recorded outputs are not state carried forward (|Y| is evidence, not dynamics)",
+        },
+        "hidden_state": {
+            "H_size": int(H_size),
+            "h_state_dim": int(h_state_dim),
+            "locality": h_locality,
+            "note": "RBS/HDP hidden adaptation state; 0 when HDP disabled; distinct from plastic W and from history buffers",
+        },
+    }
     Theta = {
         "Theta_static": {"members": theta_static_sized, "N_static": N_static, "note": "Σ|θ| for θ∈Θ_static (per-neuron static; positions and W are separate)"},
         "X": {"per_step": X_per_step, "with_prev_spikes": X_with_prev, "canonical_4N": X_canonical_4N, "note": "fast state [v,u]; 4N counts v,u,prev_spikes,buffer head for text bundle illustration"},
@@ -639,6 +810,8 @@ def canonical_compact_summary(
         "schema": "canonical_compact_summary_v0.1",
         "Theta": Theta,
         "N_static": N_static,
+        "N_static_counterexamples": N_static_counterexamples,
+        "taxonomy": taxonomy,
         "output_basis": output_basis,
         "counts": counts,
         "provenance": provenance,
@@ -662,7 +835,7 @@ def format_canonical_text_bundle(summary: dict[str, Any]) -> str:
     counts = summary.get("counts", {})
     cfg = counts.get("configured", {})
     real = counts.get("realized", {})
-    eff = counts.get("effective", {})
+    eff = counts.get("executed", counts.get("effective", {}))
     prov = summary.get("provenance", {})
 
     # Extract with fallbacks
@@ -686,7 +859,7 @@ def format_canonical_text_bundle(summary: dict[str, Any]) -> str:
     lines.append("jaxfne canonical compact summary (0.4.18) — Θ=Θ_static⊕X⊕H⊕W  Δscience=0")
     lines.append(f"provenance: config_hash={prov.get('config_hash')}  tensor_identity={str(prov.get('tensor_identity'))[:12] if prov.get('tensor_identity') else '—'}  version={prov.get('jaxfne_version')}  calibrated={prov.get('physical_amplitude_calibrated')}")
     lines.append("")
-    lines.append("counts (configured → realized → effective):")
+    lines.append("counts (configured → realized → executed):")
     lines.append(f"  neurons:    {n_neurons_cfg} → {n_neurons_real} → {eff.get('n_neurons')}  (realized N={n_neurons_real})")
     # populations: explain 12 vs 23
     if n_pops_decl is not None or n_pops_real is not None:
@@ -694,7 +867,8 @@ def format_canonical_text_bundle(summary: dict[str, Any]) -> str:
         lines.append(f"  populations: declared {n_pops_decl} → detailed {n_pops_real} → effective EI-collapsed {eff_collapsed}  (task example ‘12’ = 6 layers × 2 E/I; detailed {n_pops_real} = layer×cell-type combos; see per_layer inventory)")
         if isinstance(inv, dict) and inv.get("per_layer"):
             lines.append(f"    per_layer: {inv.get('per_layer')}  per_cell_type: {inv.get('per_cell_type')}")
-    lines.append(f"  edges:      rules {n_edges_rules} → realized {n_edges_real} → effective {eff.get('n_edges_effective')}  (EdgeList; τ catalog {W.get('tau_catalog')} )  — task ‘~79k’ is illustrative; realized 215785 for canonical-v1-column-1000n with p=1.0 bipartite rules")
+    n_edges_exec = eff.get('n_edges_executed', eff.get('n_edges_effective'))
+    lines.append(f"  edges:      rules {n_edges_rules} → realized {n_edges_real} → executed {n_edges_exec}  (EdgeList; τ catalog {W.get('tau_catalog')} )  — task ‘~79k’ is illustrative; realized 215785 for canonical-v1-column-1000n with p=1.0 bipartite rules")
     lines.append(f"  contacts:   {n_contacts}  (laminar proxy)")
     lines.append(f"  duration:   {cfg.get('duration_ms')}ms → {dur_eff}ms  dt {cfg.get('dt_ms')}ms → {dt_eff}ms  n_steps {n_steps_eff}  (configured RuntimeConfiguration(1000ms,0.5ms) → realized T=2000)")
     lines.append("")
@@ -705,14 +879,65 @@ def format_canonical_text_bundle(summary: dict[str, Any]) -> str:
     lines.append(f"  X:        per-step {X.get('per_step')} (v+u, 2N)  with_prev {X.get('with_prev_spikes')} (3N)  canonical_4N {X.get('canonical_4N')} (illustrative ‘X 4000’ = 4×N for N=1000, counting prev_spikes+buffer head)  trajectory T·|X|={n_steps_eff}×{X.get('per_step')}={ (n_steps_eff or 0) * (X.get('per_step') or 0)}")
     lines.append(f"  H:        {H.get('size')} (h_state_dim={H.get('h_state_dim')} locality={H.get('locality')}; 0 when HDP disabled — canonical 1000n)")
     lines.append(f"  W:        {W.get('n_edges')} weights (+τ catalog {W.get('tau_catalog')})  total Θ size ≈ {N_static + (X.get('per_step') or 0) + (H.get('size') or 0) + (W.get('n_edges') or 0)} scalars per snapshot (positions {Theta.get('positions',{}).get('size')} extra geometry)")
+    tax = summary.get("taxonomy", {})
+    if tax:
+        lines.append("")
+        lines.append("universal taxonomy — stored ≠ plastic ≠ free ≠ optimizer (Δscience=0):")
+        fp = tax.get("fixed_parameters", {})
+        ds = tax.get("dynamic_state", {})
+        hs = tax.get("history_state", {})
+        mp = tax.get("mutable_parameters", {})
+        tp = tax.get("trainable_parameters", {})
+        ro = tax.get("recorded_outputs", {})
+        hidden = tax.get("hidden_state", {})
+        lines.append(f"  Fixed (constant):       N_static={fp.get('N_static', N_static)}  members a,b,c,d,drive,sign,source_scale  tau_catalog={fp.get('tau_catalog')}  positions_excluded {Theta.get('positions',{}).get('shape')}={Theta.get('positions',{}).get('size')}")
+        lines.append(f"  Dynamic state (v,u):    per_step {ds.get('per_step', X.get('per_step'))} (v+u, 2N)  canonical_4N {ds.get('canonical_4N', X.get('canonical_4N'))}")
+        lines.append(f"  History state (B_t):    syn_state {hs.get('syn_state')} + prev_spikes {hs.get('prev_spikes')} + B_t ring {hs.get('delay_buffer_Bt')} (Dmax={hs.get('delay_max_steps')}) = total {hs.get('total_buffer_elements')}")
+        lines.append(f"  Hidden state (H):       {hidden.get('H_size', H.get('size'))} (h_state_dim={hidden.get('h_state_dim', H.get('h_state_dim'))} locality={hidden.get('locality', H.get('locality'))}) — not plastic, not optimizer coord")
+        lines.append(f"  Mutable (permitted):    weight array {mp.get('weight')} (EdgeList.weight) — stored weights permitted to change via HDP or optimizer; tau/positions not mutable")
+        lines.append(f"  Trainable/free (opt):   n_trainable={tp.get('n_trainable')} (optimizer-exposed subset ≤ mutable; 0 unless EdgeParameterSpec/MatrixParameterSpec trainable=True) — free ≠ stored")
+        lines.append(f"  Recorded outputs:       {ro.get('structure','X->Q->Phi->Y')}  X={ro.get('X_state')}  Q={ro.get('Q_source')}  Phi={ro.get('Phi_field')}  Y={ro.get('Y_probe_derived')}")
+        ces = summary.get("N_static_counterexamples", [])
+        if ces:
+            lines.append("  N_static counterexamples (why stored/plastic/free ≠ N_static):")
+            for ce in ces[:5]:
+                lines.append(f"    - {ce.get('misconception')}: wrong={ce.get('wrong', ce.get('wrong_edges', ce.get('wrong_rules')))} correct={ce.get('correct')} — {ce.get('explanation','')[:90]}")
+        lines.append(f"  rule: N_static=6·N+1 fixed only; history/mutable/trainable/recorded are disjoint classes; stored={W.get('n_edges', '?')} ≠ plastic(=permitted) ≠ free/trainable(=declared) ≠ fixed(=N_static)")
     lines.append("")
-    lines.append("minimal independent output basis (not flattened signals):")
     ob = summary.get("output_basis", {})
+    struct = ob.get("structure") or ob.get("deterministic_structure") or "X->Q->Phi->Y"
+    lines.append(f"typed observation graph {struct} (dependent, not flattened signals):")
+    nodes = ob.get("nodes", {})
+    if nodes:
+        for nk in ("X", "Q", "Phi", "Y"):
+            nd = nodes.get(nk, {})
+            if isinstance(nd, dict):
+                dep = nd.get("depends_on", [])
+                shape = nd.get("shape", [])
+                rec = nd.get("recorded", False)
+                cal = nd.get("calibrated", False)
+                members = nd.get("members", {})
+                mitems = ", ".join(f"{name}{':'+str(v.get('shape')) if v.get('shape') else ''}" for name, v in members.items()) if isinstance(members, dict) else ""
+                lines.append(f"  {nk} ({nd.get('role','')}): depends_on={dep} shape={shape} recorded={rec} calibrated={cal}  members: {mitems}")
+    else:
+        for k in ("STATE", "SOURCE", "FIELD", "PROBE", "DERIVED"):
+            block = ob.get(k, {})
+            if isinstance(block, dict):
+                items = ", ".join(f"{name}{':'+str(v.get('shape')) if v.get('shape') else ''}" for name, v in block.items())
+                lines.append(f"  {k}: {items}")
     for k in ("STATE", "SOURCE", "FIELD", "PROBE", "DERIVED"):
         block = ob.get(k, {})
-        if isinstance(block, dict):
+        if isinstance(block, dict) and k not in (nodes or {}):
+            if nodes:
+                continue
             items = ", ".join(f"{name}{':'+str(v.get('shape')) if v.get('shape') else ''}" for name, v in block.items())
             lines.append(f"  {k}: {items}")
+    if nodes:
+        for k in ("STATE", "SOURCE", "FIELD", "PROBE", "DERIVED"):
+            block = ob.get(k, {})
+            if isinstance(block, dict):
+                items = ", ".join(f"{name}{':'+str(v.get('shape')) if v.get('shape') else ''}" for name, v in block.items())
+                lines.append(f"  {k} (alias of { {'STATE':'X','SOURCE':'Q','FIELD':'Phi','PROBE':'Y','DERIVED':'Y'} .get(k,k)}): {items}")
     lines.append("")
     lines.append("provenance/API used: Model(params['emitter'], params['edge_list'], params['positions']), Signals(time_ms,V_m,spikes,sources,field), NeuronalTensor(areas/layers/neuron_types), EdgeList(pre,post,weight,tau), positions (N×3), provenance(config_hash,tensor_identity)")
     lines.append("no kernel change, no overhead when unused (summary is off-hot-path; simulate/construct unchanged)")

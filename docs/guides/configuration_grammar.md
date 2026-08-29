@@ -214,6 +214,19 @@ when you want an explicit, JSON-round-trippable Areas/Layers/NeuronTypes object
 pattern that lets a tensor-built `Model` still use `RuntimeConfig`'s
 `enable_hdp` field.
 
+## Configured → Realized → Executed → Effective (vocabulary note)
+
+`configured` is the declarative specification (e.g. a connection probability
+`p_EI` or `duration_ms` in `Configuration`/`NeuronalTensor`). `realized` is the
+concrete `Model` after `construct` — inspectable `EdgeList`,
+`positions` (N×3), `neuron_table()`. `executed` is the runtime-realized quantity
+after `simulate` — the actual `Signals` time axis (`dt_ms`, `n_steps`,
+`duration_ms`), `dtype`, and `H`/`W` sizes, which may differ from realized via
+dtype downgrade, dt rounding, or HDP enable. `effective` is reserved for causal
+evidence `ΔX` under intervention (ablation/shuffle/lesion comparison);
+realization and execution do not imply effectiveness. See
+[PseudoGenome (JDNA)](jdna.md) § Configured → Realized → Executed → Effective.
+
 ## Why this matters
 
 Reading `Configuration` as a compiler reframes the whole package: the object

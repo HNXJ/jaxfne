@@ -134,12 +134,27 @@ semantics. The package's docs-language gate distinguishes at least:
 - **normalized** — a dimensionless rescaling (not automatically synonymous
   with "relative");
 - **effective** — the mapped output `C_p(p0, r_p)` (does **not** imply
-  empirically calibrated);
+  empirically calibrated); in the construction/runtime chain, `effective`
+  is reserved for causal evidence `ΔX` under intervention (ablation/shuffle
+  comparison), while post-`simulate` runtime quantities are `executed`
+  (`dt_ms`, `n_steps`, `dtype`, `H`/`W` sizes);
+- **executed** — the runtime-realized quantity after `simulate`
+  (`Signals.time_ms`, `n_steps`, `dt_ms`, `dtype`); may differ from
+  realized via dtype downgrade, dt rounding, or HDP enable;
 - **calibrated** — an explicit calibration transformation has been applied;
 - **physical** — a measured/absolute physical quantity.
+
+Construction/runtime vocabulary is therefore
+`configured` (declarative prior) → `realized` (after `construct`: concrete
+`NeuronalTensor`/`EdgeList`/`positions`) → `executed` (after `simulate`:
+actual time axis/dtype/H/W) → `effective` (`ΔX` under intervention; causal
+evidence only). Realization and execution do not imply effectiveness. See
+[`docs/guides/jdna.md`](../guides/jdna.md) and
+`jaxfne.util.canonical_compact_summary`.
 
 Semantic escalation is a defect: a relative/proxy output must not become an
 unqualified physical measurement; a relative parameter must not be described
 as though its numerical value carries the base unit; "effective" must not
-automatically imply calibration. See
+automatically imply calibration; "executed" (runtime) must not be called
+"effective" (causal). See
 [`scripts/audit_public_docs_language.py`](https://github.com/HNXJ/jaxfne/blob/main/scripts/audit_public_docs_language.py).
