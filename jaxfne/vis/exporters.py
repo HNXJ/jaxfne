@@ -80,10 +80,28 @@ def close_matplotlib_figure(fig) -> None:
 
 
 class FigureBundle:
-    """A named collection of figures (matplotlib and/or plotly) with ``.export(...)``."""
+    """A named collection of figures (matplotlib and/or plotly) with ``.export(...)``.
 
-    def __init__(self, figures: dict):
+    When produced by :func:`jaxfne.vis.visualize`, the bundle also carries
+    per-panel status information (``panel_status``) with values
+    ``OK`` | ``UNAVAILABLE_DATA`` | ``UNAVAILABLE_DEPENDENCY`` | ``FAILED``.
+    Status is additive metadata only — it never changes the figures dict.
+    """
+
+    def __init__(
+        self,
+        figures: dict,
+        panel_status: dict | None = None,
+        panel_errors: dict | None = None,
+    ):
         self.figures = figures
+        self.panel_status: dict[str, str] = dict(panel_status or {})
+        self.panel_statuses: dict[str, str] = self.panel_status
+        self.statuses: dict[str, str] = self.panel_status
+        self.status: dict[str, str] = self.panel_status
+        self.panel_errors: dict[str, str] = dict(panel_errors or {})
+        self.errors: dict[str, str] = self.panel_errors
+        self.panel_error: dict[str, str] = self.panel_errors
 
     def __getitem__(self, key):
         return self.figures[key]

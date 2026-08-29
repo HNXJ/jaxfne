@@ -140,7 +140,15 @@ from .report_plots import (
     gain_matrix_heatmap,
     celltype_sweep_heatmap_grid,
 )
-from .visualize import visualize, PANEL_KEYS as VISUALIZE_PANEL_KEYS
+from .visualize import (
+    visualize,
+    PANEL_KEYS as VISUALIZE_PANEL_KEYS,
+    PANEL_STATUS_OK,
+    PANEL_STATUS_UNAVAILABLE_DATA,
+    PANEL_STATUS_UNAVAILABLE_DEPENDENCY,
+    PANEL_STATUS_FAILED,
+    PANEL_STATUSES,
+)
 from .pseudogenome_viewer import (
     collect_pseudogenome_development_data,
     render_pseudogenome_development_viewer,
@@ -279,6 +287,11 @@ __all__ = [
     "celltype_sweep_heatmap_grid",
     "visualize",
     "VISUALIZE_PANEL_KEYS",
+    "PANEL_STATUS_OK",
+    "PANEL_STATUS_UNAVAILABLE_DATA",
+    "PANEL_STATUS_UNAVAILABLE_DEPENDENCY",
+    "PANEL_STATUS_FAILED",
+    "PANEL_STATUSES",
     "collect_pseudogenome_development_data",
     "render_pseudogenome_development_viewer",
     "collect_column_viewer_data",

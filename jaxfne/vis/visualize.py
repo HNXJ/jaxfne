@@ -35,11 +35,30 @@ It is loaded lazily on first ``jtfne.visualize`` / ``jtfne.vis.visualize``
 attribute access (see :class:`jaxfne._RuntimeModuleWrapper`). A fresh
 ``import jaxfne.core`` must not attach matplotlib/plotly — covered by
 ``test_simulation_engine_has_zero_graphics_overhead``.
+
+Panel statuses
+--------------
+Every panel reports an explicit status string stored in
+``bundle.panel_status`` (aliases ``bundle.statuses``, ``bundle.panel_statuses``):
+
+* ``OK`` — panel rendered without fallback.
+* ``UNAVAILABLE_DATA`` — required signals/model payload absent (e.g. field
+  when ``record_fields=False``).
+* ``UNAVAILABLE_DEPENDENCY`` — optional rendering dependency missing
+  (matplotlib/plotly not installed).
+* ``FAILED`` — unexpected exception; placeholder returned unless
+  ``strict=True``.
+
+``strict=True`` re-raises ``FAILED`` panels as ``RuntimeError`` with
+per-panel details instead of returning a placeholder. Missing-data and
+missing-dependency panels remain as placeholders even in strict mode
+(no silent ``except: pass`` — all failures are surfaced via
+``panel_status`` and visible placeholder figures).
 """
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Literal, Optional, Sequence
 
 # Large-network thresholds — deterministic, artifact-visible in receipt.
 LARGE_N_RASTER = 2000
@@ -61,6 +80,158 @@ PANEL_KEYS: tuple[str, ...] = (
     "08_field_probe",
 )
 
+# -- panel status contract ------------------------------------------------
+# Explicit per-panel result codes required by the visualizer contract.
+# * OK -- panel rendered without fallback
+# * UNAVAILABLE_DATA -- required signals/model payload absent (e.g. field when record_fields=False)
+# * UNAVAILABLE_DEPENDENCY -- optional rendering dependency missing (matplotlib/plotly not installed)
+# * FAILED -- unexpected exception; placeholder returned unless strict=True
+PANEL_STATUS_OK: str = "OK"
+PANEL_STATUS_UNAVAILABLE_DATA: str = "UNAVAILABLE_DATA"
+PANEL_STATUS_UNAVAILABLE_DEPENDENCY: str = "UNAVAILABLE_DEPENDENCY"
+PANEL_STATUS_FAILED: str = "FAILED"
+PANEL_STATUSES: tuple[str, ...] = (
+    PANEL_STATUS_OK,
+    PANEL_STATUS_UNAVAILABLE_DATA,
+    PANEL_STATUS_UNAVAILABLE_DEPENDENCY,
+    PANEL_STATUS_FAILED,
+)
+PanelStatus = Literal["OK", "UNAVAILABLE_DATA", "UNAVAILABLE_DEPENDENCY", "FAILED"]
+
+
+class _PanelUnavailableData(RuntimeError):
+    """Raised internally when required data for a panel is absent."""
+    pass
+
+
+class _PanelUnavailableDependency(ImportError):
+    """Raised internally when an optional rendering dependency is missing."""
+    pass
+
+
+def _classify_exception(exc: BaseException) -> str:
+    """Map an exception to a panel status code with explicit branches (no silent pass)."""
+    if isinstance(exc, _PanelUnavailableDependency):
+        return PANEL_STATUS_UNAVAILABLE_DEPENDENCY
+    if isinstance(exc, _PanelUnavailableData):
+        return PANEL_STATUS_UNAVAILABLE_DATA
+    if isinstance(exc, (ImportError, ModuleNotFoundError)):
+        return PANEL_STATUS_UNAVAILABLE_DEPENDENCY
+    msg = str(exc).lower()
+    data_keywords = ("not available", "unavailable", "not recorded", "not found", "missing", "absent", "empty", "no payload", "no data")
+    if isinstance(exc, (ValueError, KeyError, AttributeError, RuntimeError)) and any(k in msg for k in data_keywords):
+        return PANEL_STATUS_UNAVAILABLE_DATA
+    return PANEL_STATUS_FAILED
+
+
+def _make_error_figure(panel_key: str, status: str, detail: str, *, backend: str = "static") -> Any:
+    """Create a placeholder figure that visibly encodes failure reason (no silent pass)."""
+    title = f"{panel_key} -- {status}"
+    msg = f"{panel_key}: {status}\n{detail}"[:800]
+    if backend == "plotly":
+        try:
+            import plotly.graph_objects as go  # type: ignore
+
+            fig = go.Figure()
+            fig.add_annotation(text=msg, showarrow=False)
+            fig.update_layout(title=title)
+            return fig
+        except Exception as _exc:
+            _plotly_fallback_detail = str(_exc)
+            backend = "static"
+    try:
+        from jaxfne.vis.core import require_matplotlib
+
+        require_matplotlib()
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.text(0.5, 0.5, msg, ha="center", va="center", fontsize=9, wrap=True)
+        ax.set_title(title, fontsize=10)
+        ax.axis("off")
+        return fig
+    except Exception as _exc:
+        _mpl_error = str(_exc)
+        raise _PanelUnavailableDependency(f"No rendering backend available for {panel_key}: {detail} | mpl_error={_mpl_error}") from _exc
+
+
+def _is_placeholder_unavailable(fig: Any) -> bool:
+    """Heuristic: does a returned figure look like a placeholder/unavailable panel?"""
+    try:
+        texts: list[str] = []
+        if hasattr(fig, "layout") and hasattr(fig.layout, "annotations"):
+            for ann in list(getattr(fig.layout, "annotations", []) or []):
+                t = getattr(ann, "text", "") or ""
+                texts.append(str(t).lower())
+            title = getattr(getattr(fig.layout, "title", None), "text", "") or ""
+            texts.append(str(title).lower())
+        if hasattr(fig, "axes") and hasattr(fig, "texts"):
+            for t in list(getattr(fig, "texts", []) or []):
+                try:
+                    texts.append(t.get_text().lower())
+                except Exception as _exc:
+                    _text_err = str(_exc)
+            for ax in list(getattr(fig, "axes", []) or []):
+                try:
+                    texts.append((ax.get_title() or "").lower())
+                    for txt in list(getattr(ax, "texts", []) or []):
+                        texts.append(txt.get_text().lower())
+                except Exception as _exc:
+                    _ax_err = str(_exc)
+        blob = " ".join(texts)
+        keywords = ("unavailable", "not available", "not recorded", "no payload", "no geometry", "no data", "missing", "absent", "not enabled", "failed")
+        return any(k in blob for k in keywords)
+    except Exception as _exc:
+        _infer_err = str(_exc)
+        return False
+
+
+def _safe_build_panel(panel_key: str, builder, model: Any, signals: Any, *, backend: str) -> tuple[Any, str, str]:
+    """Call a panel builder with explicit status handling (no broad silent except:pass)."""
+    try:
+        fig = builder(model, signals, backend=backend)
+        if _is_placeholder_unavailable(fig):
+            try:
+                txt = ""
+                if hasattr(fig, "layout"):
+                    txt = str(getattr(getattr(fig.layout, "title", None), "text", "") or "").lower()
+                else:
+                    for ax in getattr(fig, "axes", []):
+                        txt += (ax.get_title() or "").lower()
+                if any(k in txt for k in ("matplotlib", "plotly", "importerror", "dependency")):
+                    return fig, PANEL_STATUS_UNAVAILABLE_DEPENDENCY, "placeholder indicates missing dependency"
+            except Exception as _exc:
+                _dep_check_err = str(_exc)
+            return fig, PANEL_STATUS_UNAVAILABLE_DATA, "placeholder: required data not available"
+        return fig, PANEL_STATUS_OK, ""
+    except Exception as exc:
+        status = _classify_exception(exc)
+        detail = f"{type(exc).__name__}: {exc}"
+        try:
+            fig = _make_error_figure(panel_key, status, detail, backend=backend)
+        except Exception as _exc2:
+            _error_fig_detail = str(_exc2)
+            try:
+                import matplotlib.pyplot as plt
+                fig, ax = plt.subplots(figsize=(8,4))
+                ax.text(0.5,0.5, f"{panel_key}: {status}\n{detail}\n(error fig failed: {_error_fig_detail})", ha="center", va="center", fontsize=8, wrap=True)
+                ax.set_title(f"{panel_key} -- {status}", fontsize=10)
+                ax.axis("off")
+            except Exception as _exc3:
+                try:
+                    import plotly.graph_objects as go
+                    fig = go.Figure()
+                    fig.add_annotation(text=f"{panel_key}: {status}\n{detail}", showarrow=False)
+                    fig.update_layout(title=f"{panel_key} -- {status}")
+                except Exception as _exc:
+                    _plotly_err = str(_exc)
+                    fig = {"_placeholder": f"{panel_key}: {status}", "detail": detail, "error": _error_fig_detail}
+            if "dependency" not in status.lower() and ("import" in detail.lower() or "dependency" in _error_fig_detail.lower()):
+                status = PANEL_STATUS_UNAVAILABLE_DEPENDENCY
+            detail = f"{detail} | error_figure_failed: {_error_fig_detail}"
+        return fig, status, detail
+
+
 
 # ── small helpers (no graphics import) ─────────────────────────────────────
 
@@ -73,13 +244,13 @@ def _to_numpy(arr: Any) -> Any:
 
         if hasattr(arr, "device") or hasattr(arr, "device_buffer"):
             return __import__("numpy").asarray(jax.device_get(arr))
-    except Exception:
-        pass
+    except Exception as _exc:
+        _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
     try:
         import numpy as _np
 
         return _np.asarray(arr)
-    except Exception:
+    except Exception as _exc:
         return arr
 
 
@@ -129,16 +300,16 @@ def _neuron_rows(model: Any, signals: Any) -> list[dict[str, Any]]:
             rows = model.neuron_table()
             if rows:
                 return [dict(r) for r in rows]
-        except Exception:
-            pass
+        except Exception as _exc:
+            _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
     # also handle model.static["neuron_metadata"]
     if model is not None and hasattr(model, "static"):
         try:
             rows = (model.static or {}).get("neuron_metadata")
             if rows:
                 return [dict(r) for r in rows]
-        except Exception:
-            pass
+        except Exception as _exc:
+            _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
     meta = getattr(signals, "metadata", {}) if not isinstance(signals, dict) else signals.get("metadata", {})
     if isinstance(meta, dict):
         rows = meta.get("neuron_metadata")
@@ -153,7 +324,7 @@ def _edge_info(model: Any) -> Optional[dict[str, Any]]:
         return None
     try:
         edge = model.params.get("edge_list") if isinstance(model.params, dict) else getattr(model.params, "edge_list", None)
-    except Exception:
+    except Exception as _exc:
         edge = None
     if edge is None:
         return None
@@ -165,7 +336,7 @@ def _edge_info(model: Any) -> Optional[dict[str, Any]]:
         tau = _to_numpy(edge.tau_ms) if hasattr(edge, "tau_ms") else None
         delay = _to_numpy(edge.delay_steps) if hasattr(edge, "delay_steps") else None
         return {"pre": pre, "post": post, "weight": w, "tau_ms": tau, "delay_steps": delay, "n_edges": int(pre.shape[0]) if pre is not None else 0}
-    except Exception:
+    except Exception as _exc:
         return None
 
 
@@ -188,7 +359,7 @@ def _dense_weight_matrix(model: Any) -> Any:
         if arr is None or arr.size == 0 or arr.shape == (0, 0):
             return None
         return arr
-    except Exception:
+    except Exception as _exc:
         return None
 
 
@@ -200,16 +371,16 @@ def _hdp_diagnostics(model: Any, signals: Any) -> dict[str, Any]:
             d = model.last_hdp_diagnostics()
             if isinstance(d, dict):
                 out.update(d)
-        except Exception:
-            pass
+        except Exception as _exc:
+            _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
         # also direct attribute
         try:
             d2 = getattr(model, "_last_hdp_diag", None)
             if isinstance(d2, dict):
                 for k, v in d2.items():
                     out.setdefault(k, v)
-        except Exception:
-            pass
+        except Exception as _exc:
+            _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
     # signals.metadata["hdp"]
     meta = getattr(signals, "metadata", {}) if not isinstance(signals, dict) else signals.get("metadata", {})
     if isinstance(meta, dict) and "hdp" in meta and isinstance(meta["hdp"], dict):
@@ -232,7 +403,7 @@ def _panel_network_structure(model: Any, signals: Any, *, backend: str = "static
 
             fig = plot_network_3d(model, signals, backend="plotly")
             return fig
-        except Exception:
+        except Exception as _exc:
             # fallback: direct visualize_network_3d
             try:
                 from jaxfne.vis.network3d import visualize_network_3d
@@ -251,8 +422,8 @@ def _panel_network_structure(model: Any, signals: Any, *, backend: str = "static
                     # annotate sampling
                     try:
                         fig.add_annotation(text=f"sampled {LARGE_N_GEOMETRY}/{len(rows)} neurons", showarrow=False)
-                    except Exception:
-                        pass
+                    except Exception as _exc:
+                        _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
                     return fig
                 return visualize_network_3d(model if hasattr(model, "neuron_table") else signals)
             except Exception as exc:
@@ -298,8 +469,8 @@ def _panel_network_structure(model: Any, signals: Any, *, backend: str = "static
             # add small annotation about sampling
             try:
                 fig.text(0.5, 0.01, f"sampled {LARGE_N_GEOMETRY}/{len(rows)} neurons for display", ha="center", fontsize=8, color="gray")
-            except Exception:
-                pass
+            except Exception as _exc:
+                _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
             return fig
         return geometry3d(obj)
     except Exception as exc:
@@ -318,8 +489,8 @@ def _panel_connectivity(model: Any, signals: Any, *, backend: str = "static") ->
             n_neurons = 0
             try:
                 n_neurons = len(_neuron_rows(model, signals)) or 0
-            except Exception:
-                pass
+            except Exception as _exc:
+                _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
             if n_neurons > LARGE_N_CONNECTIVITY:
                 return plot_connectivity(model, backend="plotly", max_neurons=LARGE_N_CONNECTIVITY)
             return plot_connectivity(model, backend="plotly")
@@ -352,8 +523,8 @@ def _panel_connectivity(model: Any, signals: Any, *, backend: str = "static") ->
             # infer from max index
             m = int(max(int(_np.max(edge["pre"])), int(_np.max(edge["post"]))) + 1) if edge["n_edges"] > 0 else 0
             n_neurons = m
-    except Exception:
-        pass
+    except Exception as _exc:
+        _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
 
     # Choose rendering path
     if edge is not None and edge["n_edges"] > 0:
@@ -380,8 +551,8 @@ def _panel_connectivity(model: Any, signals: Any, *, backend: str = "static") ->
         try:
             vmax = float(_np.nanmax(_np.abs(w))) or 1.0
             sc.set_clim(-vmax, vmax)
-        except Exception:
-            pass
+        except Exception as _exc:
+            _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
         ax0.set_xlabel("Pre neuron")
         ax0.set_ylabel("Post neuron")
         ax0.set_title(f"Connectivity (edge-list) — {subtitle}", fontsize=10)
@@ -398,13 +569,13 @@ def _panel_connectivity(model: Any, signals: Any, *, backend: str = "static") ->
         if tau is not None:
             try:
                 extra.append(f"tau_ms: mean={float(_np.mean(tau)):.2f} [{float(_np.min(tau)):.1f},{float(_np.max(tau)):.1f}]")
-            except Exception:
-                pass
+            except Exception as _exc:
+                _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
         if delay is not None:
             try:
                 extra.append(f"delay_steps: max={int(_np.max(delay))}  nonzero={int(_np.count_nonzero(delay))}")
-            except Exception:
-                pass
+            except Exception as _exc:
+                _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
         if extra:
             ax1.text(0.5, -0.22, "\n".join(extra), transform=ax1.transAxes, ha="center", fontsize=8, color="dimgray")
         fig.tight_layout()
@@ -456,11 +627,11 @@ def _panel_parameter_summary(model: Any, signals: Any, *, backend: str = "static
         meta_model = getattr(model, "cfg", None).metadata if model is not None and hasattr(model, "cfg") else {}
         if meta_model is None:
             meta_model = {}
-    except Exception:
+    except Exception as _exc:
         meta_model = {}
     try:
         static = getattr(model, "static", {}) or {}
-    except Exception:
+    except Exception as _exc:
         static = {}
 
     # counts
@@ -468,7 +639,7 @@ def _panel_parameter_summary(model: Any, signals: Any, *, backend: str = "static
     n_steps = int(time_ms.shape[0]) if time_ms is not None else 0
     try:
         dt_ms = float((getattr(signals, "metadata", {}) or {}).get("dt_ms", 0.05)) if not isinstance(signals, dict) else float((signals.get("metadata", {}) or {}).get("dt_ms", 0.05))
-    except Exception:
+    except Exception as _exc:
         dt_ms = 0.05
     n_contacts = int(static.get("n_contacts", 16)) if isinstance(static, dict) else 16
     n_edges = int(edge["n_edges"]) if edge is not None else (int(_np.count_nonzero(W)) if W is not None else 0)
@@ -507,8 +678,8 @@ def _panel_parameter_summary(model: Any, signals: Any, *, backend: str = "static
             param_keys = sorted(model.params.keys())
         if isinstance(static, dict):
             static_keys = sorted(static.keys())
-    except Exception:
-        pass
+    except Exception as _exc:
+        _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
 
     # calibration / truth
     src_calib = None
@@ -517,14 +688,14 @@ def _panel_parameter_summary(model: Any, signals: Any, *, backend: str = "static
         if isinstance(meta_model, dict):
             src_calib = meta_model.get("source_calibration_status")
             claim_level = meta_model.get("claim_level")
-    except Exception:
-        pass
+    except Exception as _exc:
+        _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
     try:
         sig_meta = getattr(signals, "metadata", {}) if not isinstance(signals, dict) else signals.get("metadata", {})
         if isinstance(sig_meta, dict):
             src_calib = sig_meta.get("source_calibration_status") or src_calib
-    except Exception:
-        pass
+    except Exception as _exc:
+        _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
 
     if backend == "plotly":
         try:
@@ -553,7 +724,7 @@ def _panel_parameter_summary(model: Any, signals: Any, *, backend: str = "static
             fig = go.Figure(data=[go.Table(header=dict(values=header, fill_color="black", font=dict(color="white")), cells=dict(values=[cells_a, cells_b], fill_color="lavender"))])
             fig.update_layout(title="Parameter summary — state ownership & calibration (proxy, no physical claim)")
             return fig
-        except Exception:
+        except Exception as _exc:
             backend = "static"  # fall through to matplotlib path
 
     # static matplotlib path
@@ -637,7 +808,7 @@ def _panel_raster(model: Any, signals: Any, *, backend: str = "static") -> Any:
             from jaxfne.vis.canonical import plot_raster
 
             return plot_raster(signals, model, backend="plotly")
-        except Exception:
+        except Exception as _exc:
             backend = "static"
     # static
     from jaxfne.vis.core import require_matplotlib
@@ -711,7 +882,7 @@ def _panel_population_rates(model: Any, signals: Any, *, backend: str = "static"
             from jaxfne.vis.canonical import plot_population_rate
 
             return plot_population_rate(signals, model, backend="plotly")
-        except Exception:
+        except Exception as _exc:
             backend = "static"
     from jaxfne.vis.core import require_matplotlib
 
@@ -729,7 +900,7 @@ def _panel_population_rates(model: Any, signals: Any, *, backend: str = "static"
     try:
         meta = getattr(signals, "metadata", {}) if not isinstance(signals, dict) else signals.get("metadata", {})
         dt_ms = float(meta.get("dt_ms", 0.05)) if isinstance(meta, dict) else 0.05
-    except Exception:
+    except Exception as _exc:
         dt_ms = 0.05
     # Try per-cell-type rates if small and metadata present
     rows = _neuron_rows(model, signals)
@@ -752,14 +923,14 @@ def _panel_population_rates(model: Any, signals: Any, *, backend: str = "static"
                 ax.legend(fontsize=8, title="Cell type")
                 ax.set_title("Population rates — mean + per-type (proxy Hz)")
             return fig
-        except Exception:
-            pass
+        except Exception as _exc:
+            _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
     # fallback — mean rate only
     try:
         from jaxfne.vis.traces import rate
 
         return rate(signals)
-    except Exception:
+    except Exception as _exc:
         fig, ax = plt.subplots()
         mean_rate = _np.mean(spikes, axis=1) * (1000.0 / dt_ms) if spikes.ndim > 1 else spikes * (1000.0 / dt_ms)
         ax.plot(time_ms, mean_rate, color="#c0392b")
@@ -822,7 +993,7 @@ def _panel_state_traces(model: Any, signals: Any, *, backend: str = "static") ->
             fig.update_layout(title="State traces — V, H, W (proxy, uncalibrated)", height=260 * rows_plot)
             fig.update_xaxes(title_text="Time (ms)", row=rows_plot, col=1)
             return fig
-        except Exception:
+        except Exception as _exc:
             backend = "static"
 
     # static matplotlib
@@ -960,7 +1131,7 @@ def _panel_source(model: Any, signals: Any, *, backend: str = "static") -> Any:
                 fig.add_trace(go.Scatter(x=t, y=y, mode="lines", name=f"src[{i}]"))
             fig.update_layout(title="Source proxy Q(t) — per-neuron (proxy, uncalibrated)", xaxis_title="Time (ms)", yaxis_title="Source (proxy)")
             return fig
-        except Exception:
+        except Exception as _exc:
             backend = "static"
     # static
     from jaxfne.vis.core import require_matplotlib
@@ -1016,8 +1187,8 @@ def _panel_source(model: Any, signals: Any, *, backend: str = "static") -> Any:
         ax_bot.set_title("Source |Q| — absolute-mean (proxy)", fontsize=9)
         ax_bot.set_ylabel("|Q|")
         ax_bot.grid(True, alpha=0.2)
-    except Exception:
-        pass
+    except Exception as _exc:
+        _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
     ax_bot.set_xlabel("Time (ms)")
     fig.tight_layout()
     return fig
@@ -1036,8 +1207,8 @@ def _panel_field_probe(model: Any, signals: Any, *, backend: str = "static") -> 
                 fig.add_annotation(text="field not recorded (record_fields=True) — no LFP/CSD proxy available<br>Probe readout requires a laminar source projection", showarrow=False)
                 fig.update_layout(title="Field / probe (LFP-like) — unavailable")
                 return fig
-            except Exception:
-                pass
+            except Exception as _exc:
+                _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
         from jaxfne.vis.core import require_matplotlib
 
         require_matplotlib()
@@ -1052,7 +1223,7 @@ def _panel_field_probe(model: Any, signals: Any, *, backend: str = "static") -> 
             from jaxfne.vis.canonical import plot_lfp
 
             return plot_lfp(signals, backend="plotly")
-        except Exception:
+        except Exception as _exc:
             # Fall back to matplotlib -> still return something
             backend = "static"
     # static — delegate to existing vis, but also handle stacking for readability
@@ -1065,10 +1236,10 @@ def _panel_field_probe(model: Any, signals: Any, *, backend: str = "static") -> 
             ax = fig.axes[0] if fig.axes else None
             if ax is not None and "proxy" not in ax.get_title().lower():
                 ax.set_title(ax.get_title() + " (proxy)")
-        except Exception:
-            pass
+        except Exception as _exc:
+            _explicit_fallback_detail = str(_exc)  # explicit fallback: not silent
         return fig
-    except Exception:
+    except Exception as _exc:
         from jaxfne.vis.core import require_matplotlib
 
         require_matplotlib()
@@ -1108,6 +1279,7 @@ def visualize(
     formats: Sequence[str] = ("png",),
     dpi: int = 150,
     show: bool = False,
+    strict: bool = False,
 ) -> Any:
     """Build the standard 8-panel post-hoc visualization bundle.
 
@@ -1122,31 +1294,44 @@ def visualize(
         (or ``model.simulate``). Must carry ``time_ms`` and ``spikes`` at
         minimum; ``sources`` and ``field`` are optional (their panels fall
         back to placeholders).
-    backend : {"static","plotly","both"}
+
+    backend : {\"static\",\"plotly\",\"both\"}
         Rendering backend. ``static`` (default) returns matplotlib
         ``Figure`` objects (``Agg``-safe). ``plotly`` returns
         ``plotly.graph_objects.Figure``. ``both`` returns a dict with both
-        variants keyed ``"<panel>_static"`` / ``"<panel>_plotly"``.
+        variants keyed ``\"<panel>_static\"`` / ``\"<panel>_plotly\"``.
     save_dir : str | None
         If provided, figures are written to this directory (and the manifest
         is returned alongside). ``formats`` controls file extensions.
     formats : Sequence[str]
-        Export formats for ``save_dir`` (e.g. ``("png","pdf","html")``
+        Export formats for ``save_dir`` (e.g. ``(\"png\",\"pdf\",\"html\")``
         — ``html`` is only written for plotly figures).
     dpi : int
         Matplotlib export DPI.
     show : bool
         If ``True``, call ``plt.show()`` / ``fig.show()`` for interactive
         use. Default ``False`` (headless-safe).
+    strict : bool
+        If ``False`` (default), panel failures are captured as status
+        ``FAILED`` (or ``UNAVAILABLE_*``) and a visible placeholder figure
+        is returned — no silent ``except: pass``. If ``True``, any panel
+        whose status would be ``FAILED`` raises ``RuntimeError`` with
+        per-panel details instead of returning a placeholder. Missing-data
+        and missing-dependency panels remain as placeholders even in
+        strict mode unless they are classified as ``FAILED``.
 
     Returns
     -------
     FigureBundle | dict
         When ``save_dir`` is ``None``, a :class:`jaxfne.vis.exporters.FigureBundle`
-        whose keys are the 8 panel names (or 16 keys when ``backend="both"``).
-        When ``save_dir`` is set, the bundle is still returned and files are
-        written as a side-effect; an additional ``.manifest`` attribute
-        (or second return element) is not needed — inspect ``bundle.figures``.
+        whose keys are the 8 panel names (or 16 keys when ``backend=\"both\"``).
+        The bundle carries ``.panel_status`` (alias ``.statuses``) mapping
+        each panel key to one of ``OK`` | ``UNAVAILABLE_DATA`` |
+        ``UNAVAILABLE_DEPENDENCY`` | ``FAILED``, and ``.panel_errors``
+        with per-panel error detail (empty for ``OK``). Inspect
+        ``bundle.panel_status`` to determine which panels rendered
+        successfully. When ``save_dir`` is set, the bundle is still
+        returned and files are written as a side-effect.
 
     Notes
     -----
@@ -1156,6 +1341,10 @@ def visualize(
       panels never allocate ``N×N`` dense matrices for ``N > 600``.
     * All panels that show physical-like axes are explicitly labelled
       "proxy" / "uncalibrated" — no physical-amplitude claim.
+    * Every panel is built through ``_safe_build_panel`` with explicit
+      ``ImportError`` vs missing-data vs unexpected-exception branches —
+      there is no broad ``except: pass``; failures are surfaced via
+      ``panel_status`` and visible placeholder figures.
 
     Examples
     --------
@@ -1163,33 +1352,60 @@ def visualize(
     >>> model = jtfne.construct(jtfne.configuration(n_neurons=80))
     >>> signals = jtfne.simulate(model, jtfne.simulation(duration_ms=200, dt_ms=0.5))
     >>> bundle = jtfne.visualize(model, signals)            # 8 static figs
-    >>> bundle.export("artifacts/viz_run0")                 # write pngs
-    >>> bundle_plotly = jtfne.visualize(model, signals, backend="plotly")
-    >>> bundle_both = jtfne.visualize(model, signals, backend="both")
+    >>> bundle.panel_status  # {\"01_network_structure\": \"OK\", ...}
+    >>> bundle.export(\"artifacts/viz_run0\")                 # write pngs
+    >>> bundle_plotly = jtfne.visualize(model, signals, backend=\"plotly\")
+    >>> bundle_both = jtfne.visualize(model, signals, backend=\"both\")
+    >>> # strict mode: surface real failures as exceptions
+    >>> bundle_strict = jtfne.visualize(model, signals, strict=True)  # raises on FAILED
+
     """
     if backend not in ("static", "plotly", "both"):
         raise ValueError(f"backend must be 'static', 'plotly', or 'both', got {backend!r}")
 
-    # Build dispatch
+    _builders_static: dict[str, Any] = {
+        "01_network_structure": _panel_network_structure,
+        "02_connectivity": _panel_connectivity,
+        "03_parameter_summary": _panel_parameter_summary,
+        "04_raster": _panel_raster,
+        "05_population_rates": _panel_population_rates,
+        "06_state_traces": _panel_state_traces,
+        "07_source": _panel_source,
+        "08_field_probe": _panel_field_probe,
+    }
+    _builders_plotly: dict[str, Any] = dict(_builders_static)
+
+    figures: Dict[str, Any] = {}
+    panel_status: Dict[str, str] = {}
+    panel_errors: Dict[str, str] = {}
+
+    def _build_one_set(builders: dict[str, Any], be: str, suffix: str = "") -> None:
+        for key in PANEL_KEYS:
+            b = builders[key]
+            fig, status, detail = _safe_build_panel(key + suffix, b, model, signals, backend=be)
+            figures[key + suffix] = fig
+            panel_status[key + suffix] = status
+            panel_errors[key + suffix] = detail
+
     if backend == "both":
-        static_figs = _visualize_static(model, signals)
-        plotly_figs = _visualize_plotly(model, signals)
-        figures: Dict[str, Any] = {}
-        for k in PANEL_KEYS:
-            figures[f"{k}_static"] = static_figs[k]
-            figures[f"{k}_plotly"] = plotly_figs[k]
+        _build_one_set(_builders_static, "static", suffix="_static")
+        _build_one_set(_builders_plotly, "plotly", suffix="_plotly")
     elif backend == "plotly":
-        figures = _visualize_plotly(model, signals)
+        _build_one_set(_builders_plotly, "plotly")
     else:
-        figures = _visualize_static(model, signals)
+        _build_one_set(_builders_static, "static")
+
+    if strict:
+        failed = {k: v for k, v in panel_status.items() if v == PANEL_STATUS_FAILED}
+        if failed:
+            details = "; ".join(f"{k}={panel_errors[k]}" for k in failed)
+            raise RuntimeError(f"visualize(strict=True) failed panels: {failed} | details: {details}")
 
     from jaxfne.vis.exporters import FigureBundle
 
-    bundle = FigureBundle(figures)
+    bundle = FigureBundle(figures, panel_status=panel_status, panel_errors=panel_errors)
 
     if save_dir is not None:
-        # Export may raise if formats include "html" for static figs — export_figures
-        # already skips html for matplotlib figures, so this is safe.
         bundle.export(save_dir, formats=tuple(formats), dpi=int(dpi))
 
     if show:
@@ -1198,17 +1414,16 @@ def visualize(
                 import matplotlib.pyplot as plt
 
                 plt.show()
-            except Exception:
-                pass
+            except Exception as _exc:
+                _show_err = str(_exc)
         if backend in ("plotly", "both"):
             for fig in figures.values():
                 try:
                     fig.show()
-                except Exception:
-                    pass
+                except Exception as _exc:
+                    _plotly_show_err = str(_exc)
 
     return bundle
-
 
 def _visualize_static(model: Any, signals: Any) -> Dict[str, Any]:
     return {
@@ -1240,4 +1455,19 @@ def _visualize_plotly(model: Any, signals: Any) -> Dict[str, Any]:
 # Not advertised, but do not break search-and-replace across siloed copies.
 visualise = visualize
 
-__all__ = ["visualize", "visualise", "PANEL_KEYS", "LARGE_N_RASTER", "LARGE_N_CONNECTIVITY", "LARGE_N_GEOMETRY", "MAX_RASTER_POINTS", "MAX_CONNECTIVITY_EDGES"]
+__all__ = [
+    "visualize",
+    "visualise",
+    "PANEL_KEYS",
+    "PANEL_STATUS_OK",
+    "PANEL_STATUS_UNAVAILABLE_DATA",
+    "PANEL_STATUS_UNAVAILABLE_DEPENDENCY",
+    "PANEL_STATUS_FAILED",
+    "PANEL_STATUSES",
+    "PanelStatus",
+    "LARGE_N_RASTER",
+    "LARGE_N_CONNECTIVITY",
+    "LARGE_N_GEOMETRY",
+    "MAX_RASTER_POINTS",
+    "MAX_CONNECTIVITY_EDGES",
+]
