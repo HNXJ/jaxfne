@@ -1,7 +1,20 @@
 {
   "schema_version": "pseudogenome_v1",
   "name": "canonical-v1-column-1000n",
-  "description": "Canonical generative specification of the 1000-neuron V1 laminar column. Declares six laminar bands (L1-L6), per-layer E/PV/SST/VIP base fractions with declared tolerance bands, uniform-random relative geometry, and the typed within-area and cross-layer connection scheme of the canonical v1 column. Development realizes population composition within the declared bands; geometry positions and edge realization are resolved by the ordinary construct/simulate pipeline under the runtime seed.",
+  "description": "Canonical generative specification of the 1000-neuron V1 laminar column - qualitative laminar scaffold. Declares six laminar bands (L1-L6), per-layer E/PV/SST/VIP base fractions with declared tolerance bands, uniform-random relative geometry, and the typed within-area and cross-layer connection scheme of the canonical v1 column. Development realizes population composition within the declared bands; geometry positions and edge realization are resolved by the ordinary construct/simulate pipeline under the runtime seed. Biological calibration: qualitative_laminar_scaffold=true, quantitative_cell_fraction=false (per-layer fractions are scaffold values, not stereotyped empirical measurements), quantitative_connectivity=false (48 typed rules are qualitative motif scaffolds). Reduced Izhikevich labels E/PV/SST/VIP are functional scaffold identities, not warranted literal cell-type identities. value_tag=relative on all numeric fields; Delta-science=0 provenance disclosure.",
+  "provenance": {
+    "genome_source": "jaxfne.builders.CANONICAL_LAYER_CELL_TYPE_FRACTIONS scaffold family (builder ~66E:34I variant) and realized NeuronalTensor jaxfne/configs/canonical-v1-column-1000n.json (~75.8E:25.2I realized); this file is the generative PseudoGenome (pseudogenome_v1)",
+    "realized_reference": "jaxfne/configs/canonical-v1-column-1000n.json (NeuronalTensor snapshot loaded via load_canonical_neuronal_tensor); both files share same base fractions per layer (L1 E 0.50/SST 0.15/VIP 0.35, L2 E 0.648/PV 0.20/SST 0.10/VIP 0.052, L3 E 0.80/PV 0.08/SST 0.08/VIP 0.04, L4 E 0.75/PV 0.18/SST 0.04/VIP 0.03, L5 E 0.88/PV 0.06/SST 0.04/VIP 0.02, L6 E 0.90/PV 0.0533/SST 0.0267/VIP 0.02)",
+    "biological_calibration": {
+      "qualitative_laminar_scaffold": true,
+      "quantitative_cell_fraction": false,
+      "quantitative_connectivity": false,
+      "note": "Fractions and 48 typed rules are qualitative scaffold values (value_tag=relative), not quantitatively calibrated against empirical V1 stereology/connectomics. Labels are reduced-emitter scaffold identities."
+    },
+    "source_calibration_status": "uncalibrated_izhikevich_native_current",
+    "value_tag": "relative",
+    "delta_science": 0
+  },
   "development_parameters": {
     "fraction_jitter_sigma": 0.01
   },

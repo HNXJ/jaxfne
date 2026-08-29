@@ -87,6 +87,13 @@ composition, the more the model can reproduce real laminar physiology.
     `jtfne.build_laminar_column(n=1000, ei_profile="canonical")` applies the
     verified per-layer E:I gradient and laminar placement for you — a good
     starting point you then refine with the methods above.
+    It is a **qualitative laminar scaffold** (`qualitative_laminar_scaffold = true`,
+    `quantitative_cell_fraction = false`, `quantitative_connectivity = false`): fractions
+    (`L1 E 0.50` etc., ~66E:34I for the builder constant) and motif connectivity are
+    scaffold values with `value_tag="relative"`, not quantitatively calibrated biology
+    — see [Scope & status](../scope_and_status.md#biological-calibration-status-canonical-v1-column)
+    and [Calibration — Biological status](calibration.md#biological-calibration-status).
+    Reduced labels `E`/`PV`/`SST`/`VIP` are functional scaffold identities, not warranted literal cell-type identities.
 
 ## Connectivity
 

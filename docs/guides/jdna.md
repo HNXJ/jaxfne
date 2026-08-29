@@ -208,6 +208,10 @@ first-class.
 
 Realization of `N` via `develop` does not establish effectiveness (`ΔX` under intervention).
 
+### Biological calibration status of the canonical genome
+
+`canonical-v1-column-1000n` (`jaxfne/jdna/genomes/canonical-v1-column-1000n.json`, `pseudogenome_v1`) is a **qualitative laminar scaffold**: `qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false`. Base fractions (`L1 E 0.50/SST 0.15/VIP 0.35`, `L2 E 0.648/PV 0.20/SST 0.10/VIP 0.052`, `L3 E 0.80/PV 0.08/SST 0.08/VIP 0.04`, `L4 E 0.75/PV 0.18/SST 0.04/VIP 0.03`, `L5 E 0.88/PV 0.06/SST 0.04/VIP 0.02`, `L6 E 0.90/PV 0.0533/SST 0.0267/VIP 0.02` with `fraction_tolerance` bands and `fraction_jitter_sigma=0.01`, all `value_tag="relative"`) and 48 typed connection rules are scaffold values, not quantitatively calibrated against V1 biology. Labels `E`/`PV`/`SST`/`VIP` are reduced-emitter scaffold identities, not warranted literal cell-type identities. No kernel change — this is provenance disclosure. See [Scope & status](../scope_and_status.md#biological-calibration-status-canonical-v1-column) and [Calibration — Biological status](calibration.md#biological-calibration-status).
+
 ## References
 
 - [Public surface contract](../public_surface_contract.md) — additive JDNA

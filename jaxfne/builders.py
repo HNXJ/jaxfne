@@ -46,10 +46,19 @@ CANONICAL_LAYERS_6L: tuple[str, ...] = ("L1", "L2", "L3", "L4", "L5", "L6")
 #: Flat (depth-invariant) cell-type fractions — the legacy default.
 FLAT_CELL_TYPE_FRACTIONS: dict[str, float] = {"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07}
 
-#: Canonical ground-truth per-layer E:I composition (user reference, 2026-06-19).
+#: Canonical scaffold per-layer E:I composition — qualitative laminar scaffold
+#: (user reference, 2026-06-19; provenance: scaffold, not calibrated measurements).
 #: E-fraction rises with depth (peaks L6 95%); I-fraction is highest superficial
-#: (L1 50% I, L2/L3 50% I); PV FRACTION peaks at L4 (feedforward); L1 is VIP-rich
-#: (those VIP specifically inhibit L1/2/3 SST); L6 has no PV/VIP. Overall ≈72E:28I.
+#: (L1 50% I, L2/L3 50% I); PV fraction peaks at L2/L3 (builder variant 25% each)
+#: / realized-genome variant peaks at L2 20% with tolerance bands (see
+#: jaxfne/jdna/genomes/canonical-v1-column-1000n.json, pseudogenome_v1);
+#: L1 is VIP-rich (those VIP specifically inhibit L1/2/3 SST); L6 has no PV/VIP.
+#: Overall builder scaffold ≈66E:34I (realized genome ~75.8E:25.2I — same qualitative
+#: gradient, distinct quantitative scaffold; both value_tag="relative").
+#: Biological calibration: qualitative_laminar_scaffold=true,
+#: quantitative_cell_fraction=false, quantitative_connectivity=false.
+#: Labels E/PV/SST/VIP are reduced Izhikevich scaffold identities, not warranted
+#: literal cell-type identities (see docs/scope_and_status.md).
 #: Keys are the 6-layer names in :data:`CANONICAL_LAYERS_6L`; a 5-layer ("L2/3"
 #: merged) variant is :data:`CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L`.
 CANONICAL_LAYER_CELL_TYPE_FRACTIONS: dict[str, dict[str, float]] = {
