@@ -316,11 +316,11 @@ def default_relative_size(neuron_type: str) -> float
 
 Returns the default `relative_size` for a neuron type (from
 `emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE`, shared with HDP `tau_i` scaling):
-- `"E"` → `5.0`
-- `"PV"` / `"Inl"` → `1.0`
-- `"SST"` / `"VIP"` / `"Ing"` → `1.5`
+- `"E"` → `5.0` (`E-like`)
+- `"PV"` / `"Inl"` → `1.0` (`PV-like`)
+- `"SST"` / `"VIP"` / `"Ing"` → `1.5` (`SST-like` / `VIP-like`)
 
-Used internally by `NeuronType.make`.
+Keys are reduced-class labels (read as `-like`; no literal identity). Used internally by `NeuronType.make`.
 
 ---
 
@@ -375,10 +375,10 @@ names = list_canonical_neuronal_tensors()
 tensor = load_canonical_neuronal_tensor("canonical-v1-column-1000n")
 ```
 
-`canonical-v1-column-1000n` is the verified ground-truth 1000-neuron V1 column
+`canonical-v1-column-1000n` is the **qualitative laminar-scaffold** 1000-neuron V1 column
 (6 layers L1-L6, full E/PV/SST/VIP composition, the same depth-graded E:I
 gradient documented in the cortical-column-default skill — E peaks deep,
-I peaks superficial). `canonical-v1-v4-pfc-multiarea` tiles that same column
+I peaks superficial; `qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false` — scaffold values, not quantitatively calibrated; see provenance below). `canonical-v1-v4-pfc-multiarea` tiles that same column
 composition across 3 areas (V1, V4, PFC; 3000 neurons total) with L4-to-L4
 feedforward and L6-to-L1 feedback `AreaConnection`s, matching the
 `jtfne.build_multi_area_columns(["V1","V4","PFC"], ei_profile="canonical")`
@@ -387,6 +387,8 @@ synthetic demos for specific features (homeostatic H-override, multi-area
 feedforward, a minimal 4-layer column) — use `canonical-v1-column-1000n` or
 `canonical-v1-v4-pfc-multiarea` when you want a realistic reference composition
 rather than a feature-isolation demo.
+
+**Provenance and calibration of `canonical-v1-column-1000n`.** Realized fractions (`jaxfne/configs/canonical-v1-column-1000n.json`, `value_tag="relative"`): `L1 {E:0.50, SST:0.15, VIP:0.35}`, `L2 {E:0.648, PV:0.20, SST:0.10, VIP:0.052}`, `L3 {E:0.80, PV:0.08, SST:0.08, VIP:0.04}`, `L4 {E:0.75, PV:0.18, SST:0.04, VIP:0.03}`, `L5 {E:0.88, PV:0.06, SST:0.04, VIP:0.02}`, `L6 {E:0.90, PV:0.0533, SST:0.0267, VIP:0.02}` (overall ~75.8E:25.2I). Generative provenance is `jaxfne/jdna/genomes/canonical-v1-column-1000n.json` (`pseudogenome_v1`, `fraction_tolerance` bands per layer, `fraction_jitter_sigma=0.01`, same base fractions, 48 typed connection rules with `value_tag="relative"`). Builder-scaffold provenance is `jaxfne.builders.CANONICAL_LAYER_CELL_TYPE_FRACTIONS` (`L1 E:0.50/PV:0.05/SST:0.10/VIP:0.35` ... `L6 E:0.95`, ~66E:34I) — a related scaffold variant, not the same realized fractions. **All are scaffold, not calibrated**: `qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false` (see [Scope & status](../scope_and_status.md) and [Calibration — Biological status](../guides/calibration.md#biological-calibration-status)). Reduced Izhikevich labels `E`/`PV`/`SST`/`VIP` are functional heterogeneity tags (distinct `IZHIKEVICH_CELL_TYPE_DEFAULTS` rows), not warranted literal cell-type identities. File provenance and realized counts are reproducible via `load_canonical_neuronal_tensor` / `develop` + `construct(...).neuron_table()` — query live state rather than copying numbers.
 
 **On species-scaled variants:** `jaxfne/configs/default_macaque_V1.json` *is*
 shipped, but read its `_provenance` block before treating it as a calibrated

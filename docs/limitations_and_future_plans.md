@@ -61,6 +61,10 @@ boundary, gauge, residual, convergence, and calibration validation before any
 physical-amplitude reporting. The elliptic field equation specification (`docs/guides/poisson_admissibility.md` — repository-internal reference, excluded from the built site)
 documents the admissibility mathematics for that regime.
 
+### Biological calibration (canonical V1 `canonical-v1-column-1000n`)
+
+The canonical V1 is a **qualitative laminar scaffold**: `qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false`. Per-layer fractions (`L1 E 0.50` etc.) and typed connection rules are scaffold values with `value_tag="relative"` and provenance in `jaxfne/jdna/genomes/canonical-v1-column-1000n.json` / `jaxfne/configs/canonical-v1-column-1000n.json` and `jaxfne.builders.CANONICAL_LAYER_CELL_TYPE_FRACTIONS` (see [Scope & status](scope_and_status.md) and [Calibration — Biological status](guides/calibration.md#biological-calibration-status)). Reduced Izhikevich labels `E`/`PV`/`SST`/`VIP` are functional scaffold identities, not warranted literal cell-type identities. No kernel change.
+
 PseudoGenome realization via `develop` does not establish effectiveness (`ΔX` under intervention); see [PseudoGenome guide](guides/jdna.md).
 
 ## Related pages

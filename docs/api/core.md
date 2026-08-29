@@ -76,7 +76,9 @@ cfg = cfg.cell_types({"E": 0.8, "PV": 0.2})
 ```
 
 Valid labels for the Izhikevich emitter family are `E`, `PV`, `Inl`, `SST`,
-`Ing`, `VIP` (`jaxfne.emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS`) — only these
+`Ing`, `VIP` (`jaxfne.emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS`) — stored keys for
+reduced emitter classes, read as `E-like`, `PV-like`, `SST-like`, `VIP-like`
+(no literal biological identity; see `docs/api/emitters.md` wording note) — only these
 specific labels are accepted, a generic `"I"` aggregate label is rejected;
 `construct()` raises `ValueError: unknown Suite No. 2 cell type label` for
 any other string. `cell_types()` itself just stores the dict as given; label

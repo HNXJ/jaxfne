@@ -10,6 +10,8 @@ Everything here is a **computational scaffold**: the laminar fields are proxies
 (`field_solver_status="linear_solver"`), not a solved volume conductor, and no
 calibrated-amplitude or mechanism claim is made.
 
+> **Biological calibration status — canonical V1 (`canonical-v1-column-1000n`).** `qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false`. The per-layer fractions shown below (`L1 E 0.50` etc.) and typed connection motifs are **scaffold values, not quantitatively calibrated** against empirical V1 stereology or connectomics. Seed provenance: `jaxfne/jdna/genomes/canonical-v1-column-1000n.json` (PseudoGenome, generative rules with `fraction_tolerance` bands, `fraction_jitter_sigma=0.01`, `value_tag="relative"`) and `jaxfne/configs/canonical-v1-column-1000n.json` (realized NeuronalTensor); builder provenance: `jaxfne.builders.CANONICAL_LAYER_CELL_TYPE_FRACTIONS` (`~66E:34I` variant) / `CANONICAL_Z_BANDS`. Labels `E`/`PV`/`SST`/`VIP` are **reduced Izhikevich scaffold identities** (heterogeneous `a`/`b`/`c`/`d`/`drive`/`sign` in `IZHIKEVICH_CELL_TYPE_DEFAULTS`), not warranted literal cell-type identities. No kernel change. Full disclosure: [Scope & status](../scope_and_status.md) and [Calibration — Biological status](../guides/calibration.md#biological-calibration-status).
+
 | Step | What it does |
 |------|--------------|
 | 1 Config | Fluent canonical cfg: thickness-proportional counts + per-layer E/I |
@@ -32,9 +34,11 @@ Two laws define the reference column (the default prior for laminar work):
    inhibitory *count* sits in the dense superficial L2. PV peaks at L2/L3
    (25% each); L6 carries no PV.
 
-Overall composition is ~66% E : 34% I, in the realistic cortical range. This
+Overall composition is ~66% E : 34% I, in the realistic cortical range for the builder-constant variant. This
 table is `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS` — query the live
 constant rather than copying these numbers if you need them elsewhere.
+
+> **Scaffold provenance & calibration.** The table above is the **builder scaffold** (`jaxfne/builders.py:55`, ~66E:34I). The **genome / realized-tensor** provenance used by `load_canonical_neuronal_tensor('canonical-v1-column-1000n')` and `load_canonical_pseudogenome('canonical-v1-column-1000n')` is a related but distinct scaffold: `L1 {E:0.50, SST:0.15, VIP:0.35}`, `L2 {E:0.648, PV:0.20, SST:0.10, VIP:0.052}`, `L3 {E:0.80, PV:0.08, SST:0.08, VIP:0.04}`, `L4 {E:0.75, PV:0.18, SST:0.04, VIP:0.03}`, `L5 {E:0.88, PV:0.06, SST:0.04, VIP:0.02}`, `L6 {E:0.90, PV:0.0533, SST:0.0267, VIP:0.02}` (~75.8E:25.2I realized; `value_tag="relative"`), with `fraction_tolerance` bands and `fraction_jitter_sigma=0.01` declared in `jaxfne/jdna/genomes/canonical-v1-column-1000n.json`. **Both are qualitative scaffolds, not quantitatively calibrated** against empirical composition (`quantitative_cell_fraction = false`; `quantitative_connectivity = false`; see header box and [Calibration — Biological status](../guides/calibration.md#biological-calibration-status)). Reduced Izhikevich labels `E`/`PV`/`SST`/`VIP` below are functional heterogeneity tags (distinct `a`/`b`/`c`/`d`/`drive`), not warranted literal cell-type identities.
 
 ```python
 import jaxfne as jtfne
@@ -240,6 +244,11 @@ claim_level:                   computational_scaffold
 field_solver_status:           linear_solver
 field_claim_level:             proxy_readout
 physical_amplitude_calibrated: False
+# Biological calibration (canonical V1):
+#   qualitative_laminar_scaffold = true
+#   quantitative_cell_fraction    = false
+#   quantitative_connectivity     = false  (see header box; scaffold provenance, not calibrated measurements)
+# Reduced labels E/PV/SST/VIP are functional scaffold identities, not warranted literal cell-type identities
 ```
 
 ---
@@ -257,7 +266,8 @@ physical_amplitude_calibrated: False
   multi-trial run via `tutorial_utils.spectrolaminar_from_trials`.
 - **Proxy language only.** Use "simulated", "proxy", "scaffold",
   "computational diagnostic". The laminar fields here are proxies, not a solved
-  field, and amplitudes are uncalibrated.
+  field, and amplitudes are uncalibrated. Likewise, `E`/`PV`/`SST`/`VIP` labels denote reduced Izhikevich dynamical heterogeneity, not warranted literal cell-type identity.
+- **Scaffold, not calibrated biology.** The fractions and motifs above are qualitative scaffold values (`quantitative_cell_fraction = false`, `quantitative_connectivity = false`) with declared provenance — do not present as empirically calibrated V1 composition or connectivity.
 
 ## Next step
 

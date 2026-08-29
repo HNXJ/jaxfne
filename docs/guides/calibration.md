@@ -92,11 +92,32 @@ report = make_calibration_report(spec, readout_kind="lfp_proxy")
 - Calibration metadata is declared for future validation, validation pending
 - Empirical calibration requires separate geometry, reference data, and validation evidence beyond the spec
 
+## Biological calibration status
+
+Field-amplitude calibration (above) is distinct from **biological calibration** — whether the circuit's cell-type composition and connectivity are quantitatively fitted to empirical biology.
+
+### Canonical V1 column (`canonical-v1-column-1000n`)
+
+The shipped canonical V1 is intentionally scoped as a **qualitative laminar scaffold**:
+
+| Axis | Value | Interpretation |
+|------|-------|----------------|
+| `qualitative_laminar_scaffold` | `true` | Laminar structure is declared (6 bands L1–L6, depth-graded E:I, typed E/PV/SST/VIP populations, canonical E->I / I->E / cross-layer E->E motifs). Suitable for method development and structural diagnostics. |
+| `quantitative_cell_fraction` | `false` | Per-layer fractions declared in `jaxfne/jdna/genomes/canonical-v1-column-1000n.json` (PseudoGenome, generative) and `jaxfne/configs/canonical-v1-column-1000n.json` (NeuronalTensor, realized; see provenance below) are **scaffold values, not calibrated measurements**. Example realised fractions (NeuronalTensor / PseudoGenome): `L1 {E:0.50, SST:0.15, VIP:0.35}`, `L2 {E:0.648, PV:0.20, SST:0.10, VIP:0.052}`, `L3 {E:0.80, PV:0.08, SST:0.08, VIP:0.04}`, `L4 {E:0.75, PV:0.18, SST:0.04, VIP:0.03}`, `L5 {E:0.88, PV:0.06, SST:0.04, VIP:0.02}`, `L6 {E:0.90, PV:0.0533, SST:0.0267, VIP:0.02}` (overall ~75.8E:25.2I realized). The builder constant `CANONICAL_LAYER_CELL_TYPE_FRACTIONS` (`jaxfne/builders.py:55`) is a related but distinct scaffold variant (~66E:34I). None are warranted as stereologically calibrated V1 composition. |
+| `quantitative_connectivity` | `false` | The 48 typed connection rules (within-layer E->PV/SST/VIP, PV/SST/VIP->E, PV->PV and cross-layer E->E such as L4->L2/L3, L2->L3/L5, L6->L4/L1) and their weights/delays/gains (`w_mech=0.45`, `dT_ms` 2.0/5.0, `value_tag="relative"`) are qualitative motif scaffolds, not fits to empirical connectomics or paired recordings. |
+
+**Provenance.** Generative provenance is `PseudoGenome canonical-v1-column-1000n` (`schema_version pseudogenome_v1`, `development_parameters.fraction_jitter_sigma=0.01`, `fraction_tolerance` bands per layer, `value_tag="relative"` on all numeric fields; realized via `develop(genome, seed=K_D)` -> `NeuronalTensor` -> `construct` -> `Model` with `source_calibration_status="uncalibrated_izhikevich_native_current"`). File provenance: `jaxfne/jdna/genomes/canonical-v1-column-1000n.json` (generative rules) and `jaxfne/configs/canonical-v1-column-1000n.json` (realized NeuronalTensor snapshot); builder provenance: `jaxfne.builders.CANONICAL_LAYER_CELL_TYPE_FRACTIONS` / `CANONICAL_Z_BANDS`. Treat all three as **scaffold provenance**, not calibration evidence.
+
+**Reduced-emitter caveat.** The default emitter is a reduced Izhikevich point neuron. Labels `E`/`PV`/`SST`/`VIP` are **functional scaffold identities** (distinct `a`/`b`/`c`/`d`/`drive`/`sign` rows in `IZHIKEVICH_CELL_TYPE_DEFAULTS`) that provide dynamical heterogeneity, not warranted literal cell-type identities. A label match does not imply transcriptomic, morphological, or biophysical identity with the named biological class. Do not present results as if `PV` in the model is proven to be biological PV interneurons; report as "PV-like reduced scaffold" unless an independent calibration/validation study supplies that warrant. No kernel change.
+
+To claim quantitative biological correspondence, supply an explicit layer-resolved validation study (stereology, connectomics, or transcriptomic mapping) and tag the derived circuit with its own citation and `value_tag` — do not reinterpret the shipped scaffold as already validated.
+
 ## Current status
 
 - ✓ Metadata fields support calibration annotations
 - ✓ JSON output bundles preserve geometry and source information
 - ✓ Calibration specification contracts (metadata only, no physical amplitude upgrade)
+- ✓ Biological calibration status declared for canonical V1 (qualitative scaffold only: cell-fraction and connectivity both `false` — this section)
 - ◐ Empirically validated calibration examples: planned
 - ◐ Empirically calibrated readouts: planned
 

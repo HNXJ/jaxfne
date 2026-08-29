@@ -51,7 +51,10 @@ def _source_proxy_from_components(
 
 
 # Canonical Izhikevich cell-type parameter defaults.
-# Single source of truth for E/PV/SST/VIP reduced-model parameters.
+# Single source of truth for E/PV-like/SST-like/VIP-like reduced-model parameters.
+# Labels "E", "PV", "SST", "VIP" denote reduced emitter classes (E-like, PV-like,
+# SST-like, VIP-like) — phenomenological Izhikevich presets that do not warrant
+# literal transcriptomic/morphological identity.
 IZHIKEVICH_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
     "E":   {"a": 0.02, "b": 0.20, "c": -65.0, "d": 8.0,  "drive": 5.0, "sign":  1.0},
     "PV":  {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0,  "drive": 3.0, "sign": -1.0},
@@ -129,7 +132,8 @@ class IzhikevichParams:
     """Parameter container for a reduced Izhikevich population.
 
     Fields:
-    - labels: tuple of cell-type labels (E, PV, SST, VIP)
+    - labels: tuple of reduced-class labels (E-like, PV-like, SST-like,
+      VIP-like — stored as "E", "PV", "SST", "VIP"; no literal identity claim)
     - layer_labels: optional tuple of layer names (L1, L2/3, L4, L5, L6, etc)
     """
 
@@ -224,7 +228,8 @@ def _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, h_k):
 
 @dataclass(frozen=True)
 class EIGNetwork:
-    """Lightweight description of an E/PV/SST/VIP-like reduced network."""
+    """Lightweight description of an E/PV-like/SST-like/VIP-like reduced network
+    (labels are reduced emitter classes, not literal cell identity)."""
 
     params: IzhikevichParams
     positions: jax.Array
@@ -269,12 +274,13 @@ def izhikevich_eig_params(
     *,
     dtype: str = "float32",
 ) -> IzhikevichParams:
-    """Create E/PV/SST/VIP-like Izhikevich parameters.
+    """Create E/PV-like/SST-like/VIP-like Izhikevich parameters (reduced
+    emitter classes — does not warrant literal PV/SST/VIP identity).
 
-    Labels:
-    - ``E``: regular-spiking-like excitatory emitter.
-    - ``PV`` or ``Inl``: fast-spiking local inhibitory emitter.
-    - ``SST`` or ``Ing``: low-threshold/dendrite-related inhibitory emitter.
+    Labels (stored without suffix; described with "-like" when claiming dynamics):
+    - ``E``: E-like regular-spiking excitatory emitter.
+    - ``PV`` or ``Inl``: PV-like fast-spiking local inhibitory emitter.
+    - ``SST`` or ``Ing``: SST-like low-threshold/dendrite-related inhibitory emitter.
     - ``VIP``: VIP-like inhibitory/disinhibitory emitter class.
     """
 

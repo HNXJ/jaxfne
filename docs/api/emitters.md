@@ -10,6 +10,13 @@ cfg = jtfne.Configuration().set_emitter("izhikevich", "cortical_eig")
 
 The Izhikevich neuron model is a phenomenological spiking neuron model with two state variables (v, u). It provides a good balance between computational efficiency and biological realism for tutorial-scale simulations.
 
+> **Reduced-class wording.** Labels `E`, `PV`, `SST`, `VIP` (and aliases `Inl`, `Ing`)
+> denote **reduced emitter classes** — `E-like`, `PV-like`, `SST-like`, `VIP-like` —
+> i.e. phenomenological Izhikevich presets with distinct `(a,b,c,d,drive,sign)`
+> kinetics. The reduced scaffold does **not** warrant literal transcriptomic/
+> morphological identity (no claim of biological PV/SST/VIP cells). Use `-like`
+> when describing dynamics; the stored config keys remain bare (`"PV"` etc.).
+
 `Configuration.set_emitter(family="izhikevich", preset="cortical_eig")` is a thin chainable
 wrapper over `Configuration.emitter(**kwargs)`; it records `family`/`preset` as metadata on
 the config (`jaxfne/_config.py:860`). At build time, `"izhikevich"` and `"homeostatic_ei"`
@@ -17,7 +24,7 @@ are the two supported families (`_SUPPORTED_EMITTER_FAMILIES`, `jaxfne/_construc
 — see the `homeostatic_ei` section further down this page for the second family); other family
 strings raise at build time. `preset` is a
 free-form string tag; `emitters.py` has no dedicated per-preset dynamics table. The emitter's
-per-neuron behavior differentiation comes from **cell type** (E/PV/SST/VIP/Inl/Ing), rather than
+per-neuron behavior differentiation comes from **reduced-class label** (`E/PV/SST/VIP/Inl/Ing`-like), rather than
 from `preset`. Treat `preset="cortical_eig"` as the conventional default tag, rather than a switch between
 named dynamical regimes.
 
@@ -68,23 +75,26 @@ current_native = drive + recurrent_synaptic + noise
 ### Parameters
 
 Canonical per-cell-type parameter defaults live in
-`IZHIKEVICH_CELL_TYPE_DEFAULTS` (`jaxfne/emitters.py:25`), keyed by cell-type label
-(`E`, `PV`, `Inl`, `SST`, `Ing`, `VIP`):
+`IZHIKEVICH_CELL_TYPE_DEFAULTS` (`jaxfne/emitters.py:25`), keyed by reduced-class label
+(`E`, `PV`, `Inl`, `SST`, `Ing`, `VIP` — read as `E-like`, `PV-like`, etc.; no literal
+identity claim — see wording note above):
 
-| Label | `a` | `b` | `c` (mV-like) | `d` | `drive` | `sign` |
-|-------|-----|-----|-----|-----|---------|--------|
-| `E`   | 0.02 | 0.20  | -65.0 | 8.0 | 5.0 | +1.0 |
-| `PV`  | 0.10 | 0.20  | -65.0 | 2.0 | 3.0 | -1.0 |
-| `Inl` | 0.10 | 0.20  | -65.0 | 2.0 | 3.0 | -1.0 |
-| `SST` | 0.05 | 0.25  | -65.0 | 2.0 | 3.5 | -1.0 |
-| `Ing` | 0.05 | 0.25  | -65.0 | 2.0 | 3.5 | -1.0 |
-| `VIP` | 0.02 | -0.10 | -55.0 | 6.0 | 3.0 | -1.0 |
+| Label (reduced class) | `a` | `b` | `c` (mV-like) | `d` | `drive` | `sign` | Read as |
+|-------|-----|-----|-----|-----|---------|--------|---------|
+| `E`   | 0.02 | 0.20  | -65.0 | 8.0 | 5.0 | +1.0 | E-like regular-spiking |
+| `PV`  | 0.10 | 0.20  | -65.0 | 2.0 | 3.0 | -1.0 | PV-like fast-spiking |
+| `Inl` | 0.10 | 0.20  | -65.0 | 2.0 | 3.0 | -1.0 | PV-like (Inl alias) |
+| `SST` | 0.05 | 0.25  | -65.0 | 2.0 | 3.5 | -1.0 | SST-like low-threshold |
+| `Ing` | 0.05 | 0.25  | -65.0 | 2.0 | 3.5 | -1.0 | SST-like (Ing alias) |
+| `VIP` | 0.02 | -0.10 | -55.0 | 6.0 | 3.0 | -1.0 | VIP-like inhibitory/disinhibitory |
 
 An unrecognized cell-type label falls back to the `VIP` row (`_get_cell_type_params`,
 `jaxfne/emitters.py:35`). These values feed the `a`/`b`/`c`/`d`/`drive`/`sign` fields of
 `IzhikevichParams` — see the dataclass table below for the full field list. There is
 no `I_injected` field; the closest analogue is the per-cell `drive` value plus, at simulate time, an
 optional `drive_schedule` argument.
+
+> **Reduced-emitter caveat — labels are not warranted literal cell-type identities.** The Izhikevich kernel is a reduced point-neuron scaffold. Labels `E`/`PV`/`SST`/`VIP` (`Inl`/`Ing` aliases) are **functional scaffold identities** that index distinct dynamical rows in `IZHIKEVICH_CELL_TYPE_DEFAULTS` (heterogeneous `a`/`b`/`c`/`d`/`drive`/`sign`; `source_calibration_status="uncalibrated_izhikevich_native_current"`, `value_tag="relative"`). A label match does **not** warrant transcriptomic, morphological, or biophysical identity with the named biological class. Do not present results as if `PV` in the model is proven to be biological PV interneurons; report as "PV-like reduced scaffold" unless an independent calibration/validation study supplies that warrant. See [Scope & status — Biological calibration](../scope_and_status.md#biological-calibration-status-canonical-v1-column) and [Calibration — Biological status](../guides/calibration.md#biological-calibration-status) (`quantitative_cell_fraction = false`, `quantitative_connectivity = false`, `qualitative_laminar_scaffold = true`). HH-level identity requires the separate `JaxleyBridge` path and its own calibration.
 
 ### Building Parameters
 
@@ -204,6 +214,23 @@ Note: the recurrent-simulation kernels' binary excitatory/inhibitory split (see 
 consumes `receptor_index` values `0` and `1` only; `NMDA`/`GABA_B` are declared
 here, while the kernels instantiate them as combined excitatory/inhibitory channels rather than as separate synaptic populations.
 
+#### AMPA / GABA implementation table
+
+What the kernels **actually compute** vs. what is stored as metadata. Δscience=0.
+
+| Mechanism | Sign | Kernel | Conductance | Reversal | Kinetics |
+|-----------|------|--------|-------------|----------|----------|
+| `AMPA` | +1 (excitatory) | single-exponential low-pass: `s_next = s*exp(-dt/tau) + spike_pre` (`synaptic_current_tensor`); one scalar state per edge | **current-based**: `weight * syn_state` summed via `segment_sum` to postsynaptic `syn`; no `g*(V - E_rev)` term — `reversal_mV` not in dynamics | `0.0` mV, **metadata only** (`ReceptorSpec.reversal_mV`, `source_calibration_status="metadata_only_uncalibrated"`) | `tau_ms = 2.0` ms |
+| `GABA_A` | -1 (inhibitory) | same single-pole kernel, `tau=5 ms` (`EdgeList.tau_ms` per edge from `receptor_index`) | **current-based**: `weight * syn_state`; inhibitory sign via negative `weight` (`sign=-1`, `receptor_index=1`) | `-80.0` mV, **metadata only** | `tau_ms = 5.0` ms |
+| `NMDA` | +1 (excitatory) | same kernel family when instantiated via `synaptic_tau_from_mechanism` / `synaptic_current_tensor` | current-based when used | `0.0` mV, metadata only | `tau_ms = 100.0` ms (declared; not in default `EdgeList` excitatory split, available via `synaptic_current_tensor`) |
+| `GABA_B` | -1 (inhibitory) | same kernel family | current-based when used | `-95.0` mV, metadata only | `tau_ms = 150.0` ms (declared; not in default `EdgeList`, available via `synaptic_current_tensor`) |
+
+Notes:
+- **Kernel** is the declared computation; there is no separate rise time constant (single-pole, matches `simulate_edge_recurrent_izhikevich` / `simulate_receptor_exponential_izhikevich`).
+- **Conductance** column: the shipped dynamics are **not** conductance-based (`g*(V - E_rev)`); `g_mech`/`reversal_potentials_mV` in `StaticParams` and `ReceptorSpec.reversal_mV` are provenance metadata surfacing in `cfg.metadata["circuit"]["mechanisms"]` but have no effect on `simulate()` output.
+- **Reversal** values are the standard specs (`standard_receptor_specs()`); they are not clamped/enforced as voltage bounds in the kinetics.
+- The default `EdgeList` construction from dense weights assigns `tau=2.0` for `weight >= 0` and `tau=5.0` for `weight < 0`; declaring a named `mechanism` does **not** change that until the mechanism-aware `edges.tau_ms` is wired (see `synaptic_tau_from_mechanism` inertness note — additive, not yet compiled into `core._compile_connection_rules`).
+
 ---
 
 ## SynapseSpec
@@ -233,8 +260,8 @@ Per-connection edges are represented by `EdgeList` (below), a distinct type from
 jaxfne.EIGNetwork
 ```
 
-Frozen dataclass — lightweight description of an E/PV/SST/VIP-like reduced network
-(`jaxfne/emitters.py:172`).
+Frozen dataclass — lightweight description of an E/PV-like/SST-like/VIP-like reduced network
+(`jaxfne/emitters.py:172`) — labels are reduced emitter classes (read as `-like`; no literal identity).
 
 ### Fields
 
@@ -318,8 +345,8 @@ Build a minimal EIG network with laminar depth positions (`jaxfne/emitters.py:32
 **Parameters:**
 - `n` (int, default 128): Number of neurons; depth positions are spread evenly over `[0, 1]`
   (x/y are fixed at 0).
-- `cell_type_fractions` (`Mapping[str, float]`, optional): E/PV/SST/VIP fractions. Default:
-  `{"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03}`.
+- `cell_type_fractions` (`Mapping[str, float]`, optional): E/PV-like/SST-like/VIP-like reduced-class fractions. Default:
+  `{"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03}` (keys bare; read as `-like`).
 - `dtype` (str, keyword-only, default `"float32"`): Array dtype policy.
 
 **Returns:** `EIGNetwork`, with `metadata` containing `emitter_family="izhikevich"`,

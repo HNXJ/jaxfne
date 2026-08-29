@@ -104,7 +104,7 @@ signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
 ```
 
 `ei_profile="canonical"` applies the verified laminar E:I gradient (E peaks deep,
-I peaks superficial, PV peaks at L2/L3, ≈66E:34I overall). `ei_profile="flat"`
+I peaks superficial, PV peaks at L2/L3, ≈66E:34I overall for the builder constant) — a **qualitative scaffold** (`qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false`; `value_tag="relative"`; provenance `jaxfne/jdna/genomes/canonical-v1-column-1000n.json`), not quantitatively calibrated biology. Reduced labels `E`/`PV`/`SST`/`VIP` are functional scaffold identities, not warranted literal cell-type identities. `ei_profile="flat"`
 keeps legacy depth-invariant composition.
 
 Multi-area: `jtfne.build_multi_area_columns(["V1", "V4", "PFC"], ei_profile="canonical")`.
