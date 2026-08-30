@@ -247,7 +247,7 @@ physical_amplitude_calibrated: False
 # Biological calibration (canonical V1):
 #   qualitative_laminar_scaffold = true
 #   quantitative_cell_fraction    = false
-#   quantitative_connectivity     = false  (see header box; scaffold provenance, not calibrated measurements)
+#   quantitative_connectivity     = false  (see header box; scaffold provenance, without quantitative calibration)
 # Reduced labels E/PV/SST/VIP are functional scaffold identities, not warranted literal cell-type identities
 ```
 
@@ -267,7 +267,7 @@ physical_amplitude_calibrated: False
 - **Proxy language only.** Use "simulated", "proxy", "scaffold",
   "computational diagnostic". The laminar fields here are proxies, not a solved
   field, and amplitudes are uncalibrated. Likewise, `E`/`PV`/`SST`/`VIP` labels denote reduced Izhikevich dynamical heterogeneity, not warranted literal cell-type identity.
-- **Scaffold, not calibrated biology.** The fractions and motifs above are qualitative scaffold values (`quantitative_cell_fraction = false`, `quantitative_connectivity = false`) with declared provenance — do not present as empirically calibrated V1 composition or connectivity.
+- **Scaffold, without quantitative calibration.** The fractions and motifs above are qualitative scaffold values (`quantitative_cell_fraction = false`, `quantitative_connectivity = false`) with declared provenance — do not present as empirically calibrated V1 composition or connectivity.
 
 ## Next step
 
