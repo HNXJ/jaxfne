@@ -54,7 +54,15 @@ def test_canonical_1000n_counts():
     # Theta decomposition
     assert summ["Theta"]["Theta_static"]["N_static"] == 6001  # 6*1000+1
     assert summ["Theta"]["W"]["n_edges"] == 215785
-    assert summ["Theta"]["H"]["size"] == 0  # HDP disabled
+    # P1 fix: H (RBS) exists independently of HDP (HDP is only one F_W(H) map);
+    # canonical tensor declares PlasticParams.H schema and model stores hdp_initial_H,
+    # so H is present_static even when HDP disabled. Size = N * h_state_dim = 1000.
+    assert summ["Theta"]["H"]["H_status"] == "present_static"
+    assert summ["Theta"]["H"]["size"] == 1000
+    assert summ["H_status"] == "present_static"
+    assert summ["H"]["size"] == 1000
+    assert summ["taxonomy"]["hidden_state"]["H_status"] == "present_static"
+    assert summ["counts"]["executed"]["H_status"] == "present_static"
     assert summ["Theta"]["X"]["per_step"] == 2000
     assert summ["Theta"]["X"]["canonical_4N"] == 4000
     # provenance uses existing API only

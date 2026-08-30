@@ -360,15 +360,20 @@ def canonical_compact_summary(
 
     Notes
     -----
-    - ``Θ_static`` = per-neuron static parameters {a,b,c,d,drive,sign,
-      source_scale}. Each is size N (source_scale is scalar, counted as 1).
-      Positions (N×3) and edge weights are NOT in Θ_static (they are geometry
-      and W respectively). ``N_static = Σ|θ|`` is therefore 6·N+1 for the
-      Izhikevich scaffold (e.g. N=1000 → 6001).
+    - ``Θ_static`` = per-neuron static (fixed) parameters present on the
+      emitter (e.g. {a,b,c,d,drive,sign,source_scale} for Izhikevich).
+      Generic rule: ``N_static = Σ|θ_i|`` over actual fixed arrays
+      (sum of sizes, not a fixed formula). Positions (N×3) and edge
+      weights are NOT in Θ_static (they are geometry and W respectively);
+      source_scale contributes its realized size (scalar→1, per-neuron→N).
     - ``X`` = fast dynamical state [v, u] per neuron (2·N per step; 4·N if
       counting prev_spikes + syn_state buffer head). Trajectory size = T·|X|.
-    - ``H`` = hidden/adaptation state (RBS/HDP). 0 when HDP disabled
-      (canonical 1000n). When enabled, ``|H| = N × h_state_dim``.
+    - ``H`` = Relative Biophysical State (RBS). Exists independently of HDP;
+      HDP (``dot W = F_W(H)``) is only one possible parameter-dynamics map
+      involving H. RBD (e.g. Protocol H1, ``dot W=0``) demonstrates H
+      without plasticity. ``|H|`` is derived from actual state/schema/traces
+      (``N × h_state_dim`` or per-population), not solely from ``hdp_params``.
+      Summary reports ``H_status`` in {absent, present_static, present_dynamic, unknown}.
     - ``W`` = synaptic storage (EdgeList). ``|W| = n_edges`` (weights) plus
       ``tau_ms`` catalog (kept separate in diagnostics).
     - Observation graph is typed ``X→Q→Φ→Y`` (deterministic): ``X``=STATE (V_m, spikes, u; depends_on=[]), ``Q``=SOURCE
@@ -407,43 +412,263 @@ def canonical_compact_summary(
     N_static = int(sum(theta_static_sized.values()))
 
     # X: fast state [v, u] plus diagnostic buffers
-    # Per-step X = v(N) + u(N) = 2N; with prev_spikes buffer 3N; full buffer 4N is
-    # the canonical “X 4000” example (v,u,prev_spikes,spike buffer head) for N=1000.
+    # Per-step X = v(N) + u(N) = 2N; with prev_spikes buffer 3N; full buffer
+    # 4N counts v,u,prev_spikes,buffer head (generic: 4·N derived from realized N).
     v_size = int(jnp.asarray(emitter.v0).size)
     u_size = int(jnp.asarray(emitter.u0).size)
     X_per_step = v_size + u_size  # 2N
     X_with_prev = X_per_step + n_neurons_realized  # 3N
-    X_canonical_4N = 4 * n_neurons_realized  # for text bundle “X 4000” illustration
+    X_canonical_4N = 4 * n_neurons_realized  # generic 4·N (illustrative for text bundle)
 
-    # H: hidden/adaptation state (RBS/HDP)
-    # Detect via model static or cfg metadata; H is 0 when disabled.
+    # H: Relative Biophysical State (RBS) — exists independently of HDP.
+    # HDP (dot W = F_W(H)) is only one possible dynamics map involving H;
+    # RBD (e.g. Protocol H1, dot W=0) demonstrates H without plasticity.
+    # Do NOT infer H solely from hdp_params. Detect actual H from
+    # state/schema/traces in priority order:
+    #   1) model.params['hdp_initial_H'] (actual per-neuron initial RBS),
+    #   2) tensor PlasticParams.H schema,
+    #   3) signals traces/diagnostics (H_trace/H_final),
+    #   4) hdp_params only as fallback for dim/locality when H already evidenced
+    #      or to detect present_dynamic via enable_hdp dynamics.
+    # Report H_status in {absent, present_static, present_dynamic, unknown}.
     H_size = 0
     h_state_dim = 0
     h_locality = None
-    # provenance: hdp_params transport dict (existing API: model.cfg.metadata / signals.metadata)
-    hdp_params = None
-    if "hdp_params" in model.cfg.metadata:
-        hdp_params = model.cfg.metadata.get("hdp_params")
-    if signals is not None and isinstance(getattr(signals, "metadata", None), dict):
-        # signals.metadata may carry hdp diagnostics if HDP was enabled at simulate time
-        hdp_meta = signals.metadata.get("hdp") or signals.metadata.get("hdp_params")
-        if hdp_meta is not None:
-            hdp_params = hdp_meta if isinstance(hdp_meta, dict) else hdp_params
-    if hdp_params is not None:
+    H_status: str = "unknown"
+    H_evidence: list[str] = []
+    H_dynamic = False
+    hdp_params_probe: Any = None
+    try:
+        if "hdp_params" in model.cfg.metadata:
+            hdp_params_probe = model.cfg.metadata.get("hdp_params")
+    except Exception:
+        hdp_params_probe = None
+    enable_hdp = False
+    try:
+        enable_hdp = bool(model.cfg.metadata.get("enable_hdp"))
+        if enable_hdp:
+            H_dynamic = True
+            H_evidence.append("model.cfg.metadata enable_hdp (dynamics)")
+    except Exception:
+        enable_hdp = False
+    try:
+        hdp_H = model.params.get("hdp_initial_H")
+        if hdp_H is not None:
+            arr = jnp.asarray(hdp_H)
+            if arr.ndim == 2:
+                h_state_dim = int(arr.shape[1])
+                H_size = int(arr.size)
+                if H_size != n_neurons_realized * h_state_dim:
+                    try:
+                        rows = model.neuron_table() if callable(getattr(model, "neuron_table", None)) else []
+                        pops = len({(r.get("layer"), r.get("cell_type")) for r in rows}) if rows else 0
+                        if pops and H_size == h_state_dim * pops:
+                            h_locality = "population"
+                        elif h_state_dim == H_size and h_state_dim > 0:
+                            h_locality = "population"
+                        else:
+                            if isinstance(hdp_params_probe, dict) and hdp_params_probe.get("h_state_locality") == "population":
+                                h_locality = "population"
+                            else:
+                                h_locality = "node"
+                    except Exception:
+                        h_locality = "node"
+                else:
+                    h_locality = "node"
+            elif arr.ndim == 1:
+                h_state_dim = 1
+                H_size = int(arr.size)
+                if isinstance(hdp_params_probe, dict) and hdp_params_probe.get("h_state_locality") == "population":
+                    try:
+                        rows = model.neuron_table() if callable(getattr(model, "neuron_table", None)) else []
+                        pops = len({(r.get("layer"), r.get("cell_type")) for r in rows}) if rows else 0
+                        if pops and H_size == int(hdp_params_probe.get("h_state_dim", 1)) * pops:
+                            h_locality = "population"
+                        elif H_size != n_neurons_realized and H_size <= 4:
+                            h_locality = "population"
+                        else:
+                            h_locality = "node"
+                    except Exception:
+                        h_locality = "node"
+                else:
+                    h_locality = "node"
+            else:
+                H_size = int(arr.size)
+                h_state_dim = int(H_size // max(n_neurons_realized, 1)) if n_neurons_realized else 0
+                h_locality = "node"
+            H_evidence.append("model.params['hdp_initial_H']")
+            H_status = "present_dynamic" if H_dynamic else "present_static"
+        if hdp_H is not None and isinstance(hdp_params_probe, dict):
+            try:
+                if h_locality is None:
+                    h_locality = hdp_params_probe.get("h_state_locality")
+                if h_state_dim == 0 and hdp_params_probe.get("h_state_dim"):
+                    h_state_dim = int(hdp_params_probe.get("h_state_dim", 0))
+            except Exception:
+                pass
+    except Exception:
+        pass
+    if H_size == 0 and tensor is not None:
         try:
-            h_state_dim = int(hdp_params.get("h_state_dim", 0))
-            h_locality = hdp_params.get("h_state_locality")
-            if h_state_dim and h_state_dim > 0:
-                # node locality: H per neuron; population locality: H per population
+            vals: list[float] = []
+            for area in tensor.areas:
+                for ic in area.inter_connections:
+                    try:
+                        vals.append(float(ic.plastic.H))
+                    except Exception:
+                        pass
+            for ac in getattr(tensor, "area_connections", []):
+                try:
+                    vals.append(float(ac.plastic.H))
+                except Exception:
+                    pass
+            if vals:
+                H_evidence.append("tensor PlasticParams.H schema")
+                if h_state_dim == 0:
+                    if isinstance(hdp_params_probe, dict) and hdp_params_probe.get("h_state_dim"):
+                        h_state_dim = int(hdp_params_probe.get("h_state_dim", 1))
+                    else:
+                        h_state_dim = 1
+                if h_locality is None:
+                    if isinstance(hdp_params_probe, dict) and hdp_params_probe.get("h_state_locality"):
+                        h_locality = hdp_params_probe.get("h_state_locality")
+                    else:
+                        h_locality = "node"
                 if h_locality == "population":
-                    # count realized populations from neuron_table
+                    try:
+                        rows = model.neuron_table() if callable(getattr(model, "neuron_table", None)) else []
+                        pops = len({(r.get("layer"), r.get("cell_type")) for r in rows}) if rows else 1
+                        H_size = int(h_state_dim * pops)
+                    except Exception:
+                        H_size = int(h_state_dim)
+                else:
+                    H_size = int(h_state_dim * n_neurons_realized)
+                if H_status == "unknown":
+                    H_status = "present_dynamic" if H_dynamic else "present_static"
+        except Exception:
+            pass
+    if signals is not None and isinstance(getattr(signals, "metadata", None), dict):
+        try:
+            hdp_meta = signals.metadata.get("hdp") or signals.metadata.get("hdp_params")
+            if isinstance(hdp_meta, dict) and H_size == 0:
+                H_trace = hdp_meta.get("H_trace") if "H_trace" in hdp_meta else hdp_meta.get("H_final")
+                if H_trace is not None:
+                    try:
+                        arr = jnp.asarray(H_trace)
+                        if arr.ndim == 3:
+                            h_state_dim = int(arr.shape[2])
+                            h_locality = "node"
+                            H_size = int(arr.shape[1] * h_state_dim)
+                        elif arr.ndim == 2:
+                            if arr.shape[1] == n_neurons_realized:
+                                h_state_dim = 1
+                                h_locality = "node"
+                                H_size = int(n_neurons_realized)
+                            else:
+                                h_state_dim = int(arr.shape[1])
+                                h_locality = "population"
+                                try:
+                                    rows = model.neuron_table() if callable(getattr(model, "neuron_table", None)) else []
+                                    pops = len({(r.get("layer"), r.get("cell_type")) for r in rows}) if rows else 1
+                                    H_size = int(h_state_dim * pops) if pops else int(h_state_dim)
+                                except Exception:
+                                    H_size = int(h_state_dim)
+                        elif arr.ndim == 1:
+                            h_state_dim = 1
+                            H_size = int(arr.size)
+                            h_locality = "node"
+                        H_evidence.append("signals.metadata['hdp'].H_trace/H_final")
+                        if H_status == "unknown":
+                            H_status = "present_dynamic"
+                        else:
+                            H_dynamic = True
+                            if H_status == "present_static":
+                                H_status = "present_dynamic"
+                    except Exception:
+                        pass
+                if isinstance(hdp_meta, dict) and hdp_meta.get("enabled"):
+                    H_dynamic = True
+                    if "signals.metadata hdp enabled" not in H_evidence:
+                        H_evidence.append("signals.metadata hdp enabled")
+                    if H_status in ("present_static", "unknown"):
+                        H_status = "present_dynamic"
+        except Exception:
+            pass
+    if H_size == 0:
+        try:
+            diag = getattr(model, "_last_hdp_diag", None)
+            if isinstance(diag, dict) and ("H_trace" in diag or "H_final" in diag):
+                H_trace = diag.get("H_trace") if "H_trace" in diag else diag.get("H_final")
+                if H_trace is not None:
+                    arr = jnp.asarray(H_trace)
+                    if arr.ndim == 3:
+                        h_state_dim = int(arr.shape[2])
+                        H_size = int(arr.shape[1] * h_state_dim) if arr.ndim == 3 else int(arr.size)
+                        h_locality = "node"
+                    elif arr.ndim == 2:
+                        if arr.shape[1] == n_neurons_realized:
+                            h_state_dim = 1
+                            H_size = int(n_neurons_realized)
+                            h_locality = "node"
+                        else:
+                            h_state_dim = int(arr.shape[1])
+                            h_locality = "population"
+                            try:
+                                rows = model.neuron_table() if callable(getattr(model, "neuron_table", None)) else []
+                                pops = len({(r.get("layer"), r.get("cell_type")) for r in rows}) if rows else 1
+                                H_size = int(h_state_dim * pops) if pops else int(h_state_dim)
+                            except Exception:
+                                H_size = int(h_state_dim)
+                    else:
+                        H_size = int(arr.size)
+                        h_state_dim = 1
+                        h_locality = "node"
+                    H_evidence.append("model._last_hdp_diag H_trace/H_final")
+                    if H_status == "unknown":
+                        H_status = "present_dynamic"
+                    else:
+                        H_dynamic = True
+                        if H_status == "present_static":
+                            H_status = "present_dynamic"
+        except Exception:
+            pass
+    if H_size == 0 and enable_hdp and isinstance(hdp_params_probe, dict):
+        try:
+            h_state_dim = int(hdp_params_probe.get("h_state_dim", 1))
+            h_locality = hdp_params_probe.get("h_state_locality")
+            if h_state_dim and h_state_dim > 0:
+                if h_locality == "population":
                     rows = model.neuron_table() if callable(getattr(model, "neuron_table", None)) else []
                     pops = len({(r.get("layer"), r.get("cell_type")) for r in rows}) if rows else 1
                     H_size = int(h_state_dim * pops)
+                    if not h_locality:
+                        h_locality = "population"
                 else:
                     H_size = int(h_state_dim * n_neurons_realized)
+                    if not h_locality:
+                        h_locality = "node"
+                H_evidence.append("hdp_params fallback for size (HDP enabled, H dynamics)")
+                H_status = "present_dynamic"
+                H_dynamic = True
         except Exception:
-            H_size = 0
+            pass
+    if H_status == "unknown":
+        if H_size == 0:
+            H_status = "absent"
+            H_evidence.append("no H state/schema/trace found")
+            h_locality = None
+            h_state_dim = 0
+        else:
+            H_status = "present_dynamic" if H_dynamic else "present_static"
+    if H_status == "absent":
+        H_size = 0
+        h_state_dim = 0
+        h_locality = None
+    if H_size > 0 and h_locality is None:
+        h_locality = "node"
+        if h_state_dim == 0:
+            h_state_dim = int(H_size // max(n_neurons_realized, 1)) if n_neurons_realized else 1
+    hdp_params = hdp_params_probe
 
     # W: synaptic storage (EdgeList, existing API)
     edge_list = model.params.get("edge_list")
@@ -465,7 +690,7 @@ def canonical_compact_summary(
         try:
             n_neurons_configured = int(sum(layer.n_neurons for a in tensor.areas for layer in a.layers))
             n_areas_configured = int(len(tensor.areas))
-            # declared populations = total NeuronType entries (23 for canonical 1000n)
+            # declared populations = total NeuronType entries (derived from tensor)
             n_populations_configured = int(sum(len(layer.neuron_types) for a in tensor.areas for layer in a.layers))
             n_edges_configured_rules = int(sum(len(a.inter_connections) for a in tensor.areas) + len(tensor.area_connections))
         except Exception:
@@ -500,11 +725,11 @@ def canonical_compact_summary(
     # effective: after simulate, may differ due to runtime overrides (dt rounding, HDP enable, dtype)
     n_steps_configured = None
     n_steps_realized = None
-    n_steps_effective = None
+    n_steps_executed = None
     dt_ms_configured = None
-    dt_ms_effective = None
+    dt_ms_executed = None
     duration_ms_configured = None
-    duration_ms_effective = None
+    duration_ms_executed = None
     if tensor is not None:
         # No duration stored on tensor; leave None (configured duration is runtime, not tensor)
         pass
@@ -519,20 +744,20 @@ def canonical_compact_summary(
     if signals is not None:
         try:
             time_ms = signals.time_ms
-            n_steps_effective = int(time_ms.shape[0])
-            if n_steps_effective > 1:
-                dt_ms_effective = float(time_ms[1] - time_ms[0])
-                duration_ms_effective = float(time_ms[-1] - time_ms[0] + dt_ms_effective)
+            n_steps_executed = int(time_ms.shape[0])
+            if n_steps_executed > 1:
+                dt_ms_executed = float(time_ms[1] - time_ms[0])
+                duration_ms_executed = float(time_ms[-1] - time_ms[0] + dt_ms_executed)
             else:
-                dt_ms_effective = None
-                duration_ms_effective = None
-            n_steps_realized = n_steps_effective
+                dt_ms_executed = None
+                duration_ms_executed = None
+            n_steps_realized = n_steps_executed
         except Exception:
             pass
-    # fallback effective = realized when no signals
-    if n_steps_effective is None and n_steps_realized is None:
-        # no signals given: effective == realized == configured (if known)
-        n_steps_effective = n_steps_realized
+    # fallback executed = realized when no signals (effective=causal ΔX)
+    if n_steps_executed is None and n_steps_realized is None:
+        # no signals given: executed == realized == configured (if known)
+        n_steps_executed = n_steps_realized
 
     # --- output basis: typed observation graph X→Q→Φ→Y (dependent chain, not flattened) ---
     # Deterministic structure: X (STATE) -> Q (SOURCE) -> Φ (FIELD) -> Y (PROBE/DERIVED)
@@ -676,22 +901,22 @@ def canonical_compact_summary(
             "misconception": "N_static includes stored EdgeList.weight (n_edges)",
             "wrong": int(N_static + W_size),
             "correct": int(N_static),
-            "explanation": "weights are mutable storage (|W|=n_edges; 215785 for canonical 1000n), not fixed per-neuron params; counting them inflates 6001→221786",
+            "explanation": f"weights are mutable storage (|W|=n_edges={W_size}), not fixed per-neuron params; counting them inflates {N_static}→{N_static + W_size} (N_static=Σ|θ_i|)",
             "class_confused": "stored weights (mutable) vs fixed parameters",
         },
         {
-            "misconception": "N_static includes geometry positions (N×3=3000)",
+            "misconception": "N_static includes geometry positions (N×3)",
             "wrong": int(N_static + positions_size),
             "correct": int(N_static),
-            "explanation": "positions are fixed geometry (N,3), not per-neuron Izhikevich params; counted separately as geometry",
+            "explanation": f"positions are fixed geometry {positions_shape} size {positions_size}, not per-neuron params; counted separately as geometry (N_static=Σ|θ_i|)",
             "class_confused": "geometry vs fixed parameters",
         },
         {
-            "misconception": "N_static equals number of mutable coordinates (n_edges) or plastic H-factor count (48 rules)",
+            "misconception": "N_static equals number of mutable coordinates (n_edges) or plastic rule count",
             "wrong_rules": int(n_edges_configured_rules) if n_edges_configured_rules is not None else 0,
             "wrong_edges": int(W_size),
             "correct": int(N_static),
-            "explanation": "plastic rule count (48 declared inter/area connections) and realized mutable storage (215785 edges) are W, not Θ_static; N_static=6·N+1=6001",
+            "explanation": f"plastic rule count ({n_edges_configured_rules} declared inter/area connections) and realized mutable storage ({W_size} edges) are W, not Θ_static; N_static={N_static}=Σ|θ_i|",
             "class_confused": "plastic declaration (rule) / mutable storage (edge) vs fixed",
         },
         {
@@ -715,7 +940,7 @@ def canonical_compact_summary(
             "N_static": int(N_static),
             "tau_catalog": int(tau_catalog_size),
             "positions_excluded": {"shape": positions_shape, "size": int(positions_size)},
-            "note": "constant per-neuron {a,b,c,d,drive,sign}+source_scale; tau/receptor catalog and pre/post structure are fixed discrete; positions are fixed geometry kept separate; N_static=6·N+1",
+            "note": "constant per-neuron params (e.g. {a,b,c,d,drive,sign}+source_scale for Izhikevich); tau/receptor catalog and pre/post structure are fixed discrete; positions are fixed geometry kept separate; N_static=Σ|θ_i| generic (sum of realized fixed-array sizes)",
             "counterexamples": "see N_static_counterexamples",
         },
         "dynamic_state": {
@@ -762,13 +987,15 @@ def canonical_compact_summary(
             "H_size": int(H_size),
             "h_state_dim": int(h_state_dim),
             "locality": h_locality,
-            "note": "RBS/HDP hidden adaptation state; 0 when HDP disabled; distinct from plastic W and from history buffers",
+            "H_status": H_status,
+            "evidence": list(H_evidence),
+            "note": "RBS (Relative Biophysical State) — exists independently of HDP; HDP is only one map dot W=F_W(H) (cf. RBD dot W=0); absent=0, present_static=stored but not evolving, present_dynamic=evolving (RBS/RBD or HDP), unknown=indeterminate; distinct from plastic W and history",
         },
     }
     Theta = {
         "Theta_static": {"members": theta_static_sized, "N_static": N_static, "note": "Σ|θ| for θ∈Θ_static (per-neuron static; positions and W are separate)"},
         "X": {"per_step": X_per_step, "with_prev_spikes": X_with_prev, "canonical_4N": X_canonical_4N, "note": "fast state [v,u]; 4N counts v,u,prev_spikes,buffer head for text bundle illustration"},
-        "H": {"size": H_size, "h_state_dim": h_state_dim, "locality": h_locality, "note": "hidden/adaptation state; 0 when HDP disabled"},
+        "H": {"size": H_size, "h_state_dim": h_state_dim, "locality": h_locality, "H_status": H_status, "evidence": list(H_evidence), "note": "RBS; H_status in {absent,present_static,present_dynamic,unknown}; size 0 when absent, else N*h_state_dim (or per-population); HDP only one possible F_W(H)"},
         "W": {"n_edges": W_size, "tau_catalog": tau_catalog_size, "note": "synaptic storage (EdgeList.weight); τ catalog separate"},
         "positions": {"shape": positions_shape, "size": positions_size, "note": "geometry (N×3), not part of N_static"},
     }
@@ -793,18 +1020,25 @@ def canonical_compact_summary(
             "Theta": Theta,
             "N_static": N_static,
         },
-        "effective": {
+        "executed": {
             "n_neurons": n_neurons_realized,
+            "n_edges_executed": n_edges_realized,
             "n_edges_effective": n_edges_realized,
-            "duration_ms": duration_ms_effective,
-            "dt_ms": dt_ms_effective,
-            "n_steps": n_steps_effective,
+            "duration_ms": duration_ms_executed,
+            "dt_ms": dt_ms_executed,
+            "n_steps": n_steps_executed,
             "X_per_step": X_per_step,
             "H_size": H_size,
+            "H_status": H_status,
+            "h_state_dim": int(h_state_dim),
+            "locality": h_locality,
             "W_size": W_size,
             "dtype": str(signals.V_m.dtype) if signals is not None and hasattr(signals.V_m, "dtype") else None,
         },
     }
+
+    # alias: counts["effective"] for one-release compat (effective reserved for causal ΔX, runtime is executed)
+    counts["effective"] = counts["executed"]
 
     payload = {
         "schema": "canonical_compact_summary_v0.1",
@@ -815,6 +1049,9 @@ def canonical_compact_summary(
         "output_basis": output_basis,
         "counts": counts,
         "provenance": provenance,
+        "H_status": H_status,
+        "H_evidence": list(H_evidence),
+        "H": {"size": H_size, "h_state_dim": int(h_state_dim), "locality": h_locality, "H_status": H_status, "evidence": list(H_evidence)},
         "Δscience": 0,
         "overhead": "zero when unused (function not called in simulate/construct hot path)",
     }
@@ -863,21 +1100,24 @@ def format_canonical_text_bundle(summary: dict[str, Any]) -> str:
     lines.append(f"  neurons:    {n_neurons_cfg} → {n_neurons_real} → {eff.get('n_neurons')}  (realized N={n_neurons_real})")
     # populations: explain 12 vs 23
     if n_pops_decl is not None or n_pops_real is not None:
-        eff_collapsed = inv.get("effective_EI_collapsed") if isinstance(inv, dict) else None
-        lines.append(f"  populations: declared {n_pops_decl} → detailed {n_pops_real} → effective EI-collapsed {eff_collapsed}  (task example ‘12’ = 6 layers × 2 E/I; detailed {n_pops_real} = layer×cell-type combos; see per_layer inventory)")
+        eff_collapsed = inv.get("executed_EI_collapsed", inv.get("effective_EI_collapsed", inv.get("EI_collapsed"))) if isinstance(inv, dict) else None
+        lines.append(f"  populations: declared {n_pops_decl} → detailed {n_pops_real} → executed EI-collapsed {eff_collapsed}  (task example ‘12’ = 6 layers × 2 E/I; detailed {n_pops_real} = layer×cell-type combos; see per_layer inventory)")
         if isinstance(inv, dict) and inv.get("per_layer"):
             lines.append(f"    per_layer: {inv.get('per_layer')}  per_cell_type: {inv.get('per_cell_type')}")
     n_edges_exec = eff.get('n_edges_executed', eff.get('n_edges_effective'))
-    lines.append(f"  edges:      rules {n_edges_rules} → realized {n_edges_real} → executed {n_edges_exec}  (EdgeList; τ catalog {W.get('tau_catalog')} )  — task ‘~79k’ is illustrative; realized 215785 for canonical-v1-column-1000n with p=1.0 bipartite rules")
+    lines.append(f"  edges:      rules {n_edges_rules} → realized {n_edges_real} → executed {n_edges_exec}  (EdgeList; τ catalog {W.get('tau_catalog')} )")
     lines.append(f"  contacts:   {n_contacts}  (laminar proxy)")
-    lines.append(f"  duration:   {cfg.get('duration_ms')}ms → {dur_eff}ms  dt {cfg.get('dt_ms')}ms → {dt_eff}ms  n_steps {n_steps_eff}  (configured RuntimeConfiguration(1000ms,0.5ms) → realized T=2000)")
+    lines.append(f"  duration:   {cfg.get('duration_ms')}ms → {dur_eff}ms  dt {cfg.get('dt_ms')}ms → {dt_eff}ms  n_steps {n_steps_eff}")
     lines.append("")
     lines.append("Θ decomposition:")
     members = Theta_static.get("members", {})
     members_str = "+".join(f"{k}({v})" for k, v in members.items()) if members else "—"
-    lines.append(f"  Θ_static: {members_str} = {N_static}  (N_static=Σ|θ|, positions {Theta.get('positions',{}).get('shape')} = {Theta.get('positions',{}).get('size')} not in Θ_static, geometry separate)")
-    lines.append(f"  X:        per-step {X.get('per_step')} (v+u, 2N)  with_prev {X.get('with_prev_spikes')} (3N)  canonical_4N {X.get('canonical_4N')} (illustrative ‘X 4000’ = 4×N for N=1000, counting prev_spikes+buffer head)  trajectory T·|X|={n_steps_eff}×{X.get('per_step')}={ (n_steps_eff or 0) * (X.get('per_step') or 0)}")
-    lines.append(f"  H:        {H.get('size')} (h_state_dim={H.get('h_state_dim')} locality={H.get('locality')}; 0 when HDP disabled — canonical 1000n)")
+    lines.append(f"  Θ_static: {members_str} = {N_static}  (N_static=Σ|θ_i| generic sum of realized fixed sizes, positions {Theta.get('positions',{}).get('shape')} = {Theta.get('positions',{}).get('size')} not in Θ_static, geometry separate)")
+    lines.append(f"  X:        per-step {X.get('per_step')} (v+u, 2N)  with_prev {X.get('with_prev_spikes')} (3N)  canonical_4N {X.get('canonical_4N')} (4·N generic)  trajectory T·|X|={n_steps_eff}×{X.get('per_step')}={ (n_steps_eff or 0) * (X.get('per_step') or 0)}")
+    H_status_txt = summary.get("H_status") or H.get("H_status") or summary.get("H", {}).get("H_status") or "unknown"
+    H_ev = summary.get("H_evidence") or H.get("evidence") or []
+    ev_str = f" evidence={','.join(H_ev[:2])}" if H_ev else ""
+    lines.append(f"  H:        {H.get('size')} (h_state_dim={H.get('h_state_dim')} locality={H.get('locality')} H_status={H_status_txt}{ev_str}; RBS exists independently of HDP — HDP is only one F_W(H); 0 when absent)")
     lines.append(f"  W:        {W.get('n_edges')} weights (+τ catalog {W.get('tau_catalog')})  total Θ size ≈ {N_static + (X.get('per_step') or 0) + (H.get('size') or 0) + (W.get('n_edges') or 0)} scalars per snapshot (positions {Theta.get('positions',{}).get('size')} extra geometry)")
     tax = summary.get("taxonomy", {})
     if tax:
@@ -893,7 +1133,10 @@ def format_canonical_text_bundle(summary: dict[str, Any]) -> str:
         lines.append(f"  Fixed (constant):       N_static={fp.get('N_static', N_static)}  members a,b,c,d,drive,sign,source_scale  tau_catalog={fp.get('tau_catalog')}  positions_excluded {Theta.get('positions',{}).get('shape')}={Theta.get('positions',{}).get('size')}")
         lines.append(f"  Dynamic state (v,u):    per_step {ds.get('per_step', X.get('per_step'))} (v+u, 2N)  canonical_4N {ds.get('canonical_4N', X.get('canonical_4N'))}")
         lines.append(f"  History state (B_t):    syn_state {hs.get('syn_state')} + prev_spikes {hs.get('prev_spikes')} + B_t ring {hs.get('delay_buffer_Bt')} (Dmax={hs.get('delay_max_steps')}) = total {hs.get('total_buffer_elements')}")
-        lines.append(f"  Hidden state (H):       {hidden.get('H_size', H.get('size'))} (h_state_dim={hidden.get('h_state_dim', H.get('h_state_dim'))} locality={hidden.get('locality', H.get('locality'))}) — not plastic, not optimizer coord")
+        h_status_hidden = hidden.get('H_status', H.get('H_status', H_status_txt))
+        ev_hidden = ','.join((hidden.get('evidence') or H_ev)[:2]) if (hidden.get('evidence') or H_ev) else ''
+        ev_hidden_str = f" evidence={ev_hidden}" if ev_hidden else ""
+        lines.append(f"  Hidden state (H):       {hidden.get('H_size', H.get('size'))} (h_state_dim={hidden.get('h_state_dim', H.get('h_state_dim'))} locality={hidden.get('locality', H.get('locality'))} H_status={h_status_hidden}{ev_hidden_str}) — RBS exists without HDP (HDP only one F_W(H)); not plastic, not optimizer coord")
         lines.append(f"  Mutable (permitted):    weight array {mp.get('weight')} (EdgeList.weight) — stored weights permitted to change via HDP or optimizer; tau/positions not mutable")
         lines.append(f"  Trainable/free (opt):   n_trainable={tp.get('n_trainable')} (optimizer-exposed subset ≤ mutable; 0 unless EdgeParameterSpec/MatrixParameterSpec trainable=True) — free ≠ stored")
         lines.append(f"  Recorded outputs:       {ro.get('structure','X->Q->Phi->Y')}  X={ro.get('X_state')}  Q={ro.get('Q_source')}  Phi={ro.get('Phi_field')}  Y={ro.get('Y_probe_derived')}")
@@ -902,7 +1145,7 @@ def format_canonical_text_bundle(summary: dict[str, Any]) -> str:
             lines.append("  N_static counterexamples (why stored/plastic/free ≠ N_static):")
             for ce in ces[:5]:
                 lines.append(f"    - {ce.get('misconception')}: wrong={ce.get('wrong', ce.get('wrong_edges', ce.get('wrong_rules')))} correct={ce.get('correct')} — {ce.get('explanation','')[:90]}")
-        lines.append(f"  rule: N_static=6·N+1 fixed only; history/mutable/trainable/recorded are disjoint classes; stored={W.get('n_edges', '?')} ≠ plastic(=permitted) ≠ free/trainable(=declared) ≠ fixed(=N_static)")
+        lines.append(f"  rule: N_static=Σ|θ_i| fixed only (generic sum of fixed-array sizes); history/mutable/trainable/recorded are disjoint classes; stored={W.get('n_edges', '?')} ≠ plastic(=permitted) ≠ free/trainable(=declared) ≠ fixed(=N_static)")
     lines.append("")
     ob = summary.get("output_basis", {})
     struct = ob.get("structure") or ob.get("deterministic_structure") or "X->Q->Phi->Y"
