@@ -19,8 +19,8 @@
       "jaxfne-seal": "6692454f6f24ab16f302f636424c3e3eecb938ae2333645f1aed98dfa01cdc44"
     },
     "project_config": {
-      "file": "opencode.json",
-      "sha256": "261be7b094a58bf8faf22a0258b07e65443cb50855f6480df93c5a8eee13318f"
+      "file": "scripts/harness/project_safety_rules.json",
+      "sha256": "8ea0b6939a913e2c26931296d4ac3dd6686c824aae8ecd349c42a2055427bd97"
     },
     "frozen_paths": {
       "file": "artifacts/publication/frozen_manifest.json",

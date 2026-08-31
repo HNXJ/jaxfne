@@ -1,6 +1,8 @@
 {
-  "$schema": "https://opencode.ai/config.json",
-  "instructions": ["scratch/CURRENT_TASK.md"],
+  "schema": "jaxfne.project_safety_rules.v1",
+  "instructions": [
+    "scratch/CURRENT_TASK.md"
+  ],
   "permission": {
     "bash": {
       "*": "allow",

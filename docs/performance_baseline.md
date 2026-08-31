@@ -62,7 +62,7 @@ Network-size scaling up to 10,000 neurons IS now measured; see "Scaling Evidence
 
 ## Scaling Evidence (N=100 / 1,000 / 10,000)
 
-**Measured, not assumed.** `benchmarks/scaling_benchmark.py` runs construct+simulate+probe
+**Measured, not assumed.** `scripts/benchmarks/scaling_benchmark.py` runs construct+simulate+probe
 at three network sizes with `duration_ms`/`dt_ms` held fixed, each case in its own subprocess
 (so `peak_rss_mb` is per-case, not a cumulative process maximum).
 
@@ -70,7 +70,7 @@ at three network sizes with `duration_ms`/`dt_ms` held fixed, each case in its o
 
 Environment: Windows 11 (10.0.26200, AMD64), Python 3.14.3, jax 0.10.1,
 CPU-only (`JAX_PLATFORMS=cpu`), single device. Generator:
-`benchmarks/scaling_benchmark.py` (now cross-platform: peak RSS on Windows
+`scripts/benchmarks/scaling_benchmark.py` (now cross-platform: peak RSS on Windows
 uses `GetProcessMemoryInfo`; POSIX keeps `resource.getrusage`). Receipt path:
 `outputs/benchmarks_scaling/scaling_report.json` (local output tree; not tracked).
 
@@ -214,7 +214,7 @@ python scripts/benchmark_jaxfne.py
 
 **To regenerate the N=100/1,000/10,000 scaling evidence:**
 ```bash
-PYTHONPATH=. python benchmarks/scaling_benchmark.py
+PYTHONPATH=. python scripts/benchmarks/scaling_benchmark.py
 # Outputs: outputs/benchmarks_scaling/scaling_report.json
 # Takes roughly 20-30s on Apple Silicon CPU; dominated by the N=10,000 simulate phase.
 ```
@@ -255,7 +255,7 @@ All reserved work will maintain `local_environment_receipt_only` framing and avo
 
 - `docs/tutorials/tutorial_outputs.md` — tutorial runtime contracts
 - `scripts/benchmark_jaxfne.py` — benchmark source code
-- `benchmarks/scaling_benchmark.py` — N=100/1,000/10,000 scaling-evidence source code
+- `scripts/benchmarks/scaling_benchmark.py` — N=100/1,000/10,000 scaling-evidence source code
 - `scripts/validate_json_safe.py` — JSON safety validator
 - `tests/test_performance_reports_v030.py` — performance report schema validation
 - `docs/changelog.md` — version history and release notes

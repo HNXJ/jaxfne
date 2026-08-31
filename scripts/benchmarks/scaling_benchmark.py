@@ -18,7 +18,7 @@ timings; not a multi-trial statistical benchmark and not a universal
 performance claim (see jaxfne/AGENTS.md claim-language rules).
 
 Usage:
-    PYTHONPATH=. python benchmarks/scaling_benchmark.py
+    PYTHONPATH=. python scripts/benchmarks/scaling_benchmark.py
 """
 
 from __future__ import annotations

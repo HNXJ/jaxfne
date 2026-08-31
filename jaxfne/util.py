@@ -668,7 +668,6 @@ def canonical_compact_summary(
         h_locality = "node"
         if h_state_dim == 0:
             h_state_dim = int(H_size // max(n_neurons_realized, 1)) if n_neurons_realized else 1
-    hdp_params = hdp_params_probe
 
     # W: synaptic storage (EdgeList, existing API)
     edge_list = model.params.get("edge_list")

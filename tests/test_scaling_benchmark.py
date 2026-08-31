@@ -1,4 +1,4 @@
-"""Tests for benchmarks/scaling_benchmark.py (N=100/1,000/10,000 scaling evidence).
+"""Tests for scripts/benchmarks/scaling_benchmark.py (N=100/1,000/10,000 scaling evidence).
 
 Runs only a tiny N so this stays in the fast lane; the full N=100/1,000/10,000
 sweep is a deliberate manual/CI-optional run (~20-30s on Apple Silicon CPU,
@@ -14,7 +14,7 @@ import pathlib
 import pytest
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
-SCRIPT_PATH = REPO_ROOT / "benchmarks" / "scaling_benchmark.py"
+SCRIPT_PATH = REPO_ROOT / "scripts" / "benchmarks" / "scaling_benchmark.py"
 
 
 def _load_module():
