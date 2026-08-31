@@ -490,6 +490,7 @@ def compile_step_fn(
                 drive_schedule=sched_t[None, :],
                 silence_mask=silence_mask,
                 init_state=init_state,
+                record_edge_current=record_edge_current,
                 **kernel_kw,
             )
         new_dynamic = DynamicState(
@@ -535,7 +536,7 @@ def compile_step_fn(
                 diag["dH_weight_trace"][0], diag["dH_passive_trace"][0],
                 diag["dH_barrier_trace"][0],
             )
-        if record_edge_current and kernel == "hdp":
+        if record_edge_current and "edge_current_trace" in diag:
             outputs = outputs + (diag["edge_current_trace"][0],)
         return new_state, outputs
 
