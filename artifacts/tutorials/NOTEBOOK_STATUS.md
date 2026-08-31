@@ -1,6 +1,6 @@
 # Notebook Status and Classification
 
-**Total notebooks: 37** (release-facing: 29, archived: 7, template: 1)
+**Total notebooks: 40** (release-facing: 29, archived: 10, template: 1)
 
 ## Release-facing notebooks (29)
 
@@ -36,10 +36,13 @@ Release-facing notebooks are part of the standard tutorial suite and subject to 
 - **jaxfne_v040_homeostasis_plasticity_dc_noise_sweep.ipynb** — Version tutorial; v0.4.0 homeostasis/plasticity DC-noise sweep
 - **jaxfne_neuronal_tensor_first.ipynb** — Version tutorial; 0.4.7 NeuronalTensor-first circuit definition (Areas/Layers/NeuronTypes), JSON round-trip, HDP homeostatic plasticity via explicit `RuntimeConfig` override; executed with `nbclient` 2026-06-25 (outputs are real captured run results, not placeholders)
 
-## Archived notebooks (7)
+## Archived notebooks (10)
 
 Archived notebooks are excluded from strict validation. They may use legacy patterns, experimental APIs, or non-standard scope.
 
+- **jaxfne_mechanism_01_relative_state_X_H_X.ipynb** — Mechanism tutorial notebook (relative state dynamics)
+- **jaxfne_mechanism_02_rbd_memory_Xt_Ht1.ipynb** — Mechanism tutorial notebook (RBD memory dynamics)
+- **jaxfne_mechanism_03_hdp_H_W.ipynb** — Mechanism tutorial notebook (HDP weight dynamics)
 - **jaxfne_etude_no_2_spectrolaminar_power.ipynb** — Pedagogical etude with local simulation helpers; requires API extraction before release-facing status
 - **jaxfne-sanity-delta-test-hierarchical-global-local-oddball.ipynb** — Experimental delta-test for hierarchical oddball; not part of release suite
 - **jaxfne-v034-stdp-ltp-ltd-adaptation.ipynb** — Experimental plasticity notebook; STDP/LTP/LTD mechanisms (pre-release, biophysics incomplete)

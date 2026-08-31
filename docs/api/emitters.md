@@ -164,7 +164,7 @@ params = jtfne.emitters.izhikevich_eig_params(128, {"E": 0.8, "PV": 0.2})
 print(params.n_neurons)  # 128
 ```
 
-`IzhikevichParams` has no `class_method(...)` factory; construction goes through the
+Construct `IzhikevichParams` through the
 module-level functions `izhikevich_eig_params(...)` and `izhikevich_params_from_labels(...)`
 documented above.
 
@@ -177,7 +177,7 @@ jaxfne.ReceptorSpec
 ```
 
 Frozen dataclass metadata declaration for a synaptic receptor (`jaxfne/emitters.py:44`).
-**Metadata only** — distinct from a biological kernel; `emitters.py` leaves the conductance
+Specification metadata — distinct from a biological kernel; `emitters.py` leaves the conductance
 and reversal-potential equations undefined for these fields.
 
 ### Fields
@@ -216,20 +216,20 @@ here, while the kernels instantiate them as combined excitatory/inhibitory chann
 
 #### AMPA / GABA implementation table
 
-What the kernels **actually compute** vs. what is stored as metadata. Δscience=0.
+Kernel operations and declared metadata specifications. Δscience=0.
 
 | Mechanism | Sign | Kernel | Conductance | Reversal | Kinetics |
 |-----------|------|--------|-------------|----------|----------|
-| `AMPA` | +1 (excitatory) | single-exponential low-pass: `s_next = s*exp(-dt/tau) + spike_pre` (`synaptic_current_tensor`); one scalar state per edge | **current-based**: `weight * syn_state` summed via `segment_sum` to postsynaptic `syn`; no `g*(V - E_rev)` term — `reversal_mV` not in dynamics | `0.0` mV, **metadata only** (`ReceptorSpec.reversal_mV`, `source_calibration_status="metadata_only_uncalibrated"`) | `tau_ms = 2.0` ms |
-| `GABA_A` | -1 (inhibitory) | same single-pole kernel, `tau=5 ms` (`EdgeList.tau_ms` per edge from `receptor_index`) | **current-based**: `weight * syn_state`; inhibitory sign via negative `weight` (`sign=-1`, `receptor_index=1`) | `-80.0` mV, **metadata only** | `tau_ms = 5.0` ms |
-| `NMDA` | +1 (excitatory) | same kernel family when instantiated via `synaptic_tau_from_mechanism` / `synaptic_current_tensor` | current-based when used | `0.0` mV, metadata only | `tau_ms = 100.0` ms (declared; not in default `EdgeList` excitatory split, available via `synaptic_current_tensor`) |
-| `GABA_B` | -1 (inhibitory) | same kernel family | current-based when used | `-95.0` mV, metadata only | `tau_ms = 150.0` ms (declared; not in default `EdgeList`, available via `synaptic_current_tensor`) |
+| `AMPA` | +1 (excitatory) | single-exponential low-pass: `s_next = s*exp(-dt/tau) + spike_pre` (`synaptic_current_tensor`); one scalar state per edge | **current-based**: `weight * syn_state` summed via `segment_sum` to postsynaptic `syn`; dynamics use current-based summation | `0.0` mV, specification value (`ReceptorSpec.reversal_mV`, `source_calibration_status="metadata_only_uncalibrated"`) | `tau_ms = 2.0` ms |
+| `GABA_A` | -1 (inhibitory) | same single-pole kernel, `tau=5 ms` (`EdgeList.tau_ms` per edge from `receptor_index`) | **current-based**: `weight * syn_state`; inhibitory sign via negative `weight` (`sign=-1`, `receptor_index=1`) | `-80.0` mV, specification value | `tau_ms = 5.0` ms |
+| `NMDA` | +1 (excitatory) | same kernel family when instantiated via `synaptic_tau_from_mechanism` / `synaptic_current_tensor` | current-based when used | `0.0` mV, specification value | `tau_ms = 100.0` ms (declared; not in default `EdgeList` excitatory split, available via `synaptic_current_tensor`) |
+| `GABA_B` | -1 (inhibitory) | same kernel family | current-based when used | `-95.0` mV, specification value | `tau_ms = 150.0` ms (declared; not in default `EdgeList`, available via `synaptic_current_tensor`) |
 
 Notes:
-- **Kernel** is the declared computation; there is no separate rise time constant (single-pole, matches `simulate_edge_recurrent_izhikevich` / `simulate_receptor_exponential_izhikevich`).
-- **Conductance** column: the shipped dynamics are **not** conductance-based (`g*(V - E_rev)`); `g_mech`/`reversal_potentials_mV` in `StaticParams` and `ReceptorSpec.reversal_mV` are provenance metadata surfacing in `cfg.metadata["circuit"]["mechanisms"]` but have no effect on `simulate()` output.
-- **Reversal** values are the standard specs (`standard_receptor_specs()`); they are not clamped/enforced as voltage bounds in the kinetics.
-- The default `EdgeList` construction from dense weights assigns `tau=2.0` for `weight >= 0` and `tau=5.0` for `weight < 0`; declaring a named `mechanism` does **not** change that until the mechanism-aware `edges.tau_ms` is wired (see `synaptic_tau_from_mechanism` inertness note — additive, not yet compiled into `core._compile_connection_rules`).
+- **Kernel** is the declared computation; single-pole decay (single-pole, matches `simulate_edge_recurrent_izhikevich` / `simulate_receptor_exponential_izhikevich`).
+- **Conductance** column: the shipped dynamics are current-based; `g_mech`/`reversal_potentials_mV` in `StaticParams` and `ReceptorSpec.reversal_mV` are provenance metadata surfacing in `cfg.metadata["circuit"]["mechanisms"]` but surfacing in `cfg.metadata["circuit"]["mechanisms"]`.
+- **Reversal** values are the standard specs (`standard_receptor_specs()`); they serve as declarative specifications.
+- The default `EdgeList` construction from dense weights assigns `tau=2.0` for `weight >= 0` and `tau=5.0` for `weight < 0`; mechanism-specific dynamics require the mechanism-aware `edges.tau_ms` is wired (see `synaptic_tau_from_mechanism` inertness note — additive, not yet compiled into `core._compile_connection_rules`).
 
 ---
 
@@ -347,7 +347,7 @@ Build a minimal EIG network with laminar depth positions (`jaxfne/emitters.py:32
   (x/y are fixed at 0).
 - `cell_type_fractions` (`Mapping[str, float]`, optional): E/PV-like/SST-like/VIP-like reduced-class fractions. Default:
   `{"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03}` (keys bare; read as `-like`).
-- `dtype` (str, keyword-only, default `"float32"`): Array dtype policy.
+- `dtype` (str, `keyword-only`, default `"float32"`): Array dtype policy.
 
 **Returns:** `EIGNetwork`, with `metadata` containing `emitter_family="izhikevich"`,
 `source_calibration_status`, and `position_units="relative_laminar_depth_proxy"`.
@@ -369,12 +369,12 @@ recurrent coupling (`jaxfne/emitters.py:358`).
 - `n_steps` (int): Number of simulation timesteps.
 - `dt_ms` (float): Timestep in milliseconds.
 - `key` (`jax.Array`): PRNG key.
-- `dtype` (str, keyword-only, default `"float32"`).
-- `drive_schedule` (`jax.Array | None`, keyword-only): Optional `(n_steps, n_neurons)` internal
+- `dtype` (str, `keyword-only`, default `"float32"`).
+- `drive_schedule` (`jax.Array | None`, `keyword-only`): Optional `(n_steps, n_neurons)` internal
   current added to `params.drive` at every step.
-- `silence_mask` (`jax.Array | None`, keyword-only): Optional `(n_neurons,)` mask; neurons with
-  mask `<= 0.5` are held at `c` and cannot spike.
-- `noise_scale` (`jax.Array | float | None`, keyword-only): Stochastic-current coefficient;
+- `silence_mask` (`jax.Array | None`, `keyword-only`): Optional `(n_neurons,)` mask; neurons with
+  mask `<= 0.5` are clamped at `c`.
+- `noise_scale` (`jax.Array | float | None`, `keyword-only`): Stochastic-current coefficient;
   `None` keeps the historical `0.5` scalar.
 
 **Returns:** `(voltages, spikes, sources)`, each shape `(n_steps, n_neurons)`.
@@ -414,11 +414,11 @@ over time and `jax.ops.segment_sum` over edges (`jaxfne/emitters.py:532`). JIT/v
 As `simulate_edge_recurrent_izhikevich`, plus a per-neuron homeostatic excitability bias
 `g_i = clip(k_gain * (r_star - r_i), g_min, g_max)` driven by a slow activity trace `r_i`, and
 optional homeostatic synaptic plasticity (`eta != 0`) (`jaxfne/emitters.py:650`). Key extra
-keyword-only parameters: `r_star=0.05`, `tau_r_ms=300.0`, `alpha=1.0`, `k_gain=1.0`,
+`keyword-only` parameters: `r_star=0.05`, `tau_r_ms=300.0`, `alpha=1.0`, `k_gain=1.0`,
 `g_min=-12.0`, `g_max=8.0`, `r_max=1.0`, `eta=0.0` (disables plasticity when `0.0`),
 `tau_x_ms=100.0`, `w_min=-10.0`, `w_max=10.0`, plus hard numerical-stability bounds
 (`v_floor`, `v_ceiling`, `u_abs_max`, `syn_abs_max`) and `init_state` for pause/resume.
-`k_gain` is a one-sided damper (can suppress firing below baseline, not reliably drive it above).
+`k_gain` provides one-sided damping.
 `diagnostics_dict` includes `g_bias` and `r_trace`, each shape `(n_steps, n_neurons)`, plus
 (when `eta != 0`) `w_trace` shape `(n_steps, n_edges)`.
 
@@ -547,7 +547,7 @@ print(receptors["AMPA"])
 ### `standard_receptor_tau_table(dtype="float32") -> jax.Array`
 
 Returns the `receptor_index -> tau_ms` lookup table, built from `standard_receptor_specs()` so
-the kernels and the declarative metadata cannot drift apart (`jaxfne/emitters.py:1422`).
+the kernels and declarative metadata stay synchronized (`jaxfne/emitters.py:1422`).
 
 ---
 
@@ -563,12 +563,12 @@ Map declared receptor-mechanism names to per-edge tau (Synaptic Tensor, tau stag
 
 **Description:**
 Vectorized lookup over `standard_receptor_specs()` / `standard_receptor_tau_table()`
-keyed by mechanism name. **Additive only** — this does not change how
+keyed by mechanism name. Additive extension —
 `core._compile_connection_rules` infers tau today (it still derives receptor type
-from weight sign only, hardcoding `tau=2.0` for excitatory / `5.0` for inhibitory
+from weight sign, setting `tau=2.0` for excitatory / `5.0` for inhibitory
 edges regardless of any declared `mechanism` string — a known, separately-tracked
 inertness). Raises `ValueError` on an unrecognized mechanism name rather than
-silently substituting the wrong kinetics.
+substituting unverified kinetics.
 
 **Example:**
 ```python
@@ -595,7 +595,7 @@ Factors out the exact per-edge synaptic state update used inline by
 `simulate_edge_recurrent_izhikevich` / `simulate_receptor_exponential_izhikevich`
 (`syn_next = syn_state * exp(-dt/tau) + spike`) as an explicit, named, reusable
 operator — usable outside the full `simulate()` orchestration for diagnostics or
-parameter sweeps. Single-exponential decay only (no separate rise time constant),
+parameter sweeps. Single-exponential decay,
 matching the kernels exactly.
 
 Validated falsification (500 ms, periodic 20 Hz input, `order` n/a — single pole):
@@ -647,7 +647,7 @@ assert report["finite_tau"]
   required, `n` takes precedence), default `cell_type_fractions={"E": 0.75, "PV": 0.10, "SST": 0.08,
   "VIP": 0.07}`.
 - **`GLIFEmitter(Emitter)`**, **`LIFEmitter(Emitter)`**: unimplemented stubs — both raise
-  `NotImplementedError` on construction (`__init__` immediately raises). Not usable yet.
+  `NotImplementedError` on construction (`__init__` immediately raises). Stubs for future implementation.
 - **`SynapseState`** (`NamedTuple`): `trace` — a JAX-pytree-compatible carry for `SynapseLayer`.
 - **`SynapseLayer`**: `SynapseLayer(n, W, tau_ms=5.0, dtype="float32")`, dense exponential synapse
   layer with `initial_state() -> SynapseState` and `step(state, pre_spikes, *, dt_ms=0.1) ->
@@ -665,7 +665,7 @@ state, output = emitter.step(state, input_t=jnp.zeros(64), dt_ms=0.1)
 
 `jaxfne/emitters_homeostatic_ei.py`. A **separate emitter family from Izhikevich** —
 not a variant of it. State `x` is continuous, bounded, differentiable rate-like state,
-**not** a hard Izhikevich threshold-and-reset (no `v`/`u`, no spike-triggered reset). It is
+distinct from an Izhikevich threshold-and-reset system. It is
 the smallest dynamical system built to exercise HDP: three explicit, independently staged
 timescales (never fused into one rule):
 
@@ -692,7 +692,7 @@ signals = model.simulate(jtfne.simulation(duration_ms=1000.0, dt_ms=0.5, seed=0)
 `n` (from `.network(n=...)`) can be any value `>=2` — split E/I via
 `_homeostatic_ei_cell_type_split` (`~75%`/`~25%`, at least 1 of each).
 `Model.summary()`/`.neuron_table()`/`.checkpoint()`/`.with_emitter_parameters()`/
-`.simulate_batch()` all raise `NotImplementedError` for this family (not yet generalized).
+`.simulate_batch()` all raise `NotImplementedError` for this family (for this family).
 
 ### Rule registries (`ACTIVATION_RULES`/`CONDUCTANCE_RULES`/`HOMEOSTASIS_RULES`)
 
@@ -709,7 +709,7 @@ custom Python callable bypasses `Configuration` entirely, via
   plain `"hebbian"`). Custom gains: `conductance_rule=jaxfne.emitters_homeostatic_ei.make_hebbian_pairwise_rule(k_ee=1.0, k_ei=5.0, k_ie=0.2, k_ii=1.0)` (a callable, reachable via
   `simulate_homeostatic_ei`, bypassing `Configuration`).
 - **homeostasis_rule**: `"linear"` (`dH = -(x-1)*H` — one-sided rate-drain; collapses to
-  `H_min` at higher N, no term restoring H from below), `"logistic"`, `"cubic_penalty"`
+  `H_min` at higher N, unbounded from below), `"logistic"`, `"cubic_penalty"`
   (adds a two-sided cubic restoring force toward `H=1`, avoiding the floor-collapse),
   **`"cubic_penalty_coupled"`** — adds an E<->I cross-population coupling term on top of
   `cubic_penalty` (I's H rises when E's population-mean activity exceeds target, and
@@ -732,6 +732,6 @@ custom Python callable bypasses `Configuration` entirely, via
 Builds a minimal all-pairwise E/I `HomeostaticEIParams` for any `n>=2` — the
 `scripts/`-level analog of `Configuration.set_emitter("homeostatic_ei")`, for ad hoc
 scripts/experiments that want a `HomeostaticEIParams` without going through
-`Configuration`/`construct()`. `G_max` defaults to `10.0/n` (not a flat constant) —
+`Configuration`/`construct()`. `G_max` defaults to `10.0/n` —
 holds the aggregate per-row Hebbian feedback ceiling (`n * G_max`) constant across `n`.
 </content>

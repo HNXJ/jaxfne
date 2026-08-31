@@ -283,10 +283,9 @@ Real fields (`_signals.py`):
 - `field` (`FieldOutput | None`) — laminar proxy field output (LFP/CSD/EEG/MEG proxies live inside this object, not as separate top-level `Signals` fields; present when `record_fields=True`)
 - `metadata` (`dict[str, Any]`)
 
-There is no separate `I_syn`/`source`/`LFP`/`CSD`/`EEG`/`MEG`/`EMM` field directly
-on `Signals` — `sources` (plural) is the source-density array, and the field
+`sources` (plural) is the source-density array, and the field
 proxies (LFP/CSD/etc.) are attributes of `field: FieldOutput`, accessed via
-`.get(...)` (below) or `signals.field.<attr>` directly.
+`.get(...)` (below) or `signals.field.<attr>`.
 
 ### Methods
 
@@ -298,19 +297,15 @@ proxies (LFP/CSD/etc.) are attributes of `field: FieldOutput`, accessed via
 
 #### `get(key, *, selector=None, area=None, layer=None, cell_type=None, ids=None, trial=None, as_numpy=False) -> Any`
 
-`_signals.py`. Returns a named signal array, optionally filtered to selected
+`_signals.py`. Returns a named signal array, filtered to selected
 neurons via `area`/`layer`/`cell_type`/`ids` or an explicit `SelectorSpec`
 (mutually exclusive with the individual fields). Key aliases: `vm`/`V_m`/`voltage`
 -> `V_m`; `spk`/`spikes`/`raster` -> `spikes`; `src`/`sources` -> `sources`;
 `lfp`/`csd`/`phi_e` -> the corresponding laminar proxy readout on `field`;
-`field_source` -> field source proxy. Unknown keys raise `KeyError`. **`trial` is
-not supported** — passing a non-`None` `trial` raises `NotImplementedError`
-(core `Signals` has no trial axis; use `jtfne.run_trials`/`Model.run_trials` for
-multi-trial data).
+`field_source` -> field source proxy. Unknown keys raise `KeyError`. Multi-trial
+execution is handled via `jtfne.run_trials`/`Model.run_trials`.
 
-There is no `to_dict()`/`save_json()` method on `Signals` — those were not found
-in `core.py`; use `summary()` for a JSON-safe view, or `jaxfne.io.json_safe(...)`
-directly on the fields you need.
+Use `summary()` for a JSON-safe view, or `jaxfne.io.json_safe(...)` on the fields you need.
 
 **Example:**
 ```python
@@ -410,9 +405,7 @@ Note: `name` and `metric` are positional-or-keyword; the remaining three are
 **keyword-only** (`*` in the signature) — `jtfne.readout_spec("x", "spike_rate_hz", time_window_ms=(0, 100))`, not a positional third argument.
 
 **Available metrics** (`_KNOWN_READOUT_METRICS`, `_construct_extras.py`): `spike_rate_hz`,
-`spike_count`, `mean_V_m`, `csd_abs_mean`, `lfp_abs_mean`, `source_abs_mean`. There
-is no `max_spike_rate_hz`/`mean_source`/`mean_LFP`/`mean_CSD`/`burst_frequency_hz`
-metric — those were not found in `_KNOWN_READOUT_METRICS`.
+`spike_count`, `mean_V_m`, `csd_abs_mean`, `lfp_abs_mean`, `source_abs_mean`.
 
 **Example:**
 ```python
@@ -440,10 +433,7 @@ jaxfne.ReadoutResult
 - `physical_amplitude_calibrated` (`bool`, default `False`)
 - `metadata` (`dict`, default `{}`)
 
-There is no `specs`/`results` field — that was the doc's guess at a "batch"
-container, but `Model.compute_readout()` actually returns a plain `list[ReadoutResult]`
-(one result object per spec, each self-describing), not a single
-`ReadoutResult` holding all specs+results together.
+`Model.compute_readout()` returns a `list[ReadoutResult]` (one result object per spec, each self-describing).
 
 `name` is a compatibility `@property` alias for `spec_name`.
 
