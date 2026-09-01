@@ -393,6 +393,8 @@ def compile_step_fn(
     kernel: str = "hdp",
     record_dH_components: bool = False,
     record_edge_current: bool = False,
+    record_current_trace: bool = False,
+    record_u_trace: bool = False,
     record_weight_trace: bool = True,
     **hdp_kwargs: Any,
 ) -> "tuple[callable, ContinuationState]":
@@ -491,6 +493,8 @@ def compile_step_fn(
                 silence_mask=silence_mask,
                 init_state=init_state,
                 record_edge_current=record_edge_current,
+                record_current_trace=record_current_trace,
+                record_u_trace=record_u_trace,
                 **kernel_kw,
             )
         new_dynamic = DynamicState(
@@ -538,6 +542,10 @@ def compile_step_fn(
             )
         if record_edge_current and "edge_current_trace" in diag:
             outputs = outputs + (diag["edge_current_trace"][0],)
+        if record_current_trace and "current_trace" in diag:
+            outputs = outputs + (diag["current_trace"][0],)
+        if record_u_trace and "u_trace" in diag:
+            outputs = outputs + (diag["u_trace"][0],)
         return new_state, outputs
 
     init = continuation_state_from_model(

@@ -818,6 +818,8 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     init_state: "dict | None" = None,
     step_indices: "jax.Array | None" = None,
     record_edge_current: bool = False,
+    record_current_trace: bool = False,
+    record_u_trace: bool = False,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Finite edge-delay recurrent kernel (Protocol D).
 
@@ -906,7 +908,7 @@ def _simulate_edge_recurrent_izhikevich_delayed(
                 dtype=jnp.int32,
             )
 
-    if record_edge_current:
+    if record_edge_current or record_current_trace or record_u_trace:
         def step_delayed(carry, xs_t):
             t_idx, noise_t = xs_t
             v, u, prev_spikes, syn_state, spike_hist = carry
@@ -934,6 +936,8 @@ def _simulate_edge_recurrent_izhikevich_delayed(
                 source_proxy,
                 presyn,
                 edge_current,
+                current_native,
+                u_reset,
             )
 
         if drive_schedule is not None:
@@ -966,15 +970,17 @@ def _simulate_edge_recurrent_izhikevich_delayed(
                     source_proxy,
                     presyn,
                     edge_current,
+                    current_native,
+                    u_reset,
                 )
 
-            final, (voltages, spikes, sources, presyn_trace, edge_current_trace) = jax.lax.scan(
+            final, (voltages, spikes, sources, presyn_trace, edge_current_trace, current_trace, u_trace) = jax.lax.scan(
                 step_delayed_sched,
                 init,
                 xs=(step_indices, sched, bulk_noise),
             )
         else:
-            final, (voltages, spikes, sources, presyn_trace, edge_current_trace) = jax.lax.scan(
+            final, (voltages, spikes, sources, presyn_trace, edge_current_trace, current_trace, u_trace) = jax.lax.scan(
                 step_delayed, init, xs=(step_indices, bulk_noise)
             )
     else:
@@ -1060,6 +1066,10 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     }
     if record_edge_current:
         final_state["edge_current_trace"] = edge_current_trace
+    if record_current_trace:
+        final_state["current_trace"] = current_trace
+    if record_u_trace:
+        final_state["u_trace"] = u_trace
     return voltages, spikes, sources, final_state
 
 
@@ -1077,6 +1087,8 @@ def simulate_edge_recurrent_izhikevich(
     init_state: "dict | None" = None,
     step_indices: "jax.Array | None" = None,
     record_edge_current: bool = False,
+    record_current_trace: bool = False,
+    record_u_trace: bool = False,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate reduced Izhikevich emitters with sparse recurrent synapses.
 
@@ -1122,6 +1134,8 @@ def simulate_edge_recurrent_izhikevich(
             init_state=init_state,
             step_indices=step_indices,
             record_edge_current=record_edge_current,
+            record_current_trace=record_current_trace,
+            record_u_trace=record_u_trace,
         )
 
     jdtype = _dtype_from_policy(dtype)
@@ -1165,7 +1179,7 @@ def simulate_edge_recurrent_izhikevich(
         )
 
     if drive_schedule is None:
-        if record_edge_current:
+        if record_edge_current or record_current_trace or record_u_trace:
             def step(carry, noise_t):
                 """Documented public function `step`."""
                 v, u, prev_spikes, syn_state = carry
@@ -1185,9 +1199,9 @@ def simulate_edge_recurrent_izhikevich(
                 u_reset = jnp.where(spikes_bool, u_next + d, u_next)
                 syn_next = syn_state * decay + spikes[pre]
                 source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
-                return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy, edge_current)
+                return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy, edge_current, current_native, u_reset)
 
-            final, (voltages, spikes, sources, edge_current_trace) = jax.lax.scan(step, init, xs=bulk_noise)
+            final, (voltages, spikes, sources, edge_current_trace, current_trace, u_trace) = jax.lax.scan(step, init, xs=bulk_noise)
         else:
             def step(carry, noise_t):
                 """Documented public function `step`."""
@@ -1214,7 +1228,7 @@ def simulate_edge_recurrent_izhikevich(
     else:
         sched = drive_schedule.astype(jdtype)
 
-        if record_edge_current:
+        if record_edge_current or record_current_trace or record_u_trace:
             def step_sched(carry, xs_t):
                 """Documented public function `step_sched`."""
                 sched_t, noise_t = xs_t
@@ -1235,9 +1249,9 @@ def simulate_edge_recurrent_izhikevich(
                 u_reset = jnp.where(spikes_bool, u_next + d, u_next)
                 syn_next = syn_state * decay + spikes[pre]
                 source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
-                return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy, edge_current)
+                return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy, edge_current, current_native, u_reset)
 
-            final, (voltages, spikes, sources, edge_current_trace) = jax.lax.scan(step_sched, init, xs=(sched, bulk_noise))
+            final, (voltages, spikes, sources, edge_current_trace, current_trace, u_trace) = jax.lax.scan(step_sched, init, xs=(sched, bulk_noise))
         else:
             def step_sched(carry, xs_t):
                 """Documented public function `step_sched`."""
@@ -1271,6 +1285,10 @@ def simulate_edge_recurrent_izhikevich(
     }
     if record_edge_current:
         final_state["edge_current_trace"] = edge_current_trace
+    if record_current_trace:
+        final_state["current_trace"] = current_trace
+    if record_u_trace:
+        final_state["u_trace"] = u_trace
     return voltages, spikes, sources, final_state
 
 
