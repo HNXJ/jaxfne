@@ -3112,6 +3112,19 @@ def simulate_edge_recurrent_izhikevich_hdp(
     e_neuron_mask: "jax.Array | None" = None,
     theta_m_EI_bounds: "tuple[float, float]" = (0.1, 5.0),
     theta_eta_a_bounds: "tuple[float, float]" = (0.25, 4.0),
+    enable_boundary_stabilization: bool = False,
+    tau_r_s: float = 0.3,
+    tau_H_E_s: float = 4.0,
+    tau_H_I_s: float = 1.0,
+    K_H: float = 0.1,
+    g_H: float = 0.22,
+    k_L: float = 1.0,
+    k_H: float = 1.0,
+    beta_softplus: float = 25.0,
+    r_L: float = 0.5,
+    r_H: float = 20.0,
+    r_bar_init: "float | None" = 8.0,
+    record_boundary_components: bool = False,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate Izhikevich emitters with sparse recurrent synapses and HDP.
 
@@ -3470,6 +3483,27 @@ def simulate_edge_recurrent_izhikevich_hdp(
     syn_abs_max_arr = jnp.asarray(syn_abs_max, dtype=jdtype)
     H_boost_gain_arr = jnp.asarray(H_boost_gain, dtype=jdtype)
 
+    if enable_boundary_stabilization:
+        c_val = 0.01 if barrier_c == 0.0 and barrier_d == 0.0 else barrier_c
+        d_val = 1.00 if barrier_c == 0.0 and barrier_d == 0.0 else barrier_d
+        c_arr = _h_component_param(c_val, "barrier_c")
+        d_arr = _h_component_param(d_val, "barrier_d")
+        K_H_arr = jnp.asarray(K_H, dtype=jdtype)
+        g_H_arr = jnp.asarray(g_H, dtype=jdtype)
+        k_L_arr = jnp.asarray(k_L, dtype=jdtype)
+        k_H_arr = jnp.asarray(k_H, dtype=jdtype)
+        beta_arr = jnp.asarray(beta_softplus, dtype=jdtype)
+        r_L_arr = jnp.asarray(r_L, dtype=jdtype)
+        r_H_arr = jnp.asarray(r_H, dtype=jdtype)
+        tau_r_arr = jnp.asarray(tau_r_s, dtype=jdtype)
+        if e_neuron_mask is not None:
+            e_mask = jnp.asarray(e_neuron_mask, dtype=jdtype)
+        elif params.labels is not None and len(params.labels) == n_neurons:
+            e_mask = jnp.array([str(lbl).startswith("E") for lbl in params.labels], dtype=jdtype)
+        else:
+            e_mask = jnp.ones((n_neurons,), dtype=jdtype)
+        tau_H_arr = jnp.where(e_mask > 0.5, tau_H_E_s, tau_H_I_s).astype(jdtype)
+
     def _bound_state(v_s, u_s, syn_s):
         """Clamp carried emitter state to finite hard bounds (overflow/underflow guard)."""
         return (
@@ -3538,6 +3572,46 @@ def simulate_edge_recurrent_izhikevich_hdp(
                 jnp.zeros((edges.n_edges,), dtype=jdtype),
                 jnp.zeros(expected_h_shape_pop, dtype=jdtype),
                 jnp.clip(theta_default, theta_lo, theta_hi),
+            )
+    elif enable_boundary_stabilization:
+        expected_h_shape = _expected_h_shape(
+            locality="node", n_neurons=n_neurons, h_state_dim=h_dim
+        )
+        if init_state is not None and "r_bar" in init_state:
+            r_bar0 = jnp.asarray(init_state["r_bar"], dtype=jdtype)
+        elif init_state is not None and "r_bar_final" in init_state:
+            r_bar0 = jnp.asarray(init_state["r_bar_final"], dtype=jdtype)
+        else:
+            init_r = 8.0 if r_bar_init is None else float(r_bar_init)
+            r_bar0 = jnp.full((n_neurons,), init_r, dtype=jdtype)
+
+        if init_state is not None:
+            H0 = jnp.asarray(
+                init_state.get("H_final", jnp.ones(expected_h_shape, dtype=jdtype)),
+                dtype=jdtype,
+            )
+            if H0.shape != expected_h_shape:
+                raise ValueError(
+                    "H_final must have shape "
+                    f"{expected_h_shape} for h_state_dim={h_dim}, got {H0.shape}"
+                )
+            w0 = jnp.asarray(init_state.get("w_final", edges.weight), dtype=jdtype)
+            init = (
+                jnp.asarray(init_state["v"], dtype=jdtype),
+                jnp.asarray(init_state["u"], dtype=jdtype),
+                jnp.asarray(init_state["prev_spikes"], dtype=jdtype),
+                jnp.asarray(init_state["syn_state"], dtype=jdtype),
+                H0, w0, r_bar0,
+            )
+        else:
+            init = (
+                params.v0.astype(jdtype),
+                params.u0.astype(jdtype),
+                jnp.zeros_like(params.v0, dtype=jdtype),
+                jnp.zeros((edges.n_edges,), dtype=jdtype),
+                jnp.ones(expected_h_shape, dtype=jdtype), # H_i(0) = 1.0
+                edges.weight.astype(jdtype),              # w(0) = native edge weight
+                r_bar0,
             )
     else:
         expected_h_shape = _expected_h_shape(
@@ -3611,6 +3685,82 @@ def simulate_edge_recurrent_izhikevich_hdp(
             else:
                 outputs = (v_reset, spikes, source_proxy, H_next, theta_next)
             return (v_reset, u_reset, spikes, syn_next, H_next, theta_next), outputs
+
+        if enable_boundary_stabilization:
+            v, u, prev_spikes, syn_state, H, w, r_bar = carry
+
+            # (1) Synaptic current and native input
+            edge_current = w * syn_state
+            syn = _segment_sum(edge_current, post, n_neurons)
+            current_native = (drive + sched_t) + syn + noise_coef * noise_t
+
+            # (2) Homeostatic current from h = H - 1
+            h = H - 1.0
+            I_H = -g_H_arr * h
+            current_total = current_native + I_H
+
+            # (3) Integrate neuron (Izhikevich)
+            dv, du = _izhikevich_dv_du(v, u, current_total, a, b)
+            v_next = v + dt * dv
+            u_next = u + dt * du
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
+            spikes = spikes_bool.astype(jdtype)
+            v_reset = jnp.where(spikes_bool, c, v_next)
+            u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+            syn_next = syn_state * decay + spikes[pre]
+
+            # (4) Update rate filter: r_bar_{n+1} = r_bar_n + (dt_s / tau_r) * (spikes / dt_s - r_bar_n)
+            dt_s = dt / jnp.asarray(1000.0, dtype=jdtype)
+            r_inst = spikes / dt_s
+            r_bar_next = r_bar + (dt_s / tau_r_arr) * (r_inst - r_bar)
+
+            # (5) Boundary drives S_L and S_H
+            S_L = k_L_arr * (jax.nn.softplus(beta_arr * (r_L_arr - r_bar_next)) / beta_arr)
+            S_H = k_H_arr * (jax.nn.softplus(beta_arr * (r_bar_next - r_H_arr)) / beta_arr)
+
+            # (6) Barrier force: -B'(h) = c/(h+0.9)^2 - d/(9-h)^2
+            dist_floor = jnp.clip(h + 0.9, barrier_eps_arr, None)
+            dist_ceil = jnp.clip(9.0 - h, barrier_eps_arr, None)
+            minus_B_prime = (c_arr / (dist_floor * dist_floor)) - (d_arr / (dist_ceil * dist_ceil))
+
+            # (7) dh/dt = (-K_H * h - S_L + S_H - B'(h)) / tau_H
+            dh = (-K_H_arr * h - S_L + S_H + minus_B_prime) / tau_H_arr
+            h_next = h + dt_s * dh
+            h_next = jnp.clip(h_next, -0.9 + barrier_eps_arr, 9.0 - barrier_eps_arr)
+            H_next = h_next + 1.0
+
+            # (8) Plastic weights
+            H_pre = H_next[pre]
+            H_post = H_next[post]
+            if hdp_rule == "signed_linear":
+                rule_basis = H_post - H_pre
+            elif hdp_rule == "signed_quadratic":
+                diff = H_post - H_pre
+                rule_basis = diff * jnp.abs(diff)
+            elif hdp_rule == "hebbian_product":
+                rule_basis = H_pre * H_post
+            else:
+                rule_basis = H_post - H_pre
+
+            wmag = jnp.abs(w)
+            dw_exc = K_HDP_arr * rule_basis * wmag
+            dw_inh = -K_HDP_arr * rule_basis * wmag
+            dw_w_ctrl = K_w_ctrl_arr * (wmag_baseline_arr - wmag)
+            dw = jnp.where(exc_mask, dw_exc, dw_inh) + dw_w_ctrl
+            wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
+            w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
+
+            v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
+            source_proxy = _source_proxy_from_components(current_total, spikes, source_scale, dtype=jdtype)
+
+            if record_weight_trace:
+                outputs = (v_reset, spikes, source_proxy, H_next, w_next, r_bar_next, I_H)
+            else:
+                outputs = (v_reset, spikes, source_proxy, H_next, r_bar_next, I_H)
+            if record_boundary_components:
+                outputs = outputs + (S_L, S_H, minus_B_prime, dh)
+            return (v_reset, u_reset, spikes, syn_next, H_next, w_next, r_bar_next), outputs
 
         v, u, prev_spikes, syn_state, H, w = carry
 
@@ -3781,6 +3931,45 @@ def simulate_edge_recurrent_izhikevich_hdp(
             "w_trace": w_trace,
             "h_state_locality": "population",
         }
+        return voltages, spikes, sources, diagnostics_dict
+
+    if enable_boundary_stabilization:
+        base_arity = 5 if record_weight_trace else 4
+        if record_weight_trace:
+            voltages, spikes, sources, H_trace, w_trace = scan_outputs[:5]
+        else:
+            voltages, spikes, sources, H_trace = scan_outputs[:4]
+            w_trace = None
+        r_bar_trace, I_H_trace = scan_outputs[base_arity:base_arity + 2]
+        final_state = {
+            "v": final[0],
+            "u": final[1],
+            "prev_spikes": final[2],
+            "syn_state": final[3],
+            "H_final": final[4],
+            "w_final": final[5],
+            "r_bar_final": final[6],
+            "I_H_final": -g_H_arr * (final[4] - 1.0),
+        }
+        diagnostics_dict = {
+            **final_state,
+            "H_trace": H_trace,
+            "w_trace": w_trace,
+            "r_bar_trace": r_bar_trace,
+            "I_H_trace": I_H_trace,
+        }
+        tail = scan_outputs[base_arity + 2:]
+        if record_boundary_components:
+            S_L_trace, S_H_trace, minus_B_prime_trace, dh_trace = tail[:4]
+            diagnostics_dict.update({
+                "S_L_trace": S_L_trace,
+                "S_H_trace": S_H_trace,
+                "minus_B_prime_trace": minus_B_prime_trace,
+                "dh_trace": dh_trace,
+            })
+            tail = tail[4:]
+        if record_edge_current:
+            diagnostics_dict["edge_current_trace"] = tail[0]
         return voltages, spikes, sources, diagnostics_dict
 
     base_arity = 5 if record_weight_trace else 4

@@ -60,6 +60,19 @@ HDP_PARAM_GROUP_H_DYNAMICS: Final[frozenset[str]] = frozenset(
         "v_ceiling",
         "u_abs_max",
         "syn_abs_max",
+        "enable_boundary_stabilization",
+        "tau_r_s",
+        "tau_H_E_s",
+        "tau_H_I_s",
+        "K_H",
+        "g_H",
+        "k_L",
+        "k_H",
+        "beta_softplus",
+        "r_L",
+        "r_H",
+        "r_bar_init",
+        "record_boundary_components",
     }
 )
 

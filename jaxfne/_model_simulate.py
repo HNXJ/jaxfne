@@ -97,6 +97,19 @@ def _hdp_kernel_kwargs(hp: Mapping[str, Any]) -> dict[str, Any]:
         "record_dH_components": bool(hp.get("record_dH_components", False)),
         "record_edge_current": bool(hp.get("record_edge_current", False)),
         "record_weight_trace": bool(hp.get("record_weight_trace", True)),
+        "enable_boundary_stabilization": bool(hp.get("enable_boundary_stabilization", False)),
+        "tau_r_s": float(hp.get("tau_r_s", 0.3)),
+        "tau_H_E_s": float(hp.get("tau_H_E_s", 4.0)),
+        "tau_H_I_s": float(hp.get("tau_H_I_s", 1.0)),
+        "K_H": float(hp.get("K_H", 0.1)),
+        "g_H": float(hp.get("g_H", 0.22)),
+        "k_L": float(hp.get("k_L", 1.0)),
+        "k_H": float(hp.get("k_H", 1.0)),
+        "beta_softplus": float(hp.get("beta_softplus", 25.0)),
+        "r_L": float(hp.get("r_L", 0.5)),
+        "r_H": float(hp.get("r_H", 20.0)),
+        "r_bar_init": hp.get("r_bar_init", 8.0),
+        "record_boundary_components": bool(hp.get("record_boundary_components", False)),
     }
 
 
@@ -342,6 +355,10 @@ def _simulate_arrays(
             )
             theta_trace = diag.get("theta_S_trace")
             theta_final = diag.get("theta_S_final")
+            r_bar_final = diag.get("r_bar_final")
+            r_bar_trace = diag.get("r_bar_trace")
+            I_H_final = diag.get("I_H_final")
+            I_H_trace = diag.get("I_H_trace")
             return (
                 V,
                 S,
@@ -352,6 +369,10 @@ def _simulate_arrays(
                 diag["w_trace"],
                 theta_final,
                 theta_trace,
+                r_bar_final,
+                r_bar_trace,
+                I_H_final,
+                I_H_trace,
             )
 
         effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
@@ -386,7 +407,11 @@ def _simulate_arrays(
         else:
             with _device_scope(runtime_cfg.selected_backend):
                 result = _hdp_packed(key, sched)
-        V, S, src, H_final, H_trace, w_final, w_trace, theta_final, theta_trace = result
+        (
+            V, S, src, H_final, H_trace, w_final, w_trace,
+            theta_final, theta_trace,
+            r_bar_final, r_bar_trace, I_H_final, I_H_trace,
+        ) = result
         diag_store = {
             "H_final": H_final,
             "H_trace": H_trace,
@@ -397,6 +422,14 @@ def _simulate_arrays(
             diag_store["theta_S_final"] = theta_final
         if theta_trace is not None:
             diag_store["theta_S_trace"] = theta_trace
+        if r_bar_final is not None:
+            diag_store["r_bar_final"] = r_bar_final
+        if r_bar_trace is not None:
+            diag_store["r_bar_trace"] = r_bar_trace
+        if I_H_final is not None:
+            diag_store["I_H_final"] = I_H_final
+        if I_H_trace is not None:
+            diag_store["I_H_trace"] = I_H_trace
         object.__setattr__(self, "_last_hdp_diag", diag_store)
         return V, S, src
 
