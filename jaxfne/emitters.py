@@ -3534,6 +3534,10 @@ def simulate_edge_recurrent_izhikevich_hdp(
     sched = (jnp.zeros((int(n_steps), n_neurons), dtype=jdtype)
              if drive_schedule is None else drive_schedule.astype(jdtype))
 
+    has_plastic_weights = bool(
+        (float(np.asarray(K_HDP).sum()) != 0.0)
+        or (float(np.asarray(K_w_ctrl).sum()) != 0.0)
+    )
     delay_host = _edge_delay_steps_host(edges)
     if np.any(delay_host < 0):
         raise ValueError("edge delay_steps must be >= 0")
@@ -3786,25 +3790,28 @@ def simulate_edge_recurrent_izhikevich_hdp(
             H_next = h_next + 1.0
 
             # (8) Plastic weights
-            H_pre = H_next[pre]
-            H_post = H_next[post]
-            if hdp_rule == "signed_linear":
-                rule_basis = H_post - H_pre
-            elif hdp_rule == "signed_quadratic":
-                diff = H_post - H_pre
-                rule_basis = diff * jnp.abs(diff)
-            elif hdp_rule == "hebbian_product":
-                rule_basis = H_pre * H_post
-            else:
-                rule_basis = H_post - H_pre
+            if has_plastic_weights:
+                H_pre = H_next[pre]
+                H_post = H_next[post]
+                if hdp_rule == "signed_linear":
+                    rule_basis = H_post - H_pre
+                elif hdp_rule == "signed_quadratic":
+                    diff = H_post - H_pre
+                    rule_basis = diff * jnp.abs(diff)
+                elif hdp_rule == "hebbian_product":
+                    rule_basis = H_pre * H_post
+                else:
+                    rule_basis = H_post - H_pre
 
-            wmag = jnp.abs(w)
-            dw_exc = K_HDP_arr * rule_basis * wmag
-            dw_inh = -K_HDP_arr * rule_basis * wmag
-            dw_w_ctrl = K_w_ctrl_arr * (wmag_baseline_arr - wmag)
-            dw = jnp.where(exc_mask, dw_exc, dw_inh) + dw_w_ctrl
-            wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
-            w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
+                wmag = jnp.abs(w)
+                dw_exc = K_HDP_arr * rule_basis * wmag
+                dw_inh = -K_HDP_arr * rule_basis * wmag
+                dw_w_ctrl = K_w_ctrl_arr * (wmag_baseline_arr - wmag)
+                dw = jnp.where(exc_mask, dw_exc, dw_inh) + dw_w_ctrl
+                wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
+                w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
+            else:
+                w_next = w
 
             v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
             source_proxy = _source_proxy_from_components(current_total, spikes, source_scale, dtype=jdtype)
@@ -3913,17 +3920,15 @@ def simulate_edge_recurrent_izhikevich_hdp(
         # multiplicative/log-domain plasticity rules and keeps dw scale-free
         # across a wide weight range), but not swap-in-additive without
         # re-verifying every tuned preset's dynamics -- external review 2026-07-14.
-        dw_exc = K_HDP_arr * rule_basis * wmag
-        dw_inh = -K_HDP_arr * rule_basis * wmag
-        # Weight restoring force: pulls wmag back toward its calibrated baseline
-        # magnitude, closing the same gap K_ctrl closed for H_i (see K_w_ctrl's
-        # docstring). Sign-agnostic (applies to the unsigned magnitude before
-        # exc_mask reapplies sign), so added once to dw rather than split by
-        # E/I branch like dw_exc/dw_inh above.
-        dw_w_ctrl = K_w_ctrl_arr * (wmag_baseline_arr - wmag)
-        dw = jnp.where(exc_mask, dw_exc, dw_inh) + dw_w_ctrl
-        wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
-        w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
+        if has_plastic_weights:
+            dw_exc = K_HDP_arr * rule_basis * wmag
+            dw_inh = -K_HDP_arr * rule_basis * wmag
+            dw_w_ctrl = K_w_ctrl_arr * (wmag_baseline_arr - wmag)
+            dw = jnp.where(exc_mask, dw_exc, dw_inh) + dw_w_ctrl
+            wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
+            w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
+        else:
+            w_next = w
 
         # (4) Integrate the neuron (Izhikevich) and detect spikes.
         dv, du = _izhikevich_dv_du(v, u, current_native, a, b)

@@ -305,6 +305,9 @@ def _simulate_arrays(
         if ablation_mode == "disconnected_null":
             edges = replace(edges, weight=jnp.zeros_like(edges.weight))
         hp = dict(runtime_cfg.hdp_params or {})
+        if hp.get("enable_boundary_stabilization", False):
+            hp.setdefault("K_HDP", 0.0)
+            hp.setdefault("K_w_ctrl", 0.0)
 
         # Optional caller-supplied initial HDP state (Model.with_hdp_initial_state).
         # Absent by default -> init_state=None, the exact prior behavior
@@ -632,6 +635,9 @@ def _simulate_continuation_arrays(
             )
 
     hp = dict(runtime_cfg.hdp_params or {}) if runtime_cfg.enable_hdp else {}
+    if hp.get("enable_boundary_stabilization", False):
+        hp.setdefault("K_HDP", 0.0)
+        hp.setdefault("K_w_ctrl", 0.0)
     baseline_kw = {}
     if not runtime_cfg.enable_hdp and runtime_cfg.hdp_params:
         if "noise_scale" in runtime_cfg.hdp_params:
@@ -1076,6 +1082,9 @@ def simulate_batch(self, sim: Simulation, n_seeds: int = 4, seed: int | None = N
     )
     _hp = dict(runtime_cfg.homeostasis_params or {})
     _hdp = dict(runtime_cfg.hdp_params or {})
+    if _hdp.get("enable_boundary_stabilization", False):
+        _hdp.setdefault("K_HDP", 0.0)
+        _hdp.setdefault("K_w_ctrl", 0.0)
 
     def one(k):
         """Documented public function `one`."""
