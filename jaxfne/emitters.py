@@ -3125,6 +3125,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     r_H: float = 20.0,
     r_bar_init: "float | None" = 8.0,
     record_boundary_components: bool = False,
+    step_indices: "jax.Array | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate Izhikevich emitters with sparse recurrent synapses and HDP.
 
@@ -3533,6 +3534,35 @@ def simulate_edge_recurrent_izhikevich_hdp(
     sched = (jnp.zeros((int(n_steps), n_neurons), dtype=jdtype)
              if drive_schedule is None else drive_schedule.astype(jdtype))
 
+    delay_host = _edge_delay_steps_host(edges)
+    if np.any(delay_host < 0):
+        raise ValueError("edge delay_steps must be >= 0")
+    has_nonzero_delay = bool(np.any(delay_host > 0))
+    if has_nonzero_delay:
+        max_delay = int(np.max(delay_host))
+        bufsize = max_delay + 1
+        delay_steps_arr = edges.delay_steps.astype(jnp.int32)
+        time_step_offset = _rbd_continuation_step_offset_array(init_state)
+        if init_state is not None and ("delay_state" in init_state or "spike_history" in init_state):
+            _validate_delayed_init_state(
+                init_state, bufsize=bufsize, n_neurons=n_neurons, n_edges=edges.n_edges
+            )
+            spike_hist0 = _rbd_delay_state_from_init(
+                init_state, bufsize=bufsize, n_neurons=n_neurons, jdtype=jdtype
+            )
+        else:
+            spike_hist0 = jnp.zeros((bufsize, n_neurons), dtype=jdtype)
+        if step_indices is not None:
+            step_indices_arr = jnp.asarray(step_indices, dtype=jnp.int32).reshape(-1)
+        else:
+            off = time_step_offset
+            if isinstance(off, int):
+                step_indices_arr = jnp.arange(off, off + int(n_steps), dtype=jnp.int32)
+            else:
+                step_indices_arr = jnp.arange(
+                    off, off + jnp.asarray(int(n_steps), dtype=jnp.int32), dtype=jnp.int32
+                )
+
     if pop_layout is not None:
         expected_h_shape_pop = _expected_h_shape(
             locality="population", n_neurons=n_neurons, h_state_dim=h_dim
@@ -3645,11 +3675,21 @@ def simulate_edge_recurrent_izhikevich_hdp(
                 edges.weight.astype(jdtype),              # w(0) = native edge weight
             )
 
+    if has_nonzero_delay:
+        init = init + (spike_hist0,)
+
     def step(carry, xs_t):
         """HDP step: population restoring or node-local income/spending plasticity."""
-        sched_t, noise_t = xs_t
+        if has_nonzero_delay:
+            t_idx, sched_t, noise_t = xs_t
+            spike_hist = carry[-1]
+            carry_core = carry[:-1]
+        else:
+            sched_t, noise_t = xs_t
+            carry_core = carry
+
         if pop_layout is not None:
-            v, u, prev_spikes, syn_state, H_pop, theta_S = carry
+            v, u, prev_spikes, syn_state, H_pop, theta_S = carry_core
             w_eff, a_eff = bind_theta_to_plant(
                 theta_S,
                 pop_layout,
@@ -3675,7 +3715,13 @@ def simulate_edge_recurrent_izhikevich_hdp(
             spikes = spikes_bool.astype(jdtype)
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
-            syn_next = syn_state * decay + spikes[pre]
+            if has_nonzero_delay:
+                presyn = _delayed_presynaptic_spikes(spikes, spike_hist, t_idx, pre, delay_steps_arr)
+                syn_next = syn_state * decay + presyn
+                slot = jnp.mod(t_idx, bufsize)
+                spike_hist_next = spike_hist.at[slot].set(spikes)
+            else:
+                syn_next = syn_state * decay + spikes[pre]
             v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
             source_proxy = _source_proxy_from_components(
                 current_native, spikes, source_scale, dtype=jdtype
@@ -3684,10 +3730,13 @@ def simulate_edge_recurrent_izhikevich_hdp(
                 outputs = (v_reset, spikes, source_proxy, H_next, theta_next, w_eff)
             else:
                 outputs = (v_reset, spikes, source_proxy, H_next, theta_next)
-            return (v_reset, u_reset, spikes, syn_next, H_next, theta_next), outputs
+            carry_out = (v_reset, u_reset, spikes, syn_next, H_next, theta_next)
+            if has_nonzero_delay:
+                carry_out = carry_out + (spike_hist_next,)
+            return carry_out, outputs
 
         if enable_boundary_stabilization:
-            v, u, prev_spikes, syn_state, H, w, r_bar = carry
+            v, u, prev_spikes, syn_state, H, w, r_bar = carry_core
 
             # (1) Synaptic current and native input
             edge_current = w * syn_state
@@ -3708,7 +3757,13 @@ def simulate_edge_recurrent_izhikevich_hdp(
             spikes = spikes_bool.astype(jdtype)
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
-            syn_next = syn_state * decay + spikes[pre]
+            if has_nonzero_delay:
+                presyn = _delayed_presynaptic_spikes(spikes, spike_hist, t_idx, pre, delay_steps_arr)
+                syn_next = syn_state * decay + presyn
+                slot = jnp.mod(t_idx, bufsize)
+                spike_hist_next = spike_hist.at[slot].set(spikes)
+            else:
+                syn_next = syn_state * decay + spikes[pre]
 
             # (4) Update rate filter: r_bar_{n+1} = r_bar_n + (dt_s / tau_r) * (spikes / dt_s - r_bar_n)
             dt_s = dt / jnp.asarray(1000.0, dtype=jdtype)
@@ -3760,9 +3815,14 @@ def simulate_edge_recurrent_izhikevich_hdp(
                 outputs = (v_reset, spikes, source_proxy, H_next, r_bar_next, I_H)
             if record_boundary_components:
                 outputs = outputs + (S_L, S_H, minus_B_prime, dh)
-            return (v_reset, u_reset, spikes, syn_next, H_next, w_next, r_bar_next), outputs
+            if record_edge_current:
+                outputs = outputs + (edge_current,)
+            carry_out = (v_reset, u_reset, spikes, syn_next, H_next, w_next, r_bar_next)
+            if has_nonzero_delay:
+                carry_out = carry_out + (spike_hist_next,)
+            return carry_out, outputs
 
-        v, u, prev_spikes, syn_state, H, w = carry
+        v, u, prev_spikes, syn_state, H, w = carry_core
 
         # (1) Synaptic current.
         edge_current = w * syn_state
@@ -3772,11 +3832,6 @@ def simulate_edge_recurrent_izhikevich_hdp(
         # NOTE: uses the carry (previous-step) H, one step lagged behind H_next
         # computed below in (2) -- negligible at small dt but not exact. Also
         # note dH_income below is alpha*syn only, so the extra current this
-        # boost adds is not itself counted as H income: combining H_boost_gain>0
-        # with gamma>0 can create a starved-neuron-fires-more-but-drains-more
-        # loop. DEFAULT_HDP_V1_PFC_AAAB does combine both (H_boost_gain=4.0,
-        # gamma=0.5) but is stabilized empirically via K_w_ctrl bounding weight
-        # growth, not by this income-term asymmetry -- external review 2026-07-14.
         if h_dim == 1:
             h_readout = H
             syn_h = syn
@@ -3879,7 +3934,13 @@ def simulate_edge_recurrent_izhikevich_hdp(
         spikes = spikes_bool.astype(jdtype)
         v_reset = jnp.where(spikes_bool, c, v_next)
         u_reset = jnp.where(spikes_bool, u_next + d, u_next)
-        syn_next = syn_state * decay + spikes[pre]
+        if has_nonzero_delay:
+            presyn = _delayed_presynaptic_spikes(spikes, spike_hist, t_idx, pre, delay_steps_arr)
+            syn_next = syn_state * decay + presyn
+            slot = jnp.mod(t_idx, bufsize)
+            spike_hist_next = spike_hist.at[slot].set(spikes)
+        else:
+            syn_next = syn_state * decay + spikes[pre]
 
         # (5) Spikes consume H_i (discrete drain on neurons that just fired).
         # NOTE: intentionally NOT divided by tau_i (see docstring) -- at any
@@ -3906,9 +3967,15 @@ def simulate_edge_recurrent_izhikevich_hdp(
             outputs = outputs + (dH_income, dH_rate, dH_weight, dH_passive, barrier_force)
         if record_edge_current:
             outputs = outputs + (edge_current,)
-        return (v_reset, u_reset, spikes, syn_next, H_final, w_next), outputs
+        carry_out = (v_reset, u_reset, spikes, syn_next, H_final, w_next)
+        if has_nonzero_delay:
+            carry_out = carry_out + (spike_hist_next,)
+        return carry_out, outputs
 
-    final, scan_outputs = jax.lax.scan(step, init, xs=(sched, bulk_noise))
+    if has_nonzero_delay:
+        final, scan_outputs = jax.lax.scan(step, init, xs=(step_indices_arr, sched, bulk_noise))
+    else:
+        final, scan_outputs = jax.lax.scan(step, init, xs=(sched, bulk_noise))
     if pop_layout is not None:
         if record_weight_trace:
             voltages, spikes, sources, H_trace, theta_trace, w_trace = scan_outputs
@@ -3931,6 +3998,11 @@ def simulate_edge_recurrent_izhikevich_hdp(
             "w_trace": w_trace,
             "h_state_locality": "population",
         }
+        if has_nonzero_delay:
+            diagnostics_dict["delay_state"] = final[-1]
+            diagnostics_dict["spike_history"] = final[-1]
+            diagnostics_dict["delay_steps_max"] = jnp.asarray(max_delay, dtype=jnp.int32)
+            diagnostics_dict["continuation_step_offset"] = step_indices_arr[-1] + jnp.asarray(1, dtype=jnp.int32)
         return voltages, spikes, sources, diagnostics_dict
 
     if enable_boundary_stabilization:
@@ -3970,6 +4042,11 @@ def simulate_edge_recurrent_izhikevich_hdp(
             tail = tail[4:]
         if record_edge_current:
             diagnostics_dict["edge_current_trace"] = tail[0]
+        if has_nonzero_delay:
+            diagnostics_dict["delay_state"] = final[-1]
+            diagnostics_dict["spike_history"] = final[-1]
+            diagnostics_dict["delay_steps_max"] = jnp.asarray(max_delay, dtype=jnp.int32)
+            diagnostics_dict["continuation_step_offset"] = step_indices_arr[-1] + jnp.asarray(1, dtype=jnp.int32)
         return voltages, spikes, sources, diagnostics_dict
 
     base_arity = 5 if record_weight_trace else 4
@@ -4005,6 +4082,11 @@ def simulate_edge_recurrent_izhikevich_hdp(
         tail = tail[5:]
     if record_edge_current:
         diagnostics_dict["edge_current_trace"] = tail[0]
+    if has_nonzero_delay:
+        diagnostics_dict["delay_state"] = final[-1]
+        diagnostics_dict["spike_history"] = final[-1]
+        diagnostics_dict["delay_steps_max"] = jnp.asarray(max_delay, dtype=jnp.int32)
+        diagnostics_dict["continuation_step_offset"] = step_indices_arr[-1] + jnp.asarray(1, dtype=jnp.int32)
     return voltages, spikes, sources, diagnostics_dict
 
 

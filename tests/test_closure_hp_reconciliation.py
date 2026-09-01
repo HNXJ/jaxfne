@@ -83,8 +83,8 @@ class TestTensorRuntimeConfiguration:
 # HP-05 — HDP + nonzero delay must be rejected loudly
 # --------------------------------------------------------------------------- #
 
-class TestHdpDelayRejection:
-    def test_hdp_nonzero_delay_rejected(self):
+class TestHdpDelaySupported:
+    def test_hdp_nonzero_delay_supported(self):
         from dataclasses import replace
         import jax.numpy as jnp
         cfg = jtfne.suite2_net1_config(seed=7, n=3, duration_ms=50.0, dt_ms=1.0)
@@ -99,11 +99,11 @@ class TestHdpDelayRejection:
             runtime=jtfne.RuntimeConfig(enable_hdp=True, recurrent_backend="edge_list",
                                         hdp_params={"noise_scale": 0.0}),
         )
-        with pytest.raises(ValueError, match="enable_hdp does not support nonzero edge delay_steps"):
-            jtfne.simulate(model, sim)
-        # simulate_batch must also reject (same guard, F1)
-        with pytest.raises(ValueError, match="enable_hdp does not support nonzero edge delay_steps"):
-            model.simulate_batch(sim, n_seeds=2)
+        s = jtfne.simulate(model, sim)
+        assert s.V_m.shape == (50, 3)
+        # simulate_batch must also succeed
+        batch_out = model.simulate_batch(sim, n_seeds=2)
+        assert batch_out["V_m"].shape == (2, 50, 3)
 
     def test_hdp_zero_delay_still_works(self):
         cfg = jtfne.suite2_net1_config(seed=7, n=3, duration_ms=50.0, dt_ms=1.0)
@@ -112,10 +112,8 @@ class TestHdpDelayRejection:
         s = jtfne.simulate(model)
         assert s.V_m.shape[1] == 3
 
-    def test_hdp_nonzero_delay_rejected_on_continuation_path(self):
-        """F1: the HDP+delay loud-fail must also fire on the full-state
-        continuation path (return_state=True), which previously dropped the
-        delay silently."""
+    def test_hdp_nonzero_delay_supported_on_continuation_path(self):
+        """Finite delays must also work on full-state continuation path."""
         from dataclasses import replace
         import jax.numpy as jnp
         cfg = jtfne.suite2_net1_config(seed=7, n=3, duration_ms=80.0, dt_ms=1.0)
@@ -126,9 +124,12 @@ class TestHdpDelayRejection:
         object.__setattr__(model, "params", {**model.params, "edge_list": new_edges})
         rt = jtfne.RuntimeConfig(recurrent_backend="edge_list", enable_hdp=True,
                                  hdp_params={"noise_scale": 0.0})
-        with pytest.raises(ValueError, match="enable_hdp does not support nonzero edge delay_steps"):
-            model.simulate(jtfne.simulation(duration_ms=40.0, dt_ms=1.0, seed=7,
-                                            runtime=rt), return_state=True)
+        s_cont, cont_st = model.simulate(
+            jtfne.simulation(duration_ms=40.0, dt_ms=1.0, seed=7, runtime=rt),
+            return_state=True,
+        )
+        assert s_cont.V_m.shape == (40, 3)
+        assert cont_st.delay_state is not None
 
 
 # --------------------------------------------------------------------------- #

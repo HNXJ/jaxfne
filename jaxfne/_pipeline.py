@@ -460,7 +460,7 @@ def compile_step_fn(
         simulate_edge_recurrent_izhikevich_hdp,
     )
 
-    use_delays = kernel == "baseline" and model_requires_delay_state(model)
+    use_delays = model_requires_delay_state(model)
 
     def step_fn(state: ContinuationState, xs_t: tuple) -> "tuple[ContinuationState, tuple]":
         sched_t, key_t, t_idx = xs_t
@@ -483,7 +483,7 @@ def compile_step_fn(
                 },
                 record_dH_components=record_dH_components,
                 record_edge_current=record_edge_current,
-                **hdp_kwargs,
+                **kernel_kw,
             )
         else:
             _, _, sources, diag = simulate_edge_recurrent_izhikevich(
