@@ -27,6 +27,7 @@ from typing import TYPE_CHECKING, Any, Callable, Mapping, Optional, Sequence
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -516,6 +517,81 @@ class Model:
                 "layer": str(layers[idx]),
                 "cell_type": str(label),
                 "z": z_value,
+            })
+        return rows_out
+
+    def edge_table(self) -> list[dict[str, Any]]:
+        """Return realized edge metadata rows for connectivity inspection.
+
+        Reports actual realized edges from ``params['edge_list']`` (or converted
+        from realized ``emitter.W`` when dense). Exposes authoritative pre/post
+        neuron indices, weight, receptor_index, receptor_type (if resolvable from
+        declared mechanism/specs, else None), tau_ms, and delay_steps.
+        Includes pre/post neuron identifiers and area/layer/cell_type metadata
+        consistent with :meth:`neuron_table`.
+        """
+        el = self.params.get("edge_list")
+        if el is None:
+            emitter = self.params.get("emitter")
+            if isinstance(emitter, IzhikevichParams) and emitter.W.shape[0] > 0:
+                el = make_edge_list_from_dense(emitter.W)
+        if el is None or el.n_edges == 0:
+            return []
+
+        # Build neuron lookup for fast join
+        nt = self.neuron_table()
+        neuron_lookup: dict[int, dict[str, Any]] = {row["neuron_id"]: row for row in nt}
+
+        # Resolve receptor index -> receptor type mapping if declared
+        receptor_name_map: dict[int, str] = {}
+        circuit_meta = self.cfg.metadata.get("circuit")
+        if isinstance(circuit_meta, dict) and "mechanisms" in circuit_meta:
+            for idx, m in enumerate(circuit_meta["mechanisms"]):
+                if isinstance(m, dict) and "name" in m:
+                    receptor_name_map[idx] = str(m["name"])
+        elif isinstance(self.static.get("connection_compile_result"), dict):
+            ccr = self.static["connection_compile_result"]
+            for idx, m in enumerate(ccr.get("mechanism_table", [])):
+                if isinstance(m, dict) and "name" in m:
+                    receptor_name_map[idx] = str(m["name"])
+
+        # Fallback to standard receptor specs if mapping is standard 0..3
+        if not receptor_name_map:
+            from .emitters import standard_receptor_specs
+            specs = standard_receptor_specs()
+            for s in specs.values():
+                receptor_name_map[int(s.receptor_index)] = s.name
+
+        pre_arr = [int(x) for x in np.asarray(el.pre)]
+        post_arr = [int(x) for x in np.asarray(el.post)]
+        w_arr = [float(x) for x in np.asarray(el.weight)]
+        rec_arr = [int(x) for x in np.asarray(el.receptor_index)] if el.receptor_index is not None else [0] * len(pre_arr)
+        tau_arr = [float(x) for x in np.asarray(el.tau_ms)] if el.tau_ms is not None else [None] * len(pre_arr)
+        delay_arr = [int(x) for x in np.asarray(el.delay_steps)] if el.delay_steps is not None else [0] * len(pre_arr)
+
+        rows_out: list[dict[str, Any]] = []
+        for edge_id, (pre_id, post_id, w, rec_idx, tau, delay) in enumerate(
+            zip(pre_arr, post_arr, w_arr, rec_arr, tau_arr, delay_arr)
+        ):
+            pre_n = neuron_lookup.get(pre_id, {})
+            post_n = neuron_lookup.get(post_id, {})
+            rec_type = receptor_name_map.get(rec_idx)
+
+            rows_out.append({
+                "edge_id": edge_id,
+                "pre": pre_id,
+                "post": post_id,
+                "weight": w,
+                "receptor_index": rec_idx,
+                "receptor_type": rec_type,
+                "tau_ms": tau,
+                "delay_steps": delay,
+                "pre_area": pre_n.get("area"),
+                "pre_layer": pre_n.get("layer"),
+                "pre_cell_type": pre_n.get("cell_type"),
+                "post_area": post_n.get("area"),
+                "post_layer": post_n.get("layer"),
+                "post_cell_type": post_n.get("cell_type"),
             })
         return rows_out
 

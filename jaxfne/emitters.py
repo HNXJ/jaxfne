@@ -3414,7 +3414,6 @@ def simulate_edge_recurrent_izhikevich_hdp(
     locality = resolve_h_state_locality(_adaptive_hp)
     pop_layout = None
     theta_lo = theta_hi = None
-    dt_s = None
     if locality == "population":
         pop_layout = parse_population_restoring_layout(
             _adaptive_hp,
@@ -3423,7 +3422,6 @@ def simulate_edge_recurrent_izhikevich_hdp(
             dtype=jdtype,
         )
         theta_lo, theta_hi = theta_bounds(pop_layout, dtype=jdtype)
-        dt_s = dt / jnp.asarray(1000.0, dtype=jdtype)
 
     def _h_component_param(value: Any, name: str) -> jax.Array:
         arr = jnp.asarray(value, dtype=jdtype)
@@ -3692,6 +3690,8 @@ def simulate_edge_recurrent_izhikevich_hdp(
             sched_t, noise_t = xs_t
             carry_core = carry
 
+        dt_s = dt / jnp.asarray(1000.0, dtype=jdtype)
+
         if pop_layout is not None:
             v, u, prev_spikes, syn_state, H_pop, theta_S = carry_core
             w_eff, a_eff = bind_theta_to_plant(
@@ -3770,7 +3770,6 @@ def simulate_edge_recurrent_izhikevich_hdp(
                 syn_next = syn_state * decay + spikes[pre]
 
             # (4) Update rate filter: r_bar_{n+1} = r_bar_n + (dt_s / tau_r) * (spikes / dt_s - r_bar_n)
-            dt_s = dt / jnp.asarray(1000.0, dtype=jdtype)
             r_inst = spikes / dt_s
             r_bar_next = r_bar + (dt_s / tau_r_arr) * (r_inst - r_bar)
 

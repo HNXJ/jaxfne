@@ -177,6 +177,7 @@ _CANONICAL: Final[frozenset[str]] = frozenset(
         "rate_synchrony_targets",
         "readout_spec",
         "restore_state",
+        "run_continuation",
         "run_receipt",
         "provenance_receipt",
         "run_trials",

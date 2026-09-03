@@ -237,7 +237,15 @@ from .neuronal_tensor import (
     NEURONAL_TENSOR_SCHEMA_VERSION,
     make_minimal_ei_tensor,
 )
-from ._pipeline import DynamicState, dynamic_state_from_model, checkpoint_state, restore_state, compile_step_fn, scan_network
+from ._pipeline import (
+    DynamicState,
+    dynamic_state_from_model,
+    checkpoint_state,
+    restore_state,
+    compile_step_fn,
+    scan_network,
+    run_continuation,
+)
 from .util import (
     validate_runtime_config,
     runtime_config_diff,
