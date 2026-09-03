@@ -2,6 +2,13 @@
 
 See [RBS/RBD/HDP doctrine](../doctrine/rbs_rbd_hdp.md) for the canonical RBS container definition (\(\mathbf H_i(t)\in\mathbb R^{d_H}\), finite-dimensional dependency-state, typed gain maps) and the coupled dynamics \(\dot{\mathbf x}=F_x,\ \dot{\mathbf H}=F_H,\ \dot{\mathbf W}=F_W\) (HDP only, \(\dot W=0\) remains RBD). Coordinates may be \(H_k=z_k/z_k^\star\) or reduced \(H_k=\mathcal R_k(\mathbf z)\); RBD covers adaptation, memory and delayed coupling without requiring plasticity. RBS is relative, not necessarily normalized physical variables; homeostasis is a regime of selected \(F_H\), not the definition.
 
+### Canonical Definitions
+
+- **RBS represents $H$**: Relative Biophysical State represents the hidden state vector $H$.
+- **RBD defines $H$ dynamics**: Relative Biophysical Dynamics governs the evolution of $H$ ($\dot{H} = F_H$).
+- **HDP defines parameter dynamics such as $W$ and may depend on $H$**: Hidden-state Dependent Plasticity governs parameter updates ($\dot{W} = F_W(x, H, W)$).
+- **$H$ may exist and evolve while parameter plasticity is absent**: When $\dot{W} = 0$, $H$ continues to provide state memory, recovery, and dynamic excitability regulation under pure RBD.
+
 Full Markov continuation requires the complete dynamical state
 \(\mathcal X_t=(\mathbf x_t,\mathbf H_t,\mathbf W_t,\mathcal B_t,\ldots)\),
 including delay history \(\mathcal B_t\) when finite edge delays are enabled

@@ -118,6 +118,7 @@ nav:
       - Welcome: index.md
       - Installation: install.md
       - Quickstart: quickstart.md
+      - Gallery: gallery.md
       - Public API: public_surface_contract.md
       - Scope & status: scope_and_status.md
 

@@ -1,0 +1,78 @@
+{
+  "version": "0.4.18",
+  "output_dir": "docs\\_static\\gallery",
+  "figures": [
+    {
+      "id": "01_realized_network",
+      "script": "scripts/generate_release_gallery.py",
+      "seed": 42,
+      "configuration": "suite2_v1_v4_config",
+      "output": "01_realized_network.png",
+      "caption": "Realized spatial locations and cell-class identities in a two-area (V1-V4) laminar network.",
+      "calibration_status": "relative_proxy_coordinates"
+    },
+    {
+      "id": "02_spikes_activity",
+      "script": "scripts/generate_release_gallery.py",
+      "seed": 10,
+      "configuration": "suite2_net1_config(n=100)",
+      "output": "02_spikes_activity.png",
+      "caption": "Spike raster and instantaneous population firing rate for a recurrent 100-neuron network.",
+      "calibration_status": "uncalibrated_computational_scaffold"
+    },
+    {
+      "id": "03_fast_state_vm",
+      "script": "scripts/generate_release_gallery.py",
+      "seed": 10,
+      "configuration": "suite2_net1_config(n=100)",
+      "output": "03_fast_state_vm.png",
+      "caption": "Membrane potential traces demonstrating fast spiking dynamics and subthreshold integration.",
+      "calibration_status": "native_izhikevich_millivolts"
+    },
+    {
+      "id": "04_h_rbd_state",
+      "script": "scripts/generate_release_gallery.py",
+      "seed": 7,
+      "configuration": "suite2_net1_config with enable_hdp=True",
+      "output": "04_h_rbd_state.png",
+      "caption": "Dynamic evolution of the Relative Biophysical State H under activity-dependent drain and restorative control.",
+      "calibration_status": "relative_dimensionless_state"
+    },
+    {
+      "id": "05_source_to_field",
+      "script": "scripts/generate_release_gallery.py",
+      "seed": 10,
+      "configuration": "suite2_net1_config with record_fields=True",
+      "output": "05_source_to_field.png",
+      "caption": "Transmembrane relative source current density and projected laminar field potential (LFP) proxy across linear contacts.",
+      "calibration_status": "uncalibrated_source_and_field_proxy"
+    },
+    {
+      "id": "06_finite_delay_timing",
+      "script": "scripts/generate_release_gallery.py",
+      "seed": 1,
+      "configuration": "two_neuron_delay_circuit(delay=10ms)",
+      "output": "06_finite_delay_timing.png",
+      "caption": "Finite axonal transmission latency introducing exact 10 ms synaptic delay in follower excitation.",
+      "calibration_status": "discrete_delay_buffer_exact"
+    },
+    {
+      "id": "07_multiarea_laminar_connectivity",
+      "script": "scripts/generate_release_gallery.py",
+      "seed": 42,
+      "configuration": "suite2_v1_v4_config",
+      "output": "07_multiarea_laminar_connectivity.png",
+      "caption": "Realized sparse inter-column and intra-column synaptic connection matrix for V1-V4 multi-area model.",
+      "calibration_status": "uncalibrated_sparse_weights"
+    },
+    {
+      "id": "08_fast_slow_phase",
+      "script": "scripts/generate_release_gallery.py",
+      "seed": 1,
+      "configuration": "suite2_single_neuron_config",
+      "output": "08_fast_slow_phase.png",
+      "caption": "Delayed-embedding phase portrait showing fast limit-cycle dynamics during tonic action potential firing.",
+      "calibration_status": "computational_reduced_dynamics"
+    }
+  ]
+}
