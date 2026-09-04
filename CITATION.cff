@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use jaxfne, please cite it using the metadata in this file."
 title: "jaxfne: JAX Field Neural Equations"
 type: software
-version: 0.4.18
+version: 0.4.20
 date-released: "2026-08-28"
 license: MIT
 repository-code: "https://github.com/HNXJ/jaxfne"

@@ -9,6 +9,30 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+## v0.4.20 (2026-09-03)
+
+Release candidate v0.4.20. Correctness repairs, canonical public continuation export, reproducible release gallery, and semantic precision alignment across documentation and downstream consumers. Δscience=0 across scientific and numerical kernels.
+
+### Added
+- Public API: `jaxfne.run_continuation` canonical export from root package namespace (`jaxfne/__init__.py`), providing unified public access for simulation continuation across multi-chunk workloads without private imports.
+- Public API: `Model.edge_table` property exporting canonical tabular network edge representation with presynaptic/postsynaptic indices, weights, delays, receptor types, and target compartments.
+- Documentation & Artifacts: Canonical 8-panel reproducible release gallery generated via `scripts/generate_release_gallery.py` with accompanying machine-readable `gallery_manifest.json` recording figure hashes, seed configurations, and explicit calibration statuses.
+
+### Changed
+- Downstream compatibility: `jomission` workflow updated to use canonical public exports (`run_continuation`, `ContinuationState`, `DynamicState`), eliminating all private imports from `jaxfne._model`.
+- Semantic precision: Documentation updated to explicitly distinguish uncalibrated relative source proxies $Q$ from executed synaptic currents $I_{\text{syn}}$, replacing unverified "current density" claims with rigorous trans-membrane source proxy definitions.
+- Continuation documentation: Clarified Markov continuation semantics under nonzero edge delays ($\mathcal{B}_t$ ring buffer carry requirements and population-local RBS invariants).
+
+### Fixed
+- Emitters correctness: Resolved F823 variable hoisting / uninitialized local variable reference in `jaxfne/emitters.py` under conditional execution paths.
+- Version consistency: Synchronized release identity across all authoritative metadata surfaces (`pyproject.toml`, `_model.py`, `mkdocs.yml`, `CITATION.cff`, generated documentation, and release gallery manifest).
+
+### Unchanged
+- Numerical kernels: `_pipeline.py`, `_model_simulate.py`, `fields.py`, `dynamics.py`, and underlying simulation equations bit-identical with prior baseline.
+- Frozen publication evidence: All 28 publication artifact hashes in `artifacts/publication/frozen_manifest.json` preserved identically.
+- Deferred non-blocking gaps: Online $O(T \times N)$ executed E/I synaptic current aggregation recorded as `CONFIRMED_GAP | DEFERRED | NON-BLOCKING` (offline trace extraction available). GPU performance and multi-device scaling classified as `UNKNOWN` (CPU-validated baseline).
+
+
 ## v0.4.18 (2026-08-28)
 
 Structure/docs/CI/manuscript-tooling release — no scientific kernel change (Δscience=0). Hygiene guards only; 0.4.17 frozen evidence and public API contract unchanged.

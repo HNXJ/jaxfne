@@ -1092,7 +1092,7 @@ def format_canonical_text_bundle(summary: dict[str, Any]) -> str:
     W = Theta.get("W", {})
 
     lines: list[str] = []
-    lines.append("jaxfne canonical compact summary (0.4.18) — Θ=Θ_static⊕X⊕H⊕W  Δscience=0")
+    lines.append("jaxfne canonical compact summary (0.4.20) — Θ=Θ_static⊕X⊕H⊕W  Δscience=0")
     lines.append(f"provenance: config_hash={prov.get('config_hash')}  tensor_identity={str(prov.get('tensor_identity'))[:12] if prov.get('tensor_identity') else '—'}  version={prov.get('jaxfne_version')}  calibrated={prov.get('physical_amplitude_calibrated')}")
     lines.append("")
     lines.append("counts (configured → realized → executed):")
