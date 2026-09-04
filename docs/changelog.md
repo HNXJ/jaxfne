@@ -91,7 +91,7 @@ scholarly references, and harness evidence discipline.
 - Dead imports (`asdict`, `_jdna_genome_module`, `REPO_ROOT`) removed.
 
 ### Unchanged
-- Public root contract: 191 symbols (178 CANONICAL + 13 COMPATIBILITY) from
+- Public root contract: 190 symbols (177 CANONICAL + 13 COMPATIBILITY) from
   0.4.13; frozen publication evidence untouched.
 
 ## v0.4.16 (2026-08-13)

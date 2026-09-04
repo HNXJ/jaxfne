@@ -222,7 +222,7 @@ See [Source Bookkeeping](07_v037_source_bookkeeping.md) for workflow summary; th
 
 | Use | Pattern |
 |---|---|
-| Check scope | `assert not signals.metadata["amplitude_status"]` |
+| Check scope | `assert not signals.metadata["physical_amplitude_calibrated"]` |
 | Compare relatively | `L5_rate / L23_rate` |
 | Document | `json.dump(signals.metadata, fp, allow_nan=False)` |
 

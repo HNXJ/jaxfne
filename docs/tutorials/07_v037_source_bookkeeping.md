@@ -125,9 +125,13 @@ signals.metadata     # dict, scope/readout metadata (see below)
 ```python
 signals.metadata = {
     "scope_status": "computational_scaffold",
-    "readout_status": "simulated_proxy",
-    "field_mode": "proxy_convolution_no_pde",
-    "amplitude_status": False,
+    "field_claim_level": "proxy_readout",
+    "representation": "relative",
+    "physical_amplitude_calibrated": False,
+    "source_bookkeeping": {
+        "physical_amplitude_calibrated": False,
+        "representation": "relative",
+    },
     "duration_ms": 1000.0,
     "dt_ms": 0.1,
     "dtype": "float32",
@@ -135,7 +139,7 @@ signals.metadata = {
 }
 ```
 
-**Key field:** `amplitude_status=False` marks amplitude values as Relative.
+**Key field:** `physical_amplitude_calibrated=False` marks amplitude values as Relative.
 
 ---
 
@@ -295,7 +299,7 @@ model = jtfne.construct(cfg)
 signals = jtfne.simulate(model, ...)
 
 # Step 3: Check scope before interpreting
-assert not signals.metadata["amplitude_status"]
+assert not signals.metadata["physical_amplitude_calibrated"]
 
 # Step 4: Use relative comparisons, not absolute statements
 layer5_rate = signals.spikes[layer5_idx].mean()

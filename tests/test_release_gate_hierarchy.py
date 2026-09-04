@@ -13,8 +13,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import pytest
-import yaml
 
 from scripts.run_test_gate import (
     CHECK_FAMILIES,
@@ -57,12 +57,11 @@ def test_release_ci_workflows_match_family_inventory():
     assert ci_fast_path.exists(), f"Missing {ci_fast_path}"
     assert release_ci_path.exists(), f"Missing {release_ci_path}"
 
-    ci_fast = yaml.safe_load(ci_fast_path.read_text(encoding="utf-8"))
-    release_ci = yaml.safe_load(release_ci_path.read_text(encoding="utf-8"))
+    def _extract_steps(text: str) -> list[str]:
+        return [m.group(1).strip().strip("'\"") for m in re.finditer(r"^\s*-\s*name:\s*(.+)$", text, re.MULTILINE)]
 
-    # Verify key steps exist in CI workflows
-    ci_fast_steps = [s.get("name", "") for s in ci_fast["jobs"]["test"]["steps"]]
-    release_ci_steps = [s.get("name", "") for s in release_ci["jobs"]["test"]["steps"]]
+    ci_fast_steps = _extract_steps(ci_fast_path.read_text(encoding="utf-8"))
+    release_ci_steps = _extract_steps(release_ci_path.read_text(encoding="utf-8"))
 
     # Both must run compileall
     assert any("Compileall" in s for s in ci_fast_steps)

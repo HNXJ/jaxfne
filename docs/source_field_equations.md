@@ -10,11 +10,11 @@ Canonical source/field equations and manifest mappings. See [Mathematical Glossa
 
 ### Definition: Source Density
 
-The source density $q(x,t)$ is the current per unit volume (or area) at position $x$ and time $t$:
+The source density $q(x,t)$ is the uncalibrated relative source proxy at position $x$ and time $t$:
 
 $$q(x,t) = P_s[z(t), I(t), \chi(x)]$$
 
-Physically, $q$ is the transmembrane current density that becomes the boundary condition for the field equation.
+Computationally, $q$ is an uncalibrated relative trans-membrane source proxy that provides the boundary condition for the field approximation (proxy $\neq$ calibrated physical quantity, $Q \neq I_{\rm syn}$).
 
 ### Source Modes (Mutually Exclusive)
 

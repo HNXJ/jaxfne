@@ -66,7 +66,7 @@ $$q_\alpha(x,t) = \sum_k w_{k\alpha}(x) \cdot (a_k \cdot z_k(t) + b_k \cdot I_k(
 where $\alpha$ indexes spatial contact points, $k$ indexes neurons, and $w$ are spatial projection weights.
 
 **Term glossary:**
-- $q(x,t)$: field source density (current per unit volume or contact area)
+- $q(x,t)$: field source density (uncalibrated relative source proxy, proxy $\neq$ calibrated physical quantity)
 - $P_s$: source projection operator (maps neural state/current to spatial domain)
 - $z(t)$: neural state (from emitter)
 - $I(t)$: input/drive current
