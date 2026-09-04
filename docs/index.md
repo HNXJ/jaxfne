@@ -41,6 +41,76 @@ signals = jtfne.simulate(model)
 
 - [Quickstart](quickstart.md) — build paths, paradigms, H-state adaptation
 - [Tutorials](tutorials/index.md) — usage of the grammar
+- [Canonical Atlas Suite](guides/atlas_suite.md) — 6-panel interactive visual grammar
 - [Études](etudes/index.md) — demonstrated scientific propositions
 - [API reference](api/index.md)
 - [H-state / HDP guide](guides/hdp.md)
+
+## Canonical Visualization Atlas
+
+The JaxFNE Canonical Atlas provides a unified 6-panel visual grammar (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`, `operating_point`) with strict evidence-level separation (**OBSERVED** vs. **DERIVED**), deterministic degradation tracking, and cryptographic manifest provenance.
+
+Every preview below is generated directly from realized JaxFNE simulation outputs (`canonical-v1-column-1000n` scaffold):
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="guides/atlas_suite.md">
+        <img src="assets/readme/network_3d.png" alt="3D Realized Architecture" width="100%">
+      </a><br>
+      <sub><b>1. Network 3D</b> (OBSERVED): Realized 3D geometry, lamina, cell classes, sampled synaptic edges</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="guides/atlas_suite.md">
+        <img src="assets/readme/connectivity.png" alt="Realized Connectivity" width="100%">
+      </a><br>
+      <sub><b>2. Connectivity</b> (OBSERVED): Realized synaptic weight matrix & adjacency</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <a href="guides/atlas_suite.md">
+        <img src="assets/readme/raster.png" alt="Spike Raster" width="100%">
+      </a><br>
+      <sub><b>3. Spike Raster</b> (OBSERVED): Microsecond spike timestamps across realized neuronal populations</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="guides/atlas_suite.md">
+        <img src="assets/readme/traces.png" alt="Membrane Traces" width="100%">
+      </a><br>
+      <sub><b>4. Membrane Traces</b> (OBSERVED): Somatic membrane potential $V_m$ trajectories</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <a href="guides/atlas_suite.md">
+        <img src="assets/readme/spectral.png" alt="Spectral Dynamics" width="100%">
+      </a><br>
+      <sub><b>5. Spectral</b> (DERIVED): Welch PSD & spectrolaminar power estimates</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="guides/atlas_suite.md">
+        <img src="assets/readme/operating_point.png" alt="Operating Point" width="100%">
+      </a><br>
+      <sub><b>6. Operating Point</b> (DERIVED): Cell-type rate distributions and silence fractions</sub>
+    </td>
+  </tr>
+</table>
+
+Generate the complete standalone HTML atlas suite locally with one line:
+
+```python
+import jaxfne as jtfne
+from jaxfne.vis import build_atlas
+
+# Run simulation
+tensor = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")
+model = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=500.0, dt_ms=0.5))
+signals = jtfne.simulate(model)
+
+# Build canonical atlas with manifest & standalone interactive HTML panels
+manifest = build_atlas(model, signals, out_dir="docs/_static/atlas")
+print(f"Atlas generated with SHA256: {manifest['sha256']}")
+```
+
+For detailed documentation, see the [Canonical Atlas Suite Guide](guides/atlas_suite.md).

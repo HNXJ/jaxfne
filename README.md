@@ -35,8 +35,8 @@ $$
 \dot\Theta = F_\Theta(H,X,\Theta).
 $$
 
-$H$-state is the latent representation; HDP is the adaptive dynamical formulation
-that uses it. See [H-state / HDP guide](docs/guides/hdp.md).
+RBS represents $H$. RBD defines $H$ dynamics. HDP defines parameter dynamics
+and may depend on $H$. $H$ can exist and evolve without HDP. See [H-state / HDP guide](docs/guides/hdp.md).
 
 ## Install
 

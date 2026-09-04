@@ -1,0 +1,61 @@
+{
+  "suite": "atlas_suite.v1",
+  "title": "Canonical V1 Column (1000n)",
+  "config_hash": "4b0d96456d56bc1a",
+  "n_neurons": 1000,
+  "n_edges": 215785,
+  "n_steps": 400,
+  "dt_ms": 0.1,
+  "panels": [
+    {
+      "file": "network_3d.html",
+      "panel": "Network 3D",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 75532
+    },
+    {
+      "file": "connectivity.html",
+      "panel": "Connectivity",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 1045606
+    },
+    {
+      "file": "raster.html",
+      "panel": "Spike raster",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 36663
+    },
+    {
+      "file": "traces.html",
+      "panel": "Membrane traces",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 55094
+    },
+    {
+      "file": "spectral.html",
+      "panel": "Spectral",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 19124
+    },
+    {
+      "file": "operating_point.html",
+      "panel": "Operating point",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 11566
+    },
+    {
+      "file": "field.html",
+      "panel": "Field proxy",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 83345
+    }
+  ],
+  "sha256": "e68584facd3fcf81"
+}
