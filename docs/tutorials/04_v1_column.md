@@ -58,6 +58,15 @@ readouts = model.compute_readout(signals, [
 - LFP-proxy reflects population summed current
 - CSD-proxy reflects current source densities per layer
 
+## Canonical Atlas Visualization
+```python
+from jaxfne.vis.atlas_suite import build_atlas
+
+# Emits the 6 canonical panels plus the optional field.html panel (LFP/CSD proxy)
+manifest = build_atlas(model, signals, out_dir="docs/_static/atlas/v1_column")
+print("Emitted panels:", [p["panel"] for p in manifest["panels"]])
+```
+
 ## Next step
 
 Progress to [V1-PFC dual column](05_v1_pfc_dual_column.md) for multi-areal networks.

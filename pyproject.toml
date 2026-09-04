@@ -209,6 +209,7 @@ exclude = [
   "artifacts/legacy",
   "artifacts/msvc_hdp_diagnostic",
   "artifacts/tutorials",
+  "artifacts/receipts",
   "scripts/hdp_mvc_*.py",
   "jaxfne/publication",
 ]

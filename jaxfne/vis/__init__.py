@@ -91,6 +91,7 @@ from .canonical import (
     plot_connectivity,
     plot_objective_history,
 )
+from .atlas_suite import build_atlas, PANELS
 from .exporters import export_figure, export_figures, FigureBundle
 from .script_reports import (
     column_network_3d_scatter,
@@ -230,6 +231,8 @@ __all__ = [
     "plot_depth_profile",
     "plot_connectivity",
     "plot_objective_history",
+    "build_atlas",
+    "PANELS",
     "export_figure",
     "export_figures",
     "FigureBundle",

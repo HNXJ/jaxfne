@@ -72,7 +72,18 @@ for r in readouts:
     print(f"{r.name}: {r.value:.2f} [{r.status}]")
 ```
 
-## Visualize
+## Visualize with Canonical Atlas
+
+Generate the full interactive 6-panel visualization atlas (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`, `operating_point`):
+
+```python
+from jaxfne.vis.atlas_suite import build_atlas
+
+manifest = build_atlas(model, signals, out_dir="docs/_static/atlas/single_neuron")
+print("Atlas panels emitted:", [p["panel"] for p in manifest["panels"]])
+```
+
+Or plot individual traces directly:
 
 ```python
 fig, axes = plt.subplots(2, 1, figsize=(10, 6))

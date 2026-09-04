@@ -97,41 +97,72 @@ explicit transformation with evidence. See [Scope & status](docs/scope_and_statu
 
 [`CITATION.cff`](CITATION.cff) · [citation guide](docs/citation.md)
 
-## Visual examples
+## Canonical Visualization Atlas
 
-Real package outputs (simulated proxy scaffolds; calibration requires an
-explicit transformation with evidence):
-circuit geometry from `Model.neuron_table()`, a 10 s spike raster, a
-laminar spectrolaminar readout, and long-timescale firing-rate dynamics
-with homeostasis on/off. More: [showcases](docs/guides/showcases.md).
+The JaxFNE Canonical Atlas provides a unified 6-panel visual grammar (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`, `operating_point`) with strict evidence-level separation (**OBSERVED** vs. **DERIVED**), deterministic degradation tracking, and cryptographic manifest provenance.
+
+Every preview below is generated directly from realized JaxFNE simulation outputs (`canonical-v1-column-1000n` scaffold):
 
 <table>
   <tr>
-    <td align="center">
-      <a href="docs/guides/showcases.md">
-        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/showcases/circuit_geometry_column.png" alt="Circuit geometry" width="340">
+    <td align="center" width="50%">
+      <a href="https://jaxfne.readthedocs.io/en/latest/">
+        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/network_3d.png" alt="3D Realized Architecture" width="100%">
       </a><br>
-      <sub>Canonical laminar column — geometry from `neuron_table()`</sub>
+      <sub><b>1. Network 3D</b> (OBSERVED): Realized 3D geometry, lamina, cell classes, sampled synaptic edges</sub>
     </td>
-    <td align="center">
-      <a href="docs/guides/showcases.md">
-        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/showcases/homeostasis_full_raster_10s.png" alt="Spike raster" width="340">
+    <td align="center" width="50%">
+      <a href="https://jaxfne.readthedocs.io/en/latest/">
+        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/connectivity.png" alt="Realized Connectivity" width="100%">
       </a><br>
-      <sub>10 s spike raster — homeostasis on (proxy)</sub>
+      <sub><b>2. Connectivity</b> (OBSERVED): Realized synaptic weight matrix & adjacency</sub>
     </td>
   </tr>
   <tr>
-    <td align="center">
-      <a href="docs/guides/showcases.md">
-        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/showcases/spectrolaminar_slow_homeostasis_suite.png" alt="Spectrolaminar readout" width="340">
+    <td align="center" width="50%">
+      <a href="https://jaxfne.readthedocs.io/en/latest/">
+        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/raster.png" alt="Spike Raster" width="100%">
       </a><br>
-      <sub>Spectrolaminar proxy readout — depth-graded homeostasis</sub>
+      <sub><b>3. Spike Raster</b> (OBSERVED): Microsecond spike timestamps across realized neuronal populations</sub>
     </td>
-    <td align="center">
-      <a href="docs/guides/showcases.md">
-        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/showcases/homeostasis_rate_change_10s.png" alt="Long-timescale dynamics" width="340">
+    <td align="center" width="50%">
+      <a href="https://jaxfne.readthedocs.io/en/latest/">
+        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/traces.png" alt="Membrane Traces" width="100%">
       </a><br>
-      <sub>Population rate over 10 s — homeostasis off vs on (r*=10 Hz)</sub>
+      <sub><b>4. Membrane Traces</b> (OBSERVED): Somatic membrane potential $V_m$ trajectories</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <a href="https://jaxfne.readthedocs.io/en/latest/">
+        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/spectral.png" alt="Spectral Dynamics" width="100%">
+      </a><br>
+      <sub><b>5. Spectral</b> (DERIVED): Welch PSD & spectrolaminar power estimates</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="https://jaxfne.readthedocs.io/en/latest/">
+        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/operating_point.png" alt="Operating Point" width="100%">
+      </a><br>
+      <sub><b>6. Operating Point</b> (DERIVED): Cell-type rate distributions and silence fractions</sub>
     </td>
   </tr>
 </table>
+
+Generate the complete standalone HTML atlas suite locally with one line:
+
+```python
+import jaxfne as jtfne
+from jaxfne.vis import build_atlas
+
+# Run simulation
+tensor = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")
+model = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=500.0, dt_ms=0.5))
+signals = jtfne.simulate(model)
+
+# Build canonical atlas with manifest & standalone interactive HTML panels
+manifest = build_atlas(model, signals, out_dir="docs/_static/atlas")
+print(f"Atlas generated with SHA256: {manifest['sha256']}")
+```
+
+For extended case studies, laminar field readouts, and homeostasis dynamics, see [Showcases](docs/guides/showcases.md).
+
