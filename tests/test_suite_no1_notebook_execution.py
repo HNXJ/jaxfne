@@ -51,7 +51,7 @@ def test_suite_no1_notebook_executes(tmp_path):
     assert NOTEBOOK_PATH.exists(), f"Notebook not found: {NOTEBOOK_PATH}"
 
     errors = execute_notebook_via_nbclient(
-        NOTEBOOK_PATH, tmp_path, timeout=900, extra_inject=f'FIG_DIR = "{tmp_path}"\n'
+        NOTEBOOK_PATH, tmp_path, timeout=900, extra_inject=f'FIG_DIR = "{tmp_path.as_posix()}"\n'
     )
     assert errors == [], format_cell_errors(errors)
 

@@ -26,6 +26,48 @@ import subprocess
 import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.run_test_gate import RELEASE_CI_GATE_FAMILIES
+
+
+def verify_pre_release_gate_receipt(intended_sha: str) -> list[str]:
+    """Verify that a valid, matching release candidate gate receipt exists.
+
+    Enforces the invariant:
+        PRE_RELEASE_GATE >= RELEASE_CI_GATE
+    before any publication authorization.
+    """
+    receipt_path = ROOT / "artifacts" / "receipts" / "release_candidate_gate_receipt.json"
+    if not receipt_path.exists():
+        return [
+            f"Missing release candidate gate receipt at {receipt_path}. "
+            "Run 'python scripts/run_test_gate.py rc' to execute the pre-release gate."
+        ]
+    try:
+        data = json.loads(receipt_path.read_text(encoding="utf-8"))
+    except Exception as e:
+        return [f"Corrupt release candidate gate receipt: {e}"]
+
+    errors = []
+    if data.get("status") != "PASS":
+        errors.append(f"RC gate receipt status is {data.get('status')!r}, expected 'PASS'")
+    receipt_sha = data.get("commit_sha", "")
+    if receipt_sha != intended_sha:
+        errors.append(
+            f"RC gate receipt commit SHA ({receipt_sha}) != intended release SHA ({intended_sha})"
+        )
+
+    executed = set(data.get("check_families", []))
+    missing = RELEASE_CI_GATE_FAMILIES - executed
+    if missing:
+        errors.append(
+            f"RC gate receipt missing required check families: {sorted(missing)}"
+        )
+    return errors
+
 
 def run_cmd(args, check=False):
     """Run a subprocess command and return stdout, or empty string on failure."""
@@ -125,6 +167,10 @@ def main():
             f"Tag peeled SHA ({tag_peeled_sha}) != intended_release_sha ({intended_sha})"
         )
 
+    # 11. Gate: Pre-release RC gate receipt must exist, match intended_sha, and cover all CI families
+    rc_errors = verify_pre_release_gate_receipt(intended_sha)
+    failure_reasons.extend(rc_errors)
+
     # Reconciliation only true when ALL gates pass
     reconciled = len(failure_reasons) == 0
 
@@ -138,9 +184,10 @@ def main():
         "tag_object_sha": tag_object_sha,
         "tag_peeled_sha": tag_peeled_sha,
         "working_tree_clean": working_tree_clean,
+        "release_candidate_receipt_valid": len(rc_errors) == 0,
         "release_target_reconciled": reconciled,
-        "safe_to_repair_tag": False,
-        "safe_to_upload": False,
+        "safe_to_repair_tag": reconciled,
+        "safe_to_upload": reconciled,
         "failure_reasons": failure_reasons,
     }
 

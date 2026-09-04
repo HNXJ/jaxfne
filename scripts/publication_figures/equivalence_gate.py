@@ -90,10 +90,14 @@ def run_case(name: str, frozen_rel: str, render_dir: pathlib.Path, build_call) -
     sha_pre, sha_post = sha256(frozen), sha256(out)
     h_pre, w_pre, a_pre = pixels(frozen)
     h_post, w_post, a_post = pixels(out)
+    try:
+        temp_png_str = os.path.relpath(out, REPO)
+    except ValueError:
+        temp_png_str = str(out)
     return {
         "figure": name,
         "frozen_png": frozen_rel,
-        "temp_png": os.path.relpath(out, REPO),
+        "temp_png": temp_png_str,
         "H_equal": bool(h_pre == h_post),
         "W_equal": bool(w_pre == w_post),
         "RGBA_equal": bool(np.array_equal(a_pre, a_post)),
@@ -228,7 +232,11 @@ def main(argv: list[str] | None = None) -> int:
             f"{r['figure']:>6}: H={'Y' if r['H_equal'] else 'N'} W={'Y' if r['W_equal'] else 'N'} "
             f"RGBA={'Y' if r['RGBA_equal'] else 'N'} byte_sha={'Y' if r['byte_sha_equal'] else 'N'}"
         )
-    print("report:", os.path.relpath(args.report, REPO))
+    try:
+        report_str = os.path.relpath(args.report, REPO)
+    except ValueError:
+        report_str = str(args.report)
+    print("report:", report_str)
     if byte_identity_pinned():
         print("Phase-A semantic-render equivalence:", "PASS" if all_pass else "FAIL")
     else:

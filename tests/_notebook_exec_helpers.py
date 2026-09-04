@@ -92,7 +92,7 @@ def execute_notebook_via_nbclient(
     nb = nbformat.read(str(notebook_path), as_version=4)
 
     repo_root = Path(__file__).parent.parent.resolve()
-    inject_source = f'import sys\nsys.path.insert(0, "{repo_root}")\n{extra_inject}'
+    inject_source = f'import sys\nsys.path.insert(0, {json.dumps(repo_root.as_posix())})\n{extra_inject}'
     inject_cell = nbformat.v4.new_code_cell(source=inject_source)
     inject_cell.metadata["tags"] = ["injected-by-smoke-test"]
     nb.cells.insert(1, inject_cell)

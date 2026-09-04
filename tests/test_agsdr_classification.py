@@ -119,12 +119,14 @@ class TestCanonicalDispatch:
 
     def test_agsdr_transform_requires_explicit_prng_key(self):
         """EXPERIMENTAL transform must not silently run without a key."""
+        pytest.importorskip("optax")
         transform = agsdr_transform()
         with pytest.raises(ValueError, match="PRNG key"):
             transform.update(None, transform.init(1.0))
 
     def test_raw_transform_object_not_dispatchable_by_string(self):
         """A raw GradientTransformation is not Model.tune's AGSDR path."""
+        pytest.importorskip("optax")
         transform = agsdr_transform()
         resolved = _resolve_optimizer(transform)
         assert resolved.optimizer == "unknown"
@@ -191,13 +193,9 @@ class TestDocsClassification:
 
     def test_source_uses_canonical_acronym_only(self):
         """No hyphenated 'Genetic-Stochastic' variant survives in jaxfne/."""
-        import subprocess
-
-        out = subprocess.run(
-            ["grep", "-rn", "Genetic-Stochastic", "jaxfne/"],
-            capture_output=True,
-            text=True,
-        encoding="utf-8",
-            cwd=REPO_ROOT,
-        )
-        assert out.returncode == 1, f"Found non-canonical acronym variant:\n{out.stdout}"
+        hits = []
+        for py_path in (REPO_ROOT / "jaxfne").rglob("*.py"):
+            text = py_path.read_text(encoding="utf-8", errors="ignore")
+            if "Genetic-Stochastic" in text:
+                hits.append(str(py_path))
+        assert hits == [], f"Found non-canonical acronym variant in: {hits}"
