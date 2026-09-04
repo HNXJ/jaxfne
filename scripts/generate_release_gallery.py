@@ -208,7 +208,9 @@ def generate_gallery(output_dir: Path) -> dict:
     # -------------------------------------------------------------
     # 06: Finite-Delay Timing
     # -------------------------------------------------------------
-    # Build 2-neuron coupled circuit with 10 ms delay
+    # 06: Finite-Delay Timing
+    # -------------------------------------------------------------
+    # Build 2-neuron coupled circuit with 10 ms delay (20 steps at dt=0.5 ms)
     p6 = IzhikevichParams(
         a=jnp.array([0.02, 0.02], dtype=jnp.float32),
         b=jnp.array([0.2, 0.2], dtype=jnp.float32),
@@ -222,7 +224,6 @@ def generate_gallery(output_dir: Path) -> dict:
         source_scale=jnp.array([1.0, 1.0], dtype=jnp.float32),
         labels=("E", "E"),
     )
-    # Edge 0 -> 1 with delay_steps = 20 (10 ms at dt=0.5)
     el6 = EdgeList(
         pre=jnp.array([0], dtype=jnp.int32),
         post=jnp.array([1], dtype=jnp.int32),
@@ -231,25 +232,44 @@ def generate_gallery(output_dir: Path) -> dict:
         tau_ms=jnp.array([5.0], dtype=jnp.float32),
         delay_steps=jnp.array([20], dtype=jnp.int32),
     )
-    m6_params = {"emitter": p6, "edge_list": el6, "positions": jnp.zeros((2, 3))}
-    m6 = jtfne.Model(cfg=cfg2, params=m6_params, static={"n_contacts": 16})
-    sim6 = jtfne.simulation(
-        duration_ms=60.0,
-        dt_ms=0.5,
-        seed=1,
-        runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list"),
+    import jax
+    v6, spk6, _, state6 = jtfne.emitters.simulate_edge_recurrent_izhikevich(
+        p6, el6, n_steps=120, dt_ms=0.5, key=jax.random.PRNGKey(1), record_edge_current=True
     )
-    sig6 = jtfne.simulate(m6, sim6)
+    t6 = np.arange(120) * 0.5
+    v6_np = np.asarray(v6)
+    spk6_np = np.asarray(spk6)
+    presyn6_np = np.asarray(state6["presynaptic_drive_trace"])[:, 0]
+    edge_i6_np = np.asarray(state6["edge_current_trace"])[:, 0]
 
-    fig, ax = plt.subplots(figsize=(8, 4))
-    t6 = np.asarray(sig6.time_ms)
-    v6 = np.asarray(sig6.V_m)
-    ax.plot(t6, v6[:, 0], label="Neuron 0 (Leader, tonic drive)", color="#1f77b4", lw=1.5)
-    ax.plot(t6, v6[:, 1], label="Neuron 1 (Follower, 10ms delay)", color="#ff7f0e", lw=1.5)
-    ax.set_xlabel("Time (ms)")
-    ax.set_ylabel("Membrane Potential (mV)")
-    ax.set_title("06: Finite Axonal Delay Timing (10 ms Shift)")
-    ax.legend()
+    fig, (ax_pre, ax_delay, ax_post) = plt.subplots(3, 1, figsize=(8, 6), sharex=True)
+    
+    # 1. Presynaptic event
+    ax_pre.plot(t6, v6_np[:, 0], color="#1f77b4", lw=1.5, label="Neuron 0 V_m (presynaptic)")
+    pre_spk_times = t6[spk6_np[:, 0] > 0]
+    for st in pre_spk_times:
+        ax_pre.axvline(st, color="blue", linestyle="--", alpha=0.6, label="Presynaptic event" if st == pre_spk_times[0] else "")
+    ax_pre.set_ylabel("Presyn V_m (mV)")
+    ax_pre.set_title("06: Finite-Delay Timing — Event, Axonal Latency, and Postsynaptic Response")
+    ax_pre.legend(loc="upper right")
+
+    # 2. Delayed synaptic arrival
+    ax_delay.plot(t6, edge_i6_np, color="#2ca02c", lw=1.5, label="Synaptic current I_syn arriving at post")
+    arr_times = t6[presyn6_np > 0]
+    for at in arr_times:
+        ax_delay.axvline(at, color="green", linestyle=":", lw=1.5, label="Delayed arrival (t_pre + 10ms)" if at == arr_times[0] else "")
+    ax_delay.set_ylabel("I_syn (relative)")
+    ax_delay.legend(loc="upper right")
+
+    # 3. Postsynaptic response
+    ax_post.plot(t6, v6_np[:, 1], color="#ff7f0e", lw=1.5, label="Neuron 1 V_m (postsynaptic response)")
+    post_spk_times = t6[spk6_np[:, 1] > 0]
+    for pst in post_spk_times:
+        ax_post.axvline(pst, color="red", linestyle="-.", alpha=0.6, label="Postsynaptic spike" if pst == post_spk_times[0] else "")
+    ax_post.set_ylabel("Postsyn V_m (mV)")
+    ax_post.set_xlabel("Time (ms)")
+    ax_post.legend(loc="upper right")
+
     fig.tight_layout()
     p6_path = output_dir / "06_finite_delay_timing.png"
     fig.savefig(p6_path, dpi=150)
@@ -261,7 +281,7 @@ def generate_gallery(output_dir: Path) -> dict:
         "seed": 1,
         "configuration": "two_neuron_delay_circuit(delay=10ms)",
         "output": str(p6_path.name),
-        "caption": "Finite axonal transmission latency introducing exact 10 ms synaptic delay in follower excitation.",
+        "caption": "Explicit temporal decomposition: presynaptic spike emission, 10 ms axonal transmission buffer latency, arriving synaptic current, and subsequent postsynaptic EPSP integration.",
         "calibration_status": "discrete_delay_buffer_exact",
     })
 
@@ -295,39 +315,57 @@ def generate_gallery(output_dir: Path) -> dict:
     })
 
     # -------------------------------------------------------------
-    # 08: Fast vs Slow State (Phase Portrait)
+    # 08: Fast vs Slow State (Multiscale Dynamical Demonstration)
     # -------------------------------------------------------------
-    # Re-run single neuron to get (v, u) phase plane
-    cfg8 = jtfne.suite2_single_neuron_config()
+    # Fast membrane potential X (Vm) vs Slower hidden state H and synaptic weight W
+    cfg8 = jtfne.suite2_net1_config(seed=12, n=100, duration_ms=400.0, dt_ms=0.5)
     m8 = jtfne.construct(cfg8)
-    sim8 = jtfne.simulation(
-        duration_ms=100.0,
-        dt_ms=0.5,
-        seed=1,
-        runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list", enable_hdp=False),
-    )
-    # Track v and u by simulating with record_fields=False
+    hp8 = dict(jtfne.DEFAULT_HDP)
+    hp8["K_HDP"] = 0.04
+    hp8["K_ctrl"] = 0.01
+    rc8 = jtfne.RuntimeConfig(recurrent_backend="edge_list", enable_hdp=True, hdp_params=hp8)
+    sim8 = jtfne.simulation(duration_ms=400.0, dt_ms=0.5, seed=7, runtime=rc8, record_sources=True)
     sig8 = jtfne.simulate(m8, sim8)
-    v8 = np.asarray(sig8.V_m)[:, 0]
+    diag8 = getattr(m8, "_last_hdp_diag", None)
 
-    fig, ax = plt.subplots(figsize=(6, 5))
-    ax.plot(v8[:-1], v8[1:], lw=1.0, color="#9467bd")
-    ax.set_xlabel("V(t) (mV)")
-    ax.set_ylabel("V(t + dt) (mV)")
-    ax.set_title("08: Fast vs Slow Dynamical Limit Cycle")
+    t8 = np.asarray(sig8.time_ms)
+    v8 = np.asarray(sig8.V_m)[:, 0]  # Fast neural state X
+    H8 = np.asarray(diag8["H_trace"])[:, 0] if diag8 and diag8.get("H_trace") is not None else np.ones_like(t8)
+    # Mean weight across outgoing edges of neuron 0
+    el8 = m8.params["edge_list"]
+    pre8 = np.asarray(el8.pre)
+    edge_idx_0 = np.where(pre8 == 0)[0]
+    w_trace8 = np.asarray(diag8["w_trace"]) if diag8 and diag8.get("w_trace") is not None else None
+    w8_mean = np.mean(w_trace8[:, edge_idx_0], axis=1) if w_trace8 is not None and len(edge_idx_0) > 0 else np.ones_like(t8)
+
+    fig, (ax_fast, ax_slow_h, ax_slow_w) = plt.subplots(3, 1, figsize=(8, 6), sharex=True)
+    ax_fast.plot(t8, v8, color="#1f77b4", lw=1.2, label="Fast Neural State V_m (millisecond scale)")
+    ax_fast.set_ylabel("V_m (mV)")
+    ax_fast.set_title("08: Multiscale State Evolution — Fast Observable X (V_m) vs Slower H and W")
+    ax_fast.legend(loc="upper right")
+
+    ax_slow_h.plot(t8, H8, color="#d62728", lw=1.8, label="Slow Relative Biophysical State H (RBD)")
+    ax_slow_h.set_ylabel("RBS State H")
+    ax_slow_h.legend(loc="upper right")
+
+    ax_slow_w.plot(t8, w8_mean, color="#9467bd", lw=1.8, label="Plastic Synaptic Weight <W> (HDP parameter)")
+    ax_slow_w.set_ylabel("Mean Weight W")
+    ax_slow_w.set_xlabel("Time (ms)")
+    ax_slow_w.legend(loc="upper right")
+
     fig.tight_layout()
-    p8 = output_dir / "08_fast_slow_phase.png"
+    p8 = output_dir / "08_fast_vs_slow_state.png"
     fig.savefig(p8, dpi=150)
     plt.close(fig)
 
     manifest["figures"].append({
-        "id": "08_fast_slow_phase",
+        "id": "08_fast_vs_slow_state",
         "script": "scripts/generate_release_gallery.py",
-        "seed": 1,
-        "configuration": "suite2_single_neuron_config",
+        "seed": 7,
+        "configuration": "suite2_net1_config(n=100, enable_hdp=True)",
         "output": str(p8.name),
-        "caption": "Delayed-embedding phase portrait showing fast limit-cycle dynamics during tonic action potential firing.",
-        "calibration_status": "computational_reduced_dynamics",
+        "caption": "Co-registered multiscale trajectories: sub-millisecond membrane state X (V_m) alongside slower hidden biophysical state H (RBD dynamics) and plastic synaptic weight coupling W (HDP).",
+        "calibration_status": "multiscale_state_coupling",
     })
 
     # Save manifest

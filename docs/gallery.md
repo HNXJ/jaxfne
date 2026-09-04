@@ -56,13 +56,13 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 
 ---
 
-## 06: Finite Axonal Delay Timing
+## 06: Finite-Delay Timing — Event, Axonal Latency, and Postsynaptic Response
 
 ![06 Finite Delay Timing](_static/gallery/06_finite_delay_timing.png)
 
 **Configuration:** `two_neuron_delay_circuit(delay=10ms)` · **Seed:** `1`  
 **Status:** `discrete_delay_buffer_exact`  
-**Description:** Finite axonal transmission latency introducing exact 10 ms synaptic delay in follower excitation.
+**Description:** Explicit temporal decomposition: presynaptic spike emission, 10 ms axonal transmission buffer latency, arriving synaptic current, and subsequent postsynaptic EPSP integration.
 
 ---
 
@@ -76,10 +76,10 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 
 ---
 
-## 08: Fast vs Slow Dynamical Limit Cycle
+## 08: Multiscale State Evolution — Fast Observable $X$ ($V_m$) vs Slower $H$ and $W$
 
-![08 Fast Slow Phase](_static/gallery/08_fast_slow_phase.png)
+![08 Fast vs Slow State](_static/gallery/08_fast_vs_slow_state.png)
 
-**Configuration:** `suite2_single_neuron_config` · **Seed:** `1`  
-**Status:** `computational_reduced_dynamics`  
-**Description:** Delayed-embedding phase portrait showing fast limit-cycle dynamics during tonic action potential firing.
+**Configuration:** `suite2_net1_config(n=100, enable_hdp=True)` · **Seed:** `7`  
+**Status:** `multiscale_state_coupling`  
+**Description:** Co-registered multiscale trajectories: sub-millisecond membrane state $X$ ($V_m$) alongside slower hidden biophysical state $H$ (RBD dynamics) and plastic synaptic weight coupling $W$ (HDP).

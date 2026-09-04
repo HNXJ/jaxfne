@@ -53,7 +53,7 @@
       "seed": 1,
       "configuration": "two_neuron_delay_circuit(delay=10ms)",
       "output": "06_finite_delay_timing.png",
-      "caption": "Finite axonal transmission latency introducing exact 10 ms synaptic delay in follower excitation.",
+      "caption": "Explicit temporal decomposition: presynaptic spike emission, 10 ms axonal transmission buffer latency, arriving synaptic current, and subsequent postsynaptic EPSP integration.",
       "calibration_status": "discrete_delay_buffer_exact"
     },
     {
@@ -66,13 +66,13 @@
       "calibration_status": "uncalibrated_sparse_weights"
     },
     {
-      "id": "08_fast_slow_phase",
+      "id": "08_fast_vs_slow_state",
       "script": "scripts/generate_release_gallery.py",
-      "seed": 1,
-      "configuration": "suite2_single_neuron_config",
-      "output": "08_fast_slow_phase.png",
-      "caption": "Delayed-embedding phase portrait showing fast limit-cycle dynamics during tonic action potential firing.",
-      "calibration_status": "computational_reduced_dynamics"
+      "seed": 7,
+      "configuration": "suite2_net1_config(n=100, enable_hdp=True)",
+      "output": "08_fast_vs_slow_state.png",
+      "caption": "Co-registered multiscale trajectories: sub-millisecond membrane state X (V_m) alongside slower hidden biophysical state H (RBD dynamics) and plastic synaptic weight coupling W (HDP).",
+      "calibration_status": "multiscale_state_coupling"
     }
   ]
 }
