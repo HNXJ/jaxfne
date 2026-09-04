@@ -201,7 +201,7 @@ def generate_gallery(output_dir: Path) -> dict:
         "seed": 10,
         "configuration": "suite2_net1_config with record_fields=True",
         "output": str(p5.name),
-        "caption": "Transmembrane relative source current density and projected laminar field potential (LFP) proxy across linear contacts.",
+        "caption": "Transmembrane relative source proxy and projected laminar field potential (LFP) proxy across linear contacts.",
         "calibration_status": "uncalibrated_source_and_field_proxy",
     })
 

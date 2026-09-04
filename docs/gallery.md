@@ -52,7 +52,7 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 
 **Configuration:** `suite2_net1_config (record_fields=True)` · **Seed:** `10`  
 **Status:** `uncalibrated_source_and_field_proxy`  
-**Description:** Transmembrane relative source current density and projected laminar field potential (LFP) proxy across linear contacts.
+**Description:** Transmembrane relative source proxy and projected laminar field potential (LFP) proxy across linear contacts.
 
 ---
 

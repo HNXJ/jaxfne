@@ -57,7 +57,7 @@ inert-by-design surface, not a hidden behavior change.
 |------------|--------|
 | Node-local RBS continuation (`DynamicState`, `return_state=True`) | supported for scalar and vector \(d_H\) on the edge-list HDP kernel |
 | Population-local RBS continuation | not supported in 0.4.13+ (explicit error) |
-| Continuation with nonzero edge delays | not supported until \(\mathcal B_t\) carry is implemented |
+| Continuation with nonzero edge delays | supported when complete required delay/history state \(\mathcal B_t\) (`delay_state`) is carried; continuation lacking required delay state is rejected explicitly |
 
 ## Scalar node HDP kernel (compatibility form)
 
