@@ -6,14 +6,14 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="JAX-based TFNE scaffold for multimodal source-to-field/readout workflows">
+        <meta name="description" content="Tensor-Field Neural Equations — JAX simulation for neural circuits, fields, and adaptation">
       
       
       
         <link rel="canonical" href="https://jaxfne.readthedocs.io/api/fields/">
       
       
-        <link rel="prev" href="../bridges/">
+        <link rel="prev" href="../field_schema/">
       
       
         <link rel="next" href="../probes/">
@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/jaxfne-img.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -260,6 +260,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -377,14 +381,70 @@
   
   
     <li class="md-nav__item">
-      <a href="../../faq/" class="md-nav__link">
+      <a href="../../gallery/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    FAQ
+    Gallery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../public_surface_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scope_and_status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scope & status
   
 
     
@@ -416,24 +476,6 @@
       
         
           
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
         
       
         
@@ -518,7 +560,7 @@
   <span class="md-ellipsis">
     
   
-    Notebook Standard
+    Notebook standard
   
 
     
@@ -539,14 +581,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+      <a href="../../tutorials/tutorial_outputs/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Étude: Canonical Cortical Column
+    Tutorial Outputs
   
 
     
@@ -559,6 +601,364 @@
   
 
               
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cumulative (canonical 1000n)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cumulative (canonical 1000n)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_define_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Define (PseudoGenome)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_develop_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Develop (G→N)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_inspect_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect (realized vs configured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_simulate_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulate (construct→Signals)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_observe_fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observe (field & probe)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_add_state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add state (H / RBS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_add_dynamics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add dynamics (HDP)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_compare_nulls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare (nulls & lesions)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suites
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Suites
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -574,7 +974,7 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 1 (Computational Biophysics)
+    Computational biophysics
   
 
     
@@ -602,7 +1002,35 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 2 (Corticospectrolaminar Motif)
+    Corticospectrolaminar motif
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_jaxfne_suite_no_2_evoked_l4_drive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evoked L4 drive
   
 
     
@@ -630,7 +1058,7 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 3 (Low-Frequency Scaling)
+    Low-frequency scaling
   
 
     
@@ -644,29 +1072,9 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tutorial: Multi-area Laminar Model
-  
-
-    
-  </span>
-  
-  
-
-      </a>
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -678,43 +1086,44 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+    
+    
+      
         
-  
-  
-  <span class="md-ellipsis">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
-  
-    TFNE-Izhikevich Single Emitter Explorer
-  
-
     
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
-        
   
   
   <span class="md-ellipsis">
     
   
-    09: EEG/MEG/EMM Proxy Bundle
+    Circuit construction (archive)
   
 
     
@@ -722,11 +1131,19 @@
   
   
 
-      </a>
-    </li>
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Circuit construction (archive)
   
 
-              
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -742,7 +1159,7 @@
   <span class="md-ellipsis">
     
   
-    01: Single-neuron Multimodal
+    Single-neuron multimodal
   
 
     
@@ -770,7 +1187,7 @@
   <span class="md-ellipsis">
     
   
-    02: Two-neuron E/I
+    Two-neuron E/I
   
 
     
@@ -798,7 +1215,7 @@
   <span class="md-ellipsis">
     
   
-    03: 100-neuron Network
+    Population E/I network
   
 
     
@@ -826,7 +1243,7 @@
   <span class="md-ellipsis">
     
   
-    04: V1 Six-layer Column
+    V1 laminar column
   
 
     
@@ -854,7 +1271,7 @@
   <span class="md-ellipsis">
     
   
-    05: V1-PFC Dual Column
+    V1–PFC dual column
   
 
     
@@ -882,7 +1299,7 @@
   <span class="md-ellipsis">
     
   
-    06: v0.3.6 Chainable Config
+    Configuration API population
   
 
     
@@ -903,6 +1320,99 @@
   
   
     <li class="md-nav__item">
+      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical cortical column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source, field, and readout (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Source, field, and readout (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../tutorials/07_v037_source_bookkeeping/" class="md-nav__link">
         
   
@@ -910,7 +1420,7 @@
   <span class="md-ellipsis">
     
   
-    07: v0.3.7 Source Bookkeeping
+    Source bookkeeping
   
 
     
@@ -938,7 +1448,7 @@
   <span class="md-ellipsis">
     
   
-    08: v0.3.8 LFP/CSD Readout
+    LFP and CSD proxies
   
 
     
@@ -947,6 +1457,191 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EEG, MEG, EMM proxies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_8" id="__nav_2_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paradigms and optimization (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Paradigms and optimization (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/10_v0313_omission_oddball/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensory omission oddball
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-area laminar AGSDR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Izhikevich emitter explorer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -970,6 +1665,8 @@
       
         
           
+        
+      
         
       
         
@@ -1060,7 +1757,7 @@
   <span class="md-ellipsis">
     
   
-    Configuration Grammar
+    Configuration grammar
   
 
     
@@ -1081,14 +1778,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/probe_operators/" class="md-nav__link">
+      <a href="../../guides/objective_grammar/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Probe Operators
+    Objective grammar
   
 
     
@@ -1116,7 +1813,7 @@
   <span class="md-ellipsis">
     
   
-    Tensor-Field Workflows
+    Tensor-field workflows
   
 
     
@@ -1137,14 +1834,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/plotly_visualization/" class="md-nav__link">
+      <a href="../../guides/operator_composition/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Plotly Visualization
+    Operator composition
   
 
     
@@ -1165,98 +1862,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/poisson_admissibility/" class="md-nav__link">
+      <a href="../../guides/probe_operators/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Poisson Admissibility
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guides/jaxley_interop/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Jaxley Interoperability
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guides/homeostasis/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Homeostasis
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../notes/biophysical_model_comparison/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Biophysical Model Comparison
+    Probe operators
   
 
     
@@ -1305,6 +1918,90 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guides/homeostasis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homeostasis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-state and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jdna/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PseudoGenome (JDNA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guides/output_bundles/" class="md-nav__link">
         
   
@@ -1312,7 +2009,620 @@
   <span class="md-ellipsis">
     
   
-    Output Bundles
+    Output bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jaxley_interop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jaxley interoperability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../etudes/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Études
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Études
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/hdp_controllability_reachability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP controllability & reachability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/experiment_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical Multiscale Observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/heterogeneous_emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heterogeneous emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/multiscale_observation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiscale observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and Experiments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_wave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling Waves
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_c_wave_evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling-Wave Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_c3_neural/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Neural Geometry and Delays
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_d_biological_rbs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Biological RBS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_e_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrated TFNE Composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/rbs_rbd_hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBS, RBD and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/relative_quantity_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relative Quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_h1b_h_to_x_gain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-to-X Gain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_rbd_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBD State Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_w_hdp_parameter_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP Parameter Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/tfne_containment_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TFNE Containment and Composition
   
 
     
@@ -1364,6 +2674,14 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -1377,7 +2695,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
           <div class="md-nav__link md-nav__container">
@@ -1388,7 +2706,7 @@
   <span class="md-ellipsis">
     
   
-    API reference
+    API
   
 
     
@@ -1399,18 +2717,18 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
-    API reference
+    API
   
 
           </label>
@@ -1509,14 +2827,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../bridges/" class="md-nav__link">
+      <a href="../source_schema/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Bridges
+    Source schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../field_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Field schema
   
 
     
@@ -1608,6 +2954,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#operator-ontology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator ontology
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Operator ontology">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#observation-provenance-0415" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observation provenance (0.4.15+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#source-projection" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1654,10 +3028,43 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#from_dictgeometry_dict-dict-laminarsourcegeometry" class="md-nav__link">
+  <a href="#validate-dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        from_dict(geometry_dict: dict) -&gt; LaminarSourceGeometry
+        validate() -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_dict-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_dict() -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#population_slices-dictstr-slice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        population_slices() -&gt; dict[str, slice]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#positions_arraydtype-str-float32-jaxarray" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        positions_array(dtype: str = "float32") -&gt; jax.Array
       
     </span>
   </a>
@@ -1670,10 +3077,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#project_laminar_sourcescurrents-geometry-source_signals" class="md-nav__link">
+  <a href="#building-a-laminarsourcegeometry" class="md-nav__link">
     <span class="md-ellipsis">
       
-        project_laminar_sources(currents, geometry) -&gt; source_signals
+        Building a LaminarSourceGeometry
       
     </span>
   </a>
@@ -1681,10 +3088,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#project_sources_to_laminar_fieldsources-geometry-field_output" class="md-nav__link">
+  <a href="#project_laminar_sourcessources-positions-n_contacts16-width010-modedensity_preserving-dtypefloat32-fieldoutput" class="md-nav__link">
     <span class="md-ellipsis">
       
-        project_sources_to_laminar_field(sources, geometry, ...) -&gt; field_output
+        project_laminar_sources(sources, positions, *, n_contacts=16, width=0.10, mode="density_preserving", dtype="float32") -&gt; FieldOutput
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project_sources_to_laminar_fieldsources-positions-n_contacts16-modedensity_preserving-dtypefloat32-fieldoutput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        project_sources_to_laminar_field(sources, positions, n_contacts=16, *, mode="density_preserving", dtype="float32") -&gt; FieldOutput
       
     </span>
   </a>
@@ -1709,10 +3127,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#attributes_1" class="md-nav__link">
+  <a href="#attributes-dataclass-fields" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Attributes
+        Attributes (dataclass fields)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#read-only-properties-aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read-only properties (aliases)
       
     </span>
   </a>
@@ -1727,34 +3156,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#methods_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Methods
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Methods">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#to_dict-dict" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        to_dict() -&gt; dict
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -1791,6 +3192,72 @@
     <span class="md-ellipsis">
       
         construct_source_tensor(*, mode="total_membrane_current_proxy", ...) -&gt; (array, metadata)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cable_filter_taucell_type-depth_z-tau_e_superficial_ms10-tau_e_deep_ms50-tau_pv_ms05-tau_sst_ms20-tau_vip_ms20-tau_s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cable_filter_tau(cell_type, depth_z, *, tau_e_superficial_ms=1.0, tau_e_deep_ms=5.0, tau_pv_ms=0.5, tau_sst_ms=2.0, tau_vip_ms=2.0) -&gt; tau_s
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cable_filter_sourcessources-tau_s-dt_ms-order2-filtered_sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cable_filter_sources(sources, tau_s, dt_ms, *, order=2) -&gt; filtered_sources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cable_filter_reporttau_s-order2-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cable_filter_report(tau_s, order=2) -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#csd_tensorphi_e_proxy-dz-csd_proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        csd_tensor(phi_e_proxy, dz) -&gt; csd_proxy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jaxfnefieldsexperimental_poisson_1dsources-conductivity-dx-boundarymean_zero_neumann-gaugemean_zero-phi-residual-manifest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        jaxfne.fields.experimental_poisson_1d(sources, conductivity, dx, boundary="mean_zero_neumann", gauge="mean_zero") -&gt; (phi, residual, manifest)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jaxfnefieldsexperimental_poisson_1d_from_neuron_tableneuron_table-sources-conductivity-n_bins-z_minnone-z_maxnone-boundarymean_zero_neumann-gaugemean_zero-phi-residual-manifest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        jaxfne.fields.experimental_poisson_1d_from_neuron_table(neuron_table, sources, conductivity, n_bins, z_min=None, z_max=None, boundary="mean_zero_neumann", gauge="mean_zero") -&gt; (phi, residual, manifest)
       
     </span>
   </a>
@@ -1876,10 +3343,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#validate_projection_invariantssources-field_output-bool" class="md-nav__link">
+  <a href="#validate_projection_invariants-sources-positions-kernel-source_proxy-phi_e_proxy-csd_proxy-lfp_proxy-moderow_normalize-dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        validate_projection_invariants(sources, field_output) -&gt; bool
+        validate_projection_invariants(*, sources, positions, kernel, source_proxy, phi_e_proxy, csd_proxy, lfp_proxy, mode="row_normalize") -&gt; dict
       
     </span>
   </a>
@@ -2018,6 +3485,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../neuronal_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NeuronalTensor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../validation/" class="md-nav__link">
         
   
@@ -2039,48 +3534,21 @@
 
               
             
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
+              
+                
   
   
   
   
-    
-    
-      
+    <li class="md-nav__item">
+      <a href="../vis/" class="md-nav__link">
         
-      
-    
-    
-    
-      
-        
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
-            
   
   
   <span class="md-ellipsis">
     
   
-    Reference
+    Visualization
   
 
     
@@ -2088,19 +3556,11 @@
   
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Reference
+      </a>
+    </li>
   
 
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+              
             
               
                 
@@ -2109,14 +3569,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/glossary_of_methods/" class="md-nav__link">
+      <a href="../jdna/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Glossary of Methods
+    JDNA
   
 
     
@@ -2156,6 +3616,20 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -2169,17 +3643,17 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    About jaxfne
+    Appendix
   
 
     
@@ -2190,12 +3664,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
-    About jaxfne
+    Appendix
   
 
           </label>
@@ -2208,14 +3682,182 @@
   
   
     <li class="md-nav__item">
-      <a href="../../limitations_and_future_plans/" class="md-nav__link">
+      <a href="../../appendix/fundamental_laws/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Limitations and future plans
+    Fundamental laws
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../source_field_equations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source and field equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../computation_basis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Computation basis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mathematical_glossary_flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mathematical glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
   
 
     
@@ -2319,78 +3961,15 @@
   
   
   
-    
-    
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_6_5" id="__nav_6_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Releases
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Releases
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
     <li class="md-nav__item">
-      <a href="../../releases/v0.3.4/" class="md-nav__link">
+      <a href="../../colab/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    v0.3.4
+    Colab quick start
   
 
     
@@ -2411,14 +3990,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../releases/v0.2.18/" class="md-nav__link">
+      <a href="../../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    v0.2.18
+    Limitations
   
 
     
@@ -2427,126 +4006,6 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.10/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.10
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.3/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.3
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.1/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.1
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.0/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.0
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
     </li>
   
 
@@ -2597,6 +4056,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#operator-ontology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator ontology
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Operator ontology">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#observation-provenance-0415" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observation provenance (0.4.15+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#source-projection" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2643,10 +4130,43 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#from_dictgeometry_dict-dict-laminarsourcegeometry" class="md-nav__link">
+  <a href="#validate-dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        from_dict(geometry_dict: dict) -&gt; LaminarSourceGeometry
+        validate() -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_dict-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_dict() -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#population_slices-dictstr-slice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        population_slices() -&gt; dict[str, slice]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#positions_arraydtype-str-float32-jaxarray" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        positions_array(dtype: str = "float32") -&gt; jax.Array
       
     </span>
   </a>
@@ -2659,10 +4179,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#project_laminar_sourcescurrents-geometry-source_signals" class="md-nav__link">
+  <a href="#building-a-laminarsourcegeometry" class="md-nav__link">
     <span class="md-ellipsis">
       
-        project_laminar_sources(currents, geometry) -&gt; source_signals
+        Building a LaminarSourceGeometry
       
     </span>
   </a>
@@ -2670,10 +4190,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#project_sources_to_laminar_fieldsources-geometry-field_output" class="md-nav__link">
+  <a href="#project_laminar_sourcessources-positions-n_contacts16-width010-modedensity_preserving-dtypefloat32-fieldoutput" class="md-nav__link">
     <span class="md-ellipsis">
       
-        project_sources_to_laminar_field(sources, geometry, ...) -&gt; field_output
+        project_laminar_sources(sources, positions, *, n_contacts=16, width=0.10, mode="density_preserving", dtype="float32") -&gt; FieldOutput
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project_sources_to_laminar_fieldsources-positions-n_contacts16-modedensity_preserving-dtypefloat32-fieldoutput" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        project_sources_to_laminar_field(sources, positions, n_contacts=16, *, mode="density_preserving", dtype="float32") -&gt; FieldOutput
       
     </span>
   </a>
@@ -2698,10 +4229,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#attributes_1" class="md-nav__link">
+  <a href="#attributes-dataclass-fields" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Attributes
+        Attributes (dataclass fields)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#read-only-properties-aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read-only properties (aliases)
       
     </span>
   </a>
@@ -2716,34 +4258,6 @@
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#methods_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Methods
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Methods">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#to_dict-dict" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        to_dict() -&gt; dict
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -2780,6 +4294,72 @@
     <span class="md-ellipsis">
       
         construct_source_tensor(*, mode="total_membrane_current_proxy", ...) -&gt; (array, metadata)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cable_filter_taucell_type-depth_z-tau_e_superficial_ms10-tau_e_deep_ms50-tau_pv_ms05-tau_sst_ms20-tau_vip_ms20-tau_s" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cable_filter_tau(cell_type, depth_z, *, tau_e_superficial_ms=1.0, tau_e_deep_ms=5.0, tau_pv_ms=0.5, tau_sst_ms=2.0, tau_vip_ms=2.0) -&gt; tau_s
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cable_filter_sourcessources-tau_s-dt_ms-order2-filtered_sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cable_filter_sources(sources, tau_s, dt_ms, *, order=2) -&gt; filtered_sources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cable_filter_reporttau_s-order2-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cable_filter_report(tau_s, order=2) -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#csd_tensorphi_e_proxy-dz-csd_proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        csd_tensor(phi_e_proxy, dz) -&gt; csd_proxy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jaxfnefieldsexperimental_poisson_1dsources-conductivity-dx-boundarymean_zero_neumann-gaugemean_zero-phi-residual-manifest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        jaxfne.fields.experimental_poisson_1d(sources, conductivity, dx, boundary="mean_zero_neumann", gauge="mean_zero") -&gt; (phi, residual, manifest)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jaxfnefieldsexperimental_poisson_1d_from_neuron_tableneuron_table-sources-conductivity-n_bins-z_minnone-z_maxnone-boundarymean_zero_neumann-gaugemean_zero-phi-residual-manifest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        jaxfne.fields.experimental_poisson_1d_from_neuron_table(neuron_table, sources, conductivity, n_bins, z_min=None, z_max=None, boundary="mean_zero_neumann", gauge="mean_zero") -&gt; (phi, residual, manifest)
       
     </span>
   </a>
@@ -2865,10 +4445,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#validate_projection_invariantssources-field_output-bool" class="md-nav__link">
+  <a href="#validate_projection_invariants-sources-positions-kernel-source_proxy-phi_e_proxy-csd_proxy-lfp_proxy-moderow_normalize-dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        validate_projection_invariants(sources, field_output) -&gt; bool
+        validate_projection_invariants(*, sources, positions, kernel, source_proxy, phi_e_proxy, csd_proxy, lfp_proxy, mode="row_normalize") -&gt; dict
       
     </span>
   </a>
@@ -2961,77 +4541,182 @@
 <p>The fields module provides spatial projection operators to transform point-source neural currents into field readouts (LFP, CSD, EEG, MEG). All field computations are <strong>proxy approximations</strong> suitable for tutorial-scale simulations, not full PDE solutions.</p>
 <div class="highlight"><pre><span></span><code>Emitter currents → Source projection → Field convolution → Probe readouts
 </code></pre></div>
+<h2 id="operator-ontology">Operator ontology<a class="headerlink" href="#operator-ontology" title="Permanent link">&para;</a></h2>
+<p>The observational chain uses orthogonal metadata dimensions:</p>
+<div class="highlight"><pre><span></span><code>operator_type: linear_projection | pde_solve
+validation_status: computational | numerical | external
+representation: relative | calibrated
+</code></pre></div>
+<p><code>linear_projection</code> applies a fixed kernel, <code>Phi^(r) = K Q^(r)</code>.
+<code>pde_solve</code> evaluates a declared discretized field equation,
+<code>A_gamma Phi = Q</code>. The compatibility field key
+<code>field_solver_status="linear_solver"</code> remains available for existing consumers;
+the canonical mathematical type is <code>operator_type</code>.</p>
+<h3 id="observation-provenance-0415">Observation provenance (0.4.15+)<a class="headerlink" href="#observation-provenance-0415" title="Permanent link">&para;</a></h3>
+<p>Eager <code>diagnostics["observation"]</code> and <code>LinearReadout.report()["observation"]</code>
+record conceptual <strong>S→F→P</strong> identity under fused or materialized execution.</p>
+<table>
+<thead>
+<tr>
+<th>key</th>
+<th>role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>execution_form</code></td>
+<td><code>fused</code> (<code>Y=(P∘F)Q</code>) or <code>materialized</code> (retained <code>Φ</code>)</td>
+</tr>
+<tr>
+<td><code>operator_chain</code></td>
+<td><code>{source, field, probe}</code> identity dicts</td>
+</tr>
+<tr>
+<td><code>amplitude_semantics</code></td>
+<td><code>relative</code> | <code>calibrated_proxy</code> | <code>calibrated</code></td>
+</tr>
+</tbody>
+</table>
+<p>EEG separates operator identity (<code>linear_leadfield</code>) from
+<code>leadfield_status</code>. MEG sets <code>orientation_claim: none</code> on scalar <code>Q</code>. Under
+<code>jax.jit</code>, metadata is omitted from traced returns; array values are unchanged.</p>
 <hr />
 <h2 id="source-projection">Source Projection<a class="headerlink" href="#source-projection" title="Permanent link">&para;</a></h2>
 <h3 id="laminarsourcegeometry">LaminarSourceGeometry<a class="headerlink" href="#laminarsourcegeometry" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="n">jaxfne</span><span class="o">.</span><span class="n">LaminarSourceGeometry</span>
 </code></pre></div>
-<p>Defines the spatial anatomy of neural populations in laminar columns.</p>
+<p><em>(Defined in <code>jaxfne/core.py</code>, not <code>jaxfne/fields/</code> — re-exported at package
+level as <code>jaxfne.LaminarSourceGeometry</code>.)</em></p>
+<p>A frozen dataclass grouping named <code>LaminarPopulation</code> descriptors and
+materializing a deterministic <code>(n_units_total, 3)</code> positions array for use in
+<code>project_laminar_sources</code>/<code>project_sources_to_laminar_field</code>. Depths are
+proxy-normalized coordinates in <code>[0, 1]</code>, not physical microns; no
+physical-amplitude, PDE, or calibration claim is made.</p>
 <h3 id="attributes">Attributes<a class="headerlink" href="#attributes" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>x</code> (jax.Array): X-coordinates (depth dimension) of source locations</li>
-<li><code>y</code> (jax.Array): Y-coordinates (lateral) of source locations</li>
-<li><code>z</code> (jax.Array): Z-coordinates (anterior-posterior) of source locations</li>
-<li><code>contact_locations</code> (jax.Array, optional): Electrode contact positions</li>
-<li><code>n_sources</code> (int): Number of distinct sources</li>
-<li><code>n_contacts</code> (int): Number of recording contacts</li>
+<li><code>populations</code> (<code>tuple[LaminarPopulation, ...]</code>): ordered named population descriptors</li>
+<li><code>n_units_total</code> (<code>int</code>): total neuron count across all populations</li>
+<li><code>position_units</code> (<code>str</code>, default <code>"relative_laminar_depth_proxy"</code>)</li>
+<li><code>source_calibration_status</code> (<code>str</code>, default <code>"uncalibrated_izhikevich_native_current"</code>)</li>
+<li><code>physical_amplitude_calibrated</code> (<code>bool</code>, default <code>False</code>)</li>
+<li><code>claim_level</code> (<code>str</code>, default <code>"computational_scaffold"</code>)</li>
 </ul>
+<p><code>LaminarPopulation</code> (the element type of <code>populations</code>) is itself a frozen
+dataclass: <code>name: str</code>, <code>cell_type: str</code>, <code>layer: str</code>, <code>depth_min: float</code>,
+<code>depth_max: float</code>, <code>n_units: int</code>, plus the same
+<code>source_calibration_status</code>/<code>physical_amplitude_calibrated</code>/<code>claim_level</code>
+trio.</p>
 <h3 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h3>
-<h4 id="from_dictgeometry_dict-dict-laminarsourcegeometry"><code>from_dict(geometry_dict: dict) -&gt; LaminarSourceGeometry</code><a class="headerlink" href="#from_dictgeometry_dict-dict-laminarsourcegeometry" title="Permanent link">&para;</a></h4>
-<p>Create geometry from configuration dictionary.</p>
-<p><strong>Parameters:</strong>
-- <code>geometry_dict</code> (dict): Dictionary with 'x', 'y', 'z' keys</p>
-<p><strong>Returns:</strong> <code>LaminarSourceGeometry</code></p>
-<p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">geom</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">LaminarSourceGeometry</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span>
-    <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">400</span><span class="p">],</span>  <span class="c1"># depths in µm</span>
-    <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
-    <span class="s2">&quot;z&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-<span class="p">})</span>
-</code></pre></div></p>
+<h4 id="validate-dict"><code>validate() -&gt; dict</code><a class="headerlink" href="#validate-dict" title="Permanent link">&para;</a></h4>
+<p>Checks population sum equals <code>n_units_total</code>, that
+<code>physical_amplitude_calibrated</code> stays <code>False</code>, and validates each contained
+<code>LaminarPopulation</code>. Returns <code>{"valid": bool, "issues": list[str], "n_populations": int}</code>.</p>
+<h4 id="to_dict-dict"><code>to_dict() -&gt; dict</code><a class="headerlink" href="#to_dict-dict" title="Permanent link">&para;</a></h4>
+<p>JSON-safe dict: <code>type</code>, <code>n_units_total</code>, <code>n_populations</code>, <code>position_units</code>,
+<code>source_calibration_status</code>, <code>physical_amplitude_calibrated</code>, <code>claim_level</code>,
+and <code>populations</code> (each population's own <code>to_dict()</code>).</p>
+<h4 id="population_slices-dictstr-slice"><code>population_slices() -&gt; dict[str, slice]</code><a class="headerlink" href="#population_slices-dictstr-slice" title="Permanent link">&para;</a></h4>
+<p>Maps each population <code>name</code> to the <code>slice</code> of neuron indices it occupies
+(populations are laid out contiguously in <code>populations</code> order).</p>
+<h4 id="positions_arraydtype-str-float32-jaxarray"><code>positions_array(dtype: str = "float32") -&gt; jax.Array</code><a class="headerlink" href="#positions_arraydtype-str-float32-jaxarray" title="Permanent link">&para;</a></h4>
+<p>Returns a deterministic <code>(n_units_total, 3)</code> array: <code>x=0</code>, <code>y=0</code>, <code>z</code>
+linearly spaced within each population's <code>[depth_min, depth_max]</code> range, in
+population order. No random sampling — feed this directly into
+<code>project_laminar_sources(sources, positions=...)</code>.</p>
+<h3 id="building-a-laminarsourcegeometry">Building a <code>LaminarSourceGeometry</code><a class="headerlink" href="#building-a-laminarsourcegeometry" title="Permanent link">&para;</a></h3>
+<p>There is no <code>from_dict</code> constructor. Build one from a sequence of
+<code>LaminarPopulation</code> objects, either directly or via the
+<code>laminar_source_geometry()</code> helper (also <code>jaxfne.core</code>), which validates each
+population and computes <code>n_units_total</code> for you:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">jaxfne.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">LaminarPopulation</span><span class="p">,</span> <span class="n">laminar_source_geometry</span>
+
+<span class="n">pops</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">LaminarPopulation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;L4_E&quot;</span><span class="p">,</span> <span class="n">cell_type</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="s2">&quot;L4&quot;</span><span class="p">,</span>
+                       <span class="n">depth_min</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">depth_max</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">n_units</span><span class="o">=</span><span class="mi">200</span><span class="p">),</span>
+    <span class="n">LaminarPopulation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;L2_PV&quot;</span><span class="p">,</span> <span class="n">cell_type</span><span class="o">=</span><span class="s2">&quot;PV&quot;</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="s2">&quot;L2&quot;</span><span class="p">,</span>
+                       <span class="n">depth_min</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">depth_max</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">n_units</span><span class="o">=</span><span class="mi">50</span><span class="p">),</span>
+<span class="p">]</span>
+<span class="n">geom</span> <span class="o">=</span> <span class="n">laminar_source_geometry</span><span class="p">(</span><span class="n">pops</span><span class="p">)</span>
+<span class="n">positions</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">positions_array</span><span class="p">()</span>  <span class="c1"># (250, 3), feed into project_laminar_sources</span>
+</code></pre></div>
 <hr />
-<h3 id="project_laminar_sourcescurrents-geometry-source_signals"><code>project_laminar_sources(currents, geometry) -&gt; source_signals</code><a class="headerlink" href="#project_laminar_sourcescurrents-geometry-source_signals" title="Permanent link">&para;</a></h3>
-<p>Project neural currents into laminar space.</p>
-<p><strong>Parameters:</strong>
-- <code>currents</code> (jax.Array): Emitter transmembrane currents [time, neurons]
-- <code>geometry</code> (LaminarSourceGeometry): Spatial geometry</p>
-<p><strong>Returns:</strong> Source signals [time, locations]</p>
+<h3 id="project_laminar_sourcessources-positions-n_contacts16-width010-modedensity_preserving-dtypefloat32-fieldoutput"><code>project_laminar_sources(sources, positions, *, n_contacts=16, width=0.10, mode="density_preserving", dtype="float32") -&gt; FieldOutput</code><a class="headerlink" href="#project_laminar_sourcessources-positions-n_contacts16-width010-modedensity_preserving-dtypefloat32-fieldoutput" title="Permanent link">&para;</a></h3>
+<p>Project emitter sources into laminar contact space.</p>
+<p><strong>Parameters (keyword-only after <code>positions</code>):</strong>
+- <code>sources</code> (jax.Array): Emitter source signals <code>[time, n_emitters]</code>
+- <code>positions</code> (jax.Array): Emitter positions <code>[n_emitters, 3]</code>
+- <code>n_contacts</code> (int): Number of laminar contacts, default <code>16</code>
+- <code>width</code> (float): Gaussian kernel width, default <code>0.10</code>
+- <code>mode</code> (str): <code>"density_preserving"</code> (default) preserves absolute scale; <code>"row_normalize"</code> erases attenuation for contacts outside the modeled population
+- <code>dtype</code> (str): Output dtype, default <code>"float32"</code></p>
+<p><strong>Returns:</strong> <code>FieldOutput</code></p>
 <p><strong>Description:</strong>
-Transforms point-neuron currents into distributed source density using anatomical position mapping. Current values are assigned to nearest spatial locations; not a full dipole solve.</p>
+Transforms point-emitter sources into distributed laminar-contact density via a Gaussian-kernel proxy projection — not a full dipole/PDE solve.</p>
 <p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">source</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">project_laminar_sources</span><span class="p">(</span><span class="n">I_mem</span><span class="p">,</span> <span class="n">geometry</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">field</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">project_laminar_sources</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">n_contacts</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 </code></pre></div></p>
 <hr />
-<h3 id="project_sources_to_laminar_fieldsources-geometry-field_output"><code>project_sources_to_laminar_field(sources, geometry, ...) -&gt; field_output</code><a class="headerlink" href="#project_sources_to_laminar_fieldsources-geometry-field_output" title="Permanent link">&para;</a></h3>
-<p>Project laminar sources to field readouts (LFP, CSD).</p>
+<h3 id="project_sources_to_laminar_fieldsources-positions-n_contacts16-modedensity_preserving-dtypefloat32-fieldoutput"><code>project_sources_to_laminar_field(sources, positions, n_contacts=16, *, mode="density_preserving", dtype="float32") -&gt; FieldOutput</code><a class="headerlink" href="#project_sources_to_laminar_fieldsources-positions-n_contacts16-modedensity_preserving-dtypefloat32-fieldoutput" title="Permanent link">&para;</a></h3>
+<p>Convenience wrapper over <code>project_laminar_sources</code> with <code>n_contacts</code> as a
+positional parameter.</p>
 <p><strong>Parameters:</strong>
-- <code>sources</code> (jax.Array): Source density [time, locations]
-- <code>geometry</code> (LaminarSourceGeometry): Spatial geometry
-- <code>conductivity_mode</code> (str, optional): Field approximation mode</p>
-<p><strong>Returns:</strong> <code>FieldOutput</code> containing LFP and CSD arrays</p>
-<p><strong>Modes:</strong>
-- <code>"proxy_convolution"</code>: Spatial convolution approximation (default)
-- <code>"mean_zero_projection"</code>: Mean-zero constraint</p>
+- <code>sources</code> (jax.Array): Source density <code>[time, n_emitters]</code>
+- <code>positions</code> (jax.Array): Emitter positions <code>[n_emitters, 3]</code>
+- <code>n_contacts</code> (int, positional): Number of laminar contacts, default <code>16</code>
+- <code>mode</code> (str, keyword-only): <code>"density_preserving"</code> (default) | <code>"row_normalize"</code>
+- <code>dtype</code> (str, keyword-only): Output dtype, default <code>"float32"</code></p>
+<p><strong>Returns:</strong> <code>FieldOutput</code> containing LFP and CSD proxy arrays</p>
+<p>The returned diagnostics identify <code>operator_type="linear_projection"</code>,
+<code>representation="relative"</code>, the selected <code>normalization_mode</code>, and the
+explicit calibration boundary. <code>density_preserving</code> and <code>row_normalize</code> are
+distinct projection operators.</p>
 <p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">field</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">project_sources_to_laminar_field</span><span class="p">(</span>
-    <span class="n">sources</span><span class="p">,</span> <span class="n">geometry</span><span class="p">,</span> <span class="n">conductivity_mode</span><span class="o">=</span><span class="s2">&quot;proxy_convolution&quot;</span>
-<span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">field</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">project_sources_to_laminar_field</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">n_contacts</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;density_preserving&quot;</span><span class="p">)</span>
 </code></pre></div></p>
 <hr />
 <h2 id="fieldoutput">FieldOutput<a class="headerlink" href="#fieldoutput" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="n">jaxfne</span><span class="o">.</span><span class="n">FieldOutput</span>
 </code></pre></div>
-<p>Container for computed field quantities (LFP, CSD, etc.).</p>
-<h3 id="attributes_1">Attributes<a class="headerlink" href="#attributes_1" title="Permanent link">&para;</a></h3>
+<p>Frozen dataclass container for laminar proxy field/readout arrays, returned
+by <code>project_laminar_sources</code> / <code>project_sources_to_laminar_field</code>.</p>
+<h3 id="attributes-dataclass-fields">Attributes (dataclass fields)<a class="headerlink" href="#attributes-dataclass-fields" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>phi_e_proxy</code> (jax.Array): Extracellular potential proxy [time, contacts]</li>
-<li><code>csd_proxy</code> (jax.Array): Current source density proxy [time, contacts]</li>
-<li><code>lfp_proxy</code> (jax.Array): Local field potential proxy [time, contacts]</li>
-<li><code>source</code> (jax.Array): Source density [time, locations]</li>
-<li><code>diagnostics</code> (dict): Field solution metadata and validation flags</li>
+<li><code>source_proxy</code> (jax.Array): source density projected onto contacts, <code>[T, n_contacts]</code></li>
+<li><code>phi_e_proxy</code> (jax.Array): extracellular potential proxy, <code>[T, n_contacts]</code></li>
+<li><code>csd_proxy</code> (jax.Array): current source density proxy, <code>[T, n_contacts]</code></li>
+<li><code>lfp_proxy</code> (jax.Array): local field potential proxy, <code>[T, n_contacts]</code> (currently identical to <code>phi_e_proxy</code> — see below)</li>
+<li><code>kernel</code> (jax.Array): the projection kernel/leadfield matrix, <code>[n_contacts, n_emitters]</code></li>
+<li><code>contact_depths</code> (jax.Array): normalized <code>[0, 1]</code> depth of each contact, <code>[n_contacts]</code></li>
+<li><code>diagnostics</code> (dict): field solution metadata and validation flags (see below)</li>
 </ul>
+<h3 id="read-only-properties-aliases">Read-only properties (aliases)<a class="headerlink" href="#read-only-properties-aliases" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>.phi_e</code> -&gt; <code>phi_e_proxy</code></li>
+<li><code>.csd</code> -&gt; <code>csd_proxy</code></li>
+<li><code>.lfp</code> -&gt; <code>lfp_proxy</code></li>
+<li><code>.kernel_matrix</code> -&gt; <code>kernel</code></li>
+</ul>
+<p><strong>Note:</strong> <code>lfp_proxy</code> and <code>phi_e_proxy</code> are currently the same array
+(<code>jaxfne/fields/proxy.py:169-170</code> sets <code>lfp_proxy = source_proxy</code> then
+<code>phi_e_proxy = lfp_proxy</code>) — the module does not yet distinguish an LFP
+readout from the raw potential proxy. <code>csd_proxy</code> is the genuinely distinct
+quantity, computed from <code>phi_e_proxy</code> via <code>csd_tensor</code>.</p>
+<p>There is no <code>FieldOutput.to_dict()</code> method and no <code>source</code> attribute (the
+field is named <code>source_proxy</code>). To get a JSON-safe dict of the diagnostics,
+use <code>jaxfne.io.json_safe</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxfne.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">json_safe</span>
+
+<span class="n">field_dict</span> <span class="o">=</span> <span class="n">json_safe</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">diagnostics</span><span class="p">)</span>
+</code></pre></div>
 <h3 id="diagnostics-dictionary">Diagnostics Dictionary<a class="headerlink" href="#diagnostics-dictionary" title="Permanent link">&para;</a></h3>
-<p>All <code>diagnostics</code> must include 18 required fields:</p>
+<p><code>diagnostics</code> is produced by <code>validate_projection_invariants</code> (structural
+invariants) merged with a field-solution report from
+<code>_make_field_solution_report</code>, plus a few extra keys — 46 keys total as of
+this writing (verified via <code>sorted(field.diagnostics.keys())</code> on a live
+<code>project_laminar_sources</code> call). Every key below is required — it is always
+present on the returned dict, regardless of which projection <code>mode</code> was
+used. The keys relevant to truth-gate/claim status:</p>
 <table>
 <thead>
 <tr>
@@ -3042,9 +4727,49 @@ Transforms point-neuron currents into distributed source density using anatomica
 </thead>
 <tbody>
 <tr>
+<td><code>operator_type</code></td>
+<td>str</td>
+<td>Mathematical operator: <code>"linear_projection"</code></td>
+</tr>
+<tr>
+<td><code>representation</code></td>
+<td>str</td>
+<td>Output representation: <code>"relative"</code></td>
+</tr>
+<tr>
+<td><code>validation_status</code></td>
+<td>str</td>
+<td>Validation plane: <code>"computational"</code></td>
+</tr>
+<tr>
+<td><code>calibration_transform</code></td>
+<td>str</td>
+<td>Explicit boundary transform: <code>"explicit_boundary_transform"</code></td>
+</tr>
+<tr>
+<td><code>normalization_mode</code></td>
+<td>str</td>
+<td><code>"density_preserving"</code> or <code>"row_normalize"</code></td>
+</tr>
+<tr>
+<td><code>kernel_row_normalization_applied</code></td>
+<td>bool</td>
+<td>Whether row normalization was selected</td>
+</tr>
+<tr>
+<td><code>kernel_row_normalization_valid</code></td>
+<td>bool | None</td>
+<td>Row-sum check; <code>None</code> for density-preserving mode</td>
+</tr>
+<tr>
+<td><code>kernel_row_stochastic_status</code></td>
+<td>str</td>
+<td>Compatibility status: mode validity or row-sum validity</td>
+</tr>
+<tr>
 <td><code>field_solver_status</code></td>
 <td>str</td>
-<td>Solver type: <code>"linear_solver"</code></td>
+<td>Solver type: always <code>"linear_solver"</code> for these proxy operators</td>
 </tr>
 <tr>
 <td><code>solver_name</code></td>
@@ -3054,12 +4779,12 @@ Transforms point-neuron currents into distributed source density using anatomica
 <tr>
 <td><code>boundary_condition</code></td>
 <td>str</td>
-<td>BC declaration; <code>"declared_metadata_only"</code> for proxy</td>
+<td>BC declaration: <code>"mean_zero_neumann"</code></td>
 </tr>
 <tr>
 <td><code>gauge</code></td>
 <td>str</td>
-<td>Gauge convention; <code>"declared_metadata_only"</code> for proxy</td>
+<td>Gauge convention: <code>"mean_zero"</code></td>
 </tr>
 <tr>
 <td><code>csd_sign_convention</code></td>
@@ -3069,47 +4794,52 @@ Transforms point-neuron currents into distributed source density using anatomica
 <tr>
 <td><code>current_density_layout</code></td>
 <td>str</td>
-<td>J_e status: <code>"not_applicable"</code> for proxy</td>
+<td>J_e status: <code>"not_applicable"</code></td>
 </tr>
 <tr>
 <td><code>solver_residual_l2_relative</code></td>
 <td>float | None</td>
-<td>PDE residual; <code>null</code> for proxy</td>
+<td>PDE residual; <code>None</code> for proxy</td>
 </tr>
 <tr>
 <td><code>n_iterations</code></td>
 <td>int | None</td>
-<td>Solver iteration count; <code>null</code> for proxy</td>
+<td>Solver iteration count; <code>None</code> for proxy</td>
 </tr>
 <tr>
 <td><code>converged</code></td>
 <td>bool | None</td>
-<td>Convergence flag; <code>null</code> for proxy</td>
+<td>Convergence flag; <code>None</code> for proxy</td>
 </tr>
 <tr>
-<td><code>finite_phi_e</code></td>
+<td><code>finite_phi_e</code> / <code>finite_phi_e_proxy</code></td>
 <td>bool</td>
 <td>Is potential array finite?</td>
 </tr>
 <tr>
 <td><code>finite_J_e</code></td>
 <td>bool</td>
-<td>Is current density finite? <code>false</code> for proxy</td>
+<td>Is current density finite? Always <code>False</code> (J_e never computed)</td>
 </tr>
 <tr>
-<td><code>finite_CSD</code></td>
+<td><code>finite_CSD</code> / <code>finite_csd_proxy</code></td>
 <td>bool</td>
 <td>Is CSD array finite?</td>
 </tr>
 <tr>
-<td><code>field_model_status</code></td>
+<td><code>finite_source_proxy</code>, <code>finite_lfp_proxy</code>, <code>finite_sources</code>, <code>finite_positions</code>, <code>finite_kernel</code></td>
+<td>bool</td>
+<td>Per-array finiteness checks</td>
+</tr>
+<tr>
+<td><code>field_claim_level</code></td>
 <td>str</td>
 <td>Statement authority: <code>"proxy_readout"</code></td>
 </tr>
 <tr>
-<td><code>amplitude_status</code></td>
+<td><code>physical_amplitude_calibrated</code></td>
 <td>bool</td>
-<td>Can statement physical units? Always <code>false</code> for proxy</td>
+<td>Can statement physical units? Always <code>False</code> for proxy</td>
 </tr>
 <tr>
 <td><code>source_projection_mode</code></td>
@@ -3124,21 +4854,54 @@ Transforms point-neuron currents into distributed source density using anatomica
 <tr>
 <td><code>source_conservation_tested</code></td>
 <td>bool</td>
-<td>Was conservation validated? <code>false</code> for proxy</td>
+<td>Was conservation validated? Always <code>False</code> for proxy</td>
 </tr>
 <tr>
-<td><code>source_conservation_status</code></td>
+<td><code>source_conservation_claim_allowed</code></td>
 <td>bool</td>
-<td>Can statement conserved sources? <code>false</code> for proxy</td>
+<td>Can statement conserved sources? Always <code>False</code> for proxy</td>
+</tr>
+<tr>
+<td><code>source_calibration_status</code></td>
+<td>str</td>
+<td><code>"uncalibrated_izhikevich_native_current"</code></td>
+</tr>
+<tr>
+<td><code>source_decomposition</code></td>
+<td>str</td>
+<td><code>"proxy_reduced_emitter"</code></td>
+</tr>
+<tr>
+<td><code>csd_operator</code></td>
+<td>dict</td>
+<td>Declared CSD-like stencil, spacing, boundary, and representations</td>
+</tr>
+<tr>
+<td><code>field_admissibility</code></td>
+<td>dict</td>
+<td>Nested dict of kernel-normalization/finiteness sub-checks</td>
+</tr>
+<tr>
+<td><code>warnings</code></td>
+<td>list[str]</td>
+<td>Any structural-invariant warnings raised during validation</td>
+</tr>
+<tr>
+<td><code>*_shape</code> keys</td>
+<td>tuple[int, ...]</td>
+<td>Shapes of <code>source</code>/<code>positions</code>/<code>kernel</code>/<code>source_proxy</code>/<code>phi_e_proxy</code>/<code>csd_proxy</code>/<code>lfp_proxy</code></td>
+</tr>
+<tr>
+<td><code>dtype</code></td>
+<td>str</td>
+<td>dtype of the input <code>sources</code> array</td>
 </tr>
 </tbody>
 </table>
-<h3 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">&para;</a></h3>
-<h4 id="to_dict-dict"><code>to_dict() -&gt; dict</code><a class="headerlink" href="#to_dict-dict" title="Permanent link">&para;</a></h4>
-<p>Convert field output to JSON-safe dictionary.</p>
-<p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">field_dict</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
-</code></pre></div></p>
+<p>There is no <code>amplitude_status</code> or <code>field_model_status</code> key (the doc
+previously invented these) — the real names are <code>physical_amplitude_calibrated</code>
+and <code>field_claim_level</code>. Similarly, <code>source_conservation_claim_allowed</code> is the
+real key in place of the invented <code>source_conservation_status</code>.</p>
 <hr />
 <h2 id="field-solvers">Field Solvers<a class="headerlink" href="#field-solvers" title="Permanent link">&para;</a></h2>
 <h3 id="probe_laminar_modesfield_output-modessource-phi_e-csd-lfp-dict"><code>probe_laminar_modes(field_output, modes=("source", "phi_e", "CSD", "LFP")) -&gt; dict</code><a class="headerlink" href="#probe_laminar_modesfield_output-modessource-phi_e-csd-lfp-dict" title="Permanent link">&para;</a></h3>
@@ -3176,6 +4939,200 @@ basis, not a physical current density.</p>
 <div class="highlight"><pre><span></span><code><span class="n">src</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">construct_source_tensor</span><span class="p">(</span><span class="n">total_membrane_current</span><span class="o">=</span><span class="n">I_mem</span><span class="p">)</span>  <span class="c1"># default mode</span>
 </code></pre></div></p>
 <hr />
+<h3 id="cable_filter_taucell_type-depth_z-tau_e_superficial_ms10-tau_e_deep_ms50-tau_pv_ms05-tau_sst_ms20-tau_vip_ms20-tau_s"><code>cable_filter_tau(cell_type, depth_z, *, tau_e_superficial_ms=1.0, tau_e_deep_ms=5.0, tau_pv_ms=0.5, tau_sst_ms=2.0, tau_vip_ms=2.0) -&gt; tau_s</code><a class="headerlink" href="#cable_filter_taucell_type-depth_z-tau_e_superficial_ms10-tau_e_deep_ms50-tau_pv_ms05-tau_sst_ms20-tau_vip_ms20-tau_s" title="Permanent link">&para;</a></h3>
+<p>Build the per-neuron cable time constant array consumed by <code>cable_filter_sources</code>.</p>
+<p><strong>Parameters:</strong>
+- <code>cell_type</code> (<code>Sequence[str]</code>): per-neuron cell-type labels, length <code>[N]</code>.
+- <code>depth_z</code> (<code>jax.Array</code>): per-neuron normalized laminar depth in <code>[0, 1]</code>,
+  length <code>[N]</code> (0=superficial, 1=deep).
+- <code>tau_e_superficial_ms</code>, <code>tau_e_deep_ms</code> (float): <code>E</code>-cell tau is linearly
+  interpolated between these two values by <code>depth_z</code>.
+- <code>tau_pv_ms</code>, <code>tau_sst_ms</code>, <code>tau_vip_ms</code> (float): fixed tau per interneuron
+  subtype. Any other/unrecognized cell type falls back to <code>tau_sst_ms</code>.</p>
+<p><strong>Returns:</strong> <code>tau_s</code> (<code>jax.Array</code>, seconds, shape <code>[N]</code>).</p>
+<p><strong>Description:</strong>
+Defaults are the numerically-swept operating point used by <code>cable_filter_sources</code> below
+(<code>order=2</code>). <code>PV</code> gets the shortest tau (highest cutoff, passes gamma at
+every depth); <code>E</code> cells get a depth-graded tau (long apical dendrites on deep
+pyramidal cells =&gt; longer tau =&gt; lower cutoff).</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">nt</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">neuron_table</span><span class="p">()</span>
+<span class="n">tau_s</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">cable_filter_tau</span><span class="p">(</span><span class="n">nt</span><span class="p">[</span><span class="s2">&quot;cell_type&quot;</span><span class="p">],</span> <span class="n">nt</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">])</span>
+</code></pre></div></p>
+<hr />
+<h3 id="cable_filter_sourcessources-tau_s-dt_ms-order2-filtered_sources"><code>cable_filter_sources(sources, tau_s, dt_ms, *, order=2) -&gt; filtered_sources</code><a class="headerlink" href="#cable_filter_sourcessources-tau_s-dt_ms-order2-filtered_sources" title="Permanent link">&para;</a></h3>
+<p>Apply a depth/cell-type-dependent passive-cable low-pass <strong>tensor</strong> to
+per-neuron source-proxy traces. Standard pipeline stage:</p>
+<div class="highlight"><pre><span></span><code>emitter -&gt; (source_scale gain tensor) -&gt; source
+        -&gt; cable_filter_sources (this tensor)
+        -&gt; readout (project_laminar_sources / eeg_proxy_transform / meg_proxy_transform)
+</code></pre></div>
+<p><strong>Parameters:</strong>
+- <code>sources</code> (<code>jax.Array</code>): source-proxy traces, shape <code>[T, N]</code>.
+- <code>tau_s</code> (<code>jax.Array</code>): per-neuron cable time constant in seconds, shape
+  <code>[N]</code>. Build with <code>cable_filter_tau</code>.
+- <code>dt_ms</code> (float): simulation timestep in milliseconds.
+- <code>order</code> (int, default <code>2</code>): number of cascaded single-pole RC sections.</p>
+<p><strong>Returns:</strong> filtered source-proxy traces, shape <code>[T, N]</code>.</p>
+<p><strong>Description:</strong>
+Computes, per neuron, the cascaded single-pole transfer function
+<code>H[f, n] = 1 / (1 + 2j*pi*f*tau_s[n]) ** order</code> and applies it along the time
+axis via FFT. A phenomenological proxy for passive dendritic cable
+filtering — a Relative-value projection (<code>field_solver_status="linear_solver"</code>,
+<code>physical_amplitude_calibrated=False</code>).</p>
+<p>Validated on a 100-neuron canonical V1 column (10 trials x 6000 ms,
+<code>cable_filter_tau</code> defaults, <code>order=2</code>): alpha/beta deep:superficial power
+ratio 1.30 (deep-dominant, same direction as the unfiltered baseline) and
+gamma deep:superficial power ratio 0.66 (flips to superficial-dominant — a
+genuine absolute band-selective effect, absent from the unfiltered
+flat-gain baseline). <code>order=1</code> gives the same direction but a much weaker
+gamma flip (0.93); <code>order=2</code> is the sweep-selected default.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">tau_s</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">cable_filter_tau</span><span class="p">(</span><span class="n">cell_type</span><span class="p">,</span> <span class="n">depth_z</span><span class="p">)</span>
+<span class="n">filtered</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">cable_filter_sources</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">tau_s</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">fo</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">project_laminar_sources</span><span class="p">(</span><span class="n">filtered</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">n_contacts</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+</code></pre></div></p>
+<hr />
+<h3 id="cable_filter_reporttau_s-order2-dict"><code>cable_filter_report(tau_s, order=2) -&gt; dict</code><a class="headerlink" href="#cable_filter_reporttau_s-order2-dict" title="Permanent link">&para;</a></h3>
+<p>JSON-safe truth-gate report for a <code>cable_filter_sources</code> call.</p>
+<p><strong>Parameters:</strong>
+- <code>tau_s</code> (<code>jax.Array</code>): the same per-neuron tau array passed to
+  <code>cable_filter_sources</code>.
+- <code>order</code> (int): the same filter order passed to <code>cable_filter_sources</code>.</p>
+<p><strong>Returns:</strong> a <code>dict</code> with <code>tau_s_mean/min/max</code>, <code>cutoff_hz_mean</code>,
+<code>field_solver_status="linear_solver"</code>, <code>physical_amplitude_calibrated=False</code>,
+<code>claim_level="computational_scaffold"</code>, and a <code>finite_tau</code> flag.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">report</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">cable_filter_report</span><span class="p">(</span><span class="n">tau_s</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">report</span><span class="p">[</span><span class="s2">&quot;finite_tau&quot;</span><span class="p">]</span>
+</code></pre></div></p>
+<hr />
+<h3 id="csd_tensorphi_e_proxy-dz-csd_proxy"><code>csd_tensor(phi_e_proxy, dz) -&gt; csd_proxy</code><a class="headerlink" href="#csd_tensorphi_e_proxy-dz-csd_proxy" title="Permanent link">&para;</a></h3>
+<p>Spatial second-derivative CSD tensor (readout family, depth-axis stage).</p>
+<p><strong>Parameters:</strong>
+- <code>phi_e_proxy</code> (<code>jax.Array</code>): extracellular-potential proxy, shape <code>[T, n_contacts]</code>.
+- <code>dz</code> (<code>jax.Array | float</code>): contact spacing in the same relative-depth units
+  as the contact axis.</p>
+<p><strong>Returns:</strong> CSD proxy, shape <code>[T, n_contacts]</code>. Returns zeros when <code>n_contacts &lt; 3</code>.</p>
+<p><strong>Description:</strong>
+<code>csd_proxy[c] = -(phi[c+1] - 2*phi[c] + phi[c-1]) / dz**2</code>, edge-padded at the
+boundaries. Factored out of <code>project_laminar_sources</code> (which still calls this
+function internally — confirmed byte-identical via regression test) so CSD
+can be recomputed standalone from any <code>[T, n_contacts]</code> potential-proxy array
+without re-running the full projection. Unlike <code>cable_filter_sources</code>, this is
+a purely spatial operator, not a frequency-domain one — CSD is the 2nd
+spatial derivative of whatever LFP-proxy it is given, nothing more.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">fo</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">project_laminar_sources</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">n_contacts</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">dz</span> <span class="o">=</span> <span class="n">fo</span><span class="o">.</span><span class="n">contact_depths</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">fo</span><span class="o">.</span><span class="n">contact_depths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">csd</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">csd_tensor</span><span class="p">(</span><span class="n">fo</span><span class="o">.</span><span class="n">phi_e_proxy</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span>  <span class="c1"># == fo.csd_proxy</span>
+</code></pre></div></p>
+<hr />
+<h3 id="jaxfnefieldsexperimental_poisson_1dsources-conductivity-dx-boundarymean_zero_neumann-gaugemean_zero-phi-residual-manifest"><code>jaxfne.fields.experimental_poisson_1d(sources, conductivity, dx, boundary="mean_zero_neumann", gauge="mean_zero") -&gt; (phi, residual, manifest)</code><a class="headerlink" href="#jaxfnefieldsexperimental_poisson_1dsources-conductivity-dx-boundarymean_zero_neumann-gaugemean_zero-phi-residual-manifest" title="Permanent link">&para;</a></h3>
+<p>An actual 1D Poisson PDE solve — distinct from the proxy operators above and
+from the fenced multi-dimensional placeholder below.</p>
+<p><strong>Where this sits in the field-solver layer:</strong>
+- <strong>Proxy layer</strong> (<code>project_laminar_sources</code>, <code>csd_tensor</code>, etc., above): Gaussian-kernel
+  / finite-difference approximations, no PDE assembled or solved. <code>field_solver_status</code>
+  stays <code>"linear_solver"</code>.
+- <strong><code>experimental_poisson_1d</code> (this function):</strong> assembles and solves a real
+  1D linear system <code>d/dx (conductivity * d/dx phi) = -sources</code> via
+  <code>jnp.linalg.lstsq</code>, declaring <code>field_solver_status="experimental_pde_solver"</code>
+  in its returned manifest. It is a minimal, single-dimension PDE solve — not
+  the calibrated multi-dimensional volume-conductor solver the package's
+  longer-term scope describes.
+- <strong><code>solve_volume_conductor_experimental</code> / <code>PhysicalFieldSolverSpec</code></strong>
+  (<code>jaxfne/experimental_hpc/</code>): a loud-fail skeleton for that
+  multi-dimensional solver. Construction is inert; <code>.validate()</code> /
+  <code>solve_physical_field()</code> raise <code>NotImplementedError</code> pending
+  boundary/gauge/calibration validation (see
+  the tensor-electromagnetics scope statement (repository doc, excluded from the built site)).</p>
+<p><strong>Parameters:</strong>
+- <code>sources</code> (<code>jax.Array</code>): 1D array of current/charge sources.
+- <code>conductivity</code> (float or <code>jax.Array</code>): conductivity scalar (uniform medium,
+  original behavior, unchanged), or a per-face array of shape <code>(N-1,)</code> giving
+  the conductivity between each pair of adjacent grid nodes (a piecewise-
+  constant "layered" medium, e.g. distinct cortical-layer conductivities).
+  The layered case discretizes the variable-coefficient flux divergence at
+  cell faces, the standard finite-difference treatment for <code>d/dx(sigma(x) dphi/dx)</code>.
+  Passing a scalar is bit-identical to the uniform conductivity formulation
+  (verified in <code>tests/test_experimental_poisson_1d_layered.py</code>).
+- <code>dx</code> (float): grid spacing.
+- <code>boundary</code> (str, default <code>"mean_zero_neumann"</code>): boundary condition declaration.
+- <code>gauge</code> (str, default <code>"mean_zero"</code>): gauge choice; the returned <code>phi</code> is the
+  minimum-norm least-squares solution, which satisfies the mean-zero gauge.</p>
+<p><strong>Analytic validation reference:</strong> the layered case's ground truth is the
+classical "two half-space" point-source volume-conductor result (reflection
+coefficient <code>k=(sigma1-sigma2)/(sigma1+sigma2)</code>, derived from continuity of
+potential and normal current density) — see
+<code>tests/test_experimental_poisson_1d_layered.py</code>'s module docstring for the
+full derivation and 3 limiting-case sanity checks (uniform medium, insulating
+boundary, grounded boundary) before it's used to validate any solver output.
+A separate discrete-flux-conservation check (current is exactly zero outside
+a source/sink span and exactly constant within it) is verified directly
+against the solver's own output in <code>tests/test_experimental_poisson_1d_convergence.py</code>.</p>
+<p><strong>Known limitation:</strong> the dense <code>jnp.linalg.lstsq</code> solve's residual grows
+sharply above roughly N~150-200 grid points in float32, on both the scalar and
+layered paths — <code>convergence_status</code> correctly self-reports <code>"failed"</code> in that
+regime rather than returning a silently wrong answer. Treat this function as
+validated up to roughly N~150 until a sparse/preconditioned solve replaces it.</p>
+<p><strong>Returns:</strong> <code>(phi, residual, manifest)</code> —
+- <code>phi</code> (<code>jax.Array</code>): solved potential array.
+- <code>residual</code> (<code>jax.Array</code>): <code>A @ phi - b</code> residual of the assembled linear system.
+- <code>manifest</code> (<code>dict</code>): <code>claim_level="computational_scaffold"</code>,
+  <code>field_solver_status="experimental_pde_solver"</code>, <code>boundary_condition</code>,
+  <code>gauge_choice</code>, <code>residual_norm</code>, <code>convergence_status</code>
+  (<code>"converged"</code> if <code>residual_norm &lt; 1e-3</code> else <code>"failed"</code>),
+  <code>physical_amplitude_calibrated=False</code>.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="c1"># Pure-Neumann Poisson is only solvable for zero-net-flux sources;</span>
+<span class="c1"># a single nonzero entry violates that compatibility condition.</span>
+<span class="n">sources</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="mi">24</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">phi</span><span class="p">,</span> <span class="n">residual</span><span class="p">,</span> <span class="n">manifest</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">experimental_poisson_1d</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">conductivity</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">dx</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;convergence_status&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;converged&quot;</span>
+</code></pre></div></p>
+<hr />
+<h3 id="jaxfnefieldsexperimental_poisson_1d_from_neuron_tableneuron_table-sources-conductivity-n_bins-z_minnone-z_maxnone-boundarymean_zero_neumann-gaugemean_zero-phi-residual-manifest"><code>jaxfne.fields.experimental_poisson_1d_from_neuron_table(neuron_table, sources, conductivity, n_bins, z_min=None, z_max=None, boundary="mean_zero_neumann", gauge="mean_zero") -&gt; (phi, residual, manifest)</code><a class="headerlink" href="#jaxfnefieldsexperimental_poisson_1d_from_neuron_tableneuron_table-sources-conductivity-n_bins-z_minnone-z_maxnone-boundarymean_zero_neumann-gaugemean_zero-phi-residual-manifest" title="Permanent link">&para;</a></h3>
+<p>Bridges real per-neuron depth positions (from <code>Model.neuron_table()</code>) and
+source values (e.g. a time-slice of <code>Signals.sources</code>) into
+<code>experimental_poisson_1d</code>'s 1D depth grid — providing direct integration of the
+finite-difference experimental 1D field operator with the Model/Signals object model. This is a
+separate, explicitly opt-in accessor called after <code>construct()</code>/<code>simulate()</code>,
+kept fully independent of <code>project_laminar_sources</code> and the default
+<code>simulate()</code> field dispatch, which stay exactly as they are today.</p>
+<p><strong>Parameters:</strong>
+- <code>neuron_table</code> (sequence of dict): from <code>Model.neuron_table()</code>; every row
+  needs a numeric <code>"z"</code> — raises <code>ValueError</code> when a row lacks one.
+- <code>sources</code> (array, shape <code>(n_neurons,)</code>): per-neuron source values. Neurons
+  sharing a depth bin are <strong>summed</strong> (jaxfne's source values are current-
+  like; summing is the physically sensible aggregation), and the summed
+  value is passed to <code>experimental_poisson_1d</code> exactly as-is — per that
+  function's own convention (a node value <code>Q</code> produces a flux jump of
+  <code>Q*dx</code>, confirmed in <code>tests/test_experimental_poisson_1d_convergence.py</code>).
+  An explicit modeling choice, always stated here rather than left implicit.
+- <code>conductivity</code> (float or <code>jax.Array</code>): scalar or per-face array of shape
+  <code>(n_bins-1,)</code>, always caller-supplied — jaxfne treats every conductivity
+  value as uncalibrated, so this is a required input here too, the same as
+  every other field-projection entry point.
+- <code>n_bins</code> (int): depth-grid resolution. Keep below ~150 per
+  <code>experimental_poisson_1d</code>'s documented convergence ceiling.
+- <code>z_min</code>, <code>z_max</code> (float, optional): depth range; default to the actual
+  min/max <code>z</code> in <code>neuron_table</code>.</p>
+<p><strong>Returns:</strong> <code>(phi, residual, manifest)</code> — as <code>experimental_poisson_1d</code>, plus
+<code>manifest["bin_edges"]</code> (the depth grid) and <code>manifest["neurons_per_bin"]</code>
+(neuron count per bin, for transparency about the binning step — an empty
+bin simply gets source value 0).</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>  <span class="c1"># a laminar_column-domain Configuration</span>
+<span class="n">sig</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">rows</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">neuron_table</span><span class="p">()</span>
+<span class="n">sources_last_step</span> <span class="o">=</span> <span class="n">sig</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># (n_neurons,) time-slice</span>
+
+<span class="n">phi</span><span class="p">,</span> <span class="n">residual</span><span class="p">,</span> <span class="n">manifest</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">experimental_poisson_1d_from_neuron_table</span><span class="p">(</span>
+    <span class="n">rows</span><span class="p">,</span> <span class="n">sources_last_step</span><span class="p">,</span> <span class="n">conductivity</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+</code></pre></div></p>
+<hr />
 <h2 id="boundary-conditions-constraints">Boundary Conditions &amp; Constraints<a class="headerlink" href="#boundary-conditions-constraints" title="Permanent link">&para;</a></h2>
 <h3 id="mean-zero-constraint">Mean-Zero Constraint<a class="headerlink" href="#mean-zero-constraint" title="Permanent link">&para;</a></h3>
 <p>The default boundary condition enforces zero-mean field solutions:</p>
@@ -3204,18 +5161,18 @@ basis, not a physical current density.</p>
 <div class="highlight"><pre><span></span><code><span class="n">status</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">validate_source_field_status</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">status</span><span class="p">[</span><span class="s2">&quot;all_finite&quot;</span><span class="p">]</span>
 </code></pre></div></p>
-<h3 id="validate_projection_invariantssources-field_output-bool"><code>validate_projection_invariants(sources, field_output) -&gt; bool</code><a class="headerlink" href="#validate_projection_invariantssources-field_output-bool" title="Permanent link">&para;</a></h3>
-<p>Check that field respects source-field relationships.</p>
-<p><strong>Parameters:</strong>
-- <code>sources</code> (jax.Array): Original sources
-- <code>field_output</code> (FieldOutput): Computed field</p>
-<p><strong>Returns:</strong> Boolean (valid=True)</p>
-<p><strong>Invariants:</strong>
-- Field sign convention consistency
-- No unphysical amplification
-- Conservation properties (relative)</p>
+<h3 id="validate_projection_invariants-sources-positions-kernel-source_proxy-phi_e_proxy-csd_proxy-lfp_proxy-moderow_normalize-dict"><code>validate_projection_invariants(*, sources, positions, kernel, source_proxy, phi_e_proxy, csd_proxy, lfp_proxy, mode="row_normalize") -&gt; dict</code><a class="headerlink" href="#validate_projection_invariants-sources-positions-kernel-source_proxy-phi_e_proxy-csd_proxy-lfp_proxy-moderow_normalize-dict" title="Permanent link">&para;</a></h3>
+<p>Check structural invariants of the laminar proxy projection (kernel
+row-normalization, finiteness, shape consistency). See
+<a href="../validation/#validate_projection_invariants-sources-positions-kernel-source_proxy-phi_e_proxy-csd_proxy-lfp_proxy-moderow_normalize-dict">Validation API</a>
+for the full parameter list — all keyword-only, returns a <code>dict</code> of
+pass/fail diagnostics, not a <code>bool</code>.</p>
 <p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">is_valid</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">validate_projection_invariants</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">report</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">validate_projection_invariants</span><span class="p">(</span>
+    <span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">positions</span><span class="o">=</span><span class="n">positions</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span>
+    <span class="n">source_proxy</span><span class="o">=</span><span class="n">source_proxy</span><span class="p">,</span> <span class="n">phi_e_proxy</span><span class="o">=</span><span class="n">phi_e_proxy</span><span class="p">,</span>
+    <span class="n">csd_proxy</span><span class="o">=</span><span class="n">csd_proxy</span><span class="p">,</span> <span class="n">lfp_proxy</span><span class="o">=</span><span class="n">lfp_proxy</span><span class="p">,</span>
+<span class="p">)</span>
 </code></pre></div></p>
 <h3 id="compute_conservation_proxy_diagnosticssources-field-dict"><code>compute_conservation_proxy_diagnostics(sources, field) -&gt; dict</code><a class="headerlink" href="#compute_conservation_proxy_diagnosticssources-field-dict" title="Permanent link">&para;</a></h3>
 <p>Compute conservation-inspired diagnostic metrics.</p>
@@ -3235,8 +5192,12 @@ basis, not a physical current density.</p>
 <hr />
 <h2 id="mathematical-form">Mathematical Form<a class="headerlink" href="#mathematical-form" title="Permanent link">&para;</a></h2>
 <div class="arithmatex">\[\phi_{\mathrm{proxy}}(t,c) = \sum_{n=1}^{N} W_{cn} S_n(t)\]</div>
-<p>where <span class="arithmatex">\(W\)</span> is row-normalized (<span class="arithmatex">\(\sum_n W_{cn} = 1\)</span>).</p>
-<div class="arithmatex">\[\mathrm{CSD}_{\mathrm{proxy}}(t,c) = \frac{\phi_{\mathrm{proxy}}(t,c+1) - 2\phi_{\mathrm{proxy}}(t,c) + \phi_{\mathrm{proxy}}(t,c-1)}{(\Delta z)^2}\]</div>
+<p><strong>Default (<code>mode="density_preserving"</code>):</strong> <span class="arithmatex">\(W_{cn} = \exp(-\|z_c - z_n\|^2 / 2\sigma^2)\)</span> — preserves source density.</p>
+<p><strong>Optional (<code>mode="row_normalize"</code>):</strong> row-stochastic <span class="arithmatex">\(W\)</span> with <span class="arithmatex">\(\sum_n W_{cn} = 1\)</span> for all contacts <span class="arithmatex">\(c\)</span>.</p>
+<div class="arithmatex">\[\mathrm{CSD}_{\mathrm{proxy}}(t,c) = -\frac{\phi_{\mathrm{proxy}}(t,c+1) - 2\phi_{\mathrm{proxy}}(t,c) + \phi_{\mathrm{proxy}}(t,c-1)}{(\Delta z)^2}\]</div>
+<p>The spacing <code>Δz</code> is the relative contact-depth spacing. Boundaries use edge
+padding, the input is <code>phi_e_proxy</code>, and the output is the relative
+<code>csd_proxy</code> representation.</p>
 <hr />
 <h2 id="proxy-scope-limitations">Proxy Scope &amp; Limitations<a class="headerlink" href="#proxy-scope-limitations" title="Permanent link">&para;</a></h2>
 <p>⚠️ <strong>All field computations are proxy approximations:</strong></p>
@@ -3245,7 +5206,7 @@ basis, not a physical current density.</p>
 <li><strong>No 3D conductivity:</strong> Anatomy is declared, not solved</li>
 <li><strong>No extracellular detail:</strong> Simplified layer-to-layer projections</li>
 <li><strong>Proxy LFP/CSD:</strong> Spatial convolution, not source localization</li>
-<li><strong>Sign convention:</strong> Positive CSD = extracellular source (inward current)</li>
+<li><strong>Sign convention:</strong> Positive CSD = extracellular current source (outward transmembrane current); negative CSD = extracellular current sink (inward transmembrane current). <code>csd_proxy = -d²φ/dz²</code> along the depth axis.</li>
 <li><strong>Field model status:</strong> <code>"proxy_readout"</code> — not physical amplitude</li>
 </ul>
 <p><strong>Use for:</strong>
@@ -3330,7 +5291,7 @@ basis, not a physical current density.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       

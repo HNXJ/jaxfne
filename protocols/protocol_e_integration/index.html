@@ -1,0 +1,4352 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Tensor-Field Neural Equations — JAX simulation for neural circuits, fields, and adaptation">
+      
+      
+      
+        <link rel="canonical" href="https://jaxfne.readthedocs.io/protocols/protocol_e_integration/">
+      
+      
+        <link rel="prev" href="../protocol_d_biological_rbs/">
+      
+      
+        <link rel="next" href="../../doctrine/rbs_rbd_hdp/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/jaxfne-img.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Integrated TFNE Composition - jaxfne</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../_theme_override.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="orange" data-md-color-accent="gray">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#integrated-tfne-composition" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="jaxfne" class="md-header__button md-logo" aria-label="jaxfne" data-md-component="logo">
+      
+  <img src="../../assets/jaxfne-img.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            jaxfne
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Integrated TFNE Composition
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="orange" data-md-color-accent="gray"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/HNXJ/jaxfne" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HNXJ/jaxfne
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="jaxfne" class="md-nav__button md-logo" aria-label="jaxfne" data-md-component="logo">
+      
+  <img src="../../assets/jaxfne-img.png" alt="logo">
+
+    </a>
+    jaxfne
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/HNXJ/jaxfne" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HNXJ/jaxfne
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gallery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gallery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../public_surface_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scope_and_status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scope & status
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../tutorials/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/notebook_standard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebook standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/tutorial_outputs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial Outputs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cumulative (canonical 1000n)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cumulative (canonical 1000n)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_define_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Define (PseudoGenome)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_develop_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Develop (G→N)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_inspect_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect (realized vs configured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_simulate_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulate (construct→Signals)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_observe_fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observe (field & probe)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_add_state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add state (H / RBS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_add_dynamics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add dynamics (HDP)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_compare_nulls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare (nulls & lesions)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suites
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Suites
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_jaxfne_suite_no_1_computational_biophysics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Computational biophysics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Corticospectrolaminar motif
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_jaxfne_suite_no_2_evoked_l4_drive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evoked L4 drive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_jaxfne_suite_no_3_low_frequency_scaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Low-frequency scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Circuit construction (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Circuit construction (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_single_neuron_multimodal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Single-neuron multimodal
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_two_neuron_ei/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Two-neuron E/I
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_network_100_ei/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Population E/I network
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_v1_column/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    V1 laminar column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_v1_pfc_dual_column/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    V1–PFC dual column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_v036_100_neuron_ei_population/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration API population
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical cortical column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source, field, and readout (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Source, field, and readout (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_v037_source_bookkeeping/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source bookkeeping
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_v038_lfp_csd_readout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LFP and CSD proxies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EEG, MEG, EMM proxies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_8" id="__nav_2_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paradigms and optimization (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Paradigms and optimization (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/10_v0313_omission_oddball/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensory omission oddball
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-area laminar AGSDR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Izhikevich emitter explorer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/configuration_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration grammar
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/objective_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objective grammar
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/tensor_field_workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor-field workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/operator_composition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operator composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/probe_operators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probe operators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/calibration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Calibration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/homeostasis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homeostasis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-state and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jdna/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PseudoGenome (JDNA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/output_bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jaxley_interop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jaxley interoperability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../etudes/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Études
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Études
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/hdp_controllability_reachability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP controllability & reachability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/experiment_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical Multiscale Observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/heterogeneous_emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heterogeneous emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/multiscale_observation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiscale observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and Experiments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../protocol_c_wave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling Waves
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_c_wave_evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling-Wave Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../protocol_c_c3_neural/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Neural Geometry and Delays
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../protocol_d_biological_rbs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Biological RBS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrated TFNE Composition
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrated TFNE Composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#central-question-e0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Central question (E0)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#composition-target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Composition target
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e01-implementation-ladder-frozen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E0.1 implementation ladder (frozen)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="E0.1 implementation ladder (frozen)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#integration-monotonicity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integration monotonicity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checkpoint-scope-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoint scope summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#e5-phenotype-rule-from-d3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E5 phenotype rule (from D3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e1-hierarchyruntime-authorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E1 — hierarchy/runtime (authorized)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e2-typed-delayed-coupling-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E2 — typed delayed coupling (closed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e3-rbs-composition-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E3 — RBS composition (closed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e4-observation-chain-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E4 — observation chain (closed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e5-causal-perturbation-spec-frozen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E5 — causal perturbation (spec frozen)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e5-causal-perturbation-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E5 — causal perturbation (closed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#explicit-blocks-unchanged-from-e0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Explicit blocks (unchanged from E0)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checkpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoints
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/rbs_rbd_hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBS, RBD and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/relative_quantity_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relative Quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_h1b_h_to_x_gain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-to-X Gain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_rbd_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBD State Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_w_hdp_parameter_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP Parameter Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/tfne_containment_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TFNE Containment and Composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/source_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/field_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Field schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/probes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/objectives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/neuronal_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NeuronalTensor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/vis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/jdna/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JDNA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendix
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Appendix
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix/fundamental_laws/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fundamental laws
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../source_field_equations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source and field equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../computation_basis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Computation basis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mathematical_glossary_flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mathematical glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../colab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Colab quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../limitations_and_future_plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Limitations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#central-question-e0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Central question (E0)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#composition-target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Composition target
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e01-implementation-ladder-frozen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E0.1 implementation ladder (frozen)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="E0.1 implementation ladder (frozen)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#integration-monotonicity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integration monotonicity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checkpoint-scope-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoint scope summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#e5-phenotype-rule-from-d3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E5 phenotype rule (from D3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e1-hierarchyruntime-authorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E1 — hierarchy/runtime (authorized)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e2-typed-delayed-coupling-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E2 — typed delayed coupling (closed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e3-rbs-composition-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E3 — RBS composition (closed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e4-observation-chain-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E4 — observation chain (closed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e5-causal-perturbation-spec-frozen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E5 — causal perturbation (spec frozen)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e5-causal-perturbation-closed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E5 — causal perturbation (closed)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#explicit-blocks-unchanged-from-e0" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Explicit blocks (unchanged from E0)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checkpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoints
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="integrated-tfne-composition">Integrated TFNE Composition<a class="headerlink" href="#integrated-tfne-composition" title="Permanent link">&para;</a></h1>
+<p><em>Protocol E, 0.4.17-E — integrated TFNE composition. Composition experiment identifier retained in provenance.</em></p>
+<p><strong>Status:</strong> <strong>0.4.17-E hard scientific feature freeze</strong> — E1–E5 closed; TFNE integration architecture complete through causal perturbation evidence
+<strong>Milestone boundary:</strong> <code>9589933</code> — 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)</p>
+<p><strong>Specs:</strong><br />
+- E0: <code>artifacts/protocol_e_integration/e0_composition_spec.json</code><br />
+- E0.1: <code>artifacts/protocol_e_integration/e0_1_implementation_ladder_spec.json</code><br />
+- E1: <code>artifacts/protocol_e_integration/e1_hierarchy_runtime_spec.json</code>
+- E2: <code>artifacts/protocol_e_integration/e2_delayed_coupling_spec.json</code>
+- E3: <code>artifacts/protocol_e_integration/e3_rbs_composition_spec.json</code>
+- E4: <code>artifacts/protocol_e_integration/e4_observation_chain_spec.json</code>
+- E5: <code>artifacts/protocol_e_integration/e5_causal_perturbation_spec.json</code></p>
+<p><strong>Prerequisites:</strong> Protocol D closed @ D3; Protocol C closed @ C4; Protocol H closed @ H4; W3 unresolved</p>
+<h2 id="central-question-e0">Central question (E0)<a class="headerlink" href="#central-question-e0" title="Permanent link">&para;</a></h2>
+<div class="arithmatex">\[
+\boxed{
+\text{Can independently validated TFNE components compose into a
+hierarchical multi-area system without semantic or dynamical failure?}
+}
+\]</div>
+<p>E is a <strong>composition experiment</strong>, not a phenotype-manufacturing experiment.</p>
+<h2 id="composition-target">Composition target<a class="headerlink" href="#composition-target" title="Permanent link">&para;</a></h2>
+<div class="arithmatex">\[
+\boxed{
+\text{geometry}
++
+\text{heterogeneous populations}
++
+\text{delays}
++
+\text{RBS/RBD}
++
+S\rightarrow F/P
+\rightarrow
+\text{one coherent hierarchical system}
+}
+\]</div>
+<p><strong>Naming:</strong> heterogeneous <strong>populations/parameters</strong> within one emitter family (e.g. Izhikevich) is not the same as heterogeneous <strong>emitter equations</strong> (<span class="arithmatex">\(F_X\)</span> families).</p>
+<h2 id="e01-implementation-ladder-frozen">E0.1 implementation ladder (frozen)<a class="headerlink" href="#e01-implementation-ladder-frozen" title="Permanent link">&para;</a></h2>
+<div class="arithmatex">\[
+\boxed{
+E1\ \text{hierarchy/runtime}
+\rightarrow
+E2\ \text{delayed coupling}
+\rightarrow
+E3\ \text{RBS composition}
+\rightarrow
+E4\ \text{observation chain}
+\rightarrow
+E5\ \text{integrated perturbation}
+}
+\]</div>
+<h3 id="integration-monotonicity">Integration monotonicity<a class="headerlink" href="#integration-monotonicity" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>Adding a validated TFNE layer must not invalidate previously established lower-layer semantics.</p>
+</blockquote>
+<div class="arithmatex">\[
+E1 \subset E2 \subset E3 \subset E4
+\]</div>
+<p><strong>Reduction contracts (required):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Contract</th>
+<th>When</th>
+<th>Must recover</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R_E2→E1</td>
+<td>delays = 0</td>
+<td>E1-like coupling</td>
+</tr>
+<tr>
+<td>R_E3→E2</td>
+<td>RBS at reference <span class="arithmatex">\(H=H^\*\)</span></td>
+<td>E2 dynamics</td>
+</tr>
+<tr>
+<td>R_E4→E3</td>
+<td>observation removed</td>
+<td>E3 trajectories unchanged</td>
+</tr>
+</tbody>
+</table>
+<h3 id="checkpoint-scope-summary">Checkpoint scope summary<a class="headerlink" href="#checkpoint-scope-summary" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Adds</th>
+<th>Excludes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>E1</strong></td>
+<td>Two-area laminar hierarchy, E/PV populations, FF/FB ownership, zero delay</td>
+<td>RBS, delays, observation, phenotype</td>
+</tr>
+<tr>
+<td><strong>E2</strong></td>
+<td><span class="arithmatex">\(\mathcal G \to \tau_{ij} \to X\)</span>, <code>delay_state</code> continuation</td>
+<td>RBS, wave claims</td>
+</tr>
+<tr>
+<td><strong>E3</strong></td>
+<td>RBS/RBD on selected populations; <span class="arithmatex">\(H=H^\*\Rightarrow E3=E2\)</span></td>
+<td>D3 adaptation target</td>
+</tr>
+<tr>
+<td><strong>E4</strong></td>
+<td><span class="arithmatex">\(X,H\to Q\to\Phi\to P\to Y\)</span> (Experiment-A semantics)</td>
+<td>Stronger-than-proxy field claims</td>
+</tr>
+<tr>
+<td><strong>E5</strong></td>
+<td>Integrated perturbation</td>
+<td>— (requires E1–E4)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="e5-phenotype-rule-from-d3">E5 phenotype rule (from D3)<a class="headerlink" href="#e5-phenotype-rule-from-d3" title="Permanent link">&para;</a></h3>
+<div class="arithmatex">\[
+\boxed{
+\text{phenotype evidence} = \text{perturbation effect} - \text{mechanism-null effect}
+}
+\]</div>
+<h2 id="e1-hierarchyruntime-authorized">E1 — hierarchy/runtime (authorized)<a class="headerlink" href="#e1-hierarchyruntime-authorized" title="Permanent link">&para;</a></h2>
+<p>Minimal <strong>A1/A2</strong> laminar hierarchy with <strong>E</strong> and <strong>PV</strong> populations (same Izhikevich family, distinct parameters), explicit <strong>FF</strong> (A1 L2/3 E → A2 L4) and <strong>FB</strong> (A2 L5 E → A1 L2/3), <strong>zero delay</strong>, <strong>no RBS</strong>.</p>
+<p><strong>Structural gates:</strong> construction, identity round-trip recovery, FF/FB ownership on edge sets, finite deterministic execution, reproducibility, baseline structural reduction (inter-area disabled).</p>
+<p><strong>Diagnostics:</strong> per-edge provenance table (<code>local_A1</code>, <code>local_A2</code>, <code>FF_A1_to_A2</code>, <code>FB_A2_to_A1</code>).</p>
+<p><strong>Receipt:</strong> <code>artifacts/protocol_e_integration/e1_execution_receipt.json</code></p>
+<p><strong>Not required:</strong> publication phenotype, spectral claims.</p>
+<h2 id="e2-typed-delayed-coupling-closed">E2 — typed delayed coupling (closed)<a class="headerlink" href="#e2-typed-delayed-coupling-closed" title="Permanent link">&para;</a></h2>
+<p><strong>Question:</strong> Does adding typed provenance-class delays preserve everything E1 established?</p>
+<p><strong>Added DOF:</strong> <span class="arithmatex">\(\tau_{ij}&gt;0\)</span> via four provenance classes only (<code>local_A1</code>, <code>local_A2</code>, <code>FF_A1_to_A2</code>, <code>FB_A2_to_A1</code>).</p>
+<p><strong>Reduction contract:</strong></p>
+<div class="arithmatex">\[
+\boxed{
+R_{E2\rightarrow E1}:\quad
+\tau_{ij}=0\ \forall(i,j)\Rightarrow E2\equiv E1
+}
+\]</div>
+<p>Bit-exact on <span class="arithmatex">\(V_m\)</span>, spikes, identity/provenance, and edge structure where ordering permits.</p>
+<p><strong>Frozen delay values</strong> (dt = 0.5 ms; <span class="arithmatex">\(\tau_{\mathrm{local}}\le\tau_{\mathrm{FF}}&lt;\tau_{\mathrm{FB}}\)</span>):</p>
+<table>
+<thead>
+<tr>
+<th>edge_class</th>
+<th>delay_ms</th>
+<th>delay_steps</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>local_A1</td>
+<td>1.0</td>
+<td>2</td>
+</tr>
+<tr>
+<td>local_A2</td>
+<td>1.0</td>
+<td>2</td>
+</tr>
+<tr>
+<td>FF_A1_to_A2</td>
+<td>2.0</td>
+<td>4</td>
+</tr>
+<tr>
+<td>FB_A2_to_A1</td>
+<td>4.0</td>
+<td>8</td>
+</tr>
+</tbody>
+</table>
+<p><strong>E1-receipt-derived:</strong> <code>p_local=0.2</code> (documented in E1 execution receipt; <strong>not</strong> E1 preregistration).</p>
+<p><strong>Gates (G1–G8):</strong> E1 reduction, provenance preservation, delay ownership, finite delayed execution, delayed continuation (<code>delay_state</code>), exact event timing, hierarchy invariance, no spectral/functional overinterpretation.</p>
+<p><strong>Continuation splits:</strong> primary @ 400 ms; in-flight stress @ 120 ms.</p>
+<p><strong>Excluded from E2 evidence:</strong> RBS, field/probe chain, spectral/functional claims.</p>
+<p><strong>Receipt:</strong> <code>artifacts/protocol_e_integration/e2_execution_receipt.json</code></p>
+<p><strong>Closed:</strong> G1–G8 pass; typed delay table and delay occupancy frozen.</p>
+<h2 id="e3-rbs-composition-closed">E3 — RBS composition (closed)<a class="headerlink" href="#e3-rbs-composition-closed" title="Permanent link">&para;</a></h2>
+<p><strong>Question:</strong> Does hierarchy + typed delays compose with sparse D1/D2a <span class="arithmatex">\(H_K\)</span> RBS without changing E2 at reference?</p>
+<p><strong>Added DOF:</strong> selected population receives <span class="arithmatex">\(H_K\)</span> RBD state with <span class="arithmatex">\(b_{\mathrm{eff}} = H_K b\)</span> (D1/D2a primitive only; <strong>not</strong> D2b activity writing).</p>
+<p><strong>Reduction contract:</strong></p>
+<div class="arithmatex">\[
+\boxed{
+R_{E3\rightarrow E2}:\quad
+H=H^\star,\ \dot H=0
+\Rightarrow
+E3\equiv E2
+}
+\]</div>
+<p><strong>RBS owner</strong> (verified against E1 identity table @ spec freeze):</p>
+<table>
+<thead>
+<tr>
+<th>area</th>
+<th>layer</th>
+<th>cell_type</th>
+<th>n_nodes</th>
+<th>flat_indices</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A2</td>
+<td>L5</td>
+<td>E</td>
+<td>7</td>
+<td>70–76</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Modes:</strong> <code>E3-null</code> (<span class="arithmatex">\(H_K=1,\ \dot H_K=0\)</span>, must match E2 through E3 path) and <code>E3-dynamic</code> (<span class="arithmatex">\(\tau_K\dot H_K = 1-H_K\)</span>, <span class="arithmatex">\(H_K(0)=1+\delta_H=1.2\)</span> on owners, <span class="arithmatex">\(\tau_K=100\)</span> ms).</p>
+<p><strong>Non-owner semantics:</strong> non-owners carry fixed reference <span class="arithmatex">\(H_K=1\)</span> with F1 recurrence masked off (not an unallocated coordinate).</p>
+<p><strong>Combined continuation:</strong> segmented execution carries <span class="arithmatex">\(H_K\)</span> and <span class="arithmatex">\(\mathcal{B}_t\)</span> (<code>delay_state</code>); in-flight stress @ 120 ms with both <span class="arithmatex">\(H_K\neq 1\)</span> and <span class="arithmatex">\(\mathcal{B}_t\neq 0\)</span>.</p>
+<p><strong>Gates (G1–G9):</strong> E2 reduction, ownership, non-owner invariance, typed expression, autonomous recovery (D2a Euler recurrence), delay compatibility, continuation, hierarchy invariance, composition-effect-only (no phenotype).</p>
+<p><strong>Receipt:</strong> <code>artifacts/protocol_e_integration/e3_execution_receipt.json</code></p>
+<p><strong>Closed:</strong> G1–G9 pass; E2 delay digest and hierarchy fingerprints inherited unchanged.</p>
+<h2 id="e4-observation-chain-closed">E4 — observation chain (closed)<a class="headerlink" href="#e4-observation-chain-closed" title="Permanent link">&para;</a></h2>
+<p><strong>Question:</strong> Can the E3 hierarchical trajectory generate independently declared multiscale observations while preserving the underlying neural/source state?</p>
+<p><strong>Added DOF:</strong> downstream-only observation <span class="arithmatex">\((X,H,\mathcal B)\xrightarrow{S}Q\xrightarrow{F}\Phi\xrightarrow{P}Y\)</span> with no feedback into E3 dynamics.</p>
+<p><strong>Reduction contract:</strong></p>
+<div class="arithmatex">\[
+\boxed{
+R_{E4\rightarrow E3}:\quad
+\text{observation disabled}
+\Rightarrow
+E4\equiv E3
+}
+\]</div>
+<p><strong>Stronger invariant (probe-independent):</strong></p>
+<div class="arithmatex">\[
+\boxed{
+(X,H,\mathcal B,Q,\mathcal G)_{P_1}
+=
+(X,H,\mathcal B,Q,\mathcal G)_{P_2}
+}
+\]</div>
+<p><strong>Workflow:</strong> simulate once (E3 path) <span class="arithmatex">\(\rightarrow\)</span> freeze <span class="arithmatex">\(X,H,Q,\mathcal B,\mathcal G\)</span> <span class="arithmatex">\(\rightarrow\)</span> apply multiple <span class="arithmatex">\(F/P\)</span>. No re-simulation per probe.</p>
+<p><strong>Experiment A inheritance:</strong> reuse canonical relative <span class="arithmatex">\(Q\)</span> (<code>signals.sources_canonical_relative_source</code>) and validated <code>project_laminar_sources</code> / <code>lfp_proxy_probe</code> / <code>csd_proxy_probe</code> semantics — <strong>no integrated-model source variant</strong>.</p>
+<p><strong>Primary evidence:</strong> native <code>V_m</code>, spikes, first-class <code>Q</code>; <code>lfp_ref</code> relative proxy; shallow/deep LFP contacts; CSD-from-LFP finite-difference relative proxy.</p>
+<p><strong>Hierarchy-aware source table:</strong> <span class="arithmatex">\(Q \rightarrow (\mathrm{area},\mathrm{layer},\mathrm{cell\_type},t)\)</span> with conservation <span class="arithmatex">\(\sum_{a,\ell,c}Q_{a,\ell,c}(t)=\sum_i Q_i(t)\)</span>.</p>
+<p><strong>Gates (G1–G10):</strong> E3 reduction/neural invariance, single source-of-truth, source identity + T_E4, probe independence, zero-source (declared operators), linearity (declared <span class="arithmatex">\(F\)</span>), semantic status, hierarchy/provenance preservation, reproducibility, no phenotype claim.</p>
+<p><strong>Diagnostic (outside G1):</strong> E3-dynamic observation run confirms non-reference <span class="arithmatex">\(H_K\)</span> trajectories accept the same observation chain (not phenotype evidence).</p>
+<p><strong>Receipt:</strong> <code>artifacts/protocol_e_integration/e4_execution_receipt.json</code></p>
+<p><strong>Closed:</strong> G1–G10 pass; Experiment A semantics reused; source aggregation conservation verified.</p>
+<h2 id="e5-causal-perturbation-spec-frozen">E5 — causal perturbation (spec frozen)<a class="headerlink" href="#e5-causal-perturbation-spec-frozen" title="Permanent link">&para;</a></h2>
+<p><strong>Question:</strong> Does a localized RBS perturbation produce a measurable hierarchical response beyond its matched mechanism-null?</p>
+<p><strong>Adds:</strong> prospective causal evidence only — <strong>zero new TFNE architecture</strong>.</p>
+<p><strong>Owner:</strong> <span class="arithmatex">\(\mathcal O_H =\)</span> A2:L5:E (flat indices 70–76); perturbation <span class="arithmatex">\(H_K(t_0^+)=1.2\)</span> on owners.</p>
+<p><strong>Arms:</strong></p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th><span class="arithmatex">\(H_K\)</span> on <span class="arithmatex">\(\mathcal O_H\)</span></th>
+<th><span class="arithmatex">\(\Gamma_H\)</span></th>
+<th><span class="arithmatex">\(b_{\mathrm{eff}}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>N0</strong></td>
+<td>1 (reference)</td>
+<td>identity</td>
+<td><span class="arithmatex">\(b\)</span></td>
+</tr>
+<tr>
+<td><strong>N1</strong></td>
+<td>1.2, matched dynamics</td>
+<td>disabled</td>
+<td><span class="arithmatex">\(b\)</span></td>
+</tr>
+<tr>
+<td><strong>D</strong></td>
+<td>1.2, matched dynamics</td>
+<td>enabled</td>
+<td><span class="arithmatex">\(H_K b\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Primary contrast:</strong> <span class="arithmatex">\(\boxed{D - N_1}\)</span> (not <span class="arithmatex">\(D\)</span> vs N0 alone). Null invariants: <span class="arithmatex">\(H_K^{N1}=H_K^{D}\)</span>; <span class="arithmatex">\(\Gamma_H^{N1}=I\)</span>, <span class="arithmatex">\(\Gamma_H^{D}(H_K)=H_K\)</span>.</p>
+<p><strong>Propagation assay:</strong> <span class="arithmatex">\(H_K \rightarrow X_{\mathrm{owner}} \rightarrow X_{\mathrm{A2}} \rightarrow X_{\mathrm{A1}} \rightarrow Q \rightarrow Y\)</span>.</p>
+<p><strong>Response vector:</strong> <span class="arithmatex">\(\Delta R = (\Delta X_{\mathrm{owner}}, \Delta X_{\mathrm{A2/nonowner}}, \Delta X_{\mathrm{A1}}, \Delta Q, \Delta Y)\)</span> with simple frozen metrics (voltage/spike/source/proxy norms and integrals; <strong>no new spectral pipeline</strong>).</p>
+<p><strong>Primary prediction:</strong> <span class="arithmatex">\(D-N_1 \neq 0\)</span> at owner population (required for non-<code>NO_EFFECT</code>). Downstream propagation is secondary.</p>
+<p><strong>Classification:</strong> <code>NO_EFFECT</code> | <code>LOCAL_EXPRESSION</code> | <code>HIERARCHICAL_PROPAGATION</code> | <code>UNRESOLVED</code> — <strong>HIERARCHICAL_PROPAGATION not required to close E5</strong>.</p>
+<p><strong>A1 interpretation:</strong> any A1 effect is structural propagation via frozen <strong>FB</strong> pathway A2<span class="arithmatex">\(\rightarrow\)</span>A1, not FF/FB functional/spectral claim.</p>
+<p><strong>Workflow:</strong> one neural trajectory per arm/seed <span class="arithmatex">\(\rightarrow\)</span> freeze <span class="arithmatex">\(\rightarrow\)</span> E4 <span class="arithmatex">\(F/P\)</span> (no re-simulate per observation).</p>
+<p><strong>Seeds:</strong> <code>[11, 12, 13]</code> fixed (no added sample size without spec amendment).</p>
+<p><strong>Post-close policy:</strong> hard 0.4.17 scientific feature freeze; next work is publication evidence (Figures 1–7), not E6.</p>
+<p><strong>Provenance housekeeping (prospective):</strong> distinguish <code>execution_parent_sha</code> from <code>artifact_commit_sha</code> in publication manifest; do not retroactively rewrite E3/E4 write-once receipts.</p>
+<p><strong>Not authorized:</strong> E5 implementation, new architecture, spectral/adaptation/HDP phenotype claims.</p>
+<p><strong>Closed:</strong> prospective N0/N1/D execution (9 trajectories); raw + interpretation receipts frozen.</p>
+<h2 id="e5-causal-perturbation-closed">E5 — causal perturbation (closed)<a class="headerlink" href="#e5-causal-perturbation-closed" title="Permanent link">&para;</a></h2>
+<p><strong>Question:</strong> Does a localized RBS perturbation produce a measurable hierarchical response beyond its matched mechanism-null?</p>
+<p><strong>Arms:</strong> N0 (reference), N1 (state-only null, <span class="arithmatex">\(\Gamma_H=I\)</span>), D (RBS expression). <strong>Contrast:</strong> <span class="arithmatex">\(\boxed{D-N_1}\)</span>.</p>
+<p><strong>Sanity:</strong> <span class="arithmatex">\(\boxed{X^{N1}=X^{N0}}\)</span> bit-exact when <span class="arithmatex">\(\Gamma_H\)</span> disabled (leakage test). <span class="arithmatex">\(\boxed{H_K^{N1}=H_K^{D}}\)</span>.</p>
+<p><strong>Evidence gates:</strong> <span class="arithmatex">\(G_O, G_{A2}, G_{A1}, G_Q, G_Y\)</span> with <span class="arithmatex">\(d_{\mathrm{propagation}}\)</span> diagnostic.</p>
+<p><strong>Classification:</strong> <code>NO_EFFECT</code> | <code>LOCAL_EXPRESSION</code> | <code>HIERARCHICAL_PROPAGATION</code> | <code>UNRESOLVED</code>.</p>
+<p><strong>Receipts:</strong> <code>e5_execution_receipt.json</code> (raw 9 trajectories), <code>e5_interpretation_receipt.json</code>, <code>publication_evidence_manifest.json</code>.</p>
+<p><strong>Post-close:</strong> hard 0.4.17 feature freeze → Figures 1–7; no E6.</p>
+<h2 id="explicit-blocks-unchanged-from-e0">Explicit blocks (unchanged from E0)<a class="headerlink" href="#explicit-blocks-unchanged-from-e0" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Block</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W3 closed-loop HDP</td>
+<td><strong>unresolved</strong></td>
+</tr>
+<tr>
+<td>D3 adaptation requirement</td>
+<td><strong>NO_ADAPTATION frozen</strong></td>
+</tr>
+<tr>
+<td>D4 second RBS class</td>
+<td><strong>not authorized</strong></td>
+</tr>
+<tr>
+<td>Monolithic E implementation</td>
+<td><strong>prohibited</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="checkpoints">Checkpoints<a class="headerlink" href="#checkpoints" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0</td>
+<td>Composition question <strong>frozen</strong></td>
+</tr>
+<tr>
+<td>E0.1</td>
+<td>Implementation ladder + reduction contracts <strong>frozen</strong></td>
+</tr>
+<tr>
+<td>E1</td>
+<td>Hierarchy/runtime <strong>closed</strong> (G1–G6 pass; execution receipt frozen)</td>
+</tr>
+<tr>
+<td>E2</td>
+<td>Delayed coupling <strong>closed</strong> (G1–G8 pass; execution receipt frozen)</td>
+</tr>
+<tr>
+<td>E3</td>
+<td>RBS composition <strong>closed</strong> (G1–G9 pass; execution receipt frozen)</td>
+</tr>
+<tr>
+<td>E4</td>
+<td>Observation chain <strong>closed</strong> (G1–G10 pass; execution receipt frozen)</td>
+</tr>
+<tr>
+<td>E5</td>
+<td>Causal perturbation <strong>closed</strong> (9 trajectories; interpretation frozen)</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

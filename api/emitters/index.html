@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="JAX-based TFNE scaffold for multimodal source-to-field/readout workflows">
+        <meta name="description" content="Tensor-Field Neural Equations — JAX simulation for neural circuits, fields, and adaptation">
       
       
       
@@ -16,14 +16,14 @@
         <link rel="prev" href="../runtime/">
       
       
-        <link rel="next" href="../bridges/">
+        <link rel="next" href="../source_schema/">
       
       
         
       
       
       <link rel="icon" href="../../assets/jaxfne-img.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -260,6 +260,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -377,14 +381,70 @@
   
   
     <li class="md-nav__item">
-      <a href="../../faq/" class="md-nav__link">
+      <a href="../../gallery/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    FAQ
+    Gallery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../public_surface_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scope_and_status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scope & status
   
 
     
@@ -416,24 +476,6 @@
       
         
           
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
         
       
         
@@ -518,7 +560,7 @@
   <span class="md-ellipsis">
     
   
-    Notebook Standard
+    Notebook standard
   
 
     
@@ -539,14 +581,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+      <a href="../../tutorials/tutorial_outputs/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Étude: Canonical Cortical Column
+    Tutorial Outputs
   
 
     
@@ -559,6 +601,364 @@
   
 
               
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cumulative (canonical 1000n)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cumulative (canonical 1000n)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_define_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Define (PseudoGenome)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_develop_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Develop (G→N)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_inspect_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect (realized vs configured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_simulate_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulate (construct→Signals)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_observe_fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observe (field & probe)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_add_state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add state (H / RBS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_add_dynamics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add dynamics (HDP)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_compare_nulls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare (nulls & lesions)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suites
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Suites
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -574,7 +974,7 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 1 (Computational Biophysics)
+    Computational biophysics
   
 
     
@@ -602,7 +1002,35 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 2 (Corticospectrolaminar Motif)
+    Corticospectrolaminar motif
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_jaxfne_suite_no_2_evoked_l4_drive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evoked L4 drive
   
 
     
@@ -630,7 +1058,7 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 3 (Low-Frequency Scaling)
+    Low-frequency scaling
   
 
     
@@ -644,29 +1072,9 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tutorial: Multi-area Laminar Model
-  
-
-    
-  </span>
-  
-  
-
-      </a>
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -678,43 +1086,44 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+    
+    
+      
         
-  
-  
-  <span class="md-ellipsis">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
-  
-    TFNE-Izhikevich Single Emitter Explorer
-  
-
     
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
-        
   
   
   <span class="md-ellipsis">
     
   
-    09: EEG/MEG/EMM Proxy Bundle
+    Circuit construction (archive)
   
 
     
@@ -722,11 +1131,19 @@
   
   
 
-      </a>
-    </li>
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Circuit construction (archive)
   
 
-              
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -742,7 +1159,7 @@
   <span class="md-ellipsis">
     
   
-    01: Single-neuron Multimodal
+    Single-neuron multimodal
   
 
     
@@ -770,7 +1187,7 @@
   <span class="md-ellipsis">
     
   
-    02: Two-neuron E/I
+    Two-neuron E/I
   
 
     
@@ -798,7 +1215,7 @@
   <span class="md-ellipsis">
     
   
-    03: 100-neuron Network
+    Population E/I network
   
 
     
@@ -826,7 +1243,7 @@
   <span class="md-ellipsis">
     
   
-    04: V1 Six-layer Column
+    V1 laminar column
   
 
     
@@ -854,7 +1271,7 @@
   <span class="md-ellipsis">
     
   
-    05: V1-PFC Dual Column
+    V1–PFC dual column
   
 
     
@@ -882,7 +1299,7 @@
   <span class="md-ellipsis">
     
   
-    06: v0.3.6 Chainable Config
+    Configuration API population
   
 
     
@@ -903,6 +1320,99 @@
   
   
     <li class="md-nav__item">
+      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical cortical column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source, field, and readout (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Source, field, and readout (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../tutorials/07_v037_source_bookkeeping/" class="md-nav__link">
         
   
@@ -910,7 +1420,7 @@
   <span class="md-ellipsis">
     
   
-    07: v0.3.7 Source Bookkeeping
+    Source bookkeeping
   
 
     
@@ -938,7 +1448,7 @@
   <span class="md-ellipsis">
     
   
-    08: v0.3.8 LFP/CSD Readout
+    LFP and CSD proxies
   
 
     
@@ -947,6 +1457,191 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EEG, MEG, EMM proxies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_8" id="__nav_2_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paradigms and optimization (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Paradigms and optimization (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/10_v0313_omission_oddball/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensory omission oddball
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-area laminar AGSDR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Izhikevich emitter explorer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -970,6 +1665,8 @@
       
         
           
+        
+      
         
       
         
@@ -1060,7 +1757,7 @@
   <span class="md-ellipsis">
     
   
-    Configuration Grammar
+    Configuration grammar
   
 
     
@@ -1081,14 +1778,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/probe_operators/" class="md-nav__link">
+      <a href="../../guides/objective_grammar/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Probe Operators
+    Objective grammar
   
 
     
@@ -1116,7 +1813,7 @@
   <span class="md-ellipsis">
     
   
-    Tensor-Field Workflows
+    Tensor-field workflows
   
 
     
@@ -1137,14 +1834,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/plotly_visualization/" class="md-nav__link">
+      <a href="../../guides/operator_composition/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Plotly Visualization
+    Operator composition
   
 
     
@@ -1165,98 +1862,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/poisson_admissibility/" class="md-nav__link">
+      <a href="../../guides/probe_operators/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Poisson Admissibility
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guides/jaxley_interop/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Jaxley Interoperability
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guides/homeostasis/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Homeostasis
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../notes/biophysical_model_comparison/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Biophysical Model Comparison
+    Probe operators
   
 
     
@@ -1305,6 +1918,90 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guides/homeostasis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homeostasis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-state and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jdna/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PseudoGenome (JDNA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guides/output_bundles/" class="md-nav__link">
         
   
@@ -1312,7 +2009,620 @@
   <span class="md-ellipsis">
     
   
-    Output Bundles
+    Output bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jaxley_interop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jaxley interoperability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../etudes/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Études
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Études
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/hdp_controllability_reachability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP controllability & reachability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/experiment_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical Multiscale Observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/heterogeneous_emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heterogeneous emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/multiscale_observation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiscale observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and Experiments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_wave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling Waves
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_c_wave_evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling-Wave Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_c3_neural/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Neural Geometry and Delays
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_d_biological_rbs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Biological RBS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_e_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrated TFNE Composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/rbs_rbd_hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBS, RBD and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/relative_quantity_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relative Quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_h1b_h_to_x_gain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-to-X Gain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_rbd_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBD State Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_w_hdp_parameter_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP Parameter Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/tfne_containment_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TFNE Containment and Composition
   
 
     
@@ -1364,6 +2674,14 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -1377,7 +2695,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
           <div class="md-nav__link md-nav__container">
@@ -1388,7 +2706,7 @@
   <span class="md-ellipsis">
     
   
-    API reference
+    API
   
 
     
@@ -1399,18 +2717,18 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
-    API reference
+    API
   
 
           </label>
@@ -1575,6 +2893,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#canonical-source-representation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Canonical source representation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1586,10 +2915,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#presets" class="md-nav__link">
+  <a href="#building-parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Presets
+        Building Parameters
       
     </span>
   </a>
@@ -1614,10 +2943,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#attributes" class="md-nav__link">
+  <a href="#fields" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Attributes
+        Fields
       
     </span>
   </a>
@@ -1625,22 +2954,22 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#methods" class="md-nav__link">
+  <a href="#properties" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Methods
+        Properties
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Methods">
+    <nav class="md-nav" aria-label="Properties">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#class_methodclass_label-str-izhikevichparams" class="md-nav__link">
+  <a href="#n_neurons-int" class="md-nav__link">
     <span class="md-ellipsis">
       
-        class_method(class_label: str) -&gt; IzhikevichParams
+        n_neurons -&gt; int
       
     </span>
   </a>
@@ -1670,10 +2999,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#attributes_1" class="md-nav__link">
+  <a href="#fields_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Attributes
+        Fields
       
     </span>
   </a>
@@ -1688,6 +3017,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Standard Receptors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ampa-gaba-implementation-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMPA / GABA implementation table
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1709,10 +3055,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#attributes_2" class="md-nav__link">
+  <a href="#fields_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Attributes
+        Fields
       
     </span>
   </a>
@@ -1737,10 +3083,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#attributes_3" class="md-nav__link">
+  <a href="#fields_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Attributes
+        Fields
       
     </span>
   </a>
@@ -1748,22 +3094,22 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#methods_1" class="md-nav__link">
+  <a href="#properties_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Methods
+        Properties
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Methods">
+    <nav class="md-nav" aria-label="Properties">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#to_dense-dict" class="md-nav__link">
+  <a href="#n_neurons-int_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        to_dense() -&gt; dict
+        n_neurons -&gt; int
       
     </span>
   </a>
@@ -1793,10 +3139,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#attributes_4" class="md-nav__link">
+  <a href="#fields_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Attributes
+        Fields
       
     </span>
   </a>
@@ -1804,22 +3150,44 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#methods_2" class="md-nav__link">
+  <a href="#properties-and-methods" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Methods
+        Properties and Methods
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Methods">
+    <nav class="md-nav" aria-label="Properties and Methods">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#from_denseadj_matrix-jaxarray-edgelist" class="md-nav__link">
+  <a href="#n_edges-int" class="md-nav__link">
     <span class="md-ellipsis">
       
-        from_dense(adj_matrix: jax.Array) -&gt; EdgeList
+        n_edges -&gt; int
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tree_flatten-tree_unflattenaux-children" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tree_flatten() / tree_unflatten(aux, children)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_dict-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_dict() -&gt; dict
       
     </span>
   </a>
@@ -1849,10 +3217,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#simulate_eig_izhikevichcfg-i_ext-seed-spikes-v_m-u" class="md-nav__link">
+  <a href="#make_eig_networkn128-cell_type_fractionsnone-dtypefloat32-eignetwork" class="md-nav__link">
     <span class="md-ellipsis">
       
-        simulate_eig_izhikevich(cfg, I_ext, seed) -&gt; (spikes, V_m, u)
+        make_eig_network(n=128, cell_type_fractions=None, *, dtype="float32") -&gt; EIGNetwork
       
     </span>
   </a>
@@ -1860,10 +3228,98 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#make_eig_networkn_exc-n_inh-eignetwork" class="md-nav__link">
+  <a href="#simulate_eig_izhikevichparams-n_steps-dt_ms-key-dtypefloat32-drive_schedulenone-silence_masknone-noise_scalenone-voltages-spikes-sources" class="md-nav__link">
     <span class="md-ellipsis">
       
-        make_eig_network(n_exc, n_inh, ...) -&gt; EIGNetwork
+        simulate_eig_izhikevich(params, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None, noise_scale=None) -&gt; (voltages, spikes, sources)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make_edge_list_from_denseweights-threshold1e-12-dtypefloat32-edgelist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_edge_list_from_dense(weights, *, threshold=1e-12, dtype="float32") -&gt; EdgeList
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_edge_recurrent_izhikevichparams-edges-n_steps-dt_ms-key-dtypefloat32-drive_schedulenone-silence_masknone-noise_scalenone-voltages-spikes-sources-final_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_edge_recurrent_izhikevich(params, edges, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None, noise_scale=None) -&gt; (voltages, spikes, sources, final_state)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_edge_recurrent_izhikevich_homeostatic-voltages-spikes-sources-diagnostics_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_edge_recurrent_izhikevich_homeostatic(...) -&gt; (voltages, spikes, sources, diagnostics_dict)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_edge_recurrent_izhikevich_rbd-voltages-spikes-sources-final_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_edge_recurrent_izhikevich_rbd(...) -&gt; (voltages, spikes, sources, final_state)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_edge_recurrent_izhikevich_hdp-voltages-spikes-sources-diagnostics_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_edge_recurrent_izhikevich_hdp(...) -&gt; (voltages, spikes, sources, diagnostics_dict)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_receptor_exponential_izhikevichparams-edges-n_steps-dt_ms-key-dtypefloat32-drive_schedulenone-silence_masknone-voltages-spikes-sources-final_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_receptor_exponential_izhikevich(params, edges, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None) -&gt; (voltages, spikes, sources, final_state)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_dynamic_ei_couplingparams-n_steps-dt_ms-key-g_ei50-g_ie30-tau_syn_e_ms50-tau_syn_i_ms100-dtypefloat32-voltages-spikes-syn_currents-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_dynamic_ei_coupling(params, n_steps, dt_ms, key, *, g_ei=5.0, g_ie=3.0, tau_syn_e_ms=5.0, tau_syn_i_ms=10.0, dtype="float32") -&gt; (voltages, spikes, syn_currents, sources)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_multi_area_izhikevichneurons_df-positions_m-w-source_tensornone-control_paramsnone-cfgnone-n_stepsnone-dt_ms01-seed0-dtypefloat32-spikes-voltages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_multi_area_izhikevich(neurons_df, positions_m, W, source_tensor=None, control_params=None, cfg=None, n_steps=None, dt_ms=0.1, seed=0, dtype="float32") -&gt; (spikes, voltages)
       
     </span>
   </a>
@@ -1881,19 +3337,113 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#standard_receptor_tau_tabledtypefloat32-jaxarray" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        standard_receptor_tau_table(dtype="float32") -&gt; jax.Array
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#synaptic_tau_from_mechanismmechanism-dtypefloat32-tau_ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        synaptic_tau_from_mechanism(mechanism, *, dtype="float32") -&gt; tau_ms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#synaptic_current_tensorspikes_pre-tau_ms-dt_ms-filtered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        synaptic_current_tensor(spikes_pre, tau_ms, dt_ms) -&gt; filtered
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#synaptic_tensor_reporttau_ms-mechanismnone-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        synaptic_tensor_report(tau_ms, mechanism=None) -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#scope-notes" class="md-nav__link">
+  <a href="#emitter-facade-classes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Scope Notes
+        Emitter Facade Classes
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homeostatic_ei-second-canonical-hdp-sanity-emitter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        homeostatic_ei (second canonical HDP sanity emitter)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="homeostatic_ei (second canonical HDP sanity emitter)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rule-registries-activation_rulesconductance_ruleshomeostasis_rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rule registries (ACTIVATION_RULES/CONDUCTANCE_RULES/HOMEOSTASIS_RULES)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bound_mode-minimal-stable-default-minimal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bound_mode ("minimal" | "stable", default "minimal")
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make_minimal_ei_paramsn8-e_fraction075-kwargs-homeostaticeiparams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_minimal_ei_params(n=8, e_fraction=0.75, **kwargs) -&gt; HomeostaticEIParams
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1913,14 +3463,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../bridges/" class="md-nav__link">
+      <a href="../source_schema/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Bridges
+    Source schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../field_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Field schema
   
 
     
@@ -2025,6 +3603,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../neuronal_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NeuronalTensor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../validation/" class="md-nav__link">
         
   
@@ -2046,48 +3652,21 @@
 
               
             
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
+              
+                
   
   
   
   
-    
-    
-      
+    <li class="md-nav__item">
+      <a href="../vis/" class="md-nav__link">
         
-      
-    
-    
-    
-      
-        
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
-            
   
   
   <span class="md-ellipsis">
     
   
-    Reference
+    Visualization
   
 
     
@@ -2095,19 +3674,11 @@
   
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Reference
+      </a>
+    </li>
   
 
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+              
             
               
                 
@@ -2116,14 +3687,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/glossary_of_methods/" class="md-nav__link">
+      <a href="../jdna/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Glossary of Methods
+    JDNA
   
 
     
@@ -2163,6 +3734,20 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -2176,17 +3761,17 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    About jaxfne
+    Appendix
   
 
     
@@ -2197,12 +3782,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
-    About jaxfne
+    Appendix
   
 
           </label>
@@ -2215,14 +3800,182 @@
   
   
     <li class="md-nav__item">
-      <a href="../../limitations_and_future_plans/" class="md-nav__link">
+      <a href="../../appendix/fundamental_laws/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Limitations and future plans
+    Fundamental laws
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../source_field_equations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source and field equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../computation_basis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Computation basis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mathematical_glossary_flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mathematical glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
   
 
     
@@ -2326,78 +4079,15 @@
   
   
   
-    
-    
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_6_5" id="__nav_6_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Releases
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Releases
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
     <li class="md-nav__item">
-      <a href="../../releases/v0.3.4/" class="md-nav__link">
+      <a href="../../colab/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    v0.3.4
+    Colab quick start
   
 
     
@@ -2418,14 +4108,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../releases/v0.2.18/" class="md-nav__link">
+      <a href="../../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    v0.2.18
+    Limitations
   
 
     
@@ -2434,126 +4124,6 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.10/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.10
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.3/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.3
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.1/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.1
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.0/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.0
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
     </li>
   
 
@@ -2627,6 +4197,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#canonical-source-representation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Canonical source representation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2638,10 +4219,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#presets" class="md-nav__link">
+  <a href="#building-parameters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Presets
+        Building Parameters
       
     </span>
   </a>
@@ -2666,10 +4247,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#attributes" class="md-nav__link">
+  <a href="#fields" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Attributes
+        Fields
       
     </span>
   </a>
@@ -2677,22 +4258,22 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#methods" class="md-nav__link">
+  <a href="#properties" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Methods
+        Properties
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Methods">
+    <nav class="md-nav" aria-label="Properties">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#class_methodclass_label-str-izhikevichparams" class="md-nav__link">
+  <a href="#n_neurons-int" class="md-nav__link">
     <span class="md-ellipsis">
       
-        class_method(class_label: str) -&gt; IzhikevichParams
+        n_neurons -&gt; int
       
     </span>
   </a>
@@ -2722,10 +4303,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#attributes_1" class="md-nav__link">
+  <a href="#fields_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Attributes
+        Fields
       
     </span>
   </a>
@@ -2740,6 +4321,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Standard Receptors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ampa-gaba-implementation-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AMPA / GABA implementation table
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -2761,10 +4359,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#attributes_2" class="md-nav__link">
+  <a href="#fields_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Attributes
+        Fields
       
     </span>
   </a>
@@ -2789,10 +4387,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#attributes_3" class="md-nav__link">
+  <a href="#fields_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Attributes
+        Fields
       
     </span>
   </a>
@@ -2800,22 +4398,22 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#methods_1" class="md-nav__link">
+  <a href="#properties_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Methods
+        Properties
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Methods">
+    <nav class="md-nav" aria-label="Properties">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#to_dense-dict" class="md-nav__link">
+  <a href="#n_neurons-int_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        to_dense() -&gt; dict
+        n_neurons -&gt; int
       
     </span>
   </a>
@@ -2845,10 +4443,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#attributes_4" class="md-nav__link">
+  <a href="#fields_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Attributes
+        Fields
       
     </span>
   </a>
@@ -2856,22 +4454,44 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#methods_2" class="md-nav__link">
+  <a href="#properties-and-methods" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Methods
+        Properties and Methods
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Methods">
+    <nav class="md-nav" aria-label="Properties and Methods">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#from_denseadj_matrix-jaxarray-edgelist" class="md-nav__link">
+  <a href="#n_edges-int" class="md-nav__link">
     <span class="md-ellipsis">
       
-        from_dense(adj_matrix: jax.Array) -&gt; EdgeList
+        n_edges -&gt; int
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tree_flatten-tree_unflattenaux-children" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tree_flatten() / tree_unflatten(aux, children)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_dict-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_dict() -&gt; dict
       
     </span>
   </a>
@@ -2901,10 +4521,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#simulate_eig_izhikevichcfg-i_ext-seed-spikes-v_m-u" class="md-nav__link">
+  <a href="#make_eig_networkn128-cell_type_fractionsnone-dtypefloat32-eignetwork" class="md-nav__link">
     <span class="md-ellipsis">
       
-        simulate_eig_izhikevich(cfg, I_ext, seed) -&gt; (spikes, V_m, u)
+        make_eig_network(n=128, cell_type_fractions=None, *, dtype="float32") -&gt; EIGNetwork
       
     </span>
   </a>
@@ -2912,10 +4532,98 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#make_eig_networkn_exc-n_inh-eignetwork" class="md-nav__link">
+  <a href="#simulate_eig_izhikevichparams-n_steps-dt_ms-key-dtypefloat32-drive_schedulenone-silence_masknone-noise_scalenone-voltages-spikes-sources" class="md-nav__link">
     <span class="md-ellipsis">
       
-        make_eig_network(n_exc, n_inh, ...) -&gt; EIGNetwork
+        simulate_eig_izhikevich(params, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None, noise_scale=None) -&gt; (voltages, spikes, sources)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make_edge_list_from_denseweights-threshold1e-12-dtypefloat32-edgelist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_edge_list_from_dense(weights, *, threshold=1e-12, dtype="float32") -&gt; EdgeList
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_edge_recurrent_izhikevichparams-edges-n_steps-dt_ms-key-dtypefloat32-drive_schedulenone-silence_masknone-noise_scalenone-voltages-spikes-sources-final_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_edge_recurrent_izhikevich(params, edges, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None, noise_scale=None) -&gt; (voltages, spikes, sources, final_state)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_edge_recurrent_izhikevich_homeostatic-voltages-spikes-sources-diagnostics_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_edge_recurrent_izhikevich_homeostatic(...) -&gt; (voltages, spikes, sources, diagnostics_dict)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_edge_recurrent_izhikevich_rbd-voltages-spikes-sources-final_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_edge_recurrent_izhikevich_rbd(...) -&gt; (voltages, spikes, sources, final_state)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_edge_recurrent_izhikevich_hdp-voltages-spikes-sources-diagnostics_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_edge_recurrent_izhikevich_hdp(...) -&gt; (voltages, spikes, sources, diagnostics_dict)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_receptor_exponential_izhikevichparams-edges-n_steps-dt_ms-key-dtypefloat32-drive_schedulenone-silence_masknone-voltages-spikes-sources-final_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_receptor_exponential_izhikevich(params, edges, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None) -&gt; (voltages, spikes, sources, final_state)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_dynamic_ei_couplingparams-n_steps-dt_ms-key-g_ei50-g_ie30-tau_syn_e_ms50-tau_syn_i_ms100-dtypefloat32-voltages-spikes-syn_currents-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_dynamic_ei_coupling(params, n_steps, dt_ms, key, *, g_ei=5.0, g_ie=3.0, tau_syn_e_ms=5.0, tau_syn_i_ms=10.0, dtype="float32") -&gt; (voltages, spikes, syn_currents, sources)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_multi_area_izhikevichneurons_df-positions_m-w-source_tensornone-control_paramsnone-cfgnone-n_stepsnone-dt_ms01-seed0-dtypefloat32-spikes-voltages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_multi_area_izhikevich(neurons_df, positions_m, W, source_tensor=None, control_params=None, cfg=None, n_steps=None, dt_ms=0.1, seed=0, dtype="float32") -&gt; (spikes, voltages)
       
     </span>
   </a>
@@ -2933,19 +4641,113 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#standard_receptor_tau_tabledtypefloat32-jaxarray" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        standard_receptor_tau_table(dtype="float32") -&gt; jax.Array
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#synaptic_tau_from_mechanismmechanism-dtypefloat32-tau_ms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        synaptic_tau_from_mechanism(mechanism, *, dtype="float32") -&gt; tau_ms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#synaptic_current_tensorspikes_pre-tau_ms-dt_ms-filtered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        synaptic_current_tensor(spikes_pre, tau_ms, dt_ms) -&gt; filtered
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#synaptic_tensor_reporttau_ms-mechanismnone-dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        synaptic_tensor_report(tau_ms, mechanism=None) -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#scope-notes" class="md-nav__link">
+  <a href="#emitter-facade-classes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Scope Notes
+        Emitter Facade Classes
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homeostatic_ei-second-canonical-hdp-sanity-emitter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        homeostatic_ei (second canonical HDP sanity emitter)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="homeostatic_ei (second canonical HDP sanity emitter)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rule-registries-activation_rulesconductance_ruleshomeostasis_rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rule registries (ACTIVATION_RULES/CONDUCTANCE_RULES/HOMEOSTASIS_RULES)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bound_mode-minimal-stable-default-minimal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        bound_mode ("minimal" | "stable", default "minimal")
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make_minimal_ei_paramsn8-e_fraction075-kwargs-homeostaticeiparams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_minimal_ei_params(n=8, e_fraction=0.75, **kwargs) -&gt; HomeostaticEIParams
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2972,208 +4774,898 @@
 <h1 id="emitters-api">Emitters API<a class="headerlink" href="#emitters-api" title="Permanent link">&para;</a></h1>
 <p>Neuron models and emitter implementations for neural dynamics simulation.</p>
 <h2 id="izhikevich-model">Izhikevich Model<a class="headerlink" href="#izhikevich-model" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">jaxfne</span><span class="o">.</span><span class="n">set_emitter</span><span class="p">(</span><span class="s2">&quot;izhikevich&quot;</span><span class="p">,</span> <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;cortical_eig&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">Configuration</span><span class="p">()</span><span class="o">.</span><span class="n">set_emitter</span><span class="p">(</span><span class="s2">&quot;izhikevich&quot;</span><span class="p">,</span> <span class="s2">&quot;cortical_eig&quot;</span><span class="p">)</span>
 </code></pre></div>
 <p>The Izhikevich neuron model is a phenomenological spiking neuron model with two state variables (v, u). It provides a good balance between computational efficiency and biological realism for tutorial-scale simulations.</p>
+<blockquote>
+<p><strong>Reduced-class wording.</strong> Labels <code>E</code>, <code>PV</code>, <code>SST</code>, <code>VIP</code> (and aliases <code>Inl</code>, <code>Ing</code>)
+denote <strong>reduced emitter classes</strong> — <code>E-like</code>, <code>PV-like</code>, <code>SST-like</code>, <code>VIP-like</code> —
+i.e. phenomenological Izhikevich presets with distinct <code>(a,b,c,d,drive,sign)</code>
+kinetics. The reduced scaffold does <strong>not</strong> warrant literal transcriptomic/
+morphological identity (no claim of biological PV/SST/VIP cells). Use <code>-like</code>
+when describing dynamics; the stored config keys remain bare (<code>"PV"</code> etc.).</p>
+</blockquote>
+<p><code>Configuration.set_emitter(family="izhikevich", preset="cortical_eig")</code> is a thin chainable
+wrapper over <code>Configuration.emitter(**kwargs)</code>; it records <code>family</code>/<code>preset</code> as metadata on
+the config (<code>jaxfne/_config.py:860</code>). At build time, <code>"izhikevich"</code> and <code>"homeostatic_ei"</code>
+are the two supported families (<code>_SUPPORTED_EMITTER_FAMILIES</code>, <code>jaxfne/_construct_core.py:389</code>
+— see the <code>homeostatic_ei</code> section further down this page for the second family); other family
+strings raise at build time. <code>preset</code> is a
+free-form string tag; <code>emitters.py</code> has no dedicated per-preset dynamics table. The emitter's
+per-neuron behavior differentiation comes from <strong>reduced-class label</strong> (<code>E/PV/SST/VIP/Inl/Ing</code>-like), rather than
+from <code>preset</code>. Treat <code>preset="cortical_eig"</code> as the conventional default tag, rather than a switch between
+named dynamical regimes.</p>
 <h3 id="state-variables">State Variables<a class="headerlink" href="#state-variables" title="Permanent link">&para;</a></h3>
 <ul>
-<li><code>v</code> (mV): Membrane potential (-90 to 30 mV typical range)</li>
-<li><code>u</code> (µA): Membrane recovery variable (adaptation/refractory effects)</li>
+<li><code>v</code> (internal units, uncalibrated relative to mV): Membrane-potential-like state variable. Reset value
+  <code>c</code> defaults to <code>-65.0</code>; spike threshold is a fixed <code>30.0</code> (see Dynamics below).</li>
+<li><code>u</code> (internal units): Recovery variable (adaptation/refractory effects).</li>
 </ul>
 <h3 id="dynamics">Dynamics<a class="headerlink" href="#dynamics" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>dv/dt = 0.04*v² + 5*v + 140 - u + I
+<div class="highlight"><pre><span></span><code>dv/dt = 0.04*v^2 + 5*v + 140 - u + I
 du/dt = a*(b*v - u)
 </code></pre></div>
-<p>If v ≥ 30 mV, spike occurs and states reset:
-<div class="highlight"><pre><span></span><code>v ← c
-u ← u + d
+<p>If <code>v &gt;= 30.0</code>, a spike occurs and the states reset:
+<div class="highlight"><pre><span></span><code>v &lt;- c
+u &lt;- u + d
 </code></pre></div></p>
-<h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
-<p>Parameters are organized in <code>IzhikevichParams</code> dataclass:</p>
-<ul>
-<li><code>a</code> (float): Recovery timescale (0.02 typical)</li>
-<li><code>b</code> (float): Coupling strength (0.2 typical)</li>
-<li><code>c</code> (float): Reset voltage (-65 mV typical)</li>
-<li><code>d</code> (float): Recovery reset (6 µA typical)</li>
-<li><code>I_injected</code> (float): Injected current baseline (optional)</li>
-</ul>
-<h3 id="presets">Presets<a class="headerlink" href="#presets" title="Permanent link">&para;</a></h3>
-<p>Available presets define different neuron behaviors:</p>
+<p>This is implemented inside the <code>jax.lax.scan</code> step functions of
+<code>simulate_eig_izhikevich</code>, <code>simulate_edge_recurrent_izhikevich</code>,
+<code>simulate_edge_recurrent_izhikevich_homeostatic</code>,
+<code>simulate_edge_recurrent_izhikevich_hdp</code>, and <code>simulate_receptor_exponential_izhikevich</code>
+(<code>jaxfne/emitters.py</code>); each simulate function inlines the same dynamics with its own
+synaptic/plasticity wrapper, rather than sharing one standalone "Izhikevich integrator" function.</p>
+<p><code>I</code> (<code>current_native</code> in source) is an <strong>uncalibrated internal drive</strong>, distinct from a physical current in
+amperes — every kernel in this module sets <code>source_calibration_status</code> to a value such as
+<code>"uncalibrated_izhikevich_native_current"</code>, always short of a physical-calibration claim.</p>
+<h3 id="canonical-source-representation">Canonical source representation<a class="headerlink" href="#canonical-source-representation" title="Permanent link">&para;</a></h3>
+<p>Canonical <code>Q^(r)</code> map (see <a href="../../source_field_equations/">Source/Field Equations</a> and <a href="../source_schema/">Source Schema</a>):</p>
+<div class="highlight"><pre><span></span><code>Q^(r) = source_scale * (current_native + DEFAULT_SPIKE_IMPULSE_GAIN * spikes)
+current_native = drive + recurrent_synaptic + noise
+</code></pre></div>
 <table>
 <thead>
 <tr>
-<th>Preset</th>
-<th>Behavior</th>
-<th>Use Case</th>
+<th>Field</th>
+<th>Source</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>"cortical_eig"</code></td>
-<td>Regular spiking, moderate firing</td>
-<td>Tutorial default</td>
+<td><code>source_scale</code></td>
+<td>per-neuron scale</td>
 </tr>
 <tr>
-<td><code>"tonic_spiking"</code></td>
-<td>Continuous firing</td>
-<td>Sustained activity</td>
-</tr>
-<tr>
-<td><code>"phasic_spiking"</code></td>
-<td>Burst then adapt</td>
-<td>Transient responses</td>
-</tr>
-<tr>
-<td><code>"fast_spiking"</code></td>
-<td>High-frequency spikes</td>
-<td>Inhibitory interneurons</td>
-</tr>
-<tr>
-<td><code>"chattering"</code></td>
-<td>Burst patterns</td>
-<td>Bursting neurons</td>
+<td><code>DEFAULT_SPIKE_IMPULSE_GAIN</code></td>
+<td><code>jaxfne.presets</code> (shared across kernels)</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">Configuration</span><span class="p">()</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">set_emitter</span><span class="p">(</span><span class="s2">&quot;izhikevich&quot;</span><span class="p">,</span> <span class="s2">&quot;cortical_eig&quot;</span><span class="p">)</span>
-</code></pre></div></p>
+<h3 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h3>
+<p>Canonical per-cell-type parameter defaults live in
+<code>IZHIKEVICH_CELL_TYPE_DEFAULTS</code> (<code>jaxfne/emitters.py:25</code>), keyed by reduced-class label
+(<code>E</code>, <code>PV</code>, <code>Inl</code>, <code>SST</code>, <code>Ing</code>, <code>VIP</code> — read as <code>E-like</code>, <code>PV-like</code>, etc.; no literal
+identity claim — see wording note above):</p>
+<table>
+<thead>
+<tr>
+<th>Label (reduced class)</th>
+<th><code>a</code></th>
+<th><code>b</code></th>
+<th><code>c</code> (mV-like)</th>
+<th><code>d</code></th>
+<th><code>drive</code></th>
+<th><code>sign</code></th>
+<th>Read as</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>E</code></td>
+<td>0.02</td>
+<td>0.20</td>
+<td>-65.0</td>
+<td>8.0</td>
+<td>5.0</td>
+<td>+1.0</td>
+<td>E-like regular-spiking</td>
+</tr>
+<tr>
+<td><code>PV</code></td>
+<td>0.10</td>
+<td>0.20</td>
+<td>-65.0</td>
+<td>2.0</td>
+<td>3.0</td>
+<td>-1.0</td>
+<td>PV-like fast-spiking</td>
+</tr>
+<tr>
+<td><code>Inl</code></td>
+<td>0.10</td>
+<td>0.20</td>
+<td>-65.0</td>
+<td>2.0</td>
+<td>3.0</td>
+<td>-1.0</td>
+<td>PV-like (Inl alias)</td>
+</tr>
+<tr>
+<td><code>SST</code></td>
+<td>0.05</td>
+<td>0.25</td>
+<td>-65.0</td>
+<td>2.0</td>
+<td>3.5</td>
+<td>-1.0</td>
+<td>SST-like low-threshold</td>
+</tr>
+<tr>
+<td><code>Ing</code></td>
+<td>0.05</td>
+<td>0.25</td>
+<td>-65.0</td>
+<td>2.0</td>
+<td>3.5</td>
+<td>-1.0</td>
+<td>SST-like (Ing alias)</td>
+</tr>
+<tr>
+<td><code>VIP</code></td>
+<td>0.02</td>
+<td>-0.10</td>
+<td>-55.0</td>
+<td>6.0</td>
+<td>3.0</td>
+<td>-1.0</td>
+<td>VIP-like inhibitory/disinhibitory</td>
+</tr>
+</tbody>
+</table>
+<p>An unrecognized cell-type label falls back to the <code>VIP</code> row (<code>_get_cell_type_params</code>,
+<code>jaxfne/emitters.py:35</code>). These values feed the <code>a</code>/<code>b</code>/<code>c</code>/<code>d</code>/<code>drive</code>/<code>sign</code> fields of
+<code>IzhikevichParams</code> — see the dataclass table below for the full field list. There is
+no <code>I_injected</code> field; the closest analogue is the per-cell <code>drive</code> value plus, at simulate time, an
+optional <code>drive_schedule</code> argument.</p>
+<blockquote>
+<p><strong>Reduced-emitter caveat — labels are not warranted literal cell-type identities.</strong> The Izhikevich kernel is a reduced point-neuron scaffold. Labels <code>E</code>/<code>PV</code>/<code>SST</code>/<code>VIP</code> (<code>Inl</code>/<code>Ing</code> aliases) are <strong>functional scaffold identities</strong> that index distinct dynamical rows in <code>IZHIKEVICH_CELL_TYPE_DEFAULTS</code> (heterogeneous <code>a</code>/<code>b</code>/<code>c</code>/<code>d</code>/<code>drive</code>/<code>sign</code>; <code>source_calibration_status="uncalibrated_izhikevich_native_current"</code>, <code>value_tag="relative"</code>). A label match does <strong>not</strong> warrant transcriptomic, morphological, or biophysical identity with the named biological class. Do not present results as if <code>PV</code> in the model is proven to be biological PV interneurons; report as "PV-like reduced scaffold" unless an independent calibration/validation study supplies that warrant. See <a href="../../scope_and_status/#biological-calibration-status-canonical-v1-column">Scope &amp; status — Biological calibration</a> and <a href="../../guides/calibration/#biological-calibration-status">Calibration — Biological status</a> (<code>quantitative_cell_fraction = false</code>, <code>quantitative_connectivity = false</code>, <code>qualitative_laminar_scaffold = true</code>). HH-level identity requires the separate <code>JaxleyBridge</code> path and its own calibration.</p>
+</blockquote>
+<h3 id="building-parameters">Building Parameters<a class="headerlink" href="#building-parameters" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># From explicit cell-type fractions (random assignment order):</span>
+<span class="n">params</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">emitters</span><span class="o">.</span><span class="n">izhikevich_eig_params</span><span class="p">(</span>
+    <span class="n">n</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+    <span class="n">cell_type_fractions</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span> <span class="s2">&quot;PV&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;SST&quot;</span><span class="p">:</span> <span class="mf">0.07</span><span class="p">,</span> <span class="s2">&quot;VIP&quot;</span><span class="p">:</span> <span class="mf">0.03</span><span class="p">},</span>
+    <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># From an explicit, ordered list of per-neuron labels (deterministic):</span>
+<span class="n">params</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">emitters</span><span class="o">.</span><span class="n">izhikevich_params_from_labels</span><span class="p">(</span>
+    <span class="n">labels</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="s2">&quot;PV&quot;</span><span class="p">,</span> <span class="s2">&quot;SST&quot;</span><span class="p">),</span>
+    <span class="n">layer_labels</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;L4&quot;</span><span class="p">,</span> <span class="s2">&quot;L4&quot;</span><span class="p">,</span> <span class="s2">&quot;L4&quot;</span><span class="p">,</span> <span class="s2">&quot;L2/3&quot;</span><span class="p">),</span>   <span class="c1"># optional, must match len(labels)</span>
+    <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">,</span>
+    <span class="n">drive_overrides</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mf">6.0</span><span class="p">},</span>                <span class="c1"># optional per-type drive override</span>
+    <span class="n">source_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>izhikevich_eig_params(n, cell_type_fractions, *, dtype="float32")</code> (<code>jaxfne/emitters.py:212</code>)
+assigns cell-type labels by walking <code>cell_type_fractions</code> in dict order and rounding counts;
+any unknown-label edge cases are absorbed into the last fraction bucket. <code>izhikevich_params_from_labels</code>
+(<code>jaxfne/emitters.py:262</code>) instead takes an explicit, ordered <code>labels</code> sequence and raises
+<code>ValueError</code> when the <code>labels</code> tuple is empty, when <code>layer_labels</code> length differs, or when
+a label falls outside <code>IZHIKEVICH_CELL_TYPE_DEFAULTS</code>.</p>
 <hr />
 <h2 id="izhikevichparams">IzhikevichParams<a class="headerlink" href="#izhikevichparams" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="n">jaxfne</span><span class="o">.</span><span class="n">IzhikevichParams</span>
 </code></pre></div>
-<p>Parameter container for Izhikevich neuron model.</p>
-<h3 id="attributes">Attributes<a class="headerlink" href="#attributes" title="Permanent link">&para;</a></h3>
-<ul>
-<li><code>a</code> (float): Recovery timescale</li>
-<li><code>b</code> (float): Coupling strength</li>
-<li><code>c</code> (float): Reset voltage (mV)</li>
-<li><code>d</code> (float): Recovery reset (µA)</li>
-</ul>
-<h3 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h3>
-<h4 id="class_methodclass_label-str-izhikevichparams"><code>class_method(class_label: str) -&gt; IzhikevichParams</code><a class="headerlink" href="#class_methodclass_label-str-izhikevichparams" title="Permanent link">&para;</a></h4>
-<p>Create parameters for a specific neuron class.</p>
-<p><strong>Parameters:</strong>
-- <code>class_label</code> (str): Neuron class (e.g., "excitatory", "inhibitory", "fast_spiking")</p>
-<p><strong>Returns:</strong> <code>IzhikevichParams</code> with preset values</p>
+<p>Frozen dataclass parameter container for a reduced Izhikevich population
+(<code>jaxfne/emitters.py:84</code>), registered as a JAX pytree.</p>
+<h3 id="fields">Fields<a class="headerlink" href="#fields" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a</code></td>
+<td><code>jax.Array</code></td>
+<td>Per-neuron recovery timescale</td>
+</tr>
+<tr>
+<td><code>b</code></td>
+<td><code>jax.Array</code></td>
+<td>Per-neuron coupling strength</td>
+</tr>
+<tr>
+<td><code>c</code></td>
+<td><code>jax.Array</code></td>
+<td>Per-neuron reset voltage (internal units)</td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td><code>jax.Array</code></td>
+<td>Per-neuron recovery reset increment</td>
+</tr>
+<tr>
+<td><code>drive</code></td>
+<td><code>jax.Array</code></td>
+<td>Per-neuron baseline internal drive current</td>
+</tr>
+<tr>
+<td><code>sign</code></td>
+<td><code>jax.Array</code></td>
+<td>Per-neuron +1.0 (excitatory) / -1.0 (inhibitory) sign</td>
+</tr>
+<tr>
+<td><code>W</code></td>
+<td><code>jax.Array</code></td>
+<td>Dense recurrent weight matrix, shape <code>(n, n)</code></td>
+</tr>
+<tr>
+<td><code>v0</code></td>
+<td><code>jax.Array</code></td>
+<td>Initial membrane state, shape <code>(n,)</code></td>
+</tr>
+<tr>
+<td><code>u0</code></td>
+<td><code>jax.Array</code></td>
+<td>Initial recovery state, shape <code>(n,)</code></td>
+</tr>
+<tr>
+<td><code>source_scale</code></td>
+<td><code>jax.Array</code></td>
+<td>Scalar (or per-neuron) scale applied to the source proxy</td>
+</tr>
+<tr>
+<td><code>labels</code></td>
+<td><code>tuple[str, ...]</code></td>
+<td>Per-neuron cell-type labels</td>
+</tr>
+<tr>
+<td><code>layer_labels</code></td>
+<td><code>tuple[str, ...] \| None</code></td>
+<td>Optional per-neuron layer labels (default <code>None</code>)</td>
+</tr>
+<tr>
+<td><code>source_calibration_status</code></td>
+<td><code>str</code></td>
+<td>Default <code>"uncalibrated_izhikevich_native_current"</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="properties">Properties<a class="headerlink" href="#properties" title="Permanent link">&para;</a></h3>
+<h4 id="n_neurons-int"><code>n_neurons -&gt; int</code><a class="headerlink" href="#n_neurons-int" title="Permanent link">&para;</a></h4>
+<p>Number of neurons, i.e. <code>v0.shape[0]</code>.</p>
 <p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">exc_params</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">IzhikevichParams</span><span class="o">.</span><span class="n">class_method</span><span class="p">(</span><span class="s2">&quot;excitatory&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">params</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">emitters</span><span class="o">.</span><span class="n">izhikevich_eig_params</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span> <span class="s2">&quot;PV&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">n_neurons</span><span class="p">)</span>  <span class="c1"># 128</span>
 </code></pre></div></p>
+<p>Construct <code>IzhikevichParams</code> through the
+module-level functions <code>izhikevich_eig_params(...)</code> and <code>izhikevich_params_from_labels(...)</code>
+documented above.</p>
 <hr />
 <h2 id="receptorspec">ReceptorSpec<a class="headerlink" href="#receptorspec" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="n">jaxfne</span><span class="o">.</span><span class="n">ReceptorSpec</span>
 </code></pre></div>
-<p>Specification for synaptic receptor types and kinetics.</p>
-<h3 id="attributes_1">Attributes<a class="headerlink" href="#attributes_1" title="Permanent link">&para;</a></h3>
-<ul>
-<li><code>name</code> (str): Receptor name (e.g., "AMPA", "NMDA", "GABA_A")</li>
-<li><code>tau_decay</code> (float): Time constant (ms)</li>
-<li><code>reversal</code> (float): Reversal potential (mV)</li>
-<li><code>conductance_scaling</code> (float): Weight factor</li>
-</ul>
+<p>Frozen dataclass metadata declaration for a synaptic receptor (<code>jaxfne/emitters.py:44</code>).
+Specification metadata — distinct from a biological kernel; <code>emitters.py</code> leaves the conductance
+and reversal-potential equations undefined for these fields.</p>
+<h3 id="fields_1">Fields<a class="headerlink" href="#fields_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Receptor name, e.g. <code>"AMPA"</code></td>
+</tr>
+<tr>
+<td><code>receptor_index</code></td>
+<td><code>int</code></td>
+<td>Integer channel index used by <code>edges.receptor_index</code></td>
+</tr>
+<tr>
+<td><code>sign</code></td>
+<td><code>int</code></td>
+<td><code>+1</code> excitatory / <code>-1</code> inhibitory</td>
+</tr>
+<tr>
+<td><code>tau_ms</code></td>
+<td><code>float</code></td>
+<td>Time constant (ms)</td>
+</tr>
+<tr>
+<td><code>reversal_mV</code></td>
+<td><code>float \| None</code></td>
+<td>Reversal potential, metadata only (not used in dynamics)</td>
+</tr>
+<tr>
+<td><code>source_calibration_status</code></td>
+<td><code>str</code></td>
+<td>Default <code>"metadata_only_uncalibrated"</code></td>
+</tr>
+<tr>
+<td><code>claim_level</code></td>
+<td><code>str</code></td>
+<td>Default <code>"computational_scaffold"</code></td>
+</tr>
+</tbody>
+</table>
 <h3 id="standard-receptors">Standard Receptors<a class="headerlink" href="#standard-receptors" title="Permanent link">&para;</a></h3>
-<p>Access via <code>jaxfne.standard_receptor_specs()</code>:</p>
-<ul>
-<li><strong>AMPA:</strong> Fast excitatory (1–2 ms)</li>
-<li><strong>NMDA:</strong> Slow excitatory (100 ms)</li>
-<li><strong>GABA_A:</strong> Fast inhibitory (5–10 ms)</li>
-<li><strong>GABA_B:</strong> Slow inhibitory (100–200 ms)</li>
-</ul>
+<p>Access via <code>jaxfne.standard_receptor_specs()</code> (<code>jaxfne/emitters.py:66</code>), which returns a
+<code>dict[str, ReceptorSpec]</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th><code>receptor_index</code></th>
+<th><code>sign</code></th>
+<th><code>tau_ms</code></th>
+<th><code>reversal_mV</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AMPA</code></td>
+<td>0</td>
+<td>+1</td>
+<td>2.0</td>
+<td>0.0</td>
+</tr>
+<tr>
+<td><code>GABA_A</code></td>
+<td>1</td>
+<td>-1</td>
+<td>5.0</td>
+<td>-80.0</td>
+</tr>
+<tr>
+<td><code>NMDA</code></td>
+<td>2</td>
+<td>+1</td>
+<td>100.0</td>
+<td>0.0</td>
+</tr>
+<tr>
+<td><code>GABA_B</code></td>
+<td>3</td>
+<td>-1</td>
+<td>150.0</td>
+<td>-95.0</td>
+</tr>
+</tbody>
+</table>
 <p><strong>Example:</strong>
 <div class="highlight"><pre><span></span><code><span class="n">receptors</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">standard_receptor_specs</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">receptors</span><span class="p">[</span><span class="s2">&quot;AMPA&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tau_ms</span><span class="p">)</span>  <span class="c1"># 2.0</span>
 </code></pre></div></p>
+<p>Note: the recurrent-simulation kernels' binary excitatory/inhibitory split (see <code>EdgeList</code> below)
+consumes <code>receptor_index</code> values <code>0</code> and <code>1</code> only; <code>NMDA</code>/<code>GABA_B</code> are declared
+here, while the kernels instantiate them as combined excitatory/inhibitory channels rather than as separate synaptic populations.</p>
+<h4 id="ampa-gaba-implementation-table">AMPA / GABA implementation table<a class="headerlink" href="#ampa-gaba-implementation-table" title="Permanent link">&para;</a></h4>
+<p>Kernel operations and declared metadata specifications. Δscience=0.</p>
+<table>
+<thead>
+<tr>
+<th>Mechanism</th>
+<th>Sign</th>
+<th>Kernel</th>
+<th>Conductance</th>
+<th>Reversal</th>
+<th>Kinetics</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AMPA</code></td>
+<td>+1 (excitatory)</td>
+<td>single-exponential low-pass: <code>s_next = s*exp(-dt/tau) + spike_pre</code> (<code>synaptic_current_tensor</code>); one scalar state per edge</td>
+<td><strong>current-based</strong>: <code>weight * syn_state</code> summed via <code>segment_sum</code> to postsynaptic <code>syn</code>; dynamics use current-based summation</td>
+<td><code>0.0</code> mV, specification value (<code>ReceptorSpec.reversal_mV</code>, <code>source_calibration_status="metadata_only_uncalibrated"</code>)</td>
+<td><code>tau_ms = 2.0</code> ms</td>
+</tr>
+<tr>
+<td><code>GABA_A</code></td>
+<td>-1 (inhibitory)</td>
+<td>same single-pole kernel, <code>tau=5 ms</code> (<code>EdgeList.tau_ms</code> per edge from <code>receptor_index</code>)</td>
+<td><strong>current-based</strong>: <code>weight * syn_state</code>; inhibitory sign via negative <code>weight</code> (<code>sign=-1</code>, <code>receptor_index=1</code>)</td>
+<td><code>-80.0</code> mV, specification value</td>
+<td><code>tau_ms = 5.0</code> ms</td>
+</tr>
+<tr>
+<td><code>NMDA</code></td>
+<td>+1 (excitatory)</td>
+<td>same kernel family when instantiated via <code>synaptic_tau_from_mechanism</code> / <code>synaptic_current_tensor</code></td>
+<td>current-based when used</td>
+<td><code>0.0</code> mV, specification value</td>
+<td><code>tau_ms = 100.0</code> ms (declared; not in default <code>EdgeList</code> excitatory split, available via <code>synaptic_current_tensor</code>)</td>
+</tr>
+<tr>
+<td><code>GABA_B</code></td>
+<td>-1 (inhibitory)</td>
+<td>same kernel family</td>
+<td>current-based when used</td>
+<td><code>-95.0</code> mV, specification value</td>
+<td><code>tau_ms = 150.0</code> ms (declared; not in default <code>EdgeList</code>, available via <code>synaptic_current_tensor</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Notes:
+- <strong>Kernel</strong> is the declared computation; single-pole decay (single-pole, matches <code>simulate_edge_recurrent_izhikevich</code> / <code>simulate_receptor_exponential_izhikevich</code>).
+- <strong>Conductance</strong> column: the shipped dynamics are current-based; <code>g_mech</code>/<code>reversal_potentials_mV</code> in <code>StaticParams</code> and <code>ReceptorSpec.reversal_mV</code> are provenance metadata surfacing in <code>cfg.metadata["circuit"]["mechanisms"]</code> but surfacing in <code>cfg.metadata["circuit"]["mechanisms"]</code>.
+- <strong>Reversal</strong> values are the standard specs (<code>standard_receptor_specs()</code>); they serve as declarative specifications.
+- The default <code>EdgeList</code> construction from dense weights assigns <code>tau=2.0</code> for <code>weight &gt;= 0</code> and <code>tau=5.0</code> for <code>weight &lt; 0</code>; mechanism-specific dynamics require the mechanism-aware <code>edges.tau_ms</code> is wired (see <code>synaptic_tau_from_mechanism</code> inertness note — additive, not yet compiled into <code>core._compile_connection_rules</code>).</p>
 <hr />
 <h2 id="synapsespec">SynapseSpec<a class="headerlink" href="#synapsespec" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="n">jaxfne</span><span class="o">.</span><span class="n">SynapseSpec</span>
 </code></pre></div>
-<p>Specification for synaptic connections between neurons.</p>
-<h3 id="attributes_2">Attributes<a class="headerlink" href="#attributes_2" title="Permanent link">&para;</a></h3>
-<ul>
-<li><code>source_idx</code> (int): Source neuron index</li>
-<li><code>target_idx</code> (int): Target neuron index</li>
-<li><code>receptor</code> (str): Receptor type (e.g., "AMPA", "GABA_A")</li>
-<li><code>weight</code> (float): Synaptic strength (conductance)</li>
-<li><code>delay</code> (float, optional): Transmission delay (ms)</li>
-</ul>
+<p>Frozen dataclass metadata declaration for a synapse (<code>jaxfne/emitters.py:57</code>). <strong>Distinct from</strong> a
+per-connection edge record — it is a small wrapper bundling a tuple of <code>ReceptorSpec</code> objects
+plus calibration-status metadata, with <code>source_idx</code>/<code>target_idx</code>/<code>weight</code>/<code>delay</code> fields left out.
+Per-connection edges are represented by <code>EdgeList</code> (below), a distinct type from <code>SynapseSpec</code>.</p>
+<h3 id="fields_2">Fields<a class="headerlink" href="#fields_2" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>receptors</code></td>
+<td><code>tuple[ReceptorSpec, ...]</code></td>
+<td>Receptor specs composing this synapse</td>
+</tr>
+<tr>
+<td><code>source_calibration_status</code></td>
+<td><code>str</code></td>
+<td>Default <code>"metadata_only_uncalibrated"</code></td>
+</tr>
+<tr>
+<td><code>physical_amplitude_calibrated</code></td>
+<td><code>bool</code></td>
+<td>Default <code>False</code></td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="eignetwork">EIGNetwork<a class="headerlink" href="#eignetwork" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="n">jaxfne</span><span class="o">.</span><span class="n">EIGNetwork</span>
 </code></pre></div>
-<p>Excitatory-Inhibitory-Gap junction network representation.</p>
-<h3 id="attributes_3">Attributes<a class="headerlink" href="#attributes_3" title="Permanent link">&para;</a></h3>
-<ul>
-<li><code>n_exc</code> (int): Number of excitatory neurons</li>
-<li><code>n_inh</code> (int): Number of inhibitory neurons</li>
-<li><code>synapse_specs</code> (list[SynapseSpec]): Connection list</li>
-<li><code>gap_specs</code> (list[SynapseSpec], optional): Gap junction connections</li>
-</ul>
-<h3 id="methods_1">Methods<a class="headerlink" href="#methods_1" title="Permanent link">&para;</a></h3>
-<h4 id="to_dense-dict"><code>to_dense() -&gt; dict</code><a class="headerlink" href="#to_dense-dict" title="Permanent link">&para;</a></h4>
-<p>Convert to dense adjacency matrix representation.</p>
-<p><strong>Returns:</strong> Dictionary with connectivity matrices</p>
-<p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">network</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">EIGNetwork</span><span class="p">(</span><span class="n">n_exc</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_inh</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
-<span class="n">dense</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span>
-</code></pre></div></p>
+<p>Frozen dataclass — lightweight description of an E/PV-like/SST-like/VIP-like reduced network
+(<code>jaxfne/emitters.py:172</code>) — labels are reduced emitter classes (read as <code>-like</code>; no literal identity).</p>
+<h3 id="fields_3">Fields<a class="headerlink" href="#fields_3" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>params</code></td>
+<td><code>IzhikevichParams</code></td>
+<td>The population's Izhikevich parameters</td>
+</tr>
+<tr>
+<td><code>positions</code></td>
+<td><code>jax.Array</code></td>
+<td>Per-neuron <code>(x, y, depth)</code> positions, shape <code>(n, 3)</code></td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td><code>dict</code></td>
+<td>Free-form metadata (e.g. <code>emitter_family</code>, <code>source_calibration_status</code>, <code>position_units</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="properties_1">Properties<a class="headerlink" href="#properties_1" title="Permanent link">&para;</a></h3>
+<h4 id="n_neurons-int_1"><code>n_neurons -&gt; int</code><a class="headerlink" href="#n_neurons-int_1" title="Permanent link">&para;</a></h4>
+<p>Delegates to <code>self.params.n_neurons</code>.</p>
+<p><code>EIGNetwork</code> has no <code>EIGNetwork(n_exc=..., n_inh=...)</code> constructor and no <code>to_dense()</code> method — build an
+<code>EIGNetwork</code> via <code>make_eig_network(...)</code> (below), the alternative to constructing the dataclass directly with
+excitatory/inhibitory counts.</p>
 <hr />
 <h2 id="edgelist">EdgeList<a class="headerlink" href="#edgelist" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="n">jaxfne</span><span class="o">.</span><span class="n">EdgeList</span>
 </code></pre></div>
-<p>Sparse edge list representation of network connectivity.</p>
-<h3 id="attributes_4">Attributes<a class="headerlink" href="#attributes_4" title="Permanent link">&para;</a></h3>
-<ul>
-<li><code>edges</code> (jax.Array): Connection indices [2, num_edges]</li>
-<li><code>weights</code> (jax.Array): Synaptic weights [num_edges]</li>
-</ul>
-<h3 id="methods_2">Methods<a class="headerlink" href="#methods_2" title="Permanent link">&para;</a></h3>
-<h4 id="from_denseadj_matrix-jaxarray-edgelist"><code>from_dense(adj_matrix: jax.Array) -&gt; EdgeList</code><a class="headerlink" href="#from_denseadj_matrix-jaxarray-edgelist" title="Permanent link">&para;</a></h4>
-<p>Create EdgeList from dense adjacency matrix.</p>
-<p><strong>Parameters:</strong>
-- <code>adj_matrix</code> (jax.Array): Dense connectivity matrix</p>
-<p><strong>Returns:</strong> <code>EdgeList</code></p>
-<p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">dense</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
-<span class="n">edges</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">EdgeList</span><span class="o">.</span><span class="n">from_dense</span><span class="p">(</span><span class="n">dense</span><span class="p">)</span>
-</code></pre></div></p>
+<p>Frozen dataclass registered as a JAX pytree class (<code>@jax.tree_util.register_pytree_node_class</code>) —
+sparse recurrent connectivity (<code>jaxfne/emitters.py:459</code>). Weights stay internal/unphysical
+pending a future calibration bridge.</p>
+<h3 id="fields_4">Fields<a class="headerlink" href="#fields_4" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pre</code></td>
+<td><code>jax.Array</code></td>
+<td>Presynaptic neuron index per edge, shape <code>(n_edges,)</code></td>
+</tr>
+<tr>
+<td><code>post</code></td>
+<td><code>jax.Array</code></td>
+<td>Postsynaptic neuron index per edge, shape <code>(n_edges,)</code></td>
+</tr>
+<tr>
+<td><code>weight</code></td>
+<td><code>jax.Array</code></td>
+<td>Signed internal weight per edge</td>
+</tr>
+<tr>
+<td><code>receptor_index</code></td>
+<td><code>jax.Array</code></td>
+<td>Integer receptor channel per edge (<code>0</code>=excitatory, <code>1</code>=inhibitory in the recurrent kernels)</td>
+</tr>
+<tr>
+<td><code>tau_ms</code></td>
+<td><code>jax.Array</code></td>
+<td>Per-edge synaptic decay time constant (ms)</td>
+</tr>
+<tr>
+<td><code>source_calibration_status</code></td>
+<td><code>str</code></td>
+<td>Default <code>"uncalibrated_izhikevich_native_current"</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="properties-and-methods">Properties and Methods<a class="headerlink" href="#properties-and-methods" title="Permanent link">&para;</a></h3>
+<h4 id="n_edges-int"><code>n_edges -&gt; int</code><a class="headerlink" href="#n_edges-int" title="Permanent link">&para;</a></h4>
+<p>Number of edges, i.e. <code>pre.shape[0]</code>.</p>
+<h4 id="tree_flatten-tree_unflattenaux-children"><code>tree_flatten()</code> / <code>tree_unflatten(aux, children)</code><a class="headerlink" href="#tree_flatten-tree_unflattenaux-children" title="Permanent link">&para;</a></h4>
+<p>JAX pytree protocol methods (children = the five arrays; aux = <code>source_calibration_status</code>).</p>
+<h4 id="to_dict-dict"><code>to_dict() -&gt; dict</code><a class="headerlink" href="#to_dict-dict" title="Permanent link">&para;</a></h4>
+<p>Returns a JSON-safe summary: <code>backend</code>, <code>n_edges</code>, a <code>receptors</code> label map
+(<code>{"0": "excitatory_native", "1": "inhibitory_native"}</code>), <code>source_calibration_status</code>, and
+<code>physical_amplitude_calibrated=False</code>.</p>
+<p><code>EdgeList</code> has no <code>from_dense(...)</code> classmethod. The conversion path is the module-level
+function <code>make_edge_list_from_dense(weights, *, threshold=1e-12, dtype="float32")</code>
+(<code>jaxfne/emitters.py:503</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="n">W</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+<span class="n">edges</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">make_edge_list_from_dense</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><code>weights</code> uses rows as postsynaptic targets and columns as presynaptic sources (matching
+<code>weights @ spikes</code> in the baseline dense backend). Entries with <code>abs(weight) &lt;= threshold</code> are
+dropped. <code>tau_ms</code> per edge is set to <code>2.0</code> (excitatory, <code>weight &gt;= 0</code>) or <code>5.0</code> (inhibitory,
+<code>weight &lt; 0</code>), matching the excitatory/inhibitory tau split used elsewhere in this module.</p>
 <hr />
 <h2 id="emitter-functions">Emitter Functions<a class="headerlink" href="#emitter-functions" title="Permanent link">&para;</a></h2>
-<h3 id="simulate_eig_izhikevichcfg-i_ext-seed-spikes-v_m-u"><code>simulate_eig_izhikevich(cfg, I_ext, seed) -&gt; (spikes, V_m, u)</code><a class="headerlink" href="#simulate_eig_izhikevichcfg-i_ext-seed-spikes-v_m-u" title="Permanent link">&para;</a></h3>
-<p>Simulate Excitatory-Inhibitory-Gap junction network with Izhikevich dynamics.</p>
+<h3 id="make_eig_networkn128-cell_type_fractionsnone-dtypefloat32-eignetwork"><code>make_eig_network(n=128, cell_type_fractions=None, *, dtype="float32") -&gt; EIGNetwork</code><a class="headerlink" href="#make_eig_networkn128-cell_type_fractionsnone-dtypefloat32-eignetwork" title="Permanent link">&para;</a></h3>
+<p>Build a minimal EIG network with laminar depth positions (<code>jaxfne/emitters.py:323</code>).</p>
 <p><strong>Parameters:</strong>
-- <code>cfg</code> (Configuration): Network configuration
-- <code>I_ext</code> (jax.Array): External input current [time, neurons]
-- <code>seed</code> (int): Random seed</p>
-<p><strong>Returns:</strong> Tuple of (spikes, membrane voltage, recovery variable)</p>
+- <code>n</code> (int, default 128): Number of neurons; depth positions are spread evenly over <code>[0, 1]</code>
+  (x/y are fixed at 0).
+- <code>cell_type_fractions</code> (<code>Mapping[str, float]</code>, optional): E/PV-like/SST-like/VIP-like reduced-class fractions. Default:
+  <code>{"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03}</code> (keys bare; read as <code>-like</code>).
+- <code>dtype</code> (str, <code>keyword-only</code>, default <code>"float32"</code>): Array dtype policy.</p>
+<p><strong>Returns:</strong> <code>EIGNetwork</code>, with <code>metadata</code> containing <code>emitter_family="izhikevich"</code>,
+<code>source_calibration_status</code>, and <code>position_units="relative_laminar_depth_proxy"</code>.</p>
 <p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">spikes</span><span class="p">,</span> <span class="n">V_m</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">simulate_eig_izhikevich</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">I_ext</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">network</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">make_eig_network</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">cell_type_fractions</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span> <span class="s2">&quot;PV&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;SST&quot;</span><span class="p">:</span> <span class="mf">0.07</span><span class="p">,</span> <span class="s2">&quot;VIP&quot;</span><span class="p">:</span> <span class="mf">0.03</span><span class="p">})</span>
 </code></pre></div></p>
-<h3 id="make_eig_networkn_exc-n_inh-eignetwork"><code>make_eig_network(n_exc, n_inh, ...) -&gt; EIGNetwork</code><a class="headerlink" href="#make_eig_networkn_exc-n_inh-eignetwork" title="Permanent link">&para;</a></h3>
-<p>Create an Excitatory-Inhibitory-Gap junction network structure.</p>
+<hr />
+<h3 id="simulate_eig_izhikevichparams-n_steps-dt_ms-key-dtypefloat32-drive_schedulenone-silence_masknone-noise_scalenone-voltages-spikes-sources"><code>simulate_eig_izhikevich(params, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None, noise_scale=None) -&gt; (voltages, spikes, sources)</code><a class="headerlink" href="#simulate_eig_izhikevichparams-n_steps-dt_ms-key-dtypefloat32-drive_schedulenone-silence_masknone-noise_scalenone-voltages-spikes-sources" title="Permanent link">&para;</a></h3>
+<p>Simulate a reduced EIG Izhikevich scaffold using <code>jax.lax.scan</code>, with dense (<code>params.W</code>)
+recurrent coupling (<code>jaxfne/emitters.py:358</code>).</p>
 <p><strong>Parameters:</strong>
-- <code>n_exc</code> (int): Number of excitatory neurons
-- <code>n_inh</code> (int): Number of inhibitory neurons
-- Additional connectivity parameters</p>
-<p><strong>Returns:</strong> <code>EIGNetwork</code> object</p>
+- <code>params</code> (<code>IzhikevichParams</code>): Population parameters, including <code>W</code>.
+- <code>n_steps</code> (int): Number of simulation timesteps.
+- <code>dt_ms</code> (float): Timestep in milliseconds.
+- <code>key</code> (<code>jax.Array</code>): PRNG key.
+- <code>dtype</code> (str, <code>keyword-only</code>, default <code>"float32"</code>).
+- <code>drive_schedule</code> (<code>jax.Array | None</code>, <code>keyword-only</code>): Optional <code>(n_steps, n_neurons)</code> internal
+  current added to <code>params.drive</code> at every step.
+- <code>silence_mask</code> (<code>jax.Array | None</code>, <code>keyword-only</code>): Optional <code>(n_neurons,)</code> mask; neurons with
+  mask <code>&lt;= 0.5</code> are clamped at <code>c</code>.
+- <code>noise_scale</code> (<code>jax.Array | float | None</code>, <code>keyword-only</code>): Stochastic-current coefficient;
+  <code>None</code> keeps the historical <code>0.5</code> scalar.</p>
+<p><strong>Returns:</strong> <code>(voltages, spikes, sources)</code>, each shape <code>(n_steps, n_neurons)</code>.</p>
 <p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">network</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">make_eig_network</span><span class="p">(</span><span class="n">n_exc</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">n_inh</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">voltages</span><span class="p">,</span> <span class="n">spikes</span><span class="p">,</span> <span class="n">sources</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">simulate_eig_izhikevich</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">n_steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
 </code></pre></div></p>
+<p>A backwards-compatible alias <code>simulate_izhikevich_eig</code> (from v0.0.3) points at the same function.</p>
+<hr />
+<h3 id="make_edge_list_from_denseweights-threshold1e-12-dtypefloat32-edgelist"><code>make_edge_list_from_dense(weights, *, threshold=1e-12, dtype="float32") -&gt; EdgeList</code><a class="headerlink" href="#make_edge_list_from_denseweights-threshold1e-12-dtypefloat32-edgelist" title="Permanent link">&para;</a></h3>
+<p>Convert a dense recurrent weight matrix into a sparse <code>EdgeList</code>. See the <code>EdgeList</code> section
+above for the exact semantics.</p>
+<hr />
+<h3 id="simulate_edge_recurrent_izhikevichparams-edges-n_steps-dt_ms-key-dtypefloat32-drive_schedulenone-silence_masknone-noise_scalenone-voltages-spikes-sources-final_state"><code>simulate_edge_recurrent_izhikevich(params, edges, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None, noise_scale=None) -&gt; (voltages, spikes, sources, final_state)</code><a class="headerlink" href="#simulate_edge_recurrent_izhikevichparams-edges-n_steps-dt_ms-key-dtypefloat32-drive_schedulenone-silence_masknone-noise_scalenone-voltages-spikes-sources-final_state" title="Permanent link">&para;</a></h3>
+<p>Simulate reduced Izhikevich emitters with <strong>sparse</strong> recurrent synapses, using <code>jax.lax.scan</code>
+over time and <code>jax.ops.segment_sum</code> over edges (<code>jaxfne/emitters.py:532</code>). JIT/vmap compatible.</p>
+<p><strong>Parameters:</strong> same as <code>simulate_eig_izhikevich</code>, plus <code>edges</code> (<code>EdgeList</code>) in place of dense
+<code>params.W</code> coupling.</p>
+<p><strong>Returns:</strong> <code>(voltages, spikes, sources, final_state)</code> where <code>final_state</code> is a dict with keys
+<code>v</code>, <code>u</code>, <code>prev_spikes</code>, <code>syn_state</code> — usable to resume a simulation.</p>
+<hr />
+<h3 id="simulate_edge_recurrent_izhikevich_homeostatic-voltages-spikes-sources-diagnostics_dict"><code>simulate_edge_recurrent_izhikevich_homeostatic(...) -&gt; (voltages, spikes, sources, diagnostics_dict)</code><a class="headerlink" href="#simulate_edge_recurrent_izhikevich_homeostatic-voltages-spikes-sources-diagnostics_dict" title="Permanent link">&para;</a></h3>
+<p>As <code>simulate_edge_recurrent_izhikevich</code>, plus a per-neuron homeostatic excitability bias
+<code>g_i = clip(k_gain * (r_star - r_i), g_min, g_max)</code> driven by a slow activity trace <code>r_i</code>, and
+optional homeostatic synaptic plasticity (<code>eta != 0</code>) (<code>jaxfne/emitters.py:650</code>). Key extra
+<code>keyword-only</code> parameters: <code>r_star=0.05</code>, <code>tau_r_ms=300.0</code>, <code>alpha=1.0</code>, <code>k_gain=1.0</code>,
+<code>g_min=-12.0</code>, <code>g_max=8.0</code>, <code>r_max=1.0</code>, <code>eta=0.0</code> (disables plasticity when <code>0.0</code>),
+<code>tau_x_ms=100.0</code>, <code>w_min=-10.0</code>, <code>w_max=10.0</code>, plus hard numerical-stability bounds
+(<code>v_floor</code>, <code>v_ceiling</code>, <code>u_abs_max</code>, <code>syn_abs_max</code>) and <code>init_state</code> for pause/resume.
+<code>k_gain</code> provides one-sided damping.
+<code>diagnostics_dict</code> includes <code>g_bias</code> and <code>r_trace</code>, each shape <code>(n_steps, n_neurons)</code>, plus
+(when <code>eta != 0</code>) <code>w_trace</code> shape <code>(n_steps, n_edges)</code>.</p>
+<hr />
+<h3 id="simulate_edge_recurrent_izhikevich_rbd-voltages-spikes-sources-final_state"><code>simulate_edge_recurrent_izhikevich_rbd(...) -&gt; (voltages, spikes, sources, final_state)</code><a class="headerlink" href="#simulate_edge_recurrent_izhikevich_rbd-voltages-spikes-sources-final_state" title="Permanent link">&para;</a></h3>
+<p>Protocol H1 — <strong>Relative Biophysical Dynamics</strong> with <strong>fixed weights</strong> (<span class="arithmatex">\(\dot W=0\)</span>,
+<span class="arithmatex">\(d_H=1\)</span>). Composes the edge-recurrent Izhikevich kernel (including Protocol D
+<code>delay_steps</code> when nonzero) with scalar per-neuron RBS coordinates <code>H_i</code>.</p>
+<p><strong>H1c-C (postsynaptic recurrent gain):</strong></p>
+<div class="arithmatex">\[
+I_i^{\mathrm{drive}} = I_i^{\mathrm{ext}} + G_H(H_i;\beta_H)\,I_i^{\mathrm{rec}} + \text{noise},
+\quad G_H = 1 + \beta_H(H-1).
+\]</div>
+<p>External drive is untouched. <code>F_H</code> uses <strong>pre-gain</strong> <code>I_i^rec</code> for
+<code>kappa_H * I_i^rel</code>. <code>beta_h=0</code> and <code>H=1</code> recover H1a / legacy activity.
+<code>G_H</code> must stay positive; values at or below zero end the step.</p>
+<p><strong>H2 continuation:</strong> pass <code>init_state</code> with <code>v</code>, <code>u</code>, <code>prev_spikes</code>,
+<code>syn_state</code>, <code>H_final</code>/<code>H</code>, <code>delay_state</code> (when delays active), and
+<code>continuation_step_offset</code>. Returns the same fields plus <code>H_trace</code>.</p>
+<p><code>rbd_family</code> selects:</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Dynamics</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"f0"</code></td>
+<td>RBS disabled: <code>H_i ≡ 1</code></td>
+</tr>
+<tr>
+<td><code>"f1"</code></td>
+<td><code>tau_H * dH_i/dt = (1 - H_i) + kappa_H * I_i^rel</code></td>
+</tr>
+<tr>
+<td><code>"f2"</code></td>
+<td><code>tau_H * dH_i/dt = (H_i^{-1} - 1) + kappa_H * I_i^rel</code> (requires <code>H&gt;0</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><code>I_i^rel</code> is total recurrent synaptic input at neuron <code>i</code> divided by <code>i_ref</code>.
+F2 trajectories with <code>H&lt;=0</code> propagate non-finite <code>H</code>; values are unclipped.
+<code>final_state</code> includes <code>H_trace</code>, <code>H_final</code>, and <code>w_fixed</code> (the constant edge
+weights). Zero-delay continuation only; nonzero-delay continuation awaits Protocol H2.</p>
+<p>Authority: <code>docs/doctrine/protocol_h_rbd_memory.md</code>.</p>
+<hr />
+<h3 id="simulate_edge_recurrent_izhikevich_hdp-voltages-spikes-sources-diagnostics_dict"><code>simulate_edge_recurrent_izhikevich_hdp(...) -&gt; (voltages, spikes, sources, diagnostics_dict)</code><a class="headerlink" href="#simulate_edge_recurrent_izhikevich_hdp-voltages-spikes-sources-diagnostics_dict" title="Permanent link">&para;</a></h3>
+<p>As <code>simulate_edge_recurrent_izhikevich</code>, plus <strong>Hidden-state Dependent Plasticity (HDP)</strong>:
+per-neuron Relative Biophysical State (RBS) coordinates <code>H_i</code> (default scalar
+1.0, clamped to <code>[H_min, H_max]</code>) that both synaptic
+drive and the neuron's own spiking feed back into, and that drives a weight-update rule selected
+by <code>hdp_rule</code> (<code>"signed_linear"</code> default, or <code>"signed_quadratic"</code>, <code>"hebbian_product"</code>)
+(<code>jaxfne/emitters.py:1039</code>). For an edge <code>i -&gt; j</code>, define
+<code>Delta_H = H_post - H_pre</code> and <code>w = q*m</code>; the difference-family magnitude term is
+<code>q*K_HDP*phi(Delta_H)*m</code>, with <code>phi(x)=x</code> for <code>"signed_linear"</code> and
+<code>phi(x)=x*abs(x)</code> for <code>"signed_quadratic"</code>. <code>"hebbian_product"</code> is separate product
+modulation using <code>H_pre*H_post</code>, not another difference rule. The independent
+<code>K_w_ctrl*(m0-m)</code> term restores magnitude toward the declared baseline. All
+H income/spending gains (<code>alpha</code>, <code>beta</code>, <code>gamma</code>, <code>delta</code>, <code>C_spike</code>) default to
+<code>0.0</code>, and <code>K_HDP</code> defaults to <code>1.0</code> but multiplies a zero weight-update
+term when those gains are <code>0.0</code> — so the defaults are an H-state/weight-term null,
+not a general full-system equivalence claim. Per-neuron <code>tau_i =
+tau_0_ms * size_i**3</code>, with per-cell-type <code>size_i</code> from <code>DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE</code>
+(<code>jaxfne/emitters.py:978</code>: <code>E=5.0</code>, <code>PV=1.0</code>, <code>Inl=1.0</code>, <code>SST=1.5</code>, <code>Ing=1.5</code>, <code>VIP=1.5</code>), unless
+overridden via <code>size_scale_by_cell_type</code> or <code>size_scale_override</code>. <code>diagnostics_dict</code> includes
+The current scalar HDP realization is the <code>d_H=1</code> case. <code>H_trace</code> has shape
+<code>(n_steps, n_neurons)</code> for <code>h_state_dim=1</code> and
+<code>(n_steps, n_neurons, h_state_dim)</code> for vector H. The diagnostics also include
+<code>w_trace</code>, <code>H_final</code>, and <code>w_final</code>, plus optional
+per-term <code>dH_*_trace</code> diagnostics when <code>record_dH_components=True</code> and <code>edge_current_trace</code> when
+<code>record_edge_current=True</code>. <code>record_weight_trace</code> (default <code>True</code>) controls whether <code>w_trace</code>
+(shape <code>(n_steps, n_edges)</code>, the dominant memory cost at scale — e.g. 10,000 steps x 2,000,000
+edges x 4 bytes = 80GB) is stacked at all; set <code>False</code> to get <code>w_trace=None</code> while <code>w_final</code> and
+HDP's actual dynamics stay unaffected. For <code>h_state_dim&gt;1</code>, componentwise H
+dynamics are the default; <code>h_state_readout</code> supplies the current scalar
+adaptation projection and <code>h_state_coupling</code> supplies an optional square
+component-coupling matrix. See the docstring in <code>jaxfne/emitters.py:1042</code> for the full parameter
+reference — it is extensive and kept in the source docstring.</p>
+<hr />
+<h3 id="simulate_receptor_exponential_izhikevichparams-edges-n_steps-dt_ms-key-dtypefloat32-drive_schedulenone-silence_masknone-voltages-spikes-sources-final_state"><code>simulate_receptor_exponential_izhikevich(params, edges, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None) -&gt; (voltages, spikes, sources, final_state)</code><a class="headerlink" href="#simulate_receptor_exponential_izhikevichparams-edges-n_steps-dt_ms-key-dtypefloat32-drive_schedulenone-silence_masknone-voltages-spikes-sources-final_state" title="Permanent link">&para;</a></h3>
+<p>v0.0.11 receptor-indexed exponential recurrent kernel (<code>jaxfne/emitters.py:1538</code>). Keeps one
+scalar synaptic state per edge and selects the per-edge decay from <code>edges.receptor_index</code> via
+<code>standard_receptor_tau_table()</code>. Two receptor channels on the same anatomical connection are
+represented as two separate edges with identical <code>pre</code>/<code>post</code> but different <code>receptor_index</code> —
+the kernel does not expand state to <code>(n_edges, n_receptors)</code>. Reversal potentials remain
+metadata-only; no <code>g * (V - E_rev)</code> conductance equation is computed. <code>final_state</code> additionally
+includes <code>tau_per_edge</code>.</p>
+<hr />
+<h3 id="simulate_dynamic_ei_couplingparams-n_steps-dt_ms-key-g_ei50-g_ie30-tau_syn_e_ms50-tau_syn_i_ms100-dtypefloat32-voltages-spikes-syn_currents-sources"><code>simulate_dynamic_ei_coupling(params, n_steps, dt_ms, key, *, g_ei=5.0, g_ie=3.0, tau_syn_e_ms=5.0, tau_syn_i_ms=10.0, dtype="float32") -&gt; (voltages, spikes, syn_currents, sources)</code><a class="headerlink" href="#simulate_dynamic_ei_couplingparams-n_steps-dt_ms-key-g_ei50-g_ie30-tau_syn_e_ms50-tau_syn_i_ms100-dtypefloat32-voltages-spikes-syn_currents-sources" title="Permanent link">&para;</a></h3>
+<p>Simulates a fixed <strong>two-neuron</strong> E/I pair (<code>params</code> must have <code>n_neurons=2</code>, neuron 0 = E,
+neuron 1 = I) with dynamic exponential synaptic coupling (<code>jaxfne/emitters.py:1665</code>). Not a
+general-<code>n</code> recurrent kernel — intended for small illustrative demos.</p>
+<hr />
+<h3 id="simulate_multi_area_izhikevichneurons_df-positions_m-w-source_tensornone-control_paramsnone-cfgnone-n_stepsnone-dt_ms01-seed0-dtypefloat32-spikes-voltages"><code>simulate_multi_area_izhikevich(neurons_df, positions_m, W, source_tensor=None, control_params=None, cfg=None, n_steps=None, dt_ms=0.1, seed=0, dtype="float32") -&gt; (spikes, voltages)</code><a class="headerlink" href="#simulate_multi_area_izhikevichneurons_df-positions_m-w-source_tensornone-control_paramsnone-cfgnone-n_stepsnone-dt_ms01-seed0-dtypefloat32-spikes-voltages" title="Permanent link">&para;</a></h3>
+<p>Multi-area Izhikevich simulation driven from a neuron metadata mapping (<code>neurons_df</code> with
+<code>area</code>/<code>layer</code>/<code>cell_type</code> keys), a dense connectivity matrix <code>W</code> (rescaled by <code>0.1</code> for gain
+compatibility), and an optional <code>source_tensor</code> used as <code>drive_schedule</code>
+(<code>jaxfne/emitters.py:1780</code>). Note the return order is <code>(spikes, voltages)</code>, the reverse of the
+other <code>simulate_*</code> functions' <code>(voltages, spikes, ...)</code> order.</p>
+<hr />
 <h3 id="standard_receptor_specs-dictstr-receptorspec"><code>standard_receptor_specs() -&gt; dict[str, ReceptorSpec]</code><a class="headerlink" href="#standard_receptor_specs-dictstr-receptorspec" title="Permanent link">&para;</a></h3>
-<p>Get standard synaptic receptor specifications.</p>
-<p><strong>Returns:</strong> Dictionary of receptor type → <code>ReceptorSpec</code></p>
-<p><strong>Available types:</strong> AMPA, NMDA, GABA_A, GABA_B</p>
+<p>Get standard synaptic receptor specifications (<code>jaxfne/emitters.py:66</code>).</p>
+<p><strong>Returns:</strong> Dictionary of receptor type -&gt; <code>ReceptorSpec</code>.</p>
+<p><strong>Available types:</strong> <code>AMPA</code>, <code>GABA_A</code>, <code>NMDA</code>, <code>GABA_B</code>.</p>
 <p><strong>Example:</strong>
 <div class="highlight"><pre><span></span><code><span class="n">receptors</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">standard_receptor_specs</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">receptors</span><span class="p">[</span><span class="s2">&quot;AMPA&quot;</span><span class="p">])</span>
 </code></pre></div></p>
 <hr />
-<h2 id="scope-notes">Scope Notes<a class="headerlink" href="#scope-notes" title="Permanent link">&para;</a></h2>
+<h3 id="standard_receptor_tau_tabledtypefloat32-jaxarray"><code>standard_receptor_tau_table(dtype="float32") -&gt; jax.Array</code><a class="headerlink" href="#standard_receptor_tau_tabledtypefloat32-jaxarray" title="Permanent link">&para;</a></h3>
+<p>Returns the <code>receptor_index -&gt; tau_ms</code> lookup table, built from <code>standard_receptor_specs()</code> so
+the kernels and declarative metadata stay synchronized (<code>jaxfne/emitters.py:1422</code>).</p>
+<hr />
+<h3 id="synaptic_tau_from_mechanismmechanism-dtypefloat32-tau_ms"><code>synaptic_tau_from_mechanism(mechanism, *, dtype="float32") -&gt; tau_ms</code><a class="headerlink" href="#synaptic_tau_from_mechanismmechanism-dtypefloat32-tau_ms" title="Permanent link">&para;</a></h3>
+<p>Map declared receptor-mechanism names to per-edge tau (Synaptic Tensor, tau stage).</p>
+<p><strong>Parameters:</strong>
+- <code>mechanism</code> (<code>Sequence[str]</code>): per-edge mechanism names, e.g. <code>["AMPA", "NMDA", ...]</code>.
+  Valid names match <code>standard_receptor_specs()</code>: <code>AMPA</code>, <code>GABA_A</code>, <code>NMDA</code>, <code>GABA_B</code>.</p>
+<p><strong>Returns:</strong> <code>tau_ms</code> (<code>jax.Array</code>, milliseconds, shape <code>[E]</code>).</p>
+<p><strong>Description:</strong>
+Vectorized lookup over <code>standard_receptor_specs()</code> / <code>standard_receptor_tau_table()</code>
+keyed by mechanism name. Additive extension —
+<code>core._compile_connection_rules</code> infers tau today (it still derives receptor type
+from weight sign, setting <code>tau=2.0</code> for excitatory / <code>5.0</code> for inhibitory
+edges regardless of any declared <code>mechanism</code> string — a known, separately-tracked
+inertness). Raises <code>ValueError</code> on an unrecognized mechanism name rather than
+substituting unverified kinetics.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">tau_ms</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">synaptic_tau_from_mechanism</span><span class="p">([</span><span class="s2">&quot;AMPA&quot;</span><span class="p">,</span> <span class="s2">&quot;GABA_A&quot;</span><span class="p">,</span> <span class="s2">&quot;NMDA&quot;</span><span class="p">,</span> <span class="s2">&quot;GABA_B&quot;</span><span class="p">])</span>
+<span class="c1"># -&gt; [2.0, 5.0, 100.0, 150.0]</span>
+</code></pre></div></p>
+<hr />
+<h3 id="synaptic_current_tensorspikes_pre-tau_ms-dt_ms-filtered"><code>synaptic_current_tensor(spikes_pre, tau_ms, dt_ms) -&gt; filtered</code><a class="headerlink" href="#synaptic_current_tensorspikes_pre-tau_ms-dt_ms-filtered" title="Permanent link">&para;</a></h3>
+<p>Standalone single-pole synaptic current tensor (Synaptic Tensor, filter stage).</p>
+<p><strong>Parameters:</strong>
+- <code>spikes_pre</code> (<code>jax.Array</code>): per-channel spike/input trace, shape <code>[T, E]</code>.
+- <code>tau_ms</code> (<code>jax.Array</code>): per-channel time constant in milliseconds, shape <code>[E]</code>.
+  Build with <code>synaptic_tau_from_mechanism</code>.
+- <code>dt_ms</code> (float): simulation timestep in milliseconds.</p>
+<p><strong>Returns:</strong> synaptic state trace, shape <code>[T, E]</code>.</p>
+<p><strong>Description:</strong>
+Factors out the exact per-edge synaptic state update used inline by
+<code>simulate_edge_recurrent_izhikevich</code> / <code>simulate_receptor_exponential_izhikevich</code>
+(<code>syn_next = syn_state * exp(-dt/tau) + spike</code>) as an explicit, named, reusable
+operator — usable outside the full <code>simulate()</code> orchestration for diagnostics or
+parameter sweeps. Single-exponential decay,
+matching the kernels exactly.</p>
+<p>Validated falsification (500 ms, periodic 20 Hz input, <code>order</code> n/a — single pole):
+NMDA (tau=100 ms) sustains a mean current ~37.6x AMPA's (tau=2 ms) under identical
+input, confirming the tensor is genuinely mechanism-selective.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">tau_ms</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">synaptic_tau_from_mechanism</span><span class="p">([</span><span class="s2">&quot;AMPA&quot;</span><span class="p">,</span> <span class="s2">&quot;NMDA&quot;</span><span class="p">])</span>
+<span class="n">trace</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">synaptic_current_tensor</span><span class="p">(</span><span class="n">spikes_pre</span><span class="p">,</span> <span class="n">tau_ms</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</code></pre></div></p>
+<hr />
+<h3 id="synaptic_tensor_reporttau_ms-mechanismnone-dict"><code>synaptic_tensor_report(tau_ms, mechanism=None) -&gt; dict</code><a class="headerlink" href="#synaptic_tensor_reporttau_ms-mechanismnone-dict" title="Permanent link">&para;</a></h3>
+<p>JSON-safe truth-gate report for a <code>synaptic_current_tensor</code> call.</p>
+<p><strong>Parameters:</strong>
+- <code>tau_ms</code> (<code>jax.Array</code>): the same per-channel tau array passed to <code>synaptic_current_tensor</code>.
+- <code>mechanism</code> (<code>Sequence[str] | None</code>): the mechanism names used, if any.</p>
+<p><strong>Returns:</strong> a <code>dict</code> with <code>tau_ms_mean/min/max</code>, <code>mechanism</code>, <code>finite_tau</code>,
+<code>source_calibration_status="metadata_only_uncalibrated"</code>,
+<code>physical_amplitude_calibrated=False</code>, <code>claim_level="computational_scaffold"</code>.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">report</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">synaptic_tensor_report</span><span class="p">(</span><span class="n">tau_ms</span><span class="p">,</span> <span class="n">mechanism</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;AMPA&quot;</span><span class="p">,</span> <span class="s2">&quot;NMDA&quot;</span><span class="p">])</span>
+<span class="k">assert</span> <span class="n">report</span><span class="p">[</span><span class="s2">&quot;finite_tau&quot;</span><span class="p">]</span>
+</code></pre></div></p>
+<hr />
+<h2 id="emitter-facade-classes">Emitter Facade Classes<a class="headerlink" href="#emitter-facade-classes" title="Permanent link">&para;</a></h2>
+<p><code>emitters.py</code> also exposes a small object-oriented facade layer used by tutorials/smoke tests
+(<code>jaxfne/emitters.py:1896</code> onward), separate from the functional <code>simulate_*</code> kernels above:</p>
 <ul>
-<li><strong>Izhikevich model is phenomenological:</strong> Not a detailed Hodgkin-Huxley model; suitable for tutorial and prototyping workflows</li>
-<li><strong>Spike threshold (v ≥ 30 mV):</strong> Fixed threshold; not voltage-dependent channels</li>
-<li><strong>Synaptic kinetics:</strong> Exponential decay; suitable for learning-scale simulations</li>
-<li><strong>Network connectivity:</strong> Declared via configuration; not learned (unless using optimization workflow)</li>
+<li><strong><code>EmitterState</code></strong> (<code>NamedTuple</code>): <code>v</code>, <code>u</code>, <code>spikes</code>, <code>key</code>, <code>step_count</code>.</li>
+<li><strong><code>EmitterOutput</code></strong> (<code>NamedTuple</code>): <code>voltage</code>, <code>spikes</code>, <code>source</code>, <code>finite</code>; has a <code>dtype</code>
+  property returning <code>str(self.voltage.dtype)</code>.</li>
+<li><strong><code>Emitter</code></strong>: base class with <code>initial_state(seed=0) -&gt; EmitterState</code> and
+  <code>step(state, input_t, *, dt_ms=0.1) -&gt; (EmitterState, EmitterOutput)</code>, both <code>NotImplementedError</code>
+  stubs on the base class.</li>
+<li><strong><code>IzhikevichEmitter(Emitter)</code></strong>: concrete single-step facade over the same dense-<code>W</code> Izhikevich
+  dynamics as <code>simulate_eig_izhikevich</code>. Constructor: <code>IzhikevichEmitter(n=None, *, n_neurons=None,
+  dtype="float32", cell_type_fractions=None)</code> — accepts either <code>n</code> or <code>n_neurons</code> (at least one
+  required, <code>n</code> takes precedence), default <code>cell_type_fractions={"E": 0.75, "PV": 0.10, "SST": 0.08,
+  "VIP": 0.07}</code>.</li>
+<li><strong><code>GLIFEmitter(Emitter)</code></strong>, <strong><code>LIFEmitter(Emitter)</code></strong>: unimplemented stubs — both raise
+  <code>NotImplementedError</code> on construction (<code>__init__</code> immediately raises). Stubs for future implementation.</li>
+<li><strong><code>SynapseState</code></strong> (<code>NamedTuple</code>): <code>trace</code> — a JAX-pytree-compatible carry for <code>SynapseLayer</code>.</li>
+<li><strong><code>SynapseLayer</code></strong>: <code>SynapseLayer(n, W, tau_ms=5.0, dtype="float32")</code>, dense exponential synapse
+  layer with <code>initial_state() -&gt; SynapseState</code> and <code>step(state, pre_spikes, *, dt_ms=0.1) -&gt;
+  (SynapseState, current)</code>.</li>
 </ul>
+<div class="highlight"><pre><span></span><code><span class="n">emitter</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">IzhikevichEmitter</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">cell_type_fractions</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span> <span class="s2">&quot;PV&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">})</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">emitter</span><span class="o">.</span><span class="n">initial_state</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">state</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">emitter</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">input_t</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">64</span><span class="p">),</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="homeostatic_ei-second-canonical-hdp-sanity-emitter">homeostatic_ei (second canonical HDP sanity emitter)<a class="headerlink" href="#homeostatic_ei-second-canonical-hdp-sanity-emitter" title="Permanent link">&para;</a></h2>
+<p><code>jaxfne/emitters_homeostatic_ei.py</code>. A <strong>separate emitter family from Izhikevich</strong> —
+not a variant of it. State <code>x</code> is continuous, bounded, differentiable rate-like state,
+distinct from an Izhikevich threshold-and-reset system. It is
+the smallest dynamical system built to exercise HDP: three explicit, independently staged
+timescales (never fused into one rule):</p>
+<div class="highlight"><pre><span></span><code>dx/dt = f(x, G, u)        fast neuronal dynamics      (tau_x_ms)
+dG/dt = f_G(x, H, is_e)    intermediate conductance     (tau_G_ms)
+dH/dt = f_H(x, H, is_e)    slow HDP homeostasis         (tau_H_ms)
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">jtfne</span><span class="o">.</span><span class="n">Configuration</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">runtime</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">network</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;ei8&quot;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">set_emitter</span><span class="p">(</span><span class="s2">&quot;homeostatic_ei&quot;</span><span class="p">,</span> <span class="n">activation_rule</span><span class="o">=</span><span class="s2">&quot;cubic&quot;</span><span class="p">,</span> <span class="n">conductance_rule</span><span class="o">=</span><span class="s2">&quot;hebbian&quot;</span><span class="p">,</span>
+                 <span class="n">homeostasis_rule</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="n">bound_mode</span><span class="o">=</span><span class="s2">&quot;minimal&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">probe</span><span class="p">(</span><span class="n">modes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;vm&quot;</span><span class="p">])</span>
+<span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+<span class="n">signals</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">jtfne</span><span class="o">.</span><span class="n">simulation</span><span class="p">(</span><span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+</code></pre></div>
+<p><code>n</code> (from <code>.network(n=...)</code>) can be any value <code>&gt;=2</code> — split E/I via
+<code>_homeostatic_ei_cell_type_split</code> (<code>~75%</code>/<code>~25%</code>, at least 1 of each).
+<code>Model.summary()</code>/<code>.neuron_table()</code>/<code>.checkpoint()</code>/<code>.with_emitter_parameters()</code>/
+<code>.simulate_batch()</code> all raise <code>NotImplementedError</code> for this family (for this family).</p>
+<h3 id="rule-registries-activation_rulesconductance_ruleshomeostasis_rules">Rule registries (<code>ACTIVATION_RULES</code>/<code>CONDUCTANCE_RULES</code>/<code>HOMEOSTASIS_RULES</code>)<a class="headerlink" href="#rule-registries-activation_rulesconductance_ruleshomeostasis_rules" title="Permanent link">&para;</a></h3>
+<p>Registry <strong>names</strong> pass through <code>Configuration</code> (which must stay JSON-safe); a
+custom Python callable bypasses <code>Configuration</code> entirely, via
+<code>jaxfne.emitters_homeostatic_ei.simulate_homeostatic_ei(...)</code>.</p>
+<ul>
+<li><strong>activation_rule</strong>: <code>"linear"</code> (<code>dx = -x + G@x + u</code>), <code>"cubic"</code> (<code>dx = -x^3 + G@x + u</code>,
+  the default — bounds runaway growth; <code>"linear"</code> diverges once G-adaptation is on),
+  <code>"logistic"</code> (<code>dx = -x + G@sigmoid(x) + u</code>).</li>
+<li><strong>conductance_rule</strong>: <code>"hebbian"</code> (<code>dG_ij = H_i*x_i*x_j - G_ij</code>), <code>"bcm"</code>, <code>"linear"</code>,
+  <strong><code>"hebbian_pairwise"</code></strong> — independent gains per population pair (E-E/E-I/I-E/I-I)
+  instead of one flat Hebbian rate; default gains all <code>1.0</code> (numerically identical to
+  plain <code>"hebbian"</code>). Custom gains: <code>conductance_rule=jaxfne.emitters_homeostatic_ei.make_hebbian_pairwise_rule(k_ee=1.0, k_ei=5.0, k_ie=0.2, k_ii=1.0)</code> (a callable, reachable via
+  <code>simulate_homeostatic_ei</code>, bypassing <code>Configuration</code>).</li>
+<li><strong>homeostasis_rule</strong>: <code>"linear"</code> (<code>dH = -(x-1)*H</code> — one-sided rate-drain; collapses to
+  <code>H_min</code> at higher N, unbounded from below), <code>"logistic"</code>, <code>"cubic_penalty"</code>
+  (adds a two-sided cubic restoring force toward <code>H=1</code>, avoiding the floor-collapse),
+  <strong><code>"cubic_penalty_coupled"</code></strong> — adds an E&lt;-&gt;I cross-population coupling term on top of
+  <code>cubic_penalty</code> (I's H rises when E's population-mean activity exceeds target, and
+  vice versa) — every other rule's <code>dH</code> depends solely on that neuron's own <code>x</code>.</li>
+</ul>
+<h3 id="bound_mode-minimal-stable-default-minimal"><code>bound_mode</code> (<code>"minimal"</code> | <code>"stable"</code>, default <code>"minimal"</code>)<a class="headerlink" href="#bound_mode-minimal-stable-default-minimal" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>"minimal"</code>: <code>jnp.clip</code> on <code>G</code>/<code>H</code>; <code>x</code> is entirely <strong>unbounded</strong>. A large enough
+  step (explicit Euler on the cubic activation term overshoots once <code>|x|</code> exceeds a
+  real numerical-stability radius, <code>~2.58</code> at the canonical <code>dt_x</code>) can diverge to
+  <code>NaN</code> — reproduced at N=16 with the shipped flat <code>G_max=5.0</code> default.</li>
+<li><code>"stable"</code>: a smooth <code>tanh</code> soft-bound (<code>_soft_bound</code>) applied to <code>x</code>, <code>G</code>, and <code>H</code>
+  every step instead of <code>jnp.clip</code> — a bounded <em>codomain</em>, not a <em>force</em>: cannot be
+  numerically outrun by any step size, N, or gain, and is gradient-friendly everywhere
+  (unlike <code>jnp.clip</code>'s zero-gradient boundary). Requires <code>HomeostaticEIParams.x_min</code>/
+  <code>.x_max</code> (new fields; default a very wide <code>+-1e6</code>, safe/inert for <code>"minimal"</code> mode).</li>
+</ul>
+<h3 id="make_minimal_ei_paramsn8-e_fraction075-kwargs-homeostaticeiparams"><code>make_minimal_ei_params(n=8, e_fraction=0.75, **kwargs) -&gt; HomeostaticEIParams</code><a class="headerlink" href="#make_minimal_ei_paramsn8-e_fraction075-kwargs-homeostaticeiparams" title="Permanent link">&para;</a></h3>
+<p>Builds a minimal all-pairwise E/I <code>HomeostaticEIParams</code> for any <code>n&gt;=2</code> — the
+<code>scripts/</code>-level analog of <code>Configuration.set_emitter("homeostatic_ei")</code>, for ad hoc
+scripts/experiments that want a <code>HomeostaticEIParams</code> without going through
+<code>Configuration</code>/<code>construct()</code>. <code>G_max</code> defaults to <code>10.0/n</code> —
+holds the aggregate per-row Hebbian feedback ceiling (<code>n * G_max</code>) constant across <code>n</code>.
+</content></p>
 
 
 
@@ -3232,7 +5724,7 @@ u ← u + d
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       

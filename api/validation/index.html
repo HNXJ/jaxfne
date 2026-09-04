@@ -6,24 +6,24 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="JAX-based TFNE scaffold for multimodal source-to-field/readout workflows">
+        <meta name="description" content="Tensor-Field Neural Equations — JAX simulation for neural circuits, fields, and adaptation">
       
       
       
         <link rel="canonical" href="https://jaxfne.readthedocs.io/api/validation/">
       
       
-        <link rel="prev" href="../objectives/">
+        <link rel="prev" href="../neuronal_tensor/">
       
       
-        <link rel="next" href="../../reference/glossary_of_methods/">
+        <link rel="next" href="../vis/">
       
       
         
       
       
       <link rel="icon" href="../../assets/jaxfne-img.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -260,6 +260,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -377,14 +381,70 @@
   
   
     <li class="md-nav__item">
-      <a href="../../faq/" class="md-nav__link">
+      <a href="../../gallery/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    FAQ
+    Gallery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../public_surface_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scope_and_status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scope & status
   
 
     
@@ -416,24 +476,6 @@
       
         
           
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
         
       
         
@@ -518,7 +560,7 @@
   <span class="md-ellipsis">
     
   
-    Notebook Standard
+    Notebook standard
   
 
     
@@ -539,14 +581,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+      <a href="../../tutorials/tutorial_outputs/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Étude: Canonical Cortical Column
+    Tutorial Outputs
   
 
     
@@ -559,6 +601,364 @@
   
 
               
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cumulative (canonical 1000n)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cumulative (canonical 1000n)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_define_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Define (PseudoGenome)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_develop_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Develop (G→N)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_inspect_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect (realized vs configured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_simulate_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulate (construct→Signals)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_observe_fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observe (field & probe)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_add_state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add state (H / RBS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_add_dynamics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add dynamics (HDP)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_compare_nulls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare (nulls & lesions)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suites
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Suites
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -574,7 +974,7 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 1 (Computational Biophysics)
+    Computational biophysics
   
 
     
@@ -602,7 +1002,35 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 2 (Corticospectrolaminar Motif)
+    Corticospectrolaminar motif
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_jaxfne_suite_no_2_evoked_l4_drive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evoked L4 drive
   
 
     
@@ -630,7 +1058,7 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 3 (Low-Frequency Scaling)
+    Low-frequency scaling
   
 
     
@@ -644,29 +1072,9 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tutorial: Multi-area Laminar Model
-  
-
-    
-  </span>
-  
-  
-
-      </a>
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -678,43 +1086,44 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+    
+    
+      
         
-  
-  
-  <span class="md-ellipsis">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
-  
-    TFNE-Izhikevich Single Emitter Explorer
-  
-
     
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
-        
   
   
   <span class="md-ellipsis">
     
   
-    09: EEG/MEG/EMM Proxy Bundle
+    Circuit construction (archive)
   
 
     
@@ -722,11 +1131,19 @@
   
   
 
-      </a>
-    </li>
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Circuit construction (archive)
   
 
-              
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -742,7 +1159,7 @@
   <span class="md-ellipsis">
     
   
-    01: Single-neuron Multimodal
+    Single-neuron multimodal
   
 
     
@@ -770,7 +1187,7 @@
   <span class="md-ellipsis">
     
   
-    02: Two-neuron E/I
+    Two-neuron E/I
   
 
     
@@ -798,7 +1215,7 @@
   <span class="md-ellipsis">
     
   
-    03: 100-neuron Network
+    Population E/I network
   
 
     
@@ -826,7 +1243,7 @@
   <span class="md-ellipsis">
     
   
-    04: V1 Six-layer Column
+    V1 laminar column
   
 
     
@@ -854,7 +1271,7 @@
   <span class="md-ellipsis">
     
   
-    05: V1-PFC Dual Column
+    V1–PFC dual column
   
 
     
@@ -882,7 +1299,7 @@
   <span class="md-ellipsis">
     
   
-    06: v0.3.6 Chainable Config
+    Configuration API population
   
 
     
@@ -903,6 +1320,99 @@
   
   
     <li class="md-nav__item">
+      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical cortical column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source, field, and readout (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Source, field, and readout (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../tutorials/07_v037_source_bookkeeping/" class="md-nav__link">
         
   
@@ -910,7 +1420,7 @@
   <span class="md-ellipsis">
     
   
-    07: v0.3.7 Source Bookkeeping
+    Source bookkeeping
   
 
     
@@ -938,7 +1448,7 @@
   <span class="md-ellipsis">
     
   
-    08: v0.3.8 LFP/CSD Readout
+    LFP and CSD proxies
   
 
     
@@ -947,6 +1457,191 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EEG, MEG, EMM proxies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_8" id="__nav_2_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paradigms and optimization (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Paradigms and optimization (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/10_v0313_omission_oddball/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensory omission oddball
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-area laminar AGSDR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Izhikevich emitter explorer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -970,6 +1665,8 @@
       
         
           
+        
+      
         
       
         
@@ -1060,7 +1757,7 @@
   <span class="md-ellipsis">
     
   
-    Configuration Grammar
+    Configuration grammar
   
 
     
@@ -1081,14 +1778,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/probe_operators/" class="md-nav__link">
+      <a href="../../guides/objective_grammar/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Probe Operators
+    Objective grammar
   
 
     
@@ -1116,7 +1813,7 @@
   <span class="md-ellipsis">
     
   
-    Tensor-Field Workflows
+    Tensor-field workflows
   
 
     
@@ -1137,14 +1834,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/plotly_visualization/" class="md-nav__link">
+      <a href="../../guides/operator_composition/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Plotly Visualization
+    Operator composition
   
 
     
@@ -1165,98 +1862,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/poisson_admissibility/" class="md-nav__link">
+      <a href="../../guides/probe_operators/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Poisson Admissibility
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guides/jaxley_interop/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Jaxley Interoperability
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guides/homeostasis/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Homeostasis
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../notes/biophysical_model_comparison/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Biophysical Model Comparison
+    Probe operators
   
 
     
@@ -1305,6 +1918,90 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guides/homeostasis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homeostasis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-state and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jdna/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PseudoGenome (JDNA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guides/output_bundles/" class="md-nav__link">
         
   
@@ -1312,7 +2009,620 @@
   <span class="md-ellipsis">
     
   
-    Output Bundles
+    Output bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jaxley_interop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jaxley interoperability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../etudes/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Études
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Études
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/hdp_controllability_reachability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP controllability & reachability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/experiment_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical Multiscale Observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/heterogeneous_emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heterogeneous emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/multiscale_observation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiscale observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and Experiments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_wave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling Waves
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_c_wave_evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling-Wave Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_c3_neural/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Neural Geometry and Delays
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_d_biological_rbs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Biological RBS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_e_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrated TFNE Composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/rbs_rbd_hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBS, RBD and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/relative_quantity_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relative Quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_h1b_h_to_x_gain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-to-X Gain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_rbd_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBD State Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_w_hdp_parameter_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP Parameter Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/tfne_containment_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TFNE Containment and Composition
   
 
     
@@ -1364,6 +2674,14 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -1377,7 +2695,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
           <div class="md-nav__link md-nav__container">
@@ -1388,7 +2706,7 @@
   <span class="md-ellipsis">
     
   
-    API reference
+    API
   
 
     
@@ -1399,18 +2717,18 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
-    API reference
+    API
   
 
           </label>
@@ -1509,14 +2827,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../bridges/" class="md-nav__link">
+      <a href="../source_schema/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Bridges
+    Source schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../field_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Field schema
   
 
     
@@ -1618,6 +2964,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../neuronal_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NeuronalTensor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -1700,79 +3074,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Validation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#validate_configcfg-configuration-configvalidationresult" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        validate_config(cfg: Configuration) -&gt; ConfigValidationResult
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configvalidationresult" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ConfigValidationResult
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="ConfigValidationResult">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#attributes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Attributes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Methods
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Methods">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#print_summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        print_summary()
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -1799,10 +3100,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#validate_projection_invariantssources-jaxarray-field-fieldoutput-bool" class="md-nav__link">
+  <a href="#validate_projection_invariants-sources-positions-kernel-source_proxy-phi_e_proxy-csd_proxy-lfp_proxy-moderow_normalize-dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        validate_projection_invariants(sources: jax.Array, field: FieldOutput) -&gt; bool
+        validate_projection_invariants(*, sources, positions, kernel, source_proxy, phi_e_proxy, csd_proxy, lfp_proxy, mode="row_normalize") -&gt; dict
       
     </span>
   </a>
@@ -1827,10 +3128,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#compute_conservation_proxy_diagnosticssources-field-dict" class="md-nav__link">
+  <a href="#compute_conservation_proxy_diagnostics-sourcenone-phi_enone-csdnone-lfpnone-field_solutionnone-source_calibration_status-field_solver_status-field_claim_level-dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        compute_conservation_proxy_diagnostics(sources, field) -&gt; dict
+        compute_conservation_proxy_diagnostics(*, source=None, phi_e=None, csd=None, lfp=None, field_solution=None, source_calibration_status=..., field_solver_status=..., field_claim_level=...) -&gt; dict
       
     </span>
   </a>
@@ -1918,14 +3219,147 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Metadata Validation">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conductivity-validators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conductivity Validators
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#field-admissibility-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field Admissibility Report
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field Admissibility Report">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#config_status_boundarycfg-configuration-dict" class="md-nav__link">
+  <a href="#build_field_admissibility_reportfield_outputnone-cfg_metadatanone-signals_fieldnone-dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        config_status_boundary(cfg: Configuration) -&gt; dict
+        build_field_admissibility_report(field_output=None, cfg_metadata=None, signals_field=None) -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calibration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calibration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Calibration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#calibrationspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CalibrationSpec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make_calibration_reportspec-readout_kindnone-dict-497" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_calibration_report(spec, *, readout_kind=None, ...) -&gt; dict (:497)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#diagnostic-builders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagnostic Builders
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#poisson-admissibility-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Poisson Admissibility Gates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basis-spec-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basis Spec Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jax-re-compilation-guard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JAX Re-compilation Guard
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JAX Re-compilation Guard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#compilationregistry-compilation_registry-1240-singleton-at-1317" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CompilationRegistry / compilation_registry (:1240, singleton at :1317)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make_recompilation_guardfn-name-recompilation_guard-b-z-c-t-wrapped-1320" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_recompilation_guard(fn, name, recompilation_guard, B, Z, C, T) -&gt; wrapped (:1320)
       
     </span>
   </a>
@@ -2018,48 +3452,21 @@
 
               
             
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
+              
+                
   
   
   
   
-    
-    
-      
+    <li class="md-nav__item">
+      <a href="../vis/" class="md-nav__link">
         
-      
-    
-    
-    
-      
-        
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
-            
   
   
   <span class="md-ellipsis">
     
   
-    Reference
+    Visualization
   
 
     
@@ -2067,19 +3474,11 @@
   
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Reference
+      </a>
+    </li>
   
 
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+              
             
               
                 
@@ -2088,14 +3487,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/glossary_of_methods/" class="md-nav__link">
+      <a href="../jdna/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Glossary of Methods
+    JDNA
   
 
     
@@ -2135,6 +3534,20 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -2148,17 +3561,17 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    About jaxfne
+    Appendix
   
 
     
@@ -2169,12 +3582,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
-    About jaxfne
+    Appendix
   
 
           </label>
@@ -2187,14 +3600,182 @@
   
   
     <li class="md-nav__item">
-      <a href="../../limitations_and_future_plans/" class="md-nav__link">
+      <a href="../../appendix/fundamental_laws/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Limitations and future plans
+    Fundamental laws
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../source_field_equations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source and field equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../computation_basis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Computation basis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mathematical_glossary_flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mathematical glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
   
 
     
@@ -2298,78 +3879,15 @@
   
   
   
-    
-    
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_6_5" id="__nav_6_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Releases
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Releases
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
     <li class="md-nav__item">
-      <a href="../../releases/v0.3.4/" class="md-nav__link">
+      <a href="../../colab/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    v0.3.4
+    Colab quick start
   
 
     
@@ -2390,14 +3908,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../releases/v0.2.18/" class="md-nav__link">
+      <a href="../../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    v0.2.18
+    Limitations
   
 
     
@@ -2406,126 +3924,6 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.10/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.10
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.3/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.3
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.1/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.1
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.0/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.0
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
     </li>
   
 
@@ -2584,79 +3982,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Validation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#validate_configcfg-configuration-configvalidationresult" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        validate_config(cfg: Configuration) -&gt; ConfigValidationResult
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configvalidationresult" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ConfigValidationResult
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="ConfigValidationResult">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#attributes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Attributes
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Methods
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Methods">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#print_summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        print_summary()
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -2683,10 +4008,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#validate_projection_invariantssources-jaxarray-field-fieldoutput-bool" class="md-nav__link">
+  <a href="#validate_projection_invariants-sources-positions-kernel-source_proxy-phi_e_proxy-csd_proxy-lfp_proxy-moderow_normalize-dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        validate_projection_invariants(sources: jax.Array, field: FieldOutput) -&gt; bool
+        validate_projection_invariants(*, sources, positions, kernel, source_proxy, phi_e_proxy, csd_proxy, lfp_proxy, mode="row_normalize") -&gt; dict
       
     </span>
   </a>
@@ -2711,10 +4036,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#compute_conservation_proxy_diagnosticssources-field-dict" class="md-nav__link">
+  <a href="#compute_conservation_proxy_diagnostics-sourcenone-phi_enone-csdnone-lfpnone-field_solutionnone-source_calibration_status-field_solver_status-field_claim_level-dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        compute_conservation_proxy_diagnostics(sources, field) -&gt; dict
+        compute_conservation_proxy_diagnostics(*, source=None, phi_e=None, csd=None, lfp=None, field_solution=None, source_calibration_status=..., field_solver_status=..., field_claim_level=...) -&gt; dict
       
     </span>
   </a>
@@ -2802,14 +4127,147 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Metadata Validation">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conductivity-validators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conductivity Validators
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#field-admissibility-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field Admissibility Report
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field Admissibility Report">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#config_status_boundarycfg-configuration-dict" class="md-nav__link">
+  <a href="#build_field_admissibility_reportfield_outputnone-cfg_metadatanone-signals_fieldnone-dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        config_status_boundary(cfg: Configuration) -&gt; dict
+        build_field_admissibility_report(field_output=None, cfg_metadata=None, signals_field=None) -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#calibration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calibration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Calibration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#calibrationspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CalibrationSpec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make_calibration_reportspec-readout_kindnone-dict-497" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_calibration_report(spec, *, readout_kind=None, ...) -&gt; dict (:497)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#diagnostic-builders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagnostic Builders
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#poisson-admissibility-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Poisson Admissibility Gates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basis-spec-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basis Spec Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jax-re-compilation-guard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JAX Re-compilation Guard
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JAX Re-compilation Guard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#compilationregistry-compilation_registry-1240-singleton-at-1317" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CompilationRegistry / compilation_registry (:1240, singleton at :1317)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#make_recompilation_guardfn-name-recompilation_guard-b-z-c-t-wrapped-1320" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_recompilation_guard(fn, name, recompilation_guard, B, Z, C, T) -&gt; wrapped (:1320)
       
     </span>
   </a>
@@ -2915,6 +4373,14 @@
 
 <h1 id="validation-api">Validation API<a class="headerlink" href="#validation-api" title="Permanent link">&para;</a></h1>
 <p>Invariant checks and validation functions for numerical consistency and structural integrity.</p>
+<p><strong>Module note (2026-07-24):</strong> the functions in "Signal &amp; Field Validation" and "Conservation
+Diagnostics" below (<code>validate_source_field_status</code>, <code>validate_projection_invariants</code>,
+<code>compute_conservation_proxy_diagnostics</code>) are physically implemented in
+<code>jaxfne/fields/proxy.py</code>/<code>jaxfne/fields/diagnostics.py</code>, not <code>jaxfne/validation.py</code> — they're
+documented here (and in <a href="../fields/#validation-diagnostics">Fields</a>) because they're the
+signal/field-facing validation surface a caller reaches for alongside <code>is_valid_signal</code>.
+The rest of this page (Conductivity Validators onward) documents <code>jaxfne/validation.py</code>'s own
+API, which this page did not previously cover at all.</p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>The validation module provides tools to:
 1. Check configuration validity
@@ -2923,52 +4389,24 @@
 4. Report configuration and operator status</p>
 <hr />
 <h2 id="configuration-validation">Configuration Validation<a class="headerlink" href="#configuration-validation" title="Permanent link">&para;</a></h2>
-<h3 id="validate_configcfg-configuration-configvalidationresult"><code>validate_config(cfg: Configuration) -&gt; ConfigValidationResult</code><a class="headerlink" href="#validate_configcfg-configuration-configvalidationresult" title="Permanent link">&para;</a></h3>
-<p>Validate a Configuration for structural consistency and completeness.</p>
-<p><strong>Parameters:</strong>
-- <code>cfg</code> (Configuration): Configuration to validate</p>
-<p><strong>Returns:</strong> <code>ConfigValidationResult</code> with validation status and error messages</p>
-<p><strong>Checks:</strong>
-- All required fields are present (networks, emitters, fields, probes)
-- Parameter ranges are valid
-- No conflicting declarations
-- Geometry is consistent</p>
-<p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
-
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">Configuration</span><span class="p">()</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">runtime</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;V1&quot;</span><span class="p">,</span> <span class="n">layers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;L2/3&quot;</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">cell_types</span><span class="p">({</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span> <span class="s2">&quot;I&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">})</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">connectivity</span><span class="p">()</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">set_emitter</span><span class="p">(</span><span class="s2">&quot;izhikevich&quot;</span><span class="p">,</span> <span class="s2">&quot;cortical_eig&quot;</span><span class="p">)</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">probes</span><span class="p">([</span><span class="s2">&quot;SPK&quot;</span><span class="p">,</span> <span class="s2">&quot;Vm&quot;</span><span class="p">,</span> <span class="s2">&quot;LFP-proxy&quot;</span><span class="p">])</span>
-
-<span class="n">result</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">validate_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">valid</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Configuration is valid&quot;</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✗ Validation failed: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">errors</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</code></pre></div></p>
-<hr />
-<h2 id="configvalidationresult">ConfigValidationResult<a class="headerlink" href="#configvalidationresult" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">jaxfne</span><span class="o">.</span><span class="n">ConfigValidationResult</span>
-</code></pre></div>
-<p>Result container from configuration validation.</p>
-<h3 id="attributes">Attributes<a class="headerlink" href="#attributes" title="Permanent link">&para;</a></h3>
-<ul>
-<li><code>valid</code> (bool): True if configuration passes all checks</li>
-<li><code>errors</code> (list[str]): List of error messages (empty if valid)</li>
-<li><code>warnings</code> (list[str]): Non-critical warnings</li>
-<li><code>readout_status</code> (dict): Operator status declarations</li>
-</ul>
-<h3 id="methods">Methods<a class="headerlink" href="#methods" title="Permanent link">&para;</a></h3>
-<h4 id="print_summary"><code>print_summary()</code><a class="headerlink" href="#print_summary" title="Permanent link">&para;</a></h4>
-<p>Print human-readable validation summary.</p>
-<p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">result</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">validate_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">result</span><span class="o">.</span><span class="n">print_summary</span><span class="p">()</span>
-</code></pre></div></p>
+<blockquote>
+<p><strong>REMOVED (2026-06-30).</strong> <code>validate_config</code>, <code>ConfigValidationResult</code>,
+<code>config_truth_boundary</code>, <code>load_config</code>, <code>JaxFNEConfig</code>, and the rest of the
+dict-backed <code>JaxFNEConfig</code>/<code>.jcfg.json</code> config-path API (<code>config_to_configuration</code>,
+<code>config_to_simulation</code>, <code>config_to_geometry</code>, <code>config_to_trial_batch</code>) were
+deliberately deleted along with their 21 dependent tests. See the resolved note
+in <code>jaxfne/_pipeline.py</code> (top of file) for the removal record. None of these
+names exist in the current package
+(<code>hasattr(jaxfne, 'JaxFNEConfig')</code> → <code>False</code>, confirmed 2026-07-03).</p>
+<p>There is no direct replacement for <code>validate_config</code>/<code>ConfigValidationResult</code>
+for the fluent <code>Configuration</code> object — <code>jaxfne.builders.validate_configuration(cfg: Configuration, strict: bool = True) -&gt; dict</code>
+exists in <code>jaxfne/builders.py</code> but is a different name/signature/return type,
+not a drop-in substitute, and is not yet re-exported/documented at the root
+level here. Until it is, validate a <code>Configuration</code> structurally via
+<code>jtfne.construct(cfg)</code> (raises on structural problems) and the signal/field
+checks below (<code>is_valid_signal</code>, <code>validate_projection_invariants</code>,
+<code>compute_conservation_proxy_diagnostics</code>).</p>
+</blockquote>
 <hr />
 <h2 id="signal-field-validation">Signal &amp; Field Validation<a class="headerlink" href="#signal-field-validation" title="Permanent link">&para;</a></h2>
 <h3 id="validate_source_field_statusfield_output-fieldoutput-dict"><code>validate_source_field_status(field_output: FieldOutput) -&gt; dict</code><a class="headerlink" href="#validate_source_field_statusfield_output-fieldoutput-dict" title="Permanent link">&para;</a></h3>
@@ -2982,7 +4420,7 @@
 - Mean-zero constraint (if applicable)
 - Sign conventions respected</p>
 <p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">field</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">project_sources_to_laminar_field</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">geometry</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">field</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">project_sources_to_laminar_field</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span>
 <span class="n">status</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">validate_source_field_status</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
 
 <span class="k">if</span> <span class="n">status</span><span class="p">[</span><span class="s2">&quot;all_finite&quot;</span><span class="p">]:</span>
@@ -2993,55 +4431,50 @@
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  finite_CSD: </span><span class="si">{</span><span class="n">status</span><span class="p">[</span><span class="s1">&#39;finite_CSD&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div></p>
 <hr />
-<h3 id="validate_projection_invariantssources-jaxarray-field-fieldoutput-bool"><code>validate_projection_invariants(sources: jax.Array, field: FieldOutput) -&gt; bool</code><a class="headerlink" href="#validate_projection_invariantssources-jaxarray-field-fieldoutput-bool" title="Permanent link">&para;</a></h3>
-<p>Check that field respects source-field relationships.</p>
-<p><strong>Parameters:</strong>
-- <code>sources</code> (jax.Array): Original source signals [time, locations]
-- <code>field</code> (FieldOutput): Computed field output</p>
-<p><strong>Returns:</strong> Boolean (True if valid)</p>
-<p><strong>Invariants checked:</strong>
-- Field magnitude proportional to source magnitude
-- No unphysical amplification/attenuation
-- CSD sign convention consistent
-- Spatial relationships preserved</p>
+<h3 id="validate_projection_invariants-sources-positions-kernel-source_proxy-phi_e_proxy-csd_proxy-lfp_proxy-moderow_normalize-dict"><code>validate_projection_invariants(*, sources, positions, kernel, source_proxy, phi_e_proxy, csd_proxy, lfp_proxy, mode="row_normalize") -&gt; dict</code><a class="headerlink" href="#validate_projection_invariants-sources-positions-kernel-source_proxy-phi_e_proxy-csd_proxy-lfp_proxy-moderow_normalize-dict" title="Permanent link">&para;</a></h3>
+<p>Check structural invariants of the laminar proxy projection: kernel
+row-normalization (row-stochastic to <code>tol=1e-6</code>, skipped when
+<code>mode="density_preserving"</code>) and finiteness/shape consistency of the proxy
+arrays. This checks the proxy operator's internal consistency only — it makes
+no claim of physical correctness.</p>
+<p><strong>Parameters (all keyword-only):</strong>
+- <code>sources</code> (jax.Array): Original source signals <code>[time, n_emitters]</code>
+- <code>positions</code> (jax.Array): Emitter positions <code>[n_emitters, 3]</code>
+- <code>kernel</code> (jax.Array): Projection kernel <code>[n_contacts, n_emitters]</code>
+- <code>source_proxy</code>, <code>phi_e_proxy</code>, <code>csd_proxy</code>, <code>lfp_proxy</code> (jax.Array): Proxy outputs to check
+- <code>mode</code> (str): Projection mode used (<code>"row_normalize"</code> or <code>"density_preserving"</code>)</p>
+<p><strong>Returns:</strong> JSON-safe <code>dict</code> of per-invariant pass/fail diagnostics (not a bool)</p>
 <p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">is_valid</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">validate_projection_invariants</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">is_valid</span><span class="p">,</span> <span class="s2">&quot;Field does not respect source relationship&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">report</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">validate_projection_invariants</span><span class="p">(</span>
+    <span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">positions</span><span class="o">=</span><span class="n">positions</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span>
+    <span class="n">source_proxy</span><span class="o">=</span><span class="n">source_proxy</span><span class="p">,</span> <span class="n">phi_e_proxy</span><span class="o">=</span><span class="n">phi_e_proxy</span><span class="p">,</span>
+    <span class="n">csd_proxy</span><span class="o">=</span><span class="n">csd_proxy</span><span class="p">,</span> <span class="n">lfp_proxy</span><span class="o">=</span><span class="n">lfp_proxy</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;density_preserving&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">report</span><span class="p">[</span><span class="s2">&quot;warnings&quot;</span><span class="p">],</span> <span class="sa">f</span><span class="s2">&quot;Projection invariants failed: </span><span class="si">{</span><span class="n">report</span><span class="p">[</span><span class="s1">&#39;warnings&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
 </code></pre></div></p>
 <hr />
 <h2 id="conservation-diagnostics">Conservation Diagnostics<a class="headerlink" href="#conservation-diagnostics" title="Permanent link">&para;</a></h2>
-<h3 id="compute_conservation_proxy_diagnosticssources-field-dict"><code>compute_conservation_proxy_diagnostics(sources, field) -&gt; dict</code><a class="headerlink" href="#compute_conservation_proxy_diagnosticssources-field-dict" title="Permanent link">&para;</a></h3>
-<p>Compute conservation-inspired diagnostic metrics.</p>
-<p><strong>Parameters:</strong>
-- <code>sources</code> (jax.Array): Source signals [time, locations]
-- <code>field</code> (FieldOutput): Field output</p>
-<p><strong>Returns:</strong> Dictionary of diagnostic metrics</p>
-<p><strong>Metrics:</strong>
-- <code>total_source_power</code>: Sum of |source|² over all locations and times
-- <code>field_energy</code>: Sum of |LFP|² + |CSD|² over all locations and times
-- <code>energy_ratio</code>: field_energy / total_source_power
-- <code>source_moments</code>: Spatial center of mass and variance over time
-- <code>field_moments</code>: Field center of mass over time</p>
+<h3 id="compute_conservation_proxy_diagnostics-sourcenone-phi_enone-csdnone-lfpnone-field_solutionnone-source_calibration_status-field_solver_status-field_claim_level-dict"><code>compute_conservation_proxy_diagnostics(*, source=None, phi_e=None, csd=None, lfp=None, field_solution=None, source_calibration_status=..., field_solver_status=..., field_claim_level=...) -&gt; dict</code><a class="headerlink" href="#compute_conservation_proxy_diagnostics-sourcenone-phi_enone-csdnone-lfpnone-field_solutionnone-source_calibration_status-field_solver_status-field_claim_level-dict" title="Permanent link">&para;</a></h3>
+<p>Compute conservation-inspired proxy diagnostics over existing source/field
+arrays. All array parameters are optional and keyword-only — pass whichever of
+<code>source</code>/<code>phi_e</code>/<code>csd</code>/<code>lfp</code> you have, or a <code>field_solution: FieldOutput</code>.</p>
+<p><strong>Parameters (all keyword-only, all optional):</strong>
+- <code>source</code>, <code>phi_e</code>, <code>csd</code>, <code>lfp</code> (jax.Array): Arrays to diagnose
+- <code>field_solution</code> (FieldOutput, optional): Alternative to passing the arrays individually
+- <code>source_calibration_status</code>, <code>field_solver_status</code>, <code>field_claim_level</code> (str): Truth-gate metadata carried through into the report, conservative defaults</p>
+<p><strong>Returns:</strong> Dictionary of diagnostic metrics (raises <code>ValueError</code> on a non-finite diagnostic value rather than returning one)</p>
 <p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">diag</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">compute_conservation_proxy_diagnostics</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Source power: </span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">&#39;total_source_power&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Field energy: </span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">&#39;field_energy&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Energy ratio: </span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">&#39;energy_ratio&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-<span class="c1"># Should be &lt;1.0 (field has lower energy than source in proxy mode)</span>
-<span class="k">assert</span> <span class="n">diag</span><span class="p">[</span><span class="s1">&#39;energy_ratio&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">1.0</span>
+<div class="highlight"><pre><span></span><code><span class="n">diag</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">compute_conservation_proxy_diagnostics</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">lfp</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">LFP</span><span class="p">,</span> <span class="n">csd</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">CSD</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">diag</span><span class="p">[</span><span class="s2">&quot;source_norm_l1&quot;</span><span class="p">],</span> <span class="n">diag</span><span class="p">[</span><span class="s2">&quot;warnings&quot;</span><span class="p">])</span>
 </code></pre></div></p>
 <hr />
 <h2 id="operator-status">Operator Status<a class="headerlink" href="#operator-status" title="Permanent link">&para;</a></h2>
 <h3 id="operator_status-dict"><code>operator_status() -&gt; dict</code><a class="headerlink" href="#operator_status-dict" title="Permanent link">&para;</a></h3>
 <p>Get status declarations for all computational operators.</p>
 <p><strong>Returns:</strong> Dictionary mapping operator names to status strings</p>
-<p><strong>Status values:</strong>
-- <code>"prototype_api"</code>: Preliminary implementation, subject to change
-- <code>"stable_api"</code>: Core functionality, stable interface
-- <code>"deprecated"</code>: Scheduled for removal; migration path provided
-- <code>"reserved"</code>: Not yet implemented</p>
+<p><strong>Status values (current registry):</strong>
+- <code>"prototype_api"</code>: implemented, preliminary interface, subject to change
+- <code>"not_implemented"</code>: declared in the registry, no implementation yet (e.g. <code>C_mu_nu</code>)</p>
 <p><strong>Example:</strong>
 <div class="highlight"><pre><span></span><code><span class="n">status</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">operator_status</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;E (emitter): </span><span class="si">{</span><span class="n">status</span><span class="p">[</span><span class="s1">&#39;E_theta&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -3059,36 +4492,95 @@
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Simulation produced NaN/Inf: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="manual-check">Manual Check<a class="headerlink" href="#manual-check" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">is_valid_signal</span><span class="p">(</span><span class="n">signals</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if signals contain only finite values.&quot;&quot;&quot;</span>
-    <span class="n">finite_checks</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">jnp</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">signals</span><span class="o">.</span><span class="n">V_m</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
-        <span class="n">jnp</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">signals</span><span class="o">.</span><span class="n">spikes</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span>
-    <span class="p">]</span>
-    <span class="k">if</span> <span class="n">signals</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">finite_checks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">signals</span><span class="o">.</span><span class="n">source</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">())</span>
-    <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">finite_checks</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="n">is_valid_signal</span><span class="p">(</span><span class="n">signals</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ All signal values are finite&quot;</span><span class="p">)</span>
+<p><code>jtfne.is_valid_signal(signals)</code> checks <code>V_m</code> and <code>spikes</code> for finite values and
+returns <code>False</code> on any missing array, NaN, or Inf:</p>
+<div class="highlight"><pre><span></span><code><span class="k">if</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">is_valid_signal</span><span class="p">(</span><span class="n">signals</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ All required signal values are finite&quot;</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✗ Signal contains NaN or Inf&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✗ Signal contains NaN, Inf, or a missing required array&quot;</span><span class="p">)</span>
 </code></pre></div>
 <hr />
 <h2 id="metadata-validation">Metadata Validation<a class="headerlink" href="#metadata-validation" title="Permanent link">&para;</a></h2>
-<h3 id="config_status_boundarycfg-configuration-dict"><code>config_status_boundary(cfg: Configuration) -&gt; dict</code><a class="headerlink" href="#config_status_boundarycfg-configuration-dict" title="Permanent link">&para;</a></h3>
-<p>Get status/statement boundaries for a configuration.</p>
-<p><strong>Parameters:</strong>
-- <code>cfg</code> (Configuration): Configuration to check</p>
-<p><strong>Returns:</strong> Dictionary with status for each operator</p>
-<p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">boundaries</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">config_status_boundary</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model status: </span><span class="si">{</span><span class="n">boundaries</span><span class="p">[</span><span class="s1">&#39;model_status&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Run status: </span><span class="si">{</span><span class="n">boundaries</span><span class="p">[</span><span class="s1">&#39;run_status&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Field solver status: </span><span class="si">{</span><span class="n">boundaries</span><span class="p">[</span><span class="s1">&#39;field_solver_status&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</code></pre></div></p>
+<blockquote>
+<p><strong>REMOVED (2026-06-30).</strong> <code>config_truth_boundary(cfg: JaxFNEConfig)</code> was
+deleted along with the rest of the <code>JaxFNEConfig</code> config-path API — see the
+note under "Configuration Validation" above. There is no direct root-level
+replacement; truth-gate/claim-level metadata for the fluent <code>Configuration</code>
+pipeline is carried on the objects themselves (e.g. <code>FieldOutput</code>,
+<code>RunReceipt</code>) rather than fetched via a standalone boundary-report call.</p>
+</blockquote>
+<hr />
+<h2 id="conductivity-validators">Conductivity Validators<a class="headerlink" href="#conductivity-validators" title="Permanent link">&para;</a></h2>
+<p><code>jaxfne/validation.py</code>'s own API starts here — each returns a JSON-safe <code>dict</code> with
+<code>is_valid</code>/<code>is_finite</code>/<code>status</code>/<code>evidence</code> keys, never raising on bad input:</p>
+<ul>
+<li><code>validate_scalar_conductivity(sigma, *, tolerance=1e-10)</code> (<code>:104</code>) — finite, positive scalar.</li>
+<li><code>validate_diagonal_conductivity(sigma, *, tolerance=1e-10)</code> (<code>:138</code>) — per-axis diagonal
+  conductivity tensor.</li>
+<li><code>validate_full_spd_conductivity(sigma, *, tolerance=1e-10)</code> (<code>:204</code>) — full symmetric
+  positive-definite conductivity tensor.</li>
+<li><code>validate_field_arrays_finite(**arrays)</code> (<code>:300</code>) — finiteness check over an arbitrary set
+  of named field arrays.</li>
+</ul>
+<h2 id="field-admissibility-report">Field Admissibility Report<a class="headerlink" href="#field-admissibility-report" title="Permanent link">&para;</a></h2>
+<h3 id="build_field_admissibility_reportfield_outputnone-cfg_metadatanone-signals_fieldnone-dict"><code>build_field_admissibility_report(field_output=None, cfg_metadata=None, signals_field=None) -&gt; dict</code><a class="headerlink" href="#build_field_admissibility_reportfield_outputnone-cfg_metadatanone-signals_fieldnone-dict" title="Permanent link">&para;</a></h3>
+<p>The field-admissibility report — always sets
+<code>physical_amplitude_calibrated=False</code> and <code>conductivity_status="proxy_not_solved"</code> for the
+laminar proxy path; pulls <code>field_solver_status</code>/<code>field_claim_level</code>/<code>boundary_condition</code>/
+<code>gauge</code> from <code>cfg_metadata</code> or the field output's own diagnostics, falling back to the
+proxy defaults (<code>linear_solver</code>/<code>proxy_readout</code>/<code>mean_zero_neumann</code>/<code>mean_zero</code>) otherwise.</p>
+<h2 id="calibration">Calibration<a class="headerlink" href="#calibration" title="Permanent link">&para;</a></h2>
+<h3 id="calibrationspec"><code>CalibrationSpec</code><a class="headerlink" href="#calibrationspec" title="Permanent link">&para;</a></h3>
+<p>Declares a calibration state without upgrading a physical-amplitude claim (<code>:417</code>,
+v0.2.5 contract). Constructor: <code>CalibrationSpec(*, name, target, mode="uncalibrated_native",
+scale=None, units=None, reference=None, description=None)</code> — <code>target</code> is one of
+<code>source</code>/<code>field</code>/<code>probe</code>/<code>readout</code>/<code>objective</code>; <code>mode</code> must be one of <code>ALLOWED_MODES</code>
+(<code>uncalibrated_native</code>, <code>toy_scale</code>, <code>relative_normalized</code>, <code>empirical_gain_candidate</code>,
+<code>physical_units_candidate</code>, <code>calibrated_empirical</code>) or the constructor raises <code>ValueError</code>.
+<code>.to_dict()</code> returns a JSON-safe representation.</p>
+<h3 id="make_calibration_reportspec-readout_kindnone-dict-497"><code>make_calibration_report(spec, *, readout_kind=None, ...) -&gt; dict</code> (<code>:497</code>)<a class="headerlink" href="#make_calibration_reportspec-readout_kindnone-dict-497" title="Permanent link">&para;</a></h3>
+<p>Builds a report around a <code>CalibrationSpec</code> (or an equivalent dict).</p>
+<h2 id="diagnostic-builders">Diagnostic Builders<a class="headerlink" href="#diagnostic-builders" title="Permanent link">&para;</a></h2>
+<p>Each returns a JSON-safe <code>dict</code>, all under the same truth-gate discipline:</p>
+<ul>
+<li><code>make_source_balance_diagnostic(...)</code> (<code>:575</code>)</li>
+<li><code>make_gauge_diagnostic(...)</code> (<code>:622</code>)</li>
+<li><code>make_boundary_diagnostic(...)</code> (<code>:675</code>)</li>
+<li><code>make_manufactured_residual_diagnostic(...)</code> (<code>:708</code>)</li>
+<li><code>make_field_operator_status(...)</code> (<code>:753</code>) — <strong>not</strong> the same function as
+  <code>jtfne.operator_status()</code> documented above; this one builds a per-field-operator status
+  dict scoped to a single validation report.</li>
+</ul>
+<h2 id="poisson-admissibility-gates">Poisson Admissibility Gates<a class="headerlink" href="#poisson-admissibility-gates" title="Permanent link">&para;</a></h2>
+<p>Specification-only gates (nothing solved the Poisson equation numerically when these were written; the experimental
+solver that now exists, <code>jaxfne.fields.experimental_poisson_1d</code>, is documented in
+<a href="../fields/#field-solvers">Fields</a> — these gates are not yet wired to it):</p>
+<ul>
+<li><code>validate_poisson_spd_conductivity(...)</code> (<code>:805</code>)</li>
+<li><code>validate_poisson_source_conservation(...)</code> (<code>:850</code>)</li>
+<li><code>validate_poisson_gauge_condition(...)</code> (<code>:898</code>) — only <code>gauge="mean_zero"</code> is implemented;
+  any other value raises <code>NotImplementedError</code>.</li>
+<li><code>validate_poisson_field_arrays(...)</code> (<code>:942</code>)</li>
+<li><code>build_poisson_admissibility_report(...) -&gt; dict</code> (<code>:988</code>) — assembles the above into one report.</li>
+</ul>
+<h2 id="basis-spec-validation">Basis Spec Validation<a class="headerlink" href="#basis-spec-validation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>validate_basis_spec(spec) -&gt; dict</code> (<code>:1115</code>) — lazy-imports <code>BasisSpec</code>/
+  <code>_FUTURE_FIELD_REGIMES</code> from <code>.core</code> inside the function body specifically to avoid a
+  circular import (<code>core</code> imports <code>validation</code>, not vice versa).</li>
+<li><code>basis_claim_gate(...)</code> (<code>:1177</code>).</li>
+</ul>
+<h2 id="jax-re-compilation-guard">JAX Re-compilation Guard<a class="headerlink" href="#jax-re-compilation-guard" title="Permanent link">&para;</a></h2>
+<h3 id="compilationregistry-compilation_registry-1240-singleton-at-1317"><code>CompilationRegistry</code> / <code>compilation_registry</code> (<code>:1240</code>, singleton at <code>:1317</code>)<a class="headerlink" href="#compilationregistry-compilation_registry-1240-singleton-at-1317" title="Permanent link">&para;</a></h3>
+<p>Tracks shape signatures <code>(B, Z, C, T)</code> across JIT traces and warns/raises on an unexpected
+retrace. <code>.reset()</code> clears counters; <code>.set_mode("warning"|"exception"|"off")</code> controls
+alert behavior.</p>
+<h3 id="make_recompilation_guardfn-name-recompilation_guard-b-z-c-t-wrapped-1320"><code>make_recompilation_guard(fn, name, recompilation_guard, B, Z, C, T) -&gt; wrapped</code> (<code>:1320</code>)<a class="headerlink" href="#make_recompilation_guardfn-name-recompilation_guard-b-z-c-t-wrapped-1320" title="Permanent link">&para;</a></h3>
+<p>Wraps <code>fn</code> to count trace/compile events. <strong>Constraint (verified 2026-07-05):</strong> the returned
+<code>wrapped</code> must be passed directly into <code>jax.jit(...)</code> before ever being called, and only the
+jitted result invoked — calling <code>wrapped</code> directly makes every Python call count as a
+"compile," producing false-positive re-compilation warnings. All current call sites
+(<code>jaxfne/_model_simulate.py</code>) follow <code>jax.jit(make_recompilation_guard(...))</code>.</p>
 <hr />
 <h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
 <ol>
@@ -3101,37 +4593,37 @@
 <p><strong>Example: Complete Validation Workflow</strong></p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
 
-<span class="c1"># 1. Validate configuration</span>
+<span class="c1"># 1. Build and construct (fluent Configuration -&gt; Model)</span>
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">Configuration</span><span class="p">()</span>
 <span class="c1"># ... configure ...</span>
-<span class="n">cfg_result</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">validate_config</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">cfg_result</span><span class="o">.</span><span class="n">valid</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Config invalid: </span><span class="si">{</span><span class="n">cfg_result</span><span class="o">.</span><span class="n">errors</span><span class="si">}</span><span class="s2">&quot;</span>
-
-<span class="c1"># 2. Construct and simulate</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 <span class="n">signals</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
 
-<span class="c1"># 3. Validate signals are finite</span>
+<span class="c1"># 2. Validate signals are finite</span>
 <span class="k">assert</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">is_valid_signal</span><span class="p">(</span><span class="n">signals</span><span class="p">),</span> <span class="s2">&quot;Signals contain NaN/Inf&quot;</span>
 
-<span class="c1"># 4. Validate field relationships (if field was computed)</span>
+<span class="c1"># 3. Validate field relationships (if field was computed) — validate_projection_invariants</span>
+<span class="c1">#    operates on the raw proxy arrays, not a FieldOutput, and is keyword-only</span>
 <span class="k">if</span> <span class="n">signals</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">signals</span><span class="o">.</span><span class="n">LFP</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">field_valid</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">validate_projection_invariants</span><span class="p">(</span>
-        <span class="n">signals</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> 
-        <span class="n">FieldOutput</span><span class="p">(</span><span class="n">LFP</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">LFP</span><span class="p">,</span> <span class="n">CSD</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">CSD</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">validate_projection_invariants</span><span class="p">(</span>
+        <span class="n">sources</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">positions</span><span class="o">=</span><span class="n">positions</span><span class="p">,</span> <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span>
+        <span class="n">source_proxy</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">phi_e_proxy</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">phi_e</span><span class="p">,</span>
+        <span class="n">csd_proxy</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">CSD</span><span class="p">,</span> <span class="n">lfp_proxy</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">LFP</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;density_preserving&quot;</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">assert</span> <span class="n">field_valid</span><span class="p">,</span> <span class="s2">&quot;Field does not respect source relationship&quot;</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="n">report</span><span class="p">[</span><span class="s2">&quot;warnings&quot;</span><span class="p">],</span> <span class="sa">f</span><span class="s2">&quot;Projection invariants failed: </span><span class="si">{</span><span class="n">report</span><span class="p">[</span><span class="s1">&#39;warnings&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
 
-<span class="c1"># 5. Check conservation diagnostics</span>
+<span class="c1"># 4. Check conservation diagnostics</span>
 <span class="k">if</span> <span class="n">signals</span><span class="o">.</span><span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">signals</span><span class="o">.</span><span class="n">LFP</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">diag</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">compute_conservation_proxy_diagnostics</span><span class="p">(</span>
-        <span class="n">signals</span><span class="o">.</span><span class="n">source</span><span class="p">,</span>
-        <span class="n">FieldOutput</span><span class="p">(</span><span class="n">LFP</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">LFP</span><span class="p">,</span> <span class="n">CSD</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">CSD</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+        <span class="n">source</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">lfp</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">LFP</span><span class="p">,</span> <span class="n">csd</span><span class="o">=</span><span class="n">signals</span><span class="o">.</span><span class="n">CSD</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Energy ratio: </span><span class="si">{</span><span class="n">diag</span><span class="p">[</span><span class="s1">&#39;energy_ratio&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">diag</span><span class="p">[</span><span class="s2">&quot;warnings&quot;</span><span class="p">])</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ All validation checks passed&quot;</span><span class="p">)</span>
 </code></pre></div>
+<p>Note: the dict-backed <code>JaxFNEConfig</code>/<code>load_config(...)</code> config-path API
+(distinct from the fluent <code>Configuration</code> object used above with <code>construct()</code>)
+was removed 2026-06-30 — see the "Configuration Validation" section above.</p>
 <hr />
 <h2 id="common-validation-errors">Common Validation Errors<a class="headerlink" href="#common-validation-errors" title="Permanent link">&para;</a></h2>
 <h3 id="nan-in-signals">NaN in Signals<a class="headerlink" href="#nan-in-signals" title="Permanent link">&para;</a></h3>
@@ -3150,7 +4642,8 @@
 <h3 id="configuration-errors">Configuration Errors<a class="headerlink" href="#configuration-errors" title="Permanent link">&para;</a></h3>
 <p><strong>Cause:</strong> Missing fields, invalid parameters, or conflicting declarations</p>
 <p><strong>Solution:</strong>
-- Use validate_config before construction
+- Call <code>construct(cfg)</code>, which raises on structural problems (<code>validate_config</code>
+  no longer exists — see "Configuration Validation" above)
 - Check error messages for specific issues
 - Verify all required fields are present</p>
 <hr />
@@ -3218,7 +4711,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       

@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="JAX-based TFNE scaffold for multimodal source-to-field/readout workflows">
+        <meta name="description" content="Tensor-Field Neural Equations — JAX simulation for neural circuits, fields, and adaptation">
       
       
       
@@ -23,15 +23,15 @@
       
       
       <link rel="icon" href="../../assets/jaxfne-img.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>05: V1-PFC Dual Column - jaxfne</title>
+        <title>V1–PFC dual column - jaxfne</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#v1-pfc-dual-column" class="md-skip">
+        <a href="#v1-pfc-dual-column-continuous-aaab-adaptation" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              05: V1-PFC Dual Column
+              V1–PFC dual column
             
           </span>
         </div>
@@ -260,6 +260,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -377,14 +381,70 @@
   
   
     <li class="md-nav__item">
-      <a href="../../faq/" class="md-nav__link">
+      <a href="../../gallery/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    FAQ
+    Gallery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../public_surface_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scope_and_status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scope & status
   
 
     
@@ -418,24 +478,6 @@
       
         
           
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
         
       
         
@@ -520,7 +562,7 @@
   <span class="md-ellipsis">
     
   
-    Notebook Standard
+    Notebook standard
   
 
     
@@ -541,14 +583,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../13_canonical_column_etude/" class="md-nav__link">
+      <a href="../tutorial_outputs/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Étude: Canonical Cortical Column
+    Tutorial Outputs
   
 
     
@@ -561,6 +603,364 @@
   
 
               
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cumulative (canonical 1000n)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cumulative (canonical 1000n)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_define_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Define (PseudoGenome)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02_develop_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Develop (G→N)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03_inspect_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect (realized vs configured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_simulate_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulate (construct→Signals)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_observe_fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observe (field & probe)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_add_state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add state (H / RBS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_add_dynamics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add dynamics (HDP)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_compare_nulls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare (nulls & lesions)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suites
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Suites
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -576,7 +976,7 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 1 (Computational Biophysics)
+    Computational biophysics
   
 
     
@@ -604,7 +1004,35 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 2 (Corticospectrolaminar Motif)
+    Corticospectrolaminar motif
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_jaxfne_suite_no_2_evoked_l4_drive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evoked L4 drive
   
 
     
@@ -632,7 +1060,7 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 3 (Low-Frequency Scaling)
+    Low-frequency scaling
   
 
     
@@ -646,29 +1074,9 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../11_multi_laminar_cortical_agsdr/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tutorial: Multi-area Laminar Model
-  
-
-    
-  </span>
-  
-  
-
-      </a>
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -678,45 +1086,48 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+  
+    
+    
+      
         
-  
-  
-  <span class="md-ellipsis">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
-  
-    TFNE-Izhikevich Single Emitter Explorer
-  
-
     
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
-        
   
   
   <span class="md-ellipsis">
     
   
-    09: EEG/MEG/EMM Proxy Bundle
+    Circuit construction (archive)
   
 
     
@@ -724,11 +1135,19 @@
   
   
 
-      </a>
-    </li>
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Circuit construction (archive)
   
 
-              
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -744,7 +1163,7 @@
   <span class="md-ellipsis">
     
   
-    01: Single-neuron Multimodal
+    Single-neuron multimodal
   
 
     
@@ -772,7 +1191,7 @@
   <span class="md-ellipsis">
     
   
-    02: Two-neuron E/I
+    Two-neuron E/I
   
 
     
@@ -800,7 +1219,7 @@
   <span class="md-ellipsis">
     
   
-    03: 100-neuron Network
+    Population E/I network
   
 
     
@@ -828,7 +1247,7 @@
   <span class="md-ellipsis">
     
   
-    04: V1 Six-layer Column
+    V1 laminar column
   
 
     
@@ -865,7 +1284,7 @@
   <span class="md-ellipsis">
     
   
-    05: V1-PFC Dual Column
+    V1–PFC dual column
   
 
     
@@ -883,7 +1302,7 @@
   <span class="md-ellipsis">
     
   
-    05: V1-PFC Dual Column
+    V1–PFC dual column
   
 
     
@@ -909,10 +1328,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
+  <a href="#why-v1s-l4l6-are-pure-e" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration
+        Why V1's L4/L6 are pure-E
       
     </span>
   </a>
@@ -920,10 +1339,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#explore-inter-areal-dynamics" class="md-nav__link">
+  <a href="#building-the-two-area-tensor" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Explore inter-areal dynamics
+        Building the two-area tensor
       
     </span>
   </a>
@@ -931,10 +1350,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#key-features" class="md-nav__link">
+  <a href="#running-chained-trials-with-hdp-carryover" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Key features
+        Running chained trials with HDP carryover
       
     </span>
   </a>
@@ -942,10 +1361,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#applications" class="md-nav__link">
+  <a href="#the-weight-carryover-instability-and-its-fix" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Applications
+        The weight-carryover instability, and its fix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verified-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verified results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-it-yourself" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running it yourself
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-limitations-stated-not-hidden" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known limitations (stated, not hidden)
       
     </span>
   </a>
@@ -986,7 +1438,7 @@
   <span class="md-ellipsis">
     
   
-    06: v0.3.6 Chainable Config
+    Configuration API population
   
 
     
@@ -1007,6 +1459,99 @@
   
   
     <li class="md-nav__item">
+      <a href="../13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical cortical column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source, field, and readout (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Source, field, and readout (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../07_v037_source_bookkeeping/" class="md-nav__link">
         
   
@@ -1014,7 +1559,7 @@
   <span class="md-ellipsis">
     
   
-    07: v0.3.7 Source Bookkeeping
+    Source bookkeeping
   
 
     
@@ -1042,7 +1587,7 @@
   <span class="md-ellipsis">
     
   
-    08: v0.3.8 LFP/CSD Readout
+    LFP and CSD proxies
   
 
     
@@ -1051,6 +1596,191 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EEG, MEG, EMM proxies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_8" id="__nav_2_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paradigms and optimization (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Paradigms and optimization (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_v0313_omission_oddball/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensory omission oddball
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_multi_laminar_cortical_agsdr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-area laminar AGSDR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Izhikevich emitter explorer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1074,6 +1804,8 @@
       
         
           
+        
+      
         
       
         
@@ -1164,7 +1896,7 @@
   <span class="md-ellipsis">
     
   
-    Configuration Grammar
+    Configuration grammar
   
 
     
@@ -1185,14 +1917,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/probe_operators/" class="md-nav__link">
+      <a href="../../guides/objective_grammar/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Probe Operators
+    Objective grammar
   
 
     
@@ -1220,7 +1952,7 @@
   <span class="md-ellipsis">
     
   
-    Tensor-Field Workflows
+    Tensor-field workflows
   
 
     
@@ -1241,14 +1973,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/plotly_visualization/" class="md-nav__link">
+      <a href="../../guides/operator_composition/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Plotly Visualization
+    Operator composition
   
 
     
@@ -1269,98 +2001,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/poisson_admissibility/" class="md-nav__link">
+      <a href="../../guides/probe_operators/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Poisson Admissibility
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guides/jaxley_interop/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Jaxley Interoperability
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guides/homeostasis/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Homeostasis
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../notes/biophysical_model_comparison/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Biophysical Model Comparison
+    Probe operators
   
 
     
@@ -1409,6 +2057,90 @@
   
   
     <li class="md-nav__item">
+      <a href="../../guides/homeostasis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homeostasis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-state and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jdna/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PseudoGenome (JDNA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../guides/output_bundles/" class="md-nav__link">
         
   
@@ -1416,7 +2148,620 @@
   <span class="md-ellipsis">
     
   
-    Output Bundles
+    Output bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jaxley_interop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jaxley interoperability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../etudes/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Études
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Études
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/hdp_controllability_reachability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP controllability & reachability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/experiment_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical Multiscale Observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/heterogeneous_emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heterogeneous emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/multiscale_observation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiscale observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and Experiments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_wave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling Waves
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_c_wave_evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling-Wave Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_c3_neural/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Neural Geometry and Delays
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_d_biological_rbs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Biological RBS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_e_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrated TFNE Composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/rbs_rbd_hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBS, RBD and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/relative_quantity_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relative Quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_h1b_h_to_x_gain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-to-X Gain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_rbd_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBD State Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_w_hdp_parameter_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP Parameter Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/tfne_containment_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TFNE Containment and Composition
   
 
     
@@ -1466,6 +2811,14 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -1479,7 +2832,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -1490,7 +2843,7 @@
   <span class="md-ellipsis">
     
   
-    API reference
+    API
   
 
     
@@ -1501,18 +2854,18 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
-    API reference
+    API
   
 
           </label>
@@ -1611,14 +2964,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/bridges/" class="md-nav__link">
+      <a href="../../api/source_schema/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Bridges
+    Source schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/field_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Field schema
   
 
     
@@ -1723,6 +3104,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../api/neuronal_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NeuronalTensor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../api/validation/" class="md-nav__link">
         
   
@@ -1744,48 +3153,21 @@
 
               
             
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
+              
+                
   
   
   
   
-    
-    
-      
+    <li class="md-nav__item">
+      <a href="../../api/vis/" class="md-nav__link">
         
-      
-    
-    
-    
-      
-        
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
-            
   
   
   <span class="md-ellipsis">
     
   
-    Reference
+    Visualization
   
 
     
@@ -1793,19 +3175,11 @@
   
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Reference
+      </a>
+    </li>
   
 
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+              
             
               
                 
@@ -1814,14 +3188,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/glossary_of_methods/" class="md-nav__link">
+      <a href="../../api/jdna/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Glossary of Methods
+    JDNA
   
 
     
@@ -1861,6 +3235,20 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -1874,17 +3262,17 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    About jaxfne
+    Appendix
   
 
     
@@ -1895,12 +3283,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
-    About jaxfne
+    Appendix
   
 
           </label>
@@ -1913,14 +3301,182 @@
   
   
     <li class="md-nav__item">
-      <a href="../../limitations_and_future_plans/" class="md-nav__link">
+      <a href="../../appendix/fundamental_laws/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Limitations and future plans
+    Fundamental laws
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../source_field_equations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source and field equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../computation_basis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Computation basis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mathematical_glossary_flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mathematical glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
   
 
     
@@ -2024,78 +3580,15 @@
   
   
   
-    
-    
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_6_5" id="__nav_6_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Releases
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Releases
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
     <li class="md-nav__item">
-      <a href="../../releases/v0.3.4/" class="md-nav__link">
+      <a href="../../colab/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    v0.3.4
+    Colab quick start
   
 
     
@@ -2116,14 +3609,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../releases/v0.2.18/" class="md-nav__link">
+      <a href="../../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    v0.2.18
+    Limitations
   
 
     
@@ -2132,126 +3625,6 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.10/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.10
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.3/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.3
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.1/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.1
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.0/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.0
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
     </li>
   
 
@@ -2291,10 +3664,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
+  <a href="#why-v1s-l4l6-are-pure-e" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration
+        Why V1's L4/L6 are pure-E
       
     </span>
   </a>
@@ -2302,10 +3675,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#explore-inter-areal-dynamics" class="md-nav__link">
+  <a href="#building-the-two-area-tensor" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Explore inter-areal dynamics
+        Building the two-area tensor
       
     </span>
   </a>
@@ -2313,10 +3686,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#key-features" class="md-nav__link">
+  <a href="#running-chained-trials-with-hdp-carryover" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Key features
+        Running chained trials with HDP carryover
       
     </span>
   </a>
@@ -2324,10 +3697,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#applications" class="md-nav__link">
+  <a href="#the-weight-carryover-instability-and-its-fix" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Applications
+        The weight-carryover instability, and its fix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verified-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verified results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-it-yourself" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running it yourself
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-limitations-stated-not-hidden" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known limitations (stated, not hidden)
       
     </span>
   </a>
@@ -2365,51 +3771,149 @@
   
 
 
-<h1 id="v1-pfc-dual-column">V1-PFC Dual Column<a class="headerlink" href="#v1-pfc-dual-column" title="Permanent link">&para;</a></h1>
-<p><a href="https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/docs/tutorials/05_v1_pfc_dual_column.md"><img alt="Open in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
-<p>Two cortical columns (V1 and PFC) with inter-areal connections. Explore cross-area dynamics.</p>
-<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
-
-<span class="n">cfg</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">jtfne</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">network</span><span class="p">(</span>
-        <span class="n">n</span><span class="o">=</span><span class="mi">1200</span><span class="p">,</span>
-        <span class="n">areas</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;V1&quot;</span><span class="p">:</span> <span class="mi">600</span><span class="p">,</span> <span class="s2">&quot;PFC&quot;</span><span class="p">:</span> <span class="mi">600</span><span class="p">},</span>
-        <span class="n">layers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;V1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;L1&quot;</span><span class="p">,</span> <span class="s2">&quot;L2/3&quot;</span><span class="p">,</span> <span class="s2">&quot;L4&quot;</span><span class="p">,</span> <span class="s2">&quot;L5&quot;</span><span class="p">,</span> <span class="s2">&quot;L6&quot;</span><span class="p">],</span> <span class="s2">&quot;PFC&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;L1&quot;</span><span class="p">,</span> <span class="s2">&quot;L2/3&quot;</span><span class="p">,</span> <span class="s2">&quot;L5&quot;</span><span class="p">,</span> <span class="s2">&quot;L6&quot;</span><span class="p">]},</span>
-        <span class="n">inter_areal_connectivity</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;V1→PFC&quot;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span> <span class="s2">&quot;PFC→V1&quot;</span><span class="p">:</span> <span class="mf">0.10</span><span class="p">}</span>
-    <span class="p">)</span>
-    <span class="o">.</span><span class="n">emitter</span><span class="p">(</span><span class="n">family</span><span class="o">=</span><span class="s2">&quot;izhikevich&quot;</span><span class="p">,</span> <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;cortical_eig&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="s2">&quot;dual_laminar_column&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">probe</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;v1_pfc_dual&quot;</span><span class="p">,</span> <span class="n">modes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;spikes&quot;</span><span class="p">,</span> <span class="s2">&quot;LFP&quot;</span><span class="p">,</span> <span class="s2">&quot;traveling_waves&quot;</span><span class="p">])</span>
+<h1 id="v1-pfc-dual-column-continuous-aaab-adaptation">V1-PFC Dual Column: Continuous AAAB Adaptation<a class="headerlink" href="#v1-pfc-dual-column-continuous-aaab-adaptation" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Status: WORKING SCRIPT, NOT YET A NOTEBOOK.</strong> This page documents
+<code>scripts/v1_pfc_continuous_aaab_smoke_test.py</code>, a real, runnable, verified
+implementation -- not a design sketch. It replaces this doc's earlier
+ASPIRATIONAL version, which described <code>inter_areal_connectivity=</code>/
+<code>field(domain="dual_laminar_column")</code>/<code>"traveling_waves"</code> probes that were
+never implemented anywhere in the codebase. None of that content survives
+here. There is still no polished Jupyter notebook for this paradigm (see
+<code>docs/tutorials/notebook_standard.md</code> for what "polished" means in this
+repo) -- run the script directly as shown below. Verified against the
+actual source as of 2026-07-05; if this page and the script ever disagree,
+the script is correct.</p>
+</blockquote>
+<p>Two 100-neuron canonical laminar columns, <strong>V1</strong> and <strong>PFC</strong>, both
+HDP-enabled, connected V1→PFC feedforward. V1's L4 and L6 host three
+disjoint/overlapping tuning-group populations (<code>AB</code>, <code>A</code>, <code>B</code>) that are
+driven with real 40Hz AC current in a fixed, repeating 1000ms local-oddball
+trial structure:</p>
+<div class="highlight"><pre><span></span><code>fx(0-100) - p1=A(100-200) - d1(200-300) - p2=A(300-400) - d2(400-500)
+- p3=A(500-600) - d3(600-700) - p4=B(700-800, deviant) - d4(800-900)
+- rw(900-1000)
+</code></pre></div>
+<p><code>A</code> drives the <code>AB</code>+<code>A</code> neurons; the deviant <code>B</code> window drives the <code>AB</code>+<code>B</code>
+neurons. Both the per-neuron homeostatic factor <code>H</code> and the synaptic
+weights <code>w</code> carry forward trial-to-trial (<code>Model.with_hdp_initial_state</code>),
+so adaptation is genuine across the whole run rather than reset every
+trial.</p>
+<h2 id="why-v1s-l4l6-are-pure-e">Why V1's L4/L6 are pure-E<a class="headerlink" href="#why-v1s-l4l6-are-pure-e" title="Permanent link">&para;</a></h2>
+<p>The sign-detection logic in <code>jaxfne/neuronal_tensor.py</code> checks
+<code>source_neuron_type == "E"</code> exactly to decide excitatory vs. inhibitory --
+renaming a neuron type (e.g. to <code>"E_AB"</code>) would silently misclassify it as
+inhibitory. So tuning-group identity is <strong>not</strong> encoded via <code>NeuronType.name</code>
+at all: V1's L4 and L6 are declared as single-type (<code>"E"</code>, <code>fraction=1.0</code>)
+tuning-only layers, and <code>AB</code>/<code>A</code>/<code>B</code> membership is a <strong>positional
+post-construction tag</strong>, sliced from the layers' stable <code>neuron_table()</code>
+order (<code>[0:5]</code>=<code>AB</code>, <code>[5:10]</code>=<code>A</code>, <code>[10:15]</code>=<code>B</code>, unioned across L4 and L6 for
+10+10+10 combined). This is a deliberate, explicit design choice, not a
+workaround pending a real feature -- see <code>tuning_group_indices()</code> in the
+script.</p>
+<h2 id="building-the-two-area-tensor">Building the two-area tensor<a class="headerlink" href="#building-the-two-area-tensor" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">jaxfne.neuronal_tensor</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Area</span><span class="p">,</span> <span class="n">AreaConnection</span><span class="p">,</span> <span class="n">Layer</span><span class="p">,</span> <span class="n">NeuronType</span><span class="p">,</span> <span class="n">NeuronalTensor</span><span class="p">,</span> <span class="n">PlasticParams</span><span class="p">,</span>
+    <span class="n">construct_neuronal_tensor</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="n">model</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-</code></pre></div>
-<h2 id="explore-inter-areal-dynamics">Explore inter-areal dynamics<a class="headerlink" href="#explore-inter-areal-dynamics" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">signals</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="c1"># V1: L1=10, L2=25, L3=15, L4=15 (pure-E tuning), L5=20, L6=15 (pure-E tuning)</span>
+<span class="n">v1</span> <span class="o">=</span> <span class="n">Area</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;V1&quot;</span><span class="p">,</span> <span class="n">layers</span><span class="o">=</span><span class="p">(</span>
+    <span class="c1"># ...canonical E/PV/SST/VIP layers for L1, L2, L3, L5...</span>
+    <span class="n">Layer</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;L4&quot;</span><span class="p">,</span> <span class="n">n_neurons</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">neuron_types</span><span class="o">=</span><span class="p">(</span><span class="n">NeuronType</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),)),</span>
+    <span class="n">Layer</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;L6&quot;</span><span class="p">,</span> <span class="n">n_neurons</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">neuron_types</span><span class="o">=</span><span class="p">(</span><span class="n">NeuronType</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),)),</span>
+<span class="p">))</span>
 
-<span class="n">readouts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">compute_readout</span><span class="p">(</span><span class="n">signals</span><span class="p">,</span> <span class="p">[</span>
-    <span class="n">jtfne</span><span class="o">.</span><span class="n">readout_spec</span><span class="p">(</span><span class="s2">&quot;V1_rate&quot;</span><span class="p">,</span> <span class="s2">&quot;spike_rate_hz&quot;</span><span class="p">),</span>
-    <span class="n">jtfne</span><span class="o">.</span><span class="n">readout_spec</span><span class="p">(</span><span class="s2">&quot;PFC_rate&quot;</span><span class="p">,</span> <span class="s2">&quot;spike_rate_hz&quot;</span><span class="p">),</span>
-    <span class="n">jtfne</span><span class="o">.</span><span class="n">readout_spec</span><span class="p">(</span><span class="s2">&quot;cross_area_coherence&quot;</span><span class="p">,</span> <span class="s2">&quot;coherence&quot;</span><span class="p">),</span>
-<span class="p">])</span>
+<span class="c1"># PFC: canonical 6-layer column, fully generic/untuned</span>
+<span class="n">pfc</span> <span class="o">=</span> <span class="n">Area</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;PFC&quot;</span><span class="p">,</span> <span class="n">layers</span><span class="o">=</span><span class="p">(</span><span class="o">...</span><span class="p">))</span>
+
+<span class="n">feedforward</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">AreaConnection</span><span class="p">(</span>
+        <span class="n">source_area</span><span class="o">=</span><span class="s2">&quot;V1&quot;</span><span class="p">,</span> <span class="n">source_layer</span><span class="o">=</span><span class="n">layer</span><span class="p">,</span> <span class="n">source_neuron_type</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">,</span>
+        <span class="n">target_area</span><span class="o">=</span><span class="s2">&quot;PFC&quot;</span><span class="p">,</span> <span class="n">target_layer</span><span class="o">=</span><span class="s2">&quot;L4&quot;</span><span class="p">,</span> <span class="n">target_neuron_type</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">,</span>
+        <span class="n">mechanism</span><span class="o">=</span><span class="s2">&quot;AMPA&quot;</span><span class="p">,</span>
+        <span class="c1"># PlasticParams.H defaults to 0.0, outside the valid HDP range</span>
+        <span class="c1"># (H_min=0.1, H_max=10.0) -- ALWAYS set H=1.0 explicitly when HDP</span>
+        <span class="c1"># will be enabled, or the target neurons&#39; seeded H0 blows up the</span>
+        <span class="c1"># HDP integration at step 0.</span>
+        <span class="n">plastic</span><span class="o">=</span><span class="n">PlasticParams</span><span class="p">(</span><span class="n">H</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;L4&quot;</span><span class="p">,</span> <span class="s2">&quot;L6&quot;</span><span class="p">)</span>
+<span class="p">]</span>
+
+<span class="n">tensor</span> <span class="o">=</span> <span class="n">NeuronalTensor</span><span class="p">(</span><span class="n">areas</span><span class="o">=</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">pfc</span><span class="p">),</span> <span class="n">area_connections</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">feedforward</span><span class="p">),</span>
+                         <span class="n">name</span><span class="o">=</span><span class="s2">&quot;v1_pfc_continuous_aaab&quot;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">construct_neuronal_tensor</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="key-features">Key features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
+<h2 id="running-chained-trials-with-hdp-carryover">Running chained trials with HDP carryover<a class="headerlink" href="#running-chained-trials-with-hdp-carryover" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxfne.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">RuntimeConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxfne.hdp_network</span><span class="w"> </span><span class="kn">import</span> <span class="n">v1_pfc_aaab_hdp_params</span>
+
+<span class="n">runtime_cfg</span> <span class="o">=</span> <span class="n">RuntimeConfig</span><span class="p">(</span>
+    <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span> <span class="n">enable_hdp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">hdp_params</span><span class="o">=</span><span class="n">v1_pfc_aaab_hdp_params</span><span class="p">(),</span>  <span class="c1"># named preset: K_HDP=0.003, K_w_ctrl=0.001</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">trial</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_trials</span><span class="p">):</span>
+    <span class="n">signals</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                              <span class="n">seed</span><span class="o">=</span><span class="n">seed</span> <span class="o">+</span> <span class="n">trial</span><span class="p">,</span> <span class="n">runtime</span><span class="o">=</span><span class="n">runtime_cfg</span><span class="p">,</span> <span class="n">paradigm</span><span class="o">=</span><span class="n">schedule</span><span class="p">)</span>
+    <span class="n">diag</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">last_hdp_diagnostics</span><span class="p">()</span>
+    <span class="c1"># carry BOTH H (homeostatic factor) and w (synaptic weights) forward:</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">with_hdp_initial_state</span><span class="p">(</span><span class="n">H0</span><span class="o">=</span><span class="n">diag</span><span class="p">[</span><span class="s2">&quot;H_final&quot;</span><span class="p">],</span> <span class="n">w0</span><span class="o">=</span><span class="n">diag</span><span class="p">[</span><span class="s2">&quot;w_final&quot;</span><span class="p">])</span>
+</code></pre></div>
+<h2 id="the-weight-carryover-instability-and-its-fix">The weight-carryover instability, and its fix<a class="headerlink" href="#the-weight-carryover-instability-and-its-fix" title="Permanent link">&para;</a></h2>
+<p>Carrying synaptic weights trial-to-trial used to be an <strong>unbounded
+positive-feedback runaway</strong>: <code>H</code> already had a two-sided restoring term
+(<code>K_ctrl</code>) pulling it back to equilibrium, but the synaptic weight
+magnitude had none -- only a hard floor/ceiling clip. Chaining trials
+compounded drift with no ceiling until the clip saturated every edge (rate
+→ ~50Hz by trial 15-19).</p>
+<p><strong>Fixed</strong> by adding <code>K_w_ctrl</code> to
+<code>simulate_edge_recurrent_izhikevich_hdp</code> (<code>jaxfne/emitters.py</code>): a linear
+restoring force pulling the weight magnitude back toward its calibrated
+baseline (<code>|edges.weight|</code>), mirroring <code>K_ctrl</code>'s own form for <code>H</code>. <code>K_HDP</code>
+and <code>K_w_ctrl</code> are exposed as a named, reproducible preset --
+<code>jaxfne.hdp_network.DEFAULT_HDP_V1_PFC_AAAB</code> / <code>v1_pfc_aaab_hdp_params()</code>
+-- rather than bare magic constants, mirroring <code>DEFAULT_HDP</code>/
+<code>DEFAULT_HDP_DESYNC</code>'s existing precedent.</p>
+<h2 id="verified-results">Verified results<a class="headerlink" href="#verified-results" title="Permanent link">&para;</a></h2>
+<p>A real 100-trial run (<code>carry_weights=True</code>, the default) is genuinely
+stable across the <strong>entire</strong> run, not just the first few trials:</p>
 <ul>
-<li>Bi-directional V1 ↔ PFC connections</li>
-<li>Laminar specificity: V1 L4 → PFC L1, PFC L5 → V1 L1</li>
-<li>LFP-proxy shows areal-specific spectral signatures</li>
-<li>Traveling-wave analysis (reserved) for inter-areal phase dynamics</li>
+<li><code>spike_rate_hz_mean</code> held at 12.53-12.55Hz across all 100 trials (trial 1
+  == trial 100).</li>
+<li><code>w_final_mean</code> (mean synaptic weight magnitude) held at 0.012248-0.012254
+  across all 100 trials -- a range of 6e-6, i.e. essentially flat, not
+  runaway.</li>
+<li><code>H_final_mean</code> converged 1.027 → 1.067 with <code>H_final_std</code> tightening
+  0.0201 → 0.0034 (homeostatic settling, not divergence).</li>
+<li>Zero NaN in any of the 100 trial summaries.</li>
 </ul>
-<h2 id="applications">Applications<a class="headerlink" href="#applications" title="Permanent link">&para;</a></h2>
+<p>This demonstrates real, stable, long-term homeostatic adaptation with
+genuine trial-to-trial weight plasticity -- not just a working-but-static
+H-only pipeline (<code>carry_weights=False</code> remains available to reproduce that
+earlier, more conservative behavior for comparison).</p>
+<h2 id="running-it-yourself">Running it yourself<a class="headerlink" href="#running-it-yourself" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="nv">PYTHONPATH</span><span class="o">=</span>.<span class="w"> </span>python3<span class="w"> </span>scripts/v1_pfc_continuous_aaab_smoke_test.py<span class="w"> </span><span class="o">[</span>n_trials<span class="o">]</span>
+</code></pre></div>
+<p>Default <code>n_trials=10</code> (~26s on CPU). The full spec target is 1000 trials
+and is <strong>not</strong> run by default -- pass an explicit <code>n_trials</code> to opt into a
+longer run. A receipt is written to
+<code>outputs/v1_pfc_continuous_aaab_smoke_test/smoke_test_receipt.json</code>.</p>
+<h2 id="known-limitations-stated-not-hidden">Known limitations (stated, not hidden)<a class="headerlink" href="#known-limitations-stated-not-hidden" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Attention and gain modulation (V1 ← PFC feedback)</li>
-<li>Perceptual binding and temporal coordination</li>
-<li>Visual working memory circuits</li>
+<li>V1's L4 and L6 have PV/SST/VIP removed entirely (pure-E tuning layers)
+  to host the AB/A/B groups; L3 is shrunk from its canonical 20 neurons to
+  15 to make room for L4's growth (canonical 10 → 15), holding V1 at 100
+  neurons total. L1, L2, L5, and all of PFC keep the canonical
+  E:PV:SST:VIP fractions and layer-size proportions unchanged.</li>
+<li>This is a script-driven smoke test, not a polished tutorial notebook --
+  there is no Colab badge and no <code>tutorials/*.ipynb</code> file for it yet.</li>
 </ul>
 <h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
-<p>See <a href="../../guides/">Guides</a> for how-to articles on extending these models.</p>
+<p>See <a href="../../guides/">Guides</a> for how-to articles on extending these
+models.</p>
 
 
 
@@ -2468,7 +3972,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       

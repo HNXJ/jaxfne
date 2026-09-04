@@ -1,0 +1,4743 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Tensor-Field Neural Equations — JAX simulation for neural circuits, fields, and adaptation">
+      
+      
+      
+        <link rel="canonical" href="https://jaxfne.readthedocs.io/api/neuronal_tensor/">
+      
+      
+        <link rel="prev" href="../objectives/">
+      
+      
+        <link rel="next" href="../validation/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/jaxfne-img.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>NeuronalTensor - jaxfne</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../_theme_override.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="orange" data-md-color-accent="gray">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#neuronal-tensor-api" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="jaxfne" class="md-header__button md-logo" aria-label="jaxfne" data-md-component="logo">
+      
+  <img src="../../assets/jaxfne-img.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            jaxfne
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              NeuronalTensor
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="orange" data-md-color-accent="gray"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/HNXJ/jaxfne" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HNXJ/jaxfne
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="jaxfne" class="md-nav__button md-logo" aria-label="jaxfne" data-md-component="logo">
+      
+  <img src="../../assets/jaxfne-img.png" alt="logo">
+
+    </a>
+    jaxfne
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/HNXJ/jaxfne" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HNXJ/jaxfne
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gallery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gallery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../public_surface_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scope_and_status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scope & status
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../tutorials/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/notebook_standard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebook standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/tutorial_outputs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial Outputs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cumulative (canonical 1000n)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cumulative (canonical 1000n)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_define_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Define (PseudoGenome)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_develop_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Develop (G→N)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_inspect_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect (realized vs configured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_simulate_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulate (construct→Signals)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_observe_fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observe (field & probe)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_add_state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add state (H / RBS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_add_dynamics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add dynamics (HDP)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_compare_nulls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare (nulls & lesions)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suites
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Suites
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_jaxfne_suite_no_1_computational_biophysics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Computational biophysics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Corticospectrolaminar motif
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_jaxfne_suite_no_2_evoked_l4_drive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evoked L4 drive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_jaxfne_suite_no_3_low_frequency_scaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Low-frequency scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Circuit construction (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Circuit construction (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_single_neuron_multimodal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Single-neuron multimodal
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_two_neuron_ei/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Two-neuron E/I
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_network_100_ei/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Population E/I network
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_v1_column/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    V1 laminar column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_v1_pfc_dual_column/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    V1–PFC dual column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_v036_100_neuron_ei_population/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration API population
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical cortical column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source, field, and readout (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Source, field, and readout (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_v037_source_bookkeeping/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source bookkeeping
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_v038_lfp_csd_readout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LFP and CSD proxies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EEG, MEG, EMM proxies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_8" id="__nav_2_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paradigms and optimization (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Paradigms and optimization (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/10_v0313_omission_oddball/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensory omission oddball
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-area laminar AGSDR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Izhikevich emitter explorer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/configuration_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration grammar
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/objective_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objective grammar
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/tensor_field_workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor-field workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/operator_composition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operator composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/probe_operators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probe operators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/calibration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Calibration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/homeostasis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homeostasis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-state and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jdna/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PseudoGenome (JDNA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/output_bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jaxley_interop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jaxley interoperability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../etudes/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Études
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Études
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/hdp_controllability_reachability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP controllability & reachability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/experiment_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical Multiscale Observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/heterogeneous_emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heterogeneous emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/multiscale_observation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiscale observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and Experiments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_wave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling Waves
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_c_wave_evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling-Wave Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_c3_neural/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Neural Geometry and Delays
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_d_biological_rbs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Biological RBS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_e_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrated TFNE Composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/rbs_rbd_hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBS, RBD and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/relative_quantity_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relative Quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_h1b_h_to_x_gain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-to-X Gain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_rbd_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBD State Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_w_hdp_parameter_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP Parameter Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/tfne_containment_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TFNE Containment and Composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../source_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../field_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Field schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../probes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NeuronalTensor
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NeuronalTensor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#connectivity-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connectivity modes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#value-tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Value tags
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data classes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#geometry3d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Geometry3D
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#neurontype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NeuronType
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#staticparams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StaticParams
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plasticparams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PlasticParams
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interconnection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        InterConnection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pose3d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pose3D
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#area" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Area
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#areaconnection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AreaConnection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#neuronaltensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NeuronalTensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#default_relative_size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        default_relative_size
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save_neuronal_tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_neuronal_tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load_neuronal_tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_neuronal_tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_canonical_neuronal_tensors-load_canonical_neuronal_tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_canonical_neuronal_tensors / load_canonical_neuronal_tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#merge_neuronal_tensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        merge_neuronal_tensors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#neuronal_tensor_to_configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        neuronal_tensor_to_configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#construct_neuronal_tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        construct_neuronal_tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#end-to-end-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-to-end example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-area-example-with-merge_neuronal_tensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-area example with merge_neuronal_tensors
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jdna/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JDNA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendix
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Appendix
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix/fundamental_laws/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fundamental laws
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../source_field_equations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source and field equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../computation_basis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Computation basis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mathematical_glossary_flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mathematical glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../colab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Colab quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../limitations_and_future_plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Limitations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#connectivity-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connectivity modes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#value-tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Value tags
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data classes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#geometry3d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Geometry3D
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#neurontype" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NeuronType
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#staticparams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        StaticParams
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plasticparams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PlasticParams
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interconnection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        InterConnection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pose3d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pose3D
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#area" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Area
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#areaconnection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AreaConnection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#neuronaltensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NeuronalTensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#default_relative_size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        default_relative_size
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#save_neuronal_tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_neuronal_tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load_neuronal_tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_neuronal_tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_canonical_neuronal_tensors-load_canonical_neuronal_tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_canonical_neuronal_tensors / load_canonical_neuronal_tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#merge_neuronal_tensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        merge_neuronal_tensors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#neuronal_tensor_to_configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        neuronal_tensor_to_configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#construct_neuronal_tensor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        construct_neuronal_tensor
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#end-to-end-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-to-end example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-area-example-with-merge_neuronal_tensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-area example with merge_neuronal_tensors
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="neuronal-tensor-api">Neuronal Tensor API<a class="headerlink" href="#neuronal-tensor-api" title="Permanent link">&para;</a></h1>
+<p>The <code>neuronal_tensor</code> module defines the <strong>canonical network representation</strong> for
+jaxfne circuits. Every circuit — regardless of how many areas, layers, or cell
+types it has — reduces to one uniform shape:</p>
+<div class="highlight"><pre><span></span><code>NeuronalTensor = [Areas, AreaConnections]
+Area           = [Layers × NeuronTypes, InterConnections]
+</code></pre></div>
+<p>Import:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">NeuronalTensor</span><span class="p">,</span> <span class="n">Area</span><span class="p">,</span> <span class="n">AreaConnection</span><span class="p">,</span> <span class="n">Layer</span><span class="p">,</span> <span class="n">NeuronType</span><span class="p">,</span>
+    <span class="n">Geometry3D</span><span class="p">,</span> <span class="n">Pose3D</span><span class="p">,</span> <span class="n">StaticParams</span><span class="p">,</span> <span class="n">PlasticParams</span><span class="p">,</span>
+    <span class="n">InterConnection</span><span class="p">,</span> <span class="n">save_neuronal_tensor</span><span class="p">,</span> <span class="n">load_neuronal_tensor</span><span class="p">,</span>
+    <span class="n">merge_neuronal_tensors</span><span class="p">,</span> <span class="n">neuronal_tensor_to_configuration</span><span class="p">,</span>
+    <span class="n">construct_neuronal_tensor</span><span class="p">,</span> <span class="n">default_relative_size</span><span class="p">,</span>
+    <span class="n">list_canonical_neuronal_tensors</span><span class="p">,</span> <span class="n">load_canonical_neuronal_tensor</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<blockquote>
+<p><strong>Additive, not replacing.</strong> The existing <code>jaxfne.core.Configuration</code> /
+<code>jaxfne.builders.laminar_cortex_config</code> path is untouched.
+<code>neuronal_tensor_to_configuration</code> bridges a <code>NeuronalTensor</code> into that
+existing <code>construct</code> / <code>simulate</code> pipeline.</p>
+</blockquote>
+<h3 id="connectivity-modes">Connectivity modes<a class="headerlink" href="#connectivity-modes" title="Permanent link">&para;</a></h3>
+<p>Tensor connectivity has two derived specification states:</p>
+<div class="highlight"><pre><span></span><code>UNSPECIFIED -&gt; the configured default topology
+EXPLICIT    -&gt; exactly the declared topology
+</code></pre></div>
+<p>The distinction between omission and an explicit empty declaration is
+structural:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Area</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;V1&quot;</span><span class="p">,</span> <span class="n">layers</span><span class="o">=</span><span class="p">[</span><span class="n">layer</span><span class="p">])</span>
+<span class="c1"># connectivity_mode == &quot;unspecified&quot;</span>
+
+<span class="n">Area</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;V1&quot;</span><span class="p">,</span> <span class="n">layers</span><span class="o">=</span><span class="p">[</span><span class="n">layer</span><span class="p">],</span> <span class="n">inter_connections</span><span class="o">=</span><span class="p">[])</span>
+<span class="c1"># connectivity_mode == &quot;explicit&quot;; the compiled graph has zero edges</span>
+</code></pre></div>
+<p>For an explicit tensor, the executable edge list is the declared graph. An
+explicit graph may contain parallel edges only when their receptor/mechanism
+identity differs; repeated <code>(pre, post, receptor)</code> identities are rejected.
+Compilation exposes <code>connectivity_mode</code>, <code>default_edge_count</code>,
+<code>declared_rule_edge_count</code>, and <code>total_compiled_edge_count</code> in
+<code>model.cfg.metadata["connectivity_compilation"]</code>.
+Serialized tensors include the mode so explicit emptiness survives a JSON
+round trip; legacy files without the mode retain their default-topology
+interpretation when their connection arrays are empty.</p>
+<hr />
+<h2 id="value-tags">Value tags<a class="headerlink" href="#value-tags" title="Permanent link">&para;</a></h2>
+<p>Every numeric field carries a <code>value_tag</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"relative"</code></td>
+<td>Default. Proportional/structural — not empirically grounded.</td>
+</tr>
+<tr>
+<td><code>"calibrated_proxy"</code></td>
+<td>Derived from data via a proxy/approximation.</td>
+</tr>
+<tr>
+<td><code>"calibrated"</code></td>
+<td>Directly backed by experimental evidence.</td>
+</tr>
+</tbody>
+</table>
+<p>Opt in to a stronger tag only with evidence. Default is <code>"relative"</code>.</p>
+<hr />
+<h2 id="data-classes">Data classes<a class="headerlink" href="#data-classes" title="Permanent link">&para;</a></h2>
+<h3 id="geometry3d"><code>Geometry3D</code><a class="headerlink" href="#geometry3d" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Geometry3D</span><span class="p">:</span>
+    <span class="n">distribution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;uniform_random&quot;</span>
+    <span class="n">x_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">y_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">z_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">value_tag</span><span class="p">:</span> <span class="n">ValueTag</span> <span class="o">=</span> <span class="s2">&quot;relative&quot;</span>
+</code></pre></div>
+<p>Always 3D. To represent a 2D or 1D layer, collapse one or two axes by fixing
+their range at <code>(0.0, 0.0)</code>.</p>
+<p>Currently only <code>distribution="uniform_random"</code> is implemented;
+<code>construct_neuronal_tensor</code> will raise <code>NotImplementedError</code> for any other value.</p>
+<hr />
+<h3 id="neurontype"><code>NeuronType</code><a class="headerlink" href="#neurontype" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NeuronType</span><span class="p">:</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">relative_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">fraction</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">value_tag</span><span class="p">:</span> <span class="n">ValueTag</span> <span class="o">=</span> <span class="s2">&quot;relative&quot;</span>
+</code></pre></div>
+<p><code>fraction</code> is an optional per-type population fraction. If every <code>NeuronType</code>
+in a <code>Layer</code> declares a <code>fraction</code>, <code>neuronal_tensor_to_configuration</code> uses
+those (normalized) fractions instead of splitting the layer's population
+evenly across its declared types.</p>
+<p><strong>Class method:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="nd">@classmethod</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">relative_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+         <span class="n">fraction</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+         <span class="n">value_tag</span><span class="p">:</span> <span class="n">ValueTag</span> <span class="o">=</span> <span class="s2">&quot;relative&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NeuronType</span>
+</code></pre></div>
+<p>Convenience constructor that auto-fills <code>relative_size</code> from
+<code>default_relative_size(name)</code> when <code>relative_size</code> is <code>None</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="n">e</span>  <span class="o">=</span> <span class="n">NeuronType</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>    <span class="c1"># relative_size=5.0 (default)</span>
+<span class="n">pv</span> <span class="o">=</span> <span class="n">NeuronType</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;PV&quot;</span><span class="p">)</span>   <span class="c1"># relative_size=1.0</span>
+</code></pre></div>
+<hr />
+<h3 id="layer"><code>Layer</code><a class="headerlink" href="#layer" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Layer</span><span class="p">:</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">neuron_types</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">NeuronType</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">geometry</span><span class="p">:</span> <span class="n">Geometry3D</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">Geometry3D</span><span class="p">)</span>
+    <span class="n">n_neurons</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+</code></pre></div>
+<p>One cortical layer. Attach <code>NeuronType</code> entries to declare which cell
+populations live in the layer. <code>n_neurons</code> is the total neuron budget for
+this layer (all cell types combined).</p>
+<hr />
+<h3 id="staticparams"><code>StaticParams</code><a class="headerlink" href="#staticparams" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">StaticParams</span><span class="p">:</span>
+    <span class="n">g_mech</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>          <span class="c1"># mechanism → conductance</span>
+    <span class="n">reversal_potentials_mV</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># mechanism → E_rev (mV)</span>
+    <span class="n">dT_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
+    <span class="n">value_tag</span><span class="p">:</span> <span class="n">ValueTag</span> <span class="o">=</span> <span class="s2">&quot;relative&quot;</span>
+</code></pre></div>
+<p><strong>Never plastic/trainable/gradientable.</strong> Holds conductances, reversal
+potentials, and the integration timestep for a connection.</p>
+<blockquote>
+<p><strong>Note:</strong> <code>reversal_potentials_mV</code> is stored as metadata only. jaxfne's
+compiled edges are native current-based (Izhikevich-style) and have no
+conductance/reversal-potential term in the dynamics. The value is surfaced
+in <code>cfg.metadata["circuit"]["mechanisms"]</code> for provenance/inspection but
+does <strong>not</strong> affect <code>simulate()</code> output.</p>
+</blockquote>
+<hr />
+<h3 id="plasticparams"><code>PlasticParams</code><a class="headerlink" href="#plasticparams" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PlasticParams</span><span class="p">:</span>
+    <span class="n">w_mech</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1"># per-connection gain</span>
+    <span class="n">H</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>        <span class="c1"># homeostatic H-factor</span>
+    <span class="n">value_tag</span><span class="p">:</span> <span class="n">ValueTag</span> <span class="o">=</span> <span class="s2">&quot;relative&quot;</span>
+</code></pre></div>
+<p><strong>Trainable/gradientable.</strong> <code>w_mech</code> is the per-connection gain matrix
+(scalar here, expandable to a full per-synapse matrix). <code>H</code> is the homeostatic
+H-factor (passive ionic charge income per neuron).</p>
+<blockquote>
+<p><code>H</code> seeds the HDP controller's initial per-neuron state <strong>only</strong> when HDP
+is separately enabled (<code>Configuration.hdp(...)</code> before <code>jaxfne.construct</code>,
+or via a post-hoc <code>RuntimeConfig</code> override). It is stored but inert when
+HDP is disabled (jaxfne's default). See <code>construct_neuronal_tensor</code> for how
+per-neuron <code>H</code> is aggregated from all connections touching each neuron.</p>
+</blockquote>
+<hr />
+<h3 id="interconnection"><code>InterConnection</code><a class="headerlink" href="#interconnection" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">InterConnection</span><span class="p">:</span>
+    <span class="n">source_layer</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">source_neuron_type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">target_layer</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">target_neuron_type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">mechanism</span><span class="p">:</span> <span class="nb">str</span>          <span class="c1"># required — no default (e.g. &quot;AMPA&quot;, &quot;GABA_A&quot;)</span>
+    <span class="n">static</span><span class="p">:</span> <span class="n">StaticParams</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">StaticParams</span><span class="p">)</span>
+    <span class="n">plastic</span><span class="p">:</span> <span class="n">PlasticParams</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">PlasticParams</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Within-area</strong> connection from <code>(source_layer, source_neuron_type)</code> to
+<code>(target_layer, target_neuron_type)</code>. <code>mechanism</code> is always required.</p>
+<hr />
+<h3 id="pose3d"><code>Pose3D</code><a class="headerlink" href="#pose3d" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Pose3D</span><span class="p">:</span>
+    <span class="n">plane</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span> <span class="s2">&quot;xz&quot;</span><span class="p">,</span> <span class="s2">&quot;yz&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;xy&quot;</span>
+    <span class="n">rotation_deg</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">translation</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">value_tag</span><span class="p">:</span> <span class="n">ValueTag</span> <span class="o">=</span> <span class="s2">&quot;relative&quot;</span>
+</code></pre></div>
+<p>Controls where an <code>Area</code>'s layer stack sits in global 3D space.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>plane</code></td>
+<td>Which two global axes hold local (x, y) spread; the third holds local depth (z). <code>"xy"</code> is canonical (depth along z).</td>
+</tr>
+<tr>
+<td><code>rotation_deg</code></td>
+<td>Twist of the in-plane (x, y) spread around the depth axis.</td>
+</tr>
+<tr>
+<td><code>translation</code></td>
+<td>Global (x, y, z) offset of the entire area.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Plane → axis mapping:</strong></p>
+<table>
+<thead>
+<tr>
+<th><code>plane</code></th>
+<th>local x → global</th>
+<th>local y → global</th>
+<th>local depth → global</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"xy"</code></td>
+<td>axis 0 (x)</td>
+<td>axis 1 (y)</td>
+<td>axis 2 (z)</td>
+</tr>
+<tr>
+<td><code>"xz"</code></td>
+<td>axis 0 (x)</td>
+<td>axis 2 (z)</td>
+<td>axis 1 (y)</td>
+</tr>
+<tr>
+<td><code>"yz"</code></td>
+<td>axis 2 (z)</td>
+<td>axis 0 (x)</td>
+<td>axis 1 (y)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="area"><code>Area</code><a class="headerlink" href="#area" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Area</span><span class="p">:</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">layers</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Layer</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">inter_connections</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">InterConnection</span><span class="p">]</span> <span class="o">=</span> <span class="n">omitted</span>
+    <span class="n">pose</span><span class="p">:</span> <span class="n">Pose3D</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">Pose3D</span><span class="p">)</span>
+    <span class="n">connectivity_mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;unspecified&quot;</span><span class="p">,</span> <span class="s2">&quot;explicit&quot;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</code></pre></div>
+<p>One cortical area. Contains its <code>Layer</code> population structure, all
+<code>InterConnection</code>s (within-area wiring), and a <code>Pose3D</code> for 3D placement.</p>
+<hr />
+<h3 id="areaconnection"><code>AreaConnection</code><a class="headerlink" href="#areaconnection" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AreaConnection</span><span class="p">:</span>
+    <span class="n">source_area</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">source_layer</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">source_neuron_type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">target_area</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">target_layer</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">target_neuron_type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">mechanism</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;monotonic_cable_synapse&quot;</span>   <span class="c1"># default</span>
+    <span class="n">static</span><span class="p">:</span> <span class="n">StaticParams</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">StaticParams</span><span class="p">)</span>
+    <span class="n">plastic</span><span class="p">:</span> <span class="n">PlasticParams</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">PlasticParams</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Between-area</strong> connection. Specifies the full
+<code>(area, layer, neuron_type)</code> path for both source and target.
+Unlike <code>InterConnection</code>, <code>mechanism</code> has a default of
+<code>"monotonic_cable_synapse"</code>.</p>
+<hr />
+<h3 id="neuronaltensor"><code>NeuronalTensor</code><a class="headerlink" href="#neuronaltensor" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NeuronalTensor</span><span class="p">:</span>
+    <span class="n">areas</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Area</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">area_connections</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">AreaConnection</span><span class="p">]</span> <span class="o">=</span> <span class="n">omitted</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;untitled&quot;</span>
+    <span class="n">connectivity_mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;unspecified&quot;</span><span class="p">,</span> <span class="s2">&quot;explicit&quot;</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</code></pre></div>
+<p>The top-level container. Holds all areas and all between-area connections.
+<code>connectivity_mode</code> is inferred from whether connectivity fields were omitted or
+provided. It is <code>"unspecified"</code> when no connectivity field is provided and
+<code>"explicit"</code> when a connection list is provided, including an empty list.</p>
+<p><strong>Method:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span>
+</code></pre></div>
+<p>Returns a fully serialisable <code>dict</code> (via <code>dataclasses.asdict</code>). This is
+what <code>save_neuronal_tensor</code> serialises to JSON.</p>
+<hr />
+<h2 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h2>
+<h3 id="default_relative_size"><code>default_relative_size</code><a class="headerlink" href="#default_relative_size" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">default_relative_size</span><span class="p">(</span><span class="n">neuron_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span>
+</code></pre></div>
+<p>Returns the default <code>relative_size</code> for a neuron type (from
+<code>emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE</code>, shared with HDP <code>tau_i</code> scaling):
+- <code>"E"</code> → <code>5.0</code> (<code>E-like</code>)
+- <code>"PV"</code> / <code>"Inl"</code> → <code>1.0</code> (<code>PV-like</code>)
+- <code>"SST"</code> / <code>"VIP"</code> / <code>"Ing"</code> → <code>1.5</code> (<code>SST-like</code> / <code>VIP-like</code>)</p>
+<p>Keys are reduced-class labels (read as <code>-like</code>; no literal identity). Used internally by <code>NeuronType.make</code>.</p>
+<hr />
+<h3 id="save_neuronal_tensor"><code>save_neuronal_tensor</code><a class="headerlink" href="#save_neuronal_tensor" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">save_neuronal_tensor</span><span class="p">(</span><span class="n">tensor</span><span class="p">:</span> <span class="n">NeuronalTensor</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</code></pre></div>
+<p>Serialise a <code>NeuronalTensor</code> to a JSON file. Built on <code>jaxfne.io.save_json</code>.</p>
+<p>Returns the path written as a string.</p>
+<blockquote>
+<p><strong>Convention:</strong> configs are data, never code. Build a <code>NeuronalTensor</code> once,
+then keep all variants as JSON files.</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="n">save_neuronal_tensor</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="s2">&quot;circuits/v1_mt.json&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="load_neuronal_tensor"><code>load_neuronal_tensor</code><a class="headerlink" href="#load_neuronal_tensor" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_neuronal_tensor</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NeuronalTensor</span>
+</code></pre></div>
+<p>Deserialise a <code>NeuronalTensor</code> from a previously saved JSON file.</p>
+<div class="highlight"><pre><span></span><code><span class="n">tensor</span> <span class="o">=</span> <span class="n">load_neuronal_tensor</span><span class="p">(</span><span class="s2">&quot;circuits/v1_mt.json&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="list_canonical_neuronal_tensors-load_canonical_neuronal_tensor"><code>list_canonical_neuronal_tensors</code> / <code>load_canonical_neuronal_tensor</code><a class="headerlink" href="#list_canonical_neuronal_tensors-load_canonical_neuronal_tensor" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">list_canonical_neuronal_tensors</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_canonical_neuronal_tensor</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NeuronalTensor</span>
+</code></pre></div>
+<p>Package-shipped canonical circuits, stored as JSON under <code>jaxfne/configs/</code>
+and loaded with the same <code>load_neuronal_tensor</code> deserializer above:</p>
+<div class="highlight"><pre><span></span><code><span class="n">names</span> <span class="o">=</span> <span class="n">list_canonical_neuronal_tensors</span><span class="p">()</span>
+<span class="c1"># [&#39;canonical-v1-column-1000n&#39;, &#39;canonical-v1-v4-pfc-multiarea&#39;, &#39;default-column&#39;,</span>
+<span class="c1">#  &#39;default_macaque_V1&#39;, &#39;homeostatic-h-override-demo&#39;, &#39;laminar-column-4layer&#39;,</span>
+<span class="c1">#  &#39;two-area-feedforward&#39;]</span>
+<span class="n">tensor</span> <span class="o">=</span> <span class="n">load_canonical_neuronal_tensor</span><span class="p">(</span><span class="s2">&quot;canonical-v1-column-1000n&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><code>canonical-v1-column-1000n</code> is the <strong>qualitative laminar-scaffold</strong> 1000-neuron V1 column
+(6 layers L1-L6, full E/PV/SST/VIP composition, the same depth-graded E:I
+gradient documented in the cortical-column-default skill — E peaks deep,
+I peaks superficial; <code>qualitative_laminar_scaffold = true</code>, <code>quantitative_cell_fraction = false</code>, <code>quantitative_connectivity = false</code> — scaffold values, not quantitatively calibrated; see provenance below). <code>canonical-v1-v4-pfc-multiarea</code> tiles that same column
+composition across 3 areas (V1, V4, PFC; 3000 neurons total) with L4-to-L4
+feedforward and L6-to-L1 feedback <code>AreaConnection</code>s, matching the
+<code>jtfne.build_multi_area_columns(["V1","V4","PFC"], ei_profile="canonical")</code>
+hierarchy already used elsewhere in the docs. The remaining four are smaller
+synthetic demos for specific features (homeostatic H-override, multi-area
+feedforward, a minimal 4-layer column) — use <code>canonical-v1-column-1000n</code> or
+<code>canonical-v1-v4-pfc-multiarea</code> when you want a realistic reference composition
+rather than a feature-isolation demo.</p>
+<p><strong>Provenance and calibration of <code>canonical-v1-column-1000n</code>.</strong> Realized fractions (<code>jaxfne/configs/canonical-v1-column-1000n.json</code>, <code>value_tag="relative"</code>): <code>L1 {E:0.50, SST:0.15, VIP:0.35}</code>, <code>L2 {E:0.648, PV:0.20, SST:0.10, VIP:0.052}</code>, <code>L3 {E:0.80, PV:0.08, SST:0.08, VIP:0.04}</code>, <code>L4 {E:0.75, PV:0.18, SST:0.04, VIP:0.03}</code>, <code>L5 {E:0.88, PV:0.06, SST:0.04, VIP:0.02}</code>, <code>L6 {E:0.90, PV:0.0533, SST:0.0267, VIP:0.02}</code> (overall ~75.8E:25.2I). Generative provenance is <code>jaxfne/jdna/genomes/canonical-v1-column-1000n.json</code> (<code>pseudogenome_v1</code>, <code>fraction_tolerance</code> bands per layer, <code>fraction_jitter_sigma=0.01</code>, same base fractions, 48 typed connection rules with <code>value_tag="relative"</code>). Builder-scaffold provenance is <code>jaxfne.builders.CANONICAL_LAYER_CELL_TYPE_FRACTIONS</code> (<code>L1 E:0.50/PV:0.05/SST:0.10/VIP:0.35</code> ... <code>L6 E:0.95</code>, ~66E:34I) — a related scaffold variant, not the same realized fractions. <strong>All are scaffold, without quantitative calibration</strong>: <code>qualitative_laminar_scaffold = true</code>, <code>quantitative_cell_fraction = false</code>, <code>quantitative_connectivity = false</code> (see <a href="../../scope_and_status/">Scope &amp; status</a> and <a href="../../guides/calibration/#biological-calibration-status">Calibration — Biological status</a>). Reduced Izhikevich labels <code>E</code>/<code>PV</code>/<code>SST</code>/<code>VIP</code> are functional heterogeneity tags (distinct <code>IZHIKEVICH_CELL_TYPE_DEFAULTS</code> rows), not warranted literal cell-type identities. File provenance and realized counts are reproducible via <code>load_canonical_neuronal_tensor</code> / <code>develop</code> + <code>construct(...).neuron_table()</code> — query live state rather than copying numbers.</p>
+<p><strong>On species-scaled variants:</strong> <code>jaxfne/configs/default_macaque_V1.json</code> <em>is</em>
+shipped, but read its <code>_provenance</code> block before treating it as a calibrated
+macaque config: its <code>fraction_basis</code> field states the per-layer E/PV/SST/VIP
+fractions are "inherited unchanged" from <code>canonical-v1-column-1000n.json</code> —
+confirmed byte-identical on inspection — and qualitatively cross-checked
+against the LAP Manuscript's V1 figures (Mulvey et al., read 2026-06-30). Its
+cell-type mapping (E=NG, PV=PV, SST≈CB, VIP≈CR) is flagged in the same block
+as an explicit, user-authorized approximation. So: jaxfne does ship one named
+species-scoped config, and its composition numbers are the same generic
+column template with a manuscript-informed synaptic-kinetics layer added on
+top (per-source-cell-type GABA_A decay constants, NMDA co-release) — a
+Relative-value, documented, provenance-tagged approximation. Treat
+<code>default_macaque_V1.json</code> this way; if you need a different species/area
+scaling, build it explicitly via <code>NeuronalTensor(...)</code> with its own
+documented provenance rather than renaming a copy of
+<code>canonical-v1-column-1000n</code> without one.</p>
+<hr />
+<h3 id="merge_neuronal_tensors"><code>merge_neuronal_tensors</code><a class="headerlink" href="#merge_neuronal_tensors" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">merge_neuronal_tensors</span><span class="p">(</span>
+    <span class="n">tensors</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">NeuronalTensor</span><span class="p">],</span>
+    <span class="n">poses</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Pose3D</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;merged&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NeuronalTensor</span>
+</code></pre></div>
+<p>The <strong>"unifier"</strong>: concatenate several <code>NeuronalTensor</code> configs into one flat
+list of areas. From the simulator's perspective N areas across M input tensors
+become one <code>NeuronalTensor</code>.</p>
+<p><strong>Parameters:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tensors</code></td>
+<td><code>Sequence[NeuronalTensor]</code></td>
+<td>Configs to merge, in order.</td>
+</tr>
+<tr>
+<td><code>poses</code></td>
+<td><code>Sequence[Pose3D] \| None</code></td>
+<td>One <code>Pose3D</code> per area in flattened encounter order (area 0 of tensor 0, area 1 of tensor 0, …, area 0 of tensor 1, …). Must have exactly as many entries as the total area count across all tensors. If <code>None</code>, each area keeps its own declared <code>pose</code>.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>str</code></td>
+<td>Name for the merged <code>NeuronalTensor</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Area name collision:</strong> if two input tensors share an area name, the later
+one is suffixed (<code>"V1"</code> → <code>"V1_1"</code>). All <code>AreaConnection</code> references within
+that tensor are rewritten to match.</p>
+<blockquote>
+<p><strong>Cross-tensor <code>AreaConnection</code>s are NOT inferred.</strong> Only connections
+declared explicitly on the result link areas from different inputs.</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="n">merged</span> <span class="o">=</span> <span class="n">merge_neuronal_tensors</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">v1_tensor</span><span class="p">,</span> <span class="n">mt_tensor</span><span class="p">],</span>
+    <span class="n">poses</span><span class="o">=</span><span class="p">[</span><span class="n">Pose3D</span><span class="p">(</span><span class="s2">&quot;xy&quot;</span><span class="p">),</span> <span class="n">Pose3D</span><span class="p">(</span><span class="s2">&quot;xz&quot;</span><span class="p">,</span> <span class="n">translation</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;v1_mt&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<hr />
+<h3 id="neuronal_tensor_to_configuration"><code>neuronal_tensor_to_configuration</code><a class="headerlink" href="#neuronal_tensor_to_configuration" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">neuronal_tensor_to_configuration</span><span class="p">(</span>
+    <span class="n">tensor</span><span class="p">:</span> <span class="n">NeuronalTensor</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">duration_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1000.0</span><span class="p">,</span>
+    <span class="n">dt_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">emitter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;izhikevich&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Configuration</span>
+</code></pre></div>
+<p>Bridge a <code>NeuronalTensor</code> into the existing <code>construct</code> / <code>simulate</code> pipeline.
+Returns a <code>Configuration</code> object suitable for <code>jaxfne.construct</code>.</p>
+<p><strong>What is wired:</strong></p>
+<ul>
+<li>Per-area/per-layer cell-type fractions (<code>Configuration.area_layer_cell_types</code>),
+  split evenly across declared <code>NeuronType</code> entries — unless every <code>NeuronType</code>
+  in the layer declares a <code>fraction</code>, in which case those (normalized)
+  fractions are used instead.</li>
+<li>Omitted tensor connectivity retains the configured default topology.</li>
+<li>Every <code>InterConnection</code> (within-area) and <code>AreaConnection</code> (between-area)
+  compiled into a real selector-based edge rule via
+  <code>Configuration.connections</code> + <code>Configuration.mechanisms</code>. Edge magnitude is
+  <code>w_mech × g_mech / √total_n</code>. Sign follows the source neuron type
+  (E → excitatory, else inhibitory). Connection probability is <code>1.0</code>
+  (full bipartite between the declared layer × cell-type pair). For explicit
+  tensor connectivity, these are the complete executable edges; implicit
+  recurrent defaults are not added.</li>
+</ul>
+<p><strong>Known fidelity gaps (not yet wired):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Gap</th>
+<th>Workaround</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Layer.geometry</code> / <code>Area.pose</code> — 3D placement is dropped; positions come from jaxfne's default uniform-random column sampler.</td>
+<td>Use <code>construct_neuronal_tensor</code> instead, which overwrites positions post-construct.</td>
+</tr>
+<tr>
+<td><code>StaticParams.reversal_potentials_mV</code> — stored as metadata only; no effect on dynamics.</td>
+<td>Inspect via <code>cfg.metadata["circuit"]["mechanisms"]</code>.</td>
+</tr>
+<tr>
+<td><code>PlasticParams.H</code> — stored but inert unless HDP is separately enabled.</td>
+<td>See <code>construct_neuronal_tensor</code> for automatic HDP seeding.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="construct_neuronal_tensor"><code>construct_neuronal_tensor</code><a class="headerlink" href="#construct_neuronal_tensor" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">construct_neuronal_tensor</span><span class="p">(</span>
+    <span class="n">tensor</span><span class="p">:</span> <span class="n">NeuronalTensor</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">duration_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1000.0</span><span class="p">,</span>
+    <span class="n">dt_ms</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">emitter</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;izhikevich&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Model</span>
+</code></pre></div>
+<p><strong>Bridge + construct + apply each area's <code>Pose3D</code> placement in one call.</strong>
+This is the recommended entry point when you need pose-correct 3D placement.</p>
+<p><strong>What it does beyond <code>neuronal_tensor_to_configuration</code>:</strong></p>
+<ol>
+<li>Calls <code>neuronal_tensor_to_configuration</code> and then <code>jaxfne.construct</code>.</li>
+<li>Samples each layer's local neuron positions from its declared <code>Geometry3D</code>
+   (currently <code>"uniform_random"</code> only).</li>
+<li>Applies each area's <code>Pose3D</code> (plane + rotation + translation) to map
+   local positions into global 3D space.</li>
+<li>Overwrites <code>model.params["positions"]</code> and
+   <code>model.static["neuron_metadata"]</code> so field/LFP/EEG/MEG proxy readouts
+   — which read positions from there — see the real layout.</li>
+<li>Aggregates <code>PlasticParams.H</code> from every connection touching each neuron
+   (mean across all connections whose target layer/cell_type matches) and
+   applies via <code>Model.with_hdp_initial_state</code>. Untouched neurons default
+   to <code>H=1.0</code> (HDP equilibrium). This is stored but inert unless HDP is
+   separately enabled.</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="n">model</span> <span class="o">=</span> <span class="n">construct_neuronal_tensor</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">500.0</span><span class="p">)</span>
+<span class="n">signals</span> <span class="o">=</span> <span class="n">jaxfne</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="end-to-end-example">End-to-end example<a class="headerlink" href="#end-to-end-example" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">NeuronalTensor</span><span class="p">,</span> <span class="n">Area</span><span class="p">,</span> <span class="n">AreaConnection</span><span class="p">,</span> <span class="n">Layer</span><span class="p">,</span> <span class="n">NeuronType</span><span class="p">,</span>
+    <span class="n">Geometry3D</span><span class="p">,</span> <span class="n">Pose3D</span><span class="p">,</span> <span class="n">StaticParams</span><span class="p">,</span> <span class="n">PlasticParams</span><span class="p">,</span> <span class="n">InterConnection</span><span class="p">,</span>
+    <span class="n">save_neuronal_tensor</span><span class="p">,</span> <span class="n">load_neuronal_tensor</span><span class="p">,</span> <span class="n">construct_neuronal_tensor</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># ── Define cell types ────────────────────────────────────────────────────────</span>
+<span class="n">E</span>  <span class="o">=</span> <span class="n">NeuronType</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>    <span class="c1"># relative_size=5.0 (default)</span>
+<span class="n">PV</span> <span class="o">=</span> <span class="n">NeuronType</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;PV&quot;</span><span class="p">)</span>   <span class="c1"># relative_size=1.0</span>
+
+<span class="c1"># ── Define layers ───────────────────────────────────────────────────────────</span>
+<span class="n">L4</span>  <span class="o">=</span> <span class="n">Layer</span><span class="p">(</span><span class="s2">&quot;L4&quot;</span><span class="p">,</span>  <span class="p">[</span><span class="n">E</span><span class="p">,</span> <span class="n">PV</span><span class="p">],</span> <span class="n">Geometry3D</span><span class="p">(</span><span class="n">z_range</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)),</span> <span class="n">n_neurons</span><span class="o">=</span><span class="mi">80</span><span class="p">)</span>
+<span class="n">L23</span> <span class="o">=</span> <span class="n">Layer</span><span class="p">(</span><span class="s2">&quot;L2/3&quot;</span><span class="p">,[</span><span class="n">E</span><span class="p">,</span> <span class="n">PV</span><span class="p">],</span> <span class="n">Geometry3D</span><span class="p">(</span><span class="n">z_range</span><span class="o">=</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">)),</span> <span class="n">n_neurons</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+
+<span class="c1"># ── Within-area wiring ──────────────────────────────────────────────────────</span>
+<span class="n">v1_connections</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">InterConnection</span><span class="p">(</span><span class="s2">&quot;L4&quot;</span><span class="p">,</span> <span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="s2">&quot;L2/3&quot;</span><span class="p">,</span> <span class="s2">&quot;E&quot;</span><span class="p">,</span>  <span class="n">mechanism</span><span class="o">=</span><span class="s2">&quot;AMPA&quot;</span><span class="p">),</span>
+    <span class="n">InterConnection</span><span class="p">(</span><span class="s2">&quot;L4&quot;</span><span class="p">,</span> <span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="s2">&quot;L4&quot;</span><span class="p">,</span>   <span class="s2">&quot;PV&quot;</span><span class="p">,</span> <span class="n">mechanism</span><span class="o">=</span><span class="s2">&quot;AMPA&quot;</span><span class="p">),</span>
+    <span class="n">InterConnection</span><span class="p">(</span><span class="s2">&quot;L4&quot;</span><span class="p">,</span> <span class="s2">&quot;PV&quot;</span><span class="p">,</span><span class="s2">&quot;L4&quot;</span><span class="p">,</span>   <span class="s2">&quot;E&quot;</span><span class="p">,</span>  <span class="n">mechanism</span><span class="o">=</span><span class="s2">&quot;GABA_A&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="c1"># ── Assemble area ───────────────────────────────────────────────────────────</span>
+<span class="n">v1</span> <span class="o">=</span> <span class="n">Area</span><span class="p">(</span><span class="s2">&quot;V1&quot;</span><span class="p">,</span> <span class="n">layers</span><span class="o">=</span><span class="p">[</span><span class="n">L4</span><span class="p">,</span> <span class="n">L23</span><span class="p">],</span> <span class="n">inter_connections</span><span class="o">=</span><span class="n">v1_connections</span><span class="p">,</span>
+          <span class="n">pose</span><span class="o">=</span><span class="n">Pose3D</span><span class="p">(</span><span class="s2">&quot;xy&quot;</span><span class="p">))</span>
+
+<span class="c1"># ── Build tensor ────────────────────────────────────────────────────────────</span>
+<span class="n">tensor</span> <span class="o">=</span> <span class="n">NeuronalTensor</span><span class="p">(</span><span class="n">areas</span><span class="o">=</span><span class="p">[</span><span class="n">v1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;v1_minimal&quot;</span><span class="p">)</span>
+
+<span class="c1"># ── Save / reload ───────────────────────────────────────────────────────────</span>
+<span class="n">save_neuronal_tensor</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="s2">&quot;v1_minimal.json&quot;</span><span class="p">)</span>
+<span class="n">tensor</span> <span class="o">=</span> <span class="n">load_neuronal_tensor</span><span class="p">(</span><span class="s2">&quot;v1_minimal.json&quot;</span><span class="p">)</span>
+
+<span class="c1"># ── Construct and simulate ──────────────────────────────────────────────────</span>
+<span class="n">model</span>   <span class="o">=</span> <span class="n">construct_neuronal_tensor</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">500.0</span><span class="p">)</span>
+<span class="n">signals</span> <span class="o">=</span> <span class="n">jaxfne</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="multi-area-example-with-merge_neuronal_tensors">Multi-area example with <code>merge_neuronal_tensors</code><a class="headerlink" href="#multi-area-example-with-merge_neuronal_tensors" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="kn">import</span> <span class="n">merge_neuronal_tensors</span><span class="p">,</span> <span class="n">Pose3D</span>
+
+<span class="c1"># v1_tensor and mt_tensor built separately (each a NeuronalTensor)</span>
+<span class="n">merged</span> <span class="o">=</span> <span class="n">merge_neuronal_tensors</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">v1_tensor</span><span class="p">,</span> <span class="n">mt_tensor</span><span class="p">],</span>
+    <span class="n">poses</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">Pose3D</span><span class="p">(</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span>                     <span class="n">translation</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
+        <span class="n">Pose3D</span><span class="p">(</span><span class="s2">&quot;xy&quot;</span><span class="p">,</span> <span class="n">rotation_deg</span><span class="o">=</span><span class="mf">45.0</span><span class="p">,</span>  <span class="n">translation</span><span class="o">=</span><span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
+    <span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;v1_mt&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Wire areas together</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="kn">import</span> <span class="n">AreaConnection</span>
+<span class="n">merged</span><span class="o">.</span><span class="n">area_connections</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">AreaConnection</span><span class="p">(</span><span class="s2">&quot;V1&quot;</span><span class="p">,</span> <span class="s2">&quot;L2/3&quot;</span><span class="p">,</span> <span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="s2">&quot;MT&quot;</span><span class="p">,</span> <span class="s2">&quot;L4&quot;</span><span class="p">,</span> <span class="s2">&quot;E&quot;</span><span class="p">),</span>  <span class="c1"># feedforward</span>
+    <span class="n">AreaConnection</span><span class="p">(</span><span class="s2">&quot;MT&quot;</span><span class="p">,</span> <span class="s2">&quot;L2/3&quot;</span><span class="p">,</span> <span class="s2">&quot;E&quot;</span><span class="p">,</span> <span class="s2">&quot;V1&quot;</span><span class="p">,</span> <span class="s2">&quot;L2/3&quot;</span><span class="p">,</span> <span class="s2">&quot;E&quot;</span><span class="p">),</span>  <span class="c1"># feedback</span>
+<span class="p">]</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">construct_neuronal_tensor</span><span class="p">(</span><span class="n">merged</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">)</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

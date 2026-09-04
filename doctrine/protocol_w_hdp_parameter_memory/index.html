@@ -1,0 +1,5076 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Tensor-Field Neural Equations — JAX simulation for neural circuits, fields, and adaptation">
+      
+      
+      
+        <link rel="canonical" href="https://jaxfne.readthedocs.io/doctrine/protocol_w_hdp_parameter_memory/">
+      
+      
+        <link rel="prev" href="../protocol_h_rbd_memory/">
+      
+      
+        <link rel="next" href="../tfne_containment_architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/jaxfne-img.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>HDP Parameter Memory - jaxfne</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../_theme_override.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="orange" data-md-color-accent="gray">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hdp-parameter-memory" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="jaxfne" class="md-header__button md-logo" aria-label="jaxfne" data-md-component="logo">
+      
+  <img src="../../assets/jaxfne-img.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            jaxfne
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              HDP Parameter Memory
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="orange" data-md-color-accent="gray"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/HNXJ/jaxfne" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HNXJ/jaxfne
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="jaxfne" class="md-nav__button md-logo" aria-label="jaxfne" data-md-component="logo">
+      
+  <img src="../../assets/jaxfne-img.png" alt="logo">
+
+    </a>
+    jaxfne
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/HNXJ/jaxfne" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HNXJ/jaxfne
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gallery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gallery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../public_surface_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scope_and_status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scope & status
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../tutorials/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/notebook_standard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebook standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/tutorial_outputs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial Outputs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cumulative (canonical 1000n)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cumulative (canonical 1000n)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_define_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Define (PseudoGenome)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_develop_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Develop (G→N)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_inspect_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect (realized vs configured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_simulate_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulate (construct→Signals)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_observe_fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observe (field & probe)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_add_state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add state (H / RBS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_add_dynamics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add dynamics (HDP)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_compare_nulls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare (nulls & lesions)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suites
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Suites
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_jaxfne_suite_no_1_computational_biophysics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Computational biophysics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Corticospectrolaminar motif
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_jaxfne_suite_no_2_evoked_l4_drive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evoked L4 drive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_jaxfne_suite_no_3_low_frequency_scaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Low-frequency scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Circuit construction (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Circuit construction (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_single_neuron_multimodal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Single-neuron multimodal
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_two_neuron_ei/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Two-neuron E/I
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_network_100_ei/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Population E/I network
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_v1_column/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    V1 laminar column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_v1_pfc_dual_column/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    V1–PFC dual column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_v036_100_neuron_ei_population/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration API population
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical cortical column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source, field, and readout (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Source, field, and readout (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_v037_source_bookkeeping/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source bookkeeping
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_v038_lfp_csd_readout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LFP and CSD proxies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EEG, MEG, EMM proxies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_8" id="__nav_2_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paradigms and optimization (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Paradigms and optimization (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/10_v0313_omission_oddball/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensory omission oddball
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-area laminar AGSDR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Izhikevich emitter explorer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/configuration_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration grammar
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/objective_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objective grammar
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/tensor_field_workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor-field workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/operator_composition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operator composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/probe_operators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probe operators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/calibration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Calibration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/homeostasis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homeostasis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-state and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jdna/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PseudoGenome (JDNA)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/output_bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jaxley_interop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jaxley interoperability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../etudes/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Études
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Études
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/hdp_controllability_reachability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP controllability & reachability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/experiment_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical Multiscale Observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/heterogeneous_emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heterogeneous emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/multiscale_observation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiscale observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and Experiments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_wave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling Waves
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../protocol_c_wave_evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling-Wave Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_c3_neural/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Neural Geometry and Delays
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_d_biological_rbs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Biological RBS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_e_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrated TFNE Composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rbs_rbd_hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBS, RBD and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../relative_quantity_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relative Quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../protocol_h_h1b_h_to_x_gain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-to-X Gain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../protocol_h_rbd_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBD State Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP Parameter Memory
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP Parameter Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-scientific-question" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Scientific question
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-causal-hierarchy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Causal hierarchy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-inputs-from-protocol-h" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Inputs from Protocol H
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-w0-design-checkpoint-lesson-from-toy-experiments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. W0 design checkpoint — lesson from toy experiments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-minimal-admissible-hdp-grammar-w0-frozen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Minimal admissible HDP grammar (W0 — frozen)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Minimal admissible HDP grammar (W0 — frozen)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-generic-edge-equation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Generic edge equation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-structural-positivity-via-log-parameterization-admissibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Structural positivity via log-parameterization (admissibility)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-excitatory-inhibitory-sign-typed-not-via-w-sign" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Excitatory / inhibitory sign (typed, not via \(W\) sign)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-w1-restoring-law-forgetting-stabilization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 W1 restoring law (forgetting / stabilization)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-known-memory-timescale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Known memory timescale
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-relation-to-rbd-timescale-separation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 Relation to RBD (timescale separation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-w1a-analytic-ground-truth-prescribed-delta-h" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 W1a analytic ground truth (prescribed \(\Delta H\))
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58-w1b-rbd-generated-shadow-plasticity-implemented" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 W1b — RBD-generated shadow plasticity (implemented)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#59-w2-frozen-omega-parameter-expression-frozen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.9 W2 — frozen-\(\omega\) parameter expression (frozen)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#510-w3-closed-hdp-loop-specification-open-implementation-not-authorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.10 W3 — closed HDP loop (specification open; implementation not authorized)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#511-w3-local-stability-analysis-frozen-analysis-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.11 W3 — local stability analysis (frozen; analysis only)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#512-w3a-activity-enabled-stability-frozen-analysis-w3-kernel-not-authorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.12 W3a — activity-enabled stability (frozen analysis; W3 kernel not authorized)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#513-w3a-margin-audit-frozen-addendum" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.13 W3a margin audit (frozen addendum)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#514-w3b-parameter-domain-map-domain-receipt-frozen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.14 W3b — parameter-domain map (domain receipt frozen)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#515-w3b-domain-receipt-frozen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.15 W3b domain receipt (frozen)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#516-w3b-interpretation-receipt-frozen-unresolved-not-negative" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.16 W3b interpretation receipt (frozen — unresolved, not negative)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-experimental-ladder-frozen-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Experimental ladder (frozen order)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-implementation-authorization-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Implementation authorization gates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Implementation authorization gates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-stability-receipts-pre-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Stability receipts (pre-code)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-forbidden-shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Forbidden shortcuts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-relation-to-existing-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Relation to existing code
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-evidence-and-receipts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Evidence and receipts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-stop-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Stop rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tfne_containment_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TFNE Containment and Composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/source_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/field_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Field schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/probes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/objectives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/neuronal_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NeuronalTensor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/vis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/jdna/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JDNA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendix
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Appendix
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix/fundamental_laws/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fundamental laws
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../source_field_equations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source and field equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../computation_basis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Computation basis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mathematical_glossary_flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mathematical glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../colab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Colab quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../limitations_and_future_plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Limitations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-scientific-question" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Scientific question
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-causal-hierarchy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Causal hierarchy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-inputs-from-protocol-h" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Inputs from Protocol H
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-w0-design-checkpoint-lesson-from-toy-experiments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. W0 design checkpoint — lesson from toy experiments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-minimal-admissible-hdp-grammar-w0-frozen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Minimal admissible HDP grammar (W0 — frozen)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Minimal admissible HDP grammar (W0 — frozen)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-generic-edge-equation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Generic edge equation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-structural-positivity-via-log-parameterization-admissibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Structural positivity via log-parameterization (admissibility)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-excitatory-inhibitory-sign-typed-not-via-w-sign" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Excitatory / inhibitory sign (typed, not via \(W\) sign)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-w1-restoring-law-forgetting-stabilization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 W1 restoring law (forgetting / stabilization)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-known-memory-timescale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Known memory timescale
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-relation-to-rbd-timescale-separation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 Relation to RBD (timescale separation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-w1a-analytic-ground-truth-prescribed-delta-h" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 W1a analytic ground truth (prescribed \(\Delta H\))
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58-w1b-rbd-generated-shadow-plasticity-implemented" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 W1b — RBD-generated shadow plasticity (implemented)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#59-w2-frozen-omega-parameter-expression-frozen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.9 W2 — frozen-\(\omega\) parameter expression (frozen)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#510-w3-closed-hdp-loop-specification-open-implementation-not-authorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.10 W3 — closed HDP loop (specification open; implementation not authorized)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#511-w3-local-stability-analysis-frozen-analysis-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.11 W3 — local stability analysis (frozen; analysis only)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#512-w3a-activity-enabled-stability-frozen-analysis-w3-kernel-not-authorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.12 W3a — activity-enabled stability (frozen analysis; W3 kernel not authorized)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#513-w3a-margin-audit-frozen-addendum" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.13 W3a margin audit (frozen addendum)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#514-w3b-parameter-domain-map-domain-receipt-frozen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.14 W3b — parameter-domain map (domain receipt frozen)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#515-w3b-domain-receipt-frozen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.15 W3b domain receipt (frozen)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#516-w3b-interpretation-receipt-frozen-unresolved-not-negative" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.16 W3b interpretation receipt (frozen — unresolved, not negative)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-experimental-ladder-frozen-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Experimental ladder (frozen order)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-implementation-authorization-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Implementation authorization gates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Implementation authorization gates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-stability-receipts-pre-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Stability receipts (pre-code)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-forbidden-shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Forbidden shortcuts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-relation-to-existing-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Relation to existing code
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-evidence-and-receipts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Evidence and receipts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-stop-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Stop rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="hdp-parameter-memory">HDP Parameter Memory<a class="headerlink" href="#hdp-parameter-memory" title="Permanent link">&para;</a></h1>
+<p><em>Protocol W — HDP parameter memory, W0 frozen and implementation closed. Protocol identifier in provenance.</em></p>
+<p><strong>Status:</strong> <strong>W0 FROZEN</strong> · <strong>W1a IMPLEMENTED</strong> · <strong>W1b IMPLEMENTED</strong> · <strong>W2 FROZEN</strong> · <strong>W3 SPEC OPEN</strong> · W3 implementation <strong>not</strong> authorized<br />
+<strong>Prerequisite:</strong> Protocol H <strong>closed</strong> at H4 (<code>docs/doctrine/protocol_h_rbd_memory.md</code>)<br />
+<strong>W0 receipt:</strong> <code>artifacts/protocol_w/w0_mathematical_contract.json</code><br />
+<strong>Out of scope:</strong> H4 rescue, Protocol H extensions, W3 implementation, conservation/competition in W1</p>
+<p>Protocol W is a <strong>new dynamical problem</strong> — not an extension of the H4 topology/delay experiment.</p>
+<h2 id="1-scientific-question">1. Scientific question<a class="headerlink" href="#1-scientific-question" title="Permanent link">&para;</a></h2>
+<div class="arithmatex">\[
+\boxed{
+\text{Can transient RBS history be written into a slower parameter state while preserving bounded, physically sane dynamics?}
+}
+\]</div>
+<p>Protocol W must <strong>not</strong> be introduced to “fix” H4.</p>
+<h2 id="2-causal-hierarchy">2. Causal hierarchy<a class="headerlink" href="#2-causal-hierarchy" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Grammar</th>
+<th>Protocol</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RBD</td>
+<td><span class="arithmatex">\(u \rightarrow H \rightarrow X\)</span></td>
+<td>H (closed)</td>
+</tr>
+<tr>
+<td>HDP</td>
+<td><span class="arithmatex">\(u \rightarrow H \rightarrow W \rightarrow X\)</span></td>
+<td>W</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Conceptual unification:</strong> HDP is a slower <strong>RBD realization</strong> on parameter coordinates. Hidden biophysical history is read out through typed plasticity maps:</p>
+<div class="arithmatex">\[
+H \xrightarrow{F_W} \omega \xrightarrow{\exp} W.
+\]</div>
+<p>STDP, BCM, neuromodulated learning, and scaling are future alternative choices for the drive <span class="arithmatex">\(D\)</span>, not separate architectural species.</p>
+<h2 id="3-inputs-from-protocol-h">3. Inputs from Protocol H<a class="headerlink" href="#3-inputs-from-protocol-h" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Proposition</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>P1</strong> RBS retains perturbation history</td>
+<td>Supported (H1–H3)</td>
+</tr>
+<tr>
+<td><strong>P2</strong> RBS history influences activity</td>
+<td>Supported (H1c, H3)</td>
+</tr>
+<tr>
+<td><strong>P3</strong> Geometry/delays extend activity memory (preregistered)</td>
+<td>Not supported (H4)</td>
+</tr>
+</tbody>
+</table>
+<p>W does not reopen H4 design choices.</p>
+<h2 id="4-w0-design-checkpoint-lesson-from-toy-experiments">4. W0 design checkpoint — lesson from toy experiments<a class="headerlink" href="#4-w0-design-checkpoint-lesson-from-toy-experiments" title="Permanent link">&para;</a></h2>
+<p>The naive rule <span class="arithmatex">\(\dot W_{ij}\propto H_i-H_j\)</span> has a desirable directional interpretation but <strong>insufficient stability structure</strong>. Under asynchronous activity it can:</p>
+<ul>
+<li>manufacture total coupling,</li>
+<li>cross zero,</li>
+<li>couple increasing <span class="arithmatex">\(W\)</span> to increasing transmission cost.</li>
+</ul>
+<p>W0 therefore <strong>separates three previously conflated ingredients</strong>:</p>
+<div class="arithmatex">\[
+\boxed{
+\text{plastic drive}
+\;+\;
+\text{admissibility}
+\;+\;
+\text{forgetting/stabilization}
+\;[\;+\;\text{optional conservation/competition}\;].
+}
+\]</div>
+<p>Each ingredient is <strong>independently switchable</strong> so falsification can identify what is actually necessary.</p>
+<h2 id="5-minimal-admissible-hdp-grammar-w0-frozen">5. Minimal admissible HDP grammar (W0 — <strong>frozen</strong>)<a class="headerlink" href="#5-minimal-admissible-hdp-grammar-w0-frozen" title="Permanent link">&para;</a></h2>
+<h3 id="51-generic-edge-equation">5.1 Generic edge equation<a class="headerlink" href="#51-generic-edge-equation" title="Permanent link">&para;</a></h3>
+<div class="arithmatex">\[
+\boxed{
+\tau_W\dot W_{ij}
+=
+D_{ij}(H_i,H_j,X_i,X_j)
+-
+R_{ij}(W_{ij})
++
+C_{ij}(W)
+}
+\]</div>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Role</th>
+<th>W1 status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(D_{ij}\)</span></td>
+<td>Hidden-state-dependent <strong>plastic drive</strong></td>
+<td><span class="arithmatex">\(\kappa_W(H_{\mathrm{pre}}-H_{\mathrm{post}})\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(R_{ij}\)</span></td>
+<td>Intrinsic restoring / regularization</td>
+<td>mapped to <span class="arithmatex">\(R_\omega=\lambda_W\omega\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(C_{ij}\)</span></td>
+<td>Optional conservation / competition</td>
+<td><strong>absent</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Conservation is a separate hypothesis.</strong> W1 does <strong>not</strong> impose <span class="arithmatex">\(\sum W=\mathrm{const}\)</span>. Exponential admissibility plus linear <span class="arithmatex">\(\omega\)</span>-restoration already address positivity and zero-drive drift; adding conservation simultaneously would confound which constraint produced stability.</p>
+<h3 id="52-structural-positivity-via-log-parameterization-admissibility">5.2 Structural positivity via log-parameterization (admissibility)<a class="headerlink" href="#52-structural-positivity-via-log-parameterization-admissibility" title="Permanent link">&para;</a></h3>
+<p>Do <strong>not</strong> rely on clipping, projection, or <span class="arithmatex">\(1/W\)</span> singularities. Freeze:</p>
+<div class="arithmatex">\[
+\boxed{
+W_{ij} = W_{ij}^{0}\,e^{\omega_{ij}},
+\qquad
+\omega_{ij}\in\mathbb R.
+}
+\]</div>
+<p>HDP evolves <span class="arithmatex">\(\omega\)</span>:</p>
+<div class="arithmatex">\[
+\boxed{
+\tau_W\dot\omega_{ij}
+=
+D_{ij} - R_\omega(\omega_{ij}) + C_\omega.
+}
+\]</div>
+<p>Immediately <span class="arithmatex">\(W_{ij}&gt;0\)</span> without discontinuous projection. Relative interpretation:</p>
+<div class="arithmatex">\[
+\boxed{
+\omega_{ij} = \log\frac{W_{ij}}{W_{ij}^{0}}.
+}
+\]</div>
+<ul>
+<li><span class="arithmatex">\(\omega=0\)</span> — baseline coupling  </li>
+<li><span class="arithmatex">\(\omega&gt;0\)</span> — potentiation  </li>
+<li><span class="arithmatex">\(\omega&lt;0\)</span> — depression  </li>
+</ul>
+<p>This is the preferred W0 admissibility architecture (replaces any earlier implicit “clip <span class="arithmatex">\(W\)</span>” boundedness sketch).</p>
+<h3 id="53-excitatory-inhibitory-sign-typed-not-via-w-sign">5.3 Excitatory / inhibitory sign (typed, not via <span class="arithmatex">\(W\)</span> sign)<a class="headerlink" href="#53-excitatory-inhibitory-sign-typed-not-via-w-sign" title="Permanent link">&para;</a></h3>
+<p><span class="arithmatex">\(W_{ij}&gt;0\)</span> is appropriate for <strong>magnitude / gain</strong>. Synaptic <strong>sign</strong> is a separate typed property:</p>
+<div class="arithmatex">\[
+s_{ij}\in\{-1,+1\},
+\qquad
+\text{effective coupling} = s_{ij}\,W_{ij}.
+\]</div>
+<p>Inhibitory versus excitatory plasticity must not be encoded by the sign of <span class="arithmatex">\(W\)</span> under <span class="arithmatex">\(W=W_0 e^\omega\)</span>. This separation is mandatory for eventual E/I HDP.</p>
+<h3 id="54-w1-restoring-law-forgetting-stabilization">5.4 W1 restoring law (forgetting / stabilization)<a class="headerlink" href="#54-w1-restoring-law-forgetting-stabilization" title="Permanent link">&para;</a></h3>
+<p>Do <strong>not</strong> use the nonlinear <span class="arithmatex">\((1/W - W)\)</span> rule in W1. Freeze linear restoration in <span class="arithmatex">\(\omega\)</span>:</p>
+<div class="arithmatex">\[
+\boxed{R_\omega = \lambda_W\,\omega.}
+\]</div>
+<p>Thus the W1 edge law is:</p>
+<div class="arithmatex">\[
+\boxed{
+\tau_W\dot\omega_{ij}
+=
+\kappa_W\,(H_{\mathrm{pre},ij}-H_{\mathrm{post},ij})
+-
+\lambda_W\,\omega_{ij}.
+}
+\]</div>
+<p>With RBS baseline <span class="arithmatex">\(H=1\)</span>, the drive is the <strong>explicit normalized difference</strong> <span class="arithmatex">\(\kappa_W(H_i-H_j)\)</span>. There is no legacy <code>/100</code> scaling from toy experiments.</p>
+<h3 id="55-known-memory-timescale">5.5 Known memory timescale<a class="headerlink" href="#55-known-memory-timescale" title="Permanent link">&para;</a></h3>
+<p>If the <span class="arithmatex">\(H\)</span>-gradient drive vanishes (<span class="arithmatex">\(H_i-H_j=0\)</span>):</p>
+<div class="arithmatex">\[
+\omega(t) = \omega(t_0)\,e^{-\lambda_W(t-t_0)/\tau_W}.
+\]</div>
+<p>Parameter memory timescale:</p>
+<div class="arithmatex">\[
+\boxed{\tau_{\mathrm{mem},W} = \frac{\tau_W}{\lambda_W}.}
+\]</div>
+<h3 id="56-relation-to-rbd-timescale-separation">5.6 Relation to RBD (timescale separation)<a class="headerlink" href="#56-relation-to-rbd-timescale-separation" title="Permanent link">&para;</a></h3>
+<div class="arithmatex">\[
+\boxed{\tau_H\dot H = F_H(H,\ldots)}
+\qquad\text{then}\qquad
+\boxed{
+\tau_W\dot\omega = \kappa_W\,\Delta H - \lambda_W\,\omega,
+\qquad
+W = W_0 e^\omega.
+}
+\]</div>
+<p>If <span class="arithmatex">\(\tau_W \gg \tau_H\)</span>, a transient <span class="arithmatex">\(H\)</span> perturbation can decay while <span class="arithmatex">\(\omega\neq 0\)</span> — the parameter-memory phenomenon W is designed to test.</p>
+<h3 id="57-w1a-analytic-ground-truth-prescribed-delta-h">5.7 W1a analytic ground truth (prescribed <span class="arithmatex">\(\Delta H\)</span>)<a class="headerlink" href="#57-w1a-analytic-ground-truth-prescribed-delta-h" title="Permanent link">&para;</a></h3>
+<p><strong>Preferred W1a topology:</strong> a <strong>single plastic directed edge</strong> with <strong>prescribed</strong></p>
+<div class="arithmatex">\[
+H_{\mathrm{pre}}(t)-H_{\mathrm{post}}(t)=\Delta H(t),
+\]</div>
+<p>not a full network. Verify <span class="arithmatex">\(\omega(t)\)</span> integrates prescribed history before closing the loop to emitters.</p>
+<p>Rectangular RBS-gradient pulse (<span class="arithmatex">\(\omega(0)=0\)</span>):</p>
+<div class="arithmatex">\[
+\Delta H(t)=
+\begin{cases}
+\delta, &amp; 0&lt;t&lt;T_p \\
+0, &amp; t\ge T_p
+\end{cases}
+\]</div>
+<p>During pulse:</p>
+<div class="arithmatex">\[
+\omega(t)=\frac{\kappa_W\delta}{\lambda_W}
+\left(1-e^{-\lambda_W t/\tau_W}\right).
+\]</div>
+<p>At offset:</p>
+<div class="arithmatex">\[
+\omega(T_p)=\frac{\kappa_W\delta}{\lambda_W}
+\left(1-e^{-\lambda_W T_p/\tau_W}\right).
+\]</div>
+<p>Afterward:</p>
+<div class="arithmatex">\[
+\boxed{
+\omega(t)=\omega(T_p)\,e^{-\lambda_W(t-T_p)/\tau_W}.
+}
+\]</div>
+<p>This is the W1 analytic receipt — analogous to F1 transparency in Protocol H.</p>
+<p><strong>W1a implementation:</strong> <code>jaxfne/w1a_omega_plasticity.py</code>, <code>tests/test_protocol_w_w1a.py</code>.</p>
+<p><strong>Preregistered W1a gates (all tested):</strong> zero-drive null; <span class="arithmatex">\(\lambda_W=0\)</span> no-forgetting
+limit (supported scientific mode); sign symmetry and <span class="arithmatex">\(W_+W_-=W_0^2\)</span>; structural
+positivity without clipping; reference state; <span class="arithmatex">\(\tau_{\mathrm{mem},W}\)</span> <span class="arithmatex">\(1/e\)</span> decay;
+pulse-duration linear/saturation; discrete-Euler bit-exact recurrence; continuous
+limit convergence. Euler stability: <span class="arithmatex">\(0&lt;\lambda_W\Delta t/\tau_W&lt;2\)</span>; monotonic
+regime <span class="arithmatex">\(\le 1\)</span> recorded but not required for rejection.</p>
+<p>Causal chain for W1a:</p>
+<div class="arithmatex">\[
+\Delta H(t) \rightarrow \omega(t) \rightarrow W(t).
+\]</div>
+<p><strong>Do not</strong> connect <span class="arithmatex">\(W\rightarrow X\)</span> until <strong>W2</strong> (W1b remains shadow-only).</p>
+<h3 id="58-w1b-rbd-generated-shadow-plasticity-implemented">5.8 W1b — RBD-generated shadow plasticity (<strong>implemented</strong>)<a class="headerlink" href="#58-w1b-rbd-generated-shadow-plasticity-implemented" title="Permanent link">&para;</a></h3>
+<p><strong>Question:</strong> can simulated RBD history write the same well-characterized <span class="arithmatex">\(\omega\)</span> state?</p>
+<p>Shadow contract: simulation at fixed <span class="arithmatex">\(W_0\)</span>; passive
+<span class="arithmatex">\(\tau_W\dot\omega_{AB}=\kappa_W(H_A-H_B)-\lambda_W\omega_{AB}\)</span> (and BA with reversed
+gradient). <strong>No</strong> <span class="arithmatex">\(\omega\rightarrow W\rightarrow X\)</span>.</p>
+<p><strong>Update ordering:</strong> <span class="arithmatex">\(\omega_{n+1}=F(\omega_n,H_n)\)</span> using pre-step <span class="arithmatex">\(H_n\)</span>.</p>
+<p><strong>Emergent symmetry:</strong> <span class="arithmatex">\(\omega_{AB}=-\omega_{BA}\)</span>; <span class="arithmatex">\(W_{AB}W_{BA}=W^0_{AB}W^0_{BA}\)</span>.</p>
+<p><strong>Principal phenomenon:</strong> timescale-separated parameter retention when
+<span class="arithmatex">\(\tau_{\mathrm{mem},W}\gg\tau_H\)</span>.</p>
+<p>Implementation: <code>jaxfne/w1b_shadow_plasticity.py</code>, <code>tests/test_protocol_w_w1b.py</code>.</p>
+<h3 id="59-w2-frozen-omega-parameter-expression-frozen">5.9 W2 — frozen-<span class="arithmatex">\(\omega\)</span> parameter expression (<strong>frozen</strong>)<a class="headerlink" href="#59-w2-frozen-omega-parameter-expression-frozen" title="Permanent link">&para;</a></h3>
+<p><strong>Question:</strong> does a previously written <span class="arithmatex">\(\omega\)</span> produce the expected change in neural dynamics through <span class="arithmatex">\(W\)</span>?</p>
+<p>Causal graph (W2 only):</p>
+<div class="arithmatex">\[
+\omega^\star \rightarrow W^\star \rightarrow X,
+\qquad
+\dot\omega = 0 \text{ throughout.}
+\]</div>
+<p>No <span class="arithmatex">\(H\rightarrow\omega\)</span> during expression (W3 closure is separate).</p>
+<p><strong>Architectural rule:</strong> canonical stored plastic state is <span class="arithmatex">\(\omega\)</span>; typed edge readout is
+<span class="arithmatex">\(W_{ij}=W^0_{ij}e^{\omega_{ij}}\)</span> at the operator boundary. Effective signed coupling is
+<span class="arithmatex">\(J_{ij}=s_{ij}W_{ij}\)</span>, <span class="arithmatex">\(s_{ij}\in\{-1,+1\}\)</span>. Do not repeatedly exponentiate and overwrite stored <span class="arithmatex">\(W\)</span>.</p>
+<p><strong>Frozen receipt (write-once):</strong> <code>artifacts/protocol_w/w2_expression/w2_expression_receipt.json</code></p>
+<p><strong>Frozen configuration symbol:</strong> <code>FROZEN_W2_CONFIG</code> in <code>jaxfne/w2_parameter_expression.py</code></p>
+<p>Implementation: <code>jaxfne/w2_parameter_expression.py</code>, <code>tests/test_protocol_w_w2.py</code>.</p>
+<h3 id="510-w3-closed-hdp-loop-specification-open-implementation-not-authorized">5.10 W3 — closed HDP loop (<strong>specification open; implementation not authorized</strong>)<a class="headerlink" href="#510-w3-closed-hdp-loop-specification-open-implementation-not-authorized" title="Permanent link">&para;</a></h3>
+<p>W3 composes validated W1 and W2 maps before feedback:</p>
+<div class="arithmatex">\[
+H \xrightarrow[\mathrm{W1}]{F_W} \omega
+\xrightarrow[\mathrm{W2}]{W=W_0e^\omega}
+W \rightarrow X \rightarrow I^{\mathrm{rec}} \rightarrow H.
+\]</div>
+<p>Minimal closed system on <span class="arithmatex">\(A\rightleftarrows B\)</span>:</p>
+<div class="arithmatex">\[
+\boxed{
+\begin{aligned}
+\tau_H\dot H_i &amp;= F_H(H_i,I_i^{\mathrm{rec}},\ldots),\\
+\tau_W\dot\omega_{ij} &amp;= \kappa_W(H_i-H_j)-\lambda_W\omega_{ij},\\
+W_{ij} &amp;= W_{ij}^{0}e^{\omega_{ij}},\\
+I_i^{\mathrm{rec}} &amp;= \sum_j s_{ji}W_{ji}S_j.
+\end{aligned}}
+\]</div>
+<p>Equilibrium: <span class="arithmatex">\(H_A=H_B=1\)</span>, <span class="arithmatex">\(\omega_{AB}=\omega_{BA}=0\)</span>. Linearize with <span class="arithmatex">\(h_i=H_i-1\)</span>.</p>
+<p><strong>Dangerous loop:</strong></p>
+<div class="arithmatex">\[
+h_A-h_B \rightarrow \omega \rightarrow \delta W \rightarrow \delta I \rightarrow h_A-h_B.
+\]</div>
+<p><strong>Closed-loop stability gate (required before implementation):</strong> derive Jacobian
+<span class="arithmatex">\(J=\left.\partial\dot{\mathcal X}/\partial\mathcal X\right|_{\mathcal X^\star}\)</span>
+for the smallest reduced deterministic linearization and require
+<span class="arithmatex">\(\max_k\Re\lambda_k(J)&lt;0\)</span> for the nominal W3 parameter set.</p>
+<p>Schematic antisymmetric reduction <span class="arithmatex">\((\delta,\omega_{AB})\)</span>:</p>
+<div class="arithmatex">\[
+\tau_H\dot\delta = -\delta + 2\kappa_H g_{\mathrm{syn}} W_0\,\omega_{AB},
+\qquad
+\tau_W\dot\omega_{AB} = \kappa_W\delta - \lambda_W\omega_{AB},
+\]</div>
+<p>with <span class="arithmatex">\(g_{\mathrm{syn}}\)</span> identified from linearized synaptic/Izhikevich coupling at equilibrium.</p>
+<p><strong>Reduction/null regimes (preregistered):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Regime</th>
+<th>Setting</th>
+<th>Expected reduction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RBD null</td>
+<td><span class="arithmatex">\(\kappa_W=0\)</span></td>
+<td>RBD/H substrate; <span class="arithmatex">\(\omega\)</span> frozen</td>
+</tr>
+<tr>
+<td>Expression null</td>
+<td><span class="arithmatex">\(\kappa_H=0\)</span></td>
+<td><span class="arithmatex">\(H\to\omega\to W\to X\)</span> without <span class="arithmatex">\(I^{\mathrm{rec}}\to H\)</span></td>
+</tr>
+<tr>
+<td>Closed HDP</td>
+<td><span class="arithmatex">\(\kappa_H&gt;0,\kappa_W&gt;0\)</span></td>
+<td>full loop; stability-gated</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Timescale hierarchy (primary regime):</strong> <span class="arithmatex">\(\tau_W/\lambda_W &gt; \tau_H\)</span>.</p>
+<p><strong>Primary experiment:</strong> perturbation <span class="arithmatex">\(\rightarrow\)</span> relaxation <span class="arithmatex">\(\rightarrow\)</span> probe.</p>
+<p><strong>Success criterion (not permanent <span class="arithmatex">\(H\)</span> memory):</strong></p>
+<div class="arithmatex">\[
+H_{\mathrm{perturbed}}\approx H_{\mathrm{control}}
+\quad\text{while}\quad
+\omega_{\mathrm{perturbed}}\neq\omega_{\mathrm{control}}
+\Rightarrow
+X_{\mathrm{perturbed}}\neq X_{\mathrm{control}}
+\]</div>
+<p>under identical probe input — fast RBS memory faded, slower parameter trace changes future response.</p>
+<p><strong>Specification artifact:</strong> <code>artifacts/protocol_w/w3_closed_loop_spec.json</code></p>
+<p><strong>Forbidden:</strong> tuning closed-loop parameters after observing W3 memory outcome; using <span class="arithmatex">\(\lambda_W=0\)</span> as the only W3 demonstration.</p>
+<h3 id="511-w3-local-stability-analysis-frozen-analysis-only">5.11 W3 — local stability analysis (<strong>frozen; analysis only</strong>)<a class="headerlink" href="#511-w3-local-stability-analysis-frozen-analysis-only" title="Permanent link">&para;</a></h3>
+<p><strong>Receipt:</strong> <code>artifacts/protocol_w/w3_stability/w3_stability_receipt.json</code><br />
+<strong>Module:</strong> <code>jaxfne/w3_stability_analysis.py</code> (no W3 simulation kernel)</p>
+<p><strong>Gate zero (equilibrium verification):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Doctrinal <span class="arithmatex">\((v,u)=(-65,0), H=1, \omega=0\)</span></td>
+<td><strong>Not</strong> a fixed point (Izhikevich drift)</td>
+</tr>
+<tr>
+<td>Verified silent fixed point <span class="arithmatex">\((v^\*,u^\*)=(-70,-14)\)</span>, <span class="arithmatex">\(H=1\)</span>, <span class="arithmatex">\(\omega=0\)</span>, <span class="arithmatex">\(\mathrm{syn}=0\)</span></td>
+<td><strong>Converged</strong> fixed point of subthreshold step map</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Reduced antisymmetric modes:</strong> <span class="arithmatex">\(\delta=h_A-h_B\)</span>, <span class="arithmatex">\(\Omega=\omega_{AB}-\omega_{BA}\)</span>.</p>
+<p>Plastic linearization (exact):</p>
+<div class="arithmatex">\[
+\tau_W\dot\Omega = 2\kappa_W\delta - \lambda_W\Omega.
+\]</div>
+<p>RBD F1 linearization:</p>
+<div class="arithmatex">\[
+\tau_H\dot\delta = -\delta + \frac{\kappa_H}{i_{\mathrm{ref}}}\Delta I^{\mathrm{rec}}_{\mathrm{antisym}}.
+\]</div>
+<p><strong>Derived <span class="arithmatex">\(b_{HW}\)</span></strong> from <span class="arithmatex">\(\omega\to W_0e^\omega\to I^{\mathrm{rec}}\to H\)</span> via autodiff at verified equilibrium:</p>
+<div class="arithmatex">\[
+b_{HW} = 0 \quad (\mathrm{syn}=0 \Rightarrow \partial I/\partial\omega = 0).
+\]</div>
+<p>Analytic reduced Jacobian:</p>
+<div class="arithmatex">\[
+J_{\mathrm{red}}=
+\begin{bmatrix}
+-1/\tau_H &amp; b_{HW}/\tau_H \\
+2\kappa_W/\tau_W &amp; -\lambda_W/\tau_W
+\end{bmatrix}.
+\]</div>
+<p>At rest, <span class="arithmatex">\(b_{HW}=0\)</span>: <span class="arithmatex">\(\delta\)</span> and <span class="arithmatex">\(\Omega\)</span> decouple; closed HDP loop is <strong>linearly inactive</strong> at the verified silent equilibrium.</p>
+<p><strong>Full/step gate (10-state ordering):</strong> implementation-faithful subthreshold step-map Jacobian <span class="arithmatex">\(J_{\mathrm{step}}\)</span>.</p>
+<table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>Nominal result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\rho(J_{\mathrm{step}})&lt;1\)</span></td>
+<td><strong>Pass</strong> (<span class="arithmatex">\(\rho=0.999\)</span>, margin <span class="arithmatex">\(10^{-3}\)</span>)</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\max\Re((\lambda_{\mathrm{step}}-1)/\Delta t)&lt;0\)</span></td>
+<td><strong>Pass</strong></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(b_{HW}\neq 0\)</span> (loop active at rest)</td>
+<td><strong>Fail</strong> (exactly zero)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>W3 kernel implementation:</strong> remains <strong>not authorized</strong> — rest equilibrium certifies marginal discrete stability but not active closed-loop coupling; transient/post-perturbation analysis requires a separately versioned protocol if an activity-enabled operating point is needed.</p>
+<h3 id="512-w3a-activity-enabled-stability-frozen-analysis-w3-kernel-not-authorized">5.12 W3a — activity-enabled stability (<strong>frozen analysis; W3 kernel not authorized</strong>)<a class="headerlink" href="#512-w3a-activity-enabled-stability-frozen-analysis-w3-kernel-not-authorized" title="Permanent link">&para;</a></h3>
+<p><strong>Preserves:</strong> silent-rest W3 result at <code>953d03b</code> — at <span class="arithmatex">\(\mathrm{syn}^\*=0\)</span>,
+<span class="arithmatex">\(\partial I^{\mathrm{rec}}/\partial\omega=0\Rightarrow b_{HW}=0\)</span>: <strong>synaptic HDP feedback is linearly dormant at rest.</strong></p>
+<p><strong>Question:</strong> is the HDP closed loop locally stable around an <strong>active</strong> recurrent operating state?</p>
+<p><strong>Independent variable:</strong> symmetric tonic drive <span class="arithmatex">\(I_{\mathrm{tonic}}\)</span> on <span class="arithmatex">\(A\)</span> and <span class="arithmatex">\(B\)</span>.<br />
+<strong>Frozen:</strong> all nominal HDP parameters from <code>W3NominalParameters</code>; no post-hoc tuning of <span class="arithmatex">\(\kappa_H,\kappa_W,\lambda_W,\tau_H,\tau_W,W_0\)</span>.</p>
+<p><strong>Ordered gates:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Gate</th>
+<th>Result (nominal scan)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>W3a-FP</strong></td>
+<td>No self-consistent active fixed point with <span class="arithmatex">\(\mathrm{syn}^\*&gt;0\)</span> found (spike-driven syn dynamics)</td>
+</tr>
+<tr>
+<td><strong>W3a-PO</strong></td>
+<td>Periodic-orbit monodromy <span class="arithmatex">\(M=\partial P_T/\partial\mathcal Z\)</span> when <span class="arithmatex">\(\mathrm{syn}\)</span> active</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Activity-dependent quantities:</strong> <span class="arithmatex">\(b_{HW}(I_{\mathrm{tonic}})\)</span>, <span class="arithmatex">\(L_{\mathrm{HDP}}(I_{\mathrm{tonic}})\)</span>, spectral margins vs drive.</p>
+<p><strong>Nominal findings (prospective receipt):</strong></p>
+<ul>
+<li><span class="arithmatex">\(I_{\mathrm{tonic}}=0\)</span>: <span class="arithmatex">\(b_{HW}=0\)</span>, <span class="arithmatex">\(L_{\mathrm{HDP}}=0\)</span>, discrete margin <span class="arithmatex">\(\approx10^{-3}\)</span> (weak, as in silent W3)</li>
+<li>Active drive: <span class="arithmatex">\(b_{HW}\neq0\)</span>, <span class="arithmatex">\(L_{\mathrm{HDP}}\)</span> grows with mean synaptic occupancy</li>
+<li>Floquet instability bracket: margin crosses zero between <span class="arithmatex">\(I_{\mathrm{tonic}}\approx 8\)</span> and <span class="arithmatex">\(10\)</span> ms-equivalent drive units (nominal parameters)</li>
+</ul>
+<p><strong>Margin policy:</strong> margins below <span class="arithmatex">\(0.01\)</span> are <strong>near-critical</strong>, not robustly stable.</p>
+<p><strong>Artifacts:</strong> <code>artifacts/protocol_w/w3a_stability/w3a_stability_spec.json</code>, <code>w3a_stability_receipt.json</code>, <code>jaxfne/w3a_stability_analysis.py</code></p>
+<p><strong>W3 closed-loop experiment:</strong> blocked until an active operating point passes the W3a gate.</p>
+<h3 id="513-w3a-margin-audit-frozen-addendum">5.13 W3a margin audit (<strong>frozen addendum</strong>)<a class="headerlink" href="#513-w3a-margin-audit-frozen-addendum" title="Permanent link">&para;</a></h3>
+<p><strong>Issue:</strong> W3a receipt showed instability bracket <span class="arithmatex">\(I_{\mathrm{tonic}}\approx 8\)</span>–<span class="arithmatex">\(10\)</span> while later points appeared stable at <span class="arithmatex">\(I=20,40\)</span>.</p>
+<p><strong>Resolution:</strong> <code>artifacts/protocol_w/w3a_stability/w3a_margin_audit.json</code></p>
+<table>
+<thead>
+<tr>
+<th>Root cause</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>period=1</code> false positives</td>
+<td>Monodromy = single-step Jacobian, not orbit return map</td>
+</tr>
+<tr>
+<td>Subleading (</td>
+<td>\lambda</td>
+</tr>
+<tr>
+<td>Mixed metrics at <span class="arithmatex">\(\mathrm{syn}\approx 0\)</span></td>
+<td>Step Jacobian at drifting non-equilibrium</td>
+</tr>
+</tbody>
+</table>
+<p><strong>W3b rule:</strong> regime labels use corrected <span class="arithmatex">\(m_F=1-\rho_{\mathrm{nonneutral}}(M)\)</span> with validated <code>period&gt;=2</code> only. Reduced <span class="arithmatex">\(J_{\mathrm{red}}\)</span> is explanatory, not a classifier.</p>
+<h3 id="514-w3b-parameter-domain-map-domain-receipt-frozen">5.14 W3b — parameter-domain map (<strong>domain receipt frozen</strong>)<a class="headerlink" href="#514-w3b-parameter-domain-map-domain-receipt-frozen" title="Permanent link">&para;</a></h3>
+<p><strong>Question:</strong> what parameter domain permits simultaneously <strong>active, bounded, nontrivial, robust</strong> HDP?</p>
+<p><strong>Type:</strong> parameter-domain characterization — <strong>not</strong> post-hoc tuning to pass W3.</p>
+<p><strong>Varied:</strong> <span class="arithmatex">\(\kappa_H,\kappa_W,\lambda_W,\tau_H,\tau_W\)</span>. <strong>Frozen:</strong> <span class="arithmatex">\(W_0\)</span>, emitter, topology, synapse geometry. <strong>Operating axis:</strong> <span class="arithmatex">\(I_{\mathrm{tonic}}\)</span>.</p>
+<p><strong>Lattice:</strong> 243 parameter combinations <span class="arithmatex">\(\times\)</span> 9 drive levels = <strong>2187</strong> points.</p>
+<p><strong>Dimensionless coordinates:</strong> <span class="arithmatex">\(r_\tau=(\tau_W/\lambda_W)/\tau_H\)</span>, <span class="arithmatex">\(\Gamma_{\mathrm{HDP}}=|2\kappa_W b_{HW}/(a_H\lambda_W)|\)</span>.</p>
+<p><strong>Regime labels (frozen gates):</strong> <strong>D</strong>, <strong>S</strong>, <strong>C</strong>, <strong>U</strong>, <strong>X</strong> (<span class="arithmatex">\(X\neq U\)</span>: active but stability-unresolved).</p>
+<h3 id="515-w3b-domain-receipt-frozen">5.15 W3b domain receipt (<strong>frozen</strong>)<a class="headerlink" href="#515-w3b-domain-receipt-frozen" title="Permanent link">&para;</a></h3>
+<p><strong>Receipt:</strong> <code>artifacts/protocol_w/w3b_parameter_domain/w3b_domain_receipt.json</code></p>
+<table>
+<thead>
+<tr>
+<th>Aggregate</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>(N_S=</td>
+<td>\mathcal D_{\mathrm{useful}}</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(N_X\)</span> (active, unresolved)</td>
+<td><strong>1944</strong></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(N_D\)</span></td>
+<td>243</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(N_U\)</span></td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Branch:</strong> <code>N_S_eq_0_and_N_X_gt_0</code> — no robust active domain demonstrated; active regimes stability-unresolved. <strong>Next:</strong> W3c orbit characterization, <strong>not</strong> law redesign.</p>
+<p><strong>Not concluded:</strong> <span class="arithmatex">\(\mathcal D_{\mathrm{useful}}=\emptyset\)</span> scientifically (requires <span class="arithmatex">\(N_X=0\)</span>).</p>
+<p><strong>W3 kernel:</strong> remains <strong>not authorized</strong>.</p>
+<p><strong>Artifacts:</strong> <code>artifacts/protocol_w/w3b_parameter_domain/w3b_parameter_domain_spec.json</code>, <code>jaxfne/w3b_parameter_domain.py</code></p>
+<h3 id="516-w3b-interpretation-receipt-frozen-unresolved-not-negative">5.16 W3b interpretation receipt (<strong>frozen — unresolved, not negative</strong>)<a class="headerlink" href="#516-w3b-interpretation-receipt-frozen-unresolved-not-negative" title="Permanent link">&para;</a></h3>
+<p><strong>Receipt:</strong> <code>artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json</code><br />
+<strong>Outcome:</strong> <code>unresolved, not negative</code> — <strong>not</strong> a negative domain result.</p>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>W3b establishes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Demonstrated</strong></td>
+<td><span class="arithmatex">\(N_S=0\)</span>; silent-rest dormancy (W3); active <span class="arithmatex">\(L_{\mathrm{HDP}}\)</span> rises with activity</td>
+</tr>
+<tr>
+<td><strong>Unresolved</strong></td>
+<td>1944 active <strong>X</strong> points (<span class="arithmatex">\(X\neq U\)</span>); stability not classified under frozen Floquet gates</td>
+</tr>
+<tr>
+<td><strong>Not demonstrated</strong></td>
+<td>Robust closed-loop HDP domain; closed-loop parameter memory</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Prohibited:</strong> <span class="arithmatex">\(N_S=0 \Rightarrow \mathcal D_{\mathrm{useful}}=\emptyset\)</span> when <span class="arithmatex">\(N_X&gt;0\)</span>; treating <strong>X</strong> as <strong>U</strong>; authorizing W3 or new <span class="arithmatex">\(F_W\)</span> from this receipt.</p>
+<p><strong>Release:</strong> <code>release_blocking: false</code> for 0.4.16. <strong>W3c</strong> is parallel science, not on the 0.4.16 critical path.</p>
+<p><strong>Protocol W scientific development:</strong> <strong>CLOSED at W3b interpretation</strong> for 0.4.16. Next main path: <strong>0.4.16 RC</strong> <span class="arithmatex">\(\to\)</span> <strong>0.4.17-A Figure Requirements Matrix v2</strong>.</p>
+<h2 id="6-experimental-ladder-frozen-order">6. Experimental ladder (frozen order)<a class="headerlink" href="#6-experimental-ladder-frozen-order" title="Permanent link">&para;</a></h2>
+<div class="arithmatex">\[
+\boxed{
+\begin{aligned}
+\text{W1a} &amp;: H \rightarrow \omega &amp;&amp; \text{parameter writing (prescribed }\Delta H\text{, analytic)} \\
+\text{W1b} &amp;: H \rightarrow \omega &amp;&amp; \text{parameter writing (minimal 2-node or single edge, simulated }H\text{)} \\
+\text{W2}  &amp;: \omega \rightarrow W \rightarrow X &amp;&amp; \text{parameter expression} \\
+\text{W3}  &amp;: H \rightarrow W \rightarrow X &amp;&amp; \text{closed HDP loop} \\
+\text{W4}  &amp;: \text{parameter-memory quantification / nulls} &amp;&amp; \text{prospective assay}
+\end{aligned}
+}
+\]</div>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>W1a</strong></td>
+<td><strong>IMPLEMENTED</strong> — prescribed <span class="arithmatex">\(\Delta H\to\omega\)</span>, analytic + Euler receipts</td>
+</tr>
+<tr>
+<td><strong>W1b</strong></td>
+<td><strong>IMPLEMENTED</strong> — RBD shadow <span class="arithmatex">\(\omega\)</span> on <span class="arithmatex">\(A\rightleftarrows B\)</span>; no <span class="arithmatex">\(W\to X\)</span></td>
+</tr>
+<tr>
+<td><strong>W2</strong></td>
+<td><strong>FROZEN</strong> — prospective receipt; frozen <span class="arithmatex">\(\omega\to W\to X\)</span></td>
+</tr>
+<tr>
+<td><strong>W3</strong></td>
+<td><strong>STABILITY FROZEN (silent rest)</strong> — kernel <strong>not</strong> authorized</td>
+</tr>
+<tr>
+<td><strong>W3a</strong></td>
+<td><strong>STABILITY FROZEN (activity-enabled)</strong> — kernel <strong>not</strong> authorized</td>
+</tr>
+<tr>
+<td><strong>W3b</strong></td>
+<td><strong>INTERPRETATION FROZEN</strong> — unresolved (<span class="arithmatex">\(N_S=0, N_X&gt;0\)</span>); W3c parallel</td>
+</tr>
+<tr>
+<td><strong>W4</strong></td>
+<td>not authorized</td>
+</tr>
+</tbody>
+</table>
+<p><span class="arithmatex">\(\text{W2}_{\mathrm{competition}}\)</span>: competition/conservation — <strong>only if necessary</strong> after W1.</p>
+<h2 id="7-implementation-authorization-gates">7. Implementation authorization gates<a class="headerlink" href="#7-implementation-authorization-gates" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Authorized</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W0</td>
+<td>frozen</td>
+</tr>
+<tr>
+<td>W1a</td>
+<td><strong>yes</strong> — scalar integrator only</td>
+</tr>
+<tr>
+<td>W1b</td>
+<td><strong>yes</strong> — shadow plasticity, no feedback</td>
+</tr>
+<tr>
+<td>W2</td>
+<td><strong>frozen</strong> — receipt locked; do not mutate configuration</td>
+</tr>
+<tr>
+<td>W3</td>
+<td><strong>silent-rest stability frozen</strong> — kernel blocked</td>
+</tr>
+<tr>
+<td>W3a</td>
+<td><strong>activity stability frozen</strong> — margin audit addendum</td>
+</tr>
+<tr>
+<td>W3b</td>
+<td><strong>interpretation frozen</strong> — unresolved not negative; 0.4.16 science closed</td>
+</tr>
+<tr>
+<td>W4+</td>
+<td><strong>no</strong></td>
+</tr>
+</tbody>
+</table>
+<p>W3 implementation remains blocked until stability analysis receipt passes.</p>
+<h3 id="71-stability-receipts-pre-code">7.1 Stability receipts (pre-code)<a class="headerlink" href="#71-stability-receipts-pre-code" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Receipt</th>
+<th>Criterion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Positivity</strong></td>
+<td><span class="arithmatex">\(W_{ij}&gt;0\)</span> for all finite <span class="arithmatex">\(\omega_{ij}\)</span></td>
+</tr>
+<tr>
+<td><strong>Zero-drive decay</strong></td>
+<td><span class="arithmatex">\(\Delta H=0 \Rightarrow \omega\to 0\)</span> (or fixed point <span class="arithmatex">\(\omega^\*\)</span>)</td>
+</tr>
+<tr>
+<td><strong>Finite perturbation</strong></td>
+<td>finite <span class="arithmatex">\(\Delta H\)</span> pulse <span class="arithmatex">\(\Rightarrow\)</span> finite <span class="arithmatex">\(\omega(T_p)\)</span></td>
+</tr>
+<tr>
+<td><strong>No manufactured coupling</strong></td>
+<td><span class="arithmatex">\(\omega=0 \Rightarrow W=W_0\)</span> exactly</td>
+</tr>
+<tr>
+<td><strong>RBD recovery</strong></td>
+<td><span class="arithmatex">\(\kappa_W=0, \omega\equiv 0 \Rightarrow\)</span> RBD kernel</td>
+</tr>
+</tbody>
+</table>
+<h3 id="72-forbidden-shortcuts">7.2 Forbidden shortcuts<a class="headerlink" href="#72-forbidden-shortcuts" title="Permanent link">&para;</a></h3>
+<ul>
+<li>No tuning <span class="arithmatex">\(\kappa_W,\lambda_W,\tau_W\)</span> after viewing W4 memory metrics</li>
+<li>No H4-topology experiments in W1–W3</li>
+<li>No conflation of RBD fading memory with <span class="arithmatex">\(W\)</span> retention without separate nulls</li>
+<li>No conservation and restoration enabled simultaneously in W1</li>
+</ul>
+<h2 id="8-relation-to-existing-code">8. Relation to existing code<a class="headerlink" href="#8-relation-to-existing-code" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>jaxfne/w1a_omega_plasticity.py</code></td>
+<td>W1a scalar <span class="arithmatex">\(\omega\)</span> integrator + analytic references</td>
+</tr>
+<tr>
+<td><code>jaxfne/w1b_shadow_plasticity.py</code></td>
+<td>W1b shadow <span class="arithmatex">\(\omega\)</span> from RBD-recorded <span class="arithmatex">\(\Delta H\)</span></td>
+</tr>
+<tr>
+<td><code>jaxfne/w2_parameter_expression.py</code></td>
+<td>W2 frozen <span class="arithmatex">\(\omega\to W\to X\)</span> expression</td>
+</tr>
+<tr>
+<td><code>tests/test_protocol_w_w1b.py</code></td>
+<td>W1b composition, symmetry, F1, nulls, timescale receipts</td>
+</tr>
+<tr>
+<td><code>jaxfne/w3_stability_analysis.py</code></td>
+<td>W3 local stability analysis (no closed-loop kernel)</td>
+</tr>
+<tr>
+<td><code>jaxfne/w3a_stability_analysis.py</code></td>
+<td>W3a activity-enabled stability scan (no closed-loop kernel)</td>
+</tr>
+<tr>
+<td><code>tests/test_protocol_w_w3a_stability.py</code></td>
+<td>W3a stability receipts</td>
+</tr>
+<tr>
+<td><code>simulate_edge_recurrent_izhikevich_rbd</code></td>
+<td>RBD substrate (<span class="arithmatex">\(\dot W=0\)</span>)</td>
+</tr>
+<tr>
+<td><code>simulate_edge_recurrent_izhikevich_hdp</code></td>
+<td>Legacy reference — <strong>not</strong> canonical W; lacks W0 <span class="arithmatex">\(\omega\)</span> grammar</td>
+</tr>
+<tr>
+<td><code>docs/doctrine/rbs_rbd_hdp.md</code></td>
+<td>RBS/RBD/HDP authority</td>
+</tr>
+</tbody>
+</table>
+<h2 id="9-evidence-and-receipts">9. Evidence and receipts<a class="headerlink" href="#9-evidence-and-receipts" title="Permanent link">&para;</a></h2>
+<p>W0 exports:</p>
+<ul>
+<li><code>artifacts/protocol_w/w0_mathematical_contract.json</code></li>
+</ul>
+<p>W2 frozen receipt:</p>
+<ul>
+<li><code>artifacts/protocol_w/w2_expression/w2_expression_receipt.json</code></li>
+</ul>
+<p>W3 specification (open):</p>
+<ul>
+<li><code>artifacts/protocol_w/w3_closed_loop_spec.json</code></li>
+</ul>
+<p>W3 stability analysis (frozen, silent rest):</p>
+<ul>
+<li><code>artifacts/protocol_w/w3_stability/w3_stability_receipt.json</code></li>
+</ul>
+<p>W3a activity-enabled stability (frozen):</p>
+<ul>
+<li><code>artifacts/protocol_w/w3a_stability/w3a_stability_spec.json</code></li>
+<li><code>artifacts/protocol_w/w3a_stability/w3a_stability_receipt.json</code></li>
+</ul>
+<h2 id="10-stop-rules">10. Stop rules<a class="headerlink" href="#10-stop-rules" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Implementation before W0 sign-off — <strong>blocked</strong> (W0 now frozen; W1 still blocked)</li>
+<li>Using long heterogeneous rings in W1</li>
+<li>Encoding E/I sign in <span class="arithmatex">\(\mathrm{sign}(W)\)</span> under log-parameterization</li>
+<li>Enabling <span class="arithmatex">\(C_{ij}\)</span> in W1 without separate W2<span class="arithmatex">\(_{\mathrm{competition}}\)</span> protocol ID</li>
+</ul>
+<h2 id="11-references">11. References<a class="headerlink" href="#11-references" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>docs/doctrine/protocol_h_rbd_memory.md</code> — Protocol H (closed)</li>
+<li><code>artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json</code></li>
+<li><code>docs/doctrine/rbs_rbd_hdp.md</code></li>
+<li><code>docs/doctrine/tfne_containment_architecture.md</code> — typed coupling maps</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

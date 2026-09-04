@@ -6,32 +6,32 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="JAX-based TFNE scaffold for multimodal source-to-field/readout workflows">
+        <meta name="description" content="Tensor-Field Neural Equations — JAX simulation for neural circuits, fields, and adaptation">
       
       
       
         <link rel="canonical" href="https://jaxfne.readthedocs.io/guides/probe_operators/">
       
       
-        <link rel="prev" href="../configuration_grammar/">
+        <link rel="prev" href="../operator_composition/">
       
       
-        <link rel="next" href="../tensor_field_workflows/">
+        <link rel="next" href="../calibration/">
       
       
         
       
       
       <link rel="icon" href="../../assets/jaxfne-img.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>Probe Operators - jaxfne</title>
+        <title>Probe operators - jaxfne</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#probe-operators-in-jaxfne-v021" class="md-skip">
+        <a href="#probe-operators" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Probe Operators
+              Probe operators
             
           </span>
         </div>
@@ -260,6 +260,10 @@
       
         
       
+        
+      
+        
+      
     
     
     
@@ -377,14 +381,70 @@
   
   
     <li class="md-nav__item">
-      <a href="../../faq/" class="md-nav__link">
+      <a href="../../gallery/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    FAQ
+    Gallery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../public_surface_contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scope_and_status/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scope & status
   
 
     
@@ -416,24 +476,6 @@
       
         
           
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
         
       
         
@@ -518,7 +560,7 @@
   <span class="md-ellipsis">
     
   
-    Notebook Standard
+    Notebook standard
   
 
     
@@ -539,14 +581,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+      <a href="../../tutorials/tutorial_outputs/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Étude: Canonical Cortical Column
+    Tutorial Outputs
   
 
     
@@ -559,6 +601,364 @@
   
 
               
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cumulative (canonical 1000n)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Cumulative (canonical 1000n)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_define_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Define (PseudoGenome)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_develop_genome/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Develop (G→N)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_inspect_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inspect (realized vs configured)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_simulate_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulate (construct→Signals)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_observe_fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observe (field & probe)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_add_state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add state (H / RBS)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_add_dynamics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Add dynamics (HDP)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_compare_nulls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compare (nulls & lesions)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suites
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Suites
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -574,7 +974,7 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 1 (Computational Biophysics)
+    Computational biophysics
   
 
     
@@ -602,7 +1002,35 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 2 (Corticospectrolaminar Motif)
+    Corticospectrolaminar motif
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_jaxfne_suite_no_2_evoked_l4_drive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evoked L4 drive
   
 
     
@@ -630,7 +1058,7 @@
   <span class="md-ellipsis">
     
   
-    Suite No. 3 (Low-Frequency Scaling)
+    Low-frequency scaling
   
 
     
@@ -644,29 +1072,9 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tutorial: Multi-area Laminar Model
-  
-
-    
-  </span>
-  
-  
-
-      </a>
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -678,43 +1086,44 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+    
+    
+      
         
-  
-  
-  <span class="md-ellipsis">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
-  
-    TFNE-Izhikevich Single Emitter Explorer
-  
-
     
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
-        
   
   
   <span class="md-ellipsis">
     
   
-    09: EEG/MEG/EMM Proxy Bundle
+    Circuit construction (archive)
   
 
     
@@ -722,11 +1131,19 @@
   
   
 
-      </a>
-    </li>
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Circuit construction (archive)
   
 
-              
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -742,7 +1159,7 @@
   <span class="md-ellipsis">
     
   
-    01: Single-neuron Multimodal
+    Single-neuron multimodal
   
 
     
@@ -770,7 +1187,7 @@
   <span class="md-ellipsis">
     
   
-    02: Two-neuron E/I
+    Two-neuron E/I
   
 
     
@@ -798,7 +1215,7 @@
   <span class="md-ellipsis">
     
   
-    03: 100-neuron Network
+    Population E/I network
   
 
     
@@ -826,7 +1243,7 @@
   <span class="md-ellipsis">
     
   
-    04: V1 Six-layer Column
+    V1 laminar column
   
 
     
@@ -854,7 +1271,7 @@
   <span class="md-ellipsis">
     
   
-    05: V1-PFC Dual Column
+    V1–PFC dual column
   
 
     
@@ -882,7 +1299,7 @@
   <span class="md-ellipsis">
     
   
-    06: v0.3.6 Chainable Config
+    Configuration API population
   
 
     
@@ -903,6 +1320,99 @@
   
   
     <li class="md-nav__item">
+      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical cortical column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_7" id="__nav_2_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source, field, and readout (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Source, field, and readout (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../tutorials/07_v037_source_bookkeeping/" class="md-nav__link">
         
   
@@ -910,7 +1420,7 @@
   <span class="md-ellipsis">
     
   
-    07: v0.3.7 Source Bookkeeping
+    Source bookkeeping
   
 
     
@@ -938,7 +1448,7 @@
   <span class="md-ellipsis">
     
   
-    08: v0.3.8 LFP/CSD Readout
+    LFP and CSD proxies
   
 
     
@@ -947,6 +1457,191 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EEG, MEG, EMM proxies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_8" id="__nav_2_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paradigms and optimization (archive)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Paradigms and optimization (archive)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/10_v0313_omission_oddball/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sensory omission oddball
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-area laminar AGSDR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Izhikevich emitter explorer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -972,6 +1667,8 @@
       
         
           
+        
+      
         
       
         
@@ -1062,7 +1759,91 @@
   <span class="md-ellipsis">
     
   
-    Configuration Grammar
+    Configuration grammar
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objective_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objective grammar
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tensor_field_workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor-field workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operator_composition/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operator composition
   
 
     
@@ -1099,7 +1880,7 @@
   <span class="md-ellipsis">
     
   
-    Probe Operators
+    Probe operators
   
 
     
@@ -1117,7 +1898,7 @@
   <span class="md-ellipsis">
     
   
-    Probe Operators
+    Probe operators
   
 
     
@@ -1143,10 +1924,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#pipeline-context" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Pipeline context
       
     </span>
   </a>
@@ -1157,12 +1938,12 @@
   <a href="#operator-kinds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Operator Kinds
+        Operator kinds
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Operator Kinds">
+    <nav class="md-nav" aria-label="Operator kinds">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1375,10 +2156,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#current-status-v021-simulated-proxy" class="md-nav__link">
+  <a href="#current-status-simulated-proxy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current Status: v0.2.1 Simulated / Proxy
+        Current Status: Simulated / Proxy
       
     </span>
   </a>
@@ -1434,98 +2215,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../tensor_field_workflows/" class="md-nav__link">
+      <a href="../calibration/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Tensor-Field Workflows
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../plotly_visualization/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Plotly Visualization
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../poisson_admissibility/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Poisson Admissibility
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../jaxley_interop/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Jaxley Interoperability
+    Calibration
   
 
     
@@ -1574,14 +2271,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../notes/biophysical_model_comparison/" class="md-nav__link">
+      <a href="../hdp/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Biophysical Model Comparison
+    H-state and HDP
   
 
     
@@ -1602,14 +2299,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../calibration/" class="md-nav__link">
+      <a href="../jdna/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Calibration
+    PseudoGenome (JDNA)
   
 
     
@@ -1637,7 +2334,620 @@
   <span class="md-ellipsis">
     
   
-    Output Bundles
+    Output bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jaxley_interop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jaxley interoperability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../etudes/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Études
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Études
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/hdp_controllability_reachability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP controllability & reachability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/experiment_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Canonical Multiscale Observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/heterogeneous_emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Heterogeneous emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../etudes/multiscale_observation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiscale observation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory and Experiments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory and Experiments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_wave/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling Waves
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_c_wave_evidence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Traveling-Wave Evidence
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_c_c3_neural/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Neural Geometry and Delays
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_d_biological_rbs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Biological RBS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protocols/protocol_e_integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrated TFNE Composition
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/rbs_rbd_hdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBS, RBD and HDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/relative_quantity_grammar/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relative Quantities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_h1b_h_to_x_gain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    H-to-X Gain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_h_rbd_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RBD State Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/protocol_w_hdp_parameter_memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HDP Parameter Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doctrine/tfne_containment_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TFNE Containment and Composition
   
 
     
@@ -1687,6 +2997,14 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -1700,7 +3018,7 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
         
           
           <div class="md-nav__link md-nav__container">
@@ -1711,7 +3029,7 @@
   <span class="md-ellipsis">
     
   
-    API reference
+    API
   
 
     
@@ -1722,18 +3040,18 @@
             </a>
             
               
-              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="">
                 <span class="md-nav__icon md-icon"></span>
               </label>
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
   
-    API reference
+    API
   
 
           </label>
@@ -1832,14 +3150,42 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/bridges/" class="md-nav__link">
+      <a href="../../api/source_schema/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Bridges
+    Source schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/field_schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Field schema
   
 
     
@@ -1944,6 +3290,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../api/neuronal_tensor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NeuronalTensor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../api/validation/" class="md-nav__link">
         
   
@@ -1965,48 +3339,21 @@
 
               
             
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
+              
+                
   
   
   
   
-    
-    
-      
+    <li class="md-nav__item">
+      <a href="../../api/vis/" class="md-nav__link">
         
-      
-    
-    
-    
-      
-        
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
-            
   
   
   <span class="md-ellipsis">
     
   
-    Reference
+    Visualization
   
 
     
@@ -2014,19 +3361,11 @@
   
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Reference
+      </a>
+    </li>
   
 
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
+              
             
               
                 
@@ -2035,14 +3374,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/glossary_of_methods/" class="md-nav__link">
+      <a href="../../api/jdna/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Glossary of Methods
+    JDNA
   
 
     
@@ -2082,6 +3421,20 @@
       
         
       
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
     
     
     
@@ -2095,17 +3448,17 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
     
   
-    About jaxfne
+    Appendix
   
 
     
@@ -2116,12 +3469,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
-    About jaxfne
+    Appendix
   
 
           </label>
@@ -2134,14 +3487,182 @@
   
   
     <li class="md-nav__item">
-      <a href="../../limitations_and_future_plans/" class="md-nav__link">
+      <a href="../../appendix/fundamental_laws/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Limitations and future plans
+    Fundamental laws
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../source_field_equations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source and field equations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../computation_basis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Computation basis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mathematical_glossary_flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mathematical glossary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Migration guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
   
 
     
@@ -2245,78 +3766,15 @@
   
   
   
-    
-    
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_6_5" id="__nav_6_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Releases
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Releases
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
     <li class="md-nav__item">
-      <a href="../../releases/v0.3.4/" class="md-nav__link">
+      <a href="../../colab/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    v0.3.4
+    Colab quick start
   
 
     
@@ -2337,14 +3795,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../releases/v0.2.18/" class="md-nav__link">
+      <a href="../../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    v0.2.18
+    Limitations
   
 
     
@@ -2353,126 +3811,6 @@
   
 
       </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.10/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.10
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.3/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.3
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.1/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.1
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../releases/v0.2.0/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    v0.2.0
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
     </li>
   
 
@@ -2512,10 +3850,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#pipeline-context" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Overview
+        Pipeline context
       
     </span>
   </a>
@@ -2526,12 +3864,12 @@
   <a href="#operator-kinds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Operator Kinds
+        Operator kinds
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Operator Kinds">
+    <nav class="md-nav" aria-label="Operator kinds">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2744,10 +4082,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#current-status-v021-simulated-proxy" class="md-nav__link">
+  <a href="#current-status-simulated-proxy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current Status: v0.2.1 Simulated / Proxy
+        Current Status: Simulated / Proxy
       
     </span>
   </a>
@@ -2807,13 +4145,17 @@
   
 
 
-<h1 id="probe-operators-in-jaxfne-v021">Probe Operators in jaxfne v0.2.1+<a class="headerlink" href="#probe-operators-in-jaxfne-v021" title="Permanent link">&para;</a></h1>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>The probe layer is a first-class component of the TFNE pipeline:</p>
+<h1 id="probe-operators">Probe operators<a class="headerlink" href="#probe-operators" title="Permanent link">&para;</a></h1>
+<p><strong>Read out</strong> spikes, membrane voltage, source currents, and field-proxy traces
+(LFP, CSD, EEG, MEG, EMM) from a finished simulation. Eight named probe kinds
+map to the multimodal outputs most laminar workflows need.</p>
+<p>Each operator returns data plus a JSON-safe report (units, calibration status,
+scope declarations, assumptions).</p>
+<h2 id="pipeline-context">Pipeline context<a class="headerlink" href="#pipeline-context" title="Permanent link">&para;</a></h2>
+<p>Probes sit at the end of the simulation chain:</p>
 <div class="highlight"><pre><span></span><code>Emitter → Source → Field → Probe → Objective → Optimizer
 </code></pre></div>
-<p>Eight probe operators expose different aspects of neural/field state as named readouts. Each operator returns data plus a JSON-safe report declaring operator status, units, calibration metadata, scope declarations, and assumptions.</p>
-<h2 id="operator-kinds">Operator Kinds<a class="headerlink" href="#operator-kinds" title="Permanent link">&para;</a></h2>
+<h2 id="operator-kinds">Operator kinds<a class="headerlink" href="#operator-kinds" title="Permanent link">&para;</a></h2>
 <h3 id="spk">SPK<a class="headerlink" href="#spk" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose:</strong> Expose spike events or spike matrix.</p>
 <p><strong>Minimum output:</strong>
@@ -2824,7 +4166,7 @@
 <p><strong>Shape examples:</strong>
 - Spike matrix: <code>[T, N]</code> (time × neurons)
 - Event table: rows with timestamp, neuron_id, area, layer, cell_type</p>
-<p><strong>v0.2.1 status:</strong> Simulated spike readout from emitter.</p>
+<p><strong>Status (verified v0.4.8, development tree):</strong> Simulated spike readout from emitter.</p>
 <hr />
 <h3 id="vm">Vm<a class="headerlink" href="#vm" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose:</strong> Expose membrane voltage or emitter state variable.</p>
@@ -2833,8 +4175,7 @@
 - <code>method: emitter_state_voltage_trace</code>
 - <code>units_or_status: mV_or_model_state_variable</code>
 - <code>operator_status: simulated_proxy</code></p>
-<p><strong>Scope note:</strong> The emitter voltage represents model state; the report declares its specific interpretation and scope.</p>
-<p><strong>v0.2.1 status:</strong> State voltage from emitter; proxy readout.</p>
+<p><strong>Status (verified v0.4.8, development tree):</strong> State voltage from emitter; proxy readout.</p>
 <hr />
 <h3 id="source">Source<a class="headerlink" href="#source" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose:</strong> Expose current/source proxy or calibrated source trace used by the field layer.</p>
@@ -2843,11 +4184,11 @@
 - <code>method: declared_source_projection_or_proxy</code>
 - <code>source_decomposition: proxy_reduced_emitter</code> (or other declared mode)
 - <code>source_calibration_status: proxy_izhikevich_current</code> (or calibrated status)</p>
-<p><strong>v0.2.1 status:</strong> Proxy source from emitter state; computational readout.</p>
+<p><strong>Status (verified v0.4.8, development tree):</strong> Proxy source from emitter state; computational readout.</p>
 <hr />
 <h3 id="lfp-proxy">LFP-proxy<a class="headerlink" href="#lfp-proxy" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose:</strong> Sample or average extracellular potential state at contacts.</p>
-<p><strong>Acceptable v0.2.1 implementation:</strong>
+<p><strong>Acceptable implementation:</strong>
 - Point sample from <code>phi_e</code> proxy/solution
 - Finite-contact average
 - Laminar contact average over declared depths/layers</p>
@@ -2857,12 +4198,12 @@
 - <code>units_or_status: proxy_voltage_units_or_V_if_calibrated</code>
 - <code>field_solver_status: linear_solver</code>
 - <code>amplitude_status: false</code></p>
-<p><strong>Important:</strong> v0.2.1 uses <code>-proxy</code> terminology to declare operator status explicitly. Proxy-scale operators are computational readouts suitable for tutorial and validation workflows.</p>
-<p><strong>v0.2.1 status:</strong> Laminar proxy-scale readout; calibration metadata available for calibrated workflows.</p>
+<p><strong>Important:</strong> jaxfne uses <code>-proxy</code> terminology to declare operator status explicitly. Proxy-scale operators are computational readouts suitable for tutorial and validation workflows.</p>
+<p><strong>Status (verified v0.4.8, development tree):</strong> Laminar proxy-scale readout; calibration metadata available for calibrated workflows.</p>
 <hr />
 <h3 id="csd-proxy">CSD-proxy<a class="headerlink" href="#csd-proxy" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose:</strong> Estimate current-source density profile or second spatial derivative/divergence proxy.</p>
-<p><strong>Acceptable v0.2.1 implementation:</strong>
+<p><strong>Acceptable implementation:</strong>
 - <code>div(J_e)</code> when <code>J_e</code> exists
 - Second spatial derivative of laminar potential proxy
 - Source-profile proxy with explicit sign convention</p>
@@ -2876,11 +4217,11 @@
 - Linear potential gives near-zero second derivative
 - Finite output
 - Sign convention exported</p>
-<p><strong>v0.2.1 status:</strong> Laminar proxy-scale readout; calibration metadata available for calibrated workflows.</p>
+<p><strong>Status (verified v0.4.8, development tree):</strong> Laminar proxy-scale readout; calibration metadata available for calibrated workflows.</p>
 <hr />
 <h3 id="eeg-proxy">EEG-proxy<a class="headerlink" href="#eeg-proxy" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose:</strong> Provide a simulated scalp-channel proxy readout using a declared toy or proxy lead field.</p>
-<p><strong>Acceptable v0.2.1 implementation:</strong></p>
+<p><strong>Acceptable implementation:</strong></p>
 <div class="highlight"><pre><span></span><code>y_eeg(t, c) = sum_k L_eeg[c, k] * s_k(t)
 </code></pre></div>
 <p>where <code>s_k(t)</code> is a declared source/current/potential feature and <code>L_eeg</code> is a toy or user-declared projection matrix.</p>
@@ -2893,30 +4234,30 @@
 - <code>operator_status: simulated_proxy</code>
 - <code>amplitude_status: false</code></p>
 <p><strong>Scope:</strong> EEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in <a href="../../limitations_and_future_plans/">Limitations and future plans</a>.</p>
-<p><strong>v0.2.1 status:</strong> Simulated EEG-proxy readout; proxy-scale calibration for tutorial workflows.</p>
+<p><strong>Status (verified v0.4.8, development tree):</strong> Simulated EEG-proxy readout; proxy-scale calibration for tutorial workflows.</p>
 <hr />
 <h3 id="meg-proxy">MEG-proxy<a class="headerlink" href="#meg-proxy" title="Permanent link">&para;</a></h3>
-<p><strong>Purpose:</strong> Provide a simulated magnetometer proxy readout using a declared current-orientation or lead-field proxy.</p>
-<p><strong>Acceptable v0.2.1 implementation:</strong></p>
-<div class="highlight"><pre><span></span><code>y_meg(t, c) = sum_k L_meg[c, k] * j_oriented_k(t)
+<p><strong>Purpose:</strong> Provide a relative linear map of scalar source <code>Q</code>. This is not a physical MEG forward operator and does not construct oriented current.</p>
+<p><strong>Acceptable implementation:</strong></p>
+<div class="highlight"><pre><span></span><code>y_meg(t, c) = sum_k L_meg[c, k] * Q_k(t)
 </code></pre></div>
 <p><strong>Minimum report:</strong>
 - <code>kind: meg_proxy</code>
-- <code>method: linear_current_orientation_proxy</code>
+- <code>method: relative_linear_map_proxy</code>
 - <code>leadfield_status: toy_or_declared_proxy</code>
 - <code>sensor_geometry_status: simulated_minimal</code>
-- <code>orientation_convention: declared</code>
+- <code>orientation_convention: none</code>
 - <code>units_or_status: arbitrary_proxy_units</code>
 - <code>operator_status: simulated_proxy</code>
 - <code>amplitude_status: false</code></p>
-<p><strong>Scope:</strong> MEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in <a href="../../limitations_and_future_plans/">Limitations and future plans</a>.</p>
-<p><strong>v0.2.1 status:</strong> Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.</p>
+<p><strong>Scope:</strong> MEG-proxy readouts are relative linear maps on scalar <code>Q</code>. They do not claim current orientation or physical MEG semantics. Calibration against empirical reference data is covered in <a href="../../limitations_and_future_plans/">Limitations and future plans</a>.</p>
+<p><strong>Status (verified v0.4.8, development tree):</strong> Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.</p>
 <hr />
 <h3 id="emm-proxy">EMM-proxy<a class="headerlink" href="#emm-proxy" title="Permanent link">&para;</a></h3>
 <p><strong>Name:</strong></p>
 <div class="highlight"><pre><span></span><code>EMM = electromagnetic metabolism estimate proxy
 </code></pre></div>
-<p><strong>Interpretation in v0.2.1:</strong></p>
+<p><strong>Interpretation:</strong></p>
 <div class="highlight"><pre><span></span><code>normalized electrophysiological activity / electromagnetic energy cost proxy
 </code></pre></div>
 <p><strong>Possible first operator:</strong></p>
@@ -2933,7 +4274,7 @@
 - <code>operator_status: simulated_proxy</code>
 - <code>amplitude_status: false</code></p>
 <p><strong>Important:</strong> EMM-proxy is valid for relative within-run comparisons. It represents a signaling-energy proxy suitable for optimization workflows in v0.2.x.</p>
-<p><strong>v0.2.1 status:</strong> Normalized activity cost proxy; exploratory metric for optimization.</p>
+<p><strong>Status (verified v0.4.8, development tree):</strong> Normalized activity cost proxy; exploratory metric for optimization.</p>
 <hr />
 <h2 id="mathematical-forms">Mathematical Forms<a class="headerlink" href="#mathematical-forms" title="Permanent link">&para;</a></h2>
 <p>This section formalizes the eight operators in operator-form notation. These are computational forms declared as proxy-scale operators suitable for tutorial and model-development workflows.</p>
@@ -2965,8 +4306,9 @@
 <div class="arithmatex">\[R_k = \{\mathrm{kind}, \mathrm{method}, \mathrm{units\_or\_status}, \mathrm{operator\_status}, \mathrm{physical\_amplitude\_statement\_allowed}, \ldots\}\]</div>
 <p>Each operator returns a JSON-safe report <span class="arithmatex">\(R_k\)</span> declaring operator type, computation method, status (proxy/simulated), and statement constraints.</p>
 <hr />
-<h2 id="current-status-v021-simulated-proxy">Current Status: v0.2.1 Simulated / Proxy<a class="headerlink" href="#current-status-v021-simulated-proxy" title="Permanent link">&para;</a></h2>
-<p>All eight operators in v0.2.1 are simulated or proxy readouts:</p>
+<h2 id="current-status-simulated-proxy">Current Status: Simulated / Proxy<a class="headerlink" href="#current-status-simulated-proxy" title="Permanent link">&para;</a></h2>
+<p><em>Verified as of v0.4.8 development tree — status moved from title parenthetical to sentence.</em></p>
+<p>All eight operators remain simulated or proxy readouts as of v0.4.8:</p>
 <table>
 <thead>
 <tr>
@@ -3020,15 +4362,15 @@
 </table>
 <hr />
 <h2 id="future-path">Future Path<a class="headerlink" href="#future-path" title="Permanent link">&para;</a></h2>
-<p>The v0.2.x line preserves proxy operators as stable public readouts while adding clearer validation metadata, calibration specifications, and tutorial coverage.</p>
+<p>jaxfne preserves proxy operators as stable public readouts while adding clearer validation metadata, calibration specifications, and tutorial coverage.</p>
 <p>Planned areas include:
-- <strong>v0.2.4–v0.2.6:</strong> field/proxy mathematics and admissibility diagnostics
-- <strong>v0.2.5 and v0.2.17:</strong> calibration specification and reporting workflows
-- <strong>v0.2.7–v0.2.15:</strong> Colab-ready tutorial stack and tutorial smoke tests
-- <strong>v0.2.13–v0.2.14:</strong> laminar profile templates using literature-derived technical references, including Lichtenfeld et al. (2024) and Mendoza-Halliday et al. (2024). These templates support declared profile construction and tutorial design; they reference literature without stating reproduction of the reference datasets.
-- <strong>v0.2.18–v0.2.21:</strong> operator status export, package audit, release candidate, and consolidated practical scaffold release</p>
+- field/proxy mathematics and admissibility diagnostics
+- calibration specification and reporting workflows
+- Colab-ready tutorial stack and tutorial smoke tests
+- laminar profile templates using literature-derived technical references, including Lichtenfeld et al. (2024) and Mendoza-Halliday et al. (2024). These templates support declared profile construction and tutorial design; they reference literature without stating reproduction of the reference datasets.
+- operator status export, package audit, release candidate, and consolidated practical scaffold release</p>
 <p>Calibration workflows and advanced tutorials are developed in the docs and examples.</p>
-<p><strong>Beyond v0.2.x (v0.3.x and later):</strong>
+<p><strong>Beyond the current line:</strong>
 - Receptor-level synaptic dynamics (synaptic current modeling)
 - Empirically calibrated source projection
 - Hodgkin-Huxley ion channels with biophysical parameters
@@ -3060,14 +4402,14 @@
 <hr />
 <h2 id="terminology-notes">Terminology Notes<a class="headerlink" href="#terminology-notes" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Use <code>*-proxy</code> to denote declared computational operators: <code>lfp_proxy</code>, <code>csd_proxy</code>, <code>eeg_proxy</code>, <code>meg_proxy</code> are the canonical public labels in v0.2.1+.</li>
+<li>Use <code>*-proxy</code> to denote declared computational operators: <code>lfp_proxy</code>, <code>csd_proxy</code>, <code>eeg_proxy</code>, <code>meg_proxy</code> are the canonical public labels.</li>
 <li>This terminology explicitly declares computational intent and prevents informal analogy with empirically validated readouts.</li>
 <li>All operators are "simulated" or "proxy" in v0.2.x. Statements of physical equivalence require separate calibration and validation evidence.</li>
 <li>EMM-proxy is valid for relative within-run comparisons; it represents a signaling-energy proxy in v0.2.x.</li>
 </ul>
 <hr />
-<p><strong>Document version:</strong> v0.2.1<br />
-<strong>Last updated:</strong> 2026-05-20</p>
+<p><strong>Document version:</strong> v0.4.8 (development tree)<br />
+<strong>Last updated:</strong> 2026-07-03</p>
 
 
 
@@ -3126,7 +4468,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       
