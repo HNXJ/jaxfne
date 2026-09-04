@@ -11,7 +11,7 @@ the rules those releases were held to and are historical context for readers.
 
 ## v0.4.20 (2026-09-03)
 
-Release candidate v0.4.20. Correctness repairs, canonical public continuation export, reproducible release gallery, and semantic precision alignment across documentation and downstream consumers. Δscience=0 across scientific and numerical kernels.
+Release candidate v0.4.20. Correctness fixes, canonical public continuation export, reproducible release gallery, and semantic precision alignment across documentation and downstream consumers. Δscience=0 across scientific and numerical kernels.
 
 ### Added
 - Public API: `jaxfne.run_continuation` canonical export from root package namespace (`jaxfne/__init__.py`), providing unified public access for simulation continuation across multi-chunk workloads without private imports.

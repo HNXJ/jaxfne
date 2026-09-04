@@ -2,11 +2,11 @@
   "schema": "jaxfne.public_surface_contract.v0.4.13-pass1",
   "version": "0.4.13-pass1",
   "counts": {
-    "canonical": 176,
+    "canonical": 177,
     "advanced": 58,
     "compatibility": 13,
     "experimental_internal": 18,
-    "public_exports": 189,
+    "public_exports": 190,
     "baseline_all": 265
   },
   "public_exports": [
@@ -162,6 +162,7 @@
     "readout_spec",
     "require_optax",
     "restore_state",
+    "run_continuation",
     "run_receipt",
     "run_trials",
     "runtime",

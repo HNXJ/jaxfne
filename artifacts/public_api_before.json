@@ -153,6 +153,7 @@
     "readout_spec",
     "require_optax",
     "restore_state",
+    "run_continuation",
     "run_receipt",
     "run_trials",
     "runtime",

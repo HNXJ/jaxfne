@@ -86,8 +86,8 @@ def test_public_symbol_count_contraction_from_baseline():
     −2 SurrogateConfig pair re-classified EXPERIMENTAL_INTERNAL on 2026-08-22
     W4: declaration-only dormant metadata, zero manuscript/example/doc usage)."""
     summary = public_surface_summary()
-    assert summary["counts"]["baseline_all"] == 265
-    assert summary["counts"]["public_exports"] == 189
+    assert summary["counts"]["baseline_all"] == 266
+    assert summary["counts"]["public_exports"] == 190
     assert summary["counts"]["compatibility"] == 13
     assert summary["counts"]["experimental_internal"] == 18
 
