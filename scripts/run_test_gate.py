@@ -149,9 +149,9 @@ GATE_CHECK_FAMILIES = {
 }
 
 
-def _run(cmd: list[str], *, cwd: Path | None = None) -> None:
+def _run(cmd: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None) -> None:
     print("+", " ".join(cmd), flush=True)
-    subprocess.run(cmd, cwd=cwd or ROOT, check=True, env=PYTEST_ENV)
+    subprocess.run(cmd, cwd=cwd or ROOT, check=True, env=env or PYTEST_ENV)
 
 
 def gate_dev() -> None:
@@ -212,6 +212,8 @@ def gate_release() -> None:
     _run([sys.executable, "-m", "mkdocs", "build", "--strict"])
     for example in RELEASE_EXAMPLES:
         _run([sys.executable, example])
+    # Restore static docs figures that examples mirror to keep tree clean
+    subprocess.run(["git", "checkout", "--", "docs/tutorials_v030/_static/figures"], cwd=ROOT, check=False)
 
 
 def gate_rc() -> None:
@@ -270,8 +272,11 @@ def gate_rc() -> None:
                 "assert manifest['physical_amplitude_calibrated'] is False\n"
                 "print('RC isolated wheel smoke OK: version =', jtfne.__version__)\n"
             )
+            isolated_env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+            isolated_env["PYTHONIOENCODING"] = "utf-8"
+            isolated_env["PYTHONUTF8"] = "1"
             print("+ Running isolated wheel smoke simulation...", flush=True)
-            _run([str(venv_py), "-c", smoke_code], cwd=Path(tmp_venv))
+            _run([str(venv_py), "-c", smoke_code], cwd=Path(tmp_venv), env=isolated_env)
 
     res = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=True)
     head_sha = res.stdout.strip()
