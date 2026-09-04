@@ -56,27 +56,21 @@ def test_generated_version_md_comparison():
     )
 
 def test_install_md_latest_pypi_version():
-    """docs/install.md's 'latest PyPI release' claim must track pyproject.toml.
-
-    Regression guard for the 2026-07-20 incident: install.md, colab.md,
-    quickstart.md, api/index.md, citation.md, and CITATION.cff all hardcode
-    a 'latest release'/'current version' claim as free text, none of which
-    was covered by any existing version-alignment test -- they went stale by
-    two releases (0.4.5/0.4.6) before being caught by a user, not CI.
-    scripts/sync_docs_version.py now syncs all of them in one pass; this test
-    (and its siblings below) is what makes skipping that sync a CI failure
-    instead of a silent drift.
-    """
+    """docs/install.md must truthfully distinguish published PyPI from candidate version."""
     pyproject_version = get_pyproject_version()
     root_dir = Path(__file__).resolve().parent.parent
     content = (root_dir / "docs" / "install.md").read_text(encoding="utf-8")
 
-    match = re.search(r"latest \*\*PyPI\*\* release is \*\*`jaxfne==([^`]+)`\*\*", content)
-    assert match, "Could not find the 'latest PyPI release' claim in docs/install.md"
-    assert match.group(1) == pyproject_version, (
-        f"docs/install.md claims latest PyPI release {match.group(1)!r}, "
+    match_rc = re.search(r"release candidate is \*\*`([^`]+)`\*\*", content)
+    assert match_rc, "Could not find the 'release candidate is' claim in docs/install.md"
+    assert match_rc.group(1) == pyproject_version, (
+        f"docs/install.md claims candidate {match_rc.group(1)!r}, "
         f"pyproject.toml says {pyproject_version!r}"
     )
+    # Published PyPI release must remain truthful (0.4.18 until post-publication)
+    match_pub = re.search(r"published \*\*PyPI\*\* release is \*\*`jaxfne==([^`]+)`\*\*", content)
+    assert match_pub, "Could not find published PyPI release in docs/install.md"
+    assert match_pub.group(1) == "0.4.18"
 
 
 def test_colab_md_version():
@@ -84,11 +78,12 @@ def test_colab_md_version():
     root_dir = Path(__file__).resolve().parent.parent
     content = (root_dir / "docs" / "colab.md").read_text(encoding="utf-8")
 
-    match = re.search(r"\*\*Version:\*\* latest PyPI release `jaxfne==([^`]+)`", content)
-    assert match, "Could not find the version line in docs/colab.md"
+    match = re.search(r"release candidate `([^`]+)`", content)
+    assert match, "Could not find the release candidate version in docs/colab.md"
     assert match.group(1) == pyproject_version, (
-        f"docs/colab.md claims version {match.group(1)!r}, pyproject.toml says {pyproject_version!r}"
+        f"docs/colab.md claims candidate {match.group(1)!r}, pyproject.toml says {pyproject_version!r}"
     )
+    assert "published PyPI release `jaxfne==0.4.18`" in content
 
 
 def test_quickstart_md_documents_dev_contract():
