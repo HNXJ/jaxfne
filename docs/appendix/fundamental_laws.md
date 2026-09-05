@@ -6,7 +6,7 @@
 
 > **Scope guard.** JaxFNE is a `computational_scaffold` with `field_solver_status = "linear_solver"` and `physical_amplitude_calibrated = False` by default. Every field/EEG/MEG/EMM/LFP/CSD output is a `proxy_readout` in relative proxy units, an uncalibrated physical claim — without physical amplitude calibration. This appendix is a **derivation narrative** that makes the physics→model steps explicit; it preserves the existing claim level, conductivity, and solver status without elevation.
 
-> **What JaxFNE does not numerically solve in the shipped configuration.** JaxFNE does **not** solve the full Maxwell system, the Poisson/elliptic volume-conductor PDE, the Nernst–Planck ion electrodiffusion system, or a calibrated cable equation per compartment. Those laws are declared for reference; the shipped forward path evaluates **reduced emitters → linear source projection → Gaussian proxy field → probe readouts** as explicit computational proxies defined by kernel equations. Reserved PDE-solve regimes are catalogued in [Limitations](../limitations_and_future_plans.md) and [Tensor Electromagnetics Scope](../tensor_electromagnetics_scope.md).
+> **What JaxFNE does not numerically solve in the shipped configuration.** JaxFNE does **not** solve the full Maxwell system, the Poisson/elliptic volume-conductor PDE, the Nernst–Planck ion electrodiffusion system, or a calibrated cable equation per compartment. Those laws are declared for reference; the shipped forward path evaluates **reduced emitters → linear source projection → Gaussian proxy field → probe readouts** as explicit computational proxies defined by kernel equations. Reserved PDE-solve regimes are catalogued in [Limitations](../limitations_and_future_plans.md).
 
 ---
 
@@ -286,7 +286,7 @@ documented in `docs/api/emitters.md` (Canonical source representation) and assem
 - `source_calibration_status = "uncalibrated_izhikevich_native_current"`
 - `source_scale` — explicit scalar preserving the map for later calibration
 
-> **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** The native current \(I_{\mathrm{native}}\) is the internal drive+recurrent+noise sum in Izhikevich proxy units, not amperes per membrane area. The code does **not** enforce \(\nabla\!\cdot\!\mathbf J = -q\) as a numerical conservation constraint on \(Q\); a scalar conservation proxy \(\int q\, dV \approx 0\) is *reported* (see §13 and [Conservation proxy diagnostics](../conservation_proxy_diagnostics.md)), not *enforced*. Declaring a different \(Q\) (e.g. a Jaxley-derived voltage-proxy current) is done via `jaxfne.bridges` and is recorded via `source_calibration_status`, not via the default code path.
+> **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** The native current \(I_{\mathrm{native}}\) is the internal drive+recurrent+noise sum in Izhikevich proxy units, not amperes per membrane area. The code does **not** enforce \(\nabla\!\cdot\!\mathbf J = -q\) as a numerical conservation constraint on \(Q\); a scalar conservation proxy \(\int q\, dV \approx 0\) is *reported* (see §13), not *enforced*. Declaring a different \(Q\) (e.g. a Jaxley-derived voltage-proxy current) is done via `jaxfne.bridges` and is recorded via `source_calibration_status`, not via the default code path.
 
 ---
 

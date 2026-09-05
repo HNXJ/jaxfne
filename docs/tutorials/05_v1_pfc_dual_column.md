@@ -1,17 +1,5 @@
 # V1-PFC Dual Column: Continuous AAAB Adaptation
 
-> **Status: WORKING SCRIPT, NOT YET A NOTEBOOK.** This page documents
-> `scripts/v1_pfc_continuous_aaab_smoke_test.py`, a real, runnable, verified
-> implementation -- not a design sketch. It replaces this doc's earlier
-> ASPIRATIONAL version, which described `inter_areal_connectivity=`/
-> `field(domain="dual_laminar_column")`/`"traveling_waves"` probes that were
-> never implemented anywhere in the codebase. None of that content survives
-> here. There is still no polished Jupyter notebook for this paradigm (see
-> `docs/tutorials/notebook_standard.md` for what "polished" means in this
-> repo) -- run the script directly as shown below. Verified against the
-> actual source as of 2026-07-05; if this page and the script ever disagree,
-> the script is correct.
-
 Two 100-neuron canonical laminar columns, **V1** and **PFC**, both
 HDP-enabled, connected V1→PFC feedforward. V1's L4 and L6 host three
 disjoint/overlapping tuning-group populations (`AB`, `A`, `B`) that are
