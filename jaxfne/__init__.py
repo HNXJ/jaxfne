@@ -338,7 +338,7 @@ __version__ = _JAXFNE_VERSION
 Net = Model
 
 
-import sys
+import sys as _sys
 from types import ModuleType as _ModuleType
 
 
@@ -393,8 +393,8 @@ class _RuntimeModuleWrapper(_ModuleType):
 
 
 # Replace jaxfne module in sys.modules with the wrapper to handle attribute access
-_current_module = sys.modules[__name__]
+_current_module = _sys.modules[__name__]
 _wrapper = _RuntimeModuleWrapper(__name__)
 _wrapper.__dict__.update(_current_module.__dict__)
 _wrapper.__file__ = __file__
-sys.modules[__name__] = _wrapper
+_sys.modules[__name__] = _wrapper

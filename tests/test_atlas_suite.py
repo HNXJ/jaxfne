@@ -152,3 +152,77 @@ def test_atlas_non_mutation_invariant(tmp_path):
     np.testing.assert_array_equal(sig.V_m, orig_vm)
     np.testing.assert_array_equal(sig.time_ms, orig_time)
     assert dict(model.summary()) == orig_summary
+# --- README / docs unity gates ------------------------------------------------
+#
+# The README's static stills and the docs' interactive panels must stay derived
+# from the same canonical panel set. The README binaries had no generator, so
+# nothing could detect drift between the two surfaces or a renamed panel.
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+README_PNG_DIR = ROOT / "docs" / "assets" / "readme"
+
+
+def test_readme_still_exists_for_every_fixed_panel():
+    """Each canonical panel has a committed README still under its own name."""
+    for filename in FIXED:
+        stem = filename.removesuffix(".html")
+        png = README_PNG_DIR / f"{stem}.png"
+        assert png.exists(), (
+            f"missing README still {png.relative_to(ROOT)} for panel {filename!r}; "
+            "regenerate with python scripts/generate_readme_atlas.py"
+        )
+        assert png.stat().st_size > 0
+
+
+def test_no_orphan_readme_stills():
+    """No README still may survive a panel rename."""
+    expected = {f.removesuffix(".html") + ".png" for f in FIXED}
+    actual = {p.name for p in README_PNG_DIR.glob("*.png")}
+    orphans = actual - expected
+    assert not orphans, (
+        f"README stills with no corresponding panel: {sorted(orphans)}; "
+        "regenerate with python scripts/generate_readme_atlas.py"
+    )
+
+
+def test_public_pages_reference_current_panel_names():
+    """README, docs landing page and atlas guide must link the current panels.
+
+    Checks asset and panel *references*, not prose -- the atlas guide names the
+    retired panel deliberately when explaining why it was renamed.
+    """
+    pages = [
+        ROOT / "README.md",
+        ROOT / "docs" / "index.md",
+        ROOT / "docs" / "guides" / "atlas_suite.md",
+    ]
+    retired_assets = ("operating_point.html", "operating_point.png")
+    for page in pages:
+        text = page.read_text(encoding="utf-8")
+        for ref in retired_assets:
+            assert ref not in text, f"{page.name} still references retired asset {ref!r}"
+
+    # The 6-panel grammar list must name the current panel.
+    for page in (ROOT / "README.md", ROOT / "docs" / "index.md"):
+        text = page.read_text(encoding="utf-8")
+        assert "`spectral`, `state_summary`)" in text, (
+            f"{page.name} does not list the current 6-panel grammar"
+        )
+
+    guide = (ROOT / "docs" / "guides" / "atlas_suite.md").read_text(encoding="utf-8")
+    for filename in FIXED:
+        assert filename in guide, f"atlas guide does not document panel {filename!r}"
+
+
+def test_readme_atlas_generator_pins_the_published_configuration():
+    """The generator's pinned config is the one the published atlas records."""
+    from scripts.generate_readme_atlas import EXPECTED_CONFIG_HASH
+
+    manifest = json.loads(
+        (ROOT / "docs" / "_static" / "atlas" / "manifest.json").read_text(encoding="utf-8")
+    )
+    assert manifest["config_hash"] == EXPECTED_CONFIG_HASH
+    published = {p["file"] for p in manifest["panels"]}
+    assert set(FIXED) <= published, (
+        f"published atlas is missing canonical panels: {sorted(set(FIXED) - published)}"
+    )

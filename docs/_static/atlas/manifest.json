@@ -43,11 +43,11 @@
       "bytes": 19124
     },
     {
-      "file": "operating_point.html",
-      "panel": "Operating point",
+      "file": "state_summary.html",
+      "panel": "State summary",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 11566
+      "bytes": 11562
     },
     {
       "file": "field.html",
@@ -57,5 +57,5 @@
       "bytes": 83345
     }
   ],
-  "sha256": "e68584facd3fcf81"
+  "sha256": "a5a0bdddb3b89abb"
 }

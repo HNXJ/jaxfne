@@ -30,42 +30,140 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.run_test_gate import RELEASE_CI_GATE_FAMILIES
+from scripts.run_test_gate import (
+    ATTESTATION_SCHEMA,
+    RELEASE_CI_GATE_FAMILIES,
+    attestation_path,
+)
 
 
-def verify_pre_release_gate_receipt(intended_sha: str) -> list[str]:
-    """Verify that a valid, matching release candidate gate receipt exists.
+def _as_exit_code(value: object) -> int:
+    """Coerce a recorded exit code, treating anything unparseable as a failure."""
+    try:
+        return int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 1
 
-    Enforces the invariant:
-        PRE_RELEASE_GATE >= RELEASE_CI_GATE
-    before any publication authorization.
+
+def _family_execution_evidence(rec: object) -> tuple[bool, str]:
+    """Decide whether one ledger record is evidence of successful execution.
+
+    A record only counts when it names a command that actually ran, carries both
+    timestamps, and reports a zero exit for every recorded invocation. A family
+    that was declared but never executed carries no command and fails here.
     """
-    receipt_path = ROOT / "artifacts" / "receipts" / "release_candidate_gate_receipt.json"
-    if not receipt_path.exists():
+    if not isinstance(rec, dict):
+        return False, "record is not an object"
+    commands = rec.get("commands") or []
+    if not commands or not rec.get("command"):
+        return False, "declared but not executed (no command recorded)"
+    if not rec.get("started") or not rec.get("completed"):
+        return False, "missing started/completed timestamps"
+    for entry in commands:
+        if not isinstance(entry, dict) or _as_exit_code(entry.get("exit_code")) != 0:
+            return False, "a recorded command exited non-zero"
+    if _as_exit_code(rec.get("exit_code")) != 0:
+        return False, f"exit_code={rec.get('exit_code')!r}"
+    if rec.get("status") != "PASS":
+        return False, f"status={rec.get('status')!r}"
+    return True, ""
+
+
+def verify_pre_release_gate_receipt(
+    intended_sha: str,
+    *,
+    expected_tree_sha: str | None = None,
+) -> list[str]:
+    """Authorize a release candidate from observed RC-gate execution evidence.
+
+    Enforces, without trusting any stored literal:
+
+      attestation.commit_sha == intended_sha
+      observed_pass_families >= RELEASE_CI_GATE_FAMILIES
+      every required family has actual successful execution evidence
+
+    ``observed_pass_families`` and ``pre_release_subsumes_ci`` are re-derived
+    from the per-family ledger here; the values stored in the attestation are
+    cross-checked against that derivation and rejected when they disagree, so a
+    hand-edited literal cannot authorize a release.
+    """
+    path = attestation_path()
+    if not path.exists():
         return [
-            f"Missing release candidate gate receipt at {receipt_path}. "
-            "Run 'python scripts/run_test_gate.py rc' to execute the pre-release gate."
+            f"Missing release candidate gate attestation at {path}. "
+            "Run 'python scripts/run_test_gate.py rc' on the candidate SHA."
         ]
     try:
-        data = json.loads(receipt_path.read_text(encoding="utf-8"))
+        data = json.loads(path.read_text(encoding="utf-8"))
     except Exception as e:
-        return [f"Corrupt release candidate gate receipt: {e}"]
+        return [f"Corrupt release candidate gate attestation: {e}"]
+    if not isinstance(data, dict):
+        return ["Corrupt release candidate gate attestation: top level is not an object"]
 
-    errors = []
-    if data.get("status") != "PASS":
-        errors.append(f"RC gate receipt status is {data.get('status')!r}, expected 'PASS'")
+    errors: list[str] = []
+
+    if data.get("schema") != ATTESTATION_SCHEMA:
+        errors.append(
+            f"RC attestation schema {data.get('schema')!r} != expected {ATTESTATION_SCHEMA!r}"
+        )
+
     receipt_sha = data.get("commit_sha", "")
     if receipt_sha != intended_sha:
         errors.append(
-            f"RC gate receipt commit SHA ({receipt_sha}) != intended release SHA ({intended_sha})"
+            f"RC attestation commit SHA ({receipt_sha}) != intended release SHA ({intended_sha})"
         )
 
-    executed = set(data.get("check_families", []))
-    missing = RELEASE_CI_GATE_FAMILIES - executed
+    if data.get("working_tree_clean") is not True:
+        errors.append("RC attestation reports a dirty working tree at gate time")
+
+    if expected_tree_sha is not None and data.get("tree_sha") != expected_tree_sha:
+        errors.append(
+            f"RC attestation tree SHA ({data.get('tree_sha')}) != candidate tree ({expected_tree_sha})"
+        )
+
+    records: dict[str, object] = {}
+    for rec in data.get("families") or []:
+        if isinstance(rec, dict) and rec.get("family"):
+            records[str(rec["family"])] = rec
+
+    observed = {fam for fam, rec in records.items() if _family_execution_evidence(rec)[0]}
+
+    for family in sorted(RELEASE_CI_GATE_FAMILIES):
+        if family not in records:
+            errors.append(
+                f"RC attestation has no execution record for required family {family!r}"
+            )
+            continue
+        ok, why = _family_execution_evidence(records[family])
+        if not ok:
+            errors.append(
+                f"Required family {family!r} lacks successful execution evidence: {why}"
+            )
+
+    missing = RELEASE_CI_GATE_FAMILIES - observed
     if missing:
         errors.append(
-            f"RC gate receipt missing required check families: {sorted(missing)}"
+            f"observed_pass_families does not cover required families: {sorted(missing)}"
         )
+
+    stored_observed = set(data.get("observed_pass_families") or [])
+    if stored_observed != observed:
+        errors.append(
+            "Stored observed_pass_families disagrees with the per-family ledger "
+            f"(stored-only: {sorted(stored_observed - observed)}, "
+            f"ledger-only: {sorted(observed - stored_observed)})"
+        )
+
+    derived_subsumes = RELEASE_CI_GATE_FAMILIES.issubset(observed)
+    if data.get("pre_release_subsumes_ci") is not derived_subsumes:
+        errors.append(
+            f"Stored pre_release_subsumes_ci ({data.get('pre_release_subsumes_ci')!r}) "
+            f"disagrees with the value derived from observed execution ({derived_subsumes!r})"
+        )
+
+    if data.get("status") != "PASS":
+        errors.append(f"RC attestation status is {data.get('status')!r}, expected 'PASS'")
+
     return errors
 
 
@@ -167,8 +265,13 @@ def main():
             f"Tag peeled SHA ({tag_peeled_sha}) != intended_release_sha ({intended_sha})"
         )
 
-    # 11. Gate: Pre-release RC gate receipt must exist, match intended_sha, and cover all CI families
-    rc_errors = verify_pre_release_gate_receipt(intended_sha)
+    # 11. Gate: the RC attestation must record observed execution of every
+    #     blocking family, on this exact candidate (SHA and tree), with a clean
+    #     working tree. Nothing here trusts a stored literal.
+    intended_tree_sha = run_cmd(["git", "rev-parse", f"{intended_sha}^{{tree}}"]) or None
+    rc_errors = verify_pre_release_gate_receipt(
+        intended_sha, expected_tree_sha=intended_tree_sha
+    )
     failure_reasons.extend(rc_errors)
 
     # Reconciliation only true when ALL gates pass

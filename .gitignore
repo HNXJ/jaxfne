@@ -32,6 +32,12 @@ htmlcov/
 .env.local
 credentials.json
 
+# RC gate attestations are untracked by design: an attestation committed to
+# the tree changes the SHA it attests to, so it could never certify the
+# released commit itself. Produced by 'run_test_gate.py rc' and uploaded as
+# a CI artifact; see docs/ci_policy.md.
+artifacts/attestations/
+
 # Generated runtime artifacts
 outputs/
 outputs-provenance-patched.zip

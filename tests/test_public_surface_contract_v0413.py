@@ -7,6 +7,11 @@ from pathlib import Path
 
 import jaxfne as jtfne
 from jaxfne.public_surface import (
+    _ADVANCED,
+    _ALL_CLASSIFIED,
+    _CANONICAL,
+    _COMPATIBILITY,
+    _EXPERIMENTAL_INTERNAL,
     ADVANCED_NAMESPACE,
     COMPATIBILITY_DEPRECATIONS,
     INTERNAL_HDP_RULE_IDS,
@@ -104,3 +109,101 @@ def test_surrogate_config_pair_is_experimental_not_public():
     # construction semantics unchanged
     s = jtfne.surrogate_config(method="straight_through", beta=8.0)
     assert s is not None
+
+
+# --- Contract artifact drift gates -------------------------------------------
+#
+# The artifact previously drifted from the module in two places at once
+# (counts.baseline_all recorded 265 against a live 266, and hdp_param_groups
+# lost the H-boundary-stabilization keys) because only `public_exports` was
+# ever compared. These gates hold every field, so the artifact cannot go stale
+# silently again. Regenerate with scripts/generate_public_surface_contract.py.
+
+def _artifact() -> dict:
+    return json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
+
+
+def test_contract_artifact_every_count_field_matches_live():
+    """Every count field -- not just public_exports -- must match the module."""
+    live = public_surface_summary()["counts"]
+    stored = _artifact()["counts"]
+    assert set(stored) == set(live), (
+        f"count field set drift: artifact-only={sorted(set(stored) - set(live))}, "
+        f"live-only={sorted(set(live) - set(stored))}"
+    )
+    mismatched = {k: (stored[k], live[k]) for k in live if stored[k] != live[k]}
+    assert not mismatched, f"count drift (artifact, live): {mismatched}"
+
+
+def test_contract_artifact_matches_generator_output_exactly():
+    """The tracked artifact must be exactly what the generator emits."""
+    from scripts.generate_public_surface_contract import render
+
+    assert CONTRACT_PATH.read_text(encoding="utf-8") == render(), (
+        "artifacts/public_surface_contract_v0413.json is stale; regenerate with "
+        "python scripts/generate_public_surface_contract.py"
+    )
+
+
+def test_contract_artifact_non_count_fields_match_live():
+    """Payload fields beyond counts must also track the module."""
+    live = public_surface_summary()
+    stored = _artifact()
+    for field in (
+        "schema",
+        "version",
+        "public_exports",
+        "compatibility_deprecations",
+        "hdp_param_groups",
+        "internal_hdp_rule_ids",
+        "public_h_state_localities",
+    ):
+        assert stored[field] == live[field], f"artifact field {field!r} drifted from the module"
+
+
+def test_counts_are_internally_arithmetically_consistent():
+    """baseline_all must equal the sum of the four tier counts, in both places.
+
+    The stale artifact was self-inconsistent: 177+58+13+18 = 266 while it
+    recorded baseline_all = 265.
+    """
+    for label, counts in (("live", public_surface_summary()["counts"]), ("artifact", _artifact()["counts"])):
+        tier_sum = (
+            counts["canonical"]
+            + counts["advanced"]
+            + counts["compatibility"]
+            + counts["experimental_internal"]
+        )
+        assert counts["baseline_all"] == tier_sum, (
+            f"{label} counts inconsistent: tiers sum to {tier_sum} but "
+            f"baseline_all = {counts['baseline_all']}"
+        )
+
+
+def test_tier_sets_are_disjoint():
+    """The four tiers partition the classified baseline; no symbol has two tiers.
+
+    Disjointness is what makes the arithmetic check above meaningful -- an
+    overlap would make |union| < sum without either number being wrong.
+    """
+    tiers = {
+        "CANONICAL": _CANONICAL,
+        "ADVANCED": _ADVANCED,
+        "COMPATIBILITY": _COMPATIBILITY,
+        "EXPERIMENTAL_INTERNAL": _EXPERIMENTAL_INTERNAL,
+    }
+    names = sorted(tiers)
+    for i, a in enumerate(names):
+        for b in names[i + 1:]:
+            overlap = tiers[a] & tiers[b]
+            assert not overlap, f"symbols classified in both {a} and {b}: {sorted(overlap)}"
+
+    assert len(_ALL_CLASSIFIED) == sum(len(t) for t in tiers.values())
+    assert _ALL_CLASSIFIED == set().union(*tiers.values())
+
+
+def test_public_exports_partition_matches_canonical_plus_compatibility():
+    """PUBLIC_EXPORTS is exactly CANONICAL | COMPATIBILITY, with no leakage."""
+    assert set(PUBLIC_EXPORTS) == set(_CANONICAL) | set(_COMPATIBILITY)
+    assert not set(PUBLIC_EXPORTS) & set(_ADVANCED)
+    assert not set(PUBLIC_EXPORTS) & set(_EXPERIMENTAL_INTERNAL)

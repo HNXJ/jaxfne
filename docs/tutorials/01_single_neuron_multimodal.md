@@ -74,7 +74,7 @@ for r in readouts:
 
 ## Visualize with Canonical Atlas
 
-Generate the full interactive 6-panel visualization atlas (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`, `operating_point`):
+Generate the full interactive 6-panel visualization atlas (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`, `state_summary`):
 
 ```python
 from jaxfne.vis.atlas_suite import build_atlas

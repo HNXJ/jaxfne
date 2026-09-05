@@ -99,7 +99,7 @@ explicit transformation with evidence. See [Scope & status](docs/scope_and_statu
 
 ## Canonical Visualization Atlas
 
-The JaxFNE Canonical Atlas provides a unified 6-panel visual grammar (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`, `operating_point`) with strict evidence-level separation (**OBSERVED** vs. **DERIVED**), deterministic degradation tracking, and cryptographic manifest provenance.
+The JaxFNE Canonical Atlas provides a unified 6-panel visual grammar (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`, `state_summary`) with strict evidence-level separation (**OBSERVED** vs. **DERIVED**), deterministic degradation tracking, and cryptographic manifest provenance.
 
 Every preview below is generated directly from realized JaxFNE simulation outputs (`canonical-v1-column-1000n` scaffold):
 
@@ -141,9 +141,9 @@ Every preview below is generated directly from realized JaxFNE simulation output
     </td>
     <td align="center" width="50%">
       <a href="https://jaxfne.readthedocs.io/en/latest/">
-        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/operating_point.png" alt="Operating Point" width="100%">
+        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/state_summary.png" alt="State Summary" width="100%">
       </a><br>
-      <sub><b>6. Operating Point</b> (DERIVED): Cell-type rate distributions and silence fractions</sub>
+      <sub><b>6. State Summary</b> (DERIVED): Cell-type rate distributions and silence fractions</sub>
     </td>
   </tr>
 </table>

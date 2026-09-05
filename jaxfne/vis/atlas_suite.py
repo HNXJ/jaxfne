@@ -12,7 +12,7 @@ Six fixed panels (always emitted, even for a single neuron):
   3. raster.html          — plot_raster(signals, model)               OBSERVED
   4. traces.html          — plot_membrane_potentials(signals, model)  OBSERVED
   5. spectral.html        — plot_psd (+spectrogram when feasible)     DERIVED
-  6. operating_point.html — summary + per-cell-type rates (custom)    DERIVED
+  6. state_summary.html   — summary + per-cell-type rates (custom)    DERIVED
 Optional:
   field.html             — plot_lfp (+plot_csd) when field non-empty  DERIVED
 
@@ -42,7 +42,7 @@ PANELS: Tuple[Tuple[str, str, str], ...] = (
     ("raster.html", "Spike raster", "OBSERVED"),
     ("traces.html", "Membrane traces", "OBSERVED"),
     ("spectral.html", "Spectral (PSD)", "DERIVED"),
-    ("operating_point.html", "Operating point", "DERIVED"),
+    ("state_summary.html", "State summary", "DERIVED"),
 )
 
 OPTIONAL_FIELD_FILE = "field.html"
@@ -148,7 +148,7 @@ def _empty_note_fig(text: str):  # type: ignore[no-untyped-def]
     return fig
 
 
-def _build_operating_point_fig(model: Any, signals: Any):  # type: ignore[no-untyped-def]
+def _build_state_summary_fig(model: Any, signals: Any):  # type: ignore[no-untyped-def]
     """Rates per cell-type + summary counts. Pure numpy/plotly, N>=1 safe."""
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
@@ -199,7 +199,7 @@ def _build_operating_point_fig(model: Any, signals: Any):  # type: ignore[no-unt
     fig.update_yaxes(title_text="% silent", range=[0, 100], row=1, col=2)
     fig.update_layout(paper_bgcolor="#0d1117", plot_bgcolor="#161b22",
                       font=dict(color="#c9d1d9"), width=1180, height=520,
-                      title="<b>Operating point</b> (rates from spike counts; DERIVED)")
+                      title="<b>State summary</b> (rates from spike counts; DERIVED)")
     return fig, rates, silence, dur_ms
 
 
@@ -300,11 +300,11 @@ def build_atlas(
           _spectral_fig)
 
     def _op_fig():  # type: ignore[no-untyped-def]
-        fig, rates, silence, dur = _build_operating_point_fig(model, signals)
+        fig, rates, silence, dur = _build_state_summary_fig(model, signals)
         _op_fig.info = {"rates": rates, "silence": silence, "dur_ms": dur}  # type: ignore[attr-defined]
         return fig
 
-    _emit("operating_point.html", "Operating point", "DERIVED",
+    _emit("state_summary.html", "State summary", "DERIVED",
           "Mean rate + silence fraction per cell type from spike counts; counts from model.summary().",
           _op_fig, extra={"summary": json.dumps(counts["summary"], default=str)[:500]})
 
