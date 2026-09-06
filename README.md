@@ -93,6 +93,20 @@ explicit transformation with evidence. See [Scope & status](docs/scope_and_statu
 | Frozen compatibility contract (0.4.13) | [docs/public_surface_contract.md](docs/public_surface_contract.md) |
 | Changelog | [docs/changelog.md](docs/changelog.md) |
 
+## For AI agents
+
+Read and inspect [`artifacts/context.md`](https://github.com/HNXJ/jaxfne/blob/main/artifacts/context.md).
+
+It is a router rather than a specification: it names the single public import, the two
+invariant grammars, where authority actually lives, and the gate commands that settle a claim.
+Reading and inspecting that one file is enough to orient a coding agent — one working in a
+terminal, in a sandbox, or under any memory- or skill-based harness — without re-deriving the
+public API from source or guessing at the internal layout.
+
+The file is present in the repository and in the source distribution. It is not installed
+alongside the wheel, so an agent working from an installed package should read it at the link
+above.
+
 ## Citation
 
 [`CITATION.cff`](CITATION.cff) · [citation guide](docs/citation.md)

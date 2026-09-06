@@ -92,14 +92,17 @@ jobs:
           # and must run all 8 builder tests.
           PYTHONPATH=. python scripts/run_test_gate.py dev
 
-      # Real notebook execution (the `notebook` marker) is covered by the
-      # dedicated, scheduled/manual notebook_execution.yml workflow instead
-      # of every main push -- 28 release-facing notebooks can take well over
-      # an hour combined. Other `slow` tests still run here on main.
+      # This job's broad gate selects `-m "not slow"`, so it does not execute
+      # the `notebook` marker itself. Those tests are not excluded repository
+      # wide: release_ci.yml runs `pytest` unfiltered on every push to main,
+      # which selects the notebook set too, and notebook_execution.yml runs
+      # that marker on a schedule. The release-candidate gate executes it as a
+      # blocking family, so the RC gate covers the release CI test population
+      # (see docs/ci_policy.md). Other `slow` tests still run here on main.
       - name: Run all tests (broad gate — comprehensive non-slow, with viz)
         if: github.ref == 'refs/heads/main'
         run: |
-          # Broad gate: not slow (3573 tests) with viz/reportlab present → all 8 builder tests run.
+          # Broad gate: -m "not slow", with viz/reportlab present → all 8 builder tests run.
           PYTHONPATH=. python scripts/run_test_gate.py broad
 
       - name: Upload coverage report

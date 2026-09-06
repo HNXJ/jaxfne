@@ -153,6 +153,7 @@ class TestAgentContextHygiene:
         """No current public-facing grammar may terminate in Evidence or revive the legacy chain."""
         surfaces = [
             "README.md",
+            "artifacts/context.md",
             "docs/index.md",
             "docs/api/index.md",
             "docs/for_ai_agents.md",
@@ -167,6 +168,22 @@ class TestAgentContextHygiene:
             assert "Optimizer → Evidence" not in content, f"{path} uses stale Evidence terminal"
             assert "Config -> Net -> Paradigm" not in content, f"{path} revives the legacy chain"
             assert "Config → Net → Paradigm" not in content, f"{path} revives the legacy chain"
+
+    def test_agent_context_router_exists_and_is_linked_from_readme(self):
+        """The README's agent entry point must resolve to a real file.
+
+        The README links the router by absolute URL so it renders for readers of the
+        published package, which means a rename or deletion here would ship a dead
+        link with nothing failing. This ties the link back to the path on disk.
+        """
+        router = Path("artifacts/context.md")
+        assert router.exists(), f"README points agents at a missing file: {router}"
+
+        readme = Path("README.md").read_text(encoding="utf-8")
+        assert "artifacts/context.md" in readme, (
+            "README no longer references artifacts/context.md; the router is orphaned"
+        )
+        assert "## For AI agents" in readme, "README lost its agent entry-point section"
 
     def test_repository_state_script_is_present(self):
         """Volatile checkout facts have a read-only derivation command."""
