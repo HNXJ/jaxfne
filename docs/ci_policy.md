@@ -40,9 +40,23 @@ See `scripts/run_test_gate.py` for the authoritative step list. Summary:
 ### release gate
 
 - Everything in **broad**
-- Additional `-m slow` tests
+- `-m "slow and not notebook"` tests
+- `-m notebook` tests
 - `mkdocs build --strict`
 - Release example scripts (`examples/00`–`08` core set)
+
+The three pytest sweeps use the named selectors `BROAD_MARKER_EXPR`,
+`SLOW_MARKER_EXPR` and `NOTEBOOK_MARKER_EXPR` in `scripts/run_test_gate.py`, and
+together they must be **exhaustive** over the `(slow, notebook)` marker algebra.
+
+This matters because release CI on `main` runs `pytest tests` with no marker
+filter. Matching check-family *names* does not prove matching test *sets*: the
+gate previously ran only `not slow` and `slow and not notebook`, so the 30 node
+ids carrying the `notebook` marker were executed by release CI and never by the
+RC gate — every family name lined up while the invariant was broken underneath.
+`tests/test_release_gate_hierarchy.py` now proves exhaustiveness mechanically,
+and fails if release CI ever gains a marker filter or an `--ignore`, since the
+coverage argument depends on release CI selecting everything.
 
 ### publication gate
 
@@ -119,6 +133,20 @@ all of the following hold:
 the ledger during verification and cross-checked against the stored values, so
 editing either field by hand cannot authorize a release. See
 `tests/test_release_gate_hierarchy.py` for the adversarial cases.
+
+## Branch protection
+
+`main` requires status checks. Job names are unique across workflows
+(`fast-test` / `fast-build` in `ci.yml`, `release-test` / `release-build` in
+`release_ci.yml`) because required checks are keyed by job name: while both
+workflows exposed `test (3.12)`, `test (3.13)` and `build`, a required context
+could be satisfied by whichever run reported last, making enforcement weaker
+than it looked. A regression test rejects reintroduced collisions.
+
+`enforce_admins` is deliberately **off**. Turning it on would also enforce the
+existing `required_pull_request_reviews` against repository admins, which is a
+workflow decision separate from requiring CI, and is left to explicit approval.
+Admin pushes therefore still bypass the required checks.
 
 ## Documentation surfaces
 

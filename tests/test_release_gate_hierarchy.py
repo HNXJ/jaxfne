@@ -19,7 +19,11 @@ import re
 
 from scripts.run_test_gate import (
     ATTESTATION_SCHEMA,
+    BROAD_MARKER_EXPR,
     CHECK_FAMILIES,
+    NOTEBOOK_MARKER_EXPR,
+    RC_MARKER_EXPRS,
+    SLOW_MARKER_EXPR,
     RELEASE_CI_GATE_FAMILIES,
     GATE_CHECK_FAMILIES,
     GATES,
@@ -321,3 +325,111 @@ def test_gates_cli_rc_registered():
     assert "rc" in GATES
     assert "release-candidate" in GATES
     assert GATES["rc"] == GATES["release-candidate"]
+# --- Effective test population, not just family names -------------------------
+#
+# Matching check-family names does NOT prove matching test sets. Release CI on
+# main runs `pytest tests` with no marker filter; the RC gate ran only
+# "not slow" and "slow and not notebook", so the 30 node ids carrying the
+# `notebook` marker were executed by release CI and never by the RC gate. Every
+# family name lined up while the invariant was broken underneath. These gates
+# check the selection algebra itself.
+
+
+def _selects(expr: str, *, slow: bool, notebook: bool) -> bool:
+    """Evaluate a pytest -m expression over the (slow, notebook) marker algebra."""
+    return bool(eval(expr, {"__builtins__": {}}, {"slow": slow, "notebook": notebook}))
+
+
+def test_rc_marker_selectors_are_exhaustive():
+    """The RC sweeps must cover every (slow, notebook) combination.
+
+    Release CI applies no marker filter, so an uncovered combination is a test
+    release CI runs and the RC gate does not.
+    """
+    uncovered = [
+        (slow, notebook)
+        for slow in (False, True)
+        for notebook in (False, True)
+        if not any(_selects(e, slow=slow, notebook=notebook) for e in RC_MARKER_EXPRS)
+    ]
+    assert not uncovered, (
+        "RC gate does not select these (slow, notebook) combinations: "
+        f"{uncovered}; release CI would execute them and the RC gate would not"
+    )
+
+
+def test_notebook_selector_is_the_gap_the_other_two_leave():
+    """The notebook sweep exists precisely to close the broad/slow gap."""
+    gap = [
+        (slow, notebook)
+        for slow in (False, True)
+        for notebook in (False, True)
+        if not _selects(BROAD_MARKER_EXPR, slow=slow, notebook=notebook)
+        and not _selects(SLOW_MARKER_EXPR, slow=slow, notebook=notebook)
+    ]
+    assert gap == [(True, True)], f"unexpected broad/slow gap: {gap}"
+    for slow, notebook in gap:
+        assert _selects(NOTEBOOK_MARKER_EXPR, slow=slow, notebook=notebook)
+
+
+def test_release_ci_pytest_sweep_is_unfiltered():
+    """If release CI ever gains a -m filter, the exhaustiveness argument changes.
+
+    The proof that RC covers release rests on release CI selecting *everything*.
+    """
+    text = (ROOT / ".github" / "workflows" / "release_ci.yml").read_text(encoding="utf-8")
+    # Inspect only the arguments after the `pytest` token: `python -m pytest`
+    # is the module flag, not a marker filter.
+    sweeps = [ln.split("pytest", 1)[1] for ln in text.splitlines() if "python -m pytest" in ln]
+    unfiltered = [args for args in sweeps if " -m " not in args]
+    assert unfiltered, (
+        "release_ci.yml no longer has an unfiltered pytest sweep; the RC "
+        "coverage argument rests on release CI selecting everything"
+    )
+    for args in unfiltered:
+        assert "--ignore" not in args, (
+            f"release CI sweep gained an --ignore: {args.strip()!r}"
+        )
+
+
+def test_pytest_notebook_is_a_required_family():
+    """Release CI executes the notebook set, so it is release-blocking."""
+    assert "pytest_notebook" in RELEASE_CI_GATE_FAMILIES
+    assert "pytest_notebook" in GATE_CHECK_FAMILIES["rc"]
+    assert "pytest_notebook" in GATE_CHECK_FAMILIES["release"]
+
+
+# --- Branch-protection context uniqueness -------------------------------------
+
+
+def _workflow_job_names(filename: str) -> list[str]:
+    """Top-level job ids in a workflow (two-space indented keys under `jobs:`)."""
+    text = (ROOT / ".github" / "workflows" / filename).read_text(encoding="utf-8")
+    names, in_jobs = [], False
+    for line in text.splitlines():
+        if line.startswith("jobs:"):
+            in_jobs = True
+            continue
+        if in_jobs:
+            if line and not line.startswith(" "):
+                break
+            if re.fullmatch(r"  [A-Za-z0-9_-]+:", line):
+                names.append(line.strip().rstrip(":"))
+    return names
+
+
+def test_ci_job_names_are_unique_across_workflows():
+    """Required status checks are keyed by job name, so names must not collide.
+
+    `test (3.12)`, `test (3.13)` and `build` were previously emitted by both
+    workflows, so a required context could be satisfied by whichever run
+    reported last -- enforcement weaker than it appeared.
+    """
+    fast = _workflow_job_names("ci.yml")
+    release = _workflow_job_names("release_ci.yml")
+    assert fast and release, f"failed to parse job names: fast={fast} release={release}"
+    collisions = set(fast) & set(release)
+    assert not collisions, (
+        f"job names shared by ci.yml and release_ci.yml: {sorted(collisions)}; "
+        "branch protection cannot require one workflow's job specifically"
+    )

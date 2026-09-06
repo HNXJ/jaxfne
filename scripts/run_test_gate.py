@@ -46,6 +46,20 @@ DEV_PYTEST_TARGETS = [
     "tests/test_mcc.py",
 ]
 
+# Marker selectors for the pytest sweeps.
+#
+# Together these MUST be exhaustive over the (slow, notebook) marker algebra.
+# Release CI on main runs `pytest tests` with no marker filter, so any
+# combination not covered here is a test that release CI executes and the RC
+# gate does not -- which silently breaks PRE_RELEASE_GATE >= RELEASE_CI_GATE at
+# the test-population level even while every check-family name lines up.
+# That is exactly how the `notebook` set (30 node ids) went uncovered.
+# tests/test_release_gate_hierarchy.py proves exhaustiveness mechanically.
+BROAD_MARKER_EXPR = "not slow"
+SLOW_MARKER_EXPR = "slow and not notebook"
+NOTEBOOK_MARKER_EXPR = "notebook"
+RC_MARKER_EXPRS = (BROAD_MARKER_EXPR, SLOW_MARKER_EXPR, NOTEBOOK_MARKER_EXPR)
+
 # Test modules excluded from the broad/release/rc pytest sweeps.
 #
 # Empty since 0.4.20. The two multi-area modules were excluded in d4e3f72
@@ -88,6 +102,7 @@ CHECK_FAMILIES = {
     "docs_build_strict",
     "pytest_broad",
     "pytest_slow",
+    "pytest_notebook",
     "examples_smoke",
     "package_build",
     "twine_check",
@@ -103,6 +118,9 @@ RELEASE_CI_GATE_FAMILIES = {
     "docs_build_strict",
     "pytest_broad",
     "pytest_slow",
+    # Release CI on main runs `pytest tests` unfiltered, so it executes the
+    # notebook set too. The RC gate must therefore execute it as well.
+    "pytest_notebook",
     "examples_smoke",
     "package_build",
     "twine_check",
@@ -135,6 +153,7 @@ GATE_CHECK_FAMILIES = {
         "docs_build_strict",
         "pytest_broad",
         "pytest_slow",
+        "pytest_notebook",
         "examples_smoke",
     },
     "rc": {
@@ -147,6 +166,7 @@ GATE_CHECK_FAMILIES = {
         "docs_build_strict",
         "pytest_broad",
         "pytest_slow",
+        "pytest_notebook",
         "examples_smoke",
         "package_build",
         "twine_check",
@@ -284,7 +304,7 @@ def gate_broad() -> None:
         "tests",
         "-q",
         "-m",
-        "not slow",
+        BROAD_MARKER_EXPR,
         "--tb=short",
     ]
     for path in BROAD_PYTEST_IGNORE:
@@ -301,12 +321,25 @@ def gate_release() -> None:
         "tests",
         "-q",
         "-m",
-        "slow and not notebook",
+        SLOW_MARKER_EXPR,
         "--tb=short",
     ]
     for path in BROAD_PYTEST_IGNORE:
         slow_cmd.extend(["--ignore", path])
     _run(slow_cmd, family="pytest_slow")
+    notebook_cmd = [
+        sys.executable,
+        "-m",
+        "pytest",
+        "tests",
+        "-q",
+        "-m",
+        NOTEBOOK_MARKER_EXPR,
+        "--tb=short",
+    ]
+    for path in BROAD_PYTEST_IGNORE:
+        notebook_cmd.extend(["--ignore", path])
+    _run(notebook_cmd, family="pytest_notebook")
     _run([sys.executable, "-m", "mkdocs", "build", "--strict"], family="docs_build_strict")
     for example in RELEASE_EXAMPLES:
         _run([sys.executable, example], family="examples_smoke")
