@@ -17,12 +17,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # 3.10 dropped: the dev/viz extras pin scipy==1.17.1, which ships no
-        # cp310 wheels, so `pip install -e ".[dev,jaxley]"` cannot resolve on
-        # 3.10 (ResolutionImpossible, confirmed 2026-08-16 on every dev push).
-        # Executed/receipt environment is Python 3.13 (jax 0.10.1, scipy 1.17.1);
-        # 3.12 kept as the oldest actively wheel-supported line.
-        python-version: ["3.12", "3.13"]
+        # Coverage is deliberately the two ends of the supported range rather
+        # than every minor version: 3.11 as the oldest line the pinned extras
+        # resolve on, 3.14 as the newest and the interpreter the local
+        # release-candidate gate runs, so the gate no longer certifies on a
+        # version CI never exercises. 3.10 does not resolve at all (the dev/viz
+        # extras pin scipy==1.17.1, which ships no cp310 wheels).
+        # Wheel availability for both lines was checked against the index:
+        # scipy 1.17.1, matplotlib 3.10.9 and jaxlib 0.10.2 all publish cp311
+        # and cp314 manylinux wheels.
+        python-version: ["3.11", "3.14"]
 
     steps:
       - uses: actions/checkout@v7

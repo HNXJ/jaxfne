@@ -34,6 +34,7 @@ from scripts.run_test_gate import (
 from scripts.release.reconcile_release_target import verify_pre_release_gate_receipt
 
 ROOT = Path(__file__).resolve().parents[1]
+WORKFLOWS = ROOT / ".github" / "workflows"
 
 INTENDED_SHA = "0123456789abcdef0123456789abcdef01234567"
 TREE_SHA = "fedcba9876543210fedcba9876543210fedcba98"
@@ -416,6 +417,53 @@ def _workflow_job_names(filename: str) -> list[str]:
             if re.fullmatch(r"  [A-Za-z0-9_-]+:", line):
                 names.append(line.strip().rstrip(":"))
     return names
+
+
+SUPPORTED_CI_PYTHONS = {"3.11", "3.14"}
+
+
+def test_ci_python_coverage_is_the_declared_two_versions():
+    """CI exercises exactly the two declared interpreter lines, and no others.
+
+    Coverage is deliberately the ends of the supported range rather than every
+    minor version. 3.14 is included specifically because the local
+    release-candidate gate runs on it: without it the gate would certify a
+    release on an interpreter CI never exercises.
+    """
+    import yaml
+
+    for name in ("ci.yml", "release_ci.yml"):
+        cfg = yaml.safe_load((WORKFLOWS / name).read_text(encoding="utf-8"))
+        for job, spec in cfg["jobs"].items():
+            matrix = spec.get("strategy", {}).get("matrix", {})
+            versions = matrix.get("python-version")
+            if not versions:
+                continue
+            assert set(map(str, versions)) == SUPPORTED_CI_PYTHONS, (
+                f"{name}::{job} tests {sorted(map(str, versions))}, "
+                f"expected exactly {sorted(SUPPORTED_CI_PYTHONS)}"
+            )
+
+
+def test_no_test_workflow_pins_a_retired_interpreter():
+    """A workflow that installs the dev extras must use a covered interpreter."""
+    import yaml
+
+    for path in sorted(WORKFLOWS.glob("*.yml")):
+        text = path.read_text(encoding="utf-8")
+        if '".[dev' not in text:
+            continue  # build/publish jobs do not need the dev extras
+        cfg = yaml.safe_load(text)
+        for job, spec in cfg["jobs"].items():
+            for step in spec.get("steps", []) or []:
+                pinned = (step.get("with") or {}).get("python-version")
+                if isinstance(pinned, str) and "${{" not in pinned:
+                    # Matrix jobs pin an expression; the matrix itself is
+                    # asserted by test_ci_python_coverage_is_the_declared_two_versions.
+                    assert pinned in SUPPORTED_CI_PYTHONS, (
+                        f"{path.name}::{job} pins Python {pinned}, which CI no "
+                        f"longer covers; expected one of {sorted(SUPPORTED_CI_PYTHONS)}"
+                    )
 
 
 def test_ci_job_names_are_unique_across_workflows():

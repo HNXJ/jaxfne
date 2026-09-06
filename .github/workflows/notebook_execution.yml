@@ -20,7 +20,9 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: "3.12"
+          # 3.14 to match the interpreter the local release-candidate gate
+          # runs, so a notebook failure here reproduces locally.
+          python-version: "3.14"
 
       - name: Install package and dev deps
         run: |

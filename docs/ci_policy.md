@@ -134,6 +134,52 @@ the ledger during verification and cross-checked against the stored values, so
 editing either field by hand cannot authorize a release. See
 `tests/test_release_gate_hierarchy.py` for the adversarial cases.
 
+## Environment parity
+
+The subsumption invariant is about *executed tests*, not about check family
+names, so it depends on the gate environment being able to run everything CI
+runs. When an optional dependency is absent, a module guarded by
+`pytest.importorskip` is skipped at **collection**: its tests produce no node
+IDs, nothing fails, and the family still reports PASS while the gate quietly
+covers less than CI.
+
+That happened. With the `jaxley` extra missing locally, three modules skipped at
+collection and 16 tests release CI runs were never executed by the gate -- local
+collection 3746 against CI's 3762 -- while every check family name matched and
+`pre_release_subsumes_ci` read `true`. Matching family names had made the gap
+invisible; only comparing test populations exposed it.
+
+`scripts/check_environment_parity.py` now runs first in the `rc` gate, as the
+`environment_parity` family, and fails when either:
+
+- a distribution required by an extra the release workflow installs is absent
+  (the extras are read from the workflow, so the check cannot drift from CI); or
+- any test module is skipped at collection, which catches the same class of
+  failure for causes no dependency list would predict.
+
+It is deliberately **not** a member of `RELEASE_CI_GATE_FAMILIES`: CI does not
+run it, and claiming otherwise would be the same kind of unobserved assertion
+the attestation design exists to prevent.
+
+## Interpreter coverage
+
+CI exercises exactly two interpreter lines, `3.11` and `3.14` -- the ends of the
+supported range rather than every minor version. `3.14` is present specifically
+because the local release-candidate gate runs on it; without it the gate would
+certify releases on an interpreter CI never exercises. `3.10` is not testable:
+the `dev`/`viz` extras pin `scipy==1.17.1`, which publishes no cp310 wheels.
+
+Wheel availability for both lines was checked against the package index rather
+than assumed -- `scipy 1.17.1`, `matplotlib 3.10.9` and `jaxlib 0.10.2` all
+publish cp311 and cp314 manylinux wheels.
+
+Two consequences worth stating plainly. Interpreters between the ends are no
+longer exercised even though `requires-python` still admits them, and the
+`Programming Language :: Python` classifiers have not been updated to match this
+coverage -- declared support is a packaging decision, separate from CI coverage.
+A regression test pins the matrices to these two versions and rejects a
+workflow that installs the dev extras on any other.
+
 ## Branch protection
 
 `main` requires status checks. Job names are unique across workflows

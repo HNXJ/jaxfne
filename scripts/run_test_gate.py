@@ -92,6 +92,7 @@ RELEASE_EXAMPLES = [
 ]
 
 CHECK_FAMILIES = {
+    "environment_parity",
     "compileall",
     "pytest_dev",
     "lint_ruff",
@@ -157,6 +158,7 @@ GATE_CHECK_FAMILIES = {
         "examples_smoke",
     },
     "rc": {
+        "environment_parity",
         "compileall",
         "lint_ruff",
         "docs_language_audit",
@@ -363,6 +365,12 @@ def gate_rc() -> None:
     6. Authoritative machine-readable receipt generation
     """
     print("=== STARTING RELEASE CANDIDATE (RC) GATE ===", flush=True)
+    # Precondition, not a test: a missing optional dependency makes modules skip
+    # at collection, so their tests produce no node IDs and the gate silently
+    # under-covers release CI while still reporting PASS. Checked first so the
+    # failure is loud and cheap.
+    _run([sys.executable, "scripts/check_environment_parity.py"],
+         family="environment_parity")
     gate_release()
 
     with tempfile.TemporaryDirectory(prefix="jaxfne_rc_dist_") as tmp_dist:

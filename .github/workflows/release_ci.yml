@@ -18,10 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # 3.10 dropped 2026-08-16 for the same reason as ci.yml: the dev/viz
-      # extras pin scipy==1.17.1, which ships no cp310 wheels, so
-      # `pip install -e ".[dev,jaxley]"` cannot resolve on 3.10.
-        python-version: ["3.11", "3.12", "3.13"]
+        # Same two-ended coverage as ci.yml: 3.11 is the oldest line the
+        # pinned extras resolve on, 3.14 the newest and the interpreter the
+        # local release-candidate gate runs on. 3.10 does not resolve (the
+        # dev/viz extras pin scipy==1.17.1, which ships no cp310 wheels).
+        python-version: ["3.11", "3.14"]
 
     steps:
       - uses: actions/checkout@v7
