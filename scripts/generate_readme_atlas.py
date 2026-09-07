@@ -132,6 +132,11 @@ def main(argv: list[str] | None = None) -> int:
             signals,
             out_dir=str(HTML_DIR),
             title=CANONICAL_TITLE,
+            # Passed explicitly so the manifest records the pinned run even
+            # though build_atlas derives dt_ms from the signals grid itself.
+            duration_ms=CANONICAL_DURATION_MS,
+            dt_ms=CANONICAL_DT_MS,
+            seed=CANONICAL_SEED,
         )
         print(f"interactive atlas -> {HTML_DIR.relative_to(ROOT)} (sha256 {manifest['sha256']})")
         for panel in manifest["panels"]:

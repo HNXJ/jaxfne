@@ -87,6 +87,39 @@ def _signals_arrays(signals: Any) -> Dict[str, Any]:
     }
 
 
+def _live_jaxfne_version() -> str:
+    try:
+        import jaxfne as _J
+
+        return str(getattr(_J, "__version__", "unknown"))
+    except Exception:
+        return "unknown"
+
+
+def _infer_dt_ms(time_ms: np.ndarray | None, fallback: float) -> float:
+    """Derive the simulation timestep from recorded time stamps.
+
+    The ``dt_ms`` parameter only describes the fallback simulation that
+    ``build_atlas`` runs when no signals are provided. When the caller passes
+    realized signals, their ``time_ms`` grid is authoritative: recording the
+    parameter default instead silently mislabels the provenance (observed
+    instance: canonical 0.5 ms run recorded as 0.1 ms). Non-uniform or
+    degenerate grids fall back to the parameter.
+    """
+    try:
+        if time_ms is not None and time_ms.size >= 2:
+            t = np.asarray(time_ms, dtype=float).ravel()
+            if np.all(np.isfinite(t)):
+                diffs = np.diff(t)
+                if diffs.size and np.all(diffs > 0):
+                    median = float(np.median(diffs))
+                    if median > 0 and np.allclose(diffs, median, rtol=1e-6, atol=0.0):
+                        return median
+    except Exception:
+        pass
+    return float(fallback)
+
+
 def _provenance(
     *,
     config_hash: str,
@@ -238,6 +271,11 @@ def build_atlas(
     arr = _signals_arrays(signals)
     n_steps = int(arr["time_ms"].shape[0]) if arr["time_ms"] is not None else (
         int(arr["spikes"].shape[0]) if arr["spikes"] is not None else 0)
+    # The realized signals' time grid is authoritative for dt_ms. The parameter
+    # default (0.1) only describes the fallback simulation below, never the
+    # caller's signals.
+    dt_ms = _infer_dt_ms(arr["time_ms"], dt_ms)
+    jaxfne_version = _live_jaxfne_version()
 
     os.makedirs(out_dir, exist_ok=True)
     manifest_panels: List[Dict[str, Any]] = []
@@ -347,6 +385,9 @@ def build_atlas(
         "suite": "atlas_suite.v1",
         "title": title,
         "config_hash": config_hash,
+        "jaxfne_version": jaxfne_version,
+        "seed": int(seed),
+        "duration_ms": float(duration_ms),
         "n_neurons": n_neurons,
         "n_edges": n_edges,
         "n_steps": n_steps,

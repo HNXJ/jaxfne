@@ -226,3 +226,84 @@ def test_readme_atlas_generator_pins_the_published_configuration():
     assert set(FIXED) <= published, (
         f"published atlas is missing canonical panels: {sorted(set(FIXED) - published)}"
     )
+
+
+# --- Provenance regression gates -------------------------------------------
+#
+# build_atlas used to record its dt_ms *parameter default* (0.1) even when the
+# caller passed realized signals simulated at another timestep, so the
+# canonical 0.5 ms atlas was published as 0.1 ms with no version recorded.
+# These gates derive truth from the signals grid and fail on that behavior.
+
+
+def _small_signals(dt_ms: float = 0.5, duration_ms: float = 20.0, seed: int = 3):
+    cfg = J.suite2_net1_config(seed=seed, n=8, duration_ms=duration_ms, dt_ms=dt_ms)
+    model = J.construct(cfg)
+    sig = J.simulate(model, J.Simulation(duration_ms=duration_ms, dt_ms=dt_ms, seed=seed))
+    return model, sig
+
+
+def test_build_atlas_derives_dt_from_signals(tmp_path):
+    """Manifest dt must come from the signals time grid, not the default."""
+    model, sig = _small_signals(dt_ms=0.5)
+    manifest = build_atlas(model, sig, out_dir=str(tmp_path / "dt"))
+    assert manifest["dt_ms"] == 0.5, (
+        f"manifest dt_ms {manifest['dt_ms']!r} != simulated 0.5 "
+        "(parameter default leaked into provenance)"
+    )
+    assert manifest["n_steps"] == len(np.asarray(sig.time_ms))
+
+
+def test_atlas_manifest_records_version_seed_duration(tmp_path):
+    """Manifest carries version/seed/duration and steps*dt == duration."""
+    model, sig = _small_signals(dt_ms=0.5, duration_ms=20.0, seed=3)
+    manifest = build_atlas(
+        model, sig, out_dir=str(tmp_path / "prov"),
+        duration_ms=20.0, seed=3,
+    )
+    assert manifest["jaxfne_version"] == J.__version__
+    assert manifest["seed"] == 3
+    assert manifest["duration_ms"] == 20.0
+    assert manifest["n_steps"] * manifest["dt_ms"] == manifest["duration_ms"]
+
+
+def test_atlas_panel_cards_match_manifest(tmp_path):
+    """Every panel's embedded provenance card repeats the manifest values."""
+    model, sig = _small_signals(dt_ms=0.5, duration_ms=20.0, seed=3)
+    out = tmp_path / "cards"
+    manifest = build_atlas(
+        model, sig, out_dir=str(out), duration_ms=20.0, seed=3,
+    )
+    for key in ("dt_ms", "jaxfne_version", "config_hash"):
+        want = str(manifest[key])
+        for panel in manifest["panels"]:
+            text = (out / panel["file"]).read_text(encoding="utf-8")
+            assert want in text, (
+                f"{panel['file']} card is missing {key}={want!r}"
+            )
+    assert str(manifest["n_steps"]) in (out / "raster.html").read_text(encoding="utf-8")
+
+
+def test_canonical_manifest_provenance():
+    """The committed canonical atlas records the pinned run truthfully."""
+    from scripts.generate_readme_atlas import (
+        CANONICAL_DT_MS,
+        CANONICAL_DURATION_MS,
+        CANONICAL_SEED,
+        EXPECTED_CONFIG_HASH,
+    )
+
+    manifest = json.loads(
+        (ROOT / "docs" / "_static" / "atlas" / "manifest.json").read_text(encoding="utf-8")
+    )
+    assert manifest["jaxfne_version"] == J.__version__, (
+        f"canonical atlas built by {manifest.get('jaxfne_version')!r}, "
+        f"runtime is {J.__version__!r}; regenerate with "
+        "python scripts/generate_readme_atlas.py"
+    )
+    assert manifest["dt_ms"] == CANONICAL_DT_MS == 0.5
+    assert manifest["duration_ms"] == CANONICAL_DURATION_MS == 200.0
+    assert manifest["seed"] == CANONICAL_SEED == 0
+    assert manifest["n_steps"] == 400
+    assert manifest["n_steps"] * manifest["dt_ms"] == manifest["duration_ms"]
+    assert manifest["config_hash"] == EXPECTED_CONFIG_HASH
