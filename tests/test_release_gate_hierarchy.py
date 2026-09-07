@@ -421,6 +421,28 @@ def _workflow_job_names(filename: str) -> list[str]:
 
 SUPPORTED_CI_PYTHONS = {"3.11", "3.14"}
 
+# Parsed with regex, not yaml.safe_load: release_ci.yml installs only
+# ".[dev,jaxley]" and pyyaml is declared in the `io` extra, so importing yaml
+# here fails on that runner. Guarding the import with skipif would be worse --
+# a test that disappears when a dependency is absent is the exact defect
+# scripts/check_environment_parity.py exists to catch.
+_PY_MATRIX_RE = re.compile(r"^[ 	]*python-version:[ 	]*\[([^\]]*)\][ 	]*$", re.M)
+_PY_PIN_RE = re.compile(r"""^[ 	]*python-version:[ 	]*['"]?(\d+\.\d+)['"]?[ 	]*$""", re.M)
+
+
+def _matrix_pythons(filename: str) -> list[set[str]]:
+    """Every `python-version: [...]` matrix list in a workflow."""
+    text = (WORKFLOWS / filename).read_text(encoding="utf-8")
+    return [
+        {v.strip().strip("'\"") for v in match.group(1).split(",") if v.strip()}
+        for match in _PY_MATRIX_RE.finditer(text)
+    ]
+
+
+def _pinned_pythons(text: str) -> list[str]:
+    """Literal scalar `python-version:` pins (matrix expressions never match)."""
+    return _PY_PIN_RE.findall(text)
+
 
 def test_ci_python_coverage_is_the_declared_two_versions():
     """CI exercises exactly the two declared interpreter lines, and no others.
@@ -430,40 +452,30 @@ def test_ci_python_coverage_is_the_declared_two_versions():
     release-candidate gate runs on it: without it the gate would certify a
     release on an interpreter CI never exercises.
     """
-    import yaml
-
     for name in ("ci.yml", "release_ci.yml"):
-        cfg = yaml.safe_load((WORKFLOWS / name).read_text(encoding="utf-8"))
-        for job, spec in cfg["jobs"].items():
-            matrix = spec.get("strategy", {}).get("matrix", {})
-            versions = matrix.get("python-version")
-            if not versions:
-                continue
-            assert set(map(str, versions)) == SUPPORTED_CI_PYTHONS, (
-                f"{name}::{job} tests {sorted(map(str, versions))}, "
+        matrices = _matrix_pythons(name)
+        assert matrices, f"{name}: no python-version matrix found"
+        for versions in matrices:
+            assert versions == SUPPORTED_CI_PYTHONS, (
+                f"{name} tests {sorted(versions)}, "
                 f"expected exactly {sorted(SUPPORTED_CI_PYTHONS)}"
             )
 
 
 def test_no_test_workflow_pins_a_retired_interpreter():
     """A workflow that installs the dev extras must use a covered interpreter."""
-    import yaml
-
+    checked = 0
     for path in sorted(WORKFLOWS.glob("*.yml")):
         text = path.read_text(encoding="utf-8")
         if '".[dev' not in text:
             continue  # build/publish jobs do not need the dev extras
-        cfg = yaml.safe_load(text)
-        for job, spec in cfg["jobs"].items():
-            for step in spec.get("steps", []) or []:
-                pinned = (step.get("with") or {}).get("python-version")
-                if isinstance(pinned, str) and "${{" not in pinned:
-                    # Matrix jobs pin an expression; the matrix itself is
-                    # asserted by test_ci_python_coverage_is_the_declared_two_versions.
-                    assert pinned in SUPPORTED_CI_PYTHONS, (
-                        f"{path.name}::{job} pins Python {pinned}, which CI no "
-                        f"longer covers; expected one of {sorted(SUPPORTED_CI_PYTHONS)}"
-                    )
+        checked += 1
+        for pinned in _pinned_pythons(text):
+            assert pinned in SUPPORTED_CI_PYTHONS, (
+                f"{path.name} pins Python {pinned}, which CI no longer covers; "
+                f"expected one of {sorted(SUPPORTED_CI_PYTHONS)}"
+            )
+    assert checked, "no workflow installing the dev extras was found"
 
 
 def test_ci_job_names_are_unique_across_workflows():
