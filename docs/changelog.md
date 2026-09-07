@@ -20,7 +20,7 @@ export.
 
 ### Harness/reliability
 - Observed-execution RC attestation: the release gate records per-family
-  command evidence and authorizes publication only from re-derived
+  command evidence and authorizes publication exclusively from re-derived
   observations (`scripts/run_test_gate.py`,
   `scripts/release/reconcile_release_target.py`).
 - Exact RC/release test-set reconciliation: the three RC marker sweeps are
@@ -50,7 +50,7 @@ export.
 
 ### API/contract
 - Additive vis-subpackage exports (`build_atlas`, `PANELS`); no root public
-  API removal (root contract 190 symbols, tier contraction only).
+  API removal (root contract 190 symbols after tier reclassification).
 - Public-surface contract regenerated from the live module with guards;
   docs counts corrected to match (191 → 190).
 
