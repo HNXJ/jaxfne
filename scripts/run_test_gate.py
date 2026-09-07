@@ -299,6 +299,13 @@ def gate_broad() -> None:
     _run([sys.executable, "scripts/audit_vocabulary.py", "--check"],
          family="vocabulary_audit")
     _run([sys.executable, "scripts/check_docs_orphans.py"], family="docs_orphans_check")
+    # Per-node evidence: each sweep writes JUnit into the gitignored
+    # artifacts/attestations/ dir (same provenance home as the RC
+    # attestation) so RC outcomes can be compared node-by-node against
+    # blocking CI JUnit via scripts/compare_pytest_junit.py. `-rs`
+    # keeps skip/xfail reasons in the console log as well.
+    junit_dir = ROOT / "artifacts" / "attestations"
+    junit_dir.mkdir(parents=True, exist_ok=True)
     cmd = [
         sys.executable,
         "-m",
@@ -308,6 +315,8 @@ def gate_broad() -> None:
         "-m",
         BROAD_MARKER_EXPR,
         "--tb=short",
+        "-rs",
+        f"--junitxml={junit_dir / 'rc-pytest-broad.xml'}",
     ]
     for path in BROAD_PYTEST_IGNORE:
         cmd.extend(["--ignore", path])
@@ -316,6 +325,8 @@ def gate_broad() -> None:
 
 def gate_release() -> None:
     gate_broad()
+    junit_dir = ROOT / "artifacts" / "attestations"
+    junit_dir.mkdir(parents=True, exist_ok=True)
     slow_cmd = [
         sys.executable,
         "-m",
@@ -325,6 +336,8 @@ def gate_release() -> None:
         "-m",
         SLOW_MARKER_EXPR,
         "--tb=short",
+        "-rs",
+        f"--junitxml={junit_dir / 'rc-pytest-slow.xml'}",
     ]
     for path in BROAD_PYTEST_IGNORE:
         slow_cmd.extend(["--ignore", path])
@@ -338,6 +351,8 @@ def gate_release() -> None:
         "-m",
         NOTEBOOK_MARKER_EXPR,
         "--tb=short",
+        "-rs",
+        f"--junitxml={junit_dir / 'rc-pytest-notebook.xml'}",
     ]
     for path in BROAD_PYTEST_IGNORE:
         notebook_cmd.extend(["--ignore", path])

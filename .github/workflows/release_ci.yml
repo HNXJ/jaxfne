@@ -32,21 +32,31 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install package and dev deps
+      - name: Install package and dev+viz deps (parity with RC gate — reportlab required)
+        # RC gate runs environment_parity + viz-present reportlab tests; release CI
+        # must execute the same capabilities, not skip them. See repair 2026-09-08.
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,jaxley]"
+          pip install -e ".[dev,viz,jaxley]"
 
       - name: Compileall
         run: python -m compileall -q jaxfne tests examples
 
       - name: Run fast tests (skip slow notebook execution)
         if: github.ref != 'refs/heads/main'
-        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -m "not slow"
+        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -rs -m "not slow" --junitxml=pytest-results-${{ matrix.python-version }}.xml
 
       - name: Run all tests (including slow)
         if: github.ref == 'refs/heads/main'
-        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short
+        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -rs --junitxml=pytest-results-${{ matrix.python-version }}.xml
+
+      - name: Upload per-node test evidence (JUnit)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pytest-results-${{ matrix.python-version }}
+          path: pytest-results-${{ matrix.python-version }}.xml
+          if-no-files-found: error
 
       - name: Run examples
         run: |

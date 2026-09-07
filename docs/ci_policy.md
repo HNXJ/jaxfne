@@ -70,7 +70,7 @@ GitHub Actions should converge on the same gate names over time:
 | Workflow | Branch | Current mapping |
 |----------|--------|-----------------|
 | `.github/workflows/ci.yml` | `dev` | Fast PR checks; moving toward **dev** + docs build |
-| `.github/workflows/release_ci.yml` | `main` | **broad** / **release** on main and nightly |
+| `.github/workflows/release_ci.yml` | `main` | **broad** / **release** on main and nightly; installs `.[dev,viz,jaxley]` for parity with the RC gate (reportlab required) and uploads per-node JUnit (`-rs --junitxml`) via `scripts/compare_pytest_junit.py` |
 
 `.github/workflows/notebook_execution.yml` handles `notebook`-marked tests separately
 (long-running notebook execution).

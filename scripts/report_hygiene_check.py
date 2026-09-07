@@ -37,9 +37,11 @@ EXCLUDED_PREFIXES = (
 # Excluded files
 EXCLUDED_FILES = {
     Path("scripts/report_hygiene_check.py"),
-    # Governance/context sources intentionally name mirror directories and
-    # audit exclusions; scripts/audit_agent_context.py checks those surfaces.
-    Path("scripts/audit_agent_context.py"),
+    # Governance/context sources intentionally name mirror directories.
+    # Material context invariants (grammars, archival marking, source set,
+    # router linkage) are enforced by tests/test_agent_context_hygiene.py;
+    # the standalone scripts/audit_agent_context.py audit was removed
+    # 2026-09-08 as stale/redundant (see repair note).
     Path("tests/test_agent_context_hygiene.py"),
     Path("pyproject.toml"), # references /.claude
 }
