@@ -151,9 +151,28 @@ def test_no_stale_active_versions_in_public_docs():
     for p in docs_dir.rglob("*.md"):
         if any(ignored in p.parents or ignored == p for ignored in ignored_paths):
             continue
-            
+
         content = p.read_text(encoding="utf-8")
         for pattern in stale_patterns:
             assert not pattern.search(content), (
                 f"Found stale version indicator in public doc {p.relative_to(root_dir)} matching: {pattern.pattern}"
             )
+
+
+def test_install_md_surface_count_matches_live_contract():
+    """docs/install.md names the current root surface size (N-symbol surface).
+
+    The sentence describes the live root public contract, so N must equal
+    len(jaxfne.__all__) exactly -- a stale count here is confusable with
+    PUBLIC_EXPORTS and would misdirect installers about the API size.
+    """
+    import jaxfne as jtfne
+
+    root_dir = Path(__file__).resolve().parent.parent
+    content = (root_dir / "docs" / "install.md").read_text(encoding="utf-8")
+    match = re.search(r"\((\d+)-symbol surface\)", content)
+    assert match, "Could not find the '(N-symbol surface)' claim in docs/install.md"
+    assert int(match.group(1)) == len(jtfne.__all__), (
+        f"docs/install.md claims a {match.group(1)}-symbol surface, "
+        f"live jaxfne.__all__ has {len(jtfne.__all__)}"
+    )
