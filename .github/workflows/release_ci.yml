@@ -39,6 +39,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev,viz,jaxley]"
 
+      - name: Install docs deps (parity with RC gate — markdown/mkdocs required)
+        # scripts/build_manuscript.py imports markdown at build time and
+        # test_docs_links_v0330 needs mkdocs; the RC gate runs both with the
+        # docs toolchain installed. Without this the manuscript tests fail
+        # (no markdown) and the docs-build test skips (no mkdocs) on CI.
+        run: |
+          pip install -r docs/requirements.txt pyyaml
+
       - name: Compileall
         run: python -m compileall -q jaxfne tests examples
 
