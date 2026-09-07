@@ -493,3 +493,47 @@ def test_ci_job_names_are_unique_across_workflows():
         f"job names shared by ci.yml and release_ci.yml: {sorted(collisions)}; "
         "branch protection cannot require one workflow's job specifically"
     )
+
+
+SUPPORTED_PYTHONS = {"3.11", "3.12", "3.13", "3.14"}
+PYTHON_FLOOR = "3.11"
+PUBLISH_PYTHON = "3.11"
+
+
+def test_python_support_policy():
+    """Metadata, classifiers, CI endpoints, publish pins, and docs must agree.
+
+    JaxFNE supports Python 3.11-3.14; blocking CI validates the range at its
+    3.11 and 3.14 endpoints. 3.12/3.13 are supported but not independently
+    CI-tested; 3.10 is unsupported (the jax line itself floors at >=3.11).
+    """
+    text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    m = re.search(r"""^requires-python\s*=\s*["']>=(\d+\.\d+)["']""", text, re.M)
+    assert m, "requires-python not found in pyproject.toml"
+    assert m.group(1) == PYTHON_FLOOR, (
+        f"requires-python floors at {m.group(1)}, expected >={PYTHON_FLOOR}"
+    )
+    classifiers = set(
+        re.findall(r"Programming Language :: Python :: (\d+\.\d+)", text)
+    )
+    assert classifiers == SUPPORTED_PYTHONS, (
+        f"classifiers cover {sorted(classifiers)}, "
+        f"expected exactly {sorted(SUPPORTED_PYTHONS)}"
+    )
+    pub = (WORKFLOWS / "publish.yml").read_text(encoding="utf-8")
+    pinned = _pinned_pythons(pub)
+    assert pinned, "publish.yml has no python-version pins"
+    for version in pinned:
+        assert version == PUBLISH_PYTHON, (
+            f"publish.yml builds on {version}, expected {PUBLISH_PYTHON} "
+            "(inside the tested set)"
+        )
+    policy = (ROOT / "docs" / "ci_policy.md").read_text(encoding="utf-8")
+    assert "JaxFNE supports Python 3.11-3.14." in policy
+    assert "at its 3.11 and 3.14 endpoints" in policy
+    assert "not independently exercised by the full CI matrix" in policy
+    faq = (ROOT / "docs" / "faq.md").read_text(encoding="utf-8")
+    assert "requires Python 3.11 or later" in faq
+    assert "3.10 or later" not in faq
+    contrib = (ROOT / "docs" / "contributing.md").read_text(encoding="utf-8")
+    assert "(3.11 and 3.14 tested)" in contrib

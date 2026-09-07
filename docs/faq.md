@@ -8,7 +8,7 @@ for API detail see the [API reference](api/index.md).
 
 **Q: What Python version does jaxfne require?**
 
-A: jaxfne requires Python 3.10 or later. Most examples and tests use Python 3.11 or 3.13.
+A: jaxfne requires Python 3.11 or later (supports 3.11-3.14). Blocking CI validates the supported range at its 3.11 and 3.14 endpoints; 3.12 and 3.13 are supported but not independently exercised by the full CI matrix.
 
 **Q: Can I run jaxfne on GPU?**
 

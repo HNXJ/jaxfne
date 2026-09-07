@@ -20,7 +20,7 @@ cd jaxfne
 pip install -e ".[dev,viz]"
 ```
 
-Use **`python3`** (3.10–3.12 tested). Canonical import: `import jaxfne as jtfne`.
+Use **`python3`** (3.11 and 3.14 tested). Canonical import: `import jaxfne as jtfne`.
 
 ## Before you open a PR
 

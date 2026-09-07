@@ -9,6 +9,56 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+## v0.4.21 (2026-09-07)
+
+Release-candidate promotion of the post-v0.4.20 tree (v0.4.20 tag `e3b7d0a`
+unchanged). No scientific/runtime numerical change relative to v0.4.20:
+no `jaxfne` kernel, emitter, field, probe, or optimizer mathematics was
+modified (Δscience=0); the runtime diff is an import-hygiene rename
+(`sys` → `_sys` in `jaxfne/__init__.py`) plus one additive vis-subpackage
+export.
+
+### Harness/reliability
+- Observed-execution RC attestation: the release gate records per-family
+  command evidence and authorizes publication only from re-derived
+  observations (`scripts/run_test_gate.py`,
+  `scripts/release/reconcile_release_target.py`).
+- Exact RC/release test-set reconciliation: the three RC marker sweeps are
+  proven exhaustive, and release CI selects the identical node set
+  (verified per-node via JUnit comparison, not aggregate counts).
+- JUnit per-node evidence: blocking CI uploads `--junitxml` artifacts and
+  the RC gate writes gitignored sweep JUnit; `scripts/compare_pytest_junit.py`
+  compares node-by-node with explicit platform/environment classification.
+- Environment parity: release CI installs `.[dev,viz,jaxley]` plus the docs
+  toolchain, matching the RC gate (reportlab/markdown/mkdocs capabilities
+  no longer skip or fail asymmetrically).
+- CI context uniqueness and branch protection: unique job names across
+  workflows; required contexts verified equal to emitted contexts.
+- Release artifact provenance: builds publish from isolated output
+  directories, never from stale `dist/` bytes.
+- Restored multi-area test coverage: the two formerly excluded modules run
+  in every blocking gate (`BROAD_PYTEST_IGNORE` empty).
+
+### Visualization/docs
+- Canonical six-panel visualization atlas (`network_3d`, `connectivity`,
+  `raster`, `traces`, `spectral`, `state_summary`) with OBSERVED-vs-DERIVED
+  separation, deterministic degradation (N=1, zero edges, silent runs,
+  field/no-field, multi-area), README/docs single-source generation, and a
+  pinned published configuration.
+- `state_summary` terminology and H/RBD/HDP grammar corrections across
+  landing docs; field/source truth corrections (proxy vs calibrated).
+
+### API/contract
+- Additive vis-subpackage exports (`build_atlas`, `PANELS`); no root public
+  API removal (root contract 190 symbols, tier contraction only).
+- Public-surface contract regenerated from the live module with guards;
+  docs counts corrected to match (191 → 190).
+
+### Support
+- Python 3.11-3.14. Blocking CI validates the supported range at its 3.11
+  and 3.14 endpoints; 3.12 and 3.13 are supported but not independently
+  exercised by the full CI matrix. Publishing builds on 3.11.
+
 ## v0.4.20 (2026-09-03)
 
 Release candidate v0.4.20. Correctness fixes, canonical public continuation export, reproducible release gallery, and semantic precision alignment across documentation and downstream consumers. Δscience=0 across scientific and numerical kernels.

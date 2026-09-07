@@ -163,22 +163,30 @@ the attestation design exists to prevent.
 
 ## Interpreter coverage
 
-CI exercises exactly two interpreter lines, `3.11` and `3.14` -- the ends of the
-supported range rather than every minor version. `3.14` is present specifically
-because the local release-candidate gate runs on it; without it the gate would
-certify releases on an interpreter CI never exercises. `3.10` is not testable:
-the `dev`/`viz` extras pin `scipy==1.17.1`, which publishes no cp310 wheels.
+JaxFNE supports Python 3.11-3.14. Blocking CI validates the supported range
+at its 3.11 and 3.14 endpoints rather than every minor version: `3.11` is the
+oldest line the pinned extras resolve on, `3.14` the newest and the
+interpreter the local release-candidate gate runs on (without it the gate
+would certify releases on an interpreter CI never exercises). `3.12` and
+`3.13` are supported but not independently exercised by the full CI matrix;
+do not describe them as independently CI-tested.
 
-Wheel availability for both lines was checked against the package index rather
-than assumed -- `scipy 1.17.1`, `matplotlib 3.10.9` and `jaxlib 0.10.2` all
-publish cp311 and cp314 manylinux wheels.
+`3.10` is not supported: the `dev`/`viz` extras pin `scipy==1.17.1`, which
+publishes no cp310 wheels, and the `jax`/`jaxlib` line the package resolves
+against already floors at `>=3.11`. Dropping nominal 3.10 support is truth
+alignment, not removal of a validated configuration.
 
-Two consequences worth stating plainly. Interpreters between the ends are no
-longer exercised even though `requires-python` still admits them, and the
-`Programming Language :: Python` classifiers have not been updated to match this
-coverage -- declared support is a packaging decision, separate from CI coverage.
-A regression test pins the matrices to these two versions and rejects a
-workflow that installs the dev extras on any other.
+Wheel availability for both endpoints was checked against the package index
+rather than assumed -- `scipy 1.17.1`, `matplotlib 3.10.9` and `jaxlib 0.10.2`
+all publish cp311 and cp314 manylinux wheels (and the pinned 3.14
+release-candidate environment installs cleanly, which further evidences
+cp314 availability).
+
+A regression test (`test_python_support_policy`) pins `requires-python`,
+the `Programming Language :: Python` classifiers, the CI matrices, the
+publish interpreter, and this policy sentence together, so metadata,
+classifiers, CI endpoints, publish interpreter, and documentation cannot
+silently diverge.
 
 ## Branch protection
 

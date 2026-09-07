@@ -7,7 +7,7 @@ pip install -U jaxfne
 ```
 
 The current published **PyPI** release is **`jaxfne==0.4.18`** (tag `v0.4.18`). The
-upcoming release candidate is **`0.4.20`** (tag `v0.4.20`). The current
+upcoming release candidate is **`0.4.21`** (tag `v0.4.21`). The current
 **development** public contract on `dev` is documented in
 [Public API contract](public_surface_contract.md) (186-symbol surface). To pin
 the published PyPI release explicitly:

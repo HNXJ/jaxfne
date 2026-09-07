@@ -8,10 +8,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jaxfne"
-version = "0.4.20"
+version = "0.4.21"
 description = "JAX Field Neural Equations: a source-to-field neurophysiology engine for TFNE models."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [{name = "Hamed Nejat"}]
 keywords = [
@@ -26,9 +26,10 @@ keywords = [
 ]
 classifiers = [
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Intended Audience :: Science/Research",

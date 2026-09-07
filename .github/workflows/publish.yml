@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
-          python-version: '3.10'
+          python-version: '3.11'
       - name: Build distributions (isolated outdir — never publish stale dist/)
         # dist/ is gitignored and may predate the tree locally; the release
         # artifact must always be a fresh build from the checked-out SHA.
@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
-          python-version: '3.10'
+          python-version: '3.11'
       - name: Build distributions (isolated outdir — never publish stale dist/)
         run: |
           python -m pip install --upgrade pip build
