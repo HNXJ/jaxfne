@@ -273,6 +273,30 @@ def compute_synchrony_metric(
         raise ValueError(f"Unknown synchrony method: {method}")
 
 
+# sigma_hat is undefined below two samples; this is a mathematical floor, not a policy.
+_NULL_MIN_SAMPLES_FOR_SIGMA = 2
+
+
+def null_samples_for_sigma_precision(relative_standard_error: float) -> int:
+    """Valid null samples needed for sigma_hat's relative standard error to reach a target.
+
+    For a roughly normal null distribution, ``RSE(sigma_hat) ~= 1 / sqrt(2 (n - 1))``,
+    so ``n >= 1 + 1 / (2 * rse^2)``. Reported in the objective's diagnostics so a caller
+    can see whether their z-score's denominator is estimated precisely enough; it is
+    advisory, not enforced. Enforce a floor by passing ``null_min_valid_samples``.
+    """
+    if not (0.0 < float(relative_standard_error) < 1.0):
+        raise ValueError(
+            f"relative_standard_error must lie in (0, 1); got {relative_standard_error!r}"
+        )
+    import math as _math
+
+    return max(
+        _NULL_MIN_SAMPLES_FOR_SIGMA,
+        int(_math.ceil(1.0 + 1.0 / (2.0 * float(relative_standard_error) ** 2))),
+    )
+
+
 def spectrolaminar_objective(
     readout: Dict[str, Any],
     target_alpha_beta: np.ndarray,
@@ -284,6 +308,7 @@ def spectrolaminar_objective(
     synchrony_threshold: float = 0.7,
     similarity_metric: Optional[callable] = None,
     null_seed: Optional[int] = None,
+    null_min_valid_samples: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Full spectrolaminar objective with null distributions and synchrony gates.
@@ -335,6 +360,9 @@ def spectrolaminar_objective(
 
     # Run nulls if specified
     null_distribution_n = 0
+    null_requested = int(null_n_samples) * len(nulls or [])
+    null_rejections: dict[str, int] = {}
+    null_rejection_examples: dict[str, str] = {}
     null_normalization_method = None
     S_lam = None
 
@@ -349,6 +377,14 @@ def spectrolaminar_objective(
         }
 
         null_scores = []
+        # An invalid null draw and a broken implementation are scientifically
+        # different events. Only the first is data; the second is a defect and must
+        # reach the caller. Anything not listed here propagates.
+        _EXPECTED_NULL_FAILURES = (ValueError, ArithmeticError, np.linalg.LinAlgError)
+        def _reject(reason: str, detail: str = "") -> None:
+            null_rejections[reason] = null_rejections.get(reason, 0) + 1
+            if detail and reason not in null_rejection_examples:
+                null_rejection_examples[reason] = detail
 
         # One generator threaded through every null draw: distinct samples
         # within a run, reproducible across runs when null_seed is set.
@@ -381,8 +417,10 @@ def spectrolaminar_objective(
 
                     if np.isfinite(null_score):
                         null_scores.append(float(null_score))
-                except Exception:
-                    pass
+                    else:
+                        _reject("non_finite_score")
+                except _EXPECTED_NULL_FAILURES as exc:
+                    _reject(f"expected_exception:{type(exc).__name__}", str(exc))
 
         if len(null_scores) > 0:
             null_distribution_n = len(null_scores)
@@ -395,11 +433,32 @@ def spectrolaminar_objective(
             )
             actual_score = actual_report["profile_score_percent"]
 
-            # Z-score normalization
-            if null_std > 0:
-                S_lam = float((actual_score - null_mean) / null_std)
-            else:
-                S_lam = 0.0
+            # Z-score normalization. sigma_hat is undefined below 2 samples and the
+            # z-score is undefined at sigma_hat == 0; neither may be papered over with
+            # a fabricated 0.0, which previously reported a degenerate null
+            # distribution as a perfectly average result.
+            if null_distribution_n < _NULL_MIN_SAMPLES_FOR_SIGMA:
+                raise ValueError(
+                    f"null normalization requires at least {_NULL_MIN_SAMPLES_FOR_SIGMA} "
+                    f"valid null samples to estimate sigma; {null_distribution_n} of "
+                    f"{null_requested} survived. Rejections: {null_rejections or 'none'}."
+                )
+            if not (null_std > 0):
+                raise ValueError(
+                    f"null distribution is degenerate (sigma = {null_std!r}) over "
+                    f"{null_distribution_n} valid samples, so the z-score is undefined. "
+                    "Previously this silently reported S_lam = 0.0."
+                )
+            if null_min_valid_samples is not None and null_distribution_n < int(
+                null_min_valid_samples
+            ):
+                raise ValueError(
+                    f"null normalization requires at least {int(null_min_valid_samples)} "
+                    f"valid null samples (caller-declared minimum); "
+                    f"{null_distribution_n} of {null_requested} survived. "
+                    f"Rejections: {null_rejections or 'none'}."
+                )
+            S_lam = float((actual_score - null_mean) / null_std)
 
             null_normalization_method = "z_score"
 
@@ -443,6 +502,16 @@ def spectrolaminar_objective(
         "S_lam": S_lam,
         "nulls_run": len(nulls) > 0 if nulls else False,
         "null_distribution_n": null_distribution_n,
+        # (N_requested, N_accepted, N_rejected) plus rejection classes. A smaller
+        # accepted count than requested can be legitimate, so it is reported rather
+        # than assumed away; pass null_min_valid_samples to make a floor enforceable.
+        "null_samples_requested": null_requested,
+        "null_samples_accepted": null_distribution_n,
+        "null_samples_rejected": null_requested - null_distribution_n,
+        "null_rejection_classes": dict(null_rejections),
+        "null_rejection_examples": dict(null_rejection_examples),
+        "null_min_valid_samples": null_min_valid_samples,
+        "null_samples_for_sigma_rse_25pct": null_samples_for_sigma_precision(0.25),
         "null_normalization_method": null_normalization_method,
         "synchrony_checked": synchrony_spikes is not None,
         "synchrony_metric": synchrony_metric,
