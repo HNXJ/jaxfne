@@ -67,10 +67,11 @@ def test_install_md_latest_pypi_version():
         f"docs/install.md claims candidate {match_rc.group(1)!r}, "
         f"pyproject.toml says {pyproject_version!r}"
     )
-    # Published PyPI release must remain truthful (0.4.18 until post-publication)
+    # Published PyPI release must remain truthful (0.4.20 live on PyPI;
+    # update alongside docs/install.md when a newer release is published)
     match_pub = re.search(r"published \*\*PyPI\*\* release is \*\*`jaxfne==([^`]+)`\*\*", content)
     assert match_pub, "Could not find published PyPI release in docs/install.md"
-    assert match_pub.group(1) == "0.4.18"
+    assert match_pub.group(1) == "0.4.20"
 
 
 def test_colab_md_version():
@@ -83,7 +84,7 @@ def test_colab_md_version():
     assert match.group(1) == pyproject_version, (
         f"docs/colab.md claims candidate {match.group(1)!r}, pyproject.toml says {pyproject_version!r}"
     )
-    assert "published PyPI release `jaxfne==0.4.18`" in content
+    assert "published PyPI release `jaxfne==0.4.20`" in content
 
 
 def test_quickstart_md_documents_dev_contract():
