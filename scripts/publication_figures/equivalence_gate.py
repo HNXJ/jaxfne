@@ -61,6 +61,37 @@ def sha256(p: pathlib.Path) -> str:
     return hashlib.sha256(p.read_bytes()).hexdigest()
 
 
+def check_renderer() -> None:
+    """Refuse to run under a renderer the frozen figures were not produced with.
+
+    The frozen PNGs are renderer-versioned receipts: ``(source, data, renderer) ->
+    frozen artifact``, not ``(source, data, any future renderer) -> identical pixels``.
+    ``save_matplotlib_figure`` uses ``bbox_inches="tight"``, so output dimensions are a
+    function of rendered text extents and shift when matplotlib changes text layout.
+    Failing here with the version named is strictly better than failing later with an
+    unexplained width mismatch.
+    """
+    import matplotlib
+
+    manifest = json.loads(FROZEN_MANIFEST.read_text())
+    renderer = manifest.get("renderer")
+    if not renderer:
+        return
+    observed = matplotlib.__version__
+    compatible = set(renderer.get("verified_compatible", ()))
+    if observed in compatible:
+        return
+    incompatible = set(renderer.get("verified_incompatible", ()))
+    verdict = "known-incompatible" if observed in incompatible else "unverified"
+    raise SystemExit(
+        f"renderer mismatch: matplotlib {observed} is {verdict} for the frozen "
+        f"publication figures (requirement {renderer.get('requirement')!r}; verified "
+        f"compatible: {sorted(compatible)}). {renderer.get('reason', '')} "
+        "Install the pinned renderer, or re-freeze the figures and update the "
+        "'renderer' block in artifacts/publication/frozen_manifest.json."
+    )
+
+
 def check_frozen_manifest() -> None:
     """Refuse to run if any frozen figure drifted from artifacts/publication/frozen_manifest.json."""
     manifest = json.loads(FROZEN_MANIFEST.read_text())
@@ -148,6 +179,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--report", type=pathlib.Path, default=REPO / "artifacts/publication/equivalence_report.json")
     args = parser.parse_args(argv)
 
+    check_renderer()
     check_frozen_manifest()
     args.render_dir.mkdir(parents=True, exist_ok=True)
     args.report.parent.mkdir(parents=True, exist_ok=True)

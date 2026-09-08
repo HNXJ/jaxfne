@@ -31,5 +31,17 @@
     "artifacts/figures/publication/fig07_e_integration.png": "fa74ddf210d397c9c1b719d0ac75573045985877312efcccbdedc0aa59e71dce"
   },
   "frozen_at_head": "aeca6d01a18ab1be3d400cf9c6a7c373c9e86326",
-  "schema": "jaxfne.frozen_paths.v1"
+  "schema": "jaxfne.frozen_paths.v1",
+  "renderer": {
+    "requirement": "matplotlib>=3.10.9,<3.11",
+    "verified_compatible": [
+      "3.10.8",
+      "3.10.9"
+    ],
+    "verified_incompatible": [
+      "3.11.1"
+    ],
+    "enforced_criterion": "decoded pixel dimensions (W, H)",
+    "reason": "save_matplotlib_figure uses bbox_inches='tight' at dpi=200, so output dimensions are a function of rendered text extents. matplotlib 3.11 changes them by 1-8 px on fig01/02/03/05. Renderer version is part of frozen-figure provenance: (source, data, renderer) -> frozen artifact."
+  }
 }

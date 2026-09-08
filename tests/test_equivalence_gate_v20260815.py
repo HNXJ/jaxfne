@@ -3,11 +3,13 @@ authorized no scientific change (exact decoded-pixel identity vs frozen PNGs).""
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import subprocess
 import sys
 from pathlib import Path
+from unittest import mock
 _SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import pytest
@@ -102,3 +104,40 @@ def test_equivalence_gate_frozen_manifest_selfcheck(tmp_path):
     ]
     for rel in expected:
         assert rel in files, f"{rel} not in artifacts/publication/frozen_manifest.json"
+
+# ── W12: renderer version is part of frozen-figure provenance ────────────────
+def test_frozen_manifest_declares_renderer_provenance():
+    manifest = json.loads(FROZEN_MANIFEST.read_text(encoding="utf-8"))
+    renderer = manifest.get("renderer")
+    assert renderer, "frozen manifest must declare the renderer it was frozen under"
+    assert renderer["requirement"].startswith("matplotlib")
+    assert renderer["verified_compatible"], "at least one verified-compatible renderer"
+    assert "3.11.1" in renderer["verified_incompatible"]
+
+
+def test_dev_extra_pins_renderer_below_311():
+    """The dev extra runs the equivalence gate, so it must pin <3.11; viz must not."""
+    text = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    dev = next(ln for ln in text.splitlines() if ln.startswith("dev = ["))
+    viz = next(ln for ln in text.splitlines() if ln.startswith("viz = ["))
+    assert "matplotlib>=3.10.9,<3.11" in dev, "dev extra must pin the frozen-figure renderer"
+    assert "matplotlib>=3.10.9,<3.12" in viz, "viz users must not be constrained by the freeze"
+
+
+def test_gate_refuses_unverified_renderer_with_a_named_version():
+    """A renderer mismatch must fail with the version named, not as a width mismatch."""
+    spec = importlib.util.spec_from_file_location("_equivalence_gate", GATE)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["_equivalence_gate"] = module
+    sys.path.insert(0, str(GATE.parent))
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        sys.path.remove(str(GATE.parent))
+    import matplotlib
+
+    with mock.patch.object(matplotlib, "__version__", "3.11.1"):
+        with pytest.raises(SystemExit) as excinfo:
+            module.check_renderer()
+    message = str(excinfo.value)
+    assert "3.11.1" in message and "known-incompatible" in message
