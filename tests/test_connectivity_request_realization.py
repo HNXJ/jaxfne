@@ -107,3 +107,51 @@ def test_bounded_degree_is_linear_in_n_when_the_dense_baseline_is_suppressed():
         )
         edges, max_in = _realized(jtfne.construct(cfg))
         assert edges == n * K_MAX and max_in == K_MAX
+
+
+# ── D4: additive composition is legitimate; silent additive composition is not ─
+def _composed(p_connect):
+    cfg = _column(p_connect=p_connect).mechanisms(**MECH).connections(
+        name="rec", source={}, target={}, mechanism="ampa", weight=0.03,
+        max_in_degree=K_MAX, spatial_sigma=0.1,
+    )
+    return jtfne.construct(cfg)
+
+
+def test_composition_is_multiset_union_and_does_not_merge_duplicates():
+    """E_final = E_baseline + E_rule exactly; duplicate pairs survive as parallel edges."""
+    baseline, _ = _realized(jtfne.construct(_column(p_connect=0.05)))
+    rule_only, _ = _realized(_composed(0.0))
+    composed_model = _composed(0.05)
+    composed, _ = _realized(composed_model)
+
+    assert composed == baseline + rule_only, "composition must be a multiset union of rows"
+
+    summary = composed_model.connectivity_summary()
+    assert summary["parallel_edges_merged"] is False
+    assert summary["parallel_edges"] == composed - summary["unique_pre_post_pairs"]
+    assert summary["parallel_edges"] > 0, "this fixture must actually exercise parallel edges"
+
+
+def test_connectivity_summary_makes_the_composition_observable():
+    model = _composed(0.05)
+    summary = model.connectivity_summary()
+    assert summary["baseline_edges"] + summary["rule_edges"] == summary["n_edges"]
+    assert [r["name"] for r in summary["rules"]] == ["rec"]
+    assert summary["rules"][0]["compiled_n_edges"] == summary["rule_edges"]
+    assert summary["baseline_suppressed"] is False
+    # Parallel edges sum at the postsynaptic segment reduction, so composition
+    # changes effective coupling. That must be stated, not inferred.
+    assert "segment_sum" in summary["parallel_edge_reduction"]
+
+
+def test_suppressed_baseline_reports_a_pure_rule_topology():
+    summary = _composed(0.0).connectivity_summary()
+    assert summary["baseline_suppressed"] is True
+    assert summary["baseline_edges"] == 0
+    assert summary["parallel_edges"] == 0
+    assert summary["realized_max_in_degree"] == K_MAX
+
+
+def test_summary_exposes_connectivity_block():
+    assert "connectivity" in _composed(0.0).summary()

@@ -493,7 +493,60 @@ class Model:
             "field_solver_status": self.cfg.metadata.get("field_solver_status", "linear_solver"),
             "field_claim_level": "proxy_readout",
             "physical_amplitude_calibrated": False,
+            "connectivity": self.connectivity_summary(),
         })
+
+
+    _CONNECTIVITY_EXACT_STATS_MAX_EDGES = 5_000_000
+
+    def connectivity_summary(self) -> dict[str, Any]:
+        """Report realized connectivity and how it was composed.
+
+        Connectivity composes as a multiset union::
+
+            E_realized = E_baseline  U  E_rule_1  U  ...  U  E_rule_k
+
+        unless the baseline is explicitly suppressed with ``connectivity(p_connect=0.0)``.
+        Duplicate ``(pre, post)`` pairs are **not** merged: they are retained as parallel
+        edges, and their currents sum at the postsynaptic segment reduction, so the
+        effective coupling for such a pair is the sum of the parallel weights. This
+        method exists to make that composition unmistakable rather than implicit.
+        """
+        import numpy as _np
+
+        edge_list = self.params.get("edge_list")
+        n_edges = int(edge_list.n_edges) if edge_list is not None else 0
+        rules = [
+            {"name": r.get("name"), "status": r.get("status"),
+             "compiled_n_edges": r.get("compiled_n_edges")}
+            for r in (self.cfg.metadata.get("circuit", {}) or {}).get("connections", [])
+        ]
+        rule_edges = sum(int(r["compiled_n_edges"] or 0) for r in rules)
+        out: dict[str, Any] = {
+            "n_edges": n_edges,
+            "composition": "multiset_union",
+            "parallel_edges_merged": False,
+            "parallel_edge_reduction": "segment_sum over post; parallel weights add",
+            "baseline_edges": n_edges - rule_edges,
+            "rule_edges": rule_edges,
+            "rules": rules,
+            "baseline_suppressed": (self.cfg.metadata.get("connectivity") or {}).get("p_connect") == 0.0,
+        }
+        # Exact duplicate/degree statistics are O(E log E); skip them rather than
+        # making an inspection helper the most expensive call in a large session.
+        if 0 < n_edges <= self._CONNECTIVITY_EXACT_STATS_MAX_EDGES:
+            pre = _np.asarray(edge_list.pre).astype(_np.int64)
+            post = _np.asarray(edge_list.post).astype(_np.int64)
+            unique_pairs = int(_np.unique(pre * (int(post.max()) + 1) + post).size)
+            out.update({
+                "unique_pre_post_pairs": unique_pairs,
+                "parallel_edges": n_edges - unique_pairs,
+                "realized_max_in_degree": int(_np.bincount(post).max()),
+                "exact_stats": True,
+            })
+        else:
+            out["exact_stats"] = False
+        return json_safe(out)
 
 
     def neuron_table(self) -> list[dict[str, Any]]:
