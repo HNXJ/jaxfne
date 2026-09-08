@@ -178,3 +178,132 @@ requires separate authorization.
 - **possible future change:** S2 completion must update
   `release_candidate`/`tag` in the receipt (or supersede v3) before any
   PyPI/GitHub release action
+
+### I-008
+- **date:** 2026-09-07
+- **type:** DOC
+- **area:** freeze authorities / version identity
+- **observation:** Freeze authorities still assert an active v0.4.17 core
+  freeze and 40-day frozen-use window (~2026-08-19 to 2026-09-28) while tip
+  activates v0.4.21 RC. ISSUE_LOG header names v0.4.17 frozen period;
+  `jaxfne-frozen-use` asserts ΔC_core=0; `SCIENTIFIC_WORKBENCH_STATE.md`
+  last indexed 2026-08-21 @ HEAD caec1f71 with `jaxfne==0.4.17 do not edit`;
+  `jaxfne-seal` pins v0.4.17 final-100-goals authority. Tip:
+  `pyproject.toml` / `mkdocs.yml` / `CITATION.cff` / `docs/citation.md` =
+  0.4.21; tags through v0.4.20; no v0.4.21 tag at filing time.
+- **severity:** block (critic); DOC + FACT — agent/human routing contradiction
+- **minimal reproduction:** compare ISSUE_LOG header + frozen-use skill +
+  workbench state to `grep version pyproject.toml` and `git tag -l 'v0.4.*'`
+- **expected behavior:** freeze narrative and authorities align with active
+  RC / post-freeze policy at tip without editing frozen core
+- **actual behavior:** authorities pin 0.4.17-era freeze; tip declares 0.4.21
+- **evidence:** jcritic pass @ b08f20f7 (gh-only, Gate0 not run);
+  `artifacts/audit/evidence_audit_critic_surfaces_2026-09-07.md` F-001;
+  scripts not executed
+- **possible future change:** docs/critic-surface PR to refresh ISSUE_LOG
+  header, workbench index, and skill authority narrative; do not patch
+  `jaxfne/` core to resolve
+
+### I-009
+- **date:** 2026-09-07
+- **type:** DOC
+- **area:** agent onboarding / skills routing
+- **observation:** `docs/for_ai_agents.md` routes agents to
+  `artifacts/skills/catalog-glossary-jaxfne/SKILL.md` and
+  `artifacts/skills/jaxfne-worker-context-router/SKILL.md`; both absent.
+  Live skills: jaxfne-{audit,core,frozen-use,release,repo,science,seal}
+  only (7 SKILL.md files).
+- **severity:** should-fix (critic); DOC
+- **minimal reproduction:** `ls artifacts/skills/*/SKILL.md` vs lines 15–16
+  of `docs/for_ai_agents.md`
+- **expected behavior:** start-here routes reference present skills or defer
+  explicitly to live code + `artifacts/AGENTS.md`
+- **actual behavior:** two primary routes target missing skill folders
+- **evidence:** jcritic pass F-002; gh-only static read; scripts not executed
+- **possible future change:** docs PR replacing stale skill paths with live set
+
+### I-010
+- **date:** 2026-09-07
+- **type:** DOC
+- **area:** contributor documentation
+- **observation:** `docs/contributing.md` line 32 says update `skills/`;
+  canonical agent skills live under `artifacts/skills/`; root `skills/` absent.
+- **severity:** should-fix (critic); DOC
+- **minimal reproduction:** `grep 'update \`skills/\`' docs/contributing.md`;
+  `test -d skills` (fail) vs `test -d artifacts/skills` (pass)
+- **expected behavior:** contributor path matches canonical `artifacts/skills/`
+- **actual behavior:** path points to absent root `skills/`
+- **evidence:** jcritic pass F-003; gh-only; scripts not executed
+- **possible future change:** one-line fix in contributing guide
+
+### I-011
+- **date:** 2026-09-07
+- **type:** DOC
+- **area:** harness audit scripts / MkDocs inventory
+- **observation:** `audit_81_docs_pages.py` and
+  `audit_public_private_boundary.py` hardcode 81 MkDocs nav pages in
+  docstrings and success banners; static nav leaf count from `mkdocs.yml` is
+  88 at tip.
+- **severity:** should-fix (critic); DOC + FACT
+- **minimal reproduction:** grep `81` in the two scripts; count nav leaves
+  from `mkdocs.yml`
+- **expected behavior:** audit page count matches nav or is derived dynamically
+- **actual behavior:** hardcoded 81 stale by 7 pages
+- **evidence:** jcritic pass F-004; static nav count only; scripts not executed
+- **possible future change:** harness PR to parameterize/rename; optional
+  clone-backed re-run after fix
+
+### I-012
+- **date:** 2026-09-07
+- **type:** DOC
+- **area:** release/seal skill authorities
+- **observation:** `artifacts/skills/jaxfne-release/SKILL.md` and
+  `jaxfne-seal/SKILL.md` AUTHORITIES pin
+  `artifacts/release/v0_4_17_release_receipt.json` while package version at
+  tip is 0.4.21 RC and tags exist through v0.4.20.
+- **severity:** should-fix (critic); DOC + FACT
+- **minimal reproduction:** read AUTHORITIES sections of both skills vs
+  `pyproject.toml` version
+- **expected behavior:** skills cite matching receipt or document supersession
+- **actual behavior:** both cite v0.4.17 receipt only
+- **evidence:** jcritic pass F-005; gh-only; scripts not executed
+- **possible future change:** skills/docs PR with receipt-chain note or new
+  authority path; do not mutate frozen receipt JSON in this filing
+
+### I-013
+- **date:** 2026-09-07
+- **type:** DOC
+- **area:** scientific workbench routing index
+- **observation:** `artifacts/science/SCIENTIFIC_WORKBENCH_STATE.md` last
+  indexed 2026-08-21 (dev, HEAD caec1f71), ~17 days behind tip b08f20f7
+  (2026-09-07); frozen instrument block still asserts `jaxfne==0.4.17`.
+- **severity:** should-fix (critic); DOC + FACT
+- **minimal reproduction:** read line 4 and frozen-instrument section vs
+  `git log -1 --format='%H %ci' HEAD`
+- **expected behavior:** routing index reflects current tip or explicit stale
+  banner with successor
+- **actual behavior:** index frozen at 2026-08-21 / 0.4.17 / caec1f71
+- **evidence:** jcritic pass F-006; gh-only; scripts not executed
+- **possible future change:** update workbench index in critic-surface PR
+  (routing only; evidence receipts unchanged)
+
+### I-014
+- **date:** 2026-09-07
+- **type:** DOC
+- **area:** public/private boundary audit scope
+- **observation:** `audit_public_private_boundary.py` scans MkDocs nav pages
+  only. `docs/for_ai_agents.md` is `exclude_docs` in `mkdocs.yml` but contains
+  `scratch/CURRENT_TASK.md` and worker-context handoff language. Full script
+  PASS/FAIL unknown without clone execution. Sampled public doctrine/status
+  pages remain consistent on H≠homeostasis and proxy≠calibrated.
+- **severity:** unknown / nit (critic); DOC
+- **minimal reproduction:** compare `mkdocs.yml` exclude_docs,
+  `audit_public_private_boundary.py` nav iteration, and
+  `docs/for_ai_agents.md` lines 47–48
+- **expected behavior:** audit scope documented; agent-excluded docs either
+  covered by separate check or explicitly out of scope
+- **actual behavior:** nav-only scan; excluded agent doc not audited; outcome
+  not verified in this pass
+- **evidence:** jcritic pass F-007; gh-only; scripts not executed
+- **possible future change:** document scope boundary; optional clone-backed
+  run of boundary + docs-page audit scripts
