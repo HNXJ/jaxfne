@@ -55,36 +55,59 @@ def test_generated_version_md_comparison():
         f"docs/_generated/version.md content ({repr(content)}) does not match expected ({repr(expected_content)})"
     )
 
+# The version actually live on PyPI. Kept as a single named constant so a
+# publication updates one literal and every docs surface is re-checked against
+# it; the tests never reach the network, so this is the one thing a human must
+# advance when a release goes out.
+PUBLISHED_PYPI_VERSION = "0.4.21"
+PREVIOUS_PYPI_VERSION = "0.4.20"
+
+
 def test_install_md_latest_pypi_version():
-    """docs/install.md must truthfully distinguish published PyPI from candidate version."""
-    pyproject_version = get_pyproject_version()
+    """docs/install.md must state the version actually published to PyPI."""
     root_dir = Path(__file__).resolve().parent.parent
     content = (root_dir / "docs" / "install.md").read_text(encoding="utf-8")
 
-    match_rc = re.search(r"release candidate is \*\*`([^`]+)`\*\*", content)
-    assert match_rc, "Could not find the 'release candidate is' claim in docs/install.md"
-    assert match_rc.group(1) == pyproject_version, (
-        f"docs/install.md claims candidate {match_rc.group(1)!r}, "
-        f"pyproject.toml says {pyproject_version!r}"
-    )
-    # Published PyPI release must remain truthful (0.4.20 live on PyPI;
-    # update alongside docs/install.md when a newer release is published)
     match_pub = re.search(r"published \*\*PyPI\*\* release is \*\*`jaxfne==([^`]+)`\*\*", content)
     assert match_pub, "Could not find published PyPI release in docs/install.md"
-    assert match_pub.group(1) == "0.4.20"
+    assert match_pub.group(1) == PUBLISHED_PYPI_VERSION, (
+        f"docs/install.md claims published {match_pub.group(1)!r}, "
+        f"live PyPI is {PUBLISHED_PYPI_VERSION!r}"
+    )
+    # The pinned-install example must not advertise a superseded release.
+    assert f'pip install "jaxfne=={PUBLISHED_PYPI_VERSION}"' in content, (
+        "docs/install.md pins a version other than the published release"
+    )
+    assert f"`{PREVIOUS_PYPI_VERSION}`" in content, (
+        "docs/install.md should still name the previous release for context"
+    )
+
+
+def test_published_version_matches_pyproject_when_not_mid_candidate():
+    """Once published, the tree version and the published version agree.
+
+    They diverge only while a candidate is in flight, which is exactly when
+    docs must say so explicitly rather than implying the tree is on PyPI.
+    """
+    pyproject_version = get_pyproject_version()
+    root_dir = Path(__file__).resolve().parent.parent
+    install = (root_dir / "docs" / "install.md").read_text(encoding="utf-8")
+    if pyproject_version != PUBLISHED_PYPI_VERSION:
+        assert "release candidate" in install.lower(), (
+            f"pyproject is {pyproject_version!r} but PyPI has {PUBLISHED_PYPI_VERSION!r}; "
+            "docs/install.md must label the unpublished version a release candidate"
+        )
 
 
 def test_colab_md_version():
-    pyproject_version = get_pyproject_version()
     root_dir = Path(__file__).resolve().parent.parent
     content = (root_dir / "docs" / "colab.md").read_text(encoding="utf-8")
-
-    match = re.search(r"release candidate `([^`]+)`", content)
-    assert match, "Could not find the release candidate version in docs/colab.md"
-    assert match.group(1) == pyproject_version, (
-        f"docs/colab.md claims candidate {match.group(1)!r}, pyproject.toml says {pyproject_version!r}"
+    assert f"published PyPI release `jaxfne=={PUBLISHED_PYPI_VERSION}`" in content, (
+        f"docs/colab.md does not state published release {PUBLISHED_PYPI_VERSION}"
     )
-    assert "published PyPI release `jaxfne==0.4.20`" in content
+    assert f"previous release `{PREVIOUS_PYPI_VERSION}`" in content, (
+        "docs/colab.md should name the previous release for context"
+    )
 
 
 def test_quickstart_md_documents_dev_contract():

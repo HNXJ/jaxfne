@@ -34,8 +34,11 @@ export.
   no longer skip or fail asymmetrically).
 - CI context uniqueness and branch protection: unique job names across
   workflows; required contexts verified equal to emitted contexts.
-- Release artifact provenance: builds publish from isolated output
-  directories, never from stale `dist/` bytes.
+- Release artifact provenance: `release_ci` builds the wheel and sdist exactly
+  once and retains them as a CI artifact alongside a generated release
+  manifest; publishing downloads those retained bytes and requires SHA256
+  equality with the manifest before upload. Nothing is rebuilt at publish
+  time, so the published bytes are the bytes every gate validated.
 - Restored multi-area test coverage: the two formerly excluded modules run
   in every blocking gate (`BROAD_PYTEST_IGNORE` empty).
 
@@ -57,7 +60,8 @@ export.
 ### Support
 - Python 3.11-3.14. Blocking CI validates the supported range at its 3.11
   and 3.14 endpoints; 3.12 and 3.13 are supported but not independently
-  exercised by the full CI matrix. Publishing builds on 3.11.
+  exercised by the full CI matrix. The published artifacts are built on 3.11 by
+  `release_ci` and are pure-Python (`py3-none-any`).
 
 ## v0.4.20 (2026-09-03)
 

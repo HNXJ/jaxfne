@@ -6,7 +6,7 @@
 # Pinned exactly, not ranged: the wheel's WHEEL metadata embeds
 # "Generator: hatchling <version>", so a version change inside a range
 # silently changes the artifact SHA256 while nothing fails. 1.29.0 is the
-# version that built v0.4.20 and the validated v0.4.21 candidate.
+# version that built the published v0.4.20 and v0.4.21 releases.
 requires = ["hatchling==1.29.0"]
 build-backend = "hatchling.build"
 
