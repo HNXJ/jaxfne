@@ -3,7 +3,11 @@
 # current Twine/upload toolchain does not yet consistently accept it.
 # Hatchling <1.30 retains Metadata 2.4 generation. Reevaluate after the
 # project toolchain accepts Metadata 2.5.
-requires = ["hatchling>=1.27,<1.30"]
+# Pinned exactly, not ranged: the wheel's WHEEL metadata embeds
+# "Generator: hatchling <version>", so a version change inside a range
+# silently changes the artifact SHA256 while nothing fails. 1.29.0 is the
+# version that built v0.4.20 and the validated v0.4.21 candidate.
+requires = ["hatchling==1.29.0"]
 build-backend = "hatchling.build"
 
 [project]

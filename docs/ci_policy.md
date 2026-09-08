@@ -188,6 +188,54 @@ publish interpreter, and this policy sentence together, so metadata,
 classifiers, CI endpoints, publish interpreter, and documentation cannot
 silently diverge.
 
+## Artifact provenance
+
+The bytes uploaded to PyPI are the bytes the gates validated. Nothing rebuilds
+at publish time.
+
+`release_ci.yml` runs `python -m build` exactly once per run. That single build
+feeds the twine check, the isolated wheel smoke, and
+`scripts/build_release_manifest.py`, which writes `RELEASE_MANIFEST.json` beside
+the artifacts recording source commit, tree hash, version, declared and observed
+build backend, and the filename, size and full SHA256 of each distribution. The
+wheel, the sdist and the manifest are retained together as the `release-dist`
+CI artifact.
+
+`publish.yml` downloads that artifact for the exact commit being published,
+re-derives both SHA256 values, and requires equality with the manifest before
+any upload step runs. If no successful `release_ci` run exists for the commit,
+or the manifest names a different commit, or a hash differs, publishing fails
+rather than falling back to a build.
+
+The manifest is generated, never committed. Committing it would change the tree,
+and therefore the commit SHA it claims to certify — the same self-reference the
+release-candidate attestation avoids. Retained artifacts live in the gitignored
+`artifacts/release_candidate/` locally and as CI artifacts remotely.
+
+`build-system.requires` pins the backend exactly (`hatchling==1.29.0`) rather
+than ranging it. A wheel embeds `Generator: hatchling <version>` in its `WHEEL`
+metadata, so a different resolution inside a range changes the artifact SHA256
+while every gate still passes.
+
+## JUnit parity
+
+The `junit_parity` family compares the release-candidate sweeps node-by-node
+against the blocking CI evidence for the same commit. `scripts/run_test_gate.py`
+executes `scripts/check_junit_parity.py` in the `rc` gate, which downloads the
+`pytest-results-*` artifacts for HEAD and runs `scripts/compare_pytest_junit.py`
+against the three RC sweeps.
+
+The comparison fails on a node present on one side only, on any failure or
+error, and on any outcome difference not classified
+`INTENTIONAL_PLATFORM_DIFFERENCE`. `ENVIRONMENT_DEFECT` and `UNKNOWN` both fail:
+an unclassified difference is not a justified one. The justified differences are
+the POSIX-only shell gates and executable-bit checks, which skip on the Windows
+RC host and pass on Linux CI; they are listed by node ID in the report rather
+than filtered out.
+
+This family belongs to the `rc` gate only. Release CI produces one side of the
+comparison and cannot compare against itself.
+
 ## Branch protection
 
 `main` requires status checks. Job names are unique across workflows

@@ -94,8 +94,19 @@ jobs:
       - name: Install build tools
         run: python -m pip install build twine
 
-      - name: Build wheel and sdist
+      - name: Build wheel and sdist (once — these exact bytes are what ships)
+        # Built a single time per run. Every downstream consumer (twine check,
+        # smoke, publish) uses these bytes; nothing rebuilds. A rebuild would
+        # produce a different provenance chain even when byte-identical.
         run: python -m build
+
+      - name: Record artifact provenance
+        # Binds run -> commit -> tree -> filenames -> full SHA256 in one
+        # generated file. Generated, never committed: a manifest naming the
+        # commit that contains it cannot be produced without self-reference.
+        run: |
+          python scripts/build_release_manifest.py --dist dist --source-sha "$GITHUB_SHA" --ci-run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --out dist/RELEASE_MANIFEST.json
+          cat dist/RELEASE_MANIFEST.json
 
       - name: Twine check
         run: python -m twine check dist/*
@@ -117,3 +128,15 @@ jobs:
           assert manifest['physical_amplitude_calibrated'] is False
           print('CI wheel smoke OK', jtfne.__version__)
           "
+
+      - name: Upload release distributions (the only publishable bytes)
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-dist
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/RELEASE_MANIFEST.json
+          if-no-files-found: error
+          retention-days: 90
+

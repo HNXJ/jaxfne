@@ -537,3 +537,123 @@ def test_python_support_policy():
     assert "3.10 or later" not in faq
     contrib = (ROOT / "docs" / "contributing.md").read_text(encoding="utf-8")
     assert "(3.11 and 3.14 tested)" in contrib
+
+
+# --------------------------------------------------------------------------
+# Artifact provenance: the publishable bytes must be the validated bytes.
+#
+# The defect these tests exist to prevent: every gate ran against artifacts
+# that were then thrown away, and publish rebuilt from source. Byte-identical
+# output would have been luck, not a property -- nothing compared them.
+# --------------------------------------------------------------------------
+
+PUBLISH_WORKFLOW = WORKFLOWS / "publish.yml"
+RELEASE_WORKFLOW = WORKFLOWS / "release_ci.yml"
+
+
+def test_publish_workflow_never_builds():
+    """Publishing must consume retained artifacts, never produce new ones."""
+    text = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
+    commands = [
+        line for line in text.splitlines()
+        if not line.lstrip().startswith("#") and "python -m build" in line
+    ]
+    assert commands == [], (
+        "publish.yml builds distributions. Bytes produced at publish time have "
+        f"passed no gate: {commands}"
+    )
+
+
+def test_publish_workflow_verifies_hashes_before_upload():
+    """SHA256 equality with the manifest must gate the upload, not follow it."""
+    text = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
+    verify_at = text.find("build_release_manifest.py --verify")
+    upload_at = text.find("pypa/gh-action-pypi-publish")
+    assert verify_at != -1, "publish.yml does not verify artifact hashes"
+    assert upload_at != -1, "publish.yml does not upload"
+    assert verify_at < upload_at, "hash verification must precede the first upload"
+    assert text.count("build_release_manifest.py --verify") == text.count(
+        "pypa/gh-action-pypi-publish"
+    ), "every upload job must carry its own hash guard"
+
+
+def test_release_build_retains_artifacts_and_provenance():
+    text = RELEASE_WORKFLOW.read_text(encoding="utf-8")
+    assert "name: release-dist" in text, "release-build discards the artifacts it validates"
+    assert "if-no-files-found: error" in text
+    assert "build_release_manifest.py" in text, "no provenance recorded for the built bytes"
+    assert text.count("python -m build") == 1, (
+        "release_ci.yml builds more than once; only one build can be the retained one"
+    )
+
+
+def test_build_backend_is_pinned_exactly():
+    """A ranged backend silently changes the artifact hash.
+
+    The wheel embeds ``Generator: hatchling <version>``, so resolving a
+    different version inside a range produces different bytes with no failure.
+    """
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    requires = re.search(r"^requires = \[(.*?)\]", pyproject, re.M | re.S)
+    assert requires is not None
+    for spec in re.findall(r'"([^"]+)"', requires.group(1)):
+        assert "==" in spec, f"build backend requirement {spec!r} is not pinned exactly"
+
+
+def test_release_manifest_is_not_committed():
+    """A committed manifest cannot certify the commit that contains it."""
+    tracked = list(ROOT.rglob("RELEASE_MANIFEST.json"))
+    for path in tracked:
+        assert "dist" in path.parts or "release_candidate" in path.parts, (
+            f"{path} looks committed; a manifest naming its own containing commit "
+            "is self-referential"
+        )
+
+
+def test_junit_parity_is_a_required_rc_check_family():
+    """The comparator must be required, not merely available."""
+    assert "junit_parity" in CHECK_FAMILIES
+    assert "junit_parity" in GATE_CHECK_FAMILIES["rc"], (
+        "RC-vs-CI per-node comparison is not declared for the rc gate"
+    )
+    source = (ROOT / "scripts" / "run_test_gate.py").read_text(encoding="utf-8")
+    assert 'family="junit_parity"' in source, (
+        "junit_parity is declared but never executed; a declared-only family "
+        "cannot fail the gate"
+    )
+    assert "check_junit_parity.py" in source
+
+
+def test_junit_parity_checker_fails_closed():
+    """Every divergence class must fail; only platform differences may pass."""
+    from scripts.compare_pytest_junit import compare
+
+    passing = {"t::a": {"outcome": "passed", "reason": ""}}
+    assert compare(passing, dict(passing))["pass"] is True
+
+    justified = compare(
+        {"t::a": {"outcome": "skipped", "reason": "requires a POSIX shell"}},
+        {"t::a": {"outcome": "passed", "reason": ""}},
+    )
+    assert justified["pass"] is True
+    assert justified["outcome_differences"][0]["classification"] == (
+        "INTENTIONAL_PLATFORM_DIFFERENCE"
+    )
+
+    for rc, ci in (
+        ({"t::a": {"outcome": "passed", "reason": ""}}, {}),                      # rc_only
+        ({}, {"t::a": {"outcome": "passed", "reason": ""}}),                      # ci_only
+        (                                                                          # unknown
+            {"t::a": {"outcome": "skipped", "reason": "no idea"}},
+            {"t::a": {"outcome": "passed", "reason": ""}},
+        ),
+        (                                                                          # env defect
+            {"t::a": {"outcome": "skipped", "reason": "reportlab not installed"}},
+            {"t::a": {"outcome": "passed", "reason": ""}},
+        ),
+        (                                                                          # failure
+            {"t::a": {"outcome": "failure", "reason": "boom"}},
+            {"t::a": {"outcome": "failure", "reason": "boom"}},
+        ),
+    ):
+        assert compare(rc, ci)["pass"] is False, f"divergence passed: {rc} vs {ci}"

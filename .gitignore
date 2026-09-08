@@ -37,6 +37,10 @@ credentials.json
 # released commit itself. Produced by 'run_test_gate.py rc' and uploaded as
 # a CI artifact; see docs/ci_policy.md.
 artifacts/attestations/
+# Retained release-candidate artifacts and the generated release manifest.
+# Untracked by design: committing either would change the SHA it certifies,
+# the same self-reference defect the RC attestation avoids.
+artifacts/release_candidate/
 
 # Generated runtime artifacts
 outputs/

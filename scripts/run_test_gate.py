@@ -93,6 +93,7 @@ RELEASE_EXAMPLES = [
 
 CHECK_FAMILIES = {
     "environment_parity",
+    "junit_parity",
     "compileall",
     "pytest_dev",
     "lint_ruff",
@@ -159,6 +160,7 @@ GATE_CHECK_FAMILIES = {
     },
     "rc": {
         "environment_parity",
+        "junit_parity",
         "compileall",
         "lint_ruff",
         "docs_language_audit",
@@ -387,6 +389,12 @@ def gate_rc() -> None:
     _run([sys.executable, "scripts/check_environment_parity.py"],
          family="environment_parity")
     gate_release()
+
+    # Per-node RC-vs-CI comparison. gate_release() has just written the three
+    # RC JUnit sweeps; this compares every node ID against the blocking CI
+    # evidence for this exact commit. Advisory until now, which meant a
+    # divergence could pass unread -- a check nobody runs is not a check.
+    _run([sys.executable, "scripts/check_junit_parity.py"], family="junit_parity")
 
     with tempfile.TemporaryDirectory(prefix="jaxfne_rc_dist_") as tmp_dist:
         print(f"+ Building distribution artifacts in {tmp_dist}...", flush=True)
