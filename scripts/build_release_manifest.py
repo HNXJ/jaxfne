@@ -81,6 +81,32 @@ def _wheel_generator(wheel: Path) -> str | None:
     return None
 
 
+def _require_backend_matches_pin(declared: list[str], observed: str | None) -> None:
+    """The pin is only worth having if it is the version that actually built.
+
+    Pinning ``hatchling==1.29.0`` while the wheel reports a different Generator
+    means the build ran against something else -- a stale lock, a cached
+    environment, a vendored backend -- and the pin is decorative.
+    """
+    if observed is None:
+        raise SystemExit("wheel carries no Generator field; build backend unverifiable")
+    name, _, version = observed.partition(" ")
+    for spec in declared:
+        pinned_name, sep, pinned_version = spec.partition("==")
+        if not sep or pinned_name.strip() != name:
+            continue
+        if pinned_version.strip() != version.strip():
+            raise SystemExit(
+                f"build backend pin {spec!r} does not match the wheel's "
+                f"Generator {observed!r}; the pinned backend is not what built these bytes"
+            )
+        return
+    raise SystemExit(
+        f"wheel Generator {observed!r} matches no exact pin in build-system.requires "
+        f"{declared}; the build backend is unpinned or mismatched"
+    )
+
+
 def build(dist: Path, source_sha: str, ci_run_url: str | None) -> dict:
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     project = pyproject["project"]
@@ -95,6 +121,10 @@ def build(dist: Path, source_sha: str, ci_run_url: str | None) -> dict:
                 "the dist directory holds artifacts from another version"
             )
 
+    declared = pyproject["build-system"]["requires"]
+    observed = _wheel_generator(wheel)
+    _require_backend_matches_pin(declared, observed)
+
     return {
         "schema": "jaxfne.release_manifest/1",
         "version": version,
@@ -108,8 +138,8 @@ def build(dist: Path, source_sha: str, ci_run_url: str | None) -> dict:
             ],
         },
         "build_backend": {
-            "declared": pyproject["build-system"]["requires"],
-            "observed_generator": _wheel_generator(wheel),
+            "declared": declared,
+            "observed_generator": observed,
         },
         "wheel": _describe(wheel),
         "sdist": _describe(sdist),

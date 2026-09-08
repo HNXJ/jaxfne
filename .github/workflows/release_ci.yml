@@ -109,7 +109,7 @@ jobs:
           cat dist/RELEASE_MANIFEST.json
 
       - name: Twine check
-        run: python -m twine check dist/*
+        run: python -m twine check dist/*.whl dist/*.tar.gz
 
       - name: Wheel install smoke (from /tmp)
         run: |

@@ -17,6 +17,8 @@ import json
 from pathlib import Path
 import re
 
+import pytest
+
 from scripts.run_test_gate import (
     ATTESTATION_SCHEMA,
     BROAD_MARKER_EXPR,
@@ -657,3 +659,18 @@ def test_junit_parity_checker_fails_closed():
         ),
     ):
         assert compare(rc, ci)["pass"] is False, f"divergence passed: {rc} vs {ci}"
+
+
+def test_manifest_rejects_backend_that_did_not_build_the_wheel():
+    """A pin that disagrees with the wheel's Generator is decorative."""
+    from scripts.build_release_manifest import _require_backend_matches_pin
+
+    _require_backend_matches_pin(["hatchling==1.29.0"], "hatchling 1.29.0")
+
+    for declared, observed in (
+        (["hatchling==1.29.0"], "hatchling 1.30.0"),   # pinned, but not what built
+        (["hatchling>=1.27,<1.30"], "hatchling 1.29.0"),  # ranged: no pin to match
+        (["hatchling==1.29.0"], None),                  # no Generator at all
+    ):
+        with pytest.raises(SystemExit):
+            _require_backend_matches_pin(declared, observed)
