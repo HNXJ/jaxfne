@@ -407,6 +407,9 @@ def _edge_weights(
     raise ValueError(f"connection {rule_name!r} unknown weight mode {mode!r}")
 
 
+_DEFAULT_SPATIAL_SIGMA = 0.1
+
+
 def compile_connection_rules(
     neurons: Sequence[Mapping[str, Any]],
     connections: Sequence[Mapping[str, Any]],
@@ -504,7 +507,11 @@ def compile_connection_rules(
             pairs = _candidate_pairs_localized(
                 pre_ids, post_ids, neuron_xyz,
                 max_in_degree=int(max_in_degree),
-                spatial_sigma=float(rule.get("spatial_sigma", 0.1)),
+                # `.connections()` always writes the key, using None for "unset", so
+                # `.get(key, default)` never fires. Coalesce explicitly -- not with `or`,
+                # which would also swallow a deliberate 0.0.
+                spatial_sigma=float(_DEFAULT_SPATIAL_SIGMA if rule.get("spatial_sigma") is None
+                                    else rule["spatial_sigma"]),
                 allow_self=rule_self, key=rkey,
             )
         else:

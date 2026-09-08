@@ -437,7 +437,11 @@ def _apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], la
         )
     if p_connect is not None:
         p_val = float(p_connect)
-        if 0.0 < p_val < 1.0:
+        if p_val == 0.0:
+            # Zero is a request for no within-area recurrence, not an unset value. It
+            # previously fell through every `0.0 < p` guard and yielded full dense.
+            W = jnp.zeros_like(W)
+        elif 0.0 < p_val < 1.0:
             mask_key = jax.random.fold_in(key, 999)
             mask = jax.random.bernoulli(mask_key, p_val, (n, n)).astype(jdtype)
             W = W * mask / p_val

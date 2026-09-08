@@ -522,6 +522,26 @@ def _construct_build_network(
         # Confirmed 2026-07-21: a 100,000-neuron .network(layers=[...]) config
         # with .connectivity(p_connect=0.0005) still built a dense (n,n) matrix
         # (~40GB) and ran ~370s -- p_connect was silently inert.
+        # Realize the request or refuse it -- never silently ignore it. This branch
+        # cannot honour p_connect at all, so accepting one and returning dense
+        # all-to-all is a wrong answer, not a slow one.
+        # Both spellings: .connectivity(p_connect=...) reads from metadata, while
+        # .network(p_connect=...) is stored in the network spec and likewise never
+        # consumed on this route.
+        _p = (cfg.metadata.get("connectivity") or {}).get("p_connect")
+        _src = "connectivity"
+        if _p is None:
+            _p, _src = net.get("p_connect"), "network"
+        if _p is not None and float(_p) < 1.0:
+            raise ValueError(
+                f"{_src}(p_connect={_p}) cannot be honoured by this construction "
+                "route: the configuration set none of columns/layer_cell_types/uniform_3d, "
+                "so it routes to the non-sparse-aware network builder, which materializes "
+                "dense all-to-all connectivity. Previously the request was silently "
+                "ignored. Use build_laminar_column/laminar_cortex_config (or set one of "
+                "those metadata keys) to reach the sparse-aware population builder, or "
+                "drop p_connect to request dense connectivity explicitly."
+            )
         cell_types = net.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.1})
         if n >= _DENSE_CONNECTIVITY_WARN_N:
             import warnings as _warnings
@@ -668,6 +688,18 @@ def _construct_compile_connections(
                 int(cfg.metadata.get("seed", 0) or 0), positions=_positions_np,
             )
         else:
+            # The sign-only fallback compiler cannot honour max_in_degree. Refusing is
+            # the only honest option: silently dropping the cap previously doubled the
+            # network (a 10x sparsity request yielding a 2x denser result).
+            _capped = [r.get("name") for r in _conn_rules if r.get("max_in_degree") is not None]
+            if _capped:
+                raise ValueError(
+                    f"connection rule(s) {_capped} declare max_in_degree, which is only "
+                    "honoured by the mechanism-aware compiler. That compiler runs only when "
+                    "every declared rule carries a mechanism= reference resolvable against a "
+                    ".mechanisms() declaration. Declare mechanisms for all rules, or drop "
+                    "max_in_degree -- the cap cannot be applied on the sign-only path."
+                )
             _conn_edges, _counts = _compile_connection_rules(
                 _conn_rules, _area_labels, _layer_labels, _cell_labels,
                 _np.asarray(_ep.sign), n, edge_list.weight.dtype,
