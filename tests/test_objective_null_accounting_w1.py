@@ -122,3 +122,37 @@ def test_sigma_precision_rejects_an_out_of_range_target(bad):
 
 def test_report_carries_the_advisory_precision_figure():
     assert _run()["null_samples_for_sigma_rse_25pct"] == 9
+
+
+def test_epistemic_boundary_is_exact_in_a_single_scorer():
+    """One scorer, both events: the defect escapes; the invalid draw is accounted.
+
+    This pins the boundary itself rather than each side separately -- a scorer that
+    raises an accepted invalid-null condition on some draws and a programming error
+    on another must record the former and let the latter through unchanged.
+    """
+
+    class _Scorer:
+        def __init__(self, *, raise_defect_on):
+            self.n = 0
+            self.raise_defect_on = raise_defect_on
+
+        def __call__(self, null_readout, targets):
+            self.n += 1
+            if self.n == self.raise_defect_on:
+                raise KeyError("alpha_beta_shufled")  # a typo, i.e. a defect
+            if self.n % 3 == 0:
+                raise ValueError("degenerate draw")  # an accepted invalid null
+            return 45.0 + self.n
+
+    # The defect escapes unchanged -- same type, same message, not reclassified.
+    with pytest.raises(KeyError) as excinfo:
+        _run(similarity_metric=_Scorer(raise_defect_on=5))
+    assert "alpha_beta_shufled" in str(excinfo.value)
+
+    # With no defect, the identical invalid-null condition is counted, not swallowed.
+    report = _run(similarity_metric=_Scorer(raise_defect_on=0))
+    assert report["null_rejection_classes"] == {"expected_exception:ValueError": 4}
+    assert report["null_samples_accepted"] == 8
+    assert report["null_samples_requested"] == 12
+    assert report["score_type"] == "null_normalized_similarity"
