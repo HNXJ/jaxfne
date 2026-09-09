@@ -47,7 +47,8 @@ outputs/
 outputs-provenance-patched.zip
 outputs-*-patched.zip
 site/
-scratch/
+scratch/*
+!scratch/CURRENT_TASK.example.md
 tmp/
 test_execution_output/
 
