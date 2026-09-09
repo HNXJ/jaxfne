@@ -1,19 +1,24 @@
 {
   "audit": "w3_broad_handler_tally",
-  "generated_utc": "2026-09-09T19:50:00.664839+00:00",
+  "generated_utc": "2026-09-09T21:25:50.486600+00:00",
   "package": "jaxfne",
-  "handler_count": 133,
+  "handler_count": 132,
   "by_classification": {
-    "BEST_EFFORT_PRESENTATION": 129,
-    "EXPECTED_OPTIONAL_CAPABILITY": 4
+    "STATE_MUTATION": 1,
+    "BEST_EFFORT_PRESENTATION": 114,
+    "SCIENTIFIC_COMPUTATION": 5,
+    "EXPECTED_OPTIONAL_CAPABILITY": 4,
+    "PERSISTENCE": 2,
+    "EXPECTED_NUMERICAL_DOMAIN_FAILURE": 4,
+    "VALIDATION": 2
   },
   "handlers": [
     {
       "file": "jaxfne/_construct_connectivity.py",
       "line": 592,
       "handler": "except Exception:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "optional recurrent_backend=edge_list upgrade; construction continues"
+      "classification": "STATE_MUTATION",
+      "note": "optional recurrent_backend=edge_list upgrade; explicit contradiction raises before try"
     },
     {
       "file": "jaxfne/_model.py",
@@ -26,8 +31,8 @@
       "file": "jaxfne/_model_evaluate.py",
       "line": 297,
       "handler": "except Exception as e:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "evaluate objective aggregation fallback"
+      "classification": "SCIENTIFIC_COMPUTATION",
+      "note": "group rate evaluation failure sets all_gates_pass=False"
     },
     {
       "file": "jaxfne/_model_simulate.py",
@@ -47,8 +52,8 @@
       "file": "jaxfne/_model_tune.py",
       "line": 652,
       "handler": "except Exception as e:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "tune candidate scoring fallback with rejection accounting"
+      "classification": "SCIENTIFIC_COMPUTATION",
+      "note": "tune top-level failure returns REVISE + inf; does not fabricate ACCEPT"
     },
     {
       "file": "jaxfne/_runtime_config.py",
@@ -121,74 +126,67 @@
       "note": "content hash fallback empty; never block construction"
     },
     {
-      "file": "jaxfne/objectives.py",
-      "line": 481,
-      "handler": "except Exception:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "synchrony metric optional; None when computation fails"
-    },
-    {
       "file": "jaxfne/optim/core.py",
       "line": 224,
       "handler": "except Exception:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "optimizer/manifest fallback with fallback_counts"
+      "classification": "PERSISTENCE",
+      "note": "AGSDRSpec.to_dict parameter serialization fallback"
     },
     {
       "file": "jaxfne/optim/core.py",
       "line": 1489,
       "handler": "except Exception:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "optimizer/manifest fallback with fallback_counts"
+      "classification": "SCIENTIFIC_COMPUTATION",
+      "note": "inner-loop surrogate loss failure -> inf (optimizer-domain rejection)"
     },
     {
       "file": "jaxfne/optim/core.py",
       "line": 1601,
       "handler": "except Exception:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "optimizer/manifest fallback with fallback_counts"
+      "classification": "EXPECTED_NUMERICAL_DOMAIN_FAILURE",
+      "note": "inner Adam step failure breaks inner loop; uses AGSDR candidate"
     },
     {
       "file": "jaxfne/optim/core.py",
       "line": 1611,
       "handler": "except Exception:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "optimizer/manifest fallback with fallback_counts"
+      "classification": "EXPECTED_NUMERICAL_DOMAIN_FAILURE",
+      "note": "candidate refinement failure falls back to unrefined AGSDR candidate"
     },
     {
       "file": "jaxfne/optim/core.py",
       "line": 1625,
       "handler": "except Exception:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "optimizer/manifest fallback with fallback_counts"
+      "classification": "EXPECTED_NUMERICAL_DOMAIN_FAILURE",
+      "note": "final scoring failure -> inf; REVISE unless finite best_score"
     },
     {
       "file": "jaxfne/optim/core.py",
       "line": 1647,
       "handler": "except Exception:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "optimizer/manifest fallback with fallback_counts"
+      "classification": "SCIENTIFIC_COMPUTATION",
+      "note": "matrix extraction failure counted in fallback_counts only"
     },
     {
       "file": "jaxfne/optim/core.py",
       "line": 1692,
       "handler": "except Exception:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "optimizer/manifest fallback with fallback_counts"
+      "classification": "SCIENTIFIC_COMPUTATION",
+      "note": "matrix diagnostics serialization failure counted only"
     },
     {
       "file": "jaxfne/optim/core.py",
       "line": 1929,
       "handler": "except Exception:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "optimizer/manifest fallback with fallback_counts"
+      "classification": "EXPECTED_NUMERICAL_DOMAIN_FAILURE",
+      "note": "scalar differentiable step failure -> nan loss; REVISE if no finite best"
     },
     {
       "file": "jaxfne/optim/manifests.py",
       "line": 40,
       "handler": "except Exception:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "optimizer/manifest fallback with fallback_counts"
+      "classification": "PERSISTENCE",
+      "note": "optimization manifest array serialization fallback to str"
     },
     {
       "file": "jaxfne/paradigm.py",
@@ -460,54 +458,54 @@
       "file": "jaxfne/validation.py",
       "line": 276,
       "handler": "except Exception as e:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "runtime/validation/json_safe presentation fallback"
+      "classification": "VALIDATION",
+      "note": "eigenvalue failure returns is_valid=False with evidence"
     },
     {
       "file": "jaxfne/validation.py",
       "line": 327,
       "handler": "except Exception as e:",
-      "classification": "BEST_EFFORT_PRESENTATION",
-      "note": "runtime/validation/json_safe presentation fallback"
+      "classification": "VALIDATION",
+      "note": "field array validation error sets *_finite=False and all_finite=False"
     },
     {
       "file": "jaxfne/validation.py",
-      "line": 337,
+      "line": 338,
       "handler": "except Exception as e:",
       "classification": "BEST_EFFORT_PRESENTATION",
       "note": "runtime/validation/json_safe presentation fallback"
     },
     {
       "file": "jaxfne/validation.py",
-      "line": 347,
+      "line": 349,
       "handler": "except Exception as e:",
       "classification": "BEST_EFFORT_PRESENTATION",
       "note": "runtime/validation/json_safe presentation fallback"
     },
     {
       "file": "jaxfne/validation.py",
-      "line": 875,
+      "line": 878,
       "handler": "except Exception as e:",
       "classification": "BEST_EFFORT_PRESENTATION",
       "note": "runtime/validation/json_safe presentation fallback"
     },
     {
       "file": "jaxfne/validation.py",
-      "line": 923,
+      "line": 926,
       "handler": "except Exception as e:",
       "classification": "BEST_EFFORT_PRESENTATION",
       "note": "runtime/validation/json_safe presentation fallback"
     },
     {
       "file": "jaxfne/validation.py",
-      "line": 967,
+      "line": 970,
       "handler": "except Exception as e:",
       "classification": "BEST_EFFORT_PRESENTATION",
       "note": "runtime/validation/json_safe presentation fallback"
     },
     {
       "file": "jaxfne/validation.py",
-      "line": 1177,
+      "line": 1180,
       "handler": "except Exception as e:",
       "classification": "BEST_EFFORT_PRESENTATION",
       "note": "runtime/validation/json_safe presentation fallback"

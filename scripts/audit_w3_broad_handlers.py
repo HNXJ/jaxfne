@@ -56,8 +56,8 @@ _OVERRIDES: dict[tuple[str, int], tuple[str, str]] = {
         "content hash fallback empty; never block construction",
     ),
     ("jaxfne/objectives.py", 481): (
-        "BEST_EFFORT_PRESENTATION",
-        "synchrony metric optional; None when computation fails",
+        "SCIENTIFIC_COMPUTATION",
+        "synchrony gate removed broad swallow; degenerate stats return 0.0 inside compute_synchrony_metric",
     ),
     ("jaxfne/_model_simulate.py", 592): (
         "EXPECTED_OPTIONAL_CAPABILITY",
@@ -72,8 +72,84 @@ _OVERRIDES: dict[tuple[str, int], tuple[str, str]] = {
         "evaluate objective aggregation fallback",
     ),
     ("jaxfne/_model_tune.py", 652): (
-        "BEST_EFFORT_PRESENTATION",
-        "tune candidate scoring fallback with rejection accounting",
+        "SCIENTIFIC_COMPUTATION",
+        "tune top-level failure returns REVISE + inf; does not fabricate ACCEPT",
+    ),
+    ("jaxfne/_model_evaluate.py", 297): (
+        "SCIENTIFIC_COMPUTATION",
+        "group rate evaluation failure sets all_gates_pass=False",
+    ),
+    ("jaxfne/validation.py", 276): (
+        "VALIDATION",
+        "eigenvalue failure returns is_valid=False with evidence",
+    ),
+    ("jaxfne/validation.py", 327): (
+        "VALIDATION",
+        "field array validation error sets *_finite=False and all_finite=False",
+    ),
+    ("jaxfne/validation.py", 337): (
+        "VALIDATION",
+        "field array validation error sets *_finite=False and all_finite=False",
+    ),
+    ("jaxfne/validation.py", 347): (
+        "VALIDATION",
+        "field array validation error sets *_finite=False and all_finite=False",
+    ),
+    ("jaxfne/validation.py", 875): (
+        "VALIDATION",
+        "SPD check failure returns (False, diagnostic)",
+    ),
+    ("jaxfne/validation.py", 923): (
+        "VALIDATION",
+        "conservation check failure returns (False, diagnostic, residual)",
+    ),
+    ("jaxfne/validation.py", 967): (
+        "VALIDATION",
+        "gauge check failure returns (False, diagnostic)",
+    ),
+    ("jaxfne/validation.py", 1177): (
+        "VALIDATION",
+        "BasisSpec dict normalization failure returns valid=False",
+    ),
+    ("jaxfne/optim/core.py", 224): (
+        "PERSISTENCE",
+        "AGSDRSpec.to_dict parameter serialization fallback",
+    ),
+    ("jaxfne/optim/core.py", 1489): (
+        "SCIENTIFIC_COMPUTATION",
+        "inner-loop surrogate loss failure -> inf (optimizer-domain rejection)",
+    ),
+    ("jaxfne/optim/core.py", 1601): (
+        "EXPECTED_NUMERICAL_DOMAIN_FAILURE",
+        "inner Adam step failure breaks inner loop; uses AGSDR candidate",
+    ),
+    ("jaxfne/optim/core.py", 1611): (
+        "EXPECTED_NUMERICAL_DOMAIN_FAILURE",
+        "candidate refinement failure falls back to unrefined AGSDR candidate",
+    ),
+    ("jaxfne/optim/core.py", 1625): (
+        "EXPECTED_NUMERICAL_DOMAIN_FAILURE",
+        "final scoring failure -> inf; REVISE unless finite best_score",
+    ),
+    ("jaxfne/optim/core.py", 1647): (
+        "SCIENTIFIC_COMPUTATION",
+        "matrix extraction failure counted in fallback_counts only",
+    ),
+    ("jaxfne/optim/core.py", 1692): (
+        "SCIENTIFIC_COMPUTATION",
+        "matrix diagnostics serialization failure counted only",
+    ),
+    ("jaxfne/optim/core.py", 1929): (
+        "EXPECTED_NUMERICAL_DOMAIN_FAILURE",
+        "scalar differentiable step failure -> nan loss; REVISE if no finite best",
+    ),
+    ("jaxfne/optim/manifests.py", 40): (
+        "PERSISTENCE",
+        "optimization manifest array serialization fallback to str",
+    ),
+    ("jaxfne/_construct_connectivity.py", 592): (
+        "STATE_MUTATION",
+        "optional recurrent_backend=edge_list upgrade; explicit contradiction raises before try",
     ),
 }
 

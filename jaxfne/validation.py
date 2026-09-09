@@ -325,6 +325,7 @@ def validate_field_arrays_finite(
             if not finite:
                 evidence.append("phi_e contains NaN or Inf")
         except Exception as e:
+            results["phi_e_finite"] = False
             evidence.append(f"phi_e validation error: {e}")
 
     if J_e is not None:
@@ -335,6 +336,7 @@ def validate_field_arrays_finite(
             if not finite:
                 evidence.append("J_e contains NaN or Inf")
         except Exception as e:
+            results["J_e_finite"] = False
             evidence.append(f"J_e validation error: {e}")
 
     if CSD is not None:
@@ -345,6 +347,7 @@ def validate_field_arrays_finite(
             if not finite:
                 evidence.append("CSD contains NaN or Inf")
         except Exception as e:
+            results["CSD_finite"] = False
             evidence.append(f"CSD validation error: {e}")
 
     all_provided = all(v is not None for v in results.values())

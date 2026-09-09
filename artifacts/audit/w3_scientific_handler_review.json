@@ -1,0 +1,162 @@
+{
+  "audit": "w3_scientific_handler_review",
+  "generated_utc": "2026-09-09T22:30:00+00:00",
+  "scope": "consequential subset of w3_broad_handler_tally (133 total; 129 presentation preserved unchanged)",
+  "scientific_handlers_reviewed": 23,
+  "preserved_expected": 22,
+  "defects_confirmed": 2,
+  "unknown": 0,
+  "negative_tests": [
+    "tests/test_w3_scientific_handlers.py::test_synchrony_implementation_error_propagates_not_false_pass",
+    "tests/test_w3_scientific_handlers.py::test_synchrony_unknown_method_propagates_value_error",
+    "tests/test_w3_scientific_handlers.py::test_validate_field_arrays_conversion_error_fails_not_vacuous_pass"
+  ],
+  "changes": [
+    {
+      "file": "jaxfne/objectives.py",
+      "line": 469,
+      "handler": "removed broad except Exception around compute_synchrony_metric",
+      "reason": "implementation failure was indistinguishable from gate pass (synchrony_rejection=False, synchrony_checked=True)"
+    },
+    {
+      "file": "jaxfne/validation.py",
+      "lines": [327, 337, 347],
+      "handler": "except Exception in validate_field_arrays_finite",
+      "reason": "conversion/validation errors left phi_e_finite=None so all_finite was vacuously True"
+    }
+  ],
+  "scientific_behavior_delta": [
+    "spectrolaminar_objective: synchrony gate implementation errors and invalid methods now propagate instead of appearing as unchecked pass",
+    "validate_field_arrays_finite: supplied arrays that cannot be validated now set field *_finite=False and all_finite=False"
+  ],
+  "handlers": [
+    {
+      "file": "jaxfne/optim/core.py",
+      "lines": [224, 1489, 1601, 1611, 1625, 1647, 1692, 1929],
+      "classification": "SCIENTIFIC_COMPUTATION",
+      "verdict": "PRESERVED",
+      "question": "Can unexpected exception fabricate a valid optimization result?",
+      "answer": "No. Scoring failures become inf/nan, acceptance_decision REVISE unless finite best_score; fallback_counts and warnings surface degradation. inf for failed candidates is intentional optimizer-domain rejection.",
+      "subtypes": {
+        "224": "PERSISTENCE",
+        "1489": "EXPECTED_NUMERICAL_DOMAIN_FAILURE",
+        "1601": "EXPECTED_NUMERICAL_DOMAIN_FAILURE",
+        "1611": "EXPECTED_NUMERICAL_DOMAIN_FAILURE",
+        "1625": "EXPECTED_NUMERICAL_DOMAIN_FAILURE",
+        "1647": "SCIENTIFIC_COMPUTATION",
+        "1692": "SCIENTIFIC_COMPUTATION",
+        "1929": "EXPECTED_NUMERICAL_DOMAIN_FAILURE"
+      }
+    },
+    {
+      "file": "jaxfne/optim/manifests.py",
+      "line": 40,
+      "classification": "PERSISTENCE",
+      "verdict": "PRESERVED",
+      "question": "Can serialization failure appear durable?",
+      "answer": "No. Manifest serialization falls back to str(v); does not affect optimization scores or scientific state."
+    },
+    {
+      "file": "jaxfne/objectives.py",
+      "line": "469-482 (handler removed)",
+      "classification": "SCIENTIFIC_COMPUTATION",
+      "verdict": "DEFECT_FIXED",
+      "question": "Can synchrony failure appear as gate pass?",
+      "answer": "Yes (prior). Broad except Exception at former line 481 swallowed failures -> synchrony_rejection=False while synchrony_checked=True. Handler removed; degenerate stats return 0.0 inside compute_synchrony_metric without raising."
+    },
+    {
+      "file": "jaxfne/validation.py",
+      "lines": [276, 875, 923, 967, 1177],
+      "classification": "VALIDATION",
+      "verdict": "PRESERVED",
+      "question": "Can failed validation appear as PASS?",
+      "answer": "No. SPD/eigenvalue/conservation/gauge/BasisSpec paths return valid=False or (False, diagnostic)."
+    },
+    {
+      "file": "jaxfne/validation.py",
+      "lines": [327, 337, 347],
+      "classification": "VALIDATION",
+      "verdict": "DEFECT_FIXED",
+      "question": "Can field finiteness validation error appear as all_finite=True?",
+      "answer": "Yes (prior). Exception left *_finite=None; all_finite was vacuously True when only failing array supplied."
+    },
+    {
+      "file": "jaxfne/_model_evaluate.py",
+      "line": 297,
+      "classification": "SCIENTIFIC_COMPUTATION",
+      "verdict": "PRESERVED",
+      "question": "Can group evaluation error appear as gates pass?",
+      "answer": "No. Sets all_gates_pass=False, records status in loss_details, achieved_hz=None."
+    },
+    {
+      "file": "jaxfne/_model_tune.py",
+      "line": 652,
+      "classification": "SCIENTIFIC_COMPUTATION",
+      "verdict": "PRESERVED",
+      "question": "Can tune failure appear as ACCEPT?",
+      "answer": "No. Returns REVISE, best_score=inf, error in summary; model unchanged at self."
+    },
+    {
+      "file": "jaxfne/_model_simulate.py",
+      "line": 592,
+      "classification": "EXPECTED_OPTIONAL_CAPABILITY",
+      "verdict": "PRESERVED",
+      "question": "Can opt-in accessory failure corrupt canonical simulate output?",
+      "answer": "No by design. Accessory is opt-in; canonical simulate result preserved."
+    },
+    {
+      "file": "jaxfne/_model_simulate.py",
+      "line": 1264,
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "verdict": "PRESERVED",
+      "note": "post-sim diagnostics attachment only"
+    },
+    {
+      "file": "jaxfne/_construct_connectivity.py",
+      "line": 592,
+      "classification": "STATE_MUTATION",
+      "verdict": "PRESERVED",
+      "question": "Can silent runtime() failure leave partially accepted connect state?",
+      "answer": "Only when recurrent_backend upgrade to edge_list is optional; explicit contradictory backend raises before try. Silent pass does not fabricate validation PASS."
+    },
+    {
+      "file": "jaxfne/_model.py",
+      "line": 593,
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "verdict": "PRESERVED",
+      "note": "neuron_table z extraction; None when unavailable"
+    },
+    {
+      "file": "jaxfne/bridges.py",
+      "lines": [473, 709, 778],
+      "classification": "EXPECTED_OPTIONAL_CAPABILITY",
+      "verdict": "PRESERVED"
+    },
+    {
+      "file": "jaxfne/neuronal_tensor.py",
+      "line": 913,
+      "classification": "PERSISTENCE",
+      "verdict": "PRESERVED",
+      "note": "content hash fallback; does not alter simulation tensors"
+    },
+    {
+      "file": "jaxfne/runtime.py",
+      "lines": [52, 91, 142, 173],
+      "classification": "EXPECTED_OPTIONAL_CAPABILITY",
+      "verdict": "PRESERVED",
+      "note": "backend probe and wrap-time jit/vmap fallback; strict mode propagates"
+    },
+    {
+      "file": "jaxfne/paradigm.py",
+      "lines": [112, 394],
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "verdict": "PRESERVED"
+    }
+  ],
+  "persistence_review": {
+    "note": "No broad except handlers in jaxfne/io.py or jaxfne/export.py _safe_json_write. Failed writes propagate via pathlib/json.dumps.",
+    "verdict": "NO_DEFECT_IN_INVENTORY"
+  },
+  "w3_verdict": "CLOSED_WITH_TWO_TARGETED_FIXES",
+  "presentation_handlers_unchanged": 129
+}

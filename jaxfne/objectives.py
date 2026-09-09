@@ -467,19 +467,19 @@ def spectrolaminar_objective(
     synchrony_rejection = False
 
     if synchrony_spikes is not None and synchrony_metric is not None:
-        try:
-            synchrony_value = compute_synchrony_metric(
-                synchrony_spikes, method=synchrony_metric
-            )
+        # Degenerate/undefined synchrony is handled inside compute_synchrony_metric
+        # (returns 0.0). Implementation errors must propagate — swallowing would let a
+        # failed gate appear as synchrony_rejection=False while synchrony_checked=True.
+        synchrony_value = compute_synchrony_metric(
+            synchrony_spikes, method=synchrony_metric
+        )
 
-            if synchrony_value > synchrony_threshold:
-                synchrony_rejection = True
-                rejection_reasons.append(
-                    f"synchrony_exceeded_threshold_{synchrony_metric}_{synchrony_value:.2f}>"
-                    f"{synchrony_threshold}"
-                )
-        except Exception:
-            synchrony_value = None
+        if synchrony_value > synchrony_threshold:
+            synchrony_rejection = True
+            rejection_reasons.append(
+                f"synchrony_exceeded_threshold_{synchrony_metric}_{synchrony_value:.2f}>"
+                f"{synchrony_threshold}"
+            )
 
     # Determine score type and profile score
     if S_lam is not None and null_distribution_n > 0:
