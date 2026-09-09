@@ -136,37 +136,111 @@ def set_param_array(model, path: str, value):
     return replace(model, params={**model.params, key: replace(container, **{field_name: value})})
 
 
-def measure_usage(model, records, run_fn, baseline) -> None:
-    """Set U_k on each record by perturbing the array and re-running."""
+INSPECT_ROW_CAP = 2000
+
+# Consumer classes this tool actually probes. Anything not listed stays an explicit
+# unknown rather than being silently folded into U_total -- an array can be
+# irrelevant to simulate() and still required by a supported operation.
+PROBED_CONSUMERS = ("dynamics", "inspect", "checkpoint", "manifest")
+UNPROBED_CONSUMERS = ("hdp", "optimize", "continuation", "streaming", "protocol_d")
+
+
+def _digest(value) -> str:
+    """Stable hash of a probe result, tolerant of arrays and nested containers."""
+    import hashlib
+
+    h = hashlib.sha256()
+
+    def feed(v):
+        if isinstance(v, np.ndarray):
+            a = np.nan_to_num(v.astype(np.float64, copy=False), nan=_NAN_SENTINEL)                 if np.issubdtype(v.dtype, np.floating) else v
+            h.update(np.ascontiguousarray(a).tobytes())
+        elif isinstance(v, dict):
+            for k in sorted(v, key=repr):
+                h.update(repr(k).encode())
+                feed(v[k])
+        elif isinstance(v, (list, tuple)):
+            for item in v:
+                feed(item)
+        else:
+            h.update(repr(v).encode())
+
+    feed(value)
+    return h.hexdigest()
+
+
+def build_probes(duration_ms, dt_ms):
+    """Return {consumer: callable(model) -> digestable result} for the probed classes."""
+    import jaxfne as jtfne
+
+    def dynamics(model):
+        sig = jtfne.simulate(model, duration_ms=duration_ms, dt_ms=dt_ms, seed=0)
+        return np.asarray(sig.V_m)
+
+    def inspect(model):
+        rows = model.edge_table()
+        return [len(rows), rows[:INSPECT_ROW_CAP], model.summary(),
+                model.connectivity_summary(), model.neuron_table()[:INSPECT_ROW_CAP]]
+
+    def checkpoint(model):
+        # Persistence is its own consumer class: an array can be irrelevant to
+        # simulate() and still have to survive a save/restore round trip.
+        import pathlib
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "w10_checkpoint"
+            model.checkpoint(str(path))
+            written = sorted(pathlib.Path(tmp).rglob("*"))
+            return [f.name for f in written if f.is_file()] + [
+                f.read_bytes() for f in written if f.is_file()
+            ]
+
+    def manifest(model):
+        return model.manifest()
+
+    return {"dynamics": dynamics, "inspect": inspect,
+            "checkpoint": checkpoint, "manifest": manifest}
+
+
+def measure_usage(model, records, probes, baselines) -> None:
+    """Set per-consumer U_k on each record by perturbing the array and re-probing."""
     for rec in records:
-        rec["U_k"] = None
-        rec["U_k_method"] = "not_attempted"
         target = rec.pop("_array")
+        rec["U_k_by_consumer"] = {}
+        rec["U_k_unprobed"] = list(UNPROBED_CONSUMERS)
         bad = perturb(target)
         if bad is None:
+            rec["U_k"] = None
             rec["U_k_method"] = "undecidable_constant_or_empty"
             continue
         mutated = set_param_array(model, rec["name"], bad)
         if mutated is None:
+            rec["U_k"] = None
             rec["U_k_method"] = "unreachable_for_substitution"
             continue
-        try:
-            out = run_fn(mutated)
-        except Exception as exc:
-            # A raise proves the value is *read*, but not that dynamics consume it:
-            # a validation check rejecting an out-of-range perturbation reads the
-            # array without the solver ever using it. Record it as read-but-
-            # unclassified rather than silently counting it as dynamics-critical.
+        for consumer, probe in probes.items():
+            if consumer not in baselines:
+                continue
+            try:
+                observed = _digest(probe(mutated))
+            except Exception as exc:
+                # A raise proves the value is *read*, but not that the consumer uses
+                # it: a validation guard rejecting an out-of-range perturbation reads
+                # the array without the solver ever consuming it. Keep that distinct.
+                rec["U_k_by_consumer"][consumer] = f"read_but_unclassified:{type(exc).__name__}"
+                rec.setdefault("U_k_detail", {})[consumer] = str(exc)[:200]
+                continue
+            rec["U_k_by_consumer"][consumer] = int(observed != baselines[consumer])
+        values = list(rec["U_k_by_consumer"].values())
+        if any(v == 1 for v in values):
+            rec["U_k"] = 1
+        elif all(v == 0 for v in values) and values:
+            rec["U_k"] = 0
+        else:
             rec["U_k"] = None
-            rec["U_k_method"] = f"read_but_unclassified_raised:{type(exc).__name__}"
-            rec["U_k_detail"] = str(exc)[:200]
-            continue
-        changed = not np.array_equal(
-            np.nan_to_num(baseline, nan=_NAN_SENTINEL),
-            np.nan_to_num(out, nan=_NAN_SENTINEL),
-        )
-        rec["U_k"] = 1 if changed else 0
-        rec["U_k_method"] = "perturb_and_observe"
+        rec["U_k_dynamics"] = rec["U_k_by_consumer"].get("dynamics")
+        rec["U_k_method"] = "perturb_and_observe_multi_consumer"
 
 
 # -- memory ------------------------------------------------------------------
@@ -254,14 +328,19 @@ def main(argv=None) -> int:
     cfg = build_config(args.n, args.p_connect, args.max_in_degree,
                        args.duration_ms, args.dt_ms, args.seed)
 
-    def run_fn(model):
-        sig = jtfne.simulate(model, duration_ms=args.duration_ms, dt_ms=args.dt_ms, seed=0)
-        return np.asarray(sig.V_m)
+    probes = build_probes(args.duration_ms, args.dt_ms)
 
     with RSSSampler() as rss:
         model = jtfne.construct(cfg)
         signals = jtfne.simulate(model, duration_ms=args.duration_ms, dt_ms=args.dt_ms, seed=0)
-        baseline = np.asarray(signals.V_m)
+
+    baselines = {}
+    for consumer, probe in probes.items():
+        try:
+            baselines[consumer] = _digest(probe(model))
+        except Exception as exc:  # a consumer unavailable for this configuration
+            print(f"  probe {consumer!r} unavailable on the baseline model: "
+                  f"{type(exc).__name__}: {str(exc)[:120]}")
 
     m_persistent = total_bytes(model)
     m_recording = total_bytes(signals)
@@ -284,7 +363,7 @@ def main(argv=None) -> int:
             rec["U_k"] = None
             rec["U_k_method"] = "skipped"
     else:
-        measure_usage(model, records, run_fn, baseline)
+        measure_usage(model, records, probes, baselines)
 
     edge_list = model.params.get("edge_list")
     report = {
@@ -308,6 +387,13 @@ def main(argv=None) -> int:
             "note": ("M_temporary is derived from RSS and includes interpreter and "
                      "allocator overhead; treat it as an upper bound, not an exact figure."),
         },
+        "consumers": {
+            "probed": [c for c in PROBED_CONSUMERS if c in baselines],
+            "unprobed": list(UNPROBED_CONSUMERS),
+            "note": ("U_k = 0 means no probed consumer observed a difference. It is "
+                     "candidate-removable, not proven removable: the unprobed consumers "
+                     "above may still require the array."),
+        },
         "arrays": records,
     }
 
@@ -318,17 +404,26 @@ def main(argv=None) -> int:
           f"M_recording {m_recording / 1e6:9.3f} MB")
     print(f"  M_peak(RSS)  {m_peak_delta / 1e6:9.3f} MB   "
           f"M_temporary {m_temporary / 1e6:9.3f} MB (derived)")
-    print(f"\n{'bytes':>12} {'U_k':>4} {'R_k':>12}  {'shape':<16}{'dtype':<9}name")
+    probed = [c for c in PROBED_CONSUMERS if c in baselines]
+    print(f"\n  probed consumers: {', '.join(probed) or 'none'}")
+    print(f"  NOT probed:       {', '.join(UNPROBED_CONSUMERS)}")
+    header = "".join(f"{c[:5]:>7}" for c in probed)
+    print(f"\n{'bytes':>12} {'U_tot':>6}{header} {'R_k':>11}  name")
     for rec in records:
         u = "-" if rec["U_k"] is None else str(rec["U_k"])
+        cells = "".join(
+            f"{str(rec.get('U_k_by_consumer', {}).get(c, '-'))[:6]:>7}" for c in probed
+        )
         r = "-" if rec["R_k"] is None else f"{rec['R_k']:,.0f}"
-        print(f"{rec['bytes']:>12,} {u:>4} {r:>12}  "
-              f"{str(rec['shape']):<16}{rec['dtype']:<9}{rec['name']}")
+        print(f"{rec['bytes']:>12,} {u:>6}{cells} {r:>11}  "
+              f"{rec['name'].replace('model.params', '')}")
 
     dead = [r for r in records if r["U_k"] == 0]
     if dead:
         total_dead = sum(r["bytes"] for r in dead)
-        print(f"\nNot consumed by canonical execution: {len(dead)} array(s), "
+        print(f"\nCandidate-removable -- no probed consumer saw a difference; "
+              f"the unprobed consumers above are NOT cleared: "
+              f"{len(dead)} array(s), "
               f"{total_dead / 1e6:.3f} MB "
               f"({100 * total_dead / max(m_persistent, 1):.1f}% of M_persistent)")
         for r in dead:
