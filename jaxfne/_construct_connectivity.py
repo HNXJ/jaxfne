@@ -576,6 +576,17 @@ def _connect_merge_cfg(
 ) -> "Configuration":
     """``connect()`` stage: merged cfg -- conservative truth gates, ensemble marker, cross rules."""
     cfg2 = models[0].cfg
+    # A merged ensemble runs on concatenated edges, which no single model's dense
+    # W carries. Refuse an explicit contradiction rather than reinterpreting it --
+    # the bare try/except below is for configurations that cannot carry a runtime
+    # override at all, not a licence to discard a request the caller made.
+    _requested = cfg2.metadata.get("recurrent_backend")
+    if _requested is not None and _requested != "edge_list":
+        raise ValueError(
+            f"recurrent_backend={_requested!r} cannot be realized by connect(): the "
+            "merged ensemble runs on concatenated edges that no single model's dense "
+            "W carries. Drop the explicit recurrent_backend, or set it to 'edge_list'."
+        )
     try:
         cfg2 = cfg2.runtime(recurrent_backend="edge_list")
     except Exception:

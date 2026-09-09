@@ -564,6 +564,29 @@ def _construct_build_network(
     return network, positions, geometry_meta, n, _prebuilt_edges
 
 
+def _require_edge_list_backend(cfg: "Configuration", reason: str) -> "Configuration":
+    """Move to the edge_list backend, refusing an explicit ``dense`` request.
+
+    The dense kernel runs on ``emitter.W``, which does not carry these edges, so
+    running dense would silently drop them -- the substitution is necessary. What
+    is not necessary is doing it behind the caller's back: ``.runtime(
+    recurrent_backend=...)`` writes the key into ``cfg.metadata`` and an unset
+    backend leaves it absent, so a *contradicted* request is distinguishable from
+    an *absent* one. Unset resolves automatically; explicit and incompatible
+    raises. Never silently reinterpreted.
+    """
+    requested = cfg.metadata.get("recurrent_backend")
+    if requested is not None and requested != "edge_list":
+        raise ValueError(
+            f"recurrent_backend={requested!r} cannot be realized: {reason}. The "
+            "dense kernel runs on emitter.W, which does not carry these edges, so "
+            "a dense run would silently drop them. Either drop the explicit "
+            "recurrent_backend (it is then resolved automatically) or set "
+            "recurrent_backend='edge_list'."
+        )
+    return cfg.runtime(recurrent_backend="edge_list")
+
+
 def _construct_resolve_edge_list(
     cfg: "Configuration", network: "EIGNetwork", prebuilt_edges: "EdgeList | None"
 ) -> "tuple[Configuration, EdgeList]":
@@ -574,7 +597,9 @@ def _construct_resolve_edge_list(
     if prebuilt_edges is not None:
         edge_list = prebuilt_edges
         # The dense W is a placeholder; this model must run on the edge_list backend.
-        cfg = cfg.runtime(recurrent_backend="edge_list")
+        cfg = _require_edge_list_backend(
+            cfg, "this model was built on the sparse-direct path, whose dense W is "
+            "a placeholder and whose edges live only in params['edge_list']")
     else:
         edge_list = make_edge_list_from_dense(network.params.W, dtype=network.params.v0.dtype.name)
     return cfg, edge_list
@@ -710,7 +735,9 @@ def _construct_compile_connections(
             _reject_duplicate_explicit_edges(_conn_edges)
         if _conn_edges is not None and _conn_edges.n_edges > 0:
             edge_list = _concat_edge_lists(edge_list, _conn_edges)
-            cfg = cfg.runtime(recurrent_backend="edge_list")
+            cfg = _require_edge_list_backend(
+                cfg, f"{_conn_edges.n_edges} edge(s) were materialized from "
+                ".connections() rules, which the dense W does not carry")
         cfg = _mark_connections_compiled(cfg, _counts)
     if connectivity_mode is not None:
         cfg = _record_connectivity_compilation(

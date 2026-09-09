@@ -47,6 +47,21 @@ from ._signals import (
 from ._model import _SOURCE_PROXY_METADATA, stimulus_schedule
 
 
+def _refuse_contradicted_dense_backend(model, reason: str) -> None:
+    """Raise if the caller explicitly asked for a backend this model cannot run.
+
+    Mirrors ``_construct_core._require_edge_list_backend`` on the simulate side.
+    An absent ``recurrent_backend`` in ``cfg.metadata`` is resolved silently, as
+    before; an explicit incompatible one is a contradiction, not a preference.
+    """
+    requested = model.cfg.metadata.get("recurrent_backend")
+    if requested is not None and requested != "edge_list":
+        raise ValueError(
+            f"recurrent_backend={requested!r} cannot be realized: {reason}. Drop the "
+            "explicit recurrent_backend, or set recurrent_backend='edge_list'."
+        )
+
+
 def _hdp_kernel_kwargs(hp: Mapping[str, Any]) -> dict[str, Any]:
     """Resolve one shared HDP parameter contract for every execution path."""
     from ._hdp_adaptive import normalize_hdp_params_boundary
@@ -160,6 +175,9 @@ def _simulate_arrays(
     # params["edge_list"]); force the edge_list backend so the dense kernel is
     # never handed the empty W.
     if emitter.W.shape[0] != n_neurons and "edge_list" in self.params:
+        _refuse_contradicted_dense_backend(
+            self, "this model carries a placeholder dense W and its edges live only "
+            "in params['edge_list']")
         runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
 
     if "edge_list" in self.params:
@@ -1060,6 +1078,9 @@ def simulate_batch(self, sim: Simulation, n_seeds: int = 4, seed: int | None = N
 
     # Sparse-direct models (placeholder dense W) must use the edge_list backend.
     if emitter.W.shape[0] != int(emitter.v0.shape[0]) and "edge_list" in self.params:
+        _refuse_contradicted_dense_backend(
+            self, "this model carries a placeholder dense W and its edges live only "
+            "in params['edge_list']")
         runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
 
     homeo_on = bool(getattr(runtime_cfg, "enable_homeostasis", False))
