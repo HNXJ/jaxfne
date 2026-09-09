@@ -3,20 +3,20 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-08-26T12:46:38",
+  "generated_at": "2026-09-09T16:00:16",
   "components": {
     "project_agents": {
       "file": "artifacts/AGENTS.md",
-      "sha256": "432ac5868bdd3b6ce036d180311ac87ff691a0a47d61a1a6085c8f6c827a1c02"
+      "sha256": "dcf3622244289877f5595068a82a098b5145300d0546f2f7e897ce255cd07bdd"
     },
     "canonical_skills": {
       "jaxfne-audit": "b2d64e3fa6c8ae65fe6b4959fed12bcb7a05469f69a2d81b3769fc60a99c1bff",
-      "jaxfne-core": "84bdee3fdb90d263f01afc9f4df17f48f2d5c9c4ed0b96b0eb316d9258a993f6",
-      "jaxfne-frozen-use": "26da54df62db9ebb960e74f18be50e209a86909e5b13b2d9e9b78828784c4268",
-      "jaxfne-release": "2d6e499574705c96ece4d56abc03d143a196a373d7fcd016d1761b02e66552fa",
-      "jaxfne-repo": "5ac6cab5637db2735fe36cf7f165398e61dc0336862138ed5f4623f4bb913e4e",
+      "jaxfne-core": "47a80cc6af2f1f43abe2668fd4fd8ccd2c782692cf12c4cb1b9588de6defc9c9",
+      "jaxfne-release": "144c38e5088ec911178e490fc73b5b44205335cf8e0050d963fbd30175a54372",
+      "jaxfne-repo": "94a48bd6c82c68662ecdc06042495d665cdcdc05c87131f68628e31683a95c3e",
       "jaxfne-science": "90e3f8504673d1f47c269b7ead79885c4bf7adff77cc6a301f3e6aa3c90c347e",
-      "jaxfne-seal": "6692454f6f24ab16f302f636424c3e3eecb938ae2333645f1aed98dfa01cdc44"
+      "jaxfne-seal": "cf1cae92bb6c384db9cb4ed50001618189a470dd4a5b553ff01ba7e7c7fe1cd1",
+      "vocabulary-audit": "eb0da2fb9c79d7bae4010a109794080f507a7cec1179d7a59b86f0dc3a5f1691"
     },
     "project_config": {
       "file": "scripts/harness/project_safety_rules.json",
@@ -37,7 +37,7 @@
       },
       "check_agent_refs": {
         "file": "scripts/harness/check_agent_refs.py",
-        "sha256": "bfc3189009faa93b72c08cc91d42d58ac13f68971afbcd00bda8a448c97bbd73"
+        "sha256": "9a26599617dd0934c085cbaebc5358e6b8a43077c9237244a8ad9c10d2e1d14e"
       },
       "check_memory_hygiene": {
         "file": "scripts/harness/check_memory_hygiene.py",

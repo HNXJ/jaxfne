@@ -23,7 +23,7 @@ Unfamiliar jaxfne tasks, or establishing governing authority before acting.
 1. Run Gate 0 to verify Git reality.
 2. Identify the relevant TFNE stage (dynamics, source, field, probe, objective, evidence).
 3. Inspect live code and tests before naming helpers or claiming capability.
-4. Route implementation to `jaxfne-repo`, scientific experiments to `jaxfne-science`, release to `jaxfne-release`, audit to `jaxfne-audit`, seal to `jaxfne-seal`.
+4. Route implementation to `jaxfne-repo`, scientific experiments to `jaxfne-science`, release to `jaxfne-release`, audit to `jaxfne-audit`, seal to `jaxfne-seal`, vocabulary review to `vocabulary-audit`.
 
 ## STOP
 - Unverified symbol or binding; ambiguous stage mapping; contradiction between authority and live code.

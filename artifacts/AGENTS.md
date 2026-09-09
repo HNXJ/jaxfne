@@ -15,8 +15,9 @@
   publication artifacts (`artifacts/publication/**`, `artifacts/figures/publication/*.png`). New polish
   layer outputs (`artifacts/figures/publication/final/**`, `fig*_polish_{spec,audit,receipt}.json`) are
   writable under the authorized publication task; frozen files are not.
-- **Checkpoint.** `scratch/CURRENT_TASK.md` YAML frontmatter is authoritative for
-  workspace/mode/facets/freeze/authorities/next_checkpoint/last_verified_head.
+- **Checkpoint.** `scratch/CURRENT_TASK.md` supplies active `mode:` for Gate 0 and
+  compact C_* identity lines for release bookkeeping. Version-specific release
+  authorities live in `artifacts/release/current_release_authorities.json`.
 - **Routing.** mode ∈ {READ, CODE, SCIENCE, RELEASE, PUBLICATION}; facets ⊆ {CODE, REPO,
   SCIENCE, EVIDENCE_AUDIT, RELEASE}. Skills load compositionally from both.
 - Root freeze patch: .opencode/ and `scripts/harness/` approved 2026-08-15 as the client

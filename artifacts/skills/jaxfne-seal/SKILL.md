@@ -1,41 +1,42 @@
 ---
 name: jaxfne-seal
-description: Independent release seal verification for jaxfne against the private 95-goal acceptance authority.
+description: Independent release seal verification — reconstruct target, verify evidence, classify blockers.
 metadata:
   audience: agents
 ---
 # jaxfne seal procedure
 
 ## WHEN
-Final verification and candidate sealing before tag, release publication, or PyPI upload.
+Final independent verification before tag, release publication, or PyPI upload.
 
 ## AUTHORITIES
-1. Final acceptance authority: `artifacts/private_acceptance/jaxfne_v0_4_17_final_100_goals.md`.
-2. Release receipt: `artifacts/release/v0_4_17_release_receipt.json`.
-3. Issue log: `artifacts/issue_log/ISSUE_LOG.md`.
-4. Gate 0: `scripts/harness/gate0_git_reality.py`.
+1. Version-specific paths: `artifacts/release/current_release_authorities.json`.
+2. Issue log: `artifacts/issue_log/ISSUE_LOG.md`.
+3. Gate 0: `scripts/harness/gate0_git_reality.py`.
+4. Repository `artifacts/AGENTS.md` (evidence discipline).
 
 ## RULES
 - Gate 0 first.
-- Explicitly distinguish C_core, C_release, C_receipt, and C_head.
+- Reconstruct the declared candidate from receipts; do not inherit executor scores.
+- Read acceptance goal count and goal list path from `current_release_authorities.json`.
 - Seal agent must NEVER repair its own candidate.
-- All 95 goals must be audited and classified into: PASS, PARTIAL, FAIL, DEFER.
-- P0/P1 PARTIAL or FAIL blocks the seal (SEAL_NO_GO).
-- SEAL_GO requires 100% PASS on all release-required goals and still does NOT authorize public writes without user approval.
-- Public/private purity: Private goals, harness, and plans must not leak into public docs or packages.
+- Classify each required goal: PASS, PARTIAL, FAIL, DEFER. P0/P1 PARTIAL or FAIL blocks seal (SEAL_NO_GO).
+- SEAL_GO does not authorize public writes without user approval.
+- Public/private purity: private goals and harness plans must not leak into public docs or packages.
 
 ## STEPS
 1. Execute Gate 0 (`scripts/harness/gate0_git_reality.py`).
-2. Verify C_core exact diff against C_release (must be non-core/docs only; Delta C_core = 0).
-3. Audit all 95 goals in `jaxfne_v0_4_17_final_100_goals.md` with direct evidence for each.
-4. Verify wheel/sdist packages, checksums, and exclusion of private trees.
-5. Produce the complete 95-goal scorecard and declare SEAL_GO or SEAL_NO_GO.
+2. Reconstruct candidate identity from the release receipt named in `current_release_authorities.json`.
+3. Verify C_core / C_release / C_receipt / C_head separation for the candidate.
+4. Audit every required acceptance goal with direct evidence.
+5. Verify distributed artifacts: wheel/sdist checksums, exclusions, downstream smoke where required.
+6. Produce the complete scorecard and declare SEAL_GO or SEAL_NO_GO.
 
 ## STOP
-- Red CI, hash mismatch, Delta C_core != 0, or any P0/P1 goal failure.
+- Red CI, hash mismatch, unresolved P0/P1 blocker, or missing required authority file.
 
 ## VERIFY
-- Full 95-goal scorecard produced with direct evidence and clean package verification.
+- Full scorecard produced with direct evidence and clean package verification.
 
 ## DONE
 - Seal verdict declared with exact immutable candidate SHAs.

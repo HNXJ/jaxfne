@@ -227,6 +227,117 @@ class TestAgentContextHygiene:
             assert pattern.lower() not in content.lower(), f"Potential secret in context: {pattern}"
 
 
+# Paths that were dead in the pre-P0 harness and must never return.
+_REMOVED_DEAD_SKILL_PATHS = (
+    "artifacts/skills/catalog-glossary-jaxfne/SKILL.md",
+    "artifacts/skills/jaxfne-worker-context-router/SKILL.md",
+    "artifacts/skills/jaxfne-frozen-use/SKILL.md",
+)
+
+_ACTIVE_SKILLS = (
+    "jaxfne-core",
+    "jaxfne-repo",
+    "jaxfne-science",
+    "jaxfne-audit",
+    "jaxfne-release",
+    "jaxfne-seal",
+    "vocabulary-audit",
+)
+
+_TASK_ROUTES = {
+    "ordinary modeling": "artifacts/skills/jaxfne-core/SKILL.md",
+    "code modification": "artifacts/skills/jaxfne-repo/SKILL.md",
+    "scientific experiment": "artifacts/skills/jaxfne-science/SKILL.md",
+    "independent audit": "artifacts/skills/jaxfne-audit/SKILL.md",
+    "release": "artifacts/skills/jaxfne-release/SKILL.md",
+    "independent seal": "artifacts/skills/jaxfne-seal/SKILL.md",
+    "vocabulary review": "artifacts/skills/vocabulary-audit/SKILL.md",
+}
+
+_REQUIRED_AI_PATHS = (
+    "artifacts/context.md",
+    "artifacts/AGENTS.md",
+    "artifacts/vocabulary/JAXFNE_VOCABULARY.md",
+    "artifacts/subagents/vocabulary_critic.md",
+    "artifacts/release/current_release_authorities.json",
+    "scripts/run_test_gate.py",
+    "scripts/harness/gate0_git_reality.py",
+    "scratch/CURRENT_TASK.md",
+    *(f"artifacts/skills/{name}/SKILL.md" for name in _ACTIVE_SKILLS),
+)
+
+
+class TestAgentPathIntegrity:
+    """Required local paths referenced by the active AI harness must exist."""
+
+    def test_required_ai_paths_exist(self):
+        missing = [p for p in _REQUIRED_AI_PATHS if not Path(p).exists()]
+        assert not missing, f"Missing required AI paths: {missing}"
+
+    def test_removed_dead_skill_paths_stay_absent(self):
+        """Regression: pre-P0 dead skills must not reappear under artifacts/skills/."""
+        for path in _REMOVED_DEAD_SKILL_PATHS:
+            assert not Path(path).exists(), f"Dead skill path returned: {path}"
+
+    def test_for_ai_agents_does_not_reference_removed_skills(self):
+        text = Path("docs/for_ai_agents.md").read_text(encoding="utf-8")
+        for fragment in (
+            "catalog-glossary-jaxfne",
+            "jaxfne-worker-context-router",
+            "jaxfne-frozen-use",
+        ):
+            assert fragment not in text, f"for_ai_agents still references removed skill: {fragment}"
+
+    def test_context_is_canonical_router(self):
+        context = Path("artifacts/context.md").read_text(encoding="utf-8")
+        agents_doc = Path("docs/for_ai_agents.md").read_text(encoding="utf-8")
+        assert "## Task router (canonical)" in context
+        assert "artifacts/context.md`" in agents_doc and "canonical first contact" in agents_doc
+        assert "jaxfne-worker-context-router" not in agents_doc
+
+
+class TestFreshAgentRouter:
+    """Each ordinary task class resolves to one existing active skill."""
+
+    def test_task_routes_resolve(self):
+        for task, skill_path in _TASK_ROUTES.items():
+            assert Path(skill_path).exists(), f"{task} route missing: {skill_path}"
+
+    def test_active_skill_inventory(self):
+        found = sorted(p.parent.name for p in Path("artifacts/skills").glob("*/SKILL.md"))
+        assert found == sorted(_ACTIVE_SKILLS), f"Active skill inventory mismatch: {found}"
+
+    def test_archived_frozen_use_not_in_active_inventory(self):
+        assert not Path("artifacts/skills/jaxfne-frozen-use/SKILL.md").exists()
+        assert Path("artifacts/legacy/skills/jaxfne-frozen-use/SKILL.md").exists()
+
+
+class TestActiveSkillStaleness:
+    """Active skills must not embed expired release/freeze policy."""
+
+    _STALE_FRAGMENTS = (
+        "40-day frozen-use",
+        "Delta C_core = 0 during frozen period",
+        "jaxfne_v0_4_17_final_100_goals.md` with direct procedure steps",
+        "All 95 goals must be audited",
+    )
+
+    def test_generic_skills_have_no_expired_release_literals(self):
+        offenders: list[str] = []
+        for name in _ACTIVE_SKILLS:
+            text = Path(f"artifacts/skills/{name}/SKILL.md").read_text(encoding="utf-8")
+            if "40-day frozen-use" in text:
+                offenders.append(name)
+            if name == "jaxfne-repo" and "Delta C_core = 0" in text:
+                offenders.append(f"{name}: Delta C_core freeze rule")
+            if name in {"jaxfne-release", "jaxfne-seal"}:
+                if "jaxfne_v0_4_17_final_100_goals.md" in text and "current_release_authorities" not in text:
+                    offenders.append(f"{name}: hardcoded v0.4.17 acceptance path")
+                if "95 goals" in text and "current_release_authorities" not in text:
+                    offenders.append(f"{name}: hardcoded 95-goal count")
+        assert not offenders, f"Stale release state in active skills: {offenders}"
+
+
 class TestRepositoryStructure:
     """Validate core repository structure."""
 

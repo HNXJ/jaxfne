@@ -12,8 +12,12 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-GOVERNED = [ROOT / "artifacts" / "AGENTS.md", ROOT / "docs/for_ai_agents.md",
-            *list((ROOT / "artifacts" / "skills").rglob("*.md"))]
+GOVERNED = [
+    ROOT / "artifacts" / "context.md",
+    ROOT / "artifacts" / "AGENTS.md",
+    ROOT / "docs/for_ai_agents.md",
+    *list((ROOT / "artifacts" / "skills").rglob("*.md")),
+]
 PREFIXES = ("artifacts/skills/", "scripts/", "docs/", "artifacts/", "scratch/", ".opencode/", ".cursor/", "tests/", "jaxfne/")
 BACKTICK = re.compile(r"`([A-Za-z0-9_.\-/]+(?:/[A-Za-z0-9_.\-]+)*)`")
 LINK = re.compile(r"\]\(([^)#]+)\)")

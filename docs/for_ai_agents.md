@@ -6,17 +6,16 @@ jaxfne treats **AI-agent readability as a first-class design goal**, alongside h
 | Surface | Audience | Role |
 |---------|----------|------|
 | `docs/` + README | Humans | Tutorials, API reference, guides |
-| `artifacts/skills/` + `artifacts/AGENTS.md` | AI coding agents | Verified workflows, API catalog, config recipes — same authoritative source as the package, not a parallel spec |
-| `artifacts/developer/` | Maintainers / agents, **local-only** | Developer working notes — gitignored since 2026-07-14, not present in a fresh clone — not required for public use |
+| `artifacts/context.md` + `artifacts/skills/` + `artifacts/AGENTS.md` | AI coding agents | Router, verified workflows, and repository policy |
+| `artifacts/developer/` | Maintainers / agents, **local-only** | Developer working notes — gitignored since 2026-07-14, not present in a fresh clone |
 
 ## Start here (agents)
 
-1. **Import:** `import jaxfne as jtfne` — only public entry point.
-2. **API catalog:** read `artifacts/skills/catalog-glossary-jaxfne/SKILL.md` <!-- optional: not present in this checkout; catalog authority is live code + tests --> before hand-rolling PSD, LFP/CSD-proxy, or spectrolaminar logic.
-3. **Task router:** `artifacts/skills/jaxfne-worker-context-router/SKILL.md` <!-- optional: not present in this checkout; routing is governed by `scratch/CURRENT_TASK.md` frontmatter + skill WHEN TO USE matching --> picks config / tensor / paradigm / vis skills.
-4. **Lean orientation:** root `artifacts/AGENTS.md` (pointer only — depth lives in skills and docs).
-5. **Roadmap:** private developer roadmap (local-only, gitignored; not required for public reproduction).
-6. **Evidence:** See `artifacts/publication/publication_evidence_index.json` and `artifacts/publication/frozen_manifest.json` for frozen evidence; no local backlog is required for public reproduction.
+1. **Router:** read `artifacts/context.md` — canonical first contact; task-to-skill table lives there.
+2. **Import:** `import jaxfne as jtfne` — only public entry point.
+3. **Public API:** verify symbols against `jaxfne.public_surface` and live `tests/` before hand-rolling operators.
+4. **Repository policy:** `artifacts/AGENTS.md` (step completion, evidence discipline).
+5. **Evidence:** `artifacts/publication/publication_evidence_index.json` and `artifacts/publication/frozen_manifest.json` for frozen publication inputs.
 
 ## Object grammar
 
@@ -29,7 +28,7 @@ Software execution grammar:      CircuitSpec -> construct -> Model -> simulate -
 
 Paradigm, Objective, and Trainer are optional downstream workflow components, not stages of either grammar.
 
-`construct()` is the single dispatch — extend it, don’t bypass.
+`construct()` is the single dispatch — extend it, do not bypass.
 
 ## Release gates (non-negotiable)
 
@@ -44,8 +43,9 @@ together with the change.
 
 ## Multi-agent handoff
 
-Maintainers and coding agents share this repository via git. Follow the workflow
-in `scratch/CURRENT_TASK.md` and `artifacts/AGENTS.md` for task routing.
+Maintainers and coding agents share this repository via git. For active mode and
+release-specific authorities, use `scratch/CURRENT_TASK.md` (mode is read by Gate 0)
+together with `artifacts/release/current_release_authorities.json`.
 
 ## Human docs cross-links
 

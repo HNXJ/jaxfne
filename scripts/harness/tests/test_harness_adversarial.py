@@ -268,11 +268,11 @@ def test_skill_shape_and_unique_triggers():
     expected_skills = [
         "jaxfne-audit",
         "jaxfne-core",
-        "jaxfne-frozen-use",
         "jaxfne-release",
         "jaxfne-repo",
         "jaxfne-science",
         "jaxfne-seal",
+        "vocabulary-audit",
     ]
     assert canonical_skills == expected_skills, f"Skills mismatch: got {canonical_skills}"
 

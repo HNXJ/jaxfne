@@ -1,9 +1,15 @@
 ---
 name: jaxfne-frozen-use
-description: Operating guidelines during the 40-day frozen-use period.
+description: ARCHIVE — historical 40-day frozen-use operating period (not active).
 metadata:
   audience: agents
+  status: archive
 ---
+# jaxfne frozen-use procedure (ARCHIVE)
+
+**Not active.** Preserved for historical context only. Do not load for current work.
+See `artifacts/context.md` for the active task router.
+
 # jaxfne frozen-use procedure
 
 ## WHEN

@@ -43,6 +43,24 @@ Resolve a path, symbol or flag against the repository before relying on it. Any 
 points at other files can name something that no longer exists without erroring, so treat a
 recalled detail as a hypothesis until it is re-checked.
 
+## Task router (canonical)
+
+This file is the **only** first-contact router. `docs/for_ai_agents.md` explains the
+route; it does not replace this table.
+
+| Task | Active skill |
+|------|----------------|
+| Unfamiliar work / ordinary modeling | `artifacts/skills/jaxfne-core/SKILL.md` |
+| Bounded code change, tests, API work | `artifacts/skills/jaxfne-repo/SKILL.md` |
+| Scientific experiment / falsification | `artifacts/skills/jaxfne-science/SKILL.md` |
+| Independent audit / measurement | `artifacts/skills/jaxfne-audit/SKILL.md` |
+| Release candidate preparation | `artifacts/skills/jaxfne-release/SKILL.md` |
+| Independent seal verification | `artifacts/skills/jaxfne-seal/SKILL.md` |
+| Vocabulary / terminology review | `artifacts/skills/vocabulary-audit/SKILL.md` |
+
+Version-specific release targets (receipt path, acceptance goal list, candidate SHA)
+live in `artifacts/release/current_release_authorities.json`, not in generic skills.
+
 ## Settling a claim
 
 Run a gate rather than asserting a result. The gate vocabulary is defined once, in
