@@ -4,7 +4,7 @@ A single end-to-end étude that walks the full objective grammar on one model:
 **Configuration → Construct → Simulate → Visualize → Tune → Post-tune.** It builds
 the canonical 1000-neuron laminar column, drives it into a plausible firing regime,
 renders proxy readouts, fits a firing-rate target with a black-box optimizer, and
-writes a truth-gated run manifest.
+writes a status-gated run manifest.
 
 Everything here is a **computational scaffold**: the laminar fields are proxies
 (`field_solver_status="linear_solver"`), not a solved volume conductor, and no
@@ -19,7 +19,7 @@ calibrated-amplitude or mechanism claim is made.
 | 3 Simulate | Drive sweep → operating point ~18 Hz; sanity gates; `*_proxy` fields |
 | 4 Visualize | Spiking, rate, PSD, LFP/CSD-proxy, spectrolaminar, interactive 3D |
 | 5 Tune | AGSDR fits `drive_gain` to a target rate |
-| 6 Post-tune | Before/after readout + truth-gated manifest |
+| 6 Post-tune | Before/after readout + status-gated manifest |
 
 ---
 
@@ -223,7 +223,7 @@ best = result.to_dict()["best_parameters"]     # e.g. {"drive_gain": ~0.79}
 
 ## 6. Post-tune
 
-Compare the tuned model and write a strict, truth-gated run manifest.
+Compare the tuned model and write a strict, status-gated run manifest.
 
 ```python
 sig_tuned = jtfne.simulate(tuned, sim)

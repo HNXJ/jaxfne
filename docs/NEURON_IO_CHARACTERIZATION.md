@@ -99,7 +99,7 @@ baseline_drive_by_cell_type = {
 noise_amplitude_by_cell_type = baseline_drive_by_cell_type
 ```
 
-## Truth Status
+## Claim status
 
 - **claim_level**: computational_scaffold
 - **scope**: Baseline neural excitability, Relative-value

@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Vocabulary audit for jaxfne.
 
+Canonical vocabulary: ``artifacts/vocabulary/JAXFNE_VOCABULARY.md``.
+Semantic review procedure: ``artifacts/subagents/vocabulary_critic.md``.
+
 Scans repository release-facing text (docs, README, docstrings, manifests,
 scripts, tests) and reports:
 
@@ -156,7 +159,7 @@ ALLOW_PROTOCOL_PREFIXES = (
 # ontology", "tutorial taxonomy"). The audit still REPORTS their counts for
 # human review (see --clusters and the JSON report).
 DISCOURAGED = (
-    "functionality", "contract", "doctrine", "framework", "protocol",
+    "functionality", "contract", "doctrine", "framework", "protocol", "truth",
 )
 
 # Exact phrases that legitimately use a discouraged word and must not be
@@ -228,6 +231,11 @@ ALLOW_PHRASES = (
     "standard framework terminology",
     # bibliography titles (verbatim, cannot be rephrased)
     "unifying framework",
+    # epistemic / gate vocabulary in fixed technical phrases
+    "ground truth",
+    "epistemic truth",
+    "truth gate",
+    "truth separation",
 )
 
 

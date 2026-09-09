@@ -78,7 +78,7 @@ placement collapses layer identity and should be used only for non-laminar model
 
 Specificity dial: the E:I composition and its laminar gradient. A single global
 `.cell_types({"E": 0.8, ...})` is the coarse setting; `.area_layer_cell_types(...)`
-expresses the verified ground-truth gradient (E rises with depth, inhibition
+expresses the verified canonical-reference gradient (E rises with depth, inhibition
 peaks superficially, PV peaks at L2/L3). `.cell_params(...)` overrides
 per-selector neuron parameters. The more layer- and type-resolved the
 composition, the more the model can reproduce real laminar physiology.
@@ -187,7 +187,7 @@ surrogate status governs whether gradient-based tuning is admissible.
 `jtfne.manifest(cfg, signals=...)`, `.validate()`, `.update_metadata(**)`.
 
 Specificity dial: the receipt. The manifest binds the configuration, runtime
-report, artifact hashes, and truth gates into a strict JSON-safe record.
+report, artifact hashes, and status fields into a strict JSON-safe record.
 `.validate()` checks the specification before you run. The manifest is what makes
 a result reproducible and auditable — the closing operator of the chain.
 

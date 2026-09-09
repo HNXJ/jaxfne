@@ -24,7 +24,7 @@
 
 ## Purpose
 
-jaxfne expresses neural biophysics as modular Tensor-Field Neural Equations (TFNE): a **containment and composition framework** for neural models of different resolution — not a single prescribed biophysical equation. Nested biological semantics and geometry are preserved while numerical tensors may be computationally flattened.
+jaxfne expresses neural biophysics as modular Tensor-Field Neural Equations (TFNE): a **containment and composition model** for neural models of different resolution — not a single prescribed biophysical equation. Nested biological semantics and geometry are preserved while numerical tensors may be computationally flattened.
 
 Scientific grammar:
 
@@ -46,15 +46,15 @@ Paradigm, Objective, optimization/training utilities, visualization, and export 
 
 - Internal quantities may remain relative. Absolute units arise through explicit calibration transformations at semantic boundaries.
 - **RBS (Relative Biophysical State):** `H` is a finite-dimensional dependency-state container — not intrinsically homeostasis and not one scalar controlling all operators. Coordinates may be ions, traces, modulators, or reduced \(\mathcal R(\mathbf z)\); influence on \(E,S,F,P\) requires **typed coupling maps**. **RBD** is \(\dot H=F_H(\ldots)\); **HDP** is \(\dot W=F_W(H,\ldots)\). Authority: `docs/doctrine/tfne_containment_architecture.md`, `docs/doctrine/rbs_rbd_hdp.md`, `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md`.
-- General adaptive dynamics are conceptually `dX/dt = F_X`, `dH/dt = F_H`, `dTheta/dt = F_Theta`. RBD with fixed `W` is valid; plasticity rules are realizations of this grammar, not separate architectural subsystems by default.
+- General adaptive dynamics are conceptually `dX/dt = F_X`, `dH/dt = F_H`, `dTheta/dt = F_Theta`. RBD with fixed `W` is valid; plasticity rules are realizations of this grammar, not separate subsystems by default.
 - Preserve biological identity, topology, signs, receptor/mechanism identity, geometry, locality, and declared parameter ownership through compilation and optimization.
 - Source, field, probe, objective, and calibration semantics remain explicit. A projection, proxy, PDE solve, calibration, and validation status are distinct concepts.
 
 ## Authority
 
-For current mathematical specification, use the repository's authoritative project-source set when present. For implemented truth, inspect live `jaxfne/` code and tests. For public explanation, inspect README/docs. For current repository state, use generated state/audit scripts when available.
+For current mathematical specification, use the repository's authoritative project-source set when present. For implemented behavior, inspect live `jaxfne/` code and tests. For public explanation, inspect README/docs. For current repository state, use generated state/audit scripts when available.
 
-Do not store SHAs, versions, benchmark timings, test counts, bug lists, implementation line numbers, or temporary release state in persistent doctrine.
+Do not store SHAs, versions, benchmark timings, test counts, bug lists, implementation line numbers, or temporary release state in persistent rules.
 
 ## Evidence
 
@@ -103,7 +103,7 @@ Scientific experiments preserve failed prospective receipts. Do not tune a froze
   invalid and boundary inputs, not only canonical happy paths. When an
   operator promises a feasible constrained output, test feasibility,
   invalid-domain rejection, boundary cases, and roundtrip semantics.
-- **H6 Algorithm names are mathematical contracts.** If multiple
+- **H6 Algorithm names are mathematical specifications.** If multiple
   implementations share an algorithm name, compare their state, update
   equations, hyperparameter semantics, randomness, selection, bounds, and
   termination. Do not call materially non-equivalent engines canonical
@@ -117,7 +117,7 @@ Scientific experiments preserve failed prospective receipts. Do not tune a froze
 - **H8 General theory versus specialization.** A valid specialization is
   not a contradiction of a general theory. For a finite-dimensional state
   `H ∈ R^{d_H}`, `d_H=1` is a valid finite-dimensional realization unless
-  doctrine explicitly requires `d_H>1`. `RBS ≠ homeostasis` means RBS is
+  rule explicitly requires `d_H>1`. `RBS ≠ homeostasis` means RBS is
   not intrinsically defined as homeostasis; it does not prohibit a
   particular RBS realization from having homeostatic dynamics.
 - **H9 Do not impose textbook semantics over project-defined mathematics.**

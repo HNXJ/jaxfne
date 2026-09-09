@@ -6,13 +6,13 @@ jaxfne treats **AI-agent readability as a first-class design goal**, alongside h
 | Surface | Audience | Role |
 |---------|----------|------|
 | `docs/` + README | Humans | Tutorials, API reference, guides |
-| `artifacts/skills/` + `artifacts/AGENTS.md` | AI coding agents | Verified workflows, API catalog, config recipes — same source-of-truth as the package, not a parallel spec |
+| `artifacts/skills/` + `artifacts/AGENTS.md` | AI coding agents | Verified workflows, API catalog, config recipes — same authoritative source as the package, not a parallel spec |
 | `artifacts/developer/` | Maintainers / agents, **local-only** | Developer working notes — gitignored since 2026-07-14, not present in a fresh clone — not required for public use |
 
 ## Start here (agents)
 
 1. **Import:** `import jaxfne as jtfne` — only public entry point.
-2. **API catalog:** read `artifacts/skills/catalog-glossary-jaxfne/SKILL.md` <!-- optional: not present in this checkout; catalog ground truth is live code + tests --> before hand-rolling PSD, LFP/CSD-proxy, or spectrolaminar logic.
+2. **API catalog:** read `artifacts/skills/catalog-glossary-jaxfne/SKILL.md` <!-- optional: not present in this checkout; catalog authority is live code + tests --> before hand-rolling PSD, LFP/CSD-proxy, or spectrolaminar logic.
 3. **Task router:** `artifacts/skills/jaxfne-worker-context-router/SKILL.md` <!-- optional: not present in this checkout; routing is governed by `scratch/CURRENT_TASK.md` frontmatter + skill WHEN TO USE matching --> picks config / tensor / paradigm / vis skills.
 4. **Lean orientation:** root `artifacts/AGENTS.md` (pointer only — depth lives in skills and docs).
 5. **Roadmap:** private developer roadmap (local-only, gitignored; not required for public reproduction).
@@ -31,7 +31,7 @@ Paradigm, Objective, and Trainer are optional downstream workflow components, no
 
 `construct()` is the single dispatch — extend it, don’t bypass.
 
-## Truth gates (non-negotiable)
+## Release gates (non-negotiable)
 
 See [Scope & status](scope_and_status.md) for the authoritative gate table.
 

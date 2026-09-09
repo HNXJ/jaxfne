@@ -224,7 +224,7 @@ invariants) merged with a field-solution report from
 this writing (verified via `sorted(field.diagnostics.keys())` on a live
 `project_laminar_sources` call). Every key below is required — it is always
 present on the returned dict, regardless of which projection `mode` was
-used. The keys relevant to truth-gate/claim status:
+used. The keys relevant to status-gate/claim status:
 
 | Field | Type | Purpose |
 |-------|------|---------|
@@ -397,7 +397,7 @@ fo = jtfne.project_laminar_sources(filtered, positions, n_contacts=32)
 
 ### `cable_filter_report(tau_s, order=2) -> dict`
 
-JSON-safe truth-gate report for a `cable_filter_sources` call.
+JSON-safe status-gate report for a `cable_filter_sources` call.
 
 **Parameters:**
 - `tau_s` (`jax.Array`): the same per-neuron tau array passed to

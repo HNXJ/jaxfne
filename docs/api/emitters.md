@@ -458,7 +458,7 @@ F2 trajectories with ``H<=0`` propagate non-finite ``H``; values are unclipped.
 ``final_state`` includes ``H_trace``, ``H_final``, and ``w_fixed`` (the constant edge
 weights). Zero-delay continuation only; nonzero-delay continuation awaits Protocol H2.
 
-Authority: ``docs/doctrine/protocol_h_rbd_memory.md``.
+Authority: [protocol_h_rbd_memory.md](../doctrine/protocol_h_rbd_memory.md).
 
 ---
 
@@ -612,7 +612,7 @@ trace = jtfne.synaptic_current_tensor(spikes_pre, tau_ms, dt_ms=0.5)
 
 ### `synaptic_tensor_report(tau_ms, mechanism=None) -> dict`
 
-JSON-safe truth-gate report for a `synaptic_current_tensor` call.
+JSON-safe status-gate report for a `synaptic_current_tensor` call.
 
 **Parameters:**
 - `tau_ms` (`jax.Array`): the same per-channel tau array passed to `synaptic_current_tensor`.

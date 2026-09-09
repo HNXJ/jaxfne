@@ -71,7 +71,7 @@ model_v1v4 = jtfne.construct(cfg_v1v4)
 
 For the depth × frequency crossover (deep alpha/beta vs superficial gamma), use the
 canonical laminar column with a realistic E/I gradient and the multi-trial **LFP**
-pipeline. The column follows the ground-truth composition, `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS`
+pipeline. The column follows the canonical-reference composition, `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS`
 (E peaks deep, I peaks superficial; PV peaks at L2/L3, absent at L6; ~66E:34I overall):
 
 ```python

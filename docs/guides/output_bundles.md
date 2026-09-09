@@ -79,7 +79,7 @@ alternatives:
   readout=None) -> ObjectiveReport`** — evaluates an `Objective` and returns
   a frozen, JSON-safe report (losses, regularizers, gates,
   `all_gates_pass`, embedded readout results, and a `truth` dict with the
-  standard truth-gate fields: `claim_level`, `physical_amplitude_calibrated`,
+  standard status-gate fields: `claim_level`, `physical_amplitude_calibrated`,
   `empirical_validation_status`, etc.). Prefer this over `evaluate()` when a
   typed, auditable result is needed.
 

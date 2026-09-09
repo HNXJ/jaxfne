@@ -32,7 +32,7 @@ behavioral tests (not by inspecting source):
    looking for a decorator.
 4. **Field claim metadata.** The output exposes `field_claim_level` on its
    metadata surface.
-5. **Amplitude truth gate.** The output reports
+5. **Amplitude status gate.** The output reports
    `physical_amplitude_calibrated = False`.
 
 A zero-source null control accompanies the checklist: projecting a zero source
@@ -40,7 +40,7 @@ yields exact zero proxy outputs (with correct shapes) under the solver's dtype.
 
 ## Proxy-readout boundary
 
-All field output in jaxfne sits under the same truth boundary:
+All field output in jaxfne sits under the same claim boundary:
 
 - `field_claim_level = "proxy_readout"` — the arrays are structural proxy
   readouts, not measurements.

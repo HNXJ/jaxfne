@@ -8,7 +8,7 @@ All outputs use conservative scope defaults — see [Scope & status](../scope_an
 
 ## Interactive 3D network: V1 → V4 → PFC hierarchy
 
-A three-area canonical-column hierarchy (300 neurons per area, ground-truth
+A three-area canonical-column hierarchy (300 neurons per area, canonical-reference
 E:I gradient, bidirectional feedforward/feedback inter-area connectivity)
 rendered with `jtfne.vis.visualize_network_3d`. Drag to rotate, scroll to
 zoom, hover a node for its area/layer/cell-type metadata.

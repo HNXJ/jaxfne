@@ -3,7 +3,7 @@
 **Purpose:** Eliminate silent-neuron populations in jaxfne networks by providing subthreshold baseline current per cell type.
 
 **Generated:** 2026-06-09 via `scripts/characterize_neuron_io_curves.py`  
-**Truth status:** computational_scaffold (uncalibrated Izhikevich native units)
+**Claim status:** computational_scaffold (uncalibrated Izhikevich native units)
 
 > **Partially reproducible:** `scripts/characterize_neuron_io_curves.py` exists
 > in this repo and can be re-run. However, its recorded output artifacts

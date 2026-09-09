@@ -55,7 +55,7 @@ reduction are **not yet implemented** as runtime developmental dynamics; see
 
 JaxFNE is implemented in JAX for efficient, composable numerical execution on CPU
 and accelerator hardware. JAX is the numerical substrate; the scientific
-contribution is the biophysical source-field modeling framework above.
+contribution is the biophysical source-field model above.
 
 ## TFNE (Tensor-Field Neural Equations)
 

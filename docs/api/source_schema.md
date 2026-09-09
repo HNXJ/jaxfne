@@ -1,7 +1,7 @@
 # Source Schema API
 
 The source of a simulation is the raw proxy-current trace that each emitter kernel returns
-as its third value. This page documents the shape, metadata surfaces, and truth status of
+as its third value. This page documents the shape, metadata surfaces, and claim status of
 that trace across every emitter path. It is a contract description, not a class reference:
 there is no `Source` or `SourceTensor` object in jaxfne.
 
@@ -117,7 +117,7 @@ synaptic operators.
 | Documentation vocabulary and operator definitions | TESTED | docs-language audit and strict MkDocs build |
 | Curated development-gate budget | TESTED | exact gate: 137 passed, 1 skipped, 2 deselected; wall 54.36 s |
 
-## Truth boundary
+## Claim boundary
 
 - Every value on this page is **Relative**: native-unit proxy quantities inside a
   computational scaffold. There is no physical amplitude calibration on any path, and
@@ -130,8 +130,8 @@ synaptic operators.
 ## Testing
 
 - `tests/test_phaseD_source_schema.py` covers all five emitter paths: array convention,
-  exact status strings, presence/absence of `source_bookkeeping` per path, and the truth
-  gate (`physical_amplitude_calibrated` never `True`).
+  exact status strings, presence/absence of `source_bookkeeping` per path, and the status gate
+  (`physical_amplitude_calibrated` never `True`).
 - `tests/test_source_bookkeeping_v020.py` covers the bookkeeping metadata contract for the
   standard paths.
 - Both suites assert on metadata surfaces, never on trace shape alone.

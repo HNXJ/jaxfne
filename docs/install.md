@@ -9,7 +9,7 @@ pip install -U jaxfne
 The current published **PyPI** release is **`jaxfne==0.4.21`** (tag `v0.4.21`),
 published from the artifacts built and validated for that exact commit. The
 previous release is **`0.4.20`** (tag `v0.4.20`). The current
-**development** public contract on `dev` is documented in
+**development** public API on `dev` is documented in
 [Public API contract](public_surface_contract.md) (190-symbol surface). To pin
 the published PyPI release explicitly:
 

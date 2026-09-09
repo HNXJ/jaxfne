@@ -12,10 +12,10 @@ Independent measurement of code, mathematics, claims, figures, or evidence.
 ## AUTHORITIES
 1. Gate 0 Git reality: `scripts/harness/gate0_git_reality.py`.
 2. Frozen evidence: `artifacts/publication/publication_evidence_index.json`.
-3. Doctrine: `docs/doctrine/tfne_containment_architecture.md`.
+3. TFNE rules: `docs/doctrine/tfne_containment_architecture.md`.
 
 ## RULES
-- Gate 0 before reporting any project truth.
+- Gate 0 before reporting any project state.
 - Review before Progress; never silently repair.
 - Do not inherit executor scores or claims.
 - Epistemic invariants: NEGATIVE != UNRESOLVED; relative != calibrated; H != homeostasis.

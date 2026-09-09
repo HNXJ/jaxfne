@@ -121,7 +121,7 @@ status = jtfne.validate_configuration(cfg)
 ```
 
 Other validation entry points: `jtfne.validate_source_field_status(...)` for
-field-stage truth gates, `jtfne.validation_report(config_valid, issues,
+field-stage status checks, `jtfne.validation_report(config_valid, issues,
 metadata)` for a freeform validation record.
 
 ### 9. Export

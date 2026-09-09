@@ -173,7 +173,7 @@ do not describe them as independently CI-tested.
 
 `3.10` is not supported: the `dev`/`viz` extras pin `scipy==1.17.1`, which
 publishes no cp310 wheels, and the `jax`/`jaxlib` line the package resolves
-against already floors at `>=3.11`. Dropping nominal 3.10 support is truth
+against already floors at `>=3.11`. Dropping nominal 3.10 support is evidence
 alignment, not removal of a validated configuration.
 
 Wheel availability for both endpoints was checked against the package index

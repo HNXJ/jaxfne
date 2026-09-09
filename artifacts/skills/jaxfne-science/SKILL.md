@@ -10,8 +10,8 @@ metadata:
 SCIENCE work: scientific simulation, falsification, HDP/TFNE analysis, Etudes, and quantitative evidence.
 
 ## AUTHORITIES
-1. Repository `artifacts/AGENTS.md` (truth gates, evidence grammar).
-2. Protocol doctrine (e.g. `docs/doctrine/rbs_rbd_hdp.md`).
+1. Repository `artifacts/AGENTS.md` (required tests, evidence pipeline).
+2. Protocol rules (e.g. `docs/doctrine/rbs_rbd_hdp.md`).
 
 ## RULES
 - Hypothesis, observables, nulls, protocol, metrics, and acceptance criteria declared beforehand.

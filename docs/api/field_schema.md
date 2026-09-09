@@ -76,7 +76,7 @@ output object and no new public API is proposed.
 - Use `experimental_poisson_1d_from_neuron_table` when the source values
   start on a `Model.neuron_table()` (per-neuron depths and sources).
 - `field_solver_status` distinguishes implementation type; it does not change
-  the proxy-readout truth boundary. Every path on this page remains
+  the proxy-readout claim boundary. Every path on this page remains
   `field_claim_level = "proxy_readout"` with
   `physical_amplitude_calibrated = False`.
 

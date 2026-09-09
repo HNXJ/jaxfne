@@ -34,7 +34,7 @@ an explicit modeling choice.
   are **planned, not yet implemented** as runtime dynamics.
 
 JaxFNE uses JAX as an efficient numerical substrate; the scientific contribution
-is the biophysical source-field modeling framework, not JAX itself.
+is the biophysical source-field **model**, not JAX itself.
 
 ## TFNE (Tensor-Field Neural Equations)
 

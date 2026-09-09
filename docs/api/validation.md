@@ -115,7 +115,7 @@ arrays. All array parameters are optional and keyword-only — pass whichever of
 **Parameters (all keyword-only, all optional):**
 - `source`, `phi_e`, `csd`, `lfp` (jax.Array): Arrays to diagnose
 - `field_solution` (FieldOutput, optional): Alternative to passing the arrays individually
-- `source_calibration_status`, `field_solver_status`, `field_claim_level` (str): Truth-gate metadata carried through into the report, conservative defaults
+- `source_calibration_status`, `field_solver_status`, `field_claim_level` (str): Status-gate metadata carried through into the report, conservative defaults
 
 **Returns:** Dictionary of diagnostic metrics (raises `ValueError` on a non-finite diagnostic value rather than returning one)
 
@@ -182,7 +182,7 @@ else:
 > **REMOVED (2026-06-30).** `config_truth_boundary(cfg: JaxFNEConfig)` was
 > deleted along with the rest of the `JaxFNEConfig` config-path API — see the
 > note under "Configuration Validation" above. There is no direct root-level
-> replacement; truth-gate/claim-level metadata for the fluent `Configuration`
+> replacement; status-gate/claim-level metadata for the fluent `Configuration`
 > pipeline is carried on the objects themselves (e.g. `FieldOutput`,
 > `RunReceipt`) rather than fetched via a standalone boundary-report call.
 
@@ -229,7 +229,7 @@ Builds a report around a `CalibrationSpec` (or an equivalent dict).
 
 ## Diagnostic Builders
 
-Each returns a JSON-safe `dict`, all under the same truth-gate discipline:
+Each returns a JSON-safe `dict`, all under the same status-gate discipline:
 
 - `make_source_balance_diagnostic(...)` (`:575`)
 - `make_gauge_diagnostic(...)` (`:622`)

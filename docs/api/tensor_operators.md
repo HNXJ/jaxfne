@@ -108,7 +108,7 @@ Lead-field transforms: `eeg_proxy_transform(...)`, `meg_proxy_transform(...)`, `
 - `manifest(cfg, signals=None, ...)`, `run_receipt(model, signals, *, tags=...)`.
 - `config_truth_boundary(cfg)` — **REMOVED (2026-06-30).** Deleted along with
   the rest of the `JaxFNEConfig` config-path API; see [Validation](validation.md)
-  for the replacement pointer (truth-gate metadata now lives on the fluent
+  for the replacement pointer (status-gate metadata now lives on the fluent
   pipeline's own objects, e.g. `FieldOutput`/`RunReceipt`, not a standalone call).
 
 ---

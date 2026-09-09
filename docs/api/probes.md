@@ -150,7 +150,7 @@ def probe(self, signals: Signals, modes: Sequence[str] | None = None) -> dict[st
   - `"CSD"` -> `out["CSD"]` and `out["csd_proxy"]`
   - `"LFP"` -> `out["LFP"]` and `out["lfp_proxy"]`
   - `"J_e"` -> `out["J_e_status"] = "not_computed_without_real_field_solver"` (only a proxy field solver is currently wired in)
-  - any of the above also adds `out["readout_metadata"]` (truth-gate status from `validate_source_field_status`)
+  - any of the above also adds `out["readout_metadata"]` (status-gate status from `validate_source_field_status`)
 
 The **canonical v0.1 workflow** prefers `Model.compute_readout(signals, specs)`
 over `Model.probe()` for typed, declarative scalar feature extraction (next

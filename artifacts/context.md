@@ -34,6 +34,7 @@ either grammar.
 | What does a function actually do? | the implementation and `tests/` |
 | How is it meant to be used? | `docs/`, published as the documentation site |
 | Fuller agent orientation | `docs/for_ai_agents.md`, `artifacts/AGENTS.md` |
+| Canonical prose vocabulary | `artifacts/vocabulary/JAXFNE_VOCABULARY.md` |
 | Reusable agent workflows | `artifacts/skills/` — in a repository checkout; not carried in the source distribution |
 | Which checks block a release? | `scripts/run_test_gate.py` |
 | CI, branch and documentation policy | `docs/ci_policy.md` |
@@ -67,7 +68,7 @@ command and its output together, or say the claim is unverified.
 
 - Make the smallest change that reaches a passing gate, and leave unrelated invariants alone.
 - Array shapes, units, coordinate frames, sample rates and index bases are part of the
-  contract. State an intentional break at the site of the change.
+  specification. State an intentional break at the site of the change.
 - Relative and proxy readouts are distinct from calibrated physical quantities. Hold that
   distinction in code, docstrings and prose alike.
 - Generated artifacts have generators. Regenerate them instead of editing them by hand.

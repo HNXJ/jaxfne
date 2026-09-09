@@ -56,7 +56,7 @@ accepts `layer`, `area`, `ids`, `receptor_indices`, and explicit
 ## AGSDR surface classification
 
 Every AGSDR-labelled callable has a declared relationship to the canonical
-definition above. The single source of truth is
+definition above. The authoritative source is
 `jaxfne.optim.AGSDR_SURFACE_CLASSIFICATION`:
 
 | Class | Members | Relationship |

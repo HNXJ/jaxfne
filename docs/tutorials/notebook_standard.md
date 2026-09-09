@@ -62,15 +62,16 @@ This teaches users to understand model metadata and status.
 
 ### 7. Public Vocabulary
 
-Notebooks **must** use approved public vocabulary. The following terms are **approved**:
+Notebooks **must** use the canonical vocabulary in repository file
+`artifacts/vocabulary/JAXFNE_VOCABULARY.md` (private to the checkout; summarized here):
 
-- **proxy readouts** — Computed model outputs without empirical/physical validation
-- **calibration workflows** — Explicit specification and reporting of calibration mode
-- **source-to-field/readout** — Standard framework terminology
-- **computational proxy** — Declared, not-yet-validated readout
-- **declared metadata** — Explicit specification of assumptions, geometry, parameters
+- **proxy** — readout without calibrated physical units
+- **calibrated** — only with an explicit calibration receipt
+- **source → field → probe** — standard pipeline terminology
+- **relative** — default output status within the model
 
-**Avoid:** internal control terminology, undeclared placeholder fields, statements that computed readouts equal real physical measurements without validation evidence.
+**Avoid:** generic meta-words (`doctrine`, `truth`, `framework` as filler),
+undeclared placeholders, and equating proxies with physical measurements.
 
 Always frame readouts as computational or declared proxy, never as validated physical measurements without supporting validation workflow and evidence.
 
