@@ -1,6 +1,7 @@
 {
   "schema": "jaxfne.current_release_authorities.v1",
-  "notes": "Version-specific release state. Update this file when the release target changes. Generic jaxfne-release and jaxfne-seal skills reference these paths only.",
+  "release_target_version": "0.4.17",
+  "notes": "Version-specific release state. Set release_target_version to the package version under release before RELEASE-mode gates. Generic jaxfne-release and jaxfne-seal skills reference these paths only.",
   "release_receipt": "artifacts/release/v0_4_17_release_receipt.json",
   "acceptance_goals": "artifacts/private_acceptance/jaxfne_v0_4_17_final_100_goals.md",
   "acceptance_goal_count": 95,

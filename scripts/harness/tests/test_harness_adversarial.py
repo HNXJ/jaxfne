@@ -250,6 +250,18 @@ def test_release_receipt_distinct_typed_identities():
     assert "87146f94191c853428a80be2606ae70fc6278d9ecb982750ac04190aaeafcb2c" in receipt["distribution"]["sdist"]
 
 
+def test_release_authority_must_match_package_in_release_mode():
+    from scripts.harness.gate0_git_reality import read_package_version, validate_release_authorities
+
+    package_version = read_package_version(ROOT)
+    err = validate_release_authorities(ROOT, "RELEASE")
+    if package_version == "0.4.17":
+        assert err is None
+    else:
+        assert err is not None
+        assert "STALE_RELEASE_AUTHORITY" in err
+
+
 def test_current_task_ephemeral_and_typed_structure():
     """Verify CURRENT_TASK.md is tiny (<=30 lines) and uses exact C_* vocabulary."""
     task_text = (ROOT / "scratch" / "CURRENT_TASK.md").read_text()

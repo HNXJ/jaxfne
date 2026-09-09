@@ -338,6 +338,41 @@ class TestActiveSkillStaleness:
         assert not offenders, f"Stale release state in active skills: {offenders}"
 
 
+class TestReleaseAuthorityInvariant:
+    """RELEASE mode must refuse stale release authority."""
+
+    def test_stale_release_target_fails_for_current_package(self):
+        from scripts.harness.gate0_git_reality import read_package_version, validate_release_authorities
+
+        root = Path.cwd()
+        package_version = read_package_version(root)
+        err = validate_release_authorities(root, "RELEASE")
+        if package_version == "0.4.17":
+            assert err is None
+        else:
+            assert err is not None
+            assert "STALE_RELEASE_AUTHORITY" in err
+
+    def test_release_authority_validation_ignored_for_code_mode(self):
+        from scripts.harness.gate0_git_reality import validate_release_authorities
+
+        assert validate_release_authorities(Path.cwd(), "CODE") is None
+
+
+class TestFreshCloneTaskState:
+    """Missing gitignored CURRENT_TASK must not block ordinary work."""
+
+    def test_detect_task_mode_defaults_code_when_absent(self, tmp_path):
+        from scripts.harness.gate0_git_reality import detect_task_mode
+
+        mode, status = detect_task_mode(tmp_path, None)
+        assert mode == "CODE"
+        assert status == "absent"
+
+    def test_current_task_example_is_tracked(self):
+        assert Path("scratch/CURRENT_TASK.example.md").is_file()
+
+
 class TestRepositoryStructure:
     """Validate core repository structure."""
 

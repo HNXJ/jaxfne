@@ -43,9 +43,10 @@ together with the change.
 
 ## Multi-agent handoff
 
-Maintainers and coding agents share this repository via git. For active mode and
-release-specific authorities, use `scratch/CURRENT_TASK.md` (mode is read by Gate 0)
-together with `artifacts/release/current_release_authorities.json`.
+Maintainers and coding agents share this repository via git. Ordinary work defaults to
+CODE when `scratch/CURRENT_TASK.md` is absent. For release work, copy
+`scratch/CURRENT_TASK.example.md` to `scratch/CURRENT_TASK.md` and set `mode:`.
+Release-specific authorities live in `artifacts/release/current_release_authorities.json`.
 
 ## Human docs cross-links
 

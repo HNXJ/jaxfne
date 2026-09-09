@@ -85,6 +85,18 @@ change and measure. See `artifacts/context.md`.
 | attenuation | Decrease in amplitude (e.g. signal) | adaptation | Distinct from adaptation |
 | emitter | Neural dynamics implementation at a cell | | JaxFNE API role |
 | signals | Bundled simulation outputs (`Signals`) | | API type name — preserve |
+| receipt | Evidence that a named gate, test, or operation completed | manifest, report | |
+| report | Derived analysis or presentation of results | receipt, manifest | |
+| attestation | Machine-readable record that a release gate executed | receipt | RC attestation schema |
+| scope | Documented supported-capability boundary (`scope_and_status`) | claim | What the package supports or defers |
+
+**Evidence records (do not conflate).** `manifest` = composition/identity metadata for a
+run or artifact. `receipt` = evidence an operation or test occurred. `report` = derived
+analysis or result presentation. `attestation` = machine-readable gate-execution record.
+
+**claim vs scope.** `claim` = epistemic label on a specific output (`claim_level`,
+calibration flags). `scope` = documented boundary of current support — not a per-output
+stamp.
 
 ---
 
@@ -128,6 +140,8 @@ change and measure. See `artifacts/context.md`.
 | model specification = realized model |
 | plasticity = adaptation |
 | simulation duration = wall-clock runtime |
+| manifest = receipt = report = attestation |
+| claim = scope |
 
 ---
 

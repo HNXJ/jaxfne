@@ -15,6 +15,7 @@ Verification sequence:
    - 2: REMOTE_STATE_UNVERIFIED (when running explicitly with --offline)
 """
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -56,9 +57,65 @@ MODE_AUTHORITIES = {
     ],
     "CODE": [
         "artifacts/AGENTS.md",
-        "scratch/CURRENT_TASK.md",
     ],
 }
+
+RELEASE_MODES = frozenset({"RELEASE", "RELEASE_PREPARATION"})
+TASK_INIT_HINT = (
+    "Initialize scratch/CURRENT_TASK.md from scratch/CURRENT_TASK.example.md "
+    "(set mode: RELEASE or other non-CODE mode)."
+)
+
+
+def read_package_version(root: Path) -> str:
+    for line in (root / "pyproject.toml").read_text(encoding="utf-8").splitlines():
+        if line.startswith("version = "):
+            return line.split("=", 1)[1].strip().strip('"').strip("'")
+    raise ValueError("pyproject.toml missing version")
+
+
+def detect_task_mode(root: Path, explicit_mode: str | None) -> tuple[str, str]:
+    """Return (mode, task_file_status) where status is present|absent|explicit."""
+    if explicit_mode is not None:
+        return explicit_mode, "explicit"
+    task_file = root / "scratch" / "CURRENT_TASK.md"
+    if task_file.exists():
+        for line in task_file.read_text(encoding="utf-8").splitlines():
+            if line.startswith("mode:"):
+                return line.split(":", 1)[1].strip(), "present"
+        return "CODE", "present"
+    return "CODE", "absent"
+
+
+def validate_release_authorities(root: Path, mode: str) -> str | None:
+    """Return an error message when RELEASE-mode authority is stale or inconsistent."""
+    if mode not in RELEASE_MODES:
+        return None
+    auth_path = root / "artifacts" / "release" / "current_release_authorities.json"
+    if not auth_path.exists():
+        return "current_release_authorities.json missing"
+    data = json.loads(auth_path.read_text(encoding="utf-8"))
+    target = data.get("release_target_version")
+    if not target:
+        return "release_target_version missing in current_release_authorities.json"
+    package_version = read_package_version(root)
+    if target != package_version:
+        return (
+            f"STALE_RELEASE_AUTHORITY: release_target_version={target} "
+            f"!= package version={package_version}; update "
+            "artifacts/release/current_release_authorities.json before RELEASE work"
+        )
+    receipt_rel = data.get("release_receipt")
+    if receipt_rel:
+        receipt_path = root / receipt_rel
+        if receipt_path.exists():
+            receipt_version = json.loads(receipt_path.read_text(encoding="utf-8")).get("version")
+            if receipt_version and receipt_version != target:
+                return (
+                    f"release receipt version {receipt_version} != "
+                    f"release_target_version {target}"
+                )
+    return None
 
 
 def run_git(cmd: list[str], cwd: Path) -> tuple[int, str]:
@@ -138,18 +195,20 @@ def check_gate0(
     untracked = [l for l in dirty_lines if l.startswith("??")]
 
     # 7. Mode-Dependent Required Authorities
-    task_file = root / "scratch" / "CURRENT_TASK.md"
-    detected_mode = mode
-    if detected_mode is None and task_file.exists():
-        for line in task_file.read_text().splitlines():
-            if line.startswith("mode:"):
-                detected_mode = line.split(":", 1)[1].strip()
-                break
-    if detected_mode is None:
-        detected_mode = "CODE"
-
+    detected_mode, task_file_status = detect_task_mode(root, mode)
     required_rel_paths = MODE_AUTHORITIES.get(detected_mode, MODE_AUTHORITIES["CODE"])
     missing_authorities = [rel for rel in required_rel_paths if not (root / rel).exists()]
+    release_authority_error = validate_release_authorities(root, detected_mode)
+
+    if task_file_status == "absent":
+        task_line = (
+            "absent (default mode CODE for ordinary work; "
+            f"{TASK_INIT_HINT})"
+        )
+    elif task_file_status == "explicit":
+        task_line = "explicit (--mode)"
+    else:
+        task_line = "present"
 
     # Display Report
     print(f"Workspace Root:  {root}")
@@ -160,12 +219,23 @@ def check_gate0(
     print(f"origin/dev:      {origin_dev}")
     print(f"Working Tree:    {'CLEAN' if not dirty_lines else f'{len(tracked_dirty)} tracked modified, {len(untracked)} untracked'}")
     print(f"Active Mode:     {detected_mode}")
+    print(f"Task File:       {task_line}")
     print(f"Authorities:     {'ALL REQUIRED PRESENT' if not missing_authorities else f'MISSING: {missing_authorities}'}")
+    if release_authority_error:
+        print(f"Release Auth:    FAIL ({release_authority_error})")
 
     # Determine Gate 0 Exit (DIVERGED checked BEFORE simple behind)
     if missing_authorities:
         print("--------------------------------------------------------------------------------")
         print(f"GATE 0 RESULT: FAIL (Missing required authorities for mode {detected_mode}: {missing_authorities})")
+        if "scratch/CURRENT_TASK.md" in missing_authorities:
+            print(f"INIT REQUIRED: {TASK_INIT_HINT}")
+        print("================================================================================")
+        return 1
+
+    if release_authority_error:
+        print("--------------------------------------------------------------------------------")
+        print(f"GATE 0 RESULT: FAIL ({release_authority_error})")
         print("================================================================================")
         return 1
 
