@@ -174,8 +174,16 @@ def test_validate_model_strict_raises():
 
 
 def test_validate_model_no_edge_list_backend_is_still_safe():
-    model = _small_model(recurrent_backend="dense")
-    # dense backend has no params["edge_list"] -- must not crash, just skip those checks
+    cfg = (
+        jtfne.Configuration()
+        .runtime(seed=1, dtype="float32", duration_ms=10.0, dt_ms=0.5, recurrent_backend="dense")
+        .column(name="c", layers=["L4"], n=8)
+        .cell_types({"E": 1.0})
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes"])
+    )
+    model = jtfne.construct(cfg)
+    assert model.cfg.metadata.get("recurrent_backend") == "dense"
     assert jtfne.validate_model(model) == []
 
 

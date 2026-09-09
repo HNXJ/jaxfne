@@ -47,7 +47,7 @@ def example_output_dir(tmp_path_factory):
         timeout=120,
     )
     assert result.returncode == 0, f"Script failed: {result.stderr}"
-    assert "✓" in result.stdout, "Script should print success indicator"
+    assert "[OK]" in result.stdout, "Script should print success indicator"
     output_dir = workdir / _EXAMPLE_OUTPUT_REL
     assert output_dir.is_dir(), f"Expected output directory not found: {output_dir}"
     return output_dir
