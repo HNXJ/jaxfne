@@ -9,6 +9,8 @@ instance.
 
 from __future__ import annotations
 
+import json
+import warnings
 from dataclasses import fields, replace
 
 import jax.numpy as jnp
@@ -90,7 +92,6 @@ def test_delays_survive_a_checkpoint_round_trip(tmp_path):
 
 def test_v1_checkpoints_still_restore(tmp_path):
     """v1 predates delay persistence: restore must accept it, defaulting to zeros."""
-    import json
 
     cfg = _config()
     _delayed_model(cfg).checkpoint(str(tmp_path / "ck"))
@@ -117,3 +118,35 @@ def test_unknown_schema_is_refused(tmp_path):
     meta_path.write_text(json.dumps(meta), encoding="utf-8")
     with pytest.raises(ValueError, match="Unknown checkpoint schema"):
         Model.restore(str(tmp_path / "ck"), _config())
+
+
+def test_v1_restore_announces_the_zero_delay_assumption(tmp_path):
+    """A v1 checkpoint carries no delays; restoring to zero must not be silent.
+
+    A missing field is not evidence that the original delays were zero. If the
+    loader reconstructs zeros without saying so, the discarded information is
+    indistinguishable from a faithful restore -- the same defect, one layer down.
+    """
+    cfg = _config()
+    model = _delayed_model(cfg)  # genuinely non-zero delays, so the loss is visible
+    path = str(tmp_path / "ck")
+    model.checkpoint(path)
+
+    # Rewrite as a genuine v1 artifact: v1's key set had no edge_delay_steps.
+    meta_path = tmp_path / "ck.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    meta["schema"] = "model_checkpoint_v1"
+    meta_path.write_text(json.dumps(meta), encoding="utf-8")
+    with np.load(str(tmp_path / "ck.npz")) as z:
+        arrays = {k: z[k] for k in z.files if k != "edge_delay_steps"}
+    np.savez(str(tmp_path / "ck.npz"), **arrays)
+
+    with pytest.warns(UserWarning, match="NOT evidence that the original"):
+        restored = Model.restore(path, cfg)
+    assert int(np.max(np.asarray(restored.params["edge_list"].delay_steps))) == 0
+
+    # v2 restores faithfully and stays quiet.
+    model.checkpoint(str(tmp_path / "ck2"))
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
+        Model.restore(str(tmp_path / "ck2"), cfg)

@@ -451,6 +451,31 @@ from ._model_manifest import manifest as _manifest_impl
 _CHECKPOINT_SCHEMAS = frozenset({"model_checkpoint_v1", "model_checkpoint_v2"})
 
 
+def _restored_delay_steps(archive) -> "jnp.ndarray":
+    """Delays from the checkpoint, or the legacy zero assumption for v1, said out loud.
+
+    v1 checkpoints did not persist ``delay_steps`` at all. Zero is the only value
+    recoverable from them -- but a missing field is **not** evidence that the
+    original model had zero delays, and restoring silently would repeat the defect
+    in a quieter form. Warn so the assumption is visible at the call site.
+    """
+    if "edge_delay_steps" in archive.files:
+        return jnp.array(archive["edge_delay_steps"])
+    import warnings as _warnings
+
+    _warnings.warn(
+        "checkpoint predates delay persistence (schema model_checkpoint_v1): it "
+        "carries no edge delay_steps, so delays are being reconstructed as zero. "
+        "This is a legacy compatibility assumption, NOT evidence that the original "
+        "model had zero delays -- if it had finite delays they were lost when the "
+        "checkpoint was written and cannot be recovered. Re-checkpoint from the "
+        "originating configuration to obtain a faithful model_checkpoint_v2 file.",
+        UserWarning,
+        stacklevel=3,
+    )
+    return jnp.zeros(archive["edge_pre"].shape[0], dtype=jnp.int32)
+
+
 @dataclass(frozen=True)
 class Model:
     """Immutable, runnable model built from a validated :class:`Configuration`.
@@ -731,13 +756,7 @@ class Model:
             edge_list = EdgeList(
                 pre=jnp.array(z["edge_pre"]), post=jnp.array(z["edge_post"]), weight=jnp.array(z["edge_weight"]),
                 receptor_index=jnp.array(z["edge_receptor_index"]), tau_ms=jnp.array(z["edge_tau_ms"]),
-                # v1 checkpoints predate delay persistence and simply do not carry
-                # delays; zeros is the only value recoverable from them, and is what
-                # they already restored to.
-                delay_steps=(
-                    jnp.array(z["edge_delay_steps"]) if "edge_delay_steps" in z.files
-                    else jnp.zeros(z["edge_pre"].shape[0], dtype=jnp.int32)
-                ),
+                delay_steps=_restored_delay_steps(z),
                 source_calibration_status=meta["edge_source_calibration_status"],
             )
             positions = jnp.array(z["positions"])
