@@ -1,0 +1,943 @@
+{
+  "audit": "w3_broad_handler_tally",
+  "generated_utc": "2026-09-09T19:50:00.664839+00:00",
+  "package": "jaxfne",
+  "handler_count": 133,
+  "by_classification": {
+    "BEST_EFFORT_PRESENTATION": 129,
+    "EXPECTED_OPTIONAL_CAPABILITY": 4
+  },
+  "handlers": [
+    {
+      "file": "jaxfne/_construct_connectivity.py",
+      "line": 592,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "optional recurrent_backend=edge_list upgrade; construction continues"
+    },
+    {
+      "file": "jaxfne/_model.py",
+      "line": 593,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "neuron_table z position extraction; None when unavailable"
+    },
+    {
+      "file": "jaxfne/_model_evaluate.py",
+      "line": 297,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "evaluate objective aggregation fallback"
+    },
+    {
+      "file": "jaxfne/_model_simulate.py",
+      "line": 592,
+      "handler": "except Exception as exc:  # noqa: BLE001 - opt-in accessory must not break simulate()",
+      "classification": "EXPECTED_OPTIONAL_CAPABILITY",
+      "note": "opt-in simulate accessory must not break canonical simulate"
+    },
+    {
+      "file": "jaxfne/_model_simulate.py",
+      "line": 1264,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "post-sim diagnostics attachment"
+    },
+    {
+      "file": "jaxfne/_model_tune.py",
+      "line": 652,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "tune candidate scoring fallback with rejection accounting"
+    },
+    {
+      "file": "jaxfne/_runtime_config.py",
+      "line": 307,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "jaxlib version probe; returns unknown"
+    },
+    {
+      "file": "jaxfne/bridges.py",
+      "line": 473,
+      "handler": "except Exception:",
+      "classification": "EXPECTED_OPTIONAL_CAPABILITY",
+      "note": "jaxley morphology position lookup when bridge optional"
+    },
+    {
+      "file": "jaxfne/bridges.py",
+      "line": 709,
+      "handler": "except Exception:",
+      "classification": "EXPECTED_OPTIONAL_CAPABILITY",
+      "note": "jaxley compartment index enumeration"
+    },
+    {
+      "file": "jaxfne/bridges.py",
+      "line": 778,
+      "handler": "except Exception:",
+      "classification": "EXPECTED_OPTIONAL_CAPABILITY",
+      "note": "jaxley recording state probe"
+    },
+    {
+      "file": "jaxfne/fields/proxy.py",
+      "line": 414,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "field proxy diagnostic metric fallback to None"
+    },
+    {
+      "file": "jaxfne/fields/proxy.py",
+      "line": 420,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "field proxy diagnostic metric fallback to None"
+    },
+    {
+      "file": "jaxfne/fields/proxy.py",
+      "line": 426,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "field proxy diagnostic metric fallback to None"
+    },
+    {
+      "file": "jaxfne/fields/proxy.py",
+      "line": 466,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "field proxy diagnostic metric fallback to None"
+    },
+    {
+      "file": "jaxfne/fields/proxy.py",
+      "line": 476,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "field proxy diagnostic metric fallback to None"
+    },
+    {
+      "file": "jaxfne/neuronal_tensor.py",
+      "line": 913,
+      "handler": "except Exception:  # defensive: never block construction on hashing",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "content hash fallback empty; never block construction"
+    },
+    {
+      "file": "jaxfne/objectives.py",
+      "line": 481,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "synchrony metric optional; None when computation fails"
+    },
+    {
+      "file": "jaxfne/optim/core.py",
+      "line": 224,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "optimizer/manifest fallback with fallback_counts"
+    },
+    {
+      "file": "jaxfne/optim/core.py",
+      "line": 1489,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "optimizer/manifest fallback with fallback_counts"
+    },
+    {
+      "file": "jaxfne/optim/core.py",
+      "line": 1601,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "optimizer/manifest fallback with fallback_counts"
+    },
+    {
+      "file": "jaxfne/optim/core.py",
+      "line": 1611,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "optimizer/manifest fallback with fallback_counts"
+    },
+    {
+      "file": "jaxfne/optim/core.py",
+      "line": 1625,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "optimizer/manifest fallback with fallback_counts"
+    },
+    {
+      "file": "jaxfne/optim/core.py",
+      "line": 1647,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "optimizer/manifest fallback with fallback_counts"
+    },
+    {
+      "file": "jaxfne/optim/core.py",
+      "line": 1692,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "optimizer/manifest fallback with fallback_counts"
+    },
+    {
+      "file": "jaxfne/optim/core.py",
+      "line": 1929,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "optimizer/manifest fallback with fallback_counts"
+    },
+    {
+      "file": "jaxfne/optim/manifests.py",
+      "line": 40,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "optimizer/manifest fallback with fallback_counts"
+    },
+    {
+      "file": "jaxfne/paradigm.py",
+      "line": 112,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/paradigm.py",
+      "line": 394,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/runtime.py",
+      "line": 52,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/runtime.py",
+      "line": 91,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/runtime.py",
+      "line": 142,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/runtime.py",
+      "line": 173,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/tutorial_utils.py",
+      "line": 241,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "tutorial helper fallback"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 444,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 452,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 474,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 491,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 507,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 509,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 518,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 523,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 542,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 548,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 574,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 587,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 595,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 620,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 633,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 653,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 695,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 721,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 741,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 754,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 767,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 774,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 783,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 822,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 849,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 853,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 857,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 862,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 871,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 886,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/util.py",
+      "line": 896,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "config/tensor diff and summary coercion"
+    },
+    {
+      "file": "jaxfne/validation.py",
+      "line": 276,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/validation.py",
+      "line": 327,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/validation.py",
+      "line": 337,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/validation.py",
+      "line": 347,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/validation.py",
+      "line": 875,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/validation.py",
+      "line": 923,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/validation.py",
+      "line": 967,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/validation.py",
+      "line": 1177,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "runtime/validation/json_safe presentation fallback"
+    },
+    {
+      "file": "jaxfne/vis/atlas_suite.py",
+      "line": 62,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/atlas_suite.py",
+      "line": 69,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/atlas_suite.py",
+      "line": 73,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/atlas_suite.py",
+      "line": 77,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/atlas_suite.py",
+      "line": 100,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/atlas_suite.py",
+      "line": 167,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/atlas_suite.py",
+      "line": 327,
+      "handler": "except Exception as exc:  # never skip: emit placeholder with reason",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/atlas_suite.py",
+      "line": 372,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/atlas_suite.py",
+      "line": 394,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/canonical.py",
+      "line": 68,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/column_viewer.py",
+      "line": 78,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/column_viewer.py",
+      "line": 117,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/core.py",
+      "line": 59,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/evidence_manifest.py",
+      "line": 43,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/tutorial_panels.py",
+      "line": 22,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/tutorial_panels.py",
+      "line": 310,
+      "handler": "except Exception as e:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 76,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 82,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 132,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 140,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 156,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 168,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 191,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 203,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 211,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 235,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 254,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 258,
+      "handler": "except Exception as exc:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 301,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 305,
+      "handler": "except Exception as exc:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 321,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 326,
+      "handler": "except Exception as exc:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 355,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 383,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 401,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 406,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 459,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 463,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 471,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 510,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 520,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 526,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 556,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 640,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 700,
+      "handler": "except Exception as exc:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 714,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 732,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 755,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 762,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 825,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 890,
+      "handler": "except Exception as exc:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 915,
+      "handler": "except Exception as exc:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 963,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 1019,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 1039,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 1055,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 1068,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 1071,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 1092,
+      "handler": "except Exception as exc:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 1201,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    },
+    {
+      "file": "jaxfne/vis/visualize.py",
+      "line": 1207,
+      "handler": "except Exception:",
+      "classification": "BEST_EFFORT_PRESENTATION",
+      "note": "visualization panel/plot fallback"
+    }
+  ]
+}
