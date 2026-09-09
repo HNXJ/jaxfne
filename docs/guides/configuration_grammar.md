@@ -115,6 +115,20 @@ runs entirely on the unchanged sign-only path. See
 `tests/test_mechanism_aware_connection_compiler.py` for the parity and
 divergence proof.
 
+**Composition.** `.connections()` augments the realized graph; it does not
+replace prior edges. Connectivity composes as an additive multiset union:
+baseline within-area edges (from `.connectivity(p_connect=...)`) plus each
+compiled rule. Parallel `(pre, post)` pairs are retained when rules overlap;
+their synaptic currents sum at the postsynaptic segment reduction. Set
+`connectivity(p_connect=0.0)` to suppress the within-area baseline when a rule
+alone should define the projection (for example bounded `max_in_degree` with
+`E = N \cdot K`). After `construct()`, call `model.connectivity_summary()` (also
+exposed under `model.summary()["connectivity"]`) to read baseline vs rule edge
+counts, parallel-edge statistics, and per-rule `compiled_n_edges`. A rule
+declaring `max_in_degree` without a resolvable `mechanism=` is refused rather
+than silently compiled without the cap. See
+`tests/test_connectivity_request_realization.py`.
+
 ## Emitters
 
 `.set_emitter(family="izhikevich", preset="cortical_eig")` / `.emitter(**)`,
