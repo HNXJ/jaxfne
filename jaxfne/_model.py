@@ -448,6 +448,9 @@ from ._model_tune import (
 from ._model_manifest import manifest as _manifest_impl
 
 
+_CHECKPOINT_SCHEMAS = frozenset({"model_checkpoint_v1", "model_checkpoint_v2"})
+
+
 @dataclass(frozen=True)
 class Model:
     """Immutable, runnable model built from a validated :class:`Configuration`.
@@ -674,12 +677,15 @@ class Model:
             p.with_suffix(".npz"),
             **{f"emitter_{f}": _np.asarray(getattr(emitter, f))
                for f in ("a", "b", "c", "d", "drive", "sign", "W", "v0", "u0", "source_scale")},
+            # delay_steps is dynamics-consuming on the edge_list backend (perturbing
+            # it moves V_m by ~92 mV), and omitting it silently restored every model
+            # with zero delays. Every array field of EdgeList must be persisted.
             **{f"edge_{f}": _np.asarray(getattr(edge_list, f))
-               for f in ("pre", "post", "weight", "receptor_index", "tau_ms")},
+               for f in ("pre", "post", "weight", "receptor_index", "tau_ms", "delay_steps")},
             positions=_np.asarray(positions),
         )
         meta = {
-            "schema": "model_checkpoint_v1",
+            "schema": "model_checkpoint_v2",
             "emitter_labels": list(emitter.labels),
             "emitter_layer_labels": list(emitter.layer_labels) if emitter.layer_labels is not None else None,
             "emitter_source_calibration_status": emitter.source_calibration_status,
@@ -707,8 +713,11 @@ class Model:
 
         p = Path(path)
         meta = _json.loads(p.with_suffix(".json").read_text(encoding="utf-8"))
-        if meta["schema"] != "model_checkpoint_v1":
-            raise ValueError(f"Unknown checkpoint schema: {meta['schema']!r}")
+        if meta["schema"] not in _CHECKPOINT_SCHEMAS:
+            raise ValueError(
+                f"Unknown checkpoint schema: {meta['schema']!r} "
+                f"(supported: {sorted(_CHECKPOINT_SCHEMAS)})"
+            )
         with _np.load(p.with_suffix(".npz")) as z:
             emitter = IzhikevichParams(
                 a=jnp.array(z["emitter_a"]), b=jnp.array(z["emitter_b"]), c=jnp.array(z["emitter_c"]),
@@ -722,6 +731,13 @@ class Model:
             edge_list = EdgeList(
                 pre=jnp.array(z["edge_pre"]), post=jnp.array(z["edge_post"]), weight=jnp.array(z["edge_weight"]),
                 receptor_index=jnp.array(z["edge_receptor_index"]), tau_ms=jnp.array(z["edge_tau_ms"]),
+                # v1 checkpoints predate delay persistence and simply do not carry
+                # delays; zeros is the only value recoverable from them, and is what
+                # they already restored to.
+                delay_steps=(
+                    jnp.array(z["edge_delay_steps"]) if "edge_delay_steps" in z.files
+                    else jnp.zeros(z["edge_pre"].shape[0], dtype=jnp.int32)
+                ),
                 source_calibration_status=meta["edge_source_calibration_status"],
             )
             positions = jnp.array(z["positions"])

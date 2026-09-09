@@ -141,8 +141,26 @@ INSPECT_ROW_CAP = 2000
 # Consumer classes this tool actually probes. Anything not listed stays an explicit
 # unknown rather than being silently folded into U_total -- an array can be
 # irrelevant to simulate() and still required by a supported operation.
-PROBED_CONSUMERS = ("dynamics", "inspect", "checkpoint", "manifest")
-UNPROBED_CONSUMERS = ("hdp", "optimize", "continuation", "streaming", "protocol_d")
+PROBED_CONSUMERS = ("dynamics", "inspect", "checkpoint", "restore", "optimize", "manifest")
+
+# Consumer classes that cannot be probed by perturbing a model array, because their
+# public entry points do not accept a Model at all. Recorded with the reason rather
+# than left as a bare unknown.
+NOT_APPLICABLE_CONSUMERS = {
+    "streaming": ("jaxfne.run_stdp_stream(v_init, u_init, s_init, stdp_state, ...) takes "
+                  "raw arrays and an STDPState carrying its own dense W; it never reads "
+                  "model.params, so no model array can be consumed by it."),
+    "protocol_d": ("jaxfne.protocol_d_biological_rbs.d2b_execution."
+                   "run_d2b_activity_h_k_coupling(spec, package_head) builds its own "
+                   "model from a spec and takes no Model argument."),
+    "continuation_lowlevel": ("jaxfne.run_continuation(step_fn, state, drive_schedule) "
+                              "operates on a ContinuationState, not a Model. The "
+                              "model-level state-continuation path is checkpoint/restore, "
+                              "which is probed as 'restore'."),
+}
+# hdp is configuration-driven and therefore surfaces through the dynamics probe on an
+# HDP-enabled configuration; run the tool with such a config to measure it.
+UNPROBED_CONSUMERS = tuple(NOT_APPLICABLE_CONSUMERS)
 
 
 def _digest(value) -> str:
@@ -196,11 +214,36 @@ def build_probes(duration_ms, dt_ms):
                 f.read_bytes() for f in written if f.is_file()
             ]
 
+    def restore(model):
+        # The model-level state-continuation path: an array can be irrelevant to
+        # simulate() and to checkpoint() byte content and still change what a
+        # restored model does.
+        import pathlib
+        import tempfile
+
+        from jaxfne._model import Model
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "w10_restore"
+            model.checkpoint(str(path))
+            restored = Model.restore(str(path), model.cfg)
+            return np.asarray(
+                jtfne.simulate(restored, duration_ms=duration_ms, dt_ms=dt_ms, seed=0).V_m
+            )
+
+    def optimize(model):
+        # Minimal-work optimiser pass: enough to exercise which arrays the tuner
+        # reads, without paying for a real optimisation.
+        result = jtfne.suite2_tune_noise_agsdr_adam(
+            model, adam_steps=1, amplitudes=(0.0, 1.0), seed=7
+        )
+        return result.summary
+
     def manifest(model):
         return model.manifest()
 
-    return {"dynamics": dynamics, "inspect": inspect,
-            "checkpoint": checkpoint, "manifest": manifest}
+    return {"dynamics": dynamics, "inspect": inspect, "checkpoint": checkpoint,
+            "restore": restore, "optimize": optimize, "manifest": manifest}
 
 
 def measure_usage(model, records, probes, baselines) -> None:
@@ -208,7 +251,7 @@ def measure_usage(model, records, probes, baselines) -> None:
     for rec in records:
         target = rec.pop("_array")
         rec["U_k_by_consumer"] = {}
-        rec["U_k_unprobed"] = list(UNPROBED_CONSUMERS)
+        rec["U_k_not_applicable"] = list(NOT_APPLICABLE_CONSUMERS)
         bad = perturb(target)
         if bad is None:
             rec["U_k"] = None
@@ -389,10 +432,12 @@ def main(argv=None) -> int:
         },
         "consumers": {
             "probed": [c for c in PROBED_CONSUMERS if c in baselines],
-            "unprobed": list(UNPROBED_CONSUMERS),
+            "not_applicable": NOT_APPLICABLE_CONSUMERS,
             "note": ("U_k = 0 means no probed consumer observed a difference. It is "
-                     "candidate-removable, not proven removable: the unprobed consumers "
-                     "above may still require the array."),
+                     "candidate-removable, not proven removable. Consumers listed under "
+                     "not_applicable take no Model argument, so no model array can reach "
+                     "them; hdp is configuration-driven and surfaces through the dynamics "
+                     "probe on an HDP-enabled configuration."),
         },
         "arrays": records,
     }
@@ -406,7 +451,8 @@ def main(argv=None) -> int:
           f"M_temporary {m_temporary / 1e6:9.3f} MB (derived)")
     probed = [c for c in PROBED_CONSUMERS if c in baselines]
     print(f"\n  probed consumers: {', '.join(probed) or 'none'}")
-    print(f"  NOT probed:       {', '.join(UNPROBED_CONSUMERS)}")
+    print(f"  not applicable:   {', '.join(NOT_APPLICABLE_CONSUMERS)} "
+          f"(no Model argument)")
     header = "".join(f"{c[:5]:>7}" for c in probed)
     print(f"\n{'bytes':>12} {'U_tot':>6}{header} {'R_k':>11}  name")
     for rec in records:
