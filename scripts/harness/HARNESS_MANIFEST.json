@@ -24,7 +24,7 @@
     },
     "frozen_paths": {
       "file": "artifacts/publication/frozen_manifest.json",
-      "sha256": "46568fd3e1c1ad6e21d8b6e067be857527b89054087feac9177ea784de0ff400"
+      "sha256": "392e7f5ea57a918157a7b1b8c0c181f539fc091b87327d3e2d932facb1aa65be"
     },
     "harness_scripts": {
       "sync_skills": {

@@ -50,14 +50,19 @@ def test_advanced_symbols_remain_importable_but_not_public():
     assert symbol_tier("SanityDeltaConfig") == "EXPERIMENTAL_INTERNAL"
 
     assert "write_nwb" not in jtfne.__all__
-    assert hasattr(jtfne, "write_nwb")
+    assert not hasattr(jtfne, "write_nwb")
 
 
-def test_glif_lif_emitters_are_experimental_not_compatibility():
+def test_glif_lif_emitters_are_namespaced_not_root_exports():
+    from jaxfne import emitters
+
     assert "GLIFEmitter" not in jtfne.__all__
     assert "LIFEmitter" not in jtfne.__all__
-    assert hasattr(jtfne, "GLIFEmitter")
-    assert symbol_tier("GLIFEmitter") == "EXPERIMENTAL_INTERNAL"
+    assert not hasattr(jtfne, "GLIFEmitter")
+    assert not hasattr(jtfne, "LIFEmitter")
+    assert hasattr(emitters, "GLIFEmitter")
+    assert hasattr(emitters, "LIFEmitter")
+    assert symbol_tier("GLIFEmitter") is None
 
 
 def test_compatibility_aliases_retained_in_public_exports():
@@ -91,10 +96,10 @@ def test_public_symbol_count_contraction_from_baseline():
     −2 SurrogateConfig pair re-classified EXPERIMENTAL_INTERNAL on 2026-08-22
     W4: declaration-only dormant metadata, zero manuscript/example/doc usage)."""
     summary = public_surface_summary()
-    assert summary["counts"]["baseline_all"] == 266
+    assert summary["counts"]["baseline_all"] == 261
     assert summary["counts"]["public_exports"] == 190
     assert summary["counts"]["compatibility"] == 13
-    assert summary["counts"]["experimental_internal"] == 18
+    assert summary["counts"]["experimental_internal"] == 13
 
 
 def test_surrogate_config_pair_is_experimental_not_public():

@@ -107,9 +107,9 @@ Do not assume \(H_D = H_R\). Developmental state lives in
 \(d_D \ne d_R\). No developmental-to-runtime state projection exists in 0.4.17
 unless an implementation requires and scientifically defines one.
 
-### Build-time scope (0.4.17)
+### Build-time scope
 
-v0.4.17 pseudogenomes are **build-time generative specifications**:
+Pseudogenomes are **build-time generative specifications**:
 
 \[
 \boxed{G,\,K_D \xrightarrow{\mathrm{develop}} \mathcal N}
@@ -118,7 +118,7 @@ v0.4.17 pseudogenomes are **build-time generative specifications**:
 `develop` runs at build time and returns a terminal `NeuronalTensor`
 structure, which is then passed to ordinary `construct`/`simulate`. It does
 **not** mutate network topology during the simulation clock. In particular,
-**activity-dependent structural growth is not implemented in 0.4.17** — no
+**activity-dependent structural growth is not implemented** — no
 runtime H-triggered layer insertion (the proposed
 \(\mathcal N(t) \to \mathcal N(t^+)\) developmental-growth experiment) is
 present. That remains future work after the frozen-use period.

@@ -5,9 +5,9 @@
     "canonical": 177,
     "advanced": 58,
     "compatibility": 13,
-    "experimental_internal": 18,
+    "experimental_internal": 13,
     "public_exports": 190,
-    "baseline_all": 266
+    "baseline_all": 261
   },
   "public_exports": [
     "AGSDR",

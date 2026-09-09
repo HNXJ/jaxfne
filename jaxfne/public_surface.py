@@ -410,9 +410,7 @@ _EXPERIMENTAL_INTERNAL: Final[frozenset[str]] = frozenset(
     {
         "BackupState",
         "BehaviorGate",
-        "GLIFEmitter",
         "HierarchicalOddballParadigm",
-        "LIFEmitter",
         "Manifest",
         "SanityDeltaConfig",
         "SanityDeltaModel",
@@ -423,9 +421,6 @@ _EXPERIMENTAL_INTERNAL: Final[frozenset[str]] = frozenset(
         "make_candidate_sharding",
         "make_population_mesh",
         "make_replicated_sharding",
-        "read_nwb",
-        "solve_volume_conductor_experimental",
-        "write_nwb",
     }
 )
 
@@ -448,14 +443,9 @@ ADVANCED_NAMESPACE: Final[dict[str, str]] = {
     "update_stdp_weights_jax": "jaxfne.plasticity",
     "spectrolaminar_psd_jax": "jaxfne.analysis.spectral",
     "get_sharding_context": "jaxfne.sharding_utils",
-    "write_nwb": "jaxfne.pynwb_compat",
-    "read_nwb": "jaxfne.pynwb_compat",
     "SanityDeltaConfig": "jaxfne.sanity_delta",
     "SurrogateConfig": "jaxfne._runtime_config",
     "surrogate_config": "jaxfne._runtime_config",
-    "GLIFEmitter": "jaxfne.emitters",
-    "LIFEmitter": "jaxfne.emitters",
-    "solve_volume_conductor_experimental": "jaxfne.solvers",
 }
 
 

@@ -160,8 +160,6 @@ from .emitters import (
     synaptic_tensor_report,
     Emitter,
     IzhikevichEmitter,
-    GLIFEmitter,
-    LIFEmitter,
     SynapseState,
     SynapseLayer,
 )
@@ -295,10 +293,7 @@ from .solvers import (
     EulerSolver,
     DiffraxSolver,
     solve_ode,
-    solve_volume_conductor_experimental,
 )
-# v0.3.31: PyNWB placeholder (not yet implemented)
-from .pynwb_compat import write_nwb, read_nwb
 # v0.3.32: Hierarchical global-local oddball API hardening
 from .sanity_delta import (
     SanityDeltaConfig,

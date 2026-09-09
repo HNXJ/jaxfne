@@ -282,9 +282,9 @@ python scripts/run_all_tutorials.py --out-root outputs/
 ```
 
 **Flags:**
-- `--out-root OUTPUT_DIR` — accepted but currently unused; tutorial scripts write to hardcoded `outputs/...` paths regardless of this flag (verified against `scripts/run_all_tutorials.py` argparse help, 2026-07-03)
-- `--smoke` — Reduced runtime (not yet implemented in tutorial scripts)
-- `--write-figures` — Enable figure generation (default: True)
+- `--out-root OUTPUT_DIR` — root directory; each tutorial writes to `<out-root>/<name>/` (default: `outputs/`)
+- `--smoke` — divide each tutorial's simulated duration by 10 (floor 10 ms) for faster validation runs
+- `--write-figures` / `--no-write-figures` — enable or skip PNG generation (default: figures on)
 
 **Output:**
 - All 4 tutorials executed

@@ -3,6 +3,7 @@ import time
 import jax
 import jax.numpy as jnp
 import numpy as np
+from jaxfne.solvers import solve_volume_conductor_experimental
 from jaxfne import (
     spectrolaminar_psd_jax,
     bandpower_jax,
@@ -12,7 +13,6 @@ from jaxfne import (
     spectrolaminar_similarity_candidates_seeds_jax,
     compile_connection_rules_jax,
     update_stdp_weights_jax,
-    solve_volume_conductor_experimental,
     Model,
     Simulation,
     RuntimeConfig,
