@@ -10,24 +10,70 @@
 
 # jaxfne
 
-**Tensor-Field Neural Equations (TFNE)** expressed as a JAX simulation engine for
-layer-resolved neural circuits, source operators, field proxies, probes, objectives,
-and evidence receipts.
+JaxFNE is a Python package for biophysical source-field modeling, coupling neural
+activity and biophysical state with plasticity, network geometry, and population-
+and field-scale dynamics. Neural models can be defined at different levels of
+biological detail and reduced when computational efficiency is required.
 
-**Scientific grammar:** `Emitter → Source → Field → Probe → Objective → Optimizer → Manifest`
+## What this enables
 
-**Execution grammar:** `CircuitSpec → construct → Model → simulate → Signals`
+At the level of specification and readout:
 
-`CircuitSpec` is a **conceptual category** (`Configuration | NeuronalTensor`),
-not a concrete public production class — `construct` accepts either a
-`Configuration` (original path) or a `NeuronalTensor` with a
-`RuntimeConfiguration` (tensor-first path). It is unrelated to the
-experimental `jaxfne.experimental_hpc.CircuitSpec` type, which is
-not accepted by production `construct`.
+$$
+\text{Model} = \mathrm{JaxFNE}(\text{specification}, \text{dynamics},
+\text{biophysical state}, \text{plasticity}, \text{geometry})
+$$
 
-**Adaptation** (optional HDP family): finite-dimensional hidden biophysical state
-$H$ and adaptive parameter coordinates $\Theta$ (synaptic and intrinsic),
-mediated by
+$$
+\text{Signal} = \mathrm{Probe}(\text{source}, \text{modality}, \text{geometry})
+$$
+
+Detail can range from reduced point-neuron emitters through compartmental models
+attached via interoperability bridges, to population- and column-scale networks.
+Reduction is an explicit modeling choice, not a hidden approximation.
+
+## Principal capabilities
+
+**Flexible biophysical state.** $H$ through RBS/RBD lets models add the ionic,
+energetic, synaptic, modulatory, or other biophysical coordinates required by a
+question without requiring a new simulator architecture for each extension.
+
+**Source to field to observation.** Neural dynamics produce sources, fields, and
+probes for spikes, population signals, LFP-like proxies, and calibrated physical
+modalities (EEG/MEG-style projections and similar) where an appropriate forward
+model and calibration are defined. By default field readouts are **relative
+computational proxies**, not calibrated physical measurements — see
+[Scope & status](docs/scope_and_status.md).
+
+**Models that can develop.** [JDNA](docs/guides/jdna.md) describes generative
+model construction from a `PseudoGenome` (`develop` → `NeuronalTensor` today).
+Planned extensions toward explicit evolution, structural development, and model
+reduction are **not yet implemented** as runtime developmental dynamics; see
+[Scope & status](docs/scope_and_status.md) and the private roadmap programme.
+
+## Implementation substrate
+
+JaxFNE is implemented in JAX for efficient, composable numerical execution on CPU
+and accelerator hardware. JAX is the numerical substrate; the scientific
+contribution is the biophysical source-field modeling framework above.
+
+## TFNE (Tensor-Field Neural Equations)
+
+TFNE represents neural dynamics, biophysical state, plasticity, geometry,
+sources, and fields in a common mathematical form. Individual emitters, source
+maps, fields, and probes are replaceable implementations of typed roles within
+that form.
+
+**Scientific pipeline:** `Emitter → Source → Field → Probe → Objective → Optimizer → Manifest`
+
+**Software pipeline:** `CircuitSpec → construct → Model → simulate → Signals`
+
+`CircuitSpec` names the conceptual input to `construct` (`Configuration` or
+`NeuronalTensor` with `RuntimeConfiguration`). It is not a separate public
+production class and is unrelated to `jaxfne.experimental_hpc.CircuitSpec`.
+
+**Adaptation** (optional HDP family): finite-dimensional hidden biophysical
+state $H$ and adaptive parameter coordinates $\Theta$, with dynamics
 
 $$
 \dot X = F_X(X,H,\Theta,U),\quad
@@ -35,8 +81,8 @@ $$
 \dot\Theta = F_\Theta(H,X,\Theta).
 $$
 
-RBS represents $H$. RBD defines $H$ dynamics. HDP defines parameter dynamics
-and may depend on $H$. $H$ can exist and evolve without HDP. See [H-state / HDP guide](docs/guides/hdp.md).
+RBS represents $H$; RBD defines $H$ dynamics; HDP defines parameter dynamics.
+See [H-state / HDP guide](docs/guides/hdp.md).
 
 ## Install
 
@@ -72,7 +118,7 @@ signals = jtfne.simulate(model)
 JDNA is an optional path; the direct `Configuration`/`NeuronalTensor` paths
 remain first-class. See [JDNA guide](docs/guides/jdna.md).
 
-JaxFNE composes established neural dynamical models, source/readout operators, and `JAX-native` execution under the TFNE typed state/map grammar. See [TFNE theory](docs/doctrine/tfne_containment_architecture.md) and [References](docs/reference/references.md).
+See [TFNE theory](docs/doctrine/tfne_containment_architecture.md) and [References](docs/reference/references.md) for the mathematical structure.
 
 Import convention: `import jaxfne as jtfne`. Builder paths, paradigms, and
 optimization: [Quickstart](docs/quickstart.md).
@@ -90,7 +136,7 @@ explicit transformation with evidence. See [Scope & status](docs/scope_and_statu
 | Site | [jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/) |
 | Tutorials | [docs/tutorials/](docs/tutorials/) |
 | Études | [docs/etudes/](docs/etudes/) |
-| Frozen compatibility contract (0.4.13) | [docs/public_surface_contract.md](docs/public_surface_contract.md) |
+| Public API surface (0.4.13) | [docs/public_surface_contract.md](docs/public_surface_contract.md) |
 | Changelog | [docs/changelog.md](docs/changelog.md) |
 
 ## For AI agents
@@ -113,70 +159,8 @@ above.
 
 ## Canonical Visualization Atlas
 
-The JaxFNE Canonical Atlas provides a unified 6-panel visual grammar (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`, `state_summary`) with strict evidence-level separation (**OBSERVED** vs. **DERIVED**), deterministic degradation tracking, and cryptographic manifest provenance.
-
-Every preview below is generated directly from realized JaxFNE simulation outputs (`canonical-v1-column-1000n` scaffold):
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <a href="https://jaxfne.readthedocs.io/en/latest/">
-        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/network_3d.png" alt="3D Realized Architecture" width="100%">
-      </a><br>
-      <sub><b>1. Network 3D</b> (OBSERVED): Realized 3D geometry, lamina, cell classes, sampled synaptic edges</sub>
-    </td>
-    <td align="center" width="50%">
-      <a href="https://jaxfne.readthedocs.io/en/latest/">
-        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/connectivity.png" alt="Realized Connectivity" width="100%">
-      </a><br>
-      <sub><b>2. Connectivity</b> (OBSERVED): Realized synaptic weight matrix & adjacency</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="50%">
-      <a href="https://jaxfne.readthedocs.io/en/latest/">
-        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/raster.png" alt="Spike Raster" width="100%">
-      </a><br>
-      <sub><b>3. Spike Raster</b> (OBSERVED): Microsecond spike timestamps across realized neuronal populations</sub>
-    </td>
-    <td align="center" width="50%">
-      <a href="https://jaxfne.readthedocs.io/en/latest/">
-        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/traces.png" alt="Membrane Traces" width="100%">
-      </a><br>
-      <sub><b>4. Membrane Traces</b> (OBSERVED): Somatic membrane potential $V_m$ trajectories</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="50%">
-      <a href="https://jaxfne.readthedocs.io/en/latest/">
-        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/spectral.png" alt="Spectral Dynamics" width="100%">
-      </a><br>
-      <sub><b>5. Spectral</b> (DERIVED): Welch PSD & spectrolaminar power estimates</sub>
-    </td>
-    <td align="center" width="50%">
-      <a href="https://jaxfne.readthedocs.io/en/latest/">
-        <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/readme/state_summary.png" alt="State Summary" width="100%">
-      </a><br>
-      <sub><b>6. State Summary</b> (DERIVED): Cell-type rate distributions and silence fractions</sub>
-    </td>
-  </tr>
-</table>
-
-Generate the complete standalone HTML atlas suite locally with one line:
-
-```python
-import jaxfne as jtfne
-from jaxfne.vis import build_atlas
-
-# Run simulation
-tensor = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")
-model = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=500.0, dt_ms=0.5))
-signals = jtfne.simulate(model)
-
-# Build canonical atlas with manifest & standalone interactive HTML panels
-manifest = build_atlas(model, signals, out_dir="docs/_static/atlas")
-print(f"Atlas generated with SHA256: {manifest['sha256']}")
-```
-
-For extended case studies, laminar field readouts, and homeostasis dynamics, see [Showcases](docs/guides/showcases.md).
+Six linked panels (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`, `state_summary`) separate **OBSERVED** from **DERIVED** quantities and attach
+manifest provenance. Previews and generation code:
+[documentation site](https://jaxfne.readthedocs.io/en/latest/) and
+[Atlas guide](docs/guides/atlas_suite.md).
 

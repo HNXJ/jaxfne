@@ -1,10 +1,13 @@
 # Quickstart
 
-Study **laminar population dynamics** — spikes, membrane traces, and depth-resolved
-proxy readouts (LFP, CSD, spectrolaminar PSD) — from a JAX circuit you
-define once and simulate reproducibly.
+Study **laminar neural dynamics** — spikes, membrane traces, and depth-resolved
+field readouts (LFP, CSD, spectrolaminar PSD) — from a circuit you define once
+and simulate reproducibly. JaxFNE couples specification, dynamics, biophysical
+state ($H$/RBS/RBD), plasticity, and geometry into sources, fields, and probes.
+Detail can range from reduced emitters to compartmental models attached via
+bridges.
 
-> Documentation tracks the `dev` branch public contract. `NeuronalTensor` is the preferred CircuitSpec path.
+> Documentation tracks the `dev` branch public API. `NeuronalTensor` is the preferred `construct` input path.
 
 ## Install & import
 
@@ -20,8 +23,8 @@ jtfne.enable_x64()   # before array construction
 
 ## Jaxley interoperability
 
-[Jaxley](https://jaxley.readthedocs.io) = biophysical detail (compartments, HH channels).
-jaxfne = population/field scale + proxy readouts. Compose them:
+[Jaxley](https://jaxley.readthedocs.io) provides compartmental biophysical detail;
+JaxFNE couples neural dynamics, geometry, and field readouts. Compose them:
 
 ```python
 import jaxley as jx

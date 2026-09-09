@@ -1,5 +1,5 @@
 site_name: jaxfne
-site_description: Tensor-Field Neural Equations — JAX simulation for neural circuits, fields, and adaptation
+site_description: Biophysical source-field modeling — neural activity, biophysical state, plasticity, geometry, and population- and field-scale dynamics at configurable biological detail
 site_url: https://jaxfne.readthedocs.io/
 
 repo_url: https://github.com/HNXJ/jaxfne

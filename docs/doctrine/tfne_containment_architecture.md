@@ -7,16 +7,17 @@ Complements `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md`.
 ## 1. Central claim
 
 \[
-\boxed{\text{TFNE is a containment and composition model for neural biophysics.}}
+\boxed{\text{TFNE is a composition model for neural biophysics.}}
 \]
 
-TFNE does **not** compete with Hodgkin–Huxley, Izhikevich, Jaxley, STDP, BCM,
-Hebbian learning, electromagnetic forward models, metabolic models, or statistical
-dynamics. Those are **realizations inside a common mathematical grammar**.
+Hodgkin–Huxley, Izhikevich, Jaxley, STDP, BCM, Hebbian learning,
+electromagnetic forward models, metabolic models, and statistical dynamics can
+all appear as **realizations** expressed within TFNE's common state, operator,
+and geometry representation.
 
-> **TFNE does not prescribe a neural model; it provides a common relative state,
-> operator, and geometry grammar in which neural models of different physical
-> resolution can be composed.**
+> **TFNE represents neural dynamics, biophysical state, plasticity, geometry,
+> sources, and fields in a common mathematical form in which models of different
+> physical resolution can be composed.**
 
 ## 2. Three separable concepts
 

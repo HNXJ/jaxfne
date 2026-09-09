@@ -28,11 +28,22 @@ importable from submodules but are not root exports.
     (`qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false`).
     Per-layer fractions (`L1 E 0.50` etc.) and typed connectivity are scaffold values (`value_tag="relative"`), without quantitative calibration; reduced labels `E`/`PV`/`SST`/`VIP` are functional scaffold identities, not warranted literal cell-type identities. See [Scope & status — Biological calibration](../scope_and_status.md#biological-calibration-status-canonical-v1-column) and [Calibration — Biological status](../guides/calibration.md#biological-calibration-status).
 
-## Grammars
+## Conceptual form
+
+$$
+\text{Model} = \mathrm{JaxFNE}(\text{specification}, \text{dynamics},
+\text{biophysical state}, \text{plasticity}, \text{geometry})
+$$
+
+$$
+\text{Signal} = \mathrm{Probe}(\text{source}, \text{modality}, \text{geometry})
+$$
+
+## Pipelines
 
 **Scientific:** Emitter → Source → Field → Probe → Objective → Optimizer → Manifest
 
-**Execution:** CircuitSpec → `construct` → `Model` → `simulate` → `Signals`
+**Software:** CircuitSpec → `construct` → `Model` → `simulate` → `Signals`
 
 `CircuitSpec` is a **conceptual category** (`Configuration | NeuronalTensor`),
 not a concrete public production class — `construct` accepts either a

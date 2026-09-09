@@ -10,11 +10,40 @@ Every jaxfne output is one of two kinds:
 
 ## What jaxfne is
 
-jaxfne is a computational scaffold for laminar population models in JAX:
-configure a circuit, simulate spikes and membrane traces, and extract field
-readouts (LFP, CSD, EEG/MEG-style projections, spectrolaminar PSD summaries).
-It targets method development, circuit-level diagnostics, and reproducible
-pipelines.
+JaxFNE is a Python package for biophysical source-field modeling, coupling
+neural activity and biophysical state with plasticity, network geometry, and
+population- and field-scale dynamics. Neural models can be defined at different
+levels of biological detail and reduced when computational efficiency is
+required.
+
+At the level of specification and readout:
+
+$$
+\text{Model} = \mathrm{JaxFNE}(\text{specification}, \text{dynamics},
+\text{biophysical state}, \text{plasticity}, \text{geometry})
+$$
+
+$$
+\text{Signal} = \mathrm{Probe}(\text{source}, \text{modality}, \text{geometry})
+$$
+
+**Principal capabilities (what the package is for):**
+
+1. **Flexible biophysical state** — $H$/RBS/RBD coordinates for ionic, energetic,
+   synaptic, modulatory, or other declared biophysical dependencies without a new
+   simulator architecture per question.
+2. **Source to field to observation** — neural dynamics → sources → fields →
+   probes (spikes, population signals, LFP-like proxies; calibrated EEG/MEG-style
+   modalities only with an explicit forward model and calibration receipt).
+3. **Models that can develop** — JDNA generative construction is supported;
+   runtime evolution and structural development are **planned** and not claimed
+   as shipped unless documented with tests and receipts.
+
+In practice you configure a circuit, simulate spikes and membrane traces, and
+extract field readouts. The default shipped path uses a reduced laminar
+population scaffold; more detailed emitters and interoperability bridges are
+supported where defined through the API. JAX is the numerical execution
+substrate, not the scientific claim.
 
 ## Status fields
 

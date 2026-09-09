@@ -1,6 +1,6 @@
 # Canonical Visualization Atlas (`jaxfne.vis.atlas_suite`)
 
-The **JaxFNE Canonical Visualization Atlas** provides a unified, deterministic 6-panel visual grammar for inspecting, comparing, and reporting any realized JaxFNE circuit ($N \ge 1$).
+The **JaxFNE Canonical Visualization Atlas** provides a unified, deterministic 6-panel layout for inspecting, comparing, and reporting any realized JaxFNE circuit ($N \ge 1$).
 
 Every atlas generation produces self-contained interactive HTML panels, a cryptographic provenance manifest (`manifest.json`), and an index dashboard (`index.html`).
 

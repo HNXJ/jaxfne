@@ -1,21 +1,62 @@
 # jaxfne
 
-**Tensor-Field Neural Equations (TFNE)** — JAX simulation for layer-resolved neural
-circuits, source operators, field proxies, probes, objectives, and evidence.
+JaxFNE is a Python package for biophysical source-field modeling, coupling neural
+activity and biophysical state with plasticity, network geometry, and population-
+and field-scale dynamics. Neural models can be defined at different levels of
+biological detail and reduced when computational efficiency is required.
 
-**Scientific grammar:** Emitter → Source → Field → Probe → Objective → Optimizer → Manifest
+## What this enables
 
-**Execution grammar:** CircuitSpec → `construct` → `Model` → `simulate` → `Signals`
+$$
+\text{Model} = \mathrm{JaxFNE}(\text{specification}, \text{dynamics},
+\text{biophysical state}, \text{plasticity}, \text{geometry})
+$$
 
-`CircuitSpec` is a **conceptual category** (`Configuration | NeuronalTensor`),
-not a concrete production class; the experimental `experimental_hpc.CircuitSpec`
-is an unrelated type not accepted by `construct`.
+$$
+\text{Signal} = \mathrm{Probe}(\text{source}, \text{modality}, \text{geometry})
+$$
 
-[Jaxley](https://jaxley.readthedocs.io) provides compartmental biophysical detail;
-jaxfne provides population/field-scale circuits and proxy readouts. Jaxley models
-attach as emitters via [Jaxley interoperability](guides/jaxley_interop.md).
+Detail can range from reduced emitters through compartmental models attached via
+interoperability bridges, to population- and column-scale networks. Reduction is
+an explicit modeling choice.
 
-[Scope & status](scope_and_status.md) · [Public API contract](public_surface_contract.md) (0.4.13)
+## Principal capabilities
+
+- **Flexible biophysical state** — $H$/RBS/RBD adds ionic, energetic, synaptic,
+  modulatory, or other declared coordinates without a new simulator architecture
+  per extension.
+- **Source to field to observation** — dynamics → sources → fields → probes for
+  spikes, population signals, LFP-like proxies, and calibrated physical modalities
+  where a forward model and calibration are defined. Default readouts are
+  **relative computational proxies** — see [Scope & status](scope_and_status.md).
+- **Models that can develop** — JDNA generative construction (`develop` →
+  `NeuronalTensor`) is available; explicit evolution and structural development
+  are **planned, not yet implemented** as runtime dynamics.
+
+JaxFNE uses JAX as an efficient numerical substrate; the scientific contribution
+is the biophysical source-field modeling framework, not JAX itself.
+
+## TFNE (Tensor-Field Neural Equations)
+
+TFNE represents neural dynamics, biophysical state, plasticity, geometry,
+sources, and fields in a common mathematical form.
+
+**Scientific pipeline:** Emitter → Source → Field → Probe → Objective → Optimizer → Manifest
+
+**Software pipeline:** CircuitSpec → `construct` → `Model` → `simulate` → `Signals`
+
+`CircuitSpec` names the conceptual input to `construct` (`Configuration` or
+`NeuronalTensor`). It is not a separate public class and is unrelated to
+`experimental_hpc.CircuitSpec`.
+
+**Ecosystem.** [Jaxley](https://jaxley.readthedocs.io) focuses on compartmental
+biophysical detail; JaxFNE focuses on coupling neural dynamics, geometry, and
+field readouts in JAX. Compartmental Jaxley models can attach as emitters via
+[Jaxley interoperability](guides/jaxley_interop.md). Other simulators address
+different execution models and file formats; compare purpose, representation,
+and interoperability rather than ranking.
+
+[Scope & status](scope_and_status.md) · [Public API surface](public_surface_contract.md) (0.4.13)
 
 ## Install
 
@@ -40,15 +81,15 @@ signals = jtfne.simulate(model)
 ## Main pages
 
 - [Quickstart](quickstart.md) — build paths, paradigms, H-state adaptation
-- [Tutorials](tutorials/index.md) — usage of the grammar
-- [Canonical Atlas Suite](guides/atlas_suite.md) — 6-panel interactive visual grammar
+- [Tutorials](tutorials/index.md) — worked examples
+- [Canonical Atlas Suite](guides/atlas_suite.md) — 6-panel interactive atlas
 - [Études](etudes/index.md) — demonstrated scientific propositions
 - [API reference](api/index.md)
 - [H-state / HDP guide](guides/hdp.md)
 
 ## Canonical Visualization Atlas
 
-The JaxFNE Canonical Atlas provides a unified 6-panel visual grammar (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`, `state_summary`) with strict evidence-level separation (**OBSERVED** vs. **DERIVED**), deterministic degradation tracking, and cryptographic manifest provenance.
+The Canonical Atlas links six panels (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`, `state_summary`) with **OBSERVED** vs. **DERIVED** labeling and manifest provenance.
 
 Every preview below is generated directly from realized JaxFNE simulation outputs (`canonical-v1-column-1000n` scaffold):
 
