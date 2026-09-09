@@ -10,6 +10,10 @@ Target: **~70 controlled terms** + ordinary scientific English elsewhere.
 Deterministic audit: `python scripts/audit_vocabulary.py --check` (high-confidence
 drift only). Semantic review: `artifacts/subagents/vocabulary_critic.md`.
 
+**Public entry pages** (`README.md`, `docs/index.md`): minimum words; no named-tool
+comparisons; state what JaxFNE is, why flexibility matters, and what users can
+change and measure. See `artifacts/context.md`.
+
 ---
 
 ## 1. Canonical terms

@@ -154,9 +154,9 @@ class TestAgentContextHygiene:
     def test_public_surfaces_terminate_in_manifest(self):
         """No current public-facing grammar may terminate in Evidence or revive the legacy chain."""
         surfaces = [
-            "README.md",
+            # README and docs/index.md are minimum-word entry pages; grammars live
+            # in context.md and deeper docs.
             "artifacts/context.md",
-            "docs/index.md",
             "docs/api/index.md",
             "docs/for_ai_agents.md",
             "docs/operator_doctrine.md",

@@ -32,6 +32,10 @@ inspect → classify → propose/change → preserve → verify → stop
 
 ### 3. Propose / change
 
+**Public entry pages** (`README.md`, `docs/index.md`): minimum words; no
+named-tool comparisons, competitive positioning, defensive "not X" prose, or long
+novelty lists (see `artifacts/context.md`).
+
 - Apply **only** `REPLACE` automatically.
 - Prefer canonical terms from §1.
 - Priority replacements (semantic, not mechanical): unnecessary `truth`,

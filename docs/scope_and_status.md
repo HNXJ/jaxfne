@@ -11,10 +11,10 @@ Every jaxfne output is one of two kinds:
 ## What jaxfne is
 
 JaxFNE is a Python package for biophysical source-field modeling, coupling
-neural activity and biophysical state with plasticity, network geometry, and
-population- and field-scale dynamics. Neural models can be defined at different
-levels of biological detail and reduced when computational efficiency is
-required.
+neural activity and biophysical state with plasticity, geometry, and population-
+and field-scale dynamics. Models can change biology, dynamics, connectivity,
+geometry, and observations within the same workflow. Detail can be increased or
+reduced as an explicit modeling choice.
 
 At the level of specification and readout:
 

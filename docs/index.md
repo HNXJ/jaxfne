@@ -1,62 +1,23 @@
 # jaxfne
 
 JaxFNE is a Python package for biophysical source-field modeling, coupling neural
-activity and biophysical state with plasticity, network geometry, and population-
-and field-scale dynamics. Neural models can be defined at different levels of
-biological detail and reduced when computational efficiency is required.
+activity and biophysical state with plasticity, geometry, and population- and
+field-scale dynamics.
 
-## What this enables
+JaxFNE is designed for models that need to change easily. Biology, dynamics,
+connectivity, geometry, and observations can be modified within the same model.
 
-$$
-\text{Model} = \mathrm{JaxFNE}(\text{specification}, \text{dynamics},
-\text{biophysical state}, \text{plasticity}, \text{geometry})
-$$
+**Workflow:** change biology → change dynamics → simulate → measure
 
-$$
-\text{Signal} = \mathrm{Probe}(\text{source}, \text{modality}, \text{geometry})
-$$
+You can, for example:
 
-Detail can range from reduced emitters through compartmental models attached via
-interoperability bridges, to population- and column-scale networks. Reduction is
-an explicit modeling choice.
+- add or change biophysical state $H$;
+- change dynamics, plasticity, connectivity, or geometry;
+- change model detail;
+- measure spikes, population activity, or fields;
+- develop or reduce models with [JDNA](guides/jdna.md).
 
-## Principal capabilities
-
-- **Flexible biophysical state** — $H$/RBS/RBD adds ionic, energetic, synaptic,
-  modulatory, or other declared coordinates without a new simulator architecture
-  per extension.
-- **Source to field to observation** — dynamics → sources → fields → probes for
-  spikes, population signals, LFP-like proxies, and calibrated physical modalities
-  where a forward model and calibration are defined. Default readouts are
-  **relative computational proxies** — see [Scope & status](scope_and_status.md).
-- **Models that can develop** — JDNA generative construction (`develop` →
-  `NeuronalTensor`) is available; explicit evolution and structural development
-  are **planned, not yet implemented** as runtime dynamics.
-
-JaxFNE uses JAX as an efficient numerical substrate; the scientific contribution
-is the biophysical source-field **model**, not JAX itself.
-
-## TFNE (Tensor-Field Neural Equations)
-
-TFNE represents neural dynamics, biophysical state, plasticity, geometry,
-sources, and fields in a common mathematical form.
-
-**Scientific pipeline:** Emitter → Source → Field → Probe → Objective → Optimizer → Manifest
-
-**Software pipeline:** CircuitSpec → `construct` → `Model` → `simulate` → `Signals`
-
-`CircuitSpec` names the conceptual input to `construct` (`Configuration` or
-`NeuronalTensor`). It is not a separate public class and is unrelated to
-`experimental_hpc.CircuitSpec`.
-
-**Ecosystem.** [Jaxley](https://jaxley.readthedocs.io) focuses on compartmental
-biophysical detail; JaxFNE focuses on coupling neural dynamics, geometry, and
-field readouts in JAX. Compartmental Jaxley models can attach as emitters via
-[Jaxley interoperability](guides/jaxley_interop.md). Other simulators address
-different execution models and file formats; compare purpose, representation,
-and interoperability rather than ranking.
-
-[Scope & status](scope_and_status.md) · [Public API surface](public_surface_contract.md) (0.4.13)
+[Scope & status](scope_and_status.md) · [Quickstart](quickstart.md)
 
 ## Install
 
@@ -76,7 +37,7 @@ model   = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms
 signals = jtfne.simulate(model)
 ```
 
-> `canonical-v1-column-1000n` fractions (`L1 E 0.50` etc.) and typed motifs are scaffold values (`value_tag="relative"`), not quantitatively calibrated; `E`/`PV`/`SST`/`VIP` are reduced-emitter scaffold identities — see [Scope & status](scope_and_status.md#biological-calibration-status-canonical-v1-column). `qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false`.
+> Canonical example uses a qualitative laminar scaffold — see [Scope & status](scope_and_status.md#biological-calibration-status-canonical-v1-column).
 
 ## Main pages
 

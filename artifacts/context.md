@@ -64,6 +64,14 @@ make test-rc
 A command that exits zero is evidence for exactly what it ran, and for nothing wider. Give the
 command and its output together, or say the claim is unverified.
 
+## Public entry pages
+
+README, `docs/index.md`, and other front doors: **minimum words**. State what
+JaxFNE is, why its flexibility matters, and what users can change and measure.
+Do not use named-tool comparisons, competitive positioning, defensive "not X"
+language, or long novelty lists on entry pages. Dedicated interoperability pages
+may discuss specific external tools where technically relevant.
+
 ## Working conventions
 
 - Make the smallest change that reaches a passing gate, and leave unrelated invariants alone.
