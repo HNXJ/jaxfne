@@ -27,10 +27,14 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-if str(ROOT) not in sys.path:
+# Precedence, not membership. Run as a file, sys.path[0] is scripts/release, and
+# any other project on the path that also ships a top-level `scripts` package
+# (editable installs commonly do) resolves `scripts` first. ROOT being present
+# somewhere further down does not help, so move it to the front unconditionally.
+if sys.path[:1] != [str(ROOT)]:
     sys.path.insert(0, str(ROOT))
 
-from scripts.run_test_gate import (
+from scripts.run_test_gate import (  # noqa: E402
     ATTESTATION_SCHEMA,
     RELEASE_CI_GATE_FAMILIES,
     attestation_path,
