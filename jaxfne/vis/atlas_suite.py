@@ -31,9 +31,14 @@ import datetime
 import hashlib
 import json
 import os
+from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Tuple
 
 import numpy as np
+
+DT_SOURCE_INFERRED = "INFERRED_FROM_TIME_GRID"
+DT_SOURCE_FALLBACK = "FALLBACK_EXPLICIT_DT"
+DT_SOURCE_INVALID = "INVALID_TIME_GRID"
 
 
 PANELS: Tuple[Tuple[str, str, str], ...] = (
@@ -96,28 +101,53 @@ def _live_jaxfne_version() -> str:
         return "unknown"
 
 
-def _infer_dt_ms(time_ms: np.ndarray | None, fallback: float) -> float:
-    """Derive the simulation timestep from recorded time stamps.
+@dataclass(frozen=True)
+class DtInference:
+    """Classified outcome of deriving ``dt_ms`` from a realized time grid."""
 
-    The ``dt_ms`` parameter only describes the fallback simulation that
-    ``build_atlas`` runs when no signals are provided. When the caller passes
-    realized signals, their ``time_ms`` grid is authoritative: recording the
-    parameter default instead silently mislabels the provenance (observed
-    instance: canonical 0.5 ms run recorded as 0.1 ms). Non-uniform or
-    degenerate grids fall back to the parameter.
+    dt_ms: float
+    dt_source: str
+    fallback_reason: str | None = None
+
+
+def _raise_invalid_time_grid(reason: str) -> None:
+    raise ValueError(f"INVALID_TIME_GRID ({reason})")
+
+
+def classify_dt_ms(time_ms: np.ndarray | None, fallback: float) -> DtInference:
+    """Classify how ``dt_ms`` was chosen from ``time_ms`` and an explicit fallback.
+
+    Outcomes:
+      - ``INFERRED_FROM_TIME_GRID``: uniform, finite, strictly increasing grid.
+      - ``FALLBACK_EXPLICIT_DT``: missing or insufficient time information.
+
+    A present but invalid grid raises ``ValueError`` with reason
+    ``INVALID_TIME_GRID (...)``. Unexpected errors propagate unchanged.
     """
-    try:
-        if time_ms is not None and time_ms.size >= 2:
-            t = np.asarray(time_ms, dtype=float).ravel()
-            if np.all(np.isfinite(t)):
-                diffs = np.diff(t)
-                if diffs.size and np.all(diffs > 0):
-                    median = float(np.median(diffs))
-                    if median > 0 and np.allclose(diffs, median, rtol=1e-6, atol=0.0):
-                        return median
-    except Exception:
-        pass
-    return float(fallback)
+    fb = float(fallback)
+    if time_ms is None:
+        return DtInference(fb, DT_SOURCE_FALLBACK, "missing_time")
+    t = np.asarray(time_ms, dtype=float).ravel()
+    if t.size < 2:
+        return DtInference(fb, DT_SOURCE_FALLBACK, "insufficient_samples")
+    if not np.all(np.isfinite(t)):
+        _raise_invalid_time_grid("non_finite")
+    diffs = np.diff(t)
+    if diffs.size == 0 or not np.all(diffs > 0):
+        _raise_invalid_time_grid("non_monotonic_or_nonpositive")
+    median = float(np.median(diffs))
+    if median <= 0:
+        _raise_invalid_time_grid("nonpositive_median")
+    # Realized simulation grids are float32-accumulated; 1e-4 rejects genuine
+    # non-uniformity (e.g. mixed step sizes) while accepting uniform sim output.
+    if not np.allclose(diffs, median, rtol=1e-4, atol=0.0):
+        _raise_invalid_time_grid("non_uniform")
+    return DtInference(median, DT_SOURCE_INFERRED, None)
+
+
+def _infer_dt_ms(time_ms: np.ndarray | None, fallback: float) -> float:
+    """Return the classified ``dt_ms`` value (see ``classify_dt_ms``)."""
+    return classify_dt_ms(time_ms, fallback).dt_ms
 
 
 def _provenance(
@@ -271,10 +301,18 @@ def build_atlas(
     arr = _signals_arrays(signals)
     n_steps = int(arr["time_ms"].shape[0]) if arr["time_ms"] is not None else (
         int(arr["spikes"].shape[0]) if arr["spikes"] is not None else 0)
-    # The realized signals' time grid is authoritative for dt_ms. The parameter
-    # default (0.1) only describes the fallback simulation below, never the
-    # caller's signals.
-    dt_ms = _infer_dt_ms(arr["time_ms"], dt_ms)
+    # The realized signals' time grid is authoritative for dt_ms when inferable.
+    # The parameter default (0.1) only describes the fallback simulation below.
+    dt_info = classify_dt_ms(arr["time_ms"], dt_ms)
+    dt_ms = dt_info.dt_ms
+    dt_provenance = {
+        "dt_source": dt_info.dt_source,
+        **(
+            {"dt_fallback_reason": dt_info.fallback_reason}
+            if dt_info.fallback_reason is not None
+            else {}
+        ),
+    }
     jaxfne_version = _live_jaxfne_version()
 
     os.makedirs(out_dir, exist_ok=True)
@@ -293,7 +331,8 @@ def build_atlas(
             caption = caption + f" [placeholder: {type(exc).__name__}: {exc}]"
             extra = dict(extra or {}, placeholder=str(exc)[:200])
         prov = _provenance(config_hash=config_hash, n_neurons=n_neurons, n_edges=n_edges,
-                           n_steps=n_steps, dt_ms=dt_ms, evidence=evidence, extra=extra)
+                           n_steps=n_steps, dt_ms=dt_ms, evidence=evidence,
+                           extra={**dt_provenance, **(extra or {})})
         html = _wrap_html(f"{title} — {panel}", fig_html, caption, prov, evidence)
         path = os.path.join(out_dir, filename)
         with open(path, "w", encoding="utf-8") as f:
@@ -392,6 +431,12 @@ def build_atlas(
         "n_edges": n_edges,
         "n_steps": n_steps,
         "dt_ms": dt_ms,
+        "dt_source": dt_info.dt_source,
+        **(
+            {"dt_fallback_reason": dt_info.fallback_reason}
+            if dt_info.fallback_reason is not None
+            else {}
+        ),
         "panels": manifest_panels,
         "sha256": hashlib.sha256(
             json.dumps(manifest_panels, sort_keys=True, default=str).encode()).hexdigest()[:16],

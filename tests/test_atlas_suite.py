@@ -7,7 +7,14 @@ import numpy as np
 import pytest
 
 import jaxfne as J
-from jaxfne.vis.atlas_suite import PANELS, OPTIONAL_FIELD_FILE, build_atlas
+from jaxfne.vis.atlas_suite import (
+    DT_SOURCE_FALLBACK,
+    DT_SOURCE_INFERRED,
+    OPTIONAL_FIELD_FILE,
+    PANELS,
+    build_atlas,
+    classify_dt_ms,
+)
 
 FIXED = [p[0] for p in PANELS]
 
@@ -251,7 +258,70 @@ def test_build_atlas_derives_dt_from_signals(tmp_path):
         f"manifest dt_ms {manifest['dt_ms']!r} != simulated 0.5 "
         "(parameter default leaked into provenance)"
     )
+    assert manifest["dt_source"] == DT_SOURCE_INFERRED
+    assert "dt_fallback_reason" not in manifest
     assert manifest["n_steps"] == len(np.asarray(sig.time_ms))
+
+
+# --- W2: dt inference classification ----------------------------------------
+
+
+@pytest.mark.parametrize(
+    "time_ms,expected_source,expected_dt,expected_reason",
+    [
+        (np.arange(0.0, 2.0, 0.5), DT_SOURCE_INFERRED, 0.5, None),
+        (np.array([0.0]), DT_SOURCE_FALLBACK, 0.25, "insufficient_samples"),
+        (np.array([]), DT_SOURCE_FALLBACK, 0.25, "insufficient_samples"),
+        (None, DT_SOURCE_FALLBACK, 0.25, "missing_time"),
+    ],
+)
+def test_classify_dt_ms_valid_paths(time_ms, expected_source, expected_dt, expected_reason):
+    result = classify_dt_ms(time_ms, 0.25)
+    assert result.dt_source == expected_source
+    assert result.dt_ms == expected_dt
+    assert result.fallback_reason == expected_reason
+
+
+@pytest.mark.parametrize(
+    "time_ms,reason",
+    [
+        (np.array([0.0, np.nan, 1.0]), "non_finite"),
+        (np.array([0.0, np.inf, 1.0]), "non_finite"),
+        (np.array([0.0, 0.0, 1.0]), "non_monotonic_or_nonpositive"),
+        (np.array([1.0, 0.0]), "non_monotonic_or_nonpositive"),
+        (np.array([0.0, 0.5, 1.2]), "non_uniform"),
+    ],
+)
+def test_classify_dt_ms_invalid_grid_raises(time_ms, reason):
+    with pytest.raises(ValueError, match=f"INVALID_TIME_GRID \\({reason}\\)"):
+        classify_dt_ms(time_ms, 0.25)
+
+
+def test_classify_dt_ms_propagates_unexpected_errors(monkeypatch):
+    def _boom(_t):
+        raise RuntimeError("unexpected inference failure")
+
+    monkeypatch.setattr("jaxfne.vis.atlas_suite.np.diff", _boom)
+    with pytest.raises(RuntimeError, match="unexpected inference failure"):
+        classify_dt_ms(np.array([0.0, 0.5, 1.0]), 0.1)
+
+
+def test_build_atlas_rejects_invalid_grid_without_outputs(tmp_path):
+    model, sig = _small_signals(dt_ms=0.5)
+    bad_time = np.asarray(sig.time_ms, dtype=float).copy()
+    bad_time[3] += 0.07
+    sig_bad = J.Signals(
+        time_ms=bad_time,
+        V_m=sig.V_m,
+        spikes=sig.spikes,
+        sources=sig.sources,
+        field=sig.field,
+        metadata=sig.metadata,
+    )
+    out = tmp_path / "bad_dt"
+    with pytest.raises(ValueError, match="INVALID_TIME_GRID \\(non_uniform\\)"):
+        build_atlas(model, sig_bad, out_dir=str(out), dt_ms=0.1)
+    assert not out.exists() or not any(out.iterdir())
 
 
 def test_atlas_manifest_records_version_seed_duration(tmp_path):
