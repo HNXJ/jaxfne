@@ -212,3 +212,23 @@ def test_public_exports_partition_matches_canonical_plus_compatibility():
     assert set(PUBLIC_EXPORTS) == set(_CANONICAL) | set(_COMPATIBILITY)
     assert not set(PUBLIC_EXPORTS) & set(_ADVANCED)
     assert not set(PUBLIC_EXPORTS) & set(_EXPERIMENTAL_INTERNAL)
+
+
+# W5: names removed from jaxfne.__init__ must not reappear on the public root
+# namespace via a future hand import while __all__ stays at 190.
+_UNDECLARED_ROOT_STUBS: frozenset[str] = frozenset(
+    {
+        "GLIFEmitter",
+        "LIFEmitter",
+        "read_nwb",
+        "solve_volume_conductor_experimental",
+        "write_nwb",
+    }
+)
+
+
+def test_undeclared_root_stubs_are_not_publicly_reachable():
+    """Known reserved stubs must not be root-reachable outside the taxonomy."""
+    public_root = {name for name in dir(jtfne) if not name.startswith("_")}
+    overlap = _UNDECLARED_ROOT_STUBS & public_root
+    assert not overlap, f"undeclared root stubs reappeared on jaxfne: {sorted(overlap)}"
