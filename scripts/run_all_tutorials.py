@@ -22,6 +22,10 @@ import subprocess
 import sys
 from typing import Optional
 
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO_ROOT / "examples"))
+from _tutorial_runtime import SMOKE_DIVISOR, SMOKE_MIN_MS  # noqa: E402
+
 
 # Tutorial execution order and configurations
 TUTORIALS = [
@@ -61,7 +65,8 @@ CONTRACT_FILES = [
 ]
 
 
-def validate_tutorial_output(tutorial_dir: pathlib.Path, tutorial_name: str) -> dict:
+def validate_tutorial_output(tutorial_dir: pathlib.Path, tutorial_name: str,
+                             expect_figures: bool = True) -> dict:
     """
     Validate tutorial output directory against contract.
 
@@ -100,9 +105,12 @@ def validate_tutorial_output(tutorial_dir: pathlib.Path, tutorial_name: str) -> 
     if not figures_dir.exists():
         raise ValueError(f"Tutorial output missing figures/ directory: {tutorial_dir}")
 
+    # With --no-write-figures the absent PNG is the requested outcome, not a
+    # contract violation. Everything else is still checked.
     expected_figures = next(
         t["expected_figures"] for t in TUTORIALS if t["name"] == tutorial_name
-    )
+    ) if expect_figures else []
+    results["figures_expected"] = bool(expect_figures)
 
     for figure in expected_figures:
         fig_path = figures_dir / pathlib.Path(figure).name
@@ -281,6 +289,7 @@ def run_tutorial(
     out_root: pathlib.Path,
     write_figures: bool,
     write_interactive: bool = False,
+    smoke: bool = False,
 ) -> dict:
     """
     Execute a single tutorial script and validate output.
@@ -302,10 +311,23 @@ def run_tutorial(
     # Execute the tutorial script
     cmd = [sys.executable, tutorial["script"]]
 
-    # Set up environment with PYTHONPATH for jaxfne import
+    # Set up environment with PYTHONPATH for jaxfne import. The root is derived
+    # from this file, not hardcoded: it was previously a literal path under one
+    # developer's home directory, so the runner could not execute anywhere else.
     env = os.environ.copy()
-    jaxfne_root = "/Users/hamednejat/workspace/main/jaxfne"
-    env["PYTHONPATH"] = f"{jaxfne_root}:{env.get('PYTHONPATH', '')}"
+    jaxfne_root = str(REPO_ROOT)
+    env["PYTHONPATH"] = os.pathsep.join(
+        [jaxfne_root] + ([env["PYTHONPATH"]] if env.get("PYTHONPATH") else [])
+    )
+    # The three knobs the examples read. Without these the flags were parsed and
+    # discarded -- accepted configuration that nothing consumed.
+    env["JAXFNE_TUTORIAL_OUT_ROOT"] = str(out_root)
+    env["JAXFNE_TUTORIAL_SMOKE"] = "1" if smoke else "0"
+    env["JAXFNE_TUTORIAL_WRITE_FIGURES"] = "1" if write_figures else "0"
+    # The examples print check marks. On a cp1252 console that raises
+    # UnicodeEncodeError *after* all the work is done, so the tutorial fails on
+    # its last line and the run reports 0/4.
+    env.setdefault("PYTHONIOENCODING", "utf-8")
 
     try:
         proc = subprocess.run(
@@ -330,12 +352,11 @@ def run_tutorial(
         raise ValueError(f"Failed to run tutorial script {tutorial['script']}: {e}")
 
     # Validate output
-    tutorial_output_dir = pathlib.Path(
-        "/Users/hamednejat/workspace/main/jaxfne"
-    ) / tutorial["expected_output"]
+    tutorial_output_dir = (REPO_ROOT / out_root / pathlib.Path(tutorial["expected_output"]).name)
 
     try:
-        validation = validate_tutorial_output(tutorial_output_dir, tutorial["name"])
+        validation = validate_tutorial_output(
+            tutorial_output_dir, tutorial["name"], expect_figures=write_figures)
         result["validation"] = validation
     except ValueError as e:
         raise ValueError(f"Tutorial validation failed: {e}")
@@ -377,18 +398,22 @@ def main():
         "--out-root",
         type=str,
         default="outputs/",
-        help="Output root directory (currently unused, tutorial scripts use hardcoded paths)",
+        help="Output root directory; each tutorial writes to <out-root>/<name>",
     )
     parser.add_argument(
         "--smoke",
         action="store_true",
-        help="Smoke mode: reduced runtime (not yet implemented in tutorial scripts)",
+        help=(f"Smoke mode: divide each tutorial's simulated duration by "
+              f"{SMOKE_DIVISOR} (floor {SMOKE_MIN_MS:g} ms)"),
     )
     parser.add_argument(
+        # BooleanOptionalAction, not store_true: with `default=True` a store_true
+        # flag can never be false, so `--write-figures` could not change anything
+        # and there was no way to turn figures off at all.
         "--write-figures",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
         default=True,
-        help="Generate figures (default: True)",
+        help="Generate figures (use --no-write-figures to skip; default: True)",
     )
     parser.add_argument(
         "--write-interactive",
@@ -415,12 +440,13 @@ def main():
                 out_root,
                 args.write_figures,
                 args.write_interactive,
+                smoke=args.smoke,
             )
             all_results["tutorials"].append(result)
         except ValueError as e:
             all_results["errors"].append(str(e))
             all_results["status"] = "failed"
-            print(f"❌ {tutorial['name']}: {e}", file=sys.stderr)
+            print(f"[FAIL] {tutorial['name']}: {e}", file=sys.stderr)
 
     # Print summary
     print(f"\n=== Tutorial Run Summary ===")
@@ -428,7 +454,7 @@ def main():
     print(f"Tutorials completed: {len([t for t in all_results['tutorials'] if t['exit_code'] == 0])}/{len(TUTORIALS)}")
 
     for result in all_results["tutorials"]:
-        status_str = "✓" if result["exit_code"] == 0 else "✗"
+        status_str = "PASS" if result["exit_code"] == 0 else "FAIL"
         print(f"{status_str} {result['name']}: exit_code={result['exit_code']}")
 
     if all_results["errors"]:
@@ -444,7 +470,7 @@ def main():
     if all_results["status"] == "failed":
         sys.exit(1)
     else:
-        print(f"\n✓ All tutorials completed and validated successfully.")
+        print("\n[OK] All tutorials completed and validated successfully.")
         sys.exit(0)
 
 

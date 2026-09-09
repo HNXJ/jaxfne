@@ -46,6 +46,12 @@ from jaxfne.fields import (
     emm_proxy_probe,
 )
 
+# The runner invokes this file as a subprocess; make the shared tutorial
+# runtime importable regardless of the working directory it is run from.
+import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import _tutorial_runtime as tutorial_runtime  # noqa: E402
+
 
 def compute_signal_metrics(spk_array, vm_array, n_excitatory, n_inhibitory):
     """Compute population and signal statistics for metrics.json."""
@@ -130,7 +136,7 @@ def main():
     # === 3. Simulate ===
     # CPU-safe: 100ms duration, 0.1ms dt → 1000 timesteps
     # Deterministic seed for reproducibility
-    sim = jtfne.simulation(duration_ms=100.0, dt_ms=0.1, seed=42)
+    sim = jtfne.simulation(duration_ms=tutorial_runtime.duration_ms(100.0), dt_ms=0.1, seed=42)
     signals = model.simulate(sim)
 
     # === 4. Apply all eight probe operators ===
@@ -186,20 +192,17 @@ def main():
 
     # === 8. Scope metadata verification ===
     validation_report = {
-        "model_status": manifest.get("model_status"),
-        "field_model_status": manifest.get("field_model_status"),
+        "model_status": tutorial_runtime.manifest_model_status(manifest),
+        "field_model_status": tutorial_runtime.manifest_field_model_status(manifest),
         "field_solver_status": manifest.get("field_solver_status"),
         "source_calibration_status": manifest.get("source_calibration_status"),
-        "amplitude_status": manifest.get(
-            "amplitude_status"
-        ),
+        "amplitude_status": tutorial_runtime.manifest_amplitude_status(manifest),
         "empirical_validation_status": manifest.get("empirical_validation_status"),
         "mechanism_status": manifest.get("mechanism_status"),
     }
 
     # === 9. Write outputs ===
-    output_dir = pathlib.Path("outputs/v0210_network_100_ei_multimodal")
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = tutorial_runtime.out_dir("v0210_network_100_ei_multimodal")
 
     # Write JSON files
     manifest_path = output_dir / "manifest.json"
@@ -221,31 +224,35 @@ def main():
 
     # === 10. Generate spike raster figure ===
     raster_path = None
-    try:
-        figures_dir = output_dir / "figures"
-        figures_dir.mkdir(parents=True, exist_ok=True)
+    # `--no-write-figures` skips rendering entirely rather than rendering and
+    # discarding: the point of the flag is the time, not the file. The
+    # `raster_path is None` guards downstream already handle the absent figure.
+    if tutorial_runtime.write_figures():
+        try:
+            figures_dir = output_dir / "figures"
+            figures_dir.mkdir(parents=True, exist_ok=True)
 
-        # Spike raster for 100-neuron network (E neurons in blue, I neurons in red)
-        n_neurons = signals.spikes.shape[1]
-        fig = jtfne.vis.raster(
-            {"spikes": signals.spikes},
-            sort_by=None,
-            marker_size=0.6,
-            figsize=(14, 6),
-        )
-        ax = fig.axes[0]
-        ax.set_xlabel("Timestep")
-        ax.set_ylabel("Neuron (E: blue, I: red)")
-        ax.set_title("100-neuron E/I network spike raster")
-        ax.set_ylim(-0.5, n_neurons - 0.5)
-        ax.axhline(y=74.5, color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
+            # Spike raster for 100-neuron network (E neurons in blue, I neurons in red)
+            n_neurons = signals.spikes.shape[1]
+            fig = jtfne.vis.raster(
+                {"spikes": signals.spikes},
+                sort_by=None,
+                marker_size=0.6,
+                figsize=(14, 6),
+            )
+            ax = fig.axes[0]
+            ax.set_xlabel("Timestep")
+            ax.set_ylabel("Neuron (E: blue, I: red)")
+            ax.set_title("100-neuron E/I network spike raster")
+            ax.set_ylim(-0.5, n_neurons - 0.5)
+            ax.axhline(y=74.5, color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
 
-        raster_path = figures_dir / "raster.png"
-        fig.savefig(raster_path, dpi=100, bbox_inches='tight')
-        jtfne.vis.close_all()
+            raster_path = figures_dir / "raster.png"
+            fig.savefig(raster_path, dpi=100, bbox_inches='tight')
+            jtfne.vis.close_all()
 
-    except ImportError:
-        pass
+        except ImportError:
+            pass
 
     # === 10.5. Save spike event source data for interactive visualization ===
     # Extract spike events (times and neuron indices) from signals.spikes array
@@ -266,8 +273,8 @@ def main():
         "unit_id": unit_ids,
         "units_or_status": "binary_spike_event_proxy",
         "operator_kind": "spk",
-        "model_status": manifest.get("model_status"),
-        "amplitude_status": manifest.get("amplitude_status"),
+        "model_status": tutorial_runtime.manifest_model_status(manifest),
+        "amplitude_status": tutorial_runtime.manifest_amplitude_status(manifest),
     }
 
     figures_dir = output_dir / "figures"
@@ -324,9 +331,9 @@ def main():
     for key, value in validation_report.items():
         print(f"  {key:<40} = {value}")
 
-    print("\n✓ All outputs are JSON-strict (no NaN/Inf).")
-    print("✓ Eight proxy operators executed successfully.")
-    print("✓ Scope metadata verified and immutable.")
+    print("\n[OK] All outputs are JSON-strict (no NaN/Inf).")
+    print("[OK] Eight proxy operators executed successfully.")
+    print("[OK] Scope metadata verified and immutable.")
     print("\nStatus status: computational scaffold, not empirically validated.")
 
 

@@ -33,6 +33,12 @@ import jax.numpy as jnp
 
 import jaxfne
 
+# The runner invokes this file as a subprocess; make the shared tutorial
+# runtime importable regardless of the working directory it is run from.
+import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import _tutorial_runtime as tutorial_runtime  # noqa: E402
+
 
 def _sha256(data: bytes) -> str:
     """Compute SHA256 hash of bytes."""
@@ -43,8 +49,7 @@ def main():
     """Run the Phase F spectrolaminar oddball scaffold."""
 
     # === 1. Output directory ===
-    outdir = pathlib.Path("outputs/v020_spectrolaminar_public_path")
-    outdir.mkdir(parents=True, exist_ok=True)
+    outdir = tutorial_runtime.out_dir("v020_spectrolaminar_public_path")
 
     # === 2. Configuration: minimal cortical column ===
     cfg = (
@@ -67,23 +72,26 @@ def main():
     # === 4. Simulation: oddball/peri-event readout ===
     # Simulate a 2-second window: baseline (-500 ms) + event (0-500 ms) + post (500-1000 ms)
     sim = jaxfne.Simulation(
-        duration_ms=2000.0,
+        duration_ms=tutorial_runtime.duration_ms(2000.0),
         dt_ms=1.0,
         seed=42
     )
     signals = model.simulate(sim)
 
     # === 5. Windowing: peri-event spectrolaminar analysis ===
-    # Convert time indices: t=0 is 500 ms into the 2000 ms window (baseline starts at -500 ms)
-    # Baseline: -500 to 0 ms (indices 0:500)
-    # Event: 0 to 500 ms (indices 500:1000)
-    # Post: 500 to 1000 ms (indices 1000:1500)
-    # Full peri-event: -500 to +1000 ms (indices 0:1500)
+    # Convert time indices: t=0 is 500 ms into the nominal 2000 ms window (baseline
+    # starts at -500 ms). Slice bounds scale with the realized duration so smoke mode
+    # keeps valid windows instead of indexing past the end of a shortened run.
+    n_time = int(signals.V_m.shape[0])
+    baseline_end = max(1, int(n_time * 500 / 2000))
+    event_end = max(baseline_end + 1, int(n_time * 1000 / 2000))
+    post_end = max(event_end + 1, int(n_time * 1500 / 2000))
+    post_end = min(post_end, n_time)
 
-    baseline_slice = slice(0, 500)
-    event_slice = slice(500, 1000)
-    post_slice = slice(1000, 1500)
-    full_slice = slice(0, 1500)
+    baseline_slice = slice(0, baseline_end)
+    event_slice = slice(baseline_end, event_end)
+    post_slice = slice(event_end, post_end)
+    full_slice = slice(0, post_end)
 
     V_baseline = signals.V_m[baseline_slice]
     V_event = signals.V_m[event_slice]
@@ -306,37 +314,41 @@ def main():
 
     # === 10.5. Generate spectrolaminar profile figure ===
     raster_path = None
-    try:
-        figures_dir = outdir / "figures"
-        figures_dir.mkdir(parents=True, exist_ok=True)
+    # `--no-write-figures` skips rendering entirely rather than rendering and
+    # discarding: the point of the flag is the time, not the file. The
+    # `raster_path is None` guards downstream already handle the absent figure.
+    if tutorial_runtime.write_figures():
+        try:
+            figures_dir = outdir / "figures"
+            figures_dir.mkdir(parents=True, exist_ok=True)
 
-        # Spectrolaminar profile: alpha/beta and gamma power across windows
-        windows = list(metrics.keys())
-        alpha_vals = [metrics[w].get('alpha_beta_proxy_power', 0) for w in windows]
-        gamma_vals = [metrics[w].get('gamma_proxy_power', 0) for w in windows]
+            # Spectrolaminar profile: alpha/beta and gamma power across windows
+            windows = list(metrics.keys())
+            alpha_vals = [metrics[w].get('alpha_beta_proxy_power', 0) for w in windows]
+            gamma_vals = [metrics[w].get('gamma_proxy_power', 0) for w in windows]
 
-        fig = jaxfne.vis.windowed_band_power(
-            windows,
-            {
-                "alpha_beta_proxy_power": alpha_vals,
-                "gamma_proxy_power": gamma_vals,
-            },
-            figsize=(12, 5),
-            colors=["steelblue", "coral"],
-        )
+            fig = jaxfne.vis.windowed_band_power(
+                windows,
+                {
+                    "alpha_beta_proxy_power": alpha_vals,
+                    "gamma_proxy_power": gamma_vals,
+                },
+                figsize=(12, 5),
+                colors=["steelblue", "coral"],
+            )
 
-        raster_path = figures_dir / "spectrolaminar_profile.png"
-        fig.savefig(raster_path, dpi=100, bbox_inches='tight')
-        jaxfne.vis.close_all()
+            raster_path = figures_dir / "spectrolaminar_profile.png"
+            fig.savefig(raster_path, dpi=100, bbox_inches='tight')
+            jaxfne.vis.close_all()
 
-        # Add to asset hashes
-        asset_hashes["figures/spectrolaminar_profile.png"] = {
-            "sha256": _sha256(raster_path.read_bytes()),
-            "bytes": raster_path.stat().st_size,
-        }
+            # Add to asset hashes
+            asset_hashes["figures/spectrolaminar_profile.png"] = {
+                "sha256": _sha256(raster_path.read_bytes()),
+                "bytes": raster_path.stat().st_size,
+            }
 
-    except ImportError:
-        pass
+        except ImportError:
+            pass
 
     # === 10.6. Save spectrolaminar profile source data for interactive visualization ===
     # Extract spectrolaminar profile data from metrics windows
@@ -353,8 +365,8 @@ def main():
         "gamma_profile": gamma_profile,
         "units_or_status": "relative_proxy_units",
         "operator_kind": "spectrolaminar_profile",
-        "model_status": manifest.get("model_status"),
-        "amplitude_status": manifest.get("amplitude_status"),
+        "model_status": tutorial_runtime.manifest_model_status(manifest),
+        "amplitude_status": tutorial_runtime.manifest_amplitude_status(manifest),
     }
 
     figures_dir = outdir / "figures"
@@ -405,7 +417,7 @@ def main():
 
     print(f"\nValidation assertions:")
     for key, value in sorted(validation_report["assertions"].items()):
-        status = "✓" if value else "✗"
+        status = "PASS" if value else "FAIL"
         print(f"  {status} {key}")
 
     print(f"\nAll outputs are JSON-strict (no NaN/Inf).")
