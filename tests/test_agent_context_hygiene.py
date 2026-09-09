@@ -5,6 +5,8 @@ Validates that durable agent context is properly maintained and protected.
 """
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -246,7 +248,24 @@ class TestRepositoryStructure:
         assert (context_dir / "CLAUDE.md").exists(), "CLAUDE.md not found in context dir"
 
     def test_report_hygiene_check(self):
-        """Assert that scripts/report_hygiene_check.py reports clean."""
-        from scripts.report_hygiene_check import main as hygiene_main
-        assert hygiene_main() == 0
+        """Assert that scripts/report_hygiene_check.py reports clean.
+
+        Invoked as a subprocess so the gate matches the real CLI entry point and
+        does not depend on pytest's sys.path layout (repo root is not always
+        importable as the ``scripts`` package under default collection).
+        """
+        script = Path("scripts/report_hygiene_check.py")
+        assert script.is_file(), f"Missing hygiene gate script: {script}"
+        result = subprocess.run(
+            [sys.executable, str(script)],
+            cwd=Path.cwd(),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert result.returncode == 0, (
+            "report_hygiene_check failed\n"
+            f"stdout:\n{result.stdout}\n"
+            f"stderr:\n{result.stderr}"
+        )
 
