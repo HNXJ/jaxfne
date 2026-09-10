@@ -1394,6 +1394,9 @@ def spectrolaminar_similarity(
     return float(score)
 
 
+_LEGACY_SPECTROLAMINAR_REMOVAL_VERSION = "0.4.24"
+
+
 class LegacyMultiAreaSpectrolaminarObjective:
     """Legacy multi-area spectrolaminar objective wrapper.
 
@@ -1404,11 +1407,15 @@ class LegacyMultiAreaSpectrolaminarObjective:
     its original name :data:`spectrolaminar_objective` (this module); prefer
     importing it as ``LegacyMultiAreaSpectrolaminarObjective`` in new code to
     avoid the name collision with ``jaxfne.objectives.spectrolaminar_objective``.
+
+    Scheduled for removal in jaxfne ``0.4.24`` unless the programme review
+    retains it as a permanent compatibility shim.
     """
     def __init__(self, target_profiles: Optional[dict] = None):
         warnings.warn(
             "LegacyMultiAreaSpectrolaminarObjective (and the "
-            "spectrolaminar_objective alias in this module) is deprecated; "
+            "spectrolaminar_objective alias in this module) is deprecated and "
+            f"scheduled for removal in jaxfne {_LEGACY_SPECTROLAMINAR_REMOVAL_VERSION}; "
             "use jaxfne.objectives.spectrolaminar_objective / "
             "spectrolaminar_objective_factory instead.",
             DeprecationWarning,

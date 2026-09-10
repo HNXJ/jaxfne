@@ -9,8 +9,7 @@ Integration baseline: `2338b00` (RC + CI PASS). Published `v0.4.21` @ `8823520` 
 
 # v0.4.22
 
-- **22-W9-01** — declare `LegacyMultiAreaSpectrolaminarObjective` deprecation horizon; quiet canonical examples
-- 22-W15-01 — BMTK/SONATA architecture study (written artifact only; no interoperability code)
+- **22-W15-01** — BMTK/SONATA architecture study (written artifact only; no interoperability code)
 - 22-W16-01 — scientific/developmental programme definition (planning; no public implementation claims)
 - 22-W17-01 — downstream mechanism semantics (Jomission); W17.1–4 surfaces specified
 - 22-W14-01 — harness workflow refine (W14): minimal router/skills; no duplicate procedures

@@ -1,11 +1,12 @@
 import math
 import json
+import warnings
 import jax
 import jax.numpy as jnp
 import pytest
 import unittest.mock
 import jaxfne as jtfne
-from jaxfne.fields import spectrolaminar_objective
+from jaxfne._signals import Objective
 
 
 def _cfg(n=8):
@@ -22,7 +23,7 @@ def test_optimization_determinism_and_stochastic_variance():
     """Verify that same seed produces identical candidates, and different seed changes sequence."""
     model = jtfne.construct(_cfg(8))
     sim = jtfne.simulation(duration_ms=4.0, dt_ms=0.1, seed=0)
-    obj = spectrolaminar_objective(target_profiles={})
+    obj = Objective(name="spectrolaminar_objective")
 
     # Same seed = 42 -> Should be perfectly identical
     opt_a1 = jtfne.agsdr(
@@ -68,7 +69,7 @@ def test_optimization_report_schema_and_json_strictness():
     """Verify JSON strictness and that all canonical metadata keys exist and are correct."""
     model = jtfne.construct(_cfg(8))
     sim = jtfne.simulation(duration_ms=4.0, dt_ms=0.1, seed=0)
-    obj = spectrolaminar_objective(target_profiles={})
+    obj = Objective(name="spectrolaminar_objective")
 
     opt = jtfne.agsdr(
         parameters={"source_scale": (0.5, 3.0)},
@@ -104,8 +105,12 @@ def test_getattr_compatibility_boundary():
     res_std = model.tune(objectives=std_obj, optimizer=opt, simulation=sim)
     assert res_std.summary["objective_name"] == "standard_objective"
 
-    # 2. Legacy spectrolaminar_objective
-    legacy_obj = spectrolaminar_objective(target_profiles={})
+    # 2. Legacy spectrolaminar_objective (deprecated; bounded compatibility test)
+    from jaxfne.fields import LegacyMultiAreaSpectrolaminarObjective
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        legacy_obj = LegacyMultiAreaSpectrolaminarObjective(target_profiles={})
     res_legacy = model.tune(objectives=legacy_obj, optimizer=opt, simulation=sim)
     assert res_legacy.summary["objective_name"] == "spectrolaminar_objective"
 
@@ -131,7 +136,7 @@ def test_rejection_reasons_and_finite_gates():
             "evaluation_status": "rejected",
         }
 
-    obj = spectrolaminar_objective(target_profiles={})
+    obj = Objective(name="spectrolaminar_objective")
     opt = jtfne.agsdr(
         parameters={"source_scale": (0.5, 3.0)},
         generations=1,
