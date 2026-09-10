@@ -209,11 +209,23 @@ def test_public_pages_reference_current_panel_names():
         for ref in retired_assets:
             assert ref not in text, f"{page.name} still references retired asset {ref!r}"
 
-    # The 6-panel grammar list must name the current panel.
-    for page in (ROOT / "README.md", ROOT / "docs" / "index.md"):
-        text = page.read_text(encoding="utf-8")
-        assert "`spectral`, `state_summary`)" in text, (
-            f"{page.name} does not list the current 6-panel grammar"
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "`spectral`, `state_summary`)" in readme, (
+        "README.md does not list the current 6-panel grammar"
+    )
+
+    # Docs landing is deflated: one preview + pointer to the guide that owns the
+    # full panel contract (see docs/index.md W13 landing deflation).
+    index = (ROOT / "docs" / "index.md").read_text(encoding="utf-8")
+    assert 'src="assets/readme/network_3d.png"' in index, (
+        "docs/index.md must embed the network_3d landing preview"
+    )
+    assert "guides/atlas_suite.md" in index, (
+        "docs/index.md must link to the canonical atlas guide"
+    )
+    for panel in ("network_3d", "spectral", "state_summary"):
+        assert panel in index, (
+            f"docs/index.md landing prose must still name panel {panel!r}"
         )
 
     guide = (ROOT / "docs" / "guides" / "atlas_suite.md").read_text(encoding="utf-8")
