@@ -1,0 +1,459 @@
+{
+  "audit": "w8_benchmark_baseline",
+  "schema": "jaxfne.w8.baseline.v1",
+  "generated_utc": "2026-09-10T10:59:52.732364+00:00",
+  "provenance": {
+    "git_head": "2abf952ef7d94851fc719419ccb016e15d32d69d",
+    "git_branch": "dev",
+    "python": "3.14.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "jax": "0.10.1",
+    "jaxlib": "0.10.1",
+    "jax_default_backend": "cpu",
+    "jax_devices": [
+      "cpu:0"
+    ],
+    "dtype": "float32",
+    "x64_enabled": false,
+    "recording_mode": "probes=['spikes'] via build_config (W10/W11 canonical cell)"
+  },
+  "volatile_fields": [
+    "generated_utc",
+    "t_construct_s",
+    "t_first_run_s",
+    "t_second_run_s",
+    "t_compile_s",
+    "t_step_s",
+    "M_construction_peak_bytes",
+    "M_peak_run_bytes",
+    "M_simulation_state_derived_bytes"
+  ],
+  "package_version_note": "baseline for current dev SHA; not a universal performance claim",
+  "taxonomy": {
+    "M_persistent": "constructed model arrays (W10 walk_arrays on model)",
+    "M_construction_peak": "RSS delta during construct",
+    "M_recording": "simulate() return arrays",
+    "M_simulation_state": "derived from run RSS minus recording; upper bound only",
+    "R_k": "materialized/distinct; high R_k does not imply removability"
+  },
+  "reconciles_with": [
+    "artifacts/audit/w7_dense_nxn_inventory.json",
+    "scripts/perf/w10_allocation_map.py",
+    "scripts/perf/w11_scaling_atlas.py"
+  ],
+  "duration_ms": 10.0,
+  "dt_ms": 0.5,
+  "seed": 1,
+  "cells": [
+    {
+      "profile": "dense_all_to_all",
+      "w7_cell": "dense_all_to_all_N1000",
+      "config": {
+        "n": 1000,
+        "p_connect": null,
+        "max_in_degree": null,
+        "backend_requested": "dense",
+        "duration_ms": 10.0,
+        "dt_ms": 0.5,
+        "seed": 1
+      },
+      "t_construct_s": 2.8960924000020896,
+      "M_construction_peak_bytes": 232804352,
+      "E": 999000,
+      "K_max_realized": 999,
+      "M_persistent_components": {
+        "M_W": 4000000,
+        "M_edge": 23976000,
+        "M_H": 0,
+        "M_B": 0,
+        "M_geometry": 12000,
+        "M_emitter_state": 32004,
+        "M_other": 0
+      },
+      "M_other_paths": {},
+      "M_persistent_bytes": 28020004,
+      "t_first_run_s": 1.6018021999989287,
+      "t_second_run_s": 0.11041029999978491,
+      "M_peak_run_bytes": 106893312,
+      "t_compile_s": 1.4913918999991438,
+      "t_step_s": 0.005520514999989246,
+      "backend_realized": "dense",
+      "M_recording_bytes": 306704,
+      "M_simulation_state_derived_bytes": 106586608,
+      "M_simulation_state_note": "derived RSS upper bound; JAX/XLA carry not fully visible via walk_arrays",
+      "nxn_arrays": [
+        {
+          "array": "model.params['emitter'].W",
+          "shape": [
+            1000,
+            1000
+          ],
+          "dtype": "float32",
+          "bytes": 4000000,
+          "R_k": 1.044591522930873,
+          "lifetime": "M_persistent"
+        }
+      ],
+      "nxn_bytes_persistent": 4000000,
+      "status": "ok"
+    },
+    {
+      "profile": "bounded_degree_dual_storage",
+      "w7_cell": "bounded_degree_N1000_K100",
+      "config": {
+        "n": 1000,
+        "p_connect": 0.0,
+        "max_in_degree": 100,
+        "backend_requested": "edge_list",
+        "duration_ms": 10.0,
+        "dt_ms": 0.5,
+        "seed": 1
+      },
+      "note": "emitter.W may remain dense (COMPATIBILITY_ONLY); dynamics use edge_list",
+      "t_construct_s": 2.3380661999981385,
+      "M_construction_peak_bytes": 50032640,
+      "E": 100000,
+      "K_max_realized": 100,
+      "M_persistent_components": {
+        "M_W": 4000000,
+        "M_edge": 2400000,
+        "M_H": 0,
+        "M_B": 0,
+        "M_geometry": 12000,
+        "M_emitter_state": 32004,
+        "M_other": 0
+      },
+      "M_other_paths": {},
+      "M_persistent_bytes": 6444004,
+      "t_first_run_s": 0.34613360000003013,
+      "t_second_run_s": 0.14455820000148378,
+      "M_peak_run_bytes": 44453888,
+      "t_compile_s": 0.20157539999854635,
+      "t_step_s": 0.0072279100000741895,
+      "backend_realized": "edge_list",
+      "M_recording_bytes": 306704,
+      "M_simulation_state_derived_bytes": 44147184,
+      "M_simulation_state_note": "derived RSS upper bound; JAX/XLA carry not fully visible via walk_arrays",
+      "nxn_arrays": [
+        {
+          "array": "model.params['emitter'].W",
+          "shape": [
+            1000,
+            1000
+          ],
+          "dtype": "float32",
+          "bytes": 4000000,
+          "R_k": 1000000.0,
+          "lifetime": "M_persistent"
+        }
+      ],
+      "nxn_bytes_persistent": 4000000,
+      "status": "ok"
+    },
+    {
+      "profile": "dense_masked",
+      "w7_cell": "dense_masked_N1000_p01",
+      "config": {
+        "n": 1000,
+        "p_connect": 0.1,
+        "max_in_degree": null,
+        "backend_requested": "dense",
+        "duration_ms": 10.0,
+        "dt_ms": 0.5,
+        "seed": 1
+      },
+      "t_construct_s": 1.2469662000003154,
+      "M_construction_peak_bytes": 24289280,
+      "E": 100348,
+      "K_max_realized": 136,
+      "M_persistent_components": {
+        "M_W": 4000000,
+        "M_edge": 2408352,
+        "M_H": 0,
+        "M_B": 0,
+        "M_geometry": 12000,
+        "M_emitter_state": 32004,
+        "M_other": 0
+      },
+      "M_other_paths": {},
+      "M_persistent_bytes": 6452356,
+      "t_first_run_s": 0.10621499999979278,
+      "t_second_run_s": 0.1090397000007215,
+      "M_peak_run_bytes": 28622848,
+      "t_compile_s": 0.0,
+      "t_step_s": 0.005451985000036075,
+      "backend_realized": "dense",
+      "M_recording_bytes": 306704,
+      "M_simulation_state_derived_bytes": 28316144,
+      "M_simulation_state_note": "derived RSS upper bound; JAX/XLA carry not fully visible via walk_arrays",
+      "nxn_arrays": [
+        {
+          "array": "model.params['emitter'].W",
+          "shape": [
+            1000,
+            1000
+          ],
+          "dtype": "float32",
+          "bytes": 4000000,
+          "R_k": 10.012515644555695,
+          "lifetime": "M_persistent"
+        }
+      ],
+      "nxn_bytes_persistent": 4000000,
+      "status": "ok"
+    },
+    {
+      "profile": "sparse_direct",
+      "w7_cell": "sparse_direct_N6000_p01",
+      "config": {
+        "n": 6000,
+        "p_connect": 0.1,
+        "max_in_degree": null,
+        "backend_requested": "edge_list",
+        "duration_ms": 10.0,
+        "dt_ms": 0.5,
+        "seed": 1
+      },
+      "t_construct_s": 2.88620340000125,
+      "M_construction_peak_bytes": 363937792,
+      "E": 3599167,
+      "K_max_realized": 693,
+      "M_persistent_components": {
+        "M_W": 0,
+        "M_edge": 86380008,
+        "M_H": 0,
+        "M_B": 0,
+        "M_geometry": 72000,
+        "M_emitter_state": 192004,
+        "M_other": 0
+      },
+      "M_other_paths": {},
+      "M_persistent_bytes": 86644012,
+      "t_first_run_s": 1.2163612000003923,
+      "t_second_run_s": 0.3524007000014535,
+      "M_peak_run_bytes": 138792960,
+      "t_compile_s": 0.8639604999989388,
+      "t_step_s": 0.017620035000072677,
+      "backend_realized": "edge_list",
+      "M_recording_bytes": 1826704,
+      "M_simulation_state_derived_bytes": 136966256,
+      "M_simulation_state_note": "derived RSS upper bound; JAX/XLA carry not fully visible via walk_arrays",
+      "nxn_arrays": [],
+      "nxn_bytes_persistent": 0,
+      "status": "ok"
+    },
+    {
+      "profile": "dense_all_to_all_N1",
+      "w7_cell": null,
+      "config": {
+        "n": 1,
+        "p_connect": null,
+        "max_in_degree": null,
+        "backend_requested": "dense",
+        "duration_ms": 10.0,
+        "dt_ms": 0.5,
+        "seed": 1
+      },
+      "sweep": "standard_N",
+      "t_construct_s": 0.6406172999995761,
+      "M_construction_peak_bytes": 24576,
+      "E": 0,
+      "K_max_realized": 0,
+      "M_persistent_components": {
+        "M_W": 4,
+        "M_edge": 0,
+        "M_H": 0,
+        "M_B": 0,
+        "M_geometry": 12,
+        "M_emitter_state": 36,
+        "M_other": 0
+      },
+      "M_other_paths": {},
+      "M_persistent_bytes": 52,
+      "t_first_run_s": 0.7056491000003007,
+      "t_second_run_s": 0.08855920000132755,
+      "M_peak_run_bytes": 33787904,
+      "t_compile_s": 0.6170898999989731,
+      "t_step_s": 0.004427960000066377,
+      "backend_realized": "dense",
+      "M_recording_bytes": 3008,
+      "M_simulation_state_derived_bytes": 33784896,
+      "M_simulation_state_note": "derived RSS upper bound; JAX/XLA carry not fully visible via walk_arrays",
+      "nxn_arrays": [
+        {
+          "array": "model.params['emitter'].W",
+          "shape": [
+            1,
+            1
+          ],
+          "dtype": "float32",
+          "bytes": 4,
+          "R_k": 1.0,
+          "lifetime": "M_persistent"
+        }
+      ],
+      "nxn_bytes_persistent": 4,
+      "status": "ok"
+    },
+    {
+      "profile": "dense_all_to_all_N10",
+      "w7_cell": null,
+      "config": {
+        "n": 10,
+        "p_connect": null,
+        "max_in_degree": null,
+        "backend_requested": "dense",
+        "duration_ms": 10.0,
+        "dt_ms": 0.5,
+        "seed": 1
+      },
+      "sweep": "standard_N",
+      "t_construct_s": 1.9943342999977176,
+      "M_construction_peak_bytes": 71798784,
+      "E": 90,
+      "K_max_realized": 9,
+      "M_persistent_components": {
+        "M_W": 400,
+        "M_edge": 2160,
+        "M_H": 0,
+        "M_B": 0,
+        "M_geometry": 120,
+        "M_emitter_state": 324,
+        "M_other": 0
+      },
+      "M_other_paths": {},
+      "M_persistent_bytes": 3004,
+      "t_first_run_s": 1.102818399998796,
+      "t_second_run_s": 0.12538969999877736,
+      "M_peak_run_bytes": 57245696,
+      "t_compile_s": 0.9774287000000186,
+      "t_step_s": 0.006269484999938868,
+      "backend_realized": "dense",
+      "M_recording_bytes": 5744,
+      "M_simulation_state_derived_bytes": 57239952,
+      "M_simulation_state_note": "derived RSS upper bound; JAX/XLA carry not fully visible via walk_arrays",
+      "nxn_arrays": [
+        {
+          "array": "model.params['emitter'].W",
+          "shape": [
+            10,
+            10
+          ],
+          "dtype": "float32",
+          "bytes": 400,
+          "R_k": 1.098901098901099,
+          "lifetime": "M_persistent"
+        }
+      ],
+      "nxn_bytes_persistent": 400,
+      "status": "ok"
+    },
+    {
+      "profile": "dense_all_to_all_N100",
+      "w7_cell": null,
+      "config": {
+        "n": 100,
+        "p_connect": null,
+        "max_in_degree": null,
+        "backend_requested": "dense",
+        "duration_ms": 10.0,
+        "dt_ms": 0.5,
+        "seed": 1
+      },
+      "sweep": "standard_N",
+      "t_construct_s": 2.183721199999127,
+      "M_construction_peak_bytes": 60743680,
+      "E": 9900,
+      "K_max_realized": 99,
+      "M_persistent_components": {
+        "M_W": 40000,
+        "M_edge": 237600,
+        "M_H": 0,
+        "M_B": 0,
+        "M_geometry": 1200,
+        "M_emitter_state": 3204,
+        "M_other": 0
+      },
+      "M_other_paths": {},
+      "M_persistent_bytes": 282004,
+      "t_first_run_s": 1.0692454999989423,
+      "t_second_run_s": 0.14221120000001974,
+      "M_peak_run_bytes": 61071360,
+      "t_compile_s": 0.9270342999989225,
+      "t_step_s": 0.007110560000000987,
+      "backend_realized": "dense",
+      "M_recording_bytes": 33104,
+      "M_simulation_state_derived_bytes": 61038256,
+      "M_simulation_state_note": "derived RSS upper bound; JAX/XLA carry not fully visible via walk_arrays",
+      "nxn_arrays": [
+        {
+          "array": "model.params['emitter'].W",
+          "shape": [
+            100,
+            100
+          ],
+          "dtype": "float32",
+          "bytes": 40000,
+          "R_k": 1.0103051121438675,
+          "lifetime": "M_persistent"
+        }
+      ],
+      "nxn_bytes_persistent": 40000,
+      "status": "ok"
+    },
+    {
+      "profile": "dense_all_to_all_N1000",
+      "w7_cell": null,
+      "config": {
+        "n": 1000,
+        "p_connect": null,
+        "max_in_degree": null,
+        "backend_requested": "dense",
+        "duration_ms": 10.0,
+        "dt_ms": 0.5,
+        "seed": 1
+      },
+      "sweep": "standard_N",
+      "t_construct_s": 0.4956745999988925,
+      "M_construction_peak_bytes": 25681920,
+      "E": 999000,
+      "K_max_realized": 999,
+      "M_persistent_components": {
+        "M_W": 4000000,
+        "M_edge": 23976000,
+        "M_H": 0,
+        "M_B": 0,
+        "M_geometry": 12000,
+        "M_emitter_state": 32004,
+        "M_other": 0
+      },
+      "M_other_paths": {},
+      "M_persistent_bytes": 28020004,
+      "t_first_run_s": 0.11808349999773782,
+      "t_second_run_s": 0.12762449999718228,
+      "M_peak_run_bytes": 7086080,
+      "t_compile_s": 0.0,
+      "t_step_s": 0.006381224999859114,
+      "backend_realized": "dense",
+      "M_recording_bytes": 306704,
+      "M_simulation_state_derived_bytes": 6779376,
+      "M_simulation_state_note": "derived RSS upper bound; JAX/XLA carry not fully visible via walk_arrays",
+      "nxn_arrays": [
+        {
+          "array": "model.params['emitter'].W",
+          "shape": [
+            1000,
+            1000
+          ],
+          "dtype": "float32",
+          "bytes": 4000000,
+          "R_k": 1.044591522930873,
+          "lifetime": "M_persistent"
+        }
+      ],
+      "nxn_bytes_persistent": 4000000,
+      "status": "ok"
+    }
+  ],
+  "w8_verdict": "BASELINE_RECORDED"
+}
