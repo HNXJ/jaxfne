@@ -2,7 +2,8 @@
 
 Thank you for helping improve jaxfne. This guide covers setup, validation, and
 expectations for human contributors. If you are an AI agent, read
-[`artifacts/AGENTS.md`](../artifacts/AGENTS.md) in the repository checkout.
+`artifacts/AGENTS.md` in the repository checkout (repository file, not part of
+this documentation build).
 
 ## Quick links
 

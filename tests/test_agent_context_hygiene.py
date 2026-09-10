@@ -341,8 +341,12 @@ class TestReleaseAuthorityInvariant:
 
         root = Path.cwd()
         package_version = read_package_version(root)
+        authorities = json.loads(
+            (root / "artifacts/release/current_release_authorities.json").read_text(encoding="utf-8")
+        )
+        target = authorities["release_target_version"]
         err = validate_release_authorities(root, "RELEASE")
-        if package_version == "0.4.17":
+        if package_version == target:
             assert err is None
         else:
             assert err is not None
