@@ -262,7 +262,6 @@ _REQUIRED_AI_PATHS = (
     "artifacts/release/current_release_authorities.json",
     "scripts/run_test_gate.py",
     "scripts/harness/gate0_git_reality.py",
-    "scratch/CURRENT_TASK.md",
     *(f"artifacts/skills/{name}/SKILL.md" for name in _ACTIVE_SKILLS),
 )
 
