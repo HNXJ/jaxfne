@@ -9,8 +9,7 @@ Integration baseline: `2338b00` (RC + CI PASS). Published `v0.4.21` @ `8823520` 
 
 # v0.4.22
 
-- **22-GEN-02** — regenerate canonical atlas manifest if version-gated tests require
-- 22-W45-01 — repair W4/W5 STALE public doc lines (`jdna.md` stamp; tutorial placeholder figures)
+- **22-W45-01** — repair W4/W5 STALE public doc lines (`jdna.md` stamp; tutorial placeholder figures)
 - 22-W45-02 — tutorial runner: implement or remove dead `--smoke` / `--out-root`; fix six public doc command lines
 - 22-W45-03 — public stub contract: resolve `__init__` reachability vs `__all__` / docs for five names
 - 22-W9-01 — declare `LegacyMultiAreaSpectrolaminarObjective` deprecation horizon; quiet canonical examples

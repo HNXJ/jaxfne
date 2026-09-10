@@ -2,63 +2,64 @@
   "suite": "atlas_suite.v1",
   "title": "Canonical V1 Column (1000n)",
   "config_hash": "4b0d96456d56bc1a",
-  "jaxfne_version": "0.4.21",
+  "jaxfne_version": "0.4.22",
   "seed": 0,
   "duration_ms": 200.0,
   "n_neurons": 1000,
   "n_edges": 215785,
   "n_steps": 400,
   "dt_ms": 0.5,
+  "dt_source": "INFERRED_FROM_TIME_GRID",
   "panels": [
     {
       "file": "network_3d.html",
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 75443
+      "bytes": 75689
     },
     {
       "file": "connectivity.html",
       "panel": "Connectivity",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 1045517
+      "bytes": 1045763
     },
     {
       "file": "raster.html",
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 36574
+      "bytes": 36820
     },
     {
       "file": "traces.html",
       "panel": "Membrane traces",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 55005
+      "bytes": 55251
     },
     {
       "file": "spectral.html",
       "panel": "Spectral",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 19035
+      "bytes": 19281
     },
     {
       "file": "state_summary.html",
       "panel": "State summary",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 11473
+      "bytes": 11919
     },
     {
       "file": "field.html",
       "panel": "Field proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 83256
+      "bytes": 83502
     }
   ],
-  "sha256": "cb01af42dc503ec8"
+  "sha256": "3098d5843ff20bd9"
 }
