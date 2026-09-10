@@ -104,7 +104,7 @@ never stores positions, edges, or population arrays.
 
 Do not assume \(H_D = H_R\). Developmental state lives in
 \(\mathbb R^{d_D}\); runtime RBS lives in \(\mathbb R^{d_R}\); in general
-\(d_D \ne d_R\). No developmental-to-runtime state projection exists in 0.4.17
+\(d_D \ne d_R\). No developmental-to-runtime state projection exists in 0.4.22
 unless an implementation requires and scientifically defines one.
 
 ### Build-time scope
@@ -143,7 +143,7 @@ domains:
 3. Development realizes only phenotypes satisfying the genome-declared
    constraint bands (exact neuron counts, per-layer fractions within declared
    tolerance).
-4. No structural mutation occurs inside `simulate()` in 0.4.17.
+4. No structural mutation occurs inside `simulate()` in 0.4.22.
 5. No developmental state crosses into the runtime model: the runtime RBS
    (`h_state`) arises from the ordinary construct path, not from development.
 6. Development may be ordinary Python/JAX orchestration; it is not forced into
@@ -160,7 +160,7 @@ domains:
 | construct | Ordinary `(NeuronalTensor, RuntimeConfiguration) -> Model`. |
 | Model / simulate | Ordinary execution; no JDNA branches. |
 | RBS (runtime) | `H_R` arises at construct (PlasticParams.H aggregation); development declares no `H_D` for the canonical genome. |
-| AGSDR | Optimizes runtime/model/objective parameters \(\Theta_R'\); does not evolve PseudoGenomes in 0.4.17. |
+| AGSDR | Optimizes runtime/model/objective parameters \(\Theta_R'\); does not evolve PseudoGenomes in 0.4.22. |
 
 ## Implementation mapping
 
@@ -197,7 +197,7 @@ first-class.
   connection schemes. Positions and edges are realized by the ordinary
   construct path under `K_S`.
 - No birth, death, migration, or developmental-time structural mutation in
-  0.4.17.
+  0.4.22.
 - No genome-level optimization: AGSDR optimizes runtime parameters
   (\(\Theta_R'\)), never \(\Theta_D\) or \(\Theta_G\).
 - No developmental RBS (`H_D`) is declared by the canonical genome; the
