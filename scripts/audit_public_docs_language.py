@@ -75,7 +75,11 @@ NEGATIVE_CLAIM_PATTERNS = [
 # scope note), and physics terminology such as "field handoff" is not matched
 # because every pattern anchors on process-specific context.
 GOVERNANCE_NAV_PAGES_FILE = ROOT / "mkdocs.yml"
-GOVERNANCE_EXEMPT_PAGES = {"docs/changelog.md"}
+GOVERNANCE_EXEMPT_PAGES = {
+    "docs/changelog.md",
+    # Sole public page permitted to point automated assistants at artifacts/AGENTS.md.
+    "docs/contributing.md",
+}
 GOVERNANCE_PATTERNS = [
     re.compile(r"\bCURRENT_TASK\b"),
     re.compile(r"\binternal auditor\b|\bauditor role\b", re.I),
