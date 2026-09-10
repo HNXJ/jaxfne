@@ -78,6 +78,84 @@ Scientific experiments preserve failed prospective receipts. Do not tune a froze
 - Do not commit, push, tag, release, or mutate remote state without explicit authorization. Under an explicitly authorized task and the standing completion rule below, routine non-force `git push origin dev` is part of step completion; tagging, main merge, release publication, force push, and other exceptional remote operations always require separate authorization.
 - Public README/docs should be compact mathematical descriptions using positive definitions; engineering history and agent governance stay outside public scientific documentation.
 
+## TODO stack
+
+For project/repo work, keep one:
+
+```text
+artifacts/todo_stack.md
+```
+
+If there is no `artifacts/`:
+
+```text
+docs/todo_stack.md
+```
+
+It contains **only work not yet done**.
+
+Example:
+
+```text
+# i.j.k
+- do this
+- do that
+- test this
+- if X: do Y; else: do Z
+
+# i.j.(k+1)
+- ...
+```
+
+Done item → remove it. Git, tests, and receipts keep the history and evidence.
+
+### Work loop
+
+Use:
+
+```text
+P (R G)^N S
+```
+
+**P — Prepare**
+
+- inspect current state and evidence;
+- update `todo_stack.md`;
+- order remaining work.
+
+**R — Review**
+
+- review the last result;
+- update `todo_stack.md`;
+- choose the next item;
+- if there are validated Git changes: commit, push to `dev`, verify sync.
+
+**G — Progress**
+
+- do the selected item;
+- test it;
+- return to R.
+
+**N**
+
+- keep doing R → G while useful work remains;
+- stop only when an important human decision blocks all remaining work.
+
+**S — Seal**
+
+- verify the version/release is complete;
+- update `todo_stack.md`;
+- remove completed items;
+- commit, push to `dev`, and verify clean sync.
+
+### Rules
+
+- `todo_stack.md` = remaining work only. It is not history or evidence.
+- Do not stop after one TODO.
+- Do not make empty commits.
+- Do not skip commit/push of validated changes.
+- Do not pass a version boundary before sealing it.
+
 ## Review and evidence discipline (H-series, 0.4.17 reconciliation)
 
 - **H1 External review is hypothesis generation, not authority.** Findings
