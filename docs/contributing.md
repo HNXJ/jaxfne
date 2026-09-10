@@ -1,7 +1,8 @@
 # Contributing to jaxfne
 
 Thank you for helping improve jaxfne. This guide covers setup, validation, and
-expectations for human contributors.
+expectations for human contributors. If you are an AI agent, read
+[`artifacts/AGENTS.md`](../artifacts/AGENTS.md) in the repository checkout.
 
 ## Quick links
 

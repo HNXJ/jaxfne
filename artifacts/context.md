@@ -1,6 +1,7 @@
-# jaxfne — context for AI agents
+# jaxfne — repository context
 
-Entry point for an AI coding agent working on, or with, this repository.
+Entry point for working in this repository. Automated assistants: read
+`artifacts/AGENTS.md` first.
 
 This file is a **router**, not a specification. It names the invariants, the authoritative
 sources, and the commands that settle a question. Depth lives in the files it points to, so
@@ -33,7 +34,7 @@ either grammar.
 | What is public, and in which tier? | `jaxfne.public_surface` |
 | What does a function actually do? | the implementation and `tests/` |
 | How is it meant to be used? | `docs/`, published as the documentation site |
-| Fuller agent orientation | `docs/for_ai_agents.md`, `artifacts/AGENTS.md` |
+| Repository policy and work queue | `artifacts/AGENTS.md`, `artifacts/todo_stack.md` |
 | Canonical prose vocabulary | `artifacts/vocabulary/JAXFNE_VOCABULARY.md` |
 | Reusable agent workflows | `artifacts/skills/` — in a repository checkout; not carried in the source distribution |
 | Which checks block a release? | `scripts/run_test_gate.py` |
@@ -45,8 +46,8 @@ recalled detail as a hypothesis until it is re-checked.
 
 ## Task router (canonical)
 
-This file is the **only** first-contact router. `docs/for_ai_agents.md` explains the
-route; it does not replace this table.
+This file is the **only** first-contact router. Deeper policy lives in
+`artifacts/AGENTS.md`.
 
 | Task | Active skill |
 |------|----------------|

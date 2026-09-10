@@ -172,20 +172,15 @@ class TestAgentContextHygiene:
             assert "Config → Net → Paradigm" not in content, f"{path} revives the legacy chain"
 
     def test_agent_context_router_exists_and_is_linked_from_readme(self):
-        """The README's agent entry point must resolve to a real file.
-
-        The README links the router by absolute URL so it renders for readers of the
-        published package, which means a rename or deletion here would ship a dead
-        link with nothing failing. This ties the link back to the path on disk.
-        """
-        router = Path("artifacts/context.md")
-        assert router.exists(), f"README points agents at a missing file: {router}"
+        """The README's single AI-agent line must resolve to a real policy file."""
+        agents = Path("artifacts/AGENTS.md")
+        assert agents.exists(), f"README points agents at a missing file: {agents}"
 
         readme = Path("README.md").read_text(encoding="utf-8")
-        assert "artifacts/context.md" in readme, (
-            "README no longer references artifacts/context.md; the router is orphaned"
+        assert "artifacts/AGENTS.md" in readme, (
+            "README no longer references artifacts/AGENTS.md"
         )
-        assert "## For AI agents" in readme, "README lost its agent entry-point section"
+        assert "If you are an AI agent" in readme, "README lost its agent entry-point line"
 
     def test_repository_state_script_is_present(self):
         """Volatile checkout facts have a read-only derivation command."""
@@ -289,10 +284,11 @@ class TestAgentPathIntegrity:
 
     def test_context_is_canonical_router(self):
         context = Path("artifacts/context.md").read_text(encoding="utf-8")
-        agents_doc = Path("docs/for_ai_agents.md").read_text(encoding="utf-8")
+        agents_doc = Path("artifacts/AGENTS.md").read_text(encoding="utf-8")
         assert "## Task router (canonical)" in context
-        assert "artifacts/context.md`" in agents_doc and "canonical first contact" in agents_doc
-        assert "jaxfne-worker-context-router" not in agents_doc
+        assert "TODO stack" in agents_doc
+        assert "artifacts/todo_stack.md" in agents_doc
+        assert "jaxfne-worker-context-router" not in context
 
 
 class TestFreshAgentRouter:

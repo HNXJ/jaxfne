@@ -62,9 +62,7 @@ Import convention: `import jaxfne as jtfne`.
 | Public API surface (0.4.13) | [docs/public_surface_contract.md](docs/public_surface_contract.md) |
 | Changelog | [docs/changelog.md](docs/changelog.md) |
 
-## For AI agents
-
-[`artifacts/context.md`](https://github.com/HNXJ/jaxfne/blob/main/artifacts/context.md) — router for import, grammars, authority, and gate commands.
+If you are an AI agent, read [`artifacts/AGENTS.md`](artifacts/AGENTS.md).
 
 ## Citation
 
