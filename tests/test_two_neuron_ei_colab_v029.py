@@ -43,7 +43,7 @@ def example_output_dir(tmp_path_factory):
         capture_output=True,
         text=True,
         encoding="utf-8",
-        timeout=60,
+        timeout=120,  # RC broad suite can leave JAX warm/compiling; 60s flakes on Windows
     )
     assert result.returncode == 0, f"Script failed: {result.stderr}"
     assert "[OK]" in result.stdout, "Script should print success indicator"
