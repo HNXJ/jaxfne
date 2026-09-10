@@ -51,11 +51,11 @@ jobs:
         run: python -m compileall -q jaxfne tests examples
 
       - name: Run fast tests (skip slow notebook execution)
-        if: github.ref != 'refs/heads/main'
+        if: github.ref != 'refs/heads/main' && github.event_name != 'workflow_dispatch'
         run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -rs -m "not slow" --junitxml=pytest-results-${{ matrix.python-version }}.xml
 
       - name: Run all tests (including slow)
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -rs --junitxml=pytest-results-${{ matrix.python-version }}.xml
 
       - name: Upload per-node test evidence (JUnit)
