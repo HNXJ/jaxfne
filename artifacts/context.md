@@ -61,6 +61,9 @@ route; it does not replace this table.
 Version-specific release targets (receipt path, acceptance goal list, candidate SHA)
 live in `artifacts/release/current_release_authorities.json`, not in generic skills.
 
+Finite programme execution queue (v0.4.22→v0.4.24): `artifacts/todo_stack.md`.
+Planning state only — tests, attestations, tags, and PyPI remain evidence authority.
+
 ## Settling a claim
 
 Run a gate rather than asserting a result. The gate vocabulary is defined once, in
