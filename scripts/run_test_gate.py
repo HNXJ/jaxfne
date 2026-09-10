@@ -70,6 +70,15 @@ RC_MARKER_EXPRS = (BROAD_MARKER_EXPR, SLOW_MARKER_EXPR, NOTEBOOK_MARKER_EXPR)
 # blocking gate, so it requires a stated, checkable reason.
 BROAD_PYTEST_IGNORE: list[str] = []
 
+# Notebook execution tests only; scoped paths avoid collecting the full 3800+
+# test tree before the notebook sweep (Windows kernel/zmq stability under load).
+NOTEBOOK_PYTEST_TARGETS = [
+    "tests/test_neuronal_tensor_notebook_execution.py",
+    "tests/test_notebook_execution_suite.py",
+    "tests/test_suite_no1_notebook_execution.py",
+    "tests/test_suite_no4_notebook_execution.py",
+]
+
 RELEASE_EXAMPLES = [
     "examples/00_minimal_column.py",
     "examples/01_source_field_manifest.py",
@@ -348,7 +357,7 @@ def gate_release() -> None:
         sys.executable,
         "-m",
         "pytest",
-        "tests",
+        *NOTEBOOK_PYTEST_TARGETS,
         "-q",
         "-m",
         NOTEBOOK_MARKER_EXPR,

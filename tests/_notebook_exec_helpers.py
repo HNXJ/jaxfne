@@ -10,6 +10,7 @@ Not a test module itself (no test_ prefix) -- pytest will not collect it.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import shutil
@@ -32,6 +33,9 @@ def portable_kernel_context(kernel_name: str = "jaxfne_test_kernel"):
     never touch ~/Library/Jupyter (PermissionError in sandboxed/CI envs).
     """
     from jupyter_client.kernelspec import KernelSpecManager
+
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     spec = {
         "argv": [sys.executable, "-m", "ipykernel_launcher", "-f", "{connection_file}"],
@@ -104,7 +108,15 @@ def execute_notebook_via_nbclient(
             kernel_name=kernel_name,
             resources={"metadata": {"path": str(tmp_path)}},
         )
-        client.execute()
+        try:
+            client.execute()
+        finally:
+            km = getattr(client, "km", None)
+            if km is not None:
+                try:
+                    km.shutdown_kernel(now=True)
+                except Exception:
+                    pass
 
     error_cells: list[tuple[int, str, str]] = []
     for i, cell in enumerate(nb.cells):
