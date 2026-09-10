@@ -9,11 +9,7 @@ Integration baseline: `2338b00` (RC + CI PASS). Published `v0.4.21` @ `8823520` 
 
 # v0.4.22
 
-- **22-W15-01** — BMTK/SONATA architecture study (written artifact only; no interoperability code)
-- 22-W16-01 — scientific/developmental programme definition (planning; no public implementation claims)
-- 22-W17-01 — downstream mechanism semantics (Jomission); W17.1–4 surfaces specified
-- 22-W14-01 — harness workflow refine (W14): minimal router/skills; no duplicate procedures
-- 22-VERIFY-01 — identity-sensitive tests after version bump
+- **22-VERIFY-01** — identity-sensitive tests after version bump
 - 22-RC-01 — full RC on final 0.4.22 candidate SHA
 - 22-CI-01 — `release_ci` + `reconcile_release_target.py` PASS @ final candidate SHA
 - 22-SEAL-01 — independent release seal (requires explicit authorization to publish)
