@@ -1,10 +1,10 @@
 {
   "schema": "jaxfne.current_release_authorities.v1",
-  "release_target_version": "0.4.17",
-  "notes": "Version-specific release state. Set release_target_version to the package version under release before RELEASE-mode gates. Generic jaxfne-release and jaxfne-seal skills reference these paths only.",
-  "release_receipt": "artifacts/release/v0_4_17_release_receipt.json",
-  "acceptance_goals": "artifacts/private_acceptance/jaxfne_v0_4_17_final_100_goals.md",
-  "acceptance_goal_count": 95,
+  "release_target_version": "0.4.22",
+  "notes": "v0.4.22 programme authorities. Package identity remains 0.4.21 until 22-VER-01; RELEASE-mode Gate 0 correctly reports STALE_RELEASE_AUTHORITY until then.",
+  "release_receipt": "artifacts/release/v0_4_22_release_receipt.json",
+  "acceptance_goals": "artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md",
+  "acceptance_goal_count": 5,
   "issue_log": "artifacts/issue_log/ISSUE_LOG.md",
   "gate0": "scripts/harness/gate0_git_reality.py"
 }
