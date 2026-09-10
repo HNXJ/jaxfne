@@ -222,4 +222,4 @@ nav:
       - Limitations: limitations_and_future_plans.md
 
 extra:
-  jaxfne_version: "0.4.21"
+  jaxfne_version: "0.4.22"

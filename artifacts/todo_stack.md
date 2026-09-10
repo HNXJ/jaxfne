@@ -9,8 +9,7 @@ Integration baseline: `2338b00` (RC + CI PASS). Published `v0.4.21` @ `8823520` 
 
 # v0.4.22
 
-- **22-VER-01** — bump coherent version identity (`pyproject.toml`, `_JAXFNE_VERSION`, `sync_docs_version.py`); `sync_release_metadata.py --check` PASS
-- 22-DOCS-01 — candidate-vs-published docs (`install.md`, `colab.md`; PyPI stays `0.4.21` until publish)
+- **22-DOCS-01** — candidate-vs-published docs (`install.md`, `colab.md`; PyPI stays `0.4.21` until publish)
 - 22-DOCS-02 — fix `sync_docs_version.py` pattern for current `install.md` wording
 - 22-GEN-01 — regenerate `gallery_manifest.json` (`generate_release_gallery.py`)
 - 22-GEN-02 — regenerate canonical atlas manifest if version-gated tests require
