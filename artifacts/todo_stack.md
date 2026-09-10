@@ -9,8 +9,7 @@ Integration baseline: `2338b00` (RC + CI PASS). Published `v0.4.21` @ `8823520` 
 
 # v0.4.22
 
-- **22-AUTH-01** — establish v0.4.22 acceptance authority + release receipt chain (`v0_4_22_release_receipt.json` + programme acceptance authority; Gate 0 RELEASE path documented)
-- 22-AUTH-02 — align `current_release_authorities.json` to `0.4.22` (after AUTH-01)
+- **22-AUTH-02** — align `current_release_authorities.json` to `0.4.22` (receipt + acceptance authority from AUTH-01)
 - 22-VER-01 — bump coherent version identity (`pyproject.toml`, `_JAXFNE_VERSION`, `sync_docs_version.py`); `sync_release_metadata.py --check` PASS
 - 22-DOCS-01 — candidate-vs-published docs (`install.md`, `colab.md`; PyPI stays `0.4.21` until publish)
 - 22-DOCS-02 — fix `sync_docs_version.py` pattern for current `install.md` wording

@@ -1,0 +1,21 @@
+{
+  "schema": "jaxfne.release_receipt.v4",
+  "version": "0.4.22",
+  "status": "PRE_CANDIDATE_AWAITING_IDENTITY_BUMP",
+  "write_once": true,
+  "supersedes": null,
+  "programme": "v0.4.22 truth and measurement floor (ROADMAP_0422_0424 §3)",
+  "integration_baseline_sha": "2338b00af5c7c822aa35af60d68be4d62f18469d",
+  "published_predecessor": {
+    "version": "0.4.21",
+    "tag": "v0.4.21",
+    "commit_sha": "88235208950425ce76723115f1cb61fe3a828ab2"
+  },
+  "release_candidate": null,
+  "candidate_attestation_sha": null,
+  "acceptance_authority": "artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md",
+  "acceptance_goal_count": 5,
+  "gate0_authorities_file": "artifacts/release/current_release_authorities.json",
+  "gate0_release_path": "Task 22-AUTH-02 updates current_release_authorities.json to this receipt and acceptance authority; RELEASE-mode Gate 0 then validates package version match.",
+  "notes": "Receipt chain established at integration baseline 2338b00. Candidate SHA, attestation, and tag are assigned at 22-SEAL-01 / 22-PUB-* after version identity bump and fresh RC."
+}
