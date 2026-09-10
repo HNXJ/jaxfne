@@ -9,8 +9,7 @@ Integration baseline: `2338b00` (RC + CI PASS). Published `v0.4.21` @ `8823520` 
 
 # v0.4.22
 
-- **22-DOCS-02** — fix `sync_docs_version.py` pattern for current `install.md` wording
-- 22-GEN-01 — regenerate `gallery_manifest.json` (`generate_release_gallery.py`)
+- **22-GEN-01** — regenerate `gallery_manifest.json` (`generate_release_gallery.py`)
 - 22-GEN-02 — regenerate canonical atlas manifest if version-gated tests require
 - 22-W45-01 — repair W4/W5 STALE public doc lines (`jdna.md` stamp; tutorial placeholder figures)
 - 22-W45-02 — tutorial runner: implement or remove dead `--smoke` / `--out-root`; fix six public doc command lines

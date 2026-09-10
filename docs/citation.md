@@ -30,7 +30,7 @@ Zenodo record, for example:
   publisher = {Zenodo},
   doi = {10.5281/zenodo.XXXXXXX},
   url = {https://github.com/HNXJ/jaxfne},
-  version = {0.4.21}
+  version = {0.4.22}
 }
 ```
 

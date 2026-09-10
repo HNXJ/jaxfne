@@ -87,28 +87,55 @@ def _sub_file(path: Path, pattern: str, replacement: str, *, count: int = 0) -> 
     return new_content != content
 
 
+def _published_pypi_version_from_install(root_dir: Path) -> str | None:
+    install = root_dir / "docs" / "install.md"
+    if not install.exists():
+        return None
+    content = install.read_text(encoding="utf-8")
+    match = re.search(
+        r"published \*\*PyPI\*\* release is \*\*`jaxfne==([^`]+)`\*\*",
+        content,
+    )
+    return match.group(1) if match else None
+
+
 def sync_current_version_claims(version: str):
-    """Sync the small set of docs pages that assert 'this is the latest PyPI
-    release' as a live fact (not a historical 'verified as of vX.Y.Z' stamp,
-    which is intentionally left alone -- it describes when something was last
-    checked, not what today's version is).
+    """Sync docs pages that assert the live published PyPI release.
+
+    During a release-candidate window the tree version may exceed the published
+    PyPI pin in ``docs/install.md``; those surfaces are left untouched until
+    publication (see ``tests/test_docs_version_alignment.py``).
     """
     root_dir = Path(__file__).resolve().parent.parent
     changed = []
+    published = _published_pypi_version_from_install(root_dir)
+    sync_published_pins = published is None or published == version
+    if not sync_published_pins:
+        print(
+            f"Skipping published PyPI claim sync: tree={version}, "
+            f"install.md published={published}"
+        )
 
-    if _sub_file(root_dir / "docs" / "install.md",
-                 r'The latest \*\*PyPI\*\* release is \*\*`jaxfne==[^`]+`\*\* \(tag `v[^`]+`\)',
-                 rf'The latest **PyPI** release is **`jaxfne=={version}`** (tag `v{version}`)'):
-        changed.append("docs/install.md (latest release line)")
-    if _sub_file(root_dir / "docs" / "install.md",
-                 r'pip install "jaxfne==[^"]+"',
-                 rf'pip install "jaxfne=={version}"'):
+    # Published PyPI line — only when the tree version is the live PyPI release.
+    if sync_published_pins and _sub_file(
+        root_dir / "docs" / "install.md",
+        r'The current published \*\*PyPI\*\* release is \*\*`jaxfne==[^`]+`\*\* \(tag `v[^`]+`\)',
+        rf'The current published **PyPI** release is **`jaxfne=={version}`** (tag `v{version}`)',
+    ):
+        changed.append("docs/install.md (published release line)")
+    if sync_published_pins and _sub_file(
+        root_dir / "docs" / "install.md",
+        r'pip install "jaxfne==[^"]+"',
+        rf'pip install "jaxfne=={version}"',
+    ):
         changed.append("docs/install.md (pin example)")
 
-    if _sub_file(root_dir / "docs" / "colab.md",
-                 r'\*\*Version:\*\* latest PyPI release `jaxfne==[^`]+` \(tag `v[^`]+`\)',
-                 rf'**Version:** latest PyPI release `jaxfne=={version}` (tag `v{version}`)'):
-        changed.append("docs/colab.md")
+    if sync_published_pins and _sub_file(
+        root_dir / "docs" / "colab.md",
+        r'\*\*Version:\*\* published PyPI release `jaxfne==[^`]+` \(tag `v[^`]+`\)',
+        rf'**Version:** published PyPI release `jaxfne=={version}` (tag `v{version}`)',
+    ):
+        changed.append("docs/colab.md (published release line)")
 
     if _sub_file(root_dir / "docs" / "quickstart.md",
                  r'Verified against `jaxfne==[^`]+`',
