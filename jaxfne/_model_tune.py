@@ -1109,6 +1109,26 @@ def _validate_parameter_specs(
             seen |= mask
 
 
+def _resolved_edge_weights_host(model: "Model") -> "np.ndarray":
+    """Per-edge signed weights for selection/transforms under any storage.
+
+    Selection masks index executable edges (``pre``/``post`` are always
+    full-length), but compact ``weight_storage`` modes keep ``edges.weight``
+    as a size-0 placeholder. Resolve through the canonical kernel helper so
+    tune reads match executed weights exactly.
+    """
+    from .emitters import resolve_edge_weight
+
+    emitter = model.params["emitter"]
+    edges = model.params["edge_list"]
+    return np.asarray(
+        resolve_edge_weight(
+            edges, edges.weight.dtype, presynaptic_sign=emitter.sign
+        ),
+        dtype=float,
+    )
+
+
 def _initial_parameter_values(
     model: "Model",
     param_specs: dict[str, Any],
@@ -1121,7 +1141,7 @@ def _initial_parameter_values(
         spec = param_specs.get(name)
         if isinstance(spec, EdgeParameterSpec):
             mask = _edge_parameter_mask(model, name, spec)
-            weights = np.asarray(model.params["edge_list"].weight, dtype=float)
+            weights = _resolved_edge_weights_host(model)
             value = float(np.mean(np.abs(weights[mask])))
         initial[name] = float(np.clip(value, *bounds))
     return initial
@@ -1133,10 +1153,16 @@ def _model_with_edge_parameter(
     spec: EdgeParameterSpec,
     value: float,
 ) -> "Model":
-    """Apply one positive magnitude to the selected executable edge weights."""
+    """Apply one positive magnitude to the selected executable edge weights.
+
+    Tuned magnitudes are in general not derivable from compact magnitude
+    metadata (one scalar cannot hold per-class values), so the write
+    materializes ``weight_storage="per_edge"``. Unrelated compact fields
+    (tau/delay) are preserved untouched.
+    """
     mask = _edge_parameter_mask(model, parameter_name, spec)
     edges = model.params["edge_list"]
-    weights = np.asarray(edges.weight, dtype=float)
+    weights = _resolved_edge_weights_host(model)
     selected = weights[mask]
     if not np.all(np.isfinite(selected)) or np.any(selected == 0.0):
         raise ValueError(
@@ -1154,6 +1180,9 @@ def _model_with_edge_parameter(
     params["edge_list"] = replace(
         edges,
         weight=jnp.asarray(weights, dtype=edges.weight.dtype),
+        weight_storage="per_edge",
+        weight_magnitude=None,
+        mechanism_weight_magnitude_table=None,
     )
     from ._model import Model
     return Model(cfg=model.cfg, params=params, static=dict(model.static))
