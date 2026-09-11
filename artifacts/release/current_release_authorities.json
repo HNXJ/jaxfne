@@ -1,8 +1,9 @@
 {
   "schema": "jaxfne.current_release_authorities.v1",
-  "release_target_version": "0.4.22",
-  "notes": "v0.4.22 published @ d849e6d (PyPI, GitHub release, RTD stable). Programme authorities remain until v0.4.23 entry.",
+  "release_target_version": "0.4.23",
+  "notes": "v0.4.23 programme active (23-ENT-01 ENTRY_GRANTED). Published release: v0.4.22 @ d849e6d. Receipt below tracks 0.4.22 until 0.4.23 seal.",
   "release_receipt": "artifacts/release/v0_4_22_release_receipt.json",
+  "programme_entry": "artifacts/programme/v0_4_23_entry_receipt.md",
   "acceptance_goals": "artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md",
   "acceptance_goal_count": 5,
   "issue_log": "artifacts/issue_log/ISSUE_LOG.md",

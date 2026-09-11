@@ -380,6 +380,13 @@ def _apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], la
     _tcm = bool(metadata.get("tcm_v1_6pop", False)) or bool(connectivity_spec.get("tcm_v1_6pop", False))
     _interarea = bool(metadata.get("suite2_interarea", False))
     _inter_col = bool(metadata.get("inter_column_connectivity"))
+    if (p_connect is not None and float(p_connect) == 0.0
+            and not (_tcm or _interarea or _inter_col)):
+        # Zero within-area recurrence: skip the O(N^2) dense allocation entirely.
+        # Declared .connections() rules supply realized topology on the edge_list
+        # backend; dynamics do not read emitter.W (W10 U_k dynamics=0 on this path).
+        placeholder_W = jnp.zeros((0, 0), dtype=jdtype)
+        return replace(params, W=placeholder_W), None
     if (p_connect is not None and 0.0 < float(p_connect) < 1.0
             and n >= _SPARSE_DIRECT_N and not (_tcm or _interarea or _inter_col)):
         edges = _make_sparse_within_area_edges(
@@ -437,11 +444,7 @@ def _apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], la
         )
     if p_connect is not None:
         p_val = float(p_connect)
-        if p_val == 0.0:
-            # Zero is a request for no within-area recurrence, not an unset value. It
-            # previously fell through every `0.0 < p` guard and yielded full dense.
-            W = jnp.zeros_like(W)
-        elif 0.0 < p_val < 1.0:
+        if 0.0 < p_val < 1.0:
             mask_key = jax.random.fold_in(key, 999)
             mask = jax.random.bernoulli(mask_key, p_val, (n, n)).astype(jdtype)
             W = W * mask / p_val

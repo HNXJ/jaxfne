@@ -61,7 +61,7 @@ W7_PROFILES: list[dict[str, Any]] = [
         "p_connect": 0.0,
         "max_in_degree": 100,
         "backend_requested": "edge_list",
-        "note": "emitter.W may remain dense (COMPATIBILITY_ONLY); dynamics use edge_list",
+        "note": "p_connect=0 bounded-degree: placeholder emitter.W (0,0); dynamics use edge_list",
     },
     {
         "profile": "dense_masked",

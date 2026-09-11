@@ -99,3 +99,21 @@ def test_below_threshold_keeps_dense_W():
     _, m = _sparse_model(_SPARSE_DIRECT_N - 1000, 0.1)
     W = np.asarray(m.params["emitter"].W)
     assert W.shape[0] == _SPARSE_DIRECT_N - 1000   # dense path preserved below threshold
+
+
+def test_zero_p_connect_bounded_degree_omits_dense_W():
+    """p_connect=0 with declared rules: edge_list authoritative, no (n,n) emitter.W."""
+    import numpy as np
+    from scripts.perf.w10_allocation_map import build_config
+
+    cfg = build_config(
+        n=1000, p_connect=0.0, max_in_degree=100, duration_ms=10.0, dt_ms=0.5, seed=1
+    )
+    model = jtfne.construct(cfg)
+    W = np.asarray(model.params["emitter"].W)
+    assert W.shape == (0, 0)
+    assert model.params["edge_list"].n_edges > 0
+    sig = jtfne.simulate(model, duration_ms=10.0, dt_ms=0.5, seed=1)
+    assert sig.metadata["recurrent_backend"] == "edge_list"
+    assert bool(np.isfinite(np.asarray(sig.V_m)).all())
+    assert bool(np.isfinite(np.asarray(sig.spikes)).all())

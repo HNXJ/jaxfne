@@ -12,8 +12,7 @@ Published predecessor: `v0.4.21` @ `8823520` (immutable).
 
 Entry: v0.4.22 shipped; W3/W7 classifications hold zero `UNKNOWN`; W8 baseline current.
 
-- **23-ENT-01** — confirm 0.4.23 entry criteria
-- 23-REP-01 — eliminate avoidable persistent `emitter.W` (measured before/after on W8 matrix; bit-exact observables)
+- **23-REP-01** — eliminate avoidable persistent `emitter.W` (measured before/after on W8 matrix; bit-exact observables); p_connect=0 bounded-degree placeholder W done
 - 23-REP-02 — realized topology authoritative; backend layouts execution-specific only
 - 23-REP-03 — sparsity routing: honour `p_connect` or refuse; lower `_SPARSE_DIRECT_N` where justified
 - 23-PARAM-01 — parameter sharing for class-shared edge/neuron fields (bit-exact)
