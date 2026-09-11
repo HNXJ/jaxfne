@@ -18,6 +18,27 @@
   "release_candidate": "d849e6d91b72ce1ca2b736c03bdec8c1d89f55c0",
   "candidate_attestation_sha": "d849e6d91b72ce1ca2b736c03bdec8c1d89f55c0",
   "ci_release_run_id": 34536095797,
+  "github_release_url": "https://github.com/HNXJ/jaxfne/releases/tag/v0.4.22",
+  "github_release_timestamp_utc": "2026-09-11T00:22:49+00:00",
+  "distribution": {
+    "github_release": "CREATED",
+    "pypi": "NOT_UPLOADED",
+    "ci_artifact_name": "release-dist",
+    "manifest": "RELEASE_MANIFEST.json",
+    "wheel": {
+      "filename": "jaxfne-0.4.22-py3-none-any.whl",
+      "size_bytes": 709229,
+      "sha256": "05319ee81e687efc4b2efeb3c7c977f1ebac1244bde0b517bb010635ceee228d"
+    },
+    "sdist": {
+      "filename": "jaxfne-0.4.22.tar.gz",
+      "size_bytes": 38057745,
+      "sha256": "d6e4843319758f32293355a2521e0a74b205a863439be8d9f76a580b459790e7"
+    },
+    "source_sha": "d849e6d91b72ce1ca2b736c03bdec8c1d89f55c0",
+    "source_tree_sha": "85a59d1055e90dc44d5275faba1cb013f6f07efd",
+    "build_backend": "hatchling==1.29.0"
+  },
   "acceptance_authority": "artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md",
   "acceptance_goal_count": 5,
   "gate0_authorities_file": "artifacts/release/current_release_authorities.json",
@@ -27,5 +48,5 @@
   "seal_timestamp_utc": "2026-09-11T01:15:00+00:00",
   "dev_bookkeeping_tip_sha": "00df47066439a48ba007a45260c2fb1e9ebce1d4",
   "reconcile_notes": "release_target_reconciled=true; peel(v0.4.22)=d849e6d; origin/main=d849e6d.",
-  "notes": "Tag v0.4.22 @ d849e6d (22-PUB-01). GitHub release, PyPI, and RTD require 22-PUB-02..04 authorization."
+  "notes": "GitHub release v0.4.22 published from retained CI artifacts @ d849e6d (22-PUB-02). PyPI and RTD require 22-PUB-03..04 authorization."
 }
