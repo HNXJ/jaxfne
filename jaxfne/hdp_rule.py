@@ -54,6 +54,12 @@ class HDPRuleContext:
     dt: jnp.ndarray
     n_neurons: int
     rule_params: Mapping[str, Any]
+    # Per-edge delayed presynaptic drive at step t (23-DELAY-01):
+    # ``spikes_{t-d[e]}[pre[e]]`` under the Protocol D ring convention
+    # (d=0 recovers ``spikes[pre]``). ``None`` on the legacy zero-delay
+    # path; rules must fall back to ``spikes[pre]`` so zero-delay
+    # qualification stays bit-exact.
+    pre_sp: jnp.ndarray | None = None
 
 
 @dataclass(frozen=True)
@@ -137,7 +143,10 @@ def _synthetic_presyn_gain_step(ctx: HDPRuleContext) -> HDPRuleUpdate:
     k_h = jnp.asarray(ctx.rule_params.get("k_h", 0.0), dtype=ctx.H.dtype)
     k_w = jnp.asarray(ctx.rule_params.get("k_w", 0.0), dtype=ctx.H.dtype)
     gamma = jnp.asarray(ctx.rule_params.get("gamma", 0.0), dtype=ctx.H.dtype)
-    pre_sp = ctx.spikes[ctx.pre]
+    # 23-DELAY-01: delayed arrivals drive H at time t (event_{t-d} -> H_t).
+    # Zero-delay path passes pre_sp=None -> falls back to spikes[pre],
+    # preserving the qualified HDP-01 discrete equations bit-exactly.
+    pre_sp = ctx.pre_sp if ctx.pre_sp is not None else ctx.spikes[ctx.pre]
     dH = -gamma * (ctx.H - 1.0)
     dH = dH + _segment_sum(k_h * pre_sp, ctx.post, ctx.n_neurons)
     H_post = ctx.H[ctx.post]

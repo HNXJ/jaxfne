@@ -1162,11 +1162,22 @@ def simulate_batch(self, sim: Simulation, n_seeds: int = 4, seed: int | None = N
             # diagnostics are dropped here (batch is a seed-replicate statistics
             # utility -- use simulate() for full diagnostics passthrough).
             from ._pipeline import continuation_noise_schedule
+            from .hdp_rule import is_registered_hdp_rule
 
-            # Same guard as Model.simulate: the HDP kernel has no finite-delay
-            # path, so nonzero edge delays must be rejected loudly here too.
             kernel_kwargs = _hdp_kernel_kwargs(_hdp)
             kernel_kwargs["record_weight_trace"] = False
+            if is_registered_hdp_rule(kernel_kwargs.get("hdp_rule")):
+                from ._hdp_registrable_kernel import (
+                    simulate_edge_recurrent_izhikevich_hdp_registered,
+                )
+
+                return simulate_edge_recurrent_izhikevich_hdp_registered(
+                    emitter, self.params["edge_list"], sim.n_steps, sim.dt_ms, k,
+                    dtype=runtime_cfg.actual_dtype,
+                    hdp_rule=str(kernel_kwargs["hdp_rule"]),
+                    hdp_rule_params=kernel_kwargs.get("hdp_rule_params", {}),
+                    record_weight_trace=False,
+                )[:3]
             return simulate_edge_recurrent_izhikevich_hdp(
                 emitter, self.params["edge_list"], sim.n_steps, sim.dt_ms, k,
                 dtype=runtime_cfg.actual_dtype,

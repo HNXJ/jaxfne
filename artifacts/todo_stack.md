@@ -13,7 +13,7 @@ Published predecessor: `v0.4.21` (immutable).
 
 Entry: v0.4.22 shipped; W3/W7 classifications hold zero `UNKNOWN`; W8 baseline current.
 
-- 23-DELAY-01 — delay/history compaction (delay classes, ring buffers; bit-exact continuation); **owns delayed registrable HDP** probe `event_{t-d} → H_t → P → Θ_t → I_t` when HDP is next exercised
+- 23-DELAY-01 (remainder) — delay/history compaction only (delay classes; dense ring already bit-exact); delayed registrable HDP probe `event_{t-d} → H_t → P → Θ_t → I_t` CLOSED per `artifacts/programme/v0_4_23_delay01_registrable_receipt.md`
 - 23-SIMP-01 — delay helper factorization (L-01): internal metadata snapshot only; preserve traced/host/JIT asymmetry; gate `test_compat_jom01_regressions`
 - 23-SIMP-02 — JIT dispatch consolidation (L-02): `_dispatch_jit_cached` in `_model_simulate.py`; preserve cache keys and guard names
 - 23-SIMP-03 — scan recording audit (G): measure `T×N`/`T×E` stacks when `record_*` false; smallest static specialization without compile explosion
@@ -29,7 +29,7 @@ Entry: v0.4.22 shipped; W3/W7 classifications hold zero `UNKNOWN`; W8 baseline c
 - 23-VERIFY-01 — full 0.4.23 RC + CI + seal + publish chain
 - 23-STACK-01 — review and rewrite this file from sealed v0.4.23 before v0.4.24 work
 
-**Ordered dependencies (remaining):** 23-DELAY-01 (delayed registrable HDP) before 23-SIMP-05 and full LAW-01 exercise; 23-SIMP-05 after delayed semantics fixed; REP-03 gate retains `_SPARSE_DIRECT_N=5000` until bit-exact equivalence (`artifacts/fact_stack.md`). Jomission downstream migration remains **unverified** post-COMPAT-JOM-01.
+**Ordered dependencies (remaining):** 23-DELAY-01 remainder (compaction only) decoupled from 23-SIMP-05 per receipt; delayed registrable HDP closed unblocking 23-SIMP-05 and full LAW-01 exercise; REP-03 gate retains `_SPARSE_DIRECT_N=5000` until bit-exact equivalence (`artifacts/fact_stack.md`). Jomission downstream migration remains **unverified** post-COMPAT-JOM-01. Pre-existing closure failures (HP-05 storage setup, population h_dim, disconnected-null diag) recorded in DELAY-01 receipt, not introduced here.
 
 ---
 

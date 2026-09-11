@@ -514,6 +514,7 @@ def compile_step_fn(
                     record_weight_trace=bool(
                         kernel_kw.get("record_weight_trace", record_weight_trace)
                     ),
+                    step_indices=kernel_kw.get("step_indices"),
                 )
             else:
                 _, _, sources, diag = simulate_edge_recurrent_izhikevich_hdp(
