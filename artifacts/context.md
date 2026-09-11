@@ -35,6 +35,7 @@ either grammar.
 | What does a function actually do? | the implementation and `tests/` |
 | How is it meant to be used? | `docs/`, published as the documentation site |
 | Repository policy and work queue | `artifacts/AGENTS.md`, `artifacts/todo_stack.md` |
+| Human-authorized stable facts | `artifacts/fact_stack.md` (agents read only; human edit) |
 | Canonical prose vocabulary | `artifacts/vocabulary/JAXFNE_VOCABULARY.md` |
 | Reusable agent workflows | `artifacts/skills/` — in a repository checkout; not carried in the source distribution |
 | Which checks block a release? | `scripts/run_test_gate.py` |
@@ -62,8 +63,13 @@ This file is the **only** first-contact router. Deeper policy lives in
 Version-specific release targets (receipt path, acceptance goal list, candidate SHA)
 live in `artifacts/release/current_release_authorities.json`, not in generic skills.
 
-Remaining work queue (v0.4.22→v0.4.24): `artifacts/todo_stack.md` — undone items
-only; see **TODO stack** in `artifacts/AGENTS.md`. Git, tests, and receipts are evidence.
+**Project control (two files, distinct roles):**
+
+- `artifacts/fact_stack.md` — small set of stable, human-authorized facts that
+  guide work. Not evidence. Agents must not edit without explicit human
+  authorization.
+- `artifacts/todo_stack.md` — remaining work only (v0.4.22→v0.4.24); see
+  **TODO stack** in `artifacts/AGENTS.md`. Git, tests, and receipts are evidence.
 
 ## Settling a claim
 

@@ -78,21 +78,18 @@ Scientific experiments preserve failed prospective receipts. Do not tune a froze
 - Do not commit, push, tag, release, or mutate remote state without explicit authorization. Under an explicitly authorized task and the standing completion rule below, routine non-force `git push origin dev` is part of step completion; tagging, main merge, release publication, force push, and other exceptional remote operations always require separate authorization.
 - Public README/docs should be compact mathematical descriptions using positive definitions; engineering history and agent governance stay outside public scientific documentation.
 
-## TODO stack
+## Project control
 
-For project/repo work, keep one:
+Two files, distinct roles:
 
-```text
-artifacts/todo_stack.md
-```
+| File | Role |
+|------|------|
+| `artifacts/fact_stack.md` | Stable, human-authorized facts. Agents read/use/test/challenge — **do not edit without explicit human authorization.** Not evidence. |
+| `artifacts/todo_stack.md` | Remaining work only. |
 
-If there is no `artifacts/`:
+If there is no `artifacts/`, use `docs/todo_stack.md` for the work queue.
 
-```text
-docs/todo_stack.md
-```
-
-It contains **only work not yet done**.
+`todo_stack.md` contains **only work not yet done**.
 
 Example:
 
