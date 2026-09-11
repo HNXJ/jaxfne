@@ -1,0 +1,98 @@
+{
+  "audit_id": "23-H-01",
+  "classification": "REDUCTION_CANDIDATES_IDENTIFIED",
+  "method": "coordinate inventory + observable knockout probes; no carrier refactor in this increment",
+  "coordinates": [
+    {
+      "id": "dynamic.v",
+      "owner": "neuron",
+      "paths": ["baseline", "rbd", "hdp", "homeostasis"],
+      "observable_dependence": "required",
+      "reduction_status": "retain"
+    },
+    {
+      "id": "dynamic.u",
+      "owner": "neuron",
+      "paths": ["baseline", "rbd", "hdp", "homeostasis"],
+      "observable_dependence": "required",
+      "reduction_status": "retain"
+    },
+    {
+      "id": "dynamic.prev_spikes",
+      "owner": "neuron",
+      "paths": ["baseline", "rbd", "hdp"],
+      "baseline_kernel": {
+        "observable_dependence": "inert",
+        "note": "unread on zero-delay baseline kernel; kept for continuation contract parity"
+      },
+      "reduction_status": "contract_passthrough_dead_by_design"
+    },
+    {
+      "id": "dynamic.syn_state",
+      "owner": "edge",
+      "paths": ["baseline", "rbd", "hdp"],
+      "observable_dependence": "required",
+      "reduction_status": "retain"
+    },
+    {
+      "id": "dynamic.H",
+      "owner": "neuron_or_population",
+      "paths": ["rbd", "hdp", "registered_hdp"],
+      "baseline_carrier": {
+        "observable_dependence": "inert",
+        "probe": "compile_step_fn kernel=baseline; perturb H in DynamicState; V_m and spikes unchanged"
+      },
+      "rbd_kernel": {
+        "observable_dependence": "required_when_beta_or_kappa_active",
+        "probe": "beta_h=0 vs beta_h>0 with perturbed H0 changes V_m"
+      },
+      "hdp_kernel": {
+        "observable_dependence": "required_when_plasticity_active",
+        "probe": "H trace evolves under builtin and registered rules"
+      },
+      "reduction_status": "carrier_passthrough_redundant_on_baseline_only_continuation"
+    },
+    {
+      "id": "dynamic.w",
+      "owner": "edge",
+      "paths": ["hdp", "registered_hdp"],
+      "baseline_carrier": {
+        "observable_dependence": "inert",
+        "probe": "compile_step_fn kernel=baseline; perturb w in DynamicState; V_m and spikes unchanged"
+      },
+      "hdp_kernel": {
+        "observable_dependence": "required_when_plasticity_active",
+        "probe": "null HDP vs active HDP changes V_m and w_final"
+      },
+      "reduction_status": "carrier_passthrough_redundant_on_baseline_only_continuation"
+    },
+    {
+      "id": "dynamic.theta_S",
+      "owner": "population",
+      "paths": ["hdp_population"],
+      "observable_dependence": "required_when_population_locality_active",
+      "cold_start_shape_when_unused": [0],
+      "reduction_status": "retain_zero_shape_default"
+    },
+    {
+      "id": "dynamic.aux",
+      "owner": "registered_rule",
+      "paths": ["registered_hdp"],
+      "observable_dependence": "required_when_rule_declares_aux_coords",
+      "cold_start_shape_when_unused": [0],
+      "reduction_status": "retain_zero_shape_default"
+    },
+    {
+      "id": "continuation.delay_state",
+      "owner": "network",
+      "paths": ["delayed_baseline", "delayed_rbd", "delayed_hdp"],
+      "observable_dependence": "required_when_any_edge_delay_positive",
+      "reduction_status": "defer_to_23-DELAY-01"
+    }
+  ],
+  "spawned_reduction_work": [
+    "Optional slim baseline-only continuation carrier (H,w omitted or zero-length) — requires contract/version gate",
+    "Delay/history compaction — 23-DELAY-01",
+    "Population theta_S continuation on simulate path — separate from representation audit"
+  ]
+}
