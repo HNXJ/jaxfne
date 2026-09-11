@@ -647,11 +647,24 @@ class Model:
 
         pre_arr = [int(x) for x in np.asarray(el.pre)]
         post_arr = [int(x) for x in np.asarray(el.post)]
-        w_arr = [float(x) for x in np.asarray(el.weight)]
-        from .emitters import resolve_receptor_index
+        from .emitters import (
+            resolve_edge_delay_steps,
+            resolve_edge_tau_ms,
+            resolve_edge_weight,
+            resolve_receptor_index,
+        )
 
+        emitter = self.params.get("emitter")
+        presynaptic_sign = (
+            emitter.sign if emitter is not None and hasattr(emitter, "sign") else None
+        )
+        w_arr = [
+            float(x)
+            for x in np.asarray(
+                resolve_edge_weight(el, el.weight.dtype, presynaptic_sign=presynaptic_sign)
+            )
+        ]
         rec_arr = [int(x) for x in np.asarray(resolve_receptor_index(el))]
-        from .emitters import resolve_edge_delay_steps, resolve_edge_tau_ms
 
         tau_arr = [float(x) for x in np.asarray(resolve_edge_tau_ms(el, el.weight.dtype))]
         delay_arr = [int(x) for x in np.asarray(resolve_edge_delay_steps(el))]
@@ -697,7 +710,10 @@ class Model:
             jdtype = emitter.v0.dtype
             return jnp.zeros((emitter.n_neurons, emitter.n_neurons), dtype=jdtype)
         return materialize_dense_W_from_edge_list(
-            edge_list, emitter.n_neurons, dtype=emitter.v0.dtype
+            edge_list,
+            emitter.n_neurons,
+            dtype=emitter.v0.dtype,
+            presynaptic_sign=emitter.sign,
         )
 
     def checkpoint(self, path: str) -> "Path":
@@ -751,6 +767,18 @@ class Model:
                 if edge_list.mechanism_tau_table is not None
                 else None
             ),
+            "edge_weight_storage": edge_list.weight_storage,
+            "edge_weight_magnitude": (
+                float(np.asarray(edge_list.weight_magnitude))
+                if edge_list.weight_magnitude is not None
+                and np.asarray(edge_list.weight_magnitude).size
+                else None
+            ),
+            "edge_mechanism_weight_magnitude_table": (
+                [float(x) for x in np.asarray(edge_list.mechanism_weight_magnitude_table)]
+                if edge_list.mechanism_weight_magnitude_table is not None
+                else None
+            ),
             "static": json_safe(self.static),
             "cfg_metadata": json_safe(self.cfg.metadata),
         }
@@ -801,6 +829,17 @@ class Model:
                 mechanism_tau_table=(
                     jnp.asarray(meta["edge_mechanism_tau_table"], dtype=jnp.float32)
                     if meta.get("edge_mechanism_tau_table") is not None
+                    else None
+                ),
+                weight_storage=meta.get("edge_weight_storage", "per_edge"),
+                weight_magnitude=(
+                    jnp.asarray(meta["edge_weight_magnitude"], dtype=jnp.float32)
+                    if meta.get("edge_weight_magnitude") is not None
+                    else None
+                ),
+                mechanism_weight_magnitude_table=(
+                    jnp.asarray(meta["edge_mechanism_weight_magnitude_table"], dtype=jnp.float32)
+                    if meta.get("edge_mechanism_weight_magnitude_table") is not None
                     else None
                 ),
             )

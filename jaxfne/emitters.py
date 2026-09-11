@@ -598,6 +598,11 @@ def dataclass_replace(edges: "EdgeList", **kwargs: Any) -> "EdgeList":
         uniform_delay_steps=kwargs.get("uniform_delay_steps", edges.uniform_delay_steps),
         receptor_index_storage=kwargs.get("receptor_index_storage", edges.receptor_index_storage),
         mechanism_tau_table=kwargs.get("mechanism_tau_table", edges.mechanism_tau_table),
+        weight_storage=kwargs.get("weight_storage", edges.weight_storage),
+        weight_magnitude=kwargs.get("weight_magnitude", edges.weight_magnitude),
+        mechanism_weight_magnitude_table=kwargs.get(
+            "mechanism_weight_magnitude_table", edges.mechanism_weight_magnitude_table
+        ),
     )
 
 
@@ -629,6 +634,9 @@ class EdgeList:
     uniform_delay_steps: int = 0
     receptor_index_storage: str = "per_edge_int32"
     mechanism_tau_table: jax.Array | None = None
+    weight_storage: str = "per_edge"
+    weight_magnitude: jax.Array | None = None
+    mechanism_weight_magnitude_table: jax.Array | None = None
 
     def __post_init__(self) -> None:
         if self.delay_steps is None:
@@ -660,6 +668,9 @@ class EdgeList:
             "uniform_delay_steps": self.uniform_delay_steps,
             "receptor_index_storage": self.receptor_index_storage,
             "mechanism_tau_table": self.mechanism_tau_table,
+            "weight_storage": self.weight_storage,
+            "weight_magnitude": self.weight_magnitude,
+            "mechanism_weight_magnitude_table": self.mechanism_weight_magnitude_table,
         }
         return children, aux
 
@@ -684,6 +695,9 @@ class EdgeList:
             uniform_delay_steps=int(aux.get("uniform_delay_steps", 0)),
             receptor_index_storage=aux.get("receptor_index_storage", "per_edge_int32"),
             mechanism_tau_table=aux.get("mechanism_tau_table"),
+            weight_storage=aux.get("weight_storage", "per_edge"),
+            weight_magnitude=aux.get("weight_magnitude"),
+            mechanism_weight_magnitude_table=aux.get("mechanism_weight_magnitude_table"),
         )
 
     def to_dict(self) -> dict:
@@ -819,6 +833,71 @@ def resolve_edge_delay_steps(edges: EdgeList) -> jax.Array:
     return ds.astype(jnp.int32)
 
 
+def resolve_edge_weight(
+    edges: EdgeList,
+    jdtype: Any,
+    *,
+    presynaptic_sign: jax.Array | None = None,
+) -> jax.Array:
+    """Materialize per-edge signed weights for kernel consumption."""
+    n = int(edges.n_edges)
+    if edges.weight_storage == "sign_from_receptor":
+        if edges.weight_magnitude is None:
+            raise ValueError(
+                "edge_list.weight_storage='sign_from_receptor' requires weight_magnitude"
+            )
+        mag = jnp.asarray(edges.weight_magnitude, dtype=jdtype).reshape(())
+        ri = resolve_receptor_index(edges)
+        return jnp.where(ri == 0, mag, -mag).astype(jdtype)
+    if edges.weight_storage == "magnitude_times_presynaptic_sign":
+        if presynaptic_sign is None:
+            raise ValueError(
+                "edge_list.weight_storage='magnitude_times_presynaptic_sign' requires "
+                "presynaptic_sign"
+            )
+        sign_pre = presynaptic_sign[edges.pre.astype(jnp.int32)]
+        if edges.mechanism_weight_magnitude_table is not None:
+            table = jnp.asarray(edges.mechanism_weight_magnitude_table, dtype=jdtype)
+            ri = resolve_receptor_index(edges)
+            mag = jnp.take(table, ri)
+        elif edges.weight_magnitude is not None:
+            mag = jnp.asarray(edges.weight_magnitude, dtype=jdtype).reshape(())
+        else:
+            raise ValueError(
+                "edge_list.weight_storage='magnitude_times_presynaptic_sign' requires "
+                "weight_magnitude or mechanism_weight_magnitude_table"
+            )
+        return (mag * sign_pre).astype(jdtype)
+    if int(edges.weight.shape[0]) != n:
+        raise ValueError(
+            f"edge_list.weight has shape {edges.weight.shape}, expected "
+            f"({n},) or a derivable weight_storage mode"
+        )
+    return edges.weight.astype(jdtype)
+
+
+def edge_list_per_edge_zeros(edges: EdgeList, jdtype: Any) -> EdgeList:
+    """Return edges with explicit per-edge zero weights (ablation-safe)."""
+    from dataclasses import replace as _replace
+
+    return _replace(
+        edges,
+        weight=jnp.zeros((edges.n_edges,), dtype=jdtype),
+        weight_storage="per_edge",
+        weight_magnitude=None,
+        mechanism_weight_magnitude_table=None,
+    )
+
+
+def _resolved_edge_weight(
+    edges: EdgeList, jdtype: Any, params: IzhikevichParams
+) -> jax.Array:
+    """Resolve edge weights using the emitter's presynaptic intrinsic signs."""
+    return resolve_edge_weight(
+        edges, jdtype, presynaptic_sign=params.sign.astype(jdtype)
+    )
+
+
 def is_placeholder_dense_W(W: jax.Array, n_neurons: int) -> bool:
     """True when ``W`` is the sparse-direct ``(0, 0)`` placeholder, not ``(n, n)``.
 
@@ -833,6 +912,7 @@ def materialize_dense_W_from_edge_list(
     n_neurons: int,
     *,
     dtype: Any = None,
+    presynaptic_sign: jax.Array | None = None,
 ) -> jax.Array:
     """Build a dense ``(n, n)`` weight matrix from an authoritative edge list.
 
@@ -844,7 +924,15 @@ def materialize_dense_W_from_edge_list(
     jdtype = dtype if dtype is not None else edge_list.weight.dtype
     W = jnp.zeros((int(n_neurons), int(n_neurons)), dtype=jdtype)
     if edge_list.n_edges > 0:
-        W = W.at[edge_list.post, edge_list.pre].set(edge_list.weight.astype(jdtype))
+        if edge_list.weight_storage != "per_edge" and presynaptic_sign is None:
+            raise ValueError(
+                "materialize_dense_W_from_edge_list requires presynaptic_sign when "
+                "edge weights use compact storage"
+            )
+        w = resolve_edge_weight(
+            edge_list, jdtype, presynaptic_sign=presynaptic_sign
+        )
+        W = W.at[edge_list.post, edge_list.pre].set(w)
     return W
 
 
@@ -956,7 +1044,7 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     )
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
-    weight = edges.weight.astype(jdtype)
+    weight = _resolved_edge_weight(edges, jdtype, params)
     tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
     delay_steps = resolve_edge_delay_steps(edges)
@@ -1261,7 +1349,7 @@ def simulate_edge_recurrent_izhikevich(
                   else jnp.asarray(noise_scale, dtype=jdtype))
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
-    weight = edges.weight.astype(jdtype)
+    weight = _resolved_edge_weight(edges, jdtype, params)
     tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
     n_neurons = params.v0.shape[0]
@@ -1462,7 +1550,7 @@ def simulate_edge_recurrent_izhikevich_static_h_k_recovery(
     )
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
-    weight = edges.weight.astype(jdtype)
+    weight = _resolved_edge_weight(edges, jdtype, params)
     tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
 
@@ -1640,7 +1728,7 @@ def simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery(
     )
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
-    weight = edges.weight.astype(jdtype)
+    weight = _resolved_edge_weight(edges, jdtype, params)
     tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
 
@@ -1824,7 +1912,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
     )
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
-    weight = edges.weight.astype(jdtype)
+    weight = _resolved_edge_weight(edges, jdtype, params)
     tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
     delay_steps = resolve_edge_delay_steps(edges)
@@ -2100,7 +2188,7 @@ def simulate_edge_recurrent_izhikevich_activity_h_k_rbd(
     )
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
-    weight = edges.weight.astype(jdtype)
+    weight = _resolved_edge_weight(edges, jdtype, params)
     tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
     w_initial = weight
@@ -2491,7 +2579,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
     )
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
-    weight = edges.weight.astype(jdtype)
+    weight = _resolved_edge_weight(edges, jdtype, params)
     tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
     n_neurons = params.v0.shape[0]
@@ -2886,7 +2974,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
                   else jnp.asarray(noise_scale, dtype=jdtype))
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
-    weight = edges.weight.astype(jdtype)
+    weight = _resolved_edge_weight(edges, jdtype, params)
     tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
     n_neurons = params.v0.shape[0]
@@ -3498,6 +3586,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     tau_syn_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_syn_ms)
     n_neurons = params.v0.shape[0]
+    resolved_edge_weight = _resolved_edge_weight(edges, jdtype, params)
     exc_mask = (resolve_receptor_index(edges) == 0)
 
     if isinstance(h_state_dim, bool) or not isinstance(h_state_dim, (int, np.integer)):
@@ -3528,7 +3617,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     if locality == "population":
         pop_layout = parse_population_restoring_layout(
             _adaptive_hp,
-            edges_weight=edges.weight,
+            edges_weight=resolved_edge_weight,
             labels=params.labels,
             dtype=jdtype,
         )
@@ -3580,7 +3669,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     K_HDP_arr = jnp.asarray(K_HDP, dtype=jdtype)
     K_ctrl_arr = jnp.asarray(K_ctrl, dtype=jdtype)  # Live linear restoring term (revived 2026-07-01)
     K_w_ctrl_arr = jnp.asarray(K_w_ctrl, dtype=jdtype)  # Weight restoring term (added 2026-07-04)
-    wmag_baseline_arr = jnp.abs(edges.weight).astype(jdtype)  # Calibrated wiring, not the carried w
+    wmag_baseline_arr = jnp.abs(resolved_edge_weight).astype(jdtype)  # Calibrated wiring, not the carried w
     rho_passive_arr = _h_component_param(rho_passive, "rho_passive")
     barrier_c_arr = _h_component_param(barrier_c, "barrier_c")
     barrier_d_arr = _h_component_param(barrier_d, "barrier_d")
@@ -3738,7 +3827,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
                     "H_final must have shape "
                     f"{expected_h_shape} for h_state_dim={h_dim}, got {H0.shape}"
                 )
-            w0 = jnp.asarray(init_state.get("w_final", edges.weight), dtype=jdtype)
+            w0 = jnp.asarray(init_state.get("w_final", resolved_edge_weight), dtype=jdtype)
             init = (
                 jnp.asarray(init_state["v"], dtype=jdtype),
                 jnp.asarray(init_state["u"], dtype=jdtype),
@@ -3753,7 +3842,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
                 jnp.zeros_like(params.v0, dtype=jdtype),
                 jnp.zeros((edges.n_edges,), dtype=jdtype),
                 jnp.ones(expected_h_shape, dtype=jdtype), # H_i(0) = 1.0
-                edges.weight.astype(jdtype),              # w(0) = native edge weight
+                resolved_edge_weight,              # w(0) = native edge weight
                 r_bar0,
             )
     else:
@@ -3770,7 +3859,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
                     "H_final must have shape "
                     f"{expected_h_shape} for h_state_dim={h_dim}, got {H0.shape}"
                 )
-            w0 = jnp.asarray(init_state.get("w_final", edges.weight), dtype=jdtype)
+            w0 = jnp.asarray(init_state.get("w_final", resolved_edge_weight), dtype=jdtype)
             init = (
                 jnp.asarray(init_state["v"], dtype=jdtype),
                 jnp.asarray(init_state["u"], dtype=jdtype),
@@ -3785,7 +3874,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
                 jnp.zeros_like(params.v0, dtype=jdtype),
                 jnp.zeros((edges.n_edges,), dtype=jdtype),
                 jnp.ones(expected_h_shape, dtype=jdtype), # H_i(0) = 1.0
-                edges.weight.astype(jdtype),              # w(0) = native edge weight
+                resolved_edge_weight,              # w(0) = native edge weight
             )
 
     if has_nonzero_delay:
@@ -4377,7 +4466,7 @@ def simulate_receptor_exponential_izhikevich(
     dt = jnp.asarray(dt_ms, dtype=jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
-    weight = edges.weight.astype(jdtype)
+    weight = _resolved_edge_weight(edges, jdtype, params)
     tau_per_edge = jnp.maximum(
         _edge_tau_from_receptor_index(resolve_receptor_index(edges), dtype=dtype),
         jnp.asarray(1e-6, dtype=jdtype),

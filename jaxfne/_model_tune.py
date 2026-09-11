@@ -41,7 +41,10 @@ def _dense_recurrent_weight_host(model: "Model", target: str = "W") -> np.ndarra
         return np.zeros((emitter.n_neurons, emitter.n_neurons), dtype=float)
     return np.asarray(
         materialize_dense_W_from_edge_list(
-            edge_list, emitter.n_neurons, dtype=emitter.v0.dtype
+            edge_list,
+            emitter.n_neurons,
+            dtype=emitter.v0.dtype,
+            presynaptic_sign=emitter.sign,
         ),
         dtype=float,
     )
@@ -49,15 +52,46 @@ def _dense_recurrent_weight_host(model: "Model", target: str = "W") -> np.ndarra
 
 def _scale_edge_list_weights(model: "Model", scale_fn) -> "Model":
     """Apply ``scale_fn(weight_array)`` to authoritative edge_list weights."""
+    from ._edge_class_storage import materialize_edge_list_arrays
     from ._model import Model
 
+    emitter = model.params["emitter"]
     edges = model.params["edge_list"]
-    weights = scale_fn(np.asarray(edges.weight, dtype=float))
+    if edges.weight_storage == "magnitude_times_presynaptic_sign":
+        if edges.mechanism_weight_magnitude_table is not None:
+            table = scale_fn(np.asarray(edges.mechanism_weight_magnitude_table, dtype=float))
+            edges = replace(
+                edges,
+                mechanism_weight_magnitude_table=jnp.asarray(table, dtype=edges.weight.dtype),
+            )
+        elif edges.weight_magnitude is not None:
+            mag = scale_fn(np.asarray([float(np.asarray(edges.weight_magnitude))], dtype=float))
+            edges = replace(
+                edges,
+                weight_magnitude=jnp.asarray(mag[0], dtype=edges.weight.dtype),
+            )
+        else:
+            raise ValueError("compact edge_list weight has no magnitude metadata")
+    elif edges.weight_storage == "sign_from_receptor":
+        mag = scale_fn(np.asarray([float(np.asarray(edges.weight_magnitude))], dtype=float))
+        edges = replace(
+            edges,
+            weight_magnitude=jnp.asarray(mag[0], dtype=edges.weight.dtype),
+        )
+    else:
+        edges = materialize_edge_list_arrays(
+            edges, presynaptic_sign=np.asarray(emitter.sign, dtype=float)
+        )
+        weights = scale_fn(np.asarray(edges.weight, dtype=float))
+        edges = replace(
+            edges,
+            weight=jnp.asarray(weights, dtype=edges.weight.dtype),
+            weight_storage="per_edge",
+            weight_magnitude=None,
+            mechanism_weight_magnitude_table=None,
+        )
     params = dict(model.params)
-    params["edge_list"] = replace(
-        edges,
-        weight=jnp.asarray(weights, dtype=edges.weight.dtype),
-    )
+    params["edge_list"] = edges
     return Model(cfg=model.cfg, params=params, static=dict(model.static))
 
 
@@ -1169,7 +1203,12 @@ def _model_with_matrix_parameter(
         mask = _np_matrix.asarray(
             _mask_for_parameter(model, parameter_name, spec.mask, target), dtype=bool
         )
-        edges = model.params["edge_list"]
+        from ._edge_class_storage import materialize_edge_list_arrays
+
+        edges = materialize_edge_list_arrays(
+            model.params["edge_list"],
+            presynaptic_sign=_np_matrix.asarray(emitter.sign, dtype=float),
+        )
         pre = _np_matrix.asarray(edges.pre, dtype=int)
         post = _np_matrix.asarray(edges.post, dtype=int)
         weights = _np_matrix.asarray(edges.weight, dtype=float).copy()

@@ -336,12 +336,17 @@ def _compile_mechanism_aware_connection_rules(
     return edges, counts
 
 
-def _concat_edge_lists(a: "EdgeList", b: "EdgeList") -> "EdgeList":
+def _concat_edge_lists(
+    a: "EdgeList",
+    b: "EdgeList",
+    *,
+    presynaptic_sign=None,
+) -> "EdgeList":
     """Concatenate two EdgeLists (preserving the first's calibration status)."""
     from ._edge_class_storage import materialize_edge_list_arrays, try_compact_edge_list_class_storage
 
-    a_full = materialize_edge_list_arrays(a)
-    b_full = materialize_edge_list_arrays(b)
+    a_full = materialize_edge_list_arrays(a, presynaptic_sign=presynaptic_sign)
+    b_full = materialize_edge_list_arrays(b, presynaptic_sign=presynaptic_sign)
     combined = EdgeList(
         pre=jnp.concatenate([a_full.pre, b_full.pre]),
         post=jnp.concatenate([a_full.post, b_full.post]),

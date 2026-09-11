@@ -734,7 +734,9 @@ def _construct_compile_connections(
         if connectivity_mode == "explicit" and _conn_edges is not None:
             _reject_duplicate_explicit_edges(_conn_edges)
         if _conn_edges is not None and _conn_edges.n_edges > 0:
-            edge_list = _concat_edge_lists(edge_list, _conn_edges)
+            edge_list = _concat_edge_lists(
+                edge_list, _conn_edges, presynaptic_sign=_np.asarray(_ep.sign)
+            )
             cfg = _require_edge_list_backend(
                 cfg, f"{_conn_edges.n_edges} edge(s) were materialized from "
                 ".connections() rules, which the dense W does not carry")
@@ -1001,15 +1003,28 @@ def _construct_from_configuration(cfg: Configuration, *, geometry: "LaminarSourc
     from ._edge_class_storage import (
         audit_edge_list_storage,
         build_declared_mechanism_tau_table,
+        build_declared_mechanism_weight_magnitude_table,
+        build_declared_scalar_weight_magnitude,
         try_compact_edge_list_class_storage,
     )
 
+    import numpy as _np_sign
+
     _declared_mech_tau = build_declared_mechanism_tau_table(cfg.metadata)
+    _declared_mech_weight = build_declared_mechanism_weight_magnitude_table(cfg.metadata)
+    _declared_scalar_weight = build_declared_scalar_weight_magnitude(cfg.metadata)
+    _presynaptic_sign = _np_sign.asarray(network.params.sign, dtype=_np_sign.float64)
     edge_list = try_compact_edge_list_class_storage(
-        edge_list, declared_mechanism_tau_table=_declared_mech_tau
+        edge_list,
+        declared_mechanism_tau_table=_declared_mech_tau,
+        presynaptic_sign=_presynaptic_sign,
+        declared_mechanism_weight_magnitude_table=_declared_mech_weight,
+        declared_scalar_weight_magnitude=_declared_scalar_weight,
     )
     static = _construct_build_static(cfg, geometry_meta)
-    static["edge_storage_audit"] = audit_edge_list_storage(edge_list)
+    static["edge_storage_audit"] = audit_edge_list_storage(
+        edge_list, presynaptic_sign=_presynaptic_sign
+    )
     _placeholder_w = is_placeholder_dense_W(network.params.W, network.params.n_neurons)
     static["representation"] = {
         "topology_authoritative": "edge_list" if _placeholder_w else "emitter_W",

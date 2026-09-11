@@ -220,7 +220,9 @@ def _simulate_arrays(
     if ablation_mode == "disconnected_null":
         if runtime_cfg.recurrent_backend == "edge_list":
             edges: EdgeList = self.params["edge_list"]
-            edges = replace(edges, weight=jnp.zeros_like(edges.weight))
+            from .emitters import edge_list_per_edge_zeros
+
+            edges = edge_list_per_edge_zeros(edges, jdtype)
         else:
             emitter = replace(emitter, W=jnp.zeros_like(emitter.W))
 
@@ -238,7 +240,9 @@ def _simulate_arrays(
         # Homeostasis is sparse-edge based; edge_list always exists from construct().
         edges: EdgeList = self.params["edge_list"]
         if ablation_mode == "disconnected_null":
-            edges = replace(edges, weight=jnp.zeros_like(edges.weight))
+            from .emitters import edge_list_per_edge_zeros
+
+            edges = edge_list_per_edge_zeros(edges, jdtype)
         hp = dict(runtime_cfg.homeostasis_params or {})
         _plastic_active = float(hp.get("eta", 0.0) or 0.0) != 0.0
 
@@ -323,7 +327,9 @@ def _simulate_arrays(
         # HDP is sparse-edge based; edge_list always exists from construct().
         edges: EdgeList = self.params["edge_list"]
         if ablation_mode == "disconnected_null":
-            edges = replace(edges, weight=jnp.zeros_like(edges.weight))
+            from .emitters import edge_list_per_edge_zeros
+
+            edges = edge_list_per_edge_zeros(edges, jdtype)
         hp = dict(runtime_cfg.hdp_params or {})
         if hp.get("enable_boundary_stabilization", False):
             hp.setdefault("K_HDP", 0.0)
@@ -341,7 +347,7 @@ def _simulate_arrays(
                 "v": emitter.v0.astype(_idt),
                 "u": emitter.u0.astype(_idt),
                 "prev_spikes": jnp.zeros_like(emitter.v0, dtype=_idt),
-                "syn_state": jnp.zeros_like(edges.weight, dtype=_idt),
+                "syn_state": jnp.zeros((edges.n_edges,), dtype=_idt),
             }
             if _hdp_H0 is not None:
                 init_state["H_final"] = jnp.asarray(_hdp_H0, dtype=_idt)
@@ -446,7 +452,9 @@ def _simulate_arrays(
     if runtime_cfg.recurrent_backend == "edge_list":
         edges: EdgeList = self.params["edge_list"]
         if ablation_mode == "disconnected_null":
-            edges = replace(edges, weight=jnp.zeros_like(edges.weight))
+            from .emitters import edge_list_per_edge_zeros
+
+            edges = edge_list_per_edge_zeros(edges, jdtype)
         kernel_fn = (
             simulate_receptor_exponential_izhikevich
             if runtime_cfg.synaptic_kernel == "receptor_exponential"

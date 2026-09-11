@@ -49,8 +49,11 @@ def test_compact_storage_bit_exact_observables():
     )
     full = jtfne.construct(cfg)
     el = full.params["edge_list"]
-    expanded = materialize_edge_list_arrays(el)
-    recompact = try_compact_edge_list_class_storage(expanded)
+    sign = np.asarray(full.params["emitter"].sign)
+    expanded = materialize_edge_list_arrays(el, presynaptic_sign=sign)
+    recompact = try_compact_edge_list_class_storage(
+        expanded, presynaptic_sign=sign, declared_scalar_weight_magnitude=0.03
+    )
     before = np.asarray(jtfne.simulate(full, duration_ms=10.0, dt_ms=0.5, seed=2).V_m)
     tau_full = np.asarray(resolve_edge_tau_ms(el, el.weight.dtype))
     tau_exp = np.asarray(resolve_edge_tau_ms(recompact, el.weight.dtype))
@@ -196,8 +199,9 @@ def test_class_compaction_reduces_persistent_tau_and_delay_bytes():
     }
     assert nbytes.get("tau_ms", 0) == 0
     assert nbytes.get("delay_steps", 0) == 0
+    assert nbytes.get("weight", 0) == 0
     assert nbytes.get("receptor_index", 0) == 100_000
-    assert total_bytes(model) < 1_800_000
+    assert total_bytes(model) < 1_100_000
 
 
 def test_checkpoint_round_trip_preserves_class_storage(tmp_path):

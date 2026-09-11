@@ -255,8 +255,17 @@ def test_synaptic_gain_scales_edge_list_when_placeholder_W():
     before = np.asarray(jtfne.simulate(model, duration_ms=10.0, dt_ms=0.5, seed=3).V_m)
     scaled = _model_with_scalar_parameter(model, "synaptic_gain", 0.5)
     assert np.asarray(scaled.params["emitter"].W).shape == (0, 0)
-    weights = np.asarray(scaled.params["edge_list"].weight)
-    base_weights = np.asarray(model.params["edge_list"].weight)
+    from jaxfne.emitters import resolve_edge_weight
+
+    sign = jnp.asarray(model.params["emitter"].sign)
+    el0 = model.params["edge_list"]
+    el1 = scaled.params["edge_list"]
+    base_weights = np.asarray(
+        resolve_edge_weight(el0, el0.weight.dtype, presynaptic_sign=sign)
+    )
+    weights = np.asarray(
+        resolve_edge_weight(el1, el1.weight.dtype, presynaptic_sign=sign)
+    )
     np.testing.assert_allclose(weights, base_weights * 0.5)
     after = np.asarray(jtfne.simulate(scaled, duration_ms=10.0, dt_ms=0.5, seed=3).V_m)
     assert not np.array_equal(before, after)

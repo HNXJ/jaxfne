@@ -1,0 +1,152 @@
+{
+  "schema": "jaxfne.w10.allocation_map.v1",
+  "config": {
+    "n": 1000,
+    "p_connect": 0.0,
+    "max_in_degree": 100,
+    "duration_ms": 40.0,
+    "dt_ms": 0.5
+  },
+  "realized": {
+    "n_edges": 100000,
+    "recurrent_backend": "edge_list"
+  },
+  "memory_bytes": {
+    "M_persistent": 944008,
+    "M_recording": 1034624,
+    "M_peak_rss_delta": 281370624,
+    "M_temporary_derived": 279391992,
+    "note": "M_temporary is derived from RSS and includes interpreter and allocator overhead; treat it as an upper bound, not an exact figure."
+  },
+  "consumers": {
+    "probed": [
+      "dynamics",
+      "inspect",
+      "checkpoint",
+      "restore",
+      "optimize",
+      "manifest"
+    ],
+    "not_applicable": {
+      "streaming": "jaxfne.run_stdp_stream(v_init, u_init, s_init, stdp_state, ...) takes raw arrays and an STDPState carrying its own dense W; it never reads model.params, so no model array can be consumed by it.",
+      "protocol_d": "jaxfne.protocol_d_biological_rbs.d2b_execution.run_d2b_activity_h_k_coupling(spec, package_head) builds its own model from a spec and takes no Model argument.",
+      "continuation_lowlevel": "jaxfne.run_continuation(step_fn, state, drive_schedule) operates on a ContinuationState, not a Model. The model-level state-continuation path is checkpoint/restore, which is probed as 'restore'."
+    },
+    "note": "U_k = 0 means no probed consumer observed a difference. It is candidate-removable, not proven removable. Consumers listed under not_applicable take no Model argument, so no model array can reach them; hdp is configuration-driven and surfaces through the dynamics probe on an HDP-enabled configuration."
+  },
+  "arrays": [
+    {
+      "name": "model.params['edge_list'].pre",
+      "owner": "model",
+      "shape": [
+        100000
+      ],
+      "dtype": "int32",
+      "bytes": 400000,
+      "n_unique": 1000,
+      "R_k": 100.0,
+      "lifetime": "persistent",
+      "U_k_by_consumer": {
+        "dynamics": 1,
+        "inspect": 1,
+        "checkpoint": 1,
+        "restore": 1,
+        "optimize": 1,
+        "manifest": 0
+      },
+      "U_k_not_applicable": [
+        "streaming",
+        "protocol_d",
+        "continuation_lowlevel"
+      ],
+      "U_k": 1,
+      "U_k_dynamics": 1,
+      "U_k_method": "perturb_and_observe_multi_consumer"
+    },
+    {
+      "name": "model.params['edge_list'].post",
+      "owner": "model",
+      "shape": [
+        100000
+      ],
+      "dtype": "int32",
+      "bytes": 400000,
+      "n_unique": 1000,
+      "R_k": 100.0,
+      "lifetime": "persistent",
+      "U_k_by_consumer": {
+        "dynamics": 1,
+        "inspect": 1,
+        "checkpoint": 1,
+        "restore": 1,
+        "optimize": 1,
+        "manifest": 0
+      },
+      "U_k_not_applicable": [
+        "streaming",
+        "protocol_d",
+        "continuation_lowlevel"
+      ],
+      "U_k": 1,
+      "U_k_dynamics": 1,
+      "U_k_method": "perturb_and_observe_multi_consumer"
+    },
+    {
+      "name": "model.params['edge_list'].receptor_index",
+      "owner": "model",
+      "shape": [
+        100000
+      ],
+      "dtype": "uint8",
+      "bytes": 100000,
+      "n_unique": 1,
+      "R_k": 100000.0,
+      "lifetime": "persistent",
+      "U_k_by_consumer": {
+        "dynamics": 1,
+        "inspect": 1,
+        "checkpoint": 1,
+        "restore": 1,
+        "optimize": 1,
+        "manifest": 0
+      },
+      "U_k_not_applicable": [
+        "streaming",
+        "protocol_d",
+        "continuation_lowlevel"
+      ],
+      "U_k": 1,
+      "U_k_dynamics": 1,
+      "U_k_method": "perturb_and_observe_multi_consumer"
+    },
+    {
+      "name": "model.params['positions']",
+      "owner": "model",
+      "shape": [
+        1000,
+        3
+      ],
+      "dtype": "float32",
+      "bytes": 12000,
+      "n_unique": 2999,
+      "R_k": 1.0003334444814937,
+      "lifetime": "persistent",
+      "U_k_by_consumer": {
+        "dynamics": 0,
+        "inspect": 0,
+        "checkpoint": 1,
+        "restore": 0,
+        "optimize": 0,
+        "manifest": 0
+      },
+      "U_k_not_applicable": [
+        "streaming",
+        "protocol_d",
+        "continuation_lowlevel"
+      ],
+      "U_k": 1,
+      "U_k_dynamics": 0,
+      "U_k_method": "perturb_and_observe_multi_consumer"
+    }
+  ]
+}
