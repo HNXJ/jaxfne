@@ -1,0 +1,67 @@
+{
+  "audit_id": "23-HDP-AUDIT-01",
+  "engine_version": "dev",
+  "classification": "HDP_EXTENSION_REQUIRED",
+  "classification_rationale": "The causal chain event→H→P→Θ_eff→current is partially implemented for three hardcoded node-local weight rules and a separate population restoring controller, but arbitrary finite-state plasticity rules are not expressible without extending rule dispatch and continuation state.",
+  "causal_chain_partial": true,
+  "causal_chain_evidence": {
+    "activity_to_H": "Node path: alpha*I_syn + beta - gamma*H*r - delta*W + passive + barrier + K_ctrl in simulate_edge_recurrent_izhikevich_hdp step (emitters.py ~4175-4190)",
+    "H_to_plastic_operator": "rule_basis from H_pre/H_post with hdp_rule in {signed_linear, signed_quadratic, hebbian_product} (~4205-4213)",
+    "plastic_to_effective_weight": "wmag_next clipped [w_floor, w_ceiling]; w_next signed by exc_mask (~4221-4227)",
+    "effective_to_current": "syn_next = syn_state*decay + spikes[pre] or delayed presyn; drives Izhikevich dv (~4240-4246)"
+  },
+  "custom_rule_dispatch": false,
+  "builtin_hdp_rules": ["signed_linear", "signed_quadratic", "hebbian_product"],
+  "population_controller": {
+    "simulate_supported": true,
+    "continuation_supported": false,
+    "theta_in_continuation_state": false
+  },
+  "state_scope": {
+    "neuron_H": true,
+    "vector_H_dim": "h_state_dim configurable (node locality)",
+    "population_H_dim2": true,
+    "per_edge_plastic_state_beyond_w": false,
+    "dense_W_stdp_separate_module": true
+  },
+  "update_timing": "per simulation step, post-H integration weight update then neuron integration",
+  "bounds": {
+    "H_clip": "H_min/H_max",
+    "w_clip": "w_floor/w_ceiling",
+    "barrier_on_H": true
+  },
+  "observation": {
+    "last_hdp_diagnostics": true,
+    "signals_metadata_hdp": true,
+    "record_weight_trace_optional": true
+  },
+  "checkpoint_continuation": {
+    "node_H_w_continuation": true,
+    "population_H_continuation": false,
+    "theta_S_continuation": false,
+    "param_checkpoint_hdp_initial": true
+  },
+  "disabled_identity": {
+    "null_gains_freeze_H_and_w": true,
+    "full_V_m_bit_identical_to_baseline": false,
+    "enable_hdp_false_uses_baseline_kernel": true
+  },
+  "jit": true,
+  "rng_determinism": "continuation_contract tests: deterministic and stochastic HDP paths replay under segmented continuation (test_continuation_contract.py)",
+  "stdp_stp_probe": {
+    "stdp_in_plasticity_py_dense_W": true,
+    "stdp_on_simulate_hdp_path": false,
+    "stp_as_named_engine": false
+  },
+  "smallest_generic_extension": [
+    "Register arbitrary finite-state plasticity via a single user-defined P(H_pre, H_post, w, context) or equivalent declarative FSM hook inside the existing HDP step, rather than per-rule kernel branches",
+    "Extend ContinuationState/DynamicState to carry auxiliary plastic coordinates (e.g. population theta_S, edge eligibility traces) required by the declared state grammar",
+    "Unify STDP/STP/homeostasis as ordinary HDP configurations on that primitive (not separate simulate engines)"
+  ],
+  "not_engine_capability_gap_because": [
+    "HDP simulate dispatch, plastic w carry, bounds, diagnostics, and node-local continuation already exist",
+    "Population restoring controller demonstrates Θ_eff binding to plant parameters",
+    "Gap is expressivity/composition of the rule surface, not absence of plastic simulation"
+  ],
+  "jomission_migration_post_compat": "unverified — Jomission must independently rerun its migration suite before promoting repaired JaxFNE"
+}
