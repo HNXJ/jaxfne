@@ -1,18 +1,10 @@
-# Remaining work — v0.4.22 → v0.4.24
+# Remaining work — v0.4.23 → v0.4.24
 
 Work loop and rules: `artifacts/AGENTS.md` (TODO stack).
 Evidence: git, tests, receipts, tags, PyPI — not this file.
 
-Integration baseline: `2338b00` (RC + CI PASS). Published `v0.4.21` @ `8823520` (immutable).
-
----
-
-# v0.4.22
-
-- **22-PUB-04** — RTD / deployed docs SHA matches tag
-- 22-POST-01 — post-publication clean-install + identity reconcile; update `PUBLISHED_PYPI_VERSION` test constants
-- 22-EXT-01 — correct external durable sources that still name stale engineering targets
-- 22-STACK-01 — review and rewrite this file from sealed v0.4.22 before any v0.4.23 work
+**v0.4.22 shipped** @ `d849e6d` (tag `v0.4.22`, PyPI, GitHub release, RTD stable).
+Published predecessor: `v0.4.21` @ `8823520` (immutable).
 
 ---
 
@@ -20,7 +12,7 @@ Integration baseline: `2338b00` (RC + CI PASS). Published `v0.4.21` @ `8823520` 
 
 Entry: v0.4.22 shipped; W3/W7 classifications hold zero `UNKNOWN`; W8 baseline current.
 
-- 23-ENT-01 — confirm 0.4.23 entry criteria (after 22-STACK-01)
+- **23-ENT-01** — confirm 0.4.23 entry criteria
 - 23-REP-01 — eliminate avoidable persistent `emitter.W` (measured before/after on W8 matrix; bit-exact observables)
 - 23-REP-02 — realized topology authoritative; backend layouts execution-specific only
 - 23-REP-03 — sparsity routing: honour `p_connect` or refuse; lower `_SPARSE_DIRECT_N` where justified

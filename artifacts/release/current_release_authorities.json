@@ -1,7 +1,7 @@
 {
   "schema": "jaxfne.current_release_authorities.v1",
   "release_target_version": "0.4.22",
-  "notes": "v0.4.22 programme authorities. Package identity remains 0.4.21 until 22-VER-01; RELEASE-mode Gate 0 correctly reports STALE_RELEASE_AUTHORITY until then.",
+  "notes": "v0.4.22 published @ d849e6d (PyPI, GitHub release, RTD stable). Programme authorities remain until v0.4.23 entry.",
   "release_receipt": "artifacts/release/v0_4_22_release_receipt.json",
   "acceptance_goals": "artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md",
   "acceptance_goal_count": 5,

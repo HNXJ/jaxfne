@@ -1,7 +1,7 @@
 {
   "schema": "jaxfne.release_receipt.v4",
   "version": "0.4.22",
-  "status": "SEAL_GO",
+  "status": "PUBLISHED",
   "write_once": true,
   "supersedes": null,
   "programme": "v0.4.22 truth and measurement floor (ROADMAP_0422_0424 §3)",
@@ -28,6 +28,7 @@
     "pypi_publish_timestamp_utc": "2026-09-11T00:23:27+00:00",
     "pypi_publish_method": "github_actions_publish_workflow_on_release",
     "pypi_clean_install_smoke": "PASS",
+    "pypi_post_publication_smoke": "PASS",
     "ci_artifact_name": "release-dist",
     "manifest": "RELEASE_MANIFEST.json",
     "wheel": {
@@ -44,6 +45,15 @@
     "source_tree_sha": "85a59d1055e90dc44d5275faba1cb013f6f07efd",
     "build_backend": "hatchling==1.29.0"
   },
+  "rtd": {
+    "production_url": "https://jaxfne.readthedocs.io/en/stable/",
+    "version_slug": "stable",
+    "ref": "v0.4.22",
+    "commit_sha": "d849e6d91b72ce1ca2b736c03bdec8c1d89f55c0",
+    "build_id": 34500930,
+    "build_timestamp_utc": "2026-09-11T00:16:37+00:00",
+    "source_version": "0.4.22"
+  },
   "acceptance_authority": "artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md",
   "acceptance_goal_count": 5,
   "gate0_authorities_file": "artifacts/release/current_release_authorities.json",
@@ -53,5 +63,5 @@
   "seal_timestamp_utc": "2026-09-11T01:15:00+00:00",
   "dev_bookkeeping_tip_sha": "00df47066439a48ba007a45260c2fb1e9ebce1d4",
   "reconcile_notes": "release_target_reconciled=true; peel(v0.4.22)=d849e6d; origin/main=d849e6d.",
-  "notes": "PyPI 0.4.22 published from retained CI artifacts @ d849e6d via Publish workflow run 34546245138 (22-PUB-03). PyPI file hashes match RELEASE_MANIFEST and GitHub release assets. RTD requires 22-PUB-04 authorization."
+  "notes": "v0.4.22 published: tag/GitHub/PyPI @ d849e6d; RTD stable @ d849e6d (build 34500930). Post-publication docs reconciliation on dev (22-POST-01)."
 }

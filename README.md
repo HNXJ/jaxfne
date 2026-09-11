@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://pypi.org/project/jaxfne/"><img src="https://img.shields.io/pypi/v/jaxfne?color=brightgreen" alt="PyPI"></a>
-  <a href="https://jaxfne.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/jaxfne/badge/?version=latest" alt="Docs"></a>
+  <a href="https://jaxfne.readthedocs.io/en/stable/"><img src="https://readthedocs.org/projects/jaxfne/badge/?version=stable" alt="Docs"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
 </p>
 

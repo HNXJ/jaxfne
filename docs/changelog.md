@@ -9,6 +9,23 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+## v0.4.22 (2026-09-10)
+
+Truth and measurement floor for the v0.4.22–v0.4.24 programme: classification,
+instrumentation, and public-surface truth without representation reduction or
+performance claims. Scientific numerics remain bit-exact against the published
+v0.4.21 baseline.
+
+### Programme
+- Dense-site and handler classification closure (zero `UNKNOWN` in W3/W7 audits).
+- Public install/docs surfaces aligned to published PyPI identity after release.
+- Canonical visualization atlas and gallery regenerated at 0.4.22.
+- Full RC + release CI + JUnit parity chain PASS on sealed candidate `d849e6d`.
+
+### Publication
+- Tag `v0.4.22` @ `d849e6d`; GitHub release and PyPI from retained CI artifacts.
+- RTD production docs: `https://jaxfne.readthedocs.io/en/stable/` @ `d849e6d`.
+
 ## v0.4.21 (2026-09-07)
 
 Release-candidate promotion of the post-v0.4.20 tree (v0.4.20 tag `e3b7d0a`
