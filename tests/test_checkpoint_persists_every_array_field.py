@@ -25,6 +25,12 @@ N = 120
 DELAY = 3
 # Persisted through the JSON sidecar rather than the npz, by design.
 _META_PERSISTED = {"source_calibration_status", "labels", "layer_labels"}
+_EDGE_META_PERSISTED = {
+    "source_calibration_status",
+    "tau_storage",
+    "delay_storage",
+    "uniform_delay_steps",
+}
 
 
 def _config():
@@ -65,9 +71,10 @@ def _saved_keys(tmp_path):
 def test_every_array_field_is_persisted(tmp_path, dataclass_type, prefix):
     """Structural: any array field not in the npz would silently restore as a default."""
     saved = _saved_keys(tmp_path)
+    skip = _META_PERSISTED if dataclass_type is IzhikevichParams else _EDGE_META_PERSISTED
     expected = {
         f"{prefix}{f.name}" for f in fields(dataclass_type)
-        if f.name not in _META_PERSISTED
+        if f.name not in skip
     }
     missing = sorted(expected - saved)
     assert not missing, (

@@ -338,14 +338,20 @@ def _compile_mechanism_aware_connection_rules(
 
 def _concat_edge_lists(a: "EdgeList", b: "EdgeList") -> "EdgeList":
     """Concatenate two EdgeLists (preserving the first's calibration status)."""
-    return EdgeList(
-        pre=jnp.concatenate([a.pre, b.pre]),
-        post=jnp.concatenate([a.post, b.post]),
-        weight=jnp.concatenate([a.weight, b.weight]),
-        receptor_index=jnp.concatenate([a.receptor_index, b.receptor_index]),
-        tau_ms=jnp.concatenate([a.tau_ms, b.tau_ms.astype(a.tau_ms.dtype)]),
+    from ._edge_class_storage import materialize_edge_list_arrays, try_compact_edge_list_class_storage
+
+    a_full = materialize_edge_list_arrays(a)
+    b_full = materialize_edge_list_arrays(b)
+    combined = EdgeList(
+        pre=jnp.concatenate([a_full.pre, b_full.pre]),
+        post=jnp.concatenate([a_full.post, b_full.post]),
+        weight=jnp.concatenate([a_full.weight, b_full.weight]),
+        receptor_index=jnp.concatenate([a_full.receptor_index, b_full.receptor_index]),
+        tau_ms=jnp.concatenate([a_full.tau_ms, b_full.tau_ms.astype(a_full.tau_ms.dtype)]),
         source_calibration_status=a.source_calibration_status,
+        delay_steps=jnp.concatenate([a_full.delay_steps, b_full.delay_steps.astype(jnp.int32)]),
     )
+    return try_compact_edge_list_class_storage(combined)
 
 
 def _mark_connections_compiled(cfg: "Configuration", counts: Sequence[int]) -> "Configuration":

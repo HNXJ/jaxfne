@@ -998,7 +998,11 @@ def _construct_from_configuration(cfg: Configuration, *, geometry: "LaminarSourc
     network = replace(network, params=emitter_params)
 
     cfg, edge_list = _construct_compile_connections(cfg, network, n, geometry_meta, net, edge_list, positions=positions)
+    from ._edge_class_storage import audit_edge_list_storage, try_compact_edge_list_class_storage
+
+    edge_list = try_compact_edge_list_class_storage(edge_list)
     static = _construct_build_static(cfg, geometry_meta)
+    static["edge_storage_audit"] = audit_edge_list_storage(edge_list)
     _placeholder_w = is_placeholder_dense_W(network.params.W, network.params.n_neurons)
     static["representation"] = {
         "topology_authoritative": "edge_list" if _placeholder_w else "emitter_W",

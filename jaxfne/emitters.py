@@ -570,7 +570,15 @@ def edge_list_with_delay_ms(
             raise ValueError(
                 f"delay_ms length {steps_arr.shape[0]} != n_edges {edges.n_edges}"
             )
-    return dataclass_replace(edges, delay_steps=steps_arr)
+    from ._edge_class_storage import materialize_edge_list_arrays
+
+    expanded = materialize_edge_list_arrays(edges)
+    return dataclass_replace(
+        expanded,
+        delay_steps=steps_arr,
+        delay_storage="per_edge",
+        uniform_delay_steps=0,
+    )
 
 
 def dataclass_replace(edges: "EdgeList", **kwargs: Any) -> "EdgeList":
@@ -585,6 +593,9 @@ def dataclass_replace(edges: "EdgeList", **kwargs: Any) -> "EdgeList":
         source_calibration_status=kwargs.get(
             "source_calibration_status", edges.source_calibration_status
         ),
+        tau_storage=kwargs.get("tau_storage", edges.tau_storage),
+        delay_storage=kwargs.get("delay_storage", edges.delay_storage),
+        uniform_delay_steps=kwargs.get("uniform_delay_steps", edges.uniform_delay_steps),
     )
 
 
@@ -609,6 +620,11 @@ class EdgeList:
     tau_ms: jax.Array
     source_calibration_status: str = "uncalibrated_izhikevich_native_current"
     delay_steps: jax.Array | None = None
+    # Class-shared execution layouts (23-REP-01). Realized topology stays in
+    # pre/post/weight/receptor_index; tau/delay may be compacted when derivable.
+    tau_storage: str = "per_edge"
+    delay_storage: str = "per_edge"
+    uniform_delay_steps: int = 0
 
     def __post_init__(self) -> None:
         if self.delay_steps is None:
@@ -633,7 +649,12 @@ class EdgeList:
             self.tau_ms,
             self.delay_steps,
         )
-        aux = {"source_calibration_status": self.source_calibration_status}
+        aux = {
+            "source_calibration_status": self.source_calibration_status,
+            "tau_storage": self.tau_storage,
+            "delay_storage": self.delay_storage,
+            "uniform_delay_steps": self.uniform_delay_steps,
+        }
         return children, aux
 
     @classmethod
@@ -650,8 +671,11 @@ class EdgeList:
             weight,
             receptor_index,
             tau_ms,
-            aux["source_calibration_status"],
+            aux.get("source_calibration_status", "uncalibrated_izhikevich_native_current"),
             delay_steps,
+            tau_storage=aux.get("tau_storage", "per_edge"),
+            delay_storage=aux.get("delay_storage", "per_edge"),
+            uniform_delay_steps=int(aux.get("uniform_delay_steps", 0)),
         )
 
     def to_dict(self) -> dict:
@@ -737,6 +761,42 @@ class EdgeList:
         )
 
 
+def sign_only_tau_exc_ms() -> float:
+    return 2.0
+
+
+def sign_only_tau_inh_ms() -> float:
+    return 5.0
+
+
+def resolve_edge_tau_ms(edges: EdgeList, jdtype: Any) -> jax.Array:
+    """Materialize per-edge ``tau_ms`` for kernel consumption."""
+    if edges.tau_storage == "sign_from_receptor":
+        exc = jnp.asarray(sign_only_tau_exc_ms(), dtype=jdtype)
+        inh = jnp.asarray(sign_only_tau_inh_ms(), dtype=jdtype)
+        ri = edges.receptor_index.astype(jnp.int32)
+        return jnp.where(ri == 0, exc, inh).astype(jdtype)
+    if int(edges.tau_ms.shape[0]) != int(edges.n_edges):
+        raise ValueError(
+            f"edge_list.tau_ms has shape {edges.tau_ms.shape}, expected "
+            f"({edges.n_edges},) or tau_storage='sign_from_receptor'"
+        )
+    return edges.tau_ms.astype(jdtype)
+
+
+def resolve_edge_delay_steps(edges: EdgeList) -> jax.Array:
+    """Materialize per-edge ``delay_steps`` for kernel consumption."""
+    n = int(edges.n_edges)
+    if edges.delay_storage == "uniform_zero":
+        return jnp.zeros((n,), dtype=jnp.int32)
+    if edges.delay_storage == "uniform":
+        return jnp.full((n,), int(edges.uniform_delay_steps), dtype=jnp.int32)
+    ds = edges.delay_steps
+    if ds is None or int(ds.shape[0]) != n:
+        return jnp.zeros((n,), dtype=jnp.int32)
+    return ds.astype(jnp.int32)
+
+
 def is_placeholder_dense_W(W: jax.Array, n_neurons: int) -> bool:
     """True when ``W`` is the sparse-direct ``(0, 0)`` placeholder, not ``(n, n)``.
 
@@ -806,7 +866,7 @@ def make_edge_list_from_dense(
 
 def _edge_delay_steps_host(edges: EdgeList) -> np.ndarray:
     """Host-side delay_steps array for dispatch before JIT."""
-    return np.asarray(edges.delay_steps, dtype=np.int32)
+    return np.asarray(resolve_edge_delay_steps(edges), dtype=np.int32)
 
 
 def _delayed_presynaptic_spikes(
@@ -875,9 +935,9 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = edges.weight.astype(jdtype)
-    tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
-    delay_steps = edges.delay_steps.astype(jnp.int32)
+    delay_steps = resolve_edge_delay_steps(edges)
     if int(np.min(_edge_delay_steps_host(edges))) < 0:
         raise ValueError("edge delay_steps must be >= 0")
     n_neurons = params.v0.shape[0]
@@ -1180,7 +1240,7 @@ def simulate_edge_recurrent_izhikevich(
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = edges.weight.astype(jdtype)
-    tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
     n_neurons = params.v0.shape[0]
 
@@ -1381,7 +1441,7 @@ def simulate_edge_recurrent_izhikevich_static_h_k_recovery(
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = edges.weight.astype(jdtype)
-    tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
 
     if silence_mask is not None:
@@ -1559,7 +1619,7 @@ def simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery(
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = edges.weight.astype(jdtype)
-    tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
 
     if silence_mask is not None:
@@ -1743,9 +1803,9 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = edges.weight.astype(jdtype)
-    tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
-    delay_steps = edges.delay_steps.astype(jnp.int32)
+    delay_steps = resolve_edge_delay_steps(edges)
     delay_host = _edge_delay_steps_host(edges)
     max_delay = int(np.max(delay_host)) if delay_host.size else 0
     bufsize = max_delay + 1
@@ -2019,7 +2079,7 @@ def simulate_edge_recurrent_izhikevich_activity_h_k_rbd(
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = edges.weight.astype(jdtype)
-    tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
     w_initial = weight
 
@@ -2410,7 +2470,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = edges.weight.astype(jdtype)
-    tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
     n_neurons = params.v0.shape[0]
 
@@ -2438,7 +2498,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
 
     use_delays = bool(np.any(delay_host > 0))
     if use_delays:
-        delay_steps = edges.delay_steps.astype(jnp.int32)
+        delay_steps = resolve_edge_delay_steps(edges)
         max_delay = int(np.max(delay_host))
         bufsize = max_delay + 1
         time_step_offset = _rbd_continuation_step_offset(init_state)
@@ -2805,7 +2865,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = edges.weight.astype(jdtype)
-    tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
     n_neurons = params.v0.shape[0]
 
@@ -3413,7 +3473,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
                   else jnp.asarray(noise_scale, dtype=jdtype))
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
-    tau_syn_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    tau_syn_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_syn_ms)
     n_neurons = params.v0.shape[0]
     exc_mask = (edges.receptor_index.astype(jnp.int32) == 0)
@@ -3572,7 +3632,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     if has_nonzero_delay:
         max_delay = int(np.max(delay_host))
         bufsize = max_delay + 1
-        delay_steps_arr = edges.delay_steps.astype(jnp.int32)
+        delay_steps_arr = resolve_edge_delay_steps(edges)
         time_step_offset = _rbd_continuation_step_offset_array(init_state)
         if init_state is not None and ("delay_state" in init_state or "spike_history" in init_state):
             _validate_delayed_init_state(

@@ -12,7 +12,7 @@ Published predecessor: `v0.4.21` @ `8823520` (immutable).
 
 Entry: v0.4.22 shipped; W3/W7 classifications hold zero `UNKNOWN`; W8 baseline current.
 
-- **23-REP-01** — eliminate avoidable persistent `emitter.W` (W8 matrix; bit-exact observables); p_connect=0 placeholder W + lazy dense-W for checkpoint/tune/optim (receipt: `artifacts/programme/v0_4_23_rep01_lazy_w_receipt.md`); class-sharing and 0<p<1 paths still open
+- **23-REP-01** — eliminate avoidable persistent `emitter.W` (W8: M_persistent ~1.64 MB, nxn=[]); placeholder W + lazy dense-W + tau/delay class compaction (receipt: `artifacts/programme/v0_4_23_rep01_lazy_w_receipt.md`); `receptor_index` sharing and 0<p<1 sparse-direct still open
 - **23-REP-02** — realized topology authoritative; backend layouts execution-specific only; `model.static['representation']` + checkpoint `topology_authoritative` metadata done
 - **23-REP-03** — sparsity routing: honour `p_connect` or refuse; `_SPARSE_DIRECT_N` lowering blocked until sparse-direct ≡ dense bit-exact (test at N=5000 documents mismatch)
 - 23-PARAM-01 — parameter sharing for class-shared edge/neuron fields (bit-exact)

@@ -649,8 +649,10 @@ class Model:
         post_arr = [int(x) for x in np.asarray(el.post)]
         w_arr = [float(x) for x in np.asarray(el.weight)]
         rec_arr = [int(x) for x in np.asarray(el.receptor_index)] if el.receptor_index is not None else [0] * len(pre_arr)
-        tau_arr = [float(x) for x in np.asarray(el.tau_ms)] if el.tau_ms is not None else [None] * len(pre_arr)
-        delay_arr = [int(x) for x in np.asarray(el.delay_steps)] if el.delay_steps is not None else [0] * len(pre_arr)
+        from .emitters import resolve_edge_delay_steps, resolve_edge_tau_ms
+
+        tau_arr = [float(x) for x in np.asarray(resolve_edge_tau_ms(el, el.weight.dtype))]
+        delay_arr = [int(x) for x in np.asarray(resolve_edge_delay_steps(el))]
 
         rows_out: list[dict[str, Any]] = []
         for edge_id, (pre_id, post_id, w, rec_idx, tau, delay) in enumerate(
@@ -738,6 +740,9 @@ class Model:
             "edge_source_calibration_status": edge_list.source_calibration_status,
             "topology_authoritative": "edge_list" if _placeholder_w else "emitter_W",
             "emitter_W_storage": "placeholder" if _placeholder_w else "materialized",
+            "edge_tau_storage": edge_list.tau_storage,
+            "edge_delay_storage": edge_list.delay_storage,
+            "edge_uniform_delay_steps": int(edge_list.uniform_delay_steps),
             "static": json_safe(self.static),
             "cfg_metadata": json_safe(self.cfg.metadata),
         }
@@ -781,6 +786,9 @@ class Model:
                 receptor_index=jnp.array(z["edge_receptor_index"]), tau_ms=jnp.array(z["edge_tau_ms"]),
                 delay_steps=_restored_delay_steps(z),
                 source_calibration_status=meta["edge_source_calibration_status"],
+                tau_storage=meta.get("edge_tau_storage", "per_edge"),
+                delay_storage=meta.get("edge_delay_storage", "per_edge"),
+                uniform_delay_steps=int(meta.get("edge_uniform_delay_steps", 0)),
             )
             positions = jnp.array(z["positions"])
         params = {"emitter": emitter, "positions": positions, "edge_list": edge_list}

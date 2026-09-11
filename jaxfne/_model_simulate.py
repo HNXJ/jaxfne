@@ -183,7 +183,9 @@ def _simulate_arrays(
     if "edge_list" in self.params:
         import numpy as np
 
-        _delay_host = np.asarray(self.params["edge_list"].delay_steps)
+        from .emitters import resolve_edge_delay_steps
+
+        _delay_host = np.asarray(resolve_edge_delay_steps(self.params["edge_list"]))
         if _delay_host.size and int(_delay_host.min()) < 0:
             raise ValueError("edge delay_steps must be >= 0")
         if (
