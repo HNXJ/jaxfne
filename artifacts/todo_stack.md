@@ -20,7 +20,7 @@ Entry: v0.4.22 shipped; W3/W7 classifications hold zero `UNKNOWN`; W8 baseline c
 - 23-STOCH-01 — continuation-owned stochastic inputs where required (per-path verification)
 - 23-REC-01 — streaming/decimated recording + memory preflight (W17.2)
 - 23-EDGE-01 — edge selectors + immutable transforms pipeline (align W16 structural G)
-- 23-LAW-01 — structured state-dependent plasticity / RBD law hook (gated on 23-HDP-AUDIT-01; implementation only if `HDP_EXTENSION_REQUIRED` or `ENGINE_CAPABILITY_GAP`; no Jomission-specific controller)
+- 23-LAW-01 — structured state-dependent plasticity / RBD law hook (gated on 23-HDP-01 generic primitive; no Jomission-specific controller)
 - 23-FIN-01 — long-run transactional finalization (W17.4) if evidence justifies
 - 23-SYSID-01 — operating-point system-ID utility (W17.3) if evidenced
 - 23-JDNA-01 — minimal `evolve()` runtime substrate only if semantics + tests complete before public claims
