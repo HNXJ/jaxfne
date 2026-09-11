@@ -14,7 +14,6 @@ Published predecessor: `v0.4.21` (immutable).
 Entry: v0.4.22 shipped; W3/W7 classifications hold zero `UNKNOWN`; W8 baseline current.
 
 - 23-DELAY-01 (remainder) — delay/history compaction only (delay classes; dense ring already bit-exact); delayed registrable HDP probe `event_{t-d} → H_t → P → Θ_t → I_t` CLOSED per `artifacts/programme/v0_4_23_delay01_registrable_receipt.md`
-- 23-SIMP-03 — scan recording audit (G): measure `T×N`/`T×E` stacks when `record_*` false; smallest static specialization without compile explosion
 - 23-SIMP-04 — compact tau decay (L-05): benchmark only on `sign_from_receptor` / `from_mechanism_table` paths (per-edge random tau: gather **slower**, R-01)
 - 23-SIMP-05 — HDP kernel unification: defer until 23-DELAY-01 delayed registrable semantics fixed
 - 23-STOCH-01 — continuation-owned stochastic inputs where required (per-path verification)
@@ -41,6 +40,7 @@ Entry: v0.4.23 shipped; W8 shows cumulative programme receipts from `8823520` ba
 - 24-JAX-01 — JAX execution profile programme (measure before JIT changes)
 - 24-EQUIV-01 — per-observable equivalence acceptance (exact or `d≤ε` pre-declared)
 - 24-AUDIT-01 — independent adversarial core audit (implementer ≠ sole auditor)
+- 24-PKG-01 — installed-package boundary audit (which LOC belongs in the runtime distribution; executable protocol/research code destination: tests/benchmarks/examples, never artifacts/ for aesthetics; alongside kernel-count and test-minimization reviews; not before v0.4.23 closes)
 - 24-EXIT-01 — verify programme exit criteria (roadmap §5.2)
 - 24-VERIFY-01 — full 0.4.24 RC + CI + seal + publish chain
 - 24-STACK-01 — seal v0.4.24; archive or clear this stack
