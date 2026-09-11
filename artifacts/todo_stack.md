@@ -14,7 +14,6 @@ Published predecessor: `v0.4.21` (immutable).
 Entry: v0.4.22 shipped; W3/W7 classifications hold zero `UNKNOWN`; W8 baseline current.
 
 - 23-DELAY-01 (remainder) — delay/history compaction only (delay classes; dense ring already bit-exact); delayed registrable HDP probe `event_{t-d} → H_t → P → Θ_t → I_t` CLOSED per `artifacts/programme/v0_4_23_delay01_registrable_receipt.md`
-- 23-SIMP-05 — HDP kernel unification: delayed registrable semantics fixed (DELAY-01 receipt); unification now unblocked, gated on measured equivalence
 - 23-STOCH-01 — continuation-owned stochastic inputs where required (per-path verification)
 - 23-REC-01 — streaming/decimated recording + memory preflight (W17.2)
 - 23-EDGE-01 — edge selectors + immutable transforms pipeline (align W16 structural G)
@@ -25,7 +24,7 @@ Entry: v0.4.22 shipped; W3/W7 classifications hold zero `UNKNOWN`; W8 baseline c
 - 23-VERIFY-01 — full 0.4.23 RC + CI + seal + publish chain
 - 23-STACK-01 — review and rewrite this file from sealed v0.4.23 before v0.4.24 work
 
-**Ordered dependencies (remaining):** 23-DELAY-01 remainder (compaction only) decoupled from 23-SIMP-05 per receipt; delayed registrable HDP closed unblocking 23-SIMP-05 and full LAW-01 exercise; 23-SIMP-01 CLOSED per `artifacts/programme/v0_4_23_simp01_receipt.md` (HP-05 storage-setup defect fixed; class green with delays engaged); 23-SIMP-02 closed as NO_CHANGE per `artifacts/programme/v0_4_23_simp02_receipt.md` (parameter-heavy helper, net ~0); REP-03 gate retains `_SPARSE_DIRECT_N=5000` until bit-exact equivalence (`artifacts/fact_stack.md`). Jomission downstream migration remains **unverified** post-COMPAT-JOM-01. Open pre-existing defects (not introduced here): population `h_dim` IndexError (material; proposed 23-EDGE-01), disconnected-null `diag is None` (needs human decision on forced HDP engagement).
+**Ordered dependencies (remaining):** 23-DELAY-01 remainder (compaction only) decoupled from 23-SIMP-05 per receipt; delayed registrable HDP closed unblocking 23-SIMP-05 and full LAW-01 exercise; 23-SIMP-01 CLOSED per `artifacts/programme/v0_4_23_simp01_receipt.md` (HP-05 storage-setup defect fixed; class green with delays engaged); 23-SIMP-02 closed as NO_CHANGE per `artifacts/programme/v0_4_23_simp02_receipt.md` (parameter-heavy helper, net ~0); 23-SIMP-03 closed as NO_CHANGE per `artifacts/programme/v0_4_23_simp03_receipt.md` (T×E already gated; residual T×N not worth variants); 23-SIMP-04 closed as NO_CHANGE per `artifacts/programme/v0_4_23_simp04_receipt.md` (no per-mode winner); 23-SIMP-05 closed as NO_CHANGE per `artifacts/programme/v0_4_23_simp05_receipt.md` (semantic branches dominate; universal kernel would be parameter-heavy); REP-03 gate retains `_SPARSE_DIRECT_N=5000` until bit-exact equivalence (`artifacts/fact_stack.md`). Jomission downstream migration remains **unverified** post-COMPAT-JOM-01. Open pre-existing defects (not introduced here): population `h_dim` IndexError (material; proposed 23-EDGE-01), disconnected-null `diag is None` (needs human decision on forced HDP engagement).
 
 ---
 
