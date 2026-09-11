@@ -9,8 +9,7 @@ Integration baseline: `2338b00` (RC + CI PASS). Published `v0.4.21` @ `8823520` 
 
 # v0.4.22
 
-- **22-PUB-03** — PyPI publish from retained bytes (requires explicit authorization)
-- 22-PUB-04 — RTD / deployed docs SHA matches tag
+- **22-PUB-04** — RTD / deployed docs SHA matches tag
 - 22-POST-01 — post-publication clean-install + identity reconcile; update `PUBLISHED_PYPI_VERSION` test constants
 - 22-EXT-01 — correct external durable sources that still name stale engineering targets
 - 22-STACK-01 — review and rewrite this file from sealed v0.4.22 before any v0.4.23 work

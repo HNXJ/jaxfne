@@ -22,7 +22,12 @@
   "github_release_timestamp_utc": "2026-09-11T00:22:49+00:00",
   "distribution": {
     "github_release": "CREATED",
-    "pypi": "NOT_UPLOADED",
+    "pypi": "UPLOADED",
+    "pypi_url": "https://pypi.org/project/jaxfne/0.4.22/",
+    "pypi_publish_run_id": 34546245138,
+    "pypi_publish_timestamp_utc": "2026-09-11T00:23:27+00:00",
+    "pypi_publish_method": "github_actions_publish_workflow_on_release",
+    "pypi_clean_install_smoke": "PASS",
     "ci_artifact_name": "release-dist",
     "manifest": "RELEASE_MANIFEST.json",
     "wheel": {
@@ -48,5 +53,5 @@
   "seal_timestamp_utc": "2026-09-11T01:15:00+00:00",
   "dev_bookkeeping_tip_sha": "00df47066439a48ba007a45260c2fb1e9ebce1d4",
   "reconcile_notes": "release_target_reconciled=true; peel(v0.4.22)=d849e6d; origin/main=d849e6d.",
-  "notes": "GitHub release v0.4.22 published from retained CI artifacts @ d849e6d (22-PUB-02). PyPI and RTD require 22-PUB-03..04 authorization."
+  "notes": "PyPI 0.4.22 published from retained CI artifacts @ d849e6d via Publish workflow run 34546245138 (22-PUB-03). PyPI file hashes match RELEASE_MANIFEST and GitHub release assets. RTD requires 22-PUB-04 authorization."
 }
