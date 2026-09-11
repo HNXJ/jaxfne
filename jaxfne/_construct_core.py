@@ -1019,6 +1019,11 @@ def _construct_from_configuration(cfg: Configuration, *, geometry: "LaminarSourc
             if _placeholder_w
             else "execution_layout_materialized"
         ),
+        "edge_list_role": (
+            "authoritative"
+            if _placeholder_w
+            else "execution_layout_derived"
+        ),
     }
 
     return Model(

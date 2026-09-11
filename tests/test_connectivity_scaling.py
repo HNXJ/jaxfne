@@ -180,6 +180,51 @@ def test_construct_records_representation_authority():
     assert rep["topology_authoritative"] == "edge_list"
     assert rep["emitter_W_storage"] == "placeholder"
     assert rep["dense_W_role"] == "execution_layout_on_demand"
+    assert rep["edge_list_role"] == "authoritative"
+
+
+def test_dense_path_records_emitter_W_authority():
+    """REP-02: below sparse-direct threshold, materialized W is topology authority."""
+    import numpy as np
+
+    n = _SPARSE_DIRECT_N - 1000
+    cfg = (
+        jtfne.Configuration()
+        .runtime(seed=11, dtype="float32", duration_ms=10.0, dt_ms=0.5)
+        .column(name="c", layers=["L4"], n=n)
+        .cell_types({"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03})
+        .connectivity(p_connect=0.1)
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes"])
+    )
+    model = jtfne.construct(cfg)
+    rep = model.static["representation"]
+    assert rep["topology_authoritative"] == "emitter_W"
+    assert rep["emitter_W_storage"] == "materialized"
+    assert rep["dense_W_role"] == "execution_layout_materialized"
+    assert rep["edge_list_role"] == "execution_layout_derived"
+    assert tuple(model.params["emitter"].W.shape) == (n, n)
+    assert model.params["edge_list"].n_edges > 0
+    sig = jtfne.simulate(model, duration_ms=10.0, dt_ms=0.5, seed=0)
+    assert sig.metadata["recurrent_backend"] == "dense"
+    assert bool(np.isfinite(np.asarray(sig.V_m)).all())
+
+
+def test_simulate_refuses_explicit_dense_backend_on_placeholder_W():
+    """REP-02: contradicted recurrent_backend must raise, not silently drop edges."""
+    import pytest
+    from dataclasses import replace
+
+    from jaxfne._model import Model
+
+    _, model = _bounded_degree_zero_p_model(n=80)
+    contradicted = replace(
+        model.cfg,
+        metadata={**model.cfg.metadata, "recurrent_backend": "dense"},
+    )
+    model = Model(cfg=contradicted, params=model.params, static=model.static)
+    with pytest.raises(ValueError, match="recurrent_backend='dense'"):
+        jtfne.simulate(model, duration_ms=10.0, dt_ms=0.5, seed=0)
 
 
 def test_placeholder_W_checkpoint_records_topology_authority(tmp_path):

@@ -1,6 +1,7 @@
 # 23-REP-01 increment — lazy dense W materialization
 
-Status: **PASS** (second + third increments; 23-REP-01 remains in stack until remaining gates close).
+Status: **CLOSED** @ `89ba03c`. All REP-01-specific representation work verified.
+Sparse-direct vs dense equivalence is owned by **23-REP-03**, not REP-01.
 
 Anchor: `dev` after this increment.
 
@@ -107,6 +108,7 @@ derive every edge's tau. Construct correctly retains `tau_storage="per_edge"`.
 
 Test: `tests/test_rep01_edge_class_storage.py::test_mixed_base_recurrence_and_rules_fall_back_to_per_edge_tau`.
 
-## Remaining gates (explicit)
+## Deferred to 23-REP-03 (not REP-01)
 
-- `0 < p_connect < 1` sparse-direct path — blocked until bit-exact vs dense is proven (`_SPARSE_DIRECT_N` unchanged).
+- `0 < p_connect < 1` sparse-direct vs dense equivalence at `_SPARSE_DIRECT_N` —
+  tested, **not bit-exact**; threshold change and any optimization owned by REP-03.
