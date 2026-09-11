@@ -15,7 +15,6 @@ Entry: v0.4.22 shipped; W3/W7 classifications hold zero `UNKNOWN`; W8 baseline c
 
 - **23-REP-03** — sparsity routing: honour `p_connect` or refuse; owns dense vs sparse-direct equivalence at `_SPARSE_DIRECT_N` (test at N=5000: **FAIL**, not bit-exact — retain threshold 5000 unless exact equivalence proven; no ε-equivalence; optimization not mandatory)
 - 23-H-01 — H/RBS/RBD representation reduction (observable-specific; written per-coordinate argument)
-- **23-HDP-01** — generic HDP extension + disabled identity (`HDP_EXTENSION_REQUIRED` per audit): smallest registrable finite-state plasticity primitive inside existing HDP step; widened continuation for auxiliary coordinates (e.g. population Θ); qualify with analytically predictable synthetic rule; bit-exact null plasticity (`Ẇ = 0`) and disabled identity where promised; no dense mutable `W` when HDP off; downstream Jomission qualification only after generic qualification (Jomission migration post-COMPAT still unverified)
 - 23-DELAY-01 — delay/history compaction (delay classes, ring buffers; bit-exact continuation)
 - 23-STOCH-01 — continuation-owned stochastic inputs where required (per-path verification)
 - 23-REC-01 — streaming/decimated recording + memory preflight (W17.2)

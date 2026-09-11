@@ -25,26 +25,25 @@ def _build(runtime_kwargs=None, n=80):
     return jtfne.construct(cfg)
 
 
-def test_null_gains_freeze_H_and_weights():
-    """All income/spending/control gains default to 0.0 -- the documented
-    H-state and HDP-term null. Confirmed bit-exact at the kernel level in
-    test_hdp_kernel_standalone.py; through the dispatch path the resulting
-    V_m trajectory is *not* asserted bit-identical to the baseline kernel,
-    since the HDP step function carries extra (unused-at-null) terms (e.g.
-    H_boost_gain's boost factor, per-edge |w| bookkeeping) that XLA may fuse
-    differently from the baseline kernel's leaner graph -- a sub-ULP
-    floating-point difference that a chaotic spiking system amplifies over
-    hundreds of steps, not a dispatch-wiring bug. What this null configuration
-    *does* guarantee, and what this test checks directly: H stays pinned at
-    1.0 and edge weights are unchanged."""
-    model_obj = _build({"enable_hdp": True})
-    jtfne.simulate(model_obj, duration_ms=D, dt_ms=DT, seed=SEED)
-    diag = model_obj.last_hdp_diagnostics()
-    H = np.asarray(diag["H_trace"])
-    w_final = np.asarray(diag["w_final"])
-    w0 = np.asarray(model_obj.params["edge_list"].weight)
-    assert np.allclose(H, 1.0, atol=1e-6)
-    assert np.allclose(w_final, w0, atol=1e-6)
+def test_null_gains_match_baseline_bit_exact():
+    """Null builtin HDP parameters route through the baseline kernel (23-HDP-01)."""
+    baseline = _build({"enable_hdp": False})
+    null_hdp = _build({"enable_hdp": True})
+    v_base = np.asarray(jtfne.simulate(baseline, duration_ms=D, dt_ms=DT, seed=SEED).V_m)
+    v_null = np.asarray(jtfne.simulate(null_hdp, duration_ms=D, dt_ms=DT, seed=SEED).V_m)
+    assert np.array_equal(v_base, v_null)
+    w0 = np.asarray(null_hdp.params["edge_list"].weight)
+    if null_hdp.params["edge_list"].weight_storage != "per_edge":
+        from jaxfne.emitters import resolve_edge_weight
+
+        w0 = np.asarray(
+            resolve_edge_weight(
+                null_hdp.params["edge_list"],
+                null_hdp.params["edge_list"].weight.dtype,
+                presynaptic_sign=null_hdp.params["emitter"].sign,
+            )
+        )
+    assert null_hdp.last_hdp_diagnostics() is None
 
 
 def test_hdp_engages_and_exposes_diagnostics():

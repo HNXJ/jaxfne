@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, NamedTuple
+from typing import Any, Mapping, NamedTuple
 
 import jax
 import jax.numpy as jnp
@@ -67,6 +67,8 @@ class DynamicState(NamedTuple):
     syn_state: jax.Array    # (n_edges,)    synaptic gating variable
     H: jax.Array            # (n_neurons,) scalar or (n_neurons, d_H) vector H
     w: jax.Array            # (n_edges,)    synaptic weights
+    theta_S: jax.Array      # (n_theta,) population controller coordinates
+    aux: jax.Array          # (n_aux,) registered-rule auxiliary coordinates
 
 
 class ContinuationState(NamedTuple):
@@ -265,6 +267,7 @@ def dynamic_state_from_model(
     *,
     h_state_dim: int = 1,
     h_state_locality: str | None = None,
+    hdp_params: Mapping[str, Any] | None = None,
 ) -> DynamicState:
     """Build a cold-start :class:`DynamicState` from ``model.params``.
 
@@ -276,12 +279,12 @@ def dynamic_state_from_model(
     HDP edge-list; a model built without an edge list (dense-only) cannot
     produce a valid DynamicState.
     """
-    from ._hdp_adaptive import expected_h_shape as compute_expected_h_shape, reject_population_continuation, resolve_h_state_locality
+    from ._hdp_adaptive import expected_h_shape as compute_expected_h_shape, resolve_h_state_locality
 
+    hp = dict(hdp_params or {})
     locality = resolve_h_state_locality(
-        {"h_state_locality": h_state_locality, "h_state_dim": h_state_dim}
+        {"h_state_locality": h_state_locality, "h_state_dim": h_state_dim, **hp}
     )
-    reject_population_continuation(locality, context="dynamic_state_from_model")
     if isinstance(h_state_dim, bool) or not isinstance(h_state_dim, int) or h_state_dim < 1:
         raise ValueError("h_state_dim must be a positive integer")
     emitter = model.params["emitter"]
@@ -296,7 +299,7 @@ def dynamic_state_from_model(
     n_edges = edges.n_edges
     dtype = emitter.v0.dtype
     expected_h_shape = compute_expected_h_shape(
-        locality="node", n_neurons=n_neurons, h_state_dim=h_state_dim
+        locality=locality, n_neurons=n_neurons, h_state_dim=h_state_dim
     )
     H0 = model.params.get("hdp_initial_H")
     H0 = (
@@ -311,6 +314,13 @@ def dynamic_state_from_model(
         )
     w0 = model.params.get("hdp_initial_w")
     w0 = jnp.asarray(w0, dtype=dtype) if w0 is not None else edges.weight.astype(dtype)
+    theta0 = jnp.zeros((0,), dtype=dtype)
+    if locality == "population":
+        init_theta = hp.get("controller_theta_S_init")
+        if init_theta is not None:
+            theta0 = jnp.asarray(init_theta, dtype=dtype)
+        else:
+            theta0 = jnp.ones((2,), dtype=dtype)
     return DynamicState(
         v=emitter.v0.astype(dtype),
         u=emitter.u0.astype(dtype),
@@ -318,6 +328,8 @@ def dynamic_state_from_model(
         syn_state=jnp.zeros((n_edges,), dtype=dtype),
         H=H0,
         w=w0,
+        theta_S=theta0,
+        aux=jnp.zeros((0,), dtype=dtype),
     )
 
 
@@ -377,6 +389,10 @@ def _continuation_init_dict_from_state(
         "H_final": state.dynamic.H,
         "w_final": state.dynamic.w,
     }
+    if int(state.dynamic.theta_S.shape[0]):
+        init_state["theta_S_final"] = state.dynamic.theta_S
+    if int(state.dynamic.aux.shape[0]):
+        init_state["aux_final"] = state.dynamic.aux
     if include_step_offset:
         init_state["continuation_step_offset"] = jnp.asarray(
             state.step_index, dtype=jnp.int32
@@ -471,20 +487,45 @@ def compile_step_fn(
         if use_delays:
             kernel_kw["step_indices"] = jnp.reshape(t_idx, (1,))
         if kernel == "hdp":
-            _, _, sources, diag = simulate_edge_recurrent_izhikevich_hdp(
-                emitter, edges, n_steps=1, dt_ms=dt_ms, key=key_t,
-                dtype=str(emitter.v0.dtype),
-                drive_schedule=sched_t[None, :],
-                silence_mask=silence_mask,
-                init_state={
-                    **init_state,
-                    "H_final": state.dynamic.H,
-                    "w_final": state.dynamic.w,
-                },
-                record_dH_components=record_dH_components,
-                record_edge_current=record_edge_current,
-                **kernel_kw,
-            )
+            from .hdp_rule import is_registered_hdp_rule
+
+            merged_init = {
+                **init_state,
+                "H_final": state.dynamic.H,
+                "w_final": state.dynamic.w,
+            }
+            if is_registered_hdp_rule(kernel_kw.get("hdp_rule")):
+                from ._hdp_registrable_kernel import (
+                    simulate_edge_recurrent_izhikevich_hdp_registered,
+                )
+
+                _, _, sources, diag = simulate_edge_recurrent_izhikevich_hdp_registered(
+                    emitter,
+                    edges,
+                    n_steps=1,
+                    dt_ms=dt_ms,
+                    key=key_t,
+                    dtype=str(emitter.v0.dtype),
+                    drive_schedule=sched_t[None, :],
+                    silence_mask=silence_mask,
+                    init_state=merged_init,
+                    hdp_rule=str(kernel_kw["hdp_rule"]),
+                    hdp_rule_params=kernel_kw.get("hdp_rule_params", {}),
+                    record_weight_trace=bool(
+                        kernel_kw.get("record_weight_trace", record_weight_trace)
+                    ),
+                )
+            else:
+                _, _, sources, diag = simulate_edge_recurrent_izhikevich_hdp(
+                    emitter, edges, n_steps=1, dt_ms=dt_ms, key=key_t,
+                    dtype=str(emitter.v0.dtype),
+                    drive_schedule=sched_t[None, :],
+                    silence_mask=silence_mask,
+                    init_state=merged_init,
+                    record_dH_components=record_dH_components,
+                    record_edge_current=record_edge_current,
+                    **kernel_kw,
+                )
         else:
             _, _, sources, diag = simulate_edge_recurrent_izhikevich(
                 emitter, edges, n_steps=1, dt_ms=dt_ms, key=key_t,
@@ -502,6 +543,8 @@ def compile_step_fn(
             prev_spikes=diag["prev_spikes"], syn_state=diag["syn_state"],
             H=diag.get("H_final", state.dynamic.H),
             w=diag.get("w_final", state.dynamic.w),
+            theta_S=diag.get("theta_S_final", state.dynamic.theta_S),
+            aux=diag.get("aux_final", state.dynamic.aux),
         )
         delay_out = state.delay_state
         if use_delays:
@@ -551,6 +594,8 @@ def compile_step_fn(
     init = continuation_state_from_model(
         model,
         h_state_dim=int(hdp_kwargs.get("h_state_dim", 1)),
+        hdp_params=hdp_kwargs,
+        h_state_locality=hdp_kwargs.get("h_state_locality"),
     )
     return jax.jit(step_fn), init
 
@@ -612,9 +657,16 @@ def continuation_state_from_model(
     seed: int = 0,
     step_index: int = 0,
     h_state_dim: int = 1,
+    hdp_params: Mapping[str, Any] | None = None,
+    h_state_locality: str | None = None,
 ) -> ContinuationState:
     """Create a cold-start continuation state without running a simulation."""
-    dynamic = dynamic_state_from_model(model, h_state_dim=h_state_dim)
+    dynamic = dynamic_state_from_model(
+        model,
+        h_state_dim=h_state_dim,
+        h_state_locality=h_state_locality,
+        hdp_params=hdp_params,
+    )
     delay_state = None
     if model_requires_delay_state(model):
         bufsize, n_neurons = _delay_buffer_shape(model)

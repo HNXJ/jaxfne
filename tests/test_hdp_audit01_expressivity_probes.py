@@ -90,18 +90,15 @@ def test_population_theta_not_in_continuation_carrier():
         reject_population_continuation("population", context="audit_probe")
 
 
-def test_null_hdp_freezes_H_and_w_not_full_V_trajectory():
-    """Disabled-rule identity holds on H/w; full V_m is not baseline bit-exact."""
+def test_null_hdp_routes_to_baseline_bit_exact():
+    """Documented null builtin HDP routes through baseline kernel (23-HDP-01)."""
     cfg = jtfne.suite2_net1_config(seed=3, n=8)
     off = jtfne.construct(cfg.runtime(enable_hdp=False))
     on = jtfne.construct(cfg.runtime(enable_hdp=True))
     v_off = np.asarray(jtfne.simulate(off, duration_ms=20.0, dt_ms=0.5, seed=5).V_m)
-    jtfne.simulate(on, duration_ms=20.0, dt_ms=0.5, seed=5)
-    diag = on.last_hdp_diagnostics()
-    w0 = np.asarray(on.params["edge_list"].weight)
-    assert np.allclose(np.asarray(diag["H_trace"]), 1.0, atol=1e-6)
-    assert np.allclose(np.asarray(diag["w_final"]), w0, atol=1e-6)
-    assert not np.allclose(v_off, np.asarray(jtfne.simulate(on, duration_ms=20.0, dt_ms=0.5, seed=5).V_m))
+    v_on = np.asarray(jtfne.simulate(on, duration_ms=20.0, dt_ms=0.5, seed=5).V_m)
+    assert np.array_equal(v_off, v_on)
+    assert on.last_hdp_diagnostics() is None
 
 
 def test_hdp_jit_deterministic_replay():

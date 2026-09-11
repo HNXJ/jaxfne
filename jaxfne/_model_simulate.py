@@ -318,23 +318,33 @@ def _simulate_arrays(
                                {"g_bias": g_bias, "r_trace": r_trace})
         return V, S, src
 
-    if getattr(runtime_cfg, "enable_hdp", False):
-        if runtime_cfg.synaptic_kernel == "receptor_exponential":
-            raise ValueError(
-                "enable_hdp is not supported with "
-                "synaptic_kernel='receptor_exponential'; use the default "
-                "exponential synaptic kernel."
-            )
+    hp_for_gate = dict(runtime_cfg.hdp_params or {})
+    enable_hdp_flag = bool(getattr(runtime_cfg, "enable_hdp", False))
+    if enable_hdp_flag and runtime_cfg.synaptic_kernel == "receptor_exponential":
+        raise ValueError(
+            "enable_hdp is not supported with "
+            "synaptic_kernel='receptor_exponential'; use the default "
+            "exponential synaptic kernel."
+        )
+    use_hdp = enable_hdp_flag
+    if use_hdp:
+        from .hdp_rule import hdp_params_are_identity
+
+        use_hdp = not hdp_params_are_identity(hp_for_gate)
+
+    if use_hdp:
         # HDP is sparse-edge based; edge_list always exists from construct().
         edges: EdgeList = self.params["edge_list"]
         if ablation_mode == "disconnected_null":
             from .emitters import edge_list_per_edge_zeros
 
             edges = edge_list_per_edge_zeros(edges, jdtype)
-        hp = dict(runtime_cfg.hdp_params or {})
+        hp = hp_for_gate
         if hp.get("enable_boundary_stabilization", False):
             hp.setdefault("K_HDP", 0.0)
             hp.setdefault("K_w_ctrl", 0.0)
+
+        from .hdp_rule import is_registered_hdp_rule
 
         # Optional caller-supplied initial HDP state (Model.with_hdp_initial_state).
         # Absent by default -> init_state=None, the exact prior behavior
@@ -359,17 +369,37 @@ def _simulate_arrays(
             """Return (V, spikes, sources, H_final, H_trace, w_final, w_trace)."""
             from ._pipeline import continuation_noise_schedule
 
-            kernel_kwargs = _hdp_kernel_kwargs(hp)
-            V, S, src, diag = simulate_edge_recurrent_izhikevich_hdp(
-                emitter, edges, sim.n_steps, sim.dt_ms, k,
-                dtype=runtime_cfg.actual_dtype, drive_schedule=s,
-                silence_mask=silence_mask,
-                init_state=init_state,
-                noise_schedule=continuation_noise_schedule(
-                    k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
-                ),
-                **kernel_kwargs,
-            )
+            if is_registered_hdp_rule(hp.get("hdp_rule")):
+                from ._hdp_registrable_kernel import (
+                    simulate_edge_recurrent_izhikevich_hdp_registered,
+                )
+
+                V, S, src, diag = simulate_edge_recurrent_izhikevich_hdp_registered(
+                    emitter,
+                    edges,
+                    sim.n_steps,
+                    sim.dt_ms,
+                    k,
+                    dtype=runtime_cfg.actual_dtype,
+                    drive_schedule=s,
+                    silence_mask=silence_mask,
+                    init_state=init_state,
+                    hdp_rule=str(hp["hdp_rule"]),
+                    hdp_rule_params=hp.get("hdp_rule_params", {}),
+                    record_weight_trace=bool(hp.get("record_weight_trace", True)),
+                )
+            else:
+                kernel_kwargs = _hdp_kernel_kwargs(hp)
+                V, S, src, diag = simulate_edge_recurrent_izhikevich_hdp(
+                    emitter, edges, sim.n_steps, sim.dt_ms, k,
+                    dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                    silence_mask=silence_mask,
+                    init_state=init_state,
+                    noise_schedule=continuation_noise_schedule(
+                        k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                    ),
+                    **kernel_kwargs,
+                )
             theta_trace = diag.get("theta_S_trace")
             theta_final = diag.get("theta_S_final")
             r_bar_final = diag.get("r_bar_final")
@@ -671,18 +701,13 @@ def _simulate_continuation_arrays(
     if not runtime_cfg.enable_hdp and runtime_cfg.hdp_params:
         if "noise_scale" in runtime_cfg.hdp_params:
             baseline_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
-    if runtime_cfg.enable_hdp:
-        from ._hdp_adaptive import reject_population_continuation, resolve_h_state_locality
-
-        reject_population_continuation(
-            resolve_h_state_locality(hp),
-            context="simulate_continuation",
-        )
     if continuation is None:
         state = continuation_state_from_model(
             self,
             seed=sim.seed,
             h_state_dim=int(hp.get("h_state_dim", 1)),
+            hdp_params=hp,
+            h_state_locality=hp.get("h_state_locality"),
         )
     elif isinstance(continuation, ContinuationState):
         state = continuation
@@ -695,8 +720,18 @@ def _simulate_continuation_arrays(
             "simulate(..., return_state=True)"
         )
 
-    if runtime_cfg.enable_hdp:
-        hdp_kwargs = _hdp_kernel_kwargs(hp)
+    from .hdp_rule import hdp_params_are_identity, is_registered_hdp_rule
+
+    use_hdp_cont = runtime_cfg.enable_hdp and not hdp_params_are_identity(hp)
+    if use_hdp_cont:
+        if is_registered_hdp_rule(hp.get("hdp_rule")):
+            hdp_kwargs = {
+                "hdp_rule": hp["hdp_rule"],
+                "hdp_rule_params": hp.get("hdp_rule_params", {}),
+                "record_weight_trace": bool(hp.get("record_weight_trace", True)),
+            }
+        else:
+            hdp_kwargs = _hdp_kernel_kwargs(hp)
         step_fn, _ = compile_step_fn(
             self,
             dt_ms=sim.dt_ms,
@@ -713,7 +748,7 @@ def _simulate_continuation_arrays(
 
     next_state, outputs = run_continuation(step_fn, state, schedule)
     voltages, spikes, sources = outputs[:3]
-    if runtime_cfg.enable_hdp:
+    if use_hdp_cont:
         object.__setattr__(
             self,
             "_last_hdp_diag",
@@ -722,6 +757,8 @@ def _simulate_continuation_arrays(
                 "H_trace": outputs[3],
                 "w_final": next_state.dynamic.w,
                 "w_trace": outputs[4] if len(outputs) > 4 else None,
+                "theta_S_final": next_state.dynamic.theta_S,
+                "aux_final": next_state.dynamic.aux,
             },
         )
     return voltages, spikes, sources, next_state

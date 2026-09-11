@@ -186,13 +186,34 @@ def test_population_restoring_structural_invariants():
     assert np.linalg.matrix_rank(B) == 2
 
 
-def test_population_continuation_rejected_explicitly():
-    model, mei_mask, e_mask = _mcc3_model()
-    hp = _population_hdp_params(mei_mask, e_mask, r0_e=10.9, r0_i=9.14)
-    runtime = jtfne.RuntimeConfig(enable_hdp=True, recurrent_backend="edge_list", jit=False, hdp_params=hp)
-    sim = jtfne.simulation(duration_ms=100.0, dt_ms=0.1, seed=17, runtime=runtime)
-    with pytest.raises(ValueError, match="population H-state locality is not supported"):
-        model.simulate(sim, return_state=True)
+def test_population_continuation_supported():
+    from jaxfne import _pipeline
+
+    hp = {
+        "h_state_locality": "population",
+        "h_state_dim": 2,
+        "controller_B": [[-0.05, 0.05], [0.04, 0.0]],
+        "controller_lambda": 0.4,
+        "controller_tau_H_s": 0.2,
+        "controller_tau_theta_s": 2.0,
+        "controller_rate_setpoint_E_hz": 5.0,
+        "controller_rate_setpoint_I_hz": 5.0,
+        "controller_theta_S_init": [1.0, 1.0],
+    }
+    model = jtfne.construct(
+        jtfne.suite2_net1_config(seed=1, n=10).runtime(
+            enable_hdp=True, recurrent_backend="edge_list", hdp_params=hp
+        )
+    )
+    state = _pipeline.dynamic_state_from_model(
+        model, h_state_dim=2, h_state_locality="population", hdp_params=hp
+    )
+    assert state.theta_S.shape == (2,)
+    assert state.H.shape == (2,)
+    cont = _pipeline.continuation_state_from_model(
+        model, h_state_dim=2, h_state_locality="population", hdp_params=hp
+    )
+    assert cont.dynamic.theta_S.shape == (2,)
 
 
 @pytest.mark.skipif(not ETUDE_METRICS.exists(), reason="committed Etude metrics bundle required")
