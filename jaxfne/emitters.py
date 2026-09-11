@@ -596,6 +596,8 @@ def dataclass_replace(edges: "EdgeList", **kwargs: Any) -> "EdgeList":
         tau_storage=kwargs.get("tau_storage", edges.tau_storage),
         delay_storage=kwargs.get("delay_storage", edges.delay_storage),
         uniform_delay_steps=kwargs.get("uniform_delay_steps", edges.uniform_delay_steps),
+        receptor_index_storage=kwargs.get("receptor_index_storage", edges.receptor_index_storage),
+        mechanism_tau_table=kwargs.get("mechanism_tau_table", edges.mechanism_tau_table),
     )
 
 
@@ -625,6 +627,8 @@ class EdgeList:
     tau_storage: str = "per_edge"
     delay_storage: str = "per_edge"
     uniform_delay_steps: int = 0
+    receptor_index_storage: str = "per_edge_int32"
+    mechanism_tau_table: jax.Array | None = None
 
     def __post_init__(self) -> None:
         if self.delay_steps is None:
@@ -654,6 +658,8 @@ class EdgeList:
             "tau_storage": self.tau_storage,
             "delay_storage": self.delay_storage,
             "uniform_delay_steps": self.uniform_delay_steps,
+            "receptor_index_storage": self.receptor_index_storage,
+            "mechanism_tau_table": self.mechanism_tau_table,
         }
         return children, aux
 
@@ -676,6 +682,8 @@ class EdgeList:
             tau_storage=aux.get("tau_storage", "per_edge"),
             delay_storage=aux.get("delay_storage", "per_edge"),
             uniform_delay_steps=int(aux.get("uniform_delay_steps", 0)),
+            receptor_index_storage=aux.get("receptor_index_storage", "per_edge_int32"),
+            mechanism_tau_table=aux.get("mechanism_tau_table"),
         )
 
     def to_dict(self) -> dict:
@@ -769,17 +777,31 @@ def sign_only_tau_inh_ms() -> float:
     return 5.0
 
 
+def resolve_receptor_index(edges: EdgeList) -> jax.Array:
+    """Return per-edge receptor indices as int32 regardless of storage width."""
+    return edges.receptor_index.astype(jnp.int32)
+
+
 def resolve_edge_tau_ms(edges: EdgeList, jdtype: Any) -> jax.Array:
     """Materialize per-edge ``tau_ms`` for kernel consumption."""
     if edges.tau_storage == "sign_from_receptor":
         exc = jnp.asarray(sign_only_tau_exc_ms(), dtype=jdtype)
         inh = jnp.asarray(sign_only_tau_inh_ms(), dtype=jdtype)
-        ri = edges.receptor_index.astype(jnp.int32)
+        ri = resolve_receptor_index(edges)
         return jnp.where(ri == 0, exc, inh).astype(jdtype)
+    if edges.tau_storage == "from_mechanism_table":
+        table = edges.mechanism_tau_table
+        if table is None:
+            raise ValueError(
+                "edge_list.tau_storage='from_mechanism_table' requires "
+                "mechanism_tau_table to be set"
+            )
+        ri = resolve_receptor_index(edges)
+        return jnp.take(jnp.asarray(table, dtype=jdtype), ri).astype(jdtype)
     if int(edges.tau_ms.shape[0]) != int(edges.n_edges):
         raise ValueError(
             f"edge_list.tau_ms has shape {edges.tau_ms.shape}, expected "
-            f"({edges.n_edges},) or tau_storage='sign_from_receptor'"
+            f"({edges.n_edges},) or a derivable tau_storage mode"
         )
     return edges.tau_ms.astype(jdtype)
 
@@ -3476,7 +3498,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     tau_syn_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_syn_ms)
     n_neurons = params.v0.shape[0]
-    exc_mask = (edges.receptor_index.astype(jnp.int32) == 0)
+    exc_mask = (resolve_receptor_index(edges) == 0)
 
     if isinstance(h_state_dim, bool) or not isinstance(h_state_dim, (int, np.integer)):
         raise ValueError("h_state_dim must be a positive integer")
@@ -4357,7 +4379,7 @@ def simulate_receptor_exponential_izhikevich(
     post = edges.post.astype(jnp.int32)
     weight = edges.weight.astype(jdtype)
     tau_per_edge = jnp.maximum(
-        _edge_tau_from_receptor_index(edges.receptor_index, dtype=dtype),
+        _edge_tau_from_receptor_index(resolve_receptor_index(edges), dtype=dtype),
         jnp.asarray(1e-6, dtype=jdtype),
     )
     decay = jnp.exp(-dt / tau_per_edge)

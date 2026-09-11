@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import jax.numpy as jnp
 import numpy as np
 import pytest
 
@@ -13,7 +14,11 @@ from jaxfne._edge_class_storage import (
 )
 from jaxfne._model import Model
 from jaxfne.core import _SPARSE_DIRECT_N
-from jaxfne.emitters import resolve_edge_delay_steps, resolve_edge_tau_ms
+from jaxfne.emitters import (
+    resolve_edge_delay_steps,
+    resolve_edge_tau_ms,
+    resolve_receptor_index,
+)
 from scripts.perf.w10_allocation_map import build_config, total_bytes, walk_arrays
 
 
@@ -31,9 +36,11 @@ def test_construct_compacts_sign_tau_and_uniform_zero_delay():
     assert el.delay_storage == "uniform_zero"
     assert tuple(np.asarray(el.tau_ms).shape) == (0,)
     assert tuple(np.asarray(el.delay_steps).shape) == (0,)
+    assert el.receptor_index_storage == "per_edge_uint8"
     audit = model.static["edge_storage_audit"]
     assert audit["tau_sign_table_compatible"] is True
     assert audit["delay_uniform_zero"] is True
+    assert audit["receptor_index_storage"] == "per_edge_uint8"
 
 
 def test_compact_storage_bit_exact_observables():
@@ -56,6 +63,96 @@ def test_compact_storage_bit_exact_observables():
     ))
 
 
+def test_receptor_index_uint8_resolves_bit_exactly():
+    _, model = _bounded_model()
+    el = model.params["edge_list"]
+    assert str(el.receptor_index.dtype) == "uint8"
+    ri = np.asarray(resolve_receptor_index(el))
+    assert ri.dtype == np.int32
+    assert set(np.unique(ri).tolist()) <= {0, 1}
+    rows = model.edge_table()
+    assert {r["receptor_index"] for r in rows} <= {0, 1}
+
+
+def _rule_only_cfg(*, mechanisms, connections, n=24, seed=0):
+    cfg = (
+        jtfne.Configuration()
+        .runtime(seed=seed, dtype="float32", duration_ms=30.0, dt_ms=0.5)
+        .column(name="c", layers=["L4"], n=n)
+        .cell_types({"E": 0.5, "PV": 0.5})
+        .connectivity(p_connect=0.0)
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes"])
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+    )
+    for m in mechanisms:
+        cfg = cfg.mechanisms(**m)
+    for c in connections:
+        cfg = cfg.connections(**c)
+    return cfg
+
+
+def test_mechanism_table_tau_not_sign_map_when_tau_differs():
+    """Custom declared tau must use mechanism table, not the 2/5 ms sign map."""
+    cfg = _rule_only_cfg(
+        mechanisms=[{"name": "slow_exc", "kind": "custom", "params": {"tau_ms": 7.0}}],
+        connections=[{
+            "name": "rec", "source": {}, "target": {}, "mechanism": "slow_exc",
+            "weight": 0.03, "max_in_degree": 10, "spatial_sigma": 0.1,
+        }],
+    )
+    model = jtfne.construct(cfg)
+    el = model.params["edge_list"]
+    assert el.tau_storage == "from_mechanism_table"
+    assert el.tau_storage != "sign_from_receptor"
+    tau = np.asarray(resolve_edge_tau_ms(el, el.weight.dtype))
+    assert set(np.unique(tau).tolist()) == {7.0}
+
+
+def test_heterogeneous_mechanisms_use_declared_table():
+    cfg = _rule_only_cfg(
+        mechanisms=[
+            {"name": "nmda_exc", "kind": "NMDA", "params": {"tau_ms": 100.0}},
+            {"name": "gabaa_legacy", "kind": "GABA_A", "params": {"tau_ms": 5.0}},
+        ],
+        connections=[
+            {
+                "name": "e_to_i", "source": {"cell_type": "E"}, "target": {"cell_type": "PV"},
+                "mechanism": "nmda_exc", "weight": 0.03, "max_in_degree": 8,
+                "spatial_sigma": 0.1,
+            },
+            {
+                "name": "i_to_e", "source": {"cell_type": "PV"}, "target": {"cell_type": "E"},
+                "mechanism": "gabaa_legacy", "weight": 0.03, "max_in_degree": 8,
+                "spatial_sigma": 0.1,
+            },
+        ],
+    )
+    model = jtfne.construct(cfg)
+    el = model.params["edge_list"]
+    assert el.tau_storage == "from_mechanism_table"
+    tau = np.asarray(resolve_edge_tau_ms(el, el.weight.dtype))
+    assert 100.0 in np.unique(tau)
+    assert 5.0 in np.unique(tau)
+
+
+def test_adversarial_receptor_out_of_table_blocks_mechanism_tau_compact():
+    from jaxfne._edge_class_storage import try_compact_edge_list_class_storage
+
+    el = jtfne.emitters.EdgeList(
+        pre=jnp.asarray([0], dtype=jnp.int32),
+        post=jnp.asarray([1], dtype=jnp.int32),
+        weight=jnp.asarray([0.1], dtype=jnp.float32),
+        receptor_index=jnp.asarray([3], dtype=jnp.int32),
+        tau_ms=jnp.asarray([2.0], dtype=jnp.float32),
+    )
+    table = np.asarray([2.0, 5.0], dtype=np.float64)
+    compacted = try_compact_edge_list_class_storage(
+        el, declared_mechanism_tau_table=table
+    )
+    assert compacted.tau_storage == "per_edge"
+
+
 def test_class_compaction_reduces_persistent_tau_and_delay_bytes():
     cfg = build_config(
         n=1000, p_connect=0.0, max_in_degree=100, duration_ms=10.0, dt_ms=0.5, seed=1
@@ -64,11 +161,12 @@ def test_class_compaction_reduces_persistent_tau_and_delay_bytes():
     nbytes = {
         path.split(".")[-1]: int(np.asarray(arr).nbytes)
         for path, arr in walk_arrays(model)
-        if "edge_list" in path and path.endswith(("tau_ms", "delay_steps"))
+        if "edge_list" in path and path.endswith(("tau_ms", "delay_steps", "receptor_index"))
     }
     assert nbytes.get("tau_ms", 0) == 0
     assert nbytes.get("delay_steps", 0) == 0
-    assert total_bytes(model) < 2_500_000
+    assert nbytes.get("receptor_index", 0) == 100_000
+    assert total_bytes(model) < 1_800_000
 
 
 def test_checkpoint_round_trip_preserves_class_storage(tmp_path):

@@ -33,7 +33,10 @@ def _declared_rule_tau(model):
     """tau_ms values restricted to the declared-rule edges is hard to isolate
     cleanly post-concat with the base recurrent edges, so tests instead check
     set-membership/presence rather than exact equality of the full array."""
-    return np.asarray(model.params["edge_list"].tau_ms)
+    from jaxfne.emitters import resolve_edge_tau_ms
+
+    el = model.params["edge_list"]
+    return np.asarray(resolve_edge_tau_ms(el, el.weight.dtype))
 
 
 def test_mechanism_aware_path_matches_legacy_when_tau_mirrors_default():
@@ -62,9 +65,11 @@ def test_mechanism_aware_path_matches_legacy_when_tau_mirrors_default():
 
     assert el_mech.n_edges == el_legacy.n_edges
 
+    from jaxfne.emitters import resolve_edge_tau_ms
+
     def sorted_triples(el):
-        pre, post, w, tau = (np.asarray(el.pre), np.asarray(el.post),
-                              np.asarray(el.weight), np.asarray(el.tau_ms))
+        pre, post, w = np.asarray(el.pre), np.asarray(el.post), np.asarray(el.weight)
+        tau = np.asarray(resolve_edge_tau_ms(el, el.weight.dtype))
         order = np.lexsort((post, pre))
         return pre[order], post[order], w[order], tau[order]
 
@@ -104,8 +109,10 @@ def test_mechanism_aware_path_applies_sign_correctly_to_inhibitory_edges():
     )
     model = jtfne.construct(cfg)
     el = model.params["edge_list"]
+    from jaxfne.emitters import resolve_edge_tau_ms
+
     weight = np.asarray(el.weight)
-    tau = np.asarray(el.tau_ms)
+    tau = np.asarray(resolve_edge_tau_ms(el, el.weight.dtype))
     # isolate the declared-rule edges by their distinctive tau=5.0 AND require
     # at least one such edge to have a negative weight (inhibitory).
     declared_mask = tau == 5.0

@@ -30,6 +30,8 @@ _EDGE_META_PERSISTED = {
     "tau_storage",
     "delay_storage",
     "uniform_delay_steps",
+    "receptor_index_storage",
+    "mechanism_tau_table",
 }
 
 

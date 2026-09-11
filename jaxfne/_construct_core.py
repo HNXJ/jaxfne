@@ -998,9 +998,16 @@ def _construct_from_configuration(cfg: Configuration, *, geometry: "LaminarSourc
     network = replace(network, params=emitter_params)
 
     cfg, edge_list = _construct_compile_connections(cfg, network, n, geometry_meta, net, edge_list, positions=positions)
-    from ._edge_class_storage import audit_edge_list_storage, try_compact_edge_list_class_storage
+    from ._edge_class_storage import (
+        audit_edge_list_storage,
+        build_declared_mechanism_tau_table,
+        try_compact_edge_list_class_storage,
+    )
 
-    edge_list = try_compact_edge_list_class_storage(edge_list)
+    _declared_mech_tau = build_declared_mechanism_tau_table(cfg.metadata)
+    edge_list = try_compact_edge_list_class_storage(
+        edge_list, declared_mechanism_tau_table=_declared_mech_tau
+    )
     static = _construct_build_static(cfg, geometry_meta)
     static["edge_storage_audit"] = audit_edge_list_storage(edge_list)
     _placeholder_w = is_placeholder_dense_W(network.params.W, network.params.n_neurons)

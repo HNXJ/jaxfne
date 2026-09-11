@@ -648,7 +648,9 @@ class Model:
         pre_arr = [int(x) for x in np.asarray(el.pre)]
         post_arr = [int(x) for x in np.asarray(el.post)]
         w_arr = [float(x) for x in np.asarray(el.weight)]
-        rec_arr = [int(x) for x in np.asarray(el.receptor_index)] if el.receptor_index is not None else [0] * len(pre_arr)
+        from .emitters import resolve_receptor_index
+
+        rec_arr = [int(x) for x in np.asarray(resolve_receptor_index(el))]
         from .emitters import resolve_edge_delay_steps, resolve_edge_tau_ms
 
         tau_arr = [float(x) for x in np.asarray(resolve_edge_tau_ms(el, el.weight.dtype))]
@@ -743,6 +745,12 @@ class Model:
             "edge_tau_storage": edge_list.tau_storage,
             "edge_delay_storage": edge_list.delay_storage,
             "edge_uniform_delay_steps": int(edge_list.uniform_delay_steps),
+            "edge_receptor_index_storage": edge_list.receptor_index_storage,
+            "edge_mechanism_tau_table": (
+                [float(x) for x in np.asarray(edge_list.mechanism_tau_table)]
+                if edge_list.mechanism_tau_table is not None
+                else None
+            ),
             "static": json_safe(self.static),
             "cfg_metadata": json_safe(self.cfg.metadata),
         }
@@ -789,6 +797,12 @@ class Model:
                 tau_storage=meta.get("edge_tau_storage", "per_edge"),
                 delay_storage=meta.get("edge_delay_storage", "per_edge"),
                 uniform_delay_steps=int(meta.get("edge_uniform_delay_steps", 0)),
+                receptor_index_storage=meta.get("edge_receptor_index_storage", "per_edge_int32"),
+                mechanism_tau_table=(
+                    jnp.asarray(meta["edge_mechanism_tau_table"], dtype=jnp.float32)
+                    if meta.get("edge_mechanism_tau_table") is not None
+                    else None
+                ),
             )
             positions = jnp.array(z["positions"])
         params = {"emitter": emitter, "positions": positions, "edge_list": edge_list}

@@ -57,6 +57,40 @@ materialization at execution, not dual persistent storage).
 
 Cumulative vs pre-REP-01 baseline (~6.4 MB M_persistent, 4 MB M_W): **~74% persistent reduction**.
 
+## Fourth increment — receptor_index uint8 + declared mechanism tau table
+
+### `receptor_index` consumer audit (pre-change)
+
+| Consumer class | Locations | Requires per-edge index |
+| --- | --- | --- |
+| Dynamics kernels | `emitters.py` (`resolve_receptor_index` now) | yes, gathered at execution |
+| Inspect / `edge_table` | `_model.py` | yes, via `resolve_receptor_index` |
+| Checkpoint | `_model.py` | yes, uint8 lossless in npz |
+| Tune | `_model_tune.py` (`EdgeParameterSpec`) | yes |
+| W10 perturb | `w10_allocation_map.py` | yes |
+| Vis | `column_viewer.py`, `visualize.py` | yes (host numpy) |
+| Protocol E/HDP tests | assorted | yes |
+
+Compaction: **uint8** when realized classes ⊆ [0, 255] (lossless); no removal of per-edge indices.
+
+### Mechanism tau compaction
+
+- `tau_storage="from_mechanism_table"` only when **every** edge's tau equals
+  `declared_mechanism_tau_table[receptor_index]` (table from circuit metadata, not
+  `standard_receptor_specs`).
+- Qualified `sign_from_receptor` (2/5 ms) takes precedence when both match.
+- Mixed base-recurrence + rule edges fall back to `per_edge` tau (cannot derive a single table).
+
+### W8 after uint8 + mechanism compaction (N=1000, K=100)
+
+| Metric | Third increment | Fourth |
+| --- | --- | --- |
+| M_edge | 1,600,000 B | **1,300,000 B** |
+| M_persistent | 1,644,004 B | **1,344,004 B** |
+| receptor_index | int32 400 KB | **uint8 100 KB** |
+
+Cumulative vs pre-REP-01 baseline: **~79% persistent reduction** (6.4 MB → 1.34 MB).
+
 ### p_connect path gates (tested, not optimized across)
 
 | Path | Equivalence | Action |
