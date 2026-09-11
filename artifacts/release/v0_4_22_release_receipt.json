@@ -1,7 +1,7 @@
 {
   "schema": "jaxfne.release_receipt.v4",
   "version": "0.4.22",
-  "status": "CANDIDATE_RC_CI_VERIFIED",
+  "status": "SEAL_GO",
   "write_once": true,
   "supersedes": null,
   "programme": "v0.4.22 truth and measurement floor (ROADMAP_0422_0424 §3)",
@@ -18,6 +18,10 @@
   "acceptance_goal_count": 5,
   "gate0_authorities_file": "artifacts/release/current_release_authorities.json",
   "gate0_release_path": "RELEASE-mode Gate 0 validates package version match against current_release_authorities.json.",
-  "reconcile_notes": "release_candidate_receipt_valid=true; release_target_reconciled awaits origin/main == release_candidate (pre-merge).",
-  "notes": "RC PASS + release_ci PASS + junit parity PASS @ d849e6d. Tag and publication require 22-SEAL-01 authorization."
+  "seal_verdict": "SEAL_GO",
+  "seal_scorecard": "artifacts/private_acceptance/jaxfne_v0_4_22_seal_scorecard.md",
+  "seal_timestamp_utc": "2026-09-11T01:15:00+00:00",
+  "dev_bookkeeping_tip_sha": "00df47066439a48ba007a45260c2fb1e9ebce1d4",
+  "reconcile_notes": "release_candidate_receipt_valid=true; release_target_reconciled=false until origin/main==d849e6d (FF authorized at 22-SEAL-01).",
+  "notes": "Independent seal SEAL_GO @ d849e6d (22-SEAL-01). RC+CI+junit parity evidence anchored to release_candidate, not dev bookkeeping tip. Tag and publication require 22-PUB-* authorization."
 }

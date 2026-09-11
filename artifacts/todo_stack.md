@@ -9,8 +9,7 @@ Integration baseline: `2338b00` (RC + CI PASS). Published `v0.4.21` @ `8823520` 
 
 # v0.4.22
 
-- **22-SEAL-01** — independent release seal (requires explicit authorization to publish)
-- 22-PUB-01 — tag `v0.4.22` @ sealed candidate (requires explicit authorization)
+- **22-PUB-01** — tag `v0.4.22` @ sealed candidate `d849e6d` (requires explicit authorization)
 - 22-PUB-02 — GitHub release; retained CI artifact bytes + manifest
 - 22-PUB-03 — PyPI publish from retained bytes (requires explicit authorization)
 - 22-PUB-04 — RTD / deployed docs SHA matches tag
