@@ -11,6 +11,10 @@
     "tag": "v0.4.21",
     "commit_sha": "88235208950425ce76723115f1cb61fe3a828ab2"
   },
+  "tag": "v0.4.22",
+  "tag_object_sha": "85c6589ad98fc92eed83fc45286a48c3bfb9b72f",
+  "tag_peeled_sha": "d849e6d91b72ce1ca2b736c03bdec8c1d89f55c0",
+  "tag_timestamp_utc": "2026-09-11T01:25:00+00:00",
   "release_candidate": "d849e6d91b72ce1ca2b736c03bdec8c1d89f55c0",
   "candidate_attestation_sha": "d849e6d91b72ce1ca2b736c03bdec8c1d89f55c0",
   "ci_release_run_id": 34536095797,
@@ -22,6 +26,6 @@
   "seal_scorecard": "artifacts/private_acceptance/jaxfne_v0_4_22_seal_scorecard.md",
   "seal_timestamp_utc": "2026-09-11T01:15:00+00:00",
   "dev_bookkeeping_tip_sha": "00df47066439a48ba007a45260c2fb1e9ebce1d4",
-  "reconcile_notes": "release_candidate_receipt_valid=true; release_target_reconciled=false until origin/main==d849e6d (FF authorized at 22-SEAL-01).",
-  "notes": "Independent seal SEAL_GO @ d849e6d (22-SEAL-01). RC+CI+junit parity evidence anchored to release_candidate, not dev bookkeeping tip. Tag and publication require 22-PUB-* authorization."
+  "reconcile_notes": "release_target_reconciled=true; peel(v0.4.22)=d849e6d; origin/main=d849e6d.",
+  "notes": "Tag v0.4.22 @ d849e6d (22-PUB-01). GitHub release, PyPI, and RTD require 22-PUB-02..04 authorization."
 }
