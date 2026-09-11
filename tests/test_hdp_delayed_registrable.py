@@ -183,6 +183,29 @@ def test_jit_deterministic_replay_delayed():
     assert np.array_equal(np.asarray(f()), np.asarray(f()))
 
 
+def test_model_continuation_delayed_registered_noisy():
+    """23-STOCH-01: delay + registered-HDP + stochastic continuation composes."""
+    cfg = jtfne.suite2_net1_config(seed=1, n=4, duration_ms=20.0, dt_ms=1.0).runtime(
+        enable_hdp=True, recurrent_backend="edge_list",
+        hdp_params={"hdp_rule": "synthetic_presyn_gain",
+                    "hdp_rule_params": {"k_h": 0.05, "k_w": 0.04, "gamma": 0.0},
+                    "noise_scale": 0.5})
+    model = jtfne.construct(cfg)
+    edges = model.params["edge_list"]
+    ds = jnp.full((edges.n_edges,), 3, dtype=jnp.int32)
+    object.__setattr__(model, "params", {**model.params, "edge_list": replace(edges, delay_steps=ds, delay_storage="per_edge")})
+    rt = jtfne.RuntimeConfig(recurrent_backend="edge_list", enable_hdp=True,
+                             hdp_params={"hdp_rule": "synthetic_presyn_gain",
+                                         "hdp_rule_params": {"k_h": 0.05, "k_w": 0.04, "gamma": 0.0},
+                                         "noise_scale": 0.5})
+    s_full, _ = jtfne.simulate(model, jtfne.simulation(duration_ms=20.0, dt_ms=1.0, seed=5, runtime=rt), return_state=True)
+    s1, st1 = jtfne.simulate(model, jtfne.simulation(duration_ms=10.0, dt_ms=1.0, seed=5, runtime=rt), return_state=True)
+    assert st1.delay_state is not None
+    s2, _ = jtfne.simulate(model, jtfne.simulation(duration_ms=10.0, dt_ms=1.0, seed=99, runtime=rt), continuation=st1, return_state=True)
+    assert jnp.array_equal(jnp.concatenate([s1.V_m, s2.V_m]), s_full.V_m)
+    assert jnp.array_equal(jnp.concatenate([s1.spikes, s2.spikes]), s_full.spikes)
+
+
 def test_model_continuation_delayed_registered():
     cfg = jtfne.suite2_net1_config(seed=1, n=4, duration_ms=20.0, dt_ms=1.0).runtime(
         enable_hdp=True, recurrent_backend="edge_list",
