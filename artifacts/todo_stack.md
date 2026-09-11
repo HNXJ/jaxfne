@@ -29,7 +29,7 @@ Entry: v0.4.22 shipped; W3/W7 classifications hold zero `UNKNOWN`; W8 baseline c
 - 23-VERIFY-01 — full 0.4.23 RC + CI + seal + publish chain
 - 23-STACK-01 — review and rewrite this file from sealed v0.4.23 before v0.4.24 work
 
-**Ordered dependency (HDP / downstream):** compatibility repair → downstream migration qualification (within COMPAT-JOM-01 acceptance) → HDP audit/extension → generic HDP qualification → downstream Jomission qualification.
+**Ordered dependencies (remaining):** 23-DELAY-01 (delayed registrable HDP) before 23-SIMP-05 and full LAW-01 exercise; 23-SIMP-05 after delayed semantics fixed; REP-03 gate retains `_SPARSE_DIRECT_N=5000` until bit-exact equivalence (`artifacts/fact_stack.md`). Jomission downstream migration remains **unverified** post-COMPAT-JOM-01.
 
 ---
 
