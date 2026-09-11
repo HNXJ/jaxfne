@@ -721,6 +721,14 @@ class EdgeList:
             "receptor_index_arr": self.receptor_index,
             "tau_ms": self.tau_ms,
             "delay_steps": self.delay_steps,
+            "tau_storage": self.tau_storage,
+            "delay_storage": self.delay_storage,
+            "uniform_delay_steps": int(self.uniform_delay_steps),
+            "receptor_index_storage": self.receptor_index_storage,
+            "mechanism_tau_table": self.mechanism_tau_table,
+            "weight_storage": self.weight_storage,
+            "weight_magnitude": self.weight_magnitude,
+            "mechanism_weight_magnitude_table": self.mechanism_weight_magnitude_table,
             "array_dtypes": {
                 "pre": str(self.pre.dtype),
                 "post": str(self.post.dtype),
@@ -764,14 +772,46 @@ class EdgeList:
         tau_ms = _arr("tau_ms")
         delay_steps = _arr("delay_steps")
         n = int(d["n_edges"])
+        tau_storage = str(d.get("tau_storage", "per_edge"))
+        delay_storage = str(d.get("delay_storage", "per_edge"))
+        weight_storage = str(d.get("weight_storage", "per_edge"))
+        receptor_index_storage = str(
+            d.get("receptor_index_storage", "per_edge_int32")
+        )
+        expected = {
+            "pre": n,
+            "post": n,
+            "receptor_index": n,
+            "weight": n if weight_storage == "per_edge" else 0,
+            "tau_ms": n if tau_storage == "per_edge" else 0,
+            "delay_steps": (
+                n
+                if delay_storage == "per_edge"
+                else 0
+            ),
+        }
         for name, arr in (("pre", pre), ("post", post), ("weight", weight),
                           ("receptor_index", receptor_index), ("tau_ms", tau_ms),
                           ("delay_steps", delay_steps)):
-            if int(arr.shape[0]) != n:
+            exp_len = expected[name]
+            if int(arr.shape[0]) != exp_len:
                 raise ValueError(
                     f"EdgeList payload length mismatch: {name} has {arr.shape[0]} "
-                    f"rows, n_edges={n}"
+                    f"rows, expected {exp_len} for n_edges={n} "
+                    f"(tau_storage={tau_storage!r}, delay_storage={delay_storage!r}, "
+                    f"weight_storage={weight_storage!r})"
                 )
+        mechanism_tau_table = d.get("mechanism_tau_table")
+        if mechanism_tau_table is not None:
+            mechanism_tau_table = jnp.asarray(mechanism_tau_table)
+        weight_magnitude = d.get("weight_magnitude")
+        if weight_magnitude is not None:
+            weight_magnitude = jnp.asarray(weight_magnitude)
+        mechanism_weight_magnitude_table = d.get("mechanism_weight_magnitude_table")
+        if mechanism_weight_magnitude_table is not None:
+            mechanism_weight_magnitude_table = jnp.asarray(
+                mechanism_weight_magnitude_table
+            )
         return cls(
             pre,
             post,
@@ -780,6 +820,14 @@ class EdgeList:
             tau_ms,
             d.get("source_calibration_status", "uncalibrated_izhikevich_native_current"),
             delay_steps.astype(jnp.int32),
+            tau_storage=tau_storage,
+            delay_storage=delay_storage,
+            uniform_delay_steps=int(d.get("uniform_delay_steps", 0)),
+            receptor_index_storage=receptor_index_storage,
+            mechanism_tau_table=mechanism_tau_table,
+            weight_storage=weight_storage,
+            weight_magnitude=weight_magnitude,
+            mechanism_weight_magnitude_table=mechanism_weight_magnitude_table,
         )
 
 
@@ -974,9 +1022,71 @@ def make_edge_list_from_dense(
     )
 
 
+def _edge_delay_steps_numpy(edges: EdgeList) -> np.ndarray | None:
+    """Return concrete host delay steps, or ``None`` when JAX arrays are traced."""
+    ds = resolve_edge_delay_steps(edges)
+    try:
+        return np.asarray(jax.device_get(ds), dtype=np.int32)
+    except (jax.errors.TracerArrayConversionError, TypeError, ValueError):
+        return None
+
+
 def _edge_delay_steps_host(edges: EdgeList) -> np.ndarray:
-    """Host-side delay_steps array for dispatch before JIT."""
-    return np.asarray(resolve_edge_delay_steps(edges), dtype=np.int32)
+    """Host-side delay_steps array for eager dispatch before JIT."""
+    host = _edge_delay_steps_numpy(edges)
+    if host is None:
+        raise jax.errors.TracerArrayConversionError(
+            "_edge_delay_steps_host requires concrete edges; use delay_storage "
+            "metadata or resolve_edge_delay_steps under JAX"
+        )
+    return host
+
+
+def _edge_delays_any_positive(edges: EdgeList) -> bool:
+    """True when any edge carries a positive delay (JIT-safe for compact storage)."""
+    if edges.delay_storage == "uniform_zero":
+        return False
+    if edges.delay_storage == "uniform":
+        return int(edges.uniform_delay_steps) > 0
+    host = _edge_delay_steps_numpy(edges)
+    if host is not None:
+        return bool(np.any(host > 0))
+    return edges.delay_storage == "per_edge"
+
+
+def _edge_delays_all_zero(edges: EdgeList) -> bool:
+    """True when every edge delay is zero (JIT-safe for compact storage)."""
+    if edges.delay_storage == "uniform_zero":
+        return True
+    if edges.delay_storage == "uniform":
+        return int(edges.uniform_delay_steps) == 0
+    host = _edge_delay_steps_numpy(edges)
+    if host is not None:
+        return not bool(np.any(host != 0))
+    return False
+
+
+def _edge_max_delay_steps(edges: EdgeList) -> int:
+    """Maximum per-edge delay in simulation steps."""
+    if edges.delay_storage == "uniform_zero":
+        return 0
+    if edges.delay_storage == "uniform":
+        return max(0, int(edges.uniform_delay_steps))
+    host = _edge_delay_steps_numpy(edges)
+    if host is not None:
+        return int(np.max(host)) if host.size else 0
+    raise ValueError(
+        "cannot resolve max edge delay under JAX trace without delay_storage "
+        "metadata; set delay_storage to uniform/uniform_zero or pass concrete "
+        "delay_steps before tracing"
+    )
+
+
+def _validate_edge_delays_nonnegative_eager(edges: EdgeList) -> None:
+    """Reject negative delays when edge arrays are concrete (no-op under JAX trace)."""
+    host = _edge_delay_steps_numpy(edges)
+    if host is not None and host.size and int(host.min()) < 0:
+        raise ValueError("edge delay_steps must be >= 0")
 
 
 def _delayed_presynaptic_spikes(
@@ -1048,10 +1158,9 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
     delay_steps = resolve_edge_delay_steps(edges)
-    if int(np.min(_edge_delay_steps_host(edges))) < 0:
-        raise ValueError("edge delay_steps must be >= 0")
+    _validate_edge_delays_nonnegative_eager(edges)
     n_neurons = params.v0.shape[0]
-    max_delay = int(np.max(_edge_delay_steps_host(edges)))
+    max_delay = _edge_max_delay_steps(edges)
     bufsize = max_delay + 1
 
     if silence_mask is not None:
@@ -1316,10 +1425,8 @@ def simulate_edge_recurrent_izhikevich(
     ``delay_state`` (legacy alias ``spike_history``).
     """
 
-    delay_host = _edge_delay_steps_host(edges)
-    if np.any(delay_host < 0):
-        raise ValueError("edge delay_steps must be >= 0")
-    if np.any(delay_host > 0):
+    _validate_edge_delays_nonnegative_eager(edges)
+    if _edge_delays_any_positive(edges):
         return _simulate_edge_recurrent_izhikevich_delayed(
             params,
             edges,
@@ -1517,8 +1624,7 @@ def simulate_edge_recurrent_izhikevich_static_h_k_recovery(
     with ``noise_scale`` matched). Nonzero edge delays are rejected — use the
     classical delay kernel without RBS for delay studies.
     """
-    delay_host = _edge_delay_steps_host(edges)
-    if np.any(delay_host > 0):
+    if _edge_delays_any_positive(edges):
         raise ValueError(
             "static H_K recovery kernel requires zero edge delays; "
             "use simulate_edge_recurrent_izhikevich for delayed recurrence"
@@ -1695,8 +1801,7 @@ def simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery(
     if tau_k_ms <= 0:
         raise ValueError("tau_k_ms must be > 0")
 
-    delay_host = _edge_delay_steps_host(edges)
-    if np.any(delay_host > 0):
+    if _edge_delays_any_positive(edges):
         raise ValueError(
             "dynamic H_K recovery kernel requires zero edge delays"
         )
@@ -1916,8 +2021,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
     tau_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
     decay = jnp.exp(-dt / tau_ms)
     delay_steps = resolve_edge_delay_steps(edges)
-    delay_host = _edge_delay_steps_host(edges)
-    max_delay = int(np.max(delay_host)) if delay_host.size else 0
+    max_delay = _edge_max_delay_steps(edges)
     bufsize = max_delay + 1
 
     if silence_mask is not None:
@@ -2145,8 +2249,7 @@ def simulate_edge_recurrent_izhikevich_activity_h_k_rbd(
     if tau_a_ms <= 0 or tau_k_ms <= 0:
         raise ValueError("tau_a_ms and tau_k_ms must be > 0")
 
-    delay_host = _edge_delay_steps_host(edges)
-    if np.any(delay_host > 0):
+    if _edge_delays_any_positive(edges):
         raise ValueError("activity H_K RBD kernel requires zero edge delays")
 
     jdtype = _dtype_from_policy(dtype)
@@ -2556,9 +2659,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
     if i_ref <= 0:
         raise ValueError("i_ref must be > 0")
 
-    delay_host = _edge_delay_steps_host(edges)
-    if np.any(delay_host < 0):
-        raise ValueError("edge delay_steps must be >= 0")
+    _validate_edge_delays_nonnegative_eager(edges)
 
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
@@ -2606,10 +2707,10 @@ def simulate_edge_recurrent_izhikevich_rbd(
         noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype
     )
 
-    use_delays = bool(np.any(delay_host > 0))
+    use_delays = _edge_delays_any_positive(edges)
     if use_delays:
         delay_steps = resolve_edge_delay_steps(edges)
-        max_delay = int(np.max(delay_host))
+        max_delay = _edge_max_delay_steps(edges)
         bufsize = max_delay + 1
         time_step_offset = _rbd_continuation_step_offset(init_state)
         if init_state is not None and "v" in init_state:
@@ -3736,12 +3837,10 @@ def simulate_edge_recurrent_izhikevich_hdp(
         (float(np.asarray(K_HDP).sum()) != 0.0)
         or (float(np.asarray(K_w_ctrl).sum()) != 0.0)
     )
-    delay_host = _edge_delay_steps_host(edges)
-    if np.any(delay_host < 0):
-        raise ValueError("edge delay_steps must be >= 0")
-    has_nonzero_delay = bool(np.any(delay_host > 0))
+    _validate_edge_delays_nonnegative_eager(edges)
+    has_nonzero_delay = _edge_delays_any_positive(edges)
     if has_nonzero_delay:
-        max_delay = int(np.max(delay_host))
+        max_delay = _edge_max_delay_steps(edges)
         bufsize = max_delay + 1
         delay_steps_arr = resolve_edge_delay_steps(edges)
         time_step_offset = _rbd_continuation_step_offset_array(init_state)
@@ -4446,10 +4545,8 @@ def simulate_receptor_exponential_izhikevich(
     select ``simulate_edge_recurrent_izhikevich`` instead.
     """
 
-    delay_host = _edge_delay_steps_host(edges)
-    if np.any(delay_host < 0):
-        raise ValueError("edge delay_steps must be >= 0")
-    if np.any(delay_host != 0):
+    _validate_edge_delays_nonnegative_eager(edges)
+    if not _edge_delays_all_zero(edges):
         raise ValueError(
             "receptor_exponential synaptic_kernel has no finite-delay path; "
             "edges.delay_steps must be all zero (use the default exponential "
