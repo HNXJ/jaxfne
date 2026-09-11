@@ -109,6 +109,37 @@ def test_mechanism_table_tau_not_sign_map_when_tau_differs():
     assert set(np.unique(tau).tolist()) == {7.0}
 
 
+def test_mixed_base_recurrence_and_rules_fall_back_to_per_edge_tau():
+    """Base laminar recurrence (sign 2/5 ms) + rule edges (declared tau) cannot share one table."""
+    cfg = (
+        jtfne.Configuration()
+        .runtime(seed=0, dtype="float32", duration_ms=20.0, dt_ms=0.5)
+        .column(name="c", layers=["L2/3", "L4"], n=40)
+        .cell_types({"E": 0.75, "PV": 0.25})
+        .connectivity(kind="laminar_signed_metadata", recurrent=True)
+        .set_emitter("izhikevich", "cortical_eig")
+        .mechanisms(name="slow_exc", kind="custom", params={"tau_ms": 7.0})
+        .connections(
+            name="cross_layer",
+            source={"layer": "L2/3", "cell_type": "E"},
+            target={"layer": "L4", "cell_type": "PV"},
+            mechanism="slow_exc",
+            weight=0.03,
+            max_in_degree=10,
+            spatial_sigma=0.1,
+        )
+        .probes(["spikes"])
+    )
+    model = jtfne.construct(cfg)
+    el = model.params["edge_list"]
+    assert el.tau_storage == "per_edge"
+    assert tuple(np.asarray(el.tau_ms).shape) == (el.n_edges,)
+    tau = np.asarray(resolve_edge_tau_ms(el, el.weight.dtype))
+    assert set(np.unique(tau).tolist()) == {2.0, 5.0, 7.0}
+    sig = jtfne.simulate(model, duration_ms=20.0, dt_ms=0.5, seed=1)
+    assert bool(np.isfinite(np.asarray(sig.V_m)).all())
+
+
 def test_heterogeneous_mechanisms_use_declared_table():
     cfg = _rule_only_cfg(
         mechanisms=[

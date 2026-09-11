@@ -99,8 +99,14 @@ Cumulative vs pre-REP-01 baseline: **~79% persistent reduction** (6.4 MB → 1.3
 | `0 < p_connect < 1` dense (N < `_SPARSE_DIRECT_N`) | self-consistent | no cross-path claim |
 | sparse-direct vs dense at N=5000 | **not bit-exact** | `_SPARSE_DIRECT_N` stays 5000 |
 
-## Not done (explicit)
+## Fifth increment — mixed-topology per-edge tau fallback (accepted)
 
-- `receptor_index` class index (uint8) — inspect consumer needs per-edge indices; separate gate.
-- Mechanism-table tau compaction when tau ≠ sign-only map.
-- `0 < p_connect < 1` sparse-direct path — blocked until bit-exact vs dense is proven.
+When base laminar recurrence (sign-qualified 2/5 ms map) is concatenated with
+rule edges carrying a declared mechanism tau, a single compact table cannot
+derive every edge's tau. Construct correctly retains `tau_storage="per_edge"`.
+
+Test: `tests/test_rep01_edge_class_storage.py::test_mixed_base_recurrence_and_rules_fall_back_to_per_edge_tau`.
+
+## Remaining gates (explicit)
+
+- `0 < p_connect < 1` sparse-direct path — blocked until bit-exact vs dense is proven (`_SPARSE_DIRECT_N` unchanged).
