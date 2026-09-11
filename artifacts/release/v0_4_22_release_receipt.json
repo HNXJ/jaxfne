@@ -1,7 +1,7 @@
 {
   "schema": "jaxfne.release_receipt.v4",
   "version": "0.4.22",
-  "status": "PRE_CANDIDATE_AWAITING_IDENTITY_BUMP",
+  "status": "CANDIDATE_RC_CI_VERIFIED",
   "write_once": true,
   "supersedes": null,
   "programme": "v0.4.22 truth and measurement floor (ROADMAP_0422_0424 §3)",
@@ -11,11 +11,13 @@
     "tag": "v0.4.21",
     "commit_sha": "88235208950425ce76723115f1cb61fe3a828ab2"
   },
-  "release_candidate": null,
-  "candidate_attestation_sha": null,
+  "release_candidate": "d849e6d91b72ce1ca2b736c03bdec8c1d89f55c0",
+  "candidate_attestation_sha": "d849e6d91b72ce1ca2b736c03bdec8c1d89f55c0",
+  "ci_release_run_id": 34536095797,
   "acceptance_authority": "artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md",
   "acceptance_goal_count": 5,
   "gate0_authorities_file": "artifacts/release/current_release_authorities.json",
-  "gate0_release_path": "Task 22-AUTH-02 updates current_release_authorities.json to this receipt and acceptance authority; RELEASE-mode Gate 0 then validates package version match.",
-  "notes": "Receipt chain established at integration baseline 2338b00. Candidate SHA, attestation, and tag are assigned at 22-SEAL-01 / 22-PUB-* after version identity bump and fresh RC."
+  "gate0_release_path": "RELEASE-mode Gate 0 validates package version match against current_release_authorities.json.",
+  "reconcile_notes": "release_candidate_receipt_valid=true; release_target_reconciled awaits origin/main == release_candidate (pre-merge).",
+  "notes": "RC PASS + release_ci PASS + junit parity PASS @ d849e6d. Tag and publication require 22-SEAL-01 authorization."
 }
