@@ -486,6 +486,12 @@ def compile_step_fn(
         kernel_kw = dict(hdp_kwargs)
         if use_delays:
             kernel_kw["step_indices"] = jnp.reshape(t_idx, (1,))
+        # Single owner for the weight-trace toggle on this path: hdp_kwargs
+        # wins when present, else the named default. The same value drives
+        # the kernel call and the output arity, so record_weight_trace=False
+        # neither crashes (registered diag carries w_trace=None) nor stacks
+        # silently (legacy kernel default would otherwise stay True).
+        rwt = bool(kernel_kw.get("record_weight_trace", record_weight_trace))
         if kernel == "hdp":
             from .hdp_rule import is_registered_hdp_rule
 
@@ -511,9 +517,7 @@ def compile_step_fn(
                     init_state=merged_init,
                     hdp_rule=str(kernel_kw["hdp_rule"]),
                     hdp_rule_params=kernel_kw.get("hdp_rule_params", {}),
-                    record_weight_trace=bool(
-                        kernel_kw.get("record_weight_trace", record_weight_trace)
-                    ),
+                    record_weight_trace=rwt,
                     step_indices=kernel_kw.get("step_indices"),
                 )
             else:
@@ -525,6 +529,7 @@ def compile_step_fn(
                     init_state=merged_init,
                     record_dH_components=record_dH_components,
                     record_edge_current=record_edge_current,
+                    record_weight_trace=rwt,
                     **kernel_kw,
                 )
         else:
@@ -567,11 +572,11 @@ def compile_step_fn(
         # (n_outer_steps, n_edges) weight history by default at scale).
         if kernel == "hdp":
             H_trace_t = diag["H_trace"][0]
-            w_trace_t = diag["w_trace"][0]
+            w_trace_t = diag["w_trace"][0] if rwt else state.dynamic.w
         else:
             H_trace_t = state.dynamic.H
             w_trace_t = state.dynamic.w
-        if record_weight_trace:
+        if rwt:
             outputs = (
                 diag["v"], diag["prev_spikes"], sources[0],
                 H_trace_t, w_trace_t,
@@ -707,3 +712,176 @@ def run_continuation(
         ),
         outputs,
     )
+
+
+def run_continuation_strided(
+    step_fn: "callable",
+    state: ContinuationState,
+    drive_schedule: jax.Array,
+    *,
+    stride: int,
+) -> "tuple[ContinuationState, tuple, jax.Array]":
+    """Bounded-memory decimated capture over the continuation path (23-REC-01).
+
+    Runs the schedule in segments of ``stride`` steps through
+    :func:`run_continuation` (same ``step_fn`` and carried per-step PRNG
+    sequence, so draws are identical to an uninterrupted run) and keeps the
+    final frame of each segment. Transient memory is O(stride) per segment
+    instead of O(T) for one scan.
+
+    Returns ``(final_state, kept_outputs, kept_indices)`` where
+    ``kept_outputs[j]`` equals the uninterrupted run's frame at global step
+    ``kept_indices[j]`` exactly, and ``final_state`` equals the
+    uninterrupted final state (dynamic leaves, ``prng_key``,
+    ``step_index``, ``delay_state``).
+
+    ``stride=1`` reproduces :func:`run_continuation` frames exactly but with
+    per-segment launch overhead — prefer :func:`run_continuation` then.
+    """
+    if isinstance(stride, bool) or not isinstance(stride, int) or stride < 1:
+        raise ValueError(f"stride must be a positive integer; got {stride!r}")
+    schedule = jnp.asarray(drive_schedule)
+    if schedule.ndim != 2:
+        raise ValueError(
+            "drive_schedule must have shape (n_steps, n_neurons)"
+        )
+    total = int(schedule.shape[0])
+    if total == 0:
+        raise ValueError("drive_schedule must have n_steps > 0")
+    kept_parts: list[tuple] | None = None
+    indices: list[int] = []
+    cur = state
+    for start in range(0, total, stride):
+        seg = schedule[start:start + stride]
+        cur, seg_out = run_continuation(step_fn, cur, seg)
+        frame = jax.tree_util.tree_map(lambda o: o[-1:], seg_out)
+        kept_parts = frame if kept_parts is None else jax.tree_util.tree_map(
+            lambda a, b: jnp.concatenate([a, b], axis=0), kept_parts, frame
+        )
+        indices.append(start + int(seg.shape[0]) - 1)
+    assert kept_parts is not None
+    return cur, kept_parts, jnp.asarray(indices, dtype=jnp.int32)
+
+
+def memory_report(
+    model: Model,
+    simulation: Any | None = None,
+    recorder: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Component memory preflight for one simulation run (23-REC-01, W17.2).
+
+    Pure shape/dtype arithmetic — executes nothing. Estimates persistent
+    (``model.params``), dynamic carry, delay ring, recording stacks, and
+    transient draws for ``simulation`` (defaults like :class:`Simulation`
+    when omitted) with decimation ``stride`` from ``recorder``
+    (``{"stride": k}``, default 1).
+
+    Recording model: per kept frame one T×N each of V/spikes/sources
+    (sources iff ``record_sources`` or ``record_fields``, since field
+    projection consumes kernel sources), plus H/w/aux traces iff HDP is
+    engaged (``w`` iff ``record_weight_trace``). ``"advice"`` names the
+    dominant component and the cheapest flag/stride that shrinks it.
+    Byte counts are host-side ``nbytes`` of the stacked arrays.
+    """
+    from .hdp_rule import hdp_params_are_identity
+
+    rec = dict(recorder or {})
+    stride = rec.get("stride", 1)
+    if isinstance(stride, bool) or not isinstance(stride, int) or stride < 1:
+        raise ValueError(f"recorder stride must be a positive integer; got {stride!r}")
+    if simulation is None:
+        from ._signals import Simulation as _Simulation
+
+        simulation = _Simulation()
+    n_steps = int(simulation.n_steps)
+    runtime_cfg = simulation.resolved_runtime
+    try:
+        itemsize = int(jnp.dtype(runtime_cfg.jnp_dtype).itemsize)
+    except Exception:  # noqa: BLE001 - unknown dtype policy falls back to float32
+        itemsize = 4
+
+    emitter = model.params["emitter"]
+    n_neurons = int(emitter.n_neurons)
+    edges = model.params.get("edge_list")
+    n_edges = int(edges.n_edges) if edges is not None else 0
+
+    def _leaves_bytes(tree: Any) -> int:
+        total = 0
+        for leaf in jax.tree_util.tree_leaves(tree):
+            try:
+                arr = np.asarray(leaf)
+                total += int(arr.nbytes)
+            except Exception:  # noqa: BLE001 - non-array metadata contributes 0
+                pass
+        return total
+
+    persistent = _leaves_bytes(model.params)
+    dynamic = _leaves_bytes(
+        dynamic_state_from_model(
+            model,
+            h_state_dim=int((runtime_cfg.hdp_params or {}).get("h_state_dim", 1)),
+            h_state_locality=(runtime_cfg.hdp_params or {}).get("h_state_locality"),
+            hdp_params=dict(runtime_cfg.hdp_params or {}),
+        )
+    )
+    delay = 0
+    if edges is not None and model_requires_delay_state(model):
+        _, buf_n = _delay_buffer_shape(model)
+        delay = int(_model_edge_delay_host(model).max() + 1) * int(buf_n) * itemsize
+
+    kept = (n_steps + stride - 1) // stride
+    hp = dict(runtime_cfg.hdp_params or {})
+    use_hdp = bool(getattr(runtime_cfg, "enable_hdp", False)) and not hdp_params_are_identity(hp)
+    recording: dict[str, int] = {
+        "V_m": kept * n_neurons * itemsize,
+        "spikes": kept * n_neurons * itemsize,
+    }
+    if bool(getattr(simulation, "record_sources", True)) or bool(
+        getattr(simulation, "record_fields", True)
+    ):
+        recording["sources"] = kept * n_neurons * itemsize
+    if use_hdp:
+        h_dim = int(hp.get("h_state_dim", 1))
+        recording["H_trace"] = kept * n_neurons * max(h_dim, 1) * itemsize
+        if bool(hp.get("record_weight_trace", True)):
+            recording["w_trace"] = kept * n_edges * itemsize
+    transient = {
+        "bulk_noise": n_steps * n_neurons * itemsize,
+        "drive_schedule": n_steps * n_neurons * itemsize,
+    }
+    components = {
+        "persistent": persistent,
+        "dynamic": dynamic,
+        "delay": delay,
+        **{f"recording.{k}": v for k, v in recording.items()},
+        **{f"transient.{k}": v for k, v in transient.items()},
+    }
+    recording_total = int(sum(recording.values()))
+    total = int(persistent + dynamic + delay + recording_total)
+    dominant = max(
+        (("persistent", persistent), ("dynamic", dynamic), ("delay", delay),
+         ("recording", recording_total)),
+        key=lambda kv: kv[1],
+    )[0]
+    advice = []
+    if recording_total and dominant == "recording":
+        if recording.get("w_trace"):
+            advice.append("disable record_weight_trace (largest T×E term)")
+        advice.append(f"raise recorder stride above {stride}")
+        if recording.get("sources") and not bool(getattr(simulation, "record_fields", True)):
+            advice.append("set record_sources=False when no field/readout needs sources")
+    if delay and dominant == "delay":
+        advice.append("shorten max edge delay or split the run into continued segments")
+    return {
+        "n_steps": n_steps,
+        "kept_frames": kept,
+        "stride": stride,
+        "dtype_itemsize": itemsize,
+        "n_neurons": n_neurons,
+        "n_edges": n_edges,
+        "components": components,
+        "recording_total": recording_total,
+        "total": total,
+        "dominant": dominant,
+        "advice": advice,
+    }
