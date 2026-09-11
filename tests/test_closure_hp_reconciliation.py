@@ -92,7 +92,7 @@ class TestHdpDelaySupported:
         model = jtfne.construct(cfg)
         edges = model.params["edge_list"]
         ds = jnp.full((edges.n_edges,), 10, dtype=jnp.int32)
-        new_edges = replace(edges, delay_steps=ds)
+        new_edges = replace(edges, delay_steps=ds, delay_storage="per_edge")
         object.__setattr__(model, "params", {**model.params, "edge_list": new_edges})
         sim = jtfne.simulation(
             duration_ms=50.0, dt_ms=1.0, seed=7,
@@ -120,7 +120,7 @@ class TestHdpDelaySupported:
         model = jtfne.construct(cfg)
         edges = model.params["edge_list"]
         ds = jnp.full((edges.n_edges,), 8, dtype=jnp.int32)
-        new_edges = replace(edges, delay_steps=ds)
+        new_edges = replace(edges, delay_steps=ds, delay_storage="per_edge")
         object.__setattr__(model, "params", {**model.params, "edge_list": new_edges})
         rt = jtfne.RuntimeConfig(recurrent_backend="edge_list", enable_hdp=True,
                                  hdp_params={"noise_scale": 0.0})

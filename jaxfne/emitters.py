@@ -869,13 +869,21 @@ def resolve_edge_tau_ms(edges: EdgeList, jdtype: Any) -> jax.Array:
     return edges.tau_ms.astype(jdtype)
 
 
+def _uniform_delay_value(edges: EdgeList) -> int | None:
+    """Static delay for compact modes (metadata-only, tracer-safe), else ``None``."""
+    if edges.delay_storage == "uniform_zero":
+        return 0
+    if edges.delay_storage == "uniform":
+        return int(edges.uniform_delay_steps)
+    return None
+
+
 def resolve_edge_delay_steps(edges: EdgeList) -> jax.Array:
     """Materialize per-edge ``delay_steps`` for kernel consumption."""
     n = int(edges.n_edges)
-    if edges.delay_storage == "uniform_zero":
-        return jnp.zeros((n,), dtype=jnp.int32)
-    if edges.delay_storage == "uniform":
-        return jnp.full((n,), int(edges.uniform_delay_steps), dtype=jnp.int32)
+    u = _uniform_delay_value(edges)
+    if u is not None:
+        return jnp.full((n,), u, dtype=jnp.int32)
     ds = edges.delay_steps
     if ds is None or int(ds.shape[0]) != n:
         return jnp.zeros((n,), dtype=jnp.int32)
@@ -1045,10 +1053,9 @@ def _edge_delay_steps_host(edges: EdgeList) -> np.ndarray:
 
 def _edge_delays_any_positive(edges: EdgeList) -> bool:
     """True when any edge carries a positive delay (JIT-safe for compact storage)."""
-    if edges.delay_storage == "uniform_zero":
-        return False
-    if edges.delay_storage == "uniform":
-        return int(edges.uniform_delay_steps) > 0
+    u = _uniform_delay_value(edges)
+    if u is not None:
+        return u > 0
     host = _edge_delay_steps_numpy(edges)
     if host is not None:
         return bool(np.any(host > 0))
@@ -1057,10 +1064,9 @@ def _edge_delays_any_positive(edges: EdgeList) -> bool:
 
 def _edge_delays_all_zero(edges: EdgeList) -> bool:
     """True when every edge delay is zero (JIT-safe for compact storage)."""
-    if edges.delay_storage == "uniform_zero":
-        return True
-    if edges.delay_storage == "uniform":
-        return int(edges.uniform_delay_steps) == 0
+    u = _uniform_delay_value(edges)
+    if u is not None:
+        return u == 0
     host = _edge_delay_steps_numpy(edges)
     if host is not None:
         return not bool(np.any(host != 0))
@@ -1069,10 +1075,9 @@ def _edge_delays_all_zero(edges: EdgeList) -> bool:
 
 def _edge_max_delay_steps(edges: EdgeList) -> int:
     """Maximum per-edge delay in simulation steps."""
-    if edges.delay_storage == "uniform_zero":
-        return 0
-    if edges.delay_storage == "uniform":
-        return max(0, int(edges.uniform_delay_steps))
+    u = _uniform_delay_value(edges)
+    if u is not None:
+        return max(0, u)
     host = _edge_delay_steps_numpy(edges)
     if host is not None:
         return int(np.max(host)) if host.size else 0
