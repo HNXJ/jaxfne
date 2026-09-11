@@ -126,8 +126,12 @@ def manifest(
         "config_hash": config_hash(cfg),
     }
     if runtime_config is not None:
-        data["runtime"] = runtime_config.runtime_report()
-        data["runtime_report"] = data["runtime"]  # v0.0.3 compatibility
+        if isinstance(runtime_config, dict):
+            report = runtime_config
+        else:
+            report = runtime_config.runtime_report()
+        data["runtime"] = report
+        data["runtime_report"] = report  # v0.0.3 compatibility
     if signals is not None:
         data["signals"] = {
             "n_time": int(signals.time_ms.shape[0]),

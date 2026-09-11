@@ -1,0 +1,46 @@
+{
+  "probe_id": "simplification_r01",
+  "F_tau_decay": [
+    {
+      "E": 1000,
+      "n_tau_classes": 1000,
+      "max_abs_diff": 0.0,
+      "t_per_edge_s": 0.0002555999963078648,
+      "t_class_gather_s": 0.0008233999833464622,
+      "ratio_per_over_class": 0.3104202106843083
+    },
+    {
+      "E": 10000,
+      "n_tau_classes": 9994,
+      "max_abs_diff": 0.0,
+      "t_per_edge_s": 0.0001908999984152615,
+      "t_class_gather_s": 0.0009161000198218971,
+      "ratio_per_over_class": 0.20838335802282285
+    },
+    {
+      "E": 100000,
+      "n_tau_classes": 99362,
+      "max_abs_diff": 0.0,
+      "t_per_edge_s": 0.00029850000282749534,
+      "t_class_gather_s": 0.001556000002892688,
+      "ratio_per_over_class": 0.1918380477330127
+    }
+  ],
+  "G_scan_recording": {
+    "n_neurons": 64,
+    "n_edges": 256,
+    "n_steps": 200,
+    "peak_bytes_minimal_scan_outputs": 677211,
+    "peak_bytes_full_record_scan_outputs": 275301,
+    "peak_ratio_full_over_minimal": 0.406521748760726,
+    "note": "tracemalloc peak during Python call; JAX may defer allocation"
+  },
+  "H_trials": {
+    "n_trials": 8,
+    "t_run_trials_s": 1.089353299990762,
+    "t_python_simulate_loop_s": 1.0018714000179898,
+    "t_simulate_batch_s": 1.0056005000078585,
+    "ratio_run_trials_over_batch": 1.0832863547524578,
+    "note": "simulate_batch uses vmap over PRNG keys; run_trials is sequential; APIs differ"
+  }
+}

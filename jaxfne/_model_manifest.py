@@ -11,7 +11,7 @@ from typing import Any, Optional
 
 from .io import manifest as build_manifest
 from ._signals import Signals, _default_basis_dict, _normalize_manifest_readout
-from ._model import _MANIFEST_SCHEMA_VERSION, _RuntimeReportAdapter, _SOURCE_PROXY_METADATA
+from ._model import _MANIFEST_SCHEMA_VERSION, _SOURCE_PROXY_METADATA
 
 
 def manifest(
@@ -44,9 +44,9 @@ def manifest(
     * Single :class:`ReadoutResult` — wrapped in a list and handled as above.
     """
     readout_normalized = _normalize_manifest_readout(readout)
-    runtime_cfg = None
+    runtime_report_dict = None
     if signals is not None and "runtime" in signals.metadata:
-        runtime_cfg = _RuntimeReportAdapter(signals.metadata["runtime"])
+        runtime_report_dict = signals.metadata["runtime"]
     source_model = dict(_SOURCE_PROXY_METADATA)
     if signals is not None:
         source_mode_class = signals.metadata.get("source_mode_class")
@@ -87,7 +87,7 @@ def manifest(
         self.cfg,
         signals=signals,
         readout=readout_normalized,
-        runtime_config=runtime_cfg,
+        runtime_config=runtime_report_dict,
         paradigm=paradigm,
         objective=objective,
         evaluation=evaluation,

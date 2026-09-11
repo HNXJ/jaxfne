@@ -67,9 +67,9 @@ def izhikevich_dv_du(
     a: float,
     b: float,
 ) -> tuple[jax.Array, jax.Array]:
-    dv = 0.04 * v * v + 5.0 * v + 140.0 - u + i_native
-    du = a * (b * v - u)
-    return dv, du
+    from jaxfne.emitters import _izhikevich_dv_du
+
+    return _izhikevich_dv_du(v, u, i_native, a, b)
 
 
 def izhikevich_silent_fixed_point(

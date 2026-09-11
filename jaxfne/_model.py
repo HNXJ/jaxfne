@@ -399,16 +399,6 @@ def stimulus_schedule(
         events=tuple(ev_dicts),
         n_neurons=int(n_neurons),
     )
-@dataclass(frozen=True)
-class _RuntimeReportAdapter:
-    report: dict[str, Any]
-
-    def runtime_report(self) -> dict[str, Any]:
-        """Documented public function `runtime_report`."""
-        return self.report
-
-
-
 # --- Method implementations, split out (Phase 2 defragmentation, 2026-07-20)
 # into sibling modules -- must be imported after the shared constants/classes
 # above, since each submodule does `from ._model import ...` at ITS OWN

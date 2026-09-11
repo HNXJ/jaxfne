@@ -211,19 +211,20 @@ def _segment_sum(data, segment_ids, num_segments):
     return jax.ops.segment_sum(data, segment_ids, num_segments=num_segments)
 
 
-def _izhikevich_dv_du(v, u, current_native, a, b):
+def _izhikevich_dv_du(v, u, current_native, a, b, h_k=1.0):
     """Izhikevich (2003) fast-subsystem derivatives -- shared by every scan-body
-    closure in this module (F-028: was duplicated verbatim 11 times)."""
+    closure in this module (F-028: was duplicated verbatim 11 times).
+
+    ``h_k=1.0`` recovers the classical drive; Protocol D1 uses ``h_k = H_K``.
+    """
     dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
-    du = a * (b * v - u)
+    du = a * (h_k * b * v - u)
     return dv, du
 
 
 def _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, h_k):
     """Protocol D1 — static recovery drive ``du = a * (H_K * b * v - u)``."""
-    dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
-    du = a * (h_k * b * v - u)
-    return dv, du
+    return _izhikevich_dv_du(v, u, current_native, a, b, h_k)
 
 
 @dataclass(frozen=True)
