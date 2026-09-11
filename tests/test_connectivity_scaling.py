@@ -101,15 +101,55 @@ def test_below_threshold_keeps_dense_W():
     assert W.shape[0] == _SPARSE_DIRECT_N - 1000   # dense path preserved below threshold
 
 
-def test_zero_p_connect_bounded_degree_omits_dense_W():
-    """p_connect=0 with declared rules: edge_list authoritative, no (n,n) emitter.W."""
+def test_sparse_direct_not_bit_exact_to_dense_at_threshold():
+    """REP-03 gate: lowering _SPARSE_DIRECT_N needs separate equivalence evidence."""
     import numpy as np
+    import jaxfne._construct_population as pop
+
+    n, p, seed = _SPARSE_DIRECT_N, 0.02, 7
+    old = pop._SPARSE_DIRECT_N
+
+    def _construct(threshold):
+        pop._SPARSE_DIRECT_N = threshold
+        cfg = (jtfne.Configuration().runtime(seed=seed, dtype="float32", duration_ms=10.0, dt_ms=0.5)
+               .column(name="c", layers=["L4"], n=n)
+               .cell_types({"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03})
+               .connectivity(p_connect=p)
+               .set_emitter("izhikevich", "cortical_eig")
+               .probes(["spikes"])
+               .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann"))
+        return jtfne.construct(cfg)
+
+    try:
+        pop._SPARSE_DIRECT_N = 10**9
+        dense = _construct(10**9)
+        pop._SPARSE_DIRECT_N = n
+        sparse = _construct(n)
+    finally:
+        pop._SPARSE_DIRECT_N = old
+
+    assert tuple(dense.params["emitter"].W.shape) == (n, n)
+    assert tuple(sparse.params["emitter"].W.shape) == (0, 0)
+    assert dense.params["edge_list"].n_edges != sparse.params["edge_list"].n_edges
+    s_dense = jtfne.simulate(dense, duration_ms=10.0, dt_ms=0.5, seed=0)
+    s_sparse = jtfne.simulate(sparse, duration_ms=10.0, dt_ms=0.5, seed=0)
+    assert float(np.sum(s_dense.spikes)) != float(np.sum(s_sparse.spikes))
+
+
+def _bounded_degree_zero_p_model(n=1000, seed=1):
     from scripts.perf.w10_allocation_map import build_config
 
     cfg = build_config(
-        n=1000, p_connect=0.0, max_in_degree=100, duration_ms=10.0, dt_ms=0.5, seed=1
+        n=n, p_connect=0.0, max_in_degree=100, duration_ms=10.0, dt_ms=0.5, seed=seed
     )
-    model = jtfne.construct(cfg)
+    return cfg, jtfne.construct(cfg)
+
+
+def test_zero_p_connect_bounded_degree_omits_dense_W():
+    """p_connect=0 with declared rules: edge_list authoritative, no (n,n) emitter.W."""
+    import numpy as np
+
+    _, model = _bounded_degree_zero_p_model()
     W = np.asarray(model.params["emitter"].W)
     assert W.shape == (0, 0)
     assert model.params["edge_list"].n_edges > 0
@@ -117,3 +157,61 @@ def test_zero_p_connect_bounded_degree_omits_dense_W():
     assert sig.metadata["recurrent_backend"] == "edge_list"
     assert bool(np.isfinite(np.asarray(sig.V_m)).all())
     assert bool(np.isfinite(np.asarray(sig.spikes)).all())
+
+
+def test_placeholder_W_lazy_materialization_is_transient():
+    """dense_recurrent_weights() must not persist a dense emitter.W on the model."""
+    import numpy as np
+    from jaxfne.emitters import is_placeholder_dense_W
+
+    _, model = _bounded_degree_zero_p_model(n=200)
+    emitter = model.params["emitter"]
+    assert is_placeholder_dense_W(emitter.W, emitter.n_neurons)
+    dense = np.asarray(model.dense_recurrent_weights())
+    assert dense.shape == (200, 200)
+    assert np.asarray(model.params["emitter"].W).shape == (0, 0)
+    assert int(np.count_nonzero(dense)) > 0
+
+
+def test_construct_records_representation_authority():
+    """REP-02: realized topology is edge_list-authoritative when W is a placeholder."""
+    _, model = _bounded_degree_zero_p_model(n=120)
+    rep = model.static["representation"]
+    assert rep["topology_authoritative"] == "edge_list"
+    assert rep["emitter_W_storage"] == "placeholder"
+    assert rep["dense_W_role"] == "execution_layout_on_demand"
+
+
+def test_placeholder_W_checkpoint_records_topology_authority(tmp_path):
+    """Checkpoint keeps placeholder W and records edge_list as authoritative."""
+    import json
+    import numpy as np
+    from jaxfne._model import Model
+
+    cfg, model = _bounded_degree_zero_p_model(n=120)
+    path = tmp_path / "ck"
+    model.checkpoint(str(path))
+    meta = json.loads(path.with_suffix(".json").read_text(encoding="utf-8"))
+    assert meta["topology_authoritative"] == "edge_list"
+    assert meta["emitter_W_storage"] == "placeholder"
+    with np.load(path.with_suffix(".npz")) as archive:
+        assert archive["emitter_W"].shape == (0, 0)
+    restored = Model.restore(str(path), cfg)
+    assert np.asarray(restored.params["emitter"].W).shape == (0, 0)
+    assert restored.params["edge_list"].n_edges == model.params["edge_list"].n_edges
+
+
+def test_synaptic_gain_scales_edge_list_when_placeholder_W():
+    """Tuning synaptic_gain must affect dynamics via edge_list, not a (0,0) W."""
+    import numpy as np
+    from jaxfne.core import _model_with_scalar_parameter
+
+    _, model = _bounded_degree_zero_p_model(n=200)
+    before = np.asarray(jtfne.simulate(model, duration_ms=10.0, dt_ms=0.5, seed=3).V_m)
+    scaled = _model_with_scalar_parameter(model, "synaptic_gain", 0.5)
+    assert np.asarray(scaled.params["emitter"].W).shape == (0, 0)
+    weights = np.asarray(scaled.params["edge_list"].weight)
+    base_weights = np.asarray(model.params["edge_list"].weight)
+    np.testing.assert_allclose(weights, base_weights * 0.5)
+    after = np.asarray(jtfne.simulate(scaled, duration_ms=10.0, dt_ms=0.5, seed=3).V_m)
+    assert not np.array_equal(before, after)

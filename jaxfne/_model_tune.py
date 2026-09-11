@@ -23,9 +23,42 @@ if TYPE_CHECKING:
     from .optim import OptimizerSpec
     from ._model import Model
 
+from .emitters import is_placeholder_dense_W, materialize_dense_W_from_edge_list
 from .io import json_safe
 from ._signals import Objective, Simulation, _finite_or_none
 from ._model import EdgeParameterSpec, MatrixParameterSpec, TuneResult
+
+
+def _dense_recurrent_weight_host(model: "Model", target: str = "W") -> np.ndarray:
+    """Host-side dense recurrent matrix for mask construction and matrix tuning."""
+    emitter = model.params["emitter"]
+    if target != "W":
+        return np.asarray(getattr(emitter, target), dtype=float)
+    if not is_placeholder_dense_W(emitter.W, emitter.n_neurons):
+        return np.asarray(emitter.W, dtype=float)
+    edge_list = model.params.get("edge_list")
+    if edge_list is None or edge_list.n_edges == 0:
+        return np.zeros((emitter.n_neurons, emitter.n_neurons), dtype=float)
+    return np.asarray(
+        materialize_dense_W_from_edge_list(
+            edge_list, emitter.n_neurons, dtype=emitter.v0.dtype
+        ),
+        dtype=float,
+    )
+
+
+def _scale_edge_list_weights(model: "Model", scale_fn) -> "Model":
+    """Apply ``scale_fn(weight_array)`` to authoritative edge_list weights."""
+    from ._model import Model
+
+    edges = model.params["edge_list"]
+    weights = scale_fn(np.asarray(edges.weight, dtype=float))
+    params = dict(model.params)
+    params["edge_list"] = replace(
+        edges,
+        weight=jnp.asarray(weights, dtype=edges.weight.dtype),
+    )
+    return Model(cfg=model.cfg, params=params, static=dict(model.static))
 
 
 def _parameter_spec_to_dict(value: Any) -> Any:
@@ -845,7 +878,12 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
     elif parameter == "drive_gain":
         new_emitter = replace(emitter, drive=emitter.drive * jnp.asarray(value, dtype=emitter.drive.dtype))
     elif parameter == "synaptic_gain":
-        new_emitter = replace(emitter, W=emitter.W * jnp.asarray(value, dtype=emitter.W.dtype))
+        scale = jnp.asarray(value, dtype=emitter.v0.dtype)
+        if is_placeholder_dense_W(emitter.W, emitter.n_neurons) and "edge_list" in model.params:
+            return _scale_edge_list_weights(
+                model, lambda w: w * np.asarray(scale, dtype=float)
+            )
+        new_emitter = replace(emitter, W=emitter.W * scale)
     elif parameter in ("drive_scale_a", "drive_scale_b"):
         import numpy as _np_dsa
         value = float(value)
@@ -863,9 +901,14 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
         # jnp.where (not numpy boolean-indexed assignment) -- keeps this branch
         # jax-traceable/differentiable too; bit-identical result for concrete
         # inputs (verified: scales only W > 0 entries, leaves the rest untouched).
+        scale = float(value)
+        if is_placeholder_dense_W(emitter.W, emitter.n_neurons) and "edge_list" in model.params:
+            return _scale_edge_list_weights(
+                model, lambda w: np.where(w > 0, w * scale, w)
+            )
         W = emitter.W
-        scale = jnp.asarray(value, dtype=W.dtype)
-        new_W = jnp.where(W > 0, W * scale, W)
+        scale_arr = jnp.asarray(value, dtype=W.dtype)
+        new_W = jnp.where(W > 0, W * scale_arr, W)
         new_emitter = replace(emitter, W=new_W)
     else:
         supported = ["source_scale", "drive_gain", "synaptic_gain", "drive_scale_a", "drive_scale_b", "gAMPA"]
@@ -904,8 +947,12 @@ def _mask_for_parameter(
     """
     import numpy as _np_mask
     emitter = model.params["emitter"]
-    W = _np_mask.asarray(getattr(emitter, target), dtype=float)
-    n = W.shape[0]
+    if target == "W":
+        W = _dense_recurrent_weight_host(model, target=target)
+        n = emitter.n_neurons
+    else:
+        W = _np_mask.asarray(getattr(emitter, target), dtype=float)
+        n = W.shape[0]
 
     if mask_type == "all":
         return jnp.ones((n, n), dtype=bool)
@@ -1112,6 +1159,30 @@ def _model_with_matrix_parameter(
 
     target = getattr(spec, "target", "W")
     emitter = model.params["emitter"]
+    if target == "W" and is_placeholder_dense_W(emitter.W, emitter.n_neurons):
+        if "edge_list" not in model.params:
+            raise ValueError(
+                f"Matrix parameter {parameter_name!r} targets emitter.W but the model "
+                "has placeholder W and no edge_list to apply the scale to"
+            )
+        W = _dense_recurrent_weight_host(model, target=target)
+        mask = _np_matrix.asarray(
+            _mask_for_parameter(model, parameter_name, spec.mask, target), dtype=bool
+        )
+        edges = model.params["edge_list"]
+        pre = _np_matrix.asarray(edges.pre, dtype=int)
+        post = _np_matrix.asarray(edges.post, dtype=int)
+        weights = _np_matrix.asarray(edges.weight, dtype=float).copy()
+        edge_mask = mask[post, pre]
+        weights[edge_mask] = weights[edge_mask] * value
+        params = dict(model.params)
+        params["edge_list"] = replace(
+            edges,
+            weight=jnp.asarray(weights, dtype=edges.weight.dtype),
+        )
+        from ._model import Model
+        return Model(cfg=model.cfg, params=params, static=dict(model.static))
+
     current = getattr(emitter, target)
     W = _np_matrix.asarray(current, dtype=float)
     mask = _np_matrix.asarray(_mask_for_parameter(model, parameter_name, spec.mask, target), dtype=bool)

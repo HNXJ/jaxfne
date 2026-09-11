@@ -737,6 +737,35 @@ class EdgeList:
         )
 
 
+def is_placeholder_dense_W(W: jax.Array, n_neurons: int) -> bool:
+    """True when ``W`` is the sparse-direct ``(0, 0)`` placeholder, not ``(n, n)``.
+
+    Models with placeholder ``emitter.W`` run on the edge_list backend; realized
+    topology lives in ``params['edge_list']``.
+    """
+    return int(W.shape[0]) != int(n_neurons)
+
+
+def materialize_dense_W_from_edge_list(
+    edge_list: EdgeList,
+    n_neurons: int,
+    *,
+    dtype: Any = None,
+) -> jax.Array:
+    """Build a dense ``(n, n)`` weight matrix from an authoritative edge list.
+
+    Compatibility materialization for checkpoint/inspect/optim consumers that
+    expect a dense layout. Duplicate ``(post, pre)`` pairs use last-writer-wins
+    assignment; this is not a lossless inverse of ``make_edge_list_from_dense``
+    when parallel edges exist.
+    """
+    jdtype = dtype if dtype is not None else edge_list.weight.dtype
+    W = jnp.zeros((int(n_neurons), int(n_neurons)), dtype=jdtype)
+    if edge_list.n_edges > 0:
+        W = W.at[edge_list.post, edge_list.pre].set(edge_list.weight.astype(jdtype))
+    return W
+
+
 def make_edge_list_from_dense(
     weights: jax.Array,
     *,

@@ -18,7 +18,7 @@ from typing import Any, Mapping, Optional
 import jax
 import jax.numpy as jnp
 
-from .emitters import EdgeList, EIGNetwork, make_edge_list_from_dense, make_eig_network
+from .emitters import EdgeList, EIGNetwork, is_placeholder_dense_W, make_edge_list_from_dense, make_eig_network
 from .emitters_homeostatic_ei import ACTIVATION_RULES, CONDUCTANCE_RULES, HOMEOSTASIS_RULES, HomeostaticEIParams
 from .fields import FieldOutput
 from ._config import Configuration
@@ -999,6 +999,16 @@ def _construct_from_configuration(cfg: Configuration, *, geometry: "LaminarSourc
 
     cfg, edge_list = _construct_compile_connections(cfg, network, n, geometry_meta, net, edge_list, positions=positions)
     static = _construct_build_static(cfg, geometry_meta)
+    _placeholder_w = is_placeholder_dense_W(network.params.W, network.params.n_neurons)
+    static["representation"] = {
+        "topology_authoritative": "edge_list" if _placeholder_w else "emitter_W",
+        "emitter_W_storage": "placeholder" if _placeholder_w else "materialized",
+        "dense_W_role": (
+            "execution_layout_on_demand"
+            if _placeholder_w
+            else "execution_layout_materialized"
+        ),
+    }
 
     return Model(
         cfg=cfg,

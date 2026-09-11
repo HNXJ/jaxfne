@@ -36,6 +36,8 @@ if TYPE_CHECKING:
 from .emitters import (
     EdgeList,
     IzhikevichParams,
+    is_placeholder_dense_W,
+    materialize_dense_W_from_edge_list,
     make_edge_list_from_dense,
     simulate_edge_recurrent_izhikevich,
     simulate_edge_recurrent_izhikevich_homeostatic,
@@ -676,6 +678,24 @@ class Model:
             })
         return rows_out
 
+    def dense_recurrent_weights(self) -> jax.Array:
+        """Return a dense ``(n, n)`` recurrent matrix without persisting it on the model.
+
+        When ``emitter.W`` is a placeholder, the matrix is built lazily from
+        ``params['edge_list']`` for inspect/tune/optim compatibility. The
+        returned array is not written back to ``emitter.W``.
+        """
+        emitter = self._require_izhikevich_emitter("dense_recurrent_weights")
+        if not is_placeholder_dense_W(emitter.W, emitter.n_neurons):
+            return emitter.W
+        edge_list = self.params.get("edge_list")
+        if edge_list is None:
+            jdtype = emitter.v0.dtype
+            return jnp.zeros((emitter.n_neurons, emitter.n_neurons), dtype=jdtype)
+        return materialize_dense_W_from_edge_list(
+            edge_list, emitter.n_neurons, dtype=emitter.v0.dtype
+        )
+
     def checkpoint(self, path: str) -> "Path":
         """Persist the expensive construct() output (emitter/edge_list/positions
         arrays + their aux fields + static + cfg.metadata) for reload via
@@ -709,12 +729,15 @@ class Model:
                for f in ("pre", "post", "weight", "receptor_index", "tau_ms", "delay_steps")},
             positions=_np.asarray(positions),
         )
+        _placeholder_w = is_placeholder_dense_W(emitter.W, emitter.n_neurons)
         meta = {
             "schema": "model_checkpoint_v2",
             "emitter_labels": list(emitter.labels),
             "emitter_layer_labels": list(emitter.layer_labels) if emitter.layer_labels is not None else None,
             "emitter_source_calibration_status": emitter.source_calibration_status,
             "edge_source_calibration_status": edge_list.source_calibration_status,
+            "topology_authoritative": "edge_list" if _placeholder_w else "emitter_W",
+            "emitter_W_storage": "placeholder" if _placeholder_w else "materialized",
             "static": json_safe(self.static),
             "cfg_metadata": json_safe(self.cfg.metadata),
         }

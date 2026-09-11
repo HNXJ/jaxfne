@@ -1553,8 +1553,24 @@ def _tune_matrix_agsdr_optax(
             # INNER LOOP: Adam refinement on soft-rate surrogate
             if inner_steps > 0 and groups_for_inner:
                 try:
+                    from jaxfne.emitters import is_placeholder_dense_W
+
                     emitter = candidate_model.params["emitter"]
-                    W_init = jnp.asarray(emitter.W, dtype=emitter.W.dtype if hasattr(emitter.W, "dtype") else _wdtype_outer).reshape(-1)
+                    edges = candidate_model.params.get("edge_list")
+                    _placeholder_w = (
+                        is_placeholder_dense_W(emitter.W, emitter.n_neurons)
+                        and edges is not None
+                    )
+                    if _placeholder_w:
+                        w_dtype = edges.weight.dtype if hasattr(edges.weight, "dtype") else _wdtype_outer
+                        W_init = jnp.asarray(edges.weight, dtype=w_dtype).reshape(-1)
+                        w_shape = edges.weight.shape
+                    else:
+                        W_init = jnp.asarray(
+                            emitter.W,
+                            dtype=emitter.W.dtype if hasattr(emitter.W, "dtype") else _wdtype_outer,
+                        ).reshape(-1)
+                        w_shape = emitter.W.shape
 
                     opt_state = inner_optimizer.init(W_init)
                     current_W = W_init
@@ -1562,10 +1578,16 @@ def _tune_matrix_agsdr_optax(
                     # Define and JIT compile the gradient function once per candidate to avoid retracing
                     def inner_loss_only(W_flat: jax.Array) -> jax.Array:
                         """Documented public function `inner_loss_only`."""
-                        new_W = W_flat.reshape(emitter.W.shape)
-                        new_emitter = _replace(emitter, W=new_W)
-                        new_params = dict(candidate_model.params)
-                        new_params["emitter"] = new_emitter
+                        if _placeholder_w:
+                            new_weight = W_flat.reshape(w_shape)
+                            new_edges = _replace(edges, weight=new_weight)
+                            new_params = dict(candidate_model.params)
+                            new_params["edge_list"] = new_edges
+                        else:
+                            new_W = W_flat.reshape(w_shape)
+                            new_emitter = _replace(emitter, W=new_W)
+                            new_params = dict(candidate_model.params)
+                            new_params["emitter"] = new_emitter
                         updated_model = _replace(candidate_model, params=new_params)
                         return _inner_loss_fn(W_flat, updated_model)
 
@@ -1602,12 +1624,17 @@ def _tune_matrix_agsdr_optax(
                             fallback_counts["inner_loop_step_failed"] += 1
                             break  # Inner loop failed; use AGSDR candidate as-is
 
-                    # Apply refined W to model
-                    refined_W = current_W.reshape(emitter.W.shape)
-                    new_emitter = _replace(emitter, W=refined_W)
-                    new_params = dict(candidate_model.params)
-                    new_params["emitter"] = new_emitter
-                    candidate_model = _replace(candidate_model, params=new_params)
+                    # Apply refined weights without restoring permanent dense W storage.
+                    refined = current_W.reshape(w_shape)
+                    if _placeholder_w:
+                        new_params = dict(candidate_model.params)
+                        new_params["edge_list"] = _replace(edges, weight=refined)
+                        candidate_model = _replace(candidate_model, params=new_params)
+                    else:
+                        new_emitter = _replace(emitter, W=refined)
+                        new_params = dict(candidate_model.params)
+                        new_params["emitter"] = new_emitter
+                        candidate_model = _replace(candidate_model, params=new_params)
                 except Exception:
                     fallback_counts["candidate_refinement_failed"] += 1  # Fall back to unrefined AGSDR candidate
 
