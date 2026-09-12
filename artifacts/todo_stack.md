@@ -1,4 +1,4 @@
-# Remaining work — v0.4.24 (v0.4.23 sealed)
+# Remaining work — v0.4.24 (v0.4.23 published)
 
 Work loop and rules: `artifacts/AGENTS.md` (TODO stack).
 Stable authorized facts: `artifacts/fact_stack.md` (human edit only).
@@ -18,18 +18,29 @@ Published predecessor: `v0.4.21` (immutable).
 
 # v0.4.24 (active)
 
-Entry: v0.4.23 sealed; W8 shows cumulative programme receipts from `8823520` baseline.
+Entry: v0.4.23 shipped; W8 shows cumulative programme receipts from `8823520` baseline.
 
-- 24-ENT-01 — CLOSED (ENTRY_GRANTED per `artifacts/programme/v0_4_24_entry_receipt.md`)
-- 24-W16-6 — SCOPED (P done, awaiting observable/ε confirm): first bounded experiment = spatial decimation (stride-k neuron keep + edge remap via EDGE-01 selectors) on a self-averaging observable (`spike_rate_hz_mean`, metric |Δ| Hz, ε pre-declared) with a geometry-sensitive negative control (laminar LFP proxy, expected to diverge); bias/variance over seeds; no universal factor claimed. Machinery exists (summary/readout/welch/field/positions). Confirm observable + ε + operator, or redirect, before implementing.
-- 24-W16-6 — neurobiophysical geometry / bounded augmentation (W16.6); named observable, metric, ε
-- 24-FIELD-01 — field/LFP proxy computational audit with declared error bounds
-- 24-JAX-01 — JAX execution profile programme (measure before JIT changes)
-- 24-EQUIV-01 — per-observable equivalence acceptance (exact or `d≤ε` pre-declared)
-- 24-AUDIT-01 — independent adversarial core audit (implementer ≠ sole auditor)
-- 24-PKG-01 — installed-package boundary audit (which LOC belongs in the runtime distribution; executable protocol/research code destination: tests/benchmarks/examples, never artifacts/ for aesthetics; alongside kernel-count and test-minimization reviews)
-- 24-EXIT-01 — verify programme exit criteria (roadmap §5.2)
-- 24-VERIFY-01 — full 0.4.24 RC + CI + seal + publish chain
-- 24-STACK-01 — seal v0.4.24; archive or clear this stack
+- W16-6 — IN PROGRESS: bounded classification experiment (authorized): spatial decimation via EDGE-01 selectors; primary `spike_rate_hz_mean`, error |Δ|, ε_r = max(0.5 Hz, 0.1·s_full) (experiment criterion only); laminar-LFP negative control (waveform + amplitude error, no ε gate); ordered factors; bias/variance; conclude 1-of-3; no universal factor.
+- FIELD-01 — field/LFP proxy computational audit with declared error bounds
+- JAX-01 — JAX execution profile programme (measure before JIT changes)
+- EQUIV-01 — per-observable equivalence acceptance (exact or `d≤ε` pre-declared)
+- AUDIT-01 — independent adversarial core audit (implementer ≠ sole auditor)
+- MIN-01 — minimization entry: complexity baseline inventory; per-item acceptance is identical semantics/API/numerics/meaning (§charter below)
+- DOC-01 — prose minimization under the vocabulary rule (cut demonstrated jargon/synonyms; keep distinct-meaning terms)
+- CODEMIN-01 — source minimization to minimum complexity subject to complete required semantics
+- TESTMIN-01 — test-suite minimization (drop redundant coverage; keep gate strength)
+- PKG-01 — installed-package boundary audit (which LOC belongs in the runtime distribution; executable protocol/research code destination: tests/benchmarks/examples, never artifacts/ for aesthetics; alongside kernel-count and test-minimization reviews)
+- API-01 — public-surface minimization under API constraints (describe implemented behavior only)
+- PRO-01 — protocol/research code placement + minimization (destination per PKG-01)
+- EXIT-01 — verify programme exit criteria (roadmap §5.2)
+- VERIFY-01 — full 0.4.24 RC + CI + seal + publish chain
+- STACK-01 — seal v0.4.24; archive or clear this stack
 
-**Ordered dependencies:** 23-PUB-01 needs a PyPI credential only (no code); REP-03 gate retains `_SPARSE_DIRECT_N=5000` until bit-exact equivalence (`artifacts/fact_stack.md`); Jomission downstream migration remains **unverified** post-COMPAT-JOM-01; `diag=None`-for-identity stands per sealed HDP-01.
+## Minimization charter (applies to MIN-01/DOC-01/CODEMIN-01/TESTMIN-01/PKG-01/API-01/PRO-01)
+
+- Vocabulary: minimize unnecessary jargon and synonyms; preserve technical terms carrying distinct meaning. Lint prevents demonstrated stale vocabulary from returning — no blind global bans.
+- Preserved terms (exact meanings required): RBS, RBD, HDP, continuation, proxy, configuration, JDNA, receipt.
+- Target: minimum complexity subject to complete required semantics.
+- 100/100: no known material defect under the required deterministic/adversarial gates; no known strictly superior simplification under identical required semantics, API constraints, numerical behavior, and scientific meaning.
+
+**Ordered dependencies:** REP-03 gate retains `_SPARSE_DIRECT_N=5000` until bit-exact equivalence (`artifacts/fact_stack.md`); Jomission downstream migration remains **unverified** post-COMPAT-JOM-01; `diag=None`-for-identity stands per sealed HDP-01.
