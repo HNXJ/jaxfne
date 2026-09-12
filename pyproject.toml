@@ -12,7 +12,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jaxfne"
-version = "0.4.22"
+version = "0.4.23"
 description = "Biophysical source-field modeling: neural activity and biophysical state with plasticity, geometry, and population- and field-scale dynamics."
 readme = "README.md"
 requires-python = ">=3.11"
