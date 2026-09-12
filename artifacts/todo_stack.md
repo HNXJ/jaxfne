@@ -20,8 +20,7 @@ Published predecessor: `v0.4.21` (immutable).
 
 Entry: v0.4.23 shipped; W8 shows cumulative programme receipts from `8823520` baseline.
 
-- JAX-01 — IN PROGRESS: JAX execution profile programme (measure before JIT changes)
-- EQUIV-01 — per-observable equivalence acceptance (exact or `d≤ε` pre-declared)
+- EQUIV-01 — per-observable equivalence acceptance (exact or `d≤ε` pre-declared; first declaration banked: jit-vs-eager HDP-V d≤1e-4, spikes exact)
 - AUDIT-01 — independent adversarial core audit (implementer ≠ sole auditor)
 - MIN-01 — minimization entry: complexity baseline inventory; per-item acceptance is identical semantics/API/numerics/meaning (§charter below)
 - DOC-01 — prose minimization under the vocabulary rule (cut demonstrated jargon/synonyms; keep distinct-meaning terms)
