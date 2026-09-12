@@ -2,7 +2,7 @@
   "suite": "atlas_suite.v1",
   "title": "Canonical V1 Column (1000n)",
   "config_hash": "4b0d96456d56bc1a",
-  "jaxfne_version": "0.4.22",
+  "jaxfne_version": "0.4.23",
   "seed": 0,
   "duration_ms": 200.0,
   "n_neurons": 1000,
