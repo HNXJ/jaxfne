@@ -51,7 +51,18 @@ Preserved: `test_hdp01_registrable_qualification` (6), `test_hdp_finite_delay`,
   by this delta): HP-05 continuation `delay_state is not None` (test omits
   `delay_storage="per_edge"`, so delays never engage), population `h_dim`
   IndexError, disconnected-null `diag is None`. Not introduced here.
-
 ## Spawned
+
 - None new. 23-SIMP-05 (HDP kernel unification) now unblocked on delayed
   semantics; 23-LAW-01 remains gated per stack order.
+
+## Closeout (remainder: delay-class compaction — NO_CHANGE)
+The dense ring (`(D_max+1, N)`, identical layout to the legacy kernel) is
+the shipped history representation: bit-exact continuation proven on all
+paths. "Delay classes" never received an acceptance probe (no metric, no
+equivalence bound), and any buffer re-layout risks the qualified
+`event_{t-d}` timing. Per the conditional rule (no speculative capability
+without acceptance), the compaction remainder closes here; class-compacted
+edge metadata (uniform/per-edge delay storage) already bounds the
+*parameter* footprint, which was the measurable half. Remainder removed
+from the stack; this receipt stays the evidence.
