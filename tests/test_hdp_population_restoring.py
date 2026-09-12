@@ -222,6 +222,15 @@ def test_population_restoring_etude_regression_metrics():
     """Scientific regression against committed Etude metrics (MVC #2, alpha_U=1.2)."""
     metrics = json.loads(ETUDE_METRICS.read_text(encoding="utf-8"))
     expected = metrics["mvc2_recovery"]
+    # v0.4.23 re-baseline for the scalar arm only (human-authorized; see
+    # artifacts/etudes/hdp_controllability_reachability/metrics_v0423.json
+    # provenance): null-HDP params route to the baseline kernel by the
+    # qualified identity invariant, so scalar == off bit-exactly. The frozen
+    # bundle above stays the historical record; off/vector arms below still
+    # assert against it.
+    v0423_path = ETUDE_METRICS.parent / "metrics_v0423.json"
+    assert v0423_path.exists(), "v0.4.23 scalar baseline missing"
+    expected_scalar = json.loads(v0423_path.read_text(encoding="utf-8"))["mvc2_recovery"]["scalar"]
 
     model, mei_mask, e_mask = _mcc3_model()
     dt_ms = 0.1
@@ -292,7 +301,7 @@ def test_population_restoring_etude_regression_metrics():
     )
 
     assert r_ei_off == pytest.approx(expected["off"]["R_EI"], rel=0.08, abs=0.05)
-    assert r_ei_scalar == pytest.approx(expected["scalar"]["R_EI"], rel=0.08, abs=0.05)
+    assert r_ei_scalar == pytest.approx(expected_scalar["R_EI"], rel=0.08, abs=0.05)
     assert r_ei_vec == pytest.approx(expected["vector"]["R_EI"], rel=0.05, abs=0.03)
     assert term_off == pytest.approx(expected["off"]["terminal_error_weighted"], rel=0.08, abs=0.05)
     assert term_vec == pytest.approx(expected["vector"]["terminal_error_weighted"], rel=0.15, abs=0.02)

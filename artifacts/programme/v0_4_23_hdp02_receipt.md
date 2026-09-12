@@ -40,3 +40,13 @@ mandate.
    change under publication authority).
 Until then the slow gate (`test_population_restoring_etude_regression_metrics`)
 fails and v0.4.23 cannot seal.
+
+## Closure (human pick 1 executed)
+- Independent check on the exact scalar arm: predicate True, baseline
+  route taken (diag None), spikes/V bit-identical to HDP-off, metric
+  anchored at 0.38110494571266207.
+- New `artifacts/etudes/hdp_controllability_reachability/metrics_v0423.json`
+  carries scalar == off with full provenance; frozen `metrics.json`
+  byte-unchanged; off/vector arms still assert against frozen.
+- Test wires scalar assert to the v0.4.23 baseline (explicit comment).
+- Slow gate: all 4 population tests PASS. HDP-02 CLOSED.
