@@ -1,7 +1,7 @@
 {
   "acceptance_authority": "artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md",
   "acceptance_goal_count": 5,
-  "candidate_attestation_sha": "234fdfdf6ed5ac3a670d18e6c7a3bb80cd4b9a9e",
+  "candidate_attestation_sha": "b6e1c1f05b015765feb62dd0ecbc27068c40613d",
   "dev_bookkeeping_tip_sha": null,
   "distribution": {
     "build_backend": "hatchling==1.29.0",
@@ -13,22 +13,22 @@
     "pypi_url": "https://pypi.org/project/jaxfne/0.4.23/",
     "sdist": {
       "filename": "jaxfne-0.4.23.tar.gz",
-      "sha256": "BA4C01E696F24FA01E41B7B0A8678865C0EAE436BDE09D6B2D17C138E54A0BD7",
-      "size_bytes": 38036654
+      "sha256": "C855F6C2C4CBF3DBA16AC55D2CF26891B07EC8891181B808E7F47EE45191922C",
+      "size_bytes": 38036672
     },
-    "source_sha": "234fdfdf6ed5ac3a670d18e6c7a3bb80cd4b9a9e",
-    "source_tree_sha": "c4f3cd64cc9d6a20efcacc5b527b8282031adbf5",
+    "source_sha": "b6e1c1f05b015765feb62dd0ecbc27068c40613d",
+    "source_tree_sha": "3fed5ca94e3bfaf7f9d80ce7370e8be05094cd2b",
     "wheel": {
       "filename": "jaxfne-0.4.23-py3-none-any.whl",
-      "sha256": "A9E2E24761C5337437DEE48959298E0AF07A064991C6AF5D3BD5858811E21678",
-      "size_bytes": 730021
+      "sha256": "0A3C27C2BCF013445A412E3D156A0E67405EDE560449618B208FF30AC53A16B1",
+      "size_bytes": 730141
     }
   },
   "gate0_authorities_file": "artifacts/release/current_release_authorities.json",
   "gate0_release_path": "RELEASE-mode Gate 0 validates package version match against current_release_authorities.json.",
   "github_release_url": "https://github.com/HNXJ/jaxfne/releases/tag/v0.4.23",
   "integration_baseline_sha": "2338b00af5c7c822aa35af60d68be4d62f18469d",
-  "notes": "v0.4.23 candidate 234fdfd (atlas 0.4.23 + plotly compact resolve over 5596bc7). Artifacts rebuilt once from 234fdfd and retained; must not rebuild between validation and publication.",
+  "notes": "v0.4.23 candidate b6e1c1f (plotly duck-type fix over 234fdfd). Artifacts rebuilt once from b6e1c1f and retained; must not rebuild between validation and publication.",
   "programme": "v0.4.23 delayed-HDP + simplification + recording + edge programme (ROADMAP_0422_0424 \u00c2\u00a74)",
   "published_predecessor": {
     "commit_sha": "d849e6d91b72ce1ca2b736c03bdec8c1d89f55c0",
@@ -36,7 +36,7 @@
     "version": "0.4.22"
   },
   "receipt_timestamp_utc": "2026-09-12T14:13:33+00:00",
-  "release_candidate": "234fdfdf6ed5ac3a670d18e6c7a3bb80cd4b9a9e",
+  "release_candidate": "b6e1c1f05b015765feb62dd0ecbc27068c40613d",
   "rtd": {
     "production_url": "https://jaxfne.readthedocs.io/en/stable/",
     "ref": "v0.4.23 (pending seal)",
@@ -55,5 +55,5 @@
   "tag_timestamp_utc": null,
   "version": "0.4.23",
   "write_once": true,
-  "source_tree_sha": "c4f3cd64cc9d6a20efcacc5b527b8282031adbf5"
+  "source_tree_sha": "3fed5ca94e3bfaf7f9d80ce7370e8be05094cd2b"
 }
