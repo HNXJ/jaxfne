@@ -246,11 +246,24 @@ class TestBackendValidation:
 
 class TestDisconnectedNullHdpBoundary:
     def test_default_gains_floor_scale(self):
-        """Shipped/default HDP gains: disconnected_null keeps |w| at floor."""
+        """Shipped/default HDP gains: disconnected_null keeps |w| at floor.
+
+        alpha>0 keeps the HDP kernel genuinely engaged (H moves) while the
+        weight ODE stays null on zeroed weights (dw ~ |w| = 0): zero remains
+        a fixed point even with H dynamics active. Null H-gains alone route
+        to the baseline kernel by the qualified identity invariant, which
+        yields no HDP diagnostics to assert on.
+        """
         cfg = jtfne.suite2_net1_config(seed=7, n=3, duration_ms=100.0, dt_ms=1.0)
-        cfg = cfg.hdp(enable_hdp=True, hdp_params={"noise_scale": 0.0})
         model = jtfne.construct(cfg)
-        jtfne.simulate(model, ablation="disconnected_null")
+        sim = jtfne.simulation(
+            duration_ms=100.0, dt_ms=1.0, seed=7, ablation="disconnected_null",
+            runtime=jtfne.RuntimeConfig(
+                enable_hdp=True, recurrent_backend="edge_list",
+                hdp_params={"noise_scale": 0.0, "alpha": 0.05},
+            ),
+        )
+        jtfne.simulate(model, sim)
         diag = model.last_hdp_diagnostics()
         wf = np.asarray(diag["w_final"]).reshape(-1)
         assert np.abs(wf).max() <= 2.0 * 1.0e-3
