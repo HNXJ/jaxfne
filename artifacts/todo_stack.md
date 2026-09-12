@@ -21,7 +21,7 @@ Published predecessor: `v0.4.21` (immutable).
 Entry: v0.4.23 sealed; W8 shows cumulative programme receipts from `8823520` baseline.
 
 - 24-ENT-01 — CLOSED (ENTRY_GRANTED per `artifacts/programme/v0_4_24_entry_receipt.md`)
-- 24-W16-6 — IN PROGRESS: neurobiophysical geometry / bounded augmentation (W16.6); named observable, metric, ε
+- 24-W16-6 — SCOPED (P done, awaiting observable/ε confirm): first bounded experiment = spatial decimation (stride-k neuron keep + edge remap via EDGE-01 selectors) on a self-averaging observable (`spike_rate_hz_mean`, metric |Δ| Hz, ε pre-declared) with a geometry-sensitive negative control (laminar LFP proxy, expected to diverge); bias/variance over seeds; no universal factor claimed. Machinery exists (summary/readout/welch/field/positions). Confirm observable + ε + operator, or redirect, before implementing.
 - 24-W16-6 — neurobiophysical geometry / bounded augmentation (W16.6); named observable, metric, ε
 - 24-FIELD-01 — field/LFP proxy computational audit with declared error bounds
 - 24-JAX-01 — JAX execution profile programme (measure before JIT changes)
