@@ -94,7 +94,16 @@ def _assert_topology(model: Any) -> None:
         mask = (labels[np.asarray(edges.pre)] == source_type) & (
             labels[np.asarray(edges.post)] == target_type
         )
-        weights = np.asarray(edges.weight)[mask]
+        from jaxfne.emitters import resolve_edge_weight
+
+        weights = np.asarray(
+            resolve_edge_weight(
+                edges,
+                edges.weight.dtype,
+                presynaptic_sign=model.params["emitter"].sign,
+            ),
+            dtype=float,
+        )[mask]
         assert weights.size > 0
         assert np.all(np.sign(weights) == expected_sign)
 

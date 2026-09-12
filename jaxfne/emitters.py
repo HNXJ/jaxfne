@@ -561,7 +561,12 @@ def edge_list_with_delay_ms(
     delay_ms: float | np.ndarray | jax.Array,
     dt_ms: float,
 ) -> "EdgeList":
-    """Return a copy of ``edges`` with per-edge ``delay_steps`` from ms delays."""
+    """Return a copy of ``edges`` with per-edge ``delay_steps`` from ms delays.
+
+    Only the delay field is touched: weight/tau stay in whatever storage
+    they already use (full materialization here used to crash on compact
+    weight modes that need a presynaptic sign the delay path cannot know).
+    """
     steps = edge_delay_steps_from_ms(delay_ms, dt_ms)
     if np.ndim(steps) == 0:
         steps_arr = jnp.full((edges.n_edges,), int(steps), dtype=jnp.int32)
@@ -571,11 +576,8 @@ def edge_list_with_delay_ms(
             raise ValueError(
                 f"delay_ms length {steps_arr.shape[0]} != n_edges {edges.n_edges}"
             )
-    from ._edge_class_storage import materialize_edge_list_arrays
-
-    expanded = materialize_edge_list_arrays(edges)
     return dataclass_replace(
-        expanded,
+        edges,
         delay_steps=steps_arr,
         delay_storage="per_edge",
         uniform_delay_steps=0,
@@ -734,7 +736,7 @@ class EdgeList:
                 "pre": str(self.pre.dtype),
                 "post": str(self.post.dtype),
                 "weight": str(self.weight.dtype),
-                "receptor_index": str(self.receptor_index.dtype),
+                "receptor_index_arr": str(self.receptor_index.dtype),
                 "tau_ms": str(self.tau_ms.dtype),
                 "delay_steps": str(self.delay_steps.dtype),
             },

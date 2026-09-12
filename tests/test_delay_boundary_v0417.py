@@ -46,6 +46,7 @@ def _model_with_delays(*, n: int = 4, delay_steps=None, zero_weights=False):
         edges = replace(
             edges,
             delay_steps=jnp.full((edges.n_edges,), int(delay_steps), dtype=jnp.int32),
+            delay_storage="per_edge",
         )
     if zero_weights:
         edges = replace(edges, weight=jnp.zeros_like(edges.weight))

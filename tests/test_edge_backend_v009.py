@@ -48,6 +48,7 @@ def test_edge_list_roundtrip_bit_exact():
     delayed = replace(
         edges,
         delay_steps=jax.random.randint(jax.random.PRNGKey(0), (edges.n_edges,), 0, 4, dtype=jnp.int32),
+        delay_storage="per_edge",
     )
     restored = type(edges).from_dict(delayed.to_dict())
     for name in ("pre", "post", "weight", "receptor_index", "tau_ms", "delay_steps"):

@@ -129,6 +129,30 @@ def list_registered_hdp_rules() -> tuple[str, ...]:
     return tuple(sorted(_REGISTRY))
 
 
+def hdp_is_engaged(
+    hp: Mapping[str, Any] | None,
+    params: Mapping[str, Any] | None,
+    *,
+    enable_hdp: bool = False,
+) -> bool:
+    """Single routing predicate for HDP execution (bulk + continuation).
+
+    Identity parameters alone route to the baseline kernel — except when the
+    model carries explicitly seeded HDP state (``with_hdp_initial_state``):
+    seeded non-uniform ``H`` drives real weight dynamics (``dw ~ ΔH``) even
+    with null H-gains, so dropping it would silently discard user state the
+    kernel machinery (`init_state`) exists to carry. Seeded-but-inert
+    (``enable_hdp=False``) stays inert per the documented contract.
+    """
+    if not bool(enable_hdp):
+        return False
+    if not hdp_params_are_identity(hp):
+        return True
+    if params is None:
+        return False
+    return params.get("hdp_initial_H") is not None or params.get("hdp_initial_w") is not None
+
+
 def hdp_params_are_identity(hp: Mapping[str, Any] | None) -> bool:
     """True when builtin HDP parameters reduce to static edge-list dynamics."""
     hp = normalize_hdp_params_boundary(dict(hp or {}))

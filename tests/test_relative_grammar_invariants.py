@@ -21,7 +21,9 @@ import jaxfne as jtfne
 class TestBaseRecoveryAtReference:
     def test_hdp_off_matches_hdp_null_weights(self):
         """Contract D: with K_HDP=0 ^ K_w_ctrl=0 the weight ODE is null and
-        w == w0 (base recovery), for the node HDP path."""
+        w == w0 (base recovery), for the node HDP path. alpha>0 keeps HDP
+        genuinely engaged (H moves) so the diagnostics exist; the weight
+        ODE itself stays null."""
         cfg = jtfne.suite2_net1_config(seed=7, n=3, duration_ms=60.0, dt_ms=1.0)
         model = jtfne.construct(cfg)
         w0 = np.asarray(model.params["edge_list"].weight)
@@ -29,7 +31,8 @@ class TestBaseRecoveryAtReference:
             duration_ms=60.0, dt_ms=1.0, seed=7,
             runtime=jtfne.RuntimeConfig(
                 enable_hdp=True, recurrent_backend="edge_list",
-                hdp_params={"K_HDP": 0.0, "K_w_ctrl": 0.0, "noise_scale": 0.0},
+                hdp_params={"K_HDP": 0.0, "K_w_ctrl": 0.0, "alpha": 0.05,
+                            "noise_scale": 0.0},
             ),
         )
         model.simulate(sim)
@@ -114,7 +117,7 @@ class TestPhysicalTimeMonotonicity:
         model = jtfne.construct(cfg)
         edges = model.params["edge_list"]
         ds = jnp.full((edges.n_edges,), 8, dtype=jnp.int32)
-        new_edges = replace(edges, delay_steps=ds)
+        new_edges = replace(edges, delay_steps=ds, delay_storage="per_edge")
         object.__setattr__(model, "params", {**model.params, "edge_list": new_edges})
         sim_kwargs = dict(duration_ms=120.0, dt_ms=1.0, seed=1)
         s = model.simulate(
@@ -234,10 +237,12 @@ class TestHdpOffNullConsistency:
         ne = replace(edges, weight=jnp.asarray(w_mod, dtype=jnp.float32))
         object.__setattr__(m, "params", {**m.params, "edge_list": ne})
 
-        # (1) Null plasticity: exact bitwise preservation w(t) = w(0)
+        # (1) Null plasticity: exact bitwise preservation w(t) = w(0).
+        # alpha>0 keeps the HDP kernel genuinely engaged (H moves) while the
+        # weight ODE stays null, so the diagnostics exist to assert on.
         rt_null = jtfne.RuntimeConfig(recurrent_backend="edge_list", enable_hdp=True,
                                       hdp_params={"K_HDP": 0.0, "K_w_ctrl": 0.0,
-                                                  "noise_scale": 0.0})
+                                                  "alpha": 0.05, "noise_scale": 0.0})
         m.simulate(jtfne.simulation(duration_ms=60.0, dt_ms=1.0, seed=7, runtime=rt_null))
         diag = m.last_hdp_diagnostics()
         wf = np.asarray(diag["w_final"]).reshape(-1)

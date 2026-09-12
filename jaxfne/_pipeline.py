@@ -313,7 +313,14 @@ def dynamic_state_from_model(
             f"{expected_h_shape} for h_state_dim={h_state_dim}, got {H0.shape}"
         )
     w0 = model.params.get("hdp_initial_w")
-    w0 = jnp.asarray(w0, dtype=dtype) if w0 is not None else edges.weight.astype(dtype)
+    if w0 is not None:
+        w0 = jnp.asarray(w0, dtype=dtype)
+    else:
+        # Compact weight modes keep edges.weight a size-0 placeholder;
+        # resolve the executed per-edge weights exactly as kernels do.
+        from .emitters import _resolved_edge_weight
+
+        w0 = _resolved_edge_weight(edges, dtype, emitter)
     aux0 = jnp.zeros((0,), dtype=dtype)
     if locality != "population":
         from .hdp_rule import expected_aux_shape, get_hdp_rule, is_registered_hdp_rule
@@ -795,7 +802,7 @@ def memory_report(
     dominant component and the cheapest flag/stride that shrinks it.
     Byte counts are host-side ``nbytes`` of the stacked arrays.
     """
-    from .hdp_rule import hdp_params_are_identity
+    from .hdp_rule import hdp_is_engaged
 
     rec = dict(recorder or {})
     stride = rec.get("stride", 1)
@@ -843,7 +850,9 @@ def memory_report(
 
     kept = (n_steps + stride - 1) // stride
     hp = dict(runtime_cfg.hdp_params or {})
-    use_hdp = bool(getattr(runtime_cfg, "enable_hdp", False)) and not hdp_params_are_identity(hp)
+    use_hdp = hdp_is_engaged(
+        hp, model.params, enable_hdp=bool(getattr(runtime_cfg, "enable_hdp", False))
+    )
     recording: dict[str, int] = {
         "V_m": kept * n_neurons * itemsize,
         "spikes": kept * n_neurons * itemsize,

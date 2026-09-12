@@ -181,8 +181,6 @@ def _simulate_arrays(
         runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
 
     if "edge_list" in self.params:
-        import numpy as np
-
         from .emitters import _edge_delay_steps_numpy
 
         _delay_host = _edge_delay_steps_numpy(self.params["edge_list"])
@@ -328,9 +326,11 @@ def _simulate_arrays(
         )
     use_hdp = enable_hdp_flag
     if use_hdp:
-        from .hdp_rule import hdp_params_are_identity
+        from .hdp_rule import hdp_is_engaged
 
-        use_hdp = not hdp_params_are_identity(hp_for_gate)
+        use_hdp = hdp_is_engaged(
+            hp_for_gate, self.params, enable_hdp=enable_hdp_flag
+        )
 
     if use_hdp:
         # HDP is sparse-edge based; edge_list always exists from construct().
@@ -720,9 +720,11 @@ def _simulate_continuation_arrays(
             "simulate(..., return_state=True)"
         )
 
-    from .hdp_rule import hdp_params_are_identity, is_registered_hdp_rule
+    from .hdp_rule import hdp_is_engaged, is_registered_hdp_rule
 
-    use_hdp_cont = runtime_cfg.enable_hdp and not hdp_params_are_identity(hp)
+    use_hdp_cont = hdp_is_engaged(
+        hp, self.params, enable_hdp=bool(runtime_cfg.enable_hdp)
+    )
     if use_hdp_cont:
         if is_registered_hdp_rule(hp.get("hdp_rule")):
             hdp_kwargs = {

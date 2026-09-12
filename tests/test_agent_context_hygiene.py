@@ -286,7 +286,9 @@ class TestAgentPathIntegrity:
         context = Path("artifacts/context.md").read_text(encoding="utf-8")
         agents_doc = Path("artifacts/AGENTS.md").read_text(encoding="utf-8")
         assert "## Task router (canonical)" in context
-        assert "TODO stack" in agents_doc
+        # 751d0fe renamed "## TODO stack" to "## Project control" (two-file
+        # control model); the router contract is the section, not the old name.
+        assert "## Project control" in agents_doc
         assert "artifacts/todo_stack.md" in agents_doc
         assert "jaxfne-worker-context-router" not in context
 

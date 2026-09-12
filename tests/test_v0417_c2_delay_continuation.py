@@ -42,7 +42,7 @@ def _model_with_delays(
         if ds.shape[0] != edges.n_edges:
             reps = int(np.ceil(edges.n_edges / ds.shape[0]))
             ds = jnp.tile(ds, reps)[: edges.n_edges]
-    new_edges = replace(edges, delay_steps=ds)
+    new_edges = replace(edges, delay_steps=ds, delay_storage="per_edge")
     object.__setattr__(model, "params", {**model.params, "edge_list": new_edges})
     return model
 

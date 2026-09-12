@@ -13,6 +13,7 @@ from jaxfne._model_tune import (
     _candidate_state_evidence,
     _edge_parameter_mask,
     _model_with_parameters,
+    _resolved_edge_weights_host,
 )
 from jaxfne.hdp_network import DEFAULT_HDP
 from jaxfne.io import json_safe
@@ -162,13 +163,13 @@ def test_edge_group_selection_and_sign_preservation(mcc3_bundle) -> None:
     assert {int(mask.sum()) for mask in masks.values()} == {20, 25}
     assert sum(int(mask.sum()) for mask in masks.values()) == 90
 
-    baseline = np.asarray(model.params["edge_list"].weight)
+    baseline = _resolved_edge_weights_host(model)
     candidate = _model_with_parameters(
         model,
         {name: 1.5 for name in specs},
         specs,
     )
-    updated = np.asarray(candidate.params["edge_list"].weight)
+    updated = _resolved_edge_weights_host(candidate)
     assert np.all(np.sign(updated) == np.sign(baseline))
     assert np.array_equal(
         np.asarray(candidate.params["emitter"].W),

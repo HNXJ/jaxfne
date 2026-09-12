@@ -93,7 +93,10 @@ def test_simulate_homeostasis_metadata_helper_per_neuron_array_param():
 # --- _simulate_hdp_metadata (mirrors _simulate_homeostasis_metadata) --------
 
 def test_hdp_metadata_present_and_correctly_shaped_via_full_simulate():
-    cfg = _base_cfg().hdp(relative_baseline=2.0)
+    # alpha>0 keeps HDP genuinely engaged (null H-gains alone route to the
+    # baseline kernel by the qualified identity invariant, yielding no HDP
+    # diagnostics); the metadata shape contract is about engaged runs.
+    cfg = _base_cfg().hdp(relative_baseline=2.0, alpha=0.05)
     model = jtfne.construct(cfg)
     sig = jtfne.simulate(model, duration_ms=20.0, dt_ms=0.5, seed=0)
 

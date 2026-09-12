@@ -9,6 +9,7 @@ import pytest
 
 import jaxfne as jtfne
 from jaxfne import neuronal_tensor as nt
+from jaxfne.emitters import resolve_edge_tau_ms, resolve_edge_weight
 
 
 def _layer() -> nt.Layer:
@@ -195,7 +196,7 @@ def test_distinct_parallel_mechanisms_preserve_typed_edges():
             )
         }
     ) == 8
-    assert set(np.asarray(edges.tau_ms).tolist()) == {2.0, 100.0}
+    assert set(np.asarray(resolve_edge_tau_ms(edges, edges.tau_ms.dtype)).tolist()) == {2.0, 100.0}
 
 
 def test_explicit_cross_area_topology_has_no_implicit_within_area_edges():
@@ -320,9 +321,16 @@ def test_explicit_tensor_preserves_identity_geometry_sign_and_receptor():
     assert np.all((positions[:, 2] >= 3.5) & (positions[:, 2] <= 3.6))
 
     labels = np.asarray([row["cell_type"] for row in rows])
-    signs = np.asarray(edges.weight)
+    signs = np.asarray(
+        resolve_edge_weight(
+            edges,
+            edges.weight.dtype,
+            presynaptic_sign=model.params["emitter"].sign,
+        ),
+        dtype=float,
+    )
     pre = np.asarray(edges.pre)
     post = np.asarray(edges.post)
     assert np.all(signs[(labels[pre] == "E") & (labels[post] == "PV")] > 0)
     assert np.all(signs[(labels[pre] == "PV") & (labels[post] == "E")] < 0)
-    assert set(np.asarray(edges.tau_ms).tolist()) == {2.0, 5.0}
+    assert set(np.asarray(resolve_edge_tau_ms(edges, edges.tau_ms.dtype)).tolist()) == {2.0, 5.0}

@@ -32,6 +32,13 @@ _EDGE_META_PERSISTED = {
     "uniform_delay_steps",
     "receptor_index_storage",
     "mechanism_tau_table",
+    # Compact weight metadata likewise lives in the JSON sidecar
+    # (scalar magnitude / mechanism table roundtrip exactly through
+    # float; see Model.checkpoint/restore); only materialized per-edge
+    # arrays belong in the npz.
+    "weight_storage",
+    "weight_magnitude",
+    "mechanism_weight_magnitude_table",
 }
 
 

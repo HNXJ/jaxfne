@@ -102,7 +102,11 @@ def attach_provenance_class_delays(
         if edge_class not in delay_steps_by_class:
             raise ValueError(f"unknown edge_class {edge_class!r} for delay attachment")
         delay_steps[int(row["edge_index"])] = int(delay_steps_by_class[edge_class])
-    new_edges = replace(edges, delay_steps=jnp.asarray(delay_steps, dtype=jnp.int32))
+    new_edges = replace(
+        edges,
+        delay_steps=jnp.asarray(delay_steps, dtype=jnp.int32),
+        delay_storage="per_edge",
+    )
     object.__setattr__(model, "params", {**model.params, "edge_list": new_edges})
     return model
 

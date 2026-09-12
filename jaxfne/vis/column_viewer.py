@@ -129,10 +129,24 @@ def collect_column_viewer_data(model, *, max_edges_for_stats: int = 200_000) -> 
         raise ValueError("model.params['edge_list'] is missing — construct() must have run")
     pre = np.asarray(edge_list.pre, dtype=np.int64)
     post = np.asarray(edge_list.post, dtype=np.int64)
-    weight = np.asarray(edge_list.weight, dtype=float)
+    # Compact class storage keeps raw fields as size-0 placeholders;
+    # resolve the executed per-edge values exactly as kernels consume.
+    from jaxfne.emitters import (
+        resolve_edge_delay_steps,
+        resolve_edge_tau_ms,
+        resolve_edge_weight,
+    )
+
+    _dtype = getattr(edge_list.weight, "dtype", None)
+    _emitter = (params.get("emitter") if isinstance(params, dict) else None)
+    _sign = getattr(_emitter, "sign", None)
+    weight = np.asarray(
+        resolve_edge_weight(edge_list, _dtype, presynaptic_sign=_sign),
+        dtype=float,
+    )
     receptor_index = np.asarray(edge_list.receptor_index, dtype=int)
-    tau_ms = np.asarray(edge_list.tau_ms, dtype=float)
-    delay_steps = np.asarray(edge_list.delay_steps, dtype=int)
+    tau_ms = np.asarray(resolve_edge_tau_ms(edge_list, _dtype), dtype=float)
+    delay_steps = np.asarray(resolve_edge_delay_steps(edge_list), dtype=int)
     n_edges = int(pre.shape[0])
 
     # degree (realized)
