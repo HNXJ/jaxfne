@@ -21,8 +21,7 @@ Published predecessor: `v0.4.21` (immutable).
 Entry: v0.4.23 shipped; W8 shows cumulative programme receipts from `8823520` baseline.
 
 - AUDIT-01 — OPEN: adversarial self-review battery recorded per `artifacts/programme/v0_4_24_audit01_selfreview_receipt.md` (no defects; identity qualified as routing-not-kernel property); still requires implementer ≠ sole auditor (external party)
-- MIN-01 — minimization entry: complexity baseline inventory; per-item acceptance is identical semantics/API/numerics/meaning (§charter below)
-- DOC-01 — prose minimization under the vocabulary rule (cut demonstrated jargon/synonyms; keep distinct-meaning terms)
+- DOC-01 — IN PROGRESS: prose minimization under the vocabulary rule (cut demonstrated jargon/synonyms; keep distinct-meaning terms)
 - CODEMIN-01 — source minimization to minimum complexity subject to complete required semantics
 - TESTMIN-01 — test-suite minimization (drop redundant coverage; keep gate strength)
 - PKG-01 — installed-package boundary audit (which LOC belongs in the runtime distribution; executable protocol/research code destination: tests/benchmarks/examples, never artifacts/ for aesthetics; alongside kernel-count and test-minimization reviews)
