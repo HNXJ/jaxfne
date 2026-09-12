@@ -20,8 +20,7 @@ Published predecessor: `v0.4.21` (immutable).
 
 Entry: v0.4.23 shipped; W8 shows cumulative programme receipts from `8823520` baseline.
 
-- W16-6 — IN PROGRESS: bounded classification experiment (authorized): spatial decimation via EDGE-01 selectors; primary `spike_rate_hz_mean`, error |Δ|, ε_r = max(0.5 Hz, 0.1·s_full) (experiment criterion only); laminar-LFP negative control (waveform + amplitude error, no ε gate); ordered factors; bias/variance; conclude 1-of-3; no universal factor.
-- FIELD-01 — field/LFP proxy computational audit with declared error bounds
+- 24-FIELD-01 — field/LFP proxy computational audit with declared error bounds
 - JAX-01 — JAX execution profile programme (measure before JIT changes)
 - EQUIV-01 — per-observable equivalence acceptance (exact or `d≤ε` pre-declared)
 - AUDIT-01 — independent adversarial core audit (implementer ≠ sole auditor)
