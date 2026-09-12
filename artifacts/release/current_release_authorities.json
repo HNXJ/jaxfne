@@ -1,7 +1,7 @@
 {
   "schema": "jaxfne.current_release_authorities.v1",
   "release_target_version": "0.4.23",
-  "notes": "v0.4.23 candidate 234fdfd (atlas 0.4.23 + plotly compact resolve over 5596bc7). Published release: v0.4.22 @ d849e6d. Receipt below tracks the 0.4.23 candidate until seal.",
+  "notes": "v0.4.23 SEALED: tag v0.4.23 @ 7e91da3 (peel verified), origin/main @ 7e91da3, GitHub release created with retained artifacts. PyPI upload PENDING (no credential in workspace). Published release until PyPI upload: v0.4.22.",
   "release_receipt": "artifacts/release/v0_4_23_release_receipt.json",
   "programme_entry": "artifacts/programme/v0_4_23_entry_receipt.md",
   "acceptance_goals": "artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md",

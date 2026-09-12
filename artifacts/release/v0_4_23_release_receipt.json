@@ -6,7 +6,7 @@
   "distribution": {
     "build_backend": "hatchling==1.29.0",
     "ci_artifact_name": "release-dist",
-    "github_release": "PENDING_SEAL",
+    "github_release": "CREATED",
     "manifest": "RELEASE_MANIFEST.json",
     "pypi": "PENDING_SEAL",
     "pypi_publish_method": "twine upload of retained bytes (no rebuild)",
@@ -28,7 +28,7 @@
   "gate0_release_path": "RELEASE-mode Gate 0 validates package version match against current_release_authorities.json.",
   "github_release_url": "https://github.com/HNXJ/jaxfne/releases/tag/v0.4.23",
   "integration_baseline_sha": "2338b00af5c7c822aa35af60d68be4d62f18469d",
-  "notes": "v0.4.23 candidate b6e1c1f (plotly duck-type fix over 234fdfd). Artifacts rebuilt once from b6e1c1f and retained; must not rebuild between validation and publication.",
+  "notes": "v0.4.23 sealed: tag/GitHub @ 7e91da3. PyPI PENDING (no credential exercised). RTD follows the tag through the declared path.",
   "programme": "v0.4.23 delayed-HDP + simplification + recording + edge programme (ROADMAP_0422_0424 \u00c2\u00a74)",
   "published_predecessor": {
     "commit_sha": "d849e6d91b72ce1ca2b736c03bdec8c1d89f55c0",
@@ -45,15 +45,17 @@
   },
   "schema": "jaxfne.release_receipt.v4",
   "seal_scorecard": null,
-  "seal_timestamp_utc": null,
-  "seal_verdict": null,
-  "status": "CANDIDATE",
+  "seal_timestamp_utc": "2026-09-12T15:57:13+00:00",
+  "seal_verdict": "SEAL_GO",
+  "status": "SEALED_PARTIAL_PYPI_PENDING",
   "supersedes": null,
   "tag": "v0.4.23",
-  "tag_object_sha": null,
-  "tag_peeled_sha": null,
-  "tag_timestamp_utc": null,
+  "tag_object_sha": "9f29e1eb891f74a762ac351c7bef1b326c872d5c",
+  "tag_peeled_sha": "7e91da3876856927dc8a611abc87e26d82eef64e",
+  "tag_timestamp_utc": "2026-09-12T15:57:13+00:00",
   "version": "0.4.23",
   "write_once": true,
-  "source_tree_sha": "3fed5ca94e3bfaf7f9d80ce7370e8be05094cd2b"
+  "source_tree_sha": "3fed5ca94e3bfaf7f9d80ce7370e8be05094cd2b",
+  "github_release_timestamp_utc": "2026-09-12T15:57:13+00:00",
+  "reconcile_notes": "release_target_reconciled=true; peel(v0.4.23)=7e91da3; origin/main=7e91da3. PyPI upload pending: no credential in workspace."
 }
