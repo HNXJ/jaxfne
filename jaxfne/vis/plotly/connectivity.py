@@ -31,17 +31,24 @@ def plot_connectivity(model, *, max_neurons: int = 300, title: str = "Recurrent 
     pre = np.asarray(edges.pre)
     post = np.asarray(edges.post)
     # Compact class storage keeps weight a size-0 placeholder; resolve the
-    # executed per-edge values (visualization-only read, like the NxN below).
-    from jaxfne.emitters import resolve_edge_weight
+    # executed per-edge values exactly as kernels consume. Plain
+    # pre/post/weight duck-types (and per_edge models) keep the direct read.
+    if getattr(edges, "weight_storage", "per_edge") == "per_edge":
+        weight = np.asarray(edges.weight, dtype=float)
+    else:
+        from jaxfne.emitters import resolve_edge_weight
 
-    weight = np.asarray(
-        resolve_edge_weight(
-            edges,
-            edges.weight.dtype,
-            presynaptic_sign=model.params["emitter"].sign,
-        ),
-        dtype=float,
-    )
+        _emitter = (
+            model.params.get("emitter") if isinstance(model.params, dict) else None
+        )
+        weight = np.asarray(
+            resolve_edge_weight(
+                edges,
+                edges.weight.dtype,
+                presynaptic_sign=getattr(_emitter, "sign", None),
+            ),
+            dtype=float,
+        )
 
     m = order.shape[0]
     W = np.zeros((m, m), dtype=float)
