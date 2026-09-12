@@ -20,7 +20,8 @@ Published predecessor: `v0.4.21` (immutable).
 
 Entry: v0.4.23 sealed; W8 shows cumulative programme receipts from `8823520` baseline.
 
-- 24-ENT-01 — IN PROGRESS: confirm 0.4.24 entry criteria
+- 24-ENT-01 — CLOSED (ENTRY_GRANTED per `artifacts/programme/v0_4_24_entry_receipt.md`)
+- 24-W16-6 — IN PROGRESS: neurobiophysical geometry / bounded augmentation (W16.6); named observable, metric, ε
 - 24-W16-6 — neurobiophysical geometry / bounded augmentation (W16.6); named observable, metric, ε
 - 24-FIELD-01 — field/LFP proxy computational audit with declared error bounds
 - 24-JAX-01 — JAX execution profile programme (measure before JIT changes)
