@@ -20,8 +20,7 @@ Published predecessor: `v0.4.21` (immutable).
 
 Entry: v0.4.23 shipped; W8 shows cumulative programme receipts from `8823520` baseline.
 
-- 24-FIELD-01 — field/LFP proxy computational audit with declared error bounds
-- JAX-01 — JAX execution profile programme (measure before JIT changes)
+- JAX-01 — IN PROGRESS: JAX execution profile programme (measure before JIT changes)
 - EQUIV-01 — per-observable equivalence acceptance (exact or `d≤ε` pre-declared)
 - AUDIT-01 — independent adversarial core audit (implementer ≠ sole auditor)
 - MIN-01 — minimization entry: complexity baseline inventory; per-item acceptance is identical semantics/API/numerics/meaning (§charter below)
