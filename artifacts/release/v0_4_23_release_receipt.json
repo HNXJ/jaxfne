@@ -7,28 +7,30 @@
     "build_backend": "hatchling==1.29.0",
     "ci_artifact_name": "release-dist",
     "github_release": "CREATED",
-    "manifest": "RELEASE_MANIFEST.json",
-    "pypi": "PENDING_SEAL",
-    "pypi_publish_method": "twine upload of retained bytes (no rebuild)",
+    "manifest": "RELEASE_MANIFEST.json (CI run 34703731051)",
+    "pypi": "UPLOADED",
+    "pypi_publish_method": "trusted publishing (GitHub Actions Publish workflow on release), executed by Antigravity handoff",
     "pypi_url": "https://pypi.org/project/jaxfne/0.4.23/",
     "sdist": {
       "filename": "jaxfne-0.4.23.tar.gz",
-      "sha256": "C855F6C2C4CBF3DBA16AC55D2CF26891B07EC8891181B808E7F47EE45191922C",
-      "size_bytes": 38036672
+      "sha256": "d3805f4089a7fab0284a64fd9db452e91cc41dedc202c971e1de0946d948dd82",
+      "size_bytes": 38128157
     },
     "source_sha": "b6e1c1f05b015765feb62dd0ecbc27068c40613d",
     "source_tree_sha": "3fed5ca94e3bfaf7f9d80ce7370e8be05094cd2b",
     "wheel": {
       "filename": "jaxfne-0.4.23-py3-none-any.whl",
-      "sha256": "0A3C27C2BCF013445A412E3D156A0E67405EDE560449618B208FF30AC53A16B1",
-      "size_bytes": 730141
-    }
+      "sha256": "ad23dafb98ac382989bd2cd367f3ff21ff0dd9ab4012851bc14a24e1e324fba7",
+      "size_bytes": 728969
+    },
+    "pypi_publish_run_id": 34703754053,
+    "pypi_clean_install_smoke": "PASS"
   },
   "gate0_authorities_file": "artifacts/release/current_release_authorities.json",
   "gate0_release_path": "RELEASE-mode Gate 0 validates package version match against current_release_authorities.json.",
   "github_release_url": "https://github.com/HNXJ/jaxfne/releases/tag/v0.4.23",
   "integration_baseline_sha": "2338b00af5c7c822aa35af60d68be4d62f18469d",
-  "notes": "v0.4.23 sealed: tag/GitHub @ 7e91da3. PyPI PENDING (no credential exercised). RTD follows the tag through the declared path.",
+  "notes": "v0.4.23 published: tag/GitHub @ 7e91da3; PyPI 0.4.23 via trusted publishing (run 34703754053); RTD stable build 34526536 @ 7e91da3.",
   "programme": "v0.4.23 delayed-HDP + simplification + recording + edge programme (ROADMAP_0422_0424 \u00c2\u00a74)",
   "published_predecessor": {
     "commit_sha": "d849e6d91b72ce1ca2b736c03bdec8c1d89f55c0",
@@ -39,15 +41,19 @@
   "release_candidate": "b6e1c1f05b015765feb62dd0ecbc27068c40613d",
   "rtd": {
     "production_url": "https://jaxfne.readthedocs.io/en/stable/",
-    "ref": "v0.4.23 (pending seal)",
+    "version_slug": "stable",
+    "ref": "v0.4.23",
+    "commit_sha": "7e91da3876856927dc8a611abc87e26d82eef64e",
+    "build_id": 34526536,
+    "build_timestamp_utc": "2026-09-12T15:56:55+00:00",
     "source_version": "0.4.23",
-    "version_slug": "stable"
+    "note": "stable build success @ 7e91da3; CDN observed lagging at verification time"
   },
   "schema": "jaxfne.release_receipt.v4",
   "seal_scorecard": null,
   "seal_timestamp_utc": "2026-09-12T15:57:13+00:00",
   "seal_verdict": "SEAL_GO",
-  "status": "SEALED_PARTIAL_PYPI_PENDING",
+  "status": "PUBLISHED",
   "supersedes": null,
   "tag": "v0.4.23",
   "tag_object_sha": "9f29e1eb891f74a762ac351c7bef1b326c872d5c",
@@ -57,5 +63,5 @@
   "write_once": true,
   "source_tree_sha": "3fed5ca94e3bfaf7f9d80ce7370e8be05094cd2b",
   "github_release_timestamp_utc": "2026-09-12T15:57:13+00:00",
-  "reconcile_notes": "release_target_reconciled=true; peel(v0.4.23)=7e91da3; origin/main=7e91da3. PyPI upload pending: no credential in workspace."
+  "reconcile_notes": "release_target_reconciled=true; peel(v0.4.23)=7e91da3; origin/main=7e91da3; CI manifest(34703731051)==GitHub assets==PyPI hashes. Earlier locally-reported hashes (wheel 0A3C27C2/730141B, sdist C855F6C2/38036672B) were superseded intermediates: same code (combined .py sha 50ba76c3), differing zip/gzip envelopes, and the local sdist additionally contained the untracked workspace handoff file (1378 vs 1377 members). Wheel code verified identical; local bytes never published."
 }

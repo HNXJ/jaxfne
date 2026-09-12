@@ -4,16 +4,15 @@ Work loop and rules: `artifacts/AGENTS.md` (TODO stack).
 Stable authorized facts: `artifacts/fact_stack.md` (human edit only).
 Evidence: git, tests, receipts, tags, PyPI — not this file.
 
-**v0.4.23 sealed** (tag `v0.4.23` @ `7e91da3`, peel verified; origin/main @ `7e91da3`; GitHub release with retained artifacts).
-**v0.4.22** remains the published PyPI release until 23-PUB-01 executes.
+**v0.4.23 published** (tag `v0.4.23` @ `7e91da3`, peel verified; origin/main @ `7e91da3`; GitHub release with CI bytes; PyPI `0.4.23` via trusted publishing run `34703754053`; RTD stable build `34526536` @ `7e91da3`).
+**v0.4.22** is now the published predecessor (tag, PyPI, GitHub release, RTD history).
 Published predecessor: `v0.4.21` (immutable).
 
 ---
 
-# v0.4.23 (sealed — record only, no executable work)
+# v0.4.23 (published — record only, no work)
 
-- 23-PUB-01 — OPEN (sole 23 leftover): upload retained `jaxfne-0.4.23` wheel/sdist bytes to PyPI (hashes in `artifacts/release/v0_4_23_release_receipt.json`; no rebuild); then advance published-version surfaces (`PUBLISHED_PYPI_VERSION` → `0.4.23`, `PREVIOUS` → `0.4.22`, install/colab published statements, drop RC wording); verify RTD stable build for the tag. Blocked on: PyPI credential/token in workspace.
-- Closed: DELAY-01 (delayed HDP + compaction NO_CHANGE), SIMP-01 (kept), SIMP-02/03/04/05 (NO_CHANGE), STOCH-01 (NO_CHANGE), REC-01, EDGE-01, LAW-01 (improvements), FIN-01/SYSID-01/JDNA-01 (NOT_REQUIRED), HDP-02 (authorized re-baseline), VERIFY-01 (gates green; manifest + closure repaired). Receipts: `artifacts/programme/v0_4_23_*_receipt.md`.
+- Closed: DELAY-01 (delayed HDP + compaction NO_CHANGE), SIMP-01 (kept), SIMP-02/03/04/05 (NO_CHANGE), STOCH-01 (NO_CHANGE), REC-01, EDGE-01, LAW-01 (improvements), FIN-01/SYSID-01/JDNA-01 (NOT_REQUIRED), HDP-02 (authorized re-baseline), VERIFY-01 (gates green; manifest + closure repaired), PUB-01 (Antigravity trusted publishing; hash discrepancy reconciled to CI bytes). Receipts: `artifacts/programme/v0_4_23_*_receipt.md`.
 
 ---
 
@@ -21,7 +20,7 @@ Published predecessor: `v0.4.21` (immutable).
 
 Entry: v0.4.23 sealed; W8 shows cumulative programme receipts from `8823520` baseline.
 
-- 24-ENT-01 — confirm 0.4.24 entry criteria
+- 24-ENT-01 — IN PROGRESS: confirm 0.4.24 entry criteria
 - 24-W16-6 — neurobiophysical geometry / bounded augmentation (W16.6); named observable, metric, ε
 - 24-FIELD-01 — field/LFP proxy computational audit with declared error bounds
 - 24-JAX-01 — JAX execution profile programme (measure before JIT changes)
