@@ -38,7 +38,7 @@ from .emitters import (
     resolve_receptor_index,
 )
 from .emitters import _resolved_edge_weight
-from .hdp_rule import HDPRuleContext, get_hdp_rule
+from .hdp_rule import HDPRuleContext, expected_aux_shape, get_hdp_rule
 
 
 def simulate_edge_recurrent_izhikevich_hdp_registered(
@@ -142,6 +142,22 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
             w_next = w
         return H_next, w_next, aux_next
 
+    aux_shape = expected_aux_shape(
+        descriptor, n_neurons=n_neurons, n_edges=int(edges.n_edges)
+    )
+
+    def _checked_aux0(from_init: bool) -> jax.Array:
+        default = jnp.zeros(aux_shape, dtype=jdtype)
+        if not from_init:
+            return default
+        got = jnp.asarray(init_state["aux_final"], dtype=jdtype)  # type: ignore[index]
+        if tuple(got.shape) != tuple(default.shape):
+            raise ValueError(
+                f"aux_final must have shape {tuple(default.shape)} for "
+                f"hdp_rule {hdp_rule!r}, got {tuple(got.shape)}"
+            )
+        return got
+
     if not has_delay:
         if init_state is not None:
             H0 = jnp.asarray(
@@ -149,10 +165,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
                 dtype=jdtype,
             )
             w0 = jnp.asarray(init_state.get("w_final", w_baseline), dtype=jdtype)
-            aux0 = jnp.asarray(
-                init_state.get("aux_final", jnp.zeros((0,), dtype=jdtype)),
-                dtype=jdtype,
-            )
+            aux0 = _checked_aux0("aux_final" in init_state)
             init = (
                 jnp.asarray(init_state["v"], dtype=jdtype),
                 jnp.asarray(init_state["u"], dtype=jdtype),
@@ -170,7 +183,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
                 jnp.zeros((edges.n_edges,), dtype=jdtype),
                 jnp.ones((n_neurons,), dtype=jdtype),
                 w_baseline,
-                jnp.zeros((0,), dtype=jdtype),
+                jnp.zeros(aux_shape, dtype=jdtype),
             )
 
         def step(carry, xs):
@@ -265,10 +278,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
             dtype=jdtype,
         )
         w0 = jnp.asarray(init_state.get("w_final", w_baseline), dtype=jdtype)
-        aux0 = jnp.asarray(
-            init_state.get("aux_final", jnp.zeros((0,), dtype=jdtype)),
-            dtype=jdtype,
-        )
+        aux0 = _checked_aux0("aux_final" in init_state)
         init = (
             jnp.asarray(init_state["v"], dtype=jdtype),
             jnp.asarray(init_state["u"], dtype=jdtype),
@@ -287,7 +297,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
             jnp.zeros((edges.n_edges,), dtype=jdtype),
             jnp.ones((n_neurons,), dtype=jdtype),
             w_baseline,
-            jnp.zeros((0,), dtype=jdtype),
+            jnp.zeros(aux_shape, dtype=jdtype),
             spike_hist0,
         )
 

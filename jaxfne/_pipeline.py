@@ -314,6 +314,18 @@ def dynamic_state_from_model(
         )
     w0 = model.params.get("hdp_initial_w")
     w0 = jnp.asarray(w0, dtype=dtype) if w0 is not None else edges.weight.astype(dtype)
+    aux0 = jnp.zeros((0,), dtype=dtype)
+    if locality != "population":
+        from .hdp_rule import expected_aux_shape, get_hdp_rule, is_registered_hdp_rule
+
+        if is_registered_hdp_rule(hp.get("hdp_rule")):
+            descriptor, _ = get_hdp_rule(str(hp["hdp_rule"]))
+            aux0 = jnp.zeros(
+                expected_aux_shape(
+                    descriptor, n_neurons=int(n_neurons), n_edges=int(n_edges)
+                ),
+                dtype=dtype,
+            )
     theta0 = jnp.zeros((0,), dtype=dtype)
     if locality == "population":
         init_theta = hp.get("controller_theta_S_init")
@@ -329,7 +341,7 @@ def dynamic_state_from_model(
         H=H0,
         w=w0,
         theta_S=theta0,
-        aux=jnp.zeros((0,), dtype=dtype),
+        aux=aux0,
     )
 
 

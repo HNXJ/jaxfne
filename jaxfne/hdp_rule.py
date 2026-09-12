@@ -30,6 +30,11 @@ class HDPRuleDescriptor:
     h_coords: tuple[str, ...] = ("H",)
     theta_targets: tuple[str, ...] = ("edge_weight",)
     aux_coords: tuple[str, ...] = ()
+    # Flat auxiliary-carry layout for ``aux``/``d_aux``: "none" -> ``(0,)``,
+    # "per_neuron" -> ``(n_neurons,)``, "per_edge" -> ``(n_edges,)``.
+    # A single layout keeps the carry contract explicit; multi-coordinate
+    # layouts are not claimed.
+    aux_layout: str = "none"
     scope: str = "node"
     h_bounds: tuple[float, float] = (0.1, 10.0)
     w_bounds: tuple[float, float] = (1e-3, 50.0)
@@ -74,10 +79,34 @@ class HDPRuleUpdate:
 _REGISTRY: dict[str, tuple[HDPRuleDescriptor, RuleStepFn]] = {}
 
 
+_AUX_LAYOUTS = ("none", "per_neuron", "per_edge")
+
+
+def expected_aux_shape(
+    descriptor: HDPRuleDescriptor, *, n_neurons: int, n_edges: int
+) -> tuple[int, ...]:
+    """Static ``aux`` carry shape for a descriptor (23-LAW-01)."""
+    if descriptor.aux_layout == "none":
+        return (0,)
+    if descriptor.aux_layout == "per_neuron":
+        return (int(n_neurons),)
+    if descriptor.aux_layout == "per_edge":
+        return (int(n_edges),)
+    raise ValueError(
+        f"HDP rule {descriptor.name!r} declares unknown aux_layout "
+        f"{descriptor.aux_layout!r}; expected one of {_AUX_LAYOUTS}"
+    )
+
+
 def register_hdp_rule(descriptor: HDPRuleDescriptor, step_fn: RuleStepFn) -> None:
     """Register a JIT-safe HDP rule by name."""
     if descriptor.name in _REGISTRY:
         raise ValueError(f"HDP rule {descriptor.name!r} is already registered")
+    if descriptor.aux_layout not in _AUX_LAYOUTS:
+        raise ValueError(
+            f"HDP rule {descriptor.name!r} declares unknown aux_layout "
+            f"{descriptor.aux_layout!r}; expected one of {_AUX_LAYOUTS}"
+        )
     _REGISTRY[descriptor.name] = (descriptor, step_fn)
 
 
@@ -163,4 +192,43 @@ register_hdp_rule(
         default_params={"k_h": 0.0, "k_w": 0.0, "gamma": 0.0},
     ),
     _synthetic_presyn_gain_step,
+)
+
+
+def _eligibility_trace_gain_step(ctx: HDPRuleContext) -> HDPRuleUpdate:
+    """23-LAW-01 structured-law exercise: event-driven eligibility + H gate.
+
+    Per-edge eligibility ``E`` integrates pre/post coincidence with decay
+    ``tau_e``; the weight drive is eligibility gated by postsynaptic ``H``.
+    ``H`` keeps the event-coupled drive so the delayed chain
+    ``event_{t-d} -> H_t -> P -> Theta_t -> I_t`` holds as for the
+    qualification rule. Not an STDP mechanism claim — an expressivity probe
+    for the aux-carrying primitive (non-empty ``aux`` continuation).
+    """
+    k_h = jnp.asarray(ctx.rule_params.get("k_h", 0.0), dtype=ctx.H.dtype)
+    k_w = jnp.asarray(ctx.rule_params.get("k_w", 0.0), dtype=ctx.H.dtype)
+    gamma = jnp.asarray(ctx.rule_params.get("gamma", 0.0), dtype=ctx.H.dtype)
+    tau_e = jnp.asarray(ctx.rule_params.get("tau_e", 20.0), dtype=ctx.H.dtype)
+    pre_sp = ctx.pre_sp if ctx.pre_sp is not None else ctx.spikes[ctx.pre]
+    post_sp = ctx.spikes[ctx.post]
+    dH = -gamma * (ctx.H - 1.0)
+    dH = dH + _segment_sum(k_h * pre_sp, ctx.post, ctx.n_neurons)
+    dE = -ctx.aux / jnp.maximum(tau_e, jnp.asarray(1e-6, dtype=ctx.H.dtype))
+    dE = dE + pre_sp * post_sp
+    H_post = ctx.H[ctx.post]
+    dw = k_w * H_post * ctx.aux * jnp.abs(ctx.w)
+    return HDPRuleUpdate(dH=dH, d_aux=dE, d_theta={"edge_weight": dw})
+
+
+register_hdp_rule(
+    HDPRuleDescriptor(
+        name="eligibility_trace_gain",
+        h_coords=("H",),
+        theta_targets=("edge_weight",),
+        aux_coords=("eligibility",),
+        aux_layout="per_edge",
+        scope="node",
+        default_params={"k_h": 0.0, "k_w": 0.0, "gamma": 0.0, "tau_e": 20.0},
+    ),
+    _eligibility_trace_gain_step,
 )
