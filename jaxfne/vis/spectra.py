@@ -43,16 +43,6 @@ def plot_spectrogram_profiles(lfp_signals_tensor: jax.Array, time_steps: np.ndar
     return fig
 
 
-def _get_time_ms(signals: Any, default_len: int) -> np.ndarray:
-    time_raw = getattr(signals, "time_ms", None)
-    if time_raw is None and isinstance(signals, dict):
-        time_raw = signals.get("time_ms")
-    time_ms = prepare_static_plot_matrix(time_raw)
-    if time_ms is None:
-        return np.arange(default_len)
-    return time_ms
-
-
 def psd(signals: Any, **kwargs: Any) -> Any:
     """Plot Power Spectral Density."""
     require_matplotlib()

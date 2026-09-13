@@ -34,14 +34,12 @@ from typing import Any
 
 import numpy as np
 
+from .core import is_E_cell_type as _is_E
+
 
 # ---------------------------------------------------------------------------
 # Data collection (pure NumPy/JAX host reads — no simulation, no Plotly)
 # ---------------------------------------------------------------------------
-
-def _is_E(cell_type: str) -> bool:
-    return str(cell_type) == "E"
-
 
 def _classify_edge(pre_is_E: bool, post_is_E: bool) -> str:
     if pre_is_E and post_is_E:

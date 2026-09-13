@@ -33,14 +33,12 @@ from typing import Any, Mapping, Sequence
 
 import numpy as np
 
+from .core import is_E_cell_type as _is_E
+
 
 # ---------------------------------------------------------------------------
 # Helpers — pure NumPy/JAX host reads, no simulation re-run beyond develop+construct
 # ---------------------------------------------------------------------------
-
-def _is_E(cell_type: str) -> bool:
-    return str(cell_type) == "E"
-
 
 def _edge_category(pre_is_E: bool, post_is_E: bool) -> str:
     if pre_is_E and post_is_E:

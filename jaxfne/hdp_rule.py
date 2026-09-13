@@ -18,6 +18,7 @@ from typing import Any, Callable, Mapping
 import jax.numpy as jnp
 
 from ._hdp_adaptive import normalize_hdp_params_boundary, resolve_h_state_locality
+from .emitters import _segment_sum
 
 RuleStepFn = Callable[["HDPRuleContext"], "HDPRuleUpdate"]
 
@@ -181,10 +182,6 @@ def hdp_params_are_identity(hp: Mapping[str, Any] | None) -> bool:
     # Legacy documented null may retain K_HDP>0 while H stays at 1 and dw=0.
     # Registered rules and any H-driver activity are never identity.
     return True
-
-
-def _segment_sum(values: jnp.ndarray, indices: jnp.ndarray, n: int) -> jnp.ndarray:
-    return jnp.zeros((n,), dtype=values.dtype).at[indices].add(values)
 
 
 def _synthetic_presyn_gain_step(ctx: HDPRuleContext) -> HDPRuleUpdate:

@@ -10,7 +10,7 @@ from typing import Any
 import jax
 import numpy as np
 
-from .core import FigureResult, prepare_static_plot_matrix, require_matplotlib
+from .core import FigureResult, get_time_ms as _get_time_ms, prepare_static_plot_matrix, require_matplotlib
 
 
 def plot_continuous_traces(traces_tensor: jax.Array, config_params: dict) -> Any:
@@ -38,16 +38,6 @@ def plot_continuous_traces(traces_tensor: jax.Array, config_params: dict) -> Any
     ax.set_xlabel("Time Step Index")
     ax.set_ylabel("Signal Amplitude")
     return fig
-
-
-def _get_time_ms(signals: Any, default_len: int) -> np.ndarray:
-    time_raw = getattr(signals, "time_ms", None)
-    if time_raw is None and isinstance(signals, dict):
-        time_raw = signals.get("time_ms")
-    time_ms = prepare_static_plot_matrix(time_raw)
-    if time_ms is None:
-        return np.arange(default_len)
-    return time_ms
 
 
 def vm(signals: Any, **kwargs: Any) -> Any:

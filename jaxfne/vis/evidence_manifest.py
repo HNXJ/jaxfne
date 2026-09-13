@@ -5,11 +5,12 @@ Used by ``scripts/evidence_figures/`` generators. Matplotlib export lives in
 """
 from __future__ import annotations
 
-import hashlib
 import json
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
+
+from jaxfne.io import sha256_file
 
 _MANIFEST_SCHEMA = "jaxfne.evidence_figure_manifest.v0.1.0"
 
@@ -46,15 +47,6 @@ def jaxfne_version() -> str:
             if line.strip().startswith("version"):
                 return line.split("=", 1)[1].strip().strip('"')
         return "unknown"
-
-
-def sha256_file(path: Path) -> str:
-    """SHA256 hex digest of a file."""
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(65536), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def utc_now_iso() -> str:

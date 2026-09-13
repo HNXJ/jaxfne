@@ -18,7 +18,7 @@ import jax.numpy as jnp
 
 from .emitters import EdgeList, IzhikevichParams, izhikevich_params_from_labels
 from ._config import Configuration, _counts_from_fractions
-from ._construct_connectivity import _interarea_W
+from ._construct_connectivity import _empty_edge_list, _interarea_W
 
 
 _SUITE2_LAYER_FRACTIONS = {
@@ -333,20 +333,6 @@ def _make_sparse_within_area_edges(area_labels, sign, n, *, within_gain, p_conne
         weight=jnp.asarray(w, jdtype),
         receptor_index=jnp.asarray(receptor, jnp.int32),
         tau_ms=jnp.asarray(tau, jdtype),
-        source_calibration_status="uncalibrated_izhikevich_native_current",
-    )
-
-
-def _empty_edge_list(jdtype: Any) -> EdgeList:
-    """Return an explicit empty recurrent graph for tensor topology mode."""
-    z_i = jnp.zeros((0,), dtype=jnp.int32)
-    z_f = jnp.zeros((0,), dtype=jdtype)
-    return EdgeList(
-        pre=z_i,
-        post=z_i,
-        weight=z_f,
-        receptor_index=z_i,
-        tau_ms=z_f,
         source_calibration_status="uncalibrated_izhikevich_native_current",
     )
 
