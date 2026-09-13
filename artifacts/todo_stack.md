@@ -26,6 +26,7 @@ Entry: v0.4.23 shipped; W8 shows cumulative programme receipts from `8823520` ba
 - PKG-01 — installed-package boundary audit (which LOC belongs in the runtime distribution; executable protocol/research code destination: tests/benchmarks/examples, never artifacts/ for aesthetics; alongside kernel-count and test-minimization reviews)
 - API-01 — public-surface minimization under API constraints (describe implemented behavior only)
 - PRO-01 — protocol/research code placement + minimization (destination per PKG-01)
+- HDP-GEN-01 — general finite-state HDP expressivity (spec: `artifacts/programme/v0_4_24_hdp_gen01_spec.md`); known gaps vs current surface: vector-H rules (E), saturating parameterizations (F), global/population scopes, non-weight Theta targets; acceptance is critic-driven (EXPRESSIBLE/OUTSIDE/ENGINE_GAP)
 - EXIT-01 — verify programme exit criteria (roadmap §5.2)
 - VERIFY-01 — full 0.4.24 RC + CI + seal + publish chain
 - STACK-01 — seal v0.4.24; archive or clear this stack
