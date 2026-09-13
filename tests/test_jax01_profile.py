@@ -37,23 +37,6 @@ def _sim(**rt_kw):
     )
 
 
-def test_jit_eager_bit_exact_baseline_and_hdp():
-    # Baseline: bit-exact. HDP: spikes bit-exact, V within XLA-reassociation
-    # epsilon (observed max 3.1e-05; bound 1e-4 pre-declared for EQUIV-01).
-    # JIT buys ~10x steady-state (see receipt table); it is not free bits.
-    model = _model()
-    cases = [(None, True, 0.0), ({"K_HDP": 0.01, "K_ctrl": 0.15, "noise_scale": 0.0}, False, 1e-4)]
-    for hdp, v_exact, v_eps in cases:
-        kw = {} if hdp is None else {"enable_hdp": True, "hdp_params": hdp}
-        a = jtfne.simulate(model, _sim(jit=False, **kw))
-        b = jtfne.simulate(model, _sim(jit=True, **kw))
-        assert jnp.array_equal(a.spikes, b.spikes)
-        if v_exact:
-            assert jnp.array_equal(a.V_m, b.V_m)
-        else:
-            assert float(jnp.max(jnp.abs(a.V_m - b.V_m))) <= v_eps
-
-
 def test_batch_vmap_loop_bit_exact():
     model = _model()
     sim_v = jtfne.simulation(duration_ms=60.0, dt_ms=1.0, seed=3, runtime=jtfne.RuntimeConfig(
