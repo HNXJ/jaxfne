@@ -184,14 +184,19 @@ STABLE_EXACT = {
 }
 
 DOC_OVERRIDES: dict[str, dict[str, str]] = {
-    "docs/v047_refactor_audit.md": {"action": "ARCHIVE", "merge_target": None},
+    # DOC-01 executed the v047 ARCHIVE and the STDP/HDP relocation (new paths
+    # below); the MERGE-into-stdp.md plan was superseded (merging qualified
+    # per-report verdicts would lose information; relocation keeps bytes).
+    # Post-move paths keep action ARCHIVE (relocated out of user docs).
+    "artifacts/legacy/v047_refactor_audit.md": {"action": "ARCHIVE", "merge_target": None},
     "docs/fullroadmap.md": {"action": "ARCHIVE", "merge_target": None},
     "docs/for_ai_agents.md": {"action": "ARCHIVE", "merge_target": None},
-    "docs/STDP_HOMEOSTATIC_REPORT.md": {"action": "MERGE", "merge_target": "docs/reports/stdp.md"},
-    "docs/STDP_CLOSED_LOOP_REPORT.md": {"action": "MERGE", "merge_target": "docs/reports/stdp.md"},
-    "docs/STDP_GLOBAL_SCALE_REPORT.md": {"action": "MERGE", "merge_target": "docs/reports/stdp.md"},
-    "docs/STDP_LOWRATE_REGIME_REPORT.md": {"action": "MERGE", "merge_target": "docs/reports/stdp.md"},
-    "docs/STDP_REAL_TEST_REPORT.md": {"action": "MERGE", "merge_target": "docs/reports/stdp.md"},
+    "artifacts/legacy/reports/STDP_HOMEOSTATIC_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
+    "artifacts/legacy/reports/STDP_CLOSED_LOOP_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
+    "artifacts/legacy/reports/STDP_GLOBAL_SCALE_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
+    "artifacts/legacy/reports/STDP_LOWRATE_REGIME_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
+    "artifacts/legacy/reports/STDP_REAL_TEST_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
+    "artifacts/legacy/reports/HDP_REPORT.md": {"action": "ARCHIVE", "merge_target": None},
     "docs/releases/v0.2.0.md": {"action": "MERGE", "merge_target": "docs/changelog.md"},
     "docs/releases/v0.2.1.md": {"action": "MERGE", "merge_target": "docs/changelog.md"},
     "docs/releases/v0.2.3.md": {"action": "MERGE", "merge_target": "docs/changelog.md"},

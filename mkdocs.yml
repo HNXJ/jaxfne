@@ -9,15 +9,7 @@ docs_dir: docs
 
 exclude_docs: |
   _generated/version.md
-  subagent-pool.md
   for_ai_agents.md
-  v047_refactor_audit.md
-  HDP_REPORT.md
-  STDP_HOMEOSTATIC_REPORT.md
-  STDP_CLOSED_LOOP_REPORT.md
-  STDP_GLOBAL_SCALE_REPORT.md
-  STDP_LOWRATE_REGIME_REPORT.md
-  STDP_REAL_TEST_REPORT.md
   BASELINE_DRIVE_REFERENCE.md
   CORTEX_CALIBRATION_CHECKLIST.md
   NEURON_IO_CHARACTERIZATION.md

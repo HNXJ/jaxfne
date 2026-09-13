@@ -80,21 +80,21 @@ Criterion — a change is "visible but gradual" if the hottest synapse reaches
 learning); negative values are anti-Hebbian contrast only.
 
 > **Closed-loop + homeostasis (resolved):** post-hoc bands are an upper bound on
-> the *driving signal*. With feedback ([STDP_CLOSED_LOOP_REPORT](STDP_CLOSED_LOOP_REPORT.md)),
+> the *driving signal*. With feedback ([STDP_CLOSED_LOOP_REPORT](../../artifacts/legacy/reports/STDP_CLOSED_LOOP_REPORT.md)),
 > unregulated scales **≥ 0.5 run away**. The fix — and the **canonical STDP
 > model** — is closed-loop STDP + the simplest homeostatic regulator (synaptic
 > scaling): it keeps `global_stdp = 1.0` stable *and* learning. See
-> [STDP_HOMEOSTATIC_REPORT](STDP_HOMEOSTATIC_REPORT.md). Use that going forward.
+> [STDP_HOMEOSTATIC_REPORT](../../artifacts/legacy/reports/STDP_HOMEOSTATIC_REPORT.md). Use that going forward.
 
 > **Coupling to Q3 (now verified):** scale and rate trade off. Re-running the
 > sweep at the stable 9.63 Hz regime (2 nA baseline) gives a per-step STDP
 > signal **~10× smaller** than at 43 Hz, so the reasonable band shifts up to
 > **`global_stdp ≈ 0.05 – 1.0`** at ~10 Hz (vs 0.01–0.1 at 43 Hz) — exactly the
 > predicted ~10× scaling. See
-> [STDP_LOWRATE_REGIME_REPORT](STDP_LOWRATE_REGIME_REPORT.md).
+> [STDP_LOWRATE_REGIME_REPORT](../../artifacts/legacy/reports/STDP_LOWRATE_REGIME_REPORT.md).
 
-Full sweeps + invariant checks: [STDP_GLOBAL_SCALE_REPORT](STDP_GLOBAL_SCALE_REPORT.md)
-(~43 Hz) and [STDP_LOWRATE_REGIME_REPORT](STDP_LOWRATE_REGIME_REPORT.md) (~10 Hz).
+Full sweeps + invariant checks: [STDP_GLOBAL_SCALE_REPORT](../../artifacts/legacy/reports/STDP_GLOBAL_SCALE_REPORT.md)
+(~43 Hz) and [STDP_LOWRATE_REGIME_REPORT](../../artifacts/legacy/reports/STDP_LOWRATE_REGIME_REPORT.md) (~10 Hz).
 
 ---
 
@@ -176,8 +176,8 @@ well-scaled?" answer yes.
 ## Related reports
 - [NEURON_IO_CHARACTERIZATION](NEURON_IO_CHARACTERIZATION.md) — prior F-I mapping
 - [BASELINE_DRIVE_REFERENCE](BASELINE_DRIVE_REFERENCE.md) — baseline drive reference
-- [STDP_GLOBAL_SCALE_REPORT](STDP_GLOBAL_SCALE_REPORT.md) — `global_stdp` sweep (~43 Hz)
-- [STDP_LOWRATE_REGIME_REPORT](STDP_LOWRATE_REGIME_REPORT.md) — `global_stdp` sweep (~10 Hz, rate-compliant)
-- [STDP_HOMEOSTATIC_REPORT](STDP_HOMEOSTATIC_REPORT.md) — **canonical STDP model** (homeostatic, stable at 1.0)
-- [STDP_CLOSED_LOOP_REPORT](STDP_CLOSED_LOOP_REPORT.md) — closed-loop online STDP (runaway verdict)
-- [STDP_REAL_TEST_REPORT](STDP_REAL_TEST_REPORT.md) — post-hoc STDP weight test
+- [STDP_GLOBAL_SCALE_REPORT](../../artifacts/legacy/reports/STDP_GLOBAL_SCALE_REPORT.md) — `global_stdp` sweep (~43 Hz)
+- [STDP_LOWRATE_REGIME_REPORT](../../artifacts/legacy/reports/STDP_LOWRATE_REGIME_REPORT.md) — `global_stdp` sweep (~10 Hz, rate-compliant)
+- [STDP_HOMEOSTATIC_REPORT](../../artifacts/legacy/reports/STDP_HOMEOSTATIC_REPORT.md) — **canonical STDP model** (homeostatic, stable at 1.0)
+- [STDP_CLOSED_LOOP_REPORT](../../artifacts/legacy/reports/STDP_CLOSED_LOOP_REPORT.md) — closed-loop online STDP (runaway verdict)
+- [STDP_REAL_TEST_REPORT](../../artifacts/legacy/reports/STDP_REAL_TEST_REPORT.md) — post-hoc STDP weight test

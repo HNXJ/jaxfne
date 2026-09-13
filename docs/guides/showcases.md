@@ -74,7 +74,7 @@ and feeds it back into the dynamics (genuine closed-loop online STDP).
 A 100-neuron E/I cloud network (`jtfne.make_ei_cloud_network(100, seed=42)`,
 70 E / 30 I) driven by **pure Gaussian noise** (structure-free stimulus —
 amplitude calibrated to a rate-compliant ≈9.7 Hz baseline) for 10 s, with
-`plasticity_scale=0.1` — the scale [verified stable](../STDP_CLOSED_LOOP_REPORT.md)
+`plasticity_scale=0.1` — the scale [verified stable](../../artifacts/legacy/reports/STDP_CLOSED_LOOP_REPORT.md)
 against runaway, where `plasticity_scale>=0.5` runs away instead:
 
 ```python
@@ -374,7 +374,7 @@ spike-rate/source/field-potential cost functional rather than a linear leadfield
 spatial/frequency filter — it sits outside the same `source -> tensor ->
 readout` composition as LFP/CSD/EEG/MEG above.
 
-[STDP_CLOSED_LOOP_REPORT](../STDP_CLOSED_LOOP_REPORT.md) ·
+[STDP_CLOSED_LOOP_REPORT](../../artifacts/legacy/reports/STDP_CLOSED_LOOP_REPORT.md) ·
 [Homeostasis guide](homeostasis.md) ·
 [HDP guide](hdp.md) ·
 [Configuration Grammar](configuration_grammar.md)

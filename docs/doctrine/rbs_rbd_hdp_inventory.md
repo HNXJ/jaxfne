@@ -67,7 +67,7 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 | `docs/etudes/hdp_controllability_reachability.md` | 7+ | Generalized-H evidence — map to RBS |
 | `docs/public_surface_contract.md` | 10+ | `hdp_param_groups` semantics |
 | `docs/quickstart.md`, `docs/index.md` | few | Navigation strings |
-| `docs/HDP_REPORT.md` | 19+ | Internal report — relocate or mark historical (**C** candidate) |
+| `artifacts/legacy/reports/HDP_REPORT.md` (was `docs/HDP_REPORT.md`) | 19+ | Internal report — relocated to legacy archive (DOC-01); historical |
 | `AGENTS.md` | if present | H grammar — align with RBS/RBD |
 
 ### Implementation docstrings (non-API behavior)
@@ -113,10 +113,10 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 |----------|-------|
 | `docs/changelog.md` | Version history — do not rewrite past releases |
 | `artifacts/project_sources/README.md` | v0.4.8 snapshot label |
-| `docs/v047_refactor_audit.md` | prior audit |
+| `docs/v047_refactor_audit.md` → `artifacts/legacy/v047_refactor_audit.md` | prior audit (relocated DOC-01) |
 | `artifacts/hdp_v2_rho_sweep/*` | measured receipts |
 | `artifacts/.lab/*` | generated API snapshots |
-| `docs/HDP_REPORT.md`, `STDP_*` | legacy internal reports |
+| `artifacts/legacy/reports/{HDP_REPORT,STDP_*}.md` (were `docs/`) | legacy internal reports (relocated DOC-01) |
 | Committed étude metrics at `v0.4.15` | frozen evidence |
 
 ---
