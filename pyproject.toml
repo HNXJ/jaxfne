@@ -186,8 +186,29 @@ select = ["E4", "E7", "E9", "F"]
 [tool.hatch.build.targets.wheel]
 only-packages = true
 packages = ["jaxfne"]
+# PKG-01 (v0.4.24): wheel membership != repository membership. Frozen
+# research protocols and historical evidence modules stay versioned and
+# executable in the repository (tests/docs/scripts run from the repo) but
+# leave the runtime wheel: zero importers outside their own trees, zero
+# public-surface symbols. Reproducibility rides on the sdist + git, which
+# retain them. experimental_hpc stays: core/_model/_signals import its
+# contracts at load time; tutorial_utils/bridges/analysis stay: eagerly
+# imported by jaxfne/__init__ and re-exported as public user features;
+# vis/ stays: legitimate lazy-loaded user functionality.
 exclude = [
   "jaxfne/publication",
+  "jaxfne/protocol_c",
+  "jaxfne/protocol_d_biological_rbs",
+  "jaxfne/protocol_e_integration",
+  "jaxfne/experiment_a",
+  "jaxfne/h3_decodability.py",
+  "jaxfne/h4_matrix.py",
+  "jaxfne/w1a_omega_plasticity.py",
+  "jaxfne/w1b_shadow_plasticity.py",
+  "jaxfne/w2_parameter_expression.py",
+  "jaxfne/w3_stability_analysis.py",
+  "jaxfne/w3a_stability_analysis.py",
+  "jaxfne/w3b_parameter_domain.py",
 ]
 
 [tool.hatch.build.targets.wheel.force-include]
