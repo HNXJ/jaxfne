@@ -16,6 +16,19 @@ def _cfg(n=12):
     )
 
 
+def test_simulation_plasticity_gain_is_provenance_only():
+    """H7: Simulation.plasticity records to metadata, never alters numerics."""
+    cfg = _cfg(6)
+    model = jtfne.construct(cfg)
+    sim0 = jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0)
+    sim1 = sim0.with_plasticity(0.7)
+    s0 = model.simulate(sim0)
+    s1 = model.simulate(sim1)
+    assert s1.metadata["plasticity_gain"] == 0.7
+    import jax.numpy as jnp
+    assert bool(jnp.array_equal(s0.V_m, s1.V_m)), "gain label must not alter numerics"
+
+
 def test_minimal_api_smoke():
     cfg = _cfg(12)
     model = jtfne.construct(cfg)

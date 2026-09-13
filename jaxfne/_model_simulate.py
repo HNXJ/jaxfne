@@ -811,6 +811,15 @@ def simulate(
             raise ValueError(
                 "full-state continuation is not available for homeostatic_ei"
             )
+        if (
+            paradigm is not None
+            or sim.poisson_drive is not None
+            or getattr(sim, "ablation", None) is not None
+        ):
+            raise ValueError(
+                "homeostatic_ei does not consume paradigm/poisson_drive/ablation; "
+                "drive it via the emitter's own schedule or use the Izhikevich path"
+            )
         return self._simulate_homeostatic_ei(sim, key, runtime_cfg)
 
     if (continuation is not None or return_state) and sim.poisson_drive is not None:

@@ -45,7 +45,10 @@ class Simulation:
     """Immutable specification of one simulation run.
 
     Fields: ``duration_ms`` and ``dt_ms`` (milliseconds; both must be positive
-    and finite), ``seed`` (PRNG seed), ``plasticity`` (plasticity gain),
+    and finite), ``seed`` (PRNG seed), ``plasticity`` (reserved gain label,
+    recorded to ``metadata["plasticity_gain"]`` for provenance only -- it does
+    not alter kernel numerics; plasticity is engaged via
+    ``RuntimeConfig(enable_hdp=...)`` / homeostasis params),
     ``record_sources``/``record_fields`` (recording toggles), ``poisson_drive``
     (optional drive spec), ``runtime`` (:class:`RuntimeConfig` override), and
     ``ablation`` (optional ablation label). ``n_steps`` is derived as

@@ -19,6 +19,7 @@ def test_simulation_engine_has_zero_graphics_overhead():
     # Run in a fresh, isolated Python subprocess to guarantee absolute cleanliness
     code = """
 import sys
+import jaxfne
 import jaxfne.core as jtfne_core
 import jaxfne.objectives as jtfne_objectives
 import jaxfne.runtime as jtfne_runtime

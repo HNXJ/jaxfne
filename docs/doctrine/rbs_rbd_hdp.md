@@ -1,13 +1,11 @@
 # RBS, RBD and HDP
 
-Repository-facing realization of the jaxfne hidden-state refactor. Upstream: `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` (principal).
+Realization of the jaxfne RBS refactor. Upstream: `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` (principal).
 
-**Active protocols:** Protocol D₀/D₁ (delays, frozen `724aa32`); Protocol H
-(state memory under \(\dot W=0\), `docs/doctrine/protocol_h_rbd_memory.md`);
-Protocol C (wave evidence, **closed** @ C4,
-`docs/doctrine/protocol_c_wave_evidence.md`); **Protocol D biological RBS**
-(D0–D3 frozen/executed; **Protocol D closed @ D3**; D4 not authorized —
-distinct from edge-delay Protocol D₀/D₁). **Protocol E (0.4.17-E):** E0.1 ladder frozen; E1 implementation authorized.
+**Related protocol doctrines:** state memory under \(\dot W=0\) (Protocol H,
+`docs/doctrine/protocol_h_rbd_memory.md`); wave evidence (Protocol C,
+`docs/doctrine/protocol_c_wave_evidence.md`); delay handling, biological RBS,
+and integration (Protocols D and E).
 
 **Containment architecture:** `docs/doctrine/tfne_containment_architecture.md`
 — TFNE as composition model; \(H\) as unified dependency state; typed
@@ -17,8 +15,8 @@ operator couplings.
 
 See [TFNE Containment](tfne_containment_architecture.md) for the canonical TFNE grammar.
 
-Refactor jaxfne's hidden-state rules around a physically disciplined,
-relative state-space formulation while preserving validated behavior and
+Express jaxfne's RBS rules as a physically disciplined, relative
+state-space formulation while preserving validated behavior and
 compatibility.
 
 > **RBS is a finite-dimensional relative biophysical state whose coordinates may

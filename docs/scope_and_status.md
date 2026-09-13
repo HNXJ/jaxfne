@@ -78,7 +78,7 @@ These flags are **informational provenance**, not a solver or kernel setting. No
 Quick checks on a finished run. The mV values below are the model's nominal
 internal units (the Izhikevich preset's declared numerical scale), not
 calibrated physiological measurements; jaxfne outputs remain relative/proxy
-quantities per the truth gates above.
+quantities per the status fields above.
 
 - Resting membrane voltage ≈ −66 (nominal model mV)
 - Spike peak ≈ +30, then hard reset to `c`

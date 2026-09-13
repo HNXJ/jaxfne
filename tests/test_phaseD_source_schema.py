@@ -179,6 +179,30 @@ def test_homeostatic_ei_model_level_surface():
     _assert_raw_source_trace(sig)
 
 
+def test_homeostatic_ei_rejects_unsupported_drive_paths():
+    """H7: paradigm/poisson_drive/ablation are rejected, not silently dropped,
+    on the homeostatic_ei path (its kernel takes no drive schedule)."""
+    import pytest
+
+    model = _build_homeostatic_ei_model()
+    sched = jtfne.StimulusSchedule(
+        events=({"onset_ms": 0.0, "duration_ms": 5.0, "amplitude": 0.5,
+                 "label": "probe", "is_drive_event": True},),
+        n_neurons=8,
+    )
+    base = dict(duration_ms=20.0, dt_ms=0.5, seed=0)
+    with pytest.raises(ValueError, match="homeostatic_ei"):
+        model.simulate(jtfne.simulation(**base), paradigm=sched)
+    with pytest.raises(ValueError, match="homeostatic_ei"):
+        model.simulate(jtfne.simulation(
+            **base, poisson_drive={"rate_hz": 2.0, "amplitude": 0.5}))
+    with pytest.raises(ValueError, match="homeostatic_ei"):
+        model.simulate(jtfne.simulation(**base, ablation="shuffled_timing"))
+    # clean run without drive args still works
+    sig = model.simulate(jtfne.simulation(**base))
+    assert bool(jnp.all(jnp.isfinite(sig.V_m)))
+
+
 def test_homeostatic_ei_direct_kernel_contract():
     """Direct simulate_homeostatic_ei call with params — raw source trace array."""
     import jax

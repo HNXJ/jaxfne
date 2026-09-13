@@ -4,7 +4,7 @@ See [RBS/RBD/HDP doctrine](../doctrine/rbs_rbd_hdp.md) for the canonical RBS con
 
 ### Canonical Definitions
 
-- **RBS represents $H$**: Relative Biophysical State represents the hidden state vector $H$.
+- **RBS is the relative biophysical state $H$**.
 - **RBD defines $H$ dynamics**: Relative Biophysical Dynamics governs the evolution of $H$ ($\dot{H} = F_H$).
 - **HDP defines parameter dynamics such as $W$ and may depend on $H$**: Hidden-state Dependent Plasticity governs parameter updates ($\dot{W} = F_W(x, H, W)$).
 - **$H$ may exist and evolve while parameter plasticity is absent**: When $\dot{W} = 0$, $H$ continues to provide state memory, recovery, and dynamic excitability regulation under pure RBD.
@@ -37,7 +37,7 @@ adaptive-parameter coefficients (`controller_*`, channel masks, bounds).
 The runtime resolves the internal dispatch; callers do not supply MVC-specific
 rule identifiers.
 
-### Population-branch parameter scope (H7 classification)
+### Population-branch parameter scope
 
 The population-restoring branch (`h_state_locality="population"`) is a
 **two-coordinate signed controller** and does **not** consume the node-branch
@@ -72,7 +72,7 @@ tau_i * dH_i/dt = alpha*I_syn_i + beta - gamma*H_i*r_i - delta*W_i
                   + rho_passive/H_i**2 + K_ctrl*(1 - H_i) - dC/dH_i
 ```
 
-`tau_i = tau_0_ms * size_i**3` (cube law, verified 2026-06-25; size depends on
+`tau_i = tau_0_ms * size_i**3` (cube law; size depends on
 cell type via `size_scale_by_cell_type`, or an explicit `size_scale_override` —
 default E `relative_size=5.0` integrates `H` exactly $5^3/1^3 = 125$ times slower
 than `relative_size=1.0`). The terms are synaptic income (`alpha`), a constant
@@ -250,7 +250,7 @@ and spike/voltage traces use `(n_steps, n_neurons)`; vector `H_trace` uses
 `(n_steps, n_neurons, h_state_dim)`. These remain ~100x smaller at a typical
 `max_in_degree` and are not the source of this. If you don't need the
 full per-step weight history, set `hdp_params={"record_weight_trace": False, ...}`
--- `w_final` (the terminal weight state) and HDP's actual dynamics are
+-- `w_final` (the terminal weights) and HDP's actual dynamics are
 unaffected either way; only `w_trace` becomes `None`.
 
 ## Barrier equilibrium (a numerical-methods result, independent of biology)
