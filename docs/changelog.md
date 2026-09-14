@@ -9,7 +9,7 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
-## v0.4.24 (release candidate — unpublished)
+## v0.4.24 (2026-09-14)
 
 Minimization programme plus general finite-state HDP expressivity, with no
 change to published scientific numerics (bit-exact legacy trajectories;
@@ -25,8 +25,9 @@ per-observable equivalence bounds unchanged).
   `drive_bias` target, per-step rule keys, strict malformed rejection.
 
 ### Publication
-- Candidate state: no tag, no PyPI/GitHub release, no RTD deployment.
-- Published predecessor remains v0.4.23 (tag `v0.4.23`, PyPI).
+- Tag `v0.4.24` @ `7f89eff`; GitHub release and PyPI from retained CI
+  artifacts (wheel 604850 B, sdist 38138137 B); RTD stable @ `7f89eff`.
+- Published predecessor v0.4.23 (tag `v0.4.23`, PyPI) preserved.
 
 ## v0.4.22 (2026-09-10)
 

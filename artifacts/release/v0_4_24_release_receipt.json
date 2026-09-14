@@ -6,35 +6,45 @@
  "distribution": {
   "build_backend": "hatchling==1.29.0",
   "ci_artifact_name": null,
-  "github_release": "NOT_CREATED",
+  "github_release": "CREATED",
   "manifest": null,
-  "pypi": "NOT_UPLOADED",
+  "pypi": "UPLOADED",
   "sdist": {
-   "filename": null,
-   "sha256": null,
-   "size_bytes": null
+   "filename": "jaxfne-0.4.24.tar.gz",
+   "sha256": "9a6ec3ebbbfea8a3536c9e2df2cf0c2623786c066d4202a9114e1080e4b2266b",
+   "size_bytes": 38138137
   },
   "wheel": {
-   "filename": null,
-   "sha256": null,
-   "size_bytes": null
-  }
+   "filename": "jaxfne-0.4.24-py3-none-any.whl",
+   "sha256": "0bf7b63bc79a280ce62aba32dc2a7ad43867d665edda6cabbfb3c9dd12d9bed3",
+   "size_bytes": 604850
+  },
+  "pypi_publish_method": "trusted publishing (GitHub Actions Publish workflow on release)",
+  "pypi_url": "https://pypi.org/project/jaxfne/0.4.24/",
+  "pypi_publish_run_id": 34839857303,
+  "pypi_clean_install_smoke": "PASS"
  },
  "gate0_authorities_file": "artifacts/release/current_release_authorities.json",
  "gate0_release_path": "RELEASE-mode Gate 0 validates package version match against current_release_authorities.json.",
- "github_release_url": null,
- "notes": "v0.4.24 CANDIDATE: RC gate PASS @ 7f89eff (attestation artifacts/attestations/rc_gate_attestation.json, untracked by design). Sealed predecessor v0.4.23 (tag v0.4.23 @ 7e91da3, PyPI 0.4.23). Distribution hashes to be filled from CI release-dist at publish.",
+ "github_release_url": "https://github.com/HNXJ/jaxfne/releases/tag/v0.4.24",
+ "notes": "v0.4.24 sealed+published. Tag peel verified == candidate. Main ff-only. GitHub assets == CI bytes. PyPI hashes match manifest. RTD stable @ candidate. Predecessor v0.4.23 preserved.",
  "programme": "v0.4.24",
  "published_predecessor": "v0.4.23",
  "receipt_timestamp_utc": "2026-09-14T00:00:00Z",
  "release_candidate": "7f89effccc7e4b2b6105d99033acce2cb12b2fbe",
  "schema": "jaxfne.release_receipt.v1",
- "seal_timestamp_utc": null,
- "seal_verdict": "SEAL_GO_TECHNICAL (VERIFY-01 RC gate PASS; tag/main/publication NOT authorized)",
+ "seal_timestamp_utc": "2026-09-14T12:00:00Z",
+ "seal_verdict": "SEALED+published",
  "source_tree_sha": "4269c15816aaefb9f3e0887f39706ed7067a5626",
- "status": "candidate",
+ "status": "sealed_published",
  "supersedes": "artifacts/release/v0_4_23_release_receipt.json",
- "tag": null,
+ "tag": "v0.4.24",
  "version": "0.4.24",
- "write_once": false
+ "write_once": false,
+ "rtd": {
+  "stable_build": 34547734,
+  "source": "7f89effccc7e4b2b6105d99033acce2cb12b2fbe"
+ },
+ "tag_object_sha": "ae8c8c8efd949f1557e7c8bf11125088651d5417",
+ "tag_peeled_sha": "7f89effccc7e4b2b6105d99033acce2cb12b2fbe"
 }
