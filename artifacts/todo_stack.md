@@ -21,8 +21,7 @@ Published predecessor: `v0.4.21` (immutable).
 Entry: v0.4.23 shipped; W8 shows cumulative programme receipts from `8823520` baseline.
 
 - AUDIT-01 — OPEN: adversarial self-review battery recorded per `artifacts/programme/v0_4_24_audit01_selfreview_receipt.md` (no defects; identity qualified as routing-not-kernel property); independent critic runs recorded per `artifacts/programme/v0_4_24_pro01_receipt.md` (same model family — human judges whether a genuinely external party is still required)
-- VERIFY-01 — IN PROGRESS: full 0.4.24 RC + CI + seal + publish chain (candidate `81e0325`; release-mutating steps need separate authorization)
-- STACK-01 — seal v0.4.24; archive or clear this stack
+- STACK-01 — seal v0.4.24; archive or clear this stack (after authorized publication)
 
 ## Minimization charter (applies to MIN-01/DOC-01/CODEMIN-01/TESTMIN-01/PKG-01/API-01/PRO-01)
 
