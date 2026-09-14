@@ -9,6 +9,25 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+## v0.4.24 (release candidate — unpublished)
+
+Minimization programme plus general finite-state HDP expressivity, with no
+change to published scientific numerics (bit-exact legacy trajectories;
+per-observable equivalence bounds unchanged).
+
+### Programme
+- Installed-package boundary: research protocols leave the wheel
+  (159 → 111 modules) while the repository/sdist stay complete.
+- Public surface classified: 190 names = 187 concepts, zero removals.
+- Drive-schedule scan paths unified; `Simulation.plasticity` classified
+  provenance metadata; HomeostaticEI rejects unconsumed drive paths loudly.
+- Registrable HDP: vector-H coordinates, scalar/multi-coordinate aux,
+  `drive_bias` target, per-step rule keys, strict malformed rejection.
+
+### Publication
+- Candidate state: no tag, no PyPI/GitHub release, no RTD deployment.
+- Published predecessor remains v0.4.23 (tag `v0.4.23`, PyPI).
+
 ## v0.4.22 (2026-09-10)
 
 Truth and measurement floor for the v0.4.22–v0.4.24 programme: classification,
