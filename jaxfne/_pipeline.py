@@ -69,6 +69,7 @@ class DynamicState(NamedTuple):
     w: jax.Array            # (n_edges,)    synaptic weights
     theta_S: jax.Array      # (n_theta,) population controller coordinates
     aux: jax.Array          # (n_aux,) registered-rule auxiliary coordinates
+    b: jax.Array            # (n_neurons,) registered-rule drive-bias coord
 
 
 class ContinuationState(NamedTuple):
@@ -301,6 +302,15 @@ def dynamic_state_from_model(
     expected_h_shape = compute_expected_h_shape(
         locality=locality, n_neurons=n_neurons, h_state_dim=h_state_dim
     )
+    from .hdp_rule import is_registered_hdp_rule as _is_reg
+
+    if locality != "population" and _is_reg(hp.get("hdp_rule")):
+        from .hdp_rule import get_hdp_rule as _get_rule
+
+        _desc, _ = _get_rule(str(hp["hdp_rule"]))
+        expected_h_shape = (int(n_neurons),) + tuple(
+            int(d) for d in _desc.h_shape
+        )
     H0 = model.params.get("hdp_initial_H")
     H0 = (
         jnp.asarray(H0, dtype=dtype)
@@ -349,6 +359,7 @@ def dynamic_state_from_model(
         w=w0,
         theta_S=theta0,
         aux=aux0,
+        b=jnp.zeros((n_neurons,), dtype=dtype),
     )
 
 
@@ -408,10 +419,12 @@ def _continuation_init_dict_from_state(
         "H_final": state.dynamic.H,
         "w_final": state.dynamic.w,
     }
-    if int(state.dynamic.theta_S.shape[0]):
+    if int(state.dynamic.theta_S.size):
         init_state["theta_S_final"] = state.dynamic.theta_S
-    if int(state.dynamic.aux.shape[0]):
+    if int(state.dynamic.aux.size):
         init_state["aux_final"] = state.dynamic.aux
+    if int(state.dynamic.b.size):
+        init_state["b_final"] = state.dynamic.b
     if include_step_offset:
         init_state["continuation_step_offset"] = jnp.asarray(
             state.step_index, dtype=jnp.int32
@@ -518,12 +531,17 @@ def compile_step_fn(
                 **init_state,
                 "H_final": state.dynamic.H,
                 "w_final": state.dynamic.w,
+                "b_final": state.dynamic.b,
             }
             if is_registered_hdp_rule(kernel_kw.get("hdp_rule")):
                 from ._hdp_registrable_kernel import (
                     simulate_edge_recurrent_izhikevich_hdp_registered,
                 )
 
+                # Global step index for the rule-noise stream (per-step key
+                # continuity across Model-level segments); the delay path
+                # already carries it via kernel_kw.
+                kernel_kw.setdefault("step_indices", jnp.reshape(t_idx, (1,)))
                 _, _, sources, diag = simulate_edge_recurrent_izhikevich_hdp_registered(
                     emitter,
                     edges,
@@ -570,6 +588,7 @@ def compile_step_fn(
             w=diag.get("w_final", state.dynamic.w),
             theta_S=diag.get("theta_S_final", state.dynamic.theta_S),
             aux=diag.get("aux_final", state.dynamic.aux),
+            b=diag.get("b_final", state.dynamic.b),
         )
         delay_out = state.delay_state
         if use_delays:

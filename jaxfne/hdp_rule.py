@@ -29,17 +29,34 @@ class HDPRuleDescriptor:
 
     name: str
     h_coords: tuple[str, ...] = ("H",)
+    # Trailing H-carry shape: H has shape ``(n_neurons, *h_shape)`` so rules
+    # may declare vector coordinates (d_H > 1) without a simulator branch.
+    h_shape: tuple[int, ...] = ()
+    # Declared plastic targets, subset of _KNOWN_THETA_TARGETS. Rules return
+    # infinitesimal drives in ``d_theta``; the kernel integrates the declared
+    # ones and rejects undeclared keys loudly (never silently dropped).
     theta_targets: tuple[str, ...] = ("edge_weight",)
     aux_coords: tuple[str, ...] = ()
     # Flat auxiliary-carry layout for ``aux``/``d_aux``: "none" -> ``(0,)``,
+    # "scalar" -> ``()`` (single global/population-shared coordinate),
     # "per_neuron" -> ``(n_neurons,)``, "per_edge" -> ``(n_edges,)``.
-    # A single layout keeps the carry contract explicit; multi-coordinate
-    # layouts are not claimed.
+    # Declaring more than one aux coordinate widens the carry with a trailing
+    # dimension (``(n, k)``), so multi-timescale cascades need no new branch.
     aux_layout: str = "none"
     scope: str = "node"
     h_bounds: tuple[float, float] = (0.1, 10.0)
     w_bounds: tuple[float, float] = (1e-3, 50.0)
+    # Bounds for the per-neuron drive-bias coordinate ("drive_bias" target):
+    # additive native current, clipped each step like the other coordinates.
+    b_bounds: tuple[float, float] = (-50.0, 50.0)
     default_params: Mapping[str, float] = field(default_factory=dict)
+
+
+# Plastic targets the registrable kernel integrates. "edge_weight" is the
+# sign-preserving per-edge efficacy magnitude; "drive_bias" is a per-neuron
+# additive drive (intrinsic excitability) coordinate owned by the kernel
+# carry, continued and traced like H and w.
+_KNOWN_THETA_TARGETS = ("edge_weight", "drive_bias")
 
 
 @dataclass(frozen=True)
@@ -60,6 +77,13 @@ class HDPRuleContext:
     dt: jnp.ndarray
     n_neurons: int
     rule_params: Mapping[str, Any]
+    # Per-step deterministic key for stochastic rules (fold_in of the run
+    # key and global step index): same seed -> same rule-noise stream.
+    # Rules that never touch it stay exactly deterministic. Threading
+    # convention matches membrane noise: Model-level segments share the
+    # key chain and global step index, so chunked runs reproduce full runs;
+    # manual kernel-level chunk callers thread (key, step offset) likewise.
+    key: jnp.ndarray
     # Per-edge delayed presynaptic drive at step t (23-DELAY-01):
     # ``spikes_{t-d[e]}[pre[e]]`` under the Protocol D ring convention
     # (d=0 recovers ``spikes[pre]``). ``None`` on the legacy zero-delay
@@ -80,19 +104,23 @@ class HDPRuleUpdate:
 _REGISTRY: dict[str, tuple[HDPRuleDescriptor, RuleStepFn]] = {}
 
 
-_AUX_LAYOUTS = ("none", "per_neuron", "per_edge")
+_AUX_LAYOUTS = ("none", "scalar", "per_neuron", "per_edge")
 
 
 def expected_aux_shape(
     descriptor: HDPRuleDescriptor, *, n_neurons: int, n_edges: int
 ) -> tuple[int, ...]:
     """Static ``aux`` carry shape for a descriptor (23-LAW-01)."""
+    k = len(descriptor.aux_coords)
+    tail = (int(k),) if k > 1 else ()
     if descriptor.aux_layout == "none":
         return (0,)
+    if descriptor.aux_layout == "scalar":
+        return tail
     if descriptor.aux_layout == "per_neuron":
-        return (int(n_neurons),)
+        return (int(n_neurons),) + tail
     if descriptor.aux_layout == "per_edge":
-        return (int(n_edges),)
+        return (int(n_edges),) + tail
     raise ValueError(
         f"HDP rule {descriptor.name!r} declares unknown aux_layout "
         f"{descriptor.aux_layout!r}; expected one of {_AUX_LAYOUTS}"
@@ -108,6 +136,25 @@ def register_hdp_rule(descriptor: HDPRuleDescriptor, step_fn: RuleStepFn) -> Non
             f"HDP rule {descriptor.name!r} declares unknown aux_layout "
             f"{descriptor.aux_layout!r}; expected one of {_AUX_LAYOUTS}"
         )
+    unknown_theta = [t for t in descriptor.theta_targets
+                     if t not in _KNOWN_THETA_TARGETS]
+    if unknown_theta:
+        raise ValueError(
+            f"HDP rule {descriptor.name!r} declares unknown theta_targets "
+            f"{unknown_theta!r}; expected subset of {_KNOWN_THETA_TARGETS}"
+        )
+    if descriptor.aux_layout == "none" and descriptor.aux_coords:
+        raise ValueError(
+            f"HDP rule {descriptor.name!r} declares aux_coords "
+            f"{descriptor.aux_coords!r} with aux_layout 'none'"
+        )
+    for bound_name in ("h_bounds", "w_bounds", "b_bounds"):
+        lo, hi = getattr(descriptor, bound_name)
+        if not (float(lo) <= float(hi)):
+            raise ValueError(
+                f"HDP rule {descriptor.name!r} declares inverted "
+                f"{bound_name} {(lo, hi)!r}; expected (min, max)"
+            )
     _REGISTRY[descriptor.name] = (descriptor, step_fn)
 
 

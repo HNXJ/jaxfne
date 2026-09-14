@@ -761,6 +761,7 @@ def _simulate_continuation_arrays(
                 "w_trace": outputs[4] if len(outputs) > 4 else None,
                 "theta_S_final": next_state.dynamic.theta_S,
                 "aux_final": next_state.dynamic.aux,
+                "b_final": next_state.dynamic.b,
             },
         )
     return voltages, spikes, sources, next_state

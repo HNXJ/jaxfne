@@ -589,6 +589,7 @@ def test_mcc2_h_carrier_preserves_future_trailing_shape() -> None:
         w=jnp.zeros((EXPECTED_EDGES,)),
         theta_S=jnp.zeros((0,)),
         aux=jnp.zeros((0,)),
+        b=jnp.zeros((EXPECTED_NEURONS,)),
     )
     state = jtfne.ContinuationState(
         dynamic=dynamic,

@@ -297,6 +297,7 @@ def test_continuation_carrier_preserves_trailing_h_state_shape():
         w=jnp.zeros((2,)),
         theta_S=jnp.zeros((0,)),
         aux=jnp.zeros((0,)),
+        b=jnp.zeros((3,)),
     )
     state = jtfne.ContinuationState(
         dynamic=dynamic,
