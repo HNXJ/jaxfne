@@ -3,11 +3,11 @@
   "version": "0.4.13-pass1",
   "counts": {
     "canonical": 177,
-    "advanced": 58,
+    "advanced": 62,
     "compatibility": 13,
     "experimental_internal": 13,
     "public_exports": 190,
-    "baseline_all": 261
+    "baseline_all": 265
   },
   "public_exports": [
     "AGSDR",

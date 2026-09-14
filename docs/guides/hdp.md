@@ -304,6 +304,20 @@ is visible in `manifest()["hdp"]` from the first call.
 `jaxfne.hdp_network.DEFAULT_HDP` and `DEFAULT_HDP_DESYNC` are frozen,
 verified starting points — see `jaxfne/hdp_network.py` docstrings.
 
+## Registering a custom rule (ADVANCED)
+
+`jaxfne.register_hdp_rule` (with `HDPRuleDescriptor`, `HDPRuleUpdate`,
+`HDPRuleContext` from `jaxfne.hdp_rule`) registers a finite-state
+plasticity rule by name without touching simulation dispatch. The
+descriptor declares coordinates (`h_coords`, `h_shape`), plastic targets
+(subset of `edge_weight`, `drive_bias`), auxiliary layout (`none`,
+`scalar`, `per_neuron`, `per_edge`, widened for multiple coordinates),
+bounds, and defaults; the step function maps per-step context
+(`H`, `aux`, spikes, delayed arrivals, rule key) to infinitesimal updates.
+Select it with `hdp_params={"hdp_rule": name, "hdp_rule_params": {...}}`.
+Unknown layouts, targets, and inverted bounds are rejected at registration;
+undeclared update keys are rejected at run time.
+
 ## Stability
 
 The built-in kernel hard-bounds its state so trajectories remain numerically

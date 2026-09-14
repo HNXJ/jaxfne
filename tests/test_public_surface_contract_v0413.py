@@ -94,9 +94,11 @@ def test_public_h_state_localities():
 def test_public_symbol_count_contraction_from_baseline():
     """259 baseline → 189 public exports (+5 JDNA additive surface 0.4.17;
     −2 SurrogateConfig pair re-classified EXPERIMENTAL_INTERNAL on 2026-08-22
-    W4: declaration-only dormant metadata, zero manuscript/example/doc usage)."""
+    W4: declaration-only dormant metadata, zero manuscript/example/doc usage;
+    +4 registrable-HDP registration surface classified ADVANCED post-0.4.24
+    audit: register_hdp_rule + HDPRule* types, root attrs outside __all__)."""
     summary = public_surface_summary()
-    assert summary["counts"]["baseline_all"] == 261
+    assert summary["counts"]["baseline_all"] == 265
     assert summary["counts"]["public_exports"] == 190
     assert summary["counts"]["compatibility"] == 13
     assert summary["counts"]["experimental_internal"] == 13
@@ -109,6 +111,19 @@ def test_surrogate_config_pair_is_experimental_not_public():
     assert "surrogate_config" not in jtfne.__all__
     assert hasattr(jtfne, "SurrogateConfig")
     assert hasattr(jtfne, "surrogate_config")
+
+
+def test_registrable_hdp_surface_is_advanced_not_public():
+    """Post-0.4.24 audit: the generic registration surface is ADVANCED —
+    root-reachable and namespace-mapped, but outside the 190-name contract."""
+    from jaxfne.public_surface import ADVANCED_NAMESPACE
+    for name in ("register_hdp_rule", "HDPRuleDescriptor",
+                 "HDPRuleUpdate", "HDPRuleContext"):
+        assert name not in jtfne.__all__
+        assert hasattr(jtfne, name)
+        assert symbol_tier(name) == "ADVANCED"
+        assert ADVANCED_NAMESPACE[name] == "jaxfne.hdp_rule"
+    assert jtfne.register_hdp_rule is not None
     assert symbol_tier("SurrogateConfig") == "EXPERIMENTAL_INTERNAL"
     assert symbol_tier("surrogate_config") == "EXPERIMENTAL_INTERNAL"
     # construction semantics unchanged

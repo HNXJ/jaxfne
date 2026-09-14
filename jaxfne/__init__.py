@@ -313,6 +313,13 @@ from .plasticity import (
     summarize_stdp_adaptation,
     update_stdp_weights_jax,
 )
+# Registrable HDP extension surface (ADVANCED tier: root attrs, not __all__)
+from .hdp_rule import (
+    HDPRuleContext,
+    HDPRuleDescriptor,
+    HDPRuleUpdate,
+    register_hdp_rule,
+)
 from .analysis.spectral import (
     spectrolaminar_psd_jax,
     bandpower_jax,

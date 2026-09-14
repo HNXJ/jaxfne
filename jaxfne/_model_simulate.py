@@ -406,6 +406,10 @@ def _simulate_arrays(
             r_bar_trace = diag.get("r_bar_trace")
             I_H_final = diag.get("I_H_final")
             I_H_trace = diag.get("I_H_trace")
+            aux_final = diag.get("aux_final")
+            aux_trace = diag.get("aux_trace")
+            b_final = diag.get("b_final")
+            b_trace = diag.get("b_trace")
             return (
                 V,
                 S,
@@ -420,6 +424,10 @@ def _simulate_arrays(
                 r_bar_trace,
                 I_H_final,
                 I_H_trace,
+                aux_final,
+                aux_trace,
+                b_final,
+                b_trace,
             )
 
         effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
@@ -458,6 +466,7 @@ def _simulate_arrays(
             V, S, src, H_final, H_trace, w_final, w_trace,
             theta_final, theta_trace,
             r_bar_final, r_bar_trace, I_H_final, I_H_trace,
+            aux_final, aux_trace, b_final, b_trace,
         ) = result
         diag_store = {
             "H_final": H_final,
@@ -477,6 +486,14 @@ def _simulate_arrays(
             diag_store["I_H_final"] = I_H_final
         if I_H_trace is not None:
             diag_store["I_H_trace"] = I_H_trace
+        if aux_final is not None:
+            diag_store["aux_final"] = aux_final
+        if aux_trace is not None:
+            diag_store["aux_trace"] = aux_trace
+        if b_final is not None:
+            diag_store["b_final"] = b_final
+        if b_trace is not None:
+            diag_store["b_trace"] = b_trace
         object.__setattr__(self, "_last_hdp_diag", diag_store)
         return V, S, src
 

@@ -693,6 +693,92 @@ def test_null_stochastic_rule_matches_deterministic_membrane():
                            np.asarray(d1["aux_trace"]))
 
 
+# --- #8 closure: bulk diagnostics forward aux/bias ------------------------------
+def _bulk_model(rule, params, n=8, seed=1, **kw):
+    import jaxfne as jtfne
+    model = jtfne.construct(
+        jtfne.suite2_net1_config(seed=seed, n=n).runtime(
+            enable_hdp=True, recurrent_backend="edge_list",
+            hdp_params={"hdp_rule": rule,
+                        "hdp_rule_params": params, **kw}))
+    sig = jtfne.simulate(model, duration_ms=20.0, dt_ms=0.5, seed=seed)
+    return model, sig
+
+
+def test_bulk_diagnostics_forward_aux_and_bias_identity():
+    """Configured -> executed -> diagnostic: bulk last_hdp_diagnostics
+    carries the same aux/bias the kernel executed."""
+    import jaxfne as jtfne
+    _ensure("gen01_drive_bias",
+            HDPRuleDescriptor(name="gen01_drive_bias",
+                              theta_targets=("drive_bias",),
+                              default_params={"k_b": 0.3}),
+            _bias_step)
+    model, sig = _bulk_model("gen01_drive_bias", {"k_b": 0.05})
+    diag = model.last_hdp_diagnostics()
+    for key in ("H_final", "H_trace", "w_final", "w_trace",
+                "b_final", "b_trace"):
+        assert key in diag, f"bulk diagnostic missing {key}"
+    assert np.asarray(diag["b_trace"]).shape[0] == sig.V_m.shape[0]
+    assert bool(np.all(np.isfinite(np.asarray(diag["b_final"]))))
+    # determinism: same configured run reproduces the diagnostic exactly
+    sig2 = jtfne.simulate(model, duration_ms=20.0, dt_ms=0.5, seed=1)
+    diag2 = model.last_hdp_diagnostics()
+    np.testing.assert_array_equal(np.asarray(diag["b_final"]),
+                                  np.asarray(diag2["b_final"]))
+
+
+def test_bulk_diagnostics_forward_eligibility_aux():
+    _ensure("gen01_cascade",
+            HDPRuleDescriptor(name="gen01_cascade",
+                              aux_coords=("fast", "slow"),
+                              aux_layout="per_edge",
+                              default_params={"tau_fast": 5.0,
+                                              "tau_slow": 40.0,
+                                              "k_w": 0.05}),
+            _cascade_step)
+    model, sig = _bulk_model("gen01_cascade", {})
+    diag = model.last_hdp_diagnostics()
+    assert np.asarray(diag["aux_final"]).ndim == 2  # (E, 2)
+    assert np.asarray(diag["aux_trace"]).shape[1:] == \
+        np.asarray(diag["aux_final"]).shape
+    assert bool(np.all(np.isfinite(np.asarray(diag["aux_trace"]))))
+
+
+def test_bulk_diagnostics_recording_off_keeps_aux_finals():
+    import jaxfne as jtfne
+    _ensure("gen01_drive_bias",
+            HDPRuleDescriptor(name="gen01_drive_bias",
+                              theta_targets=("drive_bias",),
+                              default_params={"k_b": 0.3}),
+            _bias_step)
+    model, _ = _bulk_model("gen01_drive_bias", {"k_b": 0.05},
+                           record_weight_trace=False)
+    diag = model.last_hdp_diagnostics()
+    assert diag["w_trace"] is None
+    assert "b_final" in diag and "aux_final" in diag
+
+
+def test_bulk_vs_chunked_aux_bias_agreement():
+    """Continuation agreement: bulk finals == chunked carrier."""
+    import jaxfne as jtfne
+    _ensure("gen01_drive_bias",
+            HDPRuleDescriptor(name="gen01_drive_bias",
+                              theta_targets=("drive_bias",),
+                              default_params={"k_b": 0.3}),
+            _bias_step)
+    cfg = jtfne.suite2_net1_config(seed=6, n=8).runtime(
+        enable_hdp=True, recurrent_backend="edge_list",
+        hdp_params={"hdp_rule": "gen01_drive_bias",
+                    "hdp_rule_params": {"k_b": 0.05}})
+    model = jtfne.construct(cfg)
+    _, full_state = jtfne.simulate(
+        model, duration_ms=12.0, dt_ms=0.5, seed=6, return_state=True)
+    bulk_diag = model.last_hdp_diagnostics()
+    np.testing.assert_array_equal(np.asarray(bulk_diag["b_final"]),
+                                  np.asarray(full_state.dynamic.b))
+
+
 # --- MALFORMED: loud local failure ----------------------------------------------
 def test_malformed_definitions_rejected_loudly():
     def _null_step(ctx):

@@ -373,6 +373,12 @@ _ADVANCED: Final[frozenset[str]] = frozenset(
         "run_stdp_stream",
         "summarize_stdp_adaptation",
         "update_stdp_weights_jax",
+        # Registrable HDP rules (generic extension surface; configured via
+        # hdp_params["hdp_rule"], not a mechanism-specific branch)
+        "HDPRuleContext",
+        "HDPRuleDescriptor",
+        "HDPRuleUpdate",
+        "register_hdp_rule",
         # Dev / QA utilities
         "compilation_registry",
         "compile_connection_rules_jax",
@@ -441,6 +447,10 @@ ADVANCED_NAMESPACE: Final[dict[str, str]] = {
     "JaxleyEmitterBridge": "jaxfne.bridges",
     "STDPPlasticityConfig": "jaxfne.plasticity",
     "update_stdp_weights_jax": "jaxfne.plasticity",
+    "register_hdp_rule": "jaxfne.hdp_rule",
+    "HDPRuleDescriptor": "jaxfne.hdp_rule",
+    "HDPRuleUpdate": "jaxfne.hdp_rule",
+    "HDPRuleContext": "jaxfne.hdp_rule",
     "spectrolaminar_psd_jax": "jaxfne.analysis.spectral",
     "get_sharding_context": "jaxfne.sharding_utils",
     "SanityDeltaConfig": "jaxfne.sanity_delta",

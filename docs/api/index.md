@@ -15,7 +15,7 @@ The root public contract is **190 symbols** (177 CANONICAL + 13 COMPATIBILITY) i
 and [`artifacts/public_surface_contract_v0413.json`](https://github.com/HNXJ/jaxfne/blob/main/artifacts/public_surface_contract_v0413.json).
 See [Public surface contract](../public_surface_contract.md).
 
-**Advanced** symbols (58) and **experimental/internal** symbols (18) are
+**Advanced** symbols (62) and **experimental/internal** symbols (18) are
 importable from submodules but are not root exports.
 
 !!! note "Proxy readouts"
