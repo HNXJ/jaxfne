@@ -21,7 +21,7 @@ These files are intended to replace the older project-source bundle as current a
 4. `4_tfne_theory_and_neural_tensor.md` — full mathematical theory: TFNE operator closure, NeuralTensor, RBS/RBD/HDP, dynamics, source/field/probe operators, differentiability and validation.
 5. `5_docs_tutorials_etudes_and_suites.md` — executable documentation and evidence protocol.
 6. `6_other_important_notes.md` — current drift register, context corrections, publication/release roadmap, long-term plan.
-7. `7_tfne_algebra.md` — canonical TFNE algebra: the specification language (`x:A:y`, `O`/`X` composition, rules, `N`/`P`/`G`, `(s,h0,I)` realization). Supersedes older architectural TFNE vocabulary on naming scope; the operator factorization (`Emitter -> ... -> Manifest`) is preserved.
+7. `7_tfne_algebra.md` — canonical TFNE algebra, version `tfne/2`, status `SEALED LANGUAGE`: the specification language (`x:A:y`, `O`/`X` composition, rules and `$L`/`$R` binding, frontiers, `N`/`P`/`R` realization, `(s,h0,I)`, semantic failure classes). Supersedes the `tfne/1` text and older architectural TFNE vocabulary on naming scope; the operator factorization (`Emitter -> ... -> Manifest`) is preserved. The language seal implies no parser or compiler: `jaxfne.tfne` is a compiler against this language, and the current conformance boundary is recorded in `docs/doctrine/tfne_algebra.md`.
 
 ## Canonical distinction
 

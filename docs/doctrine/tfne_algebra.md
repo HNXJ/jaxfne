@@ -1,8 +1,15 @@
 # TFNE Algebra
 
-**Status:** canonical specification language (implementation: `jaxfne.tfne`;
-verified by `tests/test_tfne_algebra.py`)
+**Language version:** `tfne/2` — `SEALED LANGUAGE`
 **Canonical source:** `artifacts/project_sources/7_tfne_algebra.md`
+**Compiler:** `jaxfne.tfne` (specification-time; exercised by
+`tests/test_tfne_algebra.py`)
+
+The language seal implies no parser or compiler. `jaxfne.tfne` targets this
+language and does not define it: where the two disagree, the project source is
+the authority and the compiler carries the defect. The current gap is recorded
+under [compiler conformance](#compiler-conformance) rather than resolved by
+restating the language to match the code.
 
 ## Core form
 
@@ -49,7 +56,7 @@ Flattening changes representation, not TFNE semantics.
 | Geometry $G$ | `Geometry3D` / `Pose3D`; fixed geometry lands in $s$ |
 | `model` tag | Emitter choice (Izhikevich, LIF, HH/Jaxley bridge); identity and model stay distinct |
 | $O[k]$ / $X[k]$ rules | Named entries of the connection-rule compiler (`compile_connection_rules`) |
-| Projection $>$, $<$, $<>$ / exclusion $\not>$, $\not<$ | Directed edge groups with rule provenance; exclusions are realization vetoes |
+| Projection $>$, $<$, $<>$ / exclusion $\not>$, $\not<$ | Directed edge groups with rule provenance; exclusions subtract from the rule expansion (see [compiler conformance](#compiler-conformance)) |
 | $A^n$ replication | Indexed instances, no implied connectivity |
 | $H$ H-state tensor | RBS coordinates; see [RBS/RBD/HDP](rbs_rbd_hdp.md) |
 | $h$ mutable state | Kernel carry (voltage, recovery, spikes, synapses, $H$, $w$) |
@@ -57,14 +64,54 @@ Flattening changes representation, not TFNE semantics.
 | Typed $x$ / $y$ | Declared boundary interfaces (stimulus/readout side) |
 | Index map $\mathcal{I}$ | Path/slice/rule/edge correspondence in both directions |
 
-## Deterministic rules
+## Compiler conformance
 
-The compiler (`jaxfne.tfne`) fixes the minimum deterministic semantics: bare
-$O$/$X$ without a rule or projection generates structure with zero edges;
-braces affect paths, not edge sets; replication indexes without connecting;
-proportions allocate by largest remainder; rules declare their direction;
-exclusions veto rather than delete; normalization replays idempotently and
-seeds realization. Details live in the module docstring.
+`jaxfne.tfne` was built against `tfne/1` and has not yet been brought to
+`tfne/2`. The clauses below are the measured difference between the sealed
+language and the compiler, so that neither file silently stands in for the
+other.
+
+### Satisfied
+
+Core form `x:A:y` and the execution normal form; recursive scale invariance
+down to one cell; biological identity separate from `model`; exact realized
+cardinality with `sum_c N[A.c] == N[A]`; replication that implies no
+connectivity; geometry compiled into `s`; `H` reserved for the H-state tensor;
+typed `x`/`y` boundaries; a realization index map supporting path->slice,
+slice->path, rule->edges and edge->rule; idempotent normalization whose digest
+seeds realization; hashes used as receipts rather than traversal keys.
+
+### Not yet conformant
+
+| Clause | `tfne/2` requires | `jaxfne.tfne` today |
+|---|---|---|
+| S6, S7 replication addressing | `A^n = {A.1 ... A.n}` | realizes `A.0 ... A.(n-1)` |
+| S6 prefix rule application | `O[k](SEG^8)` expands to seven ordered adjacencies | `(` is a parse error |
+| S8 group sensitivity | `{A O B} O C` composes through the composite frontier and is not generally equivalent to `A O B O C` | both realize identical edge sets |
+| S9 frontiers | `in`/`out` are reserved interface components with derived defaults; `E_FRONTIER_UNRESOLVED` | no frontier concept; `A.out` resolves to no object |
+| S11 cross associativity | ungrouped `A X[k] B X[k] C` requires grouping unless `k` declares an associative policy | accepted ungrouped |
+| S12 rule binding | `$L` / `$R` metavariables bind the syntactic operands | `$` is a lexer error; rules carry flat parameter maps |
+| S13 projection identity | redundant explicit projection is invalid | no redundancy check over `(src, dst, mechanism)` |
+| S14 exclusions | `E_- subset G_0`, then `G = G_0 \ E_-`; an exclusion matching nothing is invalid | inverted: a matched exclusion raises, an unmatched exclusion is a silent no-op |
+| S20 canonical ordering | typed natural order (`L1 < L2 < L10`) independent of declaration order | realization indexes in declaration order |
+| S14, S25 statement atomicity | `;`-separated statements inside a composite, each atomic | `;` inside `{...}` is a parse error |
+| S25 failure vocabulary | semantic classes (`E_ADDRESS_UNKNOWN`, `E_FRONTIER_UNRESOLVED`, `E_MECHANISM_UNRESOLVED`, `E_MECHANISM_NOT_PERMITTED`, `E_PROJECTION_REDUNDANT`, `E_EXCLUSION_UNKNOWN`) | untyped `TFNEError` with prose messages |
+
+Two of these change realized meaning rather than surface syntax. Exclusion
+direction is inverted, so a specification that `tfne/2` reads as "build the
+rule expansion, then remove this projection" is currently read as "fail if this
+projection exists". Instance addressing is off by one, so every replicated path
+in `I` names a different instance than the language does. Neither may be
+treated as a cosmetic difference.
+
+### Rules the compiler fixes where the language leaves room
+
+Bare `O`/`X` with no rule and no projection contribute structure and generate
+zero edges; edges come only from explicit projections and rule applications.
+Proportion-to-count allocation is largest-remainder with declaration-order
+tiebreak, supplying the deterministic `R` of S5. Rule applications and bare
+projections require an explicit direction; the compiler raises rather than
+guessing one.
 
 ## Naming scope
 
