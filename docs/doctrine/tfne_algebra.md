@@ -78,7 +78,9 @@ down to one cell; biological identity separate from `model`; exact realized
 cardinality with `sum_c N[A.c] == N[A]`; replication that implies no
 connectivity, indexed `A.1 ... A.n` (S6, S7); exclusions that subtract from the
 rule expansion, with an unmatched exclusion rejected rather than ignored (S14);
-geometry compiled into `s`; `H` reserved for the H-state tensor; typed `x`/`y`
+ordered rules bound to their own adjacency, with composites composing through
+derived `in`/`out` frontiers rather than through every member (S10, and the
+S9 derived defaults S10 needs); geometry compiled into `s`; `H` reserved for the H-state tensor; typed `x`/`y`
 boundaries; a realization index map supporting path->slice, slice->path,
 rule->edges and edge->rule; idempotent normalization whose digest seeds
 realization; hashes used as receipts rather than traversal keys.
@@ -88,9 +90,8 @@ realization; hashes used as receipts rather than traversal keys.
 | Clause | `tfne/2` requires | `jaxfne.tfne` today |
 |---|---|---|
 | S6 prefix rule application | `O[k](SEG^8)` expands to seven ordered adjacencies | `(` is a parse error |
-| S8 group sensitivity | `{A O B} O C` composes through the composite frontier and is not generally equivalent to `A O B O C` | both realize identical edge sets |
-| S9 frontiers | `in`/`out` are reserved interface components with derived defaults; `E_FRONTIER_UNRESOLVED` | no frontier concept; `A.out` resolves to no object |
-| S10 ordered adjacency | each rule applies only to its own adjacency: `A O[k] B O[j] C` gives `(A,B)` and `(B,C)` | chained `O` accumulates left operands, so `A O[ff] B O[ff] C` also realizes `A>C` (12 edges where the language gives 8) |
+| S8 group sensitivity | `{A O B} O C` composes through the composite frontier and is not generally equivalent to `A O B O C` | composes through the frontier correctly; the two still coincide in edge set for ordered chains, and no declared frontier can yet make them differ |
+| S9 frontiers | `in`/`out` reserved as interface path components, declarable, with an X-composite union default and `E_FRONTIER_UNRESOLVED` | derived ordered defaults only (used by S10); `A.out` as a written path resolves to no object |
 | S11 cross associativity | ungrouped `A X[k] B X[k] C` requires grouping unless `k` declares an associative policy | accepted ungrouped |
 | S12 rule binding | `$L` / `$R` metavariables bind the syntactic operands | `$` is a lexer error; rules carry flat parameter maps |
 | S13 projection identity | redundant explicit projection is invalid | no redundancy check over `(src, dst, mechanism)` |
@@ -98,13 +99,16 @@ realization; hashes used as receipts rather than traversal keys.
 | S14, S25 statement atomicity | `;`-separated statements inside a composite, each atomic | `;` inside `{...}` is a parse error |
 | S25 failure vocabulary | semantic classes (`E_ADDRESS_UNKNOWN`, `E_FRONTIER_UNRESOLVED`, `E_MECHANISM_UNRESOLVED`, `E_MECHANISM_NOT_PERMITTED`, `E_PROJECTION_REDUNDANT`, `E_EXCLUSION_UNKNOWN`) | untyped `TFNEError` with prose messages |
 
-S10 changes realized biology rather than surface syntax and is the most
-consequential entry remaining. A chained ordered composition applies each rule
-to every accumulated left operand instead of to its own adjacency, so the
-compiler realizes projections the specification never declares. A six-layer
-column written `L1 O[ff] L2 O[ff] ... O[ff] L6` realizes every layer onto every
-later layer rather than the laminar chain. This is not a missing feature; it is
-connectivity the source does not ask for.
+The entries left are missing features rather than wrong answers: the compiler
+rejects what it cannot express instead of realizing a different nervous system.
+The three clauses that did change realized biology — inverted exclusions,
+off-by-one instance addressing, and ordered chains that fabricated projections
+the source never declared — are closed.
+
+S9 is listed as outstanding because only its derived defaults exist. Ordered
+composites expose `in(A)` and `out(B)`, which is what S10 adjacency requires;
+declared `in := [...]` / `out := [...]` bodies, the X-composite union default
+and `E_FRONTIER_UNRESOLVED` are not implemented.
 
 ### Rules the compiler fixes where the language leaves room
 

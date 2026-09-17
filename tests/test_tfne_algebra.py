@@ -214,6 +214,77 @@ def test_explicit_projections_and_bidirectional():
 
 
 # --------------------------------------------------------------------------- #
+# 9b. S10 ordered adjacency
+# --------------------------------------------------------------------------- #
+
+FF_RULE = ("O[ff] := [direction = >; mechanism = AMPA; probability = 1.0; "
+           "weight = 0.4];")
+FB_RULE = ("O[fb] := [direction = >; mechanism = GABA; probability = 1.0; "
+           "weight = 0.3];")
+ABC = ("A := [C = {cell}; N = 2]; B := [C = {cell}; N = 2]; "
+       "C := [C = {cell}; N = 2];")
+
+
+def _projection_identities(explicit, r):
+    """Realized edges reduced to (pre_leaf, post_leaf) scope pairs."""
+    leaves = [p for p in explicit.order if explicit.nodes[p].kind == "object"]
+    slices = {p: r.path_to_slice(p) for p in leaves}
+
+    def owner(i):
+        for path, (lo, hi) in slices.items():
+            if lo <= i < hi:
+                return path
+        raise AssertionError(f"neuron {i} belongs to no leaf")
+
+    return sorted({(owner(int(a)), owner(int(b)))
+                   for a, b in zip(np.asarray(r.s["edge_pre"]),
+                                   np.asarray(r.s["edge_post"]))})
+
+
+def test_ordered_chain_binds_only_its_own_adjacency():
+    """S10: A O[k] B O[k] C generates k(A,B) and k(B,C), never A>C."""
+    _, explicit, r = _realize(f"{FF_RULE} {ABC} x : A O[ff] B O[ff] C : y")
+    assert len(explicit.relations) == 2
+    assert _projection_identities(explicit, r) == [("A", "B"), ("B", "C")]
+    assert r.s["n_edges"] == 8
+
+
+def test_mixed_rule_chain_keeps_each_rule_on_its_adjacency():
+    """S10: A O[k] B O[j] C normalizes to (A,k,B,j,C)."""
+    _, explicit, r = _realize(
+        f"{FF_RULE} {FB_RULE} {ABC} x : A O[ff] B O[fb] C : y")
+    assert [rel.rule for rel in explicit.relations] == ["ff", "fb"]
+    assert [(rel.pre_scopes, rel.post_scopes) for rel in explicit.relations] \
+        == [(("A",), ("B",)), (("B",), ("C",))]
+    assert _projection_identities(explicit, r) == [("A", "B"), ("B", "C")]
+
+
+def test_six_layer_chain_is_five_adjacencies_not_fifteen():
+    """A six-layer column is a chain, not all-to-all onto every later layer."""
+    defs = " ".join(f"L{i} := [C = {{cell}}; N = 2];" for i in range(1, 7))
+    body = " O[ff] ".join(f"L{i}" for i in range(1, 7))
+    _, explicit, r = _realize(f"{FF_RULE} {defs} x : {body} : y")
+    assert len(explicit.relations) == 5
+    assert _projection_identities(explicit, r) == \
+        [(f"L{i}", f"L{i + 1}") for i in range(1, 6)]
+    assert r.s["n_edges"] == 20          # 5 adjacencies x 2x2, not 15 x 4
+
+
+def test_braced_composite_composes_through_its_out_frontier():
+    """S8/S9: {A O B} O C binds out({A O B}) = B, not every member."""
+    _, explicit, r = _realize(
+        f"{FF_RULE} {ABC} x : {{A O[ff] B}} O[ff] C : y")
+    assert len(explicit.relations) == 2
+    outer = explicit.relations[1]
+    # the composite reaches C through B alone; g0 as a whole would drag in A
+    assert outer.pre_scopes == ("g0.B",)
+    assert outer.post_scopes == ("C",)
+    assert _projection_identities(explicit, r) == \
+        [("g0.A", "g0.B"), ("g0.B", "C")]
+    assert r.s["n_edges"] == 8
+
+
+# --------------------------------------------------------------------------- #
 # 10. Replication A^n
 # --------------------------------------------------------------------------- #
 

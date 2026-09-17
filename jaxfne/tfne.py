@@ -22,9 +22,14 @@ them so every supported expression has exactly one realization):
 1. Bare ``A O B`` / ``A X B`` (no rule, no projection) contribute structure
    only and generate zero edges. Edges come exclusively from explicit
    projections (``>``, ``<``, ``<>``) and rule applications (``O[k]``/``X[k]``).
-2. ``{E}`` boundaries are preserved in TFNE paths (``parent.g<i>`` segments,
-   ``g``-ids assigned pre-order by creation) but do not change edge sets.
-   ``A O B O C``, ``{A O B} O C`` and ``A O {B O C}`` therefore realize
+2. An ordered rule binds its own adjacency (S10): in ``A O[k] B O[j] C``,
+   ``k`` reaches ``(A, B)`` and ``j`` reaches ``(B, C)``, never ``(A, C)``.
+   Operands compose through frontiers -- an object is its own frontier, and
+   a composite ``{A O B}`` exposes ``in(A)`` and ``out(B)`` (S9 derived
+   defaults) -- so a rule applied to a composite reaches its frontier rather
+   than every member inside it. ``{E}`` boundaries are preserved in TFNE
+   paths (``parent.g<i>`` segments, ``g``-ids assigned pre-order by
+   creation); ``A O B O C``, ``{A O B} O C`` and ``A O {B O C}`` realize
    identical edge sets with distinct index-map paths.
 3. ``A^n`` creates ``n`` indexed instances at ``<scope>.A.1`` ...
    ``<scope>.A.n`` (S6, 1-based); no connectivity is implied. Replication
@@ -808,6 +813,34 @@ def _allocate_counts(cell_types: Sequence[str],
     return counts, {c: float(proportions[c]) for c in ctypes}
 
 
+@dataclass(frozen=True)
+class _Expansion:
+    """What expanding one expression contributes to its parent.
+
+    ``members`` are the structural paths handed upward. ``fin``/``fout`` are
+    the composition frontiers an ordered rule binds against: for ``{A O B}``
+    they are ``in(A)`` and ``out(B)`` (S9 derived defaults), so a rule applied
+    to the composite reaches its frontier rather than everything it contains.
+    Carrying them separately is what keeps S10 adjacency exact -- the members
+    accumulated by a chain are no longer reachable as a rule endpoint.
+    """
+
+    members: tuple[str, ...]
+    fin: tuple[str, ...]
+    fout: tuple[str, ...]
+
+
+def _leaf_expansion(path: str) -> _Expansion:
+    """An object is its own frontier on both sides."""
+    return _Expansion(members=(path,), fin=(path,), fout=(path,))
+
+
+def _flat_expansion(members: Sequence[str]) -> _Expansion:
+    """A set of members with no ordering: the whole set is both frontiers."""
+    m = tuple(members)
+    return _Expansion(members=m, fin=m, fout=m)
+
+
 class _Resolver:
     def __init__(self, program: Program):
         self.program = program
@@ -871,28 +904,52 @@ class _Resolver:
                           declared_default=implicit)
 
     # -- structure expansion ------------------------------------------- #
-    def expand(self, node: Any, scope: str) -> list[str]:
-        """Expand an expression under ``scope``; return member paths."""
+    def expand(self, node: Any, scope: str) -> _Expansion:
+        """Expand an expression under ``scope``.
+
+        Returns the structural members plus the frontiers that an ordered
+        composition binds against (S9 derived defaults, S10 adjacency).
+        """
         if isinstance(node, Ref):
             return self._expand_ref(node.segments, scope)
         if isinstance(node, Select):
-            return [self._resolve_select(node, scope)]
+            return _leaf_expansion(self._resolve_select(node, scope))
         if isinstance(node, Group):
             gid = f"g{self.group_counter}"
             self.group_counter += 1
             path = f"{scope}.{gid}" if scope else gid
             self._add_node(NodeRecord(path=path, name=gid, kind="composite",
                                       parent=scope or None))
-            members = self.expand(node.body, path)
-            if not members:
+            inner = self.expand(node.body, path)
+            if not inner.members:
                 raise TFNEError(f"empty composite group at {path!r}")
-            return [path]
-        if isinstance(node, (Ordered, Cross)):
+            # S8: the brace is a structural boundary. The composite hands
+            # itself upward as one member but composes through its body's
+            # frontier, so it is not flattened into the surrounding chain.
+            return _Expansion(members=(path,), fin=inner.fin, fout=inner.fout)
+        if isinstance(node, Ordered):
             left = self.expand(node.left, scope)
             right = self.expand(node.right, scope)
             if node.rule is not None:
-                self._record_rule(node, left, right)
-            return left + right
+                # S10: a rule binds its own adjacency only -- the left
+                # operand's out frontier to the right operand's in frontier.
+                # Operands accumulated earlier in the chain are not reachable
+                # here, so A O[k] B O[j] C yields k(A,B) and j(B,C), never A>C.
+                self._record_rule(node, list(left.fout), list(right.fin))
+            return _Expansion(members=left.members + right.members,
+                              fin=left.fin, fout=right.fout)
+        if isinstance(node, Cross):
+            left = self.expand(node.left, scope)
+            right = self.expand(node.right, scope)
+            if node.rule is not None:
+                # X is nonordered: it relates its operands rather than an
+                # adjacency, and binds them whole. Unchanged here; per-rule
+                # endpoint selection is $L/$R (TFNE2-05).
+                self._record_rule(node, list(left.members),
+                                  list(right.members))
+            return _Expansion(members=left.members + right.members,
+                              fin=left.fin + right.fin,
+                              fout=left.fout + right.fout)
         if isinstance(node, Project):
             left = self._endpoint_members(node.left, scope, "projection")
             right = self._endpoint_members(node.right, scope, "projection")
@@ -906,7 +963,8 @@ class _Resolver:
                                       _emit_expr(node.left),
                                       _emit_expr(node.right), left, right,
                                       group=group)
-            return left + right
+            return _Expansion(members=tuple(left) + tuple(right),
+                              fin=tuple(left), fout=tuple(right))
         if isinstance(node, Exclude):
             left = self._endpoint_members(node.left, scope, "exclusion")
             right = self._endpoint_members(node.right, scope, "exclusion")
@@ -914,12 +972,14 @@ class _Resolver:
                 "exclusion", "direct", None, node.direction,
                 _emit_expr(node.left), _emit_expr(node.right), left, right)
             self.exclusions.append(rec)
-            return left + right
+            return _Expansion(members=tuple(left) + tuple(right),
+                              fin=tuple(left), fout=tuple(right))
         if isinstance(node, Replicate):
             return self._expand_replicate(node, scope)
         raise TFNEError(f"cannot expand {node!r}")
 
-    def _expand_ref(self, segments: Sequence[str], scope: str) -> list[str]:
+    def _expand_ref(self, segments: Sequence[str],
+                    scope: str) -> _Expansion:
         if len(segments) != 1:
             raise TFNEError(
                 "dotted path {0!r} is addressable in projections only, not as "
@@ -937,7 +997,7 @@ class _Resolver:
                 rec.name = name
                 rec.parent = scope or None
                 self._add_node(rec)
-                return [target]
+                return _leaf_expansion(target)
             if objdef.kind == "special":
                 base = objdef.body["base"]
                 if base not in self.program.defs:
@@ -954,15 +1014,18 @@ class _Resolver:
                 rec.parent = scope or None
                 rec.special = f"{base}[{objdef.body['key']}]"
                 self._add_node(rec)
-                return [target]
+                return _leaf_expansion(target)
             # transparent expression definition: expand under own namespace
             composite = NodeRecord(path=target, name=name, kind="composite",
                                    parent=scope or None)
             self._add_node(composite)
-            members = self.expand(objdef.body, target)
-            if not members:
+            inner = self.expand(objdef.body, target)
+            if not inner.members:
                 raise TFNEError(f"definition {name!r} expands to nothing")
-            return [target]
+            # A named definition is a structural boundary like a brace: it
+            # composes through its body's frontier, not every member.
+            return _Expansion(members=(target,), fin=inner.fin,
+                              fout=inner.fout)
         # implicit degenerate leaf (valid at cardinality one)
         _check_object_name(name)
         rec = self._object_props({}, where=name, implicit=True)
@@ -970,9 +1033,10 @@ class _Resolver:
         rec.name = name
         rec.parent = scope or None
         self._add_node(rec)
-        return [target]
+        return _leaf_expansion(target)
 
-    def _expand_replicate(self, node: Replicate, scope: str) -> list[str]:
+    def _expand_replicate(self, node: Replicate,
+                          scope: str) -> _Expansion:
         name = node.atom.segments[0]
         paths: list[str] = []
         # S6: A^n = {A.1 ... A.n}. Instance indices are 1-based; the path
@@ -1010,7 +1074,9 @@ class _Resolver:
                 rec.parent = scope or None
                 self._add_node(rec)
             paths.append(inst)
-        return paths
+        # S6: instances carry no connectivity and no order, so the whole set
+        # is both frontiers. Replication behaviour is otherwise unchanged.
+        return _flat_expansion(paths)
 
     def _endpoint_members(self, node: Any, scope: str,
                           role: str) -> list[str]:
@@ -1042,11 +1108,11 @@ class _Resolver:
             # single undefined name: create implicit member at use site
             # (single defined name: expand the definition via _expand_ref)
             if isinstance(node, Ref) and len(node.segments) == 1:
-                return self._expand_ref(node.segments, scope)
+                return list(self._expand_ref(node.segments, scope).members)
             raise TFNEError(
                 f"projection endpoint {label!r} matches no realized object")
         if isinstance(node, Group):
-            return self.expand(node, scope)
+            return list(self.expand(node, scope).members)
         raise TFNEError(
             "projection endpoints must be references, selections or groups")
 
