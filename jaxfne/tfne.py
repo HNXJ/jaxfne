@@ -1,8 +1,10 @@
 """TFNE algebra: compact hierarchical specification language for JaxFNE.
 
-This module implements the canonical TFNE algebra
-(``artifacts/project_sources/7_tfne_algebra.md``; public summary in
-``docs/doctrine/tfne_algebra.md``) as a **specification-time compiler layer**.
+This module compiles the canonical TFNE algebra
+(``artifacts/project_sources/7_tfne_algebra.md``, language version ``tfne/2``)
+as a **specification-time compiler layer**. The language is authority and this
+module is not: conformance is partial, and the measured gap is recorded under
+"Compiler conformance" in ``docs/doctrine/tfne_algebra.md``.
 It introduces no new simulator: TFNE text resolves to explicit typed neural
 models (JaxFNE ``NeuronalTensor`` and connection-rule structures), realizes to
 ``(s, h0, I)`` flat execution structures, and executes in the existing JaxFNE
@@ -24,15 +26,20 @@ them so every supported expression has exactly one realization):
    ``g``-ids assigned pre-order by creation) but do not change edge sets.
    ``A O B O C``, ``{A O B} O C`` and ``A O {B O C}`` therefore realize
    identical edge sets with distinct index-map paths.
-3. ``A^n`` creates ``n`` indexed instances at ``<scope>.A.0`` ...; no
-   connectivity is implied. Replication applies to a single named reference.
+3. ``A^n`` creates ``n`` indexed instances at ``<scope>.A.1`` ...
+   ``<scope>.A.n`` (S6, 1-based); no connectivity is implied. Replication
+   applies to a single named reference.
 4. Proportion-to-count allocation is largest-remainder with declaration-order
    tiebreak, so ``sum_c N[A.c] == N[A]`` holds exactly and deterministically.
 5. Rule applications and bare projections require an explicit ``direction``
    (rule field; ``>``, ``<`` or ``<>``). The compiler raises rather than
    guessing a direction for ``O[k]``/``X[k]``.
-6. Exclusions (``A !> B``) are post-expansion vetoes: a realized edge in the
-   excluded scope raises :class:`TFNEError`. Exclusions never silently delete.
+6. Exclusions (``A !> B``) subtract from the rule expansion (S14): with
+   ``G_0`` the generated projection set, ``G`` is ``G_0`` with the resolved
+   exclusion identities removed. An exclusion naming no mechanism removes
+   every identity on its route. An exclusion matching no generated
+   projection raises ``E_EXCLUSION_UNKNOWN`` rather than passing as a
+   no-op, so a stale exclusion cannot survive normalization.
 7. ``parse(normalize(p))`` normalizes to ``normalize(p)`` (idempotent replay);
    the realization seed derives from the normalization hash unless overridden.
 
@@ -968,7 +975,9 @@ class _Resolver:
     def _expand_replicate(self, node: Replicate, scope: str) -> list[str]:
         name = node.atom.segments[0]
         paths: list[str] = []
-        for i in range(node.n):
+        # S6: A^n = {A.1 ... A.n}. Instance indices are 1-based; the path
+        # A.1 names the first instance, not the second.
+        for i in range(1, node.n + 1):
             stem = f"{scope}.{name}" if scope else name
             inst = f"{stem}.{i}"
             if name in self.program.defs:
@@ -1343,32 +1352,67 @@ def realize(explicit: ExplicitModel, program: Optional[Program] = None,
             mechanisms.append({"name": name, "kind": "tfne_rule"})
         return mech_index[name]
 
+    # -- S14: G = G_0 \ E_-, subtracted over projection identities ------- #
+    # Rule expansion produces G_0; exclusions resolve to identities E_- and
+    # are removed from it. Exclusions name no mechanism, so an exclusion
+    # resolves to every identity in G_0 sharing its (src, dst) route. An
+    # exclusion that resolves to nothing is invalid (E_EXCLUSION_UNKNOWN)
+    # rather than a silent no-op: a stale exclusion must not survive
+    # normalization.
+    excluded_routes: set[tuple[str, str]] = set()
+    for exc in explicit.exclusions:
+        excluded_routes.update(_scope_pairs(exc))
+    matched_routes: set[tuple[str, str]] = set()
+
     for rel in explicit.relations:
         rule_params = rule_lookup.get(rel.rule) if rel.rule else None
         params = _rule_connection_params(rule_params)
-        pre_ids = scope_ids(rel.pre_scopes)
-        post_ids = scope_ids(rel.post_scopes)
-        if rel.direction == ">":
-            pairs = [(pre_ids, post_ids)]
-        elif rel.direction == "<":
-            pairs = [(post_ids, pre_ids)]
-        else:
+        if rel.direction not in (">", "<"):
             raise TFNEError(
                 f"relation {rel.key!r} has unresolved direction "
                 f"{rel.direction!r}")
+        routes = _scope_pairs(rel)
+        removed = [r for r in routes if r in excluded_routes]
+        matched_routes.update(removed)
+        surviving = [r for r in routes if r not in excluded_routes]
+        if not surviving:
+            continue
         mech_id(params["mechanism"])
-        for a, b in pairs:
-            if not a or not b:
-                continue
+
+        def emit(name: str, src: Sequence[int], dst: Sequence[int]) -> None:
+            if not src or not dst:
+                return
             connections.append({
-                "name": rel.key,
-                "source": {"ids": list(a)},
-                "target": {"ids": list(b)},
+                "name": name,
+                "source": {"ids": list(src)},
+                "target": {"ids": list(dst)},
                 "mechanism": params["mechanism"],
                 "probability": params["probability"],
                 "weight": params["weight"],
                 "allow_self_connections": params["allow_self"],
             })
+
+        if not removed:
+            # Whole relation survives: emit it as one connection, keeping the
+            # relation key and edge ordering that I indexes against.
+            src_scopes = (rel.pre_scopes if rel.direction == ">"
+                          else rel.post_scopes)
+            dst_scopes = (rel.post_scopes if rel.direction == ">"
+                          else rel.pre_scopes)
+            emit(rel.key, scope_ids(src_scopes), scope_ids(dst_scopes))
+        else:
+            # Partially excluded: the relation no longer has a single
+            # (sources x targets) identity, so each surviving route becomes
+            # its own connection under a route-qualified key.
+            for src_scope, dst_scope in surviving:
+                emit(f"{rel.key}|{src_scope}>{dst_scope}",
+                     scope_ids([src_scope]), scope_ids([dst_scope]))
+
+    for exc in explicit.exclusions:
+        if not any(r in matched_routes for r in _scope_pairs(exc)):
+            raise TFNEError(
+                f"E_EXCLUSION_UNKNOWN: exclusion {exc.key!r} matches no "
+                f"projection generated by rule expansion")
     compiled = compile_connection_rules(
         rows, connections, mechanisms, seed=int(seed))
     edge_pre = np.asarray(compiled.edge_pre, dtype=np.int64)
@@ -1388,20 +1432,6 @@ def realize(explicit: ExplicitModel, program: Optional[Program] = None,
         edge_rule.extend([key] * count)
         cursor += count
     assert cursor == n_edges
-
-    # -- exclusions are vetoes ------------------------------------------ #
-    for exc in explicit.exclusions:
-        pre = set(scope_ids(exc.pre_scopes))
-        post = set(scope_ids(exc.post_scopes))
-        bad = [e for e in range(n_edges)
-               if (exc.direction == "!>"
-                   and int(edge_pre[e]) in pre and int(edge_post[e]) in post)
-               or (exc.direction == "!<"
-                   and int(edge_pre[e]) in post and int(edge_post[e]) in pre)]
-        if bad:
-            raise TFNEError(
-                f"exclusion {exc.key!r} violated by {len(bad)} realized "
-                f"edge(s) (first: {bad[0]})")
 
     # -- s / h0 ---------------------------------------------------------- #
     geometry = {p: dict(rec.geometry) for p, rec in explicit.nodes.items()
@@ -1615,9 +1645,9 @@ def to_neuronal_tensor(explicit: ExplicitModel):
 
 def _scope_pairs(rel: RelationRecord) -> list[tuple[str, str]]:
     pairs = []
-    if rel.direction == ">":
+    if rel.direction in (">", "!>"):
         pairs = [(a, b) for a in rel.pre_scopes for b in rel.post_scopes]
-    elif rel.direction == "<":
+    elif rel.direction in ("<", "!<"):
         pairs = [(b, a) for a in rel.pre_scopes for b in rel.post_scopes]
     else:
         pairs = [(a, b) for a in rel.pre_scopes for b in rel.post_scopes]

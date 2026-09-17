@@ -76,33 +76,35 @@ other.
 Core form `x:A:y` and the execution normal form; recursive scale invariance
 down to one cell; biological identity separate from `model`; exact realized
 cardinality with `sum_c N[A.c] == N[A]`; replication that implies no
-connectivity; geometry compiled into `s`; `H` reserved for the H-state tensor;
-typed `x`/`y` boundaries; a realization index map supporting path->slice,
-slice->path, rule->edges and edge->rule; idempotent normalization whose digest
-seeds realization; hashes used as receipts rather than traversal keys.
+connectivity, indexed `A.1 ... A.n` (S6, S7); exclusions that subtract from the
+rule expansion, with an unmatched exclusion rejected rather than ignored (S14);
+geometry compiled into `s`; `H` reserved for the H-state tensor; typed `x`/`y`
+boundaries; a realization index map supporting path->slice, slice->path,
+rule->edges and edge->rule; idempotent normalization whose digest seeds
+realization; hashes used as receipts rather than traversal keys.
 
 ### Not yet conformant
 
 | Clause | `tfne/2` requires | `jaxfne.tfne` today |
 |---|---|---|
-| S6, S7 replication addressing | `A^n = {A.1 ... A.n}` | realizes `A.0 ... A.(n-1)` |
 | S6 prefix rule application | `O[k](SEG^8)` expands to seven ordered adjacencies | `(` is a parse error |
 | S8 group sensitivity | `{A O B} O C` composes through the composite frontier and is not generally equivalent to `A O B O C` | both realize identical edge sets |
 | S9 frontiers | `in`/`out` are reserved interface components with derived defaults; `E_FRONTIER_UNRESOLVED` | no frontier concept; `A.out` resolves to no object |
+| S10 ordered adjacency | each rule applies only to its own adjacency: `A O[k] B O[j] C` gives `(A,B)` and `(B,C)` | chained `O` accumulates left operands, so `A O[ff] B O[ff] C` also realizes `A>C` (12 edges where the language gives 8) |
 | S11 cross associativity | ungrouped `A X[k] B X[k] C` requires grouping unless `k` declares an associative policy | accepted ungrouped |
 | S12 rule binding | `$L` / `$R` metavariables bind the syntactic operands | `$` is a lexer error; rules carry flat parameter maps |
 | S13 projection identity | redundant explicit projection is invalid | no redundancy check over `(src, dst, mechanism)` |
-| S14 exclusions | `E_- subset G_0`, then `G = G_0 \ E_-`; an exclusion matching nothing is invalid | inverted: a matched exclusion raises, an unmatched exclusion is a silent no-op |
 | S20 canonical ordering | typed natural order (`L1 < L2 < L10`) independent of declaration order | realization indexes in declaration order |
 | S14, S25 statement atomicity | `;`-separated statements inside a composite, each atomic | `;` inside `{...}` is a parse error |
 | S25 failure vocabulary | semantic classes (`E_ADDRESS_UNKNOWN`, `E_FRONTIER_UNRESOLVED`, `E_MECHANISM_UNRESOLVED`, `E_MECHANISM_NOT_PERMITTED`, `E_PROJECTION_REDUNDANT`, `E_EXCLUSION_UNKNOWN`) | untyped `TFNEError` with prose messages |
 
-Two of these change realized meaning rather than surface syntax. Exclusion
-direction is inverted, so a specification that `tfne/2` reads as "build the
-rule expansion, then remove this projection" is currently read as "fail if this
-projection exists". Instance addressing is off by one, so every replicated path
-in `I` names a different instance than the language does. Neither may be
-treated as a cosmetic difference.
+S10 changes realized biology rather than surface syntax and is the most
+consequential entry remaining. A chained ordered composition applies each rule
+to every accumulated left operand instead of to its own adjacency, so the
+compiler realizes projections the specification never declares. A six-layer
+column written `L1 O[ff] L2 O[ff] ... O[ff] L6` realizes every layer onto every
+later layer rather than the laminar chain. This is not a missing feature; it is
+connectivity the source does not ask for.
 
 ### Rules the compiler fixes where the language leaves room
 

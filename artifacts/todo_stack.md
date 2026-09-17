@@ -12,10 +12,11 @@ Published predecessors: `v0.4.23`, `v0.4.22` (immutable).
 MODE = TFNE/2 ADOPTION
 
 `tfne/2` (`SEALED LANGUAGE`) replaced project source 7. The language is
-authority; `jaxfne.tfne` is a compiler against it and currently conforms to the
-superseded `tfne/1`. Measured delta and method:
-`artifacts/programme/tfne2_language_supersession_receipt.md`; durable statement
-in `docs/doctrine/tfne_algebra.md`.
+authority; `jaxfne.tfne` is a compiler against it and conforms partially.
+Measured delta and method:
+`artifacts/programme/tfne2_language_supersession_receipt.md`; current standing
+of every clause in `docs/doctrine/tfne_algebra.md` under "Compiler
+conformance".
 
 `tfne/2` S31 orders the remaining layers as: algebra (sealed) -> biological
 definition library (`CTX`) -> realization/compiler -> scientific qualification.
@@ -23,21 +24,24 @@ The compiler items below are written in dependency order within their layer;
 the ordering **between** the `CTX` item and the compiler items is a human
 decision and is not settled here.
 
-## Compiler conformance (`jaxfne.tfne`, currently `tfne/1`)
+## Compiler conformance (`jaxfne.tfne`)
 
 Each item conforms one clause and rewrites the tests that encode the superseded
 rule. `tests/test_tfne_algebra.py` asserts `tfne/1` semantics as intended
 behaviour, so these are test rewrites, not test additions.
 
-- **TFNE2-01** — S14 exclusions. Replace veto semantics with `E_- subset G_0`,
-  `G = G_0 \ E_-`; unmatched exclusion becomes an error; explicit additions
-  require `E_+ n G_0 = empty`. Rewrites
-  `test_exclusion_passes_when_absent_violates_when_present`. Changes realized
-  edge sets — not a cosmetic change.
-- **TFNE2-02** — S6/S7 instance addressing `A.0..A.(n-1)` -> `A.1..A.n`.
-  Breaks every replicated path in `I`; state the index-base change at the
-  change site. Rewrites the replication test's `range(4)` and
-  `path_to_slice("E.2")` assertions.
+TFNE2-01 (S14 exclusions) and TFNE2-02 (S6/S7 instance addressing) are closed —
+receipt `artifacts/programme/tfne2_conformance_0102_receipt.md`.
+
+- **TFNE2-08** — S10 ordered adjacency. **Meaning bug, do first.** Chained `O`
+  applies each rule to every accumulated left operand, so `A O[ff] B O[ff] C`
+  realizes `A>C` as well (12 edges where the language gives 8), and
+  `L1 O[ff] ... O[ff] L6` realizes every layer onto every later layer instead
+  of the laminar chain. The compiler fabricates projections the source does not
+  declare. Fix `Ordered` expansion to bind the rule to its own adjacency, and
+  expect `CORTEX`/`NESTED` corpus edge counts to change. Found while
+  implementing TFNE2-01; measured in
+  `artifacts/programme/tfne2_conformance_0102_receipt.md`.
 - **TFNE2-03** — S20 typed natural ordering, declaration-independent
   (`L1<L2<L10`, `SEG.2<SEG.10`), with declared biological order overriding it.
   Changes realization indexing and `I` for existing specs.

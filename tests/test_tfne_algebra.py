@@ -223,8 +223,14 @@ def test_replication_creates_indexed_instances_without_edges():
     _, _, r = _realize(text)
     assert r.s["n_neurons"] == 8
     assert r.s["n_edges"] == 0
-    assert set(r.I["object_slices"]) == {f"E.{i}" for i in range(4)}
-    assert r.path_to_slice("E.2") == (4, 6)
+    # S6: A^n = {A.1 ... A.n}. Indices are 1-based, so E.1 is the first
+    # instance and E.0 names nothing.
+    assert set(r.I["object_slices"]) == {f"E.{i}" for i in range(1, 5)}
+    assert r.path_to_slice("E.1") == (0, 2)
+    assert r.path_to_slice("E.2") == (2, 4)
+    assert r.path_to_slice("E.4") == (6, 8)
+    with pytest.raises(TFNEError):
+        r.path_to_slice("E.0")
 
 
 # --------------------------------------------------------------------------- #
@@ -443,30 +449,80 @@ def test_specialization_inherits_base():
 # Exclusions, reserved names, rule validation
 # --------------------------------------------------------------------------- #
 
-def test_exclusion_passes_when_absent_violates_when_present():
-    ok_text = """
+def _program_with_exclusion(text, left, right, direction="!>"):
+    """Attach an exclusion to ``text``'s system body.
+
+    The grammar has no statement separator inside a composite yet (S14
+    atomicity, queued), so a generating projection and an exclusion over it
+    cannot be written in one source body. The exclusion is attached directly.
+    """
+    program = parse(text)
+    excl = tfne.Exclude(direction=direction, left=tfne.Ref((left,)),
+                        right=tfne.Ref((right,)))
+    return tfne.Program(
+        defs=program.defs, rules=program.rules,
+        system=tfne.System(x="x", x_type=None,
+                           body=tfne.Ordered(left=program.system.body,
+                                             right=excl),
+                           y="y", y_type=None))
+
+
+def test_exclusion_subtracts_the_projection_it_names():
+    """S14: G = G_0 minus E_-. An exclusion removes, it does not veto."""
+    text = """
+    A := [C = {cell}; N = 2];
+    B := [C = {cell}; N = 2];
+    x : A > B : y
+    """
+    _, _, before = _realize(text)
+    assert before.s["n_edges"] == 4
+    program = _program_with_exclusion(text, "A", "B")
+    after = realize(resolve(program), program)
+    assert after.s["n_edges"] == 0
+
+
+def test_unmatched_exclusion_is_invalid():
+    """S14: an exclusion matching no generated projection is E_EXCLUSION_UNKNOWN."""
+    text = """
     A := [C = {cell}; N = 2];
     B := [C = {cell}; N = 2];
     x : {A O B} : y
     """
-    _, _, r = _realize(ok_text)
-    assert r.s["n_edges"] == 0
-    program = parse(ok_text)
-    # manually append an exclusion over an existing projection scope
-    excl = tfne.Exclude(direction="!>", left=tfne.Ref(("A",)),
-                        right=tfne.Ref(("B",)))
-    program2 = tfne.Program(defs=program.defs, rules=program.rules,
-                            system=tfne.System(
-                                x="x", x_type=None,
-                                body=tfne.Ordered(
-                                    left=tfne.Project(direction=">",
-                                                      left=tfne.Ref(("A",)),
-                                                      right=tfne.Ref(("B",))),
-                                    right=excl),
-                                y="y", y_type=None))
-    explicit2 = resolve(program2)
-    with pytest.raises(TFNEError):
-        realize(explicit2, program2)
+    _, _, r = _realize(text)
+    assert r.s["n_edges"] == 0          # bare O generates nothing to exclude
+    program = _program_with_exclusion(text, "A", "B")
+    with pytest.raises(TFNEError, match="E_EXCLUSION_UNKNOWN"):
+        realize(resolve(program), program)
+
+
+def test_exclusion_subtracts_one_route_and_leaves_the_rest():
+    """S14 subtraction is per projection identity, not per relation."""
+    import dataclasses
+
+    text = """
+    A := [C = {cell}; N = 2];
+    B := [C = {cell}; N = 2];
+    C := [C = {cell}; N = 2];
+    x : A O B O C : y
+    """
+    program = _program_with_exclusion(text, "A", "C")
+    explicit = resolve(program)
+    assert explicit.relations == ()     # bare O generates no projections
+    # One relation carrying two routes, A>C and B>C, so that excluding A!>C
+    # must keep B>C. Injected directly: no surface form produces a
+    # multi-route relation independently of the queued S10 change.
+    wide = tfne.RelationRecord(
+        key="r0:direct[-]:A B>C", form="rule", kind="O", rule=None,
+        direction=">", pre_label="A B", post_label="C",
+        pre_scopes=("A", "B"), post_scopes=("C",))
+    explicit = dataclasses.replace(explicit, relations=(wide,))
+    r = realize(explicit, program)
+    lo_a, hi_a = r.path_to_slice("A")
+    lo_b, hi_b = r.path_to_slice("B")
+    pre = {int(v) for v in r.s["edge_pre"]}
+    assert r.s["n_edges"] == 4
+    assert pre & set(range(lo_a, hi_a)) == set()      # A>C subtracted
+    assert pre & set(range(lo_b, hi_b)) == set(range(lo_b, hi_b))  # B>C kept
 
 
 def test_reserved_names_and_rule_validation():
