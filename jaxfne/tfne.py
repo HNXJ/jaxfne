@@ -5,12 +5,18 @@ This module compiles the canonical TFNE algebra
 as a **specification-time compiler layer**. The language is authority and this
 module is not: conformance is partial, and the measured gap is recorded under
 "Compiler conformance" in ``docs/doctrine/tfne_algebra.md``.
-It introduces no new simulator: TFNE text resolves to explicit typed neural
-models (JaxFNE ``NeuronalTensor`` and connection-rule structures), realizes to
-``(s, h0, I)`` flat execution structures, and executes in the existing JaxFNE
-kernels::
+It introduces no new simulator. TFNE text resolves to an explicit typed neural
+model, which is compiled two ways from the same source::
 
-    TFNE -> resolve -> explicit typed neural model -> realize -> (s, h0, I)
+    TFNE -> resolve -> explicit model -> realize            -> (s, h0, I)
+                                      -> to_neuronal_tensor -> construct -> kernels
+
+``realize`` produces ``(s, h0, I)`` for inspection and indexing; execution runs
+through ``to_neuronal_tensor`` into the existing JaxFNE kernels. The two agree
+on topology and identity (verified edge for edge in
+``tests/test_tfne_execution.py``), but the tensor bridge does not carry rule
+parameters: a declared connection ``weight`` reaches ``(s, h0, I)`` and not the
+executed model, which applies its own scaling and sign convention instead.
 
 Runtime keeps the normal form ``(h_t, x_t; s) -> (h_t+1, y_t)`` with flat,
 indexed, vectorized arrays. The hierarchy lives in the specification and in

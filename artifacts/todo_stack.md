@@ -21,7 +21,7 @@ conformance".
 Authorized priority order:
 
 ```
-TFNE2-08 (done) -> TFNE-EXEC-01 -> TFNE-IMPORT-01 -> remaining conformance gaps
+TFNE2-08 (done) -> TFNE-EXEC-01 (done) -> TFNE-IMPORT-01 -> remaining conformance gaps
 ```
 
 The three clauses whose non-conformance changed realized biology are closed:
@@ -32,22 +32,24 @@ resume the conformance list ahead of it.
 
 ## Next
 
-- **TFNE-EXEC-01** — minimal end-to-end proof that a TFNE specification runs:
-  `TFNE source -> NF -> to_neuronal_tensor -> JaxFNE construction -> kernel
-  execution`. Structural conversion is tested; executable equivalence is only
-  asserted. `jaxfne/tfne.py` and the doctrine pipeline table both claim
-  kernel execution, while `tests/test_tfne_algebra.py` states "no simulation
-  kernels are touched" and no test calls `construct`/`simulate` on
-  `to_neuronal_tensor` output. Either prove it end to end or qualify the
-  claim.
-- **TFNE-IMPORT-01** — after execution qualification, make the supported
-  import path explicit and test it from outside the repository root.
-  `import jaxfne; hasattr(jaxfne, "tfne")` is `False`; only
-  `from jaxfne import tfne` works, and `artifacts/context.md` declares
-  `jaxfne` the only supported public entry point. Decide the tier and
+- **TFNE-IMPORT-01** — make the supported import path explicit and test it from
+  outside the repository root. `import jaxfne; hasattr(jaxfne, "tfne")` is
+  `False`; only `from jaxfne import tfne` works, and `artifacts/context.md`
+  declares `jaxfne` the only supported public entry point. Decide the tier and
   register it in `jaxfne.public_surface`, or state that it is deliberately
   unexported. Note a bare `python script.py` outside the repository root
-  resolves `jaxfne` from site-packages, which has no `tfne` module.
+  resolves `jaxfne` from site-packages, which has no `tfne` module — so the
+  test must run from outside the root to mean anything.
+- **TFNE-PARAM-01** — rule parameters do not reach the executed model. Opened
+  by TFNE-EXEC-01: `realize()` and `to_neuronal_tensor()` are two independent
+  compilations of one source, and the tensor bridge builds `InterConnection`s
+  without the rule's declared `weight`, so construction substitutes its own
+  scaling and sign convention. Topology, cell-type split and mechanism
+  identity all transfer; connection parameters do not. Decide whether the
+  bridge should carry `weight`/`probability`/`delay`, or whether TFNE rule
+  parameters are declared non-binding on execution — and say which in the
+  doctrine. Divergence pinned by
+  `test_declared_rule_weight_does_not_reach_the_executed_model`.
 
 ## Remaining measured conformance gaps
 

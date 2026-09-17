@@ -46,6 +46,15 @@ operator factorization this language compiles into.
 Design principle: factor at specification time; flatten at execution time.
 Flattening changes representation, not TFNE semantics.
 
+Two compilations, one source. `realize()` produces $(s,h_0,\mathcal{I})$ for
+inspection and indexing; execution runs through `to_neuronal_tensor()` into
+`construct` and the kernels. They agree on topology and identity — verified
+edge for edge in `tests/test_tfne_execution.py` — but the tensor bridge does
+not carry rule parameters, so a declared connection `weight` reaches
+$(s,h_0,\mathcal{I})$ and not the executed model. Read the Execute row as
+"the kernels run the tensor built from this source", not "the kernels consume
+$s$".
+
 ## Mapping to JaxFNE components
 
 | Algebra concept | JaxFNE realization |
