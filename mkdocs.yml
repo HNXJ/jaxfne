@@ -178,6 +178,7 @@ nav:
       - Biological RBS: protocols/protocol_d_biological_rbs.md
       - Integrated TFNE Composition: protocols/protocol_e_integration.md
       - RBS, RBD and HDP: doctrine/rbs_rbd_hdp.md
+      - TFNE Algebra: doctrine/tfne_algebra.md
       - Relative Quantities: doctrine/relative_quantity_grammar.md
       - H-to-X Gain: doctrine/protocol_h_h1b_h_to_x_gain.md
       - RBD State Memory: doctrine/protocol_h_rbd_memory.md

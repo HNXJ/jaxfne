@@ -53,6 +53,11 @@ Every row's validation status is reported at runtime by `jaxfne.operator_status(
 See [Tensor Operator Registry](api/tensor_operators.md) for the live registry and
 its symbol-to-stage mapping — this page does not duplicate that registry.
 
+> **Scope note:** this table names stages in full (Emitter, …, Objective, …).
+> Bare $O$/$P$ letters belong to the TFNE specification algebra — ordered
+> composition and proportion maps — not to these runtime stages (see
+> [TFNE Algebra](doctrine/tfne_algebra.md)).
+
 **On the name "Validation" for the final stage:** some external descriptions of this
 pipeline label the seventh stage "Validation" rather than "Manifest". The codebase
 has one final stage, `Manifest`, in the "bookkeeping / truth gate" class above; it

@@ -230,3 +230,19 @@ Broader operator couplings are **architectural target**, not H1 scope.
 - `docs/doctrine/protocol_h_rbd_memory.md` — Protocol H
 - `docs/doctrine/protocol_h_h1b_h_to_x_gain.md` — emitter gain inventory
 - `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` — upstream math
+
+## 10. Naming scope under the canonical TFNE algebra
+
+`artifacts/project_sources/7_tfne_algebra.md` is canonical for the TFNE
+specification language (`docs/doctrine/tfne_algebra.md`; compiler
+`jaxfne.tfne`). Scope notes for this page:
+
+- \(H\) names the H-state tensor exclusively. There is no structural \(H\).
+- Bare \(O\)/\(X\) are specification-time composition relations; pipeline
+  stages on this page keep their full names (Emitter, Source, Field, Probe,
+  Objective, Optimizer, Manifest).
+- \(Q\) keeps its source-quantity meaning
+  (`docs/appendix/fundamental_laws.md` §7); the algebra introduces no
+  competing \(Q\).
+- \(C[k]\)-style brackets read as typed selection/specialization per the
+  bound object (e.g. \(L[C]\) cell-type selection).

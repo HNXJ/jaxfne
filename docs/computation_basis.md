@@ -18,6 +18,11 @@ TFNE operates on tensors with the following canonical dimensions:
 | **Features** | $F$ | Neuron features (compartments, species, etc.) | 1 (soma) or 3 (soma + axon + dendrite) |
 | **Readout** | $R$ | Readout channels (modalities, metrics) | 8 (SPK, Vm, source, LFP, CSD, EEG, MEG, EMM) |
 
+> **Scope note:** the $X$ above is the spatial-locations tensor dimension. The
+> TFNE algebra uses $X$ for cross/lateral architectural composition at
+> specification time — a different namespace (see
+> [TFNE Algebra](doctrine/tfne_algebra.md)).
+
 ### Canonical Shapes
 
 Each stage of the pipeline has a **canonical shape** and can be **collapsed** if not needed:

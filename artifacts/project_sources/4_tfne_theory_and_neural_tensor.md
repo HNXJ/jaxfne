@@ -1,5 +1,13 @@
 # TFNE Theory, NeuralTensor, RBS/RBD/HDP
 
+> Supersession note: `7_tfne_algebra.md` is canonical for the TFNE
+> specification language (compact `x:A:y` grammar, `O`/`X` composition,
+> rules, `N`/`P`/`G`, `(s,h0,I)` realization). The operator factorization
+> below (`Emitter -> Source -> Field -> Probe -> Objective -> Optimizer ->
+> Manifest`) is preserved unchanged as the execution-side grammar the algebra
+> compiles into. On naming scope, 7 governs: `H` is the H-state tensor only;
+> bare `O`/`X`/`P` letters are specification-time algebra.
+
 Repository-facing doctrine: `docs/doctrine/rbs_rbd_hdp.md`,
 `docs/doctrine/tfne_containment_architecture.md`. This file is the upstream
 mathematical authority for the RBS/RBD/HDP semantic migration.

@@ -1,0 +1,529 @@
+"""TFNE algebra adoption tests: adversarial corpus for the specification layer.
+
+Every case verifies TFNE -> canonical explicit realization -> flattened
+JaxFNE representation, per the algebra project source
+(artifacts/project_sources/7_tfne_algebra.md). The tests target the
+specification-time compiler (jaxfne.tfne) and its reuse of the validated
+connectivity scaffold; no simulation kernels are touched.
+"""
+
+import json
+
+import numpy as np
+import pytest
+
+from jaxfne import tfne
+from jaxfne.tfne import (TFNEError, flatten, normalize, parse, realization_summary,
+                          realize, resolve, to_neuronal_tensor)
+
+
+def _realize(text, seed=None):
+    program = parse(text)
+    explicit = resolve(program)
+    return program, explicit, realize(explicit, program, seed=seed)
+
+
+def _replay_ok(text):
+    program = parse(text)
+    first = normalize(program)
+    assert normalize(parse(first)) == first
+    return first
+
+
+# --------------------------------------------------------------------------- #
+# 1. One cell (degenerate validity)
+# --------------------------------------------------------------------------- #
+
+def test_one_cell():
+    text = "Cell := [C = {pyr}; N = 1; model = hh]; x : Cell : y"
+    norm = _replay_ok(text)
+    program, explicit, r = _realize(text)
+    assert r.s["n_neurons"] == 1
+    assert r.s["n_edges"] == 0
+    assert r.s["counts"] == {"Cell": {"pyr": 1}}
+    assert r.s["models"] == {"Cell": "hh"}
+    assert r.path_to_slice("Cell") == (0, 1)
+    assert r.slice_to_path(0) == "Cell"
+    assert r.h0["v"].shape == (1,)
+    assert r.h0["H"].shape == (1, 1)
+    tensor = to_neuronal_tensor(explicit)
+    assert len(tensor.areas) == 1
+    assert tensor.areas[0].layers[0].n_neurons == 1
+    assert "Cell" in norm
+
+
+# --------------------------------------------------------------------------- #
+# 2. One nonlaminar nucleus (no layers required)
+# --------------------------------------------------------------------------- #
+
+NUCLEUS = """
+Nucleus := [C = {E, PV}; P = {E: 0.7, PV: 0.3}; N = 10; model = izhikevich];
+x : Nucleus : y
+"""
+
+
+def test_nonlaminar_nucleus():
+    _replay_ok(NUCLEUS)
+    _, explicit, r = _realize(NUCLEUS)
+    assert r.s["n_neurons"] == 10
+    assert r.s["counts"] == {"Nucleus": {"E": 7, "PV": 3}}
+    assert r.path_to_slice("Nucleus.E") == (0, 7)
+    assert r.path_to_slice("Nucleus.PV") == (7, 10)
+    tensor = to_neuronal_tensor(explicit)
+    assert len(tensor.areas) == 1
+    assert tensor.areas[0].name == "Nucleus"
+
+
+# --------------------------------------------------------------------------- #
+# 3. Six-layer cortical area
+# --------------------------------------------------------------------------- #
+
+CORTEX = """
+O[ff] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.4];
+L1 := [C = {E}; N = 2; model = izhikevich];
+L2 := [C = {E, PV}; P = {E: 0.8, PV: 0.2}; N = 5; model = izhikevich];
+L3 := [C = {E, PV}; P = {E: 0.8, PV: 0.2}; N = 5; model = izhikevich];
+L4 := [C = {E, PV}; P = {E: 0.8, PV: 0.2}; N = 5; model = izhikevich];
+L5 := [C = {E, PV}; P = {E: 0.7, PV: 0.3}; N = 10; model = izhikevich];
+L6 := [C = {E, PV}; P = {E: 0.7, PV: 0.3}; N = 10; model = izhikevich];
+V1 := L1 O[ff] L2 O[ff] L3 O[ff] L4 O[ff] L5 O[ff] L6;
+x : V1 : y
+"""
+
+
+def test_six_layer_cortical_area():
+    _replay_ok(CORTEX)
+    _, explicit, r = _realize(CORTEX)
+    assert r.s["n_neurons"] == 2 + 5 + 5 + 5 + 10 + 10
+    total = sum(r.s["counts"][f"V1.L{i}"][c]
+                for i in (1, 2, 3, 4, 5, 6)
+                for c in r.s["counts"][f"V1.L{i}"])
+    assert total == r.s["n_neurons"]
+    assert len(r.explicit.relations) == 5
+    tensor = to_neuronal_tensor(explicit)
+    assert [a.name for a in tensor.areas] == ["V1"]
+    assert sorted(layer.name for layer in tensor.areas[0].layers) == [
+        "L1", "L2", "L3", "L4", "L5", "L6"]
+    assert len(tensor.areas[0].inter_connections) > 0
+    mechs = {c.mechanism for c in tensor.areas[0].inter_connections}
+    assert mechs == {"AMPA"}
+
+
+# --------------------------------------------------------------------------- #
+# 4-6. Serial composition and group sensitivity
+# --------------------------------------------------------------------------- #
+
+FLAT = "A := [C = {cell}; N = 2]; B := [C = {cell}; N = 2]; C := [C = {cell}; N = 2]; x : A O B O C : y"
+LEFT = "A := [C = {cell}; N = 2]; B := [C = {cell}; N = 2]; C := [C = {cell}; N = 2]; x : {A O B} O C : y"
+RIGHT = "A := [C = {cell}; N = 2]; B := [C = {cell}; N = 2]; C := [C = {cell}; N = 2]; x : A O {B O C} : y"
+
+
+def test_flat_serial_bare_composition_has_no_edges():
+    _replay_ok(FLAT)
+    _, _, r = _realize(FLAT)
+    assert r.s["n_neurons"] == 6
+    assert r.s["n_edges"] == 0  # bare O is structural only
+    assert r.path_to_slice("A") == (0, 2)
+
+
+def test_group_sensitivity_paths_differ_edges_match():
+    for text in (LEFT, RIGHT):
+        _replay_ok(text)
+    _, _, flat = _realize(FLAT)
+    _, _, left = _realize(LEFT)
+    _, _, right = _realize(RIGHT)
+    assert flat.s["n_edges"] == left.s["n_edges"] == right.s["n_edges"] == 0
+    flat_paths = set(flat.I["object_slices"])
+    left_paths = set(left.I["object_slices"])
+    right_paths = set(right.I["object_slices"])
+    assert flat_paths == {"A", "B", "C"}
+    assert left_paths != flat_paths and right_paths != flat_paths
+    assert left_paths != right_paths
+    # boundaries preserved: grouped members nest under a g-segment
+    assert "g0.A" in left_paths and "g0.B" in left_paths
+    assert "g0.B" in right_paths and "g0.C" in right_paths
+
+
+# --------------------------------------------------------------------------- #
+# 7-9. Nested O/X composition, cross-connections, multiple rules
+# --------------------------------------------------------------------------- #
+
+NESTED = """
+O[ff] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+O[fb] := [direction = <; mechanism = GABA; probability = 1.0; weight = 0.3];
+X[lat] := [direction = <>; mechanism = AMPA; probability = 0.5; weight = 0.2];
+A := [C = {E}; N = 4];
+B := [C = {E}; N = 4];
+C := [C = {E}; N = 4];
+D := [C = {E}; N = 4];
+x : {A O[ff] B} X[lat] {C O[fb] D} : y
+"""
+
+
+def test_nested_ox_composition_multiple_rules():
+    _replay_ok(NESTED)
+    _, explicit, r = _realize(NESTED)
+    assert r.s["n_neurons"] == 16
+    # ff, fb, and the two directed halves of the bidirectional lateral rule
+    assert len(explicit.relations) == 4
+    kinds = sorted(rel.rule for rel in explicit.relations)
+    assert kinds == ["fb", "ff", "lat", "lat"]
+    total_edges = sum(
+        stop - start for start, stop in r.I["rule_slices"].values())
+    assert total_edges == r.s["n_edges"] > 0
+    mechs = {m["name"] for m in r.s["mechanism_table"]}
+    assert {"AMPA", "GABA"} <= mechs
+    # every edge maps back to its originating relation/rule
+    for e in range(r.s["n_edges"]):
+        key = r.edge_to_rule(e)
+        origin = r.relation_origin(key)
+        assert origin["rule"] in ("ff", "fb", "lat")
+    # bidirectional lateral rule contributes both directions on the same pair
+    lat_keys = [k for k in r.I["rule_slices"] if "[lat]" in k]
+    assert len(lat_keys) == 2
+    assert r.relation_group(lat_keys[0]) == sorted(lat_keys)
+
+
+def test_explicit_projections_and_bidirectional():
+    text = """
+    A := [C = {cell}; N = 3];
+    B := [C = {cell}; N = 3];
+    x : A > B : y
+    """
+    _, _, fwd = _realize(text)
+    assert fwd.s["n_edges"] == 9
+    text2 = """
+    A := [C = {cell}; N = 3];
+    B := [C = {cell}; N = 3];
+    x : A <> B : y
+    """
+    _, _, both = _realize(text2)
+    assert both.s["n_edges"] == 18
+    text3 = """
+    A := [C = {cell}; N = 3];
+    B := [C = {cell}; N = 3];
+    x : A < B : y
+    """
+    _, _, back = _realize(text3)
+    assert back.s["n_edges"] == 9
+    fwd_pairs = sorted(zip(np.asarray(fwd.s["edge_pre"]),
+                           np.asarray(fwd.s["edge_post"])))
+    back_pairs = sorted(zip(np.asarray(back.s["edge_pre"]),
+                            np.asarray(back.s["edge_post"])))
+    assert sorted((b, a) for a, b in fwd_pairs) == back_pairs
+
+
+# --------------------------------------------------------------------------- #
+# 10. Replication A^n
+# --------------------------------------------------------------------------- #
+
+def test_replication_creates_indexed_instances_without_edges():
+    text = "E := [C = {cell}; N = 2]; x : E^4 : y"
+    _replay_ok(text)
+    _, _, r = _realize(text)
+    assert r.s["n_neurons"] == 8
+    assert r.s["n_edges"] == 0
+    assert set(r.I["object_slices"]) == {f"E.{i}" for i in range(4)}
+    assert r.path_to_slice("E.2") == (4, 6)
+
+
+# --------------------------------------------------------------------------- #
+# 11. N/P exact realization
+# --------------------------------------------------------------------------- #
+
+def test_proportion_normalization_and_exact_counts():
+    text = ("Pop := [C = {E, PV}; P = {E: 0.8, PV: 0.2}; N = 10]; "
+            "x : Pop : y")
+    _, _, r = _realize(text)
+    assert r.s["counts"] == {"Pop": {"E": 8, "PV": 2}}
+    # largest remainder, declaration-order tiebreak: 3 * 0.5/0.5 -> 2/1
+    text2 = ("Pop := [C = {E, PV}; P = {E: 0.5, PV: 0.5}; N = 3]; "
+             "x : Pop : y")
+    _, _, r2 = _realize(text2)
+    assert r2.s["counts"] == {"Pop": {"E": 2, "PV": 1}}
+    assert sum(r2.s["counts"]["Pop"].values()) == 3
+    # exact N map form
+    text3 = ("Pop := [C = {E, PV}; N = {E: 6, PV: 4}]; x : Pop : y")
+    _, _, r3 = _realize(text3)
+    assert r3.s["counts"] == {"Pop": {"E": 6, "PV": 4}}
+
+
+def test_proportion_violations_raise():
+    with pytest.raises(TFNEError):
+        _realize("Pop := [C = {E, PV}; P = {E: 0.9, PV: 0.2}; N = 10]; "
+                 "x : Pop : y")
+    with pytest.raises(TFNEError):
+        _realize("Pop := [C = {E, PV}; P = {E: 1.2, PV: -0.2}; N = 10]; "
+                 "x : Pop : y")
+    with pytest.raises(TFNEError):
+        _realize("Pop := [C = {E, PV}; N = 10]; x : Pop : y")
+
+
+# --------------------------------------------------------------------------- #
+# 12. G geometry
+# --------------------------------------------------------------------------- #
+
+def test_geometry_compiles_to_static_state():
+    text = ("Pop := [C = {cell}; N = 4; "
+            "G = [distribution = uniform_random; x0 = 0.0; x1 = 1.0]]; "
+            "x : Pop : y")
+    _replay_ok(text)
+    _, explicit, r = _realize(text)
+    assert r.s["geometry"]["Pop"]["x0"] == 0.0
+    assert r.s["geometry"]["Pop"]["x1"] == 1.0
+    tensor = to_neuronal_tensor(explicit)
+    geo = tensor.areas[0].layers[0].geometry
+    assert tuple(geo.x_range) == (0.0, 1.0)
+
+
+# --------------------------------------------------------------------------- #
+# 13. Typed x/y boundaries
+# --------------------------------------------------------------------------- #
+
+def test_typed_boundaries_preserved():
+    text = "Cell := [C = {cell}; N = 1]; x[retina] : Cell : y[choice]"
+    _replay_ok(text)
+    _, _, r = _realize(text)
+    assert r.s["boundaries"] == {"x": "x", "x_type": "retina",
+                                 "y": "y", "y_type": "choice"}
+
+
+# --------------------------------------------------------------------------- #
+# 14. Shared biological type, different dynamical models
+# --------------------------------------------------------------------------- #
+
+def test_shared_type_distinct_models():
+    text = """
+    E1 := [C = {pyr}; N = 3; model = hh];
+    E2 := [C = {pyr}; N = 3; model = lif];
+    x : E1 O E2 : y
+    """
+    _replay_ok(text)
+    _, _, r = _realize(text)
+    assert r.s["models"] == {"E1": "hh", "E2": "lif"}
+    assert (r.s["counts"]["E1"] == r.s["counts"]["E2"] == {"pyr": 3})
+
+
+# --------------------------------------------------------------------------- #
+# 15. Mutable/plastic state separation
+# --------------------------------------------------------------------------- #
+
+def test_plastic_rule_declared_state_param_separation():
+    text = """
+    O[stdp] := [direction = >; mechanism = AMPA; probability = 1.0;
+                weight = 0.5; plasticity = hdp];
+    A := [C = {cell}; N = 4];
+    B := [C = {cell}; N = 4];
+    x : A O[stdp] B : y
+    """
+    _replay_ok(text)
+    _, _, r = _realize(text)
+    assert r.s["n_edges"] == 16
+    key = next(iter(r.I["rule_slices"]))
+    assert r.relation_origin(key)["params"]["plasticity"] == "hdp"
+    # state (mutable, in h0) vs parameter (static, in s) stay distinct
+    assert r.h0["w"].shape == (16,)
+    assert np.array_equal(np.asarray(r.h0["w"], dtype=np.float64),
+                          np.asarray(r.s["edge_weight"]))
+    assert r.h0["H"].shape == (4 + 4, 1)
+
+
+# --------------------------------------------------------------------------- #
+# 16. Flatten -> inspect round trip
+# --------------------------------------------------------------------------- #
+
+def test_flatten_inspect_round_trip():
+    _, _, r = _realize(NESTED)
+    # every neuron maps to a path and back into a containing slice
+    for nid in range(r.s["n_neurons"]):
+        path = r.slice_to_path(nid)
+        start, stop = r.path_to_slice(path)
+        assert start <= nid < stop
+        ids = r.neuron_ids_in_scope(path)
+        assert nid in ids
+    # every edge maps to its rule and back into the rule's range
+    for e in range(r.s["n_edges"]):
+        key = r.edge_to_rule(e)
+        start, stop = r.rule_to_edges(key)
+        assert start <= e < stop
+        origin = r.relation_origin(key)
+        assert origin["pre_scopes"] and origin["post_scopes"]
+    # TFNE parameter/state identity reaches the flat representation
+    for path, counts in r.s["counts"].items():
+        start, stop = r.path_to_slice(path)
+        assert stop - start == sum(counts.values())
+    with pytest.raises(TFNEError):
+        r.path_to_slice("Nope")
+    with pytest.raises(TFNEError):
+        r.slice_to_path(r.s["n_neurons"])
+
+
+# --------------------------------------------------------------------------- #
+# 17. Deterministic normalization and replay
+# --------------------------------------------------------------------------- #
+
+def test_deterministic_normalization_and_replay():
+    first = _replay_ok(NESTED)
+    _, _, r1 = _realize(NESTED)
+    _, _, r2 = _realize(first)  # replay from canonical form
+    assert r1.s["digest"] == r2.s["digest"]
+    s1 = realization_summary(r1)
+    s2 = realization_summary(r2)
+    assert s1["realization_sha256"] == s2["realization_sha256"]
+    # scale/whitespace-insensitive: same model, shuffled definitions
+    shuffled = """
+    D := [C = {E}; N = 4]; C := [C = {E}; N = 4];
+    B := [C = {E}; N = 4]; A := [C = {E}; N = 4];
+    X[lat] := [direction = <>; mechanism = AMPA; probability = 0.5; weight = 0.2];
+    O[fb] := [direction = <; mechanism = GABA; probability = 1.0; weight = 0.3];
+    O[ff] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+    x:{A O[ff] B}X[lat]{C O[fb] D}:y
+    """
+    _, _, r3 = _realize(shuffled)
+    assert r3.s["digest"] == r1.s["digest"]
+    assert (realization_summary(r3)["realization_sha256"]
+            == s1["realization_sha256"])
+
+
+def test_explicit_seed_replay():
+    _, _, r1 = _realize(NESTED, seed=7)
+    _, _, r2 = _realize(NESTED, seed=7)
+    assert r1.s["seed"] == r2.s["seed"] == 7
+    assert np.array_equal(np.asarray(r1.s["edge_pre"]),
+                          np.asarray(r2.s["edge_pre"]))
+
+
+# --------------------------------------------------------------------------- #
+# Equivalent construction paths
+# --------------------------------------------------------------------------- #
+
+def test_aliased_and_direct_construction_agree():
+    direct = """
+    O[ff] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+    A := [C = {cell}; N = 3];
+    B := [C = {cell}; N = 3];
+    x : A O[ff] B : y
+    """
+    aliased = """
+    O[ff] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+    A := [C = {cell}; N = 3];
+    B := [C = {cell}; N = 3];
+    S := A O[ff] B;
+    x : S : y
+    """
+    _, _, r_direct = _realize(direct)
+    _, _, r_aliased = _realize(aliased)
+    # same realized edge signature...
+    assert (r_direct.s["n_neurons"], r_direct.s["n_edges"]) == (
+        r_aliased.s["n_neurons"], r_aliased.s["n_edges"])
+    assert sorted(float(w) for w in r_direct.s["edge_weight"]) == sorted(
+        float(w) for w in r_aliased.s["edge_weight"])
+    # ...with hierarchical identity recording the factoring path
+    assert set(r_direct.I["object_slices"]) == {"A", "B"}
+    assert set(r_aliased.I["object_slices"]) == {"S.A", "S.B"}
+    _, explicit_aliased, _ = _realize(aliased)
+    assert explicit_aliased.nodes["S"].kind == "composite"
+
+
+def test_specialization_inherits_base():
+    text = """
+    CTX := [C = {E, PV}; P = {E: 0.8, PV: 0.2}; N = 10; model = izhikevich];
+    V1 := CTX[v1];
+    V2 := CTX[v2];
+    x : V1 O V2 : y
+    """
+    _replay_ok(text)
+    _, explicit, r = _realize(text)
+    assert r.s["counts"]["V1"] == r.s["counts"]["V2"] == {"E": 8, "PV": 2}
+    assert explicit.nodes["V1"].special == "CTX[v1]"
+    assert explicit.nodes["V2"].special == "CTX[v2]"
+
+
+# --------------------------------------------------------------------------- #
+# Exclusions, reserved names, rule validation
+# --------------------------------------------------------------------------- #
+
+def test_exclusion_passes_when_absent_violates_when_present():
+    ok_text = """
+    A := [C = {cell}; N = 2];
+    B := [C = {cell}; N = 2];
+    x : {A O B} : y
+    """
+    _, _, r = _realize(ok_text)
+    assert r.s["n_edges"] == 0
+    program = parse(ok_text)
+    # manually append an exclusion over an existing projection scope
+    excl = tfne.Exclude(direction="!>", left=tfne.Ref(("A",)),
+                        right=tfne.Ref(("B",)))
+    program2 = tfne.Program(defs=program.defs, rules=program.rules,
+                            system=tfne.System(
+                                x="x", x_type=None,
+                                body=tfne.Ordered(
+                                    left=tfne.Project(direction=">",
+                                                      left=tfne.Ref(("A",)),
+                                                      right=tfne.Ref(("B",))),
+                                    right=excl),
+                                y="y", y_type=None))
+    explicit2 = resolve(program2)
+    with pytest.raises(TFNEError):
+        realize(explicit2, program2)
+
+
+def test_reserved_names_and_rule_validation():
+    with pytest.raises(TFNEError):
+        parse("H := [C = {cell}; N = 1]; x : H : y")
+    with pytest.raises(TFNEError):
+        parse("h := [C = {cell}; N = 1]; x : h : y")
+    with pytest.raises(TFNEError):
+        _realize("O[bad] := [mechanism = AMPA]; "
+                 "A := [C = {cell}; N = 2]; B := [C = {cell}; N = 2]; "
+                 "x : A O[bad] B : y")
+    with pytest.raises(TFNEError):
+        _realize("A := [C = {cell}; N = 2]; B := [C = {cell}; N = 2]; "
+                 "x : A O[nope] B : y")
+    with pytest.raises(TFNEError):
+        parse("A := [C = {cell}; N = 2]; x : A O B : y; x : A : y")
+
+
+def test_selection_addressing_and_layer_types():
+    text = """
+    O[ff] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 1.0];
+    L4 := [C = {E, PV}; P = {E: 0.5, PV: 0.5}; N = 4];
+    L23 := [C = {E, PV}; P = {E: 0.5, PV: 0.5}; N = 4];
+    V1 := L4 O L23;
+    x : V1.L4[E] > V1.L23[E] : y
+    """
+    _replay_ok(text)
+    _, _, r = _realize(text)
+    # E->E across layers only: 2 pre x 2 post
+    assert r.s["n_edges"] == 4
+    pre = {int(v) for v in r.s["edge_pre"]}
+    assert pre == set(range(*r.path_to_slice("V1.L4.E")))
+
+
+# --------------------------------------------------------------------------- #
+# NeuronalTensor bridge round trip
+# --------------------------------------------------------------------------- #
+
+def test_tensor_bridge_json_round_trip(tmp_path):
+    _, explicit, _ = _realize(CORTEX)
+    tensor = to_neuronal_tensor(explicit)
+    payload = tensor.to_dict()
+    blob = json.dumps(payload, sort_keys=True, default=str)
+    assert json.loads(blob)["name"] == "tfne"
+    import jaxfne.neuronal_tensor as nt_mod
+    assert hasattr(nt_mod, "NeuronalTensor")
+    # fractions within each layer sum to one
+    for area in tensor.areas:
+        for layer in area.layers:
+            assert abs(sum(t.fraction for t in layer.neuron_types) - 1.0) < 1e-9
+    # provenance carries the TFNE digest
+    assert payload["provenance"]["tfne_digest"] == explicit.digest
+
+
+def test_flatten_one_call_json_safe_summary():
+    r = flatten("Cell := [C = {pyr}; N = 1; model = hh]; x : Cell : y")
+    summary = realization_summary(r)
+    json.dumps(summary)
+    assert summary["n_neurons"] == 1
+    assert summary["value_tag"] == "relative"
