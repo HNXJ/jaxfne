@@ -73,6 +73,17 @@
       "output": "08_fast_vs_slow_state.png",
       "caption": "Co-registered multiscale trajectories: sub-millisecond membrane state X (V_m) alongside slower hidden biophysical state H (RBD dynamics) and plastic synaptic weight coupling W (HDP).",
       "calibration_status": "multiscale_state_coupling"
+    },
+    {
+      "id": "09_three_area_hierarchy",
+      "script": "jaxfne.vis.build_atlas + gallery panel",
+      "seed": 0,
+      "configuration": "build_multi_area_columns([V1, V4, PFC], n_per_area=100, ei_profile=canonical)",
+      "output": "09_three_area_hierarchy.png",
+      "atlas_dir": "docs/_static/atlas_three_area",
+      "config_hash": "84f67ccf815ff923",
+      "caption": "Realized spatial locations and cell-class identities in a three-area laminar hierarchy with bidirectional feedforward/feedback connectivity.",
+      "calibration_status": "relative_proxy_coordinates"
     }
   ]
 }

@@ -60,3 +60,14 @@ provenance. Representative preview from realized `canonical-v1-column-1000n` out
 
 Full panel set, generation workflow, and provenance rules:
 [Canonical Atlas Suite guide](guides/atlas_suite.md).
+
+Three-area hierarchy (`V1–V4–PFC`, 100 neurons/area, bidirectional
+feedforward/feedback): [Gallery 09](gallery.md#09-three-area-hierarchy-v1v4pfc)
+with the full six-panel atlas
+([index](_static/atlas_three_area/index.html) ·
+[network_3d](_static/atlas_three_area/network_3d.html) ·
+[connectivity](_static/atlas_three_area/connectivity.html) ·
+[raster](_static/atlas_three_area/raster.html) ·
+[traces](_static/atlas_three_area/traces.html) ·
+[spectral](_static/atlas_three_area/spectral.html) ·
+[state_summary](_static/atlas_three_area/state_summary.html)).

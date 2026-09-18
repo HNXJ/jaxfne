@@ -1,6 +1,6 @@
 # Gallery
 
-Eight reproducible reference panels generated entirely by repository code from JaxFNE.
+Nine reproducible reference panels generated entirely by repository code from JaxFNE.
 
 All panels represent computational proxies and relative uncalibrated states (`calibration_status = relative_proxy_readout`). No direct physical or clinical claims are asserted.
 
@@ -83,3 +83,44 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 **Configuration:** `suite2_net1_config(n=100, enable_hdp=True)` · **Seed:** `7`  
 **Status:** `multiscale_state_coupling`  
 **Description:** Co-registered multiscale trajectories: sub-millisecond membrane state $X$ ($V_m$) alongside slower hidden biophysical state $H$ (RBD dynamics) and plastic synaptic weight coupling $W$ (HDP).
+
+---
+
+## 09: Three-Area Hierarchy (V1–V4–PFC)
+
+![09 Three Area Hierarchy](_static/gallery/09_three_area_hierarchy.png)
+
+**Configuration:** `build_multi_area_columns(["V1", "V4", "PFC"], n_per_area=100, ei_profile="canonical")` · **Seed:** `0`  
+**Status:** `relative_proxy_coordinates`  
+**Description:** Realized spatial locations and cell-class identities in a three-area laminar hierarchy with bidirectional feedforward/feedback connectivity.
+
+Six fixed panels, always emitted (`network_3d`, `connectivity`, `raster`, `traces` as **OBSERVED**; `spectral`, `state_summary` as **DERIVED**), each carrying a provenance card (`config_hash`, N, edges, steps, dt, jaxfne version):
+
+- [Index Dashboard (`index.html`)](_static/atlas_three_area/index.html)
+- [Panel 1: Network 3D (`network_3d.html`)](_static/atlas_three_area/network_3d.html)
+- [Panel 2: Connectivity (`connectivity.html`)](_static/atlas_three_area/connectivity.html)
+- [Panel 3: Spike Raster (`raster.html`)](_static/atlas_three_area/raster.html)
+- [Panel 4: Membrane Traces (`traces.html`)](_static/atlas_three_area/traces.html)
+- [Panel 5: Spectral (`spectral.html`)](_static/atlas_three_area/spectral.html)
+- [Panel 6: State Summary (`state_summary.html`)](_static/atlas_three_area/state_summary.html)
+
+```python
+import jaxfne as jtfne
+from jaxfne.vis import build_atlas
+
+cfg = (
+    jtfne.build_multi_area_columns(["V1", "V4", "PFC"], n_per_area=100, ei_profile="canonical")
+    .runtime(seed=0)
+    .set_emitter("izhikevich", "cortical_eig")
+    .probes(["spikes", "V_m"])
+    .field(domain="laminar_column", conductivity="proxy")
+)
+model = jtfne.construct(cfg)
+sim = jtfne.simulation(duration_ms=500.0, dt_ms=0.5, seed=0)
+signals = jtfne.simulate(model, sim)
+manifest = build_atlas(
+    model, signals,
+    out_dir="docs/_static/atlas_three_area",
+    title="V1-V4-PFC three-area hierarchy (100/area)",
+)
+```
