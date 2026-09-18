@@ -124,6 +124,12 @@ resume the conformance list ahead of it.
   whether absolute or relative coordinates are the intended semantics, the
   same authority question as TFNE-PARAM-03.
 
+  Stays separate until its coordinate semantics are established. The supported
+  claim today is exactly `declared G != executed G`. Whether the eventual
+  repair preserves absolute coordinates, normalized coordinates, or an explicit
+  declared transformation requires its own authority and must not be settled as
+  a side effect of TFNE-PARAM-03.
+
 ### Parameter ownership, as measured (TFNE-PARAM-01)
 
 | Parameter | Configured | Realized | Executed |
@@ -183,6 +189,34 @@ what it cannot express rather than realizing a different nervous system.
   `E_EXCLUSION_UNKNOWN`, missing realization policy, ambiguous expansion,
   invalid proportion) as typed classes rather than prose `TFNEError`. Carries
   S13 projection-identity redundancy and S11 ungrouped-`X` rejection.
+
+  **Blocks TFNE-PARAM-03.** `E_MECHANISM_UNRESOLVED` /
+  `E_MECHANISM_NOT_PERMITTED` are not merely error classes here: they are the
+  mechanism vocabulary that kinetics resolution presupposes. The dependency is
+  `mechanism vocabulary -> mechanism resolution -> kinetics -> PARAM-03`, so
+  PARAM-03 stays blocked behind this item rather than acquiring an isolated
+  patch.
+
+  *Acceptance for the mechanism-resolution work* (authorized, stronger than
+  merely resolving `GABA`). For every executable connection mechanism, the
+  chain
+
+  ```text
+  declared mechanism -> resolved mechanism identity
+                     -> mechanism parameters / kinetics
+                     -> realized connection
+                     -> kernel-consumed mechanism
+  ```
+
+  must be deterministic and inspectable. Unknown or unpermitted mechanism names
+  fail closed. Aliases such as `GABA -> GABA_A` require an explicit
+  authoritative declaration and must never arise from heuristic name matching.
+
+  Once mechanism resolution exists, return to PARAM-03 and test: `AMPA`;
+  `GABA_A`; `NMDA`; `GABA_B` where supported; a custom permitted mechanism;
+  rejection of an unresolved mechanism; several mechanisms with asymmetric tau
+  values; `dt` invariance; and a TFNE construction against an equivalent
+  hand-written JaxFNE construction.
 
 ## Definition layer
 
