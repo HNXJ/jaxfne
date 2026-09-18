@@ -57,6 +57,47 @@ amplitude_status: relative | calibrated
 
 Until a compatibility migration is implemented, preserve existing public fields but never translate `linear_solver` into a physical-solver claim.
 
+### Semantic-class transfer (invariant)
+
+`configured != realized != executed != observed`, and each is established
+separately. For every executable TFNE or JaxFNE feature, verification must
+cover every relevant semantic class independently. **Equality of structure,
+counts, names, or stored values does not establish execution equivalence.**
+
+Minimum classes:
+
+```text
+topology
+cardinality / proportion
+mechanism identity
+mechanism kinetics
+fixed parameters / weights
+probability and stochastic realization
+delay / history
+geometry
+mutable / plastic rule identity and targets
+boundary / observation semantics
+```
+
+Three ways a check returns a vacuous pass:
+
+1. **Counts instead of values.** Compare multisets carrying the parameter
+   values, never a total.
+2. **A neutral test value.** Perturb with asymmetric, non-default values at
+   which the parameter must have an effect; a probability of 1.0 makes
+   thinning a no-op.
+3. **A reporting surface instead of the consumer.** Assert against the
+   function the execution path calls, then require the value to change the
+   output — stored is not consumed.
+
+An unsupported parameter fails closed. Silently dropping a declared value is
+worse than refusing it, because the wrong answer looks like a right one.
+
+This rule is empirical, not precautionary. `structural identity !=> parameter
+identity !=> executed semantic identity` has been demonstrated three times:
+declared weights that all executed at one constant, a named mechanism whose
+kinetics is a placeholder, and declared geometry that is realized and inert.
+
 ### Escalation requirements
 
 A stronger physical field claim requires, as applicable:

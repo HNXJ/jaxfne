@@ -74,8 +74,40 @@ resume the conformance list ahead of it.
   asserts agreement with the bridge and invariance across `dt`, not the value,
   so it survives the repair. `tests/test_synaptic_kernel_v011.py:57-60` asserts
   the mechanism tau table equals `standard_receptor_specs()`, which is evidence
-  for the canonical values rather than against the change. Before repairing,
-  re-measure what existing TFNE-derived artifacts and receipts assume.
+  for the canonical values rather than against the change.
+
+  **BLOCKED — the repair is not bounded. Do not attempt it as a one-line
+  change.** The construction path is proven: `to_neuronal_tensor` builds
+  `InterConnection(...)` and `AreaConnection(...)` (`jaxfne/tfne.py:1706,1724`)
+  with no `static=` argument, so `StaticParams()` supplies `dT_ms = 0.1`.
+  Setting it is mechanically trivial. Deciding *what to set it to* is not,
+  because the name space does not resolve:
+
+  - TFNE mechanism names are arbitrary strings. `_relation_mechanism`
+    (`jaxfne/tfne.py:1859`) returns whatever the rule declared, defaulting to
+    `DIRECT_MECHANISM = "tfne_direct"` or `tfne_<rule>`. There is no permitted
+    vocabulary.
+  - Nothing resolves a name to a canonical receptor. In
+    `compile_connection_rules`, `receptor_index` is just the declaration order
+    and `tau_ms` comes from the declared params; `standard_receptor_specs()` is
+    never consulted on this path.
+  - The canonical table is keyed `AMPA`, `GABA_A`, `NMDA`, `GABA_B`. TFNE specs
+    in this repository use `AMPA` (27 occurrences) and **`GABA`** (5) — and
+    `GABA` is not a key.
+
+  So an exact-match lookup would set AMPA to 2.0 while leaving `GABA` and
+  `tfne_direct` at 0.1: excitatory kinetics 20x slower, inhibitory unchanged.
+  That asymmetry changes E/I balance in every affected model and is worse than
+  the uniform placeholder. Treating `GABA` as `GABA_A` is an aliasing decision
+  no source authorizes.
+
+  The prerequisite is the mechanism vocabulary itself — S25's
+  `E_MECHANISM_UNRESOLVED` / `E_MECHANISM_NOT_PERMITTED` (TFNE2-07) and S12
+  rule bodies (TFNE2-05), both open. **Surface before choosing:** (a) define
+  the permitted mechanism vocabulary under TFNE2-07 and resolve kinetics from
+  it, (b) let S12 rule bodies declare tau explicitly and refuse an
+  unresolvable mechanism, or (c) leave the placeholder until one of those
+  lands. Whichever is chosen, all mechanisms must move together.
 - **TFNE-PARAM-04** — declared geometry is realized but not executed. `G =
   [z0 = ...; z1 = ...]` is recorded faithfully in `s["geometry"]`, but at equal
   seed the executed positions are bit-identical whatever range is declared:
@@ -166,11 +198,11 @@ what it cannot express rather than realizing a different nervous system.
 
 ## Long-term goal — agent-native JaxFNE
 
-Authorized by Hamm as a durable project goal. The compact statement belongs in
-a human-owned project source, **not here**; the proposed text is awaiting human
-approval and is recorded in
-`artifacts/programme/agent_native_goal_proposal.md`. This section keeps only
-the executable work. Do not start it ahead of the TFNE conformance and identity
+The durable goal statement is **adopted** and lives in project source 6,
+`artifacts/project_sources/6_other_important_notes.md`, section 6 "Long-term
+plan", as the cross-cutting objective "Agent-native JaxFNE". That source is
+the authority; this section keeps only the executable work and must not
+restate the rationale. Do not start it ahead of the TFNE conformance and identity
 work above — step 1 of its own sequence *is* that work.
 
 Shape of the thing being built:

@@ -257,6 +257,48 @@ jaxfne: composition, differentiable operators, objectives, optimization, evidenc
 
 Do not absorb mature external ecosystems merely to increase feature count.
 
+### Agent-native JaxFNE
+
+A cross-cutting objective rather than a further stage: it depends on Stage 1
+and constrains every stage after it.
+
+**Agent-native JaxFNE.** Develop JaxFNE into a reliable AI-assisted
+mathematical-biophysics modeling system in which scientific intent is
+translated through explicit TFNE specifications into tested JaxFNE operations.
+TFNE, code, documentation, skills, inspection, and tests should expose one
+scientific system. Hierarchical TFNE is the human and agent specification
+representation; realized flat state, parameters, and index maps are the
+efficient execution representation. Agent workflows must preserve configured,
+realized, executed, and observed semantics, fail explicitly on consequential
+missing or unsupported information, and match verification strength to the
+scientific claim. AI assists model construction, execution, inspection,
+analysis, and verification; it does not substitute for scientific judgment.
+
+The distinguishing constraint is that natural language must not map to
+generated simulator code. It maps to an explicit, inspectable TFNE
+specification first:
+
+```text
+scientific intent -> TFNE -> verified JaxFNE operations -> simulation -> evidence
+```
+
+The failure class this is built against is
+`researcher's intended model != agent's executable interpretation`. It is not
+hypothetical: a declared connection weight of 0.5, 0.25 or 0.125 all executed
+at 0.353553 while every edge count matched (TFNE-PARAM-01, closed), and a
+declared `AMPA` mechanism still executes with a 0.1 ms time constant rather
+than 2.0 ms (TFNE-PARAM-03, open). An agent with direct repository access
+would have produced an executable simulation in either case and reported
+success.
+
+Verification strength is determined by the claim, not by the API calls made:
+"it runs" needs execution; "the weight is 0.5" needs executed parameter
+inspection; "gamma increased" needs signal analysis plus numerical adequacy;
+"plasticity caused it" needs an intervention on the mutable rule.
+
+Executable work toward this objective is tracked in `artifacts/todo_stack.md`;
+it is not to be expanded ahead of TFNE conformance and identity work.
+
 ## 7. Long-term scientific acceptance ladder
 
 ```text
