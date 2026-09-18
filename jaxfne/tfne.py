@@ -39,7 +39,9 @@ them so every supported expression has exactly one realization):
    identical edge sets with distinct index-map paths.
 3. ``A^n`` creates ``n`` indexed instances at ``<scope>.A.1`` ...
    ``<scope>.A.n`` (S6, 1-based); no connectivity is implied. Replication
-   applies to a single named reference.
+   applies to a single named reference. ``A^{nX}`` / ``A^{nO}`` (S6.1)
+   develop the instances under ``X`` / sequential ``O``; the braced form
+   keeps ``SEG^10 X Q`` meaning replication followed by composition.
 4. Proportion-to-count allocation is largest-remainder with declaration-order
    tiebreak, so ``sum_c N[A.c] == N[A]`` holds exactly and deterministically.
 5. Rule applications and bare projections require an explicit ``direction``
@@ -261,6 +263,9 @@ class Exclude:
 class Replicate:
     atom: Ref
     n: int
+    # S6.1: relation among instances. None = bare `A^n` (instances only);
+    # "X" / "O" = `A^{nX}` / `A^{nO}`, instances joined by that operator.
+    rel: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -567,17 +572,39 @@ class _Parser:
         atom = self._parse_atom()
         if self.at_sym("^"):
             self.next()
-            tok = self.next()
-            if tok[0] != "INT":
-                raise TFNEError("replication count must be an integer")
-            n = int(tok[1])
+            # S6.1: braced `A^{nX}` / `A^{nO}` develop instances under a
+            # relation. Braces are required so `SEG^10 X Q` (replication
+            # followed by cross composition) keeps its existing meaning.
+            if self.at_sym("{"):
+                self.next()
+                tok = self.next()
+                if tok[0] != "INT":
+                    raise TFNEError("replication count must be an integer")
+                n = int(tok[1])
+                rel: Optional[str] = None
+                if self.at_sym("}"):
+                    self.next()
+                else:
+                    rtok = self.next()
+                    if rtok[0] != "NAME" or rtok[1] not in ("O", "X"):
+                        raise TFNEError(
+                            "replication relation must be O or X, "
+                            f"as in A^{{nO}} or A^{{nX}}; got {rtok}")
+                    rel = rtok[1]
+                    self.expect("SYM", "}")
+            else:
+                tok = self.next()
+                if tok[0] != "INT":
+                    raise TFNEError("replication count must be an integer")
+                n = int(tok[1])
+                rel = None
             if n < 1:
                 raise TFNEError("replication count must be >= 1")
             if not isinstance(atom, Ref) or len(atom.segments) != 1:
                 raise TFNEError(
                     "replication (A^n) applies to a single named reference"
                 )
-            return Replicate(atom=atom, n=n)
+            return Replicate(atom=atom, n=n, rel=rel)
         return atom
 
     def _parse_atom(self) -> Any:
@@ -726,7 +753,10 @@ def _emit_expr(node: Any) -> str:
     if isinstance(node, (Project, Exclude)):
         return f"{_emit_expr(node.left)} {node.direction} {_emit_expr(node.right)}"
     if isinstance(node, Replicate):
-        return f"{_emit_expr(node.atom)}^{node.n}"
+        base = f"{_emit_expr(node.atom)}^{node.n}"
+        if node.rel is None:
+            return base
+        return f"{_emit_expr(node.atom)}^{{{node.n}{node.rel}}}"
     raise TFNEError(f"cannot emit {node!r}")
 
 
@@ -1235,7 +1265,9 @@ class _Resolver:
             return _Expansion(members=tuple(left) + tuple(right),
                               fin=tuple(left), fout=tuple(right))
         if isinstance(node, Replicate):
-            return self._expand_replicate(node, scope)
+            if node.rel is None:
+                return self._expand_replicate(node, scope)
+            return self._expand_replicate_joined(node, scope)
         raise TFNEError(f"cannot expand {node!r}")
 
     def _expand_ref(self, segments: Sequence[str],
@@ -1295,6 +1327,41 @@ class _Resolver:
         self._add_node(rec)
         return _leaf_expansion(target)
 
+    def _replicate_instance(self, name: str, i: int, scope: str) -> str:
+        """Create one indexed instance ``<scope>.<name>.<i>`` (1-based)."""
+        stem = f"{scope}.{name}" if scope else name
+        inst = f"{stem}.{i}"
+        if name in self.program.defs:
+            objdef = self.program.defs[name]
+            if objdef.kind == "props":
+                rec = self._object_props(objdef.body, where=name)
+                rec.path = inst
+                rec.name = name
+                rec.parent = scope or None
+                self._add_node(rec)
+            elif objdef.kind == "special":
+                base = objdef.body["base"]
+                basedef = self.program.defs[base]
+                rec = self._object_props(basedef.body, where=name)
+                rec.path = inst
+                rec.name = name
+                rec.parent = scope or None
+                rec.special = f"{base}[{objdef.body['key']}]"
+                self._add_node(rec)
+            else:
+                comp = NodeRecord(path=inst, name=name, kind="composite",
+                                  parent=scope or None)
+                self._add_node(comp)
+                self.expand(objdef.body, inst)
+        else:
+            _check_object_name(name)
+            rec = self._object_props({}, where=name, implicit=True)
+            rec.path = inst
+            rec.name = name
+            rec.parent = scope or None
+            self._add_node(rec)
+        return inst
+
     def _expand_replicate(self, node: Replicate,
                           scope: str) -> _Expansion:
         name = node.atom.segments[0]
@@ -1302,41 +1369,30 @@ class _Resolver:
         # S6: A^n = {A.1 ... A.n}. Instance indices are 1-based; the path
         # A.1 names the first instance, not the second.
         for i in range(1, node.n + 1):
-            stem = f"{scope}.{name}" if scope else name
-            inst = f"{stem}.{i}"
-            if name in self.program.defs:
-                objdef = self.program.defs[name]
-                if objdef.kind == "props":
-                    rec = self._object_props(objdef.body, where=name)
-                    rec.path = inst
-                    rec.name = name
-                    rec.parent = scope or None
-                    self._add_node(rec)
-                elif objdef.kind == "special":
-                    base = objdef.body["base"]
-                    basedef = self.program.defs[base]
-                    rec = self._object_props(basedef.body, where=name)
-                    rec.path = inst
-                    rec.name = name
-                    rec.parent = scope or None
-                    rec.special = f"{base}[{objdef.body['key']}]"
-                    self._add_node(rec)
-                else:
-                    comp = NodeRecord(path=inst, name=name, kind="composite",
-                                      parent=scope or None)
-                    self._add_node(comp)
-                    self.expand(objdef.body, inst)
-            else:
-                _check_object_name(name)
-                rec = self._object_props({}, where=name, implicit=True)
-                rec.path = inst
-                rec.name = name
-                rec.parent = scope or None
-                self._add_node(rec)
-            paths.append(inst)
+            paths.append(self._replicate_instance(name, i, scope))
         # S6: instances carry no connectivity and no order, so the whole set
         # is both frontiers. Replication behaviour is otherwise unchanged.
         return _flat_expansion(paths)
+
+    def _expand_replicate_joined(self, node: Replicate,
+                                 scope: str) -> _Expansion:
+        """S6.1: `A^{nX}` / `A^{nO}` join instances under that operator.
+
+        Each instance is one member with itself as frontier (as in
+        `_expand_replicate`); the join then follows bare-operator frontier
+        semantics. X exposes every instance on both frontiers; O chains them,
+        exposing the first as `fin` and the last as `fout`, so a rule applied
+        to the composite reaches exactly the chain ends.
+        """
+        name = node.atom.segments[0]
+        paths = [self._replicate_instance(name, i, scope)
+                 for i in range(1, node.n + 1)]
+        if node.rel == "X":
+            return _Expansion(members=tuple(paths),
+                              fin=tuple(paths), fout=tuple(paths))
+        assert node.rel == "O"
+        return _Expansion(members=tuple(paths),
+                          fin=(paths[0],), fout=(paths[-1],))
 
     def _endpoint_members(self, node: Any, scope: str,
                           role: str) -> list[str]:

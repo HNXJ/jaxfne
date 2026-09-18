@@ -852,3 +852,83 @@ def test_replica_instances_order_independently():
     assert natural.I["neuron_paths"] == ["V.SEG.1", "V.SEG.2", "V.SEG.3"]
     _, _, declared = _realize("order[V] := [SEG.3, SEG.2, SEG.1];\n" + base)
     assert declared.I["neuron_paths"] == ["V.SEG.3", "V.SEG.2", "V.SEG.1"]
+
+
+# --------------------------------------------------------------------------- #
+# 9e. S6.1 replication with relation (A^{nX} / A^{nO})
+# --------------------------------------------------------------------------- #
+
+_REPL_REL_BASE = """
+O[k] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+SEG := [C = {E}; N = 1];
+Q := [C = {E}; N = 2];
+%s
+x : V : y
+"""
+
+
+def test_replicate_with_X_matches_bare_replication_frontiers():
+    """`SEG^{3X}` exposes every instance, exactly like `SEG^3`."""
+    _, _, bare = _realize(_REPL_REL_BASE % "V := SEG^3 O[k] Q;")
+    _, _, joined = _realize(_REPL_REL_BASE % "V := SEG^{3X} O[k] Q;")
+    assert bare.s["n_edges"] == joined.s["n_edges"] == 6
+    assert (bare.I["rule_origins"]["r0:O[k]:SEG^3>Q"]["pre_scopes"]
+            == joined.I["rule_origins"]["r0:O[k]:SEG^{3X}>Q"]["pre_scopes"]
+            == ["V.SEG.1", "V.SEG.2", "V.SEG.3"])
+
+
+def test_replicate_with_O_restricts_adjacency_to_chain_ends():
+    """`SEG^{3O} O[k] Q` binds only the last instance to Q (2 edges, not 6)."""
+    _, _, chained = _realize(_REPL_REL_BASE % "V := SEG^{3O} O[k] Q;")
+    assert chained.s["n_edges"] == 2
+    assert (chained.I["rule_origins"]["r0:O[k]:SEG^{3O}>Q"]["pre_scopes"]
+            == ["V.SEG.3"])
+
+
+def test_replicate_with_O_binds_incoming_to_chain_head():
+    """`P O[k] SEG^{3O}` reaches only the first instance."""
+    text = """
+    O[k] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+    SEG := [C = {E}; N = 1];
+    P := [C = {E}; N = 2];
+    V := P O[k] SEG^{3O};
+    x : V : y
+    """
+    _, _, r = _realize(text)
+    assert r.s["n_edges"] == 2
+    origins = r.I["rule_origins"]
+    key = next(k for k in origins if k.startswith("r0:O[k]:P>"))
+    assert origins[key]["post_scopes"] == ["V.SEG.1"]
+
+
+def test_replicate_relation_survives_normalization_replay():
+    """The braced relation form is canonical: replay preserves it exactly."""
+    for form in ("SEG^{3X}", "SEG^{3O}", "SEG^{3}", "SEG^3"):
+        text = f"SEG := [C = {{E}}; N = 1];\nV := {form};\nx : V : y\n"
+        first = normalize(parse(text))
+        assert normalize(parse(first)) == first
+    assert "SEG^{3X}" in normalize(parse("V := SEG^{3X};\nQ := [C = {E}; N = 1];\nx : V : y\n"))
+
+
+def test_bare_replication_followed_by_cross_is_not_a_relation():
+    """`SEG^2 X Q` stays replication-then-composition; braces are required."""
+    _, _, r = _realize(_REPL_REL_BASE % "V := SEG^2 X Q;")
+    assert r.I["neuron_paths"] == ["V.Q", "V.Q", "V.SEG.1", "V.SEG.2"]
+
+
+@pytest.mark.parametrize("form", [
+    "V := SEG^{3Y};",
+    "V := SEG^{X};",
+    "V := SEG^{3};",
+])
+def test_malformed_replicate_relations_fail_closed(form):
+    """Unknown relation letters and missing counts are refused, not guessed."""
+    if form == "V := SEG^{3};":
+        # Braced plain count is legal and identical to SEG^3.
+        _, _, bare = _realize(_REPL_REL_BASE % "V := SEG^3;")
+        _, _, braced = _realize(_REPL_REL_BASE % form)
+        assert (bare.I["neuron_paths"] == braced.I["neuron_paths"]
+                == ["V.SEG.1", "V.SEG.2", "V.SEG.3"])
+    else:
+        with pytest.raises(TFNEError):
+            _realize(_REPL_REL_BASE % form)

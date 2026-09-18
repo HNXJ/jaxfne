@@ -17,6 +17,14 @@ rather than inferred by a compiler:
   its own opening sentence ruled out reading an enumeration as that
   declaration. S20 now defines the `order[A] := [...]` form exactly. Nothing
   else about S20 changed; the default remains typed natural ordering.
+- **S6 replication with relation.** The sealed text defined `A^n` (instances,
+  no connectivity) and prefix application `O[k](SEG^n)`, but gave no compressed
+  form for instances developed under a relation. S6 now defines `A^{nX}` and
+  `A^{nO}` exactly. Nothing else about S6 changed.
+- **S29 developmental completion.** The sealed boundary ran TFNE straight to
+  realization. S29 now records that TFNE may be intentionally underdetermined
+  and that JDNA completes generative choices under explicit rules `D` and RNG
+  `K_D`, with per-value origin provenance. Nothing else about S29 changed.
 
 ---
 
@@ -310,6 +318,38 @@ SEG.1\,O[k]\,SEG.2\,O[k]\cdots O[k]\,SEG.8.
 $$
 
 Replication therefore never silently implies adjacency.
+
+## 6.1 Replication with relation
+
+Instantiating and relating are distinct constraints. Bare replication creates
+instances only:
+
+$$
+\boxed{
+A^{n}=\{A.1,A.2,\ldots,A.n\}
+}
+$$
+
+with no inter-instance relation implied. Where the relation among instances is
+part of the constraint, it is written explicitly:
+
+$$
+\boxed{
+A^{nX}=A.1\,X\,A.2\,X\cdots X\,A.n
+}
+$$
+
+$$
+\boxed{
+A^{nO}=A.1\,O\,A.2\,O\cdots O\,A.n
+}
+$$
+
+So \(V1^{10X}\) develops structurally into ten indexed \(V1\) objects joined by
+\(X\), and \(V1^{10X}\,O\,V2^{10X}\) first develops two repeated systems, then
+realizes the declared \(O\) relation according to its rule. These are
+compressed TFNE: JDNA expands the structure before realization, then realizes
+concrete contents (counts, positions, sampled edges) under \(K_D\).
 
 ---
 
@@ -1207,6 +1247,47 @@ Compiler limitations must not redefine TFNE biology.
 Likewise, TFNE definitions must not imply that a JaxFNE capability has been qualified merely because the language can express it.
 
 Configured, realized, executed, and causally effective mechanisms remain distinct.
+
+## 29.1 Developmental completion
+
+TFNE may be intentionally underdetermined: a specification states
+structural/scientific constraints and may leave open quantities that
+realization requires. JDNA completes the generative choices — positions,
+distributions, allocation, stochastic realization, defaults — under explicit
+developmental rules \(D\) and development RNG \(K_D\):
+
+$$
+\boxed{
+\underbrace{\mathcal A}_{\text{TFNE constraints}}
++
+\underbrace{D}_{\text{JDNA developmental rules/defaults}}
++
+\underbrace{K_D}_{\text{development RNG}}
+\longrightarrow
+\underbrace{M}_{\text{realized JaxFNE model}}.
+}
+$$
+
+| Missing from TFNE | JDNA behavior |
+|---|---|
+| Deliberately optional and has canonical default | Apply default and record provenance |
+| Determined by another TFNE constraint | Derive deterministically |
+| Stochastic developmental quantity | Sample using explicit \(K_D\) domain |
+| Required consequential quantity without default | Reject |
+| Ambiguous biological choice | Reject / require specification |
+
+Every realized value carries its origin:
+
+$$
+\boxed{
+\text{value origin}\in
+\{\text{TFNE-declared},\text{JDNA-derived},\text{JDNA-default},\text{JDNA-sampled}\}.
+}
+$$
+
+Geometry realization belongs to JDNA: \(G[A]\) declares or omits; JDNA obeys a
+declared domain, supplies a permitted default, or rejects. Geometry is never
+patched independently inside the TFNE-to-model bridge.
 
 ---
 

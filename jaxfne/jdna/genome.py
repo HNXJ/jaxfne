@@ -25,6 +25,12 @@ from typing import Any, Mapping, Optional, Sequence
 import jax
 
 from ..io import save_json, load_json
+from .completion import (
+    ORIGIN_DECLARED,
+    ORIGIN_DEFAULT,
+    ORIGIN_DERIVED,
+    ORIGIN_SAMPLED,
+)
 from ..neuronal_tensor import (
     Area,
     AreaConnection,
@@ -644,12 +650,32 @@ def develop(
 
     key = jax.random.PRNGKey(int(seed))
     areas: list[Area] = []
+    value_origins: dict[str, Any] = {}
     for area in genome.areas:
         key, area_key = jax.random.split(key)
         layers: list[Layer] = []
+        pose_raw = dict(area.pose)
+        value_origins[f"areas.{area.name}.pose"] = {
+            field: (ORIGIN_DECLARED if field in area.pose else ORIGIN_DEFAULT)
+            for field in ("plane", "rotation_deg", "translation")}
         for layer in area.layers:
             area_key, layer_key = jax.random.split(area_key)
             counts = _allocate_counts(layer, sigma, layer_key)
+            value_origins[f"areas.{area.name}.layers.{layer.name}"] = {
+                "counts": (ORIGIN_SAMPLED if sigma > 0 else ORIGIN_DERIVED),
+                "geometry": {
+                    "distribution": (ORIGIN_DECLARED
+                                     if "distribution" in layer.geometry
+                                     else ORIGIN_DEFAULT),
+                    "x_range": (ORIGIN_DECLARED
+                                if "x_range" in layer.geometry
+                                else ORIGIN_DEFAULT),
+                    "y_range": (ORIGIN_DECLARED
+                                if "y_range" in layer.geometry
+                                else ORIGIN_DEFAULT),
+                    # z_range always comes from the declared depth band.
+                    "z_range": ORIGIN_DECLARED},
+            }
             total = sum(counts.values())
             neuron_types = [
                 NeuronType.make(
@@ -727,6 +753,10 @@ def develop(
             "development_seed": int(seed),
             "development_parameters": dict(params),
             "phenotype_sha256": None,  # set below
+            # Per-value origins for the boundary doctrine: which stage
+            # chose each completed value. Additive metadata only; the
+            # realized phenotype is unchanged.
+            "value_origins": value_origins,
         },
     )
     tensor.provenance["phenotype_sha256"] = phenotype_sha256(tensor)

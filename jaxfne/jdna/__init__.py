@@ -41,6 +41,17 @@ from .genome import (
     pseudogenome_from_dict,
     genomes_dir,
 )
+from .completion import (
+    ORIGINS,
+    ORIGIN_DECLARED,
+    ORIGIN_DERIVED,
+    ORIGIN_DEFAULT,
+    ORIGIN_SAMPLED,
+    COMPLETION_RULES,
+    complete_tfne,
+    realize_geometry,
+    resolve,
+)
 
 __all__ = [
     "PSEUDOGENOME_SCHEMA_VERSION",
@@ -59,4 +70,13 @@ __all__ = [
     "save_pseudogenome",
     "pseudogenome_from_dict",
     "genomes_dir",
+    "ORIGINS",
+    "ORIGIN_DECLARED",
+    "ORIGIN_DERIVED",
+    "ORIGIN_DEFAULT",
+    "ORIGIN_SAMPLED",
+    "COMPLETION_RULES",
+    "complete_tfne",
+    "realize_geometry",
+    "resolve",
 ]

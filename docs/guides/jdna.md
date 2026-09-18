@@ -168,9 +168,11 @@ domains:
 |---|---|
 | `PseudoGenome`, `AreaGenome`, `LayerGenome`, `ConnectionRuleGenome` | `jaxfne.jdna.genome` (frozen dataclasses). |
 | `develop` | `jaxfne.jdna.genome.develop` — PRNG split per area/layer, jittered fractions projected onto the box-constrained simplex (bands + sum-to-one), largest-remainder integer counts, tensor assembly, provenance attach, constraint verification. |
+| Completion (`resolve`, `realize_geometry`, `complete_tfne`) | `jaxfne.jdna.completion` — the defaults table, K_D sampling kernel, and per-value origins for the TFNE→JDNA boundary. |
 | Canonical genomes | `jaxfne/jdna/genomes/*.json` (shipped package data, `pseudogenome_v1` schema). |
 | Loaders | `load_pseudogenome`, `load_canonical_pseudogenome`, `list_canonical_pseudogenomes`. |
 | Provenance | `NeuronalTensor.provenance`: genome identity hash, schema version, development seed, development parameters, phenotype hash. |
+| Value origins | `provenance["value_origins"]`: per-layer counts and geometry-field origins in `{TFNE-declared, JDNA-derived, JDNA-default, JDNA-sampled}` — which stage chose each completed value. On the genome path, "declared" means stated in the PseudoGenome. See the [TFNE–JDNA boundary doctrine](../doctrine/tfne_jdna_boundary.md). |
 | Constraint declarations | `jaxfne.jdna.declared_constraints` (machine-readable, used by tests/audits). |
 
 Root exports: `jtfne.PseudoGenome`, `jtfne.develop`, `jtfne.load_pseudogenome`,

@@ -188,6 +188,17 @@ what it cannot express rather than realizing a different nervous system.
   order. S20.1 states that implicit source order never carries scientific
   semantics and that this is temporary compatibility behaviour, so bringing
   cell types under the same rule is outstanding work, not settled behaviour.
+- **TFNE-JDNA boundary (done)** — TFNE constrains (possibly underdetermined),
+  JDNA completes under `D + K_D`, Model realizes, Simulation runs. Doctrine
+  `docs/doctrine/tfne_jdna_boundary.md`; source 7 S6.1 (`A^{nX}`/`A^{nO}`,
+  compiler conforms) and S29.1 (underdetermination, defaults table, value
+  origins, geometry owned by JDNA). JDNA completion layer
+  (`jaxfne/jdna/completion.py`: `resolve`, `realize_geometry`,
+  `complete_tfne`; `develop` provenance gains additive `value_origins`).
+  Receipts `tfne_replication_relation_receipt.md`,
+  `tfne_jdna_completion_receipt.md`. PARAM-04 stays open under JDNA
+  ownership (bridge pin test intact, never patched); PARAM-03 refusal
+  recorded in code as `mechanism_tau_ms: required`.
 - **TFNE2-04** — S9 frontiers beyond the derived ordered defaults that S10
   already uses: declared `in := [...]` / `out := [...]` bodies, the
   X-composite union default, `E_FRONTIER_UNRESOLVED`. Carries the rest of S8

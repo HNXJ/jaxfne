@@ -82,6 +82,9 @@ def test_provenance_semantics_documented_and_real(tmp_path):
     assert set(t.provenance) == {
         "genome", "genome_sha256", "schema_version",
         "development_seed", "development_parameters", "phenotype_sha256",
+        # Boundary doctrine: per-value origins ride in provenance as
+        # additive metadata; the realized phenotype is unchanged.
+        "value_origins",
     }
     dumped = t.to_dict()
     assert "provenance" in json.dumps(dumped)  # in-memory tensor carries provenance

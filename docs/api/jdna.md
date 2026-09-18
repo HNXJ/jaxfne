@@ -18,7 +18,11 @@ jtfne.list_canonical_pseudogenomes()     # shipped genome names
 
 Deeper inspection helpers live in `jaxfne.jdna` (`genome_rules_hash`,
 `phenotype_sha256`, `declared_constraints`, `validate_genome`,
-`save_pseudogenome`, `genomes_dir`).
+`save_pseudogenome`, `genomes_dir`). Developmental completion — the defaults
+table, K_D sampling kernel, and per-value origins — lives in
+`jaxfne.jdna.completion` (`resolve`, `realize_geometry`, `complete_tfne`,
+`COMPLETION_RULES`, `ORIGINS`); see the
+[TFNE–JDNA boundary doctrine](../doctrine/tfne_jdna_boundary.md).
 
 ## PseudoGenome
 
@@ -126,7 +130,10 @@ signals = jtfne.simulate(model)
 
 `NeuronalTensor.provenance` is an additive optional field (default `None`),
 populated by `develop` and ignored by the ordinary pipeline
-(`construct`/`simulate` require no JDNA knowledge). JSON tensor saves exclude
+(`construct`/`simulate` require no JDNA knowledge). Besides identity hashes it
+carries `value_origins`: per-layer counts and geometry-field origins in
+`{TFNE-declared, JDNA-derived, JDNA-default, JDNA-sampled}`, recording which
+stage chose each completed value. JSON tensor saves exclude
 `provenance`; the canonical workflow for provenance-preserving archives is the
 manifest/evidence path.
 
