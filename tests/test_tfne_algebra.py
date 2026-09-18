@@ -721,3 +721,134 @@ def test_natural_order_is_hierarchical_parent_before_child():
     assert _natural_path_key("A.9") < _natural_path_key("A.10")
     # text runs still compare as text
     assert _natural_path_key("V1.L4") < _natural_path_key("V2.L1")
+
+
+# --------------------------------------------------------------------------- #
+# 9d. S20 explicit order declarations
+# --------------------------------------------------------------------------- #
+
+_ORDER_BASE = """
+L1 := [C = {E}; N = 1];
+L2 := [C = {E}; N = 2];
+L4 := [C = {E}; N = 3];
+V := L4 O L2 O L1;
+x : V : y
+"""
+
+
+def test_explicit_order_overrides_natural_order():
+    """S20: only `order[A] := [...]` overrides the natural default."""
+    _, _, natural = _realize(_ORDER_BASE)
+    assert natural.I["neuron_paths"] == ["V.L1", "V.L2", "V.L2",
+                                         "V.L4", "V.L4", "V.L4"]
+    _, _, declared = _realize("order[V] := [L4, L2, L1];\n" + _ORDER_BASE)
+    assert declared.I["neuron_paths"] == ["V.L4", "V.L4", "V.L4",
+                                          "V.L2", "V.L2", "V.L1"]
+
+
+def test_same_order_declaration_survives_reserialization():
+    """Serialization is not semantics: same structure + same order, same index.
+
+    The two programs below differ in statement order and in how the composite
+    body is written. Neither may reach the neuron axis; only `order[V]` does.
+    """
+    a = """
+    L1 := [C = {E}; N = 1];
+    L2 := [C = {E}; N = 2];
+    L4 := [C = {E}; N = 3];
+    order[V] := [L4, L2, L1];
+    V := L4 O L2 O L1;
+    x : V : y
+    """
+    b = """
+    order[V] := [L4, L2, L1];
+    L4 := [C = {E}; N = 3];
+    L1 := [C = {E}; N = 1];
+    L2 := [C = {E}; N = 2];
+    V := L1 O L2 O L4;
+    x : V : y
+    """
+    _, _, ra = _realize(a)
+    _, _, rb = _realize(b)
+    assert ra.I["neuron_paths"] == rb.I["neuron_paths"]
+    assert ra.I["neuron_paths"] == ["V.L4", "V.L4", "V.L4",
+                                    "V.L2", "V.L2", "V.L1"]
+
+
+_NESTED = """
+P := [C = {E}; N = 1];
+Q := [C = {E}; N = 2];
+A := P O Q;
+B := P O Q;
+W := A O B;
+x : W : y
+"""
+
+
+def test_nested_objects_order_independently():
+    """S20 locality: a declaration orders its own members and nothing else."""
+    _, _, natural = _realize(_NESTED)
+    assert natural.I["neuron_paths"] == ["W.A.P", "W.A.Q", "W.A.Q",
+                                         "W.B.P", "W.B.Q", "W.B.Q"]
+    _, _, local = _realize("order[W.A] := [Q, P];\n" + _NESTED)
+    # A is reordered; B keeps the natural default
+    assert local.I["neuron_paths"] == ["W.A.Q", "W.A.Q", "W.A.P",
+                                       "W.B.P", "W.B.Q", "W.B.Q"]
+
+
+@pytest.mark.parametrize("decl,code", [
+    ("order[V] := [L4, L2];",           "E_ORDER_INCOMPLETE"),
+    ("order[V] := [L4, L4, L2, L1];",   "E_ORDER_DUPLICATE_MEMBER"),
+    ("order[V] := [L4, L2, L1, L9];",   "E_ORDER_MEMBER_UNKNOWN"),
+    ("order[Z] := [L4];",               "E_ORDER_SCOPE_UNKNOWN"),
+    ("order[V] := [L4.1, L2, L1];",     "E_ORDER_NOT_IMMEDIATE"),
+])
+def test_malformed_order_declarations_fail_closed(decl, code):
+    """A declaration that cannot be honoured exactly is refused, not patched.
+
+    Ordering a partial or contradictory declaration would silently index some
+    members by declaration and the rest by another rule.
+    """
+    with pytest.raises(TFNEError, match=code):
+        _realize(decl + "\n" + _ORDER_BASE)
+
+
+def test_ambiguous_order_scope_is_refused():
+    """A bare name that matches two nested objects must not be guessed."""
+    with pytest.raises(TFNEError, match="E_ORDER_SCOPE_AMBIGUOUS"):
+        _realize("order[P] := [E];\n" + _NESTED)
+
+
+def test_duplicate_order_declaration_for_one_scope_is_refused():
+    with pytest.raises(TFNEError, match="E_ORDER_DUPLICATE"):
+        _realize("order[V] := [L4, L2, L1];\n"
+                 "order[V] := [L1, L2, L4];\n" + _ORDER_BASE)
+
+
+def test_order_declaration_survives_normalization_replay():
+    """Canonical form must carry the declaration, or digest/provenance collide."""
+    text = "order[V] := [L4, L2, L1];\n" + _ORDER_BASE
+    program = parse(text)
+    first = normalize(program)
+    assert "order[V]" in first
+    assert normalize(parse(first)) == first
+    _, _, replayed = _realize(first)
+    assert replayed.I["neuron_paths"] == ["V.L4", "V.L4", "V.L4",
+                                          "V.L2", "V.L2", "V.L1"]
+
+
+def test_different_orders_give_different_digests():
+    """Two nervous systems differing only in order must not share a digest."""
+    from jaxfne.tfne import spec_hash
+    natural = parse(_ORDER_BASE)
+    declared = parse("order[V] := [L4, L2, L1];\n" + _ORDER_BASE)
+    assert spec_hash(natural) != spec_hash(declared)
+
+
+def test_replica_instances_order_independently():
+    """S20 replication: replicas are immediate members and can be reordered."""
+    base = "SEG := [C = {E}; N = 1];\nV := SEG^3;\nx : V : y\n"
+    _, _, natural = _realize(base)
+    assert natural.I["neuron_paths"] == ["V.SEG.1", "V.SEG.2", "V.SEG.3"]
+    _, _, declared = _realize("order[V] := [SEG.3, SEG.2, SEG.1];\n" + base)
+    assert declared.I["neuron_paths"] == ["V.SEG.3", "V.SEG.2", "V.SEG.1"]

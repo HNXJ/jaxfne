@@ -9,6 +9,15 @@ The language seal implies no parser or compiler. `jaxfne.tfne` is a compiler
 against this language and does not define it: where the two disagree, this
 file is the authority and the compiler carries the defect.
 
+**Amendments to the sealed text**, each authored by Hamm and applied here
+rather than inferred by a compiler:
+
+- **S20 explicit order declaration.** The sealed text said a biological
+  definition may "explicitly declare meaningful order" but gave no syntax, and
+  its own opening sentence ruled out reading an enumeration as that
+  declaration. S20 now defines the `order[A] := [...]` form exactly. Nothing
+  else about S20 changed; the default remains typed natural ordering.
+
 ---
 
 # TFNE Algebra
@@ -805,6 +814,76 @@ $$
 Canonical path components are compared by typed natural keys rather than raw lexical order.
 
 If a biological definition explicitly declares meaningful order, that order becomes part of \(NF(\mathcal A)\) and overrides generic natural ordering.
+
+## 20.1 Explicit order declaration
+
+"Explicitly declares meaningful order" means exactly one construct:
+
+$$
+order[A] := [m_1, m_2, \dots, m_k]
+$$
+
+Ordering is metadata, not structure, so it takes a named property rather than
+a new operator.
+
+No other construct carries ordering. In particular:
+
+| Construct | Meaning | Determines realization order? |
+|---|---|---|
+| \(\{A,B,C\}\) | structural collection / composite | no |
+| \([A,B,C]\) | typed body, selection or specialization | no |
+| \(A\,O\,B\,O\,C\) | architectural composition | no, except its architectural relations |
+| source / text order | serialization | no |
+| typed natural path order | default realization order | yes |
+| \(order[A]\) | intentional biological or index order | yes |
+
+So
+
+$$
+C := \{E, PV, SST, VIP\}
+$$
+
+declares no indexing order. If one is required:
+
+$$
+order[C] := [E, PV, SST, VIP]
+$$
+
+and likewise \(A := L4\,O\,L2\,O\,L1\) still normalizes by typed natural
+identity unless \(order[A] := [L4, L2, L1]\) is declared.
+
+The general law:
+
+$$
+\operatorname{index}(A)=
+\begin{cases}
+order[A], & \text{if explicitly declared},\\
+\operatorname{NaturalOrder}(A), & \text{otherwise}.
+\end{cases}
+$$
+
+### Required properties
+
+| Property | Rule |
+|---|---|
+| Explicitness | only \(order[A]\) overrides natural ordering |
+| Completeness | every immediate member of the ordered scope appears exactly once |
+| No duplicates | a repeated member is invalid |
+| No unknown member | naming an object outside the scope is invalid |
+| Determinism | the same resolved model with the same \(order[A]\) gives the same indexing |
+| Locality | \(order[A]\) orders the members of \(A\), not unrelated descendants |
+| Recursion | nested objects may independently declare their own order |
+| Replication | the natural default remains \(A.1 < A.2 < \dots < A.10\); an explicit override is allowed only where deliberately declared |
+| Composition independence | changing the \(O\)/\(X\) serialization without changing structure or \(order\) cannot change indexing |
+| Execution identity | realization and execution consume the same resolved ordering |
+
+A declaration that cannot be honoured exactly is invalid rather than partially
+applied: ordering a partial or contradictory declaration would index some
+members by declaration and the rest by another rule.
+
+Implicit source order never carries scientific semantics. This is the intended
+universal rule; cell-type enumeration order is retained only as temporary
+compatibility behaviour and is expected to come under the same rule.
 
 ---
 

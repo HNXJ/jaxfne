@@ -175,17 +175,19 @@ what it cannot express rather than realizing a different nervous system.
   `to_neuronal_tensor` cannot drift apart on it. Receipt:
   `artifacts/programme/tfne2_conformance_03_receipt.md`.
 
-  *Still open, and it is a language gap rather than a compiler gap:* S20 also
-  says a biological definition that "explicitly declares meaningful order"
-  overrides natural ordering. The sealed language says this once (project
-  source 7, line 807) and gives **no syntax** for declaring such an order, and
-  its own opening sentence — source declaration order does not determine
-  realization indexing — rules out reading an enumerated body as the
-  declaration. Needs a human ruling on (a) whether an explicit enumeration such
-  as `C = {E, PV}` or a layer listing counts as a declared order, or (b) a
-  dedicated syntax. Do not invent one. Until then nothing can override natural
-  ordering, and cell types keep their enumeration order while only object paths
-  are reordered.
+  **The override is done too.** The language gap was ruled on by Hamm —
+  dedicated syntax, and ordinary enumeration never implies order — and project
+  source 7 now carries S20.1 defining `order[A] := [m1, ..., mk]`, with the
+  amendment recorded in that source's status header. The compiler implements
+  it and refuses any declaration it cannot honour exactly
+  (`E_ORDER_INCOMPLETE`, `E_ORDER_DUPLICATE_MEMBER`, `E_ORDER_MEMBER_UNKNOWN`,
+  `E_ORDER_NOT_IMMEDIATE`, `E_ORDER_SCOPE_UNKNOWN`, `E_ORDER_SCOPE_AMBIGUOUS`,
+  `E_ORDER_DUPLICATE`).
+
+  *One known exception remains:* cell types keep their `C = {...}` enumeration
+  order. S20.1 states that implicit source order never carries scientific
+  semantics and that this is temporary compatibility behaviour, so bringing
+  cell types under the same rule is outstanding work, not settled behaviour.
 - **TFNE2-04** — S9 frontiers beyond the derived ordered defaults that S10
   already uses: declared `in := [...]` / `out := [...]` bodies, the
   X-composite union default, `E_FRONTIER_UNRESOLVED`. Carries the rest of S8

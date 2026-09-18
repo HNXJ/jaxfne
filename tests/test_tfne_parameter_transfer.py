@@ -381,3 +381,65 @@ def test_declared_geometry_does_not_reach_the_executed_positions():
     assert z_far.max() <= 1.0 + 1e-6, (
         f"executed z max {z_far.max()} left the unit interval; the "
         "normalization assumption behind this pin has changed")
+
+
+# --------------------------------------------------------------------------- #
+# S20: an explicit ordering override must not disturb execution identity
+# --------------------------------------------------------------------------- #
+
+_ORDER_SPEC = """
+O[k] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+A := [C = {E}; N = 2];
+B := [C = {E}; N = 3];
+V := A O[k] B;
+x : V : y
+"""
+
+
+def test_order_override_keeps_realization_and_execution_aligned():
+    """S20 must not break the invariant `to_configuration` depends on.
+
+    Specs address neurons by realized id, so if an ordering override moved the
+    realization axis without moving the constructed neuron table, every count
+    would still match while the wrong neurons were wired.
+    """
+    spec = "order[V] := [B, A];\n" + _ORDER_SPEC
+    program = parse(spec)
+    explicit = resolve(program)
+    r = realize(explicit, program)
+    model = jaxfne.construct(
+        to_configuration(r, duration_ms=DURATION_MS, dt_ms=DT_MS))
+
+    # B first, against the natural order and against the composition order
+    assert r.path_to_slice("V.B") == (0, 3)
+    assert r.path_to_slice("V.A") == (3, 5)
+
+    executed = [(row["area"], row["layer"]) for row in model.neuron_table()]
+    realized = [(p.split(".")[0], p.split(".")[1]) for p in r.I["neuron_paths"]]
+    assert executed == realized
+
+
+def test_order_override_preserves_edge_identity():
+    """The projection still runs A -> B after B is moved to the front.
+
+    S20 reorders indexing; S10 binds projections by name. Reordering must
+    therefore relabel the edges, not redirect them.
+    """
+    r, model, edges = equivalence("order[V] := [B, A];\n" + _ORDER_SPEC)
+
+    a_lo, a_hi = r.path_to_slice("V.A")
+    b_lo, b_hi = r.path_to_slice("V.B")
+    assert (b_lo, b_hi) == (0, 3) and (a_lo, a_hi) == (3, 5)
+
+    assert r.s["n_edges"] == 6                      # 2 x 3, unchanged
+    for pre, post, _, _ in edges:
+        assert a_lo <= pre < a_hi, f"pre {pre} is not in A {a_lo, a_hi}"
+        assert b_lo <= post < b_hi, f"post {post} is not in B {b_lo, b_hi}"
+
+
+def test_order_override_does_not_change_edge_count_or_weights():
+    """Same nervous system either way round; only the labelling moves."""
+    _, _, natural = equivalence(_ORDER_SPEC)
+    _, _, declared = equivalence("order[V] := [B, A];\n" + _ORDER_SPEC)
+    assert len(natural) == len(declared) == 6
+    assert {w for _, _, w, _ in natural} == {w for _, _, w, _ in declared} == {0.5}

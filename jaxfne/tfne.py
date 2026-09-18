@@ -291,6 +291,10 @@ class Program:
     defs: Mapping[str, ObjDef]
     rules: Mapping[str, RuleDef]
     system: Optional[System]
+    # `tfne/2` S20: scope name -> the declared order of its immediate members.
+    # Only an `order[A] := [...]` statement populates this. Enumeration,
+    # structural listing and composition order never do.
+    orders: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
 
 
 # --------------------------------------------------------------------------- #
@@ -332,13 +336,21 @@ class _Parser:
     def parse_program(self) -> Program:
         defs: dict[str, ObjDef] = {}
         rules: dict[str, RuleDef] = {}
+        orders: dict[str, tuple[str, ...]] = {}
         system: Optional[System] = None
         while self.peek()[0] != "EOF":
             while self.peek()[0] == "SEP":
                 self.next()
             if self.peek()[0] == "EOF":
                 break
-            if self._is_ruledef():
+            if self._is_orderdef():
+                scope, members = self._parse_orderdef()
+                if scope in orders:
+                    raise TFNEError(
+                        f"E_ORDER_DUPLICATE: duplicate order declaration for "
+                        f"{scope!r}")
+                orders[scope] = members
+            elif self._is_ruledef():
                 rule = self._parse_ruledef()
                 if rule.name in rules:
                     raise TFNEError(f"duplicate rule definition {rule.name!r}")
@@ -354,7 +366,72 @@ class _Parser:
                 system = self._parse_system()
             while self.peek()[0] == "SEP":
                 self.next()
-        return Program(defs=defs, rules=rules, system=system)
+        return Program(defs=defs, rules=rules, system=system,
+                       orders=orders)
+
+    def _is_orderdef(self) -> bool:
+        # "order" "[" NAME "]" ":="
+        t = self.toks
+        p = self.pos
+        return (
+            p + 2 < len(t)
+            and t[p] == ("NAME", "order")
+            and t[p + 1] == ("SYM", "[")
+            and t[p + 2][0] == "NAME"
+        )
+
+    def _parse_orderdef(self) -> tuple[str, tuple[str, ...]]:
+        """Parse ``order[A] := [m1, m2, ...]`` (`tfne/2` S20).
+
+        The members are immediate member names of ``A``, not paths. Ordering
+        is metadata rather than structure, so this deliberately reuses the
+        existing bracket/comma tokens instead of taking a new operator.
+        """
+        self.expect("NAME")                       # "order"
+        self.expect("SYM", "[")
+        scope = self._parse_order_member()        # bare name or dotted path
+        self.expect("SYM", "]")
+        self.expect("SYM", ":=")
+        self.expect("SYM", "[")
+        members: list[str] = []
+        while not self.at_sym("]"):
+            members.append(self._parse_order_member())
+            if self.at_sym(","):
+                self.next()
+                continue
+            break
+        self.expect("SYM", "]")
+        if not members:
+            raise TFNEError(
+                f"E_ORDER_EMPTY: order[{scope}] declares no members")
+        return scope, tuple(members)
+
+    def _parse_order_member(self) -> str:
+        """One member reference: ``L4``, or a replica such as ``SEG.2``.
+
+        ``SEG.2`` lexes as NAME plus FLOAT ``.2`` because the lexer takes a
+        leading dot greedily, so the numeric tail is reattached here rather
+        than by loosening the lexer for every other construct.
+        """
+        name = self.expect("NAME")
+        parts = [name]
+        while True:
+            tok = self.peek()
+            if tok[0] == "FLOAT" and tok[1].startswith("."):
+                self.next()
+                tail = tok[1][1:]
+                if not tail.isdigit():
+                    raise TFNEError(
+                        f"E_ORDER_MEMBER_INVALID: {name!r} has a malformed "
+                        f"replica index {tok[1]!r}")
+                parts.append(tail)
+                continue
+            if self.at_sym("."):
+                self.next()
+                parts.append(self.expect("NAME"))
+                continue
+            break
+        return ".".join(parts)
 
     def _is_ruledef(self) -> bool:
         # ("O"|"X") "[" NAME "]" ":="
@@ -690,6 +767,9 @@ def normalize(program: Program) -> str:
     for name in sorted(program.rules):
         rule = program.rules[name]
         parts.append(f"{rule.kind}[{name}] := [{_emit_propbody(rule.params)}]")
+    for scope in sorted(getattr(program, "orders", {})):
+        members = ", ".join(getattr(program, "orders")[scope])
+        parts.append(f"order[{scope}] := [{members}]")
     for name in sorted(program.defs):
         objdef = program.defs[name]
         if objdef.kind == "props":
@@ -869,6 +949,156 @@ def _natural_path_key(path: str) -> tuple:
     before its own children because its key is a proper prefix.
     """
     return tuple(_natural_component_key(c) for c in path.split("."))
+
+
+def _declared_ranks(nodes: Mapping[str, Any],
+                    orders: Mapping[str, Sequence[str]]
+                    ) -> dict[tuple[str, str], int]:
+    """Validate `order[A] := [...]` declarations into `(parent, remainder)` ranks.
+
+    `tfne/2` S20: only an explicit declaration overrides natural ordering, so
+    this rejects anything it cannot honour exactly rather than ordering a
+    partial answer. A declaration must name every immediate member of its
+    scope exactly once. Immediate membership follows the resolved parent
+    links, so replicated instances such as ``SEG.1`` are members of their
+    scope even though their remainder contains a dot.
+    """
+    ranks: dict[tuple[str, str], int] = {}
+    for scope, members in orders.items():
+        if scope in nodes:
+            resolved = scope
+        else:
+            # A bare name may address a nested object, but only if it does so
+            # unambiguously. Guessing between two candidates would reorder a
+            # scope the author did not name.
+            candidates = sorted(path for path in nodes
+                                if path.endswith("." + scope))
+            if not candidates:
+                raise TFNEError(
+                    f"E_ORDER_SCOPE_UNKNOWN: order[{scope}] names no object "
+                    f"in the resolved model")
+            if len(candidates) > 1:
+                raise TFNEError(
+                    f"E_ORDER_SCOPE_AMBIGUOUS: order[{scope}] matches "
+                    f"{candidates!r}; name the full path")
+            resolved = candidates[0]
+        scope = resolved
+
+        def _remainder(child: str) -> str:
+            if scope and child.startswith(scope + "."):
+                return child[len(scope) + 1:]
+            return child.rpartition(".")[2]
+
+        children: list[str] = []
+        for path, rec in nodes.items():
+            parent = getattr(rec, "parent", None)
+            if parent is None:
+                # Fallback for plain mappings: string parent.
+                parent = path.rpartition(".")[0] if "." in path else ""
+            if parent == scope:
+                children.append(path)
+        child_components = [_remainder(c) for c in children]
+
+        normalized: list[str] = []
+        for member in members:
+            local = (member[len(scope) + 1:]
+                     if member.startswith(scope + ".") else member)
+            if "." in local and local not in child_components:
+                raise TFNEError(
+                    f"E_ORDER_NOT_IMMEDIATE: order[{scope}] names "
+                    f"{member!r}, which is not an immediate member of "
+                    f"{scope!r}; a declaration orders its own members only")
+            normalized.append(local)
+
+        seen: set[str] = set()
+        for local in normalized:
+            if local in seen:
+                raise TFNEError(
+                    f"E_ORDER_DUPLICATE_MEMBER: order[{scope}] names "
+                    f"{local!r} more than once")
+            seen.add(local)
+
+        unknown = [m for m in normalized if m not in child_components]
+        if unknown:
+            raise TFNEError(
+                f"E_ORDER_MEMBER_UNKNOWN: order[{scope}] names {unknown!r}, "
+                f"which are not members of {scope!r}; members are "
+                f"{sorted(child_components)!r}")
+
+        missing = [c for c in child_components if c not in seen]
+        if missing:
+            raise TFNEError(
+                f"E_ORDER_INCOMPLETE: order[{scope}] omits {sorted(missing)!r}; "
+                f"an explicit order must name every immediate member exactly "
+                f"once, otherwise the omitted members would silently fall back "
+                f"to a different rule")
+
+        for index, local in enumerate(normalized):
+            ranks[(scope, local)] = index
+    return ranks
+
+
+def _ordering_key(path: str,
+                  ranks: Mapping[tuple[str, str], int],
+                  nodes: Mapping[str, Any] | None = None) -> tuple:
+    """Realization ordering key: declared rank where given, else natural.
+
+    Ranked edge by edge along the resolved parent chain, so a declaration
+    applies only among the siblings it names and nested scopes order
+    independently. Both branches are 3-tuples of the same shape, and their
+    leading tag differs, so the natural key is never compared against a
+    declared rank. Remainders keep their dots (``SEG.1``), so replicated
+    instances order as immediate members of their scope.
+    """
+    if nodes is None:
+        key: list[tuple] = []
+        components = path.split(".")
+        for depth, component in enumerate(components):
+            parent = ".".join(components[:depth])
+            rank = ranks.get((parent, component))
+            if rank is None:
+                key.append((1, 0, _natural_component_key(component)))
+            else:
+                key.append((0, rank, ()))
+        return tuple(key)
+    chain: list[tuple[str, str]] = []
+    current: str | None = path
+    seen: set[str] = set()
+    while current is not None and current not in seen:
+        seen.add(current)
+        rec = nodes.get(current) if nodes is not None else None
+        parent = getattr(rec, "parent", None) if rec is not None else None
+        if parent is None:
+            if rec is not None:
+                parent = ""
+            elif current and "." in current:
+                parent = current.rpartition(".")[0]
+            else:
+                parent = ""
+        if parent in ("", None):
+            chain.append(("", current))
+            break
+        if isinstance(parent, str) and current.startswith(parent + "."):
+            remainder = current[len(parent) + 1:]
+        else:
+            remainder = current.rpartition(".")[2]
+        chain.append((parent, remainder))
+        current = parent if parent in nodes else (None if parent == "" else parent)
+        if parent not in nodes and parent != "":
+            # Ancestor outside the resolved model (should not happen for
+            # explicit.order paths); terminate with a natural edge.
+            chain.append(("", parent))
+            break
+    key = []
+    for parent, remainder in reversed(chain):
+        rank = ranks.get((parent, remainder))
+        if rank is None:
+            natural = tuple(_natural_component_key(c)
+                            for c in remainder.split("."))
+            key.append((1, 0, natural))
+        else:
+            key.append((0, rank, ()))
+    return tuple(key)
 
 
 class _Resolver:
@@ -1270,6 +1500,8 @@ def resolve(program: Program) -> ExplicitModel:
         boundaries = {"x": sys.x, "x_type": sys.x_type,
                       "y": sys.y, "y_type": sys.y_type}
     normalization = normalize(program)
+    declared_ranks = _declared_ranks(resolver.nodes, program.orders)
+    _nodes_for_key = dict(resolver.nodes)
     return ExplicitModel(nodes=dict(resolver.nodes),
                          # `tfne/2` S20: source declaration order does not
                          # determine realization indexing. Sorting here rather
@@ -1277,8 +1509,10 @@ def resolve(program: Program) -> ExplicitModel:
                          # `to_neuronal_tensor` on one order; if they diverged,
                          # the specs would address the wrong neurons while
                          # every count still matched.
-                         order=tuple(sorted(resolver.order,
-                                            key=_natural_path_key)),
+                         order=tuple(sorted(
+                             resolver.order,
+                             key=lambda p: _ordering_key(
+                                 p, declared_ranks, _nodes_for_key))),
                          relations=tuple(resolver.relations),
                          exclusions=tuple(resolver.exclusions),
                          boundaries=boundaries,

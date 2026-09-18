@@ -132,7 +132,9 @@ realization; hashes used as receipts rather than traversal keys; declared
 connection parameters carried from specification to execution without
 substitution, with an unsupported parameter refused rather than dropped (see
 [Pipeline](#pipeline)); typed natural ordering of canonical paths, so source
-declaration order does not determine realization indexing (S20).
+declaration order does not determine realization indexing, with
+`order[A] := [...]` as the only override and a declaration that cannot be
+honoured exactly refused rather than partially applied (S20, S20.1).
 
 ### Not yet conformant
 
@@ -144,7 +146,6 @@ declaration order does not determine realization indexing (S20).
 | S11 cross associativity | ungrouped `A X[k] B X[k] C` requires grouping unless `k` declares an associative policy | accepted ungrouped |
 | S12 rule binding | `$L` / `$R` metavariables bind the syntactic operands | `$` is a lexer error; rules carry flat parameter maps |
 | S13 projection identity | redundant explicit projection is invalid | no redundancy check over `(src, dst, mechanism)` |
-| S20 declared order override | a biological definition that declares meaningful order overrides generic natural ordering | typed natural ordering is implemented; the override is not, because the sealed language specifies no syntax for declaring one |
 | S14, S25 statement atomicity | `;`-separated statements inside a composite, each atomic | `;` inside `{...}` is a parse error |
 | S25 failure vocabulary | semantic classes (`E_ADDRESS_UNKNOWN`, `E_FRONTIER_UNRESOLVED`, `E_MECHANISM_UNRESOLVED`, `E_MECHANISM_NOT_PERMITTED`, `E_PROJECTION_REDUNDANT`, `E_EXCLUSION_UNKNOWN`) | untyped `TFNEError` with prose messages |
 
@@ -167,13 +168,25 @@ and `SEG.2 < SEG.10`, and a parent sorts before its children because its key is
 a proper prefix. Cell types keep the order their `C = {...}` enumeration gives
 them; only object paths are reordered.
 
-What remains is the override. S20 says a biological definition that "explicitly
-declares meaningful order" overrides natural ordering, but the sealed language
-mentions this once and gives no syntax for declaring such an order — and its
-own opening sentence, that source declaration order does not determine
-indexing, rules out reading an enumeration as the declaration. Until that is
-settled the override is unexpressible, so nothing can currently override
-natural ordering. This is a gap in the language rather than the compiler.
+The override is `order[A] := [...]`, defined by S20.1. It was previously a gap
+in the language rather than the compiler: the sealed text said a definition may
+"explicitly declare meaningful order" but gave no syntax, while its own opening
+sentence ruled out reading an enumeration as that declaration. S20.1 now
+settles it — ordering is metadata, so it takes a named property rather than a
+new operator, and no other construct carries ordering.
+
+A declaration is refused unless it names every immediate member of its scope
+exactly once: `E_ORDER_INCOMPLETE`, `E_ORDER_DUPLICATE_MEMBER`,
+`E_ORDER_MEMBER_UNKNOWN`, `E_ORDER_NOT_IMMEDIATE`, `E_ORDER_SCOPE_UNKNOWN`,
+`E_ORDER_SCOPE_AMBIGUOUS`, `E_ORDER_DUPLICATE`. Ordering a partial or
+contradictory declaration would index some members by declaration and the rest
+by another rule. A bare scope name may address a nested object only when it
+does so unambiguously.
+
+Cell types still keep their enumeration order. `tfne/2` S20.1 states that
+implicit source order never carries scientific semantics and that this is
+retained only as temporary compatibility behaviour, so it remains a known
+exception rather than a settled rule.
 
 S9 is listed as outstanding because only its derived defaults exist. Ordered
 composites expose `in(A)` and `out(B)`, which is what S10 adjacency requires;
