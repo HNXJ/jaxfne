@@ -44,6 +44,13 @@ DEV_PYTEST_TARGETS = [
     "tests/test_connection_rule_compile_v0330.py",
     "tests/test_continuation_contract.py",
     "tests/test_mcc.py",
+    # TFNE/2 adoption. The specification layer alone is not enough: TFNE-PARAM-01
+    # was a total substitution of the declared weight that every edge-count test
+    # passed through, so the curated gate holds realization/execution
+    # equivalence over topology AND executable parameters, not counts or prose.
+    "tests/test_tfne_algebra.py",
+    "tests/test_tfne_execution.py",
+    "tests/test_tfne_parameter_transfer.py",
 ]
 
 # Marker selectors for the pytest sweeps.

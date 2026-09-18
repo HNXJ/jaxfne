@@ -21,7 +21,8 @@ conformance".
 Authorized priority order:
 
 ```
-TFNE2-08 (done) -> TFNE-EXEC-01 (done) -> TFNE-IMPORT-01 (done) -> remaining conformance gaps
+TFNE2-08 (done) -> TFNE-EXEC-01 (done) -> TFNE-IMPORT-01 (done)
+  -> TFNE-PARAM-01 (done) -> remaining conformance gaps
 ```
 
 The three clauses whose non-conformance changed realized biology are closed:
@@ -32,16 +33,97 @@ resume the conformance list ahead of it.
 
 ## Next
 
-- **TFNE-PARAM-01** — rule parameters do not reach the executed model. Opened
-  by TFNE-EXEC-01: `realize()` and `to_neuronal_tensor()` are two independent
-  compilations of one source, and the tensor bridge builds `InterConnection`s
-  without the rule's declared `weight`, so construction substitutes its own
-  scaling and sign convention. Topology, cell-type split and mechanism
-  identity all transfer; connection parameters do not. Decide whether the
-  bridge should carry `weight`/`probability`/`delay`, or whether TFNE rule
-  parameters are declared non-binding on execution — and say which in the
-  doctrine. Divergence pinned by
-  `test_declared_rule_weight_does_not_reach_the_executed_model`.
+- **TFNE2-03** — first of the remaining conformance gaps below. TFNE2-04
+  (declared frontiers) is the one that unblocks `CTX-01`.
+- **TFNE-PARAM-02** — declared `delay` is refused, not carried.
+  `E_PARAM_UNSUPPORTED` fails closed because no execution path consumes it:
+  `Configuration.connections()` has no delay field, `compile_connection_rules`
+  has no delay support, and `InterConnection` carries none. `EdgeList` does
+  have `delay_steps`, so the gap is the compiler chain, not the kernel.
+  Supporting it means a delay field on the connection-rule surface plus the
+  configured/realized/executed identity that TFNE-PARAM-01 established for
+  weight, probability and mechanism.
+- **TFNE-PARAM-03** — `mechanism identity != mechanism kinetics`. A declared
+  `AMPA` edge from a TFNE spec executes with `tau_ms = 0.1`, not AMPA's 2.0 ms.
+  Identity (name, receptor index, E/I split) does transfer. **Do not repair
+  opportunistically:** 0.1 -> 2.0 changes the trajectories of every existing
+  TFNE-derived simulation.
+
+  *Kinetics authority, determined (the prerequisite the repair needs):*
+
+  | Candidate | Standing |
+  | --- | --- |
+  | `StaticParams.dT_ms` | **Owner** of per-connection synaptic tau. `neuronal_tensor.py:868` sets the mechanism's `tau_ms` from it. Despite the "dT" name it is a time constant, not a timestep. |
+  | `standard_receptor_specs()` | **Canonical per-receptor values.** AMPA 2.0, GABA_A 5.0, NMDA 100.0, GABA_B 150.0. Declarative metadata, "no biological claim". |
+  | `sign_only_tau_exc_ms` / `_inh_ms` | 2.0 / 5.0 for the compact `sign_from_receptor` storage mode. Agrees with the above. |
+  | TFNE rule/model declaration | Cannot express a tau. Realized `mechanism_table` carries `tau_ms: None`, `declared_not_simulated`. S12 rule bodies (TFNE2-05) would be where it becomes expressible. |
+
+  The authorities do **not** conflict: every hand-written caller copies the
+  canonical value into `dT_ms` — `dT_ms=AMPA_TAU_MS` where `AMPA_TAU_MS = 2.0`
+  in `scripts/hdp_1000_neuronal_tensor_column.py:74,101`, and `dT_ms=2.0` /
+  `5.0` in `examples/08_neuronal_tensor_first.py` and
+  `scripts/build_canonical_neuronal_tensor_configs.py`. The `0.1` default is a
+  placeholder, not a competing definition.
+
+  So the real gap is narrower than "kinetics is undefined": TFNE's
+  `to_neuronal_tensor` never constructs `StaticParams`, so a TFNE spec inherits
+  the placeholder while an equivalent hand-written tensor gets 2.0/5.0. The
+  repair is to populate `dT_ms` from the declared mechanism's canonical spec.
+
+  *What depends on the current 0.1:* no test asserts it. The TFNE tau test
+  asserts agreement with the bridge and invariance across `dt`, not the value,
+  so it survives the repair. `tests/test_synaptic_kernel_v011.py:57-60` asserts
+  the mechanism tau table equals `standard_receptor_specs()`, which is evidence
+  for the canonical values rather than against the change. Before repairing,
+  re-measure what existing TFNE-derived artifacts and receipts assume.
+- **TFNE-PARAM-04** — declared geometry is realized but not executed. `G =
+  [z0 = ...; z1 = ...]` is recorded faithfully in `s["geometry"]`, but at equal
+  seed the executed positions are bit-identical whatever range is declared:
+  `(0,1)`, `(10,20)` and `(-5,-4)` all sample the same z in the unit interval.
+  TFNE's `to_neuronal_tensor` builds `Geometry3D(value_tag="relative")`, and a
+  relative normalization would still let the declared *extent* matter, so
+  identical output means the declaration is inert rather than rescaled. This is
+  the same class as TFNE-PARAM-01 — configured and realized, not executed —
+  and it matters because geometry is what field observables are computed
+  against, so an LFP-style claim would rest on coordinates the specification
+  did not choose. Pinned as the current state by
+  `test_declared_geometry_does_not_reach_the_executed_positions`; the test
+  fails when repaired and must then be inverted. Before repairing, determine
+  whether absolute or relative coordinates are the intended semantics, the
+  same authority question as TFNE-PARAM-03.
+
+### Parameter ownership, as measured (TFNE-PARAM-01)
+
+| Parameter | Configured | Realized | Executed |
+| --- | --- | --- | --- |
+| `weight` | yes | yes | yes — kernel-resolved, and it moves the trajectory |
+| `probability` | yes | yes | yes — thins the executed edge set |
+| `mechanism` identity | yes | yes | yes — receptor index and kind |
+| `direction` | yes | yes | yes — as realized pre/post |
+| `plasticity` | yes | provenance only | no — declared rule identity, not an edge parameter |
+| `delay` | refused | refused | refused (`E_PARAM_UNSUPPORTED`) |
+| mechanism kinetics (`tau_ms`) | not expressible | `None`, `declared_not_simulated` | bridge `dT_ms`, not the receptor's own tau (TFNE-PARAM-03) |
+| fixed mechanism params (`g_mech`, reversal potentials) | not expressible | — | bridge defaults; reversal potentials metadata only |
+| geometry (`G`) | yes | `s["geometry"]` | **no** — declared range is inert (TFNE-PARAM-04) |
+
+Receipt: `artifacts/programme/tfne_param01_receipt.md`. The equivalence is a
+dev-gate module, not prose: `tests/test_tfne_parameter_transfer.py`.
+
+Extend that coverage **by semantic class**, not by accumulating fields. Each
+class keeps its own independent check; equality of counts, names, shapes or
+default-valued outputs is too weak to establish semantic preservation, and
+perturbations must be asymmetric and non-neutral. Current standing:
+
+| Class | Covered |
+| --- | --- |
+| topology | yes — multiset of `(pre, post)` |
+| mechanism identity | yes |
+| mechanism kinetics | yes — dt-invariance and bridge agreement (value itself is TFNE-PARAM-03) |
+| weight | yes — kernel resolver plus trajectory change |
+| delay | yes — as a refusal (TFNE-PARAM-02) |
+| probability / realization | yes — thinning at 0.5, not 1.0 |
+| mutable / plastic rule identity | yes — provenance, and `h0["w"]` separate from `s["edge_weight"]` |
+| geometry-dependent parameters | yes — as a pinned divergence. The declared range does not reach executed positions (TFNE-PARAM-04). |
 
 ## Remaining measured conformance gaps
 
@@ -79,3 +161,87 @@ what it cannot express rather than realizing a different nervous system.
   spectrolaminar qualification (SL0/SL1/SL2) outside the algebra, and forbids
   phenomenological visualization proxies as the objective defining `CTX`.
   Depends on TFNE2-04 for declared `in`/`out`.
+
+---
+
+## Long-term goal — agent-native JaxFNE
+
+Authorized by Hamm as a durable project goal. The compact statement belongs in
+a human-owned project source, **not here**; the proposed text is awaiting human
+approval and is recorded in
+`artifacts/programme/agent_native_goal_proposal.md`. This section keeps only
+the executable work. Do not start it ahead of the TFNE conformance and identity
+work above — step 1 of its own sequence *is* that work.
+
+Shape of the thing being built:
+
+```
+scientific intent -> TFNE -> verified JaxFNE operations -> simulation -> evidence
+q -> skill -> A_TFNE -> NF(A) -> JaxFNE
+```
+
+The load-bearing constraint is that natural language does not map to arbitrary
+generated simulator code. The agent constructs, parameterizes, composes,
+executes, inspects and tests existing typed scientific objects. The failure
+class it is built against is
+`researcher's intended model != agent's executable interpretation`, which is
+exactly TFNE-PARAM-01 and TFNE-PARAM-03.
+
+### Sequence
+
+1. Finish TFNE configured/realized/executed identity, including TFNE-PARAM-01.
+   *(done for weight, probability, mechanism identity, direction; PARAM-02 and
+   PARAM-03 open)*
+2. Establish canonical TFNE -> JaxFNE compilation and `I`.
+3. Inventory existing JaxFNE capabilities as agent-safe operations.
+4. Per major capability, align equation, code, docs, tests and inspection into
+   one auditable capability record. `delay` is the worked example: TFNE says
+   how it is specified, code how it is executed, docs the equation, units and
+   limitations, the skill when and how to configure and test it, tests the
+   zero-delay limit, arrival timing, continuation and composition, and
+   inspection the configured, realized and executed value.
+5. Build a small agent-facing tool surface of scientific operations, not thin
+   wrappers over every Python function: `realize(TFNE)`, `inspect(model)`,
+   `simulate(model, T, dt)`, `compare(configured, realized, executed)`,
+   `observe(source/field/probe)`, `verify(property)`. An agent should not need
+   the 266 classified root symbols to build a standard experiment.
+6. Build composable skills around that surface, not one large agent skill:
+   `jaxfne-model`, `jaxfne-network`, `jaxfne-state`, `jaxfne-plasticity`,
+   `jaxfne-fields`, `jaxfne-simulate`, `jaxfne-verify`, `jaxfne-inspect`. A
+   general skill may route among them; the procedures stay small and testable.
+7. Canonical end-to-end modeling tasks with frozen expected properties.
+8. Adversarial semantic-substitution tests — stale docs, renamed APIs,
+   parameter substitution, wrong units or types.
+9. Benchmark skill+tools against direct repository/API use on a frozen task
+   set: model fidelity (intended vs configured), realization fidelity,
+   execution fidelity, numerical validity (`dt`, continuation, convergence),
+   scientific validity of the claim/evidence relation, unsupported rejection,
+   reproducibility under declared stochastic semantics, efficiency,
+   inspectability, and repair under injected defects. Primary metric is
+   scientific-model fidelity, not question-answer accuracy.
+10. Only then consider external MCP or other transport. MCP is an
+    implementation option, not the scientific architecture.
+
+### Design constraints to honour when building the above
+
+- Verification is claim-conditioned, `V = V(claim)`: the verification plan is
+  generated from the scientific claim, not from the API calls made. "Runs"
+  needs execution; "weight is 0.5" needs executed parameter inspection;
+  "oscillates at 40 Hz" needs signal analysis plus numerical adequacy;
+  "PING-like" needs E/I timing, participation, loop dependence and
+  perturbation; "traveling wave" needs spatial phase progression, not delay
+  alone; "plasticity caused effect" needs an intervention on the mutable rule.
+- Each boundary in
+  `intent -> specification -> realization -> execution -> observation -> claim`
+  needs its own test; they are different questions.
+- `TFNE <-> code <-> docs <-> skills <-> tests` is one semantic source with
+  several projections — not literal duplication, and not five descriptions
+  that can drift.
+- Unsupported capabilities fail closed rather than inviting improvisation.
+- Reference for design lessons only, not a template: Paper2Agent (validated
+  tools checked against reference outputs before exposure, separated
+  tools/resources/workflow prompts, exclusion of failing tools, explicit
+  out-of-scope rejection, injected repository-drift defects, benchmarking
+  against direct repository access). Numerical reproduction alone is
+  insufficient for mechanistic modeling, and JaxFNE additionally owns its
+  specification language.

@@ -84,6 +84,7 @@ __all__ = [
     "realize",
     "flatten",
     "to_neuronal_tensor",
+    "to_configuration",
     "DEFAULT_MODEL",
     "DIRECT_MECHANISM",
 ]
@@ -1443,6 +1444,22 @@ def realize(explicit: ExplicitModel, program: Optional[Program] = None,
             raise TFNEError(
                 f"relation {rel.key!r} has unresolved direction "
                 f"{rel.direction!r}")
+        # No silent parameter substitution. `delay` would change the dynamics
+        # and nothing consumes it -- neither `compile_connection_rules` nor
+        # the edge compiler carries a delay -- so accepting it would be a
+        # claim the runtime cannot keep. Refuse instead of dropping.
+        #
+        # `plasticity` is deliberately not refused: it names a rule identity
+        # for the separate registrable HDP surface rather than a connection
+        # parameter, and is preserved as inspectable provenance in
+        # `rule_params` / `relation_origin`. Declared and recorded is not the
+        # same as declared and discarded.
+        if params.get("delay") is not None:
+            raise TFNEError(
+                f"E_PARAM_UNSUPPORTED: rule {rel.rule!r} declares a delay, "
+                f"which no JaxFNE execution path consumes. Remove it or "
+                f"extend the compiler; it will not be silently ignored."
+            )
         routes = _scope_pairs(rel)
         removed = [r for r in routes if r in excluded_routes]
         matched_routes.update(removed)
@@ -1564,6 +1581,12 @@ def realize(explicit: ExplicitModel, program: Optional[Program] = None,
         "edge_rule": list(edge_rule),
         "rule_origins": dict(origins),
         "exclusions": [e.key for e in explicit.exclusions],
+        # The authoritative resolved connectivity: exactly the specs these
+        # edges were compiled from, declared parameters included. Execution
+        # reads these rather than re-deriving connectivity, so there is one
+        # resolved representation instead of two that can disagree
+        # (:func:`to_configuration`).
+        "connection_specs": [dict(c) for c in connections],
     }
     return Realization(s=s, h0=h0, I=index_map, explicit=explicit)
 
@@ -1713,6 +1736,99 @@ def to_neuronal_tensor(explicit: ExplicitModel):
                                         "tfne_normalization":
                                             explicit.normalization})
     return tensor
+
+
+def to_configuration(realization: Realization, *,
+                     duration_ms: float = 1000.0,
+                     dt_ms: float = 0.1,
+                     emitter: str = DEFAULT_MODEL,
+                     dtype: str = "float32"):
+    """Build an executable ``Configuration`` from a realization.
+
+    Execution consumes the realization's own resolved connectivity
+    (``I["connection_specs"]``) rather than re-deriving it, so the executed
+    model carries the parameters TFNE declared::
+
+        TFNE -> resolve -> explicit model -> realize -> (s, h0, I)
+                                                     -> to_configuration -> construct
+
+    ``to_neuronal_tensor`` supplies the population structure only. Its
+    ``InterConnection``/``AreaConnection`` entries cannot express a declared
+    weight, probability or delay, so the connectivity they imply is replaced
+    here by the realized specs. Going through the tensor for structure is what
+    keeps neuron identity aligned: the constructed neuron table is in the same
+    order as ``I["neuron_paths"]``, which lets the specs address neurons by
+    realized id. That alignment is an invariant, not a coincidence, and is
+    gated by ``tests/test_tfne_execution.py``.
+
+    A rule's declared weight carries its own polarity. It is passed as a
+    magnitude plus an explicit ``sign``, because an unsigned rule would
+    otherwise inherit the presynaptic neuron's intrinsic sign and silently
+    overrule what the specification declared.
+    """
+    from dataclasses import replace as _replace
+
+    from .neuronal_tensor import (
+        StaticParams as _StaticParams,
+        neuronal_tensor_to_configuration,
+    )
+
+    explicit = realization.explicit
+    if explicit is None:
+        raise TFNEError("realization carries no explicit model to construct from")
+    tensor = to_neuronal_tensor(explicit)
+    cfg = neuronal_tensor_to_configuration(
+        tensor, seed=int(realization.s["seed"]), duration_ms=duration_ms,
+        dt_ms=dt_ms, emitter=emitter, dtype=dtype)
+
+    # Synaptic kinetics are not a TFNE-declared parameter: the realized
+    # mechanism table carries `tau_ms: None` and `declared_not_simulated`.
+    # Inherit whatever the structural bridge declared for each mechanism kind
+    # (it derives tau from the connection's own `static.dT_ms`) rather than
+    # inventing a value here. In particular it must NOT come from `dt_ms`:
+    # tying synaptic decay to the integration timestep would make a refined
+    # timestep silently change the synapse model, so the model would not
+    # converge under dt-refinement.
+    bridge_tau: dict[str, float] = {}
+    for m in cfg.metadata.get("circuit", {}).get("mechanisms", []):
+        kind = m.get("kind")
+        tau = m.get("params", {}).get("tau_ms")
+        if kind is not None and tau is not None:
+            bridge_tau.setdefault(str(kind), float(tau))
+    default_tau = float(_StaticParams().dT_ms)
+
+    mechanisms: list[dict[str, Any]] = []
+    declared: dict[str, str] = {}
+    rules: list[dict[str, Any]] = []
+    for spec in realization.I["connection_specs"]:
+        mech = str(spec["mechanism"])
+        name = declared.get(mech)
+        if name is None:
+            name = f"{mech}__tfne__{len(declared)}"
+            declared[mech] = name
+            mechanisms.append({
+                "name": name, "kind": mech,
+                "params": {"tau_ms": bridge_tau.get(mech, default_tau)},
+            })
+        weight = float(spec["weight"])
+        rules.append({
+            "name": spec["name"],
+            "source": {"ids": list(spec["source"]["ids"])},
+            "target": {"ids": list(spec["target"]["ids"])},
+            "probability": float(spec["probability"]),
+            "weight": abs(weight),
+            "sign": "excitatory" if weight >= 0.0 else "inhibitory",
+            "mechanism": name,
+            "status": "declared_not_compiled",
+        })
+
+    metadata = {k: v for k, v in cfg.metadata.items()}
+    circuit = {k: v for k, v in metadata.get("circuit", {}).items()}
+    circuit["connections"] = rules
+    circuit["mechanisms"] = mechanisms
+    metadata["circuit"] = circuit
+    metadata["tfne_digest"] = explicit.digest
+    return _replace(cfg, metadata=metadata)
 
 
 def _scope_pairs(rel: RelationRecord) -> list[tuple[str, str]]:

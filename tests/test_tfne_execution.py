@@ -5,18 +5,18 @@ simulation kernel. This file covers the other half of the claim made by
 `jaxfne/tfne.py` and the doctrine pipeline table -- that TFNE output runs in
 the existing JaxFNE kernels:
 
-    TFNE source -> NF -> to_neuronal_tensor -> construct -> simulate
+    TFNE source -> NF -> realize -> to_configuration -> construct -> simulate
 
-It asserts what transfers and, where something does not, pins the divergence
-rather than leaving it to be discovered again.
+It asserts that the chain runs and that topology and identity survive it.
+Declared-parameter equivalence is `tests/test_tfne_parameter_transfer.py`.
 """
 
 import numpy as np
 import pytest
 
 import jaxfne
-from jaxfne.neuronal_tensor import RuntimeConfiguration
-from jaxfne.tfne import parse, realize, resolve, to_neuronal_tensor
+from jaxfne.tfne import (parse, realize, resolve, to_configuration,
+                         to_neuronal_tensor)
 
 SPEC = """
 O[ff] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
@@ -32,14 +32,18 @@ DT_MS = 0.1
 
 @pytest.fixture(scope="module")
 def pipeline():
-    """One pass of the full chain, reused by every assertion below."""
+    """One pass of the full chain, reused by every assertion below.
+
+    Construction goes through ``to_configuration``, which feeds execution the
+    realization's own resolved connectivity. Parameter equivalence is covered
+    in ``tests/test_tfne_parameter_transfer.py``.
+    """
     program = parse(SPEC)
     explicit = resolve(program)
     realization = realize(explicit, program)
     tensor = to_neuronal_tensor(explicit)
     model = jaxfne.construct(
-        tensor, RuntimeConfiguration(duration_ms=DURATION_MS, dt_ms=DT_MS,
-                                     seed=0))
+        to_configuration(realization, duration_ms=DURATION_MS, dt_ms=DT_MS))
     signals = jaxfne.simulate(model, duration_ms=DURATION_MS, dt_ms=DT_MS,
                               seed=0)
     return realization, tensor, model, signals
@@ -100,33 +104,6 @@ def test_mechanism_identity_survives_the_bridge(pipeline):
     _, _, model, _ = pipeline
     receptors = {e["receptor_type"] for e in model.edge_table()}
     assert all(r.startswith("AMPA") for r in receptors), receptors
-
-
-def test_declared_rule_weight_does_not_reach_the_executed_model(pipeline):
-    """Pinned divergence: `weight` is dropped between the two compilations.
-
-    `realize()` and `to_neuronal_tensor()` are two independent compilations of
-    one source. The first carries the rule's declared `weight`; the second
-    builds `InterConnection`s without it, so construction applies its own
-    scaling and sign convention instead. Topology and identity transfer,
-    connection parameters do not.
-
-    This test records the current behaviour so the gap cannot close or widen
-    silently. It is not an endorsement of it.
-    """
-    realization, tensor, model, _ = pipeline
-
-    declared = sorted({round(float(w), 6)
-                       for w in np.asarray(realization.s["edge_weight"])})
-    assert declared == [0.5]
-
-    executed = sorted({round(float(e["weight"]), 6)
-                       for e in model.edge_table()})
-    assert 0.5 not in executed
-    # the bridge leaves w_mech at its default rather than carrying 0.5
-    w_mech = {ic.plastic.w_mech
-              for area in tensor.areas for ic in area.inter_connections}
-    assert w_mech == {1.0}
 
 
 # --------------------------------------------------------------------------- #

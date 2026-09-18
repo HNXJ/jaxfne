@@ -46,14 +46,49 @@ operator factorization this language compiles into.
 Design principle: factor at specification time; flatten at execution time.
 Flattening changes representation, not TFNE semantics.
 
-Two compilations, one source. `realize()` produces $(s,h_0,\mathcal{I})$ for
-inspection and indexing; execution runs through `to_neuronal_tensor()` into
-`construct` and the kernels. They agree on topology and identity — verified
-edge for edge in `tests/test_tfne_execution.py` — but the tensor bridge does
-not carry rule parameters, so a declared connection `weight` reaches
-$(s,h_0,\mathcal{I})$ and not the executed model. Read the Execute row as
-"the kernels run the tensor built from this source", not "the kernels consume
-$s$".
+One resolved representation, two consumers. `realize()` resolves the source
+once and records the result in $\mathcal{I}$ as `connection_specs`;
+`to_configuration()` builds the executable `Configuration` from those same
+resolved specs, so inspection and execution read one resolution rather than
+compiling the source twice. Topology, identity and declared connection
+parameters therefore agree, verified edge for edge as multisets of
+`(pre, post, weight, mechanism)` in `tests/test_tfne_parameter_transfer.py`.
+
+Executable parameter ownership is explicit. A declared `weight`, `probability`,
+`mechanism` and `direction` reach the kernel: the synaptic weight the
+integrator uses is `_resolved_edge_weight(edge_list, dtype, emitter)`, and it
+equals the realized `s["edge_weight"]`. A declared `plasticity` is a rule
+identity for the separate registrable HDP surface rather than an edge
+parameter, so it is preserved as inspectable provenance in `rule_params` and
+`relation_origin` and does not alter the realized edges. A declared `delay` is
+refused with `E_PARAM_UNSUPPORTED` because no execution path consumes one —
+there is no delay field on the connection-rule surface — so it fails closed
+instead of being silently dropped.
+
+Mechanism identity transfers; mechanism kinetics does not. A declared
+mechanism reaches the executed edges as a name, a receptor index and an
+excitatory/inhibitory split, but its synaptic time constant is the structural
+bridge's per-connection `dT_ms` rather than the named receptor's own value, so
+a declared `AMPA` edge executes at 0.1 ms and not the 2.0 ms of
+`standard_receptor_specs()`. `tfne/2` rule bodies cannot declare a tau, so no
+declared value is being substituted; the realized mechanism table records this
+as `tau_ms: None` with status `declared_not_simulated`. Synaptic kinetics is
+independent of `dt`, so refining the timestep integrates the same synapse
+model rather than changing it.
+
+Declared geometry is realized but not executed. `G` is recorded in
+`s["geometry"]`, and at equal seed the executed positions are identical
+whatever range is declared, so the declaration is inert rather than rescaled.
+Geometry is what field observables are computed against, so a field or LFP
+claim currently rests on coordinates the specification did not choose. Whether
+absolute or relative coordinates are intended is undecided.
+
+`to_neuronal_tensor()` remains the structural bridge and is still used for
+areas, layers and cell types, but it cannot carry connection parameters:
+`InterConnection` and `AreaConnection` have no weight, probability or delay
+field. That is why execution goes through the resolved specs rather than
+through the tensor alone, and why the Execute row means the kernels consume the
+realized connectivity, not merely a tensor rebuilt from the same text.
 
 ## Mapping to JaxFNE components
 
@@ -89,10 +124,14 @@ connectivity, indexed `A.1 ... A.n` (S6, S7); exclusions that subtract from the
 rule expansion, with an unmatched exclusion rejected rather than ignored (S14);
 ordered rules bound to their own adjacency, with composites composing through
 derived `in`/`out` frontiers rather than through every member (S10, and the
-S9 derived defaults S10 needs); geometry compiled into `s`; `H` reserved for the H-state tensor; typed `x`/`y`
-boundaries; a realization index map supporting path->slice, slice->path,
+S9 derived defaults S10 needs); geometry compiled into `s` (realized only —
+it does not reach the executed positions); `H` reserved for the H-state
+tensor; typed `x`/`y` boundaries; a realization index map supporting path->slice, slice->path,
 rule->edges and edge->rule; idempotent normalization whose digest seeds
-realization; hashes used as receipts rather than traversal keys.
+realization; hashes used as receipts rather than traversal keys; declared
+connection parameters carried from specification to execution without
+substitution, with an unsupported parameter refused rather than dropped (see
+[Pipeline](#pipeline)).
 
 ### Not yet conformant
 
@@ -113,6 +152,13 @@ rejects what it cannot express instead of realizing a different nervous system.
 The three clauses that did change realized biology — inverted exclusions,
 off-by-one instance addressing, and ordered chains that fabricated projections
 the source never declared — are closed.
+
+Declared rule parameters are no longer among the gaps. They were: a declared
+`weight` of 0.5, 0.25 or 0.125 all executed at 0.353553, and a declared
+`probability` of 0.5 realized 8 edges while executing 16, because `realize()`
+and `to_neuronal_tensor()` were two independent compilations of one source.
+Execution now consumes the single resolved representation, and the equivalence
+is a dev-gate module rather than a claim in this page.
 
 S9 is listed as outstanding because only its derived defaults exist. Ordered
 composites expose `in(A)` and `out(B)`, which is what S10 adjacency requires;
