@@ -70,6 +70,7 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 import hashlib
 import json
+import re
 
 import numpy as np
 
@@ -848,6 +849,28 @@ def _flat_expansion(members: Sequence[str]) -> _Expansion:
     return _Expansion(members=m, fin=m, fout=m)
 
 
+def _natural_component_key(component: str) -> tuple:
+    """Typed natural key for one path component (`tfne/2` S20).
+
+    Digit runs compare as integers and text runs as text, so `L1 < L2 < L10`
+    rather than the lexical `L1 < L10 < L2`. Each run carries a type tag so
+    tuples of mixed runs stay comparable.
+    """
+    return tuple(
+        (0, int(run), "") if run.isdigit() else (1, 0, run)
+        for run in re.findall(r"\d+|\D+", component)
+    )
+
+
+def _natural_path_key(path: str) -> tuple:
+    """Typed natural key for a full canonical path.
+
+    Compared component by component, so `SEG.2 < SEG.10`, and a parent sorts
+    before its own children because its key is a proper prefix.
+    """
+    return tuple(_natural_component_key(c) for c in path.split("."))
+
+
 class _Resolver:
     def __init__(self, program: Program):
         self.program = program
@@ -1248,7 +1271,14 @@ def resolve(program: Program) -> ExplicitModel:
                       "y": sys.y, "y_type": sys.y_type}
     normalization = normalize(program)
     return ExplicitModel(nodes=dict(resolver.nodes),
-                         order=tuple(resolver.order),
+                         # `tfne/2` S20: source declaration order does not
+                         # determine realization indexing. Sorting here rather
+                         # than at each consumer keeps realization and
+                         # `to_neuronal_tensor` on one order; if they diverged,
+                         # the specs would address the wrong neurons while
+                         # every count still matched.
+                         order=tuple(sorted(resolver.order,
+                                            key=_natural_path_key)),
                          relations=tuple(resolver.relations),
                          exclusions=tuple(resolver.exclusions),
                          boundaries=boundaries,

@@ -84,17 +84,23 @@ def test_executed_topology_matches_the_tfne_realization(pipeline):
 
 
 def test_index_map_addresses_the_simulated_neuron_axis(pipeline):
-    """I indexes the columns the kernel actually produced."""
+    """I indexes the columns the kernel actually produced.
+
+    `SPEC` composes `L4 O[ff] L2`, but under `tfne/2` S20 the body order does
+    not decide indexing: components carry typed natural keys, so L2 precedes
+    L4 on the neuron axis while the projection still runs L4 -> L2. The
+    layout below is the S20 one, not the declaration one.
+    """
     realization, _, _, signals = pipeline
     v = np.asarray(signals.V_m)
     l4 = realization.path_to_slice("V1.L4")
     l2 = realization.path_to_slice("V1.L2")
-    assert l4 == (0, 10)
-    assert l2 == (10, 15)
+    assert l2 == (0, 5)
+    assert l4 == (5, 15)
     # the two slices partition the simulated axis, so a TFNE path selects the
     # right columns of the result rather than merely a valid range
-    assert l4[1] == l2[0]
-    assert l2[1] == v.shape[1]
+    assert l2[1] == l4[0]
+    assert l4[1] == v.shape[1]
     assert np.isfinite(v[:, slice(*l4)]).all()
     assert np.isfinite(v[:, slice(*l2)]).all()
 

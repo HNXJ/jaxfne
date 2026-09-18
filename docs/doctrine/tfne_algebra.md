@@ -131,7 +131,8 @@ rule->edges and edge->rule; idempotent normalization whose digest seeds
 realization; hashes used as receipts rather than traversal keys; declared
 connection parameters carried from specification to execution without
 substitution, with an unsupported parameter refused rather than dropped (see
-[Pipeline](#pipeline)).
+[Pipeline](#pipeline)); typed natural ordering of canonical paths, so source
+declaration order does not determine realization indexing (S20).
 
 ### Not yet conformant
 
@@ -143,7 +144,7 @@ substitution, with an unsupported parameter refused rather than dropped (see
 | S11 cross associativity | ungrouped `A X[k] B X[k] C` requires grouping unless `k` declares an associative policy | accepted ungrouped |
 | S12 rule binding | `$L` / `$R` metavariables bind the syntactic operands | `$` is a lexer error; rules carry flat parameter maps |
 | S13 projection identity | redundant explicit projection is invalid | no redundancy check over `(src, dst, mechanism)` |
-| S20 canonical ordering | typed natural order (`L1 < L2 < L10`) independent of declaration order | realization indexes in declaration order |
+| S20 declared order override | a biological definition that declares meaningful order overrides generic natural ordering | typed natural ordering is implemented; the override is not, because the sealed language specifies no syntax for declaring one |
 | S14, S25 statement atomicity | `;`-separated statements inside a composite, each atomic | `;` inside `{...}` is a parse error |
 | S25 failure vocabulary | semantic classes (`E_ADDRESS_UNKNOWN`, `E_FRONTIER_UNRESOLVED`, `E_MECHANISM_UNRESOLVED`, `E_MECHANISM_NOT_PERMITTED`, `E_PROJECTION_REDUNDANT`, `E_EXCLUSION_UNKNOWN`) | untyped `TFNEError` with prose messages |
 
@@ -159,6 +160,20 @@ Declared rule parameters are no longer among the gaps. They were: a declared
 and `to_neuronal_tensor()` were two independent compilations of one source.
 Execution now consumes the single resolved representation, and the equivalence
 is a dev-gate module rather than a claim in this page.
+
+S20 is split. Typed natural ordering is implemented at one chokepoint, so
+realization and `to_neuronal_tensor` cannot drift apart on it: `L1 < L2 < L10`
+and `SEG.2 < SEG.10`, and a parent sorts before its children because its key is
+a proper prefix. Cell types keep the order their `C = {...}` enumeration gives
+them; only object paths are reordered.
+
+What remains is the override. S20 says a biological definition that "explicitly
+declares meaningful order" overrides natural ordering, but the sealed language
+mentions this once and gives no syntax for declaring such an order — and its
+own opening sentence, that source declaration order does not determine
+indexing, rules out reading an enumeration as the declaration. Until that is
+settled the override is unexpressible, so nothing can currently override
+natural ordering. This is a gap in the language rather than the compiler.
 
 S9 is listed as outstanding because only its derived defaults exist. Ordered
 composites expose `in(A)` and `out(B)`, which is what S10 adjacency requires;

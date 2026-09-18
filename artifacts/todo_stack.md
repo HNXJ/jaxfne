@@ -22,7 +22,7 @@ Authorized priority order:
 
 ```
 TFNE2-08 (done) -> TFNE-EXEC-01 (done) -> TFNE-IMPORT-01 (done)
-  -> TFNE-PARAM-01 (done) -> remaining conformance gaps
+  -> TFNE-PARAM-01 (done) -> TFNE2-03 (done) -> remaining conformance gaps
 ```
 
 The three clauses whose non-conformance changed realized biology are closed:
@@ -33,8 +33,8 @@ resume the conformance list ahead of it.
 
 ## Next
 
-- **TFNE2-03** — first of the remaining conformance gaps below. TFNE2-04
-  (declared frontiers) is the one that unblocks `CTX-01`.
+- **TFNE2-04** — declared frontiers; the one that unblocks `CTX-01`. First of
+  the remaining conformance gaps below.
 - **TFNE-PARAM-02** — declared `delay` is refused, not carried.
   `E_PARAM_UNSUPPORTED` fails closed because no execution path consumes it:
   `Configuration.connections()` has no delay field, `compile_connection_rules`
@@ -169,9 +169,23 @@ Each item conforms one clause. Standing of every clause is in the doctrine
 page; none of the items below changes realized biology — the compiler rejects
 what it cannot express rather than realizing a different nervous system.
 
-- **TFNE2-03** — S20 typed natural ordering, declaration-independent
-  (`L1<L2<L10`, `SEG.2<SEG.10`), with declared biological order overriding it.
-  Changes realization indexing and `I` for existing specs.
+- **TFNE2-03** — S20 canonical ordering. **Typed natural ordering is done**
+  (`L1<L2<L10`, `SEG.2<SEG.10`, declaration-independent), applied at the single
+  point where `ExplicitModel.order` is built so realization and
+  `to_neuronal_tensor` cannot drift apart on it. Receipt:
+  `artifacts/programme/tfne2_conformance_03_receipt.md`.
+
+  *Still open, and it is a language gap rather than a compiler gap:* S20 also
+  says a biological definition that "explicitly declares meaningful order"
+  overrides natural ordering. The sealed language says this once (project
+  source 7, line 807) and gives **no syntax** for declaring such an order, and
+  its own opening sentence — source declaration order does not determine
+  realization indexing — rules out reading an enumerated body as the
+  declaration. Needs a human ruling on (a) whether an explicit enumeration such
+  as `C = {E, PV}` or a layer listing counts as a declared order, or (b) a
+  dedicated syntax. Do not invent one. Until then nothing can override natural
+  ordering, and cell types keep their enumeration order while only object paths
+  are reordered.
 - **TFNE2-04** — S9 frontiers beyond the derived ordered defaults that S10
   already uses: declared `in := [...]` / `out := [...]` bodies, the
   X-composite union default, `E_FRONTIER_UNRESOLVED`. Carries the rest of S8

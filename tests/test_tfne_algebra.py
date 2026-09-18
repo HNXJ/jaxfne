@@ -654,3 +654,70 @@ def test_flatten_one_call_json_safe_summary():
     json.dumps(summary)
     assert summary["n_neurons"] == 1
     assert summary["value_tag"] == "relative"
+
+
+# --------------------------------------------------------------------------- #
+# 9c. S20 canonical ordering
+# --------------------------------------------------------------------------- #
+
+def test_declaration_order_does_not_determine_realization_indexing():
+    """S20: the same nervous system indexes identically either way round.
+
+    Two specs differing only in the order the layers appear in the composite
+    body. The projections still follow the body (S10), but the neuron axis
+    does not.
+    """
+    forward = """
+    L1  := [C = {E}; N = 1];
+    L2  := [C = {E}; N = 2];
+    L10 := [C = {E}; N = 3];
+    V := L1 O L2 O L10;
+    x : V : y
+    """
+    reverse = """
+    L10 := [C = {E}; N = 3];
+    L2  := [C = {E}; N = 2];
+    L1  := [C = {E}; N = 1];
+    V := L10 O L2 O L1;
+    x : V : y
+    """
+    _, _, a = _realize(forward)
+    _, _, b = _realize(reverse)
+    assert a.I["neuron_paths"] == b.I["neuron_paths"]
+    assert a.I["neuron_paths"] == ["V.L1", "V.L2", "V.L2",
+                                   "V.L10", "V.L10", "V.L10"]
+
+
+def test_typed_natural_order_beats_lexical_order():
+    """S20: `L1 < L2 < L10`, not the lexical `L1 < L10 < L2`."""
+    text = """
+    L1  := [C = {E}; N = 1];
+    L2  := [C = {E}; N = 1];
+    L10 := [C = {E}; N = 1];
+    V := L1 O L2 O L10;
+    x : V : y
+    """
+    _, _, r = _realize(text)
+    assert r.path_to_slice("V.L1") == (0, 1)
+    assert r.path_to_slice("V.L2") == (1, 2)
+    assert r.path_to_slice("V.L10") == (2, 3)
+
+
+def test_replication_indices_order_numerically():
+    """S20: `SEG.2 < SEG.10`, so replicas do not sort lexically."""
+    _, _, r = _realize("SEG := [C = {cell}; N = 1]; x : SEG^12 : y")
+    replicas = [p for p in r.I["neuron_paths"] if p.startswith("SEG.")]
+    assert replicas == [f"SEG.{i}" for i in range(1, 13)]
+    # the lexical order would have put SEG.10 immediately after SEG.1
+    assert r.path_to_slice("SEG.2") < r.path_to_slice("SEG.10")
+
+
+def test_natural_order_is_hierarchical_parent_before_child():
+    """A parent's key is a proper prefix of its children's, so it sorts first."""
+    from jaxfne.tfne import _natural_path_key
+
+    assert _natural_path_key("V") < _natural_path_key("V.L1")
+    assert _natural_path_key("V.L2") < _natural_path_key("V.L10")
+    assert _natural_path_key("A.9") < _natural_path_key("A.10")
+    # text runs still compare as text
+    assert _natural_path_key("V1.L4") < _natural_path_key("V2.L1")
