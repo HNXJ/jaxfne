@@ -87,6 +87,11 @@ from .core import (
 
 from . import paradigm
 from . import tutorial_utils
+# TFNE specification-language compiler, ADVANCED tier: reachable as
+# jaxfne.tfne so the documented entry point can actually get to it. Module
+# level imports are stdlib plus numpy, so this costs nothing at import time;
+# neuronal_tensor and connectivity are imported inside its functions.
+from . import tfne
 from . import export as _export_module
 from .jdna import (
     PseudoGenome,

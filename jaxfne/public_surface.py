@@ -321,6 +321,10 @@ _CANONICAL: Final[frozenset[str]] = frozenset(
 
 _ADVANCED: Final[frozenset[str]] = frozenset(
     {
+        # TFNE specification-language compiler. The module is the advanced
+        # symbol: its own names (parse, resolve, realize, ...) are generic and
+        # stay inside it rather than being hoisted to the root namespace.
+        "tfne",
         # Low-level emitter kernels and wiring primitives
         "EdgeList",
         "EIGNetwork",
@@ -437,6 +441,7 @@ _ALL_CLASSIFIED: Final[frozenset[str]] = (
 PUBLIC_EXPORTS: Final[tuple[str, ...]] = tuple(sorted(_CANONICAL | _COMPATIBILITY))
 
 ADVANCED_NAMESPACE: Final[dict[str, str]] = {
+    "tfne": "jaxfne.tfne",
     "simulate_edge_recurrent_izhikevich": "jaxfne.emitters",
     "simulate_eig_izhikevich": "jaxfne.emitters",
     "simulate_receptor_exponential_izhikevich": "jaxfne.emitters",

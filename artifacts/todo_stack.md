@@ -21,7 +21,7 @@ conformance".
 Authorized priority order:
 
 ```
-TFNE2-08 (done) -> TFNE-EXEC-01 (done) -> TFNE-IMPORT-01 -> remaining conformance gaps
+TFNE2-08 (done) -> TFNE-EXEC-01 (done) -> TFNE-IMPORT-01 (done) -> remaining conformance gaps
 ```
 
 The three clauses whose non-conformance changed realized biology are closed:
@@ -32,14 +32,6 @@ resume the conformance list ahead of it.
 
 ## Next
 
-- **TFNE-IMPORT-01** — make the supported import path explicit and test it from
-  outside the repository root. `import jaxfne; hasattr(jaxfne, "tfne")` is
-  `False`; only `from jaxfne import tfne` works, and `artifacts/context.md`
-  declares `jaxfne` the only supported public entry point. Decide the tier and
-  register it in `jaxfne.public_surface`, or state that it is deliberately
-  unexported. Note a bare `python script.py` outside the repository root
-  resolves `jaxfne` from site-packages, which has no `tfne` module — so the
-  test must run from outside the root to mean anything.
 - **TFNE-PARAM-01** — rule parameters do not reach the executed model. Opened
   by TFNE-EXEC-01: `realize()` and `to_neuronal_tensor()` are two independent
   compilations of one source, and the tensor bridge builds `InterConnection`s

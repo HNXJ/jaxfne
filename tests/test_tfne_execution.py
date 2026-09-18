@@ -127,3 +127,50 @@ def test_declared_rule_weight_does_not_reach_the_executed_model(pipeline):
     w_mech = {ic.plastic.w_mech
               for area in tensor.areas for ic in area.inter_connections}
     assert w_mech == {1.0}
+
+
+# --------------------------------------------------------------------------- #
+# TFNE-IMPORT-01: the documented entry point can reach the compiler
+# --------------------------------------------------------------------------- #
+
+def test_tfne_is_reachable_from_the_documented_entry_point():
+    """`artifacts/context.md` declares `jaxfne` the only supported entry."""
+    from jaxfne.public_surface import ADVANCED_NAMESPACE, symbol_tier
+
+    assert hasattr(jaxfne, "tfne")
+    assert jaxfne.tfne.parse is not None
+    # ADVANCED, so reachable but deliberately not a root export
+    assert "tfne" not in jaxfne.__all__
+    assert symbol_tier("tfne") == "ADVANCED"
+    assert ADVANCED_NAMESPACE["tfne"] == "jaxfne.tfne"
+
+
+def test_tfne_imports_from_outside_the_repository_root(tmp_path):
+    """The import must hold where the repository root is not the cwd.
+
+    `pytest` inserts rootdir on `sys.path`, so an in-process check would pass
+    even if the entry point were broken for everyone else. This runs a clean
+    interpreter from a scratch directory with only the checkout on PYTHONPATH.
+    """
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[1]
+    env = dict(os.environ)
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(repo_root)] + ([env["PYTHONPATH"]] if env.get("PYTHONPATH") else []))
+
+    code = (
+        "import jaxfne\n"
+        "assert jaxfne.__file__.startswith(r'%s'), jaxfne.__file__\n"
+        "assert hasattr(jaxfne, 'tfne'), 'jaxfne.tfne unreachable'\n"
+        "r = jaxfne.tfne.flatten('Cell := [C = {c}; N = 3]; x : Cell : y')\n"
+        "print(r.s['n_neurons'])\n" % str(repo_root)
+    )
+    result = subprocess.run([sys.executable, "-c", code], cwd=str(tmp_path),
+                            env=env, capture_output=True, text=True,
+                            encoding="utf-8")
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip().splitlines()[-1] == "3"

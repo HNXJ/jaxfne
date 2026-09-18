@@ -96,9 +96,12 @@ def test_public_symbol_count_contraction_from_baseline():
     −2 SurrogateConfig pair re-classified EXPERIMENTAL_INTERNAL on 2026-08-22
     W4: declaration-only dormant metadata, zero manuscript/example/doc usage;
     +4 registrable-HDP registration surface classified ADVANCED post-0.4.24
-    audit: register_hdp_rule + HDPRule* types, root attrs outside __all__)."""
+    audit: register_hdp_rule + HDPRule* types, root attrs outside __all__;
+    +1 tfne classified ADVANCED for TFNE-IMPORT-01: the compiler module itself
+    is the symbol, reachable as jaxfne.tfne and outside __all__, so its generic
+    names — parse, resolve, realize — stay inside it)."""
     summary = public_surface_summary()
-    assert summary["counts"]["baseline_all"] == 265
+    assert summary["counts"]["baseline_all"] == 266
     assert summary["counts"]["public_exports"] == 190
     assert summary["counts"]["compatibility"] == 13
     assert summary["counts"]["experimental_internal"] == 13
