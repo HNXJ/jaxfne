@@ -932,3 +932,199 @@ def test_malformed_replicate_relations_fail_closed(form):
     else:
         with pytest.raises(TFNEError):
             _realize(_REPL_REL_BASE % form)
+
+
+# --------------------------------------------------------------------------- #
+# 9f. S9 declared composition frontiers (in[A] / out[A])
+# --------------------------------------------------------------------------- #
+
+_FRONTIER_RULES = """
+O[k] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+O[j] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+"""
+
+_FRONTIER_DEFS = """
+A := [C = {E}; N = 1];
+B := [C = {E}; N = 2];
+C := [C = {E}; N = 1];
+P := [C = {E}; N = 1];
+"""
+
+
+def _frontier_realize(body, declarations=""):
+    return _realize(declarations + _FRONTIER_RULES + _FRONTIER_DEFS + body)
+
+
+def test_derived_chain_binds_head_and_tail():
+    """Derived default: `A O[k] B O[k] C` binds A->B and B->C only."""
+    _, _, r = _frontier_realize("V := A O[k] B O[k] C;\nx : V : y\n")
+    assert r.s["n_edges"] == 4  # 1x2 + 2x1; never A->C
+    origins = r.I["rule_origins"]
+    assert origins["r0:O[k]:A>B"]["pre_scopes"] == ["V.A"]
+    assert origins["r1:O[k]:A O[k] B>C"]["post_scopes"] == ["V.C"]
+
+
+def test_braced_and_unbraced_chains_coincide_in_edge_set_derived():
+    """S8: with derived frontiers only, `{A O B} O C` matches `A O B O C`."""
+    _, _, braced = _frontier_realize(
+        "V := {A O[k] B} O[k] C;\nx : V : y\n")
+    _, _, flat = _frontier_realize("V := A O[k] B O[k] C;\nx : V : y\n")
+    assert braced.s["n_edges"] == flat.s["n_edges"] == 4
+
+
+def test_declared_in_restricts_incoming_binding_to_named_members():
+    """`in[M] := [B]` makes `P O[j] M` bind P->B, not P->A."""
+    _, _, declared = _frontier_realize(
+        "M := A O[k] B;\nV := P O[j] M;\nx : V : y\n",
+        "in[M] := [B];\n")
+    assert declared.s["n_edges"] == 4  # 2 (A->B) + 2 (P->B)
+    origins = declared.I["rule_origins"]
+    assert origins["r1:O[j]:P>M"]["post_scopes"] == ["V.M.B"]
+    # The inner rule still binds by name: S10 untouched by the declaration.
+    assert origins["r0:O[k]:A>B"]["pre_scopes"] == ["V.M.A"]
+
+
+def test_declared_out_restricts_outgoing_binding():
+    """`out[M] := [A]` makes `M O[j] C` bind A->C, not B->C."""
+    _, _, declared = _frontier_realize(
+        "M := A O[k] B;\nV := M O[j] C;\nx : V : y\n",
+        "out[M] := [A];\n")
+    origins = declared.I["rule_origins"]
+    assert origins["r1:O[j]:M>C"]["pre_scopes"] == ["V.M.A"]
+    assert declared.s["n_edges"] == 3  # 2 (A->B) + 1 (A->C)
+
+
+def test_declared_in_and_out_together():
+    """Both sides declare independently; each overrides only its own side."""
+    _, _, declared = _frontier_realize(
+        "M := A O[k] B;\nV := P O[j] M O[j] C;\nx : V : y\n",
+        "in[M] := [B];\nout[M] := [A];\n")
+    origins = declared.I["rule_origins"]
+    assert origins["r1:O[j]:P>M"]["post_scopes"] == ["V.M.B"]
+    assert origins["r2:O[j]:P O[j] M>C"]["pre_scopes"] == ["V.M.A"]
+
+
+def test_declared_frontier_makes_braced_differ_from_flat():
+    """S8's load-bearing case: only a declaration changes the edge set."""
+    _, _, flat = _frontier_realize(
+        "M := A O[k] B;\nV := P O[j] M;\nx : V : y\n")
+    _, _, declared = _frontier_realize(
+        "M := A O[k] B;\nV := P O[j] M;\nx : V : y\n",
+        "in[M] := [B];\n")
+    assert flat.s["n_edges"] == 3
+    assert declared.s["n_edges"] == 4
+
+
+def test_nested_declarations_own_only_their_interface():
+    """Derived frontiers compose through declared ones; declarations
+    override per scope: with only `in[A] := [P]`, W's derived in-interface
+    narrows to P; adding `in[W] := [A]` reopens W to A's whole subtree."""
+    body = (_FRONTIER_RULES
+            + "P := [C = {E}; N = 1];\nQ := [C = {E}; N = 2];\n"
+            + "D := P O[k] Q;\nE := P O[k] Q;\n"
+            + "W := D O[k] E;\nV := C O[j] W;\nx : V : y\n"
+            + "C := [C = {E}; N = 1];\n")
+    _, _, narrowed = _realize("in[D] := [P];\n" + body)
+    outer_n = next(v for k, v in narrowed.I["rule_origins"].items()
+                   if ">W" in k)
+    assert outer_n["post_scopes"] == ["V.W.D.P"]
+    _, _, reopened = _realize("in[W] := [D];\nin[D] := [P];\n" + body)
+    origins = reopened.I["rule_origins"]
+    outer = next(v for k, v in origins.items() if ">W" in k)
+    # W's interface is D whole (P and Q subtrees); D's own stays P.
+    assert outer["post_scopes"] == ["V.W.D"]
+    inner_d = origins["r0:O[k]:P>Q"]
+    assert inner_d["pre_scopes"] == ["V.W.D.P"]
+
+
+def test_group_and_nested_mixed_composition_bind_endpoints():
+    """`{A X B} O C`, `A O {B X C}` and nesting bind frontier endpoints."""
+    _, _, r = _frontier_realize(
+        "V := {A X[k] B} O[k] C;\nx : V : y\n")
+    origins = r.I["rule_origins"]
+    outer = next(v for k, v in origins.items() if k.endswith(">C"))
+    assert sorted(outer["pre_scopes"]) == ["V.g0.A", "V.g0.B"]
+    _, _, r2 = _frontier_realize("V := A O[k] {B X[k] C};\nx : V : y\n")
+    origins2 = r2.I["rule_origins"]
+    first = next(v for k, v in origins2.items()
+                 if k.endswith(">{B X[k] C}"))
+    assert first["post_scopes"] == ["V.g0.B", "V.g0.C"]
+
+
+def test_declared_frontier_names_replica_members():
+    """Replica remainders are immediate members: `out[V] := [SEG.3]`."""
+    body = "SEG := [C = {E}; N = 1];\nQ := [C = {E}; N = 1];\nV := SEG^3;\nW := V O[k] Q;\nx : W : y\n"
+    _, _, declared = _realize(
+        "out[V] := [SEG.3];\n" + _FRONTIER_RULES + body)
+    origins = declared.I["rule_origins"]
+    assert origins["r0:O[k]:V>Q"]["pre_scopes"] == ["W.V.SEG.3"]
+    assert declared.s["n_edges"] == 1
+
+
+def test_declared_frontier_applies_under_replicate_join():
+    """`SEG^{3O}` chain tail is the only member an out-declaration can name
+    beyond the derived tail — declaring it changes nothing, pinning that
+    derived and declared tails agree."""
+    body = "SEG := [C = {E}; N = 1];\nQ := [C = {E}; N = 1];\nV := SEG^{3O};\nW := V O[k] Q;\nx : W : y\n"
+    _, _, derived = _realize(_FRONTIER_RULES + body)
+    _, _, declared = _realize(
+        "out[V] := [SEG.3];\n" + _FRONTIER_RULES + body)
+    assert derived.s["n_edges"] == declared.s["n_edges"] == 1
+    assert (derived.I["rule_origins"]["r0:O[k]:V>Q"]["pre_scopes"]
+            == declared.I["rule_origins"]["r0:O[k]:V>Q"]["pre_scopes"]
+            == ["W.V.SEG.3"])
+
+
+@pytest.mark.parametrize("decl,body", [
+    ("in[M] := [Z];", "M := A O[k] B;\nV := P O[j] M;\nx : V : y\n"),
+    ("in[M] := [A.B];", "M := A O[k] B;\nV := P O[j] M;\nx : V : y\n"),
+    ("in[M] := [A, A];", "M := A O[k] B;\nV := P O[j] M;\nx : V : y\n"),
+    ("in[M] := [B];\nin[M] := [A];",
+     "M := A O[k] B;\nV := P O[j] M;\nx : V : y\n"),
+    ("in[Z] := [A];", "M := A O[k] B;\nV := P O[j] M;\nx : V : y\n"),
+    ("in[A] := [P];", "M := A O[k] B;\nV := P O[j] M;\nx : V : y\n"),
+    ("in[M] := [];", "M := A O[k] B;\nV := P O[j] M;\nx : V : y\n"),
+])
+def test_malformed_frontier_declarations_fail_closed(decl, body):
+    """Unknown, nonlocal, duplicated, empty, or rescoped declarations are
+    refused as E_FRONTIER_UNRESOLVED — never partially applied."""
+    with pytest.raises(TFNEError, match="E_FRONTIER_UNRESOLVED"):
+        _frontier_realize(body, decl + "\n")
+
+
+def test_ambiguous_frontier_scope_is_refused():
+    """A bare name matching two nested objects must not be guessed."""
+    body = ("P := [C = {E}; N = 1];\nQ := [C = {E}; N = 2];\n"
+            "A := P O[k] Q;\nB := P O[k] Q;\n"
+            "M := A O[k] B;\nN := A O[k] Q;\n"
+            "V := M O[j] N;\nx : V : y\n")
+    with pytest.raises(TFNEError, match="E_FRONTIER_UNRESOLVED"):
+        _realize("in[A] := [P];\n" + _FRONTIER_RULES + body)
+
+
+def test_frontier_declaration_survives_normalization_replay():
+    """Frontier metadata is realization-affecting: NF carries it exactly."""
+    text = ("in[M] := [B];\nout[M] := [A];\n"
+            "M := A O[k] B;\nV := P O[j] M;\nx : V : y\n")
+    first = normalize(parse(_FRONTIER_RULES + _FRONTIER_DEFS + text))
+    assert "in[M] := [B]" in first and "out[M] := [A]" in first
+    assert normalize(parse(first)) == first
+
+
+def test_frontier_semantics_drive_digest():
+    """Different interfaces are different models: digests must differ."""
+    from jaxfne.tfne import spec_hash
+    base = _FRONTIER_RULES + _FRONTIER_DEFS + "M := A O[k] B;\nV := P O[j] M;\nx : V : y\n"
+    assert (spec_hash(parse(base))
+            != spec_hash(parse("in[M] := [B];\n" + base))
+            != spec_hash(parse("in[M] := [A];\n" + base)))
+
+
+def test_equivalent_serialization_keeps_frontier_semantics():
+    """Statement order and composite-body spelling never reach the axis."""
+    a = ("in[M] := [B];\nM := A O[k] B;\nV := P O[j] M;\nx : V : y\n")
+    b = ("M := B O[k] A;\nV := P O[j] M;\nin[M] := [B];\nx : V : y\n")
+    _, _, ra = _frontier_realize(a)
+    _, _, rb = _frontier_realize(b)
+    assert ra.I["neuron_paths"] == rb.I["neuron_paths"]
+    assert ra.s["n_edges"] == rb.s["n_edges"] == 4

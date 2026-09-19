@@ -134,15 +134,19 @@ substitution, with an unsupported parameter refused rather than dropped (see
 [Pipeline](#pipeline)); typed natural ordering of canonical paths, so source
 declaration order does not determine realization indexing, with
 `order[A] := [...]` as the only override and a declaration that cannot be
-honoured exactly refused rather than partially applied (S20, S20.1).
+honoured exactly refused rather than partially applied (S20, S20.1);
+declared `in[A] := [...]` / `out[A] := [...]` composition frontiers naming
+immediate-member subsets, each side overriding its derived default
+independently, with anything unhonourable refused as
+`E_FRONTIER_UNRESOLVED` (S9).
 
 ### Not yet conformant
 
 | Clause | `tfne/2` requires | `jaxfne.tfne` today |
 |---|---|---|
 | S6 prefix rule application | `O[k](SEG^8)` expands to seven ordered adjacencies | `(` is a parse error |
-| S8 group sensitivity | `{A O B} O C` composes through the composite frontier and is not generally equivalent to `A O B O C` | composes through the frontier correctly; the two still coincide in edge set for ordered chains, and no declared frontier can yet make them differ |
-| S9 frontiers | `in`/`out` reserved as interface path components, declarable, with an X-composite union default and `E_FRONTIER_UNRESOLVED` | derived ordered defaults only (used by S10); `A.out` as a written path resolves to no object |
+| S8 group sensitivity | `{A O B} O C` composes through the composite frontier and is not generally equivalent to `A O B O C` | composes through the frontier correctly; derived-only chains still coincide in edge set, and a declared frontier makes them differ |
+| S9 frontiers | `in`/`out` reserved as interface path components, declarable, with an X-composite union default and `E_FRONTIER_UNRESOLVED` | declared `in[A]`/`out[A]` supported with per-side override and fail-closed validation; X-composite union default kept; `X[k]`-rule frontier override still needs rule bodies (TFNE2-05); `A.out` as a written path still resolves to no object |
 | S11 cross associativity | ungrouped `A X[k] B X[k] C` requires grouping unless `k` declares an associative policy | accepted ungrouped |
 | S12 rule binding | `$L` / `$R` metavariables bind the syntactic operands | `$` is a lexer error; rules carry flat parameter maps |
 | S13 projection identity | redundant explicit projection is invalid | no redundancy check over `(src, dst, mechanism)` |
@@ -188,10 +192,14 @@ implicit source order never carries scientific semantics and that this is
 retained only as temporary compatibility behaviour, so it remains a known
 exception rather than a settled rule.
 
-S9 is listed as outstanding because only its derived defaults exist. Ordered
-composites expose `in(A)` and `out(B)`, which is what S10 adjacency requires;
-declared `in := [...]` / `out := [...]` bodies, the X-composite union default
-and `E_FRONTIER_UNRESOLVED` are not implemented.
+S9 declared frontiers are implemented: `in[A] := [...]` / `out[A] := [...]`
+name immediate-member subsets (replica-aware), each side overriding its
+derived default independently, with unhonourable declarations refused as
+`E_FRONTIER_UNRESOLVED`. Ordered composites still expose `in(A)` and
+`out(B)` by default, which is what S10 adjacency requires; the X-composite
+union default is kept. Still open: an `X[k]`-rule frontier override (needs
+TFNE2-05 rule bodies), and `A.out` as a written path still resolves to no
+object.
 
 ### Rules the compiler fixes where the language leaves room
 

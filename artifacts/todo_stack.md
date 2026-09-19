@@ -199,11 +199,16 @@ what it cannot express rather than realizing a different nervous system.
   `tfne_jdna_completion_receipt.md`. PARAM-04 stays open under JDNA
   ownership (bridge pin test intact, never patched); PARAM-03 refusal
   recorded in code as `mechanism_tau_ms: required`.
-- **TFNE2-04** — S9 frontiers beyond the derived ordered defaults that S10
-  already uses: declared `in := [...]` / `out := [...]` bodies, the
-  X-composite union default, `E_FRONTIER_UNRESOLVED`. Carries the rest of S8
-  — only a declared frontier can make `{A O B} O C` differ in edge set from
-  `A O B O C`.
+- **TFNE2-04** — declared frontiers. **Done.** `in[A] := [...]` /
+  `out[A] := [...]` name immediate-member subsets (replica-aware); a declared
+  side overrides the derived default for that side only; anything
+  unhonourable is `E_FRONTIER_UNRESOLVED`; bare scopes resolve only when
+  unambiguous; frontier metadata is canonical (digest-sensitive). Only a
+  declared frontier can make `{A O B} O C` differ in edge set from
+  `A O B O C`. Receipt:
+  `artifacts/programme/tfne2_conformance_04_receipt.md`. CTX-01's `in`/`out`
+  dependency is unblocked. Carried, not added: X[k]-rule frontier override
+  (needs TFNE2-05 rule bodies).
 - **TFNE2-05** — S12 `$L` / `$R` rule metavariables and rule bodies that
   specify topology, mechanism, parameters, geometry and delay independently.
   Also gives `X[k]` a way to select endpoints, which it currently lacks.

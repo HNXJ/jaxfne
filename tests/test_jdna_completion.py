@@ -177,3 +177,46 @@ def test_develop_origins_follow_declared_vs_defaulted():
     assert layer["geometry"]["distribution"] == ORIGIN_DEFAULT
     assert layer["geometry"]["x_range"] == ORIGIN_DEFAULT
     assert layer["geometry"]["z_range"] == ORIGIN_DECLARED  # depth band
+
+
+# --------------------------------------------------------------------------- #
+# TFNE -> JDNA preservation across declared frontiers (TFNE2-04)
+# --------------------------------------------------------------------------- #
+
+_FRONTIER_SPEC = """
+O[k] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+O[j] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+A := [C = {E}; N = 1];
+B := [C = {E}; N = 2];
+P := [C = {E}; N = 1];
+M := A O[k] B;
+V := P O[j] M;
+x : V : y
+"""
+
+
+def test_declared_frontier_reaches_jdna_completion_unchanged():
+    """JDNA completes leaves, never reinterprets relations: a declared
+    frontier changes edge identities upstream while per-leaf positions
+    and origins under the same K_D are identical."""
+    prog = parse(_FRONTIER_SPEC)
+    derived = realize(tfne_resolve(prog), prog, seed=0)
+    prog_d = parse("in[M] := [B];\n" + _FRONTIER_SPEC)
+    declared = realize(tfne_resolve(prog_d), prog_d, seed=0)
+    # The frontier had an effect upstream: different edge identities.
+    assert derived.s["n_edges"] == 3
+    assert declared.s["n_edges"] == 4
+    assert (derived.I["rule_origins"]["r1:O[j]:P>M"]["post_scopes"]
+            == ["V.M.A"])
+    assert (declared.I["rule_origins"]["r1:O[j]:P>M"]["post_scopes"]
+            == ["V.M.B"])
+    # JDNA sees the same leaves, counts and declarations either way.
+    out_derived = complete_tfne(derived, seed=7)
+    out_declared = complete_tfne(declared, seed=7)
+    assert sorted(out_derived["positions"]) == sorted(
+        out_declared["positions"])
+    for leaf in out_derived["positions"]:
+        assert bool((out_derived["positions"][leaf]
+                     == out_declared["positions"][leaf]).all())
+        assert (out_derived["origins"][leaf]
+                == out_declared["origins"][leaf])

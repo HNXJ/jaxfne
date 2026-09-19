@@ -42,6 +42,9 @@ them so every supported expression has exactly one realization):
    applies to a single named reference. ``A^{nX}`` / ``A^{nO}`` (S6.1)
    develop the instances under ``X`` / sequential ``O``; the braced form
    keeps ``SEG^10 X Q`` meaning replication followed by composition.
+4. ``in[A]`` / ``out[A]`` declare composition frontiers (S9): named
+   properties, like ``order[A]``, naming immediate members of ``A``. A
+   declared side overrides the derived default for that side only.
 4. Proportion-to-count allocation is largest-remainder with declaration-order
    tiebreak, so ``sum_c N[A.c] == N[A]`` holds exactly and deterministically.
 5. Rule applications and bare projections require an explicit ``direction``
@@ -300,6 +303,12 @@ class Program:
     # Only an `order[A] := [...]` statement populates this. Enumeration,
     # structural listing and composition order never do.
     orders: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
+    # `tfne/2` S9: scope name -> {"in": members, "out": members} for the
+    # sides a definition explicitly declares. Only an `in[A] := [...]` /
+    # `out[A] := [...]` statement populates this; a declared side overrides
+    # the derived default for that side only, never the other side.
+    frontiers: Mapping[str, Mapping[str, tuple[str, ...]]] = field(
+        default_factory=dict)
 
 
 # --------------------------------------------------------------------------- #
@@ -342,6 +351,7 @@ class _Parser:
         defs: dict[str, ObjDef] = {}
         rules: dict[str, RuleDef] = {}
         orders: dict[str, tuple[str, ...]] = {}
+        frontiers: dict[str, dict[str, tuple[str, ...]]] = {}
         system: Optional[System] = None
         while self.peek()[0] != "EOF":
             while self.peek()[0] == "SEP":
@@ -355,6 +365,14 @@ class _Parser:
                         f"E_ORDER_DUPLICATE: duplicate order declaration for "
                         f"{scope!r}")
                 orders[scope] = members
+            elif self._is_frontierdef():
+                side, scope, members = self._parse_frontierdef()
+                if side in frontiers.get(scope, {}):
+                    raise TFNEError(
+                        f"E_FRONTIER_UNRESOLVED: duplicate {side} frontier "
+                        f"declaration for {scope!r}; an interface declared "
+                        f"twice cannot be derived uniquely")
+                frontiers.setdefault(scope, {})[side] = members
             elif self._is_ruledef():
                 rule = self._parse_ruledef()
                 if rule.name in rules:
@@ -372,7 +390,46 @@ class _Parser:
             while self.peek()[0] == "SEP":
                 self.next()
         return Program(defs=defs, rules=rules, system=system,
-                       orders=orders)
+                       orders=orders, frontiers=frontiers)
+
+    def _is_frontierdef(self) -> bool:
+        # ("in"|"out") "[" NAME "]" ":="
+        t = self.toks
+        p = self.pos
+        return (
+            p + 2 < len(t)
+            and t[p][0] == "NAME" and t[p][1] in ("in", "out")
+            and t[p + 1] == ("SYM", "[")
+            and t[p + 2][0] == "NAME"
+        )
+
+    def _parse_frontierdef(self) -> tuple[str, str, tuple[str, ...]]:
+        """Parse ``in[A] := [m1, ...]`` / ``out[A] := [m1, ...]`` (S9).
+
+        Frontiers are interface metadata, so — like ``order[A]`` — they take
+        a named property rather than a new operator. Members name immediate
+        members of ``A`` (subset allowed: an interface need not expose every
+        member); validation against the resolved model happens at resolve().
+        """
+        side = self.expect("NAME")                    # "in" / "out"
+        self.expect("SYM", "[")
+        scope = self._parse_order_member()            # bare name or dotted path
+        self.expect("SYM", "]")
+        self.expect("SYM", ":=")
+        self.expect("SYM", "[")
+        members: list[str] = []
+        while not self.at_sym("]"):
+            members.append(self._parse_order_member())
+            if self.at_sym(","):
+                self.next()
+                continue
+            break
+        self.expect("SYM", "]")
+        if not members:
+            raise TFNEError(
+                f"E_FRONTIER_UNRESOLVED: {side}[{scope}] declares no "
+                f"members; an empty interface resolves nothing")
+        return side, scope, tuple(members)
 
     def _is_orderdef(self) -> bool:
         # "order" "[" NAME "]" ":="
@@ -800,6 +857,12 @@ def normalize(program: Program) -> str:
     for scope in sorted(getattr(program, "orders", {})):
         members = ", ".join(getattr(program, "orders")[scope])
         parts.append(f"order[{scope}] := [{members}]")
+    for scope in sorted(getattr(program, "frontiers", {})):
+        for side in ("in", "out"):
+            if side in getattr(program, "frontiers")[scope]:
+                members = ", ".join(
+                    getattr(program, "frontiers")[scope][side])
+                parts.append(f"{side}[{scope}] := [{members}]")
     for name in sorted(program.defs):
         objdef = program.defs[name]
         if objdef.kind == "props":
@@ -981,6 +1044,29 @@ def _natural_path_key(path: str) -> tuple:
     return tuple(_natural_component_key(c) for c in path.split("."))
 
 
+def _scope_children(nodes: Mapping[str, Any],
+                    scope: str) -> list[tuple[str, str]]:
+    """Immediate members of `scope` as `(full path, remainder)` pairs.
+
+    Membership follows resolved parent links, so replicated instances such
+    as ``SEG.1`` are members of their scope even though the remainder
+    contains a dot. Shared by order validation (S20.1) and frontier
+    validation (S9): both name immediate members, never descendants.
+    """
+    out: list[tuple[str, str]] = []
+    for path, rec in nodes.items():
+        parent = getattr(rec, "parent", None)
+        if parent is None:
+            parent = path.rpartition(".")[0] if "." in path else ""
+        if parent != scope:
+            continue
+        if scope and path.startswith(scope + "."):
+            out.append((path, path[len(scope) + 1:]))
+        else:
+            out.append((path, path.rpartition(".")[2]))
+    return out
+
+
 def _declared_ranks(nodes: Mapping[str, Any],
                     orders: Mapping[str, Sequence[str]]
                     ) -> dict[tuple[str, str], int]:
@@ -1013,21 +1099,7 @@ def _declared_ranks(nodes: Mapping[str, Any],
                     f"{candidates!r}; name the full path")
             resolved = candidates[0]
         scope = resolved
-
-        def _remainder(child: str) -> str:
-            if scope and child.startswith(scope + "."):
-                return child[len(scope) + 1:]
-            return child.rpartition(".")[2]
-
-        children: list[str] = []
-        for path, rec in nodes.items():
-            parent = getattr(rec, "parent", None)
-            if parent is None:
-                # Fallback for plain mappings: string parent.
-                parent = path.rpartition(".")[0] if "." in path else ""
-            if parent == scope:
-                children.append(path)
-        child_components = [_remainder(c) for c in children]
+        child_components = [rem for _, rem in _scope_children(nodes, scope)]
 
         normalized: list[str] = []
         for member in members:
@@ -1066,6 +1138,84 @@ def _declared_ranks(nodes: Mapping[str, Any],
         for index, local in enumerate(normalized):
             ranks[(scope, local)] = index
     return ranks
+
+
+def _validate_frontier_members(nodes: Mapping[str, Any], target: str,
+                               side: str, scope_key: str,
+                               members: Sequence[str]) -> tuple[str, ...]:
+    """Validate one declared side into full member paths (`tfne/2` S9).
+
+    A declared frontier names a subset of the scope's immediate members —
+    an interface need not expose everything — but anything it cannot honour
+    exactly is refused with `E_FRONTIER_UNRESOLVED` rather than partially
+    applied: unknown members, descendants rather than members, duplicates.
+    """
+    pairs = _scope_children(nodes, target)
+    by_remainder = {rem: full for full, rem in pairs}
+    seen: set[str] = set()
+    full_paths: list[str] = []
+    for member in members:
+        local = (member[len(target) + 1:]
+                 if member.startswith(target + ".") else member)
+        if local not in by_remainder:
+            if "." in local:
+                raise TFNEError(
+                    f"E_FRONTIER_UNRESOLVED: {side}[{scope_key}] names "
+                    f"{member!r}, which is not an immediate member of "
+                    f"{target!r}; a frontier exposes its own members only")
+            raise TFNEError(
+                f"E_FRONTIER_UNRESOLVED: {side}[{scope_key}] names "
+                f"{member!r}, which is not a member of {target!r}; "
+                f"members are {sorted(by_remainder)!r}")
+        if local in seen:
+            raise TFNEError(
+                f"E_FRONTIER_UNRESOLVED: {side}[{scope_key}] names "
+                f"{local!r} more than once")
+        seen.add(local)
+        full_paths.append(by_remainder[local])
+    return tuple(full_paths)
+
+
+def _verify_frontier_declarations(nodes: Mapping[str, Any],
+                                  frontiers: Mapping[str, Mapping[str, Any]],
+                                  applied: set[str]) -> None:
+    """End-of-resolve check: every declared frontier resolved and applied.
+
+    Bare scope names resolve only when unambiguous against the final model —
+    applying to one of several same-named scopes would complete an interface
+    the author did not single out. Leaf scopes cannot declare: a leaf object
+    exposes only itself.
+    """
+    for scope_key in frontiers:
+        if scope_key in nodes:
+            resolved = scope_key
+        else:
+            candidates = sorted(path for path in nodes
+                                if path.endswith("." + scope_key))
+            if not candidates:
+                raise TFNEError(
+                    f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
+                    f"names no object in the resolved model")
+            if len(candidates) > 1:
+                raise TFNEError(
+                    f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
+                    f"matches {candidates!r}; name the full path")
+            resolved = candidates[0]
+        rec = nodes[resolved]
+        if getattr(rec, "kind", None) != "composite":
+            raise TFNEError(
+                f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
+                f"addresses {resolved!r}, which is a leaf object; a leaf "
+                f"exposes only itself")
+        if resolved.rpartition(".")[2].isdigit():
+            raise TFNEError(
+                f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
+                f"addresses {resolved!r}, which is a replica instance; "
+                f"declare on the scope holding the replicas instead")
+        if resolved not in applied:
+            raise TFNEError(
+                f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
+                f"was never applied during expansion")
 
 
 def _ordering_key(path: str,
@@ -1140,6 +1290,42 @@ class _Resolver:
         self.exclusions: list[RelationRecord] = []
         self.group_counter = 0
         self.relation_counter = 0
+        # Scopes whose declared in/out frontiers were substituted during
+        # expansion. Checked at end of resolve(): a declaration that never
+        # applied names something unresolvable.
+        self.applied_frontiers: set[str] = set()
+
+    def _apply_declared_frontiers(self, target: str,
+                                  inner: _Expansion) -> _Expansion:
+        """Substitute declared `in`/`out` for `target` (`tfne/2` S9).
+
+        Declarations match by exact scope path or by bare name against the
+        nodes expanded so far; final uniqueness is enforced at end of
+        resolve(), so an ambiguous bare name always fails closed. A declared
+        side overrides the derived default for that side only. With no
+        matching declaration the derived expansion passes through unchanged.
+        """
+        hits = [(key, sides) for key, sides in
+                self.program.frontiers.items()
+                if key == target or target.endswith("." + key)]
+        if len(hits) > 1:
+            names = sorted(key for key, _ in hits)
+            raise TFNEError(
+                f"E_FRONTIER_UNRESOLVED: {names!r} all match {target!r}; "
+                f"a scope with competing frontier declarations cannot be "
+                f"derived uniquely")
+        if not hits:
+            return inner
+        scope_key, sides = hits[0]
+        fin, fout = inner.fin, inner.fout
+        if "in" in sides:
+            fin = _validate_frontier_members(
+                self.nodes, target, "in", scope_key, sides["in"])
+        if "out" in sides:
+            fout = _validate_frontier_members(
+                self.nodes, target, "out", scope_key, sides["out"])
+        self.applied_frontiers.add(target)
+        return _Expansion(members=inner.members, fin=fin, fout=fout)
 
     # -- node construction -------------------------------------------- #
     def _add_node(self, node: NodeRecord) -> str:
@@ -1216,7 +1402,9 @@ class _Resolver:
             # S8: the brace is a structural boundary. The composite hands
             # itself upward as one member but composes through its body's
             # frontier, so it is not flattened into the surrounding chain.
-            return _Expansion(members=(path,), fin=inner.fin, fout=inner.fout)
+            return self._apply_declared_frontiers(
+                path, _Expansion(members=(path,), fin=inner.fin,
+                                 fout=inner.fout))
         if isinstance(node, Ordered):
             left = self.expand(node.left, scope)
             right = self.expand(node.right, scope)
@@ -1316,8 +1504,9 @@ class _Resolver:
                 raise TFNEError(f"definition {name!r} expands to nothing")
             # A named definition is a structural boundary like a brace: it
             # composes through its body's frontier, not every member.
-            return _Expansion(members=(target,), fin=inner.fin,
-                              fout=inner.fout)
+            return self._apply_declared_frontiers(
+                target, _Expansion(members=(target,), fin=inner.fin,
+                                   fout=inner.fout))
         # implicit degenerate leaf (valid at cardinality one)
         _check_object_name(name)
         rec = self._object_props({}, where=name, implicit=True)
@@ -1557,6 +1746,8 @@ def resolve(program: Program) -> ExplicitModel:
                       "y": sys.y, "y_type": sys.y_type}
     normalization = normalize(program)
     declared_ranks = _declared_ranks(resolver.nodes, program.orders)
+    _verify_frontier_declarations(
+        resolver.nodes, program.frontiers, resolver.applied_frontiers)
     _nodes_for_key = dict(resolver.nodes)
     return ExplicitModel(nodes=dict(resolver.nodes),
                          # `tfne/2` S20: source declaration order does not
