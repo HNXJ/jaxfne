@@ -1281,3 +1281,147 @@ def test_rule_body_replay_digest_and_serialization():
     _, _, rb = _realize(
         "V := V2 O[k] V1;\n" + a + _LAMINAR + "x : V : y\n")
     assert ra.s["n_edges"] == rb.s["n_edges"] == 1
+
+
+# --------------------------------------------------------------------------- #
+# 9h. S6 prefix application and S14/S25 statement atomicity
+# --------------------------------------------------------------------------- #
+
+_PREFIX_BASE = """
+O[k] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+O[j] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+SEG := [C = {E}; N = 1];
+"""
+
+
+def test_prefix_application_chains_ordered_adjacencies():
+    """`O[k](SEG^3)` records two adjacencies: SEG.1>SEG.2>SEG.3."""
+    _, _, r = _realize(_PREFIX_BASE + "V := O[k](SEG^3);\nx : V : y\n")
+    origins = r.I["rule_origins"]
+    assert origins["r0:O[k]:V.SEG.1>V.SEG.2"]["pre_scopes"] == ["V.SEG.1"]
+    assert origins["r1:O[k]:V.SEG.2>V.SEG.3"]["pre_scopes"] == ["V.SEG.2"]
+    assert r.s["n_edges"] == 2
+
+
+def test_prefix_chain_exposes_head_and_tail():
+    """A prefix chain composes as one: `P O[j] O[k](SEG^3)` binds P to
+    the head only, and the tail onward."""
+    body = ("P := [C = {E}; N = 1];\nQ := [C = {E}; N = 1];\n"
+            "V := P O[j] O[k](SEG^3) O[j] Q;\nx : V : y\n")
+    _, _, r = _realize(_PREFIX_BASE + body)
+    origins = r.I["rule_origins"]
+    assert origins["r2:O[j]:P>O[k](SEG^3)"]["post_scopes"] == ["V.SEG.1"]
+    assert origins["r3:O[j]:P O[j] O[k](SEG^3)>Q"]["pre_scopes"] == [
+        "V.SEG.3"]
+    assert r.s["n_edges"] == 4  # P>1, 1>1, 1>1, 1>Q
+
+
+def test_prefix_degenerate_singleton_binds_nothing():
+    """`O[k](SEG^1)` yields the instance with zero adjacencies."""
+    _, _, r = _realize(_PREFIX_BASE + "V := O[k](SEG^1);\nx : V : y\n")
+    assert r.s["n_edges"] == 0
+    assert r.I["neuron_paths"] == ["V.SEG.1"]
+
+
+def test_prefix_non_replication_target_is_refused():
+    """`O[k](A O B)` is not defined: prefix applies to plain `A^n`."""
+    with pytest.raises(TFNEError, match="plain A\\^n replication"):
+        _realize(_PREFIX_BASE
+                 + "A := [C = {E}; N = 1];\nB := [C = {E}; N = 1];\n"
+                   "V := O[k](A O B);\nx : V : y\n")
+
+
+def test_prefix_cross_form_is_refused():
+    """`X[k](...)` is not defined: X-joined replication is `A^{nX}`."""
+    with pytest.raises(TFNEError, match="X\\[k\\]\\(...\\) is not defined"):
+        _realize(_PREFIX_BASE + "V := X[k](SEG^3);\nx : V : y\n")
+
+
+def test_prefix_applies_body_rules_per_pair():
+    """A body rule chains per instance pair with the instances as operands:
+    `$L`/`$R` address each pair, not the whole set."""
+    body = ("O[pair] := [$L > $R [mech=GABA_A]];\n"
+            "SEG := [C = {E}; N = 1];\n"
+            "V := O[pair](SEG^3);\nx : V : y\n")
+    _, _, r = _realize(body)
+    origins = r.I["rule_origins"]
+    assert origins["r0:O[pair]:$L>$R"]["pre_scopes"] == ["V.SEG.1"]
+    assert origins["r1:O[pair]:$L>$R"]["pre_scopes"] == ["V.SEG.2"]
+    mechs = {c["mechanism"] for c in r.s["connection_table"]}
+    assert mechs == {"GABA_A"}
+
+
+def test_atomic_group_drops_invalid_projection_keeps_valid():
+    """A statement with an invalid resolved projection contributes
+    nothing — no nodes, no relations — while siblings realize fully."""
+    _, _, r = _realize(
+        _PREFIX_BASE
+        + "A := [C = {E}; N = 1];\nB := [C = {E}; N = 2];\n"
+          "V := {A O[k] B; Z.Q > B};\nx : V : y\n")
+    assert r.s["n_edges"] == 2
+    assert list(r.I["rule_origins"]) == ["r0:O[k]:A>B"]
+    assert r.I["neuron_paths"] == ["V.g0.A", "V.g0.B", "V.g0.B"]
+
+
+def test_atomic_group_frontier_uses_surviving_statements():
+    """The group boundary still composes through derived defaults: with
+    only the first statement surviving, `{...} O[j] C` binds the tail B."""
+    _, _, r = _realize(
+        _PREFIX_BASE
+        + "A := [C = {E}; N = 1];\nB := [C = {E}; N = 2];\n"
+          "C := [C = {E}; N = 1];\n"
+          "V := {A O[k] B; Z.Q > B} O[j] C;\nx : V : y\n")
+    origins = r.I["rule_origins"]
+    outer = next(v for k, v in origins.items() if k.endswith(">C"))
+    assert outer["pre_scopes"] == ["V.g0.B"]
+    assert r.s["n_edges"] == 4  # 2 inner + 2 outer
+
+
+def test_atomic_exclusion_drop_does_not_trip_unknown():
+    """A dropped exclusion records nothing, so E_EXCLUSION_UNKNOWN
+    (a staleness guard for recorded exclusions) never fires for it."""
+    _, _, r = _realize(
+        _PREFIX_BASE
+        + "A := [C = {E}; N = 1];\nB := [C = {E}; N = 2];\n"
+          "V := {A O[k] B; Z.Q !> B};\nx : V : y\n")
+    assert r.s["n_edges"] == 2
+
+
+def test_top_level_invalid_projection_still_raises():
+    """Atomicity is contextual to brace groups: the same invalid
+    projection at top level aborts instead of vanishing."""
+    with pytest.raises(TFNEError, match="matches no realized object"):
+        _realize(
+            _PREFIX_BASE
+            + "A := [C = {E}; N = 1];\nB := [C = {E}; N = 2];\n"
+              "x : Z.Q > B : y\n")
+
+
+def test_contradictory_selection_still_raises_in_braces():
+    """Absence is lenient, contradiction is not: a selection against an
+    existing object with a wrong member still raises inside braces."""
+    with pytest.raises(TFNEError, match="not a member"):
+        _realize(
+            _PREFIX_BASE
+            + "A := [C = {E}; N = 1];\nB := [C = {E}; N = 1];\n"
+              "V := {A O[k] B; A[Z] > B};\nx : V : y\n")
+
+
+def test_brace_statements_replay_digest_and_serialize():
+    """`;` statements are canonical: replay-stable, digest-sensitive,
+    and newline-equivalent to `;`."""
+    from jaxfne.tfne import spec_hash
+    a = "V := {A O[k] B; C O[k] D};\n"
+    b = "V := {A O[k] B};\n"
+    defs = ("A := [C = {E}; N = 1];\nB := [C = {E}; N = 1];\n"
+            "C := [C = {E}; N = 1];\nD := [C = {E}; N = 1];\n")
+    first = normalize(parse(_PREFIX_BASE + defs + a + "x : V : y\n"))
+    assert normalize(parse(first)) == first
+    assert "{A O[k] B; C O[k] D}" in first
+    assert (spec_hash(parse(_PREFIX_BASE + defs + a + "x : V : y\n"))
+            != spec_hash(parse(_PREFIX_BASE + defs + b + "x : V : y\n")))
+    _, _, ra = _realize(_PREFIX_BASE + defs + a + "x : V : y\n")
+    _, _, rb = _realize(_PREFIX_BASE + defs
+                        + "V := {A O[k] B\n C O[k] D};\nx : V : y\n")
+    assert ra.s["n_edges"] == rb.s["n_edges"] == 2
+    assert ra.I["neuron_paths"] == rb.I["neuron_paths"]

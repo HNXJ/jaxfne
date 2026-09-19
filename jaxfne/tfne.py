@@ -150,7 +150,7 @@ def _check_lower_name(name: str, role: str) -> str:
 # --------------------------------------------------------------------------- #
 
 _TOKEN_SYMBOLS = (":=", "<>", "!>", "!<", ";", "{", "}", "[", "]", ".", ",",
-                  "^", ":", "=", ">", "<")
+                  "^", ":", "=", ">", "<", "(", ")")
 
 
 def _lex(text: str) -> list[tuple[str, str]]:
@@ -252,6 +252,17 @@ class Group:
 
 
 @dataclass(frozen=True)
+class GroupStmts:
+    """Brace composite with `;`-separated statements (S14/S25 atomicity).
+
+    Each statement expands independently; a statement whose resolved
+    projection is invalid contributes nothing instead of aborting the
+    composite. The group still hands itself upward as one member (S8).
+    """
+    body: tuple[Any, ...]
+
+
+@dataclass(frozen=True)
 class Ordered:
     left: Any  # Expr
     right: Any  # Expr
@@ -286,6 +297,15 @@ class Replicate:
     # S6.1: relation among instances. None = bare `A^n` (instances only);
     # "X" / "O" = `A^{nX}` / `A^{nO}`, instances joined by that operator.
     rel: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class PrefixApply:
+    """S6 prefix rule application: `O[k](SEG^n)` chains rule `k` over the
+    replicated instances as ordered adjacencies. Only `O[k]` is defined;
+    only plain `A^n` replication is a valid target."""
+    rule: str
+    target: Any  # Replicate
 
 
 @dataclass(frozen=True)
@@ -738,6 +758,34 @@ class _Parser:
                 return left
 
     def _parse_unary(self) -> Any:
+        # S6 prefix rule application `O[k](...)` lives in operand position:
+        # after an infix `O[k]` the same tokens are a grouped operand, so
+        # only a leading `O[k](` is the prefix form.
+        if (self.at_name("O") or self.at_name("X")):
+            t = self.toks
+            p = self.pos
+            if (p + 5 < len(t)
+                    and t[p + 1] == ("SYM", "[")
+                    and t[p + 2][0] == "NAME"
+                    and t[p + 3] == ("SYM", "]")
+                    and t[p + 4] == ("SYM", "(")):
+                kind = self.expect("NAME")
+                self.expect("SYM", "[")
+                rule = self.expect("NAME")
+                self.expect("SYM", "]")
+                self.expect("SYM", "(")
+                if kind != "O":
+                    raise TFNEError(
+                        "prefix rule application is O[k](...) (S6); "
+                        "X[k](...) is not defined — X-joined replication "
+                        "is A^{nX} (S6.1)")
+                target = self._parse_expr()
+                self.expect("SYM", ")")
+                if not isinstance(target, Replicate) or target.rel is not None:
+                    raise TFNEError(
+                        f"O[k](...) prefix applies to plain A^n "
+                        f"replication (S6); got {_emit_expr(target)!r}")
+                return PrefixApply(rule=rule, target=target)
         atom = self._parse_atom()
         if self.at_sym("^"):
             self.next()
@@ -780,9 +828,30 @@ class _Parser:
         tok = self.peek()
         if tok == ("SYM", "{"):
             self.next()
-            body = self._parse_expr()
+            # S14/S25: `;`-separated statements, each atomic. SEP is the
+            # separator (so newlines behave exactly like `;`, as at program
+            # level); a trailing separator before `}` is allowed.
+            while self.peek()[0] == "SEP":
+                self.next()
+            first = self._parse_expr()
+            stmts = [first]
+            while True:
+                had_sep = False
+                while self.peek()[0] == "SEP":
+                    self.next()
+                    had_sep = True
+                if self.at_sym("}"):
+                    break
+                if not had_sep:
+                    # `_parse_expr` never consumes a leading SEP, so reaching
+                    # here means juxtaposed expressions, not statements.
+                    raise TFNEError(
+                        f"expected ';' or '}}' in composite; got {self.peek()}")
+                stmts.append(self._parse_expr())
             self.expect("SYM", "}")
-            return Group(body=body)
+            if len(stmts) == 1:
+                return Group(body=first)
+            return GroupStmts(body=tuple(stmts))
         if tok == ("SYM", "("):
             self.next()
             body = self._parse_expr()
@@ -930,6 +999,10 @@ def _emit_expr(node: Any) -> str:
         return s
     if isinstance(node, Group):
         return "{" + _emit_expr(node.body) + "}"
+    if isinstance(node, GroupStmts):
+        return "{" + "; ".join(_emit_expr(s) for s in node.body) + "}"
+    if isinstance(node, PrefixApply):
+        return f"O[{node.rule}]({_emit_expr(node.target)})"
     if isinstance(node, (Ordered, Cross)):
         op = "O" if isinstance(node, Ordered) else "X"
         if node.rule is not None:
@@ -1429,6 +1502,11 @@ class _Resolver:
         # expansion. Checked at end of resolve(): a declaration that never
         # applied names something unresolvable.
         self.applied_frontiers: set[str] = set()
+        # S14/S25 atomicity depth: while expanding brace-group statements,
+        # a statement whose resolved projection is invalid contributes
+        # nothing instead of aborting the composite. All other errors
+        # propagate (resolve() either returns whole or raises).
+        self._brace_atomic = 0
 
     def _apply_declared_frontiers(self, target: str,
                                   inner: _Expansion) -> _Expansion:
@@ -1540,21 +1618,46 @@ class _Resolver:
             return self._apply_declared_frontiers(
                 path, _Expansion(members=(path,), fin=inner.fin,
                                  fout=inner.fout))
+        if isinstance(node, GroupStmts):
+            gid = f"g{self.group_counter}"
+            self.group_counter += 1
+            path = f"{scope}.{gid}" if scope else gid
+            self._add_node(NodeRecord(path=path, name=gid, kind="composite",
+                                      parent=scope or None))
+            members: list[str] = []
+            fin: list[str] = []
+            fout: list[str] = []
+            self._brace_atomic += 1
+            try:
+                for stmt in node.body:
+                    part = self.expand(stmt, path)
+                    members.extend(part.members)
+                    fin.extend(part.fin)
+                    fout.extend(part.fout)
+            finally:
+                self._brace_atomic -= 1
+            if not members:
+                raise TFNEError(f"empty composite group at {path!r}")
+            return self._apply_declared_frontiers(
+                path, _Expansion(members=(path,), fin=tuple(fin),
+                                 fout=tuple(fout)))
         if isinstance(node, Ordered):
             left = self.expand(node.left, scope)
             right = self.expand(node.right, scope)
-            if node.rule is not None:
+            if node.rule is not None and left.fout and right.fin:
                 # S10: a rule binds its own adjacency only -- the left
                 # operand's out frontier to the right operand's in frontier.
                 # Operands accumulated earlier in the chain are not reachable
                 # here, so A O[k] B O[j] C yields k(A,B) and j(B,C), never A>C.
+                # An atomicly-dropped side leaves an empty frontier: binding
+                # nothing is recorded (fin/fout are never empty otherwise).
                 self._record_rule(node, left, right)
             return _Expansion(members=left.members + right.members,
                               fin=left.fin, fout=right.fout)
         if isinstance(node, Cross):
             left = self.expand(node.left, scope)
             right = self.expand(node.right, scope)
-            if node.rule is not None:
+            if node.rule is not None and left.members and right.members:
                 # X is nonordered: it relates its operands rather than an
                 # adjacency, and binds them whole. Per-operand endpoint
                 # selection inside a body is $L/$R (S12).
@@ -1565,6 +1668,10 @@ class _Resolver:
         if isinstance(node, Project):
             left = self._endpoint_members(node.left, scope, "projection")
             right = self._endpoint_members(node.right, scope, "projection")
+            if not left or not right:
+                # Atomicly dropped: an invalid resolved projection
+                # contributes nothing (S14) — no relation, no members.
+                return _Expansion(members=(), fin=(), fout=())
             group = None
             if node.direction == "<>":
                 group = (f"projection:direct[-]:{_emit_expr(node.left)}<>"
@@ -1580,6 +1687,10 @@ class _Resolver:
         if isinstance(node, Exclude):
             left = self._endpoint_members(node.left, scope, "exclusion")
             right = self._endpoint_members(node.right, scope, "exclusion")
+            if not left or not right:
+                # Atomicly dropped exclusion records nothing: with no routes
+                # it cannot match, and must not trip E_EXCLUSION_UNKNOWN.
+                return _Expansion(members=(), fin=(), fout=())
             rec = self._record_relation(
                 "exclusion", "direct", None, node.direction,
                 _emit_expr(node.left), _emit_expr(node.right), left, right)
@@ -1590,6 +1701,22 @@ class _Resolver:
             if node.rel is None:
                 return self._expand_replicate(node, scope)
             return self._expand_replicate_joined(node, scope)
+        if isinstance(node, PrefixApply):
+            # S6: `O[k](SEG^n)` chains rule k over the instances as ordered
+            # adjacencies: SEG.1 O[k] SEG.2 ... O[k] SEG.n. Degenerate n=1
+            # yields the instance with no adjacencies. Each pair expands
+            # through the ordinary rule path, so body rules apply per pair
+            # with the instances as operands.
+            rep = self._expand_replicate(node.target, scope)
+            paths = list(rep.members)
+            for pre, post in zip(paths, paths[1:]):
+                self._record_rule(
+                    Ordered(left=Ref(segments=(pre,)),
+                            right=Ref(segments=(post,)),
+                            rule=node.rule),
+                    _leaf_expansion(pre), _leaf_expansion(post))
+            return _Expansion(members=tuple(paths),
+                              fin=(paths[0],), fout=(paths[-1],))
         raise TFNEError(f"cannot expand {node!r}")
 
     def _expand_ref(self, segments: Sequence[str],
@@ -1721,6 +1848,12 @@ class _Resolver:
                           role: str) -> list[str]:
         members = self.expand_endpoint(node, scope)
         if not members:
+            # S14/S25 atomicity: inside a brace-group statement, a resolved
+            # projection with no members contributes nothing instead of
+            # aborting the composite. Outside, it stays a hard error —
+            # an empty endpoint is never silently valid at top level.
+            if self._brace_atomic:
+                return []
             raise TFNEError(f"{role} endpoint expands to nothing")
         return members
 
@@ -1748,6 +1881,12 @@ class _Resolver:
             # (single defined name: expand the definition via _expand_ref)
             if isinstance(node, Ref) and len(node.segments) == 1:
                 return list(self._expand_ref(node.segments, scope).members)
+            if self._brace_atomic:
+                # S14/S25 atomicity: an endpoint resolving to nothing drops
+                # its statement. A contradictory selection against an
+                # existing object still raises (see _find_paths): absence
+                # is lenient, contradiction is not.
+                return []
             raise TFNEError(
                 f"projection endpoint {label!r} matches no realized object")
         if isinstance(node, Group):

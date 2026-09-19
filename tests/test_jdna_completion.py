@@ -220,3 +220,31 @@ def test_declared_frontier_reaches_jdna_completion_unchanged():
                      == out_declared["positions"][leaf]).all())
         assert (out_derived["origins"][leaf]
                 == out_declared["origins"][leaf])
+
+
+# --------------------------------------------------------------------------- #
+# TFNE -> JDNA preservation across atomic groups (TFNE2-06)
+# --------------------------------------------------------------------------- #
+
+_ATOMIC_SPEC = """
+O[k] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5];
+A := [C = {E}; N = 1];
+B := [C = {E}; N = 2];
+%s
+x : V : y
+"""
+
+
+def test_atomically_dropped_statement_leaves_no_jdna_trace():
+    """An atomically dropped projection creates no nodes, so completion
+    of the atomic program is identical to completion without it."""
+    dropped = _ATOMIC_SPEC % "V := {A O[k] B; Z.Q > B};"
+    plain = _ATOMIC_SPEC % "V := {A O[k] B};"
+    r_drop = realize(tfne_resolve(parse(dropped)), parse(dropped), seed=0)
+    r_plain = realize(tfne_resolve(parse(plain)), parse(plain), seed=0)
+    assert r_drop.I["neuron_paths"] == r_plain.I["neuron_paths"]
+    out_drop = complete_tfne(r_drop, seed=7)
+    out_plain = complete_tfne(r_plain, seed=7)
+    for leaf in out_plain["positions"]:
+        assert bool((out_drop["positions"][leaf]
+                     == out_plain["positions"][leaf]).all())

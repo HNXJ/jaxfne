@@ -220,9 +220,15 @@ what it cannot express rather than realizing a different nervous system.
   `artifacts/programme/tfne2_conformance_05_receipt.md`. Carried, not
   added: `X[k]`-rule frontier override (needs a language decision on
   interface-declaring rule syntax) and per-statement geometry/delay.
-- **TFNE2-06** — S14/S25 statement atomicity: `;`-separated statements inside a
-  composite, each atomic, a statement with an invalid resolved projection
-  contributing nothing. Carries S6 prefix rule application `O[k](SEG^n)`.
+- **TFNE2-06** — S14/S25 statement atomicity. **Done.** Atomicity is
+  contextual (`internal != exposed != atomic`): `{s1; s2}` expands each
+  statement independently; an invalid resolved projection contributes
+  nothing (no nodes/relations/exclusions) while siblings realize fully;
+  top-level invalid projections still abort and contradictory selections
+  still raise. Carried S6 `O[k](SEG^n)` prefix chains rule `k` over
+  instances with head/tail frontiers (only `O[k]` over plain `A^n`;
+  `(`/`)` lexed, previously hard errors). Receipt:
+  `artifacts/programme/tfne2_conformance_06_receipt.md`.
 - **TFNE2-07** — S25 semantic failure vocabulary (`E_ADDRESS_UNKNOWN`,
   `E_FRONTIER_UNRESOLVED`, `E_MECHANISM_UNRESOLVED`,
   `E_MECHANISM_NOT_PERMITTED`, `E_PROJECTION_REDUNDANT`,
