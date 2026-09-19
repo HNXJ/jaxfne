@@ -1510,3 +1510,133 @@ def test_mechanism_tau_is_digest_sensitive():
     b = "O[k] := [direction = >; mechanism = FOO; tau_ms = 4.5];\n"
     leaves = "A := [C = {E}; N = 1];\nB := [C = {E}; N = 1];\nx : A O[k] B : y\n"
     assert spec_hash(parse(a + leaves)) != spec_hash(parse(b + leaves))
+
+
+# --------------------------------------------------------------------------- #
+# 9j. S25 failure taxonomy, S13 redundancy, S11 grouping
+# --------------------------------------------------------------------------- #
+
+def test_failure_classes_are_typed_tfnerrors():
+    """Every semantic class subclasses TFNEError: old handlers keep
+    working while new code can match precisely."""
+    import jaxfne.tfne as T
+    for cls in (T.TFNEAddressUnknown, T.TFNEAmbiguousExpansion,
+                T.TFNEExclusionUnknown, T.TFNEFrontierUnresolved,
+                T.TFNEInvalidProportion, T.TFNEMechanismNotPermitted,
+                T.TFNEMechanismUnresolved, T.TFNEMissingPolicy,
+                T.TFNEOrderViolation, T.TFNEProjectionRedundant):
+        assert issubclass(cls, TFNEError)
+        assert issubclass(cls, ValueError)
+
+
+@pytest.mark.parametrize("spec,cls,code", [
+    ("O[k] := [L9 > L3];\n"
+     "L2 := [C = {E}; N = 1];\nL3 := [C = {E}; N = 1];\n"
+     "V1 := L2 O L3;\nV2 := L2 O L3;\nV := V1 O[k] V2;\nx : V : y\n",
+     "TFNEAddressUnknown", "E_ADDRESS_UNKNOWN"),
+    ("in[M] := [Z];\n"
+     "O[k] := [direction = >; mechanism = AMPA];\n"
+     "A := [C = {E}; N = 1];\nB := [C = {E}; N = 1];\n"
+     "M := A O[k] B;\nV := M;\nx : V : y\n",
+     "TFNEFrontierUnresolved", "E_FRONTIER_UNRESOLVED"),
+    ("O[k] := [direction = >; mechanism = GABA];\n"
+     "A := [C = {E}; N = 1];\nB := [C = {E}; N = 1];\n"
+     "V := A O[k] B;\nx : V : y\n",
+     "TFNEMechanismUnresolved", "E_MECHANISM_UNRESOLVED"),
+    ("O[k] := [direction = >; mechanism = AMPA; tau_ms = 9.9];\n"
+     "A := [C = {E}; N = 1];\nB := [C = {E}; N = 1];\n"
+     "V := A O[k] B;\nx : V : y\n",
+     "TFNEMechanismNotPermitted", "E_MECHANISM_NOT_PERMITTED"),
+    ("order[V] := [L2];\n"
+     "L1 := [C = {E}; N = 1];\nL2 := [C = {E}; N = 1];\n"
+     "V := L1 O L2;\nx : V : y\n",
+     "TFNEOrderViolation", "E_ORDER_INCOMPLETE"),
+    ("A := [C = {E, PV}; P = {E: 0.5, PV: 0.6}; N = 1];\n"
+     "B := [C = {E}; N = 1];\n"
+     "V := A O B;\nx : V : y\n",
+     "TFNEInvalidProportion", "proportion"),
+    ("A := [C = {E, PV}; N = 2];\n"
+     "B := [C = {E}; N = 1];\n"
+     "V := A O B;\nx : V : y\n",
+     "TFNEMissingPolicy", "P required"),
+])
+def test_semantic_failures_raise_typed_classes(spec, cls, code):
+    """Each taxonomy class fires on its own trigger with its code intact."""
+    import jaxfne.tfne as T
+    klass = getattr(T, cls)
+    with pytest.raises(klass, match=code):
+        # Mechanism cases fail at the kinetics point, not at resolve().
+        if cls.startswith("TFNEMechanism"):
+            from jaxfne.tfne import to_neuronal_tensor
+            to_neuronal_tensor(resolve(parse(spec)))
+        else:
+            _realize(spec)
+    with pytest.raises(TFNEError, match=code):
+        if cls.startswith("TFNEMechanism"):
+            from jaxfne.tfne import to_neuronal_tensor
+            to_neuronal_tensor(resolve(parse(spec)))
+        else:
+            _realize(spec)
+
+
+def test_redundant_bare_projection_is_refused():
+    """A bare projection identical to rule output is invalid — even when
+    the rule came from a body statement. Sharing one group scope makes
+    the identities coincide exactly."""
+    base = ("O[k] := [direction = >];\n"
+            "A := [C = {E}; N = 1];\nB := [C = {E}; N = 1];\n")
+    with pytest.raises(TFNEError, match="E_PROJECTION_REDUNDANT") as excinfo:
+        _realize(base + "V := {A O[k] B; A > B};\nx : V : y\n")
+    assert type(excinfo.value).__name__ == "TFNEProjectionRedundant"
+    # Different mechanism, same route: distinct identities, allowed.
+    _, _, r = _realize(
+        "O[k] := [direction = >; mechanism = AMPA];\n"
+        "A := [C = {E}; N = 1];\nB := [C = {E}; N = 1];\n"
+        "V := {A O[k] B; A > B};\nx : V : y\n")
+    assert r.s["n_edges"] == 2
+
+
+def test_partial_overlap_is_still_redundant():
+    """S14 requires explicit additions disjoint from G_0, checked at leaf
+    identity: a coarser bare scope over a generated leaf route is refused
+    rather than double-counting its edges."""
+    with pytest.raises(TFNEError, match="E_PROJECTION_REDUNDANT"):
+        _realize(
+            "O[k] := [direction = >];\n"
+            "A := [C = {E}; N = 1];\nB := [C = {E}; N = 1];\n"
+            "C := [C = {E}; N = 1];\n"
+            "Q := A O C;\nW := B;\n"
+            "V := {Q O[k] W; Q > W};\nx : V : y\n")
+
+
+def test_ungrouped_same_rule_cross_is_refused():
+    """`A X[k] B X[k] C` has no unique association: group it or declare
+    the policy. Grouping, definition boundaries, and differing rules
+    keep working."""
+    import jaxfne.tfne as T
+    cells = ("A := [C = {E}; N = 1];\nB := [C = {E}; N = 1];\n"
+             "C := [C = {E}; N = 1];\n")
+    rule = "X[k] := [direction = <>; mechanism = AMPA];\n"
+    with pytest.raises(T.TFNEAmbiguousExpansion,
+                       match="E_AMBIGUOUS_EXPANSION"):
+        _realize(rule + cells + "V := A X[k] B X[k] C;\nx : V : y\n")
+    # Braces group.
+    _, _, grouped = _realize(rule + cells
+                             + "V := {A X[k] B} X[k] C;\nx : V : y\n")
+    assert grouped.s["n_edges"] == 6  # 2 inner + 2x1x2 outer
+    # Definition boundaries group.
+    _, _, named = _realize(rule + cells
+                           + "M := A X[k] B;\nV := M X[k] C;\nx : V : y\n")
+    assert named.s["n_edges"] == 6
+    # Differing rules were never ambiguous: left-assoc stands.
+    diff = ("X[k] := [direction = <>; mechanism = AMPA];\n"
+            "X[j] := [direction = <>; mechanism = AMPA];\n" + cells
+            + "V := A X[k] B X[j] C;\nx : V : y\n")
+    _, _, r = _realize(diff)
+    assert r.s["n_edges"] == 6  # 2 inner + 2x1x2 outer
+    # Declared associative policy escapes the refusal.
+    policy = ("X[k] := [direction = <>; mechanism = AMPA;\n"
+              "         associative = true];\n" + cells
+              + "V := A X[k] B X[k] C;\nx : V : y\n")
+    _, _, passe = _realize(policy)
+    assert passe.s["n_edges"] == 6

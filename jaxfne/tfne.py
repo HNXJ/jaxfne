@@ -86,6 +86,16 @@ import numpy as np
 
 __all__ = [
     "TFNEError",
+    "TFNEAddressUnknown",
+    "TFNEAmbiguousExpansion",
+    "TFNEExclusionUnknown",
+    "TFNEFrontierUnresolved",
+    "TFNEInvalidProportion",
+    "TFNEMechanismNotPermitted",
+    "TFNEMechanismUnresolved",
+    "TFNEMissingPolicy",
+    "TFNEOrderViolation",
+    "TFNEProjectionRedundant",
     "Program",
     "ExplicitModel",
     "Realization",
@@ -131,6 +141,55 @@ _PN_TOL = 1e-9
 
 class TFNEError(ValueError):
     """Deterministic TFNE specification/realization failure."""
+
+
+# S25 failure taxonomy: semantic failure classes, each a TFNEError so
+# existing handlers keep working. Parser/lexer structural errors stay
+# plain TFNEError — the vocabulary is semantic, not parser-specific.
+class TFNEAddressUnknown(TFNEError):
+    """A path or member reference resolving to nothing (S7/S25)."""
+
+
+class TFNEAmbiguousExpansion(TFNEError):
+    """An expansion with no unique reading: ungrouped same-rule X chains
+    (S11) and other ambiguous/nonunique expansions (S25)."""
+
+
+class TFNEExclusionUnknown(TFNEError):
+    """An exclusion matching no generated projection (S14/S25)."""
+
+
+class TFNEFrontierUnresolved(TFNEError):
+    """A declared or required interface that cannot be derived uniquely
+    (S9/S25)."""
+
+
+class TFNEInvalidProportion(TFNEError):
+    """An invalid proportion, count, or type specification in a
+    declaration body (S5/S25)."""
+
+
+class TFNEMechanismUnresolved(TFNEError):
+    """A required mechanism with no resolvable identity (S13/S25)."""
+
+
+class TFNEMechanismNotPermitted(TFNEError):
+    """A mechanism known but inadmissible here: reserved namespace,
+    contradictory canonical kinetics, or inadmissible definition
+    (S13/S25)."""
+
+
+class TFNEMissingPolicy(TFNEError):
+    """A required realization/allocation policy the specification does
+    not supply (S5/S25)."""
+
+
+class TFNEOrderViolation(TFNEError):
+    """An order declaration that cannot be honoured exactly (S20.1)."""
+
+
+class TFNEProjectionRedundant(TFNEError):
+    """An explicit projection identical to generated output (S13/S25)."""
 
 
 # --------------------------------------------------------------------------- #
@@ -448,14 +507,14 @@ class _Parser:
             if self._is_orderdef():
                 scope, members = self._parse_orderdef()
                 if scope in orders:
-                    raise TFNEError(
+                    raise TFNEOrderViolation(
                         f"E_ORDER_DUPLICATE: duplicate order declaration for "
                         f"{scope!r}")
                 orders[scope] = members
             elif self._is_frontierdef():
                 side, scope, members = self._parse_frontierdef()
                 if side in frontiers.get(scope, {}):
-                    raise TFNEError(
+                    raise TFNEFrontierUnresolved(
                         f"E_FRONTIER_UNRESOLVED: duplicate {side} frontier "
                         f"declaration for {scope!r}; an interface declared "
                         f"twice cannot be derived uniquely")
@@ -513,7 +572,7 @@ class _Parser:
             break
         self.expect("SYM", "]")
         if not members:
-            raise TFNEError(
+            raise TFNEFrontierUnresolved(
                 f"E_FRONTIER_UNRESOLVED: {side}[{scope}] declares no "
                 f"members; an empty interface resolves nothing")
         return side, scope, tuple(members)
@@ -551,7 +610,7 @@ class _Parser:
             break
         self.expect("SYM", "]")
         if not members:
-            raise TFNEError(
+            raise TFNEOrderViolation(
                 f"E_ORDER_EMPTY: order[{scope}] declares no members")
         return scope, tuple(members)
 
@@ -570,7 +629,7 @@ class _Parser:
                 self.next()
                 tail = tok[1][1:]
                 if not tail.isdigit():
-                    raise TFNEError(
+                    raise TFNEOrderViolation(
                         f"E_ORDER_MEMBER_INVALID: {name!r} has a malformed "
                         f"replica index {tok[1]!r}")
                 parts.append(tail)
@@ -1180,11 +1239,13 @@ def _allocate_counts(cell_types: Sequence[str],
     if proportions is not None:
         for c, p in proportions.items():
             if c not in ctypes:
-                raise TFNEError(f"{where}: proportion member {c!r} not in C")
+                raise TFNEInvalidProportion(
+                    f"{where}: proportion member {c!r} not in C")
             if not (0.0 <= float(p) <= 1.0):
-                raise TFNEError(f"{where}: proportion {c}={p} outside [0,1]")
+                raise TFNEInvalidProportion(
+                    f"{where}: proportion {c}={p} outside [0,1]")
         if abs(sum(float(p) for p in proportions.values()) - 1.0) > 1e-6:
-            raise TFNEError(
+            raise TFNEInvalidProportion(
                 f"{where}: proportions sum to "
                 f"{sum(float(p) for p in proportions.values())}, not 1"
             )
@@ -1192,26 +1253,29 @@ def _allocate_counts(cell_types: Sequence[str],
         counts = {c: int(total[c]) for c in total}
         for c in counts:
             if c not in ctypes:
-                raise TFNEError(f"{where}: count member {c!r} not in C")
+                raise TFNEInvalidProportion(
+                    f"{where}: count member {c!r} not in C")
         missing = [c for c in ctypes if c not in counts]
         if missing:
-            raise TFNEError(f"{where}: N map missing members {missing}")
+            raise TFNEMissingPolicy(
+                f"{where}: N map missing members {missing}")
         n_total = sum(counts.values())
         if proportions is not None:
             for c in ctypes:
                 if abs(counts[c] - proportions[c] * n_total) >= 1.0:
-                    raise TFNEError(
+                    raise TFNEInvalidProportion(
                         f"{where}: N map inconsistent with P for {c!r}")
         derived = {c: counts[c] / n_total for c in ctypes} if n_total else {
             c: 0.0 for c in ctypes}
         return counts, derived
     n_total = 1 if total is None else int(total)
     if n_total < 1:
-        raise TFNEError(f"{where}: N must be >= 1")
+        raise TFNEInvalidProportion(f"{where}: N must be >= 1")
     if proportions is None:
         if len(ctypes) == 1:
             return {ctypes[0]: n_total}, {ctypes[0]: 1.0}
-        raise TFNEError(f"{where}: P required when C has members {ctypes}")
+        raise TFNEMissingPolicy(
+            f"{where}: P required when C has members {ctypes}")
     exact = [float(proportions[c]) * n_total for c in ctypes]
     base = [int(np.floor(v)) for v in exact]
     remainder = n_total - sum(base)
@@ -1321,11 +1385,11 @@ def _declared_ranks(nodes: Mapping[str, Any],
             candidates = sorted(path for path in nodes
                                 if path.endswith("." + scope))
             if not candidates:
-                raise TFNEError(
+                raise TFNEOrderViolation(
                     f"E_ORDER_SCOPE_UNKNOWN: order[{scope}] names no object "
                     f"in the resolved model")
             if len(candidates) > 1:
-                raise TFNEError(
+                raise TFNEOrderViolation(
                     f"E_ORDER_SCOPE_AMBIGUOUS: order[{scope}] matches "
                     f"{candidates!r}; name the full path")
             resolved = candidates[0]
@@ -1337,7 +1401,7 @@ def _declared_ranks(nodes: Mapping[str, Any],
             local = (member[len(scope) + 1:]
                      if member.startswith(scope + ".") else member)
             if "." in local and local not in child_components:
-                raise TFNEError(
+                raise TFNEOrderViolation(
                     f"E_ORDER_NOT_IMMEDIATE: order[{scope}] names "
                     f"{member!r}, which is not an immediate member of "
                     f"{scope!r}; a declaration orders its own members only")
@@ -1346,21 +1410,21 @@ def _declared_ranks(nodes: Mapping[str, Any],
         seen: set[str] = set()
         for local in normalized:
             if local in seen:
-                raise TFNEError(
+                raise TFNEOrderViolation(
                     f"E_ORDER_DUPLICATE_MEMBER: order[{scope}] names "
                     f"{local!r} more than once")
             seen.add(local)
 
         unknown = [m for m in normalized if m not in child_components]
         if unknown:
-            raise TFNEError(
+            raise TFNEOrderViolation(
                 f"E_ORDER_MEMBER_UNKNOWN: order[{scope}] names {unknown!r}, "
                 f"which are not members of {scope!r}; members are "
                 f"{sorted(child_components)!r}")
 
         missing = [c for c in child_components if c not in seen]
         if missing:
-            raise TFNEError(
+            raise TFNEOrderViolation(
                 f"E_ORDER_INCOMPLETE: order[{scope}] omits {sorted(missing)!r}; "
                 f"an explicit order must name every immediate member exactly "
                 f"once, otherwise the omitted members would silently fall back "
@@ -1390,16 +1454,16 @@ def _validate_frontier_members(nodes: Mapping[str, Any], target: str,
                  if member.startswith(target + ".") else member)
         if local not in by_remainder:
             if "." in local:
-                raise TFNEError(
+                raise TFNEFrontierUnresolved(
                     f"E_FRONTIER_UNRESOLVED: {side}[{scope_key}] names "
                     f"{member!r}, which is not an immediate member of "
                     f"{target!r}; a frontier exposes its own members only")
-            raise TFNEError(
+            raise TFNEFrontierUnresolved(
                 f"E_FRONTIER_UNRESOLVED: {side}[{scope_key}] names "
                 f"{member!r}, which is not a member of {target!r}; "
                 f"members are {sorted(by_remainder)!r}")
         if local in seen:
-            raise TFNEError(
+            raise TFNEFrontierUnresolved(
                 f"E_FRONTIER_UNRESOLVED: {side}[{scope_key}] names "
                 f"{local!r} more than once")
         seen.add(local)
@@ -1424,27 +1488,27 @@ def _verify_frontier_declarations(nodes: Mapping[str, Any],
             candidates = sorted(path for path in nodes
                                 if path.endswith("." + scope_key))
             if not candidates:
-                raise TFNEError(
+                raise TFNEFrontierUnresolved(
                     f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
                     f"names no object in the resolved model")
             if len(candidates) > 1:
-                raise TFNEError(
+                raise TFNEFrontierUnresolved(
                     f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
                     f"matches {candidates!r}; name the full path")
             resolved = candidates[0]
         rec = nodes[resolved]
         if getattr(rec, "kind", None) != "composite":
-            raise TFNEError(
+            raise TFNEFrontierUnresolved(
                 f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
                 f"addresses {resolved!r}, which is a leaf object; a leaf "
                 f"exposes only itself")
         if resolved.rpartition(".")[2].isdigit():
-            raise TFNEError(
+            raise TFNEFrontierUnresolved(
                 f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
                 f"addresses {resolved!r}, which is a replica instance; "
                 f"declare on the scope holding the replicas instead")
         if resolved not in applied:
-            raise TFNEError(
+            raise TFNEFrontierUnresolved(
                 f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
                 f"was never applied during expansion")
 
@@ -1546,7 +1610,7 @@ class _Resolver:
                 if key == target or target.endswith("." + key)]
         if len(hits) > 1:
             names = sorted(key for key, _ in hits)
-            raise TFNEError(
+            raise TFNEFrontierUnresolved(
                 f"E_FRONTIER_UNRESOLVED: {names!r} all match {target!r}; "
                 f"a scope with competing frontier declarations cannot be "
                 f"derived uniquely")
@@ -1579,7 +1643,7 @@ class _Resolver:
         if isinstance(raw_c, Mapping) and "set" in raw_c:
             ctypes = tuple(raw_c["set"])
         else:
-            raise TFNEError(f"{where}: C must be a {{type, ...}} set")
+            raise TFNEInvalidProportion(f"{where}: C must be a {{type, ...}} set")
         # Cell-type members use the algebra's own capitalized convention
         # (C:={E,PV,SST,VIP}); they live in the selection namespace bound by
         # L[C], not the structural-object namespace, so the reserved-letter
@@ -1588,7 +1652,8 @@ class _Resolver:
         proportions = None
         if raw_p is not None:
             if not (isinstance(raw_p, Mapping) and "map" in raw_p):
-                raise TFNEError(f"{where}: P must be a {{type: p, ...}} map")
+                raise TFNEInvalidProportion(
+                    f"{where}: P must be a {{type: p, ...}} map")
             proportions = {k: float(v) for k, v in raw_p["map"].items()}
         raw_n = props.get("N")
         total: Any = None
@@ -1598,17 +1663,19 @@ class _Resolver:
             elif isinstance(raw_n, (int, float)):
                 total = int(raw_n)
             else:
-                raise TFNEError(f"{where}: N must be an integer or map")
-        counts, derived = _allocate_counts(ctypes, proportions, total, where)
+                raise TFNEInvalidProportion(
+                    f"{where}: N must be an integer or map")
+            counts, derived = _allocate_counts(ctypes, proportions, total, where)
         raw_g = props.get("G")
         geometry: dict[str, Any] = {}
         if raw_g is not None:
             if not (isinstance(raw_g, Mapping) and "dict" in raw_g):
-                raise TFNEError(f"{where}: G must be a [k = v; ...] body")
+                raise TFNEInvalidProportion(
+                    f"{where}: G must be a [k = v; ...] body")
             geometry = dict(raw_g["dict"])
         model = props.get("model", DEFAULT_MODEL)
         if isinstance(model, Mapping):
-            raise TFNEError(f"{where}: model must be a name")
+            raise TFNEInvalidProportion(f"{where}: model must be a name")
         model = str(model)
         return NodeRecord(path="", name="", kind="object", parent=None,
                           cell_types=ctypes, counts=counts,
@@ -1680,7 +1747,28 @@ class _Resolver:
         if isinstance(node, Cross):
             left = self.expand(node.left, scope)
             right = self.expand(node.right, scope)
-            if node.rule is not None and left.members and right.members:
+            if node.rule is not None:
+                # S11: X is not globally associative. An ungrouped chain
+                # under one rule (`A X[k] B X[k] C`) requires grouping
+                # unless the rule declares an associative policy
+                # (`associative = true`). Braces, parens-free groups, and
+                # named-definition boundaries all count as grouping: only
+                # direct syntactic nesting of bare Cross nodes refuses.
+                for nested in (node.left, node.right):
+                    if (isinstance(nested, Cross)
+                            and nested.rule == node.rule):
+                        ruledef = self.program.rules.get(node.rule)
+                        policy = ""
+                        if ruledef is not None:
+                            policy = str(ruledef.params.get(
+                                "associative", "")).lower()
+                        if policy != "true":
+                            raise TFNEAmbiguousExpansion(
+                                f"E_AMBIGUOUS_EXPANSION: ungrouped "
+                                f"{_emit_expr(nested)} X[{node.rule}] ... "
+                                f"has no unique association; group it "
+                                f"({{...}}) or declare "
+                                f"`associative = true` on X[{node.rule}]")
                 # X is nonordered: it relates its operands rather than an
                 # adjacency, and binds them whole. Per-operand endpoint
                 # selection inside a body is $L/$R (S12).
@@ -1877,7 +1965,7 @@ class _Resolver:
             # an empty endpoint is never silently valid at top level.
             if self._brace_atomic:
                 return []
-            raise TFNEError(f"{role} endpoint expands to nothing")
+            raise TFNEAddressUnknown(f"{role} endpoint expands to nothing")
         return members
 
     def expand_endpoint(self, node: Any, scope: str) -> list[str]:
@@ -1910,7 +1998,7 @@ class _Resolver:
                 # existing object still raises (see _find_paths): absence
                 # is lenient, contradiction is not.
                 return []
-            raise TFNEError(
+            raise TFNEAddressUnknown(
                 f"projection endpoint {label!r} matches no realized object")
         if isinstance(node, Group):
             return list(self.expand(node, scope).members)
@@ -2036,7 +2124,7 @@ class _Resolver:
                             and scope not in hits:
                         hits.append(scope)
             if not hits:
-                raise TFNEError(
+                raise TFNEAddressUnknown(
                     f"E_ADDRESS_UNKNOWN: rule {rule!r} names {ref!r}, "
                     f"which is absent from its operand "
                     f"{[str(m) for m in members]!r}")
@@ -2155,6 +2243,7 @@ def resolve(program: Program) -> ExplicitModel:
     declared_ranks = _declared_ranks(resolver.nodes, program.orders)
     _verify_frontier_declarations(
         resolver.nodes, program.frontiers, resolver.applied_frontiers)
+    _check_projection_redundancy(resolver)
     _nodes_for_key = dict(resolver.nodes)
     return ExplicitModel(nodes=dict(resolver.nodes),
                          # `tfne/2` S20: source declaration order does not
@@ -2421,7 +2510,7 @@ def realize(explicit: ExplicitModel, program: Optional[Program] = None,
 
     for exc in explicit.exclusions:
         if not any(r in matched_routes for r in _scope_pairs(exc)):
-            raise TFNEError(
+            raise TFNEExclusionUnknown(
                 f"E_EXCLUSION_UNKNOWN: exclusion {exc.key!r} matches no "
                 f"projection generated by rule expansion")
     compiled = compile_connection_rules(
@@ -2797,6 +2886,63 @@ def _leaves_under(explicit: ExplicitModel, scope: str,
             if lf == scope or lf.startswith(scope + ".")]
 
 
+def _check_projection_redundancy(resolver: Any) -> None:
+    """Reject explicit projections identical to rule output (S13/S25).
+
+    Projection identity is `(src, dst, mechanism)` over realized leaves
+    with direction normalized — leaf-level, because a coarser explicit
+    scope over an already-generated leaf route would double-count edges
+    while looking structurally distinct. Any overlap between an explicit
+    (bare) projection and canonically generated rule output is refused:
+    S14 additionally requires explicit additions disjoint from `G_0`, so
+    partial overlap cannot be a valid addition either. Mechanism
+    comparison is textual (declared names): resolving here would
+    front-load kinetics refusal into `resolve()`.
+    """
+    leaves = [p for p in resolver.order
+              if resolver.nodes[p].kind == "object"]
+
+    def leaf_routes(rel: Any) -> list[tuple[str, str]]:
+        out: list[tuple[str, str]] = []
+        for pre, post in _scope_pairs(rel):
+            pres = [lf for lf in leaves
+                    if lf == pre or lf.startswith(pre + ".")]
+            posts = [lf for lf in leaves
+                     if lf == post or lf.startswith(post + ".")]
+            out.extend((a, b) for a in pres for b in posts)
+        return out
+
+    def effective_mech(rel: Any) -> str:
+        if rel.mechanism is not None:
+            return str(rel.mechanism)
+        if rel.rule is None:
+            return DIRECT_MECHANISM
+        ruledef = resolver.program.rules.get(rel.rule)
+        if ruledef is None:
+            return DIRECT_MECHANISM
+        raw = ruledef.params.get("mechanism", DIRECT_MECHANISM)
+        return raw if isinstance(raw, str) else DIRECT_MECHANISM
+
+    generated: set[tuple[str, str, str]] = set()
+    for rel in resolver.relations:
+        if rel.form != "rule":
+            continue
+        mech = effective_mech(rel)
+        for route in leaf_routes(rel):
+            generated.add((route[0], route[1], mech))
+    for rel in resolver.relations:
+        if rel.form != "projection":
+            continue
+        for route in leaf_routes(rel):
+            identity = (route[0], route[1], DIRECT_MECHANISM)
+            if identity in generated:
+                raise TFNEProjectionRedundant(
+                    f"E_PROJECTION_REDUNDANT: explicit projection "
+                    f"{rel.key!r} reproduces the canonically generated "
+                    f"({identity[0]!r}, {identity[1]!r}, "
+                    f"{identity[2]!r}); identical output is invalid")
+
+
 def _relation_mechanism(explicit: ExplicitModel, rel: RelationRecord) -> str:
     if rel.mechanism is not None:
         return str(rel.mechanism)
@@ -2855,7 +3001,7 @@ def resolve_mechanism(name: Optional[str],
     if name == DIRECT_MECHANISM:
         return resolve_mechanism(None, rule_params)
     if name.startswith(MECHANISM_INTERNAL_PREFIX):
-        raise TFNEError(
+        raise TFNEMechanismNotPermitted(
             f"E_MECHANISM_NOT_PERMITTED: mechanism {name!r} lives in the "
             f"compiler-internal {MECHANISM_INTERNAL_PREFIX!r} namespace; "
             f"declare a vocabulary name or a sufficient definition instead")
@@ -2867,12 +3013,12 @@ def resolve_mechanism(name: Optional[str],
             try:
                 tau_f = float(tau)
             except (TypeError, ValueError):
-                raise TFNEError(
+                raise TFNEMechanismNotPermitted(
                     f"E_MECHANISM_NOT_PERMITTED: mechanism {name!r} "
                     f"declares a non-numeric tau_ms={tau!r}; an executable "
                     f"definition needs a finite positive number")
             if tau_f != float(spec.tau_ms):
-                raise TFNEError(
+                raise TFNEMechanismNotPermitted(
                     f"E_MECHANISM_NOT_PERMITTED: mechanism {name!r} is "
                     f"canonical with tau_ms={spec.tau_ms}, but the rule "
                     f"declares tau_ms={tau!r}; a canonical identity with "
@@ -2883,7 +3029,7 @@ def resolve_mechanism(name: Optional[str],
             sign=int(spec.sign))
     tau = params.get("tau_ms")
     if tau is None or isinstance(tau, bool):
-        raise TFNEError(
+        raise TFNEMechanismUnresolved(
             f"E_MECHANISM_UNRESOLVED: mechanism {name!r} is not a canonical "
             f"receptor {sorted(canonical)} and declares no sufficient "
             f"executable definition (a finite positive `tau_ms`); refusing "
@@ -2891,12 +3037,12 @@ def resolve_mechanism(name: Optional[str],
     try:
         tau_f = float(tau)
     except (TypeError, ValueError):
-        raise TFNEError(
+        raise TFNEMechanismUnresolved(
             f"E_MECHANISM_UNRESOLVED: mechanism {name!r} declares a "
             f"non-numeric tau_ms={tau!r}; refusing rather than inventing "
             f"kinetics")
     if not bool(np.isfinite(tau_f)) or not tau_f > 0:
-        raise TFNEError(
+        raise TFNEMechanismNotPermitted(
             f"E_MECHANISM_NOT_PERMITTED: mechanism {name!r} declares an "
             f"inadmissible tau_ms={tau!r}; an executable definition needs "
             f"a finite positive number")

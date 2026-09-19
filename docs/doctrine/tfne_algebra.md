@@ -152,11 +152,11 @@ exact legacy behavior (S12).
 | S6 prefix rule application | `O[k](SEG^8)` expands to seven ordered adjacencies | `O[k](SEG^n)` chains per-instance adjacencies with head/tail frontiers (`(`/`)` lexed); `X[k](...)` and non-replication targets refused |
 | S8 group sensitivity | `{A O B} O C` composes through the composite frontier and is not generally equivalent to `A O B O C` | composes through the frontier correctly; derived-only chains still coincide in edge set, and a declared frontier makes them differ |
 | S9 frontiers | `in`/`out` reserved as interface path components, declarable, with an X-composite union default and `E_FRONTIER_UNRESOLVED` | declared `in[A]`/`out[A]` supported with per-side override and fail-closed validation; X-composite union default kept; `X[k]`-rule frontier override still needs rule bodies (TFNE2-05); `A.out` as a written path still resolves to no object |
-| S11 cross associativity | ungrouped `A X[k] B X[k] C` requires grouping unless `k` declares an associative policy | accepted ungrouped |
+| S11 cross associativity | ungrouped `A X[k] B X[k] C` requires grouping unless `k` declares an associative policy | refused as `E_AMBIGUOUS_EXPANSION` without grouping or `associative = true`; braces, definitions, and differing rules associate as before |
 | S12 rule binding | `$L` / `$R` metavariables bind the syntactic operands | bodies supported (endpoints, collections, bidirectionality, per-statement mechanism); full `$L`/`$R` path tails beyond `.out`/`.in` still refused |
-| S13 projection identity | redundant explicit projection is invalid | no redundancy check over `(src, dst, mechanism)` |
+| S13 projection identity | redundant explicit projection is invalid | explicit projections overlapping rule output at leaf identity refused as `E_PROJECTION_REDUNDANT` |
 | S14, S25 statement atomicity | `;`-separated statements inside a composite, each atomic | `{s1; s2}` expands each statement independently; invalid resolved projections contribute nothing while top-level ones still abort |
-| S25 failure vocabulary | semantic classes (`E_ADDRESS_UNKNOWN`, `E_FRONTIER_UNRESOLVED`, `E_MECHANISM_UNRESOLVED`, `E_MECHANISM_NOT_PERMITTED`, `E_PROJECTION_REDUNDANT`, `E_EXCLUSION_UNKNOWN`) | mechanism codes raised with vocabulary classification (`resolve_mechanism`); `E_ADDRESS_UNKNOWN`, `E_FRONTIER_UNRESOLVED`, `E_EXCLUSION_UNKNOWN` raised as codes; full typed-class migration still open |
+| S25 failure vocabulary | semantic classes (`E_ADDRESS_UNKNOWN`, `E_FRONTIER_UNRESOLVED`, `E_MECHANISM_UNRESOLVED`, `E_MECHANISM_NOT_PERMITTED`, `E_PROJECTION_REDUNDANT`, `E_EXCLUSION_UNKNOWN`) | implemented as `TFNEError` subclasses (plus `E_ORDER_*`, proportion/policy, and `E_AMBIGUOUS_EXPANSION` families); parser errors stay plain `TFNEError` |
 
 The entries left are missing features rather than wrong answers: the compiler
 rejects what it cannot express instead of realizing a different nervous system.

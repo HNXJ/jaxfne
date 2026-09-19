@@ -242,10 +242,14 @@ what it cannot express rather than realizing a different nervous system.
   NOT_PERMITTED) with no heuristic aliasing; kinetics resolve at the
   tensor bridge into `StaticParams`; unresolvable refused at execution.
   Receipt: `artifacts/programme/tfne2_conformance_07_mech_receipt.md`.
-  Remaining: full typed failure classes, S13 projection-identity
-  redundancy, S11 ungrouped-`X` rejection. (`E_ADDRESS_UNKNOWN`,
-  `E_FRONTIER_UNRESOLVED`, `E_EXCLUSION_UNKNOWN` already raised as codes;
-  the class migration itself is open.)
+  Remaining: none on vocabulary — full S25 taxonomy implemented as
+  `TFNEError` subclasses (`TFNEAddressUnknown`, `TFNEAmbiguousExpansion`,
+  `TFNEExclusionUnknown`, `TFNEFrontierUnresolved`,
+  `TFNEInvalidProportion`, `TFNEMechanism*`, `TFNEMissingPolicy`,
+  `TFNEOrderViolation`, `TFNEProjectionRedundant`); S13 redundancy refused
+  at leaf identity; S11 ungrouped same-rule X refused without grouping or
+  `associative = true`. Receipt:
+  `artifacts/programme/tfne2_conformance_07_receipt.md`.
 
   **Unblocked and closed TFNE-PARAM-03** via the mechanism subset above
   (vocabulary → resolution → kinetics → PARAM-03 in one sequence, as
