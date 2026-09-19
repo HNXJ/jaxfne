@@ -65,16 +65,19 @@ refused with `E_PARAM_UNSUPPORTED` because no execution path consumes one —
 there is no delay field on the connection-rule surface — so it fails closed
 instead of being silently dropped.
 
-Mechanism identity transfers; mechanism kinetics does not. A declared
-mechanism reaches the executed edges as a name, a receptor index and an
-excitatory/inhibitory split, but its synaptic time constant is the structural
-bridge's per-connection `dT_ms` rather than the named receptor's own value, so
-a declared `AMPA` edge executes at 0.1 ms and not the 2.0 ms of
-`standard_receptor_specs()`. `tfne/2` rule bodies cannot declare a tau, so no
-declared value is being substituted; the realized mechanism table records this
-as `tau_ms: None` with status `declared_not_simulated`. Synaptic kinetics is
-independent of `dt`, so refining the timestep integrates the same synapse
-model rather than changing it.
+Mechanism identity transfers, and mechanism kinetics now resolves with
+it. A declared mechanism reaches the executed edges as a name, a receptor
+index and an excitatory/inhibitory split, and its synaptic time constant
+resolves through the mechanism vocabulary (`resolve_mechanism`): canonical
+receptors execute at their canonical taus (AMPA 2.0, GABA_A 5.0, NMDA
+100.0, GABA_B 150.0 ms), custom mechanisms at their declared `tau_ms`,
+and anything unresolvable is refused at execution rather than inheriting
+a placeholder. A rule without a mechanism means direct coupling
+(`tfne_direct`, placeholder 0.1 ms, not a receptor claim). The realized
+mechanism table still records `tau_ms: None` with status
+`declared_not_simulated`: identity is realized, kinetics resolve
+downstream. Synaptic kinetics is independent of `dt`, so refining the
+timestep integrates the same synapse model rather than changing it.
 
 Declared geometry is realized but not executed. `G` is recorded in
 `s["geometry"]`, and at equal seed the executed positions are identical
@@ -153,7 +156,7 @@ exact legacy behavior (S12).
 | S12 rule binding | `$L` / `$R` metavariables bind the syntactic operands | bodies supported (endpoints, collections, bidirectionality, per-statement mechanism); full `$L`/`$R` path tails beyond `.out`/`.in` still refused |
 | S13 projection identity | redundant explicit projection is invalid | no redundancy check over `(src, dst, mechanism)` |
 | S14, S25 statement atomicity | `;`-separated statements inside a composite, each atomic | `{s1; s2}` expands each statement independently; invalid resolved projections contribute nothing while top-level ones still abort |
-| S25 failure vocabulary | semantic classes (`E_ADDRESS_UNKNOWN`, `E_FRONTIER_UNRESOLVED`, `E_MECHANISM_UNRESOLVED`, `E_MECHANISM_NOT_PERMITTED`, `E_PROJECTION_REDUNDANT`, `E_EXCLUSION_UNKNOWN`) | untyped `TFNEError` with prose messages |
+| S25 failure vocabulary | semantic classes (`E_ADDRESS_UNKNOWN`, `E_FRONTIER_UNRESOLVED`, `E_MECHANISM_UNRESOLVED`, `E_MECHANISM_NOT_PERMITTED`, `E_PROJECTION_REDUNDANT`, `E_EXCLUSION_UNKNOWN`) | mechanism codes raised with vocabulary classification (`resolve_mechanism`); `E_ADDRESS_UNKNOWN`, `E_FRONTIER_UNRESOLVED`, `E_EXCLUSION_UNKNOWN` raised as codes; full typed-class migration still open |
 
 The entries left are missing features rather than wrong answers: the compiler
 rejects what it cannot express instead of realizing a different nervous system.

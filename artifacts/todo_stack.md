@@ -43,11 +43,18 @@ resume the conformance list ahead of it.
   Supporting it means a delay field on the connection-rule surface plus the
   configured/realized/executed identity that TFNE-PARAM-01 established for
   weight, probability and mechanism.
-- **TFNE-PARAM-03** — `mechanism identity != mechanism kinetics`. A declared
-  `AMPA` edge from a TFNE spec executes with `tau_ms = 0.1`, not AMPA's 2.0 ms.
-  Identity (name, receptor index, E/I split) does transfer. **Do not repair
-  opportunistically:** 0.1 -> 2.0 changes the trajectories of every existing
-  TFNE-derived simulation.
+- **TFNE-PARAM-03** — `mechanism identity != mechanism kinetics`. **Done**
+  via TFNE2-07's vocabulary, choosing (a)+(b) together: the permitted
+  vocabulary is defined (`resolve_mechanism`: CANONICAL exact,
+  CUSTOM_DEFINED via rule `tau_ms`, no aliases) and kinetics resolve from
+  it at the tensor bridge into `StaticParams(dT_ms)` (+ reversal
+  metadata); unresolvable refused at execution. All mechanisms moved
+  together (AMPA 2.0, GABA_A 5.0, NMDA 100.0, GABA_B 150.0); `GABA` is
+  UNRESOLVED (ambiguous A/B, no alias) with the two executing fixtures
+  moved to GABA_A; absent mechanism stays `tfne_direct` 0.1 placeholder
+  (unchanged trajectories). Receipt:
+  `artifacts/programme/tfne2_conformance_07_mech_receipt.md`. The analysis
+  below is retained as the recorded rationale for these choices.
 
   *Kinetics authority, determined (the prerequisite the repair needs):*
 
@@ -229,19 +236,22 @@ what it cannot express rather than realizing a different nervous system.
   instances with head/tail frontiers (only `O[k]` over plain `A^n`;
   `(`/`)` lexed, previously hard errors). Receipt:
   `artifacts/programme/tfne2_conformance_06_receipt.md`.
-- **TFNE2-07** — S25 semantic failure vocabulary (`E_ADDRESS_UNKNOWN`,
-  `E_FRONTIER_UNRESOLVED`, `E_MECHANISM_UNRESOLVED`,
-  `E_MECHANISM_NOT_PERMITTED`, `E_PROJECTION_REDUNDANT`,
-  `E_EXCLUSION_UNKNOWN`, missing realization policy, ambiguous expansion,
-  invalid proportion) as typed classes rather than prose `TFNEError`. Carries
-  S13 projection-identity redundancy and S11 ungrouped-`X` rejection.
+- **TFNE2-07** — S25 semantic failure vocabulary. **Mechanism subset
+  done:** `resolve_mechanism` classifies every name
+  (CANONICAL/EXPLICIT_ALIAS-uninhabited/CUSTOM_DEFINED/UNRESOLVED/
+  NOT_PERMITTED) with no heuristic aliasing; kinetics resolve at the
+  tensor bridge into `StaticParams`; unresolvable refused at execution.
+  Receipt: `artifacts/programme/tfne2_conformance_07_mech_receipt.md`.
+  Remaining: full typed failure classes, S13 projection-identity
+  redundancy, S11 ungrouped-`X` rejection. (`E_ADDRESS_UNKNOWN`,
+  `E_FRONTIER_UNRESOLVED`, `E_EXCLUSION_UNKNOWN` already raised as codes;
+  the class migration itself is open.)
 
-  **Blocks TFNE-PARAM-03.** `E_MECHANISM_UNRESOLVED` /
-  `E_MECHANISM_NOT_PERMITTED` are not merely error classes here: they are the
-  mechanism vocabulary that kinetics resolution presupposes. The dependency is
-  `mechanism vocabulary -> mechanism resolution -> kinetics -> PARAM-03`, so
-  PARAM-03 stays blocked behind this item rather than acquiring an isolated
-  patch.
+  **Unblocked and closed TFNE-PARAM-03** via the mechanism subset above
+  (vocabulary → resolution → kinetics → PARAM-03 in one sequence, as
+  required). The chain is deterministic and inspectable per the acceptance
+  below; `GABA -> GABA_A` was refused as heuristic aliasing (GABA is
+  ambiguous, not unaliased).
 
   *Acceptance for the mechanism-resolution work* (authorized, stronger than
   merely resolving `GABA`). For every executable connection mechanism, the

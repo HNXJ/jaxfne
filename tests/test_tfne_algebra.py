@@ -1425,3 +1425,88 @@ def test_brace_statements_replay_digest_and_serialize():
                         + "V := {A O[k] B\n C O[k] D};\nx : V : y\n")
     assert ra.s["n_edges"] == rb.s["n_edges"] == 2
     assert ra.I["neuron_paths"] == rb.I["neuron_paths"]
+
+
+# --------------------------------------------------------------------------- #
+# 9i. S25 mechanism vocabulary and resolution (TFNE2-07, mechanism subset)
+# --------------------------------------------------------------------------- #
+
+def test_canonical_mechanisms_resolve_to_canonical_kinetics():
+    """The canonical vocabulary is exactly the canonical table, with its
+    taus, reversals, and signs — no copies, no drift."""
+    from jaxfne.emitters import standard_receptor_specs
+    from jaxfne.tfne import (MECHANISM_CANONICAL, resolve_mechanism)
+    table = standard_receptor_specs()
+    assert sorted(table) == ["AMPA", "GABA_A", "GABA_B", "NMDA"]
+    expected = {"AMPA": (2.0, 0.0, 1), "GABA_A": (5.0, -80.0, -1),
+                "NMDA": (100.0, 0.0, 1), "GABA_B": (150.0, -95.0, -1)}
+    for name, (tau, rev, sign) in expected.items():
+        resolved = resolve_mechanism(name, {})
+        assert resolved.status == MECHANISM_CANONICAL
+        assert resolved.identity == name
+        assert (resolved.tau_ms, resolved.reversal_mV, resolved.sign) == (
+            tau, rev, sign)
+        assert table[name].tau_ms == tau  # single source of truth
+
+
+def test_absent_mechanism_means_direct_coupling():
+    """Silence is not a receptor claim: no mechanism param resolves to
+    the compiler-internal direct coupling (placeholder 0.1ms), matching
+    the realization path's long-standing default."""
+    from jaxfne.tfne import (DIRECT_MECHANISM, MECHANISM_CUSTOM_DEFINED,
+                             resolve_mechanism)
+    resolved = resolve_mechanism(None, {})
+    assert resolved.identity == DIRECT_MECHANISM
+    assert resolved.status == MECHANISM_CUSTOM_DEFINED
+    assert resolved.tau_ms == 0.1
+    assert resolve_mechanism(DIRECT_MECHANISM, {}).tau_ms == 0.1
+
+
+def test_unresolvable_names_fail_closed_without_aliasing():
+    """GABA is ambiguous (A: 5ms vs B: 150ms), so no alias can be correct:
+    it is UNRESOLVED, and unknown names join it. Nothing is guessed."""
+    from jaxfne.tfne import resolve_mechanism
+    for name in ("GABA", "Glu", "AMPA2", "ach"):
+        with pytest.raises(TFNEError, match="E_MECHANISM_UNRESOLVED"):
+            resolve_mechanism(name, {})
+    # Realization still carries the identity (PARAM-01); refusal happens
+    # where kinetics would be invented (execution layer).
+    _, _, r = _realize(
+        "O[k] := [direction = >; mechanism = GABA; weight = 0.5];\n"
+        "A := [C = {E}; N = 2];\nB := [C = {E}; N = 2];\n"
+        "x : A O[k] B : y\n")
+    assert r.s["n_edges"] == 4
+
+
+def test_reserved_and_contradictory_definitions_refused():
+    """The compiler-internal namespace is not declarable, canonical
+    kinetics are not overridable, and inadmissible taus are refused."""
+    from jaxfne.tfne import resolve_mechanism
+    with pytest.raises(TFNEError, match="E_MECHANISM_NOT_PERMITTED"):
+        resolve_mechanism("tfne_foo", {})
+    with pytest.raises(TFNEError, match="E_MECHANISM_NOT_PERMITTED"):
+        resolve_mechanism("AMPA", {"tau_ms": 9.9})
+    with pytest.raises(TFNEError, match="E_MECHANISM_NOT_PERMITTED"):
+        resolve_mechanism("FOO", {"tau_ms": -3.0})
+    # A redundant-but-identical tau is harmless consistency, not override.
+    assert resolve_mechanism("AMPA", {"tau_ms": 2.0}).tau_ms == 2.0
+
+
+def test_custom_mechanism_needs_sufficient_definition():
+    """A name plus a finite positive tau executes; a name alone does not."""
+    from jaxfne.tfne import MECHANISM_CUSTOM_DEFINED, resolve_mechanism
+    resolved = resolve_mechanism("FOO", {"tau_ms": 3.5})
+    assert resolved.status == MECHANISM_CUSTOM_DEFINED
+    assert resolved.identity == "FOO" and resolved.tau_ms == 3.5
+    assert resolved.sign is None  # E/I stays cell-type-derived downstream
+    with pytest.raises(TFNEError, match="E_MECHANISM_UNRESOLVED"):
+        resolve_mechanism("FOO", {})
+
+
+def test_mechanism_tau_is_digest_sensitive():
+    """Kinetics are realization-affecting metadata: NF carries them."""
+    from jaxfne.tfne import spec_hash
+    a = "O[k] := [direction = >; mechanism = FOO; tau_ms = 3.5];\n"
+    b = "O[k] := [direction = >; mechanism = FOO; tau_ms = 4.5];\n"
+    leaves = "A := [C = {E}; N = 1];\nB := [C = {E}; N = 1];\nx : A O[k] B : y\n"
+    assert spec_hash(parse(a + leaves)) != spec_hash(parse(b + leaves))

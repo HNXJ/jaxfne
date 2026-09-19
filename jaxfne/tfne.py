@@ -103,6 +103,29 @@ __all__ = [
 DEFAULT_MODEL = "izhikevich"
 DIRECT_MECHANISM = "tfne_direct"
 
+#: Reserved compiler-internal mechanism namespace. Names here are created
+#: by the compiler, never declared by authors: `tfne_direct` is the
+#: direct-coupling default for projections/rules without a mechanism.
+MECHANISM_INTERNAL_PREFIX = "tfne_"
+
+# S25 mechanism vocabulary classes. CANONICAL names come from
+# `standard_receptor_specs()`; EXPLICIT_ALIAS is reserved for aliases
+# declared by an authoritative definition (none exist: e.g. GABA is
+# ambiguous between GABA_A and GABA_B, so no alias can be correct);
+# CUSTOM_DEFINED needs a sufficient executable definition (a tau);
+# the rest fail closed.
+MECHANISM_CANONICAL = "CANONICAL"
+MECHANISM_EXPLICIT_ALIAS = "EXPLICIT_ALIAS"
+MECHANISM_CUSTOM_DEFINED = "CUSTOM_DEFINED"
+MECHANISM_UNRESOLVED = "UNRESOLVED"
+MECHANISM_NOT_PERMITTED = "NOT_PERMITTED"
+
+#: Placeholder kinetics for the compiler-internal direct coupling. Not a
+#: receptor value: bare projections declare no filtering, and changing this
+#: would retune every existing direct-coupled trajectory, so it stays put
+#: as documented placeholder rather than a biological claim.
+DIRECT_MECHANISM_TAU_MS = 0.1
+
 _PN_TOL = 1e-9
 
 
@@ -2526,8 +2549,22 @@ def to_neuronal_tensor(explicit: ExplicitModel):
     rules (bare projections use :data:`DIRECT_MECHANISM`).
     """
     from .neuronal_tensor import (Area, AreaConnection, Geometry3D,
-                                  InterConnection, Layer, NeuronalTensor,
-                                  NeuronType)
+                                   InterConnection, Layer, NeuronalTensor,
+                                   NeuronType, StaticParams)
+
+    def _connection_static(rel: RelationRecord) -> Any:
+        """Kinetics for one relation's connections (TFNE2-07/PARAM-03).
+
+        The declared mechanism resolves to canonical or custom kinetics;
+        unresolvable names fail closed here — where invention would occur —
+        rather than inheriting the 0.1 placeholder. `realize()` is
+        unaffected: identity transfers without kinetics.
+        """
+        resolved = _resolve_relation_mechanism(explicit, rel)
+        reversal = ({resolved.identity: resolved.reversal_mV}
+                    if resolved.reversal_mV is not None else {})
+        return StaticParams(dT_ms=resolved.tau_ms,
+                            reversal_potentials_mV=reversal)
 
     leaves = [p for p in explicit.order
               if explicit.nodes[p].kind == "object"]
@@ -2611,7 +2648,8 @@ def to_neuronal_tensor(explicit: ExplicitModel):
                                     target_layer=layer_of(post_leaf),
                                     target_neuron_type=post_t,
                                     mechanism=_relation_mechanism(
-                                        explicit, rel)))
+                                        explicit, rel),
+                                    static=_connection_static(rel)))
         built_areas.append(Area(name=area_name, layers=tuple(built_layers),
                                 inter_connections=tuple(inter)))
     area_conns: list[AreaConnection] = []
@@ -2630,7 +2668,8 @@ def to_neuronal_tensor(explicit: ExplicitModel):
                                 target_area=area_of(post_leaf),
                                 target_layer=layer_of(post_leaf),
                                 target_neuron_type=post_t,
-                                mechanism=_relation_mechanism(explicit, rel)))
+                                mechanism=_relation_mechanism(explicit, rel),
+                                static=_connection_static(rel)))
     tensor = NeuronalTensor(areas=tuple(built_areas),
                             area_connections=tuple(area_conns),
                             name="tfne",
@@ -2764,10 +2803,121 @@ def _relation_mechanism(explicit: ExplicitModel, rel: RelationRecord) -> str:
     if rel.rule is None:
         return DIRECT_MECHANISM
     params = explicit.rule_params.get(rel.rule, {})
-    mech = params.get("mechanism", f"tfne_{rel.rule}")
+    mech = params.get("mechanism", DIRECT_MECHANISM)
     if isinstance(mech, Mapping):
         raise TFNEError("mechanism must be a name")
     return str(mech)
+
+
+@dataclass(frozen=True)
+class ResolvedMechanism:
+    """One declared mechanism traced to executable kinetics (S25/TFNE2-07).
+
+    `declared` is the name as written; `identity` the canonical name it
+    resolves to (itself for canonical/custom); `status` one of the
+    MECHANISM_* classes; `tau_ms`/`reversal_mV` the kernel-consumed
+    kinetics (`reversal_mV` may be None: metadata only); `sign` the
+    canonical sign (+1/-1) or None when the name carries none (custom and
+    internal mechanisms inherit E/I from the source cell type downstream).
+    """
+    declared: str
+    identity: str
+    status: str
+    tau_ms: float
+    reversal_mV: Optional[float]
+    sign: Optional[int]
+
+
+def _canonical_receptor_specs() -> Mapping[str, Any]:
+    from .emitters import standard_receptor_specs
+    return standard_receptor_specs()
+
+
+def resolve_mechanism(name: Optional[str],
+                      rule_params: Optional[Mapping[str, Any]] = None
+                      ) -> ResolvedMechanism:
+    """Resolve a declared mechanism name to executable kinetics.
+
+    `tfne/2` S13/S25: an executable projection resolves its mechanism from
+    its generating rule (or statement) or its explicit specification.
+    Canonical names resolve to the canonical table; a non-canonical name
+    needs a sufficient executable definition (a finite positive `tau_ms`
+    in the rule params); anything else fails closed. Absent mechanism
+    means direct coupling (`tfne_direct`), matching the realization path's
+    long-standing default — silence is not read as a receptor claim.
+    """
+    params = dict(rule_params) if rule_params is not None else {}
+    if name is None:
+        return ResolvedMechanism(
+            declared=DIRECT_MECHANISM, identity=DIRECT_MECHANISM,
+            status=MECHANISM_CUSTOM_DEFINED, tau_ms=DIRECT_MECHANISM_TAU_MS,
+            reversal_mV=None, sign=None)
+    if name == DIRECT_MECHANISM:
+        return resolve_mechanism(None, rule_params)
+    if name.startswith(MECHANISM_INTERNAL_PREFIX):
+        raise TFNEError(
+            f"E_MECHANISM_NOT_PERMITTED: mechanism {name!r} lives in the "
+            f"compiler-internal {MECHANISM_INTERNAL_PREFIX!r} namespace; "
+            f"declare a vocabulary name or a sufficient definition instead")
+    canonical = _canonical_receptor_specs()
+    if name in canonical:
+        spec = canonical[name]
+        tau = params.get("tau_ms")
+        if tau is not None:
+            try:
+                tau_f = float(tau)
+            except (TypeError, ValueError):
+                raise TFNEError(
+                    f"E_MECHANISM_NOT_PERMITTED: mechanism {name!r} "
+                    f"declares a non-numeric tau_ms={tau!r}; an executable "
+                    f"definition needs a finite positive number")
+            if tau_f != float(spec.tau_ms):
+                raise TFNEError(
+                    f"E_MECHANISM_NOT_PERMITTED: mechanism {name!r} is "
+                    f"canonical with tau_ms={spec.tau_ms}, but the rule "
+                    f"declares tau_ms={tau!r}; a canonical identity with "
+                    f"non-canonical kinetics is not permitted")
+        return ResolvedMechanism(
+            declared=name, identity=name, status=MECHANISM_CANONICAL,
+            tau_ms=float(spec.tau_ms), reversal_mV=spec.reversal_mV,
+            sign=int(spec.sign))
+    tau = params.get("tau_ms")
+    if tau is None or isinstance(tau, bool):
+        raise TFNEError(
+            f"E_MECHANISM_UNRESOLVED: mechanism {name!r} is not a canonical "
+            f"receptor {sorted(canonical)} and declares no sufficient "
+            f"executable definition (a finite positive `tau_ms`); refusing "
+            f"rather than inventing kinetics")
+    try:
+        tau_f = float(tau)
+    except (TypeError, ValueError):
+        raise TFNEError(
+            f"E_MECHANISM_UNRESOLVED: mechanism {name!r} declares a "
+            f"non-numeric tau_ms={tau!r}; refusing rather than inventing "
+            f"kinetics")
+    if not bool(np.isfinite(tau_f)) or not tau_f > 0:
+        raise TFNEError(
+            f"E_MECHANISM_NOT_PERMITTED: mechanism {name!r} declares an "
+            f"inadmissible tau_ms={tau!r}; an executable definition needs "
+            f"a finite positive number")
+    return ResolvedMechanism(
+        declared=name, identity=name, status=MECHANISM_CUSTOM_DEFINED,
+        tau_ms=tau_f, reversal_mV=None, sign=None)
+
+
+def _resolve_relation_mechanism(explicit: ExplicitModel,
+                               rel: RelationRecord) -> ResolvedMechanism:
+    """Resolve one relation's mechanism: statement `[mech=]` wins over the
+    rule default; the rule params supply any custom definition."""
+    rule_params = explicit.rule_params.get(rel.rule) if rel.rule else None
+    if rel.mechanism is not None:
+        return resolve_mechanism(rel.mechanism, rule_params)
+    if rel.rule is None:
+        return resolve_mechanism(None, None)
+    mech = (rule_params or {}).get("mechanism")
+    if isinstance(mech, Mapping):
+        raise TFNEError("mechanism must be a name")
+    return resolve_mechanism(mech, rule_params)
 
 
 def realization_summary(realization: Realization) -> dict[str, Any]:

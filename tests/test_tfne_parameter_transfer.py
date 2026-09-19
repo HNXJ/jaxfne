@@ -114,10 +114,14 @@ def test_c2_plasticity_is_preserved_as_provenance_not_dropped():
 
 
 def test_d_mechanism_and_weight():
+    # GABA_A, not GABA: bare GABA is ambiguous between GABA_A (5ms) and
+    # GABA_B (150ms), so the vocabulary refuses it rather than aliasing.
+    # These fixtures test inhibitory-mechanism identity transfer, which
+    # the canonical inhibitory receptor preserves.
     _, _, edges = equivalence(
-        "O[k] := [direction = >; mechanism = GABA; weight = 0.625];\n"
+        "O[k] := [direction = >; mechanism = GABA_A; weight = 0.625];\n"
         f"{AB}\nx : A O[k] B : y\n")
-    assert {m for _, _, _, m in edges} == {"GABA"}
+    assert {m for _, _, _, m in edges} == {"GABA_A"}
     assert {w for _, _, w, _ in edges} == {0.625}
 
 
@@ -142,12 +146,12 @@ def test_e_adjacent_relations_keep_distinct_weights():
 def test_f_ordered_and_cross_rules_keep_distinct_parameters():
     _, _, edges = equivalence(
         "O[k] := [direction = >; mechanism = AMPA; weight = 0.25];\n"
-        "X[j] := [direction = >; mechanism = GABA; weight = 0.75];\n"
+        "X[j] := [direction = >; mechanism = GABA_A; weight = 0.75];\n"
         f"{ABCD}\nx : {{A O[k] B}} X[j] {{C O[k] D}} : y\n")
     by_mech = {}
     for _, _, w, m in edges:
         by_mech.setdefault(m, set()).add(w)
-    assert by_mech == {"AMPA": {0.25}, "GABA": {0.75}}, by_mech
+    assert by_mech == {"AMPA": {0.25}, "GABA_A": {0.75}}, by_mech
 
 
 def test_g_shared_rule_reused_at_several_sites():
@@ -443,3 +447,79 @@ def test_order_override_does_not_change_edge_count_or_weights():
     _, _, declared = equivalence("order[V] := [B, A];\n" + _ORDER_SPEC)
     assert len(natural) == len(declared) == 6
     assert {w for _, _, w, _ in natural} == {w for _, _, w, _ in declared} == {0.5}
+
+
+# --------------------------------------------------------------------------- #
+# TFNE-PARAM-03: declared mechanism kinetics must reach execution
+# --------------------------------------------------------------------------- #
+
+def _executed_taus(spec):
+    program = parse(spec)
+    explicit = resolve(program)
+    r = realize(explicit, program)
+    model = jaxfne.construct(
+        to_configuration(r, duration_ms=DURATION_MS, dt_ms=DT_MS))
+    return {round(float(e["tau_ms"]), 6) for e in model.edge_table()}
+
+
+def test_canonical_mechanism_kinetics_reach_execution():
+    """Each canonical receptor executes at its canonical tau — the value
+    hand-written callers copy into dT_ms, now resolved, not inherited."""
+    from jaxfne.emitters import standard_receptor_specs
+    table = standard_receptor_specs()
+    for mech in ("AMPA", "GABA_A", "NMDA", "GABA_B"):
+        spec = (f"O[k] := [direction = >; mechanism = {mech}; weight = 0.5];\n"
+                f"{AB}\nx : A O[k] B : y\n")
+        assert _executed_taus(spec) == {round(table[mech].tau_ms, 6)}, mech
+
+
+def test_custom_mechanism_tau_reaches_execution():
+    """A sufficient custom definition (name + finite positive tau) runs
+    at the declared kinetics."""
+    spec = ("O[k] := [direction = >; mechanism = FOO; tau_ms = 3.5;\n"
+            "         weight = 0.5];\n"
+            f"{AB}\nx : A O[k] B : y\n")
+    assert _executed_taus(spec) == {3.5}
+
+
+def test_asymmetric_mechanisms_keep_distinct_taus():
+    """All mechanisms move together: AMPA and GABA_A execute at 2.0 and
+    5.0 in one model — no uniform placeholder, no E/I distortion."""
+    spec = ("O[k] := [direction = >; mechanism = AMPA; weight = 0.5];\n"
+            "O[j] := [direction = >; mechanism = GABA_A; weight = 0.5];\n"
+            f"{ABC}\nx : A O[k] B O[j] C : y\n")
+    assert _executed_taus(spec) == {2.0, 5.0}
+
+
+def test_tfne_matches_handwritten_canonical_construction():
+    """A TFNE AMPA spec executes at exactly the tau the hand-written
+    canonical practice constructs (dT_ms = AMPA_TAU_MS = 2.0)."""
+    tfne_taus = _executed_taus(
+        "O[k] := [direction = >; mechanism = AMPA; weight = 0.5];\n"
+        f"{AB}\nx : A O[k] B : y\n")
+    cfg = (jaxfne.Configuration().areas(["V"]).column("V", layers=["L"], n=4)
+           .cell_types({"E": 1.0}).set_emitter("izhikevich", "cortical_eig")
+           .probes(["spikes"]).field(domain="laminar_column",
+                                      conductivity="proxy").runtime(seed=0)
+           .mechanisms(name="ampa__dt2__0", kind="AMPA", params={"tau_ms": 2.0}))
+    cfg = cfg.connections(
+        name="ee", source={"area": "V", "layer": "L", "cell_type": "E"},
+        target={"area": "V", "layer": "L", "cell_type": "E"},
+        probability=1.0, weight=0.5, sign="excitatory",
+        mechanism="ampa__dt2__0")
+    hand = {round(float(e["tau_ms"]), 6)
+            for e in jaxfne.construct(cfg).edge_table()}
+    assert tfne_taus == hand == {2.0}
+
+
+def test_unresolved_mechanism_refused_at_execution_not_realization():
+    """Refusal lands where invention would: realize() still carries the
+    identity (PARAM-01), but execution fails closed."""
+    spec = ("O[k] := [direction = >; mechanism = GABA; weight = 0.5];\n"
+            f"{AB}\nx : A O[k] B : y\n")
+    program = parse(spec)
+    explicit = resolve(program)
+    r = realize(explicit, program)  # identity transfers; kinetics refused
+    assert r.s["n_edges"] == 16
+    with pytest.raises(TFNEError, match="E_MECHANISM_UNRESOLVED"):
+        to_configuration(r, duration_ms=DURATION_MS, dt_ms=DT_MS)
