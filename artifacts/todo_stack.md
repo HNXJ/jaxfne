@@ -280,13 +280,14 @@ what it cannot express rather than realizing a different nervous system.
 
 ## Definition layer
 
-- **CTX-01** — `tfne/2` S27 names `CTX` as the next definition candidate:
-  populations and `P_{l,c}` including absent populations, `N`-scaling and
-  allocation, `in`/`out` interfaces, local connectivity, biological identity
-  vs dynamical realization, geometry required for observables. S28 keeps
-  spectrolaminar qualification (SL0/SL1/SL2) outside the algebra, and forbids
-  phenomenological visualization proxies as the objective defining `CTX`.
-  Depends on TFNE2-04 for declared `in`/`out`.
+- **CTX-01** — `tfne/2` S27 names `CTX` as the next definition candidate.
+  **First integrated model done:** `tests/test_tfne_ctx01.py` exercises
+  the conformant algebra end to end (named areas, N/P, O/X bodies,
+  frontiers, kinetics, replication, order, atomicity, JDNA completion
+  with explicit `K_D`, construction, simulation) with no new grammar.
+  Receipt: `artifacts/programme/tfne_ctx01_receipt.md`. S27's
+  population/`P_{l,c}` definition family remains future work; the
+  `in`/`out` dependency from TFNE2-04 is satisfied.
 
 ---
 
