@@ -45,18 +45,23 @@ them so every supported expression has exactly one realization):
 4. ``in[A]`` / ``out[A]`` declare composition frontiers (S9): named
    properties, like ``order[A]``, naming immediate members of ``A``. A
    declared side overrides the derived default for that side only.
-4. Proportion-to-count allocation is largest-remainder with declaration-order
+5. Rules with bodies (S12) expand each statement against the syntactic
+   operands: ``$L`` / ``$R`` denote whole operands, ``.out`` / ``.in``
+   narrow to resolved interfaces, and plain names address immediate
+   members within their own side. Direction lives in the statements;
+   a per-statement ``[mech=...]`` overrides the rule default.
+6. Proportion-to-count allocation is largest-remainder with declaration-order
    tiebreak, so ``sum_c N[A.c] == N[A]`` holds exactly and deterministically.
-5. Rule applications and bare projections require an explicit ``direction``
-   (rule field; ``>``, ``<`` or ``<>``). The compiler raises rather than
-   guessing a direction for ``O[k]``/``X[k]``.
-6. Exclusions (``A !> B``) subtract from the rule expansion (S14): with
+7. Flat rules require an explicit ``direction`` field (``>``, ``<`` or
+   ``<>``); rules with bodies carry direction in each statement instead.
+   The compiler raises rather than    guessing a direction for ``O[k]``/``X[k]``.
+8. Exclusions (``A !> B``) subtract from the rule expansion (S14): with
    ``G_0`` the generated projection set, ``G`` is ``G_0`` with the resolved
    exclusion identities removed. An exclusion naming no mechanism removes
    every identity on its route. An exclusion matching no generated
    projection raises ``E_EXCLUSION_UNKNOWN`` rather than passing as a
    no-op, so a stale exclusion cannot survive normalization.
-7. ``parse(normalize(p))`` normalizes to ``normalize(p)`` (idempotent replay);
+9. ``parse(normalize(p))`` normalizes to ``normalize(p)`` (idempotent replay);
    the realization seed derives from the normalization hash unless overridden.
 
 Name scoping (see ``docs/doctrine/tfne_algebra.md``): bare ``O``/``X`` belong
@@ -175,6 +180,18 @@ def _lex(text: str) -> list[tuple[str, str]]:
             toks.append(("NAME", text[i:j]))
             i = j
             continue
+        # S12 rule metavariables: `$L` / `$R` lex as one META token. A lone
+        # `$` (or `$` before a non-name) stays a hard lexer error, so `$`
+        # cannot silently appear anywhere bodies are not parsed.
+        if c == "$" and i + 1 < n and (
+            text[i + 1].isalpha() or text[i + 1] == "_"
+        ):
+            j = i + 1
+            while j < n and (text[j].isalnum() or text[j] == "_"):
+                j += 1
+            toks.append(("META", text[i + 1:j]))
+            i = j
+            continue
         if c.isdigit() or (c == "." and i + 1 < n and text[i + 1].isdigit()):
             j = i
             dot = False
@@ -283,6 +300,33 @@ class RuleDef:
     name: str
     kind: str  # 'O' | 'X'
     params: Mapping[str, Any]
+    # S12 rule body: projection statements over `$L` / `$R`. Empty for
+    # flat (params-only) rules, which keep their exact legacy behavior.
+    body: tuple[Any, ...] = ()
+
+
+@dataclass(frozen=True)
+class RuleEndpoint:
+    """One side of a rule-body projection statement (`tfne/2` S12).
+
+    `form` is "meta" (`$L` / `$R` with an optional `out` / `in` tail),
+    "ref" (a member reference resolved within the operand), or "set"
+    (a collection of member references).
+    """
+    form: str
+    head: str = ""           # "L" | "R" for meta; dotted ref for ref
+    tail: tuple[str, ...] = ()  # interface selector for meta
+    members: tuple[str, ...] = ()  # refs for set
+
+
+@dataclass(frozen=True)
+class RuleStmt:
+    """One projection statement inside a rule body: endpoints, direction,
+    and an optional per-statement mechanism overriding the rule default."""
+    left: RuleEndpoint
+    direction: str  # '>' | '<' | '<>'
+    right: RuleEndpoint
+    mechanism: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -528,8 +572,76 @@ class _Parser:
         self.expect("SYM", ":=")
         self.expect("SYM", "[")
         params = self._parse_propbody()
+        body: list[RuleStmt] = []
+        while not self.at_sym("]"):
+            while self.peek()[0] == "SEP":
+                self.next()
+            if self.at_sym("]"):
+                break
+            body.append(self._parse_rulestmt(kind, name))
         self.expect("SYM", "]")
-        return RuleDef(name=name, kind=kind, params=params)
+        return RuleDef(name=name, kind=kind, params=params,
+                       body=tuple(body))
+
+    def _parse_rulestmt(self, kind: str, rule: str) -> RuleStmt:
+        """One S12 body statement: endpoint, direction, endpoint, mechanism.
+
+        Direction lives in the statement (bodies routinely mix `>` and `<`),
+        never implicitly. A trailing `[mech=NAME]` overrides the rule-level
+        mechanism for this statement's projections only.
+        """
+        left = self._parse_rule_endpoint()
+        tok = self.peek()
+        if tok[0] != "SYM" or tok[1] not in (">", "<", "<>"):
+            raise TFNEError(
+                f"rule {kind}[{rule}] body statements need an explicit "
+                f"direction ('>', '<', '<>'); got {tok}")
+        direction = self.next()[1]
+        right = self._parse_rule_endpoint()
+        mechanism: Optional[str] = None
+        if self.at_sym("["):
+            self.next()
+            if self.peek() != ("NAME", "mech"):
+                raise TFNEError(
+                    f"rule {kind}[{rule}] statement options support only "
+                    f"[mech=NAME]; got {self.peek()}")
+            self.next()
+            self.expect("SYM", "=")
+            mechanism = self.expect("NAME")
+            self.expect("SYM", "]")
+        return RuleStmt(left=left, direction=direction, right=right,
+                        mechanism=mechanism)
+
+    def _parse_rule_endpoint(self) -> RuleEndpoint:
+        """One S12 endpoint: `$L[.out|.in]`, a member ref, or `{a, b}`."""
+        tok = self.peek()
+        if tok[0] == "META":
+            self.next()
+            if tok[1] not in ("L", "R"):
+                raise TFNEError(
+                    f"rule metavariables are $L and $R; got ${tok[1]}")
+            tail: list[str] = []
+            while self.at_sym("."):
+                self.next()
+                part = self.expect("NAME")
+                if part not in ("out", "in"):
+                    raise TFNEError(
+                        f"interface selection on ${tok[1]} supports only "
+                        f".out / .in; got .{part}")
+                tail.append(part)
+            return RuleEndpoint(form="meta", head=tok[1],
+                                tail=tuple(tail))
+        if tok == ("SYM", "{"):
+            self.next()
+            members = [self._parse_order_member()]
+            while self.at_sym(","):
+                self.next()
+                members.append(self._parse_order_member())
+            self.expect("SYM", "}")
+            return RuleEndpoint(form="set", members=tuple(members))
+        if tok[0] == "NAME":
+            return RuleEndpoint(form="ref", head=self._parse_order_member())
+        raise TFNEError(f"expected a rule endpoint; got {tok}")
 
     def _parse_objdef(self) -> ObjDef:
         name = self.expect("NAME")
@@ -792,6 +904,22 @@ def parse(text: str) -> Program:
 # Normalization (canonical replayable form)
 # --------------------------------------------------------------------------- #
 
+def _emit_rule_endpoint(ep: RuleEndpoint) -> str:
+    if ep.form == "meta":
+        return "$" + ep.head + "".join(f".{t}" for t in ep.tail)
+    if ep.form == "ref":
+        return ep.head
+    return "{" + ", ".join(ep.members) + "}"
+
+
+def _emit_rulestmt(stmt: RuleStmt) -> str:
+    text = (f"{_emit_rule_endpoint(stmt.left)} {stmt.direction} "
+            f"{_emit_rule_endpoint(stmt.right)}")
+    if stmt.mechanism is not None:
+        text += f" [mech={stmt.mechanism}]"
+    return text
+
+
 def _emit_expr(node: Any) -> str:
     if isinstance(node, Ref):
         return ".".join(node.segments)
@@ -853,7 +981,11 @@ def normalize(program: Program) -> str:
     parts: list[str] = []
     for name in sorted(program.rules):
         rule = program.rules[name]
-        parts.append(f"{rule.kind}[{name}] := [{_emit_propbody(rule.params)}]")
+        body = f"{rule.kind}[{name}] := [{_emit_propbody(rule.params)}"
+        for stmt in getattr(rule, "body", ()):
+            sep = "" if body.endswith("[") else "; "
+            body += sep + _emit_rulestmt(stmt)
+        parts.append(body + "]")
     for scope in sorted(getattr(program, "orders", {})):
         members = ", ".join(getattr(program, "orders")[scope])
         parts.append(f"order[{scope}] := [{members}]")
@@ -926,6 +1058,9 @@ class RelationRecord:
     pre_scopes: tuple[str, ...]
     post_scopes: tuple[str, ...]
     group: Optional[str] = None  # shared stem for '<>' halves
+    # S12: per-statement mechanism from a rule-body `[mech=...]`, overriding
+    # the rule-level mechanism for this relation's projections only.
+    mechanism: Optional[str] = None
 
 
 @dataclass
@@ -1413,7 +1548,7 @@ class _Resolver:
                 # operand's out frontier to the right operand's in frontier.
                 # Operands accumulated earlier in the chain are not reachable
                 # here, so A O[k] B O[j] C yields k(A,B) and j(B,C), never A>C.
-                self._record_rule(node, list(left.fout), list(right.fin))
+                self._record_rule(node, left, right)
             return _Expansion(members=left.members + right.members,
                               fin=left.fin, fout=right.fout)
         if isinstance(node, Cross):
@@ -1421,10 +1556,9 @@ class _Resolver:
             right = self.expand(node.right, scope)
             if node.rule is not None:
                 # X is nonordered: it relates its operands rather than an
-                # adjacency, and binds them whole. Unchanged here; per-rule
-                # endpoint selection is $L/$R (TFNE2-05).
-                self._record_rule(node, list(left.members),
-                                  list(right.members))
+                # adjacency, and binds them whole. Per-operand endpoint
+                # selection inside a body is $L/$R (S12).
+                self._record_rule(node, left, right)
             return _Expansion(members=left.members + right.members,
                               fin=left.fin + right.fin,
                               fout=left.fout + right.fout)
@@ -1683,19 +1817,95 @@ class _Resolver:
         return rec is not None and member in rec.counts
 
     # -- relations ------------------------------------------------------ #
-    def _record_rule(self, node: Any, left: list[str],
-                     right: list[str]) -> RelationRecord:
+    def _remainder_of(self, path: str) -> str:
+        """Immediate-member remainder of `path` under its resolved parent."""
+        rec = self.nodes.get(path)
+        parent = getattr(rec, "parent", None) if rec is not None else None
+        if parent:
+            assert path.startswith(parent + ".")
+            return path[len(parent) + 1:]
+        return path.rpartition(".")[2]
+
+    def _eval_rule_endpoint(self, ep: RuleEndpoint,
+                            left: _Expansion, right: _Expansion,
+                            rule: str, position: str) -> list[str]:
+        """Resolve one S12 endpoint to member scopes (`tfne/2` S12).
+
+        `$L` / `$R` address the syntactic operands explicitly: bare they
+        denote the whole operand, `.out` / `.in` narrow to the resolved
+        interface (declared-or-derived, never bypassed). Plain names and
+        `{...}` collections belong to the endpoint's own statement position
+        (left position -> left operand) and address immediate members
+        within it; anything absent or outside is `E_ADDRESS_UNKNOWN`.
+        """
+        if ep.form == "meta":
+            exp = left if ep.head == "L" else right
+            if not ep.tail:
+                return list(exp.members)
+            if ep.tail == ("out",):
+                return list(exp.fout)
+            return list(exp.fin)
+        side = left if position == "L" else right
+        refs = (ep.head,) if ep.form == "ref" else ep.members
+        return self._resolve_operand_refs(refs, side, rule)
+
+    def _resolve_operand_refs(self, refs: Sequence[str],
+                              side: _Expansion, rule: str) -> list[str]:
+        """Resolve member refs within one operand's member scopes.
+
+        A ref matches an immediate member (child remainder, replica-aware,
+        or the member scope itself) or an exact node path at/under a member
+        scope. Names absent from the operand, or paths outside it, are
+        refused: rule expansion operates on resolved interfaces and never
+        reconnects arbitrary descendants.
+        """
+        members = list(side.members)
+        out: list[str] = []
+        for ref in refs:
+            hits: list[str] = []
+            if ref in self.nodes and self._within_members(ref, members):
+                hits.append(ref)
+            else:
+                for scope in members:
+                    for full, rem in _scope_children(self.nodes, scope):
+                        if rem == ref and full not in hits:
+                            hits.append(full)
+                    if scope in self.nodes and self._remainder_of(scope) == ref \
+                            and scope not in hits:
+                        hits.append(scope)
+            if not hits:
+                raise TFNEError(
+                    f"E_ADDRESS_UNKNOWN: rule {rule!r} names {ref!r}, "
+                    f"which is absent from its operand "
+                    f"{[str(m) for m in members]!r}")
+            out.extend(hits)
+        seen: set[str] = set()
+        ordered = [h for h in out if not (h in seen or seen.add(h))]
+        return ordered
+
+    @staticmethod
+    def _within_members(path: str, members: Sequence[str]) -> bool:
+        return any(path == m or path.startswith(m + ".") for m in members)
+
+    def _record_rule(self, node: Any, left: _Expansion,
+                     right: _Expansion) -> RelationRecord:
         assert isinstance(node, (Ordered, Cross))
         assert node.rule is not None
         if node.rule not in self.program.rules:
             raise TFNEError(f"connection rule {node.rule!r} undefined")
         ruledef = self.program.rules[node.rule]
+        kind = "O" if isinstance(node, Ordered) else "X"
+        if getattr(ruledef, "body", ()):
+            return self._record_rule_body(node, ruledef, kind, left, right)
+        # Flat (params-only) rules keep their exact legacy behavior: O binds
+        # fout->fin, X binds whole members.
+        pre = list(left.fout) if kind == "O" else list(left.members)
+        post = list(right.fin) if kind == "O" else list(right.members)
         direction = ruledef.params.get("direction")
         if direction not in (">", "<", "<>"):
             raise TFNEError(
                 f"rule {node.rule!r} must declare direction ('>', '<', '<>'); "
                 "the algebra fixes no default direction for O[k]/X[k]")
-        kind = "O" if isinstance(node, Ordered) else "X"
         group = None
         if direction == "<>":
             group = (f"rule:{kind}[{node.rule}]:{_emit_expr(node.left)}<>"
@@ -1703,8 +1913,42 @@ class _Resolver:
         for split in self._split_direction(direction):
             self._record_relation("rule", kind, node.rule, split,
                                   _emit_expr(node.left),
-                                  _emit_expr(node.right), left, right,
+                                  _emit_expr(node.right), pre, post,
                                   group=group)
+        return self.relations[-1]
+
+    def _record_rule_body(self, node: Any, ruledef: RuleDef, kind: str,
+                          left: _Expansion,
+                          right: _Expansion) -> RelationRecord:
+        """Expand S12 body statements against the syntactic operands.
+
+        Each statement's endpoints evaluate with `$L`/`$R` bound to the
+        operand expansions and plain names resolved within their own side.
+        Direction lives in the statements (bodies routinely mix `>` and
+        `<`), so a rule-level `direction` alongside a body is refused
+        rather than silently ignored.
+        """
+        if "direction" in ruledef.params:
+            raise TFNEError(
+                f"rule {ruledef.name!r} declares both a body and a "
+                f"top-level direction; direction lives in the body "
+                f"statements")
+        for stmt in ruledef.body:
+            pre = self._eval_rule_endpoint(stmt.left, left, right,
+                                           ruledef.name, "L")
+            post = self._eval_rule_endpoint(stmt.right, left, right,
+                                            ruledef.name, "R")
+            label = _emit_rulestmt(stmt)
+            group = None
+            if stmt.direction == "<>":
+                group = (f"rule:{kind}[{ruledef.name}]:{label}")
+            for split in self._split_direction(stmt.direction):
+                self._record_relation("rule", kind, ruledef.name, split,
+                                      _emit_rule_endpoint(stmt.left),
+                                      _emit_rule_endpoint(stmt.right),
+                                      pre, post,
+                                      group=group,
+                                      mechanism=stmt.mechanism)
         return self.relations[-1]
 
     @staticmethod
@@ -1717,7 +1961,8 @@ class _Resolver:
     def _record_relation(self, form: str, kind: str, rule: Optional[str],
                          direction: str, pre_label: str, post_label: str,
                          left: list[str], right: list[str],
-                         group: Optional[str] = None) -> RelationRecord:
+                         group: Optional[str] = None,
+                         mechanism: Optional[str] = None) -> RelationRecord:
         i = self.relation_counter
         self.relation_counter += 1
         rname = rule if rule is not None else "-"
@@ -1728,7 +1973,7 @@ class _Resolver:
                              post_label=post_label,
                              pre_scopes=tuple(left),
                              post_scopes=tuple(right),
-                             group=group)
+                             group=group, mechanism=mechanism)
         if form != "exclusion":
             self.relations.append(rec)
         return rec
@@ -1951,6 +2196,10 @@ def realize(explicit: ExplicitModel, program: Optional[Program] = None,
     for rel in explicit.relations:
         rule_params = rule_lookup.get(rel.rule) if rel.rule else None
         params = _rule_connection_params(rule_params)
+        if rel.mechanism is not None:
+            # S12 per-statement mechanism overrides the rule default for
+            # this relation's projections only.
+            params["mechanism"] = rel.mechanism
         if rel.direction not in (">", "<"):
             raise TFNEError(
                 f"relation {rel.key!r} has unresolved direction "
@@ -2051,9 +2300,12 @@ def realize(explicit: ExplicitModel, program: Optional[Program] = None,
                          "post_label": rel.post_label,
                          "pre_scopes": list(rel.pre_scopes),
                          "post_scopes": list(rel.post_scopes),
-                         "params": (_rule_connection_params(
-                             rule_lookup.get(rel.rule))
-                             if rel.rule else _rule_connection_params(None))}
+                         "params": dict(
+                             _rule_connection_params(
+                                 rule_lookup.get(rel.rule))
+                             if rel.rule else _rule_connection_params(None),
+                             **({"mechanism": rel.mechanism}
+                                if rel.mechanism is not None else {}))}
                for rel in explicit.relations}
     s: dict[str, Any] = {
         "n_neurons": n_neurons,
@@ -2368,6 +2620,8 @@ def _leaves_under(explicit: ExplicitModel, scope: str,
 
 
 def _relation_mechanism(explicit: ExplicitModel, rel: RelationRecord) -> str:
+    if rel.mechanism is not None:
+        return str(rel.mechanism)
     if rel.rule is None:
         return DIRECT_MECHANISM
     params = explicit.rule_params.get(rel.rule, {})

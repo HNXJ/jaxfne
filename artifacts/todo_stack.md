@@ -208,10 +208,18 @@ what it cannot express rather than realizing a different nervous system.
   `A O B O C`. Receipt:
   `artifacts/programme/tfne2_conformance_04_receipt.md`. CTX-01's `in`/`out`
   dependency is unblocked. Carried, not added: X[k]-rule frontier override
-  (needs TFNE2-05 rule bodies).
-- **TFNE2-05** — S12 `$L` / `$R` rule metavariables and rule bodies that
-  specify topology, mechanism, parameters, geometry and delay independently.
-  Also gives `X[k]` a way to select endpoints, which it currently lacks.
+  (bodies now exist via TFNE2-05; declaring a composite interface from a
+  rule still needs a language decision).
+- **TFNE2-05** — S12 `$L` / `$R` rule bodies. **Done.** Bodies are
+  projection statements over `$L`/`$R` (whole operands), `.out`/`.in`
+  (resolved interfaces), member refs, and `{a, b}` collections, with
+  per-statement direction and `[mech=...]` override; names resolve within
+  their own side, absences and out-of-operand paths are
+  `E_ADDRESS_UNKNOWN`; flat rules keep exact legacy behavior. Also gives
+  `X[k]` endpoint selection, which it previously lacked. Receipt:
+  `artifacts/programme/tfne2_conformance_05_receipt.md`. Carried, not
+  added: `X[k]`-rule frontier override (needs a language decision on
+  interface-declaring rule syntax) and per-statement geometry/delay.
 - **TFNE2-06** — S14/S25 statement atomicity: `;`-separated statements inside a
   composite, each atomic, a statement with an invalid resolved projection
   contributing nothing. Carries S6 prefix rule application `O[k](SEG^n)`.

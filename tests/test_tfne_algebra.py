@@ -1128,3 +1128,156 @@ def test_equivalent_serialization_keeps_frontier_semantics():
     _, _, rb = _frontier_realize(b)
     assert ra.I["neuron_paths"] == rb.I["neuron_paths"]
     assert ra.s["n_edges"] == rb.s["n_edges"] == 4
+
+
+# --------------------------------------------------------------------------- #
+# 9g. S12 rule bodies ($L / $R, scope addressing, per-statement mechanism)
+# --------------------------------------------------------------------------- #
+
+_LAMINAR = """
+L1 := [C = {E}; N = 1];
+L2 := [C = {E}; N = 1];
+L3 := [C = {E}; N = 1];
+L5 := [C = {E}; N = 1];
+V1 := L1 O L2 O L3 O L5;
+V2 := L1 O L2 O L3 O L5;
+"""
+
+
+def test_rule_body_addresses_scopes_per_side():
+    """`{L2,L3}>L3` binds left-members to right-member; `L5<{L2,L5}`
+    binds right-members back to left — left/right-relative addressing."""
+    src = ("O[cmc1] := [{L2,L3}>L3; L5<{L2,L5}];\n" + _LAMINAR
+           + "V := V1 O[cmc1] V2;\nx : V : y\n")
+    _, _, r = _realize(src)
+    origins = r.I["rule_origins"]
+    assert origins["r0:O[cmc1]:{L2, L3}>L3"]["pre_scopes"] == [
+        "V.V1.L2", "V.V1.L3"]
+    assert origins["r0:O[cmc1]:{L2, L3}>L3"]["post_scopes"] == ["V.V2.L3"]
+    assert origins["r1:O[cmc1]:L5<{L2, L5}"]["pre_scopes"] == ["V.V1.L5"]
+    assert origins["r1:O[cmc1]:L5<{L2, L5}"]["post_scopes"] == [
+        "V.V2.L2", "V.V2.L5"]
+    assert r.s["n_edges"] == 4  # 2x1 + 1x2; identities, not just counts
+
+
+def test_rule_body_bidirectional_splits_with_shared_group():
+    """`X[v3x1]` with `<>` records both halves under one group stem."""
+    src = ("X[v3x1] := [{L2,L3}<>{L2,L3}];\n" + _LAMINAR
+           + "V := V1 X[v3x1] V2;\nx : V : y\n")
+    _, _, r = _realize(src)
+    origins = r.I["rule_origins"]
+    fwd = origins["r0:X[v3x1]:{L2, L3}>{L2, L3}"]
+    back = origins["r1:X[v3x1]:{L2, L3}<{L2, L3}"]
+    assert fwd["direction"] == ">" and back["direction"] == "<"
+    assert fwd["group"] == back["group"] and fwd["group"] is not None
+    assert r.s["n_edges"] == 8  # 2x2 each way
+
+
+def test_dollar_interfaces_match_flat_rule():
+    """`$L.out > $R.in` is the canonical O-rule: identical edges to a
+    flat rule binding the same adjacency."""
+    flat = ("O[k] := [direction = >; mechanism = AMPA];\n" + _LAMINAR
+            + "V := V1 O[k] V2;\nx : V : y\n")
+    body = ("O[k] := [$L.out > $R.in];\n" + _LAMINAR
+            + "V := V1 O[k] V2;\nx : V : y\n")
+    _, _, rf = _realize(flat)
+    _, _, rb = _realize(body)
+    assert (rf.I["rule_origins"]["r0:O[k]:V1>V2"]["pre_scopes"]
+            == rb.I["rule_origins"]["r0:O[k]:$L.out>$R.in"]["pre_scopes"]
+            == ["V.V1.L5"])
+    assert (rf.I["rule_origins"]["r0:O[k]:V1>V2"]["post_scopes"]
+            == rb.I["rule_origins"]["r0:O[k]:$L.out>$R.in"]["post_scopes"]
+            == ["V.V2.L1"])
+    assert rf.s["n_edges"] == rb.s["n_edges"] == 1
+
+
+def test_bare_dollar_denotes_whole_operand():
+    """Bare `$L`/`$R` bind whole operands (members), not interfaces."""
+    src = ("X[k] := [$L > $R];\n" + _LAMINAR
+           + "V := V1 X[k] V2;\nx : V : y\n")
+    _, _, r = _realize(src)
+    origins = r.I["rule_origins"]
+    assert origins["r0:X[k]:$L>$R"]["pre_scopes"] == ["V.V1"]
+    assert origins["r0:X[k]:$L>$R"]["post_scopes"] == ["V.V2"]
+    assert r.s["n_edges"] == 16
+
+
+def test_dollar_out_respects_declared_frontiers():
+    """Rule expansion operates on resolved interfaces: with
+    `out[V1] := [L3]`, `$L.out` binds L3 only — no bypass."""
+    src = ("O[k] := [$L.out > $R.in];\nout[V1] := [L3];\n" + _LAMINAR
+           + "V := V1 O[k] V2;\nx : V : y\n")
+    _, _, r = _realize(src)
+    origins = r.I["rule_origins"]
+    assert origins["r0:O[k]:$L.out>$R.in"]["pre_scopes"] == ["V.V1.L3"]
+    assert origins["r0:O[k]:$L.out>$R.in"]["post_scopes"] == ["V.V2.L1"]
+    assert r.s["n_edges"] == 1  # L3->L1; identity (not count) carries it
+
+
+def test_rule_reuse_across_scales_and_absent_member_refused():
+    """One rule, two applications at different scales; a member absent
+    from an operand is E_ADDRESS_UNKNOWN, not an empty binding."""
+    src = ("O[k] := [L2 > L3];\n" + _LAMINAR
+           + "W1 := L2 O L3;\nW2 := L2 O L3 O L5;\n"
+             "V := W1 O[k] W2;\nx : V : y\n")
+    _, _, r = _realize(src)
+    origins = r.I["rule_origins"]
+    assert origins["r0:O[k]:L2>L3"]["pre_scopes"] == ["V.W1.L2"]
+    assert origins["r0:O[k]:L2>L3"]["post_scopes"] == ["V.W2.L3"]
+    bad = ("O[k] := [L9 > L3];\n" + _LAMINAR
+           + "V := V1 O[k] V2;\nx : V : y\n")
+    with pytest.raises(TFNEError, match="E_ADDRESS_UNKNOWN"):
+        _realize(bad)
+
+
+def test_rule_cannot_address_outside_its_operands():
+    """An exact path outside both operands is refused, not connected."""
+    src = ("O[k] := [V.V2.L3 > L3];\n" + _LAMINAR
+           + "V := V1 O[k] V2;\nx : V : y\n")
+    with pytest.raises(TFNEError, match="E_ADDRESS_UNKNOWN"):
+        _realize(src)
+
+
+def test_statement_mechanism_overrides_rule_default():
+    """`[mech=...]` relabels one statement's projections; the rule-level
+    mechanism still covers statements without one."""
+    src = ("O[k] := [mechanism = AMPA; {L2}>L3 [mech=GABA_A]; L5>L3];\n"
+           + _LAMINAR + "V := V1 O[k] V2;\nx : V : y\n")
+    prog, explicit, r = _realize(src)
+    origins = r.I["rule_origins"]
+    assert origins["r0:O[k]:{L2}>L3"]["params"]["mechanism"] == "GABA_A"
+    assert origins["r1:O[k]:L5>L3"]["params"]["mechanism"] == "AMPA"
+    mechs = {c["mechanism"] for c in r.s["connection_table"]}
+    assert mechs == {"GABA_A", "AMPA"}
+    # Execution identity survives to the tensor: per-statement mechanisms
+    # reach InterConnection entries, not just the index map.
+    tensor = to_neuronal_tensor(explicit)
+    tensor_mechs = {c.mechanism for a in tensor.areas
+                    for c in a.inter_connections}
+    assert tensor_mechs == {"GABA_A", "AMPA"}
+
+
+def test_rule_level_direction_with_body_is_refused():
+    """Direction lives in the statements; a redundant top-level direction
+    is an error, not a silently ignored default."""
+    with pytest.raises(TFNEError, match="top-level direction"):
+        _realize("O[k] := [direction = >; L2>L3];\n" + _LAMINAR
+                 + "V := V1 O[k] V2;\nx : V : y\n")
+
+
+def test_rule_body_replay_digest_and_serialization():
+    """Bodies are realization-affecting metadata: replay-stable NF,
+    digest-sensitive, serialization-independent."""
+    from jaxfne.tfne import spec_hash
+    a = "O[k] := [{L2}>L3];\n"
+    b = "O[k] := [L2>L3];\n"
+    first = normalize(parse(a + _LAMINAR + "V := V1 O[k] V2;\nx : V : y\n"))
+    assert normalize(parse(first)) == first
+    assert "{L2} > L3" in first
+    pa = parse(a + _LAMINAR + "V := V1 O[k] V2;\nx : V : y\n")
+    pb = parse(b + _LAMINAR + "V := V1 O[k] V2;\nx : V : y\n")
+    assert spec_hash(pa) != spec_hash(pb)
+    _, _, ra = _realize(a + _LAMINAR + "V := V1 O[k] V2;\nx : V : y\n")
+    _, _, rb = _realize(
+        "V := V2 O[k] V1;\n" + a + _LAMINAR + "x : V : y\n")
+    assert ra.s["n_edges"] == rb.s["n_edges"] == 1
