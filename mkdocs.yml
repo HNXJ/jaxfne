@@ -162,6 +162,7 @@ nav:
       - PseudoGenome (JDNA): guides/jdna.md
       - Output bundles: guides/output_bundles.md
       - Canonical Atlas Suite: guides/atlas_suite.md
+      - Model inspection: guides/model_inspection.md
       - Jaxley interoperability: guides/jaxley_interop.md
 
   - Études:

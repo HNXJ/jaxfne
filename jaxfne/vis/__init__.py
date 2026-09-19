@@ -66,6 +66,7 @@ from .tutorial_panels import (
     spectrolaminar_suite_3panel,
 )
 from .raster_arrays import raster_from_arrays
+from .network_inspect import network_hspice, network_raster, describe, Theme, THEMES
 from .plasticity_viz import plot_stdp_adaptation_suite
 from .layout import cumulative_stack_offsets, cumulative_panel_extents
 from .tutorial_array_plots import (
@@ -208,6 +209,11 @@ __all__ = [
     "activity_trace_suite",
     "spectrolaminar_suite_3panel",
     "raster_from_arrays",
+    "network_hspice",
+    "network_raster",
+    "describe",
+    "Theme",
+    "THEMES",
     "plot_stdp_adaptation_suite",
     "cumulative_stack_offsets",
     "cumulative_panel_extents",
