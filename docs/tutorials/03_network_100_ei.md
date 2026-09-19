@@ -103,6 +103,12 @@ print(f"Voltage: {vm_mean:.2f} ± {vm_std:.2f} mV")
 - All eight proxy operators scale smoothly to population level
 - Output bundle remains JSON-serializable and reproducible
 
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from this page's run (100 ms, dt 0.1 ms, seed 42): [index](../_static/atlas/network_100_ei/index.html) · [3D](../_static/atlas/network_100_ei/network_3d.html) · [connectivity](../_static/atlas/network_100_ei/connectivity.html) · [raster](../_static/atlas/network_100_ei/raster.html) · [traces](../_static/atlas/network_100_ei/traces.html) · [spectral](../_static/atlas/network_100_ei/spectral.html) · [state summary](../_static/atlas/network_100_ei/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug network_100_ei`.
+
 ## Next step
 
 Progress to [V1 six-layer column](04_v1_column.md) for structured laminar networks.

@@ -119,6 +119,12 @@ comparisons: run with `k_gain = 0` and `k_gain > 0`, hold everything else fixed,
 and attribute the difference (rate spread collapsing toward the set-point, silent
 units recovering) to the controller. Report the null alongside the result.
 
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from the 1000-neuron homeostasis run above (1000 ms, dt 0.5 ms, seed 0): [index](../_static/atlas/homeostasis_1000/index.html) · [3D](../_static/atlas/homeostasis_1000/network_3d.html) · [connectivity](../_static/atlas/homeostasis_1000/connectivity.html) · [raster](../_static/atlas/homeostasis_1000/raster.html) · [traces](../_static/atlas/homeostasis_1000/traces.html) · [spectral](../_static/atlas/homeostasis_1000/spectral.html) · [state summary](../_static/atlas/homeostasis_1000/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug homeostasis_1000`.
+
 ## See also
 
 - Bridges API (`docs/api/bridges.md` — repository-internal reference, excluded from the built site) — `simulate_homeostatic` parameters in full.

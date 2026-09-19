@@ -137,6 +137,17 @@ resume the conformance list ahead of it.
   declared transformation requires its own authority and must not be settled as
   a side effect of TFNE-PARAM-03.
 
+  *Traced (inspect-only):* identity survives TFNE `G` → `s["geometry"]` →
+  JDNA completion (declared domain sampled under `K_D` with origins) →
+  `to_neuronal_tensor` `Geometry3D`, and is first lost in
+  `neuronal_tensor_to_configuration`, which drops `Layer.geometry` for the
+  Configuration default column (stated in its own docstring). The live
+  `construct(tensor, ...)` path honors declared domains via
+  `_construct_neuronal_tensor_impl`. Open before any repair: field/cable
+  consumers assume unit-relative depth (contacts `linspace(0,1)`), the
+  transfer seed ownership (`K_D` needs an explicit parameter), and the
+  pin-test inversion above.
+
 ### Parameter ownership, as measured (TFNE-PARAM-01)
 
 | Parameter | Configured | Realized | Executed |
@@ -372,3 +383,235 @@ exactly TFNE-PARAM-01 and TFNE-PARAM-03.
   against direct repository access). Numerical reproduction alone is
   insufficient for mechanistic modeling, and JaxFNE additionally owns its
   specification language.
+
+---
+
+# 0.4.25 — TFNE-algebra + visualization sweep (in progress; v2 plan)
+
+Scope: (a) vis drop-in sealed+pushed (`9f79daa`); (b) seven-panel dark Plotly
+atlas per model, TFNE→JDNA→Model teaching lifecycle everywhere, simplified
+language; (c) full 0.4.25 release. This v2 plan supersedes the v1 batch
+sequence below except where re-referenced: v1 slugs/configs/run-labels are
+retained assets; v1 six-panel outputs will be regenerated under the 7-panel
+spec. Target end state:
+
+$$
+\boxed{
+\text{one scientific model}
+\rightarrow
+\text{one provenance-bearing simulation}
+\rightarrow
+\text{many documentation views}
+}
+$$
+
+Locked authority decisions: stable TFNE subset is narrow (ordering,
+frontiers, rule bodies, atomicity, mechanism resolution, replication, JDNA
+completion, CTX-01; delay/geometry shown as limitations); every atlas panel
+is defined by its data contract (§Batch A2), not its title; page archetype is
+`question -> minimal algebra -> run -> result/figure -> interpretation/limits
+-> links`; gallery is generated from manifests (never hand-maintained);
+H-SPICE is native Plotly (no PNG-in-chrome); recording policy is budget-based
+(§Batch A3), never neuron-count-based; `T_atlas = 1000 ms` is a
+visualization/example standard, NOT scientific identity ("canonical
+general-purpose atlas examples use 1000 ms unless the scientific example
+declares another duration").
+
+## Starting state (v1 baseline sealed; see git log `feat(docs): dark Plotly
+atlas rollout for every sim page` — HEAD == origin/dev there, verified at
+seal; re-verify with `git rev-parse HEAD` / `git rev-parse origin/dev`)
+
+- Dirty tree (uncommitted Part-2 work): `jaxfne/vis/atlas_suite.py`
+  (presentation-only dark theme in `_emit`), `scripts/generate_readme_atlas.py`
+  (same for PNG stills), `scripts/generate_doc_page_atlases.py` (new, 23
+  specs), `docs/_static/atlas/` + `docs/_static/atlas_three_area/` regenerated,
+  22 new `docs/_static/atlas/<slug>/` dirs, `docs/_static/jaxley_interop/`,
+  atlas-link edits in 8 guides + 22 tutorial pages (see slug table).
+- Untouched (Batch 1 remainder): `docs/guides/{jdna,output_bundles,
+  configuration_grammar,model_inspection,atlas_suite,showcases}.md`,
+  `docs/{quickstart,index,colab}.md`.
+- Canonical atlas regenerated with dark figures: `config_hash` gate passed
+  (`4b0d96456d56bc1a` unchanged — data identical, style only); manifest `sha256`
+  changed as expected.
+- Stale `M artifacts/todo_stack.md` predates this plan (inspect its diff in
+  Batch 3; keep planned content, drop superseded lines).
+
+## Standing facts workers must not re-decide
+
+1. `dt_ms=0.1` float32 time grids drift non-uniform on long runs and are
+   rejected by the atlas gate (`INVALID_TIME_GRID`); the generator uses
+   `dt_ms=0.5` (binary-exact) wherever page runs used 0.1, and every run
+   label says so.
+2. `docs/_static/atlas/eeg_meg_emm_100/` was removed (byte-identical to
+   `ei_population_100` — same dynamics, extra probe modes change no panel);
+   tutorial 09 links the shared slug.
+3. `Configuration` has no `.paradigm()` method; paradigms ride on
+   `simulate(..., paradigm=...)`. The evoked tutorial was already fixed to
+   the supported path.
+4. The Jaxley bridge returns `Signals` without a `Model`, so no 6-panel
+   atlas exists for it — only the standalone dark `vm` panel.
+5. `docs/etudes/**` are frozen protocols: link-only or skip, never regenerate.
+
+## Slug table (normative for every page edit)
+
+`P` = `../_static/atlas/<slug>/` under `docs/tutorials/` and `docs/guides/`,
+`_static/atlas/<slug>/` under `docs/` root. Regen = full command after `P`.
+
+| Doc page | Slug (or share) | Run label (exact sentence) | Status |
+|---|---|---|---|
+| tutorials/01_single_neuron_multimodal.md | `single_neuron` | 100 ms, dt 0.1 ms, seed 0 | done |
+| tutorials/02_two_neuron_ei.md | `two_neuron_ei` | 500 ms, dt 0.5 ms, seed 0; the page shows dt 0.1 ms | done |
+| tutorials/03_network_100_ei.md | `network_100_ei` | 100 ms, dt 0.1 ms, seed 42 (page run) | done |
+| tutorials/04_v1_column.md | `v1_column` | 1000 ms, dt 0.5 ms, seed 0; the page shows dt 0.1 ms | done |
+| tutorials/05_v1_pfc_dual_column.md | `v1_pfc_dual` | single 1000 ms AAAB trial, dt 0.5 ms, no HDP trial-to-trial carryover; the page chains trials with carryover | done |
+| tutorials/06_v036_100_neuron_ei_population.md | `ei_population_100` | 1000 ms, dt 0.5 ms, seed 42; the page shows dt 0.1 ms | done |
+| tutorials/06_jaxfne_suite_no_1_computational_biophysics.md | `suite1_column` | smoke-scale 1000 ms, dt 0.5 ms, seed 44, of the notebook's 48-neuron column (notebook: 5000 ms, dt 0.1 ms) | done |
+| tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md | `suite2_net1` | `suite2_net1_config`, 100 neurons, 1000 ms, dt 0.5 ms, seed 7; the page shows dt 0.1 ms | done |
+| tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md | `evoked_l4` | evoked condition, 1500 ms, dt 0.5 ms, seed 7; the page shows dt 0.1 ms | done |
+| tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md | `scale_100` | N=100 scale, 1000 ms, dt 0.5 ms, seed 2303, with the notebook's async patch (notebook: N=10/50/100/500, dt 0.1 ms) | done |
+| tutorials/07_v037_source_bookkeeping.md | `source_column_48` | 48-neuron column, 1000 ms, dt 0.5 ms, seed 42; the page shows dt 0.1 ms | done |
+| tutorials/08_v038_lfp_csd_readout.md | `lfp_csd_12` | 12-neuron laminar example, 1000 ms, dt 0.5 ms, seed 42; the page shows dt 0.1 ms | done |
+| tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md | share `ei_population_100` | same 100-neuron dynamics; EEG/MEG/EMM are additional probe modes on those signals | done |
+| tutorials/10_v0313_omission_oddball.md | `omission_60` | plain drive, 1000 ms, dt 0.5 ms, seed 42; conditions declared via `omission_oddball_paradigm` | done |
+| tutorials/11_multi_laminar_cortical_agsdr.md | `v1v4_80` | closest `Model` equivalent (`suite2_v1_v4_config`, 80/area, 1000 ms, dt 0.5 ms, seed 42); the page flow is `tutorial_utils` dict-based | done |
+| tutorials/13_canonical_column_etude.md | `canonical_etude_1000` | uniform-drive run, 1000 ms, dt 0.5 ms, seed 0 (page run) | done |
+| tutorials/01_define..08_compare + index primer | canonical `docs/_static/atlas/` | pinned 200 ms reference run (`generate_readme_atlas.py --html-only`) | done |
+| guides/hdp.md | `hdp_1000` | short 200 ms HDP run, dt 0.5 ms, weight-trace recording off | done |
+| guides/homeostasis.md | `homeostasis_1000` | 1000 ms, dt 0.5 ms, seed 0 (page run) | done |
+| guides/calibration.md | `calibration_100` | minimal 200 ms completion, dt 0.5 ms, seed 0; the page simulate call is a placeholder | done |
+| guides/tensor_field_workflows.md | `single_neuron` | single-neuron example scale | done |
+| guides/probe_operators.md | `probe_32` | minimal 200 ms completion, 32 neurons, dt 0.5 ms, seed 0; the snippet is aspirational | done |
+| guides/objective_grammar.md | `objective_60` | pre-tune run, 200 ms, dt 0.5 ms, seed 1, with the page's paradigm | done |
+| guides/operator_composition.md | `operator_chain_40` | 40-neuron run, 100 ms, dt 0.5 ms, seed 3 (page run) | done |
+| guides/jaxley_interop.md | `jaxley_interop/vm_dark.html` iframe | standalone dark `V_m` panel (no `Model`, no atlas) | done |
+| guides/jdna.md | canonical `docs/_static/atlas/` | pinned 200 ms reference; the develop path matches §Example | TODO (Batch 1A) |
+| guides/output_bundles.md | `probe_32` | illustrative 32-neuron run for bundle export | TODO (Batch 1A) |
+| guides/configuration_grammar.md | `config_grammar_1000` | smoke-scale 200 ms run of the 1000-neuron head config (guide shows 1000 ms) | TODO (Batch 1A) |
+| guides/model_inspection.md | none (toy example; cross-link atlas_suite) | fix `jaxfne.build(...)` → `jaxfne.construct(...)`; fix `build_atlas(..., path=)` → `out_dir=` | TODO (Batch 1A) |
+| guides/atlas_suite.md | — | quickstart: `out_dir` → `docs/_static/atlas`, runtime 500.0 → 200.0 ms (pinned table) | TODO (Batch 1A) |
+| guides/showcases.md | `atlas_three_area` (analogue) | 100/area reference for the page's 300/area hierarchy | TODO (Batch 1A) |
+| quickstart.md | canonical `docs/_static/atlas/` | tensor path identical (`load_canonical_neuronal_tensor`) | TODO (Batch 1B) |
+| index.md | canonical `docs/_static/atlas/` direct links | reference panels beside the three-area set | TODO (Batch 1B) |
+| colab.md | `single_neuron`, `two_neuron_ei` | rewrite Cell 2/3 to the Configuration API (current `construct(config)` takes no `emitters=`; `IzhikevichEmitter` takes no `v_init`/`u_init`) + atlas links | TODO (Batch 1B) |
+
+Skipped with reason (do not pick up): `12_izhikevich_*` (browser-only,
+has iframe); `notebook_standard.md`, `tutorial_outputs.md` (process docs, no
+runs); `api/*` (reference fragments); `etudes/*` (frozen); theory/appendix/
+changelog/releases/migration/performance (no runnable sims).
+
+## Snippet template (verbatim; fill `<RUN>`, `<P>`, `<REGEN>` from the table)
+
+```markdown
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from <RUN>: [index](<P>index.html) · [3D](<P>network_3d.html) · [connectivity](<P>connectivity.html) · [raster](<P>raster.html) · [traces](<P>traces.html) · [spectral](<P>spectral.html) · [state summary](<P>state_summary.html).
+
+Regenerate: `<REGEN>`.
+```
+
+Placement: append at page end as a new H2, except `13_canonical_column_etude`
+(before `## Notes on scale and claims`), `07_add_dynamics` (HDP variant text,
+done), `07_suite2` (net1 + pointer, done). If an assigned oldString does not
+match, stop that item and report — never fuzzy-match (a prior pass mis-applied
+one edit; every edit must be followed by reading the edited region).
+
+## Batch A — authority & contracts (surface decisions, don't improvise)
+
+- A1. Pin the stable TFNE doc subset (narrow): ordering, frontiers, rule
+  bodies, atomicity, mechanism resolution, replication, JDNA completion,
+  CTX-01 as canonical example. Delay and declared-geometry limits shown as
+  limitations with their refusal/pin tests named. Output: pinned list kept
+  in this file; docs cite only listed semantics.
+- A2. Atlas data contract (normative; a panel that cannot meet its contract
+  fails/omits explicitly, never substitutes): H-SPICE schema ← realized
+  TFNE/JDNA/model metadata (else fail/omit explicitly); 3D network ←
+  executed geometry (qualify under PARAM-04); raster ← executed spikes
+  (else fail); LFP ← declared source/field/probe output (never substitute
+  population activity); H dynamics ← recorded H (omit if unrecorded); HDP ←
+  actual mutable target/rule diagnostics (never infer from changing
+  activity); oscillatory response ← executed observation over declared
+  window (mechanism qualified separately).
+- A3. Recording-budget policy (replaces neuron-count rules). Limiting
+  object `M ∝ T(N_H + N_W + N_recorded)`. Classes: small mechanistic
+  circuit → full H, HDP targets, representative W, diagnostics;
+  medium/large network → population H, selected traces, summaries; large
+  edge-plastic network → sparse/sample/aggregate plastic state, never full
+  `T×E` unless explicitly budgeted. Every atlas declares class + budget.
+- A4. Provenance manifest schema (emitted by `build_atlas`): TFNE digest,
+  `K_D`, model/config identity, simulation identity, panel inputs,
+  code/version; plus per-panel lineage `panel -> source artifact ->
+  variable/path -> transform -> units/relative status -> sampling/window`.
+  The gallery is an evidence index, not an image index.
+- A5. Figure states `GENERATED ≠ VALIDATED ≠ CANONICAL`. Only VALIDATED
+  enters galleries; only deliberately selected VALIDATED outputs become
+  canonical doc assets. Promotion is a gated batch item, never a hand-edit.
+- A6. Canonical teaching lifecycle `question → TFNE → JDNA → JaxFNE Model →
+  Simulation → Observation`, plus the standing audit rule: audit every
+  construction diagram and workflow for TFNE/JDNA/Model ownership (the old
+  direct-hierarchy-into-`(s,h0,I)` boundary is not preserved).
+- A7. `T_atlas = 1000 ms` is a visualization/example standard, not
+  scientific identity: canonical general-purpose atlas examples use 1000 ms
+  unless the scientific example declares another duration.
+
+## Batch B — code (parallel after A; disjoint files)
+
+- B1. Native Plotly H-SPICE panel (dark, interactive/vector, testable;
+  theme presentation-only per standing rule).
+- B2. Atlas 7-panel update in `atlas_suite` (hspice, network3d, raster, lfp,
+  h_dynamics, hdp, oscillatory — each enforcing its A2 contract incl.
+  explicit fail/omit paths) + tests per contract branch.
+- B3. Provenance manifest emission (A4 schema) in `build_atlas`.
+- B4. Figure-state field + promotion tooling (VALIDATED / CANONICAL behind
+  Batch E gates).
+- B5. Frozen-bundle no-resimulation gate: étude figure generation ⇒
+  `Δsimulation = 0`; generators consume bundle dirs only; AST gate asserts
+  no simulate/construct import path in étude figure scripts.
+- B6. Gallery-from-manifests generator (lists only VALIDATED+ atlases with
+  provenance; `gallery.md` becomes output, not source).
+- B7. Semantic-negative docs gate for the 7 forbidden conflations (delay
+  supported by TFNE; declared geometry == executed geometry; GABA ==
+  GABA_A; H == HDP; proxy == physical LFP; source order == realization
+  order; TFNE directly fills unspecified developmental choices), with an
+  allowlist for doctrine pages stating the limitation itself.
+- B8. Canonical 1000 ms re-pin (`generate_readme_atlas` EXPECTED +
+  duration; deliberate, hash-gated).
+
+## Batch C — regenerate (after B; record generator command per atlas)
+
+- C1. Canonical + three-area (7-panel, `T_atlas` standard).
+- C2. Small mechanistic circuits (full-recording class incl. an HDP
+  showcase, e.g. MCC-3-style 10n).
+- C3. Suite/tutorial set (reuse v1 slugs from the slug table).
+- C4. Guide set (reuse v1 slugs).
+- C5. Étude post-hoc set (frozen bundles only; B5 gate enforced) + Jaxley
+  standalone panel as-is.
+- C6. Promotion pass: mark regenerated outputs VALIDATED per A5
+  (gate-checked), select canonical assets deliberately.
+
+## Batch D — rewrite (parallel groups after A; may overlap C)
+
+- D1. Lifecycle/ownership audit across every construction diagram and
+  workflow page (A6 rule; not a wording pass).
+- D2–D7. Archetype pass per group (`question → minimal algebra → run →
+  result/figure → interpretation/limits → links`; dedupe config dumps —
+  paste once, link): cumulative tutorials; archive/suite tutorials; chain
+  guides; state guides (HDP/homeostasis); root pages
+  (quickstart/index/colab); atlas/model_inspection/showcases/gallery pages.
+- D8. Fold in the 9 remaining v1 page files (old Batch 1A/1B list) under the
+  new archetype where not yet covered.
+- D9. Simplification check: derivations live in doctrine; pages carry
+  operational summaries + links (spot-check per group).
+
+## Batch E — seal (after C + D)
+
+- E1. Language + vocabulary + orphan audits green.
+- E2. Semantic-negative gate (B7) green.
+- E3. Atlas provenance/completeness validation: every manifest carries the
+  A4 fields; gallery lists only VALIDATED with resolving links.
+- E4. Gates dev → broad → rc + `mkdocs build --strict` (H2: no
+  release-ready claim without the exact gate on the sealed state).
+- E5. Changelog/version/release prep per old Batch 4 items 1–4 (bump list,
+  v0.4.25 entry, authority rollover draft, validators), then STOP +
+  surface: tag, main merge, GitHub release, PyPI, RTD need explicit user
+  authorization. On seal: remove completed items (done → remove; git keeps
+  history).

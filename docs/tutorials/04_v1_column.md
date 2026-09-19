@@ -67,6 +67,12 @@ manifest = build_atlas(model, signals, out_dir="docs/_static/atlas/v1_column")
 print("Emitted panels:", [p["panel"] for p in manifest["panels"]])
 ```
 
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from this page's circuit (1000 ms, dt 0.5 ms, seed 0; the page shows dt 0.1 ms): [index](../_static/atlas/v1_column/index.html) · [3D](../_static/atlas/v1_column/network_3d.html) · [connectivity](../_static/atlas/v1_column/connectivity.html) · [raster](../_static/atlas/v1_column/raster.html) · [traces](../_static/atlas/v1_column/traces.html) · [spectral](../_static/atlas/v1_column/spectral.html) · [state summary](../_static/atlas/v1_column/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug v1_column`.
+
 ## Next step
 
 Progress to [V1-PFC dual column](05_v1_pfc_dual_column.md) for multi-areal networks.

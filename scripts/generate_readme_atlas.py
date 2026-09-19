@@ -100,7 +100,8 @@ def write_png_stills(model, signals) -> list[Path]:
         fig = make_fig()
         # Match the atlas HTML theme so the README stills and the interactive
         # panels read as one system.
-        fig.update_layout(paper_bgcolor="#0d1117", plot_bgcolor="#161b22")
+        fig.update_layout(template="plotly_dark", paper_bgcolor="#0d1117",
+                          plot_bgcolor="#161b22", font=dict(color="#c9d1d9"))
         out = PNG_DIR / f"{name}.png"
         fig.write_image(str(out), scale=PNG_SCALE)
         written.append(out)

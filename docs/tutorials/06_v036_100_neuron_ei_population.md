@@ -166,7 +166,13 @@ Try a different `seed`, switch emitter preset to `"tonic_spiking"`, or increase 
 **Runaway network (> 50 Hz)?**  
 Use a preset with stronger adaptation (e.g., `"chattering"`) or increase inhibitory coupling strength.
 
-**NaN/Inf in output?**  
+**NaN/Inf in output?**
 Reduce timestep to 0.01 ms, use float64 precision, or check Izhikevich parameter bounds.
 
 For more help, see [FAQ](../faq.md) or [Guides](../guides/index.md).
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from this page's circuit (1000 ms, dt 0.5 ms, seed 42; the page shows dt 0.1 ms): [index](../_static/atlas/ei_population_100/index.html) · [3D](../_static/atlas/ei_population_100/network_3d.html) · [connectivity](../_static/atlas/ei_population_100/connectivity.html) · [raster](../_static/atlas/ei_population_100/raster.html) · [traces](../_static/atlas/ei_population_100/traces.html) · [spectral](../_static/atlas/ei_population_100/spectral.html) · [state summary](../_static/atlas/ei_population_100/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug ei_population_100`.

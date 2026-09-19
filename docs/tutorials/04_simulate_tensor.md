@@ -23,3 +23,9 @@ print(float(signals.get("spikes").mean() * 1000 / 0.5))  # ~8-12 Hz population r
 **Box: two on-ramps, one compiler.** The fluent `Configuration` path (`Configuration().column().cell_types()...`) and this `develop → NeuronalTensor` path converge on `construct → simulate`. See [Configuration Grammar](../guides/configuration_grammar.md).
 
 Next: [05 — Observe](05_observe_fields.md) — post-hoc observation operators on the frozen trajectory.
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from the pinned 200 ms reference run of this same canonical column (the page runs 1000 ms; the atlas is the shorter pinned run): [index](../_static/atlas/index.html) · [3D](../_static/atlas/network_3d.html) · [connectivity](../_static/atlas/connectivity.html) · [raster](../_static/atlas/raster.html) · [traces](../_static/atlas/traces.html) · [spectral](../_static/atlas/spectral.html) · [state summary](../_static/atlas/state_summary.html).
+
+Regenerate: `python scripts/generate_readme_atlas.py --html-only`.

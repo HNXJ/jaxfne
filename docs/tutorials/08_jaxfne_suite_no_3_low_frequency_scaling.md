@@ -89,3 +89,9 @@ Configuration -> construct -> simulate -> whole-window absolute power -> log-log
 3. **Simulation:** Run the vectorized dynamics with `jtfne.simulate(model, sim)`.
 4. **Spectral Estimation:** Compute whole-window absolute power spectrum P(f) on log-log axes.
 5. **Scale Curves:** Fit exponent alpha and plot slope, low-frequency absolute power, and synchrony versus scale.
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from the N=100 scale (1000 ms, dt 0.5 ms, seed 2303, with the notebook's noisy-async patch; the notebook sweeps N=10/50/100/500 at dt 0.1 ms): [index](../_static/atlas/scale_100/index.html) · [3D](../_static/atlas/scale_100/network_3d.html) · [connectivity](../_static/atlas/scale_100/connectivity.html) · [raster](../_static/atlas/scale_100/raster.html) · [traces](../_static/atlas/scale_100/traces.html) · [spectral](../_static/atlas/scale_100/spectral.html) · [state summary](../_static/atlas/scale_100/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug scale_100`.

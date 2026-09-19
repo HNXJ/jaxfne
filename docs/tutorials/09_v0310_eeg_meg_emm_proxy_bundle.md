@@ -93,3 +93,9 @@ Configuration -> construct -> simulate -> separate probes -> independent figures
 3. **Simulation:** Run the vectorized simulation with `jtfne.simulate(model, sim)`.
 4. **Separate Probing:** Compute EEG-proxy, MEG-proxy, and EMM-proxy readouts using separate operator calls.
 5. **Separate Visualization:** Plot distinct panel figures for each sensor modality and export the validation receipt.
+
+## Interactive atlas (dark)
+
+The page's 100-neuron circuit realizes the same dynamics as the [100-neuron E/I population](06_v036_100_neuron_ei_population.md) run (same config, seed 42, dt 0.5 ms); EEG/MEG/EMM are additional probe modes on those signals, so the shared dark-theme Plotly panels apply here too: [index](../_static/atlas/ei_population_100/index.html) · [3D](../_static/atlas/ei_population_100/network_3d.html) · [connectivity](../_static/atlas/ei_population_100/connectivity.html) · [raster](../_static/atlas/ei_population_100/raster.html) · [traces](../_static/atlas/ei_population_100/traces.html) · [spectral](../_static/atlas/ei_population_100/spectral.html) · [state summary](../_static/atlas/ei_population_100/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug ei_population_100`.

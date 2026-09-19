@@ -1,0 +1,65 @@
+{
+  "suite": "atlas_suite.v1",
+  "title": "Two-neuron E/I (2n)",
+  "config_hash": "9754eb5d015afe00",
+  "jaxfne_version": "0.4.24",
+  "seed": 0,
+  "duration_ms": 500.0,
+  "n_neurons": 2,
+  "n_edges": 2,
+  "n_steps": 1000,
+  "dt_ms": 0.5,
+  "dt_source": "INFERRED_FROM_TIME_GRID",
+  "panels": [
+    {
+      "file": "network_3d.html",
+      "panel": "Network 3D",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 11024
+    },
+    {
+      "file": "connectivity.html",
+      "panel": "Connectivity",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 11038
+    },
+    {
+      "file": "raster.html",
+      "panel": "Spike raster",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 10622
+    },
+    {
+      "file": "traces.html",
+      "panel": "Membrane traces",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 32588
+    },
+    {
+      "file": "spectral.html",
+      "panel": "Spectral",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 19980
+    },
+    {
+      "file": "state_summary.html",
+      "panel": "State summary",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 12005
+    },
+    {
+      "file": "field.html",
+      "panel": "Field proxy",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 188292
+    }
+  ],
+  "sha256": "14622c702c418c95"
+}

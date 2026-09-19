@@ -253,6 +253,12 @@ physical_amplitude_calibrated: False
 
 ---
 
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from the uniform-drive run above (1000 ms, dt 0.5 ms, seed 0): [index](../_static/atlas/canonical_etude_1000/index.html) · [3D](../_static/atlas/canonical_etude_1000/network_3d.html) · [connectivity](../_static/atlas/canonical_etude_1000/connectivity.html) · [raster](../_static/atlas/canonical_etude_1000/raster.html) · [traces](../_static/atlas/canonical_etude_1000/traces.html) · [spectral](../_static/atlas/canonical_etude_1000/spectral.html) · [state summary](../_static/atlas/canonical_etude_1000/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug canonical_etude_1000`.
+
 ## Notes on scale and claims
 
 - **Reuse, don't rebuild.** `construct()` is the expensive step (~40 s at 10k,

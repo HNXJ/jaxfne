@@ -24,3 +24,9 @@ assert jtfne.load_neuronal_tensor(path).name == tensor.name
 **Box: n=1 vs 1000 contrast.** A single-cell tutorial (`configuration().network(n=1)`) and this 1000n tensor share no variables — the point is that isolated `n=1 → 2 → 100 → 600` progression resets the model. The cumulative path does not.
 
 Next: [04 — Simulate](04_simulate_tensor.md) — construction realizes positions and edges.
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from the pinned 200 ms reference run of this same canonical column: [index](../_static/atlas/index.html) · [3D](../_static/atlas/network_3d.html) · [connectivity](../_static/atlas/connectivity.html) · [raster](../_static/atlas/raster.html) · [traces](../_static/atlas/traces.html) · [spectral](../_static/atlas/spectral.html) · [state summary](../_static/atlas/state_summary.html).
+
+Regenerate: `python scripts/generate_readme_atlas.py --html-only`.

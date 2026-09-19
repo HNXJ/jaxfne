@@ -325,3 +325,9 @@ json.dump(signals.metadata, fp, allow_nan=False)
 **End of tutorial**
 
 Feedback? Open an issue: [jaxfne/issues](https://github.com/HNXJ/jaxfne/issues)
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from this page's 48-neuron column (1000 ms, dt 0.5 ms, seed 42; the page shows dt 0.1 ms), complementing the 3D view above: [index](../_static/atlas/source_column_48/index.html) · [3D](../_static/atlas/source_column_48/network_3d.html) · [connectivity](../_static/atlas/source_column_48/connectivity.html) · [raster](../_static/atlas/source_column_48/raster.html) · [traces](../_static/atlas/source_column_48/traces.html) · [spectral](../_static/atlas/source_column_48/spectral.html) · [state summary](../_static/atlas/source_column_48/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug source_column_48`.

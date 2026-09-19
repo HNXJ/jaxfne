@@ -117,6 +117,12 @@ trials_lesion = jtfne.tutorial_utils.simulate_laminar_trials(model, cfg_lesion, 
 
 The lesioned population is silenced for the run, and per-area firing rates are compared to the intact network. Inter-area projections are modulatory, so knock-out of a feedforward/feedback source shifts the downstream area's rate by a measurable amount.
 
+## Interactive atlas (dark)
+
+This page's workshop flow runs through `tutorial_utils` (dict-based trials, not a `Model`), so the panels below come from the closest `Model` equivalent — `suite2_v1_v4_config` (80 neurons/area, 1000 ms, dt 0.5 ms, seed 42): [index](../_static/atlas/v1v4_80/index.html) · [3D](../_static/atlas/v1v4_80/network_3d.html) · [connectivity](../_static/atlas/v1v4_80/connectivity.html) · [raster](../_static/atlas/v1v4_80/raster.html) · [traces](../_static/atlas/v1v4_80/traces.html) · [spectral](../_static/atlas/v1v4_80/spectral.html) · [state summary](../_static/atlas/v1v4_80/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug v1v4_80`.
+
 ## Artifacts
 
 ```text

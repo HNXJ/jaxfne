@@ -241,3 +241,9 @@ See [Source Bookkeeping](07_v037_source_bookkeeping.md) for workflow summary; th
 **End of tutorial**
 
 Feedback? Open an issue: [jaxfne/issues](https://github.com/HNXJ/jaxfne/issues)
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from the 12-neuron laminar example (1000 ms, dt 0.5 ms, seed 42; the page shows dt 0.1 ms): [index](../_static/atlas/lfp_csd_12/index.html) · [3D](../_static/atlas/lfp_csd_12/network_3d.html) · [connectivity](../_static/atlas/lfp_csd_12/connectivity.html) · [raster](../_static/atlas/lfp_csd_12/raster.html) · [traces](../_static/atlas/lfp_csd_12/traces.html) · [spectral](../_static/atlas/lfp_csd_12/spectral.html) · [state summary](../_static/atlas/lfp_csd_12/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug lfp_csd_12`.

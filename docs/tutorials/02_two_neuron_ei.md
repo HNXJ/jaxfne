@@ -49,6 +49,12 @@ readouts = model.compute_readout(signals, [
 - Inhibitory feedback suppresses excitatory spiking
 - Network exhibits oscillatory or stable behavior depending on connection strengths
 
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from this page's circuit (500 ms, dt 0.5 ms, seed 0; the page shows dt 0.1 ms): [index](../_static/atlas/two_neuron_ei/index.html) · [3D](../_static/atlas/two_neuron_ei/network_3d.html) · [connectivity](../_static/atlas/two_neuron_ei/connectivity.html) · [raster](../_static/atlas/two_neuron_ei/raster.html) · [traces](../_static/atlas/two_neuron_ei/traces.html) · [spectral](../_static/atlas/two_neuron_ei/spectral.html) · [state summary](../_static/atlas/two_neuron_ei/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug two_neuron_ei`.
+
 ## Next step
 
 Progress to [100-neuron E/I network](03_network_100_ei.md) for larger-scale circuits.

@@ -318,11 +318,23 @@ def build_atlas(
     os.makedirs(out_dir, exist_ok=True)
     manifest_panels: List[Dict[str, Any]] = []
 
+    def _apply_dark_theme(fig: Any) -> Any:
+        # Presentation only (never information/semantics): match the slate
+        # docs chrome so Plotly panels read as one dark system. Trace data,
+        # counts, and provenance are untouched.
+        try:
+            fig.update_layout(template="plotly_dark", paper_bgcolor="#0d1117",
+                              plot_bgcolor="#161b22",
+                              font=dict(color="#c9d1d9"))
+        except Exception:
+            pass
+        return fig
+
     def _emit(filename: str, panel: str, evidence: str, caption: str,
               make_fig: Callable[[], Any], extra: Dict[str, Any] | None = None) -> None:
         degradation_status = "AVAILABLE"
         try:
-            fig = make_fig()
+            fig = _apply_dark_theme(make_fig())
             fig_html = fig.to_html(include_plotlyjs="cdn", full_html=False)
         except Exception as exc:  # never skip: emit placeholder with reason
             degradation_status = "ERROR"

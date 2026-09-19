@@ -16,50 +16,50 @@
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 31238
+      "bytes": 31593
     },
     {
       "file": "connectivity.html",
       "panel": "Connectivity",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 1039519
+      "bytes": 1039874
     },
     {
       "file": "raster.html",
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 26105
+      "bytes": 26460
     },
     {
       "file": "traces.html",
       "panel": "Membrane traces",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 120897
+      "bytes": 121252
     },
     {
       "file": "spectral.html",
       "panel": "Spectral",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 19981
+      "bytes": 20258
     },
     {
       "file": "state_summary.html",
       "panel": "State summary",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 11932
+      "bytes": 12209
     },
     {
       "file": "field.html",
       "panel": "Field proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 189705
+      "bytes": 190060
     }
   ],
-  "sha256": "4c2eb21e4eec20f2"
+  "sha256": "158171554dd795c4"
 }

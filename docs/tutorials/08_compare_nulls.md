@@ -28,3 +28,9 @@ print(jtfne.kappa_synchrony(spk, 0.5))
 Rules retained from [13 — Canonical column](13_canonical_column_etude.md): reuse `construct` for drive sweeps and `with_emitter_parameters` for graded per-layer drive — construction stays the expensive step.
 
 This is the endpoint: every earlier verb's variable has been carried forward to a comparative judgment on one canonical model. For frozen publication claims, see [Études](../etudes/index.md).
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from the pinned 200 ms reference run of this same canonical column — the baseline the nulls/lesions compare against: [index](../_static/atlas/index.html) · [3D](../_static/atlas/network_3d.html) · [connectivity](../_static/atlas/connectivity.html) · [raster](../_static/atlas/raster.html) · [traces](../_static/atlas/traces.html) · [spectral](../_static/atlas/spectral.html) · [state summary](../_static/atlas/state_summary.html).
+
+Regenerate: `python scripts/generate_readme_atlas.py --html-only`.

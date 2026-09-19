@@ -151,6 +151,12 @@ manifest = model.manifest(signals, ...)
 # Manifest includes geometry and metadata suitable for later validation
 ```
 
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from a minimal 200 ms completion (dt 0.5 ms, seed 0) of the page's 100-neuron circuit — the page's own simulate call is a placeholder: [index](../_static/atlas/calibration_100/index.html) · [3D](../_static/atlas/calibration_100/network_3d.html) · [connectivity](../_static/atlas/calibration_100/connectivity.html) · [raster](../_static/atlas/calibration_100/raster.html) · [traces](../_static/atlas/calibration_100/traces.html) · [spectral](../_static/atlas/calibration_100/spectral.html) · [state summary](../_static/atlas/calibration_100/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug calibration_100`.
+
 ## References and further reading
 
 - [Scope and limitations](../limitations_and_future_plans.md)

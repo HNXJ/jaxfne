@@ -114,3 +114,9 @@ plt.show()
 
 - [Probe operators](../guides/probe_operators.md)
 - [Output bundles](../guides/output_bundles.md)
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from this page's circuit (100 ms, dt 0.1 ms, seed 0): [index](../_static/atlas/single_neuron/index.html) · [3D](../_static/atlas/single_neuron/network_3d.html) · [connectivity](../_static/atlas/single_neuron/connectivity.html) · [raster](../_static/atlas/single_neuron/raster.html) · [traces](../_static/atlas/single_neuron/traces.html) · [spectral](../_static/atlas/single_neuron/spectral.html) · [state summary](../_static/atlas/single_neuron/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug single_neuron`.

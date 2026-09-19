@@ -153,3 +153,18 @@ Use jaxfne when you want to:
 - **[Tensor-field workflows](tensor_field_workflows.md)** for pipeline overview
 - **[Tutorials](../tutorials/index.md)** for end-to-end examples
 - **[Jaxley documentation](https://jaxley.readthedocs.io)** for Jaxley-specific topics
+
+## Interactive panel (dark)
+
+The bridge returns `Signals` without a `Model`, so there is no 6-panel atlas for it — instead, the dark-theme membrane-potential panel of the HH run above, generated with the canonical `plot_membrane_potentials` plotter:
+
+<iframe
+  src="../_static/jaxley_interop/vm_dark.html"
+  width="100%"
+  height="520px"
+  style="border: 1px solid #2e2e3a; border-radius: 8px; background: #0d1117;"
+  title="Jaxley HH single compartment V_m proxy (dark)"
+  loading="lazy"
+></iframe>
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug jaxley_single`.

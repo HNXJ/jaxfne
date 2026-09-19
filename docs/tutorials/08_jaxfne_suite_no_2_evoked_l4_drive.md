@@ -85,16 +85,24 @@ paradigm = jtfne.evoked_l4_drive_paradigm(
     post_stimulus_buffer_ms=500.0,
 )
 
-cfg_evoked = cfg_baseline.paradigm(paradigm)
-model_evoked = jtfne.construct(cfg_evoked)
+model_evoked = jtfne.construct(cfg_baseline)
 ```
 
 ### Simulation
 
 ```python
 signals_baseline = jtfne.simulate(model_baseline, seed=7, duration_ms=1500.0, dt_ms=0.1)
-signals_evoked = jtfne.simulate(model_evoked, seed=7, duration_ms=1500.0, dt_ms=0.1)
+signals_evoked = jtfne.simulate(model_evoked, seed=7, duration_ms=1500.0, dt_ms=0.1,
+                                paradigm=paradigm)
 ```
+
+The paradigm rides on `simulate()` — `Configuration` has no `.paradigm()` method.
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from the evoked condition (1500 ms, dt 0.5 ms, seed 7; the page shows dt 0.1 ms): [index](../_static/atlas/evoked_l4/index.html) · [3D](../_static/atlas/evoked_l4/network_3d.html) · [connectivity](../_static/atlas/evoked_l4/connectivity.html) · [raster](../_static/atlas/evoked_l4/raster.html) · [traces](../_static/atlas/evoked_l4/traces.html) · [spectral](../_static/atlas/evoked_l4/spectral.html) · [state summary](../_static/atlas/evoked_l4/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug evoked_l4`.
 
 ## Figures
 

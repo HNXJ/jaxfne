@@ -10,5 +10,6 @@
 | `evidence` | hashes, manifests, provenance, authority packets, frozen evidence | changing evidence |
 | `manuscript` | claims, references, figures, prose boundaries | changing numerical results |
 | `adversary` | counterexamples, stale assumptions, hidden coupling, scope drift | primary writing |
+| `jaxfne-developer` | bounded doc/viz/release execution from `todo_stack.md` batches | scientific reinterpretation, API/release decisions, commit/push/tag |
 
 Selection: `A_T ⊆ {M,B,N,F,R,E,P,A}` minimal useful subset, at least two orthogonal where meaningful. Orchestration: `P→{W_i}∥→{R_j}∥→G_integrate→S`. Workers ≠ reviewers normally.

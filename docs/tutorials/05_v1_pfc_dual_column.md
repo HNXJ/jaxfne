@@ -147,6 +147,12 @@ longer run. A receipt is written to
 - This is a script-driven smoke test, not a polished tutorial notebook --
   there is no Colab badge and no `tutorials/*.ipynb` file for it yet.
 
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from a single 1000 ms AAAB trial of this page's two-area tensor (dt 0.5 ms, seed 0, no HDP trial-to-trial carryover; the page chains trials with H and weight carryover): [index](../_static/atlas/v1_pfc_dual/index.html) · [3D](../_static/atlas/v1_pfc_dual/network_3d.html) · [connectivity](../_static/atlas/v1_pfc_dual/connectivity.html) · [raster](../_static/atlas/v1_pfc_dual/raster.html) · [traces](../_static/atlas/v1_pfc_dual/traces.html) · [spectral](../_static/atlas/v1_pfc_dual/spectral.html) · [state summary](../_static/atlas/v1_pfc_dual/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug v1_pfc_dual`.
+
 ## Next steps
 
 See [Guides](../guides/index.md) for how-to articles on extending these

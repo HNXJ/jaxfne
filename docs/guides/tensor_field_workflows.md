@@ -179,6 +179,12 @@ For circuit-level workflows, tensor-field operations can produce:
 
 See tutorials for examples.
 
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from the single-neuron example's scale (100 ms, dt 0.1 ms, seed 0): [index](../_static/atlas/single_neuron/index.html) · [3D](../_static/atlas/single_neuron/network_3d.html) · [connectivity](../_static/atlas/single_neuron/connectivity.html) · [raster](../_static/atlas/single_neuron/raster.html) · [traces](../_static/atlas/single_neuron/traces.html) · [spectral](../_static/atlas/single_neuron/spectral.html) · [state summary](../_static/atlas/single_neuron/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug single_neuron`.
+
 ## Next steps
 
 - **[Tutorials](../tutorials/index.md)** for progressively detailed workflows

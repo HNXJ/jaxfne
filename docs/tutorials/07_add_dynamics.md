@@ -24,3 +24,9 @@ print(diag["H_trace"].shape, diag["w_trace"].shape)
 Both keep `kappa ≈ 0.04` (async-irregular). `H` restoration is `K_ctrl·(1-H_i)`; weight magnitude restoration `K_w_ctrl·(m0-m)` is independent. No new gains are invented here.
 
 Next: [08 — Compare](08_compare_nulls.md) — nulls, lesions, and authority.
+
+## Interactive atlas (dark)
+
+HDP dynamics change the trajectory, not the circuit: the pinned non-HDP reference panels are [here](../_static/atlas/index.html) ([3D](../_static/atlas/network_3d.html) · [connectivity](../_static/atlas/connectivity.html) · [raster](../_static/atlas/raster.html) · [traces](../_static/atlas/traces.html) · [spectral](../_static/atlas/spectral.html) · [state summary](../_static/atlas/state_summary.html)), and a short HDP run of the builder-path 1000-neuron column is [here](../_static/atlas/hdp_1000/index.html) ([raster](../_static/atlas/hdp_1000/raster.html) · [traces](../_static/atlas/hdp_1000/traces.html)).
+
+Regenerate: `python scripts/generate_readme_atlas.py --html-only` and `python scripts/generate_doc_page_atlases.py --slug hdp_1000`.

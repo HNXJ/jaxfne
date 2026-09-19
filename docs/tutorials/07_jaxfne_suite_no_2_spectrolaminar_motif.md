@@ -931,3 +931,9 @@ The notebook references two figures that are produced when the tutorial is execu
 Commit the generated PNG or PDF artifacts after a validated notebook run.
 
 For a current, corrected spectrolaminar readout (depth-distribution crossings, absolute-power-vs-1/f check, slow-deep-homeostasis suite) generated on the canonical column, see the Showcases guide (`docs/guides/showcases.md` — repository-internal reference, excluded from the built site) instead.
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from `suite2_net1_config` (100 neurons, 1000 ms, dt 0.5 ms, seed 7; the page shows dt 0.1 ms): [index](../_static/atlas/suite2_net1/index.html) · [3D](../_static/atlas/suite2_net1/network_3d.html) · [connectivity](../_static/atlas/suite2_net1/connectivity.html) · [raster](../_static/atlas/suite2_net1/raster.html) · [traces](../_static/atlas/suite2_net1/traces.html) · [spectral](../_static/atlas/suite2_net1/spectral.html) · [state summary](../_static/atlas/suite2_net1/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug suite2_net1`. The V1–V4 scaffold panels live on the [multi-area laminar page](11_multi_laminar_cortical_agsdr.md).
