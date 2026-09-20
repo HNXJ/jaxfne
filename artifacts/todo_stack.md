@@ -723,3 +723,12 @@ via worker preserves + gates.
   RTD stable builds → post-release alignment commit (install.md published
   claims → 0.4.25, PUBLISHED_PYPI_VERSION → 0.4.25) → seal (empty stacks,
   final receipt).
+- PUBLICATION CONSTRAINTS (binding assessment 2026-09-20): create the
+  Release from the EXISTING v0.4.25 tag only — never recreate, move, or
+  retarget it. Do NOT advance PUBLISHED_PYPI_VERSION, installation claims,
+  Colab claims, or empty the final stacks merely because the Release was
+  created; those are post-publication facts following direct PyPI
+  verification ("PyPI 0.4.25 is live"). Post-release alignment enforces
+  tag = Release = PyPI artifact = documented version under the existing
+  identity gates. No further code or documentation cleanup; complete
+  publication without changing the validated release bytes.
