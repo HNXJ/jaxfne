@@ -73,7 +73,7 @@ def check_fences() -> list[dict]:
             if "..." in body:
                 continue  # avowed fragment; procedure documents this limit
             try:
-                tree = ast.parse(body)
+                ast.parse(body)
             except SyntaxError:
                 line = text.count("\n", 0, m.start()) + 1
                 snippet = body.strip().splitlines()[0][:80] if body.strip() else ""
