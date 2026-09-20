@@ -17,7 +17,7 @@ proven bitwise-identical by stash-compared trajectory hashes).
 
 ### Visualization
 
-- Native Plotly H-SPICE schematic (`network_hspice_plotly`, same
+- H-SPICE schematic built directly in Plotly (`network_hspice_plotly`, same
   `describe()` data contract as the matplotlib twin) + model-inspection
   guide.
 - Seven-panel dark atlas (`schema`, `network_3d`, `raster`, `lfp`,

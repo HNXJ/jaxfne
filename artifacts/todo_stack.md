@@ -673,7 +673,11 @@ via worker preserves + gates.
   release-ready claim without the exact gate on the sealed state) + green
   remote CI on the exact sealed commit (I-005 standing rule).
 - E5. Changelog/version/release prep per old Batch 4 items 1–4 (bump list,
-  v0.4.25 entry, authority rollover draft, validators), then STOP +
+  v0.4.25 entry, validators). Authority rollover is FORBIDDEN in advance:
+  `release_target_version` advances atomically with the 0.4.25 receipt at
+  release time (gate0 + TestReleaseAuthorityInvariant enforce this; a draft
+  rollover broke CI 2026-09-20, see P-005). I-012 closes via the existing
+  authority-indirection, not a rollover. Then STOP +
   surface: tag, main merge, GitHub release, PyPI, RTD need explicit user
   authorization. On seal: remove completed items (done → remove; git keeps
   history).
@@ -700,3 +704,11 @@ via worker preserves + gates.
 - Pending: 6 CI check-runs green → GitHub Release creation (needs human:
   web UI, no CLI auth here) → PyPI auto-publish via publish.yml →
   RTD stable → seal (empty stacks, final receipt).
+- BLOCKED 2026-09-20: CI (Fast) push-run 35496154417 on main@0b929ab
+  concluded FAILURE in the broad-gate step on py3.11/ubuntu (24 min in;
+  lint/audits/mkdocs green; dev-gate and local 3.14 broad green).
+  DO NOT create the GitHub Release until green. No log access from here
+  (auth); failing test names needed from the Actions UI. Docker daemon
+  down and no py3.11 locally — cannot reproduce exactly; fix-forward once
+  named. Tag v0.4.25 stays on 0b929ab until the fix lands (re-tag only if
+  the fix changes release content).

@@ -384,6 +384,31 @@ requires separate authorization.
 - **possible future change:** resolved as harmless for 0.4.25; agent rule
   added (verify `git diff --stat` scale matches the intended change)
 
+### P-005
+- **date:** 2026-09-20
+- **type:** DOC
+- **area:** release version choreography
+- **observation:** the 0.4.25 version bump broke
+  `test_published_version_matches_pyproject_when_not_mid_candidate` and
+  `test_colab_md_version`: while the tree is mid-candidate (0.4.25
+  unpublished), install/colab published-claims must stay on 0.4.24 with an
+  explicit release-candidate label. CI Fast on main@0b929ab failed on exactly
+  this (broad-gate step, both python jobs); local broad had run pre-bump so
+  the break was invisible until CI.
+- **severity:** MAJOR as release-blocker until fixed; MINOR in content
+  (docs-only, no numerics)
+- **minimal reproduction:** `pytest tests/test_docs_version_alignment.py`
+  on the bumped tree (2 failed)
+- **expected behavior:** candidate tree labels itself release-candidate;
+  published-claims track PyPI until the release ships, then align
+  post-release (established v0.4.24 pattern)
+- **actual behavior:** bump moved published-claims early with no RC label
+- **evidence:** CI push-run 35496154417 (broad-gate failure); local
+  reproduction 2 failed → 13 passed after fix
+- **possible future change:** fixed same turn (install.md RC label;
+  colab.md published-claims restored); full post-bump broad rerun before
+  re-release
+
 ---
 
 ## Drain verdicts (0.4.25 sweep, 2026-09-20)

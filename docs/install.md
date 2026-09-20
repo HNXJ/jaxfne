@@ -17,6 +17,9 @@ the published PyPI release explicitly:
 pip install "jaxfne==0.4.24"
 ```
 
+The tree is currently at the 0.4.25 release candidate (see `pyproject.toml`);
+until it ships to PyPI, `pip install jaxfne` still gives 0.4.24.
+
 For the current development checkout, use editable install (below) and verify
 `jaxfne.__version__` prints the version in `pyproject.toml`.
 
