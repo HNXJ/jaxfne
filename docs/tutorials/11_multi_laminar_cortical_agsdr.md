@@ -2,7 +2,7 @@
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb)
 
-A thin, Colab-ready, maximally customizable tutorial. Heavy computation lives in `jaxfne`; the notebook exposes the controls and runs entirely through the package engine (`import jaxfne as jtfne`) — there is no local simulator.
+A thin, Colab-ready tutorial. Heavy computation lives in `jaxfne`; the notebook exposes the controls and runs through the package engine (`import jaxfne as jtfne`) — no local simulator.
 
 ## What this tutorial does
 
@@ -10,7 +10,7 @@ A thin, Colab-ready, maximally customizable tutorial. Heavy computation lives in
 2. **Build a two-area laminar network** — 6 layers × 4 cell types per area (extend freely), with within-area recurrence and between-area projections. Defaults: thalamic input → L4 of V1; V1 L2/3 (E) **feedforward** → V4 L4; V4 L2/3 (E) **feedback** → V1 L5/6.
 3. **AGSDR fine-tuning** — adaptively tune control toward a target firing rate while minimizing spike synchrony (kappa).
 4. **Custom everything** — stimulus, stimulation target, lesions, cell-type parameters, drive, connectivity.
-5. **Spectrolaminar motif play** — manipulate cfg, cell types, ratios, densities, drives, and waveforms and watch the alpha-beta / gamma depth profile respond.
+5. **Spectrolaminar motif play** — vary cfg, cell types, ratios, densities, drives, and waveforms; watch the alpha-beta / gamma depth profile respond.
 6. **Knock-out experiments** — lesion a layer / cell type / area and measure the downstream effect.
 
 ## Run status
@@ -25,7 +25,11 @@ field_claim_level: proxy_readout
 physical_amplitude_calibrated: false
 ```
 
-LFP/CSD outputs are laminar **proxy** readouts produced by a depth-dependent Gaussian leadfield over real per-neuron Izhikevich source traces. No PDE/field solver is executed, and no calibrated-amplitude claim is made. The spectrolaminar motif is **emergent** from the dynamics and the leadfield — it is not imposed.
+LFP/CSD outputs are laminar **proxy** readouts:
+
+- Built from a depth-dependent Gaussian leadfield over real per-neuron Izhikevich source traces.
+- No PDE/field solver runs; no calibrated-amplitude claim is made.
+- The spectrolaminar motif is **emergent** from dynamics and leadfield — not imposed.
 
 ## Colab setup
 
@@ -93,7 +97,7 @@ trials = jtfne.tutorial_utils.simulate_laminar_trials(model, cfg, cfg.base_contr
 
 ## AGSDR tuning
 
-`tune_laminar_agsdr` applies an AGSDR-style TUTORIAL variant (adaptive greedy selection / deselection with stochastic restart) to the control vector, scoring each candidate with the real `population_rate_hz` and `kappa_synchrony` from short simulations. It is not the canonical AGSDR implementation — the canonical AGSDR (Adaptive Genetic Stochastic Delta Rule) path is `jtfne.agsdr(...)` + `Model.tune` on the core-engine `Model` (see `docs/api/objectives.md`):
+`tune_laminar_agsdr` is an AGSDR-style TUTORIAL variant (adaptive greedy selection / deselection with stochastic restart) over the control vector, scored with the real `population_rate_hz` and `kappa_synchrony` from short simulations. It is not the canonical AGSDR — the canonical path (Adaptive Genetic Stochastic Delta Rule) is `jtfne.agsdr(...)` + `Model.tune` on the core-engine `Model` (see `docs/api/objectives.md`):
 
 ```python
 best_control, history = jtfne.tutorial_utils.tune_laminar_agsdr(
@@ -105,7 +109,7 @@ best_control, history = jtfne.tutorial_utils.tune_laminar_agsdr(
 )
 ```
 
-This tunes the scaffold's proxy control knobs; it is distinct from `jtfne.agsdr` + `Model.tune`, which optimizes the core-engine `Model`.
+This tunes the scaffold's proxy control knobs — distinct from `jtfne.agsdr` + `Model.tune`, which optimizes the core-engine `Model`.
 
 ## Knock-out experiment
 
@@ -115,7 +119,7 @@ cfg_lesion = dataclasses.replace(cfg, lesion_spec=({"area": "V1", "layers": ("L2
 trials_lesion = jtfne.tutorial_utils.simulate_laminar_trials(model, cfg_lesion, cfg.base_control, stimulus, target)
 ```
 
-The lesioned population is silenced for the run, and per-area firing rates are compared to the intact network. Inter-area projections are modulatory, so knock-out of a feedforward/feedback source shifts the downstream area's rate by a measurable amount.
+The lesioned population stays silenced for the run; per-area firing rates are compared against the intact network. Inter-area projections are modulatory, so knocking out a feedforward/feedback source shifts the downstream rate measurably.
 
 ## Interactive atlas (dark)
 

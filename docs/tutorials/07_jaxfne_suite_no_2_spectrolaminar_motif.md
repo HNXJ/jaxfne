@@ -31,7 +31,7 @@ $$v_i\ge 30 \Rightarrow v_i\leftarrow c_i,\quad u_i\leftarrow u_i+d_i$$
 
 Terms: $v_i$ is the reduced voltage-proxy state, $u_i$ is recovery, $a,b,c,d$ set class-specific dynamics, and $I_i(t)$ combines base drive, recurrent input, and stochastic drive.
 
-Worded equation: voltage changes according to intrinsic recovery, a nonlinear voltage term, and input current; threshold events reset the emitter state.
+Worded equation: voltage evolves with intrinsic recovery, a nonlinear voltage term, and input current; threshold crossings reset the emitter state.
 
 Implementation: `jaxfne.emitters.IzhikevichEmitter`, `jaxfne.emitters.simulate_eig_izhikevich`, and Suite No. 2 config builders.
 
@@ -70,8 +70,8 @@ model_v1v4 = jtfne.construct(cfg_v1v4)
 ## Latest canonical network (recommended for the spectrolaminar crossover)
 
 For the depth × frequency crossover (deep alpha/beta vs superficial gamma), use the
-canonical laminar column with a realistic E/I gradient and the multi-trial **LFP**
-pipeline. The column follows the canonical-reference composition, `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS`
+canonical laminar column — realistic E/I gradient, multi-trial **LFP**
+pipeline. Composition follows the canonical reference, `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS`
 (E peaks deep, I peaks superficial; PV peaks at L2/L3, absent at L6; ~66E:34I overall):
 
 ```python
@@ -108,15 +108,15 @@ figs = spectrolaminar_suite_3panel(specs, model, cfg, areas=["V1"])   # canonica
 ```
 
 `spectrolaminar_suite_3panel` renders the canonical motif: **(A)** superficial-vs-deep
-relative-power spectra, **(B)** depth × frequency relative-power heatmap, **(C)**
-alpha-beta (deep) / gamma (superficial) band power crossing at the L4 reference.
+relative-power spectra, **(B)** depth × frequency heatmap, **(C)**
+alpha-beta (deep) / gamma (superficial) crossover at the L4 reference.
 
 ### Superficial → deep descending drive
 
-The canonical microcircuit is completed by an intra-column **L2/3 (E) → L5/6 (E)**
-descending pathway, so superficial activity drives the deep layers (countering the
-intrinsic superficial-hotter bias). It is part of the default `connectivity_spec`
-(`L23_to_deep_*` rules) and is tunable via `base_control['supra_to_deep_gain']`:
+The canonical microcircuit adds an intra-column **L2/3 (E) → L5/6 (E)**
+descending pathway: superficial activity drives deep layers, countering the
+intrinsic superficial-hotter bias. It ships in the default `connectivity_spec`
+(`L23_to_deep_*` rules), tunable via `base_control['supra_to_deep_gain']`:
 
 ```python
 cfg = tu.make_laminar_column_config(
@@ -129,17 +129,17 @@ cfg = tu.make_laminar_column_config(
 ```
 
 Effect on per-layer E firing (deep / superficial rate ratio): `gain=0.0 → ~0.96`
-(deep slightly cooler); `gain=1.0 → ~1.34` (deep driven above superficial). Raise
-the gain for a stronger descending drive; deep firing scales monotonically with it.
+(deep slightly cooler); `gain=1.0 → ~1.34` (deep above superficial). Higher
+gain strengthens descending drive; deep firing scales monotonically with it.
 
 A symmetric **inhibitory** L2/3 (I) → L5/6 (E) pathway (`L23_inh_to_deep_*`) mirrors
-the excitatory rules; its source cell types are the interneurons (PV/SST/VIP), so it
-contributes inhibition. Tune it with `base_control['supra_to_deep_inh_gain']`
-(default 1.0). With both pathways at gain 1.0 the deep E rate is balanced against
-superficial (the inhibition offsets the excitatory drive).
+the excitatory rules; its sources are the interneurons (PV/SST/VIP). Tune it
+with `base_control['supra_to_deep_inh_gain']`
+(default 1.0). With both pathways at gain 1.0 the deep E rate balances against
+superficial (inhibition offsets excitatory drive).
 
-Pass `trials=` to `spectrolaminar_suite_3panel` to add a fourth panel — **firing rate
-by depth** (E / I / total), per depth bin:
+Pass `trials=` to `spectrolaminar_suite_3panel` for a fourth panel — **firing rate
+by depth** (E / I / total) per depth bin:
 
 ```python
 figs = spectrolaminar_suite_3panel(specs, model, cfg, areas=["V1"], trials=trials)
@@ -156,21 +156,21 @@ kappa = jtfne.kappa_synchrony(np.asarray(trials["spikes"])[0], cfg.dt_ms)
 ```
 
 The crossover is **not guaranteed by column geometry or N alone**: in an
-asynchronous-irregular regime the LFP is broadband at every depth. A deep-α/β vs
-superficial-γ crossing requires band-limited **oscillations** localized by layer
-while global κ stays low — see `skills/jaxfne-spectrolaminar-suite/SKILL.md`.
+asynchronous-irregular regime the LFP stays broadband at every depth. A deep-α/β vs
+superficial-γ crossing needs band-limited **oscillations** localized by layer
+with global κ low — see `skills/jaxfne-spectrolaminar-suite/SKILL.md`.
 Multi-trial averaging and ≥1k neurons help **estimate** the readout, not create the regime.
 
 ## Hidden-state Dependent Plasticity (HDP) for long-duration spectrolaminar runs
 
-The two readout prerequisites above — low synchrony and balanced per-layer rates —
-get harder to hold by hand as run duration grows: a drive correction tuned at a short
-window can drift out of the target rate band over a longer one, and weight plasticity
-left unconstrained can run away. **Hidden-state Dependent Plasticity (HDP)** is
-a per-neuron master state `H_i` (default 1.0) that all of a neuron's incoming
-excitatory/inhibitory weight updates read from, and that synaptic drive and the
-neuron's own spiking feed back into — keeping a population stationary over many
-seconds via automatic feedback rather than hand-retuning the drive correction.
+The two readout prerequisites — low synchrony, balanced per-layer rates —
+get harder to hold by hand as runs lengthen: a drive correction tuned on a short
+window can drift out of band over longer ones, and unconstrained weight plasticity
+can run away. **Hidden-state Dependent Plasticity (HDP)** is
+a per-neuron master state `H_i` (default 1.0) read by all of that neuron's incoming
+excitatory/inhibitory weight updates, with synaptic drive and the
+neuron's own spiking feeding back into it — holding a population stationary over many
+seconds via automatic feedback instead of hand-retuned drive.
 
 ```python
 I_syn_i = sum_j w_ji * x_j                                 # incoming synaptic current
@@ -182,20 +182,20 @@ dm_ij/dt = q_ij*K_HDP*phi(Delta_H_ij)*m_ij
            + K_w_ctrl*(m0_ij - m_ij)
 ```
 
-For the difference family, `phi(x)=x` for `signed_linear` and
-`phi(x)=x*abs(x)` for `signed_quadratic`. `hebbian_product` is separate
-product modulation with `phi=H_pre*H_post`; it is not another difference rule.
-`K_ctrl*(1-H_i)` is the H-state restoring force toward `H_i=1`;
-`K_w_ctrl*(m0_ij-m_ij)` independently restores edge magnitude. `tau_i =
-tau_0_ms * size_i**3` makes larger (e.g. E) cells integrate `H_i` more
-slowly. Implementation: `jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp`. A
-single config-driven builder for HDP-ready laminar columns of any size lives in
+For the difference family, `phi(x)=x` (`signed_linear`) and
+`phi(x)=x*abs(x)` (`signed_quadratic`). `hebbian_product` is separate
+product modulation (`phi=H_pre*H_post`), not another difference rule.
+`K_ctrl*(1-H_i)` restores `H_i` toward `H_i=1`;
+`K_w_ctrl*(m0_ij-m_ij)` restores edge magnitude independently. `tau_i =
+tau_0_ms * size_i**3` slows `H_i` integration in larger (e.g. E) cells.
+Implementation: `jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp`. One
+config-driven builder for HDP-ready laminar columns of any size lives in
 `jaxfne.hdp_network` (`HDPColumnConfig` + `build_model`/`apply_drive_correction`/`run`) —
-size is a config field rather than a per-N function.
+size is a config field, not a per-N function.
 
-HDP is reachable through `RuntimeConfig(enable_hdp=True, hdp_params=...)`. This
-tutorial also shows the `jaxfne.hdp_network` convenience builder, which drives
-the same kernel and returns diagnostics that can be passed to the
+HDP runs through `RuntimeConfig(enable_hdp=True, hdp_params=...)`. This
+tutorial also shows the `jaxfne.hdp_network` convenience builder, driving
+the same kernel and returning diagnostics for the
 `jtfne.vis.spectrolaminar_suite` workflow:
 
 ```python
@@ -218,19 +218,19 @@ spikes, H_trace, w_trace = out["spikes"], out["diagnostics"]["H_trace"], out["di
 ```
 
 `DEFAULT_HDP` (`K_HDP=0.01, tau_0_ms=200.0, K_ctrl=5.0, barrier_c=barrier_d=0.01`) is a
-5-seed, 20-second-validated stability point: rates stay flat in-band, `H` pins at
-~1.0000-1.0029, weight saturation ~10.5% (active, away from the floor/ceiling). It is the
-config to reach for when the goal is a **long, stationary** run.
+5-seed, 20-second-validated stability point: rates flat in-band, `H` pinned at
+~1.0000-1.0029, weight saturation ~10.5% (active, clear of floor/ceiling). Reach
+for it for a **long, stationary** run.
 
 ### Avoiding HDP-induced oversynchrony
 
-`DEFAULT_HDP`'s strong restoring force (`K_ctrl=5.0`) combined with `tau_i =
-tau_0_ms * size_i**3` (E cells default to `size=5`, so `tau_i=25000` ms) makes `H_i`
-almost static (`H_std ≈ 0.0006`). Lacking a per-neuron variability driver, population
-spiking reads as near-regular ("ECG-like") rather than async-irregular — exactly the
+`DEFAULT_HDP`'s strong restoring force (`K_ctrl=5.0`) with `tau_i =
+tau_0_ms * size_i**3` (E cells default `size=5`, so `tau_i=25000` ms) leaves `H_i`
+almost static (`H_std ≈ 0.0006`). Without a per-neuron variability driver, population
+spiking reads near-regular ("ECG-like") rather than async-irregular — the
 high-synchrony failure mode the **low synchrony** condition above warns about.
 `jaxfne.hdp_network.DEFAULT_HDP_DESYNC` (paired with `DRIVE_SCALE_DESYNC=1.2`) trades
-some of that overdamping for faster `H` integration (`tau_0_ms=5`, 40x faster) plus a
+overdamping for faster `H` integration (`tau_0_ms=5`, 40x faster) plus a
 genuine rate-drain term (`gamma=0.5`), so `H_i` fluctuates instead of sitting pinned:
 
 ```python
@@ -245,24 +245,19 @@ cfg = HDPColumnConfig(n_neurons=500, duration_ms=2000.0, dt_ms=0.5, seed=0,
 hdp_kwargs = dict(BASE_HDP_KWARGS_DEFAULT); hdp_kwargs.update(DEFAULT_HDP_DESYNC)
 ```
 
-Verified, 5-seed stable (N=500, 2000ms): overall rate 7.3 → 12.6 Hz, per-neuron rate std
-0.99 → 6.0 Hz, `H` fluctuates genuinely (`H=1.028±0.023`, range `[0.953, 1.227]`) while
-every neuron stays clear of the `H_min`/`H_max` clamp rails, and `kappa_synchrony` stays
-at 0.044 (still async-irregular). This is a second-pass refinement of an earlier, wider
-and more skewed candidate (`H=[0.96, 1.47]`) -- raising `gamma` from 0.3 to 0.5 tightened
-both tails since the rate-drain term is rate-bounded rather than weight-multiplicative,
-so it does not amplify the H>1 weight-growth feedback loop the way `alpha` does;
-`gamma>=0.55` hits a stability cliff (weight runaway) at every `K_ctrl`/`alpha` tried.
-`H`'s range has yet to symmetrically span `[0.8, 1.2]` — the floor (~0.95) appears
-structurally bottlenecked by E neurons' large `tau_i` (size=5 for E), not by these three
-gains, so treat this as the current best candidate, a still-open point unlike the frozen
-`DEFAULT_HDP`.
+Verified 5-seed stable (N=500, 2000ms):
+
+- Overall rate 7.3 → 12.6 Hz; per-neuron rate std 0.99 → 6.0 Hz.
+- `H` fluctuates genuinely (`H=1.028±0.023`, range `[0.953, 1.227]`); every neuron stays clear of the `H_min`/`H_max` clamp rails.
+- `kappa_synchrony` holds at 0.044 (still async-irregular).
+
+Second-pass refinement of an earlier, wider, more skewed candidate (`H=[0.96, 1.47]`): raising `gamma` 0.3 → 0.5 tightened both tails, since the rate-drain term is rate-bounded rather than weight-multiplicative and avoids amplifying the H>1 weight-growth feedback loop the way `alpha` does; `gamma>=0.55` hits a stability cliff (weight runaway) at every `K_ctrl`/`alpha` tried. `H` range has yet to symmetrically span `[0.8, 1.2]` — the floor (~0.95) looks structurally bottlenecked by E neurons' large `tau_i` (size=5 for E), not these three gains; treat as current best candidate, still open, unlike frozen `DEFAULT_HDP`.
 
 ### Two distinct, intentionally-separate operating modes
 
-`DEFAULT_HDP` and `DEFAULT_HDP_DESYNC` answer different questions and should stay
-separate rather than collapse into one "better" default — pick the preset that
-matches the question:
+`DEFAULT_HDP` and `DEFAULT_HDP_DESYNC` answer different questions — keep them
+separate rather than collapsing into one "better" default; pick the preset
+matching the question:
 
 | Parameter / outcome | `DEFAULT_HDP` (Stable) | `DEFAULT_HDP_DESYNC` (Desync) |
 |---|---|---|
@@ -283,7 +278,7 @@ matches the question:
 
 ## Figures
 
-Core figures are generated by reusable visualization functions:
+Core figures come from reusable visualization functions:
 
 - `jtfne.vis.raster(..., sort_by="z")`
 - `jtfne.vis.lfp_traces(...)`
@@ -299,8 +294,8 @@ Core figures are generated by reusable visualization functions:
 
 ## Configuration Reference
 
-All Suite No. 2 workflows are specified through the chainable `Configuration` API.
-Every field listed here stores in `cfg.metadata`; none are physical statuss.
+All Suite No. 2 workflows go through the chainable `Configuration` API.
+Every field below stores in `cfg.metadata`; none are physical statuss.
 
 ### Smoke config vs full config
 
@@ -377,8 +372,8 @@ cfg = (
 | **Spike threshold** | 30 | 30 | 30 | 30 | mV |
 | **Reset V** | −65 | −65 | −65 | −55 | mV |
 
-PV has high `a` (fast recovery) and low `d` (weak AHP) → fast-spiking.
-VIP has negative `b` (bistable subthreshold) and higher reset `c` → irregular firing.
+PV: high `a` (fast recovery), low `d` (weak AHP) → fast-spiking.
+VIP: negative `b` (bistable subthreshold), higher reset `c` → irregular firing.
 
 ### Connectivity domain (`cfg.connectivity`)
 
@@ -404,7 +399,7 @@ VIP has negative `b` (bistable subthreshold) and higher reset `c` → irregular 
 
 ### Inter-column connectivity domain (`cfg.inter_column_connectivity`)
 
-For V1-V4 only. Declarative metadata; connectivity is stored as parameter dicts, resolved into sparse matrices only at `simulate()` time.
+V1-V4 only. Declarative metadata; connectivity stores as parameter dicts, resolved into sparse matrices only at `simulate()` time.
 
 | Parameter | Default | Unit / status | Description |
 |---|---|---|---|
@@ -525,8 +520,8 @@ The integration uses forward Euler with fixed `dt_ms`:
 }
 ```
 
-Signal keys are `*_proxy` (`lfp_proxy`, `csd_proxy`, `source_proxy`); the legacy
-`*_like` names are retired. Read them with `signals.get("lfp_proxy")`.
+Signal keys are `*_proxy` (`lfp_proxy`, `csd_proxy`, `source_proxy`); legacy
+`*_like` names are retired. Read via `signals.get("lfp_proxy")`.
 
 ### Noise tuning
 
@@ -545,7 +540,7 @@ tuned_model, tune_report = jtfne.suite2_tune_noise_agsdr_adam(
 bundle_tuned = jtfne.suite2_run_bundle(tuned_model, seed=7, duration_ms=1000.0, dt_ms=0.1)
 ```
 
-The surrogate optimizer minimizes the squared deviation from the firing-rate
+The surrogate optimizer minimizes squared deviation from the firing-rate
 target. **The surrogate path is for inner-loop optimization only; it does not
 produce physical amplitude statuss.**
 
@@ -553,7 +548,7 @@ produce physical amplitude statuss.**
 
 ## Manifest & Reproducibility
 
-Every simulation run should be accompanied by a manifest capturing all inputs
+Every simulation run carries a manifest capturing all inputs
 and outputs for auditability.
 
 ### Manifest structure
@@ -619,7 +614,7 @@ Before accepting any output:
 | Gate fields | `physical_amplitude_calibrated == False` | Never override |
 
 **Simulation-only outputs:** The manifest records configuration and output statistics.
-PDE residuals, convergence diagnostics, and calibration certificates are outside
+PDE residuals, convergence diagnostics, and calibration certificates are out of
 scope — the proxy field operator requires none.
 
 ---
@@ -641,12 +636,12 @@ If observed rates are >2× outside these ranges, the network is unstable or froz
 
 **Compute the spectrolaminar crossover from the LFP proxy, not the CSD proxy.**
 The depth × frequency crossover (deep alpha/beta vs superficial gamma) is an LFP
-phenomenon. CSD-proxy is the second spatial derivative of the LFP, so it sharpens
-local sinks/sources and *suppresses* the broad, slow, spatially-extended deep
-alpha/beta component — measuring the crossover on CSD yields a false "deep alpha/beta
+phenomenon. CSD-proxy is the second spatial derivative of the LFP: it sharpens
+local sinks/sources and *suppresses* the broad, slow, spatially extended deep
+alpha/beta component — so a CSD-measured crossover yields a false "deep alpha/beta
 absent" result. Use `signal_key="lfp_contacts"` (the
-`summarize_spectrolaminar_similarity` default) for the crossover; CSD-proxy remains a
-useful complementary readout of local current sinks/sources, not the band crossover.
+`summarize_spectrolaminar_similarity` default) for the crossover; CSD-proxy stays a
+complementary readout of local sinks/sources, not the band crossover.
 
 LFP-proxy power is in **proxy relative units** (not µV²):
 
@@ -656,15 +651,15 @@ LFP-proxy power is in **proxy relative units** (not µV²):
 Two prerequisites for a trustworthy readout (both checked in the validation gates):
 
 1. **Low synchrony** — `jtfne.kappa_synchrony(spikes, dt_ms)` ≈ 0. A synchronized
-   network oscillates as a whole, so the spectrum reflects one global rhythm rather
-   than per-layer band structure, masking the crossover.
-2. **Balanced per-layer rates** — no layer silent relative to others (target ~10 Hz);
-   uneven rates bias the readout toward the hotter layers.
+   network oscillates as a whole, so the spectrum shows one global rhythm instead
+   of per-layer band structure, masking the crossover.
+2. **Balanced per-layer rates** — no layer silent vs others (target ~10 Hz);
+   uneven rates bias the readout toward hotter layers.
 
-The crossover is **scale-dependent**: it is weak at small populations and sharpens with
-neuron count and trial averaging. Use the multi-trial
+The crossover is **scale-dependent**: weak at small populations, sharper with
+neuron count and trial averaging. Use multi-trial
 `tutorial_utils.spectrolaminar_from_trials(..., signal_key="lfp_contacts")` for the
-canonical, L4-referenced relative-power profile.
+canonical L4-referenced relative-power profile.
 
 ### Cell-type roles
 
@@ -677,7 +672,7 @@ canonical, L4-referenced relative-power profile.
 
 ### Null comparison
 
-To confirm spectrolaminar features are not artifactual:
+To rule out artifactual spectrolaminar features:
 1. Shuffle spike times within each trial (preserves firing rate)
 2. Recompute LFP/CSD proxy from shuffled spikes
 3. Real band power should exceed shuffled by >2× for meaningful signal
@@ -707,9 +702,8 @@ Discard if any of the following:
 
 ### Dense recurrent matrix on small CPUs
 
-For `n > 500`, the dense `W @ S` matrix multiply becomes expensive on CPU.
-Use the `recurrent_backend="edge_list"` option in `RuntimeConfig` to switch to
-a sparse edge-list kernel:
+For `n > 500`, the dense `W @ S` multiply gets expensive on CPU.
+Switch to a sparse edge-list kernel via `recurrent_backend="edge_list"` in `RuntimeConfig`:
 
 ```python
 from jaxfne.core import RuntimeConfig
@@ -746,7 +740,7 @@ sim = jtfne.simulation(duration_ms=1000.0, dt_ms=0.1, seed=7, runtime=rt)
 
 ## Coverage boundary
 
-This tutorial covers reduced emitters, declared source projection, relative proxy readouts, and package-level figure generation. Solver-tuned amplitudes, subject-specific head geometry, and empirical parameter fitting belong to later workflows.
+This tutorial covers reduced emitters, declared source projection, relative proxy readouts, and package-level figure generation. Solver-tuned amplitudes, subject-specific head geometry, and empirical parameter fitting are later workflows.
 
 ---
 
@@ -769,7 +763,7 @@ Terms:
 - $I_{\text{synap}}$: synaptic input current
 - $I_{\text{total}}$: membrane current (total of all sources)
 
-Worded equation: source proxy is selected from available current decompositions or spike rate, validated for finite values and single-source consistency.
+Worded equation: source proxy comes from current decompositions or spike rate, checked for finite values and single-source consistency.
 
 Implementation location: `jaxfne.fields.construct_source_tensor`
 
@@ -913,7 +907,7 @@ Terms:
 - $W_{\text{ff/fb}}$: connectivity matrix mask (declarative)
 - source/target: area (V1 or V4) and layer assignment
 
-Worded equation: V1-to-V4 feedforward and V4-to-V1 feedback connectivity are declared as separate sparse weight matrices.
+Worded equation: V1-to-V4 feedforward and V4-to-V1 feedback are declared as separate sparse weight matrices.
 
 Implementation location: `jaxfne.core.suite2_v1_v4_config`, connectiv ity metadata section
 
@@ -923,7 +917,7 @@ Scope boundary: Declared metadata only. Fitted weights and anatomical validation
 
 ## Figure generation
 
-The notebook references two figures that are produced when the tutorial is executed:
+The notebook references two figures produced on execution:
 
 - **spectrolaminar_suite_panel** — six-panel figure (raster, LFP-proxy, CSD-proxy, PSD, EEG-proxy, EMM-proxy) from `jtfne.vis.spectrolaminar_suite()`
 - **circuit3d_layout_scatter** — 3D scatter of V1–V4 emitter positions from `jtfne.vis.circuit3d()`

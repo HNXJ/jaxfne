@@ -7,7 +7,7 @@
 **W0 receipt:** `artifacts/protocol_w/w0_mathematical_contract.json`  
 **Out of scope:** H4 rescue, Protocol H extensions, W3 implementation, conservation/competition in W1
 
-Protocol W is a **new dynamical problem** — not an extension of the H4 topology/delay experiment.
+Protocol W is a **new dynamical problem** — not an H4 topology/delay extension.
 
 ## 1. Scientific question
 
@@ -32,7 +32,7 @@ Protocol W must **not** be introduced to “fix” H4.
 H \xrightarrow{F_W} \omega \xrightarrow{\exp} W.
 \]
 
-STDP, BCM, neuromodulated learning, and scaling are future alternative choices for the drive \(D\), not separate architectural species.
+STDP, BCM, neuromodulated learning, and scaling are future alternative \(D\) choices, not separate architectural species.
 
 ## 3. Inputs from Protocol H
 
@@ -65,7 +65,7 @@ W0 therefore **separates three previously conflated ingredients**:
 }
 \]
 
-Each ingredient is **independently switchable** so falsification can identify what is actually necessary.
+Each ingredient is **independently switchable** so falsification can identify necessity.
 
 ## 5. Minimal admissible HDP grammar (W0 — **frozen**)
 
@@ -159,7 +159,7 @@ Thus the W1 edge law is:
 }
 \]
 
-With RBS baseline \(H=1\), the drive is the **explicit normalized difference** \(\kappa_W(H_i-H_j)\). There is no legacy `/100` scaling from toy experiments.
+With RBS baseline \(H=1\), the drive is the **explicit normalized difference** \(\kappa_W(H_i-H_j)\). There is no legacy `/100` toy scaling.
 
 ### 5.5 Known memory timescale
 
@@ -187,7 +187,7 @@ W = W_0 e^\omega.
 }
 \]
 
-If \(\tau_W \gg \tau_H\), a transient \(H\) perturbation can decay while \(\omega\neq 0\) — the parameter-memory phenomenon W is designed to test.
+If \(\tau_W \gg \tau_H\), a transient \(H\) perturbation can decay while \(\omega\neq 0\) — the parameter-memory phenomenon W tests.
 
 ### 5.7 W1a analytic ground truth (prescribed \(\Delta H\))
 
@@ -235,12 +235,19 @@ This is the W1 analytic receipt — analogous to F1 transparency in Protocol H.
 
 **W1a implementation:** `jaxfne/w1a_omega_plasticity.py`, `tests/test_protocol_w_w1a.py`.
 
-**Preregistered W1a gates (all tested):** zero-drive null; \(\lambda_W=0\) no-forgetting
-limit (supported scientific mode); sign symmetry and \(W_+W_-=W_0^2\); structural
-positivity without clipping; reference state; \(\tau_{\mathrm{mem},W}\) \(1/e\) decay;
-pulse-duration linear/saturation; discrete-Euler bit-exact recurrence; continuous
-limit convergence. Euler stability: \(0<\lambda_W\Delta t/\tau_W<2\); monotonic
-regime \(\le 1\) recorded but not required for rejection.
+**Preregistered W1a gates (all tested):**
+
+- zero-drive null
+- \(\lambda_W=0\) no-forgetting limit (supported scientific mode)
+- sign symmetry and \(W_+W_-=W_0^2\)
+- structural positivity without clipping
+- reference state
+- \(\tau_{\mathrm{mem},W}\) \(1/e\) decay
+- pulse-duration linear/saturation
+- discrete-Euler bit-exact recurrence
+- continuous limit convergence
+- Euler stability: \(0<\lambda_W\Delta t/\tau_W<2\)
+- monotonic regime \(\le 1\) recorded but not required for rejection.
 
 Causal chain for W1a:
 
@@ -248,7 +255,7 @@ Causal chain for W1a:
 \Delta H(t) \rightarrow \omega(t) \rightarrow W(t).
 \]
 
-**Do not** connect \(W\rightarrow X\) until **W2** (W1b remains shadow-only).
+**Do not** connect \(W\rightarrow X\) until **W2** (W1b shadow-only).
 
 ### 5.8 W1b — RBD-generated shadow plasticity (**implemented**)
 

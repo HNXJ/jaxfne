@@ -13,7 +13,7 @@ operator couplings.
 
 ## Mission
 
-See [TFNE Containment](tfne_containment_architecture.md) for the canonical TFNE grammar.
+See [TFNE Containment](tfne_containment_architecture.md) for canonical TFNE grammar.
 
 Express jaxfne's RBS rules as a physically disciplined, relative
 state-space formulation while preserving validated behavior and
@@ -38,8 +38,7 @@ Preserve the canonical TFNE scientific grammar:
 Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest/Validation
 ```
 
-This is primarily a semantic/theoretical refactor. Do not use it as
-justification for unrelated API expansion.
+This is primarily a semantic/theoretical refactor; do not use it for unrelated API expansion.
 
 ## 1. Semantic migration
 
@@ -60,10 +59,16 @@ Define:
 \]
 
 RBS is a finite-dimensional reduced representation of physically
-realizable internal emitter state. Possible antecedents include relative
-ionic concentrations/gradients, charge-related state, neurotransmitter
-availability, vesicle/resource availability, ATP/energetic resources,
-receptor/channel state, adaptation variables, and neuromodulatory state.
+realizable internal emitter state. Possible antecedents:
+
+- relative ionic concentrations/gradients
+- charge-related state
+- neurotransmitter availability
+- vesicle/resource availability
+- ATP/energetic resources
+- receptor/channel state
+- adaptation variables
+- neuromodulatory state.
 
 Where a physical quantity \(z_{ik}\) and reference \(z_{ik}^*\) are
 explicit, prefer a relative coordinate such as
@@ -181,7 +186,7 @@ memory, and delayed recurrent dynamics do not require plasticity by
 definition.
 
 Do not define RBD as memory, predictive coding, or surprise
-minimization. Those are hypotheses/results to establish.
+minimization; those are hypotheses/results to establish.
 
 ## 3. HDP — Hidden-state Dependent Plasticity
 
@@ -422,9 +427,12 @@ compatibility surfaces unless evidence justifies a versioned migration.
 
 ## 13. Documentation targets
 
-Upstream project sources and repository docs listed in the agent handout.
-Requirements: one definition per concept; RBS/RBD/HDP used consistently;
-proxy-safe readout labels retained; homeostasis as possible RBD property.
+Upstream project sources and repository docs listed in the agent handout. Requirements:
+
+- one definition per concept
+- RBS/RBD/HDP used consistently
+- proxy-safe readout labels retained
+- homeostasis as possible RBD property.
 
 ## 14. Scientific invariants
 

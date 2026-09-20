@@ -1,8 +1,7 @@
 # Neuronal Tensor API
 
 The `neuronal_tensor` module defines the **canonical network representation** for
-jaxfne circuits. Every circuit — regardless of how many areas, layers, or cell
-types it has — reduces to one uniform shape:
+jaxfne circuits. Every circuit reduces to one uniform shape:
 
 ```
 NeuronalTensor = [Areas, AreaConnections]
@@ -23,9 +22,9 @@ from jaxfne import (
 ```
 
 > **Additive, not replacing.** The existing `jaxfne.core.Configuration` /
-> `jaxfne.builders.laminar_cortex_config` path is untouched.
+> `jaxfne.builders.laminar_cortex_config` path is untouched;
 > `neuronal_tensor_to_configuration` bridges a `NeuronalTensor` into that
-> existing `construct` / `simulate` pipeline.
+> `construct` / `simulate` pipeline.
 
 ### Connectivity modes
 
@@ -36,8 +35,7 @@ UNSPECIFIED -> the configured default topology
 EXPLICIT    -> exactly the declared topology
 ```
 
-The distinction between omission and an explicit empty declaration is
-structural:
+Omission versus an explicit empty declaration is structural:
 
 ```python
 Area(name="V1", layers=[layer])
@@ -47,15 +45,14 @@ Area(name="V1", layers=[layer], inter_connections=[])
 # connectivity_mode == "explicit"; the compiled graph has zero edges
 ```
 
-For an explicit tensor, the executable edge list is the declared graph. An
-explicit graph may contain parallel edges only when their receptor/mechanism
-identity differs; repeated `(pre, post, receptor)` identities are rejected.
-Compilation exposes `connectivity_mode`, `default_edge_count`,
+For an explicit tensor, the executable edge list is the declared graph. Parallel
+edges are allowed only when receptor/mechanism identity differs; repeated
+`(pre, post, receptor)` identities are rejected. Compilation exposes `connectivity_mode`, `default_edge_count`,
 `declared_rule_edge_count`, and `total_compiled_edge_count` in
 `model.cfg.metadata["connectivity_compilation"]`.
-Serialized tensors include the mode so explicit emptiness survives a JSON
-round trip; legacy files without the mode retain their default-topology
-interpretation when their connection arrays are empty.
+Serialized tensors keep the mode so explicit emptiness survives a JSON
+round trip; legacy files without the mode keep their default-topology
+reading when connection arrays are empty.
 
 ---
 
@@ -87,11 +84,11 @@ class Geometry3D:
     value_tag: ValueTag = "relative"
 ```
 
-Always 3D. To represent a 2D or 1D layer, collapse one or two axes by fixing
+Always 3D. For a 2D or 1D layer, collapse axes by fixing
 their range at `(0.0, 0.0)`.
 
-Currently only `distribution="uniform_random"` is implemented;
-`construct_neuronal_tensor` will raise `NotImplementedError` for any other value.
+Only `distribution="uniform_random"` is implemented;
+`construct_neuronal_tensor` raises `NotImplementedError` for any other value.
 
 ---
 
@@ -108,7 +105,7 @@ class NeuronType:
 
 `fraction` is an optional per-type population fraction. If every `NeuronType`
 in a `Layer` declares a `fraction`, `neuronal_tensor_to_configuration` uses
-those (normalized) fractions instead of splitting the layer's population
+those (normalized) fractions instead of splitting the layer population
 evenly across its declared types.
 
 **Class method:**
@@ -120,7 +117,7 @@ def make(cls, name: str, relative_size: float | None = None,
          value_tag: ValueTag = "relative") -> NeuronType
 ```
 
-Convenience constructor that auto-fills `relative_size` from
+Fills `relative_size` from
 `default_relative_size(name)` when `relative_size` is `None`.
 
 ```python
@@ -141,8 +138,8 @@ class Layer:
     n_neurons: int = 0
 ```
 
-One cortical layer. Attach `NeuronType` entries to declare which cell
-populations live in the layer. `n_neurons` is the total neuron budget for
+One cortical layer. `NeuronType` entries declare the resident cell
+populations. `n_neurons` is the total neuron budget for
 this layer (all cell types combined).
 
 ---
@@ -206,7 +203,7 @@ class InterConnection:
 ```
 
 **Within-area** connection from `(source_layer, source_neuron_type)` to
-`(target_layer, target_neuron_type)`. `mechanism` is always required.
+`(target_layer, target_neuron_type)`. `mechanism` is required.
 
 ---
 
@@ -251,8 +248,8 @@ class Area:
     connectivity_mode: Literal["unspecified", "explicit"] | None = None
 ```
 
-One cortical area. Contains its `Layer` population structure, all
-`InterConnection`s (within-area wiring), and a `Pose3D` for 3D placement.
+One cortical area: `Layer` populations, `InterConnection`
+within-area wiring, and a `Pose3D` for 3D placement.
 
 ---
 
@@ -272,9 +269,9 @@ class AreaConnection:
     plastic: PlasticParams = field(default_factory=PlasticParams)
 ```
 
-**Between-area** connection. Specifies the full
+**Between-area** connection with the full
 `(area, layer, neuron_type)` path for both source and target.
-Unlike `InterConnection`, `mechanism` has a default of
+Unlike `InterConnection`, `mechanism` defaults to
 `"monotonic_cable_synapse"`.
 
 ---
@@ -290,10 +287,9 @@ class NeuronalTensor:
     connectivity_mode: Literal["unspecified", "explicit"] | None = None
 ```
 
-The top-level container. Holds all areas and all between-area connections.
-`connectivity_mode` is inferred from whether connectivity fields were omitted or
-provided. It is `"unspecified"` when no connectivity field is provided and
-`"explicit"` when a connection list is provided, including an empty list.
+The top-level container for areas and between-area connections.
+`connectivity_mode` is inferred: `"unspecified"` when connectivity fields are
+omitted, `"explicit"` when a connection list is given, including an empty list.
 
 **Method:**
 
@@ -301,8 +297,8 @@ provided. It is `"unspecified"` when no connectivity field is provided and
 def to_dict(self) -> dict
 ```
 
-Returns a fully serialisable `dict` (via `dataclasses.asdict`). This is
-what `save_neuronal_tensor` serialises to JSON.
+Returns a fully serialisable `dict` (via `dataclasses.asdict`);
+`save_neuronal_tensor` writes this dict to JSON.
 
 ---
 
@@ -320,7 +316,7 @@ Returns the default `relative_size` for a neuron type (from
 - `"PV"` / `"Inl"` → `1.0` (`PV-like`)
 - `"SST"` / `"VIP"` / `"Ing"` → `1.5` (`SST-like` / `VIP-like`)
 
-Keys are reduced-class labels (read as `-like`; no literal identity). Used internally by `NeuronType.make`.
+Keys are reduced-class labels (read as `-like`; no literal identity); used by `NeuronType.make`.
 
 ---
 
@@ -330,7 +326,7 @@ Keys are reduced-class labels (read as `-like`; no literal identity). Used inter
 def save_neuronal_tensor(tensor: NeuronalTensor, path: str | Path) -> str
 ```
 
-Serialise a `NeuronalTensor` to a JSON file. Built on `jaxfne.io.save_json`.
+Serialise a `NeuronalTensor` to JSON via `jaxfne.io.save_json`.
 
 Returns the path written as a string.
 
@@ -349,7 +345,7 @@ save_neuronal_tensor(tensor, "circuits/v1_mt.json")
 def load_neuronal_tensor(path: str | Path) -> NeuronalTensor
 ```
 
-Deserialise a `NeuronalTensor` from a previously saved JSON file.
+Deserialise a `NeuronalTensor` from saved JSON.
 
 ```python
 tensor = load_neuronal_tensor("circuits/v1_mt.json")
@@ -364,8 +360,8 @@ def list_canonical_neuronal_tensors() -> list[str]
 def load_canonical_neuronal_tensor(name: str) -> NeuronalTensor
 ```
 
-Package-shipped canonical circuits, stored as JSON under `jaxfne/configs/`
-and loaded with the same `load_neuronal_tensor` deserializer above:
+Package-shipped canonical circuits as JSON under `jaxfne/configs/`,
+loaded with the same `load_neuronal_tensor` deserializer above:
 
 ```python
 names = list_canonical_neuronal_tensors()
@@ -420,9 +416,8 @@ def merge_neuronal_tensors(
 ) -> NeuronalTensor
 ```
 
-The **"unifier"**: concatenate several `NeuronalTensor` configs into one flat
-list of areas. From the simulator's perspective N areas across M input tensors
-become one `NeuronalTensor`.
+The **"unifier"**: concatenates several `NeuronalTensor` configs into one flat
+area list (N areas across M inputs become one `NeuronalTensor`).
 
 **Parameters:**
 
@@ -432,9 +427,8 @@ become one `NeuronalTensor`.
 | `poses` | `Sequence[Pose3D] \| None` | One `Pose3D` per area in flattened encounter order (area 0 of tensor 0, area 1 of tensor 0, …, area 0 of tensor 1, …). Must have exactly as many entries as the total area count across all tensors. If `None`, each area keeps its own declared `pose`. |
 | `name` | `str` | Name for the merged `NeuronalTensor`. |
 
-**Area name collision:** if two input tensors share an area name, the later
-one is suffixed (`"V1"` → `"V1_1"`). All `AreaConnection` references within
-that tensor are rewritten to match.
+**Area name collision:** a later duplicate area name is suffixed
+(`"V1"` → `"V1_1"`); `AreaConnection` references in that tensor are rewritten to match.
 
 > **Cross-tensor `AreaConnection`s are NOT inferred.** Only connections
 > declared explicitly on the result link areas from different inputs.
@@ -462,8 +456,8 @@ def neuronal_tensor_to_configuration(
 ) -> Configuration
 ```
 
-Bridge a `NeuronalTensor` into the existing `construct` / `simulate` pipeline.
-Returns a `Configuration` object suitable for `jaxfne.construct`.
+Bridge a `NeuronalTensor` into the `construct` / `simulate` pipeline.
+Returns a `Configuration` for `jaxfne.construct`.
 
 **What is wired:**
 
@@ -473,7 +467,7 @@ Returns a `Configuration` object suitable for `jaxfne.construct`.
   fractions are used instead.
 - Omitted tensor connectivity retains the configured default topology.
 - Every `InterConnection` (within-area) and `AreaConnection` (between-area)
-  compiled into a real selector-based edge rule via
+  compiles into a real selector-based edge rule via
   `Configuration.connections` + `Configuration.mechanisms`. Edge magnitude is
   `w_mech × g_mech / √total_n`. Sign follows the source neuron type
   (E → excitatory, else inhibitory). Connection probability is `1.0`
@@ -505,11 +499,11 @@ def construct_neuronal_tensor(
 ```
 
 **Bridge + construct + apply each area's `Pose3D` placement in one call.**
-This is the recommended entry point when you need pose-correct 3D placement.
+Recommended entry point for pose-correct 3D placement.
 
 **What it does beyond `neuronal_tensor_to_configuration`:**
 
-1. Calls `neuronal_tensor_to_configuration` and then `jaxfne.construct`.
+1. Calls `neuronal_tensor_to_configuration` then `jaxfne.construct`.
 2. Samples each layer's local neuron positions from its declared `Geometry3D`
    (currently `"uniform_random"` only).
 3. Applies each area's `Pose3D` (plane + rotation + translation) to map
@@ -520,7 +514,7 @@ This is the recommended entry point when you need pose-correct 3D placement.
 5. Aggregates `PlasticParams.H` from every connection touching each neuron
    (mean across all connections whose target layer/cell_type matches) and
    applies via `Model.with_hdp_initial_state`. Untouched neurons default
-   to `H=1.0` (HDP equilibrium). This is stored but inert unless HDP is
+   to `H=1.0` (HDP equilibrium). Stored but inert unless HDP is
    separately enabled.
 
 ```python

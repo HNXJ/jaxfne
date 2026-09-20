@@ -43,8 +43,12 @@ def promote(d: Path, to: str, reason: str) -> dict:
     if to == "canonical" and cur != "validated":
         raise SystemExit("canonical requires validated first")
     panels = manifest.get("panels", [])
-    if not panels or any(p.get("status") != "AVAILABLE" for p in panels):
-        raise SystemExit("all panels must be AVAILABLE")
+    bad = [p.get("file") for p in panels
+           if p.get("status") not in ("AVAILABLE", "OMITTED")]
+    if not panels or bad:
+        raise SystemExit(
+            "all panels must be AVAILABLE or OMITTED "
+            f"(blocking: {bad})")
     recomputed = hashlib.sha256(
         json.dumps(panels, sort_keys=True, default=str).encode()).hexdigest()[:16]
     if recomputed != manifest.get("sha256"):

@@ -50,11 +50,17 @@ The elementary current through a surface is the rate of charge crossing it:
 I = \frac{dq}{dt}, \qquad [I] = \text{A} = \text{C·s}^{-1}.
 \]
 
-This is a definition grounded in Maxwell/continuity physics. It holds irrespective of the charge carrier (ions, electrons) or the medium.
+This definition from Maxwell/continuity physics holds irrespective of charge carrier (ions, electrons) or medium.
 
 ### 2.2 Biophysical specialization
 
-In neural tissue the relevant currents are ionic (Na⁺, K⁺, Ca²⁺, Cl⁻, …), capacitive (displacement of charge across the lipid bilayer), and synaptic (transmitter-gated channels). Their algebraic sum obeys Kirchhoff's current law at the membrane: transmembrane current entering the extracellular volume equals current leaving the intracellular compartment.
+In neural tissue the relevant currents are:
+
+- ionic (Na⁺, K⁺, Ca²⁺, Cl⁻, …)
+- capacitive (displacement of charge across the lipid bilayer)
+- synaptic (transmitter-gated channels)
+
+Their algebraic sum obeys Kirchhoff's current law at the membrane: transmembrane current entering the extracellular volume equals current leaving the intracellular compartment.
 
 > **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** JaxFNE does not integrate a charge-continuity PDE to obtain \(I\). Individual emitter kernels declare a **model current** `I(t)` (e.g. Izhikevich `current_native` plus spike impulse proxy) whose time integral is *interpreted* as charge moved, not derived from electrodiffusion. The quantity `source_proxy` in `Signals` is a relative-unit proxy, `source_calibration_status = "uncalibrated_izhikevich_native_current"`.
 
@@ -64,7 +70,7 @@ In neural tissue the relevant currents are ionic (Na⁺, K⁺, Ca²⁺, Cl⁻, �
 
 ### 3.1 Physical law: the bilayer as a capacitor
 
-A patch of cell membrane of area \(A\) separates intracellular and extracellular electrolytes by a ~5 nm dielectric. To first order it is a parallel-plate capacitor with specific capacitance
+A patch of cell membrane of area \(A\) separates intracellular and extracellular electrolytes by a ~5 nm dielectric; to first order it is a parallel-plate capacitor with specific capacitance
 
 \[
 C_m = \frac{\epsilon}{d} \approx 1\,\mu\text{F·cm}^{-2},
@@ -98,7 +104,7 @@ or, equivalently,
 I_{\mathrm{cap}} + I_{\mathrm{ion}} + I_{\mathrm{syn}} = I_{\mathrm{ext}}.
 \]
 
-This is the **single-compartment** statement. For extended morphology the same balance becomes the cable equation; see §12.
+This is the **single-compartment** statement; for extended morphology the same balance becomes the cable equation; see §12.
 
 ### 3.3 How this law is used — and where JaxFNE stops solving it literally
 
@@ -322,7 +328,7 @@ K_{\alpha k} = \exp\!\Bigl[-\tfrac12\Bigl(\tfrac{z_\alpha - d_k}{w}\Bigr)^2\Bigr
 
 with \(z_\alpha\) the contact depth, \(d_k\) the neuron depth in \([0,1]\), and \(w\) the Gaussian width (default \(0.10\) relative-depth units). This is `jaxfne.fields.project_laminar_sources` / `project_sources_to_laminar_field` (`jaxfne/fields/proxy.py:148`).
 
-The kernel is factored out as `FieldOutput.kernel` so that CSD proxy, LFP proxy, etc. can be recomputed without re-running projection.
+The kernel is factored out as `FieldOutput.kernel` so CSD proxy, LFP proxy, etc. can be recomputed without re-running projection.
 
 > **Boundary — Physical derivation ends here. JaxFNE abstraction begins:** No elliptic PDE is assembled or solved; no matrix \(\mathcal L\) is formed; no iterative solver residual is reported (fields `solver_residual_l2_relative`, `n_iterations`, `converged` are `None` in the proxy branch). Conductivity \(\sigma_e\) is the scalar `proxy` placeholder, not a tensor measured in S·m⁻¹. The equation \(\nabla\!\cdot\!(-\sigma_e\nabla\phi_e)=q\) is **declared metadata** (`field_solver_status = "linear_solver"`, `field_claim_level = "proxy_readout"`) rather than a numerically enforced constraint. Promoting this to a real solve is the `solved_poisson` / `reserved_admittive` / `reserved_maxwell` ladder in [Limitations](../limitations_and_future_plans.md) and [Computation basis](../computation_basis.md) — reserved, not shipped.
 

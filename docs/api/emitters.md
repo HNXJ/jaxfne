@@ -8,7 +8,7 @@ Neuron models and emitter implementations for neural dynamics simulation.
 cfg = jtfne.Configuration().set_emitter("izhikevich", "cortical_eig")
 ```
 
-The Izhikevich neuron model is a phenomenological spiking neuron model with two state variables (v, u). It provides a good balance between computational efficiency and biological realism for tutorial-scale simulations.
+The Izhikevich neuron model is a phenomenological spiking model with two state variables (v, u). It balances cost and realism for tutorial-scale simulations.
 
 > **Reduced-class wording.** Labels `E`, `PV`, `SST`, `VIP` (and aliases `Inl`, `Ing`)
 > denote **reduced emitter classes** — `E-like`, `PV-like`, `SST-like`, `VIP-like` —
@@ -21,10 +21,10 @@ The Izhikevich neuron model is a phenomenological spiking neuron model with two 
 wrapper over `Configuration.emitter(**kwargs)`; it records `family`/`preset` as metadata on
 the config (`jaxfne/_config.py:860`). At build time, `"izhikevich"` and `"homeostatic_ei"`
 are the two supported families (`_SUPPORTED_EMITTER_FAMILIES`, `jaxfne/_construct_core.py:389`
-— see the `homeostatic_ei` section further down this page for the second family); other family
-strings raise at build time. `preset` is a
-free-form string tag; `emitters.py` has no dedicated per-preset dynamics table. The emitter's
-per-neuron behavior differentiation comes from **reduced-class label** (`E/PV/SST/VIP/Inl/Ing`-like), rather than
+— see the `homeostatic_ei` section below for the second family); other family
+strings raise. `preset` is a
+free-form string tag; `emitters.py` has no dedicated per-preset dynamics table. Per-neuron
+behavior differences come from **reduced-class label** (`E/PV/SST/VIP/Inl/Ing`-like), rather than
 from `preset`. Treat `preset="cortical_eig"` as the conventional default tag, rather than a switch between
 named dynamical regimes.
 
@@ -47,16 +47,17 @@ v <- c
 u <- u + d
 ```
 
-This is implemented inside the `jax.lax.scan` step functions of
-`simulate_eig_izhikevich`, `simulate_edge_recurrent_izhikevich`,
-`simulate_edge_recurrent_izhikevich_homeostatic`,
-`simulate_edge_recurrent_izhikevich_hdp`, and `simulate_receptor_exponential_izhikevich`
-(`jaxfne/emitters.py`); each simulate function inlines the same dynamics with its own
-synaptic/plasticity wrapper, rather than sharing one standalone "Izhikevich integrator" function.
+This runs inside the `jax.lax.scan` step functions of:
+
+- `simulate_eig_izhikevich`, `simulate_edge_recurrent_izhikevich`,
+  `simulate_edge_recurrent_izhikevich_homeostatic`,
+  `simulate_edge_recurrent_izhikevich_hdp`, and `simulate_receptor_exponential_izhikevich`
+  (`jaxfne/emitters.py`); each simulate function inlines the same dynamics with its own
+  synaptic/plasticity wrapper, rather than sharing one standalone "Izhikevich integrator" function.
 
 `I` (`current_native` in source) is an **uncalibrated internal drive**, distinct from a physical current in
 amperes — every kernel in this module sets `source_calibration_status` to a value such as
-`"uncalibrated_izhikevich_native_current"`, always short of a physical-calibration claim.
+`"uncalibrated_izhikevich_native_current"`, never a physical-calibration claim.
 
 ### Canonical source representation
 
@@ -90,7 +91,7 @@ identity claim — see wording note above):
 
 An unrecognized cell-type label falls back to the `VIP` row (`_get_cell_type_params`,
 `jaxfne/emitters.py:35`). These values feed the `a`/`b`/`c`/`d`/`drive`/`sign` fields of
-`IzhikevichParams` — see the dataclass table below for the full field list. There is
+`IzhikevichParams` — see the dataclass table below. There is
 no `I_injected` field; the closest analogue is the per-cell `drive` value plus, at simulate time, an
 optional `drive_schedule` argument.
 
@@ -117,8 +118,8 @@ params = jtfne.emitters.izhikevich_params_from_labels(
 ```
 
 `izhikevich_eig_params(n, cell_type_fractions, *, dtype="float32")` (`jaxfne/emitters.py:212`)
-assigns cell-type labels by walking `cell_type_fractions` in dict order and rounding counts;
-any unknown-label edge cases are absorbed into the last fraction bucket. `izhikevich_params_from_labels`
+walks `cell_type_fractions` in dict order, rounding counts; unknown-label edge cases
+fall into the last fraction bucket. `izhikevich_params_from_labels`
 (`jaxfne/emitters.py:262`) instead takes an explicit, ordered `labels` sequence and raises
 `ValueError` when the `labels` tuple is empty, when `layer_labels` length differs, or when
 a label falls outside `IZHIKEVICH_CELL_TYPE_DEFAULTS`.
@@ -131,7 +132,7 @@ a label falls outside `IZHIKEVICH_CELL_TYPE_DEFAULTS`.
 jaxfne.IzhikevichParams
 ```
 
-Frozen dataclass parameter container for a reduced Izhikevich population
+Frozen dataclass for a reduced Izhikevich population
 (`jaxfne/emitters.py:84`), registered as a JAX pytree.
 
 ### Fields
@@ -164,8 +165,8 @@ params = jtfne.emitters.izhikevich_eig_params(128, {"E": 0.8, "PV": 0.2})
 print(params.n_neurons)  # 128
 ```
 
-Construct `IzhikevichParams` through the
-module-level functions `izhikevich_eig_params(...)` and `izhikevich_params_from_labels(...)`
+Build `IzhikevichParams` with
+`izhikevich_eig_params(...)` and `izhikevich_params_from_labels(...)`
 documented above.
 
 ---
@@ -177,7 +178,7 @@ jaxfne.ReceptorSpec
 ```
 
 Frozen dataclass metadata declaration for a synaptic receptor (`jaxfne/emitters.py:44`).
-Specification metadata — distinct from a biological kernel; `emitters.py` leaves the conductance
+Metadata only — distinct from a biological kernel; `emitters.py` leaves the conductance
 and reversal-potential equations undefined for these fields.
 
 ### Fields
@@ -210,9 +211,9 @@ receptors = jtfne.standard_receptor_specs()
 print(receptors["AMPA"].tau_ms)  # 2.0
 ```
 
-Note: the recurrent-simulation kernels' binary excitatory/inhibitory split (see `EdgeList` below)
-consumes `receptor_index` values `0` and `1` only; `NMDA`/`GABA_B` are declared
-here, while the kernels instantiate them as combined excitatory/inhibitory channels rather than as separate synaptic populations.
+Note: the recurrent kernels' binary excitatory/inhibitory split (see `EdgeList` below)
+uses `receptor_index` values `0` and `1` only; `NMDA`/`GABA_B` are declared
+here but run as combined excitatory/inhibitory channels rather than separate synaptic populations.
 
 #### AMPA / GABA implementation table
 
@@ -226,10 +227,10 @@ Kernel operations and declared metadata specifications. Δscience=0.
 | `GABA_B` | -1 (inhibitory) | same kernel family | current-based when used | `-95.0` mV, specification value | `tau_ms = 150.0` ms (declared; not in default `EdgeList`, available via `synaptic_current_tensor`) |
 
 Notes:
-- **Kernel** is the declared computation; single-pole decay (single-pole, matches `simulate_edge_recurrent_izhikevich` / `simulate_receptor_exponential_izhikevich`).
-- **Conductance** column: the shipped dynamics are current-based; `g_mech`/`reversal_potentials_mV` in `StaticParams` and `ReceptorSpec.reversal_mV` are provenance metadata surfacing in `cfg.metadata["circuit"]["mechanisms"]` but surfacing in `cfg.metadata["circuit"]["mechanisms"]`.
-- **Reversal** values are the standard specs (`standard_receptor_specs()`); they serve as declarative specifications.
-- The default `EdgeList` construction from dense weights assigns `tau=2.0` for `weight >= 0` and `tau=5.0` for `weight < 0`; mechanism-specific dynamics require the mechanism-aware `edges.tau_ms` is wired (see `synaptic_tau_from_mechanism` inertness note — additive, not yet compiled into `core._compile_connection_rules`).
+- **Kernel** is the declared computation; single-pole decay (matches `simulate_edge_recurrent_izhikevich` / `simulate_receptor_exponential_izhikevich`).
+- **Conductance** column: the shipped dynamics are current-based; `g_mech`/`reversal_potentials_mV` in `StaticParams` and `ReceptorSpec.reversal_mV` are provenance metadata surfacing in `cfg.metadata["circuit"]["mechanisms"]`.
+- **Reversal** values are the standard specs (`standard_receptor_specs()`); they are declarative specifications.
+- The default `EdgeList` construction from dense weights assigns `tau=2.0` for `weight >= 0` and `tau=5.0` for `weight < 0`; mechanism-specific dynamics need the mechanism-aware `edges.tau_ms` wiring (see `synaptic_tau_from_mechanism` inertness note — additive, not yet compiled into `core._compile_connection_rules`).
 
 ---
 
@@ -239,10 +240,9 @@ Notes:
 jaxfne.SynapseSpec
 ```
 
-Frozen dataclass metadata declaration for a synapse (`jaxfne/emitters.py:57`). **Distinct from** a
-per-connection edge record — it is a small wrapper bundling a tuple of `ReceptorSpec` objects
-plus calibration-status metadata, with `source_idx`/`target_idx`/`weight`/`delay` fields left out.
-Per-connection edges are represented by `EdgeList` (below), a distinct type from `SynapseSpec`.
+Frozen dataclass metadata declaration for a synapse (`jaxfne/emitters.py:57`). Small `SynapseSpec` wrapper bundling a tuple of `ReceptorSpec` objects
+plus calibration-status metadata, with `source_idx`/`target_idx`/`weight`/`delay` fields left out —
+distinct from a per-connection edge record (`EdgeList` below).
 
 ### Fields
 
@@ -260,8 +260,8 @@ Per-connection edges are represented by `EdgeList` (below), a distinct type from
 jaxfne.EIGNetwork
 ```
 
-Frozen dataclass — lightweight description of an E/PV-like/SST-like/VIP-like reduced network
-(`jaxfne/emitters.py:172`) — labels are reduced emitter classes (read as `-like`; no literal identity).
+Frozen dataclass for an E/PV-like/SST-like/VIP-like reduced network
+(`jaxfne/emitters.py:172`); labels are reduced emitter classes (read as `-like`; no literal identity).
 
 ### Fields
 
@@ -277,9 +277,8 @@ Frozen dataclass — lightweight description of an E/PV-like/SST-like/VIP-like r
 
 Delegates to `self.params.n_neurons`.
 
-`EIGNetwork` has no `EIGNetwork(n_exc=..., n_inh=...)` constructor and no `to_dense()` method — build an
-`EIGNetwork` via `make_eig_network(...)` (below), the alternative to constructing the dataclass directly with
-excitatory/inhibitory counts.
+`EIGNetwork` has no `EIGNetwork(n_exc=..., n_inh=...)` constructor and no `to_dense()` method — build via
+`make_eig_network(...)` (below).
 
 ---
 
@@ -291,7 +290,7 @@ jaxfne.EdgeList
 
 Frozen dataclass registered as a JAX pytree class (`@jax.tree_util.register_pytree_node_class`) —
 sparse recurrent connectivity (`jaxfne/emitters.py:459`). Weights stay internal/unphysical
-pending a future calibration bridge.
+until a future calibration bridge.
 
 ### Fields
 
@@ -320,7 +319,7 @@ Returns a JSON-safe summary: `backend`, `n_edges`, a `receptors` label map
 (`{"0": "excitatory_native", "1": "inhibitory_native"}`), `source_calibration_status`, and
 `physical_amplitude_calibrated=False`.
 
-`EdgeList` has no `from_dense(...)` classmethod. The conversion path is the module-level
+`EdgeList` has no `from_dense(...)` classmethod. Use the module-level
 function `make_edge_list_from_dense(weights, *, threshold=1e-12, dtype="float32")`
 (`jaxfne/emitters.py:503`):
 
@@ -331,7 +330,7 @@ edges = jtfne.make_edge_list_from_dense(W, threshold=1e-12, dtype="float32")
 
 `weights` uses rows as postsynaptic targets and columns as presynaptic sources (matching
 `weights @ spikes` in the baseline dense backend). Entries with `abs(weight) <= threshold` are
-dropped. `tau_ms` per edge is set to `2.0` (excitatory, `weight >= 0`) or `5.0` (inhibitory,
+dropped. `tau_ms` per edge is `2.0` (excitatory, `weight >= 0`) or `5.0` (inhibitory,
 `weight < 0`), matching the excitatory/inhibitory tau split used elsewhere in this module.
 
 ---
@@ -361,7 +360,7 @@ network = jtfne.make_eig_network(n=128, cell_type_fractions={"E": 0.8, "PV": 0.1
 
 ### `simulate_eig_izhikevich(params, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None, noise_scale=None) -> (voltages, spikes, sources)`
 
-Simulate a reduced EIG Izhikevich scaffold using `jax.lax.scan`, with dense (`params.W`)
+Simulate a reduced EIG Izhikevich scaffold with `jax.lax.scan`, using dense (`params.W`)
 recurrent coupling (`jaxfne/emitters.py:358`).
 
 **Parameters:**
@@ -385,27 +384,27 @@ key = jax.random.PRNGKey(7)
 voltages, spikes, sources = jtfne.simulate_eig_izhikevich(params, n_steps=1000, dt_ms=0.1, key=key)
 ```
 
-A backwards-compatible alias `simulate_izhikevich_eig` (from v0.0.3) points at the same function.
+A backwards-compatible alias `simulate_izhikevich_eig` (from v0.0.3) is the same function.
 
 ---
 
 ### `make_edge_list_from_dense(weights, *, threshold=1e-12, dtype="float32") -> EdgeList`
 
 Convert a dense recurrent weight matrix into a sparse `EdgeList`. See the `EdgeList` section
-above for the exact semantics.
+above for exact semantics.
 
 ---
 
 ### `simulate_edge_recurrent_izhikevich(params, edges, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None, noise_scale=None) -> (voltages, spikes, sources, final_state)`
 
-Simulate reduced Izhikevich emitters with **sparse** recurrent synapses, using `jax.lax.scan`
+Simulate reduced Izhikevich emitters with **sparse** recurrent synapses, with `jax.lax.scan`
 over time and `jax.ops.segment_sum` over edges (`jaxfne/emitters.py:532`). JIT/vmap compatible.
 
 **Parameters:** same as `simulate_eig_izhikevich`, plus `edges` (`EdgeList`) in place of dense
 `params.W` coupling.
 
 **Returns:** `(voltages, spikes, sources, final_state)` where `final_state` is a dict with keys
-`v`, `u`, `prev_spikes`, `syn_state` — usable to resume a simulation.
+`v`, `u`, `prev_spikes`, `syn_state` — resumes a simulation.
 
 ---
 
@@ -481,8 +480,8 @@ term when those gains are `0.0` — so the defaults are an H-state/weight-term n
 not a general full-system equivalence claim. Per-neuron `tau_i =
 tau_0_ms * size_i**3`, with per-cell-type `size_i` from `DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE`
 (`jaxfne/emitters.py:978`: `E=5.0`, `PV=1.0`, `Inl=1.0`, `SST=1.5`, `Ing=1.5`, `VIP=1.5`), unless
-overridden via `size_scale_by_cell_type` or `size_scale_override`. `diagnostics_dict` includes
-The current scalar HDP realization is the `d_H=1` case. `H_trace` has shape
+overridden via `size_scale_by_cell_type` or `size_scale_override`. `diagnostics_dict` includes —
+the current scalar HDP realization is the `d_H=1` case. `H_trace` has shape
 `(n_steps, n_neurons)` for `h_state_dim=1` and
 `(n_steps, n_neurons, h_state_dim)` for vector H. The diagnostics also include
 `w_trace`, `H_final`, and `w_final`, plus optional
@@ -494,16 +493,16 @@ HDP's actual dynamics stay unaffected. For `h_state_dim>1`, componentwise H
 dynamics are the default; `h_state_readout` supplies the current scalar
 adaptation projection and `h_state_coupling` supplies an optional square
 component-coupling matrix. See the docstring in `jaxfne/emitters.py:1042` for the full parameter
-reference — it is extensive and kept in the source docstring.
+reference.
 
 ---
 
 ### `simulate_receptor_exponential_izhikevich(params, edges, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None) -> (voltages, spikes, sources, final_state)`
 
-v0.0.11 receptor-indexed exponential recurrent kernel (`jaxfne/emitters.py:1538`). Keeps one
-scalar synaptic state per edge and selects the per-edge decay from `edges.receptor_index` via
+v0.0.11 receptor-indexed exponential recurrent kernel (`jaxfne/emitters.py:1538`). One
+scalar synaptic state per edge; per-edge decay comes from `edges.receptor_index` via
 `standard_receptor_tau_table()`. Two receptor channels on the same anatomical connection are
-represented as two separate edges with identical `pre`/`post` but different `receptor_index` —
+two separate edges with identical `pre`/`post` but different `receptor_index` —
 the kernel does not expand state to `(n_edges, n_receptors)`. Reversal potentials remain
 metadata-only; no `g * (V - E_rev)` conductance equation is computed. `final_state` additionally
 includes `tau_per_edge`.
@@ -514,13 +513,13 @@ includes `tau_per_edge`.
 
 Simulates a fixed **two-neuron** E/I pair (`params` must have `n_neurons=2`, neuron 0 = E,
 neuron 1 = I) with dynamic exponential synaptic coupling (`jaxfne/emitters.py:1665`). Not a
-general-`n` recurrent kernel — intended for small illustrative demos.
+general-`n` kernel — for small illustrative demos.
 
 ---
 
 ### `simulate_multi_area_izhikevich(neurons_df, positions_m, W, source_tensor=None, control_params=None, cfg=None, n_steps=None, dt_ms=0.1, seed=0, dtype="float32") -> (spikes, voltages)`
 
-Multi-area Izhikevich simulation driven from a neuron metadata mapping (`neurons_df` with
+Multi-area Izhikevich simulation from a neuron metadata mapping (`neurons_df` with
 `area`/`layer`/`cell_type` keys), a dense connectivity matrix `W` (rescaled by `0.1` for gain
 compatibility), and an optional `source_tensor` used as `drive_schedule`
 (`jaxfne/emitters.py:1780`). Note the return order is `(spikes, voltages)`, the reverse of the
@@ -547,7 +546,7 @@ print(receptors["AMPA"])
 ### `standard_receptor_tau_table(dtype="float32") -> jax.Array`
 
 Returns the `receptor_index -> tau_ms` lookup table, built from `standard_receptor_specs()` so
-the kernels and declarative metadata stay synchronized (`jaxfne/emitters.py:1422`).
+kernels and declarative metadata stay synchronized (`jaxfne/emitters.py:1422`).
 
 ---
 
@@ -566,7 +565,7 @@ Vectorized lookup over `standard_receptor_specs()` / `standard_receptor_tau_tabl
 keyed by mechanism name. Additive extension —
 `core._compile_connection_rules` infers tau today (it still derives receptor type
 from weight sign, setting `tau=2.0` for excitatory / `5.0` for inhibitory
-edges regardless of any declared `mechanism` string — a known, separately-tracked
+edges regardless of any declared `mechanism` string — known, separately-tracked
 inertness). Raises `ValueError` on an unrecognized mechanism name rather than
 substituting unverified kinetics.
 
@@ -595,11 +594,10 @@ Factors out the exact per-edge synaptic state update used inline by
 `simulate_edge_recurrent_izhikevich` / `simulate_receptor_exponential_izhikevich`
 (`syn_next = syn_state * exp(-dt/tau) + spike`) as an explicit, named, reusable
 operator — usable outside the full `simulate()` orchestration for diagnostics or
-parameter sweeps. Single-exponential decay,
-matching the kernels exactly.
+parameter sweeps. Single-exponential decay, matching the kernels exactly.
 
 Validated falsification (500 ms, periodic 20 Hz input, `order` n/a — single pole):
-NMDA (tau=100 ms) sustains a mean current ~37.6x AMPA's (tau=2 ms) under identical
+NMDA (tau=100 ms) sustains mean current ~37.6x AMPA's (tau=2 ms) under identical
 input, confirming the tensor is genuinely mechanism-selective.
 
 **Example:**
@@ -632,7 +630,7 @@ assert report["finite_tau"]
 
 ## Emitter Facade Classes
 
-`emitters.py` also exposes a small object-oriented facade layer used by tutorials/smoke tests
+`emitters.py` also exposes a small object-oriented facade layer for tutorials/smoke tests
 (`jaxfne/emitters.py:1896` onward), separate from the functional `simulate_*` kernels above:
 
 - **`EmitterState`** (`NamedTuple`): `v`, `u`, `spikes`, `key`, `step_count`.
@@ -647,7 +645,7 @@ assert report["finite_tau"]
   required, `n` takes precedence), default `cell_type_fractions={"E": 0.75, "PV": 0.10, "SST": 0.08,
   "VIP": 0.07}`.
 - **`GLIFEmitter(Emitter)`**, **`LIFEmitter(Emitter)`**: unimplemented stubs — both raise
-  `NotImplementedError` on construction (`__init__` immediately raises). Stubs for future implementation.
+  `NotImplementedError` on construction (`__init__` immediately raises).
 - **`SynapseState`** (`NamedTuple`): `trace` — a JAX-pytree-compatible carry for `SynapseLayer`.
 - **`SynapseLayer`**: `SynapseLayer(n, W, tau_ms=5.0, dtype="float32")`, dense exponential synapse
   layer with `initial_state() -> SynapseState` and `step(state, pre_spikes, *, dt_ms=0.1) ->
@@ -664,10 +662,9 @@ state, output = emitter.step(state, input_t=jnp.zeros(64), dt_ms=0.1)
 ## homeostatic_ei (second canonical HDP sanity emitter)
 
 `jaxfne/emitters_homeostatic_ei.py`. A **separate emitter family from Izhikevich** —
-not a variant of it. State `x` is continuous, bounded, differentiable rate-like state,
-distinct from an Izhikevich threshold-and-reset system. It is
-the smallest dynamical system built to exercise HDP: three explicit, independently staged
-timescales (never fused into one rule):
+not a variant. State `x` is continuous, bounded, differentiable rate-like state,
+distinct from an Izhikevich threshold-and-reset system. Smallest system built to exercise HDP: three explicit, separately staged
+timescales (never fused):
 
 ```
 dx/dt = f(x, G, u)        fast neuronal dynamics      (tau_x_ms)
@@ -692,11 +689,11 @@ signals = model.simulate(jtfne.simulation(duration_ms=1000.0, dt_ms=0.5, seed=0)
 `n` (from `.network(n=...)`) can be any value `>=2` — split E/I via
 `_homeostatic_ei_cell_type_split` (`~75%`/`~25%`, at least 1 of each).
 `Model.summary()`/`.neuron_table()`/`.checkpoint()`/`.with_emitter_parameters()`/
-`.simulate_batch()` all raise `NotImplementedError` for this family (for this family).
+`.simulate_batch()` all raise `NotImplementedError` for this family.
 
 ### Rule registries (`ACTIVATION_RULES`/`CONDUCTANCE_RULES`/`HOMEOSTASIS_RULES`)
 
-Registry **names** pass through `Configuration` (which must stay JSON-safe); a
+Registry **names** pass through `Configuration` (which stays JSON-safe); a
 custom Python callable bypasses `Configuration` entirely, via
 `jaxfne.emitters_homeostatic_ei.simulate_homeostatic_ei(...)`.
 
@@ -717,13 +714,13 @@ custom Python callable bypasses `Configuration` entirely, via
 
 ### `bound_mode` (`"minimal"` | `"stable"`, default `"minimal"`)
 
-- `"minimal"`: `jnp.clip` on `G`/`H`; `x` is entirely **unbounded**. A large enough
-  step (explicit Euler on the cubic activation term overshoots once `|x|` exceeds a
-  real numerical-stability radius, `~2.58` at the canonical `dt_x`) can diverge to
+- `"minimal"`: `jnp.clip` on `G`/`H`; `x` is entirely **unbounded**. A large
+  step (explicit Euler on the cubic term overshoots once `|x|` exceeds
+  `~2.58` at the canonical `dt_x`) can diverge to
   `NaN` — reproduced at N=16 with the shipped flat `G_max=5.0` default.
-- `"stable"`: a smooth `tanh` soft-bound (`_soft_bound`) applied to `x`, `G`, and `H`
+- `"stable"`: smooth `tanh` soft-bound (`_soft_bound`) on `x`, `G`, and `H`
   every step instead of `jnp.clip` — a bounded *codomain*, not a *force*: cannot be
-  numerically outrun by any step size, N, or gain, and is gradient-friendly everywhere
+  outrun by any step size, N, or gain, and is gradient-friendly everywhere
   (unlike `jnp.clip`'s zero-gradient boundary). Requires `HomeostaticEIParams.x_min`/
   `.x_max` (new fields; default a very wide `+-1e6`, safe/inert for `"minimal"` mode).
 
@@ -731,7 +728,7 @@ custom Python callable bypasses `Configuration` entirely, via
 
 Builds a minimal all-pairwise E/I `HomeostaticEIParams` for any `n>=2` — the
 `scripts/`-level analog of `Configuration.set_emitter("homeostatic_ei")`, for ad hoc
-scripts/experiments that want a `HomeostaticEIParams` without going through
+scripts/experiments needing a `HomeostaticEIParams` without
 `Configuration`/`construct()`. `G_max` defaults to `10.0/n` —
 holds the aggregate per-row Hebbian feedback ceiling (`n * G_max`) constant across `n`.
 </content>

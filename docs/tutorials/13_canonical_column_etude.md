@@ -1,12 +1,12 @@
 # Étude: Canonical Cortical Column
 
-A single end-to-end étude that walks the full objective grammar on one model:
+A single end-to-end étude over the full objective grammar on one model:
 **Configuration → Construct → Simulate → Visualize → Tune → Post-tune.** It builds
-the canonical 1000-neuron laminar column, drives it into a plausible firing regime,
+the canonical 1000-neuron laminar column, drives it to a plausible firing regime,
 renders proxy readouts, fits a firing-rate target with a black-box optimizer, and
 writes a status-gated run manifest.
 
-Everything here is a **computational scaffold**: the laminar fields are proxies
+Everything here is a **computational scaffold**: laminar fields are proxies
 (`field_solver_status="linear_solver"`), not a solved volume conductor, and no
 calibrated-amplitude or mechanism claim is made.
 
@@ -25,18 +25,18 @@ calibrated-amplitude or mechanism claim is made.
 
 ## The canonical column
 
-Two laws define the reference column (the default prior for laminar work):
+Two laws define the reference column (default prior for laminar work):
 
-1. **Excitation peaks deep.** The E-fraction rises monotonically with depth, to
+1. **Excitation peaks deep.** E-fraction rises monotonically with depth, to
    95% E in L6.
-2. **Inhibition peaks superficial.** The I-fraction is highest superficially
+2. **Inhibition peaks superficial.** I-fraction peaks superficially
    (L1/L2/L3, 50% I each) and falls with depth to 5% in L6; the largest
-   inhibitory *count* sits in the dense superficial L2. PV peaks at L2/L3
-   (25% each); L6 carries no PV.
+   inhibitory *count* sits in dense superficial L2. PV peaks at L2/L3
+   (25% each); L6 has no PV.
 
-Overall composition is ~66% E : 34% I, in the realistic cortical range for the builder-constant variant. This
-table is `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS` — query the live
-constant rather than copying these numbers if you need them elsewhere.
+Overall: ~66% E : 34% I, in the realistic cortical range for the builder-constant variant. The live
+constant is `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS` — query it
+instead of copying these numbers elsewhere.
 
 > **Scaffold provenance & calibration.** The table above is the **builder scaffold** (`jaxfne/builders.py:55`, ~66E:34I). The **genome / realized-tensor** provenance used by `load_canonical_neuronal_tensor('canonical-v1-column-1000n')` and `load_canonical_pseudogenome('canonical-v1-column-1000n')` is a related but distinct scaffold: `L1 {E:0.50, SST:0.15, VIP:0.35}`, `L2 {E:0.648, PV:0.20, SST:0.10, VIP:0.052}`, `L3 {E:0.80, PV:0.08, SST:0.08, VIP:0.04}`, `L4 {E:0.75, PV:0.18, SST:0.04, VIP:0.03}`, `L5 {E:0.88, PV:0.06, SST:0.04, VIP:0.02}`, `L6 {E:0.90, PV:0.0533, SST:0.0267, VIP:0.02}` (~75.8E:25.2I realized; `value_tag="relative"`), with `fraction_tolerance` bands and `fraction_jitter_sigma=0.01` declared in `jaxfne/jdna/genomes/canonical-v1-column-1000n.json`. **Both are qualitative scaffolds, not quantitatively calibrated** against empirical composition (`quantitative_cell_fraction = false`; `quantitative_connectivity = false`; see header box and [Calibration — Biological status](../guides/calibration.md#biological-calibration-status)). Reduced Izhikevich labels `E`/`PV`/`SST`/`VIP` below are functional heterogeneity tags (distinct `a`/`b`/`c`/`d`/`drive`), not warranted literal cell-type identities.
 
@@ -79,9 +79,9 @@ cfg = (
 )
 ```
 
-The global `cell_types=` weight is intentionally **not** used for composition: it
-spreads cell types uniformly and produces an over-inhibitory gradient. Always set
-composition per layer with `.area_layer_cell_types(...)`.
+The global `cell_types=` weight is **not** used for composition: it
+spreads types uniformly, yielding an over-inhibitory gradient. Always set
+per-layer composition with `.area_layer_cell_types(...)`.
 
 ## 2. Construct
 
@@ -110,9 +110,9 @@ E-fraction rises with depth (L1 50% → L6 90%); the inhibitory *count* peaks in
 
 ## 3. Simulate
 
-Find a plausible operating point by sweeping the per-cell-type baseline drive,
+Sweep per-cell-type baseline drive to a plausible operating point,
 then run the full length. Sanity gates (Izhikevich, native units): resting
-membrane ≈ −67 mV, spike peak +30 mV (hard reset), mean rate in ~8–25 Hz, all finite.
+membrane ≈ −67 mV, spike peak +30 mV (hard reset), mean rate ~8–25 Hz, all finite.
 
 ```python
 import numpy as np
@@ -123,9 +123,9 @@ rate = jtfne.tutorial_utils.population_rate_hz(np.asarray(signals.get("spikes"))
 # drive=5 -> ~18 Hz; drive sweep: 4 -> ~13 Hz, 6 -> ~23 Hz, 8 -> hot, 0 -> silent
 ```
 
-Proxy fields are computed automatically and carry the `*_proxy` suffix
+Proxy fields compute automatically with the `*_proxy` suffix
 (`lfp_proxy`, `csd_proxy`, `source_proxy`), each shaped `(n_steps, n_contacts)`.
-`eeg_proxy`/`meg_proxy` are **not** auto-computed — they require an explicit
+`eeg_proxy`/`meg_proxy` are **not** auto-computed — they need an explicit
 lead-field (`eeg_proxy_transform(source, leadfield)`).
 
 ```python
@@ -135,12 +135,14 @@ csd = np.asarray(signals.get("csd_proxy"))
 
 ### Layer-balanced drive (avoid layer-rate bias)
 
-Per-layer firing should be similar across depth, or any laminar readout is biased
-toward the hotter layers. Under uniform drive this column is intrinsically
-*superficial-hotter* (L2/L3 fire faster than L5/L6) — no layer is silent, but the
-bias is real. Flatten it with **graded per-layer drive**, applied to the **same
-constructed model** (no rebuild) via `with_emitter_parameters`. A gentle
-proportional-control loop converges in a few steps:
+Per-layer firing should match across depth, else laminar readouts bias
+toward hotter layers. Under uniform drive this column runs intrinsically
+*superficial-hotter* (L2/L3 faster than L5/L6) — no layer silent, but the
+bias is real. Flatten it:
+
+- Apply **graded per-layer drive** to the **same constructed model**
+  (no rebuild) via `with_emitter_parameters`.
+- A gentle proportional-control loop converges in a few steps:
 
 ```python
 layer_of = np.array([r["layer"] for r in model.neuron_table()])
@@ -166,8 +168,8 @@ for _ in range(30):
         layer_drive[L] = float(np.clip(layer_drive[L] * factor, 0.0, 30.0))
 ```
 
-Converged graded profile (superficial gets *less* drive, deep gets *more* — cancels
-the bias without altering the structural E/I gradient):
+Converged graded profile (superficial *less* drive, deep *more* — cancels
+bias, keeps the structural E/I gradient):
 
 ```text
 layer  drive  rate_Hz
@@ -181,7 +183,7 @@ layer  drive  rate_Hz
 
 ## 4. Visualize
 
-All `jtfne.vis.*` take a `Signals` object and return matplotlib figures;
+`jtfne.vis.*` take a `Signals` object and return matplotlib figures;
 `visualize_network_3d` returns an interactive Plotly scene with HTML export.
 
 ```python
@@ -201,9 +203,9 @@ jtfne.vis.visualize_network_3d(
 
 ## 5. Tune
 
-The Izhikevich hard spike reset is non-differentiable, so gradient optimizers are
-gated off. Use the black-box AGSDR optimizer to fit a scalar `drive_gain` to a
-firing-rate target. The optimizer reuses the constructed model across generations —
+The Izhikevich hard spike reset is non-differentiable, so gradient optimizers stay
+gated off. Fit scalar `drive_gain` to a firing-rate target with black-box AGSDR.
+The optimizer reuses the constructed model across generations —
 no rebuild.
 
 ```python
@@ -237,7 +239,7 @@ manifest = tuned.manifest(
 jtfne.save_json(manifest, "tuned_run_manifest.json")  # allow_nan=False; finite-checked
 ```
 
-Manifests carry the same default claim fields as [Scope & status](../scope_and_status.md):
+Manifests carry the default claim fields from [Scope & status](../scope_and_status.md):
 
 ```text
 claim_level:                   computational_scaffold
@@ -261,19 +263,20 @@ Regenerate: `python scripts/generate_doc_page_atlases.py --slug canonical_etude_
 
 ## Notes on scale and claims
 
-- **Reuse, don't rebuild.** `construct()` is the expensive step (~40 s at 10k,
-  ~2 s at 1k); `simulate()` is comparatively cheap. For sweeps, seeds, drive, or
-  trials, reuse the constructed model (vary the simulation, or adjust emitter
-  parameters with `with_emitter_parameters`); only rebuild when the structure
-  changes (counts, layers, cell types, connectivity).
-- **Spectrolaminar structure is scale-dependent.** A clean depth × frequency
+- **Reuse, don't rebuild.** `construct()` costs (~40 s at 10k,
+  ~2 s at 1k); `simulate()` is cheap. For sweeps, seeds, drive, or
+  trials, reuse the built model (vary the simulation, or adjust emitter
+  parameters with `with_emitter_parameters`); rebuild only on structural
+  change (counts, layers, cell types, connectivity).
+- **Spectrolaminar structure is scale-dependent.** Clean depth × frequency
   separation needs large populations and multiple trials; at 1000 neurons the
-  spectrolaminar panel is pipeline-correct but not a substitute for a larger,
+  spectrolaminar panel is pipeline-correct but is no replacement for a larger,
   multi-trial run via `tutorial_utils.spectrolaminar_from_trials`.
-- **Proxy language only.** Use "simulated", "proxy", "scaffold",
-  "computational diagnostic". The laminar fields here are proxies, not a solved
-  field, and amplitudes are uncalibrated. Likewise, `E`/`PV`/`SST`/`VIP` labels denote reduced Izhikevich dynamical heterogeneity, not warranted literal cell-type identity.
-- **Scaffold, without quantitative calibration.** The fractions and motifs above are qualitative scaffold values (`quantitative_cell_fraction = false`, `quantitative_connectivity = false`) with declared provenance — do not present as empirically calibrated V1 composition or connectivity.
+- **Proxy language only.** Say "simulated", "proxy", "scaffold",
+  "computational diagnostic". Laminar fields are proxies, not a solved
+  field; amplitudes uncalibrated. `E`/`PV`/`SST`/`VIP` denote reduced
+  Izhikevich dynamical heterogeneity, not warranted literal cell-type identity.
+- **Scaffold, without quantitative calibration.** Fractions and motifs above are qualitative scaffold values (`quantitative_cell_fraction = false`, `quantitative_connectivity = false`) with declared provenance — never present as empirically calibrated V1 composition or connectivity.
 
 ## Next step
 

@@ -4,7 +4,7 @@ Field solvers, source projection, and spatial operators for neural field computa
 
 ## Overview
 
-The fields module provides spatial projection operators to transform point-source neural currents into field readouts (LFP, CSD, EEG, MEG). All field computations are **proxy approximations** suitable for tutorial-scale simulations, not full PDE solutions.
+The fields module maps point-source neural currents into field readouts (LFP, CSD, EEG, MEG). All field computations are **proxy approximations** for tutorial-scale simulations, not full PDE solutions.
 
 ```
 Emitter currents → Source projection → Field convolution → Probe readouts
@@ -23,13 +23,13 @@ representation: relative | calibrated
 `linear_projection` applies a fixed kernel, `Phi^(r) = K Q^(r)`.
 `pde_solve` evaluates a declared discretized field equation,
 `A_gamma Phi = Q`. The compatibility field key
-`field_solver_status="linear_solver"` remains available for existing consumers;
+`field_solver_status="linear_solver"` stays for existing consumers;
 the canonical mathematical type is `operator_type`.
 
 ### Observation provenance (0.4.15+)
 
 Eager `diagnostics["observation"]` and `LinearReadout.report()["observation"]`
-record conceptual **S→F→P** identity under fused or materialized execution.
+record **S→F→P** identity under fused or materialized execution.
 
 | key | role |
 |-----|------|
@@ -39,7 +39,7 @@ record conceptual **S→F→P** identity under fused or materialized execution.
 
 EEG separates operator identity (`linear_leadfield`) from
 `leadfield_status`. MEG sets `orientation_claim: none` on scalar `Q`. Under
-`jax.jit`, metadata is omitted from traced returns; array values are unchanged.
+`jax.jit`, traced returns omit metadata; array values are unchanged.
 
 ---
 
@@ -55,9 +55,9 @@ jaxfne.LaminarSourceGeometry
 level as `jaxfne.LaminarSourceGeometry`.)*
 
 A frozen dataclass grouping named `LaminarPopulation` descriptors and
-materializing a deterministic `(n_units_total, 3)` positions array for use in
+materializing a deterministic `(n_units_total, 3)` positions array for
 `project_laminar_sources`/`project_sources_to_laminar_field`. Depths are
-proxy-normalized coordinates in `[0, 1]`, not physical microns; no
+proxy-normalized `[0, 1]` coordinates, not physical microns; no
 physical-amplitude, PDE, or calibration claim is made.
 
 ### Attributes
@@ -69,7 +69,7 @@ physical-amplitude, PDE, or calibration claim is made.
 - `physical_amplitude_calibrated` (`bool`, default `False`)
 - `claim_level` (`str`, default `"computational_scaffold"`)
 
-`LaminarPopulation` (the element type of `populations`) is itself a frozen
+`LaminarPopulation` (the element type of `populations`) is a frozen
 dataclass: `name: str`, `cell_type: str`, `layer: str`, `depth_min: float`,
 `depth_max: float`, `n_units: int`, plus the same
 `source_calibration_status`/`physical_amplitude_calibrated`/`claim_level`
@@ -98,15 +98,15 @@ Maps each population `name` to the `slice` of neuron indices it occupies
 
 Returns a deterministic `(n_units_total, 3)` array: `x=0`, `y=0`, `z`
 linearly spaced within each population's `[depth_min, depth_max]` range, in
-population order. No random sampling — feed this directly into
+population order. No random sampling — feed directly into
 `project_laminar_sources(sources, positions=...)`.
 
 ### Building a `LaminarSourceGeometry`
 
-There is no `from_dict` constructor. Build one from a sequence of
+There is no `from_dict` constructor. Build from a sequence of
 `LaminarPopulation` objects, either directly or via the
 `laminar_source_geometry()` helper (also `jaxfne.core`), which validates each
-population and computes `n_units_total` for you:
+population and computes `n_units_total`:
 
 ```python
 from jaxfne.core import LaminarPopulation, laminar_source_geometry
@@ -138,7 +138,7 @@ Project emitter sources into laminar contact space.
 **Returns:** `FieldOutput`
 
 **Description:**
-Transforms point-emitter sources into distributed laminar-contact density via a Gaussian-kernel proxy projection — not a full dipole/PDE solve.
+Maps point-emitter sources into distributed laminar-contact density via a Gaussian-kernel proxy projection — not a full dipole/PDE solve.
 
 **Example:**
 ```python
@@ -164,7 +164,7 @@ positional parameter.
 The returned diagnostics identify `operator_type="linear_projection"`,
 `representation="relative"`, the selected `normalization_mode`, and the
 explicit calibration boundary. `density_preserving` and `row_normalize` are
-distinct projection operators.
+distinct operators.
 
 **Example:**
 ```python
@@ -179,7 +179,7 @@ field = jtfne.project_sources_to_laminar_field(sources, positions, n_contacts=16
 jaxfne.FieldOutput
 ```
 
-Frozen dataclass container for laminar proxy field/readout arrays, returned
+Frozen dataclass for laminar proxy field/readout arrays, returned
 by `project_laminar_sources` / `project_sources_to_laminar_field`.
 
 ### Attributes (dataclass fields)
@@ -201,12 +201,12 @@ by `project_laminar_sources` / `project_sources_to_laminar_field`.
 
 **Note:** `lfp_proxy` and `phi_e_proxy` are currently the same array
 (`jaxfne/fields/proxy.py:169-170` sets `lfp_proxy = source_proxy` then
-`phi_e_proxy = lfp_proxy`) — the module does not yet distinguish an LFP
-readout from the raw potential proxy. `csd_proxy` is the genuinely distinct
-quantity, computed from `phi_e_proxy` via `csd_tensor`.
+`phi_e_proxy = lfp_proxy`) — the module does not yet separate an LFP
+readout from the raw potential proxy. `csd_proxy` is distinct,
+computed from `phi_e_proxy` via `csd_tensor`.
 
-There is no `FieldOutput.to_dict()` method and no `source` attribute (the
-field is named `source_proxy`). To get a JSON-safe dict of the diagnostics,
+No `FieldOutput.to_dict()` method and no `source` attribute (the
+field is `source_proxy`). For a JSON-safe dict of the diagnostics,
 use `jaxfne.io.json_safe`:
 
 ```python
@@ -222,9 +222,9 @@ field_dict = json_safe(field.diagnostics)
 invariants) merged with a field-solution report from
 `_make_field_solution_report`, plus a few extra keys — 46 keys total as of
 this writing (verified via `sorted(field.diagnostics.keys())` on a live
-`project_laminar_sources` call). Every key below is required — it is always
-present on the returned dict, regardless of which projection `mode` was
-used. The keys relevant to status-gate/claim status:
+`project_laminar_sources` call). Every key below is always
+present, regardless of projection `mode`.
+The keys relevant to status-gate/claim status:
 
 | Field | Type | Purpose |
 |-------|------|---------|
@@ -263,10 +263,9 @@ used. The keys relevant to status-gate/claim status:
 | `*_shape` keys | tuple[int, ...] | Shapes of `source`/`positions`/`kernel`/`source_proxy`/`phi_e_proxy`/`csd_proxy`/`lfp_proxy` |
 | `dtype` | str | dtype of the input `sources` array |
 
-There is no `amplitude_status` or `field_model_status` key (the doc
-previously invented these) — the real names are `physical_amplitude_calibrated`
+No `amplitude_status` or `field_model_status` key (previously invented here) — the real names are `physical_amplitude_calibrated`
 and `field_claim_level`. Similarly, `source_conservation_claim_allowed` is the
-real key in place of the invented `source_conservation_status`.
+real key replacing the invented `source_conservation_status`.
 
 ---
 
@@ -287,7 +286,7 @@ Extract the requested proxy readouts from a `FieldOutput`.
 current density is never synthesized without a real field solver.
 
 **Description:**
-A thin accessor over the laminar proxy outputs. All returned arrays are proxy
+An accessor over the laminar proxy outputs. All returned arrays are proxy
 readouts (`field_solver_status = "linear_solver"`), not physical signals.
 
 **Example:**
@@ -312,7 +311,7 @@ Assemble a proxy source tensor for laminar projection from the named `mode`.
 - `scale` (float, default `1.0`): multiplicative scale.
 
 **Returns:** `(source_array, metadata)` — the proxy source array plus a JSON-safe
-metadata dict recording the mode and proxy status. The result is a proxy source
+metadata dict recording the mode and proxy status. A proxy source
 basis, not a physical current density.
 
 **Example:**
@@ -338,7 +337,7 @@ Build the per-neuron cable time constant array consumed by `cable_filter_sources
 **Returns:** `tau_s` (`jax.Array`, seconds, shape `[N]`).
 
 **Description:**
-Defaults are the numerically-swept operating point used by `cable_filter_sources` below
+Defaults are the numerically-swept operating point for `cable_filter_sources` below
 (`order=2`). `PV` gets the shortest tau (highest cutoff, passes gamma at
 every depth); `E` cells get a depth-graded tau (long apical dendrites on deep
 pyramidal cells => longer tau => lower cutoff).
@@ -372,8 +371,8 @@ emitter -> (source_scale gain tensor) -> source
 **Returns:** filtered source-proxy traces, shape `[T, N]`.
 
 **Description:**
-Computes, per neuron, the cascaded single-pole transfer function
-`H[f, n] = 1 / (1 + 2j*pi*f*tau_s[n]) ** order` and applies it along the time
+Per neuron, applies the cascaded single-pole transfer function
+`H[f, n] = 1 / (1 + 2j*pi*f*tau_s[n]) ** order` along the time
 axis via FFT. A phenomenological proxy for passive dendritic cable
 filtering — a Relative-value projection (`field_solver_status="linear_solver"`,
 `physical_amplitude_calibrated=False`).
@@ -433,8 +432,8 @@ boundaries. Factored out of `project_laminar_sources` (which still calls this
 function internally — confirmed byte-identical via regression test) so CSD
 can be recomputed standalone from any `[T, n_contacts]` potential-proxy array
 without re-running the full projection. Unlike `cable_filter_sources`, this is
-a purely spatial operator, not a frequency-domain one — CSD is the 2nd
-spatial derivative of whatever LFP-proxy it is given, nothing more.
+purely spatial, not frequency-domain — CSD is the 2nd
+spatial derivative of its input LFP-proxy, nothing more.
 
 **Example:**
 ```python
@@ -524,11 +523,11 @@ assert manifest["convergence_status"] == "converged"
 
 Bridges real per-neuron depth positions (from `Model.neuron_table()`) and
 source values (e.g. a time-slice of `Signals.sources`) into
-`experimental_poisson_1d`'s 1D depth grid — providing direct integration of the
-finite-difference experimental 1D field operator with the Model/Signals object model. This is a
-separate, explicitly opt-in accessor called after `construct()`/`simulate()`,
-kept fully independent of `project_laminar_sources` and the default
-`simulate()` field dispatch, which stay exactly as they are today.
+`experimental_poisson_1d`'s 1D depth grid — direct integration of the
+finite-difference experimental 1D field operator with the Model/Signals object model. A
+separate opt-in accessor called after `construct()`/`simulate()`,
+fully independent of `project_laminar_sources` and the default
+`simulate()` field dispatch, which stay as they are.
 
 **Parameters:**
 - `neuron_table` (sequence of dict): from `Model.neuron_table()`; every row
@@ -577,7 +576,7 @@ The default boundary condition enforces zero-mean field solutions:
 ∫ φ(x) dx = 0  (for LFP/CSD)
 ```
 
-This prevents unrealistic DC offsets and ensures conservation of charge.
+This prevents DC offsets and preserves charge conservation.
 
 ### Neumann Boundary Condition
 
@@ -587,11 +586,11 @@ Open boundary (zero normal flux at edges):
 dφ/dn = 0  (at domain boundary)
 ```
 
-Suitable for isolated laminar columns away from edge effects.
+For isolated laminar columns away from edge effects.
 
 ### Dirichlet Boundary Condition
 
-Fixed potential at boundaries (less common in tutorial simulations).
+Fixed boundary potential (less common in tutorials).
 
 ---
 
@@ -599,7 +598,7 @@ Fixed potential at boundaries (less common in tutorial simulations).
 
 ### `validate_source_field_status(field_output) -> dict`
 
-Validate field output for numerical consistency.
+Check field output for numerical consistency.
 
 **Parameters:**
 - `field_output` (FieldOutput): Computed field
@@ -636,7 +635,7 @@ report = jtfne.validate_projection_invariants(
 
 ### `compute_conservation_proxy_diagnostics(sources, field) -> dict`
 
-Compute conservation-inspired diagnostic metrics.
+Compute conservation-inspired diagnostics.
 
 **Parameters:**
 - `sources` (jax.Array): Source signals [time, locations]
@@ -668,9 +667,9 @@ $$\phi_{\mathrm{proxy}}(t,c) = \sum_{n=1}^{N} W_{cn} S_n(t)$$
 
 $$\mathrm{CSD}_{\mathrm{proxy}}(t,c) = -\frac{\phi_{\mathrm{proxy}}(t,c+1) - 2\phi_{\mathrm{proxy}}(t,c) + \phi_{\mathrm{proxy}}(t,c-1)}{(\Delta z)^2}$$
 
-The spacing `Δz` is the relative contact-depth spacing. Boundaries use edge
-padding, the input is `phi_e_proxy`, and the output is the relative
-`csd_proxy` representation.
+Spacing `Δz` is relative contact-depth spacing. Boundaries use edge
+padding; input is `phi_e_proxy`, output is relative
+`csd_proxy`.
 
 ---
 
@@ -709,7 +708,7 @@ from jaxfne.io import json_safe
 json.dumps(json_safe(field_output.diagnostics), allow_nan=False)
 ```
 
-Outputs with NaN or Inf values will fail serialization and must be diagnosed.
+Outputs with NaN or Inf fail serialization and must be diagnosed.
 
 ## See also
 

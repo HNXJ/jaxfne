@@ -2,9 +2,9 @@
 
 Main classes for configuration, model construction, simulation, and signal handling.
 
-All source references below point at the post-split module that owns each
+All source references below point at the post-split module owning each
 symbol (`jaxfne/core.py` is a compatibility re-export shim; the monolith
-anchors were retired when `core.py` was split into `_config.py`, `_model.py`,
+was split into `_config.py`, `_model.py`,
 `_signals.py`, `_construct_core.py`, `_construct_extras.py`,
 `_construct_presets.py`, and `_model_readout.py`).
 
@@ -14,7 +14,7 @@ anchors were retired when `core.py` was split into `_config.py`, `_model.py`,
 jaxfne.Configuration()
 ```
 
-Declarative TFNE model configuration (`_config.py`, frozen dataclass). It is the
+Declarative TFNE model configuration (`_config.py`, frozen dataclass): the
 anatomical/model declaration, separate from the compiled model. Methods return new
 objects (immutable, chainable construction).
 
@@ -29,7 +29,7 @@ Real dataclass fields (`_config.py`):
 - `metadata` (`dict`, default from `_default_metadata()`)
 
 `column`/`cell_type_map`/etc. are metadata written by the chainable methods below,
-distinct from the top-level dataclass fields listed above.
+not top-level dataclass fields.
 
 ### Methods
 
@@ -37,12 +37,11 @@ Only methods verified against `core.py` are documented here; `Configuration` has
 more (e.g. `plasticity`, `homeostasis`, `hdp`, `mechanisms`, `connections`, `lesions`,
 `trainables`, `objective_outputs`, `areas`, `layer_fractions`,
 `area_layer_cell_types`, `drive`, `objective`, `optimizer`, `validate`) — see
-`jaxfne-config` / `jaxfne-modeling-optimization-schema` skills for the full surface.
+`jaxfne-config` / `jaxfne-modeling-optimization-schema` skills for the full list.
 
 #### `runtime(**kwargs) -> Configuration`
 
-`_config.py`. Maps directly to `update_metadata(**kwargs)` — this is a plain
-metadata write, distinct from a compiled `RuntimeConfig`. Typical keys: `seed`,
+`_config.py`. Plain metadata write via `update_metadata(**kwargs)`, distinct from a compiled `RuntimeConfig`. Typical keys: `seed`,
 `dtype`, `duration_ms`, `dt_ms`.
 
 **Example:**
@@ -53,8 +52,8 @@ cfg = cfg.runtime(seed=7, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
 
 #### `column(name: str, layers: Sequence[str], n: int) -> Configuration`
 
-`_config.py`. Declares one cortical column; accumulates into
-`metadata["columns"]` and rebuilds a single unified `networks[0]` entry
+`_config.py`. Declares one cortical column in
+`metadata["columns"]`, rebuilding a single unified `networks[0]` entry
 (`kind="multi_column"`) spanning all declared columns. Raises `ValueError` on an
 empty/duplicate name, empty `layers`, or non-positive `n`.
 
@@ -66,7 +65,7 @@ cfg = cfg.column("V1", layers=["L2/3", "L4", "L5"], n=100)
 #### `cell_types(fractions: Mapping[str, float]) -> Configuration`
 
 `_config.py`. Sets cell-type fractions in `metadata["cell_types"]` and on
-`networks[0]["cell_types"]`. Values are stored exactly as given, unnormalized.
+`networks[0]["cell_types"]`. Values are stored as given, unnormalized.
 Raises `ValueError` on empty input, non-finite/negative fractions, or zero
 total mass.
 
@@ -81,14 +80,14 @@ reduced emitter classes, read as `E-like`, `PV-like`, `SST-like`, `VIP-like`
 (no literal biological identity; see `docs/api/emitters.md` wording note) — only these
 specific labels are accepted, a generic `"I"` aggregate label is rejected;
 `construct()` raises `ValueError: unknown Suite No. 2 cell type label` for
-any other string. `cell_types()` itself just stores the dict as given; label
-validation happens later, at `construct()` time.
+any other string. `cell_types()` stores the dict as given; label
+validation happens at `construct()` time.
 
 #### `connectivity(**kwargs) -> Configuration`
 
 `_config.py`. Declares connectivity metadata into `metadata["connectivity"]`
 (merged with any prior call) and sets `metadata["connectivity_status"] =
-"declared_metadata_proxy"`. Declaration only — simulated dynamics stay as
+"declared_metadata_proxy"`. Declaration only — dynamics stay as
 configured elsewhere.
 
 **Example:**
@@ -110,8 +109,8 @@ cfg = cfg.set_emitter("izhikevich", "cortical_eig")
 `_config.py` (`_ProbeDeclarations.__call__`). `cfg.probes` is itself a
 list-like object (read path: `len(cfg.probes)`, `cfg.probes[0]`) that is also
 **callable** (write path): calling it returns a new `Configuration` via
-`cfg._with_probe_modes(...)`. `modes` stays a declarative label list — no
-physical-sensor claim is introduced by calling this.
+`cfg._with_probe_modes(...)`. `modes` stays a declarative label list — calling this adds no
+physical-sensor claim.
 
 **Parameters:**
 - `modes` (`Sequence[str]`): probe/readout mode labels, e.g. `["MUA-proxy", "LFP-proxy", "CSD-proxy"]`
@@ -144,14 +143,13 @@ physical signals.
 - `params` (`dict[str, Any]`): dynamic pytree (arrays, may be tuned/traced)
 - `static` (`dict[str, Any]`): JIT-static, non-array metadata
 
-`Model`'s real attributes are `cfg`/`params`/`static` (no separate `geometry`/
-`basis_spec`) — geometry lives inside `params`/`static` (e.g. `params["positions"]`,
-`static["n_contacts"]`) as nested data, rather than as its own top-level field.
+`Model` attributes are `cfg`/`params`/`static` (no separate `geometry`/
+`basis_spec`) — geometry lives as nested data in `params`/`static` (e.g. `params["positions"]`,
+`static["n_contacts"]`).
 
 ### Methods
 
-`Model` has many methods beyond those listed; this covers the ones this doc
-documents.
+`Model` has many methods beyond those listed; this lists the documented ones.
 
 #### `simulate(sim: Simulation, paradigm: Any | None = None) -> Signals`
 
@@ -163,11 +161,11 @@ duration_ms=..., ...)` helper (below) for the kwarg form.
 When the constructed emitter is Izhikevich (or another edge-list path that
 reaches `_simulate_arrays`), and `paradigm` is a `StimulusSchedule` or
 `ParadigmCondition`, its drive array is injected as internal (uncalibrated)
-current at each timestep.
+current each timestep.
 
 **`homeostatic_ei` is a separate emitter family.** `Model.simulate` dispatches
 to `_simulate_homeostatic_ei` before paradigm resolution; a `paradigm`
-argument is **not** applied on that path. Supported extra drive for HEI is the
+argument is **not** applied on that path. Extra HEI drive is the
 kernel argument `drive_schedule` on `simulate_homeostatic_ei(...)`, or the
 family's declared baseline drive in params. Do not infer cross-family stimulus
 equivalence from the Izhikevich `paradigm` contract.
@@ -186,7 +184,7 @@ the intended boundary. Supported methods by emitter family:
 | `checkpoint` / `simulate_batch` | ✅ | ❌ `NotImplementedError` |
 | `with_emitter_parameters` | ✅ | ❌ `NotImplementedError` |
 
-If your planned workbench experiments use `homeostatic_ei` and need
+If planned workbench experiments use `homeostatic_ei` and need
 `summary`/`neuron_table`/`checkpoint`/`simulate_batch`, use the Izhikevich
 family instead (the canonical edge-list path).
 
@@ -202,7 +200,7 @@ signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=7)
 #### `compute_readout(signals: Signals, specs: Sequence[ReadoutSpec]) -> list[ReadoutResult]`
 
 `_model_readout.py`. Canonical v0.1 workflow method — computes scalar features from
-`Signals` per a list of `ReadoutSpec`. Returns a **list** of `ReadoutResult`, one
+`Signals`, one per `ReadoutSpec`. Returns a **list** of `ReadoutResult`, one
 per spec, in the same order (not a single combined `ReadoutResult`).
 
 **Example:**
@@ -240,7 +238,7 @@ Raises `ValueError` on an empty match unless `allow_empty=True`; raises
 jaxfne.Simulation
 ```
 
-`_signals.py`. Frozen dataclass — immutable specification of one simulation run.
+`_signals.py`. Frozen dataclass — immutable spec for one simulation run.
 
 ### Fields
 
@@ -255,7 +253,7 @@ jaxfne.Simulation
 - `ablation` (`str | None`, default `None`)
 
 `n_steps` is a **property** (`round(duration_ms / dt_ms)`), not a constructor
-field, and `__post_init__` raises `ValueError` if it computes to `<= 0`.
+field, and `__post_init__` raises `ValueError` if it is `<= 0`.
 
 **Example:**
 ```python
@@ -283,8 +281,8 @@ Real fields (`_signals.py`):
 - `field` (`FieldOutput | None`) — laminar proxy field output (LFP/CSD/EEG/MEG proxies live inside this object, not as separate top-level `Signals` fields; present when `record_fields=True`)
 - `metadata` (`dict[str, Any]`)
 
-`sources` (plural) is the source-density array, and the field
-proxies (LFP/CSD/etc.) are attributes of `field: FieldOutput`, accessed via
+`sources` (plural) is the source-density array; field
+proxies (LFP/CSD/etc.) live on `field: FieldOutput`, accessed via
 `.get(...)` (below) or `signals.field.<attr>`.
 
 ### Methods
@@ -303,9 +301,9 @@ neurons via `area`/`layer`/`cell_type`/`ids` or an explicit `SelectorSpec`
 -> `V_m`; `spk`/`spikes`/`raster` -> `spikes`; `src`/`sources` -> `sources`;
 `lfp`/`csd`/`phi_e` -> the corresponding laminar proxy readout on `field`;
 `field_source` -> field source proxy. Unknown keys raise `KeyError`. Multi-trial
-simulation is handled via `jtfne.run_trials`/`Model.run_trials`.
+simulation uses `jtfne.run_trials`/`Model.run_trials`.
 
-Use `summary()` for a JSON-safe view, or `jaxfne.io.json_safe(...)` on the fields you need.
+Use `summary()` or `jaxfne.io.json_safe(...)` for a JSON-safe view.
 
 **Example:**
 ```python
@@ -324,7 +322,7 @@ jaxfne.Objective
 `_signals.py`. Frozen dataclass — declarative objective specification (losses,
 regularizers, diagnostic gates). All specs are plain dicts (no callables), so the
 objective is always JSON-serializable. Gate pass/fail is a computational
-diagnostic only, not empirical validation.
+diagnostic, not empirical validation.
 
 ### Fields
 
@@ -343,7 +341,7 @@ jaxfne.objective() -> Objective
 `_construct_presets.py`. Returns a **fresh, empty `Objective()`** — equivalent to
 `Objective()` directly. It does **not** take `name`/`metric`/`target`/`weight`
 keyword arguments; those belong to the instance methods below, called on the
-`Objective` this returns.
+returned `Objective`.
 
 **Example (real usage):**
 ```python
@@ -391,8 +389,8 @@ objectives = jtfne.rate_targets(
 jaxfne.readout_spec(name: str, metric: str, *, time_window_ms=None, n_contacts_slice=None, metadata=None) -> ReadoutSpec
 ```
 
-`_construct_extras.py` (factory); dataclass at `_signals.py`. Declarative specification
-for extracting a scalar feature from `Signals`.
+`_construct_extras.py` (factory); dataclass at `_signals.py`. Declarative spec
+extracting a scalar feature from `Signals`.
 
 **Parameters:**
 - `name` (`str`): unique label for this readout spec
@@ -433,7 +431,7 @@ jaxfne.ReadoutResult
 - `physical_amplitude_calibrated` (`bool`, default `False`)
 - `metadata` (`dict`, default `{}`)
 
-`Model.compute_readout()` returns a `list[ReadoutResult]` (one result object per spec, each self-describing).
+`Model.compute_readout()` returns a `list[ReadoutResult]` (one per spec, each self-describing).
 
 `name` is a compatibility `@property` alias for `spec_name`.
 
@@ -460,9 +458,9 @@ result_dict = readouts[0].to_dict()
 - `construct(cfg)` / `construct(cfg, geometry=...)` — the `Configuration`-based path (original signature).
 - `construct(tensor, runtime)` — the `NeuronalTensor` path (0.4.7+): `tensor` is a `jaxfne.neuronal_tensor.NeuronalTensor`, `runtime` a `RuntimeConfiguration` (defaults to `RuntimeConfiguration()`).
 
-Passing `runtime=` together with a `Configuration` raises `ValueError` (a
+Passing `runtime=` with a `Configuration` raises `ValueError` (a
 `Configuration` already carries runtime via `.runtime(...)`). Passing `geometry=`
-together with a `NeuronalTensor` raises `ValueError`.
+with a `NeuronalTensor` raises `ValueError`.
 
 **Example:**
 ```python
@@ -471,10 +469,10 @@ model = jtfne.construct(cfg)
 
 ### `simulate(model, sim=None, paradigm=None, **kwargs) -> Signals`
 
-`_construct_core.py`. Module-level convenience wrapper — allows passing either an
+`_construct_core.py`. Module-level convenience wrapper accepting an
 explicit `Simulation` via `sim=`, or simulation parameters (`duration_ms`,
 `dt_ms`, `seed`, `record_sources`, `record_fields`, `runtime`, `dtype`, ...)
-directly as keyword arguments. Passing both `sim=` and other kwargs raises
+as keyword arguments. Passing both `sim=` and other kwargs raises
 `ValueError`. When no explicit `runtime`/`Simulation` is given, the runtime
 declared on `model.cfg` via `.runtime(...)` is inherited; a `dtype=` kwarg
 overrides the inherited dtype (and cannot be combined with `runtime=`).

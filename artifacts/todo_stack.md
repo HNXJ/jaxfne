@@ -456,6 +456,12 @@ origin/dev`)
   cumulative-8 verbosity slice (4 files tightened, gates green), nav audit
   → nav pasted verbatim after YAML+91/91-set verification (orphans + strict
   green). P-002 (stale 6-panel label) detected by worker, fixed same turn.
+- Delegated D slices sealed: tutorials-long (07_suite2/13/11/05_v1pfc),
+  api-long (emitters/fields/neuronal_tensor/core, incl. 549-test -k run),
+  doctrine-long (protocol_w/protocol_h/rbs_rbd/fundamental_laws);
+  protocol_h orphan label retitled by owner decision. Remaining D: archive +
+  suite tutorials, long guides, verbosity outliers in Theory/API already
+  covered.
 - Untouched (Batch 1 remainder): `docs/guides/{jdna,output_bundles,
   configuration_grammar,model_inspection,atlas_suite,showcases}.md`,
   `docs/{quickstart,index,colab}.md`.

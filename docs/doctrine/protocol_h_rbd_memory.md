@@ -17,7 +17,7 @@ Before any synaptic plasticity, quantify how much **adaptation and memory** aris
 \boxed{\text{RBS}+\text{RBD}+\text{delays},\qquad \dot{\mathbf W}=0}.
 \]
 
-If plasticity is enabled too early, a successful memory result is **ambiguous** between
+Early plasticity makes a successful memory result **ambiguous** between
 hidden-state dynamics and synaptic modification. Protocol H isolates the intrinsic
 **RBD memory kernel**.
 
@@ -27,7 +27,7 @@ heterogeneity can prolong or distribute fading state memory across \(\mathcal X_
 
 ## 2. Experimental ladder
 
-Protocol H is the first rung. Do not develop H and W simultaneously.
+Protocol H is the first rung; do not develop H and W simultaneously.
 
 \[
 \boxed{
@@ -229,10 +229,10 @@ H_k(t_0^-)=1 \rightarrow H_k(t_0^+)=1+\delta_H,\qquad H_{i\neq k}=1.
 This interrogates \(\Delta H \rightarrow x/H/\mathcal B \rightarrow\) distributed
 fading state without the confound \(u\rightarrow x\rightarrow H\).
 
-**Secondary:** pulse-current perturbation — introduces an additional transfer path
-and is reserved for later cross-checks, not the first memory test.
+**Secondary:** pulse-current perturbation — introduces an additional transfer path,
+reserved for later cross-checks, not the first memory test.
 
-Other examples (optional, pre-register before use):
+**Post-perturbation baseline:**
 
 Post-perturbation, external input returns to a **declared baseline** \(I^{\mathrm{base}}(t)\)
 identical across trials that differ only in perturbation identity or magnitude.
@@ -282,9 +282,11 @@ label-dependent masking) is **not** a valid identity decoder. Use instead:
 | **local \(H_k\)** | \(\|H_k(t_0+\Delta)-1\|\) at intervened \(k\) | Local persistence |
 | **\(D_H(\Delta)\)** | \(\sum_{j\neq k}\|H_j(t_0+\Delta)-1\|\) | Distributed RBS propagation |
 
-**Trials:** independent seeds for train/test (\(\cap=\varnothing\)); shared
-background drive per seed across perturbation identities; no timepoint
-subsamples from one trajectory as pseudo-replicates.
+**Trials:**
+
+- independent seeds for train/test (\(\cap=\varnothing\))
+- shared background drive per seed across perturbation identities
+- no timepoint subsamples from one trajectory as pseudo-replicates.
 
 **Nulls (H3 receipt):** F0, label shuffle, \(\delta_H=0\), \(\beta_H=0\) (expect
 \(M_H>\) chance while \(M_X\approx\) chance).

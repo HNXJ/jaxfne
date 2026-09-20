@@ -1,9 +1,9 @@
 # V1-PFC Dual Column: Continuous AAAB Adaptation
 
 Two 100-neuron canonical laminar columns, **V1** and **PFC**, both
-HDP-enabled, connected V1→PFC feedforward. V1's L4 and L6 host three
-disjoint/overlapping tuning-group populations (`AB`, `A`, `B`) that are
-driven with real 40Hz AC current in a fixed, repeating 1000ms local-oddball
+HDP-enabled, V1→PFC feedforward. V1 L4 and L6 host three
+disjoint/overlapping tuning-group populations (`AB`, `A`, `B`), driven
+with real 40Hz AC current in a fixed, repeating 1000ms local-oddball
 trial structure:
 
 ```
@@ -12,23 +12,27 @@ fx(0-100) - p1=A(100-200) - d1(200-300) - p2=A(300-400) - d2(400-500)
 - rw(900-1000)
 ```
 
-`A` drives the `AB`+`A` neurons; the deviant `B` window drives the `AB`+`B`
-neurons. Both the per-neuron homeostatic factor `H` and the synaptic
+`A` drives `AB`+`A` neurons; deviant `B` drives `AB`+`B`.
+Both the per-neuron homeostatic factor `H` and the synaptic
 weights `w` carry forward trial-to-trial (`Model.with_hdp_initial_state`),
-so adaptation is genuine across the whole run rather than reset every
-trial.
+so adaptation spans the whole run instead of resetting each trial.
 
 ## Why V1's L4/L6 are pure-E
 
 The sign-detection logic in `jaxfne/neuronal_tensor.py` checks
 `source_neuron_type == "E"` exactly to decide excitatory vs. inhibitory --
 renaming a neuron type (e.g. to `"E_AB"`) would silently misclassify it as
-inhibitory. So tuning-group identity is **not** encoded via `NeuronType.name`
-at all: V1's L4 and L6 are declared as single-type (`"E"`, `fraction=1.0`)
-tuning-only layers, and `AB`/`A`/`B` membership is a **positional
-post-construction tag**, sliced from the layers' stable `neuron_table()`
-order (`[0:5]`=`AB`, `[5:10]`=`A`, `[10:15]`=`B`, unioned across L4 and L6 for
-10+10+10 combined). This is a deliberate, explicit design choice, not a
+inhibitory. Tuning-group identity is therefore **not** encoded via
+`NeuronType.name` at all:
+
+- V1's L4 and L6 are declared as single-type (`"E"`, `fraction=1.0`)
+  tuning-only layers.
+- `AB`/`A`/`B` membership is a **positional post-construction tag**,
+  sliced from the layers' stable `neuron_table()`
+  order (`[0:5]`=`AB`, `[5:10]`=`A`, `[10:15]`=`B`, unioned across L4 and L6 for
+  10+10+10 combined).
+
+This is a deliberate, explicit design choice, not a
 workaround pending a real feature -- see `tuning_group_indices()` in the
 script.
 
@@ -93,23 +97,23 @@ for trial in range(n_trials):
 
 Carrying synaptic weights trial-to-trial used to be an **unbounded
 positive-feedback runaway**: `H` already had a two-sided restoring term
-(`K_ctrl`) pulling it back to equilibrium, but the synaptic weight
-magnitude had none -- only a hard floor/ceiling clip. Chaining trials
-compounded drift with no ceiling until the clip saturated every edge (rate
+(`K_ctrl`) toward equilibrium, but the synaptic weight
+magnitude had none -- only a hard floor/ceiling clip. Chained trials
+compounded drift until the clip saturated every edge (rate
 → ~50Hz by trial 15-19).
 
-**Fixed** by adding `K_w_ctrl` to
+**Fixed** with `K_w_ctrl` in
 `simulate_edge_recurrent_izhikevich_hdp` (`jaxfne/emitters.py`): a linear
-restoring force pulling the weight magnitude back toward its calibrated
-baseline (`|edges.weight|`), mirroring `K_ctrl`'s own form for `H`. `K_HDP`
-and `K_w_ctrl` are exposed as a named, reproducible preset --
+restoring force on the weight magnitude toward its calibrated
+baseline (`|edges.weight|`), mirroring `K_ctrl`'s form for `H`. `K_HDP`
+and `K_w_ctrl` ship as a named, reproducible preset --
 `jaxfne.hdp_network.DEFAULT_HDP_V1_PFC_AAAB` / `v1_pfc_aaab_hdp_params()`
--- rather than bare magic constants, mirroring `DEFAULT_HDP`/
+-- not bare magic constants, mirroring `DEFAULT_HDP`/
 `DEFAULT_HDP_DESYNC`'s existing precedent.
 
 ## Verified results
 
-A real 100-trial run (`carry_weights=True`, the default) is genuinely
+A real 100-trial run (`carry_weights=True`, the default) holds
 stable across the **entire** run, not just the first few trials:
 
 - `spike_rate_hz_mean` held at 12.53-12.55Hz across all 100 trials (trial 1
@@ -121,9 +125,9 @@ stable across the **entire** run, not just the first few trials:
   0.0201 → 0.0034 (homeostatic settling, not divergence).
 - Zero NaN in any of the 100 trial summaries.
 
-This demonstrates real, stable, long-term homeostatic adaptation with
+This shows stable, long-term homeostatic adaptation with
 genuine trial-to-trial weight plasticity -- not just a working-but-static
-H-only pipeline (`carry_weights=False` remains available to reproduce that
+H-only pipeline (`carry_weights=False` stays available to reproduce that
 earlier, more conservative behavior for comparison).
 
 ## Running it yourself
@@ -133,19 +137,19 @@ PYTHONPATH=. python3 scripts/v1_pfc_continuous_aaab_smoke_test.py [n_trials]
 ```
 
 Default `n_trials=10` (~26s on CPU). The full spec target is 1000 trials
-and is **not** run by default -- pass an explicit `n_trials` to opt into a
-longer run. A receipt is written to
+and is **not** run by default -- pass an explicit `n_trials` for a
+longer run. Receipt:
 `outputs/v1_pfc_continuous_aaab_smoke_test/smoke_test_receipt.json`.
 
 ## Known limitations (stated, not hidden)
 
-- V1's L4 and L6 have PV/SST/VIP removed entirely (pure-E tuning layers)
-  to host the AB/A/B groups; L3 is shrunk from its canonical 20 neurons to
-  15 to make room for L4's growth (canonical 10 → 15), holding V1 at 100
+- V1's L4 and L6 drop PV/SST/VIP (pure-E tuning layers)
+  to host the AB/A/B groups; L3 shrinks from its canonical 20 neurons to
+  15 for L4's growth (canonical 10 → 15), holding V1 at 100
   neurons total. L1, L2, L5, and all of PFC keep the canonical
   E:PV:SST:VIP fractions and layer-size proportions unchanged.
-- This is a script-driven smoke test, not a polished tutorial notebook --
-  there is no Colab badge and no `tutorials/*.ipynb` file for it yet.
+- Script-driven smoke test, not a polished tutorial notebook --
+  no Colab badge and no `tutorials/*.ipynb` file for it yet.
 
 ## Interactive atlas (dark)
 
@@ -155,5 +159,5 @@ Regenerate: `python scripts/generate_doc_page_atlases.py --slug v1_pfc_dual`.
 
 ## Next steps
 
-See [Guides](../guides/index.md) for how-to articles on extending these
+See [Guides](../guides/index.md) for extending these
 models.
