@@ -2,8 +2,8 @@
 
 **Run jaxfne examples in Google Colab without local setup.**
 
-**Version:** published PyPI release `jaxfne==0.4.24` (tag `v0.4.24`); previous release `0.4.23`
-**Last updated:** 2026-09-14  
+**Version:** published PyPI release `jaxfne==0.4.25` (tag `v0.4.25`); previous release `0.4.24`
+**Last updated:** 2026-09-20  
 **run_status:** tutorial_scaffold, exploratory_simulated_proxy
 
 ---
@@ -23,7 +23,7 @@ Open a new Colab notebook: https://colab.research.google.com/
 **Expected output:**
 ```
 Installing collected packages: jaxfne
-Successfully installed jaxfne-0.4.24
+Successfully installed jaxfne-0.4.25
 ```
 
 ---

@@ -1,0 +1,51 @@
+{
+  "acceptance_authority": "artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md",
+  "acceptance_goal_count": 5,
+  "candidate_attestation_sha": "d76c0088a534f34dbbbf13ab55db186de5ad3000",
+  "dev_bookkeeping_tip_sha": null,
+  "distribution": {
+    "build_backend": "CI release build (exact version in build log)",
+    "ci_artifact_name": null,
+    "github_release": "CREATED",
+    "manifest": null,
+    "pypi": "UPLOADED",
+    "sdist": {
+      "filename": "jaxfne-0.4.25.tar.gz",
+      "sha256": "90df4e4feab685743ef3b2582ca31b38f9668e7c95bcda572f4211fd2cf85ef3",
+      "size_bytes": 43072140
+    },
+    "wheel": {
+      "filename": "jaxfne-0.4.25-py3-none-any.whl",
+      "sha256": "035103bc81b2aebeb22b7cd73e45e59bba301059ddd0ee8c9d519e42fa3c4c10",
+      "size_bytes": 657166
+    },
+    "pypi_publish_method": "trusted publishing (GitHub Actions Publish workflow on release)",
+    "pypi_url": "https://pypi.org/project/jaxfne/0.4.25/",
+    "pypi_publish_run_id": 35530842485,
+    "pypi_clean_install_smoke": "UNVERIFIED from release workstation (no PyPI egress); publish workflow hash-verified against manifest"
+  },
+  "gate0_authorities_file": "artifacts/release/current_release_authorities.json",
+  "gate0_release_path": "RELEASE-mode Gate 0 validates package version match against current_release_authorities.json.",
+  "github_release_url": "https://github.com/HNXJ/jaxfne/releases/tag/v0.4.25",
+  "notes": "v0.4.25 sealed+published. Tag peel verified == candidate. Main ff-only. GitHub assets == CI bytes. PyPI hashes match manifest. RTD version registered @ candidate, build pending at seal; stable follows automatically. Predecessor v0.4.24 preserved. Terminal 0.4.x; numerics unchanged (bit-exact).",
+  "programme": "v0.4.25",
+  "published_predecessor": "v0.4.24",
+  "receipt_timestamp_utc": "2026-09-20T19:07:35Z",
+  "release_candidate": "d76c0088a534f34dbbbf13ab55db186de5ad3000",
+  "schema": "jaxfne.release_receipt.v1",
+  "seal_timestamp_utc": "2026-09-20T19:07:35Z",
+  "seal_verdict": "SEALED+published",
+  "source_tree_sha": "d76c0088a534f34dbbbf13ab55db186de5ad3000",
+  "status": "sealed_published",
+  "supersedes": "artifacts/release/v0_4_24_release_receipt.json",
+  "tag": "v0.4.25",
+  "version": "0.4.25",
+  "write_once": false,
+  "rtd": {
+    "stable_build": null,
+    "source": "d76c0088a534f34dbbbf13ab55db186de5ad3000",
+    "note": "version v0.4.25 registered; build pending at seal; stable follows automatically"
+  },
+  "tag_object_sha": "01a0b07ec652428a69b39eaccdb0128f49781d88",
+  "tag_peeled_sha": "d76c0088a534f34dbbbf13ab55db186de5ad3000"
+}

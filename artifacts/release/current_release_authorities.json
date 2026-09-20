@@ -1,8 +1,8 @@
 {
   "schema": "jaxfne.current_release_authorities.v1",
-  "release_target_version": "0.4.24",
-  "notes": "v0.4.24 SEALED+published: tag v0.4.24 (peel 7f89eff), origin/main @ 7f89eff, GitHub release with CI bytes, PyPI 0.4.24 via trusted publishing run 34839857303, RTD stable build 34547734 @ 7f89eff. Published predecessor: v0.4.23.",
-  "release_receipt": "artifacts/release/v0_4_24_release_receipt.json",
+  "release_target_version": "0.4.25",
+  "notes": "v0.4.25 SEALED+published: tag v0.4.25 (object 01a0b07, peel d76c008), origin/main @ d76c008, GitHub release created, PyPI 0.4.25 via trusted publishing run 35530842485, RTD version registered @ d76c008 (build pending at seal). Published predecessor: v0.4.24.",
+  "release_receipt": "artifacts/release/v0_4_25_release_receipt.json",
   "programme_entry": "artifacts/programme/v0_4_23_entry_receipt.md",
   "acceptance_goals": "artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md",
   "acceptance_goal_count": 5,
