@@ -1,7 +1,7 @@
 {
   "suite": "atlas_suite.v2",
   "title": "Single neuron (1n)",
-  "figure_state": "GENERATED",
+  "figure_state": "validated",
   "config_hash": "3cb76d6112977097",
   "tfne_digest": null,
   "k_d": null,
@@ -116,5 +116,14 @@
       }
     }
   ],
-  "sha256": "b8fc83d9a8c87549"
+  "sha256": "b8fc83d9a8c87549",
+  "promotion": [
+    {
+      "to": "validated",
+      "reason": "C6: content gates green on b437ec3 (language/vocab/semantic/orphans, ruff, targeted pytest, mkdocs strict); deterministic generator reruns",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "b437ec30d3eae0c51d00308e3f032448f61e62d6",
+      "utc": "2026-09-20T04:16:13.523328+00:00"
+    }
+  ]
 }

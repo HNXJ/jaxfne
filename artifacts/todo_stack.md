@@ -642,15 +642,14 @@ stands as-is: bit-exact F ⇒ identical outputs, no rerun needed.
 
 ## Batch C — regenerate (after B; record generator command per atlas)
 
-- C1. Canonical + three-area (7-panel, `T_atlas` standard).
-- C2. Small mechanistic circuits (full-recording class incl. an HDP
-  showcase, e.g. MCC-3-style 10n).
-- C3. Suite/tutorial set (reuse v1 slugs from the slug table).
-- C4. Guide set (reuse v1 slugs).
-- C5. Étude post-hoc set (frozen bundles only; B5 gate enforced) + Jaxley
-  standalone panel as-is.
-- C6. Promotion pass: mark regenerated outputs VALIDATED per A5
-  (gate-checked), select canonical assets deliberately.
+Sealed 2026-09-20: C1 canonical + three-area, C2 hdp_10 full-recording
+showcase, C3/C4 all 23 slugs (7-panel, deterministic reruns), C6 all 25
+dirs VALIDATED (gated, reason cites b437ec3 gates) + gallery evidence
+index written (25 entries). C5 sealed: experiment_a pure post-hoc from
+frozen npz; multiscale/heterogeneous/hdp_mcc3 deterministic reruns via
+protocol functions (frozen scripts untouched) — het + mcc3 hash-exact,
+multiscale claims-tier (P-003: spikes/positions exact, V_m/Q float drift,
+published claims re-verified); all 4 etude sets VALIDATED, docs linked.
 
 ## Batch D — rewrite (parallel groups after A; may overlap C)
 

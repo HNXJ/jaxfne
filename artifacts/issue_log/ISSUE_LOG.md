@@ -340,3 +340,29 @@ requires separate authorization.
 - **evidence:** subagent report ses_f4397cdadffel1X66fF6hjJsl5; fixed same
   turn, verified by `mkdocs build --strict`
 - **possible future change:** none (resolved)
+
+### P-003
+- **date:** 2026-09-20
+- **type:** FRICTION
+- **area:** frozen etude evidence / reproducibility
+- **observation:** frozen multiscale trajectories (V_m, Q hashes) do not
+  reproduce under the tip tree OR under the protocol-pinned code (d5cf9a6 /
+  593cfb3 worktrees); spikes + positions reproduce exactly everywhere, so
+  the event structure is stable and only float details drift. JAX version
+  at bundle time (2026-08-12) was never recorded — the likely drift source
+  (XLA codegen), unverifiable post hoc.
+- **severity:** MAJOR as evidence hygiene (frozen bundles lack the
+  environment pin needed to re-derive them); MINOR for the 0.4.25 figures
+  (claims re-verified, see below)
+- **minimal reproduction:** `python scripts/rerun_etude_figures.py
+  --etude multiscale` hash assertion (since replaced by two-tier check)
+- **expected behavior:** frozen bundles re-derive bit-exactly, or record
+  the full environment (JAX/lib versions) needed to do so
+- **actual behavior:** V_m/Q hash drift; env unrecorded
+- **evidence:** rerun hashes vs `cause_hashes` in
+  `artifacts/etudes/multiscale_observation/metrics.json`
+- **possible future change:** C5 publishes figures only with claims-tier
+  verification (spike-exact quantities ==, float quantities within the
+  protocol's own 1e-3 relative tolerance, geometry-exact r90 ==); future
+  frozen protocols must record JAX/lib versions in the bundle (0.5.x
+  provenance rule)

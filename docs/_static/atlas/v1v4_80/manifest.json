@@ -1,7 +1,7 @@
 {
   "suite": "atlas_suite.v2",
   "title": "V1-V4 scaffold (80/area)",
-  "figure_state": "GENERATED",
+  "figure_state": "validated",
   "config_hash": "e2ea9eebdc9854d4",
   "tfne_digest": null,
   "k_d": null,
@@ -116,5 +116,14 @@
       }
     }
   ],
-  "sha256": "a017e898e100df33"
+  "sha256": "a017e898e100df33",
+  "promotion": [
+    {
+      "to": "validated",
+      "reason": "C6: content gates green on b437ec3 (language/vocab/semantic/orphans, ruff, targeted pytest, mkdocs strict); deterministic generator reruns",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "b437ec30d3eae0c51d00308e3f032448f61e62d6",
+      "utc": "2026-09-20T04:16:15.365306+00:00"
+    }
+  ]
 }

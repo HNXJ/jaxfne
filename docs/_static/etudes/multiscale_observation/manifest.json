@@ -1,0 +1,97 @@
+{
+  "suite": "etude_posthoc.v1",
+  "etude": "multiscale_observation",
+  "figure_state": "validated",
+  "jaxfne_version": "0.4.24",
+  "panels": [
+    {
+      "file": "raster.html",
+      "panel": "Spike raster",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 15644,
+      "inputs": {
+        "source_artifact": "reproduced group-A run (claims-checked P-003: spikes/positions hash-exact, V_m/Q float drift, published claims re-verified)",
+        "transform": "Spike raster",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    },
+    {
+      "file": "traces.html",
+      "panel": "Membrane traces",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 269763,
+      "inputs": {
+        "source_artifact": "reproduced group-A run (claims-checked P-003: spikes/positions hash-exact, V_m/Q float drift, published claims re-verified)",
+        "transform": "Membrane traces",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    },
+    {
+      "file": "lfp.html",
+      "panel": "LFP proxy",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 267890,
+      "inputs": {
+        "source_artifact": "reproduced group-A run (claims-checked P-003: spikes/positions hash-exact, V_m/Q float drift, published claims re-verified)",
+        "transform": "LFP proxy",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    },
+    {
+      "file": "csd.html",
+      "panel": "CSD proxy",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 271225,
+      "inputs": {
+        "source_artifact": "reproduced group-A run (claims-checked P-003: spikes/positions hash-exact, V_m/Q float drift, published claims re-verified)",
+        "transform": "CSD proxy",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    },
+    {
+      "file": "oscillatory.html",
+      "panel": "Oscillatory response",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 11562,
+      "inputs": {
+        "source_artifact": "reproduced group-A run (claims-checked P-003: spikes/positions hash-exact, V_m/Q float drift, published claims re-verified)",
+        "transform": "Oscillatory response",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    }
+  ],
+  "sha256": "c8e85a91788ca5a0",
+  "generated_utc": "2026-09-20T04:35:04.623520+00:00",
+  "source_bundle": "artifacts/etudes/multiscale_observation",
+  "verification_tier": "claims",
+  "reproduced_cause_hashes": {
+    "V_m": "4cf553562e699e6fd81f1a4d6445530a8a8c9905f58dd8a069581b664578a065",
+    "spikes": "7461b42b92b8cdb4c4dee49c5a08972ebe351fbd80c0905c0615378cd12b62ac",
+    "Q": "1b9bc07754f403691af97697ceb761785026040b69352db3d9620dfd17907883",
+    "positions": "25cfd8213ccc887b823a48fef8c8ce172a4957990147f252de1faab37de167ef"
+  },
+  "seed": 7,
+  "n_neurons": 40,
+  "n_steps": 4000,
+  "simulation_runs": 1,
+  "rerun_note": "deterministic reproduction; spikes/positions hash-exact, published claims re-verified within protocol tolerance",
+  "promotion": [
+    {
+      "to": "validated",
+      "reason": "C5: deterministic rerun, spikes/positions hash-exact, published claims re-verified within protocol tolerance (P-003)",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "b437ec30d3eae0c51d00308e3f032448f61e62d6",
+      "utc": "2026-09-20T04:39:58.477504+00:00"
+    }
+  ]
+}

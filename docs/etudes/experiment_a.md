@@ -65,6 +65,12 @@ When HDP is off, \(H(t)\equiv 1\) documents the identity RBS container.
 python scripts/run_experiment_a.py
 ```
 
+## Interactive panels (dark)
+
+Panels built directly from the frozen `canonical_source.npz` — no resimulation of any kind: [index](../_static/etudes/experiment_a/index.html) · [raster](../_static/etudes/experiment_a/raster.html) · [traces](../_static/etudes/experiment_a/traces.html) · [H](../_static/etudes/experiment_a/h_dynamics.html) · [LFP](../_static/etudes/experiment_a/lfp.html) · [oscillatory](../_static/etudes/experiment_a/oscillatory.html).
+
+Regenerate: `python scripts/plot_frozen_etude_panels.py --etude experiment_a`.
+
 ## Relation to multiscale_observation_v0415
 
 Experiment A **supersedes** the 0.4.15 étude packaging for publication

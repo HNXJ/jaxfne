@@ -200,3 +200,9 @@ python scripts/consolidate_hdp_controllability_etude.py
 ```
 
 The committed `metrics.json`, `figure.png`, and `manifest.json` are the durable evidence surface. Manifest SHA256 entries record frozen protocol/controller receipts used at consolidation time.
+
+## Interactive panels (dark)
+
+Reproduced MCC-3 condition-B panels — deterministic rerun of the frozen checkpoint protocol (tune + condition B); tuned weights and firing rates hash-identical to the committed checkpoint: [index](../_static/etudes/hdp_controllability_reachability/index.html) · [raster](../_static/etudes/hdp_controllability_reachability/raster.html) · [traces](../_static/etudes/hdp_controllability_reachability/traces.html) · [H](../_static/etudes/hdp_controllability_reachability/h_dynamics.html) · [HDP](../_static/etudes/hdp_controllability_reachability/hdp.html) · [oscillatory](../_static/etudes/hdp_controllability_reachability/oscillatory.html).
+
+Regenerate: `python scripts/rerun_etude_figures.py --etude hdp_mcc3` (aborts on drift).

@@ -1,0 +1,91 @@
+{
+  "suite": "etude_posthoc.v1",
+  "etude": "experiment_a",
+  "figure_state": "validated",
+  "jaxfne_version": "0.4.24",
+  "panels": [
+    {
+      "file": "raster.html",
+      "panel": "Spike raster",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 15660,
+      "inputs": {
+        "source_artifact": "canonical_source.npz",
+        "transform": "Spike raster",
+        "units": "relative proxy",
+        "window": "full frozen run"
+      }
+    },
+    {
+      "file": "traces.html",
+      "panel": "Membrane traces",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 355302,
+      "inputs": {
+        "source_artifact": "canonical_source.npz",
+        "transform": "Membrane traces",
+        "units": "relative proxy",
+        "window": "full frozen run"
+      }
+    },
+    {
+      "file": "h_dynamics.html",
+      "panel": "H dynamics",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 146601,
+      "inputs": {
+        "source_artifact": "canonical_source.npz",
+        "transform": "H dynamics",
+        "units": "relative proxy",
+        "window": "full frozen run"
+      }
+    },
+    {
+      "file": "lfp.html",
+      "panel": "LFP proxy",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 267946,
+      "inputs": {
+        "source_artifact": "canonical_source.npz",
+        "transform": "LFP proxy",
+        "units": "relative proxy",
+        "window": "full frozen run"
+      }
+    },
+    {
+      "file": "oscillatory.html",
+      "panel": "Oscillatory response",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 9210,
+      "inputs": {
+        "source_artifact": "canonical_source.npz",
+        "transform": "Oscillatory response",
+        "units": "relative proxy",
+        "window": "full frozen run"
+      }
+    }
+  ],
+  "sha256": "0bc33aa11b34b7ad",
+  "generated_utc": "2026-09-20T04:39:09.150462+00:00",
+  "source_bundle": "artifacts/etudes/experiment_a",
+  "verification_tier": "frozen",
+  "source_trajectory_sha256": "1953d346d50d1ea0",
+  "seed": 7,
+  "n_neurons": 40,
+  "n_steps": 4000,
+  "simulation_runs": 0,
+  "promotion": [
+    {
+      "to": "validated",
+      "reason": "C5: pure post-hoc build from frozen canonical_source.npz; zero simulations; gates green",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "b437ec30d3eae0c51d00308e3f032448f61e62d6",
+      "utc": "2026-09-20T04:39:58.225750+00:00"
+    }
+  ]
+}

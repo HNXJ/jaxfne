@@ -1,0 +1,98 @@
+{
+  "suite": "etude_posthoc.v1",
+  "etude": "hdp_controllability_reachability",
+  "figure_state": "validated",
+  "jaxfne_version": "0.4.24",
+  "panels": [
+    {
+      "file": "raster.html",
+      "panel": "Spike raster (condition B)",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 21087,
+      "inputs": {
+        "source_artifact": "reproduced MCC-3 condition B (metric-checked)",
+        "transform": "Spike raster (condition B)",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    },
+    {
+      "file": "traces.html",
+      "panel": "Membrane traces (condition B)",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 270282,
+      "inputs": {
+        "source_artifact": "reproduced MCC-3 condition B (metric-checked)",
+        "transform": "Membrane traces (condition B)",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    },
+    {
+      "file": "h_dynamics.html",
+      "panel": "H dynamics (condition B)",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 118476,
+      "inputs": {
+        "source_artifact": "reproduced MCC-3 condition B (metric-checked)",
+        "transform": "H dynamics (condition B)",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    },
+    {
+      "file": "hdp.html",
+      "panel": "HDP weight magnitude (condition B)",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 153409,
+      "inputs": {
+        "source_artifact": "reproduced MCC-3 condition B (metric-checked)",
+        "transform": "HDP weight magnitude (condition B)",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    },
+    {
+      "file": "oscillatory.html",
+      "panel": "Oscillatory response (condition B)",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 9210,
+      "inputs": {
+        "source_artifact": "reproduced MCC-3 condition B (metric-checked)",
+        "transform": "Oscillatory response (condition B)",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    }
+  ],
+  "sha256": "fb7f17316fed6f99",
+  "generated_utc": "2026-09-20T04:37:40.908187+00:00",
+  "source_bundle": "artifacts/etudes/hdp_controllability_reachability",
+  "checkpoint": "artifacts/mcc3_10s_checkpoint",
+  "reproduced_theta_hat": {
+    "m_EE": 1.4332973957061768,
+    "m_EI": 1.111473560333252,
+    "m_IE": 0.10846326500177383,
+    "m_II": 0.9603762626647949
+  },
+  "seed": 17,
+  "n_neurons": 10,
+  "n_steps": 100000,
+  "simulation_runs": 2,
+  "rerun_note": "tune + condition B reproduced; theta_hat and firing.B match committed checkpoint",
+  "verification_tier": "hash",
+  "promotion": [
+    {
+      "to": "validated",
+      "reason": "C5: deterministic tune + condition-B rerun, theta_hat and firing.B hash-exact vs checkpoint",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "b437ec30d3eae0c51d00308e3f032448f61e62d6",
+      "utc": "2026-09-20T04:39:58.983230+00:00"
+    }
+  ]
+}

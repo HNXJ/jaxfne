@@ -155,3 +155,9 @@ Optional AGSDR fit of a reduced emitter to a richer target is **omitted**
 ```bash
 PYTHONPATH=. python3 scripts/run_heterogeneous_emitters_etude.py
 ```
+
+## Interactive panels (dark)
+
+Reproduced panels — deterministic rerun of the frozen protocol, trajectories and rates hash-identical to the bundle: [index](../_static/etudes/heterogeneous_emitters/index.html) · [raster (izh)](../_static/etudes/heterogeneous_emitters/raster_izh.html) · [traces (izh)](../_static/etudes/heterogeneous_emitters/traces_izh.html) · [LFP (izh)](../_static/etudes/heterogeneous_emitters/lfp_izh.html) · [LFP (hei)](../_static/etudes/heterogeneous_emitters/lfp_hei.html) · [traces (hei)](../_static/etudes/heterogeneous_emitters/traces_hei.html) · [spectra](../_static/etudes/heterogeneous_emitters/oscillatory.html).
+
+Regenerate: `python scripts/rerun_etude_figures.py --etude heterogeneous` (aborts on drift).

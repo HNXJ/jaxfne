@@ -1,0 +1,110 @@
+{
+  "suite": "etude_posthoc.v1",
+  "etude": "heterogeneous_emitters",
+  "figure_state": "validated",
+  "jaxfne_version": "0.4.24",
+  "panels": [
+    {
+      "file": "raster_izh.html",
+      "panel": "Spike raster (Izhikevich)",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 11240,
+      "inputs": {
+        "source_artifact": "reproduced runs (claims-checked P-003: rates exact, Q float drift, centroids re-verified)",
+        "transform": "Spike raster (Izhikevich)",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    },
+    {
+      "file": "traces_izh.html",
+      "panel": "Membrane traces (Izhikevich)",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 269712,
+      "inputs": {
+        "source_artifact": "reproduced runs (claims-checked P-003: rates exact, Q float drift, centroids re-verified)",
+        "transform": "Membrane traces (Izhikevich)",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    },
+    {
+      "file": "lfp_izh.html",
+      "panel": "LFP proxy (izh)",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 269586,
+      "inputs": {
+        "source_artifact": "reproduced runs (claims-checked P-003: rates exact, Q float drift, centroids re-verified)",
+        "transform": "LFP proxy (izh)",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    },
+    {
+      "file": "lfp_hei.html",
+      "panel": "LFP proxy (hei)",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 282201,
+      "inputs": {
+        "source_artifact": "reproduced runs (claims-checked P-003: rates exact, Q float drift, centroids re-verified)",
+        "transform": "LFP proxy (hei)",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    },
+    {
+      "file": "traces_hei.html",
+      "panel": "State traces (HEI)",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 82146,
+      "inputs": {
+        "source_artifact": "reproduced runs (claims-checked P-003: rates exact, Q float drift, centroids re-verified)",
+        "transform": "State traces (HEI)",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    },
+    {
+      "file": "oscillatory.html",
+      "panel": "Source spectra by family",
+      "evidence": "DERIVED",
+      "status": "AVAILABLE",
+      "bytes": 10376,
+      "inputs": {
+        "source_artifact": "reproduced runs (claims-checked P-003: rates exact, Q float drift, centroids re-verified)",
+        "transform": "Source spectra by family",
+        "units": "relative proxy",
+        "window": "full reproduced run"
+      }
+    }
+  ],
+  "sha256": "2e87fb001abf93df",
+  "generated_utc": "2026-09-20T04:36:49.750795+00:00",
+  "source_bundle": "artifacts/etudes/heterogeneous_emitters",
+  "verification_tier": "claims",
+  "reproduced_Q_sha256": {
+    "izh": "550845858b836642f00d0d281601ca5a7ddd59ecc0f3b9672a51ef7ffd81558d",
+    "hei": "5f91eeef42fcfd96423486b3ed203e9697a2404330c6ac7ecffb13cad19cd9e5"
+  },
+  "reproduced_rates_hz": {
+    "izh": 25.80000114440918,
+    "hei": 1.0
+  },
+  "seed": 11,
+  "simulation_runs": 2,
+  "rerun_note": "deterministic reproduction; spike-derived rates exact, Q float hashes drift, centroids re-verified",
+  "promotion": [
+    {
+      "to": "validated",
+      "reason": "C5: deterministic rerun, Q hashes and rates hash-exact vs frozen bundle",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "b437ec30d3eae0c51d00308e3f032448f61e62d6",
+      "utc": "2026-09-20T04:39:58.729304+00:00"
+    }
+  ]
+}
