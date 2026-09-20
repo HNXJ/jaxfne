@@ -712,3 +712,14 @@ via worker preserves + gates.
   down and no py3.11 locally — cannot reproduce exactly; fix-forward once
   named. Tag v0.4.25 stays on 0b929ab until the fix lands (re-tag only if
   the fix changes release content).
+- RESOLVED same day (P-005): root cause was version discipline, not
+  platform — the bump moved published-claims early (2 version-alignment
+  tests) plus a changelog hygiene hit and a premature authority rollover
+  (reverted; rollover is atomic-with-receipt). Fix-forward d76c008:
+  CI Fast SUCCESS + CI Release & Scheduled SUCCESS on both pythons.
+  Tag v0.4.25 moved 0b929ab→d76c008 (tag unused by any release; disclosed).
+- NEXT: human creates GitHub Release from tag v0.4.25 (web UI; no CLI auth
+  here) → PyPI auto-publishes via publish.yml from retained CI artifacts →
+  RTD stable builds → post-release alignment commit (install.md published
+  claims → 0.4.25, PUBLISHED_PYPI_VERSION → 0.4.25) → seal (empty stacks,
+  final receipt).
