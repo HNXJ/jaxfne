@@ -206,6 +206,23 @@ def project_laminar_sources(
     dz = contacts[1] - contacts[0] if n_contacts > 1 else jnp.asarray(1.0, dtype=jdtype)
     csd_proxy = csd_tensor(phi_e_proxy, dz)
 
+    if isinstance(sources, jax.core.Tracer) or isinstance(positions, jax.core.Tracer):
+        # JAX jit output validation permits array leaves only; the diagnostics
+        # dict (including observation provenance) cannot be a traced return
+        # value. Under jit the arrays above are unchanged and diagnostics is
+        # contractually empty, so skip the invariant/report construction
+        # entirely (it is pure dict-building with no raise/warn on this path)
+        # instead of computing it only to discard it below.
+        return FieldOutput(
+            source_proxy=source_proxy,
+            phi_e_proxy=phi_e_proxy,
+            csd_proxy=csd_proxy,
+            lfp_proxy=lfp_proxy,
+            kernel=kernel,
+            contact_depths=contacts,
+            diagnostics={},
+        )
+
     diagnostics = validate_projection_invariants(
         sources=sources,
         positions=positions,
@@ -1248,9 +1265,8 @@ def construct_source_tensor(
             raise ValueError(
                 "Double-counting detected: total_membrane_current_proxy already includes synaptic_current"
             )
-        source = jnp.asarray(total_membrane_current) * jnp.asarray(
-            scale, dtype=jnp.asarray(total_membrane_current).dtype
-        )
+        native = jnp.asarray(total_membrane_current)
+        source = native * jnp.asarray(scale, dtype=native.dtype)
         source_mode = "total_membrane_current_proxy"
     elif mode == "decomposed_cap_ion_plus_synaptic_proxy":
         if decomposed_cap_ion is None or synaptic_current is None:
@@ -1264,9 +1280,8 @@ def construct_source_tensor(
     elif mode == "spike_proxy":
         if spike_proxy is None:
             raise ValueError("spike_proxy is required for spike_proxy")
-        source = jnp.asarray(spike_proxy) * jnp.asarray(
-            scale, dtype=jnp.asarray(spike_proxy).dtype
-        )
+        native = jnp.asarray(spike_proxy)
+        source = native * jnp.asarray(scale, dtype=native.dtype)
         source_mode = "spike_proxy"
     elif mode == "invalid_double_count_mode":
         raise ValueError(

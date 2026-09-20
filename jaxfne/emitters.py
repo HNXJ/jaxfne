@@ -3525,6 +3525,10 @@ def simulate_edge_recurrent_izhikevich_hdp(
     gamma_arr = jnp.asarray(gamma, dtype=jdtype)
     delta_arr = jnp.asarray(delta, dtype=jdtype)
     C_spike_arr = _h_component_param(C_spike, "C_spike")
+    try:
+        _c_spike_off = bool(np.all(np.asarray(C_spike_arr) == 0))
+    except Exception:
+        _c_spike_off = False  # non-concrete gain: keep the explicit drain
     K_HDP_arr = jnp.asarray(K_HDP, dtype=jdtype)
     K_ctrl_arr = jnp.asarray(K_ctrl, dtype=jdtype)  # Live linear restoring term (revived 2026-07-01)
     K_w_ctrl_arr = jnp.asarray(K_w_ctrl, dtype=jdtype)  # Weight restoring term (added 2026-07-04)
@@ -3737,6 +3741,11 @@ def simulate_edge_recurrent_izhikevich_hdp(
     if has_nonzero_delay:
         init = init + (spike_hist0,)
 
+    # Loop-invariant scalars hoisted out of the scan body (Batch F1):
+    # identical IEEE division on identical operands, computed once.
+    dt_s = dt / jnp.asarray(1000.0, dtype=jdtype)
+    tau_factor = dt / tau_i if h_dim == 1 else (dt / tau_i)[:, None]
+
     def step(carry, xs_t):
         """HDP step: population restoring or node-local income/spending plasticity."""
         if has_nonzero_delay:
@@ -3746,8 +3755,6 @@ def simulate_edge_recurrent_izhikevich_hdp(
         else:
             sched_t, noise_t = xs_t
             carry_core = carry
-
-        dt_s = dt / jnp.asarray(1000.0, dtype=jdtype)
 
         if pop_layout is not None:
             v, u, prev_spikes, syn_state, H_pop, theta_S = carry_core
@@ -3944,7 +3951,6 @@ def simulate_edge_recurrent_izhikevich_hdp(
         )
         if h_dim > 1:
             dH = dH + H @ coupling.T
-        tau_factor = dt / tau_i if h_dim == 1 else (dt / tau_i)[:, None]
         H_next = jnp.clip(H + tau_factor * dH, H_min_arr, H_max_arr)
 
         # (3) Update plastic weights from the updated H_i using the selected rule family.
@@ -4011,12 +4017,19 @@ def simulate_edge_recurrent_izhikevich_hdp(
         # C_spike=0.0 in every shipped preset today, so this is currently
         # inert everywhere; flagged, not changed, without re-verifying presets
         # that would enable it -- external review 2026-07-14.
-        spike_drain = spikes if h_dim == 1 else spikes[:, None]
-        H_final = jnp.clip(
-            H_next - C_spike_arr * spike_drain,
-            H_min_arr,
-            H_max_arr,
-        )
+        if _c_spike_off:
+            # Bit-exact skip: C_spike=0 with finite 0/1 spikes makes the drain
+            # bitwise +0, and H_next is already clipped above, so
+            # clip(H_next - 0) == H_next == clip(H_next). I-006: covered by
+            # tests/test_h_boundary_isolated.py.
+            H_final = H_next
+        else:
+            spike_drain = spikes if h_dim == 1 else spikes[:, None]
+            H_final = jnp.clip(
+                H_next - C_spike_arr * spike_drain,
+                H_min_arr,
+                H_max_arr,
+            )
 
         v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
         source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
