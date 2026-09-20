@@ -622,27 +622,17 @@ tooling, B5 no-resim gate, B7 negative gate, B8 canonical 1000 ms re-pin.
 
 
 
-## Batch F — code sweep (after B, before C; trajectory-preserving)
+## Batch F — code sweep (sealed; bit-exact)
 
-- F0. Scope: touched paths + `jaxfne/` hot paths only. Repo-wide `scripts/`
-  legacy lint (~180 pre-existing ruff errors, P-001) is explicitly out of
-  0.4.25 scope; bulk cleanup is 0.5.x. No drive-by lint renames (I-006).
-- F1. Hot-path complexity/order/flattening pass (simulate kernels, field
-  projections, probe operators): linear-scan order, minimal temporaries,
-  canonical `[T,N]`/`[T,X]` layouts; no semantic change.
-- F2. JAX switches audit + doc: float32/64 via stock `jax_enable_x64`
-  (central policy in `runtime.py`; close divergences); backend = stock JAX
-  (`jax.devices`/default backend; cuda/cpu/parallel-cpu via official
-  mechanisms; Apple Metal via external `jax-metal` plugin — documented, not
-  coded). Official-doc conformance is the acceptance (user-authorized).
-- F3. I-001 one-line fix (stale 259-symbols comment,
-  `jaxfne/public_surface.py:118`) + I-006 lesson enforced (behavioral
-  suites gate every lint-driven rename).
-- F4. Verify: canonical `config_hash` gates + `run_test_gate.py dev` +
-  targeted suites, bit-exact. Any numerical delta fails closed → the item
-  moves to 0.5.x planning, sweep continues without it.
-- Acceptance: Batch C regen runs on post-F code; docs describe post-F
-  behavior.
+C1–C4 landed trajectory-preserving in `03299bc` (stash-compared hashes
+identical: HDP spikes/V/H_final/w_final, plain run, field eager+jit;
+47 guard tests + 282 dev-gate tests green; Metal note in api/runtime.md).
+C5–C7 + reassociation rewrites deferred to 0.5.x. Standing rules sealed
+with it: bit-exact means bitwise for 0.4.x (signed-zero and NaN payloads
+preserved); JAX switches conform to official mechanisms; official-doc
+conformance suffices, no bespoke JAX-plumbing tests. Out of scope (P-001):
+repo-wide `scripts/` legacy lint; bulk cleanup is 0.5.x. Batch C regen
+stands as-is: bit-exact F ⇒ identical outputs, no rerun needed.
 
 ## Batch C — regenerate (after B; record generator command per atlas)
 

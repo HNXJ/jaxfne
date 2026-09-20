@@ -231,6 +231,16 @@ cfg = cfg.runtime(backend='tpu')
 
 **Available on:** Google Colab, Google Cloud TPU pods
 
+### Apple Silicon (Metal) and parallel CPU
+
+Neither needs jaxfne code: Apple Metal support comes from the external
+`jax-metal` plugin — install it and stock JAX exposes the device through
+`jax.devices()`; jaxfne's `backend` selection and honest-downgrade rule
+apply unchanged. Parallel CPU execution likewise rides on stock JAX
+(threading, `jax.devices()`, `vmap`); jaxfne keeps no device pool of its
+own. Confirm what the machine actually offers with
+`get_jax_backend_report()`.
+
 ---
 
 ## Runtime Report
