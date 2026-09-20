@@ -444,6 +444,9 @@ origin/dev`)
   `4b0d96456d56bc1a` unchanged — style only) + three-area atlases, 22 new
   per-page atlas dirs, `jaxley_interop` panel, atlas-link edits in 8 guides
   + 25 tutorial pages, `jaxfne-developer` agent + pool row, v2 plan.
+- B8 re-pin executed: canonical atlas is now 1000 ms / 2000 steps,
+  `config_hash e701098092814baa` (duration is hash-covered — deliberate,
+  gated). Per-page "pinned 200 ms" labels updated to the new pin.
 - Untouched (Batch 1 remainder): `docs/guides/{jdna,output_bundles,
   configuration_grammar,model_inspection,atlas_suite,showcases}.md`,
   `docs/{quickstart,index,colab}.md`.

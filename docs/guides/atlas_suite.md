@@ -102,9 +102,9 @@ The pinned configuration is:
 | Field | Value |
 |---|---|
 | Neuronal tensor | `canonical-v1-column-1000n` |
-| Runtime | `RuntimeConfiguration(seed=0, duration_ms=200.0, dt_ms=0.5)` |
-| `config_hash` | `4b0d96456d56bc1a` |
-| Realized | 1000 neurons, 215785 edges, 400 steps |
+| Runtime | `RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5)` |
+| `config_hash` | `e701098092814baa` |
+| Realized | 1000 neurons, 215785 edges, 2000 steps |
 
 The generator verifies `config_hash` before writing and aborts on drift, so a
 change to the canonical column has to be an explicit decision rather than a

@@ -61,7 +61,7 @@ provenance. Representative preview from realized `canonical-v1-column-1000n` out
 Full panel set, generation workflow, and provenance rules:
 [Canonical Atlas Suite guide](guides/atlas_suite.md).
 
-Canonical 1000-neuron column, pinned 200 ms reference run:
+Canonical 1000-neuron column, pinned 1000 ms reference run:
 ([index](_static/atlas/index.html) ·
 [network_3d](_static/atlas/network_3d.html) ·
 [connectivity](_static/atlas/connectivity.html) ·

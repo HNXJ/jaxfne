@@ -17,8 +17,8 @@ nothing could re-derive or drift-check them. This script is that generator.
 Canonical configuration (pinned; changing it changes the published atlas):
 
     tensor  = canonical-v1-column-1000n
-    runtime = RuntimeConfiguration(seed=0, duration_ms=200.0, dt_ms=0.5)
-    -> config_hash 4b0d96456d56bc1a, 1000 neurons, 215785 edges, 400 steps
+    runtime = RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5)
+    -> config_hash 4b0d96456d56bc1a, 1000 neurons, 215785 edges, 2000 steps
 
 Usage:
     python scripts/generate_readme_atlas.py             # html + png
@@ -38,10 +38,10 @@ if str(ROOT) not in sys.path:
 
 CANONICAL_TENSOR = "canonical-v1-column-1000n"
 CANONICAL_SEED = 0
-CANONICAL_DURATION_MS = 200.0
+CANONICAL_DURATION_MS = 1000.0
 CANONICAL_DT_MS = 0.5
 CANONICAL_TITLE = "Canonical V1 Column (1000n)"
-EXPECTED_CONFIG_HASH = "4b0d96456d56bc1a"
+EXPECTED_CONFIG_HASH = "e701098092814baa"
 
 HTML_DIR = ROOT / "docs" / "_static" / "atlas"
 PNG_DIR = ROOT / "docs" / "assets" / "readme"

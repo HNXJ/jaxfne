@@ -266,6 +266,34 @@ def _build_state_summary_fig(model: Any, signals: Any):  # type: ignore[no-untyp
     return fig, rates, silence, dur_ms
 
 
+def _discover_upstream_lineage(model: Any, upstream: Dict[str, Any]) -> tuple[Any, Any]:
+    """Return (tfne_digest, k_d), preferring caller-supplied values.
+
+    Auto-discovery inspects tensor provenance stashed on the model; anything
+    undiscoverable stays ``None`` (recorded as ``null``, never guessed).
+    """
+    tfne_digest = upstream.get("tfne_digest")
+    k_d = upstream.get("k_d")
+    if tfne_digest is None or k_d is None:
+        try:
+            params = getattr(model, "params", None)
+            prov = None
+            if isinstance(params, dict):
+                prov = params.get("tensor_provenance")
+            if not isinstance(prov, dict):
+                prov = getattr(model, "provenance", None)
+            if isinstance(prov, dict):
+                if tfne_digest is None:
+                    tfne_digest = (prov.get("genome_sha256")
+                                   or prov.get("tfne_digest"))
+                if k_d is None:
+                    k_d = (prov.get("development_seed")
+                           if "development_seed" in prov else prov.get("k_d"))
+        except Exception:
+            pass
+    return tfne_digest, k_d
+
+
 def build_atlas(
     model: Any,
     signals: Any | None = None,
@@ -276,11 +304,16 @@ def build_atlas(
     dt_ms: float = 0.1,
     seed: int = 0,
     title: str = "Model atlas",
+    provenance: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """Build the 6-panel atlas for any model. Never skips a fixed panel.
 
     Provide ``signals`` directly, or ``simulate_fn(model) -> signals``; else a
     default ``jaxfne.simulate(model, Simulation(...))`` run is attempted.
+    ``provenance`` optionally carries upstream lineage the atlas cannot
+    observe itself (``tfne_digest``, ``k_d``, ``recording_class``,
+    ``recording_budget``); undiscoverable fields record ``null``, never a
+    guess. Every emitted manifest starts at figure state ``GENERATED``.
     Returns the manifest dict and writes ``<out_dir>/*.html`` + manifest.json.
     """
     from jaxfne.vis import canonical as C
@@ -314,6 +347,8 @@ def build_atlas(
         ),
     }
     jaxfne_version = _live_jaxfne_version()
+    upstream = dict(provenance or {})
+    tfne_digest, k_d = _discover_upstream_lineage(model, upstream)
 
     os.makedirs(out_dir, exist_ok=True)
     manifest_panels: List[Dict[str, Any]] = []
@@ -331,7 +366,8 @@ def build_atlas(
         return fig
 
     def _emit(filename: str, panel: str, evidence: str, caption: str,
-              make_fig: Callable[[], Any], extra: Dict[str, Any] | None = None) -> None:
+              make_fig: Callable[[], Any], extra: Dict[str, Any] | None = None,
+              lineage: Dict[str, str] | None = None) -> None:
         degradation_status = "AVAILABLE"
         try:
             fig = _apply_dark_theme(make_fig())
@@ -351,20 +387,37 @@ def build_atlas(
             f.write(html)
         manifest_panels.append({"file": filename, "panel": panel, "evidence": evidence,
                                 "status": degradation_status,
-                                "bytes": os.path.getsize(path)})
+                                "bytes": os.path.getsize(path),
+                                "inputs": dict(lineage or {})})
 
     _emit("network_3d.html", "Network 3D", "OBSERVED",
           "Realized geometry + edges from the model (single marker when N=1).",
-          lambda: C.plot_network_3d(model, backend="plotly"))
+          lambda: C.plot_network_3d(model, backend="plotly"),
+          lineage={"source_artifact": "model",
+                   "variable": "params.positions + params.edge_list",
+                   "transform": "plot_network_3d",
+                   "units": "relative geometry", "window": "static"})
     _emit("connectivity.html", "Connectivity", "OBSERVED",
           "Realized weight matrix (empty-matrix card when the model has no edges).",
-          lambda: C.plot_connectivity(model, backend="plotly"))
+          lambda: C.plot_connectivity(model, backend="plotly"),
+          lineage={"source_artifact": "model",
+                   "variable": "params.edge_list.weight",
+                   "transform": "plot_connectivity",
+                   "units": "relative weights", "window": "static"})
     _emit("raster.html", "Spike raster", "OBSERVED",
           "Spike times vs neuron index from simulated signals.",
-          lambda: C.plot_raster(signals, model, backend="plotly"))
+          lambda: C.plot_raster(signals, model, backend="plotly"),
+          lineage={"source_artifact": "signals",
+                   "variable": "spikes [T,N] + neuron_table",
+                   "transform": "plot_raster",
+                   "units": "spike indicators", "window": "full run"})
     _emit("traces.html", "Membrane traces", "OBSERVED",
           "Membrane potential proxy traces for a subset of neurons.",
-          lambda: C.plot_membrane_potentials(signals, model, backend="plotly"))
+          lambda: C.plot_membrane_potentials(signals, model, backend="plotly"),
+          lineage={"source_artifact": "signals",
+                   "variable": "V_m [T,N]",
+                   "transform": "plot_membrane_potentials",
+                   "units": "mV proxy", "window": "full run"})
 
     def _spectral_fig():  # type: ignore[no-untyped-def]
         from plotly.subplots import make_subplots
@@ -386,7 +439,11 @@ def build_atlas(
 
     _emit("spectral.html", "Spectral", "DERIVED",
           "Welch PSD (plus spectrogram when the run is long enough).",
-          _spectral_fig)
+          _spectral_fig,
+          lineage={"source_artifact": "signals",
+                   "variable": "field traces",
+                   "transform": "plot_psd (+plot_spectrogram)",
+                   "units": "relative power", "window": "full run"})
 
     def _op_fig():  # type: ignore[no-untyped-def]
         fig, rates, silence, dur = _build_state_summary_fig(model, signals)
@@ -395,7 +452,11 @@ def build_atlas(
 
     _emit("state_summary.html", "State summary", "DERIVED",
           "Mean rate + silence fraction per cell type from spike counts; counts from model.summary().",
-          _op_fig, extra={"summary": json.dumps(counts["summary"], default=str)[:500]})
+          _op_fig, extra={"summary": json.dumps(counts["summary"], default=str)[:500]},
+          lineage={"source_artifact": "model+signals",
+                   "variable": "spikes + model.summary",
+                   "transform": "spike-count summary",
+                   "units": "Hz + %", "window": "full run"})
 
     # Optional field panel — only when a non-empty field proxy exists.
     field = arr["field"]
@@ -408,7 +469,11 @@ def build_atlas(
 
         _emit(OPTIONAL_FIELD_FILE, "Field proxy", "DERIVED",
               "LFP/CSD proxy traces when the model records a field.",
-              _field_fig)
+              _field_fig,
+              lineage={"source_artifact": "signals",
+                       "variable": "field proxy",
+                       "transform": "plot_lfp/plot_csd",
+                       "units": "relative proxy", "window": "full run"})
 
     # Index atlas page.
     cards = []
@@ -419,13 +484,12 @@ def build_atlas(
             f'<a class="btn" href="{p["file"]}" target="_blank" rel="noopener">Open</a></div></article>')
     index_html = f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>{title} — atlas_suite</title>
-<style>*{{box-sizing:border-box;margin:0;padding:0}}body{{font-family:sans-serif;background:#f5f5f5;padding:2rem}}
+<style>*{{box-sizing:border-box;margin:0;padding:0}}body{{font-family:sans-serif;background:#0d1117;color:#c9d1d9;padding:2rem}}
 .container{{max-width:1200px;margin:0 auto}}header{{text-align:center;margin-bottom:2rem}}
 .grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:1.5rem}}
-.card{{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)}}
-.card-header{{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:1.25rem}}
-.card-body{{padding:1.25rem}}.meta{{color:#888;font-size:.85rem;margin-bottom:1rem}}
-.btn{{display:inline-block;padding:.6rem 1.2rem;background:#667eea;color:#fff;text-decoration:none;border-radius:6px}}</style>
+.card{{background:#161b22;border:1px solid #30363d;border-radius:12px;overflow:hidden}}.card-header{{background:#21262d;color:#f0f6fc;padding:1.25rem}}
+.card-body{{padding:1.25rem}}.meta{{color:#8b949e;font-size:.85rem;margin-bottom:1rem}}
+.btn{{display:inline-block;padding:.6rem 1.2rem;background:#1f6feb;color:#fff;text-decoration:none;border-radius:6px}}</style>
 </head><body><div class="container"><header><h1>{title}</h1>
 <p>N={n_neurons} · edges={n_edges} · steps={n_steps} · config {config_hash[:12]}</p></header>
 <div class="grid">{''.join(cards)}</div></div></body></html>"""
@@ -435,7 +499,14 @@ def build_atlas(
     manifest = {
         "suite": "atlas_suite.v1",
         "title": title,
+        "figure_state": "GENERATED",
         "config_hash": config_hash,
+        "tfne_digest": tfne_digest,
+        "k_d": k_d,
+        "sim_identity": (f"seed={int(seed)} duration_ms={float(duration_ms)} "
+                         f"dt_ms={dt_ms}"),
+        "recording_class": upstream.get("recording_class"),
+        "recording_budget": upstream.get("recording_budget"),
         "jaxfne_version": jaxfne_version,
         "seed": int(seed),
         "duration_ms": float(duration_ms),

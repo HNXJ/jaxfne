@@ -384,8 +384,8 @@ def test_canonical_manifest_provenance():
         "python scripts/generate_readme_atlas.py"
     )
     assert manifest["dt_ms"] == CANONICAL_DT_MS == 0.5
-    assert manifest["duration_ms"] == CANONICAL_DURATION_MS == 200.0
+    assert manifest["duration_ms"] == CANONICAL_DURATION_MS == 1000.0
     assert manifest["seed"] == CANONICAL_SEED == 0
-    assert manifest["n_steps"] == 400
+    assert manifest["n_steps"] == 2000
     assert manifest["n_steps"] * manifest["dt_ms"] == manifest["duration_ms"]
     assert manifest["config_hash"] == EXPECTED_CONFIG_HASH
