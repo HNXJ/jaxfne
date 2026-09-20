@@ -653,17 +653,12 @@ published claims re-verified); all 4 etude sets VALIDATED, docs linked.
 
 ## Batch D — rewrite (parallel groups after A; may overlap C)
 
-- D1. Lifecycle/ownership audit across every construction diagram and
-  workflow page (A6 rule; not a wording pass).
-- D2–D7. Archetype pass per group (`question → minimal algebra → run →
-  result/figure → interpretation/limits → links`; dedupe config dumps —
-  paste once, link): cumulative tutorials; archive/suite tutorials; chain
-  guides; state guides (HDP/homeostasis); root pages
-  (quickstart/index/colab); atlas/model_inspection/showcases/gallery pages.
-- D8. Fold in the 9 remaining v1 page files (old Batch 1A/1B list) under the
-  new archetype where not yet covered.
-- D9. Simplification check: derivations live in doctrine; pages carry
-  operational summaries + links (spot-check per group).
+Sealed: archetype passes over cumulative/archive/suite tutorials, chain +
+state guides, root pages, API long pages, doctrine long pages (meaning-risky
+sentences skipped with OPEN_QUESTIONS); D1 ownership audit found one gap
+(tfne_algebra.md pipeline lacked the JDNA-completion pointer — added as
+labeling, no language change); D8 v1 leftovers folded in; D9 spot-checks
+via worker preserves + gates.
 
 ## Batch E — seal (after C + D)
 

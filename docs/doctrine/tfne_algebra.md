@@ -46,6 +46,12 @@ operator factorization this language compiles into.
 Design principle: factor at specification time; flatten at execution time.
 Flattening changes representation, not TFNE semantics.
 
+TFNE constrains, possibly underdetermined; completion under `D + K_D`
+(JDNA), realization (Model), and execution are separate stages — see the
+[TFNE–JDNA boundary](tfne_jdna_boundary.md). The pipeline above is the
+language-internal view; the compiler path runs through JDNA completion
+before construction.
+
 One resolved representation, two consumers. `realize()` resolves the source
 once and records the result in $\mathcal{I}$ as `connection_specs`;
 `to_configuration()` builds the executable `Configuration` from those same
