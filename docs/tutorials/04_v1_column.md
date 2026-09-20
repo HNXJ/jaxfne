@@ -62,14 +62,14 @@ readouts = model.compute_readout(signals, [
 ```python
 from jaxfne.vis.atlas_suite import build_atlas
 
-# Emits the 6 canonical panels plus the optional field.html panel (LFP/CSD proxy)
+# Emits the 7 canonical panels (schema, 3D, raster, LFP, H-dynamics, HDP, oscillatory)
 manifest = build_atlas(model, signals, out_dir="docs/_static/atlas/v1_column")
 print("Emitted panels:", [p["panel"] for p in manifest["panels"]])
 ```
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from this page's circuit (1000 ms, dt 0.5 ms, seed 0; the page shows dt 0.1 ms): [index](../_static/atlas/v1_column/index.html) · [3D](../_static/atlas/v1_column/network_3d.html) · [connectivity](../_static/atlas/v1_column/connectivity.html) · [raster](../_static/atlas/v1_column/raster.html) · [traces](../_static/atlas/v1_column/traces.html) · [spectral](../_static/atlas/v1_column/spectral.html) · [state summary](../_static/atlas/v1_column/state_summary.html).
+Dark-theme Plotly panels from this page's circuit (1000 ms, dt 0.5 ms, seed 0; the page shows dt 0.1 ms): [index](../_static/atlas/v1_column/index.html) · [schema](../_static/atlas/v1_column/schema.html) · [3D](../_static/atlas/v1_column/network_3d.html) · [raster](../_static/atlas/v1_column/raster.html) · [LFP](../_static/atlas/v1_column/lfp.html) · [H](../_static/atlas/v1_column/h_dynamics.html) · [HDP](../_static/atlas/v1_column/hdp.html) · [oscillatory](../_static/atlas/v1_column/oscillatory.html).
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug v1_column`.
 

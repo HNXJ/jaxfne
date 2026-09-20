@@ -141,7 +141,7 @@ to write a full artifact bundle at once.
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the pre-tune run of the chain above (200 ms, dt 0.5 ms, seed 1, with the page's paradigm): [index](../_static/atlas/objective_60/index.html) · [3D](../_static/atlas/objective_60/network_3d.html) · [connectivity](../_static/atlas/objective_60/connectivity.html) · [raster](../_static/atlas/objective_60/raster.html) · [traces](../_static/atlas/objective_60/traces.html) · [spectral](../_static/atlas/objective_60/spectral.html) · [state summary](../_static/atlas/objective_60/state_summary.html).
+Dark-theme Plotly panels from the pre-tune run of the chain above (200 ms, dt 0.5 ms, seed 1, with the page's paradigm): [index](../_static/atlas/objective_60/index.html) · [schema](../_static/atlas/objective_60/schema.html) · [3D](../_static/atlas/objective_60/network_3d.html) · [raster](../_static/atlas/objective_60/raster.html) · [LFP](../_static/atlas/objective_60/lfp.html) · [H](../_static/atlas/objective_60/h_dynamics.html) · [HDP](../_static/atlas/objective_60/hdp.html) · [oscillatory](../_static/atlas/objective_60/oscillatory.html).
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug objective_60`.
 

@@ -69,7 +69,7 @@ jaxfne.vis.network_raster(
 jaxfne.vis.build_atlas(model, signals, out_dir="atlas/")
 ```
 
-For the interactive six-panel atlas this inspects toward, see the
+For the interactive seven-panel atlas this inspects toward, see the
 [Canonical Atlas Suite](atlas_suite.md).
 
 ## Themes

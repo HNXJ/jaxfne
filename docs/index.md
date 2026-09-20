@@ -50,8 +50,8 @@ signals = jtfne.simulate(model)
 
 ## Canonical Visualization Atlas
 
-Six linked panels (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`,
-`state_summary`) separate **OBSERVED** from **DERIVED** quantities and attach manifest
+Seven linked panels (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`,
+`hdp`, `oscillatory`) separate **OBSERVED** from **DERIVED** quantities and attach manifest
 provenance. Representative preview from realized `canonical-v1-column-1000n` output:
 
 <a href="guides/atlas_suite.md">
@@ -63,20 +63,22 @@ Full panel set, generation workflow, and provenance rules:
 
 Canonical 1000-neuron column, pinned 1000 ms reference run:
 ([index](_static/atlas/index.html) ·
+[schema](_static/atlas/schema.html) ·
 [network_3d](_static/atlas/network_3d.html) ·
-[connectivity](_static/atlas/connectivity.html) ·
 [raster](_static/atlas/raster.html) ·
-[traces](_static/atlas/traces.html) ·
-[spectral](_static/atlas/spectral.html) ·
-[state_summary](_static/atlas/state_summary.html)).
+[lfp](_static/atlas/lfp.html) ·
+[h_dynamics](_static/atlas/h_dynamics.html) ·
+[hdp](_static/atlas/hdp.html) ·
+[oscillatory](_static/atlas/oscillatory.html)).
 
 Three-area hierarchy (`V1–V4–PFC`, 100 neurons/area, bidirectional
 feedforward/feedback): [Gallery 09](gallery.md#09-three-area-hierarchy-v1v4pfc)
 with the full six-panel atlas
 ([index](_static/atlas_three_area/index.html) ·
+[schema](_static/atlas_three_area/schema.html) ·
 [network_3d](_static/atlas_three_area/network_3d.html) ·
-[connectivity](_static/atlas_three_area/connectivity.html) ·
 [raster](_static/atlas_three_area/raster.html) ·
-[traces](_static/atlas_three_area/traces.html) ·
-[spectral](_static/atlas_three_area/spectral.html) ·
-[state_summary](_static/atlas_three_area/state_summary.html)).
+[lfp](_static/atlas_three_area/lfp.html) ·
+[h_dynamics](_static/atlas_three_area/h_dynamics.html) ·
+[hdp](_static/atlas_three_area/hdp.html) ·
+[oscillatory](_static/atlas_three_area/oscillatory.html)).

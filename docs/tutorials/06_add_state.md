@@ -27,6 +27,6 @@ Next: [07 — Add dynamics](07_add_dynamics.md) — enable `enable_hdp`.
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column (no HDP; dynamics variants are on step 07): [index](../_static/atlas/index.html) · [3D](../_static/atlas/network_3d.html) · [connectivity](../_static/atlas/connectivity.html) · [raster](../_static/atlas/raster.html) · [traces](../_static/atlas/traces.html) · [spectral](../_static/atlas/spectral.html) · [state summary](../_static/atlas/state_summary.html).
+Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column (no HDP; dynamics variants are on step 07): [index](../_static/atlas/index.html) · [schema](../_static/atlas/schema.html) · [3D](../_static/atlas/network_3d.html) · [raster](../_static/atlas/raster.html) · [LFP](../_static/atlas/lfp.html) · [H](../_static/atlas/h_dynamics.html) · [HDP](../_static/atlas/hdp.html) · [oscillatory](../_static/atlas/oscillatory.html).
 
 Regenerate: `python scripts/generate_readme_atlas.py --html-only`.

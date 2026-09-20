@@ -145,7 +145,7 @@ downstream call in Chain 1 (`csd_tensor`, `eeg_proxy_transform`,
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the page's 40-neuron run (100 ms, dt 0.5 ms, seed 3): [index](../_static/atlas/operator_chain_40/index.html) · [3D](../_static/atlas/operator_chain_40/network_3d.html) · [connectivity](../_static/atlas/operator_chain_40/connectivity.html) · [raster](../_static/atlas/operator_chain_40/raster.html) · [traces](../_static/atlas/operator_chain_40/traces.html) · [spectral](../_static/atlas/operator_chain_40/spectral.html) · [state summary](../_static/atlas/operator_chain_40/state_summary.html).
+Dark-theme Plotly panels from the page's 40-neuron run (100 ms, dt 0.5 ms, seed 3): [index](../_static/atlas/operator_chain_40/index.html) · [schema](../_static/atlas/operator_chain_40/schema.html) · [3D](../_static/atlas/operator_chain_40/network_3d.html) · [raster](../_static/atlas/operator_chain_40/raster.html) · [LFP](../_static/atlas/operator_chain_40/lfp.html) · [H](../_static/atlas/operator_chain_40/h_dynamics.html) · [HDP](../_static/atlas/operator_chain_40/hdp.html) · [oscillatory](../_static/atlas/operator_chain_40/oscillatory.html).
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug operator_chain_40`.
 

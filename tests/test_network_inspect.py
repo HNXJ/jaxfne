@@ -249,3 +249,22 @@ def test_rendering_is_deterministic(tmp_path):
     JV.network_hspice(M, path=a)
     JV.network_hspice(M, path=b)
     assert a.read_bytes() == b.read_bytes()
+
+
+def test_plotly_schematic_matches_matplotlib_description(tmp_path):
+    """Native Plotly twin: same describe() data, theme changes pixels only."""
+    pytest.importorskip("plotly")
+    dark = JV.network_hspice_plotly(M, theme="dark")
+    light = JV.network_hspice_plotly(M, theme="light")
+    d_dark = {k: v for k, v in dark.items() if k not in ("fig", "path", "theme")}
+    d_light = {k: v for k, v in light.items() if k not in ("fig", "path", "theme")}
+    assert d_dark == d_light
+    mpl = JV.network_hspice(M)
+    for k in ("areas", "n_neurons", "n_edges_total", "n_edges_local",
+              "n_edges_long_range", "n_projections"):
+        assert dark[k] == mpl[k], k
+    assert dark["fig"].layout.paper_bgcolor != light["fig"].layout.paper_bgcolor
+    assert len(dark["fig"].layout.shapes) > 0
+    out = tmp_path / "schema.html"
+    info = JV.network_hspice_plotly(M, theme="dark", path=out)
+    assert out.stat().st_size > 0 and info["path"] == str(out)

@@ -62,6 +62,8 @@ Do **not** modify for this work alone:
 Run **only** the batch's listed verification commands, on the assigned
 scope. Record literal outcomes (pass/fail + key counts). Do not expand
 scope to "be safe" — broader gates belong to their own batch.
+Re-read every edited region after applying edits; an edit tool success
+message is not verification of content.
 
 ### 6. Stop
 
@@ -89,6 +91,9 @@ OPEN_QUESTIONS
   source text: pass an explicit `seed=` when comparing two specs.
 - Receipts record gate results, so a receipt is legitimately edited after
   the gate it reports — say so explicitly.
+- Shell is PowerShell: no `grep`/`head`/`tail`/unix aliases — use
+  `Select-String`, `Select-Object -First/Last`, or the dedicated file tools.
+  Prefer dedicated tools over bash for file operations entirely.
 
 ## Evolution
 

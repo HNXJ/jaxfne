@@ -1,6 +1,5 @@
-"""Atlas suite: 6 fixed panels for any model, incl. N=1, 0 edges, no spikes, field/no-field, multi-area."""
+"""Atlas suite: 7 fixed panels for any model, incl. N=1, 0 edges, no spikes, field/no-field, multi-area."""
 
-import copy
 import json
 import pathlib
 import numpy as np
@@ -10,7 +9,6 @@ import jaxfne as J
 from jaxfne.vis.atlas_suite import (
     DT_SOURCE_FALLBACK,
     DT_SOURCE_INFERRED,
-    OPTIONAL_FIELD_FILE,
     PANELS,
     build_atlas,
     classify_dt_ms,
@@ -53,7 +51,7 @@ def _build(kind: str, tmp: pathlib.Path, **kwargs):
 
 
 def test_atlas_single_neuron(tmp_path):
-    """N=1 degradation test: all 6 fixed panels emitted, single neuron card."""
+    """N=1 degradation test: all 7 fixed panels emitted, single neuron card."""
     _, out, manifest = _build("single", tmp_path)
     assert manifest["n_neurons"] == 1
     for f in FIXED:
@@ -63,11 +61,11 @@ def test_atlas_single_neuron(tmp_path):
     assert (out / "index.html").exists()
     assert (out / "manifest.json").exists()
     disk = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
-    assert disk["n_neurons"] == 1 and len(disk["panels"]) >= 6
+    assert disk["n_neurons"] == 1 and len(disk["panels"]) == 7
 
 
 def test_atlas_small_network(tmp_path):
-    """Ordinary small network test: all 6 fixed panels present."""
+    """Ordinary small network test: all 7 fixed panels present."""
     _, out, manifest = _build("net10", tmp_path)
     assert manifest["n_neurons"] == 10
     for f in FIXED:
@@ -99,7 +97,7 @@ def test_atlas_no_spikes(tmp_path):
         metadata=sig.metadata,
     )
     out = tmp_path / "quiet"
-    manifest = build_atlas(model, sig_quiet, out_dir=str(out))
+    build_atlas(model, sig_quiet, out_dir=str(out))
     for f in FIXED:
         assert (out / f).exists()
 
@@ -109,17 +107,18 @@ def test_atlas_short_run(tmp_path):
     cfg = J.suite2_single_neuron_config(duration_ms=5.0, dt_ms=0.1)
     model = J.construct(cfg)
     out = tmp_path / "short"
-    manifest = build_atlas(model, out_dir=str(out), duration_ms=5.0, dt_ms=0.1)
+    build_atlas(model, out_dir=str(out), duration_ms=5.0, dt_ms=0.1)
     for f in FIXED:
         assert (out / f).exists()
 
 
 def test_atlas_field_vs_no_field(tmp_path):
-    """Field present emits optional field.html; no field skips it."""
+    """LFP panel is fixed: AVAILABLE with a field, explicit OMITTED card without."""
     # With field:
     _, out_field, manifest_field = _build("with_field", tmp_path)
-    assert (out_field / OPTIONAL_FIELD_FILE).exists()
-    assert any(p["file"] == OPTIONAL_FIELD_FILE for p in manifest_field["panels"])
+    lfp = next(p for p in manifest_field["panels"] if p["file"] == "lfp.html")
+    assert (out_field / "lfp.html").exists()
+    assert lfp["status"] == "AVAILABLE"
 
     # Without field (pass signals with field=None):
     cfg_nofield = J.suite2_net1_config(seed=7, n=10, duration_ms=100.0, dt_ms=0.1)
@@ -130,8 +129,10 @@ def test_atlas_field_vs_no_field(tmp_path):
 
     out_nofield = tmp_path / "nofield"
     manifest_nofield = build_atlas(model_nofield, sig_nofield, out_dir=str(out_nofield))
-    assert not (out_nofield / OPTIONAL_FIELD_FILE).exists()
-    assert all(p["file"] != OPTIONAL_FIELD_FILE for p in manifest_nofield["panels"])
+    assert (out_nofield / "lfp.html").exists()
+    omitted = next(p for p in manifest_nofield["panels"] if p["file"] == "lfp.html")
+    assert omitted["status"] == "OMITTED"
+    assert "no field proxy recorded" in (out_nofield / "lfp.html").read_text(encoding="utf-8")
 
 
 def test_atlas_multi_area(tmp_path):
@@ -210,8 +211,8 @@ def test_public_pages_reference_current_panel_names():
             assert ref not in text, f"{page.name} still references retired asset {ref!r}"
 
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert "`spectral`, `state_summary`)" in readme, (
-        "README.md does not list the current 6-panel grammar"
+    assert "`hdp`, `oscillatory`)" in readme, (
+        "README.md does not list the current 7-panel grammar"
     )
 
     # Docs landing is deflated: one preview + pointer to the guide that owns the
@@ -223,7 +224,7 @@ def test_public_pages_reference_current_panel_names():
     assert "guides/atlas_suite.md" in index, (
         "docs/index.md must link to the canonical atlas guide"
     )
-    for panel in ("network_3d", "spectral", "state_summary"):
+    for panel in ("schema", "network_3d", "oscillatory"):
         assert panel in index, (
             f"docs/index.md landing prose must still name panel {panel!r}"
         )
@@ -389,3 +390,45 @@ def test_canonical_manifest_provenance():
     assert manifest["n_steps"] == 2000
     assert manifest["n_steps"] * manifest["dt_ms"] == manifest["duration_ms"]
     assert manifest["config_hash"] == EXPECTED_CONFIG_HASH
+
+
+def test_atlas_h_panels_available_on_hdp_run(tmp_path):
+    """HDP run with recorded traces: h_dynamics + hdp AVAILABLE (not omitted)."""
+    cfg = (
+        J.configuration()
+        .network(name="V1", kind="cortical_column", n=10,
+                 cell_types={"E": 0.5, "PV": 0.5})
+        .cell_type_drives({"E": 8.0, "PV": 8.0})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy",
+               boundary="mean_zero_neumann", gauge="mean_zero")
+        .probe(name="probe", modes=["spikes", "V_m"])
+    )
+    model = J.construct(cfg)
+    runtime = J.RuntimeConfig(
+        enable_hdp=True, recurrent_backend="edge_list", jit=False,
+        hdp_params={"K_HDP": 0.01, "tau_0_ms": 200.0, "K_ctrl": 5.0,
+                    "barrier_c": 0.01, "barrier_d": 0.01,
+                    "H_min": 0.1, "H_max": 10.0,
+                    "w_min": -10.0, "w_max": 10.0})
+    sig = model.simulate(J.Simulation(duration_ms=100.0, dt_ms=0.5, seed=0,
+                                      runtime=runtime))
+    assert model.last_hdp_diagnostics()["w_trace"] is not None
+    out = tmp_path / "hdp10"
+    manifest = build_atlas(model, sig, out_dir=str(out))
+    by_file = {p["file"]: p for p in manifest["panels"]}
+    assert by_file["h_dynamics.html"]["status"] == "AVAILABLE"
+    assert by_file["hdp.html"]["status"] == "AVAILABLE"
+    assert len(manifest["panels"]) == 7
+
+
+def test_atlas_h_panels_omitted_without_h(tmp_path):
+    """Non-HDP run: H panels exist as explicit OMITTED cards, never substituted."""
+    model, sig = _small_signals()
+    out = tmp_path / "noh"
+    manifest = build_atlas(model, sig, out_dir=str(out))
+    by_file = {p["file"]: p for p in manifest["panels"]}
+    for f in ("h_dynamics.html", "hdp.html"):
+        assert by_file[f]["status"] == "OMITTED"
+        text = (out / f).read_text(encoding="utf-8")
+        assert "omitted" in text.lower()

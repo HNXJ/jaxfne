@@ -94,15 +94,16 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 **Status:** `relative_proxy_coordinates`  
 **Description:** Realized spatial locations and cell-class identities in a three-area laminar hierarchy with bidirectional feedforward/feedback connectivity.
 
-Six fixed panels, always emitted (`network_3d`, `connectivity`, `raster`, `traces` as **OBSERVED**; `spectral`, `state_summary` as **DERIVED**), each carrying a provenance card (`config_hash`, N, edges, steps, dt, jaxfne version):
+Seven fixed panels, always emitted (`schema`, `network_3d`, `raster` as **OBSERVED**; `lfp`, `h_dynamics`, `hdp`, `oscillatory` as **DERIVED**), each carrying a provenance card (`config_hash`, N, edges, steps, dt, jaxfne version). A panel whose declared inputs cannot be met renders an explicit omission card, never a substitute:
 
 - [Index Dashboard (`index.html`)](_static/atlas_three_area/index.html)
-- [Panel 1: Network 3D (`network_3d.html`)](_static/atlas_three_area/network_3d.html)
-- [Panel 2: Connectivity (`connectivity.html`)](_static/atlas_three_area/connectivity.html)
+- [Panel 1: Circuit Schematic (`schema.html`)](_static/atlas_three_area/schema.html)
+- [Panel 2: Network 3D (`network_3d.html`)](_static/atlas_three_area/network_3d.html)
 - [Panel 3: Spike Raster (`raster.html`)](_static/atlas_three_area/raster.html)
-- [Panel 4: Membrane Traces (`traces.html`)](_static/atlas_three_area/traces.html)
-- [Panel 5: Spectral (`spectral.html`)](_static/atlas_three_area/spectral.html)
-- [Panel 6: State Summary (`state_summary.html`)](_static/atlas_three_area/state_summary.html)
+- [Panel 4: LFP Proxy (`lfp.html`)](_static/atlas_three_area/lfp.html)
+- [Panel 5: H Dynamics (`h_dynamics.html`)](_static/atlas_three_area/h_dynamics.html)
+- [Panel 6: HDP Plasticity (`hdp.html`)](_static/atlas_three_area/hdp.html)
+- [Panel 7: Oscillatory Response (`oscillatory.html`)](_static/atlas_three_area/oscillatory.html)
 
 ```python
 import jaxfne as jtfne
@@ -124,3 +125,8 @@ manifest = build_atlas(
     title="V1-V4-PFC three-area hierarchy (100/area)",
 )
 ```
+
+## Atlas evidence index (generated)
+
+<!-- ATLAS-INDEX:START -->
+<!-- ATLAS-INDEX:END -->

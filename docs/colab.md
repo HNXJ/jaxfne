@@ -107,7 +107,7 @@ Timesteps: 1000
 Spike rate: 0.00 spikes/ms
 ```
 
-Interactive dark-theme panels for this run: [index](_static/atlas/single_neuron/index.html) · [raster](_static/atlas/single_neuron/raster.html) · [traces](_static/atlas/single_neuron/traces.html).
+Interactive dark-theme panels for this run: [index](_static/atlas/single_neuron/index.html) · [schema](_static/atlas/single_neuron/schema.html) · [raster](_static/atlas/single_neuron/raster.html) · [LFP](_static/atlas/single_neuron/lfp.html) · [oscillatory](_static/atlas/single_neuron/oscillatory.html).
 
 ---
 
@@ -154,7 +154,7 @@ Inhibitory firing rate: 0.01 Hz
 ✓ Status checks immutable: physical_amplitude_calibrated = False
 ```
 
-Interactive dark-theme panels for this run: [index](_static/atlas/two_neuron_ei/index.html) · [raster](_static/atlas/two_neuron_ei/raster.html) · [traces](_static/atlas/two_neuron_ei/traces.html).
+Interactive dark-theme panels for this run: [index](_static/atlas/two_neuron_ei/index.html) · [schema](_static/atlas/two_neuron_ei/schema.html) · [raster](_static/atlas/two_neuron_ei/raster.html) · [LFP](_static/atlas/two_neuron_ei/lfp.html) · [oscillatory](_static/atlas/two_neuron_ei/oscillatory.html).
 
 ---
 

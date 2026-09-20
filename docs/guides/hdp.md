@@ -334,7 +334,7 @@ controls; neither is full-system null equivalence.
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from a short 200 ms HDP run (dt 0.5 ms, seed 0, weight-trace recording off) of the builder-path 1000-neuron column: [index](../_static/atlas/hdp_1000/index.html) · [3D](../_static/atlas/hdp_1000/network_3d.html) · [connectivity](../_static/atlas/hdp_1000/connectivity.html) · [raster](../_static/atlas/hdp_1000/raster.html) · [traces](../_static/atlas/hdp_1000/traces.html) · [spectral](../_static/atlas/hdp_1000/spectral.html) · [state summary](../_static/atlas/hdp_1000/state_summary.html).
+Dark-theme Plotly panels from a short 200 ms HDP run (dt 0.5 ms, seed 0, weight-trace recording off) of the builder-path 1000-neuron column: [index](../_static/atlas/hdp_1000/index.html) · [schema](../_static/atlas/hdp_1000/schema.html) · [3D](../_static/atlas/hdp_1000/network_3d.html) · [raster](../_static/atlas/hdp_1000/raster.html) · [LFP](../_static/atlas/hdp_1000/lfp.html) · [H](../_static/atlas/hdp_1000/h_dynamics.html) · [HDP](../_static/atlas/hdp_1000/hdp.html) · [oscillatory](../_static/atlas/hdp_1000/oscillatory.html).
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug hdp_1000`.
 

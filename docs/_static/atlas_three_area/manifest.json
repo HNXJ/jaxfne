@@ -1,7 +1,13 @@
 {
-  "suite": "atlas_suite.v1",
+  "suite": "atlas_suite.v2",
   "title": "V1-V4-PFC three-area hierarchy (100/area)",
+  "figure_state": "GENERATED",
   "config_hash": "84f67ccf815ff923",
+  "tfne_digest": null,
+  "k_d": null,
+  "sim_identity": "seed=0 duration_ms=500.0 dt_ms=0.5",
+  "recording_class": "medium",
+  "recording_budget": "population H, selected traces, summaries",
   "jaxfne_version": "0.4.24",
   "seed": 0,
   "duration_ms": 500.0,
@@ -12,54 +18,103 @@
   "dt_source": "INFERRED_FROM_TIME_GRID",
   "panels": [
     {
+      "file": "schema.html",
+      "panel": "Circuit schematic",
+      "evidence": "OBSERVED",
+      "status": "AVAILABLE",
+      "bytes": 34705,
+      "inputs": {
+        "source_artifact": "model",
+        "variable": "neuron_table + params.edge_list",
+        "transform": "network_hspice_plotly",
+        "units": "counts + relative weights",
+        "window": "static"
+      }
+    },
+    {
       "file": "network_3d.html",
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 31593
-    },
-    {
-      "file": "connectivity.html",
-      "panel": "Connectivity",
-      "evidence": "OBSERVED",
-      "status": "AVAILABLE",
-      "bytes": 1039874
+      "bytes": 31593,
+      "inputs": {
+        "source_artifact": "model",
+        "variable": "params.positions + params.edge_list",
+        "transform": "plot_network_3d",
+        "units": "relative geometry",
+        "window": "static"
+      }
     },
     {
       "file": "raster.html",
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 26460
+      "bytes": 26460,
+      "inputs": {
+        "source_artifact": "signals",
+        "variable": "spikes [T,N] + neuron_table",
+        "transform": "plot_raster",
+        "units": "spike indicators",
+        "window": "full run"
+      }
     },
     {
-      "file": "traces.html",
-      "panel": "Membrane traces",
-      "evidence": "OBSERVED",
-      "status": "AVAILABLE",
-      "bytes": 121252
-    },
-    {
-      "file": "spectral.html",
-      "panel": "Spectral",
+      "file": "lfp.html",
+      "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 20258
+      "bytes": 190088,
+      "inputs": {
+        "source_artifact": "signals",
+        "variable": "field proxy",
+        "transform": "plot_lfp/plot_csd",
+        "units": "relative proxy",
+        "window": "full run"
+      }
     },
     {
-      "file": "state_summary.html",
-      "panel": "State summary",
+      "file": "h_dynamics.html",
+      "panel": "H dynamics",
       "evidence": "DERIVED",
-      "status": "AVAILABLE",
-      "bytes": 12209
+      "status": "OMITTED",
+      "bytes": 10456,
+      "inputs": {
+        "source_artifact": "model diagnostics",
+        "variable": "H_trace / r_trace",
+        "transform": "population mean \u00b1 std band",
+        "units": "relative state",
+        "window": "full run"
+      }
     },
     {
-      "file": "field.html",
-      "panel": "Field proxy",
+      "file": "hdp.html",
+      "panel": "HDP plasticity",
+      "evidence": "DERIVED",
+      "status": "OMITTED",
+      "bytes": 10402,
+      "inputs": {
+        "source_artifact": "model diagnostics",
+        "variable": "w_trace",
+        "transform": "population |w| mean \u00b1 std band",
+        "units": "relative weights",
+        "window": "full run"
+      }
+    },
+    {
+      "file": "oscillatory.html",
+      "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 190060
+      "bytes": 20295,
+      "inputs": {
+        "source_artifact": "signals",
+        "variable": "field traces",
+        "transform": "plot_psd (+plot_spectrogram)",
+        "units": "relative power",
+        "window": "full run"
+      }
     }
   ],
-  "sha256": "158171554dd795c4"
+  "sha256": "4b2ba88a48d1d7cc"
 }

@@ -121,7 +121,7 @@ units recovering) to the controller. Report the null alongside the result.
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the 1000-neuron homeostasis run above (1000 ms, dt 0.5 ms, seed 0): [index](../_static/atlas/homeostasis_1000/index.html) · [3D](../_static/atlas/homeostasis_1000/network_3d.html) · [connectivity](../_static/atlas/homeostasis_1000/connectivity.html) · [raster](../_static/atlas/homeostasis_1000/raster.html) · [traces](../_static/atlas/homeostasis_1000/traces.html) · [spectral](../_static/atlas/homeostasis_1000/spectral.html) · [state summary](../_static/atlas/homeostasis_1000/state_summary.html).
+Dark-theme Plotly panels from the 1000-neuron homeostasis run above (1000 ms, dt 0.5 ms, seed 0): [index](../_static/atlas/homeostasis_1000/index.html) · [schema](../_static/atlas/homeostasis_1000/schema.html) · [3D](../_static/atlas/homeostasis_1000/network_3d.html) · [raster](../_static/atlas/homeostasis_1000/raster.html) · [LFP](../_static/atlas/homeostasis_1000/lfp.html) · [H](../_static/atlas/homeostasis_1000/h_dynamics.html) · [HDP](../_static/atlas/homeostasis_1000/hdp.html) · [oscillatory](../_static/atlas/homeostasis_1000/oscillatory.html).
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug homeostasis_1000`.
 

@@ -1,6 +1,6 @@
 # Canonical Visualization Atlas (`jaxfne.vis.atlas_suite`)
 
-The **JaxFNE Canonical Visualization Atlas** provides a unified, deterministic 6-panel layout for inspecting, comparing, and reporting any realized JaxFNE circuit ($N \ge 1$).
+The **JaxFNE Canonical Visualization Atlas** provides a unified, deterministic 7-panel layout for inspecting, comparing, and reporting any realized JaxFNE circuit ($N \ge 1$).
 
 Every atlas generation produces self-contained interactive HTML panels, a cryptographic provenance manifest (`manifest.json`), and an index dashboard (`index.html`).
 
@@ -12,13 +12,13 @@ The atlas enforces strict separation between direct simulation observations (**O
 
 | # | Panel Filename | Semantic Role | Evidence Level | Generator Function | Degradation Invariant ($N=1$, 0 edges, silence) |
 |---|---|---|---|---|---|
-| 1 | `network_3d.html` | Realized 3D architecture | **OBSERVED** | `plot_network_3d(model)` | Single point in space if $N=1$; no edges drawn if uncoupled. |
-| 2 | `connectivity.html` | Realized synaptic matrix | **OBSERVED** | `plot_connectivity(model)` | Empty adjacency matrix card with explicit zero-edge note. |
+| 1 | `schema.html` | Block schematic (areas/layers/classes/links) | **OBSERVED** | `network_hspice_plotly(model)` | Single box, no arrows if uncoupled. |
+| 2 | `network_3d.html` | Realized 3D architecture | **OBSERVED** | `plot_network_3d(model)` | Single point in space if $N=1$; no edges drawn if uncoupled. |
 | 3 | `raster.html` | Microsecond spike events | **OBSERVED** | `plot_raster(signals, model)` | Clean axes showing 0 events if network is silent. |
-| 4 | `traces.html` | Somatic membrane potentials | **OBSERVED** | `plot_membrane_potentials(signals, model)` | Somatic $V_m(t)$ for representative units (or unit 0). |
-| 5 | `spectral.html` | Power spectral density / time-frequency | **DERIVED** | `plot_psd` (+ `plot_spectrogram`) | Welch PSD fallback when duration is too short for 2D spectrogram. |
-| 6 | `state_summary.html` | Firing rates & silence fraction | **DERIVED** | Spike count summary | Per-cell-type rate bar chart + % silent units; counts from `model.summary()`. |
-| * | `field.html` *(optional)* | Laminar LFP / CSD proxy readouts | **DERIVED** | `plot_lfp` / `plot_csd` | Emitted only when model contains a non-empty field proxy. |
+| 4 | `lfp.html` | Laminar LFP/CSD proxy readouts | **DERIVED** | `plot_lfp` / `plot_csd` | Explicit omission card when no field is recorded — never substituted. |
+| 5 | `h_dynamics.html` | Recorded hidden-state trajectory | **DERIVED** | HDP `H_trace` / homeostasis trace | Explicit omission card when no H is recorded. |
+| 6 | `hdp.html` | Mutable weight diagnostics | **DERIVED** | HDP `w_trace` | Explicit omission card when HDP is off or the trace is unrecorded — never inferred from activity. |
+| 7 | `oscillatory.html` | Power spectral density / time-frequency | **DERIVED** | `plot_psd` (+ `plot_spectrogram`) | Welch PSD fallback when duration is too short for 2D spectrogram. |
 
 ---
 
@@ -61,12 +61,13 @@ for p in manifest["panels"]:
 The following standalone interactive panels are generated live from the canonical 1000-neuron column simulation:
 
 - [Index Dashboard (`index.html`)](../_static/atlas/index.html)
-- [Panel 1: Network 3D Architecture (`network_3d.html`)](../_static/atlas/network_3d.html)
-- [Panel 2: Realized Connectivity (`connectivity.html`)](../_static/atlas/connectivity.html)
+- [Panel 1: Circuit Schematic (`schema.html`)](../_static/atlas/schema.html)
+- [Panel 2: Network 3D Architecture (`network_3d.html`)](../_static/atlas/network_3d.html)
 - [Panel 3: Spike Raster (`raster.html`)](../_static/atlas/raster.html)
-- [Panel 4: Membrane Traces (`traces.html`)](../_static/atlas/traces.html)
-- [Panel 5: Spectral Dynamics (`spectral.html`)](../_static/atlas/spectral.html)
-- [Panel 6: State Summary & Silence (`state_summary.html`)](../_static/atlas/state_summary.html)
+- [Panel 4: LFP Proxy (`lfp.html`)](../_static/atlas/lfp.html)
+- [Panel 5: H Dynamics (`h_dynamics.html`)](../_static/atlas/h_dynamics.html)
+- [Panel 6: HDP Plasticity (`hdp.html`)](../_static/atlas/hdp.html)
+- [Panel 7: Oscillatory Response (`oscillatory.html`)](../_static/atlas/oscillatory.html)
 
 ---
 

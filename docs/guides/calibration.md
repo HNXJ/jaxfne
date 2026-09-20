@@ -153,7 +153,7 @@ manifest = model.manifest(signals, ...)
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from a minimal 200 ms completion (dt 0.5 ms, seed 0) of the page's 100-neuron circuit — the page's own simulate call is a placeholder: [index](../_static/atlas/calibration_100/index.html) · [3D](../_static/atlas/calibration_100/network_3d.html) · [connectivity](../_static/atlas/calibration_100/connectivity.html) · [raster](../_static/atlas/calibration_100/raster.html) · [traces](../_static/atlas/calibration_100/traces.html) · [spectral](../_static/atlas/calibration_100/spectral.html) · [state summary](../_static/atlas/calibration_100/state_summary.html).
+Dark-theme Plotly panels from a minimal 200 ms completion (dt 0.5 ms, seed 0) of the page's 100-neuron circuit — the page's own simulate call is a placeholder: [index](../_static/atlas/calibration_100/index.html) · [schema](../_static/atlas/calibration_100/schema.html) · [3D](../_static/atlas/calibration_100/network_3d.html) · [raster](../_static/atlas/calibration_100/raster.html) · [LFP](../_static/atlas/calibration_100/lfp.html) · [H](../_static/atlas/calibration_100/h_dynamics.html) · [HDP](../_static/atlas/calibration_100/hdp.html) · [oscillatory](../_static/atlas/calibration_100/oscillatory.html).
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug calibration_100`.
 

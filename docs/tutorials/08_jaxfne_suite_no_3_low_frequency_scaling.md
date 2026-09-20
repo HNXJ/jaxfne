@@ -92,6 +92,6 @@ Configuration -> construct -> simulate -> whole-window absolute power -> log-log
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the N=100 scale (1000 ms, dt 0.5 ms, seed 2303, with the notebook's noisy-async patch; the notebook sweeps N=10/50/100/500 at dt 0.1 ms): [index](../_static/atlas/scale_100/index.html) · [3D](../_static/atlas/scale_100/network_3d.html) · [connectivity](../_static/atlas/scale_100/connectivity.html) · [raster](../_static/atlas/scale_100/raster.html) · [traces](../_static/atlas/scale_100/traces.html) · [spectral](../_static/atlas/scale_100/spectral.html) · [state summary](../_static/atlas/scale_100/state_summary.html).
+Dark-theme Plotly panels from the N=100 scale (1000 ms, dt 0.5 ms, seed 2303, with the notebook's noisy-async patch; the notebook sweeps N=10/50/100/500 at dt 0.1 ms): [index](../_static/atlas/scale_100/index.html) · [schema](../_static/atlas/scale_100/schema.html) · [3D](../_static/atlas/scale_100/network_3d.html) · [raster](../_static/atlas/scale_100/raster.html) · [LFP](../_static/atlas/scale_100/lfp.html) · [H](../_static/atlas/scale_100/h_dynamics.html) · [HDP](../_static/atlas/scale_100/hdp.html) · [oscillatory](../_static/atlas/scale_100/oscillatory.html).
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug scale_100`.

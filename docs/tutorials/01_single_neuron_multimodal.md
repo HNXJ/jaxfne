@@ -74,7 +74,7 @@ for r in readouts:
 
 ## Visualize with Canonical Atlas
 
-Generate the full interactive 6-panel visualization atlas (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`, `state_summary`):
+Generate the full interactive 7-panel visualization atlas (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`, `hdp`, `oscillatory`):
 
 ```python
 from jaxfne.vis.atlas_suite import build_atlas
@@ -117,6 +117,6 @@ plt.show()
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from this page's circuit (100 ms, dt 0.1 ms, seed 0): [index](../_static/atlas/single_neuron/index.html) · [3D](../_static/atlas/single_neuron/network_3d.html) · [connectivity](../_static/atlas/single_neuron/connectivity.html) · [raster](../_static/atlas/single_neuron/raster.html) · [traces](../_static/atlas/single_neuron/traces.html) · [spectral](../_static/atlas/single_neuron/spectral.html) · [state summary](../_static/atlas/single_neuron/state_summary.html).
+Dark-theme Plotly panels from this page's circuit (100 ms, dt 0.1 ms, seed 0): [index](../_static/atlas/single_neuron/index.html) · [schema](../_static/atlas/single_neuron/schema.html) · [3D](../_static/atlas/single_neuron/network_3d.html) · [raster](../_static/atlas/single_neuron/raster.html) · [LFP](../_static/atlas/single_neuron/lfp.html) · [H](../_static/atlas/single_neuron/h_dynamics.html) · [HDP](../_static/atlas/single_neuron/hdp.html) · [oscillatory](../_static/atlas/single_neuron/oscillatory.html).
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug single_neuron`.

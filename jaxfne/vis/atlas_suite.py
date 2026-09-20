@@ -6,19 +6,21 @@ sources/field, jaxfne.vis.canonical plotters, jaxfne.simulate). No jomission
 imports. Copy verbatim to ``jaxfne/jaxfne/vis/atlas_suite.py`` as the standard
 suite (see docs/ATLAS_SUITE_HANDOUT.md + docs/jaxfne_atlas_suite_dropin/).
 
-Six fixed panels (always emitted, even for a single neuron):
-  1. network_3d.html      — plot_network_3d(model)                    OBSERVED
-  2. connectivity.html    — plot_connectivity(model)                  OBSERVED
+Seven fixed panels (always emitted, even for a single neuron; a panel whose
+data contract cannot be met is emitted as an explicit omission card, never
+skipped and never substituted):
+  1. schema.html         — network_hspice_plotly(model)                OBSERVED
+  2. network_3d.html      — plot_network_3d(model)                    OBSERVED
   3. raster.html          — plot_raster(signals, model)               OBSERVED
-  4. traces.html          — plot_membrane_potentials(signals, model)  OBSERVED
-  5. spectral.html        — plot_psd (+spectrogram when feasible)     DERIVED
-  6. state_summary.html   — summary + per-cell-type rates (custom)    DERIVED
-Optional:
-  field.html             — plot_lfp (+plot_csd) when field non-empty  DERIVED
+  4. lfp.html             — plot_lfp (+plot_csd) from recorded field  DERIVED
+  5. h_dynamics.html      — recorded H (HDP H_trace / homeostasis)    DERIVED
+  6. hdp.html             — mutable weight diagnostics (w_trace)      DERIVED
+  7. oscillatory.html     — plot_psd (+spectrogram when feasible)     DERIVED
 
-N=1 degradation rules: no panel is skipped. Empty edge lists render the
-backend's empty-matrix figure; short runs render PSD-only spectral; missing
-field skips only the optional field.html. Every file carries a provenance
+N=1 degradation rules: no panel is skipped. Empty edge lists render no
+arrows on the schema; short runs render PSD-only oscillatory response;
+unrecorded field/H/HDP render explicit omission cards stating what was not
+recorded. Every file carries a provenance
 card (config_hash, N, edges, steps, dt, jaxfne version, evidence level).
 
 Entry point:
@@ -42,15 +44,14 @@ DT_SOURCE_INVALID = "INVALID_TIME_GRID"
 
 
 PANELS: Tuple[Tuple[str, str, str], ...] = (
+    ("schema.html", "Circuit schematic", "OBSERVED"),
     ("network_3d.html", "Network 3D", "OBSERVED"),
-    ("connectivity.html", "Connectivity", "OBSERVED"),
     ("raster.html", "Spike raster", "OBSERVED"),
-    ("traces.html", "Membrane traces", "OBSERVED"),
-    ("spectral.html", "Spectral (PSD)", "DERIVED"),
-    ("state_summary.html", "State summary", "DERIVED"),
+    ("lfp.html", "LFP proxy", "DERIVED"),
+    ("h_dynamics.html", "H dynamics", "DERIVED"),
+    ("hdp.html", "HDP plasticity", "DERIVED"),
+    ("oscillatory.html", "Oscillatory response", "DERIVED"),
 )
-
-OPTIONAL_FIELD_FILE = "field.html"
 
 
 def _np(arr: Any) -> np.ndarray | None:
@@ -211,59 +212,119 @@ def _empty_note_fig(text: str):  # type: ignore[no-untyped-def]
     return fig
 
 
-def _build_state_summary_fig(model: Any, signals: Any):  # type: ignore[no-untyped-def]
-    """Rates per cell-type + summary counts. Pure numpy/plotly, N>=1 safe."""
+
+
+class _OmitPanel(Exception):
+    """A panel whose data contract cannot be met: emit an explicit omission card."""
+
+
+def _stride(n: int, max_pts: int = 2000) -> int:
+    return max(1, int(np.ceil(int(n) / max_pts)))
+
+
+def _mean_band(x: Any):  # type: ignore[no-untyped-def]
+    """Mean ± std over units (last axes); 1-D input returns the trace thrice."""
+    a = np.asarray(x, dtype=float)
+    if a.ndim > 2:
+        a = a.reshape(a.shape[0], -1)
+    if a.ndim == 1:
+        return a, a, a
+    mu = a.mean(axis=1)
+    sd = a.std(axis=1)
+    return mu, mu - sd, mu + sd
+
+
+def _hdp_diagnostics_of(model: Any) -> Dict[str, Any]:
+    out: Dict[str, Any] = {}
+    for meth in ("last_hdp_diagnostics", "last_homeostasis_diagnostics"):
+        fn = getattr(model, meth, None)
+        if not callable(fn):
+            continue
+        try:
+            d = fn()
+        except Exception:
+            d = None
+        if isinstance(d, dict):
+            out[meth] = d
+    return out
+
+
+def _band_fig(title: str, mu: Any, lo: Any, hi: Any, ylabel: str):  # type: ignore[no-untyped-def]
     import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
 
-    counts = _model_counts(model)
-    neurons = counts["neurons"]
-    arr = _signals_arrays(signals)
-    spikes = arr["spikes"]
-    time_ms = arr["time_ms"]
-    dur_ms = float(time_ms[-1] - time_ms[0]) if time_ms is not None and len(time_ms) > 1 else 0.0
+    n = len(np.asarray(mu))
+    s = _stride(n)
+    idx = np.arange(0, n, s)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=idx, y=np.asarray(hi)[idx], mode="lines",
+                             line=dict(width=0), showlegend=False,
+                             hoverinfo="skip"))
+    fig.add_trace(go.Scatter(x=idx, y=np.asarray(lo)[idx], mode="lines",
+                             line=dict(width=0), fill="tonexty",
+                             name="±1 std", hoverinfo="skip"))
+    fig.add_trace(go.Scatter(x=idx, y=np.asarray(mu)[idx], mode="lines",
+                             name="mean"))
+    fig.update_layout(title=f"<b>{title}</b>", xaxis_title="step",
+                      yaxis_title=ylabel)
+    return fig
 
-    cell_types: List[str] = []
-    for n in neurons:
-        ct = str(n.get("cell_type", "?"))
-        if ct not in cell_types:
-            cell_types.append(ct)
-    if not cell_types:
-        cell_types = ["?"]
 
-    rates, silence = [], []
-    if spikes is not None and spikes.ndim == 2 and dur_ms > 0:
-        n_units = spikes.shape[1]
-        for ct in cell_types:
-            idx = [i for i, n in enumerate(neurons)
-                   if str(n.get("cell_type", "?")) == ct and i < n_units]
-            if not idx:
-                rates.append(0.0)
-                silence.append(100.0)
-                continue
-            sub = np.asarray(spikes[:, idx], dtype=float)
-            per_unit_hz = sub.sum(axis=0) / (dur_ms / 1000.0)
-            rates.append(float(per_unit_hz.mean()))
-            silence.append(float((per_unit_hz == 0).mean() * 100.0))
-    else:
-        rates = [0.0] * len(cell_types)
-        silence = [100.0] * len(cell_types)
+def _h_dynamics_fig(model: Any):  # type: ignore[no-untyped-def]
+    """Recorded hidden-state trajectory, or an explicit omission."""
+    diags = _hdp_diagnostics_of(model)
+    hdp = diags.get("last_hdp_diagnostics") or {}
+    if hdp.get("H_trace") is not None:
+        mu, lo, hi = _mean_band(hdp["H_trace"])
+        fig = _band_fig("H dynamics (HDP H_trace, population mean ± std)", mu, lo, hi, "H")
+        fig.update_layout(annotations=[dict(text="H from the HDP run",
+                                            xref="paper", yref="paper", x=0.5, y=1.08,
+                                            showarrow=False)])
+        return fig
+    home = diags.get("last_homeostasis_diagnostics") or {}
+    if home.get("r_trace") is not None:
+        mu, lo, hi = _mean_band(home["r_trace"])
+        return _band_fig("H dynamics (homeostasis rate trace, mean ± std)", mu, lo, hi, "r")
+    raise _OmitPanel("no H recorded — run with enable_hdp or enable_homeostasis")
 
-    fig = make_subplots(rows=1, cols=2,
-                        subplot_titles=("<b>Mean rate by cell type</b>",
-                                        "<b>Silence fraction by cell type</b>"))
-    fig.add_trace(go.Bar(x=cell_types, y=rates, name="Hz",
-                         text=[f"{r:.2f} Hz" for r in rates], textposition="auto"), row=1, col=1)
-    fig.add_trace(go.Bar(x=cell_types, y=silence, name="% silent",
-                         text=[f"{s:.0f}%" for s in silence], textposition="auto"), row=1, col=2)
-    fig.update_xaxes(title_text="Cell type", row=1, col=1)
-    fig.update_yaxes(title_text="Hz", row=1, col=1)
-    fig.update_xaxes(title_text="Cell type", row=1, col=2)
-    fig.update_yaxes(title_text="% silent", range=[0, 100], row=1, col=2)
-    fig.update_layout(paper_bgcolor="#0d1117", plot_bgcolor="#161b22",
-                      font=dict(color="#c9d1d9"), width=1180, height=520,
-                      title="<b>State summary</b> (rates from spike counts; DERIVED)")
-    return fig, rates, silence, dur_ms
+
+def _hdp_fig(model: Any):  # type: ignore[no-untyped-def]
+    """Mutable weight diagnostics, or an explicit omission (never inferred)."""
+    diags = _hdp_diagnostics_of(model)
+    hdp = diags.get("last_hdp_diagnostics")
+    if not hdp:
+        raise _OmitPanel("HDP not enabled on this run")
+    W = hdp.get("w_trace")
+    if W is None:
+        raise _OmitPanel("weight trace not recorded (recording_budget: terminal weights only)")
+    a = np.asarray(W, dtype=float)
+    if a.size == 0:
+        raise _OmitPanel("weight trace empty")
+    if a.nbytes > 64_000_000:
+        raise _OmitPanel("weight trace exceeds the 64 MB plot budget; "
+                         "rerun with a sparse/aggregate recording_budget")
+    mag = np.abs(a.reshape(a.shape[0], -1))
+    mu, lo, hi = _mean_band(mag)
+    return _band_fig("HDP weight magnitude (population mean ± std)", mu, lo, hi, "|w|")
+
+
+def _lfp_fig(signals: Any):  # type: ignore[no-untyped-def]
+    """Recorded field proxy, or an explicit omission (never substituted)."""
+    from jaxfne.vis import canonical as C
+
+    try:
+        return C.plot_lfp(signals, backend="plotly")
+    except Exception:
+        pass
+    try:
+        return C.plot_csd(signals, backend="plotly")
+    except Exception as exc:
+        raise _OmitPanel(f"no field proxy recorded ({type(exc).__name__})") from exc
+
+
+def _schema_fig(model: Any):  # type: ignore[no-untyped-def]
+    from jaxfne.vis import network_inspect as NI
+
+    return NI.network_hspice_plotly(model, theme="dark")["fig"]
 
 
 def _discover_upstream_lineage(model: Any, upstream: Dict[str, Any]) -> tuple[Any, Any]:
@@ -306,7 +367,7 @@ def build_atlas(
     title: str = "Model atlas",
     provenance: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
-    """Build the 6-panel atlas for any model. Never skips a fixed panel.
+    """Build the 7-panel atlas for any model. Never skips a fixed panel.
 
     Provide ``signals`` directly, or ``simulate_fn(model) -> signals``; else a
     default ``jaxfne.simulate(model, Simulation(...))`` run is attempted.
@@ -349,6 +410,21 @@ def build_atlas(
     jaxfne_version = _live_jaxfne_version()
     upstream = dict(provenance or {})
     tfne_digest, k_d = _discover_upstream_lineage(model, upstream)
+    rec_class = upstream.get("recording_class")
+    rec_budget = upstream.get("recording_budget")
+    if rec_class is None:
+        # Recording-budget policy (Batch A3): the limiting object is
+        # T×(H + W + recorded), not neuron count alone.
+        if n_neurons <= 64 and n_edges <= 20000:
+            rec_class = "small-mechanistic"
+            rec_budget = rec_budget or "full H, HDP targets, representative W, diagnostics"
+        elif n_neurons >= 1000 or n_edges > 200000:
+            rec_class = "large"
+            rec_budget = rec_budget or ("population H, selected traces, summaries; "
+                                        "no full T×E")
+        else:
+            rec_class = "medium"
+            rec_budget = rec_budget or "population H, selected traces, summaries"
 
     os.makedirs(out_dir, exist_ok=True)
     manifest_panels: List[Dict[str, Any]] = []
@@ -372,6 +448,12 @@ def build_atlas(
         try:
             fig = _apply_dark_theme(make_fig())
             fig_html = fig.to_html(include_plotlyjs="cdn", full_html=False)
+        except _OmitPanel as omit:
+            degradation_status = "OMITTED"
+            fig_html = _empty_note_fig(f"{panel}: omitted — {omit}").to_html(
+                include_plotlyjs="cdn", full_html=False)
+            caption = caption + f" [omitted: {omit}]"
+            extra = dict(extra or {}, omitted=str(omit)[:200])
         except Exception as exc:  # never skip: emit placeholder with reason
             degradation_status = "ERROR"
             fig_html = _empty_note_fig(f"{panel}: unavailable ({type(exc).__name__})").to_html(
@@ -390,6 +472,13 @@ def build_atlas(
                                 "bytes": os.path.getsize(path),
                                 "inputs": dict(lineage or {})})
 
+    _emit("schema.html", "Circuit schematic", "OBSERVED",
+          "Block schematic from realized metadata: areas, layers, classes, area-pair links.",
+          lambda: _schema_fig(model),
+          lineage={"source_artifact": "model",
+                   "variable": "neuron_table + params.edge_list",
+                   "transform": "network_hspice_plotly",
+                   "units": "counts + relative weights", "window": "static"})
     _emit("network_3d.html", "Network 3D", "OBSERVED",
           "Realized geometry + edges from the model (single marker when N=1).",
           lambda: C.plot_network_3d(model, backend="plotly"),
@@ -397,13 +486,6 @@ def build_atlas(
                    "variable": "params.positions + params.edge_list",
                    "transform": "plot_network_3d",
                    "units": "relative geometry", "window": "static"})
-    _emit("connectivity.html", "Connectivity", "OBSERVED",
-          "Realized weight matrix (empty-matrix card when the model has no edges).",
-          lambda: C.plot_connectivity(model, backend="plotly"),
-          lineage={"source_artifact": "model",
-                   "variable": "params.edge_list.weight",
-                   "transform": "plot_connectivity",
-                   "units": "relative weights", "window": "static"})
     _emit("raster.html", "Spike raster", "OBSERVED",
           "Spike times vs neuron index from simulated signals.",
           lambda: C.plot_raster(signals, model, backend="plotly"),
@@ -411,13 +493,29 @@ def build_atlas(
                    "variable": "spikes [T,N] + neuron_table",
                    "transform": "plot_raster",
                    "units": "spike indicators", "window": "full run"})
-    _emit("traces.html", "Membrane traces", "OBSERVED",
-          "Membrane potential proxy traces for a subset of neurons.",
-          lambda: C.plot_membrane_potentials(signals, model, backend="plotly"),
+    _emit("lfp.html", "LFP proxy", "DERIVED",
+          "LFP/CSD proxy traces from the recorded field (omitted explicitly when unrecorded).",
+          lambda: _lfp_fig(signals),
           lineage={"source_artifact": "signals",
-                   "variable": "V_m [T,N]",
-                   "transform": "plot_membrane_potentials",
-                   "units": "mV proxy", "window": "full run"})
+                   "variable": "field proxy",
+                   "transform": "plot_lfp/plot_csd",
+                   "units": "relative proxy", "window": "full run"})
+    _emit("h_dynamics.html", "H dynamics", "DERIVED",
+          "Recorded hidden-state trajectory: HDP H_trace or homeostasis trace "
+          "(omitted explicitly when unrecorded).",
+          lambda: _h_dynamics_fig(model),
+          lineage={"source_artifact": "model diagnostics",
+                   "variable": "H_trace / r_trace",
+                   "transform": "population mean ± std band",
+                   "units": "relative state", "window": "full run"})
+    _emit("hdp.html", "HDP plasticity", "DERIVED",
+          "Mutable weight diagnostics from the HDP run (omitted explicitly when "
+          "HDP is off or the trace is unrecorded; never inferred from activity).",
+          lambda: _hdp_fig(model),
+          lineage={"source_artifact": "model diagnostics",
+                   "variable": "w_trace",
+                   "transform": "population |w| mean ± std band",
+                   "units": "relative weights", "window": "full run"})
 
     def _spectral_fig():  # type: ignore[no-untyped-def]
         from plotly.subplots import make_subplots
@@ -437,43 +535,13 @@ def build_atlas(
         except Exception:
             return psd_fig
 
-    _emit("spectral.html", "Spectral", "DERIVED",
-          "Welch PSD (plus spectrogram when the run is long enough).",
+    _emit("oscillatory.html", "Oscillatory response", "DERIVED",
+          "Welch PSD (plus spectrogram when the run is long enough) over the declared window.",
           _spectral_fig,
           lineage={"source_artifact": "signals",
                    "variable": "field traces",
                    "transform": "plot_psd (+plot_spectrogram)",
                    "units": "relative power", "window": "full run"})
-
-    def _op_fig():  # type: ignore[no-untyped-def]
-        fig, rates, silence, dur = _build_state_summary_fig(model, signals)
-        _op_fig.info = {"rates": rates, "silence": silence, "dur_ms": dur}  # type: ignore[attr-defined]
-        return fig
-
-    _emit("state_summary.html", "State summary", "DERIVED",
-          "Mean rate + silence fraction per cell type from spike counts; counts from model.summary().",
-          _op_fig, extra={"summary": json.dumps(counts["summary"], default=str)[:500]},
-          lineage={"source_artifact": "model+signals",
-                   "variable": "spikes + model.summary",
-                   "transform": "spike-count summary",
-                   "units": "Hz + %", "window": "full run"})
-
-    # Optional field panel — only when a non-empty field proxy exists.
-    field = arr["field"]
-    if field is not None:
-        def _field_fig():  # type: ignore[no-untyped-def]
-            try:
-                return C.plot_lfp(signals, backend="plotly")
-            except Exception:
-                return C.plot_csd(signals, backend="plotly")
-
-        _emit(OPTIONAL_FIELD_FILE, "Field proxy", "DERIVED",
-              "LFP/CSD proxy traces when the model records a field.",
-              _field_fig,
-              lineage={"source_artifact": "signals",
-                       "variable": "field proxy",
-                       "transform": "plot_lfp/plot_csd",
-                       "units": "relative proxy", "window": "full run"})
 
     # Index atlas page.
     cards = []
@@ -497,7 +565,7 @@ def build_atlas(
         f.write(index_html)
 
     manifest = {
-        "suite": "atlas_suite.v1",
+        "suite": "atlas_suite.v2",
         "title": title,
         "figure_state": "GENERATED",
         "config_hash": config_hash,
@@ -505,8 +573,8 @@ def build_atlas(
         "k_d": k_d,
         "sim_identity": (f"seed={int(seed)} duration_ms={float(duration_ms)} "
                          f"dt_ms={dt_ms}"),
-        "recording_class": upstream.get("recording_class"),
-        "recording_budget": upstream.get("recording_budget"),
+        "recording_class": rec_class,
+        "recording_budget": rec_budget,
         "jaxfne_version": jaxfne_version,
         "seed": int(seed),
         "duration_ms": float(duration_ms),

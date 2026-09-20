@@ -524,7 +524,7 @@ changelog/releases/migration/performance (no runnable sims).
 ```markdown
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from <RUN>: [index](<P>index.html) · [3D](<P>network_3d.html) · [connectivity](<P>connectivity.html) · [raster](<P>raster.html) · [traces](<P>traces.html) · [spectral](<P>spectral.html) · [state summary](<P>state_summary.html).
+Dark-theme Plotly panels from <RUN>: [index](<P>index.html) · [schema](<P>schema.html) · [3D](<P>network_3d.html) · [raster](<P>raster.html) · [LFP](<P>lfp.html) · [H](<P>h_dynamics.html) · [HDP](<P>hdp.html) · [oscillatory](<P>oscillatory.html).
 
 Regenerate: `<REGEN>`.
 ```
@@ -598,31 +598,29 @@ refused (`E_PARAM_UNSUPPORTED`), declared geometry inert at execution
 
 ## Batch B — code (parallel after A; disjoint files)
 
+Sealed 2026-09-20 in `19aef19`: B3 provenance manifest, B4 promotion
+tooling, B5 no-resim gate, B7 negative gate, B8 canonical 1000 ms re-pin.
+
 - B1. Native Plotly H-SPICE panel (dark, interactive/vector, testable;
   theme presentation-only per standing rule).
 - B2. Atlas 7-panel update in `atlas_suite` (hspice, network3d, raster, lfp,
   h_dynamics, hdp, oscillatory — each enforcing its A2 contract incl.
   explicit fail/omit paths) + tests per contract branch.
-- B3. Provenance manifest emission (A4 schema) in `build_atlas`.
-- B4. Figure-state field + promotion tooling (VALIDATED / CANONICAL behind
-  Batch E gates).
-- B5. Frozen-bundle no-resimulation gate: étude figure generation ⇒
-  `Δsimulation = 0`; generators consume bundle dirs only; AST gate asserts
-  no simulate/construct import path in étude figure scripts.
+
+
+
 - B6. Gallery-from-manifests generator (lists only VALIDATED+ atlases with
   provenance; `gallery.md` becomes output, not source). Emits absolute
   gh-pages URLs per the A8 versioned layout (relative links only where the
   asset is committed alongside the page).
-- B7. Semantic-negative docs gate for the 7 forbidden conflations (delay
-  supported by TFNE; declared geometry == executed geometry; GABA ==
-  GABA_A; H == HDP; proxy == physical LFP; source order == realization
-  order; TFNE directly fills unspecified developmental choices), with an
-  allowlist for doctrine pages stating the limitation itself.
-- B8. Canonical 1000 ms re-pin (`generate_readme_atlas` EXPECTED +
-  duration; deliberate, hash-gated).
+
+
 
 ## Batch F — code sweep (after B, before C; trajectory-preserving)
 
+- F0. Scope: touched paths + `jaxfne/` hot paths only. Repo-wide `scripts/`
+  legacy lint (~180 pre-existing ruff errors, P-001) is explicitly out of
+  0.4.25 scope; bulk cleanup is 0.5.x. No drive-by lint renames (I-006).
 - F1. Hot-path complexity/order/flattening pass (simulate kernels, field
   projections, probe operators): linear-scan order, minimal temporaries,
   canonical `[T,N]`/`[T,X]` layouts; no semantic change.

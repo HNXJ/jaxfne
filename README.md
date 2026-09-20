@@ -70,8 +70,8 @@ If you are an AI agent, read [`artifacts/AGENTS.md`](artifacts/AGENTS.md).
 
 ## Canonical Visualization Atlas
 
-Six linked panels (`network_3d`, `connectivity`, `raster`, `traces`, `spectral`, `state_summary`) separate **OBSERVED** from **DERIVED** quantities and attach
-manifest provenance. Previews and generation code:
+Seven linked panels (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`, `hdp`, `oscillatory`) separate **OBSERVED** from **DERIVED** quantities and attach
+manifest provenance. A panel whose declared inputs cannot be met renders an explicit omission card instead of a substitute. Previews and generation code:
 [documentation site](https://jaxfne.readthedocs.io/en/latest/) and
 [Atlas guide](docs/guides/atlas_suite.md).
 

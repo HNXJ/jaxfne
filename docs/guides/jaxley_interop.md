@@ -156,7 +156,7 @@ Use jaxfne when you want to:
 
 ## Interactive panel (dark)
 
-The bridge returns `Signals` without a `Model`, so there is no 6-panel atlas for it — instead, the dark-theme membrane-potential panel of the HH run above, generated with the canonical `plot_membrane_potentials` plotter:
+The bridge returns `Signals` without a `Model`, so there is no full atlas for it — instead, the dark-theme membrane-potential panel of the HH run above, generated with the canonical `plot_membrane_potentials` plotter:
 
 <iframe
   src="../_static/jaxley_interop/vm_dark.html"

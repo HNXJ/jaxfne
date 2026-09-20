@@ -307,3 +307,22 @@ requires separate authorization.
 - **evidence:** jcritic pass F-007; gh-only; scripts not executed
 - **possible future change:** document scope boundary; optional clone-backed
   run of boundary + docs-page audit scripts
+
+### P-001
+- **date:** 2026-09-20
+- **type:** FRICTION
+- **area:** scripts lint debt / release scope
+- **observation:** repo-wide `python -m ruff check scripts/` reports ~180
+  pre-existing errors (unused imports, E741 names, f-strings, semicolons) in
+  legacy/research scripts. The release gate covers scoped paths only, so
+  these do not block 0.4.25 — but they are noise for contributors and an
+  unbounded surface for drive-by fixes.
+- **severity:** MINOR (no gate impact)
+- **minimal reproduction:** `python -m ruff check scripts/`
+- **expected behavior:** scoped lint policy documented; legacy debt triaged
+  per file (fix vs wont-fix with reason)
+- **actual behavior:** 180 errors, no policy recorded
+- **evidence:** ruff output 2026-09-20 (sweep session)
+- **possible future change:** Batch F scoping decision in
+  `artifacts/todo_stack.md` (touched paths + `jaxfne/` hot paths only);
+  bulk legacy cleanup is 0.5.x. No drive-by lint renames (I-006).

@@ -26,6 +26,6 @@ Next: [05 — Observe](05_observe_fields.md) — post-hoc observation operators 
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column (the page runs 1000 ms — the same duration as the pinned run): [index](../_static/atlas/index.html) · [3D](../_static/atlas/network_3d.html) · [connectivity](../_static/atlas/connectivity.html) · [raster](../_static/atlas/raster.html) · [traces](../_static/atlas/traces.html) · [spectral](../_static/atlas/spectral.html) · [state summary](../_static/atlas/state_summary.html).
+Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column (the page runs 1000 ms — the same duration as the pinned run): [index](../_static/atlas/index.html) · [schema](../_static/atlas/schema.html) · [3D](../_static/atlas/network_3d.html) · [raster](../_static/atlas/raster.html) · [LFP](../_static/atlas/lfp.html) · [H](../_static/atlas/h_dynamics.html) · [HDP](../_static/atlas/hdp.html) · [oscillatory](../_static/atlas/oscillatory.html).
 
 Regenerate: `python scripts/generate_readme_atlas.py --html-only`.

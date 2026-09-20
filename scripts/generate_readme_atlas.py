@@ -83,15 +83,28 @@ def write_png_stills(model, signals) -> list[Path]:
     convention.
     """
     from jaxfne.vis import canonical as C
-    from jaxfne.vis.atlas_suite import _build_state_summary_fig
+    from jaxfne.vis import network_inspect as NI
+    from jaxfne.vis.atlas_suite import (
+        _OmitPanel,
+        _empty_note_fig,
+        _h_dynamics_fig,
+        _hdp_fig,
+    )
+
+    def _omission_safe(make):  # type: ignore[no-untyped-def]
+        try:
+            return make()
+        except _OmitPanel as omit:
+            return _empty_note_fig(f"omitted — {omit}")
 
     builders = {
+        "schema": lambda: NI.network_hspice_plotly(model, theme="dark")["fig"],
         "network_3d": lambda: C.plot_network_3d(model, backend="plotly"),
-        "connectivity": lambda: C.plot_connectivity(model, backend="plotly"),
         "raster": lambda: C.plot_raster(signals, model, backend="plotly"),
-        "traces": lambda: C.plot_membrane_potentials(signals, model, backend="plotly"),
-        "spectral": lambda: C.plot_psd(signals, backend="plotly"),
-        "state_summary": lambda: _build_state_summary_fig(model, signals)[0],
+        "lfp": lambda: C.plot_lfp(signals, backend="plotly"),
+        "h_dynamics": lambda: _omission_safe(lambda: _h_dynamics_fig(model)),
+        "hdp": lambda: _omission_safe(lambda: _hdp_fig(model)),
+        "oscillatory": lambda: C.plot_psd(signals, backend="plotly"),
     }
 
     PNG_DIR.mkdir(parents=True, exist_ok=True)

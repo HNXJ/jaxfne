@@ -51,7 +51,7 @@ readouts = model.compute_readout(signals, [
 
 ## Interactive atlas (dark)
 
-Dark-theme Plotly panels from this page's circuit (500 ms, dt 0.5 ms, seed 0; the page shows dt 0.1 ms): [index](../_static/atlas/two_neuron_ei/index.html) · [3D](../_static/atlas/two_neuron_ei/network_3d.html) · [connectivity](../_static/atlas/two_neuron_ei/connectivity.html) · [raster](../_static/atlas/two_neuron_ei/raster.html) · [traces](../_static/atlas/two_neuron_ei/traces.html) · [spectral](../_static/atlas/two_neuron_ei/spectral.html) · [state summary](../_static/atlas/two_neuron_ei/state_summary.html).
+Dark-theme Plotly panels from this page's circuit (500 ms, dt 0.5 ms, seed 0; the page shows dt 0.1 ms): [index](../_static/atlas/two_neuron_ei/index.html) · [schema](../_static/atlas/two_neuron_ei/schema.html) · [3D](../_static/atlas/two_neuron_ei/network_3d.html) · [raster](../_static/atlas/two_neuron_ei/raster.html) · [LFP](../_static/atlas/two_neuron_ei/lfp.html) · [H](../_static/atlas/two_neuron_ei/h_dynamics.html) · [HDP](../_static/atlas/two_neuron_ei/hdp.html) · [oscillatory](../_static/atlas/two_neuron_ei/oscillatory.html).
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug two_neuron_ei`.
 

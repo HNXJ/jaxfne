@@ -11,6 +11,10 @@ Two renderers, answering the two questions a user has before any analysis:
     network_hspice(model)           what did I actually construct?
     network_raster(model, signals)  what does it immediately do?
 
+plus the native Plotly twin of the schematic for interactive atlases:
+
+    network_hspice_plotly(model)    same schematic, vector/interactive
+
 Nothing here assumes six layers, a particular layer or area naming scheme, a hierarchy
 direction, or that any cell class exists. Areas, layers and cell classes are whatever the
 neuron table declares. Stage order is inferred from the projection graph and can be given
@@ -36,7 +40,8 @@ import numpy as np
 
 CHANNEL_ABBREV = {"feedforward": "FF", "feedback": "FB", "lateral": "LAT"}
 
-__all__ = ["network_hspice", "network_raster", "describe", "Theme", "THEMES", "resolve_theme"]
+__all__ = ["network_hspice", "network_hspice_plotly", "network_raster", "describe",
+           "Theme", "THEMES", "resolve_theme"]
 
 # ---------------------------------------------------------------------------- themes
 
@@ -419,6 +424,207 @@ def network_hspice(model: Any, *, x: str | None = None, y: str | None = None,
             "n_edges_local": d["n_edges_local"],
             "n_edges_long_range": d["n_edges_long_range"],
             "n_projections": len(d["projections"])}
+
+
+def network_hspice_plotly(model: Any, *, x: str | None = None, y: str | None = None,
+                          theme: str | Theme = "light",
+                          stages: Sequence[Sequence[str]] | None = None,
+                          title: str | None = None,
+                          path: str | pathlib.Path | None = None,
+                          inhibitory_receptors: Iterable[int] = (1,),
+                          class_order: Sequence[str] = ("E", "PV", "SST", "VIP"),
+                          width: int = 1180, height: int = 640,
+                          show_legend: bool = True) -> dict:
+    """Native Plotly block schematic of the constructed circuit.
+
+    Same data contract as :func:`network_hspice` (built from the same
+    :func:`describe` output, so the description is identical under every
+    theme): areas as blocks, layers as rows, cell classes as chips, one
+    annotated arrow per area pair carrying total edge count, mean weight and
+    sign. Individual neurons are never drawn.
+
+    Returns the info dict with the live ``plotly.graph_objects.Figure``
+    under ``"fig"``. With ``path`` the figure is written as standalone dark
+    or light HTML matching the theme.
+    """
+    import plotly.graph_objects as go
+
+    th = resolve_theme(theme)
+    d = describe(model, inhibitory_receptors=inhibitory_receptors, class_order=class_order,
+                 stages=stages)
+    if stages is None:
+        by_depth: dict[int, list] = collections.defaultdict(list)
+        for a in d["areas"]:
+            by_depth[d["stage_of"].get(a, 0)].append(a)
+        stages = [sorted(by_depth[k], key=_natural_key) for k in sorted(by_depth)]
+    stages = [list(c) for c in stages if c]
+
+    all_classes = sorted({c for a in d["populations"].values() for L in a.values() for c in L},
+                         key=_class_key(class_order))
+    cmap = th.class_colors(all_classes)
+
+    n_col = len(stages)
+    col_cx = [0.10 + 0.80 * (i + 0.5) / n_col for i in range(n_col)]
+    box_w = min(0.22, 0.80 / n_col * 0.66)
+
+    # Vertical stacking per column (paper coords, y up).
+    boxes: dict[str, tuple[float, float, float, float]] = {}
+    for ci, col in enumerate(stages):
+        heights = [0.075 + 0.048 * len(d["populations"][a]) for a in col]
+        total = sum(heights) + 0.035 * max(0, len(col) - 1)
+        scale = min(1.0, 0.72 / total) if total > 0 else 1.0
+        y_top = 0.84
+        for a, h in zip(col, heights):
+            h *= scale
+            x0, x1 = col_cx[ci] - box_w / 2, col_cx[ci] + box_w / 2
+            boxes[a] = (x0, y_top - h, x1, y_top)
+            y_top -= h + 0.035 * scale
+
+    shapes: list[dict] = []
+    annotations: list[dict] = []
+    hover_x, hover_y, hover_t = [], [], []
+
+    for a, (x0, y0, x1, y1) in boxes.items():
+        shapes.append(dict(type="rect", x0=x0, y0=y0, x1=x1, y1=y1,
+                           fillcolor=th.block_face, line=dict(color=th.block_edge, width=1.6)))
+        annotations.append(dict(x=(x0 + x1) / 2, y=y1 + 0.012, text=f"<b>{a}</b>",
+                                showarrow=False, font=dict(color=th.text, size=12)))
+        layers = list(d["populations"][a])
+        inner = 0.010
+        rh = (y1 - y0 - 2 * inner) / max(1, len(layers))
+        for li, layer in enumerate(layers):
+            ry1 = y1 - inner - li * rh
+            ry0 = ry1 - rh
+            if li:
+                shapes.append(dict(type="line", x0=x0 + 0.004, y0=ry1, x1=x1 - 0.004, y1=ry1,
+                                   line=dict(color=th.grid, width=1)))
+            annotations.append(dict(x=x0 + 0.006, y=(ry0 + ry1) / 2, text=layer,
+                                    showarrow=False, xanchor="left",
+                                    font=dict(color=th.muted, size=9)))
+            chips = list(d["populations"][a][layer].items())
+            chip_x0 = x0 + 0.052
+            cw = (x1 - 0.004 - chip_x0) / max(1, len(chips))
+            for cj, (cls, n) in enumerate(chips):
+                cx0 = chip_x0 + cj * cw + 0.002
+                cx1 = chip_x0 + (cj + 1) * cw - 0.002
+                cy0, cy1 = ry0 + 0.006, ry1 - 0.006
+                shapes.append(dict(type="rect", x0=cx0, y0=cy0, x1=cx1, y1=cy1,
+                                   fillcolor=cmap[cls], opacity=0.28,
+                                   line=dict(color=cmap[cls], width=1.2)))
+                annotations.append(dict(x=(cx0 + cx1) / 2, y=(cy0 + cy1) / 2,
+                                        text=f"{cls}×{n}", showarrow=False,
+                                        font=dict(color=th.text, size=8)))
+        n_area = sum(d["populations"][a][L][c] for L in layers
+                     for c in d["populations"][a][L])
+        hover_x.append((x0 + x1) / 2)
+        hover_y.append((y0 + y1) / 2)
+        hover_t.append(f"{a}: {n_area} neurons, {len(layers)} layers")
+
+    # Aggregate projections to area pairs for readable arrows.
+    links: dict[tuple[str, str], dict] = {}
+    for p in d["projections"]:
+        key = (p["source_area"], p["target_area"])
+        e = links.setdefault(key, {"n": 0, "w": 0.0, "channels": set(), "signs": set()})
+        e["n"] += p["n_edges"]
+        e["w"] += p["mean_weight"] * p["n_edges"]
+        e["channels"].add(p["channel"])
+        e["signs"].add(p["sign"])
+    for (sa, da), e in sorted(links.items()):
+        wmean = e["w"] / e["n"]
+        if e["signs"] == {"inhibitory"}:
+            colour, ch, head = th.channel_color("inhibitory"), "INH", 1
+        else:
+            ch = ("feedforward" if "feedforward" in e["channels"]
+                  else "feedback" if "feedback" in e["channels"] else "lateral")
+            colour = th.channel_color(ch)
+            head = 3 if ch == "lateral" else 2
+        ch_abbrev = {"feedforward": "FF", "feedback": "FB", "lateral": "LAT"}.get(ch, ch)
+        label = f"{ch_abbrev} n={e['n']} w={wmean:.3f}"
+        x0, y0, x1, y1 = boxes[sa]
+        xa, ya, xb, yb = boxes[da]
+        fwd = ch == "feedforward"
+        sx, tx = (x1, xa) if fwd or sa == da else (x0, xb)
+        if ch == "lateral" and sa != da:
+            sx, tx = (x1, xa) if sx < tx else (x0, xb)
+        sy, ty = (y0 + y1) / 2, (ya + yb) / 2
+        annotations.append(dict(x=(sx + tx) / 2, y=(sy + ty) / 2 + 0.018, text=label,
+                                showarrow=False, font=dict(color=colour, size=9),
+                                bgcolor=th.label_halo, borderpad=3))
+        annotations.append(dict(x=tx, y=ty, ax=sx, ay=sy, xref="x", yref="y",
+                                axref="x", ayref="y", showarrow=True,
+                                arrowhead=head, arrowsize=1.4, arrowwidth=2,
+                                arrowcolor=colour, standoff=4, startstandoff=4))
+
+    for px, tag, name in ((0.035, "x", x or "input"), (0.965, "y", y or "output")):
+        colour = th.channel_color("input" if tag == "x" else "output")
+        shapes.append(dict(type="rect", x0=px - 0.030, y0=0.47, x1=px + 0.030, y1=0.57,
+                           fillcolor=th.block_face, line=dict(color=colour, width=1.6)))
+        annotations.append(dict(x=px, y=0.535, text=f"<b>{tag}</b>", showarrow=False,
+                                font=dict(color=th.text, size=13)))
+        annotations.append(dict(x=px, y=0.49, text=name, showarrow=False,
+                                font=dict(color=th.muted, size=8)))
+
+    head = title or f"input → model → output &nbsp;({len(d['areas'])} areas)"
+    foot = (f"{d['n_neurons']} neurons, {d['n_edges_total']} edges: {d['n_edges_local']} "
+            f"within-area, {d['n_edges_long_range']} across areas in "
+            f"{len(d['projections'])} block projections. No individual neuron is drawn.")
+    annotations.append(dict(x=0.5, y=0.965, text=f"<b>{head}</b>", showarrow=False,
+                            font=dict(color=th.text, size=14)))
+    annotations.append(dict(x=0.5, y=0.925, text=foot, showarrow=False,
+                            font=dict(color=th.muted, size=10)))
+
+    data = []
+    if show_legend:
+        for c in all_classes:
+            data.append(go.Scatter(x=[None], y=[None], mode="markers",
+                                   marker=dict(size=9, color=cmap[c]), name=c))
+        seen = {p["channel"] for p in d["projections"]}
+        for ch, lab in (("feedforward", "feedforward"), ("feedback", "feedback"),
+                        ("lateral", "lateral")):
+            if ch in seen:
+                data.append(go.Scatter(x=[None], y=[None], mode="lines",
+                                       line=dict(color=th.channel_color(ch), width=3,
+                                                 dash="dash" if ch == "feedback" else "solid"),
+                                       name=lab))
+        if any(p["sign"] == "inhibitory" for p in d["projections"]):
+            data.append(go.Scatter(x=[None], y=[None], mode="lines",
+                                   line=dict(color=th.channel_color("inhibitory"), width=3),
+                                   name="inhibitory"))
+    if hover_x:
+        data.append(go.Scatter(x=hover_x, y=hover_y, mode="markers",
+                               marker=dict(size=1, opacity=0), hovertext=hover_t,
+                               hoverinfo="text", showlegend=False))
+
+    fig = go.Figure(data=data)
+    fig.update_layout(shapes=shapes, annotations=annotations,
+                      xaxis=dict(visible=False, range=[0, 1]),
+                      yaxis=dict(visible=False, range=[0, 1]),
+                      width=width, height=height, showlegend=show_legend,
+                      legend=dict(font=dict(color=th.text), orientation="h",
+                                  yanchor="top", y=-0.02, xanchor="center", x=0.5),
+                      paper_bgcolor=th.background, plot_bgcolor=th.background,
+                      font=dict(color=th.text), margin=dict(l=20, r=20, t=40, b=60))
+    if th.name == "dark":
+        fig.update_layout(template="plotly_dark")
+    else:
+        fig.update_layout(template="plotly_white")
+    # Explicit colors win over the template; the template only steadies defaults.
+    fig.update_layout(paper_bgcolor=th.background, plot_bgcolor=th.background,
+                      font=dict(color=th.text))
+
+    saved = None
+    if path is not None:
+        out = pathlib.Path(path)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        fig.write_html(str(out), include_plotlyjs="cdn", full_html=True)
+        saved = str(out)
+    return {"figure": "network_hspice_plotly", "path": saved, "theme": th.name,
+            "stages": [list(c) for c in stages], "areas": d["areas"],
+            "n_neurons": d["n_neurons"], "n_edges_total": d["n_edges_total"],
+            "n_edges_local": d["n_edges_local"],
+            "n_edges_long_range": d["n_edges_long_range"],
+            "n_projections": len(d["projections"]),
+            "n_area_links": len(links), "fig": fig}
 
 
 def _draw_port(ax, x0, tag, label, colour, th):

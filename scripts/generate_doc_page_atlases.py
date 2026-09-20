@@ -2,7 +2,7 @@
 """Generate one dark-theme Plotly atlas per doc-simulation page (docs style rollout).
 
 Each spec builds the page's own circuit at a stated smoke scale, simulates it,
-and emits the 6-panel atlas via ``jaxfne.vis.build_atlas`` (which applies the
+and emits the 7-panel atlas via ``jaxfne.vis.build_atlas`` (which applies the
 dark presentation-only theme) under ``docs/_static/atlas/<slug>/``.
 
 Every spec records its provenance label honestly: circuits/runs that differ
@@ -322,6 +322,34 @@ def spec_canonical_etude_1000():
             dict(duration_ms=1000.0, dt_ms=0.5, seed=0))
 
 
+def spec_hdp_10():
+    # Small-mechanistic full-recording run: HDP on with weight-trace
+    # recording (tiny edge count, so full T×E fits the plot budget).
+    import jaxfne as jtfne
+    cfg = (jtfne.configuration()
+           .network(name="V1", kind="cortical_column", n=10,
+                    cell_types={"E": 0.5, "PV": 0.5})
+           .cell_type_drives({"E": 8.0, "PV": 8.0})
+           .emitter(family="izhikevich", preset="cortical_eig")
+           .field(domain="laminar_column", conductivity="proxy",
+                  boundary="mean_zero_neumann", gauge="mean_zero")
+           .probe(name="probe", modes=["spikes", "V_m"]))
+    model = jtfne.construct(cfg)
+    runtime = jtfne.RuntimeConfig(
+        enable_hdp=True, recurrent_backend="edge_list", jit=False,
+        hdp_params={"K_HDP": 0.01, "tau_0_ms": 200.0, "K_ctrl": 5.0,
+                    "barrier_c": 0.01, "barrier_d": 0.01,
+                    "H_min": 0.1, "H_max": 10.0,
+                    "w_min": -10.0, "w_max": 10.0})
+    sim = jtfne.Simulation(duration_ms=100.0, dt_ms=0.5, seed=0,
+                           runtime=runtime)
+    signals = model.simulate(sim)
+    assert model.last_hdp_diagnostics() is not None
+    assert model.last_hdp_diagnostics().get("w_trace") is not None
+    return ("HDP circuit, full recording (10n, 100 ms)", model, signals,
+            dict(duration_ms=100.0, dt_ms=0.5, seed=0))
+
+
 def spec_hdp_1000():
     # Short HDP run; weight-trace recording off (memory: steps x edges).
     import jaxfne as jtfne
@@ -456,6 +484,7 @@ SPECS = {
     "omission_60": spec_omission_60,
     "v1v4_80": spec_v1v4_80,
     "canonical_etude_1000": spec_canonical_etude_1000,
+    "hdp_10": spec_hdp_10,
     "hdp_1000": spec_hdp_1000,
     "homeostasis_1000": spec_homeostasis_1000,
     "calibration_100": spec_calibration_100,
