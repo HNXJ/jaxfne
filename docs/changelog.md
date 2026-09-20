@@ -9,6 +9,39 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+## v0.4.25 (2026-09-20)
+
+Terminal `0.4.x` release: TFNE-algebra + visualization sweep on unchanged
+scientific numerics (bit-exact legacy trajectories; Batch F kernel work
+proven bitwise-identical by stash-compared trajectory hashes).
+
+### Visualization
+
+- Native Plotly H-SPICE schematic (`network_hspice_plotly`, same
+  `describe()` data contract as the matplotlib twin) + model-inspection
+  guide.
+- Seven-panel dark atlas (`schema`, `network_3d`, `raster`, `lfp`,
+  `h_dynamics`, `hdp`, `oscillatory`) with per-panel data contracts:
+  unmeetable contracts render explicit omission cards, never substitutes.
+- Per-page atlases for every doc simulation + frozen-étude HTML panels
+  (post-hoc or deterministic reruns with hash/claims verification).
+- Provenance manifests (`tfne_digest`, `K_D`, sim identity, per-panel
+  lineage, figure states GENERATED/VALIDATED).
+
+### Documentation
+
+- TFNE→JDNA→Model teaching lifecycle; pinned stable TFNE doc subset.
+- Verbosity/format passes across tutorials, guides, API, doctrine;
+  reorganized left menu; semantic-negative docs gate + vocabulary audits.
+- Fixed stale snippets (evoked paradigm path, `model_inspection` kwargs,
+  Colab API with live keys and measured outputs).
+
+### Publication
+
+- Tag `v0.4.25`; GitHub release and PyPI from retained CI artifacts; RTD
+  stable @ tag.
+- Published predecessor v0.4.24 (tag `v0.4.24`, PyPI) preserved.
+
 ## v0.4.24 (2026-09-14)
 
 Minimization programme plus general finite-state HDP expressivity, with no

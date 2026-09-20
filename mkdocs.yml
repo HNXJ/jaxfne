@@ -221,4 +221,4 @@ nav:
       - Citation: citation.md
       - Contributing: contributing.md
 extra:
-  jaxfne_version: "0.4.24"
+  jaxfne_version: "0.4.25"

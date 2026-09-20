@@ -63,7 +63,10 @@ Run **only** the batch's listed verification commands, on the assigned
 scope. Record literal outcomes (pass/fail + key counts). Do not expand
 scope to "be safe" — broader gates belong to their own batch.
 Re-read every edited region after applying edits; an edit tool success
-message is not verification of content.
+message is not verification of content. For edits in large files, check
+`git diff --stat` too — a one-line change must show a one-line diff, and
+any unattributed reflow is a P-class problem (log it, prove harmlessness
+or revert).
 
 ### 6. Stop
 

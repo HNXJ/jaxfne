@@ -2,7 +2,7 @@
   "suite": "etude_posthoc.v1",
   "etude": "hdp_controllability_reachability",
   "figure_state": "validated",
-  "jaxfne_version": "0.4.24",
+  "jaxfne_version": "0.4.25",
   "panels": [
     {
       "file": "raster.html",
@@ -71,8 +71,9 @@
     }
   ],
   "sha256": "fb7f17316fed6f99",
-  "generated_utc": "2026-09-20T04:37:40.908187+00:00",
+  "generated_utc": "2026-09-20T06:55:52.865917+00:00",
   "source_bundle": "artifacts/etudes/hdp_controllability_reachability",
+  "verification_tier": "hash",
   "checkpoint": "artifacts/mcc3_10s_checkpoint",
   "reproduced_theta_hat": {
     "m_EE": 1.4332973957061768,
@@ -85,14 +86,13 @@
   "n_steps": 100000,
   "simulation_runs": 2,
   "rerun_note": "tune + condition B reproduced; theta_hat and firing.B match committed checkpoint",
-  "verification_tier": "hash",
   "promotion": [
     {
       "to": "validated",
-      "reason": "C5: deterministic tune + condition-B rerun, theta_hat and firing.B hash-exact vs checkpoint",
+      "reason": "C6 post-bump: deterministic regen on 0.4.25 tree, panels bit-identical (shas match pre-bump), gates green",
       "promoter": "promote_atlas_state.py",
-      "git_head": "b437ec30d3eae0c51d00308e3f032448f61e62d6",
-      "utc": "2026-09-20T04:39:58.983230+00:00"
+      "git_head": "63f0333bf0585157cad66914269e3249e5b1a821",
+      "utc": "2026-09-20T06:56:10.236928+00:00"
     }
   ]
 }

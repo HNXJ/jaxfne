@@ -2,7 +2,7 @@
   "suite": "etude_posthoc.v1",
   "etude": "multiscale_observation",
   "figure_state": "validated",
-  "jaxfne_version": "0.4.24",
+  "jaxfne_version": "0.4.25",
   "panels": [
     {
       "file": "raster.html",
@@ -71,7 +71,7 @@
     }
   ],
   "sha256": "c8e85a91788ca5a0",
-  "generated_utc": "2026-09-20T04:35:04.623520+00:00",
+  "generated_utc": "2026-09-20T06:55:03.476408+00:00",
   "source_bundle": "artifacts/etudes/multiscale_observation",
   "verification_tier": "claims",
   "reproduced_cause_hashes": {
@@ -88,10 +88,10 @@
   "promotion": [
     {
       "to": "validated",
-      "reason": "C5: deterministic rerun, spikes/positions hash-exact, published claims re-verified within protocol tolerance (P-003)",
+      "reason": "C6 post-bump: deterministic regen on 0.4.25 tree, panels bit-identical (shas match pre-bump), gates green",
       "promoter": "promote_atlas_state.py",
-      "git_head": "b437ec30d3eae0c51d00308e3f032448f61e62d6",
-      "utc": "2026-09-20T04:39:58.477504+00:00"
+      "git_head": "63f0333bf0585157cad66914269e3249e5b1a821",
+      "utc": "2026-09-20T06:56:10.736961+00:00"
     }
   ]
 }

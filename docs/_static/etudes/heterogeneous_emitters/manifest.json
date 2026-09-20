@@ -2,7 +2,7 @@
   "suite": "etude_posthoc.v1",
   "etude": "heterogeneous_emitters",
   "figure_state": "validated",
-  "jaxfne_version": "0.4.24",
+  "jaxfne_version": "0.4.25",
   "panels": [
     {
       "file": "raster_izh.html",
@@ -84,7 +84,7 @@
     }
   ],
   "sha256": "2e87fb001abf93df",
-  "generated_utc": "2026-09-20T04:36:49.750795+00:00",
+  "generated_utc": "2026-09-20T06:55:22.968296+00:00",
   "source_bundle": "artifacts/etudes/heterogeneous_emitters",
   "verification_tier": "claims",
   "reproduced_Q_sha256": {
@@ -101,10 +101,10 @@
   "promotion": [
     {
       "to": "validated",
-      "reason": "C5: deterministic rerun, Q hashes and rates hash-exact vs frozen bundle",
+      "reason": "C6 post-bump: deterministic regen on 0.4.25 tree, panels bit-identical (shas match pre-bump), gates green",
       "promoter": "promote_atlas_state.py",
-      "git_head": "b437ec30d3eae0c51d00308e3f032448f61e62d6",
-      "utc": "2026-09-20T04:39:58.729304+00:00"
+      "git_head": "63f0333bf0585157cad66914269e3249e5b1a821",
+      "utc": "2026-09-20T06:56:10.482625+00:00"
     }
   ]
 }

@@ -8,7 +8,7 @@
   "sim_identity": "seed=0 duration_ms=500.0 dt_ms=0.5",
   "recording_class": "small-mechanistic",
   "recording_budget": "full H, HDP targets, representative W, diagnostics",
-  "jaxfne_version": "0.4.24",
+  "jaxfne_version": "0.4.25",
   "seed": 0,
   "duration_ms": 500.0,
   "n_neurons": 2,
@@ -120,10 +120,10 @@
   "promotion": [
     {
       "to": "validated",
-      "reason": "C6: content gates green on b437ec3 (language/vocab/semantic/orphans, ruff, targeted pytest, mkdocs strict); deterministic generator reruns",
+      "reason": "C6 post-bump: deterministic regen on 0.4.25 tree, panels bit-identical (shas match pre-bump), gates green",
       "promoter": "promote_atlas_state.py",
-      "git_head": "b437ec30d3eae0c51d00308e3f032448f61e62d6",
-      "utc": "2026-09-20T04:16:14.574155+00:00"
+      "git_head": "63f0333bf0585157cad66914269e3249e5b1a821",
+      "utc": "2026-09-20T06:56:08.459328+00:00"
     }
   ]
 }

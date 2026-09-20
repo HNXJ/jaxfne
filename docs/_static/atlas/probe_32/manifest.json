@@ -1,14 +1,14 @@
 {
   "suite": "atlas_suite.v2",
   "title": "Probe-operators circuit, minimal run (32n, 200 ms)",
-  "figure_state": "validated",
+  "figure_state": "GENERATED",
   "config_hash": "5690a65f088b1e71",
   "tfne_digest": null,
   "k_d": null,
   "sim_identity": "seed=0 duration_ms=200.0 dt_ms=0.5",
   "recording_class": "small-mechanistic",
   "recording_budget": "full H, HDP targets, representative W, diagnostics",
-  "jaxfne_version": "0.4.24",
+  "jaxfne_version": "0.4.25",
   "seed": 0,
   "duration_ms": 200.0,
   "n_neurons": 32,
@@ -116,14 +116,5 @@
       }
     }
   ],
-  "sha256": "149fd836b83b809c",
-  "promotion": [
-    {
-      "to": "validated",
-      "reason": "C6: content gates green on b437ec3 (language/vocab/semantic/orphans, ruff, targeted pytest, mkdocs strict); deterministic generator reruns",
-      "promoter": "promote_atlas_state.py",
-      "git_head": "b437ec30d3eae0c51d00308e3f032448f61e62d6",
-      "utc": "2026-09-20T04:16:13.020905+00:00"
-    }
-  ]
+  "sha256": "149fd836b83b809c"
 }

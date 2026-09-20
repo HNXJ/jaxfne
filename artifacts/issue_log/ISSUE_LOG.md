@@ -37,7 +37,7 @@ requires separate authorization.
 
 ---
 
-## Open issues
+## Issue history (drained 2026-09-20 — Open section empty; verdicts below)
 
 ### I-001
 - **date:** 2026-08-19
@@ -366,3 +366,48 @@ requires separate authorization.
   protocol's own 1e-3 relative tolerance, geometry-exact r90 ==); future
   frozen protocols must record JAX/lib versions in the bundle (0.5.x
   provenance rule)
+
+### P-004
+- **date:** 2026-09-20
+- **type:** FRICTION
+- **area:** repo hygiene / unexplained modification
+- **observation:** `scripts/generate_doc_page_atlases.py` carries
+  formatter-style reflow (~450 diff lines) with no identified authoring
+  action (no formatter invocation found in history; possibly an
+  interrupted worker's editor). Content verified unaffected.
+- **severity:** MINOR (verified harmless, see below)
+- **minimal reproduction:** `git diff --cached --stat` on the file
+- **expected behavior:** diffs attributable to a known action
+- **actual behavior:** unattributed reflow alongside real edits
+- **evidence:** `ruff check` + `ruff format --check` clean; `--list` runs;
+  single-slug end-to-end rerun green; prior full regen bit-exact
+- **possible future change:** resolved as harmless for 0.4.25; agent rule
+  added (verify `git diff --stat` scale matches the intended change)
+
+---
+
+## Drain verdicts (0.4.25 sweep, 2026-09-20)
+
+Entries above preserved verbatim. Open section is empty; every item closed
+with the verdict and evidence below. New problems keep getting IDs here and
+drain the same way.
+
+| ID | Verdict | Evidence |
+|---|---|---|
+| I-001 | FIXED (comment + test docstring to live counts; assertions unchanged) | `d302105`, gate green |
+| I-002 | SUPERSEDED (immutable receipts; v0.4.24 chain rules) | receipt chain + rollover draft |
+| I-003 | SUPERSEDED (`dist/` absent; clean-room build at release) | tree state; E5 validators |
+| I-004 | ADOPTED as Batch D acceptance (observed values cite exact artifacts) | todo_stack E6 |
+| I-005 | ADOPTED as standing rule (green gates on exact sealed commit) | E4 gates; CI on release commit |
+| I-006 | ADOPTED (behavioral suites gate lint renames; recorded in traps) | F3 + developer file |
+| I-007 | SUPERSEDED (same as I-002) | receipt chain |
+| I-008 | RULED (A9 freeze scope: numerics frozen, presentation + bit-exact ok) | todo_stack A9 |
+| I-009 | VERIFIED-FIXED (stale routes absent from file) | grep 2026-09-20 |
+| I-010 | FIXED (one-line skills path) | `d302105`, gate green |
+| I-011 | SUPERSEDED (scripts absent from tree) | tree state |
+| I-012 | SUPERSEDED (skills already cite `current_release_authorities.json`) | grep 2026-09-20 |
+| I-013 | BANNERED (stale routing index points to successor; receipts untouched) | workbench header edit |
+| I-014 | SUPERSEDED (boundary script absent; nav covered by orphan check) | tree state + E1 |
+| P-001 | SCOPED (scripts/ legacy lint out of 0.4.25; bulk cleanup 0.5.x) | todo_stack F0 |
+| P-002 | FIXED same turn (stale 6-panel label) | e65c035, strict build |
+| P-003 | DOCUMENTED (float-drift finding; claims-tier figures published) | C5 reruns + manifests |

@@ -2,6 +2,7 @@
 
 _Routing index only. This file points to evidence; it does not override evidence._
 _Last indexed: 2026-08-21 (branch: dev, HEAD: caec1f71)_
+_STALE as of 0.4.25: routing only — for current state see `artifacts/todo_stack.md` and `artifacts/release/current_release_authorities.json`; evidence receipts unchanged._
 
 ---
 
