@@ -436,3 +436,5 @@ drain the same way.
 | P-001 | SCOPED (scripts/ legacy lint out of 0.4.25; bulk cleanup 0.5.x) | todo_stack F0 |
 | P-002 | FIXED same turn (stale 6-panel label) | e65c035, strict build |
 | P-003 | DOCUMENTED (float-drift finding; claims-tier figures published) | C5 reruns + manifests |
+| P-004 | DOCUMENTED (unattributed reflow proven harmless; diff-stat rule added) | ruff + regen evidence |
+| P-005 | FIXED (candidate discipline: RC label + published-claims restored + rollover reverted; full broad rerun green before re-release) | version-alignment gates |
