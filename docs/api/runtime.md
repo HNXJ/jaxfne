@@ -17,6 +17,7 @@ jaxfne.RuntimeConfig(
     synaptic_kernel="exponential", recompilation_guard="warning",
     enable_homeostasis=False, homeostasis_params={...},
     enable_hdp=False, hdp_params={...},
+    device_type=None, dtype_primary=None, x64_enabled=None,
 )
 ```
 

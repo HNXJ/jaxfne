@@ -45,9 +45,9 @@ The validation module provides tools to:
 
 ## Signal & Field Validation
 
-### `validate_source_field_status(field_output: FieldOutput) -> dict`
+### `validate_source_field_status(field_output: FieldOutput | None = None, cfg_metadata: Mapping[str, Any] | None = None, *, requested_modes: Sequence[str] | None = None) -> dict`
 
-Validate field output for numerical consistency.
+Validate field output for numerical consistency (all inputs optional).
 
 **Parameters:**
 - `field_output` (FieldOutput): Field computation results
@@ -106,7 +106,7 @@ assert not report["warnings"], f"Projection invariants failed: {report['warnings
 
 ## Conservation Diagnostics
 
-### `compute_conservation_proxy_diagnostics(*, source=None, phi_e=None, csd=None, lfp=None, field_solution=None, source_calibration_status=..., field_solver_status=..., field_claim_level=...) -> dict`
+### `compute_conservation_proxy_diagnostics(*, source=None, phi_e=None, csd=None, lfp=None, field_solution=None, source_calibration_status="uncalibrated_izhikevich_native_current", field_solver_status="linear_solver", field_claim_level="proxy_readout") -> dict`
 
 Compute conservation-inspired proxy diagnostics over existing source/field
 arrays. All array parameters are optional and keyword-only — pass whichever of
@@ -121,8 +121,9 @@ arrays. All array parameters are optional and keyword-only — pass whichever of
 
 **Example:**
 ```python
-diag = jtfne.compute_conservation_proxy_diagnostics(source=sources, lfp=signals.LFP, csd=signals.CSD)
-print(diag["source_norm_l1"], diag["warnings"])
+diag = jtfne.compute_conservation_proxy_diagnostics(
+    source=sources, lfp=signals.get("lfp_proxy"), csd=signals.get("csd_proxy"))
+print(diag["source_norm_l1"], diag["diagnostic_status"])
 ```
 
 ---
@@ -198,8 +199,7 @@ else:
   conductivity tensor.
 - `validate_full_spd_conductivity(sigma, *, tolerance=1e-10)` (`:204`) — full symmetric
   positive-definite conductivity tensor.
-- `validate_field_arrays_finite(**arrays)` (`:300`) — finiteness check over an arbitrary set
-  of named field arrays.
+- `validate_field_arrays_finite(phi_e=None, J_e=None, CSD=None)` (`:300`) — finiteness check over named field arrays (explicit parameters, no catch-all)
 
 ## Field Admissibility Report
 

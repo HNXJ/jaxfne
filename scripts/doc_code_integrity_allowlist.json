@@ -1,0 +1,25 @@
+{
+  "non_python_fences": [
+    {
+      "file": "docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
+      "pattern": "I_syn_i = sum_j",
+      "reason": "math pseudocode for the HDP control law, not Python"
+    },
+    {
+      "file": "docs/tutorials/07_v037_source_bookkeeping.md",
+      "pattern": "amplitude_status",
+      "reason": "illustrative if-with-comments-only scope-gate sketch"
+    },
+    {
+      "file": "docs/tutorials/11_multi_laminar_cortical_agsdr.md",
+      "pattern": "%pip install",
+      "reason": "notebook magic, not Python"
+    },
+    {
+      "file": "docs/tutorials/notebook_standard.md",
+      "pattern": "!pip install",
+      "reason": "notebook shell, not Python"
+    }
+  ],
+  "allowed_missing": []
+}

@@ -285,6 +285,7 @@ class NeuronalTensor:
     area_connections: Sequence[AreaConnection] = omitted
     name: str = "untitled"
     connectivity_mode: Literal["unspecified", "explicit"] | None = None
+    provenance: dict | None = None
 ```
 
 The top-level container for areas and between-area connections.

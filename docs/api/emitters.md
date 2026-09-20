@@ -395,7 +395,7 @@ above for exact semantics.
 
 ---
 
-### `simulate_edge_recurrent_izhikevich(params, edges, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None, noise_scale=None) -> (voltages, spikes, sources, final_state)`
+### `simulate_edge_recurrent_izhikevich(params, edges, n_steps, dt_ms, key, *, dtype="float32", drive_schedule=None, silence_mask=None, noise_scale=None, init_state=None, step_indices=None, record_edge_current=False, record_current_trace=False, record_u_trace=False) -> (voltages, spikes, sources, final_state)`
 
 Simulate reduced Izhikevich emitters with **sparse** recurrent synapses, with `jax.lax.scan`
 over time and `jax.ops.segment_sum` over edges (`jaxfne/emitters.py:532`). JIT/vmap compatible.
@@ -724,7 +724,7 @@ custom Python callable bypasses `Configuration` entirely, via
   (unlike `jnp.clip`'s zero-gradient boundary). Requires `HomeostaticEIParams.x_min`/
   `.x_max` (new fields; default a very wide `+-1e6`, safe/inert for `"minimal"` mode).
 
-### `make_minimal_ei_params(n=8, e_fraction=0.75, **kwargs) -> HomeostaticEIParams`
+### `make_minimal_ei_params(n=8, e_fraction=0.75, *, x0_value=0.1, H0_value=0.3, drive_e=0.5, drive_i=0.3, tau_x_ms=5.0, tau_G_ms=200.0, tau_H_ms=1000.0, G_max=None, H_min=0.1, H_max=10.0, x_min=-10.0, x_max=10.0, source_scale_value=1.0) -> HomeostaticEIParams`
 
 Builds a minimal all-pairwise E/I `HomeostaticEIParams` for any `n>=2` — the
 `scripts/`-level analog of `Configuration.set_emitter("homeostatic_ei")`, for ad hoc

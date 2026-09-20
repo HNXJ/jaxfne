@@ -384,6 +384,30 @@ requires separate authorization.
 - **possible future change:** resolved as harmless for 0.4.25; agent rule
   added (verify `git diff --stat` scale matches the intended change)
 
+### P-006
+- **date:** 2026-09-20
+- **type:** DOC
+- **area:** api reference accuracy
+- **observation:** systematic signature drift between `docs/api` and live
+  code found by delegated audit (143 checked): 13 divergences — omitted
+  keyword-only optionals, one `**kwargs` fiction, one required-vs-optional
+  inversion, one renamed-parameter pair; plus a fictional Metrics section
+  (`energy_ratio` etc. keys do not exist) and a broken example
+  (`signals.LFP` attribute does not exist; `diag["warnings"]` key does not
+  exist) in `fields.md`/`validation.md`.
+- **severity:** MAJOR for the broken example (TypeError/KeyError on copy),
+  MINOR for omissions
+- **minimal reproduction:** `inspect.signature` vs doc blocks; execute the
+  conservation example headless
+- **expected behavior:** documented signatures/names/keys match live code;
+  examples execute
+- **actual behavior:** as in observation
+- **evidence:** worker audit ses_f3f62fb93ffen03bB3XxJ7Wr07 + independent
+  re-verification 12/12 SOUND (one worker false claim reverted with proof)
+- **possible future change:** fixed same turn (12 doc edits + example
+  rewritten to live keys and executed); `audit_doc_code_integrity.py` gate
+  added to prevent recurrence
+
 ### P-005
 - **date:** 2026-09-20
 - **type:** DOC

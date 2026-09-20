@@ -403,3 +403,7 @@ Carried forward from the sealed 0.4.25 sweep (history in git):
   open under JDNA ownership, per the standing sections above.
 - Frozen protocols must record JAX/lib versions in future bundles (P-003
   provenance rule).
+- Integrity round (P-006): 13 api signature drifts fixed + verified,
+  `audit_doc_code_integrity.py` gate added (fences/refs/symbols); reviewer
+  caught 1 worker false claim before application — reviewers≠workers stays
+  mandatory.

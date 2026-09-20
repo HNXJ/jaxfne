@@ -95,7 +95,7 @@ configured elsewhere.
 cfg = cfg.connectivity(feedforward_gain=1.0)
 ```
 
-#### `set_emitter(family: str = "izhikevich", preset: str = "cortical_eig") -> Configuration`
+#### `set_emitter(family: str = "izhikevich", preset: str = "cortical_eig", *, activation_rule: str = "cubic", conductance_rule: str = "hebbian", homeostasis_rule: str = "linear", bound_mode: str = "minimal") -> Configuration`
 
 `_config.py`. Thin wrapper: `self.emitter(family=family, preset=preset)`.
 
@@ -151,7 +151,7 @@ physical signals.
 
 `Model` has many methods beyond those listed; this lists the documented ones.
 
-#### `simulate(sim: Simulation, paradigm: Any | None = None) -> Signals`
+#### `simulate(sim: Simulation, paradigm: Any | None = None, *, continuation: Any | None = None, return_state: bool = False) -> Signals`
 
 `_model.py`. Runs the default **Izhikevich / edge-list EIG vertical slice**.
 `sim` is a **required, positional `Simulation` object** — not `duration_ms`/`dt_ms`/`seed`
@@ -368,7 +368,7 @@ obj = obj.loss("spike_rate", target=10.0, metric="spike_rate_hz", weight=1.0)
 `_signals.py`. Concatenates losses/regularizers/gates from other `Objective`
 instances into a new merged `Objective`.
 
-### `rate_targets(groups, targets_hz, weights=None) -> Objective`
+### `rate_targets(groups, targets_hz, weights=None, *, burn_in_ms=0.0, window_end_ms=None, epsilon=1e-06) -> Objective`
 
 `_construct_presets.py`. Separate module-level factory (not a method) that builds an
 `Objective` with `kind="group_rate_targets"` directly, for `Model.tune()`'s

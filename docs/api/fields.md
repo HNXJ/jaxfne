@@ -444,7 +444,7 @@ csd = jtfne.csd_tensor(fo.phi_e_proxy, dz)  # == fo.csd_proxy
 
 ---
 
-### `jaxfne.fields.experimental_poisson_1d(sources, conductivity, dx, boundary="mean_zero_neumann", gauge="mean_zero") -> (phi, residual, manifest)`
+### `jaxfne.fields.experimental_poisson_1d(sources, conductivity, dx, boundary="mean_zero_neumann", gauge="mean_zero", precision="float32") -> (phi, residual, manifest)`
 
 An actual 1D Poisson PDE solve — distinct from the proxy operators above and
 from the fenced multi-dimensional placeholder below.
@@ -596,9 +596,9 @@ Fixed boundary potential (less common in tutorials).
 
 ## Validation & Diagnostics
 
-### `validate_source_field_status(field_output) -> dict`
+### `validate_source_field_status(field_output=None, cfg_metadata=None, *, requested_modes=None) -> dict`
 
-Check field output for numerical consistency.
+Check field output for numerical consistency (all inputs optional; called with no arguments it reports defaults).
 
 **Parameters:**
 - `field_output` (FieldOutput): Computed field
@@ -633,26 +633,26 @@ report = jtfne.validate_projection_invariants(
 )
 ```
 
-### `compute_conservation_proxy_diagnostics(sources, field) -> dict`
+### `compute_conservation_proxy_diagnostics(*, source=None, phi_e=None, csd=None, lfp=None, field_solution=None, source_calibration_status="uncalibrated_izhikevich_native_current", field_solver_status="linear_solver", field_claim_level="proxy_readout") -> dict`
 
-Compute conservation-inspired diagnostics.
+Compute conservation-inspired diagnostics (keyword-only; pass `source=` and/or `field_solution=`, not positionals).
 
-**Parameters:**
-- `sources` (jax.Array): Source signals [time, locations]
-- `field` (FieldOutput): Field output
+**Parameters (all keyword-only, all optional):**
+- `source` (jax.Array): Source signals [time, locations]
+- `field_solution` (FieldOutput): Field output (alternative to passing arrays directly)
 
 **Returns:** Dictionary of diagnostic metrics
 
-**Metrics:**
-- `"total_source_power"`: Sum of |source|²
-- `"field_energy"`: Sum of |LFP|² + |CSD|²
-- `"energy_ratio"`: Field energy / Source energy
-- `"source_moments"`: Spatial center of mass over time
+**Metrics (selection; the report carries status, norms, and residuals):**
+- `"diagnostic_status"`: `proxy` on the solver-free path
+- `"source_norm_l1"`, `"source_norm_l2"`, `"source_abs_mean"`: source magnitudes
+- `"lfp_abs_mean"`, `"csd_abs_mean"`: field-proxy magnitudes
+- `"source_conservation_proxy_residual"`: conservation residual proxy
 
 **Example:**
 ```python
-diag = jtfne.compute_conservation_proxy_diagnostics(sources, field)
-print(f"Energy ratio: {diag['energy_ratio']:.3f}")
+diag = jtfne.compute_conservation_proxy_diagnostics(source=sources, field_solution=field)
+print(f"Source L1: {diag['source_norm_l1']:.3f} [{diag['diagnostic_status']}]")
 ```
 
 ---
