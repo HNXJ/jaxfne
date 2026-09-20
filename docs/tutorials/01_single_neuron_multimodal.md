@@ -74,7 +74,7 @@ for r in readouts:
 
 ## Visualize with Canonical Atlas
 
-Generate the full interactive 7-panel visualization atlas (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`, `hdp`, `oscillatory`):
+Generate the full 7-panel atlas (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`, `hdp`, `oscillatory`):
 
 ```python
 from jaxfne.vis.atlas_suite import build_atlas
@@ -83,7 +83,7 @@ manifest = build_atlas(model, signals, out_dir="docs/_static/atlas/single_neuron
 print("Atlas panels emitted:", [p["panel"] for p in manifest["panels"]])
 ```
 
-Or plot individual traces directly:
+Or plot traces directly:
 
 ```python
 fig, axes = plt.subplots(2, 1, figsize=(10, 6))

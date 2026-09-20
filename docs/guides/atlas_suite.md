@@ -1,14 +1,14 @@
 # Canonical Visualization Atlas (`jaxfne.vis.atlas_suite`)
 
-The **JaxFNE Canonical Visualization Atlas** provides a unified, deterministic 7-panel layout for inspecting, comparing, and reporting any realized JaxFNE circuit ($N \ge 1$).
+The **JaxFNE Canonical Visualization Atlas** gives one deterministic 7-panel layout to inspect, compare, and report any realized JaxFNE circuit ($N \ge 1$).
 
-Every atlas generation produces self-contained interactive HTML panels, a cryptographic provenance manifest (`manifest.json`), and an index dashboard (`index.html`).
+Each atlas run writes self-contained interactive HTML panels, a cryptographic provenance manifest (`manifest.json`), and an index dashboard (`index.html`).
 
 ---
 
 ## Semantic Panel Roles & Evidence Taxonomy
 
-The atlas enforces strict separation between direct simulation observations (**OBSERVED**) and computed post-hoc metrics (**DERIVED**):
+The atlas keeps direct simulation observations (**OBSERVED**) apart from computed post-hoc metrics (**DERIVED**):
 
 | # | Panel Filename | Semantic Role | Evidence Level | Generator Function | Degradation Invariant ($N=1$, 0 edges, silence) |
 |---|---|---|---|---|---|
@@ -24,7 +24,7 @@ The atlas enforces strict separation between direct simulation observations (**O
 
 ## Quickstart
 
-Building an atlas requires only a realized `Model` and simulated `Signals`:
+An atlas needs only a realized `Model` and simulated `Signals`:
 
 ```python
 import jaxfne as jtfne
@@ -58,7 +58,7 @@ for p in manifest["panels"]:
 
 ## Interactive Examples
 
-The following standalone interactive panels are generated live from the canonical 1000-neuron column simulation:
+These standalone interactive panels come live from the canonical 1000-neuron column simulation:
 
 - [Index Dashboard (`index.html`)](../_static/atlas/index.html)
 - [Panel 1: Circuit Schematic (`schema.html`)](../_static/atlas/schema.html)
@@ -73,30 +73,30 @@ The following standalone interactive panels are generated live from the canonica
 
 ## Provenance and Integrity
 
-Every HTML panel embeds a structured provenance card containing:
-- `config_hash`: Unique hash of the circuit specification.
-- `neurons` & `edges`: Realized entity counts (`configured != realized`).
-- `steps` & `dt_ms`: Exact temporal integration parameters.
+Every HTML panel embeds a structured provenance card holding:
+- `config_hash`: hash of the circuit specification.
+- `neurons` & `edges`: realized entity counts (`configured != realized`).
+- `steps` & `dt_ms`: exact temporal integration parameters.
 - `evidence`: `OBSERVED` vs `DERIVED` badge.
-- `jaxfne`: Installed library version string.
-- `calibration`: Explicit proxy disclosure: `relative_proxy_readout (never calibrated physical units)`.
+- `jaxfne`: installed library version string.
+- `calibration`: explicit proxy disclosure: `relative_proxy_readout (never calibrated physical units)`.
 
-The output directory also contains `manifest.json`, recording SHA256 hashes and byte counts for mechanical verification in continuous integration.
+The output directory also holds `manifest.json`, with SHA256 hashes and byte counts for mechanical verification in continuous integration.
 ---
 
 ## Reproducing the published atlas
 
-Both public presentations of the atlas come from one implementation and one
+Both public atlas views come from one implementation and one
 pinned configuration, so they cannot drift apart:
 
 ```bash
 python scripts/generate_readme_atlas.py
 ```
 
-That regenerates the interactive panels under `docs/_static/atlas/` **and**
+That rebuilds the interactive panels under `docs/_static/atlas/` **and**
 rasterizes the same figure objects to `docs/assets/readme/*.png`, which is what
-the GitHub README displays inline. The README stills are therefore reproducible
-from a clean checkout rather than hand-added binaries.
+the GitHub README shows inline. The README stills are thus reproducible
+from a clean checkout, not hand-added binaries.
 
 The pinned configuration is:
 
@@ -107,18 +107,18 @@ The pinned configuration is:
 | `config_hash` | `e701098092814baa` |
 | Realized | 1000 neurons, 215785 edges, 2000 steps |
 
-The generator verifies `config_hash` before writing and aborts on drift, so a
-change to the canonical column has to be an explicit decision rather than a
+The generator checks `config_hash` before writing and aborts on drift, so a
+change to the canonical column must be an explicit decision, not a
 silent republish. PNG rasterization needs `kaleido` (`pip install ".[viz]"`);
 `--html-only` skips it.
 
 ### A note on panel 6's name
 
 Panel 6 is `state_summary`, not `operating_point`. It reports the time-averaged
-firing rate per cell type and the fraction of silent units over the simulated
+firing rate per cell type and the share of silent units over the simulated
 window. That is a descriptive summary of the realized trajectory: no fixed
 point is solved for, no equilibrium condition is checked, and no stationarity
-or burn-in criterion is applied. Genuine operating-point analysis --
+or burn-in rule is applied. Genuine operating-point analysis --
 linearization about an equilibrium across a tonic-drive grid -- lives in
 `jaxfne.w3a_stability_analysis.analyze_operating_point`, and the two must not be
 confused.

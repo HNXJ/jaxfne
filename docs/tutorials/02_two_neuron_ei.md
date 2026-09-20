@@ -47,7 +47,7 @@ readouts = model.compute_readout(signals, [
 
 - Excitatory neuron drives inhibitory neuron
 - Inhibitory feedback suppresses excitatory spiking
-- Network exhibits oscillatory or stable behavior depending on connection strengths
+- Behavior is oscillatory or stable, set by connection strengths
 
 ## Interactive atlas (dark)
 

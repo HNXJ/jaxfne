@@ -97,10 +97,10 @@ print(f"Voltage: {vm_mean:.2f} ± {vm_std:.2f} mV")
 
 ## Key observations
 
-- 100 neurons with JAX vmap ensures efficient CPU computation
+- 100 neurons run efficiently on CPU with JAX vmap
 - Balanced E/I network maintains stable asynchronous activity
 - Population-level field projections emerge from neural sources
-- All eight proxy operators scale smoothly to population level
+- All eight proxy operators scale to population level
 - Output bundle remains JSON-serializable and reproducible
 
 ## Interactive atlas (dark)

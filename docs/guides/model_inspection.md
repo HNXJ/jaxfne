@@ -1,11 +1,8 @@
 # Model inspection
 
-Two figures, before any analysis: what you built, and what it immediately does.
+Two figures before analysis: what you built, and what it does.
 
-A simulation that runs is not a simulation you understand. Scalar summaries can be
-blind to structure the trajectories plainly show — a rate averaged over a window is
-identical for two runs whose spike timing differs completely. Look at the circuit and
-look at the activity first.
+A run that executes is not a run you grasp. Scalar summaries can miss structure the trajectories show — one window-averaged rate fits two runs with wholly different spike timing. Inspect the circuit, then the activity.
 
 ## 1. Construct, then see the circuit
 
@@ -17,16 +14,16 @@ model = jtfne.construct(...)  # however you build it
 jaxfne.vis.network_hspice(model, path="circuit.png")
 ```
 
-A block schematic: input on the left, output on the right, areas as blocks, layers as
-rows, cell classes as chips, and one annotated arrow per cross-area projection carrying
-its edge count, mean weight and sign. Individual neurons are never drawn — this is a
+A block schematic: input left, output right, areas as blocks, layers as
+rows, cell classes as chips, and one annotated arrow per cross-area projection with
+its edge count, mean weight and sign. No single neurons drawn — a
 construction receipt, not a connectivity plot.
 
 ![circuit](../_static/model_inspection/case2_three_area_hspice_light.png)
 
 Everything comes from `model.neuron_table()` and `model.params["edge_list"]`, so any
 naming scheme works. Stage order is inferred from the projection graph; pass `stages=`
-to assert one the topology does not show, and `title=` to annotate with your own
+to assert one the topology hides, and `title=` to add your own
 architecture notation.
 
 ```python
@@ -48,8 +45,8 @@ jaxfne.vis.network_raster(model, signals, dt_ms=0.1, path="raster.png")
 ```
 
 A spike raster with rows ordered area → layer → cell class, over a population-rate
-trace. Call it again after whatever you changed, with the same arguments, and the two
-figures are directly comparable because the row ordering is computed by one function.
+trace. Call it again after any change with the same arguments; the two
+figures stay directly comparable because one function computes row order.
 
 ![raster](../_static/model_inspection/case2_three_area_raster_light.png)
 
@@ -76,7 +73,7 @@ For the interactive seven-panel atlas this inspects toward, see the
 
 `theme` takes `"light"`, `"dark"`, or a `Theme` instance. It changes presentation only,
 never information or semantics: both renderers return a description of what they drew,
-and that description is identical under every theme.
+identical under every theme.
 
 ```python
 from jaxfne.vis.network_inspect import Theme, THEMES
@@ -87,7 +84,7 @@ jaxfne.vis.network_hspice(model, theme=house)
 
 ## Return values
 
-Both renderers return a dict describing the figure, suitable for a run record:
+Both renderers return a dict describing the figure for a run record:
 
 ```python
 {"figure": "network_hspice", "path": "circuit.png", "theme": "light",
@@ -100,8 +97,8 @@ Both renderers return a dict describing the figure, suitable for a run record:
  "n_spikes": 1079, "thinned": False, "mean_rate_hz": 21.798}
 ```
 
-`thinned` is `True` when more spikes were found than `max_points` allowed to be drawn;
-`n_spikes` still reports what was found, so the figure never quietly under-reports.
+`thinned` is `True` when found spikes exceed what `max_points` allows to draw;
+`n_spikes` still reports what was found, so the figure never under-reports.
 
 ## Reference
 
@@ -114,5 +111,5 @@ Both renderers return a dict describing the figure, suitable for a run record:
 ### `describe(model, *, inhibitory_receptors=(1,), class_order=..., stages=None)`
 
 The structure both renderers draw from: populations per area/layer/class, block-level
-projections with edge count, mean weight and sign, and the inferred stage of each area.
-Useful on its own when you want the numbers without a figure.
+projections with edge count, mean weight and sign, and each area's inferred stage.
+Useful alone for the numbers without a figure.

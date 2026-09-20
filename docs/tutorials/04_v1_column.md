@@ -3,7 +3,7 @@
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_4_homeostatic_V1_column.ipynb)
 
-A laminar model inspired by primate V1 with six layers and depth-specific readouts.
+Laminar model inspired by primate V1: six layers, depth-specific readouts.
 
 *The Colab badge above links to `jaxfne_etude_no_4_homeostatic_V1_column.ipynb`, the closest
 real, runnable notebook covering a laminar V1 column (1000-neuron canonical column with

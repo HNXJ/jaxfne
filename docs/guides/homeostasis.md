@@ -1,24 +1,24 @@
 # Homeostasis
 
 jaxfne includes a **homeostatic excitability controller**: a minimal computational
-control method that keeps each neuron's firing rate near a set-point by adapting an
-intrinsic excitability bias. It is one extra parameter per emitter, and switching
+control method that holds each neuron's firing rate near a set-point by adapting an
+intrinsic excitability bias. One extra parameter per emitter; switching
 it on does three useful things at once:
 
-- **Eliminates hyperactivity** — runaway/saturated units are pulled back down.
-- **Eliminates hypoactivity** — silent units are nudged up into a working range.
+- **Eliminates hyperactivity** — pulls runaway/saturated units back down.
+- **Eliminates hypoactivity** — nudges silent units into working range.
 - **Models short-term adaptation** — the slow rate trace gives spike-frequency
   adaptation for free.
 
 It is a *control method*, not a claimed biological plasticity mechanism — a
-restoring controller on excitability, useful as a stabilizer and as an adaptation
+restoring controller on excitability, useful as stabilizer and as adaptation
 proxy. jaxfne is the mathematical backend; the controller's role in a model is
-whatever the configuration makes it.
+what the configuration makes it.
 
 ## The control law
 
 Per neuron, a slow activity trace `r` tracks recent firing; a restoring bias `g`
-is added to the input current:
+adds to the input current:
 
 ```
 r ← decay · r + (1 − decay) · activity          # slow rate trace
@@ -27,13 +27,13 @@ I  ← I + g                                        # excitability bias into the
 ```
 
 `k_gain` is the single dial. **`k_gain = 0` disables the controller — a clean
-null control** for ablation experiments. The default `k_gain = 1.0` is a gentle
+null control** for ablation runs. The default `k_gain = 1.0` is a gentle
 in-band nudge.
 
 ## Built-in emitter (per-step kernel)
 
-Enable it on the runtime; the built-in Izhikevich kernel applies the bias every
-step. After simulating, read the controller diagnostics off the model.
+Enable it on the runtime; the built-in Izhikevich kernel applies the bias each
+step. After simulating, read controller diagnostics off the model.
 
 ```python
 import jaxfne as jtfne
@@ -67,8 +67,8 @@ diag = model.last_homeostasis_diagnostics()   # {"g_bias": ..., "r_trace": ...}
 | `g_min`, `g_max` | Clamp on the excitability bias |
 | `r_max` | Activity-trace ceiling |
 
-`model.last_homeostasis_diagnostics()` returns the per-neuron `g_bias` and
-`r_trace` from the most recent `enable_homeostasis=True` run (or `None` if the
+`model.last_homeostasis_diagnostics()` returns per-neuron `g_bias` and
+`r_trace` from the latest `enable_homeostasis=True` run (or `None` if the
 last run had it off).
 
 ## Jaxley emitter (outer-loop windowed)
@@ -95,8 +95,8 @@ signals, diag = bridge.simulate_homeostatic(
 ```
 
 The injected current is hard-bounded (`current_clip_nA`) and finiteness is
-verified (`strict_finite=True` raises rather than masking) — the controller keeps
-the implicit solver in a finite, stable regime even under heterogeneous drive. See
+verified (`strict_finite=True` raises rather than masking) — the controller holds
+the implicit solver in a finite, stable regime under heterogeneous drive. See
 `JaxleyBridge.simulate_homeostatic` in the Bridges API (`docs/api/bridges.md` — repository-internal reference, excluded from the built site).
 
 !!! warning "Stay in the monotonic f-I band (Jaxley path)"
@@ -108,9 +108,9 @@ the implicit solver in a finite, stable regime even under heterogeneous drive. S
 ## Stability
 
 Both paths are float32-safe: the built-in kernel hard-bounds its state
-(`v`/`u`/synaptic variables) so the dynamics stay finite even under extreme drive,
-and the Jaxley path hard-bounds the injected current and checks finiteness. The
-controller therefore doubles as a numerical stabilizer.
+(`v`/`u`/synaptic variables) so dynamics stay finite under extreme drive,
+and the Jaxley path hard-bounds injected current and checks finiteness. The
+controller thus doubles as a numerical stabilizer.
 
 ## Using it as evidence
 

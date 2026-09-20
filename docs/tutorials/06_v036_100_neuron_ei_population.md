@@ -6,10 +6,9 @@
 
 ## Overview
 
-This tutorial demonstrates the **chainable Configuration API** of jaxfne,
-built for streamlined workflow composition. You will build, simulate, and analyze
-a **100-neuron excitatory-inhibitory (E/I) population** using the fluent
-configuration grammar.
+This tutorial shows the **chainable Configuration API** of jaxfne.
+You will build, simulate, and analyze
+a **100-neuron excitatory-inhibitory (E/I) population**.
 
 ### What You'll Learn
 
