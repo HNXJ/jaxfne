@@ -87,6 +87,12 @@ jobs:
         # class of regression fixed manually 2026-07-08 (16 orphaned pages).
         run: PYTHONPATH=. python scripts/check_docs_orphans.py
 
+      - name: Docs↔code integrity audit (signatures resolve, examples parse)
+        # Fence parsing + live-symbol resolution + skill-ref check (P-006).
+        # Catches the recurring drift class where docs build but lie about
+        # the API; runs inside broad/release/rc gates too via run_test_gate.
+        run: PYTHONPATH=. python scripts/audit_doc_code_integrity.py --check
+
       - name: Run fast tests (curated dev gate ~90s, viz boundary — reportlab skips)
         if: github.ref != 'refs/heads/main'
         run: |

@@ -117,6 +117,7 @@ CHECK_FAMILIES = {
     "notebook_grammar_audit",
     "vocabulary_audit",
     "docs_orphans_check",
+    "doc_code_integrity_audit",
     "docs_build_strict",
     "pytest_broad",
     "pytest_slow",
@@ -133,6 +134,7 @@ RELEASE_CI_GATE_FAMILIES = {
     "docs_language_audit",
     "notebook_grammar_audit",
     "docs_orphans_check",
+    "doc_code_integrity_audit",
     "docs_build_strict",
     "pytest_broad",
     "pytest_slow",
@@ -159,6 +161,7 @@ GATE_CHECK_FAMILIES = {
         "notebook_grammar_audit",
         "vocabulary_audit",
         "docs_orphans_check",
+        "doc_code_integrity_audit",
         "pytest_broad",
     },
     "release": {
@@ -168,6 +171,7 @@ GATE_CHECK_FAMILIES = {
         "notebook_grammar_audit",
         "vocabulary_audit",
         "docs_orphans_check",
+        "doc_code_integrity_audit",
         "docs_build_strict",
         "pytest_broad",
         "pytest_slow",
@@ -183,6 +187,7 @@ GATE_CHECK_FAMILIES = {
         "notebook_grammar_audit",
         "vocabulary_audit",
         "docs_orphans_check",
+        "doc_code_integrity_audit",
         "docs_build_strict",
         "pytest_broad",
         "pytest_slow",
@@ -285,8 +290,10 @@ def _run(
 
 
 def gate_dev() -> None:
-    _run([sys.executable, "-m", "compileall", "-q", "jaxfne", "tests", "scripts"],
-         family="compileall")
+    _run(
+        [sys.executable, "-m", "compileall", "-q", "jaxfne", "tests", "scripts"],
+        family="compileall",
+    )
     _run(
         [
             sys.executable,
@@ -300,23 +307,33 @@ def gate_dev() -> None:
         ],
         family="pytest_dev",
     )
-    _run([sys.executable, "scripts/audit_public_docs_language.py", "--check"],
-         family="docs_language_audit")
-    _run([sys.executable, "scripts/audit_vocabulary.py", "--check"],
-         family="vocabulary_audit")
+    _run(
+        [sys.executable, "scripts/audit_public_docs_language.py", "--check"],
+        family="docs_language_audit",
+    )
+    _run([sys.executable, "scripts/audit_vocabulary.py", "--check"], family="vocabulary_audit")
 
 
 def gate_broad() -> None:
-    _run([sys.executable, "-m", "compileall", "-q", "jaxfne", "tests", "scripts", "examples"],
-         family="compileall")
+    _run(
+        [sys.executable, "-m", "compileall", "-q", "jaxfne", "tests", "scripts", "examples"],
+        family="compileall",
+    )
     _run([sys.executable, "-m", "ruff", "check", "jaxfne/"], family="lint_ruff")
-    _run([sys.executable, "scripts/audit_public_docs_language.py", "--check"],
-         family="docs_language_audit")
-    _run([sys.executable, "scripts/audit_notebook_grammar.py", "--check"],
-         family="notebook_grammar_audit")
-    _run([sys.executable, "scripts/audit_vocabulary.py", "--check"],
-         family="vocabulary_audit")
+    _run(
+        [sys.executable, "scripts/audit_public_docs_language.py", "--check"],
+        family="docs_language_audit",
+    )
+    _run(
+        [sys.executable, "scripts/audit_notebook_grammar.py", "--check"],
+        family="notebook_grammar_audit",
+    )
+    _run([sys.executable, "scripts/audit_vocabulary.py", "--check"], family="vocabulary_audit")
     _run([sys.executable, "scripts/check_docs_orphans.py"], family="docs_orphans_check")
+    _run(
+        [sys.executable, "scripts/audit_doc_code_integrity.py", "--check"],
+        family="doc_code_integrity_audit",
+    )
     # Per-node evidence: each sweep writes JUnit into the gitignored
     # artifacts/attestations/ dir (same provenance home as the RC
     # attestation) so RC outcomes can be compared node-by-node against
@@ -379,7 +396,9 @@ def gate_release() -> None:
     for example in RELEASE_EXAMPLES:
         _run([sys.executable, example], family="examples_smoke")
     # Restore static docs figures that examples mirror to keep tree clean
-    subprocess.run(["git", "checkout", "--", "docs/tutorials_v030/_static/figures"], cwd=ROOT, check=False)
+    subprocess.run(
+        ["git", "checkout", "--", "docs/tutorials_v030/_static/figures"], cwd=ROOT, check=False
+    )
 
 
 def gate_rc() -> None:
@@ -402,8 +421,7 @@ def gate_rc() -> None:
     # at collection, so their tests produce no node IDs and the gate silently
     # under-covers release CI while still reporting PASS. Checked first so the
     # failure is loud and cheap.
-    _run([sys.executable, "scripts/check_environment_parity.py"],
-         family="environment_parity")
+    _run([sys.executable, "scripts/check_environment_parity.py"], family="environment_parity")
     gate_release()
 
     # Per-node RC-vs-CI comparison. gate_release() has just written the three
@@ -414,8 +432,9 @@ def gate_rc() -> None:
 
     with tempfile.TemporaryDirectory(prefix="jaxfne_rc_dist_") as tmp_dist:
         print(f"+ Building distribution artifacts in {tmp_dist}...", flush=True)
-        _run([sys.executable, "-m", "build", "--outdir", tmp_dist, str(ROOT)],
-             family="package_build")
+        _run(
+            [sys.executable, "-m", "build", "--outdir", tmp_dist, str(ROOT)], family="package_build"
+        )
 
         print("+ Running twine check on candidate artifacts...", flush=True)
         whl_sdist = [str(p) for p in Path(tmp_dist).glob("*") if p.suffix in (".whl", ".gz")]
@@ -436,10 +455,14 @@ def gate_rc() -> None:
                 / ("python.exe" if os.name == "nt" else "python")
             )
             print("+ Installing candidate wheel into isolated venv...", flush=True)
-            _run([str(venv_py), "-m", "pip", "install", "--upgrade", "pip"],
-                 family="isolated_wheel_smoke")
-            _run([str(venv_py), "-m", "pip", "install", str(candidate_whl)],
-                 family="isolated_wheel_smoke")
+            _run(
+                [str(venv_py), "-m", "pip", "install", "--upgrade", "pip"],
+                family="isolated_wheel_smoke",
+            )
+            _run(
+                [str(venv_py), "-m", "pip", "install", str(candidate_whl)],
+                family="isolated_wheel_smoke",
+            )
 
             smoke_code = (
                 "import json, jaxfne as jtfne\n"
@@ -457,8 +480,12 @@ def gate_rc() -> None:
             isolated_env["PYTHONIOENCODING"] = "utf-8"
             isolated_env["PYTHONUTF8"] = "1"
             print("+ Running isolated wheel smoke simulation...", flush=True)
-            _run([str(venv_py), "-c", smoke_code], cwd=Path(tmp_venv), env=isolated_env,
-                 family="isolated_wheel_smoke")
+            _run(
+                [str(venv_py), "-c", smoke_code],
+                cwd=Path(tmp_venv),
+                env=isolated_env,
+                family="isolated_wheel_smoke",
+            )
 
     attestation_out = write_rc_attestation()
     print(f"\nRC GATE PASS: attestation written to {attestation_out}", flush=True)

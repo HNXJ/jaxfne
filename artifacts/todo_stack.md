@@ -406,4 +406,5 @@ Carried forward from the sealed 0.4.25 sweep (history in git):
 - Integrity round (P-006): 13 api signature drifts fixed + verified,
   `audit_doc_code_integrity.py` gate added (fences/refs/symbols); reviewer
   caught 1 worker false claim before application — reviewers≠workers stays
-  mandatory.
+  mandatory. Gate is permanent harness: `doc_code_integrity_audit` family in
+  broad/release/rc + explicit ci.yml step.

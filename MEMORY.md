@@ -41,6 +41,13 @@ Format per lesson: {trigger,cause,repair,evidence,scope}.
   evidence: 0.4.25 push-run 35496154417 (broad-gate step, 24 min in)
   scope: jaxfne release
 
+- trigger: docs build green but docs lie about the API (13 signature drifts)
+  cause: no mechanical check between doc blocks and live code; rendering ≠ truth
+  repair: `audit_doc_code_integrity.py` as permanent `doc_code_integrity_audit`
+  family in broad/release/rc gates + explicit ci.yml step; allowlist stays explicit
+  evidence: P-006 round (143 signatures checked), gate green in 8s
+  scope: jaxfne harness
+
 - trigger: subagent (bounded, no-commit) work
   cause: overlapping file sets and interrupted runs leave partial/unknown tree state
   repair: disjoint file sets per worker; exact stop-report format; on interruption, `git status` + gate battery before trusting anything; workers never commit/push
