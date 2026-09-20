@@ -10,9 +10,10 @@ look at the activity first.
 ## 1. Construct, then see the circuit
 
 ```python
-import jaxfne
+import jaxfne as jtfne
 
-model = jaxfne.build(...)            # however you build it
+model = jtfne.construct(...)  # however you build it
+
 jaxfne.vis.network_hspice(model, path="circuit.png")
 ```
 
@@ -65,8 +66,11 @@ jaxfne.vis.network_raster(
 ## 3. Inspect comprehensively
 
 ```python
-jaxfne.vis.build_atlas(model, signals, path="atlas/")
+jaxfne.vis.build_atlas(model, signals, out_dir="atlas/")
 ```
+
+For the interactive six-panel atlas this inspects toward, see the
+[Canonical Atlas Suite](atlas_suite.md).
 
 ## Themes
 

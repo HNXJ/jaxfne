@@ -158,6 +158,12 @@ for readout in loaded_manifest["readouts"]:
     print(f"{readout['name']}: {readout['value']}")
 ```
 
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from a minimal 200 ms illustrative run (32 neurons, dt 0.5 ms, seed 0) of the kind exported as a bundle above: [index](../_static/atlas/probe_32/index.html) · [3D](../_static/atlas/probe_32/network_3d.html) · [connectivity](../_static/atlas/probe_32/connectivity.html) · [raster](../_static/atlas/probe_32/raster.html) · [traces](../_static/atlas/probe_32/traces.html) · [spectral](../_static/atlas/probe_32/spectral.html) · [state summary](../_static/atlas/probe_32/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug probe_32`.
+
 ## Next steps
 
 - [Calibration](calibration.md) for preparing outputs for empirical validation

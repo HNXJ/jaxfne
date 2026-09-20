@@ -258,3 +258,9 @@ why `Configuration` is the deepest, most important surface in the package.
 - TFNE Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) — the per-stage rule table for this same operator chain.
 - [Jaxley Interoperability](jaxley_interop.md) — real channels/morphology as emitters.
 - Bridges API (`docs/api/bridges.md` — repository-internal reference, excluded from the built site) · [Fields API](../api/fields.md) · [Objectives API](../api/objectives.md)
+
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from a smoke-scale 200 ms run (dt 0.5 ms, seed 0) of the 1000-neuron head config above (the guide shows 1000 ms): [index](../_static/atlas/config_grammar_1000/index.html) · [3D](../_static/atlas/config_grammar_1000/network_3d.html) · [connectivity](../_static/atlas/config_grammar_1000/connectivity.html) · [raster](../_static/atlas/config_grammar_1000/raster.html) · [traces](../_static/atlas/config_grammar_1000/traces.html) · [spectral](../_static/atlas/config_grammar_1000/spectral.html) · [state summary](../_static/atlas/config_grammar_1000/state_summary.html).
+
+Regenerate: `python scripts/generate_doc_page_atlases.py --slug config_grammar_1000`.

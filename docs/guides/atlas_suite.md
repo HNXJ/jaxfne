@@ -34,7 +34,7 @@ from jaxfne.vis import build_atlas
 tensor = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")
 model = jtfne.construct(
     tensor,
-    jtfne.RuntimeConfiguration(seed=0, duration_ms=500.0, dt_ms=0.5),
+    jtfne.RuntimeConfiguration(seed=0, duration_ms=200.0, dt_ms=0.5),
 )
 
 # 2. Simulate
@@ -44,7 +44,7 @@ signals = jtfne.simulate(model)
 manifest = build_atlas(
     model,
     signals,
-    out_dir="docs/_static/atlas/v1_column",
+    out_dir="docs/_static/atlas",
     title="Canonical V1 Column (1000n)",
 )
 

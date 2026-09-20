@@ -115,7 +115,7 @@ COMPATIBILITY_DEPRECATIONS: Final[dict[str, str]] = {
     "step_gsgd_transform": "Advanced Optax transform; prefer gsgd() spec at root.",
 }
 
-# --- Tier classification (259 symbols at 0.4.13 baseline) ---
+# --- Tier classification (260 symbols at 0.4.13 baseline) ---
 
 _CANONICAL: Final[frozenset[str]] = frozenset(
     {

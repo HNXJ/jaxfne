@@ -35,6 +35,8 @@ jtfne.vis.visualize_network_3d(
   loading="lazy"
 ></iframe>
 
+Smaller-scale analogue with the full six-panel dark atlas: the V1–V4–PFC hierarchy at 100 neurons/area (this page builds 300/area) — [index](../_static/atlas_three_area/index.html) · [3D](../_static/atlas_three_area/network_3d.html) · [connectivity](../_static/atlas_three_area/connectivity.html) · [raster](../_static/atlas_three_area/raster.html) · [traces](../_static/atlas_three_area/traces.html) · [spectral](../_static/atlas_three_area/spectral.html) · [state summary](../_static/atlas_three_area/state_summary.html).
+
 ## Homeostasis: firing-rate change and full 10 s raster
 
 A 200-neuron canonical V1 column (`jtfne.build_laminar_column("V1", n=200,

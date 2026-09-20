@@ -210,6 +210,12 @@ first-class.
 
 Realization of `N` via `develop` does not establish effectiveness (`ΔX` under intervention).
 
+## Interactive atlas (dark)
+
+Dark-theme Plotly panels from the pinned 200 ms reference run of the canonical column — the same develop path as §Example above: [index](../_static/atlas/index.html) · [3D](../_static/atlas/network_3d.html) · [connectivity](../_static/atlas/connectivity.html) · [raster](../_static/atlas/raster.html) · [traces](../_static/atlas/traces.html) · [spectral](../_static/atlas/spectral.html) · [state summary](../_static/atlas/state_summary.html).
+
+Regenerate: `python scripts/generate_readme_atlas.py --html-only`.
+
 ## References
 
 - [Public surface contract](../public_surface_contract.md) — additive JDNA

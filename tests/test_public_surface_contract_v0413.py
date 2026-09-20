@@ -92,7 +92,7 @@ def test_public_h_state_localities():
 
 
 def test_public_symbol_count_contraction_from_baseline():
-    """259 baseline → 189 public exports (+5 JDNA additive surface 0.4.17;
+    """260 baseline → 190 public exports (+5 JDNA additive surface 0.4.17;
     −2 SurrogateConfig pair re-classified EXPERIMENTAL_INTERNAL on 2026-08-22
     W4: declaration-only dormant metadata, zero manuscript/example/doc usage;
     +4 registrable-HDP registration surface classified ADVANCED post-0.4.24

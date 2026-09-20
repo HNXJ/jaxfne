@@ -417,24 +417,41 @@ visualization/example standard, NOT scientific identity ("canonical
 general-purpose atlas examples use 1000 ms unless the scientific example
 declares another duration").
 
-## Starting state (v1 baseline sealed; see git log `feat(docs): dark Plotly
-atlas rollout for every sim page` — HEAD == origin/dev there, verified at
-seal; re-verify with `git rev-parse HEAD` / `git rev-parse origin/dev`)
+## Release goal (authorized 2026-09-20)
 
-- Dirty tree (uncommitted Part-2 work): `jaxfne/vis/atlas_suite.py`
-  (presentation-only dark theme in `_emit`), `scripts/generate_readme_atlas.py`
-  (same for PNG stills), `scripts/generate_doc_page_atlases.py` (new, 23
-  specs), `docs/_static/atlas/` + `docs/_static/atlas_three_area/` regenerated,
-  22 new `docs/_static/atlas/<slug>/` dirs, `docs/_static/jaxley_interop/`,
-  atlas-link edits in 8 guides + 22 tutorial pages (see slug table).
+Single full 0.4.25 release (ultimate 0.4.x; 0.5.x chapter after) once ALL hold:
+(1) Docs: low-verbosity, simple, smooth; tables/lists/paragraphs/HTML
+figures interleaved; theme matched; TFNE grammar + terms consistent; left
+menu (`mkdocs.yml` nav) organized.
+(2) Code: Batch F acceptance — low complexity, optimal operation order,
+canonical flattening; JAX switches (float32/64, cuda/cpu/parallel-cpu/metal)
+via official mechanisms; official-doc conformance suffices, no bespoke
+JAX-plumbing tests.
+(3) Stacks empty: this 0.4.25 section fully removed item-by-item as sealed
+AND issue-log Open section empty with resolutions recorded (history
+preserved, never rewritten; new problems detected mid-sweep get IDs and are
+drained the same way).
+Authorization: the full release sequence (tag/main/GitHub/PyPI/RTD) is
+pre-authorized to execute ONCE, only when (1)–(3) verify green on the sealed
+commit. No partial releases.
+
+## Starting state (v1 baseline sealed as `82f30f0`; HEAD == origin/dev there,
+verified at seal; re-verify with `git rev-parse HEAD` / `git rev-parse
+origin/dev`)
+
+- Sealed v1 tree: dark `_emit` + stills theming, 23-spec
+  `scripts/generate_doc_page_atlases.py`, regenerated canonical (config_hash
+  `4b0d96456d56bc1a` unchanged — style only) + three-area atlases, 22 new
+  per-page atlas dirs, `jaxley_interop` panel, atlas-link edits in 8 guides
+  + 25 tutorial pages, `jaxfne-developer` agent + pool row, v2 plan.
 - Untouched (Batch 1 remainder): `docs/guides/{jdna,output_bundles,
   configuration_grammar,model_inspection,atlas_suite,showcases}.md`,
   `docs/{quickstart,index,colab}.md`.
 - Canonical atlas regenerated with dark figures: `config_hash` gate passed
   (`4b0d96456d56bc1a` unchanged — data identical, style only); manifest `sha256`
   changed as expected.
-- Stale `M artifacts/todo_stack.md` predates this plan (inspect its diff in
-  Batch 3; keep planned content, drop superseded lines).
+- `artifacts/todo_stack.md` itself is a working file: keep planned content,
+  drop superseded lines as batches seal (done → remove).
 
 ## Standing facts workers must not re-decide
 
@@ -517,11 +534,15 @@ one edit; every edit must be followed by reading the edited region).
 
 ## Batch A — authority & contracts (surface decisions, don't improvise)
 
-- A1. Pin the stable TFNE doc subset (narrow): ordering, frontiers, rule
-  bodies, atomicity, mechanism resolution, replication, JDNA completion,
-  CTX-01 as canonical example. Delay and declared-geometry limits shown as
-  limitations with their refusal/pin tests named. Output: pinned list kept
-  in this file; docs cite only listed semantics.
+Pinned TFNE doc subset (A1 sealed 2026-09-20; docs cite only these):
+ordering S20/S20.1 (typed natural + `order[A]` override), frontiers
+(`in`/`out`, `E_FRONTIER_UNRESOLVED`), rule bodies S12 (`$L`/`$R`,
+`X[k]` selection), atomicity S14/S25 (contextual), mechanism resolution
+S25 (`resolve_mechanism`; kinetics resolve at the tensor bridge),
+replication, JDNA completion (TFNE→JDNA boundary, `K_D`, value origins),
+CTX-01 first integrated model. Shown as limitations, never hidden: delay
+refused (`E_PARAM_UNSUPPORTED`), declared geometry inert at execution
+(pinned by `test_declared_geometry_does_not_reach_the_executed_positions`).
 - A2. Atlas data contract (normative; a panel that cannot meet its contract
   fails/omits explicitly, never substitutes): H-SPICE schema ← realized
   TFNE/JDNA/model metadata (else fail/omit explicitly); 3D network ←
@@ -552,6 +573,25 @@ one edit; every edit must be followed by reading the edited region).
 - A7. `T_atlas = 1000 ms` is a visualization/example standard, not
   scientific identity: canonical general-purpose atlas examples use 1000 ms
   unless the scientific example declares another duration.
+- A8. gh-pages publishing policy (user direction 2026-09-20; details are a
+  human decision recorded here before B6/E3 execute). Measured v1 payload is
+  ~21.2 MB committed HTML — accepted, forward cap only (v1 blobs stay in
+  history; no rewrite). Precedent: `origin/gh-pages` already holds a
+  deployed built site (v0.4.20 RC). Migration shape: generated atlas HTML
+  leaves dev/main (gitignored; generator still reproduces it locally so
+  `mkdocs serve` is intact); panels publish to `gh-pages` at versioned
+  paths; docs link absolute URLs. Open sub-decisions: (a) regenerate at
+  publish time (slow) vs publish-from-local-build; (b) RTD-stable story —
+  recommendation is keep RTD for versioned text (release receipts cite RTD
+  stable @ SHA; mid-0.4.x is not the time to rewire hosts) with panels
+  resolving to versioned gh-pages URLs; (c) orphan-audit blindness to
+  absolute URLs is covered by the E3 post-publish link check, not by
+  pretending local build verifies them.
+- A9. Freeze scope for 0.4.25 code touches (rules I-008): the v0.4.17-era
+  frozen-use narrative is superseded for this sweep — kernel numerics stay
+  frozen (REP-03 and equivalence bounds stand), while presentation-only vis
+  changes and trajectory-preserving Batch F touches (gated bit-exact) are
+  allowed. Anything altering trajectories is a 0.5.x item by default.
 
 ## Batch B — code (parallel after A; disjoint files)
 
@@ -567,7 +607,9 @@ one edit; every edit must be followed by reading the edited region).
   `Δsimulation = 0`; generators consume bundle dirs only; AST gate asserts
   no simulate/construct import path in étude figure scripts.
 - B6. Gallery-from-manifests generator (lists only VALIDATED+ atlases with
-  provenance; `gallery.md` becomes output, not source).
+  provenance; `gallery.md` becomes output, not source). Emits absolute
+  gh-pages URLs per the A8 versioned layout (relative links only where the
+  asset is committed alongside the page).
 - B7. Semantic-negative docs gate for the 7 forbidden conflations (delay
   supported by TFNE; declared geometry == executed geometry; GABA ==
   GABA_A; H == HDP; proxy == physical LFP; source order == realization
@@ -575,6 +617,25 @@ one edit; every edit must be followed by reading the edited region).
   allowlist for doctrine pages stating the limitation itself.
 - B8. Canonical 1000 ms re-pin (`generate_readme_atlas` EXPECTED +
   duration; deliberate, hash-gated).
+
+## Batch F — code sweep (after B, before C; trajectory-preserving)
+
+- F1. Hot-path complexity/order/flattening pass (simulate kernels, field
+  projections, probe operators): linear-scan order, minimal temporaries,
+  canonical `[T,N]`/`[T,X]` layouts; no semantic change.
+- F2. JAX switches audit + doc: float32/64 via stock `jax_enable_x64`
+  (central policy in `runtime.py`; close divergences); backend = stock JAX
+  (`jax.devices`/default backend; cuda/cpu/parallel-cpu via official
+  mechanisms; Apple Metal via external `jax-metal` plugin — documented, not
+  coded). Official-doc conformance is the acceptance (user-authorized).
+- F3. I-001 one-line fix (stale 259-symbols comment,
+  `jaxfne/public_surface.py:118`) + I-006 lesson enforced (behavioral
+  suites gate every lint-driven rename).
+- F4. Verify: canonical `config_hash` gates + `run_test_gate.py dev` +
+  targeted suites, bit-exact. Any numerical delta fails closed → the item
+  moves to 0.5.x planning, sweep continues without it.
+- Acceptance: Batch C regen runs on post-F code; docs describe post-F
+  behavior.
 
 ## Batch C — regenerate (after B; record generator command per atlas)
 
@@ -607,11 +668,27 @@ one edit; every edit must be followed by reading the edited region).
 - E1. Language + vocabulary + orphan audits green.
 - E2. Semantic-negative gate (B7) green.
 - E3. Atlas provenance/completeness validation: every manifest carries the
-  A4 fields; gallery lists only VALIDATED with resolving links.
+  A4 fields; gallery lists only VALIDATED with resolving links. Absolute
+  gh-pages URLs are validated by a post-publish remote link check (its own
+  step after deploy) — local `mkdocs build --strict` cannot verify them
+  and must not be claimed to.
 - E4. Gates dev → broad → rc + `mkdocs build --strict` (H2: no
-  release-ready claim without the exact gate on the sealed state).
+  release-ready claim without the exact gate on the sealed state) + green
+  remote CI on the exact sealed commit (I-005 standing rule).
 - E5. Changelog/version/release prep per old Batch 4 items 1–4 (bump list,
   v0.4.25 entry, authority rollover draft, validators), then STOP +
   surface: tag, main merge, GitHub release, PyPI, RTD need explicit user
   authorization. On seal: remove completed items (done → remove; git keeps
   history).
+- E6. Drain the problem stack (grounded 2026-09-20; entries preserved
+  verbatim, resolutions appended, then Open section cleared): I-001 fix in
+  F3; I-002/I-007 superseded (immutable receipts, v0.4.24 chain rules);
+  I-003 superseded (`dist/` absent; clean-room build at release); I-004
+  standing guidance → Batch D acceptance (observed values cite exact
+  artifacts); I-005 standing rule → E4; I-006 lesson → F3 + developer
+  traps; I-008 ruled in A9; I-009 verified-fixed (routes absent from
+  `for_ai_agents.md`) → close with evidence; I-010 fix in Batch D
+  (`contributing.md:34` → `artifacts/skills/`); I-011 superseded (scripts
+  absent) → close; I-012 receipt refs → authority rollover note in E5;
+  I-013 workbench index → banner-or-update in Batch D; I-014 scope
+  documentation → E5. New problems found mid-sweep get IDs and drain here.

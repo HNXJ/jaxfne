@@ -23,7 +23,7 @@ Open a new Colab notebook: https://colab.research.google.com/
 **Expected output:**
 ```
 Installing collected packages: jaxfne
-Successfully installed jaxfne-0.4.8
+Successfully installed jaxfne-0.4.24
 ```
 
 ---
@@ -31,34 +31,31 @@ Successfully installed jaxfne-0.4.8
 ## Quick Single-Neuron Example (Cell 2)
 
 ```python
-from jaxfne.core import configuration, construct, simulate
-from jaxfne.emitters import IzhikevichEmitter
+import jaxfne as jtfne
 import json
 
-# Create configuration
-config = configuration()
-
-# Build model with single Izhikevich neuron
-emitter = IzhikevichEmitter(
-    n_neurons=1,
-    v_init=-65.0,
-    u_init=-15.0
+# Single Izhikevich neuron (current API)
+cfg = (
+    jtfne.configuration()
+    .network(n=1)
+    .emitter(family="izhikevich", preset="regular_spiking")
+    .field(domain="point")
+    .probe(name="single_neuron", modes=["spikes", "V_m"])
 )
-model = construct(config, emitters=[emitter])
+model = jtfne.construct(cfg)
 
 # Simulate 100 ms
-signals = simulate(model, duration_ms=100, dt_ms=0.1)
+signals = model.simulate(jtfne.simulation(duration_ms=100.0, dt_ms=0.1, seed=0))
 
 # Generate manifest with full diagnostics
 manifest = model.manifest(signals)
 
 # Print key outputs
-print("=== v0.4.8 BASIS (Computation Contract) ===")
-basis = manifest["basis"]
-print(f"Version: {basis['jaxfne_version']}")
-print(f"Computational scaffold: {basis['model_status']}")
-print(f"Physical amplitude status allowed: {basis['amplitude_status']}")
-print(f"Field solver status: {basis['field_solver_status']}")
+print("=== Computation Contract ===")
+print(f"Version: {jtfne.__version__}")
+print(f"Claim level: {manifest['claim_level']}")
+print(f"Physical amplitude calibrated: {manifest['physical_amplitude_calibrated']}")
+print(f"Field solver status: {manifest['field_solver_status']}")
 
 print("\n=== CONSERVATION PROXY DIAGNOSTICS (v0.4.8) ===")
 cpd = manifest.get("conservation_proxy_diagnostics")
@@ -87,17 +84,17 @@ print(f"Spike rate: {signals.spikes.sum() / len(signals.time_ms):.2f} spikes/ms"
 
 **Expected output:**
 ```
-=== v0.4.8 BASIS (Computation Contract) ===
-Version: 0.4.8
-Computational scaffold: computational_scaffold
-Physical amplitude status allowed: False
+=== Computation Contract ===
+Version: 0.4.24
+Claim level: computational_scaffold
+Physical amplitude calibrated: False
 Field solver status: linear_solver
 
-=== CONSERVATION PROXY DIAGNOSTICS (v0.4.8) ===
+=== CONSERVATION PROXY DIAGNOSTICS ===
 Status: proxy
-Source norm (L1): ~0.15
-Source norm (L2): ~0.20
-Source conservation residual: ~0.01
+Source norm (L1): ~0.75
+Source norm (L2): ~1.74
+Source conservation residual: ~0.75
 Poisson solver status: not_implemented
 Maxwell solver status: not_implemented
 
@@ -105,46 +102,37 @@ Maxwell solver status: not_implemented
 ✓ Manifest is JSON-safe (no NaN/Inf)
 
 === SIMULATION SUMMARY ===
-Simulation time: 100.0 ms
+Simulation time: 99.9 ms
 Timesteps: 1000
-Spike rate: 0.05 spikes/ms
+Spike rate: 0.00 spikes/ms
 ```
+
+Interactive dark-theme panels for this run: [index](_static/atlas/single_neuron/index.html) · [raster](_static/atlas/single_neuron/raster.html) · [traces](_static/atlas/single_neuron/traces.html).
 
 ---
 
 ## Two-Neuron E/I Example (Cell 3)
 
 ```python
-from jaxfne.core import configuration, construct, simulate
-from jaxfne.emitters import IzhikevichEmitter
+import jaxfne as jtfne
 import numpy as np
 
-# Create two neurons: one excitatory, one inhibitory
-config = configuration()
-
-exc_neuron = IzhikevichEmitter(
-    n_neurons=1,
-    v_init=-65.0,
-    u_init=-15.0,
-    # Regular spiking (excitatory-like)
-    a=0.02, b=0.2, c=-65.0, d=8.0,
-    name="E"
+# Two neurons: one excitatory, one inhibitory (current API)
+cfg = (
+    jtfne.configuration()
+    .network(
+        n=2,
+        cell_types={"E": 1, "PV": 1},
+        connectivity={"E→E": 0.1, "E→PV": 0.2, "PV→E": -0.3, "PV→PV": -0.1},
+    )
+    .emitter(family="izhikevich", preset="regular_spiking")
+    .field(domain="point")
+    .probe(name="two_neuron_ei", modes=["spikes", "V_m"])
 )
-
-inh_neuron = IzhikevichEmitter(
-    n_neurons=1,
-    v_init=-65.0,
-    u_init=-15.0,
-    # Fast spiking (inhibitory-like)
-    a=0.1, b=0.2, c=-65.0, d=2.0,
-    name="I"
-)
-
-# Build model with E and I populations
-model = construct(config, emitters=[exc_neuron, inh_neuron])
+model = jtfne.construct(cfg)
 
 # Simulate with external input
-signals = simulate(model, duration_ms=200, dt_ms=0.1)
+signals = model.simulate(jtfne.simulation(duration_ms=200.0, dt_ms=0.1, seed=0))
 
 # Get manifest
 manifest = model.manifest(signals)
@@ -154,18 +142,19 @@ print(f"Excitatory firing rate: {signals.spikes[:, 0].sum() / 200:.2f} Hz")
 print(f"Inhibitory firing rate: {signals.spikes[:, 1].sum() / 200:.2f} Hz")
 
 # Verify status checks still immutable
-basis = manifest["basis"]
-assert basis["amplitude_status"] == False, "Status check violated!"
-print("✓ Status checks immutable: amplitude_status = False")
+assert manifest["physical_amplitude_calibrated"] == False, "Status check violated!"
+print("✓ Status checks immutable: physical_amplitude_calibrated = False")
 ```
 
 **Expected output:**
 ```
 === TWO-NEURON E/I CIRCUIT ===
-Excitatory firing rate: 0.45 Hz
-Inhibitory firing rate: 0.65 Hz
-✓ Status checks immutable: amplitude_status = False
+Excitatory firing rate: 0.01 Hz
+Inhibitory firing rate: 0.01 Hz
+✓ Status checks immutable: physical_amplitude_calibrated = False
 ```
+
+Interactive dark-theme panels for this run: [index](_static/atlas/two_neuron_ei/index.html) · [raster](_static/atlas/two_neuron_ei/raster.html) · [traces](_static/atlas/two_neuron_ei/traces.html).
 
 ---
 

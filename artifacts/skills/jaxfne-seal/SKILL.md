@@ -23,6 +23,8 @@ Final independent verification before tag, release publication, or PyPI upload.
 - Classify each required goal: PASS, PARTIAL, FAIL, DEFER. P0/P1 PARTIAL or FAIL blocks seal (SEAL_NO_GO).
 - SEAL_GO does not authorize public writes without user approval.
 - Public/private purity: private goals and harness plans must not leak into public docs or packages.
+- Stacks-empty is a seal precondition: release todo section drained AND
+  issue-log Open section empty with resolutions recorded.
 
 ## STEPS
 1. Execute Gate 0 (`scripts/harness/gate0_git_reality.py`).

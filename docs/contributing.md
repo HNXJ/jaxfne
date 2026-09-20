@@ -31,7 +31,7 @@ Use **`python3`** (3.11 and 3.14 tested). Canonical import: `import jaxfne as jt
 3. **Visualization:** Simulation-signal plotting belongs in `jaxfne/vis/*` only.
 4. **Tests:** Add or extend tests for behavior you change. Do not weaken tests to hide failures.
 5. **Docs:** User-facing behavior changes need matching docs in the same PR.
-6. **Skills:** If you change agent-facing workflows, update `skills/` and note that in the PR body
+6. **Skills:** If you change agent-facing workflows, update `artifacts/skills/` and note that in the PR body
    (maintainer-internal; not part of the public documentation tree).
 
 ### Validation commands
