@@ -24,7 +24,7 @@ print(declared_constraints(genome)["areas"]["V1"]["layers"]["L2"])
 # {'n_neurons': 250, 'cell_type_count_bands': {'E': [150, 175], 'PV': [37, 62], ...}}
 ```
 
-Tolerance example (L1): `E (0.45,0.55) SST (0.1,0.2) VIP (0.3,0.4)` — realized counts must fall in those bands. Development parameter `fraction_jitter_sigma=0.01` controls how far the jitter pushes the base fractions before projection onto the box-constrained simplex.
+Tolerance example (L1): `E (0.45,0.55) SST (0.1,0.2) VIP (0.3,0.4)` — realized counts must fall in those bands. Development parameter `fraction_jitter_sigma=0.01` jitters the base fractions before projection onto the box-constrained simplex.
 
 Next: [02 — Develop](02_develop_genome.md) — `develop(genome, K_D)` realizes one phenotype.
 

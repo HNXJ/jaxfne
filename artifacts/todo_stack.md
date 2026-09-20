@@ -447,6 +447,15 @@ origin/dev`)
 - B8 re-pin executed: canonical atlas is now 1000 ms / 2000 steps,
   `config_hash e701098092814baa` (duration is hash-covered — deliberate,
   gated). Per-page "pinned 200 ms" labels updated to the new pin.
+- Checkpoint `6137c17` (HEAD == origin/dev, verified clean): B1 native
+  Plotly schematic + parity test, B2 7-panel contract with OMITTED paths +
+  H-branch tests, README PNGs regenerated, all snippets migrated to 7
+  links, P-001 logged. Remaining code: B6 gallery write (after C6
+  promotions).
+- Delegated series sealed: vocab Pass B (2 REPLACEs in api/core + jdna),
+  cumulative-8 verbosity slice (4 files tightened, gates green), nav audit
+  → nav pasted verbatim after YAML+91/91-set verification (orphans + strict
+  green). P-002 (stale 6-panel label) detected by worker, fixed same turn.
 - Untouched (Batch 1 remainder): `docs/guides/{jdna,output_bundles,
   configuration_grammar,model_inspection,atlas_suite,showcases}.md`,
   `docs/{quickstart,index,colab}.md`.
@@ -601,11 +610,8 @@ refused (`E_PARAM_UNSUPPORTED`), declared geometry inert at execution
 Sealed 2026-09-20 in `19aef19`: B3 provenance manifest, B4 promotion
 tooling, B5 no-resim gate, B7 negative gate, B8 canonical 1000 ms re-pin.
 
-- B1. Native Plotly H-SPICE panel (dark, interactive/vector, testable;
-  theme presentation-only per standing rule).
-- B2. Atlas 7-panel update in `atlas_suite` (hspice, network3d, raster, lfp,
-  h_dynamics, hdp, oscillatory — each enforcing its A2 contract incl.
-  explicit fail/omit paths) + tests per contract branch.
+
+
 
 
 

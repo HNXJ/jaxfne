@@ -43,7 +43,7 @@ signals = jtfne.simulate(model)
 
 - [Quickstart](quickstart.md) — build paths, paradigms, H-state adaptation
 - [Tutorials](tutorials/index.md) — worked examples
-- [Canonical Atlas Suite](guides/atlas_suite.md) — 6-panel interactive atlas
+- [Canonical Atlas Suite](guides/atlas_suite.md) — 7-panel interactive atlas
 - [Études](etudes/index.md) — demonstrated scientific propositions
 - [API reference](api/index.md)
 - [H-state / HDP guide](guides/hdp.md)

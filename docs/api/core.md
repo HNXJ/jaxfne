@@ -303,7 +303,7 @@ neurons via `area`/`layer`/`cell_type`/`ids` or an explicit `SelectorSpec`
 -> `V_m`; `spk`/`spikes`/`raster` -> `spikes`; `src`/`sources` -> `sources`;
 `lfp`/`csd`/`phi_e` -> the corresponding laminar proxy readout on `field`;
 `field_source` -> field source proxy. Unknown keys raise `KeyError`. Multi-trial
-execution is handled via `jtfne.run_trials`/`Model.run_trials`.
+simulation is handled via `jtfne.run_trials`/`Model.run_trials`.
 
 Use `summary()` for a JSON-safe view, or `jaxfne.io.json_safe(...)` on the fields you need.
 

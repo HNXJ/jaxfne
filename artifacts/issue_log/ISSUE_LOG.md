@@ -326,3 +326,17 @@ requires separate authorization.
 - **possible future change:** Batch F scoping decision in
   `artifacts/todo_stack.md` (touched paths + `jaxfne/` hot paths only);
   bulk legacy cleanup is 0.5.x. No drive-by lint renames (I-006).
+
+### P-002
+- **date:** 2026-09-20
+- **type:** DOC
+- **area:** docs landing / atlas grammar
+- **observation:** `docs/index.md:46` still said "6-panel interactive atlas"
+  after the B2 7-panel migration (found by vocab subagent pass).
+- **severity:** MINOR (landing inconsistency; panels themselves correct)
+- **minimal reproduction:** read `docs/index.md` line 46 vs line 53
+- **expected behavior:** landing names the 7-panel grammar
+- **actual behavior:** stale "6-panel" label
+- **evidence:** subagent report ses_f4397cdadffel1X66fF6hjJsl5; fixed same
+  turn, verified by `mkdocs build --strict`
+- **possible future change:** none (resolved)

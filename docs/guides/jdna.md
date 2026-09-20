@@ -158,7 +158,7 @@ domains:
 | develop | `(G, K_D) -> NeuronalTensor`. |
 | NeuronalTensor | Terminal structural phenotype; ordinary pipeline input. |
 | construct | Ordinary `(NeuronalTensor, RuntimeConfiguration) -> Model`. |
-| Model / simulate | Ordinary execution; no JDNA branches. |
+| Model / simulate | Ordinary simulation; no JDNA branches. |
 | RBS (runtime) | `H_R` arises at construct (PlasticParams.H aggregation); development declares no `H_D` for the canonical genome. |
 | AGSDR | Optimizes runtime/model/objective parameters \(\Theta_R'\); does not evolve PseudoGenomes in 0.4.22. |
 

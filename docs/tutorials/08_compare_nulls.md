@@ -27,7 +27,7 @@ print(jtfne.kappa_synchrony(spk, 0.5))
 
 Rules retained from [13 — Canonical column](13_canonical_column_etude.md): reuse `construct` for drive sweeps and `with_emitter_parameters` for graded per-layer drive — construction stays the expensive step.
 
-This is the endpoint: every earlier verb's variable has been carried forward to a comparative judgment on one canonical model. For frozen publication claims, see [Études](../etudes/index.md).
+This is the endpoint: every earlier step's variable carries forward to a comparative judgment on one canonical model. For frozen publication claims, see [Études](../etudes/index.md).
 
 ## Interactive atlas (dark)
 

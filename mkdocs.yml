@@ -110,15 +110,19 @@ nav:
       - Welcome: index.md
       - Installation: install.md
       - Quickstart: quickstart.md
+      - Colab quick start: colab.md
       - Gallery: gallery.md
       - Public API: public_surface_contract.md
       - Scope & status: scope_and_status.md
+      - Limitations & roadmap: limitations_and_future_plans.md
+      - Migration guide: migration_guide.md
+      - FAQ: faq.md
 
   - Tutorials:
       - Overview: tutorials/index.md
       - Notebook standard: tutorials/notebook_standard.md
       - Tutorial Outputs: tutorials/tutorial_outputs.md
-      - Cumulative (canonical 1000n):
+      - Canonical path (recommended, 1000n):
           - Define (PseudoGenome): tutorials/01_define_genome.md
           - Develop (G→N): tutorials/02_develop_genome.md
           - Inspect (realized vs configured): tutorials/03_inspect_tensor.md
@@ -127,65 +131,74 @@ nav:
           - Add state (H / RBS): tutorials/06_add_state.md
           - Add dynamics (HDP): tutorials/07_add_dynamics.md
           - Compare (nulls & lesions): tutorials/08_compare_nulls.md
-      - Suites:
-          - Computational biophysics: tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
-          - Corticospectrolaminar motif: tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
-          - Evoked L4 drive: tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md
-          - Low-frequency scaling: tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md
-      - Circuit construction (archive):
-          - Single-neuron multimodal: tutorials/01_single_neuron_multimodal.md
-          - Two-neuron E/I: tutorials/02_two_neuron_ei.md
-          - Population E/I network: tutorials/03_network_100_ei.md
-          - V1 laminar column: tutorials/04_v1_column.md
-          - V1–PFC dual column: tutorials/05_v1_pfc_dual_column.md
-          - Configuration API population: tutorials/06_v036_100_neuron_ei_population.md
-          - Canonical cortical column: tutorials/13_canonical_column_etude.md
-      - Source, field, and readout (archive):
-          - Source bookkeeping: tutorials/07_v037_source_bookkeeping.md
-          - LFP and CSD proxies: tutorials/08_v038_lfp_csd_readout.md
-          - EEG, MEG, EMM proxies: tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md
-      - Paradigms and optimization (archive):
-          - Sensory omission oddball: tutorials/10_v0313_omission_oddball.md
-          - Multi-area laminar AGSDR: tutorials/11_multi_laminar_cortical_agsdr.md
-          - Izhikevich emitter explorer: tutorials/12_izhikevich_single_emitter_explorer.md
+      - Suites (multi-part courses):
+          - Suite 1 — Computational biophysics: tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
+          - Suite 2a — Spectrolaminar motif: tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
+          - Suite 2b — Evoked L4 drive: tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md
+          - Suite 3 — Low-frequency scaling: tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md
+      - Archive (pre-canonical, superseded):
+          - "Archive: Single-neuron multimodal": tutorials/01_single_neuron_multimodal.md
+          - "Archive: Two-neuron E/I": tutorials/02_two_neuron_ei.md
+          - "Archive: Population E/I network": tutorials/03_network_100_ei.md
+          - "Archive: V1 laminar column": tutorials/04_v1_column.md
+          - "Archive: V1–PFC dual column": tutorials/05_v1_pfc_dual_column.md
+          - "Archive: Configuration API population": tutorials/06_v036_100_neuron_ei_population.md
+          - "Archive: Canonical column étude": tutorials/13_canonical_column_etude.md
+          - "Archive: Source bookkeeping": tutorials/07_v037_source_bookkeeping.md
+          - "Archive: LFP and CSD proxies": tutorials/08_v038_lfp_csd_readout.md
+          - "Archive: EEG, MEG, EMM proxies": tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md
+          - "Archive: Sensory omission oddball": tutorials/10_v0313_omission_oddball.md
+          - "Archive: Multi-area laminar AGSDR": tutorials/11_multi_laminar_cortical_agsdr.md
+          - "Archive: Izhikevich emitter explorer": tutorials/12_izhikevich_single_emitter_explorer.md
 
   - Guides:
       - Overview: guides/index.md
-      - Configuration grammar: guides/configuration_grammar.md
-      - Objective grammar: guides/objective_grammar.md
-      - Tensor-field workflows: guides/tensor_field_workflows.md
-      - Operator composition: guides/operator_composition.md
-      - Probe operators: guides/probe_operators.md
-      - Calibration: guides/calibration.md
-      - Homeostasis: guides/homeostasis.md
-      - H-state and HDP: guides/hdp.md
-      - PseudoGenome (JDNA): guides/jdna.md
-      - Output bundles: guides/output_bundles.md
-      - Canonical Atlas Suite: guides/atlas_suite.md
-      - Model inspection: guides/model_inspection.md
-      - Jaxley interoperability: guides/jaxley_interop.md
+      - Grammar:
+          - Configuration grammar: guides/configuration_grammar.md
+          - Objective grammar: guides/objective_grammar.md
+          - PseudoGenome (JDNA): guides/jdna.md
+          - Model inspection: guides/model_inspection.md
+      - State and adaptation:
+          - H-state and HDP: guides/hdp.md
+          - Homeostasis: guides/homeostasis.md
+          - Calibration: guides/calibration.md
+      - Readout and outputs:
+          - Probe operators: guides/probe_operators.md
+          - Output bundles: guides/output_bundles.md
+          - Tensor-field workflows: guides/tensor_field_workflows.md
+          - Operator composition: guides/operator_composition.md
+      - Interop and visualization:
+          - Jaxley interoperability: guides/jaxley_interop.md
+          - Canonical Atlas Suite: guides/atlas_suite.md
 
   - Études:
       - Overview: etudes/index.md
-      - HDP controllability & reachability: etudes/hdp_controllability_reachability.md
-      - Canonical Multiscale Observation: etudes/experiment_a.md
+      - Multiscale observation (frozen): etudes/multiscale_observation.md
+      - Experiment A — Canonical multiscale (builds on Multiscale): etudes/experiment_a.md
       - Heterogeneous emitters: etudes/heterogeneous_emitters.md
-      - Multiscale observation: etudes/multiscale_observation.md
+      - HDP controllability & reachability: etudes/hdp_controllability_reachability.md
 
   - Theory and Experiments:
-      - Traveling Waves: protocols/protocol_c_wave.md
-      - Traveling-Wave Evidence: doctrine/protocol_c_wave_evidence.md
-      - Neural Geometry and Delays: protocols/protocol_c_c3_neural.md
-      - Biological RBS: protocols/protocol_d_biological_rbs.md
-      - Integrated TFNE Composition: protocols/protocol_e_integration.md
-      - RBS, RBD and HDP: doctrine/rbs_rbd_hdp.md
-      - TFNE Algebra: doctrine/tfne_algebra.md
-      - Relative Quantities: doctrine/relative_quantity_grammar.md
-      - H-to-X Gain: doctrine/protocol_h_h1b_h_to_x_gain.md
-      - RBD State Memory: doctrine/protocol_h_rbd_memory.md
-      - HDP Parameter Memory: doctrine/protocol_w_hdp_parameter_memory.md
-      - TFNE Containment and Composition: doctrine/tfne_containment_architecture.md
-      - TFNE–JDNA Boundary: doctrine/tfne_jdna_boundary.md
+      - Foundations:
+          - Fundamental laws: appendix/fundamental_laws.md
+          - Source and field equations: source_field_equations.md
+          - Computation basis: computation_basis.md
+          - Mathematical glossary: mathematical_glossary_flow.md
+      - Waves and geometry:
+          - Traveling Waves: protocols/protocol_c_wave.md
+          - Traveling-Wave Evidence: doctrine/protocol_c_wave_evidence.md
+          - Neural Geometry and Delays: protocols/protocol_c_c3_neural.md
+          - Biological RBS: protocols/protocol_d_biological_rbs.md
+          - Integrated TFNE Composition: protocols/protocol_e_integration.md
+      - State, memory and composition:
+          - RBS, RBD and HDP: doctrine/rbs_rbd_hdp.md
+          - H-to-X Gain: doctrine/protocol_h_h1b_h_to_x_gain.md
+          - RBD State Memory: doctrine/protocol_h_rbd_memory.md
+          - HDP Parameter Memory: doctrine/protocol_w_hdp_parameter_memory.md
+          - TFNE Algebra: doctrine/tfne_algebra.md
+          - Relative Quantities: doctrine/relative_quantity_grammar.md
+          - TFNE Containment and Composition: doctrine/tfne_containment_architecture.md
+          - TFNE–JDNA Boundary: doctrine/tfne_jdna_boundary.md
 
   - API:
       - Overview: api/index.md
@@ -203,18 +216,9 @@ nav:
       - JDNA: api/jdna.md
 
   - Appendix:
-      - Fundamental laws: appendix/fundamental_laws.md
-      - Source and field equations: source_field_equations.md
-      - Computation basis: computation_basis.md
-      - Mathematical glossary: mathematical_glossary_flow.md
-      - Migration guide: migration_guide.md
       - References: reference/references.md
-      - FAQ: faq.md
       - Changelog: changelog.md
       - Citation: citation.md
       - Contributing: contributing.md
-      - Colab quick start: colab.md
-      - Limitations: limitations_and_future_plans.md
-
 extra:
   jaxfne_version: "0.4.24"

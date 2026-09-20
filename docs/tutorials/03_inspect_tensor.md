@@ -21,7 +21,7 @@ path = jtfne.save_neuronal_tensor(tensor, "/tmp/cumulative_1000n.json")
 assert jtfne.load_neuronal_tensor(path).name == tensor.name
 ```
 
-**Box: n=1 vs 1000 contrast.** A single-cell tutorial (`configuration().network(n=1)`) and this 1000n tensor share no variables — the point is that isolated `n=1 → 2 → 100 → 600` progression resets the model. The cumulative path does not.
+**Box: n=1 vs 1000 contrast.** A single-cell tutorial (`configuration().network(n=1)`) and this 1000n tensor share no variables — the isolated `n=1 → 2 → 100 → 600` progression resets the model. The cumulative path does not.
 
 Next: [04 — Simulate](04_simulate_tensor.md) — construction realizes positions and edges.
 
