@@ -24,7 +24,7 @@ Legend — G is the PseudoGenome, D is JDNA develop, K_D is the developmental ke
 
 ## Illustrative examples
 
-**Rules → realization.** A PseudoGenome may declare per-layer population fractions (e.g., excitatory/inhibitory base fractions), bounded developmental ranges (fraction tolerance bands), laminar geometry (depth bands, x/y ranges, distribution), and distance- or class-dependent connection rules. Development realizes these rules as explicit arrays and edges in the NeuronalTensor: integer counts per cell type within declared bands, concrete positions, per-neuron parameters, edges, weights, and delays.
+**Rules → realization.** A PseudoGenome may declare per-layer population fractions (e.g., excitatory/inhibitory base fractions), bounded developmental ranges (fraction tolerance bands), laminar geometry (depth bands, x/y ranges, distribution), and distance- or class-dependent connection rules. Development turns these rules into explicit NeuronalTensor arrays and edges: integer counts per cell type in declared bands, positions, per-neuron parameters, edges, weights, and delays.
 
 **Cortical column (1000 neurons).** The canonical 6-layer cortical-column PseudoGenome declares layer-wise counts and composition rules, geometry, and typed inter-layer connection schemes. Developing it with a given `K_D` realizes a concrete 1000-neuron phenotype — specific counts, positions, parameters, edges, weights, and delays — within the declared constraints. The PseudoGenome stores the generative rules, not 1000 per-neuron records.
 
@@ -97,7 +97,7 @@ The defining invariant:
 
 A PseudoGenome declares *rules*: laminar bands and depths, per-layer cell-type
 base fractions with tolerance bands, geometry, and typed connection schemes.
-Development realizes a phenotype within the declared constraints. The genome
+Development realizes a phenotype in the declared constraints. The genome
 never stores positions, edges, or population arrays.
 
  ### Developmental versus runtime state
@@ -125,7 +125,7 @@ present. That remains future work after the frozen-use period.
 
 ### PRNG separation
 
-Development, simulation, and optimization use independently controlled PRNG
+Development, simulation, and optimization use separate PRNG
 domains:
 
 \[

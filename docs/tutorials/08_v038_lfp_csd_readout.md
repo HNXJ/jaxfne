@@ -9,16 +9,16 @@
 
 ## Overview
 
-This tutorial documents the jaxfne **source-to-field-to-readout workflow** for laminar contact arrays. It shows how neural source currents emerge implicitly from emitter + configuration, project spatially to laminar contacts via a Gaussian kernel, and extract LFP-proxy and CSD-proxy readouts.
+This tutorial covers the jaxfne **source-to-field-to-readout workflow** for laminar contact arrays: implicit source currents (emitter + config), Gaussian-kernel projection to contacts, and LFP-proxy / CSD-proxy readout.
 
 The core concepts:
 
-1. **Source Declaration (Implicit):** Emitter type + neuron count determine available sources
-2. **Spatial Projection (Gaussian Kernel):** Sources spread to contacts via a Gaussian kernel; default **`density_preserving`** mode (not row-normalized). Use `mode="row_normalize"` only when explicitly intended (not PDE-solved)
-3. **LFP-proxy:** The spatially-smoothed source projection represents local field potential
-4. **CSD-proxy:** The second spatial derivative of LFP-proxy approximates current-source density
-5. **Probe Readout:** Eight multimodal operators extract spikes, voltage, sources, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, and EMM-proxy
-6. **Scope Clarity:** Metadata gates (`amplitude_status=False`) prevent amplitude overstates
+1. **Source Declaration (Implicit):** emitter type + neuron count decide available sources
+2. **Spatial Projection (Gaussian Kernel):** default **`density_preserving`** mode (not row-normalized). Use `mode="row_normalize"` only when explicitly intended (not PDE-solved)
+3. **LFP-proxy:** spatially-smoothed source projection for local field potential
+4. **CSD-proxy:** second spatial derivative of LFP-proxy for current-source density
+5. **Probe Readout:** eight multimodal operators for spikes, voltage, sources, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy
+6. **Scope Clarity:** metadata gates (`amplitude_status=False`) block amplitude overstates
 
 This is a **computational scaffold**, not a biophysically validated model.
 
@@ -30,7 +30,7 @@ This is a **computational scaffold**, not a biophysically validated model.
 
 $$S(t) \in \mathbb{R}^{T \times N}$$
 
-**Worded equation:** Source activity is stored as a time-by-neuron matrix. Each entry S(t, n) represents the current produced by neuron n at time t.
+**Worded equation:** Source activity is a time-by-neuron matrix. Entry S(t, n) is the current from neuron n at time t.
 
 ### Projection to Laminar Contacts
 
@@ -38,7 +38,7 @@ $$Y(t, c) = \sum_{n=1}^{N} K(c, n) \cdot S(t, n)$$
 
 where $K \in \mathbb{R}^{C \times N}$ is the Gaussian projection kernel.
 
-**Worded equation:** Each contact receives a weighted sum of neural sources. The Gaussian kernel K(c, n) assigns higher weight to neurons near contact c and lower weight to distant neurons.
+**Worded equation:** Each contact sums neural sources. Kernel K(c, n) weights neurons near contact c highest.
 
 ### Gaussian Kernel (Row-Normalized)
 
@@ -46,7 +46,7 @@ $$K(c, n) = \frac{\exp\left(-0.5 \left(\frac{d_c - d_n}{w}\right)^2\right)}{\sum
 
 where $d_c$ is contact depth, $d_n$ is neuron depth, and $w = 0.10$ is the kernel width.
 
-**Worded equation:** The kernel is a Gaussian centered at each contact's depth, with width controlled by w. Row normalization ensures each contact receives a properly weighted summary.
+**Worded equation:** Gaussian kernel at each contact depth, width w. Row normalization gives each contact a weighted summary.
 
 ### CSD-proxy Readout (Second Spatial Derivative)
 
@@ -54,13 +54,13 @@ $$\text{CSD}(t, c) \approx -\frac{Y(t, c-1) - 2Y(t, c) + Y(t, c+1)}{\Delta z^2}$
 
 where $\Delta z = 1/(C-1)$ is the contact spacing.
 
-**Worded equation:** CSD-proxy approximates local curvature of the field by taking the second difference across neighboring contacts. The negative sign follows electrostatic convention.
+**Worded equation:** CSD-proxy is local field curvature via second difference across neighbor contacts. Negative sign follows electrostatic convention.
 
 ### Probe Readout
 
 $$R_k(t) = Q_k(S(t), V(t), \text{spike count}, \ldots)$$
 
-**Worded equation:** Each probe (k = spikes, V_m, source, LFP-proxy, CSD-proxy) extracts a different summary of the neural state.
+**Worded equation:** Each probe (k = spikes, V_m, source, LFP-proxy, CSD-proxy) summarizes neural state differently.
 
 ---
 
@@ -68,10 +68,10 @@ $$R_k(t) = Q_k(S(t), V(t), \text{spike count}, \ldots)$$
 
 ### The Public API Contract
 
-Sources are **not explicitly declared**. Instead, they are **inferred** from:
+Sources are **not explicitly declared**. They are **inferred** from:
 
-1. **Emitter type & preset:** Determines available sources (e.g., Izhikevich → intrinsic + synaptic currents)
-2. **Probe modes:** Determines which sources are computed and returned
+1. **Emitter type & preset:** decides available sources (e.g., Izhikevich → intrinsic + synaptic currents)
+2. **Probe modes:** decide which sources get computed and returned
 
 ```python
 import jaxfne as jtfne
@@ -128,21 +128,21 @@ See [Source Bookkeeping](07_v037_source_bookkeeping.md#signals-api-rules) and [S
 
 ## Example 1: Single Neuron → Contacts
 
-A single neuron in layer L2/3 projects to 16 evenly-spaced laminar contacts.
+A single neuron in L2/3 projects to 16 evenly-spaced laminar contacts.
 
 **Key observations:**
 
 - **Source shape:** [T=10000, N=1] (time × neuron)
 - **LFP-proxy shape:** [T=10000, C=16] (time × contacts)
 - **CSD-proxy shape:** [T=10000, C=16] (time × contacts, second derivative)
-- **Single source → distributed field:** The point source is smoothed by the Gaussian kernel, producing a smooth LFP-proxy profile across contacts
-- **Nearest contacts receive highest amplitude:** Contacts near the neuron's depth receive stronger signal
+- **Single source → distributed field:** point source smoothed by Gaussian kernel gives smooth LFP-proxy across contacts
+- **Nearest contacts highest:** contacts near neuron depth get strongest signal
 
 ---
 
 ## Example 2: E/I Laminar Column
 
-A 48-neuron laminar column (12 neurons per layer, 4 layers) with mixed E/I composition.
+A 48-neuron laminar column (12 per layer, 4 layers), mixed E/I.
 
 **Configuration:**
 
@@ -155,9 +155,9 @@ A 48-neuron laminar column (12 neurons per layer, 4 layers) with mixed E/I compo
 
 - **Source shape:** [T=10000, N=48]
 - **LFP-proxy shape:** [T=10000, C=16]
-- **Emerges laminar structure:** Layer-wise E/I interactions produce distinct laminar profiles
-- **CSD-proxy shows layer boundaries:** Second derivative reveals where sources concentrate
-- **Population rate:** Typically 2–25 Hz (active-state regime in this tutorial)
+- **Laminar structure emerges:** layer-wise E/I gives distinct laminar profiles
+- **CSD-proxy marks layer edges:** second derivative shows where sources concentrate
+- **Population rate:** typically 2–25 Hz (active-state regime here)
 
 ---
 
@@ -193,7 +193,7 @@ for layer, indices in layer_indices.items():
 
 ## Probe Modes & Field Computation
 
-See [Probe Operators](../guides/probe_operators.md) for the eight operators; available here: `spikes`, `V_m`, `source`, `LFP-proxy`, `CSD-proxy` (see table in [Source Bookkeeping](07_v037_source_bookkeeping.md)). Proxy fields are fast convolution, not PDE-solved.
+See [Probe Operators](../guides/probe_operators.md) for the eight operators; here: `spikes`, `V_m`, `source`, `LFP-proxy`, `CSD-proxy` (see table in [Source Bookkeeping](07_v037_source_bookkeeping.md)). Proxy fields use fast convolution, not PDE-solved.
 
 ---
 

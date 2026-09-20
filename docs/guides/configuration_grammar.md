@@ -99,7 +99,7 @@ Specificity dial: the circuit. `.connections(...)` declares explicit
 source→target rules with probability, weight, sign, and synaptic mechanism;
 `.inter_column_connectivity(...)` adds laminar-aware inter-area edges
 (feedforward L2/3→L4, feedback L6→L1/L5). Prefer sparse construction at scale.
-Richer, sign- and mechanism-resolved connectivity is what produces emergent
+Richer, sign- and mechanism-resolved connectivity produces emergent
 oscillations and the band-localized structure spectrolaminar readouts depend on.
 
 **Mechanism resolution now drives simulated tau when fully declared.**
@@ -150,8 +150,8 @@ emitter output according to the emitter family and field settings (built-in
 spike/current proxy, or reconstructed HH ionic current via the Jaxley bridge).
 
 Specificity dial: a voltage/spike proxy source is coarse; a real transmembrane
-**current** source (Jaxley HH) is the physically meaningful generator. Choosing
-the emitter therefore chooses the source's fidelity. See
+**current** source (Jaxley HH) is the physically meaningful generator. The
+emitter thus sets the source's fidelity. See
 `JaxleyBridge.simulate_laminar_field` in the Bridges API (`docs/api/bridges.md` — repository-internal reference, excluded from the built site).
 
 ## Fields
@@ -171,8 +171,8 @@ calibration is the path from proxy to physical amplitude.
 
 Specificity dial: what you measure and at what resolution — `spikes`, `V_m`,
 `LFP`, `CSD`, `EEG`, `MEG`, spectrolaminar, with contact geometry (`n_contacts`).
-More contacts and more modalities expose more of the model's structure; probes do
-not change the model, they read it.
+More contacts and modalities expose more of the model's structure; probes read
+the model without changing it.
 
 ## Objectives
 
@@ -180,10 +180,12 @@ not change the model, they read it.
 synchrony_metrics=, null_controls=, ablations=, rejection_gates=)`,
 `.objective_outputs(name=, dtype=, shape=)`.
 
-Specificity dial: what "correct" means. Targets (rate, synchrony, spectrolaminar
-profile), and — importantly — the **null controls and ablations** that make a
-result interpretable rather than a fit. A specified null/ablation turns a metric
-into evidence.
+Specificity dial: what "correct" means:
+
+- targets: rate, synchrony, spectrolaminar profile;
+- **null controls and ablations** that make a result interpretable rather than a fit.
+
+A specified null/ablation turns a metric into evidence.
 
 ## Optimizers
 
@@ -200,7 +202,7 @@ surrogate status governs whether gradient-based tuning is admissible.
 
 `jtfne.manifest(cfg, signals=...)`, `.validate()`, `.update_metadata(**)`.
 
-Specificity dial: the receipt. The manifest binds the configuration, runtime
+Specificity dial: the receipt. The manifest binds configuration, runtime
 report, artifact hashes, and status fields into a strict JSON-safe record.
 `.validate()` checks the specification before you run. The manifest is what makes
 a result reproducible and auditable — the closing operator of the chain.
@@ -247,7 +249,7 @@ Reading `Configuration` as a compiler reframes the whole package: the object
 grammar (the fluent `cfg` chain) and the TFNE operator grammar
 (Emitter→Source→Field→Probe→Objective→Optimizer→Manifest) are two views of the
 same system. You specify a model declaratively; jaxfne compiles and computes it.
-The fidelity of the result is a property of the specification you wrote — which is
+The fidelity of the result reflects the specification you wrote — which is
 why `Configuration` is the deepest, most important surface in the package.
 
 ## See also

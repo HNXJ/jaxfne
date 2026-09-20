@@ -1,6 +1,6 @@
 # Objective Grammar
 
-This guide walks through a **complete script** — from circuit definition to
+This guide shows a **complete script** — from circuit definition to
 simulated signals, objectives, tuning, and export — using the real top-level
 calls in order.
 
@@ -14,8 +14,7 @@ Related views (unchanged):
   (`.runtime()`, `.column()`, `.connectivity()`, …).
 - TFNE Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) — internal tensor-operator rules.
 
-Every call below was run against the installed package before being written
-here — none of it is illustrative pseudocode.
+Every call below ran against the installed package. None is illustrative pseudocode.
 
 ## The chain
 
@@ -149,9 +148,9 @@ Regenerate: `python scripts/generate_doc_page_atlases.py --slug objective_60`.
 
 `Configuration` exposes ~30 builder methods; the operator rules describe
 7 tensor stages with domain/codomain rules. Neither answers "what do I
-actually type, in order, to run something." This page is that answer, kept
-honest by running every example against the installed package rather than
-transcribing it from a proposal or an older skill file.
+actually type, in order, to run something." This page is that answer; every
+example ran against the installed package, not copied from a proposal or an
+older skill file.
 
 ## See also
 

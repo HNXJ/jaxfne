@@ -1,13 +1,13 @@
 # Calibration
 
-When you have **empirical EEG, MEG, LFP, or CSD data**, jaxfne's default proxy
-readouts need a calibration step before amplitudes or units are meaningful.
-This guide describes the metadata and workflow hooks the package provides —
+With **empirical EEG, MEG, LFP, or CSD data**, jaxfne's default proxy
+readouts need calibration before amplitudes or units are meaningful.
+This guide lists the metadata and workflow hooks the package provides —
 without claiming shipped outputs are already physically calibrated.
 
 ## Calibration-ready design
 
-jaxfne is designed to support calibration workflows. The package:
+jaxfne supports calibration workflows. The package:
 
 - **Preserves source identity** — track source origin (emitter type, cell type)
 - **Declares assumptions** — metadata fields state conductivity, solver, geometry models
@@ -25,7 +25,7 @@ To prepare a workflow for calibration:
 
 ## Calibration Specification and Reporting
 
-jaxfne provides calibration specification and reporting contracts. These allow workflows to declare calibration state without changing the default proxy readout behavior.
+jaxfne provides calibration specification and reporting contracts. These let workflows declare calibration state without changing the default proxy readout behavior.
 
 ### CalibrationSpec
 
@@ -89,12 +89,12 @@ report = make_calibration_report(spec, readout_kind="lfp_proxy")
 
 - **All proxy readouts remain computational proxies** by default
 - `amplitude_status` stays `false` for all modes
-- Calibration metadata is declared for future validation, validation pending
+- Calibration metadata is declared; validation is pending
 - Empirical calibration requires separate geometry, reference data, and validation evidence beyond the spec
 
 ## Biological calibration status
 
-Field-amplitude calibration (above) is distinct from **biological calibration** — whether the circuit's cell-type composition and connectivity are quantitatively fitted to empirical biology.
+Field-amplitude calibration (above) differs from **biological calibration** — whether the circuit's cell-type composition and connectivity are quantitatively fitted to empirical biology.
 
 ### Canonical V1 column (`canonical-v1-column-1000n`)
 

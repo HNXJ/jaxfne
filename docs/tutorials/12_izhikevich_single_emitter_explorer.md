@@ -1,6 +1,6 @@
 # jaxfne TFNE-Izhikevich Single Emitter Explorer
 
-Interactive browser-side preview for exploring reduced-emitter waveform dynamics before configuring a jaxfne scaffold.
+Browser-side preview of reduced-emitter waveform dynamics before configuring a jaxfne scaffold.
 
 ## Run status
 
@@ -13,22 +13,22 @@ amplitude_status: native_unscaled
 solver: browser_euler_dt_0.25ms
 ```
 
-This tool runs entirely in the browser. It is a parameter intuition aid — not a jaxfne execution. All outputs are browser-computed previews for qualitative exploration only.
+Runs entirely in the browser. Parameter-intuition aid — not a jaxfne run. All outputs are browser-computed previews for qualitative exploration.
 
 ## What this tool does
 
-The explorer lets you sweep Izhikevich reduced-emitter parameters in real time and observe the resulting waveform, phase portrait, and nullcline structure. Eleven biological presets are included: E-Regular, E-Bursting, E-Chattering, E-Wide, PV, SST, VIP, FS, LTS, RZ (Resonator), and TC (Thalamocortical).
+Sweep Izhikevich reduced-emitter parameters in real time; observe waveform, phase portrait, and nullclines. Eleven presets: E-Regular, E-Bursting, E-Chattering, E-Wide, PV, SST, VIP, FS, LTS, RZ (Resonator), TC (Thalamocortical).
 
 Use it to:
 
-1. Develop intuition for how `a`, `b`, `c`, `d` shape spike patterns before a jaxfne run.
-2. Compare E vs PV vs SST vs VIP waveform classes side by side.
-3. Understand the phase portrait (v vs u nullclines) for each cell type.
-4. Choose a starting drive level `I` before setting `drive_gain` in AGSDR tuning.
+1. Build intuition for how `a`, `b`, `c`, `d` shape spikes before a jaxfne run.
+2. Compare E vs PV vs SST vs VIP waveforms side by side.
+3. Read the phase portrait (v vs u nullclines) per cell type.
+4. Pick a starting drive `I` before setting `drive_gain` in AGSDR tuning.
 
 ## Transition to jaxfne
 
-After exploring parameters here, use the package-native path for any actual simulation:
+After exploring here, use the package-native path for any real simulation:
 
 ```python
 import jaxfne as jtfne
@@ -43,10 +43,10 @@ The emitter presets in the explorer correspond to `jtfne.suite2_celltype_presets
 
 ## Scope
 
-- Browser Euler solver at dt=0.25 ms. Not the jaxfne JAX kernel.
-- Outputs are waveform previews only. No source projection, no field readout.
+- Browser Euler at dt=0.25 ms. Not the jaxfne JAX kernel.
+- Waveform previews only. No source projection, no field readout.
 - `amplitude_status: native_unscaled` — arbitrary units throughout.
-- No biological mechanism is implied by the parameter sweep.
+- Sweep implies no biological mechanism.
 
 ## Interactive panel
 

@@ -7,7 +7,7 @@ See [RBS/RBD/HDP doctrine](../doctrine/rbs_rbd_hdp.md) for the canonical RBS con
 - **RBS is the relative biophysical state $H$**.
 - **RBD defines $H$ dynamics**: Relative Biophysical Dynamics governs the evolution of $H$ ($\dot{H} = F_H$).
 - **HDP defines parameter dynamics such as $W$ and may depend on $H$**: Hidden-state Dependent Plasticity governs parameter updates ($\dot{W} = F_W(x, H, W)$).
-- **$H$ may exist and evolve while parameter plasticity is absent**: When $\dot{W} = 0$, $H$ continues to provide state memory, recovery, and dynamic excitability regulation under pure RBD.
+- **$H$ may exist and evolve while parameter plasticity is absent**: When $\dot{W} = 0$, $H$ still provides state memory, recovery, and dynamic excitability control under pure RBD.
 
 Full Markov continuation requires the complete dynamical state
 \(\mathcal X_t=(\mathbf x_t,\mathbf H_t,\mathbf W_t,\mathcal B_t,\ldots)\),
@@ -61,9 +61,9 @@ inert-by-design surface, not a hidden behavior change.
 
 ## Scalar node HDP kernel (compatibility form)
 
-The scalar node realization uses one RBS coordinate per neuron, \(d_H=1\), and
+The scalar node form uses one RBS coordinate per neuron, \(d_H=1\), and
 couples activity, synaptic budget, and weight adaptation in one loop. The
-generalized rule supports \(d_H>1\) with optional readout and coupling.
+general rule supports \(d_H>1\) with optional readout and coupling.
 
 ## Node control law
 
@@ -189,13 +189,13 @@ signals, state = jtfne.simulate(
 
 The continuation state carries vector `H` without a second state
 representation. Ordinary and continuation HDP dispatch share the same
-deterministic per-step PRNG rule, so matched scalar runs remain identical.
+deterministic per-step PRNG rule, so matched scalar runs stay identical.
 Readout and coupling dimensions are validated explicitly.
 
 ## Built-in emitter (per-step kernel)
 
-Enable it on the runtime; the built-in Izhikevich kernel applies the weight
-ODEs every step. After simulating, read the controller diagnostics off the
+Enable it on the runtime. The built-in Izhikevich kernel applies the weight
+ODEs each step. After simulation, read the controller diagnostics from the
 model.
 
 ```python
@@ -315,8 +315,10 @@ descriptor declares coordinates (`h_coords`, `h_shape`), plastic targets
 bounds, and defaults; the step function maps per-step context
 (`H`, `aux`, spikes, delayed arrivals, rule key) to infinitesimal updates.
 Select it with `hdp_params={"hdp_rule": name, "hdp_rule_params": {...}}`.
-Unknown layouts, targets, and inverted bounds are rejected at registration;
-undeclared update keys are rejected at run time.
+Registration and run-time checks reject bad input:
+
+- at registration: unknown layouts, targets, and inverted bounds;
+- at run time: undeclared update keys.
 
 ## Stability
 

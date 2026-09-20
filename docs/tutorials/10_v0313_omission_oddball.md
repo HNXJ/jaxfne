@@ -1,6 +1,6 @@
 # Sensory Omission & Oddball Detection Paradigm
 
-**A tutorial demonstrating expected sensory stimuli, unexpected deviants, and sensory omission detection under package-native paradigm configuration.**
+**Expected stimuli, unexpected deviants, and omission detection under package-native paradigm config.**
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_v0313_omission_oddball.ipynb)
 
@@ -8,13 +8,13 @@
 
 ## Learning Objectives
 
-After completing this tutorial, you will understand:
+You will learn:
 
-1. **Sensory Omission Config** — how to declare stimulus schedules where expected sensory events are dynamically omitted.
-2. **Oddball (Deviant) Paradigm** — how to configure rare deviant stimulus streams (expected vs unexpected).
-3. **Event Window Analysis** — how to segment and aggregate population responses across baseline, stimulus, and post-stimulus windows.
-4. **Independent Readouts** — how to inspect multi-area column outputs under distinct stimulus conditions.
-5. **Coverage Limits** — why omission responses are diagnosed as uncalibrated proxy readouts.
+1. **Sensory Omission Config** — declare schedules where expected events get omitted.
+2. **Oddball (Deviant) Paradigm** — configure rare deviant streams (expected vs unexpected).
+3. **Event Window Analysis** — segment and aggregate responses across baseline, stimulus, post-stimulus windows.
+4. **Independent Readouts** — inspect multi-area column outputs under distinct conditions.
+5. **Coverage Limits** — omission responses stay uncalibrated proxy readouts.
 
 ---
 
@@ -23,13 +23,13 @@ After completing this tutorial, you will understand:
 **Question:** How does a sensory omission (unexpected silence) modulate population and field readouts in a feedforward-recurrent column compared to standard and deviant tones?
 
 **Context:**
-Spike adaptation and recurrent inhibition can cause a transient suppression of responses to repeated standard tones. In contrast, rare unexpected deviant tones or the abrupt omission of an expected tone can trigger distinctive transient rebound or novelty-proxy responses. Projecting these under clear paradigm conditions ensures exact validation of mismatch and omission diagnostics.
+Adaptation and recurrent inhibition transiently suppress responses to repeated standards. Rare deviants or omission of an expected tone can trigger rebound or novelty-proxy responses. Clear paradigm conditions keep mismatch and omission diagnostics exact.
 
 ---
 
 ## Mathematical Glossary Flow
 
-Here, we define the events and conditions for the sensory omission paradigm:
+Events and conditions for the omission paradigm:
 
 ### 1. expected Condition (Standard Tone)
 
@@ -103,11 +103,11 @@ model = jtfne.construct(cfg)
 
 ## Figures
 
-- **Figure 1: Sensory Event Timeline** — Overview of expected tone, unexpected deviant tone, and omitted tone event windows.
-- **Figure 2: Expected raster/rate** — Spiking activity of regular standard conditions.
-- **Figure 3: Unexpected deviant raster/rate** — Spiking activity under rare deviant stimulus presentation.
-- **Figure 4: Omission raster/rate** — Network activity during expected tone window silence and post-omission window.
-- **Figure 5: LFP/CSD-proxy Contrast** — Extracellular-like profile comparison showing sensory vs omission profiles.
+- **Figure 1: Sensory Event Timeline** — expected, deviant, and omitted event windows.
+- **Figure 2: Expected raster/rate** — spiking under regular standards.
+- **Figure 3: Unexpected deviant raster/rate** — spiking under rare deviant.
+- **Figure 4: Omission raster/rate** — activity in expected-tone silence and post-omission window.
+- **Figure 5: LFP/CSD-proxy Contrast** — sensory vs omission extracellular-like profiles.
 
 ---
 

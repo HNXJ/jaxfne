@@ -1,9 +1,9 @@
 # Homeostasis
 
 jaxfne includes a **homeostatic excitability controller**: a minimal computational
-control method that holds each neuron's firing rate near a set-point by adapting an
+control that holds each neuron's firing rate near a set-point by adapting an
 intrinsic excitability bias. One extra parameter per emitter; switching
-it on does three useful things at once:
+it on does three things at once:
 
 - **Eliminates hyperactivity** — pulls runaway/saturated units back down.
 - **Eliminates hypoactivity** — nudges silent units into working range.
@@ -12,8 +12,8 @@ it on does three useful things at once:
 
 It is a *control method*, not a claimed biological plasticity mechanism — a
 restoring controller on excitability, useful as stabilizer and as adaptation
-proxy. jaxfne is the mathematical backend; the controller's role in a model is
-what the configuration makes it.
+proxy. jaxfne is the mathematical backend; the configuration sets the
+controller's role in a model.
 
 ## The control law
 
@@ -32,8 +32,8 @@ in-band nudge.
 
 ## Built-in emitter (per-step kernel)
 
-Enable it on the runtime; the built-in Izhikevich kernel applies the bias each
-step. After simulating, read controller diagnostics off the model.
+Enable it on the runtime. The built-in Izhikevich kernel applies the bias each
+step. After simulation, read controller diagnostics from the model.
 
 ```python
 import jaxfne as jtfne

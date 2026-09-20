@@ -2,7 +2,7 @@
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb)
 
-This notebook teaches the public jaxfne grammar.
+This notebook teaches public jaxfne grammar.
 
 ```python
 cfg = jtfne.Configuration()

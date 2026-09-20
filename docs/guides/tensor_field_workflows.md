@@ -1,8 +1,7 @@
 # Tensor-field workflows
 
 Turn simulated neural activity into **depth-resolved readouts** — LFP-proxy,
-CSD-proxy, EEG/MEG proxies, and bundled manifests — by chaining a few
-well-defined stages.
+CSD-proxy, EEG/MEG proxies, and bundled manifests — in a few defined stages.
 
 ```
 Emitter/Network → Source tensors → Field operators → Probe readouts → Output bundles
@@ -129,11 +128,11 @@ Report declares solver path (proxy vs. physical), convergence status, and statem
 
 ## Field/proxy diagnostics
 
-jaxfne distinguishes between proxy readout paths and physical solver paths using field diagnostics:
+jaxfne separates proxy readout paths from physical solver paths with field diagnostics:
 
 ### Proxy readout path
 
-Laminar proxy operators project source tensors directly to contacts without solving a PDE:
+Laminar proxy operators map source tensors to contacts without solving a PDE:
 
 - **Source-balance:** Deferred to physical solver path (proxy mode omits PDE validation)
 - **Gauge:** Declared metadata only
@@ -171,7 +170,7 @@ All diagnostics keep `amplitude_status: false`. Physical amplitude claims requir
 
 ## Local and global summaries
 
-For circuit-level workflows, tensor-field operations can produce:
+Circuit-level workflows can produce:
 
 - **Local summaries:** Per-layer or per-region spike rates, LFP power
 - **Global summaries:** Whole-network activity, cross-layer synchronization

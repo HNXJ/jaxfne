@@ -8,28 +8,28 @@
 
 ## Overview
 
-This tutorial documents the jaxfne **source bookkeeping API**: how neural sources are declared (implicitly via emitter + probes), how they flow to fields (convolution-based proxies), and how metadata gates physical amplitude statuss.
+This tutorial covers the jaxfne **source bookkeeping API**: implicit source declaration (emitter + probes), flow to fields (convolution proxies), and metadata gating of amplitude status.
 
 The core concepts:
 
-1. **Source Declaration (Implicit):** Emitter type (`izhikevich`, preset) + probe modes determine which fields are computed
-2. **Field Handoff (Convolution-based):** Sources spread spatially via fixed convolution kernels (not PDE-solved)
-3. **Probe Readout (Configurable):** Multiple readout modes (`source`, `LFP-proxy`, `CSD-proxy`) extract different field perspectives
-4. **Scope Clarity (Metadata):** Manifest keys (`amplitude_status=False`) prevent misinterpretation
+1. **Source Declaration (Implicit):** emitter type (`izhikevich`, preset) + probe modes decide which fields get computed
+2. **Field Handoff (Convolution-based):** fixed kernels spread sources spatially (not PDE-solved)
+3. **Probe Readout (Configurable):** modes (`source`, `LFP-proxy`, `CSD-proxy`) give different field views
+4. **Scope Clarity (Metadata):** manifest keys (`amplitude_status=False`) block misreads
 
-This is **not a biophysical validation tutorial**. It is a **computational scaffold** for understanding how neural sources map to observable fields in the jaxfne model.
+Not a biophysical validation tutorial. A **computational scaffold** mapping neural sources to observable fields.
 
 ---
 
 ## Interactive 3D Column Visualization
 
-The visualization below is a **standalone Plotly HTML** showing a laminar cortical column with:
+Below is a **standalone Plotly HTML** laminar column with:
 
-- **3D neuron scatter:** Colored by firing rate, positioned by layer and depth
-- **Hover metadata:** Neuron ID, layer, cell type, depth, source index, mean firing rate
-- **Readout panels:** Source summary, population firing rate, LFP-proxy, laminar voltage profile
-- **Equation annotations:** Source bookkeeping (S), field handoff (Y = P·S), probe readout (R = Q·Y)
-- **Interactive controls:** Pan, zoom, rotate (mouse + keyboard)
+- **3D neuron scatter:** colored by firing rate, placed by layer and depth
+- **Hover metadata:** ID, layer, cell type, depth, source index, mean rate
+- **Readout panels:** source summary, population rate, LFP-proxy, laminar voltage
+- **Equation notes:** source bookkeeping (S), field handoff (Y = P·S), probe readout (R = Q·Y)
+- **Controls:** pan, zoom, rotate (mouse + keyboard)
 
 ### View the Interactive Column
 
@@ -52,19 +52,22 @@ The visualization below is a **standalone Plotly HTML** showing a laminar cortic
 
 ### Neuron Colors (Firing Rate)
 
-Hover over any neuron to see:
-- **Neuron ID:** Index in the population
-- **Layer:** L2/3, L4, L5, or L6
-- **Cell type:** E (excitatory), PV (parvalbumin-positive), SST, or VIP
-- **Depth:** Distance from surface (µm)
-- **Source index:** Mapping to source current in simulation
-- **Rate:** Mean firing rate (Hz)
+Hover shows one row per neuron:
+
+| Field | Meaning |
+|---|---|
+| Neuron ID | Index in the population |
+| Layer | L2/3, L4, L5, or L6 |
+| Cell type | E (excitatory), PV (parvalbumin-positive), SST, or VIP |
+| Depth | Distance from surface (µm) |
+| Source index | Mapping to source current in simulation |
+| Rate | Mean firing rate (Hz) |
 
 **Color scale (Viridis):** Blue = low rate, Yellow = high rate
 
 ### The Equations
 
-Three core relationships are annotated in the visualization:
+Three core relations annotated in the view:
 
 $$S(t) \in \mathbb{R}^{T \times N}$$
 **Source bookkeeping:** Time-series of neural source currents. T = timepoints, N = neurons.
@@ -81,10 +84,10 @@ $$R_k(t) = Q_k \cdot Y(t)$$
 
 ### The Implicit Rule
 
-Sources are **not explicitly declared**. Instead, they are **inferred** from two decisions:
+Sources are **not explicitly declared**. They are **inferred** from:
 
-1. **Emitter type & preset:** Determines what sources are available (e.g., Izhikevich → intrinsic currents + synaptic input)
-2. **Probe modes:** Determines which sources are computed and returned
+1. **Emitter type & preset:** decides available sources (e.g., Izhikevich → intrinsic currents + synaptic input)
+2. **Probe modes:** decide which sources get computed and returned
 
 ```python
 import jaxfne as jtfne
@@ -101,7 +104,7 @@ model = jtfne.construct(cfg)
 signals = jtfne.simulate(model, duration_ms=1000, dt_ms=0.1, seed=42)
 ```
 
-**Key observation:** There is no `.declare_source()` method. The flow is:
+**Key observation:** no `.declare_source()` method. Flow:
 - **Emitter** defines neuronal dynamics and available source types
 - **Probes** select which sources to extract and how to compute them
 - **Signals** object returns the requested readouts
@@ -110,7 +113,7 @@ signals = jtfne.simulate(model, duration_ms=1000, dt_ms=0.1, seed=42)
 
 ## Signals API Rules
 
-After `jtfne.simulate()`, the returned `signals` object has:
+After `jtfne.simulate()`, `signals` holds:
 
 ```python
 signals.spikes       # np.ndarray, shape (T, N), boolean spike indicator
@@ -139,7 +142,7 @@ signals.metadata = {
 }
 ```
 
-**Key field:** `physical_amplitude_calibrated=False` marks amplitude values as Relative.
+**Key field:** `physical_amplitude_calibrated=False` marks amplitudes as Relative.
 
 ---
 
@@ -159,11 +162,11 @@ signals.metadata = {
 
 **Not PDE-solved.** Instead:
 
-1. Extract source currents from neurons: $S(t)$
-2. Apply fixed spatial convolution kernel (e.g., Gaussian): $Y(t) = P \cdot S(t)$
-3. Optionally compute spatial derivatives (for CSD)
+1. Extract neuron source currents: $S(t)$
+2. Apply fixed spatial kernel (e.g., Gaussian): $Y(t) = P \cdot S(t)$
+3. Take spatial derivatives where needed (CSD)
 
-This is **fast** (no solver loop) but **approximate** (proxy-scoped for tutorial data).
+Fast (no solver loop), approximate (proxy-scoped tutorial data).
 
 ---
 
@@ -189,12 +192,12 @@ Readout R(t) = Q @ Y(t)
 
 ### Spatial Representation
 
-- **Source coordinates:** Point sources at each neuron location
-- **Field coordinates:** Spatially expanded via convolution (spatial units arbitrary, normalized)
-- **Kernel type:** Gaussian (default); width parameterized by distance in µm
-- **Boundary handling:** Zero-padding (no boundary currents)
+- **Source coordinates:** point sources at each neuron location
+- **Field coordinates:** expanded via convolution (spatial units arbitrary, normalized)
+- **Kernel:** Gaussian (default); width set by distance in µm
+- **Boundary:** zero-padding (no boundary currents)
 
-**Spatial units:** Relative, normalized units. The visualization uses µm for
+**Spatial units:** Relative, normalized units. The view uses µm for
 layer depth (anatomical reference); field amplitudes are Relative-value.
 
 ---
@@ -250,7 +253,7 @@ json.dumps(manifest, allow_nan=False)  # ← JSONDecodeError
 
 ### The Gate: `amplitude_status`
 
-This boolean key prevents misinterpretation:
+This boolean key blocks misreads:
 
 ```python
 if not metadata["amplitude_status"]:
@@ -283,10 +286,10 @@ if not metadata["amplitude_status"]:
 
 ### What You've Learned
 
-1. **Sources are implicit:** Emitter + probes determine field computation
-2. **Fields are proxies:** Convolution-based, fast, approximate
-3. **Readouts are multi-modal:** Different operators extract different field perspectives
-4. **Metadata gates statements:** `amplitude_status=False` prevents misinterpretation
+1. **Sources are implicit:** emitter + probes decide field computation
+2. **Fields are proxies:** convolution-based, fast, approximate
+3. **Readouts are multi-modal:** each operator gives a different field view
+4. **Metadata gates statements:** `amplitude_status=False` blocks misreads
 
 ### How to Use This in Your Work
 

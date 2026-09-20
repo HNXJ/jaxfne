@@ -1,7 +1,7 @@
 # Showcases
 
-Runnable demonstrations of jaxfne's structural, homeostatic, and plasticity
-knobs. Every figure on this page comes from a real `construct()`/`simulate()`
+Runnable demos of jaxfne's structural, homeostatic, and plasticity
+controls. Every figure on this page comes from a real `construct()`/`simulate()`
 run with the exact parameters quoted in its caption — nothing here is a mockup.
 
 All outputs use conservative scope defaults — see [Scope & status](../scope_and_status.md).
@@ -62,7 +62,7 @@ effect is real and direction-correct, just short of exact setpoint tracking.
 
 ![Full 10 s raster, homeostasis on](../assets/showcases/homeostasis_full_raster_10s.png)
 
-Vm stays sane throughout both runs (rest ≈ −84…−88 mV, spike peak ≈ +30 mV) —
+Vm stays sane in both runs (rest ≈ −84…−88 mV, spike peak ≈ +30 mV) —
 finite end to end, NaN-free.
 
 ## Plasticity: closed-loop STDP under purely random stimulation
@@ -100,9 +100,9 @@ acting on uncorrelated, random drive.
 ![Excitatory weight distribution before vs after](../assets/showcases/plasticity_weight_distribution.png)
 
 The excitatory weight distribution shifts down over the 10 s run (mean
-0.0547 → 0.0510): with the stimulus lacking temporal structure there is little
-causal pre-before-post pairing, so net synaptic depression dominates — a
-real, measured STDP effect rather than a flat line.
+0.0547 → 0.0510): the stimulus lacks temporal structure, so little causal
+pre-before-post pairing occurs and net synaptic depression dominates — a
+real, measured STDP effect, not a flat line.
 
 ## Spectrolaminar motif with depth-graded ("slow-deep") homeostasis
 
@@ -139,7 +139,7 @@ normalization — which mostly measures the generic 1/f spectral shape rather th
 laminar structure, and wrongly read as "zero crossover anywhere." The right
 test treats each band's own power-by-depth as a distribution over depth
 (normalized to sum to 1 across depth, separately per band) and asks where
-*that* distribution sits relative to the other band's. Two distinct
+*that* distribution sits versus the other band's. Two distinct
 distributions over the same domain with equal total mass cannot dominate
 each other everywhere — they must cross at least once whenever they differ.
 Re-run with that test, the 10k single-trial data shows **2 real
@@ -170,7 +170,7 @@ psd = jtfne.spectrolaminar_psd_jax(lfp_trials[:, :, 2:-2], fs=2000.0)  # drop ed
 
 This gives **3 real, reproducible crossings** (depth 0.401, 0.771, 0.932) —
 signal rather than noise: the rate/κ spread across seeds is tiny (±0.4%/±2.6%), and one
-crossing (depth ≈0.77) lands close to the single-crossing region the 10k
+crossing (depth ≈0.77) sits near the single-crossing region the 10k
 single-trial run shows at depth ≈0.71, despite the very different scale and
 contact count. Both bands' depth-distributions still peak at the *same*
 absolute depth (≈0.81, deep) — expected, since the canonical column's
@@ -212,7 +212,7 @@ every layer shares:
 ![Absolute superficial vs deep power spectra, 1/f background check](../assets/showcases/spectrolaminar_absolute_power_1f_check.png)
 
 Fitting each group's own background trend (log-log slope, alpha/beta
-excluded from the fit) shows superficial and deep have **the same spectral
+excluded from the fit) shows superficial and deep share **the same spectral
 shape** — slopes differ by only 0.02 (100-neuron run) and 0.07 (10k run), an
 order of magnitude smaller than the slopes themselves (≈−0.8 and ≈−0.6).
 Deep sits uniformly above superficial by a roughly frequency-independent
@@ -240,7 +240,7 @@ riding on a spectrum that lacks genuine absolute band-selectivity — treat them
 as exactly that, rather than as evidence of a deep resonator or superficial filter.
 
 **Honest summary.** Crossings are real and reproducible — the earlier "zero
-crossover" claim was a methodology error rather than a finding about the model. But
+crossover" claim was a method error, not a model finding. But
 the absolute-power test above shows those crossings lack any genuine
 band-selective mechanism behind them: the spectrum carries flat depth gain and
 the same 1/f shape at every depth. What remains **unreproduced** is the

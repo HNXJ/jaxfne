@@ -1,8 +1,8 @@
 # Operator composition
 
 **Chain tensor operators** from raw spikes to laminar LFP/CSD or scalp EEG/MEG
-proxies. This page shows real composed pipelines — shapes and dtypes at every
-handoff — not isolated operator definitions.
+proxies. This page shows real composed pipelines — shapes and dtypes at each
+handoff — not single-operator definitions.
 
 For single-operator contracts see Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) and
 the Tensor Operator Registry (`docs/api/tensor_operators.md` — repository-internal reference, excluded from the built site). The chains here were
@@ -59,8 +59,7 @@ syn = jtfne.synaptic_current_tensor(jnp.asarray(source_native), tau_syn_ms, dt_m
 
 Domain: a raw per-neuron source (spike/current proxy). Codomain: the same
 shape, filtered by the receptor time constant resolved from each neuron's
-declared synaptic mechanism — this is the optional pre-filter stage in the
-chain, not the depth-dependent one.
+declared synaptic mechanism — the optional pre-filter stage, not the depth-dependent one.
 
 ### Stage 2 — Cable-filter Tensor
 
@@ -122,7 +121,7 @@ meg = jtfne.meg_proxy_transform(fo.lfp_proxy, meg_leadfield)
 `eeg_proxy_transform` / `meg_proxy_transform` take the same `lfp_proxy`
 codomain as input and apply a declared leadfield (a linear, not learned,
 spatial mixing matrix you supply) — they compose directly off the field
-stage, not off the raw source.
+stage, not the raw source.
 
 All five tensors in this chain (`syn`, `cab`, `fo.lfp_proxy`, `eeg`, `meg`)
 were finite end to end in this run.
@@ -155,7 +154,7 @@ Regenerate: `python scripts/generate_doc_page_atlases.py --slug operator_chain_4
 builder methods that *specify* a model. Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site)
 documents the 7-stage *rule* each tensor operator satisfies on its own.
 Neither one shows that the codomain of one operator is the domain of the
-next without a conversion step — that the chain actually typechecks, not
+next with no conversion step — that the chain typechecks, not
 just on paper. `tests/test_tensor_pipeline_custom_cfg.py` is what makes that
 claim checkable; this page is what makes it readable.
 

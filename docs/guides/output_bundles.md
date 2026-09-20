@@ -60,8 +60,8 @@ json.dumps(manifest, allow_nan=False)  # Enforces strict serialization
 
 This ensures:
 
-- No NaN or Inf values (numerical errors are caught)
-- All arrays converted to lists for JSON portability
+- No NaN or Inf values (catches numerical errors)
+- All arrays as lists for JSON portability
 - Metadata is human-readable and auditable
 
 ## The canonical path: `run_receipt` and `evaluate_report`
@@ -103,7 +103,7 @@ Both `RunReceipt` and `ObjectiveReport` are dataclasses with JSON-safe
 contents; serialize them the same way as `manifest()`'s dict output (e.g.
 `json.dumps(jtfne.io.json_safe(receipt.__dict__), allow_nan=False)`), subject
 to the same NaN/Inf checks described above. The `manifest`/`compute_readout`
-path documented in this guide remains valid — it is simply not the newest
+path documented in this guide remains valid — it is not the newest
 recommended entry point. See `jaxfne/core.py` (`Model.run_receipt`,
 `Model.evaluate_report`) for the full signatures and docstrings; there is no
 separate `docs/api/` page for these two methods as of this writing.
@@ -131,7 +131,7 @@ Each operator returns a report declaring:
 - **units_or_status:** Units (if physical) or proxy status
 - **assumptions:** List of assumptions (geometry, solver, etc.)
 
-This metadata supports calibration validation path and calibration workflows.
+This metadata supports the calibration validation path and workflows.
 
 ## Example: Saving and loading bundles
 

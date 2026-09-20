@@ -1,6 +1,6 @@
 # jaxfne Suite: Multimodal Sensor Projections and EEG/MEG/EMM Proxy Bundle
 
-**A tutorial demonstrating separate projection pathways for scalp potential, magnetic field, and metabolic activity proxies.**
+**Separate projection pathways for scalp-potential, magnetic-field, and metabolic-activity proxies.**
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb)
 
@@ -8,13 +8,13 @@
 
 ## Learning Objectives
 
-After completing this tutorial, you will understand:
+You will learn:
 
-1. **Multimodal Projections** — how a single underlying population simulation drives multiple distinct macroscopic measurement streams.
-2. **EEG-Proxy Projection** — how to project laminar potential profiles to simulated scalp sensors.
-3. **MEG-Proxy Projection** — how to project oriented current dipoles to simulated magnetometer arrays.
-4. **Metabolic EMM-Proxy** — how to summarize activity costs as a separate metabolic energy proxy stream.
-5. **Operator Separation** — why separate sensor paths must remain distinct rather than merged into a single generic signal.
+1. **Multimodal Projections** — one population simulation drives multiple distinct macroscopic streams.
+2. **EEG-Proxy Projection** — project laminar potentials to simulated scalp sensors.
+3. **MEG-Proxy Projection** — project oriented current dipoles to simulated magnetometers.
+4. **Metabolic EMM-Proxy** — summarize activity costs as a separate metabolic proxy stream.
+5. **Operator Separation** — keep sensor paths distinct, not merged into one generic signal.
 
 ---
 
@@ -23,13 +23,13 @@ After completing this tutorial, you will understand:
 **Question:** How can we obtain separate, distinct macroscopic sensor readouts from a single neural population simulation, and how do their spatial projections differ?
 
 **Context:** 
-EEG registers volume-conducted scalp potentials. MEG registers magnetic fields induced by intracellular current dipoles. EMM-proxy summarizes metabolic activity cost. Projecting them via separate operator pathways ensures distinct signal profiles that represent complementary views of population dynamics.
+EEG registers volume-conducted scalp potentials; MEG registers dipole-induced magnetic fields; EMM-proxy summarizes metabolic cost. Separate operator pathways keep distinct, complementary views of population dynamics.
 
 ---
 
 ## Mathematical Glossary Flow
 
-Here, we outline the foundational equations defining the distinct sensor paths:
+Foundational equations for the distinct sensor paths:
 
 ### 1. EEG-Proxy Sensor Equation
 
@@ -70,29 +70,29 @@ Here, we outline the foundational equations defining the distinct sensor paths:
 
 ## Canonical Import
 
-Every notebook script and library call standardizes to the canonical import:
+Every notebook script and library call uses the canonical import:
 
 ```python
 import jaxfne as jtfne
 ```
 
-All public APIs are called through the unified `jtfne` namespace.
+All public APIs use the unified `jtfne` namespace.
 
 ---
 
 ## Simulation Workflow
 
-The tutorial walks through the standard `jaxfne` workflow:
+Standard `jaxfne` workflow:
 
 ```text
 Configuration -> construct -> simulate -> separate probes -> independent figures
 ```
 
-1. **Configuration:** Compose the population and register all target modalities via `jtfne.Configuration()`.
+1. **Configuration:** Compose the population and register target modalities via `jtfne.Configuration()`.
 2. **Construction:** Build the model with `jtfne.construct(cfg)`.
 3. **Simulation:** Run the vectorized simulation with `jtfne.simulate(model, sim)`.
-4. **Separate Probing:** Compute EEG-proxy, MEG-proxy, and EMM-proxy readouts using separate operator calls.
-5. **Separate Visualization:** Plot distinct panel figures for each sensor modality and export the validation receipt.
+4. **Separate Probing:** Compute EEG-proxy, MEG-proxy, EMM-proxy via separate operator calls.
+5. **Separate Visualization:** Plot one panel figure per modality; export the validation receipt.
 
 ## Interactive atlas (dark)
 

@@ -2,9 +2,9 @@
 
 **Read out** spikes, membrane voltage, source currents, and field-proxy traces
 (LFP, CSD, EEG, MEG, EMM) from a finished simulation. Eight named probe kinds
-map to the multimodal outputs most laminar workflows need.
+cover the multimodal outputs most laminar workflows need.
 
-Each operator returns data plus a JSON-safe report (units, calibration status,
+Each operator returns data with a JSON-safe report (units, calibration status,
 scope declarations, assumptions).
 
 ## Pipeline context
@@ -202,7 +202,7 @@ EMM(t) = w_spk * normalized_spike_rate(t)
 
 ## Mathematical Forms
 
-This section formalizes the eight operators in operator-form notation. These are computational forms declared as proxy-scale operators suitable for tutorial and model-development workflows.
+This section gives the eight operators in operator-form notation. These are computational forms declared as proxy-scale operators suitable for tutorial and model-development workflows.
 
 ### SPK (Spike Detection)
 
@@ -281,7 +281,7 @@ All eight operators remain simulated or proxy readouts as of v0.4.8:
 
 ## Future Path
 
-jaxfne preserves proxy operators as stable public readouts while adding clearer validation metadata, calibration specifications, and tutorial coverage.
+jaxfne keeps proxy operators as stable public readouts while adding validation metadata, calibration specifications, and tutorial coverage.
 
 Planned areas include:
 - field/proxy mathematics and admissibility diagnostics
@@ -290,7 +290,7 @@ Planned areas include:
 - laminar profile templates using literature-derived technical references, including Lichtenfeld et al. (2024) and Mendoza-Halliday et al. (2024). These templates support declared profile construction and tutorial design; they reference literature without stating reproduction of the reference datasets.
 - operator status export, package audit, release candidate, and consolidated practical scaffold release
 
-Calibration workflows and advanced tutorials are developed in the docs and examples.
+Calibration workflows and advanced tutorials live in the docs and examples.
 
 **Beyond the current line:**
 - Receptor-level synaptic dynamics (synaptic current modeling)

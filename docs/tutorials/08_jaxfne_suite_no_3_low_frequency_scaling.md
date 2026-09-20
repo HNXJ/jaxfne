@@ -1,6 +1,6 @@
 # jaxfne Suite No. 3: Scale-Dependent Low-Frequency Structure in Proxy Field Readouts
 
-**A compact tutorial demonstrating population scaling, spatiotemporal density preservation, and validation of 1/f^alpha absolute power-law structure in simulated field readouts.**
+**Population scaling, spatiotemporal density preservation, and 1/f^alpha absolute power-law structure in simulated field readouts.**
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb)
 
@@ -8,13 +8,13 @@
 
 ## Learning Objectives
 
-After completing this tutorial, you will understand:
+You will learn:
 
-1. **Noisy Asynchronous Spiking** — how drive heterogeneity and randomized states establish stable asynchronous-irregular dynamics.
-2. **Density Preservation** — how to scale population size N while holding spatiotemporal density constant by expanding declared spatial extent.
-3. **Absolute Power Spectrum** — how to estimate whole-window absolute power spectral density from proxy readouts.
-4. **Log-Log Power-Law Fit** — how to fit 1/f^alpha slope exponents across population scales in the 1-80 Hz band.
-5. **Scale Curves** — how to validate slope exponents, low-frequency absolute power, and synchrony metrics across sizes.
+1. **Noisy Asynchronous Spiking** — drive heterogeneity and randomized states establish stable asynchronous-irregular dynamics.
+2. **Density Preservation** — scale size N while holding spatiotemporal density constant by expanding declared spatial extent.
+3. **Absolute Power Spectrum** — estimate whole-window absolute power spectral density from proxy readouts.
+4. **Log-Log Power-Law Fit** — fit 1/f^alpha slope exponents across scales in the 1-80 Hz band.
+5. **Scale Curves** — check slope exponents, low-frequency absolute power, and synchrony metrics across sizes.
 
 ---
 
@@ -23,13 +23,13 @@ After completing this tutorial, you will understand:
 **Question:** How does scaling the population size N while preserving constant spatiotemporal density alter the absolute power-law exponent in aggregate field readouts?
 
 **Context:** 
-In a noisy asynchronous-irregular regime, independent fluctuations average out under projection, leaving low-frequency modes to scale with population size. Ensuring constant density prevents confounding local packaging density with population scale.
+In noisy asynchronous-irregular regimes, independent fluctuations average out under projection; low-frequency modes scale with size. Constant density keeps packaging density from confounding scale.
 
 ---
 
 ## Mathematical Glossary Flow
 
-Here, we outline the foundational equations defining the readout projection:
+Foundational equations for the readout projection:
 
 ### 1. Readout Projection Equation
 
@@ -66,29 +66,29 @@ Here, we outline the foundational equations defining the readout projection:
 
 ## Canonical Import
 
-Every notebook script and library call standardizes to the canonical import:
+Every notebook script and library call uses the canonical import:
 
 ```python
 import jaxfne as jtfne
 ```
 
-All public APIs are called through the unified `jtfne` namespace.
+All public APIs use the unified `jtfne` namespace.
 
 ---
 
 ## Simulation Workflow
 
-The tutorial walks through the standard `jaxfne` workflow:
+Standard `jaxfne` workflow:
 
 ```text
 Configuration -> construct -> simulate -> whole-window absolute power -> log-log polyfit -> scale curves
 ```
 
-1. **Configuration:** Set up a scale-dependent configuration using `jtfne.Configuration()`.
+1. **Configuration:** Set scale-dependent config with `jtfne.Configuration()`.
 2. **Construction:** Build the model with `jtfne.construct(cfg)`.
-3. **Simulation:** Run the vectorized dynamics with `jtfne.simulate(model, sim)`.
-4. **Spectral Estimation:** Compute whole-window absolute power spectrum P(f) on log-log axes.
-5. **Scale Curves:** Fit exponent alpha and plot slope, low-frequency absolute power, and synchrony versus scale.
+3. **Simulation:** Run vectorized dynamics with `jtfne.simulate(model, sim)`.
+4. **Spectral Estimation:** Compute whole-window absolute power P(f) on log-log axes.
+5. **Scale Curves:** Fit exponent alpha; plot slope, low-frequency absolute power, and synchrony vs scale.
 
 ## Interactive atlas (dark)
 
