@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import warnings as _warnings
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -194,6 +195,23 @@ def tune(
 
     # Detect multi-parameter path
     if parameters is not None:
+        dropped = [
+            name
+            for name, value in (
+                ("parameter", parameter),
+                ("bounds", bounds),
+                ("steps", steps if steps else None),
+                ("scope", scope),
+            )
+            if value is not None
+        ]
+        if dropped:
+            _warnings.warn(
+                "tune(): multi-parameter path selected via `parameters`; "
+                f"single-parameter arguments ignored: {', '.join(dropped)}.",
+                UserWarning,
+                stacklevel=2,
+            )
         # Extract seed from optimizer if not explicitly overridden via model.tune(..., seed=nonzero)
         opt_seed = getattr(optimizer, "seed", 0)
         actual_seed = seed if seed != 0 else opt_seed
@@ -210,6 +228,19 @@ def tune(
         )
 
     # Single-parameter path (backward compat)
+    dropped_multi = [
+        name
+        for name, value in (("generations", generations), ("population_size", population_size))
+        if value is not None
+    ]
+    if dropped_multi:
+        _warnings.warn(
+            "tune(): single-parameter path selected; "
+            f"multi-parameter arguments ignored: {', '.join(dropped_multi)}. "
+            "Pass `parameters={...}` to use them.",
+            UserWarning,
+            stacklevel=2,
+        )
     if parameter is None:
         parameter = "source_scale"
     if bounds is None:
@@ -224,10 +255,18 @@ def tune(
         "parameter": parameter,
         "bounds": [float(bounds[0]), float(bounds[1])],
         "optimizer": spec.to_dict(),
-        "objective_name": getattr(objective, "name", "spectrolaminar_objective") if not isinstance(objective, str) else objective,
-        "losses_declared": len(getattr(objective, "losses", [])) if not isinstance(objective, str) else 0,
-        "regularizers_declared": len(getattr(objective, "regularizers", [])) if not isinstance(objective, str) else 0,
-        "gates_declared": len(getattr(objective, "gates", [])) if not isinstance(objective, str) else 0,
+        "objective_name": getattr(objective, "name", "spectrolaminar_objective")
+        if not isinstance(objective, str)
+        else objective,
+        "losses_declared": len(getattr(objective, "losses", []))
+        if not isinstance(objective, str)
+        else 0,
+        "regularizers_declared": len(getattr(objective, "regularizers", []))
+        if not isinstance(objective, str)
+        else 0,
+        "gates_declared": len(getattr(objective, "gates", []))
+        if not isinstance(objective, str)
+        else 0,
         "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
         "source_calibration_status": cfg_meta.get(
             "source_calibration_status", "uncalibrated_izhikevich_native_current"
@@ -277,6 +316,7 @@ def tune(
         # any surrogate. Only wired for a single loss on a metric linear in
         # source_scale; anything else falls through to the honest stub below.
         from .optim.core import _tune_source_scale_optax, _SOURCE_SCALE_LINEAR_METRICS
+
         single_loss = getattr(objective, "losses", [])
         eligible = (
             optax_status == "available"
@@ -308,8 +348,11 @@ def tune(
         # here rather than reinvented. Only wired for a jtfne.rate_targets(...)
         # -style objective; anything else falls through to the stub below.
         from .optim.core import _tune_scalar_soft_rate_optax, _SCALAR_SOFT_RATE_PARAMETERS
+
         has_rate_targets_gate = any(
-            isinstance(g, dict) and "groups" in g.get("metadata", {}) and "targets_hz" in g.get("metadata", {})
+            isinstance(g, dict)
+            and "groups" in g.get("metadata", {})
+            and "targets_hz" in g.get("metadata", {})
             for g in getattr(objective, "gates", [])
         )
         eligible_soft_rate = (
@@ -334,10 +377,14 @@ def tune(
         report = {
             **base_report,
             "tuning_status": "optax_guarded_path_no_loop_v0.0.8",
-            "acceptance_decision": "REVISE" if optax_status == "unavailable" else "ACCEPT_CANDIDATE",
+            "acceptance_decision": "REVISE"
+            if optax_status == "unavailable"
+            else "ACCEPT_CANDIDATE",
             "optax_status": optax_status,
             "same_model_unchanged": True,
-            "warnings": ["differentiable_loop_not_enabled_for_spiking_reset_without_explicit_surrogate_kernel"],
+            "warnings": [
+                "differentiable_loop_not_enabled_for_spiking_reset_without_explicit_surrogate_kernel"
+            ],
         }
         return TuneResult(
             best_parameters={},
@@ -395,15 +442,17 @@ def tune(
         if not math.isfinite(score):
             reasons.append("non_finite_loss")
 
-        history.append({
-            "step": idx,
-            "candidate_value": float(candidate_value),
-            "score": _finite_or_none(score),
-            "all_gates_pass": gates_pass,
-            "accepted_as_best": bool(accepted),
-            "evaluation_status": candidate_report.get("evaluation_status"),
-            "rejection_reasons": reasons,
-        })
+        history.append(
+            {
+                "step": idx,
+                "candidate_value": float(candidate_value),
+                "score": _finite_or_none(score),
+                "all_gates_pass": gates_pass,
+                "accepted_as_best": bool(accepted),
+                "evaluation_status": candidate_report.get("evaluation_status"),
+                "rejection_reasons": reasons,
+            }
+        )
     if best_loss is None:
         warnings.append("no_finite_candidate_score")
         best_model = self
@@ -432,7 +481,8 @@ def tune(
         "n_unique_scores": n_unique_scores,
         "tuning_path": "scalar_black_box",
         "candidate_history": history,
-        "warnings": warnings + [
+        "warnings": warnings
+        + [
             "blackbox_loop_is_computational_scaffold_only",
             "optimizer_selected_candidate_is_not_biological_truth",
         ],
@@ -447,6 +497,7 @@ def tune(
         summary=json_safe(report),
         model=best_model,
     )
+
 
 def _tune_multiparameter(
     self,
@@ -489,10 +540,18 @@ def _tune_multiparameter(
         "runtime": simulation.resolved_runtime.runtime_report(),
         "initial_weight_evidence": _candidate_state_evidence(self, None).get("W0"),
         "optimizer": spec.to_dict(),
-        "objective_name": getattr(objective, "name", "spectrolaminar_objective") if not isinstance(objective, str) else objective,
-        "losses_declared": len(getattr(objective, "losses", [])) if not isinstance(objective, str) else 0,
-        "regularizers_declared": len(getattr(objective, "regularizers", [])) if not isinstance(objective, str) else 0,
-        "gates_declared": len(getattr(objective, "gates", [])) if not isinstance(objective, str) else 0,
+        "objective_name": getattr(objective, "name", "spectrolaminar_objective")
+        if not isinstance(objective, str)
+        else objective,
+        "losses_declared": len(getattr(objective, "losses", []))
+        if not isinstance(objective, str)
+        else 0,
+        "regularizers_declared": len(getattr(objective, "regularizers", []))
+        if not isinstance(objective, str)
+        else 0,
+        "gates_declared": len(getattr(objective, "gates", []))
+        if not isinstance(objective, str)
+        else 0,
         "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
         "source_calibration_status": cfg_meta.get(
             "source_calibration_status", "uncalibrated_izhikevich_native_current"
@@ -527,7 +586,10 @@ def _tune_multiparameter(
     theta_0 = _initial_parameter_values(self, param_specs, scalar_bounds)
     base_report["theta_0"] = theta_0
     has_matrix = any(isinstance(value, MatrixParameterSpec) for value in param_specs.values())
-    if any(isinstance(value, EdgeParameterSpec) for value in param_specs.values()) and inner_optimizer is not None:
+    if (
+        any(isinstance(value, EdgeParameterSpec) for value in param_specs.values())
+        and inner_optimizer is not None
+    ):
         raise ValueError(
             "EdgeParameterSpec currently uses the black-box AGSDR path; "
             "inner gradient refinement is not wired to EdgeList.weight"
@@ -625,22 +687,23 @@ def _tune_multiparameter(
             }
 
         rejections_map.append(reasons)
-        candidate_evaluations.append({
-            "parameters": {key: float(value) for key, value in candidate_params.items()},
-            "score": _finite_or_none(score),
-            "score_status": (
-                "finite" if gates_pass and math.isfinite(score)
-                else "positive_infinity"
-            ),
-            "accepted": bool(gates_pass and math.isfinite(score)),
-            "rejection_reasons": reasons,
-            "objective": candidate_report,
-            "state_evidence": (
-                _candidate_state_evidence(candidate_model, state_diagnostics)
-                if candidate_model is not None
-                else {}
-            ),
-        })
+        candidate_evaluations.append(
+            {
+                "parameters": {key: float(value) for key, value in candidate_params.items()},
+                "score": _finite_or_none(score),
+                "score_status": (
+                    "finite" if gates_pass and math.isfinite(score) else "positive_infinity"
+                ),
+                "accepted": bool(gates_pass and math.isfinite(score)),
+                "rejection_reasons": reasons,
+                "objective": candidate_report,
+                "state_evidence": (
+                    _candidate_state_evidence(candidate_model, state_diagnostics)
+                    if candidate_model is not None
+                    else {}
+                ),
+            }
+        )
 
         return float(score)
 
@@ -665,9 +728,8 @@ def _tune_multiparameter(
             (
                 item
                 for item in reversed(candidate_evaluations)
-                if item["parameters"] == {
-                    key: float(value) for key, value in best_parameters.items()
-                }
+                if item["parameters"]
+                == {key: float(value) for key, value in best_parameters.items()}
             ),
             None,
         )
@@ -731,6 +793,7 @@ def _tune_multiparameter(
             summary=json_safe(report),
             model=self,
         )
+
 
 def with_emitter_parameters(
     self,
@@ -807,6 +870,7 @@ def with_emitter_parameters(
     new_params["emitter"] = new_emitter
     return replace(self, params=new_params)
 
+
 def with_hdp_initial_state(
     self,
     *,
@@ -837,6 +901,7 @@ def with_hdp_initial_state(
     # import here avoids a circular import with core.py's own
     # `from ._model import Model`.
     from .core import _runtime_config_from_metadata
+
     jdtype = _runtime_config_from_metadata(self.cfg.metadata).jnp_dtype
     new_params = dict(self.params)
     if H0 is not None:
@@ -844,6 +909,7 @@ def with_hdp_initial_state(
     if w0 is not None:
         new_params["hdp_initial_w"] = jnp.asarray(w0, dtype=jdtype)
     return replace(self, params=new_params)
+
 
 def with_recurrent_coupling(
     self,
@@ -881,10 +947,8 @@ def with_recurrent_coupling(
         "physical_amplitude_calibrated": False,
         "claim_level": "computational_scaffold",
     }
-    return replace(
-        self,
-        static={**self.static, "recurrent_coupling": coupling_params}
-    )
+    return replace(self, static={**self.static, "recurrent_coupling": coupling_params})
+
 
 def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> Model:
     """Return a Model copy with one safe scalar emitter parameter changed.
@@ -908,18 +972,21 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
     # construction, not part of the differentiable-tune surface) and still
     # concretize `value` locally within that branch only.
     if parameter == "source_scale":
-        new_emitter = replace(emitter, source_scale=jnp.asarray(value, dtype=emitter.source_scale.dtype))
+        new_emitter = replace(
+            emitter, source_scale=jnp.asarray(value, dtype=emitter.source_scale.dtype)
+        )
     elif parameter == "drive_gain":
-        new_emitter = replace(emitter, drive=emitter.drive * jnp.asarray(value, dtype=emitter.drive.dtype))
+        new_emitter = replace(
+            emitter, drive=emitter.drive * jnp.asarray(value, dtype=emitter.drive.dtype)
+        )
     elif parameter == "synaptic_gain":
         scale = jnp.asarray(value, dtype=emitter.v0.dtype)
         if is_placeholder_dense_W(emitter.W, emitter.n_neurons) and "edge_list" in model.params:
-            return _scale_edge_list_weights(
-                model, lambda w: w * np.asarray(scale, dtype=float)
-            )
+            return _scale_edge_list_weights(model, lambda w: w * np.asarray(scale, dtype=float))
         new_emitter = replace(emitter, W=emitter.W * scale)
     elif parameter in ("drive_scale_a", "drive_scale_b"):
         import numpy as _np_dsa
+
         value = float(value)
         base_drive = _np_dsa.asarray(emitter.drive, dtype=float).reshape(-1)
         n_units = base_drive.shape[0]
@@ -930,25 +997,31 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
         else:
             drive_scale[split:] = value
         drive_per_neuron = base_drive * drive_scale
-        new_emitter = replace(emitter, drive=jnp.asarray(drive_per_neuron, dtype=emitter.drive.dtype))
+        new_emitter = replace(
+            emitter, drive=jnp.asarray(drive_per_neuron, dtype=emitter.drive.dtype)
+        )
     elif parameter == "gAMPA":
         # jnp.where (not numpy boolean-indexed assignment) -- keeps this branch
         # jax-traceable/differentiable too; bit-identical result for concrete
         # inputs (verified: scales only W > 0 entries, leaves the rest untouched).
         scale = float(value)
         if is_placeholder_dense_W(emitter.W, emitter.n_neurons) and "edge_list" in model.params:
-            return _scale_edge_list_weights(
-                model, lambda w: np.where(w > 0, w * scale, w)
-            )
+            return _scale_edge_list_weights(model, lambda w: np.where(w > 0, w * scale, w))
         W = emitter.W
         scale_arr = jnp.asarray(value, dtype=W.dtype)
         new_W = jnp.where(W > 0, W * scale_arr, W)
         new_emitter = replace(emitter, W=new_W)
     else:
-        supported = ["source_scale", "drive_gain", "synaptic_gain", "drive_scale_a", "drive_scale_b", "gAMPA"]
+        supported = [
+            "source_scale",
+            "drive_gain",
+            "synaptic_gain",
+            "drive_scale_a",
+            "drive_scale_b",
+            "gAMPA",
+        ]
         raise ValueError(
-            f"Unsupported tunable parameter: {parameter!r}. "
-            f"Supported parameters: {supported}"
+            f"Unsupported tunable parameter: {parameter!r}. Supported parameters: {supported}"
         )
     params = dict(model.params)
     params["emitter"] = new_emitter
@@ -980,6 +1053,7 @@ def _mask_for_parameter(
         Boolean mask of shape (n, n) where True marks entries to scale.
     """
     import numpy as _np_mask
+
     emitter = model.params["emitter"]
     if target == "W":
         W = _dense_recurrent_weight_host(model, target=target)
@@ -1023,12 +1097,12 @@ def _mask_for_parameter(
     )
 
 
-def _edge_parameter_mask(model: "Model", parameter_name: str, spec: EdgeParameterSpec) -> np.ndarray:
+def _edge_parameter_mask(
+    model: "Model", parameter_name: str, spec: EdgeParameterSpec
+) -> np.ndarray:
     """Resolve an edge parameter declaration to an executable edge mask."""
     if "edge_list" not in model.params:
-        raise ValueError(
-            f"Edge parameter {parameter_name!r} requires a model with an EdgeList"
-        )
+        raise ValueError(f"Edge parameter {parameter_name!r} requires a model with an EdgeList")
     edges = model.params["edge_list"]
     n_edges = int(edges.n_edges)
     mask = np.ones(n_edges, dtype=bool)
@@ -1062,9 +1136,7 @@ def _edge_parameter_mask(model: "Model", parameter_name: str, spec: EdgeParamete
         )
 
     if not constrained or not np.any(mask):
-        raise ValueError(
-            f"Edge parameter {parameter_name!r} matched no executable edges"
-        )
+        raise ValueError(f"Edge parameter {parameter_name!r} matched no executable edges")
     return mask
 
 
@@ -1076,14 +1148,11 @@ def _validate_parameter_specs(
     """Reject parameter declarations that cannot affect the selected backend."""
     backend = simulation.resolved_runtime.recurrent_backend
     edge_specs = {
-        name: spec
-        for name, spec in param_specs.items()
-        if isinstance(spec, EdgeParameterSpec)
+        name: spec for name, spec in param_specs.items() if isinstance(spec, EdgeParameterSpec)
     }
     if edge_specs and backend != "edge_list":
         raise ValueError(
-            "EdgeParameterSpec requires simulation.runtime.recurrent_backend="
-            "'edge_list'"
+            "EdgeParameterSpec requires simulation.runtime.recurrent_backend='edge_list'"
         )
     if backend == "edge_list":
         inactive_matrix = [
@@ -1103,9 +1172,7 @@ def _validate_parameter_specs(
         for name, spec in edge_specs.items():
             mask = _edge_parameter_mask(model, name, spec)
             if np.any(seen & mask):
-                raise ValueError(
-                    f"Edge parameter {name!r} overlaps another grouped edge parameter"
-                )
+                raise ValueError(f"Edge parameter {name!r} overlaps another grouped edge parameter")
             seen |= mask
 
 
@@ -1122,9 +1189,7 @@ def _resolved_edge_weights_host(model: "Model") -> "np.ndarray":
     emitter = model.params["emitter"]
     edges = model.params["edge_list"]
     return np.asarray(
-        resolve_edge_weight(
-            edges, edges.weight.dtype, presynaptic_sign=emitter.sign
-        ),
+        resolve_edge_weight(edges, edges.weight.dtype, presynaptic_sign=emitter.sign),
         dtype=float,
     )
 
@@ -1185,6 +1250,7 @@ def _model_with_edge_parameter(
         mechanism_weight_magnitude_table=None,
     )
     from ._model import Model
+
     return Model(cfg=model.cfg, params=params, static=dict(model.static))
 
 
@@ -1217,6 +1283,7 @@ def _model_with_matrix_parameter(
         New model with scaled matrix entries.
     """
     import numpy as _np_matrix
+
     lo, hi = float(spec.bounds[0]), float(spec.bounds[1])
     value = float(_np_matrix.clip(value, lo, hi))
 
@@ -1249,11 +1316,14 @@ def _model_with_matrix_parameter(
             weight=jnp.asarray(weights, dtype=edges.weight.dtype),
         )
         from ._model import Model
+
         return Model(cfg=model.cfg, params=params, static=dict(model.static))
 
     current = getattr(emitter, target)
     W = _np_matrix.asarray(current, dtype=float)
-    mask = _np_matrix.asarray(_mask_for_parameter(model, parameter_name, spec.mask, target), dtype=bool)
+    mask = _np_matrix.asarray(
+        _mask_for_parameter(model, parameter_name, spec.mask, target), dtype=bool
+    )
 
     new_W = W.copy()
     new_W[mask] = W[mask] * value
@@ -1295,14 +1365,10 @@ def _model_with_parameters(
         if param_specs is not None and param_name in param_specs:
             spec = param_specs[param_name]
             if isinstance(spec, EdgeParameterSpec):
-                result = _model_with_edge_parameter(
-                    result, param_name, spec, float(param_value)
-                )
+                result = _model_with_edge_parameter(result, param_name, spec, float(param_value))
                 continue
             if isinstance(spec, MatrixParameterSpec):
                 result = _model_with_matrix_parameter(result, param_name, spec, float(param_value))
                 continue
         result = _model_with_scalar_parameter(result, param_name, float(param_value))
     return result
-
-

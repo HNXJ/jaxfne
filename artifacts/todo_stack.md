@@ -403,6 +403,20 @@ Carried forward from the sealed 0.4.25 sweep (history in git):
   open under JDNA ownership, per the standing sections above.
 - Frozen protocols must record JAX/lib versions in future bundles (P-003
   provenance rule).
+- Deep audit 2026-09-20 (verified, not trusted): tune() now warns on
+  silently-dropped mixed args + 3 tests; validate_configuration docstring
+  states FAIL-report (not raise); completion.py comment matches landed
+  TFNE2-07 vocabulary. Deferred owner-decisions: units.py + pynwb_compat
+  unwired (wire or remove); emitters.py variant split (10 parallel
+  simulate_edge_recurrent_izhikevich_*, 1052L HDP fn); entry fragmentation
+  (≥8 simulate forms, ≥10 config builders, RuntimeConfig vs
+  RuntimeConfiguration, compute_fields accessor, dual manifests, two
+  same-named build_laminar_column/export_tutorial_artifacts);
+  compile_step_fn **hdp_kwargs unknown-key policy; validate_hdp_params
+  non-dict non-strict silent-pass; broad UNTESTED-exact refusal tail;
+  stale v0.3.4 xfails + PLACEHOLDER_NOTEBOOKS + artifact-gated skips;
+  post-0.4.14 compat aliases. Two worker false alarms (pool path, R4/R6
+  coverage) corrected in review — reviewers≠workers stays mandatory.
 - Integrity round (P-006): 13 api signature drifts fixed + verified,
   `audit_doc_code_integrity.py` gate added (fences/refs/symbols); reviewer
   caught 1 worker false claim before application — reviewers≠workers stays

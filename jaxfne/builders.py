@@ -81,14 +81,21 @@ CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L: dict[str, dict[str, float]] = {
 
 #: Count-proportional z-bands (depth ∝ neuron count) for the 6-layer canonical column.
 CANONICAL_Z_BANDS: dict[str, tuple[float, float]] = {
-    "L1": (0.00, 0.10), "L2": (0.10, 0.35), "L3": (0.35, 0.55),
-    "L4": (0.55, 0.65), "L5": (0.65, 0.85), "L6": (0.85, 1.00),
+    "L1": (0.00, 0.10),
+    "L2": (0.10, 0.35),
+    "L3": (0.35, 0.55),
+    "L4": (0.55, 0.65),
+    "L5": (0.65, 0.85),
+    "L6": (0.85, 1.00),
 }
 
 #: Count-proportional z-bands for the 5-layer (L2/3 merged) canonical column.
 CANONICAL_Z_BANDS_5L: dict[str, tuple[float, float]] = {
-    "L1": (0.00, 0.10), "L2/3": (0.10, 0.55),
-    "L4": (0.55, 0.65), "L5": (0.65, 0.85), "L6": (0.85, 1.00),
+    "L1": (0.00, 0.10),
+    "L2/3": (0.10, 0.55),
+    "L4": (0.55, 0.65),
+    "L5": (0.65, 0.85),
+    "L6": (0.85, 1.00),
 }
 
 
@@ -208,16 +215,26 @@ def default_cortical_column_config(
 
     cfg = (
         Configuration()
-        .runtime(seed=seed or 42, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32",
-                  synaptic_kernel=synaptic_kernel, recurrent_backend=recurrent_backend)
+        .runtime(
+            seed=seed or 42,
+            duration_ms=duration_ms,
+            dt_ms=dt_ms,
+            dtype="float32",
+            synaptic_kernel=synaptic_kernel,
+            recurrent_backend=recurrent_backend,
+        )
         .column(column_name, layers=layers, n=n)
         .cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
         .layer_fractions(
-            layer_fractions={L: (i / len(layers), (i + 1) / len(layers)) for i, L in enumerate(layers)},
+            layer_fractions={
+                L: (i / len(layers), (i + 1) / len(layers)) for i, L in enumerate(layers)
+            },
             layer_cell_types={L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in layers},
         )
         .uniform3d(radius_mm=0.25, height_mm=1.6)
-        .connectivity(within_area="all_to_all_uniform_random", within_gain=0.45, edge_seed=seed or 42)
+        .connectivity(
+            within_area="all_to_all_uniform_random", within_gain=0.45, edge_seed=seed or 42
+        )
         .set_emitter("izhikevich", "cortical_eig")
         .probes(["spikes", "V_m", "source", "LFP", "CSD"], n_contacts=16)
         .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
@@ -303,7 +320,9 @@ def default_complete_configuration(
         )
         .area_layer_cell_types(nucleus_name, {"core": {"E": 0.70, "PV": 0.30}})
         .uniform3d(radius_mm=0.25, height_mm=1.6)
-        .connectivity(within_area="all_to_all_uniform_random", within_gain=0.40, edge_seed=seed or 42)
+        .connectivity(
+            within_area="all_to_all_uniform_random", within_gain=0.40, edge_seed=seed or 42
+        )
         .inter_column_connectivity(
             source_area=column_name,
             target_area=nucleus_name,
@@ -408,10 +427,14 @@ def build_laminar_column(
         if canon_bands is not None:
             layer_fractions = canon_bands
         else:
-            layer_fractions = {L: (i / len(layers), (i + 1) / len(layers)) for i, L in enumerate(layers)}
+            layer_fractions = {
+                L: (i / len(layers), (i + 1) / len(layers)) for i, L in enumerate(layers)
+            }
     explicit_per_layer = layer_cell_type_fractions is not None
     if layer_cell_type_fractions is None:
-        layer_cell_type_fractions = _resolve_layer_cell_types(layers, ei_profile, cell_type_fractions)
+        layer_cell_type_fractions = _resolve_layer_cell_types(
+            layers, ei_profile, cell_type_fractions
+        )
 
     if geometry == "auto":
         geometry = "laminar" if (ei_profile == "canonical" or explicit_per_layer) else "uniform3d"
@@ -508,12 +531,18 @@ def build_multi_area_columns(
     #   feedback     hi -> lo  : source L6     -> target L1/L5 (uses p_feedback)
     for lo, hi in zip(areas[:-1], areas[1:]):
         cfg = cfg.inter_column_connectivity(
-            source_area=lo, target_area=hi, mode=connectivity_mode,
-            p_feedforward=p_feedforward, p_feedback=0.0,
+            source_area=lo,
+            target_area=hi,
+            mode=connectivity_mode,
+            p_feedforward=p_feedforward,
+            p_feedback=0.0,
         )
         cfg = cfg.inter_column_connectivity(
-            source_area=hi, target_area=lo, mode=connectivity_mode,
-            p_feedforward=0.0, p_feedback=p_feedback,
+            source_area=hi,
+            target_area=lo,
+            mode=connectivity_mode,
+            p_feedforward=0.0,
+            p_feedback=p_feedback,
         )
 
     cfg = cfg.cell_types(cell_type_fractions)
@@ -644,8 +673,7 @@ def _neuron_rows_for_table(obj: Configuration | Any) -> list[dict[str, Any]]:
 
         return construct(obj).neuron_table()
     raise TypeError(
-        "Expected Configuration or Model with neuron_table(); "
-        f"got {type(obj).__name__!r}"
+        f"Expected Configuration or Model with neuron_table(); got {type(obj).__name__!r}"
     )
 
 
@@ -726,7 +754,7 @@ def column_density_table(cfg: Configuration | Any) -> dict[str, float]:
     out: dict[str, float] = {}
     for layer, count in layer_counts.items():
         thickness_mm = _layer_thickness_mm(layer, metadata)
-        volume_mm3 = math.pi * radius_mm ** 2 * thickness_mm
+        volume_mm3 = math.pi * radius_mm**2 * thickness_mm
         out[layer] = float(count) / volume_mm3 if volume_mm3 > 0.0 else 0.0
     return out
 
@@ -776,6 +804,9 @@ def validate_configuration(
         Configuration object.
     strict : bool
         If True, fail on any gap; if False, list warnings only. Default: True.
+        Failing means returning ``status: "FAIL"`` in the report dict, not
+        raising — unlike the ``util.validate_*`` family, which raises on
+        strict. Check ``result["status"]``; do not assume success.
 
     Returns
     -------
@@ -922,14 +953,10 @@ def laminar_cortex_config(
     cell_types_sum = sum(cell_types.values())
     if not (0.99 <= cell_types_sum <= 1.01):
         raise ValueError(
-            f"cell_types fractions must sum to ~1.0; got {cell_types_sum}. "
-            f"Provided: {cell_types}"
+            f"cell_types fractions must sum to ~1.0; got {cell_types_sum}. Provided: {cell_types}"
         )
 
-    cfg = (
-        Configuration()
-        .runtime(seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
-    )
+    cfg = Configuration().runtime(seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
 
     # Add areas and layers
     for area_idx, area_label in enumerate(areas):

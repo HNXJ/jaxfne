@@ -433,6 +433,29 @@ requires separate authorization.
   colab.md published-claims restored); full post-bump broad rerun before
   re-release
 
+### P-007
+- **date:** 2026-09-20
+- **type:** DOC + CODE (audit findings)
+- **area:** deep package audit (structure/integrity/completeness)
+- **observation:** delegated audit found real defects: `tune()` silently
+  dropped mixed single/multi arguments; `validate_configuration` docstring
+  mismatched behavior; `completion.py` rationale outdated post-TFNE2-07.
+  Also confirmed unwired modules (units.py, pynwb_compat), entry
+  fragmentation, and a broad UNTESTED-exact refusal tail; two worker
+  claims (pool path, R4/R6 coverage) were false alarms corrected in review.
+- **severity:** MINOR (fixed items) / DEFERRED (owner decisions)
+- **minimal reproduction:** read `_model_tune.py:196-216`; inspect vs doc
+  blocks; grep importers of units/pynwb
+- **expected behavior:** no silent drops; docs match behavior; rationale
+  current
+- **actual behavior:** as in observation
+- **evidence:** 3 new tests green; 59-test blast radius green; ruff +
+  integrity gate green
+- **possible future change:** fixed: tune warnings + tests, docstring,
+  comment. Deferred to 0.5.x staging: units/pynwb wiring, emitter split,
+  fragmentation, hdp_kwargs policy, silent-pass validators, refusal-tail
+  tests, stale xfails/skips, compat aliases
+
 ---
 
 ## Drain verdicts (0.4.25 sweep, 2026-09-20)
@@ -462,3 +485,4 @@ drain the same way.
 | P-003 | DOCUMENTED (float-drift finding; claims-tier figures published) | C5 reruns + manifests |
 | P-004 | DOCUMENTED (unattributed reflow proven harmless; diff-stat rule added) | ruff + regen evidence |
 | P-005 | FIXED (candidate discipline: RC label + published-claims restored + rollover reverted; full broad rerun green before re-release) | version-alignment gates |
+| P-007 | FIXED-IN-PART (tune warnings + tests, docstring, comment; rest deferred to 0.5.x staging) | new tests + gates green |
