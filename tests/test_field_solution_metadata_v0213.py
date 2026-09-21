@@ -11,7 +11,6 @@ Tests the FieldSolution/FieldOutput contract hardening:
 """
 
 import json
-import pytest
 import jax
 import jax.numpy as jnp
 import jax.random
@@ -23,6 +22,7 @@ from jaxfne.io import json_safe
 
 
 # ─── Required Fields Test ──────────────────────────────────────────────────────
+
 
 def test_field_solution_report_has_18_required_fields():
     """Field solution report includes all 18 required fields."""
@@ -54,6 +54,7 @@ def test_field_solution_report_has_18_required_fields():
 
 # ─── JSON-Safety Test ──────────────────────────────────────────────────────────
 
+
 def test_field_solution_report_json_safe():
     """Field solution report is JSON-safe with allow_nan=False."""
     report = _make_field_solution_report()
@@ -72,8 +73,8 @@ def test_field_output_diagnostics_json_safe():
     json.dumps(safe_diag, allow_nan=False)
 
 
-
 # ─── No *_like Terminology ────────────────────────────────────────────────────
+
 
 def test_field_solution_report_no_like_terminology():
     """No *_like or *_same terminology in field solution reports."""
@@ -90,8 +91,9 @@ def test_field_solution_report_no_like_terminology():
     report = _make_field_solution_report()
     report_str = json.dumps(report)
     for forbidden in forbidden_substrings:
-        assert forbidden not in report_str, \
+        assert forbidden not in report_str, (
             f"Forbidden substring '{forbidden}' found in field report"
+        )
 
 
 def test_field_output_diagnostics_no_like_terminology():
@@ -108,11 +110,13 @@ def test_field_output_diagnostics_no_like_terminology():
 
     diag_str = json.dumps(field_out.diagnostics)
     for forbidden in forbidden_substrings:
-        assert forbidden not in diag_str, \
+        assert forbidden not in diag_str, (
             f"Forbidden substring '{forbidden}' found in field diagnostics"
+        )
 
 
 # ─── CSD Sign Convention Canonical ──────────────────────────────────────────────
+
 
 def test_field_solution_report_csd_sign_convention_canonical():
     """CSD sign convention uses canonical value (no _like, no proxy prefix)."""
@@ -131,11 +135,10 @@ def test_field_output_csd_sign_convention_canonical():
 
 # ─── Proxy Field Constraints ────────────────────────────────────────────────────
 
+
 def test_proxy_field_solver_metrics_are_null():
     """Proxy fields have null solver metrics (n_iterations, converged, residual)."""
-    report = _make_field_solution_report(
-        field_solver_status="linear_solver"
-    )
+    report = _make_field_solution_report(field_solver_status="linear_solver")
     assert report["n_iterations"] is None
     assert report["converged"] is None
     assert report["solver_residual_l2_relative"] is None
@@ -143,33 +146,25 @@ def test_proxy_field_solver_metrics_are_null():
 
 def test_proxy_field_amplitude_claim_false():
     """Proxy fields must have physical_amplitude_calibrated=False."""
-    report = _make_field_solution_report(
-        field_solver_status="linear_solver"
-    )
+    report = _make_field_solution_report(field_solver_status="linear_solver")
     assert report["physical_amplitude_calibrated"] is False
 
 
 def test_proxy_field_claim_level_correct():
     """Proxy fields have claim_level='proxy_readout'."""
-    report = _make_field_solution_report(
-        field_solver_status="linear_solver"
-    )
+    report = _make_field_solution_report(field_solver_status="linear_solver")
     assert report["field_claim_level"] == "proxy_readout"
 
 
 def test_proxy_field_current_density_layout_not_applicable():
     """Proxy fields have current_density_layout='not_applicable'."""
-    report = _make_field_solution_report(
-        field_solver_status="linear_solver"
-    )
+    report = _make_field_solution_report(field_solver_status="linear_solver")
     assert report["current_density_layout"] == "not_applicable"
 
 
 def test_proxy_field_conservation_untested():
     """Proxy fields have conservation untested and unclaimed."""
-    report = _make_field_solution_report(
-        field_solver_status="linear_solver"
-    )
+    report = _make_field_solution_report(field_solver_status="linear_solver")
     assert report["source_conservation_tested"] is False
     assert report["source_conservation_claim_allowed"] is False
 
@@ -184,6 +179,7 @@ def test_proxy_field_j_e_not_computed():
 
 
 # ─── Field Solution Report Helper Consistency ──────────────────────────────────
+
 
 def test_field_solution_report_default_proxy_values():
     """Default values in _make_field_solution_report match proxy defaults."""
@@ -208,7 +204,7 @@ def test_field_solution_report_finiteness_defaults():
     # For proxy (default), finiteness defaults are True for computed arrays
     report = _make_field_solution_report(
         field_solver_status="linear_solver",
-        finite_J_e=False  # Explicitly set for proxy (not computed)
+        finite_J_e=False,  # Explicitly set for proxy (not computed)
     )
 
     assert report["finite_phi_e"] is True
@@ -217,6 +213,7 @@ def test_field_solution_report_finiteness_defaults():
 
 
 # ─── project_laminar_sources Integration ────────────────────────────────────────
+
 
 def test_project_laminar_sources_includes_field_solution_metadata():
     """project_laminar_sources() includes all field solution metadata in diagnostics."""
@@ -265,6 +262,7 @@ def test_project_laminar_sources_proxy_status():
 
 # ─── Finite Flags Validation ────────────────────────────────────────────────────
 
+
 def test_field_output_finite_phi_e_matches_arrays():
     """finite_phi_e in diagnostics matches actual phi_e_proxy finiteness."""
     sources = jnp.ones((50, 10))
@@ -299,18 +297,8 @@ def test_field_output_finite_j_e_false_for_proxy():
 
 # ─── Version Constraint ────────────────────────────────────────────────────────
 
-@pytest.mark.xfail(
-    reason="Historical release fixture test: pins v0.3.4 release stability. "
-    "Marked xfail because v0.3.5 cleanup release intentionally bumps version. "
-    "This test verifies v0.3.4 stability after tutorial figures; no longer applicable."
-)
-def test_version_remains_0210():
-    """jaxfne version remains 0.3.4 (after v0.3.4 tutorial figures) — HISTORICAL FIXTURE."""
-    import jaxfne
-    assert jaxfne.__version__ == "0.3.4"
-
-
 # ─── JSON Serialization Strictness ────────────────────────────────────────────
+
 
 def test_field_solution_report_strict_json_round_trip():
     """Field solution report survives strict JSON round-trip."""
@@ -342,19 +330,16 @@ def test_field_output_diagnostics_strict_json_round_trip():
 
 # ─── Boundary and Gauge Status ──────────────────────────────────────────────────
 
+
 def test_proxy_boundary_condition_metadata_only():
     """Proxy fields have boundary_condition='declared_metadata_only'."""
-    report = _make_field_solution_report(
-        field_solver_status="linear_solver"
-    )
+    report = _make_field_solution_report(field_solver_status="linear_solver")
     assert report["boundary_condition"] == "declared_metadata_only"
 
 
 def test_proxy_gauge_metadata_only():
     """Proxy fields have gauge='declared_metadata_only'."""
-    report = _make_field_solution_report(
-        field_solver_status="linear_solver"
-    )
+    report = _make_field_solution_report(field_solver_status="linear_solver")
     assert report["gauge"] == "declared_metadata_only"
 
 

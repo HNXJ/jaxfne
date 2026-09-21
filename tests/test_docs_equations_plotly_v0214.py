@@ -17,6 +17,7 @@ import pytest
 
 # ─── Math Support Configuration Tests ────────────────────────────────────────
 
+
 def test_mkdocs_yml_includes_arithmatex_extension():
     """mkdocs.yml must include pymdownx.arithmatex extension."""
     mkdocs_path = Path("mkdocs.yml")
@@ -36,11 +37,13 @@ def test_mkdocs_yml_includes_mathjax_cdn():
         content = f.read()
 
     assert "extra_javascript:" in content, "extra_javascript section not found"
-    assert "mathjax" in content.lower() or "tex-mml-chtml" in content, \
+    assert "mathjax" in content.lower() or "tex-mml-chtml" in content, (
         "MathJax CDN not found in extra_javascript"
+    )
 
 
 # ─── Probe Operators Equations Tests ─────────────────────────────────────────
+
 
 def test_probe_operators_has_equation_section():
     """docs/guides/probe_operators.md must have a Mathematical Forms section."""
@@ -50,8 +53,9 @@ def test_probe_operators_has_equation_section():
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    assert "Mathematical Forms" in content or "mathematical form" in content.lower(), \
+    assert "Mathematical Forms" in content or "mathematical form" in content.lower(), (
         "Mathematical Forms section not found"
+    )
 
 
 def test_probe_operators_has_all_eight_operators():
@@ -80,6 +84,7 @@ def test_probe_operators_has_latex_math():
 
 # ─── Tensor-Field Workflow Equations Tests ───────────────────────────────────
 
+
 def test_tensor_field_workflows_has_math_notation():
     """docs/guides/tensor_field_workflows.md must have mathematical notation section."""
     doc_path = Path("docs/guides/tensor_field_workflows.md")
@@ -88,8 +93,9 @@ def test_tensor_field_workflows_has_math_notation():
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    assert "Mathematical notation" in content or "mathematical notation" in content.lower(), \
+    assert "Mathematical notation" in content or "mathematical notation" in content.lower(), (
         "Mathematical notation section not found"
+    )
 
 
 def test_tensor_field_workflows_has_projection_equations():
@@ -101,15 +107,18 @@ def test_tensor_field_workflows_has_projection_equations():
     # Check for key concepts (phi_proxy may appear as LaTeX \phi_{\mathrm{proxy}})
     concepts = ["projection", "kernel", "contact"]
     for concept in concepts:
-        assert concept in content.lower(), \
+        assert concept in content.lower(), (
             f"Missing concept '{concept}' in tensor_field_workflows.md"
+        )
 
     # Check for phi_proxy as either plain text or in LaTeX
-    assert "phi_proxy" in content.lower() or r"\phi_" in content, \
+    assert "phi_proxy" in content.lower() or r"\phi_" in content, (
         "Missing phi_proxy concept in tensor_field_workflows.md"
+    )
 
 
 # ─── API Documentation Tests ────────────────────────────────────────────────
+
 
 def test_fields_api_is_not_placeholder():
     """docs/api/fields.md must replace the 3-line placeholder."""
@@ -121,8 +130,9 @@ def test_fields_api_is_not_placeholder():
 
     # Should have substantial content, not just "Placeholder page"
     assert len(content) > 500, "fields.md appears to be mostly empty"
-    assert "Placeholder" not in content or "FieldOutput" in content, \
+    assert "Placeholder" not in content or "FieldOutput" in content, (
         "fields.md still appears to be a placeholder"
+    )
 
 
 def test_fields_api_has_contract():
@@ -132,8 +142,9 @@ def test_fields_api_has_contract():
         content = f.read()
 
     assert "FieldOutput" in content, "FieldOutput not documented"
-    assert "18" in content or "eighteen" in content.lower() or "required" in content.lower(), \
+    assert "18" in content or "eighteen" in content.lower() or "required" in content.lower(), (
         "Field contract not clearly documented"
+    )
 
 
 def test_probes_api_is_not_placeholder():
@@ -145,8 +156,9 @@ def test_probes_api_is_not_placeholder():
         content = f.read()
 
     assert len(content) > 500, "probes.md appears to be mostly empty"
-    assert "Placeholder" not in content or "ProbeReport" in content, \
+    assert "Placeholder" not in content or "ProbeReport" in content, (
         "probes.md still appears to be a placeholder"
+    )
 
 
 def test_probes_api_has_report_contract():
@@ -160,6 +172,7 @@ def test_probes_api_has_report_contract():
 
 
 # ─── Plotly Visualization Guide Tests ────────────────────────────────────────
+
 
 def test_plotly_visualization_guide_exists():
     """docs/guides/plotly_visualization.md must exist."""
@@ -212,6 +225,7 @@ def test_plotly_guide_documents_write_html():
 
 # ─── Visual Outputs Skill Tests ──────────────────────────────────────────────
 
+
 def test_visual_outputs_skill_exists():
     """visual_outputs_skill now in internal_docs (moved for hard-rule cleanup)."""
     doc_path = Path("artifacts/legacy/internal_docs/skills/skill_visual_outputs.md")
@@ -236,8 +250,9 @@ def test_visual_outputs_skill_documents_naming_conventions():
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    assert "naming" in content.lower() or ".html" in content, \
+    assert "naming" in content.lower() or ".html" in content, (
         "File naming conventions not documented"
+    )
 
 
 def test_visual_outputs_skill_has_validation_commands():
@@ -246,12 +261,12 @@ def test_visual_outputs_skill_has_validation_commands():
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    assert "Validation" in content or "validation" in content, \
-        "Validation section not found"
+    assert "Validation" in content or "validation" in content, "Validation section not found"
     assert "isfinite" in content, "Finitude check not documented"
 
 
 # ─── Navigation Tests ────────────────────────────────────────────────────────
+
 
 def test_plotly_guide_exists_but_not_in_primary_nav():
     """Plotly guide remains available; primary nav contracts to core grammar (Pass 2)."""
@@ -270,17 +285,6 @@ def test_mkdocs_nav_includes_visual_outputs_skill():
 
 
 # ─── Version and Dependency Tests ────────────────────────────────────────────
-
-@pytest.mark.xfail(
-    reason="Historical release fixture test: pins v0.3.4 release stability. "
-    "Marked xfail because v0.3.5 cleanup release intentionally bumps version. "
-    "This test verifies v0.3.4 stability after that release; no longer applicable."
-)
-def test_version_remains_0210():
-    """jaxfne version must remain 0.3.4 (after v0.3.4 release) — HISTORICAL FIXTURE."""
-    import jaxfne
-    assert jaxfne.__version__ == "0.3.4", \
-        f"Expected version 0.3.4, got {jaxfne.__version__}"
 
 
 def test_pyproject_toml_not_modified_for_plotly():
@@ -306,6 +310,7 @@ def test_pyproject_toml_not_modified_for_plotly():
 
 # ─── Vocabulary Audit Tests ─────────────────────────────────────────────────
 
+
 def test_no_like_terminology_in_new_docs():
     """New docs must use *-proxy, never *-like terminology."""
     new_docs = [
@@ -316,8 +321,11 @@ def test_no_like_terminology_in_new_docs():
     ]
 
     forbidden_patterns = [
-        r"lfp_like", r"csd_like", r"eeg_like", r"meg_like",
-        r"proxy_positive_equals_extracellular_source_like"
+        r"lfp_like",
+        r"csd_like",
+        r"eeg_like",
+        r"meg_like",
+        r"proxy_positive_equals_extracellular_source_like",
     ]
 
     for doc in new_docs:
@@ -327,8 +335,9 @@ def test_no_like_terminology_in_new_docs():
 
             for pattern in forbidden_patterns:
                 matches = re.findall(pattern, content, re.IGNORECASE)
-                assert not matches, \
+                assert not matches, (
                     f"Forbidden pattern '{pattern}' found {len(matches)} times in {doc}"
+                )
 
 
 def test_operator_terminology_uses_proxy():
@@ -346,11 +355,11 @@ def test_operator_terminology_uses_proxy():
             # Check for canonical names
             required_terms = ["lfp_proxy", "csd_proxy", "eeg_proxy", "meg_proxy"]
             for term in required_terms:
-                assert term in content, \
-                    f"Required term '{term}' not found in {doc}"
+                assert term in content, f"Required term '{term}' not found in {doc}"
 
 
 # ─── Gitignore Tests ────────────────────────────────────────────────────────
+
 
 def test_gitignore_has_outputs():
     """outputs/ directory must be in .gitignore."""
@@ -360,8 +369,7 @@ def test_gitignore_has_outputs():
     with open(gitignore_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    assert "outputs/" in content or "outputs" in content, \
-        "outputs/ not in .gitignore"
+    assert "outputs/" in content or "outputs" in content, "outputs/ not in .gitignore"
 
 
 def test_gitignore_has_site():
@@ -370,11 +378,11 @@ def test_gitignore_has_site():
     with open(gitignore_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    assert "site/" in content or "site" in content, \
-        "site/ not in .gitignore"
+    assert "site/" in content or "site" in content, "site/ not in .gitignore"
 
 
 # ─── LaTeX Syntax Validation Tests ──────────────────────────────────────────
+
 
 def test_equation_latex_syntax():
     """Equations in new docs must have valid LaTeX syntax (basic check)."""
@@ -396,5 +404,6 @@ def test_equation_latex_syntax():
             for block in math_blocks:
                 open_braces = block.count("{")
                 close_braces = block.count("}")
-                assert open_braces == close_braces, \
+                assert open_braces == close_braces, (
                     f"Unbalanced braces in LaTeX block: {block[:50]}..."
+                )

@@ -414,8 +414,9 @@ Carried forward from the sealed 0.4.25 sweep (history in git):
   same-named build_laminar_column/export_tutorial_artifacts);
   compile_step_fn **hdp_kwargs unknown-key policy; validate_hdp_params
   non-dict non-strict silent-pass; broad UNTESTED-exact refusal tail;
-  stale v0.3.4 xfails + PLACEHOLDER_NOTEBOOKS + artifact-gated skips;
-  post-0.4.14 compat aliases. Two worker false alarms (pool path, R4/R6
+  PLACEHOLDER_NOTEBOOKS + artifact-gated skips;
+  post-0.4.14 compat aliases. Sealed: stale v0.3.4 xfails removed (4 dead
+  tests, suites green). Two worker false alarms (pool path, R4/R6
   coverage) corrected in review — reviewers≠workers stays mandatory.
 - Integrity round (P-006): 13 api signature drifts fixed + verified,
   `audit_doc_code_integrity.py` gate added (fences/refs/symbols); reviewer
