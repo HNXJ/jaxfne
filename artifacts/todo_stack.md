@@ -435,7 +435,7 @@ architecture simplification only with accumulated evidence.
    rule in jaxfne-core; claim-conditioned verification in jaxfne-science.
    Remaining gap: task-shaped skills (model/develop/simulate/inspect/
    fields/plasticity/validate/optimize) deferred to item 7 workflow).
-7. One canonical question→TFNE→JDNA→simulation→verification agent workflow.
+7. One canonical question→TFNE→JDNA→simulation→verification agent workflow (DONE 2026-09-20: `artifacts/skills/jaxfne-workflow/SKILL.md` — routing+gates table invoking existing skills, no implementation duplication; harness manifest synced, 8 skills).
 8. Benchmark that workflow against raw-repository agent use.
 9. Rank actual bottlenecks.
 10. Only then authorize the first optimization batch.
