@@ -87,6 +87,9 @@ OPEN_QUESTIONS
 - Stage exact paths; never `git add .` / `-A`. Check `git diff --stat`
   after every scripted edit (line-ending rewrites bury small changes).
 - Push with `git push origin dev` (SSH); `gh` CLI auth is broken here.
+- Never run bare `git stash pop` — it pops whatever stash is on top,
+  including pre-existing unknown-ownership stashes. Pre-existing stashes
+  are read-only; leave them listed and untouched.
 - `pytest` inserts rootdir on `sys.path`: an in-process import check can
   pass while the real entry point is broken — verify from a clean
   interpreter and scratch directory where entry points matter.

@@ -486,3 +486,4 @@ drain the same way.
 | P-004 | DOCUMENTED (unattributed reflow proven harmless; diff-stat rule added) | ruff + regen evidence |
 | P-005 | FIXED (candidate discipline: RC label + published-claims restored + rollover reverted; full broad rerun green before re-release) | version-alignment gates |
 | P-007 | FIXED-IN-PART (tune warnings + tests, docstring, comment; rest deferred to 0.5.x staging) | new tests + gates green |
+| P-008 | DOCUMENTED (two harness traps 2026-09-20): (1) test-file reflow recurred via edit tool (quote/blank-line normalization alongside intended deletions; tests green, harmless — P-004 pattern); (2) bare `git stash pop` popped a PRE-EXISTING unknown-ownership stash ("vis changes"), causing a merge conflict — repaired via `git reset --hard HEAD` (tree was sealed+pushed, nothing lost; stash entry preserved untouched). Rule: never bare-pop; pre-existing stashes are read-only | reset + import smoke |
