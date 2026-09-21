@@ -415,7 +415,9 @@ architecture simplification only with accumulated evidence.
 2. Canonical benchmark models + frozen outputs (DONE: same receipt; rerun
    with `python scripts/benchmark_050_baseline.py`).
 3. Profile construct/compile/simulate/record/observe + memory independently.
-4. Profile test/gate runtime; defect→gate matrix draft.
+4. Profile test/gate runtime; defect→gate matrix draft (DONE 2026-09-20:
+   `artifacts/perf/test_profile_050.md`; broad 2216 s dominated by
+   equivalence/construct/generator tests; 5 proposals, no actions).
 5. Audit TFNE→JDNA→Model integration for duplicate construction paths.
 6. Audit/refine current skills against the lifecycle.
 7. One canonical question→TFNE→JDNA→simulation→verification agent workflow.
