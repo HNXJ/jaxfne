@@ -8,7 +8,7 @@ Format per lesson: {trigger,cause,repair,evidence,scope}.
 - trigger: edit applied to large file, diff far bigger than intended
   cause: tool_requires exact oldString; parallel same-file edits and formatter churn (P-004) slip through success messages
   repair: re-read every edited region; check `git diff --stat` scale matches intent; unattributed reflow gets a P-ID until proven harmless
-  evidence: P-004 (generate_doc_page_atlases.py 450-line reflow; ruff+regen proved harmless)
+  evidence: P-004 (450-line reflow; ruff+regen proved harmless); recurrence in test files via edit tool (P-008), caught by diff-stat review
   scope: jaxfne
 
 - trigger: PowerShell command fails with ParserError or silent wrong results
@@ -53,3 +53,9 @@ Format per lesson: {trigger,cause,repair,evidence,scope}.
   repair: disjoint file sets per worker; exact stop-report format; on interruption, `git status` + gate battery before trusting anything; workers never commit/push
   evidence: 7 worker rounds 2026-09-20 (vocab/verbosity/nav/code-audit), 2 interrupted, all integrated cleanly
   scope: jaxfne
+
+- trigger: pre-existing stash entry in `git stash list`
+  cause: bare `git stash pop` takes the top entry regardless of ownership; unknown-ownership stashes predate the session
+  repair: never bare-pop; treat pre-existing stashes read-only; if one is popped by mistake, `git reset --hard HEAD` recovers only when the tree was sealed+pushed (verify HEAD==origin/dev and status 0 first)
+  evidence: P-008 (conflicted jaxfne/vis/__init__.py; clean reset, stash preserved, import smoke OK)
+  scope: jaxfne (git)
