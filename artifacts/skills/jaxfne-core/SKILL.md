@@ -18,6 +18,11 @@ Unfamiliar jaxfne tasks, or establishing governing authority before acting.
 - Symbols must be verified against live code before use (no invented names).
 - Authoritative source is referenced, never duplicated into memory.
 - Epistemic separation: E -> S -> F -> P is distinct from manifest bookkeeping.
+- Pin the canonical lifecycle entry per capability (TFNE -> JDNA -> Model
+  -> Simulation -> Observation); when parallel paths exist, name the chosen
+  one and why. Never silently use a legacy/parallel engine (tutorial
+  dict-engine, hpc stubs, schema-only bridges) where the canonical path
+  applies.
 
 ## STEPS
 1. Run Gate 0 to verify Git reality.

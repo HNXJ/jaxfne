@@ -427,7 +427,14 @@ architecture simplification only with accumulated evidence.
    no action; 6 open questions incl. tensor-connection scaffolding and
    tutorial dict-engine status).
 5. Audit TFNE→JDNA→Model integration for duplicate construction paths.
-6. Audit/refine current skills against the lifecycle.
+6. Audit/refine current skills against the lifecycle (DONE 2026-09-20:
+   coverage map — TFNE/JDNA: jaxfne-core routing only (no dedicated
+   skill; gap for item 7 workflow); Model/Simulation: jaxfne-repo +
+   jaxfne-science; Observation/Evidence: jaxfne-science + jaxfne-audit;
+   release/seal/vocab covered. Refines applied: canonical-entry pinning
+   rule in jaxfne-core; claim-conditioned verification in jaxfne-science.
+   Remaining gap: task-shaped skills (model/develop/simulate/inspect/
+   fields/plasticity/validate/optimize) deferred to item 7 workflow).
 7. One canonical question→TFNE→JDNA→simulation→verification agent workflow.
 8. Benchmark that workflow against raw-repository agent use.
 9. Rank actual bottlenecks.

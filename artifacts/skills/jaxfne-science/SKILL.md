@@ -18,6 +18,10 @@ SCIENCE work: scientific simulation, falsification, HDP/TFNE analysis, Etudes, a
 - Failed prospective runs are preserved (never tuned after observing validation).
 - No biological mechanism inferred beyond implemented model; proxy quantities have explicit status.
 - RBS: H is finite-dimensional relative state; H != homeostasis by definition.
+- Claim-conditioned verification: plan evidence from the scientific claim
+  (V=V(claim)) — a "runs" claim needs execution, a rate claim needs signal
+  analysis plus numerical adequacy, a plasticity claim needs an intervention
+  on the mutable rule.
 
 ## STEPS
 1. Declare protocol and falsification criteria before run.
