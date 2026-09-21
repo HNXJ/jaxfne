@@ -388,9 +388,70 @@ exactly TFNE-PARAM-01 and TFNE-PARAM-03.
 
 ---
 
-# 0.5.x staging (candidates, not started)
+# 0.5.x programme — optimization + integration family (authorized 2026-09-20)
 
-Carried forward from the sealed 0.4.25 sweep (history in git):
+Governing objective: 0.5.x = faster simulation + faster verification +
+better agent use + cleaner integration, subject to Δscientific semantics=0
+unless an individually authorized correctness repair requires otherwise.
+0.4.x established the semantics and harness; optimize against that stable
+baseline and measure equivalence.
+
+Acceptance for the whole programme (deltas from frozen v0.4.25 baseline):
+T_simulation↓, M_peak↓, T_test↓, T_agent_task↓, E_semantic=0 (no known
+unintended semantic changes), C_scientific ≥ C_0.4.25 (retained coverage).
+
+Release sequence (one objective each; NOT all in 0.5.0):
+0.5.0 measurement baseline + integration + skills foundation; 0.5.1
+demonstrated simulation bottlenecks; 0.5.2 test/gate acceleration; 0.5.3
+inspection/provenance; 0.5.4 skill/tool benchmark + refinement; later:
+architecture simplification only with accumulated evidence.
+
+## 0.5.0 stack (in order; measurement before optimization)
+
+1. Benchmark current v0.4.25/dev performance (DONE 2026-09-20:
+   `scripts/benchmark_050_baseline.py` + `artifacts/perf/baseline_050.json`;
+   1n/10n-HDP/100n/1000n with construct/sim1-compile/sim2-run/probe/
+   manifest phases; first-vs-second-call separates JIT compile).
+2. Canonical benchmark models + frozen outputs (DONE: same receipt; rerun
+   with `python scripts/benchmark_050_baseline.py`).
+3. Profile construct/compile/simulate/record/observe + memory independently.
+4. Profile test/gate runtime; defect→gate matrix draft.
+5. Audit TFNE→JDNA→Model integration for duplicate construction paths.
+6. Audit/refine current skills against the lifecycle.
+7. One canonical question→TFNE→JDNA→simulation→verification agent workflow.
+8. Benchmark that workflow against raw-repository agent use.
+9. Rank actual bottlenecks.
+10. Only then authorize the first optimization batch.
+
+## Tracks (parallel after the baseline)
+
+- P performance: benchmark matrix (1n dispatch; 10n HDP; 100n sparse;
+  1000n column; 10k sparse; high-density; recording-heavy;
+  continuation/chunked; TFNE→JDNA→Model construction); T_total =
+  construct+compile+simulate+record+observe; M_peak =
+  persistent+construction+state+recording+temporary. Optimize only
+  profiled components.
+- T testing: micro⊂dev⊂broad⊂release hierarchy by defect class; maximize
+  defects/(wall+compute); defect→cheapest-gate matrix; keep adversarial
+  semantic tests; cache immutable evidence where valid; parallelize
+  families; every historical defect keeps a cheap local detector.
+- S skills: task-shaped skills (model/develop/simulate/inspect/fields/
+  plasticity/validate/optimize) around question→skill→TFNE→JDNA→Model→
+  simulation→verification; benchmark vs agent+raw-repo on semantic model
+  fidelity (not answer accuracy).
+- I integration: converge on TFNE→JDNA→Model→Simulation→Observation; every
+  alternate path classified as thin adapter / independent primitive /
+  deprecated redundancy. One semantic implementation, many entrances.
+- A architecture: god-modules are candidates, not tasks; factor only with
+  measured benefit under old≡new output (bit-exact or predeclared
+  tolerance).
+- V validation: generalize configured→completed→realized→executed→observed
+  per capability (identity/sign/scale/shape/units/geometry/tau/delay/
+  stochastic/mutable/source-field); claim-conditioned V=V(claim).
+- U inspection: cheap origin/provenance queries (summary/inspect/trace/
+  explain/compare); index/provenance map I answers specified→executed.
+
+## Carried staging (prior candidates, not started)
 
 - A8 gh-pages publishing policy (versioned paths, RTD story, audit
   handling) — decide before any asset migration.
