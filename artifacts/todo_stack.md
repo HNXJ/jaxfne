@@ -436,7 +436,11 @@ architecture simplification only with accumulated evidence.
    Remaining gap: task-shaped skills (model/develop/simulate/inspect/
    fields/plasticity/validate/optimize) deferred to item 7 workflow).
 7. One canonical question→TFNE→JDNA→simulation→verification agent workflow (DONE 2026-09-20: `artifacts/skills/jaxfne-workflow/SKILL.md` — routing+gates table invoking existing skills, no implementation duplication; harness manifest synced, 8 skills).
-8. Benchmark that workflow against raw-repository agent use.
+8. Benchmark that workflow against raw-repository agent use (DONE 2026-09-20:
+   frozen packet + 10 independent runs; F̄=1.00 both arms, ΔF=0, ΔH=0;
+   friction unmeasured except files-consulted proxy; results in
+   `artifacts/perf/workflow_benchmark_results_050.md`; no optimization
+   follows).
 9. Rank actual bottlenecks.
 10. Only then authorize the first optimization batch.
 
