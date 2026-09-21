@@ -1,0 +1,165 @@
+{
+  "series": "profile_050",
+  "jaxfne_version": "0.4.25",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "claim": "local_environment_receipt_only",
+  "memory_note": "process RSS deltas (CPU backend); device-peak not separately measured",
+  "regimes": [
+    {
+      "regime": "dispatch_1n",
+      "n_neurons": 1,
+      "n_edges": 0,
+      "duration_ms": 100.0,
+      "dt_ms": 0.1,
+      "seed": 0,
+      "construct_ms": 1985.6020999141037,
+      "simulate_first_call_ms": 1724.4876000331715,
+      "simulate_warm_call_ms": 106.9108999799937,
+      "probe_observe_ms": 0.010299962013959885,
+      "manifest_ms": 392.3762000631541,
+      "rss_mb": {
+        "start": 171.720704,
+        "after_construct": 316.952576,
+        "after_first_sim": 396.234752,
+        "after_warm_sim": 400.654336,
+        "construct_delta": 145.231872,
+        "first_sim_delta": 79.28217599999999,
+        "warm_sim_delta": 4.419583999999986
+      },
+      "recording": {
+        "spikes": {
+          "bytes": 4000
+        },
+        "V_m": {
+          "bytes": 4000
+        },
+        "sources": {
+          "bytes": 4000
+        }
+      },
+      "device": [
+        "cpu:0"
+      ],
+      "backend": "cpu"
+    },
+    {
+      "regime": "hdp_10n",
+      "n_neurons": 10,
+      "n_edges": 90,
+      "duration_ms": 100.0,
+      "dt_ms": 0.5,
+      "seed": 0,
+      "construct_ms": 1886.5828000707552,
+      "simulate_first_call_ms": 3958.4900999907404,
+      "simulate_warm_call_ms": 388.76530004199594,
+      "probe_observe_ms": 0.012299977242946625,
+      "manifest_ms": 339.92040005978197,
+      "rss_mb": {
+        "start": 411.881472,
+        "after_construct": 507.5968,
+        "after_first_sim": 625.672192,
+        "after_warm_sim": 650.69056,
+        "construct_delta": 95.715328,
+        "first_sim_delta": 118.07539200000002,
+        "warm_sim_delta": 25.01836800000001
+      },
+      "recording": {
+        "H_trace": {
+          "bytes": 8000,
+          "recorded": true
+        },
+        "w_trace": {
+          "bytes": 72000,
+          "recorded": true
+        },
+        "spikes": {
+          "bytes": 8000
+        },
+        "V_m": {
+          "bytes": 8000
+        },
+        "sources": {
+          "bytes": 8000
+        }
+      },
+      "device": [
+        "cpu:0"
+      ],
+      "backend": "cpu"
+    },
+    {
+      "regime": "sparse_100n",
+      "n_neurons": 100,
+      "n_edges": 9900,
+      "duration_ms": 100.0,
+      "dt_ms": 0.1,
+      "seed": 42,
+      "construct_ms": 2143.5171000193805,
+      "simulate_first_call_ms": 1409.2550999484956,
+      "simulate_warm_call_ms": 165.52030004095286,
+      "probe_observe_ms": 0.011199968867003918,
+      "manifest_ms": 2.876000013202429,
+      "rss_mb": {
+        "start": 656.166912,
+        "after_construct": 740.67968,
+        "after_first_sim": 762.220544,
+        "after_warm_sim": 788.332544,
+        "construct_delta": 84.51276799999994,
+        "first_sim_delta": 21.540864000000056,
+        "warm_sim_delta": 26.111999999999966
+      },
+      "recording": {
+        "spikes": {
+          "bytes": 400000
+        },
+        "V_m": {
+          "bytes": 400000
+        },
+        "sources": {
+          "bytes": 400000
+        }
+      },
+      "device": [
+        "cpu:0"
+      ],
+      "backend": "cpu"
+    },
+    {
+      "regime": "column_1000n",
+      "n_neurons": 1000,
+      "n_edges": 215785,
+      "duration_ms": 200.0,
+      "dt_ms": 0.5,
+      "seed": 0,
+      "construct_ms": 6146.573100006208,
+      "simulate_first_call_ms": 2103.6172000458464,
+      "simulate_warm_call_ms": 379.4351000105962,
+      "probe_observe_ms": 0.011400086805224419,
+      "manifest_ms": 361.44729994703084,
+      "rss_mb": {
+        "start": 788.33664,
+        "after_construct": 906.227712,
+        "after_first_sim": 978.321408,
+        "after_warm_sim": 1018.724352,
+        "construct_delta": 117.89107200000001,
+        "first_sim_delta": 72.09369600000002,
+        "warm_sim_delta": 40.402943999999934
+      },
+      "recording": {
+        "spikes": {
+          "bytes": 1600000
+        },
+        "V_m": {
+          "bytes": 1600000
+        },
+        "sources": {
+          "bytes": 1600000
+        }
+      },
+      "device": [
+        "cpu:0"
+      ],
+      "backend": "cpu"
+    }
+  ]
+}
