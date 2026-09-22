@@ -7,7 +7,7 @@
 # "Generator: hatchling <version>", so a version change inside a range
 # silently changes the artifact SHA256 while nothing fails. 1.29.0 is the
 # version that built the published v0.4.20 and v0.4.21 releases.
-requires = ["hatchling==1.29.0"]
+requires = ["hatchling==1.32.3"]
 build-backend = "hatchling.build"
 
 [project]
