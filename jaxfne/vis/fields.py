@@ -6,6 +6,7 @@ Docs: ``docs/api/fields.md`` + ``docs/plotly_visualization.md``
 NumPy-isolated graphics for spectrolaminar power profiles, connectivity matrices,
 laminar profiles, multi-area layouts, and optimization objective histories.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -123,7 +124,7 @@ def spectrolaminar(signals: Signals, **kwargs: Any) -> Any:
     if time_ms_raw is None and isinstance(signals, dict):
         time_ms_raw = signals.get("time_ms")
     time_ms = prepare_static_plot_matrix(time_ms_raw)
-    
+
     field = getattr(signals, "field", None)
     if field is None and isinstance(signals, dict):
         field = signals.get("field")
@@ -147,8 +148,12 @@ def spectrolaminar(signals: Signals, **kwargs: Any) -> Any:
         lfp = None
         csd = None
         depths = None
-    
-    meta = getattr(signals, "metadata", {}) if not isinstance(signals, dict) else signals.get("metadata", {})
+
+    meta = (
+        getattr(signals, "metadata", {})
+        if not isinstance(signals, dict)
+        else signals.get("metadata", {})
+    )
     dt_ms = float(meta.get("dt_ms", 0.05)) if isinstance(meta, dict) else 0.05
     fs = 1000.0 / dt_ms  # Sampling frequency in Hz
 
@@ -224,8 +229,7 @@ def spectrolaminar(signals: Signals, **kwargs: Any) -> Any:
     cbar2.set_label("Power (dB-proxy)", fontsize=9)
 
     fig.suptitle(
-        "jaxfne Spectrolaminar Profile  |  "
-        "Status: Simulated Laminar Proxy Readout",
+        "jaxfne Spectrolaminar Profile  |  Status: Simulated Laminar Proxy Readout",
         fontsize=11,
         color="#495057",
         fontstyle="italic",
@@ -242,9 +246,16 @@ def bandpower(
     figsize: tuple[float, float] = (10, 5),
     **kwargs: Any,
 ) -> Any:
-    """Plot mean spectral band power per contact."""
+    """Plot mean spectral band power per contact.
+
+    Canonical numeric contract (P5): absolute mean in-band Welch PSD per
+    contact (``nperseg=256`` shared with the Plotly renderer) — same numbers
+    as :func:`jaxfne.vis.plotly.spectra.plot_band_power` for the same band.
+    """
     require_matplotlib()
     import matplotlib.pyplot as plt
+
+    from .core import inband_power_mean, welch_psd
 
     if band_definitions is None:
         band_definitions = {
@@ -256,10 +267,14 @@ def bandpower(
     if not np.all(np.isfinite(lfp_arr)):
         lfp_arr = np.nan_to_num(lfp_arr, nan=0.0, posinf=0.0, neginf=0.0)
 
-    meta = getattr(signals, "metadata", {}) if not isinstance(signals, dict) else signals.get("metadata", {})
+    meta = (
+        getattr(signals, "metadata", {})
+        if not isinstance(signals, dict)
+        else signals.get("metadata", {})
+    )
     dt_ms = float(meta.get("dt_ms", 0.1)) if isinstance(meta, dict) else 0.1
     fs = 1000.0 / dt_ms
-    freqs, pxx = signal.welch(lfp_arr, fs=fs, axis=0, nperseg=min(512, lfp_arr.shape[0]))
+    freqs, pxx = welch_psd(lfp_arr, fs, nperseg=256)
 
     n_bands = len(band_definitions)
     fig, axes = plt.subplots(1, n_bands, figsize=figsize, squeeze=False)
@@ -268,14 +283,20 @@ def bandpower(
         ax = axes[0, col]
         mask = (freqs >= lo) & (freqs <= hi)
         if mask.sum() == 0:
-            ax.text(0.5, 0.5, f"Band {band_name}\nnot covered by\nsampling rate",
-                    ha="center", va="center", transform=ax.transAxes)
+            ax.text(
+                0.5,
+                0.5,
+                f"Band {band_name}\nnot covered by\nsampling rate",
+                ha="center",
+                va="center",
+                transform=ax.transAxes,
+            )
             ax.set_title(band_name)
             continue
         if lfp_arr.ndim > 1:
-            band_power = np.mean(pxx[mask, :], axis=0)
+            band_power = np.atleast_1d(inband_power_mean(pxx, freqs, lo, hi))
         else:
-            band_power = np.array([np.mean(pxx[mask])])
+            band_power = np.array([float(inband_power_mean(pxx, freqs, lo, hi))])
 
         contact_labels = [str(c) for c in range(len(band_power))]
         ax.barh(contact_labels, band_power, color="steelblue", alpha=0.8)
@@ -303,8 +324,15 @@ def laminar_profile(
     rows = _neuron_rows(signals)
     if not rows:
         fig, ax = plt.subplots(figsize=figsize)
-        ax.text(0.5, 0.5, "neuron_metadata not available\nin this signals object.\nRun with n_contacts > 0.",
-                ha="center", va="center", transform=ax.transAxes, fontsize=11)
+        ax.text(
+            0.5,
+            0.5,
+            "neuron_metadata not available\nin this signals object.\nRun with n_contacts > 0.",
+            ha="center",
+            va="center",
+            transform=ax.transAxes,
+            fontsize=11,
+        )
         ax.set_title("Laminar profile (declared geometry proxy)")
         return fig
 
@@ -329,8 +357,15 @@ def laminar_profile(
         ct_mask = np.asarray([v == ct for v in ct_vals])
         ct_z = z_vals[ct_mask]
         counts, _ = np.histogram(ct_z, bins=bin_edges)
-        ax.barh(bin_centers, counts, height=(z_max - z_min) / n_bins * 0.8,
-                left=bottom, color=color, alpha=0.85, label=ct)
+        ax.barh(
+            bin_centers,
+            counts,
+            height=(z_max - z_min) / n_bins * 0.8,
+            left=bottom,
+            color=color,
+            alpha=0.85,
+            label=ct,
+        )
         bottom += counts
 
     ax.set_title("Laminar neuron profile (declared geometry proxy)", fontsize=11)
@@ -376,10 +411,16 @@ def connectivity(
 
     if W is None:
         fig, ax = plt.subplots(figsize=figsize)
-        ax.text(0.5, 0.5,
-                "Weight matrix W not accessible\nfrom this model object.\n"
-                "Pass W directly: jtfne.vis.connectivity(model.params['W'])",
-                ha="center", va="center", transform=ax.transAxes, fontsize=10)
+        ax.text(
+            0.5,
+            0.5,
+            "Weight matrix W not accessible\nfrom this model object.\n"
+            "Pass W directly: jtfne.vis.connectivity(model.params['W'])",
+            ha="center",
+            va="center",
+            transform=ax.transAxes,
+            fontsize=10,
+        )
         ax.set_title("Recurrent connectivity (proxy weight structure)")
         return fig
 
@@ -435,46 +476,80 @@ def ei_circuit_diagram(
     x_i, y_i = 0.7, 0.5
     radius = 0.08
 
-    e_circle = patches.Circle((x_e, y_e), radius, color='blue', alpha=0.7)
+    e_circle = patches.Circle((x_e, y_e), radius, color="blue", alpha=0.7)
     ax.add_patch(e_circle)
-    ax.text(x_e, y_e, e_label, ha='center', va='center',
-            color='white', fontsize=14, fontweight='bold')
-    ax.text(x_e, y_e - 0.14, f'{firing_rate_e_hz:.1f} Hz',
-            ha='center', va='center', fontsize=10, color='blue')
+    ax.text(
+        x_e, y_e, e_label, ha="center", va="center", color="white", fontsize=14, fontweight="bold"
+    )
+    ax.text(
+        x_e,
+        y_e - 0.14,
+        f"{firing_rate_e_hz:.1f} Hz",
+        ha="center",
+        va="center",
+        fontsize=10,
+        color="blue",
+    )
 
-    i_circle = patches.Circle((x_i, y_i), radius, color='red', alpha=0.7)
+    i_circle = patches.Circle((x_i, y_i), radius, color="red", alpha=0.7)
     ax.add_patch(i_circle)
-    ax.text(x_i, y_i, i_label, ha='center', va='center',
-            color='white', fontsize=14, fontweight='bold')
-    ax.text(x_i, y_i - 0.14, f'{firing_rate_i_hz:.1f} Hz',
-            ha='center', va='center', fontsize=10, color='red')
+    ax.text(
+        x_i, y_i, i_label, ha="center", va="center", color="white", fontsize=14, fontweight="bold"
+    )
+    ax.text(
+        x_i,
+        y_i - 0.14,
+        f"{firing_rate_i_hz:.1f} Hz",
+        ha="center",
+        va="center",
+        fontsize=10,
+        color="red",
+    )
 
     arrow_ei = patches.FancyArrowPatch(
-        (x_e + radius, y_e), (x_i - radius, y_i),
-        arrowstyle='->', mutation_scale=25,
-        color='green', linewidth=2.0, alpha=0.8,
-        connectionstyle="arc3,rad=0.25"
+        (x_e + radius, y_e),
+        (x_i - radius, y_i),
+        arrowstyle="->",
+        mutation_scale=25,
+        color="green",
+        linewidth=2.0,
+        alpha=0.8,
+        connectionstyle="arc3,rad=0.25",
     )
     ax.add_patch(arrow_ei)
-    ax.text(0.5, y_e + 0.10, f'g_EtoI={g_e_to_i:.1f}\n(excitatory)',
-            ha='center', fontsize=9,
-            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    ax.text(
+        0.5,
+        y_e + 0.10,
+        f"g_EtoI={g_e_to_i:.1f}\n(excitatory)",
+        ha="center",
+        fontsize=9,
+        bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5),
+    )
 
     arrow_ie = patches.FancyArrowPatch(
-        (x_i - radius, y_i), (x_e + radius, y_e),
-        arrowstyle='->', mutation_scale=25,
-        color='darkred', linewidth=2.0, alpha=0.8,
-        connectionstyle="arc3,rad=0.25"
+        (x_i - radius, y_i),
+        (x_e + radius, y_e),
+        arrowstyle="->",
+        mutation_scale=25,
+        color="darkred",
+        linewidth=2.0,
+        alpha=0.8,
+        connectionstyle="arc3,rad=0.25",
     )
     ax.add_patch(arrow_ie)
-    ax.text(0.5, y_e - 0.10, f'g_ItoE={g_i_to_e:.1f}\n(inhibitory)',
-            ha='center', fontsize=9,
-            bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
+    ax.text(
+        0.5,
+        y_e - 0.10,
+        f"g_ItoE={g_i_to_e:.1f}\n(inhibitory)",
+        ha="center",
+        fontsize=9,
+        bbox=dict(boxstyle="round", facecolor="lightblue", alpha=0.5),
+    )
 
     ax.set_xlim(0.1, 0.9)
     ax.set_ylim(0.25, 0.75)
-    ax.set_aspect('equal')
-    ax.axis('off')
+    ax.set_aspect("equal")
+    ax.axis("off")
     ax.set_title("Recurrent E/I circuit (coupling conductances shown)", fontsize=13)
     fig.tight_layout()
     return fig
@@ -508,9 +583,16 @@ def multi_area_layout(
 
     if not columns:
         fig, ax = plt.subplots(figsize=figsize)
-        ax.text(0.5, 0.5, "Column metadata required\nfor multi_area_layout.\n"
-                "Use a Configuration or signals with neuron_metadata.",
-                ha="center", va="center", transform=ax.transAxes, fontsize=11)
+        ax.text(
+            0.5,
+            0.5,
+            "Column metadata required\nfor multi_area_layout.\n"
+            "Use a Configuration or signals with neuron_metadata.",
+            ha="center",
+            va="center",
+            transform=ax.transAxes,
+            fontsize=11,
+        )
         ax.set_title("Multi-area layout (declared metadata proxy)")
         return fig
 
@@ -528,18 +610,38 @@ def multi_area_layout(
         cy = 0.5
         col_centers[col.get("name", str(i))] = (cx, cy)
         rect = mpatches.FancyBboxPatch(
-            (cx - col_width / 2, cy - 0.25), col_width, 0.5,
-            boxstyle="round,pad=0.02", linewidth=2,
-            edgecolor="steelblue", facecolor="lightsteelblue", alpha=0.7,
+            (cx - col_width / 2, cy - 0.25),
+            col_width,
+            0.5,
+            boxstyle="round,pad=0.02",
+            linewidth=2,
+            edgecolor="steelblue",
+            facecolor="lightsteelblue",
+            alpha=0.7,
         )
         ax.add_patch(rect)
-        ax.text(cx, cy + 0.1, col.get("name", f"Area {i}"), ha="center", va="center",
-                fontsize=12, fontweight="bold", color="navy")
+        ax.text(
+            cx,
+            cy + 0.1,
+            col.get("name", f"Area {i}"),
+            ha="center",
+            va="center",
+            fontsize=12,
+            fontweight="bold",
+            color="navy",
+        )
         n_neurons = col.get("n", "?")
         layers = col.get("layers", [])
         layer_str = f"{len(layers)} layers" if layers else ""
-        ax.text(cx, cy - 0.1, f"N={n_neurons}\n{layer_str}", ha="center", va="center",
-                fontsize=9, color="darkblue")
+        ax.text(
+            cx,
+            cy - 0.1,
+            f"N={n_neurons}\n{layer_str}",
+            ha="center",
+            va="center",
+            fontsize=9,
+            color="darkblue",
+        )
 
     # inter_column_connectivity may be a single spec (legacy) or a list of specs
     # (one per directed projection). Draw a directed arrow per spec, labelled by
@@ -559,11 +661,20 @@ def multi_area_layout(
         label = "FF+FB" if (has_ff and has_fb) else ("FB" if has_fb else "FF")
         color = "teal" if (has_ff and has_fb) else ("mediumpurple" if has_fb else "darkorange")
         yo = -0.15 if (has_fb and not has_ff) else 0.15  # offset opposing arrows
-        ax.annotate("", xy=(tx - col_width / 2, ty + yo),
-                     xytext=(sx + col_width / 2, sy + yo),
-                     arrowprops=dict(arrowstyle="->", color=color, lw=2))
-        ax.text((sx + tx) / 2, sy + yo + (0.07 if yo > 0 else -0.07),
-                label, ha="center", fontsize=9, color=color)
+        ax.annotate(
+            "",
+            xy=(tx - col_width / 2, ty + yo),
+            xytext=(sx + col_width / 2, sy + yo),
+            arrowprops=dict(arrowstyle="->", color=color, lw=2),
+        )
+        ax.text(
+            (sx + tx) / 2,
+            sy + yo + (0.07 if yo > 0 else -0.07),
+            label,
+            ha="center",
+            fontsize=9,
+            color=color,
+        )
 
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
@@ -588,13 +699,17 @@ def objective_report(
     if hasattr(tune_result_or_history, "summary"):
         summary = tune_result_or_history.summary
         if isinstance(summary, dict):
-            history = (summary.get("score_history")
-                       or summary.get("objective_history")
-                       or summary.get("loss_history"))
+            history = (
+                summary.get("score_history")
+                or summary.get("objective_history")
+                or summary.get("loss_history")
+            )
     elif isinstance(tune_result_or_history, dict):
-        history = (tune_result_or_history.get("score_history")
-                   or tune_result_or_history.get("objective_history")
-                   or tune_result_or_history.get("loss_history"))
+        history = (
+            tune_result_or_history.get("score_history")
+            or tune_result_or_history.get("objective_history")
+            or tune_result_or_history.get("loss_history")
+        )
     if history is None:
         try:
             history = list(tune_result_or_history)
@@ -626,19 +741,31 @@ def objective_report(
             ax2.grid(True, linestyle="--", alpha=0.4)
     else:
         ax = axes[0, 0]
-        ax.text(0.5, 0.5,
-                "Objective history not found.\nPass TuneResult, dict with\n"
-                "'score_history' key, or list of scores.",
-                ha="center", va="center", transform=ax.transAxes, fontsize=10)
+        ax.text(
+            0.5,
+            0.5,
+            "Objective history not found.\nPass TuneResult, dict with\n"
+            "'score_history' key, or list of scores.",
+            ha="center",
+            va="center",
+            transform=ax.transAxes,
+            fontsize=10,
+        )
         ax.set_title("Objective report (proxy)")
 
-    fig.suptitle("Optimization objective — Evaluated as a structured simulation proxy under uncalibrated computational scaffold.",
-                 fontsize=9, style="italic", color="gray")
+    fig.suptitle(
+        "Optimization objective — Evaluated as a structured simulation proxy under uncalibrated computational scaffold.",
+        fontsize=9,
+        style="italic",
+        color="gray",
+    )
     fig.tight_layout()
     return fig
 
 
-def spectrolaminar_suite(signals: Signals | dict[str, Any], **kwargs: Any) -> matplotlib.figure.Figure:
+def spectrolaminar_suite(
+    signals: Signals | dict[str, Any], **kwargs: Any
+) -> matplotlib.figure.Figure:
     """Render the core Suite No. 2 readout panel in one figure.
 
     Parameters
@@ -691,11 +818,18 @@ def spectrolaminar_suite(signals: Signals | dict[str, Any], **kwargs: Any) -> ma
         lfp_arr = None
 
     if lfp_arr is not None and np.isfinite(np.sum(lfp_arr)):
-        im1 = axes[1].imshow(lfp_arr.T, aspect="auto", origin="upper", extent=[time_ms[0], time_ms[-1], lfp_arr.shape[1], 0])
+        im1 = axes[1].imshow(
+            lfp_arr.T,
+            aspect="auto",
+            origin="upper",
+            extent=[time_ms[0], time_ms[-1], lfp_arr.shape[1], 0],
+        )
         axes[1].set_title("LFP-proxy contacts")
         fig.colorbar(im1, ax=axes[1], fraction=0.046)
     else:
-        axes[1].text(0.5, 0.5, "LFP data unavailable", ha="center", va="center", transform=axes[1].transAxes)
+        axes[1].text(
+            0.5, 0.5, "LFP data unavailable", ha="center", va="center", transform=axes[1].transAxes
+        )
         axes[1].set_title("LFP-proxy contacts")
 
     try:
@@ -705,15 +839,28 @@ def spectrolaminar_suite(signals: Signals | dict[str, Any], **kwargs: Any) -> ma
 
     if csd_arr is not None and np.isfinite(np.sum(csd_arr)):
         vmax = float(np.nanmax(np.abs(csd_arr))) or 1.0
-        im2 = axes[2].imshow(csd_arr.T, aspect="auto", origin="upper", extent=[time_ms[0], time_ms[-1], csd_arr.shape[1], 0], vmin=-vmax, vmax=vmax)
+        im2 = axes[2].imshow(
+            csd_arr.T,
+            aspect="auto",
+            origin="upper",
+            extent=[time_ms[0], time_ms[-1], csd_arr.shape[1], 0],
+            vmin=-vmax,
+            vmax=vmax,
+        )
         axes[2].set_title("CSD-proxy contacts")
         fig.colorbar(im2, ax=axes[2], fraction=0.046)
     else:
-        axes[2].text(0.5, 0.5, "CSD data unavailable", ha="center", va="center", transform=axes[2].transAxes)
+        axes[2].text(
+            0.5, 0.5, "CSD data unavailable", ha="center", va="center", transform=axes[2].transAxes
+        )
         axes[2].set_title("CSD-proxy contacts")
 
     if lfp_arr is not None and np.isfinite(np.sum(lfp_arr)):
-        dt_ms = float(getattr(signals, "metadata", {}).get("dt_ms", 0.1)) if hasattr(signals, "metadata") else 0.1
+        dt_ms = (
+            float(getattr(signals, "metadata", {}).get("dt_ms", 0.1))
+            if hasattr(signals, "metadata")
+            else 0.1
+        )
         fs = 1000.0 / dt_ms
         nperseg = psd_nperseg if psd_nperseg is not None else min(512, lfp_arr.shape[0])
         freqs, pxx = signal.welch(lfp_arr, fs=fs, axis=0, nperseg=int(nperseg))
@@ -723,7 +870,9 @@ def spectrolaminar_suite(signals: Signals | dict[str, Any], **kwargs: Any) -> ma
         axes[3].set_xlabel("Frequency (Hz)")
         axes[3].set_xlim(freq_min_hz, freq_max_hz)
     else:
-        axes[3].text(0.5, 0.5, "PSD unavailable", ha="center", va="center", transform=axes[3].transAxes)
+        axes[3].text(
+            0.5, 0.5, "PSD unavailable", ha="center", va="center", transform=axes[3].transAxes
+        )
         axes[3].set_title("Mean PSD")
 
     try:
@@ -737,7 +886,9 @@ def spectrolaminar_suite(signals: Signals | dict[str, Any], **kwargs: Any) -> ma
             axes[4].plot(time_ms, eeg_y[:, ch] / scale + ch)
         axes[4].set_title("EEG-proxy")
     else:
-        axes[4].text(0.5, 0.5, "EEG proxy unavailable", ha="center", va="center", transform=axes[4].transAxes)
+        axes[4].text(
+            0.5, 0.5, "EEG proxy unavailable", ha="center", va="center", transform=axes[4].transAxes
+        )
         axes[4].set_title("EEG-proxy")
 
     spikes_mean = np.mean(spikes, axis=1)

@@ -2,6 +2,7 @@
 
 NumPy-isolated graphics for population spiking rasters.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -9,7 +10,7 @@ from typing import Any
 import jax
 import numpy as np
 
-from .core import FigureResult, prepare_static_plot_matrix, require_matplotlib
+from .core import FigureResult, prepare_static_plot_matrix, require_matplotlib, time_axis
 
 
 def plot_spike_rasters(spike_signals_tensor: jax.Array, config_params: dict) -> Any:
@@ -28,6 +29,12 @@ def plot_spike_rasters(spike_signals_tensor: jax.Array, config_params: dict) -> 
 
     neurons_axis = config_params.get("n_neurons_axis")
     if neurons_axis is None:
+        if static_spike_matrix.shape[0] == static_spike_matrix.shape[1]:
+            raise ValueError(
+                "plot_spike_rasters: square input "
+                f"{static_spike_matrix.shape} — neuron axis is ambiguous. "
+                "Pass config_params['n_neurons_axis']=0 or 1 explicitly (P7)."
+            )
         # Default: assume the smaller dimension is the neuron axis (more time
         # steps than neurons is the common case for a smoke/test run).
         neurons_axis = 0 if static_spike_matrix.shape[0] <= static_spike_matrix.shape[1] else 1
@@ -67,23 +74,23 @@ def raster(signals: Any, **kwargs: Any) -> Any:
     if spikes is None:
         raise ValueError("No spikes data found in signals.")
 
-    time_ms_raw = getattr(signals, "time_ms", None)
-    if time_ms_raw is None and isinstance(signals, dict):
-        time_ms_raw = signals.get("time_ms")
-
-    time_ms = prepare_static_plot_matrix(time_ms_raw)
-    if time_ms is None:
-        time_ms = np.arange(spikes.shape[0])
+    time_ms, xlabel = time_axis(signals, spikes.shape[0])
 
     t_idx, n_idx = np.where(spikes > 0)
 
     # Resolve neuron metadata
-    meta = getattr(signals, "metadata", {}) if not isinstance(signals, dict) else signals.get("metadata", {})
+    meta = (
+        getattr(signals, "metadata", {})
+        if not isinstance(signals, dict)
+        else signals.get("metadata", {})
+    )
     rows = meta.get("neuron_metadata") if isinstance(meta, dict) else None
     rows = [dict(row) for row in rows] if rows else []
 
     if sort_by == "z" and len(rows) == spikes.shape[1]:
-        order = np.argsort([float(row.get("z", row.get("neuron_id", i))) for i, row in enumerate(rows)])
+        order = np.argsort(
+            [float(row.get("z", row.get("neuron_id", i))) for i, row in enumerate(rows)]
+        )
         rank = np.empty_like(order)
         rank[order] = np.arange(order.shape[0])
         y_idx = rank[n_idx]
@@ -99,7 +106,7 @@ def raster(signals: Any, **kwargs: Any) -> Any:
     else:
         ax.scatter(time_ms[t_idx], y_idx, s=marker_size, marker="|")
     ax.set_title("Spike raster proxy sorted by depth" if sort_by == "z" else "Spike raster proxy")
-    ax.set_xlabel("Time (ms)")
+    ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.grid(True, linestyle="--", alpha=0.3)
     return fig

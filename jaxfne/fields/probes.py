@@ -4,6 +4,7 @@ This module implements simulated electrophysiological probe operators (EEG, MEG,
 under linear_solver boundaries. All signals are processed as proxies,
 and physical amplitude claims remain uncalibrated (amplitude_claim_allowed=False).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -30,8 +31,7 @@ def sample_phi_at_probe_depths(
         raise ValueError(f"phi_e must be 2D (T, C); got shape {phi_e.shape}")
     if field_z.shape[0] != phi_e.shape[1]:
         raise ValueError(
-            f"field_contact_depths length {field_z.shape[0]} "
-            f"!= phi_e channels {phi_e.shape[1]}"
+            f"field_contact_depths length {field_z.shape[0]} != phi_e channels {phi_e.shape[1]}"
         )
 
     def _interp_row(row: jax.Array) -> jax.Array:
@@ -56,6 +56,7 @@ class ProbeReadout:
     def to_dict(self) -> dict:
         """Return JSON-safe representation of readout and report."""
         from ..io import json_safe
+
         return {
             "name": self.name,
             "kind": self.kind,
@@ -116,7 +117,6 @@ def _make_probe_report(
     return report
 
 
-
 def create_probe(
     kind: str,
     data: jax.Array,
@@ -147,7 +147,8 @@ def create_probe(
 def spk_probe(spikes: jax.Array) -> ProbeReadout:
     """SPK probe operator: expose spike events or spike matrix."""
     return create_probe(
-        "spk", spikes,
+        "spk",
+        spikes,
         method="threshold_or_emitter_spike_array",
         units_or_status="binary_spike_indicator",
         input_representation="relative_spike_events",
@@ -158,23 +159,31 @@ def spk_probe(spikes: jax.Array) -> ProbeReadout:
 def vm_probe(voltage: jax.Array) -> ProbeReadout:
     """Vm probe operator: expose membrane voltage or native reduced-emitter state."""
     return create_probe(
-        "vm", voltage,
+        "vm",
+        voltage,
         method="emitter_state_voltage_trace",
         units_or_status="mV_or_native_model_voltage",
         input_representation="relative_vm_state",
-        assumptions=["voltage_from_emitter_native_state", "not_physical_membrane_voltage_unless_calibrated"],
+        assumptions=[
+            "voltage_from_emitter_native_state",
+            "not_physical_membrane_voltage_unless_calibrated",
+        ],
     )
 
 
 def source_probe(source: jax.Array) -> ProbeReadout:
     """Source probe operator: expose current/source proxy."""
     return create_probe(
-        "source", source,
+        "source",
+        source,
         method="declared_source_projection_or_proxy",
         units_or_status="native_current_units_or_proxy",
         input_representation="canonical_relative_source",
         source_decomposition="proxy_reduced_emitter",
-        assumptions=["source_from_emitter_native_state", "not_physical_membrane_current_unless_calibrated"],
+        assumptions=[
+            "source_from_emitter_native_state",
+            "not_physical_membrane_current_unless_calibrated",
+        ],
     )
 
 
@@ -183,7 +192,14 @@ def lfp_proxy_probe(
     contact_depths: jax.Array = None,
     field_contact_depths: jax.Array = None,
 ) -> ProbeReadout:
-    """LFP-proxy probe operator: sample extracellular potential-like state."""
+    """LFP-proxy probe operator: sample extracellular potential-like state.
+
+    Route note (P8): this CONSTRUCTS a probe readout from ``phi_e`` and
+    synthesizes ``linspace(0, 1)`` field contacts when depths are undeclared
+    — distinct from declared field access (which raises when probes were not
+    requested) and from visualization-only proxies (which never enter
+    ``Signals.field``). The three routes are not interchangeable.
+    """
     phi_e = jnp.asarray(phi_e)
     extra: dict[str, Any] = {}
     method = "point_or_finite_contact_phi_proxy"
@@ -405,7 +421,9 @@ def emm_proxy_probe(
     return ProbeReadout(name="emm_proxy", kind="emm_proxy", data=emm, report=report)
 
 
-def _leadfield_proxy_transform(source: jax.Array, leadfield: jax.Array, *, param_name: str) -> jax.Array:
+def _leadfield_proxy_transform(
+    source: jax.Array, leadfield: jax.Array, *, param_name: str
+) -> jax.Array:
     """Shared linear leadfield projection behind ``eeg_proxy_transform``/``meg_proxy_transform``.
 
     Both public functions are ``source @ leadfield.T`` with identical validation,
@@ -427,9 +445,7 @@ def _leadfield_proxy_transform(source: jax.Array, leadfield: jax.Array, *, param
     C, K_lead = leadfield.shape
 
     if K != K_lead:
-        raise ValueError(
-            f"{param_name} and leadfield K dimension mismatch: {K} vs {K_lead}"
-        )
+        raise ValueError(f"{param_name} and leadfield K dimension mismatch: {K} vs {K_lead}")
 
     return source @ leadfield.T
 

@@ -441,7 +441,12 @@ architecture simplification only with accumulated evidence.
    friction unmeasured except files-consulted proxy; results in
    `artifacts/perf/workflow_benchmark_results_050.md`; no optimization
    follows).
-9. Rank actual bottlenecks.
+9. Rank actual bottlenecks (DONE 2026-09-22: two-lane Rc/Rp(W) evidence matrix; Item 9 PASS).
+   Rc repair checkpoint (DONE 2026-09-22, pre-Item-10, Δsimulation=0: P1
+   non-vacuous sync check; P5 shared rate/band contracts + parity tests;
+   P2 rgba rate-alpha; P3/P7 honest time labels + square-axis refusal; P4
+   synthetic-geometry provenance; P8 route distinction; plot_depth_profile
+   backend divergence declared-STOP, not unified).
 10. Only then authorize the first optimization batch.
 
 ## Tracks (parallel after the baseline)

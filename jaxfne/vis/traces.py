@@ -3,6 +3,7 @@
 NumPy-isolated graphics for membrane potential (Vm), firing rate, source current,
 LFP-like, CSD-like, EEG-proxy, MEG-proxy, and EMM-proxy traces.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -10,7 +11,14 @@ from typing import Any
 import jax
 import numpy as np
 
-from .core import FigureResult, get_time_ms as _get_time_ms, prepare_static_plot_matrix, require_matplotlib
+from .core import (
+    FigureResult,
+    binned_population_rate_hz,
+    get_time_ms as _get_time_ms,
+    prepare_static_plot_matrix,
+    require_matplotlib,
+    time_axis,
+)
 
 
 def plot_continuous_traces(traces_tensor: jax.Array, config_params: dict) -> Any:
@@ -83,40 +91,54 @@ def vm_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
 
 
 def rate(signals: Any, **kwargs: Any) -> Any:
-    """Plot population firing rate."""
+    """Plot population firing rate.
+
+    Canonical numeric contract (P5): population mean rate in Hz via
+    :func:`jaxfne.vis.core.binned_population_rate_hz`
+    (``mean over units and steps in bin * (1000 / dt_ms)``, default
+    ``bin_ms=10.0``) — the same numbers as the Plotly renderer draws
+    ungrouped. The time label is honest about provenance (P3): ``"Time (ms)"``
+    only when the payload carries ``time_ms``.
+    """
     require_matplotlib()
     import matplotlib.pyplot as plt
 
     dt_ms = kwargs.pop("dt_ms", None)
+    bin_ms = float(kwargs.pop("bin_ms", 10.0))
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
 
     if hasattr(signals, "spikes"):
         spikes = prepare_static_plot_matrix(signals.spikes)
-        time_ms = _get_time_ms(signals, spikes.shape[0])
         if dt_ms is None:
             dt_ms = float(signals.metadata.get("dt_ms", 0.1))
+        t0, xlabel = _time_origin_and_label(signals, spikes.shape[0])
     elif isinstance(signals, dict) and "spikes" in signals:
         spikes = prepare_static_plot_matrix(signals["spikes"])
-        time_ms = prepare_static_plot_matrix(signals.get("time_ms"))
-        if time_ms is None:
-            time_ms = np.arange(spikes.shape[0])
         if dt_ms is None:
             meta = signals.get("metadata", {})
             dt_ms = float(meta.get("dt_ms", 0.1)) if isinstance(meta, dict) else 0.1
+        t0, xlabel = _time_origin_and_label(signals, spikes.shape[0])
     else:
         spikes = prepare_static_plot_matrix(signals)
-        time_ms = np.arange(spikes.shape[0])
         if dt_ms is None:
             dt_ms = 0.1
+        t0, xlabel = 0.0, "Time step index"
 
-    mean_rate = np.mean(spikes, axis=1) * (1000.0 / dt_ms)
-    ax.plot(time_ms, mean_rate, c="#f03e3e", lw=1.5)
+    centers_ms, rate_hz = binned_population_rate_hz(spikes, float(dt_ms), bin_ms)
+    ax.plot(centers_ms + t0, rate_hz, c="#f03e3e", lw=1.5)
     ax.set_title("Simulated Population Mean Rate Proxy", fontsize=12, fontweight="bold")
-    ax.set_xlabel("Time (ms)")
+    ax.set_xlabel(xlabel)
     ax.set_ylabel("Firing Rate (Hz)")
     ax.grid(True, linestyle="--", alpha=0.3)
     return fig
+
+
+def _time_origin_and_label(signals: Any, default_len: int) -> tuple[float, str]:
+    """First-sample offset and honest axis label for a signals payload."""
+    axis, label = time_axis(signals, default_len)
+    t0 = float(axis[0]) if len(axis) else 0.0
+    return t0, label
 
 
 def rate_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
@@ -191,8 +213,15 @@ def lfp(signals: Any, **kwargs: Any) -> Any:
         lfp_data = prepare_static_plot_matrix(signals)
         time_ms = np.arange(lfp_data.shape[0])
 
-    im = ax.imshow(lfp_data.T, cmap="viridis", aspect="auto", extent=[time_ms[0], time_ms[-1], lfp_data.shape[1], 0])
-    ax.set_title("Simulated Extracellular Potential (LFP-like) Heatmap", fontsize=12, fontweight="bold")
+    im = ax.imshow(
+        lfp_data.T,
+        cmap="viridis",
+        aspect="auto",
+        extent=[time_ms[0], time_ms[-1], lfp_data.shape[1], 0],
+    )
+    ax.set_title(
+        "Simulated Extracellular Potential (LFP-like) Heatmap", fontsize=12, fontweight="bold"
+    )
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel("Contact Index")
     fig.colorbar(im, ax=ax, label="Potential (proxy units)")
@@ -233,8 +262,17 @@ def csd(signals: Any, **kwargs: Any) -> Any:
     vmin = -csd_max if csd_max > 0 else -1.0
     vmax = csd_max if csd_max > 0 else 1.0
 
-    im = ax.imshow(csd_data.T, cmap="RdBu_r", aspect="auto", extent=[time_ms[0], time_ms[-1], csd_data.shape[1], 0], vmin=vmin, vmax=vmax)
-    ax.set_title("Simulated Current Source Density (CSD-like) Heatmap", fontsize=12, fontweight="bold")
+    im = ax.imshow(
+        csd_data.T,
+        cmap="RdBu_r",
+        aspect="auto",
+        extent=[time_ms[0], time_ms[-1], csd_data.shape[1], 0],
+        vmin=vmin,
+        vmax=vmax,
+    )
+    ax.set_title(
+        "Simulated Current Source Density (CSD-like) Heatmap", fontsize=12, fontweight="bold"
+    )
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel("Contact Index")
     fig.colorbar(im, ax=ax, label="CSD (proxy units)")
@@ -316,6 +354,13 @@ def csd_traces(signals: Any, **kwargs: Any) -> Any:
 
 
 def _linear_proxy_from_sources(signals: Any, *, n_channels: int, phase: float = 0.0) -> np.ndarray:
+    """Visualization-only cos-projection of sources (P8 route note).
+
+    Generates figure data from ``signals.sources``; it never enters
+    ``Signals.field`` and is NOT equivalent to a declared probe readout or a
+    constructed ``fields`` probe. EEG/MEG/EMM traces built on this are
+    synthetic display proxies (phase-selected), not measurements.
+    """
     src_raw = getattr(signals, "sources", None)
     if src_raw is None and isinstance(signals, dict):
         src_raw = signals.get("sources")
@@ -453,7 +498,11 @@ def summary(signals: Any, **kwargs: Any) -> Any:
         time_ms = np.arange(spikes.shape[0])
 
     if dt_ms is None:
-        meta = getattr(signals, "metadata", {}) if not isinstance(signals, dict) else signals.get("metadata", {})
+        meta = (
+            getattr(signals, "metadata", {})
+            if not isinstance(signals, dict)
+            else signals.get("metadata", {})
+        )
         dt_ms = float(meta.get("dt_ms", 0.1)) if isinstance(meta, dict) else 0.1
 
     t_idx, n_idx = np.where(spikes > 0)
@@ -476,7 +525,12 @@ def summary(signals: Any, **kwargs: Any) -> Any:
     lfp_data = prepare_static_plot_matrix(lfp_raw)
 
     if lfp_data is not None and np.all(np.isfinite(lfp_data)):
-        ax2.imshow(lfp_data.T, cmap="viridis", aspect="auto", extent=[time_ms[0], time_ms[-1], lfp_data.shape[1], 0])
+        ax2.imshow(
+            lfp_data.T,
+            cmap="viridis",
+            aspect="auto",
+            extent=[time_ms[0], time_ms[-1], lfp_data.shape[1], 0],
+        )
         ax2.set_title("LFP Heatmap")
     else:
         ax2.text(0.5, 0.5, "LFP field not available", ha="center")
@@ -544,7 +598,12 @@ def parameter_sweep_heatmap(
             if cell_labels is not None:
                 text += f"\n{cell_labels[i][j]}"
             ax.text(
-                j, i, text, ha="center", va="center", fontsize=8,
+                j,
+                i,
+                text,
+                ha="center",
+                va="center",
+                fontsize=8,
                 color="white" if grid[i, j] < grid_max * 0.6 else "black",
             )
 
@@ -670,16 +729,20 @@ def coupled_vs_uncoupled_ei(
     ax_spk_c, ax_vm_c = axes[0, 0], axes[0, 1]
     spike_times_e_c = t[spk_c[:, 0] > 0.5]
     spike_times_i_c = t[spk_c[:, 1] > 0.5]
-    ax_spk_c.scatter(spike_times_e_c, [0] * len(spike_times_e_c), color='blue', s=15, alpha=0.7, label='E')
-    ax_spk_c.scatter(spike_times_i_c, [1] * len(spike_times_i_c), color='red', s=15, alpha=0.7, label='I')
+    ax_spk_c.scatter(
+        spike_times_e_c, [0] * len(spike_times_e_c), color="blue", s=15, alpha=0.7, label="E"
+    )
+    ax_spk_c.scatter(
+        spike_times_i_c, [1] * len(spike_times_i_c), color="red", s=15, alpha=0.7, label="I"
+    )
     ax_spk_c.set_ylabel("Neuron (Coupled)")
     ax_spk_c.set_yticks([0, 1])
-    ax_spk_c.set_yticklabels(['E', 'I'])
+    ax_spk_c.set_yticklabels(["E", "I"])
     ax_spk_c.set_title("With coupling -- spikes")
     ax_spk_c.grid(True, alpha=0.3)
 
-    ax_vm_c.plot(t, v_c[:, 0], label='E', color='blue', linewidth=0.8)
-    ax_vm_c.plot(t, v_c[:, 1], label='I', color='red', linewidth=0.8)
+    ax_vm_c.plot(t, v_c[:, 0], label="E", color="blue", linewidth=0.8)
+    ax_vm_c.plot(t, v_c[:, 1], label="I", color="red", linewidth=0.8)
     ax_vm_c.set_ylabel("V_m (mV)")
     ax_vm_c.set_ylim(ylim)
     ax_vm_c.set_title("With coupling -- voltage")
@@ -689,17 +752,21 @@ def coupled_vs_uncoupled_ei(
     ax_spk_u, ax_vm_u = axes[1, 0], axes[1, 1]
     spike_times_e_u = t[spk_u[:, 0] > 0.5]
     spike_times_i_u = t[spk_u[:, 1] > 0.5]
-    ax_spk_u.scatter(spike_times_e_u, [0] * len(spike_times_e_u), color='blue', s=15, alpha=0.7, label='E')
-    ax_spk_u.scatter(spike_times_i_u, [1] * len(spike_times_i_u), color='red', s=15, alpha=0.7, label='I')
+    ax_spk_u.scatter(
+        spike_times_e_u, [0] * len(spike_times_e_u), color="blue", s=15, alpha=0.7, label="E"
+    )
+    ax_spk_u.scatter(
+        spike_times_i_u, [1] * len(spike_times_i_u), color="red", s=15, alpha=0.7, label="I"
+    )
     ax_spk_u.set_xlabel("Time (ms)")
     ax_spk_u.set_ylabel("Neuron (Uncoupled)")
     ax_spk_u.set_yticks([0, 1])
-    ax_spk_u.set_yticklabels(['E', 'I'])
+    ax_spk_u.set_yticklabels(["E", "I"])
     ax_spk_u.set_title("Without coupling -- spikes")
     ax_spk_u.grid(True, alpha=0.3)
 
-    ax_vm_u.plot(t, v_u[:, 0], label='E', color='blue', linewidth=0.8)
-    ax_vm_u.plot(t, v_u[:, 1], label='I', color='red', linewidth=0.8)
+    ax_vm_u.plot(t, v_u[:, 0], label="E", color="blue", linewidth=0.8)
+    ax_vm_u.plot(t, v_u[:, 1], label="I", color="red", linewidth=0.8)
     ax_vm_u.set_xlabel("Time (ms)")
     ax_vm_u.set_ylabel("V_m (mV)")
     ax_vm_u.set_ylim(ylim)
@@ -749,4 +816,3 @@ def parameter_sweep_lines(
     ax.grid(True, alpha=0.3)
     ax.set_title("Parameter sweep diagnostic")
     return fig
-

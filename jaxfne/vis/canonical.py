@@ -14,6 +14,7 @@ These are additive: the pre-existing matplotlib-only names (``vis.lfp``,
 figures unconditionally. Use the names here when you want one call site that
 can produce either backend's figure.
 """
+
 from __future__ import annotations
 
 from typing import Any, Optional, Sequence
@@ -64,7 +65,9 @@ def _apply_layout(
             try:
                 fig.update_traces(marker=dict(color=colors[0]) if len(colors) == 1 else None)
                 for i, trace in enumerate(fig.data):
-                    trace.update(marker_color=colors[i % len(colors)], line_color=colors[i % len(colors)])
+                    trace.update(
+                        marker_color=colors[i % len(colors)], line_color=colors[i % len(colors)]
+                    )
             except Exception:
                 pass
         return fig
@@ -116,12 +119,23 @@ def plot_network_3d(
     _check_backend(backend)
     if backend == "plotly":
         from .plotly.network import plot_network_3d as _impl
+
         fig = _impl(model, signals, **kwargs)
     else:
         from .network3d import geometry3d
+
         fig = geometry3d(signals if signals is not None else model, **kwargs)
-    return _apply_layout(fig, backend, title=title, xlabel=xlabel, ylabel=ylabel,
-                          legend=legend, colors=colors, width=width, height=height)
+    return _apply_layout(
+        fig,
+        backend,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        legend=legend,
+        colors=colors,
+        width=width,
+        height=height,
+    )
 
 
 def plot_raster(
@@ -150,12 +164,23 @@ def plot_raster(
     _check_backend(backend)
     if backend == "plotly":
         from .plotly.raster import plot_raster as _impl
+
         fig = _impl(signals, model, **kwargs)
     else:
         from .rasters import raster
+
         fig = raster(signals, **kwargs)
-    return _apply_layout(fig, backend, title=title, xlabel=xlabel, ylabel=ylabel,
-                          legend=legend, colors=colors, width=width, height=height)
+    return _apply_layout(
+        fig,
+        backend,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        legend=legend,
+        colors=colors,
+        width=width,
+        height=height,
+    )
 
 
 def plot_population_rate(
@@ -172,16 +197,34 @@ def plot_population_rate(
     height: Optional[int] = None,
     **kwargs,
 ) -> Any:
-    """Binned population firing rate, optionally split by group."""
+    """Binned population firing rate, optionally split by group.
+
+    Canonical numeric contract (P5): ungrouped (``model=None``) both backends
+    draw population mean Hz from
+    :func:`jaxfne.vis.core.binned_population_rate_hz` (``bin_ms=10.0``
+    default) — test numbers, not pixels. Grouped splitting
+    (``group_by``) is a Plotly presentation option only.
+    """
     _check_backend(backend)
     if backend == "plotly":
         from .plotly.raster import plot_population_rates as _impl
+
         fig = _impl(signals, model, **kwargs)
     else:
         from .traces import rate
+
         fig = rate(signals, **kwargs)
-    return _apply_layout(fig, backend, title=title, xlabel=xlabel, ylabel=ylabel,
-                          legend=legend, colors=colors, width=width, height=height)
+    return _apply_layout(
+        fig,
+        backend,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        legend=legend,
+        colors=colors,
+        width=width,
+        height=height,
+    )
 
 
 def plot_membrane_potentials(
@@ -202,12 +245,23 @@ def plot_membrane_potentials(
     _check_backend(backend)
     if backend == "plotly":
         from .plotly.raster import plot_membrane_potentials as _impl
+
         fig = _impl(signals, model, **kwargs)
     else:
         from .traces import vm
+
         fig = vm(signals, **kwargs)
-    return _apply_layout(fig, backend, title=title, xlabel=xlabel, ylabel=ylabel,
-                          legend=legend, colors=colors, width=width, height=height)
+    return _apply_layout(
+        fig,
+        backend,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        legend=legend,
+        colors=colors,
+        width=width,
+        height=height,
+    )
 
 
 def plot_lfp(
@@ -227,12 +281,23 @@ def plot_lfp(
     _check_backend(backend)
     if backend == "plotly":
         from .plotly.lfp import plot_lfp as _impl
+
         fig = _impl(signals, **kwargs)
     else:
         from .traces import lfp
+
         fig = lfp(signals, **kwargs)
-    return _apply_layout(fig, backend, title=title, xlabel=xlabel, ylabel=ylabel,
-                          legend=legend, colors=colors, width=width, height=height)
+    return _apply_layout(
+        fig,
+        backend,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        legend=legend,
+        colors=colors,
+        width=width,
+        height=height,
+    )
 
 
 def plot_csd(
@@ -252,12 +317,23 @@ def plot_csd(
     _check_backend(backend)
     if backend == "plotly":
         from .plotly.csd import plot_csd as _impl
+
         fig = _impl(signals, **kwargs)
     else:
         from .traces import csd
+
         fig = csd(signals, **kwargs)
-    return _apply_layout(fig, backend, title=title, xlabel=xlabel, ylabel=ylabel,
-                          legend=legend, colors=colors, width=width, height=height)
+    return _apply_layout(
+        fig,
+        backend,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        legend=legend,
+        colors=colors,
+        width=width,
+        height=height,
+    )
 
 
 def plot_psd(
@@ -277,12 +353,23 @@ def plot_psd(
     _check_backend(backend)
     if backend == "plotly":
         from .plotly.spectra import plot_psd as _impl
+
         fig = _impl(signals, **kwargs)
     else:
         from .spectra import psd
+
         fig = psd(signals, **kwargs)
-    return _apply_layout(fig, backend, title=title, xlabel=xlabel, ylabel=ylabel,
-                          legend=legend, colors=colors, width=width, height=height)
+    return _apply_layout(
+        fig,
+        backend,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        legend=legend,
+        colors=colors,
+        width=width,
+        height=height,
+    )
 
 
 def plot_spectrogram(
@@ -302,12 +389,23 @@ def plot_spectrogram(
     _check_backend(backend)
     if backend == "plotly":
         from .plotly.spectra import plot_spectrogram as _impl
+
         fig = _impl(signals, **kwargs)
     else:
         from .spectra import spectrogram
+
         fig = spectrogram(signals, **kwargs)
-    return _apply_layout(fig, backend, title=title, xlabel=xlabel, ylabel=ylabel,
-                          legend=legend, colors=colors, width=width, height=height)
+    return _apply_layout(
+        fig,
+        backend,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        legend=legend,
+        colors=colors,
+        width=width,
+        height=height,
+    )
 
 
 def plot_band_power(
@@ -315,24 +413,40 @@ def plot_band_power(
     *,
     backend: str = "plotly",
     title: Optional[str] = None,
-    xlabel: Optional[str] = "Depth (contact index)",
-    ylabel: Optional[str] = "Relative band power",
+    xlabel: Optional[str] = "Depth (mm / contact order)",
+    ylabel: Optional[str] = "Mean in-band power (proxy a.u.)",
     legend: bool = True,
     colors: Optional[Sequence[str]] = None,
     width: Optional[int] = None,
     height: Optional[int] = None,
     **kwargs,
 ) -> Any:
-    """Relative band power vs depth."""
+    """Absolute mean in-band power vs depth (P5 canonical contract).
+
+    Both backends draw the same numbers: Welch PSD (``nperseg=256``) averaged
+    over in-band freqs, absolute proxy units per contact. Not normalized
+    across depths.
+    """
     _check_backend(backend)
     if backend == "plotly":
         from .plotly.spectra import plot_band_power as _impl
+
         fig = _impl(signals, **kwargs)
     else:
         from .fields import bandpower
+
         fig = bandpower(signals, **kwargs)
-    return _apply_layout(fig, backend, title=title, xlabel=xlabel, ylabel=ylabel,
-                          legend=legend, colors=colors, width=width, height=height)
+    return _apply_layout(
+        fig,
+        backend,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        legend=legend,
+        colors=colors,
+        width=width,
+        height=height,
+    )
 
 
 def plot_depth_profile(
@@ -348,16 +462,35 @@ def plot_depth_profile(
     height: Optional[int] = None,
     **kwargs,
 ) -> Any:
-    """Single-band relative power vs laminar depth (spectrolaminar-style readout)."""
+    """Single-band power vs laminar depth — BACKENDS DIFFER (declared, P8).
+
+    STOP: no unifying authority exists. ``backend="plotly"`` draws the
+    peak-normalized spectral readout
+    (:func:`jaxfne.vis.plotly.spectra.plot_depth_profile`); ``"matplotlib"``
+    draws the neuron-count histogram (:func:`jaxfne.vis.fields.laminar_profile`).
+    Different physical quantities under one name; do not compare across
+    backends until a semantic choice is authorized.
+    """
     _check_backend(backend)
     if backend == "plotly":
         from .plotly.spectra import plot_depth_profile as _impl
+
         fig = _impl(signals, **kwargs)
     else:
         from .fields import laminar_profile
+
         fig = laminar_profile(signals, **kwargs)
-    return _apply_layout(fig, backend, title=title, xlabel=xlabel, ylabel=ylabel,
-                          legend=legend, colors=colors, width=width, height=height)
+    return _apply_layout(
+        fig,
+        backend,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        legend=legend,
+        colors=colors,
+        width=width,
+        height=height,
+    )
 
 
 def plot_connectivity(
@@ -377,12 +510,23 @@ def plot_connectivity(
     _check_backend(backend)
     if backend == "plotly":
         from .plotly.connectivity import plot_connectivity as _impl
+
         fig = _impl(model, **kwargs)
     else:
         from .fields import connectivity_matrix
+
         fig = connectivity_matrix(model, **kwargs)
-    return _apply_layout(fig, backend, title=title, xlabel=xlabel, ylabel=ylabel,
-                          legend=legend, colors=colors, width=width, height=height)
+    return _apply_layout(
+        fig,
+        backend,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        legend=legend,
+        colors=colors,
+        width=width,
+        height=height,
+    )
 
 
 def plot_objective_history(
@@ -402,12 +546,23 @@ def plot_objective_history(
     _check_backend(backend)
     if backend == "plotly":
         from .plotly.metrics import plot_objective_history as _impl
+
         fig = _impl(tune_result, **kwargs)
     else:
         from .fields import objective_report
+
         fig = objective_report(tune_result, **kwargs)
-    return _apply_layout(fig, backend, title=title, xlabel=xlabel, ylabel=ylabel,
-                          legend=legend, colors=colors, width=width, height=height)
+    return _apply_layout(
+        fig,
+        backend,
+        title=title,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        legend=legend,
+        colors=colors,
+        width=width,
+        height=height,
+    )
 
 
 __all__ = [

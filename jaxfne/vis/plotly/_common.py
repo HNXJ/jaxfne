@@ -1,4 +1,5 @@
 """Shared helpers for the Plotly visualization pipeline. Not public API."""
+
 from __future__ import annotations
 
 
@@ -36,7 +37,14 @@ def neuron_table_arrays(model) -> dict[str, np.ndarray]:
 
 
 def field_proxy(signals, key: str) -> np.ndarray:
-    """Fetch a laminar field proxy array by short name ('lfp', 'csd', 'phi_e', 'source')."""
+    """Fetch a laminar field proxy array by short name ('lfp', 'csd', 'phi_e', 'source').
+
+    Route note (P8): DECLARED field access — raises when ``signals.field``
+    is None (probes were not requested before ``compute_fields``). Unlike
+    constructed probes (which synthesize missing contacts) or
+    visualization-only proxies (which never enter ``Signals.field``), this
+    path never invents data.
+    """
     if signals.field is None:
         raise ValueError("signals.field is None — probes(['LFP','CSD',...]) was not requested")
     attr = {
@@ -63,19 +71,17 @@ def dt_ms(signals) -> float:
     return float(t[1] - t[0]) if t.shape[0] > 1 else 1.0
 
 
-def population_rate_hz(spikes: np.ndarray, dt_s_ms: float, bin_ms: float = 10.0) -> tuple[np.ndarray, np.ndarray]:
-    """Binned population mean firing rate (Hz). spikes: (n_steps, N)."""
-    n_steps = spikes.shape[0]
-    bin_steps = max(1, int(round(bin_ms / dt_s_ms)))
-    n_bins = n_steps // bin_steps
-    if n_bins == 0:
-        return np.array([0.0]), np.array([float(spikes.mean()) * (1000.0 / dt_s_ms)])
-    trimmed = spikes[: n_bins * bin_steps]
-    per_bin = trimmed.reshape(n_bins, bin_steps, -1).sum(axis=(1, 2))
-    n_units = spikes.shape[1]
-    rate_hz = per_bin / (n_units * bin_steps * dt_s_ms / 1000.0)
-    centers_ms = (np.arange(n_bins) + 0.5) * bin_steps * dt_s_ms
-    return centers_ms, rate_hz
+def population_rate_hz(
+    spikes: np.ndarray, dt_s_ms: float, bin_ms: float = 10.0
+) -> tuple[np.ndarray, np.ndarray]:
+    """Binned population mean firing rate (Hz). spikes: (n_steps, N).
+
+    Thin alias of :func:`jaxfne.vis.core.binned_population_rate_hz` — the
+    P5 canonical numeric contract shared with the matplotlib renderer.
+    """
+    from ..core import binned_population_rate_hz as _contract
+
+    return _contract(spikes, dt_s_ms, bin_ms)
 
 
 def color_for_cell_types(cell_types: np.ndarray) -> list[str]:

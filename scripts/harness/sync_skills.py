@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 """Harness v2.1 skill synchronization: canonical artifacts/skills/ -> generated client mirrors.
 
---check             verify every mirror file is byte-identical to canonical (and manifest, if present)
+--check             verify canonical skills match the manifest (and any
+                    configured mirrors are byte-identical)
 --update            regenerate mirrors from canonical artifacts/skills/
 --update --manifest also refresh mirror/canonical hashes in the project HARNESS_MANIFEST.json
 Exit codes: 0 ok, 1 drift/missing.
+
+NOTE: mirrors are tool-local outside the repository, so MIRRORS is empty
+and no mirror bytes are checked here. --check is non-vacuous via the
+canonical-vs-manifest comparison below; it must fail on deliberate drift.
 """
+
 import argparse
 import hashlib
 import json
@@ -37,17 +43,31 @@ def check() -> int:
     # Mirrors in .opencode/ and .cursor/ are now tool-local, gitignored, and not required for harness integrity.
     # If the mirror parent directory is gitignored, skip the check (tool will regenerate outside repo if needed).
     import subprocess
+
     def is_ignored(p: Path) -> bool:
         try:
             subprocess.check_output(["git", "check-ignore", "-q", str(p)], cwd=ROOT)
             return True
         except subprocess.CalledProcessError:
             return False
+
     manifest_hashes = {}
+    canonical_hashes = {}
     if MANIFEST.exists():
         m = json.loads(MANIFEST.read_text())
         manifest_hashes = m.get("components", {}).get("mirrors", {})
+        canonical_hashes = m.get("components", {}).get("canonical_skills", {})
     failures = []
+    # Non-vacuous core: every canonical skill must match the manifest record.
+    # (Mirror bytes are tool-local and unmanaged; the loop below checks zero
+    # mirrors by design and must never be the sole basis for success.)
+    if MANIFEST.exists():
+        for name, cp in canon.items():
+            want = canonical_hashes.get(name)
+            if want is None:
+                failures.append(f"MANIFEST-MISSING canonical_skills/{name}")
+            elif sha(cp) != want:
+                failures.append(f"CANONICAL-MISMATCH canonical_skills/{name}")
     for mirror in MIRRORS:
         if is_ignored(mirror):
             continue
@@ -65,7 +85,10 @@ def check() -> int:
         for f in failures:
             print("FAIL:", f)
         return 1
-    print(f"sync OK: {len(canon)} skills x {len(MIRRORS)} mirrors identical (ignored mirrors skipped)")
+    print(
+        f"sync OK: {len(canon)} canonical skills match manifest; "
+        f"{len(MIRRORS)} mirrors (tool-local, unmanaged, unchecked)"
+    )
     return 0
 
 
@@ -96,7 +119,10 @@ def update(refresh_manifest: bool) -> int:
             comp["project_agents"]["sha256"] = sha(ROOT / "artifacts" / "AGENTS.md")
         if "harness_scripts" in comp:
             comp["harness_scripts"] = {
-                name: {"file": f"scripts/harness/{name}.py", "sha256": sha(ROOT / "scripts" / "harness" / f"{name}.py")}
+                name: {
+                    "file": f"scripts/harness/{name}.py",
+                    "sha256": sha(ROOT / "scripts" / "harness" / f"{name}.py"),
+                }
                 for name in comp["harness_scripts"]
             }
         m["generated_at"] = __import__("datetime").datetime.now().isoformat(timespec="seconds")

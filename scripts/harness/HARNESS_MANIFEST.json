@@ -3,7 +3,7 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-09-21T12:20:30",
+  "generated_at": "2026-09-22T14:28:59",
   "components": {
     "project_agents": {
       "file": "artifacts/AGENTS.md",
@@ -30,7 +30,7 @@
     "harness_scripts": {
       "sync_skills": {
         "file": "scripts/harness/sync_skills.py",
-        "sha256": "a7b521602cb7763448be8ca34c001b5021ed9c3a913dd03ff0cff444d7275863"
+        "sha256": "5059a97828ed416667f3f38e15e0c563fe6c0cac21b99a9b7ddab9609cfcb59c"
       },
       "check_harness_integrity": {
         "file": "scripts/harness/check_harness_integrity.py",
