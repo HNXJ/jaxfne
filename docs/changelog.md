@@ -9,6 +9,35 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+## v0.5.0 (candidate)
+
+Measured 0.5.x baseline plus integration/harness foundation and one verified
+reporting-path optimization; simulation semantics preserved.
+
+### Measurement
+
+- Frozen v0.4.25 performance baseline (construct/compile/warm/record phases
+  across 1n, HDP-10n, sparse-100n, column-1000n regimes) with phase profile,
+  memory deltas, test/gate runtime profile, and agent-workflow benchmark.
+
+### Integration
+
+- Canonical question→TFNE→JDNA→simulation→verification agent workflow skill
+  routing the existing lifecycle skills; TFNE→JDNA→Model route audit;
+  non-vacuous harness skill-sync check.
+- Visualization semantic-integrity improvements: backend-independent numerical
+  contracts for population rate and band power with parity tests, honest
+  time-axis labels, synthetic-geometry provenance, per-point activity
+  encoding in 3D views, and declared field/proxy route separation.
+
+### Performance
+
+- Conservation-proxy diagnostics computed on host arrays (verified
+  reporting-path optimization): cold manifest on new shapes falls from
+  hundreds of milliseconds to milliseconds with per-shape XLA recompilation
+  eliminated; trajectories and diagnostics values preserved within the
+  adjudicated cross-implementation tolerance.
+
 ## v0.4.25 (2026-09-20)
 
 Terminal `0.4.x` release: TFNE-algebra + visualization sweep on unchanged

@@ -75,6 +75,8 @@ from ._signals import (
     _normalize_manifest_readout,
     _default_basis_dict,
 )
+
+
 @dataclass(frozen=True)
 class MatrixParameterSpec:
     """Declarative specification for a tunable weight matrix parameter.
@@ -149,7 +151,9 @@ def matrix_parameter(
     >>> spec = jtfne.matrix_parameter(mask="E_to_E", bounds=(0.1, 5.0))
     >>> g_spec = jtfne.matrix_parameter(mask="all", bounds=(0.1, 5.0), target="G0")
     """
-    return MatrixParameterSpec(mask=mask, bounds=bounds, init=init, trainable=trainable, target=target)
+    return MatrixParameterSpec(
+        mask=mask, bounds=bounds, init=init, trainable=trainable, target=target
+    )
 
 
 @dataclass(frozen=True)
@@ -178,9 +182,7 @@ class EdgeParameterSpec:
                 if isinstance(value, Mapping):
                     value = SelectorSpec(**dict(value))
                 else:
-                    raise TypeError(
-                        f"EdgeParameterSpec.{name} must be a SelectorSpec or mapping"
-                    )
+                    raise TypeError(f"EdgeParameterSpec.{name} must be a SelectorSpec or mapping")
                 object.__setattr__(self, name, value)
         for name in ("receptor_indices", "edge_indices"):
             value = getattr(self, name)
@@ -193,7 +195,12 @@ class EdgeParameterSpec:
                 f"(lower, upper), got {self.bounds!r}"
             )
         object.__setattr__(self, "bounds", (lo, hi))
-        if self.pre is None and self.post is None and self.receptor_indices is None and self.edge_indices is None:
+        if (
+            self.pre is None
+            and self.post is None
+            and self.receptor_indices is None
+            and self.edge_indices is None
+        ):
             raise ValueError(
                 "EdgeParameterSpec requires a pre/post selector, receptor_indices, "
                 "or explicit edge_indices"
@@ -208,9 +215,7 @@ class EdgeParameterSpec:
             "receptor_indices": list(self.receptor_indices)
             if self.receptor_indices is not None
             else None,
-            "edge_indices": list(self.edge_indices)
-            if self.edge_indices is not None
-            else None,
+            "edge_indices": list(self.edge_indices) if self.edge_indices is not None else None,
             "bounds": list(self.bounds),
             "init": self.init,
             "trainable": self.trainable,
@@ -270,12 +275,14 @@ class TuneResult:
     def to_dict(self) -> dict[str, Any]:
         """Convert to JSON-safe dictionary for serialization."""
 
-        return json_safe({
-            "best_parameters": self.best_parameters,
-            "best_score": self.best_score,
-            "history": self.history,
-            "summary": self.summary,
-        })
+        return json_safe(
+            {
+                "best_parameters": self.best_parameters,
+                "best_score": self.best_score,
+                "history": self.history,
+                "summary": self.summary,
+            }
+        )
 
     def __iter__(self):
         """Support legacy tuple unpacking: ``model, report = tune(...)``.
@@ -293,7 +300,7 @@ class TuneResult:
         yield self.summary
 
 
-_JAXFNE_VERSION = "0.4.25"
+_JAXFNE_VERSION = "0.5.0"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 
@@ -331,9 +338,7 @@ _SOURCE_PROXY_METADATA: dict[str, Any] = {
     },
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
     "physical_amplitude_calibrated": False,
-    "double_count_synaptic_current_guard": (
-        "single_proxy_expression_no_extra_synaptic_source"
-    ),
+    "double_count_synaptic_current_guard": ("single_proxy_expression_no_extra_synaptic_source"),
     "double_count_evidence": {
         "status": "helper_backed",
         "composition": "source_scale * (current_native + spike_gain * spikes)",
@@ -343,14 +348,16 @@ _SOURCE_PROXY_METADATA: dict[str, Any] = {
     },
 }
 
-_KNOWN_READOUT_METRICS = frozenset({
-    "spike_rate_hz",
-    "spike_count",
-    "mean_V_m",
-    "csd_abs_mean",
-    "lfp_abs_mean",
-    "source_abs_mean",
-})
+_KNOWN_READOUT_METRICS = frozenset(
+    {
+        "spike_rate_hz",
+        "spike_count",
+        "mean_V_m",
+        "csd_abs_mean",
+        "lfp_abs_mean",
+        "source_abs_mean",
+    }
+)
 
 
 def stimulus_schedule(
@@ -399,6 +406,8 @@ def stimulus_schedule(
         events=tuple(ev_dicts),
         n_neurons=int(n_neurons),
     )
+
+
 # --- Method implementations, split out (Phase 2 defragmentation, 2026-07-20)
 # into sibling modules -- must be imported after the shared constants/classes
 # above, since each submodule does `from ._model import ...` at ITS OWN
@@ -502,20 +511,23 @@ class Model:
     def summary(self) -> dict[str, Any]:
         """Return compact JSON-safe model metadata for notebook display."""
         emitter = self._require_izhikevich_emitter("summary")
-        return json_safe({
-            "config_hash": config_hash(self.cfg),
-            "n_units": int(emitter.v0.shape[0]),
-            "n_contacts": int(self.static.get("n_contacts", 16)),
-            "claim_level": self.cfg.metadata.get("claim_level", "computational_scaffold"),
-            "source_calibration_status": self.cfg.metadata.get(
-                "source_calibration_status", "uncalibrated_izhikevich_native_current"
-            ),
-            "field_solver_status": self.cfg.metadata.get("field_solver_status", "linear_solver"),
-            "field_claim_level": "proxy_readout",
-            "physical_amplitude_calibrated": False,
-            "connectivity": self.connectivity_summary(),
-        })
-
+        return json_safe(
+            {
+                "config_hash": config_hash(self.cfg),
+                "n_units": int(emitter.v0.shape[0]),
+                "n_contacts": int(self.static.get("n_contacts", 16)),
+                "claim_level": self.cfg.metadata.get("claim_level", "computational_scaffold"),
+                "source_calibration_status": self.cfg.metadata.get(
+                    "source_calibration_status", "uncalibrated_izhikevich_native_current"
+                ),
+                "field_solver_status": self.cfg.metadata.get(
+                    "field_solver_status", "linear_solver"
+                ),
+                "field_claim_level": "proxy_readout",
+                "physical_amplitude_calibrated": False,
+                "connectivity": self.connectivity_summary(),
+            }
+        )
 
     _CONNECTIVITY_EXACT_STATS_MAX_EDGES = 5_000_000
 
@@ -537,8 +549,11 @@ class Model:
         edge_list = self.params.get("edge_list")
         n_edges = int(edge_list.n_edges) if edge_list is not None else 0
         rules = [
-            {"name": r.get("name"), "status": r.get("status"),
-             "compiled_n_edges": r.get("compiled_n_edges")}
+            {
+                "name": r.get("name"),
+                "status": r.get("status"),
+                "compiled_n_edges": r.get("compiled_n_edges"),
+            }
             for r in (self.cfg.metadata.get("circuit", {}) or {}).get("connections", [])
         ]
         rule_edges = sum(int(r["compiled_n_edges"] or 0) for r in rules)
@@ -550,7 +565,8 @@ class Model:
             "baseline_edges": n_edges - rule_edges,
             "rule_edges": rule_edges,
             "rules": rules,
-            "baseline_suppressed": (self.cfg.metadata.get("connectivity") or {}).get("p_connect") == 0.0,
+            "baseline_suppressed": (self.cfg.metadata.get("connectivity") or {}).get("p_connect")
+            == 0.0,
         }
         # Exact duplicate/degree statistics are O(E log E); skip them rather than
         # making an inspection helper the most expensive call in a large session.
@@ -558,16 +574,17 @@ class Model:
             pre = _np.asarray(edge_list.pre).astype(_np.int64)
             post = _np.asarray(edge_list.post).astype(_np.int64)
             unique_pairs = int(_np.unique(pre * (int(post.max()) + 1) + post).size)
-            out.update({
-                "unique_pre_post_pairs": unique_pairs,
-                "parallel_edges": n_edges - unique_pairs,
-                "realized_max_in_degree": int(_np.bincount(post).max()),
-                "exact_stats": True,
-            })
+            out.update(
+                {
+                    "unique_pre_post_pairs": unique_pairs,
+                    "parallel_edges": n_edges - unique_pairs,
+                    "realized_max_in_degree": int(_np.bincount(post).max()),
+                    "exact_stats": True,
+                }
+            )
         else:
             out["exact_stats"] = False
         return json_safe(out)
-
 
     def neuron_table(self) -> list[dict[str, Any]]:
         """Return declared neuron metadata rows for area/layer/cell-type grouping."""
@@ -584,13 +601,15 @@ class Model:
                 z_value = float(positions[idx, 2]) if positions is not None else None
             except Exception:
                 z_value = None
-            rows_out.append({
-                "neuron_id": int(idx),
-                "area": "network",
-                "layer": str(layers[idx]),
-                "cell_type": str(label),
-                "z": z_value,
-            })
+            rows_out.append(
+                {
+                    "neuron_id": int(idx),
+                    "area": "network",
+                    "layer": str(layers[idx]),
+                    "cell_type": str(label),
+                    "z": z_value,
+                }
+            )
         return rows_out
 
     def edge_table(self) -> list[dict[str, Any]]:
@@ -631,6 +650,7 @@ class Model:
         # Fallback to standard receptor specs if mapping is standard 0..3
         if not receptor_name_map:
             from .emitters import standard_receptor_specs
+
             specs = standard_receptor_specs()
             for s in specs.values():
                 receptor_name_map[int(s.receptor_index)] = s.name
@@ -667,22 +687,24 @@ class Model:
             post_n = neuron_lookup.get(post_id, {})
             rec_type = receptor_name_map.get(rec_idx)
 
-            rows_out.append({
-                "edge_id": edge_id,
-                "pre": pre_id,
-                "post": post_id,
-                "weight": w,
-                "receptor_index": rec_idx,
-                "receptor_type": rec_type,
-                "tau_ms": tau,
-                "delay_steps": delay,
-                "pre_area": pre_n.get("area"),
-                "pre_layer": pre_n.get("layer"),
-                "pre_cell_type": pre_n.get("cell_type"),
-                "post_area": post_n.get("area"),
-                "post_layer": post_n.get("layer"),
-                "post_cell_type": post_n.get("cell_type"),
-            })
+            rows_out.append(
+                {
+                    "edge_id": edge_id,
+                    "pre": pre_id,
+                    "post": post_id,
+                    "weight": w,
+                    "receptor_index": rec_idx,
+                    "receptor_type": rec_type,
+                    "tau_ms": tau,
+                    "delay_steps": delay,
+                    "pre_area": pre_n.get("area"),
+                    "pre_layer": pre_n.get("layer"),
+                    "pre_cell_type": pre_n.get("cell_type"),
+                    "post_area": post_n.get("area"),
+                    "post_layer": post_n.get("layer"),
+                    "post_cell_type": post_n.get("cell_type"),
+                }
+            )
         return rows_out
 
     def dense_recurrent_weights(self) -> jax.Array:
@@ -730,20 +752,26 @@ class Model:
         positions = self.params["positions"]
         _np.savez(
             p.with_suffix(".npz"),
-            **{f"emitter_{f}": _np.asarray(getattr(emitter, f))
-               for f in ("a", "b", "c", "d", "drive", "sign", "W", "v0", "u0", "source_scale")},
+            **{
+                f"emitter_{f}": _np.asarray(getattr(emitter, f))
+                for f in ("a", "b", "c", "d", "drive", "sign", "W", "v0", "u0", "source_scale")
+            },
             # delay_steps is dynamics-consuming on the edge_list backend (perturbing
             # it moves V_m by ~92 mV), and omitting it silently restored every model
             # with zero delays. Every array field of EdgeList must be persisted.
-            **{f"edge_{f}": _np.asarray(getattr(edge_list, f))
-               for f in ("pre", "post", "weight", "receptor_index", "tau_ms", "delay_steps")},
+            **{
+                f"edge_{f}": _np.asarray(getattr(edge_list, f))
+                for f in ("pre", "post", "weight", "receptor_index", "tau_ms", "delay_steps")
+            },
             positions=_np.asarray(positions),
         )
         _placeholder_w = is_placeholder_dense_W(emitter.W, emitter.n_neurons)
         meta = {
             "schema": "model_checkpoint_v2",
             "emitter_labels": list(emitter.labels),
-            "emitter_layer_labels": list(emitter.layer_labels) if emitter.layer_labels is not None else None,
+            "emitter_layer_labels": list(emitter.layer_labels)
+            if emitter.layer_labels is not None
+            else None,
             "emitter_source_calibration_status": emitter.source_calibration_status,
             "edge_source_calibration_status": edge_list.source_calibration_status,
             "topology_authoritative": "edge_list" if _placeholder_w else "emitter_W",
@@ -799,17 +827,28 @@ class Model:
             )
         with _np.load(p.with_suffix(".npz")) as z:
             emitter = IzhikevichParams(
-                a=jnp.array(z["emitter_a"]), b=jnp.array(z["emitter_b"]), c=jnp.array(z["emitter_c"]),
-                d=jnp.array(z["emitter_d"]), drive=jnp.array(z["emitter_drive"]), sign=jnp.array(z["emitter_sign"]),
-                W=jnp.array(z["emitter_W"]), v0=jnp.array(z["emitter_v0"]), u0=jnp.array(z["emitter_u0"]),
+                a=jnp.array(z["emitter_a"]),
+                b=jnp.array(z["emitter_b"]),
+                c=jnp.array(z["emitter_c"]),
+                d=jnp.array(z["emitter_d"]),
+                drive=jnp.array(z["emitter_drive"]),
+                sign=jnp.array(z["emitter_sign"]),
+                W=jnp.array(z["emitter_W"]),
+                v0=jnp.array(z["emitter_v0"]),
+                u0=jnp.array(z["emitter_u0"]),
                 source_scale=jnp.array(z["emitter_source_scale"]),
                 labels=tuple(meta["emitter_labels"]),
-                layer_labels=tuple(meta["emitter_layer_labels"]) if meta["emitter_layer_labels"] is not None else None,
+                layer_labels=tuple(meta["emitter_layer_labels"])
+                if meta["emitter_layer_labels"] is not None
+                else None,
                 source_calibration_status=meta["emitter_source_calibration_status"],
             )
             edge_list = EdgeList(
-                pre=jnp.array(z["edge_pre"]), post=jnp.array(z["edge_post"]), weight=jnp.array(z["edge_weight"]),
-                receptor_index=jnp.array(z["edge_receptor_index"]), tau_ms=jnp.array(z["edge_tau_ms"]),
+                pre=jnp.array(z["edge_pre"]),
+                post=jnp.array(z["edge_post"]),
+                weight=jnp.array(z["edge_weight"]),
+                receptor_index=jnp.array(z["edge_receptor_index"]),
+                tau_ms=jnp.array(z["edge_tau_ms"]),
                 delay_steps=_restored_delay_steps(z),
                 source_calibration_status=meta["edge_source_calibration_status"],
                 tau_storage=meta.get("edge_tau_storage", "per_edge"),
@@ -884,7 +923,6 @@ class Model:
         )
         return spec.resolve(self.neuron_table(), allow_empty=allow_empty)
 
-
     def _simulate_arrays(self, *args, **kwargs):
         return _simulate_arrays_impl(self, *args, **kwargs)
 
@@ -952,7 +990,6 @@ class Model:
         return _manifest_impl(self, *args, **kwargs)
 
 
-
 def _mean_pairwise_corr_proxy(spikes: jax.Array) -> jax.Array:
     x = spikes.astype(jnp.float32)
     x = x - jnp.mean(x, axis=0, keepdims=True)
@@ -985,11 +1022,14 @@ def with_emitter_parameters(
     Explicit None checks used — zero-valued JAX arrays handled correctly.
     """
     return model.with_emitter_parameters(
-        a=a, b=b, c=c, d=d, drive_scale=drive_scale,
+        a=a,
+        b=b,
+        c=c,
+        d=d,
+        drive_scale=drive_scale,
         a_per_neuron=a_per_neuron,
         b_per_neuron=b_per_neuron,
         c_per_neuron=c_per_neuron,
         d_per_neuron=d_per_neuron,
         drive_per_neuron=drive_per_neuron,
     )
-
