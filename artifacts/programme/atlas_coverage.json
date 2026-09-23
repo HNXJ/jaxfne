@@ -1,0 +1,83 @@
+{
+  "schema": "jaxfne.atlas_coverage.v1",
+  "source": "artifacts/project_sources/8_atlas.md",
+  "created": "2026-09-23",
+  "states": {
+    "PLANNED": "requirement recorded; no capability or evidence yet",
+    "SUPPORTED": "engine capability implemented and tested",
+    "VALIDATED": "this requirement's own evidence produced and passing",
+    "CANONICAL": "frozen in a manifest",
+    "OUT_OF_SCOPE": "excluded by the human, with reason"
+  },
+  "fields": {
+    "id": "AT-0n-R<k>; AT-00 = cross-cutting",
+    "sim": "S<n> in 8_atlas.md == AT-0n",
+    "requirement": "what the Atlas asks for",
+    "capability": "engine capability it needs",
+    "release": "owning 0.5.x release",
+    "candidate": "true = the Atlas requests it but does not establish it; needs independent evidence and human authorization",
+    "evidence": "path to test/receipt once it exists",
+    "state": "one of states"
+  },
+  "seal_rule": "0.5.5 seals only when every row is VALIDATED, CANONICAL or OUT_OF_SCOPE",
+  "requirements": [
+    {"id": "AT-00-R1", "sim": "all", "requirement": "Common measurement vector Y = {X,H,W,Q,Phi_E,Phi_B,SPK,PSD,C,phi,E_reduction,T_compute,M_compute}; absent quantities recorded as OMITTED, never synthesized", "capability": "measurement schema v0 (0.5.1) -> frozen (0.5.5)", "release": "0.5.1-0.5.5", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-00-R2", "sim": "all", "requirement": "(dt, T, dr) chosen per phenomenon, not one resolution for all", "capability": "benchmark matrix across dt/T/N; per-AT resolution declared in manifest", "release": "0.5.1", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-00-R3", "sim": "all", "requirement": "Inheritance S1 -> S2-4 -> S5-7 -> S8-9 -> S10: each adds declared objects, same computational language", "capability": "mechanical spec-diff check across AT configs", "release": "0.5.5", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-00-R4", "sim": "all", "requirement": "Observable-specific equivalence: reductions compared only on declared observations and tolerances", "capability": "reduction/scale matrix with predeclared tolerances", "release": "0.5.2-0.5.5", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-00-R5", "sim": "all", "requirement": "Every figure uses the columns structure -> dynamics -> state/plasticity -> source -> field -> observation -> computation", "capability": "Atlas generator + figure seam", "release": "0.5.5", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-00-R6", "sim": "all", "requirement": "Manuscript progression: one physical neuron -> interacting neurons -> emergent population field -> adaptive interacting areas -> genome-defined multiarea model", "capability": "manuscript in artifacts/publication/atlas/", "release": "0.5.5", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-00-R7", "sim": "all", "requirement": "Every simulation defined as data over the public surface; one simulation, many views; no simulation inside visualization", "capability": "firewall gate + atlas_suite view layer", "release": "0.5.1", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-00-R8", "sim": "all", "requirement": "T_compute and M_compute recorded per simulation", "capability": "benchmark harness receipts", "release": "0.5.1", "candidate": false, "evidence": null, "state": "PLANNED"},
+
+    {"id": "AT-01-R1", "sim": "S1", "requirement": "One full HH neuron; current injection from subthreshold to AP", "capability": "HH reference via optional Jaxley bridge; REFUSED if absent", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-01-R2", "sim": "S1", "requirement": "Extract V_m, I_Na, I_K, I_L, I_m, Q, Phi(r,t)", "capability": "HH current export -> source Q -> field Phi", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-01-R3", "sim": "S1", "requirement": "Local E/Phi from transmembrane currents", "capability": "source/field contract with epistemic level", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-01-R4", "sim": "S1", "requirement": "Magnetic field B where justified", "capability": "Phi_B beyond current MEG proxy", "release": "0.5.2", "candidate": true, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-01-R5", "sim": "S1", "requirement": "Establish calibration/reference model at physical units", "capability": "explicit calibration transform (units, conductivity, distance)", "release": "0.5.2", "candidate": true, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-01-R6", "sim": "S1", "requirement": "Reduction M_HH -> M_reduced -> M_population: which quantities survive", "capability": "reduction row with predeclared tolerances", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-01-R7", "sim": "S1", "requirement": "No claim of full electrodiffusion", "capability": "boundary stated in outputs and manuscript", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+
+    {"id": "AT-02-R1", "sim": "S2", "requirement": "Driven pair N1 -> N2 over 10-10^3 um; vary distance, delay (ms), synaptic strength", "capability": "relative geometry (PARAM-04) + delay in ms (PARAM-02)", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-02-R2", "sim": "S2", "requirement": "Individual versus superposed fields", "capability": "per-source and summed Phi from one source representation", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-02-R3", "sim": "S2", "requirement": "Distance law of the field", "capability": "field vs distance observation operator", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+
+    {"id": "AT-03-R1", "sim": "S3", "requirement": "E<->I pair oscillator; vary coupling, delay, drive", "capability": "recurrent pair with declared delay", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-03-R2", "sim": "S3", "requirement": "Phase, synchrony, cancellation/reinforcement, frequency-dependent field", "capability": "phase and spectral observation operators on Phi", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+
+    {"id": "AT-04-R1", "sim": "S4", "requirement": "Geometry/orientation manipulation of a coupled pair", "capability": "source orientation in the source representation", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-04-R2", "sim": "S4", "requirement": "H perturbation distinguishing correlation X -> Phi from causal state effect on excitability", "capability": "causal intervention grammar + H clamp", "release": "0.5.3", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-04-R3", "sim": "S4", "requirement": "Field feedback Phi -> X only if physically implemented", "capability": "Phi -> X coupling; fails closed until justified", "release": "0.5.2", "candidate": true, "evidence": null, "state": "PLANNED"},
+
+    {"id": "AT-05-R1", "sim": "S5", "requirement": "E/I population over 0.1-2 mm; vary N, rho, synchrony rho_sync 0 -> 1", "capability": "population with controllable synchrony", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-05-R2", "sim": "S5", "requirement": "Measure A_Phi(N, rho_sync, r); show Phi_N != N Phi_1 in general", "capability": "field amplitude observation vs N, rho_sync, r", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-05-R3", "sim": "S5", "requirement": "Coherent vs incoherent summation of microscopic sources", "capability": "per-source Phi superposition", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+
+    {"id": "AT-06-R1", "sim": "S6", "requirement": "Structured population at layer/column scale; vary arrangement, E/I composition, source orientation", "capability": "relative geometry + source orientation", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-06-R2", "sim": "S6", "requirement": "Electrode chain Q_i -> Phi -> P_electrode -> V_LFP with contact, reference, filtering", "capability": "probe/electrode semantics (position, reference, filter)", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-06-R3", "sim": "S6", "requirement": "Locality C(R,f) = P[sum_{r_i<R} Phi_i(f)] / P[sum_i Phi_i(f)]", "capability": "C(R,f) observation operator", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-06-R4", "sim": "S6", "requirement": "Conductivity and distance assumptions declared", "capability": "field contract declares conductivity/distance", "release": "0.5.2", "candidate": false, "evidence": null, "state": "PLANNED"},
+
+    {"id": "AT-07-R1", "sim": "S7", "requirement": "Plastic population; W fixed vs Hebbian HDP vs noisy HDP under identical stimulation", "capability": "plasticity enable/disable/clamp; stochastic rule RNG domain", "release": "0.5.3", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-07-R2", "sim": "S7", "requirement": "Chain X,H -> dW -> dX -> dQ -> dPhi observed", "capability": "H/W trajectories under recording budgets", "release": "0.5.3", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-07-R3", "sim": "S7", "requirement": "Adaptation/stability distinguished from mere attenuation", "capability": "separate diagnostics; intervention grammar", "release": "0.5.3", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-07-R4", "sim": "S7", "requirement": "B as input to neural/plastic dynamics (X,H,B,W) -> Q", "capability": "field-derived input to dynamics", "release": "0.5.3", "candidate": true, "evidence": null, "state": "PLANNED"},
+
+    {"id": "AT-08-R1", "sim": "S8", "requirement": "Two areas A1 -> A2 over mm-cm; repeated stimulus to A1", "capability": "composition operator + cross-area delays", "release": "0.5.4", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-08-R2", "sim": "S8", "requirement": "Adaptation enabled vs clamped; causal H test", "capability": "0.5.3 clamp + intervention grammar in composed models", "release": "0.5.4", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-08-R3", "sim": "S8", "requirement": "Record SPK, Phi, H in both areas plus dphi_12(f), C_12(f)", "capability": "per-area and cross-area observation operators", "release": "0.5.4", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-08-R4", "sim": "S8", "requirement": "Answer: does adaptation stay local, propagate, or alter downstream fields without equivalent spike-count change", "capability": "declared comparison of field vs spike-count change", "release": "0.5.4", "candidate": false, "evidence": null, "state": "PLANNED"},
+
+    {"id": "AT-09-R1", "sim": "S9", "requirement": "Plastic coupling W_12(t), W_21(t) under HDP/Hebbian/noisy rules with delays", "capability": "cross-area plasticity owned by the projection", "release": "0.5.4", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-09-R2", "sim": "S9", "requirement": "Distinguish fast X, relative state H, plastic W; H may evolve while dW/dt = 0", "capability": "H/W ownership and inspection", "release": "0.5.4", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-09-R3", "sim": "S9", "requirement": "Local vs inter-area adaptation; effective connectivity change; field/coherence consequences", "capability": "cross-area measures + W trajectories", "release": "0.5.4", "candidate": false, "evidence": null, "state": "PLANNED"},
+
+    {"id": "AT-10-R1", "sim": "S10", "requirement": "Compact PseudoGenome G_20 -> D(K_D) -> N_20 with areas, populations, geometry, connectivity, delays, neural models, H, HDP, field/probe definitions", "capability": "JDNA development at 20-area scale", "release": "0.5.5", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-10-R2", "sim": "S10", "requirement": "Three phases on the same realized network: baseline (W = W0, dW/dt = 0), Hebbian HDP, noisy HDP with explicit K_t", "capability": "phase switching without re-realization; RNG domain K_t", "release": "0.5.5", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-10-R3", "sim": "S10", "requirement": "Baseline measures: spontaneous/noisy activity, rate distributions, population fields, spectra, inter-area propagation, boundedness, spatial field structure", "capability": "frozen measurement vector at 20-area scale", "release": "0.5.5", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-10-R4", "sim": "S10", "requirement": "HDP phases measure W(t), H(t), X(t), Phi(t) and network-level organization", "capability": "long-horizon recording budgets", "release": "0.5.5", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-10-R5", "sim": "S10", "requirement": "Perturbation/control assay distinguishing bounded != returning != homeostatically stabilized", "capability": "intervention grammar + separate boundedness/stability diagnostics", "release": "0.5.5", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-10-R6", "sim": "S10", "requirement": "Reduced fast model with very long T", "capability": "performance envelope from 0.5.1 matrix", "release": "0.5.5", "candidate": false, "evidence": null, "state": "PLANNED"},
+    {"id": "AT-10-R7", "sim": "S10", "requirement": "F_W(X,H,W,B) with B input", "capability": "field-derived input to plasticity", "release": "0.5.5", "candidate": true, "evidence": null, "state": "PLANNED"}
+  ]
+}

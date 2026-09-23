@@ -6,8 +6,8 @@
 > items. We make no wholesale rewrites and drop no item without a note.
 > In progress: 0.5.x re-scoped to add an Atlas track (AT-01…AT-10, 1N → 2N →
 > population → 2 areas → 20 areas). Release map and 0.5.1–0.5.5 stacks are in the
-> 0.5.x programme section; the Atlas coverage matrix (0.5.5 item 9) is
-> pending the Atlas source document.
+> 0.5.x programme section. Atlas source: `artifacts/project_sources/8_atlas.md`;
+> requirements and coverage state: `artifacts/programme/atlas_coverage.json`.
 > **Handoff (human-approved plan, 2026-09-23):** the planning session is
 > archived; the opencode agent executes from here. Start at 0.5.1 ENGINE
 > item 1a. Read "Goals in plain words" first. Human decisions listed in the
@@ -518,29 +518,14 @@ Question: can the spacetime scales the Atlas needs run without recording
 or construction dominating? (Δt,T,Δr) = f(phenomenon), so cost is measured
 as C(N,E,T,Δt,N_H,N_W,N_recorded,mechanism), not at one resolution.
 
-0. Prerequisite (human; the human adds it, decided 2026-09-23): add the
-   Atlas source document to `artifacts/project_sources/`; AT-01…AT-10 definitions reference it, not
-   copies of it. ATLAS items 5–7 block on this; ENGINE items do not.
-   Layout (same pattern as `7_tfne_algebra.md`: status header, then the
-   verbatim source): `artifacts/project_sources/8_atlas.md`, listed in
-   `artifacts/project_sources/README.md`. The header separates:
-   a. canonical architecture: S1–S10, inheritance, measurement vector;
-   b. required experiments and controls per simulation (what it
-      manipulates, what it observes), one stable ID per requirement,
-      `AT-0n-R<k>`;
-   c. candidate capabilities, which the Atlas asks for but does not
-      establish (physical HH/field calibration, Φ → X feedback);
-   d. claim boundaries: proxy ≠ calibrated; correlation ≠ causal feedback;
-      attenuation ≠ adaptation; bounded ≠ active stability;
-   e. release mapping 0.5.1 → 0.5.5.
-   `S<n>` inside `8_atlas.md` ≡ `AT-0n` here; everywhere else `S<n>`
-   stays a tfne/2 section.
-   Coverage state is mutable, so it lives outside the source, in
-   `artifacts/programme/atlas_coverage.json`: one row per requirement ID
-   with simulation, engine capability, test/evidence path, release and
-   state ∈ {PLANNED, SUPPORTED (capability implemented and tested),
-   VALIDATED (the requirement's own evidence produced and passing),
-   CANONICAL (frozen in a manifest)}.
+Atlas routing: source `artifacts/project_sources/8_atlas.md`; requirement
+rows `AT-0n-R<k>` with release, candidate flag and state in
+`artifacts/programme/atlas_coverage.json`. Each release's ATLAS lane owns
+every row whose `release` names it. `S<n>` inside `8_atlas.md` ≡ `AT-0n`;
+elsewhere `S<n>` stays a tfne/2 section. `B` = magnetic field throughout.
+Rows with `candidate: true` (calibrated HH/field, Φ_B beyond proxy,
+Φ → X, B as input to dynamics) need independent evidence and human
+authorization before any engine work.
 
 ENGINE — designed 2026-09-23, not started. Order: 1 → 2 → 3; item 4 runs
 in parallel only from a separate worktree (one writer per worktree).
@@ -569,8 +554,9 @@ Every sub-step ends with its output committed and pushed.
       `artifacts/perf/matrix_051.json`. It never writes `baseline_050.json`.
    c. Memory: measured process peak with the method named, in addition to
       the declared array bytes `baseline_050` reports.
-   d. AT-10 scale point: 20-area size from the Atlas source; until that
-      lands, a projected size marked `PROVISIONAL`.
+   d. AT-10 scale point: 20 areas (Atlas S10). The Atlas gives no neurons
+      per area or edge density; the matrix spec declares them, marked
+      `PROVISIONAL` until the human confirms.
    e. Environment receipt in every output: jax/jaxlib versions, platform,
       CPU/device (P-003 rule).
    *Done when:* spec committed before any result; every cell measured or
@@ -635,7 +621,7 @@ ATLAS
 ACCEPTANCE (0.5.1 seal)
 - Existing canonical configurations bit-identical to the frozen baseline.
 - AT workloads and the 20-area point are in the benchmark matrix, measured;
-  the 20-area size comes from the Atlas source, not the `PROVISIONAL` value.
+  its per-area size is human-confirmed, not `PROVISIONAL`.
 - Every landed optimization has a PASS equivalence receipt; failed attempts
   are recorded and reverted.
 - Gate wall time measured before/after for each test/gate change.
@@ -688,12 +674,15 @@ ATLAS
 9. AT-01 physical anchor: Jaxley HH reference (REFUSED if Jaxley absent)
    against the reduced neuron; spike-time, rate and Vm-feature tolerances
    declared before the run.
-10. AT-02 pair transmission and AT-03 recurrent pair, with declared delay.
-11. AT-04 source superposition. Φ → X feedback fails closed unless
-    independently justified; causal distinctions use supported
-    perturbations only.
-12. AT-05 population field emergence; AT-06 geometry/electrode locality
-    (needs items 1 and 5).
+10. AT-02 pair transmission (individual vs superposed fields, distance
+    law) and AT-03 recurrent E↔I pair (phase, cancellation/reinforcement,
+    frequency-dependent field), with declared delay.
+11. AT-04 geometry/orientation arm (item 3 carries source orientation).
+    Φ → X feedback fails closed unless independently justified. The
+    H-perturbation causal arm (AT-04-R2) is owned by 0.5.3.
+12. AT-05 population field emergence (ρ_sync 0 → 1, A_Φ(N, ρ_sync, r),
+    Φ_N ≠ NΦ_1); AT-06 electrode locality C(R, f) with contact, reference,
+    filter, conductivity and distance declared (needs items 1 and 5).
 13. Reduction row HH → reduced neuron → population source, against the
     predeclared tolerances; failures recorded. Measurement schema v0 → v1.
 14. Gap matrix updated; the seal note names each cell moved.
@@ -711,11 +700,12 @@ ACCEPTANCE (0.5.2 seal)
 Question: can (X, H, B, W) → Q → Φ run for long horizons with each mutable
 state owned, inspectable, replayable and causally intervenable?
 Separations kept explicit: H ≠ HDP; attenuation ≠ adaptation;
-bounded ≠ stable. Symbol definitions (H, W, B, K) come from the Atlas source
-and `docs/doctrine/rbs_rbd_hdp.md`, not from this file.
+bounded ≠ stable. Symbol definitions come from the Atlas source and
+`docs/doctrine/rbs_rbd_hdp.md`, not from this file. B is the magnetic field
+(an observation); B as an input to dynamics is a candidate (AT-07-R4).
 
 ENGINE
-1. H/W/B/K ownership: configured → realized → executed inspection for each
+1. H/W/K ownership: configured → realized → executed inspection for each
    (0.5.2 item 6 pattern), including which rule mutates which state.
 2. Recording budgets for slow variables: H and W at declared stride /
    subset, built on the 0.5.1 opt-in recording API; full recording stays
@@ -740,9 +730,9 @@ ATLAS
    stimulation on the same realized network, using items 5–6. Report the
    observation difference with its declared test; no adaptation phenotype
    is required for acceptance.
-9. Long-horizon versions of AT-02…AT-06 where the Atlas asks for
-   adaptation timescales, under the item-2 recording budgets.
-10. Measurement schema v1 → v2 (H, W, B trajectories and budgets); gap
+9. AT-04 H-perturbation arm (AT-04-R2): causal state effect on
+   excitability vs correlation X → Φ, via item 6.
+10. Measurement schema v1 → v2 (H and W trajectories and budgets); gap
     matrix updated, seal note names moved cells.
 
 ACCEPTANCE (0.5.3 seal)
@@ -763,7 +753,7 @@ had alone? Acceptance is capability and identity, not a phenotype.
 ENGINE
 1. Composition operator over the existing `InterConnection` and CTX-01
    named-area path. Preserved and tested one by one: internal area identity,
-   explicit cross-area edges, geometry, delays, RNG domains, H/W/B,
+   explicit cross-area edges, geometry, delays, RNG domains, H/W,
    probes/fields, continuation.
 2. Hierarchical ↔ flattened identity: inspecting the composed model by area
    or as one flat tensor gives the same realized values; flatten → run and
@@ -837,8 +827,7 @@ ATLAS
 MANUSCRIPT (ends 0.5.5)
 9. Atlas coverage matrix: every section, figure, simulation and claim in the
    Atlas source → todo item → produced artifact. 100% mapped or marked out
-   of scope by the human. Runs as soon as the source lands (0.5.1 item 0)
-   and again at seal. The check reads `artifacts/programme/atlas_coverage.json`
+   of scope by the human. Runs at every release seal and at 0.5.5 seal. The check reads `artifacts/programme/atlas_coverage.json`
    mechanically, not prose; seal needs every requirement ID VALIDATED or
    CANONICAL, or marked out of scope by the human.
 10. Figures via the existing generator seam (`scripts/publication_figures/`
