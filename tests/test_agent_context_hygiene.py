@@ -21,13 +21,13 @@ class TestAgentContextHygiene:
     def test_durable_context_not_empty(self):
         """Assert context file has substantive content."""
         context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
-        content = context_path.read_text(encoding='utf-8')
+        content = context_path.read_text(encoding="utf-8")
         assert len(content) > 500, "Context file too short (< 500 chars)"
 
     def test_durable_context_has_key_sections(self):
         """Assert context includes key guidance sections."""
         context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
-        content = context_path.read_text(encoding='utf-8').lower()
+        content = context_path.read_text(encoding="utf-8").lower()
 
         required_sections = [
             "project identity",
@@ -40,7 +40,7 @@ class TestAgentContextHygiene:
             "validation",
             "failure mode",
             "always do",
-            "never do"
+            "never do",
         ]
 
         for section in required_sections:
@@ -49,7 +49,7 @@ class TestAgentContextHygiene:
     def test_durable_context_mentions_canonical_api(self):
         """Assert context documents canonical Configuration API."""
         context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
-        content = context_path.read_text(encoding='utf-8')
+        content = context_path.read_text(encoding="utf-8")
 
         api_terms = [
             "Configuration()",
@@ -59,7 +59,7 @@ class TestAgentContextHygiene:
             ".probes(",
             "jtfne.construct(",
             "jtfne.simulate(",
-            "signals.field"
+            "signals.field",
         ]
 
         for term in api_terms:
@@ -68,7 +68,7 @@ class TestAgentContextHygiene:
     def test_durable_context_mentions_public_private_separation(self):
         """Assert context explains public/private surface boundaries."""
         context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
-        content = context_path.read_text(encoding='utf-8')
+        content = context_path.read_text(encoding="utf-8")
 
         # Should mention docs, tutorials as public
         assert "docs" in content.lower(), "Missing public surface: docs"
@@ -80,7 +80,7 @@ class TestAgentContextHygiene:
     def test_durable_context_mentions_generated_output_policy(self):
         """Assert context documents generated output handling."""
         context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
-        content = context_path.read_text(encoding='utf-8')
+        content = context_path.read_text(encoding="utf-8")
 
         assert "tutorial_outputs" in content, "Missing generated output location"
         assert "JAXFNE_VALIDATE_TUTORIAL_OUTPUTS" in content, "Missing artifact gate env var"
@@ -88,7 +88,7 @@ class TestAgentContextHygiene:
     def test_durable_context_mentions_report_contract(self):
         """Assert context specifies validation report requirements."""
         context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
-        content = context_path.read_text(encoding='utf-8')
+        content = context_path.read_text(encoding="utf-8")
 
         report_items = ["SHA", "branch", "test", "report", "receipt"]
         for item in report_items:
@@ -98,11 +98,7 @@ class TestAgentContextHygiene:
         """Assert .claude/ directory is not tracked by git."""
         import subprocess
 
-        result = subprocess.run(
-            ["git", "ls-files", ".claude"],
-            capture_output=True,
-            text=True
-        )
+        result = subprocess.run(["git", "ls-files", ".claude"], capture_output=True, text=True)
 
         # Should return empty (no tracked .claude files)
         assert result.stdout.strip() == "", ".claude/ files are tracked (should be ignored)"
@@ -112,22 +108,22 @@ class TestAgentContextHygiene:
         gitignore_path = Path(".gitignore")
         assert gitignore_path.exists(), ".gitignore not found"
 
-        content = gitignore_path.read_text(encoding='utf-8')
+        content = gitignore_path.read_text(encoding="utf-8")
         assert ".claude" in content, ".claude/ not in .gitignore"
 
     def test_durable_context_warns_against_common_mistakes(self):
         """Assert context documents known failure modes."""
         context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
-        content = context_path.read_text(encoding='utf-8')
+        content = context_path.read_text(encoding="utf-8")
 
         mistake_keywords = [
-            "jbiophysic",           # wrong repo
-            "stale artifact",       # stale outputs
-            "API contract",         # assumption risk
-            "low-level kernel",     # wrong API layer
-            "tutorial milestone",   # version confusion
-            "public wording",       # language discipline
-            "generated output",     # tracking discipline
+            "jbiophysic",  # wrong repo
+            "stale artifact",  # stale outputs
+            "API contract",  # assumption risk
+            "low-level kernel",  # wrong API layer
+            "tutorial milestone",  # version confusion
+            "public wording",  # language discipline
+            "generated output",  # tracking discipline
         ]
 
         for keyword in mistake_keywords:
@@ -136,7 +132,7 @@ class TestAgentContextHygiene:
     def test_archived_context_is_explicitly_non_authoritative(self):
         """Historical context must not masquerade as current doctrine."""
         context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
-        content = context_path.read_text(encoding='utf-8')
+        content = context_path.read_text(encoding="utf-8")
 
         assert "ARCHIVAL ONLY" in content
         assert "not active worker authority" in content
@@ -145,7 +141,9 @@ class TestAgentContextHygiene:
         """The active guide keeps scientific and software grammars distinct."""
         content = Path("artifacts/AGENTS.md").read_text(encoding="utf-8")
 
-        assert "Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest" in content
+        assert (
+            "Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest" in content
+        )
         assert "CircuitSpec -> construct -> Model -> simulate -> Signals" in content
         assert "Config -> Net -> Paradigm -> Objective -> Trainer" not in content
         assert "optional downstream workflow components" in content
@@ -177,9 +175,7 @@ class TestAgentContextHygiene:
         assert agents.exists(), f"README points agents at a missing file: {agents}"
 
         readme = Path("README.md").read_text(encoding="utf-8")
-        assert "artifacts/AGENTS.md" in readme, (
-            "README no longer references artifacts/AGENTS.md"
-        )
+        assert "artifacts/AGENTS.md" in readme, "README no longer references artifacts/AGENTS.md"
         assert "If you are an AI agent" in readme, "README lost its agent entry-point line"
 
     def test_repository_state_script_is_present(self):
@@ -207,7 +203,7 @@ class TestAgentContextHygiene:
     def test_no_secrets_in_context(self):
         """Assert context contains no API keys or credentials."""
         context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
-        content = context_path.read_text(encoding='utf-8')
+        content = context_path.read_text(encoding="utf-8")
 
         secret_patterns = [
             "api_key",
@@ -236,6 +232,7 @@ _ACTIVE_SKILLS = (
     "jaxfne-audit",
     "jaxfne-release",
     "jaxfne-seal",
+    "jaxfne-workflow",
     "vocabulary-audit",
 )
 
@@ -328,7 +325,10 @@ class TestActiveSkillStaleness:
             if name == "jaxfne-repo" and "Delta C_core = 0" in text:
                 offenders.append(f"{name}: Delta C_core freeze rule")
             if name in {"jaxfne-release", "jaxfne-seal"}:
-                if "jaxfne_v0_4_17_final_100_goals.md" in text and "current_release_authorities" not in text:
+                if (
+                    "jaxfne_v0_4_17_final_100_goals.md" in text
+                    and "current_release_authorities" not in text
+                ):
                     offenders.append(f"{name}: hardcoded v0.4.17 acceptance path")
                 if "95 goals" in text and "current_release_authorities" not in text:
                     offenders.append(f"{name}: hardcoded 95-goal count")
@@ -339,12 +339,17 @@ class TestReleaseAuthorityInvariant:
     """RELEASE mode must refuse stale release authority."""
 
     def test_stale_release_target_fails_for_current_package(self):
-        from scripts.harness.gate0_git_reality import read_package_version, validate_release_authorities
+        from scripts.harness.gate0_git_reality import (
+            read_package_version,
+            validate_release_authorities,
+        )
 
         root = Path.cwd()
         package_version = read_package_version(root)
         authorities = json.loads(
-            (root / "artifacts/release/current_release_authorities.json").read_text(encoding="utf-8")
+            (root / "artifacts/release/current_release_authorities.json").read_text(
+                encoding="utf-8"
+            )
         )
         target = authorities["release_target_version"]
         err = validate_release_authorities(root, "RELEASE")
@@ -386,7 +391,9 @@ class TestRepositoryStructure:
 
     def test_internal_docs_exists(self):
         """Assert internal_docs directory exists."""
-        assert Path("artifacts/legacy/internal_docs").exists(), "artifacts/legacy/internal_docs/ directory not found"
+        assert Path("artifacts/legacy/internal_docs").exists(), (
+            "artifacts/legacy/internal_docs/ directory not found"
+        )
 
     def test_agent_context_directory_structure(self):
         """Assert agent context has expected structure."""
@@ -411,8 +418,5 @@ class TestRepositoryStructure:
             check=False,
         )
         assert result.returncode == 0, (
-            "report_hygiene_check failed\n"
-            f"stdout:\n{result.stdout}\n"
-            f"stderr:\n{result.stderr}"
+            f"report_hygiene_check failed\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
         )
-

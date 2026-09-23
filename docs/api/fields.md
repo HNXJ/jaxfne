@@ -205,7 +205,7 @@ by `project_laminar_sources` / `project_sources_to_laminar_field`.
 readout from the raw potential proxy. `csd_proxy` is distinct,
 computed from `phi_e_proxy` via `csd_tensor`.
 
-No `FieldOutput.to_dict()` method and no `source` attribute (the
+Neither a `FieldOutput.to_dict()` method nor a `source` attribute exists (the
 field is `source_proxy`). For a JSON-safe dict of the diagnostics,
 use `jaxfne.io.json_safe`:
 
@@ -598,7 +598,7 @@ Fixed boundary potential (less common in tutorials).
 
 ### `validate_source_field_status(field_output=None, cfg_metadata=None, *, requested_modes=None) -> dict`
 
-Check field output for numerical consistency (all inputs optional; called with no arguments it reports defaults).
+Check field output for numerical consistency (all inputs optional; a bare call reports defaults).
 
 **Parameters:**
 - `field_output` (FieldOutput): Computed field
