@@ -26,7 +26,7 @@
     "pypi_publish_method": "trusted publishing (GitHub Actions Publish workflow on release)",
     "pypi_url": "https://pypi.org/project/jaxfne/0.5.0/",
     "pypi_publish_run_id": 35898922482,
-    "pypi_clean_install_smoke": "UNVERIFIED from release workstation (no PyPI egress); publish workflow hash-verified against manifest"
+    "pypi_clean_install_smoke": "VERIFIED 2026-09-23: isolated venv, pip install jaxfne==0.5.0 from PyPI, construct/simulate/readout/manifest smoke OK (version 0.5.0, site-packages import)"
   },
   "gate0_authorities_file": "artifacts/release/current_release_authorities.json",
   "gate0_release_path": "RELEASE-mode Gate 0 validates package version match against current_release_authorities.json.",

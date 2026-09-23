@@ -453,6 +453,10 @@ architecture simplification only with accumulated evidence.
    `artifacts/programme/item10_adjudication_receipt.md`; timing
    `artifacts/perf/item10_manifest_timing_050.json`; frozen baseline_050
    untouched).
+   0.5.0 SEALED+published 2026-09-23: tag v0.5.0 (peel 499c54f), origin/main
+   @ 499c54f, GitHub release, PyPI 0.5.0 (hashes == CI manifest; clean-install
+   smoke verified), RTD auto-registered; receipt
+   `artifacts/release/v0_5_0_release_receipt.json`; post-release sync done.
 
 ## Tracks (parallel after the baseline)
 
