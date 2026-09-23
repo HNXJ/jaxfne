@@ -1,5 +1,15 @@
 # Remaining work
 
+> **Concurrent editors (2026-09-23).** The human owner and a Claude Code
+> session also edit this file and other files under `artifacts/`. We change
+> them by small, incremental adjustments: amend, reorder or annotate existing
+> items. We make no wholesale rewrites and drop no item without a note.
+> In progress: 0.5.x re-scoped to add an Atlas track (AT-01…AT-10, 1N → 2N →
+> population → 2 areas → 20 areas). Release map and 0.5.1 stack are in the
+> 0.5.x programme section; 0.5.2–0.5.5 stacks follow one at a time. Before editing, re-read from
+> disk. A diff you did not make is a concurrent edit (H12): keep it and do not
+> revert it.
+
 Work loop and rules: `artifacts/AGENTS.md` (TODO stack).
 Stable authorized facts: `artifacts/fact_stack.md` (human edit only).
 Evidence: git, tests, receipts, tags, PyPI — not this file.
@@ -395,16 +405,39 @@ better agent use + cleaner integration, subject to Δscientific semantics=0
 unless an individually authorized correctness repair requires otherwise.
 0.4.x established the semantics and harness; optimize against that stable
 baseline and measure equivalence.
+*Amended 2026-09-23 (human-authorized):* Δscientific semantics=0 means
+existing canonical configurations stay bit-identical to the frozen baseline;
+0.5.x is additive-only. New scientific capability is opt-in behind an
+explicit declaration, default behaviour unchanged, and enters only via
+research → equations/units → isolated validation → generic test → human
+authorization → versioned capability.
 
 Acceptance for the whole programme (deltas from frozen v0.4.25 baseline):
 T_simulation↓, M_peak↓, T_test↓, T_agent_task↓, E_semantic=0 (no known
 unintended semantic changes), C_scientific ≥ C_0.4.25 (retained coverage).
 
-Release sequence (one objective each; NOT all in 0.5.0):
-0.5.0 measurement baseline + integration + skills foundation; 0.5.1
-demonstrated simulation bottlenecks; 0.5.2 test/gate acceleration; 0.5.3
-inspection/provenance; 0.5.4 skill/tool benchmark + refinement; later:
-architecture simplification only with accumulated evidence.
+Release sequence (one objective each; NOT all in 0.5.0; amended
+2026-09-23, human-authorized). Each release has two lanes — ENGINE ∥ ATLAS —
+with one shared acceptance boundary. Atlas simulations AT-01…AT-10
+(1N → 2N → population → 2 areas → 20 areas) are consumers/tests of the
+engine, not authorities over it. (IDs are `AT-`, not `S`, because `S<n>`
+already names tfne/2 sections.)
+0.5.0 measurement baseline + integration + skills foundation (sealed);
+0.5.1 execute efficiently (runtime/recording + test/gate acceleration,
+moved from old 0.5.2) + AT first pass and gap matrix;
+0.5.2 source/field: X→Q→Φ→Y, units, geometry (PARAM-04), delay (PARAM-02),
+probes, configured→realized→executed inspection (moved from old 0.5.3);
+AT-01…AT-06;
+0.5.3 state/plasticity/long time, causal clamps; AT-07;
+0.5.4 composition, two areas; AT-08, AT-09;
+0.5.5 synthesis: AT-10 (20-area JDNA), frozen measurement vector, Atlas
+generator, reduction matrix, skill/tool benchmark on AT-01…AT-10 (moved
+from old 0.5.4);
+later: architecture simplification only with accumulated evidence.
+Standing decisions: AT-01 physical anchor starts on the optional Jaxley HH
+bridge (`bridges.py`); a native HH emitter would be new semantics (promotion
+path above). `jaxfne.vis.atlas_suite` stays the view layer: one simulation,
+many panels, no simulation inside visualization.
 
 ## 0.5.0 stack (in order; measurement before optimization)
 
@@ -457,6 +490,55 @@ architecture simplification only with accumulated evidence.
    @ 499c54f, GitHub release, PyPI 0.5.0 (hashes == CI manifest; clean-install
    smoke verified), RTD auto-registered; receipt
    `artifacts/release/v0_5_0_release_receipt.json`; post-release sync done.
+
+## 0.5.1 stack — execute efficiently (ENGINE ∥ ATLAS)
+
+Question: can the spacetime scales the Atlas needs run without recording
+or construction dominating? (Δt,T,Δr) = f(phenomenon), so cost is measured
+as C(N,E,T,Δt,N_H,N_W,N_recorded,mechanism), not at one resolution.
+
+0. Prerequisite (human): add the Atlas source document to
+   `artifacts/project_sources/`; AT-01…AT-10 definitions reference it, not
+   copies of it. ATLAS items 5–7 block on this; ENGINE items do not.
+
+ENGINE
+1. Extend the benchmark matrix (reuse `scripts/benchmark_050_baseline.py`,
+   `scripts/profile_050_phases.py`; frozen `artifacts/perf/baseline_050.json`
+   untouched): warm-step scaling in N, E, T; recording off/minimal/full for
+   H, W, Q, Φ where the path records them; chunked/continuation cost;
+   construction vs long-run amortization; one point at projected AT-10
+   (20-area) size so 0.5.5 is not the first contact with that scale.
+2. Rank bottlenecks from item 1. If recording dominates: selective /
+   downsampled recording as an opt-in API; default recording unchanged.
+3. Optimizations one at a time, each with a predeclared equivalence gate
+   (item-10 pattern: freeze gate → run → adjudicate → receipt).
+4. Test/gate acceleration (moved from old 0.5.2): act on
+   `artifacts/perf/test_profile_050.md` proposals 1 (narrow equivalence
+   gate), 3 (cache immutable evidence), 4 (parallelize families; measure
+   before/after). Proposals 2 and 5 are invariants: keep adversarial
+   TFNE/JDNA tests in dev; every historical defect keeps a cheap detector.
+
+ATLAS
+5. First pass: AT-01…AT-10 at toy size (smallest N, short T), current
+   public features only, defined as TFNE/JDNA data. AT-01 via the Jaxley
+   bridge; if Jaxley is absent the run records REFUSED, not a substitute.
+6. Measurement vector schema v0: Y = {X, H, W, Q, Φ_E, Φ_B, SPK, PSD, C, φ,
+   E_reduction, T_compute, M_compute}; absent quantity = `OMITTED`, refused
+   capability = `REFUSED`, never synthesized. Evolves 0.5.2–0.5.4, frozen
+   in 0.5.5.
+7. Gap matrix Y × AT (IMPLEMENTED / OMITTED / REFUSED) from item 5, stored
+   as an artifact. It is the burndown for 0.5.2–0.5.5: each release names
+   the cells it moves.
+8. Firewall gate: AT scenarios import only the public surface
+   (`jaxfne/public_surface.py`); a gate refuses private-module imports and
+   any AT-specific branch in `jaxfne/`.
+
+ACCEPTANCE (0.5.1 seal)
+- Existing canonical configurations bit-identical to the frozen baseline.
+- AT workloads and the 20-area point are in the benchmark matrix, measured.
+- Every optimization has a PASS equivalence receipt; failures recorded.
+- Gate wall time measured before/after for each test/gate change.
+- Schema v0, gap matrix and firewall gate committed; gate active in CI.
 
 ## Tracks (parallel after the baseline)
 
