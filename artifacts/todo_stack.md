@@ -447,7 +447,13 @@ architecture simplification only with accumulated evidence.
    P2 rgba rate-alpha; P3/P7 honest time labels + square-axis refusal; P4
    synthetic-geometry provenance; P8 route distinction; plot_depth_profile
    backend divergence declared-STOP, not unified).
-10. Only then authorize the first optimization batch.
+10. Only then authorize the first optimization batch (DONE 2026-09-23:
+   manifest conservation-diagnostics jnp→numpy; frozen gate FAILED strict
+   abs leg as recorded, human-authorized allclose correction, re-evaluated
+   PASS: 19 floats 0 failures, cold 379→1.7 ms; receipt
+   `artifacts/programme/item10_adjudication_receipt.md`; timing
+   `artifacts/perf/item10_manifest_timing_050.json`; frozen baseline_050
+   untouched).
 
 ## Tracks (parallel after the baseline)
 

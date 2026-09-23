@@ -419,27 +419,27 @@ def compute_conservation_proxy_diagnostics(
 ) -> dict[str, Any]:
     """Compute conservation-inspired proxy diagnostics over existing source/field arrays.
     """
-    def _safe_float(v: jax.Array) -> float:
+    def _safe_float(v: Any) -> float:
         f = float(v)
         if not (f == f) or abs(f) == float("inf"):
             raise ValueError(f"non-finite diagnostic value: {f}")
         return f
 
-    def _norm_l1(arr: jax.Array) -> float | None:
+    def _norm_l1(arr: np.ndarray) -> float | None:
         try:
-            return _safe_float(jnp.mean(jnp.abs(arr)))
+            return _safe_float(np.mean(np.abs(arr)))
         except Exception:
             return None
 
-    def _norm_l2(arr: jax.Array) -> float | None:
+    def _norm_l2(arr: np.ndarray) -> float | None:
         try:
-            return _safe_float(jnp.sqrt(jnp.mean(arr ** 2)))
+            return _safe_float(np.sqrt(np.mean(arr ** 2)))
         except Exception:
             return None
 
-    def _abs_mean(arr: jax.Array) -> float | None:
+    def _abs_mean(arr: np.ndarray) -> float | None:
         try:
-            return _safe_float(jnp.mean(jnp.abs(arr)))
+            return _safe_float(np.mean(np.abs(arr)))
         except Exception:
             return None
 
@@ -458,11 +458,11 @@ def compute_conservation_proxy_diagnostics(
         if _lfp is None:
             _lfp = field_solution.lfp_proxy
 
-    def _coerce(arr: Any) -> jax.Array | None:
+    def _coerce(arr: Any) -> np.ndarray | None:
         if arr is None:
             return None
-        a = jnp.asarray(arr)
-        if not _finite_bool(a):
+        a = np.asarray(arr)
+        if not bool(np.all(np.isfinite(a))):
             return None
         return a
 
@@ -478,8 +478,8 @@ def compute_conservation_proxy_diagnostics(
     source_conservation_proxy_residual: float | None = None
     if _src is not None:
         try:
-            spatial_mean = jnp.mean(_src, axis=-1)
-            source_conservation_proxy_residual = _safe_float(jnp.mean(jnp.abs(spatial_mean)))
+            spatial_mean = np.mean(_src, axis=-1)
+            source_conservation_proxy_residual = _safe_float(np.mean(np.abs(spatial_mean)))
         except Exception:
             source_conservation_proxy_residual = None
 
@@ -488,8 +488,8 @@ def compute_conservation_proxy_diagnostics(
     phi_gradient_proxy_norm2: float | None = None
     if _phi is not None and _phi.ndim >= 2 and _phi.shape[1] > 1:
         try:
-            grad = jnp.gradient(_phi, axis=1)
-            phi_gradient_proxy_norm2 = _safe_float(jnp.mean(grad ** 2))
+            grad = np.gradient(_phi, axis=1)
+            phi_gradient_proxy_norm2 = _safe_float(np.mean(grad ** 2))
         except Exception:
             phi_gradient_proxy_norm2 = None
 
