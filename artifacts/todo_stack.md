@@ -5,8 +5,8 @@
 > them by small, incremental adjustments: amend, reorder or annotate existing
 > items. We make no wholesale rewrites and drop no item without a note.
 > In progress: 0.5.x re-scoped to add an Atlas track (AT-01…AT-10, 1N → 2N →
-> population → 2 areas → 20 areas). Release map and 0.5.1 stack are in the
-> 0.5.x programme section; 0.5.2–0.5.5 stacks follow one at a time. Before editing, re-read from
+> population → 2 areas → 20 areas). Release map and 0.5.1–0.5.2 stacks are in the
+> 0.5.x programme section; 0.5.3–0.5.5 stacks follow one at a time. Before editing, re-read from
 > disk. A diff you did not make is a concurrent edit (H12): keep it and do not
 > revert it.
 
@@ -539,6 +539,69 @@ ACCEPTANCE (0.5.1 seal)
 - Every optimization has a PASS equivalence receipt; failures recorded.
 - Gate wall time measured before/after for each test/gate change.
 - Schema v0, gap matrix and firewall gate committed; gate active in CI.
+
+## 0.5.2 stack — source/field (ENGINE ∥ ATLAS)
+
+Question: does X → Q → Φ(r,t) → Y hold with each output's epistemic level
+explicit and tested? Levels: CALIBRATED ≠ REDUCED_PHYSICAL ≠ RELATIVE_PROXY.
+Full electrodiffusion stays out of scope.
+
+0. Decisions (human), before items 1–2:
+   a. TFNE-PARAM-04 coordinate semantics: absolute or relative declared
+      geometry (same authority question as TFNE-PARAM-03). The repair
+      changes executed positions for TFNE specs whose declared range is not
+      the unit interval, so it is a correctness repair needing individual
+      authorization under the programme rule.
+   b. Delay declaration unit: ms (realized as `delay_steps` via dt, with a
+      declared rounding/refusal rule) or steps.
+
+ENGINE
+1. TFNE-PARAM-04 repair: declared geometry reaches executed positions;
+   invert `test_declared_geometry_does_not_reach_the_executed_positions`.
+2. TFNE-PARAM-02 repair: delay on the connection-rule surface →
+   `compile_connection_rules` → `InterConnection` → `EdgeList.delay_steps`.
+   Absent delay = current behaviour. Tests: zero-delay limit bit-identical,
+   arrival timing, continuation across a chunk boundary with spikes in
+   flight, composition hook for 0.5.4.
+3. One source representation Q consumed by every probe in `fields/probes.py`
+   and `fields/proxy.py`; existing proxy probe outputs bit-identical.
+4. Epistemic level carried on every Φ/Y output (`FieldOutput`,
+   `ProbeReadout`, manifest). A proxy becomes CALIBRATED only through an
+   explicit calibration transform declaring units, conductivity and
+   distance; a gate refuses the relabel otherwise.
+5. Probe/electrode semantics: position, reference and filter declared; no
+   invented contacts or positions on scientific paths (extends the Rc P4
+   synthetic-geometry provenance).
+6. Configured → realized → executed inspection per capability (moved from
+   old 0.5.3), first for geometry, delay, source and probe; the table under
+   "Parameter ownership, as measured (TFNE-PARAM-01)" is the template.
+7. Field-path cost (Q and Φ recording at AT sizes) added to the 0.5.1
+   benchmark matrix.
+8. Field visualization consumes canonical Q/Φ only; resolve or keep the
+   declared-STOP `plot_depth_profile` backend divergence, with the choice
+   recorded.
+
+ATLAS
+9. AT-01 physical anchor: Jaxley HH reference (REFUSED if Jaxley absent)
+   against the reduced neuron; spike-time, rate and Vm-feature tolerances
+   declared before the run.
+10. AT-02 pair transmission and AT-03 recurrent pair, with declared delay.
+11. AT-04 source superposition. Φ → X feedback fails closed unless
+    independently justified; causal distinctions use supported
+    perturbations only.
+12. AT-05 population field emergence; AT-06 geometry/electrode locality
+    (needs items 1 and 5).
+13. Reduction row HH → reduced neuron → population source, against the
+    predeclared tolerances; failures recorded. Measurement schema v0 → v1.
+14. Gap matrix updated; the seal note names each cell moved.
+
+ACCEPTANCE (0.5.2 seal)
+- Existing canonical configurations bit-identical, except outputs changed by
+  the authorized PARAM-04 repair, each listed with its receipt.
+- Zero-delay limit bit-identical to pre-0.5.2 execution.
+- Epistemic-level relabel refusal tested adversarially (H5).
+- Firewall gate passes: AT-01…AT-06 use the public surface only.
+- Reduction tolerances and results recorded, PASS or FAIL.
 
 ## Tracks (parallel after the baseline)
 
