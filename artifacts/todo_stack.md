@@ -7,7 +7,11 @@
 > In progress: 0.5.x re-scoped to add an Atlas track (AT-01…AT-10, 1N → 2N →
 > population → 2 areas → 20 areas). Release map and 0.5.1–0.5.5 stacks are in the
 > 0.5.x programme section; the Atlas coverage matrix (0.5.5 item 9) is
-> pending the Atlas source document. Before editing, re-read from
+> pending the Atlas source document.
+> **Handoff (human-approved plan, 2026-09-23):** the planning session is
+> archived; the opencode agent executes from here. Start at 0.5.1 ENGINE
+> item 1a. Read "Goals in plain words" first. Human decisions listed in the
+> stacks (items marked "Decisions (human)") block only the items they name. Before editing, re-read from
 > disk. A diff you did not make is a concurrent edit (H12): keep it and do not
 > revert it.
 
@@ -440,6 +444,21 @@ bridge (`bridges.py`); a native HH emitter would be new semantics (promotion
 path above). `jaxfne.vis.atlas_suite` stays the view layer: one simulation,
 many panels, no simulation inside visualization.
 
+## Goals in plain words (0.5.1–0.5.5)
+
+Whole programme — **want:** a faster JaxFNE that can run the full Atlas,
+from one neuron to twenty brain areas, and a manuscript built on it.
+**Need:** old results never change; new abilities are switched on
+explicitly; every claim has evidence.
+
+| Release | What we want | What we need |
+|---|---|---|
+| 0.5.1 | Atlas-sized runs and our own checks finish fast enough. | Measure where time and memory go; speed up only the measured slow parts; show results stay identical. |
+| 0.5.2 | Go from neuron activity to what an electrode would record. | Positions and delays that take effect; every signal labelled calibrated, approximated or relative; Atlas simulations 1–6. |
+| 0.5.3 | Long runs where the network changes itself, and experiments that show cause. | Every changing quantity visible, replayable and switchable (on/off/clamp); split runs match unsplit runs; Atlas simulation 7. |
+| 0.5.4 | Connect brain areas. | Joining areas leaves each area unchanged inside; delays and learning between areas; Atlas simulations 8–9. |
+| 0.5.5 | One Atlas showing the same model language works from 1 neuron to 20 areas, and the manuscript. | The 20-area simulation; one shared list of measurements; what survives each simplification; generated figures; every manuscript claim tied to evidence. |
+
 ## 0.5.0 stack (in order; measurement before optimization)
 
 1. Benchmark current v0.4.25/dev performance (DONE 2026-09-20:
@@ -502,22 +521,80 @@ as C(N,E,T,Δt,N_H,N_W,N_recorded,mechanism), not at one resolution.
    `artifacts/project_sources/`; AT-01…AT-10 definitions reference it, not
    copies of it. ATLAS items 5–7 block on this; ENGINE items do not.
 
-ENGINE
-1. Extend the benchmark matrix (reuse `scripts/benchmark_050_baseline.py`,
-   `scripts/profile_050_phases.py`; frozen `artifacts/perf/baseline_050.json`
-   untouched): warm-step scaling in N, E, T; recording off/minimal/full for
-   H, W, Q, Φ where the path records them; chunked/continuation cost;
-   construction vs long-run amortization; one point at projected AT-10
-   (20-area) size so 0.5.5 is not the first contact with that scale.
-2. Rank bottlenecks from item 1. If recording dominates: selective /
-   downsampled recording as an opt-in API; default recording unchanged.
-3. Optimizations one at a time, each with a predeclared equivalence gate
-   (item-10 pattern: freeze gate → run → adjudicate → receipt).
-4. Test/gate acceleration (moved from old 0.5.2): act on
-   `artifacts/perf/test_profile_050.md` proposals 1 (narrow equivalence
-   gate), 3 (cache immutable evidence), 4 (parallelize families; measure
-   before/after). Proposals 2 and 5 are invariants: keep adversarial
-   TFNE/JDNA tests in dev; every historical defect keeps a cheap detector.
+ENGINE — designed 2026-09-23, not started. Order: 1 → 2 → 3; item 4 runs
+in parallel only from a separate worktree (one writer per worktree).
+Every sub-step ends with its output committed and pushed.
+
+1. Extend the benchmark matrix. *Plain goal:* know where time and memory go
+   at every size the Atlas needs.
+   a. Declare the matrix before measuring, frozen as
+      `artifacts/perf/matrix_051_spec.json`. One factor at a time around a
+      base cell, not a full cross (a full cross is hundreds of cells and
+      includes infeasible corners such as 10k N × 0.025 ms × long T).
+      Base cell: 100 neurons, sparse, dt 0.1 ms, short T, minimal
+      recording, fixed W, 1 chunk. Vary one axis per row: N ∈ {1, 10, 100,
+      1000, 10k}; T ∈ {short, 10× short}; dt ∈ {0.025, 0.1, 0.5} ms;
+      recording ∈ {off, minimal, full} as far as the current API allows;
+      mechanism ∈ {fixed W, HDP}; chunks ∈ {1, k}. Plus the AT-10 point
+      (1d). About 15 cells.
+      Also frozen: ≥3 warm repeats, median + range; per-cell wall-time
+      budget (over budget → `SKIPPED_BUDGET`); item-2 thresholds: a phase is
+      a bottleneck if it takes ≥25% of warm total time or of peak memory in
+      any cell.
+   b. One harness, `scripts/benchmark_051_matrix.py`, reusing the phase
+      timing of `scripts/benchmark_050_baseline.py` (construct / compile /
+      warm run / probe / manifest) and the RSS method of
+      `scripts/profile_050_phases.py`. Output
+      `artifacts/perf/matrix_051.json`. It never writes `baseline_050.json`.
+   c. Memory: measured process peak with the method named, in addition to
+      the declared array bytes `baseline_050` reports.
+   d. AT-10 scale point: 20-area size from the Atlas source; until that
+      lands, a projected size marked `PROVISIONAL`.
+   e. Environment receipt in every output: jax/jaxlib versions, platform,
+      CPU/device (P-003 rule).
+   *Done when:* spec committed before any result; every cell measured or
+   marked `UNSUPPORTED` with the reason; `baseline_050.json` hash unchanged.
+2. Rank bottlenecks. *Plain goal:* pick what to speed up from measurements,
+   not guesses.
+   a. Per cell: share of total time and of peak memory for each phase
+      (construct, compile, warm step, recording, observe).
+   b. Write `artifacts/perf/bottlenecks_051.md`: a ranked list, each entry
+      with the measured share, expected gain and equivalence class
+      (bit-exact, or a tolerance needing human authorization).
+   c. Apply the thresholds frozen in 1a. If recording crosses its
+      threshold, the opt-in selective/downsampled recording API enters
+      item 3; default recording stays unchanged.
+   *Done when:* every candidate traces to a matrix cell; nothing enters
+   item 3 without one.
+3. Optimize one bottleneck at a time. *Plain goal:* faster, with identical
+   results.
+   a. Before touching code, freeze a spec: target, expected gain,
+      equivalence gate. Bit-exact is the default; any tolerance needs human
+      authorization (item-10 precedent).
+   b. Measure before → change → run the gate → measure after.
+   c. Receipt `artifacts/programme/opt051_<n>_receipt.md`; one commit per
+      optimization. A failed gate is recorded, the change reverted, and the
+      next candidate taken.
+   d. Stop rule: stop when the top remaining candidate's expected gain is
+      <10% of its cell's total, or the list is empty. Remaining candidates
+      carry to a later release, not into 0.5.1.
+   *Done when:* each landed change has a PASS receipt and measured gain;
+   frozen outputs untouched.
+4. Speed up tests and gates (moved from old 0.5.2). *Plain goal:* the same
+   defects caught in less wall time.
+   a. Re-measure current dev/broad gate wall times on today's HEAD;
+      `test_profile_050.md` timings are from 0.5.0.
+   b. One change per proposal from `artifacts/perf/test_profile_050.md`,
+      each measured before/after: (1) narrow the equivalence gate to
+      representative probes, keeping one full track in release;
+      (3) cache immutable generated evidence where valid; (4) parallelize
+      independent families with xdist. Ordering-dependent failures under
+      xdist stop the change.
+   c. Invariants (proposals 2 and 5): adversarial TFNE/JDNA tests stay in
+      dev; every row of the defect → cheapest-gate table keeps a detector.
+      Check each change against that table.
+   *Done when:* before/after wall times recorded; defect table still fully
+   covered; release gate still runs the full tracks.
 
 ATLAS
 5. First pass: AT-01…AT-10 at toy size (smallest N, short T), current
@@ -536,8 +613,10 @@ ATLAS
 
 ACCEPTANCE (0.5.1 seal)
 - Existing canonical configurations bit-identical to the frozen baseline.
-- AT workloads and the 20-area point are in the benchmark matrix, measured.
-- Every optimization has a PASS equivalence receipt; failures recorded.
+- AT workloads and the 20-area point are in the benchmark matrix, measured;
+  the 20-area size comes from the Atlas source, not the `PROVISIONAL` value.
+- Every landed optimization has a PASS equivalence receipt; failed attempts
+  are recorded and reverted.
 - Gate wall time measured before/after for each test/gate change.
 - Schema v0, gap matrix and firewall gate committed; gate active in CI.
 
