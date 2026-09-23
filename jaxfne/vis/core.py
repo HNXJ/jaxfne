@@ -115,12 +115,14 @@ def binned_population_rate_hz(
     (:func:`jaxfne.vis.traces.rate`) and Plotly
     (:func:`jaxfne.vis.plotly.raster.plot_population_rates`) renderers (P5):
     ``rate = mean over units and steps in bin * (1000 / dt_ms)``. ``spikes``
-    is ``(n_steps, n_units)``. Returns ``(centers_ms, rate_hz)`` with centers
+    is ``(n_steps, n_units)``. Returns ``    (centers_ms, rate_hz)`` with centers
     relative to the first sample. ``bin_ms <= dt_ms`` collapses to the
     per-step instantaneous rate. Short inputs (``T < bin_steps``) yield one
     bin over the available steps (overall mean, as in the tutorials).
+    Input dtype is preserved (no float32→float64 upcast): float32 simulation
+    data stays float32 through the reduction.
     """
-    arr = np.asarray(spikes, dtype=float)
+    arr = np.asarray(spikes)
     if arr.ndim != 2:
         raise ValueError(f"binned_population_rate_hz expects (n_steps, n_units), got {arr.shape}")
     if not np.isfinite(dt_ms) or dt_ms <= 0:
@@ -146,10 +148,11 @@ def welch_psd(
 
     ``nperseg`` is clamped to the input length (scipy degrades gracefully;
     Item-9 probe 6 refuted the tiny-T crash). Returns ``(freqs, pxx)``.
+    Input dtype is preserved (scipy keeps float32→float32); no upcast.
     """
     from scipy import signal as _signal
 
-    arr = np.asarray(x, dtype=float)
+    arr = np.asarray(x)
     if arr.shape[0] < 1:
         raise ValueError("welch_psd needs at least one sample along axis 0")
     seg = int(min(nperseg, arr.shape[0]))
@@ -165,9 +168,10 @@ def inband_power_mean(pxx: np.ndarray, freqs: np.ndarray, lo_hz: float, hi_hz: f
 
     Canonical band-power contract (P5): absolute, per-contact, mean over the
     band. Returns 0.0 (or zeros) when the band is uncovered by the grid.
+    Input dtype is preserved (no upcast).
     """
-    pxx = np.asarray(pxx, dtype=float)
-    freqs = np.asarray(freqs, dtype=float)
+    pxx = np.asarray(pxx)
+    freqs = np.asarray(freqs)
     mask = (freqs >= lo_hz) & (freqs <= hi_hz)
     if not np.any(mask):
         return np.zeros(pxx.shape[1:]) if pxx.ndim > 1 else np.float64(0.0)
