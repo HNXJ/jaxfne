@@ -144,7 +144,8 @@ resume the conformance list ahead of it.
   `test_declared_geometry_does_not_reach_the_executed_positions`; the test
   fails when repaired and must then be inverted. Before repairing, determine
   whether absolute or relative coordinates are the intended semantics, the
-  same authority question as TFNE-PARAM-03.
+  same authority question as TFNE-PARAM-03. *Decided 2026-09-23: relative,
+  fractions in [0,1]; repair scheduled as 0.5.2 item 1.*
 
   Stays separate until its coordinate semantics are established. The supported
   claim today is exactly `declared G != executed G`. Whether the eventual
@@ -517,8 +518,8 @@ Question: can the spacetime scales the Atlas needs run without recording
 or construction dominating? (Δt,T,Δr) = f(phenomenon), so cost is measured
 as C(N,E,T,Δt,N_H,N_W,N_recorded,mechanism), not at one resolution.
 
-0. Prerequisite (human): add the Atlas source document to
-   `artifacts/project_sources/`; AT-01…AT-10 definitions reference it, not
+0. Prerequisite (human; the human adds it, decided 2026-09-23): add the
+   Atlas source document to `artifacts/project_sources/`; AT-01…AT-10 definitions reference it, not
    copies of it. ATLAS items 5–7 block on this; ENGINE items do not.
 
 ENGINE — designed 2026-09-23, not started. Order: 1 → 2 → 3; item 4 runs
@@ -626,14 +627,16 @@ Question: does X → Q → Φ(r,t) → Y hold with each output's epistemic level
 explicit and tested? Levels: CALIBRATED ≠ REDUCED_PHYSICAL ≠ RELATIVE_PROXY.
 Full electrodiffusion stays out of scope.
 
-0. Decisions (human), before items 1–2:
-   a. TFNE-PARAM-04 coordinate semantics: absolute or relative declared
-      geometry (same authority question as TFNE-PARAM-03). The repair
-      changes executed positions for TFNE specs whose declared range is not
-      the unit interval, so it is a correctness repair needing individual
-      authorization under the programme rule.
-   b. Delay declaration unit: ms (realized as `delay_steps` via dt, with a
-      declared rounding/refusal rule) or steps.
+0. Decisions (human, DECIDED 2026-09-23):
+   a. TFNE-PARAM-04: relative coordinates. A declared range is a pair of
+      fractions of the area's extent, within [0,1]; a range outside [0,1]
+      is refused. The repair is authorized as a correctness repair: specs
+      declaring a sub-range of [0,1] change executed positions, and the
+      pinned test's `(10,20)` and `(-5,-4)` cases become refusals. List
+      every changed canonical output in the seal receipt.
+   b. Delay: declared in ms. Realized as `delay_steps = round(delay_ms /
+      dt_ms)`; configured ms and realized steps both recorded in the
+      manifest; a positive delay that rounds to 0 steps is refused.
 
 ENGINE
 1. TFNE-PARAM-04 repair: declared geometry reaches executed positions;
@@ -777,12 +780,12 @@ Question: does one small grammar survive changes in neural scale, physical
 scale and timescale, 1N → 2N → population → 2A → 20A? End of 0.5.5 = the
 whole Atlas manuscript plan complete.
 
-0. Decisions (human), before item 9:
-   a. Relation of the Atlas manuscript to the frozen Figure 1–7 snapshot
-      (`artifacts/publication/frozen_manifest.json`): new manuscript or
-      extension. Frozen files are never rewritten either way.
-   b. Output location for the Atlas manuscript layer (proposed
-      `artifacts/publication/atlas/`, write-once per figure).
+0. Decisions (human, DECIDED 2026-09-23): the Atlas manuscript is a new
+   manuscript in `artifacts/publication/atlas/`, write-once per figure.
+   The frozen Figure 1–7 snapshot
+   (`artifacts/publication/frozen_manifest.json`) stays untouched and
+   citable; Atlas figure numbering is independent of it and of the E2
+   Figure 8–9 plan.
 
 ENGINE
 1. Measurement vector frozen: Y = {X, H, W, Q, Φ_E, Φ_B, SPK, PSD, C, φ,
