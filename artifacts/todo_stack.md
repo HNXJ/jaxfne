@@ -19,7 +19,7 @@ Work loop and rules: `artifacts/AGENTS.md` (TODO stack).
 Stable authorized facts: `artifacts/fact_stack.md` (human edit only).
 Evidence: git, tests, receipts, tags, PyPI — not this file.
 
-**Current:** v0.5.0 published (see the 0.5.0 stack); work proceeds in the
+**Current:** v0.5.0 published (see "0.5.0 (sealed)"); work proceeds in the
 0.5.x programme below. The sections from "MODE = TFNE/2 ADOPTION" to
 "Long-term goal" are kept as rationale; their open items are scheduled in
 the 0.5.x stacks — see "Where older open items went".
@@ -491,57 +491,13 @@ programme rule or marked OUT_OF_SCOPE by the human.
 | Agent-native steps 7, 9 (frozen end-to-end tasks, benchmark) | 0.5.5 item 5d |
 | Everything in "Carried staging", S27 `P_{l,c}` definitions, agent-native step 10 (MCP) | after 0.5.5 — "Open work outside the release stacks" |
 
-## 0.5.0 stack (in order; measurement before optimization)
+## 0.5.0 (sealed)
 
-1. Benchmark current v0.4.25/dev performance (DONE 2026-09-20:
-   `scripts/benchmark_050_baseline.py` + `artifacts/perf/baseline_050.json`;
-   1n/10n-HDP/100n/1000n with construct/sim1-compile/sim2-run/probe/
-   manifest phases; first-vs-second-call separates JIT compile).
-2. Canonical benchmark models + frozen outputs (DONE: same receipt; rerun
-   with `python scripts/benchmark_050_baseline.py`).
-3. Profile construct/compile/simulate/record/observe + memory independently
-   (DONE 2026-09-20: `scripts/profile_050_phases.py` +
-   `artifacts/perf/profile_050.json`; N/E, RSS deltas, HDP recording
-   volumes; first-call vs warm separated).
-4. Profile test/gate runtime; defect→gate matrix draft (DONE 2026-09-20:
-   `artifacts/perf/test_profile_050.md`; broad 2216 s dominated by
-   equivalence/construct/generator tests; 5 proposals, no actions).
-5. Audit TFNE→JDNA→Model integration for duplicate construction paths
-   (DONE 2026-09-20, delegated analysis: 41 routes classified canonical /
-   thin-adapter / independent-primitive / stub; redundant candidates listed,
-   no action; 6 open questions incl. tensor-connection scaffolding and
-   tutorial dict-engine status).
-6. Audit/refine current skills against the lifecycle (DONE 2026-09-20:
-   coverage map — TFNE/JDNA: jaxfne-core routing only (no dedicated
-   skill; gap for item 7 workflow); Model/Simulation: jaxfne-repo +
-   jaxfne-science; Observation/Evidence: jaxfne-science + jaxfne-audit;
-   release/seal/vocab covered. Refines applied: canonical-entry pinning
-   rule in jaxfne-core; claim-conditioned verification in jaxfne-science.
-   Remaining gap: task-shaped skills (model/develop/simulate/inspect/
-   fields/plasticity/validate/optimize) deferred to item 7 workflow).
-7. One canonical question→TFNE→JDNA→simulation→verification agent workflow (DONE 2026-09-20: `artifacts/skills/jaxfne-workflow/SKILL.md` — routing+gates table invoking existing skills, no implementation duplication; harness manifest synced, 8 skills).
-8. Benchmark that workflow against raw-repository agent use (DONE 2026-09-20:
-   frozen packet + 10 independent runs; F̄=1.00 both arms, ΔF=0, ΔH=0;
-   friction unmeasured except files-consulted proxy; results in
-   `artifacts/perf/workflow_benchmark_results_050.md`; no optimization
-   follows).
-9. Rank actual bottlenecks (DONE 2026-09-22: two-lane Rc/Rp(W) evidence matrix; Item 9 PASS).
-   Rc repair checkpoint (DONE 2026-09-22, pre-Item-10, Δsimulation=0: P1
-   non-vacuous sync check; P5 shared rate/band contracts + parity tests;
-   P2 rgba rate-alpha; P3/P7 honest time labels + square-axis refusal; P4
-   synthetic-geometry provenance; P8 route distinction; plot_depth_profile
-   backend divergence declared-STOP, not unified).
-10. Only then authorize the first optimization batch (DONE 2026-09-23:
-   manifest conservation-diagnostics jnp→numpy; frozen gate FAILED strict
-   abs leg as recorded, human-authorized allclose correction, re-evaluated
-   PASS: 19 floats 0 failures, cold 379→1.7 ms; receipt
-   `artifacts/programme/item10_adjudication_receipt.md`; timing
-   `artifacts/perf/item10_manifest_timing_050.json`; frozen baseline_050
-   untouched).
-   0.5.0 SEALED+published 2026-09-23: tag v0.5.0 (peel 499c54f), origin/main
-   @ 499c54f, GitHub release, PyPI 0.5.0 (hashes == CI manifest; clean-install
-   smoke verified), RTD auto-registered; receipt
-   `artifacts/release/v0_5_0_release_receipt.json`; post-release sync done.
+Sealed and published 2026-09-23. Release receipt
+`artifacts/release/v0_5_0_release_receipt.json`; item evidence in
+`artifacts/perf/*_050*` and `artifacts/programme/item10_adjudication_receipt.md`;
+Rc repair checkpoint in commit `bfc88a7`. Frozen `artifacts/perf/baseline_050.json`
+stays the equivalence reference.
 
 ## 0.5.1 stack — execute efficiently (ENGINE ∥ ATLAS)
 
@@ -608,7 +564,7 @@ Every sub-step ends with its output committed and pushed.
    results.
    a. Before touching code, freeze a spec: target, expected gain,
       equivalence gate. Bit-exact is the default; any tolerance needs human
-      authorization (item-10 precedent).
+      authorization (precedent: `artifacts/programme/item10_adjudication_receipt.md`).
    b. Measure before → change → run the gate → measure after.
    c. Receipt `artifacts/programme/opt051_<n>_receipt.md`; one commit per
       optimization. A failed gate is recorded, the change reverted, and the
@@ -694,7 +650,7 @@ ENGINE
    explicit calibration transform declaring units, conductivity and
    distance; a gate refuses the relabel otherwise.
 5. Probe/electrode semantics: position, reference and filter declared; no
-   invented contacts or positions on scientific paths (extends the Rc P4
+   invented contacts or positions on scientific paths (extends the Rc P4, commit `bfc88a7`,
    synthetic-geometry provenance).
 6. Configured → realized → executed inspection per capability (moved from
    old 0.5.3), first for geometry, delay, source and probe; the table under
