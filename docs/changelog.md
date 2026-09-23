@@ -9,7 +9,7 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
-## v0.5.0 (candidate)
+## v0.5.0 (2026-09-23)
 
 Measured 0.5.x baseline plus integration/harness foundation and one verified
 reporting-path optimization; simulation semantics preserved.

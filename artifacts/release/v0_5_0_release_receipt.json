@@ -1,0 +1,55 @@
+{
+  "acceptance_authority": "artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md",
+  "acceptance_goal_count": 5,
+  "candidate_attestation_sha": "499c54f3f60242c142e7c1e8c6578514a91b9176",
+  "dev_bookkeeping_tip_sha": null,
+  "distribution": {
+    "build_backend": "CI release build (hatchling 1.29.0 observed generator)",
+    "ci_artifact_name": "release-dist",
+    "github_release": "CREATED",
+    "manifest": {
+      "filename": "RELEASE_MANIFEST.json",
+      "source_sha": "499c54f3f60242c142e7c1e8c6578514a91b9176",
+      "source_tree_sha": "2d76606fbe463e8715861d966de155ddc735f97d"
+    },
+    "pypi": "UPLOADED",
+    "sdist": {
+      "filename": "jaxfne-0.5.0.tar.gz",
+      "sha256": "5686aa1576bf9e51dacba91b8eedaf667810af5c4e6a62b0973e3436d7b1127b",
+      "size_bytes": 43092942
+    },
+    "wheel": {
+      "filename": "jaxfne-0.5.0-py3-none-any.whl",
+      "sha256": "1a6cbe75b08f8855421f2792d8557bd39631db95ba75e3f09a0667d9b8ac2233",
+      "size_bytes": 661659
+    },
+    "pypi_publish_method": "trusted publishing (GitHub Actions Publish workflow on release)",
+    "pypi_url": "https://pypi.org/project/jaxfne/0.5.0/",
+    "pypi_publish_run_id": 35898922482,
+    "pypi_clean_install_smoke": "UNVERIFIED from release workstation (no PyPI egress); publish workflow hash-verified against manifest"
+  },
+  "gate0_authorities_file": "artifacts/release/current_release_authorities.json",
+  "gate0_release_path": "RELEASE-mode Gate 0 validates package version match against current_release_authorities.json.",
+  "github_release_url": "https://github.com/HNXJ/jaxfne/releases/tag/v0.5.0",
+  "notes": "v0.5.0 sealed+published. Tag peel verified == candidate (499c54f). Main ff-only. GitHub assets == CI bytes. PyPI hashes match CI manifest. RTD version v0.5.0 auto-registered from tag, build pending at seal; stable follows automatically. Predecessor v0.4.25 preserved. 0.5.0 = measured baseline + integration/harness + one adjudicated reporting-path optimization; simulation semantics preserved; no general simulation-speedup claim.",
+  "programme": "v0.5.0",
+  "published_predecessor": "v0.4.25",
+  "receipt_timestamp_utc": "2026-09-23T18:00:50Z",
+  "release_candidate": "499c54f3f60242c142e7c1e8c6578514a91b9176",
+  "schema": "jaxfne.release_receipt.v1",
+  "seal_timestamp_utc": "2026-09-23T18:00:50Z",
+  "seal_verdict": "SEALED+published",
+  "source_tree_sha": "2d76606fbe463e8715861d966de155ddc735f97d",
+  "status": "sealed_published",
+  "supersedes": "artifacts/release/v0_4_25_release_receipt.json",
+  "tag": "v0.5.0",
+  "version": "0.5.0",
+  "write_once": false,
+  "rtd": {
+    "stable_build": null,
+    "source": "499c54f3f60242c142e7c1e8c6578514a91b9176",
+    "note": "version v0.5.0 auto-registered from tag; build pending at seal; stable follows automatically"
+  },
+  "tag_object_sha": "fda5465f4eb8e228c30755b1b723597e0d719c67",
+  "tag_peeled_sha": "499c54f3f60242c142e7c1e8c6578514a91b9176"
+}
