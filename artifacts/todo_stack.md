@@ -19,6 +19,11 @@ Work loop and rules: `artifacts/AGENTS.md` (TODO stack).
 Stable authorized facts: `artifacts/fact_stack.md` (human edit only).
 Evidence: git, tests, receipts, tags, PyPI — not this file.
 
+**Current:** v0.5.0 published (see the 0.5.0 stack); work proceeds in the
+0.5.x programme below. The sections from "MODE = TFNE/2 ADOPTION" to
+"Long-term goal" are kept as rationale; their open items are scheduled in
+the 0.5.x stacks — see "Where older open items went".
+
 **v0.4.24 published** (tag `v0.4.24`, peel `7f89eff`; origin/main @ `7f89eff`; GitHub release with CI bytes; PyPI `0.4.24` via trusted publishing run `34839857303`; RTD stable build `34547734` @ `7f89eff`).
 Published predecessors: `v0.4.23`, `v0.4.22` (immutable).
 
@@ -47,6 +52,9 @@ ordered adjacency). Receipts `tfne2_conformance_0102_receipt.md` and
 resume the conformance list ahead of it.
 
 ## Next
+
+*Superseded 2026-09-23:* TFNE2-04 is done (see below), PARAM-03 is done,
+PARAM-02 is 0.5.2 item 2, PARAM-04 is 0.5.2 item 1. Kept for rationale.
 
 - **TFNE2-04** — declared frontiers; the one that unblocks `CTX-01`. First of
   the remaining conformance gaps below.
@@ -460,6 +468,29 @@ explicitly; every claim has evidence.
 | 0.5.4 | Connect brain areas. | Joining areas leaves each area unchanged inside; delays and learning between areas; Atlas simulations 8–9. |
 | 0.5.5 | One Atlas showing the same model language works from 1 neuron to 20 areas, and the manuscript. | The 20-area simulation; one shared list of measurements; what survives each simplification; generated figures; every manuscript claim tied to evidence. |
 
+Every release seal also requires: the Atlas coverage rows it owns
+(`artifacts/programme/atlas_coverage.json`) moved past PLANNED with an
+evidence path, or deferred by the human with a reason; and each
+`candidate: true` row it owns either promoted through the path in the
+programme rule or marked OUT_OF_SCOPE by the human.
+
+## Where older open items went (reconciled 2026-09-23)
+
+| Open item (older section) | Scheduled |
+|---|---|
+| TFNE-PARAM-04 geometry inert | 0.5.2 item 1 |
+| TFNE-PARAM-02 delay refused | 0.5.2 item 2 |
+| Agent-native step 3 (capability inventory) and step 4 (capability records; delay is the worked example) | 0.5.2 item 6, then each release for its capabilities |
+| PARAM-03 check "TFNE construction vs equivalent hand-written construction" (not in the mech receipt) | 0.5.2 item 6 |
+| Deep-audit HDP hygiene: `compile_step_fn **hdp_kwargs` unknown-key policy; `validate_hdp_params` non-dict non-strict silent pass | 0.5.3 item 7b |
+| TFNE2-03 exception: cell types still ordered by `C = {...}` enumeration | 0.5.4 item 1b |
+| TFNE2-05 carried: per-statement delay/geometry in rule bodies | 0.5.4 item 1c |
+| TFNE2-04/05 carried: `X[k]`-rule frontier override (language decision) | 0.5.4 item 0 |
+| Agent-native step 2 (canonical TFNE → JaxFNE compilation and `I`) | 0.5.4 item 2 |
+| Agent-native steps 5, 6, 8 (tool surface, task-shaped skills, adversarial semantic-substitution tests) | 0.5.5 items 5a–5c |
+| Agent-native steps 7, 9 (frozen end-to-end tasks, benchmark) | 0.5.5 item 5d |
+| Everything in "Carried staging", S27 `P_{l,c}` definitions, agent-native step 10 (MCP) | after 0.5.5 — "Open work outside the release stacks" |
+
 ## 0.5.0 stack (in order; measurement before optimization)
 
 1. Benchmark current v0.4.25/dev performance (DONE 2026-09-20:
@@ -617,6 +648,10 @@ ATLAS
 8. Firewall gate: AT scenarios import only the public surface
    (`jaxfne/public_surface.py`); a gate refuses private-module imports and
    any AT-specific branch in `jaxfne/`.
+8b. Coverage check `scripts/check_atlas_coverage.py`: validates
+   `atlas_coverage.json` (schema, unique IDs, release values, states);
+   every non-PLANNED row must name an evidence path that exists. Runs in
+   CI; every later seal uses it.
 
 ACCEPTANCE (0.5.1 seal)
 - Existing canonical configurations bit-identical to the frozen baseline.
@@ -664,6 +699,11 @@ ENGINE
 6. Configured → realized → executed inspection per capability (moved from
    old 0.5.3), first for geometry, delay, source and probe; the table under
    "Parameter ownership, as measured (TFNE-PARAM-01)" is the template.
+   Same pass: inventory existing capabilities as agent-safe operations
+   (agent-native step 3); write one capability record each for geometry
+   and delay (step 4: equation, code, docs, skill, tests, inspection); add
+   the PARAM-03 check of a TFNE construction against the equivalent
+   hand-written construction if it does not exist.
 7. Field-path cost (Q and Φ recording at AT sizes) added to the 0.5.1
    benchmark matrix.
 8. Field visualization consumes canonical Q/Φ only; resolve or keep the
@@ -724,6 +764,11 @@ ENGINE
    object that records all three. First-class in manifests.
 7. Long-horizon diagnostics: boundedness and stability reported as separate
    measurements; neither inferred from the other.
+7b. HDP parameter hygiene (deep audit 2026-09-20): classify per H7 and fix
+   the `compile_step_fn **hdp_kwargs` unknown-key policy and the
+   `validate_hdp_params` non-dict non-strict silent pass. Unknown or
+   malformed plasticity parameters fail closed before item 5 controls rely
+   on them.
 
 ATLAS
 8. AT-07: fixed W vs declared plasticity conditions under matched
@@ -750,14 +795,26 @@ ACCEPTANCE (0.5.3 seal)
 Question: does N_A ⊕_C N_B → (s, h_0, I) preserve everything each area
 had alone? Acceptance is capability and identity, not a phenotype.
 
+0. Decision (human), only if AT-08/AT-09 need a composite interface
+   declared from a rule: syntax for the `X[k]`-rule frontier override
+   (carried from TFNE2-04/05). Otherwise it stays after 0.5.5.
+
 ENGINE
 1. Composition operator over the existing `InterConnection` and CTX-01
    named-area path. Preserved and tested one by one: internal area identity,
    explicit cross-area edges, geometry, delays, RNG domains, H/W,
    probes/fields, continuation.
+1b. Cell types under the S20.1 ordering rule (the TFNE2-03 exception:
+   `C = {...}` enumeration order still carries order). This changes
+   realized order for existing specs, so it is a correctness repair needing
+   individual human authorization; the receipt lists every changed output.
+1c. Per-statement delay (and geometry) in S12 rule bodies (carried from
+   TFNE2-05), so each inter-area projection declares its own delay; uses
+   the 0.5.2 ms → steps rule.
 2. Hierarchical ↔ flattened identity: inspecting the composed model by area
    or as one flat tensor gives the same realized values; flatten → run and
-   hierarchical → run are bit-identical.
+   hierarchical → run are bit-identical. This closes agent-native step 2
+   (canonical TFNE → JaxFNE compilation and `I`) for composed models.
 3. Local vs inter-area observations: per-area Q/Φ plus cross-area measures
    (phase, coherence) as declared observation operators, no plotting-side
    computation.
@@ -809,15 +866,23 @@ ENGINE
    (H11).
 4. Inheritance check: AT-01 ⊂ AT-02:04 ⊂ AT-05:07 ⊂ AT-08:09 ⊂ AT-10 as a
    mechanical spec diff — each step only adds declared components.
-5. Skill/tool benchmark (moved from old 0.5.4): AT-01…AT-10 with frozen
-   expected properties as the task set; skill+tools vs direct repository
-   use on scientific-model fidelity (long-term sequence step 9 metrics).
+5a. Agent tool surface (agent-native step 5): `realize`, `inspect`,
+   `simulate`, `compare`, `observe`, `verify` over the typed objects, not
+   wrappers over every function.
+5b. Task-shaped skills around it (step 6): model, network, state,
+   plasticity, fields, simulate, verify, inspect; harness manifest synced.
+5c. Adversarial semantic-substitution tests (step 8): stale docs, renamed
+   APIs, parameter substitution, wrong units or types.
+5d. Skill/tool benchmark (moved from old 0.5.4), after 5a–5c: AT-01…AT-10
+   with frozen expected properties as the task set (step 7); skill+tools vs
+   direct repository use on scientific-model fidelity (step 9 metrics).
 
 ATLAS
 6. AT-10: G_20 →D(K_D)→ N_20 via JDNA; baseline, plastic and
    stochastic-plastic phases on the same realized system. Bounded
    trajectories count as evidence of active stabilization only with a
-   perturbation/control assay (0.5.3 items 6–7).
+   perturbation/control assay (0.5.3 items 6–7) that separates
+   bounded ≠ returning ≠ homeostatically stabilized.
 7. Reduction/scale matrix: for each transition M_i → M_(i+1), which
    observations survive within the predeclared tolerance and which do not;
    failures stay in the matrix.
@@ -832,7 +897,9 @@ MANUSCRIPT (ends 0.5.5)
    CANONICAL, or marked out of scope by the human.
 10. Figures via the existing generator seam (`scripts/publication_figures/`
     pattern: `build_figure*()`, semantic spec, semantic audit, generation
-    receipt, equivalence gate), consuming generated Atlas data only.
+    receipt, equivalence gate), consuming generated Atlas data only. Every
+    figure uses the columns structure → dynamics → state/plasticity →
+    source → field → observation → computation (AT-00-R5).
 11. Claim ledger for the Atlas manuscript: each claim with its
     claim-conditioned verification V(claim) and evidence path; package
     capability claims kept apart from scientific-result claims.
@@ -850,6 +917,24 @@ ACCEPTANCE (0.5.5 seal = end of programme)
   T_agent_task, E_semantic = 0, C_scientific retained.
 - Every manuscript claim traces to a ledger row with PASS evidence; negative
   and failed results reported as such.
+
+## Open work outside the release stacks (after 0.5.5 unless a trigger fires)
+
+Details stay in "Carried staging" below. In order:
+1. A8 gh-pages publishing policy. Trigger: before any Atlas HTML or figure
+   is published to public docs (0.5.5 items 2 and 10).
+2. `units.py` and `pynwb_compat` unwired: wire or remove (owner decision).
+3. Architecture candidates (`emitters.py` variant split, entry
+   fragmentation, dual manifests, same-named builders). Trigger: 0.5.1
+   item 2 ranks one as a measured bottleneck; then it enters 0.5.1 item 3.
+4. C5–C7 numerical deferrals; need a signed-zero/NaN exactness contract
+   first.
+5. UNTESTED-exact refusal tail; PLACEHOLDER_NOTEBOOKS and artifact-gated
+   skips; post-0.4.14 compatibility aliases.
+6. P-001 `scripts/` legacy lint cleanup.
+7. S27 population/`P_{l,c}` definition family. Trigger: AT-06 or AT-10
+   needs population definitions that CTX-01 cannot express.
+8. Agent-native step 10: MCP or other transport.
 
 ## Tracks (parallel after the baseline)
 
