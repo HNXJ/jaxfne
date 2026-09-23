@@ -21,5 +21,11 @@
       "reason": "notebook shell, not Python"
     }
   ],
-  "allowed_missing": []
+  "allowed_missing": [],
+  "generated_skill_refs": [
+    {
+      "path": "scratch/CURRENT_TASK.md",
+      "reason": "runtime checkpoint written by the harness compact cycle (Gate 0 reads mode:); gitignored by design, absent on fresh clones including CI"
+    }
+  ]
 }

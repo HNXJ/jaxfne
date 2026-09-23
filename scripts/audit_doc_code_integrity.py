@@ -9,7 +9,9 @@ Deterministic by construction (no simulation, no construction, no network):
 2. Fences that do not parse (math pseudocode, shell, magics) must match the
    allowlist, else they fail (new unrunnable examples cannot hide).
 3. Every file/command/symbol reference in skills + subagent + pool docs must
-   exist (paths on disk, markdown link targets, root symbols, script flags).
+   exist (paths on disk, markdown link targets, root symbols, script flags),
+   except runtime-generated paths declared in the allowlist's
+   ``generated_skill_refs`` (present at runtime, absent on fresh clones).
 
 Usage:
     python scripts/audit_doc_code_integrity.py --check   # exit 1 on violation
@@ -133,6 +135,8 @@ PATH_RE = re.compile(r"`((?:artifacts|scripts|docs|tests|scratch|mkdocs\.yml|REA
 
 def check_skill_refs() -> list[dict]:
     violations = []
+    allow = load_allowlist()
+    generated = {e["path"] for e in allow.get("generated_skill_refs", []) if "path" in e}
     for rel in SKILL_DOCS:
         p = ROOT / rel
         if not p.exists():
@@ -148,6 +152,8 @@ def check_skill_refs() -> list[dict]:
                     continue
                 target = ROOT / ref.split(" ")[0]
                 if not target.exists():
+                    if ref.split(" ")[0] in generated:
+                        continue  # declared runtime-generated; see allowlist
                     violations.append({"kind": "stale-ref", "file": rel, "line": i, "text": ref})
     return violations
 
