@@ -521,6 +521,26 @@ as C(N,E,T,Δt,N_H,N_W,N_recorded,mechanism), not at one resolution.
 0. Prerequisite (human; the human adds it, decided 2026-09-23): add the
    Atlas source document to `artifacts/project_sources/`; AT-01…AT-10 definitions reference it, not
    copies of it. ATLAS items 5–7 block on this; ENGINE items do not.
+   Layout (same pattern as `7_tfne_algebra.md`: status header, then the
+   verbatim source): `artifacts/project_sources/8_atlas.md`, listed in
+   `artifacts/project_sources/README.md`. The header separates:
+   a. canonical architecture: S1–S10, inheritance, measurement vector;
+   b. required experiments and controls per simulation (what it
+      manipulates, what it observes), one stable ID per requirement,
+      `AT-0n-R<k>`;
+   c. candidate capabilities, which the Atlas asks for but does not
+      establish (physical HH/field calibration, Φ → X feedback);
+   d. claim boundaries: proxy ≠ calibrated; correlation ≠ causal feedback;
+      attenuation ≠ adaptation; bounded ≠ active stability;
+   e. release mapping 0.5.1 → 0.5.5.
+   `S<n>` inside `8_atlas.md` ≡ `AT-0n` here; everywhere else `S<n>`
+   stays a tfne/2 section.
+   Coverage state is mutable, so it lives outside the source, in
+   `artifacts/programme/atlas_coverage.json`: one row per requirement ID
+   with simulation, engine capability, test/evidence path, release and
+   state ∈ {PLANNED, SUPPORTED (capability implemented and tested),
+   VALIDATED (the requirement's own evidence produced and passing),
+   CANONICAL (frozen in a manifest)}.
 
 ENGINE — designed 2026-09-23, not started. Order: 1 → 2 → 3; item 4 runs
 in parallel only from a separate worktree (one writer per worktree).
@@ -805,7 +825,9 @@ ENGINE
 
 ATLAS
 6. AT-10: G_20 →D(K_D)→ N_20 via JDNA; baseline, plastic and
-   stochastic-plastic phases on the same realized system.
+   stochastic-plastic phases on the same realized system. Bounded
+   trajectories count as evidence of active stabilization only with a
+   perturbation/control assay (0.5.3 items 6–7).
 7. Reduction/scale matrix: for each transition M_i → M_(i+1), which
    observations survive within the predeclared tolerance and which do not;
    failures stay in the matrix.
@@ -816,7 +838,9 @@ MANUSCRIPT (ends 0.5.5)
 9. Atlas coverage matrix: every section, figure, simulation and claim in the
    Atlas source → todo item → produced artifact. 100% mapped or marked out
    of scope by the human. Runs as soon as the source lands (0.5.1 item 0)
-   and again at seal.
+   and again at seal. The check reads `artifacts/programme/atlas_coverage.json`
+   mechanically, not prose; seal needs every requirement ID VALIDATED or
+   CANONICAL, or marked out of scope by the human.
 10. Figures via the existing generator seam (`scripts/publication_figures/`
     pattern: `build_figure*()`, semantic spec, semantic audit, generation
     receipt, equivalence gate), consuming generated Atlas data only.
