@@ -5,8 +5,9 @@
 > them by small, incremental adjustments: amend, reorder or annotate existing
 > items. We make no wholesale rewrites and drop no item without a note.
 > In progress: 0.5.x re-scoped to add an Atlas track (AT-01…AT-10, 1N → 2N →
-> population → 2 areas → 20 areas). Release map and 0.5.1–0.5.2 stacks are in the
-> 0.5.x programme section; 0.5.3–0.5.5 stacks follow one at a time. Before editing, re-read from
+> population → 2 areas → 20 areas). Release map and 0.5.1–0.5.5 stacks are in the
+> 0.5.x programme section; the Atlas coverage matrix (0.5.5 item 9) is
+> pending the Atlas source document. Before editing, re-read from
 > disk. A diff you did not make is a concurrent edit (H12): keep it and do not
 > revert it.
 
@@ -602,6 +603,158 @@ ACCEPTANCE (0.5.2 seal)
 - Epistemic-level relabel refusal tested adversarially (H5).
 - Firewall gate passes: AT-01…AT-06 use the public surface only.
 - Reduction tolerances and results recorded, PASS or FAIL.
+
+## 0.5.3 stack — state, plasticity, causality, long time (ENGINE ∥ ATLAS)
+
+Question: can (X, H, B, W) → Q → Φ run for long horizons with each mutable
+state owned, inspectable, replayable and causally intervenable?
+Separations kept explicit: H ≠ HDP; attenuation ≠ adaptation;
+bounded ≠ stable. Symbol definitions (H, W, B, K) come from the Atlas source
+and `docs/doctrine/rbs_rbd_hdp.md`, not from this file.
+
+ENGINE
+1. H/W/B/K ownership: configured → realized → executed inspection for each
+   (0.5.2 item 6 pattern), including which rule mutates which state.
+2. Recording budgets for slow variables: H and W at declared stride /
+   subset, built on the 0.5.1 opt-in recording API; full recording stays
+   the default.
+3. Long-horizon continuation: extend the C-04 H-carry resume tests
+   (`tests/test_phaseC_H_carry_resume.py`) to all mutable state, chunk
+   counts ≫ 2, and delays in flight (0.5.2 item 2).
+4. Deterministic replay: same seed + same inputs → bit-identical run;
+   stochastic plasticity rules draw from a declared RNG domain, and
+   changing one rule's stream leaves every other stream untouched.
+5. Plasticity controls: enable / disable / clamp per rule and per
+   projection. The existing `K_HDP=0` null is the template; clamp holds W
+   exactly and is tested adversarially (H5).
+6. Causal intervention grammar: identical realized network + intervention
+   on one mechanism + declared observation difference, as one declarative
+   object that records all three. First-class in manifests.
+7. Long-horizon diagnostics: boundedness and stability reported as separate
+   measurements; neither inferred from the other.
+
+ATLAS
+8. AT-07: fixed W vs declared plasticity conditions under matched
+   stimulation on the same realized network, using items 5–6. Report the
+   observation difference with its declared test; no adaptation phenotype
+   is required for acceptance.
+9. Long-horizon versions of AT-02…AT-06 where the Atlas asks for
+   adaptation timescales, under the item-2 recording budgets.
+10. Measurement schema v1 → v2 (H, W, B trajectories and budgets); gap
+    matrix updated, seal note names moved cells.
+
+ACCEPTANCE (0.5.3 seal)
+- Existing canonical configurations bit-identical; plasticity-off equals the
+  pre-0.5.3 fixed-W path bit-for-bit.
+- Chunked ≡ continuous for every mutable state, delays included.
+- Replay bit-identical; RNG-domain isolation tested.
+- Clamp and disable tested adversarially; interventions serialize and
+  roundtrip (H4).
+- Long-horizon AT runs fit within the 0.5.1 performance envelope, or the
+  overrun is recorded with its cause.
+
+## 0.5.4 stack — composition and two areas (ENGINE ∥ ATLAS)
+
+Question: does N_A ⊕_C N_B → (s, h_0, I) preserve everything each area
+had alone? Acceptance is capability and identity, not a phenotype.
+
+ENGINE
+1. Composition operator over the existing `InterConnection` and CTX-01
+   named-area path. Preserved and tested one by one: internal area identity,
+   explicit cross-area edges, geometry, delays, RNG domains, H/W/B,
+   probes/fields, continuation.
+2. Hierarchical ↔ flattened identity: inspecting the composed model by area
+   or as one flat tensor gives the same realized values; flatten → run and
+   hierarchical → run are bit-identical.
+3. Local vs inter-area observations: per-area Q/Φ plus cross-area measures
+   (phase, coherence) as declared observation operators, no plotting-side
+   computation.
+4. Cross-area plasticity: W_12(t), W_21(t) owned by the cross-area
+   projection, with 0.5.3 clamp/disable/replay semantics.
+5. Scaling step toward AT-10: construct and run a toy-size k-area
+   composition (k > 2) and add it to the benchmark matrix, so 0.5.5 is not
+   the first multi-area scale test.
+
+ATLAS
+6. AT-08: A_1 → A_2 with fixed connectivity; SPK, Φ and H recorded
+   simultaneously; inter-area phase/coherence. Adaptation carried through
+   fixed connectivity only.
+7. AT-09: AT-08 plus plastic W_12(t), W_21(t); compared with AT-08 on the
+   same realized system through the 0.5.3 intervention grammar.
+8. Measurement schema v2 → v3 (area-indexed quantities, cross-area
+   measures); gap matrix updated.
+
+ACCEPTANCE (0.5.4 seal)
+- Existing canonical configurations bit-identical.
+- Each area run alone ≡ that area inside the composition with cross-area
+  edges set to zero.
+- Hierarchical ≡ flattened, bit-identical.
+- Composition survives serialization roundtrip and chunked continuation.
+- Firewall gate passes for AT-07…AT-09.
+
+## 0.5.5 stack — Atlas synthesis, scaling, manuscript (ENGINE ∥ ATLAS)
+
+Question: does one small grammar survive changes in neural scale, physical
+scale and timescale, 1N → 2N → population → 2A → 20A? End of 0.5.5 = the
+whole Atlas manuscript plan complete.
+
+0. Decisions (human), before item 9:
+   a. Relation of the Atlas manuscript to the frozen Figure 1–7 snapshot
+      (`artifacts/publication/frozen_manifest.json`): new manuscript or
+      extension. Frozen files are never rewritten either way.
+   b. Output location for the Atlas manuscript layer (proposed
+      `artifacts/publication/atlas/`, write-once per figure).
+
+ENGINE
+1. Measurement vector frozen: Y = {X, H, W, Q, Φ_E, Φ_B, SPK, PSD, C, φ,
+   E_reduction, T_compute, M_compute}; absent = `OMITTED`, refused =
+   `REFUSED`, never synthesized. Schema versioned and gated.
+2. Atlas generator: the `jaxfne.vis.atlas_suite` 7-panel contract consumes
+   each simulation's declared data contract; one simulation → many views,
+   no simulation inside visualization.
+3. Canonical simulation manifests for AT-01…AT-10: seeds, model identity,
+   inputs, recording budgets, lineage; regenerable from a fresh clone
+   (H11).
+4. Inheritance check: AT-01 ⊂ AT-02:04 ⊂ AT-05:07 ⊂ AT-08:09 ⊂ AT-10 as a
+   mechanical spec diff — each step only adds declared components.
+5. Skill/tool benchmark (moved from old 0.5.4): AT-01…AT-10 with frozen
+   expected properties as the task set; skill+tools vs direct repository
+   use on scientific-model fidelity (long-term sequence step 9 metrics).
+
+ATLAS
+6. AT-10: G_20 →D(K_D)→ N_20 via JDNA; baseline, plastic and
+   stochastic-plastic phases on the same realized system.
+7. Reduction/scale matrix: for each transition M_i → M_(i+1), which
+   observations survive within the predeclared tolerance and which do not;
+   failures stay in the matrix.
+8. Performance/reduction map: T_compute and M_compute per AT beside
+   E_reduction.
+
+MANUSCRIPT (ends 0.5.5)
+9. Atlas coverage matrix: every section, figure, simulation and claim in the
+   Atlas source → todo item → produced artifact. 100% mapped or marked out
+   of scope by the human. Runs as soon as the source lands (0.5.1 item 0)
+   and again at seal.
+10. Figures via the existing generator seam (`scripts/publication_figures/`
+    pattern: `build_figure*()`, semantic spec, semantic audit, generation
+    receipt, equivalence gate), consuming generated Atlas data only.
+11. Claim ledger for the Atlas manuscript: each claim with its
+    claim-conditioned verification V(claim) and evidence path; package
+    capability claims kept apart from scientific-result claims.
+12. Methods from manifests: units, calibration level, tolerances, seeds and
+    versions quoted from generated artifacts, not retyped.
+13. Citations primary-verified (H10) before inclusion.
+14. Manuscript text complete and consistent with the claim ledger;
+    submission is a separate human action.
+
+ACCEPTANCE (0.5.5 seal = end of programme)
+- Existing canonical configurations bit-identical to the frozen baseline.
+- AT-01…AT-10 regenerate from manifests; Atlas and figures reproduce.
+- Coverage matrix 100% (item 9).
+- Programme deltas vs v0.4.25 measured: T_simulation, M_peak, T_test,
+  T_agent_task, E_semantic = 0, C_scientific retained.
+- Every manuscript claim traces to a ledger row with PASS evidence; negative
+  and failed results reported as such.
 
 ## Tracks (parallel after the baseline)
 
