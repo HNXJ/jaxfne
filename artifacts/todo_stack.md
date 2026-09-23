@@ -426,7 +426,6 @@ architecture simplification only with accumulated evidence.
    thin-adapter / independent-primitive / stub; redundant candidates listed,
    no action; 6 open questions incl. tensor-connection scaffolding and
    tutorial dict-engine status).
-5. Audit TFNE→JDNA→Model integration for duplicate construction paths.
 6. Audit/refine current skills against the lifecycle (DONE 2026-09-20:
    coverage map — TFNE/JDNA: jaxfne-core routing only (no dedicated
    skill; gap for item 7 workflow); Model/Simulation: jaxfne-repo +
