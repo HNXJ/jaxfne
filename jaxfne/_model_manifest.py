@@ -223,6 +223,29 @@ def manifest(
                 }
         except Exception:
             pass
+    # 0.5.2 item 4 (dispatcher follow-up): epistemic level carried on the
+    # manifest. FieldOutput/ProbeReadout start RELATIVE_PROXY; only an
+    # AppliedCalibration relabels (fields/probes.py refusal gate). Probe-level
+    # electrode keys (position/reference/filter/synthesized flags) live on
+    # ProbeReadout.report where probes are consumed; the manifest carries
+    # what it can see: the field-level epistemic state.
+    if signals is not None and signals.field is not None:
+        from .fields.probes import (
+            EPISTEMIC_RELATIVE_PROXY,
+            AppliedCalibration,
+            _applied_calibration_to_dict,
+        )
+
+        _field_level = getattr(signals.field, "epistemic_level", EPISTEMIC_RELATIVE_PROXY)
+        _field_cal = getattr(signals.field, "calibration", None)
+        res["field_epistemic"] = {
+            "epistemic_level": _field_level,
+            "applied_calibration": (
+                _applied_calibration_to_dict(_field_cal)
+                if isinstance(_field_cal, AppliedCalibration)
+                else None
+            ),
+        }
     # v0.2.26: computation-basis block
     res["basis"] = _default_basis_dict()
     # v0.2.27: conservation-inspired proxy diagnostics

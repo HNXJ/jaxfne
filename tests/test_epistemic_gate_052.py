@@ -265,3 +265,25 @@ def test_jitted_projection_stays_relative_proxy():
     out = jax.jit(_run)(src, pos)
     assert out.epistemic_level == EPISTEMIC_RELATIVE_PROXY
     assert out.calibration is None
+
+
+# Manifest integration (dispatcher follow-up) ----------------------------------
+
+
+def test_manifest_carries_field_epistemic_level():
+    import jaxfne as J
+
+    cfg = (
+        J.configuration()
+        .network(n=4)
+        .emitter(family="izhikevich", preset="regular_spiking")
+        .field(domain="point")
+        .probe(name="p", modes=["spikes", "V_m", "source", "LFP"])
+    )
+    model = J.construct(cfg)
+    sig = model.simulate(J.simulation(duration_ms=10.0, dt_ms=0.5, seed=0))
+    assert sig.field is not None
+    m = model.manifest(sig)
+    assert m["field_epistemic"]["epistemic_level"] == EPISTEMIC_RELATIVE_PROXY
+    assert m["field_epistemic"]["applied_calibration"] is None
+    assert m["physical_amplitude_calibrated"] is False
