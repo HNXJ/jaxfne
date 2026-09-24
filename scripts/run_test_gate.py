@@ -53,6 +53,12 @@ DEV_PYTEST_TARGETS = [
     "tests/test_tfne_parameter_transfer.py",
 ]
 
+# 0.5.1-4b(4): parallelize the independent pytest sweeps with xdist (already
+# a dev dependency). PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 in PYTEST_ENV means the
+# plugin must be loaded explicitly with -p. The notebook sweep stays serial:
+# its scoped paths exist for Windows kernel/zmq stability under load.
+PYTEST_XDIST_ARGS = ["-p", "xdist", "-n", "auto"]
+
 # Marker selectors for the pytest sweeps.
 #
 # Together these MUST be exhaustive over the (slow, notebook) marker algebra.
@@ -304,6 +310,7 @@ def gate_dev() -> None:
             "-m",
             "not slow and not release",
             "--tb=short",
+            *PYTEST_XDIST_ARGS,
         ],
         family="pytest_dev",
     )
@@ -351,6 +358,7 @@ def gate_broad() -> None:
         BROAD_MARKER_EXPR,
         "--tb=short",
         "-rs",
+        *PYTEST_XDIST_ARGS,
         f"--junitxml={junit_dir / 'rc-pytest-broad.xml'}",
     ]
     for path in BROAD_PYTEST_IGNORE:
@@ -372,6 +380,7 @@ def gate_release() -> None:
         SLOW_MARKER_EXPR,
         "--tb=short",
         "-rs",
+        *PYTEST_XDIST_ARGS,
         f"--junitxml={junit_dir / 'rc-pytest-slow.xml'}",
     ]
     for path in BROAD_PYTEST_IGNORE:
