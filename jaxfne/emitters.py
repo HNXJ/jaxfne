@@ -3184,6 +3184,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     r_bar_init: "float | None" = 8.0,
     record_boundary_components: bool = False,
     step_indices: "jax.Array | None" = None,
+    plasticity_mask: "jax.Array | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate Izhikevich emitters with sparse recurrent synapses and HDP.
 
@@ -3353,6 +3354,13 @@ def simulate_edge_recurrent_izhikevich_hdp(
               "signed_quadratic": dw_mag ~ (H_post - H_pre)|H_post - H_pre|
             separate product modulation:
               "hebbian_product": dw_mag ~ H_pre * H_post
+        plasticity_mask: optional per-edge plasticity gate, shape (n_edges,)
+            (default None = every edge plastic, bit-exact legacy path).
+            Entries > 0.5 stay plastic; all other entries freeze that
+            edge's weight exactly (w_next = w, no clip, no float ops).
+            Non-1D, wrong-length, or non-finite masks raise. Refused with
+            population h_state_locality (per-edge weights there are derived
+            from theta channels, not carried). 0.5.3 item 5 control surface.
         barrier_c, barrier_d: asymmetric double-barrier safety-potential
             coefficients repelling H_i from H_min/H_max respectively
             (default 0.0/0.0, no contribution); for the minimum of
@@ -3471,6 +3479,14 @@ def simulate_edge_recurrent_izhikevich_hdp(
         "theta_eta_a_bounds": theta_eta_a_bounds,
     }
     locality = resolve_h_state_locality(_adaptive_hp)
+    # 0.5.3 item 5: refused before the population layout parse so the error
+    # names the control boundary, not a missing population key.
+    if plasticity_mask is not None and locality == "population":
+        raise ValueError(
+            "plasticity_mask is a node-local control and is refused with "
+            "population h_state_locality (per-edge weights there are "
+            "derived from theta channels, not carried)."
+        )
     pop_layout = None
     theta_lo = theta_hi = None
     if locality == "population":
@@ -3481,6 +3497,22 @@ def simulate_edge_recurrent_izhikevich_hdp(
             dtype=jdtype,
         )
         theta_lo, theta_hi = theta_bounds(pop_layout, dtype=jdtype)
+
+    # 0.5.3 item 5: per-projection plasticity gate. Validated eagerly (this
+    # kernel is eager-only: has_plastic_weights below already branches on
+    # Python bools). plastic_edge=None selects the bit-exact legacy path.
+    if plasticity_mask is not None:
+        _mask_raw = np.asarray(plasticity_mask)
+        if _mask_raw.ndim != 1 or _mask_raw.shape[0] != edges.n_edges:
+            raise ValueError(
+                "plasticity_mask must have shape "
+                f"({edges.n_edges},), got {_mask_raw.shape}"
+            )
+        if not bool(np.all(np.isfinite(_mask_raw))):
+            raise ValueError("plasticity_mask must be finite (got NaN/inf)")
+        plastic_edge = jnp.asarray(_mask_raw > 0.5)
+    else:
+        plastic_edge = None
 
     def _h_component_param(value: Any, name: str) -> jax.Array:
         arr = jnp.asarray(value, dtype=jdtype)
@@ -3873,6 +3905,8 @@ def simulate_edge_recurrent_izhikevich_hdp(
                 dw = jnp.where(exc_mask, dw_exc, dw_inh) + dw_w_ctrl
                 wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
                 w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
+                if plastic_edge is not None:
+                    w_next = jnp.where(plastic_edge, w_next, w)
             else:
                 w_next = w
 
@@ -3989,6 +4023,8 @@ def simulate_edge_recurrent_izhikevich_hdp(
             dw = jnp.where(exc_mask, dw_exc, dw_inh) + dw_w_ctrl
             wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
             w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
+            if plastic_edge is not None:
+                w_next = jnp.where(plastic_edge, w_next, w)
         else:
             w_next = w
 

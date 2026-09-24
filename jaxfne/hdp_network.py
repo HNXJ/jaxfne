@@ -344,6 +344,11 @@ def run(
     kw.update(DEFAULT_HDP)
     if hdp_kwargs:
         kw.update(hdp_kwargs)
+    # 0.5.3 item 5: control-path validation (item-7b helper) -- unknown keys
+    # fail closed here, not as a bare TypeError from inside the kernel.
+    from .hdp_rule import reject_unknown_hdp_kwargs
+
+    reject_unknown_hdp_kwargs(kw, kernel="hdp")
     n_steps = int(round(duration_ms / cfg.dt_ms))
     key = jax.random.PRNGKey(seed)
     voltages, spikes, sources, diagnostics = simulate_edge_recurrent_izhikevich_hdp(
@@ -353,3 +358,174 @@ def run(
     )
     return {"voltages": voltages, "spikes": spikes, "sources": sources,
             "diagnostics": diagnostics, "n_steps": n_steps, "hdp_kwargs": kw}
+
+
+# --- 0.5.3 item 5: plasticity controls (enable / disable / clamp) -----------
+#
+# Declarative per-rule and per-projection controls over HDP weight dynamics.
+# The K_HDP=0 null is the template: disabling zeroes the weight-drive gains
+# (legacy: K_HDP and K_w_ctrl together -- K_HDP=0 alone leaves the K_w_ctrl
+# restoring term live) or freezes edges via ``plasticity_mask``. Clamp holds
+# W exactly: the projection's weights are pinned (see
+# :func:`pin_projection_weights`) and its mask entries are 0, so the kernel
+# carries w_next = w with no float ops on those edges. H dynamics are never
+# frozen by these controls (H != W separation).
+
+PLASTICITY_CONTROL_MODES = ("enable", "disable", "clamp")
+
+
+def projection_mask(n_edges: int, include=None, *, values=None) -> "np.ndarray":
+    """Canonical per-edge boolean mask for one projection (True = plastic).
+
+    Exactly one of ``include`` / ``values``: ``include`` is a sequence of
+    plastic edge indices; ``values`` is a 0/1 array-like of length
+    ``n_edges``. The split keeps 0/1 arrays unambiguous (they are masks,
+    never index sets). Returns ``bool`` of shape ``(n_edges,)``; out of
+    range, wrong length, non-1D, or non-finite input raises (H5).
+    """
+    n = int(n_edges)
+    if (include is None) == (values is None):
+        raise ValueError("projection_mask needs exactly one of include / values")
+    if values is not None:
+        arr = np.asarray(values, dtype=float)
+        if arr.ndim != 1 or arr.shape[0] != n:
+            raise ValueError(
+                f"projection values must have shape ({n},), got {arr.shape}"
+            )
+        if not bool(np.all(np.isfinite(arr))):
+            raise ValueError("projection values must be finite (got NaN/inf)")
+        return arr > 0.5
+    idx = np.asarray(include, dtype=np.int64).reshape(-1)
+    if idx.ndim != 1:
+        raise ValueError(f"projection include must be 1-D, got shape {idx.shape}")
+    if idx.size and (bool((idx < 0).any()) or bool((idx >= n).any())):
+        raise ValueError(f"projection indices out of range for n_edges={n}")
+    mask = np.zeros(n, dtype=bool)
+    mask[idx] = True
+    return mask
+
+
+def _validated_mask(mask) -> "np.ndarray":
+    arr = np.asarray(mask, dtype=float)
+    if arr.ndim != 1:
+        raise ValueError(f"plasticity_mask must be 1-D, got shape {arr.shape}")
+    if not bool(np.all(np.isfinite(arr))):
+        raise ValueError("plasticity_mask must be finite (got NaN/inf)")
+    return arr
+
+
+def enable_plasticity(hdp_kwargs: "Mapping[str, Any]") -> dict:
+    """Return validated plastic kwargs (fail closed on typos, item 7b).
+
+    A stale ``plasticity_mask`` contradicts ``enable`` and raises: enable
+    means every edge plastic, so a mask can only come from a disable/clamp
+    that was not cleared.
+    """
+    from .hdp_rule import reject_unknown_hdp_kwargs
+
+    kw = dict(hdp_kwargs)
+    if "plasticity_mask" in kw:
+        raise ValueError(
+            "enable_plasticity contradicts a present plasticity_mask; clear "
+            "the mask or use disable_plasticity with an all-plastic mask"
+        )
+    reject_unknown_hdp_kwargs(kw, kernel="hdp")
+    return kw
+
+
+def disable_plasticity(
+    hdp_kwargs: "Mapping[str, Any]", *, mask=None
+) -> dict:
+    """Freeze weights: globally (gain zeroing, the K_HDP=0 template) or one
+    projection (mask; gains kept so the rest stays plastic).
+
+    Global disable zeroes ``K_HDP`` and ``K_w_ctrl`` together for legacy
+    rules. For a registered rule it zeroes the ``k_w`` coefficient; rules
+    without a ``k_w`` default cannot be globally disabled this way and
+    raise, directing the caller to an explicit all-zero mask. With ``mask``,
+    the mask is attached (validated 1-D finite; length checked by the
+    kernel) and gains are untouched.
+    """
+    from .hdp_rule import get_hdp_rule, reject_unknown_hdp_kwargs
+
+    kw = dict(hdp_kwargs)
+    reject_unknown_hdp_kwargs(
+        {k: v for k, v in kw.items() if k != "plasticity_mask"}, kernel="hdp"
+    )
+    if mask is None:
+        kw.pop("plasticity_mask", None)
+        rule = kw.get("hdp_rule")
+        if rule is not None:
+            try:
+                descriptor, _ = get_hdp_rule(str(rule))
+            except ValueError:
+                descriptor = None
+            if descriptor is not None:
+                if "k_w" not in descriptor.default_params:
+                    raise ValueError(
+                        f"disable_plasticity: registered rule {rule!r} has no "
+                        "'k_w' coefficient; pass an explicit all-zero mask"
+                    )
+                rp = dict(kw.get("hdp_rule_params") or {})
+                rp["k_w"] = 0.0
+                kw["hdp_rule_params"] = rp
+                return kw
+        kw["K_HDP"] = 0.0
+        kw["K_w_ctrl"] = 0.0
+        return kw
+    kw["plasticity_mask"] = _validated_mask(mask)
+    return kw
+
+
+def clamp_plasticity(
+    hdp_kwargs: "Mapping[str, Any]", *, mask, value: float
+) -> dict:
+    """Clamp one projection: attach its freeze mask (gains untouched, so the
+    rest of the network stays plastic). Pair with
+    :func:`pin_projection_weights` for the pinned ``w0``: clamp holds W
+    exactly at the pinned value. Non-finite ``value`` raises (H5).
+    """
+    from .hdp_rule import reject_unknown_hdp_kwargs
+
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"clamp value must be a finite float, got {value!r}"
+        ) from None
+    if not np.isfinite(v):
+        raise ValueError(f"clamp value must be a finite float, got {value!r}")
+    kw = dict(hdp_kwargs)
+    reject_unknown_hdp_kwargs(
+        {k: v_ for k, v_ in kw.items() if k != "plasticity_mask"}, kernel="hdp"
+    )
+    kw["plasticity_mask"] = _validated_mask(mask)
+    return kw
+
+
+def pin_projection_weights(weights, mask, value: float):
+    """Return weights with the clamped projection pinned to ``value``.
+
+    Takes the SAME mask object as :func:`clamp_plasticity` (True = plastic):
+    the frozen entries (mask False) are set to ``value``. Length mismatch
+    or non-finite value raises. Use the result as the clamped run's initial
+    weights (edge ``weight`` or ``Model.with_hdp_initial_state(w0=...)``);
+    the mask then holds them exactly.
+    """
+    import jax.numpy as jnp
+
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"clamp value must be a finite float, got {value!r}"
+        ) from None
+    if not np.isfinite(v):
+        raise ValueError(f"clamp value must be a finite float, got {value!r}")
+    w = jnp.asarray(weights)
+    m = np.asarray(mask, dtype=bool)
+    if w.ndim != 1 or m.ndim != 1 or w.shape[0] != m.shape[0]:
+        raise ValueError(
+            f"weights {w.shape} and mask {m.shape} must both be 1-D with equal length"
+        )
+    return w.at[~m].set(v)

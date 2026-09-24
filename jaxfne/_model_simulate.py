@@ -125,6 +125,7 @@ def _hdp_kernel_kwargs(hp: Mapping[str, Any]) -> dict[str, Any]:
         "r_H": float(hp.get("r_H", 20.0)),
         "r_bar_init": hp.get("r_bar_init", 8.0),
         "record_boundary_components": bool(hp.get("record_boundary_components", False)),
+        "plasticity_mask": hp.get("plasticity_mask"),
     }
 
 
@@ -748,6 +749,7 @@ def _simulate_continuation_arrays(
                 "hdp_rule": hp["hdp_rule"],
                 "hdp_rule_params": hp.get("hdp_rule_params", {}),
                 "record_weight_trace": bool(hp.get("record_weight_trace", True)),
+                "plasticity_mask": hp.get("plasticity_mask"),
             }
         else:
             hdp_kwargs = _hdp_kernel_kwargs(hp)

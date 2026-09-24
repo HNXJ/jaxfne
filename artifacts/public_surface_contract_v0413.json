@@ -243,6 +243,7 @@
       "k_H",
       "k_L",
       "noise_scale",
+      "plasticity_mask",
       "r_H",
       "r_L",
       "r_bar_init",

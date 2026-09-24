@@ -77,6 +77,9 @@ HDP_PARAM_GROUP_H_DYNAMICS: Final[frozenset[str]] = frozenset(
         # registrable kernel via hdp_rule_params (0.5.3 item 7b: previously
         # flagged as unrecognized although execution relies on it).
         "hdp_rule_params",
+        # Per-edge plasticity gate consumed by both HDP kernels (0.5.3
+        # item 5: enable/disable/clamp per projection).
+        "plasticity_mask",
     }
 )
 
