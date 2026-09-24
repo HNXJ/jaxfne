@@ -586,30 +586,25 @@ ENGINE — sealed 2026-09-24 (commits e91adee + d872816 on dev; receipts in
 - Item 8 (field vis): divergence KEPT (doc-only, zero outputs changed);
   Plotly refuses source-only signals, matplotlib draws declared Φ.
 
-ATLAS
-9. AT-01 physical anchor: Jaxley HH reference (REFUSED if Jaxley absent)
-   against the reduced neuron; spike-time, rate and Vm-feature tolerances
-   declared before the run.
-10. AT-02 pair transmission (individual vs superposed fields, distance
-    law) and AT-03 recurrent E↔I pair (phase, cancellation/reinforcement,
-    frequency-dependent field), with declared delay.
-11. AT-04 geometry/orientation arm (item 3 carries source orientation).
-    Φ → X feedback fails closed unless independently justified. The
-    H-perturbation causal arm (AT-04-R2) is owned by 0.5.3.
-12. AT-05 population field emergence (ρ_sync 0 → 1, A_Φ(N, ρ_sync, r),
-    Φ_N ≠ NΦ_1); AT-06 electrode locality C(R, f) with contact, reference,
-    filter, conductivity and distance declared (needs items 1 and 5).
-13. Reduction row HH → reduced neuron → population source, against the
-    predeclared tolerances; failures recorded. Measurement schema v0 → v1.
-14. Gap matrix updated; the seal note names each cell moved.
+ATLAS — sealed 2026-09-24 (`artifacts/atlas/at01_at06_052.py`, 6 commits):
+- Items 9–12: AT-01 (Jaxley HH anchor, tolerances predeclared; v_peak +
+  spike-time FAILs recorded, not tuned), AT-02/AT-03 (declared delay),
+  AT-04 geometry arm (Φ→X refused), AT-05/AT-06 (C(R,f) proxy; inequality
+  not reached at toy size, owned by 0.5.5 scale matrix). 29 tests green.
+- Item 13: reduction row with predeclared tolerances; schema v0→v1
+  (v0 names stable).
+- Item 14: gap v1 (`atlas_gap_052.md`): 41 IMPLEMENTED / 6 REFUSED /
+  31 OMITTED over AT-01…AT-06; 29 cells moved, named.
+- Candidate rows AT-01-R4/R5, AT-04-R3 marked OUT_OF_SCOPE per human
+  decision 2026-09-24 (no independent evidence yet); scenarios fail
+  closed where they apply. Open deviations recorded: TFNE 16-vs-4
+  contacts (declared-vs-realized); AT-03 single-mechanism bidirectional
+  rule (S27 P post-0.5.5).
 
-ACCEPTANCE (0.5.2 seal)
-- Existing canonical configurations bit-identical, except outputs changed by
-  the authorized PARAM-04 repair, each listed with its receipt.
-- Zero-delay limit bit-identical to pre-0.5.2 execution.
-- Epistemic-level relabel refusal tested adversarially (H5).
-- Firewall gate passes: AT-01…AT-06 use the public surface only.
-- Reduction tolerances and results recorded, PASS or FAIL.
+ACCEPTANCE (0.5.2 seal) — met: canonical configs bit-identical except
+authorized PARAM-04 outputs (none changed); zero-delay bit-identical;
+relabel refusal adversarially tested; firewall passes for AT-01…AT-06;
+reduction tolerances/results recorded PASS and FAIL.
 
 ## 0.5.3 stack — state, plasticity, causality, long time (ENGINE ∥ ATLAS)
 
