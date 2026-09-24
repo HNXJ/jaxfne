@@ -673,3 +673,124 @@ def run_at03() -> dict[str, Any]:
     if out["wall_s"] > WALL_BUDGET_S:
         out["status"] = "OVER_BUDGET"
     return out
+
+
+# ---------------------------------------------------------------------------
+# Item 11: AT-04 geometry/orientation arm (source orientation from item 3).
+# ---------------------------------------------------------------------------
+
+# Declared geometry is relative fractions in [0,1] (0.5.2 decision 0a);
+# outside [0,1] is refused. Same seed across arms isolates the declared
+# geometry effect from JDNA sampling noise.
+AT04_SPEC = (
+    "O[k] := [direction = <>; mechanism = AMPA; probability = 1.0; "
+    "weight = 0.8; delay = {delay}]; "
+    "A := [C = {{E}}; N = 3; G = [z0 = {a0}; z1 = {a1}]]; "
+    "B := [C = {{I}}; N = 3; G = [z0 = {b0}; z1 = {b1}]]; "
+    "x : A O[k] B : y"
+)
+AT04_ARMS = {
+    "stacked": {"a0": 0.0, "a1": 0.5, "b0": 0.5, "b1": 1.0},
+    "swapped": {"a0": 0.5, "a1": 1.0, "b0": 0.0, "b1": 0.5},
+    "overlap": {"a0": 0.25, "a1": 0.75, "b0": 0.25, "b1": 0.75},
+}
+AT04_DURATION_MS = 200.0
+
+
+def _refused_geometry() -> dict[str, Any]:
+    """H5 adversarial: G outside [0,1] must refuse, never execute."""
+    t0 = time.perf_counter()
+    bad = AT04_SPEC.format(delay=DELAY_MS, a0=10.0, a1=20.0, b0=0.0, b1=0.5)
+    try:
+        program = J.tfne.parse(bad)
+        realization = J.tfne.realize(J.tfne.resolve(program), program, seed=SEED)
+        J.tfne.to_configuration(realization, duration_ms=10.0, dt_ms=DT_MS)
+    except Exception as exc:
+        return {
+            "state": "REFUSED",
+            "level": LEVEL_PROXY,
+            "error": f"{type(exc).__name__}: {exc}",
+            "wall_s": time.perf_counter() - t0,
+        }
+    return {
+        "state": "UNEXPECTED_EXECUTION",
+        "level": LEVEL_PROXY,
+        "reason": "G=[10,20] executed; the [0,1] refusal did not fire",
+        "wall_s": time.perf_counter() - t0,
+    }
+
+
+def _realized_z_ranges(
+    neuron_table: list[dict[str, Any]],
+) -> dict[str, dict[str, float]]:
+    out: dict[str, dict[str, float]] = {}
+    by_area: dict[str, list[float]] = {}
+    for row in neuron_table:
+        by_area.setdefault(str(row["area"]), []).append(float(row["z"]))
+    for area, zs in by_area.items():
+        out[area] = {"z_min": float(min(zs)), "z_max": float(max(zs))}
+    return out
+
+
+def run_at04() -> dict[str, Any]:
+    """S4: geometry/orientation arm; correlation only, Phi->X refused.
+
+    Three declared-geometry arms on one coupled pair (item-3 source
+    orientation carried in the source representation Q). Phi->X feedback
+    fails closed (AT-04-R3 OUT_OF_SCOPE); the H-perturbation causal arm
+    belongs to 0.5.3 (AT-04-R2).
+    """
+    t0 = time.perf_counter()
+    arms: dict[str, Any] = {}
+    for name, g in AT04_ARMS.items():
+        run = _tfne_pair_run(AT04_SPEC.format(delay=DELAY_MS, **g), AT04_DURATION_MS, DT_MS)
+        sig = run["signals"]
+        spikes = np.asarray(sig.spikes)
+        decomp = _field_decomposition(run)
+        per = decomp["per_source"]
+        P = decomp["superposed"]
+        table = run["neuron_table"]
+        is_e = np.array([r["cell_type"] == "E" for r in table])
+        phi_e = per[:, is_e, :].sum(axis=1).mean(axis=1)
+        phi_i = per[:, ~is_e, :].sum(axis=1).mean(axis=1)
+        denom = float(np.std(phi_e) * np.std(phi_i))
+        align = float(np.corrcoef(phi_e, phi_i)[0, 1]) if denom > 0 else 0.0
+        arms[name] = {
+            "declared_G": dict(g),
+            "realized_z_ranges": _realized_z_ranges(table),
+            "rate_hz": _rate_hz(spikes.ravel(), DT_MS),
+            "field_mean_abs": float(np.abs(P).mean()),
+            "source_alignment_corr": float(align),
+            "superposition_identity": decomp["superposition_identity"],
+            "wall_s": run["wall_s"],
+        }
+    # X -> Phi correlation across arms (observed association only).
+    rates = np.array([arms[n]["rate_hz"] for n in AT04_ARMS])
+    famps = np.array([arms[n]["field_mean_abs"] for n in AT04_ARMS])
+    x_phi_corr = (
+        float(np.corrcoef(rates, famps)[0, 1]) if float(np.std(rates) * np.std(famps)) > 0 else 0.0
+    )
+    out = {
+        "scenario": "AT-04",
+        "status": "OK",
+        "wall_s": time.perf_counter() - t0,
+        "level": LEVEL_PROXY,
+        "level_note": (
+            "geometry in relative fractions; fields RELATIVE_PROXY; proxy != calibrated"
+        ),
+        "arms": arms,
+        "x_to_phi_correlation_across_arms": float(x_phi_corr),
+        "x_to_phi_note": (
+            "correlation of executed rate vs executed field across "
+            "geometry arms; correlation != causal field feedback"
+        ),
+        "phi_to_x": oos_phi_to_x(),
+        "h_perturbation": {
+            "state": "OMITTED",
+            "reason": "AT-04-R2 causal H arm belongs to 0.5.3",
+        },
+        "geometry_refusal": _refused_geometry(),
+    }
+    if out["wall_s"] > WALL_BUDGET_S:
+        out["status"] = "OVER_BUDGET"
+    return out
