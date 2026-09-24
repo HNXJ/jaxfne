@@ -166,8 +166,15 @@ def test_constructed_probe_synthesizes_contacts():
     import jax.numpy as jnp
     from jaxfne.fields.probes import lfp_proxy_probe
 
-    out = lfp_proxy_probe(jnp.ones((5, 4)), contact_depths=jnp.array([0.2, 0.8]))
+    # 0.5.2 item 5: synthesis without declared field contacts requires the
+    # explicit opt-in and is labeled in the report, never silent.
+    out = lfp_proxy_probe(
+        jnp.ones((5, 4)),
+        contact_depths=jnp.array([0.2, 0.8]),
+        allow_synthesized_field_contacts=True,
+    )
     assert out.report["method"] == "depth_interpolation_on_phi_e_proxy"
+    assert out.report["synthesized_field_contacts"] is True
 
 
 def test_visualization_proxy_needs_only_sources():

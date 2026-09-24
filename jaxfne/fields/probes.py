@@ -70,6 +70,30 @@ def canonical_source(
     )
 
 
+def _electrode_report_fragment(
+    position: Any = None,
+    reference: Any = None,
+    filter_spec: Any = None,
+) -> dict[str, Any]:
+    """Declared probe/electrode semantics for the report (0.5.2 item 5).
+
+    ``position`` (electrode/contact positions), ``reference`` (reference
+    scheme) and ``filter_spec`` (filter declaration) are recorded as declared
+    or explicitly ``"undeclared"``. Declaration only: proxy probes apply no
+    reference arithmetic and no filter; undeclared stays undeclared rather
+    than invented.
+    """
+
+    def _show(v: Any) -> str:
+        return "undeclared" if v is None else str(v)
+
+    return {
+        "position": _show(position),
+        "reference": _show(reference),
+        "filter": _show(filter_spec),
+    }
+
+
 def _unwrap_probe_input(x: jax.Array | CanonicalSource) -> tuple[jax.Array, dict[str, Any]]:
     """Consume ``CanonicalSource | array`` through the one Q point.
 
@@ -410,7 +434,13 @@ def create_probe(
     return ProbeReadout(name=kind, kind=kind, data=data, report=report)
 
 
-def spk_probe(spikes: jax.Array | CanonicalSource) -> ProbeReadout:
+def spk_probe(
+    spikes: jax.Array | CanonicalSource,
+    *,
+    position: Any = None,
+    reference: Any = None,
+    filter_spec: Any = None,
+) -> ProbeReadout:
     """SPK probe operator: expose spike events or spike matrix."""
     spikes, _src = _unwrap_probe_input(spikes)
     return create_probe(
@@ -420,11 +450,17 @@ def spk_probe(spikes: jax.Array | CanonicalSource) -> ProbeReadout:
         units_or_status="binary_spike_indicator",
         input_representation="relative_spike_events",
         assumptions=["spike_array_from_emitter_or_threshold", "binary_or_threshold_values"],
-        extra_fields=_src or None,
+        extra_fields={**_src, **_electrode_report_fragment(position, reference, filter_spec)},
     )
 
 
-def vm_probe(voltage: jax.Array | CanonicalSource) -> ProbeReadout:
+def vm_probe(
+    voltage: jax.Array | CanonicalSource,
+    *,
+    position: Any = None,
+    reference: Any = None,
+    filter_spec: Any = None,
+) -> ProbeReadout:
     """Vm probe operator: expose membrane voltage or native reduced-emitter state."""
     voltage, _src = _unwrap_probe_input(voltage)
     return create_probe(
@@ -437,11 +473,17 @@ def vm_probe(voltage: jax.Array | CanonicalSource) -> ProbeReadout:
             "voltage_from_emitter_native_state",
             "not_physical_membrane_voltage_unless_calibrated",
         ],
-        extra_fields=_src or None,
+        extra_fields={**_src, **_electrode_report_fragment(position, reference, filter_spec)},
     )
 
 
-def source_probe(source: jax.Array | CanonicalSource) -> ProbeReadout:
+def source_probe(
+    source: jax.Array | CanonicalSource,
+    *,
+    position: Any = None,
+    reference: Any = None,
+    filter_spec: Any = None,
+) -> ProbeReadout:
     """Source probe operator: expose current/source proxy."""
     source, _src = _unwrap_probe_input(source)
     return create_probe(
@@ -455,7 +497,7 @@ def source_probe(source: jax.Array | CanonicalSource) -> ProbeReadout:
             "source_from_emitter_native_state",
             "not_physical_membrane_current_unless_calibrated",
         ],
-        extra_fields=_src or None,
+        extra_fields={**_src, **_electrode_report_fragment(position, reference, filter_spec)},
     )
 
 
@@ -463,24 +505,56 @@ def lfp_proxy_probe(
     phi_e: jax.Array | CanonicalSource,
     contact_depths: jax.Array = None,
     field_contact_depths: jax.Array = None,
+    *,
+    position: Any = None,
+    reference: Any = None,
+    filter_spec: Any = None,
+    allow_synthesized_field_contacts: bool = False,
 ) -> ProbeReadout:
     """LFP-proxy probe operator: sample extracellular potential-like state.
 
-    Route note (P8): this CONSTRUCTS a probe readout from ``phi_e`` and
-    synthesizes ``linspace(0, 1)`` field contacts when depths are undeclared
-    — distinct from declared field access (which raises when probes were not
+    Route note (P8): this CONSTRUCTS a probe readout from ``phi_e`` —
+    distinct from declared field access (which raises when probes were not
     requested) and from visualization-only proxies (which never enter
     ``Signals.field``). The three routes are not interchangeable.
+
+    No invented contacts on scientific paths (0.5.2 item 5, extends Rc P4):
+    when ``contact_depths`` is given without ``field_contact_depths``, the
+    call is refused unless ``allow_synthesized_field_contacts=True``
+    explicitly opts into the labeled constructed fallback (synthesized
+    ``linspace(0, 1)`` contacts recorded in the report, never silent).
     """
     phi_e, _src = _unwrap_probe_input(phi_e)
-    extra: dict[str, Any] = dict(_src)
+    extra: dict[str, Any] = {
+        **_src,
+        **_electrode_report_fragment(position, reference, filter_spec),
+    }
+    if position is None and contact_depths is not None:
+        extra["position"] = str(jnp.asarray(contact_depths))
     method = "point_or_finite_contact_phi_proxy"
     data = phi_e
+    assumptions = [
+        "laminar_proxy_field_no_pde",
+        "contact_sample_from_phi_e_proxy",
+        "not_empirically_calibrated",
+    ]
     if contact_depths is not None:
         contact_depths = jnp.asarray(contact_depths)
         if field_contact_depths is None:
+            if not allow_synthesized_field_contacts:
+                raise ValueError(
+                    "lfp_proxy_probe refuses to invent field contacts: "
+                    "contact_depths was given without field_contact_depths. "
+                    "Declare field_contact_depths, or pass "
+                    "allow_synthesized_field_contacts=True to opt into the "
+                    "labeled constructed fallback (synthesized linspace(0, 1))."
+                )
             n = int(phi_e.shape[-1])
             field_contact_depths = jnp.linspace(0.0, 1.0, n, dtype=phi_e.dtype)
+            extra["synthesized_field_contacts"] = True
+            assumptions = assumptions + [
+                "field_contacts_synthesized_explicit_opt_in_not_declared",
+            ]
         data = sample_phi_at_probe_depths(phi_e, field_contact_depths, contact_depths)
         method = "depth_interpolation_on_phi_e_proxy"
         extra["contact_depths_or_layers"] = str(contact_depths)
@@ -492,11 +566,7 @@ def lfp_proxy_probe(
         input_representation="relative_phi_e_proxy",
         data_shape=data.shape,
         units_or_status="proxy_voltage_units_or_V_if_calibrated",
-        assumptions=[
-            "laminar_proxy_field_no_pde",
-            "contact_sample_from_phi_e_proxy",
-            "not_empirically_calibrated",
-        ],
+        assumptions=assumptions,
         extra_fields=extra,
     )
     return ProbeReadout(name="lfp_proxy", kind="lfp_proxy", data=data, report=report)
