@@ -36,7 +36,20 @@ from .diagnostics import (
 
 # Item 3 (0.5.2 ENGINE): the single source representation Q lives in
 # ``fields/probes.py``; this module consumes (never redefines) it.
-from .probes import CanonicalSource, _unwrap_probe_input
+# Item 4: the epistemic gate lives there too; FieldOutput carries the level.
+from .probes import (
+    CanonicalSource,
+    _unwrap_probe_input,
+    _check_epistemic_fields,
+    EPISTEMIC_RELATIVE_PROXY,
+    EPISTEMIC_REDUCED_PHYSICAL,
+    EPISTEMIC_CALIBRATED,
+    EPISTEMIC_LEVELS,
+    CalibrationTransform,
+    AppliedCalibration,
+    EpistemicRefusal,
+    apply_calibration,
+)
 
 
 @dataclass(frozen=True)
@@ -45,6 +58,13 @@ class FieldOutput:
 
     source_proxy, phi_e_proxy, csd_proxy, and lfp_proxy are uncalibrated
     simulation readouts.
+
+    ``epistemic_level`` (0.5.2 item 4) is structural: every field starts
+    ``RELATIVE_PROXY`` and becomes ``REDUCED_PHYSICAL`` or ``CALIBRATED``
+    only through ``fields.probes.apply_calibration`` with an explicit
+    ``CalibrationTransform``. Direct construction at a non-proxy level is
+    refused in ``__post_init__``. The level and calibration record ride in
+    the pytree aux data (static), so jitted projections keep working.
     """
 
     source_proxy: jax.Array
@@ -54,6 +74,11 @@ class FieldOutput:
     kernel: jax.Array
     contact_depths: jax.Array
     diagnostics: dict[str, Any]
+    epistemic_level: str = "RELATIVE_PROXY"
+    calibration: Any = None
+
+    def __post_init__(self) -> None:
+        _check_epistemic_fields(type(self).__name__, self.epistemic_level, self.calibration)
 
     @property
     def phi_e(self) -> jax.Array:
@@ -78,8 +103,9 @@ class FieldOutput:
 
 # Register FieldOutput as a JAX pytree so the projection can run inside
 # jax.jit / scan / vmap and still return its full container (arrays plus the
-# diagnostics dict). Dataclass fields are used as children in declaration
-# order; no auxiliary metadata is needed for round-trip reconstruction.
+# diagnostics dict). Array fields are children in declaration order; the
+# epistemic level and calibration record ride as static aux data (item 4),
+# so jitted projections (which always produce RELATIVE_PROXY) keep working.
 def _field_output_flatten(field_output: FieldOutput):
     return (
         (
@@ -91,12 +117,13 @@ def _field_output_flatten(field_output: FieldOutput):
             field_output.contact_depths,
             field_output.diagnostics,
         ),
-        None,
+        (field_output.epistemic_level, field_output.calibration),
     )
 
 
-def _field_output_unflatten(_aux, children):
-    return FieldOutput(*children)
+def _field_output_unflatten(aux, children):
+    epistemic_level, calibration = aux
+    return FieldOutput(*children, epistemic_level=epistemic_level, calibration=calibration)
 
 
 jax.tree_util.register_pytree_node(

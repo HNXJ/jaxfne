@@ -7,8 +7,8 @@ and physical amplitude claims remain uncalibrated (amplitude_claim_allowed=False
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Optional
+from dataclasses import dataclass, replace as _replace
+from typing import Any, Optional, Union
 
 import jax
 import jax.numpy as jnp
@@ -90,6 +90,177 @@ def _unwrap_probe_input(x: jax.Array | CanonicalSource) -> tuple[jax.Array, dict
     return jnp.asarray(x), {}
 
 
+# Item 4 (0.5.2 ENGINE): epistemic levels + refusal gate.
+#
+# Levels: RELATIVE_PROXY != REDUCED_PHYSICAL != CALIBRATED. Every Phi/Y output
+# starts RELATIVE_PROXY. A proxy becomes CALIBRATED (or REDUCED_PHYSICAL) only
+# through apply_calibration() with an explicit CalibrationTransform declaring
+# units + conductivity + distance; every other relabel path is refused.
+EPISTEMIC_RELATIVE_PROXY = "RELATIVE_PROXY"
+EPISTEMIC_REDUCED_PHYSICAL = "REDUCED_PHYSICAL"
+EPISTEMIC_CALIBRATED = "CALIBRATED"
+EPISTEMIC_LEVELS = (
+    EPISTEMIC_RELATIVE_PROXY,
+    EPISTEMIC_REDUCED_PHYSICAL,
+    EPISTEMIC_CALIBRATED,
+)
+
+
+class EpistemicRefusal(ValueError):
+    """A proxy-to-calibrated relabel was attempted without authority."""
+
+
+def _declared_number(value: Any, *, name: str, positive: bool) -> None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return  # non-numeric declarations are opaque tags; presence is the gate
+    fv = float(value)
+    if not (fv == fv) or abs(fv) == float("inf"):
+        raise EpistemicRefusal(f"CalibrationTransform {name} must be finite; got {value!r}.")
+    if positive and not fv > 0:
+        raise EpistemicRefusal(f"CalibrationTransform {name} must be positive; got {value!r}.")
+    if not positive and not fv >= 0:
+        raise EpistemicRefusal(f"CalibrationTransform {name} must be non-negative; got {value!r}.")
+
+
+@dataclass(frozen=True)
+class CalibrationTransform:
+    """Explicit calibration transform: the only authority that relabels a proxy.
+
+    Declares ``units`` (physical unit string, e.g. ``"V"``), ``conductivity``
+    (S/m value or declared-model tag), and ``distance`` (distance law/value
+    or declared-geometry tag). All three are required; numerics must be
+    finite (conductivity positive, distance non-negative). ``target_level``
+    is ``CALIBRATED`` (default) or ``REDUCED_PHYSICAL``.
+    """
+
+    units: str
+    conductivity: Union[str, float]
+    distance: Union[str, float]
+    target_level: str = EPISTEMIC_CALIBRATED
+    method: str = "explicit_boundary_transform"
+    declared_by: str = ""
+
+    def __post_init__(self) -> None:
+        if self.target_level not in (EPISTEMIC_CALIBRATED, EPISTEMIC_REDUCED_PHYSICAL):
+            raise EpistemicRefusal(
+                "CalibrationTransform target_level must be CALIBRATED or "
+                f"REDUCED_PHYSICAL; got {self.target_level!r}."
+            )
+        if not isinstance(self.units, str) or not self.units.strip():
+            raise EpistemicRefusal("CalibrationTransform requires declared units.")
+        for name, value, positive in (
+            ("conductivity", self.conductivity, True),
+            ("distance", self.distance, False),
+        ):
+            if value is None or (isinstance(value, str) and not value.strip()):
+                raise EpistemicRefusal(f"CalibrationTransform requires declared {name}.")
+            _declared_number(value, name=name, positive=positive)
+
+
+# Private seal: only apply_calibration() in this module mints an
+# AppliedCalibration carrying _SEAL. Anything else (hand-built record,
+# forged dict, direct construction) fails the __post_init__ gate below.
+_SEAL: Any = object()
+
+
+@dataclass(frozen=True)
+class AppliedCalibration:
+    """Sealed record that a proxy output was calibrated via a transform."""
+
+    transform: CalibrationTransform
+    level: str
+    applied_to: str = ""
+    _seal: Any = None
+
+    def __post_init__(self) -> None:
+        if self._seal is not _SEAL:
+            raise EpistemicRefusal(
+                "AppliedCalibration cannot be constructed directly: relabel a proxy "
+                "only via apply_calibration() with an explicit CalibrationTransform."
+            )
+        if not isinstance(self.transform, CalibrationTransform):
+            raise EpistemicRefusal("AppliedCalibration requires a CalibrationTransform.")
+        if self.level != self.transform.target_level:
+            raise EpistemicRefusal(
+                f"AppliedCalibration level {self.level!r} != transform target "
+                f"{self.transform.target_level!r}."
+            )
+
+
+def _applied_calibration_to_dict(cal: "AppliedCalibration") -> dict[str, Any]:
+    t = cal.transform
+    return {
+        "level": cal.level,
+        "applied_to": cal.applied_to,
+        "transform": {
+            "units": t.units,
+            "conductivity": t.conductivity,
+            "distance": t.distance,
+            "target_level": t.target_level,
+            "method": t.method,
+            "declared_by": t.declared_by,
+        },
+    }
+
+
+def _check_epistemic_fields(owner: str, level: str, calibration: Any) -> None:
+    if level not in EPISTEMIC_LEVELS:
+        raise EpistemicRefusal(
+            f"{owner} epistemic_level must be one of {list(EPISTEMIC_LEVELS)}; got {level!r}."
+        )
+    if level == EPISTEMIC_RELATIVE_PROXY:
+        if calibration is not None:
+            raise EpistemicRefusal(
+                f"{owner} at RELATIVE_PROXY must not carry a calibration record."
+            )
+        return
+    if not (
+        isinstance(calibration, AppliedCalibration)
+        and calibration._seal is _SEAL
+        and calibration.level == level
+    ):
+        raise EpistemicRefusal(
+            f"{owner} may become {level} only via apply_calibration() with an "
+            "explicit CalibrationTransform declaring units+conductivity+distance."
+        )
+
+
+def apply_calibration(obj: Any, transform: CalibrationTransform) -> Any:
+    """Relabel a RELATIVE_PROXY output to the transform's target level.
+
+    The only path from proxy to CALIBRATED/REDUCED_PHYSICAL. Refuses (raises
+    :class:`EpistemicRefusal`): a non-transform authority, an incomplete
+    transform, an object carrying no epistemic level, or an object that is
+    already calibrated (no silent re-calibration).
+    """
+    if not isinstance(transform, CalibrationTransform):
+        raise EpistemicRefusal(
+            "Proxy relabel refused: authority must be an explicit "
+            f"CalibrationTransform, got {type(transform).__name__}."
+        )
+    level = getattr(obj, "epistemic_level", None)
+    if level is None:
+        raise EpistemicRefusal(
+            f"Proxy relabel refused: {type(obj).__name__} carries no epistemic level."
+        )
+    if level != EPISTEMIC_RELATIVE_PROXY:
+        raise EpistemicRefusal(
+            f"Proxy relabel refused: already {level}; re-calibration is not silent."
+        )
+    sealed = AppliedCalibration(
+        transform=transform,
+        level=transform.target_level,
+        applied_to=type(obj).__name__,
+        _seal=_SEAL,
+    )
+    try:
+        return _replace(obj, epistemic_level=transform.target_level, calibration=sealed)
+    except TypeError as exc:
+        raise EpistemicRefusal(
+            f"Proxy relabel refused: cannot seal {type(obj).__name__}: {exc}"
+        ) from exc
+
+
 def sample_phi_at_probe_depths(
     phi_e: jax.Array | CanonicalSource,
     field_contact_depths: jax.Array,
@@ -122,12 +293,23 @@ class ProbeReadout:
 
     A probe operator produces data (array or dict) plus a JSON-safe report
     declaring operator status, units, calibration, truth gates, and assumptions.
+
+    ``epistemic_level`` (0.5.2 item 4) is structural, not a report string:
+    every readout starts ``RELATIVE_PROXY`` and becomes ``REDUCED_PHYSICAL``
+    or ``CALIBRATED`` only through :func:`apply_calibration` with an explicit
+    :class:`CalibrationTransform`. Direct construction at a non-proxy level
+    is refused in ``__post_init__``.
     """
 
     name: str
     kind: str
     data: Any
     report: dict[str, Any]
+    epistemic_level: str = "RELATIVE_PROXY"
+    calibration: Optional["AppliedCalibration"] = None
+
+    def __post_init__(self) -> None:
+        _check_epistemic_fields(type(self).__name__, self.epistemic_level, self.calibration)
 
     def to_dict(self) -> dict:
         """Return JSON-safe representation of readout and report."""
@@ -137,6 +319,12 @@ class ProbeReadout:
             "name": self.name,
             "kind": self.kind,
             "data_shape": str(getattr(self.data, "shape", None)),
+            "epistemic_level": self.epistemic_level,
+            "calibration": json_safe(
+                _applied_calibration_to_dict(self.calibration)
+                if self.calibration is not None
+                else None
+            ),
             "report": json_safe(self.report),
         }
 
