@@ -304,3 +304,164 @@ def run_scenario(scenario_id: str) -> dict[str, Any]:
 def run_all() -> dict[str, dict[str, Any]]:
     """Run every toy scenario in AT order; never raises per scenario."""
     return {sid: run_scenario(sid) for sid in SCENARIOS}
+
+
+# ---------------------------------------------------------------------------
+# Measurement vector schema v0 (0.5.1 ATLAS item 6).
+#
+# Y = {X, H, W, Q, Phi_E, Phi_B, SPK, PSD, C, phi, E_reduction, T_compute,
+#      M_compute} per artifacts/project_sources/8_atlas.md ("One common
+# measurement vector"). Semantics per key:
+#
+#   X           fast neural dynamics (membrane/spike state over time)
+#   H           relative biological state (RBS; H != homeostasis)
+#   W           plastic parameters (weights; H may evolve while dW/dt = 0)
+#   Q           source representation consumed by every field probe
+#   Phi_E       electric field / potential proxy at declared epistemic level
+#   Phi_B       magnetic field (B is the magnetic field everywhere)
+#   SPK         spike record (raster / counts / rates)
+#   PSD         power spectra of field observables
+#   C           coherence / locality-style cross measures (incl. C(R,f), C_12)
+#   phi         phase (incl. inter-area Delta phi_12(f))
+#   E_reduction reduction error vs reference on declared observations/tolerance
+#   T_compute   wall-time cost of the simulation
+#   M_compute   peak-memory cost of the simulation
+#
+# Cell states: IMPLEMENTED (value present), OMITTED (absent quantity),
+# REFUSED (refused capability). Never synthesized: a missing value is a
+# marked cell, never an invented number. Schema evolves 0.5.2-0.5.4 and
+# freezes in 0.5.5.
+# ---------------------------------------------------------------------------
+
+Y_KEYS: tuple[str, ...] = (
+    "X",
+    "H",
+    "W",
+    "Q",
+    "Phi_E",
+    "Phi_B",
+    "SPK",
+    "PSD",
+    "C",
+    "phi",
+    "E_reduction",
+    "T_compute",
+    "M_compute",
+)
+
+CELL_STATES: tuple[str, ...] = ("IMPLEMENTED", "OMITTED", "REFUSED")
+
+
+class _Omitted:
+    """Sentinel: absent quantity. Never a value, never arithmetic."""
+
+    _instance = None
+
+    def __new__(cls) -> "_Omitted":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __repr__(self) -> str:  # pragma: no cover
+        return "OMITTED"
+
+    def __bool__(self) -> bool:
+        return False
+
+
+class _Refused:
+    """Sentinel: refused capability. Never a substitute, never a value."""
+
+    _instance = None
+
+    def __new__(cls) -> "_Refused":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __repr__(self) -> str:  # pragma: no cover
+        return "REFUSED"
+
+    def __bool__(self) -> bool:
+        return False
+
+
+OMITTED = _Omitted()
+REFUSED = _Refused()
+
+# v0 toy-pass default per key: (state, note). Only SPK and T_compute are
+# IMPLEMENTED at toy size; Phi_B is REFUSED (no calibrated B beyond proxy
+# exists in 0.5.1 -- candidate rows AT-01-R4, AT-07-R4, AT-10-R7); the rest
+# are OMITTED with the release that owns them.
+_V0_DEFAULTS: dict[str, tuple[str, str]] = {
+    "X": ("OMITTED", "trajectory extraction not in toy pass; 0.5.2 inspection"),
+    "H": ("OMITTED", "H ownership/recording arrives in 0.5.3"),
+    "W": ("OMITTED", "W ownership/recording arrives in 0.5.3"),
+    "Q": ("OMITTED", "single source representation arrives in 0.5.2"),
+    "Phi_E": ("OMITTED", "field contract + epistemic level arrive in 0.5.2"),
+    "Phi_B": ("REFUSED", "no calibrated Phi_B beyond proxy in 0.5.1 (candidate)"),
+    "SPK": ("IMPLEMENTED", "raster shape + count from executed signals"),
+    "PSD": ("OMITTED", "spectral operators arrive in 0.5.2"),
+    "C": ("OMITTED", "C(R,f) / cross-area operators arrive in 0.5.2-0.5.4"),
+    "phi": ("OMITTED", "phase operators arrive in 0.5.2-0.5.4"),
+    "E_reduction": ("OMITTED", "reduction rows with tolerances arrive in 0.5.2+"),
+    "T_compute": ("IMPLEMENTED", "measured wall_s per scenario"),
+    "M_compute": ("OMITTED", "memory harness lives in the 0.5.1 benchmark matrix"),
+}
+
+# Raw-result keys searched (in order) for an executable spike record.
+_SPK_SEARCH = ("spikes", "reduced", "drive_lo", "drive_hi", "fixed_w_a", "fixed_w_b")
+
+
+def _find_spikes(raw: dict[str, Any]) -> dict[str, Any] | None:
+    """Return the first usable spike summary in a raw result, else None."""
+    for key in _SPK_SEARCH:
+        node = raw.get(key)
+        if isinstance(node, dict) and "shape" in node and "n_spikes" in node:
+            return node
+    for value in raw.values():
+        if isinstance(value, dict):
+            found = _find_spikes(value)
+            if found is not None:
+                return found
+    return None
+
+
+def measure(scenario_id: str, raw: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Build the schema-v0 Y record for one executed toy scenario.
+
+    Every key of Y_KEYS is present. Each cell is
+    {"state": IMPLEMENTED|OMITTED|REFUSED, "value": ..., "note": ...} where
+    value is None unless state is IMPLEMENTED.
+    """
+    if scenario_id not in SCENARIOS:
+        raise KeyError(f"unknown scenario {scenario_id!r}; want one of {SCENARIOS}")
+    record: dict[str, dict[str, Any]] = {}
+    for key in Y_KEYS:
+        state, note = _V0_DEFAULTS[key]
+        value: Any = None
+        if key == "SPK" and raw.get("status") == "OK":
+            spikes = _find_spikes(raw)
+            if spikes is not None:
+                value = spikes
+            else:  # executed but unextractable -> absent, never synthesized
+                state, note = "OMITTED", "spikes absent from executed signals"
+        elif key == "T_compute" and isinstance(raw.get("wall_s"), (int, float)):
+            value = {"wall_s": raw["wall_s"]}
+        elif key in ("SPK", "T_compute") and raw.get("status") != "OK":
+            state, note = (
+                ("REFUSED", raw.get("reason", "scenario refused"))
+                if raw.get("status") == "REFUSED"
+                else ("OMITTED", f"scenario {raw.get('status')}: no measurement")
+            )
+        record[key] = {"state": state, "value": value, "note": note}
+    return record
+
+
+def gap_matrix(results: dict[str, dict[str, Any]]) -> dict[str, dict[str, str]]:
+    """Y x AT cell states from executed toy results (drives gap_051.md)."""
+    return {
+        sid: {key: cell["state"] for key, cell in measure(sid, results[sid]).items()}
+        for sid in SCENARIOS
+        if sid in results
+    }
