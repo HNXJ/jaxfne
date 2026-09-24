@@ -85,12 +85,61 @@ class ConnectionCompileResult:
         )
 
 
+class _SelectionIndex:
+    """Per-call inverted index over a neuron table (0.5.1 opt051_2).
+
+    Built once per :func:`compile_connection_rules` call over the union of
+    selector fields used by that call's rules. :meth:`match` reproduces the
+    strict-AND ``str()``-coerced semantics of :func:`_select_indices`, keyed
+    by encounter position; the caller converts matched positions to neuron
+    ids (reading ``neuron_id`` only for matches, exactly like the scan), so
+    tables with ``neuron_id`` absent on non-matching rows behave identically.
+    """
+
+    def __init__(self, neurons: Sequence[Mapping[str, Any]], fields: set[str]) -> None:
+        self._neurons = neurons
+        self._n = len(neurons)
+        self._postings: dict[str, dict[str, list[int]]] = {}
+        for f in fields:
+            post: dict[str, list[int]] = {}
+            for pos in range(self._n):
+                post.setdefault(str(neurons[pos].get(f)), []).append(pos)
+            self._postings[f] = post
+        self._sets: dict[tuple[str, str], set[int]] = {}
+
+    def match(self, keys: dict[str, Any]) -> tuple[bool, list[int]]:
+        """Return (covered, positions). covered=False -> fall back to scan."""
+        if not keys:
+            return True, list(range(self._n))
+        ranked: list[tuple[str, str, list[int]]] = []
+        for f, v in keys.items():
+            post = self._postings.get(f)
+            if post is None:
+                return False, []
+            lst = post.get(str(v))
+            if not lst:
+                return True, []
+            ranked.append((f, str(v), lst))
+        ranked.sort(key=lambda t: len(t[2]))
+        rest = ranked[1:]
+        member: list[set[int]] = []
+        for f, v, _ in rest:
+            key = (f, v)
+            st = self._sets.get(key)
+            if st is None:
+                st = set(self._postings[f][v])
+                self._sets[key] = st
+            member.append(st)
+        return True, [q for q in ranked[0][2] if all(q in st for st in member)]
+
+
 def _select_indices(
     neurons: Sequence[Mapping[str, Any]],
     selector: Mapping[str, Any],
     *,
     allow_empty: bool,
     label: str,
+    _index: "_SelectionIndex | None" = None,
 ) -> list[int]:
     """Resolve a quartet/id selector to neuron_id indices (strict AND)."""
     if not isinstance(selector, Mapping):
@@ -98,6 +147,18 @@ def _select_indices(
     keys = {k: v for k, v in selector.items() if k != "ids" and v is not None}
     ids_filter = selector.get("ids")
     ids_set = set(int(i) for i in ids_filter) if ids_filter is not None else None
+    if _index is not None:
+        covered, positions = _index.match(keys)
+        if covered:
+            out = []
+            for pos in positions:
+                nid = int(neurons[pos]["neuron_id"])
+                if ids_set is not None and nid not in ids_set:
+                    continue
+                out.append(nid)
+            if not out and not allow_empty:
+                raise ValueError(f"selector {dict(selector)!r} ({label}) matched zero neurons")
+            return out
     out: list[int] = []
     for row in neurons:
         if not all(str(row.get(k)) == str(v) for k, v in keys.items()):
@@ -482,6 +543,13 @@ def compile_connection_rules(
     connection_table: list[dict[str, Any]] = []
     skipped: list[str] = []
 
+    _sel_fields: set[str] = set()
+    for _rule in connections:
+        for _side in (_rule.get("source", {}), _rule.get("target", {})):
+            if isinstance(_side, Mapping):
+                _sel_fields.update(k for k, v in _side.items() if k != "ids" and v is not None)
+    _sel_index = _SelectionIndex(neurons, _sel_fields)
+
     for rule_id, rule in enumerate(connections):
         rname = rule.get("name", f"rule_{rule_id}")
         rule_self = bool(rule.get("allow_self_connections", allow_self_connections))
@@ -489,8 +557,8 @@ def compile_connection_rules(
         # zero-match) and ALWAYS raises on a structurally invalid (non-mapping)
         # selector. No try/except here: structural errors must surface loudly,
         # never be silently recorded as an empty-selector skip.
-        pre_ids = _select_indices(neurons, rule.get("source", {}), allow_empty=allow_empty, label=f"{rname}.source")
-        post_ids = _select_indices(neurons, rule.get("target", {}), allow_empty=allow_empty, label=f"{rname}.target")
+        pre_ids = _select_indices(neurons, rule.get("source", {}), allow_empty=allow_empty, label=f"{rname}.source", _index=_sel_index)
+        post_ids = _select_indices(neurons, rule.get("target", {}), allow_empty=allow_empty, label=f"{rname}.target", _index=_sel_index)
         if not pre_ids or not post_ids:
             skipped.append(rname)
             connection_table.append({"name": rname, "n_edges": 0, "status": "skipped_empty_selector"})

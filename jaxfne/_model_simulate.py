@@ -800,8 +800,9 @@ def simulate(
     When ``paradigm`` is a :class:`ParadigmCondition`, its events are
     converted to a ``StimulusSchedule`` and injected.
 
-    JIT is opt-in through ``Simulation(runtime=RuntimeConfig(jit=True))`` or
-    ``runtime(jit=True)``.  The compiled path preserves the same proxy-field
+    JIT defaults to ``"auto"`` (compile iff ``n_steps * n_units > 50000``);
+    override through ``Simulation(runtime=RuntimeConfig(jit=...))``.
+    The compiled path preserves the same proxy-field
     truth status as the eager path. No calibrated amplitude, PDE, or empirical
     claim is introduced by stimulus injection.
 
