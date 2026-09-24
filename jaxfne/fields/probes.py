@@ -7,15 +7,286 @@ and physical amplitude claims remain uncalibrated (amplitude_claim_allowed=False
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any
+from dataclasses import dataclass, replace as _replace
+from typing import Any, Optional, Union
 
 import jax
 import jax.numpy as jnp
 
 
+# Item 3 (0.5.2 ENGINE): single source representation Q.
+#
+# ``CanonicalSource`` is the one source representation consumed by every probe
+# in this module and in ``fields/proxy.py``. It carries a ``[T, N]`` relative
+# array plus its representation/mode/provenance so the S -> F -> P chain can
+# pass Q (not bare arrays) end to end. Every probe also keeps accepting a bare
+# array, which is consumed unchanged (bit-identical outputs); only an explicit
+# ``CanonicalSource`` adds provenance keys to the report.
+CANONICAL_SOURCE_REPRESENTATION = "relative"
+
+
+@dataclass(frozen=True)
+class CanonicalSource:
+    """Single source representation Q: ``[T, N]`` relative source array.
+
+    Q is relative-only: any ``representation`` other than ``"relative"``
+    is refused at construction (physical units arrive only through the
+    item-4 calibration transform, never by relabeling Q).
+    """
+
+    data: jax.Array
+    representation: str = CANONICAL_SOURCE_REPRESENTATION
+    source_mode: str = "caller_supplied"
+    provenance: Optional[dict[str, Any]] = None
+
+    def __post_init__(self) -> None:
+        if self.representation != CANONICAL_SOURCE_REPRESENTATION:
+            raise ValueError(
+                "CanonicalSource Q is relative-only "
+                f"(representation={self.representation!r}); physical units require "
+                "an explicit calibration transform (0.5.2 item 4), not a relabeled Q."
+            )
+        data = jnp.asarray(self.data)
+        if data.ndim != 2:
+            raise ValueError(f"CanonicalSource Q must be 2D [T, N]; got shape {data.shape}")
+        if not isinstance(data, jax.core.Tracer):
+            if not bool(jnp.all(jnp.isfinite(data))):
+                raise ValueError("CanonicalSource Q must be finite.")
+        object.__setattr__(self, "data", data)
+
+
+def canonical_source(
+    data: jax.Array,
+    *,
+    source_mode: str = "caller_supplied",
+    provenance: Optional[dict[str, Any]] = None,
+) -> CanonicalSource:
+    """Build the single source representation Q from a ``[T, N]`` array."""
+    return CanonicalSource(
+        data=jnp.asarray(data),
+        representation=CANONICAL_SOURCE_REPRESENTATION,
+        source_mode=str(source_mode),
+        provenance=dict(provenance) if provenance is not None else None,
+    )
+
+
+def _electrode_report_fragment(
+    position: Any = None,
+    reference: Any = None,
+    filter_spec: Any = None,
+) -> dict[str, Any]:
+    """Declared probe/electrode semantics for the report (0.5.2 item 5).
+
+    ``position`` (electrode/contact positions), ``reference`` (reference
+    scheme) and ``filter_spec`` (filter declaration) are recorded as declared
+    or explicitly ``"undeclared"``. Declaration only: proxy probes apply no
+    reference arithmetic and no filter; undeclared stays undeclared rather
+    than invented.
+    """
+
+    def _show(v: Any) -> str:
+        return "undeclared" if v is None else str(v)
+
+    return {
+        "position": _show(position),
+        "reference": _show(reference),
+        "filter": _show(filter_spec),
+    }
+
+
+def _unwrap_probe_input(x: jax.Array | CanonicalSource) -> tuple[jax.Array, dict[str, Any]]:
+    """Consume ``CanonicalSource | array`` through the one Q point.
+
+    Returns ``(array, report_fragment)``: the array unchanged (bit-identical
+    probe outputs either way) and additive report keys only when Q was given.
+    """
+    if isinstance(x, CanonicalSource):
+        if x.representation != CANONICAL_SOURCE_REPRESENTATION:
+            raise ValueError(
+                "Probe input Q must carry representation "
+                f"{CANONICAL_SOURCE_REPRESENTATION!r}; got {x.representation!r}."
+            )
+        return x.data, {
+            "source_identity": "canonical_source_Q",
+            "source_representation": x.representation,
+            "source_mode": x.source_mode,
+        }
+    return jnp.asarray(x), {}
+
+
+# Item 4 (0.5.2 ENGINE): epistemic levels + refusal gate.
+#
+# Levels: RELATIVE_PROXY != REDUCED_PHYSICAL != CALIBRATED. Every Phi/Y output
+# starts RELATIVE_PROXY. A proxy becomes CALIBRATED (or REDUCED_PHYSICAL) only
+# through apply_calibration() with an explicit CalibrationTransform declaring
+# units + conductivity + distance; every other relabel path is refused.
+EPISTEMIC_RELATIVE_PROXY = "RELATIVE_PROXY"
+EPISTEMIC_REDUCED_PHYSICAL = "REDUCED_PHYSICAL"
+EPISTEMIC_CALIBRATED = "CALIBRATED"
+EPISTEMIC_LEVELS = (
+    EPISTEMIC_RELATIVE_PROXY,
+    EPISTEMIC_REDUCED_PHYSICAL,
+    EPISTEMIC_CALIBRATED,
+)
+
+
+class EpistemicRefusal(ValueError):
+    """A proxy-to-calibrated relabel was attempted without authority."""
+
+
+def _declared_number(value: Any, *, name: str, positive: bool) -> None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return  # non-numeric declarations are opaque tags; presence is the gate
+    fv = float(value)
+    if not (fv == fv) or abs(fv) == float("inf"):
+        raise EpistemicRefusal(f"CalibrationTransform {name} must be finite; got {value!r}.")
+    if positive and not fv > 0:
+        raise EpistemicRefusal(f"CalibrationTransform {name} must be positive; got {value!r}.")
+    if not positive and not fv >= 0:
+        raise EpistemicRefusal(f"CalibrationTransform {name} must be non-negative; got {value!r}.")
+
+
+@dataclass(frozen=True)
+class CalibrationTransform:
+    """Explicit calibration transform: the only authority that relabels a proxy.
+
+    Declares ``units`` (physical unit string, e.g. ``"V"``), ``conductivity``
+    (S/m value or declared-model tag), and ``distance`` (distance law/value
+    or declared-geometry tag). All three are required; numerics must be
+    finite (conductivity positive, distance non-negative). ``target_level``
+    is ``CALIBRATED`` (default) or ``REDUCED_PHYSICAL``.
+    """
+
+    units: str
+    conductivity: Union[str, float]
+    distance: Union[str, float]
+    target_level: str = EPISTEMIC_CALIBRATED
+    method: str = "explicit_boundary_transform"
+    declared_by: str = ""
+
+    def __post_init__(self) -> None:
+        if self.target_level not in (EPISTEMIC_CALIBRATED, EPISTEMIC_REDUCED_PHYSICAL):
+            raise EpistemicRefusal(
+                "CalibrationTransform target_level must be CALIBRATED or "
+                f"REDUCED_PHYSICAL; got {self.target_level!r}."
+            )
+        if not isinstance(self.units, str) or not self.units.strip():
+            raise EpistemicRefusal("CalibrationTransform requires declared units.")
+        for name, value, positive in (
+            ("conductivity", self.conductivity, True),
+            ("distance", self.distance, False),
+        ):
+            if value is None or (isinstance(value, str) and not value.strip()):
+                raise EpistemicRefusal(f"CalibrationTransform requires declared {name}.")
+            _declared_number(value, name=name, positive=positive)
+
+
+# Private seal: only apply_calibration() in this module mints an
+# AppliedCalibration carrying _SEAL. Anything else (hand-built record,
+# forged dict, direct construction) fails the __post_init__ gate below.
+_SEAL: Any = object()
+
+
+@dataclass(frozen=True)
+class AppliedCalibration:
+    """Sealed record that a proxy output was calibrated via a transform."""
+
+    transform: CalibrationTransform
+    level: str
+    applied_to: str = ""
+    _seal: Any = None
+
+    def __post_init__(self) -> None:
+        if self._seal is not _SEAL:
+            raise EpistemicRefusal(
+                "AppliedCalibration cannot be constructed directly: relabel a proxy "
+                "only via apply_calibration() with an explicit CalibrationTransform."
+            )
+        if not isinstance(self.transform, CalibrationTransform):
+            raise EpistemicRefusal("AppliedCalibration requires a CalibrationTransform.")
+        if self.level != self.transform.target_level:
+            raise EpistemicRefusal(
+                f"AppliedCalibration level {self.level!r} != transform target "
+                f"{self.transform.target_level!r}."
+            )
+
+
+def _applied_calibration_to_dict(cal: "AppliedCalibration") -> dict[str, Any]:
+    t = cal.transform
+    return {
+        "level": cal.level,
+        "applied_to": cal.applied_to,
+        "transform": {
+            "units": t.units,
+            "conductivity": t.conductivity,
+            "distance": t.distance,
+            "target_level": t.target_level,
+            "method": t.method,
+            "declared_by": t.declared_by,
+        },
+    }
+
+
+def _check_epistemic_fields(owner: str, level: str, calibration: Any) -> None:
+    if level not in EPISTEMIC_LEVELS:
+        raise EpistemicRefusal(
+            f"{owner} epistemic_level must be one of {list(EPISTEMIC_LEVELS)}; got {level!r}."
+        )
+    if level == EPISTEMIC_RELATIVE_PROXY:
+        if calibration is not None:
+            raise EpistemicRefusal(
+                f"{owner} at RELATIVE_PROXY must not carry a calibration record."
+            )
+        return
+    if not (
+        isinstance(calibration, AppliedCalibration)
+        and calibration._seal is _SEAL
+        and calibration.level == level
+    ):
+        raise EpistemicRefusal(
+            f"{owner} may become {level} only via apply_calibration() with an "
+            "explicit CalibrationTransform declaring units+conductivity+distance."
+        )
+
+
+def apply_calibration(obj: Any, transform: CalibrationTransform) -> Any:
+    """Relabel a RELATIVE_PROXY output to the transform's target level.
+
+    The only path from proxy to CALIBRATED/REDUCED_PHYSICAL. Refuses (raises
+    :class:`EpistemicRefusal`): a non-transform authority, an incomplete
+    transform, an object carrying no epistemic level, or an object that is
+    already calibrated (no silent re-calibration).
+    """
+    if not isinstance(transform, CalibrationTransform):
+        raise EpistemicRefusal(
+            "Proxy relabel refused: authority must be an explicit "
+            f"CalibrationTransform, got {type(transform).__name__}."
+        )
+    level = getattr(obj, "epistemic_level", None)
+    if level is None:
+        raise EpistemicRefusal(
+            f"Proxy relabel refused: {type(obj).__name__} carries no epistemic level."
+        )
+    if level != EPISTEMIC_RELATIVE_PROXY:
+        raise EpistemicRefusal(
+            f"Proxy relabel refused: already {level}; re-calibration is not silent."
+        )
+    sealed = AppliedCalibration(
+        transform=transform,
+        level=transform.target_level,
+        applied_to=type(obj).__name__,
+        _seal=_SEAL,
+    )
+    try:
+        return _replace(obj, epistemic_level=transform.target_level, calibration=sealed)
+    except TypeError as exc:
+        raise EpistemicRefusal(
+            f"Proxy relabel refused: cannot seal {type(obj).__name__}: {exc}"
+        ) from exc
+
+
 def sample_phi_at_probe_depths(
-    phi_e: jax.Array,
+    phi_e: jax.Array | CanonicalSource,
     field_contact_depths: jax.Array,
     probe_contact_depths: jax.Array,
 ) -> jax.Array:
@@ -24,7 +295,7 @@ def sample_phi_at_probe_depths(
     ``phi_e`` is ``(T, C_field)``; ``field_contact_depths`` is ``(C_field,)``;
     ``probe_contact_depths`` is ``(P,)``. Returns ``(T, P)``.
     """
-    phi_e = jnp.asarray(phi_e)
+    phi_e, _ = _unwrap_probe_input(phi_e)
     field_z = jnp.asarray(field_contact_depths, dtype=phi_e.dtype)
     probe_z = jnp.asarray(probe_contact_depths, dtype=phi_e.dtype)
     if phi_e.ndim != 2:
@@ -46,12 +317,23 @@ class ProbeReadout:
 
     A probe operator produces data (array or dict) plus a JSON-safe report
     declaring operator status, units, calibration, truth gates, and assumptions.
+
+    ``epistemic_level`` (0.5.2 item 4) is structural, not a report string:
+    every readout starts ``RELATIVE_PROXY`` and becomes ``REDUCED_PHYSICAL``
+    or ``CALIBRATED`` only through :func:`apply_calibration` with an explicit
+    :class:`CalibrationTransform`. Direct construction at a non-proxy level
+    is refused in ``__post_init__``.
     """
 
     name: str
     kind: str
     data: Any
     report: dict[str, Any]
+    epistemic_level: str = "RELATIVE_PROXY"
+    calibration: Optional["AppliedCalibration"] = None
+
+    def __post_init__(self) -> None:
+        _check_epistemic_fields(type(self).__name__, self.epistemic_level, self.calibration)
 
     def to_dict(self) -> dict:
         """Return JSON-safe representation of readout and report."""
@@ -61,6 +343,12 @@ class ProbeReadout:
             "name": self.name,
             "kind": self.kind,
             "data_shape": str(getattr(self.data, "shape", None)),
+            "epistemic_level": self.epistemic_level,
+            "calibration": json_safe(
+                _applied_calibration_to_dict(self.calibration)
+                if self.calibration is not None
+                else None
+            ),
             "report": json_safe(self.report),
         }
 
@@ -119,7 +407,7 @@ def _make_probe_report(
 
 def create_probe(
     kind: str,
-    data: jax.Array,
+    data: jax.Array | CanonicalSource,
     *,
     method: str,
     units_or_status: str = "proxy_units",
@@ -131,7 +419,9 @@ def create_probe(
 
     Replaces repetitive per-kind probe wrappers with a single entry point.
     """
-    data = jnp.asarray(data)
+    data, _src = _unwrap_probe_input(data)
+    if _src:
+        extra_fields = {**_src, **(extra_fields or {})}
     report = _make_probe_report(
         kind=kind,
         method=method,
@@ -144,8 +434,15 @@ def create_probe(
     return ProbeReadout(name=kind, kind=kind, data=data, report=report)
 
 
-def spk_probe(spikes: jax.Array) -> ProbeReadout:
+def spk_probe(
+    spikes: jax.Array | CanonicalSource,
+    *,
+    position: Any = None,
+    reference: Any = None,
+    filter_spec: Any = None,
+) -> ProbeReadout:
     """SPK probe operator: expose spike events or spike matrix."""
+    spikes, _src = _unwrap_probe_input(spikes)
     return create_probe(
         "spk",
         spikes,
@@ -153,11 +450,19 @@ def spk_probe(spikes: jax.Array) -> ProbeReadout:
         units_or_status="binary_spike_indicator",
         input_representation="relative_spike_events",
         assumptions=["spike_array_from_emitter_or_threshold", "binary_or_threshold_values"],
+        extra_fields={**_src, **_electrode_report_fragment(position, reference, filter_spec)},
     )
 
 
-def vm_probe(voltage: jax.Array) -> ProbeReadout:
+def vm_probe(
+    voltage: jax.Array | CanonicalSource,
+    *,
+    position: Any = None,
+    reference: Any = None,
+    filter_spec: Any = None,
+) -> ProbeReadout:
     """Vm probe operator: expose membrane voltage or native reduced-emitter state."""
+    voltage, _src = _unwrap_probe_input(voltage)
     return create_probe(
         "vm",
         voltage,
@@ -168,11 +473,19 @@ def vm_probe(voltage: jax.Array) -> ProbeReadout:
             "voltage_from_emitter_native_state",
             "not_physical_membrane_voltage_unless_calibrated",
         ],
+        extra_fields={**_src, **_electrode_report_fragment(position, reference, filter_spec)},
     )
 
 
-def source_probe(source: jax.Array) -> ProbeReadout:
+def source_probe(
+    source: jax.Array | CanonicalSource,
+    *,
+    position: Any = None,
+    reference: Any = None,
+    filter_spec: Any = None,
+) -> ProbeReadout:
     """Source probe operator: expose current/source proxy."""
+    source, _src = _unwrap_probe_input(source)
     return create_probe(
         "source",
         source,
@@ -184,31 +497,64 @@ def source_probe(source: jax.Array) -> ProbeReadout:
             "source_from_emitter_native_state",
             "not_physical_membrane_current_unless_calibrated",
         ],
+        extra_fields={**_src, **_electrode_report_fragment(position, reference, filter_spec)},
     )
 
 
 def lfp_proxy_probe(
-    phi_e: jax.Array,
+    phi_e: jax.Array | CanonicalSource,
     contact_depths: jax.Array = None,
     field_contact_depths: jax.Array = None,
+    *,
+    position: Any = None,
+    reference: Any = None,
+    filter_spec: Any = None,
+    allow_synthesized_field_contacts: bool = False,
 ) -> ProbeReadout:
     """LFP-proxy probe operator: sample extracellular potential-like state.
 
-    Route note (P8): this CONSTRUCTS a probe readout from ``phi_e`` and
-    synthesizes ``linspace(0, 1)`` field contacts when depths are undeclared
-    — distinct from declared field access (which raises when probes were not
+    Route note (P8): this CONSTRUCTS a probe readout from ``phi_e`` —
+    distinct from declared field access (which raises when probes were not
     requested) and from visualization-only proxies (which never enter
     ``Signals.field``). The three routes are not interchangeable.
+
+    No invented contacts on scientific paths (0.5.2 item 5, extends Rc P4):
+    when ``contact_depths`` is given without ``field_contact_depths``, the
+    call is refused unless ``allow_synthesized_field_contacts=True``
+    explicitly opts into the labeled constructed fallback (synthesized
+    ``linspace(0, 1)`` contacts recorded in the report, never silent).
     """
-    phi_e = jnp.asarray(phi_e)
-    extra: dict[str, Any] = {}
+    phi_e, _src = _unwrap_probe_input(phi_e)
+    extra: dict[str, Any] = {
+        **_src,
+        **_electrode_report_fragment(position, reference, filter_spec),
+    }
+    if position is None and contact_depths is not None:
+        extra["position"] = str(jnp.asarray(contact_depths))
     method = "point_or_finite_contact_phi_proxy"
     data = phi_e
+    assumptions = [
+        "laminar_proxy_field_no_pde",
+        "contact_sample_from_phi_e_proxy",
+        "not_empirically_calibrated",
+    ]
     if contact_depths is not None:
         contact_depths = jnp.asarray(contact_depths)
         if field_contact_depths is None:
+            if not allow_synthesized_field_contacts:
+                raise ValueError(
+                    "lfp_proxy_probe refuses to invent field contacts: "
+                    "contact_depths was given without field_contact_depths. "
+                    "Declare field_contact_depths, or pass "
+                    "allow_synthesized_field_contacts=True to opt into the "
+                    "labeled constructed fallback (synthesized linspace(0, 1))."
+                )
             n = int(phi_e.shape[-1])
             field_contact_depths = jnp.linspace(0.0, 1.0, n, dtype=phi_e.dtype)
+            extra["synthesized_field_contacts"] = True
+            assumptions = assumptions + [
+                "field_contacts_synthesized_explicit_opt_in_not_declared",
+            ]
         data = sample_phi_at_probe_depths(phi_e, field_contact_depths, contact_depths)
         method = "depth_interpolation_on_phi_e_proxy"
         extra["contact_depths_or_layers"] = str(contact_depths)
@@ -220,22 +566,18 @@ def lfp_proxy_probe(
         input_representation="relative_phi_e_proxy",
         data_shape=data.shape,
         units_or_status="proxy_voltage_units_or_V_if_calibrated",
-        assumptions=[
-            "laminar_proxy_field_no_pde",
-            "contact_sample_from_phi_e_proxy",
-            "not_empirically_calibrated",
-        ],
+        assumptions=assumptions,
         extra_fields=extra,
     )
     return ProbeReadout(name="lfp_proxy", kind="lfp_proxy", data=data, report=report)
 
 
 def csd_proxy_probe(
-    csd: jax.Array,
+    csd: jax.Array | CanonicalSource,
     csd_sign_convention: str = "positive_equals_extracellular_source",
 ) -> ProbeReadout:
     """CSD-proxy probe operator: estimate source-profile-like CSD-proxy readout."""
-    csd = jnp.asarray(csd)
+    csd, _src = _unwrap_probe_input(csd)
     report = _make_probe_report(
         kind="csd_proxy",
         method="divergence_proxy_or_second_derivative_laminar",
@@ -249,6 +591,7 @@ def csd_proxy_probe(
             "not_empirically_calibrated",
         ],
         extra_fields={
+            **_src,
             "CSD_sign_convention": csd_sign_convention,
             "amplitude_semantics": "relative",
             "physical_claim": "proxy_readout",
@@ -279,13 +622,14 @@ def csd_proxy_probe(
 
 
 def eeg_proxy_probe(
-    eeg: jax.Array,
+    eeg: jax.Array | CanonicalSource,
     leadfield_status: str = "toy_or_declared_proxy",
     n_sensors: int = None,
 ) -> ProbeReadout:
     """EEG-proxy probe operator: simulated scalp-channel EEG-proxy readout."""
-    eeg = jnp.asarray(eeg)
+    eeg, _src = _unwrap_probe_input(eeg)
     extra = {
+        **_src,
         "leadfield_status": leadfield_status,
         "sensor_geometry_status": "simulated_minimal",
         "amplitude_semantics": "relative",
@@ -333,7 +677,7 @@ def eeg_proxy_probe(
 
 
 def meg_proxy_probe(
-    meg: jax.Array,
+    meg: jax.Array | CanonicalSource,
     leadfield_status: str = "toy_or_declared_proxy",
     orientation_convention: str = "declared",
     n_sensors: int = None,
@@ -344,9 +688,10 @@ def meg_proxy_probe(
     ``orientation_convention`` is retained as a compatibility argument and is
     not interpreted as a current-orientation claim.
     """
-    meg = jnp.asarray(meg)
+    meg, _src = _unwrap_probe_input(meg)
     _ = orientation_convention  # compatibility argument; not a current-orientation claim
     extra = {
+        **_src,
         "leadfield_status": leadfield_status,
         "sensor_geometry_status": "simulated_minimal",
         "orientation_convention": "none",
@@ -399,11 +744,11 @@ def meg_proxy_probe(
 
 
 def emm_proxy_probe(
-    emm: jax.Array,
+    emm: jax.Array | CanonicalSource,
     method: str = "normalized_activity_field_source_cost_proxy",
 ) -> ProbeReadout:
     """EMM-proxy probe operator: electromagnetic metabolism estimate proxy."""
-    emm = jnp.asarray(emm)
+    emm, _src = _unwrap_probe_input(emm)
     report = _make_probe_report(
         kind="emm_proxy",
         method=method,
@@ -417,12 +762,13 @@ def emm_proxy_probe(
             "relative_within_run_comparison_only",
             "proxy_electrophysiological_field_activity_cost",
         ],
+        extra_fields=_src or None,
     )
     return ProbeReadout(name="emm_proxy", kind="emm_proxy", data=emm, report=report)
 
 
 def _leadfield_proxy_transform(
-    source: jax.Array, leadfield: jax.Array, *, param_name: str
+    source: jax.Array | CanonicalSource, leadfield: jax.Array, *, param_name: str
 ) -> jax.Array:
     """Shared linear leadfield projection behind ``eeg_proxy_transform``/``meg_proxy_transform``.
 
@@ -433,7 +779,7 @@ def _leadfield_proxy_transform(
     (jaxfne-harden rule 10; merged 2026-07-21, both public names kept as thin
     backward-compatible wrappers, zero call-site changes required).
     """
-    source = jnp.asarray(source)
+    source, _ = _unwrap_probe_input(source)
     leadfield = jnp.asarray(leadfield)
 
     if source.ndim != 2:
@@ -451,7 +797,7 @@ def _leadfield_proxy_transform(
 
 
 def eeg_proxy_transform(
-    source: jax.Array,
+    source: jax.Array | CanonicalSource,
     leadfield: jax.Array,
 ) -> jax.Array:
     """Compute EEG-proxy readout via linear leadfield projection."""
@@ -459,7 +805,7 @@ def eeg_proxy_transform(
 
 
 def meg_proxy_transform(
-    source_oriented: jax.Array,
+    source_oriented: jax.Array | CanonicalSource,
     leadfield: jax.Array,
 ) -> jax.Array:
     """Compute MEG-proxy readout via linear leadfield projection."""
@@ -467,17 +813,17 @@ def meg_proxy_transform(
 
 
 def emm_proxy_transform(
-    spike_rate: jax.Array,
-    source: jax.Array,
-    field_potential: jax.Array,
+    spike_rate: jax.Array | CanonicalSource,
+    source: jax.Array | CanonicalSource,
+    field_potential: jax.Array | CanonicalSource,
     lambda_spk: float = 1.0,
     lambda_src: float = 1.0,
     lambda_field: float = 1.0,
 ) -> jax.Array:
     """Compute EMM-proxy (normalized activity/source/field cost) readout."""
-    spike_rate = jnp.asarray(spike_rate)
-    source = jnp.asarray(source)
-    field_potential = jnp.asarray(field_potential)
+    spike_rate, _ = _unwrap_probe_input(spike_rate)
+    source, _ = _unwrap_probe_input(source)
+    field_potential, _ = _unwrap_probe_input(field_potential)
 
     if spike_rate.ndim == 1:
         spike_rate = spike_rate[:, None]
