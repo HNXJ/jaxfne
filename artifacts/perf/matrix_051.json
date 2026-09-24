@@ -826,30 +826,30 @@
       "n_edges": 4747700,
       "delay_steps_max": null,
       "scaffold_ms": {
-        "single_column_probe_ms": 6607.026499928907
+        "single_column_probe_ms": 5134.612699970603
       },
       "phases_ms": {
-        "construct_ms": 84009.78279998526,
-        "simulate_first_call_ms": 3536.6553000640124,
-        "simulate_warm_ms_median": 2491.0874001216143,
+        "construct_ms": 43757.758599938825,
+        "simulate_first_call_ms": 2727.742899907753,
+        "simulate_warm_ms_median": 1848.0097998399287,
         "simulate_warm_ms_range": [
-          2445.6266998313367,
-          2556.6260998602957
+          1845.923300134018,
+          1909.1477000620216
         ],
         "simulate_warm_ms_all": [
-          2491.0874001216143,
-          2445.6266998313367,
-          2556.6260998602957
+          1848.0097998399287,
+          1909.1477000620216,
+          1845.923300134018
         ],
-        "compile_est_ms": 1045.567899942398,
-        "probe_observe_ms": 0.018700025975704193,
-        "manifest_ms": 184.0727999806404
+        "compile_est_ms": 879.7331000678241,
+        "probe_observe_ms": 0.015099998563528061,
+        "manifest_ms": 150.7030997890979
       },
       "rss_mb": {
-        "after_construct": 727.457792,
-        "after_first_sim": 865.1776,
-        "after_warm": 908.222464,
-        "cell_peak": 1289.13408
+        "after_construct": 717.914112,
+        "after_first_sim": 851.68128,
+        "after_warm": 896.032768,
+        "cell_peak": 1285.40672
       },
       "recording": {
         "spikes": {
@@ -870,7 +870,7 @@
         "coupled: n=20000 edges=4747700 inter_est=432000 frac=0.09099142742801777",
         "simulate backend edge_list (dense 20k^2 infeasible)"
       ],
-      "wall_s": 101.83907175064087
+      "wall_s": 57.3815643787384
     }
   ]
 }
