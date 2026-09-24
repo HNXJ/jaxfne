@@ -7,8 +7,9 @@ order[A], and contextual atomicity — verified by semantic class across
 TFNE -> JDNA completion -> JaxFNE Model -> executed model. Asymmetric
 values throughout so accidental defaults cannot pass.
 
-PARAM-02 (delay) and PARAM-04 (geometry) are not repaired here: both are
-pinned as bounded refusal/inertness alongside the working chain.
+PARAM-04 (geometry) is repaired here: declared relative sub-ranges reach
+executed positions and outside-[0,1] ranges refuse. PARAM-02 (delay) is
+still pinned as a bounded refusal alongside the working chain.
 """
 
 import numpy as np
@@ -31,7 +32,7 @@ O[aux] := [direction = >; mechanism = AMPA; weight = 0.375];
 out[V1] := [L23];
 in[V2] := [L4];
 order[V1] := [L5, L23, L4, SEG.2, SEG.1];
-L4 := [C = {E}; N = 2; G = [z0 = 0.0; z1 = 4.0]];
+L4 := [C = {E}; N = 2; G = [z0 = 0.0; z1 = 0.75]];
 L23 := [C = {E, PV}; P = {E: 0.667, PV: 0.333}; N = 3];
 L5 := [C = {E}; N = 1];
 SEG := [C = {E}; N = 1];
@@ -151,25 +152,26 @@ def test_developmental_provenance_per_leaf():
     assert out["origins"]["V.V1.L4"]["positions"] == JDNA_SAMPLED
     pos = np.asarray(out["positions"]["V.V1.L4"])
     assert pos.shape == (2, 3)
-    assert float(pos[:, 2].min()) >= 0.0 and float(pos[:, 2].max()) <= 4.0
+    assert float(pos[:, 2].min()) >= 0.0 and float(pos[:, 2].max()) <= 0.75
     again = complete_tfne(r, seed=7)["positions"]
     for leaf in again:
         assert bool((np.asarray(again[leaf])
                      == np.asarray(out["positions"][leaf])).all())
 
 
-def test_geometry_bounded_param04_untouched():
-    """PARAM-04 stays bounded, not repaired: at equal seed the executed
-    positions ignore the declared range, while JDNA honors it above."""
-    r1 = _ctx(seed=11)[2]
-    other = CTX.replace("z1 = 4.0", "z1 = 40.0")
-    prog = parse(other)
-    r2 = realize(resolve(prog), prog, seed=11)
-    m1 = jaxfne.construct(to_configuration(r1, duration_ms=5.0, dt_ms=0.1))
-    m2 = jaxfne.construct(to_configuration(r2, duration_ms=5.0, dt_ms=0.1))
-    z1 = np.array([row["z"] for row in m1.neuron_table()])
-    z2 = np.array([row["z"] for row in m2.neuron_table()])
-    assert bool((z1 == z2).all())
+def test_geometry_outside_unit_interval_refused():
+    """PARAM-04 repair complement: the old inert ranges refuse at resolve.
+
+    The fixture declares a relative sub-range (z1 = 0.75); the pre-repair
+    inert values it replaced (z1 = 4.0, and 40.0) are outside [0,1] and
+    now fail closed with `E_GEOMETRY_OUT_OF_RANGE` instead of executing.
+    Executed-sub-range coverage lives in
+    `test_declared_geometry_reaches_the_executed_positions`.
+    """
+    for bad_z1 in ("4.0", "40.0"):
+        other = CTX.replace("z1 = 0.75", f"z1 = {bad_z1}")
+        with pytest.raises(TFNEError, match="E_GEOMETRY_OUT_OF_RANGE"):
+            resolve(parse(other))
 
 
 def test_plastic_provenance_without_execution_effect():

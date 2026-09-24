@@ -166,7 +166,10 @@ class TFNEFrontierUnresolved(TFNEError):
 
 class TFNEInvalidProportion(TFNEError):
     """An invalid proportion, count, or type specification in a
-    declaration body (S5/S25)."""
+    declaration body (S5/S25). Also covers TFNE `G` geometry bounds:
+    relative coordinates are fractions of the area's extent in [0,1]
+    (0.5.2 decision 0a), so the same class refuses out-of-range,
+    half-declared, degenerate or non-finite geometry bounds."""
 
 
 class TFNEMechanismUnresolved(TFNEError):
@@ -1289,6 +1292,63 @@ def _allocate_counts(cell_types: Sequence[str],
     return counts, {c: float(proportions[c]) for c in ctypes}
 
 
+def _validate_geometry_body(where: str, geometry: Mapping[str, Any]) -> None:
+    """Refuse a TFNE `G` body that is not relative [0,1] coordinates.
+
+    0.5.2 decision 0a: a declared range is a pair of fractions of the
+    area's extent, within [0,1]; a range outside [0,1] is refused. A
+    half-declared axis (one bound only), a degenerate range (`hi <= lo`)
+    and non-finite bounds are refused alongside, mirroring JDNA's
+    `_axis_range` refusal rather than inventing a second policy. An
+    undeclared axis defaults to the full extent downstream; `distribution`
+    and unknown keys pass through untouched (distribution support is a
+    downstream concern, not a language one).
+    """
+    for axis in ("x", "y", "z"):
+        lo_key, hi_key, range_key = f"{axis}0", f"{axis}1", f"{axis}_range"
+        if range_key in geometry:
+            pair = geometry[range_key]
+            try:
+                lo, hi = float(pair[0]), float(pair[1])
+            except (TypeError, ValueError, IndexError):
+                raise TFNEInvalidProportion(
+                    f"E_GEOMETRY_OUT_OF_RANGE: {where}: G {range_key} must be "
+                    f"a [lo; hi] pair of numbers in [0,1]; got {pair!r}")
+            bounds = (lo, hi)
+        else:
+            lo = geometry.get(lo_key)
+            hi = geometry.get(hi_key)
+            if lo is None and hi is None:
+                continue
+            if lo is None or hi is None:
+                raise TFNEInvalidProportion(
+                    f"E_GEOMETRY_OUT_OF_RANGE: {where}: partial {axis} "
+                    f"domain declares only one bound ({lo_key}={lo!r}, "
+                    f"{hi_key}={hi!r}); a half-domain cannot be honoured "
+                    f"exactly, so it is refused rather than half-defaulted")
+            try:
+                bounds = (float(lo), float(hi))
+            except (TypeError, ValueError):
+                raise TFNEInvalidProportion(
+                    f"E_GEOMETRY_OUT_OF_RANGE: {where}: G {axis} bounds "
+                    f"must be numbers in [0,1]; got ({lo!r}, {hi!r})")
+        lo, hi = bounds
+        if not (bool(np.isfinite(lo)) and bool(np.isfinite(hi))):
+            raise TFNEInvalidProportion(
+                f"E_GEOMETRY_OUT_OF_RANGE: {where}: G {axis} bounds must "
+                f"be finite numbers in [0,1]; got ({lo!r}, {hi!r})")
+        if not (0.0 <= lo <= 1.0 and 0.0 <= hi <= 1.0):
+            raise TFNEInvalidProportion(
+                f"E_GEOMETRY_OUT_OF_RANGE: {where}: G {axis} range "
+                f"({lo}, {hi}) lies outside [0,1]; declared geometry is "
+                f"relative (fractions of the area's extent), so an "
+                f"outside range is refused rather than rescaled")
+        if not hi > lo:
+            raise TFNEInvalidProportion(
+                f"E_GEOMETRY_OUT_OF_RANGE: {where}: degenerate G {axis} "
+                f"domain [{lo}, {hi}]; bounds must order")
+
+
 @dataclass(frozen=True)
 class _Expansion:
     """What expanding one expression contributes to its parent.
@@ -1673,6 +1733,7 @@ class _Resolver:
                 raise TFNEInvalidProportion(
                     f"{where}: G must be a [k = v; ...] body")
             geometry = dict(raw_g["dict"])
+            _validate_geometry_body(where, geometry)
         model = props.get("model", DEFAULT_MODEL)
         if isinstance(model, Mapping):
             raise TFNEInvalidProportion(f"{where}: model must be a name")
@@ -2627,6 +2688,73 @@ def flatten(text: str, seed: Optional[int] = None) -> Realization:
 # NeuronalTensor bridge (explicit typed neural model)
 # --------------------------------------------------------------------------- #
 
+def _tfne_area_of(path: str) -> str:
+    """Top-level scope: the area a realized leaf belongs to."""
+    return path.split(".")[0]
+
+
+def _tfne_layer_of(path: str) -> str:
+    """Nearest named scope below the area root: for V1.L1 the leaf itself
+    (laminar layer L1); for V1.g0.L1 the group g0."""
+    segments = path.split(".")
+    if len(segments) >= 2:
+        return segments[1]
+    return segments[0]
+
+
+def _tfne_geometry_domains(
+    explicit: ExplicitModel,
+) -> dict[str, dict[str, dict[str, list[float]]]]:
+    """Per-(area, layer) declared geometry domains for construction.
+
+    Reads each realized leaf's `G` body (already validated relative [0,1]
+    at resolve time) and groups by the same (area, layer) mapping
+    :func:`to_neuronal_tensor` samples positions under, so the construction
+    stage can honour the declaration at the block it actually samples. An
+    undeclared axis is unconstrained: the block keeps its historical extent
+    for it. Blocks with no non-full declaration are omitted, so
+    construction without a sub-range declaration takes the historical code
+    path unchanged (bit-identical).
+
+    One sampled block cannot honour two different declared domains on one
+    axis, so that is refused (`E_GEOMETRY_AMBIGUOUS`) rather than averaged;
+    a single declaration wins for the whole block (undeclared leaves
+    inherit the block domain).
+    """
+    declared: dict[tuple[str, str], dict[str, set[tuple[float, float]]]] = {}
+    for path in explicit.order:
+        rec = explicit.nodes[path]
+        if rec.kind != "object":
+            continue
+        key = (_tfne_area_of(path), _tfne_layer_of(path))
+        geo = rec.geometry or {}
+        for axis in ("x", "y", "z"):
+            if f"{axis}_range" in geo:
+                lo, hi = geo[f"{axis}_range"]
+                val: tuple[float, float] | None = (float(lo), float(hi))
+            else:
+                lo, hi = geo.get(f"{axis}0"), geo.get(f"{axis}1")
+                val = None if lo is None or hi is None else (float(lo), float(hi))
+            if val is not None:
+                declared.setdefault(key, {}).setdefault(axis, set()).add(val)
+    out: dict[str, dict[str, dict[str, list[float]]]] = {}
+    for (area, layer), axes in declared.items():
+        block: dict[str, list[float]] = {}
+        for axis, vals in axes.items():
+            if len(vals) > 1:
+                raise TFNEError(
+                    f"E_GEOMETRY_AMBIGUOUS: leaves in layer "
+                    f"{area!r}/{layer!r} declare different {axis} domains "
+                    f"({sorted(vals)}); one sampled block cannot honour "
+                    f"both exactly")
+            (lo, hi), = vals
+            if (lo, hi) != (0.0, 1.0):
+                block[axis] = [lo, hi]
+        if block:
+            out.setdefault(area, {})[layer] = block
+    return out
+
+
 def to_neuronal_tensor(explicit: ExplicitModel):
     """Map an explicit model onto a JaxFNE ``NeuronalTensor``.
 
@@ -2659,7 +2787,7 @@ def to_neuronal_tensor(explicit: ExplicitModel):
               if explicit.nodes[p].kind == "object"]
 
     def top(path: str) -> str:
-        return path.split(".")[0]
+        return _tfne_area_of(path)
 
     def area_of(path: str) -> str:
         return top(path)
@@ -2667,10 +2795,7 @@ def to_neuronal_tensor(explicit: ExplicitModel):
     def layer_of(path: str) -> str:
         # Nearest named scope strictly below the area root: for V1.L1 this is
         # the leaf itself (laminar layer L1); for V1.g0.L1 the group g0.
-        segments = path.split(".")
-        if len(segments) >= 2:
-            return segments[1]
-        return segments[0]
+        return _tfne_layer_of(path)
 
     areas: dict[str, list[str]] = {}
     for leaf in leaves:
@@ -2795,6 +2920,14 @@ def to_configuration(realization: Realization, *,
     magnitude plus an explicit ``sign``, because an unsigned rule would
     otherwise inherit the presynaptic neuron's intrinsic sign and silently
     overrule what the specification declared.
+
+    Declared geometry reaches execution as fractions of each sampled
+    block's extent: per-(area, layer) sub-range domains are resolved by
+    :func:`_tfne_geometry_domains` and recorded in
+    ``metadata["tfne_geometry"]`` (relative, ``value_tag="relative"``),
+    which the construction stage samples instead of the full block.
+    Layers without a sub-range declaration take the historical path
+    unchanged.
     """
     from dataclasses import replace as _replace
 
@@ -2858,6 +2991,15 @@ def to_configuration(realization: Realization, *,
     circuit["mechanisms"] = mechanisms
     metadata["circuit"] = circuit
     metadata["tfne_digest"] = explicit.digest
+    geo_domains = _tfne_geometry_domains(explicit)
+    if geo_domains:
+        metadata["tfne_geometry"] = {
+            "value_tag": "relative",
+            "declared": {
+                p: dict(rec.geometry) for p, rec in explicit.nodes.items()
+                if rec.kind == "object" and rec.geometry},
+            "domains": geo_domains,
+        }
     return _replace(cfg, metadata=metadata)
 
 

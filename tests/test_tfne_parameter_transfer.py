@@ -334,31 +334,26 @@ def test_synaptic_tau_does_not_depend_on_the_integration_timestep():
         f"synaptic tau varies with the integration timestep: {taus}")
 
 
-def test_declared_geometry_does_not_reach_the_executed_positions():
-    """TFNE-PARAM-04, pinned: geometry is realized but not executed.
+def test_declared_geometry_reaches_the_executed_positions():
+    """TFNE-PARAM-04, repaired (0.5.2 decision 0a): geometry is executed.
 
-    Geometry is the one semantic class where a declared value still does not
-    survive. `G = [z0 = ...; z1 = ...]` is recorded faithfully in
-    `s["geometry"]`, but at equal seed the executed positions are
-    bit-identical whatever range is declared -- (0,1), (10,20) and (-5,-4)
-    all sample the same z.
-    A `value_tag="relative"` normalization would still let the declared extent
-    matter; identical output means the declaration is inert.
+    A declared sub-range of [0,1] is a fractional domain of the area's
+    extent: at equal seed the executed positions fall inside it and differ
+    from the full-extent run. No `G` (or a declared full [0,1] range) takes
+    the historical path bit-identically. A range outside [0,1] is refused
+    (`E_GEOMETRY_OUT_OF_RANGE`) rather than rescaled: relative coordinates
+    must not acquire physical semantics.
 
     This matters because geometry is what field observables are computed
-    against, so an LFP-style claim would rest on coordinates the
-    specification did not choose.
-
-    Asserted as the *current* state, not as correct. When PARAM-04 is
-    repaired this test fails and must be inverted to require the declared
-    range -- that is the point of pinning it rather than describing it.
+    against; before the repair an LFP-style claim would have rested on
+    coordinates the specification did not choose.
     """
-    def executed_z(z0, z1):
+    def executed_z(z0=None, z1=None):
+        gdecl = f"; G = [z0 = {z0}; z1 = {z1}]" if z0 is not None else ""
         spec = (
             "O[k] := [direction = >; mechanism = AMPA; probability = 1.0;\n"
             "         weight = 0.5];\n"
-            f"A := [C = {{E}}; N = 60; model = izhikevich; "
-            f"G = [z0 = {z0}; z1 = {z1}]];\n"
+            f"A := [C = {{E}}; N = 60; model = izhikevich{gdecl}];\n"
             "x : A : y\n"
         )
         program = parse(spec)
@@ -371,20 +366,60 @@ def test_declared_geometry_does_not_reach_the_executed_positions():
             to_configuration(r, duration_ms=5.0, dt_ms=DT_MS))
         return r, np.asarray(model.params["positions"])[:, 2]
 
+    r_bare, z_bare = executed_z()
     r_unit, z_unit = executed_z(0.0, 1.0)
-    r_far, z_far = executed_z(10.0, 20.0)
+    r_sub, z_sub = executed_z(0.2, 0.5)
 
-    # realization keeps the declaration
+    # realization keeps every declaration (absence included)
+    assert r_bare.s["geometry"] == {}
     assert r_unit.s["geometry"]["A"] == {"z0": 0.0, "z1": 1.0}
-    assert r_far.s["geometry"]["A"] == {"z0": 10.0, "z1": 20.0}
+    assert r_sub.s["geometry"]["A"] == {"z0": 0.2, "z1": 0.5}
 
-    # execution ignores it entirely
-    assert np.allclose(z_unit, z_far), (
-        "declared geometry now reaches the executed positions -- TFNE-PARAM-04 "
-        "appears repaired; invert this test to require the declared range")
-    assert z_far.max() <= 1.0 + 1e-6, (
-        f"executed z max {z_far.max()} left the unit interval; the "
-        "normalization assumption behind this pin has changed")
+    # no declaration (or a full range) is the historical path, bit-identically
+    assert bool((z_bare == z_unit).all())
+
+    # a sub-range changes the executed positions and bounds them
+    assert not np.allclose(z_unit, z_sub), (
+        "declared sub-range left the executed positions unchanged; "
+        "TFNE-PARAM-04 is not repaired")
+    assert float(z_sub.min()) >= 0.2 and float(z_sub.max()) <= 0.5, (
+        f"executed z [{z_sub.min()}, {z_sub.max()}] escaped the declared "
+        "fractional domain [0.2, 0.5]")
+
+    # outside [0,1] is refused, not rescaled
+    for z0, z1 in ((10.0, 20.0), (-5.0, -4.0)):
+        bad = (
+            "O[k] := [direction = >; mechanism = AMPA; probability = 1.0;\n"
+            "         weight = 0.5];\n"
+            f"A := [C = {{E}}; N = 60; model = izhikevich; "
+            f"G = [z0 = {z0}; z1 = {z1}]];\n"
+            "x : A : y\n"
+        )
+        with pytest.raises(TFNEError, match="E_GEOMETRY_OUT_OF_RANGE"):
+            resolve(parse(bad))
+
+
+def test_conflicting_geometry_in_one_sampled_block_is_refused():
+    """One sampled (area, layer) block cannot honour two declared domains.
+
+    Two leaves under one composite group share the sampled block; distinct
+    declared z domains for that block are refused (`E_GEOMETRY_AMBIGUOUS`)
+    rather than averaged. A single declaration wins for the block (covered
+    by the CTX-01 chain, where undeclared leaves inherit it).
+    """
+    spec = (
+        "O[k] := [direction = >; mechanism = AMPA];\n"
+        "A := [C = {E}; N = 2; G = [z0 = 0.0; z1 = 0.5]];\n"
+        "B := [C = {E}; N = 2; G = [z0 = 0.25; z1 = 0.75]];\n"
+        "V := {A O[k] B};\n"
+        "x : V : y\n"
+    )
+    program = parse(spec)
+    explicit = resolve(program)
+    r = realize(explicit, program, seed=0)
+    assert r.s["geometry"]["V.g0.A"] == {"z0": 0.0, "z1": 0.5}
+    with pytest.raises(TFNEError, match="E_GEOMETRY_AMBIGUOUS"):
+        to_configuration(r, duration_ms=DURATION_MS, dt_ms=DT_MS)
 
 
 # --------------------------------------------------------------------------- #

@@ -174,6 +174,19 @@ def manifest(
     res["backend_metadata"] = backend_meta
     if "geometry" in self.static:
         res["source_geometry"] = self.static["geometry"]
+    # 0.5.2 PARAM-04: TFNE-declared relative geometry, recorded only when a
+    # sub-range was declared (absent declaration the manifest is unchanged).
+    # `declared` is the configured per-leaf G; `realized_domains` the
+    # per-(area, layer) fractional domains construction sampled; both are
+    # relative fractions (`value_tag="relative"`), never physical lengths.
+    _tfne_geo = (self.cfg.metadata or {}).get("tfne_geometry")
+    if _tfne_geo:
+        from .io import json_safe
+        res["tfne_geometry"] = json_safe({
+            "value_tag": _tfne_geo.get("value_tag", "relative"),
+            "declared": _tfne_geo.get("declared", {}),
+            "realized_domains": _tfne_geo.get("domains", {}),
+        })
     # v0.2.26: computation-basis block
     res["basis"] = _default_basis_dict()
     # v0.2.27: conservation-inspired proxy diagnostics

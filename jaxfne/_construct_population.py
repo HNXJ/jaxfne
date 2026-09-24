@@ -165,6 +165,16 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
             continue
 
         layer_ranges = _layer_ranges_for(layers, metadata)
+        # TFNE-declared relative geometry (0.5.2 PARAM-04): per-(area, layer)
+        # fractional sub-range domains, each axis a [lo, hi] pair in [0,1].
+        # Absent (no TFNE sub-range declared) the sampling below is exactly
+        # the historical call; a declared full [0,1] axis is likewise left
+        # on the historical bounds (rescaling by an exact full range would
+        # still perturb floats, so only non-full axes are remapped).
+        tfne_domains = (
+            (metadata.get("tfne_geometry") or {}).get("domains", {}).get(area, {})
+            or {}
+        )
         count_frac = _area_layer_count_frac(metadata, area)
         if count_frac is not None and sum(count_frac.get(layer, 0.0) for layer in layers) > 0.0:
             # Population-fraction allocation (decoupled from thickness).
@@ -187,9 +197,30 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
             layer_cell_labels = layer_cell_labels[:n_layer] + ["E"] * max(0, n_layer - len(layer_cell_labels))
             x_key, y_key, z_key = jax.random.split(jax.random.fold_in(key, layer_idx), 3)
             radius = float(metadata.get("column_radius_mm", 0.25))
-            x = jax.random.uniform(x_key, (n_layer,), minval=-radius, maxval=radius, dtype=jdtype) + jnp.asarray(area_idx * 2.0, dtype=jdtype)
-            y = jax.random.uniform(y_key, (n_layer,), minval=-radius, maxval=radius, dtype=jdtype)
-            z = jax.random.uniform(z_key, (n_layer,), minval=float(z0), maxval=float(z1), dtype=jdtype)
+            x_lo, x_hi = -radius, radius
+            y_lo, y_hi = -radius, radius
+            z_lo, z_hi = float(z0), float(z1)
+            dom = tfne_domains.get(layer)
+            if dom:
+                for ax, span_lo, span in (
+                    ("x", -radius, 2.0 * radius),
+                    ("y", -radius, 2.0 * radius),
+                    ("z", float(z0), float(z1) - float(z0)),
+                ):
+                    frac = dom.get(ax)
+                    if frac is None or list(frac) == [0.0, 1.0]:
+                        continue
+                    a, b = float(frac[0]), float(frac[1])
+                    blo, bhi = span_lo + a * span, span_lo + b * span
+                    if ax == "x":
+                        x_lo, x_hi = blo, bhi
+                    elif ax == "y":
+                        y_lo, y_hi = blo, bhi
+                    else:
+                        z_lo, z_hi = blo, bhi
+            x = jax.random.uniform(x_key, (n_layer,), minval=x_lo, maxval=x_hi, dtype=jdtype) + jnp.asarray(area_idx * 2.0, dtype=jdtype)
+            y = jax.random.uniform(y_key, (n_layer,), minval=y_lo, maxval=y_hi, dtype=jdtype)
+            z = jax.random.uniform(z_key, (n_layer,), minval=z_lo, maxval=z_hi, dtype=jdtype)
             position_chunks.append(jnp.stack([x, y, z], axis=1))
             for local_idx, cell_type in enumerate(layer_cell_labels[:n_layer]):
                 labels.append(cell_type)
