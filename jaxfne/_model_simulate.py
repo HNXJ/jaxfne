@@ -112,6 +112,9 @@ def _hdp_kernel_kwargs(hp: Mapping[str, Any]) -> dict[str, Any]:
         "record_dH_components": bool(hp.get("record_dH_components", False)),
         "record_edge_current": bool(hp.get("record_edge_current", False)),
         "record_weight_trace": bool(hp.get("record_weight_trace", True)),
+        "record_stride": hp.get("record_stride", 1),
+        "record_h_subset": hp.get("record_h_subset", None),
+        "record_w_subset": hp.get("record_w_subset", None),
         "enable_boundary_stabilization": bool(hp.get("enable_boundary_stabilization", False)),
         "tau_r_s": float(hp.get("tau_r_s", 0.3)),
         "tau_H_E_s": float(hp.get("tau_H_E_s", 4.0)),
@@ -387,6 +390,13 @@ def _simulate_arrays(
                     hdp_rule=str(hp["hdp_rule"]),
                     hdp_rule_params=hp.get("hdp_rule_params", {}),
                     record_weight_trace=bool(hp.get("record_weight_trace", True)),
+                    noise_scale=hp.get("noise_scale", None),
+                    noise_schedule=continuation_noise_schedule(
+                        k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                    ),
+                    record_stride=hp.get("record_stride", 1),
+                    record_h_subset=hp.get("record_h_subset", None),
+                    record_w_subset=hp.get("record_w_subset", None),
                 )
             else:
                 kernel_kwargs = _hdp_kernel_kwargs(hp)
@@ -524,10 +534,23 @@ def _simulate_arrays(
                 if cache_key not in self._compiled_cache:
                     import time
                     def target_fn(k, s):
+                        from ._pipeline import continuation_noise_schedule
+
+                        extra_kw: dict[str, Any] = {}
+                        if kernel_fn is simulate_edge_recurrent_izhikevich:
+                            # 0.5.3 item 3 (P-010): chain-consistent draws on
+                            # the Model plain path; receptor_exponential and
+                            # dense have no continuation path and keep bulk.
+                            extra_kw["noise_schedule"] = continuation_noise_schedule(
+                                k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                            )
+                            if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+                                extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
                         return kernel_fn(
                             emitter, edges, sim.n_steps, sim.dt_ms, k,
                             dtype=runtime_cfg.actual_dtype, drive_schedule=s,
                             silence_mask=silence_mask,
+                            **extra_kw,
                         )[:3]
                     target_fn = make_recompilation_guard(
                         target_fn,
@@ -546,10 +569,20 @@ def _simulate_arrays(
                 run = self._compiled_cache[cache_key]
                 return run(key, sched)
         with _device_scope(runtime_cfg.selected_backend):
+            from ._pipeline import continuation_noise_schedule
+
+            extra_kw: dict[str, Any] = {}
+            if kernel_fn is simulate_edge_recurrent_izhikevich:
+                extra_kw["noise_schedule"] = continuation_noise_schedule(
+                    key, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                )
+                if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+                    extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
             return kernel_fn(
                 emitter, edges, sim.n_steps, sim.dt_ms, key,
                 dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
                 silence_mask=silence_mask,
+                **extra_kw,
             )[:3]
     effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
     if effective_jit:
@@ -748,6 +781,10 @@ def _simulate_continuation_arrays(
                 "hdp_rule": hp["hdp_rule"],
                 "hdp_rule_params": hp.get("hdp_rule_params", {}),
                 "record_weight_trace": bool(hp.get("record_weight_trace", True)),
+                "noise_scale": hp.get("noise_scale", None),
+                "record_stride": hp.get("record_stride", 1),
+                "record_h_subset": hp.get("record_h_subset", None),
+                "record_w_subset": hp.get("record_w_subset", None),
             }
         else:
             hdp_kwargs = _hdp_kernel_kwargs(hp)
@@ -768,17 +805,43 @@ def _simulate_continuation_arrays(
     next_state, outputs = run_continuation(step_fn, state, schedule)
     voltages, spikes, sources = outputs[:3]
     if use_hdp_cont:
+        # 0.5.3 item 2: the per-step continuation kernels apply subset
+        # selection every step; stride is applied here over the stacked
+        # H/W outputs (V/spikes/sources stay full). Defaults keep full
+        # recording bit-identical.
+        from .emitters import _decimate_hw_traces, _validate_recording_budget
+
+        _stride, _h_idx, _w_idx = _validate_recording_budget(
+            hp.get("record_stride", 1),
+            hp.get("record_h_subset", None),
+            hp.get("record_w_subset", None),
+            n_neurons=n_neurons,
+            n_edges=int(self.params["edge_list"].n_edges),
+            record_weight_trace=bool(hp.get("record_weight_trace", True)),
+        )
+        _H_trace, _w_trace = _decimate_hw_traces(
+            outputs[3],
+            outputs[4]
+            if (len(outputs) > 4 and bool(hp.get("record_weight_trace", True)))
+            else None,
+            _stride,
+            None,
+            None,
+        )
         object.__setattr__(
             self,
             "_last_hdp_diag",
             {
                 "H_final": next_state.dynamic.H,
-                "H_trace": outputs[3],
+                "H_trace": _H_trace,
                 "w_final": next_state.dynamic.w,
-                "w_trace": outputs[4] if len(outputs) > 4 else None,
+                "w_trace": _w_trace,
                 "theta_S_final": next_state.dynamic.theta_S,
                 "aux_final": next_state.dynamic.aux,
                 "b_final": next_state.dynamic.b,
+                "record_stride": int(_stride),
+                "record_h_subset": None if _h_idx is None else [int(i) for i in _h_idx],
+                "record_w_subset": None if _w_idx is None else [int(i) for i in _w_idx],
             },
         )
     return voltages, spikes, sources, next_state
