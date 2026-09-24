@@ -24,6 +24,7 @@ def manifest(
     tuning: Optional[dict[str, Any]] = None,
     dataset: Optional[dict[str, Any]] = None,
     trials: Optional[dict[str, Any]] = None,
+    intervention: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Build a JSON-safe run manifest dict.
 
@@ -94,6 +95,10 @@ def manifest(
     )
     if trials is not None:
         res["trials"] = trials
+    # 0.5.3 item 6: causal-intervention record (same additive idiom as
+    # trials). Absent intervention the manifest is unchanged.
+    if intervention is not None:
+        res["intervention"] = intervention
     # If readout was provided as ReadoutResult list (canonical v0.1 workflow),
     # surface the normalized readout summary in the manifest under "readout_results".
     # Dict-shaped readouts are already surfaced via build_manifest's field_diagnostics
