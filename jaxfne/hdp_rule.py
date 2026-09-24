@@ -12,6 +12,7 @@ registered names route through :func:`simulate_edge_recurrent_izhikevich_hdp_reg
 
 from __future__ import annotations
 
+from collections.abc import Mapping as _Mapping
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping
 
@@ -175,6 +176,86 @@ def is_registered_hdp_rule(name: str | None) -> bool:
 
 def list_registered_hdp_rules() -> tuple[str, ...]:
     return tuple(sorted(_REGISTRY))
+
+
+def check_hdp_rule_params(
+    rule_name: str, rule_params: Mapping[str, Any] | None
+) -> dict[str, Any]:
+    """Fail-closed validation of per-rule parameters (0.5.3 item 7b, H7).
+
+    Returns ``{**descriptor.default_params, **rule_params}``. Unknown keys
+    (not in the rule's ``default_params``) raise ``ValueError`` instead of
+    merging silently into ``ctx.rule_params`` where ``.get()`` reads would
+    ignore them: a typo'd gain must never simulate as the default.
+    Non-mapping ``rule_params`` also fails closed (``None`` means
+    "defaults"). Unknown ``rule_name`` raises via :func:`get_hdp_rule`.
+    """
+    descriptor, _ = get_hdp_rule(rule_name)
+    if rule_params is None:
+        return dict(descriptor.default_params)
+    if not isinstance(rule_params, _Mapping):
+        raise ValueError(
+            f"hdp_rule_params for rule {rule_name!r} must be a mapping, "
+            f"got {type(rule_params).__name__}"
+        )
+    unknown = [k for k in rule_params if k not in descriptor.default_params]
+    if unknown:
+        raise ValueError(
+            f"hdp_rule_params for rule {rule_name!r} contains unrecognized keys "
+            f"{sorted(unknown, key=repr)}; declared params: "
+            f"{sorted(descriptor.default_params)}"
+        )
+    return {**dict(descriptor.default_params), **dict(rule_params)}
+
+
+def reject_unknown_hdp_kwargs(
+    hdp_kwargs: Mapping[str, Any], *, kernel: str
+) -> None:
+    """Fail-closed unknown-key policy for ``compile_step_fn **hdp_kwargs``.
+
+    0.5.3 item 7b (H7): every key must be consumed either by the selected
+    kernel's signature or by ``compile_step_fn`` itself. Call-site-owned
+    internals (``drive_schedule``, ``dtype``, ``init_state``,
+    ``silence_mask``, ``noise_schedule``, ``step_indices``) are rejected:
+    passing them would be silently overridden per step, so they fail closed
+    with a direction to the owning API instead. ``hdp_rule_params`` is
+    accepted on the ``"hdp"`` path (consumed by the registered-rule branch)
+    but rejected for ``kernel="baseline"``, where plasticity is inert by
+    design (item 5 fixed-W identity). Raises ``ValueError`` listing the
+    unknown keys; returns ``None`` when clean.
+    """
+    import inspect
+
+    from . import emitters as _emitters
+
+    if kernel == "hdp":
+        kernel_fn = _emitters.simulate_edge_recurrent_izhikevich_hdp
+        local_keys = {"hdp_rule_params", "h_state_dim", "h_state_locality"}
+    elif kernel == "baseline":
+        kernel_fn = _emitters.simulate_edge_recurrent_izhikevich
+        local_keys = {"h_state_dim", "h_state_locality"}
+    else:
+        raise ValueError(f"kernel must be 'hdp' or 'baseline', got {kernel!r}")
+    accepted = {
+        p.name
+        for p in inspect.signature(kernel_fn).parameters.values()
+        if p.kind == inspect.Parameter.KEYWORD_ONLY
+    }
+    call_site_owned = {
+        "drive_schedule",
+        "dtype",
+        "init_state",
+        "silence_mask",
+        "noise_schedule",
+        "step_indices",
+    }
+    allowed = (accepted - call_site_owned) | local_keys
+    unknown = [k for k in hdp_kwargs if k not in allowed]
+    if unknown:
+        raise ValueError(
+            f"compile_step_fn(kernel={kernel!r}) got unrecognized hdp_kwargs keys "
+            f"{sorted(unknown, key=repr)}; allowed: {sorted(allowed)}"
+        )
 
 
 def hdp_is_engaged(

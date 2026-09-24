@@ -73,6 +73,13 @@ HDP_PARAM_GROUP_H_DYNAMICS: Final[frozenset[str]] = frozenset(
         "r_H",
         "r_bar_init",
         "record_boundary_components",
+        # Transport for registered-rule coefficients, consumed by the
+        # registrable kernel via hdp_rule_params (0.5.3 item 7b: previously
+        # flagged as unrecognized although execution relies on it).
+        "hdp_rule_params",
+        # Per-edge plasticity gate consumed by both HDP kernels (0.5.3
+        # item 5: enable/disable/clamp per projection).
+        "plasticity_mask",
     }
 )
 
@@ -484,8 +491,13 @@ def validate_hdp_params_semantics(
     """Validate ``hdp_params`` semantic grouping and public RBS (``h_state_*``) contracts."""
     issues: list[str] = []
     if not isinstance(hdp_params, dict):
+        # 0.5.3 item 7b: non-dict input fails closed in BOTH modes. A silent
+        # pass here would let malformed plasticity params reach item-5
+        # controls appearing valid.
         msg = "hdp_params must be a dict (compatibility transport for RBS/h_state groups)"
-        return [msg] if strict else issues
+        if strict:
+            raise ValueError(f"validate_hdp_params_semantics: {msg}")
+        return [msg]
 
     unknown = set(hdp_params) - KNOWN_HDP_PARAM_KEYS
     if unknown:
@@ -523,9 +535,16 @@ def validate_hdp_params_semantics(
     node_rules = {"signed_linear", "signed_quadratic", "hebbian_product"}
     if locality in (None, "node") and rule is not None and rule not in node_rules:
         if rule not in INTERNAL_HDP_RULE_IDS:
-            issues.append(
-                f"node hdp_rule must be one of {sorted(node_rules)}; got {rule!r}"
-            )
+            # 0.5.3 item 7b: registered public rules are valid node-locality
+            # rules; only refuse names neither builtin, nor registered, nor
+            # internal-dispatch (lazy import: hdp_rule pulls in emitters).
+            from .hdp_rule import is_registered_hdp_rule
+
+            if not is_registered_hdp_rule(rule):
+                issues.append(
+                    f"node hdp_rule must be one of {sorted(node_rules)} or a "
+                    f"registered rule; got {rule!r}"
+                )
 
     if strict and issues:
         raise ValueError(f"validate_hdp_params_semantics: {issues[0]}")

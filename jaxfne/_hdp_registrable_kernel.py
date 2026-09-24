@@ -18,6 +18,7 @@ from typing import Any, Mapping
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 from .emitters import (
     EdgeList,
@@ -40,7 +41,12 @@ from .emitters import (
     resolve_receptor_index,
 )
 from .emitters import _resolved_edge_weight
-from .hdp_rule import HDPRuleContext, expected_aux_shape, get_hdp_rule
+from .hdp_rule import (
+    HDPRuleContext,
+    check_hdp_rule_params,
+    expected_aux_shape,
+    get_hdp_rule,
+)
 
 
 def simulate_edge_recurrent_izhikevich_hdp_registered(
@@ -63,6 +69,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     record_h_subset: jax.Array | None = None,
     record_w_subset: jax.Array | None = None,
     step_indices: jax.Array | None = None,
+    plasticity_mask: jax.Array | None = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Edge-list Izhikevich simulation with a registered HDP rule.
 
@@ -78,7 +85,22 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     has_delay = _edge_delays_any_positive(edges)
 
     descriptor, rule_step = get_hdp_rule(hdp_rule)
-    rule_params = {**descriptor.default_params, **(hdp_rule_params or {})}
+    # 0.5.3 item 7b: unknown rule-param keys fail closed (typo'd gains must
+    # never simulate as defaults); identical merge for valid inputs.
+    rule_params = check_hdp_rule_params(hdp_rule, hdp_rule_params)
+    # 0.5.3 item 5: per-projection gate; None selects the bit-exact path.
+    if plasticity_mask is not None:
+        _mask_raw = np.asarray(plasticity_mask)
+        if _mask_raw.ndim != 1 or _mask_raw.shape[0] != int(edges.n_edges):
+            raise ValueError(
+                "plasticity_mask must have shape "
+                f"({int(edges.n_edges)},), got {_mask_raw.shape}"
+            )
+        if not bool(np.all(np.isfinite(_mask_raw))):
+            raise ValueError("plasticity_mask must be finite (got NaN/inf)")
+        plastic_edge = jnp.asarray(_mask_raw > 0.5)
+    else:
+        plastic_edge = None
     h_min, h_max = descriptor.h_bounds
     w_floor, w_ceiling = descriptor.w_bounds
     b_min, b_max = descriptor.b_bounds
@@ -190,6 +212,8 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
             dw = upd.d_theta["edge_weight"]
             wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
             w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
+            if plastic_edge is not None:
+                w_next = jnp.where(plastic_edge, w_next, w)
         else:
             w_next = w
         if use_b:
