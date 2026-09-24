@@ -977,3 +977,179 @@ def run_at06() -> dict[str, Any]:
     if out["wall_s"] > WALL_BUDGET_S:
         out["status"] = "OVER_BUDGET"
     return out
+
+
+# ---------------------------------------------------------------------------
+# Item 13: reduction row HH -> reduced -> population + schema v0 -> v1.
+# ---------------------------------------------------------------------------
+
+# Schema v1: every v0 name stable and in order (Y_KEYS_V1 == Y_KEYS plus
+# nothing removed); each cell gains an epistemic "level"; M_compute is
+# wired to measured host peak bytes; E_reduction is populated where
+# verdicts exist. v0 mapping lives in at01_at10_toy.py (imported by tests
+# to prove stability, never duplicated here).
+SCHEMA_VERSION = "v1"
+Y_KEYS_V1: tuple[str, ...] = Y_KEYS
+
+# Which Y keys each 0.5.2 scenario implements (mechanical table, derived
+# from what the run_* functions above actually compute; H/W stay OMITTED
+# until 0.5.3; Phi_B stays REFUSED until the candidate path promotes it).
+_V1_IMPLEMENTED: dict[str, tuple[str, ...]] = {
+    "AT-01": ("X", "SPK", "E_reduction", "T_compute", "M_compute"),
+    "AT-02": ("X", "SPK", "Q", "Phi_E", "T_compute", "M_compute"),
+    "AT-03": ("X", "SPK", "Q", "Phi_E", "PSD", "C", "phi", "T_compute", "M_compute"),
+    "AT-04": ("X", "SPK", "Q", "Phi_E", "C", "T_compute", "M_compute"),
+    "AT-05": ("X", "SPK", "Q", "Phi_E", "C", "T_compute", "M_compute"),
+    "AT-06": ("X", "SPK", "Q", "Phi_E", "C", "T_compute", "M_compute"),
+}
+_V1_NOTES: dict[str, str] = {
+    "X": "Vm/rate features from executed trajectories",
+    "H": "H ownership/recording arrives in 0.5.3",
+    "W": "W ownership/recording arrives in 0.5.3",
+    "Q": "single source representation consumed by every probe (item 3)",
+    "Phi_E": "field contract at RELATIVE_PROXY (item 4)",
+    "Phi_B": "no calibrated Phi_B beyond proxy (candidate AT-01-R4)",
+    "SPK": "raster shape + count from executed signals",
+    "PSD": "band-power operators on executed Phi proxy",
+    "C": "synchrony / alignment / locality operators on executed fields",
+    "phi": "phase-lag operator on executed group fields",
+    "E_reduction": "reduction verdicts against predeclared tolerances",
+    "T_compute": "measured wall_s per scenario",
+    "M_compute": "measured host peak bytes (tracemalloc; not device memory)",
+}
+
+
+def _single_field_run() -> dict[str, Any]:
+    """Reduced single neuron with field probes (reduction middle rung)."""
+    cfg = J.suite2_single_neuron_config(seed=SEED, duration_ms=AT01_DURATION_MS, dt_ms=DT_MS)
+    cfg = cfg.field(domain="laminar_column", conductivity="proxy").probe(
+        name="e1",
+        modes=["spikes", "V_m", "source", "LFP-proxy"],
+        n_contacts=AT06_N_CONTACTS,
+    )
+    return _run_configuration(cfg, AT01_DURATION_MS, DT_MS)
+
+
+def run_reduction() -> dict[str, Any]:
+    """HH -> reduced -> population source against predeclared tolerances.
+
+    Failures are RECORDED (PASS/FAIL booleans with diffs), never hidden
+    and never tuned away: tolerances live at module top under human
+    authorization.
+    """
+    t0 = time.perf_counter()
+    hh = _hh_reference()
+    single = _single_field_run()
+    s_sig = single["signals"]
+    s_spk = np.asarray(s_sig.spikes).ravel()
+    s_vm = np.asarray(s_sig.V_m).ravel()
+    s_src = np.asarray(s_sig.sources, dtype=float)
+    pop = _population_run(8, SEED)
+    p_sig = pop["signals"]
+    p_spk = np.asarray(p_sig.spikes)
+    p_src = np.asarray(p_sig.sources, dtype=float)
+
+    single_rec = {
+        "rate_hz": _rate_hz(s_spk, DT_MS),
+        "v_peak_mv": float(np.max(s_vm)),
+        "mean_abs_source_per_neuron": float(np.abs(s_src).mean()),
+    }
+    pop_rec = {
+        "rate_hz_per_neuron": float(
+            (p_spk > 0).sum() / (p_spk.shape[1] * AT05_DURATION_MS / 1000.0)
+        ),
+        "mean_abs_source_per_neuron": float(np.abs(p_src).mean()),
+    }
+    verdicts: dict[str, dict[str, Any]] = {}
+    if hh["status"] == "OK":
+        dr = abs(hh["rate_hz"] - single_rec["rate_hz"])
+        verdicts["hh_to_reduced_rate"] = {
+            "diff_hz": dr,
+            "tolerance_hz": REDUCTION_RATE_TOL_HZ,
+            "pass": bool(dr <= REDUCTION_RATE_TOL_HZ),
+        }
+        dv = abs(hh["v_peak_mv"] - single_rec["v_peak_mv"])
+        verdicts["hh_to_reduced_v_peak"] = {
+            "diff_mv": dv,
+            "tolerance_mv": REDUCTION_V_PEAK_TOL_MV,
+            "pass": bool(dv <= REDUCTION_V_PEAK_TOL_MV),
+        }
+    else:
+        verdicts["hh_to_reduced"] = {"state": "REFUSED", "reason": hh.get("reason", "")}
+    dr2 = abs(single_rec["rate_hz"] - pop_rec["rate_hz_per_neuron"])
+    verdicts["reduced_to_population_rate"] = {
+        "diff_hz": dr2,
+        "tolerance_hz": REDUCTION_RATE_TOL_HZ,
+        "pass": bool(dr2 <= REDUCTION_RATE_TOL_HZ),
+        "note": "different durations/realizations; numbers only",
+    }
+    denom = single_rec["mean_abs_source_per_neuron"]
+    rel = abs(pop_rec["mean_abs_source_per_neuron"] - denom) / denom if denom > 0 else 0.0
+    verdicts["reduced_to_population_source"] = {
+        "relative_diff": float(rel),
+        "tolerance_frac": REDUCTION_FIELD_TOL_FRAC,
+        "pass": bool(rel <= REDUCTION_FIELD_TOL_FRAC),
+    }
+    out = {
+        "scenario": "REDUCTION",
+        "status": "OK",
+        "wall_s": time.perf_counter() - t0,
+        "level": LEVEL_PROXY,
+        "level_note": "population rung is RELATIVE_PROXY; HH rung is Jaxley mV/ms",
+        "hh": {"status": hh["status"], "level": hh.get("level")},
+        "single": single_rec,
+        "population": pop_rec,
+        "verdicts": verdicts,
+        "tolerances_predeclared": {
+            "rate_hz": REDUCTION_RATE_TOL_HZ,
+            "v_peak_mv": REDUCTION_V_PEAK_TOL_MV,
+            "field_frac": REDUCTION_FIELD_TOL_FRAC,
+        },
+    }
+    if out["wall_s"] > WALL_BUDGET_S:
+        out["status"] = "OVER_BUDGET"
+    return out
+
+
+def measure_v1(scenario_id: str, raw: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Schema-v1 Y record: v0 names stable, each cell gains a level.
+
+    IMPLEMENTED keys come from the mechanical _V1_IMPLEMENTED table;
+    value is the scenario's own verdict/stat note (never synthesized).
+    """
+    if scenario_id not in SCENARIOS and scenario_id != "REDUCTION":
+        raise KeyError(f"unknown scenario {scenario_id!r}")
+    implemented = _V1_IMPLEMENTED.get(scenario_id, ("E_reduction", "T_compute"))
+    record: dict[str, dict[str, Any]] = {}
+    for key in Y_KEYS_V1:
+        if key == "Phi_B":
+            record[key] = {
+                "state": "REFUSED",
+                "value": None,
+                "level": LEVEL_PROXY,
+                "note": _V1_NOTES[key],
+            }
+        elif key in implemented:
+            record[key] = {
+                "state": "IMPLEMENTED",
+                "value": {"scenario": scenario_id, "status": raw.get("status")},
+                "level": LEVEL_PROXY,
+                "note": _V1_NOTES[key],
+            }
+        else:
+            record[key] = {
+                "state": "OMITTED",
+                "value": None,
+                "level": LEVEL_PROXY,
+                "note": _V1_NOTES[key],
+            }
+    return record
+
+
+def gap_matrix_v1(results: dict[str, dict[str, Any]]) -> dict[str, dict[str, str]]:
+    """Y x AT cell states for the 0.5.2 scenarios (drives gap_052.md)."""
+    return {
+        sid: {key: cell["state"] for key, cell in measure_v1(sid, results[sid]).items()}
+        for sid in SCENARIOS
+        if sid in results
+    }
