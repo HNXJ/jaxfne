@@ -498,6 +498,29 @@ def compile_step_fn(
     if kernel not in {"hdp", "baseline"}:
         raise ValueError("kernel must be 'hdp' or 'baseline'")
 
+    # 0.5.3 item 7b (H7): unknown **hdp_kwargs keys fail closed HERE, at
+    # compile time, with a key list -- not later as a bare TypeError from
+    # inside the first step, and never silently dropped. Registered-rule
+    # params are checked per-descriptor; hdp_rule_params alongside a legacy
+    # (non-registered) rule is misplaced and refused.
+    from .hdp_rule import (
+        check_hdp_rule_params,
+        is_registered_hdp_rule as _is_registered,
+        reject_unknown_hdp_kwargs,
+    )
+
+    reject_unknown_hdp_kwargs(hdp_kwargs, kernel=kernel)
+    _rule_name = hdp_kwargs.get("hdp_rule")
+    if _is_registered(_rule_name):
+        check_hdp_rule_params(str(_rule_name), hdp_kwargs.get("hdp_rule_params"))
+    elif "hdp_rule_params" in hdp_kwargs:
+        _rp = hdp_kwargs["hdp_rule_params"]
+        raise ValueError(
+            "hdp_rule_params requires a registered hdp_rule; got "
+            f"hdp_rule={_rule_name!r} with hdp_rule_params "
+            f"{sorted(_rp, key=repr) if isinstance(_rp, dict) else type(_rp).__name__}"
+        )
+
     emitter = model.params["emitter"]
     edges = model.params["edge_list"]
     n_neurons = emitter.n_neurons

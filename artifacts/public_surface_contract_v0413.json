@@ -239,6 +239,7 @@
       "g_H",
       "gamma",
       "hdp_rule",
+      "hdp_rule_params",
       "k_H",
       "k_L",
       "noise_scale",
