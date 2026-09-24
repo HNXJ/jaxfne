@@ -72,6 +72,12 @@ Format per lesson: {trigger,cause,repair,evidence,scope}.
   evidence: 7 worker rounds 2026-09-20 (vocab/verbosity/nav/code-audit), 2 interrupted, all integrated cleanly
   scope: jaxfne
 
+- trigger: python text-mode file write on Windows rewrites every line
+  cause: open()/write_text translate \n to os.linesep (CRLF) on write; whole-file diff with zero semantic change
+  repair: binary-safe patch scripts (read_bytes/write_bytes) for existing .py files; verify via git diff --stat before commit
+  evidence: 0.5.3 item 2 (w1-53): 7718/7533-line diff reduced to +194/-9, tests re-green
+  scope: jaxfne (windows host)
+
 - trigger: pre-existing stash entry in `git stash list`
   cause: bare `git stash pop` takes the top entry regardless of ownership; unknown-ownership stashes predate the session
   repair: never bare-pop; treat pre-existing stashes read-only; if one is popped by mistake, `git reset --hard HEAD` recovers only when the tree was sealed+pushed (verify HEAD==origin/dev and status 0 first)
