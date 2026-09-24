@@ -8,14 +8,90 @@ and physical amplitude claims remain uncalibrated (amplitude_claim_allowed=False
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 import jax
 import jax.numpy as jnp
 
 
+# Item 3 (0.5.2 ENGINE): single source representation Q.
+#
+# ``CanonicalSource`` is the one source representation consumed by every probe
+# in this module and in ``fields/proxy.py``. It carries a ``[T, N]`` relative
+# array plus its representation/mode/provenance so the S -> F -> P chain can
+# pass Q (not bare arrays) end to end. Every probe also keeps accepting a bare
+# array, which is consumed unchanged (bit-identical outputs); only an explicit
+# ``CanonicalSource`` adds provenance keys to the report.
+CANONICAL_SOURCE_REPRESENTATION = "relative"
+
+
+@dataclass(frozen=True)
+class CanonicalSource:
+    """Single source representation Q: ``[T, N]`` relative source array.
+
+    Q is relative-only: any ``representation`` other than ``"relative"``
+    is refused at construction (physical units arrive only through the
+    item-4 calibration transform, never by relabeling Q).
+    """
+
+    data: jax.Array
+    representation: str = CANONICAL_SOURCE_REPRESENTATION
+    source_mode: str = "caller_supplied"
+    provenance: Optional[dict[str, Any]] = None
+
+    def __post_init__(self) -> None:
+        if self.representation != CANONICAL_SOURCE_REPRESENTATION:
+            raise ValueError(
+                "CanonicalSource Q is relative-only "
+                f"(representation={self.representation!r}); physical units require "
+                "an explicit calibration transform (0.5.2 item 4), not a relabeled Q."
+            )
+        data = jnp.asarray(self.data)
+        if data.ndim != 2:
+            raise ValueError(f"CanonicalSource Q must be 2D [T, N]; got shape {data.shape}")
+        if not isinstance(data, jax.core.Tracer):
+            if not bool(jnp.all(jnp.isfinite(data))):
+                raise ValueError("CanonicalSource Q must be finite.")
+        object.__setattr__(self, "data", data)
+
+
+def canonical_source(
+    data: jax.Array,
+    *,
+    source_mode: str = "caller_supplied",
+    provenance: Optional[dict[str, Any]] = None,
+) -> CanonicalSource:
+    """Build the single source representation Q from a ``[T, N]`` array."""
+    return CanonicalSource(
+        data=jnp.asarray(data),
+        representation=CANONICAL_SOURCE_REPRESENTATION,
+        source_mode=str(source_mode),
+        provenance=dict(provenance) if provenance is not None else None,
+    )
+
+
+def _unwrap_probe_input(x: jax.Array | CanonicalSource) -> tuple[jax.Array, dict[str, Any]]:
+    """Consume ``CanonicalSource | array`` through the one Q point.
+
+    Returns ``(array, report_fragment)``: the array unchanged (bit-identical
+    probe outputs either way) and additive report keys only when Q was given.
+    """
+    if isinstance(x, CanonicalSource):
+        if x.representation != CANONICAL_SOURCE_REPRESENTATION:
+            raise ValueError(
+                "Probe input Q must carry representation "
+                f"{CANONICAL_SOURCE_REPRESENTATION!r}; got {x.representation!r}."
+            )
+        return x.data, {
+            "source_identity": "canonical_source_Q",
+            "source_representation": x.representation,
+            "source_mode": x.source_mode,
+        }
+    return jnp.asarray(x), {}
+
+
 def sample_phi_at_probe_depths(
-    phi_e: jax.Array,
+    phi_e: jax.Array | CanonicalSource,
     field_contact_depths: jax.Array,
     probe_contact_depths: jax.Array,
 ) -> jax.Array:
@@ -24,7 +100,7 @@ def sample_phi_at_probe_depths(
     ``phi_e`` is ``(T, C_field)``; ``field_contact_depths`` is ``(C_field,)``;
     ``probe_contact_depths`` is ``(P,)``. Returns ``(T, P)``.
     """
-    phi_e = jnp.asarray(phi_e)
+    phi_e, _ = _unwrap_probe_input(phi_e)
     field_z = jnp.asarray(field_contact_depths, dtype=phi_e.dtype)
     probe_z = jnp.asarray(probe_contact_depths, dtype=phi_e.dtype)
     if phi_e.ndim != 2:
@@ -119,7 +195,7 @@ def _make_probe_report(
 
 def create_probe(
     kind: str,
-    data: jax.Array,
+    data: jax.Array | CanonicalSource,
     *,
     method: str,
     units_or_status: str = "proxy_units",
@@ -131,7 +207,9 @@ def create_probe(
 
     Replaces repetitive per-kind probe wrappers with a single entry point.
     """
-    data = jnp.asarray(data)
+    data, _src = _unwrap_probe_input(data)
+    if _src:
+        extra_fields = {**_src, **(extra_fields or {})}
     report = _make_probe_report(
         kind=kind,
         method=method,
@@ -144,8 +222,9 @@ def create_probe(
     return ProbeReadout(name=kind, kind=kind, data=data, report=report)
 
 
-def spk_probe(spikes: jax.Array) -> ProbeReadout:
+def spk_probe(spikes: jax.Array | CanonicalSource) -> ProbeReadout:
     """SPK probe operator: expose spike events or spike matrix."""
+    spikes, _src = _unwrap_probe_input(spikes)
     return create_probe(
         "spk",
         spikes,
@@ -153,11 +232,13 @@ def spk_probe(spikes: jax.Array) -> ProbeReadout:
         units_or_status="binary_spike_indicator",
         input_representation="relative_spike_events",
         assumptions=["spike_array_from_emitter_or_threshold", "binary_or_threshold_values"],
+        extra_fields=_src or None,
     )
 
 
-def vm_probe(voltage: jax.Array) -> ProbeReadout:
+def vm_probe(voltage: jax.Array | CanonicalSource) -> ProbeReadout:
     """Vm probe operator: expose membrane voltage or native reduced-emitter state."""
+    voltage, _src = _unwrap_probe_input(voltage)
     return create_probe(
         "vm",
         voltage,
@@ -168,11 +249,13 @@ def vm_probe(voltage: jax.Array) -> ProbeReadout:
             "voltage_from_emitter_native_state",
             "not_physical_membrane_voltage_unless_calibrated",
         ],
+        extra_fields=_src or None,
     )
 
 
-def source_probe(source: jax.Array) -> ProbeReadout:
+def source_probe(source: jax.Array | CanonicalSource) -> ProbeReadout:
     """Source probe operator: expose current/source proxy."""
+    source, _src = _unwrap_probe_input(source)
     return create_probe(
         "source",
         source,
@@ -184,11 +267,12 @@ def source_probe(source: jax.Array) -> ProbeReadout:
             "source_from_emitter_native_state",
             "not_physical_membrane_current_unless_calibrated",
         ],
+        extra_fields=_src or None,
     )
 
 
 def lfp_proxy_probe(
-    phi_e: jax.Array,
+    phi_e: jax.Array | CanonicalSource,
     contact_depths: jax.Array = None,
     field_contact_depths: jax.Array = None,
 ) -> ProbeReadout:
@@ -200,8 +284,8 @@ def lfp_proxy_probe(
     requested) and from visualization-only proxies (which never enter
     ``Signals.field``). The three routes are not interchangeable.
     """
-    phi_e = jnp.asarray(phi_e)
-    extra: dict[str, Any] = {}
+    phi_e, _src = _unwrap_probe_input(phi_e)
+    extra: dict[str, Any] = dict(_src)
     method = "point_or_finite_contact_phi_proxy"
     data = phi_e
     if contact_depths is not None:
@@ -231,11 +315,11 @@ def lfp_proxy_probe(
 
 
 def csd_proxy_probe(
-    csd: jax.Array,
+    csd: jax.Array | CanonicalSource,
     csd_sign_convention: str = "positive_equals_extracellular_source",
 ) -> ProbeReadout:
     """CSD-proxy probe operator: estimate source-profile-like CSD-proxy readout."""
-    csd = jnp.asarray(csd)
+    csd, _src = _unwrap_probe_input(csd)
     report = _make_probe_report(
         kind="csd_proxy",
         method="divergence_proxy_or_second_derivative_laminar",
@@ -249,6 +333,7 @@ def csd_proxy_probe(
             "not_empirically_calibrated",
         ],
         extra_fields={
+            **_src,
             "CSD_sign_convention": csd_sign_convention,
             "amplitude_semantics": "relative",
             "physical_claim": "proxy_readout",
@@ -279,13 +364,14 @@ def csd_proxy_probe(
 
 
 def eeg_proxy_probe(
-    eeg: jax.Array,
+    eeg: jax.Array | CanonicalSource,
     leadfield_status: str = "toy_or_declared_proxy",
     n_sensors: int = None,
 ) -> ProbeReadout:
     """EEG-proxy probe operator: simulated scalp-channel EEG-proxy readout."""
-    eeg = jnp.asarray(eeg)
+    eeg, _src = _unwrap_probe_input(eeg)
     extra = {
+        **_src,
         "leadfield_status": leadfield_status,
         "sensor_geometry_status": "simulated_minimal",
         "amplitude_semantics": "relative",
@@ -333,7 +419,7 @@ def eeg_proxy_probe(
 
 
 def meg_proxy_probe(
-    meg: jax.Array,
+    meg: jax.Array | CanonicalSource,
     leadfield_status: str = "toy_or_declared_proxy",
     orientation_convention: str = "declared",
     n_sensors: int = None,
@@ -344,9 +430,10 @@ def meg_proxy_probe(
     ``orientation_convention`` is retained as a compatibility argument and is
     not interpreted as a current-orientation claim.
     """
-    meg = jnp.asarray(meg)
+    meg, _src = _unwrap_probe_input(meg)
     _ = orientation_convention  # compatibility argument; not a current-orientation claim
     extra = {
+        **_src,
         "leadfield_status": leadfield_status,
         "sensor_geometry_status": "simulated_minimal",
         "orientation_convention": "none",
@@ -399,11 +486,11 @@ def meg_proxy_probe(
 
 
 def emm_proxy_probe(
-    emm: jax.Array,
+    emm: jax.Array | CanonicalSource,
     method: str = "normalized_activity_field_source_cost_proxy",
 ) -> ProbeReadout:
     """EMM-proxy probe operator: electromagnetic metabolism estimate proxy."""
-    emm = jnp.asarray(emm)
+    emm, _src = _unwrap_probe_input(emm)
     report = _make_probe_report(
         kind="emm_proxy",
         method=method,
@@ -417,12 +504,13 @@ def emm_proxy_probe(
             "relative_within_run_comparison_only",
             "proxy_electrophysiological_field_activity_cost",
         ],
+        extra_fields=_src or None,
     )
     return ProbeReadout(name="emm_proxy", kind="emm_proxy", data=emm, report=report)
 
 
 def _leadfield_proxy_transform(
-    source: jax.Array, leadfield: jax.Array, *, param_name: str
+    source: jax.Array | CanonicalSource, leadfield: jax.Array, *, param_name: str
 ) -> jax.Array:
     """Shared linear leadfield projection behind ``eeg_proxy_transform``/``meg_proxy_transform``.
 
@@ -433,7 +521,7 @@ def _leadfield_proxy_transform(
     (jaxfne-harden rule 10; merged 2026-07-21, both public names kept as thin
     backward-compatible wrappers, zero call-site changes required).
     """
-    source = jnp.asarray(source)
+    source, _ = _unwrap_probe_input(source)
     leadfield = jnp.asarray(leadfield)
 
     if source.ndim != 2:
@@ -451,7 +539,7 @@ def _leadfield_proxy_transform(
 
 
 def eeg_proxy_transform(
-    source: jax.Array,
+    source: jax.Array | CanonicalSource,
     leadfield: jax.Array,
 ) -> jax.Array:
     """Compute EEG-proxy readout via linear leadfield projection."""
@@ -459,7 +547,7 @@ def eeg_proxy_transform(
 
 
 def meg_proxy_transform(
-    source_oriented: jax.Array,
+    source_oriented: jax.Array | CanonicalSource,
     leadfield: jax.Array,
 ) -> jax.Array:
     """Compute MEG-proxy readout via linear leadfield projection."""
@@ -467,17 +555,17 @@ def meg_proxy_transform(
 
 
 def emm_proxy_transform(
-    spike_rate: jax.Array,
-    source: jax.Array,
-    field_potential: jax.Array,
+    spike_rate: jax.Array | CanonicalSource,
+    source: jax.Array | CanonicalSource,
+    field_potential: jax.Array | CanonicalSource,
     lambda_spk: float = 1.0,
     lambda_src: float = 1.0,
     lambda_field: float = 1.0,
 ) -> jax.Array:
     """Compute EMM-proxy (normalized activity/source/field cost) readout."""
-    spike_rate = jnp.asarray(spike_rate)
-    source = jnp.asarray(source)
-    field_potential = jnp.asarray(field_potential)
+    spike_rate, _ = _unwrap_probe_input(spike_rate)
+    source, _ = _unwrap_probe_input(source)
+    field_potential, _ = _unwrap_probe_input(field_potential)
 
     if spike_rate.ndim == 1:
         spike_rate = spike_rate[:, None]

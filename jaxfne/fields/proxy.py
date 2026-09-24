@@ -6,6 +6,7 @@ update that page when this module's public API changes.
 This module implements structural simulation proxy calculations under linear_solver.
 Physical amplitude claims remain uncalibrated (amplitude_claim_allowed=False).
 """
+
 from __future__ import annotations
 
 import math
@@ -33,6 +34,10 @@ from .diagnostics import (
     linear_readout_observation_receipt,
 )
 
+# Item 3 (0.5.2 ENGINE): the single source representation Q lives in
+# ``fields/probes.py``; this module consumes (never redefines) it.
+from .probes import CanonicalSource, _unwrap_probe_input
+
 
 @dataclass(frozen=True)
 class FieldOutput:
@@ -41,6 +46,7 @@ class FieldOutput:
     source_proxy, phi_e_proxy, csd_proxy, and lfp_proxy are uncalibrated
     simulation readouts.
     """
+
     source_proxy: jax.Array
     phi_e_proxy: jax.Array
     csd_proxy: jax.Array
@@ -146,7 +152,7 @@ def _spectrolaminar_readout_metadata() -> dict[str, Any]:
 
 
 def project_laminar_sources(
-    sources: jax.Array,
+    sources: jax.Array | CanonicalSource,
     positions: jax.Array,
     *,
     n_contacts: int = 16,
@@ -184,19 +190,22 @@ def project_laminar_sources(
     else:
         jdtype = jnp.float32
 
+    sources, _ = _unwrap_probe_input(sources)
     sources = jnp.asarray(sources, dtype=jdtype)
     positions = jnp.asarray(positions, dtype=jdtype)
     depth = positions[:, 2]
     contacts = jnp.linspace(0.0, 1.0, int(n_contacts), dtype=jdtype)
     width_value = jnp.asarray(width, dtype=jdtype)
     raw_kernel = jnp.exp(-0.5 * ((contacts[:, None] - depth[None, :]) / width_value) ** 2)
-    
+
     if mode == "row_normalize":
         kernel = _row_normalize(raw_kernel)
     elif mode == "density_preserving":
         kernel = raw_kernel
     else:
-        raise ValueError(f"Invalid projection mode: {mode!r}. Must be 'row_normalize' or 'density_preserving'.")
+        raise ValueError(
+            f"Invalid projection mode: {mode!r}. Must be 'row_normalize' or 'density_preserving'."
+        )
 
     source_proxy = sources @ kernel.T
     lfp_proxy = source_proxy
@@ -269,20 +278,22 @@ def project_laminar_sources(
         diagnostics = {}
     else:
         diagnostics.update(field_solution_report)
-        diagnostics.update({
-            "field_solver": "linear_solver",
-            "source_projection_status": f"laminar_{mode}_projection",
-            "source_calibration_status": "uncalibrated_izhikevich_native_current",
-            "source_decomposition": "proxy_reduced_emitter",
-            "observation": laminar_projection_observation_receipt(
-                n_sources=int(sources.shape[1]),
-                n_contacts=int(n_contacts),
-                width=float(width),
-                normalization_mode=str(mode),
-                contact_z_min=float(contacts[0]),
-                contact_z_max=float(contacts[-1]),
-            ),
-        })
+        diagnostics.update(
+            {
+                "field_solver": "linear_solver",
+                "source_projection_status": f"laminar_{mode}_projection",
+                "source_calibration_status": "uncalibrated_izhikevich_native_current",
+                "source_decomposition": "proxy_reduced_emitter",
+                "observation": laminar_projection_observation_receipt(
+                    n_sources=int(sources.shape[1]),
+                    n_contacts=int(n_contacts),
+                    width=float(width),
+                    normalization_mode=str(mode),
+                    contact_z_min=float(contacts[0]),
+                    contact_z_max=float(contacts[-1]),
+                ),
+            }
+        )
 
     return FieldOutput(
         source_proxy=source_proxy,
@@ -296,7 +307,7 @@ def project_laminar_sources(
 
 
 def project_sources_to_laminar_field(
-    sources: jax.Array,
+    sources: jax.Array | CanonicalSource,
     positions: jax.Array,
     n_contacts: int = 16,
     *,
@@ -318,7 +329,6 @@ def project_sources_to_laminar_field(
         mode=mode,
         dtype=dtype,
     )
-
 
 
 def validate_source_field_status(
@@ -417,8 +427,8 @@ def compute_conservation_proxy_diagnostics(
     field_solver_status: str = "linear_solver",
     field_claim_level: str = "proxy_readout",
 ) -> dict[str, Any]:
-    """Compute conservation-inspired proxy diagnostics over existing source/field arrays.
-    """
+    """Compute conservation-inspired proxy diagnostics over existing source/field arrays."""
+
     def _safe_float(v: Any) -> float:
         f = float(v)
         if not (f == f) or abs(f) == float("inf"):
@@ -433,7 +443,7 @@ def compute_conservation_proxy_diagnostics(
 
     def _norm_l2(arr: np.ndarray) -> float | None:
         try:
-            return _safe_float(np.sqrt(np.mean(arr ** 2)))
+            return _safe_float(np.sqrt(np.mean(arr**2)))
         except Exception:
             return None
 
@@ -489,7 +499,7 @@ def compute_conservation_proxy_diagnostics(
     if _phi is not None and _phi.ndim >= 2 and _phi.shape[1] > 1:
         try:
             grad = np.gradient(_phi, axis=1)
-            phi_gradient_proxy_norm2 = _safe_float(np.mean(grad ** 2))
+            phi_gradient_proxy_norm2 = _safe_float(np.mean(grad**2))
         except Exception:
             phi_gradient_proxy_norm2 = None
 
@@ -563,9 +573,7 @@ def probe_laminar_modes(
     if "J_e" in modes:
         out["J_e_status"] = "not_computed_without_real_field_solver"
     if any(mode in {"source", "sources", "phi_e", "CSD", "LFP", "J_e"} for mode in modes):
-        out["readout_metadata"] = validate_source_field_status(
-            field_output, requested_modes=modes
-        )
+        out["readout_metadata"] = validate_source_field_status(field_output, requested_modes=modes)
     return out
 
 
@@ -594,9 +602,9 @@ def make_laminar_connectivity(
         }
 
     n = len(neurons_df)
-    area = np.array(neurons_df.get("area", [""]*n))
-    layer = np.array(neurons_df.get("layer", [""]*n))
-    cell_type = np.array(neurons_df.get("cell_type", [""]*n))
+    area = np.array(neurons_df.get("area", [""] * n))
+    layer = np.array(neurons_df.get("layer", [""] * n))
+    cell_type = np.array(neurons_df.get("cell_type", [""] * n))
 
     W_local_exc = np.zeros((n, n), dtype=np.float32)
     W_local_inh = np.zeros((n, n), dtype=np.float32)
@@ -624,7 +632,9 @@ def make_laminar_connectivity(
     draw_p_local_i = rng.random((n, n))
     draw_w_i = rng.uniform(*w_i_range, size=(n, n))
     mask_local_i = same_area & (cell_type[None, :] != "E") & no_self & (draw_p_local_i < p_local_i)
-    W_local_inh = np.where(mask_local_i, draw_w_i * (0.65 + 0.35 * local_gain), 0.0).astype(np.float32)
+    W_local_inh = np.where(mask_local_i, draw_w_i * (0.65 + 0.35 * local_gain), 0.0).astype(
+        np.float32
+    )
 
     # 3. Feedforward and Feedback (delta area rank)
     ranks = np.array([area_rank.get(a, 0) for a in area])
@@ -633,7 +643,14 @@ def make_laminar_connectivity(
     # FF: delta == 1 and layer[pre] in ("L2", "L3") and layer[post] == "L4"
     pre_ff_layer = np.isin(layer, ["L2", "L3"])
     post_ff_layer = layer == "L4"
-    mask_ff_geom = (~same_area) & no_self & (delta == 1) & (cell_type[None, :] == "E") & pre_ff_layer[None, :] & post_ff_layer[:, None]
+    mask_ff_geom = (
+        (~same_area)
+        & no_self
+        & (delta == 1)
+        & (cell_type[None, :] == "E")
+        & pre_ff_layer[None, :]
+        & post_ff_layer[:, None]
+    )
     draw_p_ff = rng.random((n, n))
     draw_w_ff = rng.uniform(*w_ff_range, size=(n, n))
     mask_ff = mask_ff_geom & (draw_p_ff < p_feedforward)
@@ -642,7 +659,14 @@ def make_laminar_connectivity(
     # FB: delta == -1 and layer[pre] in ("L2", "L3", "L6") and layer[post] in ("L5", "L6")
     pre_fb_layer = np.isin(layer, ["L2", "L3", "L6"])
     post_fb_layer = np.isin(layer, ["L5", "L6"])
-    mask_fb_geom = (~same_area) & no_self & (delta == -1) & (cell_type[None, :] == "E") & pre_fb_layer[None, :] & post_fb_layer[:, None]
+    mask_fb_geom = (
+        (~same_area)
+        & no_self
+        & (delta == -1)
+        & (cell_type[None, :] == "E")
+        & pre_fb_layer[None, :]
+        & post_fb_layer[:, None]
+    )
     draw_p_fb = rng.random((n, n))
     draw_w_fb = rng.uniform(*w_fb_range, size=(n, n))
     mask_fb = mask_fb_geom & (draw_p_fb < p_feedback)
@@ -685,6 +709,7 @@ def exponential_synaptic_trace(
     spikes_arr = jnp.asarray(spikes, dtype=jnp.float32)
 
     if spikes_arr.ndim == 1:
+
         def body_fun(carry, spike):
             """Documented public function `body_fun`."""
             next_carry = alpha * carry + spike
@@ -694,6 +719,7 @@ def exponential_synaptic_trace(
         _, trace = jax.lax.scan(body_fun, init_carry, spikes_arr)
         return trace
     else:
+
         def body_fun(carry, step_spikes):
             """Documented public function `body_fun`."""
             next_carry = alpha * carry + step_spikes
@@ -742,7 +768,9 @@ def filtered_spike_source(
         "dynamics_derived": True,
         "spectrolaminar_profile_injected": False,
         "default_evidence_path": True,
-        **_proxy_truth_gate_fragment(source_calibration_status="uncalibrated_spike_only_toy_scale_a"),
+        **_proxy_truth_gate_fragment(
+            source_calibration_status="uncalibrated_spike_only_toy_scale_a"
+        ),
         "tau_ms": float(tau_ms),
         "n_neurons": int(spikes.shape[1]),
         "n_steps": int(spikes.shape[0]),
@@ -822,7 +850,9 @@ def teaching_control_spectrolaminar_resonance_source(
         "spectrolaminar_profile_injected": True,
         "default_evidence_path": False,
         "teaching_control_source": True,
-        **_proxy_truth_gate_fragment(source_calibration_status="toy_scale_a_per_native_not_empirical"),
+        **_proxy_truth_gate_fragment(
+            source_calibration_status="toy_scale_a_per_native_not_empirical"
+        ),
         "alpha_beta_freq_hz": float(alpha_beta_freq),
         "gamma_freq_hz": float(gamma_freq),
         "n_neurons": int(n),
@@ -860,6 +890,7 @@ def spectrolaminar_psd(
     for ch in range(n_ch):
         try:
             from scipy.signal import welch
+
             f, pxx = welch(signal_arr[:, ch], fs=fs, nperseg=min(1024, T))
             pxx_interp = np.interp(freqs, f, pxx)
         except (ImportError, ValueError):
@@ -942,7 +973,7 @@ def spectrolaminar_readout(
 
     if n_contacts is not None and len(area_indices) > n_contacts:
         pos_sorted = np.argsort(pos_from_l4_list)
-        contact_indices = pos_sorted[:: len(pos_sorted) // n_contacts][: n_contacts]
+        contact_indices = pos_sorted[:: len(pos_sorted) // n_contacts][:n_contacts]
         contact_indices = sorted(contact_indices)
         psd_pooled = psd[:, contact_indices]
         pos_contacts = [pos_from_l4_list[i] for i in contact_indices]
@@ -959,8 +990,12 @@ def spectrolaminar_readout(
         "n_contacts": int(psd_pooled.shape[1]),
         "freq_hz": np.asarray(freqs, dtype=np.float32),
         "relative_power": np.asarray(psd_norm[:, contact_indices], dtype=np.float32),
-        "alpha_beta": np.asarray(bandpower.get("alpha_beta", np.zeros(len(contact_indices))), dtype=np.float32),
-        "gamma": np.asarray(bandpower.get("gamma", np.zeros(len(contact_indices))), dtype=np.float32),
+        "alpha_beta": np.asarray(
+            bandpower.get("alpha_beta", np.zeros(len(contact_indices))), dtype=np.float32
+        ),
+        "gamma": np.asarray(
+            bandpower.get("gamma", np.zeros(len(contact_indices))), dtype=np.float32
+        ),
         "pos_from_l4": np.asarray(pos_contacts, dtype=np.float32),
         "contact_depths_m": np.asarray(pos_contacts, dtype=np.float32) * 0.5,
         "metadata": _spectrolaminar_readout_metadata(),
@@ -1006,15 +1041,18 @@ class LinearReadout:
     operator_status: str = "simulated_proxy"
     units_or_status: str = "relative_proxy_units"
 
-    def apply(self, source: jax.Array) -> jax.Array:
+    def apply(self, source: jax.Array | CanonicalSource) -> jax.Array:
         """Documented public function `apply`."""
+        source, _ = _unwrap_probe_input(source)
         src = jnp.asarray(source)
         W = jnp.asarray(self.W)
         if W.ndim != 2:
             raise ValueError(f"W must be 2D [C, N], got {W.shape}")
         if src.ndim == 1:
             if src.shape[0] != W.shape[1]:
-                raise ValueError(f"source length {src.shape[0]} does not match W width {W.shape[1]}")
+                raise ValueError(
+                    f"source length {src.shape[0]} does not match W width {W.shape[1]}"
+                )
             return W @ src
         if src.ndim == 2:
             if src.shape[1] != W.shape[1]:
@@ -1042,7 +1080,7 @@ class LinearReadout:
         }
 
 
-def csd_tensor(phi_e_proxy: jax.Array, dz: jax.Array | float) -> jax.Array:
+def csd_tensor(phi_e_proxy: jax.Array | CanonicalSource, dz: jax.Array | float) -> jax.Array:
     """Spatial second-derivative CSD tensor (readout family, depth-axis stage).
 
     ``csd_proxy[c] = -(phi[c+1] - 2*phi[c] + phi[c-1]) / dz**2`` along the
@@ -1065,7 +1103,7 @@ def csd_tensor(phi_e_proxy: jax.Array, dz: jax.Array | float) -> jax.Array:
     Returns: CSD proxy, shape ``[T, n_contacts]``. Returns zeros when
     ``n_contacts < 3`` (the stencil is undefined with fewer than 3 points).
     """
-    phi_e_proxy = jnp.asarray(phi_e_proxy)
+    phi_e_proxy, _ = _unwrap_probe_input(phi_e_proxy)
     n_contacts = phi_e_proxy.shape[-1]
     if n_contacts < 3:
         return jnp.zeros_like(phi_e_proxy)
@@ -1123,7 +1161,7 @@ def cable_filter_tau(
 
 
 def cable_filter_sources(
-    sources: jax.Array,
+    sources: jax.Array | CanonicalSource,
     tau_s: jax.Array,
     dt_ms: float,
     *,
@@ -1182,6 +1220,7 @@ def cable_filter_sources(
         Number of cascaded single-pole sections (default 2; validated —
         see above).
     """
+    sources, _ = _unwrap_probe_input(sources)
     sources = jnp.asarray(sources, dtype=jnp.float32)
     tau_s = jnp.asarray(tau_s, dtype=jnp.float32)
     if sources.ndim != 2:
@@ -1258,9 +1297,7 @@ def construct_source_tensor(
     """
     if mode == "total_membrane_current_proxy":
         if total_membrane_current is None:
-            raise ValueError(
-                "total_membrane_current is required for total_membrane_current_proxy"
-            )
+            raise ValueError("total_membrane_current is required for total_membrane_current_proxy")
         if synaptic_current is not None:
             raise ValueError(
                 "Double-counting detected: total_membrane_current_proxy already includes synaptic_current"
@@ -1353,15 +1390,15 @@ def combined_multi_area_source(
     """Documented public function `combined_multi_area_source`."""
     if control_params is None:
         control_params = {}
-    
+
     spike_scale = control_params.get("spike_source_scale", 1.0)
     res_scale = control_params.get("resonance_source_scale", 1.0)
-    
+
     spike_src, _ = filtered_spike_source(spikes, neurons, dt_ms=dt_ms)
     res_src, _ = teaching_control_spectrolaminar_resonance_source(
         neurons, n_steps, dt_ms, control_params
     )
-    
+
     return spike_scale * spike_src + res_scale * res_src
 
 
@@ -1372,40 +1409,38 @@ def spectrolaminar_similarity(
 ) -> float:
     """Documented public function `spectrolaminar_similarity`."""
     is_default_target = (target_alpha_beta is None) or (target_gamma is None)
-    
+
     if target_alpha_beta is None:
         target_alpha_beta = readout.get("alpha_beta", np.array([]))
     if target_gamma is None:
         target_gamma = readout.get("gamma", np.array([]))
-        
+
     alpha_beta = readout.get("alpha_beta", np.array([]))
     gamma = readout.get("gamma", np.array([]))
-    
+
     if len(alpha_beta) == 0 or len(target_alpha_beta) == 0:
         return 50.0
-        
+
     if len(target_alpha_beta) != len(alpha_beta):
         target_alpha_beta = np.interp(
             np.linspace(0, 1, len(alpha_beta)),
             np.linspace(0, 1, len(target_alpha_beta)),
-            target_alpha_beta
+            target_alpha_beta,
         )
     if len(target_gamma) != len(gamma):
         target_gamma = np.interp(
-            np.linspace(0, 1, len(gamma)),
-            np.linspace(0, 1, len(target_gamma)),
-            target_gamma
+            np.linspace(0, 1, len(gamma)), np.linspace(0, 1, len(target_gamma)), target_gamma
         )
 
     mse_alpha = np.mean((alpha_beta - target_alpha_beta) ** 2)
     mse_gamma = np.mean((gamma - target_gamma) ** 2)
     mse = 0.5 * (mse_alpha + mse_gamma)
-    
+
     score = 100.0 / (1.0 + 5.0 * mse)
-    
+
     if is_default_target and len(alpha_beta) > 1 and np.corrcoef(alpha_beta, gamma)[0, 1] < -0.8:
         score = max(score, 60.0)
-        
+
     return float(score)
 
 
@@ -1426,6 +1461,7 @@ class LegacyMultiAreaSpectrolaminarObjective:
     Scheduled for removal in jaxfne ``0.4.24`` unless the programme review
     retains it as a permanent compatibility shim.
     """
+
     def __init__(self, target_profiles: Optional[dict] = None):
         warnings.warn(
             "LegacyMultiAreaSpectrolaminarObjective (and the "
@@ -1449,9 +1485,9 @@ class LegacyMultiAreaSpectrolaminarObjective:
             else:
                 target_alpha = None
                 target_gamma = None
-            
+
             scores.append(spectrolaminar_similarity(readout, target_alpha, target_gamma))
-            
+
         if not scores:
             return 50.0
         return float(np.mean(scores))

@@ -2,6 +2,7 @@
 
 Isolates localized laminar projection computations from higher-level multimodal probe transformations.
 """
+
 # Field solver acceptance checklist (maintainer contract, Phase F).
 # A field solver may join the public API surface only when all five hold:
 #   1. finite field outputs for any finite inputs;
@@ -45,6 +46,9 @@ from .proxy import (
 )
 from .probes import (
     ProbeReadout,
+    CanonicalSource,
+    canonical_source,
+    CANONICAL_SOURCE_REPRESENTATION,
     create_probe,
     spk_probe,
     vm_probe,
@@ -101,6 +105,9 @@ __all__ = [
     "_make_field_solution_report",
     "create_probe",
     "ProbeReadout",
+    "CanonicalSource",
+    "canonical_source",
+    "CANONICAL_SOURCE_REPRESENTATION",
     "spk_probe",
     "vm_probe",
     "source_probe",
