@@ -33,28 +33,28 @@
       "n_edges": 9900,
       "delay_steps_max": null,
       "phases_ms": {
-        "construct_ms": 7451.821200083941,
-        "simulate_first_call_ms": 1272.160500055179,
-        "simulate_warm_ms_median": 259.7283001523465,
+        "construct_ms": 4544.5935998577625,
+        "simulate_first_call_ms": 594.435399863869,
+        "simulate_warm_ms_median": 5.090600112453103,
         "simulate_warm_ms_range": [
-          240.73020019568503,
-          271.2102001532912
+          4.743000026792288,
+          7.595600094646215
         ],
         "simulate_warm_ms_all": [
-          259.7283001523465,
-          240.73020019568503,
-          271.2102001532912
+          7.595600094646215,
+          5.090600112453103,
+          4.743000026792288
         ],
-        "compile_est_ms": 1012.4321999028325,
-        "probe_observe_ms": 0.033499905839562416,
-        "manifest_ms": 1.2199000921100378
+        "compile_est_ms": 589.3447997514158,
+        "probe_observe_ms": 0.010499963536858559,
+        "manifest_ms": 0.575199956074357
       },
       "rss_mb": {
-        "start": 36.503552,
-        "after_construct": 359.87456,
-        "after_first_sim": 402.051072,
-        "after_warm": 424.341504,
-        "cell_peak": 438.718464
+        "start": 36.51584,
+        "after_construct": 358.653952,
+        "after_first_sim": 396.947456,
+        "after_warm": 400.625664,
+        "cell_peak": 433.21344
       },
       "recording": {
         "spikes": {
@@ -70,7 +70,7 @@
       "notes": [
         "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more."
       ],
-      "wall_s": 9.595158338546753
+      "wall_s": 5.232972621917725
     },
     {
       "id": "n1",
@@ -92,28 +92,28 @@
       "n_edges": 0,
       "delay_steps_max": null,
       "phases_ms": {
-        "construct_ms": 6330.612899968401,
-        "simulate_first_call_ms": 738.8105001300573,
-        "simulate_warm_ms_median": 139.98560002073646,
+        "construct_ms": 3268.0527002085,
+        "simulate_first_call_ms": 469.72459997050464,
+        "simulate_warm_ms_median": 97.85679983906448,
         "simulate_warm_ms_range": [
-          135.31820010393858,
-          150.89059993624687
+          93.16450008191168,
+          103.23700006119907
         ],
         "simulate_warm_ms_all": [
-          150.89059993624687,
-          139.98560002073646,
-          135.31820010393858
+          97.85679983906448,
+          103.23700006119907,
+          93.16450008191168
         ],
-        "compile_est_ms": 598.8249001093209,
-        "probe_observe_ms": 0.011799857020378113,
-        "manifest_ms": 0.6500000599771738
+        "compile_est_ms": 371.86780013144016,
+        "probe_observe_ms": 0.009800074622035027,
+        "manifest_ms": 0.37860008887946606
       },
       "rss_mb": {
-        "start": 36.442112,
-        "after_construct": 315.195392,
-        "after_first_sim": 344.563712,
-        "after_warm": 356.118528,
-        "cell_peak": 356.663296
+        "start": 36.560896,
+        "after_construct": 317.251584,
+        "after_first_sim": 346.759168,
+        "after_warm": 360.435712,
+        "cell_peak": 360.435712
       },
       "recording": {
         "spikes": {
@@ -127,7 +127,7 @@
         }
       },
       "notes": [],
-      "wall_s": 7.57025933265686
+      "wall_s": 4.0777692794799805
     },
     {
       "id": "n10",
@@ -149,28 +149,28 @@
       "n_edges": 90,
       "delay_steps_max": null,
       "phases_ms": {
-        "construct_ms": 6211.363399866968,
-        "simulate_first_call_ms": 2603.302599862218,
-        "simulate_warm_ms_median": 183.86329989880323,
+        "construct_ms": 4226.662999950349,
+        "simulate_first_call_ms": 2035.7925998978317,
+        "simulate_warm_ms_median": 133.93180002458394,
         "simulate_warm_ms_range": [
-          178.03520010784268,
-          186.24219996854663
+          133.50720005109906,
+          136.79050002247095
         ],
         "simulate_warm_ms_all": [
-          183.86329989880323,
-          186.24219996854663,
-          178.03520010784268
+          136.79050002247095,
+          133.93180002458394,
+          133.50720005109906
         ],
-        "compile_est_ms": 2419.4392999634147,
-        "probe_observe_ms": 0.013399869203567505,
-        "manifest_ms": 0.6909000221639872
+        "compile_est_ms": 1901.8607998732477,
+        "probe_observe_ms": 0.010200077667832375,
+        "manifest_ms": 0.5938999820500612
       },
       "rss_mb": {
-        "start": 36.429824,
-        "after_construct": 353.411072,
-        "after_first_sim": 399.437824,
-        "after_warm": 411.316224,
-        "cell_peak": 427.732992
+        "start": 36.491264,
+        "after_construct": 352.739328,
+        "after_first_sim": 396.439552,
+        "after_warm": 409.595904,
+        "cell_peak": 425.766912
       },
       "recording": {
         "spikes": {
@@ -186,7 +186,7 @@
       "notes": [
         "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more."
       ],
-      "wall_s": 9.437756776809692
+      "wall_s": 6.719426393508911
     },
     {
       "id": "n1000",
@@ -208,28 +208,28 @@
       "n_edges": 999000,
       "delay_steps_max": null,
       "phases_ms": {
-        "construct_ms": 7731.980700045824,
-        "simulate_first_call_ms": 1058.0178000964224,
-        "simulate_warm_ms_median": 330.67190018482506,
+        "construct_ms": 4537.577100098133,
+        "simulate_first_call_ms": 550.2220999915153,
+        "simulate_warm_ms_median": 139.64570011012256,
         "simulate_warm_ms_range": [
-          317.5796999130398,
-          332.6220999006182
+          136.19349990040064,
+          142.27920002304018
         ],
         "simulate_warm_ms_all": [
-          332.6220999006182,
-          330.67190018482506,
-          317.5796999130398
+          136.19349990040064,
+          142.27920002304018,
+          139.64570011012256
         ],
-        "compile_est_ms": 727.3458999115974,
-        "probe_observe_ms": 0.018300022929906845,
-        "manifest_ms": 0.7561000529676676
+        "compile_est_ms": 410.5763998813927,
+        "probe_observe_ms": 0.01750001683831215,
+        "manifest_ms": 0.668299850076437
       },
       "rss_mb": {
-        "start": 36.27008,
-        "after_construct": 386.670592,
-        "after_first_sim": 432.472064,
-        "after_warm": 439.93088,
-        "cell_peak": 479.330304
+        "start": 36.601856,
+        "after_construct": 387.551232,
+        "after_first_sim": 454.803456,
+        "after_warm": 449.785856,
+        "cell_peak": 467.92704
       },
       "recording": {
         "spikes": {
@@ -245,7 +245,7 @@
       "notes": [
         "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more."
       ],
-      "wall_s": 10.115294218063354
+      "wall_s": 5.752295732498169
     },
     {
       "id": "n10000",
@@ -267,28 +267,28 @@
       "n_edges": 99990000,
       "delay_steps_max": null,
       "phases_ms": {
-        "construct_ms": 21985.475199995562,
-        "simulate_first_call_ms": 46473.340400028974,
-        "simulate_warm_ms_median": 45454.45779990405,
+        "construct_ms": 26219.626299804077,
+        "simulate_first_call_ms": 48733.57279994525,
+        "simulate_warm_ms_median": 41599.29589997046,
         "simulate_warm_ms_range": [
-          41567.66719999723,
-          46759.27949999459
+          41400.3552000504,
+          42061.437600059435
         ],
         "simulate_warm_ms_all": [
-          45454.45779990405,
-          46759.27949999459,
-          41567.66719999723
+          42061.437600059435,
+          41599.29589997046,
+          41400.3552000504
         ],
-        "compile_est_ms": 1018.8826001249254,
+        "compile_est_ms": 7134.276899974793,
         "probe_observe_ms": 0.018799910321831703,
-        "manifest_ms": 0.6952998228371143
+        "manifest_ms": 0.6162000354379416
       },
       "rss_mb": {
-        "start": 36.511744,
-        "after_construct": 2074.652672,
-        "after_first_sim": 1914.22464,
-        "after_warm": 1855.152128,
-        "cell_peak": 9570.5088
+        "start": 36.339712,
+        "after_construct": 2071.625728,
+        "after_first_sim": 2790.66624,
+        "after_warm": 2675.380224,
+        "cell_peak": 9558.048768
       },
       "recording": {
         "spikes": {
@@ -305,7 +305,7 @@
         "build warning RuntimeWarning: dense all-to-all connectivity at N=10000 materializes an (10000x10000) weight matrix (~400 MB) -- this Configuration did not set columns/layer_cell_types/uniform_3d metadata, so it routed to the non-sparse-aware network builder. Any connectivity(p_connect=...) call has NO effect on this path. Use build_laminar_column/laminar_cortex_config (or set one of those metadata keys directly) to reach the sparse-aware population builder at this scale.",
         "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more."
       ],
-      "wall_s": 204.43355464935303
+      "wall_s": 202.2686026096344
     },
     {
       "id": "t10x",
@@ -327,28 +327,28 @@
       "n_edges": 9900,
       "delay_steps_max": null,
       "phases_ms": {
-        "construct_ms": 6710.9727000351995,
-        "simulate_first_call_ms": 1283.3559000864625,
-        "simulate_warm_ms_median": 275.37130005657673,
+        "construct_ms": 4472.229599952698,
+        "simulate_first_call_ms": 587.0445999316871,
+        "simulate_warm_ms_median": 31.37139999307692,
         "simulate_warm_ms_range": [
-          241.69620010070503,
-          289.4814999308437
+          28.629800071939826,
+          32.603600062429905
         ],
         "simulate_warm_ms_all": [
-          241.69620010070503,
-          289.4814999308437,
-          275.37130005657673
+          31.37139999307692,
+          28.629800071939826,
+          32.603600062429905
         ],
-        "compile_est_ms": 1007.9846000298858,
-        "probe_observe_ms": 0.020799925550818443,
-        "manifest_ms": 0.735399778932333
+        "compile_est_ms": 555.6731999386102,
+        "probe_observe_ms": 0.01740013249218464,
+        "manifest_ms": 0.5427999421954155
       },
       "rss_mb": {
-        "start": 36.466688,
-        "after_construct": 360.882176,
-        "after_first_sim": 416.403456,
-        "after_warm": 427.68384,
-        "cell_peak": 461.88544
+        "start": 36.233216,
+        "after_construct": 368.316416,
+        "after_first_sim": 408.915968,
+        "after_warm": 411.89376,
+        "cell_peak": 437.039104
       },
       "recording": {
         "spikes": {
@@ -364,7 +364,7 @@
       "notes": [
         "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more."
       ],
-      "wall_s": 8.909180164337158
+      "wall_s": 5.227154970169067
     },
     {
       "id": "dt0025",
@@ -386,28 +386,28 @@
       "n_edges": 9900,
       "delay_steps_max": null,
       "phases_ms": {
-        "construct_ms": 8729.297499870881,
-        "simulate_first_call_ms": 1042.691099923104,
-        "simulate_warm_ms_median": 214.400100056082,
+        "construct_ms": 4388.116199988872,
+        "simulate_first_call_ms": 596.8474000692368,
+        "simulate_warm_ms_median": 14.634399907663465,
         "simulate_warm_ms_range": [
-          203.9638999849558,
-          219.11679999902844
+          14.529499923810363,
+          17.11059990338981
         ],
         "simulate_warm_ms_all": [
-          214.400100056082,
-          203.9638999849558,
-          219.11679999902844
+          17.11059990338981,
+          14.529499923810363,
+          14.634399907663465
         ],
-        "compile_est_ms": 828.290999867022,
-        "probe_observe_ms": 0.0195999164134264,
-        "manifest_ms": 0.8434001356363297
+        "compile_est_ms": 582.2130001615733,
+        "probe_observe_ms": 0.01659989356994629,
+        "manifest_ms": 0.6758000236004591
       },
       "rss_mb": {
-        "start": 36.528128,
-        "after_construct": 361.558016,
-        "after_first_sim": 403.795968,
-        "after_warm": 422.637568,
-        "cell_peak": 445.698048
+        "start": 36.585472,
+        "after_construct": 364.56448,
+        "after_first_sim": 400.150528,
+        "after_warm": 403.836928,
+        "cell_peak": 433.524736
       },
       "recording": {
         "spikes": {
@@ -423,7 +423,7 @@
       "notes": [
         "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more."
       ],
-      "wall_s": 10.486342191696167
+      "wall_s": 5.1070990562438965
     },
     {
       "id": "dt05",
@@ -445,28 +445,28 @@
       "n_edges": 9900,
       "delay_steps_max": null,
       "phases_ms": {
-        "construct_ms": 15441.643399884924,
-        "simulate_first_call_ms": 1091.6055999696255,
-        "simulate_warm_ms_median": 289.2355998046696,
+        "construct_ms": 7122.973600169644,
+        "simulate_first_call_ms": 1036.4664001390338,
+        "simulate_warm_ms_median": 231.7862999625504,
         "simulate_warm_ms_range": [
-          260.0110999774188,
-          302.35720006749034
+          221.56769991852343,
+          241.47180002182722
         ],
         "simulate_warm_ms_all": [
-          260.0110999774188,
-          289.2355998046696,
-          302.35720006749034
+          221.56769991852343,
+          231.7862999625504,
+          241.47180002182722
         ],
-        "compile_est_ms": 802.3700001649559,
-        "probe_observe_ms": 0.014800112694501877,
-        "manifest_ms": 1.8494999967515469
+        "compile_est_ms": 804.6801001764834,
+        "probe_observe_ms": 0.01400010660290718,
+        "manifest_ms": 0.9368001483380795
       },
       "rss_mb": {
-        "start": 36.5568,
-        "after_construct": 359.34208,
-        "after_first_sim": 393.252864,
-        "after_warm": 412.770304,
-        "cell_peak": 427.589632
+        "start": 36.569088,
+        "after_construct": 366.804992,
+        "after_first_sim": 402.259968,
+        "after_warm": 416.600064,
+        "cell_peak": 432.041984
       },
       "recording": {
         "spikes": {
@@ -482,7 +482,7 @@
       "notes": [
         "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more."
       ],
-      "wall_s": 17.496833086013794
+      "wall_s": 8.961702346801758
     },
     {
       "id": "rec_off",
@@ -504,28 +504,28 @@
       "n_edges": 9900,
       "delay_steps_max": null,
       "phases_ms": {
-        "construct_ms": 10408.95179985091,
-        "simulate_first_call_ms": 1472.1005999017507,
-        "simulate_warm_ms_median": 241.7727999854833,
+        "construct_ms": 5908.561300020665,
+        "simulate_first_call_ms": 723.4840001910925,
+        "simulate_warm_ms_median": 5.5633001029491425,
         "simulate_warm_ms_range": [
-          223.74500008299947,
-          277.49960008077323
+          5.225999979302287,
+          5.569500150159001
         ],
         "simulate_warm_ms_all": [
-          277.49960008077323,
-          241.7727999854833,
-          223.74500008299947
+          5.5633001029491425,
+          5.569500150159001,
+          5.225999979302287
         ],
-        "compile_est_ms": 1230.3277999162674,
-        "probe_observe_ms": 0.018900027498602867,
-        "manifest_ms": 0.8325998205691576
+        "compile_est_ms": 717.9207000881433,
+        "probe_observe_ms": 0.013299984857439995,
+        "manifest_ms": 0.6234999746084213
       },
       "rss_mb": {
-        "start": 36.560896,
-        "after_construct": 358.158336,
-        "after_first_sim": 399.167488,
-        "after_warm": 418.635776,
-        "cell_peak": 433.061888
+        "start": 36.487168,
+        "after_construct": 362.799104,
+        "after_first_sim": 395.034624,
+        "after_warm": 396.304384,
+        "cell_peak": 431.251456
       },
       "recording": {
         "spikes": {
@@ -541,7 +541,7 @@
       "notes": [
         "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more."
       ],
-      "wall_s": 12.751646518707275
+      "wall_s": 6.736189365386963
     },
     {
       "id": "rec_full",
@@ -563,28 +563,28 @@
       "n_edges": 9900,
       "delay_steps_max": null,
       "phases_ms": {
-        "construct_ms": 14327.503700042143,
-        "simulate_first_call_ms": 4707.193699898198,
-        "simulate_warm_ms_median": 286.39809996820986,
+        "construct_ms": 5576.584700029343,
+        "simulate_first_call_ms": 2711.355899926275,
+        "simulate_warm_ms_median": 9.655199944972992,
         "simulate_warm_ms_range": [
-          268.1595999747515,
-          334.64130014181137
+          9.562499821186066,
+          9.798600105568767
         ],
         "simulate_warm_ms_all": [
-          334.64130014181137,
-          286.39809996820986,
-          268.1595999747515
+          9.655199944972992,
+          9.562499821186066,
+          9.798600105568767
         ],
-        "compile_est_ms": 4420.795599929988,
-        "probe_observe_ms": 0.06449990905821323,
-        "manifest_ms": 2.0433000754565
+        "compile_est_ms": 2701.700699981302,
+        "probe_observe_ms": 0.06220000796020031,
+        "manifest_ms": 2.831399906426668
       },
       "rss_mb": {
         "start": 36.356096,
-        "after_construct": 361.132032,
-        "after_first_sim": 448.258048,
-        "after_warm": 475.394048,
-        "cell_peak": 492.609536
+        "after_construct": 367.894528,
+        "after_first_sim": 448.331776,
+        "after_warm": 449.957888,
+        "cell_peak": 451.559424
       },
       "recording": {
         "spikes": {
@@ -600,7 +600,7 @@
       "notes": [
         "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more."
       ],
-      "wall_s": 20.1506245136261
+      "wall_s": 8.399505138397217
     },
     {
       "id": "mech_hdp",
@@ -622,28 +622,28 @@
       "n_edges": 9900,
       "delay_steps_max": null,
       "phases_ms": {
-        "construct_ms": 4418.986199889332,
-        "simulate_first_call_ms": 2505.4297999013215,
-        "simulate_warm_ms_median": 563.4404001757503,
+        "construct_ms": 4327.258199919015,
+        "simulate_first_call_ms": 2374.139500083402,
+        "simulate_warm_ms_median": 575.2085999120027,
         "simulate_warm_ms_range": [
-          541.7261999100447,
-          591.4873001165688
+          570.981599856168,
+          579.2239001020789
         ],
         "simulate_warm_ms_all": [
-          563.4404001757503,
-          541.7261999100447,
-          591.4873001165688
+          570.981599856168,
+          575.2085999120027,
+          579.2239001020789
         ],
-        "compile_est_ms": 1941.9893997255713,
-        "probe_observe_ms": 0.014199875295162201,
-        "manifest_ms": 0.6858999840915203
+        "compile_est_ms": 1798.9309001713991,
+        "probe_observe_ms": 0.0171000137925148,
+        "manifest_ms": 0.763599993661046
       },
       "rss_mb": {
-        "start": 36.425728,
-        "after_construct": 357.687296,
-        "after_first_sim": 506.441728,
-        "after_warm": 559.8208,
-        "cell_peak": 559.4112
+        "start": 36.397056,
+        "after_construct": 363.188224,
+        "after_first_sim": 509.181952,
+        "after_warm": 562.147328,
+        "cell_peak": 561.328128
       },
       "recording": {
         "spikes": {
@@ -668,7 +668,7 @@
         "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.",
         "HDP runtime mirrored from benchmark_050_baseline._hdp_runtime"
       ],
-      "wall_s": 8.70061731338501
+      "wall_s": 8.493688821792603
     },
     {
       "id": "chunk_ref",
@@ -690,28 +690,28 @@
       "n_edges": 9900,
       "delay_steps_max": null,
       "phases_ms": {
-        "construct_ms": 4576.020400039852,
-        "simulate_first_call_ms": 1292.401700047776,
-        "simulate_warm_ms_median": 262.43870006874204,
+        "construct_ms": 4389.239199925214,
+        "simulate_first_call_ms": 1028.2107000239193,
+        "simulate_warm_ms_median": 222.76929998770356,
         "simulate_warm_ms_range": [
-          256.90799998119473,
-          263.05529987439513
+          221.85370000079274,
+          226.48050007410347
         ],
         "simulate_warm_ms_all": [
-          256.90799998119473,
-          263.05529987439513,
-          262.43870006874204
+          226.48050007410347,
+          222.76929998770356,
+          221.85370000079274
         ],
-        "compile_est_ms": 1029.962999979034,
-        "probe_observe_ms": 0.01919991336762905,
-        "manifest_ms": 0.8700001053512096
+        "compile_est_ms": 805.4414000362158,
+        "probe_observe_ms": 0.01719989813864231,
+        "manifest_ms": 0.7023001089692116
       },
       "rss_mb": {
-        "start": 36.401152,
-        "after_construct": 360.710144,
-        "after_first_sim": 403.47648,
-        "after_warm": 441.05728,
-        "cell_peak": 456.728576
+        "start": 36.683776,
+        "after_construct": 362.389504,
+        "after_first_sim": 416.370688,
+        "after_warm": 434.93376,
+        "cell_peak": 449.978368
       },
       "recording": {
         "spikes": {
@@ -728,7 +728,7 @@
         "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.",
         "edge_list backend required by the continuation path"
       ],
-      "wall_s": 6.7363409996032715
+      "wall_s": 6.1483354568481445
     },
     {
       "id": "chunk_k4",
@@ -762,28 +762,28 @@
       "n_edges": 9900,
       "delay_steps_max": null,
       "phases_ms": {
-        "construct_ms": 6250.834099948406,
-        "simulate_first_call_ms": 2884.0864000376314,
-        "simulate_warm_ms_median": 203.0329001136124,
+        "construct_ms": 7018.2805000804365,
+        "simulate_first_call_ms": 2899.041100172326,
+        "simulate_warm_ms_median": 222.6437998469919,
         "simulate_warm_ms_range": [
-          187.41269991733134,
-          952.8793001081795
+          213.57510006055236,
+          937.78260005638
         ],
         "simulate_warm_ms_all": [
-          952.8793001081795,
-          203.0329001136124,
-          187.41269991733134
+          937.78260005638,
+          222.6437998469919,
+          213.57510006055236
         ],
-        "compile_est_ms": 2681.053499924019,
-        "probe_observe_ms": 0.024999957531690598,
-        "manifest_ms": 0.822099857032299
+        "compile_est_ms": 2676.397300325334,
+        "probe_observe_ms": 0.015999889001250267,
+        "manifest_ms": 0.8079002145677805
       },
       "rss_mb": {
-        "start": 36.499456,
-        "after_construct": 365.481984,
-        "after_first_sim": 481.1776,
-        "after_warm": 505.638912,
-        "cell_peak": 505.667584
+        "start": 36.683776,
+        "after_construct": 363.692032,
+        "after_first_sim": 471.236608,
+        "after_warm": 492.17536,
+        "cell_peak": 511.93856
       },
       "recording": {
         "spikes": {
@@ -802,7 +802,7 @@
         "chunk_k4 first_call = full 4-segment chained run (compile+run)",
         "warm repeats are single-segment (T/4) runs; first_call covers the chained run"
       ],
-      "wall_s": 10.557341814041138
+      "wall_s": 11.380478620529175
     },
     {
       "id": "at10_20area",
