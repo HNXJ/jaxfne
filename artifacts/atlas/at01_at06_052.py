@@ -400,3 +400,276 @@ def run_at01() -> dict[str, Any]:
     if out["wall_s"] > WALL_BUDGET_S:
         out["status"] = "OVER_BUDGET"
     return out
+
+
+# ---------------------------------------------------------------------------
+# Item 10: AT-02 pair transmission + AT-03 E<->I pair (declared delay_ms).
+# ---------------------------------------------------------------------------
+
+# TFNE specs use one mechanism per rule in the 0.5.2 grammar; the
+# bidirectional AT-03 rule is single-mechanism by grammar limitation (S27
+# P_{l,c} is post-0.5.5), so E/I identity there is carried by cell type +
+# sign metadata, and the limitation is declared in the record, not hidden.
+AT02_SPEC_DELAY = (
+    "O[k] := [direction = >; mechanism = AMPA; probability = 1.0; "
+    "weight = 0.5; delay = {delay}]; "
+    "A := [C = {{E}}; N = 4]; B := [C = {{E}}; N = 4]; x : A O[k] B : y"
+)
+AT03_SPEC = (
+    "O[k] := [direction = <>; mechanism = AMPA; probability = 1.0; "
+    "weight = 0.8; delay = {delay}]; "
+    "A := [C = {{E}}; N = 3]; B := [C = {{I}}; N = 3]; x : A O[k] B : y"
+)
+# Absent-delay arm: no template braces (never formatted).
+AT02_SPEC_ABSENT = (
+    "O[k] := [direction = >; mechanism = AMPA; probability = 1.0; "
+    "weight = 0.5]; "
+    "A := [C = {E}; N = 4]; B := [C = {E}; N = 4]; x : A O[k] B : y"
+)
+AT02_DURATION_MS = 60.0
+AT03_DURATION_MS = 200.0
+AT02_N_CONTACTS = 4
+SUPERPOSITION_TOL = 1e-3
+
+
+def _tfne_pair_run(spec: str, duration_ms: float, dt_ms: float, seed: int = SEED) -> dict[str, Any]:
+    """TFNE -> realize -> configure -> field/probes -> construct -> simulate.
+
+    Delay declared in ms on the connection rule (0.5.2 decision 0b);
+    configured ms and realized steps both recorded from the executed model.
+    """
+    t0 = time.perf_counter()
+    tracemalloc.start()
+    try:
+        program = J.tfne.parse(spec)
+        realization = J.tfne.realize(J.tfne.resolve(program), program, seed=seed)
+        cfg = (
+            J.tfne.to_configuration(realization, duration_ms=duration_ms, dt_ms=dt_ms)
+            .field(domain="laminar_column", conductivity="proxy")
+            .probe(
+                name="e1",
+                modes=["spikes", "V_m", "source", "LFP-proxy"],
+                n_contacts=AT02_N_CONTACTS,
+            )
+        )
+        model = J.construct(cfg)
+        signals = model.simulate(J.simulation(duration_ms=duration_ms, dt_ms=dt_ms, seed=seed))
+        edges = model.params["edge_list"]
+        delay_steps = [int(v) for v in np.asarray(edges.delay_steps).ravel()]
+    finally:
+        _, peak_b = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+    return {
+        "signals": signals,
+        "neuron_table": model.neuron_table(),
+        "delay_steps": delay_steps,
+        "delay_storage": str(edges.delay_storage),
+        "wall_s": time.perf_counter() - t0,
+        "mem_peak_b": float(peak_b),
+    }
+
+
+def _field_decomposition(run: dict[str, Any]) -> dict[str, Any]:
+    """Per-source vs superposed Phi from the executed kernel (proxy only)."""
+    sig = run["signals"]
+    K = np.asarray(sig.field.kernel, dtype=float)
+    S = np.asarray(sig.sources, dtype=float)
+    P = np.asarray(sig.field.lfp_proxy, dtype=float)
+    recon = (K @ S.T).T
+    err = float(np.abs(recon - P).max())
+    # Per-source fields phi_i(t) = S[:, i] outer K[:, i].
+    per = S[:, :, None] * K.T[None, :, :]
+    return {
+        "kernel_shape": list(K.shape),
+        "reconstruction_max_err": err,
+        "superposition_identity": bool(err <= SUPERPOSITION_TOL),
+        "per_source": per,  # [T, N, C]
+        "superposed": P,
+        "level": LEVEL_PROXY,
+    }
+
+
+def _relative_centroids(
+    neuron_table: list[dict[str, Any]],
+) -> dict[str, dict[str, float]]:
+    """Area centroids in relative fractions (never mm/um)."""
+    acc: dict[str, dict[str, Any]] = {}
+    for row in neuron_table:
+        a = acc.setdefault(str(row["area"]), {"x": [], "z": []})
+        a["x"].append(float(row["x"]))
+        a["z"].append(float(row["z"]))
+    return {a: {"x": float(np.mean(v["x"])), "z": float(np.mean(v["z"]))} for a, v in acc.items()}
+
+
+def run_at02() -> dict[str, Any]:
+    """S2: driven pair N1->N2 with declared delay; fields + distance law.
+
+    Arms: delay 2.0 ms vs 0.0 vs absent (zero-delay limit bit-identical).
+    Distance law is a proxy observation at relative fractions, never a
+    physical law (no calibration exists; AT-01-R5 OUT_OF_SCOPE).
+    """
+    t0 = time.perf_counter()
+    arms = {
+        "delayed": _tfne_pair_run(AT02_SPEC_DELAY.format(delay=DELAY_MS), AT02_DURATION_MS, DT_MS),
+        "zero": _tfne_pair_run(AT02_SPEC_DELAY.format(delay=0.0), AT02_DURATION_MS, DT_MS),
+        "absent": _tfne_pair_run(AT02_SPEC_ABSENT, AT02_DURATION_MS, DT_MS),
+    }
+    rec: dict[str, Any] = {}
+    for name, run in arms.items():
+        sig = run["signals"]
+        spikes = np.asarray(sig.spikes)
+        rec[name] = {
+            "spikes_shape": list(spikes.shape),
+            "n_spikes": int((spikes > 0).sum()),
+            "delay_steps": run["delay_steps"],
+            "delay_storage": run["delay_storage"],
+            "wall_s": run["wall_s"],
+        }
+    v_absent = np.asarray(arms["absent"]["signals"].V_m)
+    v_zero = np.asarray(arms["zero"]["signals"].V_m)
+    s_absent = np.asarray(arms["absent"]["signals"].spikes)
+    s_zero = np.asarray(arms["zero"]["signals"].spikes)
+    v_delayed = np.asarray(arms["delayed"]["signals"].V_m)
+
+    decomp = _field_decomposition(arms["delayed"])
+    per = decomp["per_source"]
+    P = decomp["superposed"]
+    # Distance law (proxy): contact amplitude vs relative distance from the
+    # B-area centroid in (x, z) fractions; no physical units claimed.
+    centroids = _relative_centroids(arms["delayed"]["neuron_table"])
+    contacts = np.asarray(arms["delayed"]["signals"].field.contact_depths, dtype=float).ravel()
+    n_c = int(contacts.shape[0])
+    # Contact lateral position is undeclared in the proxy (depths only), so
+    # distance is measured in the declared depth fraction axis.
+    dist = np.abs(contacts - centroids["B"]["z"])
+    amp = np.abs(P).mean(axis=0)
+    order = np.argsort(dist)
+    falloff_monotone = bool(np.all(np.diff(amp[order]) <= 0))
+    per_amp = np.abs(per).mean(axis=0)  # [N, C]
+    indiv_total = float(per_amp.sum())
+    super_amp = float(amp.sum())
+
+    out = {
+        "scenario": "AT-02",
+        "status": "OK",
+        "wall_s": time.perf_counter() - t0,
+        "level": LEVEL_PROXY,
+        "level_note": "all fields RELATIVE_PROXY; proxy != calibrated",
+        "delay": {
+            "configured_ms": DELAY_MS,
+            "realized_steps": arms["delayed"]["delay_steps"],
+            "rule": "delay_steps = round(delay_ms / dt_ms) per 0.5.2 decision 0b",
+            "zero_limit_bit_identical": bool(
+                np.array_equal(v_absent, v_zero) and np.array_equal(s_absent, s_zero)
+            ),
+            "delayed_differs_from_zero": bool(not np.array_equal(v_delayed, v_zero)),
+        },
+        "arms": rec,
+        "fields": {
+            "individual_vs_superposed": {
+                "reconstruction_max_err": decomp["reconstruction_max_err"],
+                "superposition_identity": decomp["superposition_identity"],
+                "sum_individual_mean_abs": indiv_total,
+                "superposed_mean_abs": super_amp,
+            },
+            "distance_law_proxy": {
+                "centroids_relative_frac": centroids,
+                "contacts_declared": AT02_N_CONTACTS,
+                "contacts_realized": int(n_c),
+                "contacts_note": (
+                    "TFNE path realizes the field default (16) against "
+                    "declared 4; realized count is read back from the "
+                    "executed field, never assumed"
+                ),
+                "contact_depths_frac": [float(v) for v in contacts],
+                "contact_mean_abs": [float(v) for v in amp],
+                "depth_distance_frac": [float(v) for v in dist],
+                "falloff_monotone_in_depth_frac": falloff_monotone,
+                "note": (
+                    "proxy observation at relative fractions only; no "
+                    "physical distance law without calibration (AT-01-R5 out "
+                    "of scope); contact lateral position undeclared in proxy"
+                ),
+            },
+        },
+    }
+    if out["wall_s"] > WALL_BUDGET_S:
+        out["status"] = "OVER_BUDGET"
+    return out
+
+
+def run_at03() -> dict[str, Any]:
+    """S3: recurrent E<->I pair with declared delay; phase + field.
+
+    Single-mechanism bidirectional TFNE rule (grammar limitation declared
+    in-record); E/I identity from cell type. Cancellation is measured
+    dynamically (anti-phase superposition < sum of amplitudes), never by
+    relabeling.
+    """
+    t0 = time.perf_counter()
+    run = _tfne_pair_run(AT03_SPEC.format(delay=DELAY_MS), AT03_DURATION_MS, DT_MS)
+    sig = run["signals"]
+    spikes = np.asarray(sig.spikes)
+    table = run["neuron_table"]
+    is_e = np.array([r["cell_type"] == "E" for r in table])
+    spk_e = spikes[:, is_e]
+    spk_i = spikes[:, ~is_e]
+    rate_e = float((spk_e > 0).sum() / (spk_e.shape[0] * DT_MS / 1000.0))
+    rate_i = float((spk_i > 0).sum() / (spk_i.shape[0] * DT_MS / 1000.0))
+
+    decomp = _field_decomposition(run)
+    per = decomp["per_source"]  # [T, N, C]
+    P = decomp["superposed"]
+    # Population fields per group from the executed kernel decomposition.
+    phi_e = per[:, is_e, :].sum(axis=1)
+    phi_i = per[:, ~is_e, :].sum(axis=1)
+    f_dom = _dominant_freq_hz(P.mean(axis=1), DT_MS)
+    phase_e = _phase_at_hz(phi_e.mean(axis=1), DT_MS, f_dom)
+    phase_i = _phase_at_hz(phi_i.mean(axis=1), DT_MS, f_dom)
+    lag = abs((phase_e - phase_i + np.pi) % (2 * np.pi) - np.pi)
+    amp_sum = float(np.abs(phi_e).mean() + np.abs(phi_i).mean())
+    amp_super = float(np.abs(P).mean())
+    cancel_idx = 1.0 - amp_super / amp_sum if amp_sum > 0 else 0.0
+    lo = _band_power(P.mean(axis=1), DT_MS, 4.0, 12.0)
+    hi = _band_power(P.mean(axis=1), DT_MS, 30.0, 80.0)
+
+    out = {
+        "scenario": "AT-03",
+        "status": "OK",
+        "wall_s": time.perf_counter() - t0,
+        "level": LEVEL_PROXY,
+        "level_note": "all fields RELATIVE_PROXY; proxy != calibrated",
+        "delay": {
+            "configured_ms": DELAY_MS,
+            "realized_steps": run["delay_steps"],
+            "rule": "delay_steps = round(delay_ms / dt_ms) per 0.5.2 decision 0b",
+        },
+        "grammar_limitation": (
+            "bidirectional rule carries one declared mechanism (TFNE 0.5.2 "
+            "grammar; per-direction kinetics need S27 P, post-0.5.5); E/I "
+            "identity from cell type; kinetics limitation declared here"
+        ),
+        "pair": {
+            "n_spikes": int((spikes > 0).sum()),
+            "rate_e_hz": rate_e,
+            "rate_i_hz": rate_i,
+            "kappa": float(J.kappa_synchrony(spikes, DT_MS)),
+        },
+        "oscillation": {
+            "dominant_freq_hz": f_dom,
+            "phase_lag_e_i_rad": float(lag),
+            "cancellation_index": float(cancel_idx),
+            "cancellation_note": (
+                "dynamic anti-phase measure: 1 - |sum| / sum|.| from "
+                "executed kernel decomposition; >0 cancels, <0 reinforces"
+            ),
+            "bandpower_4_12": lo,
+            "bandpower_30_80": hi,
+            "frequency_dependent_field": bool(lo != hi),
+        },
+        "superposition_identity": decomp["superposition_identity"],
+        "reconstruction_max_err": decomp["reconstruction_max_err"],
+    }
+    if out["wall_s"] > WALL_BUDGET_S:
+        out["status"] = "OVER_BUDGET"
+    return out
