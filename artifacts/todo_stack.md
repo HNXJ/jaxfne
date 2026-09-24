@@ -566,36 +566,25 @@ Full electrodiffusion stays out of scope.
       dt_ms)`; configured ms and realized steps both recorded in the
       manifest; a positive delay that rounds to 0 steps is refused.
 
-ENGINE
-1. TFNE-PARAM-04 repair: declared geometry reaches executed positions;
-   invert `test_declared_geometry_does_not_reach_the_executed_positions`.
-2. TFNE-PARAM-02 repair: delay on the connection-rule surface →
-   `compile_connection_rules` → `InterConnection` → `EdgeList.delay_steps`.
-   Absent delay = current behaviour. Tests: zero-delay limit bit-identical,
-   arrival timing, continuation across a chunk boundary with spikes in
-   flight, composition hook for 0.5.4.
-3. One source representation Q consumed by every probe in `fields/probes.py`
-   and `fields/proxy.py`; existing proxy probe outputs bit-identical.
-4. Epistemic level carried on every Φ/Y output (`FieldOutput`,
-   `ProbeReadout`, manifest). A proxy becomes CALIBRATED only through an
-   explicit calibration transform declaring units, conductivity and
-   distance; a gate refuses the relabel otherwise.
-5. Probe/electrode semantics: position, reference and filter declared; no
-   invented contacts or positions on scientific paths (extends the Rc P4, commit `bfc88a7`,
-   synthetic-geometry provenance).
-6. Configured → realized → executed inspection per capability (moved from
-   old 0.5.3), first for geometry, delay, source and probe; the table under
-   "Parameter ownership, as measured (TFNE-PARAM-01)" is the template.
-   Same pass: inventory existing capabilities as agent-safe operations
-   (agent-native step 3); write one capability record each for geometry
-   and delay (step 4: equation, code, docs, skill, tests, inspection); add
-   the PARAM-03 check of a TFNE construction against the equivalent
-   hand-written construction if it does not exist.
-7. Field-path cost (Q and Φ recording at AT sizes) added to the 0.5.1
-   benchmark matrix.
-8. Field visualization consumes canonical Q/Φ only; resolve or keep the
-   declared-STOP `plot_depth_profile` backend divergence, with the choice
-   recorded.
+ENGINE — sealed 2026-09-24 (commits e91adee + d872816 on dev; receipts in
+`artifacts/programme/`):
+- Items 1+2 (PARAM-04/PARAM-02): relative geometry reaches execution
+  (outside-[0,1]/half/degenerate refused); delay ms → steps chain with
+  manifest recording; zero-delay bit-identical; changed canonical outputs:
+  none. Receipts `tfne_param04_receipt.md`, `tfne_param02_receipt.md`.
+- Items 3+4+5 (Q, epistemic, probes): `CanonicalSource` consumed by every
+  probe (bare-array outputs bit-identical); levels + sealed calibration +
+  refusal gate; electrode semantics declared, invented contacts refused
+  unless explicitly opted in. Manifest carries `field_epistemic`
+  (dispatcher follow-up, tested).
+- Item 6 (inspection + records): `capability_inventory.md`,
+  `capability_geometry.md`, `capability_delay.md`; PARAM-03
+  TFNE-vs-handwritten check found existing
+  (`test_tfne_matches_handwritten_canonical_construction`), not duplicated.
+- Item 7 (field cost): 3 cells appended to the 0.5.1 matrix (prior cells
+  byte-identical).
+- Item 8 (field vis): divergence KEPT (doc-only, zero outputs changed);
+  Plotly refuses source-only signals, matplotlib draws declared Φ.
 
 ATLAS
 9. AT-01 physical anchor: Jaxley HH reference (REFUSED if Jaxley absent)
