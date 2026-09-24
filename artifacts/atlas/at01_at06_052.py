@@ -794,3 +794,186 @@ def run_at04() -> dict[str, Any]:
     if out["wall_s"] > WALL_BUDGET_S:
         out["status"] = "OVER_BUDGET"
     return out
+
+
+# ---------------------------------------------------------------------------
+# Item 12: AT-05 emergence + AT-06 electrode locality (needs items 1+5).
+# ---------------------------------------------------------------------------
+
+# Arms vary the two levers that execute at toy size: population size N
+# and realization seed. Drive sweeps did not separate spike trains at toy
+# size, so there is no parametric rho dial here: rho_sync is the EXECUTED
+# kappa per arm (ordered low->high to trace the A_Phi trend), never an
+# intent label. Margin for the Phi_N != N Phi_1 check: 1e-4 relative.
+AT05_DURATION_MS = 100.0
+AT05_ARMS = {
+    "n8_s11": {"n": 8, "seed": 11},
+    "n8_s7": {"n": 8, "seed": 7},
+    "n4_s7": {"n": 4, "seed": 7},
+    "n2_s7": {"n": 2, "seed": 7},
+}
+AT05_RATIO_MARGIN = 1e-4
+AT06_DURATION_MS = 100.0
+AT06_N_CONTACTS = 4
+AT06_RADII_FRAC = (0.25, 0.5, 1.0)
+AT06_BANDS_HZ = ((4.0, 12.0), (30.0, 80.0))
+
+
+def _population_run(n: int, seed: int = SEED) -> dict[str, Any]:
+    """E/I population with field probes (Configuration path, items 1+5)."""
+    cfg = J.suite2_net1_config(seed=seed, n=n, duration_ms=AT05_DURATION_MS, dt_ms=DT_MS)
+    cfg = cfg.field(domain="laminar_column", conductivity="proxy").probe(
+        name="e1",
+        modes=["spikes", "V_m", "source", "LFP-proxy"],
+        n_contacts=AT06_N_CONTACTS,
+    )
+    return _run_configuration(cfg, AT05_DURATION_MS, DT_MS, seed)
+
+
+def run_at05() -> dict[str, Any]:
+    """S5: population field emergence; executed kappa orders the arms.
+
+    A_Phi(N, rho, r) table from executed runs; Phi_N vs N Phi_1 checked via
+    the executed kernel decomposition (coherent vs incoherent summation).
+    A negative result (equality in a coherent regime) is recorded, never
+    forced into inequality.
+    """
+    t0 = time.perf_counter()
+    arms: dict[str, Any] = {}
+    for name, spec in AT05_ARMS.items():
+        run = _population_run(spec["n"], spec["seed"])
+        sig = run["signals"]
+        spikes = np.asarray(sig.spikes)
+        decomp = _field_decomposition(run)
+        per = decomp["per_source"]  # [T, N, C]
+        P = decomp["superposed"]
+        n = spikes.shape[1]
+        mid = P.shape[1] // 2
+        a_phi = float(np.abs(P[:, mid]).mean())
+        # Coherent vs incoherent: |sum_i phi_i| vs N * mean_i |phi_i|.
+        per_mid = np.abs(per[:, :, mid])  # [T, N]
+        coherent = float(np.abs(P[:, mid]).mean())
+        incoherent = float(n * per_mid.mean())
+        ratio = coherent / incoherent if incoherent > 0 else 0.0
+        arms[name] = {
+            "n": n,
+            "seed": spec["seed"],
+            "rho_sync_executed": float(J.kappa_synchrony(spikes, DT_MS)),
+            "a_phi_mid_contact": a_phi,
+            "coherent_mean_abs": coherent,
+            "n_times_single_mean_abs": incoherent,
+            "coherent_over_n_single": float(ratio),
+            "phi_n_neq_n_phi_1": bool(abs(ratio - 1.0) > AT05_RATIO_MARGIN),
+            "superposition_identity": decomp["superposition_identity"],
+            "wall_s": run["wall_s"],
+        }
+    by_rho = sorted(arms, key=lambda k: arms[k]["rho_sync_executed"])
+    scaling = {
+        "a_phi_by_n_same_seed": {
+            str(arms[k]["n"]): arms[k]["a_phi_mid_contact"] for k in ("n2_s7", "n4_s7", "n8_s7")
+        },
+        "note": "same realization seed, N varies; numbers only, no law claimed",
+    }
+    out = {
+        "scenario": "AT-05",
+        "status": "OK",
+        "wall_s": time.perf_counter() - t0,
+        "level": LEVEL_PROXY,
+        "level_note": (
+            "A_Phi in native proxy units at relative contact fractions; proxy != calibrated"
+        ),
+        "arms": arms,
+        "arms_ordered_by_executed_rho": by_rho,
+        "scaling": scaling,
+        "emergence_note": (
+            "rho_sync is the executed kappa per arm; the Phi_N != N Phi_1 "
+            "check runs per arm with a 1e-4 margin and records equality "
+            "where the executed regime is fully coherent (mixed-phase "
+            "inequality regime not reached at toy size; owned by the 0.5.5 "
+            "scale matrix)"
+        ),
+    }
+    if out["wall_s"] > WALL_BUDGET_S:
+        out["status"] = "OVER_BUDGET"
+    return out
+
+
+def run_at06() -> dict[str, Any]:
+    """S6: electrode locality C(R,f); assumptions declared, proxy only.
+
+    Electrode chain declared: contacts (realized count read back),
+    contact depths (fractions), reference + filter (record-only on the
+    proxy per item 5), conductivity 'proxy', distance in relative
+    fractions. Source depths are a DECLARED uniform-fraction assumption
+    (labeled, proxy only) -- no physical distance law is claimed.
+    """
+    t0 = time.perf_counter()
+    cfg = (
+        J.Configuration()
+        .runtime(seed=SEED, duration_ms=AT06_DURATION_MS, dt_ms=DT_MS)
+        .column("V1", ["L2/3", "L4"], 8)
+        .cell_types({"E": 0.75, "PV": 0.25})
+        .connectivity(kind="laminar_signed_metadata", recurrent=True)
+        .set_emitter("izhikevich", "cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy")
+        .probe(
+            name="e1",
+            modes=["spikes", "V_m", "source", "LFP-proxy"],
+            n_contacts=AT06_N_CONTACTS,
+            position=[0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0],
+            reference="common_average",
+            filter_spec={"kind": "bandpass", "low_hz": 8.0, "high_hz": 25.0},
+        )
+    )
+    run = _run_configuration(cfg, AT06_DURATION_MS, DT_MS)
+    sig = run["signals"]
+    decomp = _field_decomposition(run)
+    per = decomp["per_source"]  # [T, N, C]
+    n_src = per.shape[1]
+    contacts = np.asarray(sig.field.contact_depths, dtype=float).ravel()
+    # DECLARED ASSUMPTION (proxy only): uniform relative source depths.
+    src_depths = np.linspace(0.0, 1.0, n_src)
+    locality: dict[str, Any] = {}
+    for R in AT06_RADII_FRAC:
+        for lo_hz, hi_hz in AT06_BANDS_HZ:
+            ratios = []
+            for c in range(contacts.shape[0]):
+                near = np.abs(src_depths - contacts[c]) < R
+                if not near.any():
+                    continue
+                num = _band_power(per[:, near, c].sum(axis=1), DT_MS, lo_hz, hi_hz)
+                den = _band_power(per[:, :, c].sum(axis=1), DT_MS, lo_hz, hi_hz)
+                ratios.append(num / den if den > 0 else 0.0)
+            locality[f"R={R}_f={lo_hz}-{hi_hz}"] = {
+                "c_mean": float(np.mean(ratios)) if ratios else 0.0,
+                "c_per_contact": [float(v) for v in ratios],
+            }
+    out = {
+        "scenario": "AT-06",
+        "status": "OK",
+        "wall_s": time.perf_counter() - t0,
+        "level": LEVEL_PROXY,
+        "level_note": "C(R,f) is a proxy ratio; proxy != calibrated",
+        "electrode": {
+            "contacts_declared": AT06_N_CONTACTS,
+            "contacts_realized": int(contacts.shape[0]),
+            "contact_depths_frac": [float(v) for v in contacts],
+            "position_declared_frac": [0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0],
+            "reference": "common_average (record-only; proxy applies none)",
+            "filter": "bandpass 8-25 Hz (record-only; proxy applies none)",
+            "conductivity": "proxy",
+            "distance": "relative fractions in [0,1]",
+            "source_depths": "DECLARED ASSUMPTION: uniform linspace fractions",
+        },
+        "locality_c_r_f": locality,
+        "locality_note": (
+            "C(R,f) = P[sum_{r_i<R} Phi_i(f)] / P[sum_i Phi_i(f)] computed "
+            "on executed per-source proxy fields; source depths assumed "
+            "uniform fractions (declared above); no conductivity-dependent "
+            "amplitude, no physical distance law"
+        ),
+        "superposition_identity": decomp["superposition_identity"],
+    }
+    if out["wall_s"] > WALL_BUDGET_S:
+        out["status"] = "OVER_BUDGET"
+    return out
