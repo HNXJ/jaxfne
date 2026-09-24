@@ -63,6 +63,22 @@ regeneration is byte-identical — no tracked file dirtied by the before-run).
 | cache-miss branch | (always regenerated) | verified: helper False on missing PNG → regenerates; True restored |
 | defect-table coverage | full | full — no defect-table detector touched; dev TFNE/JDNA untouched |
 
+## Proposal (4) — parallelize independent families with xdist
+
+xdist 3.8.0 already a dev dependency. Change (`scripts/run_test_gate.py`
+only): new `PYTEST_XDIST_ARGS = ["-p", "xdist", "-n", "auto"]` (`-p` needed
+because `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`), applied to the dev, broad and
+slow pytest sweeps. Notebook sweep stays serial (scoped paths exist for
+Windows kernel/zmq stability under load). No marker-expression change, so
+the `(slow, notebook)` exhaustiveness proof is unaffected.
+
+| Run | Before (serial) | After (xdist, `-n auto`, 24 CPUs) |
+|---|---|---|
+| dev gate (`run_test_gate.py dev`) | 186 s wall, PASS | 69 s wall, PASS |
+| dev pytest sweep test-time | 170 s (282 passed, 1 skipped, 2 deselected) | 45 s (282 passed, 1 skipped; same 283 nodes, deselect count not echoed by xdist summary) |
+| broad-only sample (`test_closure_hp_reconciliation.py`, xdist) | — | 21 passed, 1 skipped, no ordering failures |
+| defect-table coverage | full | full — no test file touched; marker algebra intact (`test_release_gate_hierarchy.py` 36 passed); dev TFNE targets still run in dev gate |
+
 Invariants per change: (2) adversarial TFNE/JDNA tests still in dev gate;
 (5) every defect-table row keeps a detector (checked against
 `test_profile_050.md` table).
