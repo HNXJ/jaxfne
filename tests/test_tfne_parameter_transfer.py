@@ -442,6 +442,42 @@ def test_declared_geometry_reaches_the_executed_positions():
             resolve(parse(bad))
 
 
+def test_geometry_inspection_configured_realized_executed_manifest():
+    """0.5.2 item 6: geometry readable at every stage, no new surface.
+
+    Configured per-leaf `G` in `s["geometry"]`, realized fractional domains
+    in `tfne_geometry` metadata, executed positions in `params["positions"]`
+    and `neuron_table()`, both recorded in the manifest — all pre-existing
+    surfaces, asserted together so the chain cannot drift apart silently.
+    """
+    spec = (
+        "O[k] := [direction = >; mechanism = AMPA; probability = 1.0;\n"
+        "         weight = 0.5];\n"
+        "A := [C = {E}; N = 60; model = izhikevich; G = [z0 = 0.2; z1 = 0.5]];\n"
+        "x : A : y\n"
+    )
+    program = parse(spec)
+    r = realize(resolve(program), program, seed=20260918)
+    model = jaxfne.construct(to_configuration(r, duration_ms=5.0, dt_ms=DT_MS))
+
+    assert r.s["geometry"]["A"] == {"z0": 0.2, "z1": 0.5}
+    assert model.cfg.metadata["tfne_geometry"]["domains"] == {"A": {"A": {"z": [0.2, 0.5]}}}
+    z = np.asarray(model.params["positions"])[:, 2]
+    assert float(z.min()) >= 0.2 and float(z.max()) <= 0.5
+    assert all(
+        0.2 <= float(row["z"]) <= 0.5 for row in model.neuron_table() if row["z"] is not None
+    )
+    man = model.manifest()
+    assert man["tfne_geometry"]["declared"] == {"A": {"z0": 0.2, "z1": 0.5}}
+    assert man["tfne_geometry"]["realized_domains"] == {"A": {"A": {"z": [0.2, 0.5]}}}
+    assert man["tfne_geometry"]["value_tag"] == "relative"
+
+    bare = parse("O[k] := [direction = >; mechanism = AMPA];\nA := [C = {E}; N = 4];\nx : A : y\n")
+    bare_r = realize(resolve(bare), bare, seed=1)
+    bare_model = jaxfne.construct(to_configuration(bare_r, duration_ms=5.0, dt_ms=DT_MS))
+    assert "tfne_geometry" not in bare_model.manifest()
+
+
 def test_conflicting_geometry_in_one_sampled_block_is_refused():
     """One sampled (area, layer) block cannot honour two declared domains.
 

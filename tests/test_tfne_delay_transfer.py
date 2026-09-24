@@ -179,6 +179,31 @@ def test_declared_delay_shifts_arrival_timing():
     assert man["executed_delay"]["n_delayed_edges"] == rK.s["n_edges"]
 
 
+def test_executed_delay_visible_in_edge_table():
+    """0.5.2 item 6: delay readable at every stage, no new surface.
+
+    Configured ms in `I["connection_specs"]`, realized ms in
+    `s["edge_delay_ms"]` and `tfne_delay` metadata, executed steps in
+    `edge_table()` — all pre-existing surfaces, asserted together so the
+    chain cannot drift apart silently.
+    """
+    r = _realize(delay=DELAY_MS)
+    model = _construct(r)
+    specs = r.I["connection_specs"]
+    assert specs and all(float(c["delay_ms"]) == DELAY_MS for c in specs)
+    assert np.allclose(np.asarray(r.s["edge_delay_ms"]), DELAY_MS)
+    rows = model.edge_table()
+    assert (
+        len(rows)
+        == r.s["n_edges"]
+        == len(specs[0]["target"]["ids"]) * len(specs[0]["source"]["ids"])
+    )
+    assert {int(e["delay_steps"]) for e in rows} == {DELAY_STEPS}
+    by_edge = {(int(e["pre"]), int(e["post"])): int(e["delay_steps"]) for e in rows}
+    assert set(by_edge.values()) == {DELAY_STEPS}
+    assert {str(e["receptor_type"]).split("__")[0] for e in rows} == {"AMPA"}
+
+
 # --------------------------------------------------------------------------- #
 # Continuation: spikes in flight survive a chunk boundary bit-exactly
 # --------------------------------------------------------------------------- #

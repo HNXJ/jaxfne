@@ -87,12 +87,16 @@ mechanism table still records `tau_ms: None` with status
 downstream. Synaptic kinetics is independent of `dt`, so refining the
 timestep integrates the same synapse model rather than changing it.
 
-Declared geometry is realized but not executed. `G` is recorded in
-`s["geometry"]`, and at equal seed the executed positions are identical
-whatever range is declared, so the declaration is inert rather than rescaled.
-Geometry is what field observables are computed against, so a field or LFP
-claim currently rests on coordinates the specification did not choose. Whether
-absolute or relative coordinates are intended is undecided.
+Declared geometry is realized and executed as relative coordinates. `G`
+is recorded in `s["geometry"]`, and each declared range is a pair of
+fractions of the sampled (area, layer) block's extent within [0,1]: a
+declared sub-range changes the executed positions (sampled inside it),
+while an absent declaration — or a full [0,1] range — takes the
+historical path bit-identically. A range outside [0,1] is refused
+(`E_GEOMETRY_OUT_OF_RANGE`), never rescaled: relative coordinates carry
+no physical (mm/um/conductivity/distance) semantics. Geometry is what
+field observables are computed against, so field claims rest on the
+manifest-recorded fractional domains (`tfne_geometry`).
 
 `to_neuronal_tensor()` remains the structural bridge and is still used for
 areas, layers and cell types, but it cannot carry connection parameters:
@@ -136,8 +140,9 @@ connectivity, indexed `A.1 ... A.n` (S6, S7); exclusions that subtract from the
 rule expansion, with an unmatched exclusion rejected rather than ignored (S14);
 ordered rules bound to their own adjacency, with composites composing through
 derived `in`/`out` frontiers rather than through every member (S10, and the
-S9 derived defaults S10 needs); geometry compiled into `s` (realized only —
-it does not reach the executed positions); `H` reserved for the H-state
+S9 derived defaults S10 needs); geometry compiled from `s` into the executed
+positions as fractional domains of each sampled block, with outside-[0,1]
+ranges refused (0.5.2 decision 0a); `H` reserved for the H-state
 tensor; typed `x`/`y` boundaries; a realization index map supporting path->slice, slice->path,
 rule->edges and edge->rule; idempotent normalization whose digest seeds
 realization; hashes used as receipts rather than traversal keys; declared
