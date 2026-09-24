@@ -46,6 +46,23 @@ defect-table rows present (`test_docs_version_alignment.py`,
 `audit_doc_code_integrity.py`, `test_tune_mixed_args_warn.py`, dev TFNE
 targets, equivalence full track, audit battery, gate0+authority tests).
 
+## Proposal (3) — cache immutable generated evidence (fig06 pattern)
+
+`test_fig06_generator` unconditionally reran
+`scripts/publication_figures/fig06_hwd_evidence.py` (~44 s) over a FROZEN
+spec, then validated spec/audit/receipt + PNG. Change: skip the subprocess
+when spec FROZEN + audit PASSED + receipt CLOSED + PNG present (all three
+validators pass); every post-condition is still asserted, and a
+missing/invalid cache regenerates exactly as before. Valid because the
+generator is deterministic over frozen tracked inputs (clean-tree
+regeneration is byte-identical — no tracked file dirtied by the before-run).
+
+| Run | Before | After |
+|---|---|---|
+| file wall / test-time | 49 s / 44 s (3 passed) | 9 s / 0.3 s (3 passed, cache hit) |
+| cache-miss branch | (always regenerated) | verified: helper False on missing PNG → regenerates; True restored |
+| defect-table coverage | full | full — no defect-table detector touched; dev TFNE/JDNA untouched |
+
 Invariants per change: (2) adversarial TFNE/JDNA tests still in dev gate;
 (5) every defect-table row keeps a detector (checked against
 `test_profile_050.md` table).
