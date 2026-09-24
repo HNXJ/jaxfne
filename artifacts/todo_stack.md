@@ -541,9 +541,16 @@ Every sub-step ends with its output committed and pushed.
       `artifacts/perf/matrix_051.json`. It never writes `baseline_050.json`.
    c. Memory: measured process peak with the method named, in addition to
       the declared array bytes `baseline_050` reports.
-   d. AT-10 scale point: 20 areas (Atlas S10). The Atlas gives no neurons
-      per area or edge density; the matrix spec declares them, marked
-      `PROVISIONAL` until the human confirms.
+   d. AT-10 scale point (human decision 2026-09-23): 20 areas × 1000
+      neurons = 20k. Each area is the canonical 1000-neuron column
+      (`canonical-v1-column-1000n`) with its own within-area density; ~10% of
+      each area's outgoing edges go to other areas, random targets. The
+      inter-area wiring is a benchmark placeholder; the G_20 genome defines
+      the real wiring in 0.5.5. Build it with what exists today (TFNE
+      delay arrives in 0.5.2, composition in 0.5.4): kernel-level
+      `EdgeList.delay_steps` if reachable, else zero delay; if no existing
+      path can couple the areas, measure 20 uncoupled columns and mark the
+      coupled cell `UNSUPPORTED` with the reason.
    e. Environment receipt in every output: jax/jaxlib versions, platform,
       CPU/device (P-003 rule).
    *Done when:* spec committed before any result; every cell measured or
@@ -611,8 +618,8 @@ ATLAS
 
 ACCEPTANCE (0.5.1 seal)
 - Existing canonical configurations bit-identical to the frozen baseline.
-- AT workloads and the 20-area point are in the benchmark matrix, measured;
-  its per-area size is human-confirmed, not `PROVISIONAL`.
+- AT workloads and the 20-area point (20 × 1000, ~10% inter-area edges)
+  are in the benchmark matrix, measured.
 - Every landed optimization has a PASS equivalence receipt; failed attempts
   are recorded and reverted.
 - Gate wall time measured before/after for each test/gate change.
