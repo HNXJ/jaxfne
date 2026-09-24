@@ -444,6 +444,9 @@ def compile_step_fn(
     record_current_trace: bool = False,
     record_u_trace: bool = False,
     record_weight_trace: bool = True,
+    record_stride: int = 1,
+    record_h_subset: jax.Array | None = None,
+    record_w_subset: jax.Array | None = None,
     **hdp_kwargs: Any,
 ) -> "tuple[callable, ContinuationState]":
     """Build a JIT-compiled single-step function over an edge-list carry.
@@ -468,6 +471,13 @@ def compile_step_fn(
     across repeated calls. ``carry.w`` (the actual weight state driving HDP's
     plasticity) is unaffected either way -- disabling the trace never
     disables HDP itself, only the optional per-outer-step weight diagnostic.
+
+    0.5.3 item 2 recording budgets: ``record_stride`` (positive int,
+    default 1), ``record_h_subset`` / ``record_w_subset`` (1D integer
+    index arrays, default None = all) select kept H/W frames. Subset
+    selection applies per step inside the kernels; stride over segments is
+    applied by the Model-level runner post-stack (see
+    ``_simulate_continuation_arrays``). Full recording stays the default.
 
     DEVIATION FROM SPEC, surfaced explicitly rather than papered over:
     ``simulate_edge_recurrent_izhikevich_hdp``'s inner ``step`` closure
@@ -518,12 +528,18 @@ def compile_step_fn(
         kernel_kw = dict(hdp_kwargs)
         if use_delays:
             kernel_kw["step_indices"] = jnp.reshape(t_idx, (1,))
-        # Single owner for the weight-trace toggle on this path: hdp_kwargs
-        # wins when present, else the named default. The same value drives
-        # the kernel call and the output arity, so record_weight_trace=False
-        # neither crashes (registered diag carries w_trace=None) nor stacks
-        # silently (legacy kernel default would otherwise stay True).
-        rwt = bool(kernel_kw.get("record_weight_trace", record_weight_trace))
+        # Single owner for the recording-budget toggles on this path:
+        # hdp_kwargs wins when present, else the named defaults. The same
+        # values drive the kernel call and the output arity, so
+        # record_weight_trace=False neither crashes nor stacks silently
+        # (legacy kernel default would otherwise stay True). Subset
+        # selection applies per step here; stride over segments is applied
+        # by the Model-level runner post-stack (kernels apply it only to
+        # multi-step traces, where it is exact).
+        rwt = bool(kernel_kw.pop("record_weight_trace", record_weight_trace))
+        stride = kernel_kw.pop("record_stride", record_stride)
+        h_sub = kernel_kw.pop("record_h_subset", record_h_subset)
+        w_sub = kernel_kw.pop("record_w_subset", record_w_subset)
         if kernel == "hdp":
             from .hdp_rule import is_registered_hdp_rule
 
@@ -555,6 +571,9 @@ def compile_step_fn(
                     hdp_rule=str(kernel_kw["hdp_rule"]),
                     hdp_rule_params=kernel_kw.get("hdp_rule_params", {}),
                     record_weight_trace=rwt,
+                    record_stride=stride,
+                    record_h_subset=h_sub,
+                    record_w_subset=w_sub,
                     step_indices=kernel_kw.get("step_indices"),
                 )
             else:
@@ -567,6 +586,9 @@ def compile_step_fn(
                     record_dH_components=record_dH_components,
                     record_edge_current=record_edge_current,
                     record_weight_trace=rwt,
+                    record_stride=stride,
+                    record_h_subset=h_sub,
+                    record_w_subset=w_sub,
                     **kernel_kw,
                 )
         else:

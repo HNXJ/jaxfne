@@ -33,6 +33,8 @@ from .emitters import (
     _source_proxy_from_components,
     _validate_delayed_init_state,
     _validate_edge_delays_nonnegative_eager,
+    _validate_recording_budget,
+    _decimate_hw_traces,
     resolve_edge_delay_steps,
     resolve_edge_tau_ms,
     resolve_receptor_index,
@@ -56,9 +58,17 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     hdp_rule: str,
     hdp_rule_params: Mapping[str, Any] | None = None,
     record_weight_trace: bool = True,
+    record_stride: int = 1,
+    record_h_subset: jax.Array | None = None,
+    record_w_subset: jax.Array | None = None,
     step_indices: jax.Array | None = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
-    """Edge-list Izhikevich simulation with a registered HDP rule."""
+    """Edge-list Izhikevich simulation with a registered HDP rule.
+
+    ``record_stride`` / ``record_h_subset`` / ``record_w_subset`` are the
+    0.5.3 item 2 declared H/W recording budgets (defaults = full
+    recording); kept frames equal full-trace frames exactly.
+    """
     _validate_edge_delays_nonnegative_eager(edges)
     has_delay = _edge_delays_any_positive(edges)
 
@@ -91,6 +101,14 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     decay = jnp.exp(-dt / tau_ms)
     n_neurons = int(params.v0.shape[0])
     h_shape = (int(n_neurons),) + tuple(int(d) for d in descriptor.h_shape)
+
+    # 0.5.3 item 2: declared H/W recording budgets (fail closed; defaults
+    # keep full recording).
+    record_stride_n, record_h_idx, record_w_idx = _validate_recording_budget(
+        record_stride, record_h_subset, record_w_subset,
+        n_neurons=n_neurons, n_edges=int(edges.n_edges),
+        record_weight_trace=record_weight_trace,
+    )
 
     if silence_mask is not None:
         s_mask = silence_mask.astype(jdtype)
@@ -290,6 +308,9 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
         else:
             voltages, spikes, sources, H_trace, aux_trace, b_trace = scan_outputs
             w_trace = None
+        H_trace, w_trace = _decimate_hw_traces(
+            H_trace, w_trace, record_stride_n, record_h_idx, record_w_idx
+        )
 
         diagnostics = {
             "v": final[0],
@@ -417,6 +438,9 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     else:
         voltages, spikes, sources, H_trace, aux_trace, b_trace = scan_outputs
         w_trace = None
+    H_trace, w_trace = _decimate_hw_traces(
+        H_trace, w_trace, record_stride_n, record_h_idx, record_w_idx
+    )
 
     diagnostics = {
         "v": final[0],

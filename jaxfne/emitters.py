@@ -3110,6 +3110,79 @@ def _hdp_size_scale_array(
     return jnp.asarray(_hdp_size_scale_array_np(tuple(labels), overrides, dtype_name))
 
 
+
+
+def _validate_recording_budget(
+    record_stride,
+    record_h_subset,
+    record_w_subset,
+    *,
+    n_neurons: int,
+    n_edges: int,
+    record_weight_trace: bool,
+    allow_h_subset: bool = True,
+):
+    """0.5.3 item 2: validate declared H/W recording budgets. Fail closed.
+
+    Returns ``(stride, h_idx, w_idx)`` with subsets as host int64 arrays or
+    None. Full recording (stride 1, subsets None) is the default and returns
+    the inputs untouched downstream.
+    """
+    if isinstance(record_stride, bool) or not isinstance(record_stride, (int, np.integer)):
+        raise ValueError(f"record_stride must be a positive integer; got {record_stride!r}")
+    stride = int(record_stride)
+    if stride < 1:
+        raise ValueError(f"record_stride must be a positive integer; got {record_stride!r}")
+
+    def _norm_subset(sub, size, name):
+        if sub is None:
+            return None
+        arr = np.asarray(sub)
+        if arr.ndim != 1 or not np.issubdtype(arr.dtype, np.integer):
+            raise ValueError(
+                f"{name} must be a 1D integer index array; got shape {arr.shape} dtype {arr.dtype}"
+            )
+        if arr.size == 0:
+            raise ValueError(f"{name} must be non-empty (None records all)")
+        idx = arr.astype(np.int64)
+        if bool((idx < 0).any()) or bool((idx >= int(size)).any()):
+            raise ValueError(f"{name} indices out of range for size {int(size)}")
+        return idx
+
+    h_idx = _norm_subset(record_h_subset, n_neurons, "record_h_subset")
+    if h_idx is not None and not allow_h_subset:
+        raise ValueError(
+            "record_h_subset selects per-neuron H coordinates, which do not "
+            "exist under population H locality (H has no neuron axis)"
+        )
+    w_idx = _norm_subset(record_w_subset, n_edges, "record_w_subset")
+    if w_idx is not None and not bool(record_weight_trace):
+        raise ValueError(
+            "record_w_subset requires record_weight_trace=True (no W trace is recorded to subset)"
+        )
+    return stride, h_idx, w_idx
+
+
+def _decimate_hw_traces(H_trace, w_trace, record_stride, h_idx, w_idx):
+    """0.5.3 item 2: keep declared H/W recording frames (post-scan slice).
+
+    Kept frame j equals the full-trace frame at that index exactly; the
+    dynamics that produced the traces are untouched. With defaults
+    (stride 1, subsets None) the inputs are returned unchanged.
+    """
+    if int(record_stride) == 1 and h_idx is None and w_idx is None:
+        return H_trace, w_trace
+    Hk = H_trace[:: int(record_stride)]
+    if h_idx is not None:
+        Hk = jnp.take(Hk, jnp.asarray(h_idx), axis=1)
+    Wk = w_trace
+    if w_trace is not None:
+        Wk = w_trace[:: int(record_stride)]
+        if w_idx is not None:
+            Wk = jnp.take(Wk, jnp.asarray(w_idx), axis=1)
+    return Hk, Wk
+
+
 def simulate_edge_recurrent_izhikevich_hdp(
     params: IzhikevichParams,
     edges: EdgeList,
@@ -3153,6 +3226,9 @@ def simulate_edge_recurrent_izhikevich_hdp(
     record_dH_components: bool = False,
     record_edge_current: bool = False,
     record_weight_trace: bool = True,
+    record_stride: int = 1,
+    record_h_subset: "jax.Array | None" = None,
+    record_w_subset: "jax.Array | None" = None,
     H_boost_gain: float = 0.0,
     hdp_rule: str = "signed_linear",
     h_state_dim: int = 1,
@@ -3407,6 +3483,16 @@ def simulate_edge_recurrent_izhikevich_hdp(
             reproduced OOM at N=20,000/5000ms; "H_trace"/"voltages"/"spikes"
             are only (n_steps, n_neurons), ~100x smaller at typical
             max_in_degree and not the source of this OOM).
+        record_stride: 0.5.3 item 2 declared H/W recording stride (positive
+            int, default 1 = full recording). Kept H/W frame j equals the
+            full-trace frame at step j*stride exactly; dynamics are
+            untouched. Declared via ``hdp_params["record_stride"]``.
+        record_h_subset / record_w_subset: 0.5.3 item 2 declared H/W
+            recording subsets (1D integer index arrays, default None = all
+            neurons/edges). Out-of-range, empty, or non-integer selections
+            fail closed; ``record_w_subset`` requires
+            ``record_weight_trace=True``. Declared via
+            ``hdp_params["record_h_subset"/"record_w_subset"]``.
         H_boost_gain: homeostatic drive compensation -- scales each
             neuron's (drive + sched_t) input by
             ``1 + H_boost_gain * max(0, 1 - H)`` using the carry's
@@ -3481,6 +3567,15 @@ def simulate_edge_recurrent_izhikevich_hdp(
             dtype=jdtype,
         )
         theta_lo, theta_hi = theta_bounds(pop_layout, dtype=jdtype)
+
+    # 0.5.3 item 2: declared H/W recording budgets (fail closed; defaults
+    # keep full recording and return traces untouched downstream).
+    record_stride_n, record_h_idx, record_w_idx = _validate_recording_budget(
+        record_stride, record_h_subset, record_w_subset,
+        n_neurons=n_neurons, n_edges=int(edges.n_edges),
+        record_weight_trace=record_weight_trace,
+        allow_h_subset=(locality != "population"),
+    )
 
     def _h_component_param(value: Any, name: str) -> jax.Array:
         arr = jnp.asarray(value, dtype=jdtype)
@@ -4056,6 +4151,9 @@ def simulate_edge_recurrent_izhikevich_hdp(
         else:
             voltages, spikes, sources, H_trace, theta_trace = scan_outputs
             w_trace = None
+        H_trace, w_trace = _decimate_hw_traces(
+            H_trace, w_trace, record_stride_n, record_h_idx, record_w_idx
+        )
         w_final, _ = bind_theta_to_plant(
             final[5], pop_layout, a_base=a, w_ceiling=w_ceiling_arr
         )
@@ -4087,6 +4185,9 @@ def simulate_edge_recurrent_izhikevich_hdp(
             voltages, spikes, sources, H_trace = scan_outputs[:4]
             w_trace = None
         r_bar_trace, I_H_trace = scan_outputs[base_arity:base_arity + 2]
+        H_trace, w_trace = _decimate_hw_traces(
+            H_trace, w_trace, record_stride_n, record_h_idx, record_w_idx
+        )
         final_state = {
             "v": final[0],
             "u": final[1],
@@ -4129,6 +4230,9 @@ def simulate_edge_recurrent_izhikevich_hdp(
     else:
         voltages, spikes, sources, H_trace = scan_outputs[:4]
         w_trace = None
+    H_trace, w_trace = _decimate_hw_traces(
+        H_trace, w_trace, record_stride_n, record_h_idx, record_w_idx
+    )
 
     final_state = {
         "v": final[0],
