@@ -215,7 +215,10 @@ def test_identity_params_route_to_baseline():
         dt_ms=0.5,
         seed=17,
         runtime=jtfne.RuntimeConfig(
-            dtype="float32", recurrent_backend="edge_list", enable_hdp=False
+            dtype="float32",
+            recurrent_backend="edge_list",
+            enable_hdp=False,
+            hdp_params={"noise_scale": 0.0},
         ),
         record_sources=True,
         record_fields=False,

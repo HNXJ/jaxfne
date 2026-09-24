@@ -1092,6 +1092,7 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
+    noise_schedule: "jax.Array | None" = None,
     init_state: "dict | None" = None,
     step_indices: "jax.Array | None" = None,
     record_edge_current: bool = False,
@@ -1106,6 +1107,9 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     Segmented continuation requires full ``init_state`` including canonical
     ``delay_state`` (legacy alias ``spike_history``) and
     ``continuation_step_offset`` (global step index at segment start).
+    ``noise_schedule`` optionally supplies the exact per-step unit-noise
+    draws (same contract as the zero-delay kernel); ``None`` keeps the
+    legacy bulk draw.
     """
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
@@ -1136,10 +1140,21 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     else:
         s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
 
-    key, noise_key = jax.random.split(key)
-    bulk_noise = jax.random.normal(
-        noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype
-    )
+    if noise_schedule is None:
+        key, noise_key = jax.random.split(key)
+        bulk_noise = jax.random.normal(
+            noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype
+        )
+    else:
+        # 0.5.3 item 3 (P-010): chain-consistent draws supplied by the
+        # caller (Model plain path); per-step continuation draws equal
+        # these by construction, so chunked == continuous.
+        bulk_noise = jnp.asarray(noise_schedule, dtype=jdtype)
+        if bulk_noise.shape != (int(n_steps), int(params.v0.shape[0])):
+            raise ValueError(
+                "noise_schedule must have shape "
+                f"({int(n_steps)}, {int(params.v0.shape[0])}), got {bulk_noise.shape}"
+            )
     time_step_offset = _rbd_continuation_step_offset_array(init_state)
     if init_state is not None and "v" in init_state:
         _validate_delayed_init_state(
@@ -1360,6 +1375,7 @@ def simulate_edge_recurrent_izhikevich(
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
+    noise_schedule: "jax.Array | None" = None,
     init_state: "dict | None" = None,
     step_indices: "jax.Array | None" = None,
     record_edge_current: bool = False,
@@ -1382,6 +1398,9 @@ def simulate_edge_recurrent_izhikevich(
     native uncalibrated current at each timestep. ``noise_scale`` sets the
     stochastic-current coefficient: ``None`` keeps the historical 0.5 scalar; a
     scalar or ``(n_neurons,)`` array gives per-neuron control of internal noise.
+    ``noise_schedule`` optionally supplies the exact per-step unit-noise
+    draws; the Model plain path passes the continuation-chain schedule so
+    chunked == continuous, while ``None`` keeps the legacy bulk draw.
     ``init_state`` optionally supplies ``v``, ``u``, ``prev_spikes``, and
     ``syn_state`` for deterministic or explicitly keyed segmented continuation.
     ``prev_spikes`` is an interface-parity compatibility carry: it is part of
@@ -1405,6 +1424,7 @@ def simulate_edge_recurrent_izhikevich(
             drive_schedule=drive_schedule,
             silence_mask=silence_mask,
             noise_scale=noise_scale,
+            noise_schedule=noise_schedule,
             init_state=init_state,
             step_indices=step_indices,
             record_edge_current=record_edge_current,
@@ -1434,8 +1454,21 @@ def simulate_edge_recurrent_izhikevich(
     else:
         s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
 
-    key, noise_key = jax.random.split(key)
-    bulk_noise = jax.random.normal(noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype)
+    if noise_schedule is None:
+        key, noise_key = jax.random.split(key)
+        bulk_noise = jax.random.normal(
+            noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype
+        )
+    else:
+        # 0.5.3 item 3 (P-010): chain-consistent draws supplied by the
+        # caller (Model plain path); per-step continuation draws equal
+        # these by construction, so chunked == continuous.
+        bulk_noise = jnp.asarray(noise_schedule, dtype=jdtype)
+        if bulk_noise.shape != (int(n_steps), int(params.v0.shape[0])):
+            raise ValueError(
+                "noise_schedule must have shape "
+                f"({int(n_steps)}, {int(params.v0.shape[0])}), got {bulk_noise.shape}"
+            )
 
     if init_state is None:
         init = (

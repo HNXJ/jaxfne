@@ -390,6 +390,10 @@ def _simulate_arrays(
                     hdp_rule=str(hp["hdp_rule"]),
                     hdp_rule_params=hp.get("hdp_rule_params", {}),
                     record_weight_trace=bool(hp.get("record_weight_trace", True)),
+                    noise_scale=hp.get("noise_scale", None),
+                    noise_schedule=continuation_noise_schedule(
+                        k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                    ),
                     record_stride=hp.get("record_stride", 1),
                     record_h_subset=hp.get("record_h_subset", None),
                     record_w_subset=hp.get("record_w_subset", None),
@@ -530,10 +534,23 @@ def _simulate_arrays(
                 if cache_key not in self._compiled_cache:
                     import time
                     def target_fn(k, s):
+                        from ._pipeline import continuation_noise_schedule
+
+                        extra_kw: dict[str, Any] = {}
+                        if kernel_fn is simulate_edge_recurrent_izhikevich:
+                            # 0.5.3 item 3 (P-010): chain-consistent draws on
+                            # the Model plain path; receptor_exponential and
+                            # dense have no continuation path and keep bulk.
+                            extra_kw["noise_schedule"] = continuation_noise_schedule(
+                                k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                            )
+                            if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+                                extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
                         return kernel_fn(
                             emitter, edges, sim.n_steps, sim.dt_ms, k,
                             dtype=runtime_cfg.actual_dtype, drive_schedule=s,
                             silence_mask=silence_mask,
+                            **extra_kw,
                         )[:3]
                     target_fn = make_recompilation_guard(
                         target_fn,
@@ -552,10 +569,20 @@ def _simulate_arrays(
                 run = self._compiled_cache[cache_key]
                 return run(key, sched)
         with _device_scope(runtime_cfg.selected_backend):
+            from ._pipeline import continuation_noise_schedule
+
+            extra_kw: dict[str, Any] = {}
+            if kernel_fn is simulate_edge_recurrent_izhikevich:
+                extra_kw["noise_schedule"] = continuation_noise_schedule(
+                    key, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                )
+                if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
+                    extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
             return kernel_fn(
                 emitter, edges, sim.n_steps, sim.dt_ms, key,
                 dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
                 silence_mask=silence_mask,
+                **extra_kw,
             )[:3]
     effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
     if effective_jit:
@@ -754,6 +781,7 @@ def _simulate_continuation_arrays(
                 "hdp_rule": hp["hdp_rule"],
                 "hdp_rule_params": hp.get("hdp_rule_params", {}),
                 "record_weight_trace": bool(hp.get("record_weight_trace", True)),
+                "noise_scale": hp.get("noise_scale", None),
                 "record_stride": hp.get("record_stride", 1),
                 "record_h_subset": hp.get("record_h_subset", None),
                 "record_w_subset": hp.get("record_w_subset", None),

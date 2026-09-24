@@ -537,6 +537,10 @@ def compile_step_fn(
         # by the Model-level runner post-stack (kernels apply it only to
         # multi-step traces, where it is exact).
         rwt = bool(kernel_kw.pop("record_weight_trace", record_weight_trace))
+        # NOTE (0.5.3 item 3): read-only lookup — the baseline and legacy
+        # HDP kernels receive noise_scale via **kernel_kw below; only the
+        # registered call (explicit args, no **kernel_kw) needs it forwarded.
+        ns = kernel_kw.get("noise_scale", None)
         stride = kernel_kw.pop("record_stride", record_stride)
         h_sub = kernel_kw.pop("record_h_subset", record_h_subset)
         w_sub = kernel_kw.pop("record_w_subset", record_w_subset)
@@ -571,6 +575,7 @@ def compile_step_fn(
                     hdp_rule=str(kernel_kw["hdp_rule"]),
                     hdp_rule_params=kernel_kw.get("hdp_rule_params", {}),
                     record_weight_trace=rwt,
+                    noise_scale=ns,
                     record_stride=stride,
                     record_h_subset=h_sub,
                     record_w_subset=w_sub,
