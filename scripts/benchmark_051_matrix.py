@@ -188,6 +188,22 @@ def build_1n():
     )
 
 
+def build_1n_field():
+    """0.5.2 item 7: field-capable variant of build_1n (Q+Φ recording).
+
+    The frozen n1 cell keeps build_1n untouched; only field_n1 uses this.
+    """
+    import jaxfne as J
+
+    return J.construct(
+        J.configuration()
+        .network(n=1)
+        .emitter(family="izhikevich", preset="regular_spiking")
+        .field(domain="point")
+        .probe(name="single_neuron_field", modes=["spikes", "V_m", "source", "LFP"])
+    )
+
+
 def _hdp_runtime():
     import benchmark_050_baseline as B
 
@@ -272,6 +288,11 @@ def run_config_cell(cell: dict, sampler: _PeakSampler) -> dict:
             n = int(cell["n_neurons"])
             if cid == "n1":
                 model = build_1n()
+            elif cid == "field_n1":
+                # 0.5.2 item 7: field-path cell; frozen n1 builder untouched.
+                model = build_1n_field()
+            elif cid in ("field_n2", "field_n1000"):
+                model = build_sparse(n, cid)
             else:
                 model = build_sparse(n, cid.replace("10000", "10k"))
         t_construct = _ms(t0)
@@ -411,6 +432,25 @@ def run_config_cell(cell: dict, sampler: _PeakSampler) -> dict:
                 recording[key] = {"bytes": _nbytes(getattr(signals, key))}
             except Exception:
                 recording[key] = {"bytes": None}
+        # 0.5.2 item 7: Φ (field) bytes beside Q (sources) for field-path
+        # cells. Guarded: cells without a field record None, as before.
+        # FieldOutput is a pytree container, so sum its array leaves.
+        try:
+            _field = getattr(signals, "field", None)
+            if _field is None:
+                recording["field"] = {"bytes": None}
+            else:
+                import jax as _jax
+
+                _leaves = _jax.tree.leaves(_field)
+                _total = 0
+                for _leaf in _leaves:
+                    _b = _nbytes(_leaf)
+                    if _b is not None:
+                        _total += _b
+                recording["field"] = {"bytes": _total}
+        except Exception:
+            recording["field"] = {"bytes": None}
         try:
             diag = model.last_hdp_diagnostics()
         except Exception:

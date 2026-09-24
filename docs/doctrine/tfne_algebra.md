@@ -66,10 +66,12 @@ integrator uses is `_resolved_edge_weight(edge_list, dtype, emitter)`, and it
 equals the realized `s["edge_weight"]`. A declared `plasticity` is a rule
 identity for the separate registrable HDP surface rather than an edge
 parameter, so it is preserved as inspectable provenance in `rule_params` and
-`relation_origin` and does not alter the realized edges. A declared `delay` is
-refused with `E_PARAM_UNSUPPORTED` because no execution path consumes one —
-there is no delay field on the connection-rule surface — so it fails closed
-instead of being silently dropped.
+`relation_origin` and does not alter the realized edges. A declared `delay`
+(in ms) reaches the kernel as integer `delay_steps = round(delay_ms / dt_ms)`
+at the construction timestep (0.5.2 decision 0b): configured ms and realized
+steps are both recorded, and a positive delay rounding to 0 steps is refused
+rather than dropped. Negative or non-numeric delays are refused at
+realization.
 
 Mechanism identity transfers, and mechanism kinetics now resolves with
 it. A declared mechanism reaches the executed edges as a name, a receptor
@@ -85,17 +87,22 @@ mechanism table still records `tau_ms: None` with status
 downstream. Synaptic kinetics is independent of `dt`, so refining the
 timestep integrates the same synapse model rather than changing it.
 
-Declared geometry is realized but not executed. `G` is recorded in
-`s["geometry"]`, and at equal seed the executed positions are identical
-whatever range is declared, so the declaration is inert rather than rescaled.
-Geometry is what field observables are computed against, so a field or LFP
-claim currently rests on coordinates the specification did not choose. Whether
-absolute or relative coordinates are intended is undecided.
+Declared geometry is realized and executed as relative coordinates. `G`
+is recorded in `s["geometry"]`, and each declared range is a pair of
+fractions of the sampled (area, layer) block's extent within [0,1]: a
+declared sub-range changes the executed positions (sampled inside it),
+while an absent declaration — or a full [0,1] range — takes the
+historical path bit-identically. A range outside [0,1] is refused
+(`E_GEOMETRY_OUT_OF_RANGE`), never rescaled: relative coordinates carry
+no physical (mm/um/conductivity/distance) semantics. Geometry is what
+field observables are computed against, so field claims rest on the
+manifest-recorded fractional domains (`tfne_geometry`).
 
 `to_neuronal_tensor()` remains the structural bridge and is still used for
 areas, layers and cell types, but it cannot carry connection parameters:
-`InterConnection` and `AreaConnection` have no weight, probability or delay
-field. That is why execution goes through the resolved specs rather than
+`InterConnection` and `AreaConnection` have no weight or probability
+field (declared delays ride the bridge as `delay_ms` for inspection only).
+That is why execution goes through the resolved specs rather than
 through the tensor alone, and why the Execute row means the kernels consume the
 realized connectivity, not merely a tensor rebuilt from the same text.
 
@@ -133,8 +140,9 @@ connectivity, indexed `A.1 ... A.n` (S6, S7); exclusions that subtract from the
 rule expansion, with an unmatched exclusion rejected rather than ignored (S14);
 ordered rules bound to their own adjacency, with composites composing through
 derived `in`/`out` frontiers rather than through every member (S10, and the
-S9 derived defaults S10 needs); geometry compiled into `s` (realized only —
-it does not reach the executed positions); `H` reserved for the H-state
+S9 derived defaults S10 needs); geometry compiled from `s` into the executed
+positions as fractional domains of each sampled block, with outside-[0,1]
+ranges refused (0.5.2 decision 0a); `H` reserved for the H-state
 tensor; typed `x`/`y` boundaries; a realization index map supporting path->slice, slice->path,
 rule->edges and edge->rule; idempotent normalization whose digest seeds
 realization; hashes used as receipts rather than traversal keys; declared

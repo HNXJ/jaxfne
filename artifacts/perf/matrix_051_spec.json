@@ -1,7 +1,8 @@
 {
   "series": "matrix_051_spec",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "authority": "artifacts/todo_stack.md 0.5.1 ENGINE items 1a-1e (frozen before measuring)",
+  "amendment_052": "0.5.2 ENGINE item 7 appends field-path cost cells (field_n1/field_n2/field_n1000) measuring Q and Φ recording at AT sizes; the 14 frozen 0.5.1 cells are unchanged (append only).",
   "status": "FROZEN_SPEC_COMMIT_BEFORE_RESULT",
   "base_cell": {
     "id": "base",
@@ -211,6 +212,48 @@
       "builder_note": "20 copies of canonical-v1-column-1000n merged via merge_neuronal_tensors, each area keeps its own within-area density; ~10% of each area's outgoing edges rewired to random cross-area targets (ring topology), uniform random weights from the column's own weight distribution",
       "delay_rule": "kernel-level EdgeList.delay_steps via edge_delay_steps_from_ms if reachable on the tensor construct path, else zero delay (recorded); if no existing path can couple the areas, measure 20 uncoupled columns and mark the coupled cell UNSUPPORTED with the reason",
       "wall_budget_s": 1800
+    },
+    {
+      "id": "field_n1",
+      "varies": "field path at AT-01 scale: N=1, Q+Φ recording on",
+      "n_neurons": 1,
+      "duration_ms": 100.0,
+      "dt_ms": 0.1,
+      "recording": "full",
+      "recording_api": "Simulation(record_sources=true, record_fields=true); observe probe modes [spikes, V_m, LFP] — Q (sources) and Φ (field) both recorded",
+      "mechanism": "fixed_W",
+      "chunks": 1,
+      "seed": 0,
+      "builder_note": "single-neuron point field with source/LFP probe modes (field-capable variant of the n1 builder); AT-01 anchor",
+      "wall_budget_s": 600
+    },
+    {
+      "id": "field_n2",
+      "varies": "field path at AT-02/AT-03 scale: N=2, Q+Φ recording on",
+      "n_neurons": 2,
+      "duration_ms": 100.0,
+      "dt_ms": 0.1,
+      "recording": "full",
+      "recording_api": "Simulation(record_sources=true, record_fields=true); observe probe modes [spikes, V_m, LFP] — Q (sources) and Φ (field) both recorded",
+      "mechanism": "fixed_W",
+      "chunks": 1,
+      "seed": 0,
+      "builder_note": "balanced_ei_population n=2, full recording; pair-transmission anchor",
+      "wall_budget_s": 600
+    },
+    {
+      "id": "field_n1000",
+      "varies": "field path at AT-05/AT-06 scale: N=1000 population, Q+Φ recording on",
+      "n_neurons": 1000,
+      "duration_ms": 100.0,
+      "dt_ms": 0.1,
+      "recording": "full",
+      "recording_api": "Simulation(record_sources=true, record_fields=true); observe probe modes [spikes, V_m, LFP] — Q (sources) and Φ (field) both recorded",
+      "mechanism": "fixed_W",
+      "chunks": 1,
+      "seed": 0,
+      "builder_note": "balanced_ei_population n=1000, full recording; population-field anchor (pairs with rec_full at n=100 for the recording axis)",
+      "wall_budget_s": 900
     }
   ],
   "frozen_rules": {

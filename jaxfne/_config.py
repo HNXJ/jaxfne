@@ -180,7 +180,11 @@ class _ProbeDeclarations(list):
     while adding the verb-like write path without renaming the public field.
     """
 
-    def __init__(self, values: Sequence[Mapping[str, Any]] | None = None, owner: "Configuration | None" = None):
+    def __init__(
+        self,
+        values: Sequence[Mapping[str, Any]] | None = None,
+        owner: "Configuration | None" = None,
+    ):
         super().__init__(dict(v) for v in (values or ()))
         self._owner = owner
 
@@ -218,7 +222,9 @@ class _ProbeDeclarations(list):
         """
         cfg = self._owner
         if cfg is None:
-            raise TypeError("Detached probe declarations cannot be called as a Configuration facade.")
+            raise TypeError(
+                "Detached probe declarations cannot be called as a Configuration facade."
+            )
         return cfg._with_probe_modes(
             modes=modes,
             name=name,
@@ -226,7 +232,6 @@ class _ProbeDeclarations(list):
             ensure_defaults=ensure_defaults,
             **kwargs,
         )
-
 
 
 @dataclass(frozen=True)
@@ -434,7 +439,14 @@ class Configuration:
         so a prior :meth:`cell_types`/:meth:`area_layer_cell_types` is preserved.
         """
         if layer_thickness is None:
-            layer_thickness = {"L1": 0.10, "L2": 0.15, "L3": 0.15, "L4": 0.10, "L5": 0.30, "L6": 0.20}
+            layer_thickness = {
+                "L1": 0.10,
+                "L2": 0.15,
+                "L3": 0.15,
+                "L4": 0.10,
+                "L5": 0.30,
+                "L6": 0.20,
+            }
         layers = [str(k) for k in layer_thickness.keys()]
         if not layers:
             raise ValueError("layer_thickness must not be empty")
@@ -453,7 +465,8 @@ class Configuration:
         metadata["layer_thickness"] = {k: float(layer_thickness[k]) for k in layer_thickness}
         if layer_cell_types is not None:
             metadata["layer_cell_types"] = {
-                str(k): {str(kk): float(vv) for kk, vv in v.items()} for k, v in layer_cell_types.items()
+                str(k): {str(kk): float(vv) for kk, vv in v.items()}
+                for k, v in layer_cell_types.items()
             }
         return replace(self, metadata=metadata)
 
@@ -486,7 +499,9 @@ class Configuration:
         for key, value in neurons.items():
             f = float(value)
             if not math.isfinite(f) or f < 0.0:
-                raise ValueError(f"neuron share for {key!r} must be finite and non-negative; got {value!r}")
+                raise ValueError(
+                    f"neuron share for {key!r} must be finite and non-negative; got {value!r}"
+                )
             frac[str(key)] = f
         if sum(frac.values()) <= 0.0:
             raise ValueError("neurons map must have positive total")
@@ -516,7 +531,9 @@ class Configuration:
         for key, value in fractions.items():
             f = float(value)
             if not math.isfinite(f) or f < 0.0:
-                raise ValueError(f"cell type fraction for {key!r} must be finite and non-negative; got {value!r}")
+                raise ValueError(
+                    f"cell type fraction for {key!r} must be finite and non-negative; got {value!r}"
+                )
             clean[str(key)] = f
         if sum(clean.values()) <= 0.0:
             raise ValueError("cell type fractions must have positive total mass")
@@ -528,7 +545,14 @@ class Configuration:
             networks[0] = dict(networks[0], cell_types=clean)
         else:
             total_n = sum(int(col["n"]) for col in metadata.get("columns", [])) or 100
-            networks = [{"name": "configured_network", "kind": "configured", "n": total_n, "cell_types": clean}]
+            networks = [
+                {
+                    "name": "configured_network",
+                    "kind": "configured",
+                    "n": total_n,
+                    "cell_types": clean,
+                }
+            ]
         return replace(self, metadata=metadata, networks=networks)
 
     def set_cell_types(self, fractions: Mapping[str, float]) -> "Configuration":
@@ -640,7 +664,9 @@ class Configuration:
     # Each declaration carries an explicit status so nothing reads as compiled,
     # applied, or optimized yet.
     # ------------------------------------------------------------------
-    def cell_params(self, selector: Mapping[str, Any], params: Mapping[str, Any]) -> "Configuration":
+    def cell_params(
+        self, selector: Mapping[str, Any], params: Mapping[str, Any]
+    ) -> "Configuration":
         """Declare cell/emitter parameter overrides for a selector (declaration only)."""
         entry = {
             "selector": _circuit_json_safe(dict(selector), "cell_params.selector"),
@@ -678,6 +704,7 @@ class Configuration:
         control_key: Optional[str] = None,
         max_in_degree: Optional[int] = None,
         spatial_sigma: Optional[float] = None,
+        delay_ms: Optional[float] = None,
     ) -> "Configuration":
         """Declare a connection rule that ``construct()`` compiles into edges.
 
@@ -700,16 +727,20 @@ class Configuration:
         with no mechanisms, or a mixed rule set where even one rule omits
         ``mechanism=``, compiles entirely through the sign-only fallback
         (receptor inferred from weight sign, tau hardcoded exc=2 ms/inh=5 ms)
-        as before. ``plasticity``/``control_key`` remain declarative metadata
-        (not yet compiled). Distinct from :meth:`connectivity`, which records
+        as before.         ``plasticity``/``control_key`` remain declarative metadata
+        (not yet compiled). ``delay_ms`` is the configured axonal delay in
+        milliseconds (None = undeclared = current behaviour); at
+        ``construct()`` time it is realized to integer steps as
+        ``round(delay_ms / dt_ms)`` (0.5.2 decision 0b) at the configuration's
+        ``dt_ms``, and both the configured ms and the realized steps are
+        recorded. A positive delay rounding to 0 steps is refused rather than
+        dropped. Distinct from :meth:`connectivity`, which records
         feedforward/feedback bookkeeping.
         """
         if not name:
             raise ValueError("connection requires a non-empty name")
         if not isinstance(source, Mapping) or not isinstance(target, Mapping):
-            raise ValueError(
-                f"connection {name!r} requires source and target selector mappings"
-            )
+            raise ValueError(f"connection {name!r} requires source and target selector mappings")
         if probability is not None:
             p = float(probability)
             if not math.isfinite(p) or not (0.0 <= p <= 1.0):
@@ -728,6 +759,17 @@ class Configuration:
                 f"sampling modes -- probability targets an O(n_pre*n_post) density, "
                 f"max_in_degree targets a constant per-post-neuron cap; pick one."
             )
+        if delay_ms is not None:
+            try:
+                _dms = float(delay_ms)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"connection {name!r} delay_ms must be a number in ms; got {delay_ms!r}"
+                )
+            if not math.isfinite(_dms) or _dms < 0.0:
+                raise ValueError(
+                    f"connection {name!r} delay_ms must be finite and >= 0; got {delay_ms!r}"
+                )
         entry = {
             "name": str(name),
             "source": _circuit_json_safe(dict(source), "connections.source"),
@@ -742,6 +784,7 @@ class Configuration:
             "control_key": str(control_key) if control_key is not None else None,
             "max_in_degree": int(max_in_degree) if max_in_degree is not None else None,
             "spatial_sigma": float(spatial_sigma) if spatial_sigma is not None else None,
+            "delay_ms": float(delay_ms) if delay_ms is not None else None,
             "status": "declared_not_compiled",
         }
         cfg = self._append_circuit("connections", entry, dedup_name=True)
@@ -1025,8 +1068,9 @@ class Configuration:
         metadata["layer_cell_types"] = layer_cell_types
         return replace(self, metadata=metadata)
 
-
-    def area_layer_cell_types(self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]) -> "Configuration":
+    def area_layer_cell_types(
+        self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]
+    ) -> "Configuration":
         """Set layer-specific cell-type fractions for one declared area."""
         if not area:
             raise ValueError("area must be a non-empty string")
@@ -1035,7 +1079,9 @@ class Configuration:
             clean[str(layer)] = {str(k): float(v) for k, v in fracs.items()}
             _counts_from_fractions(1, clean[str(layer)])
         metadata = dict(self.metadata)
-        per_area = {str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()}
+        per_area = {
+            str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()
+        }
         per_area[str(area)] = clean
         metadata["area_layer_cell_types"] = per_area
         return replace(self, metadata=metadata)
@@ -1168,7 +1214,9 @@ class Configuration:
         inter_conn_spec = {
             "source_area": str(source_area),
             "target_area": str(target_area),
-            "layer_to_layer_map": dict(layer_to_layer_map) if layer_to_layer_map is not None else None,
+            "layer_to_layer_map": dict(layer_to_layer_map)
+            if layer_to_layer_map is not None
+            else None,
             "cell_type_to_cell_type_map": dict(cell_type_to_cell_type_map),
             "mode": str(mode),
             "p_feedforward": float(p_feedforward),
@@ -1454,8 +1502,7 @@ class Configuration:
         )
         if optimizer_family not in allowed_families:
             raise ValueError(
-                f"optimizer_family must be one of {allowed_families}; "
-                f"got {optimizer_family!r}"
+                f"optimizer_family must be one of {allowed_families}; got {optimizer_family!r}"
             )
 
         optimizer_spec = {
@@ -1489,4 +1536,3 @@ class Configuration:
 
 
 Config = Configuration
-

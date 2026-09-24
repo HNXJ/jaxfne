@@ -18,6 +18,7 @@ Truth gates: this is a computational scaffold. Plasticity/dynamic-weight
 metadata is carried as ``declared_not_simulated``; no biological learning,
 calibrated amplitude, or solved-field claim is made.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -31,7 +32,60 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-__all__ = ["compile_connection_rules", "ConnectionCompileResult", "compile_connection_rules_jax"]
+__all__ = [
+    "compile_connection_rules",
+    "ConnectionCompileResult",
+    "compile_connection_rules_jax",
+    "delay_steps_from_ms",
+]
+
+
+def delay_steps_from_ms(delay_ms: float, dt_ms: float) -> int:
+    """Realize a configured delay (ms) as integer simulation steps (0.5.2 decision 0b).
+
+    ``delay_steps = round(delay_ms / dt_ms)`` (round half up) at the timestep
+    the model is constructed for. A positive delay that rounds to 0 steps is
+    refused rather than silently dropped; negative or non-finite delays and
+    non-positive timesteps are refused alongside. Deliberately distinct from
+    :func:`jaxfne.emitters.edge_delay_steps_from_ms` (Protocol D), which
+    rejects non-grid-aligned values instead of rounding: the TFNE/compiler
+    chain follows the authorized 0b rule, the hand-set EdgeList surface keeps
+    its grid-alignment contract.
+    """
+    try:
+        ms = float(delay_ms)
+    except (TypeError, ValueError):
+        raise ValueError(f"delay_ms must be a number in ms; got {delay_ms!r}")
+    try:
+        dt = float(dt_ms)
+    except (TypeError, ValueError):
+        raise ValueError(f"dt_ms must be a positive number; got {dt_ms!r}")
+    if not math.isfinite(dt) or dt <= 0.0:
+        raise ValueError(f"dt_ms must be finite and positive; got {dt_ms!r}")
+    if not math.isfinite(ms) or ms < 0.0:
+        raise ValueError(f"delay_ms must be finite and >= 0; got {delay_ms!r}")
+    steps = int(math.floor(ms / dt + 0.5))
+    if ms > 0.0 and steps <= 0:
+        raise ValueError(
+            f"delay_ms={ms} at dt_ms={dt} rounds to 0 steps; a positive delay "
+            "that fits inside one timestep is refused rather than dropped"
+        )
+    return steps
+
+
+def _validate_rule_delay_ms(rule_name: str, delay: Any) -> "float | None":
+    """Validate one connection rule's configured ``delay_ms`` (or pass None through)."""
+    if delay is None:
+        return None
+    try:
+        ms = float(delay)
+    except (TypeError, ValueError):
+        raise ValueError(f"connection {rule_name!r} delay_ms must be a number in ms; got {delay!r}")
+    if not math.isfinite(ms) or ms < 0.0:
+        raise ValueError(
+            f"connection {rule_name!r} delay_ms must be finite and >= 0; got {delay!r}"
+        )
+    return ms
 
 
 @dataclass(frozen=True)
@@ -50,23 +104,40 @@ class ConnectionCompileResult:
     connection_table: list[dict[str, Any]]
     mechanism_table: list[dict[str, Any]]
     diagnostics: dict[str, Any] = field(default_factory=dict)
+    # Configured per-edge delay in ms (0.0 where the rule declared none).
+    # Realized steps are derived at construction, where dt is known, via
+    # :func:`delay_steps_from_ms` — never here.
+    edge_delay_ms: jax.Array | None = None
 
     @property
     def n_edges(self) -> int:
         """Documented public function `n_edges`."""
         return int(self.edge_pre.shape[0])
 
-    def to_edge_list(self, *, default_tau_ms: float = 5.0, dtype: str = "float32"):
+    def to_edge_list(
+        self, *, default_tau_ms: float = 5.0, dtype: str = "float32", dt_ms: "float | None" = None
+    ):
         """Build a :class:`jaxfne.EdgeList` from the compiled edges.
 
         ``tau_ms`` per edge comes from the mechanism's declared ``tau_ms`` (or
         ``default_tau_ms``); ``receptor_index`` is ``edge_mechanism``.
+        ``dt_ms`` realizes configured per-rule delays (0.5.2 decision 0b):
+        when given, each edge's ``delay_steps`` is
+        :func:`delay_steps_from_ms` of its configured ms at that timestep
+        (a positive delay rounding to 0 steps raises); when omitted, delays
+        stay zero — exactly the pre-0.5.2 EdgeList.
         """
         from .emitters import EdgeList
 
-        jdtype = jnp.float64 if (dtype == "float64" and bool(jax.config.read("jax_enable_x64"))) else jnp.float32
+        jdtype = (
+            jnp.float64
+            if (dtype == "float64" and bool(jax.config.read("jax_enable_x64")))
+            else jnp.float32
+        )
         tau_by_mech = [
-            float(m.get("tau_ms", default_tau_ms)) if m.get("tau_ms") is not None else float(default_tau_ms)
+            float(m.get("tau_ms", default_tau_ms))
+            if m.get("tau_ms") is not None
+            else float(default_tau_ms)
             for m in self.mechanism_table
         ]
         if self.n_edges and tau_by_mech:
@@ -75,6 +146,19 @@ class ConnectionCompileResult:
             tau = tau_table[mech_idx]
         else:
             tau = jnp.zeros((self.n_edges,), dtype=jdtype)
+        if dt_ms is None:
+            delay_steps = None
+        else:
+            import numpy as _np
+
+            ms = (
+                _np.asarray(self.edge_delay_ms, dtype=_np.float64)
+                if self.edge_delay_ms is not None
+                else _np.zeros((self.n_edges,), dtype=_np.float64)
+            )
+            delay_steps = jnp.asarray(
+                [delay_steps_from_ms(float(v), float(dt_ms)) for v in ms], dtype=jnp.int32
+            )
         return EdgeList(
             pre=jnp.asarray(self.edge_pre, dtype=jnp.int32),
             post=jnp.asarray(self.edge_post, dtype=jnp.int32),
@@ -82,6 +166,7 @@ class ConnectionCompileResult:
             receptor_index=jnp.asarray(self.edge_mechanism, dtype=jnp.int32),
             tau_ms=tau,
             source_calibration_status="uncalibrated_proxy_compiled",
+            **({} if delay_steps is None else {"delay_steps": delay_steps}),
         )
 
 
@@ -172,9 +257,7 @@ def _select_indices(
     return out
 
 
-def _resolve_mechanism(
-    name: Optional[str], mech_index: Mapping[str, int], rule_name: str
-) -> int:
+def _resolve_mechanism(name: Optional[str], mech_index: Mapping[str, int], rule_name: str) -> int:
     if name is None:
         raise ValueError(f"connection {rule_name!r} has no mechanism; declare one and reference it")
     if name not in mech_index:
@@ -235,7 +318,9 @@ def _candidate_pairs(
             k, sub = jax.random.split(k)
             draw = max((n_target - len(seen)) * 2, 16)
             pre_pick = np.asarray(jax.random.randint(sub, (draw,), 0, n_pre))
-            post_pick = np.asarray(jax.random.randint(jax.random.fold_in(sub, 1), (draw,), 0, n_post))
+            post_pick = np.asarray(
+                jax.random.randint(jax.random.fold_in(sub, 1), (draw,), 0, n_post)
+            )
             for a, b in zip(pre_pick, post_pick):
                 pr, po = pre_ids[int(a)], post_ids[int(b)]
                 if not allow_self and pr == po:
@@ -408,7 +493,9 @@ def _edge_weights(
             raise ValueError(f"connection {rule_name!r} scalar weight must be finite")
         return np.full((n,), w, dtype=np.float64)
     if not isinstance(weight, Mapping):
-        raise ValueError(f"connection {rule_name!r} weight must be a number or WeightInitSpec mapping")
+        raise ValueError(
+            f"connection {rule_name!r} weight must be a number or WeightInitSpec mapping"
+        )
 
     mode = weight.get("mode", "scalar")
     if mode == "scalar":
@@ -463,7 +550,12 @@ def _edge_weights(
             )
         return _edge_weights(
             {"mode": "matrix", "array": arr},
-            pairs, pre_pos, post_pos, key=key, rule_name=rule_name, artifacts=artifacts,
+            pairs,
+            pre_pos,
+            post_pos,
+            key=key,
+            rule_name=rule_name,
+            artifacts=artifacts,
         )
     raise ValueError(f"connection {rule_name!r} unknown weight mode {mode!r}")
 
@@ -510,9 +602,19 @@ def compile_connection_rules(
     neuron ``x``/``y``/``z``) rather than a flat O(n_pre*n_post) density
     target.
     Requires every selected neuron row to carry ``x``/``y``/``z``.
+
+    A rule may set ``delay_ms`` (configured axonal delay in ms, None =
+    undeclared): validated here (finite, >= 0), fanned out per edge onto
+    ``edge_delay_ms``, and recorded on the connection-table row. Realization
+    to integer steps happens at construction via :func:`delay_steps_from_ms`
+    (0.5.2 decision 0b), where ``dt`` is known — never here.
     """
     artifacts = dict(artifacts or {})
-    jdtype = jnp.float64 if (dtype == "float64" and bool(jax.config.read("jax_enable_x64"))) else jnp.float32
+    jdtype = (
+        jnp.float64
+        if (dtype == "float64" and bool(jax.config.read("jax_enable_x64")))
+        else jnp.float32
+    )
 
     mechanism_table: list[dict[str, Any]] = []
     mech_index: dict[str, int] = {}
@@ -525,14 +627,16 @@ def compile_connection_rules(
         if tau is not None and (not math.isfinite(float(tau)) or float(tau) <= 0.0):
             raise ValueError(f"mechanism {name!r} tau_ms must be finite and positive; got {tau!r}")
         mech_index[name] = i
-        mechanism_table.append({
-            "receptor_index": i,
-            "name": name,
-            "kind": m.get("kind"),
-            "sign": params.get("sign", m.get("sign")),
-            "tau_ms": float(tau) if tau is not None else None,
-            "status": "declared_not_simulated",
-        })
+        mechanism_table.append(
+            {
+                "receptor_index": i,
+                "name": name,
+                "kind": m.get("kind"),
+                "sign": params.get("sign", m.get("sign")),
+                "tau_ms": float(tau) if tau is not None else None,
+                "status": "declared_not_simulated",
+            }
+        )
 
     base_key = jax.random.PRNGKey(int(seed))
     all_pre: list[int] = []
@@ -540,6 +644,7 @@ def compile_connection_rules(
     all_weight: list[float] = []
     all_mech: list[int] = []
     all_rule: list[int] = []
+    all_delay_ms: list[float] = []
     connection_table: list[dict[str, Any]] = []
     skipped: list[str] = []
 
@@ -553,15 +658,32 @@ def compile_connection_rules(
     for rule_id, rule in enumerate(connections):
         rname = rule.get("name", f"rule_{rule_id}")
         rule_self = bool(rule.get("allow_self_connections", allow_self_connections))
+        # Configured delay (ms) is a per-rule constant: validated once here,
+        # fanned out per edge below, realized to steps at construction.
+        rule_delay_ms = _validate_rule_delay_ms(rname, rule.get("delay_ms"))
         # _select_indices honors allow_empty internally (returns [] vs raises on
         # zero-match) and ALWAYS raises on a structurally invalid (non-mapping)
         # selector. No try/except here: structural errors must surface loudly,
         # never be silently recorded as an empty-selector skip.
-        pre_ids = _select_indices(neurons, rule.get("source", {}), allow_empty=allow_empty, label=f"{rname}.source", _index=_sel_index)
-        post_ids = _select_indices(neurons, rule.get("target", {}), allow_empty=allow_empty, label=f"{rname}.target", _index=_sel_index)
+        pre_ids = _select_indices(
+            neurons,
+            rule.get("source", {}),
+            allow_empty=allow_empty,
+            label=f"{rname}.source",
+            _index=_sel_index,
+        )
+        post_ids = _select_indices(
+            neurons,
+            rule.get("target", {}),
+            allow_empty=allow_empty,
+            label=f"{rname}.target",
+            _index=_sel_index,
+        )
         if not pre_ids or not post_ids:
             skipped.append(rname)
-            connection_table.append({"name": rname, "n_edges": 0, "status": "skipped_empty_selector"})
+            connection_table.append(
+                {"name": rname, "n_edges": 0, "status": "skipped_empty_selector"}
+            )
             continue
 
         mech_idx = _resolve_mechanism(rule.get("mechanism"), mech_index, rname)
@@ -573,24 +695,39 @@ def compile_connection_rules(
                 for row in neurons
             }
             pairs = _candidate_pairs_localized(
-                pre_ids, post_ids, neuron_xyz,
+                pre_ids,
+                post_ids,
+                neuron_xyz,
                 max_in_degree=int(max_in_degree),
                 # `.connections()` always writes the key, using None for "unset", so
                 # `.get(key, default)` never fires. Coalesce explicitly -- not with `or`,
                 # which would also swallow a deliberate 0.0.
-                spatial_sigma=float(_DEFAULT_SPATIAL_SIGMA if rule.get("spatial_sigma") is None
-                                    else rule["spatial_sigma"]),
-                allow_self=rule_self, key=rkey,
+                spatial_sigma=float(
+                    _DEFAULT_SPATIAL_SIGMA
+                    if rule.get("spatial_sigma") is None
+                    else rule["spatial_sigma"]
+                ),
+                allow_self=rule_self,
+                key=rkey,
             )
         else:
             pairs = _candidate_pairs(
-                pre_ids, post_ids, probability=rule.get("probability"), allow_self=rule_self, key=rkey
+                pre_ids,
+                post_ids,
+                probability=rule.get("probability"),
+                allow_self=rule_self,
+                key=rkey,
             )
         pre_pos = {nid: i for i, nid in enumerate(pre_ids)}
         post_pos = {nid: i for i, nid in enumerate(post_ids)}
         weights = _edge_weights(
-            rule.get("weight"), pairs, pre_pos, post_pos,
-            key=jax.random.fold_in(rkey, 1), rule_name=rname, artifacts=artifacts,
+            rule.get("weight"),
+            pairs,
+            pre_pos,
+            post_pos,
+            key=jax.random.fold_in(rkey, 1),
+            rule_name=rname,
+            artifacts=artifacts,
         )
         for (a, b), w in zip(pairs, weights):
             all_pre.append(int(a))
@@ -598,24 +735,29 @@ def compile_connection_rules(
             all_weight.append(float(w))
             all_mech.append(int(mech_idx))
             all_rule.append(int(rule_id))
-        connection_table.append({
-            "name": rname,
-            "n_pre": len(pre_ids),
-            "n_post": len(post_ids),
-            "n_edges": len(pairs),
-            "mechanism": rule.get("mechanism"),
-            "probability": rule.get("probability"),
-            "max_in_degree": rule.get("max_in_degree"),
-            "sign": rule.get("sign"),
-            "control_key": rule.get("control_key"),
-            "status": "compiled",
-        })
+            all_delay_ms.append(0.0 if rule_delay_ms is None else float(rule_delay_ms))
+        connection_table.append(
+            {
+                "name": rname,
+                "n_pre": len(pre_ids),
+                "n_post": len(post_ids),
+                "n_edges": len(pairs),
+                "mechanism": rule.get("mechanism"),
+                "probability": rule.get("probability"),
+                "max_in_degree": rule.get("max_in_degree"),
+                "sign": rule.get("sign"),
+                "control_key": rule.get("control_key"),
+                "delay_ms": rule_delay_ms,
+                "status": "compiled",
+            }
+        )
 
     edge_pre = jnp.asarray(all_pre, dtype=jnp.int32)
     edge_post = jnp.asarray(all_post, dtype=jnp.int32)
     edge_weight = jnp.asarray(all_weight, dtype=jdtype)
     edge_mechanism = jnp.asarray(all_mech, dtype=jnp.int32)
     edge_rule_id = jnp.asarray(all_rule, dtype=jnp.int32)
+    edge_delay_ms = jnp.asarray(all_delay_ms, dtype=jdtype)
     if edge_weight.shape[0] and not bool(jnp.all(jnp.isfinite(edge_weight))):
         raise ValueError("compiled edge weights contain non-finite values")
 
@@ -639,6 +781,7 @@ def compile_connection_rules(
         connection_table=connection_table,
         mechanism_table=mechanism_table,
         diagnostics=diagnostics,
+        edge_delay_ms=edge_delay_ms,
     )
 
 
@@ -687,4 +830,3 @@ def compile_connection_rules_jax(
     edge_weight = jnp.where(valid_mask, jnp.full((max_edges,), weight_val), 0.0)
 
     return edge_pre, edge_post, edge_weight
-
