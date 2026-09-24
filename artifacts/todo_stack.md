@@ -514,116 +514,40 @@ Rows with `candidate: true` (calibrated HH/field, Φ_B beyond proxy,
 Φ → X, B as input to dynamics) need independent evidence and human
 authorization before any engine work.
 
-ENGINE — designed 2026-09-23, not started. Order: 1 → 2 → 3; item 4 runs
-in parallel only from a separate worktree (one writer per worktree).
-Every sub-step ends with its output committed and pushed.
+ENGINE — sealed 2026-09-24 (commits on dev via merges; receipts in
+`artifacts/perf/` + `artifacts/programme/opt051_*_receipt.md`):
+- Item 1 (matrix): spec frozen before measuring (`matrix_051_spec.json`,
+  14 cells), harness `scripts/benchmark_051_matrix.py`, results
+  `matrix_051.json` 14/14 MEASURED incl. coupled AT-10 (20k neurons, 4.7M
+  edges, 9.1% inter-area); `baseline_050.json` untouched.
+- Item 2 (ranking): `bottlenecks_051.md`; only B1/B2 entered item 3, rest
+  carried per stop rule 3d (no remaining change ≥10% of its cell).
+- Item 3 (optimize): two landed, both bit-exact with PASS receipts —
+  opt051_1 jit-auto default (warm −58..−98%), opt051_2 rule-compile
+  selection index (AT-10 construct −48%, edges identical).
+- Item 4 (test/gate speed): equivalence narrowing, fig06 evidence cache,
+  xdist dev/broad/slow sweeps; before/after in `test_timing_051.md`
+  (broad 31→6 min); defect table fully covered after each change.
 
-1. Extend the benchmark matrix. *Plain goal:* know where time and memory go
-   at every size the Atlas needs.
-   a. Declare the matrix before measuring, frozen as
-      `artifacts/perf/matrix_051_spec.json`. One factor at a time around a
-      base cell, not a full cross (a full cross is hundreds of cells and
-      includes infeasible corners such as 10k N × 0.025 ms × long T).
-      Base cell: 100 neurons, sparse, dt 0.1 ms, short T, minimal
-      recording, fixed W, 1 chunk. Vary one axis per row: N ∈ {1, 10, 100,
-      1000, 10k}; T ∈ {short, 10× short}; dt ∈ {0.025, 0.1, 0.5} ms;
-      recording ∈ {off, minimal, full} as far as the current API allows;
-      mechanism ∈ {fixed W, HDP}; chunks ∈ {1, k}. Plus the AT-10 point
-      (1d). About 15 cells.
-      Also frozen: ≥3 warm repeats, median + range; per-cell wall-time
-      budget (over budget → `SKIPPED_BUDGET`); item-2 thresholds: a phase is
-      a bottleneck if it takes ≥25% of warm total time or of peak memory in
-      any cell.
-   b. One harness, `scripts/benchmark_051_matrix.py`, reusing the phase
-      timing of `scripts/benchmark_050_baseline.py` (construct / compile /
-      warm run / probe / manifest) and the RSS method of
-      `scripts/profile_050_phases.py`. Output
-      `artifacts/perf/matrix_051.json`. It never writes `baseline_050.json`.
-   c. Memory: measured process peak with the method named, in addition to
-      the declared array bytes `baseline_050` reports.
-   d. AT-10 scale point (human decision 2026-09-23): 20 areas × 1000
-      neurons = 20k. Each area is the canonical 1000-neuron column
-      (`canonical-v1-column-1000n`) with its own within-area density; ~10% of
-      each area's outgoing edges go to other areas, random targets. The
-      inter-area wiring is a benchmark placeholder; the G_20 genome defines
-      the real wiring in 0.5.5. Build it with what exists today (TFNE
-      delay arrives in 0.5.2, composition in 0.5.4): kernel-level
-      `EdgeList.delay_steps` if reachable, else zero delay; if no existing
-      path can couple the areas, measure 20 uncoupled columns and mark the
-      coupled cell `UNSUPPORTED` with the reason.
-   e. Environment receipt in every output: jax/jaxlib versions, platform,
-      CPU/device (P-003 rule).
-   *Done when:* spec committed before any result; every cell measured or
-   marked `UNSUPPORTED` with the reason; `baseline_050.json` hash unchanged.
-2. Rank bottlenecks. *Plain goal:* pick what to speed up from measurements,
-   not guesses.
-   a. Per cell: share of total time and of peak memory for each phase
-      (construct, compile, warm step, recording, observe).
-   b. Write `artifacts/perf/bottlenecks_051.md`: a ranked list, each entry
-      with the measured share, expected gain and equivalence class
-      (bit-exact, or a tolerance needing human authorization).
-   c. Apply the thresholds frozen in 1a. If recording crosses its
-      threshold, the opt-in selective/downsampled recording API enters
-      item 3; default recording stays unchanged.
-   *Done when:* every candidate traces to a matrix cell; nothing enters
-   item 3 without one.
-3. Optimize one bottleneck at a time. *Plain goal:* faster, with identical
-   results.
-   a. Before touching code, freeze a spec: target, expected gain,
-      equivalence gate. Bit-exact is the default; any tolerance needs human
-      authorization (precedent: `artifacts/programme/item10_adjudication_receipt.md`).
-   b. Measure before → change → run the gate → measure after.
-   c. Receipt `artifacts/programme/opt051_<n>_receipt.md`; one commit per
-      optimization. A failed gate is recorded, the change reverted, and the
-      next candidate taken.
-   d. Stop rule: stop when the top remaining candidate's expected gain is
-      <10% of its cell's total, or the list is empty. Remaining candidates
-      carry to a later release, not into 0.5.1.
-   *Done when:* each landed change has a PASS receipt and measured gain;
-   frozen outputs untouched.
-4. Speed up tests and gates (moved from old 0.5.2). *Plain goal:* the same
-   defects caught in less wall time.
-   a. Re-measure current dev/broad gate wall times on today's HEAD;
-      `test_profile_050.md` timings are from 0.5.0.
-   b. One change per proposal from `artifacts/perf/test_profile_050.md`,
-      each measured before/after: (1) narrow the equivalence gate to
-      representative probes, keeping one full track in release;
-      (3) cache immutable generated evidence where valid; (4) parallelize
-      independent families with xdist. Ordering-dependent failures under
-      xdist stop the change.
-   c. Invariants (proposals 2 and 5): adversarial TFNE/JDNA tests stay in
-      dev; every row of the defect → cheapest-gate table keeps a detector.
-      Check each change against that table.
-   *Done when:* before/after wall times recorded; defect table still fully
-   covered; release gate still runs the full tracks.
+ATLAS — sealed 2026-09-24:
+- Item 5: toy pass AT-01…AT-10, 10/10 OK in ~27s
+  (`artifacts/atlas/at01_at10_toy.py`; AT-01 via real Jaxley bridge).
+- Items 6+7: schema v0 + gap matrix `artifacts/programme/atlas_gap_051.md`
+  (20 IMPLEMENTED / 10 REFUSED / 100 OMITTED).
+- Items 8/8b: firewall gate (`tests/test_atlas_firewall.py`) + coverage
+  check (`scripts/check_atlas_coverage.py`), both wired into CI.
 
-ATLAS
-5. First pass: AT-01…AT-10 at toy size (smallest N, short T), current
-   public features only, defined as TFNE/JDNA data. AT-01 via the Jaxley
-   bridge; if Jaxley is absent the run records REFUSED, not a substitute.
-6. Measurement vector schema v0: Y = {X, H, W, Q, Φ_E, Φ_B, SPK, PSD, C, φ,
-   E_reduction, T_compute, M_compute}; absent quantity = `OMITTED`, refused
-   capability = `REFUSED`, never synthesized. Evolves 0.5.2–0.5.4, frozen
-   in 0.5.5.
-7. Gap matrix Y × AT (IMPLEMENTED / OMITTED / REFUSED) from item 5, stored
-   as an artifact. It is the burndown for 0.5.2–0.5.5: each release names
-   the cells it moves.
-8. Firewall gate: AT scenarios import only the public surface
-   (`jaxfne/public_surface.py`); a gate refuses private-module imports and
-   any AT-specific branch in `jaxfne/`.
-8b. Coverage check `scripts/check_atlas_coverage.py`: validates
-   `atlas_coverage.json` (schema, unique IDs, release values, states);
-   every non-PLANNED row must name an evidence path that exists. Runs in
-   CI; every later seal uses it.
+Failures recorded (open, owned): B8 chunked-vs-single spike divergence
+(173 vs 174, identical seeds; root-cause owned by 0.5.3 item 3);
+`test_source_generation_vs_projection_split` wall-time flake (fails
+identically on pristine fd46e1c; P-009). AT-10 benchmark wiring is a
+full-bipartite placeholder (real wiring is G_20, 0.5.5).
 
-ACCEPTANCE (0.5.1 seal)
-- Existing canonical configurations bit-identical to the frozen baseline.
-- AT workloads and the 20-area point (20 × 1000, ~10% inter-area edges)
-  are in the benchmark matrix, measured.
-- Every landed optimization has a PASS equivalence receipt; failed attempts
-  are recorded and reverted.
-- Gate wall time measured before/after for each test/gate change.
-- Schema v0, gap matrix and firewall gate committed; gate active in CI.
+ACCEPTANCE (0.5.1 seal) — met: canonical configs bit-identical (broad
+4104 green on merged tree); matrix + 20-area point measured; every landed
+optimization has a PASS receipt (no landed-and-reverted attempts; excluded
+candidates listed in `bottlenecks_051.md`); gate timings before/after
+recorded; schema/gap/firewall committed and active in CI.
 
 ## 0.5.2 stack — source/field (ENGINE ∥ ATLAS)
 
@@ -715,7 +639,10 @@ ENGINE
    the default.
 3. Long-horizon continuation: extend the C-04 H-carry resume tests
    (`tests/test_phaseC_H_carry_resume.py`) to all mutable state, chunk
-   counts ≫ 2, and delays in flight (0.5.2 item 2).
+   counts ≫ 2, and delays in flight (0.5.2 item 2). Recorded 0.5.1
+   (B8, `bottlenecks_051.md`): chunked-vs-single spike divergence 173 vs
+   174 with identical seeds, suspected identical-seed-per-segment harness;
+   root-cause here (seed-chain semantics), not in the test.
 4. Deterministic replay: same seed + same inputs → bit-identical run;
    stochastic plasticity rules draw from a declared RNG domain, and
    changing one rule's stream leaves every other stream untouched.

@@ -458,6 +458,39 @@ requires separate authorization.
 
 ---
 
+## Open (0.5.1 seal, 2026-09-24)
+
+### P-009
+- **date:** 2026-09-24
+- **type:** FRICTION
+- **area:** timing assertion / field audit test
+- **observation:** `test_source_generation_vs_projection_split` asserts
+  projection wall < sim wall; fails intermittently on this machine
+  (t_proj 0.81–1.13s vs t_sim 0.77–0.82s), including on pristine `fd46e1c`
+  without any lane change — a pre-existing timing flake, not a 0.5.1
+  regression.
+- **severity:** MINOR (no output semantics involved; wall-time inequality only)
+- **minimal reproduction:** `pytest tests/test_field01_audit.py::test_source_generation_vs_projection_split -q` repeated runs
+- **expected behavior:** stable PASS or a warmup/margin discipline
+- **actual behavior:** intermittent FAIL at ~1% margins
+- **evidence:** 3/3 merged-tree + 1/1 pristine-baseline failures 2026-09-24; passes on other runs
+- **possible future change:** owner decision — warm up the projection compile before timing, widen with a margin, or move to slow/release-only; do not weaken silently
+
+### P-010
+- **date:** 2026-09-24
+- **type:** SCIENCE
+- **area:** chunked continuation seed chain
+- **observation:** chunked-vs-single run diverges 173 vs 174 spikes with
+  identical seeds; suspected identical-seed-per-segment harness.
+- **severity:** MAJOR as investigation (continuation identity is load-bearing); not a release blocker for 0.5.1 (chunked≡continuous required in 0.5.3)
+- **minimal reproduction:** 0.5.1 matrix chunk cells vs single-shot (`bottlenecks_051.md` B8)
+- **expected behavior:** chunked ≡ continuous bit-exact under the seed chain
+- **actual behavior:** 1-spike divergence
+- **evidence:** `artifacts/perf/bottlenecks_051.md` B8 (excluded from item 3, not bit-exact as run)
+- **possible future change:** root-cause in 0.5.3 item 3 (seed-chain semantics)
+
+---
+
 ## Drain verdicts (0.4.25 sweep, 2026-09-20)
 
 Entries above preserved verbatim. Open section is empty; every item closed
