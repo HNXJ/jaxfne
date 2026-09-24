@@ -9,19 +9,30 @@ values throughout so accidental defaults cannot pass.
 
 PARAM-04 (geometry) is repaired here: declared relative sub-ranges reach
 executed positions and outside-[0,1] ranges refuse. PARAM-02 (delay) is
-still pinned as a bounded refusal alongside the working chain.
+repaired here as well: a declared delay transfers to executed delay_steps
+(its refusal half lives in `test_tfne_delay_transfer.py`).
 """
 
 import numpy as np
 import pytest
 
 import jaxfne
-from jaxfne.jdna.completion import (ORIGIN_DECLARED as JDNA_DECLARED,
-                                    ORIGIN_DEFAULT as JDNA_DEFAULT,
-                                    ORIGIN_SAMPLED as JDNA_SAMPLED,
-                                    complete_tfne)
-from jaxfne.tfne import (TFNEError, normalize, parse, realize, resolve,
-                         spec_hash, to_configuration, to_neuronal_tensor)
+from jaxfne.jdna.completion import (
+    ORIGIN_DECLARED as JDNA_DECLARED,
+    ORIGIN_DEFAULT as JDNA_DEFAULT,
+    ORIGIN_SAMPLED as JDNA_SAMPLED,
+    complete_tfne,
+)
+from jaxfne.tfne import (
+    TFNEError,
+    normalize,
+    parse,
+    realize,
+    resolve,
+    spec_hash,
+    to_configuration,
+    to_neuronal_tensor,
+)
 
 DT_MS = 0.1
 DURATION_MS = 5.0
@@ -55,8 +66,15 @@ def test_source_normalizes_with_digest_stability():
     against silent reserialization drift."""
     first = normalize(parse(CTX))
     assert normalize(parse(first)) == first
-    for token in ("order[V1]", "out[V1]", "in[V2]", "$L.out",
-                  "{L4, L23} < L5", "SEG^2", "plasticity"):
+    for token in (
+        "order[V1]",
+        "out[V1]",
+        "in[V2]",
+        "$L.out",
+        "{L4, L23} < L5",
+        "SEG^2",
+        "plasticity",
+    ):
         assert token in first
     assert spec_hash(parse(CTX)) == spec_hash(parse(first))
 
@@ -85,12 +103,26 @@ def test_ordering_override_with_replicas():
     natural default L4 < L5 < L23."""
     _, _, r = _ctx()
     assert r.I["neuron_paths"][:11] == [
-        "V.AUX.g0.L4", "V.AUX.g0.L4", "V.AUX.g0.L5",
-        "V.V1.L5", "V.V1.L23", "V.V1.L23", "V.V1.L23",
-        "V.V1.L4", "V.V1.L4", "V.V1.SEG.2", "V.V1.SEG.1"]
+        "V.AUX.g0.L4",
+        "V.AUX.g0.L4",
+        "V.AUX.g0.L5",
+        "V.V1.L5",
+        "V.V1.L23",
+        "V.V1.L23",
+        "V.V1.L23",
+        "V.V1.L4",
+        "V.V1.L4",
+        "V.V1.SEG.2",
+        "V.V1.SEG.1",
+    ]
     assert r.I["neuron_paths"][11:] == [
-        "V.V2.L4", "V.V2.L4", "V.V2.L5",
-        "V.V2.L23", "V.V2.L23", "V.V2.L23"]
+        "V.V2.L4",
+        "V.V2.L4",
+        "V.V2.L5",
+        "V.V2.L23",
+        "V.V2.L23",
+        "V.V2.L23",
+    ]
     assert r.path_to_slice("V.V2.L4") == (11, 13)
 
 
@@ -100,8 +132,7 @@ def test_topology_by_statement_identities():
     origins = r.I["rule_origins"]
     assert origins["r1:O[both]:$L.out>$R.in"]["pre_scopes"] == ["V.V1.L23"]
     assert origins["r1:O[both]:$L.out>$R.in"]["post_scopes"] == ["V.V2.L4"]
-    assert origins["r2:O[both]:{L4, L23}<L5"]["pre_scopes"] == [
-        "V.V1.L4", "V.V1.L23"]
+    assert origins["r2:O[both]:{L4, L23}<L5"]["pre_scopes"] == ["V.V1.L4", "V.V1.L23"]
     assert origins["r4:O[both]:{L23}<{L23}"]["pre_scopes"] == ["V.V1.L23"]
     assert r.s["n_edges"] == 31
 
@@ -118,8 +149,7 @@ def test_mechanism_identity_and_kinetics_executed():
     """Both mechanisms transfer by identity and execute at canonical
     kinetics — asymmetrically, so no uniform placeholder can pass."""
     _, explicit, r = _ctx()
-    model = jaxfne.construct(
-        to_configuration(r, duration_ms=DURATION_MS, dt_ms=DT_MS))
+    model = jaxfne.construct(to_configuration(r, duration_ms=DURATION_MS, dt_ms=DT_MS))
     mechs = {c["mechanism"] for c in r.s["connection_table"]}
     assert mechs == {"AMPA", "GABA_A"}
     taus = {round(float(e["tau_ms"]), 6) for e in model.edge_table()}
@@ -155,8 +185,7 @@ def test_developmental_provenance_per_leaf():
     assert float(pos[:, 2].min()) >= 0.0 and float(pos[:, 2].max()) <= 0.75
     again = complete_tfne(r, seed=7)["positions"]
     for leaf in again:
-        assert bool((np.asarray(again[leaf])
-                     == np.asarray(out["positions"][leaf])).all())
+        assert bool((np.asarray(again[leaf]) == np.asarray(out["positions"][leaf])).all())
 
 
 def test_geometry_outside_unit_interval_refused():
@@ -192,23 +221,25 @@ def test_atomic_coexistence_leaves_no_trace():
     _, _, r = _ctx()
     assert "Z" not in str(r.I["neuron_paths"])
     assert list(r.I["rule_origins"]) == [
-        "r0:O[aux]:L5>L4", "r1:O[both]:$L.out>$R.in",
-        "r2:O[both]:{L4, L23}<L5", "r3:O[both]:{L23}>{L23}",
-        "r4:O[both]:{L23}<{L23}"]
+        "r0:O[aux]:L5>L4",
+        "r1:O[both]:$L.out>$R.in",
+        "r2:O[both]:{L4, L23}<L5",
+        "r3:O[both]:{L23}>{L23}",
+        "r4:O[both]:{L23}<{L23}",
+    ]
 
 
 def test_constructed_model_matches_realization():
     """TFNE -> JDNA -> Model -> executed: the neuron table follows the
     realization axis and every executed edge was realized."""
     _, _, r = _ctx()
-    model = jaxfne.construct(
-        to_configuration(r, duration_ms=DURATION_MS, dt_ms=DT_MS))
+    model = jaxfne.construct(to_configuration(r, duration_ms=DURATION_MS, dt_ms=DT_MS))
     executed = [(row["area"], row["layer"]) for row in model.neuron_table()]
-    realized = [(p.split(".")[0], p.split(".")[1])
-                for p in r.I["neuron_paths"]]
+    realized = [(p.split(".")[0], p.split(".")[1]) for p in r.I["neuron_paths"]]
     assert executed == realized
-    realized_pairs = {(int(a), int(b)) for a, b in zip(
-        np.asarray(r.s["edge_pre"]), np.asarray(r.s["edge_post"]))}
+    realized_pairs = {
+        (int(a), int(b)) for a, b in zip(np.asarray(r.s["edge_pre"]), np.asarray(r.s["edge_post"]))
+    }
     for e in model.edge_table():
         assert (int(e["pre"]), int(e["post"])) in realized_pairs
 
@@ -216,25 +247,28 @@ def test_constructed_model_matches_realization():
 def test_simulation_evidence_is_finite():
     """The integrated model simulates: finite V_m and spikes."""
     _, _, r = _ctx()
-    model = jaxfne.construct(
-        to_configuration(r, duration_ms=DURATION_MS, dt_ms=DT_MS))
-    signals = jaxfne.simulate(model, duration_ms=DURATION_MS, dt_ms=DT_MS,
-                              seed=0)
+    model = jaxfne.construct(to_configuration(r, duration_ms=DURATION_MS, dt_ms=DT_MS))
+    signals = jaxfne.simulate(model, duration_ms=DURATION_MS, dt_ms=DT_MS, seed=0)
     v = np.asarray(signals.V_m)
     assert v.shape[1] == r.s["n_neurons"] == 17
     assert bool(np.isfinite(v).all())
 
 
 def test_refused_quantities_fail_closed():
-    """PARAM-02 (delay) and unresolvable mechanisms refuse: GABA at a
-    statement and delay on the rule, each with its own code."""
+    """Unresolvable mechanisms refuse; declared delay transfers (PARAM-02).
+
+    GABA at a statement fails closed with its own code; delay on the rule
+    is carried end to end (2.0 ms at dt 0.1 -> 20 steps on the executed
+    edges of that rule's projection).
+    """
     with pytest.raises(TFNEError, match="E_MECHANISM_UNRESOLVED"):
-        bad = CTX.replace("$L.out>$R.in [mech=AMPA]",
-                          "$L.out>$R.in [mech=GABA]")
+        bad = CTX.replace("$L.out>$R.in [mech=AMPA]", "$L.out>$R.in [mech=GABA]")
         prog = parse(bad)
-        to_configuration(realize(resolve(prog), prog),
-                         duration_ms=DURATION_MS, dt_ms=DT_MS)
-    with pytest.raises(TFNEError, match="E_PARAM_UNSUPPORTED"):
-        bad = CTX.replace("weight = 0.625", "weight = 0.625; delay = 2.0")
-        prog = parse(bad)
-        realize(resolve(prog), prog)
+        to_configuration(realize(resolve(prog), prog), duration_ms=DURATION_MS, dt_ms=DT_MS)
+    from jaxfne.emitters import resolve_edge_delay_steps
+
+    bad = CTX.replace("weight = 0.625", "weight = 0.625; delay = 2.0")
+    prog = parse(bad)
+    r = realize(resolve(prog), prog)
+    model = jaxfne.construct(to_configuration(r, duration_ms=DURATION_MS, dt_ms=DT_MS))
+    assert int(np.asarray(resolve_edge_delay_steps(model.params["edge_list"])).max()) == 20

@@ -234,8 +234,26 @@ def _check_lower_name(name: str, role: str) -> str:
 # Lexer
 # --------------------------------------------------------------------------- #
 
-_TOKEN_SYMBOLS = (":=", "<>", "!>", "!<", ";", "{", "}", "[", "]", ".", ",",
-                  "^", ":", "=", ">", "<", "(", ")")
+_TOKEN_SYMBOLS = (
+    ":=",
+    "<>",
+    "!>",
+    "!<",
+    ";",
+    "{",
+    "}",
+    "[",
+    "]",
+    ".",
+    ",",
+    "^",
+    ":",
+    "=",
+    ">",
+    "<",
+    "(",
+    ")",
+)
 
 
 def _lex(text: str) -> list[tuple[str, str]]:
@@ -268,13 +286,11 @@ def _lex(text: str) -> list[tuple[str, str]]:
         # S12 rule metavariables: `$L` / `$R` lex as one META token. A lone
         # `$` (or `$` before a non-name) stays a hard lexer error, so `$`
         # cannot silently appear anywhere bodies are not parsed.
-        if c == "$" and i + 1 < n and (
-            text[i + 1].isalpha() or text[i + 1] == "_"
-        ):
+        if c == "$" and i + 1 < n and (text[i + 1].isalpha() or text[i + 1] == "_"):
             j = i + 1
             while j < n and (text[j].isalnum() or text[j] == "_"):
                 j += 1
-            toks.append(("META", text[i + 1:j]))
+            toks.append(("META", text[i + 1 : j]))
             i = j
             continue
         if c.isdigit() or (c == "." and i + 1 < n and text[i + 1].isdigit()):
@@ -287,9 +303,13 @@ def _lex(text: str) -> list[tuple[str, str]]:
             toks.append(("FLOAT" if dot else "INT", text[i:j]))
             i = j
             continue
-        if c == "-" and i + 1 < n and (
-            text[i + 1].isdigit()
-            or (text[i + 1] == "." and i + 2 < n and text[i + 2].isdigit())
+        if (
+            c == "-"
+            and i + 1 < n
+            and (
+                text[i + 1].isdigit()
+                or (text[i + 1] == "." and i + 2 < n and text[i + 2].isdigit())
+            )
         ):
             j = i + 1
             dot = False
@@ -319,6 +339,7 @@ def _lex(text: str) -> list[tuple[str, str]]:
 # AST
 # --------------------------------------------------------------------------- #
 
+
 @dataclass(frozen=True)
 class Ref:
     segments: tuple[str, ...]
@@ -344,6 +365,7 @@ class GroupStmts:
     projection is invalid contributes nothing instead of aborting the
     composite. The group still hands itself upward as one member (S8).
     """
+
     body: tuple[Any, ...]
 
 
@@ -389,6 +411,7 @@ class PrefixApply:
     """S6 prefix rule application: `O[k](SEG^n)` chains rule `k` over the
     replicated instances as ordered adjacencies. Only `O[k]` is defined;
     only plain `A^n` replication is a valid target."""
+
     rule: str
     target: Any  # Replicate
 
@@ -418,8 +441,9 @@ class RuleEndpoint:
     "ref" (a member reference resolved within the operand), or "set"
     (a collection of member references).
     """
+
     form: str
-    head: str = ""           # "L" | "R" for meta; dotted ref for ref
+    head: str = ""  # "L" | "R" for meta; dotted ref for ref
     tail: tuple[str, ...] = ()  # interface selector for meta
     members: tuple[str, ...] = ()  # refs for set
 
@@ -428,6 +452,7 @@ class RuleEndpoint:
 class RuleStmt:
     """One projection statement inside a rule body: endpoints, direction,
     and an optional per-statement mechanism overriding the rule default."""
+
     left: RuleEndpoint
     direction: str  # '>' | '<' | '<>'
     right: RuleEndpoint
@@ -456,13 +481,13 @@ class Program:
     # sides a definition explicitly declares. Only an `in[A] := [...]` /
     # `out[A] := [...]` statement populates this; a declared side overrides
     # the derived default for that side only, never the other side.
-    frontiers: Mapping[str, Mapping[str, tuple[str, ...]]] = field(
-        default_factory=dict)
+    frontiers: Mapping[str, Mapping[str, tuple[str, ...]]] = field(default_factory=dict)
 
 
 # --------------------------------------------------------------------------- #
 # Parser (recursive descent)
 # --------------------------------------------------------------------------- #
+
 
 class _Parser:
     def __init__(self, toks: list[tuple[str, str]]):
@@ -511,8 +536,8 @@ class _Parser:
                 scope, members = self._parse_orderdef()
                 if scope in orders:
                     raise TFNEOrderViolation(
-                        f"E_ORDER_DUPLICATE: duplicate order declaration for "
-                        f"{scope!r}")
+                        f"E_ORDER_DUPLICATE: duplicate order declaration for {scope!r}"
+                    )
                 orders[scope] = members
             elif self._is_frontierdef():
                 side, scope, members = self._parse_frontierdef()
@@ -520,7 +545,8 @@ class _Parser:
                     raise TFNEFrontierUnresolved(
                         f"E_FRONTIER_UNRESOLVED: duplicate {side} frontier "
                         f"declaration for {scope!r}; an interface declared "
-                        f"twice cannot be derived uniquely")
+                        f"twice cannot be derived uniquely"
+                    )
                 frontiers.setdefault(scope, {})[side] = members
             elif self._is_ruledef():
                 rule = self._parse_ruledef()
@@ -538,8 +564,7 @@ class _Parser:
                 system = self._parse_system()
             while self.peek()[0] == "SEP":
                 self.next()
-        return Program(defs=defs, rules=rules, system=system,
-                       orders=orders, frontiers=frontiers)
+        return Program(defs=defs, rules=rules, system=system, orders=orders, frontiers=frontiers)
 
     def _is_frontierdef(self) -> bool:
         # ("in"|"out") "[" NAME "]" ":="
@@ -547,7 +572,8 @@ class _Parser:
         p = self.pos
         return (
             p + 2 < len(t)
-            and t[p][0] == "NAME" and t[p][1] in ("in", "out")
+            and t[p][0] == "NAME"
+            and t[p][1] in ("in", "out")
             and t[p + 1] == ("SYM", "[")
             and t[p + 2][0] == "NAME"
         )
@@ -560,9 +586,9 @@ class _Parser:
         members of ``A`` (subset allowed: an interface need not expose every
         member); validation against the resolved model happens at resolve().
         """
-        side = self.expect("NAME")                    # "in" / "out"
+        side = self.expect("NAME")  # "in" / "out"
         self.expect("SYM", "[")
-        scope = self._parse_order_member()            # bare name or dotted path
+        scope = self._parse_order_member()  # bare name or dotted path
         self.expect("SYM", "]")
         self.expect("SYM", ":=")
         self.expect("SYM", "[")
@@ -577,7 +603,8 @@ class _Parser:
         if not members:
             raise TFNEFrontierUnresolved(
                 f"E_FRONTIER_UNRESOLVED: {side}[{scope}] declares no "
-                f"members; an empty interface resolves nothing")
+                f"members; an empty interface resolves nothing"
+            )
         return side, scope, tuple(members)
 
     def _is_orderdef(self) -> bool:
@@ -598,9 +625,9 @@ class _Parser:
         is metadata rather than structure, so this deliberately reuses the
         existing bracket/comma tokens instead of taking a new operator.
         """
-        self.expect("NAME")                       # "order"
+        self.expect("NAME")  # "order"
         self.expect("SYM", "[")
-        scope = self._parse_order_member()        # bare name or dotted path
+        scope = self._parse_order_member()  # bare name or dotted path
         self.expect("SYM", "]")
         self.expect("SYM", ":=")
         self.expect("SYM", "[")
@@ -613,8 +640,7 @@ class _Parser:
             break
         self.expect("SYM", "]")
         if not members:
-            raise TFNEOrderViolation(
-                f"E_ORDER_EMPTY: order[{scope}] declares no members")
+            raise TFNEOrderViolation(f"E_ORDER_EMPTY: order[{scope}] declares no members")
         return scope, tuple(members)
 
     def _parse_order_member(self) -> str:
@@ -633,8 +659,8 @@ class _Parser:
                 tail = tok[1][1:]
                 if not tail.isdigit():
                     raise TFNEOrderViolation(
-                        f"E_ORDER_MEMBER_INVALID: {name!r} has a malformed "
-                        f"replica index {tok[1]!r}")
+                        f"E_ORDER_MEMBER_INVALID: {name!r} has a malformed replica index {tok[1]!r}"
+                    )
                 parts.append(tail)
                 continue
             if self.at_sym("."):
@@ -650,7 +676,8 @@ class _Parser:
         p = self.pos
         return (
             p + 4 < len(t)
-            and t[p][0] == "NAME" and t[p][1] in ("O", "X")
+            and t[p][0] == "NAME"
+            and t[p][1] in ("O", "X")
             and t[p + 1] == ("SYM", "[")
             and t[p + 2][0] == "NAME"
             and t[p + 3] == ("SYM", "]")
@@ -660,11 +687,7 @@ class _Parser:
     def _is_objdef(self) -> bool:
         t = self.toks
         p = self.pos
-        return (
-            p + 1 < len(t)
-            and t[p][0] == "NAME"
-            and t[p + 1] == ("SYM", ":=")
-        )
+        return p + 1 < len(t) and t[p][0] == "NAME" and t[p + 1] == ("SYM", ":=")
 
     def _parse_ruledef(self) -> RuleDef:
         kind = self.expect("NAME")
@@ -685,8 +708,7 @@ class _Parser:
                 break
             body.append(self._parse_rulestmt(kind, name))
         self.expect("SYM", "]")
-        return RuleDef(name=name, kind=kind, params=params,
-                       body=tuple(body))
+        return RuleDef(name=name, kind=kind, params=params, body=tuple(body))
 
     def _parse_rulestmt(self, kind: str, rule: str) -> RuleStmt:
         """One S12 body statement: endpoint, direction, endpoint, mechanism.
@@ -700,7 +722,8 @@ class _Parser:
         if tok[0] != "SYM" or tok[1] not in (">", "<", "<>"):
             raise TFNEError(
                 f"rule {kind}[{rule}] body statements need an explicit "
-                f"direction ('>', '<', '<>'); got {tok}")
+                f"direction ('>', '<', '<>'); got {tok}"
+            )
         direction = self.next()[1]
         right = self._parse_rule_endpoint()
         mechanism: Optional[str] = None
@@ -709,13 +732,13 @@ class _Parser:
             if self.peek() != ("NAME", "mech"):
                 raise TFNEError(
                     f"rule {kind}[{rule}] statement options support only "
-                    f"[mech=NAME]; got {self.peek()}")
+                    f"[mech=NAME]; got {self.peek()}"
+                )
             self.next()
             self.expect("SYM", "=")
             mechanism = self.expect("NAME")
             self.expect("SYM", "]")
-        return RuleStmt(left=left, direction=direction, right=right,
-                        mechanism=mechanism)
+        return RuleStmt(left=left, direction=direction, right=right, mechanism=mechanism)
 
     def _parse_rule_endpoint(self) -> RuleEndpoint:
         """One S12 endpoint: `$L[.out|.in]`, a member ref, or `{a, b}`."""
@@ -723,19 +746,17 @@ class _Parser:
         if tok[0] == "META":
             self.next()
             if tok[1] not in ("L", "R"):
-                raise TFNEError(
-                    f"rule metavariables are $L and $R; got ${tok[1]}")
+                raise TFNEError(f"rule metavariables are $L and $R; got ${tok[1]}")
             tail: list[str] = []
             while self.at_sym("."):
                 self.next()
                 part = self.expect("NAME")
                 if part not in ("out", "in"):
                     raise TFNEError(
-                        f"interface selection on ${tok[1]} supports only "
-                        f".out / .in; got .{part}")
+                        f"interface selection on ${tok[1]} supports only .out / .in; got .{part}"
+                    )
                 tail.append(part)
-            return RuleEndpoint(form="meta", head=tok[1],
-                                tail=tuple(tail))
+            return RuleEndpoint(form="meta", head=tok[1], tail=tuple(tail))
         if tok == ("SYM", "{"):
             self.next()
             members = [self._parse_order_member()]
@@ -764,14 +785,9 @@ class _Parser:
                 atom = self._parse_atom()
             except TFNEError:
                 atom = None
-            if (
-                isinstance(atom, Select)
-                and not atom.tail
-                and self.peek()[0] in ("EOF", "SEP")
-            ):
+            if isinstance(atom, Select) and not atom.tail and self.peek()[0] in ("EOF", "SEP"):
                 base = ".".join(atom.base)
-                return ObjDef(name=name, kind="special",
-                              body={"base": base, "key": atom.key})
+                return ObjDef(name=name, kind="special", body={"base": base, "key": atom.key})
             self.pos = save
         body = self._parse_expr()
         return ObjDef(name=name, kind="expr", body=body)
@@ -784,8 +800,12 @@ class _Parser:
             p = self.pos
             q = p + 1
             btype: Optional[str] = None
-            if (q + 2 < len(t) and t[q] == ("SYM", "[")
-                    and t[q + 1][0] == "NAME" and t[q + 2] == ("SYM", "]")):
+            if (
+                q + 2 < len(t)
+                and t[q] == ("SYM", "[")
+                and t[q + 1][0] == "NAME"
+                and t[q + 2] == ("SYM", "]")
+            ):
                 btype = t[q + 1][1]
                 q += 3
             if q < len(t) and t[q] == ("SYM", ":"):
@@ -846,14 +866,16 @@ class _Parser:
         # S6 prefix rule application `O[k](...)` lives in operand position:
         # after an infix `O[k]` the same tokens are a grouped operand, so
         # only a leading `O[k](` is the prefix form.
-        if (self.at_name("O") or self.at_name("X")):
+        if self.at_name("O") or self.at_name("X"):
             t = self.toks
             p = self.pos
-            if (p + 5 < len(t)
-                    and t[p + 1] == ("SYM", "[")
-                    and t[p + 2][0] == "NAME"
-                    and t[p + 3] == ("SYM", "]")
-                    and t[p + 4] == ("SYM", "(")):
+            if (
+                p + 5 < len(t)
+                and t[p + 1] == ("SYM", "[")
+                and t[p + 2][0] == "NAME"
+                and t[p + 3] == ("SYM", "]")
+                and t[p + 4] == ("SYM", "(")
+            ):
                 kind = self.expect("NAME")
                 self.expect("SYM", "[")
                 rule = self.expect("NAME")
@@ -863,13 +885,15 @@ class _Parser:
                     raise TFNEError(
                         "prefix rule application is O[k](...) (S6); "
                         "X[k](...) is not defined — X-joined replication "
-                        "is A^{nX} (S6.1)")
+                        "is A^{nX} (S6.1)"
+                    )
                 target = self._parse_expr()
                 self.expect("SYM", ")")
                 if not isinstance(target, Replicate) or target.rel is not None:
                     raise TFNEError(
                         f"O[k](...) prefix applies to plain A^n "
-                        f"replication (S6); got {_emit_expr(target)!r}")
+                        f"replication (S6); got {_emit_expr(target)!r}"
+                    )
                 return PrefixApply(rule=rule, target=target)
         atom = self._parse_atom()
         if self.at_sym("^"):
@@ -891,7 +915,8 @@ class _Parser:
                     if rtok[0] != "NAME" or rtok[1] not in ("O", "X"):
                         raise TFNEError(
                             "replication relation must be O or X, "
-                            f"as in A^{{nO}} or A^{{nX}}; got {rtok}")
+                            f"as in A^{{nO}} or A^{{nX}}; got {rtok}"
+                        )
                     rel = rtok[1]
                     self.expect("SYM", "}")
             else:
@@ -903,9 +928,7 @@ class _Parser:
             if n < 1:
                 raise TFNEError("replication count must be >= 1")
             if not isinstance(atom, Ref) or len(atom.segments) != 1:
-                raise TFNEError(
-                    "replication (A^n) applies to a single named reference"
-                )
+                raise TFNEError("replication (A^n) applies to a single named reference")
             return Replicate(atom=atom, n=n, rel=rel)
         return atom
 
@@ -930,8 +953,7 @@ class _Parser:
                 if not had_sep:
                     # `_parse_expr` never consumes a leading SEP, so reaching
                     # here means juxtaposed expressions, not statements.
-                    raise TFNEError(
-                        f"expected ';' or '}}' in composite; got {self.peek()}")
+                    raise TFNEError(f"expected ';' or '}}' in composite; got {self.peek()}")
                 stmts.append(self._parse_expr())
             self.expect("SYM", "}")
             if len(stmts) == 1:
@@ -944,9 +966,7 @@ class _Parser:
             return body
         if tok[0] == "NAME":
             if tok[1] in ("O", "X"):
-                raise TFNEError(
-                    f"unexpected {tok[1]!r} here (reserved composition operator)"
-                )
+                raise TFNEError(f"unexpected {tok[1]!r} here (reserved composition operator)")
             name = self.next()[1]
             base = [name]
             while self.at_sym("."):
@@ -977,7 +997,7 @@ class _Parser:
                 self.next()
             if self.peek()[0] != "NAME":
                 break
-            # lookahead: NAME "=" (not "=="; '=' sym distinct from ':=') 
+            # lookahead: NAME "=" (not "=="; '=' sym distinct from ':=')
             t = self.toks
             p = self.pos
             if not (p + 1 < len(t) and t[p + 1] == ("SYM", "=")):
@@ -1058,6 +1078,7 @@ def parse(text: str) -> Program:
 # Normalization (canonical replayable form)
 # --------------------------------------------------------------------------- #
 
+
 def _emit_rule_endpoint(ep: RuleEndpoint) -> str:
     if ep.form == "meta":
         return "$" + ep.head + "".join(f".{t}" for t in ep.tail)
@@ -1067,8 +1088,7 @@ def _emit_rule_endpoint(ep: RuleEndpoint) -> str:
 
 
 def _emit_rulestmt(stmt: RuleStmt) -> str:
-    text = (f"{_emit_rule_endpoint(stmt.left)} {stmt.direction} "
-            f"{_emit_rule_endpoint(stmt.right)}")
+    text = f"{_emit_rule_endpoint(stmt.left)} {stmt.direction} {_emit_rule_endpoint(stmt.right)}"
     if stmt.mechanism is not None:
         text += f" [mech={stmt.mechanism}]"
     return text
@@ -1114,9 +1134,10 @@ def _emit_value(value: Any) -> str:
         if "set" in value:
             return "{" + ", ".join(value["set"]) + "}"
         if "map" in value:
-            inner = ", ".join(f"{k}: {v!r}" if isinstance(v, float)
-                              else f"{k}: {v}"
-                              for k, v in value["map"].items())
+            inner = ", ".join(
+                f"{k}: {v!r}" if isinstance(v, float) else f"{k}: {v}"
+                for k, v in value["map"].items()
+            )
             return "{" + inner + "}"
         if "dict" in value:
             return "[" + _emit_propbody(value["dict"]) + "]"
@@ -1150,8 +1171,7 @@ def normalize(program: Program) -> str:
     for scope in sorted(getattr(program, "frontiers", {})):
         for side in ("in", "out"):
             if side in getattr(program, "frontiers")[scope]:
-                members = ", ".join(
-                    getattr(program, "frontiers")[scope][side])
+                members = ", ".join(getattr(program, "frontiers")[scope][side])
                 parts.append(f"{side}[{scope}] := [{members}]")
     for name in sorted(program.defs):
         objdef = program.defs[name]
@@ -1186,6 +1206,7 @@ def spec_hash(program: Program) -> str:
 # --------------------------------------------------------------------------- #
 # Explicit model (resolved hierarchy)
 # --------------------------------------------------------------------------- #
+
 
 @dataclass
 class NodeRecord:
@@ -1233,43 +1254,38 @@ class ExplicitModel:
     rule_params: Mapping[str, Mapping[str, Any]] = field(default_factory=dict)
 
 
-def _allocate_counts(cell_types: Sequence[str],
-                     proportions: Optional[Mapping[str, float]],
-                     total: Optional[Any],
-                     where: str) -> tuple[dict[str, int], dict[str, float]]:
+def _allocate_counts(
+    cell_types: Sequence[str],
+    proportions: Optional[Mapping[str, float]],
+    total: Optional[Any],
+    where: str,
+) -> tuple[dict[str, int], dict[str, float]]:
     """Deterministic largest-remainder allocation with declaration-order tiebreak."""
     ctypes = list(cell_types)
     if proportions is not None:
         for c, p in proportions.items():
             if c not in ctypes:
-                raise TFNEInvalidProportion(
-                    f"{where}: proportion member {c!r} not in C")
+                raise TFNEInvalidProportion(f"{where}: proportion member {c!r} not in C")
             if not (0.0 <= float(p) <= 1.0):
-                raise TFNEInvalidProportion(
-                    f"{where}: proportion {c}={p} outside [0,1]")
+                raise TFNEInvalidProportion(f"{where}: proportion {c}={p} outside [0,1]")
         if abs(sum(float(p) for p in proportions.values()) - 1.0) > 1e-6:
             raise TFNEInvalidProportion(
-                f"{where}: proportions sum to "
-                f"{sum(float(p) for p in proportions.values())}, not 1"
+                f"{where}: proportions sum to {sum(float(p) for p in proportions.values())}, not 1"
             )
     if isinstance(total, Mapping):
         counts = {c: int(total[c]) for c in total}
         for c in counts:
             if c not in ctypes:
-                raise TFNEInvalidProportion(
-                    f"{where}: count member {c!r} not in C")
+                raise TFNEInvalidProportion(f"{where}: count member {c!r} not in C")
         missing = [c for c in ctypes if c not in counts]
         if missing:
-            raise TFNEMissingPolicy(
-                f"{where}: N map missing members {missing}")
+            raise TFNEMissingPolicy(f"{where}: N map missing members {missing}")
         n_total = sum(counts.values())
         if proportions is not None:
             for c in ctypes:
                 if abs(counts[c] - proportions[c] * n_total) >= 1.0:
-                    raise TFNEInvalidProportion(
-                        f"{where}: N map inconsistent with P for {c!r}")
-        derived = {c: counts[c] / n_total for c in ctypes} if n_total else {
-            c: 0.0 for c in ctypes}
+                    raise TFNEInvalidProportion(f"{where}: N map inconsistent with P for {c!r}")
+        derived = {c: counts[c] / n_total for c in ctypes} if n_total else {c: 0.0 for c in ctypes}
         return counts, derived
     n_total = 1 if total is None else int(total)
     if n_total < 1:
@@ -1277,14 +1293,12 @@ def _allocate_counts(cell_types: Sequence[str],
     if proportions is None:
         if len(ctypes) == 1:
             return {ctypes[0]: n_total}, {ctypes[0]: 1.0}
-        raise TFNEMissingPolicy(
-            f"{where}: P required when C has members {ctypes}")
+        raise TFNEMissingPolicy(f"{where}: P required when C has members {ctypes}")
     exact = [float(proportions[c]) * n_total for c in ctypes]
     base = [int(np.floor(v)) for v in exact]
     remainder = n_total - sum(base)
     # fractional parts, tie-broken by declaration order (stable argsort)
-    order = sorted(range(len(ctypes)),
-                   key=lambda i: (-(exact[i] - base[i]), i))
+    order = sorted(range(len(ctypes)), key=lambda i: (-(exact[i] - base[i]), i))
     for i in order[:remainder]:
         base[i] += 1
     counts = {c: base[i] for i, c in enumerate(ctypes)}
@@ -1313,7 +1327,8 @@ def _validate_geometry_body(where: str, geometry: Mapping[str, Any]) -> None:
             except (TypeError, ValueError, IndexError):
                 raise TFNEInvalidProportion(
                     f"E_GEOMETRY_OUT_OF_RANGE: {where}: G {range_key} must be "
-                    f"a [lo; hi] pair of numbers in [0,1]; got {pair!r}")
+                    f"a [lo; hi] pair of numbers in [0,1]; got {pair!r}"
+                )
             bounds = (lo, hi)
         else:
             lo = geometry.get(lo_key)
@@ -1325,28 +1340,33 @@ def _validate_geometry_body(where: str, geometry: Mapping[str, Any]) -> None:
                     f"E_GEOMETRY_OUT_OF_RANGE: {where}: partial {axis} "
                     f"domain declares only one bound ({lo_key}={lo!r}, "
                     f"{hi_key}={hi!r}); a half-domain cannot be honoured "
-                    f"exactly, so it is refused rather than half-defaulted")
+                    f"exactly, so it is refused rather than half-defaulted"
+                )
             try:
                 bounds = (float(lo), float(hi))
             except (TypeError, ValueError):
                 raise TFNEInvalidProportion(
                     f"E_GEOMETRY_OUT_OF_RANGE: {where}: G {axis} bounds "
-                    f"must be numbers in [0,1]; got ({lo!r}, {hi!r})")
+                    f"must be numbers in [0,1]; got ({lo!r}, {hi!r})"
+                )
         lo, hi = bounds
         if not (bool(np.isfinite(lo)) and bool(np.isfinite(hi))):
             raise TFNEInvalidProportion(
                 f"E_GEOMETRY_OUT_OF_RANGE: {where}: G {axis} bounds must "
-                f"be finite numbers in [0,1]; got ({lo!r}, {hi!r})")
+                f"be finite numbers in [0,1]; got ({lo!r}, {hi!r})"
+            )
         if not (0.0 <= lo <= 1.0 and 0.0 <= hi <= 1.0):
             raise TFNEInvalidProportion(
                 f"E_GEOMETRY_OUT_OF_RANGE: {where}: G {axis} range "
                 f"({lo}, {hi}) lies outside [0,1]; declared geometry is "
                 f"relative (fractions of the area's extent), so an "
-                f"outside range is refused rather than rescaled")
+                f"outside range is refused rather than rescaled"
+            )
         if not hi > lo:
             raise TFNEInvalidProportion(
                 f"E_GEOMETRY_OUT_OF_RANGE: {where}: degenerate G {axis} "
-                f"domain [{lo}, {hi}]; bounds must order")
+                f"domain [{lo}, {hi}]; bounds must order"
+            )
 
 
 @dataclass(frozen=True)
@@ -1399,8 +1419,7 @@ def _natural_path_key(path: str) -> tuple:
     return tuple(_natural_component_key(c) for c in path.split("."))
 
 
-def _scope_children(nodes: Mapping[str, Any],
-                    scope: str) -> list[tuple[str, str]]:
+def _scope_children(nodes: Mapping[str, Any], scope: str) -> list[tuple[str, str]]:
     """Immediate members of `scope` as `(full path, remainder)` pairs.
 
     Membership follows resolved parent links, so replicated instances such
@@ -1416,15 +1435,15 @@ def _scope_children(nodes: Mapping[str, Any],
         if parent != scope:
             continue
         if scope and path.startswith(scope + "."):
-            out.append((path, path[len(scope) + 1:]))
+            out.append((path, path[len(scope) + 1 :]))
         else:
             out.append((path, path.rpartition(".")[2]))
     return out
 
 
-def _declared_ranks(nodes: Mapping[str, Any],
-                    orders: Mapping[str, Sequence[str]]
-                    ) -> dict[tuple[str, str], int]:
+def _declared_ranks(
+    nodes: Mapping[str, Any], orders: Mapping[str, Sequence[str]]
+) -> dict[tuple[str, str], int]:
     """Validate `order[A] := [...]` declarations into `(parent, remainder)` ranks.
 
     `tfne/2` S20: only an explicit declaration overrides natural ordering, so
@@ -1442,37 +1461,37 @@ def _declared_ranks(nodes: Mapping[str, Any],
             # A bare name may address a nested object, but only if it does so
             # unambiguously. Guessing between two candidates would reorder a
             # scope the author did not name.
-            candidates = sorted(path for path in nodes
-                                if path.endswith("." + scope))
+            candidates = sorted(path for path in nodes if path.endswith("." + scope))
             if not candidates:
                 raise TFNEOrderViolation(
-                    f"E_ORDER_SCOPE_UNKNOWN: order[{scope}] names no object "
-                    f"in the resolved model")
+                    f"E_ORDER_SCOPE_UNKNOWN: order[{scope}] names no object in the resolved model"
+                )
             if len(candidates) > 1:
                 raise TFNEOrderViolation(
                     f"E_ORDER_SCOPE_AMBIGUOUS: order[{scope}] matches "
-                    f"{candidates!r}; name the full path")
+                    f"{candidates!r}; name the full path"
+                )
             resolved = candidates[0]
         scope = resolved
         child_components = [rem for _, rem in _scope_children(nodes, scope)]
 
         normalized: list[str] = []
         for member in members:
-            local = (member[len(scope) + 1:]
-                     if member.startswith(scope + ".") else member)
+            local = member[len(scope) + 1 :] if member.startswith(scope + ".") else member
             if "." in local and local not in child_components:
                 raise TFNEOrderViolation(
                     f"E_ORDER_NOT_IMMEDIATE: order[{scope}] names "
                     f"{member!r}, which is not an immediate member of "
-                    f"{scope!r}; a declaration orders its own members only")
+                    f"{scope!r}; a declaration orders its own members only"
+                )
             normalized.append(local)
 
         seen: set[str] = set()
         for local in normalized:
             if local in seen:
                 raise TFNEOrderViolation(
-                    f"E_ORDER_DUPLICATE_MEMBER: order[{scope}] names "
-                    f"{local!r} more than once")
+                    f"E_ORDER_DUPLICATE_MEMBER: order[{scope}] names {local!r} more than once"
+                )
             seen.add(local)
 
         unknown = [m for m in normalized if m not in child_components]
@@ -1480,7 +1499,8 @@ def _declared_ranks(nodes: Mapping[str, Any],
             raise TFNEOrderViolation(
                 f"E_ORDER_MEMBER_UNKNOWN: order[{scope}] names {unknown!r}, "
                 f"which are not members of {scope!r}; members are "
-                f"{sorted(child_components)!r}")
+                f"{sorted(child_components)!r}"
+            )
 
         missing = [c for c in child_components if c not in seen]
         if missing:
@@ -1488,16 +1508,17 @@ def _declared_ranks(nodes: Mapping[str, Any],
                 f"E_ORDER_INCOMPLETE: order[{scope}] omits {sorted(missing)!r}; "
                 f"an explicit order must name every immediate member exactly "
                 f"once, otherwise the omitted members would silently fall back "
-                f"to a different rule")
+                f"to a different rule"
+            )
 
         for index, local in enumerate(normalized):
             ranks[(scope, local)] = index
     return ranks
 
 
-def _validate_frontier_members(nodes: Mapping[str, Any], target: str,
-                               side: str, scope_key: str,
-                               members: Sequence[str]) -> tuple[str, ...]:
+def _validate_frontier_members(
+    nodes: Mapping[str, Any], target: str, side: str, scope_key: str, members: Sequence[str]
+) -> tuple[str, ...]:
     """Validate one declared side into full member paths (`tfne/2` S9).
 
     A declared frontier names a subset of the scope's immediate members —
@@ -1510,30 +1531,31 @@ def _validate_frontier_members(nodes: Mapping[str, Any], target: str,
     seen: set[str] = set()
     full_paths: list[str] = []
     for member in members:
-        local = (member[len(target) + 1:]
-                 if member.startswith(target + ".") else member)
+        local = member[len(target) + 1 :] if member.startswith(target + ".") else member
         if local not in by_remainder:
             if "." in local:
                 raise TFNEFrontierUnresolved(
                     f"E_FRONTIER_UNRESOLVED: {side}[{scope_key}] names "
                     f"{member!r}, which is not an immediate member of "
-                    f"{target!r}; a frontier exposes its own members only")
+                    f"{target!r}; a frontier exposes its own members only"
+                )
             raise TFNEFrontierUnresolved(
                 f"E_FRONTIER_UNRESOLVED: {side}[{scope_key}] names "
                 f"{member!r}, which is not a member of {target!r}; "
-                f"members are {sorted(by_remainder)!r}")
+                f"members are {sorted(by_remainder)!r}"
+            )
         if local in seen:
             raise TFNEFrontierUnresolved(
-                f"E_FRONTIER_UNRESOLVED: {side}[{scope_key}] names "
-                f"{local!r} more than once")
+                f"E_FRONTIER_UNRESOLVED: {side}[{scope_key}] names {local!r} more than once"
+            )
         seen.add(local)
         full_paths.append(by_remainder[local])
     return tuple(full_paths)
 
 
-def _verify_frontier_declarations(nodes: Mapping[str, Any],
-                                  frontiers: Mapping[str, Mapping[str, Any]],
-                                  applied: set[str]) -> None:
+def _verify_frontier_declarations(
+    nodes: Mapping[str, Any], frontiers: Mapping[str, Mapping[str, Any]], applied: set[str]
+) -> None:
     """End-of-resolve check: every declared frontier resolved and applied.
 
     Bare scope names resolve only when unambiguous against the final model —
@@ -1545,37 +1567,41 @@ def _verify_frontier_declarations(nodes: Mapping[str, Any],
         if scope_key in nodes:
             resolved = scope_key
         else:
-            candidates = sorted(path for path in nodes
-                                if path.endswith("." + scope_key))
+            candidates = sorted(path for path in nodes if path.endswith("." + scope_key))
             if not candidates:
                 raise TFNEFrontierUnresolved(
                     f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
-                    f"names no object in the resolved model")
+                    f"names no object in the resolved model"
+                )
             if len(candidates) > 1:
                 raise TFNEFrontierUnresolved(
                     f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
-                    f"matches {candidates!r}; name the full path")
+                    f"matches {candidates!r}; name the full path"
+                )
             resolved = candidates[0]
         rec = nodes[resolved]
         if getattr(rec, "kind", None) != "composite":
             raise TFNEFrontierUnresolved(
                 f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
                 f"addresses {resolved!r}, which is a leaf object; a leaf "
-                f"exposes only itself")
+                f"exposes only itself"
+            )
         if resolved.rpartition(".")[2].isdigit():
             raise TFNEFrontierUnresolved(
                 f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
                 f"addresses {resolved!r}, which is a replica instance; "
-                f"declare on the scope holding the replicas instead")
+                f"declare on the scope holding the replicas instead"
+            )
         if resolved not in applied:
             raise TFNEFrontierUnresolved(
                 f"E_FRONTIER_UNRESOLVED: frontier on {scope_key!r} "
-                f"was never applied during expansion")
+                f"was never applied during expansion"
+            )
 
 
-def _ordering_key(path: str,
-                  ranks: Mapping[tuple[str, str], int],
-                  nodes: Mapping[str, Any] | None = None) -> tuple:
+def _ordering_key(
+    path: str, ranks: Mapping[tuple[str, str], int], nodes: Mapping[str, Any] | None = None
+) -> tuple:
     """Realization ordering key: declared rank where given, else natural.
 
     Ranked edge by edge along the resolved parent chain, so a declaration
@@ -1614,7 +1640,7 @@ def _ordering_key(path: str,
             chain.append(("", current))
             break
         if isinstance(parent, str) and current.startswith(parent + "."):
-            remainder = current[len(parent) + 1:]
+            remainder = current[len(parent) + 1 :]
         else:
             remainder = current.rpartition(".")[2]
         chain.append((parent, remainder))
@@ -1628,8 +1654,7 @@ def _ordering_key(path: str,
     for parent, remainder in reversed(chain):
         rank = ranks.get((parent, remainder))
         if rank is None:
-            natural = tuple(_natural_component_key(c)
-                            for c in remainder.split("."))
+            natural = tuple(_natural_component_key(c) for c in remainder.split("."))
             key.append((1, 0, natural))
         else:
             key.append((0, rank, ()))
@@ -1655,8 +1680,7 @@ class _Resolver:
         # propagate (resolve() either returns whole or raises).
         self._brace_atomic = 0
 
-    def _apply_declared_frontiers(self, target: str,
-                                  inner: _Expansion) -> _Expansion:
+    def _apply_declared_frontiers(self, target: str, inner: _Expansion) -> _Expansion:
         """Substitute declared `in`/`out` for `target` (`tfne/2` S9).
 
         Declarations match by exact scope path or by bare name against the
@@ -1665,25 +1689,26 @@ class _Resolver:
         side overrides the derived default for that side only. With no
         matching declaration the derived expansion passes through unchanged.
         """
-        hits = [(key, sides) for key, sides in
-                self.program.frontiers.items()
-                if key == target or target.endswith("." + key)]
+        hits = [
+            (key, sides)
+            for key, sides in self.program.frontiers.items()
+            if key == target or target.endswith("." + key)
+        ]
         if len(hits) > 1:
             names = sorted(key for key, _ in hits)
             raise TFNEFrontierUnresolved(
                 f"E_FRONTIER_UNRESOLVED: {names!r} all match {target!r}; "
                 f"a scope with competing frontier declarations cannot be "
-                f"derived uniquely")
+                f"derived uniquely"
+            )
         if not hits:
             return inner
         scope_key, sides = hits[0]
         fin, fout = inner.fin, inner.fout
         if "in" in sides:
-            fin = _validate_frontier_members(
-                self.nodes, target, "in", scope_key, sides["in"])
+            fin = _validate_frontier_members(self.nodes, target, "in", scope_key, sides["in"])
         if "out" in sides:
-            fout = _validate_frontier_members(
-                self.nodes, target, "out", scope_key, sides["out"])
+            fout = _validate_frontier_members(self.nodes, target, "out", scope_key, sides["out"])
         self.applied_frontiers.add(target)
         return _Expansion(members=inner.members, fin=fin, fout=fout)
 
@@ -1697,8 +1722,9 @@ class _Resolver:
             self.nodes[node.parent].children.append(node.path)
         return node.path
 
-    def _object_props(self, props: Mapping[str, Any], where: str,
-                      implicit: bool = False) -> NodeRecord:
+    def _object_props(
+        self, props: Mapping[str, Any], where: str, implicit: bool = False
+    ) -> NodeRecord:
         raw_c = props.get("C", {"set": ["cell"]})
         if isinstance(raw_c, Mapping) and "set" in raw_c:
             ctypes = tuple(raw_c["set"])
@@ -1712,8 +1738,7 @@ class _Resolver:
         proportions = None
         if raw_p is not None:
             if not (isinstance(raw_p, Mapping) and "map" in raw_p):
-                raise TFNEInvalidProportion(
-                    f"{where}: P must be a {{type: p, ...}} map")
+                raise TFNEInvalidProportion(f"{where}: P must be a {{type: p, ...}} map")
             proportions = {k: float(v) for k, v in raw_p["map"].items()}
         raw_n = props.get("N")
         total: Any = None
@@ -1723,25 +1748,31 @@ class _Resolver:
             elif isinstance(raw_n, (int, float)):
                 total = int(raw_n)
             else:
-                raise TFNEInvalidProportion(
-                    f"{where}: N must be an integer or map")
+                raise TFNEInvalidProportion(f"{where}: N must be an integer or map")
             counts, derived = _allocate_counts(ctypes, proportions, total, where)
         raw_g = props.get("G")
         geometry: dict[str, Any] = {}
         if raw_g is not None:
             if not (isinstance(raw_g, Mapping) and "dict" in raw_g):
-                raise TFNEInvalidProportion(
-                    f"{where}: G must be a [k = v; ...] body")
+                raise TFNEInvalidProportion(f"{where}: G must be a [k = v; ...] body")
             geometry = dict(raw_g["dict"])
             _validate_geometry_body(where, geometry)
         model = props.get("model", DEFAULT_MODEL)
         if isinstance(model, Mapping):
             raise TFNEInvalidProportion(f"{where}: model must be a name")
         model = str(model)
-        return NodeRecord(path="", name="", kind="object", parent=None,
-                          cell_types=ctypes, counts=counts,
-                          proportions=derived, geometry=geometry, model=model,
-                          declared_default=implicit)
+        return NodeRecord(
+            path="",
+            name="",
+            kind="object",
+            parent=None,
+            cell_types=ctypes,
+            counts=counts,
+            proportions=derived,
+            geometry=geometry,
+            model=model,
+            declared_default=implicit,
+        )
 
     # -- structure expansion ------------------------------------------- #
     def expand(self, node: Any, scope: str) -> _Expansion:
@@ -1758,8 +1789,7 @@ class _Resolver:
             gid = f"g{self.group_counter}"
             self.group_counter += 1
             path = f"{scope}.{gid}" if scope else gid
-            self._add_node(NodeRecord(path=path, name=gid, kind="composite",
-                                      parent=scope or None))
+            self._add_node(NodeRecord(path=path, name=gid, kind="composite", parent=scope or None))
             inner = self.expand(node.body, path)
             if not inner.members:
                 raise TFNEError(f"empty composite group at {path!r}")
@@ -1767,14 +1797,13 @@ class _Resolver:
             # itself upward as one member but composes through its body's
             # frontier, so it is not flattened into the surrounding chain.
             return self._apply_declared_frontiers(
-                path, _Expansion(members=(path,), fin=inner.fin,
-                                 fout=inner.fout))
+                path, _Expansion(members=(path,), fin=inner.fin, fout=inner.fout)
+            )
         if isinstance(node, GroupStmts):
             gid = f"g{self.group_counter}"
             self.group_counter += 1
             path = f"{scope}.{gid}" if scope else gid
-            self._add_node(NodeRecord(path=path, name=gid, kind="composite",
-                                      parent=scope or None))
+            self._add_node(NodeRecord(path=path, name=gid, kind="composite", parent=scope or None))
             members: list[str] = []
             fin: list[str] = []
             fout: list[str] = []
@@ -1790,8 +1819,8 @@ class _Resolver:
             if not members:
                 raise TFNEError(f"empty composite group at {path!r}")
             return self._apply_declared_frontiers(
-                path, _Expansion(members=(path,), fin=tuple(fin),
-                                 fout=tuple(fout)))
+                path, _Expansion(members=(path,), fin=tuple(fin), fout=tuple(fout))
+            )
         if isinstance(node, Ordered):
             left = self.expand(node.left, scope)
             right = self.expand(node.right, scope)
@@ -1803,8 +1832,7 @@ class _Resolver:
                 # An atomicly-dropped side leaves an empty frontier: binding
                 # nothing is recorded (fin/fout are never empty otherwise).
                 self._record_rule(node, left, right)
-            return _Expansion(members=left.members + right.members,
-                              fin=left.fin, fout=right.fout)
+            return _Expansion(members=left.members + right.members, fin=left.fin, fout=right.fout)
         if isinstance(node, Cross):
             left = self.expand(node.left, scope)
             right = self.expand(node.right, scope)
@@ -1816,27 +1844,28 @@ class _Resolver:
                 # named-definition boundaries all count as grouping: only
                 # direct syntactic nesting of bare Cross nodes refuses.
                 for nested in (node.left, node.right):
-                    if (isinstance(nested, Cross)
-                            and nested.rule == node.rule):
+                    if isinstance(nested, Cross) and nested.rule == node.rule:
                         ruledef = self.program.rules.get(node.rule)
                         policy = ""
                         if ruledef is not None:
-                            policy = str(ruledef.params.get(
-                                "associative", "")).lower()
+                            policy = str(ruledef.params.get("associative", "")).lower()
                         if policy != "true":
                             raise TFNEAmbiguousExpansion(
                                 f"E_AMBIGUOUS_EXPANSION: ungrouped "
                                 f"{_emit_expr(nested)} X[{node.rule}] ... "
                                 f"has no unique association; group it "
                                 f"({{...}}) or declare "
-                                f"`associative = true` on X[{node.rule}]")
+                                f"`associative = true` on X[{node.rule}]"
+                            )
                 # X is nonordered: it relates its operands rather than an
                 # adjacency, and binds them whole. Per-operand endpoint
                 # selection inside a body is $L/$R (S12).
                 self._record_rule(node, left, right)
-            return _Expansion(members=left.members + right.members,
-                              fin=left.fin + right.fin,
-                              fout=left.fout + right.fout)
+            return _Expansion(
+                members=left.members + right.members,
+                fin=left.fin + right.fin,
+                fout=left.fout + right.fout,
+            )
         if isinstance(node, Project):
             left = self._endpoint_members(node.left, scope, "projection")
             right = self._endpoint_members(node.right, scope, "projection")
@@ -1846,16 +1875,22 @@ class _Resolver:
                 return _Expansion(members=(), fin=(), fout=())
             group = None
             if node.direction == "<>":
-                group = (f"projection:direct[-]:{_emit_expr(node.left)}<>"
-                         f"{_emit_expr(node.right)}")
+                group = f"projection:direct[-]:{_emit_expr(node.left)}<>{_emit_expr(node.right)}"
             for direction in self._split_direction(node.direction):
-                self._record_relation("projection",
-                                      "direct", None, direction,
-                                      _emit_expr(node.left),
-                                      _emit_expr(node.right), left, right,
-                                      group=group)
-            return _Expansion(members=tuple(left) + tuple(right),
-                              fin=tuple(left), fout=tuple(right))
+                self._record_relation(
+                    "projection",
+                    "direct",
+                    None,
+                    direction,
+                    _emit_expr(node.left),
+                    _emit_expr(node.right),
+                    left,
+                    right,
+                    group=group,
+                )
+            return _Expansion(
+                members=tuple(left) + tuple(right), fin=tuple(left), fout=tuple(right)
+            )
         if isinstance(node, Exclude):
             left = self._endpoint_members(node.left, scope, "exclusion")
             right = self._endpoint_members(node.right, scope, "exclusion")
@@ -1864,11 +1899,19 @@ class _Resolver:
                 # it cannot match, and must not trip E_EXCLUSION_UNKNOWN.
                 return _Expansion(members=(), fin=(), fout=())
             rec = self._record_relation(
-                "exclusion", "direct", None, node.direction,
-                _emit_expr(node.left), _emit_expr(node.right), left, right)
+                "exclusion",
+                "direct",
+                None,
+                node.direction,
+                _emit_expr(node.left),
+                _emit_expr(node.right),
+                left,
+                right,
+            )
             self.exclusions.append(rec)
-            return _Expansion(members=tuple(left) + tuple(right),
-                              fin=tuple(left), fout=tuple(right))
+            return _Expansion(
+                members=tuple(left) + tuple(right), fin=tuple(left), fout=tuple(right)
+            )
         if isinstance(node, Replicate):
             if node.rel is None:
                 return self._expand_replicate(node, scope)
@@ -1883,16 +1926,14 @@ class _Resolver:
             paths = list(rep.members)
             for pre, post in zip(paths, paths[1:]):
                 self._record_rule(
-                    Ordered(left=Ref(segments=(pre,)),
-                            right=Ref(segments=(post,)),
-                            rule=node.rule),
-                    _leaf_expansion(pre), _leaf_expansion(post))
-            return _Expansion(members=tuple(paths),
-                              fin=(paths[0],), fout=(paths[-1],))
+                    Ordered(left=Ref(segments=(pre,)), right=Ref(segments=(post,)), rule=node.rule),
+                    _leaf_expansion(pre),
+                    _leaf_expansion(post),
+                )
+            return _Expansion(members=tuple(paths), fin=(paths[0],), fout=(paths[-1],))
         raise TFNEError(f"cannot expand {node!r}")
 
-    def _expand_ref(self, segments: Sequence[str],
-                    scope: str) -> _Expansion:
+    def _expand_ref(self, segments: Sequence[str], scope: str) -> _Expansion:
         if len(segments) != 1:
             raise TFNEError(
                 "dotted path {0!r} is addressable in projections only, not as "
@@ -1914,13 +1955,10 @@ class _Resolver:
             if objdef.kind == "special":
                 base = objdef.body["base"]
                 if base not in self.program.defs:
-                    raise TFNEError(
-                        f"{name}: specialization base {base!r} undefined")
+                    raise TFNEError(f"{name}: specialization base {base!r} undefined")
                 basedef = self.program.defs[base]
                 if basedef.kind != "props":
-                    raise TFNEError(
-                        f"{name}: specialization base {base!r} must declare "
-                        "properties")
+                    raise TFNEError(f"{name}: specialization base {base!r} must declare properties")
                 rec = self._object_props(basedef.body, where=name)
                 rec.path = target
                 rec.name = name
@@ -1929,8 +1967,7 @@ class _Resolver:
                 self._add_node(rec)
                 return _leaf_expansion(target)
             # transparent expression definition: expand under own namespace
-            composite = NodeRecord(path=target, name=name, kind="composite",
-                                   parent=scope or None)
+            composite = NodeRecord(path=target, name=name, kind="composite", parent=scope or None)
             self._add_node(composite)
             inner = self.expand(objdef.body, target)
             if not inner.members:
@@ -1938,8 +1975,8 @@ class _Resolver:
             # A named definition is a structural boundary like a brace: it
             # composes through its body's frontier, not every member.
             return self._apply_declared_frontiers(
-                target, _Expansion(members=(target,), fin=inner.fin,
-                                   fout=inner.fout))
+                target, _Expansion(members=(target,), fin=inner.fin, fout=inner.fout)
+            )
         # implicit degenerate leaf (valid at cardinality one)
         _check_object_name(name)
         rec = self._object_props({}, where=name, implicit=True)
@@ -1971,8 +2008,7 @@ class _Resolver:
                 rec.special = f"{base}[{objdef.body['key']}]"
                 self._add_node(rec)
             else:
-                comp = NodeRecord(path=inst, name=name, kind="composite",
-                                  parent=scope or None)
+                comp = NodeRecord(path=inst, name=name, kind="composite", parent=scope or None)
                 self._add_node(comp)
                 self.expand(objdef.body, inst)
         else:
@@ -1984,8 +2020,7 @@ class _Resolver:
             self._add_node(rec)
         return inst
 
-    def _expand_replicate(self, node: Replicate,
-                          scope: str) -> _Expansion:
+    def _expand_replicate(self, node: Replicate, scope: str) -> _Expansion:
         name = node.atom.segments[0]
         paths: list[str] = []
         # S6: A^n = {A.1 ... A.n}. Instance indices are 1-based; the path
@@ -1996,8 +2031,7 @@ class _Resolver:
         # is both frontiers. Replication behaviour is otherwise unchanged.
         return _flat_expansion(paths)
 
-    def _expand_replicate_joined(self, node: Replicate,
-                                 scope: str) -> _Expansion:
+    def _expand_replicate_joined(self, node: Replicate, scope: str) -> _Expansion:
         """S6.1: `A^{nX}` / `A^{nO}` join instances under that operator.
 
         Each instance is one member with itself as frontier (as in
@@ -2007,17 +2041,13 @@ class _Resolver:
         to the composite reaches exactly the chain ends.
         """
         name = node.atom.segments[0]
-        paths = [self._replicate_instance(name, i, scope)
-                 for i in range(1, node.n + 1)]
+        paths = [self._replicate_instance(name, i, scope) for i in range(1, node.n + 1)]
         if node.rel == "X":
-            return _Expansion(members=tuple(paths),
-                              fin=tuple(paths), fout=tuple(paths))
+            return _Expansion(members=tuple(paths), fin=tuple(paths), fout=tuple(paths))
         assert node.rel == "O"
-        return _Expansion(members=tuple(paths),
-                          fin=(paths[0],), fout=(paths[-1],))
+        return _Expansion(members=tuple(paths), fin=(paths[0],), fout=(paths[-1],))
 
-    def _endpoint_members(self, node: Any, scope: str,
-                          role: str) -> list[str]:
+    def _endpoint_members(self, node: Any, scope: str, role: str) -> list[str]:
         members = self.expand_endpoint(node, scope)
         if not members:
             # S14/S25 atomicity: inside a brace-group statement, a resolved
@@ -2031,17 +2061,17 @@ class _Resolver:
 
     def expand_endpoint(self, node: Any, scope: str) -> list[str]:
         if isinstance(node, (Ref, Select)):
-            label = (_emit_expr(node))
+            label = _emit_expr(node)
             found = self._find_paths(node, scope)
             if found:
                 return found
             # A defined head that was never expanded as structure (e.g. a
             # projection-only program `x : V1.L4[E] > ... : y`): expand the
             # definition at the use site, then resolve again.
-            head = (node.segments[0] if isinstance(node, Ref)
-                    else node.base[0])
-            multiseg = (isinstance(node, Ref) and len(node.segments) > 1) \
-                or isinstance(node, Select)
+            head = node.segments[0] if isinstance(node, Ref) else node.base[0]
+            multiseg = (isinstance(node, Ref) and len(node.segments) > 1) or isinstance(
+                node, Select
+            )
             if multiseg and head in self.program.defs:
                 target = f"{scope}.{head}" if scope else head
                 if target not in self.nodes:
@@ -2059,12 +2089,10 @@ class _Resolver:
                 # existing object still raises (see _find_paths): absence
                 # is lenient, contradiction is not.
                 return []
-            raise TFNEAddressUnknown(
-                f"projection endpoint {label!r} matches no realized object")
+            raise TFNEAddressUnknown(f"projection endpoint {label!r} matches no realized object")
         if isinstance(node, Group):
             return list(self.expand(node, scope).members)
-        raise TFNEError(
-            "projection endpoints must be references, selections or groups")
+        raise TFNEError("projection endpoints must be references, selections or groups")
 
     def _find_paths(self, node: Any, scope: str) -> list[str]:
         """Resolve an endpoint to existing node paths or subtree scopes."""
@@ -2077,8 +2105,7 @@ class _Resolver:
             if rec is None or rec.kind != "object":
                 return []
             if key not in rec.counts:
-                raise TFNEError(
-                    f"selection {key!r} not a member of {base_path!r}")
+                raise TFNEError(f"selection {key!r} not a member of {base_path!r}")
             path = base_path + "." + key
             if node.tail:
                 path += "." + ".".join(node.tail)
@@ -2093,14 +2120,12 @@ class _Resolver:
             if qualified in self.nodes or self._is_member_path(qualified):
                 return [qualified]
         # prefix scope: all nodes under it
-        hits = [p for p in self.order
-                if p == absolute or p.startswith(absolute + ".")]
+        hits = [p for p in self.order if p == absolute or p.startswith(absolute + ".")]
         if hits:
             return hits
         if scope:
             qualified = scope + "." + absolute
-            hits = [p for p in self.order
-                    if p == qualified or p.startswith(qualified + ".")]
+            hits = [p for p in self.order if p == qualified or p.startswith(qualified + ".")]
             if hits:
                 return hits
         return []
@@ -2116,8 +2141,7 @@ class _Resolver:
     def _resolve_select(self, node: Select, scope: str) -> str:
         found = self._find_paths(node, scope)
         if not found:
-            raise TFNEError(
-                f"selection {_emit_expr(node)!r} matches no realized object")
+            raise TFNEError(f"selection {_emit_expr(node)!r} matches no realized object")
         return found[0]
 
     def _is_member_path(self, path: str) -> bool:
@@ -2134,12 +2158,12 @@ class _Resolver:
         parent = getattr(rec, "parent", None) if rec is not None else None
         if parent:
             assert path.startswith(parent + ".")
-            return path[len(parent) + 1:]
+            return path[len(parent) + 1 :]
         return path.rpartition(".")[2]
 
-    def _eval_rule_endpoint(self, ep: RuleEndpoint,
-                            left: _Expansion, right: _Expansion,
-                            rule: str, position: str) -> list[str]:
+    def _eval_rule_endpoint(
+        self, ep: RuleEndpoint, left: _Expansion, right: _Expansion, rule: str, position: str
+    ) -> list[str]:
         """Resolve one S12 endpoint to member scopes (`tfne/2` S12).
 
         `$L` / `$R` address the syntactic operands explicitly: bare they
@@ -2160,8 +2184,7 @@ class _Resolver:
         refs = (ep.head,) if ep.form == "ref" else ep.members
         return self._resolve_operand_refs(refs, side, rule)
 
-    def _resolve_operand_refs(self, refs: Sequence[str],
-                              side: _Expansion, rule: str) -> list[str]:
+    def _resolve_operand_refs(self, refs: Sequence[str], side: _Expansion, rule: str) -> list[str]:
         """Resolve member refs within one operand's member scopes.
 
         A ref matches an immediate member (child remainder, replica-aware,
@@ -2181,14 +2204,18 @@ class _Resolver:
                     for full, rem in _scope_children(self.nodes, scope):
                         if rem == ref and full not in hits:
                             hits.append(full)
-                    if scope in self.nodes and self._remainder_of(scope) == ref \
-                            and scope not in hits:
+                    if (
+                        scope in self.nodes
+                        and self._remainder_of(scope) == ref
+                        and scope not in hits
+                    ):
                         hits.append(scope)
             if not hits:
                 raise TFNEAddressUnknown(
                     f"E_ADDRESS_UNKNOWN: rule {rule!r} names {ref!r}, "
                     f"which is absent from its operand "
-                    f"{[str(m) for m in members]!r}")
+                    f"{[str(m) for m in members]!r}"
+                )
             out.extend(hits)
         seen: set[str] = set()
         ordered = [h for h in out if not (h in seen or seen.add(h))]
@@ -2198,8 +2225,7 @@ class _Resolver:
     def _within_members(path: str, members: Sequence[str]) -> bool:
         return any(path == m or path.startswith(m + ".") for m in members)
 
-    def _record_rule(self, node: Any, left: _Expansion,
-                     right: _Expansion) -> RelationRecord:
+    def _record_rule(self, node: Any, left: _Expansion, right: _Expansion) -> RelationRecord:
         assert isinstance(node, (Ordered, Cross))
         assert node.rule is not None
         if node.rule not in self.program.rules:
@@ -2216,21 +2242,28 @@ class _Resolver:
         if direction not in (">", "<", "<>"):
             raise TFNEError(
                 f"rule {node.rule!r} must declare direction ('>', '<', '<>'); "
-                "the algebra fixes no default direction for O[k]/X[k]")
+                "the algebra fixes no default direction for O[k]/X[k]"
+            )
         group = None
         if direction == "<>":
-            group = (f"rule:{kind}[{node.rule}]:{_emit_expr(node.left)}<>"
-                     f"{_emit_expr(node.right)}")
+            group = f"rule:{kind}[{node.rule}]:{_emit_expr(node.left)}<>{_emit_expr(node.right)}"
         for split in self._split_direction(direction):
-            self._record_relation("rule", kind, node.rule, split,
-                                  _emit_expr(node.left),
-                                  _emit_expr(node.right), pre, post,
-                                  group=group)
+            self._record_relation(
+                "rule",
+                kind,
+                node.rule,
+                split,
+                _emit_expr(node.left),
+                _emit_expr(node.right),
+                pre,
+                post,
+                group=group,
+            )
         return self.relations[-1]
 
-    def _record_rule_body(self, node: Any, ruledef: RuleDef, kind: str,
-                          left: _Expansion,
-                          right: _Expansion) -> RelationRecord:
+    def _record_rule_body(
+        self, node: Any, ruledef: RuleDef, kind: str, left: _Expansion, right: _Expansion
+    ) -> RelationRecord:
         """Expand S12 body statements against the syntactic operands.
 
         Each statement's endpoints evaluate with `$L`/`$R` bound to the
@@ -2243,23 +2276,28 @@ class _Resolver:
             raise TFNEError(
                 f"rule {ruledef.name!r} declares both a body and a "
                 f"top-level direction; direction lives in the body "
-                f"statements")
+                f"statements"
+            )
         for stmt in ruledef.body:
-            pre = self._eval_rule_endpoint(stmt.left, left, right,
-                                           ruledef.name, "L")
-            post = self._eval_rule_endpoint(stmt.right, left, right,
-                                            ruledef.name, "R")
+            pre = self._eval_rule_endpoint(stmt.left, left, right, ruledef.name, "L")
+            post = self._eval_rule_endpoint(stmt.right, left, right, ruledef.name, "R")
             label = _emit_rulestmt(stmt)
             group = None
             if stmt.direction == "<>":
-                group = (f"rule:{kind}[{ruledef.name}]:{label}")
+                group = f"rule:{kind}[{ruledef.name}]:{label}"
             for split in self._split_direction(stmt.direction):
-                self._record_relation("rule", kind, ruledef.name, split,
-                                      _emit_rule_endpoint(stmt.left),
-                                      _emit_rule_endpoint(stmt.right),
-                                      pre, post,
-                                      group=group,
-                                      mechanism=stmt.mechanism)
+                self._record_relation(
+                    "rule",
+                    kind,
+                    ruledef.name,
+                    split,
+                    _emit_rule_endpoint(stmt.left),
+                    _emit_rule_endpoint(stmt.right),
+                    pre,
+                    post,
+                    group=group,
+                    mechanism=stmt.mechanism,
+                )
         return self.relations[-1]
 
     @staticmethod
@@ -2269,22 +2307,36 @@ class _Resolver:
             return (">", "<")
         return (direction,)
 
-    def _record_relation(self, form: str, kind: str, rule: Optional[str],
-                         direction: str, pre_label: str, post_label: str,
-                         left: list[str], right: list[str],
-                         group: Optional[str] = None,
-                         mechanism: Optional[str] = None) -> RelationRecord:
+    def _record_relation(
+        self,
+        form: str,
+        kind: str,
+        rule: Optional[str],
+        direction: str,
+        pre_label: str,
+        post_label: str,
+        left: list[str],
+        right: list[str],
+        group: Optional[str] = None,
+        mechanism: Optional[str] = None,
+    ) -> RelationRecord:
         i = self.relation_counter
         self.relation_counter += 1
         rname = rule if rule is not None else "-"
-        key = (f"{form[0]}{i}:{kind}[{rname}]:"
-               f"{pre_label}{direction}{post_label}")
-        rec = RelationRecord(key=key, form=form, kind=kind, rule=rule,
-                             direction=direction, pre_label=pre_label,
-                             post_label=post_label,
-                             pre_scopes=tuple(left),
-                             post_scopes=tuple(right),
-                             group=group, mechanism=mechanism)
+        key = f"{form[0]}{i}:{kind}[{rname}]:{pre_label}{direction}{post_label}"
+        rec = RelationRecord(
+            key=key,
+            form=form,
+            kind=kind,
+            rule=rule,
+            direction=direction,
+            pre_label=pre_label,
+            post_label=post_label,
+            pre_scopes=tuple(left),
+            post_scopes=tuple(right),
+            group=group,
+            mechanism=mechanism,
+        )
         if form != "exclusion":
             self.relations.append(rec)
         return rec
@@ -2298,37 +2350,36 @@ def resolve(program: Program) -> ExplicitModel:
     boundaries: dict[str, Any] = {}
     if program.system is not None:
         sys = program.system
-        boundaries = {"x": sys.x, "x_type": sys.x_type,
-                      "y": sys.y, "y_type": sys.y_type}
+        boundaries = {"x": sys.x, "x_type": sys.x_type, "y": sys.y, "y_type": sys.y_type}
     normalization = normalize(program)
     declared_ranks = _declared_ranks(resolver.nodes, program.orders)
-    _verify_frontier_declarations(
-        resolver.nodes, program.frontiers, resolver.applied_frontiers)
+    _verify_frontier_declarations(resolver.nodes, program.frontiers, resolver.applied_frontiers)
     _check_projection_redundancy(resolver)
     _nodes_for_key = dict(resolver.nodes)
-    return ExplicitModel(nodes=dict(resolver.nodes),
-                         # `tfne/2` S20: source declaration order does not
-                         # determine realization indexing. Sorting here rather
-                         # than at each consumer keeps realization and
-                         # `to_neuronal_tensor` on one order; if they diverged,
-                         # the specs would address the wrong neurons while
-                         # every count still matched.
-                         order=tuple(sorted(
-                             resolver.order,
-                             key=lambda p: _ordering_key(
-                                 p, declared_ranks, _nodes_for_key))),
-                         relations=tuple(resolver.relations),
-                         exclusions=tuple(resolver.exclusions),
-                         boundaries=boundaries,
-                         normalization=normalization,
-                         digest=spec_hash(program),
-                         rule_params={k: dict(v.params)
-                                      for k, v in program.rules.items()})
+    return ExplicitModel(
+        nodes=dict(resolver.nodes),
+        # `tfne/2` S20: source declaration order does not
+        # determine realization indexing. Sorting here rather
+        # than at each consumer keeps realization and
+        # `to_neuronal_tensor` on one order; if they diverged,
+        # the specs would address the wrong neurons while
+        # every count still matched.
+        order=tuple(
+            sorted(resolver.order, key=lambda p: _ordering_key(p, declared_ranks, _nodes_for_key))
+        ),
+        relations=tuple(resolver.relations),
+        exclusions=tuple(resolver.exclusions),
+        boundaries=boundaries,
+        normalization=normalization,
+        digest=spec_hash(program),
+        rule_params={k: dict(v.params) for k, v in program.rules.items()},
+    )
 
 
 # --------------------------------------------------------------------------- #
 # Realization (s, h0, I)
 # --------------------------------------------------------------------------- #
+
 
 @dataclass
 class Realization:
@@ -2339,6 +2390,7 @@ class Realization:
     state with execution shapes. ``I`` is the index map preserving TFNE
     identity through flattening.
     """
+
     s: Mapping[str, Any]
     h0: Mapping[str, Any]
     I: Mapping[str, Any]  # noqa: E741 - algebra symbol for the index map
@@ -2361,8 +2413,11 @@ class Realization:
         return paths[int(neuron_id)]
 
     def neuron_ids_in_scope(self, prefix: str) -> list[int]:
-        return [i for i, p in enumerate(self.I["neuron_paths"])
-                if p == prefix or p.startswith(prefix + ".")]
+        return [
+            i
+            for i, p in enumerate(self.I["neuron_paths"])
+            if p == prefix or p.startswith(prefix + ".")
+        ]
 
     def rule_to_edges(self, key: str) -> tuple[int, int]:
         table = self.I["rule_slices"]
@@ -2387,11 +2442,37 @@ class Realization:
         group = self.relation_origin(key).get("group")
         if not group:
             return [key]
-        return sorted(k for k, o in self.I["rule_origins"].items()
-                      if o.get("group") == group)
+        return sorted(k for k, o in self.I["rule_origins"].items() if o.get("group") == group)
 
 
-def _rule_connection_params(params_in: Optional[Mapping[str, Any]]) -> dict[str, Any]:
+def _validate_tfne_delay_ms(rule: Any, delay: Any) -> "float | None":
+    """Validate one TFNE rule's configured ``delay`` in ms (0.5.2 decision 0b).
+
+    Declared in ms; ``None`` passes through (undeclared = current
+    behaviour). Negative, non-finite or non-numeric delays fail closed
+    (``E_DELAY_OUT_OF_RANGE``): relative timing must not acquire a
+    direction or an infinite horizon silently. The dt-dependent refusal —
+    a positive delay rounding to 0 steps — lands in
+    :func:`to_configuration`, where ``dt`` is known.
+    """
+    if delay is None:
+        return None
+    try:
+        ms = float(delay)
+    except (TypeError, ValueError):
+        raise TFNEError(
+            f"E_DELAY_OUT_OF_RANGE: rule {rule!r} delay must be a number in ms; got {delay!r}"
+        )
+    if not bool(np.isfinite(ms)) or ms < 0.0:
+        raise TFNEError(
+            f"E_DELAY_OUT_OF_RANGE: rule {rule!r} delay must be finite and >= 0 ms; got {delay!r}"
+        )
+    return ms
+
+
+def _rule_connection_params(
+    params_in: Optional[Mapping[str, Any]], rule: Any = None
+) -> dict[str, Any]:
     params: dict[str, Any] = dict(params_in) if params_in is not None else {}
     direction = params.get("direction", ">")
     if direction not in (">", "<", "<>"):
@@ -2409,15 +2490,37 @@ def _rule_connection_params(params_in: Optional[Mapping[str, Any]]) -> dict[str,
     if not np.isfinite(weight):
         raise TFNEError("rule weight must be finite")
     allow_self = bool(params.get("allow_self", False))
-    return {"direction": direction, "mechanism": str(mechanism),
-            "probability": probability, "weight": weight,
-            "allow_self": allow_self,
-            "delay": params.get("delay"),
-            "plasticity": params.get("plasticity")}
+    return {
+        "direction": direction,
+        "mechanism": str(mechanism),
+        "probability": probability,
+        "weight": weight,
+        "allow_self": allow_self,
+        "delay": _validate_tfne_delay_ms(rule, params.get("delay")),
+        "plasticity": params.get("plasticity"),
+    }
 
 
-def realize(explicit: ExplicitModel, program: Optional[Program] = None,
-            seed: Optional[int] = None) -> Realization:
+def _tfne_delay_steps(rule: Any, delay_ms: float, dt_ms: float) -> int:
+    """Realize a validated TFNE delay to steps, failing closed per 0b."""
+    from .connectivity import delay_steps_from_ms
+
+    try:
+        return delay_steps_from_ms(float(delay_ms), float(dt_ms))
+    except ValueError as exc:
+        if float(delay_ms) > 0.0:
+            raise TFNEError(
+                f"E_DELAY_ROUNDS_TO_ZERO: rule {rule!r} declares "
+                f"delay_ms={delay_ms} at dt_ms={dt_ms}, which rounds to 0 "
+                "steps; a positive delay that fits inside one timestep is "
+                "refused rather than dropped"
+            )
+        raise TFNEError(f"E_DELAY_OUT_OF_RANGE: rule {rule!r}: {exc}")
+
+
+def realize(
+    explicit: ExplicitModel, program: Optional[Program] = None, seed: Optional[int] = None
+) -> Realization:
     """Realize an explicit model to ``(s, h0, I)`` flat structures.
 
     Edges compile through :func:`jaxfne.connectivity.compile_connection_rules`
@@ -2455,30 +2558,34 @@ def realize(explicit: ExplicitModel, program: Optional[Program] = None,
                 ids.extend(range(s0, s1))
                 continue
             # subtree scope (composites, groups, replicas stems)
-            hits = [i for i, p in enumerate(neuron_paths)
-                    if p == scope or p.startswith(scope + ".")]
+            hits = [
+                i for i, p in enumerate(neuron_paths) if p == scope or p.startswith(scope + ".")
+            ]
             if not hits:
-                raise TFNEError(
-                    f"relation scope {scope!r} matches no realized neurons")
+                raise TFNEError(f"relation scope {scope!r} matches no realized neurons")
             ids.extend(hits)
         # deterministic order, deduplicated
         return sorted(set(ids))
 
     # -- connection rules ---------------------------------------------- #
     if seed is None:
-        seed = int(explicit.digest[:8], 16) % (2 ** 31)
+        seed = int(explicit.digest[:8], 16) % (2**31)
     rows = []
     for nid, path in enumerate(neuron_paths):
         segments = path.split(".")
-        rows.append({
-            "neuron_id": nid,
-            "area": segments[0] if segments else path,
-            "layer": segments[1] if len(segments) > 1 else segments[0],
-            "cell_type": _member_of(explicit, path, nid, object_slices),
-            "tfne_path": path,
-            "object": path,
-            "x": 0.0, "y": 0.0, "z": 0.0,
-        })
+        rows.append(
+            {
+                "neuron_id": nid,
+                "area": segments[0] if segments else path,
+                "layer": segments[1] if len(segments) > 1 else segments[0],
+                "cell_type": _member_of(explicit, path, nid, object_slices),
+                "tfne_path": path,
+                "object": path,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+            }
+        )
     connections: list[dict[str, Any]] = []
     mechanisms: list[dict[str, Any]] = []
     mech_index: dict[str, int] = {}
@@ -2507,31 +2614,24 @@ def realize(explicit: ExplicitModel, program: Optional[Program] = None,
 
     for rel in explicit.relations:
         rule_params = rule_lookup.get(rel.rule) if rel.rule else None
-        params = _rule_connection_params(rule_params)
+        params = _rule_connection_params(rule_params, rel.rule)
         if rel.mechanism is not None:
             # S12 per-statement mechanism overrides the rule default for
             # this relation's projections only.
             params["mechanism"] = rel.mechanism
         if rel.direction not in (">", "<"):
-            raise TFNEError(
-                f"relation {rel.key!r} has unresolved direction "
-                f"{rel.direction!r}")
-        # No silent parameter substitution. `delay` would change the dynamics
-        # and nothing consumes it -- neither `compile_connection_rules` nor
-        # the edge compiler carries a delay -- so accepting it would be a
-        # claim the runtime cannot keep. Refuse instead of dropping.
+            raise TFNEError(f"relation {rel.key!r} has unresolved direction {rel.direction!r}")
+        # Declared `delay` (ms) is carried, not refused (TFNE-PARAM-02,
+        # 0.5.2 decision 0b): validated in `_rule_connection_params`,
+        # fanned out per edge by `compile_connection_rules`, realized to
+        # steps at construction. Per-statement delay stays out of scope
+        # (S12 rule bodies; 0.5.4 item 1c owns it).
         #
         # `plasticity` is deliberately not refused: it names a rule identity
         # for the separate registrable HDP surface rather than a connection
         # parameter, and is preserved as inspectable provenance in
         # `rule_params` / `relation_origin`. Declared and recorded is not the
         # same as declared and discarded.
-        if params.get("delay") is not None:
-            raise TFNEError(
-                f"E_PARAM_UNSUPPORTED: rule {rel.rule!r} declares a delay, "
-                f"which no JaxFNE execution path consumes. Remove it or "
-                f"extend the compiler; it will not be silently ignored."
-            )
         routes = _scope_pairs(rel)
         removed = [r for r in routes if r in excluded_routes]
         matched_routes.update(removed)
@@ -2543,43 +2643,48 @@ def realize(explicit: ExplicitModel, program: Optional[Program] = None,
         def emit(name: str, src: Sequence[int], dst: Sequence[int]) -> None:
             if not src or not dst:
                 return
-            connections.append({
-                "name": name,
-                "source": {"ids": list(src)},
-                "target": {"ids": list(dst)},
-                "mechanism": params["mechanism"],
-                "probability": params["probability"],
-                "weight": params["weight"],
-                "allow_self_connections": params["allow_self"],
-            })
+            connections.append(
+                {
+                    "name": name,
+                    "source": {"ids": list(src)},
+                    "target": {"ids": list(dst)},
+                    "mechanism": params["mechanism"],
+                    "probability": params["probability"],
+                    "weight": params["weight"],
+                    "allow_self_connections": params["allow_self"],
+                    "delay_ms": params["delay"],
+                }
+            )
 
         if not removed:
             # Whole relation survives: emit it as one connection, keeping the
             # relation key and edge ordering that I indexes against.
-            src_scopes = (rel.pre_scopes if rel.direction == ">"
-                          else rel.post_scopes)
-            dst_scopes = (rel.post_scopes if rel.direction == ">"
-                          else rel.pre_scopes)
+            src_scopes = rel.pre_scopes if rel.direction == ">" else rel.post_scopes
+            dst_scopes = rel.post_scopes if rel.direction == ">" else rel.pre_scopes
             emit(rel.key, scope_ids(src_scopes), scope_ids(dst_scopes))
         else:
             # Partially excluded: the relation no longer has a single
             # (sources x targets) identity, so each surviving route becomes
             # its own connection under a route-qualified key.
             for src_scope, dst_scope in surviving:
-                emit(f"{rel.key}|{src_scope}>{dst_scope}",
-                     scope_ids([src_scope]), scope_ids([dst_scope]))
+                emit(
+                    f"{rel.key}|{src_scope}>{dst_scope}",
+                    scope_ids([src_scope]),
+                    scope_ids([dst_scope]),
+                )
 
     for exc in explicit.exclusions:
         if not any(r in matched_routes for r in _scope_pairs(exc)):
             raise TFNEExclusionUnknown(
                 f"E_EXCLUSION_UNKNOWN: exclusion {exc.key!r} matches no "
-                f"projection generated by rule expansion")
-    compiled = compile_connection_rules(
-        rows, connections, mechanisms, seed=int(seed))
+                f"projection generated by rule expansion"
+            )
+    compiled = compile_connection_rules(rows, connections, mechanisms, seed=int(seed))
     edge_pre = np.asarray(compiled.edge_pre, dtype=np.int64)
     edge_post = np.asarray(compiled.edge_post, dtype=np.int64)
     edge_weight = np.asarray(compiled.edge_weight, dtype=np.float64)
     edge_mech = np.asarray(compiled.edge_mechanism, dtype=np.int64)
+    edge_delay_ms = np.asarray(compiled.edge_delay_ms, dtype=np.float64)
     n_edges = int(edge_pre.shape[0])
 
     # -- rule -> edge ranges (compiler preserves per-rule contiguity) -- #
@@ -2595,30 +2700,37 @@ def realize(explicit: ExplicitModel, program: Optional[Program] = None,
     assert cursor == n_edges
 
     # -- s / h0 ---------------------------------------------------------- #
-    geometry = {p: dict(rec.geometry) for p, rec in explicit.nodes.items()
-                if rec.kind == "object" and rec.geometry}
-    models = {p: rec.model for p, rec in explicit.nodes.items()
-              if rec.kind == "object"}
-    proportions = {p: dict(rec.proportions) for p, rec in explicit.nodes.items()
-                   if rec.kind == "object"}
-    counts = {p: dict(rec.counts) for p, rec in explicit.nodes.items()
-              if rec.kind == "object"}
+    geometry = {
+        p: dict(rec.geometry)
+        for p, rec in explicit.nodes.items()
+        if rec.kind == "object" and rec.geometry
+    }
+    models = {p: rec.model for p, rec in explicit.nodes.items() if rec.kind == "object"}
+    proportions = {
+        p: dict(rec.proportions) for p, rec in explicit.nodes.items() if rec.kind == "object"
+    }
+    counts = {p: dict(rec.counts) for p, rec in explicit.nodes.items() if rec.kind == "object"}
     rule_params = {k: dict(v) for k, v in rule_lookup.items()}
-    origins = {rel.key: {"form": rel.form, "kind": rel.kind,
-                         "rule": rel.rule,
-                         "direction": rel.direction,
-                         "group": rel.group,
-                         "pre_label": rel.pre_label,
-                         "post_label": rel.post_label,
-                         "pre_scopes": list(rel.pre_scopes),
-                         "post_scopes": list(rel.post_scopes),
-                         "params": dict(
-                             _rule_connection_params(
-                                 rule_lookup.get(rel.rule))
-                             if rel.rule else _rule_connection_params(None),
-                             **({"mechanism": rel.mechanism}
-                                if rel.mechanism is not None else {}))}
-               for rel in explicit.relations}
+    origins = {
+        rel.key: {
+            "form": rel.form,
+            "kind": rel.kind,
+            "rule": rel.rule,
+            "direction": rel.direction,
+            "group": rel.group,
+            "pre_label": rel.pre_label,
+            "post_label": rel.post_label,
+            "pre_scopes": list(rel.pre_scopes),
+            "post_scopes": list(rel.post_scopes),
+            "params": dict(
+                _rule_connection_params(rule_lookup.get(rel.rule), rel.rule)
+                if rel.rule
+                else _rule_connection_params(None),
+                **({"mechanism": rel.mechanism} if rel.mechanism is not None else {}),
+            ),
+        }
+        for rel in explicit.relations
+    }
     s: dict[str, Any] = {
         "n_neurons": n_neurons,
         "n_edges": n_edges,
@@ -2627,6 +2739,7 @@ def realize(explicit: ExplicitModel, program: Optional[Program] = None,
         "edge_post": edge_post,
         "edge_weight": edge_weight,
         "edge_mechanism": edge_mech,
+        "edge_delay_ms": edge_delay_ms,
         "mechanism_table": [dict(m) for m in compiled.mechanism_table],
         "connection_table": [dict(c) for c in compiled.connection_table],
         "geometry": geometry,
@@ -2666,8 +2779,9 @@ def realize(explicit: ExplicitModel, program: Optional[Program] = None,
     return Realization(s=s, h0=h0, I=index_map, explicit=explicit)
 
 
-def _member_of(explicit: ExplicitModel, path: str, nid: int,
-               object_slices: Mapping[str, tuple[int, int]]) -> str:
+def _member_of(
+    explicit: ExplicitModel, path: str, nid: int, object_slices: Mapping[str, tuple[int, int]]
+) -> str:
     rec = explicit.nodes[path]
     s0, _ = object_slices[path]
     offset = nid - s0
@@ -2687,6 +2801,7 @@ def flatten(text: str, seed: Optional[int] = None) -> Realization:
 # --------------------------------------------------------------------------- #
 # NeuronalTensor bridge (explicit typed neural model)
 # --------------------------------------------------------------------------- #
+
 
 def _tfne_area_of(path: str) -> str:
     """Top-level scope: the area a realized leaf belongs to."""
@@ -2746,8 +2861,9 @@ def _tfne_geometry_domains(
                     f"E_GEOMETRY_AMBIGUOUS: leaves in layer "
                     f"{area!r}/{layer!r} declare different {axis} domains "
                     f"({sorted(vals)}); one sampled block cannot honour "
-                    f"both exactly")
-            (lo, hi), = vals
+                    f"both exactly"
+                )
+            ((lo, hi),) = vals
             if (lo, hi) != (0.0, 1.0):
                 block[axis] = [lo, hi]
         if block:
@@ -2765,9 +2881,16 @@ def to_neuronal_tensor(explicit: ExplicitModel):
     ``AreaConnection`` entries. Mechanism names come from the referenced
     rules (bare projections use :data:`DIRECT_MECHANISM`).
     """
-    from .neuronal_tensor import (Area, AreaConnection, Geometry3D,
-                                   InterConnection, Layer, NeuronalTensor,
-                                   NeuronType, StaticParams)
+    from .neuronal_tensor import (
+        Area,
+        AreaConnection,
+        Geometry3D,
+        InterConnection,
+        Layer,
+        NeuronalTensor,
+        NeuronType,
+        StaticParams,
+    )
 
     def _connection_static(rel: RelationRecord) -> Any:
         """Kinetics for one relation's connections (TFNE2-07/PARAM-03).
@@ -2778,13 +2901,12 @@ def to_neuronal_tensor(explicit: ExplicitModel):
         unaffected: identity transfers without kinetics.
         """
         resolved = _resolve_relation_mechanism(explicit, rel)
-        reversal = ({resolved.identity: resolved.reversal_mV}
-                    if resolved.reversal_mV is not None else {})
-        return StaticParams(dT_ms=resolved.tau_ms,
-                            reversal_potentials_mV=reversal)
+        reversal = (
+            {resolved.identity: resolved.reversal_mV} if resolved.reversal_mV is not None else {}
+        )
+        return StaticParams(dT_ms=resolved.tau_ms, reversal_potentials_mV=reversal)
 
-    leaves = [p for p in explicit.order
-              if explicit.nodes[p].kind == "object"]
+    leaves = [p for p in explicit.order if explicit.nodes[p].kind == "object"]
 
     def top(path: str) -> str:
         return _tfne_area_of(path)
@@ -2808,18 +2930,20 @@ def to_neuronal_tensor(explicit: ExplicitModel):
             layers.setdefault(layer_of(leaf), []).append(leaf)
         built_layers = []
         for layer_name, lmembers in layers.items():
-            total = sum(sum(explicit.nodes[m].counts.values())
-                        for m in lmembers)
+            total = sum(sum(explicit.nodes[m].counts.values()) for m in lmembers)
             types = []
             seen: dict[str, int] = {}
             for leaf in lmembers:
                 for ctype in explicit.nodes[leaf].cell_types:
                     seen[ctype] = seen.get(ctype, 0) + int(
-                        explicit.nodes[leaf].counts.get(ctype, 0))
+                        explicit.nodes[leaf].counts.get(ctype, 0)
+                    )
             for ctype, count in seen.items():
-                types.append(NeuronType.make(
-                    ctype, fraction=(count / total if total else 0.0),
-                    value_tag="relative"))
+                types.append(
+                    NeuronType.make(
+                        ctype, fraction=(count / total if total else 0.0), value_tag="relative"
+                    )
+                )
             geo = Geometry3D(value_tag="relative")
             first_geo = None
             for leaf in lmembers:
@@ -2830,44 +2954,58 @@ def to_neuronal_tensor(explicit: ExplicitModel):
                 kwargs: dict[str, Any] = {"value_tag": "relative"}
                 try:
                     if "distribution" in first_geo:
-                        kwargs["distribution"] = str(
-                            first_geo["distribution"])
+                        kwargs["distribution"] = str(first_geo["distribution"])
                     for ax in ("x", "y", "z"):
-                        lo = first_geo.get(f"{ax}0", first_geo.get(
-                            f"{ax}_range"))
+                        lo = first_geo.get(f"{ax}0", first_geo.get(f"{ax}_range"))
                         hi = first_geo.get(f"{ax}1")
                         if lo is not None and hi is not None:
                             kwargs[f"{ax}_range"] = (float(lo), float(hi))
                     geo = Geometry3D(**kwargs)
                 except (TypeError, ValueError):
                     geo = Geometry3D(value_tag="relative")
-            built_layers.append(Layer(name=layer_name,
-                                      neuron_types=tuple(types),
-                                      geometry=geo, n_neurons=int(total)))
+            built_layers.append(
+                Layer(
+                    name=layer_name, neuron_types=tuple(types), geometry=geo, n_neurons=int(total)
+                )
+            )
         inter: list[InterConnection] = []
         for rel in explicit.relations:
+            # Declared rule delay rides the tensor bridge for inspection.
+            # Execution still reads the realized specs (PARAM-01), not this.
+            rel_delay: "float | None" = None
+            if rel.rule is not None:
+                _rp = explicit.rule_params.get(rel.rule) or {}
+                if _rp.get("delay") is not None:
+                    rel_delay = float(_rp["delay"])
             for pre_scope, post_scope in _scope_pairs(rel):
                 for pre_leaf in _leaves_under(explicit, pre_scope, leaves):
-                    for post_leaf in _leaves_under(explicit, post_scope,
-                                                   leaves):
-                        if area_of(pre_leaf) != area_name or \
-                                area_of(post_leaf) != area_name:
+                    for post_leaf in _leaves_under(explicit, post_scope, leaves):
+                        if area_of(pre_leaf) != area_name or area_of(post_leaf) != area_name:
                             continue
                         for pre_t in explicit.nodes[pre_leaf].cell_types:
-                            for post_t in explicit.nodes[
-                                    post_leaf].cell_types:
-                                inter.append(InterConnection(
-                                    source_layer=layer_of(pre_leaf),
-                                    source_neuron_type=pre_t,
-                                    target_layer=layer_of(post_leaf),
-                                    target_neuron_type=post_t,
-                                    mechanism=_relation_mechanism(
-                                        explicit, rel),
-                                    static=_connection_static(rel)))
-        built_areas.append(Area(name=area_name, layers=tuple(built_layers),
-                                inter_connections=tuple(inter)))
+                            for post_t in explicit.nodes[post_leaf].cell_types:
+                                inter.append(
+                                    InterConnection(
+                                        source_layer=layer_of(pre_leaf),
+                                        source_neuron_type=pre_t,
+                                        target_layer=layer_of(post_leaf),
+                                        target_neuron_type=post_t,
+                                        mechanism=_relation_mechanism(explicit, rel),
+                                        static=_connection_static(rel),
+                                        delay_ms=rel_delay,
+                                    )
+                                )
+        built_areas.append(
+            Area(name=area_name, layers=tuple(built_layers), inter_connections=tuple(inter))
+        )
     area_conns: list[AreaConnection] = []
     for rel in explicit.relations:
+        # Same inspection attach as the within-area loop above.
+        area_delay: "float | None" = None
+        if rel.rule is not None:
+            _arp = explicit.rule_params.get(rel.rule) or {}
+            if _arp.get("delay") is not None:
+                area_delay = float(_arp["delay"])
         for pre_scope, post_scope in _scope_pairs(rel):
             for pre_leaf in _leaves_under(explicit, pre_scope, leaves):
                 for post_leaf in _leaves_under(explicit, post_scope, leaves):
@@ -2875,29 +3013,36 @@ def to_neuronal_tensor(explicit: ExplicitModel):
                         continue
                     for pre_t in explicit.nodes[pre_leaf].cell_types:
                         for post_t in explicit.nodes[post_leaf].cell_types:
-                            area_conns.append(AreaConnection(
-                                source_area=area_of(pre_leaf),
-                                source_layer=layer_of(pre_leaf),
-                                source_neuron_type=pre_t,
-                                target_area=area_of(post_leaf),
-                                target_layer=layer_of(post_leaf),
-                                target_neuron_type=post_t,
-                                mechanism=_relation_mechanism(explicit, rel),
-                                static=_connection_static(rel)))
-    tensor = NeuronalTensor(areas=tuple(built_areas),
-                            area_connections=tuple(area_conns),
-                            name="tfne",
-                            provenance={"tfne_digest": explicit.digest,
-                                        "tfne_normalization":
-                                            explicit.normalization})
+                            area_conns.append(
+                                AreaConnection(
+                                    source_area=area_of(pre_leaf),
+                                    source_layer=layer_of(pre_leaf),
+                                    source_neuron_type=pre_t,
+                                    target_area=area_of(post_leaf),
+                                    target_layer=layer_of(post_leaf),
+                                    target_neuron_type=post_t,
+                                    mechanism=_relation_mechanism(explicit, rel),
+                                    static=_connection_static(rel),
+                                    delay_ms=area_delay,
+                                )
+                            )
+    tensor = NeuronalTensor(
+        areas=tuple(built_areas),
+        area_connections=tuple(area_conns),
+        name="tfne",
+        provenance={"tfne_digest": explicit.digest, "tfne_normalization": explicit.normalization},
+    )
     return tensor
 
 
-def to_configuration(realization: Realization, *,
-                     duration_ms: float = 1000.0,
-                     dt_ms: float = 0.1,
-                     emitter: str = DEFAULT_MODEL,
-                     dtype: str = "float32"):
+def to_configuration(
+    realization: Realization,
+    *,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+    emitter: str = DEFAULT_MODEL,
+    dtype: str = "float32",
+):
     """Build an executable ``Configuration`` from a realization.
 
     Execution consumes the realization's own resolved connectivity
@@ -2909,8 +3054,10 @@ def to_configuration(realization: Realization, *,
 
     ``to_neuronal_tensor`` supplies the population structure only. Its
     ``InterConnection``/``AreaConnection`` entries cannot express a declared
-    weight, probability or delay, so the connectivity they imply is replaced
-    here by the realized specs. Going through the tensor for structure is what
+    weight or probability, so the connectivity they imply is replaced
+    here by the realized specs. (Declared rule delays ride the tensor
+    bridge for inspection and travel to execution on the specs below.)
+    Going through the tensor for structure is what
     keeps neuron identity aligned: the constructed neuron table is in the same
     order as ``I["neuron_paths"]``, which lets the specs address neurons by
     realized id. That alignment is an invariant, not a coincidence, and is
@@ -2928,6 +3075,14 @@ def to_configuration(realization: Realization, *,
     which the construction stage samples instead of the full block.
     Layers without a sub-range declaration take the historical path
     unchanged.
+
+    Declared delay reaches execution in ms on each rule (``delay_ms``) and
+    is realized to integer steps at ``dt_ms`` by the construction stage
+    (0.5.2 decision 0b: ``delay_steps = round(delay_ms / dt_ms)``). Both
+    the configured ms and the realized steps are recorded in
+    ``metadata["tfne_delay"]``; a positive delay rounding to 0 steps is
+    refused here (``E_DELAY_ROUNDS_TO_ZERO``). Rules without a delay
+    take the historical path unchanged.
     """
     from dataclasses import replace as _replace
 
@@ -2941,8 +3096,13 @@ def to_configuration(realization: Realization, *,
         raise TFNEError("realization carries no explicit model to construct from")
     tensor = to_neuronal_tensor(explicit)
     cfg = neuronal_tensor_to_configuration(
-        tensor, seed=int(realization.s["seed"]), duration_ms=duration_ms,
-        dt_ms=dt_ms, emitter=emitter, dtype=dtype)
+        tensor,
+        seed=int(realization.s["seed"]),
+        duration_ms=duration_ms,
+        dt_ms=dt_ms,
+        emitter=emitter,
+        dtype=dtype,
+    )
 
     # Synaptic kinetics are not a TFNE-declared parameter: the realized
     # mechanism table carries `tau_ms: None` and `declared_not_simulated`.
@@ -2963,27 +3123,40 @@ def to_configuration(realization: Realization, *,
     mechanisms: list[dict[str, Any]] = []
     declared: dict[str, str] = {}
     rules: list[dict[str, Any]] = []
+    delay_declared_ms: dict[str, float] = {}
+    delay_realized_steps: dict[str, int] = {}
     for spec in realization.I["connection_specs"]:
         mech = str(spec["mechanism"])
         name = declared.get(mech)
         if name is None:
             name = f"{mech}__tfne__{len(declared)}"
             declared[mech] = name
-            mechanisms.append({
-                "name": name, "kind": mech,
-                "params": {"tau_ms": bridge_tau.get(mech, default_tau)},
-            })
+            mechanisms.append(
+                {
+                    "name": name,
+                    "kind": mech,
+                    "params": {"tau_ms": bridge_tau.get(mech, default_tau)},
+                }
+            )
         weight = float(spec["weight"])
-        rules.append({
-            "name": spec["name"],
-            "source": {"ids": list(spec["source"]["ids"])},
-            "target": {"ids": list(spec["target"]["ids"])},
-            "probability": float(spec["probability"]),
-            "weight": abs(weight),
-            "sign": "excitatory" if weight >= 0.0 else "inhibitory",
-            "mechanism": name,
-            "status": "declared_not_compiled",
-        })
+        spec_delay = spec.get("delay_ms")
+        if spec_delay is not None:
+            steps = _tfne_delay_steps(spec["name"], float(spec_delay), float(dt_ms))
+            delay_declared_ms[str(spec["name"])] = float(spec_delay)
+            delay_realized_steps[str(spec["name"])] = int(steps)
+        rules.append(
+            {
+                "name": spec["name"],
+                "source": {"ids": list(spec["source"]["ids"])},
+                "target": {"ids": list(spec["target"]["ids"])},
+                "probability": float(spec["probability"]),
+                "weight": abs(weight),
+                "sign": "excitatory" if weight >= 0.0 else "inhibitory",
+                "mechanism": name,
+                "delay_ms": None if spec_delay is None else float(spec_delay),
+                "status": "declared_not_compiled",
+            }
+        )
 
     metadata = {k: v for k, v in cfg.metadata.items()}
     circuit = {k: v for k, v in metadata.get("circuit", {}).items()}
@@ -2991,16 +3164,68 @@ def to_configuration(realization: Realization, *,
     circuit["mechanisms"] = mechanisms
     metadata["circuit"] = circuit
     metadata["tfne_digest"] = explicit.digest
+    if delay_declared_ms:
+        metadata["tfne_delay"] = {
+            "declared_ms": dict(delay_declared_ms),
+            "realized_steps": dict(delay_realized_steps),
+            "dt_ms": float(dt_ms),
+        }
     geo_domains = _tfne_geometry_domains(explicit)
     if geo_domains:
         metadata["tfne_geometry"] = {
             "value_tag": "relative",
             "declared": {
-                p: dict(rec.geometry) for p, rec in explicit.nodes.items()
-                if rec.kind == "object" and rec.geometry},
+                p: dict(rec.geometry)
+                for p, rec in explicit.nodes.items()
+                if rec.kind == "object" and rec.geometry
+            },
             "domains": geo_domains,
         }
     return _replace(cfg, metadata=metadata)
+
+
+def compose_delay_metadata(blocks: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """Merge per-area ``tfne_delay`` records for the 0.5.4 composition operator.
+
+    0.5.4 HOOK — declared and importable only. Nothing in 0.5.2 calls this;
+    the composition operator (0.5.4 item 1) will use it to join each area's
+    ``{"declared_ms": ..., "realized_steps": ..., "dt_ms": ...}`` record
+    into one composed record. Pure merge: rule keys must be disjoint across
+    blocks (a shared rule name is refused rather than overwritten) and every
+    block must agree on ``dt_ms`` (steps realized at different timesteps
+    cannot be joined). Returns the merged record; the empty merge is the
+    empty record.
+    """
+    merged_ms: dict[str, float] = {}
+    merged_steps: dict[str, int] = {}
+    dts: set[float] = set()
+    for block in blocks:
+        declared = dict(block.get("declared_ms", {}))
+        realized = dict(block.get("realized_steps", {}))
+        if block.get("dt_ms") is not None:
+            dts.add(float(block["dt_ms"]))
+        overlap = set(merged_ms) & set(declared)
+        if overlap:
+            raise TFNEError(
+                f"E_DELAY_COMPOSITION_AMBIGUOUS: composed areas share delay "
+                f"rule(s) {sorted(overlap)}; one composed record cannot hold "
+                "two declarations for one rule"
+            )
+        for key, ms in declared.items():
+            merged_ms[str(key)] = float(ms)
+        for key, steps in realized.items():
+            merged_steps[str(key)] = int(steps)
+    if len(dts) > 1:
+        raise TFNEError(
+            f"E_DELAY_COMPOSITION_AMBIGUOUS: composed delay blocks disagree "
+            f"on dt_ms ({sorted(dts)}); steps realized at different "
+            "timesteps cannot be joined"
+        )
+    out: dict[str, Any] = {"declared_ms": merged_ms, "realized_steps": merged_steps}
+    if dts:
+        (only,) = dts
+        out["dt_ms"] = only
+    return out
 
 
 def _scope_pairs(rel: RelationRecord) -> list[tuple[str, str]]:
@@ -3015,8 +3240,7 @@ def _scope_pairs(rel: RelationRecord) -> list[tuple[str, str]]:
     return pairs
 
 
-def _leaves_under(explicit: ExplicitModel, scope: str,
-                  leaves: Sequence[str]) -> list[str]:
+def _leaves_under(explicit: ExplicitModel, scope: str, leaves: Sequence[str]) -> list[str]:
     if scope in explicit.nodes and explicit.nodes[scope].kind == "object":
         return [scope]
     if "." in scope and scope.rpartition(".")[0] in explicit.nodes:
@@ -3024,8 +3248,7 @@ def _leaves_under(explicit: ExplicitModel, scope: str,
         if scope.rpartition(".")[2] in explicit.nodes[head].counts:
             # member selection: owning leaf only
             return [head]
-    return [lf for lf in leaves
-            if lf == scope or lf.startswith(scope + ".")]
+    return [lf for lf in leaves if lf == scope or lf.startswith(scope + ".")]
 
 
 def _check_projection_redundancy(resolver: Any) -> None:
@@ -3041,16 +3264,13 @@ def _check_projection_redundancy(resolver: Any) -> None:
     comparison is textual (declared names): resolving here would
     front-load kinetics refusal into `resolve()`.
     """
-    leaves = [p for p in resolver.order
-              if resolver.nodes[p].kind == "object"]
+    leaves = [p for p in resolver.order if resolver.nodes[p].kind == "object"]
 
     def leaf_routes(rel: Any) -> list[tuple[str, str]]:
         out: list[tuple[str, str]] = []
         for pre, post in _scope_pairs(rel):
-            pres = [lf for lf in leaves
-                    if lf == pre or lf.startswith(pre + ".")]
-            posts = [lf for lf in leaves
-                     if lf == post or lf.startswith(post + ".")]
+            pres = [lf for lf in leaves if lf == pre or lf.startswith(pre + ".")]
+            posts = [lf for lf in leaves if lf == post or lf.startswith(post + ".")]
             out.extend((a, b) for a in pres for b in posts)
         return out
 
@@ -3082,7 +3302,8 @@ def _check_projection_redundancy(resolver: Any) -> None:
                     f"E_PROJECTION_REDUNDANT: explicit projection "
                     f"{rel.key!r} reproduces the canonically generated "
                     f"({identity[0]!r}, {identity[1]!r}, "
-                    f"{identity[2]!r}); identical output is invalid")
+                    f"{identity[2]!r}); identical output is invalid"
+                )
 
 
 def _relation_mechanism(explicit: ExplicitModel, rel: RelationRecord) -> str:
@@ -3108,6 +3329,7 @@ class ResolvedMechanism:
     canonical sign (+1/-1) or None when the name carries none (custom and
     internal mechanisms inherit E/I from the source cell type downstream).
     """
+
     declared: str
     identity: str
     status: str
@@ -3118,12 +3340,13 @@ class ResolvedMechanism:
 
 def _canonical_receptor_specs() -> Mapping[str, Any]:
     from .emitters import standard_receptor_specs
+
     return standard_receptor_specs()
 
 
-def resolve_mechanism(name: Optional[str],
-                      rule_params: Optional[Mapping[str, Any]] = None
-                      ) -> ResolvedMechanism:
+def resolve_mechanism(
+    name: Optional[str], rule_params: Optional[Mapping[str, Any]] = None
+) -> ResolvedMechanism:
     """Resolve a declared mechanism name to executable kinetics.
 
     `tfne/2` S13/S25: an executable projection resolves its mechanism from
@@ -3137,16 +3360,21 @@ def resolve_mechanism(name: Optional[str],
     params = dict(rule_params) if rule_params is not None else {}
     if name is None:
         return ResolvedMechanism(
-            declared=DIRECT_MECHANISM, identity=DIRECT_MECHANISM,
-            status=MECHANISM_CUSTOM_DEFINED, tau_ms=DIRECT_MECHANISM_TAU_MS,
-            reversal_mV=None, sign=None)
+            declared=DIRECT_MECHANISM,
+            identity=DIRECT_MECHANISM,
+            status=MECHANISM_CUSTOM_DEFINED,
+            tau_ms=DIRECT_MECHANISM_TAU_MS,
+            reversal_mV=None,
+            sign=None,
+        )
     if name == DIRECT_MECHANISM:
         return resolve_mechanism(None, rule_params)
     if name.startswith(MECHANISM_INTERNAL_PREFIX):
         raise TFNEMechanismNotPermitted(
             f"E_MECHANISM_NOT_PERMITTED: mechanism {name!r} lives in the "
             f"compiler-internal {MECHANISM_INTERNAL_PREFIX!r} namespace; "
-            f"declare a vocabulary name or a sufficient definition instead")
+            f"declare a vocabulary name or a sufficient definition instead"
+        )
     canonical = _canonical_receptor_specs()
     if name in canonical:
         spec = canonical[name]
@@ -3158,43 +3386,56 @@ def resolve_mechanism(name: Optional[str],
                 raise TFNEMechanismNotPermitted(
                     f"E_MECHANISM_NOT_PERMITTED: mechanism {name!r} "
                     f"declares a non-numeric tau_ms={tau!r}; an executable "
-                    f"definition needs a finite positive number")
+                    f"definition needs a finite positive number"
+                )
             if tau_f != float(spec.tau_ms):
                 raise TFNEMechanismNotPermitted(
                     f"E_MECHANISM_NOT_PERMITTED: mechanism {name!r} is "
                     f"canonical with tau_ms={spec.tau_ms}, but the rule "
                     f"declares tau_ms={tau!r}; a canonical identity with "
-                    f"non-canonical kinetics is not permitted")
+                    f"non-canonical kinetics is not permitted"
+                )
         return ResolvedMechanism(
-            declared=name, identity=name, status=MECHANISM_CANONICAL,
-            tau_ms=float(spec.tau_ms), reversal_mV=spec.reversal_mV,
-            sign=int(spec.sign))
+            declared=name,
+            identity=name,
+            status=MECHANISM_CANONICAL,
+            tau_ms=float(spec.tau_ms),
+            reversal_mV=spec.reversal_mV,
+            sign=int(spec.sign),
+        )
     tau = params.get("tau_ms")
     if tau is None or isinstance(tau, bool):
         raise TFNEMechanismUnresolved(
             f"E_MECHANISM_UNRESOLVED: mechanism {name!r} is not a canonical "
             f"receptor {sorted(canonical)} and declares no sufficient "
             f"executable definition (a finite positive `tau_ms`); refusing "
-            f"rather than inventing kinetics")
+            f"rather than inventing kinetics"
+        )
     try:
         tau_f = float(tau)
     except (TypeError, ValueError):
         raise TFNEMechanismUnresolved(
             f"E_MECHANISM_UNRESOLVED: mechanism {name!r} declares a "
             f"non-numeric tau_ms={tau!r}; refusing rather than inventing "
-            f"kinetics")
+            f"kinetics"
+        )
     if not bool(np.isfinite(tau_f)) or not tau_f > 0:
         raise TFNEMechanismNotPermitted(
             f"E_MECHANISM_NOT_PERMITTED: mechanism {name!r} declares an "
             f"inadmissible tau_ms={tau!r}; an executable definition needs "
-            f"a finite positive number")
+            f"a finite positive number"
+        )
     return ResolvedMechanism(
-        declared=name, identity=name, status=MECHANISM_CUSTOM_DEFINED,
-        tau_ms=tau_f, reversal_mV=None, sign=None)
+        declared=name,
+        identity=name,
+        status=MECHANISM_CUSTOM_DEFINED,
+        tau_ms=tau_f,
+        reversal_mV=None,
+        sign=None,
+    )
 
 
-def _resolve_relation_mechanism(explicit: ExplicitModel,
-                               rel: RelationRecord) -> ResolvedMechanism:
+def _resolve_relation_mechanism(explicit: ExplicitModel, rel: RelationRecord) -> ResolvedMechanism:
     """Resolve one relation's mechanism: statement `[mech=]` wins over the
     rule default; the rule params supply any custom definition."""
     rule_params = explicit.rule_params.get(rel.rule) if rel.rule else None
@@ -3211,16 +3452,22 @@ def _resolve_relation_mechanism(explicit: ExplicitModel,
 def realization_summary(realization: Realization) -> dict[str, Any]:
     """JSON-safe summary of a realization (hashes, shapes, digests)."""
     s = realization.s
-    blob = {"digest": s["digest"], "seed": s["seed"],
-            "n_neurons": s["n_neurons"], "n_edges": s["n_edges"],
-            "edge_pre": [int(v) for v in np.asarray(s["edge_pre"]).tolist()],
-            "edge_post": [int(v) for v in np.asarray(s["edge_post"]).tolist()],
-            "edge_weight": [float(v)
-                            for v in np.asarray(s["edge_weight"]).tolist()]}
-    payload = json.dumps(blob, sort_keys=True,
-                         separators=(",", ":")).encode("utf-8")
-    return {"digest": s["digest"], "seed": s["seed"],
-            "n_neurons": s["n_neurons"], "n_edges": s["n_edges"],
-            "normalization": s["normalization"],
-            "realization_sha256": hashlib.sha256(payload).hexdigest(),
-            "value_tag": s["value_tag"]}
+    blob = {
+        "digest": s["digest"],
+        "seed": s["seed"],
+        "n_neurons": s["n_neurons"],
+        "n_edges": s["n_edges"],
+        "edge_pre": [int(v) for v in np.asarray(s["edge_pre"]).tolist()],
+        "edge_post": [int(v) for v in np.asarray(s["edge_post"]).tolist()],
+        "edge_weight": [float(v) for v in np.asarray(s["edge_weight"]).tolist()],
+    }
+    payload = json.dumps(blob, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return {
+        "digest": s["digest"],
+        "seed": s["seed"],
+        "n_neurons": s["n_neurons"],
+        "n_edges": s["n_edges"],
+        "normalization": s["normalization"],
+        "realization_sha256": hashlib.sha256(payload).hexdigest(),
+        "value_tag": s["value_tag"],
+    }

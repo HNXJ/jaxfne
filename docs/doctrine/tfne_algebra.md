@@ -66,10 +66,12 @@ integrator uses is `_resolved_edge_weight(edge_list, dtype, emitter)`, and it
 equals the realized `s["edge_weight"]`. A declared `plasticity` is a rule
 identity for the separate registrable HDP surface rather than an edge
 parameter, so it is preserved as inspectable provenance in `rule_params` and
-`relation_origin` and does not alter the realized edges. A declared `delay` is
-refused with `E_PARAM_UNSUPPORTED` because no execution path consumes one —
-there is no delay field on the connection-rule surface — so it fails closed
-instead of being silently dropped.
+`relation_origin` and does not alter the realized edges. A declared `delay`
+(in ms) reaches the kernel as integer `delay_steps = round(delay_ms / dt_ms)`
+at the construction timestep (0.5.2 decision 0b): configured ms and realized
+steps are both recorded, and a positive delay rounding to 0 steps is refused
+rather than dropped. Negative or non-numeric delays are refused at
+realization.
 
 Mechanism identity transfers, and mechanism kinetics now resolves with
 it. A declared mechanism reaches the executed edges as a name, a receptor
@@ -94,8 +96,9 @@ absolute or relative coordinates are intended is undecided.
 
 `to_neuronal_tensor()` remains the structural bridge and is still used for
 areas, layers and cell types, but it cannot carry connection parameters:
-`InterConnection` and `AreaConnection` have no weight, probability or delay
-field. That is why execution goes through the resolved specs rather than
+`InterConnection` and `AreaConnection` have no weight or probability
+field (declared delays ride the bridge as `delay_ms` for inspection only).
+That is why execution goes through the resolved specs rather than
 through the tensor alone, and why the Execute row means the kernels consume the
 realized connectivity, not merely a tensor rebuilt from the same text.
 

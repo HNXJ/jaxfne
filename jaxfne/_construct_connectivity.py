@@ -81,9 +81,14 @@ def _interarea_W(
         p = p_ff if is_ff else p_fb
         if p <= 0.0:
             continue
-        wlo, whi = (ff_range if is_ff else fb_range)
+        wlo, whi = ff_range if is_ff else fb_range
         pre = jnp.asarray(
-            [area_labels[j] == src_area and layer_labels[j] in src_layers and cell_labels[j] == "E" for j in range(n)],
+            [
+                area_labels[j] == src_area
+                and layer_labels[j] in src_layers
+                and cell_labels[j] == "E"
+                for j in range(n)
+            ],
             dtype=jdtype,
         )
         post = jnp.asarray(
@@ -159,7 +164,16 @@ def _apply_edge_sign_policy(sign_str, magnitude, pre_idx, sign_intrinsic):
 
 
 def _compile_connection_rules(
-    rules, area_labels, layer_labels, cell_labels, sign, n, jdtype, default_seed, model_labels=None
+    rules,
+    area_labels,
+    layer_labels,
+    cell_labels,
+    sign,
+    n,
+    jdtype,
+    default_seed,
+    model_labels=None,
+    dt_ms=None,
 ):
     """Compile declarative ``.connections()`` rules into a sparse EdgeList.
 
@@ -172,6 +186,12 @@ def _compile_connection_rules(
     sparse: the exact (pre x post) product is used for selective rules, falling back to
     binomial sampling past :data:`_CONNECTIONS_EXACT_PRODUCT_CAP` candidates so an
     unselective rule never builds an O(N^2) grid.
+
+    A rule's ``delay_ms`` (None = undeclared) is realized to ``delay_steps``
+    via :func:`jaxfne.connectivity.delay_steps_from_ms` at ``dt_ms``
+    (0.5.2 decision 0b); a declared delay with no known ``dt_ms`` raises
+    rather than zeroing. Rules without a delay produce zero steps —
+    exactly the pre-0.5.2 EdgeList.
 
     Returns ``(edge_list_or_None, per_rule_edge_counts)``.
 
@@ -189,12 +209,24 @@ def _compile_connection_rules(
     sign_np = _np.asarray(sign, dtype=_np.float64)
     sqrt_n = float(max(n, 1)) ** 0.5
     pre_all, post_all, w_all = [], [], []
+    dsteps_all: list[int] = []
     counts: list[int] = []
     for ri, rule in enumerate(rules):
         src = rule.get("source", {}) or {}
         tgt = rule.get("target", {}) or {}
-        pre_idx = _np.where(_connection_selector_mask(src, area_labels, layer_labels, cell_labels, model_labels))[0]
-        post_idx = _np.where(_connection_selector_mask(tgt, area_labels, layer_labels, cell_labels, model_labels))[0]
+        rule_delay_ms = rule.get("delay_ms")
+        if rule_delay_ms is not None and dt_ms is None:
+            raise ValueError(
+                f"connection rule {rule.get('name')!r} declares delay_ms but no dt_ms "
+                "is known at construction; a delay cannot be realized to steps "
+                "without its timestep"
+            )
+        pre_idx = _np.where(
+            _connection_selector_mask(src, area_labels, layer_labels, cell_labels, model_labels)
+        )[0]
+        post_idx = _np.where(
+            _connection_selector_mask(tgt, area_labels, layer_labels, cell_labels, model_labels)
+        )[0]
         p = rule.get("probability")
         p = 1.0 if p is None else float(p)
         if pre_idx.size == 0 or post_idx.size == 0 or p <= 0.0:
@@ -219,11 +251,13 @@ def _compile_connection_rules(
         else:
             # Sparse fallback for huge unselective rules (statistical, not exact).
             import warnings as _warnings
+
             _warnings.warn(
                 f"connection rule {rule.get('name')!r} has {n_cand} candidate pairs "
                 f"(> {_CONNECTIONS_EXACT_PRODUCT_CAP}); using binomial sampling instead of "
                 "the exact product (add area/layer/cell_type selectors to narrow it).",
-                RuntimeWarning, stacklevel=2,
+                RuntimeWarning,
+                stacklevel=2,
             )
             n_edges = int(rng.binomial(n_cand, min(p, 1.0)))
             pre_g = pre_idx[rng.integers(0, pre_idx.size, n_edges)]
@@ -239,6 +273,13 @@ def _compile_connection_rules(
         pre_all.append(pre_g)
         post_all.append(post_g)
         w_all.append(wv)
+        if rule_delay_ms is None:
+            dsteps_all.extend([0] * int(pre_g.size))
+        else:
+            from .connectivity import delay_steps_from_ms as _delay_steps_from_ms
+
+            _steps = _delay_steps_from_ms(float(rule_delay_ms), float(dt_ms))
+            dsteps_all.extend([int(_steps)] * int(pre_g.size))
         counts.append(int(pre_g.size))
 
     if not pre_all:
@@ -254,6 +295,7 @@ def _compile_connection_rules(
         weight=jnp.asarray(w, jdtype),
         receptor_index=jnp.asarray(receptor, jnp.int32),
         tau_ms=jnp.asarray(tau, jdtype),
+        delay_steps=jnp.asarray(_np.asarray(dsteps_all, dtype=_np.int32), dtype=jnp.int32),
     )
     return edges, counts
 
@@ -272,12 +314,23 @@ def _all_connection_rules_declare_resolvable_mechanism(rules, mechanisms):
     if not rules or not mechanisms:
         return False
     known = {m.get("name") for m in mechanisms}
-    return all(rule.get("mechanism") in known and rule.get("mechanism") is not None for rule in rules)
+    return all(
+        rule.get("mechanism") in known and rule.get("mechanism") is not None for rule in rules
+    )
 
 
 def _compile_mechanism_aware_connection_rules(
-    rules, mechanisms, area_labels, layer_labels, cell_labels, sign, n, jdtype, default_seed,
+    rules,
+    mechanisms,
+    area_labels,
+    layer_labels,
+    cell_labels,
+    sign,
+    n,
+    jdtype,
+    default_seed,
     positions=None,
+    dt_ms=None,
 ):
     """Mechanism-aware connection-rule compiler (Synaptic Tensor switch, gated path).
 
@@ -292,6 +345,11 @@ def _compile_mechanism_aware_connection_rules(
     inhibitory-mechanism rule otherwise keeps a positive weight), so without
     this post-correction the switch would silently break inhibition.
 
+    A rule's ``delay_ms`` (None = undeclared) is realized to ``delay_steps``
+    at ``dt_ms`` (0.5.2 decision 0b) inside :meth:`to_edge_list`; a declared
+    delay with no known ``dt_ms`` raises rather than zeroing. ``dt_ms=None``
+    keeps the pre-0.5.2 EdgeList exactly.
+
     Validated for exact parity with :func:`_compile_connection_rules` when a
     declared mechanism's tau mirrors the legacy hardcoded default (AMPA-like
     exc=2ms, GABA_A-like inh=5ms) at ``probability=1.0`` -- see
@@ -303,16 +361,35 @@ def _compile_mechanism_aware_connection_rules(
 
     if positions is not None:
         neuron_rows = [
-            {"neuron_id": i, "area": area_labels[i], "layer": layer_labels[i], "cell_type": cell_labels[i],
-             "x": float(positions[i, 0]), "y": float(positions[i, 1]), "z": float(positions[i, 2])}
+            {
+                "neuron_id": i,
+                "area": area_labels[i],
+                "layer": layer_labels[i],
+                "cell_type": cell_labels[i],
+                "x": float(positions[i, 0]),
+                "y": float(positions[i, 1]),
+                "z": float(positions[i, 2]),
+            }
             for i in range(n)
         ]
     else:
         neuron_rows = [
-            {"neuron_id": i, "area": area_labels[i], "layer": layer_labels[i], "cell_type": cell_labels[i]}
+            {
+                "neuron_id": i,
+                "area": area_labels[i],
+                "layer": layer_labels[i],
+                "cell_type": cell_labels[i],
+            }
             for i in range(n)
         ]
     dtype_name = "float64" if jdtype == jnp.float64 else "float32"
+    if dt_ms is None and any(r.get("delay_ms") is not None for r in rules):
+        _names = [r.get("name") for r in rules if r.get("delay_ms") is not None]
+        raise ValueError(
+            f"connection rule(s) {_names} declare delay_ms but no dt_ms "
+            "is known at construction; a delay cannot be realized to steps "
+            "without its timestep"
+        )
     result = compile_connection_rules(
         neuron_rows, rules, mechanisms, seed=int(default_seed), allow_empty=True, dtype=dtype_name
     )
@@ -320,7 +397,7 @@ def _compile_mechanism_aware_connection_rules(
     if result.n_edges == 0:
         return None, counts
 
-    edges = result.to_edge_list(dtype=dtype_name)
+    edges = result.to_edge_list(dtype=dtype_name, dt_ms=dt_ms)
     edge_rule_id = _np.asarray(result.edge_rule_id)
     pre_np = _np.asarray(edges.pre)
     raw_weight = _np.asarray(edges.weight, dtype=_np.float64)
@@ -343,7 +420,10 @@ def _concat_edge_lists(
     presynaptic_sign=None,
 ) -> "EdgeList":
     """Concatenate two EdgeLists (preserving the first's calibration status)."""
-    from ._edge_class_storage import materialize_edge_list_arrays, try_compact_edge_list_class_storage
+    from ._edge_class_storage import (
+        materialize_edge_list_arrays,
+        try_compact_edge_list_class_storage,
+    )
 
     a_full = materialize_edge_list_arrays(a, presynaptic_sign=presynaptic_sign)
     b_full = materialize_edge_list_arrays(b, presynaptic_sign=presynaptic_sign)
@@ -372,11 +452,13 @@ def _mark_connections_compiled(cfg: "Configuration", counts: Sequence[int]) -> "
     updated = []
     for i, rule in enumerate(conns):
         c = int(counts[i]) if i < len(counts) else 0
-        updated.append({
-            **rule,
-            "status": "compiled" if c > 0 else "compiled_no_matching_edges",
-            "compiled_n_edges": c,
-        })
+        updated.append(
+            {
+                **rule,
+                "status": "compiled" if c > 0 else "compiled_no_matching_edges",
+                "compiled_n_edges": c,
+            }
+        )
     circuit["connections"] = updated
     metadata["circuit"] = circuit
     return replace(cfg, metadata=metadata)
@@ -416,7 +498,9 @@ def _model_edge_list(model: "Model", jdtype: Any) -> "EdgeList":
     emitter: IzhikevichParams = model.params["emitter"]
     W = emitter.W
     if W.shape[0] == emitter.n_neurons and W.shape[0] > 0:
-        return make_edge_list_from_dense(W, dtype=("float64" if jdtype == jnp.float64 else "float32"))
+        return make_edge_list_from_dense(
+            W, dtype=("float64" if jdtype == jnp.float64 else "float32")
+        )
     return _empty_edge_list(jdtype)
 
 
@@ -447,13 +531,25 @@ def _connect_reconcile_runtime(
     if len(dtypes) > 1:
         if strict:
             raise ValueError(f"connect() models have mismatched dtypes: {sorted(dtypes)}")
-        warnings.warn(f"connect() mismatched dtypes {sorted(dtypes)}; using the first.", RuntimeWarning, stacklevel=2)
+        warnings.warn(
+            f"connect() mismatched dtypes {sorted(dtypes)}; using the first.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
     jdtype = emitters[0].v0.dtype
-    dts = {float(m.cfg.metadata.get("dt_ms")) for m in models if m.cfg.metadata.get("dt_ms") is not None}
+    dts = {
+        float(m.cfg.metadata.get("dt_ms"))
+        for m in models
+        if m.cfg.metadata.get("dt_ms") is not None
+    }
     if len(dts) > 1:
         if strict:
             raise ValueError(f"connect() models have mismatched dt_ms: {sorted(dts)}")
-        warnings.warn(f"connect() mismatched dt_ms {sorted(dts)}; sim uses the duration/dt passed to simulate().", RuntimeWarning, stacklevel=2)
+        warnings.warn(
+            f"connect() mismatched dt_ms {sorted(dts)}; sim uses the duration/dt passed to simulate().",
+            RuntimeWarning,
+            stacklevel=2,
+        )
     return jdtype
 
 
@@ -471,8 +567,10 @@ def _connect_resolve_namespace(
             areas_k = {str(r.get("area")) for r in t}
             clash = seen & areas_k
             if clash:
-                msg = (f"connect() area label collision across models ({sorted(clash)}); "
-                       f"pass namespace=(...) to disambiguate")
+                msg = (
+                    f"connect() area label collision across models ({sorted(clash)}); "
+                    f"pass namespace=(...) to disambiguate"
+                )
                 if strict:
                     raise ValueError(msg)
                 warnings.warn(msg, RuntimeWarning, stacklevel=2)
@@ -482,6 +580,7 @@ def _connect_resolve_namespace(
 
 def _connect_merge_emitter(emitters: "list[IzhikevichParams]", jdtype: Any) -> "IzhikevichParams":
     """``connect()`` stage: concat per-neuron arrays, reconcile scalars -> merged emitter."""
+
     def _cat(attr: str) -> jax.Array:
         return jnp.concatenate([getattr(em, attr).astype(jdtype) for em in emitters], axis=0)
 
@@ -489,15 +588,27 @@ def _connect_merge_emitter(emitters: "list[IzhikevichParams]", jdtype: Any) -> "
     labels = tuple(lbl for em in emitters for lbl in em.labels)
     layer_labels = tuple(
         (em.layer_labels[i] if em.layer_labels is not None else "unspecified")
-        for em in emitters for i in range(em.n_neurons)
+        for em in emitters
+        for i in range(em.n_neurons)
     )
     scs = {em.source_calibration_status for em in emitters}
-    source_cal = emitters[0].source_calibration_status if len(scs) == 1 else "mixed_uncalibrated_proxy"
+    source_cal = (
+        emitters[0].source_calibration_status if len(scs) == 1 else "mixed_uncalibrated_proxy"
+    )
     return IzhikevichParams(
-        a=_cat("a"), b=_cat("b"), c=_cat("c"), d=_cat("d"),
-        drive=_cat("drive"), sign=sign_cat, W=jnp.zeros((0, 0), dtype=jdtype),
-        v0=_cat("v0"), u0=_cat("u0"), source_scale=emitters[0].source_scale,
-        labels=labels, layer_labels=layer_labels, source_calibration_status=source_cal,
+        a=_cat("a"),
+        b=_cat("b"),
+        c=_cat("c"),
+        d=_cat("d"),
+        drive=_cat("drive"),
+        sign=sign_cat,
+        W=jnp.zeros((0, 0), dtype=jdtype),
+        v0=_cat("v0"),
+        u0=_cat("u0"),
+        source_scale=emitters[0].source_scale,
+        labels=labels,
+        layer_labels=layer_labels,
+        source_calibration_status=source_cal,
     )
 
 
@@ -544,7 +655,11 @@ def _connect_merge_neuron_metadata(
     orig_area: list[str] = []
     layer_lab: list[str] = []
     cell_lab: list[str] = []
-    model_labels = np.concatenate([np.full(c, k, dtype=int) for k, c in enumerate(counts)]) if counts else np.zeros(0, int)
+    model_labels = (
+        np.concatenate([np.full(c, k, dtype=int) for k, c in enumerate(counts)])
+        if counts
+        else np.zeros(0, int)
+    )
     nid = 0
     for k, t in enumerate(tables):
         prefix = (ns[k] + "/") if ns is not None else ""
@@ -565,8 +680,13 @@ def _connect_merge_neuron_metadata(
 def _connect_compile_cross_edges(
     edges: "Sequence[Mapping[str, Any]] | None",
     models: "tuple[Model, ...]",
-    orig_area: "list[str]", layer_lab: "list[str]", cell_lab: "list[str]",
-    sign_cat: Any, n_total: int, jdtype: Any, model_labels: Any,
+    orig_area: "list[str]",
+    layer_lab: "list[str]",
+    cell_lab: "list[str]",
+    sign_cat: Any,
+    n_total: int,
+    jdtype: Any,
+    model_labels: Any,
 ) -> "tuple['EdgeList | None', list[int]]":
     """``connect()`` stage: compile cross-model edges (selectors match original area + model idx)."""
     import numpy as np
@@ -575,14 +695,26 @@ def _connect_compile_cross_edges(
         return None, []
     default_seed = int(models[0].cfg.metadata.get("seed", 0) or 0)
     return _compile_connection_rules(
-        list(edges), orig_area, layer_lab, cell_lab, np.asarray(sign_cat),
-        n_total, jdtype, default_seed, model_labels=model_labels,
+        list(edges),
+        orig_area,
+        layer_lab,
+        cell_lab,
+        np.asarray(sign_cat),
+        n_total,
+        jdtype,
+        default_seed,
+        model_labels=model_labels,
     )
 
 
 def _connect_merge_cfg(
-    models: "tuple[Model, ...]", ns: "list[str] | None", name: "str | None", layout: str,
-    counts: "list[int]", n_total: int, edges: "Sequence[Mapping[str, Any]] | None",
+    models: "tuple[Model, ...]",
+    ns: "list[str] | None",
+    name: "str | None",
+    layout: str,
+    counts: "list[int]",
+    n_total: int,
+    edges: "Sequence[Mapping[str, Any]] | None",
     cross_counts: "list[int]",
 ) -> "Configuration":
     """``connect()`` stage: merged cfg -- conservative truth gates, ensemble marker, cross rules."""
@@ -610,7 +742,7 @@ def _connect_merge_cfg(
     )
     all_area_names: list[str] = []
     for k, m in enumerate(models):
-        for ar in (m.cfg.metadata.get("column_names") or []):
+        for ar in m.cfg.metadata.get("column_names") or []:
             all_area_names.append((ns[k] + "/" + str(ar)) if ns is not None else str(ar))
     if all_area_names:
         md["column_names"] = all_area_names
@@ -630,19 +762,24 @@ def _connect_merge_cfg(
         conns = list(circuit.get("connections", []))
         for i, rule in enumerate(edges):
             c = int(cross_counts[i]) if i < len(cross_counts) else 0
-            conns.append({
-                **dict(rule),
-                "scope": "cross_model",
-                "status": "compiled" if c > 0 else "compiled_no_matching_edges",
-                "compiled_n_edges": c,
-            })
+            conns.append(
+                {
+                    **dict(rule),
+                    "scope": "cross_model",
+                    "status": "compiled" if c > 0 else "compiled_no_matching_edges",
+                    "compiled_n_edges": c,
+                }
+            )
         circuit["connections"] = conns
         md["circuit"] = circuit
     return replace(cfg2, metadata=md)
 
 
 def _connect_merge_static(
-    models: "tuple[Model, ...]", merged_rows: "list[dict[str, Any]]", strict: bool, ensemble: dict,
+    models: "tuple[Model, ...]",
+    merged_rows: "list[dict[str, Any]]",
+    strict: bool,
+    ensemble: dict,
 ) -> "dict[str, Any]":
     """``connect()`` stage: merged static -- reconcile n_contacts, most-conservative operator_status."""
     n_contacts_set = {int(m.static.get("n_contacts", 16)) for m in models}
@@ -652,7 +789,11 @@ def _connect_merge_static(
             f"field projection needs equal contacts"
         )
     if len(n_contacts_set) > 1:
-        warnings.warn(f"connect() mismatched n_contacts {sorted(n_contacts_set)}; using the first.", RuntimeWarning, stacklevel=2)
+        warnings.warn(
+            f"connect() mismatched n_contacts {sorted(n_contacts_set)}; using the first.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
     rank = {"not_implemented": 0, "prototype_api": 1, "experimental": 2, "validated": 3}
     op: dict[str, str] = {}
     for m in models:
@@ -767,8 +908,10 @@ def connect(
 
     return Model(
         cfg=cfg2,
-        params={"emitter": merged_emitter, "positions": merged_positions, "edge_list": merged_edges},
+        params={
+            "emitter": merged_emitter,
+            "positions": merged_positions,
+            "edge_list": merged_edges,
+        },
         static=merged_static,
     )
-
-

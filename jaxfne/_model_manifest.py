@@ -57,9 +57,7 @@ def manifest(
                 "source_mode_class": source_mode_class,
                 "source_decomposition": signals.metadata.get("source_decomposition"),
                 "source_contract": signals.metadata.get("source_contract"),
-                "source_calibration_status": signals.metadata.get(
-                    "source_calibration_status"
-                ),
+                "source_calibration_status": signals.metadata.get("source_calibration_status"),
                 "representation": signals.metadata.get("representation", "relative"),
                 "calibration_transform": signals.metadata.get(
                     "calibration_transform", "explicit_boundary_transform"
@@ -128,6 +126,7 @@ def manifest(
     # v0.2.0: Field admissibility metadata
     if signals is not None and signals.field is not None:
         from .validation import build_field_admissibility_report
+
         field_admissibility = build_field_admissibility_report(
             field_output=signals.field,
             cfg_metadata=dict(self.cfg.metadata or {}),
@@ -158,6 +157,7 @@ def manifest(
         # the receptor labels/taus the kernel can index. The actual per-edge
         # tau_ms lives on EdgeList; this is the catalog.
         from .emitters import standard_receptor_specs
+
         backend_meta["receptor_specs"] = {
             name: {
                 "name": spec.name,
@@ -182,19 +182,55 @@ def manifest(
     _tfne_geo = (self.cfg.metadata or {}).get("tfne_geometry")
     if _tfne_geo:
         from .io import json_safe
-        res["tfne_geometry"] = json_safe({
-            "value_tag": _tfne_geo.get("value_tag", "relative"),
-            "declared": _tfne_geo.get("declared", {}),
-            "realized_domains": _tfne_geo.get("domains", {}),
-        })
+
+        res["tfne_geometry"] = json_safe(
+            {
+                "value_tag": _tfne_geo.get("value_tag", "relative"),
+                "declared": _tfne_geo.get("declared", {}),
+                "realized_domains": _tfne_geo.get("domains", {}),
+            }
+        )
+    # 0.5.2 PARAM-02: TFNE-declared delay, recorded only when a delay was
+    # declared (absent declaration the manifest is unchanged). `declared_ms`
+    # is the configured per-rule delay in ms; `realized_steps` the integer
+    # steps at `dt_ms` (0.5.2 decision 0b). Units are ms throughout —
+    # never physical lengths or conductivities.
+    _tfne_delay = (self.cfg.metadata or {}).get("tfne_delay")
+    if _tfne_delay:
+        from .io import json_safe as _delay_json_safe
+
+        res["tfne_delay"] = _delay_json_safe(
+            {
+                "declared_ms": _tfne_delay.get("declared_ms", {}),
+                "realized_steps": _tfne_delay.get("realized_steps", {}),
+                "dt_ms": _tfne_delay.get("dt_ms"),
+            }
+        )
+    # Executed delay summary for any model (TFNE or hand-built): present
+    # only when at least one edge carries a positive delay, so delay-free
+    # manifests are unchanged.
+    if "edge_list" in self.params:
+        try:
+            from .emitters import resolve_edge_delay_steps as _resolve_delays
+            import numpy as _np
+
+            _executed_steps = _np.asarray(_resolve_delays(self.params["edge_list"])).astype(int)
+            if _executed_steps.size and int(_executed_steps.max()) > 0:
+                res["executed_delay"] = {
+                    "max_steps": int(_executed_steps.max()),
+                    "n_delayed_edges": int((_executed_steps > 0).sum()),
+                    "n_edges": int(_executed_steps.size),
+                }
+        except Exception:
+            pass
     # v0.2.26: computation-basis block
     res["basis"] = _default_basis_dict()
     # v0.2.27: conservation-inspired proxy diagnostics
     if signals is not None and signals.field is not None:
         from .fields import compute_conservation_proxy_diagnostics
-        _src_cal = (
-            signals.metadata.get("source_calibration_status",
-                                 "uncalibrated_izhikevich_native_current")
+
+        _src_cal = signals.metadata.get(
+            "source_calibration_status", "uncalibrated_izhikevich_native_current"
         )
         res["conservation_proxy_diagnostics"] = compute_conservation_proxy_diagnostics(
             field_solution=signals.field,
@@ -203,5 +239,3 @@ def manifest(
             field_claim_level="proxy_readout",
         )
     return res
-
-
