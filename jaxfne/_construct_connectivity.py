@@ -688,6 +688,7 @@ def _connect_compile_cross_edges(
     n_total: int,
     jdtype: Any,
     model_labels: Any,
+    dt_ms: "float | None" = None,
 ) -> "tuple['EdgeList | None', list[int]]":
     """``connect()`` stage: compile cross-model edges (selectors match original area + model idx)."""
     import numpy as np
@@ -705,7 +706,25 @@ def _connect_compile_cross_edges(
         jdtype,
         default_seed,
         model_labels=model_labels,
+        dt_ms=dt_ms,
     )
+
+
+def _connect_member_dt_ms(models: "tuple[Model, ...]") -> "float | None":
+    """``connect()`` stage: reconciled member dt_ms (None when undeclared).
+
+    Strict mismatches already raise in ``_connect_reconcile_runtime``; here
+    the first sorted value wins deterministically so cross-edge ``delay_ms``
+    realizes to steps under the 0.5.2 ``round(ms/dt)`` rule.
+    """
+    dts = sorted(
+        {
+            float(m.cfg.metadata.get("dt_ms"))
+            for m in models
+            if m.cfg.metadata.get("dt_ms") is not None
+        }
+    )
+    return dts[0] if dts else None
 
 
 def _connect_merge_cfg(
@@ -757,6 +776,7 @@ def _connect_merge_cfg(
         "namespace": list(ns) if ns is not None else None,
         "cross_model_edges": total_cross,
         "layout": str(layout),
+        "dt_ms": _connect_member_dt_ms(models),
     }
     if edges:
         circuit = {**md.get("circuit", {})}
@@ -919,7 +939,16 @@ def connect(
     )
 
     cross_el, cross_counts = _connect_compile_cross_edges(
-        edges, models, orig_area, layer_lab, cell_lab, sign_cat, n_total, jdtype, model_labels
+        edges,
+        models,
+        orig_area,
+        layer_lab,
+        cell_lab,
+        sign_cat,
+        n_total,
+        jdtype,
+        model_labels,
+        dt_ms=_connect_member_dt_ms(models),
     )
     if cross_el is not None:
         merged_edges = _concat_edge_lists(merged_edges, cross_el)

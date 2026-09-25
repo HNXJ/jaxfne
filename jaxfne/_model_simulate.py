@@ -164,16 +164,9 @@ def _chain_noise_schedule(key, n_steps, n_neurons, jnp_dtype, base_seed=None, me
 
 def _ensemble_member_counts(model) -> "list[int] | None":
     """Return ``metadata["ensemble"]["model_sizes"]`` or None (plain model)."""
-    try:
-        ens = model.cfg.metadata.get("ensemble")
-    except Exception:
-        return None
-    if not isinstance(ens, dict):
-        return None
-    sizes = ens.get("model_sizes")
-    if not sizes or len(sizes) < 2:
-        return None
-    return [int(c) for c in sizes]
+    from ._pipeline import _ensemble_counts_of_model
+
+    return _ensemble_counts_of_model(model)
 
 
 def _simulate_arrays(
@@ -881,6 +874,8 @@ def _simulate_continuation_arrays(
         continuation_state_from_model,
         run_continuation,
         validate_continuation_delay_state,
+        _ensemble_segment_schedule,
+        _ensemble_counts_of_model,
     )
 
     if runtime_cfg.enable_homeostasis:
@@ -977,7 +972,19 @@ def _simulate_continuation_arrays(
             **baseline_kw,
         )
 
-    next_state, outputs = run_continuation(step_fn, state, schedule)
+    # 0.5.4 item 1: ensemble segments draw the continuous member streams,
+    # so chunked continuation reproduces continuous ensemble runs (and,
+    # transitively, the members' solo trajectories). Plain models pass
+    # None and keep the exact prior key-driven behavior.
+    _cont_noise_rows = None
+    _cont_counts = _ensemble_member_counts(self)
+    if _cont_counts is not None:
+        _cont_start = 0 if continuation is None else int(state.step_index)
+        _cont_noise_rows = _ensemble_segment_schedule(
+            _cont_counts, sim.seed, _cont_start, sim.n_steps, runtime_cfg.jnp_dtype
+        )
+
+    next_state, outputs = run_continuation(step_fn, state, schedule, _cont_noise_rows)
     voltages, spikes, sources = outputs[:3]
     if use_hdp_cont:
         # 0.5.3 item 2: the per-step continuation kernels apply subset
