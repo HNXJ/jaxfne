@@ -106,6 +106,8 @@
     "eeg_proxy_transform",
     "emm_proxy_transform",
     "enable_x64",
+    "ensemble_edge_ownership",
+    "ensemble_member_seed",
     "evoked_l4_drive_paradigm",
     "export_report",
     "export_tutorial_artifacts",
