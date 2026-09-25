@@ -135,3 +135,43 @@ def test_batch_deterministic_on_ensemble():
     b1 = ens.simulate_batch(jtfne.Simulation(**kw), n_seeds=2)
     b2 = ens.simulate_batch(jtfne.Simulation(**kw), n_seeds=2)
     assert np.array_equal(np.asarray(b1["V_m"]), np.asarray(b2["V_m"]))
+
+
+def test_three_area_chain_runs_with_owned_ranges():
+    m = [_col(f"V{i}", n, i) for i, n in enumerate((10, 8, 6))]
+    ens = jtfne.connect(
+        *m,
+        namespace=("A", "B", "C"),
+        edges=[
+            dict(
+                source={"model": 0, "area": "V0", "cell_type": "E"},
+                target={"model": 1, "area": "V1"},
+                probability=0.3,
+                weight=0.5,
+                sign="excitatory",
+            ),
+            dict(
+                source={"model": 1, "area": "V1", "cell_type": "E"},
+                target={"model": 2, "area": "V2"},
+                probability=0.3,
+                weight=0.5,
+                sign="excitatory",
+            ),
+        ],
+    )
+    own = jtfne.ensemble_edge_ownership(ens)
+    assert len(own["member_ranges"]) == 3 and len(own["cross_ranges"]) == 2
+    sig = _sim(ens, SEED)
+    assert bool(np.isfinite(np.asarray(sig.V_m)).all())
+
+
+def test_three_area_no_cross_middle_member_identity():
+    # Solo-identity needs zero cross edges (cross current would couple);
+    # the middle member exercises a non-edge block position.
+    m = [_col(f"V{i}", n, i) for i, n in enumerate((10, 8, 6))]
+    ens = jtfne.connect(*m, namespace=("A", "B", "C"))
+    sig = _sim(ens, SEED)
+    s1 = jtfne.ensemble_member_seed(SEED, 1, 3)
+    solo = _sim(m[1], s1)
+    assert np.array_equal(np.asarray(sig.V_m)[:, 10:18], np.asarray(solo.V_m))
+    assert np.array_equal(np.asarray(sig.spikes)[:, 10:18], np.asarray(solo.spikes))

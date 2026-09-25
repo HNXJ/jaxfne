@@ -1,0 +1,44 @@
+{
+  "cells": [
+    {
+      "k_areas": 1,
+      "n_neurons": 12,
+      "n_edges": 132,
+      "construct_ms": 1.1404999968362972,
+      "simulate_ms": 3712.246700000833,
+      "peak_rss_mb": 466.202624,
+      "spikes_total": 12,
+      "finite": true
+    },
+    {
+      "k_areas": 2,
+      "n_neurons": 24,
+      "n_edges": 302,
+      "construct_ms": 647.5884999963455,
+      "simulate_ms": 1876.1546000023372,
+      "peak_rss_mb": 558.239744,
+      "spikes_total": 24,
+      "finite": true
+    },
+    {
+      "k_areas": 3,
+      "n_neurons": 36,
+      "n_edges": 479,
+      "construct_ms": 446.36249999166466,
+      "simulate_ms": 2151.2346000090474,
+      "peak_rss_mb": 639.24224,
+      "spikes_total": 36,
+      "finite": true
+    },
+    {
+      "k_areas": 4,
+      "n_neurons": 48,
+      "n_edges": 655,
+      "construct_ms": 417.08170001220424,
+      "simulate_ms": 2405.115499990643,
+      "peak_rss_mb": 717.385728,
+      "spikes_total": 48,
+      "finite": true
+    }
+  ]
+}
