@@ -660,43 +660,38 @@ ACCEPTANCE (0.5.3 seal)
 Question: does N_A ⊕_C N_B → (s, h_0, I) preserve everything each area
 had alone? Acceptance is capability and identity, not a phenotype.
 
-0. Decision (human), only if AT-08/AT-09 need a composite interface
-   declared from a rule: syntax for the `X[k]`-rule frontier override
-   (carried from TFNE2-04/05). Otherwise it stays after 0.5.5.
+ENGINE — sealed (commits `cd7dbca`, `6792bc7`, `dcec360`, `e4bd459`,
+`4bab2f1`, `04bbd26`, `c15cd07`; receipt
+`artifacts/programme/composition_054.md`):
+- Item 1 (`connect()` + CTX-01 path): member RNG domains
+  (`ensemble_member_seed`, solo-identity eager+jit); continuation member
+  streams (chunked == continuous == solo); cross-edge dt_ms (delay_ms now
+  compiles, recorded in ensemble metadata); S12 per-statement
+  `[delay=MS]` (parse→relation→tensor→steps). Geometry/depth preserved,
+  x disjoint; probes/fields finite; HDP engages; batch deterministic.
+- Item 2: hierarchical-vs-flat TFNE programs, same realized values and
+  bit-identical runs (test-only lock-in; compilers intentionally
+  distinct, not unified).
+- Item 3: `population_rate` + `cross_area_coherence` in `jaxfne.fields`
+  (coherence ~1 on identical sines, delay reads as phase, silence
+  declared valid=False, ensemble per-area + cross verified).
+- Item 4: `ensemble_edge_ownership` (member + per-rule cross ranges,
+  W_12/W_21 separate); mask scoping freezes exactly, moves the rest;
+  zero mask disables; replay bit-exact.
+- Item 5: k=1..4 scaling probe (`scaling_054.json`, all finite; frozen
+  0.5.1 matrix untouched).
+- Deferred: 1b (S20.1 ordering — individual human authorization
+  required); item 0 (X[k] frontier — not needed for AT-08/AT-09, stays
+  after 0.5.5).
 
-ENGINE
-1. Composition operator over the existing `InterConnection` and CTX-01
-   named-area path. Preserved and tested one by one: internal area identity,
-   explicit cross-area edges, geometry, delays, RNG domains, H/W,
-   probes/fields, continuation.
-1b. Cell types under the S20.1 ordering rule (the TFNE2-03 exception:
-   `C = {...}` enumeration order still carries order). This changes
-   realized order for existing specs, so it is a correctness repair needing
-   individual human authorization; the receipt lists every changed output.
-1c. Per-statement delay (and geometry) in S12 rule bodies (carried from
-   TFNE2-05), so each inter-area projection declares its own delay; uses
-   the 0.5.2 ms → steps rule.
-2. Hierarchical ↔ flattened identity: inspecting the composed model by area
-   or as one flat tensor gives the same realized values; flatten → run and
-   hierarchical → run are bit-identical. This closes agent-native step 2
-   (canonical TFNE → JaxFNE compilation and `I`) for composed models.
-3. Local vs inter-area observations: per-area Q/Φ plus cross-area measures
-   (phase, coherence) as declared observation operators, no plotting-side
-   computation.
-4. Cross-area plasticity: W_12(t), W_21(t) owned by the cross-area
-   projection, with 0.5.3 clamp/disable/replay semantics.
-5. Scaling step toward AT-10: construct and run a toy-size k-area
-   composition (k > 2) and add it to the benchmark matrix, so 0.5.5 is not
-   the first multi-area scale test.
-
-ATLAS
-6. AT-08: A_1 → A_2 with fixed connectivity; SPK, Φ and H recorded
-   simultaneously; inter-area phase/coherence. Adaptation carried through
-   fixed connectivity only.
-7. AT-09: AT-08 plus plastic W_12(t), W_21(t); compared with AT-08 on the
-   same realized system through the 0.5.3 intervention grammar.
-8. Measurement schema v2 → v3 (area-indexed quantities, cross-area
-   measures); gap matrix updated.
+ATLAS — sealed (commit `991a00a`; assay
+`artifacts/atlas/at08_at09_054.py`, tests
+`tests/test_atlas_at0809_054.py`, `atlas_gap_054.md`, coverage
+AT-08/AT-09 VALIDATED):
+- Items 6/7 (AT-08 fixed/adapt arms with R4 decomposition; AT-09
+  cross/member/frozen arms with R2 separation and R3 comparison).
+- Item 8 (schema v2 → v3: 13 stable names + 10 area/cross cells; gap
+  matrix updated).
 
 ACCEPTANCE (0.5.4 seal)
 - Existing canonical configurations bit-identical.
