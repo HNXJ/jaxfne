@@ -633,6 +633,9 @@ ENGINE — sealed 2026-09-24 (merges `76fa9bb`, `4f4d88d`; receipts
   bit-exact to ≤ EPS_V (observed 3.9e-5; spikes exact).
 
 ATLAS
+7c. (opencode, gh) Confirm CI (Fast) green on `f9d8fcb` (run
+   36079289391; headSha must match). The Claude Code session has no valid
+   `gh` token and could not verify it.
 8. AT-07: fixed W vs declared plasticity conditions under matched
    stimulation on the same realized network, using items 5–6. Report the
    observation difference with its declared test; no adaptation phenotype
