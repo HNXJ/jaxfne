@@ -683,6 +683,8 @@ ENGINE — sealed (commits `cd7dbca`, `6792bc7`, `dcec360`, `e4bd459`,
 - Deferred: 1b (S20.1 ordering — individual human authorization
   required); item 0 (X[k] frontier — not needed for AT-08/AT-09, stays
   after 0.5.5).
+- CI (open): confirm Fast green on the sealed HEAD (no `gh` token in
+  this session; could not verify externally).
 
 ATLAS — sealed (commit `991a00a`; assay
 `artifacts/atlas/at08_at09_054.py`, tests
