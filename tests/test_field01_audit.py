@@ -55,7 +55,9 @@ def test_projection_scales_as_TNC_and_kernel_build_is_negligible():
         t, _ = _bench(lambda: project_laminar_sources(src, pos, n_contacts=C))
         times[T] = t
     ratio = times[2000] / max(times[500], 1e-9)
-    print(f"\nT scaling: {times[500] * 1e3:.2f}ms -> {times[2000] * 1e3:.2f}ms (ratio {ratio:.2f}; linear=4)")
+    print(
+        f"\nT scaling: {times[500] * 1e3:.2f}ms -> {times[2000] * 1e3:.2f}ms (ratio {ratio:.2f}; linear=4)"
+    )
     assert ratio < 16.0
 
 
@@ -112,33 +114,52 @@ def test_source_generation_vs_projection_split():
     cfg = (
         jtfne.configuration()
         .runtime(seed=0, recurrent_backend="edge_list")
-        .network(name="V1", kind="cortical_column", n=64,
-                 cell_types={"E": 0.8, "PV": 0.2})
+        .network(name="V1", kind="cortical_column", n=64, cell_types={"E": 0.8, "PV": 0.2})
         .cell_type_drives({"E": 10.0, "PV": 10.0})
         .emitter(family="izhikevich", preset="cortical_eig")
-        .field(domain="laminar_column", conductivity="proxy",
-               boundary="mean_zero_neumann", gauge="mean_zero")
+        .field(
+            domain="laminar_column",
+            conductivity="proxy",
+            boundary="mean_zero_neumann",
+            gauge="mean_zero",
+        )
         .probe(name="probe", modes=["spikes", "V_m"])
     )
     model = jtfne.construct(cfg)
     sim = jtfne.simulation(
-        duration_ms=1000.0, dt_ms=1.0, seed=3, record_sources=True, record_fields=False,
+        duration_ms=1000.0,
+        dt_ms=1.0,
+        seed=3,
+        record_sources=True,
+        record_fields=False,
         runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list", hdp_params={"noise_scale": 0.0}),
     )
     pos_arr = np.asarray(model.params["positions"])
     # Warm both paths so the comparison is steady-state work, not JIT compile (P-009).
     warm = jtfne.simulate(model, sim)
-    jax.block_until_ready(project_laminar_sources(
-        jnp.asarray(np.asarray(warm.sources)), jnp.asarray(pos_arr), n_contacts=16).lfp_proxy)
-    t0 = time.perf_counter()
-    sig = jtfne.simulate(model, sim)
-    sources = np.asarray(sig.sources)
-    t_sim = time.perf_counter() - t0
-    t1 = time.perf_counter()
-    field = project_laminar_sources(jnp.asarray(sources), jnp.asarray(pos_arr), n_contacts=16)
-    jax.block_until_ready(field.lfp_proxy)
-    t_proj = time.perf_counter() - t1
-    print(f"\nsim {t_sim:.2f}s vs projection {t_proj * 1e3:.2f}ms "
-          f"(sources {sources.nbytes / 1e6:.2f}MB, lfp {np.asarray(field.lfp_proxy).nbytes / 1e6:.2f}MB)")
+    jax.block_until_ready(
+        project_laminar_sources(
+            jnp.asarray(np.asarray(warm.sources)), jnp.asarray(pos_arr), n_contacts=16
+        ).lfp_proxy
+    )
+    # Order-of-magnitude guard (human decision 2026-09-24, P-009): best-of-3
+    # warmed walls on each side. Cold first-call walls include JIT compile on
+    # both sides and flaked at ~1% margins; this guards against pathological
+    # slowdowns (e.g. per-call recompilation), not small drifts.
+    sim_walls, proj_walls = [], []
+    for _ in range(3):
+        t0 = time.perf_counter()
+        sig = jtfne.simulate(model, sim)
+        sources = np.asarray(sig.sources)
+        sim_walls.append(time.perf_counter() - t0)
+        t1 = time.perf_counter()
+        field = project_laminar_sources(jnp.asarray(sources), jnp.asarray(pos_arr), n_contacts=16)
+        jax.block_until_ready(field.lfp_proxy)
+        proj_walls.append(time.perf_counter() - t1)
+    t_sim, t_proj = min(sim_walls), min(proj_walls)
+    print(
+        f"\nsim {t_sim:.2f}s vs projection {t_proj * 1e3:.2f}ms "
+        f"(sources {sources.nbytes / 1e6:.2f}MB, lfp {np.asarray(field.lfp_proxy).nbytes / 1e6:.2f}MB)"
+    )
     assert np.isfinite(np.asarray(field.lfp_proxy)).all()
-    assert t_proj < t_sim
+    assert t_proj < 4.0 * t_sim

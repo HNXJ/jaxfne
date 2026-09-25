@@ -67,7 +67,11 @@ such.
 Post-fix, ALL diagnosis exps are bit-exact (None/None), incl. delays
 in flight with live noise.
 
-## Behavior-change disclosure (authorized repair class, cf. 0.5.2 PARAM-04)
+## Behavior-change disclosure (human-authorized 2026-09-24)
+
+Decisions 1+2 below were STOP-gated for human authorization and both
+approved as recommended; the original strict-gate readings remain recorded
+(item-10 precedent: immutable FAIL + recorded correction, not relabeling).
 
 Human decision 2026-09-24: point 1 APPROVED (changelog [Unreleased]);
 point 2 ACCEPTED.
