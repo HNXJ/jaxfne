@@ -293,6 +293,16 @@ def _area_slices(n_a1: int) -> tuple[slice, slice]:
     return slice(0, n_a1), slice(n_a1, None)
 
 
+def _range_max_abs_change(
+    wf: np.ndarray | None, w0: np.ndarray, rng: tuple[int, int]
+) -> float | None:
+    """max |wf - w0| over one owned edge range; None without W or edges."""
+    lo, hi = rng
+    if wf is None or hi <= lo:
+        return None
+    return float(np.abs(wf[lo:hi] - w0[lo:hi]).max())
+
+
 def _arm_summary(
     name: str, arm: dict[str, Any], w0: np.ndarray, n_a1: int, own: dict[str, Any]
 ) -> dict[str, Any]:
@@ -337,6 +347,10 @@ def _arm_summary(
         "w_member_max_abs_change": (
             None if wf is None else float(np.abs(wf[~cross_idx] - w0[~cross_idx]).max())
         ),
+        # Per-direction cross ranges in _fresh_ensemble edge-rule order:
+        # rule 0 = A1->A2 (W_12), rule 1 = A2->A1 (W_21). 0.5.5 schema v4.
+        "w_12_max_abs_change": _range_max_abs_change(wf, w0, own["cross_ranges"][0]),
+        "w_21_max_abs_change": _range_max_abs_change(wf, w0, own["cross_ranges"][1]),
         "C_12_band_mean": float(np.asarray(coh["coherence"])[band].mean()) if band.any() else 0.0,
         "dphi_12_band_mean": float(np.asarray(coh["cross_phase_rad"])[band].mean())
         if band.any()

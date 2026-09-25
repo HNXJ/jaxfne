@@ -712,17 +712,28 @@ whole Atlas manuscript plan complete.
    Figure 8–9 plan.
 
 ENGINE
-1. Measurement vector frozen: Y = {X, H, W, Q, Φ_E, Φ_B, SPK, PSD, C, φ,
-   E_reduction, T_compute, M_compute}; absent = `OMITTED`, refused =
-   `REFUSED`, never synthesized. Schema versioned and gated.
+1. Retain the values AT-02…AT-06 already compute so schema v4 stops
+   recording them OMITTED: `mem_peak_b` (M_compute) and source means (Q),
+   plus X/SPK where the runner computes them (list and reasons in
+   `artifacts/programme/atlas_gap_055.md`). Additive raw keys only; update
+   `EXPECTED_IMPLEMENTED` in `tests/test_atlas_v4_records.py`. Moving
+   `y_schema` into the `jaxfne` public API is a separate human decision.
 2. Atlas generator: the `jaxfne.vis.atlas_suite` 7-panel contract consumes
    each simulation's declared data contract; one simulation → many views,
    no simulation inside visualization.
 3. Canonical simulation manifests for AT-01…AT-10: seeds, model identity,
    inputs, recording budgets, lineage; regenerable from a fresh clone
    (H11).
+   State: no canonical simulation manifest exists; reuse `jaxfne.io`
+   `manifest()` / `save_receipt()` and the per-script `_spec_digest`.
+   Seeds and constants per AT are inventoried in the sweep report (build
+   and run seeds differ from 0.5.3 on). No test runs
+   `at01_at10_toy.run_all()`; the gap-doc `wall_s` values are
+   transcribed, not regenerated.
 4. Inheritance check: AT-01 ⊂ AT-02:04 ⊂ AT-05:07 ⊂ AT-08:09 ⊂ AT-10 as a
    mechanical spec diff — each step only adds declared components.
+   AT-05/06 branch off the population path, not AT-04's TFNE spec: the
+   diff compares declared-object sets, not call-site nesting.
 5a. Agent tool surface (agent-native step 5): `realize`, `inspect`,
    `simulate`, `compare`, `observe`, `verify` over the typed objects, not
    wrappers over every function.
@@ -740,6 +751,14 @@ ATLAS
    trajectories count as evidence of active stabilization only with a
    perturbation/control assay (0.5.3 items 6–7) that separates
    bounded ≠ returning ≠ homeostatically stabilized.
+   State: JDNA `develop(G, seed)` exists with one single-area genome
+   (`canonical-v1-column-1000n.json`); no G_20 genome, no N_20 builder,
+   no declared cross-area delays (the 0.5.1 `at10_20area` benchmark cell
+   is a full-bipartite ring placeholder). AT-10 exists only as the
+   3-area toy. The same assay also moves AT-07-R3 (now SUPPORTED) to
+   VALIDATED.
+6b. Decisions (human): AT-07-R4 (B as input to dynamics, candidate):
+   promote or OUT_OF_SCOPE. It blocks the 0.5.5 seal only.
 7. Reduction/scale matrix: for each transition M_i → M_(i+1), which
    observations survive within the predeclared tolerance and which do not;
    failures stay in the matrix.

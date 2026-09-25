@@ -71,8 +71,8 @@ jobs:
       - name: Audit public docs language (no leaked doctrine, no obfuscated identifiers)
         run: PYTHONPATH=. python scripts/audit_public_docs_language.py --check
 
-      - name: Atlas firewall gate (AT scenarios use public surface only)
-        run: python -m pytest tests/test_atlas_firewall.py -q
+      - name: Atlas firewall gate (AT scenarios use public surface only) + Y schema v4
+        run: python -m pytest tests/test_atlas_firewall.py tests/test_atlas_y_schema.py tests/test_check_atlas_coverage.py -q
 
       - name: Atlas coverage check
         run: PYTHONPATH=. python scripts/check_atlas_coverage.py --check

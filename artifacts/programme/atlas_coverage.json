@@ -29,8 +29,8 @@
    "capability": "measurement schema v0 (0.5.1) -> frozen (0.5.5)",
    "release": "0.5.1-0.5.5",
    "candidate": false,
-   "evidence": "artifacts/atlas/at01_at10_toy.py",
-   "state": "SUPPORTED"
+   "evidence": "tests/test_atlas_v4_records.py",
+   "state": "VALIDATED"
   },
   {
    "id": "AT-00-R2",
