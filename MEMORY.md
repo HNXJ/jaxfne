@@ -83,3 +83,9 @@ Format per lesson: {trigger,cause,repair,evidence,scope}.
   repair: never bare-pop; treat pre-existing stashes read-only; if one is popped by mistake, `git reset --hard HEAD` recovers only when the tree was sealed+pushed (verify HEAD==origin/dev and status 0 first)
   evidence: P-008 (conflicted jaxfne/vis/__init__.py; clean reset, stash preserved, import smoke OK)
   scope: jaxfne (git)
+
+- trigger: consecutive per-step pushes land red on CI while local gates pass
+  cause: per-step verification ran targeted test subsets only; public-surface additions (snapshot/docs counts) and lint break CI's full gate, which nothing per-step executed
+  repair: after any push touching jaxfne/ exports or surface artifacts, read that push's CI result before the next step; repo is public so GitHub Actions API answers without a gh token — check Fast on the exact pushed SHA, not just local broad
+  evidence: 0.5.4 (9 pushes 6792bc7..0ad95e0 red on CI, green locally; e13a511 fixed lint, 26c4299 fixed surface; Fast green confirmed on 86e5224 via public API)
+  scope: jaxfne (git/CI)
