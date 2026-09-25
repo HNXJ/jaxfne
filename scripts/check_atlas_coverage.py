@@ -2,8 +2,10 @@
 
 Validates: schema tag, unique well-formed IDs, release values, states,
 sim/ID consistency; every non-PLANNED row must name an evidence path that
-exists (relative to the repo root). Read-only over the JSON: never edits it
-(dispatcher-only file).
+exists (relative to the repo root). A row owned by a release listed in
+``sealed_releases`` may not stay PLANNED; a candidate row there is reported
+as a warning instead, since only the human can promote it or mark it
+OUT_OF_SCOPE. Read-only over the JSON: never edits it (dispatcher-only file).
 
 Usage: PYTHONPATH=. python scripts/check_atlas_coverage.py [--check]
        [--coverage PATH] [--root PATH]
@@ -35,9 +37,18 @@ RELEASE_RE = re.compile(r"0\.5\.[1-5](-0\.5\.[1-5])?$")
 SIM_RE = re.compile(r"S([1-9]|10)$")
 
 
-def check(coverage_path: pathlib.Path, root: pathlib.Path) -> list[str]:
-    """Return a list of error strings; empty means VALID."""
+def check(
+    coverage_path: pathlib.Path,
+    root: pathlib.Path,
+    warnings: list[str] | None = None,
+) -> list[str]:
+    """Return a list of error strings; empty means VALID.
+
+    Candidate rows left PLANNED in a sealed release go to ``warnings``.
+    """
     errors: list[str] = []
+    if warnings is None:
+        warnings = []
     try:
         doc = json.loads(coverage_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -49,6 +60,13 @@ def check(coverage_path: pathlib.Path, root: pathlib.Path) -> list[str]:
         errors.append(f"states table must define exactly {list(KNOWN_STATES)}")
     if not doc.get("seal_rule"):
         errors.append("missing seal_rule")
+
+    sealed = doc.get("sealed_releases", [])
+    if not isinstance(sealed, list) or not all(
+        isinstance(r, str) and RELEASE_RE.fullmatch(r) for r in sealed
+    ):
+        errors.append(f"sealed_releases must be a list of releases, got {sealed!r}")
+        sealed = []
 
     rows = doc.get("requirements")
     if not isinstance(rows, list) or not rows:
@@ -94,6 +112,13 @@ def check(coverage_path: pathlib.Path, root: pathlib.Path) -> list[str]:
         if not isinstance(row["capability"], str) or not row["capability"].strip():
             errors.append(f"{rid}: empty capability")
 
+        if row["state"] == "PLANNED" and row["release"] in sealed:
+            msg = f"{rid}: PLANNED in sealed release {row['release']}"
+            if row["candidate"] is True:
+                warnings.append(msg + " (candidate: human promote or OUT_OF_SCOPE)")
+            else:
+                errors.append(msg)
+
         ev = row["evidence"]
         if row["state"] == "PLANNED":
             if ev is not None and not (isinstance(ev, str) and (root / ev).exists()):
@@ -137,7 +162,10 @@ def main(argv: list[str] | None = None) -> int:
     if not coverage.is_absolute():
         coverage = root / coverage
 
-    errors = check(coverage, root)
+    warnings: list[str] = []
+    errors = check(coverage, root, warnings)
+    for warn in warnings:
+        print(f"warning: {warn}")
     if errors:
         print(f"atlas_coverage INVALID ({len(errors)} errors):")
         for err in errors:

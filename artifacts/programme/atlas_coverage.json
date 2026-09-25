@@ -20,6 +20,7 @@
   "state": "one of states"
  },
  "seal_rule": "0.5.5 seals only when every row is VALIDATED, CANONICAL or OUT_OF_SCOPE",
+ "sealed_releases": ["0.5.1", "0.5.2", "0.5.3", "0.5.4"],
  "requirements": [
   {
    "id": "AT-00-R1",
@@ -238,8 +239,8 @@
    "capability": "causal intervention grammar + H clamp",
    "release": "0.5.3",
    "candidate": false,
-   "evidence": null,
-   "state": "PLANNED"
+   "evidence": "tests/test_atlas_at04r2_053.py",
+   "state": "VALIDATED"
   },
   {
    "id": "AT-04-R3",
@@ -328,8 +329,8 @@
    "capability": "plasticity enable/disable/clamp; stochastic rule RNG domain",
    "release": "0.5.3",
    "candidate": false,
-   "evidence": null,
-   "state": "PLANNED"
+   "evidence": "tests/test_atlas_at07_053.py",
+   "state": "VALIDATED"
   },
   {
    "id": "AT-07-R2",
@@ -338,8 +339,8 @@
    "capability": "H/W trajectories under recording budgets",
    "release": "0.5.3",
    "candidate": false,
-   "evidence": null,
-   "state": "PLANNED"
+   "evidence": "tests/test_atlas_at07_053.py",
+   "state": "VALIDATED"
   },
   {
    "id": "AT-07-R3",
@@ -348,8 +349,8 @@
    "capability": "separate diagnostics; intervention grammar",
    "release": "0.5.3",
    "candidate": false,
-   "evidence": null,
-   "state": "PLANNED"
+   "evidence": "artifacts/programme/long_diagnostics_053.md",
+   "state": "SUPPORTED"
   },
   {
    "id": "AT-07-R4",
