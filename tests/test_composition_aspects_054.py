@@ -175,3 +175,56 @@ def test_three_area_no_cross_middle_member_identity():
     solo = _sim(m[1], s1)
     assert np.array_equal(np.asarray(sig.V_m)[:, 10:18], np.asarray(solo.V_m))
     assert np.array_equal(np.asarray(sig.spikes)[:, 10:18], np.asarray(solo.spikes))
+
+
+def test_ensemble_survives_edge_list_serialization_roundtrip():
+    """H4: the composed recurrence (member + cross edges with delays)
+    persists through JSON text bit-exactly; reconnecting the same members
+    reproduces the ensemble and its run."""
+    import json
+
+    m1, m2 = _col("V1", N1, 0), _col("V2", N2, 1)
+    ens = jtfne.connect(
+        m1,
+        m2,
+        namespace=("A", "B"),
+        edges=[
+            dict(
+                source={"model": 0, "area": "V1", "cell_type": "E"},
+                target={"model": 1, "area": "V2"},
+                probability=0.5,
+                weight=0.5,
+                sign="excitatory",
+                delay_ms=2.0,
+            )
+        ],
+    )
+    el = ens.params["edge_list"]
+    payload = json.loads(json.dumps(el.to_dict(), allow_nan=False))
+    restored = type(el).from_dict(payload)
+    for name in ("pre", "post", "weight", "delay_steps"):
+        assert np.array_equal(np.asarray(getattr(restored, name)), np.asarray(getattr(el, name))), (
+            name
+        )
+    # ensemble metadata itself is JSON-safe (H11/H4: no local artifacts).
+    json.dumps(ens.cfg.metadata["ensemble"], allow_nan=False)
+    # reconnecting the same members reproduces edges and run bit-exactly.
+    ens2 = jtfne.connect(
+        m1,
+        m2,
+        namespace=("A", "B"),
+        edges=[
+            dict(
+                source={"model": 0, "area": "V1", "cell_type": "E"},
+                target={"model": 1, "area": "V2"},
+                probability=0.5,
+                weight=0.5,
+                sign="excitatory",
+                delay_ms=2.0,
+            )
+        ],
+    )
+    el2 = ens2.params["edge_list"]
+    assert np.array_equal(np.asarray(el2.pre), np.asarray(el.pre))
+    assert np.array_equal(np.asarray(el2.post), np.asarray(el.post))
+    assert np.array_equal(np.asarray(_sim(ens, SEED).V_m), np.asarray(_sim(ens2, SEED).V_m))
