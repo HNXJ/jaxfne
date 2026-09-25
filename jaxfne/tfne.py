@@ -451,12 +451,14 @@ class RuleEndpoint:
 @dataclass(frozen=True)
 class RuleStmt:
     """One projection statement inside a rule body: endpoints, direction,
-    and an optional per-statement mechanism overriding the rule default."""
+    and optional per-statement mechanism / delay overriding the rule
+    defaults (0.5.4 item 1c)."""
 
     left: RuleEndpoint
     direction: str  # '>' | '<' | '<>'
     right: RuleEndpoint
     mechanism: Optional[str] = None
+    delay: Optional[float] = None  # ms; None = rule default
 
 
 @dataclass(frozen=True)
@@ -711,11 +713,13 @@ class _Parser:
         return RuleDef(name=name, kind=kind, params=params, body=tuple(body))
 
     def _parse_rulestmt(self, kind: str, rule: str) -> RuleStmt:
-        """One S12 body statement: endpoint, direction, endpoint, mechanism.
+        """One S12 body statement: endpoint, direction, endpoint, options.
 
         Direction lives in the statement (bodies routinely mix `>` and `<`),
-        never implicitly. A trailing `[mech=NAME]` overrides the rule-level
-        mechanism for this statement's projections only.
+        never implicitly. A trailing option block overrides the rule level
+        for this statement's projections only: `[mech=NAME]`,
+        `[delay=MS]`, or `[mech=NAME, delay=MS]` in either order
+        (0.5.4 item 1c).
         """
         left = self._parse_rule_endpoint()
         tok = self.peek()
@@ -727,18 +731,37 @@ class _Parser:
         direction = self.next()[1]
         right = self._parse_rule_endpoint()
         mechanism: Optional[str] = None
+        delay: Optional[float] = None
         if self.at_sym("["):
             self.next()
-            if self.peek() != ("NAME", "mech"):
-                raise TFNEError(
-                    f"rule {kind}[{rule}] statement options support only "
-                    f"[mech=NAME]; got {self.peek()}"
-                )
-            self.next()
-            self.expect("SYM", "=")
-            mechanism = self.expect("NAME")
+            seen: set[str] = set()
+            while True:
+                if self.peek() != ("NAME", "mech") and self.peek() != ("NAME", "delay"):
+                    raise TFNEError(
+                        f"rule {kind}[{rule}] statement options support only "
+                        f"mech=NAME and delay=MS; got {self.peek()}"
+                    )
+                opt = self.next()[1]
+                if opt in seen:
+                    raise TFNEError(f"rule {kind}[{rule}] duplicate statement option {opt!r}")
+                seen.add(opt)
+                self.expect("SYM", "=")
+                if opt == "mech":
+                    mechanism = self.expect("NAME")
+                else:
+                    delay = _validate_tfne_delay_ms(f"{kind}[{rule}]", self._expect_number())
+                if self.at_sym(","):
+                    self.next()
+                    continue
+                break
             self.expect("SYM", "]")
-        return RuleStmt(left=left, direction=direction, right=right, mechanism=mechanism)
+        return RuleStmt(
+            left=left,
+            direction=direction,
+            right=right,
+            mechanism=mechanism,
+            delay=delay,
+        )
 
     def _parse_rule_endpoint(self) -> RuleEndpoint:
         """One S12 endpoint: `$L[.out|.in]`, a member ref, or `{a, b}`."""
@@ -1089,8 +1112,13 @@ def _emit_rule_endpoint(ep: RuleEndpoint) -> str:
 
 def _emit_rulestmt(stmt: RuleStmt) -> str:
     text = f"{_emit_rule_endpoint(stmt.left)} {stmt.direction} {_emit_rule_endpoint(stmt.right)}"
+    opts: list[str] = []
     if stmt.mechanism is not None:
-        text += f" [mech={stmt.mechanism}]"
+        opts.append(f"mech={stmt.mechanism}")
+    if stmt.delay is not None:
+        opts.append(f"delay={stmt.delay}")
+    if opts:
+        text += " [" + ", ".join(opts) + "]"
     return text
 
 
@@ -1240,6 +1268,10 @@ class RelationRecord:
     # S12: per-statement mechanism from a rule-body `[mech=...]`, overriding
     # the rule-level mechanism for this relation's projections only.
     mechanism: Optional[str] = None
+    # 0.5.4 item 1c: per-statement delay (ms) from a rule-body
+    # `[delay=...]`, overriding the rule-level delay for this relation's
+    # projections only. None = rule default.
+    delay: Optional[float] = None
 
 
 @dataclass
@@ -2297,6 +2329,7 @@ class _Resolver:
                     post,
                     group=group,
                     mechanism=stmt.mechanism,
+                    delay=stmt.delay,
                 )
         return self.relations[-1]
 
@@ -2319,6 +2352,7 @@ class _Resolver:
         right: list[str],
         group: Optional[str] = None,
         mechanism: Optional[str] = None,
+        delay: Optional[float] = None,
     ) -> RelationRecord:
         i = self.relation_counter
         self.relation_counter += 1
@@ -2336,6 +2370,7 @@ class _Resolver:
             post_scopes=tuple(right),
             group=group,
             mechanism=mechanism,
+            delay=delay,
         )
         if form != "exclusion":
             self.relations.append(rec)
@@ -2619,13 +2654,18 @@ def realize(
             # S12 per-statement mechanism overrides the rule default for
             # this relation's projections only.
             params["mechanism"] = rel.mechanism
+        if rel.delay is not None:
+            # 0.5.4 item 1c: per-statement delay overrides the rule
+            # default for this relation's projections only (validated
+            # at parse; ms, realized to steps at construction).
+            params["delay"] = rel.delay
         if rel.direction not in (">", "<"):
             raise TFNEError(f"relation {rel.key!r} has unresolved direction {rel.direction!r}")
         # Declared `delay` (ms) is carried, not refused (TFNE-PARAM-02,
         # 0.5.2 decision 0b): validated in `_rule_connection_params`,
         # fanned out per edge by `compile_connection_rules`, realized to
-        # steps at construction. Per-statement delay stays out of scope
-        # (S12 rule bodies; 0.5.4 item 1c owns it).
+        # steps at construction. A per-statement `[delay=...]` (0.5.4
+        # item 1c) overrides the rule default just above.
         #
         # `plasticity` is deliberately not refused: it names a rule identity
         # for the separate registrable HDP surface rather than a connection
@@ -2972,11 +3012,15 @@ def to_neuronal_tensor(explicit: ExplicitModel):
         for rel in explicit.relations:
             # Declared rule delay rides the tensor bridge for inspection.
             # Execution still reads the realized specs (PARAM-01), not this.
+            # A per-statement rel.delay (0.5.4 item 1c) overrides the rule
+            # default, mirroring _relation_mechanism below.
             rel_delay: "float | None" = None
             if rel.rule is not None:
                 _rp = explicit.rule_params.get(rel.rule) or {}
                 if _rp.get("delay") is not None:
                     rel_delay = float(_rp["delay"])
+            if rel.delay is not None:
+                rel_delay = float(rel.delay)
             for pre_scope, post_scope in _scope_pairs(rel):
                 for pre_leaf in _leaves_under(explicit, pre_scope, leaves):
                     for post_leaf in _leaves_under(explicit, post_scope, leaves):
@@ -3000,12 +3044,15 @@ def to_neuronal_tensor(explicit: ExplicitModel):
         )
     area_conns: list[AreaConnection] = []
     for rel in explicit.relations:
-        # Same inspection attach as the within-area loop above.
+        # Same inspection attach as the within-area loop above (including
+        # the 0.5.4 item 1c per-statement override).
         area_delay: "float | None" = None
         if rel.rule is not None:
             _arp = explicit.rule_params.get(rel.rule) or {}
             if _arp.get("delay") is not None:
                 area_delay = float(_arp["delay"])
+        if rel.delay is not None:
+            area_delay = float(rel.delay)
         for pre_scope, post_scope in _scope_pairs(rel):
             for pre_leaf in _leaves_under(explicit, pre_scope, leaves):
                 for post_leaf in _leaves_under(explicit, post_scope, leaves):
