@@ -875,7 +875,6 @@ def _simulate_continuation_arrays(
         run_continuation,
         validate_continuation_delay_state,
         _ensemble_segment_schedule,
-        _ensemble_counts_of_model,
     )
 
     if runtime_cfg.enable_homeostasis:
