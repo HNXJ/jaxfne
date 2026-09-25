@@ -2840,6 +2840,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
+    noise_schedule: "jax.Array | None" = None,
     init_state: "dict | None" = None,
     # Homeostasis control parameters (all defaulted; k_gain=0 disables)
     r_star: float = 0.05,
@@ -2879,6 +2880,8 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     Args:
         params, edges, n_steps, dt_ms, key: as in simulate_edge_recurrent_izhikevich
         dtype, drive_schedule, silence_mask, noise_scale: as in simulate_edge_recurrent_izhikevich
+        noise_schedule: optional exact per-step unit-noise array (chain schedule from the
+            Model path); None keeps the legacy bulk draw, bit-identical.
         r_star: target activity trace (default 0.05, ~expected spikes/step)
         tau_r_ms: slow leak timescale in ms (default 300, >> dt for stability)
         alpha: per-spike jump in r_i (default 1.0)
@@ -2951,10 +2954,21 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     else:
         s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
 
-    key, noise_key = jax.random.split(key)
-    bulk_noise = jax.random.normal(
-        noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype
-    )
+    if noise_schedule is None:
+        key, noise_key = jax.random.split(key)
+        bulk_noise = jax.random.normal(
+            noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype
+        )
+    else:
+        # 0.5.3 item 3 (P-010 follow-up): chain-consistent draws supplied by
+        # the Model path so the k_gain=0 null matches the baseline exactly.
+        # None keeps the legacy bulk draw, bit-identical.
+        bulk_noise = jnp.asarray(noise_schedule, dtype=jdtype)
+        if bulk_noise.shape != (int(n_steps), int(params.v0.shape[0])):
+            raise ValueError(
+                "noise_schedule must have shape "
+                f"({int(n_steps)}, {int(params.v0.shape[0])}), got {bulk_noise.shape}"
+            )
 
     # Carry includes r_i (activity trace). When ``init_state`` is given (the
     # ``final_state`` dict returned by a previous call) the carry resumes from it,

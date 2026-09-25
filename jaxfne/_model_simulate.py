@@ -255,6 +255,8 @@ def _simulate_arrays(
 
         def _homeo_packed(k, s):
             """Return (V, spikes, sources, g_bias, r_trace[, w_final, w_trace])."""
+            from ._pipeline import continuation_noise_schedule
+
             V, S, src, diag = simulate_edge_recurrent_izhikevich_homeostatic(
                 emitter,
                 edges,
@@ -264,6 +266,10 @@ def _simulate_arrays(
                 dtype=runtime_cfg.actual_dtype,
                 drive_schedule=s,
                 silence_mask=silence_mask,
+                noise_scale=hp.get("noise_scale", None),
+                noise_schedule=continuation_noise_schedule(
+                    k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                ),
                 r_star=hp.get("r_star", 0.05),
                 tau_r_ms=hp.get("tau_r_ms", 300.0),
                 alpha=hp.get("alpha", 1.0),
