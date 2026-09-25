@@ -632,18 +632,17 @@ ENGINE — sealed 2026-09-24 (merges `76fa9bb`, `4f4d88d`; receipts
   [Unreleased]). (b) ACCEPTED — baseline jit-vs-eager V/sources move from
   bit-exact to ≤ EPS_V (observed 3.9e-5; spikes exact).
 
-ATLAS
-7c. (opencode, gh) Confirm CI (Fast) green on `f9d8fcb` (run
-   36079289391; headSha must match). The Claude Code session has no valid
-   `gh` token and could not verify it.
-8. AT-07: fixed W vs declared plasticity conditions under matched
-   stimulation on the same realized network, using items 5–6. Report the
-   observation difference with its declared test; no adaptation phenotype
-   is required for acceptance.
-9. AT-04 H-perturbation arm (AT-04-R2): causal state effect on
-   excitability vs correlation X → Φ, via item 6.
-10. Measurement schema v1 → v2 (H and W trajectories and budgets); gap
-    matrix updated, seal note names moved cells.
+ATLAS — sealed 2026-09-24 (merge `e9f12b8`; homeostasis fix `edadb87`;
+broad 4437 cases / 0 fail on HEAD; `atlas_coverage VALID`):
+- Items 8/9/10 (AT-07 fixed-W vs HDP, AT-04 H-perturbation arm, schema
+  v1 → v2, gap matrix v2).
+- P-010 follow-up: homeostatic kernel accepts the Model-level chain
+  noise schedule, so the k_gain=0 null matches the edge_list baseline
+  exactly (`test_kgain_zero_null_matches_baseline_edge_list` green in
+  the full suite); legacy None path bit-identical.
+7c. (opencode, gh) Confirm CI (Fast) green on HEAD `edadb87` (prior
+   check targeted `f9d8fcb`, run 36079289391; tree has since moved).
+   No valid `gh` token in this session; could not verify.
 
 ACCEPTANCE (0.5.3 seal)
 - Existing canonical configurations bit-identical, except the approved
