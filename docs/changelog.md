@@ -9,6 +9,16 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+### Changed
+
+- Seeded stochastic `simulate()` runs (baseline and registered-rule paths)
+  draw membrane and rule noise from the per-step continuation key chain, so
+  a run split into chunks equals the unsplit run bit for bit. Seeded
+  stochastic outputs differ from earlier releases; noise-free runs are
+  unchanged.
+- A declared `noise_scale` is honored on the baseline and registered-rule
+  paths; earlier releases ignored it there.
+
 ## v0.5.0 (2026-09-23)
 
 Measured 0.5.x baseline plus integration/harness foundation and one verified

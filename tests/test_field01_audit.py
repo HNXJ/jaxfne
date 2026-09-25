@@ -13,7 +13,6 @@ import time
 import jax
 import jax.numpy as jnp
 import numpy as np
-import pytest
 
 import jaxfne as jtfne
 from jaxfne.fields.proxy import csd_tensor, project_laminar_sources
@@ -126,11 +125,15 @@ def test_source_generation_vs_projection_split():
         duration_ms=1000.0, dt_ms=1.0, seed=3, record_sources=True, record_fields=False,
         runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list", hdp_params={"noise_scale": 0.0}),
     )
+    pos_arr = np.asarray(model.params["positions"])
+    # Warm both paths so the comparison is steady-state work, not JIT compile (P-009).
+    warm = jtfne.simulate(model, sim)
+    jax.block_until_ready(project_laminar_sources(
+        jnp.asarray(np.asarray(warm.sources)), jnp.asarray(pos_arr), n_contacts=16).lfp_proxy)
     t0 = time.perf_counter()
     sig = jtfne.simulate(model, sim)
-    t_sim = time.perf_counter() - t0
     sources = np.asarray(sig.sources)
-    pos_arr = np.asarray(model.params["positions"])
+    t_sim = time.perf_counter() - t0
     t1 = time.perf_counter()
     field = project_laminar_sources(jnp.asarray(sources), jnp.asarray(pos_arr), n_contacts=16)
     jax.block_until_ready(field.lfp_proxy)

@@ -482,7 +482,6 @@ programme rule or marked OUT_OF_SCOPE by the human.
 | TFNE-PARAM-02 delay refused | 0.5.2 item 2 |
 | Agent-native step 3 (capability inventory) and step 4 (capability records; delay is the worked example) | 0.5.2 item 6, then each release for its capabilities |
 | PARAM-03 check "TFNE construction vs equivalent hand-written construction" (not in the mech receipt) | 0.5.2 item 6 |
-| Deep-audit HDP hygiene: `compile_step_fn **hdp_kwargs` unknown-key policy; `validate_hdp_params` non-dict non-strict silent pass | 0.5.3 item 7b |
 | TFNE2-03 exception: cell types still ordered by `C = {...}` enumeration | 0.5.4 item 1b |
 | TFNE2-05 carried: per-statement delay/geometry in rule bodies | 0.5.4 item 1c |
 | TFNE2-04/05 carried: `X[k]`-rule frontier override (language decision) | 0.5.4 item 0 |
@@ -538,9 +537,9 @@ ATLAS — sealed 2026-09-24:
   check (`scripts/check_atlas_coverage.py`), both wired into CI.
 
 Failures recorded (open, owned): B8 chunked-vs-single spike divergence
-(173 vs 174, identical seeds; root-cause owned by 0.5.3 item 3);
+(173 vs 174, identical seeds; fixed in 0.5.3 item 3, P-010);
 `test_source_generation_vs_projection_split` wall-time flake (fails
-identically on pristine fd46e1c; P-009). AT-10 benchmark wiring is a
+identically on pristine fd46e1c; P-009, closed 2026-09-24 by warmup). AT-10 benchmark wiring is a
 full-bipartite placeholder (real wiring is G_20, 0.5.5).
 
 ACCEPTANCE (0.5.1 seal) — met: canonical configs bit-identical (broad
@@ -615,34 +614,23 @@ bounded ≠ stable. Symbol definitions come from the Atlas source and
 `docs/doctrine/rbs_rbd_hdp.md`, not from this file. B is the magnetic field
 (an observation); B as an input to dynamics is a candidate (AT-07-R4).
 
-ENGINE
-1. H/W/K ownership: configured → realized → executed inspection for each
-   (0.5.2 item 6 pattern), including which rule mutates which state.
-2. Recording budgets for slow variables: H and W at declared stride /
-   subset, built on the 0.5.1 opt-in recording API; full recording stays
-   the default.
-3. Long-horizon continuation: extend the C-04 H-carry resume tests
-   (`tests/test_phaseC_H_carry_resume.py`) to all mutable state, chunk
-   counts ≫ 2, and delays in flight (0.5.2 item 2). Recorded 0.5.1
-   (B8, `bottlenecks_051.md`): chunked-vs-single spike divergence 173 vs
-   174 with identical seeds, suspected identical-seed-per-segment harness;
-   root-cause here (seed-chain semantics), not in the test.
-4. Deterministic replay: same seed + same inputs → bit-identical run;
-   stochastic plasticity rules draw from a declared RNG domain, and
-   changing one rule's stream leaves every other stream untouched.
-5. Plasticity controls: enable / disable / clamp per rule and per
-   projection. The existing `K_HDP=0` null is the template; clamp holds W
-   exactly and is tested adversarially (H5).
-6. Causal intervention grammar: identical realized network + intervention
-   on one mechanism + declared observation difference, as one declarative
-   object that records all three. First-class in manifests.
-7. Long-horizon diagnostics: boundedness and stability reported as separate
-   measurements; neither inferred from the other.
-7b. HDP parameter hygiene (deep audit 2026-09-20): classify per H7 and fix
-   the `compile_step_fn **hdp_kwargs` unknown-key policy and the
-   `validate_hdp_params` non-dict non-strict silent pass. Unknown or
-   malformed plasticity parameters fail closed before item 5 controls rely
-   on them.
+ENGINE — sealed 2026-09-24 (merges `76fa9bb`, `4f4d88d`; receipts
+`artifacts/programme/*_053.md`):
+- Items 1–4 (ownership, budgets, continuation, replay): H/W/K
+  configured→realized→executed table; H/W stride/subset budgets (full
+  recording stays default); chunked ≡ continuous bit-exact for all
+  mutable state incl. delays in flight; replay bit-identical with
+  declared RNG domains. P-010 (173 v 174) root-caused and fixed in
+  `865e74b`: plain path drew bulk noise, chained path per-step.
+- Items 5, 6, 7, 7b: per-rule/per-projection enable/disable/clamp
+  (adversarial); `jaxfne/intervene.py` intervention object with manifest
+  roundtrip; boundedness and stability as separate measurements; HDP
+  unknown/malformed parameters fail closed (H7 table).
+- Decisions (human, 2026-09-24): (a) APPROVED — Model-level stochastic
+  runs draw the new chain-consistent noise stream and honor declared
+  `noise_scale`; seeded stochastic outputs change (changelog
+  [Unreleased]). (b) ACCEPTED — baseline jit-vs-eager V/sources move from
+  bit-exact to ≤ EPS_V (observed 3.9e-5; spikes exact).
 
 ATLAS
 8. AT-07: fixed W vs declared plasticity conditions under matched
@@ -655,8 +643,9 @@ ATLAS
     matrix updated, seal note names moved cells.
 
 ACCEPTANCE (0.5.3 seal)
-- Existing canonical configurations bit-identical; plasticity-off equals the
-  pre-0.5.3 fixed-W path bit-for-bit.
+- Existing canonical configurations bit-identical, except the approved
+  stochastic noise-stream change (decision a above); plasticity-off equals
+  the pre-0.5.3 fixed-W path bit-for-bit.
 - Chunked ≡ continuous for every mutable state, delays included.
 - Replay bit-identical; RNG-domain isolation tested.
 - Clamp and disable tested adversarially; interventions serialize and

@@ -69,6 +69,9 @@ in flight with live noise.
 
 ## Behavior-change disclosure (authorized repair class, cf. 0.5.2 PARAM-04)
 
+Human decision 2026-09-24: point 1 APPROVED (changelog [Unreleased]);
+point 2 ACCEPTED.
+
 1. Model-level stochastic baseline/registered runs draw a NEW
    (chain-consistent) noise stream; deterministic runs (noise 0) and
    direct-kernel bulk defaults are bit-preserved. No frozen trajectory
