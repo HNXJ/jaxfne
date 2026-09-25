@@ -3,11 +3,11 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-09-22T14:28:59",
+  "generated_at": "2026-09-25T13:15:33",
   "components": {
     "project_agents": {
       "file": "artifacts/AGENTS.md",
-      "sha256": "4b8dae8886c5ce506642dd16153136f4da6f3b07fffda1020efc7e95b2b512c8"
+      "sha256": "5cdc0238bce03ce92a56ea2f5a1edcd20584b0d197d3ca8298f4addc267af48e"
     },
     "canonical_skills": {
       "jaxfne-audit": "b2d64e3fa6c8ae65fe6b4959fed12bcb7a05469f69a2d81b3769fc60a99c1bff",

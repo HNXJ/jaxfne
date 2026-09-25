@@ -70,6 +70,7 @@ Scientific experiments preserve failed prospective receipts. Do not tune a froze
 
 ## Repository behavior
 
+- Read `artifacts/memory.md` first: the project brief (layout, package map, gates, conventions).
 - Read the smallest relevant skill under `artifacts/skills/` for procedure.
 - Verify unfamiliar public symbols against live code before using them.
 - Prefer package-native scientific operators over notebook/script-local duplicate engines.
