@@ -2,12 +2,12 @@
   "schema": "jaxfne.public_surface_contract.v0.4.13-pass1",
   "version": "0.4.13-pass1",
   "counts": {
-    "canonical": 178,
+    "canonical": 179,
     "advanced": 63,
     "compatibility": 13,
     "experimental_internal": 13,
-    "public_exports": 191,
-    "baseline_all": 267
+    "public_exports": 192,
+    "baseline_all": 268
   },
   "public_exports": [
     "AGSDR",
@@ -115,6 +115,7 @@
     "eeg_proxy_transform",
     "emm_proxy_transform",
     "enable_x64",
+    "ensemble_edge_ownership",
     "ensemble_member_seed",
     "evoked_l4_drive_paradigm",
     "export_report",

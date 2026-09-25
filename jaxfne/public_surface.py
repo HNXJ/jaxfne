@@ -173,6 +173,7 @@ _CANONICAL: Final[frozenset[str]] = frozenset(
         "default_basis_spec",
         "dynamic_state_from_model",
         "enable_x64",
+        "ensemble_edge_ownership",
         "ensemble_member_seed",
         "evoked_l4_drive_paradigm",
         "get_signal",

@@ -736,6 +736,7 @@ def _connect_merge_cfg(
     n_total: int,
     edges: "Sequence[Mapping[str, Any]] | None",
     cross_counts: "list[int]",
+    member_edge_counts: "list[int] | None" = None,
 ) -> "Configuration":
     """``connect()`` stage: merged cfg -- conservative truth gates, ensemble marker, cross rules."""
     cfg2 = models[0].cfg
@@ -777,6 +778,9 @@ def _connect_merge_cfg(
         "cross_model_edges": total_cross,
         "layout": str(layout),
         "dt_ms": _connect_member_dt_ms(models),
+        "member_edge_counts": (
+            [int(c) for c in member_edge_counts] if member_edge_counts else None
+        ),
     }
     if edges:
         circuit = {**md.get("circuit", {})}
@@ -858,6 +862,51 @@ def ensemble_member_seed(ensemble_seed: int, member: int, n_members: int) -> int
     return int(hashlib.sha256(tag).hexdigest()[:8], 16) % 2_147_483_647
 
 
+def ensemble_edge_ownership(model: "Model") -> dict[str, list[tuple[int, int]]]:
+    """Edge-index ownership of a ``connect()`` ensemble (0.5.4 item 4).
+
+    Returns ``{"member_ranges": [(lo, hi)] * n_models, "cross_ranges":
+    [(lo, hi)] * n_cross_rules}`` over the merged ``edge_list``: member
+    ``m``'s internal edges occupy its range, cross-model rule ``r``'s
+    edges occupy its range in rule order. A ``plasticity_mask`` built
+    from these ranges scopes HDP to the cross-area projection
+    (``W_12(t)``, ``W_21(t)``) or freezes it, with the 0.5.3
+    clamp/disable/replay semantics. Non-ensembles fail closed.
+    """
+    try:
+        ens = model.cfg.metadata.get("ensemble")
+    except Exception:
+        ens = None
+    if not isinstance(ens, dict):
+        raise ValueError("ensemble_edge_ownership requires a connect() ensemble model")
+    member_counts = ens.get("member_edge_counts")
+    if not member_counts:
+        raise ValueError(
+            "ensemble metadata lacks member_edge_counts; "
+            "reconnect the members with this jaxfne version"
+        )
+    member_ranges: list[tuple[int, int]] = []
+    cursor = 0
+    for c in member_counts:
+        member_ranges.append((cursor, cursor + int(c)))
+        cursor += int(c)
+    n_edges = int(model.params["edge_list"].n_edges)
+    md_circuit = model.cfg.metadata.get("circuit", {})
+    rules = md_circuit.get("connections", []) if isinstance(md_circuit, dict) else []
+    cross_ranges: list[tuple[int, int]] = []
+    for rule in rules:
+        if not isinstance(rule, dict) or rule.get("scope") != "cross_model":
+            continue
+        n = int(rule.get("compiled_n_edges", 0) or 0)
+        cross_ranges.append((cursor, cursor + n))
+        cursor += n
+    if cursor != n_edges:
+        raise ValueError(
+            f"ensemble edge ranges cover {cursor} edges but the edge_list carries {n_edges}"
+        )
+    return {"member_ranges": member_ranges, "cross_ranges": cross_ranges}
+
+
 def connect(
     *models: "Model",
     edges: "Sequence[Mapping[str, Any]] | None" = None,
@@ -928,6 +977,7 @@ def connect(
     counts = [int(em.n_neurons) for em in emitters]
     offsets = np.cumsum([0, *counts])[:-1]
     n_total = int(sum(counts))
+    member_edge_counts = [int(_model_edge_list(m, jdtype).n_edges) for m in models]
 
     ns, tables = _connect_resolve_namespace(models, namespace, strict)
     merged_emitter = _connect_merge_emitter(emitters, jdtype)
@@ -953,7 +1003,9 @@ def connect(
     if cross_el is not None:
         merged_edges = _concat_edge_lists(merged_edges, cross_el)
 
-    cfg2 = _connect_merge_cfg(models, ns, name, layout, counts, n_total, edges, cross_counts)
+    cfg2 = _connect_merge_cfg(
+        models, ns, name, layout, counts, n_total, edges, cross_counts, member_edge_counts
+    )
     merged_static = _connect_merge_static(models, merged_rows, strict, cfg2.metadata["ensemble"])
 
     return Model(

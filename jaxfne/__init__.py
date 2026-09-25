@@ -47,6 +47,7 @@ from .core import (
     migrate_schema,
     dataset_spec,
     enable_x64,
+    ensemble_edge_ownership,
     ensemble_member_seed,
     get_signal,
     evoked_l4_drive_paradigm,
