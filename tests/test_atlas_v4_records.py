@@ -23,11 +23,11 @@ _TWO_AREA = {
 _SINGLE_AREA_PLASTIC = {"C", "H", "M_compute", "Phi_E", "Q", "SPK", "T_compute", "W", "X"}
 EXPECTED_IMPLEMENTED: dict[str, set[str]] = {
     "AT-01": {"E_reduction", "M_compute", "SPK", "T_compute", "X"},
-    "AT-02": {"Phi_E", "SPK", "T_compute"},
-    "AT-03": {"C", "PSD", "Phi_E", "SPK", "T_compute", "X", "phi"},
-    "AT-04": {"C", "Phi_E", "T_compute", "X"},
-    "AT-05": {"C", "Phi_E", "T_compute"},
-    "AT-06": {"C", "T_compute"},
+    "AT-02": {"M_compute", "Phi_E", "Q", "SPK", "T_compute", "X"},
+    "AT-03": {"C", "M_compute", "PSD", "Phi_E", "Q", "SPK", "T_compute", "X", "phi"},
+    "AT-04": {"C", "M_compute", "Phi_E", "Q", "SPK", "T_compute", "X"},
+    "AT-05": {"C", "M_compute", "Phi_E", "Q", "SPK", "T_compute", "X"},
+    "AT-06": {"C", "M_compute", "Q", "SPK", "T_compute", "X"},
     "REDUCTION": {"E_reduction", "Q", "T_compute", "X"},
     "AT-07": _SINGLE_AREA_PLASTIC,
     "AT-04R2": _SINGLE_AREA_PLASTIC,

@@ -22,7 +22,7 @@ runs). The code and those pins are the source; this table explains them.
   claimed W_12 and W_21 IMPLEMENTED while only the combined cross change was
   recorded.
 
-## Cells v1 claimed that no runner value backs (now OMITTED)
+## Cells v1 claimed that no runner value backed
 
 | Scenario | Cells |
 |---|---|
@@ -32,10 +32,12 @@ runs). The code and those pins are the source; this table explains them.
 | AT-05 | X, SPK, Q, M_compute |
 | AT-06 | X, SPK, Q, Phi_E, M_compute |
 
-M_compute is measured inside these runners (`_run_configuration` /
-`_tfne_pair_run` return `mem_peak_b`) and dropped from the arm dicts; Q
-(sources) is computed and not retained. REDUCTION gains X and Q, which its
-runner writes and v1 left OMITTED.
+The runners measured these and dropped them. `at01_at06_052._retained` now
+writes Vm features (X), mean |source| per neuron (Q) and `mem_peak_b`
+(M_compute) per arm, plus `n_spikes` where the arm lacked it; 16 of the 17
+cells are IMPLEMENTED with values. AT-06 Phi_E stays OMITTED: the runner
+records only the locality ratio C(R,f), no field amplitude. REDUCTION gains
+X and Q, which its runner writes and v1 left OMITTED.
 
 ## Y x AT (v4, observed 2026-09-25 on the dev tree)
 
@@ -44,19 +46,19 @@ AT-04R2 the 0.5.3 H-perturbation arm; AT-10 is the toy 3-area pass.
 
 | Y \ AT | AT-01 | AT-02 | AT-03 | AT-04 | AT-05 | AT-06 | REDUCTION | AT-07 | AT-04R2 | AT-08 | AT-09 | AT-10 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| X | I | O | I | I | O | O | I | I | I | I | I | O |
+| X | I | I | I | I | I | I | I | I | I | I | I | O |
 | H | O | O | O | O | O | O | O | I | I | I | I | O |
 | W | O | O | O | O | O | O | O | I | I | I | I | O |
-| Q | O | O | O | O | O | O | I | I | I | I | I | O |
+| Q | O | I | I | I | I | I | I | I | I | I | I | O |
 | Phi_E | O | I | I | I | I | O | O | I | I | I | I | O |
 | Phi_B | R | R | R | R | R | R | R | R | R | R | R | R |
-| SPK | I | I | I | O | O | O | O | I | I | I | I | I |
+| SPK | I | I | I | I | I | I | O | I | I | I | I | I |
 | PSD | O | O | I | O | O | O | O | O | O | O | O | O |
 | C | O | O | I | I | I | I | O | I | I | I | I | O |
 | phi | O | O | I | O | O | O | O | O | O | O | O | O |
 | E_reduction | I | O | O | O | O | O | I | O | O | O | O | O |
 | T_compute | I | I | I | I | I | I | I | I | I | I | I | I |
-| M_compute | I | O | O | O | O | O | O | I | I | I | I | O |
+| M_compute | I | I | I | I | I | I | O | I | I | I | I | O |
 | SPK_A1 | O | O | O | O | O | O | O | O | O | I | I | O |
 | SPK_A2 | O | O | O | O | O | O | O | O | O | I | I | O |
 | H_A1 | O | O | O | O | O | O | O | O | O | I | I | O |
@@ -68,11 +70,9 @@ AT-04R2 the 0.5.3 H-perturbation arm; AT-10 is the toy 3-area pass.
 | C_12 | O | O | O | O | O | O | O | O | O | I | I | O |
 | dphi_12 | O | O | O | O | O | O | O | O | O | I | I | O |
 
-Counts: 86 IMPLEMENTED, 178 OMITTED, 12 REFUSED over 276 cells.
+Counts: 102 IMPLEMENTED, 162 OMITTED, 12 REFUSED over 276 cells.
 
 ## Owned next (todo stack, 0.5.5)
 
-- Retain the values AT-02..AT-06 already compute (mem_peak_b, source means)
-  so M_compute and Q stop being OMITTED there.
 - E_reduction scale matrix (item 7) and the AT-10 column (item 6).
 - Phi_B stays REFUSED until the AT-07-R4 human decision.

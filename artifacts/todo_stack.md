@@ -712,12 +712,8 @@ whole Atlas manuscript plan complete.
    Figure 8–9 plan.
 
 ENGINE
-1. Retain the values AT-02…AT-06 already compute so schema v4 stops
-   recording them OMITTED: `mem_peak_b` (M_compute) and source means (Q),
-   plus X/SPK where the runner computes them (list and reasons in
-   `artifacts/programme/atlas_gap_055.md`). Additive raw keys only; update
-   `EXPECTED_IMPLEMENTED` in `tests/test_atlas_v4_records.py`. Moving
-   `y_schema` into the `jaxfne` public API is a separate human decision.
+1. Decision (human): move `artifacts/atlas/y_schema.py` into the `jaxfne`
+   public API, or keep it an artifact module.
 2. Atlas generator: the `jaxfne.vis.atlas_suite` 7-panel contract consumes
    each simulation's declared data contract; one simulation → many views,
    no simulation inside visualization.

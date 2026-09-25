@@ -489,6 +489,19 @@ def _field_decomposition(run: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _retained(run: dict[str, Any]) -> dict[str, Any]:
+    """Run values the Y record reads (0.5.5 item 1): Vm features (X), mean
+    |source| per neuron (Q) and host peak bytes (M_compute)."""
+    sig = run["signals"]
+    vm = np.asarray(sig.V_m, dtype=float)
+    return {
+        "v_mean_mv": float(vm.mean()),
+        "v_peak_mv": float(vm.max()),
+        "Q_mean_abs_per_neuron": float(np.abs(np.asarray(sig.sources, dtype=float)).mean()),
+        "mem_peak_b": run["mem_peak_b"],
+    }
+
+
 def _relative_centroids(
     neuron_table: list[dict[str, Any]],
 ) -> dict[str, dict[str, float]]:
@@ -524,6 +537,7 @@ def run_at02() -> dict[str, Any]:
             "delay_steps": run["delay_steps"],
             "delay_storage": run["delay_storage"],
             "wall_s": run["wall_s"],
+            **_retained(run),
         }
     v_absent = np.asarray(arms["absent"]["signals"].V_m)
     v_zero = np.asarray(arms["zero"]["signals"].V_m)
@@ -654,6 +668,7 @@ def run_at03() -> dict[str, Any]:
             "rate_e_hz": rate_e,
             "rate_i_hz": rate_i,
             "kappa": float(J.kappa_synchrony(spikes, DT_MS)),
+            **_retained(run),
         },
         "oscillation": {
             "dominant_freq_hz": f_dom,
@@ -763,6 +778,8 @@ def run_at04() -> dict[str, Any]:
             "source_alignment_corr": float(align),
             "superposition_identity": decomp["superposition_identity"],
             "wall_s": run["wall_s"],
+            "n_spikes": int((spikes > 0).sum()),
+            **_retained(run),
         }
     # X -> Phi correlation across arms (observed association only).
     rates = np.array([arms[n]["rate_hz"] for n in AT04_ARMS])
@@ -866,6 +883,8 @@ def run_at05() -> dict[str, Any]:
             "phi_n_neq_n_phi_1": bool(abs(ratio - 1.0) > AT05_RATIO_MARGIN),
             "superposition_identity": decomp["superposition_identity"],
             "wall_s": run["wall_s"],
+            "n_spikes": int((spikes > 0).sum()),
+            **_retained(run),
         }
     by_rho = sorted(arms, key=lambda k: arms[k]["rho_sync_executed"])
     scaling = {
@@ -966,6 +985,7 @@ def run_at06() -> dict[str, Any]:
             "source_depths": "DECLARED ASSUMPTION: uniform linspace fractions",
         },
         "locality_c_r_f": locality,
+        "population": {"n_spikes": int((np.asarray(sig.spikes) > 0).sum()), **_retained(run)},
         "locality_note": (
             "C(R,f) = P[sum_{r_i<R} Phi_i(f)] / P[sum_i Phi_i(f)] computed "
             "on executed per-source proxy fields; source depths assumed "

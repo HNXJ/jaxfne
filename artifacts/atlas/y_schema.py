@@ -220,10 +220,20 @@ def _at01(raw: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _retained(arms: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
+    """X, SPK, Q, M_compute from the per-arm keys ``at01_at06_052._retained`` writes."""
+    return {
+        "X": per_arm(arms, "v_mean_mv", "v_peak_mv"),
+        "SPK": per_arm(arms, "n_spikes"),
+        "Q": per_arm(arms, "Q_mean_abs_per_neuron"),
+        "M_compute": per_arm(arms, "mem_peak_b"),
+    }
+
+
 def _at02(raw: Mapping[str, Any]) -> dict[str, Any]:
     fields = raw.get("fields") or {}
     return {
-        "SPK": per_arm(raw.get("arms") or {}, "n_spikes"),
+        **_retained(raw.get("arms") or {}),
         "Phi_E": _merge(
             pick(
                 fields.get("individual_vs_superposed"),
@@ -239,8 +249,10 @@ def _at03(raw: Mapping[str, Any]) -> dict[str, Any]:
     pair = raw.get("pair") or {}
     osc = raw.get("oscillation") or {}
     return {
-        "X": pick(pair, "rate_e_hz", "rate_i_hz"),
+        "X": pick(pair, "rate_e_hz", "rate_i_hz", "v_mean_mv", "v_peak_mv"),
         "SPK": pair.get("n_spikes"),
+        "Q": pair.get("Q_mean_abs_per_neuron"),
+        "M_compute": pair.get("mem_peak_b"),
         "Phi_E": _merge(pick(raw, "reconstruction_max_err"), pick(osc, "cancellation_index")),
         "PSD": pick(osc, "dominant_freq_hz", "bandpower_4_12", "bandpower_30_80"),
         "C": pair.get("kappa"),
@@ -253,7 +265,8 @@ def _at04_geometry(raw: Mapping[str, Any]) -> dict[str, Any]:
     corr = per_arm(arms, "source_alignment_corr")
     across = raw.get("x_to_phi_correlation_across_arms")
     return {
-        "X": per_arm(arms, "rate_hz"),
+        **_retained(arms),
+        "X": per_arm(arms, "rate_hz", "v_mean_mv", "v_peak_mv"),
         "Phi_E": per_arm(arms, "field_mean_abs"),
         "C": _merge(
             {"source_alignment_corr": corr} if corr else None,
@@ -265,6 +278,7 @@ def _at04_geometry(raw: Mapping[str, Any]) -> dict[str, Any]:
 def _at05(raw: Mapping[str, Any]) -> dict[str, Any]:
     arms = raw.get("arms") or {}
     return {
+        **_retained(arms),
         "Phi_E": per_arm(arms, "a_phi_mid_contact"),
         "C": per_arm(arms, "rho_sync_executed"),
     }
@@ -273,7 +287,14 @@ def _at05(raw: Mapping[str, Any]) -> dict[str, Any]:
 def _at06(raw: Mapping[str, Any]) -> dict[str, Any]:
     loc = raw.get("locality_c_r_f") or {}
     c = {k: v["c_mean"] for k, v in loc.items() if isinstance(v, Mapping) and "c_mean" in v}
-    return {"C": c or None}
+    pop = raw.get("population") or {}
+    return {
+        "X": pick(pop, "v_mean_mv", "v_peak_mv"),
+        "SPK": pop.get("n_spikes"),
+        "Q": pop.get("Q_mean_abs_per_neuron"),
+        "M_compute": pop.get("mem_peak_b"),
+        "C": c or None,
+    }
 
 
 def _reduction(raw: Mapping[str, Any]) -> dict[str, Any]:
