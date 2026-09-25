@@ -99,10 +99,11 @@ def test_public_symbol_count_contraction_from_baseline():
     audit: register_hdp_rule + HDPRule* types, root attrs outside __all__;
     +1 tfne classified ADVANCED for TFNE-IMPORT-01: the compiler module itself
     is the symbol, reachable as jaxfne.tfne and outside __all__, so its generic
-    names — parse, resolve, realize — stay inside it)."""
+    names — parse, resolve, realize — stay inside it;
+    +1 ensemble_member_seed CANONICAL for 0.5.4 composition member RNG domains)."""
     summary = public_surface_summary()
-    assert summary["counts"]["baseline_all"] == 266
-    assert summary["counts"]["public_exports"] == 190
+    assert summary["counts"]["baseline_all"] == 267
+    assert summary["counts"]["public_exports"] == 191
     assert summary["counts"]["compatibility"] == 13
     assert summary["counts"]["experimental_internal"] == 13
 
@@ -118,10 +119,10 @@ def test_surrogate_config_pair_is_experimental_not_public():
 
 def test_registrable_hdp_surface_is_advanced_not_public():
     """Post-0.4.24 audit: the generic registration surface is ADVANCED —
-    root-reachable and namespace-mapped, but outside the 190-name contract."""
+    root-reachable and namespace-mapped, but outside the 191-name contract."""
     from jaxfne.public_surface import ADVANCED_NAMESPACE
-    for name in ("register_hdp_rule", "HDPRuleDescriptor",
-                 "HDPRuleUpdate", "HDPRuleContext"):
+
+    for name in ("register_hdp_rule", "HDPRuleDescriptor", "HDPRuleUpdate", "HDPRuleContext"):
         assert name not in jtfne.__all__
         assert hasattr(jtfne, name)
         assert symbol_tier(name) == "ADVANCED"
@@ -141,6 +142,7 @@ def test_registrable_hdp_surface_is_advanced_not_public():
 # lost the H-boundary-stabilization keys) because only `public_exports` was
 # ever compared. These gates hold every field, so the artifact cannot go stale
 # silently again. Regenerate with scripts/generate_public_surface_contract.py.
+
 
 def _artifact() -> dict:
     return json.loads(CONTRACT_PATH.read_text(encoding="utf-8"))
@@ -190,7 +192,10 @@ def test_counts_are_internally_arithmetically_consistent():
     The stale artifact was self-inconsistent: 177+58+13+18 = 266 while it
     recorded baseline_all = 265.
     """
-    for label, counts in (("live", public_surface_summary()["counts"]), ("artifact", _artifact()["counts"])):
+    for label, counts in (
+        ("live", public_surface_summary()["counts"]),
+        ("artifact", _artifact()["counts"]),
+    ):
         tier_sum = (
             counts["canonical"]
             + counts["advanced"]
@@ -217,7 +222,7 @@ def test_tier_sets_are_disjoint():
     }
     names = sorted(tiers)
     for i, a in enumerate(names):
-        for b in names[i + 1:]:
+        for b in names[i + 1 :]:
             overlap = tiers[a] & tiers[b]
             assert not overlap, f"symbols classified in both {a} and {b}: {sorted(overlap)}"
 

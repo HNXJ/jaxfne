@@ -47,6 +47,7 @@ from .core import (
     migrate_schema,
     dataset_spec,
     enable_x64,
+    ensemble_member_seed,
     get_signal,
     evoked_l4_drive_paradigm,
     laminar_source_geometry,
@@ -87,6 +88,7 @@ from .core import (
 
 from . import paradigm
 from . import tutorial_utils
+
 # TFNE specification-language compiler, ADVANCED tier: reachable as
 # jaxfne.tfne so the documented entry point can actually get to it. Module
 # level imports are stdlib plus numpy, so this costs nothing at import time;
@@ -138,8 +140,21 @@ from .export import (
 # this alias avoids confusion for tutorial users.
 build_tutorial_laminar_column = tutorial_utils.build_laminar_column
 
-from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, jaxley_to_signals, require_jaxley, JaxleyBridge, hh_numpy_reference_trace, hh_jaxley_reference_trace, JaxFemFieldBridge, require_jax_fem
+from .bridges import (
+    BridgeSpec,
+    JaxleyEmitterBridge,
+    JaxleyTraceSpec,
+    jaxley_trace_to_signals,
+    jaxley_to_signals,
+    require_jaxley,
+    JaxleyBridge,
+    hh_numpy_reference_trace,
+    hh_jaxley_reference_trace,
+    JaxFemFieldBridge,
+    require_jax_fem,
+)
 from . import analysis
+
 # `vis` (and its plot_* convenience re-exports) is NOT imported here -- it
 # pulls in the full jaxfne.vis.plotly tree (matplotlib/plotly). Importing it
 # eagerly would mean `import jaxfne.core` alone loads graphics libraries,
@@ -195,7 +210,11 @@ from .builders import (
     configuration_table,
     validate_configuration,
 )
-from .connectivity import compile_connection_rules, ConnectionCompileResult, compile_connection_rules_jax
+from .connectivity import (
+    compile_connection_rules,
+    ConnectionCompileResult,
+    compile_connection_rules_jax,
+)
 from .fields import (
     FieldOutput,
     compute_conservation_proxy_diagnostics,
@@ -214,7 +233,18 @@ from .fields import (
     cable_filter_report,
     csd_tensor,
 )
-from .io import config_hash, json_safe, manifest, save_json, save_receipt, sha256_file, sha256_text, validation_report, probe_report, asset_hashes
+from .io import (
+    config_hash,
+    json_safe,
+    manifest,
+    save_json,
+    save_receipt,
+    sha256_file,
+    sha256_text,
+    validation_report,
+    probe_report,
+    asset_hashes,
+)
 from .neuronal_tensor import (
     NeuronalTensor,
     Area,
@@ -281,6 +311,7 @@ from .optim import (
     sdr_transform,
     step_gsgd_transform,
 )
+
 # v0.3.18: sharding stubs — imported lazily so single-device users have no overhead.
 from .sharding_utils import (
     get_sharding_context,
@@ -288,8 +319,10 @@ from .sharding_utils import (
     make_population_mesh,
     make_replicated_sharding,
 )
+
 # v0.3.20: compilation registry
 from .validation import compilation_registry, is_valid_signal
+
 # v0.3.31: state integrators
 from .solvers import (
     euler_step,
@@ -299,6 +332,7 @@ from .solvers import (
     DiffraxSolver,
     solve_ode,
 )
+
 # v0.3.32: Hierarchical global-local oddball API hardening
 from .sanity_delta import (
     SanityDeltaConfig,
@@ -318,6 +352,7 @@ from .plasticity import (
     summarize_stdp_adaptation,
     update_stdp_weights_jax,
 )
+
 # Registrable HDP extension surface (ADVANCED tier: root attrs, not __all__)
 from .hdp_rule import (
     HDPRuleContext,
@@ -377,13 +412,21 @@ class _RuntimeModuleWrapper(_ModuleType):
         if name == "runtime":
             # Return the runtime function from core, not the module
             from .core import runtime as _runtime_fn
+
             return _runtime_fn
-        if name in ("vis", "visualize", "plot_raster", "plot_stdp_adaptation_suite", "plot_spectrolaminar_suite"):
+        if name in (
+            "vis",
+            "visualize",
+            "plot_raster",
+            "plot_stdp_adaptation_suite",
+            "plot_spectrolaminar_suite",
+        ):
             # importlib.import_module (not `from . import vis`) deliberately --
             # `from . import vis` triggers hasattr(self, "vis") internally,
             # which re-enters this __getattr__ and recurses infinitely since
             # "vis" isn't in __dict__ yet.
             import importlib
+
             if name == "visualize":
                 _viz_mod = importlib.import_module(".vis.visualize", __name__)
                 return _viz_mod.visualize

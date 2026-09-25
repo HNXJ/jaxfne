@@ -207,6 +207,7 @@ from ._construct import (
     construct,
     dataset_spec,
     enable_x64,
+    ensemble_member_seed,
     get_signal,
     laminar_source_geometry,
     migrate_schema,

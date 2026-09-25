@@ -173,6 +173,7 @@ _CANONICAL: Final[frozenset[str]] = frozenset(
         "default_basis_spec",
         "dynamic_state_from_model",
         "enable_x64",
+        "ensemble_member_seed",
         "evoked_l4_drive_paradigm",
         "get_signal",
         "laminar_source_geometry",
@@ -502,8 +503,7 @@ def validate_hdp_params_semantics(
     unknown = set(hdp_params) - KNOWN_HDP_PARAM_KEYS
     if unknown:
         issues.append(
-            "hdp_params contains unrecognized keys "
-            f"(not in semantic groups): {sorted(unknown)}"
+            f"hdp_params contains unrecognized keys (not in semantic groups): {sorted(unknown)}"
         )
 
     rule = hdp_params.get("hdp_rule")
@@ -517,19 +517,14 @@ def validate_hdp_params_semantics(
     locality = hdp_params.get("h_state_locality")
     if locality is not None and locality not in PUBLIC_H_STATE_LOCALITIES:
         issues.append(
-            f"h_state_locality must be one of {sorted(PUBLIC_H_STATE_LOCALITIES)}; "
-            f"got {locality!r}"
+            f"h_state_locality must be one of {sorted(PUBLIC_H_STATE_LOCALITIES)}; got {locality!r}"
         )
 
     if locality == "population":
-        missing_theta = sorted(
-            k for k in ("controller_B", "m_ei_edge_mask")
-            if k not in hdp_params
-        )
+        missing_theta = sorted(k for k in ("controller_B", "m_ei_edge_mask") if k not in hdp_params)
         if missing_theta:
             issues.append(
-                "population h_state_locality requires theta-adaptation keys: "
-                f"{missing_theta}"
+                f"population h_state_locality requires theta-adaptation keys: {missing_theta}"
             )
 
     node_rules = {"signed_linear", "signed_quadratic", "hebbian_product"}

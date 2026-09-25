@@ -132,6 +132,50 @@ def _hdp_kernel_kwargs(hp: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _chain_noise_schedule(key, n_steps, n_neurons, jnp_dtype, base_seed=None, member_counts=None):
+    """Chain-consistent unit-noise schedule, ensemble-aware (0.5.4 item 1).
+
+    Non-ensemble (``member_counts`` None): the 0.5.3 chain schedule from
+    ``key``, bit-identical to prior behavior. Ensemble
+    (``metadata["ensemble"]["model_sizes"]``): member ``m``'s block is the
+    schedule of ``PRNGKey(ensemble_member_seed(base_seed, m, n))``, so
+    member ``m``'s slice of an ensemble run equals a solo run of that
+    member with the derived seed, exactly. Size mismatch fails closed.
+    """
+    from ._pipeline import continuation_noise_schedule
+
+    if not member_counts:
+        return continuation_noise_schedule(key, n_steps, n_neurons, jnp_dtype)
+    from ._construct_connectivity import ensemble_member_seed
+
+    counts = [int(c) for c in member_counts]
+    if sum(counts) != int(n_neurons):
+        raise ValueError(
+            "ensemble model_sizes sum to "
+            f"{sum(counts)} but the emitter carries {int(n_neurons)} neurons"
+        )
+    n = len(counts)
+    parts = []
+    for m, c in enumerate(counts):
+        member_key = jax.random.PRNGKey(ensemble_member_seed(int(base_seed), m, n))
+        parts.append(continuation_noise_schedule(member_key, n_steps, int(c), jnp_dtype))
+    return jnp.concatenate(parts, axis=1)
+
+
+def _ensemble_member_counts(model) -> "list[int] | None":
+    """Return ``metadata["ensemble"]["model_sizes"]`` or None (plain model)."""
+    try:
+        ens = model.cfg.metadata.get("ensemble")
+    except Exception:
+        return None
+    if not isinstance(ens, dict):
+        return None
+    sizes = ens.get("model_sizes")
+    if not sizes or len(sizes) < 2:
+        return None
+    return [int(c) for c in sizes]
+
+
 def _simulate_arrays(
     self: "Model",
     sim: Simulation,
@@ -171,6 +215,11 @@ def _simulate_arrays(
 
     emitter: IzhikevichParams = self.params["emitter"]
     sched = drive_schedule  # None or (n_steps, n_neurons) array
+
+    # 0.5.4 item 1: ensemble member RNG domains (None for plain models, so
+    # non-ensemble behavior is untouched).
+    _member_counts = _ensemble_member_counts(self)
+    _member_base_seed = sim.seed if _member_counts else None
 
     # Build silence_mask if E_silence or I_silence is requested
     n_neurons = emitter.v0.shape[0]
@@ -253,10 +302,11 @@ def _simulate_arrays(
         hp = dict(runtime_cfg.homeostasis_params or {})
         _plastic_active = float(hp.get("eta", 0.0) or 0.0) != 0.0
 
+        _member_counts = _ensemble_member_counts(self)
+        _member_base_seed = sim.seed if _member_counts else None
+
         def _homeo_packed(k, s):
             """Return (V, spikes, sources, g_bias, r_trace[, w_final, w_trace])."""
-            from ._pipeline import continuation_noise_schedule
-
             V, S, src, diag = simulate_edge_recurrent_izhikevich_homeostatic(
                 emitter,
                 edges,
@@ -267,8 +317,13 @@ def _simulate_arrays(
                 drive_schedule=s,
                 silence_mask=silence_mask,
                 noise_scale=hp.get("noise_scale", None),
-                noise_schedule=continuation_noise_schedule(
-                    k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                noise_schedule=_chain_noise_schedule(
+                    k,
+                    sim.n_steps,
+                    emitter.n_neurons,
+                    runtime_cfg.jnp_dtype,
+                    _member_base_seed,
+                    _member_counts,
                 ),
                 r_star=hp.get("r_star", 0.05),
                 tau_r_ms=hp.get("tau_r_ms", 300.0),
@@ -406,8 +461,6 @@ def _simulate_arrays(
 
         def _hdp_packed(k, s):
             """Return (V, spikes, sources, H_final, H_trace, w_final, w_trace)."""
-            from ._pipeline import continuation_noise_schedule
-
             if is_registered_hdp_rule(hp.get("hdp_rule")):
                 from ._hdp_registrable_kernel import (
                     simulate_edge_recurrent_izhikevich_hdp_registered,
@@ -427,8 +480,13 @@ def _simulate_arrays(
                     hdp_rule_params=hp.get("hdp_rule_params", {}),
                     record_weight_trace=bool(hp.get("record_weight_trace", True)),
                     noise_scale=hp.get("noise_scale", None),
-                    noise_schedule=continuation_noise_schedule(
-                        k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                    noise_schedule=_chain_noise_schedule(
+                        k,
+                        sim.n_steps,
+                        emitter.n_neurons,
+                        runtime_cfg.jnp_dtype,
+                        _member_base_seed,
+                        _member_counts,
                     ),
                     record_stride=hp.get("record_stride", 1),
                     record_h_subset=hp.get("record_h_subset", None),
@@ -446,8 +504,13 @@ def _simulate_arrays(
                     drive_schedule=s,
                     silence_mask=silence_mask,
                     init_state=init_state,
-                    noise_schedule=continuation_noise_schedule(
-                        k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                    noise_schedule=_chain_noise_schedule(
+                        k,
+                        sim.n_steps,
+                        emitter.n_neurons,
+                        runtime_cfg.jnp_dtype,
+                        _member_base_seed,
+                        _member_counts,
                     ),
                     **kernel_kwargs,
                 )
@@ -615,15 +678,19 @@ def _simulate_arrays(
                     import time
 
                     def target_fn(k, s):
-                        from ._pipeline import continuation_noise_schedule
-
                         extra_kw: dict[str, Any] = {}
                         if kernel_fn is simulate_edge_recurrent_izhikevich:
                             # 0.5.3 item 3 (P-010): chain-consistent draws on
                             # the Model plain path; receptor_exponential and
                             # dense have no continuation path and keep bulk.
-                            extra_kw["noise_schedule"] = continuation_noise_schedule(
-                                k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                            # 0.5.4 item 1: ensemble member domains.
+                            extra_kw["noise_schedule"] = _chain_noise_schedule(
+                                k,
+                                sim.n_steps,
+                                emitter.n_neurons,
+                                runtime_cfg.jnp_dtype,
+                                _member_base_seed,
+                                _member_counts,
                             )
                             if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
                                 extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
@@ -659,12 +726,15 @@ def _simulate_arrays(
                 run = self._compiled_cache[cache_key]
                 return run(key, sched)
         with _device_scope(runtime_cfg.selected_backend):
-            from ._pipeline import continuation_noise_schedule
-
             extra_kw: dict[str, Any] = {}
             if kernel_fn is simulate_edge_recurrent_izhikevich:
-                extra_kw["noise_schedule"] = continuation_noise_schedule(
-                    key, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                extra_kw["noise_schedule"] = _chain_noise_schedule(
+                    key,
+                    sim.n_steps,
+                    emitter.n_neurons,
+                    runtime_cfg.jnp_dtype,
+                    _member_base_seed,
+                    _member_counts,
                 )
                 if runtime_cfg.hdp_params and "noise_scale" in runtime_cfg.hdp_params:
                     extra_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]

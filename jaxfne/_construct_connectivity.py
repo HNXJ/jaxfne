@@ -11,6 +11,7 @@ reverse), which is what keeps this split acyclic.
 
 from __future__ import annotations
 
+import hashlib
 import warnings
 from dataclasses import replace
 from typing import Any, Mapping, Sequence
@@ -815,6 +816,26 @@ def _connect_merge_static(
         "neuron_metadata_summary": summary,
         "ensemble": ensemble,
     }
+
+
+def ensemble_member_seed(ensemble_seed: int, member: int, n_members: int) -> int:
+    """Derive member ``member``'s solo-equivalent seed from an ensemble seed.
+
+    ``connect(*models)`` + ``simulate(seed=S)`` draws member ``m``'s unit-noise
+    stream from ``PRNGKey(ensemble_member_seed(S, m, n))``. Running member ``m``
+    alone with ``seed=ensemble_member_seed(S, m, n)`` therefore reproduces that
+    member's slice of the ensemble trajectory exactly (plain edge_list path,
+    no paradigm, no poisson_drive, cross-model edges zero). The derivation is
+    a sha256 domain tag — deterministic, version-stable, no JAX dependency.
+    """
+    n = int(n_members)
+    m = int(member)
+    if n < 2:
+        raise ValueError(f"n_members must be >= 2, got {n}")
+    if not (0 <= m < n):
+        raise ValueError(f"member must satisfy 0 <= member < {n}, got {m}")
+    tag = f"jaxfne-ensemble-v1:{int(ensemble_seed)}:{m}:{n}".encode("utf-8")
+    return int(hashlib.sha256(tag).hexdigest()[:8], 16) % 2_147_483_647
 
 
 def connect(
