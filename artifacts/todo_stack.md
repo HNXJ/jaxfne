@@ -640,9 +640,6 @@ broad 4437 cases / 0 fail on HEAD; `atlas_coverage VALID`):
   noise schedule, so the k_gain=0 null matches the edge_list baseline
   exactly (`test_kgain_zero_null_matches_baseline_edge_list` green in
   the full suite); legacy None path bit-identical.
-7c. (opencode, gh) Confirm CI (Fast) green on HEAD `edadb87` (prior
-   check targeted `f9d8fcb`, run 36079289391; tree has since moved).
-   No valid `gh` token in this session; could not verify.
 
 ACCEPTANCE (0.5.3 seal)
 - Existing canonical configurations bit-identical, except the approved
@@ -683,8 +680,6 @@ ENGINE — sealed (commits `cd7dbca`, `6792bc7`, `dcec360`, `e4bd459`,
 - Deferred: 1b (S20.1 ordering — individual human authorization
   required); item 0 (X[k] frontier — not needed for AT-08/AT-09, stays
   after 0.5.5).
-- CI (open): confirm Fast green on the sealed HEAD (no `gh` token in
-  this session; could not verify externally).
 
 ATLAS — sealed (commit `991a00a`; assay
 `artifacts/atlas/at08_at09_054.py`, tests
