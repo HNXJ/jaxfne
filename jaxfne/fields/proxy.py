@@ -1050,6 +1050,104 @@ def multi_area_spectrolaminar_readout(
     return readouts
 
 
+def population_rate(
+    spikes: jax.Array,
+    dt_ms: float = 0.1,
+) -> jax.Array:
+    """Mean population firing rate in Hz (0.5.4 item 3, per-area Q signal).
+
+    ``rate[t] = mean_n(spikes[t, n]) * 1000 / dt_ms``. Pure observation
+    operator: no smoothing, no thresholding, no plotting-side computation.
+    """
+    dt = float(dt_ms)
+    if not np.isfinite(dt) or dt <= 0.0:
+        raise ValueError(f"dt_ms must be finite and > 0; got {dt_ms!r}")
+    s = np.asarray(spikes, dtype=np.float32)
+    if s.ndim != 2:
+        raise ValueError(f"spikes must be 2D [T, N]; got shape {s.shape}")
+    if s.shape[0] == 0 or s.shape[1] == 0:
+        raise ValueError(f"spikes must be non-empty; got shape {s.shape}")
+    if not bool(np.isfinite(s).all()):
+        raise ValueError("spikes must be finite")
+    return jnp.asarray(s.mean(axis=1) * (1000.0 / dt), dtype=jnp.float32)
+
+
+def cross_area_coherence(
+    x: jax.Array,
+    y: jax.Array,
+    dt_ms: float = 0.1,
+    n_freqs: int = 128,
+    freq_min: float = 1.0,
+    freq_max: float = 150.0,
+) -> dict[str, Any]:
+    """Magnitude-squared coherence + cross-spectrum phase (0.5.4 item 3).
+
+    Declared cross-area observation operator: ``Cxy(f) = |Pxy|^2 /
+    (Pxx * Pyy)`` with ``cross_phase_rad(f) = angle(Pxy)`` on a shared
+    frequency grid. Welch segments when scipy is available, periodogram
+    fallback otherwise (same convention as :func:`spectrolaminar_psd`).
+
+    Bins where either auto-spectrum vanishes are observationally silent:
+    ``valid`` is False there and coherence/phase read exactly 0.0 — a
+    declared refusal, never a silent NaN. Inputs must be finite 1D series
+    of equal length (T >= 8); violations fail closed.
+    """
+    dt = float(dt_ms)
+    if not np.isfinite(dt) or dt <= 0.0:
+        raise ValueError(f"dt_ms must be finite and > 0; got {dt_ms!r}")
+    xa = np.asarray(x, dtype=np.float64).ravel()
+    ya = np.asarray(y, dtype=np.float64).ravel()
+    if xa.shape != ya.shape:
+        raise ValueError(f"x and y must have equal length; got {xa.shape} vs {ya.shape}")
+    t = int(xa.shape[0])
+    if t < 8:
+        raise ValueError(f"need at least 8 samples for spectra; got {t}")
+    if not bool(np.isfinite(xa).all()) or not bool(np.isfinite(ya).all()):
+        raise ValueError("x and y must be finite")
+    fs = 1000.0 / dt
+    freqs = np.linspace(float(freq_min), float(freq_max), int(n_freqs))
+
+    try:
+        from scipy.signal import csd as _csd
+        from scipy.signal import welch as _welch
+
+        seg = int(min(1024, t))
+        _f, pxx = _welch(xa, fs=fs, nperseg=seg)
+        _f, pyy = _welch(ya, fs=fs, nperseg=seg)
+        _f, pxy = _csd(xa, ya, fs=fs, nperseg=seg)
+        pxx_i = np.interp(freqs, _f, pxx)
+        pyy_i = np.interp(freqs, _f, pyy)
+        pxy_i = np.interp(freqs, _f, pxy.real) + 1j * np.interp(freqs, _f, pxy.imag)
+        method = "welch"
+    except (ImportError, ValueError):
+        xw = xa - xa.mean()
+        yw = ya - ya.mean()
+        xh = np.abs(np.fft.rfft(xw)) ** 2 / t
+        yh = np.abs(np.fft.rfft(yw)) ** 2 / t
+        ch = np.fft.rfft(xw) * np.conj(np.fft.rfft(yw)) / t
+        ff = np.fft.rfftfreq(t, 1.0 / fs)
+        pxx_i = np.interp(freqs, ff, xh)
+        pyy_i = np.interp(freqs, ff, yh)
+        pxy_i = np.interp(freqs, ff, ch.real) + 1j * np.interp(freqs, ff, ch.imag)
+        method = "periodogram"
+
+    denom = pxx_i * pyy_i
+    ceiling = float(np.max(denom)) if float(np.max(denom)) > 0.0 else 0.0
+    valid = denom > (ceiling * 1e-12) if ceiling > 0.0 else np.zeros_like(denom, dtype=bool)
+    coherence = np.zeros_like(denom)
+    phase = np.zeros_like(denom)
+    coherence[valid] = (np.abs(pxy_i[valid]) ** 2) / denom[valid]
+    phase[valid] = np.angle(pxy_i[valid])
+    return {
+        "freq_hz": np.asarray(freqs, dtype=np.float32),
+        "coherence": np.asarray(np.clip(coherence, 0.0, 1.0), dtype=np.float32),
+        "cross_phase_rad": np.asarray(phase, dtype=np.float32),
+        "valid": np.asarray(valid, dtype=bool),
+        "method": method,
+        "dt_ms": dt,
+    }
+
+
 @dataclass(frozen=True)
 class LinearReadout:
     """Linear (superposition-respecting) proxy readout operator ``y = source @ Wᵀ``.
