@@ -27,7 +27,9 @@ Executing any model.
 3. Hand the `Run` to `jaxfne-inspect` / `jaxfne-verify`.
 
 ## STOP
-- `TypeError` from `agent.simulate` (unsupported object); non-finite state.
+- `TypeError` from `agent.simulate` (unsupported object or a non-number time);
+  `ValueError` for a non-positive time or a duration that is not a whole number
+  of steps; non-finite state.
 
 ## VERIFY
 - `jaxfne.agent.verify(run, "time_identity")` and `"finite"` PASS; segmented equals

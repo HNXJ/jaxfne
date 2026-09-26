@@ -728,8 +728,6 @@ whole Atlas manuscript plan complete.
    subset recorded in run outputs; the Atlas digest hashes the whole spec.
 
 ENGINE
-5c. Adversarial semantic-substitution tests (step 8): stale docs, renamed
-   APIs, parameter substitution, wrong units or types.
 5d. Skill/tool benchmark (moved from old 0.5.4), after 5a–5c: AT-01…AT-10
    with frozen expected properties as the task set (step 7); skill+tools vs
    direct repository use on scientific-model fidelity (step 9 metrics).

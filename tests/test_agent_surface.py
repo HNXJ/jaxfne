@@ -20,7 +20,8 @@ def _spec(weight=0.5, delay=None):
 
 
 def _run(weight=0.5, delay=4.0):
-    return A.simulate(A.realize(_spec(weight, delay), seed=11), duration_ms=30.0, dt_ms=1.0)
+    return A.simulate(A.realize(_spec(weight, delay), seed=11), duration_ms=30.0, dt_ms=1.0,
+                      seed=0)
 
 
 def test_tfne_run_is_identical_across_classes_and_observable():
@@ -59,9 +60,9 @@ def test_refusals_never_substitute():
     with pytest.raises(ValueError, match="not recorded"):
         A.observe(no_field, "lfp")
     with pytest.raises(TypeError, match="Realization, Configuration or Model"):
-        A.simulate(_spec(), duration_ms=5.0, dt_ms=1.0)
+        A.simulate(_spec(), duration_ms=5.0, dt_ms=1.0, seed=0)
     cfg_run = A.simulate(J.construct(J.suite2_single_neuron_config(seed=0)),
-                         duration_ms=5.0, dt_ms=0.5)
+                         duration_ms=5.0, dt_ms=0.5, seed=0)
     assert A.compare(cfg_run)["weight"]["verdict"] == "NOT_APPLICABLE"
     with pytest.raises(ValueError, match="needs a TFNE run"):
         A.verify(cfg_run, "weight_identity")

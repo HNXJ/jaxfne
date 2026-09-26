@@ -86,15 +86,33 @@ def realize(spec: str, *, seed: Optional[int] = None) -> Any:
     return _realize(resolve(program), program, seed=seed)
 
 
-def simulate(obj: Any, *, duration_ms: float, dt_ms: float, seed: int = 0) -> Run:
+def _checked_time(duration_ms: Any, dt_ms: Any) -> None:
+    """Refuse a time grid the kernel would silently round (n_steps = round(duration / dt))."""
+    for name, v in (("duration_ms", duration_ms), ("dt_ms", dt_ms)):
+        if isinstance(v, bool) or not isinstance(v, (int, float, np.integer, np.floating)):
+            raise TypeError(f"{name} must be a real number in ms, not {type(v).__name__}")
+        if not (np.isfinite(v) and v > 0):
+            raise ValueError(f"{name} must be positive and finite; got {v!r}")
+    ratio = float(duration_ms) / float(dt_ms)
+    if abs(ratio - round(ratio)) > 1e-9 * max(1.0, ratio):
+        raise ValueError(
+            f"duration_ms={duration_ms} is not a whole number of dt_ms={dt_ms} steps; "
+            f"the kernel would run {round(ratio)} steps ({round(ratio) * float(dt_ms)} ms)"
+        )
+
+
+def simulate(obj: Any, *, duration_ms: float, dt_ms: float, seed: int) -> Run:
     """Construct when needed, then simulate; return the ``Run`` with its sources.
 
     ``obj`` is a ``Realization`` (compiled at ``dt_ms``), a ``Configuration``
-    or a constructed ``Model``. Anything else is refused.
+    or a constructed ``Model``. Anything else is refused. ``seed`` has no
+    default, and a duration that is not a whole number of steps is refused.
     """
     import jaxfne as J
 
     from .tfne import Realization, to_configuration
+
+    _checked_time(duration_ms, dt_ms)
 
     realization = configuration = None
     if isinstance(obj, Realization):
