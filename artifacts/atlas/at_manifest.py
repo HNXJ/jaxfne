@@ -6,10 +6,11 @@ interaction; S5-7: + N, rho, collective state; S8-9: + area hierarchy, long
 delays; S10: + G, D). This module is data over the runner modules, never over
 the engine: it performs no simulation and edits no runner.
 
-Reading rule: every value that exists as a runner module constant is read by
-attribute at call time (import + getattr), never retyped. Values that are
-inline literals in a run function are recorded verbatim and listed under the
-per-spec "transcribed" key with their file:line, so the gap stays visible.
+Reading rule: every run input is a runner module constant read by attribute
+at call time (import + getattr), never retyped, so the spec is the run's
+inputs. What does not drive the run (arm names, masks, library defaults)
+is listed under the per-spec "cited" key with a verbatim anchor string that
+tests/test_atlas_manifest_055.py requires to occur in the cited file.
 """
 
 from __future__ import annotations
@@ -119,52 +120,67 @@ def resolve_runner(at_id: str) -> Any:
     return func
 
 
+def _cite(field: str, file: str, anchor: str, why: str) -> dict[str, str]:
+    """A spec value that does not drive the run: code structure or a library default.
+
+    ``anchor`` is a verbatim substring of ``file`` (checked by the test suite),
+    so a citation cannot go stale silently the way a line number does.
+    """
+    return {"field": field, "file": file, "anchor": anchor, "why": why}
+
+
+_R052 = "artifacts/atlas/at01_at06_052.py"
+_R053 = "artifacts/atlas/at07_at04_053.py"
+_R054 = "artifacts/atlas/at08_at09_054.py"
+_RTOY = "artifacts/atlas/at01_at10_toy.py"
+_PRESETS = "jaxfne/_construct_presets.py"
+
+
+def _field_recording(mod: Any, n_contacts: str) -> dict[str, Any]:
+    """Field/probe block shared by the field-probed 052 runs (module constants)."""
+    return {
+        "field_domain": _const(mod, "FIELD_DOMAIN"),
+        "field_conductivity": _const(mod, "FIELD_CONDUCTIVITY"),
+        "probe": _const(mod, "PROBE_NAME"),
+        "modes": _const(mod, "PROBE_MODES"),
+        "n_contacts": _const(mod, n_contacts),
+    }
+
+
 def _spec_at01(mod: Any) -> dict[str, Any]:
     return {
         "seeds": {"build": _const(mod, "SEED"), "run": _const(mod, "SEED")},
         "run": {"duration_ms": _const(mod, "AT01_DURATION_MS"), "dt_ms": _const(mod, "DT_MS")},
         "inputs": {
-            "builder": "suite2_single_neuron_config",
-            "n_neurons": 1,
+            "builder": _const(mod, "AT01_BUILDER"),
             "hh_current_ua": _const(mod, "AT01_HH_CURRENT_UA"),
         },
-        "recording": {
-            "spikes": "signals.spikes",
-            "V_m": "signals.V_m",
-            "field": "builder-default probes (suite2 proxy modes, 4 contacts)",
-        },
+        "recording": {"reads": ["spikes", "V_m"]},
         "hdp_params": None,
-        "transcribed": [
-            "inputs.builder: at01_at06_052.py:321",
-            "inputs.n_neurons: at01_at06_052.py:321",
-            "recording.spikes: at01_at06_052.py:326",
-            "recording.V_m: at01_at06_052.py:327",
-            "recording.field: jaxfne/_construct_presets.py:232 (suite2_single_neuron_config "
-            ".probes(_SUITE2_PROXY_MODES, n_contacts=4); the runner adds none)",
+        "cited": [
+            _cite(
+                "inputs.n_neurons",
+                _PRESETS,
+                '.column("single", layers=["uniform_3d"], n=1)',
+                "builder default: one neuron",
+            ),
+            _cite(
+                "recording.field",
+                _PRESETS,
+                ".probes(_SUITE2_PROXY_MODES, n_contacts=4)",
+                "builder-default probes; the runner adds none",
+            ),
+            _cite(
+                "recording.reads",
+                _R052,
+                "vm = np.asarray(sig.V_m).ravel()",
+                "Signals attributes the reduced arm reads",
+            ),
         ],
     }
 
 
-def _pair_recording(mod: Any) -> tuple[dict[str, Any], list[str]]:
-    """Field/probe block shared by the TFNE pair runs (literals live in the helper)."""
-    rec = {
-        "field_domain": "laminar_column",
-        "field_conductivity": "proxy",
-        "probe": "e1",
-        "modes": ["spikes", "V_m", "source", "LFP-proxy"],
-        "n_contacts": _const(mod, "AT02_N_CONTACTS"),
-    }
-    cited = [
-        "recording.field_domain: at01_at06_052.py:448",
-        "recording.field_conductivity: at01_at06_052.py:448",
-        "recording.probe: at01_at06_052.py:449",
-        "recording.modes: at01_at06_052.py:451",
-    ]
-    return rec, cited
-
-
 def _spec_at02(mod: Any) -> dict[str, Any]:
-    rec, cited = _pair_recording(mod)
     return {
         "seeds": {"build": _const(mod, "SEED"), "run": _const(mod, "SEED")},
         "run": {"duration_ms": _const(mod, "AT02_DURATION_MS"), "dt_ms": _const(mod, "DT_MS")},
@@ -172,35 +188,28 @@ def _spec_at02(mod: Any) -> dict[str, Any]:
             "tfne_spec": _const(mod, "AT02_SPEC_DELAY"),
             "absent_delay_spec": _const(mod, "AT02_SPEC_ABSENT"),
             "delay_ms": _const(mod, "DELAY_MS"),
-            "arms": {
-                "delayed": "delay_ms=DELAY_MS",
-                "zero": "delay_ms=0.0",
-                "absent": "no delay key",
-            },
+            "zero_delay_ms": _const(mod, "AT02_ZERO_DELAY_MS"),
         },
-        "recording": rec,
+        "recording": _field_recording(mod, "AT02_N_CONTACTS"),
         "hdp_params": None,
-        "transcribed": [
-            "inputs.arms: at01_at06_052.py:526 (arm names; zero arm delay 0.0: :527)",
-            *cited,
+        "cited": [
+            _cite("arms", _R052, '"zero": _tfne_pair_run(', "arm names delayed/zero/absent"),
         ],
     }
 
 
 def _spec_at03(mod: Any) -> dict[str, Any]:
-    rec, cited = _pair_recording(mod)
     return {
         "seeds": {"build": _const(mod, "SEED"), "run": _const(mod, "SEED")},
         "run": {"duration_ms": _const(mod, "AT03_DURATION_MS"), "dt_ms": _const(mod, "DT_MS")},
         "inputs": {"tfne_spec": _const(mod, "AT03_SPEC"), "delay_ms": _const(mod, "DELAY_MS")},
-        "recording": rec,
+        "recording": _field_recording(mod, "AT02_N_CONTACTS"),
         "hdp_params": None,
-        "transcribed": [*cited],
+        "cited": [],
     }
 
 
 def _spec_at04(mod: Any) -> dict[str, Any]:
-    rec, cited = _pair_recording(mod)
     return {
         "seeds": {"build": _const(mod, "SEED"), "run": _const(mod, "SEED")},
         "run": {"duration_ms": _const(mod, "AT04_DURATION_MS"), "dt_ms": _const(mod, "DT_MS")},
@@ -209,9 +218,9 @@ def _spec_at04(mod: Any) -> dict[str, Any]:
             "geometry_arms": _const(mod, "AT04_ARMS"),
             "delay_ms": _const(mod, "DELAY_MS"),
         },
-        "recording": rec,
+        "recording": _field_recording(mod, "AT02_N_CONTACTS"),
         "hdp_params": None,
-        "transcribed": [*cited],
+        "cited": [],
     }
 
 
@@ -220,25 +229,13 @@ def _spec_at05(mod: Any) -> dict[str, Any]:
         "seeds": {"build": _const(mod, "SEED"), "run": _const(mod, "SEED")},
         "run": {"duration_ms": _const(mod, "AT05_DURATION_MS"), "dt_ms": _const(mod, "DT_MS")},
         "inputs": {
-            "builder": "suite2_net1_config",
+            "builder": _const(mod, "AT05_BUILDER"),
             "arms": _const(mod, "AT05_ARMS"),
             "ratio_margin": _const(mod, "AT05_RATIO_MARGIN"),
         },
-        "recording": {
-            "field_domain": "laminar_column",
-            "field_conductivity": "proxy",
-            "probe": "e1",
-            "modes": ["spikes", "V_m", "source", "LFP-proxy"],
-            "n_contacts": _const(mod, "AT06_N_CONTACTS"),
-        },
+        "recording": _field_recording(mod, "AT06_N_CONTACTS"),
         "hdp_params": None,
-        "transcribed": [
-            "inputs.builder: at01_at06_052.py:841",
-            "recording.field_domain: at01_at06_052.py:842",
-            "recording.field_conductivity: at01_at06_052.py:842",
-            "recording.probe: at01_at06_052.py:843",
-            "recording.modes: at01_at06_052.py:844",
-        ],
+        "cited": [],
     }
 
 
@@ -247,37 +244,23 @@ def _spec_at06(mod: Any) -> dict[str, Any]:
         "seeds": {"build": _const(mod, "SEED"), "run": _const(mod, "SEED")},
         "run": {"duration_ms": _const(mod, "AT06_DURATION_MS"), "dt_ms": _const(mod, "DT_MS")},
         "inputs": {
-            "column": "V1 [L2/3, L4] x8",
-            "cell_types": "E 0.75 / PV 0.25",
-            "connectivity": "laminar_signed_metadata recurrent",
-            "emitter": "izhikevich/cortical_eig",
+            "area": _const(mod, "AT06_AREA"),
+            "layers": _const(mod, "AT06_LAYERS"),
+            "n": _const(mod, "AT06_N"),
+            "cell_types": _const(mod, "AT06_CELL_TYPES"),
+            "connectivity": _const(mod, "AT06_CONNECTIVITY"),
+            "emitter": _const(mod, "AT06_EMITTER"),
             "radii_frac": _const(mod, "AT06_RADII_FRAC"),
             "bands_hz": _const(mod, "AT06_BANDS_HZ"),
         },
         "recording": {
-            "field_domain": "laminar_column",
-            "field_conductivity": "proxy",
-            "probe": "e1",
-            "modes": ["spikes", "V_m", "source", "LFP-proxy"],
-            "n_contacts": _const(mod, "AT06_N_CONTACTS"),
-            "position": "[0.0, 1.0/3.0, 2.0/3.0, 1.0]",
-            "reference": "common_average (record-only)",
-            "filter": "bandpass 8-25 Hz (record-only)",
+            **_field_recording(mod, "AT06_N_CONTACTS"),
+            "position": _const(mod, "AT06_PROBE_POSITION"),
+            "reference": _const(mod, "AT06_REFERENCE"),
+            "filter": _const(mod, "AT06_FILTER"),
         },
         "hdp_params": None,
-        "transcribed": [
-            "inputs.column: at01_at06_052.py:933",
-            "inputs.cell_types: at01_at06_052.py:934",
-            "inputs.connectivity: at01_at06_052.py:935",
-            "inputs.emitter: at01_at06_052.py:936",
-            "recording.field_domain: at01_at06_052.py:937",
-            "recording.field_conductivity: at01_at06_052.py:937",
-            "recording.probe: at01_at06_052.py:938",
-            "recording.modes: at01_at06_052.py:940",
-            "recording.position: at01_at06_052.py:941",
-            "recording.reference: at01_at06_052.py:942",
-            "recording.filter: at01_at06_052.py:943",
-        ],
+        "cited": [],
     }
 
 
@@ -286,26 +269,32 @@ def _spec_at07(mod: Any) -> dict[str, Any]:
         "seeds": {"build": _const(mod, "SEED_BUILD"), "run": _const(mod, "RUN_SEED")},
         "run": {"duration_ms": _const(mod, "DUR_MS"), "dt_ms": _const(mod, "DT_MS")},
         "inputs": {
-            "builder": "suite2_net1_config",
+            "builder": _const(mod, "BUILDER"),
             "n_neurons": _const(mod, "N_NEURONS"),
-            "arms": ["hebbian", "fixed", "noisy", "clamp"],
             "clamp_value": _const(mod, "CLAMP_VALUE"),
         },
         "recording": {
             "H_trace": "full trajectory + budgeted decimation",
             "w_trace": "full trajectory + budgeted decimation",
-            "record_weight_trace": True,
+            "record_weight_trace": _const(mod, "BUDGET_WEIGHT_TRACE"),
             "record_stride": _const(mod, "BUDGET_STRIDE"),
             "record_h_subset": _const(mod, "BUDGET_H_SUBSET"),
-            "record_w_subset": [0, 1, 2],
+            "record_w_subset": _const(mod, "BUDGET_W_SUBSET"),
         },
         "hdp_params": {"baseline": _const(mod, "BASE_HP"), "noisy": _const(mod, "NOISY_HP")},
-        "transcribed": [
-            "inputs.builder: at07_at04_053.py:184",
-            "inputs.arms: at07_at04_053.py:399",
-            "inputs.clamp_mask_values: at07_at04_053.py:392 (first half pinned, second half free)",
-            "recording.record_weight_trace: at07_at04_053.py:467",
-            "recording.record_w_subset: at07_at04_053.py:470",
+        "cited": [
+            _cite(
+                "arms",
+                _R053,
+                '"hebbian": _run_arm(models[0], BASE_HP),',
+                "arm names hebbian/fixed/noisy/clamp",
+            ),
+            _cite(
+                "clamp_mask",
+                _R053,
+                "values=[0.0] * (n_edges // 2) + [1.0] * (n_edges - n_edges // 2)",
+                "first half of edges pinned, second half free",
+            ),
         ],
     }
 
@@ -315,103 +304,121 @@ def _spec_at04r2(mod: Any) -> dict[str, Any]:
         "seeds": {"build": _const(mod, "SEED_BUILD"), "run": _const(mod, "RUN_SEED")},
         "run": {"duration_ms": _const(mod, "DUR_MS"), "dt_ms": _const(mod, "DT_MS")},
         "inputs": {
-            "builder": "suite2_net1_config",
+            "builder": _const(mod, "BUILDER"),
             "n_neurons": _const(mod, "N_NEURONS"),
             "H0_baseline": _const(mod, "H0_BASELINE"),
             "H0_perturbed": _const(mod, "H0_PERTURBED"),
-            "arms": "baseline/perturbed (HDP engaged) + disabled pair (W bit-fixed)",
-            "disable_control": "disable_plasticity",
         },
         "recording": {
             "summary": "spike_count/rate/H_final/w_final/Q/Phi/kappa per arm",
         },
         "hdp_params": {"baseline": _const(mod, "BASE_HP")},
-        "transcribed": [
-            "inputs.builder: at07_at04_053.py:184",
-            "inputs.arms: at07_at04_053.py:584 (H0 arrays; identical W0, matched stimulation)",
-            "inputs.disable_control: at07_at04_053.py:566",
-            "recording.summary: at07_at04_053.py:235 (_arm_summary signals read)",
+        "cited": [
+            _cite(
+                "arms",
+                _R053,
+                "model_dis_pert = built[3].with_hdp_initial_state(",
+                "baseline/perturbed (HDP engaged) + disabled pair (W bit-fixed)",
+            ),
+            _cite(
+                "disable_control",
+                _R053,
+                "hp_off = J.hdp_network.disable_plasticity(",
+                "disabled arms use the public disable_plasticity control",
+            ),
+            _cite("recording.summary", _R053, "def _arm_summary(", "per-arm summary reads"),
         ],
     }
 
 
-def _ensemble_inputs(mod: Any) -> tuple[dict[str, Any], list[str]]:
-    """Two-area composition inputs shared by AT-08/AT-09 (edge literals cited)."""
-    inputs = {
-        "members": "2x Configuration columns A1/A2",
+def _ensemble_inputs(mod: Any) -> dict[str, Any]:
+    """Two-area composition inputs shared by AT-08/AT-09 (module constants)."""
+    return {
+        "member_areas": _const(mod, "MEMBER_AREAS"),
+        "member_layers": _const(mod, "MEMBER_LAYERS"),
         "member_build_seeds": [_const(mod, "SEED_BUILD") + i for i in range(2)],
-        "members_cell_types": {"E": 0.8, "PV": 0.2},
-        "members_emitter": "izhikevich (family default preset)",
+        "members_cell_types": _const(mod, "MEMBER_CELL_TYPES"),
+        "members_emitter_family": _const(mod, "MEMBER_EMITTER_FAMILY"),
         "n_per_area": _const(mod, "N_PER_AREA"),
         "cross_delay_ms": _const(mod, "CROSS_DELAY_MS"),
-        "edges": "A1->A2 + A2->A1, E source, probability 0.5, weight 0.5, excitatory",
+        "edge_source_cell_type": _const(mod, "EDGE_SOURCE_CELL_TYPE"),
+        "edge_probability": _const(mod, "EDGE_PROBABILITY"),
+        "edge_weight": _const(mod, "EDGE_WEIGHT"),
+        "edge_sign": _const(mod, "EDGE_SIGN"),
         "stimulus": "repeated pulses to A1",
         "stim_period_ms": _const(mod, "STIM_PERIOD_MS"),
         "stim_duration_ms": _const(mod, "STIM_DUR_MS"),
         "stim_amplitude": _const(mod, "STIM_AMP"),
     }
-    cited = [
-        "inputs.members: at08_at09_054.py:173 (A1/A2 loop) + :179 (column layers/n)",
-        "inputs.member_build_seeds: at08_at09_054.py:177 (SEED_BUILD + i per area)",
-        "inputs.members_cell_types: at08_at09_054.py:180",
-        "inputs.members_emitter: at08_at09_054.py:182",
-        "inputs.edges: at08_at09_054.py:197 (rule order: rule 0 = A1->A2, rule 1 = A2->A1)",
-    ]
-    return inputs, cited
 
 
-def _ensemble_recording(mod: Any) -> tuple[dict[str, Any], list[str]]:
-    rec = {
-        "probe_modes": ["spikes", "V_m", "LFP", "CSD"],
-        "n_contacts": 8,
-        "field_domain": "laminar_column",
-        "field_conductivity": "proxy",
-        "field_boundary": "mean_zero_neumann",
+def _ensemble_recording(mod: Any) -> dict[str, Any]:
+    return {
+        "probe_modes": _const(mod, "PROBE_MODES"),
+        "n_contacts": _const(mod, "N_CONTACTS"),
+        "field_domain": _const(mod, "FIELD_DOMAIN"),
+        "field_conductivity": _const(mod, "FIELD_CONDUCTIVITY"),
+        "field_boundary": _const(mod, "FIELD_BOUNDARY"),
     }
-    cited = [
-        "recording.probe_modes: at08_at09_054.py:183",
-        "recording.n_contacts: at08_at09_054.py:183",
-        "recording.field_domain: at08_at09_054.py:184",
-        "recording.field_conductivity: at08_at09_054.py:184",
-        "recording.field_boundary: at08_at09_054.py:184",
-    ]
-    return rec, cited
+
+
+_ENSEMBLE_CITED = [
+    _cite("edges", _R054, 'target={"model": 1, "area": "A2"},', "rule 0 = A1->A2, rule 1 = A2->A1"),
+    _cite(
+        "members_emitter_preset",
+        _R054,
+        ".set_emitter(family=MEMBER_EMITTER_FAMILY)",
+        "family default preset (no preset argument)",
+    ),
+]
 
 
 def _spec_at08(mod: Any) -> dict[str, Any]:
-    inputs, in_cited = _ensemble_inputs(mod)
-    inputs["arms"] = ["fixed", "adapt_full", "adapt_local"]
-    rec, rec_cited = _ensemble_recording(mod)
     return {
         "seeds": {"build": _const(mod, "SEED_BUILD"), "run": _const(mod, "RUN_SEED")},
         "run": {"duration_ms": _const(mod, "DUR_MS"), "dt_ms": _const(mod, "DT_MS")},
-        "inputs": inputs,
-        "recording": rec,
+        "inputs": _ensemble_inputs(mod),
+        "recording": _ensemble_recording(mod),
         "hdp_params": {"baseline": _const(mod, "BASE_HP")},
-        "transcribed": [
-            *in_cited,
-            *rec_cited,
-            "inputs.arms: at08_at09_054.py:440",
-            "inputs.masks: at08_at09_054.py:416 (cross/member ranges from ensemble_edge_ownership)",
+        "cited": [
+            *_ENSEMBLE_CITED,
+            _cite(
+                "arms",
+                _R054,
+                '"adapt_full": _run_arm(model, dict(BASE_HP), stim),',
+                "arm names fixed/adapt_full/adapt_local",
+            ),
+            _cite(
+                "masks",
+                _R054,
+                'return {"cross_only": cross, "member_only": member',
+                "cross/member ranges from ensemble_edge_ownership",
+            ),
         ],
     }
 
 
 def _spec_at09(mod: Any) -> dict[str, Any]:
-    inputs, in_cited = _ensemble_inputs(mod)
-    inputs["arms"] = ["plastic_cross", "plastic_member", "frozen"]
-    rec, rec_cited = _ensemble_recording(mod)
     return {
         "seeds": {"build": _const(mod, "SEED_BUILD"), "run": _const(mod, "RUN_SEED")},
         "run": {"duration_ms": _const(mod, "DUR_MS"), "dt_ms": _const(mod, "DT_MS")},
-        "inputs": inputs,
-        "recording": rec,
+        "inputs": _ensemble_inputs(mod),
+        "recording": _ensemble_recording(mod),
         "hdp_params": {"baseline": _const(mod, "BASE_HP")},
-        "transcribed": [
-            *in_cited,
-            *rec_cited,
-            "inputs.arms: at08_at09_054.py:518",
-            "inputs.masks: at08_at09_054.py:416 (cross_only/member_only/frozen)",
+        "cited": [
+            *_ENSEMBLE_CITED,
+            _cite(
+                "arms",
+                _R054,
+                '"plastic_cross": _run_arm(',
+                "arm names plastic_cross/plastic_member/frozen",
+            ),
+            _cite(
+                "masks",
+                _R054,
+                'return {"cross_only": cross, "member_only": member',
+                "cross_only/member_only/frozen",
+            ),
         ],
     }
 
@@ -419,24 +426,19 @@ def _spec_at09(mod: Any) -> dict[str, Any]:
 def _spec_at10(mod: Any) -> dict[str, Any]:
     return {
         "seeds": {"build": _const(mod, "TOY_SEED"), "run": _const(mod, "TOY_SEED")},
-        "run": {"duration_ms": 10.0, "dt_ms": _const(mod, "TOY_DT_MS")},
+        "run": {"duration_ms": _const(mod, "AT10_DURATION_MS"), "dt_ms": _const(mod, "TOY_DT_MS")},
         "inputs": {
-            "builder": "build_multi_area_columns",
-            "areas": ["A1", "A2", "A3"],
-            "n_per_area": 2,
-            "emitter": "izhikevich/cortical_eig",
-            "genome_development": "OMITTED",
+            "builder": _const(mod, "AT10_BUILDER"),
+            "areas": _const(mod, "AT10_AREAS"),
+            "n_per_area": _const(mod, "AT10_N_PER_AREA"),
+            "emitter": _const(mod, "AT10_EMITTER"),
         },
-        "recording": {"probes": ["spikes", "V_m"]},
+        "recording": {"field": _const(mod, "AT10_FIELD"), "probes": _const(mod, "AT10_PROBES")},
         "hdp_params": None,
-        "transcribed": [
-            "inputs.builder: at01_at10_toy.py:254",
-            "inputs.areas: at01_at10_toy.py:254",
-            "inputs.n_per_area: at01_at10_toy.py:254",
-            "run.duration_ms: at01_at10_toy.py:256 (also :261 in the _run_config call)",
-            "inputs.emitter: at01_at10_toy.py:257",
-            "recording.probes: at01_at10_toy.py:259",
-            "inputs.genome_development: at01_at10_toy.py:265 (toy owns no G->D)",
+        "cited": [
+            _cite(
+                "genome_development", _RTOY, '"genome_development": "OMITTED', "toy owns no G->D"
+            ),
         ],
     }
 

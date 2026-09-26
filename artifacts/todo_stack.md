@@ -724,15 +724,12 @@ whole Atlas manuscript plan complete.
    longer stamps its own defaults as the run identity of foreign signals.
 
 ENGINE
-3. Remainder of the manifest item (spec registry, digest, manifest and
-   inheritance check landed in `artifacts/atlas/at_manifest.py`): runners
-   still hard-code the inputs each spec lists under `transcribed`
-   (file:line per field), so the spec describes the run but does not drive
-   it. Move those literals to module constants or have runners read
-   `at_spec`, until every `transcribed` list is empty; then add a
-   regeneration test per AT (only AT-02 has one, marked slow). The three
-   `_spec_digest` variants (053, 054, `intervene.network_spec_digest`)
-   stay separate until then.
+3. Spec digests: every run input is now a runner constant the spec reads
+   (`transcribed` gone; non-input facts under `cited` with checked anchors;
+   regeneration test per AT). Remaining: decide whether the three digest
+   variants (053/054 `_spec_digest`, `intervene.network_spec_digest`) fold
+   into `at_manifest.spec_digest` or stay per-runner (they hash different
+   objects: network spec vs Atlas spec).
 5a. Agent tool surface (agent-native step 5): `realize`, `inspect`,
    `simulate`, `compare`, `observe`, `verify` over the typed objects, not
    wrappers over every function.

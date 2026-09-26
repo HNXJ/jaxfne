@@ -96,6 +96,10 @@ CLAMP_VALUE = 0.3
 # Recording budget demonstration (item 2): stride + subsets, opt-in.
 BUDGET_STRIDE = 5
 BUDGET_H_SUBSET = (0, 1, 2, 3)
+BUDGET_W_SUBSET = (0, 1, 2)
+BUDGET_WEIGHT_TRACE = True
+# Public jaxfne builder, by name (the spec reads it), for AT-07 and AT-04-R2.
+BUILDER = "suite2_net1_config"
 
 LEVEL_PROXY = "RELATIVE_PROXY"
 
@@ -181,7 +185,7 @@ def _validate_hp(hp: dict[str, Any]) -> None:
 
 def _fresh_model() -> Any:
     """One realization of the declared network spec (builder suite2_net1)."""
-    return J.construct(J.suite2_net1_config(seed=SEED_BUILD, n=N_NEURONS))
+    return J.construct(getattr(J, BUILDER)(seed=SEED_BUILD, n=N_NEURONS))
 
 
 def _realized_weights(model: Any) -> np.ndarray:
@@ -484,10 +488,10 @@ def run_at07(keep_bundle: bool = False) -> dict[str, Any]:
     # H/W trajectories + recording budgets (items 1+2, AT-07-R2, schema v2).
     full = {"H": arms["hebbian"]["H_trace"], "w": arms["hebbian"]["w_trace"]}
     budgeted_hp = dict(BASE_HP)
-    budgeted_hp["record_weight_trace"] = True
+    budgeted_hp["record_weight_trace"] = BUDGET_WEIGHT_TRACE
     budgeted_hp["record_stride"] = BUDGET_STRIDE
     budgeted_hp["record_h_subset"] = list(BUDGET_H_SUBSET)
-    budgeted_hp["record_w_subset"] = [0, 1, 2]
+    budgeted_hp["record_w_subset"] = list(BUDGET_W_SUBSET)
     budgeted = _run_arm(_fresh_model(), budgeted_hp)
     trajectories = {
         "H_trace_shape": list(full["H"].shape),
@@ -496,7 +500,7 @@ def run_at07(keep_bundle: bool = False) -> dict[str, Any]:
         "budget": {
             "record_stride": BUDGET_STRIDE,
             "record_h_subset": list(BUDGET_H_SUBSET),
-            "record_w_subset": [0, 1, 2],
+            "record_w_subset": list(BUDGET_W_SUBSET),
             "H_budget_shape": list(budgeted["H_trace"].shape),
             "w_budget_shape": list(budgeted["w_trace"].shape),
             "kept_frames_equal_full": bool(

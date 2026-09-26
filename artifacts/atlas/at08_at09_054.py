@@ -80,6 +80,21 @@ STIM_PERIOD_MS = 200.0
 STIM_DUR_MS = 20.0
 STIM_AMP = 8.0
 
+# Member columns and cross edges (the spec reads these).
+MEMBER_AREAS: tuple[str, ...] = ("A1", "A2")
+MEMBER_LAYERS: tuple[str, ...] = ("L2/3", "L4")
+MEMBER_CELL_TYPES = {"E": 0.8, "PV": 0.2}
+MEMBER_EMITTER_FAMILY = "izhikevich"
+PROBE_MODES: tuple[str, ...] = ("spikes", "V_m", "LFP", "CSD")
+N_CONTACTS = 8
+FIELD_DOMAIN = "laminar_column"
+FIELD_CONDUCTIVITY = "proxy"
+FIELD_BOUNDARY = "mean_zero_neumann"
+EDGE_SOURCE_CELL_TYPE = "E"
+EDGE_PROBABILITY = 0.5
+EDGE_WEIGHT = 0.5
+EDGE_SIGN = "excitatory"
+
 LEVEL_PROXY = "RELATIVE_PROXY"
 SCENARIOS: tuple[str, ...] = ("AT-08", "AT-09")
 
@@ -170,18 +185,22 @@ def _validate_hp(hp: dict[str, Any]) -> None:
 def _fresh_members() -> tuple[Any, Any]:
     """Two edge_list columns with field + LFP/CSD probes (one realization)."""
     members = []
-    for i, name in enumerate(("A1", "A2")):
+    for i, name in enumerate(MEMBER_AREAS):
         cfg = (
             J.Configuration()
             .runtime(
                 duration_ms=DUR_MS, dt_ms=DT_MS, seed=SEED_BUILD + i, recurrent_backend="edge_list"
             )
-            .column(name, layers=["L2/3", "L4"], n=N_PER_AREA)
-            .cell_types({"E": 0.8, "PV": 0.2})
+            .column(name, layers=list(MEMBER_LAYERS), n=N_PER_AREA)
+            .cell_types(dict(MEMBER_CELL_TYPES))
             .connectivity()
-            .set_emitter(family="izhikevich")
-            .probes(["spikes", "V_m", "LFP", "CSD"], n_contacts=8)
-            .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+            .set_emitter(family=MEMBER_EMITTER_FAMILY)
+            .probes(list(PROBE_MODES), n_contacts=N_CONTACTS)
+            .field(
+                domain=FIELD_DOMAIN,
+                conductivity=FIELD_CONDUCTIVITY,
+                boundary=FIELD_BOUNDARY,
+            )
         )
         members.append(J.construct(cfg))
     return members[0], members[1]
@@ -196,19 +215,19 @@ def _fresh_ensemble() -> Any:
         namespace=("A", "B"),
         edges=[
             dict(
-                source={"model": 0, "area": "A1", "cell_type": "E"},
+                source={"model": 0, "area": "A1", "cell_type": EDGE_SOURCE_CELL_TYPE},
                 target={"model": 1, "area": "A2"},
-                probability=0.5,
-                weight=0.5,
-                sign="excitatory",
+                probability=EDGE_PROBABILITY,
+                weight=EDGE_WEIGHT,
+                sign=EDGE_SIGN,
                 delay_ms=CROSS_DELAY_MS,
             ),
             dict(
-                source={"model": 1, "area": "A2", "cell_type": "E"},
+                source={"model": 1, "area": "A2", "cell_type": EDGE_SOURCE_CELL_TYPE},
                 target={"model": 0, "area": "A1"},
-                probability=0.5,
-                weight=0.5,
-                sign="excitatory",
+                probability=EDGE_PROBABILITY,
+                weight=EDGE_WEIGHT,
+                sign=EDGE_SIGN,
                 delay_ms=CROSS_DELAY_MS,
             ),
         ],

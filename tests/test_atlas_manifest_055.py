@@ -2,6 +2,7 @@
 
 import importlib
 import json
+import pathlib
 
 import pytest
 
@@ -58,12 +59,34 @@ def test_inheritance_check_empty_and_adversarial(monkeypatch):
 
 
 @pytest.mark.slow
-def test_at02_regeneration_reproducible_at_manifest_seeds():
-    spec = M.at_spec("AT-02")
-    assert spec["seeds"] == {"build": A052.SEED, "run": A052.SEED}
-    first = A052.run_at02()
-    second = A052.run_at02()
-    assert _without_cost(first) == _without_cost(second)
+@pytest.mark.parametrize("at_id", list(M.REGISTRY))
+def test_regeneration_reproducible_at_manifest_seeds(at_id):
+    assert M.at_spec("AT-02")["seeds"] == {"build": A052.SEED, "run": A052.SEED}
+    run = M.resolve_runner(at_id)
+    assert _without_cost(run()) == _without_cost(run()), at_id
+
+
+def test_specs_carry_no_transcribed_literals_and_citations_resolve():
+    root = pathlib.Path(M.__file__).resolve().parents[2]
+    for at_id in M.REGISTRY:
+        spec = M.at_spec(at_id)
+        assert "transcribed" not in spec, at_id
+        for c in spec["cited"]:
+            text = (root / c["file"]).read_text(encoding="utf-8")
+            assert c["anchor"] in text, (at_id, c["field"], c["anchor"])
+
+
+def test_spec_constant_is_consumed_by_the_run(monkeypatch):
+    """A spec input must drive the run, not only the spec (AT-10: 3 areas x 2)."""
+    import artifacts.atlas.at01_at10_toy as TOY
+
+    def shape():
+        return list(M.resolve_runner("AT-10")()["spikes"]["shape"])
+
+    base = shape()
+    monkeypatch.setattr(TOY, "AT10_N_PER_AREA", 3)
+    assert M.at_spec("AT-10")["inputs"]["n_per_area"] == 3
+    assert shape() == [base[0], 9] != base
 
 
 def test_spec_reads_runner_constants_not_retyped(monkeypatch):

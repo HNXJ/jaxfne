@@ -54,6 +54,17 @@ WALL_BUDGET_S = 300.0
 # both recorded. DT 0.5 ms x DELAY 2.0 ms -> 4 steps (never rounds to 0).
 DELAY_MS = 2.0
 
+# Field/probe recording shared by every field-probed run in this module.
+FIELD_DOMAIN = "laminar_column"
+FIELD_CONDUCTIVITY = "proxy"
+PROBE_NAME = "e1"
+PROBE_MODES: tuple[str, ...] = ("spikes", "V_m", "source", "LFP-proxy")
+
+# Public jaxfne builders, by name (the spec reads these).
+AT01_BUILDER = "suite2_single_neuron_config"
+AT05_BUILDER = "suite2_net1_config"
+AT02_ZERO_DELAY_MS = 0.0
+
 # Item 9 (AT-01 physical anchor) tolerances, declared before the run.
 AT01_DURATION_MS = 50.0
 AT01_HH_CURRENT_UA = 10.0
@@ -323,7 +334,7 @@ def run_at01(keep_bundle: bool = False) -> dict[str, Any]:
     hh = _hh_reference()
 
     red = _run_configuration(
-        J.suite2_single_neuron_config(seed=SEED, duration_ms=AT01_DURATION_MS, dt_ms=DT_MS),
+        getattr(J, AT01_BUILDER)(seed=SEED, duration_ms=AT01_DURATION_MS, dt_ms=DT_MS),
         AT01_DURATION_MS,
         DT_MS,
     )
@@ -452,10 +463,10 @@ def _tfne_pair_run(spec: str, duration_ms: float, dt_ms: float, seed: int = SEED
         realization = J.tfne.realize(J.tfne.resolve(program), program, seed=seed)
         cfg = (
             J.tfne.to_configuration(realization, duration_ms=duration_ms, dt_ms=dt_ms)
-            .field(domain="laminar_column", conductivity="proxy")
+            .field(domain=FIELD_DOMAIN, conductivity=FIELD_CONDUCTIVITY)
             .probe(
-                name="e1",
-                modes=["spikes", "V_m", "source", "LFP-proxy"],
+                name=PROBE_NAME,
+                modes=list(PROBE_MODES),
                 n_contacts=AT02_N_CONTACTS,
             )
         )
@@ -536,7 +547,9 @@ def run_at02(keep_bundle: bool = False) -> dict[str, Any]:
     t0 = time.perf_counter()
     arms = {
         "delayed": _tfne_pair_run(AT02_SPEC_DELAY.format(delay=DELAY_MS), AT02_DURATION_MS, DT_MS),
-        "zero": _tfne_pair_run(AT02_SPEC_DELAY.format(delay=0.0), AT02_DURATION_MS, DT_MS),
+        "zero": _tfne_pair_run(
+            AT02_SPEC_DELAY.format(delay=AT02_ZERO_DELAY_MS), AT02_DURATION_MS, DT_MS
+        ),
         "absent": _tfne_pair_run(AT02_SPEC_ABSENT, AT02_DURATION_MS, DT_MS),
     }
     rec: dict[str, Any] = {}
@@ -867,14 +880,23 @@ AT06_DURATION_MS = 100.0
 AT06_N_CONTACTS = 4
 AT06_RADII_FRAC = (0.25, 0.5, 1.0)
 AT06_BANDS_HZ = ((4.0, 12.0), (30.0, 80.0))
+AT06_AREA = "V1"
+AT06_LAYERS: tuple[str, ...] = ("L2/3", "L4")
+AT06_N = 8
+AT06_CELL_TYPES = {"E": 0.75, "PV": 0.25}
+AT06_CONNECTIVITY = {"kind": "laminar_signed_metadata", "recurrent": True}
+AT06_EMITTER = ("izhikevich", "cortical_eig")
+AT06_PROBE_POSITION = (0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0)
+AT06_REFERENCE = "common_average"
+AT06_FILTER = {"kind": "bandpass", "low_hz": 8.0, "high_hz": 25.0}
 
 
 def _population_run(n: int, seed: int = SEED) -> dict[str, Any]:
     """E/I population with field probes (Configuration path, items 1+5)."""
-    cfg = J.suite2_net1_config(seed=seed, n=n, duration_ms=AT05_DURATION_MS, dt_ms=DT_MS)
-    cfg = cfg.field(domain="laminar_column", conductivity="proxy").probe(
-        name="e1",
-        modes=["spikes", "V_m", "source", "LFP-proxy"],
+    cfg = getattr(J, AT05_BUILDER)(seed=seed, n=n, duration_ms=AT05_DURATION_MS, dt_ms=DT_MS)
+    cfg = cfg.field(domain=FIELD_DOMAIN, conductivity=FIELD_CONDUCTIVITY).probe(
+        name=PROBE_NAME,
+        modes=list(PROBE_MODES),
         n_contacts=AT06_N_CONTACTS,
     )
     return _run_configuration(cfg, AT05_DURATION_MS, DT_MS, seed)
@@ -977,18 +999,18 @@ def run_at06(keep_bundle: bool = False) -> dict[str, Any]:
     cfg = (
         J.Configuration()
         .runtime(seed=SEED, duration_ms=AT06_DURATION_MS, dt_ms=DT_MS)
-        .column("V1", ["L2/3", "L4"], 8)
-        .cell_types({"E": 0.75, "PV": 0.25})
-        .connectivity(kind="laminar_signed_metadata", recurrent=True)
-        .set_emitter("izhikevich", "cortical_eig")
-        .field(domain="laminar_column", conductivity="proxy")
+        .column(AT06_AREA, list(AT06_LAYERS), AT06_N)
+        .cell_types(dict(AT06_CELL_TYPES))
+        .connectivity(**AT06_CONNECTIVITY)
+        .set_emitter(*AT06_EMITTER)
+        .field(domain=FIELD_DOMAIN, conductivity=FIELD_CONDUCTIVITY)
         .probe(
-            name="e1",
-            modes=["spikes", "V_m", "source", "LFP-proxy"],
+            name=PROBE_NAME,
+            modes=list(PROBE_MODES),
             n_contacts=AT06_N_CONTACTS,
-            position=[0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0],
-            reference="common_average",
-            filter_spec={"kind": "bandpass", "low_hz": 8.0, "high_hz": 25.0},
+            position=list(AT06_PROBE_POSITION),
+            reference=AT06_REFERENCE,
+            filter_spec=dict(AT06_FILTER),
         )
     )
     run = _run_configuration(cfg, AT06_DURATION_MS, DT_MS)
@@ -1024,9 +1046,12 @@ def run_at06(keep_bundle: bool = False) -> dict[str, Any]:
             "contacts_declared": AT06_N_CONTACTS,
             "contacts_realized": int(contacts.shape[0]),
             "contact_depths_frac": [float(v) for v in contacts],
-            "position_declared_frac": [0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0],
-            "reference": "common_average (record-only; proxy applies none)",
-            "filter": "bandpass 8-25 Hz (record-only; proxy applies none)",
+            "position_declared_frac": list(AT06_PROBE_POSITION),
+            "reference": f"{AT06_REFERENCE} (record-only; proxy applies none)",
+            "filter": (
+                f"{AT06_FILTER['kind']} {AT06_FILTER['low_hz']:g}-"
+                f"{AT06_FILTER['high_hz']:g} Hz (record-only; proxy applies none)"
+            ),
             "conductivity": "proxy",
             "distance": "relative fractions in [0,1]",
             "source_depths": "DECLARED ASSUMPTION: uniform linspace fractions",
@@ -1090,10 +1115,10 @@ _V1_NOTES: dict[str, str] = {
 
 def _single_field_run() -> dict[str, Any]:
     """Reduced single neuron with field probes (reduction middle rung)."""
-    cfg = J.suite2_single_neuron_config(seed=SEED, duration_ms=AT01_DURATION_MS, dt_ms=DT_MS)
-    cfg = cfg.field(domain="laminar_column", conductivity="proxy").probe(
-        name="e1",
-        modes=["spikes", "V_m", "source", "LFP-proxy"],
+    cfg = getattr(J, AT01_BUILDER)(seed=SEED, duration_ms=AT01_DURATION_MS, dt_ms=DT_MS)
+    cfg = cfg.field(domain=FIELD_DOMAIN, conductivity=FIELD_CONDUCTIVITY).probe(
+        name=PROBE_NAME,
+        modes=list(PROBE_MODES),
         n_contacts=AT06_N_CONTACTS,
     )
     return _run_configuration(cfg, AT01_DURATION_MS, DT_MS)

@@ -30,6 +30,15 @@ import jaxfne as J
 # AT-00-R2, at the cheapest point that still executes.
 TOY_DT_MS = 0.5
 TOY_SEED = 7
+
+# AT-10 multi-area toy (the spec reads these).
+AT10_BUILDER = "build_multi_area_columns"
+AT10_AREAS: tuple[str, ...] = ("A1", "A2", "A3")
+AT10_N_PER_AREA = 2
+AT10_DURATION_MS = 10.0
+AT10_EMITTER = ("izhikevich", "cortical_eig")
+AT10_FIELD = {"domain": "laminar_column", "conductivity": "proxy"}
+AT10_PROBES: tuple[str, ...] = ("spikes", "V_m")
 WALL_BUDGET_S = 120.0
 
 SCENARIOS: tuple[str, ...] = (
@@ -265,14 +274,14 @@ def run_at10(keep_bundle: bool = False) -> dict[str, Any]:
     (``{"main": {"model", "signals"}}``). Default ``False`` leaves the
     output unchanged.
     """
-    cfg = J.build_multi_area_columns(areas=["A1", "A2", "A3"], n_per_area=2)
+    cfg = getattr(J, AT10_BUILDER)(areas=list(AT10_AREAS), n_per_area=AT10_N_PER_AREA)
     cfg = (
-        cfg.runtime(seed=TOY_SEED, duration_ms=10.0, dt_ms=TOY_DT_MS)
-        .set_emitter("izhikevich", "cortical_eig")
-        .field(domain="laminar_column", conductivity="proxy")
-        .probes(["spikes", "V_m"])
+        cfg.runtime(seed=TOY_SEED, duration_ms=AT10_DURATION_MS, dt_ms=TOY_DT_MS)
+        .set_emitter(*AT10_EMITTER)
+        .field(**AT10_FIELD)
+        .probes(list(AT10_PROBES))
     )
-    out = _run_config(cfg, 10.0, TOY_DT_MS, keep_objects=keep_bundle)
+    out = _run_config(cfg, AT10_DURATION_MS, TOY_DT_MS, keep_objects=keep_bundle)
     bundle = None
     if keep_bundle:
         bundle = {"main": {"model": out.pop("model"), "signals": out.pop("signals")}}
