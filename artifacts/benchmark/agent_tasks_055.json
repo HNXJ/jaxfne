@@ -1,0 +1,1596 @@
+{
+ "schema": 1,
+ "tasks": [
+  {
+   "at_id": "AT-01",
+   "intent": "S1: Jaxley HH reference vs reduced neuron, predeclared tolerances.",
+   "spec": {
+    "at_id": "AT-01",
+    "runner": "at01_at06_052:run_at01",
+    "status": "canonical",
+    "stage": "S1",
+    "seeds": {
+     "build": 7,
+     "run": 7
+    },
+    "run": {
+     "duration_ms": 50.0,
+     "dt_ms": 0.5
+    },
+    "inputs": {
+     "builder": "suite2_single_neuron_config",
+     "hh_current_ua": 10.0
+    },
+    "recording": {
+     "reads": [
+      "spikes",
+      "V_m"
+     ]
+    },
+    "hdp_params": null,
+    "cited": [
+     {
+      "field": "inputs.n_neurons",
+      "file": "jaxfne/_construct_presets.py",
+      "anchor": ".column(\"single\", layers=[\"uniform_3d\"], n=1)",
+      "why": "builder default: one neuron"
+     },
+     {
+      "field": "recording.field",
+      "file": "jaxfne/_construct_presets.py",
+      "anchor": ".probes(_SUITE2_PROXY_MODES, n_contacts=4)",
+      "why": "builder-default probes; the runner adds none"
+     },
+     {
+      "field": "recording.reads",
+      "file": "artifacts/atlas/at01_at06_052.py",
+      "anchor": "vm = np.asarray(sig.V_m).ravel()",
+      "why": "Signals attributes the reduced arm reads"
+     }
+    ],
+    "components": [
+     "Phi",
+     "Q",
+     "X"
+    ],
+    "parent_stage": null
+   },
+   "spec_digest": "b699ca4ddae8bd7a8e338b9facba43b81da80d248730fae1c260c57fa01b3bb9",
+   "arms": {
+    "reduced": {
+     "n_neurons": 1,
+     "emitter": "IzhikevichParams",
+     "n_edges": 0,
+     "weights": "4f53cda18c2baa0c",
+     "mechanisms": {},
+     "delays": "4f53cda18c2baa0c",
+     "degrees": "a683096011db3975",
+     "n_steps": 100,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    }
+   }
+  },
+  {
+   "at_id": "AT-02",
+   "intent": "S2: driven pair N1->N2 with declared delay; fields + distance law.",
+   "spec": {
+    "at_id": "AT-02",
+    "runner": "at01_at06_052:run_at02",
+    "status": "canonical",
+    "stage": "S2-4",
+    "seeds": {
+     "build": 7,
+     "run": 7
+    },
+    "run": {
+     "duration_ms": 60.0,
+     "dt_ms": 0.5
+    },
+    "inputs": {
+     "tfne_spec": "O[k] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5; delay = {delay}]; A := [C = {{E}}; N = 4]; B := [C = {{E}}; N = 4]; x : A O[k] B : y",
+     "absent_delay_spec": "O[k] := [direction = >; mechanism = AMPA; probability = 1.0; weight = 0.5]; A := [C = {E}; N = 4]; B := [C = {E}; N = 4]; x : A O[k] B : y",
+     "delay_ms": 2.0,
+     "zero_delay_ms": 0.0
+    },
+    "recording": {
+     "field_domain": "laminar_column",
+     "field_conductivity": "proxy",
+     "probe": "e1",
+     "modes": [
+      "spikes",
+      "V_m",
+      "source",
+      "LFP-proxy"
+     ],
+     "n_contacts": 4
+    },
+    "hdp_params": null,
+    "cited": [
+     {
+      "field": "arms",
+      "file": "artifacts/atlas/at01_at06_052.py",
+      "anchor": "\"zero\": _tfne_pair_run(",
+      "why": "arm names delayed/zero/absent"
+     }
+    ],
+    "components": [
+     "B",
+     "Phi",
+     "Q",
+     "W",
+     "X",
+     "interaction",
+     "r"
+    ],
+    "parent_stage": "S1"
+   },
+   "spec_digest": "0cbe7a6f9579bff11a0d1e1c245e494211b58d85a65e6e37f241c9ef970a5cfc",
+   "arms": {
+    "delayed": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 16,
+     "weights": "9a1a55604497ba3d",
+     "mechanisms": {
+      "AMPA": 16
+     },
+     "delays": "ab1857e542413840",
+     "degrees": "058f33f08b61268a",
+     "n_steps": 120,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    },
+    "zero": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 16,
+     "weights": "9a1a55604497ba3d",
+     "mechanisms": {
+      "AMPA": 16
+     },
+     "delays": "564a4fcf27bec1d4",
+     "degrees": "058f33f08b61268a",
+     "n_steps": 120,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    },
+    "absent": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 16,
+     "weights": "9a1a55604497ba3d",
+     "mechanisms": {
+      "AMPA": 16
+     },
+     "delays": "564a4fcf27bec1d4",
+     "degrees": "058f33f08b61268a",
+     "n_steps": 120,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    }
+   }
+  },
+  {
+   "at_id": "AT-03",
+   "intent": "S3: recurrent E<->I pair with declared delay; phase + field.",
+   "spec": {
+    "at_id": "AT-03",
+    "runner": "at01_at06_052:run_at03",
+    "status": "canonical",
+    "stage": "S2-4",
+    "seeds": {
+     "build": 7,
+     "run": 7
+    },
+    "run": {
+     "duration_ms": 200.0,
+     "dt_ms": 0.5
+    },
+    "inputs": {
+     "tfne_spec": "O[k] := [direction = <>; mechanism = AMPA; probability = 1.0; weight = 0.8; delay = {delay}]; A := [C = {{E}}; N = 3]; B := [C = {{I}}; N = 3]; x : A O[k] B : y",
+     "delay_ms": 2.0
+    },
+    "recording": {
+     "field_domain": "laminar_column",
+     "field_conductivity": "proxy",
+     "probe": "e1",
+     "modes": [
+      "spikes",
+      "V_m",
+      "source",
+      "LFP-proxy"
+     ],
+     "n_contacts": 4
+    },
+    "hdp_params": null,
+    "cited": [],
+    "components": [
+     "B",
+     "Phi",
+     "Q",
+     "W",
+     "X",
+     "interaction",
+     "r"
+    ],
+    "parent_stage": "S1"
+   },
+   "spec_digest": "218922195dc60249ff6c1baea75870456a5e3c0db0168826c2a87bec27d50a82",
+   "arms": {
+    "pair": {
+     "n_neurons": 6,
+     "emitter": "IzhikevichParams",
+     "n_edges": 18,
+     "weights": "b8315abaa42f49f2",
+     "mechanisms": {
+      "AMPA": 18
+     },
+     "delays": "e859d827d0d11fba",
+     "degrees": "07ac53cdb6da13ae",
+     "n_steps": 400,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    }
+   }
+  },
+  {
+   "at_id": "AT-04",
+   "intent": "S4: geometry/orientation arm; correlation only, Phi->X refused.",
+   "spec": {
+    "at_id": "AT-04",
+    "runner": "at01_at06_052:run_at04",
+    "status": "canonical",
+    "stage": "S2-4",
+    "seeds": {
+     "build": 7,
+     "run": 7
+    },
+    "run": {
+     "duration_ms": 200.0,
+     "dt_ms": 0.5
+    },
+    "inputs": {
+     "tfne_spec": "O[k] := [direction = <>; mechanism = AMPA; probability = 1.0; weight = 0.8; delay = {delay}]; A := [C = {{E}}; N = 3; G = [z0 = {a0}; z1 = {a1}]]; B := [C = {{I}}; N = 3; G = [z0 = {b0}; z1 = {b1}]]; x : A O[k] B : y",
+     "geometry_arms": {
+      "stacked": {
+       "a0": 0.0,
+       "a1": 0.5,
+       "b0": 0.5,
+       "b1": 1.0
+      },
+      "swapped": {
+       "a0": 0.5,
+       "a1": 1.0,
+       "b0": 0.0,
+       "b1": 0.5
+      },
+      "overlap": {
+       "a0": 0.25,
+       "a1": 0.75,
+       "b0": 0.25,
+       "b1": 0.75
+      }
+     },
+     "delay_ms": 2.0
+    },
+    "recording": {
+     "field_domain": "laminar_column",
+     "field_conductivity": "proxy",
+     "probe": "e1",
+     "modes": [
+      "spikes",
+      "V_m",
+      "source",
+      "LFP-proxy"
+     ],
+     "n_contacts": 4
+    },
+    "hdp_params": null,
+    "cited": [],
+    "components": [
+     "B",
+     "Phi",
+     "Q",
+     "W",
+     "X",
+     "interaction",
+     "r"
+    ],
+    "parent_stage": "S1"
+   },
+   "spec_digest": "cad8efe36652cff056b0c2a42d28ad0e4bf2f88b0eec25e23c5e94fbdbea3b62",
+   "arms": {
+    "stacked": {
+     "n_neurons": 6,
+     "emitter": "IzhikevichParams",
+     "n_edges": 18,
+     "weights": "b8315abaa42f49f2",
+     "mechanisms": {
+      "AMPA": 18
+     },
+     "delays": "e859d827d0d11fba",
+     "degrees": "07ac53cdb6da13ae",
+     "n_steps": 400,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    },
+    "swapped": {
+     "n_neurons": 6,
+     "emitter": "IzhikevichParams",
+     "n_edges": 18,
+     "weights": "b8315abaa42f49f2",
+     "mechanisms": {
+      "AMPA": 18
+     },
+     "delays": "e859d827d0d11fba",
+     "degrees": "07ac53cdb6da13ae",
+     "n_steps": 400,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    },
+    "overlap": {
+     "n_neurons": 6,
+     "emitter": "IzhikevichParams",
+     "n_edges": 18,
+     "weights": "b8315abaa42f49f2",
+     "mechanisms": {
+      "AMPA": 18
+     },
+     "delays": "e859d827d0d11fba",
+     "degrees": "07ac53cdb6da13ae",
+     "n_steps": 400,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    }
+   }
+  },
+  {
+   "at_id": "AT-05",
+   "intent": "S5: population field emergence; executed kappa orders the arms.",
+   "spec": {
+    "at_id": "AT-05",
+    "runner": "at01_at06_052:run_at05",
+    "status": "canonical",
+    "stage": "S5-7",
+    "seeds": {
+     "build": 7,
+     "run": 7
+    },
+    "run": {
+     "duration_ms": 100.0,
+     "dt_ms": 0.5
+    },
+    "inputs": {
+     "builder": "suite2_net1_config",
+     "arms": {
+      "n8_s11": {
+       "n": 8,
+       "seed": 11
+      },
+      "n8_s7": {
+       "n": 8,
+       "seed": 7
+      },
+      "n4_s7": {
+       "n": 4,
+       "seed": 7
+      },
+      "n2_s7": {
+       "n": 2,
+       "seed": 7
+      }
+     },
+     "ratio_margin": 0.0001
+    },
+    "recording": {
+     "field_domain": "laminar_column",
+     "field_conductivity": "proxy",
+     "probe": "e1",
+     "modes": [
+      "spikes",
+      "V_m",
+      "source",
+      "LFP-proxy"
+     ],
+     "n_contacts": 4
+    },
+    "hdp_params": null,
+    "cited": [],
+    "components": [
+     "B",
+     "N",
+     "Phi",
+     "Q",
+     "W",
+     "X",
+     "collective_state",
+     "interaction",
+     "r",
+     "rho"
+    ],
+    "parent_stage": "S2-4"
+   },
+   "spec_digest": "9661c48291a6a9c9df268654c19303f70c04b0f10b0fe37ec7621ef9b719ded6",
+   "arms": {
+    "n8_s11": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 56,
+     "weights": "e1cf252af84a51f3",
+     "mechanisms": {
+      "AMPA": 42,
+      "GABA_A": 14
+     },
+     "delays": "7a5e31c50bc5ca0a",
+     "degrees": "cd45be5de820c951",
+     "n_steps": 200,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    },
+    "n8_s7": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 56,
+     "weights": "3f374903b6ae7380",
+     "mechanisms": {
+      "AMPA": 42,
+      "GABA_A": 14
+     },
+     "delays": "7a5e31c50bc5ca0a",
+     "degrees": "cd45be5de820c951",
+     "n_steps": 200,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    },
+    "n4_s7": {
+     "n_neurons": 4,
+     "emitter": "IzhikevichParams",
+     "n_edges": 12,
+     "weights": "864dcba6af9dbf88",
+     "mechanisms": {
+      "AMPA": 9,
+      "GABA_A": 3
+     },
+     "delays": "e4ab99461adffebb",
+     "degrees": "58066119584a4c0d",
+     "n_steps": 200,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    },
+    "n2_s7": {
+     "n_neurons": 2,
+     "emitter": "IzhikevichParams",
+     "n_edges": 2,
+     "weights": "1f07b8dee2baa86d",
+     "mechanisms": {
+      "AMPA": 2
+     },
+     "delays": "d0411df67350efa1",
+     "degrees": "915e0cf851099e30",
+     "n_steps": 200,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    }
+   }
+  },
+  {
+   "at_id": "AT-06",
+   "intent": "S6: electrode locality C(R,f); assumptions declared, proxy only.",
+   "spec": {
+    "at_id": "AT-06",
+    "runner": "at01_at06_052:run_at06",
+    "status": "canonical",
+    "stage": "S5-7",
+    "seeds": {
+     "build": 7,
+     "run": 7
+    },
+    "run": {
+     "duration_ms": 100.0,
+     "dt_ms": 0.5
+    },
+    "inputs": {
+     "area": "V1",
+     "layers": [
+      "L2/3",
+      "L4"
+     ],
+     "n": 8,
+     "cell_types": {
+      "E": 0.75,
+      "PV": 0.25
+     },
+     "connectivity": {
+      "kind": "laminar_signed_metadata",
+      "recurrent": true
+     },
+     "emitter": [
+      "izhikevich",
+      "cortical_eig"
+     ],
+     "radii_frac": [
+      0.25,
+      0.5,
+      1.0
+     ],
+     "bands_hz": [
+      [
+       4.0,
+       12.0
+      ],
+      [
+       30.0,
+       80.0
+      ]
+     ]
+    },
+    "recording": {
+     "field_domain": "laminar_column",
+     "field_conductivity": "proxy",
+     "probe": "e1",
+     "modes": [
+      "spikes",
+      "V_m",
+      "source",
+      "LFP-proxy"
+     ],
+     "n_contacts": 4,
+     "position": [
+      0.0,
+      0.3333333333333333,
+      0.6666666666666666,
+      1.0
+     ],
+     "reference": "common_average",
+     "filter": {
+      "kind": "bandpass",
+      "low_hz": 8.0,
+      "high_hz": 25.0
+     }
+    },
+    "hdp_params": null,
+    "cited": [],
+    "components": [
+     "B",
+     "N",
+     "Phi",
+     "Q",
+     "W",
+     "X",
+     "collective_state",
+     "interaction",
+     "r",
+     "rho"
+    ],
+    "parent_stage": "S2-4"
+   },
+   "spec_digest": "2f0018cf5962ae8aee9f3fda7726225c5249fbdd8080309d78fc6eb560d7c708",
+   "arms": {
+    "column": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 56,
+     "weights": "5a23a833c8e59fa7",
+     "mechanisms": {
+      "AMPA": 42,
+      "GABA_A": 14
+     },
+     "delays": "7a5e31c50bc5ca0a",
+     "degrees": "cd45be5de820c951",
+     "n_steps": 200,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    }
+   }
+  },
+  {
+   "at_id": "AT-07",
+   "intent": "S7: matched-stimulation plasticity comparison + budgets + schema v2.",
+   "spec": {
+    "at_id": "AT-07",
+    "runner": "at07_at04_053:run_at07",
+    "status": "canonical",
+    "stage": "S5-7",
+    "seeds": {
+     "build": 1,
+     "run": 4
+    },
+    "run": {
+     "duration_ms": 1000.0,
+     "dt_ms": 0.5
+    },
+    "inputs": {
+     "builder": "suite2_net1_config",
+     "n_neurons": 8,
+     "clamp_value": 0.3
+    },
+    "recording": {
+     "H_trace": "full trajectory + budgeted decimation",
+     "w_trace": "full trajectory + budgeted decimation",
+     "record_weight_trace": true,
+     "record_stride": 5,
+     "record_h_subset": [
+      0,
+      1,
+      2,
+      3
+     ],
+     "record_w_subset": [
+      0,
+      1,
+      2
+     ]
+    },
+    "hdp_params": {
+     "baseline": {
+      "K_HDP": 0.05,
+      "K_ctrl": 0.15,
+      "K_w_ctrl": 0.002,
+      "alpha": 0.05,
+      "tau_0_ms": 5.0,
+      "noise_scale": 0.0
+     },
+     "noisy": {
+      "K_HDP": 0.05,
+      "K_ctrl": 0.15,
+      "K_w_ctrl": 0.002,
+      "alpha": 0.05,
+      "tau_0_ms": 5.0,
+      "noise_scale": 0.5
+     }
+    },
+    "cited": [
+     {
+      "field": "arms",
+      "file": "artifacts/atlas/at07_at04_053.py",
+      "anchor": "\"hebbian\": _run_arm(models[0], BASE_HP),",
+      "why": "arm names hebbian/fixed/noisy/clamp"
+     },
+     {
+      "field": "clamp_mask",
+      "file": "artifacts/atlas/at07_at04_053.py",
+      "anchor": "values=[0.0] * (n_edges // 2) + [1.0] * (n_edges - n_edges // 2)",
+      "why": "first half of edges pinned, second half free"
+     }
+    ],
+    "components": [
+     "B",
+     "N",
+     "Phi",
+     "Q",
+     "W",
+     "X",
+     "collective_state",
+     "interaction",
+     "r",
+     "rho"
+    ],
+    "parent_stage": "S2-4"
+   },
+   "spec_digest": "6bbd6e1c5c30c70512abf06f07f1c49b8072aec612913832744c0c53be3d1d07",
+   "arms": {
+    "hebbian": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 56,
+     "weights": "ee8efb66de3da342",
+     "mechanisms": {
+      "AMPA": 42,
+      "GABA_A": 14
+     },
+     "delays": "7a5e31c50bc5ca0a",
+     "degrees": "cd45be5de820c951",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": true
+    },
+    "fixed": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 56,
+     "weights": "ee8efb66de3da342",
+     "mechanisms": {
+      "AMPA": 42,
+      "GABA_A": 14
+     },
+     "delays": "7a5e31c50bc5ca0a",
+     "degrees": "cd45be5de820c951",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    },
+    "noisy": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 56,
+     "weights": "ee8efb66de3da342",
+     "mechanisms": {
+      "AMPA": 42,
+      "GABA_A": 14
+     },
+     "delays": "7a5e31c50bc5ca0a",
+     "degrees": "cd45be5de820c951",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": true
+    },
+    "clamp": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 56,
+     "weights": "ee8efb66de3da342",
+     "mechanisms": {
+      "AMPA": 42,
+      "GABA_A": 14
+     },
+     "delays": "7a5e31c50bc5ca0a",
+     "degrees": "cd45be5de820c951",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": true
+    },
+    "repro": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 56,
+     "weights": "ee8efb66de3da342",
+     "mechanisms": {
+      "AMPA": 42,
+      "GABA_A": 14
+     },
+     "delays": "7a5e31c50bc5ca0a",
+     "degrees": "cd45be5de820c951",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": true
+    },
+    "budgeted": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 56,
+     "weights": "ee8efb66de3da342",
+     "mechanisms": {
+      "AMPA": 42,
+      "GABA_A": 14
+     },
+     "delays": "7a5e31c50bc5ca0a",
+     "degrees": "cd45be5de820c951",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": true
+    }
+   }
+  },
+  {
+   "at_id": "AT-04-R2",
+   "intent": "S4 causal arm: H0 baseline vs perturbed, matched stimulation.",
+   "spec": {
+    "at_id": "AT-04-R2",
+    "runner": "at07_at04_053:run_at04r2",
+    "status": "canonical",
+    "stage": "S2-4",
+    "seeds": {
+     "build": 1,
+     "run": 4
+    },
+    "run": {
+     "duration_ms": 1000.0,
+     "dt_ms": 0.5
+    },
+    "inputs": {
+     "builder": "suite2_net1_config",
+     "n_neurons": 8,
+     "H0_baseline": 1.0,
+     "H0_perturbed": 0.0
+    },
+    "recording": {
+     "summary": "spike_count/rate/H_final/w_final/Q/Phi/kappa per arm"
+    },
+    "hdp_params": {
+     "baseline": {
+      "K_HDP": 0.05,
+      "K_ctrl": 0.15,
+      "K_w_ctrl": 0.002,
+      "alpha": 0.05,
+      "tau_0_ms": 5.0,
+      "noise_scale": 0.0
+     }
+    },
+    "cited": [
+     {
+      "field": "arms",
+      "file": "artifacts/atlas/at07_at04_053.py",
+      "anchor": "model_dis_pert = built[3].with_hdp_initial_state(",
+      "why": "baseline/perturbed (HDP engaged) + disabled pair (W bit-fixed)"
+     },
+     {
+      "field": "disable_control",
+      "file": "artifacts/atlas/at07_at04_053.py",
+      "anchor": "hp_off = J.hdp_network.disable_plasticity(",
+      "why": "disabled arms use the public disable_plasticity control"
+     },
+     {
+      "field": "recording.summary",
+      "file": "artifacts/atlas/at07_at04_053.py",
+      "anchor": "def _arm_summary(",
+      "why": "per-arm summary reads"
+     }
+    ],
+    "components": [
+     "B",
+     "Phi",
+     "Q",
+     "W",
+     "X",
+     "interaction",
+     "r"
+    ],
+    "parent_stage": "S1"
+   },
+   "spec_digest": "88dd3bb4a1db395ba652ec1c36ae0c9b7bf178fa4062157b52caeea2a5135d23",
+   "arms": {
+    "baseline": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 56,
+     "weights": "ee8efb66de3da342",
+     "mechanisms": {
+      "AMPA": 42,
+      "GABA_A": 14
+     },
+     "delays": "7a5e31c50bc5ca0a",
+     "degrees": "cd45be5de820c951",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": true
+    },
+    "perturbed": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 56,
+     "weights": "ee8efb66de3da342",
+     "mechanisms": {
+      "AMPA": 42,
+      "GABA_A": 14
+     },
+     "delays": "7a5e31c50bc5ca0a",
+     "degrees": "cd45be5de820c951",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": true
+    },
+    "disabled_baseline": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 56,
+     "weights": "ee8efb66de3da342",
+     "mechanisms": {
+      "AMPA": 42,
+      "GABA_A": 14
+     },
+     "delays": "7a5e31c50bc5ca0a",
+     "degrees": "cd45be5de820c951",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    },
+    "disabled_perturbed": {
+     "n_neurons": 8,
+     "emitter": "IzhikevichParams",
+     "n_edges": 56,
+     "weights": "ee8efb66de3da342",
+     "mechanisms": {
+      "AMPA": 42,
+      "GABA_A": 14
+     },
+     "delays": "7a5e31c50bc5ca0a",
+     "degrees": "cd45be5de820c951",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    }
+   }
+  },
+  {
+   "at_id": "AT-08",
+   "intent": "AT-08: same network; fixed baseline vs full HDP vs cross-frozen HDP.",
+   "spec": {
+    "at_id": "AT-08",
+    "runner": "at08_at09_054:run_at08",
+    "status": "canonical",
+    "stage": "S8-9",
+    "seeds": {
+     "build": 2,
+     "run": 4
+    },
+    "run": {
+     "duration_ms": 1000.0,
+     "dt_ms": 0.5
+    },
+    "inputs": {
+     "member_areas": [
+      "A1",
+      "A2"
+     ],
+     "member_layers": [
+      "L2/3",
+      "L4"
+     ],
+     "member_build_seeds": [
+      2,
+      3
+     ],
+     "members_cell_types": {
+      "E": 0.8,
+      "PV": 0.2
+     },
+     "members_emitter_family": "izhikevich",
+     "n_per_area": 8,
+     "cross_delay_ms": 2.0,
+     "edge_source_cell_type": "E",
+     "edge_probability": 0.5,
+     "edge_weight": 0.5,
+     "edge_sign": "excitatory",
+     "stimulus": "repeated pulses to A1",
+     "stim_period_ms": 200.0,
+     "stim_duration_ms": 20.0,
+     "stim_amplitude": 8.0
+    },
+    "recording": {
+     "probe_modes": [
+      "spikes",
+      "V_m",
+      "LFP",
+      "CSD"
+     ],
+     "n_contacts": 8,
+     "field_domain": "laminar_column",
+     "field_conductivity": "proxy",
+     "field_boundary": "mean_zero_neumann"
+    },
+    "hdp_params": {
+     "baseline": {
+      "K_HDP": 0.05,
+      "K_ctrl": 0.15,
+      "K_w_ctrl": 0.002,
+      "alpha": 0.05,
+      "tau_0_ms": 5.0,
+      "noise_scale": 0.0
+     }
+    },
+    "cited": [
+     {
+      "field": "edges",
+      "file": "artifacts/atlas/at08_at09_054.py",
+      "anchor": "target={\"model\": 1, \"area\": \"A2\"},",
+      "why": "rule 0 = A1->A2, rule 1 = A2->A1"
+     },
+     {
+      "field": "members_emitter_preset",
+      "file": "artifacts/atlas/at08_at09_054.py",
+      "anchor": ".set_emitter(family=MEMBER_EMITTER_FAMILY)",
+      "why": "family default preset (no preset argument)"
+     },
+     {
+      "field": "arms",
+      "file": "artifacts/atlas/at08_at09_054.py",
+      "anchor": "\"adapt_full\": _run_arm(model, dict(BASE_HP), stim),",
+      "why": "arm names fixed/adapt_full/adapt_local"
+     },
+     {
+      "field": "masks",
+      "file": "artifacts/atlas/at08_at09_054.py",
+      "anchor": "return {\"cross_only\": cross, \"member_only\": member",
+      "why": "cross/member ranges from ensemble_edge_ownership"
+     }
+    ],
+    "components": [
+     "B",
+     "N",
+     "Phi",
+     "Q",
+     "W",
+     "X",
+     "area_hierarchy",
+     "collective_state",
+     "interaction",
+     "long_delays",
+     "r",
+     "rho"
+    ],
+    "parent_stage": "S5-7"
+   },
+   "spec_digest": "1cb3b107579082457ba881f03f3b1eea28824127ec23f29c51ad9b3288d498c8",
+   "arms": {
+    "fixed": {
+     "n_neurons": 16,
+     "emitter": "IzhikevichParams",
+     "n_edges": 159,
+     "weights": "6dbfdd26a29b7945",
+     "mechanisms": {
+      "AMPA": 131,
+      "GABA_A": 28
+     },
+     "delays": "20693ec6893cd6ff",
+     "degrees": "90d8ab0ef92f9c99",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    },
+    "adapt_full": {
+     "n_neurons": 16,
+     "emitter": "IzhikevichParams",
+     "n_edges": 159,
+     "weights": "6dbfdd26a29b7945",
+     "mechanisms": {
+      "AMPA": 131,
+      "GABA_A": 28
+     },
+     "delays": "20693ec6893cd6ff",
+     "degrees": "90d8ab0ef92f9c99",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": true
+    },
+    "adapt_local": {
+     "n_neurons": 16,
+     "emitter": "IzhikevichParams",
+     "n_edges": 159,
+     "weights": "6dbfdd26a29b7945",
+     "mechanisms": {
+      "AMPA": 131,
+      "GABA_A": 28
+     },
+     "delays": "20693ec6893cd6ff",
+     "degrees": "90d8ab0ef92f9c99",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": true
+    }
+   }
+  },
+  {
+   "at_id": "AT-09",
+   "intent": "AT-09: cross-only vs member-only vs frozen plasticity, same network.",
+   "spec": {
+    "at_id": "AT-09",
+    "runner": "at08_at09_054:run_at09",
+    "status": "canonical",
+    "stage": "S8-9",
+    "seeds": {
+     "build": 2,
+     "run": 4
+    },
+    "run": {
+     "duration_ms": 1000.0,
+     "dt_ms": 0.5
+    },
+    "inputs": {
+     "member_areas": [
+      "A1",
+      "A2"
+     ],
+     "member_layers": [
+      "L2/3",
+      "L4"
+     ],
+     "member_build_seeds": [
+      2,
+      3
+     ],
+     "members_cell_types": {
+      "E": 0.8,
+      "PV": 0.2
+     },
+     "members_emitter_family": "izhikevich",
+     "n_per_area": 8,
+     "cross_delay_ms": 2.0,
+     "edge_source_cell_type": "E",
+     "edge_probability": 0.5,
+     "edge_weight": 0.5,
+     "edge_sign": "excitatory",
+     "stimulus": "repeated pulses to A1",
+     "stim_period_ms": 200.0,
+     "stim_duration_ms": 20.0,
+     "stim_amplitude": 8.0
+    },
+    "recording": {
+     "probe_modes": [
+      "spikes",
+      "V_m",
+      "LFP",
+      "CSD"
+     ],
+     "n_contacts": 8,
+     "field_domain": "laminar_column",
+     "field_conductivity": "proxy",
+     "field_boundary": "mean_zero_neumann"
+    },
+    "hdp_params": {
+     "baseline": {
+      "K_HDP": 0.05,
+      "K_ctrl": 0.15,
+      "K_w_ctrl": 0.002,
+      "alpha": 0.05,
+      "tau_0_ms": 5.0,
+      "noise_scale": 0.0
+     }
+    },
+    "cited": [
+     {
+      "field": "edges",
+      "file": "artifacts/atlas/at08_at09_054.py",
+      "anchor": "target={\"model\": 1, \"area\": \"A2\"},",
+      "why": "rule 0 = A1->A2, rule 1 = A2->A1"
+     },
+     {
+      "field": "members_emitter_preset",
+      "file": "artifacts/atlas/at08_at09_054.py",
+      "anchor": ".set_emitter(family=MEMBER_EMITTER_FAMILY)",
+      "why": "family default preset (no preset argument)"
+     },
+     {
+      "field": "arms",
+      "file": "artifacts/atlas/at08_at09_054.py",
+      "anchor": "\"plastic_cross\": _run_arm(",
+      "why": "arm names plastic_cross/plastic_member/frozen"
+     },
+     {
+      "field": "masks",
+      "file": "artifacts/atlas/at08_at09_054.py",
+      "anchor": "return {\"cross_only\": cross, \"member_only\": member",
+      "why": "cross_only/member_only/frozen"
+     }
+    ],
+    "components": [
+     "B",
+     "N",
+     "Phi",
+     "Q",
+     "W",
+     "X",
+     "area_hierarchy",
+     "collective_state",
+     "interaction",
+     "long_delays",
+     "r",
+     "rho"
+    ],
+    "parent_stage": "S5-7"
+   },
+   "spec_digest": "ad92e287690ea8af38c0e5207122a4057c34fa1d1e8f5fdf4b0a3118a4c5034b",
+   "arms": {
+    "plastic_cross": {
+     "n_neurons": 16,
+     "emitter": "IzhikevichParams",
+     "n_edges": 159,
+     "weights": "6dbfdd26a29b7945",
+     "mechanisms": {
+      "AMPA": 131,
+      "GABA_A": 28
+     },
+     "delays": "20693ec6893cd6ff",
+     "degrees": "90d8ab0ef92f9c99",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": true
+    },
+    "plastic_member": {
+     "n_neurons": 16,
+     "emitter": "IzhikevichParams",
+     "n_edges": 159,
+     "weights": "6dbfdd26a29b7945",
+     "mechanisms": {
+      "AMPA": 131,
+      "GABA_A": 28
+     },
+     "delays": "20693ec6893cd6ff",
+     "degrees": "90d8ab0ef92f9c99",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": true
+    },
+    "frozen": {
+     "n_neurons": 16,
+     "emitter": "IzhikevichParams",
+     "n_edges": 159,
+     "weights": "6dbfdd26a29b7945",
+     "mechanisms": {
+      "AMPA": 131,
+      "GABA_A": 28
+     },
+     "delays": "20693ec6893cd6ff",
+     "degrees": "90d8ab0ef92f9c99",
+     "n_steps": 2000,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    }
+   }
+  },
+  {
+   "at_id": "AT-10",
+   "intent": "S10: multi-area synthesis pattern (toy: 3 areas x 2 neurons).",
+   "spec": {
+    "at_id": "AT-10",
+    "runner": "at01_at10_toy:run_at10",
+    "status": "toy",
+    "stage": "S10",
+    "seeds": {
+     "build": 7,
+     "run": 7
+    },
+    "run": {
+     "duration_ms": 10.0,
+     "dt_ms": 0.5
+    },
+    "inputs": {
+     "builder": "build_multi_area_columns",
+     "areas": [
+      "A1",
+      "A2",
+      "A3"
+     ],
+     "n_per_area": 2,
+     "emitter": [
+      "izhikevich",
+      "cortical_eig"
+     ]
+    },
+    "recording": {
+     "field": {
+      "domain": "laminar_column",
+      "conductivity": "proxy"
+     },
+     "probes": [
+      "spikes",
+      "V_m"
+     ]
+    },
+    "hdp_params": null,
+    "cited": [
+     {
+      "field": "genome_development",
+      "file": "artifacts/atlas/at01_at10_toy.py",
+      "anchor": "\"genome_development\": \"OMITTED",
+      "why": "toy owns no G->D"
+     }
+    ],
+    "components": [
+     "B",
+     "D",
+     "G",
+     "N",
+     "Phi",
+     "Q",
+     "W",
+     "X",
+     "area_hierarchy",
+     "collective_state",
+     "interaction",
+     "long_delays",
+     "r",
+     "rho"
+    ],
+    "parent_stage": "S8-9"
+   },
+   "spec_digest": "3c3ab5a2a0df4bd92021e994690295856e0d7b722becbf08c5a96624c8d4d8fa",
+   "arms": {
+    "main": {
+     "n_neurons": 6,
+     "emitter": "IzhikevichParams",
+     "n_edges": 6,
+     "weights": "6803956d82aa015d",
+     "mechanisms": {
+      "AMPA": 6
+     },
+     "delays": "031cff0f2f42cceb",
+     "degrees": "881cb6eee2688b71",
+     "n_steps": 20,
+     "dt_ms": 0.5,
+     "finite": true,
+     "recorded": [
+      "V_m",
+      "csd_proxy",
+      "lfp_proxy",
+      "phi_e_proxy",
+      "source_proxy",
+      "sources",
+      "spikes"
+     ],
+     "plastic": false
+    }
+   }
+  }
+ ]
+}

@@ -731,6 +731,10 @@ ENGINE
 5d. Skill/tool benchmark (moved from old 0.5.4), after 5a–5c: AT-01…AT-10
    with frozen expected properties as the task set (step 7); skill+tools vs
    direct repository use on scientific-model fidelity (step 9 metrics).
+   Decided 2026-09-26 (human): executor opencode muse-spark via
+   opencode-delegate for both arms; 3 trials per task per arm; order is
+   frozen task set + scorer (validated on the reference runners), then one
+   pilot task per arm, then the full set.
 
 ATLAS
 6. AT-10: G_20 →D(K_D)→ N_20 via JDNA; baseline, plastic and
