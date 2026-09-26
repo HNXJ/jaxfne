@@ -722,14 +722,12 @@ whole Atlas manuscript plan complete.
    Decision (agent, 2026-09-25, recommended default): `build_atlas` given
    signals records seed/duration only when passed, null otherwise; it no
    longer stamps its own defaults as the run identity of foreign signals.
+   Decision (agent, 2026-09-25, recommended default): the network-spec
+   digests (053/054 `_spec_digest`, `intervene.network_spec_digest`) stay
+   separate from `at_manifest.spec_digest`: they hash the realized-network
+   subset recorded in run outputs; the Atlas digest hashes the whole spec.
 
 ENGINE
-3. Spec digests: every run input is now a runner constant the spec reads
-   (`transcribed` gone; non-input facts under `cited` with checked anchors;
-   regeneration test per AT). Remaining: decide whether the three digest
-   variants (053/054 `_spec_digest`, `intervene.network_spec_digest`) fold
-   into `at_manifest.spec_digest` or stay per-runner (they hash different
-   objects: network spec vs Atlas spec).
 5a. Agent tool surface (agent-native step 5): `realize`, `inspect`,
    `simulate`, `compare`, `observe`, `verify` over the typed objects, not
    wrappers over every function.
