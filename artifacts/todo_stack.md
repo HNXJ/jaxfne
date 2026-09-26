@@ -727,19 +727,6 @@ whole Atlas manuscript plan complete.
    separate from `at_manifest.spec_digest`: they hash the realized-network
    subset recorded in run outputs; the Atlas digest hashes the whole spec.
 
-ENGINE
-5d. Skill/tool benchmark (moved from old 0.5.4), after 5a–5c: AT-01…AT-10
-   with frozen expected properties as the task set (step 7); skill+tools vs
-   direct repository use on scientific-model fidelity (step 9 metrics).
-   Decided 2026-09-26 (human): executor opencode muse-spark via
-   opencode-delegate for both arms; 3 trials per task per arm; order is
-   frozen task set + scorer (validated on the reference runners), then one
-   pilot task per arm, then the full set. Task set, scorer and pilot done
-   (`artifacts/benchmark/`, pilot record `pilot_055.md`). Remaining: the
-   full set, 11 tasks x 2 arms x 3 trials, with the current packet (it
-   carries the library-default rule the pilot lacked), then a results
-   record per class and arm.
-
 ATLAS
 6. AT-10: G_20 →D(K_D)→ N_20 via JDNA; baseline, plastic and
    stochastic-plastic phases on the same realized system. Bounded
@@ -752,6 +739,10 @@ ATLAS
    is a full-bipartite ring placeholder). AT-10 exists only as the
    3-area toy. The same assay also moves AT-07-R3 (now SUPPORTED) to
    VALIDATED.
+   Decided 2026-09-26 (human): G_20 is a synthetic declared hierarchy
+   (20 areas on a 1-D hierarchy; inter-area probability by an exponential
+   distance rule; delay = distance / conduction velocity; no external
+   data); 50 neurons per area (1000 total).
 7. Reduction/scale matrix: for each transition M_i → M_(i+1), which
    observations survive within the predeclared tolerance and which do not;
    failures stay in the matrix.
