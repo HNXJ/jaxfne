@@ -359,8 +359,8 @@
    "capability": "field-derived input to dynamics",
    "release": "0.5.3",
    "candidate": true,
-   "evidence": null,
-   "state": "PLANNED"
+   "evidence": "tests/test_atlas_at07_053.py",
+   "state": "OUT_OF_SCOPE"
   },
   {
    "id": "AT-08-R1",

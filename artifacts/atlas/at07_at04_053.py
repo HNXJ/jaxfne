@@ -354,10 +354,9 @@ def _refused_b_as_input() -> dict[str, Any]:
         "state": "REFUSED",
         "level": LEVEL_PROXY,
         "reason": (
-            "AT-07-R4 OUT_OF_SCOPE for 0.5.3: B as an input to neural/plastic "
-            "dynamics (X,H,B,W)->Q has no engine capability and no "
-            "independent evidence; B stays observation-only (Phi_B). Human "
-            "defer-or-promote decision pending; no path here needs it"
+            "AT-07-R4 OUT_OF_SCOPE (human decision 2026-09-25): B as an input "
+            "to neural/plastic dynamics (X,H,B,W)->Q has no engine capability "
+            "and no independent evidence; B stays observation-only (Phi_B)"
         ),
     }
 

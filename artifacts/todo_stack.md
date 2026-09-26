@@ -710,13 +710,26 @@ whole Atlas manuscript plan complete.
    (`artifacts/publication/frozen_manifest.json`) stays untouched and
    citable; Atlas figure numbering is independent of it and of the E2
    Figure 8–9 plan.
+   Decisions (human, DECIDED 2026-09-25): (a) `artifacts/atlas/y_schema.py`
+   stays an artifact module through 0.5.5 (no public API move).
+   (b) `build_atlas` keeps its simulate fallback unchanged; the Atlas
+   generator uses a new view-only entry that takes data and refuses to
+   simulate. (c) Per-simulation data bundles are in memory: runners return
+   the bundle beside their summary and the generator re-runs from the
+   manifest; nothing large is persisted. (d) AT-07-R4 (B as input to
+   dynamics) is OUT_OF_SCOPE: no independent evidence or calibration
+   anchor, same class as AT-01-R4/R5.
 
 ENGINE
-1. Decision (human): move `artifacts/atlas/y_schema.py` into the `jaxfne`
-   public API, or keep it an artifact module.
 2. Atlas generator: the `jaxfne.vis.atlas_suite` 7-panel contract consumes
    each simulation's declared data contract; one simulation → many views,
-   no simulation inside visualization.
+   no simulation inside visualization. Per decisions (b)+(c): view-only
+   entry (monkeypatched `simulate` must never be called) + a per-AT
+   trajectory bundle {spikes, V_m, sources, field, H_trace, w_trace, meta}
+   returned by the runners. Sweep 2026-09-25: panels schema/network_3d/
+   raster have data for every AT; lfp is empty for AT-01/06/10 and
+   h_dynamics/hdp only for AT-07/08/09 (they then show the existing
+   omission card).
 3. Remainder of the manifest item (spec registry, digest, manifest and
    inheritance check landed in `artifacts/atlas/at_manifest.py`): runners
    still hard-code the inputs each spec lists under `transcribed`
@@ -749,8 +762,6 @@ ATLAS
    is a full-bipartite ring placeholder). AT-10 exists only as the
    3-area toy. The same assay also moves AT-07-R3 (now SUPPORTED) to
    VALIDATED.
-6b. Decisions (human): AT-07-R4 (B as input to dynamics, candidate):
-   promote or OUT_OF_SCOPE. It blocks the 0.5.5 seal only.
 7. Reduction/scale matrix: for each transition M_i → M_(i+1), which
    observations survive within the predeclared tolerance and which do not;
    failures stay in the matrix.
