@@ -48,7 +48,8 @@ BUNDLE_FIELDS: dict[str, str] = {
     ),
     "signals.field": (
         "FieldOutput proxy readout (e.g. .lfp_proxy), or None where the "
-        "runner recorded no field probes (e.g. the AT-01 reduced arm); "
+        "runner recorded no field probes (every canonical arm probed so far "
+        "records LFP: AT-01/03/06/08/10, 2026-09-25); "
         "jaxfne/_signals.py:143"
     ),
     "hdp": (

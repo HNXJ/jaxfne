@@ -484,3 +484,35 @@ def test_render_atlas_draws_explicit_hdp_not_model_state(tmp_path):
     given = render_atlas(model, sig, out_dir=str(tmp_path / "given"), hdp=hdp)
     status = {p["file"]: p["status"] for p in given["panels"]}
     assert status["h_dynamics.html"] != "OMITTED" and status["hdp.html"] != "OMITTED"
+
+
+def test_atlas_generator_routes_hdp_per_arm_and_is_write_once(tmp_path, monkeypatch):
+    """0.5.5 item 2: a shared model's latest-run diagnostics never reach another arm."""
+    from scripts.generate_atlas_figures import generate
+
+    shared, sig = _net_and_signals()
+    sole, sole_sig = _net_and_signals()
+    t = np.asarray(sig.spikes).shape[0]
+    stale = {"H_trace": np.ones((t, 10)), "w_trace": np.full((t, 4), 0.5)}
+    monkeypatch.setattr(type(shared), "last_hdp_diagnostics", lambda self: stale, raising=False)
+    arms = {
+        "own": {"model": shared, "signals": sig, "hdp": stale},
+        "fixed": {"model": shared, "signals": sig, "hdp": None},
+        "sole": {"model": sole, "signals": sole_sig},
+    }
+    man = {"spec": {"run": {"duration_ms": 50.0, "dt_ms": 0.1}, "seeds": {"run": 3}},
+           "spec_digest": "d", "lineage": {}, "environment": {}}
+    kw = dict(out_root=tmp_path, bundle_fn=lambda _: arms, manifest_fn=lambda _: man)
+    rec = generate("AT-X", **kw)
+    src = {k: a["hdp_source"] for k, a in rec["arms"].items()}
+    assert src == {"own": "bundle", "fixed": "none: fixed-W arm",
+                   "sole": "model: sole owner of its latest run"}
+    hdp_status = {k: a["status"]["hdp.html"] for k, a in rec["arms"].items()}
+    assert hdp_status == {"own": "AVAILABLE", "fixed": "OMITTED", "sole": "AVAILABLE"}
+    shared_only = {"a": {"model": shared, "signals": sig}, "b": {"model": shared, "signals": sig}}
+    rec2 = generate("AT-Y", out_root=tmp_path, bundle_fn=lambda _: shared_only,
+                    manifest_fn=lambda _: man)
+    assert {a["status"]["hdp.html"] for a in rec2["arms"].values()} == {"OMITTED"}
+    assert json.loads((tmp_path / "AT-X" / "atlas_run.json").read_text())["seed"] == 3
+    with pytest.raises(FileExistsError, match="write-once"):
+        generate("AT-X", **kw)
