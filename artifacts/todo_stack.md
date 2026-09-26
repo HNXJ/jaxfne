@@ -728,9 +728,6 @@ whole Atlas manuscript plan complete.
    subset recorded in run outputs; the Atlas digest hashes the whole spec.
 
 ENGINE
-5a. Agent tool surface (agent-native step 5): `realize`, `inspect`,
-   `simulate`, `compare`, `observe`, `verify` over the typed objects, not
-   wrappers over every function.
 5b. Task-shaped skills around it (step 6): model, network, state,
    plasticity, fields, simulate, verify, inspect; harness manifest synced.
 5c. Adversarial semantic-substitution tests (step 8): stale docs, renamed

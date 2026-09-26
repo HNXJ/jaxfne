@@ -9,6 +9,16 @@ unless its row says otherwise. Candidate rows (`candidate: true` in
 `artifacts/programme/atlas_coverage.json`) are out of scope until human
 authorization; they are listed under Refused/Omitted, never as operations.
 
+## Agent tool surface (agent-native step 5, 0.5.5 item 5a)
+
+`jaxfne.agent` (EXPERIMENTAL, not a root export) composes the rows below into
+six operations: `realize(TFNE)`, `simulate(Realization | Configuration |
+Model, duration_ms, dt_ms, seed) -> Run`, `inspect(Run)`, `compare(Run)`
+(realized vs executed: time grid, weight via the kernel resolver, mechanism,
+delay steps), `observe(Run, quantity)` (recorded readout + epistemic level,
+refuses unrecorded), `verify(Run, property)` over `agent.PROPERTIES`.
+Tests: `tests/test_agent_surface.py` (substituted-model FAIL per class).
+
 ## Specify
 
 | Operation | Entry | Inspect | Standing |
