@@ -717,19 +717,15 @@ ENGINE
 2. Atlas generator: the `jaxfne.vis.atlas_suite` 7-panel contract consumes
    each simulation's declared data contract; one simulation → many views,
    no simulation inside visualization.
-3. Canonical simulation manifests for AT-01…AT-10: seeds, model identity,
-   inputs, recording budgets, lineage; regenerable from a fresh clone
-   (H11).
-   State: no canonical simulation manifest exists; reuse `jaxfne.io`
-   `manifest()` / `save_receipt()` and the per-script `_spec_digest`.
-   Seeds and constants per AT are inventoried in the sweep report (build
-   and run seeds differ from 0.5.3 on). No test runs
-   `at01_at10_toy.run_all()`; the gap-doc `wall_s` values are
-   transcribed, not regenerated.
-4. Inheritance check: AT-01 ⊂ AT-02:04 ⊂ AT-05:07 ⊂ AT-08:09 ⊂ AT-10 as a
-   mechanical spec diff — each step only adds declared components.
-   AT-05/06 branch off the population path, not AT-04's TFNE spec: the
-   diff compares declared-object sets, not call-site nesting.
+3. Remainder of the manifest item (spec registry, digest, manifest and
+   inheritance check landed in `artifacts/atlas/at_manifest.py`): runners
+   still hard-code the inputs each spec lists under `transcribed`
+   (file:line per field), so the spec describes the run but does not drive
+   it. Move those literals to module constants or have runners read
+   `at_spec`, until every `transcribed` list is empty; then add a
+   regeneration test per AT (only AT-02 has one, marked slow). The three
+   `_spec_digest` variants (053, 054, `intervene.network_spec_digest`)
+   stay separate until then.
 5a. Agent tool surface (agent-native step 5): `realize`, `inspect`,
    `simulate`, `compare`, `observe`, `verify` over the typed objects, not
    wrappers over every function.
