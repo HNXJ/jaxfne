@@ -721,15 +721,22 @@ whole Atlas manuscript plan complete.
    anchor, same class as AT-01-R4/R5.
 
 ENGINE
-2. Atlas generator: the `jaxfne.vis.atlas_suite` 7-panel contract consumes
-   each simulation's declared data contract; one simulation → many views,
-   no simulation inside visualization. Per decisions (b)+(c): view-only
-   entry (monkeypatched `simulate` must never be called) + a per-AT
-   trajectory bundle {spikes, V_m, sources, field, H_trace, w_trace, meta}
-   returned by the runners. Sweep 2026-09-25: panels schema/network_3d/
-   raster have data for every AT; lfp is empty for AT-01/06/10 and
-   h_dynamics/hdp only for AT-07/08/09 (they then show the existing
-   omission card).
+2. Atlas generator, remainder. Landed: `jaxfne.vis.render_atlas` (data
+   only, refuses to simulate) and per-AT bundles
+   (`artifacts/atlas/at_bundle.py`, runners' `keep_bundle=True` →
+   per-arm {model, signals, hdp}). Left:
+   a. `render_atlas` H/HDP panels read `model.last_hdp_diagnostics()`;
+      give it an explicit `hdp` argument so a bundle arm's own
+      diagnostics are drawn (AT-08/09 arms share one Model, whose
+      diagnostics are the last arm's).
+   b. Generator script: for each REGISTRY id, `bundle(at_id)` →
+      `render_atlas` per arm with the manifest's seed/duration; output
+      under `artifacts/publication/atlas/` per decision 0. Expected
+      omissions (sweep 2026-09-25): lfp empty for AT-01/06/10; H/HDP only
+      for AT-07/04-R2/08/09.
+   c. `build_atlas(model, signals)` records its parameter defaults (seed 0,
+      duration 500 ms) as the run identity of signals it did not produce.
+      Kept unchanged per decision (b); owner call whether to record null.
 3. Remainder of the manifest item (spec registry, digest, manifest and
    inheritance check landed in `artifacts/atlas/at_manifest.py`): runners
    still hard-code the inputs each spec lists under `transcribed`

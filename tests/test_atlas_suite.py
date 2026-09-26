@@ -432,3 +432,37 @@ def test_atlas_h_panels_omitted_without_h(tmp_path):
         assert by_file[f]["status"] == "OMITTED"
         text = (out / f).read_text(encoding="utf-8")
         assert "omitted" in text.lower()
+
+
+def _net_and_signals():
+    model = J.construct(J.suite2_net1_config(seed=7, n=10, duration_ms=50.0, dt_ms=0.1))
+    return model, J.simulate(model, J.Simulation(duration_ms=50.0, dt_ms=0.1, seed=3))
+
+
+def test_render_atlas_never_simulates(tmp_path, monkeypatch):
+    """0.5.5 item 2: the view-only entry draws given data and refuses to run."""
+    from jaxfne.vis.atlas_suite import render_atlas
+
+    model, sig = _net_and_signals()
+
+    def _no_sim(*a, **k):
+        raise AssertionError("render_atlas simulated")
+
+    monkeypatch.setattr(J, "simulate", _no_sim)
+    monkeypatch.setattr(type(model), "simulate", _no_sim)
+    manifest = render_atlas(model, sig, out_dir=str(tmp_path / "view"))
+    assert all((tmp_path / "view" / f).exists() for f in FIXED)
+    assert manifest["seed"] is None and manifest["duration_ms"] is None  # not observable
+    assert manifest["dt_source"] == DT_SOURCE_INFERRED
+    with pytest.raises(ValueError, match="never simulates"):
+        render_atlas(model, None, out_dir=str(tmp_path / "none"))
+
+
+def test_build_atlas_with_signals_equals_render_atlas(tmp_path):
+    from jaxfne.vis.atlas_suite import render_atlas
+
+    model, sig = _net_and_signals()
+    run = dict(seed=3, duration_ms=50.0, dt_ms=0.1)
+    built = build_atlas(model, sig, out_dir=str(tmp_path / "b"), **run)
+    rendered = render_atlas(model, sig, out_dir=str(tmp_path / "r"), **run)
+    assert built == rendered

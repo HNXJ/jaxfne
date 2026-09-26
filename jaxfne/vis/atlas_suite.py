@@ -23,8 +23,9 @@ unrecorded field/H/HDP render explicit omission cards stating what was not
 recorded. Every file carries a provenance
 card (config_hash, N, edges, steps, dt, jaxfne version, evidence level).
 
-Entry point:
+Entry points:
     build_atlas(model, signals=None, out_dir=..., simulate_fn=None, ...) -> dict
+    render_atlas(model, signals, out_dir=..., ...) -> dict  (data only, never simulates)
 """
 
 from __future__ import annotations
@@ -377,8 +378,6 @@ def build_atlas(
     guess. Every emitted manifest starts at figure state ``GENERATED``.
     Returns the manifest dict and writes ``<out_dir>/*.html`` + manifest.json.
     """
-    from jaxfne.vis import canonical as C
-
     if signals is None:
         if simulate_fn is not None:
             signals = simulate_fn(model)
@@ -387,6 +386,43 @@ def build_atlas(
 
             sim = _J.Simulation(duration_ms=float(duration_ms), dt_ms=float(dt_ms), seed=int(seed))
             signals = _J.simulate(model, sim)
+    return render_atlas(
+        model, signals, out_dir=out_dir, title=title, provenance=provenance,
+        seed=seed, duration_ms=duration_ms, dt_ms=dt_ms,
+    )
+
+
+def render_atlas(
+    model: Any,
+    signals: Any,
+    *,
+    out_dir: str = "docs/_static/atlas",
+    title: str = "Model atlas",
+    provenance: Dict[str, Any] | None = None,
+    seed: int | None = None,
+    duration_ms: float | None = None,
+    dt_ms: float | None = None,
+) -> Dict[str, Any]:
+    """Build the 7-panel atlas from given data only; never runs the model.
+
+    ``signals`` is required (``build_atlas`` is the entry that may simulate).
+    ``seed``/``duration_ms`` describe the run that produced ``signals``; the
+    atlas cannot observe them, so omitted values are recorded as ``null``.
+    ``dt_ms`` comes from the signals' time grid; the explicit value is only a
+    fallback when the grid is missing, and with neither this raises.
+    """
+    from jaxfne.vis import canonical as C
+
+    if signals is None:
+        raise ValueError(
+            "render_atlas needs signals; it never simulates. Use build_atlas to "
+            "simulate first, or pass the signals of an existing run"
+        )
+    if dt_ms is None:
+        grid = _signals_arrays(signals)["time_ms"]
+        if grid is None or np.asarray(grid).size < 2:
+            raise ValueError("render_atlas: signals carry no time grid and no dt_ms was given")
+        dt_ms = float("nan")  # unused: classify_dt_ms infers from the grid
 
     counts = _model_counts(model)
     n_neurons = len(counts["neurons"]) or int(counts["summary"].get("n_units", 0) or 0)
@@ -396,7 +432,7 @@ def build_atlas(
     n_steps = int(arr["time_ms"].shape[0]) if arr["time_ms"] is not None else (
         int(arr["spikes"].shape[0]) if arr["spikes"] is not None else 0)
     # The realized signals' time grid is authoritative for dt_ms when inferable.
-    # The parameter default (0.1) only describes the fallback simulation below.
+    # An explicit dt_ms is only the fallback when the grid is missing.
     dt_info = classify_dt_ms(arr["time_ms"], dt_ms)
     dt_ms = dt_info.dt_ms
     dt_provenance = {
@@ -564,6 +600,8 @@ def build_atlas(
     with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8") as f:
         f.write(index_html)
 
+    seed_rec = None if seed is None else int(seed)
+    duration_rec = None if duration_ms is None else float(duration_ms)
     manifest = {
         "suite": "atlas_suite.v2",
         "title": title,
@@ -571,13 +609,13 @@ def build_atlas(
         "config_hash": config_hash,
         "tfne_digest": tfne_digest,
         "k_d": k_d,
-        "sim_identity": (f"seed={int(seed)} duration_ms={float(duration_ms)} "
+        "sim_identity": (f"seed={seed_rec} duration_ms={duration_rec} "
                          f"dt_ms={dt_ms}"),
         "recording_class": rec_class,
         "recording_budget": rec_budget,
         "jaxfne_version": jaxfne_version,
-        "seed": int(seed),
-        "duration_ms": float(duration_ms),
+        "seed": seed_rec,
+        "duration_ms": duration_rec,
         "n_neurons": n_neurons,
         "n_edges": n_edges,
         "n_steps": n_steps,
