@@ -235,7 +235,11 @@ def _mean_band(x: Any):  # type: ignore[no-untyped-def]
     return mu, mu - sd, mu + sd
 
 
-def _hdp_diagnostics_of(model: Any) -> Dict[str, Any]:
+def _hdp_diagnostics_of(model: Any, hdp: Dict[str, Any] | None = None) -> Dict[str, Any]:
+    # Explicit diagnostics win: a model's last_* diagnostics describe only its
+    # latest run, which is another arm's when several arms share one model.
+    if hdp is not None:
+        return {"last_hdp_diagnostics": hdp}
     out: Dict[str, Any] = {}
     for meth in ("last_hdp_diagnostics", "last_homeostasis_diagnostics"):
         fn = getattr(model, meth, None)
@@ -270,9 +274,9 @@ def _band_fig(title: str, mu: Any, lo: Any, hi: Any, ylabel: str):  # type: igno
     return fig
 
 
-def _h_dynamics_fig(model: Any):  # type: ignore[no-untyped-def]
+def _h_dynamics_fig(model: Any, hdp: Dict[str, Any] | None = None):  # type: ignore[no-untyped-def]
     """Recorded hidden-state trajectory, or an explicit omission."""
-    diags = _hdp_diagnostics_of(model)
+    diags = _hdp_diagnostics_of(model, hdp)
     hdp = diags.get("last_hdp_diagnostics") or {}
     if hdp.get("H_trace") is not None:
         mu, lo, hi = _mean_band(hdp["H_trace"])
@@ -288,9 +292,9 @@ def _h_dynamics_fig(model: Any):  # type: ignore[no-untyped-def]
     raise _OmitPanel("no H recorded — run with enable_hdp or enable_homeostasis")
 
 
-def _hdp_fig(model: Any):  # type: ignore[no-untyped-def]
+def _hdp_fig(model: Any, hdp: Dict[str, Any] | None = None):  # type: ignore[no-untyped-def]
     """Mutable weight diagnostics, or an explicit omission (never inferred)."""
-    diags = _hdp_diagnostics_of(model)
+    diags = _hdp_diagnostics_of(model, hdp)
     hdp = diags.get("last_hdp_diagnostics")
     if not hdp:
         raise _OmitPanel("HDP not enabled on this run")
@@ -362,16 +366,19 @@ def build_atlas(
     *,
     out_dir: str = "docs/_static/atlas",
     simulate_fn: Callable[[Any], Any] | None = None,
-    duration_ms: float = 500.0,
+    duration_ms: float | None = None,
     dt_ms: float = 0.1,
-    seed: int = 0,
+    seed: int | None = None,
     title: str = "Model atlas",
     provenance: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """Build the 7-panel atlas for any model. Never skips a fixed panel.
 
     Provide ``signals`` directly, or ``simulate_fn(model) -> signals``; else a
-    default ``jaxfne.simulate(model, Simulation(...))`` run is attempted.
+    default ``jaxfne.simulate(model, Simulation(...))`` run is attempted with
+    ``seed`` (default 0) and ``duration_ms`` (default 500.0). For given
+    signals the manifest records ``seed``/``duration_ms`` only as passed
+    (``null`` when omitted): the atlas cannot observe how they were made.
     ``provenance`` optionally carries upstream lineage the atlas cannot
     observe itself (``tfne_digest``, ``k_d``, ``recording_class``,
     ``recording_budget``); undiscoverable fields record ``null``, never a
@@ -384,6 +391,8 @@ def build_atlas(
         else:
             import jaxfne as _J
 
+            seed = 0 if seed is None else seed
+            duration_ms = 500.0 if duration_ms is None else duration_ms
             sim = _J.Simulation(duration_ms=float(duration_ms), dt_ms=float(dt_ms), seed=int(seed))
             signals = _J.simulate(model, sim)
     return render_atlas(
@@ -402,6 +411,7 @@ def render_atlas(
     seed: int | None = None,
     duration_ms: float | None = None,
     dt_ms: float | None = None,
+    hdp: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """Build the 7-panel atlas from given data only; never runs the model.
 
@@ -410,6 +420,9 @@ def render_atlas(
     atlas cannot observe them, so omitted values are recorded as ``null``.
     ``dt_ms`` comes from the signals' time grid; the explicit value is only a
     fallback when the grid is missing, and with neither this raises.
+    ``hdp`` ({H_trace, w_trace, ...}) is the diagnostics of the run that
+    produced ``signals``; when omitted the H/HDP panels read the model's
+    latest-run diagnostics, which is wrong if the model ran again since.
     """
     from jaxfne.vis import canonical as C
 
@@ -539,7 +552,7 @@ def render_atlas(
     _emit("h_dynamics.html", "H dynamics", "DERIVED",
           "Recorded hidden-state trajectory: HDP H_trace or homeostasis trace "
           "(omitted explicitly when unrecorded).",
-          lambda: _h_dynamics_fig(model),
+          lambda: _h_dynamics_fig(model, hdp),
           lineage={"source_artifact": "model diagnostics",
                    "variable": "H_trace / r_trace",
                    "transform": "population mean ± std band",
@@ -547,7 +560,7 @@ def render_atlas(
     _emit("hdp.html", "HDP plasticity", "DERIVED",
           "Mutable weight diagnostics from the HDP run (omitted explicitly when "
           "HDP is off or the trace is unrecorded; never inferred from activity).",
-          lambda: _hdp_fig(model),
+          lambda: _hdp_fig(model, hdp),
           lineage={"source_artifact": "model diagnostics",
                    "variable": "w_trace",
                    "transform": "population |w| mean ± std band",

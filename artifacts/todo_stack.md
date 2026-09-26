@@ -719,24 +719,19 @@ whole Atlas manuscript plan complete.
    manifest; nothing large is persisted. (d) AT-07-R4 (B as input to
    dynamics) is OUT_OF_SCOPE: no independent evidence or calibration
    anchor, same class as AT-01-R4/R5.
+   Decision (agent, 2026-09-25, recommended default): `build_atlas` given
+   signals records seed/duration only when passed, null otherwise; it no
+   longer stamps its own defaults as the run identity of foreign signals.
 
 ENGINE
-2. Atlas generator, remainder. Landed: `jaxfne.vis.render_atlas` (data
-   only, refuses to simulate) and per-AT bundles
+2. Atlas generator script. Landed: `jaxfne.vis.render_atlas` (data only,
+   refuses to simulate, explicit `hdp` argument) and per-AT bundles
    (`artifacts/atlas/at_bundle.py`, runners' `keep_bundle=True` →
-   per-arm {model, signals, hdp}). Left:
-   a. `render_atlas` H/HDP panels read `model.last_hdp_diagnostics()`;
-      give it an explicit `hdp` argument so a bundle arm's own
-      diagnostics are drawn (AT-08/09 arms share one Model, whose
-      diagnostics are the last arm's).
-   b. Generator script: for each REGISTRY id, `bundle(at_id)` →
-      `render_atlas` per arm with the manifest's seed/duration; output
-      under `artifacts/publication/atlas/` per decision 0. Expected
-      omissions (sweep 2026-09-25): lfp empty for AT-01/06/10; H/HDP only
-      for AT-07/04-R2/08/09.
-   c. `build_atlas(model, signals)` records its parameter defaults (seed 0,
-      duration 500 ms) as the run identity of signals it did not produce.
-      Kept unchanged per decision (b); owner call whether to record null.
+   per-arm {model, signals, hdp}). Left: for each REGISTRY id,
+   `bundle(at_id)` → `render_atlas(..., hdp=arm["hdp"])` per arm with the
+   manifest's seed/duration; output under `artifacts/publication/atlas/`
+   per decision 0. Expected omissions (sweep 2026-09-25): lfp empty for
+   AT-01/06/10; H/HDP only for AT-07/04-R2/08/09.
 3. Remainder of the manifest item (spec registry, digest, manifest and
    inheritance check landed in `artifacts/atlas/at_manifest.py`): runners
    still hard-code the inputs each spec lists under `transcribed`

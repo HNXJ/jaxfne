@@ -466,3 +466,21 @@ def test_build_atlas_with_signals_equals_render_atlas(tmp_path):
     built = build_atlas(model, sig, out_dir=str(tmp_path / "b"), **run)
     rendered = render_atlas(model, sig, out_dir=str(tmp_path / "r"), **run)
     assert built == rendered
+    # Given signals and no identity: nothing observed, nothing recorded.
+    bare = build_atlas(model, sig, out_dir=str(tmp_path / "bare"))
+    assert bare["seed"] is None and bare["duration_ms"] is None
+
+
+def test_render_atlas_draws_explicit_hdp_not_model_state(tmp_path):
+    """A bundle arm's own H/W diagnostics drive the panels, not the model's last run."""
+    from jaxfne.vis.atlas_suite import render_atlas
+
+    model, sig = _net_and_signals()  # fixed-W run: the model holds no HDP diagnostics
+    plain = render_atlas(model, sig, out_dir=str(tmp_path / "plain"))
+    status = {p["file"]: p["status"] for p in plain["panels"]}
+    assert status["h_dynamics.html"] == status["hdp.html"] == "OMITTED"
+    t = np.asarray(sig.spikes).shape[0]
+    hdp = {"H_trace": np.ones((t, 10)), "w_trace": np.full((t, 4), 0.5)}
+    given = render_atlas(model, sig, out_dir=str(tmp_path / "given"), hdp=hdp)
+    status = {p["file"]: p["status"] for p in given["panels"]}
+    assert status["h_dynamics.html"] != "OMITTED" and status["hdp.html"] != "OMITTED"
