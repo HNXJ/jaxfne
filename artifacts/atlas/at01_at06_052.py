@@ -307,12 +307,17 @@ def _hh_reference() -> dict[str, Any]:
     }
 
 
-def run_at01() -> dict[str, Any]:
+def run_at01(keep_bundle: bool = False) -> dict[str, Any]:
     """S1: Jaxley HH reference vs reduced neuron, predeclared tolerances.
 
     Records no B beyond the MEG proxy and no calibrated quantities
     (fail-closed per the 0.5.2 human decision); states the
     no-full-electrodiffusion boundary (AT-01-R7).
+
+    With ``keep_bundle=True`` the output additionally carries ``"bundle"``
+    (``{"reduced": {"model", "signals"}}`` for the reduced jaxfne arm
+    only; the Jaxley arm is not a jaxfne Model). Default ``False`` leaves
+    the output unchanged.
     """
     t0 = time.perf_counter()
     hh = _hh_reference()
@@ -399,6 +404,8 @@ def run_at01() -> dict[str, Any]:
     }
     if out["wall_s"] > WALL_BUDGET_S:
         out["status"] = "OVER_BUDGET"
+    if keep_bundle:
+        out["bundle"] = {"reduced": {"model": red["model"], "signals": sig}}
     return out
 
 
@@ -460,6 +467,7 @@ def _tfne_pair_run(spec: str, duration_ms: float, dt_ms: float, seed: int = SEED
         _, peak_b = tracemalloc.get_traced_memory()
         tracemalloc.stop()
     return {
+        "model": model,
         "signals": signals,
         "neuron_table": model.neuron_table(),
         "delay_steps": delay_steps,
@@ -514,12 +522,16 @@ def _relative_centroids(
     return {a: {"x": float(np.mean(v["x"])), "z": float(np.mean(v["z"]))} for a, v in acc.items()}
 
 
-def run_at02() -> dict[str, Any]:
+def run_at02(keep_bundle: bool = False) -> dict[str, Any]:
     """S2: driven pair N1->N2 with declared delay; fields + distance law.
 
     Arms: delay 2.0 ms vs 0.0 vs absent (zero-delay limit bit-identical).
     Distance law is a proxy observation at relative fractions, never a
     physical law (no calibration exists; AT-01-R5 OUT_OF_SCOPE).
+
+    With ``keep_bundle=True`` the output additionally carries ``"bundle"``
+    (one ``{"model", "signals"}`` entry per arm). Default ``False``
+    leaves the output unchanged.
     """
     t0 = time.perf_counter()
     arms = {
@@ -609,16 +621,24 @@ def run_at02() -> dict[str, Any]:
     }
     if out["wall_s"] > WALL_BUDGET_S:
         out["status"] = "OVER_BUDGET"
+    if keep_bundle:
+        out["bundle"] = {
+            name: {"model": run["model"], "signals": run["signals"]} for name, run in arms.items()
+        }
     return out
 
 
-def run_at03() -> dict[str, Any]:
+def run_at03(keep_bundle: bool = False) -> dict[str, Any]:
     """S3: recurrent E<->I pair with declared delay; phase + field.
 
     Single-mechanism bidirectional TFNE rule (grammar limitation declared
     in-record); E/I identity from cell type. Cancellation is measured
     dynamically (anti-phase superposition < sum of amplitudes), never by
     relabeling.
+
+    With ``keep_bundle=True`` the output additionally carries ``"bundle"``
+    (``{"pair": {"model", "signals"}}``). Default ``False`` leaves the
+    output unchanged.
     """
     t0 = time.perf_counter()
     run = _tfne_pair_run(AT03_SPEC.format(delay=DELAY_MS), AT03_DURATION_MS, DT_MS)
@@ -687,12 +707,15 @@ def run_at03() -> dict[str, Any]:
     }
     if out["wall_s"] > WALL_BUDGET_S:
         out["status"] = "OVER_BUDGET"
+    if keep_bundle:
+        out["bundle"] = {"pair": {"model": run["model"], "signals": run["signals"]}}
     return out
 
 
 # ---------------------------------------------------------------------------
 # Item 11: AT-04 geometry/orientation arm (source orientation from item 3).
 # ---------------------------------------------------------------------------
+
 
 # Declared geometry is relative fractions in [0,1] (0.5.2 decision 0a);
 # outside [0,1] is refused. Same seed across arms isolates the declared
@@ -747,18 +770,24 @@ def _realized_z_ranges(
     return out
 
 
-def run_at04() -> dict[str, Any]:
+def run_at04(keep_bundle: bool = False) -> dict[str, Any]:
     """S4: geometry/orientation arm; correlation only, Phi->X refused.
 
     Three declared-geometry arms on one coupled pair (item-3 source
     orientation carried in the source representation Q). Phi->X feedback
     fails closed (AT-04-R3 OUT_OF_SCOPE); the H-perturbation causal arm
     belongs to 0.5.3 (AT-04-R2).
+
+    With ``keep_bundle=True`` the output additionally carries ``"bundle"``
+    (one ``{"model", "signals"}`` entry per geometry arm). Default
+    ``False`` leaves the output unchanged.
     """
     t0 = time.perf_counter()
     arms: dict[str, Any] = {}
+    kept: dict[str, Any] = {}
     for name, g in AT04_ARMS.items():
         run = _tfne_pair_run(AT04_SPEC.format(delay=DELAY_MS, **g), AT04_DURATION_MS, DT_MS)
+        kept[name] = run
         sig = run["signals"]
         spikes = np.asarray(sig.spikes)
         decomp = _field_decomposition(run)
@@ -810,6 +839,10 @@ def run_at04() -> dict[str, Any]:
     }
     if out["wall_s"] > WALL_BUDGET_S:
         out["status"] = "OVER_BUDGET"
+    if keep_bundle:
+        out["bundle"] = {
+            name: {"model": run["model"], "signals": run["signals"]} for name, run in kept.items()
+        }
     return out
 
 
@@ -847,18 +880,24 @@ def _population_run(n: int, seed: int = SEED) -> dict[str, Any]:
     return _run_configuration(cfg, AT05_DURATION_MS, DT_MS, seed)
 
 
-def run_at05() -> dict[str, Any]:
+def run_at05(keep_bundle: bool = False) -> dict[str, Any]:
     """S5: population field emergence; executed kappa orders the arms.
 
     A_Phi(N, rho, r) table from executed runs; Phi_N vs N Phi_1 checked via
     the executed kernel decomposition (coherent vs incoherent summation).
     A negative result (equality in a coherent regime) is recorded, never
     forced into inequality.
+
+    With ``keep_bundle=True`` the output additionally carries ``"bundle"``
+    (one ``{"model", "signals"}`` entry per arm). Default ``False``
+    leaves the output unchanged.
     """
     t0 = time.perf_counter()
     arms: dict[str, Any] = {}
+    kept: dict[str, Any] = {}
     for name, spec in AT05_ARMS.items():
         run = _population_run(spec["n"], spec["seed"])
+        kept[name] = run
         sig = run["signals"]
         spikes = np.asarray(sig.spikes)
         decomp = _field_decomposition(run)
@@ -914,10 +953,14 @@ def run_at05() -> dict[str, Any]:
     }
     if out["wall_s"] > WALL_BUDGET_S:
         out["status"] = "OVER_BUDGET"
+    if keep_bundle:
+        out["bundle"] = {
+            name: {"model": run["model"], "signals": run["signals"]} for name, run in kept.items()
+        }
     return out
 
 
-def run_at06() -> dict[str, Any]:
+def run_at06(keep_bundle: bool = False) -> dict[str, Any]:
     """S6: electrode locality C(R,f); assumptions declared, proxy only.
 
     Electrode chain declared: contacts (realized count read back),
@@ -925,6 +968,10 @@ def run_at06() -> dict[str, Any]:
     proxy per item 5), conductivity 'proxy', distance in relative
     fractions. Source depths are a DECLARED uniform-fraction assumption
     (labeled, proxy only) -- no physical distance law is claimed.
+
+    With ``keep_bundle=True`` the output additionally carries ``"bundle"``
+    (``{"column": {"model", "signals"}}``). Default ``False`` leaves the
+    output unchanged.
     """
     t0 = time.perf_counter()
     cfg = (
@@ -996,6 +1043,8 @@ def run_at06() -> dict[str, Any]:
     }
     if out["wall_s"] > WALL_BUDGET_S:
         out["status"] = "OVER_BUDGET"
+    if keep_bundle:
+        out["bundle"] = {"column": {"model": run["model"], "signals": sig}}
     return out
 
 

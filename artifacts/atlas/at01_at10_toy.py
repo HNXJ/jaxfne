@@ -55,13 +55,23 @@ def _spike_summary(signals: Any) -> dict[str, Any]:
     }
 
 
-def _run_config(cfg: Any, duration_ms: float, dt_ms: float) -> dict[str, Any]:
-    """Construct + simulate a public Configuration; return raw outcome."""
+def _run_config(
+    cfg: Any, duration_ms: float, dt_ms: float, keep_objects: bool = False
+) -> dict[str, Any]:
+    """Construct + simulate a public Configuration; return raw outcome.
+
+    With ``keep_objects=True`` the outcome additionally carries the
+    executed ``"model"`` and ``"signals"`` (in-memory only, never
+    persisted); default ``False`` leaves the outcome unchanged.
+    """
     t0 = time.perf_counter()
     model = J.construct(cfg)
     signals = model.simulate(J.simulation(duration_ms=duration_ms, dt_ms=dt_ms, seed=TOY_SEED))
     wall_s = time.perf_counter() - t0
     out: dict[str, Any] = {"wall_s": wall_s, "status": "OK"}
+    if keep_objects:
+        out["model"] = model
+        out["signals"] = signals
     try:
         out["spikes"] = _spike_summary(signals)
     except Exception as exc:  # absent quantity, never synthesized
@@ -244,12 +254,16 @@ def run_at09() -> dict[str, Any]:
     }
 
 
-def run_at10() -> dict[str, Any]:
+def run_at10(keep_bundle: bool = False) -> dict[str, Any]:
     """S10: multi-area synthesis pattern (toy: 3 areas x 2 neurons).
 
     The G_20 genome -> JDNA development at 20-area scale arrives in 0.5.5;
     this pass exercises the multi-area composition pattern at toy size and
     marks genome development OMITTED.
+
+    With ``keep_bundle=True`` the output additionally carries ``"bundle"``
+    (``{"main": {"model", "signals"}}``). Default ``False`` leaves the
+    output unchanged.
     """
     cfg = J.build_multi_area_columns(areas=["A1", "A2", "A3"], n_per_area=2)
     cfg = (
@@ -258,12 +272,19 @@ def run_at10() -> dict[str, Any]:
         .field(domain="laminar_column", conductivity="proxy")
         .probes(["spikes", "V_m"])
     )
-    out = _run_config(cfg, 10.0, TOY_DT_MS)
-    return {
+    out = _run_config(cfg, 10.0, TOY_DT_MS, keep_objects=keep_bundle)
+    bundle = None
+    if keep_bundle:
+        bundle = {"main": {"model": out.pop("model"), "signals": out.pop("signals")}}
+    result = {
         "scenario": "AT-10",
         **out,
         "genome_development": "OMITTED (0.5.5 owns AT-10-R1..R6)",
     }
+    if keep_bundle:
+        assert bundle is not None
+        result["bundle"] = bundle
+    return result
 
 
 _RUNNERS = {

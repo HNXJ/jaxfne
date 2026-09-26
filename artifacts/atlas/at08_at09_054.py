@@ -277,6 +277,7 @@ def _run_arm(model: Any, hp: dict[str, Any] | None, stim: Any) -> dict[str, Any]
         tracemalloc.stop()
     wall_s = time.perf_counter() - t0
     out: dict[str, Any] = {
+        "model": model,
         "signals": signals,
         "wall_s": wall_s,
         "mem_peak_b": float(peak_b),
@@ -287,6 +288,20 @@ def _run_arm(model: Any, hp: dict[str, Any] | None, stim: Any) -> dict[str, Any]
         out["H_trace"] = None if diag.get("H_trace") is None else np.asarray(diag["H_trace"])
         out["w_trace"] = None if diag.get("w_trace") is None else np.asarray(diag["w_trace"])
     return out
+
+
+_HDP_KEYS = ("H_final", "w_final", "H_trace", "w_trace")
+
+
+def _bundle_entry(arm: dict[str, Any]) -> dict[str, Any]:
+    """Bundle arm: model + signals + this arm's own HDP diagnostics.
+
+    All arms share one ensemble Model and ``model.last_hdp_diagnostics()``
+    reflects only its latest run, so consumers read ``hdp`` (captured right
+    after this arm simulated; None for the fixed-W arm) instead.
+    """
+    hdp = {k: arm[k] for k in _HDP_KEYS if k in arm}
+    return {"model": arm["model"], "signals": arm["signals"], "hdp": hdp or None}
 
 
 def _area_slices(n_a1: int) -> tuple[slice, slice]:
@@ -428,8 +443,14 @@ def _masks(n: int, own: dict[str, Any]) -> dict[str, np.ndarray]:
 # ---------------------------------------------------------------------------
 
 
-def run_at08() -> dict[str, Any]:
-    """AT-08: same network; fixed baseline vs full HDP vs cross-frozen HDP."""
+def run_at08(keep_bundle: bool = False) -> dict[str, Any]:
+    """AT-08: same network; fixed baseline vs full HDP vs cross-frozen HDP.
+
+    With ``keep_bundle=True`` the output additionally carries ``"bundle"``
+    (one ``{"model", "signals"}`` entry per arm; all arms share the one
+    realized ensemble Model). Default ``False`` leaves the output
+    unchanged.
+    """
     model = _fresh_ensemble()
     n_a1 = N_PER_AREA
     n_total = 2 * N_PER_AREA
@@ -481,7 +502,7 @@ def run_at08() -> dict[str, Any]:
         },
     ]
     verdict = "PASS" if all(d["verdict"] == "PASS" for d in declares) else "FAIL"
-    return {
+    out = {
         "scenario": "AT-08",
         "status": "OK",
         "arms": sums,
@@ -499,6 +520,11 @@ def run_at08() -> dict[str, Any]:
         ],
         "verdict": verdict,
     }
+    if keep_bundle:
+        out["bundle"] = {
+            name: _bundle_entry(arm) for name, arm in arms.items()
+        }
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -506,8 +532,14 @@ def run_at08() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def run_at09() -> dict[str, Any]:
-    """AT-09: cross-only vs member-only vs frozen plasticity, same network."""
+def run_at09(keep_bundle: bool = False) -> dict[str, Any]:
+    """AT-09: cross-only vs member-only vs frozen plasticity, same network.
+
+    With ``keep_bundle=True`` the output additionally carries ``"bundle"``
+    (one ``{"model", "signals"}`` entry per arm; all arms share the one
+    realized ensemble Model). Default ``False`` leaves the output
+    unchanged.
+    """
     model = _fresh_ensemble()
     n_a1 = N_PER_AREA
     n_total = 2 * N_PER_AREA
@@ -549,7 +581,7 @@ def run_at09() -> dict[str, Any]:
         _declare("frozen-keeps-W", "W", "equal", arms["frozen"]["w_final"], w0),
     ]
     verdict = "PASS" if all(d["verdict"] == "PASS" for d in declares) else "FAIL"
-    return {
+    out = {
         "scenario": "AT-09",
         "status": "OK",
         "arms": sums,
@@ -568,6 +600,11 @@ def run_at09() -> dict[str, Any]:
         ],
         "verdict": verdict,
     }
+    if keep_bundle:
+        out["bundle"] = {
+            name: _bundle_entry(arm) for name, arm in arms.items()
+        }
+    return out
 
 
 _RUNNERS = {"AT-08": run_at08, "AT-09": run_at09}

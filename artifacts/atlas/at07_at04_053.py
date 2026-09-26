@@ -222,6 +222,7 @@ def _run_arm(model: Any, hp: dict[str, Any]) -> dict[str, Any]:
     wall_s = time.perf_counter() - t0
     diag = model.last_hdp_diagnostics()
     return {
+        "model": model,
         "signals": signals,
         "H_final": np.asarray(diag["H_final"], dtype=float),
         "w_final": np.asarray(diag["w_final"], dtype=float),
@@ -230,6 +231,19 @@ def _run_arm(model: Any, hp: dict[str, Any]) -> dict[str, Any]:
         "wall_s": wall_s,
         "mem_peak_b": float(peak_b),
     }
+
+
+_HDP_KEYS = ("H_final", "w_final", "H_trace", "w_trace")
+
+
+def _bundle_entry(arm: dict[str, Any]) -> dict[str, Any]:
+    """Bundle arm: model + signals + this arm's own HDP diagnostics.
+
+    ``model.last_hdp_diagnostics()`` reflects only the model's latest run, so
+    consumers read ``hdp`` (captured right after this arm simulated) instead.
+    """
+    hdp = {k: arm[k] for k in _HDP_KEYS if k in arm}
+    return {"model": arm["model"], "signals": arm["signals"], "hdp": hdp or None}
 
 
 def _arm_summary(name: str, arm: dict[str, Any], w0: np.ndarray) -> dict[str, Any]:
@@ -366,8 +380,15 @@ def _refused_b_as_input() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def run_at07() -> dict[str, Any]:
-    """S7: matched-stimulation plasticity comparison + budgets + schema v2."""
+def run_at07(keep_bundle: bool = False) -> dict[str, Any]:
+    """S7: matched-stimulation plasticity comparison + budgets + schema v2.
+
+    With ``keep_bundle=True`` the output additionally carries ``"bundle"``
+    (one ``{"model", "signals"}`` entry per executed arm: ``hebbian``,
+    ``fixed``, ``noisy``, ``clamp``, plus the ``repro`` RNG-domain check
+    and the ``budgeted`` decimation run). Default ``False`` leaves the
+    output unchanged.
+    """
     t0 = time.perf_counter()
     _validate_hp(BASE_HP)
     _validate_hp(NOISY_HP)
@@ -542,6 +563,11 @@ def run_at07() -> dict[str, Any]:
     }
     if out["wall_s"] > WALL_BUDGET_S:
         out["status"] = "OVER_BUDGET"
+    if keep_bundle:
+        out["bundle"] = {
+            name: _bundle_entry(arm)
+            for name, arm in {**arms, "repro": repro, "budgeted": budgeted}.items()
+        }
     return out
 
 
@@ -550,7 +576,7 @@ def run_at07() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def run_at04r2() -> dict[str, Any]:
+def run_at04r2(keep_bundle: bool = False) -> dict[str, Any]:
     """S4 causal arm: H0 baseline vs perturbed, matched stimulation.
 
     Main pair runs with HDP ENGAGED (same gains both arms, same W0): the
@@ -560,6 +586,10 @@ def run_at04r2() -> dict[str, Any]:
     are identical). Control pair runs with plasticity DISABLED: W is
     then bit-fixed while H differs (H != HDP separation), which tests
     whether the H effect on X needs the HDP-gated path.
+
+    With ``keep_bundle=True`` the output additionally carries ``"bundle"``
+    (one ``{"model", "signals"}`` entry per executed arm). Default
+    ``False`` leaves the output unchanged.
     """
     t0 = time.perf_counter()
     hp_off = J.hdp_network.disable_plasticity(dict(BASE_HP), mask=None)
@@ -693,6 +723,13 @@ def run_at04r2() -> dict[str, Any]:
     }
     if out["wall_s"] > WALL_BUDGET_S:
         out["status"] = "OVER_BUDGET"
+    if keep_bundle:
+        out["bundle"] = {
+            "baseline": _bundle_entry(arm_base),
+            "perturbed": _bundle_entry(arm_pert),
+            "disabled_baseline": _bundle_entry(arm_dis_base),
+            "disabled_perturbed": _bundle_entry(arm_dis_pert),
+        }
     return out
 
 
