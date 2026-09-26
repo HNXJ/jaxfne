@@ -734,7 +734,11 @@ ENGINE
    Decided 2026-09-26 (human): executor opencode muse-spark via
    opencode-delegate for both arms; 3 trials per task per arm; order is
    frozen task set + scorer (validated on the reference runners), then one
-   pilot task per arm, then the full set.
+   pilot task per arm, then the full set. Task set, scorer and pilot done
+   (`artifacts/benchmark/`, pilot record `pilot_055.md`). Remaining: the
+   full set, 11 tasks x 2 arms x 3 trials, with the current packet (it
+   carries the library-default rule the pilot lacked), then a results
+   record per class and arm.
 
 ATLAS
 6. AT-10: G_20 →D(K_D)→ N_20 via JDNA; baseline, plastic and

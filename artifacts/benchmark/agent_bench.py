@@ -15,6 +15,7 @@ an equivalent network built through another path scores the same. Classes:
     execution    n_steps, dt_ms, finite
     observation  recorded outputs
     plasticity   whether W changed during the arm (from the arm's own hdp)
+    dynamics     sorted per-neuron spike counts and mean V_m (atol 1e-3)
 """
 
 from __future__ import annotations
@@ -33,7 +34,11 @@ CLASSES: dict[str, tuple[str, ...]] = {
     "execution": ("n_steps", "dt_ms", "finite"),
     "observation": ("recorded",),
     "plasticity": ("plastic",),
+    # Structure alone scored a differently driven model 1.0 in the 5d pilot
+    # (direct arm, AT-02: 12 spikes vs 8); dynamics close that blind spot.
+    "dynamics": ("spike_counts", "mean_vm"),
 }
+_VM_ATOL = 1e-3  # float32 means; exact equality would bind the set to one platform
 
 
 def _digest(obj: Any) -> str:
@@ -72,7 +77,16 @@ def arm_properties(arm: dict[str, Any]) -> dict[str, Any]:
         "finite": bool(finite),
         "recorded": sorted(recorded),
         "plastic": bool(plastic),
+        "spike_counts": sorted(int(x) for x in np.asarray(signals.spikes).sum(axis=0)),
+        "mean_vm": sorted(round(float(x), 4)
+                          for x in np.asarray(signals.V_m, dtype=float).mean(axis=0)),
     }
+
+
+def _same(key: str, got: Any, want: Any) -> bool:
+    if key == "mean_vm":
+        return len(got) == len(want) and bool(np.allclose(got, want, rtol=0.0, atol=_VM_ATOL))
+    return got == want
 
 
 def freeze_task(at_id: str) -> dict[str, Any]:
@@ -102,7 +116,7 @@ def score(task: dict[str, Any], candidate: dict[str, dict[str, Any]]) -> dict[st
         for arm, want in task["arms"].items():
             for k in keys:
                 total += 1
-                if arm not in got or got[arm][k] != want[k]:
+                if arm not in got or not _same(k, got[arm][k], want[k]):
                     failed.append(f"{arm}.{k}")
         classes[cls] = {"score": (total - len(failed)) / total if total else 1.0, "failed": failed}
     return {
@@ -188,6 +202,9 @@ plastic arms the HDP diagnostics captured right after that arm ran
 (`model.last_hdp_diagnostics()`), else None.
 
 ## Rules
+- The specification lists every input that differs from jaxfne's library
+  defaults. Anything it does not state takes the default; add no input it
+  does not declare (no extra drive, stimulus, noise or plasticity).
 - Do not edit anything under `jaxfne/`; do not read git history.
 - `bundle()` must finish in under 10 minutes.
 

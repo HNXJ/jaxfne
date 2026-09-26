@@ -24,7 +24,9 @@ def test_task_set_covers_registry_with_current_specs():
 
 
 def test_reference_reproduces_frozen_task_and_scores_full():
-    assert freeze_task("AT-10") == TASKS["AT-10"]
+    fresh, frozen = freeze_task("AT-10"), TASKS["AT-10"]
+    assert [fresh[k] for k in ("intent", "spec", "spec_digest")] == [
+        frozen[k] for k in ("intent", "spec", "spec_digest")]
     ref = bundle("AT-10")
     full = score(TASKS["AT-10"], ref)
     assert not full["missing_arms"] and not full["extra_arms"]
@@ -40,6 +42,11 @@ def test_substituted_candidates_lose_the_right_class():
     w0 = np.asarray([r["weight"] for r in ref["model"].edge_table()])
     s = score(TASKS["AT-10"], {"main": {**ref, "hdp": {"w_final": 2 * w0}}})["classes"]
     assert s["plasticity"]["failed"] == ["main.plastic"] and s["execution"]["score"] == 1.0
+    # Same structure, different dynamics (e.g. another drive): only dynamics fails.
+    shifted = dataclasses.replace(sig, V_m=sig.V_m + 1.0)
+    s = score(TASKS["AT-10"], {"main": {**ref, "signals": shifted}})["classes"]
+    assert s["dynamics"]["failed"] == ["main.mean_vm"]
+    assert all(s[c]["score"] == 1.0 for c in CLASSES if c != "dynamics")
     renamed = score(TASKS["AT-10"], {"other": ref})
     assert renamed["missing_arms"] == ["main"] and renamed["extra_arms"] == ["other"]
     assert all(v["score"] == 0.0 for v in renamed["classes"].values())
