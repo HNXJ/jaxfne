@@ -129,14 +129,15 @@ def _latency_ms(sp: np.ndarray, cols: np.ndarray, starts: list[int]) -> float:
 def propagation(sp: np.ndarray, area: np.ndarray) -> dict[str, Any]:
     """Pulse-locked response per area vs hierarchy distance from H01.
 
-    Control: the same statistic at onsets shifted to fixed-seed random
-    offsets between pulses; an area is significant when its evoked rate
+    Control: the same statistic at onsets shifted by fixed-seed random
+    offsets of 120-160 ms (windows of +-EVOKED_MS span 80-200 ms after a
+    pulse: after the responses, before the next pulse); an area is significant when its evoked rate
     exceeds the largest control magnitude + 1 Hz.
     """
     names = G.area_names()
     on = [int(o / DT_MS) for o in _onsets_ms()]
     rng = np.random.default_rng(0)
-    ctrl = [s + int(rng.integers(40, 160) / DT_MS) for s in on]
+    ctrl = [s + int(rng.integers(120, 160) / DT_MS) for s in on]
     d = np.arange(1, len(names)) / (len(names) - 1)
     evoked = np.array([_locked_rate(sp, area == a, on) for a in names[1:]])
     control = np.array([_locked_rate(sp, area == a, ctrl) for a in names[1:]])

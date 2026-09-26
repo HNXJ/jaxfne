@@ -781,10 +781,24 @@ ATLAS
    optional `w_mech` (validated > 0), and G_20 is re-frozen as
    `genomes/g20-hierarchy-v2.json` (G20_CROSS_GAIN 200; v1 had gain 1
    and was never used). Frozen v2 reproduces the sweep exactly.
-   Next: the N_20 runner (three 10 s phases from one W0: baseline,
-   Hebbian HDP, noisy HDP; separate arms, since full-state continuation
-   does not take poisson_drive), then the AT-04-R2-style assay, then the
-   AT-10 spec/bundle/figures. Probe script: scratchpad `g20_sweep.py`.
+   Done 2026-09-26: runner `artifacts/atlas/at10_n20_055.py`, results
+   `artifacts/atlas/results/at10_n20_055.json`, tests
+   `tests/test_atlas_at10_n20_055.py`. HDP gains K_HDP 0.005, K_w_ctrl
+   0.05 (AT-08 K_HDP 0.05 runs away to ~150 Hz on N_20 within 0.5 s;
+   runaway onset scales ~1/K_HDP; K_w_ctrl 0.05 contains K_HDP 0.005 for
+   10 s). Phases (10 s each, one W0): all ~9.1-9.2 Hz, rho(evoked,
+   distance) -1.00, rho(latency, distance) +1.00; Hebbian HDP attenuates
+   evoked responses (H02 14.9 -> 10.8 Hz, H10 11.4 -> 6.7 Hz); noisy HDP
+   stays at baseline. Assay (criteria committed before the run): W kicks
+   0.8 and 1.3 STABILIZED on Poisson seeds 11/12/13 (engaged late
+   deviation <= 0.04 Hz vs disabled 1.0 / 3.7 Hz); H0 = 0 has no lasting
+   effect in either arm. Caveats: the Simulation seed does not enter these
+   runs, so the kick pilot (seed 101) was not out of sample; the seed
+   12/13 replicates were declared after the primary result. Significant
+   area counts depend on the control window (late 80-200 ms control: 11/19
+   baseline, 8/19 Hebbian; the earlier overlapping control gave 13/9).
+   Remaining: the AT-10 spec/bundle/figures (at_bundle pattern), and a
+   no-stimulus null for the significance count.
 7. Reduction/scale matrix: for each transition M_i → M_(i+1), which
    observations survive within the predeclared tolerance and which do not;
    failures stay in the matrix.
