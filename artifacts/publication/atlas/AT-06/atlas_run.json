@@ -1,0 +1,33 @@
+{
+  "arms": {
+    "column": {
+      "hdp_source": "model: sole owner of its latest run",
+      "panels_sha256": "e19679e3ddb542e5",
+      "status": {
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "lfp.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "oscillatory.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "schema.html": "AVAILABLE"
+      }
+    }
+  },
+  "at_id": "AT-06",
+  "duration_ms": 100.0,
+  "environment": {
+    "git_sha": "b1104939e963e26c0d7e356948d9ac84aa38c485",
+    "jax": "0.10.1",
+    "jaxfne": "0.5.0",
+    "jaxlib": "0.10.1",
+    "numpy": "2.4.6",
+    "python": "3.14.3"
+  },
+  "lineage": {
+    "parent_stage": "S2-4",
+    "runner": "at01_at06_052:run_at06"
+  },
+  "seed": 7,
+  "spec_digest": "e9902702bf76c227e7462c2d94271b9ca90ef8f76ea1a632e452b151c5ce9aa3"
+}

@@ -1,0 +1,59 @@
+{
+  "arms": {
+    "frozen": {
+      "hdp_source": "bundle",
+      "panels_sha256": "459b31abd16cb5d4",
+      "status": {
+        "h_dynamics.html": "AVAILABLE",
+        "hdp.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "oscillatory.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "schema.html": "AVAILABLE"
+      }
+    },
+    "plastic_cross": {
+      "hdp_source": "bundle",
+      "panels_sha256": "fc67377b9ecde88f",
+      "status": {
+        "h_dynamics.html": "AVAILABLE",
+        "hdp.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "oscillatory.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "schema.html": "AVAILABLE"
+      }
+    },
+    "plastic_member": {
+      "hdp_source": "bundle",
+      "panels_sha256": "24d9e1c52ff778fd",
+      "status": {
+        "h_dynamics.html": "AVAILABLE",
+        "hdp.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "oscillatory.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "schema.html": "AVAILABLE"
+      }
+    }
+  },
+  "at_id": "AT-09",
+  "duration_ms": 1000.0,
+  "environment": {
+    "git_sha": "b1104939e963e26c0d7e356948d9ac84aa38c485",
+    "jax": "0.10.1",
+    "jaxfne": "0.5.0",
+    "jaxlib": "0.10.1",
+    "numpy": "2.4.6",
+    "python": "3.14.3"
+  },
+  "lineage": {
+    "parent_stage": "S5-7",
+    "runner": "at08_at09_054:run_at09"
+  },
+  "seed": 4,
+  "spec_digest": "7061e3ed91cdeb27ddcd58565003650daa15e4a95be5db474e23a385051ba4a8"
+}

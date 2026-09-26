@@ -724,12 +724,6 @@ whole Atlas manuscript plan complete.
    longer stamps its own defaults as the run identity of foreign signals.
 
 ENGINE
-2. Atlas figures: run `python scripts/generate_atlas_figures.py` over every
-   REGISTRY id and commit `artifacts/publication/atlas/` (write-once; the
-   script refuses an existing `<AT-id>/`). Probe 2026-09-25 (AT-03/08/10):
-   H/HDP drawn only from an arm's own bundle diagnostics, LFP recorded in
-   every probed arm (the earlier "lfp empty for AT-01/06/10" sweep claim
-   was false).
 3. Remainder of the manifest item (spec registry, digest, manifest and
    inheritance check landed in `artifacts/atlas/at_manifest.py`): runners
    still hard-code the inputs each spec lists under `transcribed`
