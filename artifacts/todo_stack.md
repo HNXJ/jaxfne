@@ -745,8 +745,15 @@ ATLAS
    data); 50 neurons per area (1000 total).
    Done: JDNA carries between-area probability and delay (declared or
    derived by the `exponential_distance` rule in `area_connection_rules`,
-   DERIVED origins), and they reach execution. Remaining: the G_20 genome,
-   the N_20 runner with the three phases, and the perturbation assay.
+   DERIVED origins), and they reach execution. G_20 frozen
+   (`artifacts/atlas/g20_genome.py`, `genomes/g20-hierarchy-v1.json`;
+   p_max 0.1, decay 0.2, traversal 20 ms, p_min 0.01, 40 E + 10 PV per
+   area); N_20 builds 1000 neurons / 68,620 edges (19,620 cross-area,
+   2-18 delay steps at dt 0.5 ms) and runs 1 s in about 2 s. Its default
+   drive gives identical ~9 Hz in every area (drive-dominated). Remaining:
+   the N_20 runner (noise and a stimulus so propagation is observable;
+   baseline, Hebbian HDP and noisy HDP phases on one realized network),
+   the perturbation assay, and the AT-10 spec/bundle/figures.
 7. Reduction/scale matrix: for each transition M_i → M_(i+1), which
    observations survive within the predeclared tolerance and which do not;
    failures stay in the matrix.

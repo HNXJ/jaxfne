@@ -1,0 +1,997 @@
+{
+  "schema_version": "pseudogenome_v1",
+  "name": "g20-hierarchy-v1",
+  "description": "Synthetic 20-area hierarchy for Atlas S10/AT-10. Areas at relative hierarchy positions i/19; between-area E->{E,PV} AMPA projections by the exponential_distance rule; one E/PV layer per area with the four within-area motifs. Relative scaffold values; not calibrated.",
+  "development_parameters": {
+    "fraction_jitter_sigma": 0.0
+  },
+  "areas": [
+    {
+      "name": "H01",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H02",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H03",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H04",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H05",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H06",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H07",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H08",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H09",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H10",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H11",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H12",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H13",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H14",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H15",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H16",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H17",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H18",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H19",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    },
+    {
+      "name": "H20",
+      "layers": [
+        {
+          "name": "L",
+          "n_neurons": 50,
+          "depth_band": [
+            0.0,
+            1.0
+          ],
+          "cell_type_fractions": {
+            "E": 0.8,
+            "PV": 0.2
+          }
+        }
+      ],
+      "inter_connections": [
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "E",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "AMPA"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "E",
+          "mechanism": "GABA_A"
+        },
+        {
+          "source_layer": "L",
+          "source_neuron_type": "PV",
+          "target_layer": "L",
+          "target_neuron_type": "PV",
+          "mechanism": "GABA_A"
+        }
+      ]
+    }
+  ],
+  "area_connections": [],
+  "area_connection_rules": [
+    {
+      "kind": "exponential_distance",
+      "positions": {
+        "H01": 0.0,
+        "H02": 0.05263157894736842,
+        "H03": 0.10526315789473684,
+        "H04": 0.15789473684210525,
+        "H05": 0.21052631578947367,
+        "H06": 0.2631578947368421,
+        "H07": 0.3157894736842105,
+        "H08": 0.3684210526315789,
+        "H09": 0.42105263157894735,
+        "H10": 0.47368421052631576,
+        "H11": 0.5263157894736842,
+        "H12": 0.5789473684210527,
+        "H13": 0.631578947368421,
+        "H14": 0.6842105263157895,
+        "H15": 0.7368421052631579,
+        "H16": 0.7894736842105263,
+        "H17": 0.8421052631578947,
+        "H18": 0.8947368421052632,
+        "H19": 0.9473684210526315,
+        "H20": 1.0
+      },
+      "p_max": 0.1,
+      "decay": 0.2,
+      "traversal_ms": 20.0,
+      "p_min": 0.01,
+      "source": {
+        "layer": "L",
+        "neuron_type": "E"
+      },
+      "targets": [
+        {
+          "layer": "L",
+          "neuron_type": "E"
+        },
+        {
+          "layer": "L",
+          "neuron_type": "PV"
+        }
+      ],
+      "mechanism": "AMPA"
+    }
+  ]
+}
