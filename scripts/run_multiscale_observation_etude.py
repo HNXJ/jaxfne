@@ -125,7 +125,7 @@ def build_config() -> Any:
         )
         .cell_types({"E": 0.7, "PV": 0.3})
         .geometry(layer_thickness={"L2/3": 0.33, "L4": 0.34, "L5": 0.33})
-        .cell_type_drives({"E": 8.0, "PV": 8.0})
+        .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 8.0})
         .set_emitter("izhikevich", "cortical_eig")
         .field(
             domain="laminar_column",

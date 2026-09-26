@@ -78,7 +78,7 @@ def build_e1_configuration(*, include_inter_area: bool = True) -> jtfne.Configur
             layers=layers,
         )
     cfg = (
-        cfg.cell_type_drives({str(k): float(v) for k, v in drive.items()})
+        cfg.drive(baseline_drive_by_cell_type={str(k): float(v) for k, v in drive.items()})
         .set_emitter("izhikevich", str(sim["emitter_preset"]))
         .probes(["spikes", "V_m"])
         .field(domain="laminar_column", conductivity="proxy")

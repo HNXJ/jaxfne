@@ -67,7 +67,7 @@ import jaxfne as jtfne
 cfg_baseline = (jtfne.Configuration()
     .runtime(seed=7, dtype="float32", duration_ms=1500.0, dt_ms=0.1)
     .column("V1_reduced", layers=["L2/3", "L4", "L5"], n=100)
-    .cell_type_drives({"E": 8.0, "PV": 4.0})
+    .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 4.0})
     .set_emitter("izhikevich", "cortical_eig")
     .probes(["spikes", "LFP-proxy", "CSD-proxy"]))
 

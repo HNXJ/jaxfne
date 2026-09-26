@@ -565,6 +565,47 @@ requires separate authorization.
   cell_type_drives jaxfne/` shows no reader
 - **possible future change:** human decision (consuming it changes every
   suite2/experiment_a/protocol_e output and their frozen baselines); open
+- **resolution (2026-09-26, human: refuse + migrate):** `cell_type_drives`
+  raises TypeError naming `drive(baseline_drive_by_cell_type=...)`; every
+  caller (presets, experiment_a, protocol_e, tests, scripts, tutorials)
+  now uses `drive(...)` with its declared values, so those runs change.
+  Exception: `tests/test_hdp_population_restoring.py` `_mcc3_model` drops
+  the drive, because its frozen etude metrics were made at the default
+  drive. Tutorial/doc-atlas outputs regenerate in a follow-up (todo stack).
+
+### P-015
+- **date:** 2026-09-26
+- **type:** DEFECT (configuration stored, not consumed)
+- **area:** `jaxfne/_config.py` `Configuration.drive`
+- **observation:** `drive_by_layer`, `drive_by_area` (and `time_schedule`,
+  `evoked_windows`, `noise_policy`, `trial_variability`) are stored in
+  `metadata["drive"]`; no module outside `_config.py` reads
+  `drive_by_layer` or `drive_by_area`. Only `baseline_drive_by_cell_type`
+  reaches the emitter. The docstring says all parameters are metadata only.
+- **severity:** MAJOR (same class as P-014)
+- **minimal reproduction:** `grep -rn "drive_by_layer\|drive_by_area" jaxfne/`
+  finds only `_config.py`
+- **expected behavior:** consumed or refused when non-empty
+- **actual behavior:** accepted, recorded, ignored
+- **evidence:** grep 2026-09-26
+- **possible future change:** refuse non-empty values (same rule as P-014)
+  unless a consumer is built; open
+
+### P-016
+- **date:** 2026-09-26
+- **type:** DEFECT (slow-tier regression pin fails at HEAD)
+- **area:** `tests/test_hdp_population_restoring.py::test_population_restoring_etude_regression_metrics`
+- **observation:** vector-HDP terminal error 0.0028 vs frozen 0.0296
+  (tol abs 0.02); fails identically on 409f125 without any change. The
+  test is `slow`, outside the broad gate. The etude runner
+  `scripts/hdp_mvc_etude.py` named in the manifest no longer exists.
+- **severity:** MINOR (smaller terminal error than frozen; pin, not physics)
+- **minimal reproduction:** `pytest tests/test_hdp_population_restoring.py -q`
+- **expected behavior:** PASS against the frozen etude
+- **actual behavior:** 1 FAIL
+- **evidence:** run 2026-09-26 on 409f125 and on the P-014 tree, same value
+- **possible future change:** find the commit that moved it (bisect over
+  HDP changes); re-freeze only with a stated cause; open
 
 ---
 

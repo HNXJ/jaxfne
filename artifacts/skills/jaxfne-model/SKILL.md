@@ -12,7 +12,7 @@ Picking the single-neuron dynamics, cell-type mix or drive for a circuit.
 ## AUTHORITIES
 1. TFNE theory: `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md`.
 2. Live code: `jaxfne/_config.py` (`Configuration.set_emitter`, `cell_types`,
-   `cell_type_drives`), presets in `jaxfne/_construct_presets.py`.
+   `drive(baseline_drive_by_cell_type=...)`; `cell_type_drives` is refused), presets in `jaxfne/_construct_presets.py`.
 
 ## RULES
 - Dynamics are native and uncalibrated unless a calibration transform is declared;

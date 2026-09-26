@@ -91,7 +91,7 @@ paradigm = jtfne.omission_oddball_paradigm(
 cfg = (jtfne.Configuration()
     .runtime(seed=42, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
     .column("V1_column", layers=["L2/3", "L4", "L5"], n=60)
-    .cell_type_drives({"E": 6.5, "PV": 3.0})
+    .drive(baseline_drive_by_cell_type={"E": 6.5, "PV": 3.0})
     .set_emitter("izhikevich", "cortical_eig")
     .probes(["spikes", "LFP-proxy", "CSD-proxy"]))
 

@@ -61,7 +61,7 @@ def build_experiment_a_config(spec: dict[str, Any] | None = None) -> Any:
         )
         .cell_types(dict(ns["cell_types"]))
         .geometry(layer_thickness=dict(ns["layer_thickness"]))
-        .cell_type_drives(dict(ns["drives"]))
+        .drive(baseline_drive_by_cell_type=dict(ns["drives"]))
         .set_emitter(ns["emitter"]["family"], ns["emitter"]["preset"])
         .field(
             domain=ns["field_geometry"]["domain"],

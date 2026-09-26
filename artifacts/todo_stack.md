@@ -771,7 +771,7 @@ ATLAS
    pulses 20 ms x 8.0 into H01 every 200 ms): cross gain w_mech 200
    (edge weight 200/sqrt(1000)), drive E 3.0/PV 2.0 via
    `Configuration.drive(baseline_drive_by_cell_type=...)` (not
-   `cell_type_drives`, which is inert: P-014), Poisson noise 200 Hz x 4
+   `cell_type_drives`, now refused: P-014), Poisson noise 200 Hz x 4
    to all. Result: ~9.5 Hz mean, 12-13/19 areas significantly evoked
    above a random-onset control (max ~6 Hz), Spearman(evoked, distance)
    -1.00 and Spearman(latency, distance) +1.00 on every seed; evoked
@@ -837,6 +837,18 @@ Details stay in "Carried staging" below. In order:
 7. S27 population/`P_{l,c}` definition family. Trigger: AT-06 or AT-10
    needs population definitions that CTX-01 cannot express.
 8. Agent-native step 10: MCP or other transport.
+9. P-014 follow-up (decided 2026-09-26, human: refuse + migrate; code
+   done): regenerate outputs whose declared drives now execute: the two
+   tutorials (`jaxfne_suite_no_2_evoked_l4_drive`, `jaxfne_v0313_omission_oddball`
+   notebooks and docs pages 08/10), `scripts/generate_doc_page_atlases.py`
+   pages, and any committed result of the migrated scripts
+   (benchmark_050_baseline, mcc3_10s_scientific_checkpoint,
+   run_heterogeneous_emitters_etude, run_multiscale_observation_etude).
+10. P-015: `drive(drive_by_layer=, drive_by_area=, ...)` fields are stored,
+    not consumed; refuse non-empty values (P-014 rule) unless a consumer
+    is built.
+11. P-016: slow pin `test_population_restoring_etude_regression_metrics`
+    fails at HEAD; bisect to its cause before any re-freeze.
 
 ## Tracks (parallel after the baseline)
 

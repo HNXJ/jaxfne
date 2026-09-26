@@ -1102,16 +1102,14 @@ class Configuration:
         )
 
     def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
-        """Override native reduced drive by cell type for Suite No. 2 sweeps."""
-        if not drives:
-            raise ValueError("drives must not be empty")
-        clean: dict[str, float] = {}
-        for key, value in drives.items():
-            v = float(value)
-            if not math.isfinite(v):
-                raise ValueError(f"drive for {key!r} must be finite")
-            clean[str(key)] = v
-        return self.update_metadata(cell_type_drives=clean)
+        """Refused (P-014): this call stored drives that construction never read.
+
+        Use ``drive(baseline_drive_by_cell_type=...)``, which reaches the emitter.
+        """
+        raise TypeError(
+            "Configuration.cell_type_drives was never consumed (P-014); use "
+            ".drive(baseline_drive_by_cell_type={...}) instead"
+        )
 
     def suite2_interarea(self, enabled: bool = True) -> "Configuration":
         """Enable V1/V4 feedforward-feedback metadata in the construct path."""

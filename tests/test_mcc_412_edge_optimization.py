@@ -29,7 +29,7 @@ def _mcc3_config():
             n=10,
             cell_types={"E": 0.5, "PV": 0.5},
         )
-        .cell_type_drives({"E": 8.0, "PV": 8.0})
+        .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 8.0})
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(
             domain="laminar_column",

@@ -74,7 +74,7 @@ class TestEvokedSimulation:
         cfg = (jtfne.Configuration()
             .runtime(seed=42, dtype="float32", duration_ms=2000.0, dt_ms=0.1)
             .column("V1", layers=["L4"], n=50)
-            .cell_type_drives({"E": 8.0})
+            .drive(baseline_drive_by_cell_type={"E": 8.0})
             .set_emitter("izhikevich", "cortical_eig")
             .probes(["spikes"]))
 

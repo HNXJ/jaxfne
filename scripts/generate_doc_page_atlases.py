@@ -227,7 +227,7 @@ def spec_evoked_l4():
         jtfne.Configuration()
         .runtime(seed=7, dtype="float32", duration_ms=1500.0, dt_ms=0.5)
         .column("V1_reduced", layers=["L2/3", "L4", "L5"], n=100)
-        .cell_type_drives({"E": 8.0, "PV": 4.0})
+        .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 4.0})
         .set_emitter("izhikevich", "cortical_eig")
         .probes(["spikes", "LFP-proxy", "CSD-proxy"])
     )
@@ -340,7 +340,7 @@ def spec_omission_60():
         jtfne.Configuration()
         .runtime(seed=42, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
         .column("V1_column", layers=["L2/3", "L4", "L5"], n=60)
-        .cell_type_drives({"E": 6.5, "PV": 3.0})
+        .drive(baseline_drive_by_cell_type={"E": 6.5, "PV": 3.0})
         .set_emitter("izhikevich", "cortical_eig")
         .probes(["spikes", "LFP-proxy", "CSD-proxy"])
     )
@@ -423,7 +423,7 @@ def spec_hdp_10():
     cfg = (
         jtfne.configuration()
         .network(name="V1", kind="cortical_column", n=10, cell_types={"E": 0.5, "PV": 0.5})
-        .cell_type_drives({"E": 8.0, "PV": 8.0})
+        .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 8.0})
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(
             domain="laminar_column",

@@ -133,8 +133,8 @@ than silently compiled without the cap. See
 
 `.set_emitter(family="izhikevich", preset="cortical_eig")` / `.emitter(**)`,
 `.drive(baseline_drive_by_cell_type=, drive_by_layer=, drive_by_area=,
-time_schedule=, evoked_windows=, noise_policy=, ...)`,
-`.cell_type_drives({...})`.
+time_schedule=, evoked_windows=, noise_policy=, ...)`.
+`.cell_type_drives({...})` is refused (it was never consumed; P-014).
 
 Specificity dial: the neuron model and its input. The built-in Izhikevich emitter
 is tunable and float32-stable; `.drive(...)` sets baseline/laminar/evoked input
