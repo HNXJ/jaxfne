@@ -29,6 +29,9 @@ Unfamiliar jaxfne tasks, or establishing governing authority before acting.
 2. Identify the relevant TFNE stage (dynamics, source, field, probe, objective, evidence).
 3. Inspect live code and tests before naming helpers or claiming capability.
 4. Route implementation to `jaxfne-repo`, scientific experiments to `jaxfne-science`, release to `jaxfne-release`, audit to `jaxfne-audit`, seal to `jaxfne-seal`, vocabulary review to `vocabulary-audit`.
+   Modeling steps go to the task skills over `jaxfne.agent`: `jaxfne-model`,
+   `jaxfne-network`, `jaxfne-state`, `jaxfne-plasticity`, `jaxfne-fields`,
+   `jaxfne-simulate`, `jaxfne-inspect`, `jaxfne-verify`.
 
 ## STOP
 - Unverified symbol or binding; ambiguous stage mapping; contradiction between authority and live code.

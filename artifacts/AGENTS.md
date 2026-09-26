@@ -88,8 +88,6 @@ Two files, distinct roles:
 | `artifacts/fact_stack.md` | Stable, human-authorized facts. Agents read/use/test/challenge — **do not edit without explicit human authorization.** Not evidence. |
 | `artifacts/todo_stack.md` | Remaining work only. |
 
-If there is no `artifacts/`, use `docs/todo_stack.md` for the work queue.
-
 `todo_stack.md` contains **only work not yet done**.
 
 Example:

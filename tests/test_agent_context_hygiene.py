@@ -234,6 +234,15 @@ _ACTIVE_SKILLS = (
     "jaxfne-seal",
     "jaxfne-workflow",
     "vocabulary-audit",
+    # Task-shaped skills around jaxfne.agent (0.5.5 item 5b).
+    "jaxfne-model",
+    "jaxfne-network",
+    "jaxfne-state",
+    "jaxfne-plasticity",
+    "jaxfne-fields",
+    "jaxfne-simulate",
+    "jaxfne-verify",
+    "jaxfne-inspect",
 )
 
 _TASK_ROUTES = {
@@ -244,6 +253,14 @@ _TASK_ROUTES = {
     "release": "artifacts/skills/jaxfne-release/SKILL.md",
     "independent seal": "artifacts/skills/jaxfne-seal/SKILL.md",
     "vocabulary review": "artifacts/skills/vocabulary-audit/SKILL.md",
+    "neuron model": "artifacts/skills/jaxfne-model/SKILL.md",
+    "network specification": "artifacts/skills/jaxfne-network/SKILL.md",
+    "hidden state": "artifacts/skills/jaxfne-state/SKILL.md",
+    "plasticity": "artifacts/skills/jaxfne-plasticity/SKILL.md",
+    "fields and probes": "artifacts/skills/jaxfne-fields/SKILL.md",
+    "simulation": "artifacts/skills/jaxfne-simulate/SKILL.md",
+    "identity verification": "artifacts/skills/jaxfne-verify/SKILL.md",
+    "inspection": "artifacts/skills/jaxfne-inspect/SKILL.md",
 }
 
 _REQUIRED_AI_PATHS = (

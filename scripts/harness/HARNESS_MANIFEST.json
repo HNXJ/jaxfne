@@ -3,19 +3,27 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-09-25T13:15:33",
+  "generated_at": "2026-09-26T07:03:45",
   "components": {
     "project_agents": {
       "file": "artifacts/AGENTS.md",
-      "sha256": "5cdc0238bce03ce92a56ea2f5a1edcd20584b0d197d3ca8298f4addc267af48e"
+      "sha256": "af6ff03ebd287a0412bd59a64b183dbabd2bc1f1d73b7af7ccb572322e2a813e"
     },
     "canonical_skills": {
       "jaxfne-audit": "b2d64e3fa6c8ae65fe6b4959fed12bcb7a05469f69a2d81b3769fc60a99c1bff",
-      "jaxfne-core": "0b40550eee2c7e46d4c51316350938b05ebf09d19021da143b328dd2f2913c98",
+      "jaxfne-core": "03201f96cf261851f0b4edacd0db09707640c556ab7e252f9985f98ca157bb76",
+      "jaxfne-fields": "fe9cd12f9aac0e098aebd1e68c631c6ae86a1487e76689a490c5b0f2fe88fedb",
+      "jaxfne-inspect": "5b3a4b2cf7bd12fd165742f58c54593e0ff4b1858615897b05bbf8d65b8d256f",
+      "jaxfne-model": "122a4433c348a3f844e2d5dae53dd55713a47a006986f3defda6f9f1bafeb82f",
+      "jaxfne-network": "49733da44eb37673729c44e44bc46a985cd7d779afc9ffbac8ab32680e56c2e5",
+      "jaxfne-plasticity": "7cced7bd0ec9973a1bb2e4a5cba08a0831d22174a3d18dd4532c6b14584c74e2",
       "jaxfne-release": "142a3ebcafae4c13a564acda3dd89cda9208fcba8797b84f5f66a1acf3a8f57d",
       "jaxfne-repo": "94a48bd6c82c68662ecdc06042495d665cdcdc05c87131f68628e31683a95c3e",
       "jaxfne-science": "4d1be84035be2ae2c3d71e2f887d1ea384a216f385032f8c575dda616dd7fecc",
       "jaxfne-seal": "765975a6878f1e8f9ac2e0029b0bd43924f2afc0b61f9a4312d45d321a5ba7d0",
+      "jaxfne-simulate": "a0b4d7f9764a7ef6bd0aaf245215be84daec9f0392f7dab5f4e6820c20bd583e",
+      "jaxfne-state": "e65d0096cb066a209dfee3ecc5f581d85867bbf4f0e1e4c9065bb4bc4efabb91",
+      "jaxfne-verify": "c8a1066c4330c399951c64188fa98d4f710a8b7e354d59da558bb7c9fc06f218",
       "jaxfne-workflow": "757b342d599fb2ed4be39d528d9af81451fd40e299e07b952ba790ffdb580cd7",
       "vocabulary-audit": "eb0da2fb9c79d7bae4010a109794080f507a7cec1179d7a59b86f0dc3a5f1691"
     },
