@@ -20,9 +20,14 @@ Stabilization is declared, before the assay seed ran, as: the disabled arm
 stays off (late deviation >= ``MIN_DISABLED_DEV_HZ``) and the engaged arm
 returns (late deviation <= ``RETURN_RATIO`` x the disabled one).
 
-Regime and assay constants were chosen before the assay seed ran:
-the regime by the 0.5.5 sweep (todo stack ATLAS 6), the HDP gains by 10 s
-stability probes, the kicks by a pilot on ``PILOT_SEED`` (not ``RUN_SEED``).
+Regime and assay constants were fixed before the assay ran: the regime by
+the 0.5.5 sweep (todo stack ATLAS 6), the HDP gains by 10 s stability
+probes, the kicks by a pilot on ``PILOT_SEED``. Observed after the run: the
+Simulation seed does not enter these runs (the only stochastic input is
+the Poisson background, seeded by ``NOISE["seed"]``), so the pilot saw the
+same trajectories and was not out of sample. The out-of-sample check is
+the replicate assay on ``REPLICATE_NOISE_SEEDS``, declared after the
+primary result with the criteria unchanged.
 Values are relative (RELATIVE_PROXY); nothing is calibrated.
 Import rule: top-level ``jaxfne`` only.
 """
@@ -47,6 +52,7 @@ PILOT_SEED = 101  # kick-size pilot only; never the assay seed
 BUILD_SEED = 5  # tensor -> configuration realization seed
 DRIVE = {"E": 3.0, "PV": 2.0}
 NOISE = {"rate_hz": 200.0, "amplitude": 4.0, "target": "all", "seed": 11}
+REPLICATE_NOISE_SEEDS = (12, 13)
 STIM_PERIOD_MS, STIM_DUR_MS, STIM_AMP, STIM_FIRST_MS = 200.0, 20.0, 8.0, 100.0
 HP_HEBB = {"K_HDP": 0.005, "K_ctrl": 0.15, "K_w_ctrl": 0.05, "alpha": 0.05,
            "tau_0_ms": 5.0, "noise_scale": 0.0}
@@ -85,10 +91,10 @@ def _stimulus(area: np.ndarray) -> Any:
                                event_duration_ms=STIM_DUR_MS)
 
 
-def _run(model: Any, stim: Any, hp: "dict | None", seed: int = RUN_SEED) -> tuple[np.ndarray, Any]:
+def _run(model: Any, stim: Any, hp: "dict | None", noise_seed: int = NOISE["seed"]) -> tuple[np.ndarray, Any]:
     runtime = J.RuntimeConfig(enable_hdp=hp is not None, hdp_params=dict(hp or {}))
-    sim = J.Simulation(duration_ms=PHASE_MS, dt_ms=DT_MS, seed=seed, runtime=runtime,
-                       poisson_drive=dict(NOISE))
+    sim = J.Simulation(duration_ms=PHASE_MS, dt_ms=DT_MS, seed=RUN_SEED, runtime=runtime,
+                       poisson_drive={**NOISE, "seed": int(noise_seed)})
     spikes = np.asarray(model.simulate(sim, paradigm=stim).spikes)
     return spikes, (model.last_hdp_diagnostics() if hp is not None else None)
 
@@ -179,14 +185,14 @@ def run_phases(model: Any = None) -> dict[str, Any]:
     return {"phases": out, "wall_s": time.perf_counter() - t0}
 
 
-def run_assay(model: Any = None) -> dict[str, Any]:
+def run_assay(model: Any = None, noise_seed: int = NOISE["seed"]) -> dict[str, Any]:
     t0 = time.perf_counter()
     model = model if model is not None else build_model()
     area = _areas(model)
     stim = _stimulus(area)
     w0 = _realized_weights(model)
     hp_off = J.hdp_network.disable_plasticity(dict(HP_HEBB), mask=None)
-    ref = _window_rates(_run(model, stim, HP_HEBB)[0])
+    ref = _window_rates(_run(model, stim, HP_HEBB, noise_seed)[0])
     perturbations = [(f"H0={H0_PERTURBED}", {"H0": np.full(len(area), H0_PERTURBED)})]
     perturbations += [(f"kick={k}", {"w0": k * w0}) for k in KICKS]
     arms: dict[str, Any] = {}
@@ -194,7 +200,7 @@ def run_assay(model: Any = None) -> dict[str, Any]:
     for label, init in perturbations:
         rec = {}
         for arm, hp in (("engaged", HP_HEBB), ("disabled", hp_off)):
-            sp, diag = _run(model.with_hdp_initial_state(**init), stim, hp)
+            sp, diag = _run(model.with_hdp_initial_state(**init), stim, hp, noise_seed)
             r = _window_rates(sp)
             dev = np.abs(r - ref)
             rec[arm] = {"window_rates_hz": np.round(r, 3).tolist(),
@@ -208,7 +214,7 @@ def run_assay(model: Any = None) -> dict[str, Any]:
                       "verdict": "STABILIZED" if stays_off and returns else
                       ("NO_LASTING_EFFECT" if not stays_off else "NOT_STABILIZED")})
         arms[label] = rec
-    return {"reference_window_rates_hz": np.round(ref, 3).tolist(), "arms": arms,
+    return {"noise_seed": int(noise_seed), "reference_window_rates_hz": np.round(ref, 3).tolist(), "arms": arms,
             "declared_tests": tests, "wall_s": time.perf_counter() - t0}
 
 
@@ -220,7 +226,7 @@ def spec() -> dict[str, Any]:
         "stimulus": {"target": "H01", "period_ms": STIM_PERIOD_MS, "duration_ms": STIM_DUR_MS,
                      "amplitude": STIM_AMP, "first_ms": STIM_FIRST_MS},
         "hp_hebb": HP_HEBB, "hp_noisy": HP_NOISY, "kicks": list(KICKS), "h0_perturbed": H0_PERTURBED,
-        "window_ms": WINDOW_MS, "late_windows": LATE_WINDOWS, "return_ratio": RETURN_RATIO,
+        "replicate_noise_seeds": list(REPLICATE_NOISE_SEEDS), "window_ms": WINDOW_MS, "late_windows": LATE_WINDOWS, "return_ratio": RETURN_RATIO,
         "min_disabled_dev_hz": MIN_DISABLED_DEV_HZ, "level": LEVEL,
     }
 
@@ -231,6 +237,8 @@ def run_all(path: Path = RESULTS_PATH) -> dict[str, Any]:
     assay = run_assay(model)
     out["assay"] = assay
     out["wall_s"] += assay.pop("wall_s")
+    out["replicates"] = [run_assay(model, s) for s in REPLICATE_NOISE_SEEDS]
+    out["wall_s"] += sum(r.pop("wall_s") for r in out["replicates"])
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(out, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return out
@@ -241,6 +249,7 @@ if __name__ == "__main__":
     for name, ph in res["phases"].items():
         print(name, round(ph["rate_hz"], 2), ph["n_significant"],
               round(ph["spearman_evoked_distance"], 2), ph["w_mean_ratio"])
-    for t in res["assay"]["declared_tests"]:
-        print(t)
+    for a in [res["assay"], *res["replicates"]]:
+        for t in a["declared_tests"]:
+            print(a["noise_seed"], t)
     print("wall_s", round(res["wall_s"], 1))
