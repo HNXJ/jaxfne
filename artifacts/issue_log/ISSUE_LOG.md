@@ -489,6 +489,21 @@ requires separate authorization.
 - **evidence:** `artifacts/perf/bottlenecks_051.md` B8 (excluded from item 3, not bit-exact as run)
 - **possible future change:** root-cause in 0.5.3 item 3 (seed-chain semantics)
 
+### P-011
+- **date:** 2026-09-25
+- **type:** FRICTION
+- **area:** Kaleido static export under xdist load
+- **observation:** `test_vis_smoke[exporters.export_figures]` failed once in the
+  broad gate with `RuntimeError: Couldn't close or kill browser subprocess`
+  (choreographer/Kaleido browser teardown), on a tree that changed neither
+  `jaxfne/vis/exporters.py` nor the test.
+- **severity:** MINOR (teardown of the headless browser; no output semantics)
+- **minimal reproduction:** broad gate (`-n auto`); alone it passes 3/3
+- **expected behavior:** stable PASS
+- **actual behavior:** intermittent FAIL under parallel load
+- **evidence:** broad gate on `d0d7360` 2026-09-25 (1 failed / 4430 passed); isolated reruns 3/3 PASS
+- **possible future change:** retry Kaleido teardown once, or serialize Kaleido tests (xdist group); open
+
 ---
 
 ## Drain verdicts (0.4.25 sweep, 2026-09-20)
