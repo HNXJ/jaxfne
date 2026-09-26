@@ -2,6 +2,7 @@
 
 import dataclasses
 import json
+from pathlib import Path
 
 import numpy as np
 
@@ -50,5 +51,6 @@ def test_packets_leak_no_answers_and_prepare_refuses_a_plain_directory(tmp_path)
         for text in texts.values():
             assert "artifacts/atlas" not in text and "run_at" not in text, task["at_id"]
         assert "jaxfne-core" in texts["skills"] and "jaxfne-core" not in texts["direct"]
-    with pytest.raises(ValueError, match="not a linked git worktree"):
-        prepare_worktree(tmp_path, "direct")
+    for root in (tmp_path, Path.cwd()):  # no .git; this repository itself
+        with pytest.raises(ValueError, match="not a disposable git checkout"):
+            prepare_worktree(root, "direct")

@@ -133,13 +133,19 @@ def load_task(at_id: str) -> dict[str, Any]:
 
 
 def prepare_worktree(root: Path, arm: str) -> list[str]:
-    """Delete answer paths (and, for the direct arm, the skill surface) from a linked worktree."""
+    """Delete answer paths (and, for the direct arm, the skill surface) from a disposable checkout.
+
+    The checkout must be a git repository other than this one. Use a fresh
+    single-commit repository built from ``git archive`` after this call: a
+    clone or worktree still carries the answers in its history.
+    """
     import shutil
 
     if arm not in ARMS:
         raise ValueError(f"arm must be one of {ARMS}")
-    if not (root / ".git").is_file():
-        raise ValueError(f"{root} is not a linked git worktree; refusing to delete files")
+    source = Path(__file__).resolve().parents[2]
+    if not (root / ".git").exists() or root.resolve() == source:
+        raise ValueError(f"{root} is not a disposable git checkout; refusing to delete files")
     removed = []
     for pattern in _ANSWER_PATHS + (_SKILL_PATHS if arm == "direct" else ()):
         for p in sorted(root.glob(pattern)):
