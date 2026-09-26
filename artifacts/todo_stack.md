@@ -754,6 +754,24 @@ ATLAS
    the N_20 runner (noise and a stimulus so propagation is observable;
    baseline, Hebbian HDP and noisy HDP phases on one realized network),
    the perturbation assay, and the AT-10 spec/bundle/figures.
+   Decided 2026-09-26 (human): background noise plus a periodic brief
+   pulse into H01 only (AT-08 stimulus mechanism); 10 s simulated per
+   phase; assay follows the AT-04-R2 pattern (matched stimulation, H0
+   perturbation and a W kick in HDP-engaged vs HDP-disabled arms from one
+   W0; stabilization = return in the engaged arm only).
+   Regime probes 2026-09-26 (2 s runs, dt 0.5; noise via
+   `Simulation.poisson_drive`, pulses 20 ms x 8.0 into H01 every 500 ms;
+   `Configuration.drive` noise_policy is metadata only, not a noise
+   source): default drive gives tonic ~9 Hz in every area and the pulse
+   stays in H01 (cross input ~3 edges x 0.03). With drive E 3.0/PV 2.0,
+   noise 200 Hz x 4 and cross w_mech 30, every area, including H19/H20
+   that get no H01 input, bursts 50-60 ms after onset: a global rhythm,
+   not propagation. Next: a between-area gain in the genome rule
+   (`w_mech`, forwarded to AreaConnection.plastic), then a sweep scored
+   by onset latency vs hierarchy distance (rank correlation > 0, with
+   responses decaying with distance) before the phases are frozen. Probe
+   script: `g20_phase_probe.py` pattern (duration, noise rate/amp, HDP,
+   drive E/PV, cross gain).
 7. Reduction/scale matrix: for each transition M_i → M_(i+1), which
    observations survive within the predeclared tolerance and which do not;
    failures stay in the matrix.
