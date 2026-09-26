@@ -56,7 +56,7 @@
   "at_id": "AT-04-R2",
   "duration_ms": 1000.0,
   "environment": {
-    "git_sha": "b1104939e963e26c0d7e356948d9ac84aa38c485",
+    "git_sha": "04fac4e5850e212b6efe22c42762de498456d461",
     "jax": "0.10.1",
     "jaxfne": "0.5.0",
     "jaxlib": "0.10.1",
@@ -68,5 +68,5 @@
     "runner": "at07_at04_053:run_at04r2"
   },
   "seed": 4,
-  "spec_digest": "3b85608f033a701c4da91e9eee58d94bfd97f6676b22e4900dc1bc0a370b80cf"
+  "spec_digest": "88dd3bb4a1db395ba652ec1c36ae0c9b7bf178fa4062157b52caeea2a5135d23"
 }
