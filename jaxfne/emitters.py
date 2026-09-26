@@ -1190,10 +1190,9 @@ def _simulate_edge_recurrent_izhikevich_delayed(
         if isinstance(off, int):
             step_indices = jnp.arange(off, off + int(n_steps), dtype=jnp.int32)
         else:
-            step_indices = jnp.arange(
-                off,
-                off + jnp.asarray(int(n_steps), dtype=jnp.int32),
-                dtype=jnp.int32,
+            # off may be traced under jit: shift a concrete-length range.
+            step_indices = jnp.asarray(off, dtype=jnp.int32) + jnp.arange(
+                int(n_steps), dtype=jnp.int32
             )
 
     if record_edge_current or record_current_trace or record_u_trace:
@@ -2006,10 +2005,9 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
         if isinstance(off, int):
             step_indices = jnp.arange(off, off + int(n_steps), dtype=jnp.int32)
         else:
-            step_indices = jnp.arange(
-                off,
-                off + jnp.asarray(int(n_steps), dtype=jnp.int32),
-                dtype=jnp.int32,
+            # off may be traced under jit: shift a concrete-length range.
+            step_indices = jnp.asarray(off, dtype=jnp.int32) + jnp.arange(
+                int(n_steps), dtype=jnp.int32
             )
 
     one = jnp.asarray(1.0, dtype=jdtype)
@@ -3832,8 +3830,10 @@ def simulate_edge_recurrent_izhikevich_hdp(
             if isinstance(off, int):
                 step_indices_arr = jnp.arange(off, off + int(n_steps), dtype=jnp.int32)
             else:
-                step_indices_arr = jnp.arange(
-                    off, off + jnp.asarray(int(n_steps), dtype=jnp.int32), dtype=jnp.int32
+                # off may be traced (jit with an initial state): shift a
+                # concrete-length range instead of passing traced bounds.
+                step_indices_arr = jnp.asarray(off, dtype=jnp.int32) + jnp.arange(
+                    int(n_steps), dtype=jnp.int32
                 )
 
     if pop_layout is not None:

@@ -84,6 +84,20 @@ def test_rule_gain_scales_cross_edge_weights():
         expand_area_connection_rules(_genome({"A": 0.0, "B": 1.0}, w_mech=0.0))
 
 
+def test_delayed_network_runs_hdp_from_a_custom_initial_state():
+    """Delayed edges + custom HDP initial state under jit (traced step offset)."""
+    t = develop(_genome({"A": 0.0, "B": 1.0}, p_max=1.0, decay=1e9), seed=0)
+    model = J.construct(neuronal_tensor_to_configuration(t, seed=3, duration_ms=20.0, dt_ms=0.5))
+    w0 = np.asarray(J.emitters._resolved_edge_weight(
+        model.params["edge_list"], np.float32, model.params["emitter"]))
+    assert w0.shape == (200,) and np.all(w0 > 0)
+    rt = J.RuntimeConfig(enable_hdp=True, jit=True, hdp_params={"K_HDP": 0.0, "K_w_ctrl": 0.0})
+    kicked = model.with_hdp_initial_state(H0=np.zeros(20), w0=2.0 * w0)
+    sig = kicked.simulate(J.Simulation(duration_ms=20.0, dt_ms=0.5, seed=1, runtime=rt))
+    assert np.asarray(sig.spikes).shape == (40, 20)
+    assert np.allclose(np.asarray(kicked.last_hdp_diagnostics()["w_final"]), 2.0 * w0)
+
+
 def test_tensor_roundtrip_keeps_declared_delay_and_probability(tmp_path):
     t = develop(_genome({"A": 0.0, "B": 0.25}), seed=0)
     path = save_neuronal_tensor(t, tmp_path / "t.json")
