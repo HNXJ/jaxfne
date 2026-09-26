@@ -283,8 +283,14 @@ class AreaConnection:
     # construction (0.5.2 decision 0b). Cross-area composition semantics
     # stay 0.5.4 work; the field itself is chain completeness.
     delay_ms: "float | None" = None
+    # Per-pair connection probability in (0, 1] (None = undeclared = 1.0,
+    # the all-to-all behaviour before 0.5.5). JDNA's exponential-distance
+    # rule derives it per area pair.
+    probability: "float | None" = None
 
     def __post_init__(self) -> None:
+        import math as _math
+
         if self.delay_ms is not None:
             try:
                 ms = float(self.delay_ms)
@@ -292,13 +298,24 @@ class AreaConnection:
                 raise ValueError(
                     f"AreaConnection delay_ms must be a number in ms; got {self.delay_ms!r}"
                 )
-            import math as _math
 
             if not _math.isfinite(ms) or ms < 0.0:
                 raise ValueError(
                     f"AreaConnection delay_ms must be finite and >= 0; got {self.delay_ms!r}"
                 )
             object.__setattr__(self, "delay_ms", ms)
+        if self.probability is not None:
+            try:
+                p = float(self.probability)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"AreaConnection probability must be a number; got {self.probability!r}"
+                )
+            if not (_math.isfinite(p) and 0.0 < p <= 1.0):
+                raise ValueError(
+                    f"AreaConnection probability must be in (0, 1]; got {self.probability!r}"
+                )
+            object.__setattr__(self, "probability", p)
 
 
 @dataclass
@@ -552,6 +569,9 @@ def _load_neuronal_tensor_impl(path: str | Path, raw: dict) -> NeuronalTensor:
                 mechanism=ac.get("mechanism", DEFAULT_AREA_CONNECTION_MECHANISM),
                 static=StaticParams(**ac.get("static", {})),
                 plastic=PlasticParams(**ac.get("plastic", {})),
+                # Saved by to_dict/asdict; dropped on load before 0.5.5.
+                delay_ms=ac.get("delay_ms"),
+                probability=ac.get("probability"),
             )
             for ac in raw_area_connections
         ]
@@ -580,6 +600,7 @@ def _load_neuronal_tensor_impl(path: str | Path, raw: dict) -> NeuronalTensor:
                         mechanism=ic["mechanism"],
                         static=StaticParams(**ic.get("static", {})),
                         plastic=PlasticParams(**ic.get("plastic", {})),
+                        delay_ms=ic.get("delay_ms"),  # dropped on load before 0.5.5
                     )
                     for ic in a.get("inter_connections", [])
                 ]
@@ -976,7 +997,8 @@ def _wire_connection(
             "layer": conn.target_layer,
             "cell_type": conn.target_neuron_type,
         },
-        probability=1.0,
+        probability=(1.0 if getattr(conn, "probability", None) is None
+                     else float(conn.probability)),
         weight=_connection_edge_weight(conn, total_n),
         sign=sign,
         mechanism=mech_name,

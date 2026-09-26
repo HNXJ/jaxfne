@@ -743,6 +743,10 @@ ATLAS
    (20 areas on a 1-D hierarchy; inter-area probability by an exponential
    distance rule; delay = distance / conduction velocity; no external
    data); 50 neurons per area (1000 total).
+   Done: JDNA carries between-area probability and delay (declared or
+   derived by the `exponential_distance` rule in `area_connection_rules`,
+   DERIVED origins), and they reach execution. Remaining: the G_20 genome,
+   the N_20 runner with the three phases, and the perturbation assay.
 7. Reduction/scale matrix: for each transition M_i → M_(i+1), which
    observations survive within the predeclared tolerance and which do not;
    failures stay in the matrix.

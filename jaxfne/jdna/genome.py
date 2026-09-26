@@ -116,6 +116,85 @@ class PseudoGenome:
     areas: Sequence[AreaGenome] = field(default_factory=tuple)
     area_connections: Sequence[Mapping[str, Any]] = field(default_factory=tuple)
     development_parameters: Mapping[str, Any] = field(default_factory=dict)
+    # Compact between-area rules, expanded by ``develop`` into explicit
+    # area connections (see :func:`expand_area_connection_rules`).
+    area_connection_rules: Sequence[Mapping[str, Any]] = field(default_factory=tuple)
+
+
+AREA_CONNECTION_RULE_KINDS = ("exponential_distance",)
+_EXPONENTIAL_DISTANCE_KEYS = (
+    "positions", "p_max", "decay", "traversal_ms", "source", "targets", "mechanism")
+
+
+def _unit_float(rule_ref: str, name: str, value: Any, lo: float, hi: float,
+                lo_open: bool = False) -> float:
+    v = float(value)
+    if not math.isfinite(v) or v > hi or v < lo or (lo_open and v == lo):
+        bound = f"({lo}, {hi}]" if lo_open else f"[{lo}, {hi}]"
+        raise ValueError(f"{rule_ref}: {name} must be in {bound}; got {value!r}")
+    return v
+
+
+def expand_area_connection_rules(genome: "PseudoGenome") -> list[dict[str, Any]]:
+    """Explicit ``area_connections`` entries derived from the genome's compact rules.
+
+    ``exponential_distance``: each named area sits at a declared relative
+    hierarchy position ``h`` in [0, 1]. For every ordered pair ``(a, b)``,
+    ``a != b``, with relative distance ``d = |h_a - h_b|``:
+
+        probability = p_max * exp(-d / decay)
+        delay_ms    = d * traversal_ms
+
+    ``traversal_ms`` is the conduction time across the whole hierarchy
+    (``d = 1``), so the delay is relative distance over a relative conduction
+    velocity; no physical length is declared. Pairs with
+    ``probability < p_min`` (default 0) are omitted. One entry per target
+    population in ``targets``; each entry records the index of its rule.
+    """
+    out: list[dict[str, Any]] = []
+    for k, rule in enumerate(genome.area_connection_rules):
+        ref = f"area_connection_rules[{k}]"
+        if not isinstance(rule, Mapping) or rule.get("kind") not in AREA_CONNECTION_RULE_KINDS:
+            raise ValueError(f"{ref}: kind must be one of {AREA_CONNECTION_RULE_KINDS}")
+        missing = [key for key in _EXPONENTIAL_DISTANCE_KEYS if key not in rule]
+        if missing:
+            raise ValueError(f"{ref}: missing {missing}")
+        positions = {str(a): _unit_float(ref, f"positions[{a!r}]", h, 0.0, 1.0)
+                     for a, h in dict(rule["positions"]).items()}
+        if len(positions) < 2:
+            raise ValueError(f"{ref}: positions must name at least two areas")
+        p_max = _unit_float(ref, "p_max", rule["p_max"], 0.0, 1.0, lo_open=True)
+        decay = float(rule["decay"])
+        if not (math.isfinite(decay) and decay > 0.0):
+            raise ValueError(f"{ref}: decay must be finite and > 0; got {rule['decay']!r}")
+        traversal = float(rule["traversal_ms"])
+        if not (math.isfinite(traversal) and traversal >= 0.0):
+            raise ValueError(
+                f"{ref}: traversal_ms must be finite and >= 0; got {rule['traversal_ms']!r}")
+        p_min = _unit_float(ref, "p_min", rule.get("p_min", 0.0), 0.0, 1.0)
+        src = dict(rule["source"])
+        for a in positions:
+            for b in positions:
+                if a == b:
+                    continue
+                d = abs(positions[a] - positions[b])
+                p = p_max * math.exp(-d / decay)
+                if p < p_min:
+                    continue
+                for tgt in rule["targets"]:
+                    out.append({
+                        "source_area": a,
+                        "source_layer": str(src["layer"]),
+                        "source_neuron_type": str(src["neuron_type"]),
+                        "target_area": b,
+                        "target_layer": str(tgt["layer"]),
+                        "target_neuron_type": str(tgt["neuron_type"]),
+                        "mechanism": str(rule["mechanism"]),
+                        "probability": p,
+                        "delay_ms": d * traversal,
+                        "rule_index": k,
+                    })
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -143,6 +222,8 @@ def genome_rules_hash(genome: PseudoGenome) -> str:
         "areas": [_area_to_dict(a) for a in genome.areas],
         "area_connections": [dict(c) for c in genome.area_connections],
     }
+    if genome.area_connection_rules:  # absent key keeps rule-free genomes' hashes stable
+        payload["area_connection_rules"] = [dict(r) for r in genome.area_connection_rules]
     blob = json.dumps(_canonical(payload), sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(blob).hexdigest()
 
@@ -259,6 +340,7 @@ def pseudogenome_from_dict(raw: Mapping[str, Any]) -> PseudoGenome:
         areas=tuple(areas),
         area_connections=tuple(dict(c) for c in raw.get("area_connections", [])),
         development_parameters=dict(raw.get("development_parameters", {})),
+        area_connection_rules=tuple(dict(r) for r in raw.get("area_connection_rules", [])),
     )
 
 
@@ -306,13 +388,16 @@ def save_pseudogenome(genome: PseudoGenome, path: str | Path) -> str:
 
 
 def _area_to_dict_outer(genome: PseudoGenome) -> dict[str, Any]:
-    return {
+    out = {
         "name": genome.name,
         "description": genome.description,
         "development_parameters": dict(genome.development_parameters),
         "areas": [_area_to_dict(a) for a in genome.areas],
         "area_connections": [dict(c) for c in genome.area_connections],
     }
+    if genome.area_connection_rules:
+        out["area_connection_rules"] = [dict(r) for r in genome.area_connection_rules]
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -409,7 +494,8 @@ def validate_genome(genome: PseudoGenome) -> None:
                         f"{role} {getattr(rule, role)!r} in layer {lname!r}"
                     )
 
-    for raw in genome.area_connections:
+    # Derived entries are checked exactly like declared ones.
+    for raw in [*genome.area_connections, *expand_area_connection_rules(genome)]:
         if not isinstance(raw, Mapping):
             raise ValueError(
                 f"area_connections entries must be mappings, got {type(raw).__name__}"
@@ -729,7 +815,8 @@ def develop(
         )
 
     area_connections: list[AreaConnection] = []
-    for raw in genome.area_connections:
+    derived = expand_area_connection_rules(genome)
+    for i, raw in enumerate([*genome.area_connections, *derived]):
         area_connections.append(
             AreaConnection(
                 source_area=str(raw["source_area"]),
@@ -739,8 +826,16 @@ def develop(
                 target_layer=str(raw["target_layer"]),
                 target_neuron_type=str(raw["target_neuron_type"]),
                 mechanism=str(raw.get("mechanism", "monotonic_cable_synapse")),
+                delay_ms=raw.get("delay_ms"),
+                probability=raw.get("probability"),
             )
         )
+        if "rule_index" in raw:
+            value_origins[f"area_connections.{i}"] = {
+                "probability": ORIGIN_DERIVED,
+                "delay_ms": ORIGIN_DERIVED,
+                "rule_index": raw["rule_index"],
+            }
 
     tensor = NeuronalTensor(
         areas=areas,
