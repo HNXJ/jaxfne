@@ -128,14 +128,19 @@ def _spec_at01(mod: Any) -> dict[str, Any]:
             "n_neurons": 1,
             "hh_current_ua": _const(mod, "AT01_HH_CURRENT_UA"),
         },
-        "recording": {"spikes": "signals.spikes", "V_m": "signals.V_m", "field": "none"},
+        "recording": {
+            "spikes": "signals.spikes",
+            "V_m": "signals.V_m",
+            "field": "builder-default probes (suite2 proxy modes, 4 contacts)",
+        },
         "hdp_params": None,
         "transcribed": [
             "inputs.builder: at01_at06_052.py:321",
             "inputs.n_neurons: at01_at06_052.py:321",
             "recording.spikes: at01_at06_052.py:326",
             "recording.V_m: at01_at06_052.py:327",
-            "recording.field: at01_at06_052.py:320 (no field probes on the reduced arm)",
+            "recording.field: jaxfne/_construct_presets.py:232 (suite2_single_neuron_config "
+            ".probes(_SUITE2_PROXY_MODES, n_contacts=4); the runner adds none)",
         ],
     }
 
