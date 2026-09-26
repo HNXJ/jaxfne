@@ -252,8 +252,10 @@ def test_executed_neuron_order_matches_the_realization():
 def test_tensor_bridge_still_cannot_carry_parameters():
     """Why execution goes through the realized specs and not the tensor.
 
-    `InterConnection`/`AreaConnection` have no field for a declared weight
-    or probability. Declared delays DO ride the bridge for inspection
+    `InterConnection`/`AreaConnection` have no field for a declared weight.
+    `AreaConnection.probability` exists since 0.5.5 (JDNA's between-area
+    rules fill it), but this TFNE bridge leaves it undeclared (None), so a
+    TFNE probability still cannot land on the tensor. Declared delays DO ride the bridge for inspection
     (`delay_ms` on both connection types, TFNE-PARAM-02) — but execution
     still reads the realized specs, so the bridge value and the executed
     steps are checked against each other rather than one standing in for
@@ -265,7 +267,7 @@ def test_tensor_bridge_still_cannot_carry_parameters():
     conns += list(tensor.area_connections)
     assert conns, "expected at least one bridged connection"
     for c in conns:
-        assert not hasattr(c, "probability")
+        assert getattr(c, "probability", None) is None  # 0.5.5: field exists, bridge leaves it unset
         assert c.plastic.w_mech == 1.0  # declared 0.375 cannot land here
         assert float(c.delay_ms) == 0.4  # A -> B is cross-area here
 
