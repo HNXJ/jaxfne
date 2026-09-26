@@ -4,7 +4,9 @@ Human decision (2026-09-26): G_20 is a synthetic declared hierarchy, not
 data-driven; 50 neurons per area. Twenty areas sit at relative hierarchy
 positions h = i / 19; between-area E -> {E, PV} projections follow JDNA's
 ``exponential_distance`` rule (p = p_max * exp(-|dh| / decay), delay_ms =
-|dh| * traversal_ms, pairs with p < p_min omitted). Each area is one E/PV
+|dh| * traversal_ms, pairs with p < p_min omitted, gain w_mech =
+G20_CROSS_GAIN). v2 (2026-09-26) adds the gain; v1 had w_mech 1, which does
+not propagate. Each area is one E/PV
 layer with the four within-area E/PV motifs. Every value is a relative
 scaffold value; nothing is calibrated against anatomy.
 
@@ -21,7 +23,7 @@ from typing import Any
 
 import jaxfne as J
 
-G20_NAME = "g20-hierarchy-v1"
+G20_NAME = "g20-hierarchy-v2"
 G20_N_AREAS = 20
 G20_N_PER_AREA = 50
 G20_CELL_TYPE_FRACTIONS = {"E": 0.8, "PV": 0.2}
@@ -29,6 +31,7 @@ G20_P_MAX = 0.1
 G20_DECAY = 0.2
 G20_TRAVERSAL_MS = 20.0
 G20_P_MIN = 0.01
+G20_CROSS_GAIN = 200.0  # between-area w_mech; 0.5.5 regime sweep (todo stack, ATLAS 6)
 G20_DEV_SEED = 20
 GENOME_PATH = Path(__file__).parent / "genomes" / f"{G20_NAME}.json"
 
@@ -63,7 +66,7 @@ def genome_dict() -> dict[str, Any]:
             "p_min": G20_P_MIN,
             "source": {"layer": "L", "neuron_type": "E"},
             "targets": [{"layer": "L", "neuron_type": "E"}, {"layer": "L", "neuron_type": "PV"}],
-            "mechanism": "AMPA",
+            "mechanism": "AMPA", "w_mech": G20_CROSS_GAIN,
         }],
     }
 

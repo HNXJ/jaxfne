@@ -23,6 +23,7 @@ def test_n20_realizes_the_declared_hierarchy():
         assert math.isclose(c.probability, G.G20_P_MAX * math.exp(-d / G.G20_DECAY))
         assert math.isclose(c.delay_ms, d * G.G20_TRAVERSAL_MS)
         assert c.probability >= G.G20_P_MIN
+        assert c.plastic.w_mech == G.G20_CROSS_GAIN
         by_pair[c.source_area, c.target_area] = c
     assert ("H01", "H02") in by_pair and ("H01", "H20") not in by_pair  # p_min prunes far pairs
     assert t.provenance["development_seed"] == G.G20_DEV_SEED

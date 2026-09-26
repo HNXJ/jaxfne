@@ -746,7 +746,7 @@ ATLAS
    Done: JDNA carries between-area probability and delay (declared or
    derived by the `exponential_distance` rule in `area_connection_rules`,
    DERIVED origins), and they reach execution. G_20 frozen
-   (`artifacts/atlas/g20_genome.py`, `genomes/g20-hierarchy-v1.json`;
+   (`artifacts/atlas/g20_genome.py`, `genomes/g20-hierarchy-v1.json`, superseded by v2 below;
    p_max 0.1, decay 0.2, traversal 20 ms, p_min 0.01, 40 E + 10 PV per
    area); N_20 builds 1000 neurons / 68,620 edges (19,620 cross-area,
    2-18 delay steps at dt 0.5 ms) and runs 1 s in about 2 s. Its default
@@ -766,12 +766,25 @@ ATLAS
    stays in H01 (cross input ~3 edges x 0.03). With drive E 3.0/PV 2.0,
    noise 200 Hz x 4 and cross w_mech 30, every area, including H19/H20
    that get no H01 input, bursts 50-60 ms after onset: a global rhythm,
-   not propagation. Next: a between-area gain in the genome rule
-   (`w_mech`, forwarded to AreaConnection.plastic), then a sweep scored
-   by onset latency vs hierarchy distance (rank correlation > 0, with
-   responses decaying with distance) before the phases are frozen. Probe
-   script: `g20_phase_probe.py` pattern (duration, noise rate/amp, HDP,
-   drive E/PV, cross gain).
+   not propagation.
+   Regime decided 2026-09-26 (sweep, 4 s runs x seeds 7/8/9, dt 0.5,
+   pulses 20 ms x 8.0 into H01 every 200 ms): cross gain w_mech 200
+   (edge weight 200/sqrt(1000)), drive E 3.0/PV 2.0 via
+   `Configuration.drive(baseline_drive_by_cell_type=...)` (not
+   `cell_type_drives`, which is inert: P-014), Poisson noise 200 Hz x 4
+   to all. Result: ~9.5 Hz mean, 12-13/19 areas significantly evoked
+   above a random-onset control (max ~6 Hz), Spearman(evoked, distance)
+   -1.00 and Spearman(latency, distance) +1.00 on every seed; evoked
+   H02/H05/H10 ~14/13/11 Hz. Gain 150 too weak, 250 decays faster with
+   fewer significant areas, 400 runs away; E 2.5 marginal. The gain is
+   in the genome: JDNA rules and explicit area_connections take an
+   optional `w_mech` (validated > 0), and G_20 is re-frozen as
+   `genomes/g20-hierarchy-v2.json` (G20_CROSS_GAIN 200; v1 had gain 1
+   and was never used). Frozen v2 reproduces the sweep exactly.
+   Next: the N_20 runner (three 10 s phases from one W0: baseline,
+   Hebbian HDP, noisy HDP; separate arms, since full-state continuation
+   does not take poisson_drive), then the AT-04-R2-style assay, then the
+   AT-10 spec/bundle/figures. Probe script: scratchpad `g20_sweep.py`.
 7. Reduction/scale matrix: for each transition M_i → M_(i+1), which
    observations survive within the predeclared tolerance and which do not;
    failures stay in the matrix.

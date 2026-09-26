@@ -543,6 +543,29 @@ requires separate authorization.
 - **possible future change:** add declarative `arm_definitions` to each task
   before the next benchmark cycle; open
 
+### P-014
+- **date:** 2026-09-26
+- **type:** DEFECT (configuration stored, not consumed)
+- **area:** `jaxfne/_config.py` `Configuration.cell_type_drives`
+- **observation:** `cell_type_drives` only writes
+  `metadata["cell_type_drives"]`; nothing reads it. Callers that rely on
+  it: the suite2 presets (`_construct_presets.py`, E 4.0/PV 2.0/SST 2.2/VIP
+  2.0), `experiment_a/canonical.py`, `protocol_e_integration/e1_execution.py`.
+  `Configuration.drive(baseline_drive_by_cell_type=...)` is the consumed path.
+- **severity:** MAJOR (declared per-type drives silently absent from
+  every run that uses them; outputs and frozen baselines reflect the
+  emitter default instead)
+- **minimal reproduction:** suite2_net1_config with `cell_type_drives` E=PV=0
+  and E=PV=10 both give 16.25 Hz; `drive(baseline_drive_by_cell_type=...)`
+  at 0 and 10 gives 8.33 and 37.92 Hz (300 ms, dt 0.5, seed 7)
+- **expected behavior:** a declared per-type drive changes the drive, or
+  the call is refused
+- **actual behavior:** accepted, recorded, ignored
+- **evidence:** scratchpad `drive_probe2.py` run 2026-09-26; `grep
+  cell_type_drives jaxfne/` shows no reader
+- **possible future change:** human decision (consuming it changes every
+  suite2/experiment_a/protocol_e output and their frozen baselines); open
+
 ---
 
 ## Drain verdicts (0.4.25 sweep, 2026-09-20)

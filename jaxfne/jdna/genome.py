@@ -39,6 +39,7 @@ from ..neuronal_tensor import (
     Layer,
     NeuronalTensor,
     NeuronType,
+    PlasticParams,
     Pose3D,
 )
 
@@ -148,7 +149,9 @@ def expand_area_connection_rules(genome: "PseudoGenome") -> list[dict[str, Any]]
     ``traversal_ms`` is the conduction time across the whole hierarchy
     (``d = 1``), so the delay is relative distance over a relative conduction
     velocity; no physical length is declared. Pairs with
-    ``probability < p_min`` (default 0) are omitted. One entry per target
+    ``probability < p_min`` (default 0) are omitted. Optional ``w_mech``
+    (default 1.0) is the projection gain, carried to
+    ``AreaConnection.plastic.w_mech``. One entry per target
     population in ``targets``; each entry records the index of its rule.
     """
     out: list[dict[str, Any]] = []
@@ -172,6 +175,9 @@ def expand_area_connection_rules(genome: "PseudoGenome") -> list[dict[str, Any]]
             raise ValueError(
                 f"{ref}: traversal_ms must be finite and >= 0; got {rule['traversal_ms']!r}")
         p_min = _unit_float(ref, "p_min", rule.get("p_min", 0.0), 0.0, 1.0)
+        w_mech = float(rule.get("w_mech", 1.0))
+        if not (math.isfinite(w_mech) and w_mech > 0.0):
+            raise ValueError(f"{ref}: w_mech must be finite and > 0; got {rule.get('w_mech')!r}")
         src = dict(rule["source"])
         for a in positions:
             for b in positions:
@@ -192,6 +198,7 @@ def expand_area_connection_rules(genome: "PseudoGenome") -> list[dict[str, Any]]
                         "mechanism": str(rule["mechanism"]),
                         "probability": p,
                         "delay_ms": d * traversal,
+                        "w_mech": w_mech,
                         "rule_index": k,
                     })
     return out
@@ -536,6 +543,10 @@ def validate_genome(genome: PseudoGenome) -> None:
                     f"area_connections entry references unknown {nt_role} {nt!r} "
                     f"in layer {lname!r}"
                 )
+        w_mech = raw.get("w_mech", 1.0)
+        if isinstance(w_mech, bool) or not isinstance(w_mech, (int, float)) \
+                or not (math.isfinite(w_mech) and w_mech > 0.0):
+            raise ValueError(f"area_connections entry w_mech must be finite and > 0; got {w_mech!r}")
 
 
 def declared_constraints(genome: PseudoGenome) -> dict[str, Any]:
@@ -828,6 +839,7 @@ def develop(
                 mechanism=str(raw.get("mechanism", "monotonic_cable_synapse")),
                 delay_ms=raw.get("delay_ms"),
                 probability=raw.get("probability"),
+                plastic=PlasticParams(w_mech=float(raw.get("w_mech", 1.0))),
             )
         )
         if "rule_index" in raw:

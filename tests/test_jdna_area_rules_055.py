@@ -73,6 +73,17 @@ def test_derived_probability_and_delay_reach_execution():
     assert 0 < ab < len(half)
 
 
+def test_rule_gain_scales_cross_edge_weights():
+    one, _ = _cross_edges(develop(_genome({"A": 0.0, "B": 1.0}, p_max=1.0, decay=1e9), seed=0))
+    three, _ = _cross_edges(develop(_genome({"A": 0.0, "B": 1.0}, p_max=1.0, decay=1e9,
+                                            w_mech=3.0), seed=0))
+    w1 = np.abs([e["weight"] for e in one])
+    w3 = np.abs([e["weight"] for e in three])
+    assert len(w1) == len(w3) == 200 and np.allclose(w3, 3.0 * w1) and w1.min() > 0
+    with pytest.raises(ValueError, match="w_mech must be finite and > 0"):
+        expand_area_connection_rules(_genome({"A": 0.0, "B": 1.0}, w_mech=0.0))
+
+
 def test_tensor_roundtrip_keeps_declared_delay_and_probability(tmp_path):
     t = develop(_genome({"A": 0.0, "B": 0.25}), seed=0)
     path = save_neuronal_tensor(t, tmp_path / "t.json")
@@ -88,6 +99,7 @@ def test_tensor_roundtrip_keeps_declared_delay_and_probability(tmp_path):
     ({"positions": {"A": 0.0, "B": 1.5}}, r"positions\['B'\] must be in"),
     ({"positions": {"A": 0.0, "Z": 1.0}}, "unknown (source|target)_area 'Z'"),
     ({"decay": -1.0}, "decay must be finite and > 0"),
+    ({"w_mech": 0.0}, "w_mech must be finite and > 0"),
 ])
 def test_invalid_rules_are_refused(bad, match):
     g = _genome({"A": 0.0, "B": 1.0})
@@ -100,3 +112,15 @@ def test_invalid_rules_are_refused(bad, match):
         develop(g, seed=0)
     with pytest.raises(ValueError, match="probability must be in"):
         J.neuronal_tensor.AreaConnection("A", "L", "E", "B", "L", "E", probability=1.5)
+
+
+def test_explicit_entry_gain_is_validated():
+    g = _genome({"A": 0.0, "B": 1.0})
+    entry = {"source_area": "A", "source_layer": "L", "source_neuron_type": "E",
+             "target_area": "B", "target_layer": "L", "target_neuron_type": "E", "w_mech": -2.0}
+    g = pseudogenome_from_dict({"name": g.name, "areas": [
+        {"name": a.name, "layers": [{"name": "L", "n_neurons": 10, "depth_band": [0.0, 1.0],
+                                     "cell_type_fractions": {"E": 1.0}}]} for a in g.areas],
+        "area_connections": [entry]})
+    with pytest.raises(ValueError, match="w_mech must be finite and > 0"):
+        develop(g, seed=0)

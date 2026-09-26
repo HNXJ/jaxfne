@@ -1,6 +1,6 @@
 {
   "schema_version": "pseudogenome_v1",
-  "name": "g20-hierarchy-v1",
+  "name": "g20-hierarchy-v2",
   "description": "Synthetic 20-area hierarchy for Atlas S10/AT-10. Areas at relative hierarchy positions i/19; between-area E->{E,PV} AMPA projections by the exponential_distance rule; one E/PV layer per area with the four within-area motifs. Relative scaffold values; not calibrated.",
   "development_parameters": {
     "fraction_jitter_sigma": 0.0
@@ -991,7 +991,8 @@
           "neuron_type": "PV"
         }
       ],
-      "mechanism": "AMPA"
+      "mechanism": "AMPA",
+      "w_mech": 200.0
     }
   ]
 }
