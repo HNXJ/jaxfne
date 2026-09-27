@@ -78,7 +78,7 @@ configured (declarative: p_EI, duration_ms) → realized (after construct: EdgeL
 
 - Change is terminology/docs only; no new dynamics, no parameter mutation, no optimizer exposure change.
 - `docs/doctrine` update is `relative_quantity_grammar.md` only; other doctrine files (`rbs_rbd_hdp.md`, `protocol_h_*`) already use `effective` only as `p_eff` or causal, not runtime — no change needed.
-- Artifact: `artifacts/effective_dual_meaning_fix_findings.md` (this file) + live `summ["text_bundle"]` (see `python -c "import jaxfne as jtfne; …; print(summ['text_bundle'])"`).
+- Artifact: `artifacts/audit/effective_dual_meaning_fix_findings.md` (this file) + live `summ["text_bundle"]` (see `python -c "import jaxfne as jtfne; …; print(summ['text_bundle'])"`).
 
 **Result:** Dual meaning eliminated with minimal justified Δ, Δscience=0, no kernel change, artifact-backed, backward-compatible.
 

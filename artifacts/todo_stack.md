@@ -50,8 +50,6 @@ HARNESS (human, 2026-09-27)
   fluent methods and to `RuntimeConfiguration`, whose `solver`, `probes`,
   `n_contacts`, `outputs` and `optimizer` are declared but not consumed
   (`jaxfne/neuronal_tensor.py`); refuse or wire each.
-- H4 Tidy `artifacts/` root: loose HTML/JSON/findings into subfolders, with
-  a reference-resolution gate.
 
 DOCS (human, 2026-09-27)
 - D1 One tutorial track: each tutorial page embeds its own figures and a

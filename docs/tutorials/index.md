@@ -47,7 +47,7 @@ workflow arc (models → circuits → readouts → optimization).
 
 Each row reuses the same `genome → tensor → model → signals` chain. Endpoint is the
 frozen `canonical-v1-column-1000n` PseudoGenome (6 layers 100/250/200/100/200/150,
-48 intra-area rules, `fraction_jitter_sigma=0.01`); see `artifacts/tutorial_cumulative_audit.md`
+48 intra-area rules, `fraction_jitter_sigma=0.01`); see `artifacts/audit/tutorial_cumulative_audit.md`
 (full audit, this repo) for the table and receipts.
 
 | # | Verb | Topic | Focus | Reuses |

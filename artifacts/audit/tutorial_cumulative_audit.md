@@ -281,7 +281,7 @@ print('genome', g.name, 'tensor', t0.name, 'edges', m.params['edge_list'].n_edge
 "
 ```
 
-Expected (from `artifacts/canonical_compact_summary_findings.md`): `edge_list.n_edges ≈ 215785` for canonical 1000n at `p=1.0` bipartite per rule (48 rules); not 79k (which implies sparser p). Keep the configured/realized/effective label from that artifact.
+Expected (from `artifacts/audit/canonical_compact_summary_findings.md`): `edge_list.n_edges ≈ 215785` for canonical 1000n at `p=1.0` bipartite per rule (48 rules); not 79k (which implies sparser p). Keep the configured/realized/effective label from that artifact.
 
 Idempotence:
 
@@ -313,7 +313,7 @@ python scripts/run_multiscale_observation_etude.py   # or Experiment A
 * **Edit:** `mkdocs.yml` nav — add `Cumulative (canonical 1000n)` section under Tutorials.
 * **Add:** 8 new `docs/tutorials/0{1..8}_*.md` files (thin, 120-180 lines each) that reuse the variable chain above; or, minimally, rewrite the existing 13 files to follow the chain (additive, not destructive — keep old files under `artifacts/`).
 * **No change:** `jaxfne/` package, public API, or étude bundles.
-* **This audit:** `artifacts/tutorial_cumulative_audit.md` (this file).
+* **This audit:** `artifacts/audit/tutorial_cumulative_audit.md` (this file).
 
 ```
 

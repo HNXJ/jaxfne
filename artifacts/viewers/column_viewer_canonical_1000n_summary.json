@@ -149,8 +149,8 @@
   },
   "artifacts": [
     "artifacts\\column_viewer_canonical_1000n.html",
-    "artifacts/column_viewer_multi_V1V4.html",
-    "artifacts/column_viewer_H_ownership.html"
+    "artifacts/viewers/column_viewer_multi_V1V4.html",
+    "artifacts/viewers/column_viewer_H_ownership.html"
   ],
   "notes": "All numerics are realized EdgeList reads; configured shown only for comparison. Viewer is optional (lazy Plotly CDN) and read-only. Canonical 1000n verified: all-to-all 999k edges, E/I toggles populated, FF/FB zero for single area (correct), multi-area demo shows FF/FB populated."
 }

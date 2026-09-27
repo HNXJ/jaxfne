@@ -21,7 +21,7 @@
 | F2 | `jaxfne/vis/column_viewer.py:5` (existing) | Prior viewer (`render_column_viewer`) started from `Model` (NeuronalTensor→Model) and showed configured vs realized at Model level (edge_list), but did not show **G→D** stage: no genome JSON panel, no `develop` provenance, no K_D comparison. Task requires G vs N, not just cfg.metadata vs edge_list. | HIGH | 0.99 |
 | F3 | `jaxfne/vis/pseudogenome_viewer.py:66` `collect_pseudogenome_development_data` | Realized arrays collected explicitly: `NeuronalTensor` counts per layer/cell_type (int, bands checked), `Model.params['positions'] (1000,3)`, `EdgeList.pre/post/weight/tau_ms/delay_steps` plus derived `in/out degree`, per-category `E→E/E→I/I→E/I→I` counts/means. HTML renders genome JSON side-by-side with these arrays (counts, positions 3D, weight/delay/degree histograms, edge categories). | HIGH | 0.99 |
 | F4 | `jaxfne/vis/pseudogenome_viewer.py:656` `render_pseudogenome_development_viewer` | Same-genome different K_D comparison: two developments `seeds=(0,1)` held at same `K_S=7` so differences isolate D(K_D); viewer shows phenotype hashes differ, 6/6 layers differ within bands, edges 215,190 vs 215,079, weight means differ, determinism re-develop seed 0 reproduces hash (verified in summary `deterministic_same_KD:true`). | HIGH | 0.99 |
-| F5 | viewer HTML | Prior export `artifacts/column_viewer_canonical_1000n.html` (999k edges, all-to-all config) was Model-only; new `artifacts/pseudogenome_development_viewer.html` (267kB, sha256 `88e5e2fd…`) is the development viewer — G→D→N emphasis, not storage. Both coexist; task explicitly requires the latter. | MEDIUM | 0.98 |
+| F5 | viewer HTML | Prior export `artifacts/viewers/column_viewer_canonical_1000n.html` (999k edges, all-to-all config) was Model-only; new `artifacts/viewers/pseudogenome_development_viewer.html` (267kB, sha256 `88e5e2fd…`) is the development viewer — G→D→N emphasis, not storage. Both coexist; task explicitly requires the latter. | MEDIUM | 0.98 |
 | F6 | `jaxfne/vis/__init__.py:144` | Overhead guard: `import jaxfne` does not import `pseudogenome_viewer`/`matplotlib`/`plotly`; viewer is lazy (verified `sys.modules` check). No kernel/sampler/solver file touched (`git diff --stat HEAD` shows only `jaxfne/vis/*`, `jaxfne/util.py` (prior), docs, version). Δscience=0. | MEDIUM | 0.99 |
 
 ## Minimal Repair (Δscience=0, no overhead when unused)
@@ -38,7 +38,7 @@ def collect_pseudogenome_development_data(genome, seeds=(0,1), construct_seed=7)
 
 # jaxfne/vis/pseudogenome_viewer.py:233
 def render_pseudogenome_development_viewer(genome, seeds=(0,1), construct_seed=7,
-                                           output_path="artifacts/pseudogenome_development_viewer.html") -> tuple[Path, dict]:
+                                           output_path="artifacts/viewers/pseudogenome_development_viewer.html") -> tuple[Path, dict]:
     """Standalone HTML via Plotly CDN: configured panel (genome JSON + layer/connection tables),
     D(K_D) panel (phenotype hashes, per-layer counts vs bands, edge/weight/delay summaries),
     two 3D position scatters (layer color, E/I symbol, hover x/y/z), weight/delay/degree histograms
@@ -52,10 +52,10 @@ def render_pseudogenome_development_viewer(genome, seeds=(0,1), construct_seed=7
 
 ## Artifacts (canonical 1000n, G→D(K_D)→N)
 
-- **Primary:** `artifacts/pseudogenome_development_viewer.html` (267,031 bytes, sha256 `88e5e2fd3084c9fe14f1ad5b6f62663daaa0bacaa8c549138d85a3316f87bfec`) — standalone, Plotly.js CDN, no server. Open in browser.
-- **Summary:** `artifacts/pseudogenome_development_summary.json` (machine-readable: genome hash, phenotype hashes, per-layer counts+bands for both seeds, realized n_edges/weight/delay/tau, verification flags, Δscience 0).
-- **Existing (Model-only, retained):** `artifacts/column_viewer_canonical_1000n.html` (561k, sha256 `fb117d59…`), `artifacts/column_viewer_canonical_1000n_summary.json`, `artifacts/visualize_bundle/` (8-panel post-hoc bundle) — complementary, not replaced.
-- **Render:** `python -c "import jaxfne as jtfne; from jaxfne.vis.pseudogenome_viewer import render_pseudogenome_development_viewer; g=jtfne.load_canonical_pseudogenome('canonical-v1-column-1000n'); render_pseudogenome_development_viewer(g, seeds=(0,1), output_path='artifacts/pseudogenome_development_viewer.html')"`
+- **Primary:** `artifacts/viewers/pseudogenome_development_viewer.html` (267,031 bytes, sha256 `88e5e2fd3084c9fe14f1ad5b6f62663daaa0bacaa8c549138d85a3316f87bfec`) — standalone, Plotly.js CDN, no server. Open in browser.
+- **Summary:** `artifacts/viewers/pseudogenome_development_summary.json` (machine-readable: genome hash, phenotype hashes, per-layer counts+bands for both seeds, realized n_edges/weight/delay/tau, verification flags, Δscience 0).
+- **Existing (Model-only, retained):** `artifacts/viewers/column_viewer_canonical_1000n.html` (561k, sha256 `fb117d59…`), `artifacts/viewers/column_viewer_canonical_1000n_summary.json`, `artifacts/visualize_bundle/` (8-panel post-hoc bundle) — complementary, not replaced.
+- **Render:** `python -c "import jaxfne as jtfne; from jaxfne.vis.pseudogenome_viewer import render_pseudogenome_development_viewer; g=jtfne.load_canonical_pseudogenome('canonical-v1-column-1000n'); render_pseudogenome_development_viewer(g, seeds=(0,1), output_path='artifacts/viewers/pseudogenome_development_viewer.html')"`
 
 ### What the viewer shows (configured vs realized)
 
@@ -95,7 +95,7 @@ raw = json.loads((pathlib.Path(jtfne.jdna.genomes_dir()) / "canonical-v1-column-
 rules = {k:v for k,v in raw.items() if k!="description"}
 assert "positions" not in json.dumps(rules) and "edge_list" not in json.dumps(rules)
 # HTML exists and is standalone
-import hashlib; p = pathlib.Path("artifacts/pseudogenome_development_viewer.html")
+import hashlib; p = pathlib.Path("artifacts/viewers/pseudogenome_development_viewer.html")
 assert p.exists() and p.stat().st_size==267031
 assert hashlib.sha256(p.read_bytes()).hexdigest()[:8]=="88e5e2fd"
 ```
@@ -120,8 +120,8 @@ assert hashlib.sha256(p.read_bytes()).hexdigest()[:8]=="88e5e2fd"
 
 ## Paths
 
-- `artifacts/pseudogenome_development_viewer.html` — primary interactive viewer (open in browser; Plotly CDN)
-- `artifacts/pseudogenome_development_summary.json` — machine-readable receipt (hashes, counts, edges, verification)
-- `artifacts/column_viewer_canonical_1000n.html` — complementary Model-level viewer (realized EdgeList only)
+- `artifacts/viewers/pseudogenome_development_viewer.html` — primary interactive viewer (open in browser; Plotly CDN)
+- `artifacts/viewers/pseudogenome_development_summary.json` — machine-readable receipt (hashes, counts, edges, verification)
+- `artifacts/viewers/column_viewer_canonical_1000n.html` — complementary Model-level viewer (realized EdgeList only)
 - `jaxfne/vis/pseudogenome_viewer.py:66` — `collect_pseudogenome_development_data` (data layer)
 - `jaxfne/vis/pseudogenome_viewer.py:233` — `render_pseudogenome_development_viewer` (HTML renderer)
