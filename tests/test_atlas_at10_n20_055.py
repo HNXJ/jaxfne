@@ -25,6 +25,7 @@ def test_committed_results_match_the_runner_spec():
     for a in [res["assay"], *res["replicates"]]:
         verdicts = {t["perturbation"]: t["verdict"] for t in a["declared_tests"]}
         assert all(verdicts[f"kick={k}"] == "STABILIZED" for k in A.KICKS)
+        assert all(arm["disabled"]["w_unchanged"] for arm in a["arms"].values())  # W frozen
 
 
 def test_propagation_reads_a_known_hierarchy_wave():

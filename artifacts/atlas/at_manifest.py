@@ -466,6 +466,10 @@ def _spec_at10_n20(mod: Any) -> dict[str, Any]:
         },
         "recording": {"summary": "per-phase rate, pulse-locked evoked/latency per area, w drift",
                       "evoked_ms": _const(mod, "EVOKED_MS"), "window_ms": _const(mod, "WINDOW_MS")},
+        "assay": {"kicks": _const(mod, "KICKS"), "h0_perturbed": _const(mod, "H0_PERTURBED"),
+                  "late_windows": _const(mod, "LATE_WINDOWS"), "return_ratio": _const(mod, "RETURN_RATIO"),
+                  "min_disabled_dev_hz": _const(mod, "MIN_DISABLED_DEV_HZ"),
+                  "replicate_noise_seeds": _const(mod, "REPLICATE_NOISE_SEEDS")},
         "hdp_params": {"hebbian_hdp": _const(mod, "HP_HEBB"), "noisy_hdp": _const(mod, "HP_NOISY")},
         "cited": [
             _cite("genome_development", _RN20, "G.develop_n20(), seed=BUILD_SEED",

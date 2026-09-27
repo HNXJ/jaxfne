@@ -28,6 +28,13 @@ the Poisson background, seeded by ``NOISE["seed"]``), so the pilot saw the
 same trajectories and was not out of sample. The out-of-sample check is
 the replicate assay on ``REPLICATE_NOISE_SEEDS``, declared after the
 primary result with the criteria unchanged.
+Selection status: the cross gain (G_20 v2) was chosen by the sweep because
+it propagates, and the HDP gains and kick sizes were chosen on this same
+regime and noise realization. The propagation statistics and the assay
+verdicts are therefore descriptive results of a selected regime, not
+confirmatory tests of a hypothesis fixed in advance; the noise-seed
+replicates show robustness to the Poisson realization only (same gain,
+same kicks, same network).
 Values are relative (RELATIVE_PROXY); nothing is calibrated.
 Import rule: top-level ``jaxfne`` only.
 """
@@ -96,7 +103,7 @@ def _run_signals(model: Any, stim: Any, hp: "dict | None",
     """One run; HDP diagnostics copied right after it (w_final, H_trace; no W trace).
 
     ``record_weight_trace`` is off: a 10 s W trace is (20000 x 68620) floats
-    (~5.5 GB) and nothing here reads it; recording does not enter dynamics.
+    (~5.5 GB in float32) and nothing here reads it; recording does not enter dynamics.
     """
     hdp = None if hp is None else {**hp, "record_weight_trace": False}
     runtime = J.RuntimeConfig(enable_hdp=hp is not None, hdp_params=dict(hdp or {}))
@@ -132,7 +139,12 @@ def _locked_rate(sp: np.ndarray, cols: np.ndarray, starts: list[int]) -> float:
 
 
 def _latency_ms(sp: np.ndarray, cols: np.ndarray, starts: list[int]) -> float:
-    """First post-onset time the smoothed PSTH exceeds pre-onset mean + 3 sd."""
+    """First post-onset time the smoothed PSTH exceeds pre-onset mean + 3 sd.
+
+    The threshold uses the time-course variability of the onset-averaged
+    pre-onset trace (not across-onset variability), so it is lenient; the
+    4-step boxcar ("same" mode) shifts crossings by at most 1 ms.
+    """
     post, pre = int(60 / DT_MS), int(40 / DT_MS)
     use = [s for s in starts if s >= pre and s + post <= sp.shape[0]]
     psth = np.mean([sp[s:s + post, cols].mean(axis=1) for s in use], axis=0)
@@ -148,7 +160,8 @@ def propagation(sp: np.ndarray, area: np.ndarray) -> dict[str, Any]:
     Control: the same statistic at onsets shifted by fixed-seed random
     offsets of 120-160 ms (windows of +-EVOKED_MS span 80-200 ms after a
     pulse: after the responses, before the next pulse); an area is significant when its evoked rate
-    exceeds the largest control magnitude + 1 Hz.
+    exceeds the largest control magnitude + 1 Hz. One global bar over all
+    areas: conservative by construction (a noisy area raises it for all).
     """
     names = G.area_names()
     on = [int(o / DT_MS) for o in _onsets_ms()]
@@ -238,10 +251,13 @@ def run_assay(model: Any = None, noise_seed: int = NOISE["seed"]) -> dict[str, A
             sp, diag = _run(model.with_hdp_initial_state(**init), stim, hp, noise_seed)
             r = _window_rates(sp)
             dev = np.abs(r - ref)
+            w_init = np.asarray(init.get("w0", w0), dtype=np.float32)
             rec[arm] = {"window_rates_hz": np.round(r, 3).tolist(),
                         "late_dev_hz": float(dev[-LATE_WINDOWS:].mean()),
                         "first_dev_hz": float(dev[0]),
-                        "w_mean_ratio": _w_drift(diag, w0)}
+                        "w_mean_ratio": _w_drift(diag, w0),
+                        "w_unchanged": bool(np.array_equal(
+                            np.asarray(diag["w_final"], dtype=np.float32), w_init))}
         stays_off = rec["disabled"]["late_dev_hz"] >= MIN_DISABLED_DEV_HZ
         returns = rec["engaged"]["late_dev_hz"] <= RETURN_RATIO * rec["disabled"]["late_dev_hz"]
         tests.append({"perturbation": label, "disabled_stays_off": bool(stays_off),
@@ -267,7 +283,7 @@ def spec() -> dict[str, Any]:
 
 
 def null_threshold(model: Any = None) -> dict[str, Any]:
-    """No-stimulus null: the baseline phase without pulses, the evoked statistic
+    """Null without the pulse train (Poisson background kept): the baseline phase, the evoked statistic
     taken at the pulse onsets. Threshold = max |null evoked| over areas + 1 Hz."""
     model = model if model is not None else build_model()
     area = _areas(model)

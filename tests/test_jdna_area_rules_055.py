@@ -80,6 +80,8 @@ def test_rule_gain_scales_cross_edge_weights():
     w1 = np.abs([e["weight"] for e in one])
     w3 = np.abs([e["weight"] for e in three])
     assert len(w1) == len(w3) == 200 and np.allclose(w3, 3.0 * w1) and w1.min() > 0
+    default = develop(_genome({"A": 0.0, "B": 1.0}), seed=0)
+    assert {c.plastic.w_mech for c in default.area_connections} == {1.0}  # absolute default
     with pytest.raises(ValueError, match="w_mech must be finite and > 0"):
         expand_area_connection_rules(_genome({"A": 0.0, "B": 1.0}, w_mech=0.0))
 
@@ -95,7 +97,9 @@ def test_delayed_network_runs_hdp_from_a_custom_initial_state():
     kicked = model.with_hdp_initial_state(H0=np.zeros(20), w0=2.0 * w0)
     sig = kicked.simulate(J.Simulation(duration_ms=20.0, dt_ms=0.5, seed=1, runtime=rt))
     assert np.asarray(sig.spikes).shape == (40, 20)
-    assert np.allclose(np.asarray(kicked.last_hdp_diagnostics()["w_final"]), 2.0 * w0)
+    diag = kicked.last_hdp_diagnostics()
+    assert np.allclose(np.asarray(diag["w_final"]), 2.0 * w0)
+    assert np.abs(np.asarray(diag["H_trace"])[0]).max() < 0.5  # started at H0 = 0, not the default 1.0
 
 
 def test_tensor_roundtrip_keeps_declared_delay_and_probability(tmp_path):
@@ -114,6 +118,10 @@ def test_tensor_roundtrip_keeps_declared_delay_and_probability(tmp_path):
     ({"positions": {"A": 0.0, "Z": 1.0}}, "unknown (source|target)_area 'Z'"),
     ({"decay": -1.0}, "decay must be finite and > 0"),
     ({"w_mech": 0.0}, "w_mech must be finite and > 0"),
+    ({"w_mech": float("nan")}, "w_mech must be finite and > 0"),
+    ({"w_mech": float("inf")}, "w_mech must be finite and > 0"),
+    ({"w_mech": True}, "w_mech must be finite and > 0"),
+    ({"w_mech": "3.0"}, "w_mech must be finite and > 0"),
 ])
 def test_invalid_rules_are_refused(bad, match):
     g = _genome({"A": 0.0, "B": 1.0})

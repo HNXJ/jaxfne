@@ -1285,6 +1285,10 @@ class Configuration:
             Updated configuration.
 
         """
+        for name, val in (("drive_by_layer", drive_by_layer), ("drive_by_area", drive_by_area),
+                          ("oddball_or_omission_schedule", oddball_or_omission_schedule)):
+            if val is not None and not isinstance(val, Mapping):
+                raise ValueError(f"Configuration.drive: {name} must be a mapping; got {type(val).__name__}")
         unconsumed = {
             "drive_by_layer": bool(drive_by_layer),
             "drive_by_area": bool(drive_by_area),

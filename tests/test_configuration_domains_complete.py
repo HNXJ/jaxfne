@@ -79,6 +79,10 @@ class TestDrive:
         jtfne.Configuration().drive(**{k: type(v)() if not isinstance(v, str) else "constant"
                                        for k, v in kw.items()})
 
+    def test_drive_refuses_non_mapping_fields(self):
+        with pytest.raises(ValueError, match="drive_by_layer must be a mapping"):
+            jtfne.Configuration().drive(drive_by_layer=0)
+
     def test_drive_invalid_noise_policy(self):
         """Test .drive() rejects invalid noise_policy."""
         with pytest.raises(ValueError, match="noise_policy"):
