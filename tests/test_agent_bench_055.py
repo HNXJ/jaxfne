@@ -16,11 +16,27 @@ from artifacts.benchmark.agent_bench import (
 TASKS = {t["at_id"]: t for t in json.loads(TASK_SET.read_text(encoding="utf-8"))["tasks"]}
 
 
+# Specs corrected after the freeze without changing any output (H1, 2026-09-27): these
+# recorded n_contacts=4 while the executed field had 16 contacts. The frozen tasks and
+# their scored results stay byte-for-byte; the correction is the only allowed difference.
+CORRECTED_AFTER_FREEZE = {at: {("recording", "n_contacts"): (4, 16)} for at in ("AT-02", "AT-03", "AT-04", "AT-05")}
+
+
+def _leaf_diff(a, b, path=()):
+    if isinstance(a, dict) and isinstance(b, dict):
+        return {d: v for k in set(a) | set(b) for d, v in _leaf_diff(a.get(k), b.get(k), (*path, k)).items()}
+    return {} if a == b else {path: (a, b)}
+
+
 def test_task_set_covers_registry_with_current_specs():
     added_after_freeze = ["AT-10-N20"]  # registered after the 0.5.5 task set was frozen
     assert list(TASKS) == [k for k in REGISTRY if k not in added_after_freeze]
     for at_id, task in TASKS.items():
-        assert task["spec_digest"] == spec_digest(at_spec(at_id)), at_id
+        live = json.loads(json.dumps(at_spec(at_id)))
+        if at_id in CORRECTED_AFTER_FREEZE:
+            assert _leaf_diff(task["spec"], live) == CORRECTED_AFTER_FREEZE[at_id], at_id
+        else:
+            assert task["spec_digest"] == spec_digest(at_spec(at_id)), at_id
         assert task["intent"] and task["arms"], at_id
 
 

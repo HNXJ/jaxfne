@@ -12,6 +12,7 @@ split acyclic.
 
 from __future__ import annotations
 
+import numbers
 from dataclasses import replace
 from typing import Any, Mapping, Optional
 
@@ -825,13 +826,16 @@ def _construct_build_static(
     n_contacts: int = 16
     if cfg.probes:
         _nc = cfg.probes[0].get("n_contacts", 16)
-        try:
-            _nc = int(_nc)
-        except (TypeError, ValueError):
-            _nc = 16
-        if _nc < 2:
-            raise ValueError(f"probe n_contacts must be >= 2; got {_nc!r} in first probe")
-        n_contacts = _nc
+        if isinstance(_nc, bool) or not isinstance(_nc, numbers.Integral) or _nc < 2:
+            raise ValueError(f"probe n_contacts must be >= 2 and an int; got {_nc!r} in first probe")
+        n_contacts = int(_nc)
+        # One laminar readout serves every probe; a disagreeing later probe would be ignored.
+        for i, probe in enumerate(cfg.probes[1:], start=1):
+            if "n_contacts" in probe and probe["n_contacts"] != n_contacts:
+                raise ValueError(
+                    f"probe {i} declares n_contacts={probe['n_contacts']!r} but the field "
+                    f"readout uses the first probe's n_contacts={n_contacts}"
+                )
     static: dict[str, Any] = {"n_contacts": n_contacts, "operator_status": operator_status()}
     if geometry_meta is not None:
         static["geometry"] = geometry_meta
@@ -899,6 +903,7 @@ def construct(
             backend=runtime.device,
             jit=runtime.jit,
             vmap=runtime.vmap,
+            n_contacts=runtime.n_contacts,
         )
 
     if runtime is not None:

@@ -236,7 +236,7 @@ def _spec_at05(mod: Any) -> dict[str, Any]:
             "arms": _const(mod, "AT05_ARMS"),
             "ratio_margin": _const(mod, "AT05_RATIO_MARGIN"),
         },
-        "recording": _field_recording(mod, "AT06_N_CONTACTS"),
+        "recording": _field_recording(mod, "AT05_N_CONTACTS"),
         "hdp_params": None,
         "cited": [],
     }

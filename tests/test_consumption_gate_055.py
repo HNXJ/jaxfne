@@ -177,6 +177,89 @@ def test_simulate_batch_refuses_fields_it_does_not_consume(model, sim_kwargs):
         model.simulate_batch(jtfne.Simulation(**{**_BASE, **sim_kwargs}), n_seeds=2)
 
 
+# RuntimeConfiguration (tensor path): field -> (perturbed kwargs, outcome).
+# "policy" cases: jit/device are numerics-invariant; vmap is read only by simulate_batch.
+_TR_BASE = dict(duration_ms=20.0, dt_ms=0.5, seed=0)
+TENSOR_RT_CASES = {
+    "duration_ms": ({"duration_ms": 30.0}, "output"),
+    "dt_ms": ({"dt_ms": 0.25}, "output"),
+    "seed": ({"seed": 3}, "output"),
+    "dtype": ({"dtype": "float16"}, "refuse"),
+    "emitter": ({"emitter": "lif"}, "refuse"),  # construct realizes izhikevich only
+    "device": ({"device": "cpu"}, "policy"),
+    "jit": ({"jit": True}, "policy"),
+    "vmap": ({"vmap": True}, "policy"),
+    "n_contacts": ({"n_contacts": 8}, "output"),
+    "solver": ({"solver": "euler"}, "refuse"),
+    "probes": ({"probes": ["LFP"]}, "refuse"),
+    "outputs": ({"outputs": {"lfp": True}}, "refuse"),
+    "optimizer": ({"optimizer": "AGSDR"}, "refuse"),
+}
+
+
+def _tensor_run(**kw):
+    from jaxfne.neuronal_tensor import make_minimal_ei_tensor
+
+    model = jtfne.construct(make_minimal_ei_tensor(), jtfne.RuntimeConfiguration(**{**_TR_BASE, **kw}))
+    return jtfne.simulate(model)
+
+
+def _tensor_output(sig):
+    lfp = sig.get("lfp_proxy")
+    return [np.asarray(sig.V_m), np.asarray(sig.spikes), None if lfp is None else np.asarray(lfp)]
+
+
+def test_every_tensor_runtime_field_has_a_case():
+    assert {f.name for f in dataclasses.fields(jtfne.RuntimeConfiguration)} == set(TENSOR_RT_CASES)
+
+
+@pytest.mark.parametrize("field", sorted(TENSOR_RT_CASES))
+def test_tensor_runtime_field_is_consumed_or_refused(field):
+    pert_kw, outcome = TENSOR_RT_CASES[field]
+    if outcome == "refuse":
+        with pytest.raises(ValueError):
+            _tensor_run(**pert_kw)
+        return
+    base, pert = _tensor_output(_tensor_run()), _tensor_output(_tensor_run(**pert_kw))
+    same = all(
+        (x is None and y is None)
+        or (x is not None and y is not None and x.shape == y.shape and np.array_equal(x, y))
+        for x, y in zip(base, pert, strict=True)
+    )
+    assert same == (outcome == "policy"), f"{field}: outcome {outcome} not realized"
+
+
+@pytest.mark.parametrize("n", [1, 16.0, "16", True])
+def test_tensor_runtime_n_contacts_refuses_non_int(n):
+    with pytest.raises(ValueError, match="n_contacts"):
+        jtfne.RuntimeConfiguration(n_contacts=n)
+
+
+def test_probes_refuse_a_non_int_or_disagreeing_n_contacts():
+    cfg = (
+        jtfne.configuration()
+        .network(name="V1", kind="cortical_column", n=12)
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+    )
+    with pytest.raises(ValueError, match="n_contacts"):
+        jtfne.construct(cfg.probe(name="a", modes=["LFP"], n_contacts="x"))
+    with pytest.raises(ValueError, match="n_contacts"):
+        jtfne.construct(cfg.probe(name="a", modes=["LFP"], n_contacts=8).probe(name="b", modes=["CSD"], n_contacts=4))
+
+
+def test_set_emitter_refuses_rule_kwargs_its_family_drops():
+    with pytest.raises(ValueError, match="homeostatic_ei"):
+        jtfne.configuration().set_emitter("izhikevich", activation_rule="linear")
+    jtfne.configuration().set_emitter("homeostatic_ei", activation_rule="linear")
+
+
+@pytest.mark.parametrize("selector, params", [({"area": "V1"}, {"a": 0.02}), ({"cell_type": "E"}, {"tau_ms": 5.0})])
+def test_cell_params_refuses_keys_the_applier_ignores(selector, params):
+    with pytest.raises(ValueError, match="cell_params"):
+        jtfne.configuration().cell_params(selector, params)
+
+
 def test_reseeding_keeps_a_matching_runtime_seed_consistent(model):
     """run_trials reseeds a Simulation whose runtime pins the same seed."""
     sim = jtfne.Simulation(**{**_BASE, "seed": 5}, runtime=RuntimeConfig(seed=5))

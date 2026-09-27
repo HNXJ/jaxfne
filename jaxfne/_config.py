@@ -667,7 +667,15 @@ class Configuration:
     def cell_params(
         self, selector: Mapping[str, Any], params: Mapping[str, Any]
     ) -> "Configuration":
-        """Declare cell/emitter parameter overrides for a selector (declaration only)."""
+        """Override Izhikevich ``a``/``b``/``c``/``d``/``drive`` for neurons matching a
+        ``cell_type`` and/or ``layer`` selector; applied at ``construct()``."""
+        bad_sel = sorted(set(selector) - {"cell_type", "layer"})
+        bad_par = sorted(set(params) - {"a", "b", "c", "d", "drive"})
+        if bad_sel or bad_par:
+            raise ValueError(
+                f"cell_params: unsupported selector keys {bad_sel} / parameter keys {bad_par}; "
+                "selectors: cell_type, layer; parameters: a, b, c, d, drive"
+            )
         entry = {
             "selector": _circuit_json_safe(dict(selector), "cell_params.selector"),
             "params": _circuit_json_safe(dict(params), "cell_params.params"),
@@ -939,6 +947,11 @@ class Configuration:
                 },
                 homeostatic_ei_bound_mode=str(bound_mode),
             )
+        rules = {"activation_rule": (activation_rule, "cubic"), "conductance_rule": (conductance_rule, "hebbian"),
+                 "homeostasis_rule": (homeostasis_rule, "linear"), "bound_mode": (bound_mode, "minimal")}
+        changed = sorted(k for k, (v, default) in rules.items() if v != default)
+        if changed:
+            raise ValueError(f"set_emitter: {changed} apply only to family='homeostatic_ei'; got family={family!r}")
         return self.emitter(family=family, preset=preset)
 
     def _with_probe_modes(

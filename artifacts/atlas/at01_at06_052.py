@@ -446,7 +446,9 @@ AT02_SPEC_ABSENT = (
 )
 AT02_DURATION_MS = 60.0
 AT03_DURATION_MS = 200.0
-AT02_N_CONTACTS = 4
+# The TFNE bridge declares a 16-contact probe; a second probe must agree (construct
+# refuses a disagreeing one). 4 was declared here until 0.5.5 while 16 executed.
+AT02_N_CONTACTS = 16
 SUPERPOSITION_TOL = 1e-3
 
 
@@ -615,11 +617,6 @@ def run_at02(keep_bundle: bool = False) -> dict[str, Any]:
                 "centroids_relative_frac": centroids,
                 "contacts_declared": AT02_N_CONTACTS,
                 "contacts_realized": int(n_c),
-                "contacts_note": (
-                    "TFNE path realizes the field default (16) against "
-                    "declared 4; realized count is read back from the "
-                    "executed field, never assumed"
-                ),
                 "contact_depths_frac": [float(v) for v in contacts],
                 "contact_mean_abs": [float(v) for v in amp],
                 "depth_distance_frac": [float(v) for v in dist],
@@ -877,6 +874,8 @@ AT05_ARMS = {
 }
 AT05_RATIO_MARGIN = 1e-4
 AT06_DURATION_MS = 100.0
+# suite2_net1_config declares 16 contacts; AT-05's added probe must agree.
+AT05_N_CONTACTS = 16
 AT06_N_CONTACTS = 4
 AT06_RADII_FRAC = (0.25, 0.5, 1.0)
 AT06_BANDS_HZ = ((4.0, 12.0), (30.0, 80.0))
@@ -897,7 +896,7 @@ def _population_run(n: int, seed: int = SEED) -> dict[str, Any]:
     cfg = cfg.field(domain=FIELD_DOMAIN, conductivity=FIELD_CONDUCTIVITY).probe(
         name=PROBE_NAME,
         modes=list(PROBE_MODES),
-        n_contacts=AT06_N_CONTACTS,
+        n_contacts=AT05_N_CONTACTS,
     )
     return _run_configuration(cfg, AT05_DURATION_MS, DT_MS, seed)
 

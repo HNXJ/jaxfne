@@ -48,6 +48,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import numbers
 import warnings
 from dataclasses import dataclass, field, asdict, replace
 from pathlib import Path
@@ -764,7 +765,8 @@ class RuntimeConfiguration:
     **Wired** (actually consumed by :func:`jaxfne.construct` /
     :func:`jaxfne.simulate` today): ``duration_ms``, ``dt_ms``, ``seed``,
     ``dtype``, ``emitter``, ``device`` (mapped to ``RuntimeConfig.backend``),
-    ``jit``, ``vmap``.
+    ``jit``, ``vmap``, ``n_contacts`` (laminar contacts of the field readout,
+    an int >= 2).
 
     ``duration_ms``/``dt_ms``/``seed`` are inherited by a *no-argument*
     ``jtfne.simulate(model)`` (and by ``construct`` itself). Passing an
@@ -773,10 +775,11 @@ class RuntimeConfiguration:
     ``1000.0``/``0.05``/``0``) then apply unless you also pass them to
     ``simulate``.
 
-    **Reserved, declared but not yet consumed** (forward-compatible
-    placeholders for the TFNE-grammar stages they name; setting them has no
-    effect today -- not silently ignored, just honestly not wired yet):
-    ``solver``, ``probes``, ``n_contacts``, ``outputs``, ``optimizer``.
+    **Reserved**: ``solver``, ``probes``, ``outputs``, ``optimizer`` name
+    TFNE-grammar stages that this path does not wire; any value other than
+    ``None`` is refused. Probes are declared with ``Configuration.probes``,
+    recorded outputs with ``Simulation``, and optimization with
+    ``Model.tune``.
     """
 
     duration_ms: float = 1000.0
@@ -792,6 +795,17 @@ class RuntimeConfiguration:
     n_contacts: int = 16
     outputs: "dict | None" = None
     optimizer: "Any | None" = None
+
+    def __post_init__(self) -> None:
+        for name in ("solver", "probes", "outputs", "optimizer"):
+            if getattr(self, name) is not None:
+                raise ValueError(
+                    f"RuntimeConfiguration.{name} is reserved and not wired on the tensor "
+                    f"path; got {getattr(self, name)!r}. Leave it None."
+                )
+        if (isinstance(self.n_contacts, bool) or not isinstance(self.n_contacts, numbers.Integral)
+                or self.n_contacts < 2):
+            raise ValueError(f"RuntimeConfiguration.n_contacts must be an int >= 2; got {self.n_contacts!r}")
 
 
 def construct_neuronal_tensor(
@@ -824,6 +838,7 @@ def _construct_neuronal_tensor_impl(
     backend: "str | None" = None,
     jit: "bool | str | None" = None,
     vmap: "bool | str | None" = None,
+    n_contacts: int = 16,
 ) -> Model:
     """Bridge + construct + apply each Area's Pose3D placement, in one call.
 
@@ -859,6 +874,7 @@ def _construct_neuronal_tensor_impl(
         backend=backend,
         jit=jit,
         vmap=vmap,
+        n_contacts=n_contacts,
     )
     model = construct(cfg)
     rows = model.neuron_table()
@@ -1050,6 +1066,7 @@ def neuronal_tensor_to_configuration(
     backend: "str | None" = None,
     jit: "bool | str | None" = None,
     vmap: "bool | str | None" = None,
+    n_contacts: int = 16,
 ) -> Configuration:
     """Bridge a :class:`NeuronalTensor` into the existing construct/simulate pipeline.
 
@@ -1235,6 +1252,6 @@ def neuronal_tensor_to_configuration(
     else:
         raise ValueError(f"Unknown emitter: {emitter}. Choose from: izhikevich, lif, glif")
 
-    cfg = cfg.probes(["spikes", "V_m"], n_contacts=16)
+    cfg = cfg.probes(["spikes", "V_m"], n_contacts=n_contacts)
     cfg = cfg.field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
     return cfg
