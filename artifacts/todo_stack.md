@@ -45,10 +45,11 @@ tied to evidence.
 ## 0.5.5 stack
 
 HARNESS (human, 2026-09-27)
-- H1 Consumption gate: one test sweeps every public `Configuration` /
-  `Simulation` / `RuntimeConfig` parameter at non-neutral values and
-  requires a realized change or a refusal (class of P-014, P-015, the inert
-  Simulation seed). Known-inert parameters listed with their reason.
+- H1 Consumption gate, remainder (Simulation and RuntimeConfig are covered by
+  `tests/test_consumption_gate_055.py`): extend it to the `Configuration`
+  fluent methods and to `RuntimeConfiguration`, whose `solver`, `probes`,
+  `n_contacts`, `outputs` and `optimizer` are declared but not consumed
+  (`jaxfne/neuronal_tensor.py`); refuse or wire each.
 - H3 Review step: the rule and template
   (`artifacts/harness/review_packet_template.md`) are in place; remaining:
   point the verify skill at the template; fix P-011 (Kaleido teardown flake,

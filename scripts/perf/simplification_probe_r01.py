@@ -143,8 +143,6 @@ def probe_scan_recording():
 
 
 def probe_trials_vmap(n_trials: int = 8):
-    from dataclasses import replace
-
     from jaxfne._signals import TrialBatch, TrialSpec
 
     cfg = jtfne.suite2_net1_config(seed=1, n=8, duration_ms=20.0, dt_ms=0.5)
@@ -160,7 +158,7 @@ def probe_trials_vmap(n_trials: int = 8):
     def python_loop():
         outs = []
         for t in trials:
-            outs.append(model.simulate(replace(sim, seed=t.seed)))
+            outs.append(model.simulate(sim.with_seed(t.seed)))
         return outs
 
     def batched():

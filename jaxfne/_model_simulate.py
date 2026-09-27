@@ -62,6 +62,18 @@ def _refuse_contradicted_dense_backend(model, reason: str) -> None:
         )
 
 
+def _refuse_dense_receptor_kernel(runtime_cfg: RuntimeConfig) -> None:
+    """The dense kernel has no receptor path; refuse instead of ignoring the kernel."""
+    if (
+        runtime_cfg.recurrent_backend != "edge_list"
+        and runtime_cfg.synaptic_kernel == "receptor_exponential"
+    ):
+        raise ValueError(
+            "synaptic_kernel='receptor_exponential' runs only on "
+            "recurrent_backend='edge_list'; the dense backend would ignore it"
+        )
+
+
 def _hdp_kernel_kwargs(hp: Mapping[str, Any]) -> dict[str, Any]:
     """Resolve one shared HDP parameter contract for every execution path."""
     from ._hdp_adaptive import normalize_hdp_params_boundary
@@ -632,6 +644,7 @@ def _simulate_arrays(
         object.__setattr__(self, "_last_hdp_diag", diag_store)
         return V, S, src
 
+    _refuse_dense_receptor_kernel(runtime_cfg)
     if runtime_cfg.recurrent_backend == "edge_list":
         edges: EdgeList = self.params["edge_list"]
         if ablation_mode == "disconnected_null":
@@ -1109,7 +1122,12 @@ def simulate(
 
     # shuffled_timing ablation: shuffle drive_array along time axis (axis 0) independently for each neuron
     ablation_mode = getattr(sim, "ablation", None)
-    if ablation_mode == "shuffled_timing" and drive_array is not None:
+    if ablation_mode == "shuffled_timing" and drive_array is None:
+        raise ValueError(
+            "ablation='shuffled_timing' shuffles a time-varying drive; this run has "
+            "none (pass a paradigm or poisson_drive)"
+        )
+    if ablation_mode == "shuffled_timing":
         shuffle_key = jax.random.PRNGKey(sim.seed + 12345)
         n_neurons = drive_array.shape[1]
         keys = jax.random.split(shuffle_key, n_neurons)
@@ -1420,6 +1438,19 @@ def simulate_batch(
             "in params['edge_list']",
         )
         runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
+    # The batch kernel draws no Poisson drive, applies no ablation, always
+    # returns sources and never builds a field.
+    for _name in ("poisson_drive", "ablation"):
+        if getattr(sim, _name) is not None:
+            raise ValueError(
+                f"simulate_batch does not consume Simulation.{_name}; use simulate() "
+                "per seed or run_trials()"
+            )
+    if not sim.record_sources:
+        raise ValueError(
+            "simulate_batch does not consume Simulation.record_sources=False; it "
+            "always returns sources"
+        )
 
     homeo_on = bool(getattr(runtime_cfg, "enable_homeostasis", False))
     hdp_on = bool(getattr(runtime_cfg, "enable_hdp", False))
@@ -1433,6 +1464,7 @@ def simulate_batch(
             "synaptic_kernel='receptor_exponential'; use the default "
             "exponential synaptic kernel."
         )
+    _refuse_dense_receptor_kernel(runtime_cfg)
     edge_kernel_fn = (
         simulate_receptor_exponential_izhikevich
         if runtime_cfg.synaptic_kernel == "receptor_exponential"
@@ -1637,7 +1669,7 @@ def run_trials(
     """
     results: list[TrialResult] = []
     for trial in batch.trials:
-        sim_trial = replace(sim, seed=trial.seed)
+        sim_trial = sim.with_seed(trial.seed)
         try:
             signals = self.simulate(sim_trial, paradigm=trial.condition)
             results.append(

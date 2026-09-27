@@ -1641,7 +1641,7 @@ def _tune_matrix_agsdr_optax(
             # FINAL SCORING: real objective
             try:
                 candidate_signals = candidate_model.simulate(
-                    _replace(simulation, seed=int(seed) + gen * population_size + row)
+                    simulation.with_seed(int(seed) + gen * population_size + row)
                 )
                 candidate_report = candidate_model.evaluate(candidate_signals, objective, strict=strict)
                 score = candidate_report.get("total_loss")

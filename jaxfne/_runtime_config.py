@@ -141,6 +141,17 @@ class RuntimeConfig:
                 f"backend must be one of {{'auto', 'cpu', 'gpu', 'tpu'}}; "
                 f"got {self.backend!r}."
             )
+        # H1 consumption gate: fields no kernel reads are refused, not stored.
+        if self.precision != "default":
+            raise ValueError(
+                f"precision={self.precision!r} is not consumed by any kernel; "
+                "only 'default' is accepted"
+            )
+        if self.x64_enabled and not bool(jax.config.read("jax_enable_x64")):
+            raise ValueError(
+                "x64_enabled=True does not enable x64; call jaxfne.enable_x64() "
+                "before building arrays and request dtype='float64'"
+            )
 
     def resolve_jit(self, n_steps: int, n_units: int, batch: int = 1) -> bool:
         """Resolve the effective JIT compilation status based on policy and parameters."""

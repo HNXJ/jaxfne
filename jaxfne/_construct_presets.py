@@ -56,8 +56,10 @@ def runtime(
 
     Thin keyword factory for :class:`RuntimeConfig`; ``device_type``,
     ``dtype_primary`` and ``x64_enabled`` are accepted as v0.0.3-compatibility
-    aliases. This configures execution only — it makes no numerical or
-    scientific claim about the simulation.
+    aliases (``x64_enabled=True`` raises unless x64 is already enabled).
+    Values no kernel reads are refused (see :class:`RuntimeConfig`). This
+    configures execution only — it makes no numerical or scientific claim about
+    the simulation.
     """
     return RuntimeConfig(
         backend=backend,
@@ -361,8 +363,7 @@ def suite2_tune_noise_agsdr_adam(
     def run_amp(amp: float, run_seed: int) -> tuple[float, float, Signals]:
         """Documented public function `run_amp`."""
         sim = replace(
-            sim0,
-            seed=int(run_seed),
+            sim0.with_seed(int(run_seed)),
             poisson_drive={"rate_hz": float(poisson_rate_hz), "amplitude": float(max(0.0, amp)), "target": "all", "seed": int(run_seed) + 7919},
         )
         sig = model.simulate(sim)

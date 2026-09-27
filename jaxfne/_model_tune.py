@@ -423,7 +423,7 @@ def tune(
     warnings: list[str] = []
     for idx, candidate_value in enumerate(candidates):
         candidate_model = _model_with_scalar_parameter(self, parameter, float(candidate_value))
-        candidate_signals = candidate_model.simulate(replace(sim, seed=int(seed) + idx))
+        candidate_signals = candidate_model.simulate(sim.with_seed(int(seed) + idx))
         candidate_report = candidate_model.evaluate(candidate_signals, objective, strict=strict)
         score = candidate_report.get("total_loss")
         gates_pass = bool(candidate_report.get("all_gates_pass", False))
