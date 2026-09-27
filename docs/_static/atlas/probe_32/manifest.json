@@ -8,7 +8,7 @@
   "sim_identity": "seed=0 duration_ms=200.0 dt_ms=0.5",
   "recording_class": "small-mechanistic",
   "recording_budget": "full H, HDP targets, representative W, diagnostics",
-  "jaxfne_version": "0.4.25",
+  "jaxfne_version": "0.5.0",
   "seed": 0,
   "duration_ms": 200.0,
   "n_neurons": 32,
@@ -22,7 +22,7 @@
       "panel": "Circuit schematic",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 13295,
+      "bytes": 13294,
       "inputs": {
         "source_artifact": "model",
         "variable": "neuron_table + params.edge_list",
@@ -36,7 +36,7 @@
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 14033,
+      "bytes": 14032,
       "inputs": {
         "source_artifact": "model",
         "variable": "params.positions + params.edge_list",
@@ -50,7 +50,7 @@
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 11642,
+      "bytes": 11641,
       "inputs": {
         "source_artifact": "signals",
         "variable": "spikes [T,N] + neuron_table",
@@ -64,7 +64,7 @@
       "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 83998,
+      "bytes": 83997,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field proxy",
@@ -78,7 +78,7 @@
       "panel": "H dynamics",
       "evidence": "DERIVED",
       "status": "OMITTED",
-      "bytes": 10461,
+      "bytes": 10460,
       "inputs": {
         "source_artifact": "model diagnostics",
         "variable": "H_trace / r_trace",
@@ -92,7 +92,7 @@
       "panel": "HDP plasticity",
       "evidence": "DERIVED",
       "status": "OMITTED",
-      "bytes": 10407,
+      "bytes": 10406,
       "inputs": {
         "source_artifact": "model diagnostics",
         "variable": "w_trace",
@@ -106,7 +106,7 @@
       "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 19488,
+      "bytes": 19487,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field traces",
@@ -116,5 +116,5 @@
       }
     }
   ],
-  "sha256": "149fd836b83b809c"
+  "sha256": "930fe1177c2d6daf"
 }

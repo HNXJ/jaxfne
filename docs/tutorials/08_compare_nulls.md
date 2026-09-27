@@ -29,6 +29,19 @@ Rules retained from [13 — Canonical column](13_canonical_column_etude.md): reu
 
 This is the endpoint: every earlier step's variable carries forward to a comparative judgment on one canonical model. For frozen publication claims, see [Études](../etudes/index.md).
 
+<!-- jx-figure -->
+## Figure
+
+=== "Still"
+
+    ![Power spectrum of the reference run](../assets/readme/oscillatory.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="../../_static/atlas/oscillatory.html" loading="lazy" title="Power spectrum of the reference run"></iframe>
+
+Power spectrum of the reference run: the baseline that nulls and lesions are compared against. [Open full page](../_static/atlas/oscillatory.html).
+
 ## Interactive atlas (dark)
 
 Dark-theme Plotly panels from the pinned 1000 ms reference run of this same canonical column — the baseline the nulls/lesions compare against: [index](../_static/atlas/index.html) · [schema](../_static/atlas/schema.html) · [3D](../_static/atlas/network_3d.html) · [raster](../_static/atlas/raster.html) · [LFP](../_static/atlas/lfp.html) · [H](../_static/atlas/h_dynamics.html) · [HDP](../_static/atlas/hdp.html) · [oscillatory](../_static/atlas/oscillatory.html).

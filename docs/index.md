@@ -9,6 +9,21 @@ connectivity, geometry, and observations can be modified within the same model.
 
 **Workflow:** change biology → change dynamics → simulate → measure
 
+A model is declared once and executed by one compiler:
+
+<div class="mermaid">
+flowchart LR
+  C["CircuitSpec<br/>Configuration or NeuronalTensor"] -->|construct| M["Model"] -->|simulate| S["Signals"]
+</div>
+
+and its science reads from emitters to a manifest:
+
+<div class="mermaid">
+flowchart LR
+  E["Emitter<br/>neural dynamics"] --> Q["Source<br/>currents Q"] --> F["Field<br/>Φ(r, t)"] --> P["Probe<br/>LFP, CSD, EEG"]
+  P --> O["Objective"] --> Op["Optimizer"] --> Mf["Manifest"]
+</div>
+
 You can, for example:
 
 - add or change biophysical state $H$;
@@ -70,6 +85,13 @@ Canonical 1000-neuron column, pinned 1000 ms reference run:
 [h_dynamics](_static/atlas/h_dynamics.html) ·
 [hdp](_static/atlas/hdp.html) ·
 [oscillatory](_static/atlas/oscillatory.html)).
+
+Twenty-area hierarchy (Atlas AT-10-N20), areas in hierarchy order with
+inter-area edge counts: [interactive](_static/visuals/area_graph_n20.html).
+
+<a href="_static/visuals/area_graph_n20.html">
+  <img src="assets/visuals/area_graph_n20.png" alt="Twenty-area hierarchy graph" width="100%">
+</a>
 
 Three-area hierarchy (`V1–V4–PFC`, 100 neurons/area, bidirectional
 feedforward/feedback): [Gallery 09](gallery.md#09-three-area-hierarchy-v1v4pfc)

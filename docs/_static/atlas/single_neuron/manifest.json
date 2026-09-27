@@ -1,14 +1,14 @@
 {
   "suite": "atlas_suite.v2",
   "title": "Single neuron (1n)",
-  "figure_state": "validated",
+  "figure_state": "GENERATED",
   "config_hash": "3cb76d6112977097",
   "tfne_digest": null,
   "k_d": null,
   "sim_identity": "seed=0 duration_ms=100.0 dt_ms=0.09999847412109375",
   "recording_class": "small-mechanistic",
   "recording_budget": "full H, HDP targets, representative W, diagnostics",
-  "jaxfne_version": "0.4.25",
+  "jaxfne_version": "0.5.0",
   "seed": 0,
   "duration_ms": 100.0,
   "n_neurons": 1,
@@ -22,7 +22,7 @@
       "panel": "Circuit schematic",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 12516,
+      "bytes": 12515,
       "inputs": {
         "source_artifact": "model",
         "variable": "neuron_table + params.edge_list",
@@ -36,7 +36,7 @@
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 10963,
+      "bytes": 10962,
       "inputs": {
         "source_artifact": "model",
         "variable": "params.positions + params.edge_list",
@@ -50,7 +50,7 @@
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 10573,
+      "bytes": 10572,
       "inputs": {
         "source_artifact": "signals",
         "variable": "spikes [T,N] + neuron_table",
@@ -64,7 +64,7 @@
       "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 199440,
+      "bytes": 199439,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field proxy",
@@ -78,7 +78,7 @@
       "panel": "H dynamics",
       "evidence": "DERIVED",
       "status": "OMITTED",
-      "bytes": 10443,
+      "bytes": 10442,
       "inputs": {
         "source_artifact": "model diagnostics",
         "variable": "H_trace / r_trace",
@@ -92,7 +92,7 @@
       "panel": "HDP plasticity",
       "evidence": "DERIVED",
       "status": "OMITTED",
-      "bytes": 10389,
+      "bytes": 10388,
       "inputs": {
         "source_artifact": "model diagnostics",
         "variable": "w_trace",
@@ -106,7 +106,7 @@
       "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 15255,
+      "bytes": 15254,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field traces",
@@ -116,14 +116,5 @@
       }
     }
   ],
-  "sha256": "b8fc83d9a8c87549",
-  "promotion": [
-    {
-      "to": "validated",
-      "reason": "C6 post-bump: deterministic regen on 0.4.25 tree, panels bit-identical (shas match pre-bump), gates green",
-      "promoter": "promote_atlas_state.py",
-      "git_head": "63f0333bf0585157cad66914269e3249e5b1a821",
-      "utc": "2026-09-20T06:56:07.464191+00:00"
-    }
-  ]
+  "sha256": "ec5d30149f81eb6b"
 }

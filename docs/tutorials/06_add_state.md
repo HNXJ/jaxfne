@@ -23,6 +23,19 @@ model2 = jtfne.restore_state(model, state)
 
 `H_D` (developmental, `ℝ^{d_D}`) ≠ `H_R` (runtime RBS, `ℝ^{d_R}`); the canonical genome declares no `H_D`.
 
+<!-- jx-figure -->
+## Figure
+
+=== "Still"
+
+    ![Hidden state H over time](../assets/visuals/hdp_h_dynamics.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="../../_static/atlas/hdp_10/h_dynamics.html" loading="lazy" title="Hidden state H over time"></iframe>
+
+Hidden state H over time (population mean ± std) in a small 10-neuron HDP run with full recording. [Open full page](../_static/atlas/hdp_10/h_dynamics.html).
+
 Next: [07 — Add dynamics](07_add_dynamics.md) — enable `enable_hdp`.
 
 ## Interactive atlas (dark)

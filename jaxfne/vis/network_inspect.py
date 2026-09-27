@@ -2,9 +2,9 @@
 
 Portable by construction. Only the jaxfne public surface is used —
 ``model.neuron_table()`` (neuron_id, area, layer, cell_type), ``model.params["edge_list"]``
-(pre, post, weight, receptor_index) and a spike array or ``signals.spikes`` — so this file
-carries no jomission import and no TFNE dependency. Copy verbatim to
-``jaxfne/jaxfne/vis/network_inspect.py``.
+(pre, post, weight, receptor_index), ``jaxfne.emitters`` weight/receptor resolution for
+compact edge storage, and a spike array or ``signals.spikes`` — so this file carries no
+jomission import and no TFNE dependency.
 
 Two renderers, answering the two questions a user has before any analysis:
 
@@ -184,14 +184,30 @@ def describe(model: Any, *, inhibitory_receptors: Iterable[int] = (1,),
     edges = model.params["edge_list"]
     pre = np.asarray(edges.pre)
     post = np.asarray(edges.post)
-    weight = np.asarray(edges.weight, dtype=float)
-    receptor = np.asarray(getattr(edges, "receptor_index", np.zeros(pre.shape, dtype=int)))
+    # Compact storage keeps weight/receptor_index as size-0 placeholders; resolve
+    # them as kernels do, or zip() below silently iterates zero edges.
+    if getattr(edges, "weight_storage", "per_edge") == "per_edge":
+        weight = np.asarray(edges.weight, dtype=float)
+    else:
+        from jaxfne.emitters import resolve_edge_weight
+
+        _get = getattr(model.params, "get", None)
+        _emitter = _get("emitter") if callable(_get) else None
+        weight = np.asarray(resolve_edge_weight(
+            edges, edges.weight.dtype, presynaptic_sign=getattr(_emitter, "sign", None)),
+            dtype=float)
+    if hasattr(edges, "receptor_index"):
+        from jaxfne.emitters import resolve_receptor_index
+
+        receptor = np.asarray(resolve_receptor_index(edges))
+    else:
+        receptor = np.zeros(pre.shape, dtype=int)
     inhib = set(int(r) for r in inhibitory_receptors)
 
     n_edge: collections.Counter = collections.Counter()
     w_sum: collections.Counter = collections.Counter()
     n_local = 0
-    for p, q, w, r in zip(pre, post, weight, receptor):
+    for p, q, w, r in zip(pre, post, weight, receptor, strict=True):
         gp, gq = group[p], group[q]
         if gp is None or gq is None:
             continue

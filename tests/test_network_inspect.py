@@ -268,3 +268,16 @@ def test_plotly_schematic_matches_matplotlib_description(tmp_path):
     out = tmp_path / "schema.html"
     info = JV.network_hspice_plotly(M, theme="dark", path=out)
     assert out.stat().st_size > 0 and info["path"] == str(out)
+
+
+def test_describe_counts_edges_under_compact_weight_storage():
+    """Compact storage keeps weight size-0; every edge must still be counted."""
+    rows = [{"neuron_id": i, "area": a, "layer": "L1", "cell_type": "E"}
+            for i, a in enumerate(["A", "A", "B"])]
+    el = types.SimpleNamespace(
+        pre=np.array([0, 1, 0]), post=np.array([1, 0, 2]), n_edges=3,
+        weight=np.zeros(0, dtype=np.float32), weight_storage="sign_from_receptor",
+        weight_magnitude=1.0, receptor_index=np.array([0, 0, 0]))
+    d = JV.describe(types.SimpleNamespace(neuron_table=lambda: rows, params={"edge_list": el}))
+    assert (d["n_edges_local"], d["n_edges_long_range"]) == (2, 1)
+    assert sum(p["n_edges"] for p in d["projections"]) == 1

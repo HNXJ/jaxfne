@@ -2,7 +2,7 @@
   "suite": "atlas_suite.v2",
   "title": "Canonical V1 Column (1000n)",
   "figure_state": "GENERATED",
-  "config_hash": "e701098092814baa",
+  "config_hash": "e9eb50be8f1b7c8c",
   "tfne_digest": null,
   "k_d": null,
   "sim_identity": "seed=0 duration_ms=1000.0 dt_ms=0.5",
@@ -50,7 +50,7 @@
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 107846,
+      "bytes": 107778,
       "inputs": {
         "source_artifact": "signals",
         "variable": "spikes [T,N] + neuron_table",
@@ -64,7 +64,7 @@
       "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 362669,
+      "bytes": 364439,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field proxy",
@@ -106,7 +106,7 @@
       "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 21587,
+      "bytes": 21687,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field traces",
@@ -116,5 +116,5 @@
       }
     }
   ],
-  "sha256": "4db5904032a62676"
+  "sha256": "29a5a2d30e89a2ae"
 }

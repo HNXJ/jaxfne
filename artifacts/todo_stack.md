@@ -52,13 +52,15 @@ HARNESS (human, 2026-09-27)
   (`jaxfne/neuronal_tensor.py`); refuse or wire each.
 
 DOCS (human, 2026-09-27)
-- D1 One tutorial track: each tutorial page embeds its own figures and a
-  plotly interactive network HTML; mermaid flowcharts of the grammar
-  (Emitter → Source → Field → Probe, CircuitSpec → construct → Model →
-  simulate → Signals); older tutorial generations move to an archive
-  section; `site/` stops being committed; local `mkdocs build --strict`
-  passes. Includes the P-014 regenerations (tutorials 08/10, doc-page
-  atlases, outputs of the four migrated scripts).
+- D1b P-014 regenerations left after D1 (doc-page atlases done): re-execute
+  `artifacts/tutorials/jaxfne_suite_no_2_evoked_l4_drive.ipynb` and
+  `jaxfne_v0313_omission_oddball.ipynb` and refresh docs pages 08/10;
+  decide per committed result of the migrated scripts whether it is frozen
+  evidence (keep, note in seal receipt) or regenerable
+  (`artifacts/perf/matrix_051*.json`, `artifacts/mcc3_10s_checkpoint/*`).
+- D2 Études pages ("studios"): embed each page's own figure beside its
+  text, as the tutorial track does (`scripts/generate_docs_visuals.py`
+  pattern: still tab + interactive iframe).
 
 ATLAS
 7. Reduction/scale matrix: for each transition M_i → M_(i+1) (1N → 2N →

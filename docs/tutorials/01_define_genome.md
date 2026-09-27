@@ -26,6 +26,19 @@ print(declared_constraints(genome)["areas"]["V1"]["layers"]["L2"])
 
 Tolerance example (L1): `E (0.45,0.55) SST (0.1,0.2) VIP (0.3,0.4)` — realized counts must fall in those bands. Development parameter `fraction_jitter_sigma=0.01` jitters the base fractions before projection onto the box-constrained simplex.
 
+<!-- jx-figure -->
+## Figure
+
+=== "Still"
+
+    ![Realized block schematic of canonical-v1-column-1000n](../assets/readme/schema.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="../../_static/atlas/schema.html" loading="lazy" title="Realized block schematic of canonical-v1-column-1000n"></iframe>
+
+Realized block schematic of `canonical-v1-column-1000n` from the pinned reference run (seed 0): the layers, cell types and population counts these rules produce. [Open full page](../_static/atlas/schema.html).
+
 Next: [02 — Develop](02_develop_genome.md) — `develop(genome, K_D)` realizes one phenotype.
 
 ## Interactive atlas (dark)
