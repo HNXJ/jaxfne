@@ -501,7 +501,7 @@ requires separate authorization.
 - **minimal reproduction:** broad gate (`-n auto`); alone it passes 3/3
 - **expected behavior:** stable PASS
 - **actual behavior:** intermittent FAIL under parallel load
-- **evidence:** broad gate on `d0d7360` 2026-09-25 (1 failed / 4430 passed); isolated reruns 3/3 PASS
+- **evidence:** broad gate on `d0d7360` 2026-09-25 (1 failed / 4430 passed); isolated reruns 3/3 PASS. Recurred 2026-09-26 (broad gate before 99482f7) and 2026-09-27 (before the AT-10-N20 commit), each isolated rerun PASS: a gate fix is now due
 - **possible future change:** retry Kaleido teardown once, or serialize Kaleido tests (xdist group); open
 
 ### P-012

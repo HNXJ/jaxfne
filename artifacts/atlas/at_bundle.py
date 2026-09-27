@@ -18,7 +18,8 @@ the Jaxley arm is not a jaxfne Model); AT-02 ``delayed``/``zero``/
 ``baseline``/``perturbed``/``disabled_baseline``/``disabled_perturbed``;
 AT-08 ``fixed``/``adapt_full``/``adapt_local`` (one shared ensemble
 Model); AT-09 ``plastic_cross``/``plastic_member``/``frozen`` (one shared
-ensemble Model); AT-10 ``main``.
+ensemble Model); AT-10 ``main``; AT-10-N20 ``baseline``/``hebbian_hdp``/
+``noisy_hdp`` (one shared N_20 Model; per-phase ``hdp``, None for baseline).
 
 Import rule (enforced by tests/test_atlas_firewall.py): atlas files
 import only the top-level ``jaxfne`` package plus stdlib / numpy. This
@@ -74,6 +75,7 @@ BUNDLE_ARM_NAMES: dict[str, tuple[str, ...]] = {
     "AT-08": ("fixed", "adapt_full", "adapt_local"),
     "AT-09": ("plastic_cross", "plastic_member", "frozen"),
     "AT-10": ("main",),
+    "AT-10-N20": ("baseline", "hebbian_hdp", "noisy_hdp"),
 }
 
 

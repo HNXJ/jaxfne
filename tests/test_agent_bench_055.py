@@ -17,7 +17,8 @@ TASKS = {t["at_id"]: t for t in json.loads(TASK_SET.read_text(encoding="utf-8"))
 
 
 def test_task_set_covers_registry_with_current_specs():
-    assert list(TASKS) == list(REGISTRY)
+    added_after_freeze = ["AT-10-N20"]  # registered after the 0.5.5 task set was frozen
+    assert list(TASKS) == [k for k in REGISTRY if k not in added_after_freeze]
     for at_id, task in TASKS.items():
         assert task["spec_digest"] == spec_digest(at_spec(at_id)), at_id
         assert task["intent"] and task["arms"], at_id

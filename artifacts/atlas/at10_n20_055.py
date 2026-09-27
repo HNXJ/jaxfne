@@ -91,12 +91,28 @@ def _stimulus(area: np.ndarray) -> Any:
                                event_duration_ms=STIM_DUR_MS)
 
 
-def _run(model: Any, stim: Any, hp: "dict | None", noise_seed: int = NOISE["seed"]) -> tuple[np.ndarray, Any]:
-    runtime = J.RuntimeConfig(enable_hdp=hp is not None, hdp_params=dict(hp or {}))
+def _run_signals(model: Any, stim: Any, hp: "dict | None",
+                 noise_seed: int = NOISE["seed"]) -> tuple[Any, Any]:
+    """One run; HDP diagnostics copied right after it (w_final, H_trace; no W trace).
+
+    ``record_weight_trace`` is off: a 10 s W trace is (20000 x 68620) floats
+    (~5.5 GB) and nothing here reads it; recording does not enter dynamics.
+    """
+    hdp = None if hp is None else {**hp, "record_weight_trace": False}
+    runtime = J.RuntimeConfig(enable_hdp=hp is not None, hdp_params=dict(hdp or {}))
     sim = J.Simulation(duration_ms=PHASE_MS, dt_ms=DT_MS, seed=RUN_SEED, runtime=runtime,
                        poisson_drive={**NOISE, "seed": int(noise_seed)})
-    spikes = np.asarray(model.simulate(sim, paradigm=stim).spikes)
-    return spikes, (model.last_hdp_diagnostics() if hp is not None else None)
+    signals = model.simulate(sim, paradigm=stim)
+    if hp is None:
+        return signals, None
+    d = model.last_hdp_diagnostics()
+    return signals, {k: None if d.get(k) is None else np.asarray(d[k])
+                     for k in ("H_final", "w_final", "H_trace", "w_trace")}
+
+
+def _run(model: Any, stim: Any, hp: "dict | None", noise_seed: int = NOISE["seed"]) -> tuple[np.ndarray, Any]:
+    signals, diag = _run_signals(model, stim, hp, noise_seed)
+    return np.asarray(signals.spikes), diag
 
 
 def _spearman(x: np.ndarray, y: np.ndarray) -> float:
@@ -171,19 +187,37 @@ def _realized_weights(model: Any) -> np.ndarray:
     return w
 
 
-def run_phases(model: Any = None) -> dict[str, Any]:
+PHASES = ("baseline", "hebbian_hdp", "noisy_hdp")
+
+
+def run_phases(model: Any = None, keep_bundle: bool = False) -> dict[str, Any]:
+    """The three phases on one W0. ``keep_bundle`` adds ``{phase: {model, signals, hdp}}``
+    (one shared Model; each phase keeps its own HDP diagnostics, None for baseline)."""
     t0 = time.perf_counter()
     model = model if model is not None else build_model()
     area = _areas(model)
     stim = _stimulus(area)
     w0 = _realized_weights(model)
     out: dict[str, Any] = {}
-    for name, hp in (("baseline", None), ("hebbian_hdp", HP_HEBB), ("noisy_hdp", HP_NOISY)):
-        sp, diag = _run(model, stim, hp)
+    bundle: dict[str, Any] = {}
+    for name, hp in zip(PHASES, (None, HP_HEBB, HP_NOISY)):
+        signals, diag = _run_signals(model, stim, hp)
+        sp = np.asarray(signals.spikes)
         out[name] = {**propagation(sp, area),
                      "window_rates_hz": np.round(_window_rates(sp), 3).tolist(),
                      "w_mean_ratio": None if diag is None else _w_drift(diag, w0)}
-    return {"phases": out, "wall_s": time.perf_counter() - t0}
+        if keep_bundle:
+            bundle[name] = {"model": model, "signals": signals, "hdp": diag}
+    res = {"phases": out, "wall_s": time.perf_counter() - t0}
+    if keep_bundle:
+        res["bundle"] = bundle
+    return res
+
+
+def run_at10(keep_bundle: bool = False) -> dict[str, Any]:
+    """Canonical AT-10-N20 runner (``at_manifest.REGISTRY``): the three phases."""
+    return {"scenario": "AT-10-N20", "status": "OK", "level": LEVEL,
+            **run_phases(keep_bundle=keep_bundle)}
 
 
 def run_assay(model: Any = None, noise_seed: int = NOISE["seed"]) -> dict[str, Any]:
@@ -232,9 +266,26 @@ def spec() -> dict[str, Any]:
     }
 
 
+def null_threshold(model: Any = None) -> dict[str, Any]:
+    """No-stimulus null: the baseline phase without pulses, the evoked statistic
+    taken at the pulse onsets. Threshold = max |null evoked| over areas + 1 Hz."""
+    model = model if model is not None else build_model()
+    area = _areas(model)
+    sp, _ = _run(model, None, None)
+    on = [int(o / DT_MS) for o in _onsets_ms()]
+    null = np.array([_locked_rate(sp, area == a, on) for a in G.area_names()[1:]])
+    return {"rate_hz": float(sp.mean() / (DT_MS / 1000.0)),
+            "evoked_hz": dict(zip(G.area_names()[1:], np.round(null, 3).tolist())),
+            "threshold_hz": float(np.abs(null).max() + 1.0)}
+
+
 def run_all(path: Path = RESULTS_PATH) -> dict[str, Any]:
     model = build_model()
     out = {"scenario": "AT-10-N20", "spec": spec(), **run_phases(model)}
+    out["null"] = null_threshold(model)
+    for ph in out["phases"].values():
+        ph["n_significant_vs_null"] = int(sum(v > out["null"]["threshold_hz"]
+                                              for v in ph["evoked_hz"].values()))
     assay = run_assay(model)
     out["assay"] = assay
     out["wall_s"] += assay.pop("wall_s")

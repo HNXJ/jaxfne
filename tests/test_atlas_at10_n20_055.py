@@ -18,6 +18,10 @@ def test_committed_results_match_the_runner_spec():
     assert res["spec"] == json.loads(json.dumps(A.spec()))
     seeds = [res["assay"]["noise_seed"], *(r["noise_seed"] for r in res["replicates"])]
     assert seeds == [A.NOISE["seed"], *A.REPLICATE_NOISE_SEEDS]
+    thr = res["null"]["threshold_hz"]
+    assert abs(thr - (max(abs(v) for v in res["null"]["evoked_hz"].values()) + 1.0)) < 1e-3  # stored evoked rounded
+    for ph in res["phases"].values():
+        assert ph["n_significant_vs_null"] == sum(v > thr for v in ph["evoked_hz"].values())
     for a in [res["assay"], *res["replicates"]]:
         verdicts = {t["perturbation"]: t["verdict"] for t in a["declared_tests"]}
         assert all(verdicts[f"kick={k}"] == "STABILIZED" for k in A.KICKS)

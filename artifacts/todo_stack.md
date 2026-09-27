@@ -797,8 +797,15 @@ ATLAS
    12/13 replicates were declared after the primary result. Significant
    area counts depend on the control window (late 80-200 ms control: 11/19
    baseline, 8/19 Hebbian; the earlier overlapping control gave 13/9).
-   Remaining: the AT-10 spec/bundle/figures (at_bundle pattern), and a
-   no-stimulus null for the significance count.
+   No-stimulus null (baseline without pulses, statistic at pulse onsets):
+   threshold 2.72 Hz; significant areas 16/19 baseline, 11/19 Hebbian,
+   16/19 noisy, so the late control mostly measures stimulus-locked
+   rebound. AT-10-N20 is registered canonical (S10) beside the toy
+   AT-10 (kept: the frozen agent benchmark pins its bundle); spec in
+   `at_manifest`, bundle arms = the three phases, figures in
+   `artifacts/publication/atlas/AT-10-N20/` (hdp panel OMITTED: no W trace,
+   ~5.5 GB per 10 s phase). ATLAS 6 is complete apart from coverage rows
+   (item 9).
 7. Reduction/scale matrix: for each transition M_i → M_(i+1), which
    observations survive within the predeclared tolerance and which do not;
    failures stay in the matrix.

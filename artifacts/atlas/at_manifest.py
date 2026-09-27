@@ -73,8 +73,9 @@ _STAGE_PARENT: dict[str, str | None] = {
     "S10": "S8-9",
 }
 
-# Canonical runner per AT id. AT-10 is the toy composition pattern; the real
-# 20-area AT-10 is future work, hence "toy".
+# Canonical runner per AT id. AT-10 is the toy composition pattern (kept: the
+# frozen 0.5.5 agent benchmark pins its bundle); AT-10-N20 is the 20-area
+# AT-10 on N_20 = develop(G_20) (0.5.5 ATLAS 6).
 REGISTRY: dict[str, dict[str, str]] = {
     "AT-01": {"runner": "at01_at06_052:run_at01", "status": "canonical", "stage": "S1"},
     "AT-02": {"runner": "at01_at06_052:run_at02", "status": "canonical", "stage": "S2-4"},
@@ -87,6 +88,7 @@ REGISTRY: dict[str, dict[str, str]] = {
     "AT-08": {"runner": "at08_at09_054:run_at08", "status": "canonical", "stage": "S8-9"},
     "AT-09": {"runner": "at08_at09_054:run_at09", "status": "canonical", "stage": "S8-9"},
     "AT-10": {"runner": "at01_at10_toy:run_at10", "status": "toy", "stage": "S10"},
+    "AT-10-N20": {"runner": "at10_n20_055:run_at10", "status": "canonical", "stage": "S10"},
 }
 
 
@@ -133,6 +135,7 @@ _R052 = "artifacts/atlas/at01_at06_052.py"
 _R053 = "artifacts/atlas/at07_at04_053.py"
 _R054 = "artifacts/atlas/at08_at09_054.py"
 _RTOY = "artifacts/atlas/at01_at10_toy.py"
+_RN20 = "artifacts/atlas/at10_n20_055.py"
 _PRESETS = "jaxfne/_construct_presets.py"
 
 
@@ -443,6 +446,38 @@ def _spec_at10(mod: Any) -> dict[str, Any]:
     }
 
 
+def _spec_at10_n20(mod: Any) -> dict[str, Any]:
+    g20 = mod.G
+    return {
+        "seeds": {"build": _const(mod, "BUILD_SEED"), "run": _const(mod, "RUN_SEED"),
+                  "development": _const(g20, "G20_DEV_SEED"), "noise": _const(mod, "NOISE")["seed"]},
+        "run": {"duration_ms": _const(mod, "PHASE_MS"), "dt_ms": _const(mod, "DT_MS")},
+        "inputs": {
+            "genome": _const(g20, "G20_NAME"),
+            "n_areas": _const(g20, "G20_N_AREAS"),
+            "n_per_area": _const(g20, "G20_N_PER_AREA"),
+            "cross_gain": _const(g20, "G20_CROSS_GAIN"),
+            "drive": _const(mod, "DRIVE"),
+            "noise": _const(mod, "NOISE"),
+            "stimulus": {"period_ms": _const(mod, "STIM_PERIOD_MS"),
+                         "duration_ms": _const(mod, "STIM_DUR_MS"),
+                         "amplitude": _const(mod, "STIM_AMP"), "first_ms": _const(mod, "STIM_FIRST_MS")},
+            "phases": _const(mod, "PHASES"),
+        },
+        "recording": {"summary": "per-phase rate, pulse-locked evoked/latency per area, w drift",
+                      "evoked_ms": _const(mod, "EVOKED_MS"), "window_ms": _const(mod, "WINDOW_MS")},
+        "hdp_params": {"hebbian_hdp": _const(mod, "HP_HEBB"), "noisy_hdp": _const(mod, "HP_NOISY")},
+        "cited": [
+            _cite("genome_development", _RN20, "G.develop_n20(), seed=BUILD_SEED",
+                  "N_20 = develop(frozen G_20 v2) inside the runner"),
+            _cite("stimulus.target", _RN20, "np.nonzero(area == \"H01\")",
+                  "pulses drive H01 only"),
+            _cite("recording.w_trace", _RN20, "\"record_weight_trace\": False",
+                  "no W trace (~5.5 GB per 10 s phase); w_final kept"),
+        ],
+    }
+
+
 _BUILDERS = {
     "AT-01": _spec_at01,
     "AT-02": _spec_at02,
@@ -455,6 +490,7 @@ _BUILDERS = {
     "AT-08": _spec_at08,
     "AT-09": _spec_at09,
     "AT-10": _spec_at10,
+    "AT-10-N20": _spec_at10_n20,
 }
 
 
