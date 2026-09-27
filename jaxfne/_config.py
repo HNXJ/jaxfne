@@ -1251,46 +1251,54 @@ class Configuration:
         noise_policy: str = "additive_poisson",
         trial_variability: bool = False,
     ) -> "Configuration":
-        """Declare drive (stimulus and noise) specification.
+        """Declare the baseline drive by cell type.
 
-        This method stores declarative drive metadata: baseline external input,
-        evoked windows, noise policy, and trial variability settings.
-        No actual stimulus envelope generation occurs; all parameters are
-        metadata only.
+        ``baseline_drive_by_cell_type`` reaches the emitter at construction.
+        No other field has a consumer (P-015), so each accepts only its
+        neutral value and refuses anything else rather than recording a
+        drive that never executes. Time-varying input: ``stimulus_schedule``
+        passed as ``paradigm``; noise: ``Simulation(poisson_drive=...)`` or
+        ``RuntimeConfig(noise_scale=...)``.
 
         Parameters
         ----------
         baseline_drive_by_cell_type : dict[str, float], optional
             Baseline external drive per cell type. Default:
             {"E": 5.0, "PV": 3.0, "SST": 3.5, "VIP": 3.0}.
-        drive_by_layer : dict[str, float], optional
-            Layer-specific drive overrides. Default: {} (no override).
-        drive_by_area : dict[str, float], optional
-            Area-specific drive overrides. Default: {} (no override).
+        drive_by_layer, drive_by_area : dict[str, float], optional
+            Refused unless empty (no consumer).
         time_schedule : str, optional
-            Drive schedule type: "constant", "ramp", "pulse", or a path.
-            Default: "constant".
+            Refused unless "constant" (no consumer).
         evoked_windows : list[tuple], optional
-            List of (onset_ms, duration_ms) pairs for evoked responses.
-            Default: [] (no evoked drive).
+            Refused unless empty (no consumer).
         oddball_or_omission_schedule : dict[str, list], optional
-            Oddball and omission event times. Default: empty dict.
+            Refused unless empty (no consumer).
         noise_policy : str
-            Noise type: "additive_poisson", "additive_gaussian", or "none".
-            Default: "additive_poisson".
+            Label only, validated: "additive_poisson", "additive_gaussian",
+            or "none". It does not create or remove noise.
         trial_variability : bool
-            Whether trial-to-trial variation is enabled. Default: False.
+            Refused unless False (no consumer).
 
         Returns
         -------
         Configuration
             Updated configuration.
 
-        Notes
-        -----
-        - All parameters are metadata only; no runtime I(t) generation.
-        - Actual stimulus envelope is generated at simulate() time.
         """
+        unconsumed = {
+            "drive_by_layer": bool(drive_by_layer),
+            "drive_by_area": bool(drive_by_area),
+            "time_schedule": time_schedule not in (None, "constant"),
+            "evoked_windows": bool(evoked_windows),
+            "oddball_or_omission_schedule": bool(oddball_or_omission_schedule),
+            "trial_variability": bool(trial_variability),
+        }
+        refused = [name for name, set_ in unconsumed.items() if set_]
+        if refused:
+            raise ValueError(
+                f"Configuration.drive: {refused} have no consumer and would not execute "
+                "(P-015); use stimulus_schedule(...) as paradigm for time-varying input"
+            )
         if baseline_drive_by_cell_type is None:
             baseline_drive_by_cell_type = {
                 "E": 5.0,

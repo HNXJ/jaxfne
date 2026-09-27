@@ -67,6 +67,18 @@ class TestDrive:
         assert drive["baseline_drive_by_cell_type"]["E"] == 5.0
         assert drive["noise_policy"] == "additive_poisson"
 
+    @pytest.mark.parametrize("kw", [
+        {"drive_by_layer": {"L4": 1.0}}, {"drive_by_area": {"V1": 1.0}},
+        {"time_schedule": "ramp"}, {"evoked_windows": [(10.0, 5.0)]},
+        {"oddball_or_omission_schedule": {"oddball": [100.0]}}, {"trial_variability": True},
+    ])
+    def test_drive_refuses_unconsumed_fields(self, kw):
+        """P-015: fields without a consumer refuse non-neutral values."""
+        with pytest.raises(ValueError, match=f"{next(iter(kw))}.*no consumer"):
+            jtfne.Configuration().drive(**kw)
+        jtfne.Configuration().drive(**{k: type(v)() if not isinstance(v, str) else "constant"
+                                       for k, v in kw.items()})
+
     def test_drive_invalid_noise_policy(self):
         """Test .drive() rejects invalid noise_policy."""
         with pytest.raises(ValueError, match="noise_policy"):

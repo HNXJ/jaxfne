@@ -132,13 +132,15 @@ than silently compiled without the cap. See
 ## Emitters
 
 `.set_emitter(family="izhikevich", preset="cortical_eig")` / `.emitter(**)`,
-`.drive(baseline_drive_by_cell_type=, drive_by_layer=, drive_by_area=,
-time_schedule=, evoked_windows=, noise_policy=, ...)`.
+`.drive(baseline_drive_by_cell_type={...})`. Layer/area drives, time
+schedules, evoked windows, oddball schedules and trial variability are
+refused (no consumer; P-015); `noise_policy` is a label only.
 `.cell_type_drives({...})` is refused (it was never consumed; P-014).
 
 Specificity dial: the neuron model and its input. The built-in Izhikevich emitter
-is tunable and float32-stable; `.drive(...)` sets baseline/laminar/evoked input
-and noise. For real channel biophysics and morphology, bridge a **Jaxley** model
+is tunable and float32-stable; `.drive(...)` sets the baseline input per cell
+type; time-varying input is `stimulus_schedule(...)` passed as `paradigm`, and
+noise is `Simulation(poisson_drive=...)`. For real channel biophysics and morphology, bridge a **Jaxley** model
 in as the emitter (see [Jaxley Interoperability](jaxley_interop.md)) — a Jaxley
 HH network exports real transmembrane ionic current, the physical generator of
 the extracellular field.

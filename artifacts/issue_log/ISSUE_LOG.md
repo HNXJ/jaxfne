@@ -590,6 +590,13 @@ requires separate authorization.
 - **evidence:** grep 2026-09-26
 - **possible future change:** refuse non-empty values (same rule as P-014)
   unless a consumer is built; open
+- **resolution (2026-09-27, agent, recommended default after P-014):**
+  `drive()` refuses non-neutral `drive_by_layer`, `drive_by_area`,
+  `time_schedule` (other than "constant"), `evoked_windows`,
+  `oddball_or_omission_schedule`, `trial_variability`; no caller passed
+  any. `noise_policy` stays a validated label, documented as not creating
+  noise (existing tests pin its default). Tests:
+  `test_configuration_domains_complete.py::TestDrive`.
 
 ### P-016
 - **date:** 2026-09-26

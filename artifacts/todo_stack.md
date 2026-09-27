@@ -858,10 +858,7 @@ Details stay in "Carried staging" below. In order:
    pages, and any committed result of the migrated scripts
    (benchmark_050_baseline, mcc3_10s_scientific_checkpoint,
    run_heterogeneous_emitters_etude, run_multiscale_observation_etude).
-10. P-015: `drive(drive_by_layer=, drive_by_area=, ...)` fields are stored,
-    not consumed; refuse non-empty values (P-014 rule) unless a consumer
-    is built.
-11. P-016: slow pin `test_population_restoring_etude_regression_metrics`
+10. P-016: slow pin `test_population_restoring_etude_regression_metrics`
     fails at HEAD; bisect to its cause before any re-freeze.
 
 ## Tracks (parallel after the baseline)
