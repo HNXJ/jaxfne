@@ -61,66 +61,19 @@ tests/test_memory_brief.py; keep SHAs, versions, counts and status out. -->
 | `MEMORY.md` | Verified reusable failure lessons (root) |
 | `CITATION.cff` | Citation metadata |
 
-### `jaxfne/` key files (flat core) and subpackages
-
-| Path | Purpose |
-|---|---|
-| `jaxfne/__init__.py` | Root re-exports; `__all__` comes from `public_surface.PUBLIC_EXPORTS` |
-| `jaxfne/public_surface.py` | Tier contract: CANONICAL / ADVANCED / COMPATIBILITY / EXPERIMENTAL_INTERNAL; `hdp_params` semantic groups |
-| `jaxfne/core.py` | Re-export hub for the construct/simulate surface |
-| `jaxfne/_construct*.py` | Implementation split: `_construct_core.py` (`simulate`, `compute_fields`, `construct`), `_construct_connectivity.py` (`connect`, `ensemble_member_seed`, `ensemble_edge_ownership`), `_construct_presets.py` (`configuration`, `simulation`, `runtime`), `_construct_population.py`, `_construct_extras.py` (`get_signal`) |
-| `jaxfne/_config.py` | `Configuration` fluent builder |
-| `jaxfne/_model*.py` | `Model` incl. `_model_simulate.py` (`simulate`), `_model_manifest.py` (`manifest`), `_model_evaluate.py`, `_model_tune.py`, `_model_readout.py` |
-| `jaxfne/_signals.py` | `Signals`, `Signal`, `Simulation`, `Objective` |
-| `jaxfne/_runtime_config.py` | `RuntimeConfig` execution policy (backend/dtype/jit/vmap/kernels) |
-| `jaxfne/_pipeline.py` | `DynamicState`, `checkpoint_state`, `restore_state`, `compile_step_fn`, `scan_network`, `run_continuation` |
-| `jaxfne/neuronal_tensor.py` | `NeuronalTensor`, `Area`, `Layer`, `NeuronType`, `InterConnection`, `AreaConnection`, `Geometry3D`, `Pose3D`, `StaticParams`, `PlasticParams`, `RuntimeConfiguration`, canonical tensor loaders |
-| `jaxfne/tfne.py` | TFNE specification-language compiler (advanced tier, reached as `jaxfne.tfne`) |
-| `jaxfne/jdna/` | `PseudoGenome`, `develop`, canonical pseudogenome loaders, `completion.py` (TFNE→tensor completion) |
-| `jaxfne/emitters.py` | `Emitter`, `IzhikevichEmitter`, EIG/edge-list kernels, receptor specs/kinetics |
-| `jaxfne/emitters_homeostatic_ei.py` | Homeostatic E/I emitter variants |
-| `jaxfne/fields/` | `FieldOutput`, `LinearReadout`, source construction/projection, laminar probes, EEG/MEG/EMM proxies, CSD, cable filter, `population_rate`, `cross_area_coherence` |
-| `jaxfne/connectivity.py` | `compile_connection_rules`, JAX variant, weight/mechanism resolution |
-| `jaxfne/builders.py` | `build_laminar_column`, `build_multi_area_columns`, `connect_columns`, column presets/tables, `validate_configuration` |
-| `jaxfne/presets.py` | `CELL_TYPE_PRESETS`, `RECEPTOR_KINETICS`, `DEFAULT_SPIKE_IMPULSE_GAIN` |
-| `jaxfne/hdp_network.py` | HDP kernels, `DEFAULT_HDP`, `plasticity_mask` validation |
-| `jaxfne/hdp_rule.py` | Registrable rules: `register_hdp_rule`, `HDPRuleContext/Descriptor/Update` |
-| `jaxfne/_hdp_adaptive.py`, `jaxfne/_hdp_registrable_kernel.py` | Adaptive/registrable HDP kernel internals |
-| `jaxfne/plasticity.py` | STDP config/state/update (`STDPPlasticityConfig`, `update_stdp_weights_jax`) |
-| `jaxfne/w1a_omega_plasticity.py`, `jaxfne/w1b_shadow_plasticity.py` | Protocol-W plasticity lanes |
-| `jaxfne/w2_parameter_expression.py`, `jaxfne/w3_stability_analysis.py`, `jaxfne/w3a_stability_analysis.py`, `jaxfne/w3b_parameter_domain.py` | Protocol-W analysis lanes |
-| `jaxfne/intervene.py` | Causal intervention objects with manifest roundtrip |
-| `jaxfne/optim/` | `agsdr`, `gsdr`, `gsgd`, `random_search`, `optax_adam/sgd`, optimizer specs/states |
-| `jaxfne/objectives.py`, `jaxfne/paradigm.py` | Objectives; `Paradigm`, oddball/DMS/evoked paradigms |
-| `jaxfne/solvers.py` | `euler_step`, `euler_scan`, `EulerSolver`, `DiffraxSolver`, `SolverConfig`, `solve_ode` |
-| `jaxfne/bridges.py` | `JaxleyBridge`, `JaxleyEmitterBridge`, `JaxFemFieldBridge`, trace↔`Signals` converters, `require_jaxley/jax_fem` |
-| `jaxfne/stimulus.py` | `triangular_drive` and drive helpers |
-| `jaxfne/streaming.py` | `run_stdp_stream` (STDP runs here, not in `simulate`) |
-| `jaxfne/geometry.py` | `make_ei_cloud_network` |
-| `jaxfne/analysis/`, `jaxfne/analysis/spectral.py` | Metrics; `spectrolaminar_psd_jax`, `bandpower_jax`, similarity kernels |
-| `jaxfne/vis/` | View layer only: `atlas_suite.py` (7-panel Atlas), `visualize.py`, `network3d.py`, `fields.py`, plotly/matplotlib panels; lazy-imported (zero graphics overhead on `import jaxfne`) |
-| `jaxfne/io.py` | `manifest`, `save_receipt`, `save_json`, `config_hash`, `sha256_*`, `validation_report`, `probe_report`, `asset_hashes` |
-| `jaxfne/export.py` | `save_figure(s)`, `export_report`, `export_tutorial_artifacts` |
-| `jaxfne/validation.py` | `compilation_registry`, `is_valid_signal` |
-| `jaxfne/util.py` | `validate_*`, `*_diff`, `tensor_summary`, `canonical_compact_summary` |
-| `jaxfne/units.py` | Dtype-keyed epsilon/dither defaults + `warn_dt_dtype_mismatch` (warn-only) |
-| `jaxfne/sharding_utils.py` | Sharding stubs (experimental-internal) |
-| `jaxfne/sanity_delta.py`, `jaxfne/sanity_runtime.py` | Hierarchical-oddball sanity API (experimental-internal) |
-| `jaxfne/pynwb_compat.py` | NWB compat placeholder (see the todo stack before building on it) |
-| `jaxfne/tutorial_utils.py` | Tutorial scaffolds incl. `build_laminar_column` alias root as `build_tutorial_laminar_column` |
-| `jaxfne/configs/` | Canonical `NeuronalTensor` JSON genomes (e.g. `canonical-v1-column-1000n`) |
-| `jaxfne/experiment_a/`, `jaxfne/experimental_hpc/`, `jaxfne/protocol_c/`, `jaxfne/protocol_d_biological_rbs/`, `jaxfne/protocol_e_integration/`, `jaxfne/publication/` | Protocol/experiment subpackages (advanced) |
+`jaxfne/` modules and entry points: §3. File-level splits: `jaxfne/_construct*.py`,
+`jaxfne/_model*.py`; protocol subpackages (`jaxfne/experiment_a/`, `jaxfne/protocol_*`) are advanced.
 
 ### `artifacts/` (project state and evidence)
 
 | Path | Purpose |
 |---|---|
-| `artifacts/AGENTS.md` | Binding agent rules ( grammars, evidence, work loop, H-series) |
-| `artifacts/todo_stack.md` | Remaining work only; done items are removed, not ticked |
+| `artifacts/AGENTS.md` | Thin rule router; full rules in `artifacts/harness/evidence_and_workflow_rules.md` |
+| `artifacts/todo_stack.md` | Remaining work only; sealed stacks in `artifacts/archive/` |
 | `artifacts/fact_stack.md` | Stable human-authorized facts (challenge, don't edit) |
 | `artifacts/programme/` | Per-item receipts (`*_receipt.md`), `atlas_coverage.json`, `atlas_gap_05*.md`, `capability_*.md`, TFNE conformance receipts |
 | `artifacts/project_sources/` | Authoritative spec sources (`8_atlas.md` = Atlas source; `6_other_important_notes.md` = long-term plan; `4_tfne_theory_and_neural_tensor.md`) |
-| `artifacts/atlas/` | Atlas assays: `at01_at10_toy.py`, `at01_at06_052.py`, `at07_at04_053.py`, `at08_at09_054.py` |
+| `artifacts/atlas/` | Atlas assays (`at*.py`, incl. `at10_n20_055.py`), registry `at_manifest.py`, results in `artifacts/atlas/results/` |
 | `artifacts/release/` | Per-version release receipts + `current_release_authorities.json` |
 | `artifacts/release_candidate/` | RC working area |
 | `artifacts/publication/` | Frozen Figure 1–7 snapshot; `frozen_manifest.json` enumerates immutable files |
@@ -322,17 +275,8 @@ python3 -m mkdocs build --strict
 
 ## 7. Project state and control files
 
-| File | Lives there | Who may edit |
-|---|---|---|
-| `artifacts/todo_stack.md` | Remaining work only (0.5.x ENGINE∥ATLAS stacks, decisions, acceptance); evidence stays in git/tests/receipts | Agents: small in-place amend/reorder/annotate; never wholesale rewrite; re-read before editing (concurrent human + agent editors) |
-| `artifacts/fact_stack.md` | Stable authorized facts (HDP, RBS/RBD, continuation ownership, configured≠realized≠executed≠effective, relative≠calibrated, proxy≠measurement) | Human authorization only; agents read/use/test/challenge, flag contradictions |
-| `artifacts/programme/` | Item receipts, `atlas_coverage.json` (requirement rows `AT-0n-R<k>`, states PLANNED/SUPPORTED/VALIDATED/CANONICAL/OUT_OF_SCOPE, `seal_rule`, `sealed_releases`), `atlas_gap_05*.md`, `capability_*.md` | Task owners append receipts; coverage checked mechanically by `scripts/check_atlas_coverage.py` (a PLANNED row in a sealed release fails) |
-| `artifacts/release/` | Per-version receipts + `current_release_authorities.json` (version-specific release authorities) | Release tasks only |
-| `artifacts/atlas/` | Executable Atlas assays (`at01_at10_toy.py`, `at01_at06_052.py`, `at07_at04_053.py`, `at08_at09_054.py`) and the frozen Y schema `y_schema.py`; firewall-pinned to public surface | Atlas lane tasks |
-| `artifacts/skills/` | Canonical skill sources (8 skills) | Edit canonical → `scripts/harness/sync_skills.py --update --manifest` → verify; never hand-edit mirrors |
-| `scripts/harness/HARNESS_MANIFEST.json` | Hashes of kernel/router/skills/gates/schemas (harness v2.1) | Harness sync flow only |
-| `artifacts/publication/frozen_manifest.json` | Enumerates immutable Figure 1–7 artifacts | Immutable |
-| `scratch/CURRENT_TASK.md` | Active `mode:` (READ/CODE/SCIENCE/RELEASE/PUBLICATION) for Gate 0 + compact `C_*` identity lines | Runtime-generated, gitignored; referenced via allowlist, never hard-required |
+Roles and edit rules: `artifacts/AGENTS.md` (Project control). Coverage rows:
+`artifacts/programme/atlas_coverage.json`, checked by `scripts/check_atlas_coverage.py`.
 
 ## 8. Conventions and pitfalls
 

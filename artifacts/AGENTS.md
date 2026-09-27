@@ -1,27 +1,10 @@
 # jaxfne — minimal persistent context
 
-## Harness (2026-08-15, v2.1)
+## Harness
 
-- **Identity vs integrity.** Workspace identity = (root, git root, remote, workspace id),
-  validated by `~/.config/opencode/gates/workspace-gate.sh` against
-  `workspaces/jaxfne-analysis.json`. Editing rule files (AGENTS.md, skills) never invalidates
-  identity. The gate protects filesystem mutation targeting only; effective injected context
-  is proven by fresh-session launch from this clone.
-- **Integrity.** `HARNESS_MANIFEST.json` records hashes of kernel, router, canonical skills,
-  generated mirrors, gates, schemas. Change flow: edit canonical `artifacts/skills/` → run
-  `scripts/harness/sync_skills.py --update --manifest` → verify. Mirrors (tool-local,
-  outside the repository, e.g. `~/.config/opencode/skills/`) are generated, never manually edited.
-- **Frozen evidence.** `artifacts/publication/frozen_manifest.json` explicitly enumerates the immutable
-  publication artifacts (`artifacts/publication/**`, `artifacts/figures/publication/*.png`). New polish
-  layer outputs (`artifacts/figures/publication/final/**`, `fig*_polish_{spec,audit,receipt}.json`) are
-  writable under the authorized publication task; frozen files are not.
-- **Checkpoint.** `scratch/CURRENT_TASK.md` supplies active `mode:` for Gate 0 and
-  compact C_* identity lines for release bookkeeping. Version-specific release
-  authorities live in `artifacts/release/current_release_authorities.json`.
-- **Routing.** mode ∈ {READ, CODE, SCIENCE, RELEASE, PUBLICATION}; facets ⊆ {CODE, REPO,
-  SCIENCE, EVIDENCE_AUDIT, RELEASE}. Skills load compositionally from both.
-- Root freeze patch: .opencode/ and `scripts/harness/` approved 2026-08-15 as the client
-  harness artifact (same reasoning that kept `skills/`).
+- **Integrity.** `scripts/harness/HARNESS_MANIFEST.json` hashes kernel, this router, canonical skills, mirrors, gates and schemas. Change flow: edit canonical `artifacts/skills/` or this file → `python scripts/harness/sync_skills.py --update --manifest` → verify. Tool-local mirrors are generated, never hand-edited.
+- **Frozen evidence.** `artifacts/publication/frozen_manifest.json` enumerates immutable publication artifacts. Release authorities: `artifacts/release/current_release_authorities.json`. `scratch/CURRENT_TASK.md` supplies the active `mode:` for Gate 0.
+- **Routing.** mode ∈ {READ, CODE, SCIENCE, RELEASE, PUBLICATION}; facets ⊆ {CODE, REPO, SCIENCE, EVIDENCE_AUDIT, RELEASE}. Skills load compositionally from both.
 
 ## Purpose
 
@@ -50,187 +33,30 @@ Paradigm, Objective, optimization/training utilities, visualization, and export 
 - General adaptive dynamics are conceptually `dX/dt = F_X`, `dH/dt = F_H`, `dTheta/dt = F_Theta`. RBD with fixed `W` is valid; plasticity rules are realizations of this grammar, not separate subsystems by default.
 - Preserve biological identity, topology, signs, receptor/mechanism identity, geometry, locality, and declared parameter ownership through compilation and optimization.
 - Source, field, probe, objective, and calibration semantics remain explicit. A projection, proxy, PDE solve, calibration, and validation status are distinct concepts.
+- A public parameter either changes the realized object or is refused; stored-but-unconsumed parameters are defects (P-014, P-015).
 
-## Authority
+## Authority and evidence
 
-For current mathematical specification, use the repository's authoritative project-source set when present. For implemented behavior, inspect live `jaxfne/` code and tests. For public explanation, inspect README/docs. For current repository state, use generated state/audit scripts when available.
-
-Do not store SHAs, versions, benchmark timings, test counts, bug lists, implementation line numbers, or temporary release state in persistent rules.
-
-## Evidence
-
-Keep these distinct:
-
-- SPECIFIED — required by authoritative specification.
-- IMPLEMENTED — present in the checkout.
-- TESTED — covered by an executable test/verification receipt.
-- OBSERVED — measured in a named run/environment.
-
-Scientific experiments preserve failed prospective receipts. Do not tune a frozen protocol/controller after observing its validation outcome unless a new protocol is explicitly declared.
+- Mathematical specification: the project-source set (`artifacts/project_sources/`). Implemented behavior: live `jaxfne/` code and tests. Public explanation: README/docs. Repository state: generated state/audit scripts.
+- Keep distinct: SPECIFIED · IMPLEMENTED · TESTED · OBSERVED. Preserve failed prospective receipts; never tune a frozen protocol after seeing its outcome unless a new protocol is declared.
+- Do not store SHAs, versions, timings, test counts, bug lists or line numbers in persistent rules.
 
 ## Repository behavior
 
-- Read `artifacts/memory.md` first: the project brief (layout, package map, gates, conventions).
-- Read the smallest relevant skill under `artifacts/skills/` for procedure.
-- Verify unfamiliar public symbols against live code before using them.
-- Prefer package-native scientific operators over notebook/script-local duplicate engines.
-- Keep reusable plotting in the visualization layer.
-- Use targeted tests during development; broader/release gates are separate evidence tiers.
-- Do not commit, push, tag, release, or mutate remote state without explicit authorization. Under an explicitly authorized task and the standing completion rule below, routine non-force `git push origin dev` is part of step completion; tagging, main merge, release publication, force push, and other exceptional remote operations always require separate authorization.
-- Public README/docs should be compact mathematical descriptions using positive definitions; engineering history and agent governance stay outside public scientific documentation.
+- Read `artifacts/memory.md` (project brief) and the smallest relevant skill under `artifacts/skills/` (router: `artifacts/context.md`).
+- Verify unfamiliar public symbols against live code. Prefer package-native operators; reusable plotting lives in the visualization layer.
+- Targeted tests while iterating; `python scripts/run_test_gate.py broad` before pushing code.
+- Routine non-force `git push origin dev` is part of step completion under an authorized task; tags, main, releases, force push need separate authorization.
+- Public docs are compact positive mathematical descriptions; agent governance stays out of them.
 
 ## Project control
 
-Two files, distinct roles:
-
 | File | Role |
 |------|------|
-| `artifacts/fact_stack.md` | Stable, human-authorized facts. Agents read/use/test/challenge — **do not edit without explicit human authorization.** Not evidence. |
-| `artifacts/todo_stack.md` | Remaining work only. |
+| `artifacts/fact_stack.md` | Stable, human-authorized facts. Read, use, test, challenge — **do not edit without explicit human authorization.** Not evidence. |
+| `artifacts/todo_stack.md` | Remaining work only; done items are deleted (git and receipts keep history). Sealed stacks are archived byte-for-byte under `artifacts/archive/`. |
+| `artifacts/issue_log/ISSUE_LOG.md` | Open issues (P-NNN). |
 
-`todo_stack.md` contains **only work not yet done**.
+Work loop `P (R G)^N S`: prepare from the todo stack → review the last result → do the next item → test → commit + push `dev` → repeat; stop only for a human decision that blocks all remaining work. After each feature, run an adversarial review with a separate agent (opencode muse, `review` tier; packet template `artifacts/harness/review_packet_template.md`) and fix or record every finding.
 
-Example:
-
-```text
-# i.j.k
-- do this
-- do that
-- test this
-- if X: do Y; else: do Z
-
-# i.j.(k+1)
-- ...
-```
-
-Done item → remove it. Git, tests, and receipts keep the history and evidence.
-
-### Work loop
-
-Use:
-
-```text
-P (R G)^N S
-```
-
-**P — Prepare**
-
-- inspect current state and evidence;
-- update `todo_stack.md`;
-- order remaining work.
-
-**R — Review**
-
-- review the last result;
-- update `todo_stack.md`;
-- choose the next item;
-- if there are validated Git changes: commit, push to `dev`, verify sync.
-
-**G — Progress**
-
-- do the selected item;
-- test it;
-- return to R.
-
-**N**
-
-- keep doing R → G while useful work remains;
-- stop only when an important human decision blocks all remaining work.
-
-**S — Seal**
-
-- verify the version/release is complete;
-- update `todo_stack.md`;
-- remove completed items;
-- commit, push to `dev`, and verify clean sync.
-
-### Rules
-
-- `todo_stack.md` = remaining work only. It is not history or evidence.
-- Do not stop after one TODO.
-- Do not make empty commits.
-- Do not skip commit/push of validated changes.
-- Do not pass a version boundary before sealing it.
-
-## Review and evidence discipline (H-series, 0.4.17 reconciliation)
-
-- **H1 External review is hypothesis generation, not authority.** Findings
-  from another model, reviewer, benchmark, static analyzer, or prior session
-  are hypotheses until independently reproduced against the current
-  authoritative state. Preserve the finding and its provenance; do not
-  mutate solely from the finding.
-- **H2 Hard-gate claims require receipts.** Never infer `READY`, `PASS`,
-  `100/100`, release readiness, or scientific validation from partial or
-  focused tests. A hard-gate claim requires the exact declared gate to have
-  completed successfully on the state being sealed.
-  `feature works ≠ release is sealed`.
-- **H3 Reconcile arithmetic before Seal.** Before Seal, mechanically
-  reconcile test counts, score sums, file counts, hashes, and other
-  arithmetic appearing in the report. Contradictory receipts invalidate the
-  corresponding claim until resolved.
-- **H4 Serialization is an epistemic boundary.** For state/provenance/
-  identity claims, test in-memory behavior and serialization roundtrip
-  separately. Do not infer persistence from in-memory presence. Use
-  `IN_MEMORY_ONLY` / `PRESERVED` / `PRESERVED_ELSEWHERE` / `PARTIALLY_LOST`
-  / `LOST` when useful.
-- **H5 Adversarial validation must include counterexamples.** Validators
-  and constrained generative operators must be tested with adversarial
-  invalid and boundary inputs, not only canonical happy paths. When an
-  operator promises a feasible constrained output, test feasibility,
-  invalid-domain rejection, boundary cases, and roundtrip semantics.
-- **H6 Algorithm names are mathematical specifications.** If multiple
-  implementations share an algorithm name, compare their state, update
-  equations, hyperparameter semantics, randomness, selection, bounds, and
-  termination. Do not call materially non-equivalent engines canonical
-  instances of one algorithm without an explicit relationship. A public
-  hyperparameter with the same name must not silently mean different
-  mathematics across canonical paths.
-- **H7 Dead public parameters are defects until classified.** If a public
-  parameter is accepted but has no effect on a reachable canonical path,
-  classify it explicitly as dead, compatibility-only, ignored-by-design,
-  or defective. Never document it as active without behavioral evidence.
-- **H8 General theory versus specialization.** A valid specialization is
-  not a contradiction of a general theory. For a finite-dimensional state
-  `H ∈ R^{d_H}`, `d_H=1` is a valid finite-dimensional realization unless
-  rule explicitly requires `d_H>1`. `RBS ≠ homeostasis` means RBS is
-  not intrinsically defined as homeostasis; it does not prohibit a
-  particular RBS realization from having homeostatic dynamics.
-- **H9 Do not impose textbook semantics over project-defined mathematics.**
-  For project-defined or published algorithms, verify semantics against
-  the project's canonical mathematical definition and original publication
-  before importing external textbook requirements.
-- **H10 Scholarly references require primary verification.** Before adding
-  or preserving a scholarly citation used to justify theory, verify title,
-  authors, year, venue/identifier, and relevance against a primary or
-  authoritative bibliographic source. Never infer a citation from a search
-  snippet or model memory. A citation mismatch in public scientific
-  documentation is release-blocking until corrected.
-- **H11 Generated-artifact tests must work from a fresh clone.** Tests must
-  not depend on untracked, gitignored, or locally generated artifacts
-  unless the test itself generates them in an isolated temporary directory
-  or the artifact is an explicitly tracked release input.
-- **H12 Concurrent-worktree drift is a first-class event.** Capture
-  worktree state before long tests/generators. If tracked state changes
-  unexpectedly, do not attribute the change to the current task without
-  evidence.
-- **H13 Model/reviewer identity and provenance.** Every audit/report must
-  record model identity if exposed, exact repository SHA, package version,
-  date/time, tool profile, and protocol version. Use `UNKNOWN`; never guess
-  model identity.
-- **H14 Review should challenge both positive and negative conclusions.**
-  Adversarial Review must attempt to falsify both "this works" and "this
-  is broken." A criticism is not validated merely because a counterexample
-  sounds plausible.
-
-## Step completion rule (operational)
-
-At the end of each successfully validated discrete development or protocol step:
-
-```text
-specify → implement → test → freeze evidence → commit → push dev → verify → next step
-```
-
-1. Commit the complete scoped delta for that step only.
-2. Push to `origin/dev`.
-3. Verify `dev == origin/dev` and a clean working tree before declaring the step complete or beginning the next step.
-4. Do not bundle unfinished work from the next step into that commit.
+Full rules (work loop, H1–H14 review and evidence discipline, step completion): `artifacts/harness/evidence_and_workflow_rules.md`.
