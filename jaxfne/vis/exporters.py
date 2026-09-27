@@ -12,6 +12,20 @@ def _is_plotly_figure(fig) -> bool:
     return type(fig).__module__.startswith("plotly.")
 
 
+# Kaleido's headless browser can fail to shut down under parallel load (P-011);
+# only that teardown error is retried, once. Any other error propagates.
+_KALEIDO_TEARDOWN = "Couldn't close or kill browser subprocess"
+
+
+def _write_image(fig, out: str) -> None:
+    try:
+        fig.write_image(out)
+    except RuntimeError as exc:
+        if _KALEIDO_TEARDOWN not in str(exc):
+            raise
+        fig.write_image(out)
+
+
 def export_figure(fig, path, *, formats: tuple = ("html",), dpi: int = 150) -> dict[str, str]:
     """Export one figure (matplotlib or plotly) to one or more formats.
 
@@ -31,7 +45,7 @@ def export_figure(fig, path, *, formats: tuple = ("html",), dpi: int = 150) -> d
             if fmt == "html":
                 fig.write_html(str(out), include_plotlyjs="cdn")
             elif fmt in ("png", "svg", "pdf"):
-                fig.write_image(str(out))
+                _write_image(fig, str(out))
             else:
                 raise ValueError(f"unsupported plotly export format: {fmt!r}")
             written[fmt] = str(out)
@@ -66,7 +80,7 @@ def export_figures(figures: dict, output_dir, *, formats: tuple = ("html", "png"
                 if fmt == "html":
                     fig.write_html(str(out), include_plotlyjs="cdn")
                 else:
-                    fig.write_image(str(out))
+                    _write_image(fig, str(out))
             else:
                 fig.savefig(str(out), dpi=dpi, bbox_inches="tight")
             manifest[name][fmt] = str(out)

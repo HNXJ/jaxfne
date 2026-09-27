@@ -3,7 +3,7 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-09-27T13:22:21",
+  "generated_at": "2026-09-27T15:42:14",
   "components": {
     "project_agents": {
       "file": "artifacts/AGENTS.md",
@@ -23,7 +23,7 @@
       "jaxfne-seal": "765975a6878f1e8f9ac2e0029b0bd43924f2afc0b61f9a4312d45d321a5ba7d0",
       "jaxfne-simulate": "7ffaf0cb90536b0d5d8e384d1948a8cb9db7f89c5a9f45535a94c0bb501ee333",
       "jaxfne-state": "e65d0096cb066a209dfee3ecc5f581d85867bbf4f0e1e4c9065bb4bc4efabb91",
-      "jaxfne-verify": "c8a1066c4330c399951c64188fa98d4f710a8b7e354d59da558bb7c9fc06f218",
+      "jaxfne-verify": "5a00f375cfc544c3444d2bde517d110046b1c03a02c84bfb95f386725cb120cd",
       "jaxfne-workflow": "757b342d599fb2ed4be39d528d9af81451fd40e299e07b952ba790ffdb580cd7",
       "vocabulary-audit": "eb0da2fb9c79d7bae4010a109794080f507a7cec1179d7a59b86f0dc3a5f1691"
     },

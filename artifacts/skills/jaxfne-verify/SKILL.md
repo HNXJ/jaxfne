@@ -23,6 +23,8 @@ Before reporting a result, and after any change to a spec, builder or runner.
 1. `jaxfne.agent.compare(run)`: read each class verdict and its missing/extra samples.
 2. `jaxfne.agent.verify(run, p)` for every property the claim relies on.
 3. Build one counterexample run and confirm the property FAILs on it.
+4. After a feature: adversarial review by a separate agent with
+   `artifacts/harness/review_packet_template.md`; verify each finding before acting.
 
 ## STOP
 - Any FAIL; `NOT_APPLICABLE` where the claim needs the configured side.

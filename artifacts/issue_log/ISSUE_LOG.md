@@ -3,28 +3,13 @@
 Open issues only. Closed entries (I-001…I-014, P-001…P-010, P-014, P-015) and
 their verdicts are archived byte-for-byte at
 `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md`. A new issue takes the next
-free P-ID; a solved issue gets a resolution line, then moves to the archive.
+free P-ID; a solved issue gets a resolution line, then moves to `artifacts/archive/0.5.x/issues_closed.md`.
 
 Entry fields: date, type (`BUG` `FRICTION` `DOC` `PERF` `SCIENCE` `IDEA`),
 area, observation, severity, minimal reproduction, expected, actual, evidence,
 possible future change.
 
 ## Open
-
-### P-011
-- **date:** 2026-09-25
-- **type:** FRICTION
-- **area:** Kaleido static export under xdist load
-- **observation:** `test_vis_smoke[exporters.export_figures]` failed once in the
-  broad gate with `RuntimeError: Couldn't close or kill browser subprocess`
-  (choreographer/Kaleido browser teardown), on a tree that changed neither
-  `jaxfne/vis/exporters.py` nor the test.
-- **severity:** MINOR (teardown of the headless browser; no output semantics)
-- **minimal reproduction:** broad gate (`-n auto`); alone it passes 3/3
-- **expected behavior:** stable PASS
-- **actual behavior:** intermittent FAIL under parallel load
-- **evidence:** broad gate on `d0d7360` 2026-09-25 (1 failed / 4430 passed); isolated reruns 3/3 PASS. Recurred 2026-09-26 (broad gate before 99482f7) and 2026-09-27 (before the AT-10-N20 commit), each isolated rerun PASS: a gate fix is now due
-- **possible future change:** retry Kaleido teardown once, or serialize Kaleido tests (xdist group); open
 
 ### P-012
 - **date:** 2026-09-25
