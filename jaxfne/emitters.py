@@ -247,8 +247,21 @@ def _cell_labels(n: int, cell_type_fractions: Mapping[str, float]) -> tuple[str,
     labels: list[str] = []
     remaining = int(n)
     items = list(cell_type_fractions.items()) or [("E", 1.0)]
-    for idx, (name, frac) in enumerate(items):
-        count = int(round(n * float(frac))) if idx < len(items) - 1 else remaining
+    values: list[tuple[str, float]] = []
+    for name, frac in items:
+        value = float(frac)
+        if not np.isfinite(value) or value < 0.0:
+            raise ValueError(
+                f"cell_type_fractions[{str(name)!r}] must be finite and non-negative; got {frac!r}"
+            )
+        values.append((str(name), value))
+    mass = sum(value for _, value in values)
+    if mass <= 0.0:
+        raise ValueError(f"cell_type_fractions must have positive mass; got {dict(values)!r}")
+    if abs(mass - 1.0) > 1e-9:
+        values = [(name, value / mass) for name, value in values]
+    for idx, (name, frac) in enumerate(values):
+        count = int(round(n * frac)) if idx < len(values) - 1 else remaining
         count = max(0, min(count, remaining))
         labels.extend([str(name)] * count)
         remaining -= count

@@ -391,3 +391,42 @@ def test_reseeding_keeps_a_matching_runtime_seed_consistent(model):
     result = model.run_trials(batch, sim)
     a, b = (r.signals for r in result.results)
     assert _output_differs(a, b)
+
+
+def test_plain_route_normalizes_fractions_above_unit_mass():
+    cfg = (
+        _C()
+        .network(n=2, cell_types={"E": 1, "PV": 1})
+        .emitter(family="izhikevich")
+        .field()
+        .probe(name="p")
+    )
+    assert tuple(jtfne.construct(cfg).params["emitter"].labels) == ("E", "PV")
+
+
+def test_plain_route_normalizes_fractions_below_unit_mass():
+    cfg = (
+        _C()
+        .network(n=10, cell_types={"E": 0.4, "PV": 0.4})
+        .emitter(family="izhikevich")
+        .field()
+        .probe(name="p")
+    )
+    labels = tuple(jtfne.construct(cfg).params["emitter"].labels)
+    assert sorted(labels) == ["E"] * 5 + ["PV"] * 5
+
+
+@pytest.mark.parametrize(
+    "cell_types",
+    [{"E": 1.0, "PV": -0.1}, {"E": float("nan")}, {"E": 0.0, "PV": 0.0}],
+)
+def test_plain_route_refuses_invalid_fractions(cell_types):
+    cfg = (
+        _C()
+        .network(n=6, cell_types=cell_types)
+        .emitter(family="izhikevich")
+        .field()
+        .probe(name="p")
+    )
+    with pytest.raises(ValueError):
+        jtfne.construct(cfg)
