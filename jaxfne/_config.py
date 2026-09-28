@@ -221,6 +221,18 @@ def _real_baseline(method: str, value: Any) -> float:
     return float(value)
 
 
+# Keys of connectivity() that construct reads, and route labels nothing reads that
+# stay labels (agent decision 2026-09-27); any other key is refused.
+_CONNECTIVITY_READ_KEYS = frozenset({
+    "p_connect", "within_area", "within_gain", "recurrent", "edge_seed", "tcm_v1_6pop",
+    "feedforward_gain", "feedback_gain",
+})
+_CONNECTIVITY_LABEL_KEYS = frozenset({
+    "feedforward", "feedback", "kind", "mode", "e_to_all", "i_to_all",
+    "excitatory_to_inhibitory", "inhibitory_to_excitatory",
+})
+
+
 def _check_edge_seed(value: Any) -> None:
     """Refuse a ``connectivity(edge_seed=)`` value that is not an int seed."""
     if value is None:
@@ -242,6 +254,7 @@ def edge_seed_from_metadata(metadata: Mapping[str, Any]) -> int:
     edge_seed = connectivity.get("edge_seed", None)
     if edge_seed is None:
         return int(metadata.get("seed", 0) or 0)
+    _check_edge_seed(edge_seed)  # metadata set without connectivity() skips the declaration check
     return int(edge_seed)
 
 
@@ -779,7 +792,22 @@ class Configuration:
         generator.  These declarations are exported so tutorials and future
         kernels can distinguish feedforward/feedback bookkeeping from the actual
         proxy simulation path.
+
+        construct reads ``p_connect``, ``within_area``, ``within_gain``,
+        ``recurrent``, ``edge_seed``, ``tcm_v1_6pop``, ``feedforward_gain`` and
+        ``feedback_gain``; the route labels ``feedforward``, ``feedback``, ``kind``,
+        ``mode``, ``e_to_all``, ``i_to_all``, ``excitatory_to_inhibitory`` and
+        ``inhibitory_to_excitatory`` are recorded only. Any other key is refused.
         """
+        for key in kwargs:
+            if key not in _CONNECTIVITY_READ_KEYS and key not in _CONNECTIVITY_LABEL_KEYS:
+                hint = (" connectivity_mode is top-level metadata: update_metadata(connectivity_mode=...)."
+                        if key == "connectivity_mode" else "")
+                raise ValueError(
+                    f"connectivity({key}=...) is not realized: construct reads "
+                    f"{sorted(_CONNECTIVITY_READ_KEYS)}; {sorted(_CONNECTIVITY_LABEL_KEYS)} are "
+                    f"kept as labels.{hint}"
+                )
         # Within-area edges are uniform random (dense at p_connect=1) and recurrent.
         if "within_area" in kwargs:
             _refuse_unrealized("connectivity", "within_area", kwargs["within_area"], ("all_to_all_uniform_random",))
@@ -1556,6 +1584,12 @@ class Configuration:
                 "SST": 3.5,
                 "VIP": 3.0,
             }
+        for cell_type, value in dict(baseline_drive_by_cell_type).items():
+            if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
+                raise ValueError(
+                    f"drive(baseline_drive_by_cell_type={{{cell_type!r}: {value!r}}}) is not realized: "
+                    "it takes a finite real number"
+                )
         if drive_by_layer is None:
             drive_by_layer = {}
         if drive_by_area is None:

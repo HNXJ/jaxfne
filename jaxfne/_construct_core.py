@@ -59,6 +59,7 @@ from ._construct_population import (
     _DENSE_CONNECTIVITY_WARN_N,
     _apply_baseline_drive,
     _apply_cell_params,
+    _declared_cell_types,
     _neuron_population_from_config,
 )
 from ._construct_extras import operator_status
@@ -658,8 +659,10 @@ def _construct_build_network(
             )
         network = make_eig_network(n=n, cell_type_fractions=cell_types)
         # drive() and cell_params() reach the emitter as on the population route (P-018).
-        params = _apply_baseline_drive(network.params, cfg.metadata)
-        params = _apply_cell_params(params, params.labels, None, cfg.metadata, params.a.dtype)
+        params = _apply_baseline_drive(network.params, cfg.metadata, _declared_cell_types(cfg))
+        params = _apply_cell_params(
+            params, params.labels, None, cfg.metadata, params.a.dtype, _declared_cell_types(cfg)
+        )
         network = replace(network, params=params)
         positions = network.positions
         geometry_meta = None
@@ -1133,7 +1136,7 @@ def _refuse_homeostatic_ei_dropped_declarations(cfg: Configuration) -> None:
             f"connectivity(recurrent={conn['recurrent']!r}) is not realized on the homeostatic_ei route: "
             "it builds a fixed conductance matrix"
         )
-    if meta.get("connectivity_mode") is not None:
+    if meta.get("connectivity_mode") not in (None, "unspecified"):
         raise ValueError(
             f"connectivity_mode={meta['connectivity_mode']!r} is not realized on the homeostatic_ei route: "
             "it compiles no connection rules"
@@ -1153,7 +1156,7 @@ def _refuse_homeostatic_ei_dropped_declarations(cfg: Configuration) -> None:
     if meta.get("drive") is not None:
         raise ValueError(
             "drive(...) is not realized on the homeostatic_ei route: "
-            "drive is fixed by the canonical circuit; time-varying input is refused at simulate"
+            "the canonical circuit fixes its drive"
         )
     _circuit = meta.get("circuit", {}) or {}
     if _circuit.get("connections"):
@@ -1377,6 +1380,13 @@ def _construct_from_configuration(
     emitter_params, edge_list = _apply_canonical_biophysics(
         network.params, positions, edge_list, cfg
     )
+    if cfg.metadata.get("canonical_biophysics"):
+        # cell_params() overrides the deep-E grading of a and d, which ran after it.
+        # The plain route builds one unlayered population (geometry_meta None).
+        emitter_params = _apply_cell_params(
+            emitter_params, emitter_params.labels, (geometry_meta or {}).get("layer_labels"),
+            cfg.metadata, emitter_params.a.dtype, _declared_cell_types(cfg),
+        )
     network = replace(network, params=emitter_params)
 
     cfg, edge_list = _construct_compile_connections(

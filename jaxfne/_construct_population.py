@@ -10,13 +10,20 @@ working on this split itself.
 
 from __future__ import annotations
 
+import math
+import numbers
 from dataclasses import replace
 from typing import Any, Mapping, Sequence
 
 import jax
 import jax.numpy as jnp
 
-from .emitters import EdgeList, IzhikevichParams, izhikevich_params_from_labels
+from .emitters import (
+    IZHIKEVICH_CELL_TYPE_DEFAULTS,
+    EdgeList,
+    IzhikevichParams,
+    izhikevich_params_from_labels,
+)
 from ._config import Configuration, _counts_from_fractions, edge_seed_from_metadata
 from ._construct_connectivity import _empty_edge_list, _interarea_W
 
@@ -115,7 +122,74 @@ def _area_layer_count_frac(metadata: Mapping[str, Any], area: str) -> dict[str, 
     return None
 
 
-def _apply_baseline_drive(params: IzhikevichParams, metadata: Mapping[str, Any]) -> IzhikevichParams:
+# Keys of make_eig_network's default cell-type mix (jaxfne/emitters.py): the
+# declared composition when a configuration names no cell types anywhere.
+_UNDECLARED_CELL_TYPES_DEFAULT = ("E", "PV", "SST", "VIP")
+
+
+def _declared_cell_types(cfg: "Configuration") -> set[str]:
+    """Cell types the configuration declares, whether or not count rounding
+    builds one of each: the union of the keys of ``networks[0]["cell_types"]``,
+    ``metadata["cell_types"]``, ``metadata["layer_cell_types"][*]`` and
+    ``metadata["area_layer_cell_types"][*][*]``. Empty (nothing declared
+    anywhere) falls back to the ``make_eig_network`` default mix, which is
+    what the plain route builds then."""
+    declared: set[str] = set()
+    networks = getattr(cfg, "networks", None) or []
+    if networks:
+        for key in (networks[0].get("cell_types") or {}):
+            declared.add(str(key))
+    metadata = getattr(cfg, "metadata", None) or {}
+    for key in (metadata.get("cell_types") or {}):
+        declared.add(str(key))
+    for per_layer in (metadata.get("layer_cell_types") or {}).values():
+        for key in (per_layer or {}):
+            declared.add(str(key))
+    for per_area in (metadata.get("area_layer_cell_types") or {}).values():
+        for per_layer in (per_area or {}).values():
+            for key in (per_layer or {}):
+                declared.add(str(key))
+    if not declared:
+        declared.update(_UNDECLARED_CELL_TYPES_DEFAULT)
+    return declared
+
+
+def _refuse_unmatched_baseline_drive(
+    labels: Sequence[str],
+    baseline: Mapping[str, Any] | None,
+    declared: set[str],
+) -> None:
+    """Refuse a ``drive(baseline_drive_by_cell_type=)`` entry that is not a
+    finite real number (metadata surgery bypassing ``drive()`` must fail as
+    ValueError, not TypeError), or that names a cell type in neither the built
+    population nor the declared composition -- unless it holds that cell
+    type's emitter default (the ``drive()`` defaults name all four types). A
+    declared-but-rounded-away type is accepted: the configuration names it, so
+    the entry is a count artifact, not a dropped declaration."""
+    present = set(labels)
+    for cell_type, value in (baseline or {}).items():
+        if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
+            raise ValueError(
+                f"drive(baseline_drive_by_cell_type={{{cell_type!r}: {value!r}}}) is not realized: "
+                "it takes a finite real number"
+            )
+        default = IZHIKEVICH_CELL_TYPE_DEFAULTS.get(str(cell_type), {}).get("drive")
+        if str(cell_type) in present or str(cell_type) in declared:
+            continue
+        if default is not None and float(value) == float(default):
+            continue
+        raise ValueError(
+            f"drive(baseline_drive_by_cell_type={{{cell_type!r}: {value!r}}}) is not realized: "
+            f"no neuron of the built population has that label (labels: {sorted(present)}), "
+            f"nor does the declared composition name it (declared: {sorted(declared)})"
+        )
+
+
+def _apply_baseline_drive(
+    params: IzhikevichParams,
+    metadata: Mapping[str, Any],
+    declared: set[str],
+) -> IzhikevichParams:
     """Apply ``drive(baseline_drive_by_cell_type=)`` to built parameters: a neuron whose
     label the map names takes that drive, the others keep their cell type's default,
     as ``izhikevich_params_from_labels(drive_overrides=)`` builds them."""
@@ -123,6 +197,7 @@ def _apply_baseline_drive(params: IzhikevichParams, metadata: Mapping[str, Any])
 
     spec = metadata.get("drive")
     baseline = spec.get("baseline_drive_by_cell_type") if isinstance(spec, dict) else None
+    _refuse_unmatched_baseline_drive(params.labels, baseline, declared)
     if not baseline:
         return params
     overrides = {str(k): float(v) for k, v in baseline.items()}
@@ -136,10 +211,14 @@ def _apply_cell_params(
     layer_labels: Sequence[str] | None,
     metadata: Mapping[str, Any],
     jdtype: Any,
+    declared: set[str],
 ) -> IzhikevichParams:
     """Apply ``cell_params()`` declarations in order: each sets ``a``/``b``/``c``/``d``/
     ``drive`` of the neurons its ``cell_type``/``layer`` selector matches.
-    ``layer_labels=None`` (an unlayered population) refuses a ``layer`` selector."""
+    ``layer_labels=None`` (an unlayered population) refuses a ``layer`` selector.
+    A ``cell_type`` selector matching no neuron is refused unless the type is in
+    the declared composition (declared but rounded away: accepted, applies to
+    no neuron)."""
     import numpy as np
 
     decls = (metadata.get("circuit") or {}).get("cell_params") or []
@@ -154,14 +233,23 @@ def _apply_cell_params(
                 f"cell_params(selector={dict(selector)!r}) is not realized on this construction "
                 "route: it builds one unlayered population"
             )
+        matched = 0
         for i in range(len(labels)):
             if "cell_type" in selector and labels[i] != selector["cell_type"]:
                 continue
             if "layer" in selector and layer_labels[i] != selector["layer"]:
                 continue
+            matched += 1
             for key in arrays:
                 if key in overrides:
                     arrays[key][i] = float(overrides[key])
+        if not matched:
+            if "cell_type" in selector and str(selector["cell_type"]) in declared:
+                continue
+            raise ValueError(
+                f"cell_params(selector={dict(selector)!r}) is not realized: it matches no neuron "
+                "of the built population"
+            )
     return replace(params, **{key: jnp.asarray(value, dtype=jdtype) for key, value in arrays.items()})
 
 
@@ -282,6 +370,7 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
     # Apply baseline_drive_by_cell_type from drive specification if present
     drive_spec = metadata.get("drive", {})
     baseline_drive = drive_spec.get("baseline_drive_by_cell_type") if isinstance(drive_spec, dict) else None
+    _refuse_unmatched_baseline_drive(labels, baseline_drive, _declared_cell_types(cfg))
 
     params = izhikevich_params_from_labels(
         labels,
@@ -295,7 +384,7 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
         build_dense_connectivity=False,
     )
     
-    params = _apply_cell_params(params, labels, layer_labels, metadata, jdtype)
+    params = _apply_cell_params(params, labels, layer_labels, metadata, jdtype, _declared_cell_types(cfg))
 
     positions = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3), dtype=jdtype)
     # Edge draws take the declared edge_seed when set, else the runtime seed;

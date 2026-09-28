@@ -428,6 +428,12 @@ def test_homeostatic_ei_dropped_declarations_are_refused(case):
         HOMEOSTATIC_EI_UNREALIZED[case]()
 
 
+def _hei_emitter_params_equal(a, b):
+    assert type(a) is type(b)
+    for f in dataclasses.fields(a):
+        assert np.array_equal(np.asarray(getattr(a, f.name)), np.asarray(getattr(b, f.name))), f.name
+
+
 def test_homeostatic_ei_route_accepts_neutral_values():
     cfg = (
         _C().network(n=4, name="ei", kind="cortical_column", p_connect=1.0)
@@ -441,7 +447,14 @@ def test_homeostatic_ei_route_accepts_neutral_values():
                  enable_hdp=False, enable_homeostasis=False, jit=False)
         .plasticity().homeostasis().hdp()
     )
-    assert jtfne.construct(cfg).static["n_contacts"] == 16
+    model = jtfne.construct(cfg)
+    assert model.static["n_contacts"] == 16
+    # Neutral declarations change nothing: the emitter equals the bare base
+    # built with the same runtime.
+    ref = jtfne.construct(_hei_base().runtime(
+        seed=0, duration_ms=20.0, dt_ms=0.5, random_v0=False,
+        enable_hdp=False, enable_homeostasis=False, jit=False))
+    _hei_emitter_params_equal(model.params["emitter"], ref.params["emitter"])
 
 
 @pytest.mark.parametrize("kwargs", [
@@ -619,3 +632,173 @@ def test_edge_seed_refused_on_the_homeostatic_ei_route():
     )
     with pytest.raises(ValueError, match="is not realized"):
         jtfne.construct(cfg)
+
+
+# Review fixes (agent decisions 2026-09-27/28): a public parameter either changes
+# the realized object or is refused. One test per fixed behaviour below.
+
+
+def test_connectivity_refuses_keys_nothing_reads():
+    with pytest.raises(ValueError, match="not realized"):
+        _C().connectivity(foo=1.0)
+    with pytest.raises(ValueError, match="connectivity_mode is top-level metadata"):
+        _C().connectivity(connectivity_mode="explicit")
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), True, "5"])
+def test_drive_refuses_a_non_finite_real_baseline_drive(value):
+    with pytest.raises(ValueError, match="not realized"):
+        _C().drive(baseline_drive_by_cell_type={"E": value})
+
+
+def _epv_base(*, population_route):
+    cfg = _C().network(n=4, cell_types={"E": 0.5, "PV": 0.5})
+    if population_route:
+        cfg = cfg.uniform3d()
+    return cfg
+
+
+@pytest.mark.parametrize("population_route", [False, True], ids=["plain", "population"])
+@pytest.mark.parametrize("entry", [{"EX": 7.0}, {"SST": 9.0}])
+def test_drive_refuses_entries_naming_no_neuron(population_route, entry):
+    cfg = (_epv_base(population_route=population_route)
+           .drive(baseline_drive_by_cell_type=entry)
+           .emitter(family="izhikevich").field().probe(name="p"))
+    with pytest.raises(ValueError, match="no neuron"):
+        jtfne.construct(cfg)
+
+
+@pytest.mark.parametrize("population_route", [False, True], ids=["plain", "population"])
+def test_default_drive_matches_no_drive_call(population_route):
+    plain = _epv_base(population_route=population_route).emitter(
+        family="izhikevich").field().probe(name="p")
+    # The drive() defaults name all four types; SST/VIP name no neuron of the
+    # E/PV population but hold their emitter defaults, so the call is accepted.
+    defaulted = _epv_base(population_route=population_route).drive().emitter(
+        family="izhikevich").field().probe(name="p")
+    p_plain = jtfne.construct(plain).params["emitter"]
+    p_default = jtfne.construct(defaulted).params["emitter"]
+    assert np.array_equal(np.asarray(p_plain.drive), np.asarray(p_default.drive))
+
+
+def test_column_drive_refuses_only_what_nothing_declares():
+    # column("V1", layers=["L4"], n=3) builds (E, PV, VIP). EX is declared
+    # nowhere, so it is refused ...
+    base = _C().column("V1", layers=["L4"], n=3)
+    declined = jtfne.construct(base.emitter(family="izhikevich").field().probe(name="p"))
+    assert "SST" not in set(map(str, declined.params["emitter"].labels))
+    with pytest.raises(ValueError, match="no neuron"):
+        jtfne.construct(base.drive(baseline_drive_by_cell_type={"EX": 7.0}).emitter(
+            family="izhikevich").field().probe(name="p"))
+    # ... while SST is in column()'s default-declared composition
+    # (networks[0]["cell_types"] = E/PV/SST) but rounds away at n=3, so a
+    # non-default SST entry is accepted and applies to no neuron.
+    model = jtfne.construct(base.drive(baseline_drive_by_cell_type={"SST": 9.0}).emitter(
+        family="izhikevich").field().probe(name="p"))
+    assert np.array_equal(np.asarray(model.params["emitter"].drive),
+                          np.asarray(declined.params["emitter"].drive))
+
+
+def test_suite2_preset_accepts_a_declared_but_rounded_away_drive():
+    # suite2_net1_config(n=6) declares SST (cell_types E/PV/SST/VIP) but builds
+    # (E, PV, VIP): the SST entry is a count artifact, not a dropped
+    # declaration, so it is accepted ...
+    cfg = jtfne.suite2_net1_config(seed=7, n=6, duration_ms=20.0, dt_ms=1.0,
+                                    drives={"E": 4.0, "PV": 2.0, "SST": 9.0, "VIP": 2.0})
+    model = jtfne.construct(cfg)
+    assert "SST" not in set(map(str, model.params["emitter"].labels))
+    # ... while a type nothing declares is refused on the same population.
+    with pytest.raises(ValueError, match="no neuron"):
+        jtfne.construct(jtfne.suite2_net1_config(
+            seed=7, n=6, duration_ms=20.0, dt_ms=1.0, drives={"EX": 7.0}))
+
+
+def test_column_default_drive_matches_no_drive_call():
+    base = _C().column("V1", layers=["L4"], n=3)
+    p_plain = jtfne.construct(base.emitter(family="izhikevich").field().probe(name="p")).params["emitter"]
+    p_default = jtfne.construct(
+        base.drive().emitter(family="izhikevich").field().probe(name="p")).params["emitter"]
+    assert np.array_equal(np.asarray(p_plain.drive), np.asarray(p_default.drive))
+
+
+@pytest.mark.parametrize("population_route", [False, True], ids=["plain", "population"])
+def test_cell_params_refuses_a_selector_matching_no_neuron(population_route):
+    cfg = (_epv_base(population_route=population_route)
+           .cell_params({"cell_type": "SST"}, {"a": 0.05})
+           .emitter(family="izhikevich").field().probe(name="p"))
+    with pytest.raises(ValueError, match="matches no neuron"):
+        jtfne.construct(cfg)
+
+
+def test_cell_params_refuses_a_layer_selector_on_an_unlayered_population():
+    # The uniform3d population labels every layer "uniform_3d", so L4 matches nothing.
+    cfg = (_C().network(n=4).uniform3d().cell_params({"layer": "L4"}, {"a": 0.05})
+           .emitter(family="izhikevich").field().probe(name="p"))
+    with pytest.raises(ValueError, match="matches no neuron"):
+        jtfne.construct(cfg)
+
+
+def test_cell_params_accepts_a_declared_but_rounded_away_selector():
+    # suite2_net1_config(n=6) declares SST but builds no SST neuron: the
+    # selector is accepted and applies to no neuron ...
+    base = jtfne.suite2_net1_config(seed=7, n=6, duration_ms=20.0, dt_ms=1.0)
+    jtfne.construct(base.cell_params({"cell_type": "SST"}, {"a": 0.05}))
+    # ... while a type nothing declares is refused on the same population.
+    with pytest.raises(ValueError, match="matches no neuron"):
+        jtfne.construct(base.cell_params({"cell_type": "EX"}, {"a": 0.05}))
+
+
+def test_plain_route_canonical_biophysics_needs_no_layers():
+    # The plain route builds one unlayered population (geometry_meta None);
+    # canonical_biophysics must not crash there. Deep-E grading is laminar
+    # only, so E keeps its default a.
+    model = jtfne.construct(
+        _C().network(n=4).emitter(family="izhikevich").field().probe(name="p")
+        .runtime(seed=0, canonical_biophysics=True))
+    p = model.params["emitter"]
+    lab = np.asarray([str(x) for x in p.labels])
+    assert (lab == "E").any()
+    assert np.allclose(np.asarray(p.a)[lab == "E"], 0.02)
+
+
+def test_construct_refuses_a_surgically_set_non_real_drive():
+    # A drive value that bypassed drive() validation (metadata surgery) must
+    # fail as ValueError at construct, not TypeError.
+    cfg = (_C().network(n=4, cell_types={"E": 0.5, "PV": 0.5}).emitter(family="izhikevich")
+           .field().probe(name="p"))
+    metadata = dict(cfg.metadata)
+    metadata["drive"] = {"baseline_drive_by_cell_type": {"SST": None}}
+    with pytest.raises(ValueError, match="finite real"):
+        jtfne.construct(dataclasses.replace(cfg, metadata=metadata))
+
+
+def test_canonical_biophysics_cell_params_override_deep_e_grading():
+    base = (jtfne.build_laminar_column(ei_profile="canonical", n=60)
+            .emitter(family="izhikevich").field().probe(name="p")
+            .runtime(seed=0, canonical_biophysics=True))
+    graded = jtfne.construct(base).params["emitter"]
+    lab = np.asarray([str(x) for x in graded.labels])
+    assert (lab == "E").any()
+    # Without cell_params the deep-E grading spreads a and d with depth.
+    assert np.unique(np.asarray(graded.a)[lab == "E"]).size > 1
+    assert np.unique(np.asarray(graded.d)[lab == "E"]).size > 1
+    over = jtfne.construct(base.cell_params({"cell_type": "E"}, {"a": 0.09, "d": 12.0})).params["emitter"]
+    lab_over = np.asarray([str(x) for x in over.labels])
+    assert np.allclose(np.asarray(over.a)[lab_over == "E"], 0.09)
+    assert np.allclose(np.asarray(over.d)[lab_over == "E"], 12.0)
+
+
+def test_metadata_edge_seed_bypassing_connectivity_is_refused():
+    cfg = (_C().column("V1", layers=["L4"], n=12).emitter(family="izhikevich").field()
+           .probe(name="p").runtime(seed=7))
+    metadata = dict(cfg.metadata)
+    metadata["connectivity"] = {**metadata.get("connectivity", {}), "edge_seed": 1.5}
+    with pytest.raises(ValueError, match="edge_seed"):
+        jtfne.construct(dataclasses.replace(cfg, metadata=metadata))
+
+
+def test_homeostatic_ei_route_accepts_unspecified_connectivity_mode():
+    assert jtfne.construct(
+        _hei_base().update_metadata(connectivity_mode="unspecified")).static["n_contacts"] == 16
+    with pytest.raises(ValueError, match="not realized"):
+        jtfne.construct(_hei_base().update_metadata(connectivity_mode="explicit"))
