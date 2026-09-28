@@ -75,13 +75,12 @@ def _electrode_report_fragment(
     reference: Any = None,
     filter_spec: Any = None,
 ) -> dict[str, Any]:
-    """Declared probe/electrode semantics for the report (0.5.2 item 5).
+    """Electrode semantics for the report (0.5.2 item 5).
 
-    ``position`` (electrode/contact positions), ``reference`` (reference
-    scheme) and ``filter_spec`` (filter declaration) are recorded as declared
-    or explicitly ``"undeclared"``. Declaration only: proxy probes apply no
-    reference arithmetic and no filter; undeclared stays undeclared rather
-    than invented.
+    ``position`` (contact positions), ``reference`` (reference scheme) and
+    ``filter_spec`` (filter) are recorded as given, or as ``"undeclared"``
+    for None. The probe kernels refuse every value they do not apply before
+    calling this (``_refuse_electrode_declarations``).
     """
 
     def _show(v: Any) -> str:
@@ -92,6 +91,24 @@ def _electrode_report_fragment(
         "reference": _show(reference),
         "filter": _show(filter_spec),
     }
+
+
+def _refuse_electrode_declarations(
+    kernel: str, position: Any, reference: Any, filter_spec: Any
+) -> None:
+    """Refuse the electrode keywords a proxy probe does not apply.
+
+    The probes sample no position and apply no reference arithmetic and no
+    filter: ``position`` takes None; ``reference`` and ``filter_spec`` take
+    None or ``"none"``, as in ``Configuration.probe``.
+    """
+    for key, value in (("position", position), ("reference", reference), ("filter_spec", filter_spec)):
+        if value is None or (key != "position" and isinstance(value, str) and value == "none"):
+            continue
+        raise ValueError(
+            f"{kernel}({key}={value!r}) is not realized: the probe samples no position "
+            "and applies no reference arithmetic and no filter"
+        )
 
 
 def _unwrap_probe_input(x: jax.Array | CanonicalSource) -> tuple[jax.Array, dict[str, Any]]:
@@ -441,7 +458,12 @@ def spk_probe(
     reference: Any = None,
     filter_spec: Any = None,
 ) -> ProbeReadout:
-    """SPK probe operator: expose spike events or spike matrix."""
+    """SPK probe operator: expose spike events or spike matrix.
+
+    ``position`` takes None; ``reference`` and ``filter_spec`` take None or
+    ``"none"``. The probe applies none of them.
+    """
+    _refuse_electrode_declarations("spk_probe", position, reference, filter_spec)
     spikes, _src = _unwrap_probe_input(spikes)
     return create_probe(
         "spk",
@@ -461,7 +483,12 @@ def vm_probe(
     reference: Any = None,
     filter_spec: Any = None,
 ) -> ProbeReadout:
-    """Vm probe operator: expose membrane voltage or native reduced-emitter state."""
+    """Vm probe operator: expose membrane voltage or native reduced-emitter state.
+
+    ``position`` takes None; ``reference`` and ``filter_spec`` take None or
+    ``"none"``. The probe applies none of them.
+    """
+    _refuse_electrode_declarations("vm_probe", position, reference, filter_spec)
     voltage, _src = _unwrap_probe_input(voltage)
     return create_probe(
         "vm",
@@ -484,7 +511,12 @@ def source_probe(
     reference: Any = None,
     filter_spec: Any = None,
 ) -> ProbeReadout:
-    """Source probe operator: expose current/source proxy."""
+    """Source probe operator: expose current/source proxy.
+
+    ``position`` takes None; ``reference`` and ``filter_spec`` take None or
+    ``"none"``. The probe applies none of them.
+    """
+    _refuse_electrode_declarations("source_probe", position, reference, filter_spec)
     source, _src = _unwrap_probe_input(source)
     return create_probe(
         "source",
@@ -523,13 +555,18 @@ def lfp_proxy_probe(
     call is refused unless ``allow_synthesized_field_contacts=True``
     explicitly opts into the labeled constructed fallback (synthesized
     ``linspace(0, 1)`` contacts recorded in the report, never silent).
+
+    ``position`` takes None (contacts come from ``contact_depths``, which the
+    report records as the position); ``reference`` and ``filter_spec`` take
+    None or ``"none"``. The probe applies none of them.
     """
+    _refuse_electrode_declarations("lfp_proxy_probe", position, reference, filter_spec)
     phi_e, _src = _unwrap_probe_input(phi_e)
     extra: dict[str, Any] = {
         **_src,
         **_electrode_report_fragment(position, reference, filter_spec),
     }
-    if position is None and contact_depths is not None:
+    if contact_depths is not None:
         extra["position"] = str(jnp.asarray(contact_depths))
     method = "point_or_finite_contact_phi_proxy"
     data = phi_e

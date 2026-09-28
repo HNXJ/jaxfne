@@ -3,9 +3,10 @@
 No invented contacts or positions on scientific paths (extends Rc P4):
 
 - undeclared ``position``/``reference``/``filter_spec`` are recorded as
-  ``"undeclared"``, never invented; declaration is record-only (proxy probes
-  apply no reference arithmetic and no filter — data bit-identical to the
-  bare call);
+  ``"undeclared"``, never invented;
+- the proxy probes sample no position and apply no reference arithmetic and
+  no filter, so they refuse any ``position`` and any ``reference`` or
+  ``filter_spec`` other than ``"none"`` (the ``Configuration.probe`` rule);
 - ``contact_depths`` without ``field_contact_depths`` is refused unless the
   caller explicitly opts into the labeled constructed fallback;
 - the opt-in path labels the synthesis in the report
@@ -52,26 +53,37 @@ def test_lfp_undeclared_electrode_semantics_recorded_not_invented():
     assert "synthesized_field_contacts" not in out.report
 
 
-def test_declared_electrode_semantics_are_record_only_no_data_change():
-    x = _array()
-    bare = spk_probe(x)
-    declared = spk_probe(
-        x,
-        position=[0.0, 0.33, 0.66, 1.0],
-        reference="common_average",
-        filter_spec={"kind": "bandpass", "low_hz": 8.0, "high_hz": 25.0},
-    )
-    # Declaration only: proxy applies no reference arithmetic and no filter.
-    np.testing.assert_array_equal(np.asarray(declared.data), np.asarray(bare.data))
-    assert declared.report["position"] != "undeclared"
-    assert declared.report["reference"] == "common_average"
-    assert "bandpass" in declared.report["filter"]
+# Values the probes do not apply are refused ------------------------------------
+
+
+@pytest.mark.parametrize("probe", [spk_probe, vm_probe, source_probe, lfp_proxy_probe])
+@pytest.mark.parametrize(
+    ("key", "value"),
+    [
+        ("position", [0.0, 0.33, 0.66, 1.0]),
+        ("reference", "common_average"),
+        ("filter_spec", {"kind": "bandpass", "low_hz": 8.0, "high_hz": 25.0}),
+    ],
+)
+def test_declared_electrode_semantics_refused(probe, key, value):
+    with pytest.raises(ValueError) as exc_info:
+        probe(_array(), **{key: value})
+    message = str(exc_info.value)
+    assert f"{probe.__name__}({key}=" in message
+    assert "is not realized" in message
+
+
+@pytest.mark.parametrize("probe", [spk_probe, vm_probe, source_probe, lfp_proxy_probe])
+def test_none_reference_and_filter_are_accepted_and_recorded(probe):
+    out = probe(_array(), reference="none", filter_spec="none")
+    assert out.report["reference"] == "none"
+    assert out.report["filter"] == "none"
 
 
 def test_electrode_fragment_preserves_canonical_source_provenance():
     q = canonical_source(_array())
-    out = vm_probe(q, reference="bipolar")
-    assert out.report["reference"] == "bipolar"
+    out = vm_probe(q)
+    assert out.report["reference"] == "undeclared"
     assert out.report["position"] == "undeclared"
     # Item-3 provenance survives the item-5 fragment.
     assert "source_projection_mode" in out.report
