@@ -1009,6 +1009,204 @@ def _homeostatic_ei_cell_type_split(n: int) -> "tuple[str, ...]":
     return tuple(["E"] * n_e + ["I"] * n_i)
 
 
+def _refuse_homeostatic_ei_dropped_declarations(cfg: Configuration) -> None:
+    """Refuse every declaration the homeostatic_ei route drops.
+
+    The builder below reads only ``networks[0]["n"]``, the emitter's
+    ``homeostatic_ei_rules``/``homeostatic_ei_bound_mode``, ``metadata["dtype"]``,
+    and the fields/probes consumed by ``_construct_build_static``. A value that
+    equals what the route builds anyway (``p_connect=1.0``, ``random_v0=False``,
+    disabled kernels) and label-only keys (network name/kind, connectivity
+    feedforward/feedback/mode) stay accepted. ``_construct_validate_config``, which
+    runs first, covers field/probe kwargs, later emitters/networks, ``vmap`` and
+    ``areas()``; ``_construct_from_configuration`` refuses ``geometry=``.
+    """
+    meta = cfg.metadata
+    net = cfg.networks[0] if cfg.networks else {}
+    conn = meta.get("connectivity") or {}
+    # p_connect lives in two spellings; both are dropped here (the dense-G
+    # circuit has no thinning stage), so both get the [0, 1] range check the
+    # other routes run, then anything but the neutral dense value is refused.
+    for _src, _p in (("connectivity", conn.get("p_connect")), ("network", net.get("p_connect"))):
+        if _p is not None and (
+            isinstance(_p, bool) or not isinstance(_p, numbers.Real) or not 0.0 <= _p <= 1.0
+        ):
+            raise ValueError(f"{_src}(p_connect={_p!r}) is not realized: it takes a probability in [0, 1]")
+        if _p is not None and float(_p) != 1.0:
+            raise ValueError(
+                f"{_src}(p_connect={_p!r}) is not realized on the homeostatic_ei route: "
+                "it builds a dense conductance matrix with no thinning stage"
+            )
+    # Population structure: labels come from _homeostatic_ei_cell_type_split,
+    # positions from the canonical layout; nothing laminar is read.
+    if net.get("cell_types") is not None:
+        raise ValueError(
+            f"network(cell_types={net['cell_types']!r}) is not realized on the homeostatic_ei route: "
+            "E/I labels come from the canonical split, not this map"
+        )
+    if "cell_types" in meta:
+        raise ValueError(
+            f"cell_types({meta['cell_types']!r}) is not realized on the homeostatic_ei route: "
+            "E/I labels come from the canonical split, not this map"
+        )
+    if net.get("layers"):
+        raise ValueError(
+            f"network(layers={net['layers']!r}) is not realized on the homeostatic_ei route: "
+            "it builds one unlayered population"
+        )
+    if meta.get("columns"):
+        _first = meta["columns"][0].get("name", "?")
+        raise ValueError(
+            f"column({_first!r}, ...) is not realized on the homeostatic_ei route: "
+            "it builds one population of networks[0]['n'] neurons, not these columns"
+        )
+    if meta.get("area_layer_count_frac") or meta.get("layer_count_frac"):
+        raise ValueError(
+            "population(...) is not realized on the homeostatic_ei route: "
+            "it builds one population of networks[0]['n'] neurons, not these per-layer budgets"
+        )
+    if meta.get("areas") is not None:
+        raise ValueError(
+            f"areas({list(meta['areas'])!r}) is not realized on the homeostatic_ei route: "
+            "it builds one population, not these areas"
+        )
+    if meta.get("uniform_3d"):
+        raise ValueError(
+            "uniform3d(...) is not realized on the homeostatic_ei route: "
+            "positions come from the canonical E/I layout"
+        )
+    if meta.get("layer_fractions") is not None or meta.get("layer_cell_types") is not None:
+        raise ValueError(
+            "layer_fractions(...) is not realized on the homeostatic_ei route: "
+            "it builds one unlayered population"
+        )
+    if meta.get("area_layer_cell_types"):
+        raise ValueError(
+            "area_layer_cell_types(...) is not realized on the homeostatic_ei route: "
+            "it builds one unlayered population"
+        )
+    # Connectivity: the consumed keys (read by _construct_population on the
+    # Izhikevich route) are refused; route labels (feedforward/feedback/mode)
+    # and the neutral within_area/recurrent values stay accepted.
+    for _key in ("within_gain", "feedforward_gain", "feedback_gain"):
+        if _key in conn:
+            raise ValueError(
+                f"connectivity({_key}={conn[_key]!r}) is not realized on the homeostatic_ei route: "
+                "it builds a fixed conductance matrix, not this gain"
+            )
+    if conn.get("tcm_v1_6pop") or meta.get("tcm_v1_6pop"):
+        raise ValueError(
+            "connectivity(tcm_v1_6pop=...) is not realized on the homeostatic_ei route: "
+            "it builds a fixed conductance matrix, not this motif"
+        )
+    if conn.get("within_area", "all_to_all_uniform_random") != "all_to_all_uniform_random":
+        raise ValueError(
+            f"connectivity(within_area={conn['within_area']!r}) is not realized on the homeostatic_ei route: "
+            "it builds a fixed conductance matrix"
+        )
+    if conn.get("recurrent", True) is not True:
+        raise ValueError(
+            f"connectivity(recurrent={conn['recurrent']!r}) is not realized on the homeostatic_ei route: "
+            "it builds a fixed conductance matrix"
+        )
+    if meta.get("connectivity_mode") is not None:
+        raise ValueError(
+            f"connectivity_mode={meta['connectivity_mode']!r} is not realized on the homeostatic_ei route: "
+            "it compiles no connection rules"
+        )
+    if meta.get("suite2_interarea"):
+        raise ValueError(
+            "suite2_interarea(...) is not realized on the homeostatic_ei route: "
+            "it builds one population, not a V1/V4 pair"
+        )
+    if meta.get("inter_column_connectivity"):
+        raise ValueError(
+            "inter_column_connectivity(...) is not realized on the homeostatic_ei route: "
+            "it builds one population with no inter-area edges"
+        )
+    # Drive and per-neuron overrides: the circuit's drive is fixed
+    # (drive_e/drive_i canonical defaults); nothing per-cell is applied.
+    if meta.get("drive") is not None:
+        raise ValueError(
+            "drive(...) is not realized on the homeostatic_ei route: "
+            "drive is fixed by the canonical circuit; time-varying input is refused at simulate"
+        )
+    _circuit = meta.get("circuit", {}) or {}
+    if _circuit.get("connections"):
+        _name = _circuit["connections"][0].get("name", "?")
+        raise ValueError(
+            f"connections(name={_name!r}) is not realized on the homeostatic_ei route: "
+            "it compiles no connection rules"
+        )
+    if _circuit.get("cell_params"):
+        raise ValueError(
+            "cell_params(...) is not realized on the homeostatic_ei route: "
+            "per-neuron overrides are never applied here"
+        )
+    # Emitter preset selects no parameters on any route, and this route
+    # realizes no preset at all; the rules/bound_mode it does read stay.
+    _emitter = cfg.emitters[0] if cfg.emitters else {}
+    if _emitter.get("preset") is not None:
+        raise ValueError(
+            f"emitter(preset={_emitter['preset']!r}) is not realized on the homeostatic_ei route: "
+            "only homeostatic_ei_rules/homeostatic_ei_bound_mode are read"
+        )
+    # Runtime keys read on the Izhikevich route only: construct-time
+    # biophysics (canonical_biophysics/random_v0), kernel selection
+    # (recurrent_backend/synaptic_kernel), and the adaptive kernels
+    # (enable_homeostasis/homeostasis_params/enable_hdp/hdp_params). dtype,
+    # seed, duration_ms/dt_ms are consumed (construct/simulate) and jit,
+    # backend, device_type are numerics-invariant policy, so those stay.
+    if meta.get("canonical_biophysics"):
+        raise ValueError(
+            "runtime(canonical_biophysics=True) is not realized on the homeostatic_ei route: "
+            "no canonical-biophysics stage runs here"
+        )
+    if meta.get("random_v0"):
+        raise ValueError(
+            "runtime(random_v0=True) is not realized on the homeostatic_ei route: "
+            "initial states are fixed by the canonical circuit"
+        )
+    if meta.get("recurrent_backend") is not None:
+        raise ValueError(
+            f"runtime(recurrent_backend={meta['recurrent_backend']!r}) is not realized on the "
+            "homeostatic_ei route: it runs its own kernel, not the dense/edge_list choice"
+        )
+    if meta.get("synaptic_kernel") is not None:
+        raise ValueError(
+            f"runtime(synaptic_kernel={meta['synaptic_kernel']!r}) is not realized on the "
+            "homeostatic_ei route: it runs its own kernel"
+        )
+    if meta.get("enable_homeostasis"):
+        raise ValueError(
+            "runtime(enable_homeostasis=True) is not realized on the homeostatic_ei route: "
+            "homeostasis is intrinsic to the circuit, not a RuntimeConfig kernel"
+        )
+    if meta.get("homeostasis_params") is not None:
+        raise ValueError(
+            "runtime(homeostasis_params=...) is not realized on the homeostatic_ei route: "
+            "no homeostasis kernel reads them here"
+        )
+    if meta.get("enable_hdp"):
+        raise ValueError(
+            "runtime(enable_hdp=True) is not realized on the homeostatic_ei route: "
+            "plasticity is intrinsic to the circuit, not a RuntimeConfig kernel"
+        )
+    if meta.get("hdp_params") is not None:
+        raise ValueError(
+            "runtime(hdp_params=...) is not realized on the homeostatic_ei route: "
+            "no HDP kernel reads them here"
+        )
+    # Fields: n_contacts and the first-Poisson rule are consumed by
+    # _construct_build_static; the Poisson diagnostic itself never runs here.
+    for _field in cfg.fields:
+        if _field.get("solver") is not None:
+            raise ValueError(
+                f"field(solver={_field['solver']!r}) is not realized on the homeostatic_ei route: "
+                "simulate runs no Poisson diagnostic here"
+            )
+
+
 def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
     """Build a :class:`Model` for the ``homeostatic_ei`` emitter family --
     the second canonical HDP sanity circuit (a minimal E/I circuit with an
@@ -1029,6 +1227,7 @@ def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
     not yet generalized for this family (see the ``NotImplementedError``
     guards added to those methods in ``jaxfne/_model.py``).
     """
+    _refuse_homeostatic_ei_dropped_declarations(cfg)
     rules = dict((cfg.emitters[0].get("homeostatic_ei_rules") if cfg.emitters else None) or {})
     activation_rule = str(
         rules.get("activation_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["activation_rule"])
@@ -1132,6 +1331,11 @@ def _construct_from_configuration(
     """
     _construct_validate_config(cfg)
     if cfg.emitters and cfg.emitters[0].get("family") == "homeostatic_ei":
+        if geometry is not None:
+            raise ValueError(
+                f"construct(geometry={geometry!r}) is not realized on the homeostatic_ei route: "
+                "positions come from the canonical E/I layout"
+            )
         return _construct_homeostatic_ei_model(cfg)
     net = cfg.networks[0]
     dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))

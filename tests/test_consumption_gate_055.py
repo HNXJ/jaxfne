@@ -346,6 +346,101 @@ def test_unrealized_declarations_are_refused(case):
         UNREALIZED_DECLARATIONS[case]()
 
 
+# Homeostatic_ei route: _construct_homeostatic_ei_model reads only
+# networks[0]["n"], the emitter's homeostatic_ei_rules/homeostatic_ei_bound_mode,
+# metadata["dtype"] and the fields/probes _construct_build_static consumes.
+# Every other declaration is dropped there, so a non-neutral value is refused
+# at construct; each case builds the minimal homeostatic_ei config plus one
+# declaration and constructs it.
+def _hei_base():
+    return _C().network(n=4).emitter(family="homeostatic_ei").field().probe(name="p")
+
+
+HOMEOSTATIC_EI_UNREALIZED = {
+    "hei.network.cell_types": lambda: jtfne.construct(
+        _C().network(n=4, cell_types={"E": 0.8, "I": 0.2}).emitter(family="homeostatic_ei").field()
+        .probe(name="p")),
+    "hei.network.p_connect": lambda: jtfne.construct(
+        _C().network(n=4, p_connect=0.5).emitter(family="homeostatic_ei").field().probe(name="p")),
+    "hei.network.p_connect_range": lambda: jtfne.construct(
+        _C().network(n=4, p_connect=1.5).emitter(family="homeostatic_ei").field().probe(name="p")),
+    "hei.network.layers": lambda: jtfne.construct(dataclasses.replace(
+        _hei_base(), networks=[{"n": 4, "layers": ["L4"]}])),
+    "hei.cell_types": lambda: jtfne.construct(
+        _hei_base().cell_types({"E": 0.5, "I": 0.5})),
+    "hei.column": lambda: jtfne.construct(
+        _C().column("V1", layers=["L4"], n=4).emitter(family="homeostatic_ei").field().probe(name="p")),
+    "hei.areas": lambda: jtfne.construct(
+        _C().column("V1", layers=["L4"], n=4).areas(["V1"]).emitter(family="homeostatic_ei").field()
+        .probe(name="p")),
+    "hei.uniform3d": lambda: jtfne.construct(_hei_base().uniform3d()),
+    "hei.layer_fractions": lambda: jtfne.construct(_hei_base().layer_fractions()),
+    "hei.area_layer_cell_types": lambda: jtfne.construct(
+        _hei_base().area_layer_cell_types("V1", {"L4": {"E": 1.0}})),
+    "hei.connectivity.p_connect": lambda: jtfne.construct(_hei_base().connectivity(p_connect=0.5)),
+    "hei.connectivity.p_connect_range": lambda: jtfne.construct(
+        _hei_base().connectivity(p_connect=1.5)),
+    "hei.connectivity.within_gain": lambda: jtfne.construct(
+        _hei_base().connectivity(within_gain=0.9)),
+    "hei.connectivity.feedforward_gain": lambda: jtfne.construct(
+        _hei_base().connectivity(feedforward_gain=1.0)),
+    "hei.connectivity.tcm": lambda: jtfne.construct(_hei_base().connectivity(tcm_v1_6pop=True)),
+    "hei.suite2_interarea": lambda: jtfne.construct(_hei_base().suite2_interarea()),
+    "hei.inter_column": lambda: jtfne.construct(_hei_base().inter_column_connectivity()),
+    "hei.drive": lambda: jtfne.construct(_hei_base().drive()),
+    "hei.drive.baseline": lambda: jtfne.construct(
+        _hei_base().drive(baseline_drive_by_cell_type={"E": 1.0})),
+    "hei.connections": lambda: jtfne.construct(
+        _hei_base().connections(name="c", source={}, target={})),
+    "hei.cell_params": lambda: jtfne.construct(
+        _hei_base().cell_params({"cell_type": "E"}, {"drive": 1.0})),
+    "hei.emitter.preset": lambda: jtfne.construct(
+        _C().network(n=4).emitter(family="homeostatic_ei", preset="cortical_eig").field()
+        .probe(name="p")),
+    "hei.runtime.canonical_biophysics": lambda: jtfne.construct(
+        _hei_base().runtime(canonical_biophysics=True)),
+    "hei.runtime.random_v0": lambda: jtfne.construct(_hei_base().runtime(random_v0=True)),
+    "hei.runtime.recurrent_backend": lambda: jtfne.construct(
+        _hei_base().runtime(recurrent_backend="edge_list")),
+    "hei.runtime.synaptic_kernel": lambda: jtfne.construct(
+        _hei_base().runtime(synaptic_kernel="receptor_exponential")),
+    "hei.runtime.enable_hdp": lambda: jtfne.construct(_hei_base().runtime(enable_hdp=True)),
+    "hei.runtime.hdp_params": lambda: jtfne.construct(_hei_base().runtime(hdp_params={"K_HDP": 0.5})),
+    "hei.runtime.enable_homeostasis": lambda: jtfne.construct(
+        _hei_base().runtime(enable_homeostasis=True)),
+    "hei.runtime.homeostasis_params": lambda: jtfne.construct(
+        _hei_base().runtime(homeostasis_params={"k_gain": 0.1})),
+    "hei.homeostasis": lambda: jtfne.construct(_hei_base().homeostasis(relative_baseline=1.5)),
+    "hei.hdp": lambda: jtfne.construct(_hei_base().hdp(relative_baseline=1.5)),
+    "hei.field.solver": lambda: jtfne.construct(
+        _C().network(n=4).emitter(family="homeostatic_ei").field(solver="experimental_poisson_1d")
+        .probe(name="p")),
+    "hei.geometry": lambda: jtfne.construct(_hei_base(), geometry=object()),
+}
+
+
+@pytest.mark.parametrize("case", sorted(HOMEOSTATIC_EI_UNREALIZED))
+def test_homeostatic_ei_dropped_declarations_are_refused(case):
+    with pytest.raises(ValueError, match="not realized"):
+        HOMEOSTATIC_EI_UNREALIZED[case]()
+
+
+def test_homeostatic_ei_route_accepts_neutral_values():
+    cfg = (
+        _C().network(n=4, name="ei", kind="cortical_column", p_connect=1.0)
+        .emitter(family="homeostatic_ei")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann",
+               gauge="mean_zero")
+        .probe(name="p")
+        .connectivity(within_area="all_to_all_uniform_random", recurrent=True, p_connect=1.0,
+                      feedforward=("V1", "V4"), feedback=("V4", "V1"), mode="sparse")
+        .runtime(seed=0, duration_ms=20.0, dt_ms=0.5, random_v0=False,
+                 enable_hdp=False, enable_homeostasis=False, jit=False)
+        .plasticity().homeostasis().hdp()
+    )
+    assert jtfne.construct(cfg).static["n_contacts"] == 16
+
+
 @pytest.mark.parametrize("kwargs", [
     {"conductivity": "proxy"}, {"conductivity": 0.0}, {"conductivity": float("nan")}, {"conductivity": True},
     {"n_bins": 1}, {"n_bins": 8.5}, {"n_bins": "8"},
