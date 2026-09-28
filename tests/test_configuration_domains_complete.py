@@ -152,7 +152,7 @@ class TestAllDomainsChainable:
             .runtime(seed=7, duration_ms=1000, dt_ms=0.1)
             .column("V1", layers=["L4", "L5"], n=100)
             .cell_types({"E": 0.8, "PV": 0.2})
-            .connectivity(within_area="all_to_all", within_gain=0.5)
+            .connectivity(within_area="all_to_all_uniform_random", within_gain=0.5)
             .inter_column_connectivity(source_area="V1", target_area="V4")
             .drive(baseline_drive_by_cell_type={"E": 5.0})
             .set_emitter("izhikevich", "cortical_eig")

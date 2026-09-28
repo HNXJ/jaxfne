@@ -1,13 +1,16 @@
-# V1 Six-layer Column
+# 600-neuron Population with Laminar Readout
 
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_4_homeostatic_V1_column.ipynb)
 
-Laminar model inspired by primate V1: six layers, depth-specific readouts.
+A 600-neuron E/PV/SST/VIP population read out through the laminar field proxy. This
+configuration builds one unlayered population with dense recurrent connectivity; the
+layered V1 column (six layers, per-layer populations, laminar positions) is the canonical
+track starting at [01 — Define](01_define_genome.md).
 
-*The Colab badge above links to `jaxfne_etude_no_4_homeostatic_V1_column.ipynb`, the closest
-real, runnable notebook covering a laminar V1 column (1000-neuron canonical column with
-homeostasis); it is not a byte-for-byte match of the 600-neuron config shown below.*
+*The Colab badge above links to `jaxfne_etude_no_4_homeostatic_V1_column.ipynb`, a
+1000-neuron canonical laminar column with homeostasis; it is a different model from the
+600-neuron population below.*
 
 ## Configuration
 
@@ -18,16 +21,10 @@ cfg = (
     jtfne.configuration()
     .network(
         n=600,
-        layers=["L1", "L2/3", "L4", "L5", "L6"],
         cell_types={"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03},
-        connectivity="layer_structured"
     )
     .emitter(family="izhikevich", preset="cortical_eig")
-    .field(
-        domain="laminar_column",
-        conductivity="proxy",
-        depths=[0.0, 0.15, 0.3, 0.5, 0.7, 1.0]
-    )
+    .field(domain="laminar_column", conductivity="proxy")
     .probe(
         name="v1_column",
         n_contacts=6,
@@ -43,20 +40,20 @@ model = jtfne.construct(cfg)
 ```python
 signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=0)
 
-# Layer-specific rates
+# Population-level readouts (the names are labels)
 readouts = model.compute_readout(signals, [
-    jtfne.readout_spec("L4_rate", "spike_rate_hz"),
-    jtfne.readout_spec("LFP_L4", "lfp_abs_mean"),
-    jtfne.readout_spec("CSD_L4", "csd_abs_mean"),
+    jtfne.readout_spec("rate", "spike_rate_hz"),
+    jtfne.readout_spec("lfp", "lfp_abs_mean"),
+    jtfne.readout_spec("csd", "csd_abs_mean"),
 ])
 ```
 
-## Laminar features
+## What the readout is
 
-- L4 receives thalamocortical input (configurable)
-- L2/3, L5, L6 have inter-laminar projections
-- LFP-proxy reflects population summed current
-- CSD-proxy reflects current source densities per layer
+- Six contacts at evenly spaced relative depths in [0, 1].
+- LFP proxy: each neuron's source current projected onto the contacts by a Gaussian of
+  width 0.10 in relative depth.
+- CSD proxy: the second spatial difference of that LFP proxy along the contacts.
 
 ## Canonical Atlas Visualization
 ```python

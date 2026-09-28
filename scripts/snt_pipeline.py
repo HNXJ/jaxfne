@@ -99,7 +99,7 @@ def snt_2_homeostatic_ei() -> dict:
         .runtime(seed=0, duration_ms=6000.0, dt_ms=0.5)
         .network(name="ei8", n=8)
         .set_emitter("homeostatic_ei")
-        .field(domain="none")
+        .field()
         .probe(modes=["vm"])
     )
     model = jtfne.construct(cfg)

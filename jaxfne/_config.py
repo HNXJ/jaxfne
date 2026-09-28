@@ -163,6 +163,68 @@ def check_n_contacts(value: Any, where: str) -> int:
     return int(value)
 
 
+# Declarative keys and the only values the implementation realizes (H1, human decision
+# 2026-09-27). The field is the laminar proxy: a density-preserving Gaussian projection
+# (width 0.10) onto contacts at linspace(0, 1, n_contacts); boundary/gauge are the
+# canonical labels of that proxy. Unlisted keys have no consumer and are refused.
+_FIELD_REALIZED: dict[str, tuple] = {
+    "domain": ("laminar_column",),
+    "conductivity": ("proxy",),
+    "boundary": ("mean_zero_neumann", "declared_proxy"),
+    "gauge": ("mean_zero",),
+    "kind": ("laminar_proxy",),
+}
+_FIELD_LABELS = {"name"}
+_POISSON_KEYS = {"solver", "conductivity", "n_bins"}  # opt-in experimental_poisson_1d accessory
+_PROBE_LABELS = {"name", "modes", "kind", "mode", "operator_status", "field_solver_status",
+                 "physical_amplitude_calibrated", "n_contacts"}
+_PROBE_WIDTH = 0.10
+
+
+def _refuse_unrealized(method: str, key: str, value: Any, realized: Sequence[Any]) -> None:
+    if value not in realized:
+        raise ValueError(
+            f"{method}({key}={value!r}) is not realized: the implementation realizes "
+            f"{key} in {list(realized)} only"
+        )
+
+
+def _check_field_kwargs(kwargs: Mapping[str, Any]) -> None:
+    solver = kwargs.get("solver")
+    if solver is not None:
+        _refuse_unrealized("field", "solver", solver, ("experimental_poisson_1d",))
+    for key, value in kwargs.items():
+        if solver is not None and key in _POISSON_KEYS:
+            continue
+        if key in _FIELD_REALIZED:
+            _refuse_unrealized("field", key, value, _FIELD_REALIZED[key])
+        elif key not in _FIELD_LABELS:
+            raise ValueError(f"field({key}=...) has no consumer; supported keys: "
+                             f"{sorted({*_FIELD_REALIZED, *_FIELD_LABELS, *_POISSON_KEYS})}")
+
+
+def _check_probe_kwargs(kwargs: Mapping[str, Any]) -> None:
+    n = check_n_contacts(kwargs.get("n_contacts", 16), "probe")
+    depths = [i / (n - 1) for i in range(n)]
+    for key, value in kwargs.items():
+        if key in _PROBE_LABELS:
+            continue
+        if key == "width":
+            _refuse_unrealized("probe", key, value, (_PROBE_WIDTH,))
+        elif key in ("contact_depths", "position"):
+            if value is None:
+                continue
+            given = [float(v) for v in value]
+            if len(given) != n or any(abs(a - b) > 1e-9 for a, b in zip(given, depths)):
+                raise ValueError(f"probe({key}={value!r}) is not realized: contacts sit at "
+                                 f"linspace(0, 1, n_contacts={n})")
+        elif key in ("reference", "filter_spec"):
+            _refuse_unrealized("probe", key, value, (None, "none"))
+        else:
+            raise ValueError(f"probe({key}=...) has no consumer; supported keys: "
+                             f"{sorted({*_PROBE_LABELS, 'width', 'contact_depths', 'position', 'reference', 'filter_spec'})}")
+
+
 def _reject_retired_like(value: Any) -> None:
     """Reject the retired ``*_like`` probe vocabulary in favor of ``*_proxy``.
 
@@ -293,31 +355,45 @@ class Configuration:
         Keyword arguments describe the emitter family and parameters.
         The ``family`` key selects the emitter kernel at build time.
 
+        ``preset`` selects no parameters; construct realizes the ``cortical_eig``
+        Izhikevich set, so that is the only accepted preset.
+
         Returns
         -------
         Configuration
             Updated configuration.
         """
+        if kwargs.get("preset") is not None:
+            _refuse_unrealized("emitter", "preset", kwargs["preset"], ("cortical_eig",))
         return replace(self, emitters=[*self.emitters, dict(kwargs)])
 
     def field(self, **kwargs: Any) -> "Configuration":
         """Attach field metadata to the configuration.
 
         Describes source-to-field projection settings. Current implementation
-        is a laminar proxy; no PDE field solver is invoked.
+        is a laminar proxy; no PDE field solver is invoked. Each key accepts only
+        the value the proxy realizes (``domain="laminar_column"``,
+        ``conductivity="proxy"``, ``boundary="mean_zero_neumann"`` or
+        ``"declared_proxy"``, ``gauge="mean_zero"``); ``solver=
+        "experimental_poisson_1d"`` (with ``conductivity``/``n_bins``) adds the
+        opt-in final-timestep Poisson diagnostic.
 
         Returns
         -------
         Configuration
             Updated configuration.
         """
+        _check_field_kwargs(kwargs)
         return replace(self, fields=[*self.fields, dict(kwargs)])
 
     def probe(self, **kwargs: Any) -> "Configuration":
         """Attach probe metadata to the configuration.
 
         The ``n_contacts`` key sets the number of recording contacts.
-        Minimum is 2; default is 16.
+        Minimum is 2; default is 16. Contacts sit at ``linspace(0, 1,
+        n_contacts)`` with projection width 0.10 and no reference or filter;
+        ``width``/``contact_depths``/``position``/``reference``/``filter_spec``
+        accept only those realized values.
 
         Returns
         -------
@@ -327,6 +403,7 @@ class Configuration:
         for _key in ("kind", "mode", "modes"):
             if _key in kwargs:
                 _reject_retired_like(kwargs[_key])
+        _check_probe_kwargs(kwargs)
         return replace(self, probes=[*self.probes, dict(kwargs)])
 
     def update_metadata(self, **kwargs: Any) -> "Configuration":
@@ -575,6 +652,11 @@ class Configuration:
         kernels can distinguish feedforward/feedback bookkeeping from the actual
         proxy simulation path.
         """
+        # Within-area edges are uniform random (dense at p_connect=1) and recurrent.
+        if "within_area" in kwargs:
+            _refuse_unrealized("connectivity", "within_area", kwargs["within_area"], ("all_to_all_uniform_random",))
+        if "recurrent" in kwargs:
+            _refuse_unrealized("connectivity", "recurrent", kwargs["recurrent"], (True,))
         metadata = dict(self.metadata)
         connectivity = dict(metadata.get("connectivity", {}))
         connectivity.update(kwargs)
@@ -751,10 +833,13 @@ class Configuration:
         ``dt_ms``, and both the configured ms and the realized steps are
         recorded. A positive delay rounding to 0 steps is refused rather than
         dropped. Distinct from :meth:`connectivity`, which records
-        feedforward/feedback bookkeeping.
+        feedforward/feedback bookkeeping. ``plasticity`` and ``control_key`` have
+        no consumer in the compiler and accept only None.
         """
         if not name:
             raise ValueError("connection requires a non-empty name")
+        _refuse_unrealized("connections", "plasticity", plasticity, (None,))
+        _refuse_unrealized("connections", "control_key", control_key, (None,))
         if not isinstance(source, Mapping) or not isinstance(target, Mapping):
             raise ValueError(f"connection {name!r} requires source and target selector mappings")
         if probability is not None:
@@ -1207,6 +1292,12 @@ class Configuration:
           Physical edge delays not modeled."
         - Scope: proxy specification only; no PDE solution.
         """
+        # _interarea_W reads areas, layer map, probabilities, weight ranges and seed only.
+        _refuse_unrealized("inter_column_connectivity", "mode", mode, ("sparse",))
+        _refuse_unrealized("inter_column_connectivity", "sign_policy", sign_policy, ("intrinsic",))
+        _refuse_unrealized("inter_column_connectivity", "delay_ms_or_status", delay_ms_or_status, (None,))
+        _refuse_unrealized("inter_column_connectivity", "cell_type_to_cell_type_map",
+                           cell_type_to_cell_type_map, (None,))
         if source_area is None:
             source_area = "V1"
         if target_area is None:
@@ -1295,8 +1386,8 @@ class Configuration:
         oddball_or_omission_schedule : dict[str, list], optional
             Refused unless empty (no consumer).
         noise_policy : str
-            Label only, validated: "additive_poisson", "additive_gaussian",
-            or "none". It does not create or remove noise.
+            Canonical label "additive_poisson" only; noise runs through
+            ``Simulation(poisson_drive=...)`` or ``RuntimeConfig(noise_scale=...)``.
         trial_variability : bool
             Refused unless False (no consumer).
 
@@ -1342,11 +1433,9 @@ class Configuration:
         if oddball_or_omission_schedule is None:
             oddball_or_omission_schedule = {}
 
-        if noise_policy not in ("additive_poisson", "additive_gaussian", "none"):
-            raise ValueError(
-                f"noise_policy must be one of ('additive_poisson', 'additive_gaussian', 'none'); "
-                f"got {noise_policy!r}"
-            )
+        # Canonical label only; noise comes from Simulation(poisson_drive=...) or
+        # RuntimeConfig(noise_scale=...), so another value would describe noise that never runs.
+        _refuse_unrealized("drive", "noise_policy", noise_policy, ("additive_poisson",))
 
         drive_spec = {
             "baseline_drive_by_cell_type": dict(baseline_drive_by_cell_type),

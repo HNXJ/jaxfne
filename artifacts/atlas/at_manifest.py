@@ -259,8 +259,6 @@ def _spec_at06(mod: Any) -> dict[str, Any]:
         "recording": {
             **_field_recording(mod, "AT06_N_CONTACTS"),
             "position": _const(mod, "AT06_PROBE_POSITION"),
-            "reference": _const(mod, "AT06_REFERENCE"),
-            "filter": _const(mod, "AT06_FILTER"),
         },
         "hdp_params": None,
         "cited": [],

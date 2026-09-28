@@ -111,4 +111,5 @@ Regenerate: `python scripts/generate_doc_page_atlases.py --slug network_100_ei`.
 
 ## Next step
 
-Progress to [V1 six-layer column](04_v1_column.md) for structured laminar networks.
+The layered column is built in the canonical track, starting at
+[01 Define](01_define_genome.md).

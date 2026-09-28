@@ -98,7 +98,7 @@ Frozen scientific demonstrations are the **[Études](../etudes/index.md)**, not 
     | [01](01_single_neuron_multimodal.md) | Single-neuron multimodal | Contrast box in 03 |
     | [02](02_two_neuron_ei.md) | Two-neuron E/I | Contrast box in 03 |
     | [03](03_network_100_ei.md) | 100-neuron network | Smoke preamble for 02–05 |
-    | [04](04_v1_column.md) | V1 six-layer column (600n) | Replaced by the 1000n column in 01 |
+    | [04](04_v1_column.md) | 600n population, laminar readout | Replaced by the layered 1000n column in 01 |
     | [06](06_v036_100_neuron_ei_population.md) | Chainable Configuration | On-ramp box in 04 |
     | [07](07_v037_source_bookkeeping.md) | Source bookkeeping | 05 §1 |
     | [08](08_v038_lfp_csd_readout.md) | LFP/CSD readout | 05 §2 |

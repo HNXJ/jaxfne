@@ -142,7 +142,7 @@ nav:
           - "Archive: Single-neuron multimodal": tutorials/01_single_neuron_multimodal.md
           - "Archive: Two-neuron E/I": tutorials/02_two_neuron_ei.md
           - "Archive: Population E/I network": tutorials/03_network_100_ei.md
-          - "Archive: V1 laminar column": tutorials/04_v1_column.md
+          - "Archive: 600n population, laminar readout": tutorials/04_v1_column.md
           - "Archive: V1–PFC dual column": tutorials/05_v1_pfc_dual_column.md
           - "Archive: Configuration API population": tutorials/06_v036_100_neuron_ei_population.md
           - "Archive: Canonical column étude": tutorials/13_canonical_column_etude.md

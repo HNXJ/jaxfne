@@ -45,8 +45,8 @@ def spec_single_neuron():
     cfg = (
         jtfne.configuration()
         .network(n=1)
-        .emitter(family="izhikevich", preset="regular_spiking")
-        .field(domain="point")
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field()
         .probe(name="single_neuron", modes=["spikes", "V_m"])
     )
     model = jtfne.construct(cfg)
@@ -65,8 +65,8 @@ def spec_two_neuron_ei():
             cell_types={"E": 1, "PV": 1},
             connectivity={"E→E": 0.1, "E→PV": 0.2, "PV→E": -0.3, "PV→PV": -0.1},
         )
-        .emitter(family="izhikevich", preset="regular_spiking")
-        .field(domain="point")
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field()
         .probe(name="two_neuron_ei", modes=["spikes", "V_m"])
     )
     model = jtfne.construct(cfg)
@@ -116,20 +116,16 @@ def spec_v1_column():
         jtfne.configuration()
         .network(
             n=600,
-            layers=["L1", "L2/3", "L4", "L5", "L6"],
             cell_types={"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03},
-            connectivity="layer_structured",
         )
         .emitter(family="izhikevich", preset="cortical_eig")
-        .field(
-            domain="laminar_column", conductivity="proxy", depths=[0.0, 0.15, 0.3, 0.5, 0.7, 1.0]
-        )
+        .field(domain="laminar_column", conductivity="proxy")
         .probe(name="v1_column", n_contacts=6, modes=["spikes", "V_m", "LFP", "CSD"])
     )
     model = jtfne.construct(cfg)
     signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
     return (
-        "V1 six-layer column (600n)",
+        "600n population, laminar readout",
         model,
         signals,
         dict(duration_ms=1000.0, dt_ms=0.5, seed=0),
@@ -536,13 +532,10 @@ def spec_calibration_100():
         .field(
             domain="laminar_column",
             conductivity="proxy",
-            depths=[0.0, 0.1, 0.3, 0.5, 0.7, 0.9],
             boundary="mean_zero_neumann",
             gauge="mean_zero",
         )
-        .probe(
-            name="calibration_ready", n_contacts=6, contact_depths=[0.05, 0.2, 0.4, 0.6, 0.8, 0.95]
-        )
+        .probe(name="calibration_ready", n_contacts=6)
     )
     model = jtfne.construct(cfg)
     signals = jtfne.simulate(model, duration_ms=200.0, dt_ms=0.5, seed=0)

@@ -113,7 +113,7 @@ def hei_config() -> Any:
         .runtime(seed=SEED, duration_ms=DURATION_MS, dt_ms=DT_MS, dtype="float32", jit=False)
         .network(name="hei", n=N_HEI)
         .set_emitter("homeostatic_ei", bound_mode="stable")
-        .field(domain="none")
+        .field()
         .probe(modes=["vm"])
     )
 

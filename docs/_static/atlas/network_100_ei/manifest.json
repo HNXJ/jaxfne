@@ -1,7 +1,7 @@
 {
   "suite": "atlas_suite.v2",
   "title": "Balanced E/I population (100n)",
-  "figure_state": "GENERATED",
+  "figure_state": "validated",
   "config_hash": "e58d761836660352",
   "tfne_digest": null,
   "k_d": null,
@@ -116,5 +116,14 @@
       }
     }
   ],
-  "sha256": "bcd57a1ecced011e"
+  "sha256": "bcd57a1ecced011e",
+  "promotion": [
+    {
+      "to": "validated",
+      "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+      "utc": "2026-09-28T01:29:54.668980+00:00"
+    }
+  ]
 }

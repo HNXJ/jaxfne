@@ -36,7 +36,6 @@ def build_config():
             name="V1_tutorial",
             kind="cortical_column",
             n=50,
-            layers=["L2/3", "L4", "L5", "L6"],
             cell_types={"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03},
         )
         .emitter(family="izhikevich", preset="cortical_eig")

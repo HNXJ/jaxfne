@@ -578,6 +578,12 @@ def _construct_build_network(
                 "those metadata keys) to reach the sparse-aware population builder, or "
                 "drop p_connect to request dense connectivity explicitly."
             )
+        if net.get("layers"):
+            raise ValueError(
+                f"network(layers={net['layers']!r}) is not realized on this construction route: "
+                "it builds one unlayered population. Declare layers with column(...) or "
+                "layer_fractions(...) to reach the laminar population builder."
+            )
         cell_types = net.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.1})
         if n >= _DENSE_CONNECTIVITY_WARN_N:
             import warnings as _warnings

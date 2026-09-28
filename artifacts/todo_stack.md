@@ -48,22 +48,23 @@ HARNESS (human, 2026-09-27)
 - H1 Consumption gate, remainder (Simulation, RuntimeConfig,
   RuntimeConfiguration, probe `n_contacts`, `set_emitter` rule kwargs and
   `cell_params` keys are covered by `tests/test_consumption_gate_055.py`).
-  Human decision 2026-09-27: restrict each declarative `Configuration` key to
-  the value the implementation realizes, refuse other values, migrate
-  in-repo callers. Keys (sweep 2026-09-27): `field` domain/conductivity/
-  boundary/gauge (`solver`/`n_bins`/float `conductivity` feed the opt-in
-  Poisson accessory); `probe` modes/width/contact_depths/position/
-  reference/filter_spec (AT-06 records a common-average reference and a
-  bandpass that the field does not apply); `drive` noise_policy;
-  `inter_column_connectivity` mode/sign_policy/delay_ms_or_status/
-  cell_type_to_cell_type_map; `connections` plasticity/control_key;
-  `network` kind/layers; `emitter` preset. Unknown keys in `connectivity`,
-  `runtime`, `uniform3d` are stored and never read.
-- Seal note: AT-02…AT-05 run records (`artifacts/publication/atlas/`) carry
-  the pre-correction spec digest (recorded `n_contacts` 4, executed 16);
-  regenerate them with the other Atlas records. The frozen agent task set
-  keeps the old digests (`tests/test_agent_bench_055.py` allows exactly this
-  correction).
+  Declarative keys of `field`, `probe`, `drive`, `inter_column_connectivity`,
+  `connections`, `connectivity`, `emitter` and plain-route `network(layers)`
+  are restricted to realized values (human decision 2026-09-27; canonical
+  proxy labels boundary/gauge/noise_policy kept). Left:
+  `connectivity(edge_seed=)` is stored and never read (construct seeds edges
+  from the runtime seed; ~17 callers via `build_laminar_column`): wire or
+  refuse. Other unread `connectivity` keys (`feedforward`/`feedback` route
+  labels, `e_to_all`…), `cfg.runtime(vmap=...)` (same single-trial issue as
+  `RuntimeConfiguration.vmap`), `areas()`, and probe `modes` (descriptive;
+  nothing gates on them). Notebooks under `artifacts/tutorials/` still carry
+  `domain="point"`/`preset="regular_spiking"` in executed cells.
+- Seal note: AT-02…AT-06 run records (`artifacts/publication/atlas/`) carry
+  the pre-correction spec digest (AT-02…AT-05 recorded `n_contacts` 4,
+  executed 16; AT-06 recorded a common-average reference and an 8–25 Hz
+  band-pass that were never applied); regenerate them with the other Atlas
+  records. The frozen agent task set keeps the old digests
+  (`tests/test_agent_bench_055.py` allows exactly these corrections).
 
 DOCS (human, 2026-09-27)
 - D1b P-014 regenerations left after D1 (doc-page atlases done): re-execute

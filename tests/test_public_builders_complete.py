@@ -364,8 +364,10 @@ class TestBuilderFunctions:
     def test_connect_columns(self):
         """Test connect_columns adds inter-area connectivity."""
         cfg = jtfne.build_multi_area_columns(["V1", "V4"], n_per_area=100)
-        cfg = jtfne.connect_columns(cfg, "V1", "V4", mode="all_to_all")
-        assert cfg.metadata["inter_column_connectivity"][-1]["mode"] == "all_to_all"
+        cfg = jtfne.connect_columns(cfg, "V1", "V4")
+        assert cfg.metadata["inter_column_connectivity"][-1]["mode"] == "sparse"
+        with pytest.raises(ValueError, match="not realized"):
+            jtfne.connect_columns(cfg, "V1", "V4", mode="all_to_all")
 
 
 class TestConnectivitySpecs:

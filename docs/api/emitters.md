@@ -679,7 +679,7 @@ cfg = (
     .network(name="ei8", n=8)
     .set_emitter("homeostatic_ei", activation_rule="cubic", conductance_rule="hebbian",
                  homeostasis_rule="linear", bound_mode="minimal")
-    .field(domain="none")
+    .field()
     .probe(modes=["vm"])
 )
 model = jtfne.construct(cfg)

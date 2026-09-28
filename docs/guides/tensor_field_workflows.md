@@ -63,7 +63,7 @@ cfg = (
     jtfne.configuration()
     .network(n=1)
     .emitter(family="izhikevich")
-    .field(domain="point")
+    .field()
     .probe(name="single_neuron", modes=["spikes", "V_m", "source"])
 )
 

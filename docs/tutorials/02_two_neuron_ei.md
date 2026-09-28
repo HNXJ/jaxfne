@@ -23,8 +23,8 @@ cfg = (
         cell_types={"E": 1, "PV": 1},
         connectivity={"E→E": 0.1, "E→PV": 0.2, "PV→E": -0.3, "PV→PV": -0.1}
     )
-    .emitter(family="izhikevich", preset="regular_spiking")
-    .field(domain="point")
+    .emitter(family="izhikevich", preset="cortical_eig")
+    .field()
     .probe(name="two_neuron_ei", modes=["spikes", "V_m"])
 )
 

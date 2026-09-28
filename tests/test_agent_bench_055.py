@@ -16,10 +16,15 @@ from artifacts.benchmark.agent_bench import (
 TASKS = {t["at_id"]: t for t in json.loads(TASK_SET.read_text(encoding="utf-8"))["tasks"]}
 
 
-# Specs corrected after the freeze without changing any output (H1, 2026-09-27): these
-# recorded n_contacts=4 while the executed field had 16 contacts. The frozen tasks and
-# their scored results stay byte-for-byte; the correction is the only allowed difference.
-CORRECTED_AFTER_FREEZE = {at: {("recording", "n_contacts"): (4, 16)} for at in ("AT-02", "AT-03", "AT-04", "AT-05")}
+# Specs corrected after the freeze without changing any output (H1, 2026-09-27):
+# AT-02..AT-05 recorded n_contacts=4 while the executed field had 16 contacts; AT-06
+# recorded a reference and a filter the proxy never applied. The frozen tasks and their
+# scored results stay byte-for-byte; these corrections are the only allowed differences.
+CORRECTED_AFTER_FREEZE = {
+    **{at: {("recording", "n_contacts"): (4, 16)} for at in ("AT-02", "AT-03", "AT-04", "AT-05")},
+    "AT-06": {("recording", "reference"): ("common_average", None),
+              ("recording", "filter"): ({"kind": "bandpass", "low_hz": 8.0, "high_hz": 25.0}, None)},
+}
 
 
 def _leaf_diff(a, b, path=()):

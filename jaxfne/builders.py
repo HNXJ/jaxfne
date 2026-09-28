@@ -556,7 +556,7 @@ def connect_columns(
     cfg: Configuration,
     source_area: str,
     target_area: str,
-    mode: Literal["sparse", "all_to_all"] = "sparse",
+    mode: Literal["sparse"] = "sparse",
     feedforward_gain: float = 0.65,
     feedback_gain: float = 0.50,
 ) -> Configuration:
@@ -570,8 +570,9 @@ def connect_columns(
         Source area name.
     target_area : str
         Target area name.
-    mode : {"sparse", "all_to_all"}
-        Connectivity mode. Default: "sparse".
+    mode : {"sparse"}
+        Connectivity mode; the inter-area compiler realizes sparse Bernoulli
+        projections only, so other values are refused.
     feedforward_gain : float
         Feedforward weight scaling. Default: 0.65.
     feedback_gain : float
@@ -585,7 +586,7 @@ def connect_columns(
     Examples
     --------
     >>> cfg = jtfne.build_multi_area_columns(["V1", "V4"], n_per_area=100)
-    >>> cfg = jtfne.connect_columns(cfg, "V1", "V4", mode="all_to_all")
+    >>> cfg = jtfne.connect_columns(cfg, "V1", "V4")
     """
     return cfg.inter_column_connectivity(
         source_area=source_area,

@@ -1,7 +1,7 @@
 {
   "suite": "atlas_suite.v2",
   "title": "Canonical V1 Column (1000n)",
-  "figure_state": "GENERATED",
+  "figure_state": "validated",
   "config_hash": "e9eb50be8f1b7c8c",
   "tfne_digest": null,
   "k_d": null,
@@ -116,5 +116,14 @@
       }
     }
   ],
-  "sha256": "29a5a2d30e89a2ae"
+  "sha256": "29a5a2d30e89a2ae",
+  "promotion": [
+    {
+      "to": "validated",
+      "reason": "0.5.5 H1: restores the validated state lost to byte-level regeneration (root atlas d8cfa82 and D1; probe_32 12da866 and D1); the stale gallery index hid the downgrade; broad gate green on d3e768a",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+      "utc": "2026-09-28T01:34:48.562125+00:00"
+    }
+  ]
 }

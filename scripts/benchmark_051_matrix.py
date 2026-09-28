@@ -182,8 +182,8 @@ def build_1n():
     return J.construct(
         J.configuration()
         .network(n=1)
-        .emitter(family="izhikevich", preset="regular_spiking")
-        .field(domain="point")
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field()
         .probe(name="single_neuron", modes=["spikes", "V_m"])
     )
 
@@ -198,8 +198,8 @@ def build_1n_field():
     return J.construct(
         J.configuration()
         .network(n=1)
-        .emitter(family="izhikevich", preset="regular_spiking")
-        .field(domain="point")
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field()
         .probe(name="single_neuron_field", modes=["spikes", "V_m", "source", "LFP"])
     )
 

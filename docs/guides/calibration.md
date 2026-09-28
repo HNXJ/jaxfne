@@ -132,16 +132,11 @@ cfg = (
     .emitter(family="izhikevich", preset="cortical_eig")
     .field(
         domain="laminar_column",
-        conductivity="proxy",  # or specify σ in S/m if known
-        depths=[0.0, 0.1, 0.3, 0.5, 0.7, 0.9],  # layer boundaries
+        conductivity="proxy",
         boundary="mean_zero_neumann",
         gauge="mean_zero"
     )
-    .probe(
-        name="calibration_ready",
-        n_contacts=6,
-        contact_depths=[0.05, 0.2, 0.4, 0.6, 0.8, 0.95]
-    )
+    .probe(name="calibration_ready", n_contacts=6)
 )
 
 model = jtfne.construct(cfg)
@@ -150,6 +145,10 @@ manifest = model.manifest(signals, ...)
 
 # Manifest includes geometry and metadata suitable for later validation
 ```
+
+The field keys take only the values the laminar proxy realizes, and the six
+contacts sit at `linspace(0, 1, 6)`. A conductivity in S/m, layer depths or
+contact depths raise an error.
 
 ## Interactive atlas (dark)
 

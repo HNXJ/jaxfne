@@ -885,9 +885,9 @@ AT06_N = 8
 AT06_CELL_TYPES = {"E": 0.75, "PV": 0.25}
 AT06_CONNECTIVITY = {"kind": "laminar_signed_metadata", "recurrent": True}
 AT06_EMITTER = ("izhikevich", "cortical_eig")
+# The proxy applies no reference or filter; until 0.5.5 AT-06 declared a
+# common-average reference and an 8-25 Hz bandpass that never ran.
 AT06_PROBE_POSITION = (0.0, 1.0 / 3.0, 2.0 / 3.0, 1.0)
-AT06_REFERENCE = "common_average"
-AT06_FILTER = {"kind": "bandpass", "low_hz": 8.0, "high_hz": 25.0}
 
 
 def _population_run(n: int, seed: int = SEED) -> dict[str, Any]:
@@ -1008,8 +1008,6 @@ def run_at06(keep_bundle: bool = False) -> dict[str, Any]:
             modes=list(PROBE_MODES),
             n_contacts=AT06_N_CONTACTS,
             position=list(AT06_PROBE_POSITION),
-            reference=AT06_REFERENCE,
-            filter_spec=dict(AT06_FILTER),
         )
     )
     run = _run_configuration(cfg, AT06_DURATION_MS, DT_MS)
@@ -1046,11 +1044,8 @@ def run_at06(keep_bundle: bool = False) -> dict[str, Any]:
             "contacts_realized": int(contacts.shape[0]),
             "contact_depths_frac": [float(v) for v in contacts],
             "position_declared_frac": list(AT06_PROBE_POSITION),
-            "reference": f"{AT06_REFERENCE} (record-only; proxy applies none)",
-            "filter": (
-                f"{AT06_FILTER['kind']} {AT06_FILTER['low_hz']:g}-"
-                f"{AT06_FILTER['high_hz']:g} Hz (record-only; proxy applies none)"
-            ),
+            "reference": "none",
+            "filter": "none",
             "conductivity": "proxy",
             "distance": "relative fractions in [0,1]",
             "source_depths": "DECLARED ASSUMPTION: uniform linspace fractions",

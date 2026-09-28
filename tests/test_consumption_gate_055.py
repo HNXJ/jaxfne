@@ -268,6 +268,56 @@ def test_cell_params_refuses_keys_the_applier_ignores(selector, params):
         jtfne.configuration().cell_params(selector, params)
 
 
+# Declarative Configuration keys accept only the value the implementation realizes
+# (human decision 2026-09-27); each case is one unrealized value.
+_C = jtfne.configuration
+UNREALIZED_DECLARATIONS = {
+    "field.domain": lambda: _C().field(domain="point"),
+    "field.conductivity": lambda: _C().field(conductivity="anisotropic"),
+    "field.boundary": lambda: _C().field(boundary="dirichlet"),
+    "field.gauge": lambda: _C().field(gauge="reference_electrode"),
+    "field.unknown_key": lambda: _C().field(resolution_um=10),
+    "field.solver": lambda: _C().field(solver="fem"),
+    "probe.width": lambda: _C().probe(name="p", width=0.3),
+    "probe.contact_depths": lambda: _C().probe(name="p", n_contacts=4, contact_depths=[0.0, 0.2, 0.4, 0.6]),
+    "probe.reference": lambda: _C().probe(name="p", reference="common_average"),
+    "probe.filter_spec": lambda: _C().probe(name="p", filter_spec={"kind": "bandpass"}),
+    "probe.unknown_key": lambda: _C().probe(name="p", impedance_kohm=500),
+    "drive.noise_policy": lambda: _C().drive(noise_policy="none"),
+    "inter_column.mode": lambda: _C().inter_column_connectivity(mode="all_to_all"),
+    "inter_column.sign_policy": lambda: _C().inter_column_connectivity(sign_policy="declared"),
+    "inter_column.delay": lambda: _C().inter_column_connectivity(delay_ms_or_status=2.0),
+    "inter_column.cell_type_map": lambda: _C().inter_column_connectivity(cell_type_to_cell_type_map={"E": "PV"}),
+    "connections.plasticity": lambda: _C().connections(name="c", source={}, target={}, plasticity={"rule": "stdp"}),
+    "connections.control_key": lambda: _C().connections(name="c", source={}, target={}, control_key="k"),
+    "connectivity.within_area": lambda: _C().connectivity(within_area="small_world"),
+    "connectivity.recurrent": lambda: _C().connectivity(recurrent=False),
+    "emitter.preset": lambda: _C().emitter(family="izhikevich", preset="regular_spiking"),
+    "network.layers": lambda: jtfne.construct(
+        _C().network(n=6, layers=["L4"]).emitter(family="izhikevich").field().probe(name="p")),
+}
+
+
+@pytest.mark.parametrize("case", sorted(UNREALIZED_DECLARATIONS))
+def test_unrealized_declarations_are_refused(case):
+    with pytest.raises(ValueError, match="not realized|no consumer"):
+        UNREALIZED_DECLARATIONS[case]()
+
+
+def test_realized_declarations_are_accepted():
+    cfg = (
+        _C()
+        .network(n=6)
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        .field(solver="experimental_poisson_1d", conductivity=1.0, n_bins=8)
+        .probe(name="p", n_contacts=4, width=0.1, contact_depths=[0.0, 1 / 3, 2 / 3, 1.0], reference=None)
+        .drive(noise_policy="additive_poisson")
+        .connectivity(within_area="all_to_all_uniform_random", recurrent=True)
+    )
+    assert jtfne.construct(cfg).static["n_contacts"] == 4
+
+
 def test_reseeding_keeps_a_matching_runtime_seed_consistent(model):
     """run_trials reseeds a Simulation whose runtime pins the same seed."""
     sim = jtfne.Simulation(**{**_BASE, "seed": 5}, runtime=RuntimeConfig(seed=5))

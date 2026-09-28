@@ -276,8 +276,8 @@ def test_manifest_carries_field_epistemic_level():
     cfg = (
         J.configuration()
         .network(n=4)
-        .emitter(family="izhikevich", preset="regular_spiking")
-        .field(domain="point")
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field()
         .probe(name="p", modes=["spikes", "V_m", "source", "LFP"])
     )
     model = J.construct(cfg)

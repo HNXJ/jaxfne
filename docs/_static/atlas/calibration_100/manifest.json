@@ -1,8 +1,8 @@
 {
   "suite": "atlas_suite.v2",
   "title": "Calibration-ready column, minimal run (100n, 200 ms)",
-  "figure_state": "GENERATED",
-  "config_hash": "89c984072818a57f",
+  "figure_state": "validated",
+  "config_hash": "96761084e1107d82",
   "tfne_digest": null,
   "k_d": null,
   "sim_identity": "seed=0 duration_ms=200.0 dt_ms=0.5",
@@ -116,5 +116,14 @@
       }
     }
   ],
-  "sha256": "023e9beea4924b06"
+  "sha256": "023e9beea4924b06",
+  "promotion": [
+    {
+      "to": "validated",
+      "reason": "0.5.5 H1: regenerated after the spec dropped unconsumed field depths and probe contact_depths; panel data identical to the validated run (only config_hash, div ids, timestamps differ); broad gate green",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+      "utc": "2026-09-28T01:47:28.949184+00:00"
+    }
+  ]
 }

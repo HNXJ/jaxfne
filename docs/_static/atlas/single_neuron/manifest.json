@@ -1,8 +1,8 @@
 {
   "suite": "atlas_suite.v2",
   "title": "Single neuron (1n)",
-  "figure_state": "GENERATED",
-  "config_hash": "3cb76d6112977097",
+  "figure_state": "validated",
+  "config_hash": "0cb7b98c0189042d",
   "tfne_digest": null,
   "k_d": null,
   "sim_identity": "seed=0 duration_ms=100.0 dt_ms=0.09999847412109375",
@@ -116,5 +116,14 @@
       }
     }
   ],
-  "sha256": "ec5d30149f81eb6b"
+  "sha256": "ec5d30149f81eb6b",
+  "promotion": [
+    {
+      "to": "validated",
+      "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+      "utc": "2026-09-28T01:29:55.799372+00:00"
+    }
+  ]
 }

@@ -55,8 +55,7 @@ def test_at06_electrode_chain_declared():
     el = out["electrode"]
     assert el["contacts_declared"] == A.AT06_N_CONTACTS
     assert el["contacts_realized"] == len(el["contact_depths_frac"]) == 4
-    assert el["reference"].startswith("common_average")
-    assert "record-only" in el["reference"] and "record-only" in el["filter"]
+    assert el["reference"] == "none" and el["filter"] == "none"  # what the proxy applies
     assert el["conductivity"] == "proxy"
     assert el["distance"] == "relative fractions in [0,1]"
     assert "DECLARED ASSUMPTION" in el["source_depths"]

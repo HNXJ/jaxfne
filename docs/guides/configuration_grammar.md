@@ -91,7 +91,7 @@ composition, the more the model can reproduce real laminar physiology.
 ## Connectivity
 
 `.connectivity(**)` / `.set_connectivity(**)`, `.connections(name=, source=, target=,
-probability=, weight=, sign=, mechanism=, plasticity=)`,
+probability=, weight=, sign=, mechanism=)`,
 `.inter_column_connectivity(source_area=, target_area=, layer_to_layer_map=, ...)`,
 `.mechanisms(name=, kind=, params=)`.
 
@@ -134,7 +134,8 @@ than silently compiled without the cap. See
 `.set_emitter(family="izhikevich", preset="cortical_eig")` / `.emitter(**)`,
 `.drive(baseline_drive_by_cell_type={...})`. Layer/area drives, time
 schedules, evoked windows, oddball schedules and trial variability are
-refused (no consumer; P-015); `noise_policy` is a label only.
+refused (no consumer; P-015); `noise_policy` takes only its canonical label
+`additive_poisson`.
 `.cell_type_drives({...})` is refused (it was never consumed; P-014).
 
 Specificity dial: the neuron model and its input. The built-in Izhikevich emitter
@@ -158,7 +159,10 @@ emitter thus sets the source's fidelity. See
 
 ## Fields
 
-`.field(domain=, conductivity=, boundary=, **)`.
+`.field(domain=, conductivity=, boundary=, gauge=)`. Each key takes only the value
+the laminar proxy realizes: `laminar_column`, `proxy`, `mean_zero_neumann` (or
+`declared_proxy`), `mean_zero`. `solver="experimental_poisson_1d"` adds a
+final-timestep Poisson diagnostic.
 
 Specificity dial: how the source becomes an extracellular field readout. The
 laminar proxy (Gaussian projection + finite-difference CSD) is a structural
@@ -169,7 +173,9 @@ calibration is the path from proxy to physical amplitude.
 
 ## Probes
 
-`.probes([...])` / `.set_probes(modes, n_contacts=)` / `.probe(**)`.
+`.probes([...])` / `.set_probes(modes, n_contacts=)` / `.probe(**)`. Contacts sit
+at `linspace(0, 1, n_contacts)` with projection width 0.10; other positions,
+widths, references and filters raise an error.
 
 Specificity dial: what you measure and at what resolution — `spikes`, `V_m`,
 `LFP`, `CSD`, `EEG`, `MEG`, spectrolaminar, with contact geometry (`n_contacts`).

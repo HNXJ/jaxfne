@@ -1,8 +1,8 @@
 {
   "suite": "atlas_suite.v2",
   "title": "Two-neuron E/I (2n)",
-  "figure_state": "GENERATED",
-  "config_hash": "9754eb5d015afe00",
+  "figure_state": "validated",
+  "config_hash": "5f7643f1d204f459",
   "tfne_digest": null,
   "k_d": null,
   "sim_identity": "seed=0 duration_ms=500.0 dt_ms=0.5",
@@ -116,5 +116,14 @@
       }
     }
   ],
-  "sha256": "9dbe0937da2de3ac"
+  "sha256": "9dbe0937da2de3ac",
+  "promotion": [
+    {
+      "to": "validated",
+      "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+      "utc": "2026-09-28T01:29:56.694295+00:00"
+    }
+  ]
 }
