@@ -115,6 +115,56 @@ def _area_layer_count_frac(metadata: Mapping[str, Any], area: str) -> dict[str, 
     return None
 
 
+def _apply_baseline_drive(params: IzhikevichParams, metadata: Mapping[str, Any]) -> IzhikevichParams:
+    """Apply ``drive(baseline_drive_by_cell_type=)`` to built parameters: a neuron whose
+    label the map names takes that drive, the others keep their cell type's default,
+    as ``izhikevich_params_from_labels(drive_overrides=)`` builds them."""
+    import numpy as np
+
+    spec = metadata.get("drive")
+    baseline = spec.get("baseline_drive_by_cell_type") if isinstance(spec, dict) else None
+    if not baseline:
+        return params
+    overrides = {str(k): float(v) for k, v in baseline.items()}
+    drive = [overrides.get(label, value) for label, value in zip(params.labels, np.asarray(params.drive).tolist())]
+    return replace(params, drive=jnp.asarray(drive, dtype=params.drive.dtype))
+
+
+def _apply_cell_params(
+    params: IzhikevichParams,
+    labels: Sequence[str],
+    layer_labels: Sequence[str] | None,
+    metadata: Mapping[str, Any],
+    jdtype: Any,
+) -> IzhikevichParams:
+    """Apply ``cell_params()`` declarations in order: each sets ``a``/``b``/``c``/``d``/
+    ``drive`` of the neurons its ``cell_type``/``layer`` selector matches.
+    ``layer_labels=None`` (an unlayered population) refuses a ``layer`` selector."""
+    import numpy as np
+
+    decls = (metadata.get("circuit") or {}).get("cell_params") or []
+    if not decls:
+        return params
+    arrays = {key: np.array(getattr(params, key)) for key in ("a", "b", "c", "d", "drive")}
+    for decl in decls:
+        selector = decl.get("selector", {})
+        overrides = decl.get("params", {})
+        if "layer" in selector and layer_labels is None:
+            raise ValueError(
+                f"cell_params(selector={dict(selector)!r}) is not realized on this construction "
+                "route: it builds one unlayered population"
+            )
+        for i in range(len(labels)):
+            if "cell_type" in selector and labels[i] != selector["cell_type"]:
+                continue
+            if "layer" in selector and layer_labels[i] != selector["layer"]:
+                continue
+            for key in arrays:
+                if key in overrides:
+                    arrays[key][i] = float(overrides[key])
+    return replace(params, **{key: jnp.asarray(value, dtype=jdtype) for key, value in arrays.items()})
+
+
 def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float32") -> tuple[IzhikevichParams, jax.Array, dict[str, Any]]:
     """Build explicit Suite No. 2 neuron metadata and reduced emitter arrays."""
 
@@ -245,44 +295,7 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
         build_dense_connectivity=False,
     )
     
-    # Compile and apply declared cell_params overrides
-    circuit = metadata.get("circuit", {})
-    cell_param_decls = circuit.get("cell_params", [])
-    if cell_param_decls:
-        import numpy as np
-        a_list = np.array(params.a)
-        b_list = np.array(params.b)
-        c_list = np.array(params.c)
-        d_list = np.array(params.d)
-        drive_list = np.array(params.drive)
-        for decl in cell_param_decls:
-            selector = decl.get("selector", {})
-            param_overrides = decl.get("params", {})
-            for i in range(len(labels)):
-                match = True
-                if "cell_type" in selector and labels[i] != selector["cell_type"]:
-                    match = False
-                if "layer" in selector and layer_labels[i] != selector["layer"]:
-                    match = False
-                if match:
-                    if "a" in param_overrides:
-                        a_list[i] = float(param_overrides["a"])
-                    if "b" in param_overrides:
-                        b_list[i] = float(param_overrides["b"])
-                    if "c" in param_overrides:
-                        c_list[i] = float(param_overrides["c"])
-                    if "d" in param_overrides:
-                        d_list[i] = float(param_overrides["d"])
-                    if "drive" in param_overrides:
-                        drive_list[i] = float(param_overrides["drive"])
-        params = replace(
-            params,
-            a=jnp.asarray(a_list, dtype=jdtype),
-            b=jnp.asarray(b_list, dtype=jdtype),
-            c=jnp.asarray(c_list, dtype=jdtype),
-            d=jnp.asarray(d_list, dtype=jdtype),
-            drive=jnp.asarray(drive_list, dtype=jdtype),
-        )
+    params = _apply_cell_params(params, labels, layer_labels, metadata, jdtype)
 
     positions = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3), dtype=jdtype)
     # Edge draws take the declared edge_seed when set, else the runtime seed;

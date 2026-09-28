@@ -17,7 +17,9 @@ Strongest justified relation per cell (measured, not assumed):
   record toggles: exact (pinned by HDP-01/STOCH-01/REC-01/LAW-01 receipts;
   not re-proven here).
 Epsilons are pre-declared bounds with measured evidence retained in the
-receipt, never promoted from single observations.
+receipt, never promoted from single observations. They were measured at the
+default drives (E 5.0, PV 3.0); at E/PV drive 10.0 the V_m and HDP W bounds
+do not hold (issue P-019).
 """
 
 from __future__ import annotations
@@ -53,7 +55,6 @@ def _model(n=8):
         .runtime(seed=0, recurrent_backend="edge_list")
         .network(name="V1", kind="cortical_column", n=n,
                  cell_types={"E": 0.8, "PV": 0.2})
-        .drive(baseline_drive_by_cell_type={"E": 10.0, "PV": 10.0})
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(domain="laminar_column", conductivity="proxy",
                boundary="mean_zero_neumann", gauge="mean_zero")

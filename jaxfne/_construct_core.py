@@ -55,7 +55,12 @@ from ._construct_connectivity import (
     _mark_connections_compiled,
     _empty_edge_list,
 )
-from ._construct_population import _DENSE_CONNECTIVITY_WARN_N, _neuron_population_from_config
+from ._construct_population import (
+    _DENSE_CONNECTIVITY_WARN_N,
+    _apply_baseline_drive,
+    _apply_cell_params,
+    _neuron_population_from_config,
+)
 from ._construct_extras import operator_status
 
 
@@ -652,6 +657,10 @@ def _construct_build_network(
                 stacklevel=2,
             )
         network = make_eig_network(n=n, cell_type_fractions=cell_types)
+        # drive() and cell_params() reach the emitter as on the population route (P-018).
+        params = _apply_baseline_drive(network.params, cfg.metadata)
+        params = _apply_cell_params(params, params.labels, None, cfg.metadata, params.a.dtype)
+        network = replace(network, params=params)
         positions = network.positions
         geometry_meta = None
     return network, positions, geometry_meta, n, _prebuilt_edges

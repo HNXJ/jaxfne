@@ -337,6 +337,9 @@ UNREALIZED_DECLARATIONS = {
         _C().network(n=6).uniform3d().emitter(family="izhikevich").field().probe(name="p"),
         networks=[{"n": 6, "layers": ["L4"]}])),
     "emitter.rule_key_for_izhikevich": lambda: _C().emitter(family="izhikevich", homeostatic_ei_bound_mode="stable"),
+    "cell_params.layer_on_plain_route": lambda: jtfne.construct(
+        _C().network(n=4).cell_params({"layer": "L4"}, {"a": 0.05}).emitter(family="izhikevich").field()
+        .probe(name="p")),
 }
 
 
@@ -525,6 +528,20 @@ def test_construct_refuses_invalid_fractions(cell_types, uniform3d):
     cfg = cfg.emitter(family="izhikevich").field().probe(name="p")
     with pytest.raises(ValueError, match="cell type fraction"):
         jtfne.construct(cfg)
+
+
+@pytest.mark.parametrize("uniform3d", [False, True], ids=["plain", "population"])
+def test_drive_and_cell_params_reach_the_emitter(uniform3d):
+    cfg = _C().network(n=4, cell_types={"E": 0.5, "PV": 0.5})
+    if uniform3d:
+        cfg = cfg.uniform3d()
+    cfg = (cfg.drive(baseline_drive_by_cell_type={"E": 7.0})
+           .cell_params({"cell_type": "PV"}, {"a": 0.05, "drive": 2.5})
+           .emitter(family="izhikevich").field().probe(name="p"))
+    p = jtfne.construct(cfg).params["emitter"]
+    got = {label: (float(a), float(d)) for label, a, d in zip(p.labels, p.a, p.drive)}
+    assert got["E"] == pytest.approx((0.02, 7.0))
+    assert got["PV"] == pytest.approx((0.05, 2.5))
 
 
 def test_make_eig_network_refuses_a_bool_fraction():
