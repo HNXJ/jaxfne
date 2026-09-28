@@ -202,9 +202,9 @@ or synaptic state and is not an exact recurrent continuation contract.
 
 ## Device Selection
 
-The `RuntimeConfig`/`cfg.runtime(...)` field is **`backend`**, not `device` —
-`cfg.runtime(device=...)` is silently ignored (`_runtime_config_from_metadata`
-only reads the `backend`/`device_type` metadata keys, never `device`).
+The `RuntimeConfig`/`cfg.runtime(...)` field is **`backend`** (with
+`device_type`). `cfg.runtime(device=...)` raises, because nothing reads a
+`device` key.
 
 ### CPU (Default)
 

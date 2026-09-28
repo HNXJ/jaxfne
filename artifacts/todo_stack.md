@@ -52,19 +52,21 @@ HARNESS (human, 2026-09-27)
   `connections`, `connectivity`, `emitter` and plain-route `network(layers)`
   are restricted to realized values (human decision 2026-09-27; canonical
   proxy labels boundary/gauge/noise_policy kept); a later `network()`,
-  `emitter()` or Poisson `field()` that construct would drop is refused.
-  Left: `connectivity(edge_seed=)` is stored and never read (construct seeds
-  edges from the runtime seed; ~17 callers via `build_laminar_column`): wire
-  or refuse (human). The probe kernels (`spk_probe`, `vm_probe`,
-  `source_probe`, `lfp_proxy_probe`) still record `position`/`reference`/
+  `emitter()` or Poisson `field()` that construct would drop is refused, as
+  are `runtime()` keys nothing reads, `runtime(vmap=True)`, `areas()` that
+  differ from the columns and a non-neutral `plasticity()`. Left, each a
+  human decision: (a) `connectivity(edge_seed=)` and
+  `build_laminar_column(edge_seed=)` are stored and never read (construct
+  seeds edges from the runtime seed; in-repo callers pass the runtime seed):
+  wire or refuse. (b) The probe kernels (`spk_probe`, `vm_probe`,
+  `source_probe`, `lfp_proxy_probe`) record `position`/`reference`/
   `filter_spec` they never apply, by 0.5.2 design pinned in
   `tests/test_probe_electrode_052.py`: refuse like `Configuration.probe`, or
-  mark them not applied in the report (human). Other unread `connectivity`
-  keys (`feedforward`/`feedback` route labels, `e_to_all`…),
-  `cfg.runtime(vmap=...)` (same single-trial issue as
-  `RuntimeConfiguration.vmap`), `areas()`, and probe `modes` (descriptive;
-  nothing gates on them). Notebooks under `artifacts/tutorials/` still carry
-  `domain="point"`/`preset="regular_spiking"` in executed cells.
+  mark them not applied in the report. (c) Descriptive labels nothing reads:
+  `connectivity` route labels (`feedforward`, `feedback`, `kind`, `mode`,
+  `e_to_all`, `i_to_all`, `excitatory_to_inhibitory`…) and declared probe
+  `modes` (fields depend on `Simulation(record_fields=)`): keep as labels or
+  refuse.
 - Seal note: AT-02…AT-06 run records (`artifacts/publication/atlas/`) carry
   the pre-correction spec digest (AT-02…AT-05 recorded `n_contacts` 4,
   executed 16; AT-06 recorded a common-average reference and an 8–25 Hz

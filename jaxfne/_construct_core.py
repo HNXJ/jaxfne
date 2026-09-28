@@ -32,7 +32,7 @@ from .emitters_homeostatic_ei import (
     HomeostaticEIParams,
 )
 from .fields import FieldOutput
-from ._config import Configuration, check_emitter_conflict, check_n_contacts
+from ._config import RUNTIME_METADATA_KEYS, Configuration, check_emitter_conflict, check_n_contacts
 from ._runtime_config import RuntimeConfig
 from ._signals import Simulation, Signals, LaminarSourceGeometry
 from ._model import Model
@@ -61,20 +61,7 @@ def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
     (see ``RuntimeConfig.actual_dtype``).
     """
     kw: dict[str, Any] = {}
-    for k in (
-        "dtype",
-        "recurrent_backend",
-        "jit",
-        "vmap",
-        "backend",
-        "synaptic_kernel",
-        "precision",
-        "device_type",
-        "enable_homeostasis",
-        "homeostasis_params",
-        "enable_hdp",
-        "hdp_params",
-    ):
+    for k in RUNTIME_METADATA_KEYS:
         v = metadata.get(k)
         if v is not None:
             kw[k] = v
@@ -99,7 +86,7 @@ def simulate(
 
     When no explicit ``runtime``/``Simulation`` is given, the runtime declared on
     the model's :class:`Configuration` via ``.runtime(...)`` (``dtype``,
-    ``recurrent_backend``, ``jit``, ``vmap``, ``backend``, ``synaptic_kernel``) is
+    ``recurrent_backend``, ``jit``, ``backend``, ``synaptic_kernel``) is
     inherited — so ``cfg.runtime(dtype="float64")`` / ``recurrent_backend="edge_list"``
     actually take effect. A ``dtype=`` keyword overrides the inherited dtype.
     """
@@ -141,8 +128,8 @@ def compute_fields(model: "Model", signals: "Signals") -> "FieldOutput":
 
     This is a thin accessor, not a new computation -- ``simulate()`` already
     builds ``signals.field`` internally (via :func:`project_laminar_sources`)
-    whenever field-capable probe modes (``"source"``, ``"CSD"``, ``"LFP"``)
-    were declared on the model's :class:`Configuration`. ``compute_fields``
+    whenever the Simulation records fields (``record_fields=True``, the
+    default); declared probe modes do not gate it. ``compute_fields``
     validates presence and returns that existing :class:`FieldOutput` rather
     than fabricating one; it raises if no field was computed, instead of
     silently returning ``None`` or synthesizing a placeholder.
@@ -153,8 +140,7 @@ def compute_fields(model: "Model", signals: "Signals") -> "FieldOutput":
     """
     if signals.field is None:
         raise ValueError(
-            "signals.field is None -- no field-capable probe modes (e.g. "
-            "'source', 'CSD', 'LFP') were declared before simulate(). "
+            "signals.field is None -- the Simulation ran with record_fields=False. "
             "compute_fields() is a thin accessor over the field already "
             "computed inside simulate(); it does not synthesize a new one."
         )
@@ -521,6 +507,19 @@ def _construct_validate_config(cfg: "Configuration") -> None:
     # Only emitters[0] is built; covers configs assembled without Configuration.emitter().
     for _later in cfg.emitters[1:]:
         check_emitter_conflict(cfg.emitters[0], _later)
+    if cfg.metadata.get("vmap") not in (None, False):
+        raise ValueError(
+            f"runtime(vmap={cfg.metadata['vmap']!r}) is not realized: the configuration's runtime "
+            "serves simulate(model), which runs one trial, and simulate_batch takes its runtime "
+            "from the Simulation. Use Simulation(runtime=RuntimeConfig(vmap=...)) with simulate_batch."
+        )
+    declared_areas = cfg.metadata.get("areas")
+    realized_areas = list(cfg.metadata.get("column_names", []))
+    if declared_areas is not None and sorted(declared_areas) != sorted(realized_areas):
+        raise ValueError(
+            f"areas({list(declared_areas)!r}) is not realized: construct builds the areas declared "
+            f"with column()/population(), {realized_areas!r}"
+        )
 
 
 def _construct_build_network(

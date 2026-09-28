@@ -233,6 +233,13 @@ def _check_probe_kwargs(kwargs: Mapping[str, Any]) -> None:
 
 
 _EMITTER_KEYS = ("family", "preset", "homeostatic_ei_rules", "homeostatic_ei_bound_mode")
+# Keys of Configuration.runtime() that simulate(model) maps onto a RuntimeConfig; seed/dt_ms/
+# duration_ms are inherited by simulate(model), canonical_biophysics/random_v0 are read by construct.
+RUNTIME_METADATA_KEYS = (
+    "dtype", "recurrent_backend", "jit", "vmap", "backend", "synaptic_kernel", "precision",
+    "device_type", "enable_homeostasis", "homeostasis_params", "enable_hdp", "hdp_params",
+)
+_RUNTIME_KEYS = (*RUNTIME_METADATA_KEYS, "seed", "dt_ms", "duration_ms", "canonical_biophysics", "random_v0")
 
 
 def emitter_signature(spec: Mapping[str, Any]) -> dict[str, Any]:
@@ -482,8 +489,11 @@ class Configuration:
         This intentionally maps to :meth:`update_metadata` rather than creating
         a compiled :class:`RuntimeConfig`; the compiled runtime remains a
         simulation-time object.  Typical keys include ``seed``, ``dtype``,
-        ``duration_ms``, and ``dt_ms``.
+        ``duration_ms``, and ``dt_ms``; a key nothing reads is refused.
         """
+        unknown = sorted(set(kwargs) - set(_RUNTIME_KEYS))
+        if unknown:
+            raise ValueError(f"runtime({unknown[0]}=...) has no consumer; supported keys: {sorted(_RUNTIME_KEYS)}")
         return self.update_metadata(**kwargs)
 
     def set_runtime(self, **kwargs: Any) -> "Configuration":
@@ -728,12 +738,17 @@ class Configuration:
 
         ``relative_baseline=1.0`` is the identity/neutral setting and is purely
         declarative: it does not change ``simulate()`` output. The STDP weight-
-        update kernel (``update_stdp_weights_jax``) is not wired into the main
-        ``Model.simulate()`` loop today — it only runs via the separate
-        ``run_stdp_stream`` path. This verb records intent in
-        ``metadata["plasticity"]`` so it is visible in ``manifest()`` from the
-        first call; deviating from ``1.0`` does not yet activate any kernel.
+        update kernel (``update_stdp_weights_jax``) runs only through the
+        separate ``run_stdp_stream`` path, so ``Model.simulate()`` would ignore
+        any other baseline or rule parameter; those are refused. The record in
+        ``metadata["plasticity"]`` is visible in ``manifest()``.
         """
+        _refuse_unrealized("plasticity", "relative_baseline", float(relative_baseline), (1.0,))
+        if kwargs:
+            raise ValueError(
+                f"plasticity({sorted(kwargs)[0]}=...) has no consumer: simulate() runs no plasticity "
+                "kernel; use jtfne.run_stdp_stream for STDP"
+            )
         spec = {
             "relative_baseline": float(relative_baseline),
             **dict(kwargs),
@@ -1148,8 +1163,8 @@ class Configuration:
     def areas(self, area_names: Sequence[str]) -> "Configuration":
         """Declare areas for a multi-area circuit (e.g., ['V1', 'V4', 'PFC']).
 
-        Area declarations are stored in metadata and later used by
-        layer_fractions() to generate multi-area neuron populations.
+        The areas themselves come from ``column()``/``population()``; construct
+        refuses a declared list that differs from those column names.
 
         Parameters
         ----------
@@ -1421,8 +1436,7 @@ class Configuration:
         No other field has a consumer (P-015), so each accepts only its
         neutral value and refuses anything else rather than recording a
         drive that never executes. Time-varying input: ``stimulus_schedule``
-        passed as ``paradigm``; noise: ``Simulation(poisson_drive=...)`` or
-        ``RuntimeConfig(noise_scale=...)``.
+        passed as ``paradigm``; noise: ``Simulation(poisson_drive=...)``.
 
         Parameters
         ----------
@@ -1439,7 +1453,7 @@ class Configuration:
             Refused unless empty (no consumer).
         noise_policy : str
             Canonical label "additive_poisson" only; noise runs through
-            ``Simulation(poisson_drive=...)`` or ``RuntimeConfig(noise_scale=...)``.
+            ``Simulation(poisson_drive=...)``.
         trial_variability : bool
             Refused unless False (no consumer).
 
@@ -1485,8 +1499,8 @@ class Configuration:
         if oddball_or_omission_schedule is None:
             oddball_or_omission_schedule = {}
 
-        # Canonical label only; noise comes from Simulation(poisson_drive=...) or
-        # RuntimeConfig(noise_scale=...), so another value would describe noise that never runs.
+        # Canonical label only; noise comes from Simulation(poisson_drive=...), so another
+        # value would describe noise that never runs.
         _refuse_unrealized("drive", "noise_policy", noise_policy, ("additive_poisson",))
 
         drive_spec = {

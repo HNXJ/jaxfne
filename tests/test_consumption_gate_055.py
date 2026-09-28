@@ -305,6 +305,14 @@ UNREALIZED_DECLARATIONS = {
         solver="experimental_poisson_1d", n_bins=16),
     "network.layers": lambda: jtfne.construct(
         _C().network(n=6, layers=["L4"]).emitter(family="izhikevich").field().probe(name="p")),
+    "runtime.unknown_key": lambda: _C().runtime(noise_scale=0.0),
+    "runtime.vmap": lambda: jtfne.construct(
+        _C().network(n=6).emitter(family="izhikevich").field().probe(name="p").runtime(vmap=True)),
+    "areas.not_the_columns": lambda: jtfne.construct(
+        _C().areas(["V1", "V4"]).column("V1", layers=["L4"], n=6).emitter(family="izhikevich").field()
+        .probe(name="p")),
+    "plasticity.relative_baseline": lambda: _C().plasticity(relative_baseline=0.5),
+    "plasticity.unknown_key": lambda: _C().plasticity(rule="stdp"),
 }
 
 
@@ -335,8 +343,13 @@ def test_realized_declarations_are_accepted():
         .set_emitter("izhikevich", "cortical_eig")  # a repeat of the first emitter is realized
         .drive(noise_policy="additive_poisson")
         .connectivity(within_area="all_to_all_uniform_random", recurrent=True)
+        .runtime(vmap=False)
+        .plasticity()
     )
     assert jtfne.construct(cfg).static["n_contacts"] == 4
+    areas = (_C().areas(["V2", "V1"]).column("V1", layers=["L4"], n=4).column("V2", layers=["L4"], n=4)
+             .emitter(family="izhikevich").field().probe(name="p", n_contacts=4))
+    assert jtfne.construct(areas).static["n_contacts"] == 4
 
 
 def test_reseeding_keeps_a_matching_runtime_seed_consistent(model):

@@ -61,6 +61,9 @@ def build_e1_configuration(*, include_inter_area: bool = True) -> jtfne.Configur
     neurons = _neurons_per_layer(spec)
     sim = spec["simulation_policy"]
     drive = spec["simulation_policy"]["drive"]
+    # E1 simulates without Poisson drive, so the only realized noise level is zero.
+    if float(sim["noise_scale"]) != 0.0:
+        raise ValueError(f"E1 realizes no noise; spec noise_scale must be 0.0, got {sim['noise_scale']!r}")
     layer_fracs = {layer: (i / len(layers), (i + 1) / len(layers)) for i, layer in enumerate(layers)}
     layer_cell_types = {layer: {"E": 0.7, "PV": 0.3} for layer in layers}
 
@@ -82,11 +85,7 @@ def build_e1_configuration(*, include_inter_area: bool = True) -> jtfne.Configur
         .set_emitter("izhikevich", str(sim["emitter_preset"]))
         .probes(["spikes", "V_m"])
         .field(domain="laminar_column", conductivity="proxy")
-        .runtime(
-            dtype=str(sim["dtype"]),
-            recurrent_backend="edge_list",
-            noise_scale=float(sim["noise_scale"]),
-        )
+        .runtime(dtype=str(sim["dtype"]), recurrent_backend="edge_list")
         .connections(
             name="local_A1",
             source={"area": "A1"},
