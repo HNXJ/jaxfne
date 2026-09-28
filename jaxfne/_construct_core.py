@@ -12,7 +12,6 @@ split acyclic.
 
 from __future__ import annotations
 
-import numbers
 from dataclasses import replace
 from typing import Any, Mapping, Optional
 
@@ -33,7 +32,7 @@ from .emitters_homeostatic_ei import (
     HomeostaticEIParams,
 )
 from .fields import FieldOutput
-from ._config import Configuration
+from ._config import Configuration, check_n_contacts
 from ._runtime_config import RuntimeConfig
 from ._signals import Simulation, Signals, LaminarSourceGeometry
 from ._model import Model
@@ -825,11 +824,9 @@ def _construct_build_static(
     """``construct()`` stage: resolve ``n_contacts`` + assemble the model's static dict."""
     n_contacts: int = 16
     if cfg.probes:
-        _nc = cfg.probes[0].get("n_contacts", 16)
-        if isinstance(_nc, bool) or not isinstance(_nc, numbers.Integral) or _nc < 2:
-            raise ValueError(f"probe n_contacts must be >= 2 and an int; got {_nc!r} in first probe")
-        n_contacts = int(_nc)
-        # One laminar readout serves every probe; a disagreeing later probe would be ignored.
+        n_contacts = check_n_contacts(cfg.probes[0].get("n_contacts", 16), "first probe")
+        # One laminar readout serves every probe; a disagreeing later probe would be
+        # ignored. A later probe without the key inherits the first probe's count.
         for i, probe in enumerate(cfg.probes[1:], start=1):
             if "n_contacts" in probe and probe["n_contacts"] != n_contacts:
                 raise ValueError(

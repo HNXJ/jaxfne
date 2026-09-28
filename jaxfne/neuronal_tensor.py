@@ -48,7 +48,6 @@ from __future__ import annotations
 
 import hashlib
 import math
-import numbers
 import warnings
 from dataclasses import dataclass, field, asdict, replace
 from pathlib import Path
@@ -59,6 +58,7 @@ import jax.numpy as jnp
 
 from .io import save_json, load_json
 from .core import Configuration, Model, construct
+from ._config import check_n_contacts
 from .emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
 
 ValueTag = Literal["calibrated", "calibrated_proxy", "relative"]
@@ -765,8 +765,9 @@ class RuntimeConfiguration:
     **Wired** (actually consumed by :func:`jaxfne.construct` /
     :func:`jaxfne.simulate` today): ``duration_ms``, ``dt_ms``, ``seed``,
     ``dtype``, ``emitter``, ``device`` (mapped to ``RuntimeConfig.backend``),
-    ``jit``, ``vmap``, ``n_contacts`` (laminar contacts of the field readout,
-    an int >= 2).
+    ``jit``, ``n_contacts`` (laminar contacts of the field readout, an int
+    >= 2). ``vmap`` must stay ``False``: a no-argument ``simulate`` runs one
+    trial, and ``simulate_batch`` reads ``vmap`` from its ``Simulation``.
 
     ``duration_ms``/``dt_ms``/``seed`` are inherited by a *no-argument*
     ``jtfne.simulate(model)`` (and by ``construct`` itself). Passing an
@@ -803,9 +804,13 @@ class RuntimeConfiguration:
                     f"RuntimeConfiguration.{name} is reserved and not wired on the tensor "
                     f"path; got {getattr(self, name)!r}. Leave it None."
                 )
-        if (isinstance(self.n_contacts, bool) or not isinstance(self.n_contacts, numbers.Integral)
-                or self.n_contacts < 2):
-            raise ValueError(f"RuntimeConfiguration.n_contacts must be an int >= 2; got {self.n_contacts!r}")
+        check_n_contacts(self.n_contacts, "RuntimeConfiguration")
+        if self.vmap is not False:
+            raise ValueError(
+                "RuntimeConfiguration.vmap is not consumed: simulate(model) runs one trial, and "
+                "simulate_batch takes its runtime from the Simulation. Use "
+                "Simulation(runtime=RuntimeConfig(vmap=...)) with simulate_batch."
+            )
 
 
 def construct_neuronal_tensor(

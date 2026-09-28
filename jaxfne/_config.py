@@ -17,6 +17,7 @@ duplicating them.
 from __future__ import annotations
 
 import math
+import numbers
 import warnings
 from dataclasses import dataclass, field, replace
 from typing import Any, Mapping, Optional, Sequence
@@ -153,6 +154,13 @@ def _counts_from_fractions(total: int, fractions: Mapping[str, float]) -> dict[s
         counts[key] = count
         remaining -= count
     return counts
+
+
+def check_n_contacts(value: Any, where: str) -> int:
+    """Return ``value`` as an int >= 2 (the laminar readout's contact count) or refuse it."""
+    if isinstance(value, bool) or not isinstance(value, numbers.Integral) or value < 2:
+        raise ValueError(f"{where}: n_contacts must be >= 2 and an int; got {value!r}")
+    return int(value)
 
 
 def _reject_retired_like(value: Any) -> None:
@@ -986,7 +994,7 @@ class Configuration:
             "physical_amplitude_calibrated": False,
         }
         if n_contacts is not None:
-            probe_kwargs["n_contacts"] = int(n_contacts)
+            probe_kwargs["n_contacts"] = check_n_contacts(n_contacts, "probes")
         probe_kwargs.update(kwargs)
         return cfg.probe(**probe_kwargs)
 

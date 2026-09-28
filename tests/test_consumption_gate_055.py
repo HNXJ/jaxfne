@@ -177,31 +177,35 @@ def test_simulate_batch_refuses_fields_it_does_not_consume(model, sim_kwargs):
         model.simulate_batch(jtfne.Simulation(**{**_BASE, **sim_kwargs}), n_seeds=2)
 
 
-# RuntimeConfiguration (tensor path): field -> (perturbed kwargs, outcome).
-# "policy" cases: jit/device are numerics-invariant; vmap is read only by simulate_batch.
+# RuntimeConfiguration (tensor path): field -> (perturbed kwargs, outcome, refusal match).
+# "policy": jit/device are numerics-invariant.
+# The dtype and emitter refusals predate H1; they keep the table complete.
 _TR_BASE = dict(duration_ms=20.0, dt_ms=0.5, seed=0)
 TENSOR_RT_CASES = {
-    "duration_ms": ({"duration_ms": 30.0}, "output"),
-    "dt_ms": ({"dt_ms": 0.25}, "output"),
-    "seed": ({"seed": 3}, "output"),
-    "dtype": ({"dtype": "float16"}, "refuse"),
-    "emitter": ({"emitter": "lif"}, "refuse"),  # construct realizes izhikevich only
-    "device": ({"device": "cpu"}, "policy"),
-    "jit": ({"jit": True}, "policy"),
-    "vmap": ({"vmap": True}, "policy"),
-    "n_contacts": ({"n_contacts": 8}, "output"),
-    "solver": ({"solver": "euler"}, "refuse"),
-    "probes": ({"probes": ["LFP"]}, "refuse"),
-    "outputs": ({"outputs": {"lfp": True}}, "refuse"),
-    "optimizer": ({"optimizer": "AGSDR"}, "refuse"),
+    "duration_ms": ({"duration_ms": 30.0}, "output", None),
+    "dt_ms": ({"dt_ms": 0.25}, "output", None),
+    "seed": ({"seed": 3}, "output", None),
+    "dtype": ({"dtype": "float16"}, "refuse", "dtype"),
+    "emitter": ({"emitter": "lif"}, "refuse", "Unsupported emitter family"),
+    "device": ({"device": "cpu"}, "policy", None),
+    "jit": ({"jit": True}, "policy", None),
+    "vmap": ({"vmap": True}, "refuse", "vmap is not consumed"),
+    "n_contacts": ({"n_contacts": 8}, "output", None),
+    "solver": ({"solver": "euler"}, "refuse", "reserved"),
+    "probes": ({"probes": ["LFP"]}, "refuse", "reserved"),
+    "outputs": ({"outputs": {"lfp": True}}, "refuse", "reserved"),
+    "optimizer": ({"optimizer": "AGSDR"}, "refuse", "reserved"),
 }
 
 
-def _tensor_run(**kw):
+def _tensor_model(**kw):
     from jaxfne.neuronal_tensor import make_minimal_ei_tensor
 
-    model = jtfne.construct(make_minimal_ei_tensor(), jtfne.RuntimeConfiguration(**{**_TR_BASE, **kw}))
-    return jtfne.simulate(model)
+    return jtfne.construct(make_minimal_ei_tensor(), jtfne.RuntimeConfiguration(**{**_TR_BASE, **kw}))
+
+
+def _tensor_run(**kw):
+    return jtfne.simulate(_tensor_model(**kw))
 
 
 def _tensor_output(sig):
@@ -215,9 +219,9 @@ def test_every_tensor_runtime_field_has_a_case():
 
 @pytest.mark.parametrize("field", sorted(TENSOR_RT_CASES))
 def test_tensor_runtime_field_is_consumed_or_refused(field):
-    pert_kw, outcome = TENSOR_RT_CASES[field]
+    pert_kw, outcome, match = TENSOR_RT_CASES[field]
     if outcome == "refuse":
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=match):
             _tensor_run(**pert_kw)
         return
     base, pert = _tensor_output(_tensor_run()), _tensor_output(_tensor_run(**pert_kw))
@@ -231,8 +235,12 @@ def test_tensor_runtime_field_is_consumed_or_refused(field):
 
 @pytest.mark.parametrize("n", [1, 16.0, "16", True])
 def test_tensor_runtime_n_contacts_refuses_non_int(n):
+    from jaxfne.neuronal_tensor import make_minimal_ei_tensor, neuronal_tensor_to_configuration
+
     with pytest.raises(ValueError, match="n_contacts"):
         jtfne.RuntimeConfiguration(n_contacts=n)
+    with pytest.raises(ValueError, match="n_contacts"):
+        neuronal_tensor_to_configuration(make_minimal_ei_tensor(), n_contacts=n)
 
 
 def test_probes_refuse_a_non_int_or_disagreeing_n_contacts():
