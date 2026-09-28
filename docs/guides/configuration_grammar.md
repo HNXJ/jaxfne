@@ -74,6 +74,8 @@ into cumulative depth bands; `.layer_fractions(...)` makes per-layer neuron coun
 proportional to thickness (or an explicit fraction). Real depth bands are what
 let LFP/CSD and spectrolaminar readouts express depth structure — `.uniform3d()`
 placement collapses layer identity and should be used only for non-laminar models.
+Under `.uniform3d()` every column is one `uniform_3d` layer: `construct()` refuses
+column layers, `.layer_fractions(...)` and per-layer cell-type tables there.
 
 ## Cell types
 

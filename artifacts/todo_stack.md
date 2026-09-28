@@ -87,35 +87,9 @@ tied to evidence.
 ## 0.5.5 stack
 
 HARNESS (human, 2026-09-27)
-- H1 Consumption gate, remainder (Simulation, RuntimeConfig,
-  RuntimeConfiguration, probe `n_contacts`, `set_emitter` rule kwargs and
-  `cell_params` keys are covered by `tests/test_consumption_gate_055.py`).
-  Declarative keys of `field`, `probe`, `drive`, `inter_column_connectivity`,
-  `connections`, `connectivity`, `emitter` and plain-route `network(layers)`
-  are restricted to realized values (human decision 2026-09-27; canonical
-  proxy labels boundary/gauge/noise_policy kept); a later `network()`,
-  `emitter()` or Poisson `field()` that construct would drop is refused, as
-  are `runtime()` keys nothing reads, `runtime(vmap=True)`, `areas()` that
-  differ from the columns, a non-neutral `plasticity()`, `network()` keys
-  nothing reads (`connectivity`, `cell_type_fractions`, `layers`),
-  homeostatic emitter keys on another family and `p_connect` outside [0, 1].
-  construct re-checks the fields and probes of a configuration built
-  directly, and compares Poisson fields as simulate solves them. The plain
-  route normalizes cell-type fractions; both routes refuse fractions that
-  are not real, finite and non-negative with positive mass. The probe
-  kernels refuse the electrode keywords they do not apply. The
-  homeostatic_ei route refuses the declarations it drops;
-  `connectivity(edge_seed=)` seeds the edges; the plain route applies
-  `drive()` and `cell_params()` (P-018). Left, executable:
-  (e) human 2026-09-28, see Decisions: `layer_fractions()`,
-  `layer_cell_types` and `area_layer_cell_types` change nothing without a
-  laminar column, and `uniform3d()` builds every column as one
-  `uniform_3d` layer. Callers that declare them: `default_cortical_column_config`,
-  the `uniform3d` geometry of `build_laminar_column`, Protocol C3
-  (`jaxfne/protocol_c/c3_execution.py`; its receipt holds results, not the
-  config), `scripts/generate_mechanism_tutorials.py` and its notebooks, and
-  tests. `default_complete_configuration` becomes laminar (Decisions,
-  2026-09-28); regenerate its pinned hashes.
+- Seal note (H1 e, 9958a72): `default_complete_configuration` is laminar;
+  its outputs and config hash changed (0 -> 173 inter-area edges at
+  defaults). Other callers kept their outputs.
 - Seal note (P-017): list the runs whose drive changed in the seal receipt
   (commit f8960a0 message: stimulus-less marker events now silent; stimulus
   events use their own duration_ms).
@@ -127,14 +101,20 @@ HARNESS (human, 2026-09-27)
   (`tests/test_agent_bench_055.py` allows exactly these corrections).
 
 ISSUES (order; decisions above)
+- P-021 release notebooks stop at 0.5.5 refusals (evoked-L4 with D1b;
+  v033/v035 `cortical_eig_e_plus_pv` preset); add one notebook check to
+  the broad gate.
 - P-012 test hygiene, then P-019 drive-swept bounds (one packet each).
 - P-016, P-020 bisect packet; each re-freeze waits for human sign-off.
 - P-013 `arm_definitions` packet; human reviews before the next freeze.
 
 DOCS (human, 2026-09-27)
-- D0 Style pass, in progress: README done (scratch commit 354279e); two
-  opencode workers edit `docs/`. Integrate after verification (audits,
-  byte-exact code/links/numbers, overclaim list reviewed by the human).
+- D0 Style pass landed (b278f70, eddfa1b, 42e0e2f). Human: review the 23
+  softened overclaims and decide the 17 flagged items listed in
+  `artifacts/audit/docs_style_pass_2026-09-28.md`.
+- `build_laminar_column(geometry='laminar')` ignores `radius_mm` and
+  `height_mm` (the laminar route reads `column_radius_mm` metadata only):
+  apply or refuse them.
 - D0b agy sweeps once `agy_delegate.py` exists: code comments and
   docstrings, remaining markdown, and `artifacts/skills/jaxfne-*` pointing
   at the canonical style skills instead of restating them.
