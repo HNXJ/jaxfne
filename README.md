@@ -10,22 +10,16 @@
 
 # jaxfne
 
-JaxFNE is a Python package for biophysical source-field modeling, coupling neural
-activity and biophysical state with plasticity, geometry, and population- and
-field-scale dynamics.
-
-JaxFNE is designed for models that need to change easily. Biology, dynamics,
-connectivity, geometry, and observations can be modified within the same model.
+JaxFNE is a Python package for biophysical source-field modeling. It couples
+neural activity and biophysical state with plasticity, geometry, and population-
+and field-scale dynamics, and each of these can be changed within one model.
 
 **Workflow:** change biology → change dynamics → simulate → measure
 
-You can, for example:
-
-- add or change biophysical state $H$;
-- change dynamics, plasticity, connectivity, or geometry;
-- change model detail;
-- measure spikes, population activity, or fields;
-- develop or reduce models with [JDNA](docs/guides/jdna.md).
+- **State**: add or change biophysical state $H$.
+- **Mechanism**: change dynamics, plasticity, connectivity, geometry, or model detail.
+- **Observation**: measure spikes, population activity, or fields.
+- **Reduction**: develop or reduce models with [JDNA](docs/guides/jdna.md).
 
 [Quickstart](docs/quickstart.md) · [Scope & status](docs/scope_and_status.md)
 
@@ -70,8 +64,8 @@ If you are an AI agent, read [`artifacts/AGENTS.md`](artifacts/AGENTS.md).
 
 ## Canonical Visualization Atlas
 
-Seven linked panels (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`, `hdp`, `oscillatory`) separate **OBSERVED** from **DERIVED** quantities and attach
-manifest provenance. A panel whose declared inputs cannot be met renders an explicit omission card instead of a substitute. Previews and generation code:
+Seven linked panels (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`, `hdp`, `oscillatory`) label each quantity **OBSERVED** or **DERIVED** and carry
+manifest provenance. A panel whose declared inputs are missing renders an omission card. Previews and generation code:
 [documentation site](https://jaxfne.readthedocs.io/en/latest/) and
 [Atlas guide](docs/guides/atlas_suite.md).
 
