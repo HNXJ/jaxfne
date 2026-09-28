@@ -85,7 +85,7 @@ Specificity dial: the E:I composition and its laminar gradient. A single global
 expresses the verified canonical-reference gradient (E rises with depth, inhibition
 peaks superficially, PV peaks at L2/L3). `.cell_params(...)` overrides
 per-selector neuron parameters. The more layer- and type-resolved the
-composition, the more the model can reproduce real laminar physiology.
+composition, the more laminar structure the readouts can resolve.
 
 !!! tip "Canonical prior"
     `jtfne.build_laminar_column(n=1000, ei_profile="canonical")` applies the
@@ -103,7 +103,7 @@ Specificity dial: the circuit. `.connections(...)` declares explicit
 source→target rules with probability, weight, sign, and synaptic mechanism;
 `.inter_column_connectivity(...)` adds laminar-aware inter-area edges
 (feedforward L2/3→L4, feedback L6→L1/L5). Prefer sparse construction at scale.
-Richer, sign- and mechanism-resolved connectivity produces emergent
+Richer, sign- and mechanism-resolved connectivity can produce emergent
 oscillations and the band-localized structure spectrolaminar readouts depend on.
 
 **Mechanism resolution now drives simulated tau when fully declared.**
@@ -117,7 +117,7 @@ declared connection rule has a resolvable mechanism reference; a model with
 no mechanisms, or a mixed rule set where even one rule omits `mechanism=`,
 runs entirely on the unchanged sign-only path. See
 `tests/test_mechanism_aware_connection_compiler.py` for the parity and
-divergence proof.
+divergence checks.
 
 **Composition.** `.connections()` augments the realized graph; it does not
 replace prior edges. Connectivity composes as an additive multiset union:
@@ -264,7 +264,7 @@ grammar (the fluent `cfg` chain) and the TFNE operator grammar
 (Emitter→Source→Field→Probe→Objective→Optimizer→Manifest) are two views of the
 same system. You specify a model declaratively; jaxfne compiles and computes it.
 The fidelity of the result reflects the specification you wrote — which is
-why `Configuration` is the deepest, most important surface in the package.
+why `Configuration` is the primary surface for specifying models.
 
 ## See also
 

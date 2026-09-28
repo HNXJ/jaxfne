@@ -152,9 +152,7 @@ Regenerate: `python scripts/generate_doc_page_atlases.py --slug objective_60`.
 
 `Configuration` exposes ~30 builder methods; the operator rules describe
 7 tensor stages with domain/codomain rules. Neither answers "what do I
-actually type, in order, to run something." This page is that answer; every
-example ran against the installed package, not copied from a proposal or an
-older skill file.
+actually type, in order, to run something." This page is that answer.
 
 ## See also
 

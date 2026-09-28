@@ -60,7 +60,7 @@ X
 | Coordinate | D1 scope |
 |------------|----------|
 | \(H_{\mathrm{Na}}\) | Reserved — not implemented in D1 |
-| \(H_{\mathrm{K}}\) | **First biological realization** |
+| \(H_{\mathrm{K}}\) | Realized in D1 |
 | \(H_{\mathrm{Ca}}\) | Reserved — not implemented in D1 |
 
 **Resolution principle (frozen):**

@@ -126,7 +126,7 @@ stable across the **entire** run, not just the first few trials:
 - Zero NaN in any of the 100 trial summaries.
 
 This shows stable, long-term homeostatic adaptation with
-genuine trial-to-trial weight plasticity -- not just a working-but-static
+trial-to-trial weight plasticity -- not just a working-but-static
 H-only pipeline (`carry_weights=False` stays available to reproduce that
 earlier, more conservative behavior for comparison).
 
@@ -141,7 +141,7 @@ and is **not** run by default -- pass an explicit `n_trials` for a
 longer run. Receipt:
 `outputs/v1_pfc_continuous_aaab_smoke_test/smoke_test_receipt.json`.
 
-## Known limitations (stated, not hidden)
+## Known limitations
 
 - V1's L4 and L6 drop PV/SST/VIP (pure-E tuning layers)
   to host the AB/A/B groups; L3 shrinks from its canonical 20 neurons to

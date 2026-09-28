@@ -2,7 +2,7 @@
 
 A single end-to-end étude over the full objective grammar on one model:
 **Configuration → Construct → Simulate → Visualize → Tune → Post-tune.** It builds
-the canonical 1000-neuron laminar column, drives it to a plausible firing regime,
+the canonical 1000-neuron laminar column, drives it to a ~18 Hz operating point,
 renders proxy readouts, fits a firing-rate target with a black-box optimizer, and
 writes a status-gated run manifest.
 

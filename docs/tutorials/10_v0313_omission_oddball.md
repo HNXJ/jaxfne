@@ -67,7 +67,7 @@ Events and conditions for the omission paradigm:
 
 ## Canonical Import
 
-All notebooks and scripts leverage the canonical packagefacade import:
+All notebooks and scripts use the canonical import:
 
 ```python
 import jaxfne as jtfne
@@ -107,7 +107,7 @@ model = jtfne.construct(cfg)
 - **Figure 2: Expected raster/rate** — spiking under regular standards.
 - **Figure 3: Unexpected deviant raster/rate** — spiking under rare deviant.
 - **Figure 4: Omission raster/rate** — activity in expected-tone silence and post-omission window.
-- **Figure 5: LFP/CSD-proxy Contrast** — sensory vs omission extracellular-like profiles.
+- **Figure 5: LFP/CSD-proxy Contrast** — sensory vs omission proxy profiles.
 
 ---
 

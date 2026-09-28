@@ -13,7 +13,7 @@ The 4 core jaxfne example scripts generate self-contained evidence bundles. Each
 2. **Static figures** — deterministic PNG visualizations generated from simulation data
 3. **Hashed artifacts** — SHA256 integrity verification for all outputs
 
-These rules ensure tutorials are reproducible, verifiable, and scientifically honest about their scope and scope notes.
+These rules keep tutorials reproducible, verifiable, and explicit about scope.
 
 **Key principle:** All outputs are **computational evidence**, not biological proof. No empirical validation. No mechanism statements. Status checks are frozen: `amplitude_status=False`.
 
@@ -87,7 +87,7 @@ Each tutorial creates an output directory with 5 required JSON files plus option
 - All values must be finite numbers (no NaN/Inf)
 - Spike rate may be 0 (silent neurons are allowed)
 - Voltage statistics should reflect neuronal dynamics
-- No overstateing of biological accuracy
+- No overstating of biological accuracy
 
 ### 4. validation_report.json
 
@@ -247,7 +247,7 @@ Tutorials validated: 3/4
 
 ---
 
-## Status Status and Scope
+## Claim status and scope
 
 **Statement Level:** `computational_scaffold`
 

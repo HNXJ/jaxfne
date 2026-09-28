@@ -1,6 +1,6 @@
 # Canonical Multiscale Observation
 
-*Frozen protocol B0 — Experiment A, 0.4.17-B. Qualifier moved from title to this sentence per presentation cleanup.*
+*Frozen protocol B0 — Experiment A, 0.4.17-B.*
 
 **Status:** prospectively frozen at B0 before the decisive dataset  
 **Protocol spec:** `artifacts/etudes/experiment_a/b0_protocol_spec.json`  

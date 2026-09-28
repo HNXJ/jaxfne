@@ -58,7 +58,7 @@ for p in manifest["panels"]:
 
 ## Interactive Examples
 
-These standalone interactive panels come live from the canonical 1000-neuron column simulation:
+These standalone interactive panels come from the canonical 1000-neuron column simulation:
 
 - [Index Dashboard (`index.html`)](../_static/atlas/index.html)
 - [Panel 1: Circuit Schematic (`schema.html`)](../_static/atlas/schema.html)

@@ -13,7 +13,7 @@ extending or validating a future PDE path.
 
 ## Overview
 
-This document specifies the mathematical contract for the elliptic field regime in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.
+This document specifies the mathematical contract for the elliptic field regime in jaxfne. It defines what constitutes an "admissible" solution: one that is mathematically well-posed and passes the five numerical gates below. Admissibility is a contract check, not a physical-consistency claim.
 
 **Status:** Specification of the admissibility conditions. The elliptic field regime is reserved; see
 [../computation_basis.md](../computation_basis.md) for the `solved_poisson` regime gating rule.
@@ -37,7 +37,7 @@ where:
 
 ## Admissibility Gates
 
-A elliptic field solver output is admissible if and only if **all five gates pass**:
+An elliptic field solver output is admissible if and only if **all five gates pass**:
 
 ### Gate 1: Conductivity Symmetric Positive Definite (SPD)
 
@@ -159,7 +159,7 @@ $$\frac{\|\nabla \cdot (\sigma \nabla \phi_e^{\mathrm{iter}}) + I_{\mathrm{src}}
 - `converged`: boolean flag (True if residual < tolerance)
 - `tolerance`: typical target $\epsilon_{\mathrm{tol}} \approx 10^{-6}$ to $10^{-8}$
 
-**Why:** Ensures solution is accurate to stated tolerance. Convergence failure indicates solver fell short of target accuracy.
+**Why:** Checks the solution against the stated tolerance. Convergence failure indicates solver fell short of target accuracy.
 
 ## Admissibility Report
 
@@ -234,7 +234,7 @@ assert "specification-only" in report.get("v0215_note", "").lower()
 
 ## Future Usage (Separately Approved Phase)
 
-When a elliptic field solver is separately approved and implemented:
+When an elliptic field solver is separately approved and implemented:
 
 1. **Solve:** Compute $\phi_e$, $\mathbf{J}_e$ from Poisson equation
 2. **Validate:** Run all five admissibility gates

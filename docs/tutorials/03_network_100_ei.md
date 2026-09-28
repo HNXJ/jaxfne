@@ -1,8 +1,6 @@
 # 100-neuron Network
 
-
 Build, simulate, and inspect a 100-neuron balanced excitatory/inhibitory (75E / 25I) network.
-Extract all eight proxy readouts from population activity.
 
 ## Open as Colab notebook
 
@@ -99,7 +97,7 @@ print(f"Voltage: {vm_mean:.2f} ± {vm_std:.2f} mV")
 
 - 100 neurons run efficiently on CPU with JAX vmap
 - Balanced E/I network maintains stable asynchronous activity
-- Population-level field projections emerge from neural sources
+- Population-level field projections derive from neural sources
 - All eight proxy operators scale to population level
 - Output bundle remains JSON-serializable and reproducible
 

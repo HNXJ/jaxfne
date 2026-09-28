@@ -1,8 +1,6 @@
 # Single-neuron Multimodal
 
-
 Build, simulate, and inspect a single Izhikevich neuron with all eight proxy readouts.
-Extract spikes, voltage, field readouts, and reproducible output bundles.
 
 ## Open as Colab notebook
 
@@ -107,7 +105,6 @@ plt.show()
 
 ## Key takeaways
 
-- Single neuron simulations are the foundation
 - Output is JSON-serializable (see `model.manifest(signals, readouts)`)
 - Next: move to [Two-neuron E/I](02_two_neuron_ei.md) for dynamics
 

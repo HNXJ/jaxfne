@@ -212,7 +212,7 @@ Embedded Plotly library inflates files to 3–5 MB each. CDN-linked files stay ~
 ### 2. File size and performance
 
 - **Per-figure size:** 10–200 KB (with CDN)
-- **Heatmaps:** Can be large if data is very high-dimensional; consider decimation
+- **Heatmaps:** Can be large if data is high-dimensional; consider decimation
 - **Raster plots:** Sparse data (many empty time points) may benefit from downsampling
 
 ### 3. Declarative metadata

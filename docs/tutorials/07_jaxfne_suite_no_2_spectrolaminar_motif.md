@@ -248,7 +248,7 @@ hdp_kwargs = dict(BASE_HDP_KWARGS_DEFAULT); hdp_kwargs.update(DEFAULT_HDP_DESYNC
 Verified 5-seed stable (N=500, 2000ms):
 
 - Overall rate 7.3 → 12.6 Hz; per-neuron rate std 0.99 → 6.0 Hz.
-- `H` fluctuates genuinely (`H=1.028±0.023`, range `[0.953, 1.227]`); every neuron stays clear of the `H_min`/`H_max` clamp rails.
+- `H` fluctuates (`H=1.028±0.023`, range `[0.953, 1.227]`); every neuron stays clear of the `H_min`/`H_max` clamp rails.
 - `kappa_synchrony` holds at 0.044 (still async-irregular).
 
 Second-pass refinement of an earlier, wider, more skewed candidate (`H=[0.96, 1.47]`): raising `gamma` 0.3 → 0.5 tightened both tails, since the rate-drain term is rate-bounded rather than weight-multiplicative and avoids amplifying the H>1 weight-growth feedback loop the way `alpha` does; `gamma>=0.55` hits a stability cliff (weight runaway) at every `K_ctrl`/`alpha` tried. `H` range has yet to symmetrically span `[0.8, 1.2]` — the floor (~0.95) looks structurally bottlenecked by E neurons' large `tau_i` (size=5 for E), not these three gains; treat as current best candidate, still open, unlike frozen `DEFAULT_HDP`.

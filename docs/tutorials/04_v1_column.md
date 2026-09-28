@@ -1,6 +1,5 @@
 # 600-neuron Population with Laminar Readout
 
-
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/etudes/jaxfne_etude_no_4_homeostatic_V1_column.ipynb)
 
 A 600-neuron E/PV/SST/VIP population read out through the laminar field proxy. This

@@ -13,7 +13,7 @@ amplitude_status: native_unscaled
 solver: browser_euler_dt_0.25ms
 ```
 
-Runs entirely in the browser. Parameter-intuition aid — not a jaxfne run. All outputs are browser-computed previews for qualitative exploration.
+Runs entirely in the browser. All outputs are browser-computed previews for qualitative exploration.
 
 ## What this tool does
 

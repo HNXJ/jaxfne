@@ -110,8 +110,6 @@ readouts = model.compute_readout(signals, readout_specs)
 
 ---
 
----
-
 ## Running the Notebook
 
 ### In Colab (Recommended)
@@ -144,7 +142,7 @@ After this tutorial:
 - **Modify E/I ratios** — Explore how balance affects stability
 - **Try emitter presets** — "tonic_spiking", "phasic_spiking", "fast_spiking"
 - **Extend to multiple layers** — Add L4 and L5 with inter-layer connections
-- **Calibrate to real data** — Use guided exercises in [Calibration guide](../guides/calibration.md)
+- **Prepare for calibration** — Use guided exercises in [Calibration guide](../guides/calibration.md)
 - **Explore field relationships** — See [Tensor-Field Workflows](../guides/tensor_field_workflows.md)
 
 ---

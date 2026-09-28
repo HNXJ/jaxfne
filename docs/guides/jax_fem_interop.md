@@ -11,12 +11,12 @@ for the tracked field-solver backlog entry this serves.
 jaxfne's laminar source-to-field readout (`jaxfne.fields.project_laminar_sources`)
 is currently a static, non-learned linear projection
 (`field_solver_status = "linear_solver"`) — not a differentiable elliptic/PDE
-solve. [jax-fem](https://github.com/deepmodeling/jax-fem) is a real, actively
-maintained differentiable GPU-accelerated FEM library built on JAX, proving
+solve. [jax-fem](https://github.com/deepmodeling/jax-fem) is an actively
+maintained differentiable GPU-accelerated FEM library built on JAX, showing
 that a differentiable elliptic solve composing with jaxfne's existing
 differentiable spiking/HDP pipeline is feasible — the goal this bridge works
-toward is a real differentiable volume-conductor solve for the laminar column
-geometry, not a name.
+toward is a differentiable volume-conductor solve for the laminar column
+geometry.
 
 ## Licensing — read this before installing
 
