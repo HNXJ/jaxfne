@@ -65,6 +65,24 @@ tied to evidence.
   default drives of its checkpoint and etude (as `_mcc3_model` under P-014),
   `tests/test_equiv01_table.py` the drives of its bounds (P-019);
   `artifacts/perf/matrix_051.json` stays the 0.5.0 receipt (see ATLAS 8).
+- 2026-09-28 (human): H1 (e), `default_complete_configuration` drops
+  `uniform3d()` and builds a laminar column, so its declared L2/3→core map
+  builds edges; its outputs and config hash change and the seal receipt
+  lists them. P-016 and P-020: bisect each to the commit that moved it,
+  then re-freeze in a new receipt that names the cause, or revert a buggy
+  commit; the human signs off each outcome; nothing is re-tuned. P-013: add
+  declarative per-task `arm_definitions` (inputs only) with a schema test;
+  frozen `results_055` stays; the human reviews the definitions before the
+  next freeze. Docs style pass over `docs/` and README
+  (`match-writing-style`): cut padding only, soften overclaims and list
+  each for review, no truth-status headers on public pages.
+- 2026-09-28 (agent): P-012, exempt paths `git check-ignore` reports and
+  skip the v033 check on an empty directory. P-019, bound the jit/eager gap
+  per drive regime on the P-018 path.
+- 2026-09-28 (human): agy (Antigravity CLI) takes high-load, low-complexity
+  lanes: quality sweeps of docs, markdown and code against the canonical
+  style skills, and upkeep of `artifacts/skills/jaxfne-*`. Every diff is
+  reviewed before it is integrated.
 
 ## 0.5.5 stack
 
@@ -96,10 +114,8 @@ HARNESS (human, 2026-09-27)
   the `uniform3d` geometry of `build_laminar_column`, Protocol C3
   (`jaxfne/protocol_c/c3_execution.py`; its receipt holds results, not the
   config), `scripts/generate_mechanism_tutorials.py` and its notebooks, and
-  tests. Open question for the human: `default_complete_configuration`
-  declares an L2/3→core inter-area map that matches no neuron under
-  `uniform3d()`, so it builds no inter-area edges (drop the map, or drop
-  `uniform3d()` so the column is laminar and the edges exist).
+  tests. `default_complete_configuration` becomes laminar (Decisions,
+  2026-09-28); regenerate its pinned hashes.
 - Seal note (P-017): list the runs whose drive changed in the seal receipt
   (commit f8960a0 message: stimulus-less marker events now silent; stimulus
   events use their own duration_ms).
@@ -110,13 +126,24 @@ HARNESS (human, 2026-09-27)
   records. The frozen agent task set keeps the old digests
   (`tests/test_agent_bench_055.py` allows exactly these corrections).
 
+ISSUES (order; decisions above)
+- P-012 test hygiene, then P-019 drive-swept bounds (one packet each).
+- P-016, P-020 bisect packet; each re-freeze waits for human sign-off.
+- P-013 `arm_definitions` packet; human reviews before the next freeze.
+
 DOCS (human, 2026-09-27)
+- D0 Style pass, in progress: README done (scratch commit 354279e); two
+  opencode workers edit `docs/`. Integrate after verification (audits,
+  byte-exact code/links/numbers, overclaim list reviewed by the human).
+- D0b agy sweeps once `agy_delegate.py` exists: code comments and
+  docstrings, remaining markdown, and `artifacts/skills/jaxfne-*` pointing
+  at the canonical style skills instead of restating them.
 - D1b Pages 08/10 (`08_jaxfne_suite_no_2_evoked_l4_drive.md`,
   `10_v0313_omission_oddball.md`) claim figures and results their notebooks
-  never produce: the evoked-L4 notebook passes a `Paradigm` that simulate
-  ignores (P-017), and the omission notebook runs one plain simulation and
-  plots two time steps under condition titles. Rebuild them on the P-017
-  fix.
+  never produce: the evoked-L4 notebook passes a full `Paradigm`, which
+  simulate now refuses (P-017), and the omission notebook runs one plain
+  simulation and plots two time steps under condition titles. Rebuild them
+  on the P-017 semantics (`paradigm.condition(...)`).
 - D2 Études pages ("studios"): embed each page's own figure beside its
   text, as the tutorial track does (`scripts/generate_docs_visuals.py`
   pattern: still tab + interactive iframe).
@@ -176,12 +203,10 @@ ACCEPTANCE (0.5.5 seal = end of programme)
 7. S27 population/`P_{l,c}` definition family. Trigger: a population
    definition CTX-01 cannot express.
 8. Agent-native step 10: MCP or other transport.
-9. P-016: slow pin `test_population_restoring_etude_regression_metrics`
-   fails at HEAD; bisect to its cause before any re-freeze.
-10. Deferred from 0.5.4: item 1b (S20.1 ordering; individual human
+9. Deferred from 0.5.4: item 1b (S20.1 ordering; individual human
     authorization required) and item 0 (`X[k]` frontier override, language
     decision).
-11. Deferred owner decisions from the 2026-09-20 deep audit:
+10. Deferred owner decisions from the 2026-09-20 deep audit:
     `compile_step_fn **hdp_kwargs` unknown-key policy; `validate_hdp_params`
     non-dict non-strict silent pass; frozen protocols record JAX/lib
     versions (P-003).
