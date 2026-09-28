@@ -46,21 +46,9 @@ def _default_spectrolaminar_config(
     )
 
     for area in areas:
-        cfg = cfg.column(area, layers=["L1", "L2/3", "L4", "L5", "L6"], n=n_per_area)
+        cfg = cfg.column(area, layers=["uniform_3d"], n=n_per_area)
 
-    cfg = (
-        cfg.cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
-        .area_layer_cell_types(
-            "V1",
-            {L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in ["L1", "L2/3", "L4", "L5", "L6"]},
-        )
-    )
-
-    if len(areas) > 1:
-        cfg = cfg.area_layer_cell_types(
-            areas[1],
-            {L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in ["L1", "L2/3", "L4", "L5", "L6"]},
-        )
+    cfg = cfg.cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
 
     cfg = (
         cfg.uniform3d(radius_mm=0.25, height_mm=1.6)
@@ -109,7 +97,7 @@ def _default_nuclei_config(
     cfg = (
         Configuration()
         .runtime(seed=seed or 42, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
-        .column(nucleus_name, layers=["core"], n=n)
+        .column(nucleus_name, layers=["uniform_3d"], n=n)
         .cell_types(dict(cell_type_fractions))
         .uniform3d(radius_mm=0.25, height_mm=0.25)
         .connectivity(within_area="all_to_all_uniform_random", within_gain=0.45, edge_seed=seed or 42)
@@ -202,14 +190,14 @@ class TestThreeDefaultArchitecture:
         assert isinstance(cfg, jtfne.Configuration)
         columns = {col["name"]: col for col in cfg.metadata.get("columns", [])}
         assert columns["thalamus"]["n"] == 80
-        assert columns["thalamus"]["layers"] == ["core"]
+        assert columns["thalamus"]["layers"] == ["uniform_3d"]
         assert cfg.metadata["seed"] == 42
 
     def test_default_nuclei_config_is_flat_not_laminar(self):
         """A nucleus has exactly one structural layer -- no depth banding."""
         cfg = _default_nuclei_config("LGN", n=50)
         columns = {col["name"]: col for col in cfg.metadata.get("columns", [])}
-        assert columns["LGN"]["layers"] == ["core"]
+        assert columns["LGN"]["layers"] == ["uniform_3d"]
 
     def test_default_nuclei_config_constructs_and_simulates(self):
         import numpy as np
@@ -279,6 +267,10 @@ class TestBuilderFunctions:
     def test_build_laminar_column_defaults(self):
         """Test build_laminar_column uses sensible defaults."""
         cfg = jtfne.build_laminar_column("V1", n=100)
+        columns = {col["name"]: col for col in cfg.metadata.get("columns", [])}
+        # The flat default is the uniform3d geometry: one 'uniform_3d' layer.
+        assert columns["V1"]["layers"] == ["uniform_3d"]
+        cfg = jtfne.build_laminar_column("V1", n=100, geometry="laminar")
         columns = {col["name"]: col for col in cfg.metadata.get("columns", [])}
         assert columns["V1"]["layers"] == ["L1", "L2/3", "L4", "L5", "L6"]
 

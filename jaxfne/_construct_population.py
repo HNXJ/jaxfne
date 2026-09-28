@@ -253,6 +253,49 @@ def _apply_cell_params(
     return replace(params, **{key: jnp.asarray(value, dtype=jdtype) for key, value in arrays.items()})
 
 
+def _refuse_dropped_layer_tables(metadata: Mapping[str, Any], columns: Sequence[Mapping[str, Any]], uniform_3d: bool) -> None:
+    """Refuse layer declarations the population builder would drop (H1 e).
+
+    A column built as one ``uniform_3d`` layer samples its cell types from the
+    flat composition and places neurons in a cylinder: it reads no layer
+    table. uniform3d() builds every column that way, so it drops declared
+    column layers too.
+    """
+    uniform_areas = set()
+    for area_idx, column in enumerate(columns):
+        area = str(column.get("name", f"area_{area_idx}"))
+        layers = [str(x) for x in column.get("layers", ["uniform_3d"])] or ["uniform_3d"]
+        if uniform_3d and layers != ["uniform_3d"]:
+            raise ValueError(
+                f"column({area!r}, layers={layers!r}) is not realized: uniform3d() builds every "
+                "column as one 'uniform_3d' layer. Declare layers=['uniform_3d'], or drop "
+                "uniform3d() for a laminar column"
+            )
+        if uniform_3d or layers == ["uniform_3d"]:
+            uniform_areas.add(area)
+    areas = {str(column.get("name", f"area_{i}")) for i, column in enumerate(columns)}
+    for key, call in (("area_layer_cell_types", "area_layer_cell_types"), ("area_layer_count_frac", "population")):
+        for area in (metadata.get(key) or {}):
+            if str(area) not in areas:
+                raise ValueError(f"{call}({str(area)!r}, ...) is not realized: no column is named {str(area)!r}")
+            if str(area) in uniform_areas:
+                raise ValueError(
+                    f"{call}({str(area)!r}, ...) is not realized: column {str(area)!r} is one "
+                    "'uniform_3d' layer and reads no layer table"
+                )
+    if uniform_areas == areas:
+        for key, call in (
+            ("layer_fractions", "layer_fractions"),
+            ("layer_cell_types", "layer_fractions(layer_cell_types=)"),
+            ("layer_count_frac", "population"),
+        ):
+            if metadata.get(key):
+                raise ValueError(
+                    f"{call}(...) is not realized: every column is one 'uniform_3d' layer and "
+                    "reads no layer table. Drop it, or build a laminar column (no uniform3d())"
+                )
+
+
 def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float32") -> tuple[IzhikevichParams, jax.Array, dict[str, Any]]:
     """Build explicit Suite No. 2 neuron metadata and reduced emitter arrays."""
 
@@ -263,6 +306,7 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
         columns = [{"name": str(net.get("name", "net1")), "layers": ["uniform_3d"], "n": int(net.get("n", 100)), "start_index": 0, "stop_index": int(net.get("n", 100))}]
     seed = int(metadata.get("seed", 0))
     uniform_3d = bool(metadata.get("uniform_3d", False))
+    _refuse_dropped_layer_tables(metadata, columns, uniform_3d)
     global_cell_types = {str(k): float(v) for k, v in net.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03}).items()}
 
     labels: list[str] = []

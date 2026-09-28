@@ -144,7 +144,7 @@ def _build_c3_model(
             enable_homeostasis=False,
             hdp_params={"noise_scale": float(sim_pol["noise_scale"])},
         )
-        .column("c3_ring", layers=["L4"], n=n)
+        .column("c3_ring", layers=["uniform_3d"], n=n)
         .cell_types({"E": 1.0})
         .uniform3d(radius_mm=float(spec["frozen_spatial_coordinates"]["ring_radius_mm"]), height_mm=0.1)
         .connectivity(within_area="all_to_all_uniform_random", within_gain=0.0)

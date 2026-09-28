@@ -797,6 +797,43 @@ def test_metadata_edge_seed_bypassing_connectivity_is_refused():
         jtfne.construct(dataclasses.replace(cfg, metadata=metadata))
 
 
+def _uniform_base(layers):
+    return (_C().column("V1", layers=layers, n=6).emitter(family="izhikevich").field()
+            .probe(name="p").runtime(seed=0))
+
+
+_UNIFORM_DROPS = {
+    "uniform3d.column_layers": (["L2/3", "L4"], lambda c: c.uniform3d()),
+    "uniform3d.layer_fractions": (["uniform_3d"], lambda c: c.uniform3d().layer_fractions()),
+    "uniform_column.layer_fractions": (["uniform_3d"], lambda c: c.layer_fractions()),
+    "uniform_column.area_table": (["uniform_3d"], lambda c: c.area_layer_cell_types("V1", {"L4": {"E": 1.0}})),
+    "area_table.unknown_area": (["L4"], lambda c: c.area_layer_cell_types("V9", {"L4": {"E": 1.0}})),
+}
+
+
+@pytest.mark.parametrize("case", sorted(_UNIFORM_DROPS))
+def test_construct_refuses_layer_declarations_the_route_drops(case):
+    layers, declare = _UNIFORM_DROPS[case]
+    jtfne.construct(_uniform_base(layers))  # the base builds
+    with pytest.raises(ValueError, match="not realized"):
+        jtfne.construct(declare(_uniform_base(layers)))
+
+
+def test_default_builders_declare_only_what_they_build():
+    with pytest.raises(ValueError, match="not realized"):
+        jtfne.default_cortical_column_config(layers=["L4"])
+    with pytest.raises(ValueError, match="uniform3d"):
+        jtfne.build_laminar_column(geometry="uniform3d", layers=["L4"])
+    meta = jtfne.default_cortical_column_config(n=20).metadata
+    assert meta["columns"][0]["layers"] == ["uniform_3d"] and "layer_fractions" not in meta
+    # default_complete_configuration is laminar, so its L2/3 -> core map builds edges.
+    model = jtfne.construct(jtfne.default_complete_configuration(n_column=40, n_nucleus=20))
+    areas = np.asarray([row["area"] for row in model.neuron_table()])
+    edges = model.params["edge_list"]
+    pre, post = np.asarray(edges.pre), np.asarray(edges.post)
+    assert (areas[pre] != areas[post]).sum() > 0
+
+
 def test_homeostatic_ei_route_accepts_unspecified_connectivity_mode():
     assert jtfne.construct(
         _hei_base().update_metadata(connectivity_mode="unspecified")).static["n_contacts"] == 16

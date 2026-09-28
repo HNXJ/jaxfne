@@ -8,7 +8,7 @@
         {
           "name": "thalamus",
           "layers": [
-            "core"
+            "uniform_3d"
           ],
           "n": 80,
           "start_index": 0,
@@ -16,7 +16,7 @@
         }
       ],
       "layers": [
-        "core"
+        "uniform_3d"
       ],
       "cell_types": {
         "E": 0.7,
@@ -90,7 +90,7 @@
       {
         "name": "thalamus",
         "layers": [
-          "core"
+          "uniform_3d"
         ],
         "n": 80,
         "start_index": 0,

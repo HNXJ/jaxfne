@@ -44,21 +44,9 @@ def _default_spectrolaminar_config(
     )
 
     for area in areas:
-        cfg = cfg.column(area, layers=["L1", "L2/3", "L4", "L5", "L6"], n=n_per_area)
+        cfg = cfg.column(area, layers=["uniform_3d"], n=n_per_area)
 
-    cfg = (
-        cfg.cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
-        .area_layer_cell_types(
-            "V1",
-            {L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in ["L1", "L2/3", "L4", "L5", "L6"]},
-        )
-    )
-
-    if len(areas) > 1:
-        cfg = cfg.area_layer_cell_types(
-            areas[1],
-            {L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in ["L1", "L2/3", "L4", "L5", "L6"]},
-        )
+    cfg = cfg.cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
 
     cfg = (
         cfg.uniform3d(radius_mm=0.25, height_mm=1.6)

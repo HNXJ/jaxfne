@@ -147,10 +147,11 @@ def default_cortical_column_config(
     *,
     synaptic_kernel: Literal["exponential", "receptor_exponential"] = "exponential",
 ) -> Configuration:
-    """Create a default laminar cortical column Configuration.
+    """Create a default cortical column Configuration.
 
     This helper sets up a single-column model with sensible defaults:
-    - 6 layers (L1, L2/3, L4, L5, L6)
+    - one ``uniform_3d`` layer: neurons scattered in a 0.25 x 1.6 mm cylinder
+      (use :func:`build_laminar_column` for depth bands and layer labels)
     - 4 cell types (E, PV, SST, VIP) with standard fractions
     - All-to-all uniform random local connectivity
     - Laminar proxy field with declarative metadata
@@ -172,8 +173,8 @@ def default_cortical_column_config(
         Name of the column (e.g., "V1", "visual_cortex"). Default: "single_column".
     n : int
         Total number of neurons. Default: 100.
-    layers : Sequence[str], optional
-        Layer names. Default: ["L1", "L2/3", "L4", "L5", "L6"].
+    layers : None
+        Refused when given: the column has one ``uniform_3d`` layer.
     seed : int, optional
         Random seed. Default: None (uses default in runtime).
     duration_ms : float
@@ -189,7 +190,7 @@ def default_cortical_column_config(
     Returns
     -------
     Configuration
-        Configuration with sensible defaults for a laminar column.
+        Configuration with sensible defaults for one column.
 
     Examples
     --------
@@ -205,8 +206,11 @@ def default_cortical_column_config(
     - Field is a declarative proxy only; no PDE solver.
     - No sparse connectivity; all within-area connections are all-to-all uniform random.
     """
-    if layers is None:
-        layers = ["L1", "L2/3", "L4", "L5", "L6"]
+    if layers is not None:
+        raise ValueError(
+            "default_cortical_column_config(layers=...) is not realized: the column is one "
+            "'uniform_3d' layer. Use build_laminar_column(layers=...) for a laminar column"
+        )
     if synaptic_kernel not in ("exponential", "receptor_exponential"):
         raise ValueError(
             f"synaptic_kernel must be 'exponential' or 'receptor_exponential'; got {synaptic_kernel!r}"
@@ -223,14 +227,8 @@ def default_cortical_column_config(
             synaptic_kernel=synaptic_kernel,
             recurrent_backend=recurrent_backend,
         )
-        .column(column_name, layers=layers, n=n)
+        .column(column_name, layers=["uniform_3d"], n=n)
         .cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
-        .layer_fractions(
-            layer_fractions={
-                L: (i / len(layers), (i + 1) / len(layers)) for i, L in enumerate(layers)
-            },
-            layer_cell_types={L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in layers},
-        )
         .uniform3d(radius_mm=0.25, height_mm=1.6)
         .connectivity(
             within_area="all_to_all_uniform_random", within_gain=0.45, edge_seed=seed or 42
@@ -319,7 +317,6 @@ def default_complete_configuration(
             {L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in layers},
         )
         .area_layer_cell_types(nucleus_name, {"core": {"E": 0.70, "PV": 0.30}})
-        .uniform3d(radius_mm=0.25, height_mm=1.6)
         .connectivity(
             within_area="all_to_all_uniform_random", within_gain=0.40, edge_seed=seed or 42
         )
@@ -389,14 +386,13 @@ def build_laminar_column(
         (E peaks deep to 95%, I peaks superficial at 50%, PV peaks at L2/L3,
         ≈66E:34I overall) — requires the canonical 6- or 5-layer set.
     geometry : {"auto", "uniform3d", "laminar"}, keyword-only, default "auto"
-        Neuron placement. ``"uniform3d"`` scatters neurons in a cylinder
-        (legacy; collapses layer identity to ``"uniform_3d"``, so per-layer
-        composition is *not* preserved). ``"laminar"`` places neurons in depth
-        bands so each neuron keeps its layer label and per-layer composition is
-        honored. ``"auto"`` selects ``"laminar"`` whenever a non-flat
-        composition is requested (``ei_profile="canonical"`` or an explicit
-        ``layer_cell_type_fractions``), else ``"uniform3d"`` for backward
-        compatibility.
+        Neuron placement. ``"uniform3d"`` scatters neurons in a cylinder as one
+        ``"uniform_3d"`` layer with the flat composition; it refuses layer
+        arguments. ``"laminar"`` places neurons in depth bands so each neuron
+        keeps its layer label and per-layer composition. ``"auto"`` selects
+        ``"laminar"`` when ``layers``, ``layer_fractions``,
+        ``layer_cell_type_fractions`` or ``ei_profile="canonical"`` is given,
+        else ``"uniform3d"``.
     within_connectivity : str, keyword-only, default "all_to_all_uniform_random"
         Within-area connectivity rule passed to ``.connectivity``.
     within_gain : float, keyword-only, default 0.45
@@ -417,6 +413,15 @@ def build_laminar_column(
     >>> cfg = jtfne.build_laminar_column(ei_profile="canonical")  # ground-truth E:I gradient
     >>> cfg = jtfne.build_laminar_column("M1", 500, layers=["L2/3", "L5"], within_gain=0.6)
     """
+    explicit_layers = layers is not None or layer_fractions is not None
+    if geometry == "uniform3d" and (
+        explicit_layers or layer_cell_type_fractions is not None or ei_profile == "canonical"
+    ):
+        raise ValueError(
+            "geometry='uniform3d' builds one 'uniform_3d' layer and reads no layer structure: "
+            "drop layers/layer_fractions/layer_cell_type_fractions/ei_profile='canonical', "
+            "or use geometry='laminar'"
+        )
     if layers is None:
         layers = list(DEFAULT_LAYERS)
     layers = list(layers)
@@ -437,21 +442,28 @@ def build_laminar_column(
         )
 
     if geometry == "auto":
-        geometry = "laminar" if (ei_profile == "canonical" or explicit_per_layer) else "uniform3d"
+        laminar = ei_profile == "canonical" or explicit_per_layer or explicit_layers
+        geometry = "laminar" if laminar else "uniform3d"
 
     conn_kwargs: dict[str, Any] = {"within_area": within_connectivity, "within_gain": within_gain}
     if edge_seed is not None:
         conn_kwargs["edge_seed"] = edge_seed
 
-    cfg = (
-        Configuration()
-        .column(name, layers=layers, n=n)
-        .cell_types(cell_type_fractions)
-        .layer_fractions(layer_fractions, layer_cell_type_fractions)
-    )
     if geometry == "uniform3d":
-        # Legacy placement: cylinder scatter (collapses per-neuron layer label).
-        cfg = cfg.uniform3d(radius_mm=radius_mm, height_mm=height_mm)
+        # Cylinder scatter: one 'uniform_3d' layer with the flat composition.
+        cfg = (
+            Configuration()
+            .column(name, layers=["uniform_3d"], n=n)
+            .cell_types(cell_type_fractions)
+            .uniform3d(radius_mm=radius_mm, height_mm=height_mm)
+        )
+    else:
+        cfg = (
+            Configuration()
+            .column(name, layers=layers, n=n)
+            .cell_types(cell_type_fractions)
+            .layer_fractions(layer_fractions, layer_cell_type_fractions)
+        )
     cfg = cfg.connectivity(**conn_kwargs)
     if ei_profile == "canonical":
         # Enable construct-time canonical biophysics (deep-E size grading +
