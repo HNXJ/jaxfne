@@ -210,9 +210,15 @@ def _check_field_kwargs(kwargs: Mapping[str, Any]) -> None:
                              f"{sorted({*_FIELD_REALIZED, *_FIELD_LABELS, *_POISSON_KEYS})}")
 
 
-def _poisson_signature(spec: Mapping[str, Any]) -> tuple[Any, float, Any]:
-    """What simulate reads from a Poisson field declaration (conductivity defaults to 1.0)."""
-    return spec.get("solver"), float(spec.get("conductivity", 1.0)), spec.get("n_bins")
+def poisson_signature(spec: Mapping[str, Any], n_contacts: int) -> tuple[Any, float, int]:
+    """What simulate solves for a Poisson field declaration (defaults: conductivity 1.0, n_bins = n_contacts)."""
+    return spec.get("solver"), float(spec.get("conductivity", 1.0)), int(spec.get("n_bins", n_contacts))
+
+
+def _real_baseline(method: str, value: Any) -> float:
+    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+        raise ValueError(f"{method}(relative_baseline={value!r}) is not realized: it takes a real number")
+    return float(value)
 
 
 def _check_probe_kwargs(kwargs: Mapping[str, Any]) -> None:
@@ -238,8 +244,8 @@ def _check_probe_kwargs(kwargs: Mapping[str, Any]) -> None:
 
 
 _EMITTER_KEYS = ("family", "preset", "homeostatic_ei_rules", "homeostatic_ei_bound_mode")
-# construct reads name, n and cell_types; kind is a label; p_connect must match the route's
-# connectivity; layers come from column(). column()/cell_types() build _BUILT_NETWORK_KINDS.
+# construct reads name, n and cell_types; kind is a label; p_connect is checked against the
+# route's connectivity; layers come from column(). column()/cell_types() build _BUILT_NETWORK_KINDS.
 _NETWORK_KEYS = ("name", "n", "cell_types", "kind", "p_connect", "layers")
 _BUILT_NETWORK_KINDS = ("multi_column", "configured")
 # Keys of Configuration.runtime() that simulate(model) maps onto a RuntimeConfig; seed/dt_ms/
@@ -381,8 +387,10 @@ class Configuration:
         """Attach network metadata to the configuration.
 
         construct reads ``name``, ``n`` and ``cell_types``; ``kind`` is a label.
-        A ``p_connect`` must match the connectivity the construction route
-        realizes; ``layers`` come from ``column()``. construct builds the
+        construct checks ``p_connect`` without reading it: the plain route
+        builds dense connectivity, so it takes 1.0; the population route reads
+        ``connectivity(p_connect=)``, which it must equal. ``layers`` come from
+        ``column()``. construct builds the
         first network only, and ``column()``/``cell_types()`` also fill that
         slot, so declare ``network()`` once, before them; an identical repeat is
         accepted.
@@ -451,7 +459,9 @@ class Configuration:
         ``conductivity="proxy"``, ``boundary="mean_zero_neumann"`` or
         ``"declared_proxy"``, ``gauge="mean_zero"``); ``solver=
         "experimental_poisson_1d"`` (with ``conductivity``/``n_bins``) adds the
-        opt-in final-timestep Poisson diagnostic.
+        opt-in final-timestep Poisson diagnostic. simulate runs the first Poisson
+        declaration only; construct refuses a later one that solves differently
+        (``n_bins`` defaults to the probe's ``n_contacts``).
 
         Returns
         -------
@@ -459,13 +469,6 @@ class Configuration:
             Updated configuration.
         """
         _check_field_kwargs(kwargs)
-        declared = [f for f in self.fields if f.get("solver") is not None]
-        if (kwargs.get("solver") is not None and declared
-                and _poisson_signature(declared[0]) != _poisson_signature(kwargs)):
-            raise ValueError(
-                f"field({dict(kwargs)!r}) is not realized: simulate runs the first Poisson "
-                f"declaration {declared[0]!r} only"
-            )
         return replace(self, fields=[*self.fields, dict(kwargs)])
 
     def probe(self, **kwargs: Any) -> "Configuration":
@@ -775,9 +778,7 @@ class Configuration:
         any other baseline or rule parameter; those are refused. The record in
         ``metadata["plasticity"]`` is visible in ``manifest()``.
         """
-        if isinstance(relative_baseline, bool) or not isinstance(relative_baseline, numbers.Real):
-            raise ValueError(f"plasticity(relative_baseline={relative_baseline!r}) is not realized: it takes 1.0")
-        _refuse_unrealized("plasticity", "relative_baseline", float(relative_baseline), (1.0,))
+        _refuse_unrealized("plasticity", "relative_baseline", _real_baseline("plasticity", relative_baseline), (1.0,))
         if kwargs:
             raise ValueError(
                 f"plasticity({sorted(kwargs)[0]}=...) has no consumer: simulate() runs no plasticity "
@@ -804,7 +805,7 @@ class Configuration:
         ``metadata["homeostasis_params"]``, consumed by ``simulate()`` through
         ``_runtime_config_from_metadata``.
         """
-        rb = float(relative_baseline)
+        rb = _real_baseline("homeostasis", relative_baseline)
         spec = {"relative_baseline": rb, **dict(kwargs)}
         metadata = dict(self.metadata)
         metadata["homeostasis"] = spec
@@ -831,7 +832,7 @@ class Configuration:
         Mutually exclusive with :meth:`homeostasis` at the ``RuntimeConfig``
         level (enforced in ``RuntimeConfig.__post_init__``).
         """
-        rb = float(relative_baseline)
+        rb = _real_baseline("hdp", relative_baseline)
         spec = {"relative_baseline": rb, **dict(kwargs)}
         metadata = dict(self.metadata)
         metadata["hdp"] = spec

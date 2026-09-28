@@ -45,6 +45,14 @@ tied to evidence.
   (`connectivity` route labels such as `feedforward`, `feedback`, `kind`,
   `mode`, `e_to_all`; `network(kind=)`; declared probe `modes`), following
   the human decision to keep field proxy labels.
+- 2026-09-28 (human): P-017, fix the paradigm semantics: inject only events
+  that carry a stimulus, for their own duration, at the declared amplitude
+  and targets; refuse a multi-condition `Paradigm`; `evoked_l4` reads its
+  onset and amplitude and targets L4; rebuild pages 08/10 on it; changed
+  `ParadigmCondition` runs go in the seal receipt. P-018, wire `drive()` on
+  the plain route. Wire `edge_seed` (in-repo outputs stay bit-identical).
+  Probe kernels refuse `position`/`reference`/`filter_spec` they do not
+  apply.
 
 ## 0.5.5 stack
 
@@ -59,21 +67,31 @@ HARNESS (human, 2026-09-27)
   `emitter()` or Poisson `field()` that construct would drop is refused, as
   are `runtime()` keys nothing reads, `runtime(vmap=True)`, `areas()` that
   differ from the columns, a non-neutral `plasticity()`, `network()` keys
-  nothing reads (`connectivity`, `cell_type_fractions`, `layers`) and
-  homeostatic emitter keys on another family. Left, executable: (e)
-  `layer_fractions()` changes nothing without `column()` (default and
-  custom tables give identical labels and positions at n=60); (f) the plain
-  route reads cell-type fractions unnormalized (`{"E": 1, "PV": 1}` at n=2
-  built two E cells; the population route normalizes). Left, each a
-  human decision: (d) P-018, the plain `network(n=)` route ignores
-  `drive()`: wire or refuse. (a) `connectivity(edge_seed=)` and
-  `build_laminar_column(edge_seed=)` are stored and never read (construct
-  seeds edges from the runtime seed; in-repo callers pass the runtime seed):
-  wire or refuse. (b) The probe kernels (`spk_probe`, `vm_probe`,
-  `source_probe`, `lfp_proxy_probe`) record `position`/`reference`/
-  `filter_spec` they never apply, by 0.5.2 design pinned in
-  `tests/test_probe_electrode_052.py`: refuse like `Configuration.probe`, or
-  mark them not applied in the report.
+  nothing reads (`connectivity`, `cell_type_fractions`, `layers`),
+  homeostatic emitter keys on another family and `p_connect` outside [0, 1].
+  construct re-checks the fields and probes of a configuration built
+  directly, and compares Poisson fields as simulate solves them. Left,
+  executable: (e) `layer_fractions()` changes nothing without `column()`
+  (default and custom tables give identical labels and positions at n=60);
+  (f) the plain route reads cell-type fractions unnormalized
+  (`{"E": 1, "PV": 1}` at n=2 built two E cells; the population route
+  normalizes); (g) the homeostatic_ei route reads only `network(n=)` and
+  the emitter rules (`_construct_homeostatic_ei_model`): list and refuse
+  the declarations it drops; (d) P-018: apply `drive()` on the plain route
+  (human 2026-09-28); regenerate `artifacts/mcc3_10s_checkpoint/*` and
+  `artifacts/perf/matrix_051*.json` if their outputs change; (a) wire
+  `connectivity(edge_seed=)` and `build_laminar_column(edge_seed=)`
+  (stored, never read; in-repo callers pass the runtime seed, so outputs
+  must stay bit-identical); (b) the probe kernels (`spk_probe`,
+  `vm_probe`, `source_probe`, `lfp_proxy_probe`) refuse the
+  `position`/`reference`/`filter_spec` they never apply; rewrite the 0.5.2
+  pin `tests/test_probe_electrode_052.py`.
+- P-017 fix (human 2026-09-28): `stimulus_schedule` injects only events
+  with a stimulus, for the event's duration, at its declared amplitude and
+  targets; simulate refuses a multi-condition `Paradigm`;
+  `evoked_l4_drive_paradigm` reads `l4_onset_ms`/`l4_amplitude` and targets
+  L4. Re-pin the tests whose runs change and list those runs in the seal
+  receipt; then D1b.
 - Seal note: AT-02…AT-06 run records (`artifacts/publication/atlas/`) carry
   the pre-correction spec digest (AT-02…AT-05 recorded `n_contacts` 4,
   executed 16; AT-06 recorded a common-average reference and an 8–25 Hz
@@ -86,10 +104,8 @@ DOCS (human, 2026-09-27)
   `10_v0313_omission_oddball.md`) claim figures and results their notebooks
   never produce: the evoked-L4 notebook passes a `Paradigm` that simulate
   ignores (P-017), and the omission notebook runs one plain simulation and
-  plots two time steps under condition titles. Rebuild or trim them after
-  the P-017 decision. (`artifacts/perf/matrix_051*.json` and
-  `artifacts/mcc3_10s_checkpoint/*` need no regeneration: their models build
-  on the plain route, where P-014's migrated drives never ran, P-018.)
+  plots two time steps under condition titles. Rebuild them on the P-017
+  fix.
 - D2 Études pages ("studios"): embed each page's own figure beside its
   text, as the tutorial track does (`scripts/generate_docs_visuals.py`
   pattern: still tab + interactive iframe).

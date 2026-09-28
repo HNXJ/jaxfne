@@ -30,7 +30,7 @@ model = jtfne.construct(cfg)
 ## Simulate and inspect
 
 ```python
-signals = model.simulate(jtfne.simulation(duration_ms=500.0, dt_ms=0.1))
+signals = model.simulate(jtfne.simulation(duration_ms=500.0, dt_ms=0.1, seed=0))
 
 # Mean rate over both neurons; per-neuron rates in label order (E, PV)
 readouts = model.compute_readout(signals, [jtfne.readout_spec("rate", "spike_rate_hz")])

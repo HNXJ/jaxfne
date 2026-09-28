@@ -12,6 +12,7 @@ split acyclic.
 
 from __future__ import annotations
 
+import numbers
 from dataclasses import replace
 from typing import Any, Mapping, Optional
 
@@ -32,7 +33,15 @@ from .emitters_homeostatic_ei import (
     HomeostaticEIParams,
 )
 from .fields import FieldOutput
-from ._config import RUNTIME_METADATA_KEYS, Configuration, check_emitter_conflict, check_n_contacts
+from ._config import (
+    RUNTIME_METADATA_KEYS,
+    Configuration,
+    _check_field_kwargs,
+    _check_probe_kwargs,
+    check_emitter_conflict,
+    check_n_contacts,
+    poisson_signature,
+)
 from ._runtime_config import RuntimeConfig
 from ._signals import Simulation, Signals, LaminarSourceGeometry
 from ._model import Model
@@ -513,6 +522,11 @@ def _construct_validate_config(cfg: "Configuration") -> None:
                 f"network({_later!r}) is not realized: construct builds the first network "
                 f"{cfg.networks[0]!r} only"
             )
+    # field()/probe() check their keys; a configuration built directly skips them.
+    for _field in cfg.fields:
+        _check_field_kwargs(_field)
+    for _probe in cfg.probes:
+        _check_probe_kwargs(_probe)
     if cfg.metadata.get("vmap") not in (None, False):
         raise ValueError(
             f"runtime(vmap={cfg.metadata['vmap']!r}) is not realized: the configuration's runtime "
@@ -535,13 +549,18 @@ def _construct_build_network(
     ``(network, positions, geometry_meta, n, prebuilt_edges)``."""
     n = int(net.get("n", 100))
     _prebuilt_edges = None
+    _p_meta = (cfg.metadata.get("connectivity") or {}).get("p_connect")
+    _p_declared = (("connectivity", _p_meta), ("network", net.get("p_connect")))
+    for _src, _p in _p_declared:
+        # A value outside [0, 1] builds dense connectivity on either route.
+        if _p is not None and (isinstance(_p, bool) or not isinstance(_p, numbers.Real) or not 0.0 <= _p <= 1.0):
+            raise ValueError(f"{_src}(p_connect={_p!r}) is not realized: it takes a probability in [0, 1]")
     if (
         cfg.metadata.get("columns")
         or cfg.metadata.get("layer_cell_types")
         or cfg.metadata.get("uniform_3d")
     ):
         # This route reads connectivity(p_connect=) and the layers of column()/layer_fractions().
-        _p_meta = (cfg.metadata.get("connectivity") or {}).get("p_connect")
         if net.get("p_connect") is not None and float(net["p_connect"]) != float(1.0 if _p_meta is None else _p_meta):
             raise ValueError(
                 f"network(p_connect={net['p_connect']!r}) is not realized on this construction route: "
@@ -584,20 +603,17 @@ def _construct_build_network(
         # Both spellings: .connectivity(p_connect=...) reads from metadata, while
         # .network(p_connect=...) is stored in the network spec and likewise never
         # consumed on this route.
-        _p = (cfg.metadata.get("connectivity") or {}).get("p_connect")
-        _src = "connectivity"
-        if _p is None:
-            _p, _src = net.get("p_connect"), "network"
-        if _p is not None and float(_p) < 1.0:
-            raise ValueError(
-                f"{_src}(p_connect={_p}) cannot be honoured by this construction "
-                "route: the configuration set none of columns/layer_cell_types/uniform_3d, "
-                "so it routes to the non-sparse-aware network builder, which materializes "
-                "dense all-to-all connectivity. Previously the request was silently "
-                "ignored. Use build_laminar_column/laminar_cortex_config (or set one of "
-                "those metadata keys) to reach the sparse-aware population builder, or "
-                "drop p_connect to request dense connectivity explicitly."
-            )
+        for _src, _p in _p_declared:
+            if _p is not None and float(_p) < 1.0:
+                raise ValueError(
+                    f"{_src}(p_connect={_p}) cannot be honoured by this construction "
+                    "route: the configuration set none of columns/layer_cell_types/uniform_3d, "
+                    "so it routes to the non-sparse-aware network builder, which materializes "
+                    "dense all-to-all connectivity. Previously the request was silently "
+                    "ignored. Use build_laminar_column/laminar_cortex_config (or set one of "
+                    "those metadata keys) to reach the sparse-aware population builder, or "
+                    "drop p_connect to request dense connectivity explicitly."
+                )
         if net.get("layers"):
             raise ValueError(
                 f"network(layers={net['layers']!r}) is not realized on this construction route: "
@@ -859,6 +875,14 @@ def _construct_build_static(
                     f"probe {i} declares n_contacts={probe['n_contacts']!r} but the field "
                     f"readout uses the first probe's n_contacts={n_contacts}"
                 )
+    # simulate solves the first Poisson declaration only; n_bins defaults to n_contacts.
+    poisson = [f for f in cfg.fields if f.get("solver") is not None]
+    for later in poisson[1:]:
+        if poisson_signature(later, n_contacts) != poisson_signature(poisson[0], n_contacts):
+            raise ValueError(
+                f"field({later!r}) is not realized: simulate runs the first Poisson declaration "
+                f"{poisson[0]!r} only (n_bins defaults to n_contacts={n_contacts})"
+            )
     static: dict[str, Any] = {"n_contacts": n_contacts, "operator_status": operator_status()}
     if geometry_meta is not None:
         static["geometry"] = geometry_meta

@@ -301,8 +301,17 @@ UNREALIZED_DECLARATIONS = {
     "network.second": lambda: _C().network(n=6).network(n=12),
     "network.after_cell_types": lambda: _C().cell_types({"E": 0.8, "PV": 0.2}).network(n=6),
     "column.after_network": lambda: _C().network(n=6).column("V1", layers=["L4"], n=6),
-    "field.second_poisson": lambda: _C().field(solver="experimental_poisson_1d", n_bins=8).field(
-        solver="experimental_poisson_1d", n_bins=16),
+    "field.second_poisson": lambda: jtfne.construct(
+        _C().network(n=6).emitter(family="izhikevich").field(solver="experimental_poisson_1d", n_bins=8)
+        .field(solver="experimental_poisson_1d").probe(name="p")),  # n_bins defaults to n_contacts (16)
+    "field.direct_at_construct": lambda: jtfne.construct(dataclasses.replace(
+        _C().network(n=6).emitter(family="izhikevich").field().probe(name="p"), fields=[{"domain": "point"}])),
+    "probe.direct_at_construct": lambda: jtfne.construct(dataclasses.replace(
+        _C().network(n=6).emitter(family="izhikevich").field().probe(name="p"),
+        probes=[{"name": "p", "reference": "common_average"}])),
+    "connectivity.p_connect_range": lambda: jtfne.construct(
+        _C().network(n=6).uniform3d().connectivity(p_connect=1.5).emitter(family="izhikevich").field()
+        .probe(name="p")),
     "network.layers": lambda: jtfne.construct(
         _C().network(n=6, layers=["L4"]).emitter(family="izhikevich").field().probe(name="p")),
     "runtime.unknown_key": lambda: _C().runtime(noise_scale=0.0),
@@ -314,6 +323,8 @@ UNREALIZED_DECLARATIONS = {
     "plasticity.relative_baseline": lambda: _C().plasticity(relative_baseline=0.5),
     "plasticity.unknown_key": lambda: _C().plasticity(rule="stdp"),
     "plasticity.bool_baseline": lambda: _C().plasticity(relative_baseline=True),
+    "homeostasis.bool_baseline": lambda: _C().homeostasis(relative_baseline=True),
+    "hdp.bool_baseline": lambda: _C().hdp(relative_baseline=True),
     "network.unknown_key": lambda: _C().network(n=2, connectivity={"E→PV": 0.2}),
     "network.built_kind": lambda: _C().network(n=9999, kind="multi_column").column("V1", layers=["L4"], n=6),
     "network.second_at_construct": lambda: jtfne.construct(dataclasses.replace(
@@ -342,6 +353,13 @@ def test_poisson_diagnostic_refuses_inputs_simulate_would_swallow(kwargs):
         _C().field(solver="experimental_poisson_1d", **kwargs)
 
 
+def test_plain_route_checks_both_p_connect_spellings():
+    cfg = (_C().network(n=6, p_connect=0.5).connectivity(p_connect=1.0).emitter(family="izhikevich").field()
+           .probe(name="p"))
+    with pytest.raises(ValueError, match=r"network\(p_connect=0.5\) cannot be honoured"):
+        jtfne.construct(cfg)
+
+
 def test_realized_declarations_are_accepted():
     cfg = (
         _C()
@@ -350,12 +368,13 @@ def test_realized_declarations_are_accepted():
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
         .field(solver=None)
-        .field(solver="experimental_poisson_1d", conductivity=1.0, n_bins=8)
-        .field(solver="experimental_poisson_1d", n_bins=8)  # conductivity defaults to 1.0
+        .field(solver="experimental_poisson_1d", conductivity=1.0, n_bins=4)
+        .field(solver="experimental_poisson_1d", n_bins=4)  # conductivity defaults to 1.0
+        .field(solver="experimental_poisson_1d")  # n_bins defaults to n_contacts (4)
         .probe(name="p", n_contacts=4, width=0.1, contact_depths=[0.0, 1 / 3, 2 / 3, 1.0], reference=None)
         .set_emitter("izhikevich", "cortical_eig")  # a repeat of the first emitter is realized
         .drive(noise_policy="additive_poisson")
-        .connectivity(within_area="all_to_all_uniform_random", recurrent=True)
+        .connectivity(within_area="all_to_all_uniform_random", recurrent=True, p_connect=1.0)
         .runtime(vmap=False)
         .plasticity()
     )

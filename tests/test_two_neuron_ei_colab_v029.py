@@ -13,6 +13,7 @@ Tests that:
 10. Example script exists and runs
 11. Vocabulary clean (no forbidden terms)
 12. Version remains 0.2.3
+13. The numbers docs/tutorials/02_two_neuron_ei.md and docs/colab.md state
 """
 
 from __future__ import annotations
@@ -308,3 +309,32 @@ class TestTwoNeuronEINotebook:
             assert (
                 len(matches) == 0
             ), f"Forbidden term pattern '{pattern}' found: {matches}"
+
+
+def test_tutorial_page_numbers_match_the_model():
+    import numpy as np
+
+    import jaxfne as jtfne
+
+    cfg = (
+        jtfne.configuration()
+        .network(n=2, cell_types={"E": 0.5, "PV": 0.5})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field()
+        .probe(name="two_neuron_ei", modes=["spikes", "V_m"])
+    )
+    model = jtfne.construct(cfg)
+    emitter = model.params["emitter"]
+    assert emitter.labels == ("E", "PV")
+    np.testing.assert_allclose(np.asarray(emitter.drive), [5.0, 3.0])
+    w = 0.5 / np.sqrt(2.0)  # W[post, pre]: E->PV +w, PV->E -w
+    np.testing.assert_allclose(np.asarray(emitter.W), [[0.0, -w], [w, 0.0]], rtol=1e-6)
+
+    def run(duration_ms, **kwargs):
+        return model.simulate(jtfne.simulation(duration_ms=duration_ms, dt_ms=0.1, seed=0, **kwargs))
+
+    coupled, ablated = run(500.0), run(500.0, ablation="disconnected_null")
+    assert np.asarray(coupled.spikes).sum(axis=0).tolist() == [6.0, 0.0]  # E 12 Hz, PV silent
+    assert np.array_equal(np.asarray(coupled.spikes)[:, 0], np.asarray(ablated.spikes)[:, 0])
+    assert np.max(np.abs(np.asarray(coupled.V_m)[:, 1] - np.asarray(ablated.V_m)[:, 1])) <= 0.04
+    assert np.asarray(run(200.0).spikes).sum(axis=0).tolist() == [3.0, 0.0]  # colab: 15.00 / 0.00 Hz
