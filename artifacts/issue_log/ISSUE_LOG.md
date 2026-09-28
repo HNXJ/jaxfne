@@ -109,26 +109,4 @@ possible future change.
   c9e12f8 for the commit that moved condition C, then re-freeze with the
   stated cause or extend the etude check to C; open
 
-### P-021
-- **date:** 2026-09-28
-- **type:** BUG
-- **area:** release notebooks (`tests/test_notebook_execution_suite.py`),
-  outside the broad gate
-- **observation:** three release notebooks stop at a refusal the 0.5.5
-  consumption gate added: `jaxfne_suite_no_2_evoked_l4_drive.ipynb` passes a
-  two-condition `Paradigm` (P-017 refusal); `jaxfne_v033_two_neuron_ei.ipynb`
-  and `jaxfne_v035_small_recurrent_ei.ipynb` declare
-  `emitter(preset='cortical_eig_e_plus_pv')`, which the emitter does not realize
-- **severity:** MAJOR (shipped notebooks do not run)
-- **minimal reproduction:** `pytest tests/test_notebook_execution_suite.py -k
-  "evoked_l4 or v033_two or v035_small"`
-- **expected behavior:** each notebook runs, declaring only what is realized
-- **actual behavior:** 3 failed (`CellExecutionError`, ValueError as above)
-- **evidence:** run at 42e0e2f, 2026-09-28; the broad gate does not execute
-  these notebooks, so it stayed green
-- **possible future change:** migrate the notebooks (evoked: one
-  `paradigm.condition(...)` per run, with D1b; v033/v035: drop the preset or
-  declare what the E+PV setup realizes), and put one fast notebook-execution
-  check in the broad gate; open
-
 ---

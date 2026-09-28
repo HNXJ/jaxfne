@@ -101,9 +101,8 @@ HARNESS (human, 2026-09-27)
   (`tests/test_agent_bench_055.py` allows exactly these corrections).
 
 ISSUES (order; decisions above)
-- P-021 release notebooks stop at 0.5.5 refusals (evoked-L4 with D1b;
-  v033/v035 `cortical_eig_e_plus_pv` preset); add one notebook check to
-  the broad gate.
+- Broad gate executes no notebook, so 0.5.5 refusals broke three release
+  notebooks unseen (P-021, fixed): add one fast notebook-execution check.
 - P-012 test hygiene, then P-019 drive-swept bounds (one packet each).
 - P-016, P-020 bisect packet; each re-freeze waits for human sign-off.
 - P-013 `arm_definitions` packet; human reviews before the next freeze.
