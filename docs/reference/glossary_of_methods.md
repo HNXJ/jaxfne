@@ -1,6 +1,6 @@
 # Glossary of methods
 
-This glossary defines the package-level terms used by `jaxfne` docs, examples, tests, and manifests.
+Package-level terms used by `jaxfne` docs, examples, tests, and manifests.
 
 ## Objective grammar
 

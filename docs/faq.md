@@ -1,8 +1,7 @@
 # Frequently Asked Questions
 
-Common questions about installing jaxfne, running simulations, readouts, and
-extending the package. For hands-on examples start with [Quickstart](quickstart.md);
-for API detail see the [API reference](api/index.md).
+Installing jaxfne, running simulations, readouts, extending the package.
+Hands-on examples: [Quickstart](quickstart.md); API detail: [API reference](api/index.md).
 
 ## Installation and setup
 
@@ -12,7 +11,7 @@ A: jaxfne requires Python 3.11 or later (supports 3.11-3.14). Blocking CI valida
 
 **Q: Can I run jaxfne on GPU?**
 
-A: Yes. jaxfne uses JAX natively, which supports GPU execution. Set JAX device configuration as needed. CPU-first examples validate correctness; GPU execution is optional.
+A: Yes, through JAX device configuration. Examples are CPU-first; GPU execution is optional.
 
 **Q: How do I install JAX with GPU support?**
 
@@ -22,7 +21,7 @@ A: See the [JAX installation guide](https://jax.readthedocs.io/en/latest/install
 
 **Q: What's the simplest way to use jaxfne?**
 
-A: See [Quickstart](quickstart.md) for a minimal example. It takes ~5 lines of code to configure, build, and simulate a 100-neuron network.
+A: See [Quickstart](quickstart.md). A 100-neuron network takes ~5 lines to configure, build, and simulate.
 
 **Q: Can I use jaxfne with Jaxley models?**
 
@@ -36,7 +35,7 @@ A: Eight operators: SPK (spikes), Vm (voltage), source, LFP-proxy, CSD-proxy, EE
 
 **Q: How do I calibrate outputs to physical units?**
 
-A: Default readouts are computational proxies. Calibration requires empirical data, geometry specifications, and solver validation. See [Calibration](guides/calibration.md) for the calibration-ready design, and [Limitations and future plans](limitations_and_future_plans.md) for the declared field regimes.
+A: Default readouts are computational proxies. Calibration needs empirical data, geometry, and solver validation. See [Calibration](guides/calibration.md) and the declared field regimes in [Limitations and future plans](limitations_and_future_plans.md).
 
 **Q: What metadata does jaxfne attach to outputs?**
 

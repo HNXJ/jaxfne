@@ -1,6 +1,6 @@
 # References — Canonical Scientific Bibliography
 
-Verified bibliography for JaxFNE/TFNE. Every entry is DOI-resolved with title/authors/year/venue exact via Crossref/publisher. Use this page as the single canonical owner; do not duplicate entries across guides.
+Verified bibliography for JaxFNE/TFNE. Every entry is DOI-resolved with title/authors/year/venue exact via Crossref/publisher. Single canonical owner; do not duplicate entries across guides.
 
 ## Neural dynamics
 

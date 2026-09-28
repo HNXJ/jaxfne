@@ -6,10 +6,9 @@
 pip install -U jaxfne
 ```
 
-The current published **PyPI** release is **`jaxfne==0.5.0`** (tag `v0.5.0`),
-published from the artifacts built and validated for commit `499c54f`. The
-previous release is **`0.4.25`** (tag `v0.4.25`). The current **development**
-public API on `dev` is documented in
+The published **PyPI** release is **`jaxfne==0.5.0`** (tag `v0.5.0`),
+built and validated for commit `499c54f`. The previous release is **`0.4.25`**
+(tag `v0.4.25`). The **development** public API on `dev` is documented in
 [Public API contract](public_surface_contract.md) (192-symbol surface). To pin
 the published PyPI release explicitly:
 
@@ -17,8 +16,8 @@ the published PyPI release explicitly:
 pip install "jaxfne==0.5.0"
 ```
 
-For the current development checkout, use editable install (below) and verify
-`jaxfne.__version__` prints the version in `pyproject.toml`.
+For a development checkout, use the editable install below and check
+`jaxfne.__version__` against the version in `pyproject.toml`.
 
 Optional extras:
 

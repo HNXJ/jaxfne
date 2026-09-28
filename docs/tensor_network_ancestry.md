@@ -1,12 +1,5 @@
 # Tensor-Network Ancestry and Basis-Transform Rule
 
-**Status:** conceptual documentation  
-**Version:** current  
-**run_status:** tutorial_scaffold  
-**Scope:** Terminology, historical context, architectural parallels; no implementation notes
-
----
-
 ## Purpose
 
 This document situates TFNE within two distinct meanings of **tensor network**:
@@ -15,8 +8,6 @@ This document situates TFNE within two distinct meanings of **tensor network**:
 2. **Modern ML/Physics (2010s–present):** Tensor network as a factorized state compression and contraction algorithm (tensor trains, MPS, PEPS, etc.)
 
 jaxfne adopts the **basis-transform architecture** from the first tradition (multi-scale coordinate projections: emitter basis → source basis → field basis → readout basis) while remaining distinct from both traditions' full scope.
-
-This document clarifies what TFNE does, what it does not implement, and why the basis-transform concept matters for modularity and extensibility.
 
 ---
 
@@ -105,7 +96,7 @@ $$
 ### Why Basis Transforms Matter
 
 1. **Modularity:** Each stage is independent. A source can exist without field solve; a field without EEG readout.
-2. **Run boundary:** Each basis transform carries its own status status. Source projection is deterministic; field solve is (currently) proxy-only.
+2. **Run boundary:** Each basis transform carries its own status. Source projection is deterministic; field solve is (currently) proxy-only.
 3. **Extensibility:** New bases (ionic current frame, spectral frame, etc.) fit the same architecture without breaking the pipeline.
 4. **Tensor structure:** The cascade is naturally a tensor contraction chain: state → source density → field potential → readout metrics.
 
@@ -142,11 +133,10 @@ $$\text{LFP\_proxy}(t) = \sum_{contacts} w_{contact} \, \phi_e(contact, t)$$
 ✓ Organize emitter → source → field → readout as a modular tensor-contraction pipeline  
 ✓ Support multi-basis workflows (e.g., Izhikevich emitter in mV, source in nA, LFP proxy in arbitrary units)  
 ✓ Provide 8 probe operators for simultaneous multimodal readouts  
-✓ Validate status checks: proxy-only readouts under the package truth gates  
+✓ Status checks: proxy-only readouts under the package truth gates  
 ✓ Support extensions: new emitters, field operators, and probes within the same basis-transform architecture
 
-The proxy-readout scope, reserved field-solver regimes, and calibration boundaries are
-catalogued in [Limitations and future plans](limitations_and_future_plans.md).
+Scope, regimes, and boundaries: [Limitations and future plans](limitations_and_future_plans.md).
 
 ---
 
@@ -193,7 +183,7 @@ A **reserved cerebellar/sensorimotor tutorial** could use jaxfne's basis-transfo
 # - Scope Note that this is exploratory, not a biological proof
 ```
 
-This path is **deferred and not promised.** If pursued, it would:
+This path is **deferred and not promised:**
 - Require separate validation evidence
 - Use separate status checks (distinct from computational_scaffold)
 - Be a distinct research module, not a core jaxfne function
@@ -217,7 +207,7 @@ This path is **deferred and not promised.** If pursued, it would:
 2. **Extensibility:** New bases (ionic channels, spectral, population-level) fit the same model.
 3. **Statement clarity:** Each basis transform has its own status status and status check.
 4. **Teaching:** The basis-coordinate idea connects TFNE to classical computational neuroscience (Pellionisz, Koch, Arleo) while remaining distinct.
-5. **Humility:** By referencing Pellionisz/Llinás and NOT stating their results, we honor the intellectual history while respecting scope boundaries.
+5. **Scope:** References Pellionisz/Llinás without stating their results.
 
 ---
 
@@ -227,8 +217,3 @@ This path is **deferred and not promised.** If pursued, it would:
 - **[Mathematical Glossary Flow](mathematical_glossary_flow.md)** — Seven core TFNE equations with statement boundaries
 - **[Source/Field Equations](source_field_equations.md)** — Source bookkeeping and field proxy details
 - **[TFNE Operator Doctrine](operator_doctrine.md)** — Per-stage rule table built on this basis-transform cascade
-
----
-
-**Status:** conceptual documentation (no implementation notes)  
-**run_status:** tutorial_scaffold

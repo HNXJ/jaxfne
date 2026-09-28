@@ -1,10 +1,7 @@
 # Google Colab Quick Start
 
-**Run jaxfne examples in Google Colab without local setup.**
-
-**Version:** published PyPI release `jaxfne==0.5.0` (tag `v0.5.0`); previous release `0.4.25`
-**Last updated:** 2026-09-20  
-**run_status:** tutorial_scaffold, exploratory_simulated_proxy
+Run jaxfne examples in Google Colab without local setup. Installs the published
+PyPI release `jaxfne==0.5.0` (tag `v0.5.0`; previous release `0.4.25`).
 
 ---
 
@@ -204,7 +201,7 @@ calibration step. See [Scope & status](scope_and_status.md).
 
 - Exploratory computational neuroscience model
 - Multi-scale emitter (Izhikevich, HH) to field-proxy pipeline
-- Teaching tool for understanding circuit behavior
+- Teaching tool for circuit behavior
 - Optimization sandbox for fitness/plasticity experiments
 
 ---
@@ -244,7 +241,7 @@ else:
 
 ## Saving Colab Output
 
-To download results from Colab to your local machine:
+To download results from Colab:
 
 ```python
 # Save manifest to local file (Colab downloads it automatically)
@@ -272,7 +269,7 @@ JAX is optional. Install with full extras:
 
 ### RuntimeError: "CUDA not detected"
 
-Colab uses CPU by default for JAX. This is fine; jaxfne runs on CPU.
+Colab uses CPU by default for JAX; jaxfne runs on CPU.
 
 ### ValueError: "NaN/Inf in outputs"
 

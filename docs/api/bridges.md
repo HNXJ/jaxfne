@@ -1,8 +1,8 @@
 # Bridges API
 
-Optional bridges that let external biophysical simulators participate in the
+Optional bridges let external biophysical simulators participate in the
 jaxfne object grammar. The Jaxley bridge turns a Jaxley module into a first-class
-jaxfne **emitter**: it produces `Signals` that flow through the same probes,
+jaxfne **emitter**: its `Signals` flow through the same probes,
 projections, objectives, and `jaxfne.vis.*` readouts as the built-in emitter.
 
 All bridge outputs are conservative proxies — `field` arrays are proxy readouts,
@@ -84,7 +84,7 @@ fig = jtfne.vis.lfp(signals)     # vis.* read straight off signals.field
 
 Closes `Emitter → Source → Field → Probe` for the Jaxley bridge: a Jaxley **HH**
 network gets the same LFP/CSD/spectrolaminar readouts as the built-in emitter,
-but from a physically meaningful generator. The extracellular field is driven by
+reconstructed from channel currents; readouts stay proxy. The extracellular field is driven by
 the **reconstructed HH transmembrane ionic current**
 
 ```

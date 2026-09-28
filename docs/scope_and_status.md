@@ -10,11 +10,10 @@ Every jaxfne output is one of two kinds:
 
 ## What jaxfne is
 
-JaxFNE is a Python package for biophysical source-field modeling, coupling
+JaxFNE is a Python package for biophysical source-field modeling. It couples
 neural activity and biophysical state with plasticity, geometry, and population-
-and field-scale dynamics. Models can change biology, dynamics, connectivity,
-geometry, and observations within the same workflow. Detail can be increased or
-reduced as an explicit modeling choice.
+and field-scale dynamics, and each of these can be changed within one model.
+Detail is an explicit modeling choice.
 
 At the level of specification and readout:
 
@@ -39,10 +38,10 @@ $$
    runtime evolution and structural development are **planned** and not claimed
    as shipped unless documented with tests and receipts.
 
-In practice you configure a circuit, simulate spikes and membrane traces, and
-extract field readouts. The default shipped path uses a reduced laminar
-population scaffold; more detailed emitters and interoperability bridges are
-supported where defined through the API. JAX is the numerical execution
+In practice: configure a circuit, simulate spikes and membrane traces, extract
+field readouts. The shipped path uses a reduced laminar
+population scaffold; detailed emitters and interoperability bridges are
+supported where the API defines them. JAX is the execution
 substrate, not the scientific claim.
 
 ## Status fields
@@ -77,7 +76,7 @@ These flags are **informational provenance**, not a solver or kernel setting. No
 
 Quick checks on a finished run. The mV values below are the model's nominal
 internal units (the Izhikevich preset's declared numerical scale), not
-calibrated physiological measurements; jaxfne outputs remain relative/proxy
+calibrated measurements; outputs remain relative/proxy
 quantities per the status fields above.
 
 - Resting membrane voltage ≈ −66 (nominal model mV)
@@ -87,9 +86,9 @@ quantities per the status fields above.
 
 ## Jaxley bridge
 
-Jaxley emitters integrated through `JaxleyBridge` produce the same Relative
-voltage and field readouts as built-in emitters, unless you supply separate
-calibration.
+Emitters integrated through `JaxleyBridge` produce Relative
+voltage and field readouts like built-in emitters, unless separately
+calibrated.
 
 ## Going further
 

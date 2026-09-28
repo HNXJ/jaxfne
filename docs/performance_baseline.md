@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-jaxfne provides deterministic performance benchmarking receipts to document computational efficiency under controlled local conditions. **No universal performance statements are made.** All measurements are environment-specific (CPU type, Python version, JAX version, load state).
+Deterministic performance benchmarking receipts for computational efficiency under controlled local conditions. **No universal performance statements.** All measurements are environment-specific (CPU type, Python version, JAX version, load state).
 
 ---
 
@@ -176,7 +176,7 @@ Device: CpuDevice(id=0)
 jax/jaxlib 0.10.1, CPU-only. See the scaling tables above for the per-environment
 split.
 
-**Important:** Measurements are CPU-based. Results on other platforms (Linux/NVIDIA, Intel, etc.) may differ significantly.
+Measurements are CPU-based; other platforms (Linux/NVIDIA, Intel) may differ significantly.
 
 ---
 
@@ -234,7 +234,7 @@ The performance baseline does NOT add CI/CD performance gates. Benchmarks are in
 - No automated performance regression detection
 - Local baseline serves as human-readable documentation
 
-Rationale: Performance depends on machine load, network contention, and hardware revision. A universal CI threshold would be fragile and unreliable.
+Performance depends on machine load, network contention, and hardware revision; a universal CI threshold would be fragile.
 
 ---
 
@@ -270,7 +270,3 @@ All reserved work will maintain `local_environment_receipt_only` framing and avo
 **Empirical Validation:** `Not empirically validated`
 
 Performance measurements are **audit artifacts** (reproducibility, determinism), not scientific evidence. Time values do not imply biological correspondence or simulator superiority.
-
----
-
-*jaxfne — Tensor-Field Neural Equations source-to-field computational model*

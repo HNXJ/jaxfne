@@ -8,7 +8,7 @@ Neuron models and emitter implementations for neural dynamics simulation.
 cfg = jtfne.Configuration().set_emitter("izhikevich", "cortical_eig")
 ```
 
-The Izhikevich neuron model is a phenomenological spiking model with two state variables (v, u). It balances cost and realism for tutorial-scale simulations.
+The Izhikevich neuron model is a phenomenological spiking model with two state variables (v, u), trading biophysical detail for speed at tutorial scale.
 
 > **Reduced-class wording.** Labels `E`, `PV`, `SST`, `VIP` (and aliases `Inl`, `Ing`)
 > denote **reduced emitter classes** — `E-like`, `PV-like`, `SST-like`, `VIP-like` —

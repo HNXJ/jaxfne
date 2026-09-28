@@ -1,10 +1,5 @@
 # Tensor Electromagnetics: Reserved Capability Stages
 
-**Status:** scope statement, not a release plan. Every stage past P0 is
-**deferred and not promised** — recorded here so the boundary between "shipped"
-and "reserved" stays explicit, matching the tone of
-[Tensor-Network Ancestry, Part 6](tensor_network_ancestry.md#part-6-reserved-optional-path-not-implemented).
-
 ## Why this page exists
 
 [Limitations and future plans](limitations_and_future_plans.md) already
@@ -12,7 +7,8 @@ declares the field-computation regimes in one table (laminar proxy / shipped,
 conservation diagnostics / partial, elliptic field solver / reserved, full
 electrodynamic solver / reserved). This page expands the two reserved rows into
 named sub-stages so a reader can see what "reserved" would require, stage by
-stage, without implying any of it is scheduled.
+stage, without implying any of it is scheduled. Every stage past P0 is
+**deferred and not promised**; this page is a scope statement, not a release plan. It follows the reserved-path tone of [Tensor-Network Ancestry, Part 6](tensor_network_ancestry.md#part-6-reserved-optional-path-not-implemented).
 
 ---
 
@@ -28,8 +24,7 @@ stage, without implying any of it is scheduled.
 | **P5** | External validation — comparison against reference physical measurements | reserved |
 
 P0 and P1 ship today. P2 through P5 are not implemented, not scheduled, and not
-promised; they are recorded so the boundary between proxy and solved field
-computation is visible rather than implicit.
+promised; they record where the proxy/solved boundary lies.
 
 ---
 
@@ -70,9 +65,9 @@ already reserves the relevant report fields for this stage —
 
 ## What does not change
 
-Reaching any reserved stage above does not change `claim_level`,
+Reaching a reserved stage does not change `claim_level`,
 `physical_amplitude_calibrated`, or other scope metadata by itself — those
-remain conservative defaults until separate calibration evidence exists, per
+stay at conservative defaults until separate calibration evidence exists, per
 [Limitations and future plans](limitations_and_future_plans.md).
 
 ---

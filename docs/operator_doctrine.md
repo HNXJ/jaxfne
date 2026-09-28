@@ -1,7 +1,6 @@
 # TFNE Operator Doctrine
 
-**Status:** conceptual documentation, no new runtime behavior
-**Scope:** indexes the per-stage operator contract (domain, codomain, tensor rank,
+Indexes the per-stage operator contract (domain, codomain, tensor rank,
 class, assumptions, units/status) for the seven-stage TFNE pipeline. Introduces no
 new operators, claim levels, or grammar — every fact below already exists in code
 or in the linked pages; this page is the single table that ties them together.
@@ -14,12 +13,11 @@ jaxfne computation is organized as one pipeline:
 Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest
 ```
 
-[Configuration Grammar](guides/configuration_grammar.md) already establishes that
-this operator chain and the fluent `Configuration` builder chain are two views of
-one system: `Configuration` is the declarative specification, `construct()` is the
-compiler, and the operator chain below is what the compiler produces. This page
-does not replace that framing. It adds the one piece that page leaves implicit — a
-single per-stage contract table, gathered from where each fact is actually declared:
+Per [Configuration Grammar](guides/configuration_grammar.md), the operator chain and
+the fluent `Configuration` builder chain are two views of one system:
+`Configuration` is the declarative specification, `construct()` the compiler,
+and the operator chain below its output. This page adds the per-stage contract
+table, gathered from where each fact is declared:
 
 - [Tensor-Network Ancestry](tensor_network_ancestry.md) — the basis-transform
   cascade (Emitter basis -> Source basis -> Field basis -> Readout basis) and the
@@ -33,7 +31,7 @@ single per-stage contract table, gathered from where each fact is actually decla
 - [Tensor-Field Workflows](guides/tensor_field_workflows.md) — the probe-operator
   tensor form.
 
-This page indexes those contracts. It does not restate their derivations.
+This page indexes those contracts, not their derivations.
 
 ---
 
@@ -49,9 +47,9 @@ This page indexes those contracts. It does not restate their derivations.
 | **Optimizer** | objective + parameters | updated parameters | matches the parameter tensor | search / gradient | hard spike reset has no gradient without a surrogate; `Model.tune()` checks `gradient_path_safe()` | n/a |
 | **Manifest** | full run state | JSON-safe report `dict` | n/a (a dict, not a tensor) | bookkeeping / truth gate | write-once; `allow_nan=False` | n/a |
 
-Every row's validation status is reported at runtime by `jaxfne.operator_status()`.
-See [Tensor Operator Registry](api/tensor_operators.md) for the live registry and
-its symbol-to-stage mapping — this page does not duplicate that registry.
+Every row's validation status is reported at runtime by `jaxfne.operator_status()`;
+see [Tensor Operator Registry](api/tensor_operators.md) for the live registry and
+its symbol-to-stage mapping.
 
 > **Scope note:** this table names stages in full (Emitter, …, Objective, …).
 > Bare $O$/$P$ letters belong to the TFNE specification algebra — ordered
@@ -71,8 +69,7 @@ There is no separate eighth "Validation" stage to implement; "Validation" and
 
 ## Operator classes
 
-The "Class" column above groups operators by what they do, separate from their
-position in the pipeline:
+The "Class" column groups operators by what they do, not their pipeline position:
 
 | Class | Description | Example |
 |---|---|---|

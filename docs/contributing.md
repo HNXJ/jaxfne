@@ -1,6 +1,6 @@
 # Contributing to jaxfne
 
-Thank you for helping improve jaxfne. This guide covers setup, validation, and
+This guide covers setup, validation, and
 expectations for human contributors. If you are an AI agent, read
 `artifacts/AGENTS.md` in the repository checkout (repository file, not part of
 this documentation build).
@@ -62,7 +62,7 @@ regenerate figures with `python3 scripts/generate_showcase_figures.py`.
 
 ## Pull request expectations
 
-- Link related issues when applicable
+- Link related issues
 - Describe validation you ran (exact commands + results)
 - Keep proxy/scaffold outputs labeled as such (see [Scope & status](scope_and_status.md))
 

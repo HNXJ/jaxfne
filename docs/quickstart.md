@@ -1,11 +1,10 @@
 # Quickstart
 
-Study **laminar neural dynamics** — spikes, membrane traces, and depth-resolved
-field readouts (LFP, CSD, spectrolaminar PSD) — from a circuit you define once
-and simulate reproducibly. JaxFNE couples specification, dynamics, biophysical
-state ($H$/RBS/RBD), plasticity, and geometry into sources, fields, and probes.
-Detail can range from reduced emitters to compartmental models attached via
-bridges.
+Simulate **laminar neural dynamics** — spikes, membrane traces, and depth-resolved
+field readouts (LFP, CSD, spectrolaminar PSD) — from a circuit defined once
+and simulated reproducibly. JaxFNE couples specification, dynamics, biophysical
+state ($H$/RBS/RBD), plasticity, and geometry into sources, fields, and probes,
+from reduced emitters to compartmental models attached via bridges.
 
 > Documentation tracks the `dev` branch public API. `NeuronalTensor` is the preferred `construct` input path.
 
@@ -23,8 +22,8 @@ jtfne.enable_x64()   # before array construction
 
 ## Jaxley interoperability
 
-[Jaxley](https://jaxley.readthedocs.io) provides compartmental biophysical detail;
-JaxFNE couples neural dynamics, geometry, and field readouts. Compose them:
+[Jaxley](https://jaxley.readthedocs.io) provides compartmental detail;
+JaxFNE couples dynamics, geometry, and field readouts. Compose them:
 
 ```python
 import jaxley as jx
@@ -58,7 +57,7 @@ in `StimulusSchedule`, built from `model.neuron_table()`.
 
 ## NeuronalTensor
 
-*Preferred path — NeuronalTensor is the preferred CircuitSpec.*
+*Preferred path.*
 
 ```python
 tensor  = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")
@@ -95,7 +94,7 @@ API: [neuronal_tensor.md](api/neuronal_tensor.md) · Migration: [migration_guide
 
 ## Configuration
 
-*Supported compatibility path — Configuration remains supported for migration.*
+*Supported compatibility path.*
 
 ```python
 cfg = (jtfne.build_laminar_column(n=1000, ei_profile="canonical")

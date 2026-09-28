@@ -21,8 +21,7 @@ class STDPPlasticityConfig:
     ...
 ```
 
-Configuration class for STDP activity-dependent plasticity. Holds all
-hyperparameters controlling a single STDP learning rule.
+Configuration class for one STDP learning rule; holds all its hyperparameters.
 
 **Key fields:**
 
@@ -45,9 +44,8 @@ class STDPState:
     ...
 ```
 
-Container for the state variables of the STDP synapse model. Carries the
-running pre- and postsynaptic eligibility traces alongside the current weight
-matrix, so the full STDP state can be passed through `jax.lax.scan` cleanly.
+State variables of the STDP synapse model: running pre/postsynaptic eligibility
+traces alongside the weight matrix, passed through `jax.lax.scan`.
 
 **Fields:**
 

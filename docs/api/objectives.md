@@ -95,9 +95,8 @@ result = model.tune(objective=objective, parameter="drive_gain", bounds=(0.5, 2.
 ## Rate + synchrony targets
 
 `rate_synchrony_targets` builds an `Objective` with a population-rate term and a
-synchrony (kappa) term. All four arguments are defaulted to the canonical
-balanced operating point, so `jtfne.rate_synchrony_targets()` is the standard
-starting objective for laminar tuning.
+synchrony (kappa) term, defaulted to the canonical balanced operating point;
+`jtfne.rate_synchrony_targets()` is the standard starting objective for laminar tuning.
 
 | Parameter | Default | Meaning |
 |---|---|---|

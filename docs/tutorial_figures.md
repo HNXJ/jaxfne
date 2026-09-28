@@ -1,12 +1,12 @@
 # Tutorial Figures
 
-**Status:** Stable output, regenerated with visual confirmation; introduced in jaxfne 0.2.27/2026-05-22, still exercised by `tests/test_tutorial_figure_manifest_v028.py` (current development tree: 0.4.8).
+Figure set introduced in jaxfne 0.2.27/2026-05-22, exercised by `tests/test_tutorial_figure_manifest_v028.py` (current development tree: 0.4.8). Stable output, regenerated with visual confirmation.
 
 ---
 
 ## Overview
 
-The current figure set includes complete regenerated tutorial PNG figures demonstrating the jaxfne forward-field workflow. All figures are:
+The figure set holds regenerated tutorial PNG figures for the forward-field workflow. All figures are:
 
 - **Simulated:** Generated from `cortical_column` network with Izhikevich emitters
 - **Proxy-safe:** No biological statements or solver status overstates
@@ -22,7 +22,7 @@ The current figure set includes complete regenerated tutorial PNG figures demons
 
 **File:** `01_spike_raster.png`
 
-Spike times across all 50 simulated units. Shows aggregate firing patterns over 500 ms simulation.
+Spike times across all 50 simulated units over 500 ms.
 
 **Status:** Simulated proxy  
 **Data source:** `signals.spikes` (50 units, 5000 time steps)
@@ -33,7 +33,7 @@ Spike times across all 50 simulated units. Shows aggregate firing patterns over 
 
 **File:** `02_voltage_traces.png`
 
-Izhikevich native membrane voltage for 6 representative units. Displays voltage dynamics (mV) over simulation.
+Izhikevich native membrane voltage for 6 representative units over the simulation.
 
 **Status:** Izhikevich native (uncalibrated)  
 **Data source:** `signals.V_m` (50 units, 5000 time steps)
@@ -44,7 +44,7 @@ Izhikevich native membrane voltage for 6 representative units. Displays voltage 
 
 **File:** `03_source_proxy_heatmap.png`
 
-Synaptic current model across all units. Represents the proxy source used for field computation.
+Synaptic current model across all units; the proxy source for field computation.
 
 **Status:** Synaptic current proxy (nA, uncalibrated)  
 **Data source:** `signals.sources` (50 units, 5000 time steps)
@@ -55,7 +55,7 @@ Synaptic current model across all units. Represents the proxy source used for fi
 
 **File:** `04_lfp_proxy_trace.png`
 
-Averaged laminar field potential proxy across all 16 recording contacts. Smoothed temporal dynamics.
+Averaged laminar field potential proxy across all 16 recording contacts.
 
 **Status:** LFP proxy (no sensor calibration)  
 **Data source:** `signals.field.lfp_proxy` (16 contacts, 5000 time steps)
@@ -66,7 +66,7 @@ Averaged laminar field potential proxy across all 16 recording contacts. Smoothe
 
 **File:** `05_csd_proxy_heatmap.png`
 
-Current source density proxy derived from field gradient. Spatial map over contacts and time.
+Current source density proxy from the field gradient; spatial map over contacts and time.
 
 **Status:** Spatial proxy (no sink-source validation)  
 **Data source:** `signals.field.csd_proxy` (16 contacts, 5000 time steps)
@@ -77,7 +77,7 @@ Current source density proxy derived from field gradient. Spatial map over conta
 
 **File:** `06_phi_e_proxy_heatmap.png`
 
-Extracellular potential proxy (φ_e) across contacts. Laminar field solution from source.
+Extracellular potential proxy (φ_e) across contacts. Laminar field proxy from source.
 
 **Status:** Field proxy (no boundary condition validation)  
 **Data source:** `signals.field.phi_e_proxy` (16 contacts, 5000 time steps)
@@ -88,7 +88,7 @@ Extracellular potential proxy (φ_e) across contacts. Laminar field solution fro
 
 **File:** `07_source_proxy_spatial.png`
 
-Kernel-weighted source projection into contact space. Shows how source contributes to each contact.
+Kernel-weighted source projection into contact space; contribution of source to each contact.
 
 **Status:** Spatial projection proxy  
 **Data source:** `signals.field.source_proxy` (16 contacts, 5000 time steps)
@@ -114,7 +114,7 @@ Four key conservation proxy metrics:
 
 **File:** `09_laminar_profile_depths.png`
 
-Contact depths (y-axis position proxy). Indicates laminar sampling geometry.
+Contact depths (y-axis position proxy); laminar sampling geometry.
 
 **Status:** Declared geometry (no anatomical calibration)  
 **Data source:** `signals.field.contact_depths` (16 contacts)
@@ -125,7 +125,7 @@ Contact depths (y-axis position proxy). Indicates laminar sampling geometry.
 
 **File:** `10_firing_rate_raster.png`
 
-Smoothed spike count (50-step window) across units and time. Population-level activity proxy.
+Smoothed spike count (50-step window) across units and time; population activity proxy.
 
 **Status:** Spike-derived proxy (no metabolic interpretation)  
 **Data source:** `signals.spikes` with temporal smoothing
@@ -136,7 +136,7 @@ Smoothed spike count (50-step window) across units and time. Population-level ac
 
 **File:** `11_status_summary.png`
 
-Text summary of all frozen status checks and status status:
+Text summary of frozen status checks:
 - `run_status`: tutorial_scaffold
 - `model_status`: computational_scaffold
 - `field_solver_status`: linear_solver
@@ -153,7 +153,7 @@ Text summary of all frozen status checks and status status:
 
 **File:** `12_spectral_summary.png`
 
-Power spectral density of mean network spike activity. Log-scale frequency domain representation.
+Power spectral density of mean network spike activity, log-scale frequency representation.
 
 **Status:** Signal processing proxy (no neural oscillation statements)  
 **Data source:** `signals.spikes` with FFT

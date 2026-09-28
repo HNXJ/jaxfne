@@ -1,11 +1,8 @@
 # jaxfne
 
-JaxFNE is a Python package for biophysical source-field modeling, coupling neural
-activity and biophysical state with plasticity, geometry, and population- and
-field-scale dynamics.
-
-JaxFNE is designed for models that need to change easily. Biology, dynamics,
-connectivity, geometry, and observations can be modified within the same model.
+JaxFNE is a Python package for biophysical source-field modeling. It couples
+neural activity and biophysical state with plasticity, geometry, and population-
+and field-scale dynamics, and each of these can be changed within one model.
 
 **Workflow:** change biology → change dynamics → simulate → measure
 
@@ -24,13 +21,10 @@ flowchart LR
   P --> O["Objective"] --> Op["Optimizer"] --> Mf["Manifest"]
 </div>
 
-You can, for example:
-
-- add or change biophysical state $H$;
-- change dynamics, plasticity, connectivity, or geometry;
-- change model detail;
-- measure spikes, population activity, or fields;
-- develop or reduce models with [JDNA](guides/jdna.md).
+- **State**: add or change biophysical state $H$.
+- **Mechanism**: change dynamics, plasticity, connectivity, geometry, or model detail.
+- **Observation**: measure spikes, population activity, or fields.
+- **Reduction**: develop or reduce models with [JDNA](guides/jdna.md).
 
 [Scope & status](scope_and_status.md) · [Quickstart](quickstart.md)
 
@@ -65,9 +59,8 @@ signals = jtfne.simulate(model)
 
 ## Canonical Visualization Atlas
 
-Seven linked panels (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`,
-`hdp`, `oscillatory`) separate **OBSERVED** from **DERIVED** quantities and attach manifest
-provenance. Representative preview from realized `canonical-v1-column-1000n` output:
+Seven linked panels (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`, `hdp`, `oscillatory`) label each quantity **OBSERVED** or **DERIVED** and carry
+manifest provenance. A panel whose declared inputs are missing renders an omission card. Representative preview from realized `canonical-v1-column-1000n` output:
 
 <a href="guides/atlas_suite.md">
   <img src="assets/readme/network_3d.png" alt="Network 3D atlas panel" width="100%">

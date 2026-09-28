@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Systematically map constant DC input (baseline drive) to steady-state firing rates for each jaxfne cell type (E, PV, SST, VIP). This eliminates the silent-neuron blocker in delta-test AGSDR by ensuring all neurons have baseline activity.
+Map constant DC input (baseline drive) to steady-state firing rates for each cell type (E, PV, SST, VIP), so all neurons hold baseline activity.
 
 ## Scientific Context
 
@@ -34,7 +34,7 @@ Where:
 | SST  | 0.02 | 0.25  | -65  | 2.0 | Low-threshold somatostatin+ | Tonic |
 | VIP  | 0.02 | -0.10 | -55  | 6.0 | Intrinsic spiking / bursting | **Burst-like** (requires higher DC) |
 
-**Note:** VIP uses negative `b` parameter, creating burst dynamics. Requires higher DC drive (0–100 nA) and longer observation windows (10 sec) to reveal firing patterns. Expected behavior: sparse high-frequency bursts rather than regular tonic spiking.
+**Note:** VIP uses negative `b`, creating burst dynamics: higher DC drive (0–100 nA) and longer windows (10 sec) reveal sparse high-frequency bursts rather than tonic spiking.
 
 ## Characterization Method
 
