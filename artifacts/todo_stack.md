@@ -100,12 +100,9 @@ HARNESS (human, 2026-09-27)
   declares an L2/3→core inter-area map that matches no neuron under
   `uniform3d()`, so it builds no inter-area edges (drop the map, or drop
   `uniform3d()` so the column is laminar and the edges exist).
-- P-017 fix (human 2026-09-28): `stimulus_schedule` injects only events
-  with a stimulus, for the event's duration, at its declared amplitude and
-  targets; simulate refuses a multi-condition `Paradigm`;
-  `evoked_l4_drive_paradigm` reads `l4_onset_ms`/`l4_amplitude` and targets
-  L4. Re-pin the tests whose runs change and list those runs in the seal
-  receipt; then D1b.
+- Seal note (P-017): list the runs whose drive changed in the seal receipt
+  (commit f8960a0 message: stimulus-less marker events now silent; stimulus
+  events use their own duration_ms).
 - Seal note: AT-02…AT-06 run records (`artifacts/publication/atlas/`) carry
   the pre-correction spec digest (AT-02…AT-05 recorded `n_contacts` 4,
   executed 16; AT-06 recorded a common-average reference and an 8–25 Hz

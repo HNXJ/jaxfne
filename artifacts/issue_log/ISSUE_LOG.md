@@ -66,38 +66,6 @@ possible future change.
 - **possible future change:** find the commit that moved it (bisect over
   HDP changes); re-freeze only with a stated cause; open
 
-### P-017
-- **date:** 2026-09-27
-- **type:** DEFECT (paradigm declared, not realized as declared)
-- **area:** `jaxfne/_model_simulate.py` `_resolve_stimulus_schedule`,
-  `jaxfne/_model.py` `stimulus_schedule`, `jaxfne/paradigm.py`
-  `evoked_l4_drive_paradigm`
-- **observation:** (1) `simulate(paradigm=<Paradigm>)` resolves no schedule
-  for a multi-condition `Paradigm`; it is recorded in metadata only. (2) For
-  a `ParadigmCondition`, `stimulus_schedule` injects `drive_amplitude` 5.0
-  into every neuron for `event_duration_ms` 50 ms at the onset of each
-  event that is not an omission, including `trial_start`, `stim_absent` and
-  `post_stim`; it does not read the event's `duration_ms` or `stimulus`.
-  The evoked-L4 "baseline" and "evoked" conditions therefore inject the same
-  schedule (0, 200 and 400 ms). (3) `evoked_l4_drive_paradigm` does not read
-  `l4_onset_ms` or `l4_amplitude`; its drive event starts at
-  `pre_stimulus_buffer_ms`.
-- **severity:** MAJOR (tutorial 08's evoked run equals its baseline;
-  condition runs inject drive at events that carry no stimulus)
-- **minimal reproduction:** evoked-L4 notebook configuration, 1000 ms, seed 7:
-  spikes with `paradigm=paradigm` equal spikes without a paradigm;
-  `stimulus_schedule(c.events, 4)` for both conditions lists the same three
-  5.0 x 50 ms events on all neurons
-- **expected behavior:** a stimulus event is injected at its onset for its
-  duration with its amplitude and targets; events without a stimulus inject
-  nothing; a paradigm type simulate cannot run is refused
-- **actual behavior:** as observed
-- **evidence:** scratch probes 2026-09-27 on bdf56cb; code read. Atlas runs
-  (AT-08/09, AT-10-N20) build dict events whose duration, amplitude and
-  target_indices are honoured, and are unaffected.
-- **possible future change:** human decision: fix the semantics (outputs of
-  ParadigmCondition runs change) or refuse what is not realized; open
-
 ### P-019
 - **date:** 2026-09-28
 - **type:** DEFECT (equivalence bound stated wider than measured)
