@@ -366,23 +366,69 @@ def stimulus_schedule(
     *,
     drive_amplitude: float = 5.0,
     event_duration_ms: float = 50.0,
+    layer_labels: Optional[Sequence[str]] = None,
 ) -> StimulusSchedule:
     """Build a :class:`StimulusSchedule` from a sequence of events.
 
     Each event may be a :class:`ParadigmEvent` or a dict-like with at least
-    ``onset_ms``.  The ``drive_amplitude`` and ``event_duration_ms`` are the
-    default values applied to all events that do not specify their own.
+    ``onset_ms``. Dict events are unchanged by the P-017 contract: missing
+    ``amplitude``/``duration_ms``/``is_drive_event`` fall back to
+    ``drive_amplitude``/``event_duration_ms``/``onset is not None and amplitude
+    != 0``.
 
-    Events that carry ``is_omission=True`` or an explicit ``amplitude=0`` inject
-    zero drive (generic no-drive semantics, not cognitive omission logic).
+    A :class:`ParadigmEvent` injects drive only when it carries a stimulus
+    (``stimulus`` is neither None nor empty), is not an omission, and has an
+    onset. Every other event keeps its dict with ``amplitude`` 0.0 and
+    ``is_drive_event`` False, as omissions do. For an injecting event:
+    duration is the event's own ``duration_ms`` when set, else
+    ``metadata["event_duration_ms"]``, else the ``event_duration_ms``
+    argument; amplitude is ``metadata["drive_amplitude"]``, else the
+    ``drive_amplitude`` argument; targets are ``metadata["target_indices"]``
+    as before, or ``metadata["target_layer"]`` resolved to the indices of the
+    neurons whose entry of ``layer_labels`` (one label per neuron) equals it.
+    A ``target_layer`` with ``layer_labels`` None, matching no neuron, or
+    combined with ``target_indices`` raises ``ValueError``.
+
     No calibrated-current or physical-amplitude claim is made.
     """
     ev_dicts: list[dict[str, Any]] = []
     for e in events:
         if isinstance(e, ParadigmEvent):
+            dur = (
+                float(e.duration_ms)
+                if e.duration_ms is not None
+                else float(e.metadata.get("event_duration_ms", event_duration_ms))
+            )
             amp = float(e.metadata.get("drive_amplitude", drive_amplitude))
-            dur = float(e.metadata.get("event_duration_ms", event_duration_ms))
-            is_drive = not e.is_omission and e.onset_ms is not None
+            has_indices = "target_indices" in e.metadata
+            has_layer = "target_layer" in e.metadata
+            if has_indices and has_layer:
+                raise ValueError(
+                    f"ParadigmEvent {e.label!r} sets both 'target_layer' and "
+                    "'target_indices' in metadata; pass only one."
+                )
+            target_indices = None
+            if has_layer:
+                want = e.metadata["target_layer"]
+                if layer_labels is None:
+                    raise ValueError(
+                        f"ParadigmEvent {e.label!r} sets "
+                        f"metadata['target_layer']={want!r} but no layer_labels "
+                        "were provided; pass layer_labels (one label per neuron)."
+                    )
+                target_indices = [
+                    i for i, lab in enumerate(layer_labels) if lab == want
+                ]
+                if not target_indices:
+                    raise ValueError(
+                        f"ParadigmEvent {e.label!r} sets "
+                        f"metadata['target_layer']={want!r} but no neuron has "
+                        "that layer label."
+                    )
+            elif has_indices:
+                target_indices = e.metadata["target_indices"]
+            has_stimulus = e.stimulus is not None and e.stimulus != ""
+            is_drive = has_stimulus and not e.is_omission and e.onset_ms is not None
             ev_dict = {
                 "label": e.label,
                 "onset_ms": float(e.onset_ms) if e.onset_ms is not None else 0.0,
@@ -390,8 +436,8 @@ def stimulus_schedule(
                 "amplitude": amp if is_drive else 0.0,
                 "is_drive_event": is_drive,
             }
-            if "target_indices" in e.metadata:
-                ev_dict["target_indices"] = e.metadata["target_indices"]
+            if target_indices is not None:
+                ev_dict["target_indices"] = target_indices
             ev_dicts.append(ev_dict)
         else:
             d = dict(e)

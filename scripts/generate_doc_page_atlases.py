@@ -231,7 +231,10 @@ def spec_evoked_l4():
         post_stimulus_buffer_ms=500.0,
     )
     model = jtfne.construct(cfg)
-    signals = jtfne.simulate(model, seed=7, duration_ms=1500.0, dt_ms=0.5, paradigm=paradigm)
+    signals = jtfne.simulate(
+        model, seed=7, duration_ms=1500.0, dt_ms=0.5,
+        paradigm=paradigm.condition("evoked"),
+    )
     return (
         "Evoked L4 drive, evoked condition (100n)",
         model,
@@ -556,7 +559,12 @@ def spec_objective_60():
     )
     paradigm = jtfne.omission_oddball_paradigm(standard_onset_ms=50.0, standard_duration_ms=20.0)
     model = jtfne.construct(cfg)
-    signals = jtfne.simulate(model, duration_ms=200.0, dt_ms=0.5, seed=1, paradigm=paradigm)
+    # Page shows the standard-stimulus ("expected") run; a full Paradigm is
+    # refused by simulate(), so pass that condition explicitly.
+    signals = jtfne.simulate(
+        model, duration_ms=200.0, dt_ms=0.5, seed=1,
+        paradigm=paradigm.condition("expected"),
+    )
     return (
         "Objective-grammar chain, pre-tune (60n)",
         model,

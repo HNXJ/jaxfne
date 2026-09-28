@@ -18,6 +18,7 @@ class TestEvokedL4DriveAPI:
             l4_onset_ms=100.0,
             l4_duration_ms=200.0,
             l4_amplitude=1.0,
+            pre_stimulus_buffer_ms=100.0,
         )
         assert isinstance(paradigm, jtfne.Paradigm)
         assert paradigm.name == "evoked_l4_drive"
@@ -34,6 +35,7 @@ class TestEvokedL4DriveAPI:
         paradigm = jtfne.evoked_l4_drive_paradigm(
             l4_onset_ms=100.0,
             l4_duration_ms=200.0,
+            pre_stimulus_buffer_ms=100.0,
         )
         assert "baseline" in paradigm.analysis_windows
         assert "evoked" in paradigm.analysis_windows
@@ -53,16 +55,16 @@ class TestEvokedL4DriveAPI:
 
         # Check baseline condition
         baseline = paradigm.conditions[0]
-        assert baseline.events[0].onset_ms == 0.0
+        assert baseline.events[0].onset_ms == l4_onset - pre_buffer
         assert baseline.events[0].duration_ms == pre_buffer
 
         # Check evoked condition
         evoked = paradigm.conditions[1]
         # First event should be trial start
-        assert evoked.events[0].onset_ms == 0.0
+        assert evoked.events[0].onset_ms == l4_onset - pre_buffer
         assert evoked.events[0].duration_ms == pre_buffer
         # Second event should be L4 drive
-        assert evoked.events[1].onset_ms == pre_buffer
+        assert evoked.events[1].onset_ms == l4_onset
         assert evoked.events[1].duration_ms == l4_duration
 
 

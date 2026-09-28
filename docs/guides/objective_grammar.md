@@ -61,7 +61,11 @@ plain drive-only trial without one.
 ### 4. simulate()
 
 ```python
-signals = jtfne.simulate(model, duration_ms=200.0, dt_ms=0.5, seed=1, paradigm=paradigm)
+# simulate() takes one condition; a full multi-condition Paradigm is refused.
+signals = jtfne.simulate(
+    model, duration_ms=200.0, dt_ms=0.5, seed=1,
+    paradigm=paradigm.condition("expected"),
+)
 # simulate(model: Model, sim: Simulation | None = None, paradigm: Any | None = None, **kwargs) -> Signals
 ```
 

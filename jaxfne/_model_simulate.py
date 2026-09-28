@@ -42,6 +42,7 @@ from ._signals import (
     TrialResult,
     TrialBatchResult,
     ParadigmCondition,
+    Paradigm,
     _make_poisson_drive,
 )
 from ._model import _SOURCE_PROXY_METADATA, stimulus_schedule
@@ -832,8 +833,24 @@ def _resolve_stimulus_schedule(
         return stimulus_schedule(
             paradigm.events,
             n_neurons=self.params["emitter"].n_neurons,
+            layer_labels=[row.get("layer") for row in self.neuron_table()],
         )
-    return None
+    if isinstance(paradigm, Paradigm):
+        if len(paradigm.conditions) == 1:
+            return stimulus_schedule(
+                paradigm.conditions[0].events,
+                n_neurons=self.params["emitter"].n_neurons,
+                layer_labels=[row.get("layer") for row in self.neuron_table()],
+            )
+        raise ValueError(
+            f"paradigm {paradigm.name!r} has {len(paradigm.conditions)} conditions "
+            f"({', '.join(c.name for c in paradigm.conditions)}); pass one "
+            "ParadigmCondition instead."
+        )
+    raise TypeError(
+        "paradigm must be None, StimulusSchedule, ParadigmCondition, or a "
+        f"single-condition Paradigm; got {type(paradigm).__name__}."
+    )
 
 
 def _maybe_poisson_final_step(self: "Model", sources: Any) -> "Optional[dict[str, Any]]":
@@ -1054,8 +1071,11 @@ def simulate(
     When ``paradigm`` is None, behavior is identical to v0.0.11.
     When ``paradigm`` is a :class:`StimulusSchedule`, its drive array is
     injected as native (uncalibrated) current at each timestep.
-    When ``paradigm`` is a :class:`ParadigmCondition`, its events are
-    converted to a ``StimulusSchedule`` and injected.
+    When ``paradigm`` is a :class:`ParadigmCondition` (or a single-condition
+    :class:`Paradigm`, which resolves to its condition), its events are
+    converted to a ``StimulusSchedule`` and injected. A multi-condition
+    ``Paradigm`` is refused: pass one ``ParadigmCondition`` instead.
+    Any other paradigm type raises ``TypeError``.
 
     JIT defaults to ``"auto"`` (compile iff ``n_steps * n_units > 50000``);
     override through ``Simulation(runtime=RuntimeConfig(jit=...))``.
@@ -1406,6 +1426,7 @@ def simulate_condition(
         n_neurons=self.params["emitter"].n_neurons,
         drive_amplitude=drive_amplitude,
         event_duration_ms=event_duration_ms,
+        layer_labels=[row.get("layer") for row in self.neuron_table()],
     )
     signals = self.simulate(sim, paradigm=schedule)
     signals.metadata["condition_name"] = condition.name
