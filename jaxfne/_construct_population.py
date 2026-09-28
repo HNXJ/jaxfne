@@ -17,7 +17,7 @@ import jax
 import jax.numpy as jnp
 
 from .emitters import EdgeList, IzhikevichParams, izhikevich_params_from_labels
-from ._config import Configuration, _counts_from_fractions
+from ._config import Configuration, _counts_from_fractions, edge_seed_from_metadata
 from ._construct_connectivity import _empty_edge_list, _interarea_W
 
 
@@ -285,7 +285,10 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
         )
 
     positions = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3), dtype=jdtype)
-    params, _prebuilt_edges = _apply_connectivity(params, area_labels, layer_labels, labels, metadata, seed=seed, dtype=dtype)
+    # Edge draws take the declared edge_seed when set, else the runtime seed;
+    # positions above (and random v0 / canonical biophysics downstream) keep it.
+    edge_seed = edge_seed_from_metadata(metadata)
+    params, _prebuilt_edges = _apply_connectivity(params, area_labels, layer_labels, labels, metadata, seed=edge_seed, dtype=dtype)
     geometry_meta = {
         "neuron_rows": neuron_rows,
         "area_labels": area_labels,

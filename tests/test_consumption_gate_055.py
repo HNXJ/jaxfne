@@ -532,3 +532,73 @@ def test_make_eig_network_refuses_a_bool_fraction():
 
     with pytest.raises(ValueError, match="must be finite and non-negative"):
         make_eig_network(n=2, cell_type_fractions={"E": True})
+
+
+_ABSENT = object()
+
+
+def _edge_seed_column_cfg(*, seed, edge_seed=_ABSENT, p_connect=None):
+    """Population-route column: edge_seed rides in .connectivity()."""
+    cfg = (
+        _C().column("V1", layers=["L4"], n=12)
+        .emitter(family="izhikevich").field().probe(name="p")
+        .runtime(seed=seed)
+    )
+    conn = {} if p_connect is None else {"p_connect": p_connect}
+    if edge_seed is not _ABSENT:
+        conn["edge_seed"] = edge_seed
+    return cfg.connectivity(**conn)
+
+
+@pytest.mark.parametrize("p_connect", [None, 0.5], ids=["dense", "sparse"])
+def test_edge_seed_reseeds_population_route_edges_not_positions(p_connect):
+    base = jtfne.construct(_edge_seed_column_cfg(seed=7, p_connect=p_connect))
+    reseeded = jtfne.construct(_edge_seed_column_cfg(seed=7, edge_seed=8, p_connect=p_connect))
+    same = jtfne.construct(_edge_seed_column_cfg(seed=7, edge_seed=7, p_connect=p_connect))
+    w_base = np.asarray(base.params["emitter"].W)
+    w_reseeded = np.asarray(reseeded.params["emitter"].W)
+    w_same = np.asarray(same.params["emitter"].W)
+    assert w_base.shape == (12, 12) and w_reseeded.shape == (12, 12)
+    assert not np.array_equal(w_base, w_reseeded), "edge_seed=8 left the realized weights unchanged"
+    assert np.array_equal(w_base, w_same), "edge_seed equal to the runtime seed changed the weights"
+    for tag, model in (("reseeded", reseeded), ("same", same)):
+        assert np.array_equal(
+            np.asarray(base.params["positions"]), np.asarray(model.params["positions"])
+        ), f"edge_seed moved positions ({tag})"
+
+
+@pytest.mark.parametrize("edge_seed", [1.5, "8", True, False])
+def test_connectivity_refuses_a_non_int_edge_seed(edge_seed):
+    with pytest.raises(ValueError, match="edge_seed"):
+        _C().connectivity(edge_seed=edge_seed)
+
+
+def test_edge_seed_refused_on_the_plain_route():
+    cfg = (
+        _C().network(n=6).emitter(family="izhikevich").field().probe(name="p")
+        .connectivity(edge_seed=8)
+    )
+    with pytest.raises(ValueError, match="is not realized"):
+        jtfne.construct(cfg)
+
+
+def test_edge_seed_reseeds_connection_rules_on_the_plain_route():
+    def edges(**conn):
+        cfg = (_C().runtime(seed=7).network(n=12).emitter(family="izhikevich").field().probe(name="p")
+               .connections(name="ee", source={"cell_type": "E"}, target={"cell_type": "E"}, probability=0.5)
+               .connectivity(**conn))
+        e = jtfne.construct(cfg).params["edge_list"]
+        return np.asarray(e.pre), np.asarray(e.post)
+
+    base, same, reseeded = edges(), edges(edge_seed=7), edges(edge_seed=8)
+    assert all(np.array_equal(a, b) for a, b in zip(base, same))
+    assert not all(np.array_equal(a, b) for a, b in zip(base, reseeded))
+
+
+def test_edge_seed_refused_on_the_homeostatic_ei_route():
+    cfg = (
+        _C().network(n=6).set_emitter("homeostatic_ei").field().probe(name="p")
+        .connectivity(edge_seed=8)
+    )
+    with pytest.raises(ValueError, match="is not realized"):
+        jtfne.construct(cfg)

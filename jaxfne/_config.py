@@ -221,6 +221,30 @@ def _real_baseline(method: str, value: Any) -> float:
     return float(value)
 
 
+def _check_edge_seed(value: Any) -> None:
+    """Refuse a ``connectivity(edge_seed=)`` value that is not an int seed."""
+    if value is None:
+        return
+    if isinstance(value, bool) or not isinstance(value, numbers.Integral):
+        raise ValueError(
+            f"connectivity(edge_seed={value!r}) is not realized: it takes an int seed or None"
+        )
+
+
+def edge_seed_from_metadata(metadata: Mapping[str, Any]) -> int:
+    """Seed for connectivity edge sampling: ``metadata["connectivity"]["edge_seed"]``.
+
+    Returns the declared ``edge_seed`` when set, else the runtime seed
+    (``metadata["seed"]``). Positions, random v0 and canonical biophysics
+    keep the runtime seed -- only edge draws read this.
+    """
+    connectivity = metadata.get("connectivity", {}) or {}
+    edge_seed = connectivity.get("edge_seed", None)
+    if edge_seed is None:
+        return int(metadata.get("seed", 0) or 0)
+    return int(edge_seed)
+
+
 def _check_cell_type_fractions(fractions: Mapping[str, Any]) -> dict[str, float]:
     """Return ``fractions`` as floats; refuse an empty map, a bool, non-real, non-finite or
     negative value, and zero total mass."""
@@ -761,6 +785,8 @@ class Configuration:
             _refuse_unrealized("connectivity", "within_area", kwargs["within_area"], ("all_to_all_uniform_random",))
         if "recurrent" in kwargs:
             _refuse_unrealized("connectivity", "recurrent", kwargs["recurrent"], (True,))
+        if "edge_seed" in kwargs:
+            _check_edge_seed(kwargs["edge_seed"])
         metadata = dict(self.metadata)
         connectivity = dict(metadata.get("connectivity", {}))
         connectivity.update(kwargs)

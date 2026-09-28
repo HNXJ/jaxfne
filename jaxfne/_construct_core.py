@@ -41,6 +41,7 @@ from ._config import (
     _check_probe_kwargs,
     check_emitter_conflict,
     check_n_contacts,
+    edge_seed_from_metadata,
     poisson_signature,
 )
 from ._runtime_config import RuntimeConfig
@@ -604,6 +605,15 @@ def _construct_build_network(
         # Realize the request or refuse it -- never silently ignore it. This branch
         # cannot honour p_connect at all, so accepting one and returning dense
         # all-to-all is a wrong answer, not a slow one.
+        # make_eig_network builds deterministic connectivity; only connections()
+        # rules sample edges on this branch, so edge_seed without them is dropped.
+        _edge_seed = (cfg.metadata.get("connectivity", {}) or {}).get("edge_seed", None)
+        if _edge_seed is not None and not (cfg.metadata.get("circuit") or {}).get("connections"):
+            raise ValueError(
+                f"connectivity(edge_seed={_edge_seed!r}) is not realized on this construction "
+                "route: the configuration set none of columns/layer_cell_types/uniform_3d and "
+                "declares no connections(), so no edges are sampled."
+            )
         # Both spellings: .connectivity(p_connect=...) reads from metadata, while
         # .network(p_connect=...) is stored in the network spec and likewise never
         # consumed on this route.
@@ -812,7 +822,7 @@ def _construct_compile_connections(
                 _np.asarray(_ep.sign),
                 n,
                 edge_list.weight.dtype,
-                int(cfg.metadata.get("seed", 0) or 0),
+                int(edge_seed_from_metadata(cfg.metadata)),
                 positions=_positions_np,
                 dt_ms=_construct_dt_ms,
             )
@@ -837,7 +847,7 @@ def _construct_compile_connections(
                 _np.asarray(_ep.sign),
                 n,
                 edge_list.weight.dtype,
-                int(cfg.metadata.get("seed", 0) or 0),
+                int(edge_seed_from_metadata(cfg.metadata)),
                 dt_ms=_construct_dt_ms,
             )
         declared_edge_count = sum(int(count) for count in _counts)
@@ -1094,6 +1104,11 @@ def _refuse_homeostatic_ei_dropped_declarations(cfg: Configuration) -> None:
                 f"connectivity({_key}={conn[_key]!r}) is not realized on the homeostatic_ei route: "
                 "it builds a fixed conductance matrix, not this gain"
             )
+    if conn.get("edge_seed") is not None:
+        raise ValueError(
+            f"connectivity(edge_seed={conn['edge_seed']!r}) is not realized on the homeostatic_ei "
+            "route: it builds fixed canonical conductances and samples no edges"
+        )
     if conn.get("tcm_v1_6pop") or meta.get("tcm_v1_6pop"):
         raise ValueError(
             "connectivity(tcm_v1_6pop=...) is not realized on the homeostatic_ei route: "
@@ -1228,7 +1243,7 @@ def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
     guards added to those methods in ``jaxfne/_model.py``).
     """
     _refuse_homeostatic_ei_dropped_declarations(cfg)
-    rules = dict((cfg.emitters[0].get("homeostatic_ei_rules") if cfg.emitters else None) or {})
+    rules =dict((cfg.emitters[0].get("homeostatic_ei_rules") if cfg.emitters else None) or {})
     activation_rule = str(
         rules.get("activation_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["activation_rule"])
     )
