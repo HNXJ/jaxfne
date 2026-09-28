@@ -50,7 +50,7 @@
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 10826,
+      "bytes": 11090,
       "inputs": {
         "source_artifact": "signals",
         "variable": "spikes [T,N] + neuron_table",
@@ -64,7 +64,7 @@
       "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 49316,
+      "bytes": 49056,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field proxy",
@@ -106,7 +106,7 @@
       "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 18141,
+      "bytes": 18126,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field traces",
@@ -116,14 +116,14 @@
       }
     }
   ],
-  "sha256": "14bccc0dfd66c45f",
+  "sha256": "ad4c34c3a35a5878",
   "promotion": [
     {
       "to": "validated",
-      "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+      "reason": "0.5.5 P-018: regenerated after the plain route applied the declared drive; broad gate green on b0817dc",
       "promoter": "promote_atlas_state.py",
-      "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
-      "utc": "2026-09-28T01:29:53.768140+00:00"
+      "git_head": "b0817dcf0e93c87fe873f30aec8ff4c8b0749139",
+      "utc": "2026-09-28T14:43:22.621365+00:00"
     }
   ]
 }

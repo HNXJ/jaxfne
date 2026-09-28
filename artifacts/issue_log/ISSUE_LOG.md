@@ -98,29 +98,47 @@ possible future change.
 - **possible future change:** human decision: fix the semantics (outputs of
   ParadigmCondition runs change) or refuse what is not realized; open
 
-### P-018
-- **date:** 2026-09-27
-- **type:** DEFECT (configuration stored, not consumed)
-- **area:** `jaxfne/_construct_core.py` plain `network(n=)` route
-- **observation:** only the population route (`column()`, `uniform3d()`,
-  `layer_fractions()`) reads `drive(baseline_drive_by_cell_type=)`; on the
-  plain route the declared drive is dropped. P-014 rewrote the per-type
-  drives of 3 scripts, 7 tests and one doc-page atlas spec as `drive()`;
-  they build on this route, so those drives still never run (among them
-  `scripts/mcc3_10s_scientific_checkpoint.py` and the
-  `benchmark_050_baseline` models that `benchmark_051_matrix` reuses).
-- **severity:** MAJOR (same class as P-014)
-- **minimal reproduction:** `network(n=2, cell_types={"E": 0.5, "PV": 0.5})`
-  with drives from default to `{"E": 15.0, "PV": 10.0}`: E fires 12 Hz and
-  PV 0 Hz at every setting; with `.uniform3d()` the rates follow the drive
-- **expected behavior:** consumed or refused
-- **actual behavior:** accepted, recorded, ignored
-- **evidence:** scratch probes 2026-09-27; `git grep baseline_drive_by_cell_type`
-  finds one reader, `_construct_population.py`; `mcc3_config()` declares
-  E 8.0, PV 8.0 and builds the defaults 5.0, 3.0, with an emitter drive
-  identical to the configuration without the declaration
-- **possible future change:** human decision: wire the per-type drive on the
-  plain route (outputs of those callers change) or refuse it (callers drop
-  it; outputs unchanged); open
+### P-019
+- **date:** 2026-09-28
+- **type:** DEFECT (equivalence bound stated wider than measured)
+- **area:** `tests/test_equiv01_table.py` (24-EQUIV-01, jit vs eager)
+- **observation:** the table's bounds were measured at the default drives
+  (E 5.0, PV 3.0): the test declared E/PV drive 10.0, which the plain route
+  dropped until P-018. At drive 10.0, spikes stay equal but jit and eager
+  V_m differ by up to 2.5e-3 (legacy and eligibility HDP rules) and 1.4e-3
+  (no HDP), against the 1e-4 bound; with the registered rule V_m and H hold
+  and the W trace, stated exact, differs.
+- **severity:** MINOR (float32 reassociation; the contract names no regime)
+- **minimal reproduction:** restore `.drive(baseline_drive_by_cell_type={"E": 10.0, "PV": 10.0})`
+  in `_model()` of `tests/test_equiv01_table.py` at b0817dc and run the file
+- **expected behavior:** the bounds hold, or the table states the regime they cover
+- **actual behavior:** 4 FAIL (3 HDP regimes and the no-HDP baseline)
+- **evidence:** broad gate in the P-018 clone, 2026-09-28
+- **possible future change:** measure the jit-vs-eager deviation over a drive
+  sweep and state a bound per regime, or find the fusion that moves it; open
+
+### P-020
+- **date:** 2026-09-28
+- **type:** SCIENCE (frozen receipt reproduces in part)
+- **area:** `artifacts/mcc3_10s_checkpoint/` (receipt of c9e12f8, v0.4.8),
+  `scripts/mcc3_10s_scientific_checkpoint.py`
+- **observation:** rerun at b0817dc with the repaired script: conditions A
+  and B match the receipt to float32 (κ within 1e-14, PSD within ~1e-7
+  relative). Condition C (θ̂, HDP off) keeps every rate and spike count, but
+  its spike timing moved: population ISI CV 0.01270 → 0.01228, κ 0.0229 →
+  0.0183, source |max| 29.88 → 30.86. The etude rerun
+  (`scripts/rerun_etude_figures.py --etude hdp_mcc3`) checks θ̂ and
+  condition B only, and passes.
+- **severity:** MINOR (rates and counts equal; timing statistics of one condition)
+- **minimal reproduction:** run `scripts/mcc3_10s_scientific_checkpoint.py`
+  and compare `mcc3_10s_metrics.json` leaf by leaf with the committed file
+  (132 of 1,800,946 leaves differ)
+- **expected behavior:** the receipt reproduces, or its drift has a stated cause
+- **actual behavior:** as observed
+- **evidence:** run 2026-09-28 in a clone at b0817dc; the receipt was
+  restored byte for byte
+- **possible future change:** bisect the HDP-off simulation path since
+  c9e12f8 for the commit that moved condition C, then re-freeze with the
+  stated cause or extend the etude check to C; open
 
 ---

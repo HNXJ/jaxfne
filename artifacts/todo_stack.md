@@ -60,6 +60,11 @@ tied to evidence.
   within 1e-9 of unit mass unnormalized: dividing by a mass of 1 ± ulp moves
   n·frac off a .5 rounding boundary (n=10, 0.35) and would change existing
   labels.
+- 2026-09-28 (agent): receipts made while a declaration was dropped stay as
+  made, and their configurations declare what ran: `mcc3_config()` keeps the
+  default drives of its checkpoint and etude (as `_mcc3_model` under P-014),
+  `tests/test_equiv01_table.py` the drives of its bounds (P-019);
+  `artifacts/perf/matrix_051.json` stays the 0.5.0 receipt (see ATLAS 8).
 
 ## 0.5.5 stack
 
@@ -80,11 +85,11 @@ HARNESS (human, 2026-09-27)
   directly, and compares Poisson fields as simulate solves them. The plain
   route normalizes cell-type fractions; both routes refuse fractions that
   are not real, finite and non-negative with positive mass. The probe
-  kernels refuse the electrode keywords they do not apply. Left,
-  executable: (g) the homeostatic_ei route reads only `network(n=)` and
-  the emitter rules (`_construct_homeostatic_ei_model`): list and refuse
-  the declarations it drops, `p_connect` included (it skips the [0, 1]
-  check); (e) human 2026-09-28, see Decisions: `layer_fractions()`,
+  kernels refuse the electrode keywords they do not apply. The
+  homeostatic_ei route refuses the declarations it drops;
+  `connectivity(edge_seed=)` seeds the edges; the plain route applies
+  `drive()` and `cell_params()` (P-018). Left, executable:
+  (e) human 2026-09-28, see Decisions: `layer_fractions()`,
   `layer_cell_types` and `area_layer_cell_types` change nothing without a
   laminar column, and `uniform3d()` builds every column as one
   `uniform_3d` layer. Callers that declare them: `default_cortical_column_config`,
@@ -94,12 +99,7 @@ HARNESS (human, 2026-09-27)
   tests. Open question for the human: `default_complete_configuration`
   declares an L2/3→core inter-area map that matches no neuron under
   `uniform3d()`, so it builds no inter-area edges (drop the map, or drop
-  `uniform3d()` so the column is laminar and the edges exist); (d) P-018:
-  apply `drive()` on the plain route (human 2026-09-28); regenerate
-  `artifacts/mcc3_10s_checkpoint/*` and `artifacts/perf/matrix_051*.json`
-  if their outputs change; (a) wire `connectivity(edge_seed=)` and
-  `build_laminar_column(edge_seed=)` (stored, never read; in-repo callers
-  pass the runtime seed, so outputs must stay bit-identical).
+  `uniform3d()` so the column is laminar and the edges exist).
 - P-017 fix (human 2026-09-28): `stimulus_schedule` injects only events
   with a stimulus, for the event's duration, at its declared amplitude and
   targets; simulate refuses a multi-condition `Paradigm`;
@@ -130,7 +130,9 @@ ATLAS
    predeclared tolerance and which do not; failures stay in the matrix.
    Existing row: `at01_at06_052.run_reduction` (HH → reduced → population).
 8. Performance/reduction map: T_compute and M_compute per AT beside
-   E_reduction.
+   E_reduction. `artifacts/perf/matrix_051.json` ran the
+   `benchmark_050_baseline` models at the default drives; their declared
+   drives run since P-018, so measure them anew here.
 
 MANUSCRIPT (ends 0.5.5)
 9. Atlas coverage matrix: every section, figure, simulation and claim in the

@@ -22,6 +22,7 @@ from jaxfne._model_tune import (
     _edge_parameter_mask,
     _model_with_parameters,
 )
+from jaxfne.emitters import resolve_edge_weight
 from jaxfne.hdp_network import DEFAULT_HDP
 from jaxfne.io import json_safe
 
@@ -50,7 +51,9 @@ def mcc3_config():
             n=10,
             cell_types={"E": 0.5, "PV": 0.5},
         )
-        .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 8.0})
+        # No drive(): the committed checkpoint and its etude ran at the emitter
+        # defaults (E 5.0, PV 3.0). The E/PV 8.0 declared here earlier never ran
+        # (P-014, P-018).
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(
             domain="laminar_column",
@@ -113,6 +116,13 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: f.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def edge_weights(model: jtfne.Model) -> np.ndarray:
+    """Per-edge signed weights; the edge list may store them per class."""
+    edges = model.params["edge_list"]
+    sign = model.params["emitter"].sign.astype(edges.weight.dtype)
+    return np.asarray(resolve_edge_weight(edges, edges.weight.dtype, presynaptic_sign=sign))
 
 
 def ei_label(cell_type: str) -> str:
@@ -305,7 +315,7 @@ def run_condition(
         if params is not None
         else base_model
     )
-    w0 = np.asarray(model.params["edge_list"].weight).copy()
+    w0 = edge_weights(model).copy()
     signals = model.simulate(sim)
     diag = model.last_hdp_diagnostics()
     report = model.evaluate(
@@ -342,7 +352,7 @@ def run_condition(
     w_final = (
         np.asarray(diag["w_final"])
         if diag is not None and diag.get("w_final") is not None
-        else np.asarray(model.params["edge_list"].weight)
+        else edge_weights(model)
     )
     return {
         "label": label,
@@ -390,7 +400,7 @@ def make_figure(
     ax_net = fig.add_subplot(gs[0, :2])
     pre = np.asarray(A["model"].params["edge_list"].pre)
     post = np.asarray(A["model"].params["edge_list"].post)
-    w = np.asarray(A["model"].params["edge_list"].weight)
+    w = edge_weights(A["model"])
     xy = {}
     for r in network_rows:
         idx = r["neuron_index"]
@@ -626,7 +636,7 @@ def main() -> int:
         "signs_unchanged": bool(
             np.all(
                 np.sign(np.asarray(B["W0"]))
-                == np.sign(np.asarray(base.params["edge_list"].weight))
+                == np.sign(edge_weights(base))
             )
         ),
         "initial_objective_100ms": (
