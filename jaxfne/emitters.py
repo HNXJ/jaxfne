@@ -10,6 +10,7 @@ an explicit calibration bridge is supplied later.
 
 from __future__ import annotations
 
+import numbers
 from collections import Counter
 from dataclasses import dataclass, replace as dataclass_replace
 from functools import lru_cache
@@ -249,12 +250,11 @@ def _cell_labels(n: int, cell_type_fractions: Mapping[str, float]) -> tuple[str,
     items = list(cell_type_fractions.items()) or [("E", 1.0)]
     values: list[tuple[str, float]] = []
     for name, frac in items:
-        value = float(frac)
-        if not np.isfinite(value) or value < 0.0:
+        if isinstance(frac, bool) or not isinstance(frac, numbers.Real) or not np.isfinite(frac) or frac < 0.0:
             raise ValueError(
                 f"cell_type_fractions[{str(name)!r}] must be finite and non-negative; got {frac!r}"
             )
-        values.append((str(name), value))
+        values.append((str(name), float(frac)))
     mass = sum(value for _, value in values)
     if mass <= 0.0:
         raise ValueError(f"cell_type_fractions must have positive mass; got {dict(values)!r}")

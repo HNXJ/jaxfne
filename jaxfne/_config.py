@@ -216,9 +216,27 @@ def poisson_signature(spec: Mapping[str, Any], n_contacts: int) -> tuple[Any, fl
 
 
 def _real_baseline(method: str, value: Any) -> float:
-    if isinstance(value, bool) or not isinstance(value, numbers.Real):
-        raise ValueError(f"{method}(relative_baseline={value!r}) is not realized: it takes a real number")
+    if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
+        raise ValueError(f"{method}(relative_baseline={value!r}) is not realized: it takes a finite real number")
     return float(value)
+
+
+def _check_cell_type_fractions(fractions: Mapping[str, Any]) -> dict[str, float]:
+    """Return ``fractions`` as floats; refuse an empty map, a bool, non-real, non-finite or
+    negative value, and zero total mass."""
+    if not fractions:
+        raise ValueError("cell type fractions must not be empty")
+    clean: dict[str, float] = {}
+    for key, value in fractions.items():
+        if (isinstance(value, bool) or not isinstance(value, numbers.Real)
+                or not math.isfinite(value) or value < 0.0):
+            raise ValueError(
+                f"cell type fraction for {key!r} must be finite and non-negative; got {value!r}"
+            )
+        clean[str(key)] = float(value)
+    if sum(clean.values()) <= 0.0:
+        raise ValueError("cell type fractions must have positive total mass")
+    return clean
 
 
 def _check_probe_kwargs(kwargs: Mapping[str, Any]) -> None:
@@ -703,22 +721,11 @@ class Configuration:
         """Set cell-type fractions for the current configuration.
 
         Fractions are copied into metadata and into the constructable unified
-        network.  The method rejects negative, non-finite, or zero-total maps but
-        does not silently normalize values; the manifest should preserve exactly
-        what the user declared.
+        network.  The method rejects non-real, negative, non-finite, or zero-total
+        maps but does not silently normalize values; the manifest should preserve
+        exactly what the user declared.
         """
-        if not fractions:
-            raise ValueError("cell type fractions must not be empty")
-        clean: dict[str, float] = {}
-        for key, value in fractions.items():
-            f = float(value)
-            if not math.isfinite(f) or f < 0.0:
-                raise ValueError(
-                    f"cell type fraction for {key!r} must be finite and non-negative; got {value!r}"
-                )
-            clean[str(key)] = f
-        if sum(clean.values()) <= 0.0:
-            raise ValueError("cell type fractions must have positive total mass")
+        clean = _check_cell_type_fractions(fractions)
 
         metadata = dict(self.metadata)
         metadata["cell_types"] = clean

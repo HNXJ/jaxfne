@@ -52,7 +52,14 @@ tied to evidence.
   `ParadigmCondition` runs go in the seal receipt. P-018, wire `drive()` on
   the plain route. Wire `edge_seed` (in-repo outputs stay bit-identical).
   Probe kernels refuse `position`/`reference`/`filter_spec` they do not
-  apply.
+  apply. H1 (e): construct refuses layer tables and column layers the route
+  drops; `default_cortical_column_config` stops declaring them (outputs
+  bit-identical; its config hash changes and pinned hashes are regenerated).
+- 2026-09-28 (agent): probe kernels accept `reference`/`filter_spec="none"`,
+  the `Configuration.probe` rule. The plain route leaves cell-type fractions
+  within 1e-9 of unit mass unnormalized: dividing by a mass of 1 ± ulp moves
+  n·frac off a .5 rounding boundary (n=10, 0.35) and would change existing
+  labels.
 
 ## 0.5.5 stack
 
@@ -70,22 +77,29 @@ HARNESS (human, 2026-09-27)
   nothing reads (`connectivity`, `cell_type_fractions`, `layers`),
   homeostatic emitter keys on another family and `p_connect` outside [0, 1].
   construct re-checks the fields and probes of a configuration built
-  directly, and compares Poisson fields as simulate solves them. Left,
-  executable: (e) `layer_fractions()` changes nothing without `column()`
-  (default and custom tables give identical labels and positions at n=60);
-  (f) the plain route reads cell-type fractions unnormalized
-  (`{"E": 1, "PV": 1}` at n=2 built two E cells; the population route
-  normalizes); (g) the homeostatic_ei route reads only `network(n=)` and
+  directly, and compares Poisson fields as simulate solves them. The plain
+  route normalizes cell-type fractions; both routes refuse fractions that
+  are not real, finite and non-negative with positive mass. The probe
+  kernels refuse the electrode keywords they do not apply. Left,
+  executable: (g) the homeostatic_ei route reads only `network(n=)` and
   the emitter rules (`_construct_homeostatic_ei_model`): list and refuse
-  the declarations it drops; (d) P-018: apply `drive()` on the plain route
-  (human 2026-09-28); regenerate `artifacts/mcc3_10s_checkpoint/*` and
-  `artifacts/perf/matrix_051*.json` if their outputs change; (a) wire
-  `connectivity(edge_seed=)` and `build_laminar_column(edge_seed=)`
-  (stored, never read; in-repo callers pass the runtime seed, so outputs
-  must stay bit-identical); (b) the probe kernels (`spk_probe`,
-  `vm_probe`, `source_probe`, `lfp_proxy_probe`) refuse the
-  `position`/`reference`/`filter_spec` they never apply; rewrite the 0.5.2
-  pin `tests/test_probe_electrode_052.py`.
+  the declarations it drops, `p_connect` included (it skips the [0, 1]
+  check); (e) human 2026-09-28, see Decisions: `layer_fractions()`,
+  `layer_cell_types` and `area_layer_cell_types` change nothing without a
+  laminar column, and `uniform3d()` builds every column as one
+  `uniform_3d` layer. Callers that declare them: `default_cortical_column_config`,
+  the `uniform3d` geometry of `build_laminar_column`, Protocol C3
+  (`jaxfne/protocol_c/c3_execution.py`; its receipt holds results, not the
+  config), `scripts/generate_mechanism_tutorials.py` and its notebooks, and
+  tests. Open question for the human: `default_complete_configuration`
+  declares an L2/3→core inter-area map that matches no neuron under
+  `uniform3d()`, so it builds no inter-area edges (drop the map, or drop
+  `uniform3d()` so the column is laminar and the edges exist); (d) P-018:
+  apply `drive()` on the plain route (human 2026-09-28); regenerate
+  `artifacts/mcc3_10s_checkpoint/*` and `artifacts/perf/matrix_051*.json`
+  if their outputs change; (a) wire `connectivity(edge_seed=)` and
+  `build_laminar_column(edge_seed=)` (stored, never read; in-repo callers
+  pass the runtime seed, so outputs must stay bit-identical).
 - P-017 fix (human 2026-09-28): `stimulus_schedule` injects only events
   with a stimulus, for the event's duration, at its declared amplitude and
   targets; simulate refuses a multi-condition `Paradigm`;

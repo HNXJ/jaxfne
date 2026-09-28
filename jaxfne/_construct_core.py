@@ -36,6 +36,7 @@ from .fields import FieldOutput
 from ._config import (
     RUNTIME_METADATA_KEYS,
     Configuration,
+    _check_cell_type_fractions,
     _check_field_kwargs,
     _check_probe_kwargs,
     check_emitter_conflict,
@@ -522,6 +523,9 @@ def _construct_validate_config(cfg: "Configuration") -> None:
                 f"network({_later!r}) is not realized: construct builds the first network "
                 f"{cfg.networks[0]!r} only"
             )
+    # network(cell_types=) stores its map unchecked; both routes read it.
+    if cfg.networks and cfg.networks[0].get("cell_types") is not None:
+        _check_cell_type_fractions(cfg.networks[0]["cell_types"])
     # field()/probe() check their keys; a configuration built directly skips them.
     for _field in cfg.fields:
         _check_field_kwargs(_field)

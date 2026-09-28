@@ -325,6 +325,8 @@ UNREALIZED_DECLARATIONS = {
     "plasticity.bool_baseline": lambda: _C().plasticity(relative_baseline=True),
     "homeostasis.bool_baseline": lambda: _C().homeostasis(relative_baseline=True),
     "hdp.bool_baseline": lambda: _C().hdp(relative_baseline=True),
+    "homeostasis.nan_baseline": lambda: _C().homeostasis(relative_baseline=float("nan")),
+    "hdp.inf_baseline": lambda: _C().hdp(relative_baseline=float("inf")),
     "network.unknown_key": lambda: _C().network(n=2, connectivity={"E→PV": 0.2}),
     "network.built_kind": lambda: _C().network(n=9999, kind="multi_column").column("V1", layers=["L4"], n=6),
     "network.second_at_construct": lambda: jtfne.construct(dataclasses.replace(
@@ -416,17 +418,22 @@ def test_plain_route_normalizes_fractions_below_unit_mass():
     assert sorted(labels) == ["E"] * 5 + ["PV"] * 5
 
 
+@pytest.mark.parametrize("uniform3d", [False, True], ids=["plain", "population"])
 @pytest.mark.parametrize(
     "cell_types",
-    [{"E": 1.0, "PV": -0.1}, {"E": float("nan")}, {"E": 0.0, "PV": 0.0}],
+    [{"E": 1.0, "PV": -0.1}, {"E": float("nan")}, {"E": 0.0, "PV": 0.0}, {"E": True}, {"E": None}, {"E": "0.5"}],
 )
-def test_plain_route_refuses_invalid_fractions(cell_types):
-    cfg = (
-        _C()
-        .network(n=6, cell_types=cell_types)
-        .emitter(family="izhikevich")
-        .field()
-        .probe(name="p")
-    )
-    with pytest.raises(ValueError):
+def test_construct_refuses_invalid_fractions(cell_types, uniform3d):
+    cfg = _C().network(n=6, cell_types=cell_types)
+    if uniform3d:
+        cfg = cfg.uniform3d()
+    cfg = cfg.emitter(family="izhikevich").field().probe(name="p")
+    with pytest.raises(ValueError, match="cell type fraction"):
         jtfne.construct(cfg)
+
+
+def test_make_eig_network_refuses_a_bool_fraction():
+    from jaxfne.emitters import make_eig_network
+
+    with pytest.raises(ValueError, match="must be finite and non-negative"):
+        make_eig_network(n=2, cell_type_fractions={"E": True})
