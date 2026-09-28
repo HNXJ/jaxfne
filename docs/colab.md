@@ -1,7 +1,7 @@
 # Google Colab Quick Start
 
-Run jaxfne examples in Google Colab without local setup. Installs the published
-PyPI release `jaxfne==0.5.0` (tag `v0.5.0`; previous release `0.4.25`).
+Run jaxfne examples in Google Colab without local setup. Installs the
+published PyPI release `jaxfne==0.5.0` (tag `v0.5.0`; previous release `0.4.25`).
 
 ---
 
