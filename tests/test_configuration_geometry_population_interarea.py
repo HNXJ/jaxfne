@@ -21,7 +21,7 @@ def _base(name="V1", N=100):
         .geometry(layer_thickness={"L1": 0.10, "L2": 0.15, "L3": 0.15, "L4": 0.10, "L5": 0.30, "L6": 0.20})
         .population(N=N, neurons={"L1": 10, "L2": 25, "L3": 20, "L4": 10, "L5": 20, "L6": 15}, name=name)
         .cell_types({"E": 0.6, "PV": 0.2, "SST": 0.13, "VIP": 0.07})
-        .emitter(kind="izhikevich")
+        .emitter(family="izhikevich")
         .field(kind="laminar_proxy")
         .probe(kind="lfp_proxy")
     )

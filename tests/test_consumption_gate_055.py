@@ -293,6 +293,16 @@ UNREALIZED_DECLARATIONS = {
     "connectivity.within_area": lambda: _C().connectivity(within_area="small_world"),
     "connectivity.recurrent": lambda: _C().connectivity(recurrent=False),
     "emitter.preset": lambda: _C().emitter(family="izhikevich", preset="regular_spiking"),
+    "emitter.unknown_key": lambda: _C().emitter(kind="izhikevich"),
+    # construct builds emitters[0], networks[0] and the first Poisson field only.
+    "emitter.after_default": lambda: _C().network(n=6).probes(["spikes"]).set_emitter("homeostatic_ei"),
+    "emitter.conflict_at_construct": lambda: jtfne.construct(dataclasses.replace(
+        _C().network(n=6).field().probe(name="p"), emitters=[{"family": "izhikevich"}, {"family": "homeostatic_ei"}])),
+    "network.second": lambda: _C().network(n=6).network(n=12),
+    "network.after_cell_types": lambda: _C().cell_types({"E": 0.8, "PV": 0.2}).network(n=6),
+    "column.after_network": lambda: _C().network(n=6).column("V1", layers=["L4"], n=6),
+    "field.second_poisson": lambda: _C().field(solver="experimental_poisson_1d", n_bins=8).field(
+        solver="experimental_poisson_1d", n_bins=16),
     "network.layers": lambda: jtfne.construct(
         _C().network(n=6, layers=["L4"]).emitter(family="izhikevich").field().probe(name="p")),
 }
@@ -300,8 +310,17 @@ UNREALIZED_DECLARATIONS = {
 
 @pytest.mark.parametrize("case", sorted(UNREALIZED_DECLARATIONS))
 def test_unrealized_declarations_are_refused(case):
-    with pytest.raises(ValueError, match="not realized|no consumer"):
+    with pytest.raises(ValueError, match="no consumer" if case.endswith("unknown_key") else "not realized"):
         UNREALIZED_DECLARATIONS[case]()
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"conductivity": "proxy"}, {"conductivity": 0.0}, {"conductivity": float("nan")}, {"conductivity": True},
+    {"n_bins": 1}, {"n_bins": 8.5}, {"n_bins": "8"},
+])
+def test_poisson_diagnostic_refuses_inputs_simulate_would_swallow(kwargs):
+    with pytest.raises(ValueError, match="Poisson diagnostic needs"):
+        _C().field(solver="experimental_poisson_1d", **kwargs)
 
 
 def test_realized_declarations_are_accepted():
@@ -310,8 +329,10 @@ def test_realized_declarations_are_accepted():
         .network(n=6)
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        .field(solver=None)
         .field(solver="experimental_poisson_1d", conductivity=1.0, n_bins=8)
         .probe(name="p", n_contacts=4, width=0.1, contact_depths=[0.0, 1 / 3, 2 / 3, 1.0], reference=None)
+        .set_emitter("izhikevich", "cortical_eig")  # a repeat of the first emitter is realized
         .drive(noise_policy="additive_poisson")
         .connectivity(within_area="all_to_all_uniform_random", recurrent=True)
     )

@@ -193,8 +193,15 @@ def _check_field_kwargs(kwargs: Mapping[str, Any]) -> None:
     solver = kwargs.get("solver")
     if solver is not None:
         _refuse_unrealized("field", "solver", solver, ("experimental_poisson_1d",))
+        # simulate() swallows solver errors (opt-in diagnostic), so bad inputs are refused here.
+        cond = kwargs.get("conductivity", 1.0)
+        if isinstance(cond, bool) or not isinstance(cond, numbers.Real) or not (math.isfinite(cond) and cond > 0):
+            raise ValueError(f"field(conductivity={cond!r}): the Poisson diagnostic needs a finite conductivity > 0")
+        n_bins = kwargs.get("n_bins", 2)
+        if isinstance(n_bins, bool) or not isinstance(n_bins, numbers.Integral) or n_bins < 2:
+            raise ValueError(f"field(n_bins={n_bins!r}): the Poisson diagnostic needs an int n_bins >= 2")
     for key, value in kwargs.items():
-        if solver is not None and key in _POISSON_KEYS:
+        if key == "solver" or (solver is not None and key in _POISSON_KEYS):
             continue
         if key in _FIELD_REALIZED:
             _refuse_unrealized("field", key, value, _FIELD_REALIZED[key])
@@ -223,6 +230,24 @@ def _check_probe_kwargs(kwargs: Mapping[str, Any]) -> None:
         else:
             raise ValueError(f"probe({key}=...) has no consumer; supported keys: "
                              f"{sorted({*_PROBE_LABELS, 'width', 'contact_depths', 'position', 'reference', 'filter_spec'})}")
+
+
+_EMITTER_KEYS = ("family", "preset", "homeostatic_ei_rules", "homeostatic_ei_bound_mode")
+
+
+def emitter_signature(spec: Mapping[str, Any]) -> dict[str, Any]:
+    """The part of an emitter declaration construct reads (``preset`` is a label)."""
+    return {**{k: v for k, v in spec.items() if k != "preset"}, "family": spec.get("family") or "izhikevich"}
+
+
+def check_emitter_conflict(first: Mapping[str, Any], later: Mapping[str, Any]) -> None:
+    """Refuse a later emitter declaration that construct, which reads the first only, would drop."""
+    if emitter_signature(later) != emitter_signature(first):
+        raise ValueError(
+            f"emitter({dict(later)!r}) is not realized: construct builds the first emitter "
+            f"{dict(first)!r} only. probes()/set_probes() insert the default izhikevich emitter "
+            "when none is declared, so declare the emitter before them."
+        )
 
 
 def _reject_retired_like(value: Any) -> None:
@@ -340,13 +365,21 @@ class Configuration:
         """Attach network metadata to the configuration.
 
         Parameters are stored as JSON-safe metadata and consumed by public
-        construction helpers when supported.
+        construction helpers when supported. construct builds the first network
+        only, and ``column()``/``cell_types()`` also fill that slot, so declare
+        ``network()`` once, before them.
 
         Returns
         -------
         Configuration
             Updated configuration.
         """
+        if self.networks:
+            raise ValueError(
+                f"network({dict(kwargs)!r}) is not realized: construct builds the first network "
+                f"{self.networks[0].get('name', 'unnamed')!r} only; declare network() once, before "
+                "column() or cell_types()"
+            )
         return replace(self, networks=[*self.networks, dict(kwargs)])
 
     def emitter(self, **kwargs: Any) -> "Configuration":
@@ -356,15 +389,21 @@ class Configuration:
         The ``family`` key selects the emitter kernel at build time.
 
         ``preset`` selects no parameters; construct realizes the ``cortical_eig``
-        Izhikevich set, so that is the only accepted preset.
+        Izhikevich set, so that is the only accepted preset. construct builds the
+        first emitter only: a later declaration must repeat it.
 
         Returns
         -------
         Configuration
             Updated configuration.
         """
+        unknown = sorted(set(kwargs) - set(_EMITTER_KEYS))
+        if unknown:
+            raise ValueError(f"emitter({unknown[0]}=...) has no consumer; supported keys: {list(_EMITTER_KEYS)}")
         if kwargs.get("preset") is not None:
             _refuse_unrealized("emitter", "preset", kwargs["preset"], ("cortical_eig",))
+        if self.emitters:
+            check_emitter_conflict(self.emitters[0], kwargs)
         return replace(self, emitters=[*self.emitters, dict(kwargs)])
 
     def field(self, **kwargs: Any) -> "Configuration":
@@ -384,6 +423,12 @@ class Configuration:
             Updated configuration.
         """
         _check_field_kwargs(kwargs)
+        declared = [f for f in self.fields if f.get("solver") is not None]
+        if kwargs.get("solver") is not None and declared and declared[0] != dict(kwargs):
+            raise ValueError(
+                f"field({dict(kwargs)!r}) is not realized: simulate runs the first Poisson "
+                f"declaration {declared[0]!r} only"
+            )
         return replace(self, fields=[*self.fields, dict(kwargs)])
 
     def probe(self, **kwargs: Any) -> "Configuration":
@@ -462,6 +507,13 @@ class Configuration:
         n_int = int(n)
         if n_int <= 0:
             raise ValueError(f"column n must be positive; got {n!r}")
+        # column() rebuilds networks[0] from the columns; a network() declaration would be dropped.
+        if self.networks and self.networks[0].get("kind") not in ("multi_column", "configured"):
+            raise ValueError(
+                f"column({name!r}) is not realized together with network({self.networks[0]!r}): "
+                "column() replaces that network; declare the network with columns or network(), "
+                "one of them"
+            )
 
         metadata = dict(self.metadata)
         columns = [dict(col) for col in metadata.get("columns", [])]

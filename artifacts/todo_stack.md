@@ -51,11 +51,17 @@ HARNESS (human, 2026-09-27)
   Declarative keys of `field`, `probe`, `drive`, `inter_column_connectivity`,
   `connections`, `connectivity`, `emitter` and plain-route `network(layers)`
   are restricted to realized values (human decision 2026-09-27; canonical
-  proxy labels boundary/gauge/noise_policy kept). Left:
-  `connectivity(edge_seed=)` is stored and never read (construct seeds edges
-  from the runtime seed; ~17 callers via `build_laminar_column`): wire or
-  refuse. Other unread `connectivity` keys (`feedforward`/`feedback` route
-  labels, `e_to_all`…), `cfg.runtime(vmap=...)` (same single-trial issue as
+  proxy labels boundary/gauge/noise_policy kept); a later `network()`,
+  `emitter()` or Poisson `field()` that construct would drop is refused.
+  Left: `connectivity(edge_seed=)` is stored and never read (construct seeds
+  edges from the runtime seed; ~17 callers via `build_laminar_column`): wire
+  or refuse (human). The probe kernels (`spk_probe`, `vm_probe`,
+  `source_probe`, `lfp_proxy_probe`) still record `position`/`reference`/
+  `filter_spec` they never apply, by 0.5.2 design pinned in
+  `tests/test_probe_electrode_052.py`: refuse like `Configuration.probe`, or
+  mark them not applied in the report (human). Other unread `connectivity`
+  keys (`feedforward`/`feedback` route labels, `e_to_all`…),
+  `cfg.runtime(vmap=...)` (same single-trial issue as
   `RuntimeConfiguration.vmap`), `areas()`, and probe `modes` (descriptive;
   nothing gates on them). Notebooks under `artifacts/tutorials/` still carry
   `domain="point"`/`preset="regular_spiking"` in executed cells.

@@ -32,7 +32,7 @@ from .emitters_homeostatic_ei import (
     HomeostaticEIParams,
 )
 from .fields import FieldOutput
-from ._config import Configuration, check_n_contacts
+from ._config import Configuration, check_emitter_conflict, check_n_contacts
 from ._runtime_config import RuntimeConfig
 from ._signals import Simulation, Signals, LaminarSourceGeometry
 from ._model import Model
@@ -518,6 +518,9 @@ def _construct_validate_config(cfg: "Configuration") -> None:
                 "An explicitly declared unsupported family does not silently "
                 "fall back to another emitter."
             )
+    # Only emitters[0] is built; covers configs assembled without Configuration.emitter().
+    for _later in cfg.emitters[1:]:
+        check_emitter_conflict(cfg.emitters[0], _later)
 
 
 def _construct_build_network(

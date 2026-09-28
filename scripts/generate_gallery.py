@@ -120,9 +120,8 @@ def main(argv=None) -> int:
         GALLERY.write_text(before + block + after, encoding="utf-8")
         print(f"gallery rewritten: {len(entries)} atlases")
         return 0
-    current = current_block()
-    expected = block[len(START):-len(END) - 1]
-    if current != expected:
+    expected = block.split(START)[1].split(END)[0]  # parsed as current_block() parses the file
+    if current_block() != expected:
         print("gallery.md index is stale against the manifests; run "
               "`python scripts/generate_gallery.py --write`")
         return 1

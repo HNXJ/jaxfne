@@ -62,7 +62,9 @@ specified is computed faithfully.
 
 `.geometry(layer_thickness=, layer_cell_types=)`, `.layer_fractions(...)`,
 `.column(name, layers, n)` / `.add_column(...)`, `.areas([...])`,
-`.uniform3d(radius_mm=, height_mm=)`.
+`.uniform3d(radius_mm=, height_mm=)`. A configuration has one network: `.column()`
+calls accumulate into it, and a plain `.network(n=...)` is declared once, before
+`.cell_types(...)`.
 
 Specificity dial: geometry is where laminar structure enters. `.column()` names
 the layers and total count; `.geometry(layer_thickness=...)` turns thicknesses
@@ -131,8 +133,10 @@ than silently compiled without the cap. See
 
 ## Emitters
 
-`.set_emitter(family="izhikevich", preset="cortical_eig")` / `.emitter(**)`,
-`.drive(baseline_drive_by_cell_type={...})`. Layer/area drives, time
+`.set_emitter(family="izhikevich", preset="cortical_eig")` / `.emitter(family=, preset=)`,
+`.drive(baseline_drive_by_cell_type={...})`. construct builds one emitter;
+declare it before `.probes(...)`, which inserts the default Izhikevich emitter
+when none is declared. Layer/area drives, time
 schedules, evoked windows, oddball schedules and trial variability are
 refused (no consumer; P-015); `noise_policy` takes only its canonical label
 `additive_poisson`.
