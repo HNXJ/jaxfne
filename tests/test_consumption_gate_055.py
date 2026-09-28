@@ -313,6 +313,17 @@ UNREALIZED_DECLARATIONS = {
         .probe(name="p")),
     "plasticity.relative_baseline": lambda: _C().plasticity(relative_baseline=0.5),
     "plasticity.unknown_key": lambda: _C().plasticity(rule="stdp"),
+    "plasticity.bool_baseline": lambda: _C().plasticity(relative_baseline=True),
+    "network.unknown_key": lambda: _C().network(n=2, connectivity={"E→PV": 0.2}),
+    "network.built_kind": lambda: _C().network(n=9999, kind="multi_column").column("V1", layers=["L4"], n=6),
+    "network.second_at_construct": lambda: jtfne.construct(dataclasses.replace(
+        _C().network(n=6).emitter(family="izhikevich").field().probe(name="p"), networks=[{"n": 6}, {"n": 12}])),
+    "network.p_connect_population_route": lambda: jtfne.construct(
+        _C().network(n=6, p_connect=0.5).uniform3d().emitter(family="izhikevich").field().probe(name="p")),
+    "network.layers_population_route": lambda: jtfne.construct(dataclasses.replace(
+        _C().network(n=6).uniform3d().emitter(family="izhikevich").field().probe(name="p"),
+        networks=[{"n": 6, "layers": ["L4"]}])),
+    "emitter.rule_key_for_izhikevich": lambda: _C().emitter(family="izhikevich", homeostatic_ei_bound_mode="stable"),
 }
 
 
@@ -335,10 +346,12 @@ def test_realized_declarations_are_accepted():
     cfg = (
         _C()
         .network(n=6)
+        .network(n=6)  # an identical repeat is realized
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
         .field(solver=None)
         .field(solver="experimental_poisson_1d", conductivity=1.0, n_bins=8)
+        .field(solver="experimental_poisson_1d", n_bins=8)  # conductivity defaults to 1.0
         .probe(name="p", n_contacts=4, width=0.1, contact_depths=[0.0, 1 / 3, 2 / 3, 1.0], reference=None)
         .set_emitter("izhikevich", "cortical_eig")  # a repeat of the first emitter is realized
         .drive(noise_policy="additive_poisson")

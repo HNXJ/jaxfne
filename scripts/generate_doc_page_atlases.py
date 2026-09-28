@@ -60,11 +60,7 @@ def spec_two_neuron_ei():
 
     cfg = (
         jtfne.configuration()
-        .network(
-            n=2,
-            cell_types={"E": 1, "PV": 1},
-            connectivity={"E→E": 0.1, "E→PV": 0.2, "PV→E": -0.3, "PV→PV": -0.1},
-        )
+        .network(n=2, cell_types={"E": 0.5, "PV": 0.5})
         .emitter(family="izhikevich", preset="cortical_eig")
         .field()
         .probe(name="two_neuron_ei", modes=["spikes", "V_m"])

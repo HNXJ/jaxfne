@@ -26,5 +26,15 @@ def test_check_fails_on_stale_index(tmp_path, monkeypatch):
     assert gg.main(["--check"]) == 1
 
 
+def test_write_is_idempotent(tmp_path, monkeypatch):
+    gallery = tmp_path / "gallery.md"
+    gallery.write_text(gg.GALLERY.read_text(encoding="utf-8"), encoding="utf-8")
+    monkeypatch.setattr(gg, "GALLERY", gallery)
+    assert gg.main(["--write"]) == 0
+    first = gallery.read_bytes()
+    assert gg.main(["--write"]) == 0
+    assert gallery.read_bytes() == first
+
+
 def test_repository_gallery_index_current():
     assert gg.main(["--check"]) == 0

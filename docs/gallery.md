@@ -254,7 +254,7 @@ State `validated` · N=100 · edges=9900 · steps=2000 · config `2cc90a7c1ef0` 
 
 ### `atlas/two_neuron_ei` — Two-neuron E/I (2n)
 
-State `validated` · N=2 · edges=2 · steps=1000 · config `5f7643f1d204` · jaxfne 0.5.0
+State `validated` · N=2 · edges=2 · steps=1000 · config `8ae5b8435e85` · jaxfne 0.5.0
 
 [Index](_static/atlas/two_neuron_ei/index.html) · [Circuit schematic](_static/atlas/two_neuron_ei/schema.html) · [Network 3D](_static/atlas/two_neuron_ei/network_3d.html) · [Spike raster](_static/atlas/two_neuron_ei/raster.html) · [LFP proxy](_static/atlas/two_neuron_ei/lfp.html) · [H dynamics](_static/atlas/two_neuron_ei/h_dynamics.html) · [HDP plasticity](_static/atlas/two_neuron_ei/hdp.html) · [Oscillatory response](_static/atlas/two_neuron_ei/oscillatory.html)
 
@@ -283,8 +283,5 @@ State `validated` · N=300 · edges=30105 · steps=1000 · config `84f67ccf815f`
 [Index](_static/atlas_three_area/index.html) · [Circuit schematic](_static/atlas_three_area/schema.html) · [Network 3D](_static/atlas_three_area/network_3d.html) · [Spike raster](_static/atlas_three_area/raster.html) · [LFP proxy](_static/atlas_three_area/lfp.html) · [H dynamics](_static/atlas_three_area/h_dynamics.html) · [HDP plasticity](_static/atlas_three_area/hdp.html) · [Oscillatory response](_static/atlas_three_area/oscillatory.html)
 
 <!-- ATLAS-INDEX:END -->
-
-
-
 
 

@@ -64,7 +64,9 @@ specified is computed faithfully.
 `.column(name, layers, n)` / `.add_column(...)`, `.areas([...])`,
 `.uniform3d(radius_mm=, height_mm=)`. A configuration has one network: `.column()`
 calls accumulate into it, and a plain `.network(n=...)` is declared once, before
-`.cell_types(...)`.
+`.cell_types(...)`. `.network()` reads `name`, `n` and `cell_types`, and `kind` is a
+label; layers come from `.column()`, and a `p_connect` must match the realized
+connectivity.
 
 Specificity dial: geometry is where laminar structure enters. `.column()` names
 the layers and total count; `.geometry(layer_thickness=...)` turns thicknesses

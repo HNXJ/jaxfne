@@ -120,26 +120,22 @@ import numpy as np
 # Two neurons: one excitatory, one inhibitory (current API)
 cfg = (
     jtfne.configuration()
-    .network(
-        n=2,
-        cell_types={"E": 1, "PV": 1},
-        connectivity={"E→E": 0.1, "E→PV": 0.2, "PV→E": -0.3, "PV→PV": -0.1},
-    )
+    .network(n=2, cell_types={"E": 0.5, "PV": 0.5})
     .emitter(family="izhikevich", preset="cortical_eig")
     .field()
     .probe(name="two_neuron_ei", modes=["spikes", "V_m"])
 )
 model = jtfne.construct(cfg)
 
-# Simulate with external input
+# Simulate 200 ms
 signals = model.simulate(jtfne.simulation(duration_ms=200.0, dt_ms=0.1, seed=0))
 
 # Get manifest
 manifest = model.manifest(signals)
 
 print("=== TWO-NEURON E/I CIRCUIT ===")
-print(f"Excitatory firing rate: {signals.spikes[:, 0].sum() / 200:.2f} Hz")
-print(f"Inhibitory firing rate: {signals.spikes[:, 1].sum() / 200:.2f} Hz")
+print(f"Excitatory firing rate: {signals.spikes[:, 0].sum() / 0.2:.2f} Hz")
+print(f"Inhibitory firing rate: {signals.spikes[:, 1].sum() / 0.2:.2f} Hz")
 
 # Verify status checks still immutable
 assert manifest["physical_amplitude_calibrated"] == False, "Status check violated!"
@@ -149,12 +145,12 @@ print("✓ Status checks immutable: physical_amplitude_calibrated = False")
 **Expected output:**
 ```
 === TWO-NEURON E/I CIRCUIT ===
-Excitatory firing rate: 0.01 Hz
-Inhibitory firing rate: 0.01 Hz
+Excitatory firing rate: 15.00 Hz
+Inhibitory firing rate: 0.00 Hz
 ✓ Status checks immutable: physical_amplitude_calibrated = False
 ```
 
-Interactive dark-theme panels for this run: [index](_static/atlas/two_neuron_ei/index.html) · [schema](_static/atlas/two_neuron_ei/schema.html) · [raster](_static/atlas/two_neuron_ei/raster.html) · [LFP](_static/atlas/two_neuron_ei/lfp.html) · [oscillatory](_static/atlas/two_neuron_ei/oscillatory.html).
+Interactive dark-theme panels for this circuit (500 ms, dt 0.5 ms): [index](_static/atlas/two_neuron_ei/index.html) · [schema](_static/atlas/two_neuron_ei/schema.html) · [raster](_static/atlas/two_neuron_ei/raster.html) · [LFP](_static/atlas/two_neuron_ei/lfp.html) · [oscillatory](_static/atlas/two_neuron_ei/oscillatory.html).
 
 ---
 

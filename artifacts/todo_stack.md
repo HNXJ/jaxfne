@@ -41,6 +41,10 @@ tied to evidence.
   publishing decided separately (A8).
 - 2026-09-27 (agent): AT-10-N20 is a new registry id beside the toy AT-10,
   which the frozen agent benchmark pins.
+- 2026-09-27 (agent): descriptive labels nothing reads stay labels
+  (`connectivity` route labels such as `feedforward`, `feedback`, `kind`,
+  `mode`, `e_to_all`; `network(kind=)`; declared probe `modes`), following
+  the human decision to keep field proxy labels.
 
 ## 0.5.5 stack
 
@@ -54,19 +58,22 @@ HARNESS (human, 2026-09-27)
   proxy labels boundary/gauge/noise_policy kept); a later `network()`,
   `emitter()` or Poisson `field()` that construct would drop is refused, as
   are `runtime()` keys nothing reads, `runtime(vmap=True)`, `areas()` that
-  differ from the columns and a non-neutral `plasticity()`. Left, each a
-  human decision: (a) `connectivity(edge_seed=)` and
+  differ from the columns, a non-neutral `plasticity()`, `network()` keys
+  nothing reads (`connectivity`, `cell_type_fractions`, `layers`) and
+  homeostatic emitter keys on another family. Left, executable: (e)
+  `layer_fractions()` changes nothing without `column()` (default and
+  custom tables give identical labels and positions at n=60); (f) the plain
+  route reads cell-type fractions unnormalized (`{"E": 1, "PV": 1}` at n=2
+  built two E cells; the population route normalizes). Left, each a
+  human decision: (d) P-018, the plain `network(n=)` route ignores
+  `drive()`: wire or refuse. (a) `connectivity(edge_seed=)` and
   `build_laminar_column(edge_seed=)` are stored and never read (construct
   seeds edges from the runtime seed; in-repo callers pass the runtime seed):
   wire or refuse. (b) The probe kernels (`spk_probe`, `vm_probe`,
   `source_probe`, `lfp_proxy_probe`) record `position`/`reference`/
   `filter_spec` they never apply, by 0.5.2 design pinned in
   `tests/test_probe_electrode_052.py`: refuse like `Configuration.probe`, or
-  mark them not applied in the report. (c) Descriptive labels nothing reads:
-  `connectivity` route labels (`feedforward`, `feedback`, `kind`, `mode`,
-  `e_to_all`, `i_to_all`, `excitatory_to_inhibitory`…) and declared probe
-  `modes` (fields depend on `Simulation(record_fields=)`): keep as labels or
-  refuse.
+  mark them not applied in the report.
 - Seal note: AT-02…AT-06 run records (`artifacts/publication/atlas/`) carry
   the pre-correction spec digest (AT-02…AT-05 recorded `n_contacts` 4,
   executed 16; AT-06 recorded a common-average reference and an 8–25 Hz
@@ -75,12 +82,14 @@ HARNESS (human, 2026-09-27)
   (`tests/test_agent_bench_055.py` allows exactly these corrections).
 
 DOCS (human, 2026-09-27)
-- D1b P-014 regenerations left after D1 (doc-page atlases done): re-execute
-  `artifacts/tutorials/jaxfne_suite_no_2_evoked_l4_drive.ipynb` and
-  `jaxfne_v0313_omission_oddball.ipynb` and refresh docs pages 08/10;
-  decide per committed result of the migrated scripts whether it is frozen
-  evidence (keep, note in seal receipt) or regenerable
-  (`artifacts/perf/matrix_051*.json`, `artifacts/mcc3_10s_checkpoint/*`).
+- D1b Pages 08/10 (`08_jaxfne_suite_no_2_evoked_l4_drive.md`,
+  `10_v0313_omission_oddball.md`) claim figures and results their notebooks
+  never produce: the evoked-L4 notebook passes a `Paradigm` that simulate
+  ignores (P-017), and the omission notebook runs one plain simulation and
+  plots two time steps under condition titles. Rebuild or trim them after
+  the P-017 decision. (`artifacts/perf/matrix_051*.json` and
+  `artifacts/mcc3_10s_checkpoint/*` need no regeneration: their models build
+  on the plain route, where P-014's migrated drives never ran, P-018.)
 - D2 Études pages ("studios"): embed each page's own figure beside its
   text, as the tutorial track does (`scripts/generate_docs_visuals.py`
   pattern: still tab + interactive iframe).

@@ -66,4 +66,61 @@ possible future change.
 - **possible future change:** find the commit that moved it (bisect over
   HDP changes); re-freeze only with a stated cause; open
 
+### P-017
+- **date:** 2026-09-27
+- **type:** DEFECT (paradigm declared, not realized as declared)
+- **area:** `jaxfne/_model_simulate.py` `_resolve_stimulus_schedule`,
+  `jaxfne/_model.py` `stimulus_schedule`, `jaxfne/paradigm.py`
+  `evoked_l4_drive_paradigm`
+- **observation:** (1) `simulate(paradigm=<Paradigm>)` resolves no schedule
+  for a multi-condition `Paradigm`; it is recorded in metadata only. (2) For
+  a `ParadigmCondition`, `stimulus_schedule` injects `drive_amplitude` 5.0
+  into every neuron for `event_duration_ms` 50 ms at the onset of each
+  event that is not an omission, including `trial_start`, `stim_absent` and
+  `post_stim`; it does not read the event's `duration_ms` or `stimulus`.
+  The evoked-L4 "baseline" and "evoked" conditions therefore inject the same
+  schedule (0, 200 and 400 ms). (3) `evoked_l4_drive_paradigm` does not read
+  `l4_onset_ms` or `l4_amplitude`; its drive event starts at
+  `pre_stimulus_buffer_ms`.
+- **severity:** MAJOR (tutorial 08's evoked run equals its baseline;
+  condition runs inject drive at events that carry no stimulus)
+- **minimal reproduction:** evoked-L4 notebook configuration, 1000 ms, seed 7:
+  spikes with `paradigm=paradigm` equal spikes without a paradigm;
+  `stimulus_schedule(c.events, 4)` for both conditions lists the same three
+  5.0 x 50 ms events on all neurons
+- **expected behavior:** a stimulus event is injected at its onset for its
+  duration with its amplitude and targets; events without a stimulus inject
+  nothing; a paradigm type simulate cannot run is refused
+- **actual behavior:** as observed
+- **evidence:** scratch probes 2026-09-27 on bdf56cb; code read. Atlas runs
+  (AT-08/09, AT-10-N20) build dict events whose duration, amplitude and
+  target_indices are honoured, and are unaffected.
+- **possible future change:** human decision: fix the semantics (outputs of
+  ParadigmCondition runs change) or refuse what is not realized; open
+
+### P-018
+- **date:** 2026-09-27
+- **type:** DEFECT (configuration stored, not consumed)
+- **area:** `jaxfne/_construct_core.py` plain `network(n=)` route
+- **observation:** only the population route (`column()`, `uniform3d()`,
+  `layer_fractions()`) reads `drive(baseline_drive_by_cell_type=)`; on the
+  plain route the declared drive is dropped. P-014 rewrote the per-type
+  drives of 3 scripts, 7 tests and one doc-page atlas spec as `drive()`;
+  they build on this route, so those drives still never run (among them
+  `scripts/mcc3_10s_scientific_checkpoint.py` and the
+  `benchmark_050_baseline` models that `benchmark_051_matrix` reuses).
+- **severity:** MAJOR (same class as P-014)
+- **minimal reproduction:** `network(n=2, cell_types={"E": 0.5, "PV": 0.5})`
+  with drives from default to `{"E": 15.0, "PV": 10.0}`: E fires 12 Hz and
+  PV 0 Hz at every setting; with `.uniform3d()` the rates follow the drive
+- **expected behavior:** consumed or refused
+- **actual behavior:** accepted, recorded, ignored
+- **evidence:** scratch probes 2026-09-27; `git grep baseline_drive_by_cell_type`
+  finds one reader, `_construct_population.py`; `mcc3_config()` declares
+  E 8.0, PV 8.0 and builds the defaults 5.0, 3.0, with an emitter drive
+  identical to the configuration without the declaration
+- **possible future change:** human decision: wire the per-type drive on the
+  plain route (outputs of those callers change) or refuse it (callers drop
+  it; outputs unchanged); open
+
 ---

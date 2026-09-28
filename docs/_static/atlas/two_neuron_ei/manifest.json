@@ -2,7 +2,7 @@
   "suite": "atlas_suite.v2",
   "title": "Two-neuron E/I (2n)",
   "figure_state": "validated",
-  "config_hash": "5f7643f1d204f459",
+  "config_hash": "8ae5b8435e856e10",
   "tfne_digest": null,
   "k_d": null,
   "sim_identity": "seed=0 duration_ms=500.0 dt_ms=0.5",
@@ -22,7 +22,7 @@
       "panel": "Circuit schematic",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 12500,
+      "bytes": 12836,
       "inputs": {
         "source_artifact": "model",
         "variable": "neuron_table + params.edge_list",
@@ -36,7 +36,7 @@
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 11023,
+      "bytes": 11402,
       "inputs": {
         "source_artifact": "model",
         "variable": "params.positions + params.edge_list",
@@ -50,7 +50,7 @@
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 10621,
+      "bytes": 10683,
       "inputs": {
         "source_artifact": "signals",
         "variable": "spikes [T,N] + neuron_table",
@@ -64,7 +64,7 @@
       "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 188319,
+      "bytes": 188064,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field proxy",
@@ -106,7 +106,7 @@
       "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 20016,
+      "bytes": 20051,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field traces",
@@ -116,14 +116,14 @@
       }
     }
   ],
-  "sha256": "9dbe0937da2de3ac",
+  "sha256": "5617983076028cdb",
   "promotion": [
     {
       "to": "validated",
-      "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+      "reason": "0.5.5 H1 review fix: two-neuron E/I example now declares fractions {E: 0.5, PV: 0.5} (the plain route read {E: 1, PV: 1} as two E cells) and drops weights nothing read; broad gate 4597 passed, only failure this pending promotion",
       "promoter": "promote_atlas_state.py",
-      "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
-      "utc": "2026-09-28T01:29:56.694295+00:00"
+      "git_head": "bdf56cb9ed0cded42d4ef347c6413c2b82071c76",
+      "utc": "2026-09-28T02:55:35.363647+00:00"
     }
   ]
 }

@@ -507,6 +507,12 @@ def _construct_validate_config(cfg: "Configuration") -> None:
     # Only emitters[0] is built; covers configs assembled without Configuration.emitter().
     for _later in cfg.emitters[1:]:
         check_emitter_conflict(cfg.emitters[0], _later)
+    for _later in cfg.networks[1:]:
+        if _later != cfg.networks[0]:
+            raise ValueError(
+                f"network({_later!r}) is not realized: construct builds the first network "
+                f"{cfg.networks[0]!r} only"
+            )
     if cfg.metadata.get("vmap") not in (None, False):
         raise ValueError(
             f"runtime(vmap={cfg.metadata['vmap']!r}) is not realized: the configuration's runtime "
@@ -534,6 +540,18 @@ def _construct_build_network(
         or cfg.metadata.get("layer_cell_types")
         or cfg.metadata.get("uniform_3d")
     ):
+        # This route reads connectivity(p_connect=) and the layers of column()/layer_fractions().
+        _p_meta = (cfg.metadata.get("connectivity") or {}).get("p_connect")
+        if net.get("p_connect") is not None and float(net["p_connect"]) != float(1.0 if _p_meta is None else _p_meta):
+            raise ValueError(
+                f"network(p_connect={net['p_connect']!r}) is not realized on this construction route: "
+                f"it reads connectivity(p_connect=...), here {_p_meta!r}"
+            )
+        if net.get("layers") and net.get("kind") != "multi_column":
+            raise ValueError(
+                f"network(layers={net['layers']!r}) is not realized on this construction route: "
+                "layers come from column()"
+            )
         params, positions, geometry_meta, _prebuilt_edges = _neuron_population_from_config(
             cfg, dtype=dtype_name_cfg
         )

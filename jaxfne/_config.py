@@ -210,6 +210,11 @@ def _check_field_kwargs(kwargs: Mapping[str, Any]) -> None:
                              f"{sorted({*_FIELD_REALIZED, *_FIELD_LABELS, *_POISSON_KEYS})}")
 
 
+def _poisson_signature(spec: Mapping[str, Any]) -> tuple[Any, float, Any]:
+    """What simulate reads from a Poisson field declaration (conductivity defaults to 1.0)."""
+    return spec.get("solver"), float(spec.get("conductivity", 1.0)), spec.get("n_bins")
+
+
 def _check_probe_kwargs(kwargs: Mapping[str, Any]) -> None:
     n = check_n_contacts(kwargs.get("n_contacts", 16), "probe")
     depths = [i / (n - 1) for i in range(n)]
@@ -233,6 +238,10 @@ def _check_probe_kwargs(kwargs: Mapping[str, Any]) -> None:
 
 
 _EMITTER_KEYS = ("family", "preset", "homeostatic_ei_rules", "homeostatic_ei_bound_mode")
+# construct reads name, n and cell_types; kind is a label; p_connect must match the route's
+# connectivity; layers come from column(). column()/cell_types() build _BUILT_NETWORK_KINDS.
+_NETWORK_KEYS = ("name", "n", "cell_types", "kind", "p_connect", "layers")
+_BUILT_NETWORK_KINDS = ("multi_column", "configured")
 # Keys of Configuration.runtime() that simulate(model) maps onto a RuntimeConfig; seed/dt_ms/
 # duration_ms are inherited by simulate(model), canonical_biophysics/random_v0 are read by construct.
 RUNTIME_METADATA_KEYS = (
@@ -371,16 +380,30 @@ class Configuration:
     def network(self, **kwargs: Any) -> "Configuration":
         """Attach network metadata to the configuration.
 
-        Parameters are stored as JSON-safe metadata and consumed by public
-        construction helpers when supported. construct builds the first network
-        only, and ``column()``/``cell_types()`` also fill that slot, so declare
-        ``network()`` once, before them.
+        construct reads ``name``, ``n`` and ``cell_types``; ``kind`` is a label.
+        A ``p_connect`` must match the connectivity the construction route
+        realizes; ``layers`` come from ``column()``. construct builds the
+        first network only, and ``column()``/``cell_types()`` also fill that
+        slot, so declare ``network()`` once, before them; an identical repeat is
+        accepted.
 
         Returns
         -------
         Configuration
             Updated configuration.
         """
+        unknown = sorted(set(kwargs) - set(_NETWORK_KEYS))
+        if unknown:
+            raise ValueError(f"network({unknown[0]}=...) has no consumer; supported keys: {list(_NETWORK_KEYS)}")
+        if kwargs.get("layers"):
+            raise ValueError(f"network(layers={kwargs['layers']!r}) is not realized: layers come from column()")
+        if kwargs.get("kind") in _BUILT_NETWORK_KINDS:
+            raise ValueError(
+                f"network(kind={kwargs['kind']!r}) is not realized: that kind marks the network "
+                "column()/cell_types() build, and column() replaces it; declare columns with column()"
+            )
+        if self.networks and dict(kwargs) == self.networks[0]:
+            return self
         if self.networks:
             raise ValueError(
                 f"network({dict(kwargs)!r}) is not realized: construct builds the first network "
@@ -409,6 +432,12 @@ class Configuration:
             raise ValueError(f"emitter({unknown[0]}=...) has no consumer; supported keys: {list(_EMITTER_KEYS)}")
         if kwargs.get("preset") is not None:
             _refuse_unrealized("emitter", "preset", kwargs["preset"], ("cortical_eig",))
+        rule_keys = sorted(k for k in kwargs if k.startswith("homeostatic_ei_"))
+        if rule_keys and kwargs.get("family") != "homeostatic_ei":
+            raise ValueError(
+                f"emitter({rule_keys[0]}=...) is not realized for family={kwargs.get('family')!r}: "
+                "construct reads it for family='homeostatic_ei' only"
+            )
         if self.emitters:
             check_emitter_conflict(self.emitters[0], kwargs)
         return replace(self, emitters=[*self.emitters, dict(kwargs)])
@@ -431,7 +460,8 @@ class Configuration:
         """
         _check_field_kwargs(kwargs)
         declared = [f for f in self.fields if f.get("solver") is not None]
-        if kwargs.get("solver") is not None and declared and declared[0] != dict(kwargs):
+        if (kwargs.get("solver") is not None and declared
+                and _poisson_signature(declared[0]) != _poisson_signature(kwargs)):
             raise ValueError(
                 f"field({dict(kwargs)!r}) is not realized: simulate runs the first Poisson "
                 f"declaration {declared[0]!r} only"
@@ -461,7 +491,9 @@ class Configuration:
     def update_metadata(self, **kwargs: Any) -> "Configuration":
         """Merge keyword arguments into configuration metadata.
 
-        Use for administrative tags. Truth-gate fields
+        Use for administrative tags. Keys are stored without the checks that
+        ``runtime()`` and the declaration methods apply; a key nothing reads
+        stays a tag. Truth-gate fields
         (``claim_level``, ``field_claim_level``, ``field_solver_status``,
         ``physical_amplitude_calibrated``) are clamped after merge so callers
         cannot escalate claim surfaces via this API.
@@ -743,6 +775,8 @@ class Configuration:
         any other baseline or rule parameter; those are refused. The record in
         ``metadata["plasticity"]`` is visible in ``manifest()``.
         """
+        if isinstance(relative_baseline, bool) or not isinstance(relative_baseline, numbers.Real):
+            raise ValueError(f"plasticity(relative_baseline={relative_baseline!r}) is not realized: it takes 1.0")
         _refuse_unrealized("plasticity", "relative_baseline", float(relative_baseline), (1.0,))
         if kwargs:
             raise ValueError(
