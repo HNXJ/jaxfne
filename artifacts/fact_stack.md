@@ -156,3 +156,11 @@ covers and what checks it); row 2 is the fact. Authorized by the human in the
 | Repo skills are task-shaped, benchmarked routers. The canonical copy is in `artifacts/skills`; mirrors are generated and hash-checked. Style rules point at the canonical style skills and are not restated. |
 | **vocabulary, allowlist, --check** \| `scripts/audit_vocabulary.py --check`; gate |
 | Each term carries one meaning; an allowlist bounds words such as "contract". The audit runs with `--check` as a gate; bare mode exits 0 and proves nothing. |
+| **naming, package, acronyms, one meaning** \| code and docs; vocabulary audit |
+| The package is `jaxfne`. Acronyms are those defined in this stack; a term is defined once and reused with one meaning. |
+| **scripts, thin entry points, manifests** \| `scripts/`; results in `artifacts/` |
+| Scripts are thin entry points and generators over the package; results land in `artifacts/` with manifests. No science logic lives only in a script. |
+| **CI, POSIX checks, clean checkout** \| GitHub Actions by SHA; executable bit and line-ending checks |
+| CI covers what a local run does not: POSIX-only checks (executable bits, line endings) and the clean-checkout suite. Local green ≠ CI green: check CI by SHA after every push. |
+| **line endings, bytes, scripted edits** \| all tracked text; eol guard, hash-verified restores |
+| Tracked text is LF; an edit preserves each file's bytes, a restore is verified by hash, and a scripted edit asserts its anchor count before and after. |
