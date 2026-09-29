@@ -86,50 +86,60 @@ tied to evidence.
 
 ## 0.5.5 stack
 
-HARNESS (human, 2026-09-27)
-- Seal note (H1 e, 9958a72): `default_complete_configuration` is laminar;
-  its outputs and config hash changed (0 -> 173 inter-area edges at
-  defaults). Other callers kept their outputs.
-- Seal note (P-017): list the runs whose drive changed in the seal receipt
-  (commit f8960a0 message: stimulus-less marker events now silent; stimulus
-  events use their own duration_ms).
-- Seal note (fact: geometry apply or refuse): `build_laminar_column(
-  geometry='laminar', radius_mm=/height_mm=)` now writes the given values to
+Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
+
+NEXT (ordered, executable)
+1. [A] Fast notebook-execution check in the gate. The broad gate runs no
+   notebook, so 0.5.5 refusals broke three release notebooks unseen (P-021,
+   fixed).
+2. [A] P-012 test hygiene.
+3. [A] P-019 drive-swept jit/eager bounds.
+4. [A] P-016 + P-020 bisect packet: name the commit that moved each; a
+   re-freeze is a new receipt naming the cause.
+5. [A] P-013 `arm_definitions` packet: inputs only, schema test.
+6. [A] D1b rebuild pages 08 and 10 on the P-017 semantics
+   (`paradigm.condition(...)`): `08_jaxfne_suite_no_2_evoked_l4_drive.md`
+   passes a full `Paradigm`, which simulate now refuses;
+   `10_v0313_omission_oddball.md` plots two time steps under condition titles.
+7. [A] D2 études pages: embed each page's own figure beside its text (still
+   tab + interactive iframe, `scripts/generate_docs_visuals.py` pattern).
+8. [A] Fact audit, entrances: check that `test_jdna_truth_gate.py` and
+   `test_neuronal_tensor.py` already show Configuration, NeuronalTensor and
+   JDNA lowering to one construct → simulate path with equal outputs
+   (fact: single lowering); add the missing case if not.
+9. [A] D0b remaining lanes: `scripts/` comments and the markdown outside
+   `docs/` (188 files). agy is not installed, so by hand or opencode.
+
+HUMAN DECISIONS
+- [H] D0 review: 23 softened overclaims and 17 flagged items in
+  `artifacts/audit/docs_style_pass_2026-09-28.md`.
+- [H] Sign off each re-freeze (P-016, P-020) after its bisect [B: item 4].
+- [H] Review the `arm_definitions` before the next freeze [B: item 5].
+- [H] Stale version notes, edit or leave: `_signals.py:1445,1453`,
+  `validation.py:1230`, `experimental_hpc/physical_field_solver_v040.py:55`.
+- [H] `units.py` and `pynwb_compat` unwired: wire or remove.
+- [H] Artifacts reorg step 2: repoint `legacy`, `subagents`,
+  `hdp_k_w_ctrl_sweep`, `hdp_v2_rho_sweep`, `mcc3_10s_checkpoint` into
+  `archive/`. The protocol_* and `private_acceptance` folders stay while
+  frozen receipts cite them.
+- [H] Install agy (`agy.exe` missing) or drop its lane.
+
+SEAL NOTES (go into the seal receipt)
+- H1 (e), 9958a72: `default_complete_configuration` is laminar; its outputs
+  and config hash changed (0 -> 173 inter-area edges at defaults). Other
+  callers kept their outputs.
+- P-017: list the runs whose drive changed (commit f8960a0: stimulus-less
+  marker events now silent; stimulus events use their own `duration_ms`).
+- Geometry (fact: apply or refuse): `build_laminar_column(geometry='laminar',
+  radius_mm=/height_mm=)` now writes the given values to
   `column_radius_mm`/`column_height_mm`; before, it ignored them. Defaults
   (`None`) declare nothing, so outputs without the arguments are unchanged.
-- Seal note: AT-02…AT-06 run records (`artifacts/publication/atlas/`) carry
-  the pre-correction spec digest (AT-02…AT-05 recorded `n_contacts` 4,
-  executed 16; AT-06 recorded a common-average reference and an 8–25 Hz
-  band-pass that were never applied); regenerate them with the other Atlas
-  records. The frozen agent task set keeps the old digests
+- AT-02…AT-06 run records (`artifacts/publication/atlas/`) carry the
+  pre-correction spec digest (AT-02…AT-05 recorded `n_contacts` 4, executed
+  16; AT-06 recorded a common-average reference and an 8–25 Hz band-pass that
+  were never applied); regenerate them with the other Atlas records. The
+  frozen agent task set keeps the old digests
   (`tests/test_agent_bench_055.py` allows exactly these corrections).
-
-ISSUES (order; decisions above)
-- Broad gate executes no notebook, so 0.5.5 refusals broke three release
-  notebooks unseen (P-021, fixed): add one fast notebook-execution check.
-- P-012 test hygiene, then P-019 drive-swept bounds (one packet each).
-- P-016, P-020 bisect packet; each re-freeze waits for human sign-off.
-- P-013 `arm_definitions` packet; human reviews before the next freeze.
-
-DOCS (human, 2026-09-27)
-- D0 Style pass landed (b278f70, eddfa1b, 42e0e2f). Human: review the 23
-  softened overclaims and decide the 17 flagged items listed in
-  `artifacts/audit/docs_style_pass_2026-09-28.md`.
-- D0b `jaxfne/` docstring and comment pass done by hand (12 padding and
-  overclaim edits; skills restate no style rules). agy is not installed
-  (`agy.exe` missing), so its lanes wait: `scripts/` comments and the
-  markdown outside `docs/` (188 files). Human: stale "v0.2.x" notes at
-  `_signals.py:1445,1453`, `validation.py:1230` and
-  `experimental_hpc/physical_field_solver_v040.py:55` are flagged, not edited.
-- D1b Pages 08/10 (`08_jaxfne_suite_no_2_evoked_l4_drive.md`,
-  `10_v0313_omission_oddball.md`) claim figures and results their notebooks
-  never produce: the evoked-L4 notebook passes a full `Paradigm`, which
-  simulate now refuses (P-017), and the omission notebook runs one plain
-  simulation and plots two time steps under condition titles. Rebuild them
-  on the P-017 semantics (`paradigm.condition(...)`).
-- D2 Études pages ("studios"): embed each page's own figure beside its
-  text, as the tutorial track does (`scripts/generate_docs_visuals.py`
-  pattern: still tab + interactive iframe).
 
 ATLAS
 7. Reduction/scale matrix: for each transition M_i → M_(i+1) (1N → 2N →
