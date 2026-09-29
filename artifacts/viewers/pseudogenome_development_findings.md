@@ -54,7 +54,7 @@ def render_pseudogenome_development_viewer(genome, seeds=(0,1), construct_seed=7
 
 - **Primary:** `artifacts/viewers/pseudogenome_development_viewer.html` (267,031 bytes, sha256 `88e5e2fd3084c9fe14f1ad5b6f62663daaa0bacaa8c549138d85a3316f87bfec`) — standalone, Plotly.js CDN, no server. Open in browser.
 - **Summary:** `artifacts/viewers/pseudogenome_development_summary.json` (machine-readable: genome hash, phenotype hashes, per-layer counts+bands for both seeds, realized n_edges/weight/delay/tau, verification flags, Δscience 0).
-- **Existing (Model-only, retained):** `artifacts/viewers/column_viewer_canonical_1000n.html` (561k, sha256 `fb117d59…`), `artifacts/viewers/column_viewer_canonical_1000n_summary.json`, `artifacts/visualize_bundle/` (8-panel post-hoc bundle) — complementary, not replaced.
+- **Existing (Model-only, retained):** `artifacts/viewers/column_viewer_canonical_1000n.html` (561k, sha256 `fb117d59…`), `artifacts/viewers/column_viewer_canonical_1000n_summary.json`, `artifacts/archive/visualize_bundle/` (8-panel post-hoc bundle) — complementary, not replaced.
 - **Render:** `python -c "import jaxfne as jtfne; from jaxfne.vis.pseudogenome_viewer import render_pseudogenome_development_viewer; g=jtfne.load_canonical_pseudogenome('canonical-v1-column-1000n'); render_pseudogenome_development_viewer(g, seeds=(0,1), output_path='artifacts/viewers/pseudogenome_development_viewer.html')"`
 
 ### What the viewer shows (configured vs realized)

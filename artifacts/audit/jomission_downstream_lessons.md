@@ -1,7 +1,7 @@
 # Jomission downstream lessons (private receipt)
 
 Source: `jaxfne_downstream_audit_bundle.zip` (2026-09-09; nine markdown files).
-Roadmap mapping: `artifacts/roadmap/ROADMAP_0422_0424.md` §9, W17, extensions to
+Roadmap mapping: `artifacts/archive/roadmap/ROADMAP_0422_0424.md` §9, W17, extensions to
 W8/W10/W14/W16 and §4.2.
 
 **Audit limitation:** critic lacked local repos; stale web-cache `pyproject` 0.4.18

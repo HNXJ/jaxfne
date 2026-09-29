@@ -3,7 +3,7 @@
 Status: **PLAN** — v0.4.22 semantics and surface specification. Evidence receipt:
 `artifacts/audit/jomission_downstream_lessons.md`.
 
-Source: `artifacts/roadmap/ROADMAP_0422_0424.md` W17 / §9.
+Source: `artifacts/archive/roadmap/ROADMAP_0422_0424.md` W17 / §9.
 
 ## Sub-items and release targets
 

@@ -3,7 +3,7 @@
 Status: **PLAN** — planning receipt for v0.4.22. No SONATA import/export and no
 BMTK interoperability in this release.
 
-Source mapping: `artifacts/roadmap/ROADMAP_0422_0424.md` W15; measured internal
+Source mapping: `artifacts/archive/roadmap/ROADMAP_0422_0424.md` W15; measured internal
 evidence W10/W11.
 
 ## Transferable lesson (not engine delegation)

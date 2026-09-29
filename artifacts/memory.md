@@ -79,10 +79,10 @@ tests/test_memory_brief.py; keep SHAs, versions, counts and status out. -->
 | `artifacts/publication/` | Frozen Figure 1–7 snapshot; `frozen_manifest.json` enumerates immutable files |
 | `artifacts/attestations/` | Gitignored RC JUnit + gate attestation (untracked by design) |
 | `artifacts/skills/` | Canonical skills: `jaxfne-core`, `jaxfne-science`, `jaxfne-workflow`, `jaxfne-repo`, `jaxfne-audit`, `jaxfne-release`, `jaxfne-seal`, `vocabulary-audit` |
-| `artifacts/etudes/`, `artifacts/science/`, `artifacts/figures/` | Etude bundles, scientific notes, generated figures |
+| `artifacts/etudes/`, `artifacts/archive/science/`, `artifacts/figures/` | Etude bundles, scientific notes, generated figures |
 | `artifacts/tutorials/`, `artifacts/vocabulary/` | Tutorial evidence, vocabulary audits |
 | `artifacts/protocol_c/`, `artifacts/protocol_d_biological_rbs/`, `artifacts/protocol_e_integration/`, `artifacts/protocol_h_rbd/`, `artifacts/protocol_w/` | Protocol evidence homes |
-| `artifacts/harness/`, `artifacts/audit/`, `artifacts/issue_log/`, `artifacts/roadmap/` | Harness records, audits, issues, roadmap |
+| `artifacts/harness/`, `artifacts/audit/`, `artifacts/issue_log/`, `artifacts/archive/roadmap/` | Harness records, audits, issues, roadmap |
 | `artifacts/public_surface_contract_v0413.json`, `artifacts/public_api_before.json` | Surface snapshots (see §8) |
 
 ### `scripts/` (named gates and tools)

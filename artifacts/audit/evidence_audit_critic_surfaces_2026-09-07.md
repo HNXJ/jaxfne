@@ -6,7 +6,7 @@
 **Package version at tip:** `0.4.21` (`pyproject.toml`, `mkdocs.yml` extra `jaxfne_version`, `docs/citation.md`, `CITATION.cff`)  
 **Tags present through:** `v0.4.20` (no `v0.4.21` tag at audit time)  
 **Method:** GitHub-only static review (file reads, grep, nav leaf count). **Gate 0 not run.** Audit harness scripts **not executed** in this pass.  
-**Scope:** Critic surfaces only — `artifacts/issue_log/`, `artifacts/skills/`, `artifacts/science/`, `docs/` agent/contributor paths, harness audit script docstrings. **No changes under `jaxfne/` or frozen publication paths.**
+**Scope:** Critic surfaces only — `artifacts/issue_log/`, `artifacts/skills/`, `artifacts/archive/science/`, `docs/` agent/contributor paths, harness audit script docstrings. **No changes under `jaxfne/` or frozen publication paths.**
 
 ---
 
@@ -37,7 +37,7 @@
 | **Severity** | block |
 | **Tags** | DOC, FACT |
 | **Claim** | Multiple freeze authorities still assert an active v0.4.17 core freeze and 40-day frozen-use window while tip activates v0.4.21 RC. |
-| **Evidence** | `artifacts/issue_log/ISSUE_LOG.md` header (v0.4.17 frozen period ~2026-08-19–2026-09-28); `artifacts/skills/jaxfne-frozen-use/SKILL.md` (ΔC_core=0, observe→reproduce→log); `artifacts/science/SCIENTIFIC_WORKBENCH_STATE.md` (_Last indexed: 2026-08-21_, HEAD `caec1f71`, `jaxfne==0.4.17`, **do not edit**); `artifacts/skills/jaxfne-seal/SKILL.md` (authority `jaxfne_v0_4_17_final_100_goals.md`); tip: `pyproject.toml` `version = "0.4.21"`, `mkdocs.yml` `jaxfne_version: "0.4.21"`, `docs/changelog.md` v0.4.21 entry, tags through `v0.4.20`. |
+| **Evidence** | `artifacts/issue_log/ISSUE_LOG.md` header (v0.4.17 frozen period ~2026-08-19–2026-09-28); `artifacts/skills/jaxfne-frozen-use/SKILL.md` (ΔC_core=0, observe→reproduce→log); `artifacts/archive/science/SCIENTIFIC_WORKBENCH_STATE.md` (_Last indexed: 2026-08-21_, HEAD `caec1f71`, `jaxfne==0.4.17`, **do not edit**); `artifacts/skills/jaxfne-seal/SKILL.md` (authority `jaxfne_v0_4_17_final_100_goals.md`); tip: `pyproject.toml` `version = "0.4.21"`, `mkdocs.yml` `jaxfne_version: "0.4.21"`, `docs/changelog.md` v0.4.21 entry, tags through `v0.4.20`. |
 | **Expected** | Freeze narrative, workbench index, and agent authorities align with the active release candidate / post-freeze policy at tip. |
 | **Actual** | Authorities pin 0.4.17-era freeze semantics; tip declares 0.4.21 RC with no matching authority refresh. |
 | **Scripts run** | none |
@@ -102,7 +102,7 @@
 | **Severity** | should-fix |
 | **Tags** | DOC, FACT |
 | **Claim** | Scientific workbench routing index lags tip by ~17 days. |
-| **Evidence** | `artifacts/science/SCIENTIFIC_WORKBENCH_STATE.md` line 4: _Last indexed: 2026-08-21 (branch: dev, HEAD: caec1f71)_; tip HEAD `b08f20f7` dated 2026-09-07; frozen instrument block still says `jaxfne==0.4.17`. |
+| **Evidence** | `artifacts/archive/science/SCIENTIFIC_WORKBENCH_STATE.md` line 4: _Last indexed: 2026-08-21 (branch: dev, HEAD: caec1f71)_; tip HEAD `b08f20f7` dated 2026-09-07; frozen instrument block still says `jaxfne==0.4.17`. |
 | **Expected** | Index date, HEAD, and instrument version reflect current tip or carry explicit stale banner with successor. |
 | **Actual** | Index frozen at 2026-08-21 / 0.4.17 / `caec1f71`. |
 | **Scripts run** | none |
