@@ -177,3 +177,11 @@ once every round is done.
 | Sign and receptor identity are declared per projection and preserved through compilation; inhibition is a declared receptor, not inferred from a label. |
 | **emitter, family, unsupported method** \| emitter families; refusal tests |
 | The emitter is a declared choice; a method not generalized to a family refuses with an actionable error rather than failing obscurely. |
+| **field regime, solved_poisson, proxy** \| field regimes; refusal and admissibility tests |
+| Only declared field regimes run. `solved_poisson` and other future regimes are refused until implemented and validated; the proxy is the shipped path. |
+| **geometry, radius_mm, height_mm, laminar route** \| `build_laminar_column`; geometry-consumption tests |
+| A geometry declaration the route does not read is applied or refused, never accepted and ignored. |
+| **memory, lessons, not evidence** \| memory files and lessons; scope and evidence per lesson |
+| Memory holds verified reusable working lessons `{trigger, cause, repair, evidence, scope}`. It is never current-state evidence and never duplicates facts or code. |
+| **stacks, todo, goal, fact, problem** \| `artifacts/*_stack.md`; archive per release cycle |
+| The todo stack holds remaining work only and finished items are deleted. Goal and fact stacks are human-owned. The problem stack targets empty: solve and delete. Sealed stacks are archived byte for byte. |
