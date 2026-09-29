@@ -12,6 +12,7 @@ from __future__ import annotations
 import importlib
 import pathlib
 import re
+import subprocess
 
 import jaxfne
 
@@ -43,6 +44,18 @@ def _resolve_dotted(name: str) -> bool:
     return False
 
 
+def _is_gitignored(path_str: str) -> bool:
+    """True when git reports the path ignored (P-012: local-only paths)."""
+    try:
+        r = subprocess.run(
+            ["git", "-C", str(REPO), "check-ignore", "-q", "--", path_str],
+            capture_output=True,
+        )
+    except OSError:
+        return False
+    return r.returncode == 0
+
+
 def test_brief_paths_exist():
     missing = []
     for token in TICKS.findall(_text()):
@@ -51,6 +64,10 @@ def test_brief_paths_exist():
             continue
         hits = list(REPO.glob(path)) if "*" in path else [REPO / path]
         if not hits or not all(h.exists() for h in hits):
+            # P-012: gitignored paths are local-only; a fresh worktree or
+            # clone without them must skip, not fail.
+            if "*" not in path and _is_gitignored(path):
+                continue
             missing.append(token)
         elif name and IDENT.fullmatch(name) and name not in hits[0].read_text(encoding="utf-8"):
             missing.append(token)
