@@ -66,25 +66,6 @@ possible future change.
 - **possible future change:** find the commit that moved it (bisect over
   HDP changes); re-freeze only with a stated cause; open
 
-### P-019
-- **date:** 2026-09-28
-- **type:** DEFECT (equivalence bound stated wider than measured)
-- **area:** `tests/test_equiv01_table.py` (24-EQUIV-01, jit vs eager)
-- **observation:** the table's bounds were measured at the default drives
-  (E 5.0, PV 3.0): the test declared E/PV drive 10.0, which the plain route
-  dropped until P-018. At drive 10.0, spikes stay equal but jit and eager
-  V_m differ by up to 2.5e-3 (legacy and eligibility HDP rules) and 1.4e-3
-  (no HDP), against the 1e-4 bound; with the registered rule V_m and H hold
-  and the W trace, stated exact, differs.
-- **severity:** MINOR (float32 reassociation; the contract names no regime)
-- **minimal reproduction:** restore `.drive(baseline_drive_by_cell_type={"E": 10.0, "PV": 10.0})`
-  in `_model()` of `tests/test_equiv01_table.py` at b0817dc and run the file
-- **expected behavior:** the bounds hold, or the table states the regime they cover
-- **actual behavior:** 4 FAIL (3 HDP regimes and the no-HDP baseline)
-- **evidence:** broad gate in the P-018 clone, 2026-09-28
-- **possible future change:** measure the jit-vs-eager deviation over a drive
-  sweep and state a bound per regime, or find the fusion that moves it; open
-
 ### P-020
 - **date:** 2026-09-28
 - **type:** SCIENCE (frozen receipt reproduces in part)

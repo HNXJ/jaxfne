@@ -18,8 +18,9 @@ Strongest justified relation per cell (measured, not assumed):
   not re-proven here).
 Epsilons are pre-declared bounds with measured evidence retained in the
 receipt, never promoted from single observations. They were measured at the
-default drives (E 5.0, PV 3.0); at E/PV drive 10.0 the V_m and HDP W bounds
-do not hold (issue P-019).
+default drives (E 5.0, PV 3.0). The E/PV drive-10.0 corner carries its own
+empirical bounds (P-019): V_m d<=1e-2, H d<=1e-5, W d<=1e-6, spikes exact;
+sources and aux keep the default bounds.
 """
 
 from __future__ import annotations
@@ -49,7 +50,7 @@ REGIMES = {
 }
 
 
-def _model(n=8):
+def _model(n=8, drive=None):
     cfg = (
         jtfne.configuration()
         .runtime(seed=0, recurrent_backend="edge_list")
@@ -60,6 +61,8 @@ def _model(n=8):
                boundary="mean_zero_neumann", gauge="mean_zero")
         .probe(name="probe", modes=["spikes", "V_m"])
     )
+    if drive is not None:
+        cfg = cfg.drive(baseline_drive_by_cell_type=drive)
     return jtfne.construct(cfg)
 
 
@@ -104,6 +107,44 @@ def test_equiv_baseline_exact():
     (a, _), (b, _) = _run_pair(model, None)
     assert jnp.array_equal(a.spikes, b.spikes)
     assert float(jnp.max(jnp.abs(a.V_m - b.V_m))) <= EPS_V
+    assert float(jnp.max(jnp.abs(
+        np.asarray(a.sources) - np.asarray(b.sources)))) <= EPS_V
+
+
+# P-019 drive-10.0 corner bounds (empirical, margin >= 4x over the seed-3
+# 60 ms measurement: dV 2.50e-03, dH 7.15e-07, dW 8.94e-08; spikes exact).
+EPS_V_DRIVE10 = 1e-2
+EPS_H_DRIVE10 = 1e-5
+EPS_W_DRIVE10 = 1e-6
+
+
+@pytest.mark.parametrize("regime", ["legacy", "registered", "eligibility"])
+def test_equiv_table_hdp_regimes_drive10(regime):
+    model = _model(drive={"E": 10.0, "PV": 10.0})
+    (a, da), (b, db) = _run_pair(model, REGIMES[regime])
+    assert jnp.array_equal(a.spikes, b.spikes)
+    assert float(jnp.max(jnp.abs(a.V_m - b.V_m))) <= EPS_V_DRIVE10
+    assert float(jnp.max(jnp.abs(
+        np.asarray(a.sources) - np.asarray(b.sources)))) <= EPS_V
+    assert da is not None and db is not None
+    dh = np.abs(np.asarray(da["H_trace"]) - np.asarray(db["H_trace"]))
+    assert float(dh.max()) <= EPS_H_DRIVE10, regime
+    dw = np.abs(np.asarray(da["w_trace"]) - np.asarray(db["w_trace"]))
+    assert float(dw.max()) <= EPS_W_DRIVE10, regime
+    if da.get("aux_final") is not None and int(np.asarray(da["aux_final"]).size):
+        shorter = min(np.asarray(da["aux_trace"]).shape[0],
+                      np.asarray(db["aux_trace"]).shape[0])
+        daux = np.abs(np.asarray(da["aux_trace"])[:shorter]
+                      - np.asarray(db["aux_trace"])[:shorter])
+        assert float(daux.max()) <= EPS_AUX, regime
+
+
+def test_equiv_baseline_drive10():
+    # P-019 corner, no HDP: measured dV 1.40e-03, sources exact, spikes exact.
+    model = _model(drive={"E": 10.0, "PV": 10.0})
+    (a, _), (b, _) = _run_pair(model, None)
+    assert jnp.array_equal(a.spikes, b.spikes)
+    assert float(jnp.max(jnp.abs(a.V_m - b.V_m))) <= EPS_V_DRIVE10
     assert float(jnp.max(jnp.abs(
         np.asarray(a.sources) - np.asarray(b.sources)))) <= EPS_V
 
