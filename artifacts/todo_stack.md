@@ -23,12 +23,12 @@ the 20-area simulation (done: `AT-10-N20`); one shared list of measurements;
 what survives each simplification; generated figures; every manuscript claim
 tied to evidence.
 
-After 0.5.5 (human, 2026-09-29): jaxfne analyses and visualizes its results
+Starting now (human, 2026-09-29): jaxfne analyses and visualizes its results
 through jnwb wherever jnwb has the operation. jnwb: data/signal → processing
 → analysis → results. jaxfne: model/signal → implementation → simulation →
 results. The move is gradual, and simulation results pass to jnwb through
 one seam that is independent of the rest of jaxfne, ideally with no delay
-(item 0d below).
+(item 0d below). The seam is additive: existing outputs stay bit-identical.
 
 ## Decisions in force
 
@@ -219,19 +219,21 @@ ACCEPTANCE (0.5.5 seal = end of programme)
      consume (stored is not consumed).
    - Link: spectrolaminar étude (item 0) depends on this laminar detail.
 0d. jnwb as the analysis and visualization layer (human, 2026-09-29; goal
-   above). Starts after the 0.5.5 seal. jaxfne keeps only the views jnwb
+   above). Started 2026-09-29, beside the 0.5.5 stack. jaxfne keeps only the views jnwb
    cannot express (network, column and field geometry, HDP diagnostics).
-   - Step 1: inventory `jaxfne/analysis`, `jaxfne/vis`, `export.py` and
-     `pynwb_compat.py` against the jnwb API as overlap, jaxfne-only, or a
-     jnwb gap. A jnwb gap is fixed in jnwb, not duplicated here.
+   - Inventory and seam rules: `artifacts/programme/jnwb_inventory.md`. A
+     jnwb gap is fixed in jnwb, not duplicated here.
    - Step 2 (minimal seam): one adapter from `Signals` to jnwb inputs,
      in memory (arrays + metadata, no file round-trip), with NWB export as
-     an optional path. It keeps units, sampling rate, frames and 0/1
-     indexing, and it has a round-trip test. jnwb is an optional extra.
-   - Step 3: migrate one analysis (spectra → `jnwb.compute_psd`) with an
-     equality bound against the old output. Then migrate the rest in
-     inventory order. Old entries delegate or are deprecated; frozen
-     receipts stay untouched.
+     an optional path. It follows the seam rules in the inventory (ms → s,
+     `fs` from `dt_ms`, dense spikes → spike times, proxy units carried and
+     refused where jnwb needs volts) and has a round-trip test. jnwb is an
+     optional extra; jnwb needs Python >= 3.12, jaxfne >= 3.11.
+   - Step 3: migrate one analysis. Spectra are not equal as they stand
+     (jaxfne `nperseg=256`, jnwb `min(n, fs)`): either jnwb takes an
+     `nperseg` argument and the bound is float tolerance, or the change is
+     declared and listed. Then migrate the rest in inventory order. Old
+     entries delegate or are deprecated; frozen receipts stay untouched.
    - This settles the direction of item 2: `pynwb_compat` becomes the NWB
      leg of the adapter or is removed.
 1. A8 gh-pages publishing policy. Trigger: publishing D1 or Atlas figures
