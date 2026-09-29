@@ -40,13 +40,13 @@ jobs:
         if: github.ref != 'refs/heads/main'
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,jaxley]"
+          pip install -e ".[dev,jaxley,jnwb]"
 
       - name: Install package and dev+viz deps (main — with reportlab)
         if: github.ref == 'refs/heads/main'
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,viz,jaxley]"
+          pip install -e ".[dev,viz,jaxley,jnwb]"
 
       - name: Compileall
         run: python -m compileall -q jaxfne tests examples

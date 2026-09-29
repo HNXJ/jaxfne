@@ -13,10 +13,10 @@ jaxfne: model/signal → implementation → simulation → results.
 |---|---|---|---|
 | time | `time_ms`, ms | onsets and spike times in s; windows and bins in ms | convert ms → s at the seam, once |
 | sampling rate | implied by `dt_ms` | `fs` in Hz, required | `fs = 1000 / dt_ms`; refuse a non-uniform `time_ms` |
-| spikes | dense 0/1, `(n_steps, n_units)` | per-unit 1D spike-time arrays (s) | spike at step k → `time_ms[k] / 1000` |
+| spikes | dense counts, `(n_steps, n_units)` | per-unit 1D spike-time arrays (s) | count c at step k → c times `t0 + k*dt` (float64, from `dt_ms`, not float32 `time_ms`); non-integer values refused |
 | V_m, sources | `(n_steps, n_units)` | time on axis 0 by default | pass as is, time axis 0 |
-| LFP, CSD, phi_e | `*_proxy`, `(n_steps, n_contacts)`, `epistemic_level="RELATIVE_PROXY"` | `current_source_density_1d` needs volts, µm pitch and S/m; returns A/m³ | carry the unit label; refuse physical-unit jnwb calls on an uncalibrated proxy |
-| contact depths | `FieldOutput.contact_depths` | `pitch_um` scalar | derive pitch from depths; refuse non-uniform spacing |
+| LFP, CSD, phi_e | `*_proxy`, `(n_steps, n_contacts)`, `epistemic_level="RELATIVE_PROXY"` | `current_source_density_1d` needs volts, µm pitch and S/m; returns A/m³ | kept as `*_proxy` with `field_level`; never relabelled volts, so a volts-only jnwb call on a `RELATIVE_PROXY` view is the caller's error, stated in the module docstring |
+| contact depths | `FieldOutput.contact_depths` | `pitch_um` scalar | passed raw; the depth unit is not declared, so no pitch is derived yet |
 | neuron identity | `metadata["neuron_metadata"]` | unit metadata tables | pass the table; no renaming |
 | trials | none on `Signals`; `TrialBatchResult` | `as_trials`, `epoch_continuous` | per-trial `Signals` → trial axis at the seam |
 

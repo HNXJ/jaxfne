@@ -39,6 +39,7 @@ DEV_PYTEST_TARGETS = [
     "tests/test_api_smoke.py",
     "tests/test_root_import_lightweight.py",
     "tests/test_signals_get_v0329.py",
+    "tests/test_jnwb_view.py",
     "tests/test_neuronal_tensor_connectivity.py",
     "tests/test_neuronal_tensor.py",
     "tests/test_connection_rule_compile_v0330.py",
