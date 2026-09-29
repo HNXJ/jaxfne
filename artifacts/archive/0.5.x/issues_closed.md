@@ -145,3 +145,27 @@ Earlier closed issues: `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md`.
   dV 2.50e-03, dH 7.15e-07, dW 8.94e-08); default-drive bounds unchanged.
   New drive-10 tests fail under the old strictness (4 failed) and pass
   under the corner bounds (10 passed with the file).
+
+### P-012
+- **date:** 2026-09-25
+- **type:** DEFECT (H11: tests depend on untracked local state)
+- **area:** `tests/test_memory_brief.py::test_brief_paths_exist`,
+  `tests/test_v033_two_neuron_ei.py::test_v033_all_json_files_parseable`
+- **observation:** broad gate in a fresh `git worktree` at `b110493` failed both;
+  the main tree at the same code passes both. memory.md names
+  `artifacts/release_candidate/`, `artifacts/developer/` (gitignored) and
+  `jaxfne/publication/` (untracked); the v033 test skips only when
+  `outputs/v030_03_two_neuron_ei_multimodal` is absent, and in the fresh tree
+  it existed but held no JSON.
+- **severity:** MINOR (gate false-fails outside the author's checkout)
+- **minimal reproduction:** `git worktree add <dir> b110493`, run the broad gate there
+- **expected behavior:** PASS or explicit skip from a fresh clone
+- **actual behavior:** 2 FAIL
+- **evidence:** broad gate log 2026-09-25 (2 failed / 4422 passed in worktree); main tree rerun 2/2 PASS
+- **possible future change:** brief-path test treats gitignored/untracked paths as local-only
+  (or memory.md stops naming them); v033 test skips on an empty output dir; open
+- **resolution (2026-09-29, agent):** fixed in `6478966` (brief-path test
+  exempts paths `git check-ignore` reports; v033 test skips on an empty
+  output dir). Verified in a fresh `git worktree` at `26662db` with an empty
+  `outputs/v030_03_two_neuron_ei_multimodal`, run from the worktree root:
+  1 passed, 1 skipped ("No JSON outputs generated").

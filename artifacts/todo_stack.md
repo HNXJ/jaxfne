@@ -96,29 +96,27 @@ one seam that is independent of the rest of jaxfne, ideally with no delay
 Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
 
 NEXT (ordered, executable)
-1. [A] P-012 test hygiene.
-2. [A] P-019 drive-swept jit/eager bounds.
-3. [A] P-016 + P-020 bisect packet: name the commit that moved each; a
-   re-freeze is a new receipt naming the cause.
-4. [A] P-013 `arm_definitions` packet: inputs only, schema test.
-5. [A] D1b rebuild pages 08 and 10 on the P-017 semantics
+1. [A] P-013 `arm_definitions` packet: inputs only, schema test.
+2. [A] D1b rebuild pages 08 and 10 on the P-017 semantics
    (`paradigm.condition(...)`): `08_jaxfne_suite_no_2_evoked_l4_drive.md`
    passes a full `Paradigm`, which simulate now refuses;
    `10_v0313_omission_oddball.md` plots two time steps under condition titles.
-6. [A] D2 études pages: embed each page's own figure beside its text (still
+3. [A] D2 études pages: embed each page's own figure beside its text (still
    tab + interactive iframe, `scripts/generate_docs_visuals.py` pattern).
-7. [A] Fact audit, entrances: check that `test_jdna_truth_gate.py` and
+4. [A] Fact audit, entrances: check that `test_jdna_truth_gate.py` and
    `test_neuronal_tensor.py` already show Configuration, NeuronalTensor and
    JDNA lowering to one construct → simulate path with equal outputs
    (fact: single lowering); add the missing case if not.
-8. [A] D0b remaining lanes: `scripts/` comments and the markdown outside
+5. [A] D0b remaining lanes: `scripts/` comments and the markdown outside
    `docs/` (188 files). agy is not installed, so by hand or opencode.
 
 HUMAN DECISIONS
 - [H] D0 review: 23 softened overclaims and 17 flagged items in
   `artifacts/audit/docs_style_pass_2026-09-28.md`.
-- [H] Sign off each re-freeze (P-016, P-020) after its bisect [B: item 4].
-- [H] Review the `arm_definitions` before the next freeze [B: item 5].
+- [H] Sign off each re-freeze (P-016, P-020): bisect receipts
+  `artifacts/programme/bisect_p016_receipt.md` and `bisect_p020_receipt.md`
+  name `865e74b`.
+- [H] Review the `arm_definitions` before the next freeze [B: item 1].
 - [H] Stale version notes, edit or leave: `_signals.py:1445,1453`,
   `validation.py:1230`, `experimental_hpc/physical_field_solver_v040.py:55`.
 - [H] `units.py` and `pynwb_compat` unwired: wire or remove.
