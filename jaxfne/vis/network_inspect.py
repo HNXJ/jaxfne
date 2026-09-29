@@ -310,16 +310,23 @@ def network_hspice(model: Any, *, x: str | None = None, y: str | None = None,
                    inhibitory_receptors: Iterable[int] = (1,),
                    class_order: Sequence[str] = ("E", "PV", "SST", "VIP"),
                    figsize: tuple[float, float] | None = None, dpi: int = 150,
-                   show_legend: bool = True) -> dict:
+                   show_legend: bool = True, style: str = "blocks") -> dict:
     """A block schematic of the constructed circuit: x on the left, y on the right.
 
     Areas are blocks, layers are rows inside them, cell classes are chips inside a row, and
     every cross-area projection is one annotated arrow carrying its edge count, mean weight
     and sign. Individual neurons are never drawn.
 
+    ``style="columns"`` draws each area as a cylinder with one node per cell class and one
+    arrow per adjacent-stage projection, captioned ``x : A ∘ B ∘ … ∘ Z : y``. Projections
+    that skip a stage or run within one are listed under ``omitted_projections`` in the
+    returned description, not drawn. ``path`` may end in ``.svg`` or ``.png``.
+
     ``title`` is free metadata: pass a TFNE expression when you have one, otherwise the
     default states the model in generic terms.
     """
+    if style not in ("blocks", "columns"):
+        raise ValueError(f"style must be 'blocks' or 'columns', got {style!r}")
     th = resolve_theme(theme)
     d = describe(model, inhibitory_receptors=inhibitory_receptors, class_order=class_order,
                  stages=stages)
@@ -334,6 +341,11 @@ def network_hspice(model: Any, *, x: str | None = None, y: str | None = None,
     all_classes = sorted({c for a in d["populations"].values() for L in a.values() for c in L},
                          key=_class_key(class_order))
     cmap = th.class_colors(all_classes)
+    if style == "columns":
+        from .network_glow import render_columns
+
+        return render_columns(d, stages, th, cmap, x=x or "x", y=y or "y", title=title,
+                              path=path, dpi=dpi, figsize=figsize, save=_save)
     n_col = len(stages)
     tallest = max(len(c) for c in stages)
     figsize = figsize or (max(9.0, 4.4 * n_col + 4.0), max(5.0, 2.9 * tallest + 2.4))

@@ -281,3 +281,33 @@ def test_describe_counts_edges_under_compact_weight_storage():
     d = JV.describe(types.SimpleNamespace(neuron_table=lambda: rows, params={"edge_list": el}))
     assert (d["n_edges_local"], d["n_edges_long_range"]) == (2, 1)
     assert sum(p["n_edges"] for p in d["projections"]) == 1
+
+
+# ------------------------------------------------------------ style="columns"
+
+
+def test_columns_style_draws_every_adjacent_projection_and_theme_is_presentation_only(tmp_path):
+    out = {t: JV.network_hspice(M, style="columns", theme=t, stages=[["Alpha"], ["Beta"], ["Gamma"]],
+                                path=tmp_path / f"{t}.svg") for t in ("light", "dark")}
+    assert {k: v for k, v in out["light"].items() if k not in ("path", "theme")} == \
+           {k: v for k, v in out["dark"].items() if k not in ("path", "theme")}
+    arrows = {(a["source"], a["target"], a["channel"]) for a in out["dark"]["arrows"]}
+    assert arrows == {("Alpha", "Beta", "feedforward"), ("Beta", "Gamma", "feedforward"),
+                      ("Gamma", "Beta", "feedback")}
+    assert out["dark"]["omitted_projections"] == []
+    assert (tmp_path / "dark.svg").read_bytes() != (tmp_path / "light.svg").read_bytes()
+
+
+def test_columns_style_reports_projections_it_does_not_draw():
+    d = JV.network_hspice(M, style="columns", stages=[["Alpha", "Beta"], ["Gamma"]])
+    listed = {(o["source"], o["n_edges"]) for o in d["omitted_projections"]}
+    assert listed == {("Alpha.bot.Fast", 16)}, "a projection within one stage must be reported"
+    assert {(a["source"], a["target"]) for a in d["arrows"]} == {("Beta", "Gamma"), ("Gamma", "Beta")}
+
+
+def test_columns_style_single_area_draws_no_arrows_and_style_is_validated():
+    one_rows = [r for r in ROWS if r["area"] == "Alpha"]
+    d = JV.network_hspice(model(one_rows, []), style="columns")
+    assert d["arrows"] == [] and d["areas"] == ["Alpha"]
+    with pytest.raises(ValueError, match="style"):
+        JV.network_hspice(M, style="glow")
