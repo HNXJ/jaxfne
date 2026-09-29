@@ -191,6 +191,28 @@ ACCEPTANCE (0.5.5 seal = end of programme)
    set; design note `artifacts/programme/structural_hdp_design.md`. Build
    after the 0.5.5 seal, additive and opt-in; API and hard-vs-graded
    existence still open.
+0c. Primate primary-connection mode (human, 2026-09-29): an opt-in named mode
+   for bottom-up, top-down, intralaminar and interlaminar connections, with
+   every edge carrying its evidence status. Current defaults
+   (`builders.py` `p_feedforward=0.3`, `p_feedback=0.2`, uniform weight
+   ranges; FF L2/3 E to L4, FB L6 to L1/L5) are uncalibrated scalars; label
+   them so now (docs and metadata only). Grade: recommended (60-80).
+   - Step 1 (minimal): evidence table, source layer x source E/I x target
+     layer x target E/I, each edge tagged {direct, anatomical-only,
+     functional, unknown} with species, area, method, primary citation.
+     Macaque only; a rodent or cat value never fills a gap. Unknown edges
+     are refused or declared, not defaulted.
+   - Step 2: mode declares FF/FB/lateral by continuous SLN in [0,1], not a
+     binary label; interareal weights heavy-tailed (FLN) with an
+     exponential distance rule; intra-area L2/3 horizontals patchy; L1
+     interneuron-only (no E1); local block is the full layer matrix (many
+     |i-j|>1 entries nonzero), area-specific (V1 is not PFC).
+   - Rules: population fraction != connection probability != synaptic
+     weight; every number primary-verified (chat-derived figures such as
+     1,615 pathways, 66% density, 2-7 mm, 84% L1 inhibitory are
+     unverified); refuse to realize a mode edge that the model cannot
+     consume (stored is not consumed).
+   - Link: spectrolaminar étude (item 0) depends on this laminar detail.
 1. A8 gh-pages publishing policy. Trigger: publishing D1 or Atlas figures
    to the public site.
 2. `units.py` and `pynwb_compat` unwired: wire or remove (owner decision).
