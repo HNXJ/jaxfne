@@ -45,7 +45,9 @@ Keep a paper when at least three hold:
    is a real question and not decoration.
 
 Reject: no explicit model; parameters unavailable; needs a solved field (the
-shipped path is proxy); needs structural plasticity (outside the HDP grammar).
+shipped path is proxy); needs structural plasticity beyond a declared candidate set (structural HDP
+covers only existence over declared candidates; see
+`artifacts/programme/structural_hdp_design.md`, not yet built).
 
 ## HDP off / on
 

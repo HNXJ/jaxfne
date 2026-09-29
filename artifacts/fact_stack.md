@@ -22,7 +22,7 @@ covers and what checks it); row 2 is the fact. Authorized by the human in the
 | **H, RBS, RBD, H ≠ HDP** \| state container and state dynamics; continuation tests |
 | `H` is a finite dependency-state container, not intrinsically homeostasis and not one scalar. RBD is `Ḣ = F_H`; plasticity is not required (`Ẇ = 0` is valid). HDP is `Ẇ = F_W(H, …)`. H ≠ HDP. |
 | **rule grammar, declared targets, refusal** \| generic finite-state rule registration; refusal tests |
-| Generic rules are finite-state over declared state layouts, event/history inputs, RNG semantics and a finite declared target set. Structural change, exogenous ports and undeclared targets are outside the grammar and refused. |
+| Generic rules are finite-state over declared state layouts, event/history inputs, RNG semantics and a finite declared target set. Structural HDP is a special case: existence over a declared finite candidate set of pre/post pairs, evolving under the same rule form. Other structural change (edges outside the candidate set), exogenous ports and undeclared targets are outside the grammar and refused. |
 | **continuation, carrier, complete state** \| `X`, `H`, `W`/`Θ`, delay ring `B`, `K`; continuation bit-exactness tests |
 | Continuation preserves the complete declared dynamic state bit-exactly (membrane, recovery, spike history, synaptic `X`; `H`; `W`/`Θ`; delay ring `B`; controller coordinates `K` where declared; rule-owned auxiliary state); no hidden state lives outside the carrier. |
 | **delay ring, events, dt grid** \| `B`; continuation and delay tests |

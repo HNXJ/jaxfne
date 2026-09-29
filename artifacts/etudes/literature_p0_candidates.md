@@ -27,7 +27,7 @@ biophysics and LFP.
 | 9 | On the validity of electric brain signal predictions based on population firing rates (PMC, 2025) | [pmc](https://pmc.ncbi.nlm.nih.gov/articles/PMC12052147/) | method | when rate-based field proxies hold | none | 2, 3 | shortlist for the readout side: tests what a proxy may claim |
 | 10 | Emergence of Balanced Cortical Activity via Calcium-Regulated Synaptic Homeostasis (bioRxiv, 2025) | [biorxiv](https://www.biorxiv.org/content/10.1101/2025.09.04.674182.full.pdf) | model | balanced activity; E and I adaptation with limited resources | direct HDP analogue | 1, 3?, 6 | shortlist: strongest HDP hook |
 | 11 | Metastable dynamics emerge from local excitatory-inhibitory homeostasis in the cortex at rest (Netw Neurosci, 2025) | [mit press](https://direct.mit.edu/netn/article/9/3/938/128759/Metastable-dynamics-emerge-from-local-excitatory) | model | metastability from E-I homeostasis, multi-area | direct HDP analogue | 6, multi-area | hold: whole-brain scale; check reducibility |
-| 12 | The interplay between homeostatic synaptic scaling and homeostatic structural plasticity maintains the robust firing rate of neural networks (eLife) | [elifesciences](https://elifesciences.org/articles/88376) | model | firing-rate robustness | structural plasticity | 1, 6 | reject: structural change is outside the HDP grammar |
+| 12 | The interplay between homeostatic synaptic scaling and homeostatic structural plasticity maintains the robust firing rate of neural networks (eLife) | [elifesciences](https://elifesciences.org/articles/88376) | model | firing-rate robustness | structural plus scaling: maps to existence `e_c` and weight `w_c` (`structural_hdp_design.md`) | 1, 6 | hold: candidate once structural HDP exists; P1 checks what the result depends on |
 
 Also seen, not screened in: Rosetta Stone of Neural Mass Models (arXiv
 2512.10982, neural-mass scale); Biophysical and computational insights from
@@ -49,8 +49,8 @@ reflect inhibitory neuron activity (Sci Rep, before the window).
 | Readout validity | #9 | states what a rate-based proxy can claim; guards our wording |
 | HDP-native | #10 | calcium-regulated E and I homeostasis; HDP on/off has a clear question |
 
-Held: #5 (compartments), #6 (unclear), #8 (solved field), #11 (whole brain).
-Rejected: #12 (structural plasticity).
+Held: #5 (compartments), #6 (unclear), #8 (solved field), #11 (whole brain),
+#12 (needs structural HDP, not built yet). Rejected: none.
 
 ## Next (P1)
 

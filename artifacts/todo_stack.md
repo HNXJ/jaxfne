@@ -185,6 +185,10 @@ ACCEPTANCE (0.5.5 seal = end of programme)
    (`literature_p0_candidates.md`, 12 unverified rows, shortlist of 6). Next:
    P1 primary verification of the shortlist, then the human confirms 4–6
    targets. Starts after the 0.5.5 seal, with its own stack.
+0b. Structural HDP (human, 2026-09-29): existence over a declared candidate
+   set; design note `artifacts/programme/structural_hdp_design.md`. Build
+   after the 0.5.5 seal, additive and opt-in; API and hard-vs-graded
+   existence still open.
 1. A8 gh-pages publishing policy. Trigger: publishing D1 or Atlas figures
    to the public site.
 2. `units.py` and `pynwb_compat` unwired: wire or remove (owner decision).
