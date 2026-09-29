@@ -7,7 +7,7 @@ An :class:`Intervention` records three things together:
    enable/disable/clamp controls; anything else is refused),
 3. the declared observation difference (signal + subset + expectation).
 
-First-class in manifests: :meth:`Intervention.to_manifest` is JSON-safe,
+Manifest-serializable: :meth:`Intervention.to_manifest` is JSON-safe,
 :func:`intervention_from_manifest` roundtrips it exactly (H4: in-memory
 behavior and serialization roundtrip are tested separately), and
 :func:`run_intervention` attaches ``manifest["intervention"]`` on both

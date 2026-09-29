@@ -56,7 +56,7 @@ def mean_pairwise_spike_correlation(
     -----
     - Metric is dimensionless (no units).
     - Uses Pearson correlation; requires variance in each spike train.
-    - NaN/Inf values are filtered before mean; metric is robust to edge cases.
+    - NaN/Inf values are filtered before the mean.
     - Claim level: computational_scaffold (no biological interpretation).
     """
     spikes_array = np.asarray(spikes)

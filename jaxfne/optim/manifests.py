@@ -13,7 +13,7 @@ import jax.numpy as jnp
 def serialize_optimization_manifest(state: Any, hyperparams: dict) -> dict[str, Any]:
     """Serializes the current optimization state and hyperparams into a JSON-safe dictionary.
 
-    Ensures that any JAX or NumPy arrays are properly converted to standard Python scalars.
+    Converts JAX or NumPy arrays to Python scalars.
     """
     manifest = {
         "hyperparams": {

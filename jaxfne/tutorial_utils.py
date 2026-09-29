@@ -1913,7 +1913,7 @@ def spectrolaminar_from_trials(
     # Computed from the raw spectral power `psd` (the same quantity panel B shows
     # in log scale), NOT from the percentile-clipped log heatmap `relative_power`
     # — clipping distorts true relative magnitudes across depth. Normalizing by
-    # the per-band max across channels is naturally robust to degenerate
+    # the per-band max across channels is unaffected by degenerate
     # low-power channels (e.g. the top CSD contact ~0): a near-zero channel maps
     # to ~0, it cannot inflate the max.
     ab_mask = (freqs >= alpha_beta_range_hz[0]) & (freqs <= alpha_beta_range_hz[1])

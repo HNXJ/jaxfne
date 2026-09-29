@@ -114,9 +114,12 @@ DOCS (human, 2026-09-27)
 - `build_laminar_column(geometry='laminar')` ignores `radius_mm` and
   `height_mm` (the laminar route reads `column_radius_mm` metadata only):
   apply or refuse them.
-- D0b agy sweeps once `agy_delegate.py` exists: code comments and
-  docstrings, remaining markdown, and `artifacts/skills/jaxfne-*` pointing
-  at the canonical style skills instead of restating them.
+- D0b `jaxfne/` docstring and comment pass done by hand (12 padding and
+  overclaim edits; skills restate no style rules). agy is not installed
+  (`agy.exe` missing), so its lanes wait: `scripts/` comments and the
+  markdown outside `docs/` (188 files). Human: stale "v0.2.x" notes at
+  `_signals.py:1445,1453`, `validation.py:1230` and
+  `experimental_hpc/physical_field_solver_v040.py:55` are flagged, not edited.
 - D1b Pages 08/10 (`08_jaxfne_suite_no_2_evoked_l4_drive.md`,
   `10_v0313_omission_oddball.md`) claim figures and results their notebooks
   never produce: the evoked-L4 notebook passes a full `Paradigm`, which

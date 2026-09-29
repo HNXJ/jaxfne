@@ -19,7 +19,7 @@ terminal phenotype. Development is a function
 with independent PRNG domain K_D (development seed). Construction and
 simulation then use the ordinary jaxfne pipeline with their own PRNG domains
 (runtime seed K_S, optimizer seed K_A). JDNA is optional: the existing
-Configuration / NeuronalTensor direct paths remain first-class.
+Configuration / NeuronalTensor direct paths remain supported.
 """
 from __future__ import annotations
 

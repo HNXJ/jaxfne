@@ -16,7 +16,7 @@ Two cell-type composition paths share the builders:
 * ``ei_profile="canonical"`` — the verified ground-truth E:I gradient (E peaks
   deep to 95%, I peaks superficial at 50%, PV peaks at L2/L3, ≈66E:34I
   overall), with laminar placement so each neuron keeps its layer label. The
-  gradient is exported as first-class constants
+  gradient is exported as constants
   (:data:`CANONICAL_LAYER_CELL_TYPE_FRACTIONS`, :data:`CANONICAL_Z_BANDS`,
   and the 5-layer variants) — query those directly rather than copying these
   numbers, they are the source of truth.
