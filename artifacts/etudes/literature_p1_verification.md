@@ -24,6 +24,36 @@ A row marked "pending" has no verified parameters yet.
 | 9 | Ness TV, Tetzlaff T, Einevoll GT, Dahmen D. "On the validity of electric brain signal predictions based on population firing rates." PLOS Comput Biol 2025, DOI 10.1371/journal.pcbi.1012303 (PMC12052147) | method | kernel method for LFP/EEG/MEG from firing rates works best with spatially clustered input, correlated spike trains, large out-degree, strong signals; fails with uniform dendritic input, uncorrelated trains, small out-degree; relative error "inversely proportional to the signal amplitude" (Section 2.5, Fig 11C); layer-5 pyramidal cell (Hay et al. 2011), LFPy 2.3, NEURON 8.2, NEST 3.6; code github.com/torbjone/kernel_validity_paper | none needed for its role below |
 | 10 | van Vreeswijk C (spelled "van Vreewsijk" by the record), Farkhooi F (spelled "Farzada" by the record). "Emergence of Balanced Cortical Activity via Calcium-Regulated Synaptic Homeostasis." bioRxiv 2025-09-05, DOI 10.1101/2025.09.04.674182; no published version linked | model, preprint | abstract: E and I synapses co-adapt through calcium; calcium mean encodes firing rate, variance encodes irregularity; inhibitory synapses set by the mean, excitatory by the variance; stabilizes rates, preserves irregular spiking, yields balanced E-I | equations, parameters, network size, dt (full text blocked); author-name spelling to confirm against the PDF |
 
+## Row 3: model read from the authors' code (2026-09-29)
+
+Full text stays blocked (bioRxiv 429). The published version is Cell Reports
+2025 (title of the authors' code repository). Repository
+`mdivolo/Tahvili-et-al-Cell-Reports-2025-code`, pushed 2025-07-08, **no
+license**: read-only, parameters are recorded here, no code is copied. Values
+below are read from its notebook (control condition of Fig. 1); the paper's
+own methods are unread, so each is re-checked at P2.
+
+| Item | Value in the notebook |
+|---|---|
+| Neuron | AdEx, conductance synapses, Brian2, dt 0.1 ms, 4 s run |
+| Populations | 8000 E, 800 FS/PV, 600 SST (598 SST + 1 Poisson unit), p = 0.017, delay 0 |
+| Common | C 200 pF, gL 10 nS, V_T -50 mV, V_reset -65 mV, Ee 0, Ei -80 mV, refractory 5 ms, tau_w 500 ms |
+| E | a 4 nS, b 130 pA, DeltaT 2 mV |
+| PV | a 0, b 0, DeltaT 0.5 mV |
+| SST | a 4 nS, b 25 pA, DeltaT 1.5 mV, EL -55 mV |
+| Synaptic taus | E to PV 1 ms, E to SST 2 ms, others 5 ms |
+| Asymmetry | SST to PV weight nonzero; PV to SST and SST to SST weights 0 |
+| Drive | 4 Hz Poisson to E and PV, N_ext = 0.017 x 8000 inputs, 1.25 nS each; none to SST |
+
+## Feasibility flag for P2
+
+jaxfne has no AdEx emitter (no match in `jaxfne/`); its spiking family is
+Izhikevich. Row 3 needs (1) AdEx, or an Izhikevich mapping declared as a GAP,
+(2) conductance synapses with per-connection taus, (3) zero-weight asymmetric
+PV/SST wiring, (4) 10 000 neurons at 0.1 ms. Each is a GAP row at P2, not an
+assumption. Row 10: no code repository found (GitHub title-term search
+returned none); still needs the PDF.
+
 ## Findings that change the P0 plan
 
 1. **#1 and #2 are one contested observable, not two targets.** The bands
@@ -51,7 +81,7 @@ A row marked "pending" has no verified parameters yet.
 | # | P1 status | Next |
 |---|---|---|
 | 1, 2a, 2b | verified (metadata and observables) | fix the band definition and detection rule at P3 |
-| 3 | metadata and abstract verified; parameters pending | get the full text (retry later, or the human supplies the PDF) |
+| 3 | model parameters read from the authors' code (no license); paper methods unread | GAP list at P2; re-check against the PDF |
 | 4 | verified; demoted to comparison | check for a rate-based emitter at P2 |
 | 9 | verified; role changed to wording guard | none |
 | 10 | metadata and abstract verified; equations pending | full text needed |

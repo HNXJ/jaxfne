@@ -183,9 +183,9 @@ ACCEPTANCE (0.5.5 seal = end of programme)
 0. Literature reproduction études, HDP off/on (human, 2026-09-29): plan in
    `artifacts/etudes/literature_reproduction_plan.md`. P0 table done
    (`literature_p0_candidates.md`); P1 partly done
-   (`literature_p1_verification.md`: 5 sources verified, parameters pending
-   for two bioRxiv preprints). Next: human supplies PDFs for the two
-   preprints and confirms targets, then P2 on one pilot. Starts after the
+   (`literature_p1_verification.md`: 5 sources verified, row 3 parameters read
+   from the authors' code, row 10 equations unread). Targets confirmed. Next:
+   PDF for row 10, P2 GAP list for row 3 (no AdEx emitter), then P3 sign-off. Starts after the
    0.5.5 seal, with its own stack.
 0b. Structural HDP (human, 2026-09-29): existence over a declared candidate
    set; design note `artifacts/programme/structural_hdp_design.md`. Build
