@@ -349,8 +349,8 @@ def build_laminar_column(
     geometry: Literal["auto", "uniform3d", "laminar"] = "auto",
     within_connectivity: str = "all_to_all_uniform_random",
     within_gain: float = 0.45,
-    radius_mm: float = 0.25,
-    height_mm: float = 1.6,
+    radius_mm: float | None = None,
+    height_mm: float | None = None,
     edge_seed: int | None = None,
 ) -> Configuration:
     """Build a Configuration for a single laminar cortical column.
@@ -397,8 +397,11 @@ def build_laminar_column(
         Within-area connectivity rule passed to ``.connectivity``.
     within_gain : float, keyword-only, default 0.45
         Within-area weight gain.
-    radius_mm, height_mm : float, keyword-only
-        Column geometry (cylinder radius and depth), default 0.25 / 1.6 mm.
+    radius_mm, height_mm : float, optional, keyword-only
+        Column geometry (cylinder radius and depth) in mm; ``None`` keeps the
+        defaults, 0.25 / 1.6 mm. On ``geometry="laminar"`` a given value is
+        written to ``column_radius_mm`` / ``column_height_mm``, which the laminar
+        placement and layer-thickness readers use.
     edge_seed : int, optional, keyword-only
         Seed for connectivity edge sampling; ``None`` uses the runtime default.
 
@@ -413,6 +416,8 @@ def build_laminar_column(
     >>> cfg = jtfne.build_laminar_column(ei_profile="canonical")  # ground-truth E:I gradient
     >>> cfg = jtfne.build_laminar_column("M1", 500, layers=["L2/3", "L5"], within_gain=0.6)
     """
+    if (radius_mm is not None and radius_mm <= 0.0) or (height_mm is not None and height_mm <= 0.0):
+        raise ValueError("radius_mm and height_mm must be positive")
     explicit_layers = layers is not None or layer_fractions is not None
     if geometry == "uniform3d" and (
         explicit_layers or layer_cell_type_fractions is not None or ei_profile == "canonical"
@@ -455,7 +460,10 @@ def build_laminar_column(
             Configuration()
             .column(name, layers=["uniform_3d"], n=n)
             .cell_types(cell_type_fractions)
-            .uniform3d(radius_mm=radius_mm, height_mm=height_mm)
+            .uniform3d(
+                radius_mm=0.25 if radius_mm is None else radius_mm,
+                height_mm=1.6 if height_mm is None else height_mm,
+            )
         )
     else:
         cfg = (
@@ -464,6 +472,13 @@ def build_laminar_column(
             .cell_types(cell_type_fractions)
             .layer_fractions(layer_fractions, layer_cell_type_fractions)
         )
+        geometry_md = {
+            k: float(v)
+            for k, v in (("column_radius_mm", radius_mm), ("column_height_mm", height_mm))
+            if v is not None
+        }
+        if geometry_md:
+            cfg = cfg.update_metadata(**geometry_md)
     cfg = cfg.connectivity(**conn_kwargs)
     if ei_profile == "canonical":
         # Enable construct-time canonical biophysics (deep-E size grading +

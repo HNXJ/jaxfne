@@ -93,6 +93,10 @@ HARNESS (human, 2026-09-27)
 - Seal note (P-017): list the runs whose drive changed in the seal receipt
   (commit f8960a0 message: stimulus-less marker events now silent; stimulus
   events use their own duration_ms).
+- Seal note (fact: geometry apply or refuse): `build_laminar_column(
+  geometry='laminar', radius_mm=/height_mm=)` now writes the given values to
+  `column_radius_mm`/`column_height_mm`; before, it ignored them. Defaults
+  (`None`) declare nothing, so outputs without the arguments are unchanged.
 - Seal note: AT-02…AT-06 run records (`artifacts/publication/atlas/`) carry
   the pre-correction spec digest (AT-02…AT-05 recorded `n_contacts` 4,
   executed 16; AT-06 recorded a common-average reference and an 8–25 Hz
@@ -111,9 +115,6 @@ DOCS (human, 2026-09-27)
 - D0 Style pass landed (b278f70, eddfa1b, 42e0e2f). Human: review the 23
   softened overclaims and decide the 17 flagged items listed in
   `artifacts/audit/docs_style_pass_2026-09-28.md`.
-- `build_laminar_column(geometry='laminar')` ignores `radius_mm` and
-  `height_mm` (the laminar route reads `column_radius_mm` metadata only):
-  apply or refuse them.
 - D0b `jaxfne/` docstring and comment pass done by hand (12 padding and
   overclaim edits; skills restate no style rules). agy is not installed
   (`agy.exe` missing), so its lanes wait: `scripts/` comments and the
