@@ -90,6 +90,10 @@ one seam that is independent of the rest of jaxfne, ideally with no delay
   lanes: quality sweeps of docs, markdown and code against the canonical
   style skills, and upkeep of `artifacts/skills/jaxfne-*`. Every diff is
   reviewed before it is integrated.
+- 2026-09-29 (human): item 0d starts now. Spectra move by adding `nperseg`
+  to `jnwb.compute_psd` (float-tolerance bound). The jnwb extra carries a
+  `python_version >= "3.12"` marker; jaxfne stays `>=3.11`. jnwb gaps are
+  fixed in a fresh clone of HNXJ/jnwb at `E:/repos/jnwb`.
 
 ## 0.5.5 stack
 
