@@ -23,6 +23,13 @@ the 20-area simulation (done: `AT-10-N20`); one shared list of measurements;
 what survives each simplification; generated figures; every manuscript claim
 tied to evidence.
 
+After 0.5.5 (human, 2026-09-29): jaxfne analyses and visualizes its results
+through jnwb wherever jnwb has the operation. jnwb: data/signal → processing
+→ analysis → results. jaxfne: model/signal → implementation → simulation →
+results. The move is gradual, and simulation results pass to jnwb through
+one seam that is independent of the rest of jaxfne, ideally with no delay
+(item 0d below).
+
 ## Decisions in force
 
 - 2026-09-23 (human): the Atlas manuscript is new, in
@@ -213,6 +220,22 @@ ACCEPTANCE (0.5.5 seal = end of programme)
      unverified); refuse to realize a mode edge that the model cannot
      consume (stored is not consumed).
    - Link: spectrolaminar étude (item 0) depends on this laminar detail.
+0d. jnwb as the analysis and visualization layer (human, 2026-09-29; goal
+   above). Starts after the 0.5.5 seal. jaxfne keeps only the views jnwb
+   cannot express (network, column and field geometry, HDP diagnostics).
+   - Step 1: inventory `jaxfne/analysis`, `jaxfne/vis`, `export.py` and
+     `pynwb_compat.py` against the jnwb API as overlap, jaxfne-only, or a
+     jnwb gap. A jnwb gap is fixed in jnwb, not duplicated here.
+   - Step 2 (minimal seam): one adapter from `Signals` to jnwb inputs,
+     in memory (arrays + metadata, no file round-trip), with NWB export as
+     an optional path. It keeps units, sampling rate, frames and 0/1
+     indexing, and it has a round-trip test. jnwb is an optional extra.
+   - Step 3: migrate one analysis (spectra → `jnwb.compute_psd`) with an
+     equality bound against the old output. Then migrate the rest in
+     inventory order. Old entries delegate or are deprecated; frozen
+     receipts stay untouched.
+   - This settles the direction of item 2: `pynwb_compat` becomes the NWB
+     leg of the adapter or is removed.
 1. A8 gh-pages publishing policy. Trigger: publishing D1 or Atlas figures
    to the public site.
 2. `units.py` and `pynwb_compat` unwired: wire or remove (owner decision).
