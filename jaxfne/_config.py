@@ -1427,13 +1427,17 @@ class Configuration:
             Connectivity mode: "sparse", "all_to_all", "block_dense",
             or "distance_decay". Default: "sparse".
         p_feedforward : float, optional
-            Probability of feedforward connections. Default: 0.3.
+            Probability of feedforward connections. Default: 0.3 (UNCALIBRATED
+            placeholder; todo 0c).
         p_feedback : float, optional
-            Probability of feedback connections. Default: 0.2.
+            Probability of feedback connections. Default: 0.2 (UNCALIBRATED
+            placeholder; todo 0c).
         feedforward_weight_range : tuple[float, float], optional
-            Weight range for feedforward synapses. Default: (0.5, 2.0).
+            Weight range for feedforward synapses. Default: (0.5, 2.0)
+            (UNCALIBRATED placeholder; todo 0c).
         feedback_weight_range : tuple[float, float], optional
-            Weight range for feedback synapses. Default: (0.3, 1.5).
+            Weight range for feedback synapses. Default: (0.3, 1.5)
+            (UNCALIBRATED placeholder; todo 0c).
         delay_ms_or_status : float or str, optional
             Transmission delay in ms, or a status string (e.g.,
             "no_delay_proxy_metadata"). Default: None.
