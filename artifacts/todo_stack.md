@@ -180,6 +180,10 @@ ACCEPTANCE (0.5.5 seal = end of programme)
 
 ## Open work outside the release stacks (after 0.5.5 unless a trigger fires)
 
+0. Literature reproduction études, HDP off/on (human, 2026-09-29): plan in
+   `artifacts/etudes/literature_reproduction_plan.md`. Next: P0 candidate
+   table (about 12 papers, 2022–2026), then P1 primary verification. Starts
+   after the 0.5.5 seal, with its own stack.
 1. A8 gh-pages publishing policy. Trigger: publishing D1 or Atlas figures
    to the public site.
 2. `units.py` and `pynwb_compat` unwired: wire or remove (owner decision).
