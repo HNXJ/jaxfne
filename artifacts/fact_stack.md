@@ -161,3 +161,19 @@ once every round is done.
 | Each term carries one meaning; an allowlist bounds words such as "contract". The audit runs with `--check` as a gate; bare mode exits 0 and proves nothing. |
 | **unwired code, owner decision** \| `units.py`, `pynwb_compat`; wiring audit |
 | Code nothing calls is a defect until an owner decision wires or removes it; it is never accepted silently as a supported feature. |
+| **manifest, digest, seeds, versions** \| run manifests; manifest-quoted Methods |
+| A run manifest records the config digest, seeds, versions (jaxfne, JAX, libraries), units, calibration level and tolerances, quoted from generated artifacts and not typed. |
+| **reduction, survival matrix, tolerance** \| ATLAS item 7; `run_reduction` |
+| A simplification states which observations survive within a predeclared tolerance and which do not; failures stay in the matrix. |
+| **provenance, origin, constructed vs requested** \| origin/provenance queries; inspection tests |
+| Each declared parameter and realized array traces to its declaration and route; inspection reports what was constructed, not what was requested. |
+| **evidence, test quality, vacuous PASS** \| all tests and gates |
+| A test is evidence when it can fail on the defect it guards (shown pre-fix or by mutation), its fixture builds the case it is named after, and gates are read per check. |
+| **drive, plain route, P-018** \| `drive()`; drive-realization tests |
+| A declared drive is wired and realized on the plain route; a drive the route cannot apply is refused, never dropped. |
+| **probe kernels, refusal, neutral values** \| `Configuration.probe`; kernel refusal tests |
+| A probe kernel refuses `position`, `reference` or `filter_spec` it does not apply; the neutral values (`"none"`) are accepted. |
+| **sign, receptor, inhibition** \| per-projection declarations; compact-storage derivation tests |
+| Sign and receptor identity are declared per projection and preserved through compilation; inhibition is a declared receptor, not inferred from a label. |
+| **emitter, family, unsupported method** \| emitter families; refusal tests |
+| The emitter is a declared choice; a method not generalized to a family refuses with an actionable error rather than failing obscurely. |
