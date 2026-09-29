@@ -13,7 +13,6 @@ feedforward arrow, a slow wave a feedback arrow. Theme changes presentation only
 from __future__ import annotations
 
 import collections
-import pathlib
 from typing import Any, Mapping, Sequence
 
 import numpy as np
@@ -97,7 +96,7 @@ def _wave(ax, x0, x1, y, amp, cycles, colour):
 def _block_arrow(ax, xa, xb, y, colour, th, *, forward, cycles, label):
     import matplotlib.patches as mp
 
-    L, hh, hw = abs(xb - xa), 0.38, 0.62
+    hh, hw = 0.38, 0.62
     head = 0.5
     if forward:
         pts = [(xa, y + hh / 2), (xb - head, y + hh / 2), (xb - head, y + hw / 2), (xb, y),
