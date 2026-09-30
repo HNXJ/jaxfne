@@ -156,7 +156,11 @@ def plot_network_3d(
 
     fig.update_layout(
         title=title,
-        scene=dict(xaxis_title="x (mm)", yaxis_title="y (mm)", zaxis_title="depth z (mm)"),
+        scene=dict(
+            xaxis_title="x (mm)",
+            yaxis_title="y (mm)",
+            zaxis=dict(title="depth z (0 = pia, increasing toward WM)", autorange="reversed"),
+        ),
         legend_title_text=color_by,
     )
     return fig
