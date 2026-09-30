@@ -72,3 +72,28 @@ possible future change.
   stated cause or extend the etude check to C; open
 
 ---
+
+### P-021
+- **date:** 2026-09-30
+- **type:** SCIENCE (estimator differs from its name or docstring)
+- **area:** `jaxfne/analysis/metrics.py`
+- **observation:** `fano_factor` says "Computed per neuron, then averaged"
+  but computes one variance over mean of population-summed binned counts;
+  `burst_index` takes `bin_ms` and never uses it (per-step active fraction);
+  `mean_pairwise_spike_correlation` correlates raw per-step spike rows with
+  no bin width.
+- **severity:** MINOR (no computational caller in jaxfne, scripts, examples
+  or docs; no committed or frozen artifact depends on them; only
+  `tests/test_analysis_metrics.py` pins current values, including
+  `test_variable_dt_scaling`, which pins bin-insensitivity)
+- **expected behavior:** per-unit Fano across trials, network bursts with a
+  used bin width, count correlation at a stated bin width; jnwb 0.2.8 lane D
+  provides these (`fano_factor`, `network_burst_index`,
+  `spike_count_correlation`)
+- **evidence:** opencode sweep 2026-09-30, lines re-read: `metrics.py:197`
+  vs `:255-275`, `:124-126`, `:87-88`
+- **possible future change:** delegate to jnwb when 0.2.8 ships (todo 0d,
+  short-list goal 3), rewriting the pinning tests; or rename and fix the
+  docstrings. Owner decision on deprecation; open
+
+---
