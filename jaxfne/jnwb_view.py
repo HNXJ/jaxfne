@@ -176,4 +176,66 @@ def to_jnwb(signals: Any) -> JnwbView:
     )
 
 
-__all__ = ["JnwbView", "to_jnwb"]
+@dataclass(frozen=True)
+class JnwbTrials:
+    """A trial batch as jnwb inputs: one ``JnwbView`` per trial on a shared time grid."""
+
+    fs_hz: float
+    dt_ms: float
+    t0_s: float
+    n_steps: int
+    trial_ids: tuple[str, ...]
+    condition_labels: tuple[Optional[str], ...]
+    views: tuple[JnwbView, ...]
+
+    def stack(self, name: str) -> np.ndarray:
+        """``(n_trials, n_steps, ...)`` read-only array of view field ``name`` (trials on axis 0)."""
+        parts = [getattr(v, name) for v in self.views]
+        if any(p is None for p in parts):
+            raise ValueError(f"to_jnwb_trials: {name!r} was not recorded in every trial")
+        if not all(isinstance(p, np.ndarray) and p.shape[:1] == (self.n_steps,) for p in parts):
+            raise ValueError(f"to_jnwb_trials: {name!r} is not a per-step array")
+        out = np.stack(parts)
+        out.flags.writeable = False
+        return out
+
+
+def to_jnwb_trials(batch: Any) -> JnwbTrials:
+    """Return a ``TrialBatchResult`` as ``JnwbTrials``, trial order kept.
+
+    Every trial is converted with ``to_jnwb`` and must share ``dt_ms``, ``t0``,
+    ``n_steps`` and the unit count, so trial ``i`` of ``stack(...)`` is
+    ``batch.results[i]``.
+
+    Raises:
+        ValueError: the batch is empty, a trial failed or has no signals (a
+            dropped trial would shift every later index; filter the batch
+            first), or the trials do not share one time grid and unit count.
+    """
+    results = tuple(batch.results)
+    if not results:
+        raise ValueError("to_jnwb_trials: empty batch")
+    failed = [r.trial_id for r in results if not r.success or r.signals is None]
+    if failed:
+        raise ValueError(f"to_jnwb_trials: trials without signals {failed}; filter the batch first")
+    views = tuple(to_jnwb(r.signals) for r in results)
+    first = views[0]
+    for r, v in zip(results, views):
+        if (v.dt_ms, v.t0_s, v.n_steps, v.V_m.shape) != (first.dt_ms, first.t0_s, first.n_steps, first.V_m.shape):
+            raise ValueError(
+                f"to_jnwb_trials: trial {r.trial_id!r} has dt_ms={v.dt_ms}, t0_s={v.t0_s}, "
+                f"V_m {v.V_m.shape}; trial {results[0].trial_id!r} has dt_ms={first.dt_ms}, "
+                f"t0_s={first.t0_s}, V_m {first.V_m.shape}"
+            )
+    return JnwbTrials(
+        fs_hz=first.fs_hz,
+        dt_ms=first.dt_ms,
+        t0_s=first.t0_s,
+        n_steps=first.n_steps,
+        trial_ids=tuple(str(r.trial_id) for r in results),
+        condition_labels=tuple(r.condition_label for r in results),
+        views=views,
+    )
+
+
+__all__ = ["JnwbTrials", "JnwbView", "to_jnwb", "to_jnwb_trials"]

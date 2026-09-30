@@ -446,6 +446,15 @@ def _pinned_pythons(text: str) -> list[str]:
     return _PY_PIN_RE.findall(text)
 
 
+def test_environment_parity_honours_requirement_markers():
+    """A requirement pip skips on this interpreter is not reported missing."""
+    from scripts.check_environment_parity import _requirement_name
+
+    assert _requirement_name("jnwb>=0.2.5; python_version >= '3.12'") == "jnwb"
+    assert _requirement_name("jnwb>=0.2.5; python_version < '3.0'") is None
+    assert _requirement_name("scipy==1.17.1") == "scipy"
+
+
 def test_ci_python_coverage_is_the_declared_two_versions():
     """CI exercises exactly the two declared interpreter lines, and no others.
 

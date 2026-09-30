@@ -227,17 +227,13 @@ ACCEPTANCE (0.5.5 seal = end of programme)
    cannot express (network, column and field geometry, HDP diagnostics).
    - Inventory and seam rules: `artifacts/programme/jnwb_inventory.md`. A
      jnwb gap is fixed in jnwb, not duplicated here.
-   - Seam built: `jaxfne/jnwb_view.py` (`to_jnwb`, in memory, no jnwb
-     import), `tests/test_jnwb_view.py`, extra `jnwb` (marker 3.12+), in
-     the CI install lines. Remaining seam work: trial batches
-     (`TrialBatchResult` → trial axis), NWB-file export through
-     `pynwb_compat`, and deciding whether `to_jnwb` joins the public
-     surface. Review 2026-09-29 leftovers: the Jaxley bridges mark every
-     sample at or above threshold as a spike, so `to_jnwb` refuses them
-     [H: convert to upward crossings, or keep refusing]; `release_ci.yml`
-     does not install the `jnwb` extra, so the jnwb consumer test skips
-     there, and `check_environment_parity.py` drops environment markers
-     (fix that first, or a 3.11 run reports jnwb missing).
+   - Seam built: `jaxfne/jnwb_view.py` (`to_jnwb`, `to_jnwb_trials`, in
+     memory, no jnwb import), `tests/test_jnwb_view.py`, extra `jnwb`
+     (marker 3.12+) in both CI workflows. Remaining seam work: NWB-file
+     export through `pynwb_compat` [H: item 2 below, wire or remove], and
+     whether `to_jnwb` joins the public surface [H]. The Jaxley bridges mark
+     every sample at or above threshold as a spike, so `to_jnwb` refuses
+     them [H: convert to upward crossings, or keep refusing].
    - jnwb side: `compute_psd` needs an `nperseg` argument. `jnwb/spectral.py`
      is planned for lane F (0.2.10, split first), and jnwb's integrator owns
      its stack and `CHANGELOG.md`, so the item goes into the jnwb stack

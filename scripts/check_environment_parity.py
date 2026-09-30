@@ -54,10 +54,29 @@ def workflow_extras(path: Path = RELEASE_WORKFLOW) -> set[str]:
     return extras
 
 
+def _marker_applies(marker: str) -> bool:
+    """Whether an environment marker holds on this interpreter.
+
+    Without ``packaging`` the requirement counts as required, so the check can
+    only over-report, never hide a missing distribution.
+    """
+    try:
+        from packaging.markers import Marker
+    except ImportError:
+        return True
+    return Marker(marker).evaluate()
+
+
 def _requirement_name(spec: str) -> str | None:
-    """Distribution name from a requirement string, or None to skip it."""
-    spec = spec.split(";", 1)[0].strip()            # drop environment marker
-    spec = re.split(r"[<>=!~\[]", spec, maxsplit=1)[0]  # drop version pin / extras
+    """Distribution name from a requirement string, or None to skip it.
+
+    A requirement whose environment marker is false here (``jnwb; python_version
+    >= '3.12'`` on 3.11) is not installed by pip, so it is not required.
+    """
+    spec, _, marker = spec.partition(";")
+    if marker.strip() and not _marker_applies(marker.strip()):
+        return None
+    spec = re.split(r"[<>=!~\[]", spec.strip(), maxsplit=1)[0]  # drop version pin / extras
     name = spec.strip()
     if not name or name.lower().startswith("jaxfne"):
         return None                                  # self-reference

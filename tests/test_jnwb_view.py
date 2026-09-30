@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 
 import jaxfne as jtfne
-from jaxfne.core import Signals
-from jaxfne.jnwb_view import to_jnwb
+from jaxfne.core import Signals, Simulation, TrialBatch, TrialBatchResult, TrialResult, TrialSpec
+from jaxfne.jnwb_view import to_jnwb, to_jnwb_trials
 
 
 @pytest.fixture(scope="module")
@@ -116,6 +116,30 @@ def test_refusals(case):
     build, match = _REFUSALS[case]
     with pytest.raises(ValueError, match=match):
         to_jnwb(build())
+
+
+def test_trial_batch_stacks_trials_on_axis_0(model):
+    batch = TrialBatch(trials=(TrialSpec("a", seed=0), TrialSpec("b", seed=1)))
+    res = model.run_trials(batch, Simulation(duration_ms=20, dt_ms=0.1))
+    trials = to_jnwb_trials(res)
+    assert trials.trial_ids == ("a", "b")
+    V = trials.stack("V_m")
+    assert V.shape == (2, 200, np.asarray(res.results[0].signals.V_m).shape[1])
+    np.testing.assert_array_equal(V[1], np.asarray(res.results[1].signals.V_m))
+    assert not np.array_equal(V[0], V[1]), "seeds must differ, or trial order is untested"
+    assert trials.stack("lfp_proxy").shape[:2] == (2, 200)
+
+
+def test_trial_batch_refusals():
+    ok = TrialResult("a", signals=_signals(10, 0.1))
+    failed = TrialResult("b", signals=None, success=False, error_message="boom")
+    with pytest.raises(ValueError, match="without signals"):
+        to_jnwb_trials(TrialBatchResult("x", (ok, failed)))
+    other_dt = TrialResult("c", signals=_signals(10, 0.2))
+    with pytest.raises(ValueError, match="trial 'c' has dt_ms=0.2"):
+        to_jnwb_trials(TrialBatchResult("x", (ok, other_dt)))
+    with pytest.raises(ValueError, match="not recorded"):
+        to_jnwb_trials(TrialBatchResult("x", (ok,))).stack("lfp_proxy")
 
 
 def test_jnwb_consumes_the_view(sim):
