@@ -226,6 +226,16 @@ ACCEPTANCE (0.5.5 seal = end of programme)
    from the authors' code, row 10 equations unread). Targets confirmed. Next:
    PDF for row 10, P2 GAP list for row 3 (no AdEx emitter), then P3 sign-off. Starts after the
    0.5.5 seal, with its own stack.
+0a. Controlled model augmentation (human, 2026-09-30): the canonical order is
+   N, then G, then Theta_C, then Theta_X, then W0, then H0. Transforms act on
+   a NeuronalTensor before construct. Scaling N keeps w/sqrt(N). Stochastic
+   variation requires its own seed K_V.
+   - AUG-1 is `jaxfne/augment.py` (clone, ScaleN, geometry). Its commits are
+     6d975c87 and 33efbc04 on the `cl-aug1b` clone. The broad gate passed
+     (4868 passed, 0 failed) and 9/9 mutants were killed. The push waits on the
+     jaxfne-agy-dev verify of `aug1.bundle`, requested in p-jaxfne #24.
+   - AUG-2 covers the parameter axes Theta_X, W0, H0 and Theta_C. It adds
+     bounded stochastic variation seeded by K_V. It starts after AUG-1 lands.
 0b. Structural HDP (human, 2026-09-29): existence over a declared candidate
    set; design note `artifacts/programme/structural_hdp_design.md`. Build
    after the 0.5.5 seal, additive and opt-in; API and hard-vs-graded
