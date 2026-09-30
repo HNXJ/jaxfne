@@ -101,8 +101,10 @@ def homeostatic_h_override_demo() -> NeuronalTensor:
     connections = [
         InterConnection(
             source_layer="L4", source_neuron_type="E", target_layer="L4", target_neuron_type="PV",
-            mechanism="GABA_A",
-            static=StaticParams(g_mech={"GABA_A": 1.0}, reversal_potentials_mV={"GABA_A": -80.0}, dT_ms=5.0),
+            # P-023 (owner ruling 2026-09-30): an E source declares an excitatory
+            # mechanism; this pair was GABA_A (5 ms, -80 mV), which ran as excitatory.
+            mechanism="AMPA",
+            static=StaticParams(g_mech={"AMPA": 1.0}, reversal_potentials_mV={"AMPA": 0.0}, dT_ms=2.0),
             plastic=PlasticParams(w_mech=2.0, H=3.5),  # PV starts above HDP equilibrium (1.0)
         ),
     ]

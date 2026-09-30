@@ -11,7 +11,7 @@ layers, or cell types it has:
                       -- see emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE, the
                       actual single source of truth this module imports below
     InterConnection (within an area)  = [source(Layer,NeuronType), target(Layer,NeuronType), mechanism]
-        mechanism is required, no default (e.g. "AMPA", "GABA")
+        mechanism is required, no default (e.g. "AMPA", "GABA_A")
     AreaConnection  (between areas)   = [source(Area,Layer,NeuronType), target(Area,Layer,NeuronType), mechanism]
         mechanism defaults to "monotonic_cable_synapse"
 
@@ -60,6 +60,7 @@ from .io import save_json, load_json
 from .core import Configuration, Model, construct
 from ._config import check_n_contacts
 from .emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
+from .presets import RECEPTOR_KINETICS
 
 ValueTag = Literal["calibrated", "calibrated_proxy", "relative"]
 ConnectivityMode = Literal["unspecified", "explicit"]
@@ -70,6 +71,13 @@ Plane = Literal["xy", "xz", "yz"]
 DEFAULT_RELATIVE_SIZE = DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
 DEFAULT_OTHER_RELATIVE_SIZE = 1.0
 DEFAULT_AREA_CONNECTION_MECHANISM = "monotonic_cable_synapse"
+
+#: P-023 declaration vocabulary for NeuronalTensor connection mechanisms.
+#: Excitatory receptors may only be driven by E sources; inhibitory receptors
+#: only by non-E sources. Any other name is refused as unknown, except the
+#: AreaConnection default above, whose sign follows the source cell type.
+EXCITATORY_MECHANISMS = frozenset({"AMPA", "NMDA"})
+INHIBITORY_MECHANISMS = frozenset({"GABA_A", "GABA_B"})
 
 #: Maps a Pose3D.plane to (global_axis_for_local_x, global_axis_for_local_y,
 #: global_axis_for_local_depth). "xy" is the canonical default (depth=z, the
@@ -133,11 +141,15 @@ class Layer:
 
 @dataclass
 class StaticParams:
-    """Never plastic/trainable/gradientable: conductances, reversal potentials, dT."""
+    """Never plastic/trainable/gradientable: conductances, reversal potentials, dT.
+
+    ``dT_ms`` (synaptic time constant in ms) is REQUIRED (P-023): ``None``
+    (the default) is refused at wiring time rather than defaulted.
+    """
 
     g_mech: dict = field(default_factory=dict)  # mechanism name -> conductance
     reversal_potentials_mV: dict = field(default_factory=dict)  # mechanism name -> E_rev
-    dT_ms: float = 0.1
+    dT_ms: Optional[float] = None
     value_tag: ValueTag = "relative"
 
 
@@ -166,7 +178,7 @@ class InterConnection:
     source_neuron_type: str
     target_layer: str
     target_neuron_type: str
-    mechanism: str  # required, no default (e.g. "AMPA", "GABA")
+    mechanism: str  # required, no default (e.g. "AMPA", "GABA_A")
     static: StaticParams = field(default_factory=StaticParams)
     plastic: PlasticParams = field(default_factory=PlasticParams)
     # Configured axonal delay in ms (None = undeclared = current behaviour).
@@ -428,10 +440,11 @@ def make_minimal_ei_tensor(
     h: float = 1.0,
 ) -> NeuronalTensor:
     """One flat Layer of n neurons split E/PV by e_fraction, all 4 pairwise
-    E/PV InterConnections (AMPA from E, GABA from PV), plastic.H=h on every
+    E/PV InterConnections (AMPA from E, GABA_A from PV), plastic.H=h on every
     connection -- the minimal all-pairwise E/I circuit shape shared by both
     canonical HDP sanity tests (scripts/major_sanity_test.py,
-    scripts/snt_pipeline.py)."""
+    scripts/snt_pipeline.py). Time constants are declared per mechanism
+    (P-023) from ``presets.RECEPTOR_KINETICS``."""
     e_type = NeuronType.make("E", fraction=e_fraction)
     i_type = NeuronType.make("PV", fraction=1.0 - e_fraction)
     layer = Layer(name=layer_name, n_neurons=n, neuron_types=[e_type, i_type])
@@ -441,7 +454,12 @@ def make_minimal_ei_tensor(
             source_neuron_type=src,
             target_layer=layer_name,
             target_neuron_type=tgt,
-            mechanism=("AMPA" if src == "E" else "GABA"),
+            mechanism=("AMPA" if src == "E" else "GABA_A"),
+            static=StaticParams(
+                dT_ms=float(
+                    RECEPTOR_KINETICS["AMPA" if src == "E" else "GABA_A"]["tau_ms"]
+                )
+            ),
             plastic=PlasticParams(H=h),
         )
         for src in ("E", "PV")
@@ -1007,6 +1025,42 @@ def _connection_edge_weight(conn: "InterConnection | AreaConnection", total_n: i
     return abs(float(conn.plastic.w_mech) * float(g_scale)) / math.sqrt(max(total_n, 1))
 
 
+def _check_connection_mechanism_sign(
+    conn: "InterConnection | AreaConnection", label: str
+) -> str:
+    """P-023 sign vocabulary: resolve a connection's sign from its mechanism name.
+
+    Excitatory ``{AMPA, NMDA}`` requires an E source; inhibitory ``{GABA_A,
+    GABA_B}`` requires a non-E source; any other name is refused as unknown,
+    except ``monotonic_cable_synapse`` (the AreaConnection default), whose
+    sign follows the source cell type as before. Returns the resolved sign.
+    """
+    mech = conn.mechanism
+    if mech in EXCITATORY_MECHANISMS:
+        sign = "excitatory"
+    elif mech in INHIBITORY_MECHANISMS:
+        sign = "inhibitory"
+    elif mech == DEFAULT_AREA_CONNECTION_MECHANISM:
+        return "excitatory" if conn.source_neuron_type == "E" else "inhibitory"
+    else:
+        raise ValueError(
+            f"P-023: {label} uses unknown mechanism {mech!r}; known mechanisms "
+            "are {AMPA, NMDA} (excitatory) and {GABA_A, GABA_B} (inhibitory)"
+        )
+    src = conn.source_neuron_type
+    if sign == "inhibitory" and src == "E":
+        raise ValueError(
+            f"P-023: {label}: E source with inhibitory mechanism {mech!r}; "
+            "use an excitatory mechanism (AMPA, NMDA) for E sources"
+        )
+    if sign == "excitatory" and src != "E":
+        raise ValueError(
+            f"P-023: {label}: non-E source {src!r} with excitatory mechanism "
+            f"{mech!r}; use an inhibitory mechanism (GABA_A, GABA_B) for non-E sources"
+        )
+    return sign
+
+
 def _wire_connection(
     cfg: Configuration,
     conn: "InterConnection | AreaConnection",
@@ -1016,6 +1070,7 @@ def _wire_connection(
     target_area: str,
     total_n: int,
     declared_mechanisms: dict[tuple[str, float], str],
+    _tfne_resolved: bool = False,
 ) -> Configuration:
     """Declare one real edge rule (mechanism + connection) for an Inter/AreaConnection.
 
@@ -1025,17 +1080,35 @@ def _wire_connection(
     ``_apply_connectivity`` — selectors carry no same-area restriction,
     so this is what actually couples two different areas (or two specific
     layer x cell-type populations within one area) into the simulated
-    dynamics.     ``mechanism`` -> ``tau_ms`` comes from ``static.dT_ms``;
+    dynamics.     ``mechanism`` -> ``tau_ms`` comes from ``static.dT_ms``
+    (P-023: required — ``None`` is refused, never defaulted);
     mechanisms are deduplicated by (name, dT_ms) so repeated connections
     sharing both don't raise on ``Configuration``'s duplicate-name guard.
     A declared ``InterConnection.delay_ms`` is forwarded into the rule;
     ``None`` leaves the rule without a delay (current behaviour).
+    Sign follows the P-023 mechanism vocabulary
+    (:func:`_check_connection_mechanism_sign`), except for TFNE-derived
+    tensors (``_tfne_resolved``: TFNE carries its own fail-closed mechanism
+    vocabulary plus weight-polarity sign, so the declaration vocabulary is
+    not re-applied there; owner ruling 2026-09-30, pinned by the TFNE
+    custom-mechanism, direct-coupling and polarity tests).
     """
-    mech_key = (conn.mechanism, float(conn.static.dT_ms))
+    label = (
+        f"{type(conn).__name__} {source_area}.{conn.source_layer}."
+        f"{conn.source_neuron_type}->{target_area}.{conn.target_layer}."
+        f"{conn.target_neuron_type} ({conn.mechanism!r})"
+    )
+    if conn.static.dT_ms is None:
+        raise ValueError(
+            f"P-023: {label} declares no time constant (StaticParams.dT_ms "
+            "is None); time constants are required, never defaulted"
+        )
+    tau_ms = float(conn.static.dT_ms)
+    mech_key = (conn.mechanism, tau_ms)
     mech_name = declared_mechanisms.get(mech_key)
     if mech_name is None:
-        mech_name = f"{conn.mechanism}__dt{conn.static.dT_ms:g}__{len(declared_mechanisms)}"
-        mech_params: dict[str, object] = {"tau_ms": float(conn.static.dT_ms)}
+        mech_name = f"{conn.mechanism}__dt{tau_ms:g}__{len(declared_mechanisms)}"
+        mech_params: dict[str, object] = {"tau_ms": tau_ms}
         reversal_mV = conn.static.reversal_potentials_mV.get(conn.mechanism)
         if reversal_mV is not None:
             # Declared metadata only: jaxfne's compiled edges are
@@ -1047,7 +1120,10 @@ def _wire_connection(
         cfg = cfg.mechanisms(name=mech_name, kind=conn.mechanism, params=mech_params)
         declared_mechanisms[mech_key] = mech_name
 
-    sign = "excitatory" if conn.source_neuron_type == "E" else "inhibitory"
+    if _tfne_resolved:
+        sign = "excitatory" if conn.source_neuron_type == "E" else "inhibitory"
+    else:
+        sign = _check_connection_mechanism_sign(conn, label)
     wire_kw: dict[str, object] = {}
     conn_delay = getattr(conn, "delay_ms", None)
     if conn_delay is not None:
@@ -1149,9 +1225,13 @@ def neuronal_tensor_to_configuration(
     own default recurrent ``W`` in ``_apply_connectivity`` is
     same-area-masked and would leave bridged areas dynamically isolated).
     ``mechanism`` resolves to a real per-edge ``tau_ms`` (from
-    ``static.dT_ms``); edge magnitude is ``w_mech * g_mech / sqrt(total_n)``
-    (see :func:`_connection_edge_weight`); sign follows the source neuron
-    type (E -> excitatory, else inhibitory). Each rule connects with
+    ``static.dT_ms``, P-023-required); edge magnitude is ``w_mech * g_mech / sqrt(total_n)``
+    (see :func:`_connection_edge_weight`); sign follows the P-023 mechanism
+    vocabulary (excitatory {AMPA, NMDA} from E sources, inhibitory {GABA_A,
+    GABA_B} from non-E sources; ``monotonic_cable_synapse`` exempt, sign from
+    the source type). TFNE-derived tensors (provenance carries
+    ``tfne_digest``) skip the declaration vocabulary: TFNE resolves kinetics
+    fail-closed in its own compiler and carries sign on weight polarity.
     ``probability=1.0`` (full bipartite between the selected populations) —
     the tensor model declares connection membership, not a separate density
     parameter, so full density between the declared layer x cell-type pair
@@ -1304,6 +1384,8 @@ def neuronal_tensor_to_configuration(
 
     total_n = sum(area_n_by_name.values()) or 1
     declared_mechanisms: dict[tuple[str, float], str] = {}
+    provenance = getattr(tensor, "provenance", None)
+    tfne_resolved = isinstance(provenance, dict) and "tfne_digest" in provenance
     for area in tensor.areas:
         for idx, ic in enumerate(area.inter_connections):
             cfg = _wire_connection(
@@ -1314,6 +1396,7 @@ def neuronal_tensor_to_configuration(
                 target_area=area.name,
                 total_n=total_n,
                 declared_mechanisms=declared_mechanisms,
+                _tfne_resolved=tfne_resolved,
             )
     for idx, ac in enumerate(tensor.area_connections):
         cfg = _wire_connection(
@@ -1324,6 +1407,7 @@ def neuronal_tensor_to_configuration(
             target_area=ac.target_area,
             total_n=total_n,
             declared_mechanisms=declared_mechanisms,
+            _tfne_resolved=tfne_resolved,
         )
 
     if emitter == "izhikevich":

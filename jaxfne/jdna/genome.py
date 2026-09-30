@@ -41,6 +41,7 @@ from ..neuronal_tensor import (
     NeuronType,
     PlasticParams,
     Pose3D,
+    StaticParams,
 )
 
 PSEUDOGENOME_SCHEMA_VERSION = "pseudogenome_v1"
@@ -120,6 +121,10 @@ class PseudoGenome:
     # Compact between-area rules, expanded by ``develop`` into explicit
     # area connections (see :func:`expand_area_connection_rules`).
     area_connection_rules: Sequence[Mapping[str, Any]] = field(default_factory=tuple)
+    # P-023 per-mechanism kinetics table: {mechanism_kind: tau_ms}.
+    # ``develop`` puts each connection's mechanism tau into its
+    # StaticParams.dT_ms and refuses a mechanism with no entry here.
+    mechanism_tau_ms: Mapping[str, float] = field(default_factory=dict)
 
 
 AREA_CONNECTION_RULE_KINDS = ("exponential_distance",)
@@ -237,6 +242,8 @@ def genome_rules_hash(genome: PseudoGenome) -> str:
     }
     if genome.area_connection_rules:  # absent key keeps rule-free genomes' hashes stable
         payload["area_connection_rules"] = [dict(r) for r in genome.area_connection_rules]
+    if genome.mechanism_tau_ms:  # absent key keeps tau-free genomes' hashes stable
+        payload["mechanism_tau_ms"] = {str(k): float(v) for k, v in genome.mechanism_tau_ms.items()}
     blob = json.dumps(_canonical(payload), sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(blob).hexdigest()
 
@@ -346,6 +353,27 @@ def pseudogenome_from_dict(raw: Mapping[str, Any]) -> PseudoGenome:
                 pose=_canonical_pose(dict(area_raw.get("pose", {}))),
             )
         )
+    tau_raw = raw.get("mechanism_tau_ms", {})
+    if not isinstance(tau_raw, Mapping):
+        raise ValueError(
+            f"PseudoGenome {str(raw.get('name', ''))!r}: mechanism_tau_ms must be "
+            f"a mapping of mechanism kind to tau_ms, got {tau_raw!r}"
+        )
+    mechanism_tau_ms: dict[str, float] = {}
+    for kind, tau in tau_raw.items():
+        try:
+            tau_ms = float(tau)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"PseudoGenome mechanism_tau_ms[{kind!r}] must be a number in ms; "
+                f"got {tau!r}"
+            )
+        if not (math.isfinite(tau_ms) and tau_ms > 0.0):
+            raise ValueError(
+                f"PseudoGenome mechanism_tau_ms[{kind!r}] must be finite and > 0; "
+                f"got {tau!r}"
+            )
+        mechanism_tau_ms[str(kind)] = tau_ms
     return PseudoGenome(
         name=str(raw["name"]),
         schema_version=declared,
@@ -354,6 +382,7 @@ def pseudogenome_from_dict(raw: Mapping[str, Any]) -> PseudoGenome:
         area_connections=tuple(dict(c) for c in raw.get("area_connections", [])),
         development_parameters=dict(raw.get("development_parameters", {})),
         area_connection_rules=tuple(dict(r) for r in raw.get("area_connection_rules", [])),
+        mechanism_tau_ms=mechanism_tau_ms,
     )
 
 
@@ -410,6 +439,8 @@ def _area_to_dict_outer(genome: PseudoGenome) -> dict[str, Any]:
     }
     if genome.area_connection_rules:
         out["area_connection_rules"] = [dict(r) for r in genome.area_connection_rules]
+    if genome.mechanism_tau_ms:
+        out["mechanism_tau_ms"] = {str(k): float(v) for k, v in genome.mechanism_tau_ms.items()}
     return out
 
 
@@ -506,6 +537,18 @@ def validate_genome(genome: PseudoGenome) -> None:
                         f"area {area.name!r}: connection rule references unknown "
                         f"{role} {getattr(rule, role)!r} in layer {lname!r}"
                     )
+
+    for kind, tau in dict(genome.mechanism_tau_ms).items():
+        try:
+            tau_ms = float(tau)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"genome mechanism_tau_ms[{kind!r}] must be a number in ms; got {tau!r}"
+            )
+        if not (math.isfinite(tau_ms) and tau_ms > 0.0):
+            raise ValueError(
+                f"genome mechanism_tau_ms[{kind!r}] must be finite and > 0; got {tau!r}"
+            )
 
     # Derived entries are checked exactly like declared ones.
     for raw in [*genome.area_connections, *expand_area_connection_rules(genome)]:
@@ -741,8 +784,22 @@ def develop(
     edge realization are resolved by the ordinary ``construct``/``simulate``
     pipeline under the runtime PRNG domain ``K_S`` (``RuntimeConfiguration``).
     Development determines structure; construction realizes it.
+
+    Kinetics (P-023) come from the genome's ``mechanism_tau_ms`` table: each
+    developed connection carries its mechanism's tau in
+    ``StaticParams.dT_ms``. A connection whose mechanism has no table entry
+    is refused (``ValueError``) rather than defaulted.
     """
     validate_genome(genome)
+    tau_table = {str(k): float(v) for k, v in dict(genome.mechanism_tau_ms).items()}
+
+    def _tau_for(mechanism: str, ref: str) -> float:
+        if mechanism not in tau_table:
+            raise ValueError(
+                f"P-023: {ref} uses mechanism {mechanism!r} with no entry in genome "
+                "mechanism_tau_ms; time constants are required, never defaulted"
+            )
+        return tau_table[mechanism]
     params = dict(genome.development_parameters)
     if development_parameters is not None:
         params.update(development_parameters)
@@ -809,6 +866,14 @@ def develop(
                 target_layer=c.target_layer,
                 target_neuron_type=c.target_neuron_type,
                 mechanism=c.mechanism,
+                static=StaticParams(
+                    dT_ms=_tau_for(
+                        c.mechanism,
+                        f"area {area.name!r} inter_connection "
+                        f"{c.source_layer}.{c.source_neuron_type}->"
+                        f"{c.target_layer}.{c.target_neuron_type}",
+                    )
+                ),
             )
             for c in area.inter_connections
         ]
@@ -831,6 +896,7 @@ def develop(
     area_connections: list[AreaConnection] = []
     derived = expand_area_connection_rules(genome)
     for i, raw in enumerate([*genome.area_connections, *derived]):
+        mechanism = str(raw.get("mechanism", "monotonic_cable_synapse"))
         area_connections.append(
             AreaConnection(
                 source_area=str(raw["source_area"]),
@@ -839,7 +905,8 @@ def develop(
                 target_area=str(raw["target_area"]),
                 target_layer=str(raw["target_layer"]),
                 target_neuron_type=str(raw["target_neuron_type"]),
-                mechanism=str(raw.get("mechanism", "monotonic_cable_synapse")),
+                mechanism=mechanism,
+                static=StaticParams(dT_ms=_tau_for(mechanism, f"area_connections[{i}]")),
                 delay_ms=raw.get("delay_ms"),
                 probability=raw.get("probability"),
                 plastic=PlasticParams(w_mech=float(raw.get("w_mech", 1.0))),

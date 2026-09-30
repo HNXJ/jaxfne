@@ -31,6 +31,7 @@ def _genome(positions, *, n=10, p_max=0.5, decay=0.5, traversal_ms=20.0, **extra
             "targets": [{"layer": "L", "neuron_type": "E"}], "mechanism": "AMPA", **extra}
     return pseudogenome_from_dict({
         "name": "g-test", "areas": [{"name": a, "layers": [layer]} for a in positions],
+        "mechanism_tau_ms": {"AMPA": 2.0},
         "area_connection_rules": [rule]})
 
 
@@ -51,9 +52,12 @@ def test_rule_expands_by_its_formula_and_marks_origins():
 
 def test_rule_free_genomes_keep_their_hashes():
     g = load_canonical_pseudogenome("canonical-v1-column-1000n")
-    assert genome_rules_hash(g) == "07282b0928e9be9e49be5fa0a616da6fa65eaf72184976cd53a1cc6ce5dd0e76"
+    # P-023 re-issue: the canonical genome gained mechanism_tau_ms
+    # {AMPA: 2.0, GABA_A: 5.0} (was 07282b09...), and developed phenotypes
+    # now carry those taus in StaticParams.dT_ms (was 261f6997...).
+    assert genome_rules_hash(g) == "1e1a3d2427979dab6fd172d1bfb05acffac115653eb5e611a84fe01d0026d874"
     assert develop(g, seed=0).provenance["phenotype_sha256"] == (
-        "261f6997682b6b40d3aaa232cb4328e4eb0d4650d2b959d2bf2c15809c9ab49f")
+        "d422056a2cb889620a8671105372f27a55ca2a43d093da0694dd12f8c251b02c")
 
 
 def _cross_edges(tensor, dt_ms=0.5):

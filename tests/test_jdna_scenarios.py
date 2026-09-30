@@ -167,9 +167,10 @@ def _tiny_deterministic_genome():
             "inter_connections": [{
                 "source_layer": "L4", "source_neuron_type": "E",
                 "target_layer": "L4", "target_neuron_type": "PV",
-                "mechanism": "GABA_A",
+                "mechanism": "AMPA",
             }],
         }],
+        "mechanism_tau_ms": {"AMPA": 2.0},
         "development_parameters": {"fraction_jitter_sigma": 0.0},
     })
 
@@ -188,10 +189,11 @@ def test_jdna_developed_tensor_matches_hand_spelled_configuration():
     `_wire_connection` + `_connection_edge_weight`, not executed): the genome
     develops to V1 = 20 neurons in L4 with E/PV = 0.5/0.5 (exact, sigma 0, so
     the bridge's declared-fraction path records 0.5/0.5 per area/layer and
-    globally); one InterConnection E -> PV with mechanism GABA_A, whose
-    StaticParams default (dT_ms=0.1, no g_mech, no reversal) wires mechanism
-    "GABA_A__dt0.1__0" (kind + `:g`-formatted dT_ms + dedup index 0) with
-    params tau_ms=0.1, rule "interconn_V1_0", full-bipartite probability 1.0,
+    globally); one InterConnection E -> PV with mechanism AMPA, whose tau
+    comes from the genome's mechanism_tau_ms table (AMPA 2.0 ms, P-023) and
+    wires mechanism "AMPA__dt2__0" (kind + `:g`-formatted dT_ms + dedup index
+    0) with params tau_ms=2.0, rule "interconn_V1_0", full-bipartite
+    probability 1.0,
     weight |1.0 * 1.0| / sqrt(20), sign from the E source -> excitatory, no
     delay (InterConnection.delay_ms defaults to None); connectivity_mode
     "explicit" (passing inter_connections=[...] marks the area explicit, so
@@ -202,7 +204,7 @@ def test_jdna_developed_tensor_matches_hand_spelled_configuration():
     `tfne_geometry`, so there is no geometry to spell here -- and positions
     plus every field proxy are compared bit-exact.
 
-    D=200 ms spikes (38 spikes), so the comparison is not vacuous."""
+    D=200 ms spikes, so the comparison is not vacuous."""
     genome = _tiny_deterministic_genome()
     assert develop(genome, seed=0).to_dict() == develop(genome, seed=0).to_dict()
 
@@ -222,8 +224,8 @@ def test_jdna_developed_tensor_matches_hand_spelled_configuration():
         .area_layer_cell_types("V1", {"L4": {"E": 0.5, "PV": 0.5}})
         .cell_types({"E": 0.5, "PV": 0.5})
         .mechanisms(
-            name="GABA_A__dt0.1__0", kind="GABA_A",
-            params={"tau_ms": 0.1},
+            name="AMPA__dt2__0", kind="AMPA",
+            params={"tau_ms": 2.0},
         )
         .connections(
             name="interconn_V1_0",
@@ -232,7 +234,7 @@ def test_jdna_developed_tensor_matches_hand_spelled_configuration():
             probability=1.0,
             weight=1.0 / math.sqrt(20),
             sign="excitatory",
-            mechanism="GABA_A__dt0.1__0",
+            mechanism="AMPA__dt2__0",
         )
         .set_emitter("izhikevich", "cortical_eig")
         .probes(["spikes", "V_m"], n_contacts=16)

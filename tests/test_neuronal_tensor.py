@@ -32,11 +32,11 @@ def _single_area_tensor(h=0.0, with_inter_connection=True):
             nt.InterConnection(
                 source_layer="L4", source_neuron_type="E",
                 target_layer="L4", target_neuron_type="PV",
-                mechanism="GABA_A",
+                mechanism="AMPA",
                 static=nt.StaticParams(
-                    g_mech={"GABA_A": 1.0},
-                    reversal_potentials_mV={"GABA_A": -80.0},
-                    dT_ms=5.0,
+                    g_mech={"AMPA": 1.0},
+                    reversal_potentials_mV={"AMPA": 0.0},
+                    dT_ms=2.0,
                 ),
                 plastic=nt.PlasticParams(w_mech=2.0, H=h),
             )
@@ -68,7 +68,7 @@ def test_roundtrip_json(tmp_path):
     assert loaded.name == tensor.name
     assert len(loaded.areas) == len(tensor.areas)
     assert loaded.areas[0].inter_connections[0].plastic.H == pytest.approx(2.5)
-    assert loaded.areas[0].inter_connections[0].static.reversal_potentials_mV["GABA_A"] == pytest.approx(-80.0)
+    assert loaded.areas[0].inter_connections[0].static.reversal_potentials_mV["AMPA"] == pytest.approx(0.0)
 
 
 def test_construct_produces_runnable_model():
@@ -139,8 +139,8 @@ def test_reversal_metadata_surfaced_but_inert():
     tensor = _single_area_tensor()
     cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
     mechanisms = cfg.metadata["circuit"]["mechanisms"]
-    gaba_mech = next(m for m in mechanisms if m["kind"] == "GABA_A")
-    assert gaba_mech["params"]["reversal_mV"] == pytest.approx(-80.0)
+    ampa_mech = next(m for m in mechanisms if m["kind"] == "AMPA")
+    assert ampa_mech["params"]["reversal_mV"] == pytest.approx(0.0)
 
     model_a = jtfne.construct(cfg)
     model_b = jtfne.construct(cfg)
@@ -431,9 +431,9 @@ def test_hand_spelled_configuration_matches_tensor_entrance():
     Literal provenance (read from `neuronal_tensor_to_configuration` +
     `_wire_connection` + `_connection_edge_weight`, not executed):
     area V1 = 20 neurons in layer L4; no declared fractions -> even split
-    E/PV = 0.5/0.5; mechanism name "GABA_A__dt5__0" (kind + `:g`-formatted
-    dT_ms + dedup index 0), params tau_ms=5.0 plus the surfaced-but-inert
-    reversal_mV=-80.0; rule "interconn_V1_0", full-bipartite probability 1.0,
+    E/PV = 0.5/0.5; mechanism name "AMPA__dt2__0" (kind + `:g`-formatted
+    dT_ms + dedup index 0), params tau_ms=2.0 plus the surfaced-but-inert
+    reversal_mV=0.0; rule "interconn_V1_0", full-bipartite probability 1.0,
     weight |2.0 * 1.0| / sqrt(20), sign from the E source -> excitatory, no
     delay (InterConnection.delay_ms defaults to None); connectivity_mode
     "explicit" (passing inter_connections=[...] to Area(...) marks that area
@@ -461,8 +461,8 @@ def test_hand_spelled_configuration_matches_tensor_entrance():
         .area_layer_cell_types("V1", {"L4": {"E": 0.5, "PV": 0.5}})
         .cell_types({"E": 0.5, "PV": 0.5})
         .mechanisms(
-            name="GABA_A__dt5__0", kind="GABA_A",
-            params={"tau_ms": 5.0, "reversal_mV": -80.0},
+            name="AMPA__dt2__0", kind="AMPA",
+            params={"tau_ms": 2.0, "reversal_mV": 0.0},
         )
         .connections(
             name="interconn_V1_0",
@@ -471,7 +471,7 @@ def test_hand_spelled_configuration_matches_tensor_entrance():
             probability=1.0,
             weight=2.0 / math.sqrt(20),
             sign="excitatory",
-            mechanism="GABA_A__dt5__0",
+            mechanism="AMPA__dt2__0",
         )
         .set_emitter("izhikevich", "cortical_eig")
         .probes(["spikes", "V_m"], n_contacts=16)
@@ -537,11 +537,11 @@ def test_hand_spelled_two_area_configuration_matches_tensor_entrance():
     inter = nt.InterConnection(
         source_layer="L4", source_neuron_type="E",
         target_layer="L4", target_neuron_type="PV",
-        mechanism="GABA_A",
+        mechanism="AMPA",
         static=nt.StaticParams(
-            g_mech={"GABA_A": 1.0},
-            reversal_potentials_mV={"GABA_A": -80.0},
-            dT_ms=5.0,
+            g_mech={"AMPA": 1.0},
+            reversal_potentials_mV={"AMPA": 0.0},
+            dT_ms=2.0,
         ),
         plastic=nt.PlasticParams(w_mech=2.0, H=0.0),
     )
@@ -574,8 +574,8 @@ def test_hand_spelled_two_area_configuration_matches_tensor_entrance():
         .area_layer_cell_types("V2", {"L4": {"E": 1.0}})
         .cell_types({"E": 22.0 / 32.0, "PV": 10.0 / 32.0})
         .mechanisms(
-            name="GABA_A__dt5__0", kind="GABA_A",
-            params={"tau_ms": 5.0, "reversal_mV": -80.0},
+            name="AMPA__dt2__0", kind="AMPA",
+            params={"tau_ms": 2.0, "reversal_mV": 0.0},
         )
         .connections(
             name="interconn_V1_0",
@@ -584,7 +584,7 @@ def test_hand_spelled_two_area_configuration_matches_tensor_entrance():
             probability=1.0,
             weight=2.0 / math.sqrt(32),
             sign="excitatory",
-            mechanism="GABA_A__dt5__0",
+            mechanism="AMPA__dt2__0",
         )
         .mechanisms(
             name="AMPA__dt2__1", kind="AMPA",
@@ -652,11 +652,11 @@ def test_declared_layer_geometry_carried_through_bridge():
                     nt.InterConnection(
                         source_layer="L4", source_neuron_type="E",
                         target_layer="L4", target_neuron_type="PV",
-                        mechanism="GABA_A",
+                        mechanism="AMPA",
                         static=nt.StaticParams(
-                            g_mech={"GABA_A": 1.0},
-                            reversal_potentials_mV={"GABA_A": -80.0},
-                            dT_ms=5.0,
+                            g_mech={"AMPA": 1.0},
+                            reversal_potentials_mV={"AMPA": 0.0},
+                            dT_ms=2.0,
                         ),
                         plastic=nt.PlasticParams(w_mech=2.0, H=0.0),
                     )
@@ -698,8 +698,8 @@ def test_declared_layer_geometry_carried_through_bridge():
         .cell_types({"E": 0.5, "PV": 0.5})
         .update_metadata(tfne_geometry={"value_tag": "relative", "domains": domains})
         .mechanisms(
-            name="GABA_A__dt5__0", kind="GABA_A",
-            params={"tau_ms": 5.0, "reversal_mV": -80.0},
+            name="AMPA__dt2__0", kind="AMPA",
+            params={"tau_ms": 2.0, "reversal_mV": 0.0},
         )
         .connections(
             name="interconn_V1_0",
@@ -708,7 +708,7 @@ def test_declared_layer_geometry_carried_through_bridge():
             probability=1.0,
             weight=2.0 / math.sqrt(20),
             sign="excitatory",
-            mechanism="GABA_A__dt5__0",
+            mechanism="AMPA__dt2__0",
         )
         .set_emitter("izhikevich", "cortical_eig")
         .probes(["spikes", "V_m"], n_contacts=16)

@@ -7,6 +7,7 @@ type closure, structural validity, serialization), V (provenance), and S
 """
 from __future__ import annotations
 
+import dataclasses
 import json
 import math
 import pathlib
@@ -165,14 +166,8 @@ class TestProvenance:
         h1 = genome_rules_hash(g)
         h2 = genome_rules_hash(load_canonical())
         assert h1 == h2
-        g2 = PseudoGenome(
-            name=g.name,
-            schema_version=g.schema_version,
-            description="completely different prose",
-            areas=g.areas,
-            area_connections=g.area_connections,
-            development_parameters=g.development_parameters,
-        )
+        # Every field but the description (P-023 added mechanism_tau_ms).
+        g2 = dataclasses.replace(g, description="completely different prose")
         assert genome_rules_hash(g2) == h1
 
     def test_save_load_roundtrip(self, tmp_path):
@@ -331,7 +326,10 @@ class TestValidation:
                  "source_neuron_type": "E",
                  "target_area": "A", "target_layer": "L1",
                  "target_neuron_type": "E"}
-        g3 = PseudoGenome(name="ok", areas=(area,), area_connections=(valid,))
+        # P-023: the default cable mechanism still needs a declared tau to
+        # develop; 0.1 reproduces the pre-P-023 effective StaticParams default.
+        g3 = PseudoGenome(name="ok", areas=(area,), area_connections=(valid,),
+                          mechanism_tau_ms={"monotonic_cable_synapse": 0.1})
         validate_genome(g3)
         t = develop(g3, seed=0)
         assert len(t.area_connections) == 1

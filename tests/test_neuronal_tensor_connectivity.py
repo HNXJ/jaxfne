@@ -64,7 +64,10 @@ def test_explicit_single_rule_has_no_hidden_defaults():
                 name="V1",
                 layers=[_layer()],
                 inter_connections=[
-                    nt.InterConnection("L1", "E", "L1", "PV", "AMPA")
+                    nt.InterConnection(
+                        "L1", "E", "L1", "PV", "AMPA",
+                        static=nt.StaticParams(dT_ms=2.0),
+                    )
                 ],
             )
         ],
@@ -139,7 +142,10 @@ def test_contradictory_unspecified_mode_is_rejected():
 
 
 def test_duplicate_explicit_synaptic_identity_is_rejected():
-    connection = nt.InterConnection("L1", "E", "L1", "PV", "AMPA")
+    connection = nt.InterConnection(
+        "L1", "E", "L1", "PV", "AMPA",
+        static=nt.StaticParams(dT_ms=2.0),
+    )
     tensor = nt.NeuronalTensor(
         areas=[
             nt.Area(
@@ -210,7 +216,10 @@ def test_explicit_cross_area_topology_has_no_implicit_within_area_edges():
     tensor = nt.NeuronalTensor(
         areas=[nt.Area(name="V1", layers=layers), nt.Area(name="V4", layers=layers)],
         area_connections=[
-            nt.AreaConnection("V1", "L1", "E", "V4", "L1", "E", mechanism="AMPA")
+            nt.AreaConnection(
+                "V1", "L1", "E", "V4", "L1", "E", mechanism="AMPA",
+                static=nt.StaticParams(dT_ms=2.0),
+            )
         ],
     )
 
@@ -237,7 +246,10 @@ def test_postconstruction_area_assignment_updates_authoritative_mode():
         areas=[nt.Area(name="V1", layers=layers), nt.Area(name="V4", layers=layers)]
     )
     tensor.area_connections = [
-        nt.AreaConnection("V1", "L1", "E", "V4", "L1", "E", mechanism="AMPA")
+        nt.AreaConnection(
+            "V1", "L1", "E", "V4", "L1", "E", mechanism="AMPA",
+            static=nt.StaticParams(dT_ms=2.0),
+        )
     ]
 
     model = _model(tensor)
@@ -251,7 +263,12 @@ def test_removing_inferred_explicit_area_restores_unspecified_defaults():
     area = nt.Area(
         name="V1",
         layers=[_layer()],
-        inter_connections=[nt.InterConnection("L1", "E", "L1", "PV", "AMPA")],
+        inter_connections=[
+            nt.InterConnection(
+                "L1", "E", "L1", "PV", "AMPA",
+                static=nt.StaticParams(dT_ms=2.0),
+            )
+        ],
     )
     tensor = nt.NeuronalTensor(areas=[area])
     tensor.areas.clear()

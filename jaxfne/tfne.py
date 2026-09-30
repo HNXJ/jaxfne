@@ -3134,7 +3134,6 @@ def to_configuration(
     from dataclasses import replace as _replace
 
     from .neuronal_tensor import (
-        StaticParams as _StaticParams,
         neuronal_tensor_to_configuration,
     )
 
@@ -3154,18 +3153,19 @@ def to_configuration(
     # Synaptic kinetics are not a TFNE-declared parameter: the realized
     # mechanism table carries `tau_ms: None` and `declared_not_simulated`.
     # Inherit whatever the structural bridge declared for each mechanism kind
-    # (it derives tau from the connection's own `static.dT_ms`) rather than
-    # inventing a value here. In particular it must NOT come from `dt_ms`:
-    # tying synaptic decay to the integration timestep would make a refined
-    # timestep silently change the synapse model, so the model would not
-    # converge under dt-refinement.
+    # (it derives tau from the connection's own `static.dT_ms`, P-023-required)
+    # rather than inventing a value here. In particular it must NOT come from
+    # `dt_ms`: tying synaptic decay to the integration timestep would make a
+    # refined timestep silently change the synapse model, so the model would
+    # not converge under dt-refinement. A realized mechanism absent from the
+    # bridge has no declared kinetics and is refused (P-023) instead of
+    # falling back to a default.
     bridge_tau: dict[str, float] = {}
     for m in cfg.metadata.get("circuit", {}).get("mechanisms", []):
         kind = m.get("kind")
         tau = m.get("params", {}).get("tau_ms")
         if kind is not None and tau is not None:
             bridge_tau.setdefault(str(kind), float(tau))
-    default_tau = float(_StaticParams().dT_ms)
 
     mechanisms: list[dict[str, Any]] = []
     declared: dict[str, str] = {}
@@ -3178,11 +3178,18 @@ def to_configuration(
         if name is None:
             name = f"{mech}__tfne__{len(declared)}"
             declared[mech] = name
+            tau = bridge_tau.get(mech)
+            if tau is None:
+                raise TFNEError(
+                    f"E_TAU_UNDECLARED: realized mechanism {mech!r} has no tau "
+                    "in the structural bridge (P-023); time constants are "
+                    "required, never defaulted"
+                )
             mechanisms.append(
                 {
                     "name": name,
                     "kind": mech,
-                    "params": {"tau_ms": bridge_tau.get(mech, default_tau)},
+                    "params": {"tau_ms": tau},
                 }
             )
         weight = float(spec["weight"])
