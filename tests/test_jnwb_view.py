@@ -103,12 +103,27 @@ _REFUSALS = {
     "rate": (lambda: _signals(10, 0.1, spikes=jnp.full((10, 2), 0.25)), "integer counts"),
     "negative": (lambda: _signals(10, 0.1, spikes=-jnp.ones((10, 2))), "integer counts"),
     "nan": (lambda: _signals(10, 0.1, spikes=jnp.full((10, 2), jnp.nan)), "integer counts"),
-    "threshold_levels": (lambda: _signals(10, 0.1, meta={"dt_ms": 0.1, "spike_threshold": 0.0}),
-                         "threshold"),
-    "hh_bridge": (lambda: _signals(10, 0.1, meta={"dt_ms": 0.1,
-                                                   "bridge": "jaxley_hh_laminar_field"}),
-                  "threshold"),
+    "non_binary_levels": (lambda: _signals(10, 0.1, spikes=jnp.full((10, 2), 2.0),
+                                           meta={"dt_ms": 0.1, "spike_threshold": 0.0}),
+                          "0 or 1"),
 }
+
+
+def test_threshold_levels_become_upward_crossings():
+    from jaxfne.bridges import jaxley_trace_to_signals
+
+    # Two 1 ms action potentials at dt 0.025 (40 samples above 0 mV each) and a
+    # trace that starts above threshold, which has no observed crossing.
+    v = np.full((400, 2), -65.0, np.float32)
+    v[40:80, 0] = 20.0
+    v[200:240, 0] = 20.0
+    v[:40, 1] = 20.0
+    sig = jaxley_trace_to_signals(v, dt_ms=0.025)
+    assert np.asarray(sig.spikes)[:, 0].sum() == 80, "fixture must build threshold levels"
+    view = to_jnwb(sig)
+    np.testing.assert_array_equal(view.spike_times_s[0], [40 * 0.025e-3, 200 * 0.025e-3])
+    assert view.spike_times_s[1].size == 0
+    assert view.metadata["jnwb_view_spikes"] == "upward_crossings_of_threshold_levels"
 
 
 @pytest.mark.parametrize("case", sorted(_REFUSALS))

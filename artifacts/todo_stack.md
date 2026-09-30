@@ -94,6 +94,13 @@ one seam that is independent of the rest of jaxfne, ideally with no delay
   to `jnwb.compute_psd` (float-tolerance bound). The jnwb extra carries a
   `python_version >= "3.12"` marker; jaxfne stays `>=3.11`. jnwb gaps are
   fixed in a fresh clone of HNXJ/jnwb at `E:/repos/jnwb`.
+- 2026-09-29 (human): jnwb 0.2.8 gets a new lane D for jaxfne's needs
+  (`compute_psd(nperseg=)`, spike-train Fano factor, burst index, mean
+  pairwise spike correlation, Fleiss kappa). `to_jnwb` turns Jaxley
+  threshold-level spikes into upward crossings; bridge outputs stay as
+  they are. `pynwb_compat.write_nwb` writes a `to_jnwb` view (Units table,
+  proxies as unit-less TimeSeries, never volts). `to_jnwb` stays at
+  `jaxfne.jnwb_view`, off the top-level surface, until the migration settles.
 
 ## 0.5.5 stack
 
@@ -123,7 +130,7 @@ HUMAN DECISIONS
 - [H] Review the `arm_definitions` before the next freeze [B: item 1].
 - [H] Stale version notes, edit or leave: `_signals.py:1445,1453`,
   `validation.py:1230`, `experimental_hpc/physical_field_solver_v040.py:55`.
-- [H] `units.py` and `pynwb_compat` unwired: wire or remove.
+- [H] `units.py` unwired: wire or remove.
 - [H] Artifacts reorg step 2: repoint `legacy`, `subagents`,
   `hdp_k_w_ctrl_sweep`, `hdp_v2_rho_sweep`, `mcc3_10s_checkpoint` into
   `archive/`. The protocol_* and `private_acceptance` folders stay while
@@ -227,27 +234,20 @@ ACCEPTANCE (0.5.5 seal = end of programme)
    cannot express (network, column and field geometry, HDP diagnostics).
    - Inventory and seam rules: `artifacts/programme/jnwb_inventory.md`. A
      jnwb gap is fixed in jnwb, not duplicated here.
-   - Seam built: `jaxfne/jnwb_view.py` (`to_jnwb`, `to_jnwb_trials`, in
-     memory, no jnwb import), `tests/test_jnwb_view.py`, extra `jnwb`
-     (marker 3.12+) in both CI workflows. Remaining seam work: NWB-file
-     export through `pynwb_compat` [H: item 2 below, wire or remove], and
-     whether `to_jnwb` joins the public surface [H]. The Jaxley bridges mark
-     every sample at or above threshold as a spike, so `to_jnwb` refuses
-     them [H: convert to upward crossings, or keep refusing].
-   - jnwb side: `compute_psd` needs an `nperseg` argument. `jnwb/spectral.py`
-     is planned for lane F (0.2.10, split first), and jnwb's integrator owns
-     its stack and `CHANGELOG.md`, so the item goes into the jnwb stack
-     through its integrator [H: which jnwb cycle].
+   - Seam built: `jaxfne/jnwb_view.py` (`to_jnwb`, `to_jnwb_trials`),
+     `pynwb_compat.write_nwb`/`read_nwb`, extra `jnwb` in both CI
+     workflows. Promote `to_jnwb` to the top-level surface once the
+     migration settles.
+   - jnwb side, lane D of jnwb 0.2.8: `compute_psd(nperseg=)`, then the four
+     gap analyses (`analysis/metrics.py`).
    - Step 3: migrate one analysis. Spectra are not equal as they stand
      (jaxfne `nperseg=256`, jnwb `min(n, fs)`): either jnwb takes an
      `nperseg` argument and the bound is float tolerance, or the change is
      declared and listed. Then migrate the rest in inventory order. Old
      entries delegate or are deprecated; frozen receipts stay untouched.
-   - This settles the direction of item 2: `pynwb_compat` becomes the NWB
-     leg of the adapter or is removed.
 1. A8 gh-pages publishing policy. Trigger: publishing D1 or Atlas figures
    to the public site.
-2. `units.py` and `pynwb_compat` unwired: wire or remove (owner decision).
+2. `units.py` unwired: wire or remove (owner decision).
 3. Architecture candidates (`emitters.py` variant split, entry
    fragmentation, dual manifests, same-named builders); enter only as a
    measured bottleneck.

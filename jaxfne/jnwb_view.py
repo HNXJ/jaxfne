@@ -109,14 +109,17 @@ def to_jnwb(signals: Any) -> JnwbView:
     it. ``t0`` is ``time_ms[0]``; a spike at step ``k`` has time
     ``t0 + k * dt`` (float64, seconds), so the rounding of later ``time_ms``
     samples does not reach spike times. A count of ``c`` at one step gives
-    ``c`` equal times. The view copies ``metadata`` and exposes arrays
-    read-only, so changing the view cannot change ``signals``.
+    ``c`` equal times. Bridge spikes that mark every sample at or above a
+    voltage threshold (Jaxley bridges) become one event per upward crossing,
+    recorded as ``metadata['jnwb_view_spikes']``. The view copies ``metadata``
+    and exposes arrays read-only, so changing the view cannot change
+    ``signals``.
 
     Raises:
         ValueError: ``V_m`` or ``spikes`` is not ``(n_steps, n_units)``; the
-            time axis is not finite, increasing and uniform at ``dt_ms``;
-            ``spikes`` holds values other than non-negative integers; or the
-            spikes are threshold levels from a bridge, not events.
+            time axis is not finite, increasing and uniform at ``dt_ms``; or
+            ``spikes`` holds values other than non-negative integers (0 or 1
+            for threshold levels).
     """
     time_ms = np.asarray(signals.time_ms)
     spikes = np.asarray(signals.spikes)
@@ -134,10 +137,14 @@ def to_jnwb(signals: Any) -> JnwbView:
     if spikes.shape != V_m.shape:
         raise ValueError(f"to_jnwb: spikes {spikes.shape} and V_m {V_m.shape} differ in shape")
     if metadata.get("spike_threshold") is not None or metadata.get("bridge") in _LEVEL_SPIKE_BRIDGES:
-        raise ValueError(
-            "to_jnwb: these spikes mark every sample at or above a voltage threshold, "
-            "not spike events, so they have no spike times; derive events from V_m first"
-        )
+        # Threshold levels -> upward crossings (0 -> 1). A trace already above
+        # threshold at step 0 has no observed crossing there and gives no event.
+        level = spikes.astype(np.float64)
+        if not np.all(np.isin(level, (0.0, 1.0))):
+            raise ValueError("to_jnwb: threshold-level spikes must be 0 or 1")
+        spikes = np.zeros_like(level)
+        spikes[1:] = (level[1:] == 1.0) & (level[:-1] == 0.0)
+        metadata["jnwb_view_spikes"] = "upward_crossings_of_threshold_levels"
 
     dt_ms = _resolve_dt_ms(time_ms, metadata)
     t0_s = float(time_ms[0]) / 1000.0 if n else 0.0

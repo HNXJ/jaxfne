@@ -44,7 +44,7 @@ Class: **overlap** (both have it; migrate), **jaxfne-only** (keep in jaxfne),
 | `vis/network3d`, `column_viewer`, `network_glow`, `network_inspect`, `fields.ei_circuit_diagram`, `multi_area_layout` | jaxfne-only | none | model structure, not data |
 | `vis/hdp_diagnostics`, `plasticity_viz`, `pseudogenome_viewer` | jaxfne-only | none | model state and plasticity |
 | `vis/evidence_*`, `export.py`, `report_plots` | jaxfne-only | `save_figure_suite` | receipts and manifests stay |
-| `pynwb_compat.write_nwb`, `read_nwb` | placeholder (raises) | `read_nwb`, `nwb_read_io` | becomes the NWB-file leg of the adapter |
+| `pynwb_compat.write_nwb`, `read_nwb` | wired 2026-09-29 | `read_nwb`, `unit_spike_times` | writes a `to_jnwb` view: Units + proxy `TimeSeries` (not `ElectricalSeries`, so `acquisition_channel` does not read proxies); reads via jnwb |
 
 Scale: `jaxfne/vis` + `jaxfne/analysis` hold 11,799 lines.
 
