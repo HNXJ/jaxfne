@@ -124,8 +124,9 @@ NEXT (ordered, executable)
    P-013. `freeze_task` does not emit them: a re-freeze must carry them over.
 2. [H] P-024 oddball deviant drives exactly like the standard: deviant gain
    parameter or refusal.
-3. [A] D2 études pages: embed each page's own figure beside its text (still
-   tab + interactive iframe, `scripts/generate_docs_visuals.py` pattern).
+3. [A] D2 `docs/etudes/experiment_a.md`: its bundle has no still figure;
+   render one from the frozen `.npz` (no new simulation), then embed it like
+   the other three étude pages.
 4. [A] Fact audit, entrances (P-022): a hand-spelled Configuration now
    equals the NeuronalTensor entrance on spikes/V_m/sources, for one area
    and for two areas of different sizes with a delayed area connection
