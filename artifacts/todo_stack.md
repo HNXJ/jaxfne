@@ -32,7 +32,9 @@ one seam that is independent of the rest of jaxfne, ideally with no delay
 
 Short list for the jnwb move (human, 2026-09-30), in order:
 1. jnwb 0.2.8 carries lane D (`compute_psd(nperseg=)` and the four spike
-   measures); jaxfne pins the jnwb release that has them.
+   measures); jaxfne pins the jnwb release that has them. Lane D built,
+   bundled, and independently verified by antigravity-jnwb (jchat #78,
+   2026-09-30: 6100 passed, 22/22 gates); waits on kickoff integration.
 2. Spectra go through jnwb: jaxfne's spectrum equals `jnwb.compute_psd`
    with its own `nperseg` within float tolerance; any other change is
    declared and listed; frozen receipts are untouched.
