@@ -89,6 +89,30 @@ def _same(key: str, got: Any, want: Any) -> bool:
     return got == want
 
 
+def _committed_tasks() -> dict[str, dict[str, Any]]:
+    """Approved tasks from agent_tasks_055.json (re-freeze source)."""
+    return {t["at_id"]: t for t in json.loads(TASK_SET.read_text(encoding="utf-8"))["tasks"]}
+
+
+def carry_arm_definitions(task: dict[str, Any]) -> dict[str, Any]:
+    """Copy the approved arm_definitions for this task into a freshly frozen task.
+
+    The committed agent_tasks_055.json is the approved source; definitions are
+    never invented here. Raises if it holds no definitions for the task or
+    their keys differ from the arms just frozen.
+    """
+    approved = _committed_tasks().get(task["at_id"], {}).get("arm_definitions") or {}
+    if not approved:
+        raise ValueError(
+            f"task {task['at_id']}: committed task set has no arm_definitions")
+    if set(approved) != set(task["arms"]):
+        raise ValueError(
+            f"task {task['at_id']}: committed arm_definitions keys {sorted(approved)} "
+            f"!= frozen arms {sorted(task['arms'])}"
+        )
+    return {**task, "arm_definitions": dict(approved)}
+
+
 def freeze_task(at_id: str) -> dict[str, Any]:
     """One task: intent, spec, and expected per-arm properties from the reference bundle."""
     from artifacts.atlas.at_bundle import bundle
@@ -97,13 +121,13 @@ def freeze_task(at_id: str) -> dict[str, Any]:
     spec = at_spec(at_id)
     doc = (resolve_runner(at_id).__doc__ or "").strip().split("\n\n")[0]
     arms = bundle(at_id)
-    return {
+    return carry_arm_definitions({
         "at_id": at_id,
         "intent": " ".join(doc.split()),
         "spec": json.loads(json.dumps(spec, default=str)),
         "spec_digest": spec_digest(spec),
         "arms": {name: arm_properties(arm) for name, arm in arms.items()},
-    }
+    })
 
 
 def score(task: dict[str, Any], candidate: dict[str, dict[str, Any]]) -> dict[str, Any]:

@@ -11,7 +11,7 @@ from artifacts.atlas.at_manifest import REGISTRY, at_spec, spec_digest
 import pytest
 
 from artifacts.benchmark.agent_bench import (
-    ARMS, CLASSES, TASK_SET, freeze_task, packet, prepare_worktree, score)
+    ARMS, CLASSES, TASK_SET, carry_arm_definitions, freeze_task, packet, prepare_worktree, score)
 
 TASKS = {t["at_id"]: t for t in json.loads(TASK_SET.read_text(encoding="utf-8"))["tasks"]}
 
@@ -79,6 +79,15 @@ def test_arm_definitions_match_arms():
         assert set(task["arm_definitions"]) == set(task["arms"]), at_id
         for arm, definition in task["arm_definitions"].items():
             assert isinstance(definition, str) and definition.strip(), (at_id, arm)
+
+
+def test_freeze_carries_approved_arm_definitions():
+    carried = carry_arm_definitions({"at_id": "AT-10", "arms": {"main": {}}})
+    assert carried["arm_definitions"] == TASKS["AT-10"]["arm_definitions"]
+    with pytest.raises(ValueError, match="no arm_definitions"):
+        carry_arm_definitions({"at_id": "AT-10-NX", "arms": {"main": {}}})
+    with pytest.raises(ValueError, match="!="):
+        carry_arm_definitions({"at_id": "AT-10", "arms": {"other": {}}})
 
 
 def test_at07_packet_defines_repro():
