@@ -121,21 +121,21 @@ Short list for the jnwb move (human, 2026-09-30), in order:
 Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
 
 NEXT (ordered, executable)
-1. [H] P-013 review the `arm_definitions` in `agent_tasks_055.json`
-   (inputs only; outcome clauses removed after critic review), then close
-   P-013. `freeze_task` does not emit them: a re-freeze must carry them over.
-3. [H] P-016 and P-020: bisects done (`artifacts/programme/bisect_p016_receipt.md`,
-   `bisect_p020_receipt.md`, mover 865e74b); re-freeze or revert awaits sign-off.
-4. [A] Fact audit, entrances (P-022): a hand-spelled Configuration now
-   equals the NeuronalTensor entrance on spikes/V_m/sources, for one area
-   and for two areas of different sizes with a delayed area connection
-   (normalization, delay and sizes each shown to matter), and for a
-   developed JDNA genome. Remaining: carrying `Layer.geometry` through the
-   bridge (then field outputs can be compared too); P-023 defaults.
-5. [A] D0b remaining lanes: `scripts/` comments and the markdown outside
-   `docs/` (188 files; `artifacts/skills/` done, `scripts/` claimed by
-   opencode-jaxfne; evidence records such as `artifacts/programme/` stay as written). By opencode actor + critic, or by agy agents
-   instructed by the human in jchat.
+1. [A] P-016 and P-020: re-freeze with cause 865e74b (owner ruling 2026-09-30).
+   Bisects in `artifacts/programme/bisect_p016_receipt.md` and
+   `bisect_p020_receipt.md`; old receipts archived byte for byte. In progress
+   (claude-jaxfne, opencode actor).
+2. [A] P-022: carry `Layer.geometry` through the NeuronalTensor bridge (owner
+   ruling 2026-09-30); field receipts that move are re-frozen with the cause.
+   Entrance equality already holds on spikes/V_m/sources (one area, two areas,
+   JDNA). Build: claude-jaxfne; antigravity-jaxfne measured it on a branch
+   and verifies.
+3. [A] P-023, after P-022 (same file): a synapse without a declared time
+   constant is refused (no `dT_ms` default), and a mechanism whose sign
+   contradicts the source cell type is refused (owner ruling 2026-09-30).
+4. [A] D0b remaining lanes: `scripts/` comments (claimed by opencode-jaxfne)
+   and the markdown outside `docs/`; evidence records such as
+   `artifacts/programme/` stay as written.
 
 HUMAN DECISIONS
 - [H] D0 review: 23 softened overclaims and 17 flagged items in
