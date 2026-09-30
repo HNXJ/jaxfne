@@ -20,7 +20,10 @@ Canonical configuration (pinned; changing it changes the published atlas):
     runtime = RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5)
     -> config_hash EXPECTED_CONFIG_HASH, 1000 neurons, 215785 edges, 2000 steps
     (re-pinned 2026-09-27: 0.5.2 item 2, declared delays reach execution,
-    changed the realized configuration; tests/test_readme_atlas_pin.py guards it)
+    changed the realized configuration; re-pinned 2026-09-30: P-022, the
+    NeuronalTensor bridge carries each Layer.geometry (column-relative depth
+    bands), which moves positions and field panels; tests/test_readme_atlas_pin.py
+    guards it)
 
 Usage:
     python scripts/generate_readme_atlas.py             # html + png
@@ -43,7 +46,7 @@ CANONICAL_SEED = 0
 CANONICAL_DURATION_MS = 1000.0
 CANONICAL_DT_MS = 0.5
 CANONICAL_TITLE = "Canonical V1 Column (1000n)"
-EXPECTED_CONFIG_HASH = "e9eb50be8f1b7c8c"
+EXPECTED_CONFIG_HASH = "91f037cf383e0bdb"
 
 HTML_DIR = ROOT / "docs" / "_static" / "atlas"
 PNG_DIR = ROOT / "docs" / "assets" / "readme"

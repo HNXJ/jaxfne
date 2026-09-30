@@ -1,8 +1,8 @@
 {
   "suite": "atlas_suite.v2",
   "title": "Canonical V1 Column (1000n)",
-  "figure_state": "validated",
-  "config_hash": "e9eb50be8f1b7c8c",
+  "figure_state": "GENERATED",
+  "config_hash": "91f037cf383e0bdb",
   "tfne_digest": null,
   "k_d": null,
   "sim_identity": "seed=0 duration_ms=1000.0 dt_ms=0.5",
@@ -36,7 +36,7 @@
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 76044,
+      "bytes": 76144,
       "inputs": {
         "source_artifact": "model",
         "variable": "params.positions + params.edge_list",
@@ -64,7 +64,7 @@
       "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 364439,
+      "bytes": 362329,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field proxy",
@@ -106,7 +106,7 @@
       "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 21687,
+      "bytes": 21582,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field traces",
@@ -116,14 +116,5 @@
       }
     }
   ],
-  "sha256": "29a5a2d30e89a2ae",
-  "promotion": [
-    {
-      "to": "validated",
-      "reason": "0.5.5 H1: restores the validated state lost to byte-level regeneration (root atlas d8cfa82 and D1; probe_32 12da866 and D1); the stale gallery index hid the downgrade; broad gate green on d3e768a",
-      "promoter": "promote_atlas_state.py",
-      "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
-      "utc": "2026-09-28T01:34:48.562125+00:00"
-    }
-  ]
+  "sha256": "4c81b0f8e2b5bf77"
 }
