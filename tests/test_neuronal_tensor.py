@@ -474,6 +474,130 @@ def test_hand_spelled_configuration_matches_tensor_entrance():
     assert bool(jnp.array_equal(sig_a.sources, sig_b.sources))
 
 
+def test_hand_spelled_two_area_configuration_matches_tensor_entrance():
+    """Two areas of DIFFERENT sizes through the same two entrances as the
+    single-area test above -- this is the case that discriminates lowering
+    details the single-area fixture cannot.
+
+    The fixture has V1 with 20 neurons and V2 with 12 (total_n = 32, so area
+    size != total size), one InterConnection inside V1 (as above), and one
+    AreaConnection V1 -> V2 carrying a non-None delay_ms.
+
+    Entrance A goes through `jtfne.construct(tensor, runtime)` (which lowers
+    via the bridge internally). Entrance B below spells the SAME values
+    literally without calling `nt.neuronal_tensor_to_configuration` or
+    anything that calls it.
+
+    Literal provenance (read from `neuronal_tensor_to_configuration` +
+    `_wire_connection` + `_connection_edge_weight`, not executed): populations
+    spelled per area in declaration order (V1 = 20 in L4, V2 = 12 in L4); no
+    declared fractions -> even splits (V1/L4 E/PV = 0.5/0.5, V2/L4 E = 1.0);
+    global cell_types from the neuron-count-weighted fallback (E = 10 + 12 =
+    22, PV = 10, over 32); mechanism names "GABA_A__dt5__0" (kind +
+    `:g`-formatted dT_ms + dedup index 0, params tau_ms=5.0 plus the
+    surfaced-but-inert reversal_mV=-80.0) and "AMPA__dt2__1" (dedup index 1);
+    rules "interconn_V1_0" and "areaconn_0", full-bipartite probability 1.0,
+    weights |2.0 * 1.0| / sqrt(32) and |1.5 * 1.0| / sqrt(32) -- normalized by
+    the TOTAL (32), not the area size -- signs from the E sources ->
+    excitatory, and the AreaConnection's delay_ms=2.0 forwarded into its rule
+    (the InterConnection declares no delay); connectivity_mode "explicit".
+    Omitted as inert: `tensor_identity`, the H overlay (stored but inert with
+    HDP disabled), and declared geometry (positions differ by entrance and
+    move only the field proxies, so field is not compared here).
+
+    D=200 ms spikes in both areas (57 V1 + 36 V2 spikes), so the per-area
+    comparison is not vacuous."""
+    D = 200.0
+    layer_v1 = nt.Layer(
+        name="L4",
+        n_neurons=20,
+        neuron_types=[nt.NeuronType.make("E"), nt.NeuronType.make("PV")],
+    )
+    inter = nt.InterConnection(
+        source_layer="L4", source_neuron_type="E",
+        target_layer="L4", target_neuron_type="PV",
+        mechanism="GABA_A",
+        static=nt.StaticParams(
+            g_mech={"GABA_A": 1.0},
+            reversal_potentials_mV={"GABA_A": -80.0},
+            dT_ms=5.0,
+        ),
+        plastic=nt.PlasticParams(w_mech=2.0, H=0.0),
+    )
+    area_v1 = nt.Area(name="V1", layers=[layer_v1], inter_connections=[inter])
+    layer_v2 = nt.Layer(
+        name="L4", n_neurons=12,
+        neuron_types=[nt.NeuronType.make("E")],
+    )
+    area_v2 = nt.Area(name="V2", layers=[layer_v2])
+    cross = nt.AreaConnection(
+        source_area="V1", source_layer="L4", source_neuron_type="E",
+        target_area="V2", target_layer="L4", target_neuron_type="E",
+        mechanism="AMPA",
+        static=nt.StaticParams(dT_ms=2.0),
+        plastic=nt.PlasticParams(w_mech=1.5, H=0.0),
+        delay_ms=2.0,
+    )
+    tensor = nt.NeuronalTensor(areas=[area_v1, area_v2], area_connections=[cross])
+    runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=D, dt_ms=0.5)
+    model_a = jtfne.construct(tensor, runtime)
+    sig_a = jtfne.simulate(model_a, duration_ms=D, dt_ms=0.5, seed=0)
+
+    cfg_b = (
+        jtfne.Configuration()
+        .runtime(seed=0, duration_ms=D, dt_ms=0.5, dtype="float32")
+        .update_metadata(connectivity_mode="explicit")
+        .population(20, neurons={"L4": 20}, name="V1", layers=["L4"])
+        .population(12, neurons={"L4": 12}, name="V2", layers=["L4"])
+        .area_layer_cell_types("V1", {"L4": {"E": 0.5, "PV": 0.5}})
+        .area_layer_cell_types("V2", {"L4": {"E": 1.0}})
+        .cell_types({"E": 22.0 / 32.0, "PV": 10.0 / 32.0})
+        .mechanisms(
+            name="GABA_A__dt5__0", kind="GABA_A",
+            params={"tau_ms": 5.0, "reversal_mV": -80.0},
+        )
+        .connections(
+            name="interconn_V1_0",
+            source={"area": "V1", "layer": "L4", "cell_type": "E"},
+            target={"area": "V1", "layer": "L4", "cell_type": "PV"},
+            probability=1.0,
+            weight=2.0 / math.sqrt(32),
+            sign="excitatory",
+            mechanism="GABA_A__dt5__0",
+        )
+        .mechanisms(
+            name="AMPA__dt2__1", kind="AMPA",
+            params={"tau_ms": 2.0},
+        )
+        .connections(
+            name="areaconn_0",
+            source={"area": "V1", "layer": "L4", "cell_type": "E"},
+            target={"area": "V2", "layer": "L4", "cell_type": "E"},
+            probability=1.0,
+            weight=1.5 / math.sqrt(32),
+            sign="excitatory",
+            mechanism="AMPA__dt2__1",
+            delay_ms=2.0,
+        )
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m"], n_contacts=16)
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+    )
+    model_b = jtfne.construct(cfg_b)
+    assert model_b.cfg.metadata.get("recurrent_backend") == "edge_list"
+    sig_b = jtfne.simulate(model_b, duration_ms=D, dt_ms=0.5, seed=0)
+    rows = model_a.neuron_table()
+    assert [r["area"] for r in model_b.neuron_table()] == [r["area"] for r in rows]
+    v1_idx = [i for i, r in enumerate(rows) if r["area"] == "V1"]
+    v2_idx = [i for i, r in enumerate(rows) if r["area"] == "V2"]
+    assert len(v1_idx) == 20 and len(v2_idx) == 12
+    assert int(sig_a.spikes[:, v1_idx].sum()) > 0, "V1 must spike for a non-vacuous comparison"
+    assert int(sig_a.spikes[:, v2_idx].sum()) > 0, "V2 must spike for a non-vacuous comparison"
+    assert bool(jnp.array_equal(sig_a.spikes, sig_b.spikes))
+    assert bool(jnp.array_equal(sig_a.V_m, sig_b.V_m))
+    assert bool(jnp.array_equal(sig_a.sources, sig_b.sources))
+
+
 def test_construct_tensor_defaults_runtime_when_omitted():
     tensor = _single_area_tensor()
     model = jtfne.construct(tensor)

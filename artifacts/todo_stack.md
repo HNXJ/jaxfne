@@ -127,11 +127,10 @@ NEXT (ordered, executable)
 3. [A] D2 études pages: embed each page's own figure beside its text (still
    tab + interactive iframe, `scripts/generate_docs_visuals.py` pattern).
 4. [A] Fact audit, entrances (P-022): a hand-spelled Configuration now
-   equals the NeuronalTensor entrance on spikes/V_m/sources (single area).
-   Remaining: a two-area case with an area size different from the total, so
-   the weight normalization (`sqrt(total_n)`) and a non-`None` delay are
-   discriminated (critic finding); a JDNA-vs-Configuration case; carrying
-   `Layer.geometry` through the bridge.
+   equals the NeuronalTensor entrance on spikes/V_m/sources, for one area
+   and for two areas of different sizes with a delayed area connection
+   (normalization, delay and sizes each shown to matter). Remaining: a
+   JDNA-vs-Configuration case; carrying `Layer.geometry` through the bridge.
 5. [A] D0b remaining lanes: `scripts/` comments and the markdown outside
    `docs/` (188 files). By opencode actor + critic, or by agy agents
    instructed by the human in jchat.
