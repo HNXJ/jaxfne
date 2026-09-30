@@ -11,6 +11,7 @@ import pytest
 import jaxfne as jtfne
 from jaxfne import neuronal_tensor as nt
 from jaxfne.augment import (
+    PACKET2_AXES,
     AugmentationSpec,
     GeometryTransform,
     PoseEdit,
@@ -135,21 +136,22 @@ def test_duplicate_axis_record_refused():
         AugmentationSpec(transforms=[object()])
 
 
-def test_packet2_records_raise_not_implemented():
+def test_every_axis_is_now_implemented():
     tensor = _tiny_tensor()
     for rec in (ThetaC(), ThetaX(), H0()):
-        spec = AugmentationSpec(transforms=[rec])
-        with pytest.raises(NotImplementedError, match="packet 2"):
-            augment(tensor, spec)
+        out, record = augment(tensor, AugmentationSpec(transforms=[rec]))
+        assert out.to_dict() == tensor.to_dict()  # defaults are no-ops
+        assert record.realized_order == ()
+    assert PACKET2_AXES == frozenset()
 
 
 def test_stochastic_without_kv_refused():
     with pytest.raises(ValueError, match="K_V"):
-        AugmentationSpec(transforms=[ThetaX(stochastic=True)])
-    spec = AugmentationSpec(transforms=[ThetaX(stochastic=True)], k_v=7)
+        AugmentationSpec(transforms=[ThetaX(g_jitter=0.1)])
+    spec = AugmentationSpec(transforms=[ThetaX(g_jitter=0.1)], k_v=7)
     assert spec.k_v == 7
-    with pytest.raises(NotImplementedError, match="packet 2"):
-        augment(_tiny_tensor(), spec)
+    out, record = augment(_tiny_tensor(), spec)
+    assert record.realized_order == ("Theta_X",)
 
 
 def test_geometry_pose_shift_exact_and_spikes_unchanged():
@@ -850,3 +852,395 @@ def test_w0_zero_gain_stays_zero_and_negative_refused():
     tensor.area_connections[0].plastic.w_mech = -1.0
     with pytest.raises(ValueError, match="negative or not finite"):
         augment(tensor, AugmentationSpec(transforms=[W0(factor=2.0)]))
+
+
+def _delayed_tensor(n=10):
+    """Two-area fixture with declared delays and cross probability (Theta_C needs them)."""
+    tensor = _two_area_two_layer_tensor(n=n)
+    for area in tensor.areas:
+        for conn in area.inter_connections:
+            conn.delay_ms = 1.0
+    cross = tensor.area_connections[0]
+    cross.delay_ms = 2.0
+    cross.probability = 0.5
+    return tensor
+
+
+def _static_of(tensor):
+    """Every (g_mech dict, dT_ms) in address order (inter by area, then cross)."""
+    values = []
+    for area in tensor.areas:
+        for conn in area.inter_connections:
+            values.append((dict(conn.static.g_mech), conn.static.dT_ms))
+    for conn in tensor.area_connections:
+        values.append((dict(conn.static.g_mech), conn.static.dT_ms))
+    return values
+
+
+def _h_of(tensor):
+    """Every PlasticParams.H in address order (inter by area, then cross)."""
+    values = []
+    for area in tensor.areas:
+        for conn in area.inter_connections:
+            values.append(conn.plastic.H)
+    for conn in tensor.area_connections:
+        values.append(conn.plastic.H)
+    return values
+
+
+def test_thetax_deterministic_factor_scales_only_static():
+    tensor = _two_area_two_layer_tensor(n=10)
+    before = tensor.to_dict()
+    out, record = augment(
+        tensor, AugmentationSpec(transforms=[ThetaX(g_factor=2.0, tau_factor=3.0)])
+    )
+    assert record.realized_order == ("Theta_X",)
+    assert len(record.changes) == 8
+    assert all(entry.origin == "augmented" for entry in record.changes)
+    assert [entry.address for entry in record.changes] == [
+        "A0/inter/0.static.g_mech.AMPA",
+        "A0/inter/0.static.dT_ms",
+        "A0/inter/1.static.g_mech.AMPA",
+        "A0/inter/1.static.dT_ms",
+        "A1/inter/0.static.g_mech.AMPA",
+        "A1/inter/0.static.dT_ms",
+        "area_connection/0.static.g_mech.AMPA",
+        "area_connection/0.static.dT_ms",
+    ]
+    assert _static_of(out) == [({"AMPA": 2.0}, 6.0)] * 4
+    # to_dict diff touches only static leaves; nothing else moves.
+    flat_before = _leaf_paths(before)
+    flat_after = _leaf_paths(out.to_dict())
+    assert set(flat_before) == set(flat_after)
+    changed = {p for p in flat_before if flat_before[p] != flat_after[p]}
+    assert changed
+    assert all(p[-1] in ("AMPA", "dT_ms") for p in changed)
+    assert tensor.to_dict() == before  # input tensor never mutated
+
+
+def test_thetac_deterministic_factor_scales_only_delay_and_probability():
+    tensor = _delayed_tensor()
+    before = tensor.to_dict()
+    out, record = augment(
+        tensor,
+        AugmentationSpec(transforms=[ThetaC(delay_factor=2.0, probability_factor=0.5)]),
+    )
+    assert record.realized_order == ("Theta_C",)
+    assert all(entry.origin == "augmented" for entry in record.changes)
+    assert [entry.address for entry in record.changes] == [
+        "A0/inter/0.delay_ms",
+        "A0/inter/1.delay_ms",
+        "A1/inter/0.delay_ms",
+        "area_connection/0.delay_ms",
+        "area_connection/0.probability",
+    ]
+    delays = []
+    for area in out.areas:
+        for conn in area.inter_connections:
+            delays.append(conn.delay_ms)
+    delays.append(out.area_connections[0].delay_ms)
+    assert delays == [2.0, 2.0, 2.0, 4.0]
+    assert out.area_connections[0].probability == pytest.approx(0.25)
+    flat_before = _leaf_paths(before)
+    flat_after = _leaf_paths(out.to_dict())
+    assert set(flat_before) == set(flat_after)
+    changed = {p for p in flat_before if flat_before[p] != flat_after[p]}
+    assert changed
+    assert all(p[-1] in ("delay_ms", "probability") for p in changed)
+    assert tensor.to_dict() == before  # input tensor never mutated
+
+
+def test_h0_offset_shifts_even_default_zero_H():
+    tensor = _two_area_two_layer_tensor(n=10)
+    for area in tensor.areas:
+        for conn in area.inter_connections:
+            conn.plastic.H = 0.0
+    tensor.area_connections[0].plastic.H = 0.0
+    assert _h_of(tensor) == [0.0, 0.0, 0.0, 0.0]
+    before = tensor.to_dict()
+    out, record = augment(tensor, AugmentationSpec(transforms=[H0(offset=0.5)]))
+    assert record.realized_order == ("H_0",)
+    assert len(record.changes) == 4
+    assert all(entry.origin == "augmented" for entry in record.changes)
+    assert [entry.address for entry in record.changes] == [
+        "A0/inter/0.plastic.H",
+        "A0/inter/1.plastic.H",
+        "A1/inter/0.plastic.H",
+        "area_connection/0.plastic.H",
+    ]
+    assert _h_of(out) == [0.5, 0.5, 0.5, 0.5]
+    flat_before = _leaf_paths(before)
+    flat_after = _leaf_paths(out.to_dict())
+    assert set(flat_before) == set(flat_after)
+    changed = {p for p in flat_before if flat_before[p] != flat_after[p]}
+    assert changed
+    assert all(p[-1] == "H" for p in changed)
+    assert tensor.to_dict() == before  # input tensor never mutated
+
+
+def test_thetax_stochastic_seeded_reproducible_and_bounded():
+    tensor = _two_area_two_layer_tensor(n=10)
+    make = lambda k: AugmentationSpec(
+        transforms=[ThetaX(g_factor=1.0, g_jitter=0.2, tau_factor=1.0, tau_jitter=0.1)],
+        k_v=k,
+    )
+    out_a, rec_a = augment(tensor, make(11))
+    out_b, _ = augment(tensor, make(11))
+    assert out_a.to_dict() == out_b.to_dict()  # same k_v: bit-identical
+    out_c, _ = augment(tensor, make(12))
+    assert out_c.to_dict() != out_a.to_dict()  # different k_v: different output
+    assert all(entry.origin == "augment-sampled" for entry in rec_a.changes)
+    assert len(rec_a.changes) == 8
+    for (old_g, old_tau), (new_g, new_tau) in zip(_static_of(tensor), _static_of(out_a)):
+        assert old_g["AMPA"] * 0.8 <= new_g["AMPA"] <= old_g["AMPA"] * 1.2
+        assert old_tau * 0.9 <= new_tau <= old_tau * 1.1
+    with pytest.raises(ValueError, match="K_V"):
+        AugmentationSpec(transforms=[ThetaX(g_jitter=0.2)])
+    # Mixed jitters: only the jittered field draws, origins stay per-field.
+    mixed, rec_mixed = augment(
+        tensor,
+        AugmentationSpec(transforms=[ThetaX(g_factor=2.0, g_jitter=0.2)], k_v=5),
+    )
+    by_address = {}
+    for entry in rec_mixed.changes:
+        key = entry.address.rsplit(".static.", 1)[0]
+        by_address.setdefault(key, []).append(entry.origin)
+    assert set(by_address) == {
+        "A0/inter/0", "A0/inter/1", "A1/inter/0", "area_connection/0",
+    }
+    for origins in by_address.values():
+        assert origins == ["augment-sampled"]  # g drew; dT factor is 1.0: no entry
+
+
+def test_thetac_stochastic_seeded_reproducible_and_bounded():
+    tensor = _delayed_tensor()
+    make = lambda k: AugmentationSpec(
+        transforms=[
+            ThetaC(
+                delay_factor=1.0, delay_jitter=0.2,
+                probability_factor=1.0, probability_jitter=0.1,
+            )
+        ],
+        k_v=k,
+    )
+    out_a, rec_a = augment(tensor, make(11))
+    out_b, _ = augment(tensor, make(11))
+    assert out_a.to_dict() == out_b.to_dict()  # same k_v: bit-identical
+    out_c, _ = augment(tensor, make(12))
+    assert out_c.to_dict() != out_a.to_dict()  # different k_v: different output
+    assert all(entry.origin == "augment-sampled" for entry in rec_a.changes)
+    assert [entry.address for entry in rec_a.changes] == [
+        "A0/inter/0.delay_ms",
+        "A0/inter/1.delay_ms",
+        "A1/inter/0.delay_ms",
+        "area_connection/0.delay_ms",
+        "area_connection/0.probability",
+    ]
+    delays_a = []
+    for area in out_a.areas:
+        for conn in area.inter_connections:
+            delays_a.append(conn.delay_ms)
+    delays_a.append(out_a.area_connections[0].delay_ms)
+    for old, new in zip((1.0, 1.0, 1.0, 2.0), delays_a):
+        assert old * 0.8 <= new <= old * 1.2
+    prob = out_a.area_connections[0].probability
+    assert 0.5 * 0.9 <= prob <= 0.5 * 1.1
+    with pytest.raises(ValueError, match="K_V"):
+        AugmentationSpec(transforms=[ThetaC(delay_jitter=0.2)])
+
+
+def test_h0_stochastic_seeded_reproducible_and_bounded():
+    tensor = _two_area_two_layer_tensor(n=10)
+    tensor.areas[0].inter_connections[0].plastic.H = 0.0
+    tensor.areas[0].inter_connections[1].plastic.H = -0.2
+    olds = _h_of(tensor)
+    make = lambda k: AugmentationSpec(
+        transforms=[H0(offset=0.5, jitter=0.1)], k_v=k
+    )
+    out_a, rec_a = augment(tensor, make(11))
+    out_b, _ = augment(tensor, make(11))
+    assert out_a.to_dict() == out_b.to_dict()  # same k_v: bit-identical
+    out_c, _ = augment(tensor, make(12))
+    assert out_c.to_dict() != out_a.to_dict()  # different k_v: different output
+    assert all(entry.origin == "augment-sampled" for entry in rec_a.changes)
+    assert len(rec_a.changes) == 4
+    for old, new in zip(olds, _h_of(out_a)):
+        assert abs(new - old - 0.5) <= 0.1
+    with pytest.raises(ValueError, match="K_V"):
+        AugmentationSpec(transforms=[H0(offset=0.5, jitter=0.1)])
+
+
+def test_none_fields_untouched_with_no_entry():
+    tensor = _two_area_two_layer_tensor(n=10)
+    tensor.areas[0].inter_connections[0].delay_ms = 1.0  # only declared delay
+    tensor.areas[0].inter_connections[1].static.dT_ms = None  # undeclared tau
+    tensor.areas[1].inter_connections[0].plastic.H = None  # undeclared H
+    before = tensor.to_dict()
+    out, record = augment(
+        tensor,
+        AugmentationSpec(
+            transforms=[
+                ThetaC(delay_factor=2.0, probability_factor=0.5),
+                ThetaX(g_factor=2.0, tau_factor=2.0),
+                H0(offset=1.0),
+            ]
+        ),
+    )
+    assert record.realized_order == ("Theta_C", "Theta_X", "H_0")
+    thetac = [e.address for e in record.changes if e.axis == "Theta_C"]
+    assert thetac == ["A0/inter/0.delay_ms"]  # probability is None everywhere
+    thetax = [e.address for e in record.changes if e.axis == "Theta_X"]
+    assert "A0/inter/1.static.dT_ms" not in thetax  # dT None: no entry
+    assert "A0/inter/1.static.g_mech.AMPA" in thetax  # g still scales there
+    h0 = [e.address for e in record.changes if e.axis == "H_0"]
+    assert "A1/inter/0.plastic.H" not in h0  # H None: no entry
+    assert len(h0) == 3
+    assert out.areas[0].inter_connections[1].static.dT_ms is None
+    assert out.areas[1].inter_connections[0].plastic.H is None
+    assert out.area_connections[0].probability is None
+    assert out.area_connections[0].delay_ms is None
+    assert tensor.to_dict() == before  # input tensor never mutated
+
+
+def test_thetac_probability_above_1_refused():
+    tensor = _delayed_tensor()  # cross probability is 0.5
+    with pytest.raises(ValueError) as exc:
+        augment(tensor, AugmentationSpec(transforms=[ThetaC(probability_factor=3.0)]))
+    assert "above 1" in str(exc.value)
+    assert "area_connection/0.probability" in str(exc.value)
+    assert "1.5" in str(exc.value)
+
+
+def test_thetax_dt_positive_and_negative_stored_refused():
+    tensor = _two_area_two_layer_tensor(n=10)
+    tensor.areas[0].inter_connections[0].static.dT_ms = -1.0
+    with pytest.raises(ValueError, match="negative or not finite") as exc:
+        augment(tensor, AugmentationSpec(transforms=[ThetaX(tau_factor=2.0)]))
+    assert "A0/inter/0.static.dT_ms" in str(exc.value)
+    tensor.areas[0].inter_connections[0].static.dT_ms = 0.0
+    with pytest.raises(ValueError, match="> 0") as exc:
+        augment(tensor, AugmentationSpec(transforms=[ThetaX(tau_factor=2.0)]))
+    assert "A0/inter/0.static.dT_ms" in str(exc.value)
+    tensor = _two_area_two_layer_tensor(n=10)
+    tensor.areas[0].inter_connections[0].static.g_mech["AMPA"] = -1.0
+    with pytest.raises(ValueError, match="negative or not finite") as exc:
+        augment(tensor, AugmentationSpec(transforms=[ThetaX(g_factor=2.0)]))
+    assert "A0/inter/0.static.g_mech.AMPA" in str(exc.value)
+
+
+def test_thetac_negative_stored_delay_refused():
+    tensor = _delayed_tensor()
+    tensor.areas[0].inter_connections[0].delay_ms = -1.0
+    with pytest.raises(ValueError, match="negative or not finite") as exc:
+        augment(tensor, AugmentationSpec(transforms=[ThetaC(delay_factor=2.0)]))
+    assert "A0/inter/0.delay_ms" in str(exc.value)
+
+
+def test_h0_negative_stored_accepted_and_shifted_nonfinite_refused():
+    tensor = _two_area_two_layer_tensor(n=10)
+    tensor.areas[0].inter_connections[0].plastic.H = -0.2
+    out, record = augment(tensor, AugmentationSpec(transforms=[H0(offset=0.5)]))
+    assert out.areas[0].inter_connections[0].plastic.H == pytest.approx(0.3)
+    assert record.realized_order == ("H_0",)
+    tensor.areas[0].inter_connections[0].plastic.H = float("nan")
+    with pytest.raises(ValueError, match="not finite") as exc:
+        augment(tensor, AugmentationSpec(transforms=[H0(offset=0.5)]))
+    assert "'A0/inter/0'" in str(exc.value) and "stored H" in str(exc.value)
+    tensor.areas[0].inter_connections[0].plastic.H = float("inf")
+    with pytest.raises(ValueError, match="not finite"):
+        augment(tensor, AugmentationSpec(transforms=[H0(offset=0.5)]))
+
+
+def test_full_composition_canonical_order_and_pairwise_equivalence():
+    tensor = _delayed_tensor()
+    scale = ScaleN(factor=10)
+    geom = GeometryTransform(
+        pose_edits=[PoseEdit(area="A1", translation=(1.0, 2.0, 3.0))],
+        range_edits=[RangeEdit(area="A0", layer="L5", z_range=(0.2, 0.8))],
+    )
+    thetac = ThetaC(delay_factor=2.0, probability_factor=0.5)
+    thetax = ThetaX(g_factor=2.0, tau_factor=2.0)
+    w0 = W0(factor=2.0)
+    h0 = H0(offset=0.5)
+    spec = AugmentationSpec(transforms=[h0, w0, thetax, thetac, geom, scale])
+    out, record = augment(tensor, spec)
+    assert record.realized_order == ("N", "G", "Theta_C", "Theta_X", "W_0", "H_0")
+    assert record.spec_digest == (
+        AugmentationSpec(transforms=[scale, geom, thetac, thetax, w0, h0]).digest()
+    )
+    # Applying the same records one by one in canonical order gives the same tensor.
+    step = tensor
+    for rec in (scale, geom, thetac, thetax, w0, h0):
+        step, _ = augment(step, AugmentationSpec(transforms=[rec]))
+    assert out.to_dict() == step.to_dict()
+    # N does not touch w: W_0-then-N sequential w values equal the composition's.
+    w_first, _ = augment(tensor, AugmentationSpec(transforms=[w0]))
+    w_then_n, _ = augment(w_first, AugmentationSpec(transforms=[scale]))
+    assert _w_mech_of(w_then_n) == pytest.approx(_w_mech_of(out))
+
+
+def test_thetax_thetac_h0_bad_records_refused():
+    bad_factors = (0, -1, 0.0, float("nan"), float("inf"), True, "2", None)
+    for bad in bad_factors:
+        with pytest.raises(ValueError):
+            ThetaX(g_factor=bad)
+        with pytest.raises(ValueError):
+            ThetaX(tau_factor=bad)
+        with pytest.raises(ValueError):
+            ThetaC(delay_factor=bad)
+        with pytest.raises(ValueError):
+            ThetaC(probability_factor=bad)
+    for bad in (float("nan"), float("inf"), True, "0.5", None):
+        with pytest.raises(ValueError):
+            H0(offset=bad)
+    assert H0(offset=-0.5).offset == -0.5  # signed shift is valid
+    assert H0().offset == 0.0
+    bad_jitters = (-0.1, -1.0, 1.0, 2.0, float("nan"), float("inf"), True, "0.1", None)
+    for bad in bad_jitters:
+        with pytest.raises(ValueError):
+            ThetaX(g_jitter=bad)
+        with pytest.raises(ValueError):
+            ThetaX(tau_jitter=bad)
+        with pytest.raises(ValueError):
+            ThetaC(delay_jitter=bad)
+        with pytest.raises(ValueError):
+            ThetaC(probability_jitter=bad)
+    for bad in (-0.1, -1.0, float("nan"), float("inf"), True, "0.1", None):
+        with pytest.raises(ValueError):
+            H0(jitter=bad)
+    assert H0(jitter=2.0).jitter == 2.0  # absolute half-width: no upper bound
+    assert ThetaX().stochastic is False
+    assert ThetaC().stochastic is False
+    assert H0().stochastic is False
+    assert H0(offset=0.5).stochastic is False  # deterministic shift draws nothing
+    assert ThetaX(g_jitter=0.5).stochastic is True
+    assert ThetaX(tau_jitter=0.5).stochastic is True
+    assert ThetaC(delay_jitter=0.5).stochastic is True
+    assert ThetaC(probability_jitter=0.5).stochastic is True
+    assert H0(jitter=0.5).stochastic is True
+    with pytest.raises(ValueError, match="duplicate"):
+        ThetaX(targets=("A0/inter/0", "A0/inter/0"))
+    with pytest.raises(ValueError, match="duplicate"):
+        ThetaC(targets=("A0/inter/0", "A0/inter/0"))
+    with pytest.raises(ValueError, match="duplicate"):
+        H0(targets=("A0/inter/0", "A0/inter/0"))
+    tensor = _two_area_two_layer_tensor(n=10)
+    with pytest.raises(ValueError, match="NX/inter/0"):
+        augment(tensor, AugmentationSpec(transforms=[ThetaX(g_factor=2.0, targets=("NX/inter/0",))]))
+    with pytest.raises(ValueError, match="area_connection/7"):
+        augment(
+            tensor,
+            AugmentationSpec(transforms=[ThetaC(delay_factor=2.0, targets=("area_connection/7",))]),
+        )
+    with pytest.raises(ValueError, match="NX/inter/0"):
+        augment(tensor, AugmentationSpec(transforms=[H0(offset=1.0, targets=("NX/inter/0",))]))
+    # Digests cover every new field.
+    assert AugmentationSpec(transforms=[ThetaX(g_factor=3.0)]).digest() != (
+        AugmentationSpec(transforms=[ThetaX(g_factor=2.0)]).digest()
+    )
+    assert AugmentationSpec(transforms=[ThetaC(probability_factor=0.7)]).digest() != (
+        AugmentationSpec(transforms=[ThetaC()]).digest()
+    )
+    assert AugmentationSpec(transforms=[H0(offset=1.0)]).digest() != (
+        AugmentationSpec(transforms=[H0()]).digest()
+    )

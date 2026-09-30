@@ -9,9 +9,10 @@ transforms to that tensor *before* ``construct``::
 
 Transforms never mutate a ``Model``, never add a simulation path, and never
 extend the TFNE grammar. Packet 1 implements the skeleton plus the ``N``
-and ``G`` primitives; packet AUG-2a implements the ``W_0`` primitive. The
-``Theta_C`` / ``Theta_X`` / ``H_0`` records exist as typed placeholders
-only and are refused with ``NotImplementedError`` naming packet 2.
+and ``G`` primitives; packet AUG-2a implements the ``W_0`` primitive and
+packet AUG-2b the ``Theta_C`` / ``Theta_X`` / ``H_0`` primitives, all four
+per-connection axes following the same design (shared addresses, targets,
+sampling under ``K_V``, provenance origins).
 
 Owner rulings (2026-09-30): transforms apply in the fixed canonical order
 ``N -> G -> Theta_C -> Theta_X -> W_0 -> H_0`` whatever order the caller
@@ -43,8 +44,9 @@ from .neuronal_tensor import (
 #: Fixed canonical application order (R1): N -> G -> Theta_C -> Theta_X -> W_0 -> H_0.
 CANONICAL_ORDER: tuple[str, ...] = ("N", "G", "Theta_C", "Theta_X", "W_0", "H_0")
 
-#: Packet-2 axes: typed records exist, application is not implemented.
-PACKET2_AXES = frozenset({"Theta_C", "Theta_X", "H_0"})
+#: Packet-2 axes, all implemented since AUG-2b; the name stays (empty) so
+#: imports that reference it do not break.
+PACKET2_AXES = frozenset()
 
 _KNOWN_AXES = frozenset(CANONICAL_ORDER)
 
@@ -180,20 +182,92 @@ class GeometryTransform:
 
 @dataclass(frozen=True)
 class ThetaC:
-    """Packet-2 placeholder: connectivity/rule-parameter variation."""
+    """Connectivity/rule-parameter variation: scale ``delay_ms`` (every
+    connection kind) and ``probability`` (``AreaConnection`` only).
 
-    stochastic: bool = False
+    ``delay_factor`` / ``probability_factor`` are deterministic multipliers
+    (finite, > 0); ``delay_jitter`` / ``probability_jitter`` are the
+    relative half-widths of per-field stochastic variation drawn uniform in
+    ``[1 - jitter, 1 + jitter]`` under ``K_V`` (``0 <= jitter < 1``), so
+    either scalar can be varied alone. ``targets`` selects connection
+    addresses (``()`` means all connections). ``stochastic`` is a property,
+    not a field, so the spec digest covers exactly the factors, jitters
+    and ``targets``.
+    """
+
+    delay_factor: float = 1.0
+    delay_jitter: float = 0.0
+    probability_factor: float = 1.0
+    probability_jitter: float = 0.0
+    targets: tuple[str, ...] = ()
 
     axis: ClassVar[str] = "Theta_C"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self, "delay_factor", _check_gain_factor(self.delay_factor, "ThetaC delay_factor")
+        )
+        object.__setattr__(
+            self, "delay_jitter", _check_scale_jitter(self.delay_jitter, "ThetaC delay_jitter")
+        )
+        object.__setattr__(
+            self,
+            "probability_factor",
+            _check_gain_factor(self.probability_factor, "ThetaC probability_factor"),
+        )
+        object.__setattr__(
+            self,
+            "probability_jitter",
+            _check_scale_jitter(self.probability_jitter, "ThetaC probability_jitter"),
+        )
+        object.__setattr__(self, "targets", _check_connection_targets(self.targets, "ThetaC"))
+
+    @property
+    def stochastic(self) -> bool:
+        return self.delay_jitter > 0.0 or self.probability_jitter > 0.0
 
 
 @dataclass(frozen=True)
 class ThetaX:
-    """Packet-2 placeholder: dynamical-parameter variation."""
+    """Dynamical-parameter variation: scale every value in
+    ``static.g_mech`` (dict mechanism -> conductance) and ``static.dT_ms``.
 
-    stochastic: bool = False
+    ``g_factor`` / ``tau_factor`` are deterministic multipliers (finite,
+    > 0); ``g_jitter`` / ``tau_jitter`` are the relative half-widths of
+    per-field stochastic variation drawn uniform in ``[1 - jitter,
+    1 + jitter]`` under ``K_V`` (``0 <= jitter < 1``), so conductances and
+    the time constant can be varied alone. ``targets`` selects connection
+    addresses (``()`` means all connections). ``stochastic`` is a property,
+    not a field, so the spec digest covers exactly the factors, jitters
+    and ``targets``.
+    """
+
+    g_factor: float = 1.0
+    g_jitter: float = 0.0
+    tau_factor: float = 1.0
+    tau_jitter: float = 0.0
+    targets: tuple[str, ...] = ()
 
     axis: ClassVar[str] = "Theta_X"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self, "g_factor", _check_gain_factor(self.g_factor, "ThetaX g_factor")
+        )
+        object.__setattr__(
+            self, "g_jitter", _check_scale_jitter(self.g_jitter, "ThetaX g_jitter")
+        )
+        object.__setattr__(
+            self, "tau_factor", _check_gain_factor(self.tau_factor, "ThetaX tau_factor")
+        )
+        object.__setattr__(
+            self, "tau_jitter", _check_scale_jitter(self.tau_jitter, "ThetaX tau_jitter")
+        )
+        object.__setattr__(self, "targets", _check_connection_targets(self.targets, "ThetaX"))
+
+    @property
+    def stochastic(self) -> bool:
+        return self.g_jitter > 0.0 or self.tau_jitter > 0.0
 
 
 @dataclass(frozen=True)
@@ -226,11 +300,32 @@ class W0:
 
 @dataclass(frozen=True)
 class H0:
-    """Packet-2 placeholder: initial relative-hidden-state variation."""
+    """Initial-hidden-state variation: shift ``plastic.H`` per connection.
 
-    stochastic: bool = False
+    ``H`` is a signed relative hidden state, not a gain, so the shift is
+    additive: ``offset`` is a deterministic shift (finite, any sign) and
+    ``jitter`` is the absolute half-width of per-connection stochastic
+    variation drawn uniform in ``[-jitter, +jitter]`` under ``K_V``
+    (finite, >= 0, no upper bound); ``targets`` selects connection
+    addresses (``()`` means all connections). ``stochastic`` is a property,
+    not a field, so the spec digest covers exactly ``offset``, ``jitter``
+    and ``targets``.
+    """
+
+    offset: float = 0.0
+    jitter: float = 0.0
+    targets: tuple[str, ...] = ()
 
     axis: ClassVar[str] = "H_0"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "offset", _check_offset(self.offset, "H0 offset"))
+        object.__setattr__(self, "jitter", _check_abs_jitter(self.jitter, "H0 jitter"))
+        object.__setattr__(self, "targets", _check_connection_targets(self.targets, "H0"))
+
+    @property
+    def stochastic(self) -> bool:
+        return self.jitter > 0.0
 
 
 @dataclass(frozen=True)
@@ -286,25 +381,28 @@ def _check_unit_range(value: Any, where: str) -> tuple[float, float]:
     return (lo, hi)
 
 
-def _check_w0_factor(factor: Any) -> float:
-    if isinstance(factor, bool) or not isinstance(factor, numbers.Real):
-        raise ValueError(f"W0 factor must be a positive number; got {factor!r}")
-    value = float(factor)
-    if not math.isfinite(value) or value <= 0.0:
-        raise ValueError(f"W0 factor must be finite and > 0; got {factor!r}")
-    return value
+def _check_gain_factor(value: Any, label: str) -> float:
+    """Shared deterministic-multiplier check (finite, > 0) for every axis."""
+    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+        raise ValueError(f"{label} must be a positive number; got {value!r}")
+    checked = float(value)
+    if not math.isfinite(checked) or checked <= 0.0:
+        raise ValueError(f"{label} must be finite and > 0; got {value!r}")
+    return checked
 
 
-def _check_w0_jitter(jitter: Any) -> float:
-    if isinstance(jitter, bool) or not isinstance(jitter, numbers.Real):
-        raise ValueError(f"W0 jitter must be a number in [0, 1); got {jitter!r}")
-    value = float(jitter)
-    if not math.isfinite(value) or not 0.0 <= value < 1.0:
-        raise ValueError(f"W0 jitter must satisfy 0 <= jitter < 1; got {jitter!r}")
-    return value
+def _check_scale_jitter(value: Any, label: str) -> float:
+    """Shared stochastic half-width check (``0 <= jitter < 1``) for every axis."""
+    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+        raise ValueError(f"{label} must be a number in [0, 1); got {value!r}")
+    checked = float(value)
+    if not math.isfinite(checked) or not 0.0 <= checked < 1.0:
+        raise ValueError(f"{label} must satisfy 0 <= jitter < 1; got {value!r}")
+    return checked
 
 
-def _check_w0_targets(targets: Any) -> tuple[str, ...]:
+def _check_connection_targets(targets: Any, label: str) -> tuple[str, ...]:
+    """Shared connection-address selection check for every axis."""
     if isinstance(targets, str):
         items = (targets,)
     else:
@@ -312,21 +410,53 @@ def _check_w0_targets(targets: Any) -> tuple[str, ...]:
             items = tuple(targets)
         except TypeError:
             raise ValueError(
-                f"W0 targets must be a sequence of connection addresses; got {targets!r}"
+                f"{label} targets must be a sequence of connection addresses; got {targets!r}"
             )
     for item in items:
         if not isinstance(item, str) or not item:
             raise ValueError(
-                f"W0 targets must be non-empty address strings; got {item!r}"
+                f"{label} targets must be non-empty address strings; got {item!r}"
             )
     seen: set[str] = set()
     for item in items:
         if item in seen:
             raise ValueError(
-                f"duplicate W0 target address {item!r}; list each connection once"
+                f"duplicate {label} target address {item!r}; list each connection once"
             )
         seen.add(item)
     return items
+
+
+def _check_offset(value: Any, label: str) -> float:
+    """Shared additive-shift check (finite, any sign) for signed states."""
+    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+        raise ValueError(f"{label} must be a finite number; got {value!r}")
+    checked = float(value)
+    if not math.isfinite(checked):
+        raise ValueError(f"{label} must be finite; got {value!r}")
+    return checked
+
+
+def _check_abs_jitter(value: Any, label: str) -> float:
+    """Shared absolute half-width check (finite, >= 0, no upper bound)."""
+    if isinstance(value, bool) or not isinstance(value, numbers.Real):
+        raise ValueError(f"{label} must be a number >= 0; got {value!r}")
+    checked = float(value)
+    if not math.isfinite(checked) or checked < 0.0:
+        raise ValueError(f"{label} must be finite and >= 0; got {value!r}")
+    return checked
+
+
+def _check_w0_factor(factor: Any) -> float:
+    return _check_gain_factor(factor, "W0 factor")
+
+
+def _check_w0_jitter(jitter: Any) -> float:
+    return _check_scale_jitter(jitter, "W0 jitter")
+
+
+def _check_w0_targets(targets: Any) -> tuple[str, ...]:
+    return _check_connection_targets(targets, "W0")
 
 
 def _plain(value: Any) -> Any:
@@ -537,7 +667,7 @@ def _apply_geometry(
                 setattr(layer.geometry, label, tuple(value))
 
 
-def _w0_address_table(
+def _connection_address_table(
     tensor: NeuronalTensor,
 ) -> dict[str, tuple[str, int, int]]:
     """Map every connection address to ``(kind, area_idx, conn_idx)``.
@@ -545,7 +675,8 @@ def _w0_address_table(
     ``kind`` is ``"inter"`` for ``areas[area_idx].inter_connections[conn_idx]``
     or ``"cross"`` for ``area_connections[conn_idx]`` (``area_idx`` is ``-1``).
     Enumeration order is the sampling order: inter connections by area order
-    then index, then area connections by index.
+    then index, then area connections by index. Shared by all four
+    per-connection axes (``Theta_C``, ``Theta_X``, ``W_0``, ``H_0``).
     """
     table: dict[str, tuple[str, int, int]] = {}
     for area_idx, area in enumerate(tensor.areas):
@@ -556,76 +687,104 @@ def _w0_address_table(
     return table
 
 
-def _apply_w0(
-    tensor: NeuronalTensor,
-    record: W0,
-    k_v: Optional[int],
-    changes: list[ProvenanceEntry],
-) -> None:
-    if record.factor == 1.0 and record.jitter == 0.0:
-        return  # no-op: no scaling, no sampling, no record entry
-    table = _w0_address_table(tensor)
-    if record.targets:
-        for target in record.targets:
+#: Original name kept so existing references keep working.
+_w0_address_table = _connection_address_table
+
+
+def _resolve_selected(
+    table: dict[str, tuple[str, int, int]],
+    targets: tuple[str, ...],
+    axis_token: str,
+    *,
+    in_address_order: bool = False,
+) -> list[str]:
+    """Validate ``targets`` against ``table``; ``()`` means all addresses.
+
+    ``W_0`` keeps target-list order; the newer axes iterate in address
+    (sampling) order whatever order the caller lists.
+    """
+    if targets:
+        for target in targets:
             if target not in table:
                 raise ValueError(
-                    f"unknown W_0 connection address {target!r}; "
+                    f"unknown {axis_token} connection address {target!r}; "
                     f"known addresses: {sorted(table)}"
                 )
-        selected = list(record.targets)
-    else:
-        selected = list(table)
-    if not selected:
-        return  # no connections: nothing to realize
-    rng = None
-    if record.jitter > 0.0:
-        if k_v is None:  # fail closed; the spec validator normally refuses this first
-            raise ValueError("a stochastic W_0 transform requires its own explicit seed K_V (R4)")
-        rng = np.random.default_rng(k_v)
-    origin = ORIGIN_AUGMENT_SAMPLED if rng is not None else ORIGIN_AUGMENTED
-    inter_new: dict[int, dict[int, Any]] = {}
-    cross_new: dict[int, Any] = {}
-    for address in selected:
-        kind, area_idx, conn_idx = table[address]
-        if kind == "inter":
-            conn = tensor.areas[area_idx].inter_connections[conn_idx]
-        else:
-            conn = tensor.area_connections[conn_idx]
-        old_w = float(conn.plastic.w_mech)
-        # Sign is preserved by construction (factor > 0, u > 0); a stored
-        # gain that is negative or not finite is refused, not rescaled. A
-        # zero gain stays zero (the draw is still taken, so sampling order
-        # does not depend on which gains are zero).
-        if not (math.isfinite(old_w) and old_w >= 0.0):
-            raise ValueError(
-                f"W_0 refuses {address!r}: stored w_mech {conn.plastic.w_mech!r} "
-                "is negative or not finite"
-            )
-        u = 1.0 if rng is None else float(rng.uniform(1.0 - record.jitter, 1.0 + record.jitter))
-        new_w = old_w * record.factor * u
-        if not (math.isfinite(new_w) and (new_w > 0.0 or old_w == 0.0)):
-            raise ValueError(
-                f"W_0 refuses {address!r}: rescaled w_mech {new_w!r} "
-                "is not positive-finite"
-            )
-        if new_w == old_w:
-            continue  # unchanged value: no provenance entry, like N and G
-        # Rebuild inward-out so frozen dataclasses keep working; the input
-        # tensor is untouched because augment deep-copies before dispatch.
-        rebuilt = replace(conn, plastic=replace(conn.plastic, w_mech=new_w))
-        if kind == "inter":
-            inter_new.setdefault(area_idx, {})[conn_idx] = rebuilt
-        else:
-            cross_new[conn_idx] = rebuilt
-        changes.append(
-            ProvenanceEntry(
-                address=f"{address}.plastic.w_mech",
-                axis="W_0",
-                before=old_w,
-                after=new_w,
-                origin=origin,
-            )
+        if in_address_order:
+            wanted = set(targets)
+            return [address for address in table if address in wanted]
+        return list(targets)
+    return list(table)
+
+
+def _stochastic_rng(stochastic: bool, k_v: Optional[int], axis_token: str) -> Any:
+    """Return ``numpy.random.default_rng(k_v)`` when the record draws, else None.
+
+    A stochastic record without its own explicit ``K_V`` seed is refused (R4).
+    """
+    if not stochastic:
+        return None
+    if k_v is None:  # fail closed; the spec validator normally refuses this first
+        raise ValueError(
+            f"a stochastic {axis_token} transform requires its own explicit seed K_V (R4)"
         )
+    return np.random.default_rng(k_v)
+
+
+def _draw_multiplier(rng: Any, jitter: float) -> float:
+    """One uniform draw in ``[1 - jitter, 1 + jitter]``, or 1.0 when deterministic."""
+    if rng is None or not jitter > 0.0:
+        return 1.0
+    return float(rng.uniform(1.0 - jitter, 1.0 + jitter))
+
+
+def _draw_absolute(rng: Any, jitter: float) -> float:
+    """One uniform draw in ``[-jitter, +jitter]``, or 0.0 when deterministic."""
+    if rng is None or not jitter > 0.0:
+        return 0.0
+    return float(rng.uniform(-jitter, jitter))
+
+
+def _field_origin(jitter: float) -> str:
+    """Per-field provenance origin: sampled when the field drew under ``K_V``."""
+    return ORIGIN_AUGMENT_SAMPLED if jitter > 0.0 else ORIGIN_AUGMENTED
+
+
+def _get_connection(
+    tensor: NeuronalTensor,
+    table: dict[str, tuple[str, int, int]],
+    address: str,
+) -> tuple[Any, str, int, int]:
+    """Return ``(conn, kind, area_idx, conn_idx)`` for a validated address."""
+    kind, area_idx, conn_idx = table[address]
+    if kind == "inter":
+        conn = tensor.areas[area_idx].inter_connections[conn_idx]
+    else:
+        conn = tensor.area_connections[conn_idx]
+    return conn, kind, area_idx, conn_idx
+
+
+def _stage_rebuilt(
+    inter_new: dict[int, dict[int, Any]],
+    cross_new: dict[int, Any],
+    kind: str,
+    area_idx: int,
+    conn_idx: int,
+    rebuilt: Any,
+) -> None:
+    """Stage one rebuilt connection for :func:`_flush_rebuilt`."""
+    if kind == "inter":
+        inter_new.setdefault(area_idx, {})[conn_idx] = rebuilt
+    else:
+        cross_new[conn_idx] = rebuilt
+
+
+def _flush_rebuilt(
+    tensor: NeuronalTensor,
+    inter_new: dict[int, dict[int, Any]],
+    cross_new: dict[int, Any],
+) -> None:
+    """Write staged rebuilt connections back, preserving tuple/list containers."""
     for area_idx, indexed in inter_new.items():
         seq = list(tensor.areas[area_idx].inter_connections)
         for conn_idx, rebuilt in indexed.items():
@@ -642,6 +801,332 @@ def _apply_w0(
         )
 
 
+def _checked_nonnegative(value: Any, address: str, field: str, stored: Any) -> float:
+    """Coerce a stored gain-like value, refusing garbage/negative/non-finite.
+
+    Mirrors the ``W_0`` stored-gain check: only finite values >= 0 rescale.
+    """
+    try:
+        checked = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"{address}: stored {field} {stored!r} is negative or not finite"
+        )
+    if not (math.isfinite(checked) and checked >= 0.0):
+        raise ValueError(
+            f"{address}: stored {field} {stored!r} is negative or not finite"
+        )
+    return checked
+
+
+def _apply_w0(
+    tensor: NeuronalTensor,
+    record: W0,
+    k_v: Optional[int],
+    changes: list[ProvenanceEntry],
+) -> None:
+    if record.factor == 1.0 and record.jitter == 0.0:
+        return  # no-op: no scaling, no sampling, no record entry
+    table = _connection_address_table(tensor)
+    selected = _resolve_selected(table, record.targets, "W_0")
+    if not selected:
+        return  # no connections: nothing to realize
+    rng = _stochastic_rng(record.jitter > 0.0, k_v, "W_0")
+    origin = _field_origin(record.jitter)
+    inter_new: dict[int, dict[int, Any]] = {}
+    cross_new: dict[int, Any] = {}
+    for address in selected:
+        conn, kind, area_idx, conn_idx = _get_connection(tensor, table, address)
+        # Sign is preserved by construction (factor > 0, u > 0); a stored
+        # gain that is negative or not finite is refused, not rescaled. A
+        # zero gain stays zero (the draw is still taken, so sampling order
+        # does not depend on which gains are zero).
+        old_w = _checked_nonnegative(
+            conn.plastic.w_mech, f"W_0 refuses {address!r}", "w_mech", conn.plastic.w_mech
+        )
+        u = _draw_multiplier(rng, record.jitter)
+        new_w = old_w * record.factor * u
+        if not (math.isfinite(new_w) and (new_w > 0.0 or old_w == 0.0)):
+            raise ValueError(
+                f"W_0 refuses {address!r}: rescaled w_mech {new_w!r} "
+                "is not positive-finite"
+            )
+        if new_w == old_w:
+            continue  # unchanged value: no provenance entry, like N and G
+        # Rebuild inward-out so frozen dataclasses keep working; the input
+        # tensor is untouched because augment deep-copies before dispatch.
+        rebuilt = replace(conn, plastic=replace(conn.plastic, w_mech=new_w))
+        _stage_rebuilt(inter_new, cross_new, kind, area_idx, conn_idx, rebuilt)
+        changes.append(
+            ProvenanceEntry(
+                address=f"{address}.plastic.w_mech",
+                axis="W_0",
+                before=old_w,
+                after=new_w,
+                origin=origin,
+            )
+        )
+    _flush_rebuilt(tensor, inter_new, cross_new)
+
+
+def _apply_theta_x(
+    tensor: NeuronalTensor,
+    record: ThetaX,
+    k_v: Optional[int],
+    changes: list[ProvenanceEntry],
+) -> None:
+    if (
+        record.g_factor == 1.0
+        and record.g_jitter == 0.0
+        and record.tau_factor == 1.0
+        and record.tau_jitter == 0.0
+    ):
+        return  # no-op: no scaling, no sampling, no record entry
+    table = _connection_address_table(tensor)
+    selected = _resolve_selected(table, record.targets, "Theta_X", in_address_order=True)
+    if not selected:
+        return  # no connections: nothing to realize
+    rng = _stochastic_rng(
+        record.g_jitter > 0.0 or record.tau_jitter > 0.0, k_v, "Theta_X"
+    )
+    inter_new: dict[int, dict[int, Any]] = {}
+    cross_new: dict[int, Any] = {}
+    for address in selected:
+        conn, kind, area_idx, conn_idx = _get_connection(tensor, table, address)
+        # Within a connection, g_mech keys (sorted) sample before dT_ms.
+        new_g: Optional[dict] = None
+        for mech in sorted(conn.static.g_mech):
+            raw = conn.static.g_mech[mech]
+            old = _checked_nonnegative(
+                raw,
+                f"Theta_X refuses {address}.static.g_mech.{mech}",
+                "g_mech",
+                raw,
+            )
+            u = _draw_multiplier(rng, record.g_jitter)
+            new = old * record.g_factor * u
+            if not (math.isfinite(new) and (new > 0.0 or old == 0.0)):
+                raise ValueError(
+                    f"Theta_X refuses {address}.static.g_mech.{mech}: "
+                    f"rescaled conductance {new!r} is not positive-finite"
+                )
+            if new == old:
+                continue  # unchanged value: no provenance entry, like W_0
+            if new_g is None:
+                new_g = dict(conn.static.g_mech)
+            new_g[mech] = new
+            changes.append(
+                ProvenanceEntry(
+                    address=f"{address}.static.g_mech.{mech}",
+                    axis="Theta_X",
+                    before=old,
+                    after=new,
+                    origin=_field_origin(record.g_jitter),
+                )
+            )
+        raw_tau = conn.static.dT_ms
+        new_tau: Optional[float] = None
+        if raw_tau is not None:  # None = undeclared: left untouched, no entry
+            old_tau = _checked_nonnegative(
+                raw_tau, f"Theta_X refuses {address}.static.dT_ms", "dT_ms", raw_tau
+            )
+            u = _draw_multiplier(rng, record.tau_jitter)
+            candidate = old_tau * record.tau_factor * u
+            if not (math.isfinite(candidate) and candidate > 0.0):
+                raise ValueError(
+                    f"Theta_X refuses {address}.static.dT_ms: "
+                    f"rescaled dT_ms {candidate!r} is not finite and > 0"
+                )
+            if candidate != old_tau:
+                new_tau = candidate
+                changes.append(
+                    ProvenanceEntry(
+                        address=f"{address}.static.dT_ms",
+                        axis="Theta_X",
+                        before=old_tau,
+                        after=candidate,
+                        origin=_field_origin(record.tau_jitter),
+                    )
+                )
+        if new_g is None and new_tau is None:
+            continue  # unchanged connection: no rebuild, no entry
+        rebuilt_static = replace(
+            conn.static,
+            g_mech=(new_g if new_g is not None else conn.static.g_mech),
+            dT_ms=(new_tau if new_tau is not None else conn.static.dT_ms),
+        )
+        _stage_rebuilt(
+            inter_new, cross_new, kind, area_idx, conn_idx, replace(conn, static=rebuilt_static)
+        )
+    _flush_rebuilt(tensor, inter_new, cross_new)
+
+
+def _apply_theta_c(
+    tensor: NeuronalTensor,
+    record: ThetaC,
+    k_v: Optional[int],
+    changes: list[ProvenanceEntry],
+) -> None:
+    if (
+        record.delay_factor == 1.0
+        and record.delay_jitter == 0.0
+        and record.probability_factor == 1.0
+        and record.probability_jitter == 0.0
+    ):
+        return  # no-op: no scaling, no sampling, no record entry
+    table = _connection_address_table(tensor)
+    selected = _resolve_selected(table, record.targets, "Theta_C", in_address_order=True)
+    if not selected:
+        return  # no connections: nothing to realize
+    rng = _stochastic_rng(
+        record.delay_jitter > 0.0 or record.probability_jitter > 0.0, k_v, "Theta_C"
+    )
+    inter_new: dict[int, dict[int, Any]] = {}
+    cross_new: dict[int, Any] = {}
+    for address in selected:
+        conn, kind, area_idx, conn_idx = _get_connection(tensor, table, address)
+        # Within a connection, delay_ms samples before probability.
+        raw_delay = conn.delay_ms
+        new_delay: Optional[float] = None
+        delay_touched = False
+        if raw_delay is not None:  # None = undeclared: left untouched, no entry
+            old_delay = _checked_nonnegative(
+                raw_delay, f"Theta_C refuses {address}.delay_ms", "delay_ms", raw_delay
+            )
+            u = _draw_multiplier(rng, record.delay_jitter)
+            candidate = old_delay * record.delay_factor * u
+            if not (math.isfinite(candidate) and candidate >= 0.0):
+                raise ValueError(
+                    f"Theta_C refuses {address}.delay_ms: "
+                    f"rescaled delay_ms {candidate!r} is not finite and >= 0"
+                )
+            if candidate != old_delay:
+                new_delay = candidate
+                delay_touched = True
+                changes.append(
+                    ProvenanceEntry(
+                        address=f"{address}.delay_ms",
+                        axis="Theta_C",
+                        before=old_delay,
+                        after=candidate,
+                        origin=_field_origin(record.delay_jitter),
+                    )
+                )
+        # Only AreaConnection carries probability; other kinds have no such
+        # attribute, so getattr defaulting to None skips them with no entry.
+        raw_prob = getattr(conn, "probability", None)
+        new_prob: Optional[float] = None
+        prob_touched = False
+        if raw_prob is not None:  # None = undeclared: left untouched, no entry
+            try:
+                old_prob = float(raw_prob)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"Theta_C refuses {address}.probability: "
+                    f"stored probability {raw_prob!r} is not in (0, 1]"
+                )
+            if not (math.isfinite(old_prob) and 0.0 < old_prob <= 1.0):
+                raise ValueError(
+                    f"Theta_C refuses {address}.probability: "
+                    f"stored probability {raw_prob!r} is not in (0, 1]"
+                )
+            u = _draw_multiplier(rng, record.probability_jitter)
+            candidate = old_prob * record.probability_factor * u
+            if candidate > 1.0:
+                raise ValueError(
+                    f"Theta_C refuses {address}.probability: "
+                    f"rescaled probability {candidate!r} is above 1 (never clipped)"
+                )
+            if not (math.isfinite(candidate) and candidate > 0.0):
+                raise ValueError(
+                    f"Theta_C refuses {address}.probability: "
+                    f"rescaled probability {candidate!r} is not finite and > 0"
+                )
+            if candidate != old_prob:
+                new_prob = candidate
+                prob_touched = True
+                changes.append(
+                    ProvenanceEntry(
+                        address=f"{address}.probability",
+                        axis="Theta_C",
+                        before=old_prob,
+                        after=candidate,
+                        origin=_field_origin(record.probability_jitter),
+                    )
+                )
+        if not (delay_touched or prob_touched):
+            continue  # unchanged connection: no rebuild, no entry
+        # Rebuild inward-out; the input tensor is untouched because augment
+        # deep-copies before dispatch.
+        kwargs: dict[str, Any] = {}
+        if delay_touched:
+            kwargs["delay_ms"] = new_delay
+        if prob_touched:
+            kwargs["probability"] = new_prob
+        _stage_rebuilt(
+            inter_new, cross_new, kind, area_idx, conn_idx, replace(conn, **kwargs)
+        )
+    _flush_rebuilt(tensor, inter_new, cross_new)
+
+
+def _apply_h0(
+    tensor: NeuronalTensor,
+    record: H0,
+    k_v: Optional[int],
+    changes: list[ProvenanceEntry],
+) -> None:
+    if record.offset == 0.0 and record.jitter == 0.0:
+        return  # no-op: no shift, no sampling, no record entry
+    table = _connection_address_table(tensor)
+    selected = _resolve_selected(table, record.targets, "H_0", in_address_order=True)
+    if not selected:
+        return  # no connections: nothing to realize
+    rng = _stochastic_rng(record.jitter > 0.0, k_v, "H_0")
+    origin = _field_origin(record.jitter)
+    inter_new: dict[int, dict[int, Any]] = {}
+    cross_new: dict[int, Any] = {}
+    for address in selected:
+        conn, kind, area_idx, conn_idx = _get_connection(tensor, table, address)
+        raw = conn.plastic.H
+        if raw is None:  # None = undeclared: left untouched, no entry
+            continue
+        # H is a signed relative state: any finite stored value (negative
+        # included) shifts; only a non-finite stored value is refused.
+        try:
+            old = float(raw)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"H_0 refuses {address!r}: stored H {raw!r} is not finite"
+            )
+        if not math.isfinite(old):
+            raise ValueError(
+                f"H_0 refuses {address!r}: stored H {raw!r} is not finite"
+            )
+        u = _draw_absolute(rng, record.jitter)
+        new = old + record.offset + u
+        if not math.isfinite(new):
+            raise ValueError(
+                f"H_0 refuses {address!r}: rescaled H {new!r} "
+                "is not finite"
+            )
+        if new == old:
+            continue  # unchanged value: no provenance entry, like W_0
+        # Rebuild inward-out so frozen dataclasses keep working; the input
+        # tensor is untouched because augment deep-copies before dispatch.
+        rebuilt = replace(conn, plastic=replace(conn.plastic, H=new))
+        _stage_rebuilt(inter_new, cross_new, kind, area_idx, conn_idx, rebuilt)
+        changes.append(
+            ProvenanceEntry(
+                address=f"{address}.plastic.H",
+                axis="H_0",
+                before=old,
+                after=new,
+                origin=origin,
+            )
+        )
+    _flush_rebuilt(tensor, inter_new, cross_new)
+
+
 def augment(
     tensor: NeuronalTensor, spec: AugmentationSpec
 ) -> tuple[NeuronalTensor, AugmentationRecord]:
@@ -650,8 +1135,9 @@ def augment(
     The input tensor is never touched: the result is a deep copy with only
     the targeted values rewritten. A transform that changes no value is a
     no-op: it contributes no ``realized_order`` entry (and a no-op ``ScaleN``
-    writes no scaling note). Records on packet-2 axes raise
-    ``NotImplementedError`` naming packet 2.
+    writes no scaling note). Transforms apply in canonical order
+    ``N -> G -> Theta_C -> Theta_X -> W_0 -> H_0`` whatever order the caller
+    lists them in.
     """
     if not isinstance(tensor, NeuronalTensor):
         raise TypeError(f"augment requires a NeuronalTensor; got {type(tensor).__name__}")
@@ -672,11 +1158,6 @@ def augment(
         record = by_axis.get(axis)
         if record is None:
             continue
-        if axis in PACKET2_AXES:
-            raise NotImplementedError(
-                f"augmentation axis {axis!r} is packet 2 (parameter variation); "
-                "augment implements clone, N, G and W_0 only"
-            )
         n_before = len(changes)
         if axis == "N":
             if not isinstance(record, ScaleN):
@@ -697,6 +1178,24 @@ def augment(
             _apply_geometry(out, record, changes)
             if len(changes) > n_before:
                 realized.append(axis)
+        elif axis == "Theta_C":
+            if not isinstance(record, ThetaC):
+                raise ValueError(
+                    "augmentation axis 'Theta_C' expects a ThetaC record; "
+                    f"got {type(record).__name__} ({record!r})"
+                )
+            _apply_theta_c(out, record, spec.k_v, changes)
+            if len(changes) > n_before:
+                realized.append(axis)
+        elif axis == "Theta_X":
+            if not isinstance(record, ThetaX):
+                raise ValueError(
+                    "augmentation axis 'Theta_X' expects a ThetaX record; "
+                    f"got {type(record).__name__} ({record!r})"
+                )
+            _apply_theta_x(out, record, spec.k_v, changes)
+            if len(changes) > n_before:
+                realized.append(axis)
         elif axis == "W_0":
             if not isinstance(record, W0):
                 raise ValueError(
@@ -704,6 +1203,15 @@ def augment(
                     f"got {type(record).__name__} ({record!r})"
                 )
             _apply_w0(out, record, spec.k_v, changes)
+            if len(changes) > n_before:
+                realized.append(axis)
+        elif axis == "H_0":
+            if not isinstance(record, H0):
+                raise ValueError(
+                    "augmentation axis 'H_0' expects a H0 record; "
+                    f"got {type(record).__name__} ({record!r})"
+                )
+            _apply_h0(out, record, spec.k_v, changes)
             if len(changes) > n_before:
                 realized.append(axis)
         else:  # fail closed: no silent skip of a known axis
