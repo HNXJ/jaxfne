@@ -396,6 +396,40 @@ class TestFreshCloneTaskState:
         assert Path("scratch/CURRENT_TASK.example.md").is_file()
 
 
+class TestRepoStateSnapshotDetachedHead:
+    """A detached HEAD is observable Git state, not missing Git data."""
+
+    def test_detached_head_reports_detached_branch_and_passes_check(
+        self, monkeypatch, capsys
+    ):
+        import scripts.repo_state_snapshot as rss
+
+        def fake_run_git(*args):
+            if args == ("branch", "--show-current"):
+                return ""
+            if args == ("rev-parse", "HEAD"):
+                return "f" * 40
+            if args[0] == "status":
+                return ""
+            if args[0] == "ls-remote":
+                return None
+            raise AssertionError(f"unexpected git call: {args}")
+
+        monkeypatch.setattr(rss, "_run_git", fake_run_git)
+        monkeypatch.setattr(
+            rss,
+            "_package_state",
+            lambda: (
+                {"version": "test", "jax_version": "test", "root_export_count": 0},
+                [],
+            ),
+        )
+        snapshot = rss.build_snapshot()
+        assert snapshot["git"]["branch"] == "(detached)"
+        assert snapshot["errors"] == []
+        assert rss.main(["--check"]) == 0
+
+
 class TestRepositoryStructure:
     """Validate core repository structure."""
 

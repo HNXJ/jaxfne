@@ -38,7 +38,7 @@ FORBIDDEN_PROCESS_PATTERNS = [
 
 def audit_public_docs() -> list[str]:
     violations = []
-    mk = yaml.safe_load((ROOT / "mkdocs.yml").read_text())
+    mk = yaml.safe_load((ROOT / "mkdocs.yml").read_text(encoding="utf-8"))
 
     def extract_nav_files(nav_item):
         files = []
@@ -56,7 +56,7 @@ def audit_public_docs() -> list[str]:
     for rel in nav_files:
         p = ROOT / "docs" / rel
         if p.exists():
-            text = p.read_text()
+            text = p.read_text(encoding="utf-8")
             for pat in FORBIDDEN_PROCESS_PATTERNS:
                 if re.search(pat, text, re.IGNORECASE):
                     violations.append(f"LEAK in public doc: docs/{rel} matches '{pat}'")
@@ -68,7 +68,7 @@ def audit_public_source() -> list[str]:
     for py_path in (ROOT / "jaxfne").rglob("*.py"):
         if "publication" in py_path.parts:
             continue
-        text = py_path.read_text()
+        text = py_path.read_text(encoding="utf-8")
         for pat in FORBIDDEN_PROCESS_PATTERNS:
             if re.search(pat, text, re.IGNORECASE):
                 violations.append(f"LEAK in jaxfne/ public source: {py_path.relative_to(ROOT)} matches '{pat}'")
