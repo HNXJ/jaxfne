@@ -121,11 +121,12 @@ Short list for the jnwb move (human, 2026-09-30), in order:
 Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
 
 NEXT (ordered, executable)
-1. [A] P-022: carry `Layer.geometry` through the NeuronalTensor bridge (owner
-   ruling 2026-09-30); field receipts that move are re-frozen with the cause.
-   Entrance equality already holds on spikes/V_m/sources (one area, two areas,
-   JDNA). Build: claude-jaxfne; antigravity-jaxfne measured it on a branch
-   and verifies.
+1. [A] P-022: built at f5357bab (clone cl-p022, base 1b409a91; rebase on
+   a20cf444 before push). Owner rulings 2026-09-30: geometry ranges are
+   column-relative; positions use the Configuration frame, a non-default
+   Pose3D applies about the area's own column origin; a default range keeps
+   the layer's block. Second review findings fixed; waits on the
+   antigravity-jaxfne verify, then close P-022 in the issue log.
 2. [A] P-023, after P-022 (same file): a synapse without a declared time
    constant is refused (no `dT_ms` default), and a mechanism whose sign
    contradicts the source cell type is refused (owner ruling 2026-09-30).
@@ -134,6 +135,12 @@ NEXT (ordered, executable)
    `artifacts/programme/` stay as written.
 4. [A] P-025: repo-root guard in the 47 scripts that lack it, plus a test
    that every script importing jaxfne inserts the repo root.
+5. [A] Docs drift from the antigravity-jaxfne crawl (2026-09-30), each to be
+   checked before editing: `docs/api/neuronal_tensor.md` still points users at
+   `construct_neuronal_tensor` instead of `jtfne.construct` and omits
+   `delay_ms`/`probability`; four tutorial fences in the doc-code integrity
+   allowlist could be fixed and their entries removed. (Tutorial 10 finding
+   was stale: fixed in 84662d4. EdgeList array count fixed 2026-09-30.)
 
 HUMAN DECISIONS
 - [H] D0 review: 23 softened overclaims and 17 flagged items in

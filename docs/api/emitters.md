@@ -311,7 +311,7 @@ Number of edges, i.e. `pre.shape[0]`.
 
 #### `tree_flatten()` / `tree_unflatten(aux, children)`
 
-JAX pytree protocol methods (children = the five arrays; aux = `source_calibration_status`).
+JAX pytree protocol methods (children = the six arrays `pre`, `post`, `weight`, `receptor_index`, `tau_ms`, `delay_steps`; aux = `source_calibration_status`).
 
 #### `to_dict() -> dict`
 
