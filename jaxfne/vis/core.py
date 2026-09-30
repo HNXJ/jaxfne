@@ -141,6 +141,20 @@ def binned_population_rate_hz(
     return centers_ms, rate_hz
 
 
+def _jnwb_compute_psd():
+    """``jnwb.compute_psd`` if jnwb is installed and takes ``nperseg``, else None."""
+    import inspect
+
+    try:
+        import jnwb
+    except Exception:  # absent, or broken on this interpreter: the local path is exact
+        return None
+    fn = getattr(jnwb, "compute_psd", None)
+    if fn is None or "nperseg" not in inspect.signature(fn).parameters:
+        return None
+    return fn
+
+
 def welch_psd(
     x: Any, fs_hz: float, *, nperseg: int = 256, freq_max_hz: float | None = None
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -149,6 +163,12 @@ def welch_psd(
     ``nperseg`` is clamped to the input length (scipy degrades gracefully;
     Item-9 probe 6 refuted the tiny-T crash). Returns ``(freqs, pxx)``.
     Input dtype is preserved (scipy keeps float32→float32); no upcast.
+
+    Finite float64 input with a segment of at least 2 is computed by
+    ``jnwb.compute_psd`` when the installed jnwb takes ``nperseg`` (item 0d,
+    option A, 2026-09-30); it makes the same ``scipy.signal.welch`` call, so
+    the result is bit-identical. Other input stays here: jnwb upcasts to
+    float64 and refuses non-finite or 1-sample traces.
     """
     from scipy import signal as _signal
 
@@ -156,7 +176,11 @@ def welch_psd(
     if arr.shape[0] < 1:
         raise ValueError("welch_psd needs at least one sample along axis 0")
     seg = int(min(nperseg, arr.shape[0]))
-    freqs, pxx = _signal.welch(arr, fs=float(fs_hz), axis=0, nperseg=seg)
+    psd = _jnwb_compute_psd() if arr.dtype == np.float64 and seg >= 2 else None
+    if psd is not None and np.all(np.isfinite(arr)):
+        freqs, pxx = psd(arr, float(fs_hz), axis=0, nperseg=seg)
+    else:
+        freqs, pxx = _signal.welch(arr, fs=float(fs_hz), axis=0, nperseg=seg)
     if freq_max_hz is not None:
         keep = freqs <= freq_max_hz
         freqs, pxx = freqs[keep], pxx[keep]

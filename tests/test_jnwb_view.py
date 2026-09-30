@@ -170,3 +170,36 @@ def test_jnwb_consumes_the_view(sim):
     centers, rate, _ = jnwb.raster_psth(view.spike_times_s[unit], np.array([view.t0_s]),
                                         (0.0, 100.0), bin_ms=10.0)
     assert np.sum(rate) * 10.0 / 1000.0 == pytest.approx(view.spike_times_s[unit].size)
+
+
+def test_welch_psd_hands_float64_to_jnwb_and_keeps_the_rest(monkeypatch):
+    from scipy import signal
+    from jaxfne.vis import core
+
+    calls = []
+
+    def spy(arr, fs, *, axis, nperseg):
+        calls.append((arr.dtype, nperseg))
+        return signal.welch(arr, fs=fs, axis=axis, nperseg=nperseg)
+
+    monkeypatch.setattr(core, "_jnwb_compute_psd", lambda: spy)
+    x = np.random.default_rng(0).standard_normal((600, 3))
+    core.welch_psd(x, 1000.0)
+    assert calls == [(np.float64, 256)]
+    for kept in (x.astype(np.float32), np.where(np.arange(600)[:, None] == 5, np.nan, x), x[:1]):
+        core.welch_psd(kept, 1000.0)
+    assert len(calls) == 1, "float32, non-finite and 1-sample input must stay on the local path"
+    assert core.welch_psd(x.astype(np.float32), 1000.0)[1].dtype == np.float32
+
+
+def test_welch_psd_through_jnwb_is_bit_identical():
+    from scipy import signal
+    from jaxfne.vis import core
+
+    if core._jnwb_compute_psd() is None:
+        pytest.skip("installed jnwb has no compute_psd(nperseg=)")
+    x = np.random.default_rng(1).standard_normal((3000, 4))
+    freqs, pxx = core.welch_psd(x, 2000.0, nperseg=300)
+    ref_f, ref_p = signal.welch(x, fs=2000.0, axis=0, nperseg=300)
+    np.testing.assert_array_equal(freqs, ref_f)
+    np.testing.assert_array_equal(pxx, ref_p)
