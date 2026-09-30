@@ -24,6 +24,7 @@ def test_v0313_omission_oddball_paradigm_timing():
         deviant_duration_ms=120.0,
         pre_stimulus_buffer_ms=150.0,
         post_stimulus_buffer_ms=450.0,
+        deviant_drive_amplitude=10.0,
     )
     
     assert isinstance(paradigm, jtfne.Paradigm)
@@ -38,7 +39,7 @@ def test_v0313_omission_oddball_paradigm_timing():
 
 def test_v0313_omission_paradigm_conditions_metadata():
     """Verify that expected, unexpected, and omitted conditions carry proper event flags."""
-    paradigm = jtfne.omission_oddball_paradigm()
+    paradigm = jtfne.omission_oddball_paradigm(deviant_drive_amplitude=10.0)
     
     # 1. Expected condition
     expected = paradigm.conditions[0]
@@ -58,7 +59,7 @@ def test_v0313_omission_paradigm_conditions_metadata():
 
 def test_v0313_json_safety_and_wording_gates():
     """Ensure the paradigm dictionaries and files contain zero NaNs/Infs and adhere to wording guidelines."""
-    paradigm = jtfne.omission_oddball_paradigm()
+    paradigm = jtfne.omission_oddball_paradigm(deviant_drive_amplitude=10.0)
     paradigm_dict = paradigm.to_dict() if hasattr(paradigm, "to_dict") else {"name": paradigm.name}
     
     # Ensure JSON serializable without NaN/Inf

@@ -169,3 +169,25 @@ Earlier closed issues: `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md`.
   output dir). Verified in a fresh `git worktree` at `26662db` with an empty
   `outputs/v030_03_two_neuron_ei_multimodal`, run from the worktree root:
   1 passed, 1 skipped ("No JSON outputs generated").
+
+### P-024
+- **date:** 2026-09-30
+- **type:** SCIENCE (stored is not consumed)
+- **area:** `jaxfne/paradigm.py` (`omission_oddball_paradigm`)
+- **observation:** the `unexpected` condition differs from `expected` only by
+  `stimulus="deviant_tone"` and label; no numeric consumer reads either, so
+  at equal onsets the two conditions simulate identically. Page 10 now says so.
+- **severity:** MINOR (scaffold says "no empirical validation"; an oddball
+  result built on it would compare equal runs)
+- **expected behavior:** a deviant carries a distinct declared drive, or the
+  factory refuses equal standard and deviant drive
+- **evidence:** D1b opencode run 2026-09-30 (expected == unexpected spikes at
+  seed 42); `jaxfne/paradigm.py:675-697`
+- **possible future change:** owner decision: deviant gain parameter or
+  refusal; open
+- **resolution (2026-09-30, owner ruling "refuse equal drives"):** `omission_oddball_paradigm` takes `standard_drive_amplitude` and
+  `deviant_drive_amplitude`; None realizes the simulator default read from
+  `stimulus_schedule`'s signature; the factory refuses realized-equal or
+  non-finite drives. Callers declare a deviant amplitude. Tests in
+  `tests/test_paradigm_semantics_p017.py` (critic-found bypasses None vs 5.0,
+  "10" vs 10.0, NaN each shown to fail on the first version).

@@ -49,6 +49,7 @@ reuse the `Model` across seeds/trials/sweeps.
 ```python
 paradigm = jtfne.omission_oddball_paradigm(
     standard_onset_ms=50.0, standard_duration_ms=20.0,
+    deviant_drive_amplitude=10.0,
 )
 ```
 

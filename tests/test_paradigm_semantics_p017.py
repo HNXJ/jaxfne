@@ -155,7 +155,7 @@ def test_standard_visual_omission_stimulus_injects_markers_do_not():
 
 def test_omission_oddball_stimulus_injects_markers_do_not():
     """omission_oddball_paradigm: the standard slot injects, markers and the omission do not."""
-    paradigm = jtfne.omission_oddball_paradigm()
+    paradigm = jtfne.omission_oddball_paradigm(deviant_drive_amplitude=10.0)
     arr = np.asarray(
         jtfne.stimulus_schedule(paradigm.condition("expected").events, n_neurons=4)
         .to_array(n_steps=2000, dt_ms=0.5)
@@ -170,6 +170,49 @@ def test_omission_oddball_stimulus_injects_markers_do_not():
         .to_array(n_steps=2000, dt_ms=0.5)
     )
     assert (arr_omitted[400:600, :] == 0.0).all()
+
+
+def test_omission_oddball_default_call_refuses_p024():
+    """P-024: a default call (both drives None) refuses."""
+    with pytest.raises(ValueError, match="P-024"):
+        jtfne.omission_oddball_paradigm()
+
+
+@pytest.mark.parametrize("std, dev", [
+    (10.0, 10.0),
+    (None, 5.0),          # None realizes the simulator default drive_amplitude=5.0
+    (5.0, None),
+    ("10", 10.0),         # the schedule coerces with float()
+    (float("nan"), 1.0),  # non-finite refused
+])
+def test_omission_oddball_equal_realized_amplitudes_refuse_p024(std, dev):
+    """P-024: amplitudes that realize equal (or non-finite) drives refuse."""
+    with pytest.raises(ValueError, match="P-024"):
+        jtfne.omission_oddball_paradigm(
+            standard_drive_amplitude=std, deviant_drive_amplitude=dev
+        )
+
+
+def test_omission_oddball_distinct_amplitudes_differ_in_simulation_p024():
+    """P-024: distinct amplitudes build, and expected vs unexpected spikes differ."""
+    paradigm = jtfne.omission_oddball_paradigm(
+        standard_duration_ms=20.0,
+        deviant_duration_ms=20.0,
+        pre_stimulus_buffer_ms=20.0,
+        post_stimulus_buffer_ms=50.0,
+        deviant_drive_amplitude=10.0,
+    )
+    expected = paradigm.condition("expected")
+    unexpected = paradigm.condition("unexpected")
+    std_event = next(e for e in expected.events if e.stimulus == "standard_tone")
+    dev_event = next(e for e in unexpected.events if e.stimulus == "deviant_tone")
+    assert std_event.metadata == {}
+    assert dev_event.metadata == {"drive_amplitude": 10.0}
+    model = _model()
+    sim = _sim()
+    s_expected = model.simulate(sim, paradigm=expected)
+    s_unexpected = model.simulate(sim, paradigm=unexpected)
+    assert not jnp.array_equal(s_expected.spikes, s_unexpected.spikes)
 
 
 def test_evoked_l4_drive_semantics():

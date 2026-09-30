@@ -85,6 +85,7 @@ paradigm = jtfne.omission_oddball_paradigm(
     deviant_duration_ms=100.0,
     pre_stimulus_buffer_ms=200.0,
     post_stimulus_buffer_ms=500.0,
+    deviant_drive_amplitude=10.0,
 )
 
 # Set up column and register probes
@@ -107,9 +108,9 @@ signals_omitted = jtfne.simulate(model, seed=42, duration_ms=1000.0, dt_ms=0.1,
 ```
 
 A full `Paradigm` is refused by `simulate()`; `paradigm.condition(...)` selects
-one condition per run. In this scaffold the deviant tone drives the circuit
-exactly as the standard tone does (the stimulus label sets no drive), so
-`signals_unexpected` equals `signals_expected` at equal seed and onsets.
+one condition per run. The deviant tone drives the circuit at the declared
+deviant amplitude (10.0 here, against the standard simulator default), so
+`signals_unexpected` differs from `signals_expected` at equal seed and onsets.
 
 ---
 

@@ -557,7 +557,8 @@ def spec_objective_60():
         .set_emitter("izhikevich", "cortical_eig")
         .probes(["spikes", "V_m", "LFP", "CSD"], n_contacts=8)
     )
-    paradigm = jtfne.omission_oddball_paradigm(standard_onset_ms=50.0, standard_duration_ms=20.0)
+    paradigm = jtfne.omission_oddball_paradigm(standard_onset_ms=50.0, standard_duration_ms=20.0,
+                                              deviant_drive_amplitude=10.0)
     model = jtfne.construct(cfg)
     # Page shows the standard-stimulus ("expected") run; a full Paradigm is
     # refused by simulate(), so pass that condition explicitly.

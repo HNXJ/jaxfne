@@ -124,8 +124,6 @@ NEXT (ordered, executable)
 1. [H] P-013 review the `arm_definitions` in `agent_tasks_055.json`
    (inputs only; outcome clauses removed after critic review), then close
    P-013. `freeze_task` does not emit them: a re-freeze must carry them over.
-2. [H] P-024 oddball deviant drives exactly like the standard: deviant gain
-   parameter or refusal.
 3. [H] P-016 and P-020: bisects done (`artifacts/programme/bisect_p016_receipt.md`,
    `bisect_p020_receipt.md`, mover 865e74b); re-freeze or revert awaits sign-off.
 4. [A] Fact audit, entrances (P-022): a hand-spelled Configuration now

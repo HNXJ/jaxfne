@@ -636,6 +636,8 @@ def omission_oddball_paradigm(
     pre_stimulus_buffer_ms: float = 200.0,
     post_stimulus_buffer_ms: float = 500.0,
     name: str = "omission_oddball",
+    standard_drive_amplitude: Optional[float] = None,
+    deviant_drive_amplitude: Optional[float] = None,
 ) -> Paradigm:
     """Create an omission/oddball detection paradigm.
 
@@ -659,11 +661,28 @@ def omission_oddball_paradigm(
         Post-stimulus window (ms).
     name : str
         Paradigm name.
+    standard_drive_amplitude : Optional[float]
+        Drive amplitude written into the standard stimulus event's metadata
+        as "drive_amplitude". If None, the simulator's drive_amplitude
+        argument applies, as today.
+    deviant_drive_amplitude : Optional[float]
+        Drive amplitude written into the deviant stimulus event's metadata
+        as "drive_amplitude". If None, the simulator's drive_amplitude
+        argument applies, as today.
 
     Returns
     -------
     Paradigm
         A Paradigm with expected, unexpected, omitted, and post-omission conditions.
+
+    Raises
+    ------
+    ValueError
+        If the standard and deviant drives realize equal amplitudes, None
+        standing for the simulator's default drive_amplitude (so both None, or
+        one None and the other equal to that default, refuse), or if either
+        amplitude is not finite. An oddball comparison of equal runs is
+        refused (P-024).
 
     Notes
     -----
@@ -673,13 +692,48 @@ def omission_oddball_paradigm(
     if deviant_onset_ms is None:
         deviant_onset_ms = standard_onset_ms
 
+    # Compare the drives the simulator will realize: None resolves to
+    # stimulus_schedule's own drive_amplitude default (read from its signature,
+    # so it cannot drift), and every value is coerced as the schedule does.
+    import inspect
+    import math
+    from ._model import stimulus_schedule
+
+    sim_default = inspect.signature(stimulus_schedule).parameters["drive_amplitude"].default
+    resolved = []
+    for label, value in (("standard_drive_amplitude", standard_drive_amplitude),
+                         ("deviant_drive_amplitude", deviant_drive_amplitude)):
+        amp = float(sim_default if value is None else value)
+        if not math.isfinite(amp):
+            raise ValueError(f"{label} must be finite, got {value!r} (P-024)")
+        resolved.append(amp)
+    if resolved[0] == resolved[1]:
+        raise ValueError(
+            "omission_oddball_paradigm refuses equal standard and deviant drives "
+            f"(standard_drive_amplitude={standard_drive_amplitude!r}, "
+            f"deviant_drive_amplitude={deviant_drive_amplitude!r}, both realize "
+            f"{resolved[0]} with None meaning the simulator default {sim_default}; P-024): "
+            "pass distinct amplitudes so the oddball comparison compares "
+            "different runs."
+        )
+
+    standard_metadata = (
+        {} if standard_drive_amplitude is None
+        else {"drive_amplitude": standard_drive_amplitude}
+    )
+    deviant_metadata = (
+        {} if deviant_drive_amplitude is None
+        else {"drive_amplitude": deviant_drive_amplitude}
+    )
+
     # Expected condition: standard stimulus
     expected_condition = ParadigmCondition(
         name="expected",
         sequence=("pre", "standard", "post", "null"),
         events=(
             ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms, metadata={"drive_amplitude": 0.0}),
-            ParadigmEvent(label="standard", onset_ms=pre_stimulus_buffer_ms, duration_ms=standard_duration_ms, stimulus="standard_tone"),
+            ParadigmEvent(label="standard", onset_ms=pre_stimulus_buffer_ms, duration_ms=standard_duration_ms, stimulus="standard_tone",
+                          metadata=standard_metadata),
             ParadigmEvent(label="post_stimulus", onset_ms=pre_stimulus_buffer_ms + standard_duration_ms, duration_ms=post_stimulus_buffer_ms, metadata={"drive_amplitude": 0.0}),
         ),
         probability=0.8,
@@ -691,7 +745,8 @@ def omission_oddball_paradigm(
         sequence=("pre", "deviant", "post", "null"),
         events=(
             ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms, metadata={"drive_amplitude": 0.0}),
-            ParadigmEvent(label=deviant_label, onset_ms=pre_stimulus_buffer_ms, duration_ms=deviant_duration_ms, stimulus="deviant_tone"),
+            ParadigmEvent(label=deviant_label, onset_ms=pre_stimulus_buffer_ms, duration_ms=deviant_duration_ms, stimulus="deviant_tone",
+                          metadata=deviant_metadata),
             ParadigmEvent(label="post_stimulus", onset_ms=pre_stimulus_buffer_ms + deviant_duration_ms, duration_ms=post_stimulus_buffer_ms, metadata={"drive_amplitude": 0.0}),
         ),
         probability=0.1,
