@@ -65,6 +65,19 @@ When HDP is off, \(H(t)\equiv 1\) documents the identity RBS container.
 python scripts/run_experiment_a.py
 ```
 
+<!-- jx-figure -->
+## Figure
+
+=== "Still"
+
+    ![Experiment A bundle figure](../assets/etudes/experiment_a.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="../_static/etudes/experiment_a/index.html" loading="lazy" title="Experiment A bundle figure"></iframe>
+
+Rendered still from the frozen `canonical_source.npz` (no resimulation; `python scripts/plot_experiment_a_still.py`). [Open full page](../_static/etudes/experiment_a/index.html).
+
 ## Interactive panels (dark)
 
 Panels built directly from the frozen `canonical_source.npz` — no resimulation of any kind: [index](../_static/etudes/experiment_a/index.html) · [raster](../_static/etudes/experiment_a/raster.html) · [traces](../_static/etudes/experiment_a/traces.html) · [H](../_static/etudes/experiment_a/h_dynamics.html) · [LFP](../_static/etudes/experiment_a/lfp.html) · [oscillatory](../_static/etudes/experiment_a/oscillatory.html).

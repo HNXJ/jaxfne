@@ -124,9 +124,8 @@ NEXT (ordered, executable)
    P-013. `freeze_task` does not emit them: a re-freeze must carry them over.
 2. [H] P-024 oddball deviant drives exactly like the standard: deviant gain
    parameter or refusal.
-3. [A] D2 `docs/etudes/experiment_a.md`: its bundle has no still figure;
-   render one from the frozen `.npz` (no new simulation), then embed it like
-   the other three étude pages.
+3. [H] P-016 and P-020: bisects done (`artifacts/programme/bisect_p016_receipt.md`,
+   `bisect_p020_receipt.md`, mover 865e74b); re-freeze or revert awaits sign-off.
 4. [A] Fact audit, entrances (P-022): a hand-spelled Configuration now
    equals the NeuronalTensor entrance on spikes/V_m/sources, for one area
    and for two areas of different sizes with a delayed area connection
