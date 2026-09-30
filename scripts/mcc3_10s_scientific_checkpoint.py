@@ -12,6 +12,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
+# Force the repo package: `python scripts/...` puts scripts/ first on sys.path,
+# so an installed jaxfne would otherwise shadow the working tree (P-025).
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
@@ -807,7 +811,7 @@ def main() -> int:
 
     metrics_path = OUT / "mcc3_10s_metrics.json"
     metrics_path.write_text(
-        json.dumps(metrics, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+        json.dumps(metrics, indent=2, allow_nan=False) + "\n", encoding="utf-8", newline="\n"
     )
 
     png_path = OUT / "mcc3_10s_pre_post.png"
@@ -833,7 +837,7 @@ def main() -> int:
     )
     manifest_path = OUT / "mcc3_10s_manifest.json"
     manifest_path.write_text(
-        json.dumps(manifest, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+        json.dumps(manifest, indent=2, allow_nan=False) + "\n", encoding="utf-8", newline="\n"
     )
 
     print(json.dumps(manifest, indent=2), flush=True)

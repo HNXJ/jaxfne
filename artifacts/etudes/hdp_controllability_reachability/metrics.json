@@ -54,7 +54,7 @@
     },
     "vector": {
       "R_EI": 0.9599033810845434,
-      "terminal_error_weighted": 0.029602456101573416
+      "terminal_error_weighted": 0.00280088258438386
     }
   },
   "mvc1_vector_partial": {

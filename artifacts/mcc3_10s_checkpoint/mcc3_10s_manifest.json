@@ -1,10 +1,10 @@
 {
   "checkpoint": "mcc3_10s_scientific",
   "identity": {
-    "branch": "dev",
-    "sha": "c9e12f8dbc026bd1b5a5f6d7e53d10d3ba06a52e",
-    "package_version": "0.4.8",
-    "working_tree_status": "M docs/ci_policy.md\n?? Makefile\n?? scripts/generate_surface_contract.py\n?? scripts/mcc3_10s_scientific_checkpoint.py\n?? scripts/run_test_gate.py",
+    "branch": "HEAD",
+    "sha": "8cd8a07f552be7ff0ce8a1ed4a6fda40eaec817c",
+    "package_version": "0.5.0",
+    "working_tree_status": "M artifacts/etudes/hdp_controllability_reachability/metrics.json\n M artifacts/mcc3_10s_checkpoint/mcc3_10s_manifest.json\n M artifacts/mcc3_10s_checkpoint/mcc3_10s_metrics.json\n M artifacts/mcc3_10s_checkpoint/mcc3_10s_pre_post.png\n A artifacts/programme/refreeze_p016_p020_2026-09-30.md\n M scripts/mcc3_10s_scientific_checkpoint.py\n A scripts/regenerate_hdp_population_restoring_metrics.py\n?? artifacts/archive/0.5.x/refreeze_2026-09-30/\n?? artifacts/mcc3_10s_checkpoint/mcc3_10s_H.csv\n?? artifacts/mcc3_10s_checkpoint/mcc3_10s_weights.csv",
     "simulation_seed": 17,
     "optimizer_seed": 42,
     "duration_ms": 10000.0,
@@ -18,13 +18,15 @@
     "agsdr_note": "AGSDR rerun with exact accepted MCC-3 optimizer configuration; training sim remains 100 ms, evaluation sim is 10 s."
   },
   "artifacts": {
-    "figure_png": "artifacts/mcc3_10s_checkpoint/mcc3_10s_pre_post.png",
-    "metrics_json": "artifacts/mcc3_10s_checkpoint/mcc3_10s_metrics.json",
-    "rates_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_rates.csv"
+    "figure_png": "artifacts\\mcc3_10s_checkpoint\\mcc3_10s_pre_post.png",
+    "metrics_json": "artifacts\\mcc3_10s_checkpoint\\mcc3_10s_metrics.json",
+    "rates_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_rates.csv",
+    "weights_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_weights.csv",
+    "H_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_H.csv"
   },
   "hashes": {
-    "mcc3_10s_pre_post.png": "5699bca1b50b956b972e3cf01db894629e711869c7ae83a2b875974751d1efae",
-    "mcc3_10s_metrics.json": "423781063dfd118f04fb03004792d9cc0ff8482ba8a20f20b6d0c30e7fa32aed"
+    "mcc3_10s_pre_post.png": "a44a7384f280db1347b2ed2564b20c0bdb83cf34d42f2a21766962aab8dd6035",
+    "mcc3_10s_metrics.json": "d6f714276e9dd8530b4ee2757093e933f15a774b51804289aa0a71d4c17ac214"
   },
   "abc_table": {
     "population_rate_hz": {
@@ -55,12 +57,12 @@
     "source_rms": {
       "A": 4.208344459533691,
       "B": 4.307272911071777,
-      "C": 4.298046588897705
+      "C": 4.300274848937988
     },
     "readout_rms": {
       "A": 8.919227600097656,
       "B": 9.091331481933594,
-      "C": 9.069587707519531
+      "C": 9.073344230651855
     },
     "objective_total_score_10s": {
       "A": 0.5394446543228475,

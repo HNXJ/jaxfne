@@ -1,0 +1,142 @@
+{
+  "schema": "hdp_controllability_reachability_metrics.v0.1",
+  "central_question": "How do latent-state dimensionality, actuator controllability, restorative alignment, stability, and finite-amplitude reachability determine adaptation of a minimal E/I circuit, and how does successful adaptation appear across spikes, potentials, sources, fields, and spectra?",
+  "plant": {
+    "circuit": "MCC-3 minimal 5E/5PV Izhikevich TFNE",
+    "operating_point": "scientific_agsdr_theta_star",
+    "r0_hz": {
+      "r_E_hz": 10.902550498031129,
+      "r_I_hz": 9.14117463285841,
+      "window_ms": [
+        20.0,
+        3000.0
+      ]
+    }
+  },
+  "control_theory": {
+    "rank_J_W": 1,
+    "rank_J_Theta_S": 2,
+    "Theta_S": [
+      "m_EI",
+      "eta_a_E"
+    ],
+    "J_S": [
+      [
+        0.0,
+        9.018039703278951
+      ],
+      [
+        7.016381311566571,
+        8.617229461583742
+      ]
+    ],
+    "zeta": 1.2,
+    "tau_slow_s": 2.0,
+    "G_star_diagonal": 0.3471979899370592,
+    "max_Re_lambda_J_slow": -0.5000000000000001
+  },
+  "authority": {
+    "alpha_U_crit_estimate": 1.2,
+    "mvc1_alpha_U": 1.5,
+    "mvc1_reachable": false,
+    "mvc1_d_R_weighted": "1.1197",
+    "mvc2_alpha_U": 1.2,
+    "mvc2_reachable": true
+  },
+  "mvc2_recovery": {
+    "off": {
+      "R_EI": 0.38110494571266207,
+      "terminal_error_weighted": 0.5149233904923189
+    },
+    "scalar": {
+      "R_EI": 0.43378372611986105,
+      "terminal_error_weighted": 0.5249066020968771
+    },
+    "vector": {
+      "R_EI": 0.9599033810845434,
+      "terminal_error_weighted": 0.029602456101573416
+    }
+  },
+  "mvc1_vector_partial": {
+    "R_EI": 0.5701358023953728,
+    "R_E": 0.9876071906789183,
+    "R_I": 0.5608763781384435,
+    "terminal_error_weighted": 1.1355422744877082,
+    "note": "local controllability does not imply finite reachability at 1.5 U0"
+  },
+  "neurophysiology_late": {
+    "off": {
+      "r_E_hz": 13.72405,
+      "r_I_hz": 13.934550014901161,
+      "E_P_to_baseline": 10.13472243321446,
+      "R_P": -0.03521282158122019,
+      "phenotype_class": "poor_rate_recovery",
+      "d_phys_weighted": 3.480483518323305
+    },
+    "scalar": {
+      "r_E_hz": 13.67645,
+      "r_I_hz": 14.05370000745058,
+      "E_P_to_baseline": 9.695093489826283,
+      "R_P": 0.05276776275291162,
+      "phenotype_class": "poor_rate_recovery",
+      "d_phys_weighted": 3.3093619534419645
+    },
+    "vector": {
+      "r_E_hz": 10.90285,
+      "r_I_hz": 8.84515000745058,
+      "E_P_to_baseline": 2.099993317378834,
+      "R_P": 0.768021219786168,
+      "phenotype_class": "rate_recovery_altered_phenotype",
+      "d_phys_weighted": 1.8836025681919906
+    }
+  },
+  "rate_spectrum_coupling": {
+    "hypothesis": "r_late ~ r0 => P_late(f) ~ P0(f)",
+    "vector_late_rates_near_r0": true,
+    "vector_spectral_R_P": 0.768021219786168,
+    "vector_phenotype": "rate_recovery_altered_phenotype",
+    "interpretation": "Vector-H restores population rates (R_EI=0.96) with substantial spectral recovery (R_P~0.77) but weighted physiological distance remains elevated (rate_recovery_altered_phenotype): controlled observables recover while some field/source statistics remain on an alternative compensated trajectory."
+  },
+  "claim_gates": {
+    "representation": "relative",
+    "field_solver_status": "linear_solver",
+    "field_claim_level": "proxy_readout",
+    "note": "Not empirical calibrated LFP/CSD; descriptive frequency bands only"
+  },
+  "phenotype_classification": {
+    "rate_recovery_altered_phenotype": {
+      "rate_tolerance": 0.15,
+      "phenotype_tolerance": 0.15,
+      "phenotype_vector": [
+        "r_E_hz",
+        "r_I_hz",
+        "vm_sd",
+        "source_rms",
+        "phi_rms",
+        "band_1_30_hz_source",
+        "band_30_80_hz_source",
+        "band_80_150_hz_source"
+      ],
+      "weights": [
+        0.06666666666666667,
+        0.1,
+        0.05,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "vector_late": {
+        "d_rate_weighted": 0.029602469274563527,
+        "d_phys_weighted": 1.8836025681919906,
+        "primary_residuals": {
+          "source_rms_baseline": 9.227999687194824,
+          "source_rms_late": 10.513029098510742,
+          "phi_rms_baseline": 9.227999687194824,
+          "phi_rms_late": 10.513029098510742
+        }
+      }
+    }
+  }
+}
