@@ -121,29 +121,26 @@ Short list for the jnwb move (human, 2026-09-30), in order:
 Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
 
 NEXT (ordered, executable)
-1. [A] P-016 and P-020: re-freeze with cause 865e74b (owner ruling 2026-09-30).
-   Bisects in `artifacts/programme/bisect_p016_receipt.md` and
-   `bisect_p020_receipt.md`; old receipts archived byte for byte. In progress
-   (claude-jaxfne, opencode actor).
-2. [A] P-022: carry `Layer.geometry` through the NeuronalTensor bridge (owner
+1. [A] P-022: carry `Layer.geometry` through the NeuronalTensor bridge (owner
    ruling 2026-09-30); field receipts that move are re-frozen with the cause.
    Entrance equality already holds on spikes/V_m/sources (one area, two areas,
    JDNA). Build: claude-jaxfne; antigravity-jaxfne measured it on a branch
    and verifies.
-3. [A] P-023, after P-022 (same file): a synapse without a declared time
+2. [A] P-023, after P-022 (same file): a synapse without a declared time
    constant is refused (no `dT_ms` default), and a mechanism whose sign
    contradicts the source cell type is refused (owner ruling 2026-09-30).
-4. [A] D0b remaining lanes: `scripts/` comments (claimed by opencode-jaxfne)
+3. [A] D0b remaining lanes: `scripts/` comments (claimed by opencode-jaxfne)
    and the markdown outside `docs/`; evidence records such as
    `artifacts/programme/` stay as written.
+4. [A] P-025: repo-root guard in the 47 scripts that lack it, plus a test
+   that every script importing jaxfne inserts the repo root.
 
 HUMAN DECISIONS
 - [H] D0 review: 23 softened overclaims and 17 flagged items in
   `artifacts/audit/docs_style_pass_2026-09-28.md`.
-- [H] Sign off each re-freeze (P-016, P-020): bisect receipts
-  `artifacts/programme/bisect_p016_receipt.md` and `bisect_p020_receipt.md`
-  name `865e74b`.
-- [H] Review the `arm_definitions` before the next freeze [B: item 1].
+- [H] Sign off the P-016/P-020 re-freeze:
+  `artifacts/programme/refreeze_p016_p020_2026-09-30.md` (cause `865e74b`).
+- [H] Review the `arm_definitions` before the next freeze.
 - [H] Stale version notes, edit or leave: `_signals.py:1445,1453`,
   `validation.py:1230`, `experimental_hpc/physical_field_solver_v040.py:55`.
 - [H] `units.py` unwired: wire or remove.

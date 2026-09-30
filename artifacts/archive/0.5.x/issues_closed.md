@@ -216,3 +216,51 @@ Earlier closed issues: `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md`.
   `agent_tasks_055.json` declares `arm_definitions` (inputs only; critic removed
   outcome clauses); `packet()` prints them and refuses a mismatch;
   `freeze_task` carries them on re-freeze (`carry_arm_definitions`, tested).
+
+### P-016
+- **date:** 2026-09-26
+- **type:** DEFECT (slow-tier regression pin fails at HEAD)
+- **area:** `tests/test_hdp_population_restoring.py::test_population_restoring_etude_regression_metrics`
+- **observation:** vector-HDP terminal error 0.0028 vs frozen 0.0296
+  (tol abs 0.02); fails identically on 409f125 without any change. The
+  test is `slow`, outside the broad gate. The etude runner
+  `scripts/hdp_mvc_etude.py` named in the manifest no longer exists.
+- **severity:** MINOR (smaller terminal error than frozen; pin, not physics)
+- **minimal reproduction:** `pytest tests/test_hdp_population_restoring.py -q`
+- **expected behavior:** PASS against the frozen etude
+- **actual behavior:** 1 FAIL
+- **evidence:** run 2026-09-26 on 409f125 and on the P-014 tree, same value
+- **possible future change:** find the commit that moved it (bisect over
+  HDP changes); re-freeze only with a stated cause; open
+- **resolution (2026-09-30, owner ruling: re-freeze with cause):** cause `865e74b`
+  (bisect `artifacts/programme/bisect_p016_receipt.md`); frozen value
+  `0.029602456101573416` -> `0.00280088258438386`; receipt
+  `artifacts/programme/refreeze_p016_p020_2026-09-30.md`; old file archived.
+
+### P-020
+- **date:** 2026-09-28
+- **type:** SCIENCE (frozen receipt reproduces in part)
+- **area:** `artifacts/mcc3_10s_checkpoint/` (receipt of c9e12f8, v0.4.8),
+  `scripts/mcc3_10s_scientific_checkpoint.py`
+- **observation:** rerun at b0817dc with the repaired script: conditions A
+  and B match the receipt to float32 (κ within 1e-14, PSD within ~1e-7
+  relative). Condition C (θ̂, HDP off) keeps every rate and spike count, but
+  its spike timing moved: population ISI CV 0.01270 → 0.01228, κ 0.0229 →
+  0.0183, source |max| 29.88 → 30.86. The etude rerun
+  (`scripts/rerun_etude_figures.py --etude hdp_mcc3`) checks θ̂ and
+  condition B only, and passes.
+- **severity:** MINOR (rates and counts equal; timing statistics of one condition)
+- **minimal reproduction:** run `scripts/mcc3_10s_scientific_checkpoint.py`
+  and compare `mcc3_10s_metrics.json` leaf by leaf with the committed file
+  (132 of 1,800,946 leaves differ)
+- **expected behavior:** the receipt reproduces, or its drift has a stated cause
+- **actual behavior:** as observed
+- **evidence:** run 2026-09-28 in a clone at b0817dc; the receipt was
+  restored byte for byte
+- **possible future change:** bisect the HDP-off simulation path since
+  c9e12f8 for the commit that moved condition C, then re-freeze with the
+  stated cause or extend the etude check to C; open
+- **resolution (2026-09-30, owner ruling: re-freeze with cause):** cause `865e74b`
+  (bisect `artifacts/programme/bisect_p020_receipt.md`); condition C re-frozen
+  (kappa 0.0229 -> 0.0183, ISI CV 0.01270 -> 0.01228), A/B unchanged beyond float
+  dust; regenerated from a clean tree at 1a7998cd; receipt as for P-016.
