@@ -172,7 +172,7 @@ excitatory/inhibitory weight updates, with synaptic drive and the
 neuron's own spiking feeding back into it — holding a population stationary over many
 seconds via automatic feedback instead of hand-retuned drive.
 
-```python
+```text
 I_syn_i = sum_j w_ji * x_j                                 # incoming synaptic current
 tau_i * dH_i/dt = alpha*I_syn_i + beta - gamma*H_i*r_i - delta*W_i
                   + rho_passive/H_i**2 + K_ctrl*(1 - H_i) - dC/dH_i

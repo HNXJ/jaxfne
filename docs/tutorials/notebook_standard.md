@@ -8,7 +8,7 @@ jaxfne tutorials are Colab-ready Jupyter notebooks that teach the source-to-fiel
 
 Every notebook **must** start with:
 
-```python
+```bash
 !pip install jaxfne
 ```
 
