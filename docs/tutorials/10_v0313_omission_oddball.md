@@ -95,19 +95,31 @@ cfg = (jtfne.Configuration()
     .set_emitter("izhikevich", "cortical_eig")
     .probes(["spikes", "LFP-proxy", "CSD-proxy"]))
 
-# Construct model and apply paradigm conditions
+# Construct model and run one condition per simulate call
 model = jtfne.construct(cfg)
+
+signals_expected = jtfne.simulate(model, seed=42, duration_ms=1000.0, dt_ms=0.1,
+                                  paradigm=paradigm.condition("expected"))
+signals_unexpected = jtfne.simulate(model, seed=42, duration_ms=1000.0, dt_ms=0.1,
+                                    paradigm=paradigm.condition("unexpected"))
+signals_omitted = jtfne.simulate(model, seed=42, duration_ms=1000.0, dt_ms=0.1,
+                                 paradigm=paradigm.condition("omitted"))
 ```
+
+A full `Paradigm` is refused by `simulate()`; `paradigm.condition(...)` selects
+one condition per run. In this scaffold the deviant tone drives the circuit
+exactly as the standard tone does (the stimulus label sets no drive), so
+`signals_unexpected` equals `signals_expected` at equal seed and onsets.
 
 ---
 
 ## Figures
 
 - **Figure 1: Sensory Event Timeline** — expected, deviant, and omitted event windows.
-- **Figure 2: Expected raster/rate** — spiking under regular standards.
-- **Figure 3: Unexpected deviant raster/rate** — spiking under rare deviant.
-- **Figure 4: Omission raster/rate** — activity in expected-tone silence and post-omission window.
-- **Figure 5: LFP/CSD-proxy Contrast** — sensory vs omission proxy profiles.
+- **Figure 2: Expected raster/rate** — `signals_expected` spiking under regular standards.
+- **Figure 3: Unexpected deviant raster/rate** — `signals_unexpected` spiking under rare deviant.
+- **Figure 4: Omission raster/rate** — `signals_omitted` activity in expected-tone silence and post-omission window.
+- **Figure 5: LFP/CSD-proxy Contrast** — sensory vs omission proxy profiles across the three runs.
 
 ---
 

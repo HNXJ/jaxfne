@@ -145,3 +145,21 @@ possible future change.
 - **possible future change:** owner decision on defaults and refusal; open
 
 ---
+
+### P-024
+- **date:** 2026-09-30
+- **type:** SCIENCE (stored is not consumed)
+- **area:** `jaxfne/paradigm.py` (`omission_oddball_paradigm`)
+- **observation:** the `unexpected` condition differs from `expected` only by
+  `stimulus="deviant_tone"` and label; no numeric consumer reads either, so
+  at equal onsets the two conditions simulate identically. Page 10 now says so.
+- **severity:** MINOR (scaffold says "no empirical validation"; an oddball
+  result built on it would compare equal runs)
+- **expected behavior:** a deviant carries a distinct declared drive, or the
+  factory refuses equal standard and deviant drive
+- **evidence:** D1b opencode run 2026-09-30 (expected == unexpected spikes at
+  seed 42); `jaxfne/paradigm.py:675-697`
+- **possible future change:** owner decision: deviant gain parameter or
+  refusal; open
+
+---

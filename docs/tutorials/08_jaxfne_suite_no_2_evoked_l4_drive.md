@@ -91,12 +91,15 @@ model_evoked = jtfne.construct(cfg_baseline)
 ### Simulation
 
 ```python
-signals_baseline = jtfne.simulate(model_baseline, seed=7, duration_ms=1500.0, dt_ms=0.1)
+signals_baseline = jtfne.simulate(model_baseline, seed=7, duration_ms=1500.0, dt_ms=0.1,
+                                  paradigm=paradigm.condition("baseline"))
 signals_evoked = jtfne.simulate(model_evoked, seed=7, duration_ms=1500.0, dt_ms=0.1,
-                                paradigm=paradigm)
+                                paradigm=paradigm.condition("evoked"))
 ```
 
 The paradigm rides on `simulate()` — no `.paradigm()` method on `Configuration`.
+Run one condition per call: `paradigm.condition(...)` selects it, and a full
+`Paradigm` is refused.
 
 ## Interactive atlas (dark)
 

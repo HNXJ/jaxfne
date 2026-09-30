@@ -122,10 +122,8 @@ NEXT (ordered, executable)
 1. [H] P-013 review the `arm_definitions` in `agent_tasks_055.json`
    (inputs only; outcome clauses removed after critic review), then close
    P-013. `freeze_task` does not emit them: a re-freeze must carry them over.
-2. [A] D1b rebuild pages 08 and 10 on the P-017 semantics
-   (`paradigm.condition(...)`): `08_jaxfne_suite_no_2_evoked_l4_drive.md`
-   passes a full `Paradigm`, which simulate now refuses;
-   `10_v0313_omission_oddball.md` plots two time steps under condition titles.
+2. [H] P-024 oddball deviant drives exactly like the standard: deviant gain
+   parameter or refusal.
 3. [A] D2 études pages: embed each page's own figure beside its text (still
    tab + interactive iframe, `scripts/generate_docs_visuals.py` pattern).
 4. [A] Fact audit, entrances (P-022): a hand-spelled Configuration now
