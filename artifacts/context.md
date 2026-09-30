@@ -73,11 +73,11 @@ live in `artifacts/release/current_release_authorities.json`, not in generic ski
 
 **Project control (two files, distinct roles):**
 
-- `artifacts/fact_stack.md` — small set of stable, human-authorized facts that
+- `artifacts/fact_stack.md`: small set of stable, human-authorized facts that
   guide work. Not evidence. Agents must not edit without explicit human
   authorization.
-- `artifacts/todo_stack.md` — remaining work only (v0.4.22→v0.4.24); see
-  **TODO stack** in `artifacts/AGENTS.md`. Git, tests, and receipts are evidence.
+- `artifacts/todo_stack.md`: remaining work only; see **TODO stack** in
+  `artifacts/AGENTS.md`. Git, tests, and receipts are evidence.
 
 ## Settling a claim
 

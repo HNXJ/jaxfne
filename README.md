@@ -53,7 +53,7 @@ Import convention: `import jaxfne as jtfne`.
 | Site | [jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/) |
 | Tutorials | [docs/tutorials/](docs/tutorials/) |
 | Études | [docs/etudes/](docs/etudes/) |
-| Public API surface (0.4.13) | [docs/public_surface_contract.md](docs/public_surface_contract.md) |
+| Public API surface | [docs/public_surface_contract.md](docs/public_surface_contract.md) |
 | Changelog | [docs/changelog.md](docs/changelog.md) |
 
 If you are an AI agent, read [`artifacts/AGENTS.md`](artifacts/AGENTS.md).
@@ -64,7 +64,7 @@ If you are an AI agent, read [`artifacts/AGENTS.md`](artifacts/AGENTS.md).
 
 ## Canonical Visualization Atlas
 
-Seven linked panels (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`, `hdp`, `oscillatory`) label each quantity **OBSERVED** or **DERIVED** and carry
+Seven linked panels (`schema`, `network_3d`, `raster`, `lfp`, `h_dynamics`, `hdp`, `oscillatory`) label each quantity `OBSERVED` or `DERIVED` and carry
 manifest provenance. A panel whose declared inputs are missing renders an omission card. Previews and generation code:
 [documentation site](https://jaxfne.readthedocs.io/en/latest/) and
 [Atlas guide](docs/guides/atlas_suite.md).
