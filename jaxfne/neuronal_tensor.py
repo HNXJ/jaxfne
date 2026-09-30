@@ -715,20 +715,58 @@ def merge_neuronal_tensors(
     )
 
 
-def _sample_local_positions(geometry: Geometry3D, n: int, key: "jax.Array") -> "jax.Array":
-    """Sample ``n`` local (x, y, z) points inside a layer's declared Geometry3D ranges."""
-    if geometry.distribution != "uniform_random":
-        raise NotImplementedError(
-            f"Geometry3D.distribution={geometry.distribution!r} is not implemented yet; "
-            "only 'uniform_random' is supported."
-        )
-    if n <= 0:
-        return jnp.zeros((0, 3))
-    x_key, y_key, z_key = jax.random.split(key, 3)
-    x = jax.random.uniform(x_key, (n,), minval=geometry.x_range[0], maxval=geometry.x_range[1])
-    y = jax.random.uniform(y_key, (n,), minval=geometry.y_range[0], maxval=geometry.y_range[1])
-    z = jax.random.uniform(z_key, (n,), minval=geometry.z_range[0], maxval=geometry.z_range[1])
-    return jnp.stack([x, y, z], axis=1)
+def _tensor_geometry_domains(
+    tensor: NeuronalTensor,
+    metadata: dict[str, Any],
+) -> dict[str, dict[str, dict[str, list[float]]]]:
+    """Per-(area, layer) declared geometry domains for construction.
+
+    ``Geometry3D`` ranges are column-relative (owner ruling 2026-09-30): x and
+    y are fractions of the column's width, z a fraction of the column's depth
+    (a JDNA ``depth_band`` of ``[0.1, 0.35]`` is 10-35 % of the column). The
+    construction stage reads ``metadata["tfne_geometry"]["domains"]`` as
+    fractions of each layer's block; x and y blocks span the whole column, so
+    they pass unchanged, and z is converted from the column frame into the
+    layer's ``layer_fractions`` block (the result may leave ``[0, 1]`` when
+    the band extends past the block). A full ``(0.0, 1.0)`` axis is unconstrained: it is omitted, so
+    construction without a sub-range declaration takes the historical code
+    path unchanged. A degenerate point range (e.g. ``(0.0, 0.0)``) is kept:
+    it collapses that axis to one block fraction, preserving the documented
+    2D/1D collapse (at the block position, not at absolute 0.0).
+
+    Only ``distribution="uniform_random"`` is supported -- anything else is
+    refused here, where the declaration would otherwise be silently sampled
+    as uniform downstream.
+    """
+    from ._construct_population import _layer_ranges_for
+
+    domains: dict[str, dict[str, dict[str, list[float]]]] = {}
+    for area in tensor.areas:
+        z_blocks = _layer_ranges_for([layer.name for layer in area.layers], metadata)
+        for layer in area.layers:
+            geometry = layer.geometry
+            if geometry.distribution != "uniform_random":
+                raise NotImplementedError(
+                    f"Geometry3D.distribution={geometry.distribution!r} is not implemented yet; "
+                    "only 'uniform_random' is supported."
+                )
+            block: dict[str, list[float]] = {}
+            for axis, attr in (("x", "x_range"), ("y", "y_range"), ("z", "z_range")):
+                lo, hi = (float(v) for v in getattr(geometry, attr))
+                if (lo, hi) == (0.0, 1.0):
+                    continue
+                if axis == "z":
+                    z0, z1 = z_blocks[layer.name]
+                    if z1 <= z0:
+                        raise ValueError(
+                            f"{area.name}/{layer.name}: layer block has zero depth "
+                            f"({z0}, {z1}); a column-relative z_range cannot be placed in it"
+                        )
+                    lo, hi = (lo - z0) / (z1 - z0), (hi - z0) / (z1 - z0)
+                block[axis] = [lo, hi]
+            if block:
+                domains.setdefault(area.name, {})[layer.name] = block
+    return domains
 
 
 def _apply_pose(local_xyz: "jax.Array", pose: Pose3D) -> "jax.Array":
@@ -848,9 +886,8 @@ def _construct_neuronal_tensor_impl(
     """Bridge + construct + apply each Area's Pose3D placement, in one call.
 
     :func:`jaxfne.construct` only offsets columns along x with no rotation, so
-    this samples each layer's local positions from its own declared
-    ``Geometry3D`` and re-derives the global placement from each area's
-    ``Pose3D`` (plane + rotation + translation) afterward, overwriting
+    this applies each area's ``Pose3D`` (plane + rotation + translation) to
+    the constructed positions afterward, overwriting
     ``model.params["positions"]`` (and the matching ``x``/``y``/``z`` entries
     in ``model.static["neuron_metadata"]``) so field/LFP/EEG/MEG proxy
     readouts — which read positions from there — see the real layout.
@@ -864,6 +901,13 @@ def _construct_neuronal_tensor_impl(
     :func:`jaxfne.construct`, or via a post-hoc ``RuntimeConfig`` override at
     :func:`jaxfne.simulate` time) — matching ``RuntimeConfig.enable_hdp``'s
     default of ``False``.
+
+    Positions already carry each ``Layer.geometry``: the bridge wrote it
+    into the ``Configuration`` (``tfne_geometry`` domains), so
+    :func:`jaxfne.construct` sampled it. This then applies only each
+    ``Area``'s ``Pose3D`` placement (plane + rotation + translation) onto
+    those constructed positions — no re-sampling, one source of truth for
+    geometry. A default pose is the identity, bit-exact.
 
     Connectivity mode is preserved from the tensor: omitted connectivity uses
     the configuration default topology, while explicit connectivity (including
@@ -906,26 +950,30 @@ def _construct_neuronal_tensor_impl(
         )
         model = model.with_hdp_initial_state(H0=H0)
 
-    layer_by_key = {(a.name, layer.name): layer for a in tensor.areas for layer in a.layers}
     pose_by_area = {a.name: a.pose for a in tensor.areas}
 
-    base_key = jax.random.PRNGKey(seed)
+    # Owner ruling 2026-09-30: one frame, the Configuration's (mm, each column
+    # centred at x = k * AREA_X_SPACING_MM). A non-default Pose3D is applied
+    # about the area's own column origin (that offset removed first), so its
+    # translation is absolute; a default pose keeps construct's layout.
+    from ._construct_population import AREA_X_SPACING_MM
+
+    area_index = {a.name: k for k, a in enumerate(tensor.areas)}
+    constructed = model.params["positions"]
     position_chunks: list["jax.Array"] = []
-    group_index = 0
     i = 0
     n_rows = len(rows)
     while i < n_rows:
-        area_name, layer_name = rows[i]["area"], rows[i]["layer"]
+        area_name = rows[i]["area"]
         j = i
-        while j < n_rows and rows[j]["area"] == area_name and rows[j]["layer"] == layer_name:
+        while j < n_rows and rows[j]["area"] == area_name:
             j += 1
-        count = j - i
-        layer_obj = layer_by_key.get((area_name, layer_name), Layer(name=layer_name))
         pose = pose_by_area.get(area_name, Pose3D())
-        sub_key = jax.random.fold_in(base_key, group_index)
-        local = _sample_local_positions(layer_obj.geometry, count, sub_key)
-        position_chunks.append(_apply_pose(local, pose))
-        group_index += 1
+        chunk = constructed[i:j]
+        if pose != Pose3D():
+            origin = jnp.asarray([area_index[area_name] * AREA_X_SPACING_MM, 0.0, 0.0], dtype=chunk.dtype)
+            chunk = _apply_pose(chunk - origin, pose)
+        position_chunks.append(chunk)
         i = j
 
     positions = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3))
@@ -1110,15 +1158,19 @@ def neuronal_tensor_to_configuration(
     is the most neutral reading, mirroring the even-split reading used for
     cell-type fractions above.
 
-    Known fidelity gaps still open (not yet wired to ``Configuration``):
+    Per-layer GEOMETRY is also preserved (fixed P-022), via the same
+    fractional-domain channel the TFNE ``to_configuration`` path writes
+    (``metadata["tfne_geometry"]["domains"]``, relative,
+    ``value_tag="relative"``): each ``Layer``'s ``Geometry3D`` ranges are
+    column-relative (z a fraction of the column depth, x and y of its width;
+    owner ruling 2026-09-30) and become per-(area, layer) domains in the
+    construction stage's block frame. A full ``(0.0, 1.0)`` axis is
+    unconstrained and omitted, so default-geometry tensors take the
+    historical path unchanged. Only ``distribution="uniform_random"`` is
+    supported (anything else is refused); a degenerate point range keeps
+    the documented 2D/1D collapse at that column fraction.
 
-    - ``Layer.geometry`` (per-layer ``distribution``/``x_range``/``y_range``/
-      ``z_range``) is dropped by THIS function; positions instead come from
-      jaxfne's default uniform-random column radius/height. Use
-      :func:`construct_neuronal_tensor` instead of calling this bridge alone
-      if you need pose-correct/declared-geometry 3D placement — it bridges
-      via this function then overwrites positions from each ``Layer.geometry``
-      + ``Area.pose``.
+    Known fidelity gaps still open (not yet wired to ``Configuration``):
     - ``StaticParams.reversal_potentials_mV`` is surfaced into each declared
       mechanism's ``params["reversal_mV"]`` (visible in
       ``cfg.metadata["circuit"]["mechanisms"]``) but still has no numeric
@@ -1223,6 +1275,32 @@ def neuronal_tensor_to_configuration(
 
     total_weight = sum(fallback_weight.values()) or 1.0
     cfg = cfg.cell_types({name: weight / total_weight for name, weight in fallback_weight.items()})
+
+    geometry_domains = _tensor_geometry_domains(tensor, dict(cfg.metadata))
+    if geometry_domains:
+        # `declared` keeps the column-relative ranges as written; `domains`
+        # are the layer-block fractions construction samples (z may leave [0, 1]).
+        declared = {
+            area.name: {
+                layer.name: {
+                    "x": list(layer.geometry.x_range),
+                    "y": list(layer.geometry.y_range),
+                    "z": list(layer.geometry.z_range),
+                }
+                for layer in area.layers
+                if layer.name in geometry_domains.get(area.name, {})
+            }
+            for area in tensor.areas
+            if area.name in geometry_domains
+        }
+        cfg = cfg.update_metadata(
+            tfne_geometry={
+                "value_tag": "relative",
+                "frame": "column",
+                "declared": declared,
+                "domains": geometry_domains,
+            }
+        )
 
     total_n = sum(area_n_by_name.values()) or 1
     declared_mechanisms: dict[tuple[str, float], str] = {}

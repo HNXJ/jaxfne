@@ -197,9 +197,10 @@ def test_jdna_developed_tensor_matches_hand_spelled_configuration():
     "explicit" (passing inter_connections=[...] marks the area explicit, so
     the compiled graph holds only the declared rule). Omitted as inert:
     `tensor_identity` (a provenance hash nothing in construct/simulate
-    reads), the H overlay (stored but inert with HDP disabled), and declared
-    geometry (positions differ by entrance and move only the field proxies,
-    so field is not compared here).
+    reads) and the H overlay (stored but inert with HDP disabled). The
+    genome's depth band is the full [0.0, 1.0], which the bridge omits from
+    `tfne_geometry`, so there is no geometry to spell here -- and positions
+    plus every field proxy are compared bit-exact.
 
     D=200 ms spikes (38 spikes), so the comparison is not vacuous."""
     genome = _tiny_deterministic_genome()
@@ -244,3 +245,11 @@ def test_jdna_developed_tensor_matches_hand_spelled_configuration():
     assert bool(jnp.array_equal(sig_a.spikes, sig_b.spikes))
     assert bool(jnp.array_equal(sig_a.V_m, sig_b.V_m))
     assert bool(jnp.array_equal(sig_a.sources, sig_b.sources))
+    assert bool(jnp.array_equal(model_a.params["positions"], model_b.params["positions"]))
+    assert sig_a.field is not None and sig_b.field is not None
+    assert float(jnp.abs(sig_a.field.source_proxy).max()) > 0, "field must be non-trivial"
+    assert bool(jnp.array_equal(sig_a.field.source_proxy, sig_b.field.source_proxy))
+    assert bool(jnp.array_equal(sig_a.field.phi_e_proxy, sig_b.field.phi_e_proxy))
+    assert bool(jnp.array_equal(sig_a.field.lfp_proxy, sig_b.field.lfp_proxy))
+    assert bool(jnp.array_equal(sig_a.field.csd_proxy, sig_b.field.csd_proxy))
+    assert bool(jnp.array_equal(sig_a.field.kernel, sig_b.field.kernel))

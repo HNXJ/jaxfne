@@ -316,9 +316,13 @@ def test_explicit_tensor_preserves_identity_geometry_sign_and_receptor():
         positions,
         np.asarray([[row["x"], row["y"], row["z"]] for row in rows]),
     )
-    assert np.all((positions[:, 0] >= 1.1) & (positions[:, 0] <= 1.2))
-    assert np.all((positions[:, 1] >= 2.3) & (positions[:, 1] <= 2.4))
-    assert np.all((positions[:, 2] >= 3.5) & (positions[:, 2] <= 3.6))
+    # P-022, column-relative ranges (owner ruling 2026-09-30): x/y are
+    # fractions of the column width [-0.25, 0.25] mm, z of the column depth,
+    # plus the pose translation (1.0, 2.0, 3.0).
+    eps = 1e-5
+    assert np.all((positions[:, 0] >= 0.8 - eps) & (positions[:, 0] <= 0.85 + eps))
+    assert np.all((positions[:, 1] >= 1.9 - eps) & (positions[:, 1] <= 1.95 + eps))
+    assert np.all((positions[:, 2] >= 3.5 - eps) & (positions[:, 2] <= 3.6 + eps))
 
     labels = np.asarray([row["cell_type"] for row in rows])
     signs = np.asarray(

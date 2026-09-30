@@ -64,6 +64,11 @@ def _default_layer_cell_types() -> dict[str, dict[str, float]]:
     return {k: dict(v) for k, v in _SUITE2_LAYER_CELL_TYPES_V1.items()}
 
 
+# Column k of a Configuration sits at x = k * AREA_X_SPACING_MM (mm); the
+# NeuronalTensor pose overlay removes this offset before applying a Pose3D.
+AREA_X_SPACING_MM = 2.0
+
+
 def _layer_ranges_for(layers: Sequence[str], metadata: Mapping[str, Any]) -> dict[str, tuple[float, float]]:
     declared = metadata.get("layer_fractions") or _SUITE2_LAYER_FRACTIONS
     out: dict[str, tuple[float, float]] = {}
@@ -334,7 +339,7 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
             x_key, y_key, z_key = jax.random.split(key, 3)
             radius = float(metadata.get("column_radius_mm", 0.25))
             height = float(metadata.get("column_height_mm", 1.60))
-            x = jax.random.uniform(x_key, (n_col,), minval=-radius, maxval=radius, dtype=jdtype) + jnp.asarray(area_idx * 2.0, dtype=jdtype)
+            x = jax.random.uniform(x_key, (n_col,), minval=-radius, maxval=radius, dtype=jdtype) + jnp.asarray(area_idx * AREA_X_SPACING_MM, dtype=jdtype)
             y = jax.random.uniform(y_key, (n_col,), minval=-radius, maxval=radius, dtype=jdtype)
             z = jax.random.uniform(z_key, (n_col,), minval=0.0, maxval=height, dtype=jdtype)
             position_chunks.append(jnp.stack([x, y, z], axis=1))
@@ -400,7 +405,7 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
                         y_lo, y_hi = blo, bhi
                     else:
                         z_lo, z_hi = blo, bhi
-            x = jax.random.uniform(x_key, (n_layer,), minval=x_lo, maxval=x_hi, dtype=jdtype) + jnp.asarray(area_idx * 2.0, dtype=jdtype)
+            x = jax.random.uniform(x_key, (n_layer,), minval=x_lo, maxval=x_hi, dtype=jdtype) + jnp.asarray(area_idx * AREA_X_SPACING_MM, dtype=jdtype)
             y = jax.random.uniform(y_key, (n_layer,), minval=y_lo, maxval=y_hi, dtype=jdtype)
             z = jax.random.uniform(z_key, (n_layer,), minval=z_lo, maxval=z_hi, dtype=jdtype)
             position_chunks.append(jnp.stack([x, y, z], axis=1))
