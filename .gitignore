@@ -26,6 +26,9 @@ htmlcov/
 .vscode/
 .idea/
 .DS_Store
+._*
+__MACOSX/
+.AppleDouble/
 
 # Local secrets
 .env
