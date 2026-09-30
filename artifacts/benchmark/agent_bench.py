@@ -171,6 +171,13 @@ def prepare_worktree(root: Path, arm: str) -> list[str]:
 def packet(task: dict[str, Any], arm: str) -> str:
     """The task text a benchmark worker receives (identical except the arm's route)."""
     spec = {k: v for k, v in task["spec"].items() if k not in ("runner", "cited")}
+    defs = task.get("arm_definitions") or {}
+    if set(defs) != set(task["arms"]):
+        raise ValueError(
+            f"task {task['at_id']}: arm_definitions keys {sorted(defs)} "
+            f"!= arms {sorted(task['arms'])}"
+        )
+    arm_lines = "\n".join(f"- `{name}`: {defs[name]}" for name in task["arms"])
     route = {
         "skills": "Start at `artifacts/skills/jaxfne-core/SKILL.md`; use the task skills it "
                   "routes to and the `jaxfne.agent` operations they name.",
@@ -191,8 +198,8 @@ executed objects. {route}
 ```
 
 ## Arms
-Produce exactly these arms: {', '.join(task['arms'])}. Infer what separates
-them from the intent and specification.
+Produce exactly these arms, each differing from the base specification as stated:
+{arm_lines}
 
 ## Deliverable
 Write `{SOLUTION}` at the repository root defining `bundle()`, which returns

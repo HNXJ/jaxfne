@@ -74,6 +74,18 @@ def test_substituted_candidates_lose_the_right_class():
     assert all(v["score"] == 0.0 for v in renamed["classes"].values())
 
 
+def test_arm_definitions_match_arms():
+    for at_id, task in TASKS.items():
+        assert set(task["arm_definitions"]) == set(task["arms"]), at_id
+        for arm, definition in task["arm_definitions"].items():
+            assert isinstance(definition, str) and definition.strip(), (at_id, arm)
+
+
+def test_at07_packet_defines_repro():
+    text = packet(TASKS["AT-07"], "skills")
+    assert TASKS["AT-07"]["arm_definitions"]["repro"] in text
+
+
 def test_packets_leak_no_answers_and_prepare_refuses_a_plain_directory(tmp_path):
     for task in TASKS.values():
         texts = {arm: packet(task, arm) for arm in ARMS}

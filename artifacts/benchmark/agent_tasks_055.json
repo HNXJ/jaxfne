@@ -4,6 +4,9 @@
   {
    "at_id": "AT-01",
    "intent": "S1: Jaxley HH reference vs reduced neuron, predeclared tolerances.",
+   "arm_definitions": {
+    "reduced": "The reduced-emitter single-neuron run, judged against the predeclared tolerances; it is the base spec itself."
+   },
    "spec": {
     "at_id": "AT-01",
     "runner": "at01_at06_052:run_at01",
@@ -90,6 +93,11 @@
   {
    "at_id": "AT-02",
    "intent": "S2: driven pair N1->N2 with declared delay; fields + distance law.",
+   "arm_definitions": {
+    "delayed": "The pair run with the declared 2.0 ms connection delay.",
+    "zero": "The same pair run with the connection delay set to 0.0 ms.",
+    "absent": "The same pair run with no connection delay declared at all."
+   },
    "spec": {
     "at_id": "AT-02",
     "runner": "at01_at06_052:run_at02",
@@ -280,6 +288,9 @@
   {
    "at_id": "AT-03",
    "intent": "S3: recurrent E<->I pair with declared delay; phase + field.",
+   "arm_definitions": {
+    "pair": "The recurrent excitatory-inhibitory pair run; it is the base spec itself."
+   },
    "spec": {
     "at_id": "AT-03",
     "runner": "at01_at06_052:run_at03",
@@ -369,6 +380,11 @@
   {
    "at_id": "AT-04",
    "intent": "S4: geometry/orientation arm; correlation only, Phi->X refused.",
+   "arm_definitions": {
+    "stacked": "The pair run with area A in the lower depth half and area B in the upper depth half.",
+    "swapped": "The pair run with area A in the upper depth half and area B in the lower depth half.",
+    "overlap": "The pair run with both areas sharing the middle depth half."
+   },
    "spec": {
     "at_id": "AT-04",
     "runner": "at01_at06_052:run_at04",
@@ -558,6 +574,12 @@
   {
    "at_id": "AT-05",
    "intent": "S5: population field emergence; executed kappa orders the arms.",
+   "arm_definitions": {
+    "n8_s11": "The population run with 8 neurons, built and run with seed 11.",
+    "n8_s7": "The population run with 8 neurons, built and run with seed 7.",
+    "n4_s7": "The population run with 4 neurons, built and run with seed 7.",
+    "n2_s7": "The population run with 2 neurons, built and run with seed 7."
+   },
    "spec": {
     "at_id": "AT-05",
     "runner": "at01_at06_052:run_at05",
@@ -787,6 +809,9 @@
   {
    "at_id": "AT-06",
    "intent": "S6: electrode locality C(R,f); assumptions declared, proxy only.",
+   "arm_definitions": {
+    "column": "The two-layer laminar column run; it is the base spec itself."
+   },
    "spec": {
     "at_id": "AT-06",
     "runner": "at01_at06_052:run_at06",
@@ -927,6 +952,14 @@
   {
    "at_id": "AT-07",
    "intent": "S7: matched-stimulation plasticity comparison + budgets + schema v2.",
+   "arm_definitions": {
+    "hebbian": "Plasticity enabled under the baseline gains, with all weights free to change.",
+    "fixed": "Plasticity disabled, so the weights stay fixed at their realized values.",
+    "noisy": "Plasticity enabled under the baseline gains plus stochastic parameter noise.",
+    "clamp": "Plasticity enabled with the first half of edges pinned to 0.3 while the second half adapts.",
+    "repro": "The same noisy spec and seed rebuilt on a fresh model.",
+    "budgeted": "Plasticity enabled under the baseline gains with decimated H and W trace recording."
+   },
    "spec": {
     "at_id": "AT-07",
     "runner": "at07_at04_053:run_at07",
@@ -1285,6 +1318,12 @@
   {
    "at_id": "AT-04-R2",
    "intent": "S4 causal arm: H0 baseline vs perturbed, matched stimulation.",
+   "arm_definitions": {
+    "baseline": "Plasticity engaged starting from the baseline initial relative state of 1.0.",
+    "perturbed": "Plasticity engaged starting from the perturbed initial relative state of 0.0.",
+    "disabled_baseline": "Plasticity disabled, so weights stay fixed, starting from the baseline initial relative state of 1.0.",
+    "disabled_perturbed": "Plasticity disabled, so weights stay fixed, starting from the perturbed initial relative state of 0.0."
+   },
    "spec": {
     "at_id": "AT-04-R2",
     "runner": "at07_at04_053:run_at04r2",
@@ -1535,6 +1574,11 @@
   {
    "at_id": "AT-08",
    "intent": "AT-08: same network; fixed baseline vs full HDP vs cross-frozen HDP.",
+   "arm_definitions": {
+    "fixed": "The two-area stimulated run with plasticity off, so weights stay fixed.",
+    "adapt_full": "The same stimulated run with plasticity enabled on every edge.",
+    "adapt_local": "The same stimulated run with plasticity enabled on member-internal edges only, leaving cross-area edges fixed."
+   },
    "spec": {
     "at_id": "AT-08",
     "runner": "at08_at09_054:run_at08",
@@ -1831,6 +1875,11 @@
   {
    "at_id": "AT-09",
    "intent": "AT-09: cross-only vs member-only vs frozen plasticity, same network.",
+   "arm_definitions": {
+    "plastic_cross": "The same stimulated run with plasticity enabled on cross-area edges only.",
+    "plastic_member": "The same stimulated run with plasticity enabled on member-internal edges only.",
+    "frozen": "The same stimulated run with plasticity enabled but every edge masked."
+   },
    "spec": {
     "at_id": "AT-09",
     "runner": "at08_at09_054:run_at09",
@@ -2127,6 +2176,9 @@
   {
    "at_id": "AT-10",
    "intent": "S10: multi-area synthesis pattern (toy: 3 areas x 2 neurons).",
+   "arm_definitions": {
+    "main": "The three-area toy composition run; it is the base spec itself."
+   },
    "spec": {
     "at_id": "AT-10",
     "runner": "at01_at10_toy:run_at10",

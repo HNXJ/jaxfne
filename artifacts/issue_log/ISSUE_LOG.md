@@ -29,7 +29,8 @@ possible future change.
 - **actual behavior:** workers guess arm meaning from names
 - **evidence:** `artifacts/benchmark/results_055.json` (AT-07 runs)
 - **possible future change:** add declarative `arm_definitions` to each task
-  before the next benchmark cycle; open
+  before the next benchmark cycle; definitions added 2026-09-30 (packet
+  prints them, refuses on arm mismatch); open until the human reviews them
 
 ### P-016
 - **date:** 2026-09-26

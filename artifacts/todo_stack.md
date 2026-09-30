@@ -119,7 +119,9 @@ Short list for the jnwb move (human, 2026-09-30), in order:
 Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
 
 NEXT (ordered, executable)
-1. [A] P-013 `arm_definitions` packet: inputs only, schema test.
+1. [H] P-013 review the `arm_definitions` in `agent_tasks_055.json`
+   (inputs only; outcome clauses removed after critic review), then close
+   P-013. `freeze_task` does not emit them: a re-freeze must carry them over.
 2. [A] D1b rebuild pages 08 and 10 on the P-017 semantics
    (`paradigm.condition(...)`): `08_jaxfne_suite_no_2_evoked_l4_drive.md`
    passes a full `Paradigm`, which simulate now refuses;
