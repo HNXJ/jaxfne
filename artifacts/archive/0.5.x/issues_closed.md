@@ -264,3 +264,57 @@ Earlier closed issues: `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md`.
   (bisect `artifacts/programme/bisect_p020_receipt.md`); condition C re-frozen
   (kappa 0.0229 -> 0.0183, ISI CV 0.01270 -> 0.01228), A/B unchanged beyond float
   dust; regenerated from a clean tree at 1a7998cd; receipt as for P-016.
+
+### P-022
+- **date:** 2026-09-30
+- **type:** SCIENCE (fact evidence)
+- **area:** `jaxfne/neuronal_tensor.py` (`neuronal_tensor_to_configuration`,
+  `_construct_neuronal_tensor_impl`), fact "entrances, single lowering"
+  (`artifacts/fact_stack.md:88-89`)
+- **observation:** no test compares the Signals of two independent entrances
+  for one circuit. `construct(tensor)` lowers through the bridge and then
+  `construct(cfg)`, so Configuration vs NeuronalTensor is one lowering plus
+  overlays. JDNA reaches construct through NeuronalTensor too, with no
+  output-equality test. The bridge alone drops `Layer.geometry`, so field
+  proxies differ by entrance (source_proxy max abs diff ~145) while spikes,
+  V_m and sources are bit-identical.
+- **severity:** MINOR (activity equal; field output depends on which call
+  the user makes, as the bridge docstring states)
+- **expected behavior:** the fact holds with evidence, i.e. a native
+  Configuration spelling the same circuit without the bridge gives equal
+  Signals, and field geometry does not depend on the entrance
+- **evidence:** opencode sweep and critic 2026-09-30; test
+  `test_tensor_entrance_adds_only_overlays_to_the_configuration_lowering`
+  pins the overlays and the field gap (killed by removing the position overlay)
+- **possible future change:** carry `Layer.geometry` through the bridge;
+  add a hand-built-Configuration equality test; open
+- **resolution (2026-09-30, owner rulings):** the bridge carries each
+  `Layer.geometry` as column-relative ranges; positions use the Configuration
+  frame and a non-default `Pose3D` applies about the area's own column origin;
+  tensor, bridged and hand-spelled entrances give bit-identical positions and
+  fields. Pushed 41762619 + bae3c41c (canonical atlas re-pinned, cause P-022).
+
+### P-023
+- **date:** 2026-09-30
+- **type:** SCIENCE (default and sign semantics)
+- **area:** `jaxfne/neuronal_tensor.py` (`StaticParams.dT_ms`, `_wire_connection`)
+- **observation:** `StaticParams.dT_ms` defaults to 0.1 ms and becomes the
+  mechanism `tau_ms`, so a JDNA- or tensor-declared GABA_A synapse with no
+  explicit time constant decays in 0.1 ms. The edge sign follows the source
+  cell type (E -> excitatory), so an E->PV connection declared `GABA_A`
+  with reversal -80 mV runs as excitatory; the declared reversal has no
+  numeric consumer (stated in the bridge docstring).
+- **severity:** MINOR until a result depends on an undeclared tau or on a
+  mechanism whose name contradicts its sign
+- **expected behavior:** a default time constant per mechanism with a cited
+  source, or a required value; sign from the mechanism's reversal or a
+  refusal when name and source type disagree (fact: apply or refuse)
+- **evidence:** JDNA single-lowering test 2026-09-30 (developed tensor:
+  `GABA_A__dt0.1__0`, `tau_ms=0.1`, sign excitatory); `neuronal_tensor.py:140`
+- **possible future change:** owner decision on defaults and refusal; open
+- **resolution (2026-09-30, owner rulings):** time constants are required
+  (finite > 0, no default); JDNA genomes declare `mechanism_tau_ms` (canonical:
+  `presets.RECEPTOR_KINETICS`, approval pending; G20: the 0.1 ms it ran with);
+  sign by mechanism name, clashes and unknown names refused except
+  `monotonic_cable_synapse`; TFNE-minted tensors keep polarity sign through a
+  private registry. Commits 83848805 + 3d75c12d.

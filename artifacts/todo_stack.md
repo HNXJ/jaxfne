@@ -121,28 +121,29 @@ Short list for the jnwb move (human, 2026-09-30), in order:
 Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
 
 NEXT (ordered, executable)
-1. [A] P-022: built at f5357bab (clone cl-p022, base 1b409a91; rebase on
-   a20cf444 before push). Owner rulings 2026-09-30: geometry ranges are
-   column-relative; positions use the Configuration frame, a non-default
-   Pose3D applies about the area's own column origin; a default range keeps
-   the layer's block. Second review findings fixed; waits on the
-   antigravity-jaxfne verify, then close P-022 in the issue log.
-2. [A] P-023, after P-022 (same file): a synapse without a declared time
-   constant is refused (no `dT_ms` default), and a mechanism whose sign
-   contradicts the source cell type is refused (owner ruling 2026-09-30).
-3. [A] D0b remaining lanes: `scripts/` comments (claimed by opencode-jaxfne)
-   and the markdown outside `docs/`; evidence records such as
+1. [A] D0b remaining lane: the markdown outside `docs/`; evidence records such as
    `artifacts/programme/` stay as written.
-4. [A] P-025: repo-root guard in the 47 scripts that lack it, plus a test
+2. [A] P-025: repo-root guard in the 47 scripts that lack it, plus a test
    that every script importing jaxfne inserts the repo root.
-5. [A] Docs drift from the antigravity-jaxfne crawl (2026-09-30), each to be
+3. [A] Docs drift from the antigravity-jaxfne crawl (2026-09-30), each to be
    checked before editing: `docs/api/neuronal_tensor.md` still points users at
    `construct_neuronal_tensor` instead of `jtfne.construct` and omits
    `delay_ms`/`probability`; four tutorial fences in the doc-code integrity
    allowlist could be fixed and their entries removed. (Tutorial 10 finding
    was stale: fixed in 84662d4. EdgeList array count fixed 2026-09-30.)
+4. [A] Atlas pages built from tensors other than the README canonical atlas
+   (e.g. `docs/_static/atlas/canonical_etude_1000`) may have moved under P-022
+   without a pin: regenerate or check each against its generator.
+5. [A] The atlas 3D panel labels depth z in mm, but layered construction
+   samples z as a column fraction in [0, 1] (column height 1.6 mm unused there).
+6. [A] P-023 residual: a TFNE-minted tensor mutated after minting keeps its
+   sign carve-out (registry follows the object); decide whether minting should
+   freeze it.
 
 HUMAN DECISIONS
+- [H] Approve the receptor time constants the canonical JDNA genome declares
+  (AMPA 2.0 ms, GABA_A 5.0 ms from `presets.RECEPTOR_KINETICS`, whose source
+  reads only "Standard neuroscience literature") and name a citation.
 - [H] D0 review: 23 softened overclaims and 17 flagged items in
   `artifacts/audit/docs_style_pass_2026-09-28.md`.
 - [H] Sign off the P-016/P-020 re-freeze:
