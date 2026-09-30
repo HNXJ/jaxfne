@@ -15,7 +15,7 @@ Setting, perturbing or reading the dependency state `H`, or running RBD with fix
    `Model.last_hdp_diagnostics`.
 
 ## RULES
-- `H` is a finite-dimensional dependency-state container, not homeostasis by definition;
+- `H` is a finite-dimensional dependency-state container, not homeostasis;
   `d_H = 1` is a valid realization.
 - Influence of `H` on E, S, F, P needs a typed coupling map; do not infer one.
 - Bounded `H` is not evidence of stabilization without a perturbation/control assay.

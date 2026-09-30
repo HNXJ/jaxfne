@@ -34,4 +34,4 @@ Independent measurement of code, mathematics, claims, figures, or evidence.
 - Reproduce findings with exact shell/python receipts.
 
 ## DONE
-- Audit report returned with explicit findings and verified score.
+- Audit report returned with findings and verified score.

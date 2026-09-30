@@ -133,7 +133,8 @@ NEXT (ordered, executable)
    developed JDNA genome. Remaining: carrying `Layer.geometry` through the
    bridge (then field outputs can be compared too); P-023 defaults.
 5. [A] D0b remaining lanes: `scripts/` comments and the markdown outside
-   `docs/` (188 files). By opencode actor + critic, or by agy agents
+   `docs/` (188 files; `artifacts/skills/` done, `scripts/` claimed by
+   opencode-jaxfne; evidence records such as `artifacts/programme/` stay as written). By opencode actor + critic, or by agy agents
    instructed by the human in jchat.
 
 HUMAN DECISIONS
