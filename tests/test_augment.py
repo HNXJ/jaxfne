@@ -137,7 +137,7 @@ def test_duplicate_axis_record_refused():
 
 def test_packet2_records_raise_not_implemented():
     tensor = _tiny_tensor()
-    for rec in (ThetaC(), ThetaX(), W0(), H0()):
+    for rec in (ThetaC(), ThetaX(), H0()):
         spec = AugmentationSpec(transforms=[rec])
         with pytest.raises(NotImplementedError, match="packet 2"):
             augment(tensor, spec)
@@ -698,3 +698,155 @@ def test_spec_digest_stable_across_processes(tmp_path):
     )
     assert result.stdout.strip() == expected
     assert not script.exists()
+
+
+def _w_mech_of(tensor):
+    """Every PlasticParams.w_mech in address order (inter by area, then cross)."""
+    values = []
+    for area in tensor.areas:
+        for conn in area.inter_connections:
+            values.append(float(conn.plastic.w_mech))
+    for conn in tensor.area_connections:
+        values.append(float(conn.plastic.w_mech))
+    return values
+
+
+def test_w0_deterministic_factor_doubles_only_w_mech():
+    tensor = _two_area_two_layer_tensor(n=10)
+    assert _w_mech_of(tensor) == [2.0, 2.0, 2.0, 1.5]
+    before = tensor.to_dict()
+    out, record = augment(tensor, AugmentationSpec(transforms=[W0(factor=2.0)]))
+    assert record.realized_order == ("W_0",)
+    assert len(record.changes) == 4
+    assert all(entry.origin == "augmented" for entry in record.changes)
+    assert [entry.address for entry in record.changes] == [
+        "A0/inter/0.plastic.w_mech",
+        "A0/inter/1.plastic.w_mech",
+        "A1/inter/0.plastic.w_mech",
+        "area_connection/0.plastic.w_mech",
+    ]
+    assert _w_mech_of(out) == pytest.approx([4.0, 4.0, 4.0, 3.0])
+    # to_dict diff touches only w_mech leaves; nothing else moves.
+    flat_before = _leaf_paths(before)
+    flat_after = _leaf_paths(out.to_dict())
+    assert set(flat_before) == set(flat_after)
+    changed = {p for p in flat_before if flat_before[p] != flat_after[p]}
+    assert changed
+    assert all(p[-1] == "w_mech" for p in changed)
+    assert tensor.to_dict() == before  # input tensor never mutated
+
+
+def test_w0_stochastic_seeded_reproducible_and_bounded():
+    tensor = _two_area_two_layer_tensor(n=10)
+    olds = _w_mech_of(tensor)
+    spec_a = AugmentationSpec(transforms=[W0(factor=1.0, jitter=0.2)], k_v=11)
+    spec_b = AugmentationSpec(transforms=[W0(factor=1.0, jitter=0.2)], k_v=11)
+    out_a, rec_a = augment(tensor, spec_a)
+    out_b, _ = augment(tensor, spec_b)
+    assert out_a.to_dict() == out_b.to_dict()  # same k_v: bit-identical
+    out_c, _ = augment(
+        tensor, AugmentationSpec(transforms=[W0(factor=1.0, jitter=0.2)], k_v=12)
+    )
+    assert out_c.to_dict() != out_a.to_dict()  # different k_v: different output
+    assert all(entry.origin == "augment-sampled" for entry in rec_a.changes)
+    assert len(rec_a.changes) == 4
+    for old, new in zip(olds, _w_mech_of(out_a)):
+        assert old * 0.8 <= new <= old * 1.2
+    with pytest.raises(ValueError, match="K_V"):
+        AugmentationSpec(transforms=[W0(factor=1.0, jitter=0.2)])
+
+
+def test_w0_targets_select_and_refusals():
+    tensor = _two_area_two_layer_tensor(n=10)
+    before = tensor.to_dict()
+    out, record = augment(
+        tensor, AugmentationSpec(transforms=[W0(factor=2.0, targets=("A1/inter/0",))])
+    )
+    assert [entry.address for entry in record.changes] == ["A1/inter/0.plastic.w_mech"]
+    assert record.realized_order == ("W_0",)
+    flat_before = _leaf_paths(before)
+    flat_after = _leaf_paths(out.to_dict())
+    changed = {p for p in flat_before if flat_before[p] != flat_after[p]}
+    assert len(changed) == 1
+    with pytest.raises(ValueError, match="NX/inter/0"):
+        augment(
+            tensor, AugmentationSpec(transforms=[W0(factor=2.0, targets=("NX/inter/0",))])
+        )
+    with pytest.raises(ValueError, match="area_connection/7"):
+        augment(
+            tensor,
+            AugmentationSpec(transforms=[W0(factor=2.0, targets=("area_connection/7",))]),
+        )
+    with pytest.raises(ValueError, match="duplicate"):
+        W0(factor=2.0, targets=("A0/inter/0", "A0/inter/0"))
+
+
+def test_w0_bad_records_refused():
+    for bad in (0, -1, 0.0, float("nan"), float("inf"), True, "2", None):
+        with pytest.raises(ValueError):
+            W0(factor=bad)
+    for bad in (-0.1, -1.0, 1.0, 2.0, float("nan"), float("inf"), True, "0.1", None):
+        with pytest.raises(ValueError):
+            W0(jitter=bad)
+    assert W0().factor == 1.0
+    assert W0().jitter == 0.0
+    assert W0().targets == ()
+    assert W0().stochastic is False
+    assert W0(factor=2.0, jitter=0.5, targets=("A0/inter/0",)).stochastic is True
+
+
+def test_w0_composes_with_n_in_canonical_order():
+    tensor = _tiny_tensor(n=10)
+    spec = AugmentationSpec(transforms=[W0(factor=2.0), ScaleN(factor=10)])
+    out, record = augment(tensor, spec)
+    assert record.realized_order == ("N", "W_0")
+    assert out.areas[0].layers[0].n_neurons == 100
+    assert out.areas[0].inter_connections[0].plastic.w_mech == pytest.approx(4.0)
+    assert [entry.axis for entry in record.changes] == ["N", "W_0"]
+    assert record.spec_digest == (
+        AugmentationSpec(transforms=[ScaleN(factor=10), W0(factor=2.0)]).digest()
+    )
+
+
+def test_w0_noop_realizes_nothing():
+    tensor = _tiny_tensor()
+    out, record = augment(tensor, AugmentationSpec(transforms=[W0()]))
+    assert out.to_dict() == tensor.to_dict()
+    assert record.realized_order == ()
+    assert record.changes == ()
+    # No connections at all: even factor != 1 realizes nothing.
+    bare = _two_area_tensor(n=10)
+    out, record = augment(bare, AugmentationSpec(transforms=[W0(factor=2.0)]))
+    assert out.to_dict() == bare.to_dict()
+    assert record.realized_order == ()
+    assert record.changes == ()
+
+
+def test_w0_digest_covers_factor_jitter_targets():
+    assert W0(factor=2.0).factor == 2.0
+    base = AugmentationSpec(transforms=[W0(factor=2.0)]).digest()
+    assert AugmentationSpec(transforms=[W0(factor=3.0)]).digest() != base
+    assert AugmentationSpec(transforms=[W0(factor=2.0, jitter=0.1)], k_v=5).digest() != base
+    assert (
+        AugmentationSpec(transforms=[W0(factor=2.0, targets=("V1/inter/0",))]).digest()
+        != base
+    )
+
+
+def test_w0_sampled_origin_does_not_rebind_jdna_vocabulary():
+    from jaxfne.jdna import completion
+
+    assert completion.ORIGIN_SAMPLED == "JDNA-sampled"
+    assert completion.ORIGIN_SAMPLED in completion.ORIGINS
+    assert completion.ORIGIN_AUGMENT_SAMPLED not in completion.ORIGINS
+
+
+def test_w0_zero_gain_stays_zero_and_negative_refused():
+    tensor = _two_area_two_layer_tensor(n=10)
+    tensor.area_connections[0].plastic.w_mech = 0.0
+    out, record = augment(tensor, AugmentationSpec(transforms=[W0(factor=2.0, jitter=0.1)], k_v=3))
+    assert _w_mech_of(out)[-1] == 0.0
+    assert len(record.changes) == 3
+    tensor.area_connections[0].plastic.w_mech = -1.0
+    with pytest.raises(ValueError, match="negative or not finite"):
+        augment(tensor, AugmentationSpec(transforms=[W0(factor=2.0)]))

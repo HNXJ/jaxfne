@@ -9,9 +9,9 @@ transforms to that tensor *before* ``construct``::
 
 Transforms never mutate a ``Model``, never add a simulation path, and never
 extend the TFNE grammar. Packet 1 implements the skeleton plus the ``N``
-and ``G`` primitives; the ``Theta_C`` / ``Theta_X`` / ``W_0`` / ``H_0``
-records exist as typed placeholders only and are refused with
-``NotImplementedError`` naming packet 2.
+and ``G`` primitives; packet AUG-2a implements the ``W_0`` primitive. The
+``Theta_C`` / ``Theta_X`` / ``H_0`` records exist as typed placeholders
+only and are refused with ``NotImplementedError`` naming packet 2.
 
 Owner rulings (2026-09-30): transforms apply in the fixed canonical order
 ``N -> G -> Theta_C -> Theta_X -> W_0 -> H_0`` whatever order the caller
@@ -28,11 +28,13 @@ import hashlib
 import json
 import math
 import numbers
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, ClassVar, Optional, Sequence
 
+import numpy as np
+
 from ._config import _check_cell_type_fractions, _counts_from_fractions
-from .jdna.completion import ORIGIN_AUGMENTED
+from .jdna.completion import ORIGIN_AUGMENT_SAMPLED, ORIGIN_AUGMENTED
 from .neuronal_tensor import (
     NeuronalTensor,
     _tensor_identity_digest,
@@ -42,7 +44,7 @@ from .neuronal_tensor import (
 CANONICAL_ORDER: tuple[str, ...] = ("N", "G", "Theta_C", "Theta_X", "W_0", "H_0")
 
 #: Packet-2 axes: typed records exist, application is not implemented.
-PACKET2_AXES = frozenset({"Theta_C", "Theta_X", "W_0", "H_0"})
+PACKET2_AXES = frozenset({"Theta_C", "Theta_X", "H_0"})
 
 _KNOWN_AXES = frozenset(CANONICAL_ORDER)
 
@@ -196,11 +198,30 @@ class ThetaX:
 
 @dataclass(frozen=True)
 class W0:
-    """Packet-2 placeholder: initial plastic/mutable-parameter variation."""
+    """Initial-gain variation: multiply ``PlasticParams.w_mech`` per connection.
 
-    stochastic: bool = False
+    ``factor`` is a deterministic multiplier (finite, > 0); ``jitter`` is the
+    relative half-width of per-connection stochastic variation drawn uniform
+    in ``[1 - jitter, 1 + jitter]`` under ``K_V`` (``0 <= jitter < 1``);
+    ``targets`` selects connection addresses (``()`` means all connections).
+    ``stochastic`` is a property, not a field, so the spec digest covers
+    exactly ``factor``, ``jitter`` and ``targets``.
+    """
+
+    factor: float = 1.0
+    jitter: float = 0.0
+    targets: tuple[str, ...] = ()
 
     axis: ClassVar[str] = "W_0"
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "factor", _check_w0_factor(self.factor))
+        object.__setattr__(self, "jitter", _check_w0_jitter(self.jitter))
+        object.__setattr__(self, "targets", _check_w0_targets(self.targets))
+
+    @property
+    def stochastic(self) -> bool:
+        return self.jitter > 0.0
 
 
 @dataclass(frozen=True)
@@ -263,6 +284,49 @@ def _check_unit_range(value: Any, where: str) -> tuple[float, float]:
     if not (0.0 <= lo <= hi <= 1.0):
         raise ValueError(f"{where} must satisfy 0 <= lo <= hi <= 1; got {(lo, hi)!r}")
     return (lo, hi)
+
+
+def _check_w0_factor(factor: Any) -> float:
+    if isinstance(factor, bool) or not isinstance(factor, numbers.Real):
+        raise ValueError(f"W0 factor must be a positive number; got {factor!r}")
+    value = float(factor)
+    if not math.isfinite(value) or value <= 0.0:
+        raise ValueError(f"W0 factor must be finite and > 0; got {factor!r}")
+    return value
+
+
+def _check_w0_jitter(jitter: Any) -> float:
+    if isinstance(jitter, bool) or not isinstance(jitter, numbers.Real):
+        raise ValueError(f"W0 jitter must be a number in [0, 1); got {jitter!r}")
+    value = float(jitter)
+    if not math.isfinite(value) or not 0.0 <= value < 1.0:
+        raise ValueError(f"W0 jitter must satisfy 0 <= jitter < 1; got {jitter!r}")
+    return value
+
+
+def _check_w0_targets(targets: Any) -> tuple[str, ...]:
+    if isinstance(targets, str):
+        items = (targets,)
+    else:
+        try:
+            items = tuple(targets)
+        except TypeError:
+            raise ValueError(
+                f"W0 targets must be a sequence of connection addresses; got {targets!r}"
+            )
+    for item in items:
+        if not isinstance(item, str) or not item:
+            raise ValueError(
+                f"W0 targets must be non-empty address strings; got {item!r}"
+            )
+    seen: set[str] = set()
+    for item in items:
+        if item in seen:
+            raise ValueError(
+                f"duplicate W0 target address {item!r}; list each connection once"
+            )
+        seen.add(item)
+    return items
 
 
 def _plain(value: Any) -> Any:
@@ -473,6 +537,111 @@ def _apply_geometry(
                 setattr(layer.geometry, label, tuple(value))
 
 
+def _w0_address_table(
+    tensor: NeuronalTensor,
+) -> dict[str, tuple[str, int, int]]:
+    """Map every connection address to ``(kind, area_idx, conn_idx)``.
+
+    ``kind`` is ``"inter"`` for ``areas[area_idx].inter_connections[conn_idx]``
+    or ``"cross"`` for ``area_connections[conn_idx]`` (``area_idx`` is ``-1``).
+    Enumeration order is the sampling order: inter connections by area order
+    then index, then area connections by index.
+    """
+    table: dict[str, tuple[str, int, int]] = {}
+    for area_idx, area in enumerate(tensor.areas):
+        for conn_idx in range(len(area.inter_connections)):
+            table[f"{area.name}/inter/{conn_idx}"] = ("inter", area_idx, conn_idx)
+    for conn_idx in range(len(tensor.area_connections)):
+        table[f"area_connection/{conn_idx}"] = ("cross", -1, conn_idx)
+    return table
+
+
+def _apply_w0(
+    tensor: NeuronalTensor,
+    record: W0,
+    k_v: Optional[int],
+    changes: list[ProvenanceEntry],
+) -> None:
+    if record.factor == 1.0 and record.jitter == 0.0:
+        return  # no-op: no scaling, no sampling, no record entry
+    table = _w0_address_table(tensor)
+    if record.targets:
+        for target in record.targets:
+            if target not in table:
+                raise ValueError(
+                    f"unknown W_0 connection address {target!r}; "
+                    f"known addresses: {sorted(table)}"
+                )
+        selected = list(record.targets)
+    else:
+        selected = list(table)
+    if not selected:
+        return  # no connections: nothing to realize
+    rng = None
+    if record.jitter > 0.0:
+        if k_v is None:  # fail closed; the spec validator normally refuses this first
+            raise ValueError("a stochastic W_0 transform requires its own explicit seed K_V (R4)")
+        rng = np.random.default_rng(k_v)
+    origin = ORIGIN_AUGMENT_SAMPLED if rng is not None else ORIGIN_AUGMENTED
+    inter_new: dict[int, dict[int, Any]] = {}
+    cross_new: dict[int, Any] = {}
+    for address in selected:
+        kind, area_idx, conn_idx = table[address]
+        if kind == "inter":
+            conn = tensor.areas[area_idx].inter_connections[conn_idx]
+        else:
+            conn = tensor.area_connections[conn_idx]
+        old_w = float(conn.plastic.w_mech)
+        # Sign is preserved by construction (factor > 0, u > 0); a stored
+        # gain that is negative or not finite is refused, not rescaled. A
+        # zero gain stays zero (the draw is still taken, so sampling order
+        # does not depend on which gains are zero).
+        if not (math.isfinite(old_w) and old_w >= 0.0):
+            raise ValueError(
+                f"W_0 refuses {address!r}: stored w_mech {conn.plastic.w_mech!r} "
+                "is negative or not finite"
+            )
+        u = 1.0 if rng is None else float(rng.uniform(1.0 - record.jitter, 1.0 + record.jitter))
+        new_w = old_w * record.factor * u
+        if not (math.isfinite(new_w) and (new_w > 0.0 or old_w == 0.0)):
+            raise ValueError(
+                f"W_0 refuses {address!r}: rescaled w_mech {new_w!r} "
+                "is not positive-finite"
+            )
+        if new_w == old_w:
+            continue  # unchanged value: no provenance entry, like N and G
+        # Rebuild inward-out so frozen dataclasses keep working; the input
+        # tensor is untouched because augment deep-copies before dispatch.
+        rebuilt = replace(conn, plastic=replace(conn.plastic, w_mech=new_w))
+        if kind == "inter":
+            inter_new.setdefault(area_idx, {})[conn_idx] = rebuilt
+        else:
+            cross_new[conn_idx] = rebuilt
+        changes.append(
+            ProvenanceEntry(
+                address=f"{address}.plastic.w_mech",
+                axis="W_0",
+                before=old_w,
+                after=new_w,
+                origin=origin,
+            )
+        )
+    for area_idx, indexed in inter_new.items():
+        seq = list(tensor.areas[area_idx].inter_connections)
+        for conn_idx, rebuilt in indexed.items():
+            seq[conn_idx] = rebuilt
+        tensor.areas[area_idx].inter_connections = (
+            tuple(seq) if isinstance(tensor.areas[area_idx].inter_connections, tuple) else seq
+        )
+    if cross_new:
+        seq = list(tensor.area_connections)
+        for conn_idx, rebuilt in cross_new.items():
+            seq[conn_idx] = rebuilt
+        tensor.area_connections = (
+            tuple(seq) if isinstance(tensor.area_connections, tuple) else seq
+        )
+
+
 def augment(
     tensor: NeuronalTensor, spec: AugmentationSpec
 ) -> tuple[NeuronalTensor, AugmentationRecord]:
@@ -506,7 +675,7 @@ def augment(
         if axis in PACKET2_AXES:
             raise NotImplementedError(
                 f"augmentation axis {axis!r} is packet 2 (parameter variation); "
-                "packet 1 implements clone, N and G only"
+                "augment implements clone, N, G and W_0 only"
             )
         n_before = len(changes)
         if axis == "N":
@@ -526,6 +695,15 @@ def augment(
                     f"got {type(record).__name__} ({record!r})"
                 )
             _apply_geometry(out, record, changes)
+            if len(changes) > n_before:
+                realized.append(axis)
+        elif axis == "W_0":
+            if not isinstance(record, W0):
+                raise ValueError(
+                    "augmentation axis 'W_0' expects a W0 record; "
+                    f"got {type(record).__name__} ({record!r})"
+                )
+            _apply_w0(out, record, spec.k_v, changes)
             if len(changes) > n_before:
                 realized.append(axis)
         else:  # fail closed: no silent skip of a known axis
