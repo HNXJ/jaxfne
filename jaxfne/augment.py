@@ -12,7 +12,7 @@ extend the TFNE grammar. Packet 1 implements the skeleton plus the ``N``
 and ``G`` primitives; packet AUG-2a implements the ``W_0`` primitive and
 packet AUG-2b the ``Theta_C`` / ``Theta_X`` / ``H_0`` primitives, all four
 per-connection axes following the same design (shared addresses, targets,
-sampling under ``K_V``, provenance origins).
+per-axis ``K_V`` streams, provenance origins).
 
 Owner rulings (2026-09-30): transforms apply in the fixed canonical order
 ``N -> G -> Theta_C -> Theta_X -> W_0 -> H_0`` whatever order the caller
@@ -190,9 +190,18 @@ class ThetaC:
     relative half-widths of per-field stochastic variation drawn uniform in
     ``[1 - jitter, 1 + jitter]`` under ``K_V`` (``0 <= jitter < 1``), so
     either scalar can be varied alone. ``targets`` selects connection
-    addresses (``()`` means all connections). ``stochastic`` is a property,
+    addresses (``()`` means all connections) and is stored sorted, so the
+    same set listed in another order has the same digest and output.
+    ``stochastic`` is a property,
     not a field, so the spec digest covers exactly the factors, jitters
     and ``targets``.
+
+    Consumption boundary: ``construct`` quantises delay to
+    ``round(delay_ms / dt_ms)`` steps, so a small scaling may leave the
+    model unchanged, and a positive delay rounding to 0 steps is refused by
+    ``construct``, not here (``dt_ms`` is unknown to augment). A
+    probability draw that crosses 1 is refused, never clipped, so a
+    stochastic spec can fail for some ``K_V``.
     """
 
     delay_factor: float = 1.0
@@ -229,8 +238,14 @@ class ThetaC:
 
 @dataclass(frozen=True)
 class ThetaX:
-    """Dynamical-parameter variation: scale every value in
-    ``static.g_mech`` (dict mechanism -> conductance) and ``static.dT_ms``.
+    """Dynamical-parameter variation: scale ``static.g_mech[mechanism]`` and
+    ``static.dT_ms``.
+
+    Only the conductance key equal to the connection's own ``mechanism`` is
+    rewritten — that is the only key ``construct`` consumes (defaulting to
+    1.0 when absent); other keys are left untouched, draw nothing and get
+    no entry, and requesting g scaling on a connection that does not declare
+    its mechanism key is refused rather than materialising the default.
 
     ``g_factor`` / ``tau_factor`` are deterministic multipliers (finite,
     > 0); ``g_jitter`` / ``tau_jitter`` are the relative half-widths of
@@ -307,9 +322,15 @@ class H0:
     ``jitter`` is the absolute half-width of per-connection stochastic
     variation drawn uniform in ``[-jitter, +jitter]`` under ``K_V``
     (finite, >= 0, no upper bound); ``targets`` selects connection
-    addresses (``()`` means all connections). ``stochastic`` is a property,
+    addresses (``()`` means all connections) and is stored sorted, so the
+    same set listed in another order has the same digest and output.
+    ``stochastic`` is a property,
     not a field, so the spec digest covers exactly ``offset``, ``jitter``
     and ``targets``.
+
+    Consumption boundary: ``H`` reaches the model as the target-group mean
+    of ``H`` (``model.params["hdp_initial_H"]``), stored but inert unless
+    HDP is enabled.
     """
 
     offset: float = 0.0
@@ -402,7 +423,11 @@ def _check_scale_jitter(value: Any, label: str) -> float:
 
 
 def _check_connection_targets(targets: Any, label: str) -> tuple[str, ...]:
-    """Shared connection-address selection check for every axis."""
+    """Shared connection-address selection check for every axis.
+
+    The returned tuple is sorted: records store one canonical order, so the
+    same set listed in another order has the same digest and output.
+    """
     if isinstance(targets, str):
         items = (targets,)
     else:
@@ -424,7 +449,7 @@ def _check_connection_targets(targets: Any, label: str) -> tuple[str, ...]:
                 f"duplicate {label} target address {item!r}; list each connection once"
             )
         seen.add(item)
-    return items
+    return tuple(sorted(items))
 
 
 def _check_offset(value: Any, label: str) -> float:
@@ -695,13 +720,12 @@ def _resolve_selected(
     table: dict[str, tuple[str, int, int]],
     targets: tuple[str, ...],
     axis_token: str,
-    *,
-    in_address_order: bool = False,
 ) -> list[str]:
     """Validate ``targets`` against ``table``; ``()`` means all addresses.
 
-    ``W_0`` keeps target-list order; the newer axes iterate in address
-    (sampling) order whatever order the caller lists.
+    One target-order rule for every axis: iteration is always in address
+    (sampling) order, whatever order the caller lists (records additionally
+    store ``targets`` sorted, so the digest is order-insensitive too).
     """
     if targets:
         for target in targets:
@@ -710,17 +734,18 @@ def _resolve_selected(
                     f"unknown {axis_token} connection address {target!r}; "
                     f"known addresses: {sorted(table)}"
                 )
-        if in_address_order:
-            wanted = set(targets)
-            return [address for address in table if address in wanted]
-        return list(targets)
+        wanted = set(targets)
+        return [address for address in table if address in wanted]
     return list(table)
 
 
 def _stochastic_rng(stochastic: bool, k_v: Optional[int], axis_token: str) -> Any:
-    """Return ``numpy.random.default_rng(k_v)`` when the record draws, else None.
+    """Return the axis' independent ``K_V`` stream, or None when deterministic.
 
-    A stochastic record without its own explicit ``K_V`` seed is refused (R4).
+    The seed mixes ``K_V`` with the axis' canonical index, so two axes under
+    one ``K_V`` draw uncorrelated streams (a shared ``default_rng(k_v)``
+    would correlate every axis' multipliers). A stochastic record without
+    its own explicit ``K_V`` seed is refused (R4).
     """
     if not stochastic:
         return None
@@ -728,7 +753,7 @@ def _stochastic_rng(stochastic: bool, k_v: Optional[int], axis_token: str) -> An
         raise ValueError(
             f"a stochastic {axis_token} transform requires its own explicit seed K_V (R4)"
         )
-    return np.random.default_rng(k_v)
+    return np.random.default_rng([int(k_v), CANONICAL_ORDER.index(axis_token)])
 
 
 def _draw_multiplier(rng: Any, jitter: float) -> float:
@@ -883,7 +908,7 @@ def _apply_theta_x(
     ):
         return  # no-op: no scaling, no sampling, no record entry
     table = _connection_address_table(tensor)
-    selected = _resolve_selected(table, record.targets, "Theta_X", in_address_order=True)
+    selected = _resolve_selected(table, record.targets, "Theta_X")
     if not selected:
         return  # no connections: nothing to realize
     rng = _stochastic_rng(
@@ -893,9 +918,18 @@ def _apply_theta_x(
     cross_new: dict[int, Any] = {}
     for address in selected:
         conn, kind, area_idx, conn_idx = _get_connection(tensor, table, address)
-        # Within a connection, g_mech keys (sorted) sample before dT_ms.
+        # Construct consumes only g_mech[conn.mechanism] (default 1.0 when
+        # absent): that key alone scales, draws and gets an entry; other
+        # keys are untouched. Within a connection the g draw precedes dT_ms.
         new_g: Optional[dict] = None
-        for mech in sorted(conn.static.g_mech):
+        mech = conn.mechanism
+        g_requested = record.g_factor != 1.0 or record.g_jitter > 0.0
+        if g_requested:
+            if mech not in conn.static.g_mech:
+                raise ValueError(
+                    f"Theta_X refuses {address}.static.g_mech.{mech}: "
+                    "undeclared conductance; declare it before augmenting"
+                )
             raw = conn.static.g_mech[mech]
             old = _checked_nonnegative(
                 raw,
@@ -910,20 +944,18 @@ def _apply_theta_x(
                     f"Theta_X refuses {address}.static.g_mech.{mech}: "
                     f"rescaled conductance {new!r} is not positive-finite"
                 )
-            if new == old:
-                continue  # unchanged value: no provenance entry, like W_0
-            if new_g is None:
+            if new != old:
                 new_g = dict(conn.static.g_mech)
-            new_g[mech] = new
-            changes.append(
-                ProvenanceEntry(
-                    address=f"{address}.static.g_mech.{mech}",
-                    axis="Theta_X",
-                    before=old,
-                    after=new,
-                    origin=_field_origin(record.g_jitter),
+                new_g[mech] = new
+                changes.append(
+                    ProvenanceEntry(
+                        address=f"{address}.static.g_mech.{mech}",
+                        axis="Theta_X",
+                        before=old,
+                        after=new,
+                        origin=_field_origin(record.g_jitter),
+                    )
                 )
-            )
         raw_tau = conn.static.dT_ms
         new_tau: Optional[float] = None
         if raw_tau is not None:  # None = undeclared: left untouched, no entry
@@ -975,7 +1007,7 @@ def _apply_theta_c(
     ):
         return  # no-op: no scaling, no sampling, no record entry
     table = _connection_address_table(tensor)
-    selected = _resolve_selected(table, record.targets, "Theta_C", in_address_order=True)
+    selected = _resolve_selected(table, record.targets, "Theta_C")
     if not selected:
         return  # no connections: nothing to realize
     rng = _stochastic_rng(
@@ -1078,7 +1110,7 @@ def _apply_h0(
     if record.offset == 0.0 and record.jitter == 0.0:
         return  # no-op: no shift, no sampling, no record entry
     table = _connection_address_table(tensor)
-    selected = _resolve_selected(table, record.targets, "H_0", in_address_order=True)
+    selected = _resolve_selected(table, record.targets, "H_0")
     if not selected:
         return  # no connections: nothing to realize
     rng = _stochastic_rng(record.jitter > 0.0, k_v, "H_0")

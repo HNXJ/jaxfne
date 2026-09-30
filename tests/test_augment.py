@@ -1244,3 +1244,212 @@ def test_thetax_thetac_h0_bad_records_refused():
     assert AugmentationSpec(transforms=[H0(offset=1.0)]).digest() != (
         AugmentationSpec(transforms=[H0()]).digest()
     )
+
+
+def test_per_axis_rng_streams_are_independent():
+    tensor = _two_area_two_layer_tensor(n=10)
+    spec = AugmentationSpec(
+        transforms=[W0(factor=1.0, jitter=0.2), H0(offset=0.0, jitter=0.2)], k_v=11
+    )
+    out, record = augment(tensor, spec)
+    assert record.realized_order == ("W_0", "H_0")
+    u_w = [entry.after / entry.before for entry in record.changes if entry.axis == "W_0"]
+    u_h = [entry.after - entry.before for entry in record.changes if entry.axis == "H_0"]
+    assert len(u_w) == 4 and len(u_h) == 4
+    assert all(0.8 <= u <= 1.2 for u in u_w)
+    assert all(abs(u) <= 0.2 for u in u_h)
+    # A shared default_rng(k_v) would give u_h == u_w - 1.0 exactly.
+    assert u_h != pytest.approx([u - 1.0 for u in u_w])
+
+
+def _reversed_area_tensor(n=10):
+    """Two areas defined as A1, A0: table order differs from sorted order."""
+
+    def _layer():
+        return nt.Layer(
+            name="L4",
+            n_neurons=n,
+            neuron_types=[nt.NeuronType.make("E"), nt.NeuronType.make("PV")],
+        )
+
+    def _conn():
+        return nt.InterConnection(
+            source_layer="L4", source_neuron_type="E",
+            target_layer="L4", target_neuron_type="PV",
+            mechanism="AMPA",
+            static=nt.StaticParams(g_mech={"AMPA": 1.0}, dT_ms=2.0),
+            plastic=nt.PlasticParams(w_mech=2.0, H=1.0),
+        )
+
+    a1 = nt.Area(name="A1", layers=[_layer()], inter_connections=[_conn()])
+    a0 = nt.Area(name="A0", layers=[_layer()], inter_connections=[_conn()])
+    return nt.NeuronalTensor(areas=[a1, a0], name="reversed")
+
+
+def test_target_order_canonicalised_for_output_and_digest():
+    tensor = _reversed_area_tensor()  # definition order A1, A0: not alphabetical
+    spec_a = AugmentationSpec(
+        transforms=[
+            W0(factor=2.0, jitter=0.1, targets=("A0/inter/0", "A1/inter/0"))
+        ],
+        k_v=3,
+    )
+    spec_b = AugmentationSpec(
+        transforms=[
+            W0(factor=2.0, jitter=0.1, targets=("A1/inter/0", "A0/inter/0"))
+        ],
+        k_v=3,
+    )
+    assert spec_a.transforms[0].targets == ("A0/inter/0", "A1/inter/0")
+    assert spec_b.transforms[0].targets == ("A0/inter/0", "A1/inter/0")
+    assert spec_a.digest() == spec_b.digest()
+    out_a, rec_a = augment(tensor, spec_a)
+    out_b, rec_b = augment(tensor, spec_b)
+    assert out_a.to_dict() == out_b.to_dict()
+    assert rec_a == rec_b
+    # Table (address) order governs sampling, not sorted order.
+    assert [entry.address for entry in rec_a.changes] == [
+        "A1/inter/0.plastic.w_mech",
+        "A0/inter/0.plastic.w_mech",
+    ]
+
+
+def test_thetax_scales_only_connection_mechanism_key():
+    tensor = _two_area_two_layer_tensor(n=10)
+    conn = tensor.areas[0].inter_connections[0]
+    assert conn.mechanism == "AMPA"
+    conn.static.g_mech["GABA_A"] = 0.5  # extra key the connection never uses
+    before = tensor.to_dict()
+    out, record = augment(tensor, AugmentationSpec(transforms=[ThetaX(g_factor=2.0)]))
+    g_entries = [entry for entry in record.changes if "g_mech" in entry.address]
+    assert [entry.address for entry in g_entries] == [
+        "A0/inter/0.static.g_mech.AMPA",
+        "A0/inter/1.static.g_mech.AMPA",
+        "A1/inter/0.static.g_mech.AMPA",
+        "area_connection/0.static.g_mech.AMPA",
+    ]
+    assert out.areas[0].inter_connections[0].static.g_mech == {"AMPA": 2.0, "GABA_A": 0.5}
+    assert tensor.to_dict() == before  # input tensor never mutated
+
+
+def test_thetax_undeclared_mechanism_conductance_refused():
+    tensor = _two_area_two_layer_tensor(n=10)
+    tensor.areas[0].inter_connections[0].static.g_mech = {}
+    with pytest.raises(ValueError, match="undeclared conductance") as exc:
+        augment(tensor, AugmentationSpec(transforms=[ThetaX(g_factor=2.0)]))
+    assert "A0/inter/0" in str(exc.value)
+    # Tau-only scaling never touches g: no refusal, no g entries.
+    out, record = augment(tensor, AugmentationSpec(transforms=[ThetaX(tau_factor=2.0)]))
+    assert record.realized_order == ("Theta_X",)
+    assert all("g_mech" not in entry.address for entry in record.changes)
+    assert out.areas[0].inter_connections[0].static.g_mech == {}
+
+
+def _rule_weights(model):
+    return [float(rule["weight"]) for rule in model.cfg.metadata["circuit"]["connections"]]
+
+
+def test_w0_consumed_by_construct_edge_weights():
+    tensor = _two_area_two_layer_tensor(n=10)
+    out, _ = augment(tensor, AugmentationSpec(transforms=[W0(factor=2.0)]))
+    base_weights = _rule_weights(_build(tensor, seed=0))
+    aug_weights = _rule_weights(_build(out, seed=0))
+    assert len(base_weights) == 4
+    for base, aug in zip(base_weights, aug_weights):
+        assert aug == pytest.approx(2.0 * base)
+
+
+def test_thetax_g_consumed_by_construct_edge_weights():
+    tensor = _two_area_two_layer_tensor(n=10)
+    out, _ = augment(tensor, AugmentationSpec(transforms=[ThetaX(g_factor=2.0)]))
+    base_weights = _rule_weights(_build(tensor, seed=0))
+    aug_weights = _rule_weights(_build(out, seed=0))
+    assert len(base_weights) == 4
+    for base, aug in zip(base_weights, aug_weights):
+        assert aug == pytest.approx(2.0 * base)
+
+
+def test_thetax_tau_consumed_by_construct_mechanism():
+    tensor = _two_area_two_layer_tensor(n=10)
+    out, _ = augment(tensor, AugmentationSpec(transforms=[ThetaX(tau_factor=2.0)]))
+
+    def _taus(model):
+        return [
+            (mech["name"], float(mech["params"]["tau_ms"]))
+            for mech in model.cfg.metadata["circuit"]["mechanisms"]
+        ]
+
+    assert _taus(_build(tensor, seed=0)) == [("AMPA__dt2__0", 2.0)]
+    assert _taus(_build(out, seed=0)) == [("AMPA__dt4__0", 4.0)]
+
+
+def test_thetac_delay_consumed_by_construct_delay_steps():
+    from jaxfne.emitters import resolve_edge_delay_steps
+
+    tensor = _delayed_tensor()  # delays 1.0, 1.0, 1.0 and cross 2.0
+    out, _ = augment(tensor, AugmentationSpec(transforms=[ThetaC(delay_factor=2.0)]))
+    base = _build(tensor, seed=0)
+    aug = _build(out, seed=0)
+
+    def _rule_delays(model):
+        return sorted(float(rule["delay_ms"]) for rule in model.cfg.metadata["circuit"]["connections"])
+
+    def _edge_steps(model):
+        return sorted({int(v) for v in jnp.asarray(resolve_edge_delay_steps(model.params["edge_list"]))})
+
+    assert _rule_delays(base) == [1.0, 1.0, 1.0, 2.0]
+    assert _rule_delays(aug) == [2.0, 2.0, 2.0, 4.0]
+    assert _edge_steps(base) == [2, 4]  # round(delay / 0.5)
+    assert _edge_steps(aug) == [4, 8]
+
+
+def _cross_probability_tensor(prob):
+    def _layer():
+        return nt.Layer(
+            name="L4",
+            n_neurons=10,
+            neuron_types=[nt.NeuronType.make("E"), nt.NeuronType.make("PV")],
+        )
+
+    cross = nt.AreaConnection(
+        source_area="A0", source_layer="L4", source_neuron_type="E",
+        target_area="A1", target_layer="L4", target_neuron_type="E",
+        mechanism="AMPA",
+        static=nt.StaticParams(g_mech={"AMPA": 1.0}, dT_ms=2.0),
+        plastic=nt.PlasticParams(w_mech=1.5, H=1.0),
+        probability=prob,
+    )
+    return nt.NeuronalTensor(
+        areas=[nt.Area(name="A0", layers=[_layer()]), nt.Area(name="A1", layers=[_layer()])],
+        area_connections=[cross],
+        name="cross_prob",
+    )
+
+
+def test_thetac_probability_consumed_by_construct_edge_count():
+    tensor = _cross_probability_tensor(prob=1.0)
+    out, record = augment(
+        tensor, AugmentationSpec(transforms=[ThetaC(probability_factor=0.1)])
+    )
+    assert record.realized_order == ("Theta_C",)
+    base = _build(tensor, seed=0)
+    aug = _build(out, seed=0)
+    base_rules = base.cfg.metadata["circuit"]["connections"]
+    aug_rules = aug.cfg.metadata["circuit"]["connections"]
+    assert len(base_rules) == 1 == len(aug_rules)
+    assert base_rules[0]["probability"] == pytest.approx(1.0)
+    assert aug_rules[0]["probability"] == pytest.approx(0.1)
+    assert aug_rules[0]["compiled_n_edges"] < base_rules[0]["compiled_n_edges"]
+
+
+def test_h0_consumed_by_construct_initial_H():
+    import numpy as np
+
+    tensor = _two_area_two_layer_tensor(n=10)  # H = 1.0 everywhere
+    out, _ = augment(tensor, AugmentationSpec(transforms=[H0(offset=0.5)]))
+    base_h = np.asarray(_build(tensor, seed=0).params["hdp_initial_H"])
+    aug_h = np.asarray(_build(out, seed=0).params["hdp_initial_H"])
+    assert float(base_h.min()) == pytest.approx(1.0)
+    assert float(base_h.max()) == pytest.approx(1.0)
+    assert float(aug_h.max()) == pytest.approx(1.5)  # touched target groups shift
+    assert float(aug_h.mean()) > float(base_h.mean())
