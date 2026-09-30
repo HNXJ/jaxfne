@@ -53,6 +53,15 @@ _SCALING_NOTE = (
 )
 
 
+def _check_scale_factor(factor: Any) -> float:
+    if isinstance(factor, bool) or not isinstance(factor, numbers.Real):
+        raise ValueError(f"ScaleN factor must be a positive number; got {factor!r}")
+    value = float(factor)
+    if not math.isfinite(value) or value <= 0.0:
+        raise ValueError(f"ScaleN factor must be finite and > 0; got {factor!r}")
+    return value
+
+
 @dataclass(frozen=True)
 class ScaleN:
     """Cardinality scaling: multiply every ``Layer.n_neurons`` by ``factor``."""
@@ -62,13 +71,26 @@ class ScaleN:
     axis: ClassVar[str] = "N"
     stochastic: ClassVar[bool] = False
 
+    def __post_init__(self) -> None:
+        # Validate and normalize at construction so ScaleN(10) and
+        # ScaleN(10.0) carry the same stored value and digest; bools,
+        # non-reals, non-finite and non-positive factors are refused here.
+        object.__setattr__(self, "factor", _check_scale_factor(self.factor))
+
 
 @dataclass(frozen=True)
 class PoseEdit:
     """One area-pose edit: additive translation/rotation deltas, uniform
     translation scale. ``translation`` adds ``(dx, dy, dz)`` to the area's
     ``Pose3D.translation``; ``rotation_deg`` adds degrees about the depth
-    axis; ``translation_scale`` multiplies the translation first."""
+    axis; ``translation_scale`` multiplies the translation first.
+
+    Within one edit the operations apply in this fixed order: scale, then
+    rotation, then translation — i.e. ``(t * translation_scale) +
+    translation`` for the stored translation, with the rotation delta added
+    to the stored ``rotation_deg`` in between (rotation and translation
+    commute on the stored pose; both are additive on independent fields,
+    so the observable order is scale-before-translation)."""
 
     area: str
     translation: Optional[tuple[float, float, float]] = None
@@ -131,6 +153,25 @@ class GeometryTransform:
             raise ValueError("GeometryTransform.pose_edits must all be PoseEdit records")
         if any(not isinstance(edit, RangeEdit) for edit in ranges):
             raise ValueError("GeometryTransform.range_edits must all be RangeEdit records")
+        seen_areas = set()
+        for edit in poses:
+            if edit.area in seen_areas:
+                raise ValueError(
+                    f"ambiguous GeometryTransform: two PoseEdits address area {edit.area!r}; "
+                    "merging them would be order-dependent, so this is refused — "
+                    "combine them into one PoseEdit"
+                )
+            seen_areas.add(edit.area)
+        seen_layers = set()
+        for edit in ranges:
+            key = (edit.area, edit.layer)
+            if key in seen_layers:
+                raise ValueError(
+                    f"ambiguous GeometryTransform: two RangeEdits address layer {edit.layer!r} "
+                    f"in area {edit.area!r}; merging them would be order-dependent, "
+                    "so this is refused — combine them into one RangeEdit"
+                )
+            seen_layers.add(key)
         object.__setattr__(self, "pose_edits", poses)
         object.__setattr__(self, "range_edits", ranges)
 
@@ -239,6 +280,18 @@ def _plain(value: Any) -> Any:
     return value
 
 
+#: Expected record type per axis: a bare sub-record (e.g. a ``PoseEdit``
+#: where a ``GeometryTransform`` is expected) is refused by the validator.
+_AXIS_RECORD_TYPES: dict[str, tuple[type, ...]] = {
+    "N": (ScaleN,),
+    "G": (GeometryTransform,),
+    "Theta_C": (ThetaC,),
+    "Theta_X": (ThetaX,),
+    "W_0": (W0,),
+    "H_0": (H0,),
+}
+
+
 @dataclass(frozen=True)
 class AugmentationSpec:
     """Typed augmentation spec: at most one record per axis, optional ``K_V``.
@@ -267,6 +320,13 @@ class AugmentationSpec:
                     f"unknown augmentation record {record!r}; one record per axis "
                     f"in {sorted(_KNOWN_AXES)}"
                 )
+            expected = _AXIS_RECORD_TYPES[axis]
+            if not isinstance(record, expected):
+                names = ", ".join(cls.__name__ for cls in expected)
+                raise ValueError(
+                    f"axis {axis!r} expects a {names} record; "
+                    f"got {type(record).__name__} ({record!r})"
+                )
             if axis in seen:
                 raise ValueError(f"duplicate augmentation record for axis {axis!r}")
             seen.add(axis)
@@ -286,15 +346,6 @@ class AugmentationSpec:
         }
         blob = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
         return hashlib.sha256(blob).hexdigest()
-
-
-def _check_scale_factor(factor: Any) -> float:
-    if isinstance(factor, bool) or not isinstance(factor, numbers.Real):
-        raise ValueError(f"ScaleN factor must be a positive number; got {factor!r}")
-    value = float(factor)
-    if not math.isfinite(value) or value <= 0.0:
-        raise ValueError(f"ScaleN factor must be finite and > 0; got {factor!r}")
-    return value
 
 
 def _scaled_count(n: int, factor: float) -> int:
@@ -322,23 +373,34 @@ def _layer_fractions(layer: Any) -> dict[str, float]:
 
 def _apply_scale_n(tensor: NeuronalTensor, record: ScaleN, changes: list[ProvenanceEntry]) -> None:
     factor = _check_scale_factor(record.factor)
+    if factor == 1.0:
+        return  # no-op: no scaling, no allocation check, no record entry
     for area in tensor.areas:
         for layer in area.layers:
             new_n = _scaled_count(int(layer.n_neurons), factor)
+            if new_n == layer.n_neurons:
+                continue
             # Reuse the existing allocation checks: whatever the bridge would
             # refuse for these fractions is refused here, not re-implemented.
             fracs = _check_cell_type_fractions(_layer_fractions(layer))
-            _counts_from_fractions(new_n, fracs)
-            if new_n != layer.n_neurons:
-                changes.append(
-                    ProvenanceEntry(
-                        address=f"areas.{area.name}.layers.{layer.name}.n_neurons",
-                        axis="N",
-                        before=int(layer.n_neurons),
-                        after=new_n,
+            counts = _counts_from_fractions(new_n, fracs)
+            for name, frac in fracs.items():
+                if frac > 0.0 and counts.get(name, 0) == 0:
+                    raise ValueError(
+                        f"ScaleN factor {factor!r} realizes 0 neurons for cell type "
+                        f"{name!r} with fraction {frac!r} in layer {layer.name!r} "
+                        f"of area {area.name!r} (n_neurons {layer.n_neurons} -> {new_n}); "
+                        "refusing (a declared type must not vanish under scaling)"
                     )
+            changes.append(
+                ProvenanceEntry(
+                    address=f"areas.{area.name}.layers.{layer.name}.n_neurons",
+                    axis="N",
+                    before=int(layer.n_neurons),
+                    after=new_n,
                 )
-                layer.n_neurons = new_n
+            )
+            layer.n_neurons = new_n
 
 
 def _find_area(tensor: NeuronalTensor, area_name: str) -> Any:
@@ -366,18 +428,6 @@ def _apply_geometry(
                     )
                 )
                 pose.translation = tuple(scaled)
-        if edit.translation is not None:
-            shifted = tuple(v + d for v, d in zip(pose.translation, edit.translation))
-            if tuple(shifted) != tuple(pose.translation):
-                changes.append(
-                    ProvenanceEntry(
-                        address=f"areas.{area.name}.pose.translation",
-                        axis="G",
-                        before=tuple(pose.translation),
-                        after=tuple(shifted),
-                    )
-                )
-                pose.translation = tuple(shifted)
         if edit.rotation_deg is not None:
             rotated = float(pose.rotation_deg) + float(edit.rotation_deg)
             if rotated != float(pose.rotation_deg):
@@ -390,6 +440,18 @@ def _apply_geometry(
                     )
                 )
                 pose.rotation_deg = rotated
+        if edit.translation is not None:
+            shifted = tuple(v + d for v, d in zip(pose.translation, edit.translation))
+            if tuple(shifted) != tuple(pose.translation):
+                changes.append(
+                    ProvenanceEntry(
+                        address=f"areas.{area.name}.pose.translation",
+                        axis="G",
+                        before=tuple(pose.translation),
+                        after=tuple(shifted),
+                    )
+                )
+                pose.translation = tuple(shifted)
     for edit in record.range_edits:
         area = _find_area(tensor, edit.area)
         layer = next((cand for cand in area.layers if cand.name == edit.layer), None)
@@ -417,7 +479,9 @@ def augment(
     """Apply ``spec`` to ``tensor`` in canonical order; return ``(new, record)``.
 
     The input tensor is never touched: the result is a deep copy with only
-    the targeted values rewritten. Records on packet-2 axes raise
+    the targeted values rewritten. A transform that changes no value is a
+    no-op: it contributes no ``realized_order`` entry (and a no-op ``ScaleN``
+    writes no scaling note). Records on packet-2 axes raise
     ``NotImplementedError`` naming packet 2.
     """
     if not isinstance(tensor, NeuronalTensor):
@@ -425,6 +489,11 @@ def augment(
     if not isinstance(spec, AugmentationSpec):
         raise TypeError(f"augment requires an AugmentationSpec; got {type(spec).__name__}")
     base_digest = _tensor_identity_digest(tensor)
+    if not base_digest:
+        raise ValueError(
+            "augment requires a computable tensor identity digest for provenance; "
+            "the base tensor's digest could not be computed (refusing, no silent '')"
+        )
     out = copy.deepcopy(tensor)
     by_axis = {record.axis: record for record in spec.transforms}
     realized: list[str] = []
@@ -439,16 +508,28 @@ def augment(
                 f"augmentation axis {axis!r} is packet 2 (parameter variation); "
                 "packet 1 implements clone, N and G only"
             )
+        n_before = len(changes)
         if axis == "N":
-            assert isinstance(record, ScaleN)
+            if not isinstance(record, ScaleN):
+                raise ValueError(
+                    f"augmentation axis 'N' expects a ScaleN record; "
+                    f"got {type(record).__name__} ({record!r})"
+                )
             _apply_scale_n(out, record, changes)
-            notes.append(_SCALING_NOTE)
+            if len(changes) > n_before:
+                realized.append(axis)
+                notes.append(_SCALING_NOTE)
         elif axis == "G":
-            assert isinstance(record, GeometryTransform)
+            if not isinstance(record, GeometryTransform):
+                raise ValueError(
+                    "augmentation axis 'G' expects a GeometryTransform record; "
+                    f"got {type(record).__name__} ({record!r})"
+                )
             _apply_geometry(out, record, changes)
+            if len(changes) > n_before:
+                realized.append(axis)
         else:  # fail closed: no silent skip of a known axis
             raise ValueError(f"augmentation axis {axis!r} has no packet-1 implementation")
-        realized.append(axis)
     return out, AugmentationRecord(
         realized_order=tuple(realized),
         changes=tuple(changes),

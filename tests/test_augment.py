@@ -251,3 +251,450 @@ def test_input_tensor_unchanged():
         ),
     )
     assert tensor.to_dict() == before
+
+
+def _fraction_tensor(n=10):
+    layer = nt.Layer(
+        name="L4",
+        n_neurons=n,
+        neuron_types=[
+            nt.NeuronType.make("E", fraction=0.8),
+            nt.NeuronType.make("PV", fraction=0.1),
+            nt.NeuronType.make("SST", fraction=0.07),
+            nt.NeuronType.make("VIP", fraction=0.03),
+        ],
+    )
+    return nt.NeuronalTensor(areas=[nt.Area(name="V1", layers=[layer])], name="frac_aug")
+
+
+def _two_area_tensor(n=10):
+    def _layer(name):
+        return nt.Layer(
+            name=name,
+            n_neurons=n,
+            neuron_types=[nt.NeuronType.make("E"), nt.NeuronType.make("PV")],
+        )
+
+    a0 = nt.Area(name="A0", layers=[_layer("L4")])
+    a1 = nt.Area(name="A1", layers=[_layer("L4")])
+    return nt.NeuronalTensor(areas=[a0, a1], name="two_area_aug")
+
+
+def _two_area_two_layer_tensor(n=10):
+    def _layer(name):
+        return nt.Layer(
+            name=name,
+            n_neurons=n,
+            neuron_types=[nt.NeuronType.make("E"), nt.NeuronType.make("PV")],
+        )
+
+    def _conn(layer):
+        return nt.InterConnection(
+            source_layer=layer, source_neuron_type="E",
+            target_layer=layer, target_neuron_type="PV",
+            mechanism="AMPA",
+            static=nt.StaticParams(g_mech={"AMPA": 1.0}, dT_ms=2.0),
+            plastic=nt.PlasticParams(w_mech=2.0, H=1.0),
+        )
+
+    a0 = nt.Area(
+        name="A0",
+        layers=[_layer("L2/3"), _layer("L5")],
+        inter_connections=[_conn("L2/3"), _conn("L5")],
+    )
+    a1 = nt.Area(
+        name="A1",
+        layers=[_layer("L2/3"), _layer("L5")],
+        inter_connections=[_conn("L2/3")],
+    )
+    cross = nt.AreaConnection(
+        source_area="A0", source_layer="L2/3", source_neuron_type="E",
+        target_area="A1", target_layer="L5", target_neuron_type="E",
+        mechanism="AMPA",
+        static=nt.StaticParams(g_mech={"AMPA": 1.0}, dT_ms=2.0),
+        plastic=nt.PlasticParams(w_mech=1.5, H=1.0),
+    )
+    return nt.NeuronalTensor(areas=[a0, a1], area_connections=[cross], name="complete_aug")
+
+
+def test_scale_n_zeroed_type_refused_but_clone_and_unit_scale_pass():
+    from jaxfne._config import _counts_from_fractions
+
+    fracs = {"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03}
+    assert _counts_from_fractions(10, fracs)["VIP"] == 0, "fixture must zero VIP at N0=10"
+    assert all(v > 0 for v in _counts_from_fractions(100, fracs).values()), (
+        "fixture must realize every type at n=100"
+    )
+    base = _fraction_tensor(n=10)
+    # Clone applies no scaling, so it must not refuse even though the bridge
+    # allocation realizes 0 VIP neurons at this size.
+    out, record = clone_tensor(base)
+    assert out.to_dict() == base.to_dict()
+    assert record.changes == ()
+    # ScaleN(1) is a no-op: accepted, nothing realized, no scaling note.
+    out1, rec1 = augment(base, AugmentationSpec(transforms=[ScaleN(factor=1)]))
+    assert out1.to_dict() == base.to_dict()
+    assert rec1.realized_order == ()
+    assert rec1.notes == ()
+    # x10 keeps every declared type realized: accepted.
+    out10, rec10 = augment(base, AugmentationSpec(transforms=[ScaleN(factor=10)]))
+    assert out10.areas[0].layers[0].n_neurons == 100
+    assert rec10.realized_order == ("N",)
+    # Down-scale 100 -> 10 zeroes VIP: refused, naming area, layer and type.
+    big = _fraction_tensor(n=100)
+    with pytest.raises(ValueError, match="cell type 'VIP'") as exc:
+        augment(big, AugmentationSpec(transforms=[ScaleN(factor=0.1)]))
+    assert "'L4'" in str(exc.value) and "'V1'" in str(exc.value)
+
+
+def test_uncomputable_base_digest_refused(monkeypatch):
+    import jaxfne.augment as aug
+
+    monkeypatch.setattr(aug, "_tensor_identity_digest", lambda tensor: "")
+    with pytest.raises(ValueError, match="digest"):
+        augment(_tiny_tensor(), AugmentationSpec(transforms=[ScaleN(factor=10)]))
+    with pytest.raises(ValueError, match="digest"):
+        clone_tensor(_tiny_tensor())
+
+
+def test_bare_subrecord_refused_naming_expected_type():
+    with pytest.raises(ValueError, match="GeometryTransform"):
+        AugmentationSpec(
+            transforms=[PoseEdit(area="V1", translation=(1.0, 0.0, 0.0))]
+        )
+    with pytest.raises(ValueError, match="GeometryTransform"):
+        AugmentationSpec(
+            transforms=[RangeEdit(area="V1", layer="L4", x_range=(0.0, 0.5))]
+        )
+
+
+def test_augment_rejects_wrong_record_type_naming_expected_type():
+    import types
+
+    tensor = _tiny_tensor()
+    spec_n = AugmentationSpec(transforms=[ScaleN(factor=10)])
+    object.__setattr__(spec_n, "transforms", (types.SimpleNamespace(axis="N"),))
+    with pytest.raises(ValueError, match="expects a ScaleN record"):
+        augment(tensor, spec_n)
+    spec_g = AugmentationSpec(
+        transforms=[GeometryTransform(pose_edits=[PoseEdit(area="V1")])]
+    )
+    object.__setattr__(spec_g, "transforms", (PoseEdit(area="V1"),))
+    with pytest.raises(ValueError, match="expects a GeometryTransform record"):
+        augment(tensor, spec_g)
+
+
+def test_noop_transforms_realize_nothing():
+    tensor = _tiny_tensor()
+    out, record = augment(tensor, AugmentationSpec(transforms=[ScaleN(factor=1)]))
+    assert out.to_dict() == tensor.to_dict()
+    assert record.realized_order == ()
+    assert record.changes == ()
+    assert record.notes == ()
+    out, record = augment(tensor, AugmentationSpec(transforms=[GeometryTransform()]))
+    assert out.to_dict() == tensor.to_dict()
+    assert record.realized_order == ()
+    assert record.changes == ()
+    # Edits equal to current values are no-ops too.
+    out, record = augment(
+        tensor,
+        AugmentationSpec(
+            transforms=[
+                GeometryTransform(
+                    pose_edits=[PoseEdit(area="V1", translation=(0.0, 0.0, 0.0))],
+                    range_edits=[RangeEdit(area="V1", layer="L4", x_range=(0.0, 1.0))],
+                )
+            ]
+        ),
+    )
+    assert out.to_dict() == tensor.to_dict()
+    assert record.realized_order == ()
+    assert record.changes == ()
+    # The w/sqrt(N) note is written only when N actually changed.
+    _, rec10 = augment(tensor, AugmentationSpec(transforms=[ScaleN(factor=10)]))
+    assert len(rec10.notes) == 1 and "sqrt(N)" in rec10.notes[0]
+
+
+def test_scale_n_bad_factors_refused_at_construction():
+    for bad in (0, -2, 0.0, float("nan"), float("inf"), "10", True, None):
+        with pytest.raises(ValueError):
+            ScaleN(factor=bad)
+    assert ScaleN(factor=10).factor == 10.0
+    assert isinstance(ScaleN(factor=10).factor, float)
+    assert AugmentationSpec(transforms=[ScaleN(factor=10)]).digest() == (
+        AugmentationSpec(transforms=[ScaleN(factor=10.0)]).digest()
+    )
+
+
+def test_duplicate_pose_edit_refused():
+    with pytest.raises(ValueError, match="two PoseEdits"):
+        GeometryTransform(
+            pose_edits=[
+                PoseEdit(area="V1", translation=(1.0, 0.0, 0.0)),
+                PoseEdit(area="V1", rotation_deg=90.0),
+            ]
+        )
+
+
+def test_duplicate_range_edit_refused():
+    with pytest.raises(ValueError, match="two RangeEdits"):
+        GeometryTransform(
+            range_edits=[
+                RangeEdit(area="V1", layer="L4", x_range=(0.0, 0.5)),
+                RangeEdit(area="V1", layer="L4", y_range=(0.0, 0.5)),
+            ]
+        )
+    # The same layer name in different areas is not ambiguous.
+    merged = GeometryTransform(
+        range_edits=[
+            RangeEdit(area="A0", layer="L4", x_range=(0.0, 0.5)),
+            RangeEdit(area="A1", layer="L4", x_range=(0.0, 0.5)),
+        ]
+    )
+    assert len(merged.range_edits) == 2
+
+
+def test_pose_edit_applies_scale_then_rotation_then_translation():
+    tensor = _tiny_tensor()
+    tensor.areas[0].pose.translation = (4.0, 0.0, 0.0)
+    spec = AugmentationSpec(
+        transforms=[
+            GeometryTransform(
+                pose_edits=[
+                    PoseEdit(
+                        area="V1",
+                        translation_scale=0.5,
+                        rotation_deg=90.0,
+                        translation=(1.0, 2.0, 3.0),
+                    )
+                ]
+            )
+        ]
+    )
+    out, record = augment(tensor, spec)
+    # Scale first ((4,0,0) * 0.5 = (2,0,0)), then translation adds: (3,2,3).
+    # Scale-last would give ((4,0,0) + (1,2,3)) * 0.5 = (2.5,1.0,1.5).
+    assert out.areas[0].pose.translation == (3.0, 2.0, 3.0)
+    assert out.areas[0].pose.rotation_deg == pytest.approx(90.0)
+    assert [entry.address for entry in record.changes] == [
+        "areas.V1.pose.translation",
+        "areas.V1.pose.rotation_deg",
+        "areas.V1.pose.translation",
+    ]
+
+
+def test_rotation_about_area_column_frame_and_absolute_translation():
+    from jaxfne._construct_population import AREA_X_SPACING_MM
+
+    tensor = _two_area_tensor(n=10)
+    spec = AugmentationSpec(
+        transforms=[
+            GeometryTransform(
+                pose_edits=[
+                    PoseEdit(area="A1", rotation_deg=90.0, translation=(5.0, 6.0, 7.0))
+                ]
+            )
+        ]
+    )
+    out, record = augment(tensor, spec)
+    assert record.realized_order == ("G",)
+    base = _build(tensor, seed=0)
+    moved = _build(out, seed=0)
+    rows = moved.neuron_table()
+    base_pos = base.params["positions"]
+    moved_pos = moved.params["positions"]
+    origin = AREA_X_SPACING_MM  # edited area A1 sits at column index 1
+    theta = math.radians(90.0)
+    cos_t, sin_t = math.cos(theta), math.sin(theta)
+    a1 = [i for i, row in enumerate(rows) if row["area"] == "A1"]
+    a0 = [i for i, row in enumerate(rows) if row["area"] == "A0"]
+    assert len(a1) == 10 and len(a0) == 10
+    for i in a1:
+        local = (
+            float(base_pos[i, 0]) - origin,
+            float(base_pos[i, 1]),
+            float(base_pos[i, 2]),
+        )
+        expected = (
+            local[0] * cos_t - local[1] * sin_t + 5.0,
+            local[0] * sin_t + local[1] * cos_t + 6.0,
+            local[2] + 7.0,
+        )
+        got = (float(moved_pos[i, 0]), float(moved_pos[i, 1]), float(moved_pos[i, 2]))
+        assert got == pytest.approx(expected, abs=1e-5)
+    # The unedited area is untouched.
+    for i in a0:
+        assert tuple(float(v) for v in moved_pos[i]) == pytest.approx(
+            tuple(float(v) for v in base_pos[i]), abs=1e-9
+        )
+
+
+def test_translation_scale_multiplies_stored_translation():
+    tensor = _two_area_tensor(n=10)
+    tensor.areas[1].pose.translation = (4.0, -2.0, 6.0)
+    spec = AugmentationSpec(
+        transforms=[
+            GeometryTransform(
+                pose_edits=[PoseEdit(area="A1", translation_scale=0.5)]
+            )
+        ]
+    )
+    out, record = augment(tensor, spec)
+    assert out.areas[1].pose.translation == (2.0, -1.0, 3.0)
+    assert record.realized_order == ("G",)
+    base = _build(tensor, seed=0)
+    moved = _build(out, seed=0)
+    rows = moved.neuron_table()
+    a1 = [i for i, row in enumerate(rows) if row["area"] == "A1"]
+    assert len(a1) == 10
+    shift = moved.params["positions"][jnp.array(a1)] - base.params["positions"][jnp.array(a1)]
+    assert bool(jnp.all(jnp.isfinite(shift)))
+    assert jnp.allclose(
+        shift, jnp.asarray((-2.0, 1.0, -3.0), dtype=shift.dtype), atol=1e-6
+    ).item()
+
+
+def _leaf_paths(payload, prefix=()):
+    """Flatten nested dict/list/tuple payload to {path_tuple: leaf_value}."""
+    if isinstance(payload, dict):
+        out = {}
+        for key, value in payload.items():
+            out.update(_leaf_paths(value, prefix + (key,)))
+        return out
+    if isinstance(payload, (list, tuple)):
+        out = {}
+        for idx, value in enumerate(payload):
+            out.update(_leaf_paths(value, prefix + (idx,)))
+        return out
+    return {prefix: payload}
+
+
+def _record_prefix(entry_address, before):
+    """Resolve a ProvenanceEntry address to its to_dict() leaf-path prefix."""
+    parts = entry_address.split(".")
+    assert parts[0] == "areas"
+    areas = before["areas"]
+    ai = next(i for i, a in enumerate(areas) if a["name"] == parts[1])
+    if parts[2] == "pose":
+        return ("areas", ai, "pose", parts[3])
+    assert parts[2] == "layers"
+    layers = areas[ai]["layers"]
+    li = next(i for i, layer in enumerate(layers) if layer["name"] == parts[3])
+    if parts[4] == "n_neurons":
+        return ("areas", ai, "layers", li, "n_neurons")
+    assert parts[4] == "geometry"
+    return ("areas", ai, "layers", li, "geometry", parts[5])
+
+
+def test_completeness_changed_leaves_equal_record_addresses():
+    tensor = _two_area_two_layer_tensor(n=10)
+    n_spec = AugmentationSpec(transforms=[ScaleN(factor=10)])
+    g_spec = AugmentationSpec(
+        transforms=[
+            GeometryTransform(
+                pose_edits=[PoseEdit(area="A1", translation=(1.0, 2.0, 3.0))],
+                range_edits=[RangeEdit(area="A0", layer="L5", z_range=(0.2, 0.8))],
+            )
+        ]
+    )
+    for spec, axis in ((n_spec, "N"), (g_spec, "G")):
+        before = tensor.to_dict()
+        out, record = augment(tensor, spec)
+        after = out.to_dict()
+        flat_before = _leaf_paths(before)
+        flat_after = _leaf_paths(after)
+        assert set(flat_before) == set(flat_after)
+        changed = {p for p in flat_before if flat_before[p] != flat_after[p]}
+        assert changed, "spec must change something"
+        for entry in record.changes:
+            assert entry.axis == axis
+            prefix = _record_prefix(entry.address, before)
+            assert any(p[: len(prefix)] == prefix for p in changed), (
+                f"record address {entry.address} covers no changed leaf"
+            )
+        covered = {
+            p
+            for p in changed
+            for entry in record.changes
+            if p[: len(_record_prefix(entry.address, before))]
+            == _record_prefix(entry.address, before)
+        }
+        assert changed == covered, (
+            f"changed leaves outside the record: {sorted(set(changed) - set(covered))}"
+        )
+        if axis == "N":
+            stray = [
+                p
+                for p in changed
+                if any(k in p for k in ("pose", "geometry", "inter_connections", "area_connections"))
+            ]
+            assert stray == [], f"N-only spec touched non-N leaves: {stray}"
+
+
+def test_identity_digest_changes_with_augmentation_and_stable_for_clone():
+    from jaxfne.neuronal_tensor import _tensor_identity_digest
+
+    tensor = _tiny_tensor()
+    clone, _ = clone_tensor(tensor)
+    assert _tensor_identity_digest(clone) == _tensor_identity_digest(tensor)
+    scaled, _ = augment(tensor, AugmentationSpec(transforms=[ScaleN(factor=10)]))
+    assert _tensor_identity_digest(scaled) != _tensor_identity_digest(tensor)
+    moved, _ = augment(
+        tensor,
+        AugmentationSpec(
+            transforms=[
+                GeometryTransform(
+                    pose_edits=[PoseEdit(area="V1", translation=(1.0, 0.0, 0.0))]
+                )
+            ]
+        ),
+    )
+    assert _tensor_identity_digest(moved) != _tensor_identity_digest(tensor)
+
+
+def test_spec_digest_stable_across_processes(tmp_path):
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    import jaxfne
+
+    root = Path(jaxfne.__file__).resolve().parent.parent
+    expected = AugmentationSpec(
+        transforms=[
+            ScaleN(factor=10),
+            GeometryTransform(
+                pose_edits=[PoseEdit(area="V1", translation=(1.0, -2.0, 0.5))]
+            ),
+        ]
+    ).digest()
+    script = tmp_path / "_temp_aug_digest.py"
+    script.write_text(
+        "from jaxfne.augment import AugmentationSpec, GeometryTransform, PoseEdit, ScaleN\n"
+        "spec = AugmentationSpec(transforms=[\n"
+        "    ScaleN(factor=10),\n"
+        "    GeometryTransform(pose_edits=[PoseEdit(area='V1', translation=(1.0, -2.0, 0.5))]),\n"
+        "])\n"
+        "print(spec.digest())\n",
+        encoding="utf-8",
+    )
+    try:
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(root) + os.pathsep + env.get("PYTHONPATH", "")
+        result = subprocess.run(
+            [sys.executable, str(script)],
+            cwd=str(root),
+            capture_output=True,
+            text=True,
+            check=False,
+            env=env,
+            timeout=300,
+        )
+    finally:
+        script.unlink(missing_ok=True)
+    assert result.returncode == 0, (
+        f"digest script failed\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+    )
+    assert result.stdout.strip() == expected
+    assert not script.exists()
