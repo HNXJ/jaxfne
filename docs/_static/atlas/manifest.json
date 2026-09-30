@@ -1,7 +1,7 @@
 {
   "suite": "atlas_suite.v2",
   "title": "Canonical V1 Column (1000n)",
-  "figure_state": "GENERATED",
+  "figure_state": "validated",
   "config_hash": "91f037cf383e0bdb",
   "tfne_digest": null,
   "k_d": null,
@@ -116,5 +116,14 @@
       }
     }
   ],
-  "sha256": "4c81b0f8e2b5bf77"
+  "sha256": "4c81b0f8e2b5bf77",
+  "promotion": [
+    {
+      "to": "validated",
+      "reason": "P-022 re-pin (bae3c41c) regenerated the canonical atlas, which reset its state; broad gate on 3dc3c2c5: 4843 passed, 1 failed = the stale gallery index this restores",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "3dc3c2c50d2e8a877f648556db2ac9afceb79fb1",
+      "utc": "2026-09-30T17:58:59.416870+00:00"
+    }
+  ]
 }

@@ -188,7 +188,7 @@ State `validated` · N=12 · edges=132 · steps=2000 · config `a07c380b8304` ·
 
 ### `atlas` — Canonical V1 Column (1000n)
 
-State `validated` · N=1000 · edges=215785 · steps=2000 · config `e9eb50be8f1b` · jaxfne 0.5.0
+State `validated` · N=1000 · edges=215785 · steps=2000 · config `91f037cf383e` · jaxfne 0.5.0
 
 [Index](_static/atlas/index.html) · [Circuit schematic](_static/atlas/schema.html) · [Network 3D](_static/atlas/network_3d.html) · [Spike raster](_static/atlas/raster.html) · [LFP proxy](_static/atlas/lfp.html) · [H dynamics](_static/atlas/h_dynamics.html) · [HDP plasticity](_static/atlas/hdp.html) · [Oscillatory response](_static/atlas/oscillatory.html)
 
