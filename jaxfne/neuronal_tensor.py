@@ -49,6 +49,7 @@ from __future__ import annotations
 import hashlib
 import math
 import warnings
+import weakref
 from dataclasses import dataclass, field, asdict, replace
 from pathlib import Path
 from typing import Any, Literal, Optional, Sequence
@@ -78,6 +79,29 @@ DEFAULT_AREA_CONNECTION_MECHANISM = "monotonic_cable_synapse"
 #: AreaConnection default above, whose sign follows the source cell type.
 EXCITATORY_MECHANISMS = frozenset({"AMPA", "NMDA"})
 INHIBITORY_MECHANISMS = frozenset({"GABA_A", "GABA_B"})
+
+#: P-023 TFNE carve-out registry: ids of NeuronalTensor objects minted by
+#: :func:`jaxfne.tfne.to_neuronal_tensor`, held weakly. The carve-out in
+#: :func:`_wire_connection` consults this — never ``provenance``, which is a
+#: free constructor kwarg any caller can set — so a hand-built tensor carrying
+#: ``provenance={"tfne_digest": ...}`` is still refused. A saved-and-reloaded
+#: tensor loses the status: :func:`save_neuronal_tensor` already strips
+#: provenance, and loading constructs a new (unregistered) object, as do
+#: copies, merges and any other reconstruction. Fail closed throughout.
+_TFNE_MINTED: dict[int, "weakref.ReferenceType[NeuronalTensor]"] = {}
+
+
+def _register_tfne_minted(tensor: "NeuronalTensor") -> "NeuronalTensor":
+    """Record a tensor minted by the TFNE compiler (called from ``to_neuronal_tensor`` only)."""
+    key = id(tensor)
+    _TFNE_MINTED[key] = weakref.ref(tensor, lambda _ref, _key=key: _TFNE_MINTED.pop(_key, None))
+    return tensor
+
+
+def _is_tfne_minted(tensor: "NeuronalTensor") -> bool:
+    """Whether this exact object was minted by the TFNE compiler and is still alive."""
+    ref = _TFNE_MINTED.get(id(tensor))
+    return ref is not None and ref() is tensor
 
 #: Maps a Pose3D.plane to (global_axis_for_local_x, global_axis_for_local_y,
 #: global_axis_for_local_depth). "xy" is the canonical default (depth=z, the
@@ -1081,7 +1105,10 @@ def _wire_connection(
     so this is what actually couples two different areas (or two specific
     layer x cell-type populations within one area) into the simulated
     dynamics.     ``mechanism`` -> ``tau_ms`` comes from ``static.dT_ms``
-    (P-023: required — ``None`` is refused, never defaulted);
+    (P-023: required — ``None`` is refused, never defaulted, and so is any
+    other non-finite-non-positive value: 0, negative, NaN, inf, bools and
+    strings (even numeric ones — no silent coercion), matching the genome-side
+    checks; only a real number with ``float(tau)`` finite and ``> 0`` wires);
     mechanisms are deduplicated by (name, dT_ms) so repeated connections
     sharing both don't raise on ``Configuration``'s duplicate-name guard.
     A declared ``InterConnection.delay_ms`` is forwarded into the rule;
@@ -1103,7 +1130,24 @@ def _wire_connection(
             f"P-023: {label} declares no time constant (StaticParams.dT_ms "
             "is None); time constants are required, never defaulted"
         )
-    tau_ms = float(conn.static.dT_ms)
+    raw_tau = conn.static.dT_ms
+    if isinstance(raw_tau, bool) or isinstance(raw_tau, str):
+        raise ValueError(
+            f"P-023: {label} declares inadmissible time constant "
+            f"dT_ms={raw_tau!r}; time constants must be a finite number > 0 in ms"
+        )
+    try:
+        tau_ms = float(raw_tau)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"P-023: {label} declares non-numeric time constant "
+            f"dT_ms={raw_tau!r}; time constants must be a finite number > 0 in ms"
+        )
+    if not (math.isfinite(tau_ms) and tau_ms > 0.0):
+        raise ValueError(
+            f"P-023: {label} declares inadmissible time constant "
+            f"dT_ms={raw_tau!r}; time constants must be finite and > 0 in ms"
+        )
     mech_key = (conn.mechanism, tau_ms)
     mech_name = declared_mechanisms.get(mech_key)
     if mech_name is None:
@@ -1229,9 +1273,14 @@ def neuronal_tensor_to_configuration(
     (see :func:`_connection_edge_weight`); sign follows the P-023 mechanism
     vocabulary (excitatory {AMPA, NMDA} from E sources, inhibitory {GABA_A,
     GABA_B} from non-E sources; ``monotonic_cable_synapse`` exempt, sign from
-    the source type). TFNE-derived tensors (provenance carries
-    ``tfne_digest``) skip the declaration vocabulary: TFNE resolves kinetics
-    fail-closed in its own compiler and carries sign on weight polarity.
+    the source type). TFNE-derived tensors skip the declaration vocabulary:
+    TFNE resolves kinetics fail-closed in its own compiler and carries sign
+    on weight polarity. Genuine TFNE derivation is recognized only through
+    the module-private minted registry (populated by
+    ``jaxfne.tfne.to_neuronal_tensor`` for the exact objects it constructs);
+    a caller-supplied ``provenance`` dict — including one carrying
+    ``tfne_digest`` — never qualifies, and save/load, copies and merges lose
+    the status.
     ``probability=1.0`` (full bipartite between the selected populations) —
     the tensor model declares connection membership, not a separate density
     parameter, so full density between the declared layer x cell-type pair
@@ -1384,8 +1433,11 @@ def neuronal_tensor_to_configuration(
 
     total_n = sum(area_n_by_name.values()) or 1
     declared_mechanisms: dict[tuple[str, float], str] = {}
-    provenance = getattr(tensor, "provenance", None)
-    tfne_resolved = isinstance(provenance, dict) and "tfne_digest" in provenance
+    # P-023 carve-out: only tensors minted by jaxfne.tfne.to_neuronal_tensor
+    # (module-private weak registry) skip the declaration vocabulary.
+    # Provenance is deliberately NOT consulted: it is a free constructor
+    # kwarg, so a forged {"tfne_digest": ...} must not qualify.
+    tfne_resolved = _is_tfne_minted(tensor)
     for area in tensor.areas:
         for idx, ic in enumerate(area.inter_connections):
             cfg = _wire_connection(

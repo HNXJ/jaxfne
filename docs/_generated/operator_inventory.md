@@ -1,6 +1,6 @@
 # Operator Inventory (generated)
 
-Generated from the live `jaxfne.__all__` export surface (189 entries) by `scripts/generate_operator_inventory.py`. Deterministic dense table Operator|Input|Output|State effect|Public — do not hand-edit; regenerate after any export change.
+Generated from the live `jaxfne.__all__` export surface (190 entries) by `scripts/generate_operator_inventory.py`. Deterministic dense table Operator|Input|Output|State effect|Public — do not hand-edit; regenerate after any export change.
 
 | Operator | Input | Output | State effect | Public |
 |---|---|---|---|---|
@@ -25,7 +25,7 @@ Generated from the live `jaxfne.__all__` export surface (189 entries) by `script
 | `DEFAULT_LAYERS` | — | — | — | CANONICAL |
 | `DEFAULT_SPIKE_IMPULSE_GAIN` | — | — | — | CANONICAL |
 | `DatasetSpec` | `(name: 'str' = 'unnamed_dataset', modality: 'str' = 'unspecified', source_format: 'str' = 'unspecified', comparison_...` | `None` | constructs | CANONICAL |
-| `DynamicState` | `(v: jax.Array, u: jax.Array, prev_spikes: jax.Array, syn_state: jax.Array, H: jax.Array, w: jax.Array)` | — | constructs | CANONICAL |
+| `DynamicState` | `(v: jax.Array, u: jax.Array, prev_spikes: jax.Array, syn_state: jax.Array, H: jax.Array, w: jax.Array, theta_S: jax....` | — | constructs | CANONICAL |
 | `EdgeParameterSpec` | `(pre: 'Optional[SelectorSpec | Mapping[str, Any]]' = None, post: 'Optional[SelectorSpec | Mapping[str, Any]]' = None...` | `None` | constructs | CANONICAL |
 | `Emitter` | `()` | — | constructs | CANONICAL |
 | `FLAT_CELL_TYPE_FRACTIONS` | — | — | — | CANONICAL |
@@ -104,7 +104,7 @@ Generated from the live `jaxfne.__all__` export surface (189 entries) by `script
 | `default_cortical_column_config` | `(column_name: 'str' = 'single_column', n: 'int' = 100, layers: 'Sequence[str] | None' = None, seed: 'int | None' = N...` | `'Configuration'` | pure | CANONICAL |
 | `default_relative_size` | `(neuron_type: 'str')` | `'float'` | pure | CANONICAL |
 | `develop` | `(genome: 'PseudoGenome', seed: 'int' = 0, *, development_parameters: 'Optional[Mapping[str, Any]]' = None)` | `'NeuronalTensor'` | pure | CANONICAL |
-| `dynamic_state_from_model` | `(model: 'Model', *, h_state_dim: 'int' = 1, h_state_locality: 'str | None' = None)` | `'DynamicState'` | pure | CANONICAL |
+| `dynamic_state_from_model` | `(model: 'Model', *, h_state_dim: 'int' = 1, h_state_locality: 'str | None' = None, hdp_params: 'Mapping[str, Any] | ...` | `'DynamicState'` | pure | CANONICAL |
 | `edge_parameter` | `(*, pre: 'Optional[SelectorSpec | Mapping[str, Any]]' = None, post: 'Optional[SelectorSpec | Mapping[str, Any]]' = N...` | `'EdgeParameterSpec'` | pure | CANONICAL |
 | `eeg_proxy_transform` | `(source: 'jax.Array', leadfield: 'jax.Array')` | `'jax.Array'` | pure | CANONICAL |
 | `emm_proxy_transform` | `(spike_rate: 'jax.Array', source: 'jax.Array', field_potential: 'jax.Array', lambda_spk: 'float' = 1.0, lambda_src: ...` | `'jax.Array'` | pure | CANONICAL |
@@ -156,6 +156,7 @@ Generated from the live `jaxfne.__all__` export surface (189 entries) by `script
 | `readout_spec` | `(name: 'str', metric: 'str', *, time_window_ms: 'Optional[tuple[float, float]]' = None, n_contacts_slice: 'Optional[...` | `'ReadoutSpec'` | pure | CANONICAL |
 | `require_optax` | `()` | `'Any'` | pure | CANONICAL |
 | `restore_state` | `(path: 'str | Path')` | `'tuple[list, dict]'` | stateful | CANONICAL |
+| `run_continuation` | `(step_fn: "'callable'", state: 'ContinuationState', drive_schedule: 'jax.Array')` | `"'tuple[ContinuationState, tuple]'"` | stateful | CANONICAL |
 | `run_receipt` | `(model: "'Model'", signals: 'Signals', *, tags: 'Optional[dict[str, Any]]' = None)` | `'RunReceipt'` | stateful | CANONICAL |
 | `run_trials` | `(model: 'Model', batch: 'TrialBatch', sim: 'Simulation', *, collect_errors: 'bool' = False)` | `'TrialBatchResult'` | stateful | CANONICAL |
 | `runtime` | `(backend: 'str' = 'auto', dtype: 'str' = 'float32', jit: 'bool' = False, vmap: 'bool' = False, precision: 'str' = 'd...` | `'RuntimeConfig'` | pure | CANONICAL |

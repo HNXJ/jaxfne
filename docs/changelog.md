@@ -11,6 +11,17 @@ the rules those releases were held to and are historical context for readers.
 
 ### Changed
 
+- Synaptic time constants are required, never defaulted (P-023, owner
+  ruling 2026-09-30): `StaticParams.dT_ms` of `None` is refused at wiring
+  time, as are 0, negative, NaN, inf, bools and strings. JDNA genomes
+  declare per-mechanism kinetics in `mechanism_tau_ms`; `develop` copies
+  each connection's mechanism tau into `StaticParams.dT_ms` and refuses a
+  mechanism with no table entry. Mechanism names set the sign
+  (`{AMPA, NMDA}` need an E source, `{GABA_A, GABA_B}` a non-E source);
+  unknown names are refused except `monotonic_cable_synapse`, and
+  TFNE-minted tensors keep their own polarity sign.
+  `make_minimal_ei_tensor` now emits `GABA_A` instead of `GABA`, and the
+  demo config's E->PV pair is `AMPA`.
 - Seeded stochastic `simulate()` runs (baseline and registered-rule paths)
   draw membrane and rule noise from the per-step continuation key chain, so
   a run split into chunks equals the unsplit run bit for bit. Seeded

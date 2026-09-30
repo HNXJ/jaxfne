@@ -3079,7 +3079,13 @@ def to_neuronal_tensor(explicit: ExplicitModel):
         name="tfne",
         provenance={"tfne_digest": explicit.digest, "tfne_normalization": explicit.normalization},
     )
-    return tensor
+    # P-023: mint this exact object into the neuronal_tensor carve-out
+    # registry. The bridge recognizes genuine TFNE derivation only through
+    # that channel — the provenance dict above is inspectable metadata, not
+    # authority, since any caller can construct an equal dict.
+    from .neuronal_tensor import _register_tfne_minted
+
+    return _register_tfne_minted(tensor)
 
 
 def to_configuration(
@@ -3157,9 +3163,16 @@ def to_configuration(
     # rather than inventing a value here. In particular it must NOT come from
     # `dt_ms`: tying synaptic decay to the integration timestep would make a
     # refined timestep silently change the synapse model, so the model would
-    # not converge under dt-refinement. A realized mechanism absent from the
-    # bridge has no declared kinetics and is refused (P-023) instead of
-    # falling back to a default.
+    # not converge under dt-refinement.
+    #
+    # P-023: every realized mechanism is present in the bridge table by
+    # construction — the specs below and the tensor above both iterate the
+    # same `explicit.relations` with the same mechanism-name function
+    # (`_relation_mechanism` here, `params["mechanism"]` in `realize`), and
+    # exclusions can only remove specs (the tensor ignores exclusions, so it
+    # is a superset), never add one. `_connection_static` raises before any
+    # None-tau entry reaches the bridge. A direct index therefore fails
+    # loudly (KeyError) on explicit/realization skew instead of defaulting.
     bridge_tau: dict[str, float] = {}
     for m in cfg.metadata.get("circuit", {}).get("mechanisms", []):
         kind = m.get("kind")
@@ -3178,13 +3191,7 @@ def to_configuration(
         if name is None:
             name = f"{mech}__tfne__{len(declared)}"
             declared[mech] = name
-            tau = bridge_tau.get(mech)
-            if tau is None:
-                raise TFNEError(
-                    f"E_TAU_UNDECLARED: realized mechanism {mech!r} has no tau "
-                    "in the structural bridge (P-023); time constants are "
-                    "required, never defaulted"
-                )
+            tau = bridge_tau[mech]
             mechanisms.append(
                 {
                     "name": name,

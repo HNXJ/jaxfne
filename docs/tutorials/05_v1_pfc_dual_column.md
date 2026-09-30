@@ -41,7 +41,7 @@ script.
 ```python
 from jaxfne.neuronal_tensor import (
     Area, AreaConnection, Layer, NeuronType, NeuronalTensor, PlasticParams,
-    construct_neuronal_tensor,
+    StaticParams, construct_neuronal_tensor,
 )
 
 # V1: L1=10, L2=25, L3=15, L4=15 (pure-E tuning), L5=20, L6=15 (pure-E tuning)
@@ -59,6 +59,9 @@ feedforward = [
         source_area="V1", source_layer=layer, source_neuron_type="E",
         target_area="PFC", target_layer="L4", target_neuron_type="E",
         mechanism="AMPA",
+        # P-023: time constants are required, never defaulted (AMPA 2.0 ms
+        # from jaxfne.presets.RECEPTOR_KINETICS).
+        static=StaticParams(dT_ms=2.0),
         # PlasticParams.H defaults to 0.0, outside the valid HDP range
         # (H_min=0.1, H_max=10.0) -- ALWAYS set H=1.0 explicitly when HDP
         # will be enabled, or the target neurons' seeded H0 blows up the

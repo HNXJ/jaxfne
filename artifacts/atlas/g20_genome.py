@@ -57,6 +57,16 @@ def genome_dict() -> dict[str, Any]:
             "exponential_distance rule; one E/PV layer per area with the four "
             "within-area motifs. Relative scaffold values; not calibrated."),
         "development_parameters": {"fraction_jitter_sigma": 0.0},
+        # P-023: every developed connection needs its mechanism's tau from
+        # this table. 0.1 ms on both entries reproduces the committed
+        # verdicts exactly: pre-P-023 StaticParams defaulted dT_ms to 0.1,
+        # so the frozen AT-10 runs executed every edge at tau 0.1 ms.
+        # Relative scaffold values; not calibrated.
+        "mechanism_tau_ms": {"AMPA": 0.1, "GABA_A": 0.1},
+        "mechanism_tau_ms_provenance": (
+            "P-023: 0.1 ms on AMPA and GABA_A declares what the frozen "
+            "AT-10 verdicts ran with (the removed StaticParams.dT_ms "
+            "default); uncalibrated scaffold metadata, not a kinetics claim."),
         "areas": [{"name": a, "layers": [layer], "inter_connections": within} for a in names],
         "area_connections": [],
         "area_connection_rules": [{

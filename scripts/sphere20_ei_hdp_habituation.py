@@ -43,6 +43,7 @@ from jaxfne.neuronal_tensor import (
     NeuronalTensor,
     NeuronType,
     PlasticParams,
+    StaticParams,
     neuronal_tensor_to_configuration,
 )
 from jaxfne.hdp_network import DEFAULT_HDP
@@ -135,6 +136,10 @@ def build_tensor() -> NeuronalTensor:
             target_layer="L",
             target_neuron_type=tgt_type,
             mechanism=mechanism,
+            # P-023: time constants are required, never defaulted. dT_ms=0.1
+            # declares what this script ran with (the removed
+            # StaticParams.dT_ms default); uncalibrated scaffold value.
+            static=StaticParams(dT_ms=0.1),
             plastic=PlasticParams(H=1.0, w_mech=w_mech),
         )
 
@@ -144,8 +149,8 @@ def build_tensor() -> NeuronalTensor:
         inter_connections=[
             ic("E", "E", "AMPA"),
             ic("E", "PV", "AMPA", w_mech=E_TO_PV_GAIN),
-            ic("PV", "E", "GABA"),
-            ic("PV", "PV", "GABA"),
+            ic("PV", "E", "GABA_A"),
+            ic("PV", "PV", "GABA_A"),
         ],
     )
     return NeuronalTensor(areas=[area], name="sphere20_ei_hdp")

@@ -151,12 +151,15 @@ this layer (all cell types combined).
 class StaticParams:
     g_mech: dict = field(default_factory=dict)          # mechanism → conductance
     reversal_potentials_mV: dict = field(default_factory=dict)  # mechanism → E_rev (mV)
-    dT_ms: float = 0.1
+    dT_ms: float | None = None   # REQUIRED (P-023): None is refused, never defaulted
     value_tag: ValueTag = "relative"
 ```
 
 **Never plastic/trainable/gradientable.** Holds conductances, reversal
-potentials, and the integration timestep for a connection.
+potentials, and the synaptic time constant for a connection.
+`dT_ms` is **required** (P-023): `None` is refused at wiring time rather
+than defaulted — see [Time constants are required](#time-constants-are-required)
+for the declaration vocabulary.
 
 > **Note:** `reversal_potentials_mV` is stored as metadata only. jaxfne's
 > compiled edges are native current-based (Izhikevich-style) and have no
@@ -470,8 +473,10 @@ Returns a `Configuration` for `jaxfne.construct`.
 - Every `InterConnection` (within-area) and `AreaConnection` (between-area)
   compiles into a real selector-based edge rule via
   `Configuration.connections` + `Configuration.mechanisms`. Edge magnitude is
-  `w_mech × g_mech / √total_n`. Sign follows the source neuron type
-  (E → excitatory, else inhibitory). Connection probability is `1.0`
+  `w_mech × g_mech / √total_n`. Sign follows the P-023 mechanism vocabulary
+  (see [Time constants are required](#time-constants-are-required)):
+  excitatory `{AMPA, NMDA}` from E sources, inhibitory `{GABA_A, GABA_B}`
+  from non-E sources. Connection probability is `1.0`
   (full bipartite between the declared layer × cell-type pair). For explicit
   tensor connectivity, these are the complete executable edges; implicit
   recurrent defaults are not added.
@@ -483,6 +488,32 @@ Returns a `Configuration` for `jaxfne.construct`.
 | `Layer.geometry` / `Area.pose` — 3D placement is dropped; positions come from jaxfne's default uniform-random column sampler. | Use `construct_neuronal_tensor` instead, which overwrites positions post-construct. |
 | `StaticParams.reversal_potentials_mV` — stored as metadata only; no effect on dynamics. | Inspect via `cfg.metadata["circuit"]["mechanisms"]`. |
 | `PlasticParams.H` — stored but inert unless HDP is separately enabled. | See `construct_neuronal_tensor` for automatic HDP seeding. |
+
+---
+
+### Time constants are required
+
+Every `InterConnection` / `AreaConnection` declares its synaptic time
+constant in `static` (`StaticParams(dT_ms=...)`, milliseconds). `None` is
+refused at wiring time — never defaulted — as is any other inadmissible
+value (0, negative, NaN, inf, bools, strings). Named receptors use
+`jaxfne.presets.RECEPTOR_KINETICS` values (AMPA 2.0, GABA_A 5.0, NMDA 100.0,
+GABA_B 150.0 ms).
+
+JDNA genomes declare the same kinetics once per mechanism in
+`mechanism_tau_ms` (`{mechanism: tau_ms}`); `develop` copies each
+connection's mechanism tau into its `StaticParams.dT_ms` and refuses a
+mechanism with no table entry.
+
+The mechanism name also sets the sign: `{AMPA, NMDA}` require an E
+source, `{GABA_A, GABA_B}` a non-E source, and a clash is refused. Two
+names are exempt: any other name is refused as unknown, except
+`monotonic_cable_synapse` (the `AreaConnection` default), whose sign
+follows the source cell type — and tensors minted by
+`jaxfne.tfne.to_neuronal_tensor`, which keep TFNE's own fail-closed
+kinetics plus weight-polarity sign (recognized only through a
+module-private registry: a caller-supplied `provenance` dict never
+qualifies, and save/load loses the status).
 
 ---
 
@@ -544,10 +575,15 @@ L4  = Layer("L4",  [E, PV], Geometry3D(z_range=(0.0, 0.3)), n_neurons=80)
 L23 = Layer("L2/3",[E, PV], Geometry3D(z_range=(0.3, 0.8)), n_neurons=60)
 
 # ── Within-area wiring ──────────────────────────────────────────────────────
+# Every connection declares its synaptic time constant (P-023, required):
+# AMPA 2.0 ms / GABA_A 5.0 ms from jaxfne.presets.RECEPTOR_KINETICS.
 v1_connections = [
-    InterConnection("L4", "E", "L2/3", "E",  mechanism="AMPA"),
-    InterConnection("L4", "E", "L4",   "PV", mechanism="AMPA"),
-    InterConnection("L4", "PV","L4",   "E",  mechanism="GABA_A"),
+    InterConnection("L4", "E", "L2/3", "E",  mechanism="AMPA",
+                    static=StaticParams(dT_ms=2.0)),
+    InterConnection("L4", "E", "L4",   "PV", mechanism="AMPA",
+                    static=StaticParams(dT_ms=2.0)),
+    InterConnection("L4", "PV","L4",   "E",  mechanism="GABA_A",
+                    static=StaticParams(dT_ms=5.0)),
 ]
 
 # ── Assemble area ───────────────────────────────────────────────────────────
@@ -583,11 +619,13 @@ merged = merge_neuronal_tensors(
     name="v1_mt",
 )
 
-# Wire areas together
-from jaxfne import AreaConnection
+# Wire areas together (time constants required, P-023: AMPA 2.0 ms)
+from jaxfne import AreaConnection, StaticParams
 merged.area_connections = [
-    AreaConnection("V1", "L2/3", "E", "MT", "L4", "E"),  # feedforward
-    AreaConnection("MT", "L2/3", "E", "V1", "L2/3", "E"),  # feedback
+    AreaConnection("V1", "L2/3", "E", "MT", "L4", "E",  # feedforward
+                   mechanism="AMPA", static=StaticParams(dT_ms=2.0)),
+    AreaConnection("MT", "L2/3", "E", "V1", "L2/3", "E",  # feedback
+                   mechanism="AMPA", static=StaticParams(dT_ms=2.0)),
 ]
 
 model = construct_neuronal_tensor(merged, seed=1, duration_ms=1000.0)

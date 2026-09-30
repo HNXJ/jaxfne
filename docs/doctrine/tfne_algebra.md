@@ -81,10 +81,11 @@ receptors execute at their canonical taus (AMPA 2.0, GABA_A 5.0, NMDA
 100.0, GABA_B 150.0 ms), custom mechanisms at their declared `tau_ms`,
 and anything unresolvable is refused at execution rather than inheriting
 a placeholder. A rule without a mechanism means direct coupling
-(`tfne_direct`, placeholder 0.1 ms, not a receptor claim). The realized
-mechanism table still records `tau_ms: None` with status
-`declared_not_simulated`: identity is realized, kinetics resolve
-downstream. Synaptic kinetics is independent of `dt`, so refining the
+(`tfne_direct`, 0.1 ms, not a receptor claim). The realization record still
+carries `tau_ms: None` with status `declared_not_simulated` (identity only);
+execution inherits the bridge-resolved tau (P-023): the structural bridge
+derives it from each connection's own `static.dT_ms`, never a default.
+Synaptic kinetics is independent of `dt`, so refining the
 timestep integrates the same synapse model rather than changing it.
 
 Declared geometry is realized and executed as relative coordinates. `G`
