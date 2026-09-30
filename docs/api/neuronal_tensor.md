@@ -491,13 +491,17 @@ Returns a `Configuration` for `jaxfne.construct`.
   `w_mech × g_mech / √total_n`. Sign follows the P-023 mechanism vocabulary
   (see [Time constants are required](#time-constants-are-required)):
   excitatory `{AMPA, NMDA}` from E sources, inhibitory `{GABA_A, GABA_B}`
-  from non-E sources. Connection probability is `1.0`
-  (full bipartite between the declared layer × cell-type pair). For explicit
+  from non-E sources. `InterConnection` probability is `1.0`
+  (full bipartite between the declared layer × cell-type pair);
+  `AreaConnection.probability` is forwarded when declared (`None` means
+  `1.0`). For explicit
   tensor connectivity, these are the complete executable edges; implicit
   recurrent defaults are not added.
 
 - Per-layer geometry (`Layer.geometry`, P-022) is preserved via fractional
   domains in `Configuration.metadata["tfne_geometry"]["domains"]`.
+  `Area.pose` is not applied by `neuronal_tensor_to_configuration`; only
+  `construct` applies it.
 
 **Known fidelity gaps (not yet wired):**
 
