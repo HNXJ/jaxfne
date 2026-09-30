@@ -30,11 +30,11 @@ Class: **overlap** (both have it; migrate), **jaxfne-only** (keep in jaxfne),
 
 | jaxfne | Class | jnwb counterpart | Note |
 |---|---|---|---|
-| `vis/core.welch_psd`, `vis/spectra.psd` | overlap, not equal | `compute_psd` | jaxfne `nperseg=256`; jnwb `nperseg=min(n, int(fs))` (20000 at 0.05 ms). Output changes; a gap in jnwb (no `nperseg` argument) or a declared output change |
+| `vis/core.welch_psd`, `vis/spectra.psd` | overlap, delegated (float64) | `compute_psd(nperseg=)` | 2026-09-30 option A: finite float64 input goes to jnwb (bit-identical) once jnwb 0.2.8 ships lane D; float32 stays local until jnwb keeps float32 |
 | `vis/core.inband_power_mean`, `analysis/spectral.bandpower_jax` | overlap | `band_power`, `relative_power` | check band-edge inclusion |
 | `vis/spectra.spectrogram`, `windowed_band_power` | overlap | `complex_tfr`, `morlet_wavelet` | Morlet ≠ STFT: different estimator |
 | `vis/traces.csd`, `canonical.plot_csd` | overlap on proxy only | `current_source_density_1d` | physical units; only after calibration |
-| `vis/core.binned_population_rate_hz` | overlap | `bin_spikes`, `gaussian_smooth_rate` | |
+| `vis/core.binned_population_rate_hz` | jaxfne-only (dense grid) | `bin_spikes` for spike-time data | exact reshape of dense per-step counts; delegating would convert counts to times and back with float rounding at bin edges (2026-09-30) |
 | `vis/rasters.*`, `raster_arrays.raster_from_arrays` | overlap | `raster_psth` | |
 | `analysis/metrics.fano_factor`, `mean_pairwise_spike_correlation`, `burst_index` | gap | none found | move to jnwb spiking |
 | `analysis/metrics.fleiss_kappa_binary` | gap | none found | jnwb statistics |

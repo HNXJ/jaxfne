@@ -131,7 +131,8 @@ NEXT (ordered, executable)
    JDNA lowering to one construct → simulate path with equal outputs
    (fact: single lowering); add the missing case if not.
 5. [A] D0b remaining lanes: `scripts/` comments and the markdown outside
-   `docs/` (188 files). agy is not installed, so by hand or opencode.
+   `docs/` (188 files). By opencode actor + critic, or by agy agents
+   instructed by the human in jchat.
 
 HUMAN DECISIONS
 - [H] D0 review: 23 softened overclaims and 17 flagged items in
@@ -147,7 +148,9 @@ HUMAN DECISIONS
   `hdp_k_w_ctrl_sweep`, `hdp_v2_rho_sweep`, `mcc3_10s_checkpoint` into
   `archive/`. The protocol_* and `private_acceptance` folders stay while
   frozen receipts cite them.
-- [H] Install agy (`agy.exe` missing) or drop its lane.
+- [H] agy lane: agy 1.2.13 is installed (2026-09-30), but its sign-in is
+  not visible to Claude Code's processes, so agy agents are reached in jchat
+  and take instructions from the human directly (antigravity-jnwb).
 
 SEAL NOTES (go into the seal receipt)
 - H1 (e), 9958a72: `default_complete_configuration` is laminar; its outputs
@@ -270,7 +273,12 @@ ACCEPTANCE (0.5.5 seal = end of programme)
 4. C5–C7 numerical deferrals; need a signed-zero/NaN exactness contract.
 5. UNTESTED-exact refusal tail; PLACEHOLDER_NOTEBOOKS and artifact-gated
    skips; post-0.4.14 compatibility aliases.
-6. P-001 `scripts/` legacy lint cleanup.
+6. P-001 `scripts/` legacy lint cleanup (ruff: 176 findings, 2026-09-30).
+   Real defects first: `audit_w3_broad_handlers.py` `_OVERRIDES` repeats two
+   keys (the later silently wins), holds a 3-tuple and a 1-tuple where
+   `(class, note)` is unpacked, and is keyed on line numbers that have drifted;
+   running it rewrites the tracked `artifacts/audit/w3_broad_handler_tally.json`
+   (137 lines differ). Re-key it or retire it with the tally.
 7. S27 population/`P_{l,c}` definition family. Trigger: a population
    definition CTX-01 cannot express.
 8. Agent-native step 10: MCP or other transport.
