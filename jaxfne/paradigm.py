@@ -663,12 +663,11 @@ def omission_oddball_paradigm(
         Paradigm name.
     standard_drive_amplitude : Optional[float]
         Drive amplitude written into the standard stimulus event's metadata
-        as "drive_amplitude". If None, the simulator's drive_amplitude
-        argument applies, as today.
+        as "drive_amplitude". None means the simulator's default
+        drive_amplitude, resolved here and written explicitly, so a
+        drive_amplitude passed at simulate time does not change it.
     deviant_drive_amplitude : Optional[float]
-        Drive amplitude written into the deviant stimulus event's metadata
-        as "drive_amplitude". If None, the simulator's drive_amplitude
-        argument applies, as today.
+        The same for the deviant stimulus event.
 
     Returns
     -------
@@ -717,14 +716,10 @@ def omission_oddball_paradigm(
             "different runs."
         )
 
-    standard_metadata = (
-        {} if standard_drive_amplitude is None
-        else {"drive_amplitude": standard_drive_amplitude}
-    )
-    deviant_metadata = (
-        {} if deviant_drive_amplitude is None
-        else {"drive_amplitude": deviant_drive_amplitude}
-    )
+    # Bind both realized amplitudes into the events, so a drive_amplitude passed
+    # at simulate time cannot re-equalize the conditions.
+    standard_metadata = {"drive_amplitude": resolved[0]}
+    deviant_metadata = {"drive_amplitude": resolved[1]}
 
     # Expected condition: standard stimulus
     expected_condition = ParadigmCondition(

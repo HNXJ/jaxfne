@@ -206,13 +206,16 @@ def test_omission_oddball_distinct_amplitudes_differ_in_simulation_p024():
     unexpected = paradigm.condition("unexpected")
     std_event = next(e for e in expected.events if e.stimulus == "standard_tone")
     dev_event = next(e for e in unexpected.events if e.stimulus == "deviant_tone")
-    assert std_event.metadata == {}
+    assert std_event.metadata == {"drive_amplitude": 5.0}  # None bound to the simulator default
     assert dev_event.metadata == {"drive_amplitude": 10.0}
     model = _model()
     sim = _sim()
     s_expected = model.simulate(sim, paradigm=expected)
     s_unexpected = model.simulate(sim, paradigm=unexpected)
     assert not jnp.array_equal(s_expected.spikes, s_unexpected.spikes)
+    # a simulate-time drive_amplitude equal to the deviant must not re-equalize (peer finding #126)
+    s_expected_x = model.simulate_condition(sim, expected, drive_amplitude=10.0)
+    assert not jnp.array_equal(s_expected_x.spikes, s_unexpected.spikes)
 
 
 def test_evoked_l4_drive_semantics():
