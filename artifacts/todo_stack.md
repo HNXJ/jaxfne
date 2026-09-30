@@ -255,7 +255,10 @@ ACCEPTANCE (0.5.5 seal = end of programme)
    - Step 3 (option A, human 2026-09-30): `vis.core.welch_psd` hands
      finite float64 input to `jnwb.compute_psd(nperseg=)` when the installed
      jnwb has it (bit-identical); float32, non-finite and 1-sample input stay
-     local. Follow-up: a jnwb item to keep float32 as float32 (option C), then
+     local. When jnwb 0.2.8 is released, raise the extra's floor to
+     `jnwb>=0.2.8` so CI runs the bit-identity test instead of skipping it
+     (review of cd41725, finding 4). Follow-up: a jnwb item to keep float32
+     as float32 (option C), then
      delegate all of it. Then migrate the rest in inventory order. Old
      entries delegate or are deprecated; frozen receipts stay untouched.
 1. A8 gh-pages publishing policy. Trigger: publishing D1 or Atlas figures

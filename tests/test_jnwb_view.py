@@ -197,9 +197,23 @@ def test_welch_psd_through_jnwb_is_bit_identical():
     from jaxfne.vis import core
 
     if core._jnwb_compute_psd() is None:
-        pytest.skip("installed jnwb has no compute_psd(nperseg=)")
-    x = np.random.default_rng(1).standard_normal((3000, 4))
-    freqs, pxx = core.welch_psd(x, 2000.0, nperseg=300)
-    ref_f, ref_p = signal.welch(x, fs=2000.0, axis=0, nperseg=300)
-    np.testing.assert_array_equal(freqs, ref_f)
-    np.testing.assert_array_equal(pxx, ref_p)
+        pytest.skip("installed jnwb has no compute_psd(axis=, nperseg=)")
+    rng = np.random.default_rng(1)
+    for x in (rng.standard_normal((3000, 4)), rng.standard_normal(3000)):  # plotly passes 1-D
+        freqs, pxx = core.welch_psd(x, 2000.0, nperseg=300)
+        ref_f, ref_p = signal.welch(x, fs=2000.0, axis=0, nperseg=300)
+        np.testing.assert_array_equal(freqs, ref_f)
+        np.testing.assert_array_equal(pxx, ref_p)
+
+
+def test_the_jnwb_probe_falls_back_on_any_failure(monkeypatch):
+    import sys
+    import types
+    from jaxfne.vis import core
+
+    for fake in (types.SimpleNamespace(compute_psd=lambda x, fs, *, nperseg=None: None),  # no axis
+                 types.SimpleNamespace()):                                                # no function
+        monkeypatch.setitem(sys.modules, "jnwb", fake)
+        core._jnwb_compute_psd.cache_clear()
+        assert core._jnwb_compute_psd() is None
+    core._jnwb_compute_psd.cache_clear()

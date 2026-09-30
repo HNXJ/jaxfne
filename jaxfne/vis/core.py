@@ -6,6 +6,7 @@ Outputs are handled as a structured simulation proxy (amplitude_claim_allowed=Fa
 
 from __future__ import annotations
 
+import functools
 from dataclasses import dataclass
 from typing import Any
 import jax
@@ -141,18 +142,23 @@ def binned_population_rate_hz(
     return centers_ms, rate_hz
 
 
+@functools.lru_cache(maxsize=1)
 def _jnwb_compute_psd():
-    """``jnwb.compute_psd`` if jnwb is installed and takes ``nperseg``, else None."""
+    """``jnwb.compute_psd`` if jnwb is installed and takes ``axis`` and ``nperseg``, else None.
+
+    Probed once per process. Any failure (jnwb absent, broken on this interpreter,
+    or a signature that cannot be read) leaves the local path, which is exact.
+    """
     import inspect
 
     try:
         import jnwb
-    except Exception:  # absent, or broken on this interpreter: the local path is exact
+
+        fn = jnwb.compute_psd
+        params = inspect.signature(fn).parameters
+    except Exception:
         return None
-    fn = getattr(jnwb, "compute_psd", None)
-    if fn is None or "nperseg" not in inspect.signature(fn).parameters:
-        return None
-    return fn
+    return fn if {"axis", "nperseg"} <= set(params) else None
 
 
 def welch_psd(
