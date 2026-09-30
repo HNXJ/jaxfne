@@ -7,13 +7,13 @@ verified separately this session:
     (max_in_degree=100, spatial_sigma=0.15mm), CPU-only (jax-metal ruled out:
     incompatible with the installed JAX version, confirmed 2026-07-01).
   - N=100k+ or faster iteration: run this same script in a Colab notebook
-    with a real GPU/TPU runtime instead of this machine's CPU.
+    with a GPU/TPU runtime instead of this machine's CPU.
 
 HDP is deliberately OFF (K_HDP=0, the null control) here -- this workflow
-predates the HDP fix. K_ctrl is now a live, validated two-sided restoring
+predates the HDP fix. K_ctrl is now a live two-sided restoring
 term (see skills/FRICTIONS_STACK.md F-017, resolved 2026-07-01); enabling HDP
-on the real Configuration-based column path (as opposed to the standalone
-HDPColumnConfig path already validated) is tracked separately as
+on the Configuration-based column path (as opposed to the standalone
+HDPColumnConfig path, checked separately) is tracked separately as
 plans.json item hdp-100k-100step-validation-run -- not done in this script.
 
 construct()-once / save / reload (added 2026-07-01): `construct()` is the
@@ -23,13 +23,13 @@ Izhikevich params, edge list) don't change between runs of the same config,
 so `save_column`/`load_column` below persist them and reload without paying
 construct() again. IMPORTANT correction: an earlier in-session attempt used
 a "tiny dummy construct() + jax.tree_util.tree_unflatten" trick assuming
-treedef is N-independent -- this is FALSE and was caught by a real
+treedef is N-independent -- this is FALSE and was caught by a
 bit-identical-output check: `IzhikevichParams.labels`/`layer_labels` are aux
 data (length N) baked into the treedef itself, so a dummy-N treedef silently
 corrupts the reloaded model (no error, just wrong simulate() output).
 `save_column`/`load_column` instead reconstruct the dataclasses directly
 (bypassing tree_unflatten's structural-matching requirement entirely) --
-verified bit-identical V_m at N=2000 with zero construct() calls on reload.
+checked bit-identical V_m at N=2000 with zero construct() calls on reload.
 """
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ def build_config(
     dt_ms: float = 0.5,
     seed: int = 0,
 ) -> "jtfne.Configuration":
-    """6-layer, 4-cell-type cylindrical column, N is just a parameter.
+    """6-layer, 4-cell-type cylindrical column, N is a parameter.
 
     geometry='uniform3d' is required for the cylindrical (radius_mm, height_mm)
     footprint -- but that mode discards the per-neuron 'layer' label (confirmed

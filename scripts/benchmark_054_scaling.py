@@ -3,8 +3,8 @@
 
 Chains k laminar columns (k = 1..4) with feedforward cross edges, runs one
 short simulation per k, and records wall time + peak RSS. This is a
-measurement, not a gate: it proves 0.5.5 is not the first multi-area scale
-test. The frozen 0.5.1 matrix (artifacts/perf/matrix_051*.json) is untouched;
+measurement, not a gate: it records that 0.5.5 is not the first multi-area
+scale test. The frozen 0.5.1 matrix (artifacts/perf/matrix_051*.json) is untouched;
 output goes to artifacts/perf/scaling_054.json (tracked).
 
 Usage:

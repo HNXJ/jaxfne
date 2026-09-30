@@ -2,7 +2,7 @@
 (plans.json:hdp-k-w-ctrl-default-runaway-gap; jaxfne/hdp_network.py's
 K_w_ctrl caveat comment).
 
-Real finding (2026-07-14, ad-hoc, single-seed, 80s/40-chained-trials, custom
+Observation (2026-07-14, ad-hoc, single-seed, 80s/40-chained-trials, custom
 20-neuron all-to-all topology): DEFAULT_HDP's K_w_ctrl=0.0 lets |w|_mean grow
 unboundedly; K_w_ctrl=0.001 (DEFAULT_HDP_V1_PFC_AAAB's value) over-corrects on
 that topology, collapsing weight differentiation ~150x vs no-restoring.
@@ -13,7 +13,7 @@ HDPColumnConfig/build_model path, testing K_w_ctrl in {0.0, 0.0001, 0.001} for
 10s duration. This is deliberately NOT the full rigorous gate the original
 finding called for (that needs the same chained-trial protocol, duration, and
 topology as the original finding, matching the rigor of the existing
-K_ctrl/rho_passive sweeps) -- it is a real, additional, but reduced-scope data
+K_ctrl/rho_passive sweeps) -- it is an additional, reduced-scope data
 point, honestly labeled as such below.
 
 Usage: PYTHONPATH=. python3 scripts/hdp_k_w_ctrl_sweep.py
