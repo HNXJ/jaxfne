@@ -30,6 +30,18 @@ results. The move is gradual, and simulation results pass to jnwb through
 one seam that is independent of the rest of jaxfne, ideally with no delay
 (item 0d below). The seam is additive: existing outputs stay bit-identical.
 
+Short list for the jnwb move (human, 2026-09-30), in order:
+1. jnwb 0.2.8 carries lane D (`compute_psd(nperseg=)` and the four spike
+   measures); jaxfne pins the jnwb release that has them.
+2. Spectra go through jnwb: jaxfne's spectrum equals `jnwb.compute_psd`
+   with its own `nperseg` within float tolerance; any other change is
+   declared and listed; frozen receipts are untouched.
+3. The three `analysis/metrics.py` defects (Fano of the population sum,
+   `burst_index` ignoring `bin_ms`, unbinned pairwise correlation) are
+   logged, then fixed by delegating to jnwb or declared.
+4. The rest of `artifacts/programme/jnwb_inventory.md` moves in order;
+   `to_jnwb` joins the top-level surface when that settles.
+
 ## Decisions in force
 
 - 2026-09-23 (human): the Atlas manuscript is new, in
