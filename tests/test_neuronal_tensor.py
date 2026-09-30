@@ -8,6 +8,7 @@ declared-metadata surfacing, and the backward bridge (``NeuronalTensor`` ->
 ``Configuration`` leaves the existing pipeline untouched).
 """
 import os
+import math
 import subprocess
 import sys
 from pathlib import Path
@@ -402,6 +403,75 @@ def test_tensor_entrance_adds_only_overlays_to_the_configuration_lowering():
     assert sig_a.field is not None and sig_b.field is not None
     assert sig_a.field.source_proxy.shape == sig_b.field.source_proxy.shape
     assert not bool(jnp.array_equal(sig_a.field.source_proxy, sig_b.field.source_proxy))
+
+
+def test_hand_spelled_configuration_matches_tensor_entrance():
+    """Two INDEPENDENT entrances, one lowering: a Configuration spelled by
+    hand through the public Configuration builders must give the same
+    Signals as the NeuronalTensor `_single_area_tensor()` fixture.
+
+    Entrance A goes through `jtfne.construct(tensor, runtime)` (which lowers
+    via the bridge internally). Entrance B below spells the SAME values
+    literally -- population, cell-type fractions, mechanism name/kind/params,
+    connection rule (selectors, probability, weight, sign, mechanism ref),
+    emitter, probes, field, runtime seed/duration/dt/dtype -- without calling
+    `nt.neuronal_tensor_to_configuration` or anything that calls it.
+
+    Literal provenance (read from `neuronal_tensor_to_configuration` +
+    `_wire_connection` + `_connection_edge_weight`, not executed):
+    area V1 = 20 neurons in layer L4; no declared fractions -> even split
+    E/PV = 0.5/0.5; mechanism name "GABA_A__dt5__0" (kind + `:g`-formatted
+    dT_ms + dedup index 0), params tau_ms=5.0 plus the surfaced-but-inert
+    reversal_mV=-80.0; rule "interconn_V1_0", full-bipartite probability 1.0,
+    weight |2.0 * 1.0| / sqrt(20), sign from the E source -> excitatory, no
+    delay (InterConnection.delay_ms defaults to None); connectivity_mode
+    "explicit" (passing inter_connections=[...] to Area(...) marks that area
+    explicit, so the compiled graph holds only the declared rule).
+    Omitted as inert: `tensor_identity` (a provenance hash nothing in
+    construct/simulate reads), the H overlay (stored but inert with HDP
+    disabled, per the overlay test above), and declared geometry (positions
+    differ by entrance and move only the field proxies, so field is not
+    compared here).
+
+    D=200 ms is the shortest round duration at which this fixture spikes
+    reliably, so the comparison is not vacuous."""
+    D = 200.0
+    tensor = _single_area_tensor()
+    runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=D, dt_ms=0.5)
+    model_a = jtfne.construct(tensor, runtime)
+    sig_a = jtfne.simulate(model_a, duration_ms=D, dt_ms=0.5, seed=0)
+
+    cfg_b = (
+        jtfne.Configuration()
+        .runtime(seed=0, duration_ms=D, dt_ms=0.5, dtype="float32")
+        .update_metadata(connectivity_mode="explicit")
+        .population(20, neurons={"L4": 20}, name="V1", layers=["L4"])
+        .area_layer_cell_types("V1", {"L4": {"E": 0.5, "PV": 0.5}})
+        .cell_types({"E": 0.5, "PV": 0.5})
+        .mechanisms(
+            name="GABA_A__dt5__0", kind="GABA_A",
+            params={"tau_ms": 5.0, "reversal_mV": -80.0},
+        )
+        .connections(
+            name="interconn_V1_0",
+            source={"area": "V1", "layer": "L4", "cell_type": "E"},
+            target={"area": "V1", "layer": "L4", "cell_type": "PV"},
+            probability=1.0,
+            weight=2.0 / math.sqrt(20),
+            sign="excitatory",
+            mechanism="GABA_A__dt5__0",
+        )
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m"], n_contacts=16)
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+    )
+    model_b = jtfne.construct(cfg_b)
+    assert model_b.cfg.metadata.get("recurrent_backend") == "edge_list"
+    sig_b = jtfne.simulate(model_b, duration_ms=D, dt_ms=0.5, seed=0)
+    assert int(sig_a.spikes.sum()) > 0, "fixture must spike for a non-vacuous comparison"
+    assert bool(jnp.array_equal(sig_a.spikes, sig_b.spikes))
+    assert bool(jnp.array_equal(sig_a.V_m, sig_b.V_m))
+    assert bool(jnp.array_equal(sig_a.sources, sig_b.sources))
 
 
 def test_construct_tensor_defaults_runtime_when_omitted():
