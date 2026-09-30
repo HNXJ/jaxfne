@@ -230,12 +230,26 @@ ACCEPTANCE (0.5.5 seal = end of programme)
    N, then G, then Theta_C, then Theta_X, then W0, then H0. Transforms act on
    a NeuronalTensor before construct. Scaling N keeps w/sqrt(N). Stochastic
    variation requires its own seed K_V.
-   - AUG-1 is `jaxfne/augment.py` (clone, ScaleN, geometry). Its commits are
-     6d975c87 and 33efbc04 on the `cl-aug1b` clone. The broad gate passed
-     (4868 passed, 0 failed) and 9/9 mutants were killed. The push waits on the
-     jaxfne-agy-dev verify of `aug1.bundle`, requested in p-jaxfne #24.
-   - AUG-2 covers the parameter axes Theta_X, W0, H0 and Theta_C. It adds
-     bounded stochastic variation seeded by K_V. It starts after AUG-1 lands.
+   - AUG-2 field map (human, 2026-09-30): Theta_X is `static.g_mech` plus
+     `dT_ms`. Theta_C is `delay_ms` plus `AreaConnection.probability`. W_0 is
+     `plastic.w_mech`. H_0 is `plastic.H`. Each has a factor plus bounded
+     jitter under K_V, with sign kept.
+   - Deviation (highly recommended, 90): H_0 is additive (offset plus an
+     absolute jitter, signed). H defaults to 0.0 and is a signed relative
+     state, so a factor would be a no-op on every default tensor.
+   - AUG-1 and AUG-2 are on dev (7b29c1b1, 8ed400e3). The six axes run in
+     canonical order, each K_V stream is separate per axis, and one test per
+     axis checks that its change reaches the model construct builds.
+   - Next: export `jaxfne.augment` from the public API, and write a docs page.
+     The page states four limits:
+     - Probability jitter above 1 is refused, not clipped, so a stochastic
+       spec can fail for some K_V.
+     - Delays are quantised to dt steps.
+     - H_0 reaches the model only as the mean H of the target group.
+     - Theta_X refuses an undeclared g_mech[mechanism].
+   - After that: the small ensemble suite from the handout (N0=10 -> 100 ->
+     1000, compositions T_N o T_G, T_N o T_W, T_G o T_X), then the science
+     runs.
 0b. Structural HDP (human, 2026-09-29): existence over a declared candidate
    set; design note `artifacts/programme/structural_hdp_design.md`. Build
    after the 0.5.5 seal, additive and opt-in; API and hard-vs-graded
