@@ -213,6 +213,7 @@ nav:
       - Probes: api/probes.md
       - Objectives: api/objectives.md
       - NeuronalTensor: api/neuronal_tensor.md
+      - Augment: api/augment.md
       - Validation: api/validation.md
       - Visualization: api/vis.md
       - JDNA: api/jdna.md

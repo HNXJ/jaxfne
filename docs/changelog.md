@@ -9,6 +9,15 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+### Added
+
+- Controlled model augmentation (`jaxfne.augment`, `clone_tensor`,
+  `AugmentationSpec`, `AugmentationRecord`, `ProvenanceEntry`, `ScaleN`,
+  `GeometryTransform`, `PoseEdit`, `RangeEdit`, `ThetaC`, `ThetaX`, `W0`,
+  `H0`): typed pre-`construct` transforms of a `NeuronalTensor` in fixed
+  canonical order `N -> G -> Theta_C -> Theta_X -> W_0 -> H_0`, with
+  per-axis `K_V` seeding and per-value provenance. See `docs/api/augment.md`.
+
 ### Changed
 
 - Synaptic time constants are required, never defaulted (P-023, owner

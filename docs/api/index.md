@@ -75,9 +75,11 @@ loaders, and bridges into `Configuration`.
 | Resource | Page |
 |----------|------|
 | Tensor circuit model | [NeuronalTensor](neuronal_tensor.md) |
+| Controlled tensor augmentation | [Augment](augment.md) |
 
 Representative symbols: `NeuronalTensor`, `Area`, `Layer`, `NeuronType`,
-`load`, `load_canonical_neuronal_tensor`, `neuronal_tensor_to_configuration`.
+`load`, `load_canonical_neuronal_tensor`, `neuronal_tensor_to_configuration`,
+`augment`, `clone_tensor`, `AugmentationSpec`, `ScaleN`, `W0`.
 
 ### Fields and probes
 

@@ -271,6 +271,21 @@ from .neuronal_tensor import (
     NEURONAL_TENSOR_SCHEMA_VERSION,
     make_minimal_ei_tensor,
 )
+from .augment import (
+    AugmentationRecord,
+    AugmentationSpec,
+    GeometryTransform,
+    H0,
+    PoseEdit,
+    ProvenanceEntry,
+    RangeEdit,
+    ScaleN,
+    ThetaC,
+    ThetaX,
+    W0,
+    augment,
+    clone_tensor,
+)
 from ._pipeline import (
     DynamicState,
     dynamic_state_from_model,

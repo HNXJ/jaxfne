@@ -350,7 +350,11 @@ def test_scale_n_zeroed_type_refused_but_clone_and_unit_scale_pass():
 
 
 def test_uncomputable_base_digest_refused(monkeypatch):
-    import jaxfne.augment as aug
+    # Root `jtfne.augment` is the exported function (AUG-3), which shadows
+    # the submodule attribute, so reach the module via sys.modules.
+    import sys
+
+    aug = sys.modules["jaxfne.augment"]
 
     monkeypatch.setattr(aug, "_tensor_identity_digest", lambda tensor: "")
     with pytest.raises(ValueError, match="digest"):
