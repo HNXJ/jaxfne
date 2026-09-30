@@ -126,10 +126,11 @@ NEXT (ordered, executable)
    `10_v0313_omission_oddball.md` plots two time steps under condition titles.
 3. [A] D2 études pages: embed each page's own figure beside its text (still
    tab + interactive iframe, `scripts/generate_docs_visuals.py` pattern).
-4. [A] Fact audit, entrances: check that `test_jdna_truth_gate.py` and
-   `test_neuronal_tensor.py` already show Configuration, NeuronalTensor and
-   JDNA lowering to one construct → simulate path with equal outputs
-   (fact: single lowering); add the missing case if not.
+4. [A] Fact audit, entrances (P-022): no two independent entrances are
+   compared on outputs; the tensor entrance is the Configuration lowering
+   plus overlays (now pinned). Remaining: a hand-built Configuration that
+   spells `_single_area_tensor()` without the bridge, compared on
+   spikes/V_m/sources; and carrying `Layer.geometry` through the bridge.
 5. [A] D0b remaining lanes: `scripts/` comments and the markdown outside
    `docs/` (188 files). By opencode actor + critic, or by agy agents
    instructed by the human in jchat.

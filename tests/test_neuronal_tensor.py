@@ -374,6 +374,36 @@ def test_construct_tensor_runtime_matches_construct_neuronal_tensor():
     assert bool(jnp.array_equal(sig_new.spikes, sig_old.spikes))
 
 
+def test_tensor_entrance_adds_only_overlays_to_the_configuration_lowering():
+    """`construct(tensor)` lowers through `neuronal_tensor_to_configuration`
+    then `construct(cfg)`, and overlays H and declared geometry afterwards.
+    So this compares one lowering with itself plus overlays, not two
+    independent entrances: it pins that the overlays leave activity
+    (spikes, V_m, sources) bit-identical and that the geometry overlay ran.
+
+    Known gap (P-022): the bridge alone drops Layer.geometry, so the field
+    proxies differ by entrance (source_proxy max abs diff ~145 at step 1).
+    200 ms is the shortest round duration at which this fixture spikes
+    reliably (59 spikes), so the activity comparison is not vacuous."""
+    D = 200.0
+    tensor = _single_area_tensor()
+    runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=D, dt_ms=0.5)
+    model_a = jtfne.construct(tensor, runtime)
+    cfg_b = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=D, dt_ms=0.5)
+    model_b = jtfne.construct(cfg_b)
+    sig_a = jtfne.simulate(model_a, duration_ms=D, dt_ms=0.5, seed=0)
+    sig_b = jtfne.simulate(model_b, duration_ms=D, dt_ms=0.5, seed=0)
+    assert int(sig_a.spikes.sum()) > 0, "fixture must spike for a non-vacuous comparison"
+    assert bool(jnp.array_equal(sig_a.spikes, sig_b.spikes))
+    assert bool(jnp.array_equal(sig_a.V_m, sig_b.V_m))
+    assert bool(jnp.array_equal(sig_a.sources, sig_b.sources))
+    # The geometry overlay ran: positions differ, and with them the field kernels.
+    assert not bool(jnp.array_equal(model_a.params["positions"], model_b.params["positions"]))
+    assert sig_a.field is not None and sig_b.field is not None
+    assert sig_a.field.source_proxy.shape == sig_b.field.source_proxy.shape
+    assert not bool(jnp.array_equal(sig_a.field.source_proxy, sig_b.field.source_proxy))
+
+
 def test_construct_tensor_defaults_runtime_when_omitted():
     tensor = _single_area_tensor()
     model = jtfne.construct(tensor)

@@ -97,3 +97,29 @@ possible future change.
   docstrings. Owner decision on deprecation; open
 
 ---
+
+### P-022
+- **date:** 2026-09-30
+- **type:** SCIENCE (fact evidence)
+- **area:** `jaxfne/neuronal_tensor.py` (`neuronal_tensor_to_configuration`,
+  `_construct_neuronal_tensor_impl`), fact "entrances, single lowering"
+  (`artifacts/fact_stack.md:88-89`)
+- **observation:** no test compares the Signals of two independent entrances
+  for one circuit. `construct(tensor)` lowers through the bridge and then
+  `construct(cfg)`, so Configuration vs NeuronalTensor is one lowering plus
+  overlays. JDNA reaches construct through NeuronalTensor too, with no
+  output-equality test. The bridge alone drops `Layer.geometry`, so field
+  proxies differ by entrance (source_proxy max abs diff ~145) while spikes,
+  V_m and sources are bit-identical.
+- **severity:** MINOR (activity equal; field output depends on which call
+  the user makes, as the bridge docstring states)
+- **expected behavior:** the fact holds with evidence, i.e. a native
+  Configuration spelling the same circuit without the bridge gives equal
+  Signals, and field geometry does not depend on the entrance
+- **evidence:** opencode sweep and critic 2026-09-30; test
+  `test_tensor_entrance_adds_only_overlays_to_the_configuration_lowering`
+  pins the overlays and the field gap (killed by removing the position overlay)
+- **possible future change:** carry `Layer.geometry` through the bridge;
+  add a hand-built-Configuration equality test; open
+
+---
