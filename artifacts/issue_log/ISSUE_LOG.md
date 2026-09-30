@@ -123,3 +123,24 @@ possible future change.
   add a hand-built-Configuration equality test; open
 
 ---
+
+### P-023
+- **date:** 2026-09-30
+- **type:** SCIENCE (default and sign semantics)
+- **area:** `jaxfne/neuronal_tensor.py` (`StaticParams.dT_ms`, `_wire_connection`)
+- **observation:** `StaticParams.dT_ms` defaults to 0.1 ms and becomes the
+  mechanism `tau_ms`, so a JDNA- or tensor-declared GABA_A synapse with no
+  explicit time constant decays in 0.1 ms. The edge sign follows the source
+  cell type (E -> excitatory), so an E->PV connection declared `GABA_A`
+  with reversal -80 mV runs as excitatory; the declared reversal has no
+  numeric consumer (stated in the bridge docstring).
+- **severity:** MINOR until a result depends on an undeclared tau or on a
+  mechanism whose name contradicts its sign
+- **expected behavior:** a default time constant per mechanism with a cited
+  source, or a required value; sign from the mechanism's reversal or a
+  refusal when name and source type disagree (fact: apply or refuse)
+- **evidence:** JDNA single-lowering test 2026-09-30 (developed tensor:
+  `GABA_A__dt0.1__0`, `tau_ms=0.1`, sign excitatory); `neuronal_tensor.py:140`
+- **possible future change:** owner decision on defaults and refusal; open
+
+---

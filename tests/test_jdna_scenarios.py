@@ -9,12 +9,14 @@
 """
 from __future__ import annotations
 
+import math
 import pathlib
 
+import jax.numpy as jnp
 import pytest
 
 import jaxfne as jtfne
-from jaxfne.jdna import develop, load_canonical_pseudogenome
+from jaxfne.jdna import develop, load_canonical_pseudogenome, pseudogenome_from_dict
 from jaxfne.neuronal_tensor import NeuronalTensor
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -150,3 +152,95 @@ class TestFullFlow:
         )
         signals = jtfne.simulate(model)
         assert signals.get("vm").shape[-1] == 1000
+
+
+def _tiny_deterministic_genome():
+    """Smallest deterministic genome: one area, one layer, E/PV, zero jitter."""
+    return pseudogenome_from_dict({
+        "name": "g-tiny",
+        "areas": [{
+            "name": "V1",
+            "layers": [{
+                "name": "L4", "n_neurons": 20, "depth_band": [0.0, 1.0],
+                "cell_type_fractions": {"E": 0.5, "PV": 0.5},
+            }],
+            "inter_connections": [{
+                "source_layer": "L4", "source_neuron_type": "E",
+                "target_layer": "L4", "target_neuron_type": "PV",
+                "mechanism": "GABA_A",
+            }],
+        }],
+        "development_parameters": {"fraction_jitter_sigma": 0.0},
+    })
+
+
+def test_jdna_developed_tensor_matches_hand_spelled_configuration():
+    """JDNA entrance lowers like the tensor entrance: `develop(G, seed=0)`
+    followed by the ordinary `construct -> simulate` path must give the same
+    Signals as the same circuit spelled by hand as a Configuration.
+
+    Entrance A goes through `jtfne.construct(develop(genome, seed=0),
+    runtime)` (which lowers via the bridge internally). Entrance B below
+    spells the SAME values literally without calling `develop`,
+    `neuronal_tensor_to_configuration`, or anything that calls them.
+
+    Literal provenance (read from `neuronal_tensor_to_configuration` +
+    `_wire_connection` + `_connection_edge_weight`, not executed): the genome
+    develops to V1 = 20 neurons in L4 with E/PV = 0.5/0.5 (exact, sigma 0, so
+    the bridge's declared-fraction path records 0.5/0.5 per area/layer and
+    globally); one InterConnection E -> PV with mechanism GABA_A, whose
+    StaticParams default (dT_ms=0.1, no g_mech, no reversal) wires mechanism
+    "GABA_A__dt0.1__0" (kind + `:g`-formatted dT_ms + dedup index 0) with
+    params tau_ms=0.1, rule "interconn_V1_0", full-bipartite probability 1.0,
+    weight |1.0 * 1.0| / sqrt(20), sign from the E source -> excitatory, no
+    delay (InterConnection.delay_ms defaults to None); connectivity_mode
+    "explicit" (passing inter_connections=[...] marks the area explicit, so
+    the compiled graph holds only the declared rule). Omitted as inert:
+    `tensor_identity` (a provenance hash nothing in construct/simulate
+    reads), the H overlay (stored but inert with HDP disabled), and declared
+    geometry (positions differ by entrance and move only the field proxies,
+    so field is not compared here).
+
+    D=200 ms spikes (38 spikes), so the comparison is not vacuous."""
+    genome = _tiny_deterministic_genome()
+    assert develop(genome, seed=0).to_dict() == develop(genome, seed=0).to_dict()
+
+    D = 200.0
+    tensor = develop(genome, seed=0)
+    model_a = jtfne.construct(
+        tensor,
+        jtfne.RuntimeConfiguration(seed=0, duration_ms=D, dt_ms=0.5),
+    )
+    sig_a = jtfne.simulate(model_a, duration_ms=D, dt_ms=0.5, seed=0)
+
+    cfg_b = (
+        jtfne.Configuration()
+        .runtime(seed=0, duration_ms=D, dt_ms=0.5, dtype="float32")
+        .update_metadata(connectivity_mode="explicit")
+        .population(20, neurons={"L4": 20}, name="V1", layers=["L4"])
+        .area_layer_cell_types("V1", {"L4": {"E": 0.5, "PV": 0.5}})
+        .cell_types({"E": 0.5, "PV": 0.5})
+        .mechanisms(
+            name="GABA_A__dt0.1__0", kind="GABA_A",
+            params={"tau_ms": 0.1},
+        )
+        .connections(
+            name="interconn_V1_0",
+            source={"area": "V1", "layer": "L4", "cell_type": "E"},
+            target={"area": "V1", "layer": "L4", "cell_type": "PV"},
+            probability=1.0,
+            weight=1.0 / math.sqrt(20),
+            sign="excitatory",
+            mechanism="GABA_A__dt0.1__0",
+        )
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m"], n_contacts=16)
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+    )
+    model_b = jtfne.construct(cfg_b)
+    assert model_b.cfg.metadata.get("recurrent_backend") == "edge_list"
+    sig_b = jtfne.simulate(model_b, duration_ms=D, dt_ms=0.5, seed=0)
+    assert int(sig_a.spikes.sum()) > 0, "fixture must spike for a non-vacuous comparison"
+    assert bool(jnp.array_equal(sig_a.spikes, sig_b.spikes))
+    assert bool(jnp.array_equal(sig_a.V_m, sig_b.V_m))
+    assert bool(jnp.array_equal(sig_a.sources, sig_b.sources))

@@ -129,8 +129,9 @@ NEXT (ordered, executable)
 4. [A] Fact audit, entrances (P-022): a hand-spelled Configuration now
    equals the NeuronalTensor entrance on spikes/V_m/sources, for one area
    and for two areas of different sizes with a delayed area connection
-   (normalization, delay and sizes each shown to matter). Remaining: a
-   JDNA-vs-Configuration case; carrying `Layer.geometry` through the bridge.
+   (normalization, delay and sizes each shown to matter), and for a
+   developed JDNA genome. Remaining: carrying `Layer.geometry` through the
+   bridge (then field outputs can be compared too); P-023 defaults.
 5. [A] D0b remaining lanes: `scripts/` comments and the markdown outside
    `docs/` (188 files). By opencode actor + critic, or by agy agents
    instructed by the human in jchat.
