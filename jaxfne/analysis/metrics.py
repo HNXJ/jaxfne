@@ -9,6 +9,7 @@ descriptors, not biological validation. No biological truth claims are supported
 """
 
 import numpy as np
+import warnings
 from typing import Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -21,11 +22,17 @@ def mean_pairwise_spike_correlation(
     min_neurons: int = 2,
     min_events: int = 2,
 ) -> float:
-    r"""Compute mean pairwise Pearson correlation of spike trains.
+    r"""Compute mean pairwise Pearson correlation of raw per-step spike rows.
 
-    Measures population coherence by averaging pairwise correlations across
-    spike train pairs. Returns 0 if population lacks sufficient variability
-    for correlation.
+    Averages the pairwise Pearson r across rows of the (n_neurons, n_time)
+    spike array with no binning: there is no bin-width argument and the
+    timescale is one simulation step. Not a binned count correlation.
+
+    .. deprecated::
+        Misnamed: it does not bin. Values are unchanged for one release.
+        Use ``jnwb.spike_count_correlation`` on per-unit spike times with an
+        explicit ``window_s`` and ``bin_ms``, reached via
+        ``jaxfne.jnwb_view.to_jnwb(...).spike_times_s``.
 
     Parameters
     ----------
@@ -59,6 +66,14 @@ def mean_pairwise_spike_correlation(
     - NaN/Inf values are filtered before the mean.
     - Claim level: computational_scaffold (no biological interpretation).
     """
+    warnings.warn(
+        "mean_pairwise_spike_correlation computes the mean pairwise Pearson r"
+        " of raw per-step spike rows with no bin width. Deprecated; use"
+        " jnwb.spike_count_correlation on per-unit spike times with an explicit"
+        " window_s and bin_ms via jaxfne.jnwb_view.to_jnwb(...).spike_times_s.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     spikes_array = np.asarray(spikes)
 
     if spikes_array.ndim != 2:
@@ -111,10 +126,20 @@ def burst_index(
     dt_ms: float,
     active_fraction_threshold: float = 0.5,
 ) -> float:
-    r"""Compute burst index: fraction of time with population activity.
+    r"""Compute per-step active fraction reaching threshold (``bin_ms`` unused).
 
-    Measures temporal clustering of spike activity. High values indicate
-    bursting behavior; low values indicate sparse or distributed spiking.
+    Returns the fraction of time steps where the mean across neurons at that
+    step is at or above ``active_fraction_threshold``. ``bin_ms`` is accepted
+    for signature compatibility but never used: no binning occurs and the
+    result is a per-step fraction, not a burst rate. Not a network burst
+    index.
+
+    .. deprecated::
+        Misnamed and ``bin_ms`` is unused. Values are unchanged for one
+        release. Use ``jnwb.network_burst_index`` on per-unit spike times
+        with ``window_s``, ``bin_ms``, ``threshold_hz`` and
+        ``min_duration_ms``, reached via
+        ``jaxfne.jnwb_view.to_jnwb(...).spike_times_s``.
 
     Parameters
     ----------
@@ -154,6 +179,16 @@ def burst_index(
     - NaN/Inf spikes are treated as 0 (not firing).
     - Claim level: computational_scaffold (no oscillatory/biological claim).
     """
+    warnings.warn(
+        "burst_index computes the fraction of time steps where the per-step"
+        " active fraction reaches active_fraction_threshold"
+        " (bin_ms is accepted but unused). Deprecated; use"
+        " jnwb.network_burst_index on per-unit spike times with window_s,"
+        " bin_ms, threshold_hz and min_duration_ms via"
+        " jaxfne.jnwb_view.to_jnwb(...).spike_times_s.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     spikes_array = np.asarray(spikes)
 
     if spikes_array.ndim != 2:
@@ -191,10 +226,17 @@ def fano_factor(
     bin_size_ms: float = 10.0,
     dt_ms: float = 0.1,
 ) -> float:
-    r"""Compute Fano factor of spike counts: variance / mean.
+    r"""Compute variance/mean of the population-summed binned count.
 
-    Measures spike train irregularity. Fano = 1 (Poisson), < 1 (regular),
-    > 1 (bursty). Computed per neuron, then averaged.
+    Sums spikes across neurons into one population count per step, bins that
+    single series, and returns one variance-over-mean value. Not a per-neuron
+    Fano factor and not averaged over neurons, despite the parameter names.
+
+    .. deprecated::
+        Misnamed: population-summed, not per neuron. Values are unchanged for
+        one release. Use ``jnwb.fano_factor`` on per-unit trial counts with
+        ``onsets_s``, ``window_s`` and ``summary``, reached via
+        ``jaxfne.jnwb_view.to_jnwb_trials(...)``.
 
     Parameters
     ----------
@@ -233,6 +275,14 @@ def fano_factor(
     - NaN/Inf spike counts are removed before var/mean.
     - Claim level: computational_scaffold (no biological interpretation).
     """
+    warnings.warn(
+        "fano_factor computes variance/mean of the population-summed binned"
+        " count (one value, not per neuron). Deprecated; use jnwb.fano_factor"
+        " on per-unit trial counts with onsets_s, window_s and summary via"
+        " jaxfne.jnwb_view.to_jnwb_trials(...).",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     spikes_array = np.asarray(spikes)
 
     if spikes_array.ndim != 2:

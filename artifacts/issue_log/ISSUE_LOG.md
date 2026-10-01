@@ -55,3 +55,4 @@ possible future change.
 - **possible future change:** delegate to jnwb when 0.2.8 ships (todo 0d,
   short-list goal 3), rewriting the pinning tests; or rename and fix the
   docstrings. Owner decision on deprecation; open
+- **resolution:** owner ruling 2026-10-01: deprecated with corrected docstrings, values unchanged for one release; replacement jnwb spike_count_correlation (window_s, bin_ms), fano_factor (onsets_s, window_s, summary), network_burst_index (window_s, bin_ms, threshold_hz, min_duration_ms) via jaxfne.jnwb_view.to_jnwb / to_jnwb_trials

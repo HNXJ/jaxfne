@@ -39,6 +39,16 @@ the rules those releases were held to and are historical context for readers.
 - A declared `noise_scale` is honored on the baseline and registered-rule
   paths; earlier releases ignored it there.
 
+### Deprecated
+
+- `jaxfne.analysis` misnamed metrics `fano_factor`, `burst_index`, and
+  `mean_pairwise_spike_correlation` (P-026, owner ruling 2026-10-01): each
+  keeps its current values for one release, emits a `DeprecationWarning`
+  naming the `jnwb` replacement (`fano_factor`, `network_burst_index`,
+  `spike_count_correlation`, reached via `jaxfne.jnwb_view.to_jnwb` /
+  `to_jnwb_trials`), and carries a corrected docstring stating what it
+  actually computes.
+
 ## v0.5.0 (2026-09-23)
 
 Measured 0.5.x baseline plus integration/harness foundation and one verified

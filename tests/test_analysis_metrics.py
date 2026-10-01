@@ -18,6 +18,27 @@ from jaxfne.analysis import (
     fleiss_kappa_binary,
 )
 
+pytestmark = pytest.mark.filterwarnings("ignore::DeprecationWarning")
+
+
+class TestDeprecatedMetricsWarnings:
+    """P-026: the three misnamed metrics warn and name the jnwb replacement."""
+
+    def test_mean_pairwise_spike_correlation_warns(self):
+        spikes = np.random.rand(5, 100) > 0.8
+        with pytest.warns(DeprecationWarning, match="spike_count_correlation"):
+            mean_pairwise_spike_correlation(spikes)
+
+    def test_burst_index_warns(self):
+        spikes = np.random.rand(5, 100) > 0.8
+        with pytest.warns(DeprecationWarning, match="network_burst_index"):
+            burst_index(spikes, bin_ms=10, dt_ms=0.1)
+
+    def test_fano_factor_warns(self):
+        spikes = np.random.rand(5, 1000) > 0.9
+        with pytest.warns(DeprecationWarning, match=r"jnwb\.fano_factor"):
+            fano_factor(spikes, bin_size_ms=10, dt_ms=0.1)
+
 
 class TestMeanPairwiseSpikeCorrelation:
     """Test mean_pairwise_spike_correlation metric."""
