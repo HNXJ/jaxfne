@@ -30,8 +30,9 @@ jtfne.W0                    # W_0 axis (initial gain)
 jtfne.H0                    # H_0 axis  (initial hidden state)
 ```
 
-`jtfne.augment` is the function, not the module: `import jaxfne.augment as
-m` binds the function too. Import names with `from jaxfne.augment import ...`
+`jtfne.augment` is the function, not the module: after `import
+jaxfne.augment` (with or without `as m`), the attribute `jaxfne.augment` is
+the function, and so is a `monkeypatch` string target `"jaxfne.augment.X"`. Import names with `from jaxfne.augment import ...`
 or use the root names above.
 
 ## Canonical order
@@ -46,8 +47,8 @@ value is a no-op: it contributes no `realized_order` entry and no changes.
 |------|--------|------------------|-----------|----------|
 | `N` | `ScaleN(factor)` | every `Layer.n_neurons` | multiplicative (`n * factor`, exact integer) | a factor mapping any layer to a non-integer or to zero; an allocation that zeroes a declared cell type |
 | `G` | `GeometryTransform(pose_edits, range_edits)` | `Area.pose.translation` / `rotation_deg`; `Layer.geometry` `x/y/z_range` | pose: scale, then additive rotation/translation; ranges: absolute replacement | unknown area or layer; a range outside `[0, 1]` or with `lo > hi`; two edits to the same area or layer in one record |
-| `Theta_C` | `ThetaC(delay_factor, delay_jitter, probability_factor, probability_jitter, targets)` | `delay_ms` (every connection kind), `probability` (`AreaConnection` only) | multiplicative factor with per-field uniform draw in `[1 - jitter, 1 + jitter]` | a probability draw pushed above 1 (never clipped); a rescaled delay that is not finite and `>= 0` |
-| `Theta_X` | `ThetaX(g_factor, g_jitter, tau_factor, tau_jitter, targets)` | `static.g_mech[conn.mechanism]`, `static.dT_ms` | multiplicative factor with per-field uniform draw in `[1 - jitter, 1 + jitter]` | scaling `g_mech` for a mechanism the connection does not declare; a rescaled value that is not positive-finite |
+| `Theta_C` | `ThetaC(delay_factor, delay_jitter, probability_factor, probability_jitter, targets)` | `delay_ms` (every connection kind), `probability` (`AreaConnection` only) | multiplicative factor with per-field uniform draw in `[1 - jitter, 1 + jitter]` | a probability draw pushed above 1 (never clipped); a stored probability outside `(0, 1]` or a rescaled one `<= 0`; a stored delay that is negative or not finite; a rescaled delay that is not finite and `>= 0` |
+| `Theta_X` | `ThetaX(g_factor, g_jitter, tau_factor, tau_jitter, targets)` | `static.g_mech[conn.mechanism]`, `static.dT_ms` | multiplicative factor with per-field uniform draw in `[1 - jitter, 1 + jitter]` | scaling `g_mech` for a mechanism the connection does not declare; a stored `g_mech` or `dT_ms` that is negative or not finite; a rescaled value that is not positive-finite |
 | `W_0` | `W0(factor, jitter, targets)` | `plastic.w_mech` per connection | multiplicative factor with per-connection uniform draw in `[1 - jitter, 1 + jitter]` | a stored gain that is negative or not finite; a rescaled gain that is not positive-finite |
 | `H_0` | `H0(offset, jitter, targets)` | `plastic.H` per connection | additive shift with per-connection uniform draw in `[-jitter, +jitter]` | a stored or rescaled `H` that is not finite |
 

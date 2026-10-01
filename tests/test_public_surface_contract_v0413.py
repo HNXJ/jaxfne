@@ -123,7 +123,7 @@ def test_surrogate_config_pair_is_experimental_not_public():
 
 def test_registrable_hdp_surface_is_advanced_not_public():
     """Post-0.4.24 audit: the generic registration surface is ADVANCED —
-    root-reachable and namespace-mapped, but outside the 192-name contract."""
+    root-reachable and namespace-mapped, but outside the 205-name contract."""
     from jaxfne.public_surface import ADVANCED_NAMESPACE
 
     for name in ("register_hdp_rule", "HDPRuleDescriptor", "HDPRuleUpdate", "HDPRuleContext"):
