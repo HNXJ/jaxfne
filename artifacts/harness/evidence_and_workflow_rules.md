@@ -114,7 +114,7 @@ P (R G)^N S
   record model identity if exposed, exact repository SHA, package version,
   date/time, tool profile, and protocol version. Use `UNKNOWN`; never guess
   model identity.
-- **H14 Review must challenge both positive and negative conclusions.**
+- **H14 Review should challenge both positive and negative conclusions.**
   Adversarial Review must attempt to falsify both "this works" and "this
   is broken." A criticism is not validated merely because a counterexample
   sounds plausible.
