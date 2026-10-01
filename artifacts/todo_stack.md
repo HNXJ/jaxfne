@@ -127,9 +127,6 @@ NEXT (ordered, executable)
    jaxfne (90 scripts + 11 artifacts + 18 examples + 6 already-guarded
    needing the assert; agy audit #20 counted 85+10+18), plus AST gate test
    `tests/test_script_repo_root_guard.py` (claimed by general-opencode-dev).
-4. [A] Atlas pages built from tensors other than the README canonical atlas
-   (e.g. `docs/_static/atlas/canonical_etude_1000`) may have moved under P-022
-   without a pin: regenerate or check each against its generator.
 
 HUMAN DECISIONS
 - [H] Approve the receptor time constants the canonical JDNA genome declares
