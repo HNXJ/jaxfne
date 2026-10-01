@@ -207,3 +207,61 @@ def test_reloaded_tfne_tensor_loses_carve_out_status(tmp_path):
     path = nt.save_neuronal_tensor(tensor, tmp_path / "tfne.json")
     reloaded = nt.load(path)
     assert not nt._is_tfne_minted(reloaded)
+
+
+def _minted_amma_tensor():
+    program = parse(
+        "O[k]:=[direction=>;mechanism=AMPA;weight=0.5]; "
+        "A:=[C={PV};N=4]; B:=[C={E};N=4]; x: A O[k] B: y"
+    )
+    return to_neuronal_tensor(resolve(program))
+
+
+def test_mutated_tfne_tensor_loses_carve_out_and_is_refused():
+    """A minted tensor mutated in place forfeits the carve-out (P-023-mint).
+
+    The unknown mechanism rides the minted lowering only while the tensor
+    is untouched; after the in-place edit the normal P-023 vocabulary
+    applies and the lowering is refused."""
+    tensor = _minted_amma_tensor()
+    assert nt._is_tfne_minted(tensor)
+    tensor.area_connections[0].mechanism = "FORGED_MECH"
+    assert nt._is_tfne_minted(tensor) is False
+    with pytest.raises(ValueError, match="P-023"):
+        nt.neuronal_tensor_to_configuration(
+            tensor, seed=0, duration_ms=2.0, dt_ms=0.5
+        )
+
+
+def test_unmutated_tfne_tensor_keeps_carve_out_and_lowers():
+    """An untouched minted tensor still lowers exactly as before (P-023-mint).
+
+    The lowered configuration is pinned the same way the pre-existing
+    genuine-tensor test pins it (mechanism kind + tau_ms)."""
+    tensor = _minted_amma_tensor()
+    assert nt._is_tfne_minted(tensor)
+    assert nt._tensor_identity_digest(tensor) == nt._TFNE_MINTED[id(tensor)][1]
+    cfg = nt.neuronal_tensor_to_configuration(
+        tensor, seed=0, duration_ms=2.0, dt_ms=0.5
+    )
+    kinds = {m["kind"] for m in cfg.metadata["circuit"]["mechanisms"]}
+    assert kinds == {"AMPA"}
+
+
+def test_reverted_tfne_tensor_regains_carve_out():
+    """Mutate-then-revert restores the mark: identity is by content (P-023-mint).
+
+    This documents intended behavior — the carve-out tracks the minted
+    content digest, not an edit counter, so restoring the exact bytes
+    restores the status."""
+    tensor = _minted_amma_tensor()
+    assert nt._is_tfne_minted(tensor)
+    tensor.area_connections[0].mechanism = "FORGED_MECH"
+    assert not nt._is_tfne_minted(tensor)
+    tensor.area_connections[0].mechanism = "AMPA"
+    assert nt._is_tfne_minted(tensor)
+    cfg = nt.neuronal_tensor_to_configuration(
+        tensor, seed=0, duration_ms=2.0, dt_ms=0.5
+    )
+    kinds = {m["kind"] for m in cfg.metadata["circuit"]["mechanisms"]}
+    assert kinds == {"AMPA"}

@@ -81,27 +81,43 @@ EXCITATORY_MECHANISMS = frozenset({"AMPA", "NMDA"})
 INHIBITORY_MECHANISMS = frozenset({"GABA_A", "GABA_B"})
 
 #: P-023 TFNE carve-out registry: ids of NeuronalTensor objects minted by
-#: :func:`jaxfne.tfne.to_neuronal_tensor`, held weakly. The carve-out in
+#: :func:`jaxfne.tfne.to_neuronal_tensor`, held weakly alongside the
+#: :func:`_tensor_identity_digest` taken at mint time. The carve-out in
 #: :func:`_wire_connection` consults this — never ``provenance``, which is a
 #: free constructor kwarg any caller can set — so a hand-built tensor carrying
 #: ``provenance={"tfne_digest": ...}`` is still refused. A saved-and-reloaded
 #: tensor loses the status: :func:`save_neuronal_tensor` already strips
 #: provenance, and loading constructs a new (unregistered) object, as do
-#: copies, merges and any other reconstruction. Fail closed throughout.
-_TFNE_MINTED: dict[int, "weakref.ReferenceType[NeuronalTensor]"] = {}
+#: copies, merges and any other reconstruction. An in-place mutation also
+#: forfeits the status (content identity: the live digest no longer matches
+#: the minted one, so the tensor faces the normal P-023 rules); reverting
+#: the mutation restores it. Fail closed throughout.
+_TFNE_MINTED: dict[int, tuple["weakref.ReferenceType[NeuronalTensor]", str]] = {}
 
 
 def _register_tfne_minted(tensor: "NeuronalTensor") -> "NeuronalTensor":
     """Record a tensor minted by the TFNE compiler (called from ``to_neuronal_tensor`` only)."""
     key = id(tensor)
-    _TFNE_MINTED[key] = weakref.ref(tensor, lambda _ref, _key=key: _TFNE_MINTED.pop(_key, None))
+    # _tensor_identity_digest is defined below; resolved at call time (same module).
+    _TFNE_MINTED[key] = (
+        weakref.ref(tensor, lambda _ref, _key=key: _TFNE_MINTED.pop(_key, None)),
+        _tensor_identity_digest(tensor),
+    )
     return tensor
 
 
 def _is_tfne_minted(tensor: "NeuronalTensor") -> bool:
-    """Whether this exact object was minted by the TFNE compiler and is still alive."""
-    ref = _TFNE_MINTED.get(id(tensor))
-    return ref is not None and ref() is tensor
+    """Whether this exact object was minted by the TFNE compiler, unmutated, and still alive."""
+    entry = _TFNE_MINTED.get(id(tensor))
+    if entry is None:
+        return False
+    ref, stored = entry
+    if ref() is not tensor:
+        return False
+    if not stored:
+        return False
+    current = _tensor_identity_digest(tensor)
+    return bool(current) and current == stored
 
 #: Maps a Pose3D.plane to (global_axis_for_local_x, global_axis_for_local_y,
 #: global_axis_for_local_depth). "xy" is the canonical default (depth=z, the
