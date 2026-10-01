@@ -241,8 +241,15 @@ ACCEPTANCE (0.5.5 seal = end of programme)
        assumed.
      - The augmentation science runs on that preset, in phases:
        1k -> 2k -> 5k first, then a decision on 10k.
-     - Order: (1) a docs note on the canonical regime; (2) the balanced
-       preset, built by opencode and verified by agy; (3) the phased runs.
+     - Order: (1) a docs note on the canonical regime (landed cbdf2b29);
+       (2) the balanced preset; (3) the phased runs.
+     - Preset format (human, 2026-10-01): extend the NeuronalTensor preset
+       format so a preset carries per-cell-type drive and background noise;
+       absent fields keep the canonical column bit-identical. Reason: weights
+       alone cannot reach AI; an opencode attempt needed poisson amplitude 90
+       and w 67.5, and E stayed drive-locked at 11 Hz even when disconnected.
+       agy drafts the design note, then builds; Claude verifies and integrates.
+       opencode lanes are paused (human, 2026-10-01).
 0b. Structural HDP (human, 2026-09-29): existence over a declared candidate
    set; design note `artifacts/programme/structural_hdp_design.md`. Build
    after the 0.5.5 seal, additive and opt-in; API and hard-vs-graded
