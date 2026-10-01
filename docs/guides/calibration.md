@@ -123,10 +123,10 @@ Simulations of `canonical-v1-column-1000n` with default parameters (1000 ms, dt 
 | SST rate | 47.88 Hz | Suprathreshold: drive 3.5 sits above rheobase $I_c = 1.016$ ($b=0.25$); autonomous pacemaker unopposed by silent VIP (0.56 Hz) or missing SST/PV inputs | `jaxfne/emitters.py:63` |
 | VIP rate | 0.56 Hz | Subthreshold: drive 3.0 sits below rheobase $I_c = 22.56$ ($b=-0.10$) | `jaxfne/emitters.py:65` |
 | Irregularity ($CV_{ISI}$) | 0.036 | Clock-like inter-spike intervals | `scripts/probe_canonical_dynamics.py` |
-| Synchrony ($r_{sc}$) | 0.609 | High pairwise spike count correlation (20 ms bin) from recurrent coupling | `scripts/probe_canonical_dynamics.py` |
+| Synchrony ($r_{sc}$) | 0.609 | High pairwise spike count correlation (20 ms bin); its source is not yet established | `scripts/probe_canonical_dynamics.py` |
 | LFP peak | 21.0 Hz | Beta-band oscillatory power from population burst period | `jaxfne/analysis/spectral.py` |
 
-Because excitatory in-degree exceeds inhibitory in-degree ($6.3 : 1$ ratio, equal synaptic weights $|w| = 0.01423$, $g = |w_I|/w_E = 1.0$), feedback inhibition is insufficient to break excitatory synchrony. The canonical column serves as a synchronous-regular reference benchmark; an opt-in balanced preset is planned for asynchronous-irregular dynamics.
+Excitatory in-degree exceeds inhibitory in-degree ($6.3 : 1$, equal synaptic weights $|w| = 0.01423$, $g = |w_I|/w_E = 1.0$). In probe sweeps, raising PV drive or scaling inhibition by 4 left the E rate unchanged. The canonical column serves as a synchronous-regular reference benchmark; an opt-in balanced preset is planned for asynchronous-irregular dynamics.
 
 ## Current status
 
