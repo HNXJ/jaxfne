@@ -60,12 +60,12 @@ value without an explicit calibration step:
 
 The canonical V1 column (`canonical-v1-column-1000n`) is a **qualitative laminar scaffold**, not a quantitatively calibrated cortical circuit. Its biological calibration status is declared explicitly:
 
-| Axis | Status | Value | Meaning |
-|------|--------|-------|---------|
+| Axis | Value | Meaning |
+|------|-------|---------|
 | `qualitative_laminar_scaffold` | `true` | Scaffold: E fraction rises with depth, inhibition peaks superficial, 6 laminar bands, typed E/PV/SST/VIP populations, E->I and I->E motifs declared. Useful for structural and dynamical method development. |
 | `quantitative_cell_fraction` | `false` | Per-layer fractions (`L1 E 0.50`, `L2 E 0.648`/`VIP 0.052`, `L3 E 0.80`, `L4 E 0.75`, `L5 E 0.88`, `L6 E 0.90`, etc. in `jaxfne/jdna/genomes/canonical-v1-column-1000n.json` and `jaxfne/configs/canonical-v1-column-1000n.json`; builder constant `CANONICAL_LAYER_CELL_TYPE_FRACTIONS` is the `~66E:34I` variant) are illustrative scaffold values — **not** quantitatively calibrated against stereological counts. Do not treat as empirical V1 composition. |
 | `quantitative_connectivity` | `false` | Within-area and cross-layer connection rules (48 typed rules such as E->PV/SST/VIP within-layer and E->E cross-layer) are **qualitative motif scaffolds** (probabilities, weights, delays are `relative` value-tags) — not fitted to paired-recording or connectomic measurements. |
-| `dynamical_regime` | `informational` | `synchronous_regular` | Reference run (seed 0, 1000 ms, dt 0.5 ms): E 11.00 Hz, PV 0.84 Hz (subthreshold), SST 47.88 Hz (suprathreshold), CV_ISI 0.036, r_sc 0.609. Reference benchmark; opt-in balanced preset provides asynchronous-irregular dynamics. |
+| `dynamical_regime` | `synchronous_regular` | Reference run (seed 0, 1000 ms, dt 0.5 ms): E 11.00 Hz, PV 0.84 Hz (subthreshold), SST 47.88 Hz (suprathreshold), CV_ISI 0.036, r_sc 0.609. Reference benchmark; an opt-in balanced preset is planned for asynchronous-irregular dynamics. |
 
 These flags are **informational provenance**, not a solver or kernel setting. No dynamics, solver, or numerical kernel changes. All value-tags remain `"relative"` unless you supply an explicitly validated calibration.
 

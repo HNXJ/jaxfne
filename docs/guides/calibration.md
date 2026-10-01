@@ -118,15 +118,15 @@ Simulations of `canonical-v1-column-1000n` with default parameters (1000 ms, dt 
 
 | Observable | Value | Mechanism | Code reference |
 |------------|-------|-----------|----------------|
-| E rate | 11.00 Hz | Recurrent $E \to E$ excitation (155,477 edges, in-degree 205.1 per E neuron, weight sum $+2.92$) entrains synchronized bursts | `jaxfne/emitters.py:382` |
-| PV rate | 0.84 Hz | Subthreshold: drive 3.0 sits below saddle-node rheobase $I_c = 4.0$ ($b=0.20$); spikes during population bursts | `jaxfne/emitters.py:383` |
-| SST rate | 47.88 Hz | Suprathreshold: drive 3.5 sits above rheobase $I_c = 1.016$ ($b=0.25$); autonomous pacemaker unopposed by silent VIP (0.56 Hz) or missing SST/PV inputs | `jaxfne/emitters.py:384` |
-| VIP rate | 0.56 Hz | Subthreshold: drive 3.0 sits below rheobase $I_c = 22.56$ ($b=-0.10$) | `jaxfne/emitters.py:385` |
-| Irregularity ($CV_{ISI}$) | 0.036 | Clock-like inter-spike intervals | `jaxfne/analysis/metrics.py` |
-| Synchrony ($r_{sc}$) | 0.609 | High pairwise spike correlation (20 ms bin) from recurrent E-E coupling | `jaxfne/analysis/metrics.py` |
+| E rate | 11.00 Hz | Locked to intrinsic drive 5.0 ($I_c = 4.0$); rate is insensitive to feedback inhibition in sweeps. Source of synchrony (identical drive and initial state vs recurrent coupling) is not yet established | `jaxfne/emitters.py:60` |
+| PV rate | 0.84 Hz | Subthreshold: drive 3.0 sits below saddle-node rheobase $I_c = 4.0$ ($b=0.20$); spikes during population bursts | `jaxfne/emitters.py:61` |
+| SST rate | 47.88 Hz | Suprathreshold: drive 3.5 sits above rheobase $I_c = 1.016$ ($b=0.25$); autonomous pacemaker unopposed by silent VIP (0.56 Hz) or missing SST/PV inputs | `jaxfne/emitters.py:63` |
+| VIP rate | 0.56 Hz | Subthreshold: drive 3.0 sits below rheobase $I_c = 22.56$ ($b=-0.10$) | `jaxfne/emitters.py:65` |
+| Irregularity ($CV_{ISI}$) | 0.036 | Clock-like inter-spike intervals | `scripts/probe_canonical_dynamics.py` |
+| Synchrony ($r_{sc}$) | 0.609 | High pairwise spike count correlation (20 ms bin) from recurrent coupling | `scripts/probe_canonical_dynamics.py` |
 | LFP peak | 21.0 Hz | Beta-band oscillatory power from population burst period | `jaxfne/analysis/spectral.py` |
 
-Because excitatory in-degree exceeds inhibitory in-degree ($6.3 : 1$ ratio, equal synaptic weights $|w| = 0.01423$, $g = |w_I|/w_E = 1.0$), feedback inhibition is insufficient to break excitatory synchrony. The canonical column serves as a synchronous-regular reference benchmark; an opt-in balanced preset provides an asynchronous-irregular regime with active feedback inhibition.
+Because excitatory in-degree exceeds inhibitory in-degree ($6.3 : 1$ ratio, equal synaptic weights $|w| = 0.01423$, $g = |w_I|/w_E = 1.0$), feedback inhibition is insufficient to break excitatory synchrony. The canonical column serves as a synchronous-regular reference benchmark; an opt-in balanced preset is planned for asynchronous-irregular dynamics.
 
 ## Current status
 
