@@ -47,7 +47,7 @@ the rules those releases were held to and are historical context for readers.
   naming the `jnwb` replacement (`fano_factor`, `network_burst_index`,
   `spike_count_correlation`, reached via `jaxfne.jnwb_view.to_jnwb` /
   `to_jnwb_trials`), and carries a corrected docstring stating what it
-  actually computes.
+  computes.
 
 ## v0.5.0 (2026-09-23)
 
