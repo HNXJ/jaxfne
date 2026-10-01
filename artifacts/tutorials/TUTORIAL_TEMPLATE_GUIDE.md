@@ -4,16 +4,16 @@
 
 The **jaxfne Notebook Template** (`tutorials/templates/jaxfne_notebook_template.ipynb`) provides a canonical starting point for all jaxfne tutorials, Suites, and Etudes.
 
-## Why Use the Template?
+## Template features
 
 The template enforces:
 
-- ✅ **Hygiene gates:** Workflow code cells ≤ 8 lines by default; setup/configuration cells may be longer, no consecutive code cells
-- ✅ **Installation options:** Both PyPI (`jaxfne[viz]`) and `main` release-branch installs in one unified setup cell
-- ✅ **Environment setup:** XLA/JAX config, PRNG seeding, canonical imports
-- ✅ **Canonical imports:** `import jaxfne as jtfne`
-- ✅ **Status fields:** Scope gates explicitly documented
-- ✅ **Reproducibility:** Deterministic seeding from the start
+- **Hygiene gates:** Workflow code cells ≤ 8 lines by default; setup/configuration cells may be longer, no consecutive code cells
+- **Installation options:** Both PyPI (`jaxfne[viz]`) and `main` release-branch installs in one unified setup cell
+- **Environment setup:** XLA/JAX config, PRNG seeding, canonical imports
+- **Canonical imports:** `import jaxfne as jtfne`
+- **Status fields:** Scope gates explicitly documented
+- **Reproducibility:** Deterministic seeding from the start
 
 ## How to Use
 

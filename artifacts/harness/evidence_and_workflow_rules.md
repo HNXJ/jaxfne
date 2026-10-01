@@ -88,7 +88,7 @@ P (R G)^N S
   or defective. Never document it as active without behavioral evidence.
 - **H8 General theory versus specialization.** A valid specialization is
   not a contradiction of a general theory. For a finite-dimensional state
-  `H ∈ R^{d_H}`, `d_H=1` is a valid finite-dimensional realization unless
+  `H ∈ R^{d_H}`, `d_H=1` is a valid finite-dimensional realization unless a
   rule explicitly requires `d_H>1`. `RBS ≠ homeostasis` means RBS is
   not intrinsically defined as homeostasis; it does not prohibit a
   particular RBS realization from having homeostatic dynamics.
@@ -114,7 +114,7 @@ P (R G)^N S
   record model identity if exposed, exact repository SHA, package version,
   date/time, tool profile, and protocol version. Use `UNKNOWN`; never guess
   model identity.
-- **H14 Review should challenge both positive and negative conclusions.**
+- **H14 Review must challenge both positive and negative conclusions.**
   Adversarial Review must attempt to falsify both "this works" and "this
   is broken." A criticism is not validated merely because a counterexample
   sounds plausible.

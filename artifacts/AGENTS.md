@@ -8,7 +8,7 @@
 
 ## Purpose
 
-jaxfne expresses neural biophysics as modular Tensor-Field Neural Equations (TFNE): a **containment and composition model** for neural models of different resolution — not a single prescribed biophysical equation. Nested biological semantics and geometry are preserved while numerical tensors may be computationally flattened.
+jaxfne expresses neural biophysics as modular Tensor-Field Neural Equations (TFNE): a **containment and composition model** for neural models of different resolution, not a single prescribed biophysical equation. Nested biological semantics and geometry are preserved while numerical tensors may be computationally flattened.
 
 Scientific grammar:
 
@@ -24,12 +24,12 @@ CircuitSpec -> construct -> Model -> simulate -> Signals
 
 `CircuitSpec` includes supported Configuration and NeuronalTensor forms.
 
-Paradigm, Objective, optimization/training utilities, visualization, and export are optional downstream workflow components where they exist — not stages of either invariant grammar.
+Paradigm, Objective, optimization/training utilities, visualization, and export are optional downstream workflow components where they exist; not stages of either invariant grammar.
 
 ## Mathematical invariants
 
 - Internal quantities may remain relative. Absolute units arise through explicit calibration transformations at semantic boundaries.
-- **RBS (Relative Biophysical State):** `H` is a finite-dimensional dependency-state container — not intrinsically homeostasis and not one scalar controlling all operators. Coordinates may be ions, traces, modulators, or reduced \(\mathcal R(\mathbf z)\); influence on \(E,S,F,P\) requires **typed coupling maps**. **RBD** is \(\dot H=F_H(\ldots)\); **HDP** is \(\dot W=F_W(H,\ldots)\). Authority: `docs/doctrine/tfne_containment_architecture.md`, `docs/doctrine/rbs_rbd_hdp.md`, `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md`.
+- **RBS (Relative Biophysical State):** `H` is a finite-dimensional dependency-state container: not intrinsically homeostasis and not one scalar controlling all operators. Coordinates may be ions, traces, modulators, or reduced \(\mathcal R(\mathbf z)\); influence on \(E,S,F,P\) requires **typed coupling maps**. **RBD** is \(\dot H=F_H(\ldots)\); **HDP** is \(\dot W=F_W(H,\ldots)\). Authority: `docs/doctrine/tfne_containment_architecture.md`, `docs/doctrine/rbs_rbd_hdp.md`, `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md`.
 - General adaptive dynamics are conceptually `dX/dt = F_X`, `dH/dt = F_H`, `dTheta/dt = F_Theta`. RBD with fixed `W` is valid; plasticity rules are realizations of this grammar, not separate subsystems by default.
 - Preserve biological identity, topology, signs, receptor/mechanism identity, geometry, locality, and declared parameter ownership through compilation and optimization.
 - Source, field, probe, objective, and calibration semantics remain explicit. A projection, proxy, PDE solve, calibration, and validation status are distinct concepts.
@@ -53,7 +53,7 @@ Paradigm, Objective, optimization/training utilities, visualization, and export 
 
 | File | Role |
 |------|------|
-| `artifacts/fact_stack.md` | Stable, human-authorized facts. Read, use, test, challenge — **do not edit without explicit human authorization.** Not evidence. |
+| `artifacts/fact_stack.md` | Stable, human-authorized facts. Read, use, test, challenge; **do not edit without explicit human authorization.** Not evidence. |
 | `artifacts/todo_stack.md` | Remaining work only; done items are deleted (git and receipts keep history). Sealed stacks are archived byte-for-byte under `artifacts/archive/`. |
 | `artifacts/issue_log/ISSUE_LOG.md` | Open issues (P-NNN). |
 
