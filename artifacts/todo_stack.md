@@ -230,10 +230,19 @@ ACCEPTANCE (0.5.5 seal = end of programme)
      `docs/api/augment.md`.
    - AUG-4 (the small suite, `tests/test_augment_suite.py`) is on dev as
      1052abaf. All three compositions commute on realized quantities.
-   - Next are the science runs: 10^3 -> 10^4 neurons, with heterogeneity,
-     comparing ensemble observables within declared tolerances. First write
-     a plan with the observables and tolerances, and ask the owner before
-     long runs.
+   - Science runs (human, 2026-10-01): the plan is in
+     `artifacts/programme/augment_science_runs_plan.md`.
+     - The canonical 1000n column stays unchanged, with its receipts intact.
+       The docs state that it runs in a synchronous-regular regime: CV_ISI
+       0.036, r_sc 0.61, PV below threshold at 0.84 Hz, SST uninhibited at
+       48 Hz, and E locked to its own drive.
+     - A separate opt-in "balanced" preset must have E respond to recurrent
+       input, with an asynchronous-irregular regime that is measured, not
+       assumed.
+     - The augmentation science runs on that preset, in phases:
+       1k -> 2k -> 5k first, then a decision on 10k.
+     - Order: (1) a docs note on the canonical regime; (2) the balanced
+       preset, built by opencode and verified by agy; (3) the phased runs.
 0b. Structural HDP (human, 2026-09-29): existence over a declared candidate
    set; design note `artifacts/programme/structural_hdp_design.md`. Build
    after the 0.5.5 seal, additive and opt-in; API and hard-vs-graded
