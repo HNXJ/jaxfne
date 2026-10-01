@@ -52,6 +52,9 @@ DEV_PYTEST_TARGETS = [
     "tests/test_tfne_algebra.py",
     "tests/test_tfne_execution.py",
     "tests/test_tfne_parameter_transfer.py",
+    # An atlas regeneration resets figure_state, which silently dropped the
+    # canonical atlas from docs/gallery.md twice; dev CI never collected this.
+    "tests/test_generate_gallery.py",
 ]
 
 # 0.5.1-4b(4): parallelize the independent pytest sweeps with xdist (already
