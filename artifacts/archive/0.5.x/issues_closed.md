@@ -318,3 +318,28 @@ Earlier closed issues: `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md`.
   sign by mechanism name, clashes and unknown names refused except
   `monotonic_cable_synapse`; TFNE-minted tensors keep polarity sign through a
   private registry. Commits 83848805 + 3d75c12d.
+
+### P-025
+- **date:** 2026-09-30
+- **type:** BUG (a script can run against the wrong package)
+- **area:** `scripts/*.py`
+- **observation:** `python scripts/x.py` puts `scripts/` first on `sys.path`, so
+  an installed jaxfne (site-packages 0.5.0 on the owner's machine) shadows the
+  working tree. The first P-016/P-020 re-freeze runs used 0.5.0 (values
+  discarded). 47 of the 61 scripts that import jaxfne have no repo-root guard.
+- **severity:** MAJOR for any frozen output made by a script; MINOR otherwise
+- **minimal reproduction:** with jaxfne 0.5.0 installed, run a script and print
+  `jaxfne.__file__`
+- **expected behavior:** every script imports the tree it lives in
+- **actual behavior:** imported site-packages when executed directly without PYTHONPATH
+- **evidence:** refreeze 2026-09-30; guard added to
+  `scripts/mcc3_10s_scientific_checkpoint.py` (rerun loads the tree, values
+  unchanged); `scripts/regenerate_hdp_population_restoring_metrics.py` has it
+- **possible future change:** add the guard to the remaining scripts with a
+  test that each script importing jaxfne inserts the repo root; open
+- **resolution (2026-10-01, agent):** commit baf43d49 added repo-root guards
+  (`sys.path.insert(0, str(Path(__file__).resolve().parents[depth]))`) and
+  `assert Path(jtfne.__file__).resolve().is_relative_to(REPO_ROOT)` across all
+  125 scripts, artifacts, and examples importing jaxfne; AST gate test
+  `tests/test_script_repo_root_guard.py` mechanically prevents regressions (2/2
+  passed, verified in p-jaxfne #53).

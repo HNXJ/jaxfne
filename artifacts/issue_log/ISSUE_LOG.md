@@ -1,6 +1,6 @@
 # jaxfne issue log
 
-Open issues only. Closed entries (I-001…I-014, P-001…P-010, P-013..P-015, P-021..P-024) and
+Open issues only. Closed entries (I-001…I-014, P-001…P-010, P-013..P-015, P-021..P-025) and
 their verdicts are archived byte-for-byte at
 `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md` and `artifacts/archive/0.5.x/issues_closed.md`.
 A new issue takes the next free P-ID; a solved issue gets a resolution line, then moves to `artifacts/archive/0.5.x/issues_closed.md`.
@@ -10,26 +10,6 @@ area, observation, severity, minimal reproduction, expected, actual, evidence,
 possible future change.
 
 ## Open
-
-### P-025
-- **date:** 2026-09-30
-- **type:** BUG (a script can run against the wrong package)
-- **area:** `scripts/*.py`
-- **observation:** `python scripts/x.py` puts `scripts/` first on `sys.path`, so
-  an installed jaxfne (site-packages 0.5.0 on the owner's machine) shadows the
-  working tree. The first P-016/P-020 re-freeze runs used 0.5.0 (values
-  discarded). 47 of the 61 scripts that import jaxfne have no repo-root guard.
-- **severity:** MAJOR for any frozen output made by a script; MINOR otherwise
-- **minimal reproduction:** with jaxfne 0.5.0 installed, run a script and print
-  `jaxfne.__file__`
-- **expected behavior:** every script imports the tree it lives in
-- **evidence:** refreeze 2026-09-30; guard added to
-  `scripts/mcc3_10s_scientific_checkpoint.py` (rerun loads the tree, values
-  unchanged); `scripts/regenerate_hdp_population_restoring_metrics.py` has it
-- **possible future change:** add the guard to the remaining scripts with a
-  test that each script importing jaxfne inserts the repo root; open
-
----
 
 ### P-026
 - **date:** 2026-09-30
