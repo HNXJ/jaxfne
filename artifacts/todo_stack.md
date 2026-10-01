@@ -127,20 +127,9 @@ NEXT (ordered, executable)
    jaxfne (90 scripts + 11 artifacts + 18 examples + 6 already-guarded
    needing the assert; agy audit #20 counted 85+10+18), plus AST gate test
    `tests/test_script_repo_root_guard.py` (claimed by general-opencode-dev).
-3. [A] Docs drift from the antigravity-jaxfne crawl (2026-09-30), each to be
-   checked before editing: `docs/api/neuronal_tensor.md` still points users at
-   `construct_neuronal_tensor` instead of `jtfne.construct` and omits
-   `delay_ms`/`probability`; four tutorial fences in the doc-code integrity
-   allowlist could be fixed and their entries removed. (Tutorial 10 finding
-   was stale: fixed in 84662d4. EdgeList array count fixed 2026-09-30.)
 4. [A] Atlas pages built from tensors other than the README canonical atlas
    (e.g. `docs/_static/atlas/canonical_etude_1000`) may have moved under P-022
    without a pin: regenerate or check each against its generator.
-5. [A] The atlas 3D panel labels depth z in mm, but layered construction
-   samples z as a column fraction in [0, 1] (column height 1.6 mm unused there).
-6. [A] P-023 residual: a TFNE-minted tensor mutated after minting keeps its
-   sign carve-out (registry follows the object); decide whether minting should
-   freeze it.
 
 HUMAN DECISIONS
 - [H] Approve the receptor time constants the canonical JDNA genome declares
@@ -242,12 +231,12 @@ ACCEPTANCE (0.5.5 seal = end of programme)
    - AUG-1, AUG-2 and AUG-3 are on dev (7b29c1b1, 8ed400e3, e1924e51).
      `jaxfne.augment` is public, and its limits are listed in
      `docs/api/augment.md`.
-   - Next is AUG-4, the small suite (N0=10 -> 100 -> 1000; checks whether
-     T_N o T_G, T_N o T_W and T_G o T_X commute; configured -> realized ->
-     executed). opencode builds it and agy verifies. The acceptance spec is
-     agy's post #62 in jchat main. Its file:line references must be
-     re-resolved before use: H_0 is realized at `neuronal_tensor.py`
-     (`hdp_initial_H`), not in `augment.py`. The science runs come after.
+   - AUG-4 (the small suite, `tests/test_augment_suite.py`) is on dev as
+     1052abaf. All three compositions commute on realized quantities.
+   - Next are the science runs: 10^3 -> 10^4 neurons, with heterogeneity,
+     comparing ensemble observables within declared tolerances. First write
+     a plan with the observables and tolerances, and ask the owner before
+     long runs.
 0b. Structural HDP (human, 2026-09-29): existence over a declared candidate
    set; design note `artifacts/programme/structural_hdp_design.md`. Build
    after the 0.5.5 seal, additive and opt-in; API and hard-vs-graded
