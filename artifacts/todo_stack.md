@@ -237,19 +237,15 @@ ACCEPTANCE (0.5.5 seal = end of programme)
    - Deviation (highly recommended, 90): H_0 is additive (offset plus an
      absolute jitter, signed). H defaults to 0.0 and is a signed relative
      state, so a factor would be a no-op on every default tensor.
-   - AUG-1 and AUG-2 are on dev (7b29c1b1, 8ed400e3). The six axes run in
-     canonical order, each K_V stream is separate per axis, and one test per
-     axis checks that its change reaches the model construct builds.
-   - Next: export `jaxfne.augment` from the public API, and write a docs page.
-     The page states four limits:
-     - Probability jitter above 1 is refused, not clipped, so a stochastic
-       spec can fail for some K_V.
-     - Delays are quantised to dt steps.
-     - H_0 reaches the model only as the mean H of the target group.
-     - Theta_X refuses an undeclared g_mech[mechanism].
-   - After that: the small ensemble suite from the handout (N0=10 -> 100 ->
-     1000, compositions T_N o T_G, T_N o T_W, T_G o T_X), then the science
-     runs.
+   - AUG-1, AUG-2 and AUG-3 are on dev (7b29c1b1, 8ed400e3, e1924e51).
+     `jaxfne.augment` is public, and its limits are listed in
+     `docs/api/augment.md`.
+   - Next is AUG-4, the small suite (N0=10 -> 100 -> 1000; checks whether
+     T_N o T_G, T_N o T_W and T_G o T_X commute; configured -> realized ->
+     executed). opencode builds it and agy verifies. The acceptance spec is
+     agy's post #62 in jchat main. Its file:line references must be
+     re-resolved before use: H_0 is realized at `neuronal_tensor.py`
+     (`hdp_initial_H`), not in `augment.py`. The science runs come after.
 0b. Structural HDP (human, 2026-09-29): existence over a declared candidate
    set; design note `artifacts/programme/structural_hdp_design.md`. Build
    after the 0.5.5 seal, additive and opt-in; API and hard-vs-graded
