@@ -25,15 +25,22 @@ Usage:
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import hashlib
 import json
 import subprocess
-import sys
 import zipfile
 from datetime import datetime, timezone
-from pathlib import Path
 
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RUN_ID = "delta_test_01"

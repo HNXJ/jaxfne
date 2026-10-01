@@ -21,11 +21,20 @@ Usage:
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import argparse
 import pathlib
 import subprocess
 
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 

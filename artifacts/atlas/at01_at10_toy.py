@@ -19,12 +19,21 @@ only the top-level ``jaxfne`` package plus stdlib / numpy. No
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import time
 from typing import Any
 
 import numpy as np
 
 import jaxfne as J
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 # Toy resolution: coarse dt, short T. (dt, T) chosen per phenomenon per
 # AT-00-R2, at the cheapest point that still executes.

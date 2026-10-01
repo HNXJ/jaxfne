@@ -7,16 +7,24 @@ generation phases. Outputs JSON-safe report with hardware metadata and claim gat
 Claim status: local_environment_receipt_only, no universal performance claims.
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import json
 import time
 from dataclasses import asdict, dataclass
-from pathlib import Path
 from typing import Any, Optional
 
 import jax
 import jax.numpy as jnp
 
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 @dataclass(frozen=True)

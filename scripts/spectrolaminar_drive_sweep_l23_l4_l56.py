@@ -13,9 +13,19 @@ standard-path spectrolaminar_suite_3panel (n_trials trials @ duration_ms=500).
 
 Writes scripts/out/spectrolaminar_drive_sweep_boost_<value>.png per value.
 """
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import numpy as np
 
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 OUT_DIR = "scripts/out"
 DRIVE_BOOSTS = (1.0, 3.0, 5.0)  # three values, additive on top of native drive

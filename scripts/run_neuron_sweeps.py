@@ -5,6 +5,11 @@ Evaluates spike counts over 1000ms under noise and constant drive sweeps.
 Generates beautiful annotated 2D heatmaps.
 """
 
+import sys as _sys
+from pathlib import Path as _Path
+
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
+
 import os
 import json
 import hashlib
@@ -14,10 +19,12 @@ import jax.numpy as jnp
 import jaxfne as jtfne
 import functools
 
-import sys as _sys
-from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).resolve().parent))
 from _neuron_sweep_common import simulate_single_step as _simulate_single_step_shared
+
+assert "site-packages" not in _sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 # 1. Output setup
 OUT_DIR = jtfne.io.Path("outputs/neuron_sweeps")

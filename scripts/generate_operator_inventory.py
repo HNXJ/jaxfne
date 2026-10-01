@@ -11,11 +11,19 @@ Run: python3 scripts/generate_operator_inventory.py
 Do not hand-edit the output file; regenerate it instead.
 """
 
-import inspect
-import json
+import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import inspect
+import json
+
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 OUTPUT_PATH = ROOT_DIR / "docs" / "_generated" / "operator_inventory.md"

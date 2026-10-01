@@ -27,10 +27,14 @@ formula changes materially.
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import argparse
 import csv
 import time
-from pathlib import Path
 
 import numpy as np
 import jax
@@ -47,6 +51,10 @@ from jaxfne.hdp_network import (
     DRIVE_SCALE_DESYNC,
     LAYER_SIZE_SCALE_DEFAULT,
     build_model,
+)
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
 # -----------------------------------------------------------------------

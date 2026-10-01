@@ -25,11 +25,15 @@ Usage:
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import argparse
 import json
 import platform
 import statistics
-import sys
 import time
 from typing import Any, Optional
 
@@ -38,6 +42,10 @@ import jax.numpy as jnp
 
 import jaxfne as jtfne
 from jaxfne import hdp_network
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 SCHEMA_VERSION = "benchmark_protocol_v1.schema.json"
 CLAIM_LEVEL = "local_environment_receipt_only"

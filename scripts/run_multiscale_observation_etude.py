@@ -5,11 +5,14 @@ See docs/etudes/multiscale_observation.md. Simulate once; vary O_k only.
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import hashlib
 import json
 import subprocess
-import sys
-from pathlib import Path
 from typing import Any
 
 import jax.numpy as jnp
@@ -22,6 +25,10 @@ from jaxfne.io import json_safe
 from jaxfne.vis.evidence_export import save_matplotlib_evidence_figure
 from jaxfne.vis.script_reports import spectrolaminar_motif_heatmap
 from jaxfne.vis.tutorial_array_plots import plot_laminar_readout_array
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "artifacts" / "etudes" / "multiscale_observation"

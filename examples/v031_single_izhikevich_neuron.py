@@ -13,11 +13,15 @@ Physical amplitude status allowed: False
 Model status: computational_scaffold
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import hashlib
 import json
 import shutil
 import os
-from pathlib import Path
 from datetime import datetime
 from typing import Any
 

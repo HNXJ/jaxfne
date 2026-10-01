@@ -2,14 +2,22 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import hashlib
 import json
 import subprocess
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 from jaxfne.vis.evidence_export import save_matplotlib_evidence_figure
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _PUBLICATION_ARTIFACTS = _REPO_ROOT / "artifacts" / "publication"

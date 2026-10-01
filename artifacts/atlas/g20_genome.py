@@ -17,11 +17,19 @@ name); ``genome_dict()`` builds the genome from them and the frozen JSON in
 
 from __future__ import annotations
 
-import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import json
 from typing import Any
 
 import jaxfne as J
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 G20_NAME = "g20-hierarchy-v2"
 G20_N_AREAS = 20

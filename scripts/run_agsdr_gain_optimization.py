@@ -12,11 +12,19 @@ Optimizes the inter-area gain matrix G[src_area, dst_area] to drive area-wise
 firing rates toward a target rate of 7.5 Hz.
 """
 
-import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
 import numpy as np
 import jax.numpy as jnp
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 def run_simulation_with_gain(G, duration_ms=500.0):
     cfg = jtfne.SanityDeltaConfig.hierarchical_global_local_oddball(

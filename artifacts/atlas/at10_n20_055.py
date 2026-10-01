@@ -41,9 +41,13 @@ Import rule: top-level ``jaxfne`` only.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import json
 import time
-from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -51,6 +55,10 @@ import numpy as np
 import jaxfne as J
 
 from artifacts.atlas import g20_genome as G
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 DT_MS = 0.5
 PHASE_MS = 10000.0

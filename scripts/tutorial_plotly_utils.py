@@ -11,11 +11,20 @@ supporting optional interactive figure generation.
 
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import json
 from typing import Any, Dict, List, Optional, Tuple
 import os
 
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 # Try to import Plotly; continue if unavailable
 try:

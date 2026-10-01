@@ -29,6 +29,11 @@ biological validation claim (see artifacts/AGENTS.md truth gates).
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import dataclasses
 from typing import Any
 
@@ -47,6 +52,10 @@ from jaxfne.neuronal_tensor import (
     neuronal_tensor_to_configuration,
 )
 from jaxfne.hdp_network import DEFAULT_HDP
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 N_E = 15
 N_I = 5

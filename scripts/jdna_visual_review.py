@@ -8,10 +8,13 @@ Prints a numeric comparison table to stdout.
 
 from __future__ import annotations
 
-import json
 import sys
-import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -24,6 +27,10 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 import jaxfne as jtfne  # noqa: E402
 from jaxfne.jdna import develop, load_canonical_pseudogenome  # noqa: E402
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 FIG_DIR = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "figures"
 FIG_DIR.mkdir(parents=True, exist_ok=True)

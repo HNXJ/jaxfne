@@ -123,8 +123,10 @@ Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked
 NEXT (ordered, executable)
 1. [A] D0b remaining lane: the markdown outside `docs/`; evidence records such as
    `artifacts/programme/` stay as written.
-2. [A] P-025: repo-root guard in the 47 scripts that lack it, plus a test
-   that every script importing jaxfne inserts the repo root.
+2. [A] P-025: repo-root guard in the 125 files that (transitively) import
+   jaxfne (90 scripts + 11 artifacts + 18 examples + 6 already-guarded
+   needing the assert; agy audit #20 counted 85+10+18), plus AST gate test
+   `tests/test_script_repo_root_guard.py` (claimed by general-opencode-dev).
 3. [A] Docs drift from the antigravity-jaxfne crawl (2026-09-30), each to be
    checked before editing: `docs/api/neuronal_tensor.md` still points users at
    `construct_neuronal_tensor` instead of `jtfne.construct` and omits

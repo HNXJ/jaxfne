@@ -9,11 +9,20 @@ Run: PYTHONPATH=. python3 scripts/major_sanity_test.py
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import tempfile
 
 import numpy as np
 
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 def action_1_minimal_tensor() -> jtfne.NeuronalTensor:

@@ -16,9 +16,13 @@ Usage:
   python scripts/build_v037_source_column_3d.py
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import json
 import numpy as np
-from pathlib import Path
 from typing import Dict, List, Tuple, Any
 
 try:

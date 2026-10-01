@@ -20,8 +20,12 @@ Usage: PYTHONPATH=. python3 scripts/hdp_k_w_ctrl_sweep.py
 """
 from __future__ import annotations
 
-import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
 
 import numpy as np
 import jax
@@ -33,6 +37,10 @@ from jaxfne.hdp_network import (
     DEFAULT_HDP,
     HDPColumnConfig,
     build_model,
+)
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
 N_NEURONS = 20

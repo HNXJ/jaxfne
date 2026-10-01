@@ -2,7 +2,17 @@
 (1000 neurons, E/PV/SST/VIP) placed in a cylinder: X/Y radius 0.1mm,
 Z height 1.0mm. Writes scripts/out/cortex_1000_cylinder_3d.html.
 """
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 OUT = "scripts/out/cortex_1000_cylinder_3d.html"
 

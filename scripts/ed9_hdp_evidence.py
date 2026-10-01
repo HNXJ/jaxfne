@@ -39,16 +39,23 @@ Usage:
 """
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
+
 import argparse
 import pathlib
 
 import numpy as np
 import jaxfne as jtfne
 
-import sys as _sys
-from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).resolve().parent))
 from _ed9_common import build_imbalanced_model, _agg, _significance_test
+
+assert "site-packages" not in _sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 def _runtime(cond: dict) -> jtfne.RuntimeConfig:

@@ -40,8 +40,12 @@ Usage: PYTHONPATH=. python3 scripts/hdp_suite2_visualizations.py
 
 from __future__ import annotations
 
-import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
 from types import SimpleNamespace
 from typing import Any
 
@@ -57,6 +61,10 @@ from jaxfne.hdp_network import apply_drive_correction as _hdp_apply_drive_correc
 from jaxfne.tutorial_utils import spectrolaminar_from_trials
 
 import scripts.hdp_1000_laminar_column_boosted as base
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 def build_model() -> "jtfne.core.Model":

@@ -15,11 +15,15 @@ Exit codes:
     1: Any tutorial failed, or contract validation failed
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import argparse
 import json
 import pathlib
 import subprocess
-import sys
 from typing import Optional
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]

@@ -11,15 +11,22 @@ Usage:
 
 from __future__ import annotations
 
-import argparse
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import argparse
 
 import jax.numpy as jnp
 import jax.random as jr
 import numpy as np
 
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 OUTPUT_NAMES = [
     "homeostasis_rate_change_10s.png",

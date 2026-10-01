@@ -29,6 +29,11 @@ Usage:
 """
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
+
 import argparse
 import pathlib
 
@@ -40,10 +45,12 @@ from jaxfne.emitters_homeostatic_ei import (
     make_minimal_ei_params, simulate_homeostatic_ei, make_hebbian_pairwise_rule,
 )
 
-import sys as _sys
-from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).resolve().parent))
 from _ed9_common import _agg, _significance_test
+
+assert "site-packages" not in _sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 def _run_one(params, n_steps, dt_ms, seed, *, conductance_rule="hebbian", freeze_G=False):

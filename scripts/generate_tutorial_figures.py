@@ -9,14 +9,21 @@ Usage:
   python scripts/generate_tutorial_figures.py [--output-dir docs/_static/tutorial_figures]
 """
 
-import json
 import sys
-import argparse
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
+import argparse
 
 import numpy as np
 
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 def safe_to_numpy(arr):

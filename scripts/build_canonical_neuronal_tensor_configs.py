@@ -9,8 +9,12 @@ circuits and saves them to jaxfne/configs/*.json -- shipped as package data
 Run with: python3 scripts/build_canonical_neuronal_tensor_configs.py
 Each output file is verified loadable + constructible before being kept.
 """
+
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUT_DIR = REPO_ROOT / "jaxfne" / "configs"
@@ -22,6 +26,10 @@ from jaxfne import (  # noqa: E402
     NeuronalTensor, Area, AreaConnection, Layer, NeuronType,
     InterConnection, StaticParams, PlasticParams, Pose3D,
     save_neuronal_tensor, load_neuronal_tensor, construct_neuronal_tensor,
+)
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
 

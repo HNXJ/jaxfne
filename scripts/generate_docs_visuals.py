@@ -26,6 +26,9 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+
 ROOT = Path(__file__).resolve().parents[1]
 for p in (ROOT, ROOT / "artifacts" / "atlas", ROOT / "scripts"):
     if str(p) not in sys.path:
@@ -34,6 +37,10 @@ for p in (ROOT, ROOT / "artifacts" / "atlas", ROOT / "scripts"):
 import jaxfne as jtfne  # noqa: E402
 from jaxfne.vis.exporters import _write_image  # noqa: E402  (retries Kaleido teardown, P-011)
 from jaxfne.vis.plotly.network import plot_area_graph, plot_network_3d  # noqa: E402
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 HTML_DIR = ROOT / "docs" / "_static" / "visuals"
 PNG_DIR = ROOT / "docs" / "assets" / "visuals"

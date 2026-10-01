@@ -5,11 +5,14 @@ See docs/etudes/heterogeneous_emitters.md.
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import hashlib
 import json
 import subprocess
-import sys
-from pathlib import Path
 from typing import Any
 
 import jax
@@ -22,6 +25,10 @@ from jaxfne.emitters_homeostatic_ei import simulate_homeostatic_ei
 from jaxfne.fields import LinearReadout, project_laminar_sources
 from jaxfne.io import json_safe
 from jaxfne.vis.evidence_export import save_matplotlib_evidence_figure
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "artifacts" / "etudes" / "heterogeneous_emitters"

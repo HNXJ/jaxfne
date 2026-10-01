@@ -3,13 +3,16 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import csv
 import hashlib
 import json
 import math
 import subprocess
-import sys
-from pathlib import Path
 from typing import Any
 
 # Force the repo package: `python scripts/...` puts scripts/ first on sys.path,
@@ -29,6 +32,10 @@ from jaxfne._model_tune import (
 from jaxfne.emitters import resolve_edge_weight
 from jaxfne.hdp_network import DEFAULT_HDP
 from jaxfne.io import json_safe
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "artifacts" / "mcc3_10s_checkpoint"

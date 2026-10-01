@@ -92,9 +92,12 @@ opt into a longer run).
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
 
 import numpy as np
 
@@ -108,6 +111,10 @@ from jaxfne.neuronal_tensor import (
     NeuronalTensor,
     PlasticParams,
     construct_neuronal_tensor,
+)
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
 OUTPUT_DIR = Path("outputs/v1_pfc_continuous_aaab_smoke_test")

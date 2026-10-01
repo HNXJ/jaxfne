@@ -9,6 +9,11 @@ also compiles to real (sparse) edges via InterConnection -- it is not a
 dense-only alternative.
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import json
 
 import jaxfne as jtfne

@@ -6,11 +6,18 @@ observation receipts without manuscript figures.
 """
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
+
 from jaxfne.experiment_a.receipt import write_b3_bundle
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 

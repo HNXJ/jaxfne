@@ -33,9 +33,13 @@ checked bit-identical V_m at N=2000 with zero construct() calls on reload.
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import json
 from collections import defaultdict
-from pathlib import Path
 
 import jax.numpy as jnp
 import numpy as np
@@ -43,6 +47,10 @@ import numpy as np
 import jaxfne as jtfne
 from jaxfne.emitters import EdgeList, IzhikevichParams
 from jaxfne.io import json_safe
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 def build_config(

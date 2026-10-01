@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+
 import json
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 import numpy as np

@@ -8,10 +8,14 @@ Measures:
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import json
 import time
 import tracemalloc
-from pathlib import Path
 
 import jax
 import jax.numpy as jnp
@@ -19,6 +23,10 @@ import numpy as np
 
 import jaxfne as jtfne
 from jaxfne.emitters import EdgeList, resolve_edge_tau_ms
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 def _bench(fn, *, warmup=2, repeats=5):

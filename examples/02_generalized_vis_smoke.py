@@ -4,6 +4,11 @@ Demonstrates creating mock signals, plotting them with the visualizer namespace,
 saving figures to disk, and exporting a JSON-safe validation manifest.
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import os
 import json
 import numpy as np

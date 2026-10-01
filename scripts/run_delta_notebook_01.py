@@ -21,14 +21,21 @@ Usage:
     TFNE_SMOKE=0 python3 scripts/run_delta_notebook_01.py  # Full 1000ms simulation + AGSDR
 """
 
-import os
 import sys
-import json
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import os
+import json
 
 import jax.numpy as jnp
 import numpy as np
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 # Configuration from environment
 SMOKE_MODE = os.environ.get("TFNE_SMOKE", "1") == "1"

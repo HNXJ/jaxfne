@@ -4,10 +4,19 @@ Simulate and verify the 5 Hz (5 spikes / 1000ms) minimal-noise parameter sets.
 Plots the voltage traces for the four cell types.
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import numpy as np
 import jax
 import jax.numpy as jnp
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 # 1. Output setup
 OUT_DIR = jtfne.io.Path("outputs/neuron_sweeps")

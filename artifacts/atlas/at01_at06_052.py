@@ -32,6 +32,11 @@ the root-namespace symbol, not a submodule import).
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import time
 import tracemalloc
 from typing import Any
@@ -39,6 +44,10 @@ from typing import Any
 import numpy as np
 
 import jaxfne as J
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 # ---------------------------------------------------------------------------
 # Predeclared constants (declared BEFORE any run; tolerances need human

@@ -30,8 +30,12 @@ Usage: PYTHONPATH=. python3 scripts/hdp_1000_laminar_column_boosted.py
 
 from __future__ import annotations
 
-import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
 from typing import Any
 
 import jax.numpy as jnp
@@ -42,6 +46,10 @@ from jaxfne.hdp_network import (
     HDPColumnConfig, build_model, apply_drive_correction,
     layer_size_scale_override, run, BASE_HDP_KWARGS_DEFAULT, DEFAULT_HDP,
     BASE_DRIVE_BY_CELL_TYPE_DEFAULT,
+)
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
 OUTPUT_DIR = Path("outputs/hdp_1000_laminar_column_boosted")
