@@ -9,14 +9,21 @@ Usage:
   python scripts/generate_tutorial_figures.py [--output-dir docs/_static/tutorial_figures]
 """
 
-import json
 import sys
-import argparse
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
+import argparse
 
 import numpy as np
 
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 def safe_to_numpy(arr):
@@ -36,7 +43,6 @@ def build_config():
             name="V1_tutorial",
             kind="cortical_column",
             n=50,
-            layers=["L2/3", "L4", "L5", "L6"],
             cell_types={"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03},
         )
         .emitter(family="izhikevich", preset="cortical_eig")

@@ -2,7 +2,7 @@
 
 Status: **ENTRY_GRANTED** (23-ENT-01, 2026-09-11)
 
-Authority: `artifacts/roadmap/ROADMAP_0422_0424.md` §4.1
+Authority: `artifacts/archive/roadmap/ROADMAP_0422_0424.md` §4.1
 
 ## Entry criteria
 

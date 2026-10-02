@@ -42,6 +42,7 @@ def plot_network_3d(
     point_size: float = 4.0,
     depth_multiplier: float = 1.0,
     title: str = "Network geometry",
+    edge_color_by: str | None = None,
 ):
     """3D scatter of neuron positions, colored by cell type/layer/area.
 
@@ -50,7 +51,16 @@ def plot_network_3d(
     (a lightweight proxy for "spike activity" — not an animation) for
     ``color_by="cell_type"``; Scatter3d marker.opacity is scalar-only, so the
     encoding rides on per-point ``rgba`` colors (P2).
+
+    ``edge_color_by="source_class"`` splits the sampled edges into two
+    legend-toggleable traces by the presynaptic cell-type name: types starting
+    with ``E`` vs the rest. This is a naming rule, not a resolved synaptic sign;
+    ``None`` keeps one grey edge trace.
     """
+    if edge_color_by not in (None, "source_class"):
+        raise ValueError(f"edge_color_by must be None or 'source_class', got {edge_color_by!r}")
+    if edge_color_by is not None and not show_edges:
+        raise ValueError("edge_color_by requires show_edges=True")
     require_plotly()
     import plotly.graph_objects as go
 
@@ -115,28 +125,118 @@ def plot_network_3d(
                 if pre.shape[0]
                 else np.array([], dtype=int)
             )
-            xs, ys, zs = [], [], []
-            for i in idx:
-                p, q = int(pre[i]), int(post[i])
-                xs += [nt["x"][p], nt["x"][q], None]
-                ys += [nt["y"][p], nt["y"][q], None]
-                zs += [z[p], z[q], None]
-            fig.add_trace(
-                go.Scatter3d(
-                    x=xs,
-                    y=ys,
-                    z=zs,
-                    mode="lines",
-                    line=dict(color="#888888", width=1),
-                    opacity=0.2,
-                    name="edges",
-                    showlegend=False,
+            if edge_color_by is None:
+                groups = [("edges", idx, "#888888", 0.2, False)]
+            else:
+                exc = np.char.startswith(nt["cell_type"][pre[idx]].astype(str), "E")
+                groups = [
+                    ("edges from E* types", idx[exc], "#6baed6", 0.35, True),
+                    ("edges from other types", idx[~exc], "#f28e8e", 0.45, True),
+                ]
+            for name, sel_idx, color, opacity, showlegend in groups:
+                xs, ys, zs = [], [], []
+                for i in sel_idx:
+                    p, q = int(pre[i]), int(post[i])
+                    xs += [nt["x"][p], nt["x"][q], None]
+                    ys += [nt["y"][p], nt["y"][q], None]
+                    zs += [z[p], z[q], None]
+                fig.add_trace(
+                    go.Scatter3d(
+                        x=xs,
+                        y=ys,
+                        z=zs,
+                        mode="lines",
+                        line=dict(color=color, width=1),
+                        opacity=opacity,
+                        name=name,
+                        showlegend=showlegend,
+                        hoverinfo="skip" if edge_color_by else None,
+                    )
                 )
-            )
 
     fig.update_layout(
         title=title,
-        scene=dict(xaxis_title="x (mm)", yaxis_title="y (mm)", zaxis_title="depth z (mm)"),
+        scene=dict(
+            xaxis_title="x (mm)",
+            yaxis_title="y (mm)",
+            zaxis=dict(title="depth z (0 = pia, increasing toward WM)", autorange="reversed"),
+        ),
         legend_title_text=color_by,
     )
+    return fig
+
+
+def plot_area_graph(model, *, n_width_classes: int = 4, title: str = "Area graph"):
+    """Multi-area model as a graph: one node per area, one chord per connected area pair.
+
+    Areas sit on a circle in declared order (clockwise from the top), sized by
+    neuron count and colored by that order. A chord carries the realized
+    inter-area edge count (both directions summed), binned into
+    ``n_width_classes`` quantile classes that set its width and brightness;
+    hovering a chord's midpoint shows both directed counts. Within-area edges
+    are not drawn. The layout is schematic: positions encode order, not
+    geometry.
+    """
+    if isinstance(n_width_classes, bool) or not isinstance(n_width_classes, int) or n_width_classes < 1:
+        raise ValueError(f"n_width_classes must be a positive int, got {n_width_classes!r}")
+    require_plotly()
+    import plotly.graph_objects as go
+
+    nt = neuron_table_arrays(model)
+    areas = list(dict.fromkeys(nt["area"].tolist()))
+    if len(areas) < 2:
+        raise ValueError("plot_area_graph needs a model with at least two areas")
+    edges = model.params.get("edge_list") if hasattr(model, "params") else None
+    if edges is None:
+        raise ValueError("plot_area_graph needs model.params['edge_list']")
+    k = len(areas)
+    index = {a: i for i, a in enumerate(areas)}
+    area_id = np.array([index[a] for a in nt["area"]])
+    size = np.bincount(area_id, minlength=k)
+    counts = np.zeros((k, k), dtype=np.int64)
+    np.add.at(counts, (area_id[np.asarray(edges.pre)], area_id[np.asarray(edges.post)]), 1)
+    np.fill_diagonal(counts, 0)
+    total = counts + counts.T
+    pairs = [(i, j) for i in range(k) for j in range(i + 1, k) if total[i, j] > 0]
+
+    angle = np.pi / 2 - 2 * np.pi * np.arange(k) / k
+    pos = np.stack([np.cos(angle), np.sin(angle)], axis=1)
+
+    fig = go.Figure()
+    if pairs:
+        values = np.array([total[i, j] for i, j in pairs], dtype=float)
+        bounds = np.quantile(values, np.linspace(0, 1, n_width_classes + 1))
+        cls = np.clip(np.searchsorted(bounds[1:-1], values, side="right"), 0, n_width_classes - 1)
+        shades = np.linspace(0.25, 0.85, n_width_classes)
+        for c in range(n_width_classes):
+            members = [p for p, cc in zip(pairs, cls) if cc == c]
+            if not members:
+                continue
+            xs, ys = [], []
+            for i, j in members:
+                xs += [pos[i, 0], pos[j, 0], None]
+                ys += [pos[i, 1], pos[j, 1], None]
+            fig.add_trace(go.Scatter(
+                x=xs, y=ys, mode="lines", hoverinfo="skip",
+                line=dict(color=f"rgba(154,164,178,{shades[c]:.2f})", width=0.8 + 1.8 * c),
+                name=f"{int(bounds[c])}–{int(bounds[c + 1])} edges",
+            ))
+        mid = np.array([(pos[i] + pos[j]) / 2 for i, j in pairs])
+        fig.add_trace(go.Scatter(
+            x=mid[:, 0], y=mid[:, 1], mode="markers", showlegend=False,
+            marker=dict(size=6, color="rgba(154,164,178,0.01)"),
+            text=[f"{areas[i]}→{areas[j]}: {counts[i, j]}<br>{areas[j]}→{areas[i]}: {counts[j, i]}"
+                  for i, j in pairs],
+            hovertemplate="%{text}<extra></extra>",
+        ))
+    fig.add_trace(go.Scatter(
+        x=pos[:, 0], y=pos[:, 1], mode="markers+text", text=areas, name="areas",
+        textposition=["top center" if y >= 0 else "bottom center" for y in pos[:, 1]],
+        marker=dict(size=14 + 14 * size / size.max(), color=np.arange(k), colorscale="Viridis",
+                    line=dict(color="#e6e6e6", width=1)),
+        customdata=size, hovertemplate="%{text}: %{customdata} neurons<extra></extra>",
+    ))
+    axis = dict(visible=False, range=[-1.3, 1.3])
+    fig.update_layout(title=title, xaxis=axis, yaxis=dict(axis, scaleanchor="x"),
+                      legend_title_text="inter-area edges")
     return fig

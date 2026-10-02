@@ -3,19 +3,27 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-09-22T14:28:59",
+  "generated_at": "2026-09-29T23:45:59",
   "components": {
     "project_agents": {
       "file": "artifacts/AGENTS.md",
-      "sha256": "4b8dae8886c5ce506642dd16153136f4da6f3b07fffda1020efc7e95b2b512c8"
+      "sha256": "69639820f62cf0e8511613fc243e6a29d029c58129d1a95e2250718e862084ac"
     },
     "canonical_skills": {
-      "jaxfne-audit": "b2d64e3fa6c8ae65fe6b4959fed12bcb7a05469f69a2d81b3769fc60a99c1bff",
-      "jaxfne-core": "0b40550eee2c7e46d4c51316350938b05ebf09d19021da143b328dd2f2913c98",
-      "jaxfne-release": "142a3ebcafae4c13a564acda3dd89cda9208fcba8797b84f5f66a1acf3a8f57d",
+      "jaxfne-audit": "c275d9cdff33a3d682a4ab1e75deef479507a0d47b2cfbdc5cd02f4a788f72ba",
+      "jaxfne-core": "03201f96cf261851f0b4edacd0db09707640c556ab7e252f9985f98ca157bb76",
+      "jaxfne-fields": "fe9cd12f9aac0e098aebd1e68c631c6ae86a1487e76689a490c5b0f2fe88fedb",
+      "jaxfne-inspect": "5b3a4b2cf7bd12fd165742f58c54593e0ff4b1858615897b05bbf8d65b8d256f",
+      "jaxfne-model": "e869067c39a41866ae5ba438c9bf7f181f5e14dc35b733cef4a84cdb7915697f",
+      "jaxfne-network": "f54a5d5e079891a1b90a0346619a958ac86e16ef664df65d68b2785ade1e5e7f",
+      "jaxfne-plasticity": "7cced7bd0ec9973a1bb2e4a5cba08a0831d22174a3d18dd4532c6b14584c74e2",
+      "jaxfne-release": "d5abfe5f30362a7679540ceb508bb63123d60f5766a67de4c1e1cebc188cb66a",
       "jaxfne-repo": "94a48bd6c82c68662ecdc06042495d665cdcdc05c87131f68628e31683a95c3e",
-      "jaxfne-science": "4d1be84035be2ae2c3d71e2f887d1ea384a216f385032f8c575dda616dd7fecc",
+      "jaxfne-science": "1a6efc222cad964f9ed71b0cad02b177222b37f62018a8065ed2ba5d912bda22",
       "jaxfne-seal": "765975a6878f1e8f9ac2e0029b0bd43924f2afc0b61f9a4312d45d321a5ba7d0",
+      "jaxfne-simulate": "7ffaf0cb90536b0d5d8e384d1948a8cb9db7f89c5a9f45535a94c0bb501ee333",
+      "jaxfne-state": "abc7943edc2d1d0d2126b3e89fd8afc4b059e189fff93cd6af6bd90364fdda9d",
+      "jaxfne-verify": "5a00f375cfc544c3444d2bde517d110046b1c03a02c84bfb95f386725cb120cd",
       "jaxfne-workflow": "757b342d599fb2ed4be39d528d9af81451fd40e299e07b952ba790ffdb580cd7",
       "vocabulary-audit": "eb0da2fb9c79d7bae4010a109794080f507a7cec1179d7a59b86f0dc3a5f1691"
     },

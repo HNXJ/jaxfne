@@ -16,7 +16,7 @@ Canonical example (1000n)
 >>> from jaxfne.vis.pseudogenome_viewer import render_pseudogenome_development_viewer
 >>> genome = jtfne.load_canonical_pseudogenome("canonical-v1-column-1000n")
 >>> path, summary = render_pseudogenome_development_viewer(
-...     genome, seeds=(0, 1), output_path="artifacts/pseudogenome_development_viewer.html"
+...     genome, seeds=(0, 1), output_path="artifacts/viewers/pseudogenome_development_viewer.html"
 ... )
 
 Writing uses only existing public APIs: ``PseudoGenome``, ``develop``,
@@ -267,7 +267,7 @@ def render_pseudogenome_development_viewer(
     *,
     seeds: Sequence[int] = (0, 1),
     construct_seed: int = 7,
-    output_path: str | Path = "artifacts/pseudogenome_development_viewer.html",
+    output_path: str | Path = "artifacts/viewers/pseudogenome_development_viewer.html",
     title: str = "PseudoGenome development — G → D(K_D) → N (configured→realized)",
 ) -> tuple[Path, dict[str, Any]]:
     """Generate a standalone HTML viewer for PseudoGenome development.

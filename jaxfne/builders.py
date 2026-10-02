@@ -16,7 +16,7 @@ Two cell-type composition paths share the builders:
 * ``ei_profile="canonical"`` — the verified ground-truth E:I gradient (E peaks
   deep to 95%, I peaks superficial at 50%, PV peaks at L2/L3, ≈66E:34I
   overall), with laminar placement so each neuron keeps its layer label. The
-  gradient is exported as first-class constants
+  gradient is exported as constants
   (:data:`CANONICAL_LAYER_CELL_TYPE_FRACTIONS`, :data:`CANONICAL_Z_BANDS`,
   and the 5-layer variants) — query those directly rather than copying these
   numbers, they are the source of truth.
@@ -147,10 +147,11 @@ def default_cortical_column_config(
     *,
     synaptic_kernel: Literal["exponential", "receptor_exponential"] = "exponential",
 ) -> Configuration:
-    """Create a default laminar cortical column Configuration.
+    """Create a default cortical column Configuration.
 
     This helper sets up a single-column model with sensible defaults:
-    - 6 layers (L1, L2/3, L4, L5, L6)
+    - one ``uniform_3d`` layer: neurons scattered in a 0.25 x 1.6 mm cylinder
+      (use :func:`build_laminar_column` for depth bands and layer labels)
     - 4 cell types (E, PV, SST, VIP) with standard fractions
     - All-to-all uniform random local connectivity
     - Laminar proxy field with declarative metadata
@@ -172,8 +173,8 @@ def default_cortical_column_config(
         Name of the column (e.g., "V1", "visual_cortex"). Default: "single_column".
     n : int
         Total number of neurons. Default: 100.
-    layers : Sequence[str], optional
-        Layer names. Default: ["L1", "L2/3", "L4", "L5", "L6"].
+    layers : None
+        Refused when given: the column has one ``uniform_3d`` layer.
     seed : int, optional
         Random seed. Default: None (uses default in runtime).
     duration_ms : float
@@ -189,7 +190,7 @@ def default_cortical_column_config(
     Returns
     -------
     Configuration
-        Configuration with sensible defaults for a laminar column.
+        Configuration with sensible defaults for one column.
 
     Examples
     --------
@@ -205,8 +206,11 @@ def default_cortical_column_config(
     - Field is a declarative proxy only; no PDE solver.
     - No sparse connectivity; all within-area connections are all-to-all uniform random.
     """
-    if layers is None:
-        layers = ["L1", "L2/3", "L4", "L5", "L6"]
+    if layers is not None:
+        raise ValueError(
+            "default_cortical_column_config(layers=...) is not realized: the column is one "
+            "'uniform_3d' layer. Use build_laminar_column(layers=...) for a laminar column"
+        )
     if synaptic_kernel not in ("exponential", "receptor_exponential"):
         raise ValueError(
             f"synaptic_kernel must be 'exponential' or 'receptor_exponential'; got {synaptic_kernel!r}"
@@ -223,14 +227,8 @@ def default_cortical_column_config(
             synaptic_kernel=synaptic_kernel,
             recurrent_backend=recurrent_backend,
         )
-        .column(column_name, layers=layers, n=n)
+        .column(column_name, layers=["uniform_3d"], n=n)
         .cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
-        .layer_fractions(
-            layer_fractions={
-                L: (i / len(layers), (i + 1) / len(layers)) for i, L in enumerate(layers)
-            },
-            layer_cell_types={L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in layers},
-        )
         .uniform3d(radius_mm=0.25, height_mm=1.6)
         .connectivity(
             within_area="all_to_all_uniform_random", within_gain=0.45, edge_seed=seed or 42
@@ -319,7 +317,6 @@ def default_complete_configuration(
             {L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in layers},
         )
         .area_layer_cell_types(nucleus_name, {"core": {"E": 0.70, "PV": 0.30}})
-        .uniform3d(radius_mm=0.25, height_mm=1.6)
         .connectivity(
             within_area="all_to_all_uniform_random", within_gain=0.40, edge_seed=seed or 42
         )
@@ -352,8 +349,8 @@ def build_laminar_column(
     geometry: Literal["auto", "uniform3d", "laminar"] = "auto",
     within_connectivity: str = "all_to_all_uniform_random",
     within_gain: float = 0.45,
-    radius_mm: float = 0.25,
-    height_mm: float = 1.6,
+    radius_mm: float | None = None,
+    height_mm: float | None = None,
     edge_seed: int | None = None,
 ) -> Configuration:
     """Build a Configuration for a single laminar cortical column.
@@ -389,20 +386,22 @@ def build_laminar_column(
         (E peaks deep to 95%, I peaks superficial at 50%, PV peaks at L2/L3,
         ≈66E:34I overall) — requires the canonical 6- or 5-layer set.
     geometry : {"auto", "uniform3d", "laminar"}, keyword-only, default "auto"
-        Neuron placement. ``"uniform3d"`` scatters neurons in a cylinder
-        (legacy; collapses layer identity to ``"uniform_3d"``, so per-layer
-        composition is *not* preserved). ``"laminar"`` places neurons in depth
-        bands so each neuron keeps its layer label and per-layer composition is
-        honored. ``"auto"`` selects ``"laminar"`` whenever a non-flat
-        composition is requested (``ei_profile="canonical"`` or an explicit
-        ``layer_cell_type_fractions``), else ``"uniform3d"`` for backward
-        compatibility.
+        Neuron placement. ``"uniform3d"`` scatters neurons in a cylinder as one
+        ``"uniform_3d"`` layer with the flat composition; it refuses layer
+        arguments. ``"laminar"`` places neurons in depth bands so each neuron
+        keeps its layer label and per-layer composition. ``"auto"`` selects
+        ``"laminar"`` when ``layers``, ``layer_fractions``,
+        ``layer_cell_type_fractions`` or ``ei_profile="canonical"`` is given,
+        else ``"uniform3d"``.
     within_connectivity : str, keyword-only, default "all_to_all_uniform_random"
         Within-area connectivity rule passed to ``.connectivity``.
     within_gain : float, keyword-only, default 0.45
         Within-area weight gain.
-    radius_mm, height_mm : float, keyword-only
-        Column geometry (cylinder radius and depth), default 0.25 / 1.6 mm.
+    radius_mm, height_mm : float, optional, keyword-only
+        Column geometry (cylinder radius and depth) in mm; ``None`` keeps the
+        defaults, 0.25 / 1.6 mm. On ``geometry="laminar"`` a given value is
+        written to ``column_radius_mm`` / ``column_height_mm``, which the laminar
+        placement and layer-thickness readers use.
     edge_seed : int, optional, keyword-only
         Seed for connectivity edge sampling; ``None`` uses the runtime default.
 
@@ -417,6 +416,17 @@ def build_laminar_column(
     >>> cfg = jtfne.build_laminar_column(ei_profile="canonical")  # ground-truth E:I gradient
     >>> cfg = jtfne.build_laminar_column("M1", 500, layers=["L2/3", "L5"], within_gain=0.6)
     """
+    if (radius_mm is not None and radius_mm <= 0.0) or (height_mm is not None and height_mm <= 0.0):
+        raise ValueError("radius_mm and height_mm must be positive")
+    explicit_layers = layers is not None or layer_fractions is not None
+    if geometry == "uniform3d" and (
+        explicit_layers or layer_cell_type_fractions is not None or ei_profile == "canonical"
+    ):
+        raise ValueError(
+            "geometry='uniform3d' builds one 'uniform_3d' layer and reads no layer structure: "
+            "drop layers/layer_fractions/layer_cell_type_fractions/ei_profile='canonical', "
+            "or use geometry='laminar'"
+        )
     if layers is None:
         layers = list(DEFAULT_LAYERS)
     layers = list(layers)
@@ -437,21 +447,38 @@ def build_laminar_column(
         )
 
     if geometry == "auto":
-        geometry = "laminar" if (ei_profile == "canonical" or explicit_per_layer) else "uniform3d"
+        laminar = ei_profile == "canonical" or explicit_per_layer or explicit_layers
+        geometry = "laminar" if laminar else "uniform3d"
 
     conn_kwargs: dict[str, Any] = {"within_area": within_connectivity, "within_gain": within_gain}
     if edge_seed is not None:
         conn_kwargs["edge_seed"] = edge_seed
 
-    cfg = (
-        Configuration()
-        .column(name, layers=layers, n=n)
-        .cell_types(cell_type_fractions)
-        .layer_fractions(layer_fractions, layer_cell_type_fractions)
-    )
     if geometry == "uniform3d":
-        # Legacy placement: cylinder scatter (collapses per-neuron layer label).
-        cfg = cfg.uniform3d(radius_mm=radius_mm, height_mm=height_mm)
+        # Cylinder scatter: one 'uniform_3d' layer with the flat composition.
+        cfg = (
+            Configuration()
+            .column(name, layers=["uniform_3d"], n=n)
+            .cell_types(cell_type_fractions)
+            .uniform3d(
+                radius_mm=0.25 if radius_mm is None else radius_mm,
+                height_mm=1.6 if height_mm is None else height_mm,
+            )
+        )
+    else:
+        cfg = (
+            Configuration()
+            .column(name, layers=layers, n=n)
+            .cell_types(cell_type_fractions)
+            .layer_fractions(layer_fractions, layer_cell_type_fractions)
+        )
+        geometry_md = {
+            k: float(v)
+            for k, v in (("column_radius_mm", radius_mm), ("column_height_mm", height_mm))
+            if v is not None
+        }
+        if geometry_md:
+            cfg = cfg.update_metadata(**geometry_md)
     cfg = cfg.connectivity(**conn_kwargs)
     if ei_profile == "canonical":
         # Enable construct-time canonical biophysics (deep-E size grading +
@@ -502,6 +529,7 @@ def build_multi_area_columns(
         Within-area weight gain.
     p_feedforward, p_feedback : float, keyword-only
         Inter-area connection probabilities, default 0.3 / 0.2.
+        UNCALIBRATED placeholders (todo 0c); not calibrated to primate anatomy.
 
     Returns
     -------
@@ -529,6 +557,8 @@ def build_multi_area_columns(
     # deeper target layers). One spec per direction; specs accumulate:
     #   feedforward  lo -> hi  : source L2/3 E -> target L4   (uses p_feedforward)
     #   feedback     hi -> lo  : source L6     -> target L1/L5 (uses p_feedback)
+    # Probabilities and weight ranges below are UNCALIBRATED placeholders
+    # (todo 0c); not calibrated to primate anatomy.
     for lo, hi in zip(areas[:-1], areas[1:]):
         cfg = cfg.inter_column_connectivity(
             source_area=lo,
@@ -556,7 +586,7 @@ def connect_columns(
     cfg: Configuration,
     source_area: str,
     target_area: str,
-    mode: Literal["sparse", "all_to_all"] = "sparse",
+    mode: Literal["sparse"] = "sparse",
     feedforward_gain: float = 0.65,
     feedback_gain: float = 0.50,
 ) -> Configuration:
@@ -570,12 +600,15 @@ def connect_columns(
         Source area name.
     target_area : str
         Target area name.
-    mode : {"sparse", "all_to_all"}
-        Connectivity mode. Default: "sparse".
+    mode : {"sparse"}
+        Connectivity mode; the inter-area compiler realizes sparse Bernoulli
+        projections only, so other values are refused.
     feedforward_gain : float
-        Feedforward weight scaling. Default: 0.65.
+        Feedforward weight scaling. Default: 0.65. UNCALIBRATED placeholder
+        (todo 0c); not calibrated to primate anatomy.
     feedback_gain : float
-        Feedback weight scaling. Default: 0.50.
+        Feedback weight scaling. Default: 0.50. UNCALIBRATED placeholder
+        (todo 0c); not calibrated to primate anatomy.
 
     Returns
     -------
@@ -585,7 +618,7 @@ def connect_columns(
     Examples
     --------
     >>> cfg = jtfne.build_multi_area_columns(["V1", "V4"], n_per_area=100)
-    >>> cfg = jtfne.connect_columns(cfg, "V1", "V4", mode="all_to_all")
+    >>> cfg = jtfne.connect_columns(cfg, "V1", "V4")
     """
     return cfg.inter_column_connectivity(
         source_area=source_area,
@@ -606,6 +639,9 @@ def sparse_intercolumn_connectivity(
     seed: int | None = None,
 ) -> dict[str, Any]:
     """Create a sparse inter-column connectivity specification.
+
+    Default probabilities and weight ranges are UNCALIBRATED placeholders
+    (todo 0c); not calibrated to primate anatomy.
 
     Returns
     -------

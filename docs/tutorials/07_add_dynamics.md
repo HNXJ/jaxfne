@@ -23,6 +23,19 @@ print(diag["H_trace"].shape, diag["w_trace"].shape)
 
 Both keep `kappa ≈ 0.04` (async-irregular). `H` restoration is `K_ctrl·(1-H_i)`; weight magnitude restoration `K_w_ctrl·(m0-m)` is independent. No new gains here.
 
+<!-- jx-figure -->
+## Figure
+
+=== "Still"
+
+    ![Weight trajectories W](../assets/visuals/hdp_weights.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="../../_static/atlas/hdp_10/hdp.html" loading="lazy" title="Weight trajectories W"></iframe>
+
+Weight trajectories W(t) under HDP in the same small run. [Open full page](../_static/atlas/hdp_10/hdp.html).
+
 Next: [08 — Compare](08_compare_nulls.md) — nulls, lesions, and authority.
 
 ## Interactive atlas (dark)

@@ -251,7 +251,7 @@ def test_cache_key_isolated_across_k_gain_array_on_reused_model():
 def test_simulate_batch_cache_key_isolated_across_r_star_on_reused_model():
     """simulate_batch's vmap cache key must also fingerprint homeostasis_params,
     not just the homeostasis on/off flag."""
-    model = _build({"jit": True, "vmap": True})
+    model = _build({"jit": True})  # simulate_batch reads vmap from each Simulation's runtime
     sim_a = jtfne.Simulation(duration_ms=D, dt_ms=DT, seed=SEED,
                              runtime=jtfne.RuntimeConfig(
                                  enable_homeostasis=True, jit=True, vmap=True,

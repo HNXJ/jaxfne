@@ -67,7 +67,7 @@ Events and conditions for the omission paradigm:
 
 ## Canonical Import
 
-All notebooks and scripts leverage the canonical packagefacade import:
+All notebooks and scripts use the canonical import:
 
 ```python
 import jaxfne as jtfne
@@ -85,29 +85,42 @@ paradigm = jtfne.omission_oddball_paradigm(
     deviant_duration_ms=100.0,
     pre_stimulus_buffer_ms=200.0,
     post_stimulus_buffer_ms=500.0,
+    deviant_drive_amplitude=10.0,
 )
 
 # Set up column and register probes
 cfg = (jtfne.Configuration()
     .runtime(seed=42, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
     .column("V1_column", layers=["L2/3", "L4", "L5"], n=60)
-    .cell_type_drives({"E": 6.5, "PV": 3.0})
+    .drive(baseline_drive_by_cell_type={"E": 6.5, "PV": 3.0})
     .set_emitter("izhikevich", "cortical_eig")
     .probes(["spikes", "LFP-proxy", "CSD-proxy"]))
 
-# Construct model and apply paradigm conditions
+# Construct model and run one condition per simulate call
 model = jtfne.construct(cfg)
+
+signals_expected = jtfne.simulate(model, seed=42, duration_ms=1000.0, dt_ms=0.1,
+                                  paradigm=paradigm.condition("expected"))
+signals_unexpected = jtfne.simulate(model, seed=42, duration_ms=1000.0, dt_ms=0.1,
+                                    paradigm=paradigm.condition("unexpected"))
+signals_omitted = jtfne.simulate(model, seed=42, duration_ms=1000.0, dt_ms=0.1,
+                                 paradigm=paradigm.condition("omitted"))
 ```
+
+A full `Paradigm` is refused by `simulate()`; `paradigm.condition(...)` selects
+one condition per run. The deviant tone drives the circuit at the declared
+deviant amplitude (10.0 here, against the standard simulator default), so
+`signals_unexpected` differs from `signals_expected` at equal seed and onsets.
 
 ---
 
 ## Figures
 
 - **Figure 1: Sensory Event Timeline** — expected, deviant, and omitted event windows.
-- **Figure 2: Expected raster/rate** — spiking under regular standards.
-- **Figure 3: Unexpected deviant raster/rate** — spiking under rare deviant.
-- **Figure 4: Omission raster/rate** — activity in expected-tone silence and post-omission window.
-- **Figure 5: LFP/CSD-proxy Contrast** — sensory vs omission extracellular-like profiles.
+- **Figure 2: Expected raster/rate** — `signals_expected` spiking under regular standards.
+- **Figure 3: Unexpected deviant raster/rate** — `signals_unexpected` spiking under rare deviant.
+- **Figure 4: Omission raster/rate** — `signals_omitted` activity in expected-tone silence and post-omission window.
+- **Figure 5: LFP/CSD-proxy Contrast** — sensory vs omission proxy profiles across the three runs.
 
 ---
 

@@ -21,7 +21,7 @@ Usage
 >>> cfg = jtfne.build_laminar_column(n=1000, ei_profile="canonical")
 >>> cfg = cfg.set_emitter("izhikevich","cortical_eig").probes(["spikes"],n_contacts=16).field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
 >>> model = jtfne.construct(cfg)
->>> path = render_column_viewer(model, output_path="artifacts/column_viewer_canonical_1000n.html")
+>>> path = render_column_viewer(model, output_path="artifacts/viewers/column_viewer_canonical_1000n.html")
 
 The function writes a standalone HTML file (Plotly.js via CDN, no Python
 server needed) and returns its path plus a data summary dict.
@@ -323,7 +323,7 @@ def _histogram_counts(values: np.ndarray, bins: int = 30) -> tuple[list[float], 
 def render_column_viewer(
     model,
     *,
-    output_path: str | Path = "artifacts/column_viewer_canonical_1000n.html",
+    output_path: str | Path = "artifacts/viewers/column_viewer_canonical_1000n.html",
     title: str = "Canonical cortical column — realized EdgeList viewer",
     max_edges_per_category: int = 600,
     max_edges_total: int = 2400,
@@ -629,7 +629,7 @@ cfg = jtfne.build_laminar_column(n=1000, ei_profile="canonical")
 cfg = cfg.set_emitter("izhikevich","cortical_eig").probes(["spikes"],n_contacts=16).field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
 model = jtfne.construct(cfg)
 data = collect_column_viewer_data(model)  # no simulation, reads realized EdgeList
-render_column_viewer(model, output_path="artifacts/column_viewer_canonical_1000n.html")
+render_column_viewer(model, output_path="artifacts/viewers/column_viewer_canonical_1000n.html")
 # Check: data["realized"]["n_edges"] == int(model.params["edge_list"].n_edges)
 # and edge_category_counts sum to n_edges.</pre>
     <p class=\"note\">No kernel or sampler was changed to build this viewer. The HTML is self-contained (Plotly.js via CDN) — open it in a browser, no Python server needed. Re-render with any Model (laminar, multi-area, neuronal tensor, HDP) without re-running a simulation.</p>

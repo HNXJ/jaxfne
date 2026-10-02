@@ -1,0 +1,72 @@
+{
+  "arms": {
+    "baseline": {
+      "hdp_source": "bundle",
+      "panels_sha256": "83ce6df05312c825",
+      "status": {
+        "h_dynamics.html": "AVAILABLE",
+        "hdp.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "oscillatory.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "schema.html": "AVAILABLE"
+      }
+    },
+    "disabled_baseline": {
+      "hdp_source": "bundle",
+      "panels_sha256": "deb14e9940890fac",
+      "status": {
+        "h_dynamics.html": "AVAILABLE",
+        "hdp.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "oscillatory.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "schema.html": "AVAILABLE"
+      }
+    },
+    "disabled_perturbed": {
+      "hdp_source": "bundle",
+      "panels_sha256": "386774aab139aa72",
+      "status": {
+        "h_dynamics.html": "AVAILABLE",
+        "hdp.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "oscillatory.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "schema.html": "AVAILABLE"
+      }
+    },
+    "perturbed": {
+      "hdp_source": "bundle",
+      "panels_sha256": "3cd7f2340900d845",
+      "status": {
+        "h_dynamics.html": "AVAILABLE",
+        "hdp.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "oscillatory.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "schema.html": "AVAILABLE"
+      }
+    }
+  },
+  "at_id": "AT-04-R2",
+  "duration_ms": 1000.0,
+  "environment": {
+    "git_sha": "04fac4e5850e212b6efe22c42762de498456d461",
+    "jax": "0.10.1",
+    "jaxfne": "0.5.0",
+    "jaxlib": "0.10.1",
+    "numpy": "2.4.6",
+    "python": "3.14.3"
+  },
+  "lineage": {
+    "parent_stage": "S1",
+    "runner": "at07_at04_053:run_at04r2"
+  },
+  "seed": 4,
+  "spec_digest": "88dd3bb4a1db395ba652ec1c36ae0c9b7bf178fa4062157b52caeea2a5135d23"
+}

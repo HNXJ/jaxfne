@@ -1,8 +1,8 @@
 # Tensor Operator Registry
 
-This page inventories the operators behind the [TFNE Operator Doctrine](../operator_doctrine.md),
-grouped by pipeline stage, and grounds them in the one runtime registry jaxfne
-actually ships: `jaxfne.operator_status()`.
+Operators behind the [TFNE Operator Doctrine](../operator_doctrine.md),
+grouped by pipeline stage and grounded in the runtime registry
+`jaxfne.operator_status()`.
 
 ## The live registry
 
@@ -143,8 +143,8 @@ and [Validation](validation.md):
 config build, construct+simulate, source tensor, field projection, probe
 readout, objective evaluation, optimizer tuning, manifest/receipt export,
 validation report, and schema migration — checking finiteness and rule
-fields at every stage. That test is the composability proof for this registry;
-this page does not duplicate it.
+fields at every stage. That end-to-end coverage is the composability evidence
+for this registry; this page does not duplicate it.
 
 ---
 

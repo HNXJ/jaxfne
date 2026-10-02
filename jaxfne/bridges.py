@@ -158,10 +158,10 @@ class JaxFemFieldBridge:
     work.
 
     Scoping notes (2026-07-18): jax-fem
-    (https://github.com/deepmodeling/jax-fem) is a real, actively-maintained
-    differentiable GPU-accelerated FEM library in JAX -- proof the general
-    approach (a differentiable elliptic solve composing with jaxfne's
-    existing differentiable spiking/HDP pipeline) is feasible. Its typical
+    (https://github.com/deepmodeling/jax-fem) is a differentiable GPU-accelerated
+    FEM library in JAX, which shows the general approach (a differentiable
+    elliptic solve composing with jaxfne's existing differentiable
+    spiking/HDP pipeline) is feasible. Its typical
     demos generate meshes via `gmsh` (an external mesh-generation tool), but
     `jax_fem.generate_mesh.Mesh` itself only needs raw `(points, cells)`
     arrays and a gmsh-free `box_mesh(Nx, Ny, Nz, ...)` helper also exists --
@@ -924,8 +924,8 @@ class JaxleyBridge:
 
         recordings = np.concatenate(v_chunks, axis=1)  # (n_cells, total_T)
 
-        # Finiteness guarantee: bounded finite drive -> stable implicit solver ->
-        # finite output. Verify rather than silently mask; fail loud in strict mode.
+        # Expected: bounded finite drive -> finite output. Verify rather than
+        # silently mask; fail loud in strict mode.
         all_finite = bool(np.all(np.isfinite(recordings)))
         if strict_finite and not all_finite:
             raise FloatingPointError(

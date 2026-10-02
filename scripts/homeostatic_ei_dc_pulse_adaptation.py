@@ -10,6 +10,11 @@ Run: PYTHONPATH=. python3 scripts/homeostatic_ei_dc_pulse_adaptation.py
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import time
 
 import jax
@@ -17,6 +22,10 @@ import jax.numpy as jnp
 import numpy as np
 
 from jaxfne.emitters_homeostatic_ei import make_minimal_ei_params, simulate_homeostatic_ei
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 DT_MS = 0.5
 DURATION_MS = 100_000.0

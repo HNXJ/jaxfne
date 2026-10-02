@@ -48,7 +48,17 @@ def test_configuration_fluent_methods_chainable():
            .runtime(seed=7, dtype="float32", duration_ms=100.0, dt_ms=0.1)
            .area_layer_cell_types("V1", {"L2/3": {"E": 0.75, "PV": 0.25}})
            .uniform3d(radius_mm=0.25, height_mm=0.5)
-           .cell_type_drives({"E": 10.0, "PV": 5.0})
+           .drive(baseline_drive_by_cell_type={"E": 10.0, "PV": 5.0})
            .suite2_interarea(enabled=True))
 
     assert isinstance(cfg, jtfne.Configuration)
+
+
+def test_cell_type_drives_is_refused_and_preset_drives_reach_the_emitter():
+    """P-014: the inert call refuses; the suite2 preset's declared drives execute."""
+    with pytest.raises(TypeError, match=r"baseline_drive_by_cell_type"):
+        jtfne.Configuration().cell_type_drives({"E": 1.0})
+    model = jtfne.construct(jtfne.suite2_net1_config(seed=3, n=40, duration_ms=10.0, dt_ms=0.5))
+    drive = {r["cell_type"]: float(d) for r, d in
+             zip(model.neuron_table(), model.params["emitter"].drive)}
+    assert drive["E"] == 4.0 and drive["PV"] == 2.0

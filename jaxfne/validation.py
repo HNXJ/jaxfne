@@ -368,7 +368,7 @@ def build_field_admissibility_report(
     cfg_metadata: Optional[dict[str, Any]] = None,
     signals_field: Optional[Any] = None,
 ) -> dict[str, Any]:
-    """Build a comprehensive field admissibility report for v0.2.0 compliance.
+    """Build a field admissibility report for v0.2.0 compliance.
 
     Returns a JSON-safe dict with all required v0.2.0 field admissibility fields.
     """
@@ -1033,7 +1033,7 @@ def build_poisson_admissibility_report(
     boundary_condition: str = "dirichlet",
     csd_sign_convention: str = "positive_equals_extracellular_source",
 ) -> dict[str, Any]:
-    """Build comprehensive Poisson solver admissibility report for v0.2.15+.
+    """Build a Poisson solver admissibility report for v0.2.15+.
 
     This report contract specifies what a Poisson solver must output to be
     admissible. Used for validating solver implementations before integration.

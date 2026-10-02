@@ -1,8 +1,6 @@
 # Single-neuron Multimodal
 
-
 Build, simulate, and inspect a single Izhikevich neuron with all eight proxy readouts.
-Extract spikes, voltage, field readouts, and reproducible output bundles.
 
 ## Open as Colab notebook
 
@@ -25,8 +23,8 @@ import matplotlib.pyplot as plt
 cfg = (
     jtfne.configuration()
     .network(n=1)
-    .emitter(family="izhikevich", preset="regular_spiking")
-    .field(domain="point")
+    .emitter(family="izhikevich", preset="cortical_eig")
+    .field()
     .probe(name="single_neuron", modes=["spikes", "V_m"])
 )
 ```
@@ -34,8 +32,9 @@ cfg = (
 Key parameters:
 
 - **n=1:** One neuron
-- **preset="regular_spiking":** Izhikevich parameter set (RS, FS, IB, etc. available)
-- **domain="point":** No spatial extent (suitable for single neuron)
+- **preset="cortical_eig":** the Izhikevich parameters `construct()` realizes; per-cell-type
+  overrides go through `cell_params`
+- **field():** the laminar source-to-field proxy (a single neuron projects onto the same contacts)
 
 ## Build the model
 
@@ -106,7 +105,6 @@ plt.show()
 
 ## Key takeaways
 
-- Single neuron simulations are the foundation
 - Output is JSON-serializable (see `model.manifest(signals, readouts)`)
 - Next: move to [Two-neuron E/I](02_two_neuron_ei.md) for dynamics
 

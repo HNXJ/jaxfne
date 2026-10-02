@@ -53,7 +53,7 @@ def test_receptor_synapse_metadata():
 def test_manifest_propagation():
     cfg = (
         jaxfne.configuration()
-        .network(n=100, cell_type_fractions={"E": 0.8, "PV": 0.2})
+        .network(n=100, cell_types={"E": 0.8, "PV": 0.2})
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
         .probe(name="LFP", n_contacts=16)
@@ -82,7 +82,7 @@ def test_manifest_propagation():
 def test_dense_vs_edge_sanity():
     cfg = (
         jaxfne.configuration()
-        .network(n=50, cell_type_fractions={"E": 0.8, "PV": 0.2})
+        .network(n=50, cell_types={"E": 0.8, "PV": 0.2})
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
         .probe(name="LFP", n_contacts=16)
@@ -128,7 +128,7 @@ def test_dense_vs_edge_sanity():
 def test_edge_path_preserves_field_truth_gates():
     cfg = (
         jaxfne.configuration()
-        .network(n=10, cell_type_fractions={"E": 1.0})
+        .network(n=10, cell_types={"E": 1.0})
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
         .probe(name="LFP", n_contacts=16)

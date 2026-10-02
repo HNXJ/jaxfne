@@ -15,7 +15,7 @@ A and B are 40Hz sinusoidal (AC) current drives targeting disjoint/overlapping
 tuning-group populations within V1's L4 and L6 layers (AB responds to both,
 A only to A-events, B only to B-events). Both the per-neuron homeostatic
 factor H and the synaptic weights carry over trial-to-trial via
-Model.with_hdp_initial_state, so long-term adaptation is genuine across the
+Model.with_hdp_initial_state, so long-term adaptation carries across the
 whole run, not reset every trial.
 
 WEIGHT-CARRYOVER RUNAWAY: FOUND AND FIXED (2026-07-04). Weight carryover used
@@ -27,19 +27,19 @@ compounded drift with no ceiling until the clip saturated every edge. Fixed
 by adding K_w_ctrl to simulate_edge_recurrent_izhikevich_hdp (jaxfne/emitters.py):
 a linear restoring force pulling wmag back toward its calibrated baseline
 (|edges.weight|, the network's originally-declared wiring), mirroring K_ctrl's
-own form. Verified directly on this exact topology: K_w_ctrl=0.001 fully
+own form. Checked directly on this exact topology: K_w_ctrl=0.001 fully
 stabilizes 20 chained trials even at the previously-unstable K_HDP=0.01 (w
 stays at its ~0.071-0.075 baseline magnitude throughout; without K_w_ctrl the
 same K_HDP=0.01 config runs away by trial 15). carry_weights now defaults to
 True.
 
-VERIFIED ADAPTATION RESULT (this session, real runs, not the earlier null
+OBSERVED ADAPTATION RESULT (this session's runs, replacing the earlier null
 control): with the driving DEFAULT_HDP_DESYNC-family preset (build_hdp_params),
-H genuinely tracks activity and converges trial-to-trial (~1.03 -> ~1.07 over
+H tracks activity and converges trial-to-trial (~1.03 -> ~1.07 over
 10 trials, Hstd shrinking toward equilibrium), rate stays in-band (~13Hz), no
 NaN, weight magnitude stays at its calibrated baseline instead of drifting.
-The paradigm now demonstrates real, stable homeostatic adaptation with
-genuine trial-to-trial weight plasticity, not just a working-but-static
+The paradigm now shows in-band homeostatic adaptation over the 10 chained
+trials with trial-to-trial weight carryover, not just a working-but-static
 H-only pipeline.
 
 Three open design decisions this script resolves concretely (previously
@@ -70,7 +70,7 @@ flagged unresolved in plans.json):
    ``neuronal_tensor.py`` by routing through ``Configuration.population()``
    (records ``metadata["area_layer_count_frac"][area]``, which
    ``core._area_layer_count_frac`` resolves ahead of the thickness
-   fallback) instead of the bare ``.column()`` call. Verified: a V1 area
+   fallback) instead of the bare ``.column()`` call. Checked: a V1 area
    declared with L1=10/L2=25/L3=15/L4=15/L5=20/L6=15 now constructs with
    exactly those per-layer counts. This script now uses the originally-
    intended sizes (L4=15/L6=15 -> 30 combined tuning-layer neurons, 10 AB +
@@ -92,9 +92,12 @@ opt into a longer run).
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
 
 import numpy as np
 
@@ -108,6 +111,10 @@ from jaxfne.neuronal_tensor import (
     NeuronalTensor,
     PlasticParams,
     construct_neuronal_tensor,
+)
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
 OUTPUT_DIR = Path("outputs/v1_pfc_continuous_aaab_smoke_test")

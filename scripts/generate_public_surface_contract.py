@@ -18,16 +18,23 @@ Usage:
 
 from __future__ import annotations
 
-import argparse
-import json
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import argparse
+import json
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from jaxfne.public_surface import public_surface_summary  # noqa: E402
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 OUT = ROOT / "artifacts" / "public_surface_contract_v0413.json"
 

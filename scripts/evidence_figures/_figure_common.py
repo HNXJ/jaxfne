@@ -6,6 +6,11 @@ Matplotlib save/close delegates to ``jaxfne.vis.evidence_export``.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 from jaxfne.vis.evidence_export import save_matplotlib_evidence_figure
 from jaxfne.vis.evidence_manifest import (
     ensure_evidence_dirs,
@@ -19,6 +24,10 @@ from jaxfne.vis.evidence_manifest import (
     truth_gates,
     utc_now_iso,
     write_json_strict,
+)
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
 __all__ = [

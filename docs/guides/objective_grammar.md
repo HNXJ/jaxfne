@@ -49,6 +49,7 @@ reuse the `Model` across seeds/trials/sweeps.
 ```python
 paradigm = jtfne.omission_oddball_paradigm(
     standard_onset_ms=50.0, standard_duration_ms=20.0,
+    deviant_drive_amplitude=10.0,
 )
 ```
 
@@ -61,7 +62,11 @@ plain drive-only trial without one.
 ### 4. simulate()
 
 ```python
-signals = jtfne.simulate(model, duration_ms=200.0, dt_ms=0.5, seed=1, paradigm=paradigm)
+# simulate() takes one condition; a full multi-condition Paradigm is refused.
+signals = jtfne.simulate(
+    model, duration_ms=200.0, dt_ms=0.5, seed=1,
+    paradigm=paradigm.condition("expected"),
+)
 # simulate(model: Model, sim: Simulation | None = None, paradigm: Any | None = None, **kwargs) -> Signals
 ```
 
@@ -148,9 +153,7 @@ Regenerate: `python scripts/generate_doc_page_atlases.py --slug objective_60`.
 
 `Configuration` exposes ~30 builder methods; the operator rules describe
 7 tensor stages with domain/codomain rules. Neither answers "what do I
-actually type, in order, to run something." This page is that answer; every
-example ran against the installed package, not copied from a proposal or an
-older skill file.
+actually type, in order, to run something." This page is that answer.
 
 ## See also
 

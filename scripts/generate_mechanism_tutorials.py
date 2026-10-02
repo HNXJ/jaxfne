@@ -49,7 +49,7 @@ def make_shared_column(n=200, seed=0, dt_ms=0.5, duration_ms=300.0):
         jtfne.Configuration()
         .runtime(seed=int(seed), duration_ms=float(duration_ms), dt_ms=float(dt_ms), dtype="float32")
         .areas(["V1"])
-        .column("V1", layers=["L2/3", "L4", "L5", "L6"], n=int(n))
+        .column("V1", layers=["uniform_3d"], n=int(n))
         .cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
         .uniform3d(radius_mm=0.25, height_mm=1.6)
         .connectivity(within_area="all_to_all_uniform_random", within_gain=0.35, edge_seed=int(seed))

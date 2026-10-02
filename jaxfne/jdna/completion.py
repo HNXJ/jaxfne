@@ -37,6 +37,17 @@ ORIGIN_SAMPLED = "JDNA-sampled"
 
 ORIGINS = frozenset({ORIGIN_DECLARED, ORIGIN_DERIVED, ORIGIN_DEFAULT, ORIGIN_SAMPLED})
 
+#: Provenance label for values rewritten by controlled augmentation
+#: (``jaxfne.augment``), not by JDNA completion. Kept outside ``ORIGINS``
+#: on purpose: that set is JDNA completion's vocabulary, unchanged here.
+ORIGIN_AUGMENTED = "augmented"
+
+#: Provenance label for per-connection values sampled under the augmentation
+#: seed ``K_V`` (``jaxfne.augment`` W_0 jitter), distinct from JDNA ``K_D``
+#: sampling (``ORIGIN_SAMPLED``). Kept outside ``ORIGINS`` on purpose, like
+#: ``ORIGIN_AUGMENTED``: that set is JDNA completion's vocabulary, unchanged here.
+ORIGIN_AUGMENT_SAMPLED = "augment-sampled"
+
 #: Default developmental domain per axis: the unit cube in relative units.
 DEFAULT_DOMAIN_3D: tuple[tuple[float, float], ...] = (
     (0.0, 1.0),

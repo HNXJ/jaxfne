@@ -60,7 +60,7 @@ jaxfne.vis.network_raster(
 )
 ```
 
-## 3. Inspect comprehensively
+## 3. Build the atlas
 
 ```python
 jaxfne.vis.build_atlas(model, signals, out_dir="atlas/")

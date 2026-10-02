@@ -13,7 +13,7 @@ Spec: `b0_protocol_spec.json`
 | `b3_experiment_a_receipt.json` | B3 bundle receipt |
 | `manifest.json` / `metrics.json` / `provenance.json` | B3 committed bundle |
 
-Local/gitignored arrays: `canonical_source.npz`, `observations.npz`.
+Arrays: `canonical_source.npz` (tracked publication fixture), `observations.npz` (local/gitignored).
 
 ## Reproduce
 

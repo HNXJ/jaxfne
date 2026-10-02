@@ -4,6 +4,12 @@ Imports frozen classifiers + adequacy from e2_ping_prereg.json (post-freeze lega
 No parameter search, no thresholds outside JSON, no run exclusion except INVALID rules.
 Operating point theta* read verbatim from write-once E2a receipt.
 """
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
+
 import sys; sys.path.insert(0, '.')
 import json, hashlib, pathlib, datetime, math
 import numpy as np
@@ -132,6 +138,10 @@ SEEDS = [dict(rep=i + 1, structure=100 + i, runtime=1100 + i, stimulus=2100 + i,
 
 # ---------------- analysis (frozen method only) ----------------
 from scipy.signal import welch, butter, filtfilt, hilbert, find_peaks
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 _gk = None
 def gauss_smooth(x, sigma_ms):

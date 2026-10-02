@@ -63,14 +63,15 @@ class TestTensorRuntimeConfiguration:
         m = jtfne.construct(t, RuntimeConfiguration(seed=1, duration_ms=20.0, dt_ms=1.0))
         assert m.cfg.metadata.get("dtype") == "float32"
 
-    def test_device_jit_vmap_forwarded_into_metadata(self):
+    def test_device_jit_forwarded_into_metadata(self):
         t = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")
         m = jtfne.construct(t, RuntimeConfiguration(seed=1, duration_ms=20.0,
-                                                    dt_ms=1.0, jit=True, vmap=True,
-                                                    device="cpu"))
+                                                    dt_ms=1.0, jit=True, device="cpu"))
         assert m.cfg.metadata.get("jit") is True
-        assert m.cfg.metadata.get("vmap") is True
         assert m.cfg.metadata.get("backend") == "cpu"
+        # vmap would be stored but never read by a single-trial simulate (H1).
+        with pytest.raises(ValueError, match="vmap is not consumed"):
+            RuntimeConfiguration(vmap=True)
 
     def test_noarg_simulate_inherits_tensor_runtime(self):
         t = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")

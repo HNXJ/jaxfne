@@ -8,6 +8,7 @@ declared-metadata surfacing, and the backward bridge (``NeuronalTensor`` ->
 ``Configuration`` leaves the existing pipeline untouched).
 """
 import os
+import math
 import subprocess
 import sys
 from pathlib import Path
@@ -31,11 +32,11 @@ def _single_area_tensor(h=0.0, with_inter_connection=True):
             nt.InterConnection(
                 source_layer="L4", source_neuron_type="E",
                 target_layer="L4", target_neuron_type="PV",
-                mechanism="GABA_A",
+                mechanism="AMPA",
                 static=nt.StaticParams(
-                    g_mech={"GABA_A": 1.0},
-                    reversal_potentials_mV={"GABA_A": -80.0},
-                    dT_ms=5.0,
+                    g_mech={"AMPA": 1.0},
+                    reversal_potentials_mV={"AMPA": 0.0},
+                    dT_ms=2.0,
                 ),
                 plastic=nt.PlasticParams(w_mech=2.0, H=h),
             )
@@ -67,7 +68,7 @@ def test_roundtrip_json(tmp_path):
     assert loaded.name == tensor.name
     assert len(loaded.areas) == len(tensor.areas)
     assert loaded.areas[0].inter_connections[0].plastic.H == pytest.approx(2.5)
-    assert loaded.areas[0].inter_connections[0].static.reversal_potentials_mV["GABA_A"] == pytest.approx(-80.0)
+    assert loaded.areas[0].inter_connections[0].static.reversal_potentials_mV["AMPA"] == pytest.approx(0.0)
 
 
 def test_construct_produces_runnable_model():
@@ -138,8 +139,8 @@ def test_reversal_metadata_surfaced_but_inert():
     tensor = _single_area_tensor()
     cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
     mechanisms = cfg.metadata["circuit"]["mechanisms"]
-    gaba_mech = next(m for m in mechanisms if m["kind"] == "GABA_A")
-    assert gaba_mech["params"]["reversal_mV"] == pytest.approx(-80.0)
+    ampa_mech = next(m for m in mechanisms if m["kind"] == "AMPA")
+    assert ampa_mech["params"]["reversal_mV"] == pytest.approx(0.0)
 
     model_a = jtfne.construct(cfg)
     model_b = jtfne.construct(cfg)
@@ -158,7 +159,10 @@ def test_geometry_collapses_to_2d_with_zero_range():
     tensor = nt.NeuronalTensor(areas=[area])
     model = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
     positions = model.params["positions"]
-    assert bool(jnp.all(positions[:, 2] == 0.0))
+    # Column-relative (owner ruling 2026-09-30): a point range collapses the
+    # axis at that fraction of the column, here the column's base.
+    assert float(jnp.ptp(positions[:, 2])) == 0.0
+    assert abs(float(positions[0, 2])) < 1e-6
 
 
 def test_serialization_round_trips_geometry_and_pose():
@@ -372,6 +376,387 @@ def test_construct_tensor_runtime_matches_construct_neuronal_tensor():
     sig_new = jtfne.simulate(model_new, duration_ms=2.0, dt_ms=0.5, seed=0)
     sig_old = jtfne.simulate(model_old, duration_ms=2.0, dt_ms=0.5, seed=0)
     assert bool(jnp.array_equal(sig_new.spikes, sig_old.spikes))
+
+
+def test_tensor_entrance_adds_only_overlays_to_the_configuration_lowering():
+    """`construct(tensor)` lowers through `neuronal_tensor_to_configuration`
+    then `construct(cfg)`, and overlays H and pose afterwards. So this
+    compares one lowering with itself plus overlays, not two independent
+    entrances: it pins that the overlays leave every signal bit-identical.
+
+    P-022 is closed: the bridge carries `Layer.geometry` (fractional
+    `tfne_geometry` domains, so the default-geometry fixture declares
+    nothing and both entrances sample the historical bounds), and the
+    position overlay applies only the default (identity) `Pose3D` here --
+    so positions and with them every field proxy are bit-identical.
+    200 ms is the shortest round duration at which this fixture spikes
+    reliably (59 spikes), so the activity comparison is not vacuous."""
+    D = 200.0
+    tensor = _single_area_tensor()
+    runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=D, dt_ms=0.5)
+    model_a = jtfne.construct(tensor, runtime)
+    cfg_b = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=D, dt_ms=0.5)
+    model_b = jtfne.construct(cfg_b)
+    sig_a = jtfne.simulate(model_a, duration_ms=D, dt_ms=0.5, seed=0)
+    sig_b = jtfne.simulate(model_b, duration_ms=D, dt_ms=0.5, seed=0)
+    assert int(sig_a.spikes.sum()) > 0, "fixture must spike for a non-vacuous comparison"
+    assert bool(jnp.array_equal(sig_a.spikes, sig_b.spikes))
+    assert bool(jnp.array_equal(sig_a.V_m, sig_b.V_m))
+    assert bool(jnp.array_equal(sig_a.sources, sig_b.sources))
+    # The overlays ran but are identity here (H stored-but-inert with HDP
+    # disabled, default pose): positions and every field readout agree.
+    assert bool(jnp.array_equal(model_a.params["positions"], model_b.params["positions"]))
+    assert sig_a.field is not None and sig_b.field is not None
+    assert sig_a.field.source_proxy.shape == sig_b.field.source_proxy.shape
+    assert float(jnp.abs(sig_a.field.source_proxy).max()) > 0, "field must be non-trivial"
+    assert bool(jnp.array_equal(sig_a.field.source_proxy, sig_b.field.source_proxy))
+    assert bool(jnp.array_equal(sig_a.field.phi_e_proxy, sig_b.field.phi_e_proxy))
+    assert bool(jnp.array_equal(sig_a.field.lfp_proxy, sig_b.field.lfp_proxy))
+    assert bool(jnp.array_equal(sig_a.field.csd_proxy, sig_b.field.csd_proxy))
+    assert bool(jnp.array_equal(sig_a.field.kernel, sig_b.field.kernel))
+
+
+def test_hand_spelled_configuration_matches_tensor_entrance():
+    """Two INDEPENDENT entrances, one lowering: a Configuration spelled by
+    hand through the public Configuration builders must give the same
+    Signals as the NeuronalTensor `_single_area_tensor()` fixture.
+
+    Entrance A goes through `jtfne.construct(tensor, runtime)` (which lowers
+    via the bridge internally). Entrance B below spells the SAME values
+    literally -- population, cell-type fractions, mechanism name/kind/params,
+    connection rule (selectors, probability, weight, sign, mechanism ref),
+    emitter, probes, field, runtime seed/duration/dt/dtype -- without calling
+    `nt.neuronal_tensor_to_configuration` or anything that calls it.
+
+    Literal provenance (read from `neuronal_tensor_to_configuration` +
+    `_wire_connection` + `_connection_edge_weight`, not executed):
+    area V1 = 20 neurons in layer L4; no declared fractions -> even split
+    E/PV = 0.5/0.5; mechanism name "AMPA__dt2__0" (kind + `:g`-formatted
+    dT_ms + dedup index 0), params tau_ms=2.0 plus the surfaced-but-inert
+    reversal_mV=0.0; rule "interconn_V1_0", full-bipartite probability 1.0,
+    weight |2.0 * 1.0| / sqrt(20), sign from the E source -> excitatory, no
+    delay (InterConnection.delay_ms defaults to None); connectivity_mode
+    "explicit" (passing inter_connections=[...] to Area(...) marks that area
+    explicit, so the compiled graph holds only the declared rule).
+    Omitted as inert: `tensor_identity` (a provenance hash nothing in
+    construct/simulate reads) and the H overlay (stored but inert with HDP
+    disabled, per the overlay test above). The fixture declares default
+    (full-range) geometry, which the bridge omits from `tfne_geometry`, so
+    there is no geometry to spell here -- and positions plus every field
+    proxy are compared bit-exact.
+
+    D=200 ms is the shortest round duration at which this fixture spikes
+    reliably, so the comparison is not vacuous."""
+    D = 200.0
+    tensor = _single_area_tensor()
+    runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=D, dt_ms=0.5)
+    model_a = jtfne.construct(tensor, runtime)
+    sig_a = jtfne.simulate(model_a, duration_ms=D, dt_ms=0.5, seed=0)
+
+    cfg_b = (
+        jtfne.Configuration()
+        .runtime(seed=0, duration_ms=D, dt_ms=0.5, dtype="float32")
+        .update_metadata(connectivity_mode="explicit")
+        .population(20, neurons={"L4": 20}, name="V1", layers=["L4"])
+        .area_layer_cell_types("V1", {"L4": {"E": 0.5, "PV": 0.5}})
+        .cell_types({"E": 0.5, "PV": 0.5})
+        .mechanisms(
+            name="AMPA__dt2__0", kind="AMPA",
+            params={"tau_ms": 2.0, "reversal_mV": 0.0},
+        )
+        .connections(
+            name="interconn_V1_0",
+            source={"area": "V1", "layer": "L4", "cell_type": "E"},
+            target={"area": "V1", "layer": "L4", "cell_type": "PV"},
+            probability=1.0,
+            weight=2.0 / math.sqrt(20),
+            sign="excitatory",
+            mechanism="AMPA__dt2__0",
+        )
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m"], n_contacts=16)
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+    )
+    model_b = jtfne.construct(cfg_b)
+    assert model_b.cfg.metadata.get("recurrent_backend") == "edge_list"
+    sig_b = jtfne.simulate(model_b, duration_ms=D, dt_ms=0.5, seed=0)
+    assert int(sig_a.spikes.sum()) > 0, "fixture must spike for a non-vacuous comparison"
+    assert bool(jnp.array_equal(sig_a.spikes, sig_b.spikes))
+    assert bool(jnp.array_equal(sig_a.V_m, sig_b.V_m))
+    assert bool(jnp.array_equal(sig_a.sources, sig_b.sources))
+    assert bool(jnp.array_equal(model_a.params["positions"], model_b.params["positions"]))
+    assert sig_a.field is not None and sig_b.field is not None
+    assert float(jnp.abs(sig_a.field.source_proxy).max()) > 0, "field must be non-trivial"
+    assert bool(jnp.array_equal(sig_a.field.source_proxy, sig_b.field.source_proxy))
+    assert bool(jnp.array_equal(sig_a.field.phi_e_proxy, sig_b.field.phi_e_proxy))
+    assert bool(jnp.array_equal(sig_a.field.lfp_proxy, sig_b.field.lfp_proxy))
+    assert bool(jnp.array_equal(sig_a.field.csd_proxy, sig_b.field.csd_proxy))
+    assert bool(jnp.array_equal(sig_a.field.kernel, sig_b.field.kernel))
+
+
+def test_hand_spelled_two_area_configuration_matches_tensor_entrance():
+    """Two areas of DIFFERENT sizes through the same two entrances as the
+    single-area test above -- this is the case that discriminates lowering
+    details the single-area fixture cannot.
+
+    The fixture has V1 with 20 neurons and V2 with 12 (total_n = 32, so area
+    size != total size), one InterConnection inside V1 (as above), and one
+    AreaConnection V1 -> V2 carrying a non-None delay_ms.
+
+    Entrance A goes through `jtfne.construct(tensor, runtime)` (which lowers
+    via the bridge internally). Entrance B below spells the SAME values
+    literally without calling `nt.neuronal_tensor_to_configuration` or
+    anything that calls it.
+
+    Literal provenance (read from `neuronal_tensor_to_configuration` +
+    `_wire_connection` + `_connection_edge_weight`, not executed): populations
+    spelled per area in declaration order (V1 = 20 in L4, V2 = 12 in L4); no
+    declared fractions -> even splits (V1/L4 E/PV = 0.5/0.5, V2/L4 E = 1.0);
+    global cell_types from the neuron-count-weighted fallback (E = 10 + 12 =
+    22, PV = 10, over 32); mechanism names "GABA_A__dt5__0" (kind +
+    `:g`-formatted dT_ms + dedup index 0, params tau_ms=5.0 plus the
+    surfaced-but-inert reversal_mV=-80.0) and "AMPA__dt2__1" (dedup index 1);
+    rules "interconn_V1_0" and "areaconn_0", full-bipartite probability 1.0,
+    weights |2.0 * 1.0| / sqrt(32) and |1.5 * 1.0| / sqrt(32) -- normalized by
+    the TOTAL (32), not the area size -- signs from the E sources ->
+    excitatory, and the AreaConnection's delay_ms=2.0 forwarded into its rule
+    (the InterConnection declares no delay); connectivity_mode "explicit".
+    Omitted as inert: `tensor_identity`, the H overlay (stored but inert with
+    HDP disabled). Both layers declare default (full-range) geometry, which
+    the bridge omits from `tfne_geometry`, so there is no geometry to spell
+    here -- and positions plus every field proxy are compared bit-exact.
+
+    D=200 ms spikes in both areas (57 V1 + 36 V2 spikes), so the per-area
+    comparison is not vacuous."""
+    D = 200.0
+    layer_v1 = nt.Layer(
+        name="L4",
+        n_neurons=20,
+        neuron_types=[nt.NeuronType.make("E"), nt.NeuronType.make("PV")],
+    )
+    inter = nt.InterConnection(
+        source_layer="L4", source_neuron_type="E",
+        target_layer="L4", target_neuron_type="PV",
+        mechanism="AMPA",
+        static=nt.StaticParams(
+            g_mech={"AMPA": 1.0},
+            reversal_potentials_mV={"AMPA": 0.0},
+            dT_ms=2.0,
+        ),
+        plastic=nt.PlasticParams(w_mech=2.0, H=0.0),
+    )
+    area_v1 = nt.Area(name="V1", layers=[layer_v1], inter_connections=[inter])
+    layer_v2 = nt.Layer(
+        name="L4", n_neurons=12,
+        neuron_types=[nt.NeuronType.make("E")],
+    )
+    area_v2 = nt.Area(name="V2", layers=[layer_v2])
+    cross = nt.AreaConnection(
+        source_area="V1", source_layer="L4", source_neuron_type="E",
+        target_area="V2", target_layer="L4", target_neuron_type="E",
+        mechanism="AMPA",
+        static=nt.StaticParams(dT_ms=2.0),
+        plastic=nt.PlasticParams(w_mech=1.5, H=0.0),
+        delay_ms=2.0,
+    )
+    tensor = nt.NeuronalTensor(areas=[area_v1, area_v2], area_connections=[cross])
+    runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=D, dt_ms=0.5)
+    model_a = jtfne.construct(tensor, runtime)
+    sig_a = jtfne.simulate(model_a, duration_ms=D, dt_ms=0.5, seed=0)
+
+    cfg_b = (
+        jtfne.Configuration()
+        .runtime(seed=0, duration_ms=D, dt_ms=0.5, dtype="float32")
+        .update_metadata(connectivity_mode="explicit")
+        .population(20, neurons={"L4": 20}, name="V1", layers=["L4"])
+        .population(12, neurons={"L4": 12}, name="V2", layers=["L4"])
+        .area_layer_cell_types("V1", {"L4": {"E": 0.5, "PV": 0.5}})
+        .area_layer_cell_types("V2", {"L4": {"E": 1.0}})
+        .cell_types({"E": 22.0 / 32.0, "PV": 10.0 / 32.0})
+        .mechanisms(
+            name="AMPA__dt2__0", kind="AMPA",
+            params={"tau_ms": 2.0, "reversal_mV": 0.0},
+        )
+        .connections(
+            name="interconn_V1_0",
+            source={"area": "V1", "layer": "L4", "cell_type": "E"},
+            target={"area": "V1", "layer": "L4", "cell_type": "PV"},
+            probability=1.0,
+            weight=2.0 / math.sqrt(32),
+            sign="excitatory",
+            mechanism="AMPA__dt2__0",
+        )
+        .mechanisms(
+            name="AMPA__dt2__1", kind="AMPA",
+            params={"tau_ms": 2.0},
+        )
+        .connections(
+            name="areaconn_0",
+            source={"area": "V1", "layer": "L4", "cell_type": "E"},
+            target={"area": "V2", "layer": "L4", "cell_type": "E"},
+            probability=1.0,
+            weight=1.5 / math.sqrt(32),
+            sign="excitatory",
+            mechanism="AMPA__dt2__1",
+            delay_ms=2.0,
+        )
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m"], n_contacts=16)
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+    )
+    model_b = jtfne.construct(cfg_b)
+    assert model_b.cfg.metadata.get("recurrent_backend") == "edge_list"
+    sig_b = jtfne.simulate(model_b, duration_ms=D, dt_ms=0.5, seed=0)
+    rows = model_a.neuron_table()
+    assert [r["area"] for r in model_b.neuron_table()] == [r["area"] for r in rows]
+    v1_idx = [i for i, r in enumerate(rows) if r["area"] == "V1"]
+    v2_idx = [i for i, r in enumerate(rows) if r["area"] == "V2"]
+    assert len(v1_idx) == 20 and len(v2_idx) == 12
+    assert int(sig_a.spikes[:, v1_idx].sum()) > 0, "V1 must spike for a non-vacuous comparison"
+    assert int(sig_a.spikes[:, v2_idx].sum()) > 0, "V2 must spike for a non-vacuous comparison"
+    assert bool(jnp.array_equal(sig_a.spikes, sig_b.spikes))
+    assert bool(jnp.array_equal(sig_a.V_m, sig_b.V_m))
+    assert bool(jnp.array_equal(sig_a.sources, sig_b.sources))
+    assert bool(jnp.array_equal(model_a.params["positions"], model_b.params["positions"]))
+    assert sig_a.field is not None and sig_b.field is not None
+    assert float(jnp.abs(sig_a.field.source_proxy).max()) > 0, "field must be non-trivial"
+    assert bool(jnp.array_equal(sig_a.field.source_proxy, sig_b.field.source_proxy))
+    assert bool(jnp.array_equal(sig_a.field.phi_e_proxy, sig_b.field.phi_e_proxy))
+    assert bool(jnp.array_equal(sig_a.field.lfp_proxy, sig_b.field.lfp_proxy))
+    assert bool(jnp.array_equal(sig_a.field.csd_proxy, sig_b.field.csd_proxy))
+    assert bool(jnp.array_equal(sig_a.field.kernel, sig_b.field.kernel))
+
+
+def test_declared_layer_geometry_carried_through_bridge():
+    """A non-default `Layer.geometry` reaches the Configuration the bridge
+    emits, so all three entrances -- `construct(tensor)`, the bridged
+    `Configuration`, and a hand spelling with the literal `tfne_geometry`
+    domains -- realize bit-identical positions and field proxies.
+
+    The fixture mirrors `_single_area_tensor()` with sub-range geometry on
+    every axis; D=200 ms spikes reliably (59 spikes), so the field
+    comparison is not vacuous."""
+    D = 200.0
+    layer = nt.Layer(
+        name="L4",
+        n_neurons=20,
+        neuron_types=[nt.NeuronType.make("E"), nt.NeuronType.make("PV")],
+        geometry=nt.Geometry3D(x_range=(0.25, 0.75), y_range=(0.1, 0.5), z_range=(0.2, 0.6)),
+    )
+    tensor = nt.NeuronalTensor(
+        areas=[
+            nt.Area(
+                name="V1",
+                layers=[layer],
+                inter_connections=[
+                    nt.InterConnection(
+                        source_layer="L4", source_neuron_type="E",
+                        target_layer="L4", target_neuron_type="PV",
+                        mechanism="AMPA",
+                        static=nt.StaticParams(
+                            g_mech={"AMPA": 1.0},
+                            reversal_potentials_mV={"AMPA": 0.0},
+                            dT_ms=2.0,
+                        ),
+                        plastic=nt.PlasticParams(w_mech=2.0, H=0.0),
+                    )
+                ],
+            )
+        ],
+        name="geometry_carried_test",
+    )
+    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=D, dt_ms=0.5)
+    domains = cfg.metadata["tfne_geometry"]["domains"]
+    assert domains["V1"]["L4"]["x"] == [0.25, 0.75] and domains["V1"]["L4"]["y"] == [0.1, 0.5]
+
+    # Column-relative frame (owner ruling 2026-09-30): z is 20-60 % of the
+    # column depth, not of L4's own block; x, y are fractions of the column width.
+    pos = jtfne.construct(cfg).params["positions"]
+    r = float(cfg.metadata.get("column_radius_mm", 0.25))
+    eps = 1e-6
+    assert float(pos[:, 2].min()) >= 0.2 - eps and float(pos[:, 2].max()) <= 0.6 + eps
+    assert float(pos[:, 0].min()) >= -r + 0.25 * 2 * r - eps and float(pos[:, 0].max()) <= -r + 0.75 * 2 * r + eps
+    assert float(pos[:, 1].min()) >= -r + 0.1 * 2 * r - eps and float(pos[:, 1].max()) <= -r + 0.5 * 2 * r + eps
+
+    runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=D, dt_ms=0.5)
+    model_a = jtfne.construct(tensor, runtime)
+    model_b = jtfne.construct(cfg)
+    assert bool(jnp.array_equal(model_a.params["positions"], model_b.params["positions"]))
+    sig_a = jtfne.simulate(model_a, duration_ms=D, dt_ms=0.5, seed=0)
+    sig_b = jtfne.simulate(model_b, duration_ms=D, dt_ms=0.5, seed=0)
+    assert int(sig_a.spikes.sum()) > 0, "fixture must spike for a non-vacuous comparison"
+    assert bool(jnp.array_equal(sig_a.spikes, sig_b.spikes))
+    assert bool(jnp.array_equal(sig_a.field.source_proxy, sig_b.field.source_proxy))
+    assert bool(jnp.array_equal(sig_a.field.csd_proxy, sig_b.field.csd_proxy))
+
+    cfg_h = (
+        jtfne.Configuration()
+        .runtime(seed=0, duration_ms=D, dt_ms=0.5, dtype="float32")
+        .update_metadata(connectivity_mode="explicit")
+        .population(20, neurons={"L4": 20}, name="V1", layers=["L4"])
+        .area_layer_cell_types("V1", {"L4": {"E": 0.5, "PV": 0.5}})
+        .cell_types({"E": 0.5, "PV": 0.5})
+        .update_metadata(tfne_geometry={"value_tag": "relative", "domains": domains})
+        .mechanisms(
+            name="AMPA__dt2__0", kind="AMPA",
+            params={"tau_ms": 2.0, "reversal_mV": 0.0},
+        )
+        .connections(
+            name="interconn_V1_0",
+            source={"area": "V1", "layer": "L4", "cell_type": "E"},
+            target={"area": "V1", "layer": "L4", "cell_type": "PV"},
+            probability=1.0,
+            weight=2.0 / math.sqrt(20),
+            sign="excitatory",
+            mechanism="AMPA__dt2__0",
+        )
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m"], n_contacts=16)
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+    )
+    model_h = jtfne.construct(cfg_h)
+    sig_h = jtfne.simulate(model_h, duration_ms=D, dt_ms=0.5, seed=0)
+    assert bool(jnp.array_equal(model_a.params["positions"], model_h.params["positions"]))
+    assert bool(jnp.array_equal(sig_a.spikes, sig_h.spikes))
+    assert bool(jnp.array_equal(sig_a.field.source_proxy, sig_h.field.source_proxy))
+
+
+def test_pose_translation_is_absolute_per_area():
+    """Owner ruling 2026-09-30: positions use the Configuration frame; a
+    non-default Pose3D applies about the area's own column origin, so V2's
+    translation does not stack on construct's 2 mm per-area x offset, and a
+    default-pose area keeps construct's positions exactly."""
+    def area(name, pose):
+        return nt.Area(
+            name=name,
+            layers=[nt.Layer(name="L4", n_neurons=12, neuron_types=[nt.NeuronType.make("E")])],
+            pose=pose,
+        )
+
+    tensor = nt.NeuronalTensor(
+        areas=[area("V1", nt.Pose3D()), area("V2", nt.Pose3D(translation=(5.0, 0.0, 0.0)))]
+    )
+    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
+    base = jtfne.construct(cfg).params["positions"]
+    model = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
+    pos = model.params["positions"]
+    assert bool(jnp.array_equal(pos[:12], base[:12]))  # default pose: unchanged
+    r = float(cfg.metadata.get("column_radius_mm", 0.25))
+    assert float(pos[12:, 0].min()) >= 5.0 - r - 1e-5 and float(pos[12:, 0].max()) <= 5.0 + r + 1e-5
+    assert bool(jnp.allclose(pos[12:, 1:], base[12:, 1:]))
+
+
+def test_non_uniform_geometry_distribution_refused():
+    """A non-`uniform_random` distribution is refused by the bridge, where
+    the declaration would otherwise be silently sampled as uniform."""
+    layer = nt.Layer(
+        name="L4", n_neurons=4,
+        neuron_types=[nt.NeuronType.make("E")],
+        geometry=nt.Geometry3D(distribution="grid"),
+    )
+    tensor = nt.NeuronalTensor(areas=[nt.Area(name="V1", layers=[layer])])
+    with pytest.raises(NotImplementedError, match="uniform_random"):
+        nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
 
 
 def test_construct_tensor_defaults_runtime_when_omitted():

@@ -195,29 +195,14 @@ def test_g_n_contacts_default_16():
 
 
 def test_h_n_contacts_invalid_zero_raises():
-    cfg = (
-        jaxfne.Configuration()
-        .network(n=8)
-        .emitter(family="izhikevich", preset="cortical_eig")
-        .field(domain="laminar_column", conductivity="proxy",
-               boundary="mean_zero_neumann", gauge="mean_zero")
-        .probe(name="lp", n_contacts=0)
-    )
+    # Refused at declaration since H1 (0.5.5), before construct() is reached.
     with pytest.raises(ValueError, match="n_contacts must be >= 2"):
-        jaxfne.construct(cfg)
+        jaxfne.Configuration().network(n=8).probe(name="lp", n_contacts=0)
 
 
 def test_h_n_contacts_invalid_one_raises():
-    cfg = (
-        jaxfne.Configuration()
-        .network(n=8)
-        .emitter(family="izhikevich", preset="cortical_eig")
-        .field(domain="laminar_column", conductivity="proxy",
-               boundary="mean_zero_neumann", gauge="mean_zero")
-        .probe(name="lp", n_contacts=1)
-    )
     with pytest.raises(ValueError, match="n_contacts must be >= 2"):
-        jaxfne.construct(cfg)
+        jaxfne.Configuration().network(n=8).probe(name="lp", n_contacts=1)
 
 
 # ─── I/J. field readout time-window slicing ──────────────────────────────────

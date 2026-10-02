@@ -61,32 +61,32 @@ class DynamicState(NamedTuple):
     step, not a bug to fix.
     """
 
-    v: jax.Array            # (n_neurons,)  membrane voltage
-    u: jax.Array            # (n_neurons,)  recovery variable
+    v: jax.Array  # (n_neurons,)  membrane voltage
+    u: jax.Array  # (n_neurons,)  recovery variable
     prev_spikes: jax.Array  # (n_neurons,)  spikes from t-1 on entry
-    syn_state: jax.Array    # (n_edges,)    synaptic gating variable
-    H: jax.Array            # (n_neurons,) scalar or (n_neurons, d_H) vector H
-    w: jax.Array            # (n_edges,)    synaptic weights
-    theta_S: jax.Array      # (n_theta,) population controller coordinates
-    aux: jax.Array          # (n_aux,) registered-rule auxiliary coordinates
-    b: jax.Array            # (n_neurons,) registered-rule drive-bias coord
+    syn_state: jax.Array  # (n_edges,)    synaptic gating variable
+    H: jax.Array  # (n_neurons,) scalar or (n_neurons, d_H) vector H
+    w: jax.Array  # (n_edges,)    synaptic weights
+    theta_S: jax.Array  # (n_theta,) population controller coordinates
+    aux: jax.Array  # (n_aux,) registered-rule auxiliary coordinates
+    b: jax.Array  # (n_neurons,) registered-rule drive-bias coord
 
 
 class ContinuationState(NamedTuple):
     """Runtime continuation state for recurrent edge-list simulation.
 
-    ``dynamic`` is the complete kernel carry. ``prng_key`` is the next key in
-    a deterministic per-step split sequence; it is deliberately separate from
-    ``dynamic`` so the existing six-field ``DynamicState`` contract remains
-    unchanged. The carrier preserves the H-state array as an opaque JAX leaf;
-    the current scalar kernel is a ``d_H=1`` special case, not a continuation
-    shape restriction. ``step_index`` is the global simulation step offset at
-    the start of the next segment (alias ``continuation_step_offset``).
+      ``dynamic`` is the complete kernel carry. ``prng_key`` is the next key in
+      a deterministic per-step split sequence; it is deliberately separate from
+      ``dynamic`` so the existing six-field ``DynamicState`` contract remains
+      unchanged. The carrier preserves the H-state array as an opaque JAX leaf;
+      the current scalar kernel is a ``d_H=1`` special case, not a continuation
+      shape restriction. ``step_index`` is the global simulation step offset at
+      the start of the next segment (alias ``continuation_step_offset``).
 
-    ``delay_state`` is the canonical public name for the finite-delay ring
-  buffer :math:`\\mathcal B_t` (legacy alias ``spike_history``). It is
-    ``None`` when all edge delays are zero so legacy callers pay no buffer
-    cost unless delayed continuation is active.
+      ``delay_state`` is the canonical public name for the finite-delay ring
+    buffer :math:`\\mathcal B_t` (legacy alias ``spike_history``). It is
+      ``None`` when all edge delays are zero so legacy callers pay no buffer
+      cost unless delayed continuation is active.
     """
 
     dynamic: DynamicState
@@ -105,9 +105,7 @@ def continuation_noise_schedule(
     _, step_keys = _advance_prng_key(key, n_steps)
     noise_keys = jax.vmap(lambda step_key: jax.random.split(step_key)[1])(step_keys)
     return jax.vmap(
-        lambda noise_key: jax.random.normal(
-            noise_key, shape=(int(n_neurons),), dtype=dtype
-        )
+        lambda noise_key: jax.random.normal(noise_key, shape=(int(n_neurons),), dtype=dtype)
     )(noise_keys)
 
 
@@ -134,7 +132,11 @@ def tensor_to_configuration(
     """Bridge a NeuronalTensor into a Configuration. Pure wrapper over
     ``jaxfne.neuronal_tensor.neuronal_tensor_to_configuration``."""
     return neuronal_tensor_to_configuration(
-        tensor, seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, emitter=emitter,
+        tensor,
+        seed=seed,
+        duration_ms=duration_ms,
+        dt_ms=dt_ms,
+        emitter=emitter,
     )
 
 
@@ -280,7 +282,10 @@ def dynamic_state_from_model(
     HDP edge-list; a model built without an edge list (dense-only) cannot
     produce a valid DynamicState.
     """
-    from ._hdp_adaptive import expected_h_shape as compute_expected_h_shape, resolve_h_state_locality
+    from ._hdp_adaptive import (
+        expected_h_shape as compute_expected_h_shape,
+        resolve_h_state_locality,
+    )
 
     hp = dict(hdp_params or {})
     locality = resolve_h_state_locality(
@@ -308,15 +313,9 @@ def dynamic_state_from_model(
         from .hdp_rule import get_hdp_rule as _get_rule
 
         _desc, _ = _get_rule(str(hp["hdp_rule"]))
-        expected_h_shape = (int(n_neurons),) + tuple(
-            int(d) for d in _desc.h_shape
-        )
+        expected_h_shape = (int(n_neurons),) + tuple(int(d) for d in _desc.h_shape)
     H0 = model.params.get("hdp_initial_H")
-    H0 = (
-        jnp.asarray(H0, dtype=dtype)
-        if H0 is not None
-        else jnp.ones(expected_h_shape, dtype=dtype)
-    )
+    H0 = jnp.asarray(H0, dtype=dtype) if H0 is not None else jnp.ones(expected_h_shape, dtype=dtype)
     if H0.shape != expected_h_shape:
         raise ValueError(
             "hdp_initial_H must have shape "
@@ -338,9 +337,7 @@ def dynamic_state_from_model(
         if is_registered_hdp_rule(hp.get("hdp_rule")):
             descriptor, _ = get_hdp_rule(str(hp["hdp_rule"]))
             aux0 = jnp.zeros(
-                expected_aux_shape(
-                    descriptor, n_neurons=int(n_neurons), n_edges=int(n_edges)
-                ),
+                expected_aux_shape(descriptor, n_neurons=int(n_neurons), n_edges=int(n_edges)),
                 dtype=dtype,
             )
     theta0 = jnp.zeros((0,), dtype=dtype)
@@ -392,8 +389,7 @@ def validate_continuation_delay_state(
         return
     if continuing and state.delay_state is None:
         raise ValueError(
-            "delayed continuation requires delay_state (canonical B_t; legacy "
-            "alias spike_history)"
+            "delayed continuation requires delay_state (canonical B_t; legacy alias spike_history)"
         )
     if state.delay_state is None:
         return
@@ -401,8 +397,7 @@ def validate_continuation_delay_state(
     ds_host = np.asarray(state.delay_state)
     if ds_host.shape != (bufsize, n_neurons):
         raise ValueError(
-            f"delay_state must have shape ({bufsize}, {n_neurons}), got "
-            f"{ds_host.shape}"
+            f"delay_state must have shape ({bufsize}, {n_neurons}), got {ds_host.shape}"
         )
 
 
@@ -426,9 +421,7 @@ def _continuation_init_dict_from_state(
     if int(state.dynamic.b.size):
         init_state["b_final"] = state.dynamic.b
     if include_step_offset:
-        init_state["continuation_step_offset"] = jnp.asarray(
-            state.step_index, dtype=jnp.int32
-        )
+        init_state["continuation_step_offset"] = jnp.asarray(state.step_index, dtype=jnp.int32)
     if state.delay_state is not None:
         init_state["delay_state"] = state.delay_state
     return init_state
@@ -444,6 +437,9 @@ def compile_step_fn(
     record_current_trace: bool = False,
     record_u_trace: bool = False,
     record_weight_trace: bool = True,
+    record_stride: int = 1,
+    record_h_subset: jax.Array | None = None,
+    record_w_subset: jax.Array | None = None,
     **hdp_kwargs: Any,
 ) -> "tuple[callable, ContinuationState]":
     """Build a JIT-compiled single-step function over an edge-list carry.
@@ -468,6 +464,13 @@ def compile_step_fn(
     across repeated calls. ``carry.w`` (the actual weight state driving HDP's
     plasticity) is unaffected either way -- disabling the trace never
     disables HDP itself, only the optional per-outer-step weight diagnostic.
+
+    0.5.3 item 2 recording budgets: ``record_stride`` (positive int,
+    default 1), ``record_h_subset`` / ``record_w_subset`` (1D integer
+    index arrays, default None = all) select kept H/W frames. Subset
+    selection applies per step inside the kernels; stride over segments is
+    applied by the Model-level runner post-stack (see
+    ``_simulate_continuation_arrays``). Full recording stays the default.
 
     DEVIATION FROM SPEC, surfaced explicitly rather than papered over:
     ``simulate_edge_recurrent_izhikevich_hdp``'s inner ``step`` closure
@@ -498,10 +501,45 @@ def compile_step_fn(
     if kernel not in {"hdp", "baseline"}:
         raise ValueError("kernel must be 'hdp' or 'baseline'")
 
+    # 0.5.3 item 7b (H7): unknown **hdp_kwargs keys fail closed HERE, at
+    # compile time, with a key list -- not later as a bare TypeError from
+    # inside the first step, and never silently dropped. Registered-rule
+    # params are checked per-descriptor; hdp_rule_params alongside a legacy
+    # (non-registered) rule is misplaced and refused.
+    from .hdp_rule import (
+        check_hdp_rule_params,
+        is_registered_hdp_rule as _is_registered,
+        reject_unknown_hdp_kwargs,
+    )
+
+    reject_unknown_hdp_kwargs(hdp_kwargs, kernel=kernel)
+    _rule_name = hdp_kwargs.get("hdp_rule")
+    if _is_registered(_rule_name):
+        check_hdp_rule_params(str(_rule_name), hdp_kwargs.get("hdp_rule_params"))
+    elif "hdp_rule_params" in hdp_kwargs:
+        _rp = hdp_kwargs["hdp_rule_params"]
+        raise ValueError(
+            "hdp_rule_params requires a registered hdp_rule; got "
+            f"hdp_rule={_rule_name!r} with hdp_rule_params "
+            f"{sorted(_rp, key=repr) if isinstance(_rp, dict) else type(_rp).__name__}"
+        )
+
     emitter = model.params["emitter"]
     edges = model.params["edge_list"]
     n_neurons = emitter.n_neurons
     silence_mask = jnp.ones((n_neurons,), dtype=emitter.v0.dtype)
+
+    # 0.5.4 item 1: ensemble member streams on the continuation path. When
+    # the model carries ensemble member sizes, step_fn takes a fourth xs
+    # element (the precomputed per-step unit-noise row) and forwards it as
+    # the kernels' noise_schedule, so segments reproduce the continuous
+    # ensemble streams. None keeps the exact prior 3-element contract.
+    _ens_counts = _ensemble_counts_of_model(model)
+    if _ens_counts is not None and sum(_ens_counts) != int(n_neurons):
+        raise ValueError(
+            "ensemble model_sizes sum to "
+            f"{sum(_ens_counts)} but the emitter carries {int(n_neurons)} neurons"
+        )
 
     from .emitters import (
         simulate_edge_recurrent_izhikevich,
@@ -511,19 +549,32 @@ def compile_step_fn(
     use_delays = model_requires_delay_state(model)
 
     def step_fn(state: ContinuationState, xs_t: tuple) -> "tuple[ContinuationState, tuple]":
-        sched_t, key_t, t_idx = xs_t
-        init_state = _continuation_init_dict_from_state(
-            state, include_step_offset=not use_delays
-        )
+        if _ens_counts is None:
+            sched_t, key_t, t_idx = xs_t
+            noise_kw: dict = {}
+        else:
+            sched_t, key_t, t_idx, noise_t = xs_t
+            noise_kw = {"noise_schedule": noise_t[None, :]}
+        init_state = _continuation_init_dict_from_state(state, include_step_offset=not use_delays)
         kernel_kw = dict(hdp_kwargs)
         if use_delays:
             kernel_kw["step_indices"] = jnp.reshape(t_idx, (1,))
-        # Single owner for the weight-trace toggle on this path: hdp_kwargs
-        # wins when present, else the named default. The same value drives
-        # the kernel call and the output arity, so record_weight_trace=False
-        # neither crashes (registered diag carries w_trace=None) nor stacks
-        # silently (legacy kernel default would otherwise stay True).
-        rwt = bool(kernel_kw.get("record_weight_trace", record_weight_trace))
+        # Single owner for the recording-budget toggles on this path:
+        # hdp_kwargs wins when present, else the named defaults. The same
+        # values drive the kernel call and the output arity, so
+        # record_weight_trace=False neither crashes nor stacks silently
+        # (legacy kernel default would otherwise stay True). Subset
+        # selection applies per step here; stride over segments is applied
+        # by the Model-level runner post-stack (kernels apply it only to
+        # multi-step traces, where it is exact).
+        rwt = bool(kernel_kw.pop("record_weight_trace", record_weight_trace))
+        # NOTE (0.5.3 item 3): read-only lookup — the baseline and legacy
+        # HDP kernels receive noise_scale via **kernel_kw below; only the
+        # registered call (explicit args, no **kernel_kw) needs it forwarded.
+        ns = kernel_kw.get("noise_scale", None)
+        stride = kernel_kw.pop("record_stride", record_stride)
+        h_sub = kernel_kw.pop("record_h_subset", record_h_subset)
+        w_sub = kernel_kw.pop("record_w_subset", record_w_subset)
         if kernel == "hdp":
             from .hdp_rule import is_registered_hdp_rule
 
@@ -555,11 +606,20 @@ def compile_step_fn(
                     hdp_rule=str(kernel_kw["hdp_rule"]),
                     hdp_rule_params=kernel_kw.get("hdp_rule_params", {}),
                     record_weight_trace=rwt,
+                    noise_scale=ns,
+                    record_stride=stride,
+                    record_h_subset=h_sub,
+                    record_w_subset=w_sub,
                     step_indices=kernel_kw.get("step_indices"),
+                    **noise_kw,
                 )
             else:
                 _, _, sources, diag = simulate_edge_recurrent_izhikevich_hdp(
-                    emitter, edges, n_steps=1, dt_ms=dt_ms, key=key_t,
+                    emitter,
+                    edges,
+                    n_steps=1,
+                    dt_ms=dt_ms,
+                    key=key_t,
                     dtype=str(emitter.v0.dtype),
                     drive_schedule=sched_t[None, :],
                     silence_mask=silence_mask,
@@ -567,11 +627,19 @@ def compile_step_fn(
                     record_dH_components=record_dH_components,
                     record_edge_current=record_edge_current,
                     record_weight_trace=rwt,
+                    record_stride=stride,
+                    record_h_subset=h_sub,
+                    record_w_subset=w_sub,
                     **kernel_kw,
+                    **noise_kw,
                 )
         else:
             _, _, sources, diag = simulate_edge_recurrent_izhikevich(
-                emitter, edges, n_steps=1, dt_ms=dt_ms, key=key_t,
+                emitter,
+                edges,
+                n_steps=1,
+                dt_ms=dt_ms,
+                key=key_t,
                 dtype=str(emitter.v0.dtype),
                 drive_schedule=sched_t[None, :],
                 silence_mask=silence_mask,
@@ -580,10 +648,13 @@ def compile_step_fn(
                 record_current_trace=record_current_trace,
                 record_u_trace=record_u_trace,
                 **kernel_kw,
+                **noise_kw,
             )
         new_dynamic = DynamicState(
-            v=diag["v"], u=diag["u"],
-            prev_spikes=diag["prev_spikes"], syn_state=diag["syn_state"],
+            v=diag["v"],
+            u=diag["u"],
+            prev_spikes=diag["prev_spikes"],
+            syn_state=diag["syn_state"],
             H=diag.get("H_final", state.dynamic.H),
             w=diag.get("w_final", state.dynamic.w),
             theta_S=diag.get("theta_S_final", state.dynamic.theta_S),
@@ -616,15 +687,20 @@ def compile_step_fn(
             w_trace_t = state.dynamic.w
         if rwt:
             outputs = (
-                diag["v"], diag["prev_spikes"], sources[0],
-                H_trace_t, w_trace_t,
+                diag["v"],
+                diag["prev_spikes"],
+                sources[0],
+                H_trace_t,
+                w_trace_t,
             )
         else:
             outputs = (diag["v"], diag["prev_spikes"], sources[0], H_trace_t)
         if record_dH_components and kernel == "hdp":
             outputs = outputs + (
-                diag["dH_income_trace"][0], diag["dH_rate_trace"][0],
-                diag["dH_weight_trace"][0], diag["dH_passive_trace"][0],
+                diag["dH_income_trace"][0],
+                diag["dH_rate_trace"][0],
+                diag["dH_weight_trace"][0],
+                diag["dH_passive_trace"][0],
                 diag["dH_barrier_trace"][0],
             )
         if record_edge_current and "edge_current_trace" in diag:
@@ -644,11 +720,52 @@ def compile_step_fn(
     return jax.jit(step_fn), init
 
 
+def _ensemble_counts_of_model(model) -> "list[int] | None":
+    """Read ``metadata["ensemble"]["model_sizes"]`` or None (plain model)."""
+    try:
+        ens = model.cfg.metadata.get("ensemble")
+    except Exception:
+        return None
+    if not isinstance(ens, dict):
+        return None
+    sizes = ens.get("model_sizes")
+    if not sizes or len(sizes) < 2:
+        return None
+    return [int(c) for c in sizes]
+
+
+def _ensemble_segment_schedule(
+    member_counts,
+    base_seed: int,
+    start: int,
+    length: int,
+    dtype,
+):
+    """Ensemble member noise rows ``[start, start+length)`` (0.5.4 item 1).
+
+    Member ``m``'s rows are the matching slice of
+    ``continuation_noise_schedule(PRNGKey(ensemble_member_seed(base_seed,
+    m, n)))`` — the exact rows the continuous ensemble path draws — so
+    chunked continuation reproduces continuous runs on ensembles.
+    Generation cost is O(start+length) random draws per segment.
+    """
+    from ._construct_connectivity import ensemble_member_seed
+
+    n = len(member_counts)
+    parts = []
+    for m, c in enumerate(member_counts):
+        member_key = jax.random.PRNGKey(ensemble_member_seed(int(base_seed), m, n))
+        full = continuation_noise_schedule(member_key, int(start) + int(length), int(c), dtype)
+        parts.append(full[int(start) : int(start) + int(length)])
+    return jnp.concatenate(parts, axis=1)
+
+
 def scan_network(
     step_fn: "callable",
     init: "DynamicState | ContinuationState",
     drive_schedule: jax.Array,
     keys: jax.Array,
+    noise_rows: "jax.Array | None" = None,
 ) -> "tuple[DynamicState | ContinuationState, tuple]":
     """Thin, pure wrapper over ``jax.lax.scan`` -- no branching, no
     Python-side dispatch, no kwargs. All static config was captured at
@@ -658,6 +775,10 @@ def scan_network(
     ``jax.random.split(key, n_steps)``), NOT a pre-sampled noise array --
     see :func:`compile_step_fn`'s docstring for why: the wrapped kernel
     generates its own Gaussian noise internally from a key per call.
+
+    ``noise_rows`` (0.5.4 item 1) is an optional ``(n_steps, n_neurons)``
+    array forwarded as a fourth ``xs`` element for ensemble member streams;
+    ``None`` keeps the exact prior 3-element contract.
 
     Accepts either a legacy :class:`DynamicState` (HDP-only callers) or a
     full :class:`ContinuationState` (canonical runtime carry).
@@ -669,10 +790,17 @@ def scan_network(
         state0 = ContinuationState(dynamic=init, prng_key=keys[0])
         start = 0
     n_steps = int(drive_schedule.shape[0])
-    t_indices = jnp.arange(n_steps, dtype=jnp.int32) + jnp.asarray(
-        start, dtype=jnp.int32
-    )
-    xs = (drive_schedule, keys, t_indices)
+    t_indices = jnp.arange(n_steps, dtype=jnp.int32) + jnp.asarray(start, dtype=jnp.int32)
+    if noise_rows is None:
+        xs = (drive_schedule, keys, t_indices)
+    else:
+        rows = jnp.asarray(noise_rows)
+        if rows.shape != (n_steps, int(drive_schedule.shape[1])):
+            raise ValueError(
+                "noise_rows must have shape "
+                f"({n_steps}, {int(drive_schedule.shape[1])}), got {rows.shape}"
+            )
+        xs = (drive_schedule, keys, t_indices, rows)
     final_state, outputs = jax.lax.scan(step_fn, state0, xs)
     if isinstance(init, ContinuationState):
         return final_state, outputs
@@ -684,6 +812,7 @@ def _advance_prng_key(
     n_steps: int,
 ) -> tuple[jax.Array, jax.Array]:
     """Generate stable per-step keys and return the next continuation key."""
+
     def split_once(carry, _):
         next_key, step_key = jax.random.split(carry)
         return next_key, step_key
@@ -714,9 +843,7 @@ def continuation_state_from_model(
     delay_state = None
     if model_requires_delay_state(model):
         bufsize, n_neurons = _delay_buffer_shape(model)
-        delay_state = jnp.zeros(
-            (bufsize, n_neurons), dtype=model.params["emitter"].v0.dtype
-        )
+        delay_state = jnp.zeros((bufsize, n_neurons), dtype=model.params["emitter"].v0.dtype)
     return ContinuationState(
         dynamic=dynamic,
         prng_key=jax.random.PRNGKey(int(seed)),
@@ -729,16 +856,21 @@ def run_continuation(
     step_fn: "callable",
     state: ContinuationState,
     drive_schedule: jax.Array,
+    noise_rows: "jax.Array | None" = None,
 ) -> "tuple[ContinuationState, tuple]":
-    """Run a segment using the carried per-step PRNG sequence."""
+    """Run a segment using the carried per-step PRNG sequence.
+
+    ``noise_rows`` (0.5.4 item 1) is an optional ``(n_steps, n_neurons)``
+    array of precomputed per-step unit-noise rows (ensemble member
+    streams); forwarded to ``scan_network`` when given, ``None`` keeps
+    the exact prior behavior.
+    """
     schedule = jnp.asarray(drive_schedule)
     if schedule.ndim != 2:
-        raise ValueError(
-            "drive_schedule must have shape (n_steps, n_neurons)"
-        )
+        raise ValueError("drive_schedule must have shape (n_steps, n_neurons)")
     next_key, keys = _advance_prng_key(state.prng_key, schedule.shape[0])
     start = state.step_index
-    final_state, outputs = scan_network(step_fn, state, schedule, keys)
+    final_state, outputs = scan_network(step_fn, state, schedule, keys, noise_rows)
     if isinstance(start, int):
         next_index = start + int(schedule.shape[0])
     else:
@@ -758,6 +890,7 @@ def run_continuation_strided(
     drive_schedule: jax.Array,
     *,
     stride: int,
+    noise_rows: "jax.Array | None" = None,
 ) -> "tuple[ContinuationState, tuple, jax.Array]":
     """Bounded-memory decimated capture over the continuation path (23-REC-01).
 
@@ -775,14 +908,14 @@ def run_continuation_strided(
 
     ``stride=1`` reproduces :func:`run_continuation` frames exactly but with
     per-segment launch overhead — prefer :func:`run_continuation` then.
+
+    ``noise_rows`` (0.5.4 item 1) is sliced per segment like the schedule.
     """
     if isinstance(stride, bool) or not isinstance(stride, int) or stride < 1:
         raise ValueError(f"stride must be a positive integer; got {stride!r}")
     schedule = jnp.asarray(drive_schedule)
     if schedule.ndim != 2:
-        raise ValueError(
-            "drive_schedule must have shape (n_steps, n_neurons)"
-        )
+        raise ValueError("drive_schedule must have shape (n_steps, n_neurons)")
     total = int(schedule.shape[0])
     if total == 0:
         raise ValueError("drive_schedule must have n_steps > 0")
@@ -790,11 +923,16 @@ def run_continuation_strided(
     indices: list[int] = []
     cur = state
     for start in range(0, total, stride):
-        seg = schedule[start:start + stride]
-        cur, seg_out = run_continuation(step_fn, cur, seg)
+        seg = schedule[start : start + stride]
+        seg_noise = None if noise_rows is None else noise_rows[start : start + stride]
+        cur, seg_out = run_continuation(step_fn, cur, seg, seg_noise)
         frame = jax.tree_util.tree_map(lambda o: o[-1:], seg_out)
-        kept_parts = frame if kept_parts is None else jax.tree_util.tree_map(
-            lambda a, b: jnp.concatenate([a, b], axis=0), kept_parts, frame
+        kept_parts = (
+            frame
+            if kept_parts is None
+            else jax.tree_util.tree_map(
+                lambda a, b: jnp.concatenate([a, b], axis=0), kept_parts, frame
+            )
         )
         indices.append(start + int(seg.shape[0]) - 1)
     assert kept_parts is not None
@@ -899,8 +1037,12 @@ def memory_report(
     recording_total = int(sum(recording.values()))
     total = int(persistent + dynamic + delay + recording_total)
     dominant = max(
-        (("persistent", persistent), ("dynamic", dynamic), ("delay", delay),
-         ("recording", recording_total)),
+        (
+            ("persistent", persistent),
+            ("dynamic", dynamic),
+            ("delay", delay),
+            ("recording", recording_total),
+        ),
         key=lambda kv: kv[1],
     )[0]
     advice = []

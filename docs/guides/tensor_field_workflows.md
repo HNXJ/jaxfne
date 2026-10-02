@@ -49,7 +49,7 @@ Extract multimodal outputs:
 Serialize workflows as JSON-safe manifests:
 
 - **Data arrays:** Readouts, signals, field outputs
-- **Metadata:** Operator status, units, assumptions, status
+- **Metadata:** Operator status, units, assumptions
 - **Receipts:** Run ID, seed, execution time, validation flags
 - **Validation:** JSON encoding enforces strict serialization (no NaN/Inf by default)
 
@@ -63,7 +63,7 @@ cfg = (
     jtfne.configuration()
     .network(n=1)
     .emitter(family="izhikevich")
-    .field(domain="point")
+    .field()
     .probe(name="single_neuron", modes=["spikes", "V_m", "source"])
 )
 

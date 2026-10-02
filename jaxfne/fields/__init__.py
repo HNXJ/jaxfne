@@ -2,6 +2,7 @@
 
 Isolates localized laminar projection computations from higher-level multimodal probe transformations.
 """
+
 # Field solver acceptance checklist (maintainer contract, Phase F).
 # A field solver may join the public API surface only when all five hold:
 #   1. finite field outputs for any finite inputs;
@@ -31,6 +32,8 @@ from .proxy import (
     spectrolaminar_bandpower,
     spectrolaminar_readout,
     multi_area_spectrolaminar_readout,
+    population_rate,
+    cross_area_coherence,
     LinearReadout,
     construct_source_tensor,
     synaptic_resonance_source,
@@ -45,6 +48,17 @@ from .proxy import (
 )
 from .probes import (
     ProbeReadout,
+    CanonicalSource,
+    canonical_source,
+    CANONICAL_SOURCE_REPRESENTATION,
+    EPISTEMIC_RELATIVE_PROXY,
+    EPISTEMIC_REDUCED_PHYSICAL,
+    EPISTEMIC_CALIBRATED,
+    EPISTEMIC_LEVELS,
+    CalibrationTransform,
+    AppliedCalibration,
+    EpistemicRefusal,
+    apply_calibration,
     create_probe,
     spk_probe,
     vm_probe,
@@ -87,6 +101,8 @@ __all__ = [
     "spectrolaminar_bandpower",
     "spectrolaminar_readout",
     "multi_area_spectrolaminar_readout",
+    "population_rate",
+    "cross_area_coherence",
     "LinearReadout",
     "construct_source_tensor",
     "synaptic_resonance_source",
@@ -101,6 +117,17 @@ __all__ = [
     "_make_field_solution_report",
     "create_probe",
     "ProbeReadout",
+    "CanonicalSource",
+    "canonical_source",
+    "CANONICAL_SOURCE_REPRESENTATION",
+    "EPISTEMIC_RELATIVE_PROXY",
+    "EPISTEMIC_REDUCED_PHYSICAL",
+    "EPISTEMIC_CALIBRATED",
+    "EPISTEMIC_LEVELS",
+    "CalibrationTransform",
+    "AppliedCalibration",
+    "EpistemicRefusal",
+    "apply_calibration",
     "spk_probe",
     "vm_probe",
     "source_probe",

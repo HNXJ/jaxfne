@@ -69,8 +69,9 @@ def test_generated_version_md_comparison():
 # publication updates one literal and every docs surface is re-checked against
 # it; the tests never reach the network, so this is the one thing a human must
 # advance when a release goes out.
-PUBLISHED_PYPI_VERSION = "0.4.25"
-PREVIOUS_PYPI_VERSION = "0.4.24"
+PUBLISHED_PYPI_VERSION = "0.5.0"
+
+PREVIOUS_PYPI_VERSION = "0.4.25"
 
 
 def test_install_md_latest_pypi_version():

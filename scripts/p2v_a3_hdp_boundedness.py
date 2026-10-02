@@ -7,9 +7,13 @@ directly; asserts per-step hard-bound invariants; writes the FROZEN receipt.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import json
 import subprocess
-from pathlib import Path
 
 import jax
 import jax.numpy as jnp
@@ -18,6 +22,10 @@ import numpy as np
 import jaxfne as jtfne
 from jaxfne.emitters import simulate_edge_recurrent_izhikevich_hdp
 from jaxfne.h4_matrix import build_ring_params_edges
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 A3_DIR = REPO_ROOT / "artifacts" / "protocol_c" / "p2v_a3_hdp_boundedness"

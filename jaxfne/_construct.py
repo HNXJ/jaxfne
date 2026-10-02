@@ -61,6 +61,8 @@ from ._construct_connectivity import (
     _mark_connections_compiled,
     _model_edge_list,
     connect,
+    ensemble_edge_ownership,
+    ensemble_member_seed,
 )
 from ._construct_presets import (
     configuration,

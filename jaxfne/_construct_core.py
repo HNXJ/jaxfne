@@ -12,16 +12,38 @@ split acyclic.
 
 from __future__ import annotations
 
+import numbers
 from dataclasses import replace
 from typing import Any, Mapping, Optional
 
 import jax
 import jax.numpy as jnp
 
-from .emitters import EdgeList, EIGNetwork, is_placeholder_dense_W, make_edge_list_from_dense, make_eig_network
-from .emitters_homeostatic_ei import ACTIVATION_RULES, CONDUCTANCE_RULES, HOMEOSTASIS_RULES, HomeostaticEIParams
+from .emitters import (
+    EdgeList,
+    EIGNetwork,
+    is_placeholder_dense_W,
+    make_edge_list_from_dense,
+    make_eig_network,
+)
+from .emitters_homeostatic_ei import (
+    ACTIVATION_RULES,
+    CONDUCTANCE_RULES,
+    HOMEOSTASIS_RULES,
+    HomeostaticEIParams,
+)
 from .fields import FieldOutput
-from ._config import Configuration
+from ._config import (
+    RUNTIME_METADATA_KEYS,
+    Configuration,
+    _check_cell_type_fractions,
+    _check_field_kwargs,
+    _check_probe_kwargs,
+    check_emitter_conflict,
+    check_n_contacts,
+    edge_seed_from_metadata,
+    poisson_signature,
+)
 from ._runtime_config import RuntimeConfig
 from ._signals import Simulation, Signals, LaminarSourceGeometry
 from ._model import Model
@@ -33,7 +55,13 @@ from ._construct_connectivity import (
     _mark_connections_compiled,
     _empty_edge_list,
 )
-from ._construct_population import _DENSE_CONNECTIVITY_WARN_N, _neuron_population_from_config
+from ._construct_population import (
+    _DENSE_CONNECTIVITY_WARN_N,
+    _apply_baseline_drive,
+    _apply_cell_params,
+    _declared_cell_types,
+    _neuron_population_from_config,
+)
 from ._construct_extras import operator_status
 
 
@@ -50,10 +78,7 @@ def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
     (see ``RuntimeConfig.actual_dtype``).
     """
     kw: dict[str, Any] = {}
-    for k in ("dtype", "recurrent_backend", "jit", "vmap", "backend",
-              "synaptic_kernel", "precision", "device_type",
-              "enable_homeostasis", "homeostasis_params",
-              "enable_hdp", "hdp_params"):
+    for k in RUNTIME_METADATA_KEYS:
         v = metadata.get(k)
         if v is not None:
             kw[k] = v
@@ -78,7 +103,7 @@ def simulate(
 
     When no explicit ``runtime``/``Simulation`` is given, the runtime declared on
     the model's :class:`Configuration` via ``.runtime(...)`` (``dtype``,
-    ``recurrent_backend``, ``jit``, ``vmap``, ``backend``, ``synaptic_kernel``) is
+    ``recurrent_backend``, ``jit``, ``backend``, ``synaptic_kernel``) is
     inherited — so ``cfg.runtime(dtype="float64")`` / ``recurrent_backend="edge_list"``
     actually take effect. A ``dtype=`` keyword overrides the inherited dtype.
     """
@@ -100,8 +125,7 @@ def simulate(
                 kwargs["seed"] = cfg_meta["seed"]
         elif "dtype" in kwargs:
             raise ValueError(
-                "Specify dtype via runtime=RuntimeConfig(dtype=...), not both "
-                "runtime= and dtype=."
+                "Specify dtype via runtime=RuntimeConfig(dtype=...), not both runtime= and dtype=."
             )
         sim = Simulation(**kwargs)
     elif kwargs:
@@ -121,8 +145,8 @@ def compute_fields(model: "Model", signals: "Signals") -> "FieldOutput":
 
     This is a thin accessor, not a new computation -- ``simulate()`` already
     builds ``signals.field`` internally (via :func:`project_laminar_sources`)
-    whenever field-capable probe modes (``"source"``, ``"CSD"``, ``"LFP"``)
-    were declared on the model's :class:`Configuration`. ``compute_fields``
+    whenever the Simulation records fields (``record_fields=True``, the
+    default); declared probe modes do not gate it. ``compute_fields``
     validates presence and returns that existing :class:`FieldOutput` rather
     than fabricating one; it raises if no field was computed, instead of
     silently returning ``None`` or synthesizing a placeholder.
@@ -133,8 +157,7 @@ def compute_fields(model: "Model", signals: "Signals") -> "FieldOutput":
     """
     if signals.field is None:
         raise ValueError(
-            "signals.field is None -- no field-capable probe modes (e.g. "
-            "'source', 'CSD', 'LFP') were declared before simulate(). "
+            "signals.field is None -- the Simulation ran with record_fields=False. "
             "compute_fields() is a thin accessor over the field already "
             "computed inside simulate(); it does not synthesize a new one."
         )
@@ -150,6 +173,7 @@ def _canonical_biophysics_depth_gating(emitter, positions):
     ``(lab, Z, zd, isE, n)`` -- the shared label/depth arrays both effects read.
     """
     import numpy as _np
+
     cts = emitter.labels
     if cts is None or emitter.layer_labels is None:
         return None
@@ -179,6 +203,7 @@ def _apply_canonical_dynamics_init(emitter, positions, cfg):
     the (possibly replaced) ``emitter``. Proxy/scaffold truth status unchanged.
     """
     import numpy as _np
+
     jdtype = emitter.v0.dtype
     n = int(emitter.v0.shape[0])
     seed = int(cfg.metadata.get("seed", 0) or 0)
@@ -204,9 +229,12 @@ def _apply_canonical_dynamics_init(emitter, positions, cfg):
         a[isE] = 0.020 - 0.005 * zd[isE]
         d[isE] = 8.0 + 2.0 * zd[isE]
         ss[isE] = 1.0 + 0.8 * zd[isE]
-        emitter = replace(emitter, a=jnp.asarray(a, dtype=jdtype),
-                          d=jnp.asarray(d, dtype=jdtype),
-                          source_scale=jnp.asarray(ss, dtype=jdtype))
+        emitter = replace(
+            emitter,
+            a=jnp.asarray(a, dtype=jdtype),
+            d=jnp.asarray(d, dtype=jdtype),
+            source_scale=jnp.asarray(ss, dtype=jdtype),
+        )
 
     return emitter
 
@@ -222,6 +250,7 @@ def _apply_canonical_edge_strengthening(emitter, positions, edge_list, cfg):
     ``edge_list``. Proxy/scaffold truth status unchanged.
     """
     import numpy as _np
+
     if not cfg.metadata.get("canonical_biophysics", False):
         return edge_list
 
@@ -311,36 +340,39 @@ def _simulate_homeostasis_metadata(
     _plastic_on = float(_hp_meta.get("eta", 0.0) or 0.0) != 0.0
     homeo_meta: dict[str, Any] = {
         "enabled": True,
-        "params": {
-            k: _metadata_param_value(v)
-            for k, v in _hp_meta.items()
-        },
+        "params": {k: _metadata_param_value(v) for k, v in _hp_meta.items()},
         "method": "minimal_homeostatic_resource_adaptation_controller",
         "claim_status": "computational_control_proxy_not_biological_mechanism",
         "synaptic_plasticity_enabled": bool(_plastic_on),
         "biological_learning_claim": False,
         "mechanism_claim_status": "not_claimed",
         "diagnostics_passthrough": "Signals.metadata['homeostasis'] summary; "
-                                   "full per-step g_bias/r_trace (and, when "
-                                   "synaptic_plasticity_enabled, w_final/w_trace) via "
-                                   "Model.last_homeostasis_diagnostics()",
+        "full per-step g_bias/r_trace (and, when "
+        "synaptic_plasticity_enabled, w_final/w_trace) via "
+        "Model.last_homeostasis_diagnostics()",
     }
     if diag is not None:
         g = diag["g_bias"]
         r = diag["r_trace"]
         homeo_meta["g_bias_summary"] = {
-            "min": float(jnp.min(g)), "max": float(jnp.max(g)),
-            "mean": float(jnp.mean(g)), "shape": list(g.shape),
+            "min": float(jnp.min(g)),
+            "max": float(jnp.max(g)),
+            "mean": float(jnp.mean(g)),
+            "shape": list(g.shape),
         }
         homeo_meta["r_trace_summary"] = {
-            "min": float(jnp.min(r)), "max": float(jnp.max(r)),
-            "mean": float(jnp.mean(r)), "shape": list(r.shape),
+            "min": float(jnp.min(r)),
+            "max": float(jnp.max(r)),
+            "mean": float(jnp.mean(r)),
+            "shape": list(r.shape),
         }
         if "w_final" in diag:
             wf = diag["w_final"]
             homeo_meta["w_final_summary"] = {
-                "min": float(jnp.min(wf)), "max": float(jnp.max(wf)),
-                "mean": float(jnp.mean(wf)), "shape": list(wf.shape),
+                "min": float(jnp.min(wf)),
+                "max": float(jnp.max(wf)),
+                "mean": float(jnp.mean(wf)),
+                "shape": list(wf.shape),
             }
     return homeo_meta
 
@@ -360,11 +392,7 @@ def _simulate_hdp_metadata(
     hdp_meta: dict[str, Any] = {
         "enabled": True,
         "param_groups": param_groups,
-        "params": {
-            k: v
-            for group in param_groups.values()
-            for k, v in group.items()
-        },
+        "params": {k: v for group in param_groups.values() for k, v in group.items()},
         "formulation": {
             "h_state_is_latent_representation": True,
             "hdp_is_adaptive_dynamics_family": True,
@@ -377,8 +405,8 @@ def _simulate_hdp_metadata(
         "biological_learning_claim": False,
         "mechanism_claim_status": "not_claimed",
         "diagnostics_passthrough": "Signals.metadata['hdp'] summary; full "
-                                    "per-step H_trace/w_trace via "
-                                    "Model.last_hdp_diagnostics()",
+        "per-step H_trace/w_trace via "
+        "Model.last_hdp_diagnostics()",
     }
     h_state_dim = int(_hp_meta.get("h_state_dim", 1))
     readout = _hp_meta.get("h_state_readout")
@@ -411,13 +439,17 @@ def _simulate_hdp_metadata(
         H = diag["H_trace"]
         wf = diag["w_final"]
         hdp_meta["H_trace_summary"] = {
-            "min": float(jnp.min(H)), "max": float(jnp.max(H)),
-            "mean": float(jnp.mean(H)), "std": float(jnp.std(H)),
+            "min": float(jnp.min(H)),
+            "max": float(jnp.max(H)),
+            "mean": float(jnp.mean(H)),
+            "std": float(jnp.std(H)),
             "shape": list(H.shape),
         }
         hdp_meta["w_final_summary"] = {
-            "min": float(jnp.min(wf)), "max": float(jnp.max(wf)),
-            "mean": float(jnp.mean(wf)), "shape": list(wf.shape),
+            "min": float(jnp.min(wf)),
+            "max": float(jnp.max(wf)),
+            "mean": float(jnp.mean(wf)),
+            "shape": list(wf.shape),
         }
     return hdp_meta
 
@@ -435,11 +467,11 @@ def _resolve_homeostasis_k_gain(hp: Mapping[str, Any], emitter) -> Any:
     if not hp.get("k_gain_size_scaled", False):
         return base
     import numpy as _np
+
     n = int(emitter.v0.shape[0])
     ss = _np.asarray(emitter.source_scale)
     ss = _np.full(n, float(ss)) if ss.ndim == 0 else _np.asarray(ss, dtype=float)
-    return jnp.asarray(float(base) / _np.clip(ss, 1e-3, None),
-                       dtype=emitter.v0.dtype)
+    return jnp.asarray(float(base) / _np.clip(ss, 1e-3, None), dtype=emitter.v0.dtype)
 
 
 def _homeostasis_params_cache_fingerprint(hp: Mapping[str, Any]) -> tuple:
@@ -452,6 +484,7 @@ def _homeostasis_params_cache_fingerprint(hp: Mapping[str, Any]) -> tuple:
     aren't hashable.
     """
     import numpy as _np
+
     items: list[tuple] = []
     for k in sorted(hp.keys()):
         v = hp[k]
@@ -488,6 +521,36 @@ def _construct_validate_config(cfg: "Configuration") -> None:
                 "An explicitly declared unsupported family does not silently "
                 "fall back to another emitter."
             )
+    # Only emitters[0] is built; covers configs assembled without Configuration.emitter().
+    for _later in cfg.emitters[1:]:
+        check_emitter_conflict(cfg.emitters[0], _later)
+    for _later in cfg.networks[1:]:
+        if _later != cfg.networks[0]:
+            raise ValueError(
+                f"network({_later!r}) is not realized: construct builds the first network "
+                f"{cfg.networks[0]!r} only"
+            )
+    # network(cell_types=) stores its map unchecked; both routes read it.
+    if cfg.networks and cfg.networks[0].get("cell_types") is not None:
+        _check_cell_type_fractions(cfg.networks[0]["cell_types"])
+    # field()/probe() check their keys; a configuration built directly skips them.
+    for _field in cfg.fields:
+        _check_field_kwargs(_field)
+    for _probe in cfg.probes:
+        _check_probe_kwargs(_probe)
+    if cfg.metadata.get("vmap") not in (None, False):
+        raise ValueError(
+            f"runtime(vmap={cfg.metadata['vmap']!r}) is not realized: the configuration's runtime "
+            "serves simulate(model), which runs one trial, and simulate_batch takes its runtime "
+            "from the Simulation. Use Simulation(runtime=RuntimeConfig(vmap=...)) with simulate_batch."
+        )
+    declared_areas = cfg.metadata.get("areas")
+    realized_areas = list(cfg.metadata.get("column_names", []))
+    if declared_areas is not None and sorted(declared_areas) != sorted(realized_areas):
+        raise ValueError(
+            f"areas({list(declared_areas)!r}) is not realized: construct builds the areas declared "
+            f"with column()/population(), {realized_areas!r}"
+        )
 
 
 def _construct_build_network(
@@ -497,8 +560,31 @@ def _construct_build_network(
     ``(network, positions, geometry_meta, n, prebuilt_edges)``."""
     n = int(net.get("n", 100))
     _prebuilt_edges = None
-    if cfg.metadata.get("columns") or cfg.metadata.get("layer_cell_types") or cfg.metadata.get("uniform_3d"):
-        params, positions, geometry_meta, _prebuilt_edges = _neuron_population_from_config(cfg, dtype=dtype_name_cfg)
+    _p_meta = (cfg.metadata.get("connectivity") or {}).get("p_connect")
+    _p_declared = (("connectivity", _p_meta), ("network", net.get("p_connect")))
+    for _src, _p in _p_declared:
+        # A value outside [0, 1] builds dense connectivity on either route.
+        if _p is not None and (isinstance(_p, bool) or not isinstance(_p, numbers.Real) or not 0.0 <= _p <= 1.0):
+            raise ValueError(f"{_src}(p_connect={_p!r}) is not realized: it takes a probability in [0, 1]")
+    if (
+        cfg.metadata.get("columns")
+        or cfg.metadata.get("layer_cell_types")
+        or cfg.metadata.get("uniform_3d")
+    ):
+        # This route reads connectivity(p_connect=) and the layers of column()/layer_fractions().
+        if net.get("p_connect") is not None and float(net["p_connect"]) != float(1.0 if _p_meta is None else _p_meta):
+            raise ValueError(
+                f"network(p_connect={net['p_connect']!r}) is not realized on this construction route: "
+                f"it reads connectivity(p_connect=...), here {_p_meta!r}"
+            )
+        if net.get("layers") and net.get("kind") != "multi_column":
+            raise ValueError(
+                f"network(layers={net['layers']!r}) is not realized on this construction route: "
+                "layers come from column()"
+            )
+        params, positions, geometry_meta, _prebuilt_edges = _neuron_population_from_config(
+            cfg, dtype=dtype_name_cfg
+        )
         network = EIGNetwork(
             params=params,
             positions=positions,
@@ -525,26 +611,39 @@ def _construct_build_network(
         # Realize the request or refuse it -- never silently ignore it. This branch
         # cannot honour p_connect at all, so accepting one and returning dense
         # all-to-all is a wrong answer, not a slow one.
+        # make_eig_network builds deterministic connectivity; only connections()
+        # rules sample edges on this branch, so edge_seed without them is dropped.
+        _edge_seed = (cfg.metadata.get("connectivity", {}) or {}).get("edge_seed", None)
+        if _edge_seed is not None and not (cfg.metadata.get("circuit") or {}).get("connections"):
+            raise ValueError(
+                f"connectivity(edge_seed={_edge_seed!r}) is not realized on this construction "
+                "route: the configuration set none of columns/layer_cell_types/uniform_3d and "
+                "declares no connections(), so no edges are sampled."
+            )
         # Both spellings: .connectivity(p_connect=...) reads from metadata, while
         # .network(p_connect=...) is stored in the network spec and likewise never
         # consumed on this route.
-        _p = (cfg.metadata.get("connectivity") or {}).get("p_connect")
-        _src = "connectivity"
-        if _p is None:
-            _p, _src = net.get("p_connect"), "network"
-        if _p is not None and float(_p) < 1.0:
+        for _src, _p in _p_declared:
+            if _p is not None and float(_p) < 1.0:
+                raise ValueError(
+                    f"{_src}(p_connect={_p}) cannot be honoured by this construction "
+                    "route: the configuration set none of columns/layer_cell_types/uniform_3d, "
+                    "so it routes to the non-sparse-aware network builder, which materializes "
+                    "dense all-to-all connectivity. Previously the request was silently "
+                    "ignored. Use build_laminar_column/laminar_cortex_config (or set one of "
+                    "those metadata keys) to reach the sparse-aware population builder, or "
+                    "drop p_connect to request dense connectivity explicitly."
+                )
+        if net.get("layers"):
             raise ValueError(
-                f"{_src}(p_connect={_p}) cannot be honoured by this construction "
-                "route: the configuration set none of columns/layer_cell_types/uniform_3d, "
-                "so it routes to the non-sparse-aware network builder, which materializes "
-                "dense all-to-all connectivity. Previously the request was silently "
-                "ignored. Use build_laminar_column/laminar_cortex_config (or set one of "
-                "those metadata keys) to reach the sparse-aware population builder, or "
-                "drop p_connect to request dense connectivity explicitly."
+                f"network(layers={net['layers']!r}) is not realized on this construction route: "
+                "it builds one unlayered population. Declare layers with column(...) or "
+                "layer_fractions(...) to reach the laminar population builder."
             )
         cell_types = net.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.1})
         if n >= _DENSE_CONNECTIVITY_WARN_N:
             import warnings as _warnings
+
             _mb = (n * n * 4) / 1e6
             _warnings.warn(
                 f"dense all-to-all connectivity at N={n} materializes an "
@@ -559,6 +658,12 @@ def _construct_build_network(
                 stacklevel=2,
             )
         network = make_eig_network(n=n, cell_type_fractions=cell_types)
+        # drive() and cell_params() reach the emitter as on the population route (P-018).
+        params = _apply_baseline_drive(network.params, cfg.metadata, _declared_cell_types(cfg))
+        params = _apply_cell_params(
+            params, params.labels, None, cfg.metadata, params.a.dtype, _declared_cell_types(cfg)
+        )
+        network = replace(network, params=params)
         positions = network.positions
         geometry_meta = None
     return network, positions, geometry_meta, n, _prebuilt_edges
@@ -598,16 +703,21 @@ def _construct_resolve_edge_list(
         edge_list = prebuilt_edges
         # The dense W is a placeholder; this model must run on the edge_list backend.
         cfg = _require_edge_list_backend(
-            cfg, "this model was built on the sparse-direct path, whose dense W is "
-            "a placeholder and whose edges live only in params['edge_list']")
+            cfg,
+            "this model was built on the sparse-direct path, whose dense W is "
+            "a placeholder and whose edges live only in params['edge_list']",
+        )
     else:
         edge_list = make_edge_list_from_dense(network.params.W, dtype=network.params.v0.dtype.name)
     return cfg, edge_list
 
 
 def _construct_apply_geometry_override(
-    geometry: "LaminarSourceGeometry | None", network: "EIGNetwork", positions: "jax.Array",
-    geometry_meta: "dict[str, Any] | None", n: int,
+    geometry: "LaminarSourceGeometry | None",
+    network: "EIGNetwork",
+    positions: "jax.Array",
+    geometry_meta: "dict[str, Any] | None",
+    n: int,
 ) -> "tuple[jax.Array, dict[str, Any] | None]":
     """``construct()`` stage: optional explicit geometry override -> ``(positions, geometry_meta)``."""
     if geometry is not None:
@@ -667,8 +777,13 @@ def _reject_duplicate_explicit_edges(edge_list: "EdgeList") -> None:
 
 
 def _construct_compile_connections(
-    cfg: "Configuration", network: "EIGNetwork", n: int, geometry_meta: "dict[str, Any] | None",
-    net: Mapping[str, Any], edge_list: "EdgeList", positions: "jax.Array | None" = None,
+    cfg: "Configuration",
+    network: "EIGNetwork",
+    n: int,
+    geometry_meta: "dict[str, Any] | None",
+    net: Mapping[str, Any],
+    edge_list: "EdgeList",
+    positions: "jax.Array | None" = None,
 ) -> "tuple[Configuration, EdgeList]":
     """``construct()`` stage: compile declarative ``.connections()`` rules into
     real edges -> ``(cfg, edge_list)``. Explicit tensor mode starts from an
@@ -679,16 +794,14 @@ def _construct_compile_connections(
     """
     connectivity_mode = cfg.metadata.get("connectivity_mode")
     if connectivity_mode not in (None, "unspecified", "explicit"):
-        raise ValueError(
-            "unsupported connectivity_mode for construction: "
-            f"{connectivity_mode!r}"
-        )
+        raise ValueError(f"unsupported connectivity_mode for construction: {connectivity_mode!r}")
     default_edge_count = int(edge_list.n_edges)
     declared_edge_count = 0
     _conn_rules = (cfg.metadata.get("circuit", {}) or {}).get("connections", [])
     _conn_mechanisms = (cfg.metadata.get("circuit", {}) or {}).get("mechanisms", [])
     if _conn_rules:
         import numpy as _np
+
         _ep = network.params
         _cell_labels = list(_ep.labels)
         _layer_labels = list(getattr(_ep, "layer_labels", None) or [""] * n)
@@ -699,6 +812,11 @@ def _construct_compile_connections(
         # Mechanism-aware path only when EVERY rule fully opts in via a
         # resolvable .mechanisms() declaration; otherwise the sign-only
         # compiler runs unchanged (see _all_connection_rules_declare_resolvable_mechanism).
+        # Delay realization (0.5.2 decision 0b) needs the construction
+        # timestep: the configuration's own dt_ms, so declared ms and
+        # executed steps agree. A declared delay with no known dt fails
+        # closed inside the compilers rather than zeroing.
+        _construct_dt_ms = cfg.metadata.get("dt_ms")
         if _all_connection_rules_declare_resolvable_mechanism(_conn_rules, _conn_mechanisms):
             _needs_positions = any(r.get("max_in_degree") is not None for r in _conn_rules)
             if _needs_positions and positions is None:
@@ -708,9 +826,17 @@ def _construct_compile_connections(
                 )
             _positions_np = _np.asarray(positions) if _needs_positions else None
             _conn_edges, _counts = _compile_mechanism_aware_connection_rules(
-                _conn_rules, _conn_mechanisms, _area_labels, _layer_labels, _cell_labels,
-                _np.asarray(_ep.sign), n, edge_list.weight.dtype,
-                int(cfg.metadata.get("seed", 0) or 0), positions=_positions_np,
+                _conn_rules,
+                _conn_mechanisms,
+                _area_labels,
+                _layer_labels,
+                _cell_labels,
+                _np.asarray(_ep.sign),
+                n,
+                edge_list.weight.dtype,
+                int(edge_seed_from_metadata(cfg.metadata)),
+                positions=_positions_np,
+                dt_ms=_construct_dt_ms,
             )
         else:
             # The sign-only fallback compiler cannot honour max_in_degree. Refusing is
@@ -726,9 +852,15 @@ def _construct_compile_connections(
                     "max_in_degree -- the cap cannot be applied on the sign-only path."
                 )
             _conn_edges, _counts = _compile_connection_rules(
-                _conn_rules, _area_labels, _layer_labels, _cell_labels,
-                _np.asarray(_ep.sign), n, edge_list.weight.dtype,
-                int(cfg.metadata.get("seed", 0) or 0),
+                _conn_rules,
+                _area_labels,
+                _layer_labels,
+                _cell_labels,
+                _np.asarray(_ep.sign),
+                n,
+                edge_list.weight.dtype,
+                int(edge_seed_from_metadata(cfg.metadata)),
+                dt_ms=_construct_dt_ms,
             )
         declared_edge_count = sum(int(count) for count in _counts)
         if connectivity_mode == "explicit" and _conn_edges is not None:
@@ -738,36 +870,45 @@ def _construct_compile_connections(
                 edge_list, _conn_edges, presynaptic_sign=_np.asarray(_ep.sign)
             )
             cfg = _require_edge_list_backend(
-                cfg, f"{_conn_edges.n_edges} edge(s) were materialized from "
-                ".connections() rules, which the dense W does not carry")
+                cfg,
+                f"{_conn_edges.n_edges} edge(s) were materialized from "
+                ".connections() rules, which the dense W does not carry",
+            )
         cfg = _mark_connections_compiled(cfg, _counts)
     if connectivity_mode is not None:
         cfg = _record_connectivity_compilation(
             cfg,
             mode=connectivity_mode,
-            default_edge_count=(
-                0 if connectivity_mode == "explicit" else default_edge_count
-            ),
+            default_edge_count=(0 if connectivity_mode == "explicit" else default_edge_count),
             declared_edge_count=declared_edge_count,
             total_edge_count=int(edge_list.n_edges),
         )
     return cfg, edge_list
 
 
-def _construct_build_static(cfg: "Configuration", geometry_meta: "dict[str, Any] | None") -> "dict[str, Any]":
+def _construct_build_static(
+    cfg: "Configuration", geometry_meta: "dict[str, Any] | None"
+) -> "dict[str, Any]":
     """``construct()`` stage: resolve ``n_contacts`` + assemble the model's static dict."""
     n_contacts: int = 16
     if cfg.probes:
-        _nc = cfg.probes[0].get("n_contacts", 16)
-        try:
-            _nc = int(_nc)
-        except (TypeError, ValueError):
-            _nc = 16
-        if _nc < 2:
+        n_contacts = check_n_contacts(cfg.probes[0].get("n_contacts", 16), "first probe")
+        # One laminar readout serves every probe; a disagreeing later probe would be
+        # ignored. A later probe without the key inherits the first probe's count.
+        for i, probe in enumerate(cfg.probes[1:], start=1):
+            if "n_contacts" in probe and probe["n_contacts"] != n_contacts:
+                raise ValueError(
+                    f"probe {i} declares n_contacts={probe['n_contacts']!r} but the field "
+                    f"readout uses the first probe's n_contacts={n_contacts}"
+                )
+    # simulate solves the first Poisson declaration only; n_bins defaults to n_contacts.
+    poisson = [f for f in cfg.fields if f.get("solver") is not None]
+    for later in poisson[1:]:
+        if poisson_signature(later, n_contacts) != poisson_signature(poisson[0], n_contacts):
             raise ValueError(
-                f"probe n_contacts must be >= 2; got {_nc!r} in first probe"
+                f"field({later!r}) is not realized: simulate runs the first Poisson declaration "
+                f"{poisson[0]!r} only (n_bins defaults to n_contacts={n_contacts})"
             )
-        n_contacts = _nc
     static: dict[str, Any] = {"n_contacts": n_contacts, "operator_status": operator_status()}
     if geometry_meta is not None:
         static["geometry"] = geometry_meta
@@ -804,7 +945,11 @@ def construct(
     The returned model is a computational scaffold; its field/probe outputs
     are proxy readouts, not calibrated physical signals.
     """
-    from .neuronal_tensor import NeuronalTensor, RuntimeConfiguration, _construct_neuronal_tensor_impl
+    from .neuronal_tensor import (
+        NeuronalTensor,
+        RuntimeConfiguration,
+        _construct_neuronal_tensor_impl,
+    )
 
     if isinstance(cfg, NeuronalTensor):
         if runtime is None:
@@ -822,10 +967,16 @@ def construct(
                 "Area.pose instead."
             )
         return _construct_neuronal_tensor_impl(
-            cfg, seed=runtime.seed, duration_ms=runtime.duration_ms,
-            dt_ms=runtime.dt_ms, emitter=runtime.emitter,
-            dtype=runtime.dtype, backend=runtime.device,
-            jit=runtime.jit, vmap=runtime.vmap,
+            cfg,
+            seed=runtime.seed,
+            duration_ms=runtime.duration_ms,
+            dt_ms=runtime.dt_ms,
+            emitter=runtime.emitter,
+            dtype=runtime.dtype,
+            backend=runtime.device,
+            jit=runtime.jit,
+            vmap=runtime.vmap,
+            n_contacts=runtime.n_contacts,
         )
 
     if runtime is not None:
@@ -880,6 +1031,209 @@ def _homeostatic_ei_cell_type_split(n: int) -> "tuple[str, ...]":
     return tuple(["E"] * n_e + ["I"] * n_i)
 
 
+def _refuse_homeostatic_ei_dropped_declarations(cfg: Configuration) -> None:
+    """Refuse every declaration the homeostatic_ei route drops.
+
+    The builder below reads only ``networks[0]["n"]``, the emitter's
+    ``homeostatic_ei_rules``/``homeostatic_ei_bound_mode``, ``metadata["dtype"]``,
+    and the fields/probes consumed by ``_construct_build_static``. A value that
+    equals what the route builds anyway (``p_connect=1.0``, ``random_v0=False``,
+    disabled kernels) and label-only keys (network name/kind, connectivity
+    feedforward/feedback/mode) stay accepted. ``_construct_validate_config``, which
+    runs first, covers field/probe kwargs, later emitters/networks, ``vmap`` and
+    ``areas()``; ``_construct_from_configuration`` refuses ``geometry=``.
+    """
+    meta = cfg.metadata
+    net = cfg.networks[0] if cfg.networks else {}
+    conn = meta.get("connectivity") or {}
+    # p_connect lives in two spellings; both are dropped here (the dense-G
+    # circuit has no thinning stage), so both get the [0, 1] range check the
+    # other routes run, then anything but the neutral dense value is refused.
+    for _src, _p in (("connectivity", conn.get("p_connect")), ("network", net.get("p_connect"))):
+        if _p is not None and (
+            isinstance(_p, bool) or not isinstance(_p, numbers.Real) or not 0.0 <= _p <= 1.0
+        ):
+            raise ValueError(f"{_src}(p_connect={_p!r}) is not realized: it takes a probability in [0, 1]")
+        if _p is not None and float(_p) != 1.0:
+            raise ValueError(
+                f"{_src}(p_connect={_p!r}) is not realized on the homeostatic_ei route: "
+                "it builds a dense conductance matrix with no thinning stage"
+            )
+    # Population structure: labels come from _homeostatic_ei_cell_type_split,
+    # positions from the canonical layout; nothing laminar is read.
+    if net.get("cell_types") is not None:
+        raise ValueError(
+            f"network(cell_types={net['cell_types']!r}) is not realized on the homeostatic_ei route: "
+            "E/I labels come from the canonical split, not this map"
+        )
+    if "cell_types" in meta:
+        raise ValueError(
+            f"cell_types({meta['cell_types']!r}) is not realized on the homeostatic_ei route: "
+            "E/I labels come from the canonical split, not this map"
+        )
+    if net.get("layers"):
+        raise ValueError(
+            f"network(layers={net['layers']!r}) is not realized on the homeostatic_ei route: "
+            "it builds one unlayered population"
+        )
+    if meta.get("columns"):
+        _first = meta["columns"][0].get("name", "?")
+        raise ValueError(
+            f"column({_first!r}, ...) is not realized on the homeostatic_ei route: "
+            "it builds one population of networks[0]['n'] neurons, not these columns"
+        )
+    if meta.get("area_layer_count_frac") or meta.get("layer_count_frac"):
+        raise ValueError(
+            "population(...) is not realized on the homeostatic_ei route: "
+            "it builds one population of networks[0]['n'] neurons, not these per-layer budgets"
+        )
+    if meta.get("areas") is not None:
+        raise ValueError(
+            f"areas({list(meta['areas'])!r}) is not realized on the homeostatic_ei route: "
+            "it builds one population, not these areas"
+        )
+    if meta.get("uniform_3d"):
+        raise ValueError(
+            "uniform3d(...) is not realized on the homeostatic_ei route: "
+            "positions come from the canonical E/I layout"
+        )
+    if meta.get("layer_fractions") is not None or meta.get("layer_cell_types") is not None:
+        raise ValueError(
+            "layer_fractions(...) is not realized on the homeostatic_ei route: "
+            "it builds one unlayered population"
+        )
+    if meta.get("area_layer_cell_types"):
+        raise ValueError(
+            "area_layer_cell_types(...) is not realized on the homeostatic_ei route: "
+            "it builds one unlayered population"
+        )
+    # Connectivity: the consumed keys (read by _construct_population on the
+    # Izhikevich route) are refused; route labels (feedforward/feedback/mode)
+    # and the neutral within_area/recurrent values stay accepted.
+    for _key in ("within_gain", "feedforward_gain", "feedback_gain"):
+        if _key in conn:
+            raise ValueError(
+                f"connectivity({_key}={conn[_key]!r}) is not realized on the homeostatic_ei route: "
+                "it builds a fixed conductance matrix, not this gain"
+            )
+    if conn.get("edge_seed") is not None:
+        raise ValueError(
+            f"connectivity(edge_seed={conn['edge_seed']!r}) is not realized on the homeostatic_ei "
+            "route: it builds fixed canonical conductances and samples no edges"
+        )
+    if conn.get("tcm_v1_6pop") or meta.get("tcm_v1_6pop"):
+        raise ValueError(
+            "connectivity(tcm_v1_6pop=...) is not realized on the homeostatic_ei route: "
+            "it builds a fixed conductance matrix, not this motif"
+        )
+    if conn.get("within_area", "all_to_all_uniform_random") != "all_to_all_uniform_random":
+        raise ValueError(
+            f"connectivity(within_area={conn['within_area']!r}) is not realized on the homeostatic_ei route: "
+            "it builds a fixed conductance matrix"
+        )
+    if conn.get("recurrent", True) is not True:
+        raise ValueError(
+            f"connectivity(recurrent={conn['recurrent']!r}) is not realized on the homeostatic_ei route: "
+            "it builds a fixed conductance matrix"
+        )
+    if meta.get("connectivity_mode") not in (None, "unspecified"):
+        raise ValueError(
+            f"connectivity_mode={meta['connectivity_mode']!r} is not realized on the homeostatic_ei route: "
+            "it compiles no connection rules"
+        )
+    if meta.get("suite2_interarea"):
+        raise ValueError(
+            "suite2_interarea(...) is not realized on the homeostatic_ei route: "
+            "it builds one population, not a V1/V4 pair"
+        )
+    if meta.get("inter_column_connectivity"):
+        raise ValueError(
+            "inter_column_connectivity(...) is not realized on the homeostatic_ei route: "
+            "it builds one population with no inter-area edges"
+        )
+    # Drive and per-neuron overrides: the circuit's drive is fixed
+    # (drive_e/drive_i canonical defaults); nothing per-cell is applied.
+    if meta.get("drive") is not None:
+        raise ValueError(
+            "drive(...) is not realized on the homeostatic_ei route: "
+            "the canonical circuit fixes its drive"
+        )
+    _circuit = meta.get("circuit", {}) or {}
+    if _circuit.get("connections"):
+        _name = _circuit["connections"][0].get("name", "?")
+        raise ValueError(
+            f"connections(name={_name!r}) is not realized on the homeostatic_ei route: "
+            "it compiles no connection rules"
+        )
+    if _circuit.get("cell_params"):
+        raise ValueError(
+            "cell_params(...) is not realized on the homeostatic_ei route: "
+            "per-neuron overrides are never applied here"
+        )
+    # Emitter preset selects no parameters on any route, and this route
+    # realizes no preset at all; the rules/bound_mode it does read stay.
+    _emitter = cfg.emitters[0] if cfg.emitters else {}
+    if _emitter.get("preset") is not None:
+        raise ValueError(
+            f"emitter(preset={_emitter['preset']!r}) is not realized on the homeostatic_ei route: "
+            "only homeostatic_ei_rules/homeostatic_ei_bound_mode are read"
+        )
+    # Runtime keys read on the Izhikevich route only: construct-time
+    # biophysics (canonical_biophysics/random_v0), kernel selection
+    # (recurrent_backend/synaptic_kernel), and the adaptive kernels
+    # (enable_homeostasis/homeostasis_params/enable_hdp/hdp_params). dtype,
+    # seed, duration_ms/dt_ms are consumed (construct/simulate) and jit,
+    # backend, device_type are numerics-invariant policy, so those stay.
+    if meta.get("canonical_biophysics"):
+        raise ValueError(
+            "runtime(canonical_biophysics=True) is not realized on the homeostatic_ei route: "
+            "no canonical-biophysics stage runs here"
+        )
+    if meta.get("random_v0"):
+        raise ValueError(
+            "runtime(random_v0=True) is not realized on the homeostatic_ei route: "
+            "initial states are fixed by the canonical circuit"
+        )
+    if meta.get("recurrent_backend") is not None:
+        raise ValueError(
+            f"runtime(recurrent_backend={meta['recurrent_backend']!r}) is not realized on the "
+            "homeostatic_ei route: it runs its own kernel, not the dense/edge_list choice"
+        )
+    if meta.get("synaptic_kernel") is not None:
+        raise ValueError(
+            f"runtime(synaptic_kernel={meta['synaptic_kernel']!r}) is not realized on the "
+            "homeostatic_ei route: it runs its own kernel"
+        )
+    if meta.get("enable_homeostasis"):
+        raise ValueError(
+            "runtime(enable_homeostasis=True) is not realized on the homeostatic_ei route: "
+            "homeostasis is intrinsic to the circuit, not a RuntimeConfig kernel"
+        )
+    if meta.get("homeostasis_params") is not None:
+        raise ValueError(
+            "runtime(homeostasis_params=...) is not realized on the homeostatic_ei route: "
+            "no homeostasis kernel reads them here"
+        )
+    if meta.get("enable_hdp"):
+        raise ValueError(
+            "runtime(enable_hdp=True) is not realized on the homeostatic_ei route: "
+            "plasticity is intrinsic to the circuit, not a RuntimeConfig kernel"
+        )
+    if meta.get("hdp_params") is not None:
+        raise ValueError(
+            "runtime(hdp_params=...) is not realized on the homeostatic_ei route: "
+            "no HDP kernel reads them here"
+        )
+    # Fields: n_contacts and the first-Poisson rule are consumed by
+    # _construct_build_static; the Poisson diagnostic itself never runs here.
+    for _field in cfg.fields:
+        if _field.get("solver") is not None:
+            raise ValueError(
+                f"field(solver={_field['solver']!r}) is not realized on the homeostatic_ei route: "
+                "simulate runs no Poisson diagnostic here"
+            )
+
+
 def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
     """Build a :class:`Model` for the ``homeostatic_ei`` emitter family --
     the second canonical HDP sanity circuit (a minimal E/I circuit with an
@@ -900,20 +1254,33 @@ def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
     not yet generalized for this family (see the ``NotImplementedError``
     guards added to those methods in ``jaxfne/_model.py``).
     """
-    rules = dict((cfg.emitters[0].get("homeostatic_ei_rules") if cfg.emitters else None) or {})
-    activation_rule = str(rules.get("activation_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["activation_rule"]))
-    conductance_rule = str(rules.get("conductance_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["conductance_rule"]))
-    homeostasis_rule = str(rules.get("homeostasis_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["homeostasis_rule"]))
-    bound_mode = str((cfg.emitters[0].get("homeostatic_ei_bound_mode") if cfg.emitters else None) or "minimal")
+    _refuse_homeostatic_ei_dropped_declarations(cfg)
+    rules =dict((cfg.emitters[0].get("homeostatic_ei_rules") if cfg.emitters else None) or {})
+    activation_rule = str(
+        rules.get("activation_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["activation_rule"])
+    )
+    conductance_rule = str(
+        rules.get("conductance_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["conductance_rule"])
+    )
+    homeostasis_rule = str(
+        rules.get("homeostasis_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["homeostasis_rule"])
+    )
+    bound_mode = str(
+        (cfg.emitters[0].get("homeostatic_ei_bound_mode") if cfg.emitters else None) or "minimal"
+    )
     if bound_mode not in ("minimal", "stable"):
-        raise ValueError(f"unknown bound_mode {bound_mode!r} for homeostatic_ei; expected 'minimal' or 'stable'")
+        raise ValueError(
+            f"unknown bound_mode {bound_mode!r} for homeostatic_ei; expected 'minimal' or 'stable'"
+        )
     for name, registry, kind in (
         (activation_rule, ACTIVATION_RULES, "activation"),
         (conductance_rule, CONDUCTANCE_RULES, "conductance"),
         (homeostasis_rule, HOMEOSTASIS_RULES, "homeostasis"),
     ):
         if name not in registry:
-            raise ValueError(f"unknown {kind}_rule {name!r} for homeostatic_ei; expected one of {sorted(registry)}")
+            raise ValueError(
+                f"unknown {kind}_rule {name!r} for homeostatic_ei; expected one of {sorted(registry)}"
+            )
 
     dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
     jdtype = jnp.dtype(dtype_name_cfg)
@@ -930,12 +1297,17 @@ def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
     x0 = jnp.full((n,), d["x0_value"], dtype=jdtype)
     H0 = jnp.full((n,), d["H0_value"], dtype=jdtype)
     source_scale = jnp.full((n,), d["source_scale_value"], dtype=jdtype)
-    drive = jnp.where(is_e, jnp.asarray(d["drive_e_value"], dtype=jdtype), jnp.asarray(d["drive_i_value"], dtype=jdtype))
+    drive = jnp.where(
+        is_e,
+        jnp.asarray(d["drive_e_value"], dtype=jdtype),
+        jnp.asarray(d["drive_i_value"], dtype=jdtype),
+    )
     # G0[i, j] = (per-type value) / (count of that type) for every row i --
     # normalizes total incoming drive so it matches the original 2-neuron
     # circuit's magnitude regardless of population size (1 E + 1 I there).
     col_value = jnp.where(
-        is_e, jnp.asarray(d["G0_e_value"], dtype=jdtype) / max(n_e, 1),
+        is_e,
+        jnp.asarray(d["G0_e_value"], dtype=jdtype) / max(n_e, 1),
         jnp.asarray(d["G0_i_value"], dtype=jdtype) / max(n_i, 1),
     )
     G0 = jnp.broadcast_to(col_value[None, :], (n, n))
@@ -970,7 +1342,9 @@ def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
     )
 
 
-def _construct_from_configuration(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None) -> Model:
+def _construct_from_configuration(
+    cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None
+) -> Model:
     """Validate a :class:`Configuration` and build a runnable :class:`Model`.
 
     Raises ``ValueError`` if the configuration is invalid or names an
@@ -984,22 +1358,40 @@ def _construct_from_configuration(cfg: Configuration, *, geometry: "LaminarSourc
     """
     _construct_validate_config(cfg)
     if cfg.emitters and cfg.emitters[0].get("family") == "homeostatic_ei":
+        if geometry is not None:
+            raise ValueError(
+                f"construct(geometry={geometry!r}) is not realized on the homeostatic_ei route: "
+                "positions come from the canonical E/I layout"
+            )
         return _construct_homeostatic_ei_model(cfg)
     net = cfg.networks[0]
     dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
 
-    network, positions, geometry_meta, n, _prebuilt_edges = _construct_build_network(cfg, net, dtype_name_cfg)
+    network, positions, geometry_meta, n, _prebuilt_edges = _construct_build_network(
+        cfg, net, dtype_name_cfg
+    )
     cfg, edge_list = _construct_resolve_edge_list(cfg, network, _prebuilt_edges)
-    positions, geometry_meta = _construct_apply_geometry_override(geometry, network, positions, geometry_meta, n)
+    positions, geometry_meta = _construct_apply_geometry_override(
+        geometry, network, positions, geometry_meta, n
+    )
 
     # Canonical-column biophysics: random v0 (always) + deep-E grading and PV<->E
     # local strengthening (laminar columns). Reproducible from cfg seed.
     emitter_params, edge_list = _apply_canonical_biophysics(
         network.params, positions, edge_list, cfg
     )
+    if cfg.metadata.get("canonical_biophysics"):
+        # cell_params() overrides the deep-E grading of a and d, which ran after it.
+        # The plain route builds one unlayered population (geometry_meta None).
+        emitter_params = _apply_cell_params(
+            emitter_params, emitter_params.labels, (geometry_meta or {}).get("layer_labels"),
+            cfg.metadata, emitter_params.a.dtype, _declared_cell_types(cfg),
+        )
     network = replace(network, params=emitter_params)
 
-    cfg, edge_list = _construct_compile_connections(cfg, network, n, geometry_meta, net, edge_list, positions=positions)
+    cfg, edge_list = _construct_compile_connections(
+        cfg, network, n, geometry_meta, net, edge_list, positions=positions
+    )
     from ._edge_class_storage import (
         audit_edge_list_storage,
         build_declared_mechanism_tau_table,
@@ -1030,15 +1422,9 @@ def _construct_from_configuration(cfg: Configuration, *, geometry: "LaminarSourc
         "topology_authoritative": "edge_list" if _placeholder_w else "emitter_W",
         "emitter_W_storage": "placeholder" if _placeholder_w else "materialized",
         "dense_W_role": (
-            "execution_layout_on_demand"
-            if _placeholder_w
-            else "execution_layout_materialized"
+            "execution_layout_on_demand" if _placeholder_w else "execution_layout_materialized"
         ),
-        "edge_list_role": (
-            "authoritative"
-            if _placeholder_w
-            else "execution_layout_derived"
-        ),
+        "edge_list_role": ("authoritative" if _placeholder_w else "execution_layout_derived"),
     }
 
     return Model(
@@ -1046,5 +1432,3 @@ def _construct_from_configuration(cfg: Configuration, *, geometry: "LaminarSourc
         params={"emitter": network.params, "positions": positions, "edge_list": edge_list},
         static=static,
     )
-
-

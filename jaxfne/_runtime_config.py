@@ -33,6 +33,9 @@ class RuntimeConfig:
     ``dtype='float64'`` is honored only when JAX x64 is enabled.  The manifest
     always reports both requested and actual dtype policy.
 
+    jit selects XLA compilation: True/False force it on/off,
+    auto (default) enables it iff n_steps * n_units * batch > 50000.
+
     Homeostasis: when ``enable_homeostasis=True``, emitters use per-neuron
     activity-trace feedback to balance firing rates. Pass ``homeostasis_params``
     as a dict with keys {r_star, tau_r_ms, alpha, k_gain, g_min, g_max, r_max};
@@ -63,7 +66,8 @@ class RuntimeConfig:
 
     backend: str = "auto"  # "auto" | "cpu" | "gpu" | "tpu"
     dtype: str = "float32"  # "float32" | "float64"
-    jit: bool | str = False
+    # 0.5.1 opt051_1: default auto (jit iff n_steps*n_units*batch > 50000).
+    jit: bool | str = "auto"
     vmap: bool | str = False
     precision: str = "default"  # "default" | "high"
     seed: int = 0
@@ -136,6 +140,17 @@ class RuntimeConfig:
             raise ValueError(
                 f"backend must be one of {{'auto', 'cpu', 'gpu', 'tpu'}}; "
                 f"got {self.backend!r}."
+            )
+        # H1 consumption gate: fields no kernel reads are refused, not stored.
+        if self.precision != "default":
+            raise ValueError(
+                f"precision={self.precision!r} is not consumed by any kernel; "
+                "only 'default' is accepted"
+            )
+        if self.x64_enabled and not bool(jax.config.read("jax_enable_x64")):
+            raise ValueError(
+                "x64_enabled=True does not enable x64; call jaxfne.enable_x64() "
+                "before building arrays and request dtype='float64'"
             )
 
     def resolve_jit(self, n_steps: int, n_units: int, batch: int = 1) -> bool:

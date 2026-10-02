@@ -112,6 +112,22 @@ The shipped canonical V1 is intentionally scoped as a **qualitative laminar scaf
 
 To claim quantitative biological correspondence, supply an explicit layer-resolved validation study (stereology, connectomics, or transcriptomic mapping) and tag the derived circuit with its own citation and `value_tag` — do not reinterpret the shipped scaffold as already validated.
 
+### Dynamical regime: synchronous-regular
+
+Simulations of `canonical-v1-column-1000n` with default parameters (1000 ms, dt 0.5 ms, seed 0) operate in a **synchronous-regular** (SR) limit-cycle regime:
+
+| Observable | Value | Mechanism | Code reference |
+|------------|-------|-----------|----------------|
+| E rate | 11.00 Hz | Locked to intrinsic drive 5.0 ($I_c = 4.0$); rate is insensitive to feedback inhibition in sweeps. Source of synchrony (identical drive and initial state vs recurrent coupling) is not yet established | `jaxfne/emitters.py:60` |
+| PV rate | 0.84 Hz | Subthreshold: drive 3.0 sits below saddle-node rheobase $I_c = 4.0$ ($b=0.20$); spikes during population bursts | `jaxfne/emitters.py:61` |
+| SST rate | 47.88 Hz | Suprathreshold: drive 3.5 sits above rheobase $I_c = 1.016$ ($b=0.25$); autonomous pacemaker with no SST/PV inhibition and a silent VIP (0.56 Hz) | `jaxfne/emitters.py:63` |
+| VIP rate | 0.56 Hz | Subthreshold: drive 3.0 sits below rheobase $I_c = 22.56$ ($b=-0.10$) | `jaxfne/emitters.py:65` |
+| Irregularity ($CV_{ISI}$) | 0.036 | Clock-like inter-spike intervals | `scripts/probe_canonical_dynamics.py` |
+| Synchrony ($r_{sc}$) | 0.609 | High pairwise spike count correlation (20 ms bin); its source is not yet established | `scripts/probe_canonical_dynamics.py` |
+| LFP peak | 21.0 Hz | Beta-band oscillatory power from population burst period | `jaxfne/analysis/spectral.py` |
+
+Excitatory in-degree exceeds inhibitory in-degree ($6.3 : 1$, equal synaptic weights $|w| = 0.01423$, $g = |w_I|/w_E = 1.0$). In probe sweeps, raising PV drive or scaling inhibition by 4 left the E rate unchanged. The canonical column serves as a synchronous-regular reference benchmark; an opt-in balanced preset is planned for asynchronous-irregular dynamics.
+
 ## Current status
 
 - ✓ Metadata fields support calibration annotations
@@ -132,16 +148,11 @@ cfg = (
     .emitter(family="izhikevich", preset="cortical_eig")
     .field(
         domain="laminar_column",
-        conductivity="proxy",  # or specify σ in S/m if known
-        depths=[0.0, 0.1, 0.3, 0.5, 0.7, 0.9],  # layer boundaries
+        conductivity="proxy",
         boundary="mean_zero_neumann",
         gauge="mean_zero"
     )
-    .probe(
-        name="calibration_ready",
-        n_contacts=6,
-        contact_depths=[0.05, 0.2, 0.4, 0.6, 0.8, 0.95]
-    )
+    .probe(name="calibration_ready", n_contacts=6)
 )
 
 model = jtfne.construct(cfg)
@@ -150,6 +161,10 @@ manifest = model.manifest(signals, ...)
 
 # Manifest includes geometry and metadata suitable for later validation
 ```
+
+The field keys take only the values the laminar proxy realizes, and the six
+contacts sit at `linspace(0, 1, 6)`. A conductivity in S/m, layer depths or
+contact depths raise an error.
 
 ## Interactive atlas (dark)
 

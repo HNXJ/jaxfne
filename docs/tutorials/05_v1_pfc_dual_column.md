@@ -41,7 +41,7 @@ script.
 ```python
 from jaxfne.neuronal_tensor import (
     Area, AreaConnection, Layer, NeuronType, NeuronalTensor, PlasticParams,
-    construct_neuronal_tensor,
+    StaticParams, construct_neuronal_tensor,
 )
 
 # V1: L1=10, L2=25, L3=15, L4=15 (pure-E tuning), L5=20, L6=15 (pure-E tuning)
@@ -59,6 +59,9 @@ feedforward = [
         source_area="V1", source_layer=layer, source_neuron_type="E",
         target_area="PFC", target_layer="L4", target_neuron_type="E",
         mechanism="AMPA",
+        # P-023: time constants are required, never defaulted (AMPA 2.0 ms
+        # from jaxfne.presets.RECEPTOR_KINETICS).
+        static=StaticParams(dT_ms=2.0),
         # PlasticParams.H defaults to 0.0, outside the valid HDP range
         # (H_min=0.1, H_max=10.0) -- ALWAYS set H=1.0 explicitly when HDP
         # will be enabled, or the target neurons' seeded H0 blows up the
@@ -126,7 +129,7 @@ stable across the **entire** run, not just the first few trials:
 - Zero NaN in any of the 100 trial summaries.
 
 This shows stable, long-term homeostatic adaptation with
-genuine trial-to-trial weight plasticity -- not just a working-but-static
+trial-to-trial weight plasticity -- not just a working-but-static
 H-only pipeline (`carry_weights=False` stays available to reproduce that
 earlier, more conservative behavior for comparison).
 
@@ -141,7 +144,7 @@ and is **not** run by default -- pass an explicit `n_trials` for a
 longer run. Receipt:
 `outputs/v1_pfc_continuous_aaab_smoke_test/smoke_test_receipt.json`.
 
-## Known limitations (stated, not hidden)
+## Known limitations
 
 - V1's L4 and L6 drop PV/SST/VIP (pure-E tuning layers)
   to host the AB/A/B groups; L3 shrinks from its canonical 20 neurons to

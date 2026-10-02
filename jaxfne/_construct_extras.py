@@ -299,7 +299,7 @@ def trial_batch(
 ) -> TrialBatch:
     """Create a TrialBatch by repeating conditions.
 
-    Correctly iterates reps then conditions to ensure deterministic ordering.
+    Iterates reps, then conditions, in a fixed order.
     Assigns unique trial_id in format "trial_{index:04d}_{condition_name}".
 
     Seed policy:

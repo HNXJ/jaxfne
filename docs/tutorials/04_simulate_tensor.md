@@ -22,6 +22,19 @@ print(float(signals.get("spikes").mean() * 1000 / 0.5))  # ~8-12 Hz population r
 
 **Box: two on-ramps, one compiler.** The fluent `Configuration` path (`Configuration().column().cell_types()...`) and this `develop → NeuronalTensor` path converge on `construct → simulate`. See [Configuration Grammar](../guides/configuration_grammar.md).
 
+<!-- jx-figure -->
+## Figure
+
+=== "Still"
+
+    ![Spike raster of the 1000 ms reference run](../assets/readme/raster.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="../../_static/atlas/raster.html" loading="lazy" title="Spike raster of the 1000 ms reference run"></iframe>
+
+Spike raster of the pinned 1000 ms reference run (canonical tensor, runtime seed 0, dt 0.5 ms); the code above uses runtime seed 1, so its raster differs in detail. [Open full page](../_static/atlas/raster.html).
+
 Next: [05 — Observe](05_observe_fields.md) — post-hoc observation operators on the frozen trajectory.
 
 ## Interactive atlas (dark)

@@ -16,7 +16,8 @@ from jaxfne import (
     Geometry3D, Pose3D, StaticParams, PlasticParams,
     InterConnection, save_neuronal_tensor, load_neuronal_tensor,
     merge_neuronal_tensors, neuronal_tensor_to_configuration,
-    construct_neuronal_tensor, default_relative_size,
+    construct, RuntimeConfiguration, construct_neuronal_tensor,
+    default_relative_size,
     list_canonical_neuronal_tensors, load_canonical_neuronal_tensor,
 )
 ```
@@ -88,7 +89,7 @@ Always 3D. For a 2D or 1D layer, collapse axes by fixing
 their range at `(0.0, 0.0)`.
 
 Only `distribution="uniform_random"` is implemented;
-`construct_neuronal_tensor` raises `NotImplementedError` for any other value.
+`construct` (and `construct_neuronal_tensor`) raises `NotImplementedError` for any other value.
 
 ---
 
@@ -151,12 +152,15 @@ this layer (all cell types combined).
 class StaticParams:
     g_mech: dict = field(default_factory=dict)          # mechanism → conductance
     reversal_potentials_mV: dict = field(default_factory=dict)  # mechanism → E_rev (mV)
-    dT_ms: float = 0.1
+    dT_ms: float | None = None   # REQUIRED (P-023): None is refused, never defaulted
     value_tag: ValueTag = "relative"
 ```
 
 **Never plastic/trainable/gradientable.** Holds conductances, reversal
-potentials, and the integration timestep for a connection.
+potentials, and the synaptic time constant for a connection.
+`dT_ms` is **required** (P-023): `None` is refused at wiring time rather
+than defaulted — see [Time constants are required](#time-constants-are-required)
+for the declaration vocabulary.
 
 > **Note:** `reversal_potentials_mV` is stored as metadata only. jaxfne's
 > compiled edges are native current-based (Izhikevich-style) and have no
@@ -183,7 +187,7 @@ H-factor (passive ionic charge income per neuron).
 > `H` seeds the HDP controller's initial per-neuron state **only** when HDP
 > is separately enabled (`Configuration.hdp(...)` before `jaxfne.construct`,
 > or via a post-hoc `RuntimeConfig` override). It is stored but inert when
-> HDP is disabled (jaxfne's default). See `construct_neuronal_tensor` for how
+> HDP is disabled (jaxfne's default). See `construct` / `construct_neuronal_tensor` for how
 > per-neuron `H` is aggregated from all connections touching each neuron.
 
 ---
@@ -200,10 +204,16 @@ class InterConnection:
     mechanism: str          # required — no default (e.g. "AMPA", "GABA_A")
     static: StaticParams = field(default_factory=StaticParams)
     plastic: PlasticParams = field(default_factory=PlasticParams)
+    delay_ms: float | None = None
 ```
 
 **Within-area** connection from `(source_layer, source_neuron_type)` to
 `(target_layer, target_neuron_type)`. `mechanism` is required.
+
+- `delay_ms`: Configured axonal delay in milliseconds (`None` = undeclared).
+  When declared, must be a finite number `>= 0.0`. Forwarded into the compiled
+  connection rule and realized to simulation steps at model construction
+  where simulation `dt` is known.
 
 ---
 
@@ -267,12 +277,20 @@ class AreaConnection:
     mechanism: str = "monotonic_cable_synapse"   # default
     static: StaticParams = field(default_factory=StaticParams)
     plastic: PlasticParams = field(default_factory=PlasticParams)
+    delay_ms: float | None = None
+    probability: float | None = None
 ```
 
 **Between-area** connection with the full
 `(area, layer, neuron_type)` path for both source and target.
 Unlike `InterConnection`, `mechanism` defaults to
 `"monotonic_cable_synapse"`.
+
+- `delay_ms`: Configured axonal delay in milliseconds (`None` = undeclared).
+  When declared, must be a finite number `>= 0.0`. Forwarded into the compiled
+  connection rule and realized to simulation steps at model construction.
+- `probability`: Per-pair connection probability in `(0.0, 1.0]` (`None` =
+  undeclared = `1.0`, full bipartite between the declared layer × cell-type pair).
 
 ---
 
@@ -470,23 +488,66 @@ Returns a `Configuration` for `jaxfne.construct`.
 - Every `InterConnection` (within-area) and `AreaConnection` (between-area)
   compiles into a real selector-based edge rule via
   `Configuration.connections` + `Configuration.mechanisms`. Edge magnitude is
-  `w_mech × g_mech / √total_n`. Sign follows the source neuron type
-  (E → excitatory, else inhibitory). Connection probability is `1.0`
-  (full bipartite between the declared layer × cell-type pair). For explicit
+  `w_mech × g_mech / √total_n`. Sign follows the P-023 mechanism vocabulary
+  (see [Time constants are required](#time-constants-are-required)):
+  excitatory `{AMPA, NMDA}` from E sources, inhibitory `{GABA_A, GABA_B}`
+  from non-E sources. `InterConnection` probability is `1.0`
+  (full bipartite between the declared layer × cell-type pair);
+  `AreaConnection.probability` is forwarded when declared (`None` means
+  `1.0`). For explicit
   tensor connectivity, these are the complete executable edges; implicit
   recurrent defaults are not added.
+
+- Per-layer geometry (`Layer.geometry`, P-022) is preserved via fractional
+  domains in `Configuration.metadata["tfne_geometry"]["domains"]`.
+  `Area.pose` is not applied by `neuronal_tensor_to_configuration`; only
+  `construct` applies it.
 
 **Known fidelity gaps (not yet wired):**
 
 | Gap | Workaround |
 |-----|------------|
-| `Layer.geometry` / `Area.pose` — 3D placement is dropped; positions come from jaxfne's default uniform-random column sampler. | Use `construct_neuronal_tensor` instead, which overwrites positions post-construct. |
 | `StaticParams.reversal_potentials_mV` — stored as metadata only; no effect on dynamics. | Inspect via `cfg.metadata["circuit"]["mechanisms"]`. |
-| `PlasticParams.H` — stored but inert unless HDP is separately enabled. | See `construct_neuronal_tensor` for automatic HDP seeding. |
+| `PlasticParams.H` — stored but inert unless HDP is separately enabled. | See `construct` / `construct_neuronal_tensor` for automatic HDP seeding. |
 
 ---
 
-### `construct_neuronal_tensor`
+### Time constants are required
+
+Every `InterConnection` / `AreaConnection` declares its synaptic time
+constant in `static` (`StaticParams(dT_ms=...)`, milliseconds). `None` is
+refused at wiring time — never defaulted — as is any other inadmissible
+value (0, negative, NaN, inf, bools, strings). Named receptors use
+`jaxfne.presets.RECEPTOR_KINETICS` values (AMPA 2.0, GABA_A 5.0, NMDA 100.0,
+GABA_B 150.0 ms).
+
+JDNA genomes declare the same kinetics once per mechanism in
+`mechanism_tau_ms` (`{mechanism: tau_ms}`); `develop` copies each
+connection's mechanism tau into its `StaticParams.dT_ms` and refuses a
+mechanism with no table entry.
+
+The mechanism name also sets the sign: `{AMPA, NMDA}` require an E
+source, `{GABA_A, GABA_B}` a non-E source, and a clash is refused. Two
+names are exempt: any other name is refused as unknown, except
+`monotonic_cable_synapse` (the `AreaConnection` default), whose sign
+follows the source cell type — and tensors minted by
+`jaxfne.tfne.to_neuronal_tensor`, which keep TFNE's own fail-closed
+kinetics plus weight-polarity sign (recognized only through a
+module-private registry: a caller-supplied `provenance` dict never
+qualifies, and save/load loses the status).
+
+---
+
+### `construct` (canonical) and `construct_neuronal_tensor` (compatibility wrapper)
+
+```python
+def construct(
+    tensor: NeuronalTensor,
+    runtime: RuntimeConfiguration | None = None,
+) -> Model
+```
+
+Or using the keyword compatibility wrapper:
 
 ```python
 def construct_neuronal_tensor(
@@ -500,7 +561,7 @@ def construct_neuronal_tensor(
 ```
 
 **Bridge + construct + apply each area's `Pose3D` placement in one call.**
-Recommended entry point for pose-correct 3D placement.
+Both entry points reach the same internal implementation (`_construct_neuronal_tensor_impl`). Prefer `jtfne.construct(tensor, RuntimeConfiguration(...))` for new code.
 
 **What it does beyond `neuronal_tensor_to_configuration`:**
 
@@ -519,7 +580,9 @@ Recommended entry point for pose-correct 3D placement.
    separately enabled.
 
 ```python
-model = construct_neuronal_tensor(tensor, seed=42, duration_ms=500.0)
+from jaxfne import construct, RuntimeConfiguration
+
+model = construct(tensor, RuntimeConfiguration(seed=42, duration_ms=500.0))
 signals = jaxfne.simulate(model)
 ```
 
@@ -532,7 +595,8 @@ import jaxfne
 from jaxfne import (
     NeuronalTensor, Area, AreaConnection, Layer, NeuronType,
     Geometry3D, Pose3D, StaticParams, PlasticParams, InterConnection,
-    save_neuronal_tensor, load_neuronal_tensor, construct_neuronal_tensor,
+    save_neuronal_tensor, load_neuronal_tensor, construct,
+    RuntimeConfiguration,
 )
 
 # ── Define cell types ────────────────────────────────────────────────────────
@@ -544,10 +608,15 @@ L4  = Layer("L4",  [E, PV], Geometry3D(z_range=(0.0, 0.3)), n_neurons=80)
 L23 = Layer("L2/3",[E, PV], Geometry3D(z_range=(0.3, 0.8)), n_neurons=60)
 
 # ── Within-area wiring ──────────────────────────────────────────────────────
+# Every connection declares its synaptic time constant (P-023, required):
+# AMPA 2.0 ms / GABA_A 5.0 ms from jaxfne.presets.RECEPTOR_KINETICS.
 v1_connections = [
-    InterConnection("L4", "E", "L2/3", "E",  mechanism="AMPA"),
-    InterConnection("L4", "E", "L4",   "PV", mechanism="AMPA"),
-    InterConnection("L4", "PV","L4",   "E",  mechanism="GABA_A"),
+    InterConnection("L4", "E", "L2/3", "E",  mechanism="AMPA",
+                    static=StaticParams(dT_ms=2.0)),
+    InterConnection("L4", "E", "L4",   "PV", mechanism="AMPA",
+                    static=StaticParams(dT_ms=2.0)),
+    InterConnection("L4", "PV","L4",   "E",  mechanism="GABA_A",
+                    static=StaticParams(dT_ms=5.0)),
 ]
 
 # ── Assemble area ───────────────────────────────────────────────────────────
@@ -562,7 +631,7 @@ save_neuronal_tensor(tensor, "v1_minimal.json")
 tensor = load_neuronal_tensor("v1_minimal.json")
 
 # ── Construct and simulate ──────────────────────────────────────────────────
-model   = construct_neuronal_tensor(tensor, seed=0, duration_ms=500.0)
+model   = construct(tensor, RuntimeConfiguration(seed=0, duration_ms=500.0))
 signals = jaxfne.simulate(model)
 ```
 
@@ -583,12 +652,14 @@ merged = merge_neuronal_tensors(
     name="v1_mt",
 )
 
-# Wire areas together
-from jaxfne import AreaConnection
+# Wire areas together (time constants required, P-023: AMPA 2.0 ms)
+from jaxfne import AreaConnection, StaticParams, construct, RuntimeConfiguration
 merged.area_connections = [
-    AreaConnection("V1", "L2/3", "E", "MT", "L4", "E"),  # feedforward
-    AreaConnection("MT", "L2/3", "E", "V1", "L2/3", "E"),  # feedback
+    AreaConnection("V1", "L2/3", "E", "MT", "L4", "E",  # feedforward
+                   mechanism="AMPA", static=StaticParams(dT_ms=2.0)),
+    AreaConnection("MT", "L2/3", "E", "V1", "L2/3", "E",  # feedback
+                   mechanism="AMPA", static=StaticParams(dT_ms=2.0)),
 ]
 
-model = construct_neuronal_tensor(merged, seed=1, duration_ms=1000.0)
+model = construct(merged, RuntimeConfiguration(seed=1, duration_ms=1000.0))
 ```

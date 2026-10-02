@@ -11,7 +11,7 @@ layers, or cell types it has:
                       -- see emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE, the
                       actual single source of truth this module imports below
     InterConnection (within an area)  = [source(Layer,NeuronType), target(Layer,NeuronType), mechanism]
-        mechanism is required, no default (e.g. "AMPA", "GABA")
+        mechanism is required, no default (e.g. "AMPA", "GABA_A")
     AreaConnection  (between areas)   = [source(Area,Layer,NeuronType), target(Area,Layer,NeuronType), mechanism]
         mechanism defaults to "monotonic_cable_synapse"
 
@@ -43,11 +43,13 @@ bridges + constructs + then overwrites the model's positions with the
 pose-correct global placement (jaxfne's own construct() only offsets columns
 along x with no rotation, so this step happens post-construct).
 """
+
 from __future__ import annotations
 
 import hashlib
 import math
 import warnings
+import weakref
 from dataclasses import dataclass, field, asdict, replace
 from pathlib import Path
 from typing import Any, Literal, Optional, Sequence
@@ -57,7 +59,9 @@ import jax.numpy as jnp
 
 from .io import save_json, load_json
 from .core import Configuration, Model, construct
+from ._config import check_n_contacts
 from .emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
+from .presets import RECEPTOR_KINETICS
 
 ValueTag = Literal["calibrated", "calibrated_proxy", "relative"]
 ConnectivityMode = Literal["unspecified", "explicit"]
@@ -68,6 +72,52 @@ Plane = Literal["xy", "xz", "yz"]
 DEFAULT_RELATIVE_SIZE = DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
 DEFAULT_OTHER_RELATIVE_SIZE = 1.0
 DEFAULT_AREA_CONNECTION_MECHANISM = "monotonic_cable_synapse"
+
+#: P-023 declaration vocabulary for NeuronalTensor connection mechanisms.
+#: Excitatory receptors may only be driven by E sources; inhibitory receptors
+#: only by non-E sources. Any other name is refused as unknown, except the
+#: AreaConnection default above, whose sign follows the source cell type.
+EXCITATORY_MECHANISMS = frozenset({"AMPA", "NMDA"})
+INHIBITORY_MECHANISMS = frozenset({"GABA_A", "GABA_B"})
+
+#: P-023 TFNE carve-out registry: ids of NeuronalTensor objects minted by
+#: :func:`jaxfne.tfne.to_neuronal_tensor`, held weakly alongside the
+#: :func:`_tensor_identity_digest` taken at mint time. The carve-out in
+#: :func:`_wire_connection` consults this — never ``provenance``, which is a
+#: free constructor kwarg any caller can set — so a hand-built tensor carrying
+#: ``provenance={"tfne_digest": ...}`` is still refused. A saved-and-reloaded
+#: tensor loses the status: :func:`save_neuronal_tensor` already strips
+#: provenance, and loading constructs a new (unregistered) object, as do
+#: copies, merges and any other reconstruction. An in-place mutation also
+#: forfeits the status (content identity: the live digest no longer matches
+#: the minted one, so the tensor faces the normal P-023 rules); reverting
+#: the mutation restores it. Fail closed throughout.
+_TFNE_MINTED: dict[int, tuple["weakref.ReferenceType[NeuronalTensor]", str]] = {}
+
+
+def _register_tfne_minted(tensor: "NeuronalTensor") -> "NeuronalTensor":
+    """Record a tensor minted by the TFNE compiler (called from ``to_neuronal_tensor`` only)."""
+    key = id(tensor)
+    # _tensor_identity_digest is defined below; resolved at call time (same module).
+    _TFNE_MINTED[key] = (
+        weakref.ref(tensor, lambda _ref, _key=key: _TFNE_MINTED.pop(_key, None)),
+        _tensor_identity_digest(tensor),
+    )
+    return tensor
+
+
+def _is_tfne_minted(tensor: "NeuronalTensor") -> bool:
+    """Whether this exact object was minted by the TFNE compiler, unmutated, and still alive."""
+    entry = _TFNE_MINTED.get(id(tensor))
+    if entry is None:
+        return False
+    ref, stored = entry
+    if ref() is not tensor:
+        return False
+    if not stored:
+        return False
+    current = _tensor_identity_digest(tensor)
+    return bool(current) and current == stored
 
 #: Maps a Pose3D.plane to (global_axis_for_local_x, global_axis_for_local_y,
 #: global_axis_for_local_depth). "xy" is the canonical default (depth=z, the
@@ -88,6 +138,7 @@ def default_relative_size(neuron_type: str) -> float:
 @dataclass
 class Geometry3D:
     """Always 3D. Collapse an axis to a 2D/1D layer by fixing it at 0.0."""
+
     distribution: str = "uniform_random"
     x_range: tuple[float, float] = (0.0, 1.0)
     y_range: tuple[float, float] = (0.0, 1.0)
@@ -103,11 +154,21 @@ class NeuronType:
     value_tag: ValueTag = "relative"
 
     @classmethod
-    def make(cls, name: str, relative_size: Optional[float] = None,
-             fraction: Optional[float] = None,
-             value_tag: ValueTag = "relative") -> "NeuronType":
-        return cls(name=name, relative_size=relative_size if relative_size is not None
-                    else default_relative_size(name), fraction=fraction, value_tag=value_tag)
+    def make(
+        cls,
+        name: str,
+        relative_size: Optional[float] = None,
+        fraction: Optional[float] = None,
+        value_tag: ValueTag = "relative",
+    ) -> "NeuronType":
+        return cls(
+            name=name,
+            relative_size=relative_size
+            if relative_size is not None
+            else default_relative_size(name),
+            fraction=fraction,
+            value_tag=value_tag,
+        )
 
 
 @dataclass
@@ -120,10 +181,15 @@ class Layer:
 
 @dataclass
 class StaticParams:
-    """Never plastic/trainable/gradientable: conductances, reversal potentials, dT."""
-    g_mech: dict = field(default_factory=dict)          # mechanism name -> conductance
+    """Never plastic/trainable/gradientable: conductances, reversal potentials, dT.
+
+    ``dT_ms`` (synaptic time constant in ms) is REQUIRED (P-023): ``None``
+    (the default) is refused at wiring time rather than defaulted.
+    """
+
+    g_mech: dict = field(default_factory=dict)  # mechanism name -> conductance
     reversal_potentials_mV: dict = field(default_factory=dict)  # mechanism name -> E_rev
-    dT_ms: float = 0.1
+    dT_ms: Optional[float] = None
     value_tag: ValueTag = "relative"
 
 
@@ -136,21 +202,46 @@ class PlasticParams:
     seeding role of this scalar inside the RBD/HDP kernels it feeds, not the
     definition of RBS. RBS/H is not intrinsically homeostatic.
     """
-    w_mech: float = 1.0   # connection gain; scale up to a matrix per-synapse if needed
-    H: float = 0.0         # legacy "homeostatic H-factor" seeding label (kernel-specific; see docstring above)
+
+    w_mech: float = 1.0  # connection gain; scale up to a matrix per-synapse if needed
+    H: float = (
+        0.0  # legacy "homeostatic H-factor" seeding label (kernel-specific; see docstring above)
+    )
     value_tag: ValueTag = "relative"
 
 
 @dataclass
 class InterConnection:
     """Within-area connection: [source(Layer,NeuronType), target(Layer,NeuronType), mechanism]."""
+
     source_layer: str
     source_neuron_type: str
     target_layer: str
     target_neuron_type: str
-    mechanism: str  # required, no default (e.g. "AMPA", "GABA")
+    mechanism: str  # required, no default (e.g. "AMPA", "GABA_A")
     static: StaticParams = field(default_factory=StaticParams)
     plastic: PlasticParams = field(default_factory=PlasticParams)
+    # Configured axonal delay in ms (None = undeclared = current behaviour).
+    # Carried for inspection and forwarded into the compiled connection rule
+    # by :func:`_wire_connection`; realized to steps at construction
+    # (0.5.2 decision 0b), where dt is known.
+    delay_ms: "float | None" = None
+
+    def __post_init__(self) -> None:
+        if self.delay_ms is not None:
+            try:
+                ms = float(self.delay_ms)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"InterConnection delay_ms must be a number in ms; got {self.delay_ms!r}"
+                )
+            import math as _math
+
+            if not _math.isfinite(ms) or ms < 0.0:
+                raise ValueError(
+                    f"InterConnection delay_ms must be finite and >= 0; got {self.delay_ms!r}"
+                )
+            object.__setattr__(self, "delay_ms", ms)
 
 
 @dataclass
@@ -164,6 +255,7 @@ class Pose3D:
     the in-plane (x, y) spread by that many degrees around the depth axis
     (e.g. 45.0 for a 45-degree tilt). ``translation`` shifts the whole area.
     """
+
     plane: Plane = "xy"
     rotation_deg: float = 0.0
     translation: tuple[float, float, float] = (0.0, 0.0, 0.0)
@@ -187,9 +279,7 @@ class Area:
             object.__setattr__(self, "connectivity_mode", "explicit")
         elif name == "connectivity_mode" and "_connectivity_initialized" in self.__dict__:
             if value not in {"unspecified", "explicit"}:
-                raise ValueError(
-                    "Area.connectivity_mode must be 'unspecified' or 'explicit'"
-                )
+                raise ValueError("Area.connectivity_mode must be 'unspecified' or 'explicit'")
             if value == "unspecified" and self._connectivity_specified:
                 raise ValueError(
                     "Area with a provided inter_connections sequence cannot be "
@@ -204,13 +294,10 @@ class Area:
         if mode is None:
             mode = "explicit" if specified else "unspecified"
         if mode not in {"unspecified", "explicit"}:
-            raise ValueError(
-                "Area.connectivity_mode must be 'unspecified' or 'explicit'"
-            )
+            raise ValueError("Area.connectivity_mode must be 'unspecified' or 'explicit'")
         if mode == "unspecified" and specified:
             raise ValueError(
-                "Area with a provided inter_connections sequence cannot be "
-                "marked as unspecified"
+                "Area with a provided inter_connections sequence cannot be marked as unspecified"
             )
         object.__setattr__(self, "inter_connections", connections)
         object.__setattr__(self, "connectivity_mode", mode)
@@ -233,6 +320,7 @@ class Area:
 @dataclass
 class AreaConnection:
     """Between-area connection: [source(Area,Layer,NeuronType), target(Area,Layer,NeuronType), mechanism]."""
+
     source_area: str
     source_layer: str
     source_neuron_type: str
@@ -242,6 +330,45 @@ class AreaConnection:
     mechanism: str = DEFAULT_AREA_CONNECTION_MECHANISM
     static: StaticParams = field(default_factory=StaticParams)
     plastic: PlasticParams = field(default_factory=PlasticParams)
+    # Configured axonal delay in ms (None = undeclared = current behaviour).
+    # Same inspection role as InterConnection.delay_ms: forwarded into the
+    # compiled rule by :func:`_wire_connection`, realized to steps at
+    # construction (0.5.2 decision 0b). Cross-area composition semantics
+    # stay 0.5.4 work; the field itself is chain completeness.
+    delay_ms: "float | None" = None
+    # Per-pair connection probability in (0, 1] (None = undeclared = 1.0,
+    # the all-to-all behaviour before 0.5.5). JDNA's exponential-distance
+    # rule derives it per area pair.
+    probability: "float | None" = None
+
+    def __post_init__(self) -> None:
+        import math as _math
+
+        if self.delay_ms is not None:
+            try:
+                ms = float(self.delay_ms)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"AreaConnection delay_ms must be a number in ms; got {self.delay_ms!r}"
+                )
+
+            if not _math.isfinite(ms) or ms < 0.0:
+                raise ValueError(
+                    f"AreaConnection delay_ms must be finite and >= 0; got {self.delay_ms!r}"
+                )
+            object.__setattr__(self, "delay_ms", ms)
+        if self.probability is not None:
+            try:
+                p = float(self.probability)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"AreaConnection probability must be a number; got {self.probability!r}"
+                )
+            if not (_math.isfinite(p) and 0.0 < p <= 1.0):
+                raise ValueError(
+                    f"AreaConnection probability must be in (0, 1]; got {self.probability!r}"
+                )
+            object.__setattr__(self, "probability", p)
 
 
 @dataclass
@@ -261,6 +388,7 @@ class NeuronalTensor:
     silent type confusion with no runtime error until something much later
     and more confusing broke.
     """
+
     areas: Sequence[Area] = field(default_factory=tuple)
     area_connections: Sequence[AreaConnection] = field(
         default_factory=lambda: _UNSPECIFIED_CONNECTIONS,
@@ -278,20 +406,16 @@ class NeuronalTensor:
         elif name == "connectivity_mode" and "_connectivity_initialized" in self.__dict__:
             if value not in {"unspecified", "explicit"}:
                 raise ValueError(
-                    "NeuronalTensor.connectivity_mode must be "
-                    "'unspecified' or 'explicit'"
+                    "NeuronalTensor.connectivity_mode must be 'unspecified' or 'explicit'"
                 )
             if value == "unspecified" and (
                 self._connectivity_specified
                 or any(a.connectivity_mode == "explicit" for a in self.areas)
             ):
                 raise ValueError(
-                    "NeuronalTensor with declared connectivity cannot be "
-                    "marked as unspecified"
+                    "NeuronalTensor with declared connectivity cannot be marked as unspecified"
                 )
-            object.__setattr__(
-                self, "_connectivity_mode_declared", value == "explicit"
-            )
+            object.__setattr__(self, "_connectivity_mode_declared", value == "explicit")
         object.__setattr__(self, name, value)
 
     def __post_init__(self):
@@ -319,15 +443,12 @@ class NeuronalTensor:
                 else "unspecified"
             )
         if mode not in {"unspecified", "explicit"}:
-            raise ValueError(
-                "NeuronalTensor.connectivity_mode must be 'unspecified' or 'explicit'"
-            )
+            raise ValueError("NeuronalTensor.connectivity_mode must be 'unspecified' or 'explicit'")
         if mode == "unspecified" and (
             specified or any(a.connectivity_mode == "explicit" for a in self.areas)
         ):
             raise ValueError(
-                "NeuronalTensor with declared connectivity cannot be marked "
-                "as unspecified"
+                "NeuronalTensor with declared connectivity cannot be marked as unspecified"
             )
         object.__setattr__(self, "area_connections", connections)
         object.__setattr__(self, "connectivity_mode", mode)
@@ -350,24 +471,43 @@ class NeuronalTensor:
         return asdict(self)
 
 
-def make_minimal_ei_tensor(n: int = 8, e_fraction: float = 0.75, *,
-                            layer_name: str = "L1", area_name: str = "minimal",
-                            h: float = 1.0) -> NeuronalTensor:
+def make_minimal_ei_tensor(
+    n: int = 8,
+    e_fraction: float = 0.75,
+    *,
+    layer_name: str = "L1",
+    area_name: str = "minimal",
+    h: float = 1.0,
+) -> NeuronalTensor:
     """One flat Layer of n neurons split E/PV by e_fraction, all 4 pairwise
-    E/PV InterConnections (AMPA from E, GABA from PV), plastic.H=h on every
+    E/PV InterConnections (AMPA from E, GABA_A from PV), plastic.H=h on every
     connection -- the minimal all-pairwise E/I circuit shape shared by both
     canonical HDP sanity tests (scripts/major_sanity_test.py,
-    scripts/snt_pipeline.py)."""
+    scripts/snt_pipeline.py). Time constants are declared per mechanism
+    (P-023) from ``presets.RECEPTOR_KINETICS``."""
     e_type = NeuronType.make("E", fraction=e_fraction)
     i_type = NeuronType.make("PV", fraction=1.0 - e_fraction)
     layer = Layer(name=layer_name, n_neurons=n, neuron_types=[e_type, i_type])
     connections = [
-        InterConnection(source_layer=layer_name, source_neuron_type=src, target_layer=layer_name,
-                         target_neuron_type=tgt, mechanism=("AMPA" if src == "E" else "GABA"),
-                         plastic=PlasticParams(H=h))
-        for src in ("E", "PV") for tgt in ("E", "PV")
+        InterConnection(
+            source_layer=layer_name,
+            source_neuron_type=src,
+            target_layer=layer_name,
+            target_neuron_type=tgt,
+            mechanism=("AMPA" if src == "E" else "GABA_A"),
+            static=StaticParams(
+                dT_ms=float(
+                    RECEPTOR_KINETICS["AMPA" if src == "E" else "GABA_A"]["tau_ms"]
+                )
+            ),
+            plastic=PlasticParams(H=h),
+        )
+        for src in ("E", "PV")
+        for tgt in ("E", "PV")
     ]
-    return NeuronalTensor(areas=[Area(name=area_name, layers=[layer], inter_connections=connections)])
+    return NeuronalTensor(
+        areas=[Area(name=area_name, layers=[layer], inter_connections=connections)]
+    )
 
 
 # Versioned JSON schema for saved NeuronalTensor configs. Bump on any
@@ -400,7 +540,9 @@ def load_canonical_neuronal_tensor(name: str) -> NeuronalTensor:
     path = configs_dir() / f"{stem}.json"
     if not path.exists():
         available = ", ".join(list_canonical_neuronal_tensors())
-        raise FileNotFoundError(f"No canonical config named {stem!r} in {configs_dir()}. Available: {available}")
+        raise FileNotFoundError(
+            f"No canonical config named {stem!r} in {configs_dir()}. Available: {available}"
+        )
     return load_neuronal_tensor(path)
 
 
@@ -436,8 +578,7 @@ def load(path: str | Path) -> NeuronalTensor:
     raw = load_json(path)
     if "areas" not in raw:
         raise ValueError(
-            f"{path} does not look like a NeuronalTensor JSON config (no "
-            "top-level 'areas' key)."
+            f"{path} does not look like a NeuronalTensor JSON config (no top-level 'areas' key)."
         )
     return _load_neuronal_tensor_impl(path, raw)
 
@@ -469,8 +610,7 @@ def _load_neuronal_tensor_impl(path: str | Path, raw: dict) -> NeuronalTensor:
     if legacy_mode is None:
         has_declared_connections = bool(raw.get("area_connections"))
         has_declared_connections = has_declared_connections or any(
-            bool(area_raw.get("inter_connections"))
-            for area_raw in raw.get("areas", [])
+            bool(area_raw.get("inter_connections")) for area_raw in raw.get("areas", [])
         )
         legacy_mode = "explicit" if has_declared_connections else "unspecified"
     raw_area_connections = raw.get("area_connections", [])
@@ -479,12 +619,18 @@ def _load_neuronal_tensor_impl(path: str | Path, raw: dict) -> NeuronalTensor:
         if legacy_mode == "unspecified" and not raw_area_connections
         else [
             AreaConnection(
-                source_area=ac["source_area"], source_layer=ac["source_layer"],
-                source_neuron_type=ac["source_neuron_type"], target_area=ac["target_area"],
-                target_layer=ac["target_layer"], target_neuron_type=ac["target_neuron_type"],
+                source_area=ac["source_area"],
+                source_layer=ac["source_layer"],
+                source_neuron_type=ac["source_neuron_type"],
+                target_area=ac["target_area"],
+                target_layer=ac["target_layer"],
+                target_neuron_type=ac["target_neuron_type"],
                 mechanism=ac.get("mechanism", DEFAULT_AREA_CONNECTION_MECHANISM),
                 static=StaticParams(**ac.get("static", {})),
                 plastic=PlasticParams(**ac.get("plastic", {})),
+                # Saved by to_dict/asdict; dropped on load before 0.5.5.
+                delay_ms=ac.get("delay_ms"),
+                probability=ac.get("probability"),
             )
             for ac in raw_area_connections
         ]
@@ -503,17 +649,17 @@ def _load_neuronal_tensor_impl(path: str | Path, raw: dict) -> NeuronalTensor:
             ],
             inter_connections=(
                 _UNSPECIFIED_CONNECTIONS
-                if (
-                    not a.get("inter_connections", [])
-                    and a.get("connectivity_mode") != "explicit"
-                )
+                if (not a.get("inter_connections", []) and a.get("connectivity_mode") != "explicit")
                 else [
                     InterConnection(
-                        source_layer=ic["source_layer"], source_neuron_type=ic["source_neuron_type"],
-                        target_layer=ic["target_layer"], target_neuron_type=ic["target_neuron_type"],
+                        source_layer=ic["source_layer"],
+                        source_neuron_type=ic["source_neuron_type"],
+                        target_layer=ic["target_layer"],
+                        target_neuron_type=ic["target_neuron_type"],
                         mechanism=ic["mechanism"],
                         static=StaticParams(**ic.get("static", {})),
                         plastic=PlasticParams(**ic.get("plastic", {})),
+                        delay_ms=ic.get("delay_ms"),  # dropped on load before 0.5.5
                     )
                     for ic in a.get("inter_connections", [])
                 ]
@@ -572,7 +718,9 @@ def merge_neuronal_tensors(
     """
     total_areas = sum(len(t.areas) for t in tensors)
     if poses is not None and len(poses) != total_areas:
-        raise ValueError(f"poses must have one entry per area; got {len(poses)} for {total_areas} areas")
+        raise ValueError(
+            f"poses must have one entry per area; got {len(poses)} for {total_areas} areas"
+        )
 
     merged_areas: list[Area] = []
     merged_connections: list[AreaConnection] = []
@@ -602,15 +750,15 @@ def merge_neuronal_tensors(
             else:
                 merged_areas.append(replace(area, name=new_name, pose=pose))
         for ac in tensor.area_connections:
-            merged_connections.append(replace(
-                ac,
-                source_area=rename_map.get(ac.source_area, ac.source_area),
-                target_area=rename_map.get(ac.target_area, ac.target_area),
-            ))
+            merged_connections.append(
+                replace(
+                    ac,
+                    source_area=rename_map.get(ac.source_area, ac.source_area),
+                    target_area=rename_map.get(ac.target_area, ac.target_area),
+                )
+            )
     merged_mode: ConnectivityMode = (
-        "explicit"
-        if any(t.connectivity_mode == "explicit" for t in tensors)
-        else "unspecified"
+        "explicit" if any(t.connectivity_mode == "explicit" for t in tensors) else "unspecified"
     )
     merged_area_connections = (
         _UNSPECIFIED_CONNECTIONS
@@ -625,20 +773,58 @@ def merge_neuronal_tensors(
     )
 
 
-def _sample_local_positions(geometry: Geometry3D, n: int, key: "jax.Array") -> "jax.Array":
-    """Sample ``n`` local (x, y, z) points inside a layer's declared Geometry3D ranges."""
-    if geometry.distribution != "uniform_random":
-        raise NotImplementedError(
-            f"Geometry3D.distribution={geometry.distribution!r} is not implemented yet; "
-            "only 'uniform_random' is supported."
-        )
-    if n <= 0:
-        return jnp.zeros((0, 3))
-    x_key, y_key, z_key = jax.random.split(key, 3)
-    x = jax.random.uniform(x_key, (n,), minval=geometry.x_range[0], maxval=geometry.x_range[1])
-    y = jax.random.uniform(y_key, (n,), minval=geometry.y_range[0], maxval=geometry.y_range[1])
-    z = jax.random.uniform(z_key, (n,), minval=geometry.z_range[0], maxval=geometry.z_range[1])
-    return jnp.stack([x, y, z], axis=1)
+def _tensor_geometry_domains(
+    tensor: NeuronalTensor,
+    metadata: dict[str, Any],
+) -> dict[str, dict[str, dict[str, list[float]]]]:
+    """Per-(area, layer) declared geometry domains for construction.
+
+    ``Geometry3D`` ranges are column-relative (owner ruling 2026-09-30): x and
+    y are fractions of the column's width, z a fraction of the column's depth
+    (a JDNA ``depth_band`` of ``[0.1, 0.35]`` is 10-35 % of the column). The
+    construction stage reads ``metadata["tfne_geometry"]["domains"]`` as
+    fractions of each layer's block; x and y blocks span the whole column, so
+    they pass unchanged, and z is converted from the column frame into the
+    layer's ``layer_fractions`` block (the result may leave ``[0, 1]`` when
+    the band extends past the block). A full ``(0.0, 1.0)`` axis is unconstrained: it is omitted, so
+    construction without a sub-range declaration takes the historical code
+    path unchanged. A degenerate point range (e.g. ``(0.0, 0.0)``) is kept:
+    it collapses that axis to one block fraction, preserving the documented
+    2D/1D collapse (at the block position, not at absolute 0.0).
+
+    Only ``distribution="uniform_random"`` is supported -- anything else is
+    refused here, where the declaration would otherwise be silently sampled
+    as uniform downstream.
+    """
+    from ._construct_population import _layer_ranges_for
+
+    domains: dict[str, dict[str, dict[str, list[float]]]] = {}
+    for area in tensor.areas:
+        z_blocks = _layer_ranges_for([layer.name for layer in area.layers], metadata)
+        for layer in area.layers:
+            geometry = layer.geometry
+            if geometry.distribution != "uniform_random":
+                raise NotImplementedError(
+                    f"Geometry3D.distribution={geometry.distribution!r} is not implemented yet; "
+                    "only 'uniform_random' is supported."
+                )
+            block: dict[str, list[float]] = {}
+            for axis, attr in (("x", "x_range"), ("y", "y_range"), ("z", "z_range")):
+                lo, hi = (float(v) for v in getattr(geometry, attr))
+                if (lo, hi) == (0.0, 1.0):
+                    continue
+                if axis == "z":
+                    z0, z1 = z_blocks[layer.name]
+                    if z1 <= z0:
+                        raise ValueError(
+                            f"{area.name}/{layer.name}: layer block has zero depth "
+                            f"({z0}, {z1}); a column-relative z_range cannot be placed in it"
+                        )
+                    lo, hi = (lo - z0) / (z1 - z0), (hi - z0) / (z1 - z0)
+                block[axis] = [lo, hi]
+            if block:
+                domains.setdefault(area.name, {})[layer.name] = block
+    return domains
 
 
 def _apply_pose(local_xyz: "jax.Array", pose: Pose3D) -> "jax.Array":
@@ -675,7 +861,9 @@ class RuntimeConfiguration:
     **Wired** (actually consumed by :func:`jaxfne.construct` /
     :func:`jaxfne.simulate` today): ``duration_ms``, ``dt_ms``, ``seed``,
     ``dtype``, ``emitter``, ``device`` (mapped to ``RuntimeConfig.backend``),
-    ``jit``, ``vmap``.
+    ``jit``, ``n_contacts`` (laminar contacts of the field readout, an int
+    >= 2). ``vmap`` must stay ``False``: a no-argument ``simulate`` runs one
+    trial, and ``simulate_batch`` reads ``vmap`` from its ``Simulation``.
 
     ``duration_ms``/``dt_ms``/``seed`` are inherited by a *no-argument*
     ``jtfne.simulate(model)`` (and by ``construct`` itself). Passing an
@@ -684,11 +872,13 @@ class RuntimeConfiguration:
     ``1000.0``/``0.05``/``0``) then apply unless you also pass them to
     ``simulate``.
 
-    **Reserved, declared but not yet consumed** (forward-compatible
-    placeholders for the TFNE-grammar stages they name; setting them has no
-    effect today -- not silently ignored, just honestly not wired yet):
-    ``solver``, ``probes``, ``n_contacts``, ``outputs``, ``optimizer``.
+    **Reserved**: ``solver``, ``probes``, ``outputs``, ``optimizer`` name
+    TFNE-grammar stages that this path does not wire; any value other than
+    ``None`` is refused. Probes are declared with ``Configuration.probes``,
+    recorded outputs with ``Simulation``, and optimization with
+    ``Model.tune``.
     """
+
     duration_ms: float = 1000.0
     dt_ms: float = 0.1
     seed: int = 0
@@ -702,6 +892,21 @@ class RuntimeConfiguration:
     n_contacts: int = 16
     outputs: "dict | None" = None
     optimizer: "Any | None" = None
+
+    def __post_init__(self) -> None:
+        for name in ("solver", "probes", "outputs", "optimizer"):
+            if getattr(self, name) is not None:
+                raise ValueError(
+                    f"RuntimeConfiguration.{name} is reserved and not wired on the tensor "
+                    f"path; got {getattr(self, name)!r}. Leave it None."
+                )
+        check_n_contacts(self.n_contacts, "RuntimeConfiguration")
+        if self.vmap is not False:
+            raise ValueError(
+                "RuntimeConfiguration.vmap is not consumed: simulate(model) runs one trial, and "
+                "simulate_batch takes its runtime from the Simulation. Use "
+                "Simulation(runtime=RuntimeConfig(vmap=...)) with simulate_batch."
+            )
 
 
 def construct_neuronal_tensor(
@@ -734,13 +939,13 @@ def _construct_neuronal_tensor_impl(
     backend: "str | None" = None,
     jit: "bool | str | None" = None,
     vmap: "bool | str | None" = None,
+    n_contacts: int = 16,
 ) -> Model:
     """Bridge + construct + apply each Area's Pose3D placement, in one call.
 
     :func:`jaxfne.construct` only offsets columns along x with no rotation, so
-    this samples each layer's local positions from its own declared
-    ``Geometry3D`` and re-derives the global placement from each area's
-    ``Pose3D`` (plane + rotation + translation) afterward, overwriting
+    this applies each area's ``Pose3D`` (plane + rotation + translation) to
+    the constructed positions afterward, overwriting
     ``model.params["positions"]`` (and the matching ``x``/``y``/``z`` entries
     in ``model.static["neuron_metadata"]``) so field/LFP/EEG/MEG proxy
     readouts — which read positions from there — see the real layout.
@@ -755,13 +960,28 @@ def _construct_neuronal_tensor_impl(
     :func:`jaxfne.simulate` time) — matching ``RuntimeConfig.enable_hdp``'s
     default of ``False``.
 
+    Positions already carry each ``Layer.geometry``: the bridge wrote it
+    into the ``Configuration`` (``tfne_geometry`` domains), so
+    :func:`jaxfne.construct` sampled it. This then applies only each
+    ``Area``'s ``Pose3D`` placement (plane + rotation + translation) onto
+    those constructed positions — no re-sampling, one source of truth for
+    geometry. A default pose is the identity, bit-exact.
+
     Connectivity mode is preserved from the tensor: omitted connectivity uses
     the configuration default topology, while explicit connectivity (including
     an explicit empty declaration) compiles only the declared graph.
     """
     cfg = neuronal_tensor_to_configuration(
-        tensor, seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, emitter=emitter,
-        dtype=dtype, backend=backend, jit=jit, vmap=vmap,
+        tensor,
+        seed=seed,
+        duration_ms=duration_ms,
+        dt_ms=dt_ms,
+        emitter=emitter,
+        dtype=dtype,
+        backend=backend,
+        jit=jit,
+        vmap=vmap,
+        n_contacts=n_contacts,
     )
     model = construct(cfg)
     rows = model.neuron_table()
@@ -788,31 +1008,37 @@ def _construct_neuronal_tensor_impl(
         )
         model = model.with_hdp_initial_state(H0=H0)
 
-    layer_by_key = {(a.name, layer.name): layer for a in tensor.areas for layer in a.layers}
     pose_by_area = {a.name: a.pose for a in tensor.areas}
 
-    base_key = jax.random.PRNGKey(seed)
+    # Owner ruling 2026-09-30: one frame, the Configuration's (mm, each column
+    # centred at x = k * AREA_X_SPACING_MM). A non-default Pose3D is applied
+    # about the area's own column origin (that offset removed first), so its
+    # translation is absolute; a default pose keeps construct's layout.
+    from ._construct_population import AREA_X_SPACING_MM
+
+    area_index = {a.name: k for k, a in enumerate(tensor.areas)}
+    constructed = model.params["positions"]
     position_chunks: list["jax.Array"] = []
-    group_index = 0
     i = 0
     n_rows = len(rows)
     while i < n_rows:
-        area_name, layer_name = rows[i]["area"], rows[i]["layer"]
+        area_name = rows[i]["area"]
         j = i
-        while j < n_rows and rows[j]["area"] == area_name and rows[j]["layer"] == layer_name:
+        while j < n_rows and rows[j]["area"] == area_name:
             j += 1
-        count = j - i
-        layer_obj = layer_by_key.get((area_name, layer_name), Layer(name=layer_name))
         pose = pose_by_area.get(area_name, Pose3D())
-        sub_key = jax.random.fold_in(base_key, group_index)
-        local = _sample_local_positions(layer_obj.geometry, count, sub_key)
-        position_chunks.append(_apply_pose(local, pose))
-        group_index += 1
+        chunk = constructed[i:j]
+        if pose != Pose3D():
+            origin = jnp.asarray([area_index[area_name] * AREA_X_SPACING_MM, 0.0, 0.0], dtype=chunk.dtype)
+            chunk = _apply_pose(chunk - origin, pose)
+        position_chunks.append(chunk)
         i = j
 
     positions = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3))
     updated_rows = [
-        dict(row, x=float(positions[idx, 0]), y=float(positions[idx, 1]), z=float(positions[idx, 2]))
+        dict(
+            row, x=float(positions[idx, 0]), y=float(positions[idx, 1]), z=float(positions[idx, 2])
+        )
         for idx, row in enumerate(rows)
     ]
 
@@ -839,6 +1065,42 @@ def _connection_edge_weight(conn: "InterConnection | AreaConnection", total_n: i
     return abs(float(conn.plastic.w_mech) * float(g_scale)) / math.sqrt(max(total_n, 1))
 
 
+def _check_connection_mechanism_sign(
+    conn: "InterConnection | AreaConnection", label: str
+) -> str:
+    """P-023 sign vocabulary: resolve a connection's sign from its mechanism name.
+
+    Excitatory ``{AMPA, NMDA}`` requires an E source; inhibitory ``{GABA_A,
+    GABA_B}`` requires a non-E source; any other name is refused as unknown,
+    except ``monotonic_cable_synapse`` (the AreaConnection default), whose
+    sign follows the source cell type as before. Returns the resolved sign.
+    """
+    mech = conn.mechanism
+    if mech in EXCITATORY_MECHANISMS:
+        sign = "excitatory"
+    elif mech in INHIBITORY_MECHANISMS:
+        sign = "inhibitory"
+    elif mech == DEFAULT_AREA_CONNECTION_MECHANISM:
+        return "excitatory" if conn.source_neuron_type == "E" else "inhibitory"
+    else:
+        raise ValueError(
+            f"P-023: {label} uses unknown mechanism {mech!r}; known mechanisms "
+            "are {AMPA, NMDA} (excitatory) and {GABA_A, GABA_B} (inhibitory)"
+        )
+    src = conn.source_neuron_type
+    if sign == "inhibitory" and src == "E":
+        raise ValueError(
+            f"P-023: {label}: E source with inhibitory mechanism {mech!r}; "
+            "use an excitatory mechanism (AMPA, NMDA) for E sources"
+        )
+    if sign == "excitatory" and src != "E":
+        raise ValueError(
+            f"P-023: {label}: non-E source {src!r} with excitatory mechanism "
+            f"{mech!r}; use an inhibitory mechanism (GABA_A, GABA_B) for non-E sources"
+        )
+    return sign
+
+
 def _wire_connection(
     cfg: Configuration,
     conn: "InterConnection | AreaConnection",
@@ -848,6 +1110,7 @@ def _wire_connection(
     target_area: str,
     total_n: int,
     declared_mechanisms: dict[tuple[str, float], str],
+    _tfne_resolved: bool = False,
 ) -> Configuration:
     """Declare one real edge rule (mechanism + connection) for an Inter/AreaConnection.
 
@@ -857,15 +1120,55 @@ def _wire_connection(
     ``_apply_connectivity`` — selectors carry no same-area restriction,
     so this is what actually couples two different areas (or two specific
     layer x cell-type populations within one area) into the simulated
-    dynamics. ``mechanism`` -> ``tau_ms`` comes from ``static.dT_ms``;
+    dynamics.     ``mechanism`` -> ``tau_ms`` comes from ``static.dT_ms``
+    (P-023: required — ``None`` is refused, never defaulted, and so is any
+    other non-finite-non-positive value: 0, negative, NaN, inf, bools and
+    strings (even numeric ones — no silent coercion), matching the genome-side
+    checks; only a real number with ``float(tau)`` finite and ``> 0`` wires);
     mechanisms are deduplicated by (name, dT_ms) so repeated connections
     sharing both don't raise on ``Configuration``'s duplicate-name guard.
+    A declared ``InterConnection.delay_ms`` is forwarded into the rule;
+    ``None`` leaves the rule without a delay (current behaviour).
+    Sign follows the P-023 mechanism vocabulary
+    (:func:`_check_connection_mechanism_sign`), except for TFNE-derived
+    tensors (``_tfne_resolved``: TFNE carries its own fail-closed mechanism
+    vocabulary plus weight-polarity sign, so the declaration vocabulary is
+    not re-applied there; owner ruling 2026-09-30, pinned by the TFNE
+    custom-mechanism, direct-coupling and polarity tests).
     """
-    mech_key = (conn.mechanism, float(conn.static.dT_ms))
+    label = (
+        f"{type(conn).__name__} {source_area}.{conn.source_layer}."
+        f"{conn.source_neuron_type}->{target_area}.{conn.target_layer}."
+        f"{conn.target_neuron_type} ({conn.mechanism!r})"
+    )
+    if conn.static.dT_ms is None:
+        raise ValueError(
+            f"P-023: {label} declares no time constant (StaticParams.dT_ms "
+            "is None); time constants are required, never defaulted"
+        )
+    raw_tau = conn.static.dT_ms
+    if isinstance(raw_tau, bool) or isinstance(raw_tau, str):
+        raise ValueError(
+            f"P-023: {label} declares inadmissible time constant "
+            f"dT_ms={raw_tau!r}; time constants must be a finite number > 0 in ms"
+        )
+    try:
+        tau_ms = float(raw_tau)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"P-023: {label} declares non-numeric time constant "
+            f"dT_ms={raw_tau!r}; time constants must be a finite number > 0 in ms"
+        )
+    if not (math.isfinite(tau_ms) and tau_ms > 0.0):
+        raise ValueError(
+            f"P-023: {label} declares inadmissible time constant "
+            f"dT_ms={raw_tau!r}; time constants must be finite and > 0 in ms"
+        )
+    mech_key = (conn.mechanism, tau_ms)
     mech_name = declared_mechanisms.get(mech_key)
     if mech_name is None:
-        mech_name = f"{conn.mechanism}__dt{conn.static.dT_ms:g}__{len(declared_mechanisms)}"
-        mech_params: dict[str, object] = {"tau_ms": float(conn.static.dT_ms)}
+        mech_name = f"{conn.mechanism}__dt{tau_ms:g}__{len(declared_mechanisms)}"
+        mech_params: dict[str, object] = {"tau_ms": tau_ms}
         reversal_mV = conn.static.reversal_potentials_mV.get(conn.mechanism)
         if reversal_mV is not None:
             # Declared metadata only: jaxfne's compiled edges are
@@ -877,15 +1180,34 @@ def _wire_connection(
         cfg = cfg.mechanisms(name=mech_name, kind=conn.mechanism, params=mech_params)
         declared_mechanisms[mech_key] = mech_name
 
-    sign = "excitatory" if conn.source_neuron_type == "E" else "inhibitory"
+    if _tfne_resolved:
+        sign = "excitatory" if conn.source_neuron_type == "E" else "inhibitory"
+    else:
+        sign = _check_connection_mechanism_sign(conn, label)
+    wire_kw: dict[str, object] = {}
+    conn_delay = getattr(conn, "delay_ms", None)
+    if conn_delay is not None:
+        # Both InterConnection and AreaConnection carry an optional
+        # configured delay_ms for inspection; validated again here.
+        wire_kw["delay_ms"] = float(conn_delay)
     cfg = cfg.connections(
         name=rule_name,
-        source={"area": source_area, "layer": conn.source_layer, "cell_type": conn.source_neuron_type},
-        target={"area": target_area, "layer": conn.target_layer, "cell_type": conn.target_neuron_type},
-        probability=1.0,
+        source={
+            "area": source_area,
+            "layer": conn.source_layer,
+            "cell_type": conn.source_neuron_type,
+        },
+        target={
+            "area": target_area,
+            "layer": conn.target_layer,
+            "cell_type": conn.target_neuron_type,
+        },
+        probability=(1.0 if getattr(conn, "probability", None) is None
+                     else float(conn.probability)),
         weight=_connection_edge_weight(conn, total_n),
         sign=sign,
         mechanism=mech_name,
+        **wire_kw,  # type: ignore[arg-type]
     )
     return cfg
 
@@ -914,7 +1236,9 @@ def _tensor_identity_digest(tensor: NeuronalTensor) -> str:
         return ""
     payload.pop("provenance", None)
     blob = _json.dumps(
-        payload, sort_keys=True, separators=(",", ":"),
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
         default=lambda o: o if isinstance(o, (str, int, float, bool)) or o is None else repr(o),
     ).encode("utf-8")
     return hashlib.sha256(blob).hexdigest()
@@ -931,6 +1255,7 @@ def neuronal_tensor_to_configuration(
     backend: "str | None" = None,
     jit: "bool | str | None" = None,
     vmap: "bool | str | None" = None,
+    n_contacts: int = 16,
 ) -> Configuration:
     """Bridge a :class:`NeuronalTensor` into the existing construct/simulate pipeline.
 
@@ -960,24 +1285,37 @@ def neuronal_tensor_to_configuration(
     own default recurrent ``W`` in ``_apply_connectivity`` is
     same-area-masked and would leave bridged areas dynamically isolated).
     ``mechanism`` resolves to a real per-edge ``tau_ms`` (from
-    ``static.dT_ms``); edge magnitude is ``w_mech * g_mech / sqrt(total_n)``
-    (see :func:`_connection_edge_weight`); sign follows the source neuron
-    type (E -> excitatory, else inhibitory). Each rule connects with
+    ``static.dT_ms``, P-023-required); edge magnitude is ``w_mech * g_mech / sqrt(total_n)``
+    (see :func:`_connection_edge_weight`); sign follows the P-023 mechanism
+    vocabulary (excitatory {AMPA, NMDA} from E sources, inhibitory {GABA_A,
+    GABA_B} from non-E sources; ``monotonic_cable_synapse`` exempt, sign from
+    the source type). TFNE-derived tensors skip the declaration vocabulary:
+    TFNE resolves kinetics fail-closed in its own compiler and carries sign
+    on weight polarity. Genuine TFNE derivation is recognized only through
+    the module-private minted registry (populated by
+    ``jaxfne.tfne.to_neuronal_tensor`` for the exact objects it constructs);
+    a caller-supplied ``provenance`` dict — including one carrying
+    ``tfne_digest`` — never qualifies, and save/load, copies and merges lose
+    the status.
     ``probability=1.0`` (full bipartite between the selected populations) —
     the tensor model declares connection membership, not a separate density
     parameter, so full density between the declared layer x cell-type pair
     is the most neutral reading, mirroring the even-split reading used for
     cell-type fractions above.
 
-    Known fidelity gaps still open (not yet wired to ``Configuration``):
+    Per-layer GEOMETRY is also preserved (fixed P-022), via the same
+    fractional-domain channel the TFNE ``to_configuration`` path writes
+    (``metadata["tfne_geometry"]["domains"]``, relative,
+    ``value_tag="relative"``): each ``Layer``'s ``Geometry3D`` ranges are
+    column-relative (z a fraction of the column depth, x and y of its width;
+    owner ruling 2026-09-30) and become per-(area, layer) domains in the
+    construction stage's block frame. A full ``(0.0, 1.0)`` axis is
+    unconstrained and omitted, so default-geometry tensors take the
+    historical path unchanged. Only ``distribution="uniform_random"`` is
+    supported (anything else is refused); a degenerate point range keeps
+    the documented 2D/1D collapse at that column fraction.
 
-    - ``Layer.geometry`` (per-layer ``distribution``/``x_range``/``y_range``/
-      ``z_range``) is dropped by THIS function; positions instead come from
-      jaxfne's default uniform-random column radius/height. Use
-      :func:`construct_neuronal_tensor` instead of calling this bridge alone
-      if you need pose-correct/declared-geometry 3D placement — it bridges
-      via this function then overwrites positions from each ``Layer.geometry``
-      + ``Area.pose``.
+    Known fidelity gaps still open (not yet wired to ``Configuration``):
     - ``StaticParams.reversal_potentials_mV`` is surfaced into each declared
       mechanism's ``params["reversal_mV"]`` (visible in
       ``cfg.metadata["circuit"]["mechanisms"]``) but still has no numeric
@@ -1010,8 +1348,12 @@ def neuronal_tensor_to_configuration(
             if any(area.connectivity_mode == "explicit" for area in tensor.areas)
             else "unspecified"
         )
-    _runtime_kw: dict[str, Any] = {"seed": seed, "duration_ms": duration_ms,
-                                   "dt_ms": dt_ms, "dtype": dtype}
+    _runtime_kw: dict[str, Any] = {
+        "seed": seed,
+        "duration_ms": duration_ms,
+        "dt_ms": dt_ms,
+        "dtype": dtype,
+    }
     if backend is not None:
         _runtime_kw["backend"] = backend
     if jit is not None:
@@ -1070,29 +1412,70 @@ def neuronal_tensor_to_configuration(
                 fracs = {name: even for name in type_names}
             layer_cell_types[layer.name] = fracs
             for name, frac in fracs.items():
-                fallback_weight[name] = fallback_weight.get(name, 0.0) + float(layer.n_neurons) * frac
+                fallback_weight[name] = (
+                    fallback_weight.get(name, 0.0) + float(layer.n_neurons) * frac
+                )
         if layer_cell_types:
             cfg = cfg.area_layer_cell_types(area.name, layer_cell_types)
 
     total_weight = sum(fallback_weight.values()) or 1.0
     cfg = cfg.cell_types({name: weight / total_weight for name, weight in fallback_weight.items()})
 
+    geometry_domains = _tensor_geometry_domains(tensor, dict(cfg.metadata))
+    if geometry_domains:
+        # `declared` keeps the column-relative ranges as written; `domains`
+        # are the layer-block fractions construction samples (z may leave [0, 1]).
+        declared = {
+            area.name: {
+                layer.name: {
+                    "x": list(layer.geometry.x_range),
+                    "y": list(layer.geometry.y_range),
+                    "z": list(layer.geometry.z_range),
+                }
+                for layer in area.layers
+                if layer.name in geometry_domains.get(area.name, {})
+            }
+            for area in tensor.areas
+            if area.name in geometry_domains
+        }
+        cfg = cfg.update_metadata(
+            tfne_geometry={
+                "value_tag": "relative",
+                "frame": "column",
+                "declared": declared,
+                "domains": geometry_domains,
+            }
+        )
+
     total_n = sum(area_n_by_name.values()) or 1
     declared_mechanisms: dict[tuple[str, float], str] = {}
+    # P-023 carve-out: only tensors minted by jaxfne.tfne.to_neuronal_tensor
+    # (module-private weak registry) skip the declaration vocabulary.
+    # Provenance is deliberately NOT consulted: it is a free constructor
+    # kwarg, so a forged {"tfne_digest": ...} must not qualify.
+    tfne_resolved = _is_tfne_minted(tensor)
     for area in tensor.areas:
         for idx, ic in enumerate(area.inter_connections):
             cfg = _wire_connection(
-                cfg, ic,
+                cfg,
+                ic,
                 rule_name=f"interconn_{area.name}_{idx}",
-                source_area=area.name, target_area=area.name,
-                total_n=total_n, declared_mechanisms=declared_mechanisms,
+                source_area=area.name,
+                target_area=area.name,
+                total_n=total_n,
+                declared_mechanisms=declared_mechanisms,
+                _tfne_resolved=tfne_resolved,
             )
     for idx, ac in enumerate(tensor.area_connections):
         cfg = _wire_connection(
-            cfg, ac,
+            cfg,
+            ac,
             rule_name=f"areaconn_{idx}",
-            source_area=ac.source_area, target_area=ac.target_area,
-            total_n=total_n, declared_mechanisms=declared_mechanisms,
+            source_area=ac.source_area,
+            target_area=ac.target_area,
+            total_n=total_n,
+            declared_mechanisms=declared_mechanisms,
+            _tfne_resolved=tfne_resolved,
         )
 
     if emitter == "izhikevich":
@@ -1104,6 +1487,6 @@ def neuronal_tensor_to_configuration(
     else:
         raise ValueError(f"Unknown emitter: {emitter}. Choose from: izhikevich, lif, glif")
 
-    cfg = cfg.probes(["spikes", "V_m"], n_contacts=16)
+    cfg = cfg.probes(["spikes", "V_m"], n_contacts=n_contacts)
     cfg = cfg.field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
     return cfg

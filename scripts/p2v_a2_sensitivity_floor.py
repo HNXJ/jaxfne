@@ -6,10 +6,14 @@ D1-repaired estimator with unchanged thresholds. Write-once receipt.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import json
 import math
 import subprocess
-from pathlib import Path
 
 import numpy as np
 
@@ -17,6 +21,10 @@ from jaxfne.protocol_c.c3_execution import _ordered_arc_positions_mm, replay_c3_
 from jaxfne.protocol_c.c3_protocol import load_c3_spec
 from jaxfne.protocol_c.estimator import _bandpass_rows, estimate_traveling_wave
 from jaxfne.protocol_c.protocol import load_protocol_spec
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 A2_DIR = REPO_ROOT / "artifacts" / "protocol_c" / "p2v_a2_sensitivity_floor"

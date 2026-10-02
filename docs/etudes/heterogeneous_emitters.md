@@ -156,6 +156,19 @@ Optional AGSDR fit of a reduced emitter to a richer target is **omitted**
 PYTHONPATH=. python3 scripts/run_heterogeneous_emitters_etude.py
 ```
 
+<!-- jx-figure -->
+## Figure
+
+=== "Still"
+
+    ![Heterogeneous emitters bundle figure](../assets/etudes/heterogeneous_emitters.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="../_static/etudes/heterogeneous_emitters/index.html" loading="lazy" title="Heterogeneous emitters bundle figure"></iframe>
+
+Committed bundle still (`artifacts/etudes/heterogeneous_emitters/figure.png`). [Open full page](../_static/etudes/heterogeneous_emitters/index.html).
+
 ## Interactive panels (dark)
 
 Reproduced panels — deterministic rerun of the frozen protocol, trajectories and rates hash-identical to the bundle: [index](../_static/etudes/heterogeneous_emitters/index.html) · [raster (izh)](../_static/etudes/heterogeneous_emitters/raster_izh.html) · [traces (izh)](../_static/etudes/heterogeneous_emitters/traces_izh.html) · [LFP (izh)](../_static/etudes/heterogeneous_emitters/lfp_izh.html) · [LFP (hei)](../_static/etudes/heterogeneous_emitters/lfp_hei.html) · [traces (hei)](../_static/etudes/heterogeneous_emitters/traces_hei.html) · [spectra](../_static/etudes/heterogeneous_emitters/oscillatory.html).

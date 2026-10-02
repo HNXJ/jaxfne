@@ -10,6 +10,7 @@ import subprocess
 import sys
 from pathlib import Path
 from unittest import mock
+
 _SCRIPT_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 import pytest
@@ -74,6 +75,9 @@ def test_equivalence_gate_reproducible_7_of_7(tmp_path):
             pass
 
 
+@pytest.mark.slow  # 0.5.1-4b(1): duplicate full-generator rerun; the
+# representative full track (test_equivalence_gate_reproducible_7_of_7) stays
+# in broad. This comparison still runs in the slow sweep (release/rc gates).
 def test_equivalence_gate_tracked_report_matches_fresh_run(tmp_path):
     fresh = _run_gate(report_dir=tmp_path)
     if not fresh["byte_identity_pinned"]:
@@ -82,8 +86,17 @@ def test_equivalence_gate_tracked_report_matches_fresh_run(tmp_path):
         # only, so cross-platform comparison is undefined here.
         pytest.skip("byte identity is only pinned on the freeze platform")
     tracked = json.loads(TRACKED_REPORT.read_text(encoding="utf-8"))
-    keys = {"figure", "frozen_png", "H_equal", "W_equal", "RGBA_equal",
-            "decoded_pixel_equal", "byte_sha_equal", "sha256_frozen", "sha256_post"}
+    keys = {
+        "figure",
+        "frozen_png",
+        "H_equal",
+        "W_equal",
+        "RGBA_equal",
+        "decoded_pixel_equal",
+        "byte_sha_equal",
+        "sha256_frozen",
+        "sha256_post",
+    }
     fresh_cases = [{k: c[k] for k in keys} for c in fresh["cases"]]
     tracked_cases = [{k: c[k] for k in keys} for c in tracked["cases"]]
     assert fresh_cases == tracked_cases
@@ -104,6 +117,7 @@ def test_equivalence_gate_frozen_manifest_selfcheck(tmp_path):
     ]
     for rel in expected:
         assert rel in files, f"{rel} not in artifacts/publication/frozen_manifest.json"
+
 
 # ── W12: renderer version is part of frozen-figure provenance ────────────────
 def test_frozen_manifest_declares_renderer_provenance():

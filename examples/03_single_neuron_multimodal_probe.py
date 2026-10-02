@@ -23,6 +23,11 @@ Generates:
     └── asset_hashes.json            (file integrity hashes)
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import json
 import pathlib
 import hashlib
@@ -45,7 +50,6 @@ from jaxfne.fields import (
 
 # The runner invokes this file as a subprocess; make the shared tutorial
 # runtime importable regardless of the working directory it is run from.
-import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import _tutorial_runtime as tutorial_runtime  # noqa: E402
 

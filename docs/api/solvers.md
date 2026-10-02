@@ -46,8 +46,7 @@ class EulerSolver:
     ...
 ```
 
-Forward Euler integrator using `JAX` and `jax.lax.scan`. The default and
-recommended backend for most jaxfne simulations.
+Forward Euler integrator using `JAX` over `jax.lax.scan`; the default backend for jaxfne simulations.
 
 **Method:**
 

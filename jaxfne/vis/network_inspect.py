@@ -2,9 +2,9 @@
 
 Portable by construction. Only the jaxfne public surface is used —
 ``model.neuron_table()`` (neuron_id, area, layer, cell_type), ``model.params["edge_list"]``
-(pre, post, weight, receptor_index) and a spike array or ``signals.spikes`` — so this file
-carries no jomission import and no TFNE dependency. Copy verbatim to
-``jaxfne/jaxfne/vis/network_inspect.py``.
+(pre, post, weight, receptor_index), ``jaxfne.emitters`` weight/receptor resolution for
+compact edge storage, and a spike array or ``signals.spikes`` — so this file carries no
+jomission import and no TFNE dependency.
 
 Two renderers, answering the two questions a user has before any analysis:
 
@@ -184,14 +184,30 @@ def describe(model: Any, *, inhibitory_receptors: Iterable[int] = (1,),
     edges = model.params["edge_list"]
     pre = np.asarray(edges.pre)
     post = np.asarray(edges.post)
-    weight = np.asarray(edges.weight, dtype=float)
-    receptor = np.asarray(getattr(edges, "receptor_index", np.zeros(pre.shape, dtype=int)))
+    # Compact storage keeps weight/receptor_index as size-0 placeholders; resolve
+    # them as kernels do, or zip() below silently iterates zero edges.
+    if getattr(edges, "weight_storage", "per_edge") == "per_edge":
+        weight = np.asarray(edges.weight, dtype=float)
+    else:
+        from jaxfne.emitters import resolve_edge_weight
+
+        _get = getattr(model.params, "get", None)
+        _emitter = _get("emitter") if callable(_get) else None
+        weight = np.asarray(resolve_edge_weight(
+            edges, edges.weight.dtype, presynaptic_sign=getattr(_emitter, "sign", None)),
+            dtype=float)
+    if hasattr(edges, "receptor_index"):
+        from jaxfne.emitters import resolve_receptor_index
+
+        receptor = np.asarray(resolve_receptor_index(edges))
+    else:
+        receptor = np.zeros(pre.shape, dtype=int)
     inhib = set(int(r) for r in inhibitory_receptors)
 
     n_edge: collections.Counter = collections.Counter()
     w_sum: collections.Counter = collections.Counter()
     n_local = 0
-    for p, q, w, r in zip(pre, post, weight, receptor):
+    for p, q, w, r in zip(pre, post, weight, receptor, strict=True):
         gp, gq = group[p], group[q]
         if gp is None or gq is None:
             continue
@@ -294,16 +310,23 @@ def network_hspice(model: Any, *, x: str | None = None, y: str | None = None,
                    inhibitory_receptors: Iterable[int] = (1,),
                    class_order: Sequence[str] = ("E", "PV", "SST", "VIP"),
                    figsize: tuple[float, float] | None = None, dpi: int = 150,
-                   show_legend: bool = True) -> dict:
+                   show_legend: bool = True, style: str = "blocks") -> dict:
     """A block schematic of the constructed circuit: x on the left, y on the right.
 
     Areas are blocks, layers are rows inside them, cell classes are chips inside a row, and
     every cross-area projection is one annotated arrow carrying its edge count, mean weight
     and sign. Individual neurons are never drawn.
 
+    ``style="columns"`` draws each area as a cylinder with one node per cell class and one
+    arrow per adjacent-stage projection, captioned ``x : A ∘ B ∘ … ∘ Z : y``. Projections
+    that skip a stage or run within one are listed under ``omitted_projections`` in the
+    returned description, not drawn. ``path`` may end in ``.svg`` or ``.png``.
+
     ``title`` is free metadata: pass a TFNE expression when you have one, otherwise the
     default states the model in generic terms.
     """
+    if style not in ("blocks", "columns"):
+        raise ValueError(f"style must be 'blocks' or 'columns', got {style!r}")
     th = resolve_theme(theme)
     d = describe(model, inhibitory_receptors=inhibitory_receptors, class_order=class_order,
                  stages=stages)
@@ -318,6 +341,11 @@ def network_hspice(model: Any, *, x: str | None = None, y: str | None = None,
     all_classes = sorted({c for a in d["populations"].values() for L in a.values() for c in L},
                          key=_class_key(class_order))
     cmap = th.class_colors(all_classes)
+    if style == "columns":
+        from .network_glow import render_columns
+
+        return render_columns(d, stages, th, cmap, x=x or "x", y=y or "y", title=title,
+                              path=path, dpi=dpi, figsize=figsize, save=_save)
     n_col = len(stages)
     tallest = max(len(c) for c in stages)
     figsize = figsize or (max(9.0, 4.4 * n_col + 4.0), max(5.0, 2.9 * tallest + 2.4))

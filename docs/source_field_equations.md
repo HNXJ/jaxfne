@@ -207,7 +207,6 @@ $$\mathrm{CSD}(x,t) = \nabla \cdot \mathbf{J}_e(x,t) = -\nabla \cdot (\sigma_e \
 **Sign convention in jaxfne:**
 - **Positive CSD** = extracellular current diverging (flowing outward) = current source = outward transmembrane current
 - **Negative CSD** = extracellular current converging (flowing inward) = current sink = inward transmembrane current
-- **Interpretation:** Positive CSD suggests an extracellular current **source**; negative CSD suggests an extracellular current **sink**
 
 **Declared in Manifest:**
 ```python
@@ -215,7 +214,7 @@ manifest = model.manifest(signals, readouts)
 print(manifest.get("csd_sign_convention"))  # → "positive_equals_extracellular_source"
 ```
 
-**Validation:** Always verify CSD sign convention when comparing to external data or evidences. Different fields/literature use opposite conventions.
+**Check** the CSD sign convention against external data; conventions differ across literature.
 
 ---
 
@@ -417,5 +416,5 @@ Before releasing a model, verify:
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Formal equations, term glossaries, bridge terms, statement boundaries
 - [Probe Operators](guides/probe_operators.md) — Readout modalities (SPK, Vm, source, LFP, CSD, EEG, MEG, EMM)
 - [Output Bundles](guides/output_bundles.md) — Manifest and report schema
-- [Scope and Limitations](limitations_and_future_plans.md) — What jaxfne statements and stays scoped to
+- [Scope and Limitations](limitations_and_future_plans.md) — statement boundaries and scope
 - [Computation Basis](computation_basis.md) — Per-stage source/field/probe semantics and rule boundaries

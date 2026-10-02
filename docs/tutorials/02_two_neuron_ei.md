@@ -18,13 +18,9 @@ import jaxfne as jtfne
 
 cfg = (
     jtfne.configuration()
-    .network(
-        n=2,
-        cell_types={"E": 1, "PV": 1},
-        connectivity={"E→E": 0.1, "E→PV": 0.2, "PV→E": -0.3, "PV→PV": -0.1}
-    )
-    .emitter(family="izhikevich", preset="regular_spiking")
-    .field(domain="point")
+    .network(n=2, cell_types={"E": 0.5, "PV": 0.5})
+    .emitter(family="izhikevich", preset="cortical_eig")
+    .field()
     .probe(name="two_neuron_ei", modes=["spikes", "V_m"])
 )
 
@@ -34,20 +30,21 @@ model = jtfne.construct(cfg)
 ## Simulate and inspect
 
 ```python
-signals = model.simulate(jtfne.simulation(duration_ms=500.0, dt_ms=0.1))
+signals = model.simulate(jtfne.simulation(duration_ms=500.0, dt_ms=0.1, seed=0))
 
-# Readouts
-readouts = model.compute_readout(signals, [
-    jtfne.readout_spec("E_rate", "spike_rate_hz"),
-    jtfne.readout_spec("I_rate", "spike_rate_hz"),
-])
+# Mean rate over both neurons; per-neuron rates in label order (E, PV)
+readouts = model.compute_readout(signals, [jtfne.readout_spec("rate", "spike_rate_hz")])
+rates_hz = signals.spikes.mean(axis=0) * 1000.0 / 0.1
 ```
 
 ## Observe recurrent dynamics
 
-- Excitatory neuron drives inhibitory neuron
-- Inhibitory feedback suppresses excitatory spiking
-- Behavior is oscillatory or stable, set by connection strengths
+- construct connects the pair with its default weights: E→PV +0.35 and PV→E −0.35
+  (0.5/√2), no self-connections.
+- At the default drive (E 5.0, PV 3.0) E fires at 12 Hz and PV stays below
+  threshold, so the loop never closes: E spikes at the same times as with the
+  connections removed (`jtfne.simulation(..., ablation="disconnected_null")`).
+- E's input moves PV's membrane potential by at most 0.04 mV over the 500 ms run.
 
 ## Interactive atlas (dark)
 

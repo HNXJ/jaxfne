@@ -8,11 +8,9 @@ jaxfne tutorials are Colab-ready Jupyter notebooks that teach the source-to-fiel
 
 Every notebook **must** start with:
 
-```python
+```bash
 !pip install jaxfne
 ```
-
-This ensures the notebook runs in any fresh Colab environment without dependency issues.
 
 ### 2. Version Verification (Second Code Cell)
 
@@ -22,8 +20,6 @@ The second code cell **must** verify installation:
 import jaxfne
 print(f"jaxfne version: {jaxfne.__version__}")
 ```
-
-This confirms successful installation and documents the version used.
 
 ### 3. No Private Paths
 
@@ -36,7 +32,7 @@ Use relative paths or public example data only.
 
 ### 4. CPU-Safe
 
-Notebooks should run on CPU without GPU requirement. jaxfne is CPU-safe by default; CPU acceleration is recommended.
+Notebooks should run on CPU without GPU requirement. jaxfne is CPU-safe by default.
 
 ### 5. Outputs Cleared Before Commit
 
@@ -57,8 +53,6 @@ signals = jtfne.simulate(model, sim)
 manifest = model.manifest(signals)
 print(f"Simulation complete. Manifest keys: {list(manifest.keys())[:5]}")
 ```
-
-This teaches users to understand model metadata and status.
 
 ### 7. Public Vocabulary
 
@@ -111,7 +105,7 @@ Before pushing a notebook:
 - [ ] Outputs cleared
 - [ ] Public vocabulary throughout
 - [ ] Runs top-to-bottom without errors
-- [ ] Includes section headings and markdown exnotesations
+- [ ] Includes section headings and markdown explanations
 - [ ] Links to relevant docs/guides at the end
 
 ## Example Notebooks

@@ -9,10 +9,13 @@ Outputs:
 
 from __future__ import annotations
 
-import io
 import sys
-from contextlib import redirect_stdout
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import io
+from contextlib import redirect_stdout
 
 import jax.numpy as jnp
 import matplotlib
@@ -31,6 +34,10 @@ from _figure_common import (
     save_figure_manifest,
     sha256_file,
     write_json_strict,
+)
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
 

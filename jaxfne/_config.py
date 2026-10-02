@@ -17,6 +17,7 @@ duplicating them.
 from __future__ import annotations
 
 import math
+import numbers
 import warnings
 from dataclasses import dataclass, field, replace
 from typing import Any, Mapping, Optional, Sequence
@@ -155,6 +156,177 @@ def _counts_from_fractions(total: int, fractions: Mapping[str, float]) -> dict[s
     return counts
 
 
+def check_n_contacts(value: Any, where: str) -> int:
+    """Return ``value`` as an int >= 2 (the laminar readout's contact count) or refuse it."""
+    if isinstance(value, bool) or not isinstance(value, numbers.Integral) or value < 2:
+        raise ValueError(f"{where}: n_contacts must be >= 2 and an int; got {value!r}")
+    return int(value)
+
+
+# Declarative keys and the only values the implementation realizes (H1, human decision
+# 2026-09-27). The field is the laminar proxy: a density-preserving Gaussian projection
+# (width 0.10) onto contacts at linspace(0, 1, n_contacts); boundary/gauge are the
+# canonical labels of that proxy. Unlisted keys have no consumer and are refused.
+_FIELD_REALIZED: dict[str, tuple] = {
+    "domain": ("laminar_column",),
+    "conductivity": ("proxy",),
+    "boundary": ("mean_zero_neumann", "declared_proxy"),
+    "gauge": ("mean_zero",),
+    "kind": ("laminar_proxy",),
+}
+_FIELD_LABELS = {"name"}
+_POISSON_KEYS = {"solver", "conductivity", "n_bins"}  # opt-in experimental_poisson_1d accessory
+_PROBE_LABELS = {"name", "modes", "kind", "mode", "operator_status", "field_solver_status",
+                 "physical_amplitude_calibrated", "n_contacts"}
+_PROBE_WIDTH = 0.10
+
+
+def _refuse_unrealized(method: str, key: str, value: Any, realized: Sequence[Any]) -> None:
+    if value not in realized:
+        raise ValueError(
+            f"{method}({key}={value!r}) is not realized: the implementation realizes "
+            f"{key} in {list(realized)} only"
+        )
+
+
+def _check_field_kwargs(kwargs: Mapping[str, Any]) -> None:
+    solver = kwargs.get("solver")
+    if solver is not None:
+        _refuse_unrealized("field", "solver", solver, ("experimental_poisson_1d",))
+        # simulate() swallows solver errors (opt-in diagnostic), so bad inputs are refused here.
+        cond = kwargs.get("conductivity", 1.0)
+        if isinstance(cond, bool) or not isinstance(cond, numbers.Real) or not (math.isfinite(cond) and cond > 0):
+            raise ValueError(f"field(conductivity={cond!r}): the Poisson diagnostic needs a finite conductivity > 0")
+        n_bins = kwargs.get("n_bins", 2)
+        if isinstance(n_bins, bool) or not isinstance(n_bins, numbers.Integral) or n_bins < 2:
+            raise ValueError(f"field(n_bins={n_bins!r}): the Poisson diagnostic needs an int n_bins >= 2")
+    for key, value in kwargs.items():
+        if key == "solver" or (solver is not None and key in _POISSON_KEYS):
+            continue
+        if key in _FIELD_REALIZED:
+            _refuse_unrealized("field", key, value, _FIELD_REALIZED[key])
+        elif key not in _FIELD_LABELS:
+            raise ValueError(f"field({key}=...) has no consumer; supported keys: "
+                             f"{sorted({*_FIELD_REALIZED, *_FIELD_LABELS, *_POISSON_KEYS})}")
+
+
+def poisson_signature(spec: Mapping[str, Any], n_contacts: int) -> tuple[Any, float, int]:
+    """What simulate solves for a Poisson field declaration (defaults: conductivity 1.0, n_bins = n_contacts)."""
+    return spec.get("solver"), float(spec.get("conductivity", 1.0)), int(spec.get("n_bins", n_contacts))
+
+
+def _real_baseline(method: str, value: Any) -> float:
+    if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
+        raise ValueError(f"{method}(relative_baseline={value!r}) is not realized: it takes a finite real number")
+    return float(value)
+
+
+# Keys of connectivity() that construct reads, and route labels nothing reads that
+# stay labels (agent decision 2026-09-27); any other key is refused.
+_CONNECTIVITY_READ_KEYS = frozenset({
+    "p_connect", "within_area", "within_gain", "recurrent", "edge_seed", "tcm_v1_6pop",
+    "feedforward_gain", "feedback_gain",
+})
+_CONNECTIVITY_LABEL_KEYS = frozenset({
+    "feedforward", "feedback", "kind", "mode", "e_to_all", "i_to_all",
+    "excitatory_to_inhibitory", "inhibitory_to_excitatory",
+})
+
+
+def _check_edge_seed(value: Any) -> None:
+    """Refuse a ``connectivity(edge_seed=)`` value that is not an int seed."""
+    if value is None:
+        return
+    if isinstance(value, bool) or not isinstance(value, numbers.Integral):
+        raise ValueError(
+            f"connectivity(edge_seed={value!r}) is not realized: it takes an int seed or None"
+        )
+
+
+def edge_seed_from_metadata(metadata: Mapping[str, Any]) -> int:
+    """Seed for connectivity edge sampling: ``metadata["connectivity"]["edge_seed"]``.
+
+    Returns the declared ``edge_seed`` when set, else the runtime seed
+    (``metadata["seed"]``). Positions, random v0 and canonical biophysics
+    keep the runtime seed -- only edge draws read this.
+    """
+    connectivity = metadata.get("connectivity", {}) or {}
+    edge_seed = connectivity.get("edge_seed", None)
+    if edge_seed is None:
+        return int(metadata.get("seed", 0) or 0)
+    _check_edge_seed(edge_seed)  # metadata set without connectivity() skips the declaration check
+    return int(edge_seed)
+
+
+def _check_cell_type_fractions(fractions: Mapping[str, Any]) -> dict[str, float]:
+    """Return ``fractions`` as floats; refuse an empty map, a bool, non-real, non-finite or
+    negative value, and zero total mass."""
+    if not fractions:
+        raise ValueError("cell type fractions must not be empty")
+    clean: dict[str, float] = {}
+    for key, value in fractions.items():
+        if (isinstance(value, bool) or not isinstance(value, numbers.Real)
+                or not math.isfinite(value) or value < 0.0):
+            raise ValueError(
+                f"cell type fraction for {key!r} must be finite and non-negative; got {value!r}"
+            )
+        clean[str(key)] = float(value)
+    if sum(clean.values()) <= 0.0:
+        raise ValueError("cell type fractions must have positive total mass")
+    return clean
+
+
+def _check_probe_kwargs(kwargs: Mapping[str, Any]) -> None:
+    n = check_n_contacts(kwargs.get("n_contacts", 16), "probe")
+    depths = [i / (n - 1) for i in range(n)]
+    for key, value in kwargs.items():
+        if key in _PROBE_LABELS:
+            continue
+        if key == "width":
+            _refuse_unrealized("probe", key, value, (_PROBE_WIDTH,))
+        elif key in ("contact_depths", "position"):
+            if value is None:
+                continue
+            given = [float(v) for v in value]
+            if len(given) != n or any(abs(a - b) > 1e-9 for a, b in zip(given, depths)):
+                raise ValueError(f"probe({key}={value!r}) is not realized: contacts sit at "
+                                 f"linspace(0, 1, n_contacts={n})")
+        elif key in ("reference", "filter_spec"):
+            _refuse_unrealized("probe", key, value, (None, "none"))
+        else:
+            raise ValueError(f"probe({key}=...) has no consumer; supported keys: "
+                             f"{sorted({*_PROBE_LABELS, 'width', 'contact_depths', 'position', 'reference', 'filter_spec'})}")
+
+
+_EMITTER_KEYS = ("family", "preset", "homeostatic_ei_rules", "homeostatic_ei_bound_mode")
+# construct reads name, n and cell_types; kind is a label; p_connect is checked against the
+# route's connectivity; layers come from column(). column()/cell_types() build _BUILT_NETWORK_KINDS.
+_NETWORK_KEYS = ("name", "n", "cell_types", "kind", "p_connect", "layers")
+_BUILT_NETWORK_KINDS = ("multi_column", "configured")
+# Keys of Configuration.runtime() that simulate(model) maps onto a RuntimeConfig; seed/dt_ms/
+# duration_ms are inherited by simulate(model), canonical_biophysics/random_v0 are read by construct.
+RUNTIME_METADATA_KEYS = (
+    "dtype", "recurrent_backend", "jit", "vmap", "backend", "synaptic_kernel", "precision",
+    "device_type", "enable_homeostasis", "homeostasis_params", "enable_hdp", "hdp_params",
+)
+_RUNTIME_KEYS = (*RUNTIME_METADATA_KEYS, "seed", "dt_ms", "duration_ms", "canonical_biophysics", "random_v0")
+
+
+def emitter_signature(spec: Mapping[str, Any]) -> dict[str, Any]:
+    """The part of an emitter declaration construct reads (``preset`` is a label)."""
+    return {**{k: v for k, v in spec.items() if k != "preset"}, "family": spec.get("family") or "izhikevich"}
+
+
+def check_emitter_conflict(first: Mapping[str, Any], later: Mapping[str, Any]) -> None:
+    """Refuse a later emitter declaration that construct, which reads the first only, would drop."""
+    if emitter_signature(later) != emitter_signature(first):
+        raise ValueError(
+            f"emitter({dict(later)!r}) is not realized: construct builds the first emitter "
+            f"{dict(first)!r} only. probes()/set_probes() insert the default izhikevich emitter "
+            "when none is declared, so declare the emitter before them."
+        )
+
+
 def _reject_retired_like(value: Any) -> None:
     """Reject the retired ``*_like`` probe vocabulary in favor of ``*_proxy``.
 
@@ -180,7 +352,11 @@ class _ProbeDeclarations(list):
     while adding the verb-like write path without renaming the public field.
     """
 
-    def __init__(self, values: Sequence[Mapping[str, Any]] | None = None, owner: "Configuration | None" = None):
+    def __init__(
+        self,
+        values: Sequence[Mapping[str, Any]] | None = None,
+        owner: "Configuration | None" = None,
+    ):
         super().__init__(dict(v) for v in (values or ()))
         self._owner = owner
 
@@ -218,7 +394,9 @@ class _ProbeDeclarations(list):
         """
         cfg = self._owner
         if cfg is None:
-            raise TypeError("Detached probe declarations cannot be called as a Configuration facade.")
+            raise TypeError(
+                "Detached probe declarations cannot be called as a Configuration facade."
+            )
         return cfg._with_probe_modes(
             modes=modes,
             name=name,
@@ -226,7 +404,6 @@ class _ProbeDeclarations(list):
             ensure_defaults=ensure_defaults,
             **kwargs,
         )
-
 
 
 @dataclass(frozen=True)
@@ -264,14 +441,38 @@ class Configuration:
     def network(self, **kwargs: Any) -> "Configuration":
         """Attach network metadata to the configuration.
 
-        Parameters are stored as JSON-safe metadata and consumed by public
-        construction helpers when supported.
+        construct reads ``name``, ``n`` and ``cell_types``; ``kind`` is a label.
+        construct checks ``p_connect`` without reading it: the plain route
+        builds dense connectivity, so it takes 1.0; the population route reads
+        ``connectivity(p_connect=)``, which it must equal. ``layers`` come from
+        ``column()``. construct builds the
+        first network only, and ``column()``/``cell_types()`` also fill that
+        slot, so declare ``network()`` once, before them; an identical repeat is
+        accepted.
 
         Returns
         -------
         Configuration
             Updated configuration.
         """
+        unknown = sorted(set(kwargs) - set(_NETWORK_KEYS))
+        if unknown:
+            raise ValueError(f"network({unknown[0]}=...) has no consumer; supported keys: {list(_NETWORK_KEYS)}")
+        if kwargs.get("layers"):
+            raise ValueError(f"network(layers={kwargs['layers']!r}) is not realized: layers come from column()")
+        if kwargs.get("kind") in _BUILT_NETWORK_KINDS:
+            raise ValueError(
+                f"network(kind={kwargs['kind']!r}) is not realized: that kind marks the network "
+                "column()/cell_types() build, and column() replaces it; declare columns with column()"
+            )
+        if self.networks and dict(kwargs) == self.networks[0]:
+            return self
+        if self.networks:
+            raise ValueError(
+                f"network({dict(kwargs)!r}) is not realized: construct builds the first network "
+                f"{self.networks[0].get('name', 'unnamed')!r} only; declare network() once, before "
+                "column() or cell_types()"
+            )
         return replace(self, networks=[*self.networks, dict(kwargs)])
 
     def emitter(self, **kwargs: Any) -> "Configuration":
@@ -280,31 +481,59 @@ class Configuration:
         Keyword arguments describe the emitter family and parameters.
         The ``family`` key selects the emitter kernel at build time.
 
+        ``preset`` selects no parameters; construct realizes the ``cortical_eig``
+        Izhikevich set, so that is the only accepted preset. construct builds the
+        first emitter only: a later declaration must repeat it.
+
         Returns
         -------
         Configuration
             Updated configuration.
         """
+        unknown = sorted(set(kwargs) - set(_EMITTER_KEYS))
+        if unknown:
+            raise ValueError(f"emitter({unknown[0]}=...) has no consumer; supported keys: {list(_EMITTER_KEYS)}")
+        if kwargs.get("preset") is not None:
+            _refuse_unrealized("emitter", "preset", kwargs["preset"], ("cortical_eig",))
+        rule_keys = sorted(k for k in kwargs if k.startswith("homeostatic_ei_"))
+        if rule_keys and kwargs.get("family") != "homeostatic_ei":
+            raise ValueError(
+                f"emitter({rule_keys[0]}=...) is not realized for family={kwargs.get('family')!r}: "
+                "construct reads it for family='homeostatic_ei' only"
+            )
+        if self.emitters:
+            check_emitter_conflict(self.emitters[0], kwargs)
         return replace(self, emitters=[*self.emitters, dict(kwargs)])
 
     def field(self, **kwargs: Any) -> "Configuration":
         """Attach field metadata to the configuration.
 
         Describes source-to-field projection settings. Current implementation
-        is a laminar proxy; no PDE field solver is invoked.
+        is a laminar proxy; no PDE field solver is invoked. Each key accepts only
+        the value the proxy realizes (``domain="laminar_column"``,
+        ``conductivity="proxy"``, ``boundary="mean_zero_neumann"`` or
+        ``"declared_proxy"``, ``gauge="mean_zero"``); ``solver=
+        "experimental_poisson_1d"`` (with ``conductivity``/``n_bins``) adds the
+        opt-in final-timestep Poisson diagnostic. simulate runs the first Poisson
+        declaration only; construct refuses a later one that solves differently
+        (``n_bins`` defaults to the probe's ``n_contacts``).
 
         Returns
         -------
         Configuration
             Updated configuration.
         """
+        _check_field_kwargs(kwargs)
         return replace(self, fields=[*self.fields, dict(kwargs)])
 
     def probe(self, **kwargs: Any) -> "Configuration":
         """Attach probe metadata to the configuration.
 
         The ``n_contacts`` key sets the number of recording contacts.
-        Minimum is 2; default is 16.
+        Minimum is 2; default is 16. Contacts sit at ``linspace(0, 1,
+        n_contacts)`` with projection width 0.10 and no reference or filter;
+        ``width``/``contact_depths``/``position``/``reference``/``filter_spec``
+        accept only those realized values.
 
         Returns
         -------
@@ -314,12 +543,15 @@ class Configuration:
         for _key in ("kind", "mode", "modes"):
             if _key in kwargs:
                 _reject_retired_like(kwargs[_key])
+        _check_probe_kwargs(kwargs)
         return replace(self, probes=[*self.probes, dict(kwargs)])
 
     def update_metadata(self, **kwargs: Any) -> "Configuration":
         """Merge keyword arguments into configuration metadata.
 
-        Use for administrative tags. Truth-gate fields
+        Use for administrative tags. Keys are stored without the checks that
+        ``runtime()`` and the declaration methods apply; a key nothing reads
+        stays a tag. Truth-gate fields
         (``claim_level``, ``field_claim_level``, ``field_solver_status``,
         ``physical_amplitude_calibrated``) are clamped after merge so callers
         cannot escalate claim surfaces via this API.
@@ -347,8 +579,11 @@ class Configuration:
         This intentionally maps to :meth:`update_metadata` rather than creating
         a compiled :class:`RuntimeConfig`; the compiled runtime remains a
         simulation-time object.  Typical keys include ``seed``, ``dtype``,
-        ``duration_ms``, and ``dt_ms``.
+        ``duration_ms``, and ``dt_ms``; a key nothing reads is refused.
         """
+        unknown = sorted(set(kwargs) - set(_RUNTIME_KEYS))
+        if unknown:
+            raise ValueError(f"runtime({unknown[0]}=...) has no consumer; supported keys: {sorted(_RUNTIME_KEYS)}")
         return self.update_metadata(**kwargs)
 
     def set_runtime(self, **kwargs: Any) -> "Configuration":
@@ -372,6 +607,13 @@ class Configuration:
         n_int = int(n)
         if n_int <= 0:
             raise ValueError(f"column n must be positive; got {n!r}")
+        # column() rebuilds networks[0] from the columns; a network() declaration would be dropped.
+        if self.networks and self.networks[0].get("kind") not in ("multi_column", "configured"):
+            raise ValueError(
+                f"column({name!r}) is not realized together with network({self.networks[0]!r}): "
+                "column() replaces that network; declare the network with columns or network(), "
+                "one of them"
+            )
 
         metadata = dict(self.metadata)
         columns = [dict(col) for col in metadata.get("columns", [])]
@@ -434,7 +676,14 @@ class Configuration:
         so a prior :meth:`cell_types`/:meth:`area_layer_cell_types` is preserved.
         """
         if layer_thickness is None:
-            layer_thickness = {"L1": 0.10, "L2": 0.15, "L3": 0.15, "L4": 0.10, "L5": 0.30, "L6": 0.20}
+            layer_thickness = {
+                "L1": 0.10,
+                "L2": 0.15,
+                "L3": 0.15,
+                "L4": 0.10,
+                "L5": 0.30,
+                "L6": 0.20,
+            }
         layers = [str(k) for k in layer_thickness.keys()]
         if not layers:
             raise ValueError("layer_thickness must not be empty")
@@ -453,7 +702,8 @@ class Configuration:
         metadata["layer_thickness"] = {k: float(layer_thickness[k]) for k in layer_thickness}
         if layer_cell_types is not None:
             metadata["layer_cell_types"] = {
-                str(k): {str(kk): float(vv) for kk, vv in v.items()} for k, v in layer_cell_types.items()
+                str(k): {str(kk): float(vv) for kk, vv in v.items()}
+                for k, v in layer_cell_types.items()
             }
         return replace(self, metadata=metadata)
 
@@ -486,7 +736,9 @@ class Configuration:
         for key, value in neurons.items():
             f = float(value)
             if not math.isfinite(f) or f < 0.0:
-                raise ValueError(f"neuron share for {key!r} must be finite and non-negative; got {value!r}")
+                raise ValueError(
+                    f"neuron share for {key!r} must be finite and non-negative; got {value!r}"
+                )
             frac[str(key)] = f
         if sum(frac.values()) <= 0.0:
             raise ValueError("neurons map must have positive total")
@@ -506,20 +758,11 @@ class Configuration:
         """Set cell-type fractions for the current configuration.
 
         Fractions are copied into metadata and into the constructable unified
-        network.  The method rejects negative, non-finite, or zero-total maps but
-        does not silently normalize values; the manifest should preserve exactly
-        what the user declared.
+        network.  The method rejects non-real, negative, non-finite, or zero-total
+        maps but does not silently normalize values; the manifest should preserve
+        exactly what the user declared.
         """
-        if not fractions:
-            raise ValueError("cell type fractions must not be empty")
-        clean: dict[str, float] = {}
-        for key, value in fractions.items():
-            f = float(value)
-            if not math.isfinite(f) or f < 0.0:
-                raise ValueError(f"cell type fraction for {key!r} must be finite and non-negative; got {value!r}")
-            clean[str(key)] = f
-        if sum(clean.values()) <= 0.0:
-            raise ValueError("cell type fractions must have positive total mass")
+        clean = _check_cell_type_fractions(fractions)
 
         metadata = dict(self.metadata)
         metadata["cell_types"] = clean
@@ -528,7 +771,14 @@ class Configuration:
             networks[0] = dict(networks[0], cell_types=clean)
         else:
             total_n = sum(int(col["n"]) for col in metadata.get("columns", [])) or 100
-            networks = [{"name": "configured_network", "kind": "configured", "n": total_n, "cell_types": clean}]
+            networks = [
+                {
+                    "name": "configured_network",
+                    "kind": "configured",
+                    "n": total_n,
+                    "cell_types": clean,
+                }
+            ]
         return replace(self, metadata=metadata, networks=networks)
 
     def set_cell_types(self, fractions: Mapping[str, float]) -> "Configuration":
@@ -542,7 +792,29 @@ class Configuration:
         generator.  These declarations are exported so tutorials and future
         kernels can distinguish feedforward/feedback bookkeeping from the actual
         proxy simulation path.
+
+        construct reads ``p_connect``, ``within_area``, ``within_gain``,
+        ``recurrent``, ``edge_seed``, ``tcm_v1_6pop``, ``feedforward_gain`` and
+        ``feedback_gain``; the route labels ``feedforward``, ``feedback``, ``kind``,
+        ``mode``, ``e_to_all``, ``i_to_all``, ``excitatory_to_inhibitory`` and
+        ``inhibitory_to_excitatory`` are recorded only. Any other key is refused.
         """
+        for key in kwargs:
+            if key not in _CONNECTIVITY_READ_KEYS and key not in _CONNECTIVITY_LABEL_KEYS:
+                hint = (" connectivity_mode is top-level metadata: update_metadata(connectivity_mode=...)."
+                        if key == "connectivity_mode" else "")
+                raise ValueError(
+                    f"connectivity({key}=...) is not realized: construct reads "
+                    f"{sorted(_CONNECTIVITY_READ_KEYS)}; {sorted(_CONNECTIVITY_LABEL_KEYS)} are "
+                    f"kept as labels.{hint}"
+                )
+        # Within-area edges are uniform random (dense at p_connect=1) and recurrent.
+        if "within_area" in kwargs:
+            _refuse_unrealized("connectivity", "within_area", kwargs["within_area"], ("all_to_all_uniform_random",))
+        if "recurrent" in kwargs:
+            _refuse_unrealized("connectivity", "recurrent", kwargs["recurrent"], (True,))
+        if "edge_seed" in kwargs:
+            _check_edge_seed(kwargs["edge_seed"])
         metadata = dict(self.metadata)
         connectivity = dict(metadata.get("connectivity", {}))
         connectivity.update(kwargs)
@@ -562,12 +834,17 @@ class Configuration:
 
         ``relative_baseline=1.0`` is the identity/neutral setting and is purely
         declarative: it does not change ``simulate()`` output. The STDP weight-
-        update kernel (``update_stdp_weights_jax``) is not wired into the main
-        ``Model.simulate()`` loop today — it only runs via the separate
-        ``run_stdp_stream`` path. This verb records intent in
-        ``metadata["plasticity"]`` so it is visible in ``manifest()`` from the
-        first call; deviating from ``1.0`` does not yet activate any kernel.
+        update kernel (``update_stdp_weights_jax``) runs only through the
+        separate ``run_stdp_stream`` path, so ``Model.simulate()`` would ignore
+        any other baseline or rule parameter; those are refused. The record in
+        ``metadata["plasticity"]`` is visible in ``manifest()``.
         """
+        _refuse_unrealized("plasticity", "relative_baseline", _real_baseline("plasticity", relative_baseline), (1.0,))
+        if kwargs:
+            raise ValueError(
+                f"plasticity({sorted(kwargs)[0]}=...) has no consumer: simulate() runs no plasticity "
+                "kernel; use jtfne.run_stdp_stream for STDP"
+            )
         spec = {
             "relative_baseline": float(relative_baseline),
             **dict(kwargs),
@@ -589,7 +866,7 @@ class Configuration:
         ``metadata["homeostasis_params"]``, consumed by ``simulate()`` through
         ``_runtime_config_from_metadata``.
         """
-        rb = float(relative_baseline)
+        rb = _real_baseline("homeostasis", relative_baseline)
         spec = {"relative_baseline": rb, **dict(kwargs)}
         metadata = dict(self.metadata)
         metadata["homeostasis"] = spec
@@ -616,7 +893,7 @@ class Configuration:
         Mutually exclusive with :meth:`homeostasis` at the ``RuntimeConfig``
         level (enforced in ``RuntimeConfig.__post_init__``).
         """
-        rb = float(relative_baseline)
+        rb = _real_baseline("hdp", relative_baseline)
         spec = {"relative_baseline": rb, **dict(kwargs)}
         metadata = dict(self.metadata)
         metadata["hdp"] = spec
@@ -640,8 +917,18 @@ class Configuration:
     # Each declaration carries an explicit status so nothing reads as compiled,
     # applied, or optimized yet.
     # ------------------------------------------------------------------
-    def cell_params(self, selector: Mapping[str, Any], params: Mapping[str, Any]) -> "Configuration":
-        """Declare cell/emitter parameter overrides for a selector (declaration only)."""
+    def cell_params(
+        self, selector: Mapping[str, Any], params: Mapping[str, Any]
+    ) -> "Configuration":
+        """Override Izhikevich ``a``/``b``/``c``/``d``/``drive`` for neurons matching a
+        ``cell_type`` and/or ``layer`` selector; applied at ``construct()``."""
+        bad_sel = sorted(set(selector) - {"cell_type", "layer"})
+        bad_par = sorted(set(params) - {"a", "b", "c", "d", "drive"})
+        if bad_sel or bad_par:
+            raise ValueError(
+                f"cell_params: unsupported selector keys {bad_sel} / parameter keys {bad_par}; "
+                "selectors: cell_type, layer; parameters: a, b, c, d, drive"
+            )
         entry = {
             "selector": _circuit_json_safe(dict(selector), "cell_params.selector"),
             "params": _circuit_json_safe(dict(params), "cell_params.params"),
@@ -678,6 +965,7 @@ class Configuration:
         control_key: Optional[str] = None,
         max_in_degree: Optional[int] = None,
         spatial_sigma: Optional[float] = None,
+        delay_ms: Optional[float] = None,
     ) -> "Configuration":
         """Declare a connection rule that ``construct()`` compiles into edges.
 
@@ -700,16 +988,23 @@ class Configuration:
         with no mechanisms, or a mixed rule set where even one rule omits
         ``mechanism=``, compiles entirely through the sign-only fallback
         (receptor inferred from weight sign, tau hardcoded exc=2 ms/inh=5 ms)
-        as before. ``plasticity``/``control_key`` remain declarative metadata
-        (not yet compiled). Distinct from :meth:`connectivity`, which records
-        feedforward/feedback bookkeeping.
+        as before.         ``plasticity``/``control_key`` remain declarative metadata
+        (not yet compiled). ``delay_ms`` is the configured axonal delay in
+        milliseconds (None = undeclared = current behaviour); at
+        ``construct()`` time it is realized to integer steps as
+        ``round(delay_ms / dt_ms)`` (0.5.2 decision 0b) at the configuration's
+        ``dt_ms``, and both the configured ms and the realized steps are
+        recorded. A positive delay rounding to 0 steps is refused rather than
+        dropped. Distinct from :meth:`connectivity`, which records
+        feedforward/feedback bookkeeping. ``plasticity`` and ``control_key`` have
+        no consumer in the compiler and accept only None.
         """
         if not name:
             raise ValueError("connection requires a non-empty name")
+        _refuse_unrealized("connections", "plasticity", plasticity, (None,))
+        _refuse_unrealized("connections", "control_key", control_key, (None,))
         if not isinstance(source, Mapping) or not isinstance(target, Mapping):
-            raise ValueError(
-                f"connection {name!r} requires source and target selector mappings"
-            )
+            raise ValueError(f"connection {name!r} requires source and target selector mappings")
         if probability is not None:
             p = float(probability)
             if not math.isfinite(p) or not (0.0 <= p <= 1.0):
@@ -728,6 +1023,17 @@ class Configuration:
                 f"sampling modes -- probability targets an O(n_pre*n_post) density, "
                 f"max_in_degree targets a constant per-post-neuron cap; pick one."
             )
+        if delay_ms is not None:
+            try:
+                _dms = float(delay_ms)
+            except (TypeError, ValueError):
+                raise ValueError(
+                    f"connection {name!r} delay_ms must be a number in ms; got {delay_ms!r}"
+                )
+            if not math.isfinite(_dms) or _dms < 0.0:
+                raise ValueError(
+                    f"connection {name!r} delay_ms must be finite and >= 0; got {delay_ms!r}"
+                )
         entry = {
             "name": str(name),
             "source": _circuit_json_safe(dict(source), "connections.source"),
@@ -742,6 +1048,7 @@ class Configuration:
             "control_key": str(control_key) if control_key is not None else None,
             "max_in_degree": int(max_in_degree) if max_in_degree is not None else None,
             "spatial_sigma": float(spatial_sigma) if spatial_sigma is not None else None,
+            "delay_ms": float(delay_ms) if delay_ms is not None else None,
             "status": "declared_not_compiled",
         }
         cfg = self._append_circuit("connections", entry, dedup_name=True)
@@ -896,6 +1203,11 @@ class Configuration:
                 },
                 homeostatic_ei_bound_mode=str(bound_mode),
             )
+        rules = {"activation_rule": (activation_rule, "cubic"), "conductance_rule": (conductance_rule, "hebbian"),
+                 "homeostasis_rule": (homeostasis_rule, "linear"), "bound_mode": (bound_mode, "minimal")}
+        changed = sorted(k for k, (v, default) in rules.items() if v != default)
+        if changed:
+            raise ValueError(f"set_emitter: {changed} apply only to family='homeostatic_ei'; got family={family!r}")
         return self.emitter(family=family, preset=preset)
 
     def _with_probe_modes(
@@ -930,7 +1242,7 @@ class Configuration:
             "physical_amplitude_calibrated": False,
         }
         if n_contacts is not None:
-            probe_kwargs["n_contacts"] = int(n_contacts)
+            probe_kwargs["n_contacts"] = check_n_contacts(n_contacts, "probes")
         probe_kwargs.update(kwargs)
         return cfg.probe(**probe_kwargs)
 
@@ -947,8 +1259,8 @@ class Configuration:
     def areas(self, area_names: Sequence[str]) -> "Configuration":
         """Declare areas for a multi-area circuit (e.g., ['V1', 'V4', 'PFC']).
 
-        Area declarations are stored in metadata and later used by
-        layer_fractions() to generate multi-area neuron populations.
+        The areas themselves come from ``column()``/``population()``; construct
+        refuses a declared list that differs from those column names.
 
         Parameters
         ----------
@@ -1025,8 +1337,9 @@ class Configuration:
         metadata["layer_cell_types"] = layer_cell_types
         return replace(self, metadata=metadata)
 
-
-    def area_layer_cell_types(self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]) -> "Configuration":
+    def area_layer_cell_types(
+        self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]
+    ) -> "Configuration":
         """Set layer-specific cell-type fractions for one declared area."""
         if not area:
             raise ValueError("area must be a non-empty string")
@@ -1035,7 +1348,9 @@ class Configuration:
             clean[str(layer)] = {str(k): float(v) for k, v in fracs.items()}
             _counts_from_fractions(1, clean[str(layer)])
         metadata = dict(self.metadata)
-        per_area = {str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()}
+        per_area = {
+            str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()
+        }
         per_area[str(area)] = clean
         metadata["area_layer_cell_types"] = per_area
         return replace(self, metadata=metadata)
@@ -1056,16 +1371,14 @@ class Configuration:
         )
 
     def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
-        """Override native reduced drive by cell type for Suite No. 2 sweeps."""
-        if not drives:
-            raise ValueError("drives must not be empty")
-        clean: dict[str, float] = {}
-        for key, value in drives.items():
-            v = float(value)
-            if not math.isfinite(v):
-                raise ValueError(f"drive for {key!r} must be finite")
-            clean[str(key)] = v
-        return self.update_metadata(cell_type_drives=clean)
+        """Refused (P-014): this call stored drives that construction never read.
+
+        Use ``drive(baseline_drive_by_cell_type=...)``, which reaches the emitter.
+        """
+        raise TypeError(
+            "Configuration.cell_type_drives was never consumed (P-014); use "
+            ".drive(baseline_drive_by_cell_type={...}) instead"
+        )
 
     def suite2_interarea(self, enabled: bool = True) -> "Configuration":
         """Enable V1/V4 feedforward-feedback metadata in the construct path."""
@@ -1114,13 +1427,17 @@ class Configuration:
             Connectivity mode: "sparse", "all_to_all", "block_dense",
             or "distance_decay". Default: "sparse".
         p_feedforward : float, optional
-            Probability of feedforward connections. Default: 0.3.
+            Probability of feedforward connections. Default: 0.3 (UNCALIBRATED
+            placeholder; todo 0c).
         p_feedback : float, optional
-            Probability of feedback connections. Default: 0.2.
+            Probability of feedback connections. Default: 0.2 (UNCALIBRATED
+            placeholder; todo 0c).
         feedforward_weight_range : tuple[float, float], optional
-            Weight range for feedforward synapses. Default: (0.5, 2.0).
+            Weight range for feedforward synapses. Default: (0.5, 2.0)
+            (UNCALIBRATED placeholder; todo 0c).
         feedback_weight_range : tuple[float, float], optional
-            Weight range for feedback synapses. Default: (0.3, 1.5).
+            Weight range for feedback synapses. Default: (0.3, 1.5)
+            (UNCALIBRATED placeholder; todo 0c).
         delay_ms_or_status : float or str, optional
             Transmission delay in ms, or a status string (e.g.,
             "no_delay_proxy_metadata"). Default: None.
@@ -1142,6 +1459,12 @@ class Configuration:
           Physical edge delays not modeled."
         - Scope: proxy specification only; no PDE solution.
         """
+        # _interarea_W reads areas, layer map, probabilities, weight ranges and seed only.
+        _refuse_unrealized("inter_column_connectivity", "mode", mode, ("sparse",))
+        _refuse_unrealized("inter_column_connectivity", "sign_policy", sign_policy, ("intrinsic",))
+        _refuse_unrealized("inter_column_connectivity", "delay_ms_or_status", delay_ms_or_status, (None,))
+        _refuse_unrealized("inter_column_connectivity", "cell_type_to_cell_type_map",
+                           cell_type_to_cell_type_map, (None,))
         if source_area is None:
             source_area = "V1"
         if target_area is None:
@@ -1168,7 +1491,9 @@ class Configuration:
         inter_conn_spec = {
             "source_area": str(source_area),
             "target_area": str(target_area),
-            "layer_to_layer_map": dict(layer_to_layer_map) if layer_to_layer_map is not None else None,
+            "layer_to_layer_map": dict(layer_to_layer_map)
+            if layer_to_layer_map is not None
+            else None,
             "cell_type_to_cell_type_map": dict(cell_type_to_cell_type_map),
             "mode": str(mode),
             "p_feedforward": float(p_feedforward),
@@ -1205,46 +1530,57 @@ class Configuration:
         noise_policy: str = "additive_poisson",
         trial_variability: bool = False,
     ) -> "Configuration":
-        """Declare drive (stimulus and noise) specification.
+        """Declare the baseline drive by cell type.
 
-        This method stores declarative drive metadata: baseline external input,
-        evoked windows, noise policy, and trial variability settings.
-        No actual stimulus envelope generation occurs; all parameters are
-        metadata only.
+        ``baseline_drive_by_cell_type`` reaches the emitter at construction.
+        No other field has a consumer (P-015), so each accepts only its
+        neutral value and refuses anything else rather than recording a
+        drive that never executes. Time-varying input: ``stimulus_schedule``
+        passed as ``paradigm``; noise: ``Simulation(poisson_drive=...)``.
 
         Parameters
         ----------
         baseline_drive_by_cell_type : dict[str, float], optional
             Baseline external drive per cell type. Default:
             {"E": 5.0, "PV": 3.0, "SST": 3.5, "VIP": 3.0}.
-        drive_by_layer : dict[str, float], optional
-            Layer-specific drive overrides. Default: {} (no override).
-        drive_by_area : dict[str, float], optional
-            Area-specific drive overrides. Default: {} (no override).
+        drive_by_layer, drive_by_area : dict[str, float], optional
+            Refused unless empty (no consumer).
         time_schedule : str, optional
-            Drive schedule type: "constant", "ramp", "pulse", or a path.
-            Default: "constant".
+            Refused unless "constant" (no consumer).
         evoked_windows : list[tuple], optional
-            List of (onset_ms, duration_ms) pairs for evoked responses.
-            Default: [] (no evoked drive).
+            Refused unless empty (no consumer).
         oddball_or_omission_schedule : dict[str, list], optional
-            Oddball and omission event times. Default: empty dict.
+            Refused unless empty (no consumer).
         noise_policy : str
-            Noise type: "additive_poisson", "additive_gaussian", or "none".
-            Default: "additive_poisson".
+            Canonical label "additive_poisson" only; noise runs through
+            ``Simulation(poisson_drive=...)``.
         trial_variability : bool
-            Whether trial-to-trial variation is enabled. Default: False.
+            Refused unless False (no consumer).
 
         Returns
         -------
         Configuration
             Updated configuration.
 
-        Notes
-        -----
-        - All parameters are metadata only; no runtime I(t) generation.
-        - Actual stimulus envelope is generated at simulate() time.
         """
+        for name, val in (("drive_by_layer", drive_by_layer), ("drive_by_area", drive_by_area),
+                          ("oddball_or_omission_schedule", oddball_or_omission_schedule)):
+            if val is not None and not isinstance(val, Mapping):
+                raise ValueError(f"Configuration.drive: {name} must be a mapping; got {type(val).__name__}")
+        unconsumed = {
+            "drive_by_layer": bool(drive_by_layer),
+            "drive_by_area": bool(drive_by_area),
+            "time_schedule": time_schedule not in (None, "constant"),
+            "evoked_windows": bool(evoked_windows),
+            "oddball_or_omission_schedule": bool(oddball_or_omission_schedule),
+            "trial_variability": bool(trial_variability),
+        }
+        refused = [name for name, set_ in unconsumed.items() if set_]
+        if refused:
+            raise ValueError(
+                f"Configuration.drive: {refused} have no consumer and would not execute "
+                "(P-015); use stimulus_schedule(...) as paradigm for time-varying input"
+            )
         if baseline_drive_by_cell_type is None:
             baseline_drive_by_cell_type = {
                 "E": 5.0,
@@ -1252,6 +1588,12 @@ class Configuration:
                 "SST": 3.5,
                 "VIP": 3.0,
             }
+        for cell_type, value in dict(baseline_drive_by_cell_type).items():
+            if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
+                raise ValueError(
+                    f"drive(baseline_drive_by_cell_type={{{cell_type!r}: {value!r}}}) is not realized: "
+                    "it takes a finite real number"
+                )
         if drive_by_layer is None:
             drive_by_layer = {}
         if drive_by_area is None:
@@ -1263,11 +1605,9 @@ class Configuration:
         if oddball_or_omission_schedule is None:
             oddball_or_omission_schedule = {}
 
-        if noise_policy not in ("additive_poisson", "additive_gaussian", "none"):
-            raise ValueError(
-                f"noise_policy must be one of ('additive_poisson', 'additive_gaussian', 'none'); "
-                f"got {noise_policy!r}"
-            )
+        # Canonical label only; noise comes from Simulation(poisson_drive=...), so another
+        # value would describe noise that never runs.
+        _refuse_unrealized("drive", "noise_policy", noise_policy, ("additive_poisson",))
 
         drive_spec = {
             "baseline_drive_by_cell_type": dict(baseline_drive_by_cell_type),
@@ -1454,8 +1794,7 @@ class Configuration:
         )
         if optimizer_family not in allowed_families:
             raise ValueError(
-                f"optimizer_family must be one of {allowed_families}; "
-                f"got {optimizer_family!r}"
+                f"optimizer_family must be one of {allowed_families}; got {optimizer_family!r}"
             )
 
         optimizer_spec = {
@@ -1489,4 +1828,3 @@ class Configuration:
 
 
 Config = Configuration
-

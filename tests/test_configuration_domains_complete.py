@@ -67,6 +67,22 @@ class TestDrive:
         assert drive["baseline_drive_by_cell_type"]["E"] == 5.0
         assert drive["noise_policy"] == "additive_poisson"
 
+    @pytest.mark.parametrize("kw", [
+        {"drive_by_layer": {"L4": 1.0}}, {"drive_by_area": {"V1": 1.0}},
+        {"time_schedule": "ramp"}, {"evoked_windows": [(10.0, 5.0)]},
+        {"oddball_or_omission_schedule": {"oddball": [100.0]}}, {"trial_variability": True},
+    ])
+    def test_drive_refuses_unconsumed_fields(self, kw):
+        """P-015: fields without a consumer refuse non-neutral values."""
+        with pytest.raises(ValueError, match=f"{next(iter(kw))}.*no consumer"):
+            jtfne.Configuration().drive(**kw)
+        jtfne.Configuration().drive(**{k: type(v)() if not isinstance(v, str) else "constant"
+                                       for k, v in kw.items()})
+
+    def test_drive_refuses_non_mapping_fields(self):
+        with pytest.raises(ValueError, match="drive_by_layer must be a mapping"):
+            jtfne.Configuration().drive(drive_by_layer=0)
+
     def test_drive_invalid_noise_policy(self):
         """Test .drive() rejects invalid noise_policy."""
         with pytest.raises(ValueError, match="noise_policy"):
@@ -136,7 +152,7 @@ class TestAllDomainsChainable:
             .runtime(seed=7, duration_ms=1000, dt_ms=0.1)
             .column("V1", layers=["L4", "L5"], n=100)
             .cell_types({"E": 0.8, "PV": 0.2})
-            .connectivity(within_area="all_to_all", within_gain=0.5)
+            .connectivity(within_area="all_to_all_uniform_random", within_gain=0.5)
             .inter_column_connectivity(source_area="V1", target_area="V4")
             .drive(baseline_drive_by_cell_type={"E": 5.0})
             .set_emitter("izhikevich", "cortical_eig")

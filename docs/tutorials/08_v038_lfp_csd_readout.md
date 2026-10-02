@@ -186,7 +186,7 @@ for layer, indices in layer_indices.items():
 **Interpretation:**
 
 - Which layer fires most? (Typically L4/L5 in cortical columns)
-- Does deep layer (L5) dominate the LFP-proxy? (Often yes, due to larger somatic currents)
+- Does deep layer (L5) dominate the LFP-proxy? (Often yes, from the depth-weighted source gain in the proxy readout)
 - How does layer-resolved structure vary over time?
 
 ---

@@ -17,8 +17,12 @@ Metadata saved to: docs/_static/gallery/gallery_manifest.json
 
 from __future__ import annotations
 
-import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
 
 import matplotlib
 matplotlib.use("Agg")
@@ -28,6 +32,10 @@ import numpy as np
 import jax.numpy as jnp
 import jaxfne as jtfne
 from jaxfne.emitters import EdgeList, IzhikevichParams
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 def generate_gallery(output_dir: Path) -> dict:

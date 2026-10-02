@@ -4,6 +4,12 @@ enable batch resumption. Memory-safe: per-event window sums only, no trace mater
 
 Usage: python e2b_v2_executor.py <replicate_idx>
 """
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+
 import sys; sys.path.insert(0, '../../../..')  # repo root
 sys.path.insert(0, '.')
 import json, hashlib, pathlib, datetime
@@ -19,6 +25,10 @@ OUTD = PR / 'E2b_confirmatory/v2_runs'
 OUTD.mkdir(parents=True, exist_ok=True)
 sys.path.insert(0, str(REPO / 'artifacts/e2/e2_exec'))
 import e2_exec_lib as lib
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 spec = json.loads((PR / 'e2_ssa_spec.v6.json').read_bytes())
 ping = json.loads((PR / 'e2_ping_prereg.json').read_bytes())

@@ -177,6 +177,19 @@ Package-native operators used: `Signals` field proxy (`phi_e_proxy`, `csd_proxy`
 
 **Figure:** `artifacts/etudes/hdp_controllability_reachability/figure.png` (panels A–L; panel E = OFF | scalar | vector rasters; MVC #1 inset in D).
 
+<!-- jx-figure -->
+## Figure
+
+=== "Still"
+
+    ![HDP controllability bundle figure, panels A–L](../assets/etudes/hdp_controllability_reachability.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="../_static/etudes/hdp_controllability_reachability/index.html" loading="lazy" title="HDP controllability bundle figure"></iframe>
+
+Panels A–L (panel E = OFF | scalar | vector rasters; MVC #1 inset in D). [Open full page](../_static/etudes/hdp_controllability_reachability/index.html).
+
 ---
 
 ## 7. Conclusions and scope

@@ -136,8 +136,8 @@ def main() -> int:
         return J.construct(
             J.configuration()
             .network(n=1)
-            .emitter(family="izhikevich", preset="regular_spiking")
-            .field(domain="point")
+            .emitter(family="izhikevich", preset="cortical_eig")
+            .field()
             .probe(name="single_neuron", modes=["spikes", "V_m"])
         )
 

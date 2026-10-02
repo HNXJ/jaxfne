@@ -11,6 +11,10 @@ Outputs:
 from __future__ import annotations
 
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 
 from _pub_figure_common import ensure_publication_dirs, repo_root, repo_sha, utc_now_iso, write_json_strict
 from scripts.internal.publication.cross_figure_audit import run_cross_figure_audit

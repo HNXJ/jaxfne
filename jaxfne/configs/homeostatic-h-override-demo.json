@@ -4,7 +4,7 @@
     {
       "inter_connections": [
         {
-          "mechanism": "GABA_A",
+          "mechanism": "AMPA",
           "plastic": {
             "H": 3.5,
             "value_tag": "relative",
@@ -13,12 +13,12 @@
           "source_layer": "L4",
           "source_neuron_type": "E",
           "static": {
-            "dT_ms": 5.0,
+            "dT_ms": 2.0,
             "g_mech": {
-              "GABA_A": 1.0
+              "AMPA": 1.0
             },
             "reversal_potentials_mV": {
-              "GABA_A": -80.0
+              "AMPA": 0.0
             },
             "value_tag": "relative"
           },

@@ -27,6 +27,19 @@ Rules:
 - CSD = `Dzz·LFP` suppresses the broad deep alpha/beta — compute the spectrolaminar crossover on **LFP**, not CSD (`signal_key="lfp_contacts"`).
 - EEG/MEG/EMM are toy/declared linear leadfields (`analysis_only`); field amplitudes are `proxy_relative` / `physical_amplitude_calibrated=False`.
 
+<!-- jx-figure -->
+## Figure
+
+=== "Still"
+
+    ![Laminar LFP proxy read from the frozen trajectory](../assets/readme/lfp.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="../../_static/atlas/lfp.html" loading="lazy" title="Laminar LFP proxy read from the frozen trajectory"></iframe>
+
+Laminar LFP proxy read from the frozen trajectory, in relative units (calibration is a separate, explicit step). [Open full page](../_static/atlas/lfp.html).
+
 Next: [06 — Add state](06_add_state.md) — carry a per-neuron `H` container.
 
 ## Interactive atlas (dark)

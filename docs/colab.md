@@ -1,10 +1,7 @@
 # Google Colab Quick Start
 
-**Run jaxfne examples in Google Colab without local setup.**
-
-**Version:** published PyPI release `jaxfne==0.4.25` (tag `v0.4.25`); previous release `0.4.24`
-**Last updated:** 2026-09-20  
-**run_status:** tutorial_scaffold, exploratory_simulated_proxy
+Run jaxfne examples in Google Colab without local setup. Installs the
+published PyPI release `jaxfne==0.5.0` (tag `v0.5.0`; previous release `0.4.25`).
 
 ---
 
@@ -23,7 +20,7 @@ Open a new Colab notebook: https://colab.research.google.com/
 **Expected output:**
 ```
 Installing collected packages: jaxfne
-Successfully installed jaxfne-0.4.25
+Successfully installed jaxfne-0.5.0
 ```
 
 ---
@@ -38,8 +35,8 @@ import json
 cfg = (
     jtfne.configuration()
     .network(n=1)
-    .emitter(family="izhikevich", preset="regular_spiking")
-    .field(domain="point")
+    .emitter(family="izhikevich", preset="cortical_eig")
+    .field()
     .probe(name="single_neuron", modes=["spikes", "V_m"])
 )
 model = jtfne.construct(cfg)
@@ -85,7 +82,7 @@ print(f"Spike rate: {signals.spikes.sum() / len(signals.time_ms):.2f} spikes/ms"
 **Expected output:**
 ```
 === Computation Contract ===
-Version: 0.4.25
+Version: 0.5.0
 Claim level: computational_scaffold
 Physical amplitude calibrated: False
 Field solver status: linear_solver
@@ -120,26 +117,22 @@ import numpy as np
 # Two neurons: one excitatory, one inhibitory (current API)
 cfg = (
     jtfne.configuration()
-    .network(
-        n=2,
-        cell_types={"E": 1, "PV": 1},
-        connectivity={"E→E": 0.1, "E→PV": 0.2, "PV→E": -0.3, "PV→PV": -0.1},
-    )
-    .emitter(family="izhikevich", preset="regular_spiking")
-    .field(domain="point")
+    .network(n=2, cell_types={"E": 0.5, "PV": 0.5})
+    .emitter(family="izhikevich", preset="cortical_eig")
+    .field()
     .probe(name="two_neuron_ei", modes=["spikes", "V_m"])
 )
 model = jtfne.construct(cfg)
 
-# Simulate with external input
+# Simulate 200 ms
 signals = model.simulate(jtfne.simulation(duration_ms=200.0, dt_ms=0.1, seed=0))
 
 # Get manifest
 manifest = model.manifest(signals)
 
 print("=== TWO-NEURON E/I CIRCUIT ===")
-print(f"Excitatory firing rate: {signals.spikes[:, 0].sum() / 200:.2f} Hz")
-print(f"Inhibitory firing rate: {signals.spikes[:, 1].sum() / 200:.2f} Hz")
+print(f"Excitatory firing rate: {signals.spikes[:, 0].sum() / 0.2:.2f} Hz")
+print(f"Inhibitory firing rate: {signals.spikes[:, 1].sum() / 0.2:.2f} Hz")
 
 # Verify status checks still immutable
 assert manifest["physical_amplitude_calibrated"] == False, "Status check violated!"
@@ -149,12 +142,12 @@ print("✓ Status checks immutable: physical_amplitude_calibrated = False")
 **Expected output:**
 ```
 === TWO-NEURON E/I CIRCUIT ===
-Excitatory firing rate: 0.01 Hz
-Inhibitory firing rate: 0.01 Hz
+Excitatory firing rate: 15.00 Hz
+Inhibitory firing rate: 0.00 Hz
 ✓ Status checks immutable: physical_amplitude_calibrated = False
 ```
 
-Interactive dark-theme panels for this run: [index](_static/atlas/two_neuron_ei/index.html) · [schema](_static/atlas/two_neuron_ei/schema.html) · [raster](_static/atlas/two_neuron_ei/raster.html) · [LFP](_static/atlas/two_neuron_ei/lfp.html) · [oscillatory](_static/atlas/two_neuron_ei/oscillatory.html).
+Interactive dark-theme panels for this circuit (500 ms, dt 0.5 ms): [index](_static/atlas/two_neuron_ei/index.html) · [schema](_static/atlas/two_neuron_ei/schema.html) · [raster](_static/atlas/two_neuron_ei/raster.html) · [LFP](_static/atlas/two_neuron_ei/lfp.html) · [oscillatory](_static/atlas/two_neuron_ei/oscillatory.html).
 
 ---
 
@@ -208,7 +201,7 @@ calibration step. See [Scope & status](scope_and_status.md).
 
 - Exploratory computational neuroscience model
 - Multi-scale emitter (Izhikevich, HH) to field-proxy pipeline
-- Teaching tool for understanding circuit behavior
+- Teaching tool for circuit behavior
 - Optimization sandbox for fitness/plasticity experiments
 
 ---
@@ -248,7 +241,7 @@ else:
 
 ## Saving Colab Output
 
-To download results from Colab to your local machine:
+To download results from Colab:
 
 ```python
 # Save manifest to local file (Colab downloads it automatically)
@@ -276,7 +269,7 @@ JAX is optional. Install with full extras:
 
 ### RuntimeError: "CUDA not detected"
 
-Colab uses CPU by default for JAX. This is fine; jaxfne runs on CPU.
+Colab uses CPU by default for JAX; jaxfne runs on CPU.
 
 ### ValueError: "NaN/Inf in outputs"
 

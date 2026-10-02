@@ -13,10 +13,15 @@
     },
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
     "value_tag": "relative",
-    "delta_science": 0
+    "delta_science": 0,
+    "mechanism_tau_ms_provenance": "P-023: per-mechanism kinetics from jaxfne.presets.RECEPTOR_KINETICS (AMPA tau_ms 2.0, GABA_A tau_ms 5.0); uncalibrated metadata, owner approval pending."
   },
   "development_parameters": {
     "fraction_jitter_sigma": 0.01
+  },
+  "mechanism_tau_ms": {
+    "AMPA": 2.0,
+    "GABA_A": 5.0
   },
   "areas": [
     {

@@ -1,7 +1,7 @@
 {
   "schema": "jaxfne.current_release_authorities.v1",
   "release_target_version": "0.5.0",
-  "notes": "v0.5.0 candidate in flight (dev): measured 0.5.x baseline + integration/harness foundation + one adjudicated reporting-path optimization (item10 receipt); published predecessor v0.4.25 (tag v0.4.25, PyPI 0.4.25). Release receipt v0_5_0 is created at publication; its path is recorded here in advance.",
+  "notes": "v0.5.0 SEALED+published: tag v0.5.0 (object fda5465, peel 499c54f), origin/main @ 499c54f, GitHub release created, PyPI 0.5.0 via trusted publishing run 35898922482, RTD version v0.5.0 auto-registered from tag (build pending at seal). Published predecessor: v0.4.25.",
   "release_receipt": "artifacts/release/v0_5_0_release_receipt.json",
   "programme_entry": "artifacts/programme/v0_4_23_entry_receipt.md",
   "acceptance_goals": "artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md",

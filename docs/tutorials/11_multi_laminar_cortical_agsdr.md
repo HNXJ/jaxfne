@@ -27,7 +27,7 @@ physical_amplitude_calibrated: false
 
 LFP/CSD outputs are laminar **proxy** readouts:
 
-- Built from a depth-dependent Gaussian leadfield over real per-neuron Izhikevich source traces.
+- Built from a depth-dependent Gaussian leadfield over per-neuron Izhikevich source traces.
 - No PDE/field solver runs; no calibrated-amplitude claim is made.
 - The spectrolaminar motif is **emergent** from dynamics and leadfield — not imposed.
 
@@ -35,7 +35,7 @@ LFP/CSD outputs are laminar **proxy** readouts:
 
 The first cell installs the package. Set `INSTALL_MODE` to `pypi`, `github-main`, `local-editable`, or `skip`:
 
-```python
+```bash
 %pip install -q "jaxfne[viz]"                                      # pypi
 %pip install -q "jaxfne[viz] @ git+https://github.com/HNXJ/jaxfne.git@main"  # github-main
 ```

@@ -39,6 +39,7 @@ DEV_PYTEST_TARGETS = [
     "tests/test_api_smoke.py",
     "tests/test_root_import_lightweight.py",
     "tests/test_signals_get_v0329.py",
+    "tests/test_jnwb_view.py",
     "tests/test_neuronal_tensor_connectivity.py",
     "tests/test_neuronal_tensor.py",
     "tests/test_connection_rule_compile_v0330.py",
@@ -51,7 +52,16 @@ DEV_PYTEST_TARGETS = [
     "tests/test_tfne_algebra.py",
     "tests/test_tfne_execution.py",
     "tests/test_tfne_parameter_transfer.py",
+    # An atlas regeneration resets figure_state, which silently dropped the
+    # canonical atlas from docs/gallery.md twice; dev CI never collected this.
+    "tests/test_generate_gallery.py",
 ]
+
+# 0.5.1-4b(4): parallelize the independent pytest sweeps with xdist (already
+# a dev dependency). PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 in PYTEST_ENV means the
+# plugin must be loaded explicitly with -p. The notebook sweep stays serial:
+# its scoped paths exist for Windows kernel/zmq stability under load.
+PYTEST_XDIST_ARGS = ["-p", "xdist", "-n", "auto"]
 
 # Marker selectors for the pytest sweeps.
 #
@@ -304,6 +314,7 @@ def gate_dev() -> None:
             "-m",
             "not slow and not release",
             "--tb=short",
+            *PYTEST_XDIST_ARGS,
         ],
         family="pytest_dev",
     )
@@ -351,6 +362,7 @@ def gate_broad() -> None:
         BROAD_MARKER_EXPR,
         "--tb=short",
         "-rs",
+        *PYTEST_XDIST_ARGS,
         f"--junitxml={junit_dir / 'rc-pytest-broad.xml'}",
     ]
     for path in BROAD_PYTEST_IGNORE:
@@ -372,6 +384,7 @@ def gate_release() -> None:
         SLOW_MARKER_EXPR,
         "--tb=short",
         "-rs",
+        *PYTEST_XDIST_ARGS,
         f"--junitxml={junit_dir / 'rc-pytest-slow.xml'}",
     ]
     for path in BROAD_PYTEST_IGNORE:

@@ -105,7 +105,7 @@ def test_bound_mode_reachable_via_configuration_construct_model_simulate():
         .runtime(seed=0, duration_ms=200.0, dt_ms=0.5)
         .network(name="ei16", n=16)
         .set_emitter("homeostatic_ei", bound_mode="stable")
-        .field(domain="none")
+        .field()
         .probe(modes=["vm"])
     )
     model = jtfne.construct(cfg)

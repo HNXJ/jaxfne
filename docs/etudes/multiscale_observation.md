@@ -194,6 +194,19 @@ python scripts/run_multiscale_observation_etude.py
 
 Emitter variation is a **later** étude on the same observation stack.
 
+<!-- jx-figure -->
+## Figure
+
+=== "Still"
+
+    ![Multiscale observation bundle figure](../assets/etudes/multiscale_observation.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="../_static/etudes/multiscale_observation/index.html" loading="lazy" title="Multiscale observation bundle figure"></iframe>
+
+Committed bundle still (`artifacts/etudes/multiscale_observation/figure.png`). [Open full page](../_static/etudes/multiscale_observation/index.html).
+
 ## Interactive panels (dark)
 
 Reproduced group-A panels — deterministic rerun of the frozen protocol; spikes/positions hash-identical to the bundle, V_m/Q float hashes drift across environments (JAX version unrecorded at bundle time, see P-003), all published bundle claims re-verified within protocol tolerance: [index](../_static/etudes/multiscale_observation/index.html) · [raster](../_static/etudes/multiscale_observation/raster.html) · [traces](../_static/etudes/multiscale_observation/traces.html) · [LFP](../_static/etudes/multiscale_observation/lfp.html) · [CSD](../_static/etudes/multiscale_observation/csd.html) · [oscillatory](../_static/etudes/multiscale_observation/oscillatory.html).

@@ -17,8 +17,12 @@ Usage: PYTHONPATH=. python3 scripts/hdp_dH_component_trace.py
 
 from __future__ import annotations
 
-import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
 from typing import Any
 
 import numpy as np
@@ -26,6 +30,10 @@ import numpy as np
 import jaxfne as jtfne
 from jaxfne.emitters import simulate_edge_recurrent_izhikevich_hdp
 from spectrolaminar_tfne_izhikevich_pipeline import build_config, build_model
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 OUTPUT_DIR = Path("outputs/hdp_spectrolaminar_pipeline")
 BIN_MS = 5.0

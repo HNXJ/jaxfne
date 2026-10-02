@@ -116,7 +116,7 @@ import jaxfne as jtfne
 
 
 def _cfg(*, solver: bool):
-    field_kwargs = {"domain": "laminar"}
+    field_kwargs = {"domain": "laminar_column"}
     if solver:
         field_kwargs.update(solver="experimental_poisson_1d", conductivity=1.0, n_bins=8)
     return (

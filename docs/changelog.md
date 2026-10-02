@@ -9,7 +9,47 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
-## v0.5.0 (candidate)
+### Added
+
+- Controlled model augmentation (`jaxfne.augment`, `clone_tensor`,
+  `AugmentationSpec`, `AugmentationRecord`, `ProvenanceEntry`, `ScaleN`,
+  `GeometryTransform`, `PoseEdit`, `RangeEdit`, `ThetaC`, `ThetaX`, `W0`,
+  `H0`): typed pre-`construct` transforms of a `NeuronalTensor` in fixed
+  canonical order `N -> G -> Theta_C -> Theta_X -> W_0 -> H_0`, with
+  per-axis `K_V` seeding and per-value provenance. See `docs/api/augment.md`.
+
+### Changed
+
+- Synaptic time constants are required, never defaulted (P-023, owner
+  ruling 2026-09-30): `StaticParams.dT_ms` of `None` is refused at wiring
+  time, as are 0, negative, NaN, inf, bools and strings. JDNA genomes
+  declare per-mechanism kinetics in `mechanism_tau_ms`; `develop` copies
+  each connection's mechanism tau into `StaticParams.dT_ms` and refuses a
+  mechanism with no table entry. Mechanism names set the sign
+  (`{AMPA, NMDA}` need an E source, `{GABA_A, GABA_B}` a non-E source);
+  unknown names are refused except `monotonic_cable_synapse`, and
+  TFNE-minted tensors keep their own polarity sign.
+  `make_minimal_ei_tensor` now emits `GABA_A` instead of `GABA`, and the
+  demo config's E->PV pair is `AMPA`.
+- Seeded stochastic `simulate()` runs (baseline and registered-rule paths)
+  draw membrane and rule noise from the per-step continuation key chain, so
+  a run split into chunks equals the unsplit run bit for bit. Seeded
+  stochastic outputs differ from earlier releases; noise-free runs are
+  unchanged.
+- A declared `noise_scale` is honored on the baseline and registered-rule
+  paths; earlier releases ignored it there.
+
+### Deprecated
+
+- `jaxfne.analysis` misnamed metrics `fano_factor`, `burst_index`, and
+  `mean_pairwise_spike_correlation` (P-026, owner ruling 2026-10-01): each
+  keeps its current values for one release, emits a `DeprecationWarning`
+  naming the `jnwb` replacement (`fano_factor`, `network_burst_index`,
+  `spike_count_correlation`, reached via `jaxfne.jnwb_view.to_jnwb` /
+  `to_jnwb_trials`), and carries a corrected docstring stating what it
+  computes.
+
+## v0.5.0 (2026-09-23)
 
 Measured 0.5.x baseline plus integration/harness foundation and one verified
 reporting-path optimization; simulation semantics preserved.

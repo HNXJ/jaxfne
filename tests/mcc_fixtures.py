@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any
 
 import jaxfne as jtfne
+from jaxfne import RECEPTOR_KINETICS
 
 
 MCC_COVERAGE_MAP: dict[str, dict[str, bool]] = {
@@ -86,6 +87,13 @@ def mcc_tensor() -> Any:
             target_layer=target_layer,
             target_neuron_type=target_type,
             mechanism="AMPA" if source_type == "E" else "GABA_A",
+            static=jtfne.StaticParams(
+                dT_ms=(
+                    RECEPTOR_KINETICS[
+                        "AMPA" if source_type == "E" else "GABA_A"
+                    ]["tau_ms"]
+                )
+            ),
         )
         for source_layer in ("L2/3", "L4")
         for target_layer in ("L2/3", "L4")

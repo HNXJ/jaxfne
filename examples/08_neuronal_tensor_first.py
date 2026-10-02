@@ -6,6 +6,12 @@ data model (see docs/api/neuronal_tensor.md). `Configuration` is only touched
 internally by the bridge (`construct_neuronal_tensor`) -- the user-facing code
 below never builds one directly.
 """
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import jaxfne as jtfne
 from jaxfne import (
     NeuronalTensor, Area, AreaConnection, Layer, NeuronType,

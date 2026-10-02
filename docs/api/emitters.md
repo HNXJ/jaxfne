@@ -8,7 +8,7 @@ Neuron models and emitter implementations for neural dynamics simulation.
 cfg = jtfne.Configuration().set_emitter("izhikevich", "cortical_eig")
 ```
 
-The Izhikevich neuron model is a phenomenological spiking model with two state variables (v, u). It balances cost and realism for tutorial-scale simulations.
+The Izhikevich neuron model is a phenomenological spiking model with two state variables (v, u), trading biophysical detail for speed at tutorial scale.
 
 > **Reduced-class wording.** Labels `E`, `PV`, `SST`, `VIP` (and aliases `Inl`, `Ing`)
 > denote **reduced emitter classes** — `E-like`, `PV-like`, `SST-like`, `VIP-like` —
@@ -311,7 +311,7 @@ Number of edges, i.e. `pre.shape[0]`.
 
 #### `tree_flatten()` / `tree_unflatten(aux, children)`
 
-JAX pytree protocol methods (children = the five arrays; aux = `source_calibration_status`).
+JAX pytree protocol methods (children = the six arrays `pre`, `post`, `weight`, `receptor_index`, `tau_ms`, `delay_steps`; aux = `source_calibration_status`).
 
 #### `to_dict() -> dict`
 
@@ -679,7 +679,7 @@ cfg = (
     .network(name="ei8", n=8)
     .set_emitter("homeostatic_ei", activation_rule="cubic", conductance_rule="hebbian",
                  homeostasis_rule="linear", bound_mode="minimal")
-    .field(domain="none")
+    .field()
     .probe(modes=["vm"])
 )
 model = jtfne.construct(cfg)

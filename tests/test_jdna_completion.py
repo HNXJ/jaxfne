@@ -110,7 +110,7 @@ def test_partial_domain_and_bad_distribution_fail_closed():
 # --------------------------------------------------------------------------- #
 
 _TFNE_GEO = """
-A := [C = {E}; N = 2; G = [z0 = 0.0; z1 = 4.0]];
+A := [C = {E}; N = 2; G = [z0 = 0.0; z1 = 0.75]];
 B := [C = {E}; N = 3];
 V := A O B;
 x : V : y

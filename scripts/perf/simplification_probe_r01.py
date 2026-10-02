@@ -8,10 +8,14 @@ Measures:
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import json
 import time
 import tracemalloc
-from pathlib import Path
 
 import jax
 import jax.numpy as jnp
@@ -19,6 +23,10 @@ import numpy as np
 
 import jaxfne as jtfne
 from jaxfne.emitters import EdgeList, resolve_edge_tau_ms
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 def _bench(fn, *, warmup=2, repeats=5):
@@ -143,8 +151,6 @@ def probe_scan_recording():
 
 
 def probe_trials_vmap(n_trials: int = 8):
-    from dataclasses import replace
-
     from jaxfne._signals import TrialBatch, TrialSpec
 
     cfg = jtfne.suite2_net1_config(seed=1, n=8, duration_ms=20.0, dt_ms=0.5)
@@ -160,7 +166,7 @@ def probe_trials_vmap(n_trials: int = 8):
     def python_loop():
         outs = []
         for t in trials:
-            outs.append(model.simulate(replace(sim, seed=t.seed)))
+            outs.append(model.simulate(sim.with_seed(t.seed)))
         return outs
 
     def batched():

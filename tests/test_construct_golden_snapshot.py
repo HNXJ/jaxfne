@@ -68,15 +68,9 @@ def test_construct_n_contacts_from_first_probe():
 
 
 def test_construct_n_contacts_below_minimum_raises():
-    cfg = (
-        jtfne.configuration()
-        .network(n=6)
-        .emitter(family="izhikevich", preset="cortical_eig")
-        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
-        .probe(name="p", n_contacts=1)
-    )
+    # Refused at declaration since H1 (0.5.5); construct() re-checks the first probe.
     with pytest.raises(ValueError, match="n_contacts must be"):
-        jtfne.construct(cfg)
+        jtfne.configuration().network(n=6).probe(name="p", n_contacts=1)
 
 
 def test_construct_defaults_n_contacts_to_16_when_probe_omits_it():

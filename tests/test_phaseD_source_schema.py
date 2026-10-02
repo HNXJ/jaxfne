@@ -160,7 +160,7 @@ def _build_homeostatic_ei_model(n=8):
         .runtime(seed=0)
         .network(name="ei", n=n)
         .set_emitter("homeostatic_ei")
-        .field(domain="none")
+        .field()
         .probe(modes=["vm"])
     )
     return jtfne.construct(cfg)

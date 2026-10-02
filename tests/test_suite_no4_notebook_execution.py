@@ -113,7 +113,7 @@ def test_suite_no4_notebook_execution():
     import nbformat as _nbf
     from pathlib import Path
     repo_root = Path(__file__).parent.parent.resolve()
-    inject_source = f'import sys\nsys.path.insert(0, "{repo_root}")\n'
+    inject_source = f'import sys\nsys.path.insert(0, {str(repo_root)!r})\n'
     inject_cell = _nbf.v4.new_code_cell(source=inject_source)
     inject_cell.metadata["tags"] = ["injected-by-smoke-test"]
     nb.cells.insert(1, inject_cell)

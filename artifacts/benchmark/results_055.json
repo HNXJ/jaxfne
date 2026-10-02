@@ -1,0 +1,1513 @@
+{
+ "schema": 1,
+ "task_set": "artifacts/benchmark/agent_tasks_055.json",
+ "base_commit": "aa36312",
+ "executor": "opencode-go/muse-spark-1.3-contributor via opencode-delegate (code tier)",
+ "trials_per_task_per_arm": 3,
+ "runs": [
+  {
+   "at_id": "AT-01",
+   "arm": "direct",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 145.9,
+   "tokens_in": 100490,
+   "tokens_out": 3839,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-01",
+   "arm": "direct",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 124.7,
+   "tokens_in": 51856,
+   "tokens_out": 3650,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-01",
+   "arm": "direct",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 109.2,
+   "tokens_in": 45394,
+   "tokens_out": 2215,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-01",
+   "arm": "skills",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 115.0,
+   "tokens_in": 52964,
+   "tokens_out": 3886,
+   "changes_outside_solution": "?? check_bench.py"
+  },
+  {
+   "at_id": "AT-01",
+   "arm": "skills",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 134.5,
+   "tokens_in": 50208,
+   "tokens_out": 3442,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-01",
+   "arm": "skills",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 97.8,
+   "tokens_in": 111478,
+   "tokens_out": 4052,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-02",
+   "arm": "direct",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 221.3,
+   "tokens_in": 120374,
+   "tokens_out": 8053,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-02",
+   "arm": "direct",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 293.4,
+   "tokens_in": 87382,
+   "tokens_out": 5808,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-02",
+   "arm": "direct",
+   "trial": 3,
+   "classes": {
+    "model": 0.2857142857142857,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.5
+   },
+   "failed": [
+    "absent.degrees",
+    "absent.delays",
+    "absent.mean_vm",
+    "absent.mechanisms",
+    "absent.n_edges",
+    "absent.weights",
+    "delayed.degrees",
+    "delayed.delays",
+    "delayed.mean_vm",
+    "delayed.mechanisms",
+    "delayed.n_edges",
+    "delayed.weights",
+    "zero.degrees",
+    "zero.delays",
+    "zero.mean_vm",
+    "zero.mechanisms",
+    "zero.n_edges",
+    "zero.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 271.7,
+   "tokens_in": 83301,
+   "tokens_out": 7989,
+   "changes_outside_solution": "?? run_bench_check.py"
+  },
+  {
+   "at_id": "AT-02",
+   "arm": "skills",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 343.0,
+   "tokens_in": 103914,
+   "tokens_out": 9689,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-02",
+   "arm": "skills",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 433.8,
+   "tokens_in": 101149,
+   "tokens_out": 12284,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-02",
+   "arm": "skills",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 258.9,
+   "tokens_in": 186671,
+   "tokens_out": 10265,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-03",
+   "arm": "direct",
+   "trial": 1,
+   "classes": {
+    "model": 0.8571428571428571,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.5
+   },
+   "failed": [
+    "pair.mean_vm",
+    "pair.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 144.1,
+   "tokens_in": 92533,
+   "tokens_out": 4640,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-03",
+   "arm": "direct",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 243.1,
+   "tokens_in": 165206,
+   "tokens_out": 7471,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-03",
+   "arm": "direct",
+   "trial": 3,
+   "classes": {
+    "model": 0.8571428571428571,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.5
+   },
+   "failed": [
+    "pair.mean_vm",
+    "pair.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 301.3,
+   "tokens_in": 98366,
+   "tokens_out": 9815,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-03",
+   "arm": "skills",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 264.0,
+   "tokens_in": 107817,
+   "tokens_out": 8971,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-03",
+   "arm": "skills",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 264.1,
+   "tokens_in": 97133,
+   "tokens_out": 9402,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-03",
+   "arm": "skills",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 204.4,
+   "tokens_in": 97868,
+   "tokens_out": 8969,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-04",
+   "arm": "direct",
+   "trial": 1,
+   "classes": {
+    "model": 0.8571428571428571,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.5
+   },
+   "failed": [
+    "overlap.mean_vm",
+    "overlap.weights",
+    "stacked.mean_vm",
+    "stacked.weights",
+    "swapped.mean_vm",
+    "swapped.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 418.1,
+   "tokens_in": 89097,
+   "tokens_out": 11481,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-04",
+   "arm": "direct",
+   "trial": 2,
+   "classes": {
+    "model": 0.2857142857142857,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.0
+   },
+   "failed": [
+    "overlap.degrees",
+    "overlap.delays",
+    "overlap.mean_vm",
+    "overlap.mechanisms",
+    "overlap.n_edges",
+    "overlap.spike_counts",
+    "overlap.weights",
+    "stacked.degrees",
+    "stacked.delays",
+    "stacked.mean_vm",
+    "stacked.mechanisms",
+    "stacked.n_edges",
+    "stacked.spike_counts",
+    "stacked.weights",
+    "swapped.degrees",
+    "swapped.delays",
+    "swapped.mean_vm",
+    "swapped.mechanisms",
+    "swapped.n_edges",
+    "swapped.spike_counts",
+    "swapped.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 376.0,
+   "tokens_in": 120091,
+   "tokens_out": 9018,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-04",
+   "arm": "direct",
+   "trial": 3,
+   "classes": {
+    "model": 0.2857142857142857,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.5
+   },
+   "failed": [
+    "overlap.degrees",
+    "overlap.delays",
+    "overlap.mean_vm",
+    "overlap.mechanisms",
+    "overlap.n_edges",
+    "overlap.weights",
+    "stacked.degrees",
+    "stacked.delays",
+    "stacked.mean_vm",
+    "stacked.mechanisms",
+    "stacked.n_edges",
+    "stacked.weights",
+    "swapped.degrees",
+    "swapped.delays",
+    "swapped.mean_vm",
+    "swapped.mechanisms",
+    "swapped.n_edges",
+    "swapped.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 367.5,
+   "tokens_in": 160245,
+   "tokens_out": 10150,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-04-R2",
+   "arm": "direct",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.5
+   },
+   "failed": [
+    "disabled_baseline.mean_vm",
+    "disabled_baseline.spike_counts",
+    "disabled_perturbed.mean_vm",
+    "disabled_perturbed.spike_counts"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 214.0,
+   "tokens_in": 70355,
+   "tokens_out": 5621,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-04-R2",
+   "arm": "direct",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.5
+   },
+   "failed": [
+    "disabled_baseline.mean_vm",
+    "disabled_baseline.spike_counts",
+    "disabled_perturbed.mean_vm",
+    "disabled_perturbed.spike_counts"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 183.7,
+   "tokens_in": 151033,
+   "tokens_out": 6568,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-04-R2",
+   "arm": "direct",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.5
+   },
+   "failed": [
+    "disabled_baseline.mean_vm",
+    "disabled_baseline.spike_counts",
+    "disabled_perturbed.mean_vm",
+    "disabled_perturbed.spike_counts"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 153.7,
+   "tokens_in": 112395,
+   "tokens_out": 6467,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-04-R2",
+   "arm": "skills",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 226.6,
+   "tokens_in": 85552,
+   "tokens_out": 7846,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-04-R2",
+   "arm": "skills",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 387.1,
+   "tokens_in": 171819,
+   "tokens_out": 9537,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-04-R2",
+   "arm": "skills",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 191.1,
+   "tokens_in": 89994,
+   "tokens_out": 8839,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-04",
+   "arm": "skills",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 250.8,
+   "tokens_in": 94764,
+   "tokens_out": 9932,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-04",
+   "arm": "skills",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 321.6,
+   "tokens_in": 139668,
+   "tokens_out": 12319,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-04",
+   "arm": "skills",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 247.1,
+   "tokens_in": 93095,
+   "tokens_out": 11059,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-05",
+   "arm": "direct",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 237.8,
+   "tokens_in": 117510,
+   "tokens_out": 6365,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-05",
+   "arm": "direct",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 232.1,
+   "tokens_in": 124193,
+   "tokens_out": 6804,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-05",
+   "arm": "direct",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 267.8,
+   "tokens_in": 64312,
+   "tokens_out": 6336,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-05",
+   "arm": "skills",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 194.0,
+   "tokens_in": 152354,
+   "tokens_out": 5999,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-05",
+   "arm": "skills",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.75
+   },
+   "failed": [
+    "n8_s11.mean_vm",
+    "n8_s11.spike_counts"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 262.1,
+   "tokens_in": 191848,
+   "tokens_out": 8883,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-05",
+   "arm": "skills",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.75
+   },
+   "failed": [
+    "n8_s11.mean_vm",
+    "n8_s11.spike_counts"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 380.2,
+   "tokens_in": 258410,
+   "tokens_out": 12139,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-06",
+   "arm": "direct",
+   "trial": 1,
+   "classes": {
+    "model": 0.8571428571428571,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.5
+   },
+   "failed": [
+    "column.mean_vm",
+    "column.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 206.4,
+   "tokens_in": 54408,
+   "tokens_out": 7146,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-06",
+   "arm": "direct",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 161.3,
+   "tokens_in": 169221,
+   "tokens_out": 5207,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-06",
+   "arm": "direct",
+   "trial": 3,
+   "classes": {
+    "model": 0.8571428571428571,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.0
+   },
+   "failed": [
+    "column.mean_vm",
+    "column.spike_counts",
+    "column.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 94.3,
+   "tokens_in": 101473,
+   "tokens_out": 4641,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-06",
+   "arm": "skills",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 266.6,
+   "tokens_in": 99939,
+   "tokens_out": 8640,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-06",
+   "arm": "skills",
+   "trial": 2,
+   "classes": {
+    "model": 0.8571428571428571,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.5
+   },
+   "failed": [
+    "column.mean_vm",
+    "column.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 221.6,
+   "tokens_in": 116616,
+   "tokens_out": 6852,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-06",
+   "arm": "skills",
+   "trial": 3,
+   "classes": {
+    "model": 0.8571428571428571,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.5
+   },
+   "failed": [
+    "column.mean_vm",
+    "column.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 209.3,
+   "tokens_in": 161520,
+   "tokens_out": 8425,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-07",
+   "arm": "direct",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.75
+   },
+   "failed": [
+    "fixed.mean_vm",
+    "fixed.spike_counts",
+    "repro.mean_vm"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 240.3,
+   "tokens_in": 76740,
+   "tokens_out": 5064,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-07",
+   "arm": "direct",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.6666666666666666
+   },
+   "failed": [
+    "clamp.mean_vm",
+    "fixed.mean_vm",
+    "fixed.spike_counts",
+    "repro.mean_vm"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 230.9,
+   "tokens_in": 226945,
+   "tokens_out": 7087,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-07",
+   "arm": "direct",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.75
+   },
+   "failed": [
+    "fixed.mean_vm",
+    "fixed.spike_counts",
+    "repro.mean_vm"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 159.0,
+   "tokens_in": 125832,
+   "tokens_out": 6361,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-07",
+   "arm": "skills",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.6666666666666666
+   },
+   "failed": [
+    "clamp.mean_vm",
+    "fixed.mean_vm",
+    "fixed.spike_counts",
+    "repro.mean_vm"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 356.1,
+   "tokens_in": 180634,
+   "tokens_out": 11879,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-07",
+   "arm": "skills",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.9166666666666666
+   },
+   "failed": [
+    "repro.mean_vm"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 230.1,
+   "tokens_in": 76328,
+   "tokens_out": 8271,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-07",
+   "arm": "skills",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.16666666666666666
+   },
+   "failed": [
+    "budgeted.mean_vm",
+    "budgeted.spike_counts",
+    "clamp.mean_vm",
+    "clamp.spike_counts",
+    "hebbian.mean_vm",
+    "hebbian.spike_counts",
+    "noisy.mean_vm",
+    "noisy.spike_counts",
+    "repro.mean_vm",
+    "repro.spike_counts"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 209.5,
+   "tokens_in": 82658,
+   "tokens_out": 8915,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-08",
+   "arm": "direct",
+   "trial": 1,
+   "classes": {
+    "model": 0.2857142857142857,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.3333333333333333
+   },
+   "failed": [
+    "adapt_full.degrees",
+    "adapt_full.delays",
+    "adapt_full.mean_vm",
+    "adapt_full.mechanisms",
+    "adapt_full.n_edges",
+    "adapt_full.weights",
+    "adapt_local.degrees",
+    "adapt_local.delays",
+    "adapt_local.mean_vm",
+    "adapt_local.mechanisms",
+    "adapt_local.n_edges",
+    "adapt_local.weights",
+    "fixed.degrees",
+    "fixed.delays",
+    "fixed.mean_vm",
+    "fixed.mechanisms",
+    "fixed.n_edges",
+    "fixed.spike_counts",
+    "fixed.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 219.7,
+   "tokens_in": 76452,
+   "tokens_out": 7682,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-08",
+   "arm": "direct",
+   "trial": 2,
+   "classes": {
+    "model": 0.2857142857142857,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.3333333333333333
+   },
+   "failed": [
+    "adapt_full.degrees",
+    "adapt_full.delays",
+    "adapt_full.mean_vm",
+    "adapt_full.mechanisms",
+    "adapt_full.n_edges",
+    "adapt_full.weights",
+    "adapt_local.degrees",
+    "adapt_local.delays",
+    "adapt_local.mean_vm",
+    "adapt_local.mechanisms",
+    "adapt_local.n_edges",
+    "adapt_local.weights",
+    "fixed.degrees",
+    "fixed.delays",
+    "fixed.mean_vm",
+    "fixed.mechanisms",
+    "fixed.n_edges",
+    "fixed.spike_counts",
+    "fixed.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 235.8,
+   "tokens_in": 118739,
+   "tokens_out": 7833,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-08",
+   "arm": "direct",
+   "trial": 3,
+   "classes": {
+    "model": 0.2857142857142857,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.3333333333333333
+   },
+   "failed": [
+    "adapt_full.degrees",
+    "adapt_full.delays",
+    "adapt_full.mean_vm",
+    "adapt_full.mechanisms",
+    "adapt_full.n_edges",
+    "adapt_full.weights",
+    "adapt_local.degrees",
+    "adapt_local.delays",
+    "adapt_local.mean_vm",
+    "adapt_local.mechanisms",
+    "adapt_local.n_edges",
+    "adapt_local.weights",
+    "fixed.degrees",
+    "fixed.delays",
+    "fixed.mean_vm",
+    "fixed.mechanisms",
+    "fixed.n_edges",
+    "fixed.spike_counts",
+    "fixed.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 193.1,
+   "tokens_in": 123034,
+   "tokens_out": 7910,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-08",
+   "arm": "skills",
+   "trial": 1,
+   "classes": {
+    "model": 0.2857142857142857,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.3333333333333333
+   },
+   "failed": [
+    "adapt_full.degrees",
+    "adapt_full.delays",
+    "adapt_full.mean_vm",
+    "adapt_full.mechanisms",
+    "adapt_full.n_edges",
+    "adapt_full.weights",
+    "adapt_local.degrees",
+    "adapt_local.delays",
+    "adapt_local.mean_vm",
+    "adapt_local.mechanisms",
+    "adapt_local.n_edges",
+    "adapt_local.weights",
+    "fixed.degrees",
+    "fixed.delays",
+    "fixed.mean_vm",
+    "fixed.mechanisms",
+    "fixed.n_edges",
+    "fixed.spike_counts",
+    "fixed.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 328.1,
+   "tokens_in": 111375,
+   "tokens_out": 10260,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-08",
+   "arm": "skills",
+   "trial": 2,
+   "classes": {
+    "model": 0.2857142857142857,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.3333333333333333
+   },
+   "failed": [
+    "adapt_full.degrees",
+    "adapt_full.delays",
+    "adapt_full.mean_vm",
+    "adapt_full.mechanisms",
+    "adapt_full.n_edges",
+    "adapt_full.weights",
+    "adapt_local.degrees",
+    "adapt_local.delays",
+    "adapt_local.mean_vm",
+    "adapt_local.mechanisms",
+    "adapt_local.n_edges",
+    "adapt_local.weights",
+    "fixed.degrees",
+    "fixed.delays",
+    "fixed.mean_vm",
+    "fixed.mechanisms",
+    "fixed.n_edges",
+    "fixed.spike_counts",
+    "fixed.weights"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 375.6,
+   "tokens_in": 108098,
+   "tokens_out": 11875,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-08",
+   "arm": "skills",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 192.2,
+   "tokens_in": 160840,
+   "tokens_out": 9041,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-09",
+   "arm": "direct",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.6666666666666666
+   },
+   "failed": [
+    "frozen.mean_vm",
+    "frozen.spike_counts"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 268.0,
+   "tokens_in": 105465,
+   "tokens_out": 9599,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-09",
+   "arm": "direct",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.6666666666666666
+   },
+   "failed": [
+    "frozen.mean_vm",
+    "frozen.spike_counts"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 310.3,
+   "tokens_in": 164261,
+   "tokens_out": 9246,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-09",
+   "arm": "direct",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.6666666666666666
+   },
+   "failed": [
+    "frozen.mean_vm",
+    "frozen.spike_counts"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 244.6,
+   "tokens_in": 99570,
+   "tokens_out": 11208,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-09",
+   "arm": "skills",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 0.6666666666666666
+   },
+   "failed": [
+    "frozen.mean_vm",
+    "frozen.spike_counts"
+   ],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 353.7,
+   "tokens_in": 205116,
+   "tokens_out": 12379,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-09",
+   "arm": "skills",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 291.0,
+   "tokens_in": 146943,
+   "tokens_out": 11300,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-09",
+   "arm": "skills",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 260.4,
+   "tokens_in": 82370,
+   "tokens_out": 10433,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-10",
+   "arm": "direct",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 137.4,
+   "tokens_in": 87140,
+   "tokens_out": 4552,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-10",
+   "arm": "direct",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 114.6,
+   "tokens_in": 54691,
+   "tokens_out": 4609,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-10",
+   "arm": "direct",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 145.1,
+   "tokens_in": 51062,
+   "tokens_out": 5867,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-10",
+   "arm": "skills",
+   "trial": 1,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 138.1,
+   "tokens_in": 113661,
+   "tokens_out": 4470,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-10",
+   "arm": "skills",
+   "trial": 2,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 85.5,
+   "tokens_in": 44481,
+   "tokens_out": 3276,
+   "changes_outside_solution": "(none)"
+  },
+  {
+   "at_id": "AT-10",
+   "arm": "skills",
+   "trial": 3,
+   "classes": {
+    "model": 1.0,
+    "execution": 1.0,
+    "observation": 1.0,
+    "plasticity": 1.0,
+    "dynamics": 1.0
+   },
+   "failed": [],
+   "missing_arms": [],
+   "extra_arms": [],
+   "elapsed_s": 112.9,
+   "tokens_in": 59212,
+   "tokens_out": 5091,
+   "changes_outside_solution": "(none)"
+  }
+ ]
+}

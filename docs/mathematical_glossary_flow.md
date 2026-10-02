@@ -316,7 +316,7 @@ Poynting's theorem provides a conservation-principle foundation for the field di
 
 ## Proof and practice flows
 
-These short flows tie formal reasoning to jaxfne implementation locations. Each stops at the proxy/scaffold boundary unless a solved field is explicitly enabled.
+These flows tie formal reasoning to implementation locations; each stops at the proxy/scaffold boundary unless a solved field is explicitly enabled.
 
 ### Linearity and superposition (proxy stage)
 
@@ -400,5 +400,5 @@ When adding a new equation to jaxfne documentation:
 - [Source-Field Equations](source_field_equations.md) — source bookkeeping, forbidden patterns
 - [Computation Basis](computation_basis.md) — extensibility rules
 - [Probe Operators](guides/probe_operators.md) — detailed operator statements
-- [Scope and Limitations](limitations_and_future_plans.md) — boundary conditions
+- [Scope and Limitations](limitations_and_future_plans.md) — statement boundaries and scope
 - TFNE Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) — per-stage contract table indexing these equations

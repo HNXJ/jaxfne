@@ -1,7 +1,7 @@
 # JaxFNE v0.4.22 programme acceptance
 
 Status: **PRE_RELEASE** — acceptance authority for the v0.4.22 truth and
-measurement floor. Derived from `artifacts/roadmap/ROADMAP_0422_0424.md` §3.3.
+measurement floor. Derived from `artifacts/archive/roadmap/ROADMAP_0422_0424.md` §3.3.
 
 Nothing in this file is a completed claim until sealed with receipts on the final
 release candidate SHA.

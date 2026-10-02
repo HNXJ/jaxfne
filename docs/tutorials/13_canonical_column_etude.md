@@ -2,7 +2,7 @@
 
 A single end-to-end étude over the full objective grammar on one model:
 **Configuration → Construct → Simulate → Visualize → Tune → Post-tune.** It builds
-the canonical 1000-neuron laminar column, drives it to a plausible firing regime,
+the canonical 1000-neuron laminar column, drives it to a ~18 Hz operating point,
 renders proxy readouts, fits a firing-rate target with a black-box optimizer, and
 writes a status-gated run manifest.
 
@@ -39,6 +39,8 @@ constant is `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS` — query it
 instead of copying these numbers elsewhere.
 
 > **Scaffold provenance & calibration.** The table above is the **builder scaffold** (`jaxfne/builders.py:55`, ~66E:34I). The **genome / realized-tensor** provenance used by `load_canonical_neuronal_tensor('canonical-v1-column-1000n')` and `load_canonical_pseudogenome('canonical-v1-column-1000n')` is a related but distinct scaffold: `L1 {E:0.50, SST:0.15, VIP:0.35}`, `L2 {E:0.648, PV:0.20, SST:0.10, VIP:0.052}`, `L3 {E:0.80, PV:0.08, SST:0.08, VIP:0.04}`, `L4 {E:0.75, PV:0.18, SST:0.04, VIP:0.03}`, `L5 {E:0.88, PV:0.06, SST:0.04, VIP:0.02}`, `L6 {E:0.90, PV:0.0533, SST:0.0267, VIP:0.02}` (~75.8E:25.2I realized; `value_tag="relative"`), with `fraction_tolerance` bands and `fraction_jitter_sigma=0.01` declared in `jaxfne/jdna/genomes/canonical-v1-column-1000n.json`. **Both are qualitative scaffolds, not quantitatively calibrated** against empirical composition (`quantitative_cell_fraction = false`; `quantitative_connectivity = false`; see header box and [Calibration — Biological status](../guides/calibration.md#biological-calibration-status)). Reduced Izhikevich labels `E`/`PV`/`SST`/`VIP` below are functional heterogeneity tags (distinct `a`/`b`/`c`/`d`/`drive`), not warranted literal cell-type identities.
+
+> **Dynamical regime: synchronous-regular.** The canonical reference circuit (`canonical-v1-column-1000n`) operates in a synchronous-regular limit-cycle regime: E fires at 11.00 Hz, PV is subthreshold at 0.84 Hz (drive 3.0 sits below rheobase $I_c = 4.0$), SST acts as an autonomous pacemaker at 47.88 Hz (drive 3.5 sits above $I_c = 1.016$), and the population fires clock-like and correlated ($CV_{ISI} = 0.036, r_{sc} = 0.609$); E is locked to its own drive, and the source of the synchrony is not yet established. An opt-in balanced preset for asynchronous-irregular dynamics is planned. See [Calibration guide](../guides/calibration.md#dynamical-regime-synchronous-regular).
 
 ```python
 import jaxfne as jtfne

@@ -56,8 +56,10 @@ def runtime(
 
     Thin keyword factory for :class:`RuntimeConfig`; ``device_type``,
     ``dtype_primary`` and ``x64_enabled`` are accepted as v0.0.3-compatibility
-    aliases. This configures execution only — it makes no numerical or
-    scientific claim about the simulation.
+    aliases (``x64_enabled=True`` raises unless x64 is already enabled).
+    Values no kernel reads are refused (see :class:`RuntimeConfig`). This
+    configures execution only — it makes no numerical or scientific claim about
+    the simulation.
     """
     return RuntimeConfig(
         backend=backend,
@@ -228,7 +230,7 @@ def suite2_single_neuron_config(*, seed: int = 7, duration_ms: float = 1000.0, d
         .column("single", layers=["uniform_3d"], n=1)
         .cell_types(fractions)
         .uniform3d(radius_mm=0.010, height_mm=0.010)
-        .cell_type_drives({"E": 4.0, "PV": 2.0, "SST": 2.2, "VIP": 2.0})
+        .drive(baseline_drive_by_cell_type={"E": 4.0, "PV": 2.0, "SST": 2.2, "VIP": 2.0})
         .probes(_SUITE2_PROXY_MODES, n_contacts=4)
     )
 
@@ -241,7 +243,7 @@ def suite2_four_celltype_config(*, seed: int = 7, duration_ms: float = 1000.0, d
         .column("celltype_panel", layers=["uniform_3d"], n=4)
         .cell_types({"E": 0.25, "PV": 0.25, "SST": 0.25, "VIP": 0.25})
         .uniform3d(radius_mm=0.030, height_mm=0.10)
-        .cell_type_drives({"E": 4.0, "PV": 2.0, "SST": 2.2, "VIP": 2.0})
+        .drive(baseline_drive_by_cell_type={"E": 4.0, "PV": 2.0, "SST": 2.2, "VIP": 2.0})
         .probes(_SUITE2_PROXY_MODES, n_contacts=4)
     )
 
@@ -264,7 +266,7 @@ def suite2_net1_config(
         .connectivity(within_area="all_to_all_uniform_random", within_gain=0.45)
         .probes(_SUITE2_PROXY_MODES, n_contacts=16)
     )
-    cfg = cfg.cell_type_drives(drives or {"E": 4.0, "PV": 2.0, "SST": 2.2, "VIP": 2.0})
+    cfg = cfg.drive(baseline_drive_by_cell_type=drives or {"E": 4.0, "PV": 2.0, "SST": 2.2, "VIP": 2.0})
     return cfg
 
 
@@ -297,7 +299,7 @@ def suite2_v1_v4_config(
             feedback_gain=0.50,
         )
         .suite2_interarea(True)
-        .cell_type_drives({"E": 4.0, "PV": 2.0, "SST": 2.2, "VIP": 2.0})
+        .drive(baseline_drive_by_cell_type={"E": 4.0, "PV": 2.0, "SST": 2.2, "VIP": 2.0})
         .probes(_SUITE2_PROXY_MODES, n_contacts=24)
     )
     return cfg
@@ -361,8 +363,7 @@ def suite2_tune_noise_agsdr_adam(
     def run_amp(amp: float, run_seed: int) -> tuple[float, float, Signals]:
         """Documented public function `run_amp`."""
         sim = replace(
-            sim0,
-            seed=int(run_seed),
+            sim0.with_seed(int(run_seed)),
             poisson_drive={"rate_hz": float(poisson_rate_hz), "amplitude": float(max(0.0, amp)), "target": "all", "seed": int(run_seed) + 7919},
         )
         sig = model.simulate(sim)

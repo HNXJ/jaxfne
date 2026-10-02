@@ -25,8 +25,12 @@ Usage: PYTHONPATH=. python3 scripts/hdp_1000_neuronal_tensor_column.py
 
 from __future__ import annotations
 
-import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
 
 import numpy as np
 
@@ -66,6 +70,10 @@ ZBANDS = {
 }
 
 from jaxfne.emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 # Relative sizes aligned with HDP kernel table (same as NeuronType.make defaults).
 RELATIVE_SIZE = {ct: float(DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE.get(ct, 1.0))

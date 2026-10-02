@@ -2,9 +2,8 @@
 
 ## Overview
 
-JDNA is the theory/model governing pseudo-genomic generation; the concrete
-specification object is a `PseudoGenome`. The root API is deliberately small:
-five symbols.
+JDNA governs pseudo-genomic generation; the concrete
+specification object is a `PseudoGenome`. The root API is five symbols.
 
 ```python
 import jaxfne as jtfne

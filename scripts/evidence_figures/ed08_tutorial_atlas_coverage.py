@@ -12,10 +12,14 @@ Outputs:
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import json
 import platform
 import re
-from pathlib import Path
 from typing import Any
 
 import matplotlib

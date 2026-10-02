@@ -3,9 +3,12 @@
 
 from __future__ import annotations
 
-import subprocess
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import subprocess
 
 REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
@@ -13,6 +16,10 @@ if str(REPO) not in sys.path:
 
 from jaxfne.h4_matrix import H4ProtocolConfig, run_h4_matrix
 from jaxfne.io import config_hash, json_safe, save_json, sha256_file
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 def main() -> int:

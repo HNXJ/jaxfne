@@ -127,7 +127,7 @@ SKILL_DOCS = [
     "artifacts/skills/vocabulary-audit/SKILL.md",
     "artifacts/subagents/vocabulary_critic.md",
     "artifacts/subagents/jaxfne-developer.md",
-    "artifacts/subagent-pool.md",
+    "artifacts/subagents/pool.md",
 ]
 
 PATH_RE = re.compile(r"`((?:artifacts|scripts|docs|tests|scratch|mkdocs\.yml|README\.md)[^`]*?)`")

@@ -2,7 +2,7 @@
 
 Status: **PLAN** — v0.4.22 planning authority only. No implementation claims.
 
-Source: `artifacts/roadmap/ROADMAP_0422_0424.md` W16 / §8.
+Source: `artifacts/archive/roadmap/ROADMAP_0422_0424.md` W16 / §8.
 
 ## Distinctions (must not collapse)
 

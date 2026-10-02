@@ -1,9 +1,8 @@
 # Evidence figure generators (deliberate vis-grammar exception)
 
-These scripts produce **one-off release and documentation figures**, not
-installable simulation-signal visualization. Per `artifacts/AGENTS.md` jaxfne-modular-grammar
-rule 2, direct `matplotlib` / `plotly` calls here are a **documented, maintainer-approved
-exception** — they are intentionally **not** routed through `jaxfne/vis/*`.
+These scripts produce one-off release and documentation figures, not
+installable simulation-signal visualization. Direct `matplotlib` and `plotly`
+calls here are a documented exception not routed through `jaxfne/vis/*`.
 
 **Step 7 re-scope (2026-07-07):** full migration of all 18 figure scripts into
 `jaxfne/vis/` plotting modules remains deferred. **Progress (2026-07-07):** manifest

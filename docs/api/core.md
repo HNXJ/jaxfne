@@ -508,8 +508,8 @@ cfg = jtfne.configuration()
 ### `compute_fields(model: Model, signals: Signals) -> FieldOutput`
 
 `_construct_core.py`. Thin accessor over `signals.field` (already built inside
-`simulate()`); raises `ValueError` if `signals.field is None` (no field-capable
-probe modes declared) rather than fabricating a placeholder.
+`simulate()`); raises `ValueError` if `signals.field is None` (the Simulation
+ran with `record_fields=False`) rather than fabricating a placeholder.
 
 ### `objective() -> Objective`
 

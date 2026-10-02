@@ -1,17 +1,13 @@
 # Limitations and future plans
 
-This page is the single location for jaxfne scope boundaries, proxy-readout limits,
-and declared future field-computation regimes. Every other page describes the package
-as it ships today.
-
-jaxfne provides compact TFNE source, field, probe, objective, and optimizer workflows.
+This page is the single location for scope boundaries, proxy-readout limits,
+and declared future field-computation regimes.
 
 ## Status fields
 
 jaxfne is a **`computational_scaffold`** for tensor-field neural workflows. Every
 field/EEG/MEG/EMM/LFP/CSD output is a **`proxy_readout`** — a computational diagnostic
-defined by explicit proxy equations. The following status fields are enforced in code and may be
-read but stay at their conservative defaults:
+defined by explicit proxy equations. Status fields are enforced in code; they read at their conservative defaults:
 
 - **`field_solver_status = "linear_solver"`** — the laminar field is a
   Gaussian-leadfield proxy with finite-difference CSD. The proxy operator is defined by
@@ -26,7 +22,7 @@ read but stay at their conservative defaults:
 - **global linearity** — the source→field projection is an approximately linear
   (superposition-respecting) readout between populations.
 
-These outputs are tools for structural and dynamical analysis. See the
+See the
 [API reference](api/index.md) for the per-symbol gate annotations.
 
 ## Current scope
@@ -40,13 +36,13 @@ These outputs are tools for structural and dynamical analysis. See the
 ## Calibration path
 
 Physical-unit workflows require geometry, conductivity, calibration data, solver settings,
-and reference measurements. jaxfne keeps these fields explicit in reports so examples can
-grow into calibrated workflows as those inputs become available.
+and reference measurements. Reports keep these fields explicit so examples can
+grow into calibrated workflows as those inputs arrive.
 
 ## Declared future field regimes
 
-TFNE defines a sequence of field-computation regimes of increasing complexity. The shipped
-package uses the laminar proxy regime above. Future regimes are documented here to record
+TFNE defines field-computation regimes of increasing complexity; the shipped
+package uses the laminar proxy regime above. Later regimes record
 the intended direction:
 
 | Regime | Description | Status |

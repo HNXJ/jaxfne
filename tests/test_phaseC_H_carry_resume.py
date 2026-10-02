@@ -169,3 +169,130 @@ def test_null_control_K_HDP_zero_holds_H_at_1_resume_matches_continuous():
     assert bool(jnp.isfinite(H_full).all())
     assert bool(jnp.isfinite(H1).all())
     assert bool(jnp.isfinite(H2).all())
+
+
+# --- 0.5.3 item 3 extensions: all mutable state, chunk counts >> 2, delays ---
+
+def _run_chunks(p, edges, total_steps, chunk_steps, key, init_extra=None, **kw):
+    """Run total_steps as chained kernel-level chunks via init_state.
+
+    Returns (V_parts, S_parts, H_parts, diags). Each chunk after the
+    first is seeded from the previous chunk's full final state (all six
+    carry keys plus delay_state/step offset when present).
+    """
+    diags = []
+    V_parts, S_parts, H_parts = [], [], []
+    init_state = None
+    for start in range(0, total_steps, chunk_steps):
+        n = min(chunk_steps, total_steps - start)
+        V, S, _, d = hdp_kernel(
+            p, edges, n, DT_MS, key, init_state=init_state, **kw
+        )
+        V_parts.append(V)
+        S_parts.append(S)
+        H_parts.append(d["H_trace"])
+        diags.append(d)
+        init_state = {
+            name: d[name]
+            for name in (
+                "v", "u", "prev_spikes", "syn_state", "H_final", "w_final"
+            )
+        }
+        if init_extra:
+            init_extra(d, init_state, start + n)
+    return V_parts, S_parts, H_parts, diags
+
+
+def test_2000_step_4chunk_resume_matches_continuous_byte_identically():
+    """Four 500-step chunks == one 2000-step run, byte-identical."""
+    p, edges = _make_params_edges()
+    key = jax.random.PRNGKey(5)
+    V_full, S_full, _, d_full = hdp_kernel(
+        p, edges, N_STEPS_FULL, DT_MS, key, **KW
+    )
+    V_parts, S_parts, H_parts, diags = _run_chunks(
+        p, edges, N_STEPS_FULL, 500, key, **KW
+    )
+    assert jnp.array_equal(jnp.concatenate(V_parts), V_full)
+    assert jnp.array_equal(jnp.concatenate(S_parts), S_full)
+    assert jnp.array_equal(
+        jnp.concatenate(H_parts), d_full["H_trace"]
+    )
+    for d in diags:
+        _assert_six_final_state_keys(d)
+    last = diags[-1]
+    for name in ("v", "u", "prev_spikes", "syn_state", "H_final", "w_final"):
+        assert jnp.array_equal(last[name], d_full[name]), name
+    # Boundary threading across all four seams.
+    for i, d in enumerate(diags):
+        assert jnp.array_equal(
+            d["H_final"], d_full["H_trace"][(i + 1) * 500 - 1]
+        )
+
+
+def test_2000_step_8chunk_all_mutable_state_byte_identical():
+    """Eight 250-step chunks: every mutable carry field matches."""
+    p, edges = _make_params_edges()
+    key = jax.random.PRNGKey(5)
+    V_full, S_full, _, d_full = hdp_kernel(
+        p, edges, N_STEPS_FULL, DT_MS, key, **KW
+    )
+    V_parts, S_parts, H_parts, diags = _run_chunks(
+        p, edges, N_STEPS_FULL, 250, key, **KW
+    )
+    assert jnp.array_equal(jnp.concatenate(V_parts), V_full)
+    assert jnp.array_equal(jnp.concatenate(S_parts), S_full)
+    assert jnp.array_equal(
+        jnp.concatenate(H_parts), d_full["H_trace"]
+    )
+    last = diags[-1]
+    for name in ("v", "u", "prev_spikes", "syn_state", "H_final", "w_final"):
+        assert jnp.array_equal(last[name], d_full[name]), name
+
+
+def _make_delayed_params_edges(delay=2):
+    """PhaseC scaffold with per-edge delay_steps (delays in flight)."""
+    import dataclasses
+
+    p, edges = _make_params_edges()
+    edges = dataclasses.replace(
+        edges,
+        delay_steps=jnp.full((NE,), delay, dtype=jnp.int32),
+        delay_storage="per_edge",
+    )
+    return p, edges
+
+
+def test_delayed_hdp_resume_in_flight_3chunks():
+    """Delayed HDP kernel: 3 chunks with spikes in flight == continuous.
+
+    Constant drive keeps spikes in flight across every seam; delay_state
+    and the global step offset thread through init_state.
+    """
+    p, edges = _make_delayed_params_edges(delay=2)
+    key = jax.random.PRNGKey(5)
+    total, chunk = 600, 200
+
+    V_full, S_full, _, d_full = hdp_kernel(
+        p, edges, total, DT_MS, key, **KW
+    )
+
+    def _carry_delay(d, init_state, offset):
+        init_state["delay_state"] = d["delay_state"]
+        init_state["continuation_step_offset"] = jnp.asarray(
+            offset, dtype=jnp.int32
+        )
+
+    V_parts, S_parts, H_parts, diags = _run_chunks(
+        p, edges, total, chunk, key, init_extra=_carry_delay, **KW
+    )
+    assert jnp.array_equal(jnp.concatenate(V_parts), V_full)
+    assert jnp.array_equal(jnp.concatenate(S_parts), S_full)
+    assert jnp.array_equal(
+        jnp.concatenate(H_parts), d_full["H_trace"]
+    )
+    assert jnp.array_equal(diags[-1]["w_final"], d_full["w_final"])
+    assert jnp.array_equal(diags[-1]["delay_state"], d_full["delay_state"])
+    # Step-offset threading: chunk k reports the global offset it ends at.
+    for i, d in enumerate(diags):
+        assert int(d["continuation_step_offset"]) == (i + 1) * chunk

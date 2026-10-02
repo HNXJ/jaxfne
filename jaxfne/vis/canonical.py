@@ -13,6 +13,18 @@ These are additive: the pre-existing matplotlib-only names (``vis.lfp``,
 ``vis.csd``, ``vis.raster``, ...) are untouched and keep returning matplotlib
 figures unconditionally. Use the names here when you want one call site that
 can produce either backend's figure.
+
+Canonical Q/Phi consumption contract (0.5.2 item 8): the field entry points
+below (``plot_lfp``, ``plot_csd``, ``plot_psd``, ``plot_spectrogram``,
+``plot_band_power``, ``plot_depth_profile``) draw only from declared
+canonical holders — ``signals.field`` (Phi: ``lfp_proxy``/``csd_proxy`` plus
+``contact_depths``) and ``signals.sources`` (Q, visualization-only route).
+No entry point synthesizes field contacts, depths, or field data: the Plotly
+renderers raise through :func:`jaxfne.vis.plotly._common.field_proxy` when
+probes were not requested, and the matplotlib renderers raise through the
+``jaxfne.vis.fields`` declared-holder helpers. The generic duck-typed
+array fallbacks in ``jaxfne.vis.traces`` (plot a caller-supplied array
+as-is) are a separate legacy display API, not field access.
 """
 
 from __future__ import annotations
@@ -470,6 +482,18 @@ def plot_depth_profile(
     draws the neuron-count histogram (:func:`jaxfne.vis.fields.laminar_profile`).
     Different physical quantities under one name; do not compare across
     backends until a semantic choice is authorized.
+
+    0.5.2 item 8 decision: KEEP the declared divergence. Unifying under one
+    name requires choosing which quantity "depth profile" denotes
+    (Phi-derived relative in-band power vs neuron counts from declared
+    geometry) and changing the other backend's drawn quantity — a
+    semantic/API choice outside this lane, and a 0.5.x Delta-semantics
+    violation without its own authority. Both routes stay individually
+    honest: the Plotly renderer consumes declared Phi (raises without
+    declared probes) and the matplotlib renderer consumes declared neuron
+    metadata (labeled synthetic-geometry fallback per Rc P4). Resolution
+    (choosing the canonical quantity, splitting/renaming the entry point)
+    is deferred to future work with API authority.
     """
     _check_backend(backend)
     if backend == "plotly":

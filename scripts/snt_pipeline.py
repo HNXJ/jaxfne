@@ -12,10 +12,19 @@ Run: PYTHONPATH=. python3 scripts/snt_pipeline.py
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import numpy as np
 import jax.numpy as jnp
 
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 RATE_BAND_HZ = (3.0, 15.0)
 STABILITY_TOL_HZ = 2.0
@@ -99,7 +108,7 @@ def snt_2_homeostatic_ei() -> dict:
         .runtime(seed=0, duration_ms=6000.0, dt_ms=0.5)
         .network(name="ei8", n=8)
         .set_emitter("homeostatic_ei")
-        .field(domain="none")
+        .field()
         .probe(modes=["vm"])
     )
     model = jtfne.construct(cfg)

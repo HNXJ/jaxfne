@@ -89,7 +89,9 @@ def _mcc3_model():
         jtfne.configuration()
         .runtime(seed=0, recurrent_backend="edge_list")
         .network(name="V1", kind="cortical_column", n=10, cell_types={"E": 0.5, "PV": 0.5})
-        .cell_type_drives({"E": 8.0, "PV": 8.0})
+        # No per-type drive: the frozen etude metrics were produced while the
+        # declared E/PV 8.0 (via cell_type_drives) was inert (P-014), i.e. at
+        # the emitter default drive; this model must reproduce that artifact.
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
         .probe(name="probe", modes=["spikes", "V_m"])

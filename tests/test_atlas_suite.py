@@ -398,7 +398,7 @@ def test_atlas_h_panels_available_on_hdp_run(tmp_path):
         J.configuration()
         .network(name="V1", kind="cortical_column", n=10,
                  cell_types={"E": 0.5, "PV": 0.5})
-        .cell_type_drives({"E": 8.0, "PV": 8.0})
+        .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 8.0})
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(domain="laminar_column", conductivity="proxy",
                boundary="mean_zero_neumann", gauge="mean_zero")
@@ -432,3 +432,87 @@ def test_atlas_h_panels_omitted_without_h(tmp_path):
         assert by_file[f]["status"] == "OMITTED"
         text = (out / f).read_text(encoding="utf-8")
         assert "omitted" in text.lower()
+
+
+def _net_and_signals():
+    model = J.construct(J.suite2_net1_config(seed=7, n=10, duration_ms=50.0, dt_ms=0.1))
+    return model, J.simulate(model, J.Simulation(duration_ms=50.0, dt_ms=0.1, seed=3))
+
+
+def test_render_atlas_never_simulates(tmp_path, monkeypatch):
+    """0.5.5 item 2: the view-only entry draws given data and refuses to run."""
+    from jaxfne.vis.atlas_suite import render_atlas
+
+    model, sig = _net_and_signals()
+
+    def _no_sim(*a, **k):
+        raise AssertionError("render_atlas simulated")
+
+    monkeypatch.setattr(J, "simulate", _no_sim)
+    monkeypatch.setattr(type(model), "simulate", _no_sim)
+    manifest = render_atlas(model, sig, out_dir=str(tmp_path / "view"))
+    assert all((tmp_path / "view" / f).exists() for f in FIXED)
+    assert manifest["seed"] is None and manifest["duration_ms"] is None  # not observable
+    assert manifest["dt_source"] == DT_SOURCE_INFERRED
+    with pytest.raises(ValueError, match="never simulates"):
+        render_atlas(model, None, out_dir=str(tmp_path / "none"))
+
+
+def test_build_atlas_with_signals_equals_render_atlas(tmp_path):
+    from jaxfne.vis.atlas_suite import render_atlas
+
+    model, sig = _net_and_signals()
+    run = dict(seed=3, duration_ms=50.0, dt_ms=0.1)
+    built = build_atlas(model, sig, out_dir=str(tmp_path / "b"), **run)
+    rendered = render_atlas(model, sig, out_dir=str(tmp_path / "r"), **run)
+    assert built == rendered
+    # Given signals and no identity: nothing observed, nothing recorded.
+    bare = build_atlas(model, sig, out_dir=str(tmp_path / "bare"))
+    assert bare["seed"] is None and bare["duration_ms"] is None
+
+
+def test_render_atlas_draws_explicit_hdp_not_model_state(tmp_path):
+    """A bundle arm's own H/W diagnostics drive the panels, not the model's last run."""
+    from jaxfne.vis.atlas_suite import render_atlas
+
+    model, sig = _net_and_signals()  # fixed-W run: the model holds no HDP diagnostics
+    plain = render_atlas(model, sig, out_dir=str(tmp_path / "plain"))
+    status = {p["file"]: p["status"] for p in plain["panels"]}
+    assert status["h_dynamics.html"] == status["hdp.html"] == "OMITTED"
+    t = np.asarray(sig.spikes).shape[0]
+    hdp = {"H_trace": np.ones((t, 10)), "w_trace": np.full((t, 4), 0.5)}
+    given = render_atlas(model, sig, out_dir=str(tmp_path / "given"), hdp=hdp)
+    status = {p["file"]: p["status"] for p in given["panels"]}
+    assert status["h_dynamics.html"] != "OMITTED" and status["hdp.html"] != "OMITTED"
+
+
+def test_atlas_generator_routes_hdp_per_arm_and_is_write_once(tmp_path, monkeypatch):
+    """0.5.5 item 2: a shared model's latest-run diagnostics never reach another arm."""
+    from scripts.generate_atlas_figures import generate
+
+    shared, sig = _net_and_signals()
+    sole, sole_sig = _net_and_signals()
+    t = np.asarray(sig.spikes).shape[0]
+    stale = {"H_trace": np.ones((t, 10)), "w_trace": np.full((t, 4), 0.5)}
+    monkeypatch.setattr(type(shared), "last_hdp_diagnostics", lambda self: stale, raising=False)
+    arms = {
+        "own": {"model": shared, "signals": sig, "hdp": stale},
+        "fixed": {"model": shared, "signals": sig, "hdp": None},
+        "sole": {"model": sole, "signals": sole_sig},
+    }
+    man = {"spec": {"run": {"duration_ms": 50.0, "dt_ms": 0.1}, "seeds": {"run": 3}},
+           "spec_digest": "d", "lineage": {}, "environment": {}}
+    kw = dict(out_root=tmp_path, bundle_fn=lambda _: arms, manifest_fn=lambda _: man)
+    rec = generate("AT-X", **kw)
+    src = {k: a["hdp_source"] for k, a in rec["arms"].items()}
+    assert src == {"own": "bundle", "fixed": "none: fixed-W arm",
+                   "sole": "model: sole owner of its latest run"}
+    hdp_status = {k: a["status"]["hdp.html"] for k, a in rec["arms"].items()}
+    assert hdp_status == {"own": "AVAILABLE", "fixed": "OMITTED", "sole": "AVAILABLE"}
+    shared_only = {"a": {"model": shared, "signals": sig}, "b": {"model": shared, "signals": sig}}
+    rec2 = generate("AT-Y", out_root=tmp_path, bundle_fn=lambda _: shared_only,
+                    manifest_fn=lambda _: man)
+    assert {a["status"]["hdp.html"] for a in rec2["arms"].values()} == {"OMITTED"}
+    assert json.loads((tmp_path / "AT-X" / "atlas_run.json").read_text())["seed"] == 3
+    with pytest.raises(FileExistsError, match="write-once"):
+        generate("AT-X", **kw)

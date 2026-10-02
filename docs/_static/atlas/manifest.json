@@ -1,8 +1,8 @@
 {
   "suite": "atlas_suite.v2",
   "title": "Canonical V1 Column (1000n)",
-  "figure_state": "GENERATED",
-  "config_hash": "e701098092814baa",
+  "figure_state": "validated",
+  "config_hash": "91f037cf383e0bdb",
   "tfne_digest": null,
   "k_d": null,
   "sim_identity": "seed=0 duration_ms=1000.0 dt_ms=0.5",
@@ -36,7 +36,7 @@
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 76044,
+      "bytes": 76144,
       "inputs": {
         "source_artifact": "model",
         "variable": "params.positions + params.edge_list",
@@ -50,7 +50,7 @@
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 107846,
+      "bytes": 107778,
       "inputs": {
         "source_artifact": "signals",
         "variable": "spikes [T,N] + neuron_table",
@@ -64,7 +64,7 @@
       "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 362669,
+      "bytes": 362329,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field proxy",
@@ -106,7 +106,7 @@
       "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 21587,
+      "bytes": 21582,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field traces",
@@ -116,5 +116,14 @@
       }
     }
   ],
-  "sha256": "4db5904032a62676"
+  "sha256": "4c81b0f8e2b5bf77",
+  "promotion": [
+    {
+      "to": "validated",
+      "reason": "P-022 re-pin (bae3c41c) regenerated the canonical atlas, which reset its state; broad gate on 3dc3c2c5: 4843 passed, 1 failed = the stale gallery index this restores",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "3dc3c2c50d2e8a877f648556db2ac9afceb79fb1",
+      "utc": "2026-09-30T17:58:59.416870+00:00"
+    }
+  ]
 }

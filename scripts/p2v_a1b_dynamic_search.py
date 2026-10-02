@@ -8,12 +8,15 @@ overwrite an existing receipt.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import hashlib
 import json
 import math
 import subprocess
-import sys
-from pathlib import Path
 
 import numpy as np
 
@@ -29,6 +32,10 @@ from jaxfne.protocol_c.c3_execution import (
 from jaxfne.protocol_c.c3_protocol import load_c3_spec
 from jaxfne.protocol_c.estimator import estimate_traveling_wave
 from jaxfne.protocol_c.protocol import load_protocol_spec
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 A1B_DIR = REPO_ROOT / "artifacts" / "protocol_c" / "p2v_a1b_dynamic_search"

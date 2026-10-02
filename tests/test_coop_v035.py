@@ -53,6 +53,7 @@ def test_stimulus_schedule_targeted():
         label="pulse1",
         onset_ms=10.0,
         duration_ms=20.0,
+        stimulus="pulse",
         metadata={"drive_amplitude": 5.0, "event_duration_ms": 20.0, "target_indices": [1, 3]}
     )
     # Event without target_indices (should target all)
@@ -60,6 +61,7 @@ def test_stimulus_schedule_targeted():
         label="pulse2",
         onset_ms=50.0,
         duration_ms=20.0,
+        stimulus="pulse",
         metadata={"drive_amplitude": 8.0, "event_duration_ms": 20.0}
     )
 

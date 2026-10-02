@@ -263,6 +263,7 @@ if not metadata["amplitude_status"]:
     # ALLOWED: Relative or tutorial statements
     # "LFP-proxy increases during high firing rate"
     # "Layer 5 sources dominate the field"
+    pass
 ```
 
 ### Tutorial scope

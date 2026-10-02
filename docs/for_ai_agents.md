@@ -1,7 +1,7 @@
 # Documentation for AI agents
 
 jaxfne treats **AI-agent readability as a first-class design goal**, alongside human docs on
-[Read the Docs](https://jaxfne.readthedocs.io/). The repo ships two coordinated surfaces:
+[Read the Docs](https://jaxfne.readthedocs.io/). Surfaces:
 
 | Surface | Audience | Role |
 |---------|----------|------|
@@ -39,14 +39,13 @@ See [Scope & status](scope_and_status.md) for the authoritative gate table.
 Repo skills mirror to client installs via `scripts/harness/sync_skills.py --update`
 (canonical `artifacts/skills/` → local tool mirrors; mirrors are generated and
 never edited by hand). After changing a skill, run sync and update the harness manifest
-together with the change.
+in the same change.
 
 ## Multi-agent handoff
 
-Maintainers and coding agents share this repository via git. Ordinary work defaults to
-CODE when `scratch/CURRENT_TASK.md` is absent. For release work, copy
+Ordinary work defaults to CODE when `scratch/CURRENT_TASK.md` is absent. For release work, copy
 `scratch/CURRENT_TASK.example.md` to `scratch/CURRENT_TASK.md` and set `mode:`.
-Release-specific authorities live in `artifacts/release/current_release_authorities.json`.
+Release authorities live in `artifacts/release/current_release_authorities.json`.
 
 ## Human docs cross-links
 

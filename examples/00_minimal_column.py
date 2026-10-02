@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import jax
 import jax.numpy as jnp
 import jaxfne as jtfne
@@ -11,7 +16,6 @@ cfg = cfg.network(
     name="V1",
     kind="cortical_column",
     n=64,
-    layers=["L1", "L2/3", "L4", "L5", "L6"],
     cell_types={"E": 0.80, "PV": 0.10, "SST": 0.07, "VIP": 0.03},
 )
 cfg = cfg.emitter(family="izhikevich", preset="cortical_eig")

@@ -19,13 +19,18 @@ Validates:
 15. CURRENT_TASK brevity & exact C_* keys: Task file remains compact (<= 30 lines) with exact C_* vocabulary.
 16. Skill structural shape & unique triggers: All 7 skills have distinct WHEN triggers and standard section headers.
 """
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+
 import hashlib
 import json
 import os
 import subprocess
 import tempfile
 import pytest
-from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 from scripts.harness.gate0_git_reality import check_gate0, EXPECTED_REMOTES

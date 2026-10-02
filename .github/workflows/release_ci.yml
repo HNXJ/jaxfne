@@ -37,7 +37,7 @@ jobs:
         # must execute the same capabilities, not skip them. See repair 2026-09-08.
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,viz,jaxley]"
+          pip install -e ".[dev,viz,jaxley,jnwb]"
 
       - name: Install docs deps (parity with RC gate — markdown/mkdocs required)
         # scripts/build_manuscript.py imports markdown at build time and

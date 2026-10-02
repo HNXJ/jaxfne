@@ -3,14 +3,21 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import csv
 import hashlib
 import json
 import math
 import subprocess
-import sys
-from pathlib import Path
 from typing import Any
+
+# Force the repo package: `python scripts/...` puts scripts/ first on sys.path,
+# so an installed jaxfne would otherwise shadow the working tree (P-025).
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
@@ -22,8 +29,13 @@ from jaxfne._model_tune import (
     _edge_parameter_mask,
     _model_with_parameters,
 )
+from jaxfne.emitters import resolve_edge_weight
 from jaxfne.hdp_network import DEFAULT_HDP
 from jaxfne.io import json_safe
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "artifacts" / "mcc3_10s_checkpoint"
@@ -50,7 +62,9 @@ def mcc3_config():
             n=10,
             cell_types={"E": 0.5, "PV": 0.5},
         )
-        .cell_type_drives({"E": 8.0, "PV": 8.0})
+        # No drive(): the committed checkpoint and its etude ran at the emitter
+        # defaults (E 5.0, PV 3.0). The E/PV 8.0 declared here earlier never ran
+        # (P-014, P-018).
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(
             domain="laminar_column",
@@ -113,6 +127,13 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: f.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def edge_weights(model: jtfne.Model) -> np.ndarray:
+    """Per-edge signed weights; the edge list may store them per class."""
+    edges = model.params["edge_list"]
+    sign = model.params["emitter"].sign.astype(edges.weight.dtype)
+    return np.asarray(resolve_edge_weight(edges, edges.weight.dtype, presynaptic_sign=sign))
 
 
 def ei_label(cell_type: str) -> str:
@@ -305,7 +326,7 @@ def run_condition(
         if params is not None
         else base_model
     )
-    w0 = np.asarray(model.params["edge_list"].weight).copy()
+    w0 = edge_weights(model).copy()
     signals = model.simulate(sim)
     diag = model.last_hdp_diagnostics()
     report = model.evaluate(
@@ -342,7 +363,7 @@ def run_condition(
     w_final = (
         np.asarray(diag["w_final"])
         if diag is not None and diag.get("w_final") is not None
-        else np.asarray(model.params["edge_list"].weight)
+        else edge_weights(model)
     )
     return {
         "label": label,
@@ -390,7 +411,7 @@ def make_figure(
     ax_net = fig.add_subplot(gs[0, :2])
     pre = np.asarray(A["model"].params["edge_list"].pre)
     post = np.asarray(A["model"].params["edge_list"].post)
-    w = np.asarray(A["model"].params["edge_list"].weight)
+    w = edge_weights(A["model"])
     xy = {}
     for r in network_rows:
         idx = r["neuron_index"]
@@ -626,7 +647,7 @@ def main() -> int:
         "signs_unchanged": bool(
             np.all(
                 np.sign(np.asarray(B["W0"]))
-                == np.sign(np.asarray(base.params["edge_list"].weight))
+                == np.sign(edge_weights(base))
             )
         ),
         "initial_objective_100ms": (
@@ -797,7 +818,7 @@ def main() -> int:
 
     metrics_path = OUT / "mcc3_10s_metrics.json"
     metrics_path.write_text(
-        json.dumps(metrics, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+        json.dumps(metrics, indent=2, allow_nan=False) + "\n", encoding="utf-8", newline="\n"
     )
 
     png_path = OUT / "mcc3_10s_pre_post.png"
@@ -823,7 +844,7 @@ def main() -> int:
     )
     manifest_path = OUT / "mcc3_10s_manifest.json"
     manifest_path.write_text(
-        json.dumps(manifest, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+        json.dumps(manifest, indent=2, allow_nan=False) + "\n", encoding="utf-8", newline="\n"
     )
 
     print(json.dumps(manifest, indent=2), flush=True)

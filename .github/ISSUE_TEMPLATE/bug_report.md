@@ -5,8 +5,8 @@ title: ""
 labels: bug
 ---
 
-**What happened**
-A clear description of the bug.
+**Observed behavior**
+Description of the defect.
 
 **Minimal reproduction**
 ```python
@@ -15,7 +15,7 @@ import jaxfne as jtfne
 ```
 
 **Expected behavior**
-What you expected instead.
+Expected result and rationale.
 
 **Environment**
 - `jaxfne.__version__`:

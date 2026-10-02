@@ -17,7 +17,7 @@ def _build(n):
         .runtime(seed=0, duration_ms=100.0, dt_ms=0.5)
         .network(name=f"ei{n}", n=n)
         .set_emitter("homeostatic_ei")
-        .field(domain="none")
+        .field()
         .probe(modes=["vm"])
     )
     return jtfne.construct(cfg)
@@ -63,7 +63,7 @@ def test_n1_below_minimum_raises():
         .runtime(seed=0, duration_ms=100.0, dt_ms=0.5)
         .network(name="ei1", n=1)
         .set_emitter("homeostatic_ei")
-        .field(domain="none")
+        .field()
         .probe(modes=["vm"])
     )
     import pytest

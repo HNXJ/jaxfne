@@ -118,7 +118,7 @@ def freeze_e3_trajectory(
     n_steps: int,
     dt_ms: float,
 ) -> FrozenE4Trajectory:
-    """Run exactly one E3 neural simulate and freeze first-class arrays."""
+    """Run exactly one E3 neural simulate and freeze its arrays."""
     out = run_e3_kernel(model, n_steps=n_steps, dt_ms=dt_ms, seed=seed, mode=mode)
     identity_map = build_identity_map(model.neuron_table())
     time_ms = np.arange(int(n_steps), dtype=np.float64) * float(dt_ms)

@@ -7,10 +7,13 @@ jit/eager and vmap/loop variants. Run: python scripts/perf/jax_profile_v0424.py
 
 from __future__ import annotations
 
-import json
 import sys
-import time
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import json
+import time
 
 import jax
 import numpy as np
@@ -18,6 +21,10 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import jaxfne as jtfne
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 def _med(fn, reps=5):
@@ -53,7 +60,7 @@ def main() -> None:
         jtfne.configuration()
         .runtime(seed=0, recurrent_backend="edge_list")
         .network(name="V1", kind="cortical_column", n=64, cell_types={"E": 0.8, "PV": 0.2})
-        .cell_type_drives({"E": 10.0, "PV": 10.0})
+        .drive(baseline_drive_by_cell_type={"E": 10.0, "PV": 10.0})
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(domain="laminar_column", conductivity="proxy",
                boundary="mean_zero_neumann", gauge="mean_zero")

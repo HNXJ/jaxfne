@@ -58,7 +58,7 @@ for p in manifest["panels"]:
 
 ## Interactive Examples
 
-These standalone interactive panels come live from the canonical 1000-neuron column simulation:
+These standalone interactive panels come from the canonical 1000-neuron column simulation:
 
 - [Index Dashboard (`index.html`)](../_static/atlas/index.html)
 - [Panel 1: Circuit Schematic (`schema.html`)](../_static/atlas/schema.html)
@@ -104,7 +104,7 @@ The pinned configuration is:
 |---|---|
 | Neuronal tensor | `canonical-v1-column-1000n` |
 | Runtime | `RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5)` |
-| `config_hash` | `e701098092814baa` |
+| `config_hash` | `91f037cf383e0bdb` (re-pinned 2026-09-30 for P-022) |
 | Realized | 1000 neurons, 215785 edges, 2000 steps |
 
 The generator checks `config_hash` before writing and aborts on drift, so a

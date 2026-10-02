@@ -1,9 +1,8 @@
 # Biophysical Model-Comparison Notes
 
-These notes describe how the Tensor-Field Neural Equation (TFNE) formulations in
-`jaxfne` relate to established point-neuron, multicompartment, and extracellular-readout
-formulations from the computational-neuroscience literature. The goal is to map the
-package's operator chain onto familiar mathematical building blocks.
+How the TFNE formulations in `jaxfne` relate to established point-neuron,
+multicompartment, and extracellular-readout formulations: the package's operator
+chain mapped onto familiar mathematical building blocks.
 
 ---
 
@@ -36,7 +35,7 @@ electrode readouts are represented as parallelized **Linear Readout** operators.
 
 ## 2. Core modeling formulations
 
-`jaxfne` adopts canonical mathematical formulations used across computational-neuroscience
+`jaxfne` adopts canonical formulations used across computational-neuroscience
 benchmarks:
 
 ### 2.1. Local conductance & adaptation
@@ -100,12 +99,7 @@ fig = jtfne.vis.lfp(sources)
 
 ## 5. Positioning: what would make this non-redundant with existing tools (honest status, 2026-07-17)
 
-Sections 1-4 describe structural analogy to established formulations, not a capability
-or superiority claim (see `scripts/evidence_figures/fig08_adjacent_tools_comparison.py`,
-which explicitly disclaims speedup/accuracy/biological-validity claims). This section
-states plainly what is and is not true today, and names the specific unbuilt capability
-that would make jaxfne's combination of features non-redundant with existing tools,
-rather than leaving that question unanswered.
+Sections 1–4 describe structural analogy, not a capability or superiority claim (see `scripts/evidence_figures/fig08_adjacent_tools_comparison.py`, which disclaims speedup/accuracy/biological-validity claims). This section states what is and is not true today, and names the unbuilt capability that would make the combination non-redundant.
 
 **True today:**
 - jaxfne's spiking simulation (`simulate_edge_recurrent_izhikevich*`) is implemented in
@@ -133,7 +127,7 @@ Tracked via `artifacts/publication/publication_evidence_index.json`.
 
 **Update (2026-07-18):** `fig08_adjacent_tools_comparison.py`'s "no speedup claims"
 disclaimer covers a *general, systematic* performance claim, which still doesn't exist.
-A first, narrow, honestly-caveated quantitative data point now does: a matched
+A first narrow quantitative data point now does: a matched
 Izhikevich sparse-network task (same N, same ~100-in-degree connectivity, same
 duration, CPU, default settings both sides) showed jaxfne 4.7-18.9x faster than Brian2
 at N=1,000 and 1.2-11.3x faster at N=5,000 (construct/simulate respectively). See

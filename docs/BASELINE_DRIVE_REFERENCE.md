@@ -1,6 +1,6 @@
 # Baseline Drive Reference for Izhikevich Neurons
 
-**Purpose:** Eliminate silent-neuron populations in jaxfne networks by providing subthreshold baseline current per cell type.
+**Purpose:** Subthreshold baseline current per cell type, to eliminate silent-neuron populations.
 
 **Generated:** 2026-06-09 via `scripts/characterize_neuron_io_curves.py`  
 **Claim status:** computational_scaffold (uncalibrated Izhikevich native units)
@@ -34,7 +34,7 @@
 | SST       | 0.67    | Very conservative (low rheobase) |
 | VIP       | 19.31   | Requires high DC due to burst dynamics |
 
-**Scope:** Use 80% of rheobase to raise excitability **without** forcing tonic spiking. Network synaptic input can then reliably activate neurons above this baseline.
+**Scope:** 80% of rheobase raises excitability **without** forcing tonic spiking; synaptic input then activates neurons above baseline.
 
 ---
 
@@ -135,7 +135,7 @@ noise_amplitude_by_cell_type = {
 
 ### Why VIP Requires Much Higher Baseline
 
-VIP neurons use `b = -0.10` (negative recovery feedback), creating burst-like dynamics. This parameter creates a bifurcation that requires higher baseline current (~5–6× other types) to reliably evoke activity. This is **expected behavior**, not a bug:
+VIP neurons use `b = -0.10` (negative recovery feedback), creating burst-like dynamics. This parameter creates a bifurcation that requires higher baseline current (~5–6× other types) to reliably evoke activity. This is **expected behavior**:
 
 - **E/PV/SST:** Positive `b`; tonic firing with moderate DC
 - **VIP:** Negative `b`; bursting behavior; requires high DC or oscillatory input
@@ -148,7 +148,7 @@ Rheobase (minimum DC for spiking) varies by cell type due to parameter differenc
 - **E/PV:** Higher rheobase (4.17 nA) — less DC-sensitive
 - **VIP:** Highest rheobase (24.14 nA) — requires strong baseline for bursting
 
-Using 80% of rheobase provides a **safe margin** below full excitation while still raising the threshold for network-driven spiking.
+80% of rheobase keeps a margin below full excitation while raising the threshold for network-driven spiking.
 
 ---
 

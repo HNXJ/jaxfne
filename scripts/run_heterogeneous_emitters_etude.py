@@ -5,11 +5,14 @@ See docs/etudes/heterogeneous_emitters.md.
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import hashlib
 import json
 import subprocess
-import sys
-from pathlib import Path
 from typing import Any
 
 import jax
@@ -22,6 +25,10 @@ from jaxfne.emitters_homeostatic_ei import simulate_homeostatic_ei
 from jaxfne.fields import LinearReadout, project_laminar_sources
 from jaxfne.io import json_safe
 from jaxfne.vis.evidence_export import save_matplotlib_evidence_figure
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "artifacts" / "etudes" / "heterogeneous_emitters"
@@ -100,7 +107,7 @@ def izh_config() -> Any:
         .population(N_IZH, neurons={"E": 0.7, "I": 0.3}, layers=["L2/3", "L4"], name="V1")
         .cell_types({"E": 0.7, "PV": 0.3})
         .geometry(layer_thickness={"L2/3": 0.5, "L4": 0.5})
-        .cell_type_drives({"E": 8.0, "PV": 8.0})
+        .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 8.0})
         .set_emitter("izhikevich", "cortical_eig")
         .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
         .probe(name="etude_probe", modes=["spikes", "V_m"])
@@ -113,7 +120,7 @@ def hei_config() -> Any:
         .runtime(seed=SEED, duration_ms=DURATION_MS, dt_ms=DT_MS, dtype="float32", jit=False)
         .network(name="hei", n=N_HEI)
         .set_emitter("homeostatic_ei", bound_mode="stable")
-        .field(domain="none")
+        .field()
         .probe(modes=["vm"])
     )
 

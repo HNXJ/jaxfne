@@ -67,7 +67,7 @@ import jaxfne as jtfne
 cfg_baseline = (jtfne.Configuration()
     .runtime(seed=7, dtype="float32", duration_ms=1500.0, dt_ms=0.1)
     .column("V1_reduced", layers=["L2/3", "L4", "L5"], n=100)
-    .cell_type_drives({"E": 8.0, "PV": 4.0})
+    .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 4.0})
     .set_emitter("izhikevich", "cortical_eig")
     .probes(["spikes", "LFP-proxy", "CSD-proxy"]))
 
@@ -91,12 +91,15 @@ model_evoked = jtfne.construct(cfg_baseline)
 ### Simulation
 
 ```python
-signals_baseline = jtfne.simulate(model_baseline, seed=7, duration_ms=1500.0, dt_ms=0.1)
+signals_baseline = jtfne.simulate(model_baseline, seed=7, duration_ms=1500.0, dt_ms=0.1,
+                                  paradigm=paradigm.condition("baseline"))
 signals_evoked = jtfne.simulate(model_evoked, seed=7, duration_ms=1500.0, dt_ms=0.1,
-                                paradigm=paradigm)
+                                paradigm=paradigm.condition("evoked"))
 ```
 
 The paradigm rides on `simulate()` — no `.paradigm()` method on `Configuration`.
+Run one condition per call: `paradigm.condition(...)` selects it, and a full
+`Paradigm` is refused.
 
 ## Interactive atlas (dark)
 

@@ -13,6 +13,6 @@ Reproduce: `PYTHONPATH=. python3 scripts/run_multiscale_observation_etude.py`
 | `provenance.json` | Observation receipts |
 | `manifest.json` | Content hashes |
 | `gap_review.md` | Post-run classification |
-| `observations.npz` | Frozen \(Q\) and derived \(Y_k\) / PSDs |
+| `observations.npz` | Generated \(Q\) and derived \(Y_k\) / PSDs (untracked) |
 
 All readouts are relative proxies. No physical EEG/MEG/LFP claim.

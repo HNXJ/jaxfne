@@ -62,13 +62,13 @@ effect is real and direction-correct, just short of exact setpoint tracking.
 
 ![Full 10 s raster, homeostasis on](../assets/showcases/homeostasis_full_raster_10s.png)
 
-Vm stays sane in both runs (rest ≈ −84…−88 mV, spike peak ≈ +30 mV) —
+Vm stays in range in both runs (rest ≈ −84…−88 mV, spike peak ≈ +30 mV) —
 finite end to end, NaN-free.
 
 ## Plasticity: closed-loop STDP under purely random stimulation
 
 `Configuration.plasticity()` is declaration-only — it records intent in the
-manifest, which `Model.simulate()` leaves unconsumed. The real, wired
+manifest, which `Model.simulate()` leaves unconsumed. The wired
 synaptic-plasticity kernel runs through the separate streaming entry point,
 `jtfne.run_stdp_stream`, which updates the weight matrix `W` every timestep
 and feeds it back into the dynamics (genuine closed-loop online STDP).
@@ -102,7 +102,7 @@ acting on uncorrelated, random drive.
 The excitatory weight distribution shifts down over the 10 s run (mean
 0.0547 → 0.0510): the stimulus lacks temporal structure, so little causal
 pre-before-post pairing occurs and net synaptic depression dominates — a
-real, measured STDP effect, not a flat line.
+measured STDP effect, not a flat line.
 
 ## Spectrolaminar motif with depth-graded ("slow-deep") homeostasis
 
@@ -127,7 +127,7 @@ sig = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
 ```
 
 **What this run actually shows.** 10,000 neurons, 1000 ms, dt=0.5 ms: Vm
-stays sane (rest ≈ −87 mV, peak ≈ +30 mV), global synchrony stays low
+stays in range (rest ≈ −87 mV, peak ≈ +30 mV), global synchrony stays low
 (κ ≈ 0.020, asynchronous-irregular), and overall rate is ≈36 Hz (elevated by
 the same homeostasis-kick effect documented above).
 
@@ -253,7 +253,7 @@ remain the open, unimplemented piece — homeostatic/connectivity-weight
 grading clearly does *something* real to the relative depth structure, while
 stopping short (so far) of anything with absolute spectral selectivity.
 
-## The cable-filter tensor: a genuinely frequency-selective LFP stage
+## The cable-filter tensor: a frequency-selective LFP stage
 
 The finding directly above — flat depth gain everywhere in the default
 pipeline, with zero absolute band-selectivity — is a structural property of
@@ -297,7 +297,7 @@ detrending:
 | alpha/beta (10–25 Hz) | same flat gain as every other band | **1.30 — stays deep-dominant** |
 | gamma (40–150 Hz) | same flat gain as every other band | **0.66 — flips to superficial-dominant** |
 
-This is the first genuinely *absolute*, frequency-selective laminar effect
+This is an *absolute*, frequency-selective laminar effect
 this investigation has produced — a true band effect, distinct from a
 relative-distribution crossing or a flat gain offset. `order=1` gives the same direction with a much
 weaker gamma flip (0.93, barely below parity); `order=2` (two cascaded
@@ -310,7 +310,7 @@ alpha/beta and gamma, not below alpha/beta.
 the qualitative literature pattern (deep alpha/beta, superficial gamma), not
 a cable-equation solve, and the tau values are not derived from any measured
 or published dendritic biophysics — they were hand-tuned against this one
-falsification test. It is a genuinely different *mechanism class* from the
+falsification test. It is a different *mechanism class* from the
 flat-gain depth/dipole-size readout above (frequency-selective, not just
 depth-selective), and it composes cleanly with the existing LFP-proxy and
 EEG-/MEG-proxy readouts since all three take the same `[T, N]` source array.

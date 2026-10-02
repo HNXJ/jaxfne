@@ -24,6 +24,19 @@ Jitter within declared bands (σ=0.01, deterministic JAX PRNG per layer):
 
 Provenance is additive: `tensor.provenance["genome_sha256"]` == `genome_rules_hash(genome)`; JSON saves of `NeuronalTensor` exclude provenance (manifest/evidence path preserves it).
 
+<!-- jx-figure -->
+## Figure
+
+=== "Still"
+
+    ![The developed column in 3-D](../assets/visuals/column_network.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="../../_static/visuals/column_network.html" loading="lazy" title="The developed column in 3-D"></iframe>
+
+The developed column in 3-D: 1000 neurons and a sample of 800 realized edges, split by presynaptic cell-type name, `E*` types vs the rest (toggle each group in the legend). [Open full page](../_static/visuals/column_network.html).
+
 Next: inspect the realized tensor before any simulation.
 
 ## Interactive atlas (dark)

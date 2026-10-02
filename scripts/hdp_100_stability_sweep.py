@@ -3,7 +3,7 @@
 Goal: find HDP parameter settings (chiefly K_HDP) that stay stable over a
 LONG duration (10-20s), not just the short tuning window used for the
 1000-neuron build in hdp_1000_laminar_column_boosted.py. That script's
-K_HDP=0.05 was only verified at 1000ms; the per-cell-type drive correction
+K_HDP=0.05 was only checked at 1000ms; the per-cell-type drive correction
 there already documented a caveat that rates drift out of band by 2000ms.
 
 Two corrections made during this sweep, in order:
@@ -18,17 +18,17 @@ Two corrections made during this sweep, in order:
 2. At N=250, even K_HDP=0 (weights frozen, plasticity fully off) was NOT
    stationary with the old N=1000-tuned drive correction
    ({'PV':0.45,'SST':0.09,'VIP':5.6}) -- PV/VIP decayed toward 0Hz over a
-   long window. This proved the instability was in the HDP-OFF baseline
+   long window. This showed the instability was in the HDP-OFF baseline
    itself, not in K_HDP. DRIVE_CORRECTION_BY_CELL_TYPE below was
    re-derived via per-cell-type bisection against a 10s window at K_HDP=0,
-   and verified STATIONARY over 20s (flat rates, no drift) before any HDP
+   and read STATIONARY over 20s (flat rates, no drift) before any HDP
    plasticity was re-introduced.
 
 With that stationary baseline, K_HDP was re-swept jointly with K_ctrl/
 barrier_c/barrier_d (the H-restoring-force terms): the original
 K_ctrl=0.5/barrier=0.01 pair never holds past ~5-10s at any K_HDP>0;
-K_ctrl=5.0 does. RECOMMENDED_K_HDP=0.01 with K_ctrl=5.0 is verified stable
-over 20s (and over a 5-seed multi-seed gate): rates flat in-band, H pinned
+K_ctrl=5.0 does. RECOMMENDED_K_HDP=0.01 with K_ctrl=5.0 is stable over
+20s in this sweep (and over a 5-seed multi-seed gate): rates flat in-band, H pinned
 at ~1.0000-1.0029, weight saturation ~10.5% (not pinned to floor/ceiling).
 These are exactly jaxfne.hdp_network.DEFAULT_HDP -- the proposed 0.4.6
 freeze point.
@@ -47,8 +47,12 @@ Usage: PYTHONPATH=. python3 scripts/hdp_100_stability_sweep.py
 
 from __future__ import annotations
 
-import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+import json
 from typing import Any
 
 import numpy as np
@@ -56,6 +60,10 @@ import numpy as np
 from jaxfne.hdp_network import (
     HDPColumnConfig, build_model, apply_drive_correction, run,
     BASE_HDP_KWARGS_DEFAULT, DEFAULT_HDP, BASE_DRIVE_BY_CELL_TYPE_DEFAULT,
+)
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
 OUTPUT_DIR = Path("outputs/hdp_100_stability_sweep")

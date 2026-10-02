@@ -1,0 +1,112 @@
+"""G_20: the synthetic 20-area hierarchy PseudoGenome for AT-10 (0.5.5 ATLAS 6).
+
+Human decision (2026-09-26): G_20 is a synthetic declared hierarchy, not
+data-driven; 50 neurons per area. Twenty areas sit at relative hierarchy
+positions h = i / 19; between-area E -> {E, PV} projections follow JDNA's
+``exponential_distance`` rule (p = p_max * exp(-|dh| / decay), delay_ms =
+|dh| * traversal_ms, pairs with p < p_min omitted, gain w_mech =
+G20_CROSS_GAIN). v2 (2026-09-26) adds the gain; v1 had w_mech 1, which does
+not propagate. Each area is one E/PV
+layer with the four within-area E/PV motifs. Every value is a relative
+scaffold value; nothing is calibrated against anatomy.
+
+The module constants are the genome's inputs (the Atlas spec reads them by
+name); ``genome_dict()`` builds the genome from them and the frozen JSON in
+``genomes/`` must equal it. Import rule: top-level ``jaxfne`` only.
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import json
+from typing import Any
+
+import jaxfne as J
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
+
+G20_NAME = "g20-hierarchy-v2"
+G20_N_AREAS = 20
+G20_N_PER_AREA = 50
+G20_CELL_TYPE_FRACTIONS = {"E": 0.8, "PV": 0.2}
+G20_P_MAX = 0.1
+G20_DECAY = 0.2
+G20_TRAVERSAL_MS = 20.0
+G20_P_MIN = 0.01
+G20_CROSS_GAIN = 200.0  # between-area w_mech; 0.5.5 regime sweep (todo stack, ATLAS 6)
+G20_DEV_SEED = 20
+GENOME_PATH = Path(__file__).parent / "genomes" / f"{G20_NAME}.json"
+
+
+def area_names() -> list[str]:
+    return [f"H{i:02d}" for i in range(1, G20_N_AREAS + 1)]
+
+
+def genome_dict() -> dict[str, Any]:
+    """The G_20 PseudoGenome as JSON-safe data, built from the module constants."""
+    names = area_names()
+    layer = {"name": "L", "n_neurons": G20_N_PER_AREA, "depth_band": [0.0, 1.0],
+             "cell_type_fractions": dict(G20_CELL_TYPE_FRACTIONS)}
+    within = [{"source_layer": "L", "source_neuron_type": s, "target_layer": "L",
+               "target_neuron_type": t, "mechanism": "AMPA" if s == "E" else "GABA_A"}
+              for s in ("E", "PV") for t in ("E", "PV")]
+    return {
+        "schema_version": "pseudogenome_v1",
+        "name": G20_NAME,
+        "description": (
+            "Synthetic 20-area hierarchy for Atlas S10/AT-10. Areas at relative "
+            "hierarchy positions i/19; between-area E->{E,PV} AMPA projections by the "
+            "exponential_distance rule; one E/PV layer per area with the four "
+            "within-area motifs. Relative scaffold values; not calibrated."),
+        "development_parameters": {"fraction_jitter_sigma": 0.0},
+        # P-023: every developed connection needs its mechanism's tau from
+        # this table. 0.1 ms on both entries reproduces the committed
+        # verdicts exactly: pre-P-023 StaticParams defaulted dT_ms to 0.1,
+        # so the frozen AT-10 runs executed every edge at tau 0.1 ms.
+        # Relative scaffold values; not calibrated.
+        "mechanism_tau_ms": {"AMPA": 0.1, "GABA_A": 0.1},
+        "mechanism_tau_ms_provenance": (
+            "P-023: 0.1 ms on AMPA and GABA_A declares what the frozen "
+            "AT-10 verdicts ran with (the removed StaticParams.dT_ms "
+            "default); uncalibrated scaffold metadata, not a kinetics claim."),
+        "areas": [{"name": a, "layers": [layer], "inter_connections": within} for a in names],
+        "area_connections": [],
+        "area_connection_rules": [{
+            "kind": "exponential_distance",
+            "positions": {a: i / (G20_N_AREAS - 1) for i, a in enumerate(names)},
+            "p_max": G20_P_MAX, "decay": G20_DECAY, "traversal_ms": G20_TRAVERSAL_MS,
+            "p_min": G20_P_MIN,
+            "source": {"layer": "L", "neuron_type": "E"},
+            "targets": [{"layer": "L", "neuron_type": "E"}, {"layer": "L", "neuron_type": "PV"}],
+            "mechanism": "AMPA", "w_mech": G20_CROSS_GAIN,
+        }],
+    }
+
+
+def write_genome(path: Path = GENOME_PATH) -> Path:
+    """Freeze the genome JSON (write-once)."""
+    if path.exists():
+        raise FileExistsError(f"{path} is frozen; remove it deliberately to re-freeze")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(genome_dict(), indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def load_g20() -> Any:
+    """The frozen G_20 PseudoGenome."""
+    return J.load_pseudogenome(GENOME_PATH)
+
+
+def develop_n20(seed: int = G20_DEV_SEED) -> Any:
+    """N_20 = develop(G_20, K_D = seed)."""
+    return J.develop(load_g20(), seed=seed)
+
+
+if __name__ == "__main__":
+    print(write_genome())

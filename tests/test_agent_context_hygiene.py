@@ -234,6 +234,15 @@ _ACTIVE_SKILLS = (
     "jaxfne-seal",
     "jaxfne-workflow",
     "vocabulary-audit",
+    # Task-shaped skills around jaxfne.agent (0.5.5 item 5b).
+    "jaxfne-model",
+    "jaxfne-network",
+    "jaxfne-state",
+    "jaxfne-plasticity",
+    "jaxfne-fields",
+    "jaxfne-simulate",
+    "jaxfne-verify",
+    "jaxfne-inspect",
 )
 
 _TASK_ROUTES = {
@@ -244,6 +253,14 @@ _TASK_ROUTES = {
     "release": "artifacts/skills/jaxfne-release/SKILL.md",
     "independent seal": "artifacts/skills/jaxfne-seal/SKILL.md",
     "vocabulary review": "artifacts/skills/vocabulary-audit/SKILL.md",
+    "neuron model": "artifacts/skills/jaxfne-model/SKILL.md",
+    "network specification": "artifacts/skills/jaxfne-network/SKILL.md",
+    "hidden state": "artifacts/skills/jaxfne-state/SKILL.md",
+    "plasticity": "artifacts/skills/jaxfne-plasticity/SKILL.md",
+    "fields and probes": "artifacts/skills/jaxfne-fields/SKILL.md",
+    "simulation": "artifacts/skills/jaxfne-simulate/SKILL.md",
+    "identity verification": "artifacts/skills/jaxfne-verify/SKILL.md",
+    "inspection": "artifacts/skills/jaxfne-inspect/SKILL.md",
 }
 
 _REQUIRED_AI_PATHS = (
@@ -377,6 +394,40 @@ class TestFreshCloneTaskState:
 
     def test_current_task_example_is_tracked(self):
         assert Path("scratch/CURRENT_TASK.example.md").is_file()
+
+
+class TestRepoStateSnapshotDetachedHead:
+    """A detached HEAD is observable Git state, not missing Git data."""
+
+    def test_detached_head_reports_detached_branch_and_passes_check(
+        self, monkeypatch, capsys
+    ):
+        import scripts.repo_state_snapshot as rss
+
+        def fake_run_git(*args):
+            if args == ("branch", "--show-current"):
+                return ""
+            if args == ("rev-parse", "HEAD"):
+                return "f" * 40
+            if args[0] == "status":
+                return ""
+            if args[0] == "ls-remote":
+                return None
+            raise AssertionError(f"unexpected git call: {args}")
+
+        monkeypatch.setattr(rss, "_run_git", fake_run_git)
+        monkeypatch.setattr(
+            rss,
+            "_package_state",
+            lambda: (
+                {"version": "test", "jax_version": "test", "root_export_count": 0},
+                [],
+            ),
+        )
+        snapshot = rss.build_snapshot()
+        assert snapshot["git"]["branch"] == "(detached)"
+        assert snapshot["errors"] == []
+        assert rss.main(["--check"]) == 0
 
 
 class TestRepositoryStructure:

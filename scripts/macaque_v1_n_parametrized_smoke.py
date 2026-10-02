@@ -18,13 +18,21 @@ neurons at this scale (some cell types within a layer round to 0 at 2-5% of
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import argparse
 import json
 from dataclasses import replace
-from pathlib import Path
 
 import jaxfne as jtfne
 from jaxfne.neuronal_tensor import Area, Layer, NeuronalTensor, NeuronType, RuntimeConfiguration
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 CONFIG_PATH = Path(__file__).resolve().parent.parent / "jaxfne" / "configs" / "default_macaque_V1.json"
 

@@ -2,14 +2,12 @@
 
 ## Purpose
 
-This document describes the conservation-inspired proxy diagnostics in TFNE
-(`compute_conservation_proxy_diagnostics`). These diagnostics operate over the existing
-laminar-proxy field outputs — `source_proxy`, `phi_e_proxy`, `csd_proxy`, `lfp_proxy` —
+Conservation-inspired proxy diagnostics (`compute_conservation_proxy_diagnostics`)
+operate over the laminar-proxy field outputs — `source_proxy`, `phi_e_proxy`, `csd_proxy`, `lfp_proxy` —
 and produce JSON-safe scalar summaries for source/field validation.
 
 **Run boundary:**
-- Proxy diagnostics only — proxy-based computation over existing proxy arrays. Calibration and the reserved physical-field regimes are catalogued in [Limitations and future plans](limitations_and_future_plans.md).
-- All values are derived from existing proxy arrays; nothing is fabricated.
+- Proxy diagnostics only, computed over existing proxy arrays. Calibration and the reserved physical-field regimes are catalogued in [Limitations and future plans](limitations_and_future_plans.md).
 - `amplitude_status: false` (immutable).
 - `metabolism_status: false` (immutable).
 - `j_dot_e_proxy: null` — J_e is not computed in `linear_solver` mode.
@@ -57,9 +55,8 @@ $$\|\nabla \phi_e\|^2_\mathrm{proxy} = \frac{1}{T \cdot X} \sum_{t,x} \left(\fra
 `phi_gradient_proxy_norm2` = mean squared spatial variation of the extracellular potential
 proxy, computed via finite differences along the laminar depth axis.
 
-**Run boundary:** This is a physical-style field gradient computation on the proxy potential. The potential `phi_e_proxy` is a
-laminar row-normalized projection. The gradient magnitude is
-a proxy-level diagnostic only.
+**Run boundary:** Physical-style gradient computation on the proxy potential
+(`phi_e_proxy`, a laminar row-normalized projection); proxy-level diagnostic only.
 
 ### Field-Energy Proxy
 
@@ -173,7 +170,7 @@ print(cpd["amplitude_status"])  # False
 
 ## Reserved capabilities
 
-Elliptic (Poisson) and volumetric (Maxwell) field solvers, Poynting-flux and stress-energy computation, calibrated conductivity, and physical-amplitude reporting are reserved regimes. Proxy mode holds `amplitude_status: false` and `metabolism_status: false`. The regime catalogue lives in [Limitations and future plans](limitations_and_future_plans.md).
+Elliptic (Poisson) and volumetric (Maxwell) solvers, Poynting-flux and stress-energy computation, calibrated conductivity, and physical-amplitude reporting are reserved. Proxy mode holds `amplitude_status: false` and `metabolism_status: false`; the catalogue lives in [Limitations and future plans](limitations_and_future_plans.md).
 
 ---
 

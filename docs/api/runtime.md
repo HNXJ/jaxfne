@@ -31,27 +31,33 @@ requested and actual dtype policy.
 - `backend` (str): `"auto"` | `"cpu"` | `"gpu"` | `"tpu"`
 - `dtype` (str): `"float32"` | `"float64"`
 - `jit` (bool | str): `True`/`False`/`"auto"`
-- `vmap` (bool | str): `True`/`False`/`"auto"`
-- `precision` (str): `"default"` | `"high"`
- - `seed` (int): default `0`. **H7 note:** `RuntimeConfig.seed` is effectively
-   dead on the canonical `simulate` path — `Simulation.resolved_runtime`
-   overrides it with `Simulation.seed`. Set the seed on `simulation(...)` /
-   `Simulation` instead. Retained for forward compatibility.
-- `n_steps` (int): default `0`
+- `vmap` (bool | str): `True`/`False`/`"auto"`; read by `simulate_batch`
+- `precision` (str): `"default"` only; any other value raises
+- `seed` (int): default `0`. `Simulation` owns the seed: a runtime nested in a
+  `Simulation` must carry `0` or the Simulation's seed, otherwise it raises.
+  `Simulation.with_seed(s)` reseeds both.
+- `n_steps` (int): default `0`; nested in a `Simulation`, `0` or the
+  Simulation's step count, otherwise it raises
 - `recurrent_backend` (str): `"dense"` | `"edge_list"`
 - `synaptic_kernel` (str): `"exponential"` | `"receptor_exponential"`
+  (`"receptor_exponential"` requires `recurrent_backend="edge_list"`)
 - `recompilation_guard` (str): `"warning"` | `"exception"` | `"off"`
 - `enable_homeostasis` (bool): per-neuron activity-trace feedback, default `False`
 - `homeostasis_params` (dict): `{r_star, tau_r_ms, alpha, k_gain, g_min, g_max, r_max}`; `k_gain=0` disables
 - `enable_hdp` (bool): H-state-mediated adaptive dynamics within the HDP family, default `False`; mutually exclusive with `enable_homeostasis`
 - `hdp_params` (dict): compatibility transport for grouped H-state / H-dynamics / Theta-adaptation keys (see [Public surface contract](../public_surface_contract.md) and `jaxfne.public_surface`). `K_HDP` nulls the weight-modulation term; `K_ctrl` restores H toward 1; population locality uses `h_state_locality="population"` (not MVC dispatch names).
 
+- `device_type`, `dtype_primary`, `x64_enabled`: compatibility names.
+  `device_type`/`dtype_primary` override `backend`/`dtype`; `x64_enabled=True`
+  raises unless x64 is already on (enable it with `jaxfne.enable_x64()`), and
+  `False`/`None` are accepted without effect.
+
 To change a setting, construct a new `RuntimeConfig(...)` with the desired
-fields — there is no `with_seed`/`with_dtype`/`with_device` mutator API.
+fields — there is no `with_dtype`/`with_device` mutator API.
 
 **Example:**
 ```python
-runtime_cfg = jtfne.RuntimeConfig(seed=42, dtype="float32")
+runtime_cfg = jtfne.RuntimeConfig(dtype="float32")
 ```
 
 ---
@@ -196,9 +202,9 @@ or synaptic state and is not an exact recurrent continuation contract.
 
 ## Device Selection
 
-The `RuntimeConfig`/`cfg.runtime(...)` field is **`backend`**, not `device` —
-`cfg.runtime(device=...)` is silently ignored (`_runtime_config_from_metadata`
-only reads the `backend`/`device_type` metadata keys, never `device`).
+The `RuntimeConfig`/`cfg.runtime(...)` field is **`backend`** (with
+`device_type`). `cfg.runtime(device=...)` raises, because nothing reads a
+`device` key.
 
 ### CPU (Default)
 

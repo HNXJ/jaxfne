@@ -77,7 +77,7 @@ def test_metadata_gates_defaults():
 
 
 def test_runtime_config_and_dtype_float32():
-    rt = jtfne.runtime(dtype="float32", backend="auto", seed=42, n_steps=100)
+    rt = jtfne.runtime(dtype="float32", backend="auto", seed=0, n_steps=40)
     report = rt.runtime_report()
     assert report["requested_dtype"] == "float32"
     assert report["actual_dtype"] == "float32"

@@ -59,17 +59,25 @@ This file is the **only** first-contact router. Deeper policy lives in
 | Release candidate preparation | `artifacts/skills/jaxfne-release/SKILL.md` |
 | Independent seal verification | `artifacts/skills/jaxfne-seal/SKILL.md` |
 | Vocabulary / terminology review | `artifacts/skills/vocabulary-audit/SKILL.md` |
+| Neuron model, emitter, cell types | `artifacts/skills/jaxfne-model/SKILL.md` |
+| Network specification (TFNE) and realization | `artifacts/skills/jaxfne-network/SKILL.md` |
+| Hidden state H (RBS/RBD) | `artifacts/skills/jaxfne-state/SKILL.md` |
+| Plasticity (HDP), masks, frozen controls | `artifacts/skills/jaxfne-plasticity/SKILL.md` |
+| Fields, probes, LFP/CSD readouts | `artifacts/skills/jaxfne-fields/SKILL.md` |
+| Running a model | `artifacts/skills/jaxfne-simulate/SKILL.md` |
+| Configured/realized/executed identity | `artifacts/skills/jaxfne-verify/SKILL.md` |
+| Reading what a model or run contains | `artifacts/skills/jaxfne-inspect/SKILL.md` |
 
 Version-specific release targets (receipt path, acceptance goal list, candidate SHA)
 live in `artifacts/release/current_release_authorities.json`, not in generic skills.
 
 **Project control (two files, distinct roles):**
 
-- `artifacts/fact_stack.md` — small set of stable, human-authorized facts that
+- `artifacts/fact_stack.md`: small set of stable, human-authorized facts that
   guide work. Not evidence. Agents must not edit without explicit human
   authorization.
-- `artifacts/todo_stack.md` — remaining work only (v0.4.22→v0.4.24); see
-  **TODO stack** in `artifacts/AGENTS.md`. Git, tests, and receipts are evidence.
+- `artifacts/todo_stack.md`: remaining work only; see **TODO stack** in
+  `artifacts/AGENTS.md`. Git, tests, and receipts are evidence.
 
 ## Settling a claim
 

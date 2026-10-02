@@ -6,11 +6,21 @@ install needed.
 
 Recorded receipt + caveats: docs/notes/brian2_benchmark_receipt.md.
 """
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import time
 import jax
 import jax.numpy as jnp
 import jaxfne as jtfne
 from scripts.cortical_column_localized_workflow import build_config
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 
 def run_jaxfne(n, duration_ms=200.0, dt_ms=0.5, max_in_degree=100, seed=0):

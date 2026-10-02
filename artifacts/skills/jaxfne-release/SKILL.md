@@ -15,7 +15,7 @@ Release-checkpoint work: candidate identity, version consistency, test gates, pa
 3. Active task mode: `scratch/CURRENT_TASK.md` (Gate 0 reads `mode:`).
 
 ## RULES
-- Distinguish C_core, C_release, C_receipt, and C_head explicitly in receipts.
+- Distinguish C_core, C_release, C_receipt, and C_head in receipts.
 - Read the current release receipt and acceptance list from `current_release_authorities.json`; do not assume a version from skill prose.
 - Release/tag/push/upload happens only with explicit user authorization.
 - Record newly detected problems in the issue log immediately with IDs; a

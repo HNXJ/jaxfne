@@ -5,6 +5,24 @@ Format per lesson: {trigger,cause,repair,evidence,scope}.
 
 ## Lessons
 
+- trigger: release-gate script passes locally but fails on CI fresh clone
+  cause: skill doc references a gitignored runtime-generated path (scratch/CURRENT_TASK.md); existence check is environment-dependent
+  repair: declared `generated_skill_refs` allowlist in doc_code_integrity_allowlist.json; gate skips listed paths; proved via file-absent simulation + CI green
+  evidence: 0.5.0 closure (CI Fast red on 4 dev commits → green on e1527ec)
+  scope: jaxfne harness
+
+- trigger: freezing a numeric equivalence gate with conjunctive abs+rel legs
+  cause: abs leg unscaled to magnitude demands sub-ulp cross-implementation agreement, unsatisfiable by any port; rel leg alone had 41x margin
+  repair: allclose form at freeze (abs governs near-zero only) encoded in tests/_numeric_gates.py; original FAIL kept immutable; human adjudication recorded
+  evidence: 0.5.0 item 10 (re-evaluation 19 floats, 0 failures, worst rel 1.8e-07)
+  scope: jaxfne harness
+
+- trigger: shared numeric helper upcasts float32 sim data to float64
+  cause: np.asarray(x, dtype=float) in a unification helper; changed committed figure payloads (f4->f8) beyond the intended contract
+  repair: preserve input dtype in shared contracts; verify via normalized figure diff (UUID/timestamp/version-normalized, expect stamp-only bytes)
+  evidence: 0.5.0 atlas regen (oscillatory +1942B caught, corrected to -1B stamp-only)
+  scope: jaxfne vis
+
 - trigger: edit applied to large file, diff far bigger than intended
   cause: tool_requires exact oldString; parallel same-file edits and formatter churn (P-004) slip through success messages
   repair: re-read every edited region; check `git diff --stat` scale matches intent; unattributed reflow gets a P-ID until proven harmless
@@ -54,8 +72,20 @@ Format per lesson: {trigger,cause,repair,evidence,scope}.
   evidence: 7 worker rounds 2026-09-20 (vocab/verbosity/nav/code-audit), 2 interrupted, all integrated cleanly
   scope: jaxfne
 
+- trigger: python text-mode file write on Windows rewrites every line
+  cause: open()/write_text translate \n to os.linesep (CRLF) on write; whole-file diff with zero semantic change
+  repair: binary-safe patch scripts (read_bytes/write_bytes) for existing .py files; verify via git diff --stat before commit
+  evidence: 0.5.3 item 2 (w1-53): 7718/7533-line diff reduced to +194/-9, tests re-green
+  scope: jaxfne (windows host)
+
 - trigger: pre-existing stash entry in `git stash list`
   cause: bare `git stash pop` takes the top entry regardless of ownership; unknown-ownership stashes predate the session
   repair: never bare-pop; treat pre-existing stashes read-only; if one is popped by mistake, `git reset --hard HEAD` recovers only when the tree was sealed+pushed (verify HEAD==origin/dev and status 0 first)
   evidence: P-008 (conflicted jaxfne/vis/__init__.py; clean reset, stash preserved, import smoke OK)
   scope: jaxfne (git)
+
+- trigger: consecutive per-step pushes land red on CI while local gates pass
+  cause: per-step verification ran targeted test subsets only; public-surface additions (snapshot/docs counts) and lint break CI's full gate, which nothing per-step executed
+  repair: after any push touching jaxfne/ exports or surface artifacts, read that push's CI result before the next step; repo is public so GitHub Actions API answers without a gh token — check Fast on the exact pushed SHA, not just local broad
+  evidence: 0.5.4 (9 pushes 6792bc7..0ad95e0 red on CI, green locally; e13a511 fixed lint, 26c4299 fixed surface; Fast green confirmed on 86e5224 via public API)
+  scope: jaxfne (git/CI)

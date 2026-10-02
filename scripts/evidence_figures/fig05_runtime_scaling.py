@@ -11,12 +11,15 @@ No universal performance claims. Local environment receipt only.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import csv
 import os
 import platform
-import sys
 import time
-from pathlib import Path
 
 import jax
 import jax.numpy as jnp
@@ -35,6 +38,10 @@ from _figure_common import (
     save_figure_manifest,
     sha256_file,
     truth_gates,
+)
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
 

@@ -1,16 +1,10 @@
 # Interactive Tutorial Visualizations
 
-**Status:** Optional Interactive HTML Layer  
-**Date:** 2026-05-21  
-**run_status:** tutorial_scaffold  
-
----
-
 ## Overview
 
-jaxfne provides optional interactive Plotly HTML visualizations for tutorial outputs, generated from source simulation data. Static PNG figures remain the default and unchanged. Interactive HTML is opt-in, Plotly is optional, and all original status checks remain frozen.
+Optional interactive Plotly HTML visualizations for tutorial outputs, generated from source simulation data. Static PNG figures remain the default. Interactive HTML is opt-in, Plotly optional, status checks frozen.
 
-**Key principle:** Interactive visualizations are derived from the same source data as static PNG figures. No separate data sources, no additional statements, no biological validation added.
+**Principle:** Interactive visualizations derive from the same source data as static PNG figures: no separate data sources, no added statements, no biological validation.
 
 ---
 
@@ -22,7 +16,7 @@ Interactive visualizations require Plotly (optional [viz] extra dependency):
 pip install -e '.[viz]'
 ```
 
-Without Plotly, all tutorials and validators run normally. Plotly import failures are gracefully handled with clear status messages.
+Without Plotly, tutorials and validators run normally; import failures produce a status message.
 
 ---
 
@@ -44,7 +38,7 @@ python scripts/run_all_tutorials.py --write-figures --write-interactive --out-ro
 
 Output: All static files plus figures/raster.html or figures/spectrolaminar_profile.html.
 
-**Note:** For routine validation (CI, local development), use `--smoke` mode to reduce runtime:
+For routine validation (CI, local development), use `--smoke` mode to reduce runtime:
 
 ```bash
 python scripts/run_all_tutorials.py --smoke --write-figures --write-interactive --out-root outputs/test_interactive
@@ -167,13 +161,13 @@ Every tutorial's `asset_hashes.json` includes:
 4. **Interactive HTML** (if generated)
    - Format: `"figures/raster.html": "sha256_hash_string"` (or spectrolaminar_profile.html)
 
-**Validation:** All hashes are recomputed during validation and compared against recorded values. Mismatch indicates stale, corrupted, or manually modified artifacts.
+Hashes are recomputed during validation and compared against recorded values; mismatch indicates stale, corrupted, or manually modified artifacts.
 
 ---
 
 ## Statement Discipline
 
-All interactive visualizations respect and propagate the immutable status checks:
+Interactive visualizations propagate the immutable status checks:
 
 - `amplitude_status`: Always **False** (no amplitude calibration)
 - `model_status`: Always **"computational_scaffold"** (no biological statements)
@@ -240,9 +234,3 @@ This validates static PNG without interactive generation overhead. Full interact
 - [tutorial_outputs.md](tutorials/tutorial_outputs.md) — Output contract, static figure patterns
 - [probe_operators.md](guides/probe_operators.md) — 8-operator specification
 - [tutorials/index.md](tutorials/index.md) — Tutorial progression
-
----
-
-**Status Status:** Interactive visualizations are computational artifacts, not empirically validated evidence. All status checks remain frozen.
-
-**Version:** optional layer, static PNG default preserved

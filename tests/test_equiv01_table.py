@@ -2,7 +2,12 @@
 
 Strongest justified relation per cell (measured, not assumed):
 - spikes: exact, all regimes.
-- V_m: exact on baseline; d<=1e-4 on HDP paths (worst observed 4.6e-05).
+- V_m: d<=1e-4 on baseline and HDP paths (baseline worst observed
+  3.9e-05 after the 0.5.3 P-010 chain-noise contract; HDP worst
+  observed 4.6e-05). Baseline jit-vs-eager bit-exactness held only for
+  the unchunkable bulk-noise graph and is not a stable contract
+  (C5-C7); the chain schedule that makes chunked == continuous changes
+  XLA fusion. Spikes stay exact.
 - H: exact on legacy HDP; d<=1e-6 on registered rules (observed 2.4e-07).
 - W/Theta: exact (observed 0.0 in all regimes incl. boundary clips).
 - sources: d<=1e-4 (mechanism-consistent with V; observed exact).
@@ -12,7 +17,10 @@ Strongest justified relation per cell (measured, not assumed):
   record toggles: exact (pinned by HDP-01/STOCH-01/REC-01/LAW-01 receipts;
   not re-proven here).
 Epsilons are pre-declared bounds with measured evidence retained in the
-receipt, never promoted from single observations.
+receipt, never promoted from single observations. They were measured at the
+default drives (E 5.0, PV 3.0). The E/PV drive-10.0 corner carries its own
+empirical bounds (P-019): V_m d<=1e-2, H d<=1e-5, W d<=1e-6, spikes exact;
+sources and aux keep the default bounds.
 """
 
 from __future__ import annotations
@@ -42,18 +50,19 @@ REGIMES = {
 }
 
 
-def _model(n=8):
+def _model(n=8, drive=None):
     cfg = (
         jtfne.configuration()
         .runtime(seed=0, recurrent_backend="edge_list")
         .network(name="V1", kind="cortical_column", n=n,
                  cell_types={"E": 0.8, "PV": 0.2})
-        .cell_type_drives({"E": 10.0, "PV": 10.0})
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(domain="laminar_column", conductivity="proxy",
                boundary="mean_zero_neumann", gauge="mean_zero")
         .probe(name="probe", modes=["spikes", "V_m"])
     )
+    if drive is not None:
+        cfg = cfg.drive(baseline_drive_by_cell_type=drive)
     return jtfne.construct(cfg)
 
 
@@ -97,8 +106,47 @@ def test_equiv_baseline_exact():
     model = _model()
     (a, _), (b, _) = _run_pair(model, None)
     assert jnp.array_equal(a.spikes, b.spikes)
-    assert jnp.array_equal(a.V_m, b.V_m)
-    assert jnp.array_equal(np.asarray(a.sources), np.asarray(b.sources))
+    assert float(jnp.max(jnp.abs(a.V_m - b.V_m))) <= EPS_V
+    assert float(jnp.max(jnp.abs(
+        np.asarray(a.sources) - np.asarray(b.sources)))) <= EPS_V
+
+
+# P-019 drive-10.0 corner bounds (empirical, margin >= 4x over the seed-3
+# 60 ms measurement: dV 2.50e-03, dH 7.15e-07, dW 8.94e-08; spikes exact).
+EPS_V_DRIVE10 = 1e-2
+EPS_H_DRIVE10 = 1e-5
+EPS_W_DRIVE10 = 1e-6
+
+
+@pytest.mark.parametrize("regime", ["legacy", "registered", "eligibility"])
+def test_equiv_table_hdp_regimes_drive10(regime):
+    model = _model(drive={"E": 10.0, "PV": 10.0})
+    (a, da), (b, db) = _run_pair(model, REGIMES[regime])
+    assert jnp.array_equal(a.spikes, b.spikes)
+    assert float(jnp.max(jnp.abs(a.V_m - b.V_m))) <= EPS_V_DRIVE10
+    assert float(jnp.max(jnp.abs(
+        np.asarray(a.sources) - np.asarray(b.sources)))) <= EPS_V
+    assert da is not None and db is not None
+    dh = np.abs(np.asarray(da["H_trace"]) - np.asarray(db["H_trace"]))
+    assert float(dh.max()) <= EPS_H_DRIVE10, regime
+    dw = np.abs(np.asarray(da["w_trace"]) - np.asarray(db["w_trace"]))
+    assert float(dw.max()) <= EPS_W_DRIVE10, regime
+    if da.get("aux_final") is not None and int(np.asarray(da["aux_final"]).size):
+        shorter = min(np.asarray(da["aux_trace"]).shape[0],
+                      np.asarray(db["aux_trace"]).shape[0])
+        daux = np.abs(np.asarray(da["aux_trace"])[:shorter]
+                      - np.asarray(db["aux_trace"])[:shorter])
+        assert float(daux.max()) <= EPS_AUX, regime
+
+
+def test_equiv_baseline_drive10():
+    # P-019 corner, no HDP: measured dV 1.40e-03, sources exact, spikes exact.
+    model = _model(drive={"E": 10.0, "PV": 10.0})
+    (a, _), (b, _) = _run_pair(model, None)
+    assert jnp.array_equal(a.spikes, b.spikes)
+    assert float(jnp.max(jnp.abs(a.V_m - b.V_m))) <= EPS_V_DRIVE10
+    assert float(jnp.max(jnp.abs(
+        np.asarray(a.sources) - np.asarray(b.sources)))) <= EPS_V
 
 
 def test_equiv_boundary_clips_do_not_amplify():

@@ -1,10 +1,8 @@
 # Brian2 vs. jaxfne benchmark receipt (2026-07-18)
 
-**The first real, quantitative cross-tool comparison run this session** —
-prior benchmarking work (GPU/TPU/CPU accelerator comparisons) was entirely
-jaxfne-vs-itself across backends, never against an incumbent tool. This one
-is a small, real, honest smoke comparison — not a comprehensive benchmark
-suite. Treat it as a first data point, not a definitive claim.
+First quantitative cross-tool comparison. Prior benchmarking compared jaxfne
+against itself across backends, never against an incumbent tool. This is a small
+smoke comparison, not a benchmark suite: a first data point, not a definitive claim.
 
 ## Setup
 
@@ -28,8 +26,7 @@ settings on both sides (no hand-tuning either tool).
 
 ## Results
 
-Two independent runs (fresh Brian2 venv both times), confirming the ratios
-are reproducible, not a one-off fluke:
+Two independent runs (fresh Brian2 venv both times):
 
 | N | Tool | Run | construct() | simulate() |
 |---|---|---|---|---|

@@ -10,14 +10,21 @@ working on this split itself.
 
 from __future__ import annotations
 
+import math
+import numbers
 from dataclasses import replace
 from typing import Any, Mapping, Sequence
 
 import jax
 import jax.numpy as jnp
 
-from .emitters import EdgeList, IzhikevichParams, izhikevich_params_from_labels
-from ._config import Configuration, _counts_from_fractions
+from .emitters import (
+    IZHIKEVICH_CELL_TYPE_DEFAULTS,
+    EdgeList,
+    IzhikevichParams,
+    izhikevich_params_from_labels,
+)
+from ._config import Configuration, _counts_from_fractions, edge_seed_from_metadata
 from ._construct_connectivity import _empty_edge_list, _interarea_W
 
 
@@ -55,6 +62,11 @@ _SUITE2_PROXY_MODES = (
 
 def _default_layer_cell_types() -> dict[str, dict[str, float]]:
     return {k: dict(v) for k, v in _SUITE2_LAYER_CELL_TYPES_V1.items()}
+
+
+# Column k of a Configuration sits at x = k * AREA_X_SPACING_MM (mm); the
+# NeuronalTensor pose overlay removes this offset before applying a Pose3D.
+AREA_X_SPACING_MM = 2.0
 
 
 def _layer_ranges_for(layers: Sequence[str], metadata: Mapping[str, Any]) -> dict[str, tuple[float, float]]:
@@ -115,6 +127,180 @@ def _area_layer_count_frac(metadata: Mapping[str, Any], area: str) -> dict[str, 
     return None
 
 
+# Keys of make_eig_network's default cell-type mix (jaxfne/emitters.py): the
+# declared composition when a configuration names no cell types anywhere.
+_UNDECLARED_CELL_TYPES_DEFAULT = ("E", "PV", "SST", "VIP")
+
+
+def _declared_cell_types(cfg: "Configuration") -> set[str]:
+    """Cell types the configuration declares, whether or not count rounding
+    builds one of each: the union of the keys of ``networks[0]["cell_types"]``,
+    ``metadata["cell_types"]``, ``metadata["layer_cell_types"][*]`` and
+    ``metadata["area_layer_cell_types"][*][*]``. Empty (nothing declared
+    anywhere) falls back to the ``make_eig_network`` default mix, which is
+    what the plain route builds then."""
+    declared: set[str] = set()
+    networks = getattr(cfg, "networks", None) or []
+    if networks:
+        for key in (networks[0].get("cell_types") or {}):
+            declared.add(str(key))
+    metadata = getattr(cfg, "metadata", None) or {}
+    for key in (metadata.get("cell_types") or {}):
+        declared.add(str(key))
+    for per_layer in (metadata.get("layer_cell_types") or {}).values():
+        for key in (per_layer or {}):
+            declared.add(str(key))
+    for per_area in (metadata.get("area_layer_cell_types") or {}).values():
+        for per_layer in (per_area or {}).values():
+            for key in (per_layer or {}):
+                declared.add(str(key))
+    if not declared:
+        declared.update(_UNDECLARED_CELL_TYPES_DEFAULT)
+    return declared
+
+
+def _refuse_unmatched_baseline_drive(
+    labels: Sequence[str],
+    baseline: Mapping[str, Any] | None,
+    declared: set[str],
+) -> None:
+    """Refuse a ``drive(baseline_drive_by_cell_type=)`` entry that is not a
+    finite real number (metadata surgery bypassing ``drive()`` must fail as
+    ValueError, not TypeError), or that names a cell type in neither the built
+    population nor the declared composition -- unless it holds that cell
+    type's emitter default (the ``drive()`` defaults name all four types). A
+    declared-but-rounded-away type is accepted: the configuration names it, so
+    the entry is a count artifact, not a dropped declaration."""
+    present = set(labels)
+    for cell_type, value in (baseline or {}).items():
+        if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
+            raise ValueError(
+                f"drive(baseline_drive_by_cell_type={{{cell_type!r}: {value!r}}}) is not realized: "
+                "it takes a finite real number"
+            )
+        default = IZHIKEVICH_CELL_TYPE_DEFAULTS.get(str(cell_type), {}).get("drive")
+        if str(cell_type) in present or str(cell_type) in declared:
+            continue
+        if default is not None and float(value) == float(default):
+            continue
+        raise ValueError(
+            f"drive(baseline_drive_by_cell_type={{{cell_type!r}: {value!r}}}) is not realized: "
+            f"no neuron of the built population has that label (labels: {sorted(present)}), "
+            f"nor does the declared composition name it (declared: {sorted(declared)})"
+        )
+
+
+def _apply_baseline_drive(
+    params: IzhikevichParams,
+    metadata: Mapping[str, Any],
+    declared: set[str],
+) -> IzhikevichParams:
+    """Apply ``drive(baseline_drive_by_cell_type=)`` to built parameters: a neuron whose
+    label the map names takes that drive, the others keep their cell type's default,
+    as ``izhikevich_params_from_labels(drive_overrides=)`` builds them."""
+    import numpy as np
+
+    spec = metadata.get("drive")
+    baseline = spec.get("baseline_drive_by_cell_type") if isinstance(spec, dict) else None
+    _refuse_unmatched_baseline_drive(params.labels, baseline, declared)
+    if not baseline:
+        return params
+    overrides = {str(k): float(v) for k, v in baseline.items()}
+    drive = [overrides.get(label, value) for label, value in zip(params.labels, np.asarray(params.drive).tolist())]
+    return replace(params, drive=jnp.asarray(drive, dtype=params.drive.dtype))
+
+
+def _apply_cell_params(
+    params: IzhikevichParams,
+    labels: Sequence[str],
+    layer_labels: Sequence[str] | None,
+    metadata: Mapping[str, Any],
+    jdtype: Any,
+    declared: set[str],
+) -> IzhikevichParams:
+    """Apply ``cell_params()`` declarations in order: each sets ``a``/``b``/``c``/``d``/
+    ``drive`` of the neurons its ``cell_type``/``layer`` selector matches.
+    ``layer_labels=None`` (an unlayered population) refuses a ``layer`` selector.
+    A ``cell_type`` selector matching no neuron is refused unless the type is in
+    the declared composition (declared but rounded away: accepted, applies to
+    no neuron)."""
+    import numpy as np
+
+    decls = (metadata.get("circuit") or {}).get("cell_params") or []
+    if not decls:
+        return params
+    arrays = {key: np.array(getattr(params, key)) for key in ("a", "b", "c", "d", "drive")}
+    for decl in decls:
+        selector = decl.get("selector", {})
+        overrides = decl.get("params", {})
+        if "layer" in selector and layer_labels is None:
+            raise ValueError(
+                f"cell_params(selector={dict(selector)!r}) is not realized on this construction "
+                "route: it builds one unlayered population"
+            )
+        matched = 0
+        for i in range(len(labels)):
+            if "cell_type" in selector and labels[i] != selector["cell_type"]:
+                continue
+            if "layer" in selector and layer_labels[i] != selector["layer"]:
+                continue
+            matched += 1
+            for key in arrays:
+                if key in overrides:
+                    arrays[key][i] = float(overrides[key])
+        if not matched:
+            if "cell_type" in selector and str(selector["cell_type"]) in declared:
+                continue
+            raise ValueError(
+                f"cell_params(selector={dict(selector)!r}) is not realized: it matches no neuron "
+                "of the built population"
+            )
+    return replace(params, **{key: jnp.asarray(value, dtype=jdtype) for key, value in arrays.items()})
+
+
+def _refuse_dropped_layer_tables(metadata: Mapping[str, Any], columns: Sequence[Mapping[str, Any]], uniform_3d: bool) -> None:
+    """Refuse layer declarations the population builder would drop (H1 e).
+
+    A column built as one ``uniform_3d`` layer samples its cell types from the
+    flat composition and places neurons in a cylinder: it reads no layer
+    table. uniform3d() builds every column that way, so it drops declared
+    column layers too.
+    """
+    uniform_areas = set()
+    for area_idx, column in enumerate(columns):
+        area = str(column.get("name", f"area_{area_idx}"))
+        layers = [str(x) for x in column.get("layers", ["uniform_3d"])] or ["uniform_3d"]
+        if uniform_3d and layers != ["uniform_3d"]:
+            raise ValueError(
+                f"column({area!r}, layers={layers!r}) is not realized: uniform3d() builds every "
+                "column as one 'uniform_3d' layer. Declare layers=['uniform_3d'], or drop "
+                "uniform3d() for a laminar column"
+            )
+        if uniform_3d or layers == ["uniform_3d"]:
+            uniform_areas.add(area)
+    areas = {str(column.get("name", f"area_{i}")) for i, column in enumerate(columns)}
+    for key, call in (("area_layer_cell_types", "area_layer_cell_types"), ("area_layer_count_frac", "population")):
+        for area in (metadata.get(key) or {}):
+            if str(area) not in areas:
+                raise ValueError(f"{call}({str(area)!r}, ...) is not realized: no column is named {str(area)!r}")
+            if str(area) in uniform_areas:
+                raise ValueError(
+                    f"{call}({str(area)!r}, ...) is not realized: column {str(area)!r} is one "
+                    "'uniform_3d' layer and reads no layer table"
+                )
+    if uniform_areas == areas:
+        for key, call in (
+            ("layer_fractions", "layer_fractions"),
+            ("layer_cell_types", "layer_fractions(layer_cell_types=)"),
+            ("layer_count_frac", "population"),
+        ):
+            if metadata.get(key):
+                raise ValueError(
+                    f"{call}(...) is not realized: every column is one 'uniform_3d' layer and "
+                    "reads no layer table. Drop it, or build a laminar column (no uniform3d())"
+                )
+
+
 def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float32") -> tuple[IzhikevichParams, jax.Array, dict[str, Any]]:
     """Build explicit Suite No. 2 neuron metadata and reduced emitter arrays."""
 
@@ -125,6 +311,7 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
         columns = [{"name": str(net.get("name", "net1")), "layers": ["uniform_3d"], "n": int(net.get("n", 100)), "start_index": 0, "stop_index": int(net.get("n", 100))}]
     seed = int(metadata.get("seed", 0))
     uniform_3d = bool(metadata.get("uniform_3d", False))
+    _refuse_dropped_layer_tables(metadata, columns, uniform_3d)
     global_cell_types = {str(k): float(v) for k, v in net.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03}).items()}
 
     labels: list[str] = []
@@ -152,7 +339,7 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
             x_key, y_key, z_key = jax.random.split(key, 3)
             radius = float(metadata.get("column_radius_mm", 0.25))
             height = float(metadata.get("column_height_mm", 1.60))
-            x = jax.random.uniform(x_key, (n_col,), minval=-radius, maxval=radius, dtype=jdtype) + jnp.asarray(area_idx * 2.0, dtype=jdtype)
+            x = jax.random.uniform(x_key, (n_col,), minval=-radius, maxval=radius, dtype=jdtype) + jnp.asarray(area_idx * AREA_X_SPACING_MM, dtype=jdtype)
             y = jax.random.uniform(y_key, (n_col,), minval=-radius, maxval=radius, dtype=jdtype)
             z = jax.random.uniform(z_key, (n_col,), minval=0.0, maxval=height, dtype=jdtype)
             position_chunks.append(jnp.stack([x, y, z], axis=1))
@@ -165,6 +352,16 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
             continue
 
         layer_ranges = _layer_ranges_for(layers, metadata)
+        # TFNE-declared relative geometry (0.5.2 PARAM-04): per-(area, layer)
+        # fractional sub-range domains, each axis a [lo, hi] pair in [0,1].
+        # Absent (no TFNE sub-range declared) the sampling below is exactly
+        # the historical call; a declared full [0,1] axis is likewise left
+        # on the historical bounds (rescaling by an exact full range would
+        # still perturb floats, so only non-full axes are remapped).
+        tfne_domains = (
+            (metadata.get("tfne_geometry") or {}).get("domains", {}).get(area, {})
+            or {}
+        )
         count_frac = _area_layer_count_frac(metadata, area)
         if count_frac is not None and sum(count_frac.get(layer, 0.0) for layer in layers) > 0.0:
             # Population-fraction allocation (decoupled from thickness).
@@ -187,9 +384,30 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
             layer_cell_labels = layer_cell_labels[:n_layer] + ["E"] * max(0, n_layer - len(layer_cell_labels))
             x_key, y_key, z_key = jax.random.split(jax.random.fold_in(key, layer_idx), 3)
             radius = float(metadata.get("column_radius_mm", 0.25))
-            x = jax.random.uniform(x_key, (n_layer,), minval=-radius, maxval=radius, dtype=jdtype) + jnp.asarray(area_idx * 2.0, dtype=jdtype)
-            y = jax.random.uniform(y_key, (n_layer,), minval=-radius, maxval=radius, dtype=jdtype)
-            z = jax.random.uniform(z_key, (n_layer,), minval=float(z0), maxval=float(z1), dtype=jdtype)
+            x_lo, x_hi = -radius, radius
+            y_lo, y_hi = -radius, radius
+            z_lo, z_hi = float(z0), float(z1)
+            dom = tfne_domains.get(layer)
+            if dom:
+                for ax, span_lo, span in (
+                    ("x", -radius, 2.0 * radius),
+                    ("y", -radius, 2.0 * radius),
+                    ("z", float(z0), float(z1) - float(z0)),
+                ):
+                    frac = dom.get(ax)
+                    if frac is None or list(frac) == [0.0, 1.0]:
+                        continue
+                    a, b = float(frac[0]), float(frac[1])
+                    blo, bhi = span_lo + a * span, span_lo + b * span
+                    if ax == "x":
+                        x_lo, x_hi = blo, bhi
+                    elif ax == "y":
+                        y_lo, y_hi = blo, bhi
+                    else:
+                        z_lo, z_hi = blo, bhi
+            x = jax.random.uniform(x_key, (n_layer,), minval=x_lo, maxval=x_hi, dtype=jdtype) + jnp.asarray(area_idx * AREA_X_SPACING_MM, dtype=jdtype)
+            y = jax.random.uniform(y_key, (n_layer,), minval=y_lo, maxval=y_hi, dtype=jdtype)
+            z = jax.random.uniform(z_key, (n_layer,), minval=z_lo, maxval=z_hi, dtype=jdtype)
             position_chunks.append(jnp.stack([x, y, z], axis=1))
             for local_idx, cell_type in enumerate(layer_cell_labels[:n_layer]):
                 labels.append(cell_type)
@@ -201,6 +419,7 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
     # Apply baseline_drive_by_cell_type from drive specification if present
     drive_spec = metadata.get("drive", {})
     baseline_drive = drive_spec.get("baseline_drive_by_cell_type") if isinstance(drive_spec, dict) else None
+    _refuse_unmatched_baseline_drive(labels, baseline_drive, _declared_cell_types(cfg))
 
     params = izhikevich_params_from_labels(
         labels,
@@ -214,47 +433,13 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
         build_dense_connectivity=False,
     )
     
-    # Compile and apply declared cell_params overrides
-    circuit = metadata.get("circuit", {})
-    cell_param_decls = circuit.get("cell_params", [])
-    if cell_param_decls:
-        import numpy as np
-        a_list = np.array(params.a)
-        b_list = np.array(params.b)
-        c_list = np.array(params.c)
-        d_list = np.array(params.d)
-        drive_list = np.array(params.drive)
-        for decl in cell_param_decls:
-            selector = decl.get("selector", {})
-            param_overrides = decl.get("params", {})
-            for i in range(len(labels)):
-                match = True
-                if "cell_type" in selector and labels[i] != selector["cell_type"]:
-                    match = False
-                if "layer" in selector and layer_labels[i] != selector["layer"]:
-                    match = False
-                if match:
-                    if "a" in param_overrides:
-                        a_list[i] = float(param_overrides["a"])
-                    if "b" in param_overrides:
-                        b_list[i] = float(param_overrides["b"])
-                    if "c" in param_overrides:
-                        c_list[i] = float(param_overrides["c"])
-                    if "d" in param_overrides:
-                        d_list[i] = float(param_overrides["d"])
-                    if "drive" in param_overrides:
-                        drive_list[i] = float(param_overrides["drive"])
-        params = replace(
-            params,
-            a=jnp.asarray(a_list, dtype=jdtype),
-            b=jnp.asarray(b_list, dtype=jdtype),
-            c=jnp.asarray(c_list, dtype=jdtype),
-            d=jnp.asarray(d_list, dtype=jdtype),
-            drive=jnp.asarray(drive_list, dtype=jdtype),
-        )
+    params = _apply_cell_params(params, labels, layer_labels, metadata, jdtype, _declared_cell_types(cfg))
 
     positions = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3), dtype=jdtype)
-    params, _prebuilt_edges = _apply_connectivity(params, area_labels, layer_labels, labels, metadata, seed=seed, dtype=dtype)
+    # Edge draws take the declared edge_seed when set, else the runtime seed;
+    # positions above (and random v0 / canonical biophysics downstream) keep it.
+    edge_seed = edge_seed_from_metadata(metadata)
+    params, _prebuilt_edges = _apply_connectivity(params, area_labels, layer_labels, labels, metadata, seed=edge_seed, dtype=dtype)
     geometry_meta = {
         "neuron_rows": neuron_rows,
         "area_labels": area_labels,

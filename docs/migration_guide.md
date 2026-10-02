@@ -2,13 +2,12 @@
 
 As of 0.4.7, **`NeuronalTensor` + `RuntimeConfiguration` is the preferred way
 to define and run a circuit.** `Configuration` (the original fluent builder)
-remains fully supported — nothing built on it breaks — but it is no longer
-the primary teaching path in the README, quickstart, or new tutorials.
+remains fully supported — nothing built on it breaks — but new README, quickstart,
+and tutorial material starts from the preferred path.
 
-This page is deliberately short: the two paths converge on the same `Model`
-via `construct()`, so there is no data migration, no breaking change, and no
-deprecation timer. This is a recommendation about which path to *start* with,
-not a requirement to rewrite anything that already works.
+The two paths converge on the same `Model` via `construct()`: no data
+migration, no breaking change, no deprecation timer. This recommends which path
+to *start* with; working code needs no rewrite.
 
 ## Preferred: `NeuronalTensor` + `RuntimeConfiguration`
 
@@ -48,8 +47,7 @@ model   = jtfne.construct(cfg)
 signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
 ```
 
-`Configuration` keeps working exactly as before — no wrapper, no shim, it is
-the same code path it always was. Use it when:
+`Configuration` is the same code path it always was — no wrapper, no shim. Use it when:
 
 - You have existing `Configuration`-based code or notebooks; there is no need
   to rewrite working code to adopt this guide.
@@ -63,8 +61,8 @@ Full reference: [Configuration Grammar guide](guides/configuration_grammar.md).
 
 ## What does *not* change either way
 
-Both paths converge on the same `Model`, so everything downstream is
-identical regardless of which one built it:
+Both paths converge on the same `Model`; everything downstream is
+identical:
 
 ```text
 Model -> simulate() -> Signals -> probe -> Objective -> Optimizer -> Manifest

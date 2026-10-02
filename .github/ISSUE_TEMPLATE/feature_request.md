@@ -5,11 +5,11 @@ title: ""
 labels: enhancement
 ---
 
-**What's the use case**
-What are you trying to do that jaxfne doesn't support today?
+**Use case**
+Goal or workflow that jaxfne does not currently support.
 
-**Proposed API / behavior**
-Sketch of what you'd want to call, or how the behavior should change.
+**Proposed API or behavior**
+Proposed call syntax or behavior change.
 
 **Alternatives considered**
-Any workarounds you're using today, or other approaches you considered.
+Workarounds currently in use or alternative approaches.

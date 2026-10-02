@@ -9,9 +9,13 @@ Phase: post-freeze reviewer-motivated validation. No neural simulation.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import json
 import subprocess
-from pathlib import Path
 
 import numpy as np
 
@@ -24,6 +28,10 @@ from jaxfne.protocol_c.synthetic import (
     random_spatial_phases,
     standing_wave_field,
     synchronous_oscillation,
+)
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

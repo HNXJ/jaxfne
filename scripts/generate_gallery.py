@@ -117,9 +117,16 @@ def main(argv=None) -> int:
             raise SystemExit("gallery.md lacks ATLAS-INDEX markers")
         before = text.split(START)[0]
         after = text.split(END)[1]
+        if after.startswith("\n"):  # block ends with END's line break; keep one so writes are idempotent
+            after = after[1:]
         GALLERY.write_text(before + block + after, encoding="utf-8")
         print(f"gallery rewritten: {len(entries)} atlases")
         return 0
+    expected = block.split(START)[1].split(END)[0]  # parsed as current_block() parses the file
+    if current_block() != expected:
+        print("gallery.md index is stale against the manifests; run "
+              "`python scripts/generate_gallery.py --write`")
+        return 1
     print(f"gallery: {len(entries)} validated atlases indexed")
     return 0
 

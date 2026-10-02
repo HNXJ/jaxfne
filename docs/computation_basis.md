@@ -25,7 +25,7 @@ TFNE operates on tensors with the following canonical dimensions:
 
 ### Canonical Shapes
 
-Each stage of the pipeline has a **canonical shape** and can be **collapsed** if not needed:
+Each pipeline stage has a **canonical shape** and can be **collapsed** if not needed:
 
 | Stage | Input | Output | Collapse Rule |
 |-------|-------|--------|---------------|
@@ -59,7 +59,7 @@ Each stage of the pipeline has a **canonical shape** and can be **collapsed** if
 
 ## No Fake Dimensions Rule
 
-**CRITICAL:** TFNE forbids adding dimensions that are not grounded in the problem.
+**Rule:** TFNE forbids dimensions not grounded in the problem.
 
 ### Forbidden Patterns
 
@@ -111,7 +111,7 @@ When adding a new dimension:
 
 ## Basis Changes and Canonical Representations
 
-TFNE supports multiple **basis choices** for the same underlying computation. Each basis is valid if:
+TFNE supports multiple **basis choices** for the same computation. Each is valid if:
 1. It preserves the input/output shape rule
 2. It is documented in Manifest
 3. It is tested for numerical equivalence
@@ -144,7 +144,7 @@ See [Source/Field equations](source_field_equations.md) for the shipped laminar 
 
 ## Extensibility Rule: Adding New Domains
 
-When extending TFNE to a new domain (whole-brain, multi-area, ephaptic coupling, etc.), follow this model:
+To extend TFNE to a new domain (whole-brain, multi-area, ephaptic coupling), follow this model:
 
 ### Step 1: Define Input/Output Shapes
 
@@ -218,7 +218,7 @@ readouts = model_full.compute_readout(signals_full, [
 
 ### PRNG Rule
 
-TFNE uses JAX's deterministic PRNG. All simulations with the same seed are reproducible:
+TFNE uses JAX's deterministic PRNG; the same seed reproduces a simulation:
 
 ```python
 sim1 = jtfne.simulation(seed=42, duration_ms=100.0, dt_ms=0.1)
@@ -232,7 +232,7 @@ assert jnp.allclose(signals1.V_m, signals2.V_m)  # ✓ Same trajectory
 
 ### Finiteness Guarantee
 
-All readouts are checked for NaN/Inf before serialization:
+Readouts are checked for NaN/Inf before serialization:
 
 ```python
 manifest = model.manifest(signals, readouts)
@@ -241,7 +241,7 @@ json_output = json.dumps(manifest, allow_nan=False)  # Fails if NaN/Inf present
 
 ### Shape Stability
 
-If an operator's output shape changes unexpectedly, the pipeline breaks. Test this:
+An unexpected output-shape change breaks the pipeline. Test this:
 
 ```python
 # Good: shape is stable across runs
@@ -272,7 +272,7 @@ for seed in range(10):
 
 ## Implemented
 
-The following computation-basis objects are implemented in jaxfne:
+Computation-basis objects implemented in jaxfne:
 
 | Object / Function | Location | Purpose |
 |-------------------|----------|---------|
@@ -313,6 +313,6 @@ The following computation-basis objects are implemented in jaxfne:
 - [Source/Field Equations](source_field_equations.md) — Source modes, forbidden patterns, field metadata
 - Tensor-Network Ancestry (`docs/tensor_network_ancestry.md` — repository-internal reference, excluded from the built site) — conceptual context: basis-transform rule and historical parallels
 - [Probe Operators](guides/probe_operators.md) — Readout operators and their statement boundaries
-- [Scope and Limitations](limitations_and_future_plans.md) — What TFNE statements and stays scoped to
+- [Scope and Limitations](limitations_and_future_plans.md) — statement boundaries and scope
 - TFNE Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) — Per-stage rule table built on these tensor shapes
 - Tensor Electromagnetics Scope (`docs/tensor_electromagnetics_scope.md` — repository-internal reference, excluded from the built site) — Reserved field-solver stages referenced by the reserved markers above

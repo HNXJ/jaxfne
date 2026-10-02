@@ -24,6 +24,7 @@ def manifest(
     tuning: Optional[dict[str, Any]] = None,
     dataset: Optional[dict[str, Any]] = None,
     trials: Optional[dict[str, Any]] = None,
+    intervention: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Build a JSON-safe run manifest dict.
 
@@ -57,9 +58,7 @@ def manifest(
                 "source_mode_class": source_mode_class,
                 "source_decomposition": signals.metadata.get("source_decomposition"),
                 "source_contract": signals.metadata.get("source_contract"),
-                "source_calibration_status": signals.metadata.get(
-                    "source_calibration_status"
-                ),
+                "source_calibration_status": signals.metadata.get("source_calibration_status"),
                 "representation": signals.metadata.get("representation", "relative"),
                 "calibration_transform": signals.metadata.get(
                     "calibration_transform", "explicit_boundary_transform"
@@ -96,6 +95,10 @@ def manifest(
     )
     if trials is not None:
         res["trials"] = trials
+    # 0.5.3 item 6: causal-intervention record (same additive idiom as
+    # trials). Absent intervention the manifest is unchanged.
+    if intervention is not None:
+        res["intervention"] = intervention
     # If readout was provided as ReadoutResult list (canonical v0.1 workflow),
     # surface the normalized readout summary in the manifest under "readout_results".
     # Dict-shaped readouts are already surfaced via build_manifest's field_diagnostics
@@ -128,6 +131,7 @@ def manifest(
     # v0.2.0: Field admissibility metadata
     if signals is not None and signals.field is not None:
         from .validation import build_field_admissibility_report
+
         field_admissibility = build_field_admissibility_report(
             field_output=signals.field,
             cfg_metadata=dict(self.cfg.metadata or {}),
@@ -158,6 +162,7 @@ def manifest(
         # the receptor labels/taus the kernel can index. The actual per-edge
         # tau_ms lives on EdgeList; this is the catalog.
         from .emitters import standard_receptor_specs
+
         backend_meta["receptor_specs"] = {
             name: {
                 "name": spec.name,
@@ -174,14 +179,86 @@ def manifest(
     res["backend_metadata"] = backend_meta
     if "geometry" in self.static:
         res["source_geometry"] = self.static["geometry"]
+    # 0.5.2 PARAM-04: TFNE-declared relative geometry, recorded only when a
+    # sub-range was declared (absent declaration the manifest is unchanged).
+    # `declared` is the configured per-leaf G; `realized_domains` the
+    # per-(area, layer) fractional domains construction sampled; both are
+    # relative fractions (`value_tag="relative"`), never physical lengths.
+    _tfne_geo = (self.cfg.metadata or {}).get("tfne_geometry")
+    if _tfne_geo:
+        from .io import json_safe
+
+        res["tfne_geometry"] = json_safe(
+            {
+                "value_tag": _tfne_geo.get("value_tag", "relative"),
+                "declared": _tfne_geo.get("declared", {}),
+                "realized_domains": _tfne_geo.get("domains", {}),
+            }
+        )
+    # 0.5.2 PARAM-02: TFNE-declared delay, recorded only when a delay was
+    # declared (absent declaration the manifest is unchanged). `declared_ms`
+    # is the configured per-rule delay in ms; `realized_steps` the integer
+    # steps at `dt_ms` (0.5.2 decision 0b). Units are ms throughout —
+    # never physical lengths or conductivities.
+    _tfne_delay = (self.cfg.metadata or {}).get("tfne_delay")
+    if _tfne_delay:
+        from .io import json_safe as _delay_json_safe
+
+        res["tfne_delay"] = _delay_json_safe(
+            {
+                "declared_ms": _tfne_delay.get("declared_ms", {}),
+                "realized_steps": _tfne_delay.get("realized_steps", {}),
+                "dt_ms": _tfne_delay.get("dt_ms"),
+            }
+        )
+    # Executed delay summary for any model (TFNE or hand-built): present
+    # only when at least one edge carries a positive delay, so delay-free
+    # manifests are unchanged.
+    if "edge_list" in self.params:
+        try:
+            from .emitters import resolve_edge_delay_steps as _resolve_delays
+            import numpy as _np
+
+            _executed_steps = _np.asarray(_resolve_delays(self.params["edge_list"])).astype(int)
+            if _executed_steps.size and int(_executed_steps.max()) > 0:
+                res["executed_delay"] = {
+                    "max_steps": int(_executed_steps.max()),
+                    "n_delayed_edges": int((_executed_steps > 0).sum()),
+                    "n_edges": int(_executed_steps.size),
+                }
+        except Exception:
+            pass
+    # 0.5.2 item 4 (dispatcher follow-up): epistemic level carried on the
+    # manifest. FieldOutput/ProbeReadout start RELATIVE_PROXY; only an
+    # AppliedCalibration relabels (fields/probes.py refusal gate). Probe-level
+    # electrode keys (position/reference/filter/synthesized flags) live on
+    # ProbeReadout.report where probes are consumed; the manifest carries
+    # what it can see: the field-level epistemic state.
+    if signals is not None and signals.field is not None:
+        from .fields.probes import (
+            EPISTEMIC_RELATIVE_PROXY,
+            AppliedCalibration,
+            _applied_calibration_to_dict,
+        )
+
+        _field_level = getattr(signals.field, "epistemic_level", EPISTEMIC_RELATIVE_PROXY)
+        _field_cal = getattr(signals.field, "calibration", None)
+        res["field_epistemic"] = {
+            "epistemic_level": _field_level,
+            "applied_calibration": (
+                _applied_calibration_to_dict(_field_cal)
+                if isinstance(_field_cal, AppliedCalibration)
+                else None
+            ),
+        }
     # v0.2.26: computation-basis block
     res["basis"] = _default_basis_dict()
     # v0.2.27: conservation-inspired proxy diagnostics
     if signals is not None and signals.field is not None:
         from .fields import compute_conservation_proxy_diagnostics
-        _src_cal = (
-            signals.metadata.get("source_calibration_status",
-                                 "uncalibrated_izhikevich_native_current")
+
+        _src_cal = signals.metadata.get(
+            "source_calibration_status", "uncalibrated_izhikevich_native_current"
         )
         res["conservation_proxy_diagnostics"] = compute_conservation_proxy_diagnostics(
             field_solution=signals.field,
@@ -190,5 +267,3 @@ def manifest(
             field_claim_level="proxy_readout",
         )
     return res
-
-

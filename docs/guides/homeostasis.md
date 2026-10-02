@@ -5,10 +5,10 @@ control that holds each neuron's firing rate near a set-point by adapting an
 intrinsic excitability bias. One extra parameter per emitter; switching
 it on does three things at once:
 
-- **Eliminates hyperactivity** — pulls runaway/saturated units back down.
-- **Eliminates hypoactivity** — nudges silent units into working range.
-- **Models short-term adaptation** — the slow rate trace gives spike-frequency
-  adaptation for free.
+- **Counters hyperactivity** — pulls runaway/saturated units back down.
+- **Counters hypoactivity** — nudges silent units into working range.
+- **Models short-term adaptation** — the slow rate trace yields spike-frequency
+  adaptation.
 
 It is a *control method*, not a claimed biological plasticity mechanism — a
 restoring controller on excitability, useful as stabilizer and as adaptation
@@ -96,7 +96,7 @@ signals, diag = bridge.simulate_homeostatic(
 
 The injected current is hard-bounded (`current_clip_nA`) and finiteness is
 verified (`strict_finite=True` raises rather than masking) — the controller holds
-the implicit solver in a finite, stable regime under heterogeneous drive. See
+the implicit solver in a finite regime under heterogeneous drive. See
 `JaxleyBridge.simulate_homeostatic` in the Bridges API (`docs/api/bridges.md` — repository-internal reference, excluded from the built site).
 
 !!! warning "Stay in the monotonic f-I band (Jaxley path)"
@@ -110,12 +110,11 @@ the implicit solver in a finite, stable regime under heterogeneous drive. See
 Both paths are float32-safe: the built-in kernel hard-bounds its state
 (`v`/`u`/synaptic variables) so dynamics stay finite under extreme drive,
 and the Jaxley path hard-bounds injected current and checks finiteness. The
-controller thus doubles as a numerical stabilizer.
+controller thus also keeps the numerics finite.
 
 ## Using it as evidence
 
-Because `k_gain = 0` is a true null, the controller is built for clean
-comparisons: run with `k_gain = 0` and `k_gain > 0`, hold everything else fixed,
+Because `k_gain = 0` is a true null, comparisons stay clean: run with `k_gain = 0` and `k_gain > 0`, hold everything else fixed,
 and attribute the difference (rate spread collapsing toward the set-point, silent
 units recovering) to the controller. Report the null alongside the result.
 

@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import json
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -12,6 +16,10 @@ import numpy as np
 from jaxfne.experiment_a.canonical import CanonicalDataset, array_sha256, load_frozen_canonical_dataset
 from jaxfne.experiment_a.observe import apply_independent_probe, materialize_field, verify_b2_invariants
 from jaxfne.experiment_a.protocol import load_protocol_spec
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 _REPO = Path(__file__).resolve().parents[2]
 B1_RECEIPT = _REPO / "artifacts" / "etudes" / "experiment_a" / "b1_canonical_receipt.json"

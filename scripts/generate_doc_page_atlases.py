@@ -45,8 +45,8 @@ def spec_single_neuron():
     cfg = (
         jtfne.configuration()
         .network(n=1)
-        .emitter(family="izhikevich", preset="regular_spiking")
-        .field(domain="point")
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field()
         .probe(name="single_neuron", modes=["spikes", "V_m"])
     )
     model = jtfne.construct(cfg)
@@ -60,13 +60,9 @@ def spec_two_neuron_ei():
 
     cfg = (
         jtfne.configuration()
-        .network(
-            n=2,
-            cell_types={"E": 1, "PV": 1},
-            connectivity={"E→E": 0.1, "E→PV": 0.2, "PV→E": -0.3, "PV→PV": -0.1},
-        )
-        .emitter(family="izhikevich", preset="regular_spiking")
-        .field(domain="point")
+        .network(n=2, cell_types={"E": 0.5, "PV": 0.5})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field()
         .probe(name="two_neuron_ei", modes=["spikes", "V_m"])
     )
     model = jtfne.construct(cfg)
@@ -116,20 +112,16 @@ def spec_v1_column():
         jtfne.configuration()
         .network(
             n=600,
-            layers=["L1", "L2/3", "L4", "L5", "L6"],
             cell_types={"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03},
-            connectivity="layer_structured",
         )
         .emitter(family="izhikevich", preset="cortical_eig")
-        .field(
-            domain="laminar_column", conductivity="proxy", depths=[0.0, 0.15, 0.3, 0.5, 0.7, 1.0]
-        )
+        .field(domain="laminar_column", conductivity="proxy")
         .probe(name="v1_column", n_contacts=6, modes=["spikes", "V_m", "LFP", "CSD"])
     )
     model = jtfne.construct(cfg)
     signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
     return (
-        "V1 six-layer column (600n)",
+        "600n population, laminar readout",
         model,
         signals,
         dict(duration_ms=1000.0, dt_ms=0.5, seed=0),
@@ -227,7 +219,7 @@ def spec_evoked_l4():
         jtfne.Configuration()
         .runtime(seed=7, dtype="float32", duration_ms=1500.0, dt_ms=0.5)
         .column("V1_reduced", layers=["L2/3", "L4", "L5"], n=100)
-        .cell_type_drives({"E": 8.0, "PV": 4.0})
+        .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 4.0})
         .set_emitter("izhikevich", "cortical_eig")
         .probes(["spikes", "LFP-proxy", "CSD-proxy"])
     )
@@ -239,7 +231,10 @@ def spec_evoked_l4():
         post_stimulus_buffer_ms=500.0,
     )
     model = jtfne.construct(cfg)
-    signals = jtfne.simulate(model, seed=7, duration_ms=1500.0, dt_ms=0.5, paradigm=paradigm)
+    signals = jtfne.simulate(
+        model, seed=7, duration_ms=1500.0, dt_ms=0.5,
+        paradigm=paradigm.condition("evoked"),
+    )
     return (
         "Evoked L4 drive, evoked condition (100n)",
         model,
@@ -340,7 +335,7 @@ def spec_omission_60():
         jtfne.Configuration()
         .runtime(seed=42, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
         .column("V1_column", layers=["L2/3", "L4", "L5"], n=60)
-        .cell_type_drives({"E": 6.5, "PV": 3.0})
+        .drive(baseline_drive_by_cell_type={"E": 6.5, "PV": 3.0})
         .set_emitter("izhikevich", "cortical_eig")
         .probes(["spikes", "LFP-proxy", "CSD-proxy"])
     )
@@ -423,7 +418,7 @@ def spec_hdp_10():
     cfg = (
         jtfne.configuration()
         .network(name="V1", kind="cortical_column", n=10, cell_types={"E": 0.5, "PV": 0.5})
-        .cell_type_drives({"E": 8.0, "PV": 8.0})
+        .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 8.0})
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(
             domain="laminar_column",
@@ -536,13 +531,10 @@ def spec_calibration_100():
         .field(
             domain="laminar_column",
             conductivity="proxy",
-            depths=[0.0, 0.1, 0.3, 0.5, 0.7, 0.9],
             boundary="mean_zero_neumann",
             gauge="mean_zero",
         )
-        .probe(
-            name="calibration_ready", n_contacts=6, contact_depths=[0.05, 0.2, 0.4, 0.6, 0.8, 0.95]
-        )
+        .probe(name="calibration_ready", n_contacts=6)
     )
     model = jtfne.construct(cfg)
     signals = jtfne.simulate(model, duration_ms=200.0, dt_ms=0.5, seed=0)
@@ -565,9 +557,15 @@ def spec_objective_60():
         .set_emitter("izhikevich", "cortical_eig")
         .probes(["spikes", "V_m", "LFP", "CSD"], n_contacts=8)
     )
-    paradigm = jtfne.omission_oddball_paradigm(standard_onset_ms=50.0, standard_duration_ms=20.0)
+    paradigm = jtfne.omission_oddball_paradigm(standard_onset_ms=50.0, standard_duration_ms=20.0,
+                                              deviant_drive_amplitude=10.0)
     model = jtfne.construct(cfg)
-    signals = jtfne.simulate(model, duration_ms=200.0, dt_ms=0.5, seed=1, paradigm=paradigm)
+    # Page shows the standard-stimulus ("expected") run; a full Paradigm is
+    # refused by simulate(), so pass that condition explicitly.
+    signals = jtfne.simulate(
+        model, duration_ms=200.0, dt_ms=0.5, seed=1,
+        paradigm=paradigm.condition("expected"),
+    )
     return (
         "Objective-grammar chain, pre-tune (60n)",
         model,

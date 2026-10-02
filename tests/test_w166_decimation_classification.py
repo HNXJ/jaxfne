@@ -31,7 +31,7 @@ def _base_model(n=48):
         .runtime(seed=0, recurrent_backend="edge_list")
         .network(name="V1", kind="cortical_column", n=n,
                  cell_types={"E": 0.8, "PV": 0.2})
-        .cell_type_drives({"E": 10.0, "PV": 10.0})
+        .drive(baseline_drive_by_cell_type={"E": 10.0, "PV": 10.0})
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(domain="laminar_column", conductivity="proxy",
                boundary="mean_zero_neumann", gauge="mean_zero")

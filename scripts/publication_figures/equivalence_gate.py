@@ -24,12 +24,16 @@ Exit code: 0 iff all 7 figures pass decoded-pixel equivalence.
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import argparse
 import hashlib
 import json
 import os
 import pathlib
-import sys
 
 import numpy as np
 from PIL import Image

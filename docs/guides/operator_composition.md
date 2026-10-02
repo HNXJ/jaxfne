@@ -101,7 +101,7 @@ csd_standalone = jtfne.csd_tensor(fo.phi_e_proxy, dz)
 `csd_tensor` is the named operator that `project_laminar_sources` calls
 internally to derive `csd_proxy` from `phi_e_proxy` (the finite-difference
 second spatial derivative). Calling it standalone on `fo.phi_e_proxy`
-reproduces `fo.csd_proxy` exactly — this is the composability proof, not an
+reproduces `fo.csd_proxy` exactly — this is the composability check, not an
 illustrative claim: `jnp.allclose(csd_standalone, fo.csd_proxy)` is `True` for
 this run.
 
@@ -137,7 +137,7 @@ the source:
 source  → project_laminar_sources → FieldOutput → eeg_proxy_transform → EEG-proxy
 ```
 
-This is the chain you get for free any time you skip Stage 2 — every
+This is the chain you get any time you skip Stage 2 — every
 downstream call in Chain 1 (`csd_tensor`, `eeg_proxy_transform`,
 `meg_proxy_transform`) is shape-compatible with `fo` regardless of whether
 `fo` was built from `cab` or from `source_native` directly.
@@ -164,4 +164,4 @@ claim checkable; this page is what makes it readable.
 - Tensor Operator Registry (`docs/api/tensor_operators.md` — repository-internal reference, excluded from the built site) — the full operator inventory.
 - Operator Inventory (generated) (`docs/_generated/operator_inventory.md` — repository-internal reference, excluded from the built site) — the live export surface.
 - [Objective Grammar](objective_grammar.md) — the user-facing run sequence this composition feeds into via `probe()`.
-- `tests/test_tensor_pipeline_custom_cfg.py` — the executable proof this page documents.
+- `tests/test_tensor_pipeline_custom_cfg.py` — the executable check this page documents.

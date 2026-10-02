@@ -35,6 +35,13 @@ def _run_git(*args: str) -> str | None:
     return result.stdout.strip()
 
 
+def _current_branch() -> str | None:
+    branch = _run_git("branch", "--show-current")
+    if branch is None:
+        return None
+    return branch if branch else "(detached)"
+
+
 def _remote_head(branch: str) -> str | None:
     output = _run_git("ls-remote", "origin", f"refs/heads/{branch}")
     if not output:
@@ -80,7 +87,7 @@ def build_snapshot() -> dict[str, Any]:
         "schema_version": "jaxfne.repository_state.v1",
         "repository_root": str(ROOT),
         "git": {
-            "branch": _run_git("branch", "--show-current"),
+            "branch": _current_branch(),
             "head_sha": _run_git("rev-parse", "HEAD"),
             "working_tree_clean": not bool(status_lines),
             "working_tree_status": status_lines.splitlines(),

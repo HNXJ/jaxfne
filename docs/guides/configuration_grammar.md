@@ -62,7 +62,11 @@ specified is computed faithfully.
 
 `.geometry(layer_thickness=, layer_cell_types=)`, `.layer_fractions(...)`,
 `.column(name, layers, n)` / `.add_column(...)`, `.areas([...])`,
-`.uniform3d(radius_mm=, height_mm=)`.
+`.uniform3d(radius_mm=, height_mm=)`. A configuration has one network: `.column()`
+calls accumulate into it, and a plain `.network(n=...)` is declared once, before
+`.cell_types(...)`. `.network()` reads `name`, `n` and `cell_types`, and `kind` is a
+label; layers come from `.column()`, and a `p_connect` must match the realized
+connectivity.
 
 Specificity dial: geometry is where laminar structure enters. `.column()` names
 the layers and total count; `.geometry(layer_thickness=...)` turns thicknesses
@@ -70,6 +74,8 @@ into cumulative depth bands; `.layer_fractions(...)` makes per-layer neuron coun
 proportional to thickness (or an explicit fraction). Real depth bands are what
 let LFP/CSD and spectrolaminar readouts express depth structure — `.uniform3d()`
 placement collapses layer identity and should be used only for non-laminar models.
+Under `.uniform3d()` every column is one `uniform_3d` layer: `construct()` refuses
+column layers, `.layer_fractions(...)` and per-layer cell-type tables there.
 
 ## Cell types
 
@@ -81,7 +87,7 @@ Specificity dial: the E:I composition and its laminar gradient. A single global
 expresses the verified canonical-reference gradient (E rises with depth, inhibition
 peaks superficially, PV peaks at L2/L3). `.cell_params(...)` overrides
 per-selector neuron parameters. The more layer- and type-resolved the
-composition, the more the model can reproduce real laminar physiology.
+composition, the more laminar structure the readouts can resolve.
 
 !!! tip "Canonical prior"
     `jtfne.build_laminar_column(n=1000, ei_profile="canonical")` applies the
@@ -91,7 +97,7 @@ composition, the more the model can reproduce real laminar physiology.
 ## Connectivity
 
 `.connectivity(**)` / `.set_connectivity(**)`, `.connections(name=, source=, target=,
-probability=, weight=, sign=, mechanism=, plasticity=)`,
+probability=, weight=, sign=, mechanism=)`,
 `.inter_column_connectivity(source_area=, target_area=, layer_to_layer_map=, ...)`,
 `.mechanisms(name=, kind=, params=)`.
 
@@ -99,7 +105,7 @@ Specificity dial: the circuit. `.connections(...)` declares explicit
 source→target rules with probability, weight, sign, and synaptic mechanism;
 `.inter_column_connectivity(...)` adds laminar-aware inter-area edges
 (feedforward L2/3→L4, feedback L6→L1/L5). Prefer sparse construction at scale.
-Richer, sign- and mechanism-resolved connectivity produces emergent
+Richer, sign- and mechanism-resolved connectivity can produce emergent
 oscillations and the band-localized structure spectrolaminar readouts depend on.
 
 **Mechanism resolution now drives simulated tau when fully declared.**
@@ -113,7 +119,7 @@ declared connection rule has a resolvable mechanism reference; a model with
 no mechanisms, or a mixed rule set where even one rule omits `mechanism=`,
 runs entirely on the unchanged sign-only path. See
 `tests/test_mechanism_aware_connection_compiler.py` for the parity and
-divergence proof.
+divergence checks.
 
 **Composition.** `.connections()` augments the realized graph; it does not
 replace prior edges. Connectivity composes as an additive multiset union:
@@ -131,14 +137,19 @@ than silently compiled without the cap. See
 
 ## Emitters
 
-`.set_emitter(family="izhikevich", preset="cortical_eig")` / `.emitter(**)`,
-`.drive(baseline_drive_by_cell_type=, drive_by_layer=, drive_by_area=,
-time_schedule=, evoked_windows=, noise_policy=, ...)`,
-`.cell_type_drives({...})`.
+`.set_emitter(family="izhikevich", preset="cortical_eig")` / `.emitter(family=, preset=)`,
+`.drive(baseline_drive_by_cell_type={...})`. construct builds one emitter;
+declare it before `.probes(...)`, which inserts the default Izhikevich emitter
+when none is declared. Layer/area drives, time
+schedules, evoked windows, oddball schedules and trial variability are
+refused (no consumer; P-015); `noise_policy` takes only its canonical label
+`additive_poisson`.
+`.cell_type_drives({...})` is refused (it was never consumed; P-014).
 
 Specificity dial: the neuron model and its input. The built-in Izhikevich emitter
-is tunable and float32-stable; `.drive(...)` sets baseline/laminar/evoked input
-and noise. For real channel biophysics and morphology, bridge a **Jaxley** model
+is tunable and float32-stable; `.drive(...)` sets the baseline input per cell
+type; time-varying input is `stimulus_schedule(...)` passed as `paradigm`, and
+noise is `Simulation(poisson_drive=...)`. For real channel biophysics and morphology, bridge a **Jaxley** model
 in as the emitter (see [Jaxley Interoperability](jaxley_interop.md)) — a Jaxley
 HH network exports real transmembrane ionic current, the physical generator of
 the extracellular field.
@@ -156,7 +167,10 @@ emitter thus sets the source's fidelity. See
 
 ## Fields
 
-`.field(domain=, conductivity=, boundary=, **)`.
+`.field(domain=, conductivity=, boundary=, gauge=)`. Each key takes only the value
+the laminar proxy realizes: `laminar_column`, `proxy`, `mean_zero_neumann` (or
+`declared_proxy`), `mean_zero`. `solver="experimental_poisson_1d"` adds a
+final-timestep Poisson diagnostic.
 
 Specificity dial: how the source becomes an extracellular field readout. The
 laminar proxy (Gaussian projection + finite-difference CSD) is a structural
@@ -167,7 +181,9 @@ calibration is the path from proxy to physical amplitude.
 
 ## Probes
 
-`.probes([...])` / `.set_probes(modes, n_contacts=)` / `.probe(**)`.
+`.probes([...])` / `.set_probes(modes, n_contacts=)` / `.probe(**)`. Contacts sit
+at `linspace(0, 1, n_contacts)` with projection width 0.10; other positions,
+widths, references and filters raise an error.
 
 Specificity dial: what you measure and at what resolution — `spikes`, `V_m`,
 `LFP`, `CSD`, `EEG`, `MEG`, spectrolaminar, with contact geometry (`n_contacts`).
@@ -250,7 +266,7 @@ grammar (the fluent `cfg` chain) and the TFNE operator grammar
 (Emitter→Source→Field→Probe→Objective→Optimizer→Manifest) are two views of the
 same system. You specify a model declaratively; jaxfne compiles and computes it.
 The fidelity of the result reflects the specification you wrote — which is
-why `Configuration` is the deepest, most important surface in the package.
+why `Configuration` is the primary surface for specifying models.
 
 ## See also
 

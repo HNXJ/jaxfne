@@ -1,8 +1,8 @@
 # Citation
 
-If you use jaxfne in your research, please cite the software. Machine-readable
-metadata lives in the repository root [`CITATION.cff`](https://github.com/HNXJ/jaxfne/blob/main/CITATION.cff)
-— GitHub surfaces a **Cite this repository** button from that file.
+If you use jaxfne, cite the software. Machine-readable
+metadata lives in [`CITATION.cff`](https://github.com/HNXJ/jaxfne/blob/main/CITATION.cff)
+at the repository root — GitHub derives its **Cite this repository** button from that file.
 
 ## Software citation (current)
 
@@ -39,9 +39,8 @@ do not invent a DOI before it exists.
 
 ## Zenodo DOI (maintainers)
 
-Permanent version DOIs are minted through the **GitHub–Zenodo** integration when a
-**GitHub Release** is published and archived. This improves citability (versioned,
-citable snapshots) but is **not** equivalent to a peer-reviewed methods paper.
+Permanent version DOIs come from the **GitHub–Zenodo** integration when a
+**GitHub Release** is published and archived. A versioned snapshot is citable; it is **not** equivalent to a peer-reviewed methods paper.
 
 **One-time setup** (repository admin):
 
@@ -63,7 +62,7 @@ Detailed checklist: Zenodo release DOI guide (`docs/guides/zenodo_doi.md` — re
 
 ## Component citations
 
-If using specific models or frameworks:
+For specific models or frameworks:
 
 - **Izhikevich model:** Izhikevich, E. M. (2003). Simple model of spiking neurons. IEEE Transactions on Neural Networks.
 - **JAX:** Bradbury et al. (2018). JAX: composable transformations of Python+NumPy programs. https://github.com/google/jax

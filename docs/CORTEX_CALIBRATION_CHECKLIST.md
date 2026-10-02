@@ -169,9 +169,7 @@ their rate is set by network inhibition, not DC.
 | per-neuron cap | structurally safe (< 80 Hz in-net) | recurrent inhibition self-limits (Q3) |
 
 **Bottom line:** the earlier 43 Hz cortex ran at ~5× the stable drive. Cap
-baseline E-drive at ~2 nA, keep DC off the interneurons, and run STDP at scale
-~0.01–0.1 — the regime where both "is the rate physiological?" and "is STDP
-well-scaled?" answer yes.
+baseline E-drive at ~2 nA, keep DC off interneurons, run STDP at ~0.01–0.1 — the regime where rate and STDP scaling both hold.
 
 ## Related reports
 - [NEURON_IO_CHARACTERIZATION](NEURON_IO_CHARACTERIZATION.md) — prior F-I mapping

@@ -10,8 +10,12 @@ Local snapshot only; does not claim completeness beyond tested import surface.
 
 from __future__ import annotations
 
-import platform
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import platform
 
 import matplotlib
 
@@ -29,6 +33,10 @@ from _figure_common import (
     save_figure_manifest,
     sha256_file,
     truth_gates,
+)
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
 

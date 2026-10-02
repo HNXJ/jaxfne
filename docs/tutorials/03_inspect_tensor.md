@@ -23,6 +23,19 @@ assert jtfne.load_neuronal_tensor(path).name == tensor.name
 
 **Box: n=1 vs 1000 contrast.** A single-cell tutorial (`configuration().network(n=1)`) and this 1000n tensor share no variables — the isolated `n=1 → 2 → 100 → 600` progression resets the model. The cumulative path does not.
 
+<!-- jx-figure -->
+## Figure
+
+=== "Still"
+
+    ![Realized positions of every neuron, colored by cell type; hover for area, layer and coordinates.](../assets/readme/network_3d.png)
+
+=== "Interactive"
+
+    <iframe class="jx-frame" src="../../_static/atlas/network_3d.html" loading="lazy" title="Realized positions of every neuron, colored by cell type; hover for area, layer and coordinates."></iframe>
+
+Realized positions of every neuron, colored by cell type; hover for area, layer and coordinates. [Open full page](../_static/atlas/network_3d.html).
+
 Next: [04 — Simulate](04_simulate_tensor.md) — construction realizes positions and edges.
 
 ## Interactive atlas (dark)

@@ -40,6 +40,11 @@ from .paradigm import (
 )
 
 
+# Ablation modes the simulate kernels consume (``_model_simulate``); any other
+# label would be stored and never executed.
+_ABLATION_MODES = frozenset({"E_silence", "I_silence", "disconnected_null", "shuffled_timing"})
+
+
 @dataclass(frozen=True)
 class Simulation:
     """Immutable specification of one simulation run.
@@ -51,8 +56,10 @@ class Simulation:
     ``RuntimeConfig(enable_hdp=...)`` / homeostasis params),
     ``record_sources``/``record_fields`` (recording toggles), ``poisson_drive``
     (optional drive spec), ``runtime`` (:class:`RuntimeConfig` override), and
-    ``ablation`` (optional ablation label). ``n_steps`` is derived as
-    ``round(duration_ms / dt_ms)`` and must be > 0.
+    ``ablation`` (None or one of ``E_silence``, ``I_silence``,
+    ``disconnected_null``, ``shuffled_timing``). ``n_steps`` is derived as
+    ``round(duration_ms / dt_ms)`` and must be > 0. Seed and n_steps belong to
+    the Simulation: a ``runtime`` carrying different non-zero values is refused.
     """
 
     duration_ms: float = 1000.0
@@ -80,6 +87,25 @@ class Simulation:
                 f"Simulation produces n_steps={n} <= 0 for "
                 f"duration_ms={self.duration_ms}, dt_ms={self.dt_ms}"
             )
+        if self.ablation is not None and self.ablation not in _ABLATION_MODES:
+            raise ValueError(
+                f"Simulation.ablation must be None or one of {sorted(_ABLATION_MODES)}; "
+                f"got {self.ablation!r}"
+            )
+        # Simulation owns seed and n_steps (resolved_runtime overrides the
+        # runtime's); a runtime carrying different non-default values is refused
+        # instead of silently overridden.
+        if self.runtime is not None:
+            if self.runtime.seed not in (0, self.seed):
+                raise ValueError(
+                    f"runtime.seed={self.runtime.seed} conflicts with Simulation.seed="
+                    f"{self.seed}; set the seed on Simulation only"
+                )
+            if self.runtime.n_steps not in (0, n):
+                raise ValueError(
+                    f"runtime.n_steps={self.runtime.n_steps} conflicts with the "
+                    f"Simulation's n_steps={n}; set duration_ms/dt_ms on Simulation only"
+                )
 
     @property
     def n_steps(self) -> int:
@@ -89,6 +115,13 @@ class Simulation:
     def resolved_runtime(self) -> RuntimeConfig:
         base = self.runtime or RuntimeConfig(seed=self.seed, n_steps=self.n_steps)
         return replace(base, seed=self.seed, n_steps=self.n_steps)
+
+    def with_seed(self, seed: int) -> "Simulation":
+        """Reseed the run; a nested runtime's non-zero seed follows."""
+        runtime = self.runtime
+        if runtime is not None and runtime.seed != 0:
+            runtime = replace(runtime, seed=int(seed))
+        return replace(self, seed=int(seed), runtime=runtime)
 
     def with_plasticity(self, gain: float) -> "Simulation":
         return replace(self, plasticity=float(gain))
