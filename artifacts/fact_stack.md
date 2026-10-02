@@ -40,7 +40,7 @@ covers and what checks it); row 2 is the fact. Authorized by the human in the
 | Declared fields a route would ignore are refused at construct with an actionable message, never dropped silently. |
 | **labels, descriptive, no behavior** \| `connectivity` route labels, `network(kind=)`, probe `modes`; documented as labels |
 | A descriptive label nothing reads stays a label and never implies behavior; only structural parameters must be consumed or refused. |
-| **unwired code, owner decision** \| `units.py`, `pynwb_compat`; wiring audit |
+| **unwired code, owner decision** \| `pynwb_compat`; wiring audit |
 | Code nothing calls is a defect until an owner decision wires or removes it; it is never accepted silently as a supported feature. |
 | **geometry, radius_mm, height_mm, laminar route** \| `build_laminar_column`; geometry-consumption tests |
 | A geometry declaration the route does not read is applied or refused, never accepted and ignored. |

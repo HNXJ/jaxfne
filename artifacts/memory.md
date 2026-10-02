@@ -164,7 +164,6 @@ with declared replacements), EXPERIMENTAL_INTERNAL (do not build on).
 | `jaxfne.tutorial_utils` | Tutorial scaffolds/metrics | `select_neurons`, `kappa_synchrony`, `LaminarColumnConfig`, `CellTypePreset`, `make_laminar_column_config`, `simulate_laminar_trials`, `spectrolaminar_from_trials/motif_score` |
 | `jaxfne.vis` (lazy) | View-only panels | `vis`, `visualize`, `plot_raster`, `plot_spectrolaminar_suite`, `plot_stdp_adaptation_suite`; `jaxfne.vis.atlas_suite` = 7-panel Atlas contract |
 | `jaxfne.intervene` | Causal experiments | intervention objects with manifest roundtrip |
-| `jaxfne.units` | Numeric defaults | `epsilon`, `dither_scale`, `warn_dt_dtype_mismatch` |
 | `jaxfne.sanity_delta` etc. (EXPERIMENTAL_INTERNAL) | Oddball sanity lane | `SanityDeltaConfig/Model`, `HierarchicalOddballParadigm`, `BehaviorGate`, `BackupState`, `TaskEpisode`, `Manifest`, `surrogate_config` |
 | `jaxfne.sharding_utils` (EXPERIMENTAL_INTERNAL) | Sharding stubs | `get_sharding_context`, `make_candidate_sharding`, `make_population_mesh`, `make_replicated_sharding` |
 
@@ -282,8 +281,7 @@ Roles and edit rules: `artifacts/AGENTS.md` (Project control). Coverage rows:
 
 - Dtypes: `float32` default; `float64` honored only with JAX x64 enabled
   (`enable_x64()` before array construction); `bfloat16` allowed
-  (`jaxfne/_runtime_config.py:_ALLOWED_DTYPES`); `jaxfne.units` gives
-  dtype-keyed epsilon/dither; `warn_dt_dtype_mismatch` warns only, never adjusts.
+  (`jaxfne/_runtime_config.py:_ALLOWED_DTYPES`).
 - Units: time in ms (`duration_ms`, `dt_ms`, `tau_*_ms`); doc atlases use binary-exact
   `dt_ms=0.5` (0.1 drifts the float32 time grid → `INVALID_TIME_GRID`); delay is
   declared in ms, realized as `delay_steps = round(delay_ms / dt_ms)`, positive
@@ -347,7 +345,7 @@ Roles and edit rules: `artifacts/AGENTS.md` (Project control). Coverage rows:
 | Add/verify a public symbol | `jaxfne/public_surface.py`, `jaxfne/__init__.py`, `scripts/generate_public_surface_contract.py`, surface snapshot tests (§2) |
 | Change docs | The 5 doc audits in §6 + `docs/ci_policy.md`; `scripts/doc_code_integrity_allowlist.json` for generated refs |
 | Release work | `artifacts/skills/jaxfne-release/SKILL.md`, `artifacts/release/current_release_authorities.json`, `scripts/release/`, `scripts/build_release_manifest.py` |
-| Numeric mismatch / dtype / determinism | `tests/_numeric_gates.py`, `jaxfne/units.py`, `jaxfne/util.py` (diffs/summaries), `MEMORY.md` |
+| Numeric mismatch / dtype / determinism | `tests/_numeric_gates.py`, `jaxfne/util.py` (diffs/summaries), `MEMORY.md` |
 | Perf question | `artifacts/perf/` baselines, `scripts/benchmark_051_matrix.py`, `scripts/profile_050_phases.py` |
 | Inspect a running model | `docs/guides/model_inspection.md`, `jaxfne/util.py`, `jaxfne/validation.py` |
 | Claim → evidence for manuscript | `scripts/build_manuscript.py`, `scripts/publication_figures/`, claim-ledger pattern in `artifacts/publication/` |
