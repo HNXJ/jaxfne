@@ -53,16 +53,12 @@ ORACLE = {
     "emm": "59307b82eaf3a352",
     "emm_t": "2699858c9ce374f9",
     "sample": "95a4ebfea8d62b81",
-    "proj_source": "0f284b0562f0bbfc",
-    "proj_phi": "0f284b0562f0bbfc",
     "proj_csd": "40f3eab9675d96ec",
-    "proj_lfp": "0f284b0562f0bbfc",
     "proj_kernel": "d3b7938fabe1228f",
     "q_total": "b40fa73903159f8b",
     "q_spike": "3f8f6ac99ab0b999",
     "q_filt": "5634024d475b4bd5",
     "csd_t": "34f77db0e3577da0",
-    "linread": "d57a104b0ac102df",
 }
 
 
@@ -148,10 +144,17 @@ def test_oracle_array_path_matches_prechange(frozen):
         == ORACLE["sample"]
     )
     fo = project_laminar_sources(jnp.asarray(f["src"]), jnp.asarray(f["pos"]), n_contacts=C)
-    assert _h(fo.source_proxy) == ORACLE["proj_source"]
-    assert _h(fo.phi_e_proxy) == ORACLE["proj_phi"]
+    # source/phi/lfp proxies alias one array (sources @ kernel.T, a float32
+    # matmul with the same 1-ulp BLAS fragility as eeg_t/meg_t above; the
+    # 3.14 leg flipped proj_source). Pinned by twin equality (aliasing
+    # structure) plus numpy-float64 agreement at gate eps, not by hash.
+    assert _h(fo.source_proxy) == _h(fo.phi_e_proxy) == _h(fo.lfp_proxy)
+    # Reference shares the impl's own kernel (bit-pinned below), so the
+    # agreement isolates matmul summation order: pure ~2e-6 noise, 5x headroom.
+    k32 = np.asarray(fo.kernel, dtype=np.float64)
+    ref_proj64 = np.asarray(f["src"], dtype=np.float64) @ k32.T
+    np.testing.assert_allclose(np.asarray(fo.source_proxy), ref_proj64, rtol=1e-5, atol=1e-8)
     assert _h(fo.csd_proxy) == ORACLE["proj_csd"]
-    assert _h(fo.lfp_proxy) == ORACLE["proj_lfp"]
     assert _h(fo.kernel) == ORACLE["proj_kernel"]
     q1, _ = construct_source_tensor(
         mode="total_membrane_current_proxy",
@@ -169,8 +172,10 @@ def test_oracle_array_path_matches_prechange(frozen):
         _h(csd_tensor(jnp.asarray(f["phi"]), jnp.asarray(0.1, dtype=jnp.float32)))
         == ORACLE["csd_t"]
     )
+    # LinearReadout.apply is src @ W.T with W = lead: the same matmul as
+    # eeg_t/meg_t, so the same agreement treatment (ref64 shares W=lead).
     lr = LinearReadout(name="t", W=jnp.asarray(f["lead"]))
-    assert _h(lr.apply(jnp.asarray(f["src"]))) == ORACLE["linread"]
+    np.testing.assert_allclose(np.asarray(lr.apply(jnp.asarray(f["src"]))), ref64, rtol=1e-5, atol=1e-8)
 
 
 def test_q_path_bit_identical_to_array_path(frozen):
