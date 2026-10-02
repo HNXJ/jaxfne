@@ -619,12 +619,11 @@ def simulate_homeostatic_ei(
     homeo_fn = _resolve_rule(homeostasis_rule, HOMEOSTASIS_RULES, "homeostasis")
 
     if not callable(conductance_rule) and not callable(homeostasis_rule):
-        if not freeze_G or not freeze_H:
-            # A pairing is only exercised when both axes actually run; a
-            # frozen axis (measured separately in its own sweep) is not a
-            # joint outcome nobody has measured.
-            if not freeze_G and not freeze_H:
-                _assert_measured_rule_pair(conductance_rule, homeostasis_rule)
+        # A pairing is only exercised when both axes actually run; a frozen
+        # axis (measured separately in its own sweep) is not a joint outcome
+        # nobody has measured.
+        if not freeze_G and not freeze_H:
+            _assert_measured_rule_pair(conductance_rule, homeostasis_rule)
 
     jnp_dtype = jnp.dtype(dtype)
     n = params.x0.shape[0]

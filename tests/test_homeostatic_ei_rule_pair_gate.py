@@ -91,6 +91,21 @@ def _params():
     )
 
 
+def test_refusal_reached_through_simulate_homeostatic_ei():
+    # Kills a mutant that deletes the _assert_measured_rule_pair call site
+    # inside simulate_homeostatic_ei (the direct-function tests above would
+    # survive that mutant).
+    with pytest.raises(ValueError, match=r"unmeasured conductance x homeostasis"):
+        simulate_homeostatic_ei(
+            _params(),
+            n_steps=3,
+            dt_ms=0.5,
+            key=jax.random.PRNGKey(0),
+            conductance_rule="bcm",
+            homeostasis_rule="linear",
+        )
+
+
 def test_frozen_axes_do_not_gate():
     p = _params()
     # freeze_G=True: only the homeostasis axis runs; unmeasured (C,H) pair
