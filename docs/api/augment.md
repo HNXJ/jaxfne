@@ -32,7 +32,7 @@ jtfne.H0                    # H_0 axis  (initial hidden state)
 
 `jtfne.augment` is the function, not the module: after `import
 jaxfne.augment` (with or without `as m`), the attribute `jaxfne.augment` is
-the function, and so is a `monkeypatch` string target `"jaxfne.augment.X"`. Import names with `from jaxfne.augment import ...`
+the function, as is a `monkeypatch` string target `"jaxfne.augment.X"`. Import names with `from jaxfne.augment import ...`
 or use the root names above.
 
 ## Canonical order
@@ -61,7 +61,7 @@ upper bound).
 ## K_V — the augmentation seed
 
 `K_V` is the augmentation PRNG seed, carried by `AugmentationSpec(k_v=...)`.
-A stochastic transform without its own explicit `K_V` is refused. Each axis
+A stochastic transform without an explicit `K_V` is refused. Each axis
 draws from its own independent stream (seeded from `K_V` mixed with the
 axis index), so two axes under one `K_V` draw uncorrelated streams.
 `K_V` is independent of the JDNA development seed `K_D` and the simulation
