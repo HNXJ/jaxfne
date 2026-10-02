@@ -248,8 +248,12 @@ ACCEPTANCE (0.5.5 seal = end of programme)
        absent fields keep the canonical column bit-identical. Reason: weights
        alone cannot reach AI; an opencode attempt needed poisson amplitude 90
        and w 67.5, and E stayed drive-locked at 11 Hz even when disconnected.
-       agy drafts the design note, then builds; Claude verifies and integrates.
-       opencode lanes are paused (human, 2026-10-01).
+       agy builds on branch balanced-preset; opencode validates; Claude
+       integrates.
+     - Pairing (human, 2026-10-02): agy and opencode work the open issues and
+       todos together and validate each other's bundles (handoff folder
+       D:/cowork/jnwb-bus/); Claude integrates. opencode also fixes the two
+       Python 3.11 release-test failures that block the docs-style PR to main.
 0b. Structural HDP (human, 2026-09-29): existence over a declared candidate
    set; design note `artifacts/programme/structural_hdp_design.md`. Build
    after the 0.5.5 seal, additive and opt-in; API and hard-vs-graded
