@@ -51,8 +51,6 @@ ORACLE = {
     "eeg": "6e8f2f85b1c28232",
     "meg": "b51122c7f6f80e73",
     "emm": "59307b82eaf3a352",
-    "eeg_t": "d57a104b0ac102df",
-    "meg_t": "d57a104b0ac102df",
     "emm_t": "2699858c9ce374f9",
     "sample": "95a4ebfea8d62b81",
     "proj_source": "0f284b0562f0bbfc",
@@ -119,8 +117,18 @@ def test_oracle_array_path_matches_prechange(frozen):
     assert _h(eeg_proxy_probe(jnp.asarray(f["eeg"])).data) == ORACLE["eeg"]
     assert _h(meg_proxy_probe(jnp.asarray(f["meg"])).data) == ORACLE["meg"]
     assert _h(emm_proxy_probe(jnp.asarray(f["emm"])).data) == ORACLE["emm"]
-    assert _h(eeg_proxy_transform(jnp.asarray(f["src"]), jnp.asarray(f["lead"]))) == ORACLE["eeg_t"]
-    assert _h(meg_proxy_transform(jnp.asarray(f["src"]), jnp.asarray(f["lead"]))) == ORACLE["meg_t"]
+    # eeg_t/meg_t are one float32 matmul (source @ leadfield.T): bit-hashes
+    # flip on 1-ulp BLAS reorder (the 3.11 CI leg), while values agree to
+    # ~2e-6 relative against float64 truth (measured locally). Pinned instead
+    # by twin equality (same op and inputs: identical bytes on any backend)
+    # plus numpy-float64 agreement at the tests/_numeric_gates.py epsilons
+    # (rtol=1e-5, atol=1e-8: 5x headroom over the measured noise).
+    eeg32 = np.asarray(eeg_proxy_transform(jnp.asarray(f["src"]), jnp.asarray(f["lead"])))
+    meg32 = np.asarray(meg_proxy_transform(jnp.asarray(f["src"]), jnp.asarray(f["lead"])))
+    assert _h(eeg32) == _h(meg32)
+    ref64 = np.asarray(f["src"], dtype=np.float64) @ np.asarray(f["lead"], dtype=np.float64).T
+    np.testing.assert_allclose(eeg32, ref64, rtol=1e-5, atol=1e-8)
+    np.testing.assert_allclose(meg32, ref64, rtol=1e-5, atol=1e-8)
     assert (
         _h(
             emm_proxy_transform(
