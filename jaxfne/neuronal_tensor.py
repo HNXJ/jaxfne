@@ -53,7 +53,7 @@ import warnings
 import weakref
 from dataclasses import dataclass, field, asdict, replace
 from pathlib import Path
-from typing import Any, Literal, Optional, Sequence
+from typing import Any, Literal, Mapping, Optional, Sequence
 
 import jax
 import jax.numpy as jnp
@@ -152,6 +152,53 @@ _UNSPECIFIED_CONNECTIONS = object()
 def default_relative_size(neuron_type: str) -> float:
     """Default relative soma size by cell type; matches HDP size-scaling table."""
     return float(DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE.get(neuron_type, DEFAULT_OTHER_RELATIVE_SIZE))
+
+
+@dataclass(frozen=True)
+class BackgroundNoise:
+    """Stochastic background noise specification.
+
+    Fields:
+      rate_hz: Mean Poisson event rate in Hz (> 0, finite real).
+      amplitude: Injected current amplitude per event (>= 0, finite real).
+      seed: Explicit integer seed for reproducible PRNG draws (required).
+      target: Target population selector string (default "all").
+    """
+
+    rate_hz: float
+    amplitude: float
+    seed: int
+    target: str = "all"
+
+    def __post_init__(self) -> None:
+        if self.rate_hz is None or isinstance(self.rate_hz, bool) or not isinstance(self.rate_hz, (int, float)):
+            raise ValueError(
+                f"BackgroundNoise rate_hz must be a positive finite number; got {self.rate_hz!r}"
+            )
+        if not math.isfinite(self.rate_hz) or self.rate_hz <= 0.0:
+            raise ValueError(
+                f"BackgroundNoise rate_hz must be > 0 and finite; got {self.rate_hz!r}"
+            )
+        if self.amplitude is None or isinstance(self.amplitude, bool) or not isinstance(self.amplitude, (int, float)):
+            raise ValueError(
+                f"BackgroundNoise amplitude must be a non-negative finite number; got {self.amplitude!r}"
+            )
+        if not math.isfinite(self.amplitude) or self.amplitude < 0.0:
+            raise ValueError(
+                f"BackgroundNoise amplitude must be >= 0 and finite; got {self.amplitude!r}"
+            )
+        if self.seed is None or isinstance(self.seed, bool) or not isinstance(self.seed, int):
+            raise ValueError(
+                f"BackgroundNoise seed must be an explicit integer; got {self.seed!r}"
+            )
+        if not isinstance(self.target, str) or not self.target.strip():
+            raise ValueError(
+                f"BackgroundNoise target must be a non-empty string; got {self.target!r}"
+            )
+        object.__setattr__(self, "rate_hz", float(self.rate_hz))
+        object.__setattr__(self, "amplitude", float(self.amplitude))
+        object.__setattr__(self, "seed", int(self.seed))
+        object.__setattr__(self, "target", str(self.target).strip())
 
 
 @dataclass
@@ -1234,6 +1281,10 @@ class NeuronalTensor:
     # byte-identically to earlier releases (loading fills the defaults).
     w0_provenance: W0Provenance = field(default_factory=W0Provenance)
     trained_w0: Optional[TrainedW0] = None
+    # P-BALANCED: per-cell-type baseline drive and Poisson background noise;
+    # default-omitted from to_dict like the T-25 fields.
+    baseline_drive: Optional[dict[str, float]] = None
+    background_noise: Optional[BackgroundNoise] = None
 
     def __setattr__(self, name: str, value: Any) -> None:
         if name == "area_connections" and "_connectivity_initialized" in self.__dict__:
@@ -1300,6 +1351,40 @@ class NeuronalTensor:
                 "NeuronalTensor.area_connections must contain only AreaConnection "
                 f"instances, got {[type(c).__name__ for c in self.area_connections]}"
             )
+        if self.baseline_drive is not None:
+            if not isinstance(self.baseline_drive, Mapping):
+                raise TypeError(
+                    f"NeuronalTensor.baseline_drive must be a mapping of cell_type -> drive; got {type(self.baseline_drive).__name__}"
+                )
+            declared_cell_types = {
+                nt.name
+                for a in self.areas
+                for layer in a.layers
+                for nt in layer.neuron_types
+            }
+            clean_drive: dict[str, float] = {}
+            for ct, val in self.baseline_drive.items():
+                if not isinstance(ct, str) or not ct:
+                    raise ValueError(
+                        f"NeuronalTensor.baseline_drive cell type must be non-empty str; got {ct!r}"
+                    )
+                if declared_cell_types and ct not in declared_cell_types:
+                    raise ValueError(
+                        f"NeuronalTensor.baseline_drive names unknown cell type {ct!r}; declared cell types: {sorted(declared_cell_types)}"
+                    )
+                if isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(val):
+                    raise ValueError(
+                        f"NeuronalTensor.baseline_drive value for {ct!r} must be finite number; got {val!r}"
+                    )
+                clean_drive[ct] = float(val)
+            object.__setattr__(self, "baseline_drive", clean_drive)
+        if self.background_noise is not None:
+            if isinstance(self.background_noise, dict):
+                object.__setattr__(self, "background_noise", BackgroundNoise(**self.background_noise))
+            elif not isinstance(self.background_noise, BackgroundNoise):
+                raise TypeError(
+                    f"NeuronalTensor.background_noise must be a BackgroundNoise or dict; got {type(self.background_noise).__name__}"
+                )
         object.__setattr__(self, "_connectivity_initialized", True)
         if not isinstance(self.name, str):
             raise TypeError(f"NeuronalTensor.name must be a str, got {type(self.name).__name__}")
@@ -1342,6 +1427,10 @@ class NeuronalTensor:
             del d["w0_provenance"]
         if d.get("trained_w0") is None:
             del d["trained_w0"]
+        if self.baseline_drive is None:
+            d.pop("baseline_drive", None)
+        if self.background_noise is None:
+            d.pop("background_noise", None)
         return d
 
 
@@ -1615,6 +1704,9 @@ def _load_neuronal_tensor_impl(
         )
         for a in raw.get("areas", [])
     ]
+    raw_bd = raw.get("baseline_drive")
+    raw_bn = raw.get("background_noise")
+    bn_obj = BackgroundNoise(**raw_bn) if isinstance(raw_bn, dict) else raw_bn
     return NeuronalTensor(
         areas=areas,
         area_connections=area_connections_value,
@@ -1630,6 +1722,8 @@ def _load_neuronal_tensor_impl(
         trained_w0=(
             TrainedW0(**raw["trained_w0"]) if raw.get("trained_w0") else None
         ),
+        baseline_drive=raw_bd,
+        background_noise=bn_obj,
     )
 
 
@@ -3950,6 +4044,10 @@ def neuronal_tensor_to_configuration(
 
     cfg = cfg.probes(["spikes", "V_m"], n_contacts=n_contacts)
     cfg = cfg.field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+    if tensor.baseline_drive is not None:
+        cfg = cfg.drive(baseline_drive_by_cell_type=tensor.baseline_drive)
+    if tensor.background_noise is not None:
+        cfg = replace(cfg, background_noise=tensor.background_noise)
     return cfg
 
 

@@ -100,6 +100,23 @@ def manifest(
     # trials). Absent intervention the manifest is unchanged.
     if intervention is not None:
         res["intervention"] = intervention
+    if signals is not None:
+        if "realized_drive" in signals.metadata:
+            res["realized_drive"] = signals.metadata["realized_drive"]
+        if "realized_noise" in signals.metadata:
+            res["realized_noise"] = signals.metadata["realized_noise"]
+    else:
+        _drive_spec = (self.cfg.metadata or {}).get("drive")
+        if isinstance(_drive_spec, dict) and "baseline_drive_by_cell_type" in _drive_spec:
+            res["realized_drive"] = dict(_drive_spec["baseline_drive_by_cell_type"])
+        if getattr(self.cfg, "background_noise", None) is not None:
+            bn = self.cfg.background_noise
+            res["realized_noise"] = {
+                "rate_hz": float(bn.rate_hz),
+                "amplitude": float(bn.amplitude),
+                "seed": int(bn.seed),
+                "target": str(bn.target),
+            }
     # If readout was provided as ReadoutResult list (canonical v0.1 workflow),
     # surface the normalized readout summary in the manifest under "readout_results".
     # Dict-shaped readouts are already surfaced via build_manifest's field_diagnostics

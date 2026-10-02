@@ -278,6 +278,23 @@ def _refuse_gaussian_drive_family(self: "Model", sim: Simulation) -> None:
     )
 
 
+def _refuse_background_noise_family(self: "Model", sim: Simulation) -> None:
+    """Refuse ``background_noise`` (caller or preset) on every emitter family but Izhikevich."""
+    declared = (
+        "Simulation.background_noise"
+        if getattr(sim, "background_noise", None) is not None
+        else "the preset's background_noise"
+        if getattr(self.cfg, "background_noise", None) is not None
+        else None
+    )
+    if declared is None or isinstance(self.params["emitter"], IzhikevichParams):
+        return
+    raise ValueError(
+        f"{declared} is realized only on the Izhikevich construct routes; emitter "
+        f"{type(self.params['emitter']).__name__} takes no event-current drive"
+    )
+
+
 def _gaussian_noise_for_route(
     self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig
 ) -> "Optional[_np_host.ndarray]":
@@ -1511,6 +1528,7 @@ def simulate(
     object.__setattr__(self, "_last_hdp_diag", None)
     object.__setattr__(self, "_last_homeostasis_diag", None)
     _refuse_gaussian_drive_family(self, sim)
+    _refuse_background_noise_family(self, sim)
     _refuse_silence_family(self, sim)
     _refuse_replace_family(self, sim)
     _refuse_edge_gain_family(self, sim)
@@ -1643,6 +1661,40 @@ def simulate(
         )
         drive_array = _poisson_arr if drive_array is None else drive_array + _poisson_arr
 
+    # P-BALANCED background noise: Poisson event current. A caller's
+    # Simulation.background_noise or poisson_drive replaces the preset's
+    # cfg.background_noise; the two caller declarations together are refused.
+    effective_noise = sim.background_noise
+    if effective_noise is not None and sim.poisson_drive is not None:
+        raise ValueError(
+            "Simulation.background_noise cannot be combined with sim.poisson_drive; "
+            "pass one declared noise drive"
+        )
+    if effective_noise is None and sim.poisson_drive is None:
+        effective_noise = getattr(self.cfg, "background_noise", None)
+    if effective_noise is not None:
+        if spike_train_input is not None:
+            raise ValueError(
+                "SpikeTrainInput cannot be combined with background_noise; "
+                "pass one declared input"
+            )
+        if continuation is not None or return_state:
+            raise ValueError(
+                "full-state continuation does not support background_noise: its draws "
+                "are not chunk-seeded; use poisson_drive, which continues by chunk seed"
+            )
+        _noise_emitter: IzhikevichParams = self.params["emitter"]
+        _noise_arr = _make_poisson_drive(
+            n_steps=sim.n_steps,
+            n_neurons=_noise_emitter.n_neurons,
+            rate_hz=float(effective_noise.rate_hz),
+            amplitude=float(effective_noise.amplitude),
+            dt_ms=sim.dt_ms,
+            seed=int(effective_noise.seed),
+            target=str(effective_noise.target),
+        )
+        drive_array = _noise_arr if drive_array is None else drive_array + _noise_arr
+
     # shuffled_timing ablation: shuffle drive_array along time axis (axis 0) independently for each neuron
     ablation_mode = getattr(sim, "ablation", None)
     if ablation_mode == "shuffled_timing" and drive_array is None:
@@ -1764,6 +1816,16 @@ def simulate(
         if isinstance(paradigm, ParadigmCondition):
             metadata["condition_name"] = paradigm.name
             metadata["has_omission"] = paradigm.has_omission()
+    if effective_noise is not None:
+        metadata["realized_noise"] = {
+            "rate_hz": float(effective_noise.rate_hz),
+            "amplitude": float(effective_noise.amplitude),
+            "seed": int(effective_noise.seed),
+            "target": str(effective_noise.target),
+        }
+    _drive_spec = (self.cfg.metadata or {}).get("drive")
+    if isinstance(_drive_spec, dict) and "baseline_drive_by_cell_type" in _drive_spec:
+        metadata["realized_drive"] = dict(_drive_spec["baseline_drive_by_cell_type"])
     if sim.poisson_drive is not None:
         _poisson_receipt: dict[str, object] = {
             "rate_hz": float(sim.poisson_drive.get("rate_hz", 2.0)),
@@ -3606,6 +3668,7 @@ def simulate_adex_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict
         )
     seed_list = _checked_batch_seeds(seeds)
     _refuse_gaussian_drive_family(self, sim)
+    _refuse_background_noise_family(self, sim)
     if int(sim.seed) != 0:
         raise ValueError(
             f"simulate_adex_seed_batch does not consume Simulation.seed (got {int(sim.seed)}); "
@@ -3698,6 +3761,7 @@ def simulate_lif_seed_batch(self: "Model", sim: Simulation, seeds: Any) -> dict[
         )
     seed_list = _checked_batch_seeds(seeds)
     _refuse_gaussian_drive_family(self, sim)
+    _refuse_background_noise_family(self, sim)
     if int(sim.seed) != 0:
         raise ValueError(
             f"simulate_lif_seed_batch does not consume Simulation.seed (got {int(sim.seed)}); "

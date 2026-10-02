@@ -410,6 +410,7 @@ class Simulation:
     record_sources: bool = True
     record_fields: bool = True
     poisson_drive: Optional[Union[dict, list]] = None
+    background_noise: Optional[Any] = None
     runtime: RuntimeConfig | None = None
     ablation: Optional[str] = None
     gaussian_drive: Optional[dict] = None
@@ -418,6 +419,17 @@ class Simulation:
     edge_gain: Optional[dict] = None
 
     def __post_init__(self) -> None:
+        if self.background_noise is not None:
+            from .neuronal_tensor import BackgroundNoise
+
+            if isinstance(self.background_noise, dict):
+                object.__setattr__(
+                    self, "background_noise", BackgroundNoise(**self.background_noise)
+                )
+            elif not isinstance(self.background_noise, BackgroundNoise):
+                raise TypeError(
+                    f"Simulation.background_noise must be a BackgroundNoise or dict; got {type(self.background_noise).__name__}"
+                )
         if not (math.isfinite(self.duration_ms) and self.duration_ms > 0):
             raise ValueError(
                 f"Simulation.duration_ms must be positive and finite; got {self.duration_ms!r}"

@@ -43,6 +43,9 @@ SIM_CASES = {
     "record_sources": ({}, {"record_sources": False}, "output"),
     "record_fields": ({}, {"record_fields": False}, "output"),
     "poisson_drive": ({}, {"poisson_drive": _POIS}, "output"),
+    "background_noise": (
+        {}, {"background_noise": {"rate_hz": 200.0, "amplitude": 4.0, "seed": 11}}, "output",
+    ),
     "ablation": ({}, {"ablation": "disconnected_null"}, "output"),
     "gaussian_drive": (
         {}, {"gaussian_drive": {"std_by_cell_type": {"E": 3.0, "PV": 0.0, "SST": 0.0}}},

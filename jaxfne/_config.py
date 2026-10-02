@@ -449,6 +449,7 @@ class Configuration:
     fields: list[dict[str, Any]] = field(default_factory=list)
     probes: list[dict[str, Any]] = field(default_factory=_ProbeDeclarations)
     metadata: dict[str, Any] = field(default_factory=_default_metadata)
+    background_noise: Optional[Any] = None
 
     def __post_init__(self) -> None:
         """Normalize mutable containers after dataclass construction.
@@ -466,6 +467,17 @@ class Configuration:
         probe_decls = self.probes
         if not isinstance(probe_decls, _ProbeDeclarations) or probe_decls._owner is not self:
             object.__setattr__(self, "probes", _ProbeDeclarations(probe_decls, owner=self))
+        if self.background_noise is not None:
+            from .neuronal_tensor import BackgroundNoise
+
+            if isinstance(self.background_noise, dict):
+                object.__setattr__(
+                    self, "background_noise", BackgroundNoise(**self.background_noise)
+                )
+            elif not isinstance(self.background_noise, BackgroundNoise):
+                raise TypeError(
+                    f"Configuration.background_noise must be a BackgroundNoise or dict; got {type(self.background_noise).__name__}"
+                )
 
     def network(self, **kwargs: Any) -> "Configuration":
         """Attach network metadata to the configuration.

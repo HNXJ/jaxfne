@@ -120,10 +120,12 @@ def test_public_symbol_count_contraction_from_baseline():
     per-neuron forced-spike input realized only by the registered-rule
     kernel; root attr, not __all__);
     +1 quantity-kind vocabulary ADVANCED for D28 (QuantityKind: B, R, E, T
-    enum in jaxfne.hdp_rule; root attr, not __all__)."""
+    enum in jaxfne.hdp_rule; root attr, not __all__);
+    +1 BackgroundNoise CANONICAL for P-BALANCED (typed Poisson background-noise
+    preset field; Hamm 2026-11-05 port into 0.5.10)."""
     summary = public_surface_summary()
-    assert summary["counts"]["baseline_all"] == 296
-    assert summary["counts"]["public_exports"] == 208
+    assert summary["counts"]["baseline_all"] == 297
+    assert summary["counts"]["public_exports"] == 209
     assert summary["counts"]["compatibility"] == 13
     assert summary["counts"]["experimental_internal"] == 13
 

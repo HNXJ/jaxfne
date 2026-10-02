@@ -268,6 +268,7 @@ from .io import (
 )
 from .neuronal_tensor import (
     NeuronalTensor,
+    BackgroundNoise,
     Area,
     AreaConnection,
     Layer,

@@ -201,6 +201,7 @@ _CANONICAL: Final[frozenset[str]] = frozenset(
         # NeuronalTensor
         "Area",
         "AreaConnection",
+        "BackgroundNoise",
         "Geometry3D",
         "InterConnection",
         "Layer",

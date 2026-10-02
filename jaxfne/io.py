@@ -35,7 +35,10 @@ def json_safe(obj: Any) -> Any:
     serialization (see goal "explicit failure" in project doctrine).
     """
     if dataclasses.is_dataclass(obj):
-        return json_safe(dataclasses.asdict(obj))
+        d = dataclasses.asdict(obj)
+        if obj.__class__.__name__ == "Configuration" and getattr(obj, "background_noise", None) is None:
+            d.pop("background_noise", None)
+        return json_safe(d)
     if isinstance(obj, dict):
         return {str(k): json_safe(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple, set)):
