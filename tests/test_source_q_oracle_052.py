@@ -51,13 +51,11 @@ ORACLE = {
     "eeg": "6e8f2f85b1c28232",
     "meg": "b51122c7f6f80e73",
     "emm": "59307b82eaf3a352",
-    "emm_t": "2699858c9ce374f9",
     "sample": "95a4ebfea8d62b81",
     "proj_csd": "40f3eab9675d96ec",
     "proj_kernel": "d3b7938fabe1228f",
     "q_total": "b40fa73903159f8b",
     "q_spike": "3f8f6ac99ab0b999",
-    "q_filt": "5634024d475b4bd5",
     "csd_t": "34f77db0e3577da0",
 }
 
@@ -125,16 +123,24 @@ def test_oracle_array_path_matches_prechange(frozen):
     ref64 = np.asarray(f["src"], dtype=np.float64) @ np.asarray(f["lead"], dtype=np.float64).T
     np.testing.assert_allclose(eeg32, ref64, rtol=1e-5, atol=1e-8)
     np.testing.assert_allclose(meg32, ref64, rtol=1e-5, atol=1e-8)
-    assert (
-        _h(
-            emm_proxy_transform(
-                jnp.asarray(f["spikes"].mean(axis=1, keepdims=True)),
-                jnp.asarray(f["src"]),
-                jnp.asarray(f["phi"]),
-            )
+    # emm_t sums L1/L2 terms over units (jnp.sum reductions): tree-reduction
+    # order varies by backend (local 3.12 falsified the pin). numpy-float64
+    # agreement at gate eps instead of a hash.
+    emm32 = np.asarray(
+        emm_proxy_transform(
+            jnp.asarray(f["spikes"].mean(axis=1, keepdims=True)),
+            jnp.asarray(f["src"]),
+            jnp.asarray(f["phi"]),
         )
-        == ORACLE["emm_t"]
     )
+    spk64 = np.asarray(f["spikes"], dtype=np.float64).mean(axis=1, keepdims=True)
+    src64 = np.asarray(f["src"], dtype=np.float64)
+    phi64 = np.asarray(f["phi"], dtype=np.float64)
+    ref_emm64 = (
+        spk64 + np.sum(np.abs(src64), axis=1, keepdims=True)
+        + np.sum(np.square(phi64), axis=1, keepdims=True)
+    ) / 3.0
+    np.testing.assert_allclose(emm32, ref_emm64, rtol=1e-5, atol=1e-8)
     assert (
         _h(
             sample_phi_at_probe_depths(
@@ -167,7 +173,18 @@ def test_oracle_array_path_matches_prechange(frozen):
     fs, _ = filtered_spike_source(
         jnp.asarray(f["spikes"]), {"cell_type": ["E"] * N}, tau_ms=5.0, dt_ms=0.1
     )
-    assert _h(fs) == ORACLE["q_filt"]
+    # q_filt is a 24-step scan accumulation (alpha*carry + spike): FMA fusion
+    # and rounding vary by backend. Reference is the same recurrence in
+    # float64 with a plain loop (fixed time order); signs are all +1 here
+    # (cell_type ["E"] * N).
+    alpha64 = float(np.exp(-0.1 / 5.0))
+    s64 = np.asarray(f["spikes"], dtype=np.float64)
+    carry = np.zeros(s64.shape[1])
+    ref_qfilt64 = np.empty_like(s64)
+    for t in range(s64.shape[0]):
+        carry = alpha64 * carry + s64[t]
+        ref_qfilt64[t] = carry
+    np.testing.assert_allclose(np.asarray(fs), ref_qfilt64, rtol=1e-5, atol=1e-8)
     assert (
         _h(csd_tensor(jnp.asarray(f["phi"]), jnp.asarray(0.1, dtype=jnp.float32)))
         == ORACLE["csd_t"]
