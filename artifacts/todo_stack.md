@@ -121,6 +121,11 @@ Short list for the jnwb move (human, 2026-09-30), in order:
 Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
 
 NEXT (ordered, executable)
+1. [A] Main CI red at `c83c0320` (Fast 3.11 + Release 3.14, same leaf):
+   `proj_csd` oracle hash flipped by float32-matmul ulp noise upstream
+   (the CSD stencil passes input ulps through). Convert `proj_csd` to
+   twin/agreement form like the other matmul leaves; keep `proj_kernel`
+   pinned until evidence falsifies it. Then PR dev to main and merge green.
 
 HUMAN DECISIONS
 - [H] Approve the receptor time constants the canonical JDNA genome declares
