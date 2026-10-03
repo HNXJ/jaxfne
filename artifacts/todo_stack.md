@@ -121,12 +121,11 @@ Short list for the jnwb move (human, 2026-09-30), in order:
 Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
 
 NEXT (ordered, executable)
-1. [A] D0b remaining lane: the markdown outside `docs/`; evidence records such as
-   `artifacts/programme/` stay as written.
-2. [A] P-025: repo-root guard in the 125 files that (transitively) import
-   jaxfne (90 scripts + 11 artifacts + 18 examples + 6 already-guarded
-   needing the assert; agy audit #20 counted 85+10+18), plus AST gate test
-   `tests/test_script_repo_root_guard.py` (claimed by general-opencode-dev).
+1. [A] Main CI red at `c83c0320` (Fast 3.11 + Release 3.14, same leaf):
+   `proj_csd` oracle hash flipped by float32-matmul ulp noise upstream
+   (the CSD stencil passes input ulps through). Convert `proj_csd` to
+   twin/agreement form like the other matmul leaves; keep `proj_kernel`
+   pinned until evidence falsifies it. Then PR dev to main and merge green.
 
 HUMAN DECISIONS
 - [H] Approve the receptor time constants the canonical JDNA genome declares
@@ -139,7 +138,6 @@ HUMAN DECISIONS
 - [H] Review the `arm_definitions` before the next freeze.
 - [H] Stale version notes, edit or leave: `_signals.py:1445,1453`,
   `validation.py:1230`, `experimental_hpc/physical_field_solver_v040.py:55`.
-- [H] `units.py` unwired: wire or remove.
 - [H] Artifacts reorg step 2: repoint `legacy`, `subagents`,
   `hdp_k_w_ctrl_sweep`, `hdp_v2_rho_sweep`, `mcc3_10s_checkpoint` into
   `archive/`. The protocol_* and `private_acceptance` folders stay while

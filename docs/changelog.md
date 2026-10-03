@@ -49,6 +49,10 @@ the rules those releases were held to and are historical context for readers.
   `to_jnwb_trials`), and carries a corrected docstring stating what it
   computes.
 
+### Removed
+
+- Dead speculative `jaxfne.units` module and its tests (owner ruling 2026-10-02): unused across `jaxfne/`, `docs/`, `scripts/`, and `tutorials/`.
+
 ## v0.5.0 (2026-09-23)
 
 Measured 0.5.x baseline plus integration/harness foundation and one verified

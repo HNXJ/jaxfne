@@ -288,6 +288,42 @@ HOMEOSTASIS_RULES: dict[str, Callable[[jax.Array, jax.Array, jax.Array], jax.Arr
     "cubic_penalty_coupled": _homeostasis_cubic_penalty_coupled,
 }
 
+# Rule pairings measured in the B-05/B-08 phase-B sweeps and pinned by the
+# tests below (docstring table above: "untested" = never evaluated). The
+# simulation refuses named pairings outside this set instead of silently
+# running an outcome nobody has measured (UNTESTED-exact refusal tail,
+# 0.5.5 stack item 5); a custom callable on either side bypasses the gate
+# because the caller then owns the coupling.
+_MEASURED_RULE_PAIRS: frozenset[tuple[str, str]] = frozenset(
+    {
+        # (conductance, homeostasis) -- measured cells of the docstring table
+        # (columns are conductance rules; rows homeostasis rules)
+        ("hebbian", "linear"),                  # B-05: H_max (G diverges)
+        ("hebbian", "logistic"),                # B-05 stage1: collapses to H_min
+        ("hebbian", "cubic_penalty"),           # B-05: interior
+        ("hebbian", "cubic_penalty_coupled"),   # cross-population coupling tests
+        ("hebbian_pairwise", "linear"),         # pairwise-gain tests
+        ("hebbian_pairwise", "cubic_penalty"),  # B-08 stage2: G diverges, H NaN
+        ("linear", "cubic_penalty"),            # B-08: G diverges, H NaN
+        ("bcm", "cubic_penalty"),               # B-08: G converges
+    }
+)
+
+
+def _assert_measured_rule_pair(conductance_name: str, homeostasis_name: str) -> None:
+    """Refuse conductance x homeostasis pairings with no measured outcome."""
+    if (conductance_name, homeostasis_name) not in _MEASURED_RULE_PAIRS:
+        allowed = ", ".join(
+            f"({c} x {h})" for c, h in sorted(_MEASURED_RULE_PAIRS)
+        )
+        raise ValueError(
+            f"unmeasured conductance x homeostasis pairing "
+            f"({conductance_name!r} x {homeostasis_name!r}): no measured outcome exists "
+            f"for this combination (see the compatibility table in the "
+            f"simulate_homeostatic_ei docstring); measured pairings are: {allowed}. "
+            f"Pass callables for both rules to run an unmeasured pairing explicitly."
+        )
+
 
 def _resolve_rule(rule, registry: dict[str, Callable], kind: str) -> Callable:
     if callable(rule):
@@ -581,6 +617,13 @@ def simulate_homeostatic_ei(
     act_fn = _resolve_rule(activation_rule, ACTIVATION_RULES, "activation")
     cond_fn = _resolve_rule(conductance_rule, CONDUCTANCE_RULES, "conductance")
     homeo_fn = _resolve_rule(homeostasis_rule, HOMEOSTASIS_RULES, "homeostasis")
+
+    if not callable(conductance_rule) and not callable(homeostasis_rule):
+        # A pairing is only exercised when both axes actually run; a frozen
+        # axis (measured separately in its own sweep) is not a joint outcome
+        # nobody has measured.
+        if not freeze_G and not freeze_H:
+            _assert_measured_rule_pair(conductance_rule, homeostasis_rule)
 
     jnp_dtype = jnp.dtype(dtype)
     n = params.x0.shape[0]
