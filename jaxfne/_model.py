@@ -645,7 +645,7 @@ class Model:
             z_value = None
             try:
                 z_value = float(positions[idx, 2]) if positions is not None else None
-            except Exception:
+            except (IndexError, TypeError, ValueError):  # P-030: narrow; real bugs raise
                 z_value = None
             rows_out.append(
                 {

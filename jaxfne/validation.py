@@ -25,21 +25,6 @@ def _to_numpy(arr: Any) -> np.ndarray:
     return np.asarray(arr)
 
 
-def _is_finite_value(val: Any) -> bool:
-    """Check if a value is finite (not NaN, not Inf)."""
-    if val is None:
-        return True  # None is acceptable in optional fields
-    if isinstance(val, bool):
-        return True
-    if isinstance(val, (int, str)):
-        return True
-    try:
-        f = float(val)
-        return math.isfinite(f)
-    except (TypeError, ValueError):
-        return True
-
-
 def is_valid_signal(signals: Any) -> bool:
     """Check if signal arrays contain only finite values (no NaN/Inf).
 

@@ -973,7 +973,7 @@ def memory_report(
     runtime_cfg = simulation.resolved_runtime
     try:
         itemsize = int(jnp.dtype(runtime_cfg.jnp_dtype).itemsize)
-    except Exception:  # noqa: BLE001 - unknown dtype policy falls back to float32
+    except (TypeError, ValueError):  # P-030 narrowed - unknown dtype policy falls back to float32
         itemsize = 4
 
     emitter = model.params["emitter"]
