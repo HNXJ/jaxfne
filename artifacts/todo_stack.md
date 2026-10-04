@@ -137,11 +137,11 @@ Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked
 NEXT (ordered, executable)
 1. [A] PR#99 dev→main (owner-authorized 2026-10-04): merge when checks green
    (watcher polling `pr99_watch.log`); main nightly goes green on the next
-   schedule after. Head is cf3136ff; docs/state-only.
-2. [A] D0 flagged-items sweep: 17 items in
-   `artifacts/audit/docs_style_pass_2026-09-28.md` §2 (timing claims without
-   traceable artifacts, stale versions, size disagreements); verify each fix
-   with the doc gates.
+   schedule after. Head is 2ac0b918; docs/state-only.
+2. [A] Artifacts reorg step 2 reference audit (read-only): grep frozen
+   receipts and tests for `legacy`, `subagents`, `hdp_k_w_ctrl_sweep`,
+   `hdp_v2_rho_sweep`, `mcc3_10s_checkpoint` before any move; moving a
+   receipt-cited path breaks traceability.
 
 HUMAN DECISIONS
 - [H] Artifacts reorg step 2: repoint `legacy`, `subagents`,
