@@ -378,3 +378,12 @@ Earlier closed issues: `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md`.
 - **severity:** MAJOR (silent timing error in a public paradigm builder)
 - **resolution (2026-10-04, agent, owner-delegated):** refuse path — non-default onsets raise `ValueError` (P-027) with field/value/fix; docstrings state buffer placement; the one live non-default caller (`generate_doc_page_atlases.py:560`, onset 50.0 silently ignored while stimulus sat at the 200 ms buffer edge of a 200 ms run) now passes `pre_stimulus_buffer_ms=50.0`; `objective_60` pages regenerated and re-promoted to validated. Failing-first test `test_omission_oddball_nondefault_onsets_refuse_p027` failed pre-fix (3 cases), 24 paradigm tests green post-fix. Commit 0a75a05f.
 - **closed:** 2026-10-04 (agent): entry moved from the open log.
+
+### P-028
+- **date:** 2026-10-04
+- **type:** BUG (fail-open solver selection + ignored tolerances)
+- **area:** `jaxfne/solvers.py`
+- **observation:** unknown `solver_type` fell through to `Tsit5`; `SolverConfig(rtol, atol)` silently ignored on the Euler path; non-divisible grids silently rounded
+- **severity:** MAJOR (public params that did not mean what they said)
+- **resolution (2026-10-04, agent, owner-delegated):** refusals — unknown `solver_type` raises (None/dopri5/tsit5 accepted, checked before the diffrax import); non-default `rtol/atol` with `method="euler"` raises; shared `_checked_steps` helper (same 1e-9 rule as `agent._checked_time`) guards both Euler and Diffrax save grids. Failing-first `tests/test_solvers_refusal_p028.py`: 3 fail pre-fix (named-stash proof), 4 pass post-fix. No in-tree callers affected (`streaming` uses only `.dt`). Commit 948cfec9.
+- **closed:** 2026-10-04 (agent): entry moved from the open log.

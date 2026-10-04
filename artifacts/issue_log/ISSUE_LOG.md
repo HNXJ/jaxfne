@@ -11,18 +11,6 @@ possible future change.
 
 ## Open
 
-### P-028
-- **date:** 2026-10-04
-- **type:** BUG (fail-open solver selection + ignored tolerances)
-- **area:** `jaxfne/solvers.py`
-- **observation:** unknown `solver_type` falls through to `Tsit5` (:87-92, no refuse branch); `SolverConfig(rtol, atol)` silently ignored on the Euler path (:18-21 vs :119-121); non-divisible `(t_end-t_start)/dt` silently rounded (:38,:95)
-- **severity:** MAJOR (public params that do not mean what they say)
-- **minimal reproduction:** read `jaxfne/solvers.py:87-92` (`else: solver = diffrax.Tsit5()`); `EulerSolver` takes `dt` only
-- **expected behavior:** refuse unknown `solver_type`, refuse non-default `rtol/atol` with `method="euler"` (or test invariance), refuse non-integral step counts (cf. `agent.py:90`)
-- **actual behavior:** silent defaults/truncation
-- **evidence:** code sweep 2026-10-04 (`artifacts/audit/sweep_2026-10-04_code.md`), integrator-confirmed `else` branch by reading
-- **possible future change:** refusals + tests; open
-
 ### P-029
 - **date:** 2026-10-04
 - **type:** BUG (three competing canonical compositions)
