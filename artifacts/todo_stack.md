@@ -120,6 +120,7 @@ Short list for the jnwb move (human, 2026-09-30), in order:
   - P-016/P-020 re-freeze APPROVED: receipt cause (`865e74b`) confirmed; P-016 module 4 passed here; exact new values present in both frozen files (`0.00280088258438386`, kappa `0.0182925…`).
   - `arm_definitions` APPROVED: inputs-only prose per arm (sole "judged" wording in AT-01 is role description, no critic implementation); keys==arms enforced by `test_arm_definitions_match_arms`, carry path tested, both green here.
   - C5–C7 ruling: deferral STANDS. No post-0.5.1 perf bottleneck measurement demands matmul reassociation, div-to-mul rewrites, null-term elision, memoization, or layout changes (newest perf artifacts are matrix/spec/import-cost, 2026-09-24…27).
+- 2026-10-04 (agent, owner-delegated): D0 DONE. All 17 flagged items cleared (timing claims linked to `w11_atlas*.jsonl` or softened to machine-dependent; stale versions updated to v0.5.x; file-size range unified; µm labels converted to relative fractions; untraceable receipt pointer qualified); protocol_c_wave, colab, gallery kept with reasons. Doc gates green (language, vocabulary, orphans, integrity) + ruff + smoke. Note: edit-tool reflow hit `jaxfne/_signals.py` (437 lines) and `jaxfne/validation.py` (53 lines) mid-sweep — caught by diff-stat, reverted, re-applied binary-safe (P-004/P-008 class; harness worked as designed).
 - 2026-10-04 (agent, owner-delegated): AT-10-R4 (W(t) trajectories) is
   OUT_OF_SCOPE with reason: `record_weight_trace` is False by declared
   recording budget (20,000 x 68,620 floats ~5.5 GB per 10 s phase;
@@ -143,10 +144,6 @@ NEXT (ordered, executable)
    with the doc gates.
 
 HUMAN DECISIONS
-- [H] D0 review: 23 softened overclaims and 17 flagged items in
-  `artifacts/audit/docs_style_pass_2026-09-28.md`.
-- [H] Stale version notes, edit or leave: `_signals.py:1445,1453`,
-  `validation.py:1230`, `experimental_hpc/physical_field_solver_v040.py:55`.
 - [H] Artifacts reorg step 2: repoint `legacy`, `subagents`,
   `hdp_k_w_ctrl_sweep`, `hdp_v2_rho_sweep`, `mcc3_10s_checkpoint` into
   `archive/`. The protocol_* and `private_acceptance` folders stay while
