@@ -11,18 +11,6 @@ possible future change.
 
 ## Open
 
-### P-033
-- **date:** 2026-10-04
-- **type:** DOC (overclaims, stale versions, unit leaks)
-- **area:** `docs/` (batch from prose sweep)
-- **observation:** `tutorial_figures.md:3` "current development tree: 0.4.8" (stale); `05_v1_pfc_dual_column.md:131` "shows stable, long-term homeostatic adaptation" (overclaim vs evidence); `plotly_visualization.md:24` 0.4.8 test label; `04_simulate_tensor.md:16` untraced ~215k; `api/probes.md:316` "400 µm depth" (absolute units without calibration); `ci_policy.md:57` "proves exhaustiveness"; plus slop stack (S1-S3)
-- **severity:** MAJOR (P1/P2) + minors (rest)
-- **minimal reproduction:** read the cited lines
-- **expected behavior:** versions current, claims at evidence strength, relative units unless calibrated
-- **actual behavior:** as observed
-- **evidence:** prose sweep 2026-10-04 (`artifacts/audit/sweep_2026-10-04_prose_visual_hygiene.md`)
-- **possible future change:** D0-style batch fix + doc gates; open
-
 ### P-034
 - **date:** 2026-10-04
 - **type:** DOC (figure rendering defects, generator-side)

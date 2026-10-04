@@ -423,3 +423,12 @@ Earlier closed issues: `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md`.
 - **severity:** MAJOR
 - **resolution (2026-10-04, agent, owner-delegated):** scoped by evidence — all band asserts were already seeded or deterministic; only `test_perfectly_correlated` (>0.9) and `test_variable_dt_scaling` (<0.2) had draw-dependent tight asserts, now `default_rng(7)`/`default_rng(11)`. Loose asserts (isfinite/range/monotonic) are draw-independent by construction and untouched. 55 passed twice. Commit 2a623d24.
 - **closed:** 2026-10-04 (agent): entry moved from the open log.
+
+### P-033
+- **date:** 2026-10-04
+- **type:** DOC (overclaims, stale versions, unit leaks)
+- **area:** `docs/` (batch from prose sweep)
+- **observation:** stale 0.4.8 labels, "shows homeostatic adaptation" overclaim, untraced ~215k, µm example, "proves exhaustiveness"
+- **severity:** MAJOR + minors
+- **resolution (2026-10-04, agent, owner-delegated):** stale parenthetical deleted (not re-asserted untested); overclaim softened to settling-consistent with the listed numbers; ~215k labeled observed-2026-10; µm example rewritten in relative fractions; "proves" → "checks" with test name. S3 kept (defined margin-policy term). Doc gates green (language, vocabulary, integrity). Commit 31bae896.
+- **closed:** 2026-10-04 (agent): entry moved from the open log.
