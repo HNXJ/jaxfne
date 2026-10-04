@@ -121,12 +121,10 @@ Short list for the jnwb move (human, 2026-09-30), in order:
 Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
 
 NEXT (ordered, executable)
-1. [A] Nightly notebook CI red on main (env, not code):
-   `tests/test_audit_public_private_boundary.py` imports `yaml` at module
-   level and the nightly env installs only `.[dev,jaxley]` (no yaml
-   provider since PR#97 brought the file to main). Fix: name `pyyaml`
-   explicitly in the nightly install (mirrors release CI). Verify via
-   workflow_dispatch on dev, then main goes green on the next schedule.
+1. [H] Merge dev to main (owner action): dev nightly green via
+   workflow_dispatch 37209429525 (success on 9699d49e, 2026-10-04); main
+   nightly still red on d77a937a (no pyyaml fix there). The merge carries
+   the fix; main goes green on the next schedule after it.
 
 HUMAN DECISIONS
 - [H] Approve the receptor time constants the canonical JDNA genome declares
@@ -301,26 +299,25 @@ ACCEPTANCE (0.5.5 seal = end of programme)
      entries delegate or are deprecated; frozen receipts stay untouched.
 1. A8 gh-pages publishing policy. Trigger: publishing D1 or Atlas figures
    to the public site.
-2. `units.py` unwired: wire or remove (owner decision).
-3. Architecture candidates (`emitters.py` variant split, entry
+2. Architecture candidates (`emitters.py` variant split, entry
    fragmentation, dual manifests, same-named builders); enter only as a
    measured bottleneck.
-4. C5–C7 numerical deferrals; need a signed-zero/NaN exactness contract.
-5. UNTESTED-exact refusal tail; PLACEHOLDER_NOTEBOOKS and artifact-gated
+3. C5–C7 numerical deferrals; need a signed-zero/NaN exactness contract.
+4. UNTESTED-exact refusal tail; PLACEHOLDER_NOTEBOOKS and artifact-gated
    skips; post-0.4.14 compatibility aliases.
-6. P-001 `scripts/` legacy lint cleanup (ruff: 176 findings, 2026-09-30).
+5. P-001 `scripts/` legacy lint cleanup (ruff: 176 findings, 2026-09-30).
    Real defects first: `audit_w3_broad_handlers.py` `_OVERRIDES` repeats two
    keys (the later silently wins), holds a 3-tuple and a 1-tuple where
    `(class, note)` is unpacked, and is keyed on line numbers that have drifted;
    running it rewrites the tracked `artifacts/audit/w3_broad_handler_tally.json`
    (137 lines differ). Re-key it or retire it with the tally.
-7. S27 population/`P_{l,c}` definition family. Trigger: a population
+6. S27 population/`P_{l,c}` definition family. Trigger: a population
    definition CTX-01 cannot express.
-8. Agent-native step 10: MCP or other transport.
-9. Deferred from 0.5.4: item 1b (S20.1 ordering; individual human
+7. Agent-native step 10: MCP or other transport.
+8. Deferred from 0.5.4: item 1b (S20.1 ordering; individual human
     authorization required) and item 0 (`X[k]` frontier override, language
     decision).
-10. Deferred owner decisions from the 2026-09-20 deep audit:
+9. Deferred owner decisions from the 2026-09-20 deep audit:
     `compile_step_fn **hdp_kwargs` unknown-key policy; `validate_hdp_params`
     non-dict non-strict silent pass; frozen protocols record JAX/lib
     versions (P-003).

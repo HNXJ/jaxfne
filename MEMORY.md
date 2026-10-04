@@ -89,3 +89,45 @@ Format per lesson: {trigger,cause,repair,evidence,scope}.
   repair: after any push touching jaxfne/ exports or surface artifacts, read that push's CI result before the next step; repo is public so GitHub Actions API answers without a gh token — check Fast on the exact pushed SHA, not just local broad
   evidence: 0.5.4 (9 pushes 6792bc7..0ad95e0 red on CI, green locally; e13a511 fixed lint, 26c4299 fixed surface; Fast green confirmed on 86e5224 via public API)
   scope: jaxfne (git/CI)
+
+- trigger: scripted patch over 100+ files reports success per file
+  cause: success messages prove the script ran, not that each file is correct (hit: whole-file reformat, use-before-bind from reordered imports, double application, deleted sibling imports)
+  repair: every generated edit carries machine-checkable postconditions in the applier itself (re-parse + behavior-relevant asserts such as name-binding order), idempotency via the gate's own verdict (import the gate test's functions; never a text marker), and a rerun that must report zero changes; verify with git diff --stat scale plus an independent whole-tree check, never the applier's log alone
+  evidence: P-025 (119 files; 4 applier bugs caught only by diff-stat scale, gate re-runs, and binding-order asserts)
+  scope: jaxfne (scripted edits)
+
+- trigger: bit-exact float hash pinned across CI legs
+  cause: float32 reductions/matmul already carry ~2e-6 relative rounding locally, so any BLAS/XLA reorder on another runner flips the hash while values agree; unpinned deps make it a hardware lottery
+  repair: keep bit-pins only for exactly-representable passthroughs; for reduction/matmul leaves use twin-equality (same op and inputs: identical bytes on any backend) plus numpy-float64 agreement at the repo gate epsilons with measured margin stated; leave unproven leaves pinned and name them as watch items
+  evidence: PR#97 release 3.11/3.14 flipped eeg_t then proj_source on different runners (oracle file, Oct 2026)
+  scope: jaxfne (tests/CI)
+
+- trigger: ruff E402 on imports following a sys.path guard block
+  cause: assignments/conditionals in the guard count as code, but ruff exempts imports after a bare sys.path.insert expression (probe-proven); PowerShell jq quoting breaks inline filters
+  repair: canonical guard is bare `sys.path.insert(0, str(Path(__file__).resolve().parents[N]))` with no assignment wrapper; parse gh JSON output with ConvertFrom-Json instead of jq in pwsh; always pass `-R HNXJ/jaxfne` to gh when the cwd is outside that repo (gh infers repo from git remote and silently queries jynx)
+  evidence: P-025 (125 files, 0 new ruff findings vs HEAD under repo select)
+  scope: jaxfne (windows host)
+
+- trigger: jchat claims board still shows a claim after posting a release
+  cause: the release text used a different item id than the claim text, so the board never matched them (claim `untested-tail` vs release `untested-pair-gate`)
+  repair: a release reuses the claim's exact item id verbatim; verify with `claims` after posting
+  evidence: untested-tail ghost claim Oct 2026, fixed by re-releasing with the matching id
+  scope: jchat (claims board)
+
+- trigger: a refusal test passes while the guarded entry point stays callable
+  cause: testing the check helper directly leaves the call-site mutant alive (deleting the call inside the public function survives the test file)
+  repair: every refusal gate ships an end-to-end test through the public entry point with registry-valid names for the targeted axis; kill both the check body and the call site before trusting green, restore byte-identical after
+  evidence: pair-gate review (agy finding #1); call-site mutant killed by the new test, check-body mutant by the direct tests
+  scope: jaxfne (tests)
+
+- trigger: encoding a measured compatibility table from a docstring
+  cause: re-reading rows as one axis and columns as the other transposes the measured set (first 7-pair set misread conductance rows/cols; also an invalid registry name in a new test hit a different refusal first)
+  repair: re-read the table's axis labels explicitly, cross-check each claimed cell against the test files that pin it, and use registry-valid names per axis in tests; let the suite (not the table) be the arbiter — two existing tests caught the transposition here
+  evidence: pair-gate set corrected 7 to 8 pairs via stage1/stage2 failures
+  scope: jaxfne (tests)
+
+- trigger: PR merge BLOCKED with all checks green and no review required
+  cause: the protect-main ruleset sets required_review_thread_resolution, so one unresolved bot review thread blocks the merge; the bot objected to specified fail-closed behavior (UNTESTED-exact refusal) as if it were a defect
+  repair: read the thread body, rebut with the stack-item + invariant citation via a review-comment reply when the code does what the authorized task specified, then resolve; verify resolution with a GraphQL reviewThreads query (comment node ids are not thread ids) and re-check mergeStateStatus before merging
+  evidence: PR#98 macroscope thread on the pair-gate (rebutted, resolved, merged d77a937a)
+  scope: jaxfne (git/CI)
