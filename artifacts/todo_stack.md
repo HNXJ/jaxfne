@@ -121,6 +121,12 @@ Short list for the jnwb move (human, 2026-09-30), in order:
 Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
 
 NEXT (ordered, executable)
+1. [A] Nightly notebook CI red on main (env, not code):
+   `tests/test_audit_public_private_boundary.py` imports `yaml` at module
+   level and the nightly env installs only `.[dev,jaxley]` (no yaml
+   provider since PR#97 brought the file to main). Fix: name `pyyaml`
+   explicitly in the nightly install (mirrors release CI). Verify via
+   workflow_dispatch on dev, then main goes green on the next schedule.
 
 HUMAN DECISIONS
 - [H] Approve the receptor time constants the canonical JDNA genome declares
