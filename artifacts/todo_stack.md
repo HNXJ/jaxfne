@@ -122,6 +122,7 @@ Short list for the jnwb move (human, 2026-09-30), in order:
   - C5–C7 ruling: deferral STANDS. No post-0.5.1 perf bottleneck measurement demands matmul reassociation, div-to-mul rewrites, null-term elision, memoization, or layout changes (newest perf artifacts are matrix/spec/import-cost, 2026-09-24…27).
 - 2026-10-04 (agent, owner-delegated): D0 DONE. All 17 flagged items cleared (timing claims linked to `w11_atlas*.jsonl` or softened to machine-dependent; stale versions updated to v0.5.x; file-size range unified; µm labels converted to relative fractions; untraceable receipt pointer qualified); protocol_c_wave, colab, gallery kept with reasons. Doc gates green (language, vocabulary, orphans, integrity) + ruff + smoke. Note: edit-tool reflow hit `jaxfne/_signals.py` (437 lines) and `jaxfne/validation.py` (53 lines) mid-sweep — caught by diff-stat, reverted, re-applied binary-safe (P-004/P-008 class; harness worked as designed).
 - 2026-10-04 (human): reorg step 2 DROPPED. Reference audit found live consumers on all five dirs (tests assert `legacy` paths; smoke scripts read them; docs link them; generator writes `mcc3_10s_checkpoint`; doctrine cites the sweeps). Layout is load-bearing; row deleted.
+- 2026-10-04 (agent, owner-delegated): sweep queue CLOSED (P-027…P-034 + minor batch). Minor batch applied: stimulus grid refusal, streaming named Izhikevich/syn consts + dt guard, STDP shared kernel (hand-computed test + suites green), bridges teardown, Net DeprecationWarning, paradigm joint/collision refusals, RESIDUAL_NORM_TOL, load strict flag, geometry/spectral consts; 8-test minor-batch file green. Dismissed with evidence: examples 00/08 run green, tutorial prints are contractual UX, metrics NaN already documented+pinned, preset int/float signs left (dtype risk), NMDA/GABA_B sources await primary (item 13). Commit 41f0d35b.
 - 2026-10-04 (agent, owner-delegated): AT-10-R4 (W(t) trajectories) is
   OUT_OF_SCOPE with reason: `record_weight_trace` is False by declared
   recording budget (20,000 x 68,620 floats ~5.5 GB per 10 s phase;
@@ -137,8 +138,7 @@ Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked
 
 NEXT (ordered, executable)
 1. [A] Post-merge watch: main @ 839a3d2b (PR#99 merged 2026-10-04); main
-   Fast + nightly go green on schedule. Dev continues below.
-2. [A] Minor-batch sweep + verify: streaming magic/STDP duplication, bridges shim scope, schema `strict` flag, convergence tolerance param, `Net` alias warning, paradigm `event_windows` ambiguity, stimulus grid truncation, metrics NaN doc, tutorial `print`s, example `/tmp` + stale modes (00_minimal, 08), preset sign types + NMDA/GABA_B sources, geometry/spectral magic numbers.
+   Fast + nightly go green on schedule.
 
 HUMAN DECISIONS
 - [H] agy lane: agy 1.2.13 is installed (2026-09-30), but its sign-in is
