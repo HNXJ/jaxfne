@@ -432,3 +432,12 @@ Earlier closed issues: `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md`.
 - **severity:** MAJOR + minors
 - **resolution (2026-10-04, agent, owner-delegated):** stale parenthetical deleted (not re-asserted untested); overclaim softened to settling-consistent with the listed numbers; ~215k labeled observed-2026-10; µm example rewritten in relative fractions; "proves" → "checks" with test name. S3 kept (defined margin-policy term). Doc gates green (language, vocabulary, integrity). Commit 31bae896.
 - **closed:** 2026-10-04 (agent): entry moved from the open log.
+
+### P-034
+- **date:** 2026-10-04
+- **type:** DOC (figure rendering defects)
+- **area:** `artifacts/figures/publication/` + generators
+- **observation:** V1-V4 layout defects (collisions, overplotting, missing units, stacked labels) + V5 micro-type, worker-observed at full size
+- **severity:** MAJOR + minor
+- **resolution (2026-10-04, agent, owner-delegated):** NO PIXELS MOVED — all four targets are hash-pinned (fig01/03/06 in `frozen_manifest.json` under write-once; e2_fig08 under G5 pixel-identity receipt). Any generator edit creates script↔output drift against pinned bytes with no authorized regen path. Defects are per-figure coordinates (no shared-helper fix exists), so the findings are logged as manuscript input: `artifacts/audit/sweep_2026-10-04_prose_visual_hygiene.md` (V1-V5 table) constrains Atlas item 10's new write-once figures (annotation/legend clearance, unit-labeled axes, jittered rep labels, ≥6pt type). Revisit only with a re-freeze receipt.
+- **closed:** 2026-10-04 (agent): entry moved from the open log.
