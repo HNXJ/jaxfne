@@ -134,10 +134,13 @@ Short list for the jnwb move (human, 2026-09-30), in order:
 Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
 
 NEXT (ordered, executable)
-1. [H] Merge dev to main (owner action): dev nightly green via
-   workflow_dispatch 37209429525 (success on 9699d49e, 2026-10-04); main
-   nightly still red on d77a937a (no pyyaml fix there). The merge carries
-   the fix; main goes green on the next schedule after it.
+1. [A] PR#99 dev→main (owner-authorized 2026-10-04): merge when checks green
+   (watcher polling `pr99_watch.log`); main nightly goes green on the next
+   schedule after. Head is cf3136ff; docs/state-only.
+2. [A] D0 flagged-items sweep: 17 items in
+   `artifacts/audit/docs_style_pass_2026-09-28.md` §2 (timing claims without
+   traceable artifacts, stale versions, size disagreements); verify each fix
+   with the doc gates.
 
 HUMAN DECISIONS
 - [H] D0 review: 23 softened overclaims and 17 flagged items in
