@@ -137,16 +137,16 @@ Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked
 
 NEXT (ordered, executable)
 1. [A] Post-merge watch: main @ 839a3d2b (PR#99 merged 2026-10-04); main
-   Fast + nightly go green on schedule. Dev continues with P-027 below.
-2. [A] P-027: wire or refuse `omission_oddball_paradigm` onset params (blocker).
-3. [A] P-028: solver refusal gaps (`solver_type`, Euler `rtol/atol`, grid rounding).
-4. [A] P-029: unify the three canonical composition tables.
-5. [A] P-030: narrow fail-open validators/handlers.
-6. [A] P-031: consume or refuse `SurrogateConfig`.
-7. [A] P-032: seed stochastic tests in `test_analysis_metrics.py`.
-8. [A] P-033: prose batch (stale versions, overclaims, µm leak, slop) + doc gates.
-9. [A] P-034: figure fixes generator-side (frozen files untouched).
-10. [A] Minor-batch sweep + verify: streaming magic/STDP duplication, bridges shim scope, schema `strict` flag, convergence tolerance param, `Net` alias warning, paradigm `event_windows` ambiguity, stimulus grid truncation, metrics NaN doc, tutorial `print`s, example `/tmp` + stale modes (00_minimal, 08), preset sign types + NMDA/GABA_B sources, geometry/spectral magic numbers.
+   Fast + nightly go green on schedule. Dev continues below.
+2. [A] P-028: solver refusal gaps (`solver_type`, Euler `rtol/atol`, grid rounding).
+2. [A] P-028: solver refusal gaps (`solver_type`, Euler `rtol/atol`, grid rounding).
+3. [A] P-029: unify the three canonical composition tables.
+4. [A] P-030: narrow fail-open validators/handlers.
+5. [A] P-031: consume or refuse `SurrogateConfig`.
+6. [A] P-032: seed stochastic tests in `test_analysis_metrics.py`.
+7. [A] P-033: prose batch (stale versions, overclaims, µm leak, slop) + doc gates.
+8. [A] P-034: figure fixes generator-side (frozen files untouched).
+9. [A] Minor-batch sweep + verify: streaming magic/STDP duplication, bridges shim scope, schema `strict` flag, convergence tolerance param, `Net` alias warning, paradigm `event_windows` ambiguity, stimulus grid truncation, metrics NaN doc, tutorial `print`s, example `/tmp` + stale modes (00_minimal, 08), preset sign types + NMDA/GABA_B sources, geometry/spectral magic numbers.
 
 HUMAN DECISIONS
 - [H] agy lane: agy 1.2.13 is installed (2026-09-30), but its sign-in is

@@ -369,3 +369,12 @@ Earlier closed issues: `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md`.
   short-list goal 3), rewriting the pinning tests
 - **resolution (2026-10-01, owner ruling):** deprecated with corrected docstrings, values unchanged for one release (commit 2ad5d7a5); replacement jnwb spike_count_correlation (window_s, bin_ms), fano_factor (onsets_s, window_s, summary), network_burst_index (window_s, bin_ms, threshold_hz, min_duration_ms) via jaxfne.jnwb_view.to_jnwb / to_jnwb_trials
 - **closed:** 2026-10-04 (agent): entry moved from the open log; deprecation commit 2ad5d7a5 is an ancestor of origin/dev.
+
+### P-027
+- **date:** 2026-10-04
+- **type:** BUG (public parameter accepted but never consumed)
+- **area:** `jaxfne/paradigm.py` (`omission_oddball_paradigm`)
+- **observation:** `standard_onset_ms`/`deviant_onset_ms` were accepted and documented, but events were built at buffer offsets only
+- **severity:** MAJOR (silent timing error in a public paradigm builder)
+- **resolution (2026-10-04, agent, owner-delegated):** refuse path — non-default onsets raise `ValueError` (P-027) with field/value/fix; docstrings state buffer placement; the one live non-default caller (`generate_doc_page_atlases.py:560`, onset 50.0 silently ignored while stimulus sat at the 200 ms buffer edge of a 200 ms run) now passes `pre_stimulus_buffer_ms=50.0`; `objective_60` pages regenerated and re-promoted to validated. Failing-first test `test_omission_oddball_nondefault_onsets_refuse_p027` failed pre-fix (3 cases), 24 paradigm tests green post-fix. Commit 0a75a05f.
+- **closed:** 2026-10-04 (agent): entry moved from the open log.

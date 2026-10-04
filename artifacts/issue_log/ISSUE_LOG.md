@@ -11,18 +11,6 @@ possible future change.
 
 ## Open
 
-### P-027
-- **date:** 2026-10-04
-- **type:** BUG (public parameter accepted but never consumed)
-- **area:** `jaxfne/paradigm.py` (`omission_oddball_paradigm`)
-- **observation:** `standard_onset_ms`/`deviant_onset_ms` are accepted and documented, but events are built at buffer offsets only; the onsets never enter event construction
-- **severity:** MAJOR (silent timing error in a public paradigm builder; P-017-adjacent semantics)
-- **minimal reproduction:** grep `standard_onset_ms|deviant_onset_ms` in `jaxfne/paradigm.py`: hits only signature+docstring+None-fold (:630,:632,:646,:650-:651,:691-:692), zero uses in event construction (:725-762)
-- **expected behavior:** onsets wired into event `onset_ms`, or non-default values refused (fact: apply or refuse)
-- **actual behavior:** values accepted and ignored
-- **evidence:** code sweep 2026-10-04 (`artifacts/audit/sweep_2026-10-04_code.md`), integrator-confirmed by grep
-- **possible future change:** wire or refuse; open
-
 ### P-028
 - **date:** 2026-10-04
 - **type:** BUG (fail-open solver selection + ignored tolerances)
