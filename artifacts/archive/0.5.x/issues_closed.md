@@ -387,3 +387,12 @@ Earlier closed issues: `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md`.
 - **severity:** MAJOR (public params that did not mean what they said)
 - **resolution (2026-10-04, agent, owner-delegated):** refusals — unknown `solver_type` raises (None/dopri5/tsit5 accepted, checked before the diffrax import); non-default `rtol/atol` with `method="euler"` raises; shared `_checked_steps` helper (same 1e-9 rule as `agent._checked_time`) guards both Euler and Diffrax save grids. Failing-first `tests/test_solvers_refusal_p028.py`: 3 fail pre-fix (named-stash proof), 4 pass post-fix. No in-tree callers affected (`streaming` uses only `.dt`). Commit 948cfec9.
 - **closed:** 2026-10-04 (agent): entry moved from the open log.
+
+### P-029
+- **date:** 2026-10-04
+- **type:** BUG (three competing canonical compositions)
+- **area:** `jaxfne/hdp_network.py`, `jaxfne/_construct_population.py`, `jaxfne/builders.py`
+- **observation:** three composition tables with different numbers presented as competing canonicals
+- **severity:** MAJOR
+- **resolution (2026-10-04, agent, owner-delegated):** rename, not renumber — numeric unification would void the HDP stationarity receipt (N=250) and suite2 frozen outputs. `LAYER_CELL_TYPE_FRAC_DEFAULT` → `HDP_LAYER_CELL_TYPE_FRAC_DEFAULT` (sole internal use; no external importers) with ownership comment; `_SUITE2_*` annotated as versioned suite presets; source of truth declared as `builders.CANONICAL_LAYER_CELL_TYPE_FRACTIONS`. Ownership test `test_hdp_default_table_distinct_from_canonical_p029` pins distinctness; 11 HDP/canonical tests green. Commit 1ced2661.
+- **closed:** 2026-10-04 (agent): entry moved from the open log.

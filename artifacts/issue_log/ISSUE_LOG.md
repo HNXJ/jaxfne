@@ -11,18 +11,6 @@ possible future change.
 
 ## Open
 
-### P-029
-- **date:** 2026-10-04
-- **type:** BUG (three competing canonical compositions)
-- **area:** `jaxfne/hdp_network.py:34-41`, `jaxfne/_construct_population.py:31-56`, `jaxfne/builders.py:64-80`
-- **observation:** three "canonical" cell-type-fraction tables with different numbers (L2 E 0.65 vs 0.50 vs 0.75), no single source of truth
-- **severity:** MAJOR (which table a model gets depends on entrance path)
-- **minimal reproduction:** read the three cited ranges
-- **expected behavior:** one canonical table; others import/derive or are renamed non-canonical
-- **actual behavior:** divergent parallel tables
-- **evidence:** code sweep 2026-10-04 (`artifacts/audit/sweep_2026-10-04_code.md`)
-- **possible future change:** unify or rename; open
-
 ### P-030
 - **date:** 2026-10-04
 - **type:** BUG (fail-open validators + broad exception handlers)
