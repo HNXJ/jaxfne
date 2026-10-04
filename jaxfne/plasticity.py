@@ -69,6 +69,34 @@ def summarize_stdp_adaptation(W_before: np.ndarray, W_after: np.ndarray) -> Dict
 
 
 
+def stdp_weight_update(
+    W: jax.Array,
+    trace_pre: jax.Array,
+    trace_post: jax.Array,
+    spiked: jax.Array,
+    exc_mask: jax.Array,
+    A_plus: float,
+    A_minus: float,
+    plasticity_scale: float,
+    w_min: float,
+    w_max: float,
+) -> jax.Array:
+    """Shared STDP weight kernel (minor batch): LTP/LTD, E/I sign
+    preservation, [w_min, w_max] clip, no self-connections. W[i, j] is
+    pre-synaptic j to post-synaptic i. Both `update_stdp_weights_jax` and
+    the streaming step call this; one implementation, one behavior."""
+    post_spike = spiked[:, None]
+    pre_spike = spiked[None, :]
+    dW_ltp = post_spike * trace_pre[None, :] * A_plus
+    dW_ltd = pre_spike * trace_post[:, None] * A_minus
+    dW = plasticity_scale * (dW_ltp - dW_ltd)
+    update_mask = exc_mask[None, :] & (~jnp.eye(W.shape[0], dtype=bool))
+    W_next = W + jnp.where(update_mask, dW, 0.0)
+    W_next = jnp.where(exc_mask[None, :], jnp.clip(W_next, w_min, w_max), W_next)
+    W_next = W_next * (1.0 - jnp.eye(W.shape[0]))
+    return W_next
+
+
 @jax.jit
 def update_stdp_weights_jax(
     W: jax.Array,
@@ -108,23 +136,8 @@ def update_stdp_weights_jax(
     jax.Array
         Updated weight matrix of shape (n_neurons, n_neurons).
     """
-    post_spike = spiked[:, None]
-    pre_spike = spiked[None, :]
-    
-    # LTP: pre active, then post spikes (potentiate)
-    dW_ltp = post_spike * trace_pre[None, :] * A_plus
-    # LTD: post active, then pre spikes (depress)
-    dW_ltd = pre_spike * trace_post[:, None] * A_minus
-    dW = plasticity_scale * (dW_ltp - dW_ltd)
-    
-    # Enforce E/I sign preservation and exclude self-connections
-    update_mask = exc_mask[None, :] & (~jnp.eye(W.shape[0], dtype=bool))
-    W_next = W + jnp.where(update_mask, dW, 0.0)
-    
-    # Clip excitatory weights to [w_min, w_max]
-    W_next = jnp.where(exc_mask[None, :], jnp.clip(W_next, w_min, w_max), W_next)
-    
-    # Enforce no self-connections
-    W_next = W_next * (1.0 - jnp.eye(W.shape[0]))
-    return W_next
+    return stdp_weight_update(
+        W, trace_pre, trace_post, spiked, exc_mask,
+        A_plus, A_minus, plasticity_scale, w_min, w_max,
+    )
 

@@ -12,6 +12,7 @@ from typing import Any
 
 
 _JAX_CLIP_COMPAT_INSTALLED = False
+_CLIP_ORIG = None  # unpatched jnp.clip, captured at install for teardown
 
 
 def _install_jax_clip_compat() -> bool:
@@ -29,7 +30,7 @@ def _install_jax_clip_compat() -> bool:
         True if the shim is in force (installed now or previously), False if the
         running JAX already supports ``a_max`` so no shim was needed.
     """
-    global _JAX_CLIP_COMPAT_INSTALLED
+    global _JAX_CLIP_COMPAT_INSTALLED, _CLIP_ORIG
     if _JAX_CLIP_COMPAT_INSTALLED:
         return True
     import jax.numpy as jnp
@@ -47,8 +48,27 @@ def _install_jax_clip_compat() -> bool:
         return orig(a, lo, hi)
 
     _clip_compat.__jaxfne_clip_compat__ = True  # marker for transparency/audit
+    _CLIP_ORIG = orig
     jnp.clip = _clip_compat
     _JAX_CLIP_COMPAT_INSTALLED = True
+    return True
+
+
+def uninstall_jax_clip_compat() -> bool:
+    """Restore the original ``jnp.clip`` captured at install time.
+
+    The shim is process-wide and irreversible by design while installed
+    (jaxley tolerance); call this to restore stock behavior, e.g. in tests.
+    Returns True if a shim was removed, False if none was installed.
+    """
+    global _JAX_CLIP_COMPAT_INSTALLED, _CLIP_ORIG
+    if not _JAX_CLIP_COMPAT_INSTALLED or _CLIP_ORIG is None:
+        return False
+    import jax.numpy as jnp
+
+    jnp.clip = _CLIP_ORIG
+    _CLIP_ORIG = None
+    _JAX_CLIP_COMPAT_INSTALLED = False
     return True
 
 

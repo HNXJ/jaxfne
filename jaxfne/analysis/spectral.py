@@ -12,6 +12,12 @@ from typing import Dict
 import jax
 import jax.numpy as jnp
 
+# Zero-guard for band/peak ratios on empty bands; similarity score scale
+# and decay for the spectrolaminar motif objective (percent scale).
+_ZERO_GUARD = 1e-12
+_SIMILARITY_SCALE = 100.0
+_SIMILARITY_DECAY = 3.0
+
 
 @partial(jax.jit, static_argnames=("fs", "window"))
 def spectrolaminar_psd_jax(
@@ -102,9 +108,9 @@ def bandpower_jax(
     mask_float = mask.astype(psd.dtype)
     sum_mask = jnp.sum(mask_float)
     # Average power across the band frequencies
-    band_power = jnp.sum(psd * mask_float[:, None], axis=0) / (sum_mask + 1e-12)
+    band_power = jnp.sum(psd * mask_float[:, None], axis=0) / (sum_mask + _ZERO_GUARD)
     # Normalize by the peak channel value
-    profile = band_power / (jnp.max(band_power) + 1e-12)
+    profile = band_power / (jnp.max(band_power) + _ZERO_GUARD)
     return profile
 
 
@@ -174,8 +180,8 @@ def spectrolaminar_similarity_kernel_jax(
     mse_ab = jnp.mean((alpha_beta - target_alpha_beta) ** 2)
     mse_gamma = jnp.mean((gamma - target_gamma) ** 2)
     mse_total = mse_ab + mse_gamma
-    similarity = 100.0 * jnp.exp(-3.0 * mse_total)
-    return jnp.clip(similarity, 0.0, 100.0)
+    similarity = _SIMILARITY_SCALE * jnp.exp(-_SIMILARITY_DECAY * mse_total)
+    return jnp.clip(similarity, 0.0, _SIMILARITY_SCALE)
 
 
 # Expose batched vectorization paths

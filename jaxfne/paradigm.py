@@ -308,6 +308,11 @@ def general_sequential_oddball_paradigm(
     Paradigm
         Immutable sequential task specification.
     """
+    if event_windows is not None and event_codes is not None:
+        raise ValueError(
+            "general_sequential_oddball_paradigm refuses event_windows and event_codes "
+            "together (event_windows would silently win): pass exactly one."
+        )
     windows_in = event_windows if event_windows is not None else event_codes
     if windows_in is None:
         raise ValueError("general_sequential_oddball_paradigm requires event_windows or event_codes")
@@ -405,6 +410,14 @@ def general_sequential_oddball_paradigm(
         "fx": 10,
         **{str(label): int(100 + idx) for idx, label in enumerate(seq_labels, start=1)},
     }
+    if str(comparison_label) in event_code_map and event_code_map[str(comparison_label)] != int(
+        comparison_code
+    ):
+        raise ValueError(
+            f"comparison_label={comparison_label!r} collides with a sequence event code "
+            f"({event_code_map[str(comparison_label)]} != {int(comparison_code)}): "
+            "the comparison assignment would silently overwrite it. Use a distinct label."
+        )
     event_code_map[str(comparison_label)] = int(comparison_code)
 
     return Paradigm(

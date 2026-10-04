@@ -5,6 +5,11 @@ import jax.numpy as jnp
 import numpy as np
 from typing import Any, Mapping, Sequence, Tuple, Dict
 
+# Absolute residual-norm threshold for the experimental Poisson manifest.
+# Scale-blind by construction (relative proxy fields have no absolute scale);
+# revisit with a relative tolerance if a calibrated solver ever lands.
+RESIDUAL_NORM_TOL = 1e-3
+
 def experimental_poisson_1d(
     sources: jax.Array,
     conductivity: "float | jax.Array",
@@ -143,7 +148,7 @@ def experimental_poisson_1d(
         "boundary_condition": boundary,
         "gauge_choice": gauge,
         "residual_norm": residual_norm,
-        "convergence_status": "converged" if residual_norm < 1e-3 else "failed",
+        "convergence_status": "converged" if residual_norm < RESIDUAL_NORM_TOL else "failed",
         "physical_amplitude_calibrated": False,
         "layered_conductivity": bool(layered),
         "precision": precision,

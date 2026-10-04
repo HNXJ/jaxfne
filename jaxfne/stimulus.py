@@ -24,7 +24,14 @@ def triangular_drive(
     Returns:
         jnp.ndarray: Triangular drive signal.
     """
-    n_steps = int(duration_ms / dt_ms)
+    span = duration_ms / dt_ms
+    if abs(span - round(span)) > 1e-9 * max(1.0, span):
+        raise ValueError(
+            f"duration_ms={duration_ms} is not a whole number of dt_ms={dt_ms} steps: "
+            f"the drive would silently drop the remainder (minor batch). "
+            f"Adjust duration_ms to {round(span) * dt_ms}."
+        )
+    n_steps = int(round(span))
     t = np.arange(n_steps) * dt_ms / 1000.0  # seconds
     period = 1.0 / freq_hz
     # Triangular wave formula centered around 0 in [-amplitude, amplitude]

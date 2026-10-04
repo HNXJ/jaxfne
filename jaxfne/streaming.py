@@ -6,7 +6,18 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 from .solvers import SolverConfig
-from .plasticity import STDPPlasticityConfig, STDPState
+from .plasticity import STDPPlasticityConfig, STDPState, stdp_weight_update
+
+# Izhikevich 2003 regular-spiking dynamics
+# (dv/dt = Q2*v^2 + LIN*v + BIAS - u + I, spike cutoff V_CUT_MV).
+# a/b/c/d stay per-neuron arguments; the fixed coefficients below are the
+# published RS values. SYN_TAU_MS matches the receptor-exponential
+# synapse scale used for the post-synaptic current decay.
+IZH_Q2 = 0.04
+IZH_LIN = 5.0
+IZH_BIAS = 140.0
+V_SPIKE_CUT_MV = 30.0
+SYN_TAU_MS = 5.0
 
 def simulate_stdp_euler_step(
     state: Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray],
@@ -30,46 +41,29 @@ def simulate_stdp_euler_step(
     
     # ODE Euler solver updates for Izhikevich state variables
     I_drive = stim_val + noise_val + s
-    dv = 0.04 * v * v + 5.0 * v + 140.0 - u + I_drive
+    dv = IZH_Q2 * v * v + IZH_LIN * v + IZH_BIAS - u + I_drive
     v_next = v + dt_ms * dv
     
     du = a * (b * v - u)
     u_next = u + dt_ms * du
     
     # Spike detection & reset
-    spiked = v_next >= 30.0
+    spiked = v_next >= V_SPIKE_CUT_MV
     v_next = jnp.where(spiked, c, v_next)
     u_next = jnp.where(spiked, u_next + d, u_next)
     
     # Post-synaptic current decay
-    s_next = s * (1.0 - dt_ms / 5.0) + jnp.dot(W, spiked.astype(jnp.float32))
+    s_next = s * (1.0 - dt_ms / SYN_TAU_MS) + jnp.dot(W, spiked.astype(jnp.float32))
     
     # STDP continuous decay
     trace_pre_next = trace_pre * (1.0 - dt_ms / tau_plus) + spiked.astype(jnp.float32)
     trace_post_next = trace_post * (1.0 - dt_ms / tau_minus) + spiked.astype(jnp.float32)
     
-    # Synapse-by-synapse STDP weight update:
-    # W[i, j] represents pre-synaptic j connected to post-synaptic i.
-    post_spike = spiked[:, None]
-    pre_spike = spiked[None, :]
-    
-    # LTP: pre active, then post spikes (potentiate)
-    dW_ltp = post_spike * trace_pre[None, :] * A_plus
-    # LTD: post active, then pre spikes (depress)
-    dW_ltd = pre_spike * trace_post[:, None] * A_minus
-    
-    dW = plasticity_scale * (dW_ltp - dW_ltd)
-    
-    # Enforce E/I sign preservation: update only excitatory synapses
-    # exc_mask[None, :] masks presynaptic (columns)
-    update_mask = exc_mask[None, :] & (~jnp.eye(v.shape[0], dtype=bool))
-    W_next = W + jnp.where(update_mask, dW, 0.0)
-    
-    # Clip excitatory weights to [w_min, w_max]
-    W_next = jnp.where(exc_mask[None, :], jnp.clip(W_next, w_min, w_max), W_next)
-    
-    # Enforce no self-connections
-    W_next = W_next * (1.0 - jnp.eye(v.shape[0]))
+    # Shared STDP weight kernel (see plasticity.stdp_weight_update).
+    W_next = stdp_weight_update(
+        W, trace_pre, trace_post, spiked, exc_mask,
+        A_plus, A_minus, plasticity_scale, w_min, w_max,
+    )
     
     return (v_next, u_next, s_next, trace_pre_next, trace_post_next, W_next), (v_next, spiked)
 
@@ -99,6 +93,11 @@ def run_stdp_stream(
         dict: traj_dict containing downsampled trajectories and chunk statistics.
     """
     dt_ms = solver_config.dt
+    if dt_ms > SYN_TAU_MS:
+        raise ValueError(
+            f"dt_ms={dt_ms} exceeds SYN_TAU_MS={SYN_TAU_MS} (minor batch): "
+            "the synaptic decay factor (1 - dt/tau) would go negative."
+        )
     total_steps = stim_drive.shape[0]
     chunk_steps = int(chunk_size_ms / dt_ms)
     n_chunks = int(np.ceil(total_steps / chunk_steps))

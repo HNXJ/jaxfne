@@ -393,7 +393,6 @@ from .public_surface import PUBLIC_EXPORTS
 __all__ = list(PUBLIC_EXPORTS)
 
 __version__ = _JAXFNE_VERSION
-Net = Model
 
 
 import sys as _sys
@@ -430,6 +429,17 @@ class _RuntimeModuleWrapper(_ModuleType):
             from .core import runtime as _runtime_fn
 
             return _runtime_fn
+        if name == "Net":
+            import warnings
+
+            warnings.warn(
+                "Use Model instead; Net is a compatibility alias removed after 0.4.14.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            from .core import Model as _Model
+
+            return _Model
         if name in (
             "vis",
             "visualize",

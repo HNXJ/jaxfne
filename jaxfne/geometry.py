@@ -5,6 +5,12 @@ from typing import Tuple
 import jax.numpy as jnp
 import jax.random as jr
 
+# E/I split and uniform initial-weight range for the random cloud helper
+# (relative scaffold values, not calibrated biology).
+EXC_FRACTION = 0.7
+W_INIT_MIN = 0.01
+W_INIT_MAX = 0.1
+
 def make_ei_cloud_network(n_neurons: int = 100, seed: int = 42) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """Generates geometry and initial weights for a 100-neuron E-I cloud network.
     
@@ -32,13 +38,13 @@ def make_ei_cloud_network(n_neurons: int = 100, seed: int = 42) -> Tuple[jnp.nda
     
     positions = jnp.stack([x, y, z], axis=1)
     
-    # 70% Excitatory / 30% Inhibitory split
-    n_exc = int(0.7 * n_neurons)
+    # Excitatory/Inhibitory split (EXC_FRACTION of neurons excitatory)
+    n_exc = int(EXC_FRACTION * n_neurons)
     exc_mask = jnp.arange(n_neurons) < n_exc
     inh_mask = ~exc_mask
     
     # Generate initial weights W[post, pre]
-    W = jr.uniform(w_key, (n_neurons, n_neurons), minval=0.01, maxval=0.1)
+    W = jr.uniform(w_key, (n_neurons, n_neurons), minval=W_INIT_MIN, maxval=W_INIT_MAX)
     
     # Apply signs based on presynaptic source type (pre-synaptic is column index j)
     W_signed = jnp.where(exc_mask[None, :], W, -W)

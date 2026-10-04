@@ -563,7 +563,7 @@ def _load_pose(area_raw: dict) -> "Pose3D":
     return Pose3D(**pose_raw)
 
 
-def load(path: str | Path) -> NeuronalTensor:
+def load(path: str | Path, *, strict: bool = False) -> NeuronalTensor:
     """Canonical loader: load a NeuronalTensor from its JSON config file.
 
     This is the recommended entry point for the tensor-first workflow
@@ -574,13 +574,15 @@ def load(path: str | Path) -> NeuronalTensor:
     it lived only in tests, never as a real asset outside this package; use
     this function for the NeuronalTensor-schema path, or the
     :class:`Configuration` fluent builder for the Configuration-schema path.
+    With ``strict=True``, an unrecognized future ``schema_version`` is refused
+    instead of loading with a warning.
     """
     raw = load_json(path)
     if "areas" not in raw:
         raise ValueError(
             f"{path} does not look like a NeuronalTensor JSON config (no top-level 'areas' key)."
         )
-    return _load_neuronal_tensor_impl(path, raw)
+    return _load_neuronal_tensor_impl(path, raw, strict=strict)
 
 
 def load_neuronal_tensor(path: str | Path) -> NeuronalTensor:
@@ -591,13 +593,21 @@ def load_neuronal_tensor(path: str | Path) -> NeuronalTensor:
     return load(path)
 
 
-def _load_neuronal_tensor_impl(path: str | Path, raw: dict) -> NeuronalTensor:
+def _load_neuronal_tensor_impl(
+    path: str | Path, raw: dict, *, strict: bool = False
+) -> NeuronalTensor:
     """Validates ``schema_version`` if present (missing = legacy pre-versioning
     save, treated as ``neuronal_tensor_v1`` implicitly). An unrecognized
     *future* version is accepted with a warning, not an error -- this loader
     targets forward-readability of additive fields, not strict lockstep.
     """
     schema_version = raw.get("schema_version", NEURONAL_TENSOR_SCHEMA_VERSION)
+    if schema_version != NEURONAL_TENSOR_SCHEMA_VERSION and strict:
+        raise ValueError(
+            f"NeuronalTensor JSON at {path} declares schema_version="
+            f"{schema_version!r}, expected {NEURONAL_TENSOR_SCHEMA_VERSION!r}; "
+            "strict=True refuses forward-reads with possibly dropped fields."
+        )
     if schema_version != NEURONAL_TENSOR_SCHEMA_VERSION:
         warnings.warn(
             f"NeuronalTensor JSON at {path} declares schema_version="
