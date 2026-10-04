@@ -95,7 +95,7 @@ RECEPTOR_KINETICS = {
         "tau_ms": 5.0,
         "reversal_mV": -80.0,
         "description": "Ionotropic GABA receptor, fast timescale",
-        "source": "Standard neuroscience literature",
+        "source": "Xiang, Huguenard & Prince 1998, J Physiol 506:715-730 (adult rat visual cortex LV pyramidal sIPSC monoexponential tau_D 5.0 ms)",
         "source_calibration_status": "metadata_only_uncalibrated",
         "physical_amplitude_calibrated": False,
     },
