@@ -91,8 +91,11 @@ def test_target_layer_resolution_and_refusals():
 
     def _schedule(meta, **kw):
         return jtfne.stimulus_schedule(
-            [jtfne.ParadigmEvent(label="d", onset_ms=10.0, duration_ms=20.0,
-                                 stimulus="x", metadata=meta)],
+            [
+                jtfne.ParadigmEvent(
+                    label="d", onset_ms=10.0, duration_ms=20.0, stimulus="x", metadata=meta
+                )
+            ],
             n_neurons=len(layers),
             **kw,
         )
@@ -138,8 +141,9 @@ def test_standard_visual_omission_stimulus_injects_markers_do_not():
     """standard_visual_omission: p-events inject, the fx marker (and omissions) do not."""
     paradigm = jtfne.standard_visual_omission()
     arr = np.asarray(
-        jtfne.stimulus_schedule(paradigm.condition("AAAB").events, n_neurons=4)
-        .to_array(n_steps=1000, dt_ms=0.5)
+        jtfne.stimulus_schedule(paradigm.condition("AAAB").events, n_neurons=4).to_array(
+            n_steps=1000, dt_ms=0.5
+        )
     )
     # p1: onset 100ms -> step 200, default 50ms/5.0 -> steps 200..300 driven.
     assert (arr[200:300, :] == 5.0).all()
@@ -147,8 +151,9 @@ def test_standard_visual_omission_stimulus_injects_markers_do_not():
     assert (arr[0:200, :] == 0.0).all()
     # AXAB p2 is an omission carrying a stimulus token: still silent.
     arr_omit = np.asarray(
-        jtfne.stimulus_schedule(paradigm.condition("AXAB").events, n_neurons=4)
-        .to_array(n_steps=1000, dt_ms=0.5)
+        jtfne.stimulus_schedule(paradigm.condition("AXAB").events, n_neurons=4).to_array(
+            n_steps=1000, dt_ms=0.5
+        )
     )
     assert (arr_omit[400:500, :] == 0.0).all()
 
@@ -157,8 +162,9 @@ def test_omission_oddball_stimulus_injects_markers_do_not():
     """omission_oddball_paradigm: the standard slot injects, markers and the omission do not."""
     paradigm = jtfne.omission_oddball_paradigm(deviant_drive_amplitude=10.0)
     arr = np.asarray(
-        jtfne.stimulus_schedule(paradigm.condition("expected").events, n_neurons=4)
-        .to_array(n_steps=2000, dt_ms=0.5)
+        jtfne.stimulus_schedule(paradigm.condition("expected").events, n_neurons=4).to_array(
+            n_steps=2000, dt_ms=0.5
+        )
     )
     # standard: onset 200ms -> step 400, own duration 100ms -> steps 400..600 at default 5.0.
     assert (arr[400:600, :] == 5.0).all()
@@ -166,8 +172,9 @@ def test_omission_oddball_stimulus_injects_markers_do_not():
     assert (arr[0:400, :] == 0.0).all()
     assert (arr[600:, :] == 0.0).all()
     arr_omitted = np.asarray(
-        jtfne.stimulus_schedule(paradigm.condition("omitted").events, n_neurons=4)
-        .to_array(n_steps=2000, dt_ms=0.5)
+        jtfne.stimulus_schedule(paradigm.condition("omitted").events, n_neurons=4).to_array(
+            n_steps=2000, dt_ms=0.5
+        )
     )
     assert (arr_omitted[400:600, :] == 0.0).all()
 
@@ -178,19 +185,34 @@ def test_omission_oddball_default_call_refuses_p024():
         jtfne.omission_oddball_paradigm()
 
 
-@pytest.mark.parametrize("std, dev", [
-    (10.0, 10.0),
-    (None, 5.0),          # None realizes the simulator default drive_amplitude=5.0
-    (5.0, None),
-    ("10", 10.0),         # the schedule coerces with float()
-    (float("nan"), 1.0),  # non-finite refused
-])
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"standard_onset_ms": 600.0},
+        {"deviant_onset_ms": 600.0},
+        {"standard_onset_ms": float("nan")},
+    ],
+)
+def test_omission_oddball_nondefault_onsets_refuse_p027(kwargs):
+    """P-027: onset params are not implemented; non-default values refuse."""
+    with pytest.raises(ValueError, match="P-027"):
+        jtfne.omission_oddball_paradigm(deviant_drive_amplitude=10.0, **kwargs)
+
+
+@pytest.mark.parametrize(
+    "std, dev",
+    [
+        (10.0, 10.0),
+        (None, 5.0),  # None realizes the simulator default drive_amplitude=5.0
+        (5.0, None),
+        ("10", 10.0),  # the schedule coerces with float()
+        (float("nan"), 1.0),  # non-finite refused
+    ],
+)
 def test_omission_oddball_equal_realized_amplitudes_refuse_p024(std, dev):
     """P-024: amplitudes that realize equal (or non-finite) drives refuse."""
     with pytest.raises(ValueError, match="P-024"):
-        jtfne.omission_oddball_paradigm(
-            standard_drive_amplitude=std, deviant_drive_amplitude=dev
-        )
+        jtfne.omission_oddball_paradigm(standard_drive_amplitude=std, deviant_drive_amplitude=dev)
 
 
 def test_omission_oddball_distinct_amplitudes_differ_in_simulation_p024():

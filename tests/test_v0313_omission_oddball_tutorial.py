@@ -18,8 +18,9 @@ import os
 
 def test_v0313_omission_oddball_paradigm_timing():
     """Verify that omission_oddball_paradigm returns proper conditions and timings."""
+    # P-027: standard_onset_ms was dead here (250.0 silently ignored;
+    # stimulus starts after pre_stimulus_buffer_ms). Dropped.
     paradigm = jtfne.omission_oddball_paradigm(
-        standard_onset_ms=250.0,
         standard_duration_ms=120.0,
         deviant_duration_ms=120.0,
         pre_stimulus_buffer_ms=150.0,

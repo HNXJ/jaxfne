@@ -644,11 +644,15 @@ def omission_oddball_paradigm(
     Parameters
     ----------
     standard_onset_ms : float
-        Standard stimulus onset (ms after trial start).
+        Declared standard stimulus onset (ms after trial start). Only the
+        default (500.0) is currently accepted; stimulus events start after
+        pre_stimulus_buffer_ms and any other value is refused (P-027).
     standard_duration_ms : float
         Standard stimulus duration (ms).
     deviant_onset_ms : Optional[float]
-        Deviant stimulus onset. If None, use standard_onset_ms.
+        Declared deviant stimulus onset. If None, use standard_onset_ms.
+        Only the default (None, i.e. the standard value) is currently
+        accepted; any other value is refused (P-027).
     deviant_duration_ms : float
         Deviant stimulus duration (ms).
     deviant_label : str
@@ -690,6 +694,19 @@ def omission_oddball_paradigm(
     """
     if deviant_onset_ms is None:
         deviant_onset_ms = standard_onset_ms
+
+    # P-027: explicit onsets are declared but not implemented — every
+    # stimulus event starts after pre_stimulus_buffer_ms. Refuse anything
+    # but the signature defaults rather than silently mistime the stimulus.
+    if standard_onset_ms != 500.0 or deviant_onset_ms != 500.0:
+        raise ValueError(
+            "omission_oddball_paradigm refuses non-default onset values "
+            f"(standard_onset_ms={standard_onset_ms!r}, "
+            f"deviant_onset_ms={deviant_onset_ms!r}; P-027): stimulus events "
+            "start after pre_stimulus_buffer_ms and explicit onsets are not "
+            "implemented. Pass the defaults (500.0/None) or set "
+            "pre_stimulus_buffer_ms to place the stimulus."
+        )
 
     # Compare the drives the simulator will realize: None resolves to
     # stimulus_schedule's own drive_amplitude default (read from its signature,

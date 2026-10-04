@@ -36,7 +36,7 @@
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 15100,
+      "bytes": 15150,
       "inputs": {
         "source_artifact": "model",
         "variable": "params.positions + params.edge_list",
@@ -50,7 +50,7 @@
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 11828,
+      "bytes": 11967,
       "inputs": {
         "source_artifact": "signals",
         "variable": "spikes [T,N] + neuron_table",
@@ -64,7 +64,7 @@
       "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 47426,
+      "bytes": 48161,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field proxy",
@@ -106,7 +106,7 @@
       "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 15687,
+      "bytes": 15777,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field traces",
@@ -116,14 +116,14 @@
       }
     }
   ],
-  "sha256": "6360251c2773885a",
+  "sha256": "81b0bb8b965a804a",
   "promotion": [
     {
       "to": "validated",
-      "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+      "reason": "P-027: standard stimulus honestly at pre_stimulus_buffer_ms=50 (dead onset arg removed); paradigm tests 24 green",
       "promoter": "promote_atlas_state.py",
-      "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
-      "utc": "2026-09-28T01:29:54.899040+00:00"
+      "git_head": "a15a7e1ebbb614af67f029e4d4a11092b0d1277a",
+      "utc": "2026-10-04T22:56:56.435092+00:00"
     }
   ]
 }
