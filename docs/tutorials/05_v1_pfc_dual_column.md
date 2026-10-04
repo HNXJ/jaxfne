@@ -139,9 +139,9 @@ earlier, more conservative behavior for comparison).
 PYTHONPATH=. python3 scripts/v1_pfc_continuous_aaab_smoke_test.py [n_trials]
 ```
 
-Default `n_trials=10` (~26s on CPU). The full spec target is 1000 trials
+Default `n_trials=10` (tens of seconds on CPU; machine-dependent). The full spec target is 1000 trials
 and is **not** run by default -- pass an explicit `n_trials` for a
-longer run. Receipt:
+longer run. Receipt (when generated):
 `outputs/v1_pfc_continuous_aaab_smoke_test/smoke_test_receipt.json`.
 
 ## Known limitations

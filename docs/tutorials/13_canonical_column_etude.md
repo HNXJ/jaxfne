@@ -265,8 +265,8 @@ Regenerate: `python scripts/generate_doc_page_atlases.py --slug canonical_etude_
 
 ## Notes on scale and claims
 
-- **Reuse, don't rebuild.** `construct()` costs (~40 s at 10k,
-  ~2 s at 1k); `simulate()` is cheap. For sweeps, seeds, drive, or
+- **Reuse, don't rebuild.** `construct()` dominates; cost grows steeply
+  with N, so build once and reuse the `Model`. For sweeps, seeds, drive, or
   trials, reuse the built model (vary the simulation, or adjust emitter
   parameters with `with_emitter_parameters`); rebuild only on structural
   change (counts, layers, cell types, connectivity).

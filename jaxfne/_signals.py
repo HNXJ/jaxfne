@@ -1442,7 +1442,7 @@ class BasisSpec:
         # Future regimes are always unimplemented by doctrine
         if self.field_regime in _FUTURE_FIELD_REGIMES:
             return False
-        # solved_poisson is specified but not solved in v0.2.x
+        # solved_poisson is specified but not solved as of v0.5.x
         if self.field_regime == "solved_poisson":
             return False
         return True
@@ -1450,7 +1450,7 @@ class BasisSpec:
     @property
     def claim_allowed(self) -> bool:
         """Physical amplitude claims are always False in proxy/scaffold regimes."""
-        # Claims require solved field with calibrated conductivity — not in v0.2.x
+        # Claims require solved field with calibrated conductivity — not as of v0.5.x
         return False
 
     @property

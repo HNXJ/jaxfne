@@ -114,7 +114,7 @@ readouts = model.compute_readout(signals, readout_specs)
 
 ### In Colab (Recommended)
 
-Click the **Open in Colab** badge at the top. The notebook runs CPU-safe in ~2–3 minutes.
+Click the **Open in Colab** badge at the top. The notebook runs CPU-safe (minutes on Colab; machine-dependent).
 
 ### Locally
 

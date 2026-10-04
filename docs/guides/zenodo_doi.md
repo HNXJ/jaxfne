@@ -37,7 +37,7 @@ Zenodo watches **published GitHub Releases**, not bare git tags.
 | Draft Release | No |
 
 So: keep polishing with internal tags if you want; turn on archival when you
-**publish** the real Release (planned for **0.4.7** after confirmation).
+**publish** the real Release (done — first public Releases in 0.4.x; current 0.5.0, see `artifacts/release/` receipts).
 
 ## One-time setup (already done if the repo is flipped ON)
 

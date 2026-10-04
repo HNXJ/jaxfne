@@ -194,7 +194,7 @@ EMM(t) = w_spk * normalized_spike_rate(t)
 - `operator_status: simulated_proxy`
 - `amplitude_status: false`
 
-**Important:** EMM-proxy is valid for relative within-run comparisons. It represents a signaling-energy proxy suitable for optimization workflows in v0.2.x.
+**Important:** EMM-proxy is valid for relative within-run comparisons. It represents a signaling-energy proxy suitable for optimization workflows.
 
 **Status (verified v0.4.8, development tree):** Normalized activity cost proxy; exploratory metric for optimization.
 
@@ -220,7 +220,7 @@ Direct readout of state voltage from emitter $n$. Proxy readout.
 
 $$S_n(t)=f_{\mathrm{source}}(x_n(t),\theta_n)$$
 
-Source/current proxy derived from emitter state $x_n(t)$ and parameters $\theta_n$. Status: proxy-scale units in v0.2.x; calibration path documented in the calibration guide.
+Source/current proxy derived from emitter state $x_n(t)$ and parameters $\theta_n$. Status: proxy-scale units; calibration path documented in the calibration guide.
 
 ### LFP-proxy
 
@@ -330,8 +330,8 @@ print(emm_readout.report)
 
 - Use `*-proxy` to denote declared computational operators: `lfp_proxy`, `csd_proxy`, `eeg_proxy`, `meg_proxy` are the canonical public labels.
 - This terminology explicitly declares computational intent and prevents informal analogy with empirically validated readouts.
-- All operators are "simulated" or "proxy" in v0.2.x. Statements of physical equivalence require separate calibration and validation evidence.
-- EMM-proxy is valid for relative within-run comparisons; it represents a signaling-energy proxy in v0.2.x.
+- All operators are "simulated" or "proxy". Statements of physical equivalence require separate calibration and validation evidence.
+- EMM-proxy is valid for relative within-run comparisons; it represents a signaling-energy proxy.
 
 ---
 

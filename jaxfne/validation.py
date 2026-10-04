@@ -1227,7 +1227,7 @@ def basis_claim_gate(
     -------
     dict
         JSON-safe gate result. ``physical_amplitude_calibrated`` is always
-        ``False`` in v0.2.x.
+        ``False`` as of v0.5.x.
     """
     validation = validate_basis_spec(spec)
     issues = list(validation.get("issues", []))

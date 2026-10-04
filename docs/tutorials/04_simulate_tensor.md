@@ -2,7 +2,7 @@
 
 > Continued from [03 — Inspect](03_inspect_tensor.md). Same `tensor`; now compile and run.
 
-Construction realizes geometry positions and the edge list under runtime key `K_S` (distinct from development `K_D`). Simulation is cheap; construction is the expensive step (~2 s at 1k, ~40 s at 10k).
+Construction realizes geometry positions and the edge list under runtime key `K_S` (distinct from development `K_D`). Simulation is cheap; construction is the expensive step (seconds at 1k, tens of seconds at 10k; machine- and builder-dependent).
 
 ```python
 import jaxfne as jtfne, numpy as np

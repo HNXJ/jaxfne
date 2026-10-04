@@ -1,6 +1,5 @@
 # LFP/CSD Readout Tutorial
 
-**Version:** 0.3.8  
 **Difficulty:** Intermediate  
 **Duration:** 15–20 minutes to read; 5–10 minutes to execute  
 **Scope:** Computational scaffold, simulated proxy fields, tutorial-scale learning

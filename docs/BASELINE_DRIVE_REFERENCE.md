@@ -127,7 +127,7 @@ noise_amplitude_by_cell_type = {
 ### Delta-Test Status
 
 - **Score:** 100/100 ✓
-- **Release:** Unblocked (pending final validation)
+- **Release:** v0.5.0 sealed+published (see `artifacts/release/v0_5_0_release_receipt.json`)
 
 ---
 
