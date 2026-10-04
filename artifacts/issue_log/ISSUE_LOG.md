@@ -11,18 +11,6 @@ possible future change.
 
 ## Open
 
-### P-031
-- **date:** 2026-10-04
-- **type:** BUG (stored-but-unconsumed parameter)
-- **area:** `jaxfne/_runtime_config.py:326-356` (`SurrogateConfig(beta, applies_to)`)
-- **observation:** declaration-only by its own docstring ("records the declaration only; does not alter dynamics"); no kernel reads it
-- **severity:** MAJOR (P-014/P-015 class)
-- **minimal reproduction:** read `_runtime_config.py:326-356`
-- **expected behavior:** consumed in a gradient path or non-default values refused
-- **actual behavior:** stored, never consumed
-- **evidence:** code sweep 2026-10-04 (`artifacts/audit/sweep_2026-10-04_code.md`)
-- **possible future change:** wire or refuse; open
-
 ### P-032
 - **date:** 2026-10-04
 - **type:** BUG (nondeterministic tests)

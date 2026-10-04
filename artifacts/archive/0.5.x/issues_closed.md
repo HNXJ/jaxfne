@@ -405,3 +405,12 @@ Earlier closed issues: `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md`.
 - **severity:** MAJOR
 - **resolution (2026-10-04, agent, owner-delegated):** `_is_finite_value` deleted (zero callers repo-wide; slop, not a contract); `z` extraction narrowed to `(IndexError, TypeError, ValueError)`; dtype fallback narrowed to `(TypeError, ValueError)`; `_pipeline:990` metadata fallback and the 31 `util.py` probes deliberately left broad — best-effort inspection over duck-typed/JAX-tracer objects where failure modes genuinely vary; narrowing risks breaking valid inspection for zero behavior gain. 73 tests green (signal/continuation/tensor). Commit db996476.
 - **closed:** 2026-10-04 (agent): entry moved from the open log.
+
+### P-031
+- **date:** 2026-10-04
+- **type:** BUG (stored-but-unconsumed parameter)
+- **area:** `jaxfne/_runtime_config.py` (`SurrogateConfig`)
+- **observation:** declaration-only object with no consuming kernel; typo'd `method` silently reported `required_but_missing`
+- **severity:** MAJOR
+- **resolution (2026-10-04, agent, owner-delegated):** declaration validated, not wired — the object is EXPERIMENTAL_INTERNAL and explicitly declaration-only by design (status + test pin it), so inventing a gradient path would be scope fabrication. `__post_init__` now refuses unknown `method` (P-031) and non-finite `beta`. Failing-first test failed pre-fix, 14 module tests green post-fix. Commit 05c66d61.
+- **closed:** 2026-10-04 (agent): entry moved from the open log.
