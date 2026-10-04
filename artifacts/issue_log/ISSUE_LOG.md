@@ -11,18 +11,6 @@ possible future change.
 
 ## Open
 
-### P-030
-- **date:** 2026-10-04
-- **type:** BUG (fail-open validators + broad exception handlers)
-- **area:** `jaxfne/validation.py:28-41`, `jaxfne/util.py:444-896`, `jaxfne/_pipeline.py:976,990`, `jaxfne/_model.py:646-649`
-- **observation:** `_is_finite_value` returns `True` for any `int`/`str` (`"abc"` validates finite); ~30 bare `except Exception` in `util.py` summary/diff helpers; dtype/itemsize fallbacks and `z` extraction mask real bugs as defaults/`None`
-- **severity:** MAJOR (validators/reporters that cannot fail misreport)
-- **minimal reproduction:** read `validation.py:28-41`; grep `except Exception` in `util.py`
-- **expected behavior:** narrow exception types; numeric-check non-bool/non-None values
-- **actual behavior:** silent pass/defaults
-- **evidence:** code sweep 2026-10-04 (`artifacts/audit/sweep_2026-10-04_code.md`)
-- **possible future change:** narrow handlers + tests; open
-
 ### P-031
 - **date:** 2026-10-04
 - **type:** BUG (stored-but-unconsumed parameter)

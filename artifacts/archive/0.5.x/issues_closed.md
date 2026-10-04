@@ -396,3 +396,12 @@ Earlier closed issues: `artifacts/archive/0.5.x/ISSUE_LOG_2026-09-27.md`.
 - **severity:** MAJOR
 - **resolution (2026-10-04, agent, owner-delegated):** rename, not renumber — numeric unification would void the HDP stationarity receipt (N=250) and suite2 frozen outputs. `LAYER_CELL_TYPE_FRAC_DEFAULT` → `HDP_LAYER_CELL_TYPE_FRAC_DEFAULT` (sole internal use; no external importers) with ownership comment; `_SUITE2_*` annotated as versioned suite presets; source of truth declared as `builders.CANONICAL_LAYER_CELL_TYPE_FRACTIONS`. Ownership test `test_hdp_default_table_distinct_from_canonical_p029` pins distinctness; 11 HDP/canonical tests green. Commit 1ced2661.
 - **closed:** 2026-10-04 (agent): entry moved from the open log.
+
+### P-030
+- **date:** 2026-10-04
+- **type:** BUG (fail-open validators + broad exception handlers)
+- **area:** `jaxfne/validation.py`, `jaxfne/_model.py`, `jaxfne/_pipeline.py`, `jaxfne/util.py`
+- **observation:** dead fail-open `_is_finite_value`; over-broad handlers on `z` extraction and dtype fallback; ~30 broad probes in `util.py` summaries
+- **severity:** MAJOR
+- **resolution (2026-10-04, agent, owner-delegated):** `_is_finite_value` deleted (zero callers repo-wide; slop, not a contract); `z` extraction narrowed to `(IndexError, TypeError, ValueError)`; dtype fallback narrowed to `(TypeError, ValueError)`; `_pipeline:990` metadata fallback and the 31 `util.py` probes deliberately left broad — best-effort inspection over duck-typed/JAX-tracer objects where failure modes genuinely vary; narrowing risks breaking valid inspection for zero behavior gain. 73 tests green (signal/continuation/tensor). Commit db996476.
+- **closed:** 2026-10-04 (agent): entry moved from the open log.
