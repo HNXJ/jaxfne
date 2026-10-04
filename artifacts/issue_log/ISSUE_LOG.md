@@ -11,18 +11,6 @@ possible future change.
 
 ## Open
 
-### P-032
-- **date:** 2026-10-04
-- **type:** BUG (nondeterministic tests)
-- **area:** `tests/test_analysis_metrics.py:28,48,62,75-82,94+`
-- **observation:** unseeded `np.random.rand` with threshold asserts (`>0.9`, tight bands); only some tests set `np.random.seed`
-- **severity:** MAJOR (flake-prone; a passing run proves little)
-- **minimal reproduction:** read the cited lines; run the module twice and compare
-- **expected behavior:** seeded `Generator` per stochastic test, or distribution-free asserts
-- **actual behavior:** unseeded randomness under tight asserts
-- **evidence:** code sweep 2026-10-04 (`artifacts/audit/sweep_2026-10-04_code.md`)
-- **possible future change:** seed + re-run; open
-
 ### P-033
 - **date:** 2026-10-04
 - **type:** DOC (overclaims, stale versions, unit leaks)
