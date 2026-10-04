@@ -22,6 +22,22 @@ class SolverConfig:
     solver_type: Optional[str] = None
 
 
+def _checked_steps(t_start: float, t_end: float, dt: float) -> int:
+    """Refuse a time grid the kernel would silently round (P-028).
+
+    Same rule as agent._checked_time: the span must be a whole number
+    of dt steps within 1e-9 relative tolerance.
+    """
+    span = (t_end - t_start) / dt
+    if abs(span - round(span)) > 1e-9 * max(1.0, span):
+        raise ValueError(
+            f"[{t_start}, {t_end}] is not a whole number of dt={dt} steps "
+            f"(P-028): the kernel would run {round(span)} steps. "
+            f"Adjust t_end to {t_start + round(span) * dt}."
+        )
+    return int(round(span))
+
+
 class EulerSolver:
     """Forward Euler integrator using JAX and lax.scan."""
     def __init__(self, dt: float):
@@ -35,7 +51,7 @@ class EulerSolver:
         t_end: float,
     ) -> Tuple[jax.Array, jax.Array]:
         """Integrates dydt_fn from t_start to t_end using forward Euler stepping."""
-        n_steps = int(round((t_end - t_start) / self.dt))
+        n_steps = _checked_steps(t_start, t_end, self.dt)
         
         def step_fn(carry, i):
             """Documented public function `step_fn`."""
@@ -74,6 +90,12 @@ class DiffraxSolver:
         t_end: float,
     ) -> Tuple[jax.Array, jax.Array]:
         """Integrates dydt_fn from t_start to t_end using diffrax."""
+        if self.solver_type not in (None, "dopri5", "tsit5"):
+            raise ValueError(
+                f"Unknown solver_type: {self.solver_type!r} (P-028). "
+                'Use "dopri5", "tsit5", or None (default tsit5).'
+            )
+        n_save = _checked_steps(t_start, t_end, self.dt) + 1
         try:
             import diffrax
         except ImportError as e:
@@ -86,13 +108,10 @@ class DiffraxSolver:
         
         if self.solver_type == "dopri5":
             solver = diffrax.Dopri5()
-        elif self.solver_type == "tsit5":
-            solver = diffrax.Tsit5()
         else:
             solver = diffrax.Tsit5()
 
         stepsize_controller = diffrax.PIDController(rtol=self.rtol, atol=self.atol)
-        n_save = int(round((t_end - t_start) / self.dt)) + 1
         ts_save = jnp.linspace(t_start, t_end, n_save)
 
         sol = diffrax.diffeqsolve(
@@ -117,6 +136,13 @@ def solve_ode(
 ) -> Tuple[jax.Array, jax.Array]:
     """Public ODE solver entrypoint routing to appropriate solver backend."""
     if config.method == "euler":
+        defaults = SolverConfig()
+        if config.rtol != defaults.rtol or config.atol != defaults.atol:
+            raise ValueError(
+                f"rtol/atol are not consumed by method='euler' (P-028): got "
+                f"rtol={config.rtol!r}, atol={config.atol!r}. Use method='diffrax' "
+                "or leave the defaults."
+            )
         solver = EulerSolver(dt=config.dt)
         return solver.solve(dydt_fn, y_init, t_start, t_end)
     elif config.method == "diffrax":
