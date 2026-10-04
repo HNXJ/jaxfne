@@ -115,6 +115,14 @@ Short list for the jnwb move (human, 2026-09-30), in order:
   they are. `pynwb_compat.write_nwb` writes a `to_jnwb` view (Units table,
   proxies as unit-less TimeSeries, never volts). `to_jnwb` stays at
   `jaxfne.jnwb_view`, off the top-level surface, until the migration settles.
+- 2026-10-04 (agent, owner-delegated): AT-10-R4 (W(t) trajectories) is
+  OUT_OF_SCOPE with reason: `record_weight_trace` is False by declared
+  recording budget (20,000 x 68,620 floats ~5.5 GB per 10 s phase;
+  `at10_n20_055.py:111-116`, cited `at_manifest.py:477`); `w_final` plus
+  the assay ratios (`w_mean_ratio`, `w_unchanged`, window rates per H0 arm
+  in `at10_n20_055.json`) answer the plasticity question the trace would
+  serve. X(t)/H(t)/Phi(t) remain measured in panels and assay. Reversible:
+  flip the flag and re-run with traces on to re-open.
 
 ## 0.5.5 stack
 

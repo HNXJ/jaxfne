@@ -463,14 +463,14 @@
    "state": "PLANNED"
   },
   {
-   "id": "AT-10-R4",
-   "sim": "S10",
-   "requirement": "HDP phases measure W(t), H(t), X(t), Phi(t) and network-level organization",
-   "capability": "long-horizon recording budgets",
-   "release": "0.5.5",
-   "candidate": false,
-   "evidence": null,
-   "state": "PLANNED"
+    "id": "AT-10-R4",
+    "sim": "S10",
+    "requirement": "HDP phases measure W(t), H(t), X(t), Phi(t) and network-level organization",
+    "capability": "long-horizon recording budgets",
+    "release": "0.5.5",
+    "candidate": false,
+    "evidence": "artifacts/atlas/results/at10_n20_055.json",
+    "state": "OUT_OF_SCOPE"
   },
   {
    "id": "AT-10-R5",
