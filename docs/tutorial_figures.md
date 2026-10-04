@@ -1,6 +1,6 @@
 # Tutorial Figures
 
-Figure set introduced in jaxfne 0.2.27/2026-05-22, exercised by `tests/test_tutorial_figure_manifest_v028.py` (current development tree: 0.4.8). Stable output, regenerated with visual confirmation.
+Figure set introduced in jaxfne 0.2.27/2026-05-22, exercised by `tests/test_tutorial_figure_manifest_v028.py`. Stable output, regenerated with visual confirmation.
 
 ---
 

@@ -13,7 +13,7 @@ tensor = jtfne.develop(genome, seed=0)
 model = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=1, duration_ms=1000.0, dt_ms=0.5))
 signals = jtfne.simulate(model)
 print(len(model.neuron_table()))  # 1000
-print(model.params["edge_list"].n_edges)  # ~215k (48 rules × p=1.0 bipartite; 215785 for direct canonical tensor, 215190 for develop seed 0)
+print(model.params["edge_list"].n_edges)  # ~215k observed 2026-10, re-run to confirm (215785 direct canonical tensor, 215190 develop seed 0; 48 rules x p=1.0 bipartite)
 print(signals.get("spikes").shape)  # (2000, 1000)  — (T, N)
 print(float(signals.get("spikes").mean() * 1000 / 0.5))  # ~8-12 Hz population rate
 ```

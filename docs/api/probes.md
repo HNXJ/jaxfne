@@ -313,7 +313,7 @@ All probe/readout paths here are computational proxies:
 
 **Statements requiring caveats:**
 - "LFP amplitude is 50 µV." (needs an uncalibrated-proxy caveat)
-- "CSD source is located at 400 µm depth." (localization remains unsolved)
+- "CSD source is located at depth fraction 0.4." (µm needs calibration; localization remains unsolved)
 - "EEG-proxy matches real recordings." (needs empirical validation first)
 
 ---

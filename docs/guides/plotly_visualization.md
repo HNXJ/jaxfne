@@ -21,7 +21,7 @@ pip install plotly>=5.0
 Or include in a project `requirements.txt`:
 
 ```
-jaxfne>=0.4.4  # development tree tested at 0.4.8
+jaxfne>=0.4.4  # floor 0.4.4; current tree 0.5.x
 plotly>=5.0
 numpy
 scipy

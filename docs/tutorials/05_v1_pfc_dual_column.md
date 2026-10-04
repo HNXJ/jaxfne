@@ -128,8 +128,9 @@ stable across the **entire** run, not just the first few trials:
   0.0201 → 0.0034 (homeostatic settling, not divergence).
 - Zero NaN in any of the 100 trial summaries.
 
-This shows stable, long-term homeostatic adaptation with
-trial-to-trial weight plasticity -- not just a working-but-static
+This is consistent with homeostatic settling over 100 trials with
+trial-to-trial weight plasticity -- weights essentially flat (6e-6 range),
+H settling not diverging -- not just a working-but-static
 H-only pipeline (`carry_weights=False` stays available to reproduce that
 earlier, more conservative behavior for comparison).
 

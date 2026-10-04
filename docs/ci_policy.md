@@ -54,7 +54,7 @@ filter. Matching check-family *names* does not prove matching test *sets*: the
 gate previously ran only `not slow` and `slow and not notebook`, so the 30 node
 ids carrying the `notebook` marker were executed by release CI and never by the
 RC gate — every family name lined up while the invariant was broken underneath.
-`tests/test_release_gate_hierarchy.py` now proves exhaustiveness mechanically,
+`tests/test_release_gate_hierarchy.py` now checks exhaustiveness mechanically,
 and fails if release CI ever gains a marker filter or an `--ignore`, since the
 coverage argument depends on release CI selecting everything.
 
