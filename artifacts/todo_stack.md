@@ -143,6 +143,15 @@ NEXT (ordered, executable)
    receipts and tests for `legacy`, `subagents`, `hdp_k_w_ctrl_sweep`,
    `hdp_v2_rho_sweep`, `mcc3_10s_checkpoint` before any move; moving a
    receipt-cited path breaks traceability.
+3. [A] P-027: wire or refuse `omission_oddball_paradigm` onset params (blocker).
+4. [A] P-028: solver refusal gaps (`solver_type`, Euler `rtol/atol`, grid rounding).
+5. [A] P-029: unify the three canonical composition tables.
+6. [A] P-030: narrow fail-open validators/handlers.
+7. [A] P-031: consume or refuse `SurrogateConfig`.
+8. [A] P-032: seed stochastic tests in `test_analysis_metrics.py`.
+9. [A] P-033: prose batch (stale versions, overclaims, µm leak, slop) + doc gates.
+10. [A] P-034: figure fixes generator-side (frozen files untouched).
+11. [A] Minor-batch sweep + verify: streaming magic/STDP duplication, bridges shim scope, schema `strict` flag, convergence tolerance param, `Net` alias warning, paradigm `event_windows` ambiguity, stimulus grid truncation, metrics NaN doc, tutorial `print`s, example `/tmp` + stale modes (00_minimal, 08), preset sign types + NMDA/GABA_B sources, geometry/spectral magic numbers.
 
 HUMAN DECISIONS
 - [H] agy lane: agy 1.2.13 is installed (2026-09-30), but its sign-in is
@@ -309,12 +318,16 @@ ACCEPTANCE (0.5.5 seal = end of programme)
 3. C5–C7 numerical deferrals; need a signed-zero/NaN exactness contract.
 4. UNTESTED-exact refusal tail; PLACEHOLDER_NOTEBOOKS and artifact-gated
    skips; post-0.4.14 compatibility aliases.
-5. P-001 `scripts/` legacy lint cleanup (ruff: 176 findings, 2026-09-30).
+5. P-001 `scripts/` legacy lint cleanup (ruff: 171 findings, 2026-10-04 sweep).
    Real defects first: `audit_w3_broad_handlers.py` `_OVERRIDES` repeats two
    keys (the later silently wins), holds a 3-tuple and a 1-tuple where
    `(class, note)` is unpacked, and is keyed on line numbers that have drifted;
    running it rewrites the tracked `artifacts/audit/w3_broad_handler_tally.json`
-   (137 lines differ). Re-key it or retire it with the tally.
+   (137 lines differ). Sweep 2026-10-04 pins it down: dup keys
+   `(_construct_connectivity.py,592)` and `(_model_evaluate.py,297)` (F601 x2);
+   actual handlers now at `_model.py:648`, `_construct_connectivity.py:756,878`,
+   `neuronal_tensor.py:1235`, `_model_simulate.py:889`. Re-key by handler
+   content/regex, dedupe, re-run tally — or retire it with the tally.
 6. S27 population/`P_{l,c}` definition family. Trigger: a population
    definition CTX-01 cannot express.
 7. Agent-native step 10: MCP or other transport.
