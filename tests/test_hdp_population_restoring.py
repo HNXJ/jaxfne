@@ -307,3 +307,11 @@ def test_population_restoring_etude_regression_metrics():
     assert r_ei_vec == pytest.approx(expected["vector"]["R_EI"], rel=0.05, abs=0.03)
     assert term_off == pytest.approx(expected["off"]["terminal_error_weighted"], rel=0.08, abs=0.05)
     assert term_vec == pytest.approx(expected["vector"]["terminal_error_weighted"], rel=0.15, abs=0.02)
+
+def test_hdp_default_table_distinct_from_canonical_p029():
+    """P-029: the HDP lane default is its own table, not the builder scaffold."""
+    from jaxfne.hdp_network import HDP_LAYER_CELL_TYPE_FRAC_DEFAULT
+
+    assert HDP_LAYER_CELL_TYPE_FRAC_DEFAULT != dict(
+        jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS
+    )

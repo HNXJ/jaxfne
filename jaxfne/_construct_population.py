@@ -28,6 +28,10 @@ from ._config import Configuration, _counts_from_fractions, edge_seed_from_metad
 from ._construct_connectivity import _empty_edge_list, _interarea_W
 
 
+# P-029: the _SUITE2_* tables below are versioned suite-2 experiment presets,
+# not the canonical composition. Source of truth for canonical fractions is
+# builders.CANONICAL_LAYER_CELL_TYPE_FRACTIONS (qualitative scaffold); the HDP
+# lane default is hdp_network.HDP_LAYER_CELL_TYPE_FRAC_DEFAULT.
 _SUITE2_LAYER_FRACTIONS = {
     "L1": (0.00, 0.10),
     "L2": (0.10, 0.25),

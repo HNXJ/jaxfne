@@ -29,9 +29,13 @@ ZBANDS_DEFAULT = {
     "L4": (0.55, 0.65), "L5": (0.65, 0.85), "L6": (0.85, 1.00),
 }
 
-# Canonical PV-peak-at-L4-only cell-type mix (E:I gradient deep->E,
+# HDP-lane default PV-peak-at-L4-only cell-type mix (E:I gradient deep->E,
 # superficial->I; see project memory `canonical-cortical-column-template`).
-LAYER_CELL_TYPE_FRAC_DEFAULT = {
+# P-029: this is NOT builders.CANONICAL_LAYER_CELL_TYPE_FRACTIONS (the
+# qualitative builder scaffold, quantitative_cell_fraction=false). This table
+# is the HDP lane's own default, re-derived and verified STATIONARY over 20 s
+# at N=250, K_HDP=0 (see below); unifying the numbers would void that receipt.
+HDP_LAYER_CELL_TYPE_FRAC_DEFAULT = {
     "L1": {"E": 0.50, "PV": 0.00, "SST": 0.15, "VIP": 0.35},
     "L2": {"E": 0.65, "PV": 0.20, "SST": 0.10, "VIP": 0.05},
     "L3": {"E": 0.80, "PV": 0.08, "SST": 0.08, "VIP": 0.04},
@@ -214,7 +218,7 @@ class HDPColumnConfig:
     layer_fractions: Mapping[str, tuple[float, float]] = field(
         default_factory=lambda: dict(ZBANDS_DEFAULT))
     layer_cell_type_frac: Mapping[str, Mapping[str, float]] = field(
-        default_factory=lambda: {k: dict(v) for k, v in LAYER_CELL_TYPE_FRAC_DEFAULT.items()})
+        default_factory=lambda: {k: dict(v) for k, v in HDP_LAYER_CELL_TYPE_FRAC_DEFAULT.items()})
     # F-023: Optional[...] = None is a real passthrough sentinel, NOT the same
     # as BASE_DRIVE_BY_CELL_TYPE_DEFAULT. None means "do not pass
     # baseline_drive_by_cell_type to laminar_cortex_config at all -- let the
