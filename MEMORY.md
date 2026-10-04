@@ -131,3 +131,9 @@ Format per lesson: {trigger,cause,repair,evidence,scope}.
   repair: read the thread body, rebut with the stack-item + invariant citation via a review-comment reply when the code does what the authorized task specified, then resolve; verify resolution with a GraphQL reviewThreads query (comment node ids are not thread ids) and re-check mergeStateStatus before merging
   evidence: PR#98 macroscope thread on the pair-gate (rebutted, resolved, merged d77a937a)
   scope: jaxfne (git/CI)
+
+- trigger: jchat release post leaves the claim on the board
+  cause: the release text included its own `[release]` prefix, so the message carried it twice and the board's id parse missed; the command prepends the marker itself
+  repair: start release text with the bare item id (`nightly-yaml done: ...`); verify with `claims` after posting
+  evidence: nightly-yaml ghost release #194, cleared by bare-id repost #195 (Oct 2026)
+  scope: jchat (claims board)
