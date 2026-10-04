@@ -69,7 +69,8 @@ class TestMeanPairwiseSpikeCorrelation:
 
     def test_perfectly_correlated(self):
         """Identical spike trains return correlation near 1.0."""
-        spike_pattern = np.random.rand(100) > 0.8
+        rng = np.random.default_rng(7)
+        spike_pattern = rng.random(100) > 0.8
         spikes = np.tile(spike_pattern, (5, 1))
         result = mean_pairwise_spike_correlation(spikes)
         assert result > 0.9  # Near perfect correlation
@@ -183,7 +184,8 @@ class TestBurstIndex:
 
     def test_variable_dt_scaling(self):
         """Different dt scales should give similar results."""
-        spikes = np.random.rand(20, 10000) > 0.8
+        rng = np.random.default_rng(11)
+        spikes = rng.random((20, 10000)) > 0.8
         # Same physical simulation, different dt
         bi_fine = burst_index(spikes[:, :1000], bin_ms=1, dt_ms=0.01)
         bi_coarse = burst_index(spikes[:, :1000:10], bin_ms=10, dt_ms=0.1)
