@@ -9,6 +9,7 @@ symbol here for backward compatibility -- import from ``jaxfne.core`` or
 from __future__ import annotations
 
 import contextlib
+import math
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -337,6 +338,16 @@ class SurrogateConfig:
     beta: float = 10.0
     applies_to: str = "izhikevich_reset"
     status: str = "declaration_only_v0.0.8"
+
+    def __post_init__(self) -> None:
+        """P-031: validate the declaration at construction (typos refuse)."""
+        if self.method not in ("none", "straight_through", "sigmoid_beta"):
+            raise ValueError(
+                f"Unknown surrogate method: {self.method!r} (P-031). "
+                'Use "none", "straight_through", or "sigmoid_beta".'
+            )
+        if not math.isfinite(float(self.beta)):
+            raise ValueError(f"beta must be finite, got {self.beta!r} (P-031).")
 
     def gradient_path_status(self) -> str:
         """Documented public function `gradient_path_status`."""

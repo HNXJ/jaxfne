@@ -1,6 +1,8 @@
 import json
 import math
 
+import pytest
+
 import jaxfne as jtfne
 from jaxfne.bridges import BridgeSpec, JaxleyEmitterBridge
 from jaxfne.optim import propose_blackbox_candidates
@@ -165,3 +167,10 @@ def test_runtime_report_backend_and_x64_fields_present():
     assert report["jit"] is True
     assert report["vmap"] is True
     assert "x64_enabled" in report
+
+def test_surrogate_config_rejects_unknown_method_p031():
+    """P-031: a typoed surrogate method refuses at construction."""
+    with pytest.raises(ValueError, match="P-031"):
+        jtfne.surrogate_config(method="straigth_through")
+    with pytest.raises(ValueError, match="P-031"):
+        jtfne.surrogate_config(beta=float("nan"))
