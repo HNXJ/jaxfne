@@ -41,7 +41,8 @@ model = jtfne.construct(cfg)
 # construct(cfg: Configuration, *, geometry: LaminarSourceGeometry | None = None) -> Model
 ```
 
-`construct()` is the slow step (tens of seconds at 10k neurons) — build once,
+`construct()` is the slow step (tens of seconds at 10k neurons:
+`artifacts/perf/w11_atlas_10k.jsonl`, ~20 s build) — build once,
 reuse the `Model` across seeds/trials/sweeps.
 
 ### 3. Paradigm (optional)

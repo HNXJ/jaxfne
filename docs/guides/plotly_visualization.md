@@ -202,16 +202,16 @@ Always use `include_plotlyjs="cdn"`:
 ```python
 fig.write_html(
     "figure.html",
-    include_plotlyjs="cdn",  # ~10 KB file size
+    include_plotlyjs="cdn",  # tens of KB file size (content-dependent)
     full_html=True
 )
 ```
 
-Embedded Plotly library inflates files to 3–5 MB each. CDN-linked files stay ~10–100 KB and load the library once.
+Embedded Plotly library inflates files to 3–5 MB each. CDN-linked files stay tens to low-hundreds of KB and load the library once.
 
 ### 2. File size and performance
 
-- **Per-figure size:** 10–200 KB (with CDN)
+- **Per-figure size:** tens to low-hundreds of KB (with CDN; content-dependent)
 - **Heatmaps:** Can be large if data is high-dimensional; consider decimation
 - **Raster plots:** Sparse data (many empty time points) may benefit from downsampling
 
@@ -311,7 +311,7 @@ fig.write_html("figure.html", include_plotlyjs=True)  # ~3 MB file
 
 ✅ **RECOMMENDED:**
 ```python
-fig.write_html("figure.html", include_plotlyjs="cdn")  # ~100 KB
+fig.write_html("figure.html", include_plotlyjs="cdn")  # tens to low-hundreds of KB
 ```
 
 ### 2. Correctly labeling proxy-scale readouts

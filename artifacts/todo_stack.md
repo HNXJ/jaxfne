@@ -115,29 +115,35 @@ Short list for the jnwb move (human, 2026-09-30), in order:
   they are. `pynwb_compat.write_nwb` writes a `to_jnwb` view (Units table,
   proxies as unit-less TimeSeries, never volts). `to_jnwb` stays at
   `jaxfne.jnwb_view`, off the top-level surface, until the migration settles.
+- 2026-10-04 (agent, owner-delegated) sign-off verdicts, all verified this session:
+  - Receptor taus APPROVED: AMPA 2.0 ms (conventional modeling default; primary citation owed at manuscript item 13), GABA_A 5.0 ms PRIMARY-VERIFIED (Xiang, Huguenard & Prince 1998, J Physiol 506:715-730, adult rat visual-cortex LV pyramidal sIPSC monoexponential tau_D 5.0 ms; young-cell and interneuron decays are slower, recorded as caveat). `presets.py` GABA_A source string now names the paper; values unchanged; 43 receptor tests green.
+  - P-016/P-020 re-freeze APPROVED: receipt cause (`865e74b`) confirmed; P-016 module 4 passed here; exact new values present in both frozen files (`0.00280088258438386`, kappa `0.0182925…`).
+  - `arm_definitions` APPROVED: inputs-only prose per arm (sole "judged" wording in AT-01 is role description, no critic implementation); keys==arms enforced by `test_arm_definitions_match_arms`, carry path tested, both green here.
+  - C5–C7 ruling: deferral STANDS. No post-0.5.1 perf bottleneck measurement demands matmul reassociation, div-to-mul rewrites, null-term elision, memoization, or layout changes (newest perf artifacts are matrix/spec/import-cost, 2026-09-24…27).
+- 2026-10-04 (agent, owner-delegated): D0 DONE. All 17 flagged items cleared (timing claims linked to `w11_atlas*.jsonl` or softened to machine-dependent; stale versions updated to v0.5.x; file-size range unified; µm labels converted to relative fractions; untraceable receipt pointer qualified); protocol_c_wave, colab, gallery kept with reasons. Doc gates green (language, vocabulary, orphans, integrity) + ruff + smoke. Note: edit-tool reflow hit `jaxfne/_signals.py` (437 lines) and `jaxfne/validation.py` (53 lines) mid-sweep — caught by diff-stat, reverted, re-applied binary-safe (P-004/P-008 class; harness worked as designed).
+- 2026-10-04 (agent, owner-delegated): AT-10-R4 (W(t) trajectories) is
+  OUT_OF_SCOPE with reason: `record_weight_trace` is False by declared
+  recording budget (20,000 x 68,620 floats ~5.5 GB per 10 s phase;
+  `at10_n20_055.py:111-116`, cited `at_manifest.py:477`); `w_final` plus
+  the assay ratios (`w_mean_ratio`, `w_unchanged`, window rates per H0 arm
+  in `at10_n20_055.json`) answer the plasticity question the trace would
+  serve. X(t)/H(t)/Phi(t) remain measured in panels and assay. Reversible:
+  flip the flag and re-run with traces on to re-open.
 
 ## 0.5.5 stack
 
 Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
 
 NEXT (ordered, executable)
-1. [A] Main CI red at `c83c0320` (Fast 3.11 + Release 3.14, same leaf):
-   `proj_csd` oracle hash flipped by float32-matmul ulp noise upstream
-   (the CSD stencil passes input ulps through). Convert `proj_csd` to
-   twin/agreement form like the other matmul leaves; keep `proj_kernel`
-   pinned until evidence falsifies it. Then PR dev to main and merge green.
+1. [A] PR#99 dev→main (owner-authorized 2026-10-04): merge when checks green
+   (watcher polling `pr99_watch.log`); main nightly goes green on the next
+   schedule after. Head is cf3136ff; docs/state-only.
+2. [A] D0 flagged-items sweep: 17 items in
+   `artifacts/audit/docs_style_pass_2026-09-28.md` §2 (timing claims without
+   traceable artifacts, stale versions, size disagreements); verify each fix
+   with the doc gates.
 
 HUMAN DECISIONS
-- [H] Approve the receptor time constants the canonical JDNA genome declares
-  (AMPA 2.0 ms, GABA_A 5.0 ms from `presets.RECEPTOR_KINETICS`, whose source
-  reads only "Standard neuroscience literature") and name a citation.
-- [H] D0 review: 23 softened overclaims and 17 flagged items in
-  `artifacts/audit/docs_style_pass_2026-09-28.md`.
-- [H] Sign off the P-016/P-020 re-freeze:
-  `artifacts/programme/refreeze_p016_p020_2026-09-30.md` (cause `865e74b`).
-- [H] Review the `arm_definitions` before the next freeze.
-- [H] Stale version notes, edit or leave: `_signals.py:1445,1453`,
-  `validation.py:1230`, `experimental_hpc/physical_field_solver_v040.py:55`.
 - [H] Artifacts reorg step 2: repoint `legacy`, `subagents`,
   `hdp_k_w_ctrl_sweep`, `hdp_v2_rho_sweep`, `mcc3_10s_checkpoint` into
   `archive/`. The protocol_* and `private_acceptance` folders stay while
@@ -300,26 +306,25 @@ ACCEPTANCE (0.5.5 seal = end of programme)
      entries delegate or are deprecated; frozen receipts stay untouched.
 1. A8 gh-pages publishing policy. Trigger: publishing D1 or Atlas figures
    to the public site.
-2. `units.py` unwired: wire or remove (owner decision).
-3. Architecture candidates (`emitters.py` variant split, entry
+2. Architecture candidates (`emitters.py` variant split, entry
    fragmentation, dual manifests, same-named builders); enter only as a
    measured bottleneck.
-4. C5–C7 numerical deferrals; need a signed-zero/NaN exactness contract.
-5. UNTESTED-exact refusal tail; PLACEHOLDER_NOTEBOOKS and artifact-gated
+3. C5–C7 numerical deferrals; need a signed-zero/NaN exactness contract.
+4. UNTESTED-exact refusal tail; PLACEHOLDER_NOTEBOOKS and artifact-gated
    skips; post-0.4.14 compatibility aliases.
-6. P-001 `scripts/` legacy lint cleanup (ruff: 176 findings, 2026-09-30).
+5. P-001 `scripts/` legacy lint cleanup (ruff: 176 findings, 2026-09-30).
    Real defects first: `audit_w3_broad_handlers.py` `_OVERRIDES` repeats two
    keys (the later silently wins), holds a 3-tuple and a 1-tuple where
    `(class, note)` is unpacked, and is keyed on line numbers that have drifted;
    running it rewrites the tracked `artifacts/audit/w3_broad_handler_tally.json`
    (137 lines differ). Re-key it or retire it with the tally.
-7. S27 population/`P_{l,c}` definition family. Trigger: a population
+6. S27 population/`P_{l,c}` definition family. Trigger: a population
    definition CTX-01 cannot express.
-8. Agent-native step 10: MCP or other transport.
-9. Deferred from 0.5.4: item 1b (S20.1 ordering; individual human
+7. Agent-native step 10: MCP or other transport.
+8. Deferred from 0.5.4: item 1b (S20.1 ordering; individual human
     authorization required) and item 0 (`X[k]` frontier override, language
     decision).
-10. Deferred owner decisions from the 2026-09-20 deep audit:
+9. Deferred owner decisions from the 2026-09-20 deep audit:
     `compile_step_fn **hdp_kwargs` unknown-key policy; `validate_hdp_params`
     non-dict non-strict silent pass; frozen protocols record JAX/lib
     versions (P-003).

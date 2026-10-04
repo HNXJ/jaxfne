@@ -52,7 +52,7 @@ class PhysicalFieldSolverSpec:
     physical_amplitude_calibrated: bool = False
 
     def validate(self) -> dict[str, Any]:
-        """Fail loudly — physical-solver validation is not implemented in v0.3.x."""
+        """Fail loudly — physical-solver validation is not implemented as of v0.5.x."""
         _tbi_v040()
 
 

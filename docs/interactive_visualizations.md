@@ -1,5 +1,7 @@
 # Interactive Tutorial Visualizations
 
+**Scope:** static-PNG default + opt-in Plotly HTML (jaxfne 0.5.0).
+
 ## Overview
 
 Optional interactive Plotly HTML visualizations for tutorial outputs, generated from source simulation data. Static PNG figures remain the default. Interactive HTML is opt-in, Plotly optional, status checks frozen.

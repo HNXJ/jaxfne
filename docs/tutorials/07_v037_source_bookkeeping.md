@@ -59,7 +59,7 @@ Hover shows one row per neuron:
 | Neuron ID | Index in the population |
 | Layer | L2/3, L4, L5, or L6 |
 | Cell type | E (excitatory), PV (parvalbumin-positive), SST, or VIP |
-| Depth | Distance from surface (µm) |
+| Depth | Relative depth fraction in [0,1] (0 = surface) |
 | Source index | Mapping to source current in simulation |
 | Rate | Mean firing rate (Hz) |
 
@@ -194,11 +194,11 @@ Readout R(t) = Q @ Y(t)
 
 - **Source coordinates:** point sources at each neuron location
 - **Field coordinates:** expanded via convolution (spatial units arbitrary, normalized)
-- **Kernel:** Gaussian (default); width set by distance in µm
+- **Kernel:** Gaussian (default); width set by relative distance
 - **Boundary:** zero-padding (no boundary currents)
 
-**Spatial units:** Relative, normalized units. The view uses µm for
-layer depth (anatomical reference); field amplitudes are Relative-value.
+**Spatial units:** Relative, normalized units. The view uses relative depth
+fractions in [0,1] (anatomical reference); field amplitudes are Relative-value.
 
 ---
 

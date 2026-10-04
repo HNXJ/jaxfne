@@ -14,7 +14,7 @@ The atlas keeps direct simulation observations (**OBSERVED**) apart from compute
 |---|---|---|---|---|---|
 | 1 | `schema.html` | Block schematic (areas/layers/classes/links) | **OBSERVED** | `network_hspice_plotly(model)` | Single box, no arrows if uncoupled. |
 | 2 | `network_3d.html` | Realized 3D architecture | **OBSERVED** | `plot_network_3d(model)` | Single point in space if $N=1$; no edges drawn if uncoupled. |
-| 3 | `raster.html` | Microsecond spike events | **OBSERVED** | `plot_raster(signals, model)` | Clean axes showing 0 events if network is silent. |
+| 3 | `raster.html` | Spike events (ms-grid raster) | **OBSERVED** | `plot_raster(signals, model)` | Clean axes showing 0 events if network is silent. |
 | 4 | `lfp.html` | Laminar LFP/CSD proxy readouts | **DERIVED** | `plot_lfp` / `plot_csd` | Explicit omission card when no field is recorded — never substituted. |
 | 5 | `h_dynamics.html` | Recorded hidden-state trajectory | **DERIVED** | HDP `H_trace` / homeostasis trace | Explicit omission card when no H is recorded. |
 | 6 | `hdp.html` | Mutable weight diagnostics | **DERIVED** | HDP `w_trace` | Explicit omission card when HDP is off or the trace is unrecorded — never inferred from activity. |
