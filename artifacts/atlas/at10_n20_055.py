@@ -208,6 +208,46 @@ def _realized_weights(model: Any) -> np.ndarray:
     return w
 
 
+PSD_NPERSEG = 256  # repo Welch convention (vis.fields, vis.plotly.spectra)
+RATE_LO_HZ, RATE_HI_HZ = 0.5, 35.0  # boundedness stability bounds
+
+
+def _area_mean_rates_hz(sp: np.ndarray, area: np.ndarray) -> dict[str, float]:
+    return {a: float(sp[:, area == a].mean() / (DT_MS / 1000.0))
+            for a in G.area_names()}
+
+
+def _welch_psd(x: np.ndarray, fs_hz: float) -> tuple[np.ndarray, np.ndarray, str]:
+    """Repo spectrum path: ``jaxfne.vis.core.welch_psd`` (nperseg=256).
+
+    Fallback is the same ``scipy.signal.welch`` call the repo path makes
+    (bit-identical per its docstring), for envs without the viz package.
+    """
+    try:
+        from jaxfne.vis.core import welch_psd
+        f, p = welch_psd(x, fs_hz, nperseg=PSD_NPERSEG)
+        return f, p, "jaxfne.vis.core.welch_psd"
+    except ImportError:
+        from scipy import signal as _signal
+        arr = np.asarray(x)
+        seg = int(min(PSD_NPERSEG, arr.shape[0]))
+        f, p = _signal.welch(arr, fs=float(fs_hz), axis=0, nperseg=seg)
+        return f, p, "scipy.signal.welch"
+
+
+def _area_psd(sp: np.ndarray, area: np.ndarray) -> dict[str, Any]:
+    """Welch power per area over the full phase (population-mean trace)."""
+    freqs = None
+    method = ""
+    power: dict[str, Any] = {}
+    for a in G.area_names():
+        f, p, method = _welch_psd(sp[:, area == a].mean(axis=1), 1000.0 / DT_MS)
+        freqs = f
+        power[a] = np.asarray(p, dtype=float).tolist()
+    return {"method": f"{method} nperseg={PSD_NPERSEG}",
+            "freqs_hz": np.asarray(freqs, dtype=float).tolist(), "power": power}
+
+
 PHASES = ("baseline", "hebbian_hdp", "noisy_hdp")
 
 
@@ -224,9 +264,19 @@ def run_phases(model: Any = None, keep_bundle: bool = False) -> dict[str, Any]:
     for name, hp in zip(PHASES, (None, HP_HEBB, HP_NOISY)):
         signals, diag = _run_signals(model, stim, hp)
         sp = np.asarray(signals.spikes)
+        area_rates = _area_mean_rates_hz(sp, area)
+        bounded = all(RATE_LO_HZ <= v <= RATE_HI_HZ for v in area_rates.values())
         out[name] = {**propagation(sp, area),
                      "window_rates_hz": np.round(_window_rates(sp), 3).tolist(),
-                     "w_mean_ratio": None if diag is None else _w_drift(diag, w0)}
+                     "w_mean_ratio": None if diag is None else _w_drift(diag, w0),
+                     "psd": _area_psd(sp, area),
+                     "boundedness": {"bounds_hz": [RATE_LO_HZ, RATE_HI_HZ],
+                                     "per_area_mean_hz": {a: round(v, 3)
+                                                          for a, v in area_rates.items()},
+                                     "max_hz": round(max(area_rates.values()), 3),
+                                     "verdict": "PASS" if bounded else "FAIL"},
+                     "rate_spread_hz": round(max(area_rates.values())
+                                             - min(area_rates.values()), 3)}
         if keep_bundle:
             bundle[name] = {"model": model, "signals": signals, "hdp": diag}
     res = {"phases": out, "wall_s": time.perf_counter() - t0}
