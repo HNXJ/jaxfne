@@ -137,8 +137,8 @@ Short list for the jnwb move (human, 2026-09-30), in order:
 Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
 
 NEXT (ordered, executable)
-1. [A] Post-merge watch: main @ 839a3d2b (PR#99 merged 2026-10-04); main
-   Fast + nightly go green on schedule.
+1. [A] Main nightly watch: run 37247983354 dispatched on main @ 839a3d2b
+   (Fast + Release green there); close when the watcher reports success.
 
 HUMAN DECISIONS
 - [H] agy lane: agy 1.2.13 is installed (2026-09-30), but its sign-in is
