@@ -305,7 +305,11 @@ ACCEPTANCE (0.5.5 seal = end of programme)
    to the public site.
 2. Architecture candidates (`emitters.py` variant split, entry
    fragmentation, dual manifests, same-named builders); enter only as a
-   measured bottleneck.
+   measured bottleneck. Specified split shape (deep review 89, §5, logged
+   `artifacts/audit/deep_review_89_2026-10-04.md`): `emitters/` =
+   base/izhikevich/receptors/recurrent/multicompartment/registry behind an
+   unchanged import surface; `tfne.py` = parser/normalization/realization/
+   indexing behind one compiler surface. No broad aesthetic refactor.
 3. C5–C7 numerical deferrals; need a signed-zero/NaN exactness contract.
 4. UNTESTED-exact refusal tail; PLACEHOLDER_NOTEBOOKS and artifact-gated
    skips; post-0.4.14 compatibility aliases.
@@ -329,6 +333,16 @@ ACCEPTANCE (0.5.5 seal = end of programme)
     `compile_step_fn **hdp_kwargs` unknown-key policy; `validate_hdp_params`
     non-dict non-strict silent pass; frozen protocols record JAX/lib
     versions (P-003).
+10. Field Approximation Atlas ladder (post-0.5.5 programme, deep review 89
+    §7): multicompartment → line source → point source → dipole →
+    population → proxy, each rung with the observable it preserves and the
+    tolerance at which the coarser rung takes over. Starts after the seal;
+    PDE solve ≠ calibrated LFP stays the boundary until a rung proves it.
+11. Post-0.5.5 development rule (deep review 89 §12): new mechanism ⇒
+    reference model + discriminator + reduction test (not merely unit
+    tests); API converges toward the two grammars (execution +
+    scientific), everything else into advanced namespaces. Adoption is a
+    human decision; until then the research firewall pattern holds.
 
 ## Tracks (standing directions, not tasks)
 
