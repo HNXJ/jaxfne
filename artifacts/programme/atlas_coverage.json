@@ -459,8 +459,8 @@
    "capability": "frozen measurement vector at 20-area scale",
    "release": "0.5.5",
    "candidate": false,
-   "evidence": null,
-   "state": "PLANNED"
+   "evidence": "artifacts/atlas/results/at10_n20_055.json",
+   "state": "VALIDATED"
   },
   {
     "id": "AT-10-R4",
