@@ -459,6 +459,102 @@
       },
       "statistical_validation": "clean-environment execution receipt (P3)",
       "status": "METHOD_ONLY"
+    },
+    {
+      "allowed_manuscript_language": "Three HDP phases ran on one realized 20-area network without re-realization",
+      "claim": "AT-10-N20 executed baseline, Hebbian-HDP and noisy-HDP phases on a single realized N_20 (seed 7, 10 s, spec digest b4e6945a) with explicit RNG domains",
+      "claim_id": "CL-22",
+      "evidence_artifacts": [
+        "artifacts/atlas/results/at10_n20_055.json",
+        "artifacts/publication/atlas/AT-10-N20/atlas_run.json",
+        "tests/test_atlas_at10_n20_055.py"
+      ],
+      "evidence_regime": "deterministic_numerical_property",
+      "figure_or_table_destination": "Atlas AT-10-N20 record",
+      "forbidden_overclaim": "Do not claim state-continuation across phases; phases are separate runs from one W0 (runner header). No W(t) trajectories exist (see CL-23).",
+      "manuscript_destination": "Results (20-area system)",
+      "null_or_control": "fixed-W baseline arm against both HDP arms; replicate noise seeds 12, 13",
+      "provenance": "at10_n20_055:run_phases single model loop; tests/test_atlas_at10_n20_055.py green 2026-10-04",
+      "quantitative_result": {
+        "n_neurons": 1000,
+        "n_edges": 68620,
+        "config_hash_all_arms": "d6b789521dbf3ad6"
+      },
+      "statistical_validation": "spec/seed/threshold/verdict consistency test (no stochastic replication claim)",
+      "status": "SUPPORTED"
+    },
+    {
+      "allowed_manuscript_language": "Weight trajectories were never recorded; plasticity is evidenced by endpoint weights and assay ratios only",
+      "claim": "No W(t) trajectory exists for any AT-10-N20 arm (hdp.html OMITTED in baseline, hebbian and noisy arms by recording budget)",
+      "claim_id": "CL-23",
+      "evidence_artifacts": [
+        "artifacts/publication/atlas/AT-10-N20/atlas_run.json",
+        "artifacts/atlas/results/at10_n20_055.json"
+      ],
+      "evidence_regime": "method_boundary_statement",
+      "figure_or_table_destination": "Atlas AT-10-N20 caveats",
+      "forbidden_overclaim": "Do not present HDP phases as W-traced; do not infer trajectories from w_final. AT-10-R4 OUT_OF_SCOPE.",
+      "manuscript_destination": "Methods (recording budget) + Results caveats",
+      "null_or_control": "w_final + w_mean_ratio/w_unchanged per H0 arm answer the plasticity question instead",
+      "provenance": "record_weight_trace False (20,000x68,620 floats ~5.5 GB/phase); cited at_manifest.py:477; todo_stack 2026-10-04 R4 ruling",
+      "quantitative_result": {},
+      "statistical_validation": "none_required",
+      "status": "NEGATIVE"
+    },
+    {
+      "allowed_manuscript_language": "No balanced-regime preset passes; the canonical column stays synchronous-regular",
+      "claim": "The opt-in balanced asynchronous-irregular preset has no passing build (single-knob noise insufficient; two-knob proposal unbuilt)",
+      "claim_id": "CL-24",
+      "evidence_artifacts": [
+        "artifacts/todo_stack.md"
+      ],
+      "evidence_regime": "method_boundary_statement",
+      "figure_or_table_destination": "Augmentation science precondition",
+      "forbidden_overclaim": "Do not claim an AI regime exists; do not run the augmentation ladder on the canonical preset",
+      "manuscript_destination": "Out of manuscript scope until preset passes",
+      "null_or_control": "canonical column documented synchronous-regular (CV_ISI 0.036, r_sc 0.61); E drive-locked at 11 Hz even disconnected",
+      "provenance": "P-BALANCED probe amp-80 FAIL; augmentation science plan PROPOSED, unapproved",
+      "quantitative_result": {},
+      "statistical_validation": "none_required",
+      "status": "NEGATIVE"
+    },
+    {
+      "allowed_manuscript_language": "Canonical V1 composition and connectivity are qualitative scaffold, not calibrated biology",
+      "claim": "Per-layer fractions and typed connection rules are scaffold values (quantitative_cell_fraction false); E/PV/SST/VIP are reduced Izhikevich scaffold identities",
+      "claim_id": "CL-25",
+      "evidence_artifacts": [
+        "docs/scope_and_status.md",
+        "jaxfne/builders.py"
+      ],
+      "evidence_regime": "method_boundary_statement",
+      "figure_or_table_destination": "Methods (model scope)",
+      "forbidden_overclaim": "No stereological or connectomic calibration claim; no literal cell-type identity claim",
+      "manuscript_destination": "Methods (every composition/connection sentence)",
+      "null_or_control": "not_applicable",
+      "provenance": "qualitative_laminar_scaffold true; value_tag relative throughout",
+      "quantitative_result": {},
+      "statistical_validation": "none_required",
+      "status": "METHOD_ONLY"
+    },
+    {
+      "allowed_manuscript_language": "AT-10-N20 carries its no-stimulus null, control-window dependence and selection status",
+      "claim": "The 20-area result is reported with its no-stimulus null rates, control-window dependence and selection status attached",
+      "claim_id": "CL-26",
+      "evidence_artifacts": [
+        "artifacts/atlas/results/at10_n20_055.json"
+      ],
+      "evidence_regime": "deterministic_numerical_property",
+      "figure_or_table_destination": "Atlas AT-10-N20 caveats",
+      "forbidden_overclaim": "Do not report evoked/return verdicts without the null block beside them",
+      "manuscript_destination": "Results (every AT-10 claim)",
+      "null_or_control": "null rate_hz 8.856 with threshold 2.724; H0 arms NO_LASTING_EFFECT; kicks STABILIZED",
+      "provenance": "results null block lines 153-177; fact_stack AT-10-N20 caveats",
+      "quantitative_result": {
+        "null_rate_hz": 8.856399536132812,
+        "null_threshold_hz": 2.7244895696640015
+      },
+      "statistical_validation": "declared assay verdicts (no bootstrap CIs)",
+      "status": "SUPPORTED"
     }
   ],
   "milestone": "0.4.17",

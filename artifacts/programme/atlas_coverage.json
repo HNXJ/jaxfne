@@ -449,8 +449,8 @@
    "capability": "phase switching without re-realization; RNG domain K_t",
    "release": "0.5.5",
    "candidate": false,
-   "evidence": null,
-   "state": "PLANNED"
+   "evidence": "artifacts/atlas/results/at10_n20_055.json",
+   "state": "VALIDATED"
   },
   {
    "id": "AT-10-R3",
@@ -499,8 +499,8 @@
    "capability": "field-derived input to plasticity",
    "release": "0.5.5",
    "candidate": true,
-   "evidence": null,
-   "state": "PLANNED"
+   "evidence": "tests/test_atlas_at07_053.py",
+   "state": "OUT_OF_SCOPE"
   }
  ]
 }
