@@ -137,3 +137,27 @@ Format per lesson: {trigger,cause,repair,evidence,scope}.
   repair: start release text with the bare item id (`nightly-yaml done: ...`); verify with `claims` after posting
   evidence: nightly-yaml ghost release #194, cleared by bare-id repost #195 (Oct 2026)
   scope: jchat (claims board)
+
+- trigger: assuming `gh` is unauthenticated from an old lesson
+  cause: a standing note said gh lacks auth; `gh auth status` on this machine shows logged in as HNXJ (keyring) and PR create/merge/checks all work
+  repair: run `gh auth status` before routing around gh; trust the live result over the note
+  evidence: PR#99 created, watched and merged via gh Oct 2026
+  scope: jaxfne (git/CI)
+
+- trigger: pushing a merge to main the same way as dev
+  cause: dev pushes bypass rules but main enforces PR-only with required checks and no bypass for this identity (GH013 push rejection)
+  repair: merge to main only through a PR (gh pr create/merge); direct HEAD:main push fails by ruleset, not by auth
+  evidence: PR#99 (merge commit 839a3d2b) after direct-push GH013 refusal, Oct 2026
+  scope: jaxfne (git/CI)
+
+- trigger: coverage `evidence` written as an explanatory string
+  cause: the gate parses `evidence` as a single existing path; compound "path + notes" strings fail it even when every named file exists
+  repair: keep `evidence` a bare existing path; put test runs, SHAs and reasoning in the stack decision, not the field
+  evidence: R2/R4/R7 flips failed gate until trimmed to bare paths (Oct 2026)
+  scope: jaxfne harness
+
+- trigger: filling a null metadata field in a generated Atlas manifest
+  cause: the manifest `sha256` covers the panels array only, so top-level metadata (k_d, tfne_digest) fills without invalidating it; panel bytes/status untouched
+  repair: fill metadata with values certain from elsewhere (dev seed, write-once genome sha); verify diff is fields-only; never touch panel entries
+  evidence: R1 k_d/tfne fill, 6 lines across 3 N20 manifests, panels_sha256 intact (Oct 2026)
+  scope: jaxfne (atlas)
