@@ -49,8 +49,8 @@
    "capability": "mechanical spec-diff check across AT configs",
    "release": "0.5.5",
    "candidate": false,
-   "evidence": null,
-   "state": "PLANNED"
+   "evidence": "tests/test_atlas_inheritance_055.py",
+   "state": "VALIDATED"
   },
   {
    "id": "AT-00-R4",
