@@ -14,8 +14,9 @@ split[0]/split[1] comment in _hdp_registrable_kernel.py):
   Membrane and rule branch independently off the carried chain, so
   neither consumer's draws depend on the other's consumption.
 - drive/paradigm: explicit schedule arrays (no RNG).
-- poisson_drive / shuffled_timing: own seeds, rejected under
-  continuation (cursor unambiguous).
+- poisson_drive: own seed per chunk, derived from (poisson_seed,
+  chunk_index) under continuation (chunk 0 == plain call); shuffled_timing
+  shuffles the realized drive per call.
 - batch: vmap over split(PRNGKey(base_seed), n_seeds).
 - construction: seeded builders (same seed -> same realized network).
 """

@@ -12,6 +12,7 @@ here calls back into ``Model`` or ``Configuration``.
 
 from __future__ import annotations
 
+import hashlib
 import math
 import warnings
 from dataclasses import dataclass, field, replace
@@ -723,6 +724,23 @@ def _make_poisson_drive(
     key = jax.random.PRNGKey(int(seed))
     noise = jax.random.bernoulli(key, p=prob, shape=(int(n_steps), int(n_neurons)))
     return (jnp.asarray(noise, dtype=jnp.float32) * float(amplitude))
+
+
+def poisson_chunk_seed(poisson_seed: int, chunk_index: int) -> int:
+    """Per-segment Poisson seed for continued runs.
+
+    Chunk 0 returns ``poisson_seed`` unchanged, so the first segment of a
+    continued run draws bit-identical noise to a plain single call with the
+    same Simulation. Later chunks derive deterministically from
+    ``(poisson_seed, chunk_index)`` via the same sha256 domain-tag idiom as
+    ``ensemble_member_seed``: same process, independent realization per
+    chunk. Chunk boundaries therefore define noise realizations; re-splitting
+    a chunk changes its noise.
+    """
+    if int(chunk_index) <= 0:
+        return int(poisson_seed)
+    tag = f"jaxfne-poisson-chunk-v1:{int(poisson_seed)}:{int(chunk_index)}".encode("utf-8")
+    return int(hashlib.sha256(tag).hexdigest()[:8], 16) % 2_147_483_647
 
 
 @dataclass(frozen=True)

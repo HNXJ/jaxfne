@@ -87,12 +87,19 @@ class ContinuationState(NamedTuple):
     buffer :math:`\\mathcal B_t` (legacy alias ``spike_history``). It is
       ``None`` when all edge delays are zero so legacy callers pay no buffer
       cost unless delayed continuation is active.
+
+      ``chunk_index`` counts completed segments (0 for a fresh state, +1 per
+      segment run). The Model-level runner derives each segment's Poisson
+      background seed from it, so continued runs draw an independent
+      realization per chunk while chunk 0 stays bit-identical to a plain
+      single call. States built before this field existed read as 0.
     """
 
     dynamic: DynamicState
     prng_key: jax.Array
     step_index: int = 0
     delay_state: jax.Array | None = None
+    chunk_index: int = 0
 
 
 def continuation_noise_schedule(
@@ -864,6 +871,9 @@ def run_continuation(
     array of precomputed per-step unit-noise rows (ensemble member
     streams); forwarded to ``scan_network`` when given, ``None`` keeps
     the exact prior behavior.
+
+    One segment completes here, so the returned state's ``chunk_index``
+    is the incoming index + 1.
     """
     schedule = jnp.asarray(drive_schedule)
     if schedule.ndim != 2:
@@ -875,10 +885,14 @@ def run_continuation(
         next_index = start + int(schedule.shape[0])
     else:
         next_index = int(np.asarray(jax.device_get(start))) + int(schedule.shape[0])
+    # One segment completed: the next segment is a new chunk for
+    # per-chunk background seeds. Legacy states without the field read as 0.
+    next_chunk = int(getattr(state, "chunk_index", 0) or 0) + 1
     return (
         final_state._replace(
             prng_key=next_key,
             step_index=next_index,
+            chunk_index=next_chunk,
         ),
         outputs,
     )
@@ -904,12 +918,16 @@ def run_continuation_strided(
     ``kept_outputs[j]`` equals the uninterrupted run's frame at global step
     ``kept_indices[j]`` exactly, and ``final_state`` equals the
     uninterrupted final state (dynamic leaves, ``prng_key``,
-    ``step_index``, ``delay_state``).
+    ``step_index``, ``delay_state``, ``chunk_index``).
 
     ``stride=1`` reproduces :func:`run_continuation` frames exactly but with
     per-segment launch overhead — prefer :func:`run_continuation` then.
 
     ``noise_rows`` (0.5.4 item 1) is sliced per segment like the schedule.
+
+    One logical segment completes here, so the returned state's
+    ``chunk_index`` is the incoming index + 1 regardless of how many
+    internal slices ran (matching a single :func:`run_continuation` call).
     """
     if isinstance(stride, bool) or not isinstance(stride, int) or stride < 1:
         raise ValueError(f"stride must be a positive integer; got {stride!r}")
@@ -919,6 +937,7 @@ def run_continuation_strided(
     total = int(schedule.shape[0])
     if total == 0:
         raise ValueError("drive_schedule must have n_steps > 0")
+    incoming_chunk = int(getattr(state, "chunk_index", 0) or 0)
     kept_parts: list[tuple] | None = None
     indices: list[int] = []
     cur = state
@@ -936,7 +955,11 @@ def run_continuation_strided(
         )
         indices.append(start + int(seg.shape[0]) - 1)
     assert kept_parts is not None
-    return cur, kept_parts, jnp.asarray(indices, dtype=jnp.int32)
+    return (
+        cur._replace(chunk_index=incoming_chunk + 1),
+        kept_parts,
+        jnp.asarray(indices, dtype=jnp.int32),
+    )
 
 
 def memory_report(

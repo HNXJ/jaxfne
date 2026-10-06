@@ -5,8 +5,8 @@ hierarchy (``g20_genome``). Every run uses one realized network (one W0),
 the same drive, the same Poisson background and the same pulse train into H01.
 
 Phases (human decision 2026-09-26: 10 s simulated per phase), each a
-separate run from W0 (full-state continuation does not carry
-``poisson_drive``):
+separate run from W0 (at the time, full-state continuation did not carry
+``poisson_drive``; R6 below uses per-chunk continuation):
 
 - ``baseline``: HDP off.
 - ``hebbian_hdp``: HDP on, ``HP_HEBB``.
@@ -37,6 +37,13 @@ replicates show robustness to the Poisson realization only (same gain,
 same kicks, same network).
 Values are relative (RELATIVE_PROXY); nothing is calibrated.
 Import rule: top-level ``jaxfne`` only.
+
+R6 (0.5.5, very long T): ``run_r6_long`` continues ``total_ms`` in
+``chunk_ms`` full-state chunks with per-chunk Poisson noise (chunk 0 draws
+the declared seed, later chunks derive theirs from (seed, chunk_index) in
+the engine). Per-chunk records keep per-area rates and H summaries only;
+each chunk's H trace is reduced before the next chunk runs and never
+stored.
 """
 
 from __future__ import annotations
@@ -47,6 +54,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import json
+import math
 import time
 from typing import Any
 
@@ -534,6 +542,140 @@ def run_r5_twin_assay(model: Any = None, noise_seed: int = NOISE["seed"]) -> dic
                           twin=twin)}
     return {"noise_seed": int(noise_seed), "H0": float(R5_TWIN_H0_VALUE),
             "pairs": pairs, "wall_s": time.perf_counter() - t0}
+
+
+# AT-10-R6 (0.5.5, very long T): total_ms in chunk_ms full-state chunks.
+R6_TOTAL_MS = 100_000.0
+R6_CHUNK_MS = 25_000.0
+
+
+def _rss_mb() -> "float | None":
+    """Process RSS in MB, or None when psutil is absent (JSON-safe either way)."""
+    try:
+        import psutil
+    except Exception:
+        return None
+    return float(psutil.Process().memory_info().rss) / 1e6
+
+
+def _chunk_stimulus(area: np.ndarray, chunk_start_ms: float, chunk_ms: float,
+                    total_ms: float) -> Any:
+    """Pulse-train slice for one chunk: global H01 onsets overlapping
+    ``[chunk_start_ms, chunk_start_ms + chunk_ms)``, shifted by
+    ``-chunk_start_ms``.
+
+    ``StimulusSchedule.to_array`` clips out-of-window edges, so a pulse
+    straddling a chunk boundary contributes its remainder to the next chunk
+    and no drive is lost or doubled; flat pulses are unaffected.
+    """
+    h01 = [int(i) for i in np.nonzero(area == "H01")[0]]
+    end_ms = float(chunk_start_ms) + float(chunk_ms)
+    onsets = np.arange(STIM_FIRST_MS, float(total_ms) - STIM_FIRST_MS,
+                       STIM_PERIOD_MS)
+    events = [{"onset_ms": float(o) - float(chunk_start_ms),
+               "duration_ms": STIM_DUR_MS, "amplitude": STIM_AMP,
+               "target_indices": h01}
+              for o in onsets
+              if float(o) < end_ms and float(o) + STIM_DUR_MS > float(chunk_start_ms)]
+    return J.stimulus_schedule(events, len(area), drive_amplitude=STIM_AMP,
+                               event_duration_ms=STIM_DUR_MS)
+
+
+def summarize_r6_chunks(chunks: "list[dict[str, Any]]") -> dict[str, Any]:
+    """Pure summary over ``run_r6_long`` per-chunk records (no model needed).
+
+    Per-area rates and H means average across chunks; H extremes take the
+    min/max across chunks; ``clip_reached`` is OR-ed; ``w_mean_ratio`` keeps
+    the last chunk's value (ratio vs W0). Returns a JSON-safe dict.
+    """
+    if not chunks:
+        raise ValueError("summarize_r6_chunks needs at least one chunk record")
+    names = list(chunks[0]["per_area_mean_hz"])
+    n = len(chunks)
+    return {
+        "n_chunks": n,
+        "per_area_mean_hz": {
+            a: float(sum(c["per_area_mean_hz"][a] for c in chunks) / n) for a in names},
+        "h_mean": {
+            a: float(sum(c["h_mean"][a] for c in chunks) / n) for a in names},
+        "h_min": {a: float(min(c["h_min"][a] for c in chunks)) for a in names},
+        "h_max": {a: float(max(c["h_max"][a] for c in chunks)) for a in names},
+        "clip_reached": bool(any(c["clip_reached"] for c in chunks)),
+        "w_mean_ratio_last": chunks[-1]["w_mean_ratio"],
+        "wall_s": float(sum(c["wall_s"] for c in chunks)),
+    }
+
+
+def run_r6_long(model: Any = None, total_ms: float = R6_TOTAL_MS,
+                chunk_ms: float = R6_CHUNK_MS,
+                noise_seed: int = NOISE["seed"]) -> dict[str, Any]:
+    """Very-long-time run: ``total_ms`` in ``chunk_ms`` full-state chunks.
+
+    One realized network (``build_model`` unless ``model`` is given), HDP on
+    (``HP_HEBB``, no W trace), the H01 pulse train sliced per chunk
+    (``_chunk_stimulus``) and per-chunk Poisson noise (chunk 0 draws
+    ``noise_seed``; later chunks derive theirs from (seed, chunk_index) in
+    the engine). H, w, delays in flight and the PRNG chain thread through
+    the continuation state across chunks.
+
+    Each chunk's H trace is reduced to per-area mean/min/max before the next
+    chunk runs, so memory stays at one chunk plus the carried states;
+    per-chunk records are JSON-safe. Values are relative (RELATIVE_PROXY);
+    nothing is calibrated.
+    """
+    t0 = time.perf_counter()
+    model = model if model is not None else build_model()
+    area = _areas(model)
+    names = G.area_names()
+    w0 = _realized_weights(model)
+    n_chunks = int(math.ceil(float(total_ms) / float(chunk_ms)))
+    if n_chunks < 1:
+        raise ValueError(
+            f"total_ms={total_ms!r} with chunk_ms={chunk_ms!r} needs >= 1 chunk")
+    hp = {**HP_HEBB, "record_weight_trace": False}
+    runtime = J.RuntimeConfig(enable_hdp=True, hdp_params=dict(hp))
+    chunks: list[dict[str, Any]] = []
+    state = None
+    for c in range(n_chunks):
+        start_ms = float(c) * float(chunk_ms)
+        dur_ms = min(float(chunk_ms), float(total_ms) - start_ms)
+        ct0 = time.perf_counter()
+        stim = _chunk_stimulus(area, start_ms, dur_ms, float(total_ms))
+        sim = J.Simulation(duration_ms=dur_ms, dt_ms=DT_MS, seed=RUN_SEED,
+                           runtime=runtime,
+                           poisson_drive={**NOISE, "seed": int(noise_seed)})
+        if state is None:
+            signals, state = model.simulate(sim, paradigm=stim, return_state=True)
+        else:
+            signals, state = model.simulate(sim, paradigm=stim,
+                                            continuation=state, return_state=True)
+        sp = np.asarray(signals.spikes)
+        d = model.last_hdp_diagnostics()
+        H = np.asarray(d["H_trace"], dtype=float)
+        h_mean = {a: float(H[:, area == a].mean()) for a in names}
+        h_min = {a: float(H[:, area == a].min()) for a in names}
+        h_max = {a: float(H[:, area == a].max()) for a in names}
+        lo, hi = float(H_BOUNDS[0]), float(H_BOUNDS[1])
+        # Recorded H is float32: float32(H bound) != the float64 bound
+        # exactly, so compare with a float32-scale tolerance (R5 idiom).
+        clip = bool((np.isclose(H, lo, rtol=1e-6, atol=0.0)
+                     | np.isclose(H, hi, rtol=1e-6, atol=0.0)).any())
+        chunks.append({
+            "chunk": int(c), "start_ms": float(start_ms),
+            "duration_ms": float(dur_ms), "chunk_index": int(state.chunk_index),
+            "wall_s": time.perf_counter() - ct0, "rss_mb": _rss_mb(),
+            "mean_rate_hz": float(sp.mean() / (DT_MS / 1000.0)),
+            "per_area_mean_hz": _area_mean_rates_hz(sp, area),
+            "h_mean": h_mean, "h_min": h_min, "h_max": h_max,
+            "h_bounds": [lo, hi], "clip_reached": clip,
+            "w_mean_ratio": float(np.abs(np.asarray(d["w_final"])).mean()
+                                  / np.abs(w0).mean()),
+        })
+    return {"scenario": "AT-10-N20-R6", "level": LEVEL,
+            "total_ms": float(total_ms), "chunk_ms": float(chunk_ms),
+            "noise_seed": int(noise_seed), "chunks": chunks,
+            "summary": summarize_r6_chunks(chunks),
+            "wall_s": time.perf_counter() - t0}
 
 
 def spec() -> dict[str, Any]:

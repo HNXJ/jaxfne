@@ -44,6 +44,7 @@ from ._signals import (
     ParadigmCondition,
     Paradigm,
     _make_poisson_drive,
+    poisson_chunk_seed,
 )
 from ._model import _SOURCE_PROXY_METADATA, stimulus_schedule
 
@@ -927,13 +928,10 @@ def _simulate_continuation_arrays(
             "synaptic_kernel='exponential'; requested "
             f"{runtime_cfg.synaptic_kernel!r}"
         )
-    if sim.poisson_drive is not None:
-        raise ValueError(
-            "full-state continuation requires an explicit drive schedule; "
-            "poisson_drive is pre-generated per simulation and cannot be "
-            "continued without its drive cursor"
-        )
-
+    # Poisson background is generated per segment in simulate() (each
+    # continuation chunk from its own chunk seed), so no refusal here: HDP
+    # state (H, w), delays in flight and the PRNG chain all ride the
+    # continuation state as before.
     emitter: IzhikevichParams = self.params["emitter"]
     n_neurons = emitter.n_neurons
     if drive_schedule is None:
@@ -1087,6 +1085,14 @@ def simulate(
     It returns ``(Signals, ContinuationState)``; pass that state back through
     ``continuation=`` for the next segment. ``with_hdp_initial_state`` remains
     a partial H/W initializer and is not changed by this contract.
+
+    ``poisson_drive`` composes with continuation: chunk 0 draws the declared
+    Poisson seed (bit-identical to a plain single call with the same
+    Simulation), and each later chunk derives its own seed deterministically
+    from ``(poisson_seed, chunk_index)`` — same process, independent
+    realization per chunk. HDP state (H, w), delays in flight and the PRNG
+    chain continue across chunks as before. Explicit ``paradigm`` schedules
+    carry no cursor: pass each segment only its own time window.
     """
     # Local import: _simulate_homeostasis_metadata/_simulate_hdp_metadata stay
     # in core.py (group-6 construct-pipeline territory); Model is their only
@@ -1116,12 +1122,6 @@ def simulate(
             )
         return self._simulate_homeostatic_ei(sim, key, runtime_cfg)
 
-    if (continuation is not None or return_state) and sim.poisson_drive is not None:
-        raise ValueError(
-            "full-state continuation does not support poisson_drive; provide "
-            "an explicit schedule so its cursor is unambiguous"
-        )
-
     schedule = self._resolve_stimulus_schedule(paradigm, sim, runtime_cfg)
     drive_array: Optional[Any] = None
     if schedule is not None:
@@ -1129,13 +1129,19 @@ def simulate(
     if sim.poisson_drive is not None:
         _emitter: IzhikevichParams = self.params["emitter"]
         _pd = sim.poisson_drive
+        _base_seed = int(_pd.get("seed", sim.seed + 7919))
+        if continuation is None:
+            _chunk = 0
+        else:
+            # Missing/legacy states predate chunk_index and read as chunk 0.
+            _chunk = int(getattr(continuation, "chunk_index", 0) or 0)
         _poisson_arr = _make_poisson_drive(
             n_steps=sim.n_steps,
             n_neurons=_emitter.n_neurons,
             rate_hz=float(_pd.get("rate_hz", 2.0)),
             amplitude=float(_pd.get("amplitude", 0.5)),
             dt_ms=sim.dt_ms,
-            seed=int(_pd.get("seed", sim.seed + 7919)),
+            seed=poisson_chunk_seed(_base_seed, _chunk),
             target=str(_pd.get("target", "all")),
         )
         drive_array = _poisson_arr if drive_array is None else drive_array + _poisson_arr
@@ -1248,6 +1254,9 @@ def simulate(
             "target": str(sim.poisson_drive.get("target", "all")),
             "seed": int(sim.poisson_drive.get("seed", sim.seed + 7919)),
             "status": "stochastic_drive_applied",
+            "chunk_index": int(_chunk),
+            "chunk_seed": int(poisson_chunk_seed(
+                int(sim.poisson_drive.get("seed", sim.seed + 7919)), int(_chunk))),
         }
     if getattr(runtime_cfg, "enable_homeostasis", False):
         diag = getattr(self, "_last_homeostasis_diag", None)
