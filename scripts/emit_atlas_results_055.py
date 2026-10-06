@@ -19,6 +19,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import jaxfne  # noqa: E402
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
+
 from artifacts.atlas import at01_at06_052 as A  # noqa: E402
 from artifacts.atlas import at07_at04_053 as B  # noqa: E402
 
