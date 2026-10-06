@@ -69,8 +69,8 @@
    "capability": "Atlas generator + figure seam",
    "release": "0.5.5",
    "candidate": false,
-   "evidence": null,
-   "state": "PLANNED"
+   "evidence": "artifacts/atlas/figure_columns.py",
+   "state": "SUPPORTED"
   },
   {
    "id": "AT-00-R6",
