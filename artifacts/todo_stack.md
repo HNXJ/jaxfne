@@ -260,9 +260,15 @@ ATLAS
    reached, mean |w| ratio 0.998-1.000, H max per area 1.65-2.41. RSS grew
    1757 -> 1855 MB over 4 chunks (+98 MB): not explained, check before a longer
    run. Spikes are never stored (per-chunk reductions only). One seed. Row
-   SUPPORTED; VALIDATED needs the second review and your acceptance. Bug found
+   SUPPORTED; VALIDATED needs your acceptance. Bug found
    on first live run: continuation needs `recurrent_backend="edge_list"` set
    explicitly (fixed in the runner).
+   Second review 2026-10-06: engine change SOUND (chunk 0 bit-identical, default
+   and non-Poisson paths unchanged, 4-field legacy state safe); evidence supports
+   SUPPORTED, not VALIDATED. Wording limits: chunk-mean rates only; chunk-0
+   identity tested at toy scale (12 ms) only. Open defects: one seed (2 replicate
+   seeds running, `at10_r6_replicates_055.json`); no `chunk_index` test for
+   `run_continuation_strided`; RSS growth unresolved (leak vs XLA cache).
    Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
    30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
    VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),

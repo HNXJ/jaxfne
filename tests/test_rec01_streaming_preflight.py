@@ -75,6 +75,8 @@ def test_strided_frames_match_full_run(stride):
     for f, k in zip(full_np, kept_np):
         np.testing.assert_array_equal(k, f[idx_np])
     _states_equal(end_state, full_state)
+    # one logical segment: chunk_index advances once however many slices ran
+    assert end_state.chunk_index == full_state.chunk_index == s0.chunk_index + 1
 
 
 def test_strided_delayed_registered_noisy_exact():
