@@ -49,6 +49,6 @@ Status: scaffold for human review (fact stack: claim ledger). State = coverage s
 | AT-10-R2 | Three phases on the same realized network: baseline (W = W0, dW/dt = 0), Hebbian HDP, noisy HDP with explicit K_t | RESULT | VALIDATED | `artifacts/atlas/results/at10_n20_055.json` | yes |  |
 | AT-10-R3 | Baseline measures: spontaneous/noisy activity, rate distributions, population fields, spectra, inter-area propagation, boundedness, spatial field structure | RESULT | VALIDATED | `artifacts/atlas/results/at10_n20_055.json` | yes |  |
 | AT-10-R4 | HDP phases measure W(t), H(t), X(t), Phi(t) and network-level organization | RESULT | OUT_OF_SCOPE | `artifacts/atlas/results/at10_n20_055.json` | yes |  |
-| AT-10-R5 | Perturbation/control assay distinguishing bounded != returning != homeostatically stabilized | RESULT | SUPPORTED | `artifacts/atlas/results/at10_r5_hspace_055.json` | yes |  |
+| AT-10-R5 | Perturbation/control assay distinguishing bounded != returning != homeostatically stabilized | RESULT | VALIDATED | `artifacts/atlas/results/at10_r5_twin_055.json` | yes |  |
 | AT-10-R6 | Reduced fast model with very long T | UNSET | PLANNED | none | n/a |  |
 | AT-10-R7 | F_W(X,H,W,B) with B input | CAPABILITY | OUT_OF_SCOPE | `tests/test_atlas_at07_053.py` | yes |  |

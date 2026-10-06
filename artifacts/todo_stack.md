@@ -248,7 +248,8 @@ ATLAS
    control); one seed, one H0, loaded machine. Addresses review items 1, 3;
    item 2 is flagged per pair; item 4 (approved 0.5.3-fixture values) is
    replaced by the K_ctrl contrast on N20's own parameters, which needs the
-   human's acceptance. Row stays SUPPORTED.
+   human's acceptance. ACCEPTED by Hamm 2026-10-06: AT-10-R5 VALIDATED
+   (evidence `at10_r5_twin_055.json`), with the wording limits above.
    Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
    30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
    VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),
