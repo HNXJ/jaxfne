@@ -633,7 +633,9 @@ def run_r6_long(model: Any = None, total_ms: float = R6_TOTAL_MS,
         raise ValueError(
             f"total_ms={total_ms!r} with chunk_ms={chunk_ms!r} needs >= 1 chunk")
     hp = {**HP_HEBB, "record_weight_trace": False}
-    runtime = J.RuntimeConfig(enable_hdp=True, hdp_params=dict(hp))
+    # Continuation requires the edge_list backend (_model_simulate.py:924).
+    runtime = J.RuntimeConfig(enable_hdp=True, hdp_params=dict(hp),
+                              recurrent_backend="edge_list")
     chunks: list[dict[str, Any]] = []
     state = None
     for c in range(n_chunks):

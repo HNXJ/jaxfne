@@ -250,6 +250,19 @@ ATLAS
    replaced by the K_ctrl contrast on N20's own parameters, which needs the
    human's acceptance. ACCEPTED by Hamm 2026-10-06: AT-10-R5 VALIDATED
    (evidence `at10_r5_twin_055.json`), with the wording limits above.
+   AT-10-R6 RESULT 2026-10-06 (`artifacts/atlas/results/at10_r6_long_055.json`,
+   `run_r6_long`, loaded machine): AT-10-N20, HDP engaged, 100 s in 4
+   continuation chunks of 25 s (178 s wall; 36-48 s per chunk). Engine change
+   `deab8a1d`: Poisson noise composes with continuation, per-chunk seed from
+   (seed, chunk_index); chunk 0 bit-identical to a plain call, so the noise
+   realization differs from the 10 s R3 runs (new run, not a reproduction).
+   Observed: mean rate 8.93-9.00 Hz in every chunk (no drift), clip never
+   reached, mean |w| ratio 0.998-1.000, H max per area 1.65-2.41. RSS grew
+   1757 -> 1855 MB over 4 chunks (+98 MB): not explained, check before a longer
+   run. Spikes are never stored (per-chunk reductions only). One seed. Row
+   SUPPORTED; VALIDATED needs the second review and your acceptance. Bug found
+   on first live run: continuation needs `recurrent_backend="edge_list"` set
+   explicitly (fixed in the runner).
    Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
    30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
    VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),
