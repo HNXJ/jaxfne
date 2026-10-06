@@ -266,9 +266,12 @@ ATLAS
    Second review 2026-10-06: engine change SOUND (chunk 0 bit-identical, default
    and non-Poisson paths unchanged, 4-field legacy state safe); evidence supports
    SUPPORTED, not VALIDATED. Wording limits: chunk-mean rates only; chunk-0
-   identity tested at toy scale (12 ms) only. Open defects: one seed (2 replicate
-   seeds running, `at10_r6_replicates_055.json`); no `chunk_index` test for
-   `run_continuation_strided`; RSS growth unresolved (leak vs XLA cache).
+   identity tested at toy scale (12 ms) only. Replicates (noise seeds 12, 13;
+   `at10_r6_replicates_055.json`, loaded machine): mean rate 8.93-9.01 Hz in
+   every chunk, clip never reached, mean |w| ratio 0.998-1.001; so 3 seeds agree.
+   `chunk_index` test for `run_continuation_strided` added (`082fcc47`). Open:
+   RSS grows +80-98 MB over 4 chunks in all 3 runs (leak vs XLA cache
+   unresolved; check before any run longer than 100 s).
    Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
    30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
    VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),
