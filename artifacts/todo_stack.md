@@ -180,6 +180,14 @@ ATLAS
    E_reduction. `artifacts/perf/matrix_051.json` ran the
    `benchmark_050_baseline` models at the default drives; their declared
    drives run since P-018, so measure them anew here.
+   RESULT 2026-10-06 (loaded, non-final timings; `matrix_055.json` committed):
+   all 17 cells MEASURED incl. `at10_20area` coupled; 14 null-drive cells
+   bit-exact vs 051; `mech_hdp` differs as declared; `chunk_ref` 174 -> 173 =
+   P-010 repair (below); frozen 051/050 hashes unchanged. Warm times were
+   0.86-3.7x the 051 values on a saturated machine, so they are not a
+   regression claim: rerun on a quiet machine before the seal, and add
+   `T_test` (the broad gate took 539-811 s loaded) to the receipt.
+   Older run-state notes follow.
    Run state: spec `artifacts/perf/matrix_055_spec.json` (frozen before the
    result), runner `scripts/benchmark_055_matrix.py` (drive threading per
    cell), result `artifacts/perf/matrix_055.json` (17 cells; both still
