@@ -208,8 +208,8 @@ ATLAS
    AT-00-R6 (manuscript progression; item 14), AT-10-R5 (perturbation/control
    assay: bounded != returning != homeostatically stabilized; needs a new
    S10 run on `AT-10-N20`; protocol proposed in
-   `artifacts/programme/at10_r5_protocol_proposal.md`, awaiting human
-   approval of its open choices), AT-10-R6 (reduced fast model, very long T; takes
+   `artifacts/programme/at10_r5_protocol_proposal.md`, choices approved
+   2026-10-06; next: build the runner, run after the matrix window), AT-10-R6 (reduced fast model, very long T; takes
    its envelope from item 8); SUPPORTED AT-00-R4, AT-01-R1/R2/R3/R6/R7,
    AT-05-R2, AT-07-R3 (promote with evidence at the seal; AT-00-R4 and
    AT-01-R6 follow item 7).

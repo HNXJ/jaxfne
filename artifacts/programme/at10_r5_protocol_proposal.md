@@ -1,6 +1,6 @@
 # AT-10-R5 protocol proposal (for human review; nothing run)
 
-Status: PROPOSED 2026-10-06. Row: `AT-10-R5` in `atlas_coverage.json`
+Status: choices approved 2026-10-06 (see Choices). Row: `AT-10-R5` in `atlas_coverage.json`
 ("bounded != returning != homeostatically stabilized"). Freeze this file
 before any result, then run; do not tune after seeing the outcome (new
 protocol if changed).
@@ -35,11 +35,14 @@ protocol if changed).
    only as RETURNING under the declared perturbation, never as a general
    property.
 
-## Open choices for the human
+## Choices (approved by Hamm 2026-10-06)
 
-| Choice | Proposed default |
+| Choice | Value |
 |---|---|
 | Offset size / area subset | 0.05 of H range (as in 0.5.3), 2 of 20 areas |
-| Horizon | long enough for 5 restoring time constants (tau_0 = 200 ms) after t0 |
+| Horizon | 5 restoring time constants (tau_0 = 200 ms) = 1 s after t0 |
 | K_ctrl for arm B | the 0.5.3 value (5) |
-| Seeds | 1 (R3 seed) plus 2 more for an ordering check |
+| Seeds | R3 seed plus 2 more for an ordering check |
+
+Status: APPROVED, not run. Next: freeze this file in a commit, then
+implement the runner (imports `jaxfne._long_diagnostics`).
