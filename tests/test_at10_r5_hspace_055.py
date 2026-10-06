@@ -145,3 +145,69 @@ def test_h_space_records_which_twin():
     assert rep["twin"] == "disabled_ref"
     assert rep["stability"]["verdict"] == "PERSISTING"
     json.dumps(rep)
+
+
+# --- R5 valid-twin arm (HP_NOCTRL) + window sensitivity: pure scoring ---
+
+TWIN_T = 2500  # > max early_end (2000) + late window (200) of stability_report
+
+
+def _twin_ref():
+    return np.full((TWIN_T, K), 1.0)
+
+
+def _twin_decay():
+    return 2.0 * np.exp(-np.arange(TWIN_T) / 50.0)[:, None] * np.ones((1, K))
+
+
+def test_hp_noctrl_removes_only_k_ctrl():
+    assert A.HP_NOCTRL["K_ctrl"] == 0.0
+    assert {k: v for k, v in A.HP_NOCTRL.items() if k != "K_ctrl"} == {
+        k: v for k, v in A.HP_HEBB.items() if k != "K_ctrl"}
+
+
+def test_r5_sweep_returns_three_keys_json_safe():
+    scored = A.score_r5_twin_pair(_twin_ref(), _twin_ref() + _twin_decay(),
+                                  H_trace=_twin_ref() + _twin_decay())
+    assert set(scored["sweep"]) == {"200", "1000", "2000"}
+    for entry in scored["sweep"].values():
+        assert set(entry) >= {"verdict", "contraction_ratio", "d_early", "d_late"}
+    json.dumps(scored)
+
+
+def test_r5_clip_reached_for_float32_pinned_trace():
+    # The kernel records float32: float32(H_min) != the float64 bound exactly.
+    pinned = np.full((TWIN_T, K), H_BOUNDS[0], dtype=np.float32)
+    assert float(pinned[0, 0]) != H_BOUNDS[0]
+    scored = A.score_r5_twin_pair(_twin_ref(), pinned, H_trace=pinned)
+    assert scored["clip_reached"] is True
+
+
+def test_r5_clip_reached_when_pinned_at_h_min():
+    pinned = np.full((TWIN_T, K), H_BOUNDS[0])  # recorded H sits exactly on H_min
+    scored = A.score_r5_twin_pair(_twin_ref(), pinned, H_trace=pinned)
+    assert scored["clip_reached"] is True
+    # The pinned trace is inside bounds, so boundedness alone would pass: the
+    # clip flag is what disqualifies it as evidence of genuine boundedness.
+    assert scored["boundedness"]["within_bounds"] is True
+    assert scored["boundedness"]["clip_reached"] is True
+    assert scored["H_min_obs"] == pytest.approx(H_BOUNDS[0])
+    json.dumps(scored)
+
+
+def test_r5_clip_false_for_interior_trace():
+    arm = _twin_ref() + _twin_decay()  # strictly inside (0.1, 10)
+    scored = A.score_r5_twin_pair(_twin_ref(), arm, H_trace=arm)
+    assert scored["clip_reached"] is False
+    assert scored["H_min_obs"] > H_BOUNDS[0]
+    assert scored["H_max_obs"] < H_BOUNDS[1]
+    json.dumps(scored)
+
+
+def test_r5_identical_twins_refused_across_sweep():
+    scored = A.score_r5_twin_pair(_twin_ref(), _twin_ref().copy(),
+                                  H_trace=_twin_ref().copy())
+    assert set(scored["sweep"]) == {"200", "1000", "2000"}
+    for entry in scored["sweep"].values():
+        assert entry["verdict"] == "REFUSED_DEGENERATE"
+    json.dumps(scored)

@@ -434,6 +434,108 @@ def run_assay(model: Any = None, noise_seed: int = NOISE["seed"]) -> dict[str, A
             "declared_tests": tests, "wall_s": time.perf_counter() - t0}
 
 
+# AT-10-R5 valid-twin arm (adversarial-review follow-up): HP_HEBB without the
+# restoring term. HP_NOCTRL removes only the restoring term K_ctrl*(1-H)
+# (jaxfne/emitters.py ~4179: dH_ctrl = K_ctrl_arr * (1.0 - H)); every other
+# HDP term is unchanged.
+HP_NOCTRL = {**HP_HEBB, "K_ctrl": 0.0}
+
+# Interior twin perturbation: 0.5 lies strictly inside the H bounds
+# [0.1, 10] (H_BOUNDS above), so the H0 shift is not clipped away on the
+# first step (unlike H0 = 0.0, which the H_min clip maps to 0.1 before any
+# dynamics can act on it). A W kick is not a valid H twin: it changes the
+# efficacy state, not the H initial condition, so twin separation confounds
+# two state perturbations.
+R5_TWIN_H0_VALUE = 0.5
+R5_TWIN_EARLY_ENDS = (200, 1000, 2000)
+
+
+def score_r5_twin_pair(H_ref: Any, H_arm: Any, *, H_trace: Any = None,
+                       H_extremes: Any = None, H_bounds: Any = H_BOUNDS,
+                       twin: str = "engaged_ref") -> dict[str, Any]:
+    """Pure per-pair scoring for ``run_r5_twin_assay`` (no model needed).
+
+    ``H_ref``/``H_arm`` are per-area-mean H traces (steps x areas) from twin
+    runs differing only in initial H. Reports ``J.stability_report`` at each
+    ``R5_TWIN_EARLY_ENDS`` value (late_start = -200) with the
+    ``h_space_report``-style guard (ValueError -> REFUSED_DEGENERATE), plus
+    the per-area-extreme boundedness check and ``clip_reached``: whether any
+    recorded H equals H_min or H_max. A clip-pinned trace can read
+    ``within_bounds`` True while evidencing nothing about genuine
+    boundedness, so ``clip_reached`` True disqualifies the bounded verdict
+    as evidence. Returns a JSON-safe dict.
+    """
+    lo, hi = float(H_bounds[0]), float(H_bounds[1])
+    sweep: dict[str, Any] = {}
+    for early_end in R5_TWIN_EARLY_ENDS:
+        try:
+            rep = J.stability_report(H_ref, H_arm, early_end=early_end, late_start=-200)
+            sweep[str(early_end)] = {"verdict": str(rep["verdict"]),
+                                     "contraction_ratio": float(rep["contraction_ratio"]),
+                                     "d_early": float(rep["d_early"]),
+                                     "d_late": float(rep["d_late"])}
+        except ValueError as exc:
+            sweep[str(early_end)] = {"verdict": "REFUSED_DEGENERATE", "reason": str(exc)}
+    recorded = (np.asarray(H_trace, dtype=float) if H_trace is not None
+                else np.asarray(H_arm, dtype=float))
+    # Recorded H is float32 (float32(0.1) = 0.10000000149 != 0.1): compare with
+    # a float32-scale tolerance, not equality, or a pinned trace reads unclipped.
+    clip_reached = bool((np.isclose(recorded, lo, rtol=1e-6, atol=0.0)
+                         | np.isclose(recorded, hi, rtol=1e-6, atol=0.0)).any())
+    if H_extremes is not None:
+        H_in = np.column_stack([np.asarray(H_extremes[0], dtype=float),
+                                np.asarray(H_extremes[1], dtype=float)])
+        h_scope = ("per-area extremes over time (min/max over steps x neurons "
+                   "in area, one row per area); violations counted per area-extreme")
+    else:
+        H_in = np.asarray(H_arm, dtype=float)
+        h_scope = "input trace as given (no extremes supplied)"
+    h_bad = (H_in < lo) | (H_in > hi)
+    boundedness: dict[str, Any] = {
+        "within_bounds": bool(not h_bad.any()),
+        "H_violations": int(h_bad.sum()),
+        "H_min": float(H_in.min()),
+        "H_max": float(H_in.max()),
+        "H_bounds": [lo, hi],
+        "H_scope": h_scope,
+        "clip_reached": clip_reached,
+    }
+    return {"twin": twin, "sweep": sweep, "clip_reached": clip_reached,
+            "H_min_obs": float(recorded.min()), "H_max_obs": float(recorded.max()),
+            "boundedness": boundedness}
+
+
+def run_r5_twin_assay(model: Any = None, noise_seed: int = NOISE["seed"]) -> dict[str, Any]:
+    """Two engaged valid-twin pairs: restoring (HP_HEBB) vs no-restoring (HP_NOCTRL).
+
+    Same stimulus, seed and ``_run`` helper as ``run_assay``. Each pair's
+    twin differs only in initial H (``model.with_hdp_initial_state(H0=...)``
+    with H0 = 0.5 everywhere); the reference is the unperturbed run in the
+    pair's own HDP regime. Per-pair H traces are reduced with
+    ``_area_mean_H`` and scored with ``score_r5_twin_pair``. ``run_assay``
+    outputs are untouched. Returns a JSON-safe dict.
+    """
+    t0 = time.perf_counter()
+    model = model if model is not None else build_model()
+    area = _areas(model)
+    stim = _stimulus(area)
+    H0 = np.full(len(area), R5_TWIN_H0_VALUE)
+    pairs: dict[str, Any] = {}
+    for key, hp, twin in (("restoring", HP_HEBB, "engaged_ref"),
+                          ("no_restoring", HP_NOCTRL, "noctrl_engaged_ref")):
+        _, ref_diag = _run(model, stim, hp, noise_seed)
+        _, arm_diag = _run(model.with_hdp_initial_state(H0=H0), stim, hp, noise_seed)
+        ref_H = _area_mean_H(ref_diag["H_trace"], area)
+        arm_H = _area_mean_H(arm_diag["H_trace"], area)
+        pairs[key] = {"hp": dict(hp),
+                      **score_r5_twin_pair(
+                          ref_H, arm_H, H_trace=arm_diag["H_trace"],
+                          H_extremes=_area_H_extremes(arm_diag["H_trace"], area),
+                          twin=twin)}
+    return {"noise_seed": int(noise_seed), "H0": float(R5_TWIN_H0_VALUE),
+            "pairs": pairs, "wall_s": time.perf_counter() - t0}
+
+
 def spec() -> dict[str, Any]:
     return {
         "genome": G.G20_NAME, "development_seed": G.G20_DEV_SEED, "build_seed": BUILD_SEED,
