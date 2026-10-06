@@ -237,12 +237,18 @@ ATLAS
    same regime, same seed). Restoring (K_ctrl 0.15): RETURNING, ratio 0.086,
    H in [0.50, 2.09], clip not reached (genuinely interior, bounded and
    returning). No restoring (K_ctrl 0): PERSISTING, ratio 0.90 (0.88 at
-   early_end 2000: window-robust), but clip_reached = True, H_max_obs = 10.0:
-   its boundedness is the hard clip, so the contrast is "returning" vs
-   "non-returning, held only by the clip". Addresses review items 1, 3, 5;
-   item 2 is now flagged per pair rather than hidden; item 4 (approved
-   0.5.3-fixture values) is replaced by the K_ctrl contrast on N20's own
-   parameters, which needs the human's acceptance. Not yet re-reviewed.
+   early_end 2000), and at least one neuron reaches the clip (clip_reached =
+   True, H_max_obs = 10.0). Wording (second review, 2026-10-06): say "no
+   restoring term; the offset persists; some neurons reach H_max"; do NOT say
+   boundedness "is" the clip: the flag is any neuron at any step, the fraction
+   pinned is unknown, and PERSISTING (d_late 0.449 ~ the 0.5 offset) holds
+   without clipping. within_bounds True is tautological for a clipped trace.
+   Known limits: clip_reached checks the perturbed arm only; the early_end
+   sweep barely varies d_early (late window fixed at -200, no ref-vs-ref noise
+   control); one seed, one H0, loaded machine. Addresses review items 1, 3;
+   item 2 is flagged per pair; item 4 (approved 0.5.3-fixture values) is
+   replaced by the K_ctrl contrast on N20's own parameters, which needs the
+   human's acceptance. Row stays SUPPORTED.
    Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
    30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
    VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),
