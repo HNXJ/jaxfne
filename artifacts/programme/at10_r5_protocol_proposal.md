@@ -16,6 +16,20 @@ protocol if changed).
   boundedness, spread).
 - Intervention grammar (`artifacts/programme/intervention_053.md`).
 
+## Reuse finding (2026-10-06, before any run)
+
+`at10_n20_055.py::run_assay` already runs, on the one realized N20 network
+and per noise seed: reference (engaged) vs H0-perturbed and W-kicked arms,
+each with HDP engaged and HDP disabled, scored on window firing rates
+(`late_dev_hz`, verdicts STABILIZED / NOT_STABILIZED / NO_LASTING_EFFECT),
+and `run_phases` already reports boundedness (R3). What it lacks for R5 is
+the separation in H space: `stability_report` on H twins (RETURNING /
+PERSISTING / DIVERGING) beside `boundedness_report`, per arm. The runner
+should therefore extend `run_assay` (keep `H_trace` per arm, apply the two
+reports) before adding a new set of arms; the three-arm design below is the
+fallback if the existing arms cannot give the A/B/C contrast. Decision for
+the reviewer: extend `run_assay` (cheaper, same seeds) or run the new arms.
+
 ## Design
 
 1. System: `AT-10-N20`, same manifest and seed as the validated R3 run.
