@@ -218,21 +218,17 @@ def _area_mean_rates_hz(sp: np.ndarray, area: np.ndarray) -> dict[str, float]:
 
 
 def _welch_psd(x: np.ndarray, fs_hz: float) -> tuple[np.ndarray, np.ndarray, str]:
-    """Repo spectrum path: ``jaxfne.vis.core.welch_psd`` (nperseg=256).
+    """Welch spectrum via ``scipy.signal.welch`` (nperseg=256).
 
-    Fallback is the same ``scipy.signal.welch`` call the repo path makes
-    (bit-identical per its docstring), for envs without the viz package.
+    AT scripts import only the public surface, so the call
+    ``jaxfne.vis.core.welch_psd`` makes is repeated here; checked
+    bit-identical to it for float64 and float32 input (2026-10-06).
     """
-    try:
-        from jaxfne.vis.core import welch_psd
-        f, p = welch_psd(x, fs_hz, nperseg=PSD_NPERSEG)
-        return f, p, "jaxfne.vis.core.welch_psd"
-    except ImportError:
-        from scipy import signal as _signal
-        arr = np.asarray(x)
-        seg = int(min(PSD_NPERSEG, arr.shape[0]))
-        f, p = _signal.welch(arr, fs=float(fs_hz), axis=0, nperseg=seg)
-        return f, p, "scipy.signal.welch"
+    from scipy import signal as _signal
+    arr = np.asarray(x)
+    seg = int(min(PSD_NPERSEG, arr.shape[0]))
+    f, p = _signal.welch(arr, fs=float(fs_hz), axis=0, nperseg=seg)
+    return f, p, "scipy.signal.welch"
 
 
 def _area_psd(sp: np.ndarray, area: np.ndarray) -> dict[str, Any]:
