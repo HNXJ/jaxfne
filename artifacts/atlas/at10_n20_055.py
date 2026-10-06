@@ -72,6 +72,14 @@ STIM_PERIOD_MS, STIM_DUR_MS, STIM_AMP, STIM_FIRST_MS = 200.0, 20.0, 8.0, 100.0
 HP_HEBB = {"K_HDP": 0.005, "K_ctrl": 0.15, "K_w_ctrl": 0.05, "alpha": 0.05,
            "tau_0_ms": 5.0, "noise_scale": 0.0}
 HP_NOISY = {**HP_HEBB, "noise_scale": 0.5}
+# H-space bounds in force for the assay (AT-10-R5): HP_HEBB carries no
+# H_min/H_max/w_ceiling keys, so the shared kernel-contract defaults apply
+# (jaxfne/_model_simulate.py::_hdp_kernel_kwargs: H_min=0.1, H_max=10.0,
+# w_ceiling=50.0; the same floors/ceilings are declared in
+# jaxfne/emitters.py, jaxfne/hdp_rule.py and jaxfne/hdp_network.py). Read live
+# from HP_HEBB so an explicit key would win; HDP params are unchanged.
+H_BOUNDS = (float(HP_HEBB.get("H_min", 0.1)), float(HP_HEBB.get("H_max", 10.0)))
+W_CEILING = float(HP_HEBB.get("w_ceiling", 50.0))
 KICKS = (0.8, 1.3)
 H0_PERTURBED = 0.0
 WINDOW_MS = 1000.0
@@ -287,6 +295,95 @@ def run_at10(keep_bundle: bool = False) -> dict[str, Any]:
             **run_phases(keep_bundle=keep_bundle)}
 
 
+def _area_mean_H(H_trace: Any, area: np.ndarray) -> np.ndarray:
+    """Reduce an H trace (steps x neurons) to per-area means (steps x areas).
+
+    A full trace is 20000 steps x 20000 neurons; the means are steps x 20.
+    Recording itself is untouched (record_stride/record_h_subset stay at
+    their defaults, so dynamics are identical); only what is kept is reduced.
+    """
+    H = np.asarray(H_trace, dtype=float)
+    return np.stack([H[:, area == a].mean(axis=1) for a in G.area_names()], axis=1)
+
+
+def _area_H_extremes(H_trace: Any, area: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Per-area H extremes over time (steps reduced away).
+
+    Per area: min and max over (steps x neurons in area), two arrays of
+    length n_areas. Small by construction (20 floats each); the full trace is
+    never stored. Used for H boundedness so a per-neuron excursion cannot
+    hide inside an area mean.
+    """
+    H = np.asarray(H_trace, dtype=float)
+    names = G.area_names()
+    lo = np.array([H[:, area == a].min() for a in names], dtype=float)
+    hi = np.array([H[:, area == a].max() for a in names], dtype=float)
+    return lo, hi
+
+
+def _assay_twin(arm: str, ref_H: Any, ref_off_H: Any) -> tuple[Any, str]:
+    """Twin selection for one assay arm: an engaged arm twins with the engaged
+    reference; a disabled arm twins with the disabled unperturbed reference
+    (same noise seed), so the twin differs only in initial state, never in
+    plasticity regime. Returns (twin_H, label)."""
+    if arm == "engaged":
+        return ref_H, "engaged_ref"
+    return ref_off_H, "disabled_ref"
+
+
+def h_space_report(H_ref: Any, H_arm: Any, *, H_bounds: Any,
+                   w_ceiling: "float | None" = None, w_final: Any = None,
+                   H_extremes: Any = None, twin: str = "engaged_ref") -> dict[str, Any]:
+    """H-space separation for one assay arm (AT-10-R5): stability twin plus H boundedness.
+
+    The twin is the reference run in the arm's own plasticity regime vs the
+    arm (``twin`` records which: ``"engaged_ref"`` or ``"disabled_ref"``),
+    both as per-area-mean H traces. ``boundedness_report`` takes (H_trace,
+    w_trace, H_bounds, w_ceiling); no W trace is recorded
+    (``record_weight_trace`` is off: a 10 s full W trace is ~5.5 GB), so W
+    enters as the final state only (``w_final``-only, flagged ``W_scope``),
+    never a fabricated trace. H boundedness is computed from per-area
+    extremes over time (``H_extremes``: per-area min/max, one row per area)
+    when supplied, so a per-neuron excursion cannot hide inside an area
+    mean; violations are then counted per area-extreme (flagged ``H_scope``).
+    A zero early twin distance is a vacuous assay: it is refused
+    (``REFUSED_DEGENERATE``), not scored. Returns a JSON-safe dict.
+    """
+    try:
+        stability: dict[str, Any] = dict(J.stability_report(H_ref, H_arm))
+    except ValueError as exc:
+        stability = {"verdict": "REFUSED_DEGENERATE", "reason": str(exc)}
+    if H_extremes is not None:
+        H_in = np.column_stack([np.asarray(H_extremes[0], dtype=float),
+                                np.asarray(H_extremes[1], dtype=float)])
+        h_scope = ("per-area extremes over time (min/max over steps x neurons "
+                   "in area, one row per area); violations counted per area-extreme")
+    else:
+        H_in = np.asarray(H_arm, dtype=float)
+        h_scope = "input trace as given (no extremes supplied)"
+    if w_final is None or w_ceiling is None:
+        H = H_in
+        lo, hi = float(H_bounds[0]), float(H_bounds[1])
+        h_bad = (H < lo) | (H > hi)
+        boundedness: dict[str, Any] = {
+            "within_bounds": bool(not h_bad.any()),
+            "H_violations": int(h_bad.sum()),
+            "H_min": float(H.min()),
+            "H_max": float(H.max()),
+            "H_bounds": [lo, hi],
+            "H_scope": h_scope,
+            "W_scope": "OMITTED (no w_final/w_ceiling)",
+        }
+    else:
+        boundedness = dict(J.boundedness_report(
+            H_in, np.asarray(w_final, dtype=float),
+            H_bounds=(float(H_bounds[0]), float(H_bounds[1])),
+            w_ceiling=float(w_ceiling)))
+        boundedness["H_scope"] = h_scope
+        boundedness["W_scope"] = "w_final-only (no W trace recorded)"
+    return {"twin": twin, "stability": stability, "boundedness": boundedness}
+
+
 def run_assay(model: Any = None, noise_seed: int = NOISE["seed"]) -> dict[str, Any]:
     t0 = time.perf_counter()
     model = model if model is not None else build_model()
@@ -294,7 +391,14 @@ def run_assay(model: Any = None, noise_seed: int = NOISE["seed"]) -> dict[str, A
     stim = _stimulus(area)
     w0 = _realized_weights(model)
     hp_off = J.hdp_network.disable_plasticity(dict(HP_HEBB), mask=None)
-    ref = _window_rates(_run(model, stim, HP_HEBB, noise_seed)[0])
+    ref_sp, ref_diag = _run(model, stim, HP_HEBB, noise_seed)
+    ref = _window_rates(ref_sp)
+    ref_H = _area_mean_H(ref_diag["H_trace"], area)
+    # Disabled twin: one extra unperturbed run with plasticity disabled (same
+    # noise seed), so a disabled arm's H twin differs only in initial state.
+    # A new run; every existing output below is untouched.
+    _, ref_off_diag = _run(model, stim, hp_off, noise_seed)
+    ref_off_H = _area_mean_H(ref_off_diag["H_trace"], area)
     perturbations = [(f"H0={H0_PERTURBED}", {"H0": np.full(len(area), H0_PERTURBED)})]
     perturbations += [(f"kick={k}", {"w0": k * w0}) for k in KICKS]
     arms: dict[str, Any] = {}
@@ -306,12 +410,19 @@ def run_assay(model: Any = None, noise_seed: int = NOISE["seed"]) -> dict[str, A
             r = _window_rates(sp)
             dev = np.abs(r - ref)
             w_init = np.asarray(init.get("w0", w0), dtype=np.float32)
+            arm_H = _area_mean_H(diag["H_trace"], area)
+            twin_H, twin = _assay_twin(arm, ref_H, ref_off_H)
             rec[arm] = {"window_rates_hz": np.round(r, 3).tolist(),
                         "late_dev_hz": float(dev[-LATE_WINDOWS:].mean()),
                         "first_dev_hz": float(dev[0]),
                         "w_mean_ratio": _w_drift(diag, w0),
                         "w_unchanged": bool(np.array_equal(
-                            np.asarray(diag["w_final"], dtype=np.float32), w_init))}
+                            np.asarray(diag["w_final"], dtype=np.float32), w_init)),
+                        "h_space": h_space_report(
+                            twin_H, arm_H, H_bounds=H_BOUNDS, w_ceiling=W_CEILING,
+                            w_final=diag["w_final"],
+                            H_extremes=_area_H_extremes(diag["H_trace"], area),
+                            twin=twin)}
         stays_off = rec["disabled"]["late_dev_hz"] >= MIN_DISABLED_DEV_HZ
         returns = rec["engaged"]["late_dev_hz"] <= RETURN_RATIO * rec["disabled"]["late_dev_hz"]
         tests.append({"perturbation": label, "disabled_stays_off": bool(stays_off),

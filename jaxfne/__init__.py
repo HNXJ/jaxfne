@@ -387,6 +387,12 @@ from .analysis.spectral import (
 from .geometry import make_ei_cloud_network
 from .stimulus import triangular_drive
 from .streaming import run_stdp_stream
+# Long-horizon H-space diagnostics (ADVANCED tier: root attrs, not __all__).
+# Pure-numpy module: no engine imports, so no cycle risk wherever placed.
+from ._long_diagnostics import (
+    boundedness_report,
+    stability_report,
+)
 
 from .public_surface import PUBLIC_EXPORTS
 

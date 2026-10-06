@@ -104,9 +104,12 @@ def test_public_symbol_count_contraction_from_baseline():
     +1 ensemble_edge_ownership CANONICAL for 0.5.4 cross-area plasticity scoping;
     +13 augment CANONICAL for AUG-3 controlled NeuronalTensor transforms
     (augment, clone_tensor, AugmentationSpec/Record, ProvenanceEntry, ScaleN,
-    GeometryTransform/PoseEdit/RangeEdit, ThetaC, ThetaX, W0, H0)."""
+    GeometryTransform/PoseEdit/RangeEdit, ThetaC, ThetaX, W0, H0);
+    +2 long-horizon H-space diagnostics ADVANCED for AT-10-R5
+    (boundedness_report, stability_report: root-reachable, namespace-mapped
+    to jaxfne._long_diagnostics, outside the 205-name contract)."""
     summary = public_surface_summary()
-    assert summary["counts"]["baseline_all"] == 281
+    assert summary["counts"]["baseline_all"] == 283
     assert summary["counts"]["public_exports"] == 205
     assert summary["counts"]["compatibility"] == 13
     assert summary["counts"]["experimental_internal"] == 13

@@ -418,6 +418,11 @@ _ADVANCED: Final[frozenset[str]] = frozenset(
         "runtime_config_diff",
         "tensor_summary",
         "triangular_drive",
+        # Long-horizon H-space diagnostics (R5 H-space assay): the boundedness /
+        # stability twin assay for scenario scripts, root-reachable but
+        # outside __all__ like the other engine utilities above.
+        "boundedness_report",
+        "stability_report",
     }
 )
 
@@ -481,6 +486,8 @@ ADVANCED_NAMESPACE: Final[dict[str, str]] = {
     "HDPRuleContext": "jaxfne.hdp_rule",
     "spectrolaminar_psd_jax": "jaxfne.analysis.spectral",
     "get_sharding_context": "jaxfne.sharding_utils",
+    "boundedness_report": "jaxfne._long_diagnostics",
+    "stability_report": "jaxfne._long_diagnostics",
     "SanityDeltaConfig": "jaxfne.sanity_delta",
     "SurrogateConfig": "jaxfne._runtime_config",
     "surrogate_config": "jaxfne._runtime_config",
