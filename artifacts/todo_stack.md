@@ -224,7 +224,12 @@ MANUSCRIPT (ends 0.5.5)
     pattern), consuming generated Atlas data only; columns structure →
     dynamics → state/plasticity → source → field → observation → computation.
 11. Claim ledger: each claim with its V(claim) and evidence path; package
-    capability claims apart from scientific-result claims.
+    capability claims apart from scientific-result claims. Scaffold:
+    `artifacts/programme/claim_ledger_055.md` (48 rows from
+    `atlas_coverage.json`: 26 capability, 18 result, 4 unset = the PLANNED
+    rows; every evidence path exists). Left for the human: confirm each
+    `kind`, fill wording strength, add manuscript claims that are not Atlas
+    requirements, and fill the 4 PLANNED rows' evidence as they land.
 12. Methods from manifests: units, calibration level, tolerances, seeds and
     versions quoted from generated artifacts.
 13. Citations primary-verified (H10) before inclusion.
