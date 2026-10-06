@@ -273,6 +273,20 @@ ATLAS
    `chunk_index` test for `run_continuation_strided` added (`082fcc47`). Open:
    RSS grows +80-98 MB over 4 chunks in all 3 runs (leak vs XLA cache
    unresolved; check before any run longer than 100 s).
+   RESULT FILES 2026-10-06 (`scripts/emit_atlas_results_055.py`; Hamm chose a
+   result JSON per SUPPORTED row; rows stay SUPPORTED until reviewed and
+   accepted): `at01_055.json` (AT-01-R1/R2/R3/R7), `at_reduction_055.json`
+   (AT-00-R4, AT-01-R6), `at05_055.json`, `at07_055.json`. Findings that block
+   VALIDATED: (a) AT-01 and REDUCTION record 3 of 4 predeclared HH->reduced
+   verdicts FAILED (v_peak diff 25.9 mV vs 20, v_rest 10.8 vs 10, first-spike
+   10 ms vs 2; rate passes), so R6 "which quantities survive" = rate yes,
+   amplitude and timing no; recorded, never tuned. (b) AT-05-R2 is NOT met:
+   every arm has `phi_n_neq_n_phi_1=false` (superposition identity), the
+   mixed-phase regime was not reached at toy size; needs a partially coherent
+   arm at scale. (c) AT-07 states "no stability assay, no adaptation
+   phenotype"; AT-07-R3 would have to cite the N20 twin assay
+   (`at10_r5_twin_055.json`) or get a stability arm of its own: Hamm's call.
+   (d) result `_meta.jaxfne_version` reads 0.5.0 (version string not yet bumped).
    Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
    30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
    VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),

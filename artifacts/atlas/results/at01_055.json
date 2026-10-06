@@ -1,0 +1,76 @@
+{
+ "scenario": "AT-01",
+ "status": "OK",
+ "wall_s": 7.135859099973459,
+ "hh_reference": {
+  "status": "OK",
+  "level": "REDUCED_PHYSICAL",
+  "level_note": "mV/ms via Jaxley bridge; not a JaxFNE calibration",
+  "n_steps": 102,
+  "rate_hz": 20.0,
+  "first_spike_ms": 10.5,
+  "n_spikes": 1,
+  "v_rest_mv": -63.59145545959473,
+  "v_peak_mv": 39.58453369140625,
+  "v_min_mv": -75.11298370361328,
+  "wall_s": 4.284307199995965
+ },
+ "reduced": {
+  "status": "OK",
+  "level": "RELATIVE_PROXY",
+  "level_note": "reduced emitter in native proxy units; proxy != calibrated",
+  "n_steps": 100,
+  "rate_hz": 20.0,
+  "first_spike_ms": 0.5,
+  "n_spikes": 1,
+  "v_rest_mv": -74.36629486083984,
+  "v_peak_mv": 13.67784309387207,
+  "v_min_mv": -75.99465942382812,
+  "wall_s": 2.8510091999778524,
+  "mem_peak_b": 2607900.0
+ },
+ "verdicts": {
+  "rate": {
+   "diff_hz": 0.0,
+   "tolerance_hz": 10.0,
+   "pass": true
+  },
+  "v_peak": {
+   "diff_mv": 25.90669059753418,
+   "tolerance_mv": 20.0,
+   "pass": false
+  },
+  "v_rest": {
+   "diff_mv": 10.774839401245117,
+   "tolerance_mv": 10.0,
+   "pass": false
+  },
+  "spike_time": {
+   "diff_ms": 10.0,
+   "tolerance_ms": 2.0,
+   "pass": false
+  }
+ },
+ "verdict_tolerances_predeclared": {
+  "spike_time_ms": 2.0,
+  "rate_hz": 10.0,
+  "v_peak_mv": 20.0,
+  "v_rest_mv": 10.0
+ },
+ "b_beyond_proxy": {
+  "state": "REFUSED",
+  "level": "RELATIVE_PROXY",
+  "reason": "AT-01-R4 OUT_OF_SCOPE for 0.5.2: no independent evidence for Phi_B beyond the current MEG proxy; human authorization required"
+ },
+ "calibrated": {
+  "state": "REFUSED",
+  "level": "RELATIVE_PROXY",
+  "reason": "AT-01-R5 OUT_OF_SCOPE for 0.5.2: no explicit calibration transform (units, conductivity, distance); quantities stay RELATIVE_PROXY, never relabeled CALIBRATED"
+ },
+ "boundary": "AT-01-R7: reduced emitters are not a claim to solve full electrodiffusion; HH arm is the Jaxley reference, reduced arm is RELATIVE_PROXY",
+ "_meta": {
+  "runner": "at01_at06_052:run_at01",
+  "jaxfne_version": "0.5.0",
+  "wall_s": 7.1
+ }
+}

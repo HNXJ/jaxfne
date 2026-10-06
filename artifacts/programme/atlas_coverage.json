@@ -59,7 +59,7 @@
    "capability": "reduction/scale matrix with predeclared tolerances",
    "release": "0.5.2-0.5.5",
    "candidate": false,
-   "evidence": "tests/test_atlas_reduction_052.py",
+   "evidence": "artifacts/atlas/results/at_reduction_055.json",
    "state": "SUPPORTED"
   },
   {
@@ -109,7 +109,7 @@
    "capability": "HH reference via optional Jaxley bridge; REFUSED if absent",
    "release": "0.5.2",
    "candidate": false,
-   "evidence": "tests/test_atlas_at01_052.py",
+   "evidence": "artifacts/atlas/results/at01_055.json",
    "state": "SUPPORTED"
   },
   {
@@ -119,7 +119,7 @@
    "capability": "HH current export -> source Q -> field Phi",
    "release": "0.5.2",
    "candidate": false,
-   "evidence": "tests/test_atlas_at01_052.py",
+   "evidence": "artifacts/atlas/results/at01_055.json",
    "state": "SUPPORTED"
   },
   {
@@ -129,7 +129,7 @@
    "capability": "source/field contract with epistemic level",
    "release": "0.5.2",
    "candidate": false,
-   "evidence": "tests/test_atlas_at01_052.py",
+   "evidence": "artifacts/atlas/results/at01_055.json",
    "state": "SUPPORTED"
   },
   {
@@ -159,7 +159,7 @@
    "capability": "reduction row with predeclared tolerances",
    "release": "0.5.2",
    "candidate": false,
-   "evidence": "tests/test_atlas_reduction_052.py",
+   "evidence": "artifacts/atlas/results/at_reduction_055.json",
    "state": "SUPPORTED"
   },
   {
@@ -169,7 +169,7 @@
    "capability": "boundary stated in outputs and manuscript",
    "release": "0.5.2",
    "candidate": false,
-   "evidence": "artifacts/atlas/at01_at06_052.py",
+   "evidence": "artifacts/atlas/results/at01_055.json",
    "state": "SUPPORTED"
   },
   {

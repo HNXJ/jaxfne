@@ -1,0 +1,53 @@
+{
+ "scenario": "REDUCTION",
+ "status": "OK",
+ "wall_s": 0.7011040999786928,
+ "level": "RELATIVE_PROXY",
+ "level_note": "population rung is RELATIVE_PROXY; HH rung is Jaxley mV/ms",
+ "hh": {
+  "status": "OK",
+  "level": "REDUCED_PHYSICAL"
+ },
+ "single": {
+  "rate_hz": 20.0,
+  "v_peak_mv": 13.67784309387207,
+  "mean_abs_source_per_neuron": 4.223667013645172
+ },
+ "population": {
+  "rate_hz_per_neuron": 13.75,
+  "mean_abs_source_per_neuron": 3.6638372518122195
+ },
+ "verdicts": {
+  "hh_to_reduced_rate": {
+   "diff_hz": 0.0,
+   "tolerance_hz": 10.0,
+   "pass": true
+  },
+  "hh_to_reduced_v_peak": {
+   "diff_mv": 25.90669059753418,
+   "tolerance_mv": 20.0,
+   "pass": false
+  },
+  "reduced_to_population_rate": {
+   "diff_hz": 6.25,
+   "tolerance_hz": 10.0,
+   "pass": true,
+   "note": "different durations/realizations; numbers only"
+  },
+  "reduced_to_population_source": {
+   "relative_diff": 0.13254590383767015,
+   "tolerance_frac": 0.75,
+   "pass": true
+  }
+ },
+ "tolerances_predeclared": {
+  "rate_hz": 10.0,
+  "v_peak_mv": 20.0,
+  "field_frac": 0.75
+ },
+ "_meta": {
+  "runner": "at01_at06_052:run_reduction",
+  "jaxfne_version": "0.5.0",
+  "wall_s": 0.7
+ }
+}

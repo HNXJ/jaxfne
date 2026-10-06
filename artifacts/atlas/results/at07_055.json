@@ -1,0 +1,542 @@
+{
+ "scenario": "AT-07",
+ "status": "OK",
+ "wall_s": 5.886932900000829,
+ "level": "RELATIVE_PROXY",
+ "level_note": "all fields RELATIVE_PROXY; proxy != calibrated",
+ "realized_network": {
+  "builder": "suite2_net1",
+  "build": {
+   "seed": 1,
+   "n": 8
+  },
+  "run": {
+   "duration_ms": 1000.0,
+   "dt_ms": 0.5,
+   "seed": 4
+  },
+  "n_edges": 56,
+  "identical_realization": true,
+  "spec_digest": "977bf6b6825c6c4954154e5feeb66126a4a7454f886a0cd89269c7246c28fb91"
+ },
+ "arms": {
+  "hebbian": {
+   "arm": "hebbian",
+   "level": "RELATIVE_PROXY",
+   "level_note": "fields RELATIVE_PROXY; proxy != calibrated",
+   "spike_count": 77,
+   "rate_hz_per_neuron": 9.625,
+   "per_neuron_counts": [
+    7.0,
+    7.0,
+    7.0,
+    7.0,
+    7.0,
+    7.0,
+    0.0,
+    35.0
+   ],
+   "H_final_mean": 0.9987218528985977,
+   "H_final": [
+    0.9987171292304993,
+    0.9990636706352234,
+    0.9985458254814148,
+    0.9991757869720459,
+    0.9992310404777527,
+    0.9989439845085144,
+    0.9943671822547913,
+    1.00173020362854
+   ],
+   "w_final_max_abs_change": 0.019051335752010345,
+   "Q_mean_abs_per_neuron": 3.609844717606902,
+   "Phi_mean_abs": 4.040305968241766,
+   "kappa": 0.015033853544480344,
+   "H_trace_shape": [
+    2000,
+    8
+   ],
+   "w_trace_shape": [
+    2000,
+    56
+   ],
+   "wall_s": 2.845974500000011,
+   "mem_peak_b": 1915583.0
+  },
+  "fixed": {
+   "arm": "fixed",
+   "level": "RELATIVE_PROXY",
+   "level_note": "fields RELATIVE_PROXY; proxy != calibrated",
+   "spike_count": 78,
+   "rate_hz_per_neuron": 9.75,
+   "per_neuron_counts": [
+    7.0,
+    7.0,
+    7.0,
+    7.0,
+    8.0,
+    7.0,
+    0.0,
+    35.0
+   ],
+   "H_final_mean": 0.9987026229500771,
+   "H_final": [
+    0.9987834095954895,
+    0.9991194605827332,
+    0.9986166954040527,
+    0.9992269277572632,
+    0.9992681741714478,
+    0.9990008473396301,
+    0.9935908317565918,
+    1.0020146369934082
+   ],
+   "w_final_max_abs_change": 0.0,
+   "Q_mean_abs_per_neuron": 3.6118797318786378,
+   "Phi_mean_abs": 4.043294160721824,
+   "kappa": 0.030601188366497094,
+   "H_trace_shape": [
+    2000,
+    8
+   ],
+   "w_trace_shape": [
+    2000,
+    56
+   ],
+   "wall_s": 0.4285184000036679,
+   "mem_peak_b": 536764.0
+  },
+  "noisy": {
+   "arm": "noisy",
+   "level": "RELATIVE_PROXY",
+   "level_note": "fields RELATIVE_PROXY; proxy != calibrated",
+   "spike_count": 81,
+   "rate_hz_per_neuron": 10.125,
+   "per_neuron_counts": [
+    7.0,
+    8.0,
+    8.0,
+    8.0,
+    7.0,
+    8.0,
+    0.0,
+    35.0
+   ],
+   "H_final_mean": 0.9994207993149757,
+   "H_final": [
+    0.9987348318099976,
+    0.9990561604499817,
+    0.9985367655754089,
+    0.9991884231567383,
+    0.9992589354515076,
+    0.9989583492279053,
+    0.9976001977920532,
+    1.0040327310562134
+   ],
+   "w_final_max_abs_change": 0.019413210451602936,
+   "Q_mean_abs_per_neuron": 3.611474612310529,
+   "Phi_mean_abs": 4.041906943324953,
+   "kappa": 0.01010575736156855,
+   "H_trace_shape": [
+    2000,
+    8
+   ],
+   "w_trace_shape": [
+    2000,
+    56
+   ],
+   "wall_s": 0.4471385999931954,
+   "mem_peak_b": 551089.0
+  },
+  "clamp": {
+   "arm": "clamp",
+   "level": "RELATIVE_PROXY",
+   "level_note": "fields RELATIVE_PROXY; proxy != calibrated",
+   "spike_count": 83,
+   "rate_hz_per_neuron": 10.375,
+   "per_neuron_counts": [
+    8.0,
+    8.0,
+    8.0,
+    8.0,
+    8.0,
+    8.0,
+    0.0,
+    35.0
+   ],
+   "H_final_mean": 1.002511441707611,
+   "H_final": [
+    1.005827784538269,
+    1.0058284997940063,
+    1.00582754611969,
+    1.0058280229568481,
+    0.9992600679397583,
+    0.9989707469940186,
+    0.9943181276321411,
+    1.0042307376861572
+   ],
+   "w_final_max_abs_change": 0.45471327006816864,
+   "Q_mean_abs_per_neuron": 3.6665167556256058,
+   "Phi_mean_abs": 4.117665044616908,
+   "kappa": 0.05713178932579085,
+   "H_trace_shape": [
+    2000,
+    8
+   ],
+   "w_trace_shape": [
+    2000,
+    56
+   ],
+   "wall_s": 0.46892379998462275,
+   "mem_peak_b": 578133.0
+  }
+ },
+ "declared_tests": [
+  {
+   "name": "fixed_w_equals_w0",
+   "signal": "w_final",
+   "expect": "equal",
+   "tolerance": null,
+   "verdict": "PASS",
+   "gap_max_abs": null
+  },
+  {
+   "name": "hebbian_differs_from_fixed",
+   "signal": "w_final",
+   "expect": "different",
+   "tolerance": null,
+   "verdict": "PASS",
+   "gap_max_abs": 0.019051335752010345
+  },
+  {
+   "name": "noisy_differs_from_hebbian",
+   "signal": "w_final",
+   "expect": "different",
+   "tolerance": null,
+   "verdict": "PASS",
+   "gap_max_abs": 0.00036187469959259033
+  },
+  {
+   "name": "noisy_reproduces_same_seed",
+   "signal": "w_final",
+   "expect": "equal",
+   "tolerance": null,
+   "verdict": "PASS",
+   "gap_max_abs": null
+  },
+  {
+   "name": "clamp_subset_pinned_exact",
+   "signal": "w_final",
+   "expect": "equal",
+   "tolerance": null,
+   "verdict": "PASS",
+   "gap_max_abs": null
+  },
+  {
+   "name": "clamp_unclamped_moves",
+   "signal": "w_final",
+   "expect": "different",
+   "tolerance": null,
+   "verdict": "PASS",
+   "gap_max_abs": 0.021728888154029846
+  }
+ ],
+ "interventions": [
+  {
+   "schema": "jaxfne.atlas.intervention_shape.v1",
+   "name": "at07-fixed_w_equals_w0",
+   "network": {
+    "builder": "suite2_net1",
+    "build": {
+     "seed": 1,
+     "n": 8
+    },
+    "run": {
+     "duration_ms": 1000.0,
+     "dt_ms": 0.5,
+     "seed": 4
+    },
+    "hdp_params": {
+     "K_HDP": 0.05,
+     "K_ctrl": 0.15,
+     "K_w_ctrl": 0.002,
+     "alpha": 0.05,
+     "tau_0_ms": 5.0,
+     "noise_scale": 0.0
+    },
+    "spec_digest": "977bf6b6825c6c4954154e5feeb66126a4a7454f886a0cd89269c7246c28fb91"
+   },
+   "control": {
+    "mechanism": "plasticity",
+    "mode": "disable-or-clamp"
+   },
+   "observation": {
+    "signal": "w_final",
+    "expect": "equal"
+   },
+   "verdict": "PASS"
+  },
+  {
+   "schema": "jaxfne.atlas.intervention_shape.v1",
+   "name": "at07-hebbian_differs_from_fixed",
+   "network": {
+    "builder": "suite2_net1",
+    "build": {
+     "seed": 1,
+     "n": 8
+    },
+    "run": {
+     "duration_ms": 1000.0,
+     "dt_ms": 0.5,
+     "seed": 4
+    },
+    "hdp_params": {
+     "K_HDP": 0.05,
+     "K_ctrl": 0.15,
+     "K_w_ctrl": 0.002,
+     "alpha": 0.05,
+     "tau_0_ms": 5.0,
+     "noise_scale": 0.0
+    },
+    "spec_digest": "977bf6b6825c6c4954154e5feeb66126a4a7454f886a0cd89269c7246c28fb91"
+   },
+   "control": {
+    "mechanism": "plasticity",
+    "mode": "disable-or-clamp"
+   },
+   "observation": {
+    "signal": "w_final",
+    "expect": "different"
+   },
+   "verdict": "PASS"
+  },
+  {
+   "schema": "jaxfne.atlas.intervention_shape.v1",
+   "name": "at07-noisy_differs_from_hebbian",
+   "network": {
+    "builder": "suite2_net1",
+    "build": {
+     "seed": 1,
+     "n": 8
+    },
+    "run": {
+     "duration_ms": 1000.0,
+     "dt_ms": 0.5,
+     "seed": 4
+    },
+    "hdp_params": {
+     "K_HDP": 0.05,
+     "K_ctrl": 0.15,
+     "K_w_ctrl": 0.002,
+     "alpha": 0.05,
+     "tau_0_ms": 5.0,
+     "noise_scale": 0.0
+    },
+    "spec_digest": "977bf6b6825c6c4954154e5feeb66126a4a7454f886a0cd89269c7246c28fb91"
+   },
+   "control": {
+    "mechanism": "plasticity",
+    "mode": "disable-or-clamp"
+   },
+   "observation": {
+    "signal": "w_final",
+    "expect": "different"
+   },
+   "verdict": "PASS"
+  },
+  {
+   "schema": "jaxfne.atlas.intervention_shape.v1",
+   "name": "at07-noisy_reproduces_same_seed",
+   "network": {
+    "builder": "suite2_net1",
+    "build": {
+     "seed": 1,
+     "n": 8
+    },
+    "run": {
+     "duration_ms": 1000.0,
+     "dt_ms": 0.5,
+     "seed": 4
+    },
+    "hdp_params": {
+     "K_HDP": 0.05,
+     "K_ctrl": 0.15,
+     "K_w_ctrl": 0.002,
+     "alpha": 0.05,
+     "tau_0_ms": 5.0,
+     "noise_scale": 0.0
+    },
+    "spec_digest": "977bf6b6825c6c4954154e5feeb66126a4a7454f886a0cd89269c7246c28fb91"
+   },
+   "control": {
+    "mechanism": "plasticity",
+    "mode": "disable-or-clamp"
+   },
+   "observation": {
+    "signal": "w_final",
+    "expect": "equal"
+   },
+   "verdict": "PASS"
+  },
+  {
+   "schema": "jaxfne.atlas.intervention_shape.v1",
+   "name": "at07-clamp_subset_pinned_exact",
+   "network": {
+    "builder": "suite2_net1",
+    "build": {
+     "seed": 1,
+     "n": 8
+    },
+    "run": {
+     "duration_ms": 1000.0,
+     "dt_ms": 0.5,
+     "seed": 4
+    },
+    "hdp_params": {
+     "K_HDP": 0.05,
+     "K_ctrl": 0.15,
+     "K_w_ctrl": 0.002,
+     "alpha": 0.05,
+     "tau_0_ms": 5.0,
+     "noise_scale": 0.0
+    },
+    "spec_digest": "977bf6b6825c6c4954154e5feeb66126a4a7454f886a0cd89269c7246c28fb91"
+   },
+   "control": {
+    "mechanism": "plasticity",
+    "mode": "disable-or-clamp"
+   },
+   "observation": {
+    "signal": "w_final",
+    "expect": "equal"
+   },
+   "verdict": "PASS"
+  },
+  {
+   "schema": "jaxfne.atlas.intervention_shape.v1",
+   "name": "at07-clamp_unclamped_moves",
+   "network": {
+    "builder": "suite2_net1",
+    "build": {
+     "seed": 1,
+     "n": 8
+    },
+    "run": {
+     "duration_ms": 1000.0,
+     "dt_ms": 0.5,
+     "seed": 4
+    },
+    "hdp_params": {
+     "K_HDP": 0.05,
+     "K_ctrl": 0.15,
+     "K_w_ctrl": 0.002,
+     "alpha": 0.05,
+     "tau_0_ms": 5.0,
+     "noise_scale": 0.0
+    },
+    "spec_digest": "977bf6b6825c6c4954154e5feeb66126a4a7454f886a0cd89269c7246c28fb91"
+   },
+   "control": {
+    "mechanism": "plasticity",
+    "mode": "disable-or-clamp"
+   },
+   "observation": {
+    "signal": "w_final",
+    "expect": "different"
+   },
+   "verdict": "PASS"
+  }
+ ],
+ "trajectories": {
+  "H_trace_shape": [
+   2000,
+   8
+  ],
+  "w_trace_shape": [
+   2000,
+   56
+  ],
+  "H_final": [
+   0.9987171292304993,
+   0.9990636706352234,
+   0.9985458254814148,
+   0.9991757869720459,
+   0.9992310404777527,
+   0.9989439845085144,
+   0.9943671822547913,
+   1.00173020362854
+  ],
+  "budget": {
+   "record_stride": 5,
+   "record_h_subset": [
+    0,
+    1,
+    2,
+    3
+   ],
+   "record_w_subset": [
+    0,
+    1,
+    2
+   ],
+   "H_budget_shape": [
+    400,
+    4
+   ],
+   "w_budget_shape": [
+    400,
+    3
+   ],
+   "kept_frames_equal_full": true,
+   "note": "decimation is a post-scan slice; dynamics untouched (V/spikes/sources never strided); full recording stays default"
+  }
+ },
+ "chain": {
+  "hebbian": {
+   "dW_max_abs": 0.019051335752010345,
+   "dX_spike_count": 77,
+   "dQ_mean_abs": 3.609844717606902,
+   "dPhi_mean_abs": 4.040305968241766,
+   "H_final_mean": 0.9987218528985977
+  },
+  "fixed": {
+   "dW_max_abs": 0.0,
+   "dX_spike_count": 78,
+   "dQ_mean_abs": 3.6118797318786378,
+   "dPhi_mean_abs": 4.043294160721824,
+   "H_final_mean": 0.9987026229500771
+  },
+  "noisy": {
+   "dW_max_abs": 0.019413210451602936,
+   "dX_spike_count": 81,
+   "dQ_mean_abs": 3.611474612310529,
+   "dPhi_mean_abs": 4.041906943324953,
+   "H_final_mean": 0.9994207993149757
+  },
+  "clamp": {
+   "dW_max_abs": 0.45471327006816864,
+   "dX_spike_count": 83,
+   "dQ_mean_abs": 3.6665167556256058,
+   "dPhi_mean_abs": 4.117665044616908,
+   "H_final_mean": 1.002511441707611
+  }
+ },
+ "boundedness": {
+  "finite": true,
+  "hebbian_max_abs_dw": 0.019051335752010345,
+  "note": "bounded trajectories only (finite values); bounded != returning != homeostatically stabilized -- no stability assay here, no adaptation phenotype claimed"
+ },
+ "b_as_input": {
+  "state": "REFUSED",
+  "level": "RELATIVE_PROXY",
+  "reason": "AT-07-R4 OUT_OF_SCOPE (human decision 2026-09-25): B as an input to neural/plastic dynamics (X,H,B,W)->Q has no engine capability and no independent evidence; B stays observation-only (Phi_B)"
+ },
+ "phi_b": {
+  "state": "REFUSED",
+  "level": "RELATIVE_PROXY",
+  "reason": "no calibrated Phi_B beyond proxy (candidate AT-07-R4)"
+ },
+ "_meta": {
+  "runner": "at07_at04_053:run_at07",
+  "jaxfne_version": "0.5.0",
+  "wall_s": 5.9
+ }
+}

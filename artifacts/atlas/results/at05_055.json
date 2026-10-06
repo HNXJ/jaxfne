@@ -1,0 +1,97 @@
+{
+ "scenario": "AT-05",
+ "status": "OK",
+ "wall_s": 9.622203800012358,
+ "level": "RELATIVE_PROXY",
+ "level_note": "A_Phi in native proxy units at relative contact fractions; proxy != calibrated",
+ "arms": {
+  "n8_s11": {
+   "n": 8,
+   "seed": 11,
+   "rho_sync_executed": 0.02959319167629964,
+   "a_phi_mid_contact": 4.169737539291382,
+   "coherent_mean_abs": 4.169737539291382,
+   "n_times_single_mean_abs": 4.1697375265494205,
+   "coherent_over_n_single": 1.0000000030558185,
+   "phi_n_neq_n_phi_1": false,
+   "superposition_identity": true,
+   "wall_s": 3.6048465999774635,
+   "n_spikes": 11,
+   "v_mean_mv": -67.15612659692765,
+   "v_peak_mv": 16.165206909179688,
+   "Q_mean_abs_per_neuron": 3.6604689233750105,
+   "mem_peak_b": 3088017.0
+  },
+  "n8_s7": {
+   "n": 8,
+   "seed": 7,
+   "rho_sync_executed": 0.13727445513645867,
+   "a_phi_mid_contact": 5.527827429771423,
+   "coherent_mean_abs": 5.527827429771423,
+   "n_times_single_mean_abs": 5.527827382965558,
+   "coherent_over_n_single": 1.0000000084673166,
+   "phi_n_neq_n_phi_1": false,
+   "superposition_identity": true,
+   "wall_s": 0.16660589998355135,
+   "n_spikes": 11,
+   "v_mean_mv": -67.3178274834156,
+   "v_peak_mv": 25.613527297973633,
+   "Q_mean_abs_per_neuron": 3.6638372518122195,
+   "mem_peak_b": 261958.0
+  },
+  "n4_s7": {
+   "n": 4,
+   "seed": 7,
+   "rho_sync_executed": 0.3299832495812474,
+   "a_phi_mid_contact": 0.2890939580649137,
+   "coherent_mean_abs": 0.2890939580649137,
+   "n_times_single_mean_abs": 0.2890939567906529,
+   "coherent_over_n_single": 1.000000004407774,
+   "phi_n_neq_n_phi_1": false,
+   "superposition_identity": true,
+   "wall_s": 3.0294502999749966,
+   "n_spikes": 3,
+   "v_mean_mv": -72.92526607751846,
+   "v_peak_mv": 26.25447654724121,
+   "Q_mean_abs_per_neuron": 3.577370909303427,
+   "mem_peak_b": 2322483.0
+  },
+  "n2_s7": {
+   "n": 2,
+   "seed": 7,
+   "rho_sync_executed": 1.000000000000019,
+   "a_phi_mid_contact": 0.10666656885296107,
+   "coherent_mean_abs": 0.10666656885296107,
+   "n_times_single_mean_abs": 0.1066665686527689,
+   "coherent_over_n_single": 1.0000000018768034,
+   "phi_n_neq_n_phi_1": false,
+   "superposition_identity": true,
+   "wall_s": 2.8177783000282943,
+   "n_spikes": 2,
+   "v_mean_mv": -68.6537344121933,
+   "v_peak_mv": 13.67784309387207,
+   "Q_mean_abs_per_neuron": 4.12925496160984,
+   "mem_peak_b": 2178935.0
+  }
+ },
+ "arms_ordered_by_executed_rho": [
+  "n8_s11",
+  "n8_s7",
+  "n4_s7",
+  "n2_s7"
+ ],
+ "scaling": {
+  "a_phi_by_n_same_seed": {
+   "2": 0.10666656885296107,
+   "4": 0.2890939580649137,
+   "8": 5.527827429771423
+  },
+  "note": "same realization seed, N varies; numbers only, no law claimed"
+ },
+ "emergence_note": "rho_sync is the executed kappa per arm; the Phi_N != N Phi_1 check runs per arm with a 1e-4 margin and records equality where the executed regime is fully coherent (mixed-phase inequality regime not reached at toy size; owned by the 0.5.5 scale matrix)",
+ "_meta": {
+  "runner": "at01_at06_052:run_at05",
+  "jaxfne_version": "0.5.0",
+  "wall_s": 9.6
+ }
+}
