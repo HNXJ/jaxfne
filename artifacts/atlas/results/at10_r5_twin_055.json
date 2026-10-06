@@ -1,0 +1,100 @@
+{
+ "noise_seed": 11,
+ "H0": 0.5,
+ "pairs": {
+  "restoring": {
+   "hp": {
+    "K_HDP": 0.005,
+    "K_ctrl": 0.15,
+    "K_w_ctrl": 0.05,
+    "alpha": 0.05,
+    "tau_0_ms": 5.0,
+    "noise_scale": 0.0
+   },
+   "twin": "engaged_ref",
+   "sweep": {
+    "200": {
+     "verdict": "RETURNING",
+     "contraction_ratio": 0.08568641617166567,
+     "d_early": 0.4984519839286804,
+     "d_late": 0.042710564136505313
+    },
+    "1000": {
+     "verdict": "RETURNING",
+     "contraction_ratio": 0.08568641617166567,
+     "d_early": 0.4984519839286804,
+     "d_late": 0.042710564136505313
+    },
+    "2000": {
+     "verdict": "RETURNING",
+     "contraction_ratio": 0.08568641617166567,
+     "d_early": 0.4984519839286804,
+     "d_late": 0.042710564136505313
+    }
+   },
+   "clip_reached": false,
+   "H_min_obs": 0.5000600218772888,
+   "H_max_obs": 2.0899808406829834,
+   "boundedness": {
+    "within_bounds": true,
+    "H_violations": 0,
+    "H_min": 0.5000600218772888,
+    "H_max": 2.0899808406829834,
+    "H_bounds": [
+     0.1,
+     10.0
+    ],
+    "H_scope": "per-area extremes over time (min/max over steps x neurons in area, one row per area); violations counted per area-extreme",
+    "clip_reached": false
+   }
+  },
+  "no_restoring": {
+   "hp": {
+    "K_HDP": 0.005,
+    "K_ctrl": 0.0,
+    "K_w_ctrl": 0.05,
+    "alpha": 0.05,
+    "tau_0_ms": 5.0,
+    "noise_scale": 0.0
+   },
+   "twin": "noctrl_engaged_ref",
+   "sweep": {
+    "200": {
+     "verdict": "PERSISTING",
+     "contraction_ratio": 0.8985047994947566,
+     "d_early": 0.5000001227855683,
+     "d_late": 0.4492525100708007
+    },
+    "1000": {
+     "verdict": "PERSISTING",
+     "contraction_ratio": 0.8985040133073657,
+     "d_early": 0.5000005602836608,
+     "d_late": 0.4492525100708007
+    },
+    "2000": {
+     "verdict": "PERSISTING",
+     "contraction_ratio": 0.8800841790017487,
+     "d_early": 0.510465385913849,
+     "d_late": 0.4492525100708007
+    }
+   },
+   "clip_reached": true,
+   "H_min_obs": 0.4648761749267578,
+   "H_max_obs": 10.0,
+   "boundedness": {
+    "within_bounds": true,
+    "H_violations": 0,
+    "H_min": 0.4648761749267578,
+    "H_max": 10.0,
+    "H_bounds": [
+     0.1,
+     10.0
+    ],
+    "H_scope": "per-area extremes over time (min/max over steps x neurons in area, one row per area); violations counted per area-extreme",
+    "clip_reached": true
+   }
+  }
+ },
+ "wall_s": 56.98853179998696,
+ "_note": "AT-10-R5 valid-twin assay, loaded machine, 2026-10-06"
+}

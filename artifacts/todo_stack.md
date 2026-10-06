@@ -232,6 +232,17 @@ ATLAS
    K_ctrl = 0 arm exists, so the A-vs-B acceptance test of the proposal was
    not executed. (5) the kick-arm ratios may depend on `early_end`: recompute
    with `early_end = 2000`. Row stays SUPPORTED. Caveat: 1 noise seed.
+   FOLLOW-UP RESULT (`artifacts/atlas/results/at10_r5_twin_055.json`,
+   `run_r5_twin_assay`, 57 s loaded): valid H twins (interior H0 = 0.5,
+   same regime, same seed). Restoring (K_ctrl 0.15): RETURNING, ratio 0.086,
+   H in [0.50, 2.09], clip not reached (genuinely interior, bounded and
+   returning). No restoring (K_ctrl 0): PERSISTING, ratio 0.90 (0.88 at
+   early_end 2000: window-robust), but clip_reached = True, H_max_obs = 10.0:
+   its boundedness is the hard clip, so the contrast is "returning" vs
+   "non-returning, held only by the clip". Addresses review items 1, 3, 5;
+   item 2 is now flagged per pair rather than hidden; item 4 (approved
+   0.5.3-fixture values) is replaced by the K_ctrl contrast on N20's own
+   parameters, which needs the human's acceptance. Not yet re-reviewed.
    Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
    30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
    VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),
