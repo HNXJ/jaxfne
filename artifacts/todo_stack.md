@@ -171,11 +171,28 @@ ATLAS
 7. Reduction/scale matrix: for each transition M_i → M_(i+1) (1N → 2N →
    population → 2A → 20A), which observations survive within the
    predeclared tolerance and which do not; failures stay in the matrix.
-   Existing row: `at01_at06_052.run_reduction` (HH → reduced → population).
+   Existing row: `at01_at06_052.run_reduction` (HH → reduced → population;
+   covered by `tests/test_atlas_reduction_052.py`). Missing rows: population
+   → 2A → 20A (AT-10 / `AT-10-N20`); predeclare each tolerance before the
+   run, record failures as failures, feed E_reduction to item 8 and to
+   coverage rows in item 9.
 8. Performance/reduction map: T_compute and M_compute per AT beside
    E_reduction. `artifacts/perf/matrix_051.json` ran the
    `benchmark_050_baseline` models at the default drives; their declared
    drives run since P-018, so measure them anew here.
+   Run state: spec `artifacts/perf/matrix_055_spec.json` (frozen before the
+   result), runner `scripts/benchmark_055_matrix.py` (drive threading per
+   cell), result `artifacts/perf/matrix_055.json` (17 cells; both still
+   untracked). Run on a quiet machine (timing). Accept when: every
+   null-drive cell's `output_checksum` equals `matrix_051.json` (only
+   `mech_hdp` may differ: E_semantic = 0), each cell records its drive
+   provenance, and `T_test` is measured. Open on the 2026-10-06 file:
+   `chunk_ref` differs from 051 (174 -> 173 spikes) and is not a declared
+   drive change: explain or repair before sealing; `at10_20area` is
+   UNSUPPORTED here but MEASURED in 051 (its checksum compare is vacuous);
+   the file has no `T_test` and no per-cell drive provenance, so it may
+   predate the drive threading: confirm with the worker. Items 9-14 take the
+   T_compute/M_compute deltas from this file.
 
 MANUSCRIPT (ends 0.5.5)
 9. Atlas coverage matrix: every section, figure, simulation and claim in the
@@ -198,7 +215,11 @@ ACCEPTANCE (0.5.5 seal = end of programme)
 - Existing canonical configurations bit-identical to the frozen baseline,
   except outputs changed by authorized repairs (P-014: suite2 presets,
   experiment_a, protocol_e now run their declared drives), each listed in
-  the seal receipt. Run the release-tier baseline check before the seal.
+  the seal receipt. Run the release-tier baseline check before the seal
+  (`python scripts/run_test_gate.py release`, then `rc`; receipt template
+  `artifacts/release/v0_5_0_release_receipt.json`; authorities
+  `artifacts/release/current_release_authorities.json`). Tag, main merge and
+  release are separate human acts.
 - AT-01…AT-10 (and AT-10-N20) regenerate from manifests; Atlas and figures
   reproduce.
 - Coverage matrix 100% (item 9).
