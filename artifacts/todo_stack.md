@@ -314,6 +314,52 @@ ACCEPTANCE (0.5.5 seal = end of programme)
 - Every manuscript claim traces to a ledger row with PASS evidence; negative
   and failed results reported as such.
 
+## Compaction track (audited 2026-10-06; nothing deleted yet; human decides)
+
+Measured, not estimated: 2428 tracked files, 271 MB, ~262k readable lines.
+BYTES: ~58% (158 MB) can leave git at near-zero loss; ~68% if the generated
+HTML moves out too. READABLE LINES: only ~3-5% (code and tests are not
+bloated); tests ~1-2% at near-zero loss, ~5-8% at low loss. Frozen
+(do not touch): `artifacts/publication/frozen_manifest.json` + its 46 files,
+`artifacts/release/current_release_authorities.json`, harness-hashed skills
+and `AGENTS.md`. Order, lowest risk first (each item: remove, run the broad
+gate, then push):
+C1. `artifacts/mcc3_10s_checkpoint/` (96.8 MB; `metrics.json` 54.8 MB,
+    `weights.csv` 34 MB, `H.csv` 7.4 MB) and the superseded copy
+    `artifacts/archive/0.5.x/refreeze_2026-09-30/.../mcc3_10s_metrics.json`
+    (54.8 MB): to a release asset or LFS; keep `manifest.json`, `rates.csv`,
+    `pre_post.png`. Consumers checked: no test; `scripts/rerun_etude_figures.py:514`
+    reads `metrics.json`; prose in `refreeze_p016_p020_2026-09-30.md`,
+    `memory.md`; `docs/_static/etudes/hdp_controllability_reachability/manifest.json`.
+    Fix the script to fetch the asset or fail clearly.
+C2. `artifacts/archive/visualize_bundle/` (~7 MB, 53 same-hash duplicate
+    blobs repo-wide): delete (regenerable from `jaxfne/vis`).
+C3. `artifacts/legacy/` (185 KB): delete all but
+    `internal_docs/agent_context/claude/CLAUDE.md`
+    (`tests/test_agent_context_hygiene.py:18` needs it); update
+    `scripts/generate_surface_contract.py` ARCHIVE list.
+C4. 19 unreferenced scripts (3.1k lines; e.g. `make_delta_test_01_report.py`,
+    `generate_mechanism_tutorials.py`, `repair_notebooks.py`; 0 references
+    outside themselves, verified for 3): move to `scripts/_unused/`, delete
+    after one release.
+C5. `artifacts/.lab/` (108 JSON, 394 KB): confirm generated, then delete or
+    regenerate on demand.
+C6. Generated HTML (~27 MB: `docs/assets/interactive/*.html`, tutorial
+    `etude{5,6}_network_3d.html`, `artifacts/publication/atlas` HTML 24.6 MB
+    not in the frozen manifest): release asset or build at doc-build time;
+    needs `tests/test_v037_interactive_column_docs.py` and doc links updated.
+C7. Tests: parametrize protocol_e e0..e5 spec tests (7 files, 571 lines) and
+    merge the 8 `test_atlas_at*_05x` files (638 lines); then triage the
+    suite_no/vis/notebook-static groups (~5-8% of test lines at low loss).
+    First get per-test coverage (`pytest --cov` with contexts) and check every
+    candidate against `artifacts/publication/inventory_test_meaning_ledger.json`
+    (it states load reductions must keep its invariant-class mappings); the
+    98 `_vNNN` snapshot files and 45 legacy-keyword files stay until then.
+C8. Agent context: `todo_stack.md` (449 lines) and `memory.md` (351 lines)
+    into a short hot file + cold archive (AGENTS.md is hash-pinned: rehash).
+Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
+`w3a_stability_analysis.py` (own tests and receipts).
+
 ## Open work outside the release stacks (after 0.5.5 unless a trigger fires)
 
 0. Literature reproduction études, HDP off/on (human, 2026-09-29): plan in
