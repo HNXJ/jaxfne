@@ -1,0 +1,143 @@
+{
+ "abc_table": {
+  "total_spikes": {
+   "A": 539,
+   "B": 1069,
+   "C": 1069
+  }
+ },
+ "agsdr": {
+  "theta_hat": {
+   "m_EE": 1.4332973957061768,
+   "m_EI": 1.111473560333252,
+   "m_IE": 0.10846326500177383,
+   "m_II": 0.9603762626647949
+  }
+ },
+ "firing": {
+  "B": {
+   "E_rate_hz": 10.62124252319336,
+   "I_rate_hz": 10.62124252319336,
+   "isi": {
+    "n_isi_samples": 1059,
+    "per_neuron": [
+     {
+      "isi_cv": 0.01568900477828528,
+      "n_spikes": 107,
+      "neuron": 0
+     },
+     {
+      "isi_cv": 0.013791359839829306,
+      "n_spikes": 107,
+      "neuron": 1
+     },
+     {
+      "isi_cv": 0.01339408012462007,
+      "n_spikes": 107,
+      "neuron": 2
+     },
+     {
+      "isi_cv": 0.014144544688066255,
+      "n_spikes": 107,
+      "neuron": 3
+     },
+     {
+      "isi_cv": 0.013408989494962806,
+      "n_spikes": 107,
+      "neuron": 4
+     },
+     {
+      "isi_cv": 0.008805681911235366,
+      "n_spikes": 107,
+      "neuron": 5
+     },
+     {
+      "isi_cv": 0.008014831318635085,
+      "n_spikes": 106,
+      "neuron": 6
+     },
+     {
+      "isi_cv": 0.00833542426853122,
+      "n_spikes": 107,
+      "neuron": 7
+     },
+     {
+      "isi_cv": 0.008946606188373335,
+      "n_spikes": 107,
+      "neuron": 8
+     },
+     {
+      "isi_cv": 0.009163247371123852,
+      "n_spikes": 107,
+      "neuron": 9
+     }
+    ],
+    "population_isi_cv": 0.011715802089521575
+   },
+   "kappa_synchrony": 0.02724622893206126,
+   "neuron_rates_hz": [
+    10.62124252319336,
+    10.62124252319336,
+    10.62124252319336,
+    10.62124252319336,
+    10.62124252319336,
+    10.62124252319336,
+    10.62124252319336,
+    10.62124252319336,
+    10.62124252319336,
+    10.62124252319336
+   ],
+   "population_rate_hz": 10.62124252319336,
+   "rate_target_error_hz": 9.37875747680664,
+   "spike_total": 1069,
+   "spikes_per_neuron": [
+    107,
+    107,
+    107,
+    107,
+    107,
+    107,
+    106,
+    107,
+    107,
+    107
+   ],
+   "windowed_rates": {
+    "bin_ms": 1000.0,
+    "first_hz": 10.0,
+    "last_hz": 10.204081535339355,
+    "mean_hz": 10.620408153533935,
+    "rates_hz": [
+     10.0,
+     11.0,
+     11.0,
+     10.0,
+     11.0,
+     11.0,
+     10.0,
+     11.0,
+     11.0,
+     10.204081535339355
+    ],
+    "sd_hz": 0.4682506276933962,
+    "time_ms": [
+     520.0,
+     1520.0,
+     2520.0,
+     3520.0,
+     4520.0,
+     5520.0,
+     6520.0,
+     7520.0,
+     8520.0,
+     9510.0
+    ]
+   }
+  }
+ },
+ "full_metrics_bytes": 54813565,
+ "full_metrics_sha256": "85712818c99fca8779967f917e93c5965f3c8fc983d08f1579ae1ef92785d4a5",
+ "note": "Slim digest of mcc3_10s_metrics.json holding exactly the fields scripts/rerun_etude_figures.py::mode_hdp_mcc3 compares against. The full file (54.8 MB), mcc3_10s_weights.csv and mcc3_10s_H.csv were removed from the tree in the 2026-10-06 compaction; recover with git show <commit>:<path> from the commit below or regenerate with scripts/mcc3_10s_scientific_checkpoint.py.",
+ "recoverable_from_commit": "6a99cc1258f99f53e2bc1a16f19a2496b72f6769",
+ "schema": "jaxfne.mcc3_10s_metrics_digest.v1"
+}

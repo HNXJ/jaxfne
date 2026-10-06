@@ -510,8 +510,12 @@ def mode_hdp_mcc3(out_dir: pathlib.Path) -> list[dict]:
     import jaxfne as J
     import scripts.mcc3_10s_scientific_checkpoint as M3
 
+    # The full 54.8 MB metrics file left the tree (2026-10-06 compaction); the digest
+    # holds the fields compared below (theta_hat, firing.B, total_spikes.B).
     committed = json.loads(
-        (ROOT / "artifacts/mcc3_10s_checkpoint/mcc3_10s_metrics.json").read_text(encoding="utf-8")
+        (ROOT / "artifacts/mcc3_10s_checkpoint/mcc3_10s_metrics_digest.json").read_text(
+            encoding="utf-8"
+        )
     )
     specs = M3.mcc3_specs()
     objective = J.rate_targets(

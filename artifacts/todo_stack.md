@@ -314,7 +314,26 @@ ACCEPTANCE (0.5.5 seal = end of programme)
 - Every manuscript claim traces to a ledger row with PASS evidence; negative
   and failed results reported as such.
 
-## Compaction track (audited 2026-10-06; nothing deleted yet; human decides)
+## Compaction track (audited 2026-10-06)
+
+DONE 2026-10-06 (Hamm approved "C1-C5 plus unused scripts"; broad gate 4906
+passed): C1 (mcc3 `metrics.json` 54.8 MB, `weights.csv` 34 MB, `H.csv` 7.4 MB
+and the archive copy removed; `mcc3_10s_metrics_digest.json` keeps the fields
+`rerun_etude_figures.py` compares, its `full_metrics_sha256` equals the one in
+`mcc3_10s_manifest.json`; full data recoverable from commit 6a99cc12 or by
+rerunning `scripts/mcc3_10s_scientific_checkpoint.py`), C2 (`visualize_bundle`),
+C4 (12 scripts with zero references; kept `p2v_a4_claim_language.py` and
+`audit_semantic_negatives.py` for the manuscript claim checks). SKIPPED with
+reason: C3 `artifacts/legacy` (185 KB; referenced by
+`scripts/generate_surface_contract.py`, `run_tutorial_smoke.py`,
+`report_hygiene_check.py`), C5 `artifacts/.lab` (referenced by
+`scripts/lab_balance.py` and `docs/doctrine/rbs_rbd_hdp_inventory.md`).
+Not run: `rerun_etude_figures.py --etude hdp_mcc3` end to end (heavy); only
+the digest's fields were checked against what it reads. REMAINING: C6, C7, C8
+below; the history still holds the removed bytes (`.git` size unchanged until
+a history rewrite, which needs explicit authorization).
+
+Audit text (C1-C8 as audited):
 
 Measured, not estimated: 2428 tracked files, 271 MB, ~262k readable lines.
 BYTES: ~58% (158 MB) can leave git at near-zero loss; ~68% if the generated
