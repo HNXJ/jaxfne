@@ -542,7 +542,7 @@ def run_at10_cell(cell: dict, sampler: _PeakSampler) -> dict:
     import numpy as np
 
     import jaxfne as J
-    from jaxfne.neuronal_tensor import AreaConnection, merge_neuronal_tensors
+    from jaxfne.neuronal_tensor import AreaConnection, StaticParams, merge_neuronal_tensors
 
     cid = cell["id"]
     budget = float(cell.get("wall_budget_s", 1800))
@@ -619,6 +619,9 @@ def run_at10_cell(cell: dict, sampler: _PeakSampler) -> dict:
                     target_layer=tl,
                     target_neuron_type=tt,
                     mechanism="AMPA",
+                    # P-023 requires a declared time constant; 0.1 ms is the
+                    # pre-P-023 StaticParams default that matrix_051 ran.
+                    static=StaticParams(dT_ms=0.1),
                 )
             )
         merged = dataclasses.replace(merged, area_connections=tuple(ring))

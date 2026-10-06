@@ -187,9 +187,17 @@ ATLAS
    null-drive cell's `output_checksum` equals `matrix_051.json` (only
    `mech_hdp` may differ: E_semantic = 0), each cell records its drive
    provenance, and `T_test` is measured. Open on the 2026-10-06 file:
-   `chunk_ref` differs from 051 (174 -> 173 spikes) and is not a declared
-   drive change: explain or repair before sealing; `at10_20area` is
-   UNSUPPORTED here but MEASURED in 051 (its checksum compare is vacuous);
+   `chunk_ref` differs from 051 (174 -> 173 spikes, V_sum -6654899.0 ->
+   -6652058.0): deterministic (3 reruns identical); bisected to 865e74bb
+   (0.5.3 item 3, P-010 chain-noise fix), an authorized correctness repair:
+   list it in the seal receipt and re-baseline `chunk_ref` for 055 as a
+   declared repair, not E_semantic != 0 (the reference is the edge_list
+   single-call path; `chunk_k4` unchanged); `at10_20area` was
+   UNSUPPORTED because P-023 (83848805) refuses an undeclared synapse time
+   constant; the harness now declares the pre-P-023 default `dT_ms=0.1` on
+   each ring AreaConnection (in-process check: coupled, 4,747,700 edges,
+   equal to 051; the cell has no output checksum, so no bit-compare exists);
+   rerun it in the final matrix and list P-023 in the seal receipt;
    the file has no `T_test` and no per-cell drive provenance, so it may
    predate the drive threading: confirm with the worker. Items 9-14 take the
    T_compute/M_compute deltas from this file.
