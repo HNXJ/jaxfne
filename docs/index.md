@@ -70,6 +70,8 @@ Full panel set, generation workflow, and provenance rules:
 [Canonical Atlas Suite guide](guides/atlas_suite.md).
 
 Canonical 1000-neuron column, pinned 1000 ms reference run:
+<iframe class="jx-frame" src="_static/atlas/index.html" loading="lazy" title="Canonical 1000-neuron atlas dashboard"></iframe>
+
 ([index](_static/atlas/index.html) ·
 [schema](_static/atlas/schema.html) ·
 [network_3d](_static/atlas/network_3d.html) ·
@@ -80,15 +82,16 @@ Canonical 1000-neuron column, pinned 1000 ms reference run:
 [oscillatory](_static/atlas/oscillatory.html)).
 
 Twenty-area hierarchy (Atlas AT-10-N20), areas in hierarchy order with
-inter-area edge counts: [interactive](_static/visuals/area_graph_n20.html).
+inter-area edge counts ([full page](_static/visuals/area_graph_n20.html)):
 
-<a href="_static/visuals/area_graph_n20.html">
-  <img src="assets/visuals/area_graph_n20.png" alt="Twenty-area hierarchy graph" width="100%">
-</a>
+<iframe class="jx-frame" src="_static/visuals/area_graph_n20.html" loading="lazy" title="Twenty-area hierarchy graph"></iframe>
 
 Three-area hierarchy (`V1–V4–PFC`, 100 neurons/area, bidirectional
 feedforward/feedback): [Gallery 09](gallery.md#09-three-area-hierarchy-v1v4pfc)
-with the full six-panel atlas
+with the full six-panel atlas:
+
+<iframe class="jx-frame" src="_static/atlas_three_area/index.html" loading="lazy" title="Three-area atlas dashboard"></iframe>
+
 ([index](_static/atlas_three_area/index.html) ·
 [schema](_static/atlas_three_area/schema.html) ·
 [network_3d](_static/atlas_three_area/network_3d.html) ·

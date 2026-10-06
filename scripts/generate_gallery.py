@@ -86,7 +86,11 @@ def render(entries: list[dict]) -> str:
         lines.append("")
         links = " · ".join(
             f"[{p['panel']}]({base}{p['file']})" for p in m["panels"])
-        lines.append(f"[Index]({base}index.html) · {links}")
+        lines.append(
+            f'<iframe class="jx-frame" src="{base}index.html" loading="lazy" '
+            f'title="{m.get("title", "atlas")} dashboard"></iframe>')
+        lines.append("")
+        lines.append(f"[Open full page]({base}index.html) · {links}")
         lines.append("")
     lines.append(END)
     return "\n".join(lines) + "\n"
