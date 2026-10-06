@@ -287,8 +287,12 @@ ATLAS
    algebra whatever the synchrony. The runner's "toy size / fully coherent"
    explanation is wrong; a larger or partially coherent arm cannot change it.
    A real test compares the N-neuron population field with N x a field from
-   ONE neuron simulated alone (add an n=1 arm; A_Phi(N) vs N*A_Phi(1), by
-   executed kappa). Which comparison defines Phi_N != N Phi_1 is Hamm's call. (c) AT-07 states "no stability assay, no adaptation
+   ONE neuron simulated alone (A_Phi(N) vs N*A_Phi(1), by executed kappa).
+   Probed 2026-10-06: a plain n=1 arm does NOT work, since its mid-contact
+   A_Phi is 9e-15 (one spike, and neuron positions change with N), so the
+   baseline needs fixed geometry: each neuron run alone at its own position in
+   the N-neuron layout. That needs a per-neuron-isolation option (design
+   decision, Hamm's call) before AT-05-R2 can be met. (c) AT-07 states "no stability assay, no adaptation
    phenotype"; AT-07-R3 would have to cite the N20 twin assay
    (`at10_r5_twin_055.json`) or get a stability arm of its own: Hamm's call.
    (d) result `_meta.jaxfne_version` reads 0.5.0 (version string not yet bumped).
