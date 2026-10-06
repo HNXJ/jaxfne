@@ -202,6 +202,16 @@ ATLAS
    predate the drive threading: confirm with the worker. Items 9-14 take the
    T_compute/M_compute deltas from this file.
 
+   Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
+   30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
+   VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),
+   AT-00-R6 (manuscript progression; item 14), AT-10-R5 (perturbation/control
+   assay: bounded != returning != homeostatically stabilized; needs a new
+   S10 run on `AT-10-N20`), AT-10-R6 (reduced fast model, very long T; takes
+   its envelope from item 8); SUPPORTED AT-00-R4, AT-01-R1/R2/R3/R6/R7,
+   AT-05-R2, AT-07-R3 (promote with evidence at the seal; AT-00-R4 and
+   AT-01-R6 follow item 7).
+
 MANUSCRIPT (ends 0.5.5)
 9. Atlas coverage matrix: every section, figure, simulation and claim in the
    Atlas source → todo item → produced artifact; 100% mapped or marked out of
