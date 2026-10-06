@@ -1,0 +1,297 @@
+{
+ "noise_seed": 11,
+ "reference_window_rates_hz": [
+  10.083999633789062,
+  8.640999794006348,
+  9.291999816894531,
+  8.949000358581543,
+  8.994000434875488,
+  9.0,
+  8.880000114440918,
+  8.994999885559082,
+  8.930999755859375,
+  9.145000457763672
+ ],
+ "arms": {
+  "H0=0.0": {
+   "engaged": {
+    "window_rates_hz": [
+     10.276000022888184,
+     8.814000129699707,
+     9.399999618530273,
+     9.031000137329102,
+     9.071999549865723,
+     9.071000099182129,
+     8.972000122070312,
+     8.991999626159668,
+     8.97700023651123,
+     9.062999725341797
+    ],
+    "late_dev_hz": 0.06399965286254883,
+    "first_dev_hz": 0.1919994354248047,
+    "w_mean_ratio": 1.0009691064780097,
+    "w_unchanged": false,
+    "h_space": {
+     "twin": "engaged_ref",
+     "stability": {
+      "verdict": "RETURNING",
+      "contraction_ratio": 0.10295620776374505,
+      "d_early": 0.8999999985098839,
+      "d_late": 0.09266058683395384
+     },
+     "boundedness": {
+      "within_bounds": true,
+      "H_violations": 0,
+      "W_violations": 0,
+      "H_min": 0.10000000149011612,
+      "H_max": 2.046647787094116,
+      "W_max_abs": 6.463835716247559,
+      "H_bounds": [
+       0.1,
+       10.0
+      ],
+      "w_ceiling": 50.0,
+      "H_scope": "per-area extremes over time (min/max over steps x neurons in area, one row per area); violations counted per area-extreme",
+      "W_scope": "w_final-only (no W trace recorded)"
+     }
+    }
+   },
+   "disabled": {
+    "window_rates_hz": [
+     10.045999526977539,
+     8.682000160217285,
+     9.201000213623047,
+     8.920000076293945,
+     8.99899959564209,
+     8.991000175476074,
+     8.907999992370605,
+     8.864999771118164,
+     9.031000137329102,
+     9.128000259399414
+    ],
+    "late_dev_hz": 0.058499813079833984,
+    "first_dev_hz": 0.03800010681152344,
+    "w_mean_ratio": 0.9999998911850213,
+    "w_unchanged": true,
+    "h_space": {
+     "twin": "disabled_ref",
+     "stability": {
+      "verdict": "RETURNING",
+      "contraction_ratio": 0.07432936044919727,
+      "d_early": 0.8999999985098839,
+      "d_late": 0.06689642429351816
+     },
+     "boundedness": {
+      "within_bounds": true,
+      "H_violations": 0,
+      "W_violations": 0,
+      "H_min": 0.10000000149011612,
+      "H_max": 1.9429746866226196,
+      "W_max_abs": 6.324555397033691,
+      "H_bounds": [
+       0.1,
+       10.0
+      ],
+      "w_ceiling": 50.0,
+      "H_scope": "per-area extremes over time (min/max over steps x neurons in area, one row per area); violations counted per area-extreme",
+      "W_scope": "w_final-only (no W trace recorded)"
+     }
+    }
+   }
+  },
+  "kick=0.8": {
+   "engaged": {
+    "window_rates_hz": [
+     9.751999855041504,
+     8.67300033569336,
+     9.229000091552734,
+     8.920000076293945,
+     9.032999992370605,
+     8.98900032043457,
+     8.930000305175781,
+     8.96399974822998,
+     8.961999893188477,
+     9.159000396728516
+    ],
+    "late_dev_hz": 0.022499561309814453,
+    "first_dev_hz": 0.332000732421875,
+    "w_mean_ratio": 0.9996473249609495,
+    "w_unchanged": false,
+    "h_space": {
+     "twin": "engaged_ref",
+     "stability": {
+      "verdict": "RETURNING",
+      "contraction_ratio": 0.11004625442484792,
+      "d_early": 0.08149888038635233,
+      "d_late": 0.008968646526336777
+     },
+     "boundedness": {
+      "within_bounds": true,
+      "H_violations": 0,
+      "W_violations": 0,
+      "H_min": 1.0,
+      "H_max": 1.959276556968689,
+      "W_max_abs": 6.462761402130127,
+      "H_bounds": [
+       0.1,
+       10.0
+      ],
+      "w_ceiling": 50.0,
+      "H_scope": "per-area extremes over time (min/max over steps x neurons in area, one row per area); violations counted per area-extreme",
+      "W_scope": "w_final-only (no W trace recorded)"
+     }
+    }
+   },
+   "disabled": {
+    "window_rates_hz": [
+     8.842000007629395,
+     7.639999866485596,
+     8.505999565124512,
+     7.598999977111816,
+     8.505000114440918,
+     7.635000228881836,
+     8.463000297546387,
+     7.7270002365112305,
+     8.378999710083008,
+     7.691999912261963
+    ],
+    "late_dev_hz": 1.002500057220459,
+    "first_dev_hz": 1.2420005798339844,
+    "w_mean_ratio": 0.7999999780571997,
+    "w_unchanged": true,
+    "h_space": {
+     "twin": "disabled_ref",
+     "stability": {
+      "verdict": "PERSISTING",
+      "contraction_ratio": 1.2122820122572624,
+      "d_early": 0.09820020914077765,
+      "d_late": 0.11904634714126594
+     },
+     "boundedness": {
+      "within_bounds": true,
+      "H_violations": 0,
+      "W_violations": 0,
+      "H_min": 1.0,
+      "H_max": 1.8076106309890747,
+      "W_max_abs": 5.0596442222595215,
+      "H_bounds": [
+       0.1,
+       10.0
+      ],
+      "w_ceiling": 50.0,
+      "H_scope": "per-area extremes over time (min/max over steps x neurons in area, one row per area); violations counted per area-extreme",
+      "W_scope": "w_final-only (no W trace recorded)"
+     }
+    }
+   }
+  },
+  "kick=1.3": {
+   "engaged": {
+    "window_rates_hz": [
+     10.690999984741211,
+     8.684000015258789,
+     9.234999656677246,
+     8.892999649047852,
+     9.017999649047852,
+     9.050000190734863,
+     8.892999649047852,
+     8.970999717712402,
+     8.970999717712402,
+     9.116000175476074
+    ],
+    "late_dev_hz": 0.0345001220703125,
+    "first_dev_hz": 0.6070003509521484,
+    "w_mean_ratio": 0.9994994620071421,
+    "w_unchanged": false,
+    "h_space": {
+     "twin": "engaged_ref",
+     "stability": {
+      "verdict": "RETURNING",
+      "contraction_ratio": 0.08117985496689571,
+      "d_early": 0.14806918621063225,
+      "d_late": 0.012020235061645401
+     },
+     "boundedness": {
+      "within_bounds": true,
+      "H_violations": 0,
+      "W_violations": 0,
+      "H_min": 1.0,
+      "H_max": 3.3193793296813965,
+      "W_max_abs": 6.464292526245117,
+      "H_bounds": [
+       0.1,
+       10.0
+      ],
+      "w_ceiling": 50.0,
+      "H_scope": "per-area extremes over time (min/max over steps x neurons in area, one row per area); violations counted per area-extreme",
+      "W_scope": "w_final-only (no W trace recorded)"
+     }
+    }
+   },
+   "disabled": {
+    "window_rates_hz": [
+     14.081000328063965,
+     12.380999565124512,
+     13.369999885559082,
+     12.470999717712402,
+     13.22599983215332,
+     12.253000259399414,
+     13.027999877929688,
+     12.14799976348877,
+     13.321999549865723,
+     12.194000244140625
+    ],
+    "late_dev_hz": 3.7199997901916504,
+    "first_dev_hz": 3.996999740600586,
+    "w_mean_ratio": 1.3000001515318496,
+    "w_unchanged": true,
+    "h_space": {
+     "twin": "disabled_ref",
+     "stability": {
+      "verdict": "PERSISTING",
+      "contraction_ratio": 0.9921470566052032,
+      "d_early": 0.21391033887863142,
+      "d_late": 0.21223051309585572
+     },
+     "boundedness": {
+      "within_bounds": true,
+      "H_violations": 0,
+      "W_violations": 0,
+      "H_min": 1.0,
+      "H_max": 3.742044687271118,
+      "W_max_abs": 8.221921920776367,
+      "H_bounds": [
+       0.1,
+       10.0
+      ],
+      "w_ceiling": 50.0,
+      "H_scope": "per-area extremes over time (min/max over steps x neurons in area, one row per area); violations counted per area-extreme",
+      "W_scope": "w_final-only (no W trace recorded)"
+     }
+    }
+   }
+  }
+ },
+ "declared_tests": [
+  {
+   "perturbation": "H0=0.0",
+   "disabled_stays_off": false,
+   "engaged_returns": false,
+   "verdict": "NO_LASTING_EFFECT"
+  },
+  {
+   "perturbation": "kick=0.8",
+   "disabled_stays_off": true,
+   "engaged_returns": true,
+   "verdict": "STABILIZED"
+  },
+  {
+   "perturbation": "kick=1.3",
+   "disabled_stays_off": true,
+   "engaged_returns": true,
+   "verdict": "STABILIZED"
+  }
+ ],
+ "wall_s": 150.51736689999234,
+ "_note": "AT-10-R5 H-space run under load 2026-10-06; scratch output, results/* untouched"
+}

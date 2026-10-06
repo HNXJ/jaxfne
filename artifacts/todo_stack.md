@@ -210,6 +210,18 @@ ATLAS
    predate the drive threading: confirm with the worker. Items 9-14 take the
    T_compute/M_compute deltas from this file.
 
+   AT-10-R5 RESULT 2026-10-06 (`artifacts/atlas/results/at10_r5_hspace_055.json`,
+   run under load, 151 s; protocol per `artifacts/programme/at10_r5_protocol_proposal.md`,
+   option (a): N20's own HP_HEBB and arms): existing rate-space verdicts
+   reproduce the committed ones exactly (H0=0.0 NO_LASTING_EFFECT; kick 0.8
+   and 1.3 STABILIZED). H space: all arms bounded; engaged arms RETURNING
+   (ratio 0.08-0.11); HDP-disabled kick arms PERSISTING (ratio 0.99-1.21) =
+   bounded AND non-returning coexist at Atlas scale. H0=0.0 disabled arm is
+   RETURNING (H relaxes with tau_0 = 5 ms even without plasticity), which
+   matches its NO_LASTING_EFFECT verdict. Caveats: 1 noise seed, H boundedness
+   per area-extreme, W boundedness w_final-only. Row set SUPPORTED; promote to
+   VALIDATED after the adversarial review (opencode review tier) and, if
+   wanted, the two replicate seeds.
    Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
    30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
    VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),

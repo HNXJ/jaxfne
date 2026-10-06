@@ -479,8 +479,8 @@
    "capability": "intervention grammar + separate boundedness/stability diagnostics",
    "release": "0.5.5",
    "candidate": false,
-   "evidence": null,
-   "state": "PLANNED"
+   "evidence": "artifacts/atlas/results/at10_r5_hspace_055.json",
+   "state": "SUPPORTED"
   },
   {
    "id": "AT-10-R6",
