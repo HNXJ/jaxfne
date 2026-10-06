@@ -30,6 +30,19 @@ reports) before adding a new set of arms; the three-arm design below is the
 fallback if the existing arms cannot give the A/B/C contrast. Decision for
 the reviewer: extend `run_assay` (cheaper, same seeds) or run the new arms.
 
+## Mismatch to resolve before any run (found 2026-10-06)
+
+The approved choices below (K_ctrl = 5, tau_0 = 200 ms, 1 s horizon,
+0.05 offset) come from the 0.5.3 fixture, not from `AT-10-N20`. The N20
+parameters in `at10_n20_055.py` are `HP_HEBB` = {K_HDP 0.005, K_ctrl 0.15,
+K_w_ctrl 0.05, alpha 0.05, tau_0_ms 5.0}, phases of 10 s, an existing H0
+perturbation to 0.0 (not a 0.05 offset), and W kicks of 0.8x / 1.3x. With
+tau_0 = 5 ms, a 1 s horizon is 200 tau_0, and K_ctrl = 5 would be a change
+to the validated model, not a reuse. Options: (a) keep N20's own HP_HEBB,
+the existing H0 = 0.0 and kicks, horizon = the 1 s windows `run_assay`
+already scores; (b) impose the 0.5.3 values as a new, separately named arm.
+Needs a human choice; (a) keeps R3's validated model unchanged.
+
 ## Design
 
 1. System: `AT-10-N20`, same manifest and seed as the validated R3 run.
