@@ -280,10 +280,15 @@ ATLAS
    VALIDATED: (a) AT-01 and REDUCTION record 3 of 4 predeclared HH->reduced
    verdicts FAILED (v_peak diff 25.9 mV vs 20, v_rest 10.8 vs 10, first-spike
    10 ms vs 2; rate passes), so R6 "which quantities survive" = rate yes,
-   amplitude and timing no; recorded, never tuned. (b) AT-05-R2 is NOT met:
-   every arm has `phi_n_neq_n_phi_1=false` (superposition identity), the
-   mixed-phase regime was not reached at toy size; needs a partially coherent
-   arm at scale. (c) AT-07 states "no stability assay, no adaptation
+   amplitude and timing no; recorded, never tuned. (b) AT-05-R2 is NOT met, and the
+   check is VACUOUS (verified 2026-10-06, n=8 seed 7): every per-source
+   contribution at every contact is >= 0 (frac_neg 0.0), so
+   |sum_i phi_i| = sum_i |phi_i| and `coherent_over_n_single` is 1.0 by
+   algebra whatever the synchrony. The runner's "toy size / fully coherent"
+   explanation is wrong; a larger or partially coherent arm cannot change it.
+   A real test compares the N-neuron population field with N x a field from
+   ONE neuron simulated alone (add an n=1 arm; A_Phi(N) vs N*A_Phi(1), by
+   executed kappa). Which comparison defines Phi_N != N Phi_1 is Hamm's call. (c) AT-07 states "no stability assay, no adaptation
    phenotype"; AT-07-R3 would have to cite the N20 twin assay
    (`at10_r5_twin_055.json`) or get a stability arm of its own: Hamm's call.
    (d) result `_meta.jaxfne_version` reads 0.5.0 (version string not yet bumped).
