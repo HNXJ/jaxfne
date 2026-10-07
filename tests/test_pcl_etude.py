@@ -36,6 +36,21 @@ def test_column_flags_and_normalization():
         np.testing.assert_allclose(np.asarray(W[name]).sum(-1), lam, rtol=1e-4)
 
 
+def test_segment_is_cut_along_its_axis(monkeypatch):
+    import jax
+    import jax.numpy as jnp
+    import artifacts.etudes.pcl.pcl_column as C
+    monkeypatch.setitem(C.STIM, "kind", "segment")
+    monkeypatch.setitem(C.STIM, "length", 4.0)
+    cov = jnp.zeros(C.G * C.G, bool)
+    inside = cov
+    for t in np.arange(400) * C.DT:  # ori 0: horizontal segment swept vertically
+        _, inside = C.stimulus_step(jax.random.PRNGKey(0), inside, t, 0, 1.0, -13.0, 2.0)
+        cov = cov | inside
+    cols = np.nonzero(np.asarray(cov).reshape(C.G, C.G).any(0))[0]
+    assert cols.min() == 4 and cols.max() == 7  # ori 0 axis is -x: |-(x - 7.5) - 2| < 2
+
+
 def test_hdp_rule_matches_paper_update():
     """One step of pcl_stdp: post neuron 2 spikes; edges 0->2 and 1->2 share a group."""
     import jax.numpy as jnp

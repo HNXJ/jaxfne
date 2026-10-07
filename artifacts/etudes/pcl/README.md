@@ -109,6 +109,56 @@ V1-like receptive fields do not form with this stimulus set.
 
 ![C1 kernels, seed 10](confirm/c1_seed10_kernels.png)
 
+## Gate C1b: localized edges
+
+Hamm 2026-10-07. Declared before the pilot. C1 failed A1 because every bar
+crosses every receptive-field centre. C1b changes only the stimulus: the bar
+is cut to a segment of length L px (`--stim segment --length L`), centred
+uniformly within ±6 px along its own axis per sequence, and swept along its
+normal as before. Everything else, acceptance A1–A3 included, is as C1.
+
+Pilot (seed 0) may set L ∈ {4, 6, 8} and the phase lengths. Selection rule:
+the highest median OSI among settings that keep A2 and A3; ties go to 600 + 300.
+Confirmatory seeds 10, 11, 12 run once.
+
+Pilot (seed 0; C1 bars for reference):
+
+| stimulus, phase-1 length | median OSI (untrained) | responsive cells | simple spikes (a)/(b) | decoding (a) / (b) / (c) |
+|---|---|---|---|---|
+| bars, 600 (C1) | 0.107 (0.045) | 251 | 0.53 | 0.887 / 0.931 / 0.356 |
+| L 4, 600 | — | 0 | 0.51 | 0.356 / 0.487 / 0.325 |
+| L 6, 600 | 0.081 (—) | 1 | 0.51 | 0.450 / 0.519 / 0.362 |
+| L 8, 600 | 0.092 (0.082) | 13 | 0.51 | 0.637 / 0.637 / 0.375 |
+| L 8, 2400 | 0.095 (0.082) | 26 | 0.56 | 0.588 / 0.606 / 0.475 |
+
+**Frozen: L 8, 2400 + 300 sequences** (highest OSI; no tie tolerance was
+declared). Kernels are no longer centre blobs: they become ON spots tiling
+the receptive field, a few elongated (`pilot/c1b_seed0_L8*_kernels.png`), so
+features code position more than orientation. A segment reaches few
+receptive fields per sequence, so few cells pass the frozen responsiveness
+threshold (0.5 spikes/sequence) and A1 measures a small, selected subset.
+
+### C1b result (seeds 10, 11, 12): A2 and A3 PASS, A1 FAIL
+
+| seed | median OSI (untrained) | responsive cells | simple spikes (a)/(b) | decoding (a) PCL | (b) no inh. | (c) random, matched |
+|---|---|---|---|---|---|---|
+| 10 | 0.078 (0.078) | 22 | 0.564 | 0.600 | 0.644 | 0.344 |
+| 11 | 0.090 (0.081) | 29 | 0.582 | 0.662 | 0.738 | 0.506 |
+| 12 | 0.063 (0.072) | 27 | 0.566 | 0.569 | 0.550 | 0.350 |
+
+- **A1 FAIL** (3/3): OSI 0.06–0.09, at or below the untrained network in two
+  seeds. Localized edges remove the centre blobs but do not produce
+  orientation tuning; kernels learn position.
+- **A2 PASS** (3/3): ~43 % of simple-cell spikes removed.
+- **A3 PASS** (3/3): PCL 0.57–0.66 against 0.34–0.51 for random removal.
+
+Reading: the stimulus was not the only cause of A1 failing. With one
+16-feature kernel bank and 7 × 7 fields, sparse localized input is coded by
+position first. Orientation tuning likely needs richer input (natural event
+statistics, as in the paper) or more features; not pursued here.
+
+![C1b kernels, seed 10](confirm/c1b_seed10_kernels.png)
+
 ## Gate K0: Fig. 2 on the jaxfne HDP kernel (Izhikevich) — FAIL (weights, 1/3 seeds)
 
 Hamm 2026-10-07: port PCL to the existing registrable HDP kernel with
@@ -199,6 +249,7 @@ excitatory phase does not build orientation tuning on the Izhikevich kernel.
 python artifacts/etudes/pcl/pcl_fig2.py --out artifacts/etudes/pcl/fig2.json
 python artifacts/etudes/pcl/pcl_column.py --seed 10 --out artifacts/etudes/pcl/confirm/c1_seed10.json
 python artifacts/etudes/pcl/figure_column.py artifacts/etudes/pcl/confirm/c1_seed10.npz
+python artifacts/etudes/pcl/pcl_column.py --seed 10 --stim segment --length 8 --n-exc 2400 --out artifacts/etudes/pcl/confirm/c1b_seed10.json
 python artifacts/etudes/pcl/pcl_fig2_hdp.py --out artifacts/etudes/pcl/fig2_hdp.json
 python artifacts/etudes/pcl/pcl_column_hdp.py --seed 10 --out artifacts/etudes/pcl/confirm/k1_seed10.json
 ```

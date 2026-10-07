@@ -38,7 +38,8 @@ CONN = {  # w_max, eta_LTP (= -eta_LTD), soft-bound factor, mean weight per syna
     "c_exc": (4.0, 0.08, 0.25, 1000.0 / 1024),
     "c_loc": (25.0, 0.048, 0.04, 600.0 / 31),
 }
-STIM = dict(kind="bar", width=2.0, period=6.0, speed=0.13, events=3.0, noise_hz=2.0, seq_ms=200.0)
+S0_MAX = 6.0  # segment centre offset along its axis, uniform in [-S0_MAX, S0_MAX] px
+STIM = dict(kind="bar", width=2.0, period=6.0, length=6.0, speed=0.13, events=3.0, noise_hz=2.0, seq_ms=200.0)
 
 
 def build_indices():
@@ -87,8 +88,11 @@ def init_state():
                 A_c_exc=z(NC, CRF * CRF * FS), B_c_exc=z(NC, CRF * CRF * FS), A_c_loc=z(NC, FC), B_c_loc=z(NC, FC))
 
 
-def stimulus_step(key, inside_prev, t, ori, direction, c0):
-    """Bright bar of orientation ori*pi/8 drifting along its normal; ON/OFF events at edges."""
+def stimulus_step(key, inside_prev, t, ori, direction, c0, s0=0.0):
+    """Bright bar of orientation ori*pi/8 drifting along its normal; ON/OFF events at edges.
+
+    kind "segment": the bar is cut to STIM["length"] px, centred s0 px along its axis.
+    """
     th = ori * jnp.pi / N_ORI + jnp.pi / 2  # normal to the bar
     yy, xx = jnp.meshgrid(jnp.arange(G), jnp.arange(G), indexing="ij")
     proj = ((xx - 7.5) * jnp.cos(th) + (yy - 7.5) * jnp.sin(th)).ravel()
@@ -97,6 +101,9 @@ def stimulus_step(key, inside_prev, t, ori, direction, c0):
         inside = jnp.mod(d, STIM["period"]) < STIM["period"] / 2
     else:
         inside = jnp.abs(d) < STIM["width"] / 2
+    if STIM["kind"] == "segment":
+        along = ((xx - 7.5) * -jnp.sin(th) + (yy - 7.5) * jnp.cos(th)).ravel()
+        inside = inside & (jnp.abs(along - s0) < STIM["length"] / 2)
     k1, k2 = jax.random.split(key)
     on = (inside & ~inside_prev).astype(jnp.float32)
     off = (~inside & inside_prev).astype(jnp.float32)
@@ -123,10 +130,10 @@ def lif(V, ts, drive, n_ev, t, p):
 
 def step(carry, xs, flags, W_frozen):
     W, S = carry
-    t, key, ori, direction, c0, keep_q = xs
+    t, key, ori, direction, c0, s0, keep_q = xs
     learn_exc, learn_inh, dist_on = flags
     k_stim, k_rm = jax.random.split(key)
-    x, inside = stimulus_step(k_stim, S["inside"], t, ori, direction, c0)
+    x, inside = stimulus_step(k_stim, S["inside"], t, ori, direction, c0, s0)
     Wd = W if W_frozen is None else W_frozen
 
     # simple layer
@@ -180,9 +187,11 @@ def run_sequence(W, key, ori, direction, keep_q, flags, n_steps):
     """One stimulus sequence; returns updated weights and spike counts (simple, complex)."""
     k0, k1 = jax.random.split(key)
     c0 = -direction * 13.0 + jax.random.uniform(k0, minval=-1.0, maxval=1.0)
+    s0 = jax.random.uniform(jax.random.fold_in(k0, 1), minval=-S0_MAX, maxval=S0_MAX)  # unused unless segment
     ts = jnp.arange(n_steps) * DT
     keys = jax.random.split(k1, n_steps)
-    xs = (ts, keys, jnp.full(n_steps, ori), jnp.full(n_steps, direction), jnp.full(n_steps, c0), jnp.full(n_steps, keep_q))
+    xs = (ts, keys, jnp.full(n_steps, ori), jnp.full(n_steps, direction), jnp.full(n_steps, c0),
+          jnp.full(n_steps, s0), jnp.full(n_steps, keep_q))
     (W, _), (ss, sc) = jax.lax.scan(lambda c, x: step(c, x, flags, None), (W, init_state()), xs)
     return W, ss.sum(0), sc.sum(0)
 
@@ -223,9 +232,10 @@ def main():
     ap.add_argument("--n-inh", type=int, default=300, help="phase-2 sequences (distant lateral + top-down)")
     ap.add_argument("--n-test-per-ori", type=int, default=20)
     ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--stim", choices=("bar", "grating"), default="bar")
+    ap.add_argument("--stim", choices=("bar", "grating", "segment"), default="bar")
+    ap.add_argument("--length", type=float, default=STIM["length"], help="segment length (px)")
     a = ap.parse_args()
-    STIM["kind"] = a.stim
+    STIM["kind"], STIM["length"] = a.stim, a.length
     t0 = time.time()
     key = jax.random.PRNGKey(a.seed)
     k_init, k_untr, k_p1, k_p2, k_test = jax.random.split(key, 5)

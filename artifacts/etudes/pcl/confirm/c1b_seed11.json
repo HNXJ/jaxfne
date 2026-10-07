@@ -1,0 +1,55 @@
+{
+ "params": {
+  "seed": 11,
+  "n_exc": 2400,
+  "n_inh": 300,
+  "n_test_per_ori": 20,
+  "stim": {
+   "kind": "segment",
+   "width": 2.0,
+   "period": 6.0,
+   "length": 8.0,
+   "speed": 0.13,
+   "events": 3.0,
+   "noise_hz": 2.0,
+   "seq_ms": 200.0
+  }
+ },
+ "wall_s": 1024.4,
+ "osi_trained_median": 0.09041465238585224,
+ "n_resp_trained": 29,
+ "osi_untrained_median": 0.0805467835982113,
+ "n_resp_untrained": 66,
+ "spikes": {
+  "pcl": [
+   7046,
+   7416
+  ],
+  "no_inh": [
+   12108,
+   11584
+  ],
+  "random": [
+   9127,
+   9960
+  ]
+ },
+ "keep_q": 0.5819293260574341,
+ "acc": {
+  "pcl": {
+   "simple": 0.6625,
+   "complex": 0.34375,
+   "both": 0.6625
+  },
+  "no_inh": {
+   "simple": 0.725,
+   "complex": 0.21875,
+   "both": 0.7375
+  },
+  "random": {
+   "simple": 0.4875,
+   "complex": 0.16875,
+   "both": 0.50625
+  }
+ }
+}
