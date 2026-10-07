@@ -171,8 +171,7 @@ Reading (inferred, not tested):
 ## Reproduce
 
 ```bash
-python artifacts/etudes/hdp_balance/balance.py --eta <frozen eta> --seed0 1000 --n-seeds 16 --out artifacts/etudes/hdp_balance/confirm.json
-```
+python artifacts/etudes/hdp_balance/balance.py --eta 1.0 --seed0 1000 --n-seeds 16 --out artifacts/etudes/hdp_balance/confirm.json
 python artifacts/etudes/hdp_balance/balance.py --eta 0.3 --seed0 2000 --n-seeds 16 --set tau_err=0.2 tau_H=50 --out artifacts/etudes/hdp_balance/confirm_1b.json
 python artifacts/etudes/hdp_balance/balance.py --eta 1.0 --seed0 3000 --n-seeds 16 --plastic-scope sensory_motor --out artifacts/etudes/hdp_balance/confirm_1c.json
 python artifacts/etudes/hdp_balance/verdict.py <result.json>
