@@ -145,6 +145,9 @@ Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked
 
 NEXT (ordered, executable)
 (none — main fully green @ 839a3d2b: Fast + Release + Nightly run 37247983354 success 2026-10-04. Next work is the science lanes.)
+- [A] Next release (human, 2026-10-07): owned by the cursor agent
+  (`vwin-cursor-grok47-jaxfne`, live hub main #335). The quiet-matrix timing
+  run waits until every project on the Windows box reports idle.
 
 HUMAN DECISIONS
 - [H] agy lane: agy 1.2.13 is installed (2026-09-30), but its sign-in is
@@ -464,6 +467,17 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
    from the authors' code, row 10 equations unread). Targets confirmed. Next:
    PDF for row 10, P2 GAP list for row 3 (no AdEx emitter), then P3 sign-off. Starts after the
    0.5.5 seal, with its own stack.
+0b. PCL étude (`artifacts/etudes/pcl/`, docs `docs/etudes/pcl.md`):
+   - Done on dev: P0, K0/K0b, C1, K1, C1b, K2b (FAIL) and the working paper
+     `artifacts/etudes/pcl/report/pcl_report.html`.
+   - Done (human, 2026-10-07): `pcl_stdp_h` in `artifacts/etudes/pcl_h/`,
+     traces in the H state, equal to `pcl_stdp` on single- and multi-input
+     neurons; K0b reproduces (NOTES.md).
+   - Next: run the column (K1) on `pcl_stdp_h` and, if it matches, retire the
+     per-edge-trace rule.
+   - Open: orientation tuning failed in all column variants; the column
+     weights behind the paper's figures are not committed (npz is
+     gitignored); regenerate them with `pcl_column_hdp.py`.
 0a. Controlled model augmentation (human, 2026-09-30): the canonical order is
    N, then G, then Theta_C, then Theta_X, then W0, then H0. Transforms act on
    a NeuronalTensor before construct. Scaling N keeps w/sqrt(N). Stochastic
