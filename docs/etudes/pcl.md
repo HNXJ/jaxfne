@@ -1,6 +1,6 @@
 # Étude: Predictive Coding Light
 
-**Status:** central claim reproduced in a small column; orientation tuning not reproduced  
+**Status:** Fig. 2 reproduced standalone and on the HDP kernel; central claim reproduced in a small column; orientation tuning not reproduced  
 **Bundle:** `artifacts/etudes/pcl/`
 
 ## Claim and source
@@ -31,7 +31,8 @@ the registrable Izhikevich kernel.
 |---|---|---|---|---|
 | P0 | Fig. 2, standalone: inhibition onto neurons with 90 / 50 / 10 % predictable input | PASS: weights and suppression ordered in 3/3 | 3 networks | `81092017` |
 | C1 | column, standalone, drifting bars | A1 FAIL · A2 PASS · A3 PASS | 10, 11, 12 | `e0642350` |
-| K0 | Fig. 2 on the HDP kernel, rule `pcl_stdp` | suppression ordered 3/3; weights ordered 2/3: FAIL | 0, 1, 2 | `dd8e89df` |
+| K0 | Fig. 2 on the HDP kernel, rule `pcl_stdp` | suppression ordered 3/3; end-of-epoch weights ordered 2/3: FAIL | 0, 1, 2 | `dd8e89df` |
+| K0b | K0 with weights averaged over the last training epoch | PASS: averaged weights and suppression ordered in 3/3 | 10, 11, 12 | `a1cd500f` |
 | K1 | C1 column on the HDP kernel | A1 FAIL · A2 PASS · A3 PASS | 10, 11, 12 | `8d80f7ac` |
 | C1b | C1 with localized edge segments | A1 FAIL · A2 PASS · A3 PASS | 10, 11, 12 | `5bf6b1e0` |
 
@@ -62,6 +63,11 @@ counts); C1 and C1b decode simple and complex cells.
 (0.39 / 0.20 / 0.08), about half the standalone magnitude. The weight order
 fails in one network; weights settle within one epoch, so the end value
 reflects the last samples.
+
+**K0b.** Read as a time average over the last training epoch, the weights are
+ordered by predictability in every network (≈ 22 / 19 / 16 mV-equivalent,
+compressed against 38 / 24 / 15 standalone), on fresh seeds and on the K0
+seeds alike. The end-of-epoch snapshot still fails in one fresh network.
 
 ## Reading
 
