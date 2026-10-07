@@ -292,7 +292,17 @@ ATLAS
    A_Phi is 9e-15 (one spike, and neuron positions change with N), so the
    baseline needs fixed geometry: each neuron run alone at its own position in
    the N-neuron layout. That needs a per-neuron-isolation option (design
-   decision, Hamm's call) before AT-05-R2 can be met. (c) AT-07 states "no stability assay, no adaptation
+   decision, Hamm's call) before AT-05-R2 can be met.
+   ISOLATION PROBE 2026-10-06 (same N, seed and positions; `within_gain` 0 =
+   isolated vs coupled; n=8, seeds 7 and 11, 100 ms): spike counts (11) and
+   kappa are IDENTICAL for gain 0, 0.45, 3, 10, and mid-contact A_Phi moves
+   only 0.02% (0.45) to 0.3% (10). So at this scale the proxy shows
+   superposition, Phi_N = N Phi_1 within 0.3%; "Phi_N != N Phi_1 in general"
+   is NOT demonstrated, and no coupling strength tried makes it so (drive
+   dominated, 11 spikes). Options for Hamm: (1) longer or higher-rate arm
+   where recurrence changes spiking, (2) record AT-05-R2 as a negative result
+   and mark it OUT_OF_SCOPE for 0.5.5, (3) change the claim wording to
+   "superposition holds in the drive-dominated regime". (c) AT-07 states "no stability assay, no adaptation
    phenotype"; AT-07-R3 would have to cite the N20 twin assay
    (`at10_r5_twin_055.json`) or get a stability arm of its own: Hamm's call.
    (d) result `_meta.jaxfne_version` reads 0.5.0 (version string not yet bumped).
