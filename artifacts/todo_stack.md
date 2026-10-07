@@ -320,6 +320,19 @@ ATLAS
    failures stand as the evidence) -> VALIDATED; AT-07-R3 cites the N20 twin
    assay `at10_r5_twin_055.json` -> VALIDATED; AT-05-R2 build the per-neuron
    isolation option (open); AT-10-R6 stays SUPPORTED; release steps not yet.
+   AT-01 EXTRACTION 2026-10-06 (Hamm: sweep now, R2/R3 via bridge):
+   `hh_jaxley_reference_trace(return_currents=True)` (additive; default 3-tuple
+   unchanged) + `run_at01_extraction` -> `at01_extraction_055.json`: 5 currents
+   (3 subthreshold, 2 AP), I_Na/I_K/I_L from the channel's own parameters,
+   charge per current, Phi/E series; charge balance closes to 3e-4
+   (subthreshold) and 1.4-1.6% (AP) vs predeclared 0.10 (validates the ionic
+   sum, not the Na/K split). Disclosed: the time alignment of the balance was
+   chosen by a lag scan after seeing data; amplitudes after a probe. Second
+   review: R1 PASS; R2/R3 FAIL as worded (Phi used ionic current only; I_m
+   absent) -> reworded: R2 drops I_m (Jaxley HH has no M-current), R3 = relative
+   ionic-current point-source proxy, 4 pi sigma = 1, capacitive and electrode
+   terms excluded. All three stay SUPPORTED pending Hamm's acceptance of the
+   wording.
    Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
    30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
    VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),

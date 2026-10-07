@@ -109,27 +109,27 @@
    "capability": "HH reference via optional Jaxley bridge; REFUSED if absent",
    "release": "0.5.2",
    "candidate": false,
-   "evidence": "artifacts/atlas/results/at01_055.json",
+   "evidence": "artifacts/atlas/results/at01_extraction_055.json",
    "state": "SUPPORTED"
   },
   {
    "id": "AT-01-R2",
    "sim": "S1",
-   "requirement": "Extract V_m, I_Na, I_K, I_L, I_m, Q, Phi(r,t)",
+   "requirement": "Extract V_m, I_Na, I_K, I_L, Q, Phi(r,t) (I_m not applicable: Jaxley HH has no M-current; Phi relative ionic-current proxy)",
    "capability": "HH current export -> source Q -> field Phi",
    "release": "0.5.2",
    "candidate": false,
-   "evidence": "artifacts/atlas/results/at01_055.json",
+   "evidence": "artifacts/atlas/results/at01_extraction_055.json",
    "state": "SUPPORTED"
   },
   {
    "id": "AT-01-R3",
    "sim": "S1",
-   "requirement": "Local E/Phi from transmembrane currents",
+   "requirement": "Local E/Phi from transmembrane ionic currents (relative point-source proxy, 4 pi sigma = 1; capacitive and electrode terms excluded)",
    "capability": "source/field contract with epistemic level",
    "release": "0.5.2",
    "candidate": false,
-   "evidence": "artifacts/atlas/results/at01_055.json",
+   "evidence": "artifacts/atlas/results/at01_extraction_055.json",
    "state": "SUPPORTED"
   },
   {

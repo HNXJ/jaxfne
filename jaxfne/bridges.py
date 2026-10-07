@@ -572,7 +572,8 @@ def hh_jaxley_reference_trace(
     duration_ms: float = 500.0,
     dt_ms: float = 0.1,
     current_amplitude: float = 10.0,
-) -> tuple[Any, Any, Any]:
+    return_currents: bool = False,
+) -> tuple[Any, ...]:
     """Hodgkin-Huxley reference trace via optional Jaxley bridge.
 
     Generates a reference HH voltage trace using Jaxley's HH channel model
@@ -600,6 +601,14 @@ def hh_jaxley_reference_trace(
         Membrane potential in mV (proxy readout; not amplitude-calibrated).
     I_inj : ndarray (n_steps,)
         Injected step current (nA), aligned to ``t``.
+    currents : dict
+        Only when ``return_currents=True`` (a fourth element; the default
+        3-tuple is unchanged). Keys ``m``, ``h``, ``n`` (gates), ``I_Na``,
+        ``I_K``, ``I_L`` (mA/cm^2, outward positive, ``g * (V - E)`` with the
+        channel's own conductances and reversal potentials), ``params``
+        (``gNa``, ``gK``, ``gLeak``, ``eNa``, ``eK``, ``eLeak``),
+        ``area_cm2`` and ``capacitance_uF_cm2``. Jaxley's HH
+        channel carries no M-current, so there is no ``I_m`` entry.
 
     Raises
     ------
@@ -612,6 +621,9 @@ def hh_jaxley_reference_trace(
 
     cell = jx.Cell(jx.Branch(jx.Compartment(), ncomp=1), parents=[-1])
     cell.insert(HH())
+    if return_currents:
+        for gate in ("HH_m", "HH_h", "HH_n"):
+            cell.record(gate, verbose=False)
     cell.record("v")
     i_amp_nA = float(current_amplitude) * 0.01
     i = jx.step_current(
@@ -623,14 +635,31 @@ def hh_jaxley_reference_trace(
     )
     cell.stimulate(i)
     v = jx.integrate(cell, delta_t=dt_ms, solver="bwd_euler", t_max=duration_ms)
-    V = np.asarray(v).reshape(-1)
+    rec = np.asarray(v)
+    V = rec[-1].reshape(-1) if return_currents else rec.reshape(-1)
     n = V.shape[0]
     t = np.arange(n) * float(dt_ms)
     I_inj = np.asarray(i).reshape(-1)
+    m = n
     if I_inj.shape[0] != n:  # align stimulus length to recorded trace
         m = min(I_inj.shape[0], n)
         t, V, I_inj = t[:m], V[:m], I_inj[:m]
-    return t, V, I_inj
+    if not return_currents:
+        return t, V, I_inj
+    row = cell.nodes.iloc[0]
+    p = {k: float(row[f"HH_{k}"]) for k in ("gNa", "gK", "gLeak", "eNa", "eK", "eLeak")}
+    mg, hg, ng = (rec[j].reshape(-1)[:m] for j in range(3))
+    currents = {
+        "m": mg, "h": hg, "n": ng,
+        "I_Na": p["gNa"] * mg**3 * hg * (V - p["eNa"]),
+        "I_K": p["gK"] * ng**4 * (V - p["eK"]),
+        "I_L": p["gLeak"] * (V - p["eLeak"]),
+        "params": p,
+        # compartment membrane area (cm^2) from the cell's own length/radius (um)
+        "area_cm2": float(2.0 * np.pi * float(row["radius"]) * float(row["length"]) * 1e-8),
+        "capacitance_uF_cm2": float(row["capacitance"]),
+    }
+    return t, V, I_inj, currents
 
 
 def hh_numpy_reference_trace(

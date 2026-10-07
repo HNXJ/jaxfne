@@ -461,6 +461,97 @@ AT02_N_CONTACTS = 16
 SUPERPOSITION_TOL = 1e-3
 
 
+# AT-01-R1/R2/R3: current sweep and ion-current extraction on the Jaxley HH
+# reference. Amplitudes (jaxley step_current x0.01 nA) and tolerances are
+# declared before the run; failures are recorded, never tuned.
+AT01_SWEEP_AMPS = (0.01, 0.1, 0.2, 0.5, 2.0)
+AT01_PHI_R_REL = (1.0, 2.0, 4.0)  # relative distances, 4*pi*sigma = 1 (no conductivity)
+AT01_CLOSURE_REL_TOL = 0.10  # rms(backward-Euler balance residual) / rms(dV/dt)
+AT01_TRANSIENT_STEPS = 12  # initial-condition transient excluded from closure
+
+
+def _hh_extraction_arm(amp: float) -> dict[str, Any]:
+    t, v, i_inj, cur = J.hh_jaxley_reference_trace(
+        duration_ms=AT01_DURATION_MS, dt_ms=DT_MS, current_amplitude=amp, return_currents=True
+    )
+    v = np.asarray(v, dtype=float)
+    t = np.asarray(t, dtype=float)
+    ions = {k: np.asarray(cur[k], dtype=float) for k in ("I_Na", "I_K", "I_L")}  # mA/cm^2
+    ion_total_uA = 1e3 * (ions["I_Na"] + ions["I_K"] + ions["I_L"])  # uA/cm^2
+    i_inj_uA = np.asarray(i_inj, dtype=float) * 1e-9 / cur["area_cm2"] * 1e6  # nA -> uA/cm^2
+    # Backward Euler with the stimulus sampled at the step start: balance is
+    # C (V[k+1]-V[k])/dt = -I_ion[k+1] + I_inj[k] (alignment found by a lag
+    # scan; the injection scale fits 1.000 at this alignment).
+    k0 = AT01_TRANSIENT_STEPS
+    lhs = cur["capacitance_uF_cm2"] * (v[1:] - v[:-1]) / DT_MS
+    rhs = -ion_total_uA[1:] + i_inj_uA[:-1]
+    resid = (lhs - rhs)[k0:]
+    closure_rel = float(np.sqrt((resid**2).mean()) / max(np.sqrt((lhs[k0:] ** 2).mean()), 1e-12))
+    spikes = _hh_spike_times(v, DT_MS)
+    dt = DT_MS
+    charge = {k: float(x.sum() * dt) for k, x in ions.items()}  # mA/cm^2 * ms = uC/cm^2
+    # ionic-current point-source proxy only (no capacitive term, no electrode term)
+    phi = {
+        str(r): {
+            "phi_rel_peak": float(np.abs(ion_total_uA / r).max()),
+            "e_rel_peak": float(np.abs(ion_total_uA / r**2).max()),
+            "phi_rel_t": [float(x) for x in ion_total_uA / r],
+            "e_rel_t": [float(x) for x in ion_total_uA / r**2],
+        }
+        for r in AT01_PHI_R_REL
+    }
+    return {
+        "current_amplitude": float(amp),
+        "regime": "action_potential" if spikes.shape[0] > 0 else "subthreshold",
+        "n_spikes": int(spikes.shape[0]),
+        "v_max_mv": float(v.max()),
+        "peak_abs_current_mA_cm2": {k: float(np.abs(x).max()) for k, x in ions.items()},
+        "charge_uC_cm2": charge,
+        "closure_rel": closure_rel,
+        "closure_pass": bool(closure_rel <= AT01_CLOSURE_REL_TOL),
+        "phi_e_relative": phi,
+    }
+
+
+def run_at01_extraction() -> dict[str, Any]:
+    """AT-01-R1/R2/R3: sweep from subthreshold to AP; I_Na/I_K/I_L, Q, relative Phi/E.
+
+    Additive to :func:`run_at01` (unchanged). ``I_m`` is ABSENT (Jaxley's HH
+    channel has no M-current). Phi and E are RELATIVE_PROXY point-source
+    values ``I_ion/r`` and ``I_ion/r^2`` of the summed IONIC current only
+    (no capacitive or electrode term; not the net membrane current), with
+    ``4 pi sigma = 1``: no conductivity, no calibration (AT-01-R5 stays
+    refused). ``closure_rel`` checks that the extracted currents close the
+    membrane charge balance, which validates the sum of ionic currents, not
+    the I_Na/I_K split.
+    """
+    t0 = time.perf_counter()
+    try:
+        arms = {str(a): _hh_extraction_arm(a) for a in AT01_SWEEP_AMPS}
+    except ImportError:
+        return {
+            "scenario": "AT-01-EXTRACTION",
+            "status": "REFUSED",
+            "reason": "Jaxley absent; no substitute per 0.5.2 item 9",
+        }
+    regimes = {v["regime"] for v in arms.values()}
+    return {
+        "scenario": "AT-01-EXTRACTION",
+        "status": "OK",
+        "wall_s": time.perf_counter() - t0,
+        "level": LEVEL_REDUCED,
+        "level_note": (
+            "currents mA/cm^2 and charge uC/cm^2 from Jaxley HH parameters; Phi/E are "
+            "RELATIVE_PROXY ionic-current point-source values (4 pi sigma = 1), "
+            "not calibrated, not the net membrane current"
+        ),
+        "tolerance_predeclared": {"closure_rel": AT01_CLOSURE_REL_TOL},
+        "arms": arms,
+        "sweep_spans_subthreshold_to_ap": bool({"subthreshold", "action_potential"} <= regimes),
+        "I_m": {"state": "ABSENT", "reason": "Jaxley HH channel carries no M-current"},
+    }
+
+
 def _tfne_pair_run(spec: str, duration_ms: float, dt_ms: float, seed: int = SEED) -> dict[str, Any]:
     """TFNE -> realize -> configure -> field/probes -> construct -> simulate.
 

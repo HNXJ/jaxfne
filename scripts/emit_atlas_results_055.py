@@ -31,6 +31,8 @@ OUT = ROOT / "artifacts" / "atlas" / "results"
 
 JOBS = {
     "at01": ("at01_055.json", "at01_at06_052:run_at01", lambda: A.run_at01()),
+    "at01ext": ("at01_extraction_055.json", "at01_at06_052:run_at01_extraction",
+                lambda: A.run_at01_extraction()),
     "at05": ("at05_055.json", "at01_at06_052:run_at05", lambda: A.run_at05()),
     "at05iso": ("at05_isolation_055.json", "at01_at06_052:run_at05_isolation",
                 lambda: A.run_at05_isolation()),
