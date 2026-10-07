@@ -17,6 +17,12 @@ the rules those releases were held to and are historical context for readers.
   `H0`): typed pre-`construct` transforms of a `NeuronalTensor` in fixed
   canonical order `N -> G -> Theta_C -> Theta_X -> W_0 -> H_0`, with
   per-axis `K_V` seeding and per-value provenance. See `docs/api/augment.md`.
+- Optional per-neuron membrane floor `v_floor` on the registrable HDP
+  Izhikevich kernel (default `None`, outputs unchanged). A floor below rest
+  stops strong inhibition from driving the membrane past the quadratic
+  turning point, where the neuron would fire.
+- Études: homeostatic balance learning and Predictive Coding Light
+  (`docs/etudes/hdp_balance.md`, `docs/etudes/pcl.md`).
 
 ### Changed
 

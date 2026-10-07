@@ -179,6 +179,8 @@ nav:
       - Experiment A — Canonical multiscale (builds on Multiscale): etudes/experiment_a.md
       - Heterogeneous emitters: etudes/heterogeneous_emitters.md
       - HDP controllability & reachability: etudes/hdp_controllability_reachability.md
+      - Homeostatic balance learning: etudes/hdp_balance.md
+      - Predictive Coding Light: etudes/pcl.md
 
   - Theory and Experiments:
       - Foundations:

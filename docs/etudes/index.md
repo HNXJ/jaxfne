@@ -13,6 +13,8 @@ and committed artifacts. Études answer *what the grammar can demonstrate*;
 | Multiscale observation | Holding \((X,Q)\) fixed, how do distinct observation operators \(O_k\) transform spatial and spectral structure? | [Multiscale observation](multiscale_observation.md) |
 | Experiment A (0.4.17-B) | One frozen \((X,H,Q)\) trajectory; factorized \(F\) then \(P\) multiscale readouts with explicit semantics | [Experiment A](experiment_a.md) |
 | Heterogeneous emitters | Can distinct neural equations \(E\) participate in the same \(S\rightarrow F\rightarrow P\) composition? | [Heterogeneous emitters](heterogeneous_emitters.md) |
+| Homeostatic balance learning | Can a spiking network learn to balance an unstable object while a homeostatic loop holds its rates? | [Homeostatic balance learning](hdp_balance.md) |
+| Predictive Coding Light | Does learned inhibition remove predictable spikes and keep stimulus information, standalone and as a registered HDP rule? | [Predictive Coding Light](pcl.md) |
 
 Committed bundles live under `artifacts/etudes/<name>/` with `metrics.json` and
 `manifest.json` provenance. Field and spectral readouts in études are **proxy**
