@@ -17,11 +17,16 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pcl_fig2 as F  # noqa: E402
 import pcl_hdp_rule as R  # noqa: E402
 from jaxfne._hdp_registrable_kernel import simulate_edge_recurrent_izhikevich_hdp_registered as sim  # noqa: E402
 from jaxfne.emitters import EdgeList, IzhikevichParams  # noqa: E402
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 DT = 0.1  # ms
 PULSE_MS, GAP_MS, TAU_INH = 1.0, 50.0, 2.0

@@ -154,8 +154,8 @@ threshold (0.5 spikes/sequence) and A1 measures a small, selected subset.
 
 Reading: the stimulus was not the only cause of A1 failing. With one
 16-feature kernel bank and 7 × 7 fields, sparse localized input is coded by
-position first. Orientation tuning likely needs richer input (natural event
-statistics, as in the paper) or more features; not pursued here.
+position first. Orientation tuning may need richer input statistics or more
+features; not pursued here.
 
 ![C1b kernels, seed 10](confirm/c1b_seed10_kernels.png)
 

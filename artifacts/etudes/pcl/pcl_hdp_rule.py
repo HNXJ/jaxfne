@@ -14,11 +14,19 @@ Per-edge parameters are arrays of length n_edges; ``n_groups`` is the number of
 """
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 import jax.numpy as jnp
 
-from jaxfne.emitters import _segment_sum
-from jaxfne.hdp_rule import (HDPRuleDescriptor, HDPRuleUpdate, list_registered_hdp_rules,
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from jaxfne.emitters import _segment_sum  # noqa: E402
+from jaxfne.hdp_rule import (HDPRuleDescriptor, HDPRuleUpdate, list_registered_hdp_rules,  # noqa: E402
                              register_hdp_rule)
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 NAME = "pcl_stdp"
 PARAM_KEYS = ("tau", "w_max", "eta", "f", "lam", "norm", "group", "n_groups")

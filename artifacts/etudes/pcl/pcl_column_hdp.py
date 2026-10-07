@@ -19,12 +19,17 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pcl_column as C  # noqa: E402
 import pcl_fig2_hdp as K  # noqa: E402
 import pcl_hdp_rule as R  # noqa: E402
 from jaxfne._hdp_registrable_kernel import simulate_edge_recurrent_izhikevich_hdp_registered as sim  # noqa: E402
 from jaxfne.emitters import EdgeList  # noqa: E402
+
+assert "site-packages" not in sys.modules["jaxfne"].__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
 
 DT = C.DT  # 0.5 ms, shared with the stimulus generator
 N_IN, S0, C0 = C.NIN, C.NIN, C.NIN + C.NS
