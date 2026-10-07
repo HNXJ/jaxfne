@@ -30,6 +30,13 @@ def test_shuffled_modulator_differs_from_own():
     assert not np.array_equal(Wf[0], Ws[0])
 
 
+def test_sensory_motor_scope_restricts_plasticity(monkeypatch):
+    monkeypatch.setattr(B, "PLASTIC_SCOPE", "sensory_motor")
+    _, plastic = B.init_network(0)
+    rows, cols = np.nonzero(plastic)
+    assert rows.size and np.isin(rows, np.r_[B.MP, B.MM]).all() and np.isin(cols, B.S).all()
+
+
 def test_wired_control_is_correct_sign():
     W, _ = B.init_network(0, wired=True)
     assert B.motor_map_index(W) > 0

@@ -41,6 +41,7 @@ P = dict(
 RSTAR = np.zeros(N, np.float32)
 RSTAR[E], RSTAR[I], RSTAR[MP], RSTAR[MM] = 5.0, 10.0, 10.0, 10.0
 NONSENS = RSTAR > 0
+PLASTIC_SCOPE = "all"  # "all": excitatory onto E and motor; "sensory_motor": sensory->motor only
 
 
 def init_network(seed: int, wired: bool = False):
@@ -67,6 +68,10 @@ def init_network(seed: int, wired: bool = False):
     plastic[:, I] = False
     plastic[I, :] = False
     plastic[S, :] = False
+    if PLASTIC_SCOPE == "sensory_motor":
+        keep = np.zeros_like(plastic)
+        keep[np.ix_(np.concatenate([MP, MM]), S)] = True
+        plastic &= keep
     return W.astype(np.float32), plastic
 
 
@@ -167,7 +172,16 @@ def main():
     ap.add_argument("--train-s", type=int, default=300)
     ap.add_argument("--test-s", type=int, default=60)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--set", nargs="*", default=[], metavar="KEY=VALUE", help="override entries of P (recorded in params)")
+    ap.add_argument("--plastic-scope", choices=("all", "sensory_motor"), default="all")
     a = ap.parse_args()
+    global PLASTIC_SCOPE
+    PLASTIC_SCOPE = a.plastic_scope
+    for kv in a.set:
+        k, val = kv.split("=")
+        if k not in P:
+            raise SystemExit(f"unknown parameter {k}")
+        P[k] = float(val)
 
     seeds = list(range(a.seed0, a.seed0 + a.n_seeds))
     conds = ["full"] * a.n_seeds + ["frozen"] * a.n_seeds + ["shuffled"] * a.n_seeds + ["wired"] * a.n_wired
@@ -180,7 +194,7 @@ def main():
     jax.block_until_ready(sb)
     W_end = np.asarray(carry[7])
     res = dict(
-        params=dict(P, eta=a.eta, seed0=a.seed0, n_seeds=a.n_seeds, train_s=a.train_s, test_s=a.test_s),
+        params=dict(P, eta=a.eta, plastic_scope=PLASTIC_SCOPE, seed0=a.seed0, n_seeds=a.n_seeds, train_s=a.train_s, test_s=a.test_s),
         wall_s=round(time.time() - t0, 1),
         conditions=conds, seeds=all_seeds,
         train_band=np.asarray(tb).T.tolist(), train_fail=np.asarray(tf).T.tolist(),
