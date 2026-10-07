@@ -42,6 +42,8 @@ RSTAR = np.zeros(N, np.float32)
 RSTAR[E], RSTAR[I], RSTAR[MP], RSTAR[MM] = 5.0, 10.0, 10.0, 10.0
 NONSENS = RSTAR > 0
 PLASTIC_SCOPE = "all"  # "all": excitatory onto E and motor; "sensory_motor": sensory->motor only
+MOTOR_HOMEO = "neuron"  # "neuron": each motor threshold tracks its own rate; "pooled": the mean motor rate
+MOTOR = np.concatenate([MP, MM])
 
 
 def init_network(seed: int, wired: bool = False):
@@ -93,7 +95,10 @@ def _step(carry, _, eta, perm, plastic, S0):
     xpre = xpre * (1 - DT / P["tau_pre"]) + f
     r = r * (1 - DT / P["tau_r"]) + f / P["tau_r"]
     rho = rho * (1 - DT / P["tau_rho"]) + f / P["tau_rho"]
-    H = jnp.where(NONSENS, jnp.clip(H + DT / P["tau_H"] * (rho / np.where(NONSENS, RSTAR, 1.0) - 1.0), 0.1, 10.0), H)
+    rho_h = rho
+    if MOTOR_HOMEO == "pooled":  # motor thresholds track the joint rate of both pools
+        rho_h = rho.at[:, MOTOR].set(rho[:, MOTOR].mean(1, keepdims=True))
+    H = jnp.where(NONSENS, jnp.clip(H + DT / P["tau_H"] * (rho_h / np.where(NONSENS, RSTAR, 1.0) - 1.0), 0.1, 10.0), H)
 
     u = P["u_max"] * jnp.tanh((r[:, MP].mean(1) - r[:, MM].mean(1)) / P["u_scale"])
     theta_new = theta + DT * (P["a"] * theta + P["b"] * u) + P["sigma_th"] * np.sqrt(DT) * jax.random.normal(k3, theta.shape)
@@ -174,9 +179,10 @@ def main():
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--set", nargs="*", default=[], metavar="KEY=VALUE", help="override entries of P (recorded in params)")
     ap.add_argument("--plastic-scope", choices=("all", "sensory_motor"), default="all")
+    ap.add_argument("--motor-homeo", choices=("neuron", "pooled"), default="neuron")
     a = ap.parse_args()
-    global PLASTIC_SCOPE
-    PLASTIC_SCOPE = a.plastic_scope
+    global PLASTIC_SCOPE, MOTOR_HOMEO
+    PLASTIC_SCOPE, MOTOR_HOMEO = a.plastic_scope, a.motor_homeo
     for kv in a.set:
         k, val = kv.split("=")
         if k not in P:
@@ -194,7 +200,7 @@ def main():
     jax.block_until_ready(sb)
     W_end = np.asarray(carry[7])
     res = dict(
-        params=dict(P, eta=a.eta, plastic_scope=PLASTIC_SCOPE, seed0=a.seed0, n_seeds=a.n_seeds, train_s=a.train_s, test_s=a.test_s),
+        params=dict(P, eta=a.eta, plastic_scope=PLASTIC_SCOPE, motor_homeo=MOTOR_HOMEO, seed0=a.seed0, n_seeds=a.n_seeds, train_s=a.train_s, test_s=a.test_s),
         wall_s=round(time.time() - t0, 1),
         conditions=conds, seeds=all_seeds,
         train_band=np.asarray(tb).T.tolist(), train_fail=np.asarray(tf).T.tolist(),

@@ -168,6 +168,48 @@ Reading (inferred, not tested):
   flattening the up/down asymmetry the controller needs; the same pull would
   erode a learned map.
 
+## Stage 1d protocol (declared before any 1d run)
+
+Change (Hamm 2026-10-06): stage 1c plus pooled motor homeostasis. Every motor
+neuron's threshold tracks the mean rate of all 20 motor neurons (target
+10 Hz), not its own rate, so total motor activity is held while the up/down
+difference is free. Everything else as 1c (`--plastic-scope sensory_motor`).
+
+- η chosen on pilot seeds 0–7 from {0.3, 1, 3, 10} by the stage-1b rule.
+- Confirmatory seeds 4000–4015, run once. P1–P4 unchanged.
+- Secondary (reported, not gated): wired-control in-band over the last 50 s
+  of training versus the first 50 s (tests the erosion reading of 1c).
+
+**Frozen before the 1d confirmatory run: η = 10** (rule: most summed paired
+wins; η = 0.3 had the largest differences but fewer wins). Pilot (seeds 0–7):
+
+| η | full | frozen | shuffled | full−frozen | full−shuffled | map (full) |
+|---|---|---|---|---|---|---|
+| 0.3 | 0.703 | 0.315 | 0.319 | 6/8, +0.388 | 7/8, +0.384 | +0.58 |
+| 1 | 0.631 | 0.315 | 0.289 | 6/8, +0.316 | 8/8, +0.342 | +0.41 |
+| 3 | 0.503 | 0.315 | 0.399 | 5/8, +0.188 | 5/8, +0.104 | +0.23 |
+| 10 | 0.497 | 0.315 | 0.322 | 7/8, +0.182 | 8/8, +0.174 | −0.04 |
+
+E rates 5.0 Hz in all conditions; wired 0.984 (1c pilot, same seeds: 0.962).
+
+### Stage 1d result (seeds 4000–4015, η = 10): FAIL
+
+| criterion | observed | verdict |
+|---|---|---|
+| P1 full > frozen | 5/16 wins, −0.083 | FAIL |
+| P2 full > shuffled | 7/16 wins, −0.050 | FAIL |
+| P3 E rate 2.5–10 Hz | 32/32 (4.8–5.2 Hz) | PASS |
+| P4 wired ≥ 0.6 | 0.977 | PASS |
+
+Test in-band means: full 0.309, frozen 0.392, shuffled 0.359, wired 0.977.
+Reading: pooled motor homeostasis keeps the wired control near 0.98 (1c: 0.84),
+consistent with the erosion reading. The selection rule (paired wins) chose
+η = 10, whose pilot map index was already ≈ 0; the rule, not the mechanism,
+is the weak link here. A test of η = 0.3 needs a new declared protocol and
+fresh seeds; it is not run.
+
+![stage 1d figure](confirm_1d_figure.png)
+
 ## Reproduce
 
 ```bash
