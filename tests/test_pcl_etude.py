@@ -77,6 +77,23 @@ def test_hdp_rule_matches_paper_update():
     np.testing.assert_allclose(aux_next, [[0, 0, 1], [0, 0, 1]], atol=1e-5)
 
 
+def test_third_factor_g0_is_pcl_and_g_changes_weights():
+    """pcl_stdp_m with g = 0 reproduces pcl_stdp bit for bit; g > 0 changes the learned weights."""
+    import artifacts.etudes.pcl.pcl_fig2_hdp as K
+    import artifacts.etudes.pcl.pcl_third_factor as T
+    import artifacts.etudes.pcl.pcl_hdp_rule as R
+    R.register()
+    trains, total = K.concat([F.make_sample(np.random.default_rng(3)) for _ in range(2)])
+    s, amp, w0 = 5.0, 30.0, np.full(3, 5.0)
+    rp = T.params(s, 0.0)
+    w_plain, n_plain = K.run(w0, trains, amp, total, {k: rp[k] for k in R.PARAM_KEYS}, True)
+    w_g0, _, n_g0 = T.run(w0, np.zeros((3, 5), np.float32), trains, amp, total, rp, True)
+    assert n_plain[1:].sum() > 0, "fixture must drive the post neurons"
+    assert np.array_equal(w_plain, w_g0) and np.array_equal(n_plain, n_g0)
+    w_g, _, _ = T.run(w0, np.zeros((3, 5), np.float32), trains, amp, total, T.params(s, 4.0), True)
+    assert not np.array_equal(w_g, w_g0)
+
+
 def test_no_learning_keeps_weights():
     net = F.Net(3.0)
     net.run(F.make_sample(np.random.default_rng(1)), learn=False)

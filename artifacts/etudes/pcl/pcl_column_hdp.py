@@ -94,7 +94,8 @@ def rule_params(s):
                          conn[TYP, 3] * type_scale(s) * counts, np.ones(len(PRE)), GROUP, N * len(TYPES))
 
 
-def make_runner(s, amp, plastic_types):
+def make_runner(s, amp, plastic_types, full=False):
+    """Jitted sequence runner; ``full`` returns (v, spikes, sources) traces instead of (w, counts)."""
     params = K.izh(N)
     edges = EdgeList(pre=jnp.asarray(PRE, jnp.int32), post=jnp.asarray(POST, jnp.int32),
                      weight=jnp.where(jnp.isin(jnp.asarray(TYP), jnp.asarray(EXC)), 1.0, -1.0).astype(jnp.float32),
@@ -121,9 +122,11 @@ def make_runner(s, amp, plastic_types):
         st = {"v": jnp.full(N, -65.0), "u": jnp.full(N, -13.0), "prev_spikes": jnp.zeros(N),
               "syn_state": jnp.zeros(len(PRE)), "w_final": jnp.asarray(sign) * w_mag,
               "aux_final": jnp.zeros((len(PRE), 3), jnp.float32)}
-        _, spikes, _, diag = sim(params, edges, N_STEPS, DT, k2, drive_schedule=sched, noise_scale=0.0,
-                                 init_state=st, hdp_rule=R.NAME, hdp_rule_params=rp,
-                                 record_weight_trace=False, plasticity_mask=mask, v_floor=V_FLOOR)
+        v, spikes, src, diag = sim(params, edges, N_STEPS, DT, k2, drive_schedule=sched, noise_scale=0.0,
+                                   init_state=st, hdp_rule=R.NAME, hdp_rule_params=rp,
+                                   record_weight_trace=False, plasticity_mask=mask, v_floor=V_FLOOR)
+        if full:
+            return v, spikes, src
         return jnp.abs(diag["w_final"]), spikes.sum(0)
 
     return run

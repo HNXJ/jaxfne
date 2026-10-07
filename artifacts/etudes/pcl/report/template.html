@@ -1,0 +1,215 @@
+<title>Predictive Coding Light in jaxfne</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@85,500;85,700&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<script>
+window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]], tags: "ams" },
+                   svg: { fontCache: "global" } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+/* Layout: one reading column (~68ch) with figures allowed to run wider; a working paper. */
+:root {
+  --bg: #f6f7f9; --ink: #18202b; --muted: #5d6878; --rule: #d9dee6; --panel: #ffffff;
+  --accent: #1565c0; --pass: #2e7d32; --fail: #c62828;
+  --c1: #1565c0; --c2: #ff9800; --c3: #00acc1; --c4: #e53935;
+  --display: "Archivo", "Arial Narrow", Arial, sans-serif;
+  --body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f141a; --ink: #e3e8ef; --muted: #94a0b0; --rule: #2a3340; --panel: #151c24;
+  --accent: #5aa2f0; --pass: #66bb6a; --fail: #ef5350;
+  --c1: #5aa2f0; --c2: #ffad33; --c3: #26c6da; --c4: #ff6b66; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f141a; --ink: #e3e8ef; --muted: #94a0b0; --rule: #2a3340; --panel: #151c24;
+  --accent: #5aa2f0; --pass: #66bb6a; --fail: #ef5350;
+  --c1: #5aa2f0; --c2: #ffad33; --c3: #26c6da; --c4: #ff6b66; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 400 17px/1.6 var(--body); }
+main { max-width: 52rem; margin: 0 auto; padding-inline: 16px; padding-block: 40px 64px; display: grid; gap: 30px; }
+.prose { max-width: 68ch; display: grid; gap: 14px; }
+h1, h2, h3 { font-family: var(--display); font-stretch: 85%; text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 2.9rem); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 1.35rem; font-weight: 700; padding-top: 12px; border-top: 1px solid var(--rule); }
+h3 { font-size: 1.05rem; font-weight: 700; margin-top: 6px; }
+p { margin: 0; }
+section { display: grid; gap: 14px; min-width: 0; }
+.eyebrow { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.byline { font: 400 0.8rem/1.4 var(--mono); color: var(--muted); }
+.abstract { background: var(--panel); border: 1px solid var(--rule); border-left: 3px solid var(--accent); padding: 16px 18px; max-width: 68ch; display: grid; gap: 8px; font-size: 0.98rem; }
+.abstract .eyebrow { color: var(--accent); }
+.num { font-family: var(--mono); font-size: 0.9em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.prose, .prose > * { min-width: 0; }
+.math { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+mjx-container[display="true"] { max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+figure { margin: 0; background: var(--panel); border: 1px solid var(--rule); border-radius: 4px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+figure > svg { width: 100%; height: auto; display: block; color: var(--ink); }
+figcaption { font-size: 0.86rem; line-height: 1.5; color: var(--muted); }
+figcaption b { color: var(--ink); font-family: var(--display); font-stretch: 85%; }
+.code { font-family: var(--mono); font-size: 0.8rem; background: var(--panel); border-left: 3px solid var(--accent); padding: 10px 14px; overflow-x: auto; white-space: pre; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 0.86rem; width: 100%; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 0.72rem/1.2 var(--mono); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+td.v { font-family: var(--mono); font-size: 0.8rem; white-space: nowrap; }
+td { font-variant-numeric: tabular-nums; }
+.pass { color: var(--pass); font-weight: 600; }
+.fail { color: var(--fail); font-weight: 600; }
+code { font-family: var(--mono); font-size: 0.85em; overflow-wrap: anywhere; }
+ol.refs { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; font-size: 0.88rem; max-width: 68ch; }
+ol.refs a { color: var(--accent); word-break: break-all; }
+.note { font-size: 0.9rem; color: var(--muted); max-width: 68ch; }
+</style>
+
+<main>
+  <header style="display:grid;gap:12px">
+    <div class="eyebrow">Working paper · jaxfne études</div>
+    <h1>Predictive Coding Light in jaxfne</h1>
+    <p class="byline">Learned inhibition on an Izhikevich kernel: spikes, laminar field proxy and a surprise third factor · synthetic inputs · relative units</p>
+  </header>
+
+  <section class="abstract">
+    <div class="eyebrow">Abstract</div>
+    <p>Predictive Coding Light proposes that cortical circuits remove predictable spikes with learned inhibition, rather than compute an explicit prediction error (N'dri et al., 2025). We implemented its spike-timing rule as a registered plasticity rule on the jaxfne Izhikevich kernel and tested it in two networks against criteria fixed before the confirmatory runs. In a four-neuron network, inhibition from a predictor neuron grew onto three target neurons in the order of how many of their spikes it predicted. It removed <span class="num">{{k0b_sup}}</span> of their spikes, against <span class="num">{{p0_sup}}</span> in a standalone integrate-and-fire reference. In a column of 512 input relays, 256 simple and 32 complex cells, learned lateral and top-down inhibition kept <span class="num">{{K1_kept}}</span> of the simple-cell spikes, while orientation decoding fell from <span class="num">{{K1_none}}</span> to <span class="num">{{K1_pcl}}</span>, whereas removing the same number of spikes at random left <span class="num">{{K1_rand}}</span>. Orientation tuning did not emerge in any variant. A laminar field proxy of one trained column had <span class="num">{{lfp_ratio}}</span> times more power at the simple-cell depth with the learned inhibition, because the proxy sums synaptic current and the inhibition adds current while it removes spikes. A population surprise signal used as a third factor did not speed re-learning after the predictions reversed. Spike removal with retained information therefore reproduces on the kernel, whereas tuning and surprise gating do not in these networks.</p>
+  </section>
+
+  <section>
+    <h2>1 Introduction</h2>
+    <div class="prose">
+      <p>Prediction need not be represented as an explicit error signal. In the retina, lateral and temporal inhibition subtract the predictable part of the input before it is transmitted (Srinivasan et al., 1982). Cortical predictive coding models instead assign prediction errors to a dedicated population that compares feedback predictions with feedforward input (Rao and Ballard, 1999; Friston and Kiebel, 2009), and canonical microcircuit accounts place these error units in superficial pyramidal cells (Bastos et al., 2012). Mismatch responses in mouse primary visual cortex (Keller et al., 2012) and models in which interneuron circuits learn error neurons (Hertäg and Sprekeler, 2020) support the existence of such populations, but they do not show that every reduction of a predicted response requires one.</p>
+      <p>Predictive Coding Light takes the retinal route in cortex (N'dri et al., 2025). A causal spike-timing rule strengthens an inhibitory connection when the presynaptic spike precedes a postsynaptic spike, so inhibition grows onto neurons whose spikes another neuron predicts and then removes those spikes. The network transmits fewer spikes without an error population, and what remains is, by construction, the less predictable part of the activity. Whether this mechanism depends on the details of the original leaky integrate-and-fire implementation, and what it does to the mesoscale signals recorded in laminar experiments, is not settled by the original study.</p>
+      <p>We addressed three questions in jaxfne, where plasticity is written as a registered rule on a shared spiking kernel rather than inside a bespoke simulator. We tested whether the rule reproduces on Izhikevich neurons (Izhikevich, 2003) integrated by the kernel, and how learned inhibition changes a laminar field proxy computed from the same simulation. We then tested whether a neuromodulatory third factor (Frémaux and Gerstner, 2016), here a population surprise signal, speeds re-learning when the predictive structure changes. Each test had a protocol and a pass criterion fixed on a pilot seed, and the confirmatory seeds were run once, so the failures below are results rather than tuning targets.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>2 Methods</h2>
+    <div class="prose">
+      <h3>2.1 Neuron and kernel</h3>
+      <p>Each neuron follows the Izhikevich model with regular-spiking parameters \(a = 0.02\), \(b = 0.2\), \(c = -65\) mV and \(d = 8\),</p>
+      <div class="math">\[ \dot v = 0.04\,v^2 + 5\,v + 140 - u + I, \qquad \dot u = a\,(b\,v - u), \]\[ v \ge 30 \;\Rightarrow\; v \leftarrow c,\; u \leftarrow u + d, \]</div>
+      <p>where \(v\) (mV) is the membrane potential, \(u\) the recovery variable and \(I\) the input current, the sum of external drive and the current-based synaptic input \(I_j = \sum_i w_{ij}\, s_i\) over presynaptic synaptic traces \(s_i\) with signed weights \(w_{ij}\). The kernel advances all state by forward Euler steps of \(\Delta t = 0.1\) ms in the small network and 0.5 ms in the column. Below about \(-83\) mV the quadratic term drives \(v\) upward, and in pilot runs strong learned inhibition therefore produced spikes rather than silence. We added an opt-in membrane floor, \(v \leftarrow \max(v, v_\mathrm{floor})\) with \(v_\mathrm{floor} = -85\) mV, 20 mV below rest as is the lower potential bound of the reference model, rather than change the neuron equations. The floor is inactive by default, leaves unfloored simulations bit-identical, and was used in the column only; the small network ran without it.</p>
+
+      <h3>2.2 The PCL rule as a registered plasticity rule</h3>
+      <p>At each postsynaptic spike time \(t_s\) of neuron \(j\), every incoming weight is potentiated by the presynaptic spikes that preceded it and depressed by those that followed the previous postsynaptic spike \(t_{s-1}\),</p>
+      <div class="math">\[ \Delta w_{ij} = f\,\eta \Big[ (w_\mathrm{max} - w_{ij}) \sum_{t_i \in (t_{s-1}, t_s]} e^{-(t_s - t_i)/\tau} \;-\; w_{ij} \sum_{t_i \in (t_{s-1}, t_s]} e^{-(t_i - t_{s-1})/\tau} \Big], \]</div>
+      <p>where \(t_i\) are presynaptic spike times, \(\tau = 7\) ms, \(w_\mathrm{max} = 50\), \(\eta\) is the learning rate and \(f\) a connection-type factor. Weights are then clipped at zero and the incoming weights of each connection type onto \(j\) are rescaled to a fixed L1 norm \(\lambda\). In jaxfne this is the rule <code>pcl_stdp</code>. Three per-edge auxiliary variables hold the two sums and the postsynaptic trace, and the rule returns rates that the kernel integrates as \(x + \Delta t\,\dot x\), so the update lands on the event-based value up to floating-point rounding.</p>
+
+      <h3>2.3 Networks and stimuli</h3>
+      <p>The small network reproduces Fig. 2 of N'dri et al. (2025). Neuron 0 is driven by a 20 Hz Poisson train in 1 s samples. Neurons 1, 2 and 3 are driven by trains with as many spikes, of which 90, 50 and 10 % are copies of neuron 0's input shifted by 1 ms and the rest come from an independent 20 Hz Poisson train. Neuron 0 inhibits neurons 1 to 3 through plastic weights. Each network trained for 10 epochs of 140 samples and was tested on 35 fresh samples; weights are reported in mV-equivalent units obtained by calibrating the kernel's synaptic scale against the reference model. Because the kernel's weights keep moving within an epoch, the K0b protocol reads the learned weight as its average over the last epoch rather than its final value.</p>
+      <p>The column receives event inputs on a 16 × 16 grid with two polarities, generated from bars drifting at 8 orientations in 200 ms sequences with 2 Hz background noise. Simple cells sit at 4 × 4 positions with 16 features, a 7 × 7 receptive field and stride 3; a second layer holds 32 complex cells. Training ran in two phases: 600 sequences for excitatory and local inhibitory weights, then 300 sequences for distant lateral and top-down inhibition. Orientation was decoded from log spike counts of 160 test sequences, 20 per orientation, with standardized logistic regression and 5-fold cross-validation. The control removed simple-cell spikes at random to match the spike count of the learned inhibition; on the kernel this thinning was applied to the counts after the run.</p>
+
+      <h3>2.4 Laminar field proxy</h3>
+      <p>Each neuron emits a source proxy \(q_n(t) = \kappa\,\big(I_n(t) + \gamma\,S_n(t)\big)\), the scaled input current plus a spike impulse \(S_n\). Neurons are assigned relative depths, input relays 0.55, simple cells 0.35 and complex cells 0.20, and 16 contacts at depths \(z_c \in [0, 1]\) read</p>
+      <div class="math">\[ \phi_c(t) = \sum_n q_n(t)\, \exp\!\Big(-\frac{(z_c - z_n)^2}{2\sigma^2}\Big), \qquad \sigma = 0.1, \]</div>
+      <p>which is <code>jaxfne.fields.proxy.project_laminar_sources</code> in its density-preserving mode. The proxy is relative and uncalibrated. Unlike a multicompartment forward model (Hagen et al., 2018), it has no dendritic geometry and no return currents, so it reports where summed input current changes, not a predicted recording.</p>
+
+      <h3>2.5 Surprise as a third factor</h3>
+      <p>The rule <code>pcl_stdp_m</code> scales the learning rate by a surprise signal computed from the population rate \(r\) of the three target neurons,</p>
+      <div class="math">\[ \tau_f\,\dot r_f = r - r_f, \qquad \tau_s\,\dot r_s = r - r_s, \qquad m = \operatorname{clip}\!\Big(\frac{r_f + \epsilon}{r_s + \epsilon},\, 0,\, 5\Big), \]\[ \eta_\mathrm{eff} = \eta\,\max\big(0,\, 1 + g\,(m - 1)\big), \]</div>
+      <p>with \(\tau_f = 2\) s, \(\tau_s = 20\) s, \(\epsilon = 10^{-4}\) and gain \(g = {{k2_g}}\); \(g = 0\) recovers <code>pcl_stdp</code> bit for bit. After 3 epochs at predictabilities 90, 50 and 10 %, the predictabilities were reversed to 10, 50 and 90 % for one epoch. The re-learning time \(t_\mathrm{rev}\) is the earliest time after which the trailing 10 s mean of \(w_3 - w_1\) stays positive. Three conditions shared each seed: fixed \(\eta\), gated \(\eta_\mathrm{eff}\), and matched, plain PCL with \(\eta\) scaled by the gated run's mean multiplier, which separates the timing of the factor from its average effect. The test passed if gated was faster than fixed (T1) and than matched (T2) in all seeds.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>3 Results</h2>
+    <div class="prose">
+      <h3>3.1 Inhibition learns to remove predictable spikes</h3>
+      <p>The order of the learned weights follows the predictability of the target. In the standalone reference the final weights were <span class="num">{{p0_w}}</span> onto neurons 1, 2 and 3, and inhibition removed <span class="num">{{p0_sup}}</span> of their spikes, mean of 3 networks (Fig. 1C, D). On the kernel, weights read at the end of each epoch kept this order in only 2 of 3 networks, because the weights fluctuate within an epoch and a snapshot at its end samples one point of that fluctuation. Averaged over the last epoch, the weights were <span class="num">{{k0b_w}}</span> and ordered in all 3 confirmatory networks and in the 3 networks of the end-of-epoch protocol, and inhibition removed <span class="num">{{k0b_sup}}</span> of the spikes. The kernel thus keeps the ordering at a smaller magnitude, which is consistent with the different integration of the Izhikevich neuron near threshold rather than with a change in the rule, although the present tests do not separate the two.</p>
+    </div>
+    <figure>
+      {{fig:network}}
+      <figcaption><b>Figure 1.</b> The Fig. 2 network of N'dri et al. (2025) on the jaxfne kernel. <b>A</b> Spikes of one test sample, 200 to 500 ms, without inhibition (grey, upper tick of each row) and with the epoch-averaged weights of seed 10 (blue, lower tick). <b>B</b> Membrane potential of neuron 1 over 100 ms of the same sample. <b>C</b> Fraction of spikes removed by the learned inhibition, standalone integrate-and-fire reference (P0) and jaxfne kernel (K0b), mean of 3 networks each. <b>D</b> Learned weights; standalone final values, kernel values averaged over the last epoch.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <h3>3.2 A column keeps its information with fewer spikes</h3>
+      <p>Learned distant and top-down inhibition removes most simple-cell spikes without removing what they encode. On the kernel, the column kept <span class="num">{{K1_kept}}</span> of its simple-cell spikes, and orientation decoding went from <span class="num">{{K1_none}}</span> without this inhibition to <span class="num">{{K1_pcl}}</span> with it, whereas random removal of the same number of spikes left <span class="num">{{K1_rand}}</span>, mean of seeds 10 to 12 (Fig. 2). The standalone column kept <span class="num">{{C1_kept}}</span> of the spikes at unchanged decoding, <span class="num">{{C1_pcl}}</span> against <span class="num">{{C1_rand}}</span> after random removal, and the localized-segment variant behaved the same way. The spikes that inhibition removes are therefore largely redundant for orientation, rather than a random subset of the code.</p>
+      <p>Orientation tuning, the second result of the original column, did not reproduce. The median orientation selectivity index of responsive simple cells stayed at <span class="num">{{C1_osi}}</span> standalone, <span class="num">{{K1_osi}}</span> on the kernel and <span class="num">{{C1b_osi}}</span> with localized edges, against a criterion of 0.3. In the standalone column the learned kernels became centre detectors with drifting bars and position detectors with short segments, so the features code where an edge is more than how it is oriented. Decoding above chance with untuned cells is possible because the population pattern still differs between orientations, and the column result is therefore about coding efficiency, not about the emergence of receptive fields.</p>
+    </div>
+    <figure>
+      {{fig:column}}
+      <figcaption><b>Figure 2.</b> The column on the jaxfne kernel, seed 10, one drifting-bar sequence at orientation 2. <b>A, B</b> Simple-cell spikes without and with the learned distant and top-down inhibition, {{n_col_none}} and {{n_col_pcl}} spikes. <b>C</b> 8-way orientation decoding, mean of seeds 10 to 12 per protocol; random removal matched in spike count; dotted line, chance. K1 decodes simple cells only, because its random control thins counts after the run; C1 and C1b decode simple and complex cells.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <h3>3.3 Fewer spikes, larger field</h3>
+      <p>Spike suppression and field amplitude dissociate in this column. Across one sequence per orientation, the learned inhibition reduced simple-cell spikes from <span class="num">{{spk_simple_no_inh}}</span> to <span class="num">{{spk_simple_pcl}}</span>, a factor of <span class="num">{{spk_simple_ratio}}</span>, while the mean source of a simple cell went from <span class="num">{{src_simple_no_inh}}</span> to <span class="num">{{src_simple_pcl}}</span> relative units, <span class="num">{{src_simple_ratio}}</span> times more net inhibitory current (Fig. 3C). Broadband power from 5 to 300 Hz at the contact nearest the simple-cell depth, <span class="num">{{lfp_depth}}</span>, was <span class="num">{{lfp_ratio}}</span> times higher with the inhibition (Fig. 3D). Complex cells changed in the opposite direction, from <span class="num">{{src_cx_no_inh}}</span> to <span class="num">{{src_cx_pcl}}</span> in mean source and from <span class="num">{{spk_cx_no_inh}}</span> to <span class="num">{{spk_cx_pcl}}</span> spikes. The relay sources were {{relay_same}} in the two conditions, so the change at the input depth in Fig. 3A and B is spread from the simple-cell layer by the 0.1-wide projection kernel rather than generated by the relays.</p>
+      <p>The proxy therefore tracks the learned inhibitory current, not the spikes it removes. A current-based proxy of a predictive circuit can grow when the circuit's output shrinks, and a reduced response in spikes need not appear as a reduced field. This sign depends on the source model: with conductance-based synapses, return currents and dendritic geometry the inhibitory contribution would be weighted differently, and the present proxy cannot say which way a recorded LFP would move.</p>
+    </div>
+    <figure>
+      {{fig:lfp}}
+      <figcaption><b>Figure 3.</b> Laminar field proxy of the column on the jaxfne kernel, seed 10, mean over one sequence per orientation. Depths are assigned, not modelled: relays 0.55, simple cells 0.35, complex cells 0.20 (dotted lines). <b>A, B</b> Field proxy without and with the learned distant and top-down inhibition, shared colour scale. <b>C</b> Mean source proxy per neuron, by population; negative values are net inhibitory input current. <b>D</b> Welch spectrum, 256-sample segments at 2 kHz, at the contact nearest the simple-cell depth, mean over orientations. Values are relative and uncalibrated.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <h3>3.4 A surprise third factor does not speed re-learning</h3>
+      <p>After the predictabilities reversed, the weights reversed under every condition, and the surprise factor did not change how fast. Plain PCL took <span class="num">{{k2_fixed}}</span> s, the gated rule <span class="num">{{k2_gated}}</span> s and the matched control <span class="num">{{k2_matched}}</span> s, with no seed differing between gated and fixed by more than <span class="num">{{k2_dmax}}</span> s (Fig. 4, table). Gated was faster than fixed in <span class="num">{{k2_faster}}</span> seeds, so both criteria failed. The factor carried little signal: the mean multiplier over the epoch was <span class="num">{{k2_mult}}</span>, and the fast and slow rate estimates stayed close. One reason is the protocol itself: the copied fractions sum to 150 % before and after the reversal, so the summed rate of the three targets changes little, and a three-neuron rate is dominated by Poisson noise. This tests one surprise signal in a three-neuron population, and it does not rule out a third factor computed over a larger population or from a dedicated mismatch signal.</p>
+    </div>
+    <figure>
+      {{fig:third}}
+      <figcaption><b>Figure 4.</b> Third factor after a reversal of predictabilities from 90, 50 and 10 % to 10, 50 and 90 %, g = {{k2_g}}. <b>A</b> Weights onto neurons 1 to 3 in the epoch after the reversal, gated condition, 1 s running mean. <b>B</b> Surprise <i>m</i>, 10 ms resolution (grey) and 1 s mean (red). <b>C</b> Re-learning time per seed under the three conditions.</figcaption>
+    </figure>
+    <div class="table-wrap"><table>
+      <thead><tr><th>seed</th><th>fixed (s)</th><th>matched (s)</th><th>gated (s)</th><th>mean multiplier</th></tr></thead>
+      <tbody>
+{{k2_rows}}
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>4 Discussion</h2>
+    <div class="prose">
+      <p>The core claim of Predictive Coding Light reproduces on a different neuron model and integrator. Inhibition learned by a causal spike-timing rule grew in the order of how predictable its target was and removed more spikes from the more predictable targets. In a column it removed about seven in ten simple-cell spikes at a small cost in decodable orientation, whereas random removal of the same number of spikes reduced decoding to <span class="num">{{K1_rand}}</span>, against a chance level of 0.125. Writing the rule as a registered plasticity rule required no change to the kernel beyond the opt-in membrane floor, and the kernel's rate integration reproduces the rule's event-based update up to floating-point rounding.</p>
+      <p>Two results of the original model did not reproduce here. Orientation tuning did not emerge with drifting bars or with localized segments, so the efficiency result stands without the receptive-field result in these networks. Because tuning also failed in the standalone column, its absence lies in our column, its size, stimuli and training length, rather than in the port to the kernel. The surprise third factor did not speed re-learning, and its multiplier stayed within a few percent of one; with three neurons a population rate is too noisy to signal that a prediction failed. Neither negative result refutes the original model, because both concern a simplified setting, but both show that the rule's efficiency gain does not depend on tuning and that a weak third factor adds nothing to it.</p>
+      <p>The field result bears on how predictive suppression should appear in laminar recordings. Reduced spiking to predicted input is often read as reduced activity, whereas in this model the reduction is produced by added inhibitory current, and a field built from input currents grows where spikes fall. Laminar power profiles are themselves under debate (Mendoza-Halliday et al., 2024; Mackey et al., 2026), and the present proxy, with assigned depths and point neurons, cannot place the model on either side. What it does show is that spike and field measures of the same suppression can move in opposite directions, so the direction of a field change alone does not identify whether a circuit suppresses its predictable output by inhibition.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>5 Limits</h2>
+    <div class="prose">
+      <p>Inputs are synthetic event streams rather than recordings, the column has 288 cells, and the small network has four. The kernel neuron is Izhikevich, not integrate-and-fire, and the membrane floor stands in for the reference model's minimum potential. The field proxy uses assigned depths, current-based point sources and relative units, and the column field comes from one trained network. Weights in the small network are read as epoch averages on the kernel, a choice declared before the confirmatory runs after end-of-epoch readout failed. Each protocol used 3 confirmatory seeds, so the results are statements about these seeds rather than estimates with intervals.</p>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>gate</th><th>what was tested</th><th>result</th></tr></thead>
+      <tbody>
+        <tr><td class="v">P0</td><td>Fig. 2 network, standalone integrate-and-fire</td><td><span class="pass">PASS</span> weights and suppression ordered in 3/3</td></tr>
+        <tr><td class="v">K0 / K0b</td><td>Fig. 2 network on the kernel, end-of-epoch / epoch-averaged weights</td><td><span class="fail">FAIL</span> 2/3 · <span class="pass">PASS</span> 3/3</td></tr>
+        <tr><td class="v">C1</td><td>column, standalone, drifting bars</td><td>tuning <span class="fail">FAIL</span> · spike removal <span class="pass">PASS</span> · information <span class="pass">PASS</span></td></tr>
+        <tr><td class="v">K1</td><td>column on the kernel</td><td>tuning <span class="fail">FAIL</span> · spike removal <span class="pass">PASS</span> · information <span class="pass">PASS</span></td></tr>
+        <tr><td class="v">C1b</td><td>column, localized edge segments</td><td>tuning <span class="fail">FAIL</span> · spike removal <span class="pass">PASS</span> · information <span class="pass">PASS</span></td></tr>
+        <tr><td class="v">K2b</td><td>surprise third factor, faster than fixed (T1) and than matched (T2)</td><td><span class="{{k2_t1_cls}}">{{k2_t1}}</span> · <span class="{{k2_t2_cls}}">{{k2_t2}}</span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Column criteria, each in 3 of 3 seeds: tuning, median OSI of responsive simple cells at least 0.3 and above the untrained network; spike removal, simple-cell spikes with learned inhibition at most 0.9 times those without; information, decoding above matched random removal.</p>
+  </section>
+
+  <section>
+    <h2>Reproduce</h2>
+    <div class="code">python artifacts/etudes/pcl/pcl_fig2_hdp.py --seeds 10 11 12 --out artifacts/etudes/pcl/fig2_hdp_avg.json
+python artifacts/etudes/pcl/pcl_column_hdp.py --seed 10 --out artifacts/etudes/pcl/confirm/k1_seed10.json
+python artifacts/etudes/pcl/pcl_third_factor.py --seeds 10 11 12 --g 4 --out artifacts/etudes/pcl/confirm/k2b.json
+python artifacts/etudes/pcl/pcl_report_data.py --k1 artifacts/etudes/pcl/confirm/k1_seed10.npz
+python artifacts/etudes/pcl/pcl_report.py</div>
+  </section>
+
+  <section>
+    <h2>References</h2>
+    <ol class="refs">
+      <li>Bastos AM, Usrey WM, Adams RA, Mangun GR, Fries P, Friston KJ (2012). Canonical microcircuits for predictive coding. Neuron 76:695–711. <a href="https://doi.org/10.1016/j.neuron.2012.10.038">doi:10.1016/j.neuron.2012.10.038</a></li>
+      <li>Frémaux N, Gerstner W (2016). Neuromodulated spike-timing-dependent plasticity, and theory of three-factor learning rules. Front Neural Circuits 9:85. <a href="https://doi.org/10.3389/fncir.2015.00085">doi:10.3389/fncir.2015.00085</a></li>
+      <li>Friston K, Kiebel S (2009). Predictive coding under the free-energy principle. Phil Trans R Soc B 364:1211–1221. <a href="https://doi.org/10.1098/rstb.2008.0300">doi:10.1098/rstb.2008.0300</a></li>
+      <li>Hagen E, Næss S, Ness TV, Einevoll GT (2018). Multimodal modeling of neural network activity: computing LFP, ECoG, EEG, and MEG signals with LFPy 2.0. Front Neuroinform 12:92. <a href="https://doi.org/10.3389/fninf.2018.00092">doi:10.3389/fninf.2018.00092</a></li>
+      <li>Hertäg L, Sprekeler H (2020). Learning prediction error neurons in a canonical interneuron circuit. eLife 9:e57541. <a href="https://doi.org/10.7554/eLife.57541">doi:10.7554/eLife.57541</a></li>
+      <li>Izhikevich EM (2003). Simple model of spiking neurons. IEEE Trans Neural Netw 14:1569–1572. <a href="https://doi.org/10.1109/TNN.2003.820440">doi:10.1109/TNN.2003.820440</a></li>
+      <li>Keller GB, Bonhoeffer T, Hübener M (2012). Sensorimotor mismatch signals in primary visual cortex of the behaving mouse. Neuron 74:809–815. <a href="https://doi.org/10.1016/j.neuron.2012.03.040">doi:10.1016/j.neuron.2012.03.040</a></li>
+      <li>Mackey CA, Duecker K, Neymotin S, et al. (2026). Is there a ubiquitous spectrolaminar motif of local field potential power across primate neocortex? Nat Neurosci 29:279–283. <a href="https://doi.org/10.1038/s41593-025-02167-y">doi:10.1038/s41593-025-02167-y</a></li>
+      <li>Mendoza-Halliday D, Major AJ, Lee N, et al. (2024). A ubiquitous spectrolaminar motif of local field potential power across the primate cortex. Nat Neurosci 27:547–560. <a href="https://doi.org/10.1038/s41593-023-01554-7">doi:10.1038/s41593-023-01554-7</a></li>
+      <li>N'dri AW, Barbier T, Teulière C, Triesch J (2025). Predictive Coding Light. Nat Commun 16:8880. <a href="https://doi.org/10.1038/s41467-025-64234-z">doi:10.1038/s41467-025-64234-z</a></li>
+      <li>Rao RPN, Ballard DH (1999). Predictive coding in the visual cortex: a functional interpretation of some extra-classical receptive-field effects. Nat Neurosci 2:79–87. <a href="https://doi.org/10.1038/4580">doi:10.1038/4580</a></li>
+      <li>Srinivasan MV, Laughlin SB, Dubs A (1982). Predictive coding: a fresh view of inhibition in the retina. Proc R Soc Lond B 216:427–459. <a href="https://doi.org/10.1098/rspb.1982.0085">doi:10.1098/rspb.1982.0085</a></li>
+    </ol>
+  </section>
+</main>

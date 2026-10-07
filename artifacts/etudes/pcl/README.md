@@ -215,6 +215,79 @@ by predictability once the weight is read as a time average; the snapshot
 fails in 1 of 3 fresh networks as in K0. The averaged weights are compressed
 (≈ 22 / 19 / 16 mV against 38 / 24 / 15 standalone).
 
+## Gate K2: a third factor, population surprise (declared before the pilot)
+
+Hamm 2026-10-07: add a third factor once the published model reproduces
+(K0b). Rule `pcl_stdp_m` (`pcl_hdp_rule.py`) scales the PCL learning rate by
+a population surprise signal: with $r$ the population rate of neurons 1–3 and
+$r_f$, $r_s$ its exponential traces ($\tau_f$ = 0.5 s, $\tau_s$ = 20 s),
+$m = \mathrm{clip}((r_f+\epsilon)/(r_s+\epsilon), 0, 5)$ and
+$\eta_{eff} = \eta\,(1 + g(m-1))$. Unpredicted spikes raise the population
+rate above its recent mean, so learning speeds up when the network's
+predictions fail and returns to the plain rate when they hold. $g = 0$ is
+`pcl_stdp` bit for bit (test).
+
+Protocol (`pcl_third_factor.py`): K0 network; phase A, 3 epochs at
+predictability 90 / 50 / 10 %; switch to 10 / 50 / 90 %; phase B, one epoch,
+from the same switch state in three conditions: fixed ($g$ = 0), gated
+($g$ > 0), matched ($g$ = 0 with η scaled by the gated run's mean multiplier
+over phase B). Readout $t_{rev}$: seconds after the switch from which the
+weight onto neuron 3 stays above the weight onto neuron 1.
+
+Acceptance, in 3/3 confirmatory seeds (10, 11, 12): **T1** gated
+$t_{rev}$ < fixed; **T2** gated $t_{rev}$ < matched (the timing of the
+factor matters, not only its mean). Pilot seed 0 sets $g \in \{1, 4\}$:
+the larger min(fixed − gated, matched − gated).
+
+Pilot (seed 0, $\tau_f$ = 0.5 s, raw-trace readout): $t_{rev}$ = ∞ in all
+three conditions at $g$ = 1 and 4. The readout failed, not the learning:
+averaged over phase B the weights reverse (15.7 / 18.3 / 22.4 mV at $g$ = 4)
+and suppression reverses (test spikes 383 / 327 / 271 against 418 / 410 / 416
+without inhibition), but the instantaneous weights fluctuate until the end
+of the epoch (the K0 snapshot problem). The modulator is weak: $m$ swings
+±40 % within seconds (Poisson noise of a 3-neuron rate over 0.5 s) and rises
+only ~7 % in the 20 s after the switch, so the mean multiplier is 1.016 at
+$g$ = 4. Receipts: `pilot/k2_seed0_g{1,4}.json`.
+
+### K2b (declared after that pilot, before any confirmatory run)
+
+Two changes, everything else as K2: $\tau_f$ = 2 s (less rate noise), and
+$t_{rev}$ read from the trailing 10 s mean of $w_3 - w_1$ (stays > 0 from
+$t_{rev}$ on). Pilot seed 0 sets $g \in \{4, 16\}$ by the K2 rule; T1, T2 and
+confirmatory seeds 10, 11, 12 unchanged.
+
+K2b pilot (seed 0), $t_{rev}$ in s:
+
+| $g$ | fixed | matched | gated | mean multiplier |
+|---|---|---|---|---|
+| 4 | 15.3 | 15.4 | 21.3 | 0.996 |
+| 16 | 15.3 | 14.6 | 20.9 | 1.135 |
+
+**Frozen: $g$ = 4** (rule: min(fixed − gated, matched − gated) = −6.0
+against −6.3). Gating slows re-learning in the pilot; the confirmatory run
+proceeds as declared.
+
+### K2b result (seeds 10, 11, 12, $g$ = 4): FAIL (T1, T2)
+
+| seed | fixed | matched | gated | mean multiplier |
+|---|---|---|---|---|
+| 10 | 136.1 | 136.0 | 136.5 | 0.993 |
+| 11 | 15.3 | 15.3 | 15.1 | 1.003 |
+| 12 | 18.8 | 18.9 | 18.2 | 0.973 |
+
+- **T1 FAIL** (2/3): gated is faster than fixed in seeds 11 and 12 by 0.2
+  and 0.6 s, slower in seed 10 by 0.4 s.
+- **T2 FAIL** (2/3): the same pattern against the matched mean.
+
+Reading: the factor is inert here. Its mean multiplier stays within 3 % of
+1, so the three conditions learn almost identically (differences ≤ 0.6 s).
+The population is three neurons at 20 Hz; their rate is dominated by
+Poisson noise and rises only slightly when predictions fail, so surprise
+carries little signal. Seed 10's late $t_{rev}$ (136 s) comes from a dip of
+the smoothed difference near the end of the epoch in all three conditions.
+A useful surprise signal needs a larger population or a per-neuron
+(prediction-error) factor; not pursued here.
+
 ## Gate K1: the C1 column on the jaxfne HDP kernel — A2 and A3 PASS, A1 FAIL
 
 `pcl_column_hdp.py` runs the C1 column (512 input relays, 256 simple, 32
