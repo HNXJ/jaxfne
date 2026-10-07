@@ -1,0 +1,52 @@
+{
+ "params": {
+  "seed": 0,
+  "n_exc": 600,
+  "n_inh": 300,
+  "n_test_per_ori": 20,
+  "stim": {
+   "width": 2.0,
+   "speed": 0.13,
+   "events": 3.0,
+   "noise_hz": 2.0,
+   "seq_ms": 200.0
+  }
+ },
+ "wall_s": 483.9,
+ "osi_trained_median": 0.10696325710809174,
+ "n_resp_trained": 251,
+ "osi_untrained_median": 0.044540862255283684,
+ "n_resp_untrained": 256,
+ "spikes": {
+  "pcl": [
+   14110,
+   9808
+  ],
+  "no_inh": [
+   26716,
+   15456
+  ],
+  "random": [
+   17677,
+   13048
+  ]
+ },
+ "keep_q": 0.5281479358673096,
+ "acc": {
+  "pcl": {
+   "simple": 0.88125,
+   "complex": 0.3375,
+   "both": 0.8875
+  },
+  "no_inh": {
+   "simple": 0.925,
+   "complex": 0.29375,
+   "both": 0.93125
+  },
+  "random": {
+   "simple": 0.375,
+   "complex": 0.25,
+   "both": 0.35625
+  }
+ }
+}

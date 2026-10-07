@@ -1,0 +1,54 @@
+{
+ "params": {
+  "seed": 0,
+  "n_exc": 600,
+  "n_inh": 300,
+  "n_test_per_ori": 20,
+  "stim": {
+   "kind": "grating",
+   "width": 2.0,
+   "period": 6.0,
+   "speed": 0.13,
+   "events": 3.0,
+   "noise_hz": 2.0,
+   "seq_ms": 200.0
+  }
+ },
+ "wall_s": 515.8,
+ "osi_trained_median": 0.041817861335049736,
+ "n_resp_trained": 256,
+ "osi_untrained_median": 0.019239458877622687,
+ "n_resp_untrained": 256,
+ "spikes": {
+  "pcl": [
+   81736,
+   21680
+  ],
+  "no_inh": [
+   143554,
+   41608
+  ],
+  "random": [
+   93575,
+   38096
+  ]
+ },
+ "keep_q": 0.5693745613098145,
+ "acc": {
+  "pcl": {
+   "simple": 0.60625,
+   "complex": 0.36875,
+   "both": 0.68125
+  },
+  "no_inh": {
+   "simple": 0.74375,
+   "complex": 0.325,
+   "both": 0.71875
+  },
+  "random": {
+   "simple": 0.41875,
+   "complex": 0.2625,
+   "both": 0.4625
+  }
+ }
+}
