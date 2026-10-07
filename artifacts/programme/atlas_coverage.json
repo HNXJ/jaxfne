@@ -270,7 +270,7 @@
    "release": "0.5.2",
    "candidate": false,
    "evidence": "artifacts/atlas/results/at05_isolation_055.json",
-   "state": "SUPPORTED"
+   "state": "VALIDATED"
   },
   {
    "id": "AT-05-R3",

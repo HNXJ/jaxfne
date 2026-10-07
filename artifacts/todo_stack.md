@@ -310,9 +310,9 @@ ATLAS
    N Phi_1; ~11 spikes per arm is a weak regime; "drive-dominated" was never
    measured. Requirement and claim reworded to the scoped statement ("coupled
    field equals uncoupled-twin field within 1% for the arms run; Phi_N != N
-   Phi_1 not demonstrated"); tests strengthened. AT-05-R2 stays SUPPORTED;
-   promotion needs Hamm's acceptance of the scoped wording, or a higher-rate
-   arm as falsifier. (c) AT-07 states "no stability assay, no adaptation
+   Phi_1 not demonstrated"); tests strengthened. ACCEPTED by Hamm 2026-10-06
+   with the scoped wording: AT-05-R2 VALIDATED (scope: suite2_net1_config,
+   N=8, 100 ms, 2 seeds; no higher-rate falsifier run). (c) AT-07 states "no stability assay, no adaptation
    phenotype"; AT-07-R3 would have to cite the N20 twin assay
    (`at10_r5_twin_055.json`) or get a stability arm of its own: Hamm's call.
    (d) result `_meta.jaxfne_version` reads 0.5.0 (version string not yet bumped).
