@@ -142,6 +142,45 @@ same data each epoch), so they settle within one epoch and the final value
 reflects the last training samples. A time-averaged weight is the better
 measure; it needs a new declared protocol.
 
+## Gate K1: the C1 column on the jaxfne HDP kernel — A2 and A3 PASS, A1 FAIL
+
+`pcl_column_hdp.py` runs the C1 column (512 input relays, 256 simple, 32
+complex cells, ~99 000 edges, one weight per edge) through the registrable
+kernel with rule `pcl_stdp`, dt = 0.5 ms. Inputs are 1 ms current pulses to
+relay neurons; each relay spike drives its targets. Calibration as K0 at this
+dt: w_cancel = 55.6, 1 mV ↔ 10.49 native units; inputs onto complex cells
+carry an extra 10/3 (threshold 3 vs 10 mV).
+
+The kernel needed a membrane floor: without one, paper-strength local
+inhibition drives Izhikevich neurons below the quadratic turning point and
+they fire (simple-cell spikes 536 → 29 568 when local inhibition is added).
+The kernel's opt-in `v_floor` set to −85 mV (20 below rest, the analogue of
+PCL's $V_{min}$) restores suppression (536 → 190).
+
+Protocol, acceptance and pilot knobs as C1; settings frozen as C1 (bars,
+600 + 300 sequences). Control (c) thins simple-cell counts of (b) post hoc
+(binomial, keep = (a)/(b)) instead of removing spikes during the run, so its
+complex cells are unaffected; A3 therefore compares simple-cell decoding.
+
+| seed | median OSI (untrained) | simple spikes (a)/(b) | decoding (a) PCL simple | (b) no inh. simple | (c) random, matched |
+|---|---|---|---|---|---|
+| 0 (pilot) | 0.056 (0.056) | 0.283 | 0.519 | 0.788 | 0.306 |
+| 10 | 0.053 (0.054) | 0.287 | 0.594 | 0.806 | 0.275 |
+| 11 | 0.048 (0.054) | 0.280 | 0.706 | 0.700 | 0.275 |
+| 12 | 0.053 (0.056) | 0.301 | 0.744 | 0.681 | 0.287 |
+
+- **A1 FAIL** (3/3): no tuning; trained OSI equals or falls below untrained.
+- **A2 PASS** (3/3): learned distant + top-down inhibition removes ~71 % of
+  simple-cell spikes (C1: ~48 %).
+- **A3 PASS** (3/3): at matched counts PCL decodes at 0.59–0.74 against
+  0.28–0.29 for random removal.
+
+Reading: the central claim survives the port. Inhibition removes more spikes
+than in C1 and decoding stays well above matched random removal; against the
+uninhibited network it is mixed (−0.21 in seed 10 and −0.27 in the pilot,
++0.01 and +0.06 in seeds 11 and 12), where C1 stayed within 0.02. The
+excitatory phase does not build orientation tuning on the Izhikevich kernel.
+
 ## Deviations from the paper
 
 | item | paper | here | reason |
@@ -150,6 +189,9 @@ measure; it needs a new declared protocol.
 | learning-rate scale | Table 2 η | Table 2 η used directly | Table values equal the code's η × λ (0.000408 × 6500 = 2.652) |
 | spike-rate adaptation | not described | omitted | present in the reference code (`DELTA_SRA`), absent from the paper |
 | initial inhibitory weight | "same value" | 1 mV | not given; result shown independent of it |
+| K1 neuron | LIF with $V_{min}$ | RS Izhikevich, `v_floor` −85 mV | Hamm 2026-10-07: Izhikevich only; floor blocks the quadratic blow-up |
+| K1 weight sharing | convolutional | one weight per edge | kernel stores per-edge weights |
+| K1 random control | spikes removed during the run | post-hoc thinning of simple-cell counts | no per-spike removal hook in the kernel |
 
 ## Reproduce
 
@@ -158,4 +200,5 @@ python artifacts/etudes/pcl/pcl_fig2.py --out artifacts/etudes/pcl/fig2.json
 python artifacts/etudes/pcl/pcl_column.py --seed 10 --out artifacts/etudes/pcl/confirm/c1_seed10.json
 python artifacts/etudes/pcl/figure_column.py artifacts/etudes/pcl/confirm/c1_seed10.npz
 python artifacts/etudes/pcl/pcl_fig2_hdp.py --out artifacts/etudes/pcl/fig2_hdp.json
+python artifacts/etudes/pcl/pcl_column_hdp.py --seed 10 --out artifacts/etudes/pcl/confirm/k1_seed10.json
 ```

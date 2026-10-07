@@ -29,7 +29,9 @@ R.register()
 
 
 def izh(n):
-    f = lambda x: jnp.full((n,), x, jnp.float32)
+    def f(x):
+        return jnp.full((n,), x, jnp.float32)
+
     return IzhikevichParams(a=f(0.02), b=f(0.2), c=f(-65.0), d=f(8.0), drive=f(0.0), sign=f(1.0),
                             W=jnp.zeros((n, n)), v0=f(-65.0), u0=f(-13.0), source_scale=f(1.0),
                             labels=("E",) * n, layer_labels=None, source_calibration_status="x")
@@ -83,9 +85,12 @@ def calibrate():
     def blocked(w):
         return run([w], [[10.0], [10.0 + F.LAG_MS]], amp, 40.0, null_params(1), False)[1][1] == 0
     # Very large weights drive v so negative that the quadratic Izhikevich term
-    # fires the neuron anyway; blocking holds from ~30 to >= 1e3 (probe), so cap there.
-    lo, hi = 0.0, 1e3
-    assert blocked(hi), "no inhibitory weight blocks the pulse"
+    # fires the neuron anyway (blocking is not monotonic), so bracket the lower
+    # edge of the blocking window on a log grid before bisecting.
+    grid = np.logspace(-1, 3, 41)
+    first = next((i for i, w in enumerate(grid) if blocked(w)), None)
+    assert first is not None and first > 0, "no inhibitory weight blocks the pulse"
+    lo, hi = float(grid[first - 1]), float(grid[first])
     for _ in range(40):
         mid = (lo + hi) / 2
         lo, hi = (lo, mid) if blocked(mid) else (mid, hi)

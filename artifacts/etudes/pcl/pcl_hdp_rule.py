@@ -60,6 +60,8 @@ def register():
 
 def rule_params(tau, w_max, eta, f, lam, norm, group, n_groups):
     """Per-edge arrays (float32) plus integer groups for ``hdp_rule_params``."""
-    as_f = lambda x: jnp.asarray(x, jnp.float32)
+    def as_f(x):
+        return jnp.asarray(x, jnp.float32)
+
     return dict(tau=as_f(tau), w_max=as_f(w_max), eta=as_f(eta), f=as_f(f), lam=as_f(lam),
                 norm=as_f(norm), group=jnp.asarray(group, jnp.int32), n_groups=int(n_groups))

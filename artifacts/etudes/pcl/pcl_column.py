@@ -77,7 +77,9 @@ def init_weights(key):
 
 
 def init_state():
-    z = lambda *s: jnp.zeros(s, jnp.float32)
+    def z(*s):
+        return jnp.zeros(s, jnp.float32)
+
     return dict(Vs=z(NS), ts_s=jnp.full(NS, -1e9), Vc=z(NC), ts_c=jnp.full(NC, -1e9), ss=z(NS), sc=z(NC),
                 inside=jnp.zeros(G * G, bool),
                 A_s_exc=z(NS, RF * RF * 2), B_s_exc=z(NS, RF * RF * 2), A_s_loc=z(NS, FS), B_s_loc=z(NS, FS),
