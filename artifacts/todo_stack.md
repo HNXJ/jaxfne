@@ -296,6 +296,10 @@ ATLAS
    phenotype"; AT-07-R3 would have to cite the N20 twin assay
    (`at10_r5_twin_055.json`) or get a stability arm of its own: Hamm's call.
    (d) result `_meta.jaxfne_version` reads 0.5.0 (version string not yet bumped).
+   RULINGS Hamm 2026-10-06: AT-00-R4 and AT-01-R6 accepted (recorded
+   failures stand as the evidence) -> VALIDATED; AT-07-R3 cites the N20 twin
+   assay `at10_r5_twin_055.json` -> VALIDATED; AT-05-R2 build the per-neuron
+   isolation option (open); AT-10-R6 stays SUPPORTED; release steps not yet.
    Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
    30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
    VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),

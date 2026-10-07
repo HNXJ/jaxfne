@@ -60,7 +60,7 @@
    "release": "0.5.2-0.5.5",
    "candidate": false,
    "evidence": "artifacts/atlas/results/at_reduction_055.json",
-   "state": "SUPPORTED"
+   "state": "VALIDATED"
   },
   {
    "id": "AT-00-R5",
@@ -160,7 +160,7 @@
    "release": "0.5.2",
    "candidate": false,
    "evidence": "artifacts/atlas/results/at_reduction_055.json",
-   "state": "SUPPORTED"
+   "state": "VALIDATED"
   },
   {
    "id": "AT-01-R7",
@@ -349,8 +349,8 @@
    "capability": "separate diagnostics; intervention grammar",
    "release": "0.5.3",
    "candidate": false,
-   "evidence": "artifacts/programme/long_diagnostics_053.md",
-   "state": "SUPPORTED"
+   "evidence": "artifacts/atlas/results/at10_r5_twin_055.json",
+   "state": "VALIDATED"
   },
   {
    "id": "AT-07-R4",
