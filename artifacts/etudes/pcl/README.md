@@ -109,6 +109,39 @@ V1-like receptive fields do not form with this stimulus set.
 
 ![C1 kernels, seed 10](confirm/c1_seed10_kernels.png)
 
+## Gate K0: Fig. 2 on the jaxfne HDP kernel (Izhikevich) — FAIL (weights, 1/3 seeds)
+
+Hamm 2026-10-07: port PCL to the existing registrable HDP kernel with
+Izhikevich neurons, no new neuron model. `pcl_hdp_rule.py` registers rule
+`pcl_stdp` (per-edge aux: LTP trace since the last post spike, deferred LTD
+sum, post spike trace; soft-bound update and per-group L1 normalization at
+post spikes). `pcl_fig2_hdp.py` runs Fig. 2 through
+`simulate_edge_recurrent_izhikevich_hdp_registered`, dt = 0.1 ms, RS
+Izhikevich (a 0.02, b 0.2, c −65, d 8), GABA_A-indexed inhibitory edges with
+τ = 2 ms, inputs as 1 ms current pulses at 1.5× firing threshold.
+
+Unit calibration (declared): the smallest inhibitory weight that blocks a
+pulse 1 ms after neuron 0's pulse is 25.7 (native units); the paper's
+equivalent is 5.3 mV, so 1 mV ↔ 4.85 native units (w_max = 50 mV ↔ 243).
+Blocking is not monotonic above ~10³: very strong inhibition drives v so low
+that the quadratic Izhikevich term fires the neuron.
+
+Same acceptance as P0 (weights and suppression ordered 1 > 2 > 3 in every network):
+
+| seed | final w (mV-equivalent) | suppression | weights ordered | suppression ordered |
+|---|---|---|---|---|
+| 0 | 24.0 / 18.3 / 15.7 | 0.406 / 0.226 / 0.060 | yes | yes |
+| 1 | 22.6 / 16.5 / 13.8 | 0.398 / 0.181 / 0.081 | yes | yes |
+| 2 | 17.7 / 20.8 / 16.4 | 0.363 / 0.197 / 0.085 | **no** | yes |
+
+Reading: suppression is ordered by predictability in every network, on the
+kernel as standalone, at about half the standalone magnitude (0.39 / 0.20 /
+0.08 vs 0.69 / 0.48 / 0.32). The weight criterion reads a snapshot: the
+end-of-epoch weights are identical across all 10 epochs (deterministic run,
+same data each epoch), so they settle within one epoch and the final value
+reflects the last training samples. A time-averaged weight is the better
+measure; it needs a new declared protocol.
+
 ## Deviations from the paper
 
 | item | paper | here | reason |
@@ -122,4 +155,7 @@ V1-like receptive fields do not form with this stimulus set.
 
 ```bash
 python artifacts/etudes/pcl/pcl_fig2.py --out artifacts/etudes/pcl/fig2.json
+python artifacts/etudes/pcl/pcl_column.py --seed 10 --out artifacts/etudes/pcl/confirm/c1_seed10.json
+python artifacts/etudes/pcl/figure_column.py artifacts/etudes/pcl/confirm/c1_seed10.npz
+python artifacts/etudes/pcl/pcl_fig2_hdp.py --out artifacts/etudes/pcl/fig2_hdp.json
 ```
