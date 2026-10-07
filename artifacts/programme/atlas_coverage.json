@@ -110,7 +110,7 @@
    "release": "0.5.2",
    "candidate": false,
    "evidence": "artifacts/atlas/results/at01_extraction_055.json",
-   "state": "SUPPORTED"
+   "state": "VALIDATED"
   },
   {
    "id": "AT-01-R2",
@@ -120,7 +120,7 @@
    "release": "0.5.2",
    "candidate": false,
    "evidence": "artifacts/atlas/results/at01_extraction_055.json",
-   "state": "SUPPORTED"
+   "state": "VALIDATED"
   },
   {
    "id": "AT-01-R3",
@@ -130,7 +130,7 @@
    "release": "0.5.2",
    "candidate": false,
    "evidence": "artifacts/atlas/results/at01_extraction_055.json",
-   "state": "SUPPORTED"
+   "state": "VALIDATED"
   },
   {
    "id": "AT-01-R4",

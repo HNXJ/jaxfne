@@ -331,8 +331,8 @@ ATLAS
    review: R1 PASS; R2/R3 FAIL as worded (Phi used ionic current only; I_m
    absent) -> reworded: R2 drops I_m (Jaxley HH has no M-current), R3 = relative
    ionic-current point-source proxy, 4 pi sigma = 1, capacitive and electrode
-   terms excluded. All three stay SUPPORTED pending Hamm's acceptance of the
-   wording.
+   terms excluded. ACCEPTED by Hamm 2026-10-06: AT-01-R1/R2/R3 VALIDATED on
+   the reworded text.
    Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
    30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
    VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),
