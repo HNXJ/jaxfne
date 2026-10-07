@@ -333,6 +333,12 @@ ATLAS
    ionic-current point-source proxy, 4 pi sigma = 1, capacitive and electrode
    terms excluded. ACCEPTED by Hamm 2026-10-06: AT-01-R1/R2/R3 VALIDATED on
    the reworded text.
+   Hamm 2026-10-07: AT-00-R5, AT-00-R6, AT-01-R7 accepted as seam/boundary
+   rows -> VALIDATED (R5/R6 are order/progression checkers; no figure or
+   manuscript uses them yet). PR #101 (dev -> main) opened by Hamm; `main`
+   rejects direct pushes (PR + 2 required checks). Only AT-10-R6 is SUPPORTED
+   (kept by Hamm); items 10-14 and quiet-machine matrix timings stay open, so
+   the 100/100 seal is not met: no tag or release.
    Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
    30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
    VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),

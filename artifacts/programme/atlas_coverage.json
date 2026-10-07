@@ -70,7 +70,7 @@
    "release": "0.5.5",
    "candidate": false,
    "evidence": "artifacts/atlas/figure_columns.py",
-   "state": "SUPPORTED"
+   "state": "VALIDATED"
   },
   {
    "id": "AT-00-R6",
@@ -80,7 +80,7 @@
    "release": "0.5.5",
    "candidate": false,
    "evidence": "artifacts/atlas/manuscript_progression.py",
-   "state": "SUPPORTED"
+   "state": "VALIDATED"
   },
   {
    "id": "AT-00-R7",
@@ -170,7 +170,7 @@
    "release": "0.5.2",
    "candidate": false,
    "evidence": "artifacts/atlas/results/at01_055.json",
-   "state": "SUPPORTED"
+   "state": "VALIDATED"
   },
   {
    "id": "AT-02-R1",
