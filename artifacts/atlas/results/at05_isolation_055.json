@@ -1,0 +1,95 @@
+{
+ "scenario": "AT-05-ISO",
+ "status": "OK",
+ "wall_s": 6.306657399982214,
+ "level": "RELATIVE_PROXY",
+ "tolerance_predeclared": {
+  "rel_dev": 0.01
+ },
+ "arms": {
+  "n8_s7": {
+   "n": 8,
+   "seed": 7,
+   "isolated": {
+    "within_gain": 0.0,
+    "a_phi_mid_contact": 5.528433158397674,
+    "n_spikes": 11,
+    "kappa": 0.13727445513645867
+   },
+   "coupled": {
+    "0.45": {
+     "within_gain": 0.45,
+     "a_phi_mid_contact": 5.527827429771423,
+     "n_spikes": 11,
+     "kappa": 0.13727445513645867,
+     "rel_dev_from_isolated": 0.00010956605766876404,
+     "spikes_identical_to_isolated": true,
+     "superposition_holds": true
+    },
+    "3.0": {
+     "within_gain": 3.0,
+     "a_phi_mid_contact": 5.524394965171814,
+     "n_spikes": 11,
+     "kappa": 0.13727445513645864,
+     "rel_dev_from_isolated": 0.0007304408157177145,
+     "spikes_identical_to_isolated": true,
+     "superposition_holds": true
+    },
+    "10.0": {
+     "within_gain": 10.0,
+     "a_phi_mid_contact": 5.5149725365638735,
+     "n_spikes": 11,
+     "kappa": 0.13727445513645864,
+     "rel_dev_from_isolated": 0.0024347986939761146,
+     "spikes_identical_to_isolated": true,
+     "superposition_holds": true
+    }
+   }
+  },
+  "n8_s11": {
+   "n": 8,
+   "seed": 11,
+   "isolated": {
+    "within_gain": 0.0,
+    "a_phi_mid_contact": 4.170543627738953,
+    "n_spikes": 11,
+    "kappa": 0.02959319167629964
+   },
+   "coupled": {
+    "0.45": {
+     "within_gain": 0.45,
+     "a_phi_mid_contact": 4.169737539291382,
+     "n_spikes": 11,
+     "kappa": 0.02959319167629964,
+     "rel_dev_from_isolated": 0.00019328138475993573,
+     "spikes_identical_to_isolated": true,
+     "superposition_holds": true
+    },
+    "3.0": {
+     "within_gain": 3.0,
+     "a_phi_mid_contact": 4.165169733762741,
+     "n_spikes": 11,
+     "kappa": 0.02959319167629964,
+     "rel_dev_from_isolated": 0.0012885356097150913,
+     "spikes_identical_to_isolated": true,
+     "superposition_holds": true
+    },
+    "10.0": {
+     "within_gain": 10.0,
+     "a_phi_mid_contact": 4.152630604729056,
+     "n_spikes": 11,
+     "kappa": 0.02959319167629964,
+     "rel_dev_from_isolated": 0.004295129030842393,
+     "spikes_identical_to_isolated": true,
+     "superposition_holds": true
+    }
+   }
+  }
+ },
+ "claim": "coupled field equals the uncoupled-twin field within tolerance for the arms and gains run (suite2_net1_config, N=8, 100 ms, 2 seeds, ~11 spikes per arm); Phi_N != N Phi_1 is not demonstrated; no higher-rate arm was run, and the regime was not measured as drive-dominated",
+ "_meta": {
+  "runner": "at01_at06_052:run_at05_isolation",
+  "jaxfne_version": "0.5.0",
+  "wall_s": 6.3
+ }
+}

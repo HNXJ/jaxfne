@@ -302,7 +302,17 @@ ATLAS
    dominated, 11 spikes). Options for Hamm: (1) longer or higher-rate arm
    where recurrence changes spiking, (2) record AT-05-R2 as a negative result
    and mark it OUT_OF_SCOPE for 0.5.5, (3) change the claim wording to
-   "superposition holds in the drive-dominated regime". (c) AT-07 states "no stability assay, no adaptation
+   "superposition holds in the drive-dominated regime".
+   Hamm chose (3). Built `run_at05_isolation` + `at05_isolation_055.json`.
+   Second review: measurement sound (gain-0 is a true twin; `within_gain` is
+   consumed), but verdict FAIL for VALIDATED as worded: the metric measures
+   how much coupling perturbs the sources (lfp = K @ sources), not Phi_N vs
+   N Phi_1; ~11 spikes per arm is a weak regime; "drive-dominated" was never
+   measured. Requirement and claim reworded to the scoped statement ("coupled
+   field equals uncoupled-twin field within 1% for the arms run; Phi_N != N
+   Phi_1 not demonstrated"); tests strengthened. AT-05-R2 stays SUPPORTED;
+   promotion needs Hamm's acceptance of the scoped wording, or a higher-rate
+   arm as falsifier. (c) AT-07 states "no stability assay, no adaptation
    phenotype"; AT-07-R3 would have to cite the N20 twin assay
    (`at10_r5_twin_055.json`) or get a stability arm of its own: Hamm's call.
    (d) result `_meta.jaxfne_version` reads 0.5.0 (version string not yet bumped).

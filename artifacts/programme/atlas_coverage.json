@@ -265,11 +265,11 @@
   {
    "id": "AT-05-R2",
    "sim": "S5",
-   "requirement": "Measure A_Phi(N, rho_sync, r); show Phi_N != N Phi_1 in general",
+   "requirement": "Measure A_Phi(N, rho_sync, r); record coupled vs isolated-twin field (superposition within 1% for the arms run; Phi_N != N Phi_1 not demonstrated)",
    "capability": "field amplitude observation vs N, rho_sync, r",
    "release": "0.5.2",
    "candidate": false,
-   "evidence": "tests/test_atlas_at0506_052.py",
+   "evidence": "artifacts/atlas/results/at05_isolation_055.json",
    "state": "SUPPORTED"
   },
   {

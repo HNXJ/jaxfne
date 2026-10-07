@@ -990,6 +990,72 @@ def run_at05(keep_bundle: bool = False) -> dict[str, Any]:
     return out
 
 
+# AT-05-R2 isolation: same N, seed and positions, coupling gain 0 (isolated)
+# vs coupled. Plain Phi_N vs N*Phi_1 inside one run is an algebraic identity
+# (every per-source contribution is >= 0), so the isolated twin is the
+# baseline. Gains and arms are declared before the run.
+AT05_ISO_GAINS = (0.45, 3.0, 10.0)
+AT05_ISO_ARMS = {"n8_s7": {"n": 8, "seed": 7}, "n8_s11": {"n": 8, "seed": 11}}
+AT05_ISO_REL_TOL = 0.01  # superposition verdict: |A(coupled)/A(isolated) - 1| <= 1%
+
+
+def _iso_arm(n: int, seed: int, gain: float) -> dict[str, Any]:
+    cfg = getattr(J, AT05_BUILDER)(seed=seed, n=n, duration_ms=AT05_DURATION_MS, dt_ms=DT_MS)
+    cfg = cfg.connectivity(within_area="all_to_all_uniform_random", within_gain=gain)
+    cfg = cfg.field(domain=FIELD_DOMAIN, conductivity=FIELD_CONDUCTIVITY).probe(
+        name=PROBE_NAME, modes=list(PROBE_MODES), n_contacts=AT05_N_CONTACTS
+    )
+    run = _run_configuration(cfg, AT05_DURATION_MS, DT_MS, seed)
+    total = _field_decomposition(run)["superposed"]
+    mid = total.shape[1] // 2
+    spikes = np.asarray(run["signals"].spikes)
+    return {
+        "within_gain": float(gain),
+        "a_phi_mid_contact": float(np.abs(total[:, mid]).mean()),
+        "n_spikes": int((spikes > 0).sum()),
+        "kappa": float(J.kappa_synchrony(spikes, DT_MS)),
+    }
+
+
+def run_at05_isolation() -> dict[str, Any]:
+    """AT-05-R2: A_Phi(coupled) against A_Phi(isolated twin), same geometry.
+
+    Additive to :func:`run_at05` (unchanged). A verdict of superposition
+    means the coupled field equals the sum of isolated single-neuron fields
+    within ``AT05_ISO_REL_TOL``; a larger deviation is recorded, never
+    tuned. Spike counts are reported so a change in the field can be told
+    from a change in spiking.
+    """
+    t0 = time.perf_counter()
+    arms: dict[str, Any] = {}
+    for name, spec in AT05_ISO_ARMS.items():
+        iso = _iso_arm(spec["n"], spec["seed"], 0.0)
+        coupled = {}
+        for g in AT05_ISO_GAINS:
+            c = _iso_arm(spec["n"], spec["seed"], g)
+            c["rel_dev_from_isolated"] = float(
+                abs(c["a_phi_mid_contact"] / iso["a_phi_mid_contact"] - 1.0)
+            )
+            c["spikes_identical_to_isolated"] = bool(c["n_spikes"] == iso["n_spikes"])
+            c["superposition_holds"] = bool(c["rel_dev_from_isolated"] <= AT05_ISO_REL_TOL)
+            coupled[str(g)] = c
+        arms[name] = {"n": spec["n"], "seed": spec["seed"], "isolated": iso, "coupled": coupled}
+    return {
+        "scenario": "AT-05-ISO",
+        "status": "OK",
+        "wall_s": time.perf_counter() - t0,
+        "level": LEVEL_PROXY,
+        "tolerance_predeclared": {"rel_dev": AT05_ISO_REL_TOL},
+        "arms": arms,
+        "claim": (
+            "coupled field equals the uncoupled-twin field within tolerance for the arms "
+            "and gains run (suite2_net1_config, N=8, 100 ms, 2 seeds, ~11 spikes per arm); "
+            "Phi_N != N Phi_1 is not demonstrated; no higher-rate arm was run, and "
+            "the regime was not measured as drive-dominated"
+        ),
+    }
+
+
 def run_at06(keep_bundle: bool = False) -> dict[str, Any]:
     """S6: electrode locality C(R,f); assumptions declared, proxy only.
 
