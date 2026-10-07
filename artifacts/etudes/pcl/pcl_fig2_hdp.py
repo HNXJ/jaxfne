@@ -59,7 +59,8 @@ def schedule(trains, amp, total_ms):
     return jnp.asarray(s)
 
 
-def run(w, trains, amp, total_ms, rp, learn):
+def run(w, trains, amp, total_ms, rp, learn, avg=False):
+    """Final |w| and spike counts; with ``avg``, also |w| averaged over every recorded step."""
     n_post = len(trains) - 1
     st = {"v": jnp.full(n_post + 1, -65.0), "u": jnp.full(n_post + 1, -13.0), "prev_spikes": jnp.zeros(n_post + 1),
           "syn_state": jnp.zeros(n_post), "w_final": -jnp.asarray(w, jnp.float32),
@@ -67,9 +68,10 @@ def run(w, trains, amp, total_ms, rp, learn):
     sched = schedule(trains, amp, total_ms)
     _, spikes, _, diag = sim(izh(n_post + 1), edges(w, n_post), int(sched.shape[0]), DT, jax.random.PRNGKey(0),
                              drive_schedule=sched, noise_scale=0.0, init_state=st, hdp_rule=R.NAME,
-                             hdp_rule_params=rp, record_weight_trace=False,
+                             hdp_rule_params=rp, record_weight_trace=avg, record_stride=10 if avg else 1,
                              plasticity_mask=jnp.full(n_post, 1.0 if learn else 0.0))
-    return np.abs(np.asarray(diag["w_final"])), np.asarray(spikes).sum(0)
+    out = np.abs(np.asarray(diag["w_final"])), np.asarray(spikes).sum(0)
+    return (*out, np.abs(np.asarray(diag["w_trace"])).mean(0)) if avg else out
 
 
 def null_params(n_post):
@@ -131,22 +133,29 @@ def main():
         te, tte = concat(test)
         w = np.full(3, a.w0 * s)
         hist = [w / s]
-        for _ in range(a.epochs):
+        for _ in range(a.epochs - 1):
             w, _ = run(w, tr, amp, ttr, rp, True)
             hist.append(w / s)
+        w, _, w_avg = run(w, tr, amp, ttr, rp, True, avg=True)  # last epoch, time-averaged weight
+        hist.append(w / s)
         _, on = run(w, te, amp, tte, rp, False)
         _, off = run(np.zeros(3), te, amp, tte, rp, False)
-        runs.append(dict(seed=seed, w_hist_mV=np.array(hist).tolist(), spikes_inhib=on.tolist(),
-                         spikes_no_inhib=off.tolist(), suppression=(1 - on[1:] / off[1:]).tolist()))
+        runs.append(dict(seed=seed, w_hist_mV=np.array(hist).tolist(), w_avg_last_epoch_mV=(w_avg / s).tolist(),
+                         spikes_inhib=on.tolist(), spikes_no_inhib=off.tolist(),
+                         suppression=(1 - on[1:] / off[1:]).tolist()))
     sup = np.array([r["suppression"] for r in runs])
     wend = np.array([r["w_hist_mV"][-1] for r in runs])
+    wavg = np.array([r["w_avg_last_epoch_mV"] for r in runs])
     res = dict(params=dict(vars(a), out=str(a.out), dt_ms=DT, pulse_amp=amp, w_cancel=w_cancel, scale=s),
-               runs=runs, suppression_mean=sup.mean(0).tolist(), w_end_mean_mV=wend.mean(0).tolist())
+               runs=runs, suppression_mean=sup.mean(0).tolist(), w_end_mean_mV=wend.mean(0).tolist(),
+               w_avg_mean_mV=wavg.mean(0).tolist())
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(res, indent=1))
     print(f"pulse amp {amp:.2f}, w_cancel {w_cancel:.3f}, scale {s:.4f} per mV")
     print("neuron (predictability):  1 (90%)  2 (50%)  3 (10%)")
     print("final w (mV-equivalent): ", "  ".join(f"{x:6.2f}" for x in wend.mean(0)))
+    print("avg w, last epoch (mV):  ", "  ".join(f"{x:6.2f}" for x in wavg.mean(0)))
+    print("avg w ordered per seed:  ", [bool(r[0] > r[1] > r[2]) for r in wavg])
     print("suppression (mean):      ", "  ".join(f"{x:6.3f}" for x in sup.mean(0)))
     print("suppression (per seed):  ", sup.round(3).tolist())
 

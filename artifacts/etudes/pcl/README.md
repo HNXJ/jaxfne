@@ -159,7 +159,7 @@ features; not pursued here.
 
 ![C1b kernels, seed 10](confirm/c1b_seed10_kernels.png)
 
-## Gate K0: Fig. 2 on the jaxfne HDP kernel (Izhikevich) — FAIL (weights, 1/3 seeds)
+## Gate K0: Fig. 2 on the jaxfne HDP kernel (Izhikevich) — FAIL (weights, 1/3 seeds); K0b PASS
 
 Hamm 2026-10-07: port PCL to the existing registrable HDP kernel with
 Izhikevich neurons, no new neuron model. `pcl_hdp_rule.py` registers rule
@@ -191,6 +191,29 @@ end-of-epoch weights are identical across all 10 epochs (deterministic run,
 same data each epoch), so they settle within one epoch and the final value
 reflects the last training samples. A time-averaged weight is the better
 measure; it needs a new declared protocol.
+
+### K0b: time-averaged weights (declared before the run)
+
+Hamm 2026-10-07. Same model, calibration, training and test as K0. Weight
+criterion: |w| averaged over every step of the last training epoch (trace
+every 10 steps), ordered 1 > 2 > 3 in every network; suppression criterion
+unchanged. Fresh confirmatory seeds 10, 11, 12, run once; seeds 0–2 re-run to
+show the end-of-epoch weights reproduce K0. No tuning knobs.
+
+**K0b result: PASS** (`fig2_hdp_avg.json`; seeds 0–2 in `fig2_hdp_avg_s012.json`
+reproduce K0's weight histories and suppression bit for bit).
+
+| seed | time-averaged w (mV-equivalent) | end-of-epoch w | suppression | averaged ordered | end ordered |
+|---|---|---|---|---|---|
+| 10 | 22.88 / 20.15 / 16.04 | 19.65 / 22.51 / 18.32 | 0.381 / 0.195 / 0.106 | yes | no |
+| 11 | 21.53 / 18.03 / 16.16 | 25.68 / 19.66 / 16.68 | 0.379 / 0.177 / 0.117 | yes | yes |
+| 12 | 21.67 / 18.06 / 15.64 | 21.71 / 18.65 / 17.68 | 0.413 / 0.177 / 0.076 | yes | yes |
+| 0–2 (K0) | ordered in 3/3 | ordered in 2/3 | ordered in 3/3 | yes | 2/3 |
+
+Reading: on the kernel, inhibitory weights and suppression are both ordered
+by predictability once the weight is read as a time average; the snapshot
+fails in 1 of 3 fresh networks as in K0. The averaged weights are compressed
+(≈ 22 / 19 / 16 mV against 38 / 24 / 15 standalone).
 
 ## Gate K1: the C1 column on the jaxfne HDP kernel — A2 and A3 PASS, A1 FAIL
 
