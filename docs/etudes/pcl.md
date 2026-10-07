@@ -35,6 +35,7 @@ the registrable Izhikevich kernel.
 | K0b | K0 with weights averaged over the last training epoch | PASS: averaged weights and suppression ordered in 3/3 | 10, 11, 12 | `a1cd500f` |
 | K1 | C1 column on the HDP kernel | A1 FAIL · A2 PASS · A3 PASS | 10, 11, 12 | `8d80f7ac` |
 | C1b | C1 with localized edge segments | A1 FAIL · A2 PASS · A3 PASS | 10, 11, 12 | `5bf6b1e0` |
+| K2b | K0 network, surprise-gated learning rate after a reversal of predictabilities | T1 FAIL · T2 FAIL: gated within 0.6 s of fixed, mean multiplier 0.97–1.00 | 10, 11, 12 | `8b766c18` |
 
 Column acceptance, each in 3/3 seeds: **A1** median OSI of responsive simple
 cells ≥ 0.3 and above the untrained network; **A2** simple-cell spikes with
