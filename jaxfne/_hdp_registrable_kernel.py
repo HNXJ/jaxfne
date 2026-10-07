@@ -70,8 +70,15 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     record_w_subset: jax.Array | None = None,
     step_indices: jax.Array | None = None,
     plasticity_mask: jax.Array | None = None,
+    v_floor: jax.Array | float | None = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Edge-list Izhikevich simulation with a registered HDP rule.
+
+    ``v_floor`` (scalar or per-neuron, mV) optionally clamps the membrane
+    potential from below after each Euler step, as in models with a minimum
+    potential (e.g. PCL's V_min); without it, strong inhibition can drive v
+    so low that the quadratic term fires the neuron. ``None`` (default)
+    leaves the update untouched, bit-exact.
 
     ``record_stride`` / ``record_h_subset`` / ``record_w_subset`` are the
     0.5.3 item 2 declared H/W recording budgets (defaults = full
@@ -128,6 +135,10 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     decay = jnp.exp(-dt / tau_ms)
     n_neurons = int(params.v0.shape[0])
     h_shape = (int(n_neurons),) + tuple(int(d) for d in descriptor.h_shape)
+    if v_floor is None:
+        v_floor_arr = None
+    else:
+        v_floor_arr = jnp.broadcast_to(jnp.asarray(v_floor, dtype=jdtype), (n_neurons,))
 
     # 0.5.3 item 2: declared H/W recording budgets (fail closed; defaults
     # keep full recording).
@@ -328,6 +339,8 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
             dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
             v_next = v + dt * dv
             u_next = u + dt * du
+            if v_floor_arr is not None:
+                v_next = jnp.maximum(v_next, v_floor_arr)
             v_next = jnp.where(s_mask > 0.5, v_next, c)
             spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
             spikes = spikes_bool.astype(jdtype)
@@ -460,6 +473,8 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
         dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
         v_next = v + dt * dv
         u_next = u + dt * du
+        if v_floor_arr is not None:
+            v_next = jnp.maximum(v_next, v_floor_arr)
         v_next = jnp.where(s_mask > 0.5, v_next, c)
         spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
         spikes = spikes_bool.astype(jdtype)
