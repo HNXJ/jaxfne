@@ -399,6 +399,35 @@ not removed. `pcl_stdp` stays the
 driver default and is kept, unchanged, to reproduce K1 and the replication
 results; the commands recorded above stay valid.
 
+## Control O1: hand-set oriented kernels
+
+Hamm 2026-10-08. Declared and committed before the confirmatory runs. A1
+failed in C1, C1b and K1, with and without weight sharing. O1 asks whether
+the A1 measurement can reach its threshold when the simple-cell kernels are
+oriented by construction.
+
+`pcl_orient_control.py`: the C1 column with the 16 `s_exc` kernels set by
+hand (feature 2k + q: bar orientation kπ/8; ON lobe one pixel ahead of the
+receptive-field centre along the bar normal and OFF lobe one pixel behind,
+or the reverse; Gaussian across the bar, σ = 0.5 px, flat along it;
+normalized like the initial weights), local inhibition at its random initial
+weights, no learning, distant and top-down inhibition off, as in the A1
+measurement. Same OSI, responsiveness threshold (0.5 spikes per sequence)
+and decoding as A1. Seeds 10, 11, 12, run once, 20 test sequences per
+orientation, for each frozen stimulus: bars (C1) and segments of length 8
+(C1b).
+
+- O1 reaches A1: median OSI of the oriented network ≥ 0.3 in every seed of
+  a stimulus. Then the A1 failures are failures of learning.
+- O1 misses A1: median OSI < 0.3 in any seed. Then A1 at 0.3 cannot be met
+  under this stimulus and OSI measure even by oriented kernels, and the A1
+  outcomes of C1, C1b and K1 are not evidence about learning.
+- Reported, not gated: the untrained network's OSI, responsive cells and
+  decoding.
+
+Smoke (seed 0, bars, 5 sequences per orientation): median OSI 0.27
+oriented against 0.09 untrained; decoding 1.00 against 0.48.
+
 ## Deviations from the paper
 
 | item | paper | here | reason |
