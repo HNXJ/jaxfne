@@ -387,14 +387,15 @@ seed; A1–A3 the same in all three (A1 FAIL, A2 and A3 PASS).
 |---|---|---|
 | 13 | 0.0688 / 123 | all equal / 0.0014 |
 | 14 | 0.0500 / 153 | all equal / 0.0012 |
-| 15 | 0.0688 / 126 | all equal / 0.0017 |
+| 15 | 0.0688 / 126 | all equal / 0.0016 |
 
 H also matched base in spike counts, keep fraction and OSI. Its rounding
 differences stayed below a spike in all three seeds, as in K1h seed 10; a
 one-ulp change of the initial weights alone moves decoding by up to 0.069.
 The H run took about 20 % longer than base (868 s against 720 s).
 
-Retirement: `pcl_stdp_h2` is the rule for new work. `pcl_stdp` stays the
+Retirement, for new work only: `pcl_stdp_h2` replaces `pcl_stdp`, which is
+not removed. `pcl_stdp` stays the
 driver default and is kept, unchanged, to reproduce K1 and the replication
 results; the commands recorded above stay valid.
 
