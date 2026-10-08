@@ -29,7 +29,7 @@ def test_checker_fails_on_altered_state_in_temp_copy(tmp_path, capsys):
     text = ledger.read_text(encoding="utf-8")
     target = (
         "| AT-10-R6 | Reduced fast model with very long T | RESULT | SUPPORTED | "
-        "`artifacts/atlas/results/at10_r6_long_055.json` | yes |  |"
+        "`artifacts/atlas/results/at10_r6_long_055.json` | yes | supported only |"
     )
     altered = target.replace("| RESULT | SUPPORTED |", "| RESULT | VALIDATED |")
     assert target in text and altered != target

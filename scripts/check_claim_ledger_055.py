@@ -23,14 +23,27 @@ DEFAULT_LEDGER = "artifacts/programme/claim_ledger_055.md"
 DEFAULT_COVERAGE = "artifacts/programme/atlas_coverage.json"
 ROW_RE = re.compile(r"^\|\s*(AT-\d{2}-R\d+)\s*\|")
 EMPTY_EVIDENCE = ("", "none", "n/a")
+WORDING = frozenset(
+    {
+        "numerical test confirms",
+        "model produced",
+        "within specified tolerance",
+        "tolerance comparison, failures kept",
+        "under the tested conditions",
+        "supported only",
+        "do not promote",
+    }
+)
 
 
-def parse_ledger(ledger_path: pathlib.Path) -> tuple[dict[str, tuple[str, str]], list[str]]:
-    """Return {id: (state, evidence)} and error strings for table-row defects.
+def parse_ledger(
+    ledger_path: pathlib.Path,
+) -> tuple[dict[str, tuple[str, str, str]], list[str]]:
+    """Return {id: (state, evidence, wording)} and error strings for table-row defects.
 
     Evidence "" means the ledger names no path (`none` / `n/a`).
     """
-    rows: dict[str, tuple[str, str]] = {}
+    rows: dict[str, tuple[str, str, str]] = {}
     errors: list[str] = []
     try:
         text = ledger_path.read_text(encoding="utf-8")
@@ -47,7 +60,13 @@ def parse_ledger(ledger_path: pathlib.Path) -> tuple[dict[str, tuple[str, str]],
         if len(cells) != 7:
             errors.append(f"{rid}: ledger row {lineno} has {len(cells)} cells, want 7")
             continue
-        state, evidence_cell = cells[3], cells[4]
+        state, evidence_cell, wording = cells[3], cells[4], cells[6]
+        if wording not in WORDING:
+            errors.append(f"{rid}: wording {wording!r} is not a permitted class")
+        if state == "OUT_OF_SCOPE" and wording != "do not promote":
+            errors.append(f"{rid}: OUT_OF_SCOPE wording must be 'do not promote'")
+        if state == "SUPPORTED" and wording != "supported only":
+            errors.append(f"{rid}: SUPPORTED wording must be 'supported only'")
         if state == "PLANNED" and evidence_cell not in EMPTY_EVIDENCE:
             errors.append(f"{rid}: PLANNED row names evidence {evidence_cell!r}")
         if state != "PLANNED" and evidence_cell in EMPTY_EVIDENCE:
@@ -55,7 +74,7 @@ def parse_ledger(ledger_path: pathlib.Path) -> tuple[dict[str, tuple[str, str]],
         evidence = "" if evidence_cell in EMPTY_EVIDENCE else evidence_cell.strip("`")
         if rid in rows:
             errors.append(f"{rid}: duplicate ledger row")
-        rows[rid] = (state, evidence)
+        rows[rid] = (state, evidence, wording)
     return rows, errors
 
 
@@ -78,7 +97,7 @@ def check(ledger_path: pathlib.Path, coverage_path: pathlib.Path) -> list[str]:
         if rid not in ledger_rows:
             errors.append(f"{rid}: coverage row missing from ledger")
             continue
-        state, evidence = ledger_rows[rid]
+        state, evidence, _wording = ledger_rows[rid]
         want_state = row.get("state")
         if state != want_state:
             errors.append(f"{rid}: state {state!r} != coverage state {want_state!r}")
@@ -113,7 +132,10 @@ def main(argv: list[str] | None = None) -> int:
         for err in errors:
             print(f"  - {err}")
         return 1
-    print("claim_ledger_055 VALID: every coverage id appears once; states and evidence paths agree")
+    print(
+        "claim_ledger_055 VALID: every coverage id appears once; "
+        "states, evidence paths, and wording classes agree"
+    )
     return 0
 
 
