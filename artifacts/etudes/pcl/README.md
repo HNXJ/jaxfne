@@ -428,6 +428,24 @@ orientation, for each frozen stimulus: bars (C1) and segments of length 8
 Smoke (seed 0, bars, 5 sequences per orientation): median OSI 0.27
 oriented against 0.09 untrained; decoding 1.00 against 0.48.
 
+Result: O1 misses A1 for both stimuli.
+
+| stimulus | seed | median OSI oriented (untrained) | responsive cells oriented (untrained) | decoding oriented (untrained) |
+|---|---|---|---|---|
+| bars | 10 | 0.267 (0.053) | 256 (256) | 1.00 (0.73) |
+| bars | 11 | 0.266 (0.045) | 256 (256) | 1.00 (0.54) |
+| bars | 12 | 0.272 (0.049) | 255 (256) | 1.00 (0.61) |
+| segments, 8 px | 10 | none (0.078) | 0 (31) | 0.84 (0.46) |
+| segments, 8 px | 11 | 0.127 (0.081) | 2 (66) | 0.86 (0.42) |
+| segments, 8 px | 12 | 0.172 (0.072) | 1 (40) | 0.81 (0.40) |
+
+Oriented kernels decode orientation perfectly from bars yet reach a median
+OSI of 0.27; with segments almost no oriented cell passes the
+responsiveness threshold. A1 at 0.3 is out of reach of this stimulus and
+OSI measure, so the A1 failures of C1, C1b and K1 say nothing about
+learning. A test of learned orientation tuning needs a criterion
+calibrated on this control, declared before it is applied.
+
 ## Deviations from the paper
 
 | item | paper | here | reason |

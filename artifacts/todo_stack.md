@@ -481,9 +481,13 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
    - K1h-nf (seeds 13-15, H rule against a one-ulp noise floor): PASS
      (README). `pcl_stdp_h2` is the rule for new work; `pcl_stdp` stays the
      default to reproduce K1 and the replication.
-   - Open: orientation tuning failed in all column variants; the column
-     weights behind the paper's figures are not committed (npz is
-     gitignored); regenerate them with `pcl_column_hdp.py`.
+   - Control O1 (hand-set oriented kernels): misses A1 (OSI 0.27 on bars,
+     decoding 1.00), so A1 at 0.3 cannot be met here and the A1 failures
+     say nothing about learning (README).
+   - Next (Hamm): declare a tuning criterion calibrated on O1 (e.g. trained
+     OSI as a fraction of O1's), or close A1 as untestable.
+   - Open: the column weights behind the paper's figures are not committed
+     (npz is gitignored); regenerate them with `pcl_column_hdp.py`.
 0a. Controlled model augmentation (human, 2026-09-30): the canonical order is
    N, then G, then Theta_C, then Theta_X, then W0, then H0. Transforms act on
    a NeuronalTensor before construct. Scaling N keeps w/sqrt(N). Stochastic
