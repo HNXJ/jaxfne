@@ -473,8 +473,12 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
    - Done (human, 2026-10-07): `pcl_stdp_h` in `artifacts/etudes/pcl_h/`,
      traces in the H state, equal to `pcl_stdp` on single- and multi-input
      neurons; K0b reproduces (NOTES.md).
-   - Next: run the column (K1) on `pcl_stdp_h` and, if it matches, retire the
-     per-edge-trace rule.
+   - K1h (column on `pcl_stdp_h2`): FAIL on the declared equality, seed 10
+     equal, seeds 11 and 12 diverge with A1-A3 outcomes unchanged
+     (`artifacts/etudes/pcl/README.md`). The per-edge-trace rule stays.
+   - Next: find the first diverging step on seed 11 (rounding amplification
+     is inferred, not shown); retire the per-edge rule only if the cause is
+     shown to be float order and a tolerance gate is declared before rerun.
    - Open: orientation tuning failed in all column variants; the column
      weights behind the paper's figures are not committed (npz is
      gitignored); regenerate them with `pcl_column_hdp.py`.
