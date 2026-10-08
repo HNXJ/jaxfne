@@ -475,7 +475,7 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
      neurons; K0b reproduces (NOTES.md).
    - K1h (column on `pcl_stdp_h2`): FAIL on the declared equality, seed 10
      equal, seeds 11 and 12 diverge with A1-A3 outcomes unchanged
-     (`artifacts/etudes/pcl/README.md`). The per-edge-trace rule stays.
+     (`artifacts/etudes/pcl/README.md`).
    - Seed 11 split located (`k1h_divergence.py`, README): one float32 ulp
      on one edge at phase 1 sequence 1, step 133, amplified by the dynamics.
    - K1h-nf (seeds 13-15, H rule against a one-ulp noise floor): PASS
@@ -487,8 +487,9 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
    - A1 at 0.3 closed for the C1 column (README, Control O1); C1 trained
      OSI is 0.37-0.46 of the oriented control. A learned-tuning test
      needs a new declared criterion.
-   - Open: the column weights behind the paper's figures are not committed
-     (npz is gitignored); regenerate them with `pcl_column_hdp.py`.
+   - Working paper covers K1h, K1h-nf and O1. Its K1 weights are not
+     committed (npz is gitignored); `pcl_column_hdp.py --seed 10` reproduces
+     k1_seed10.json on every committed value (2026-10-08).
 0a. Controlled model augmentation (human, 2026-09-30): the canonical order is
    N, then G, then Theta_C, then Theta_X, then W0, then H0. Transforms act on
    a NeuronalTensor before construct. Scaling N keeps w/sqrt(N). Stochastic
