@@ -356,9 +356,29 @@ weights are equal until phase 1 sequence 1, step 133 (66.5 ms), where one
 under `pcl_stdp_h2`: one float32 ulp, from identical weights and spikes. The
 sequence ends 3 ulp apart on 2 edges with equal spike counts; the gap reaches
 14.7 at the end of phase 1 and 130 at the end of phase 2; total spike counts
-per sequence first differ at phase 1 sequence 497. So the split is arithmetic rounding amplified by
-the spiking dynamics, not a rule difference (observed); that the snapshot
+per sequence first differ at phase 1 sequence 497. So the split is
+arithmetic rounding amplified by the spiking dynamics, not a rule difference (observed); that the snapshot
 subtraction is the rounding site is inferred.
+
+## Gate K1h-nf: H-state rule against the float32 noise floor
+
+Hamm 2026-10-08. Declared and committed before any run. K1h stands as
+declared (FAIL on equality); this gate asks whether the H-state rule differs
+from `pcl_stdp` by more than a one-ulp perturbation of `pcl_stdp` itself.
+
+Fresh seeds 13, 14, 15 (none run before for K1 or K1h), each run once, K1
+settings unchanged. Per seed three runs of `pcl_column_hdp.py`:
+base (`--rule pcl_stdp`), nudge (`--rule pcl_stdp --nudge-ulp 1`: every
+nonzero initial phase-1 weight moved one float32 ulp up) and H
+(`--rule pcl_stdp_h2`). Fields: the seven decoding values
+(pcl, no_inh: simple, complex, both; random: simple).
+
+- Noise floor T = max over seeds and fields of |nudge − base|.
+- Pass: max over seeds and fields of |H − base| ≤ T, and in every seed the
+  A1–A3 verdicts of H equal those of base.
+- T = 0 (the nudge changed nothing) makes the gate ERROR, not PASS.
+- On PASS the per-edge rule `pcl_stdp` is retired in favour of
+  `pcl_stdp_h2`; on FAIL both stay. Evaluated by `k1h_nf_gate.py`.
 
 ## Deviations from the paper
 
