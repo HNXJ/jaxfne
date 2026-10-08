@@ -96,8 +96,45 @@ def test_h_rule_refuses_non_uniform_tau():
     RH.register()
     rp = R.rule_params([7.0, 7.1, 7.0], np.full(3, 250.0), np.full(3, F.ETA_LTP),
                        np.full(3, F.ETA_BOUND), np.zeros(3), np.zeros(3), np.arange(3), 3)
-    with pytest.raises(ValueError, match="uniform tau"):
+    with pytest.raises(ValueError, match="tau classes"):  # 2 distinct taus, rule holds 1
         _multi_input_run(RH.NAME, rp, jnp.zeros((3, 2), jnp.float32), jnp.zeros((4, 2), jnp.float32))
+    with pytest.raises(ValueError, match="uniform tau"):  # 2 classes, but mixed onto one post neuron
+        _multi_input_run(RH.NAME2, rp, jnp.zeros((3, 2), jnp.float32), jnp.zeros((4, 3), jnp.float32))
+
+
+def test_h2_rule_matches_edge_rule_with_two_tau_classes():
+    """Neuron 0 projects onto 1 (tau 7) and 2 (tau 40): two pre traces in H, one per class."""
+    import jax
+    import jax.numpy as jnp
+    from jaxfne._hdp_registrable_kernel import simulate_edge_recurrent_izhikevich_hdp_registered as sim
+    from jaxfne.emitters import EdgeList
+    R.register()
+    RH.register()
+    rng = np.random.default_rng(3)
+    trains = [np.sort(rng.uniform(0.0, 600.0, rng.poisson(14))) for _ in range(3)]
+    sched = K.schedule(trains, 30.0, 600.0)
+    rp = R.rule_params([7.0, 40.0], np.full(2, 250.0), np.full(2, F.ETA_LTP), np.full(2, F.ETA_BOUND),
+                       np.zeros(2), np.zeros(2), np.arange(2), 2)
+    edges = EdgeList(pre=jnp.array([0, 0]), post=jnp.array([1, 2]), weight=-jnp.full(2, 2.0),
+                     receptor_index=jnp.ones(2, jnp.int32), tau_ms=jnp.full(2, 2.0),
+                     source_calibration_status="x")
+
+    def go(rule, aux, h=None):
+        st = {"v": jnp.full(3, -65.0), "u": jnp.full(3, -13.0), "prev_spikes": jnp.zeros(3),
+              "syn_state": jnp.zeros(2), "w_final": -jnp.full(2, 2.0), "aux_final": aux}
+        if h is not None:
+            st["H_final"] = h
+        _, sp, _, d = sim(K.izh(3), edges, int(sched.shape[0]), K.DT, jax.random.PRNGKey(0),
+                          drive_schedule=sched, noise_scale=0.0, init_state=st, hdp_rule=rule,
+                          hdp_rule_params=rp, plasticity_mask=jnp.ones(2))
+        return np.abs(np.asarray(d["w_final"])), np.asarray(sp).sum(0)
+
+    w_old, n_old = go(R.NAME, jnp.zeros((2, 3), jnp.float32))
+    w_new, n_new = go(RH.NAME2, jnp.zeros((2, 2), jnp.float32), jnp.zeros((3, 3), jnp.float32))
+    assert n_old[1] > 0 and n_old[2] > 0, "fixture must make both post neurons spike"
+    assert np.abs(w_old - 2.0).min() > 1e-3, "fixture must move both weights"
+    np.testing.assert_allclose(w_new, w_old, rtol=1e-5, atol=1e-5)
+    assert np.array_equal(n_new, n_old)
 
 
 def test_h_rule_tie_pre_and_post_same_step():

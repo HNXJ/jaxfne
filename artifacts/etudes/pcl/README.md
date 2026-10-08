@@ -327,6 +327,33 @@ uninhibited network it is mixed (−0.21 in seed 10 and −0.27 in the pilot,
 +0.01 and +0.06 in seeds 11 and 12), where C1 stayed within 0.02. The
 excitatory phase does not build orientation tuning on the Izhikevich kernel.
 
+## Gate K1h: K1 with the rule's traces in the H state
+
+Protocol, declared before the confirmatory runs: K1 unchanged except the rule,
+`pcl_stdp_h2` (`../pcl_h/pcl_h_rule.py`; H holds one presynaptic trace per tau
+class, 7 ms onto simple and 40 ms onto complex cells, and the post trace; per
+edge only the snapshot and the deferred LTD sum). Seeds 10, 11, 12, run once.
+Pass: in every seed, simple and complex spike counts with and without the
+learned inhibition, matched random removal and all decoding values equal those
+of K1, and the A1–A3 outcomes are the same. Weights are compared and reported,
+not gated: the snapshot form subtracts two traces, so float rounding differs.
+Smoke (seed 0, 6 + 6 sequences, 5 tests per orientation): spikes, decoding,
+OSI and keep fraction identical; weights max relative difference 2e-7.
+
+Result: FAIL on the declared equality, in 2 of 3 seeds; A1–A3 outcomes
+unchanged in all three (A1 FAIL, A2 and A3 PASS).
+
+| seed | gated fields vs K1 | max abs weight diff | decoding pcl / no-inh / random (K1 → K1h) |
+|---|---|---|---|
+| 10 | all equal | 0.0012 | unchanged |
+| 11 | spikes, decoding, keep_q differ | 130 | 0.71/0.70/0.28 → 0.69/0.74/0.21 |
+| 12 | spikes, decoding, keep_q, OSI differ | 135 | 0.74/0.68/0.29 → 0.68/0.71/0.26 |
+
+Reading (inferred, not shown): the rule is equal to `pcl_stdp` on the unit
+tests, the smoke run and all of seed 10, so float rounding of the snapshot
+subtraction, amplified over 900 training sequences of spiking dynamics, is
+the likely source. Not checked: the first sequence where the two runs split.
+
 ## Deviations from the paper
 
 | item | paper | here | reason |

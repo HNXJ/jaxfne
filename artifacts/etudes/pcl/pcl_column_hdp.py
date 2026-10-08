@@ -39,6 +39,11 @@ EXC = (0, 4)
 N_STEPS = int(C.STIM["seq_ms"] / DT)
 V_FLOOR = -85.0  # mV, 20 below rest (PCL's Vmin is 20 mV below its reset scale); blocks the Izhikevich blow-up under strong inhibition
 R.register()
+sys.path.insert(0, str(Path(__file__).resolve().parent.with_name("pcl_h")))
+import pcl_h_rule as RH  # noqa: E402
+
+RH.register()
+RULE = R.NAME  # or RH.NAME2: the same rule with its traces in the H state (--rule)
 
 
 def build_edges():
@@ -122,8 +127,11 @@ def make_runner(s, amp, plastic_types, full=False):
         st = {"v": jnp.full(N, -65.0), "u": jnp.full(N, -13.0), "prev_spikes": jnp.zeros(N),
               "syn_state": jnp.zeros(len(PRE)), "w_final": jnp.asarray(sign) * w_mag,
               "aux_final": jnp.zeros((len(PRE), 3), jnp.float32)}
+        if RULE == RH.NAME2:  # x_7ms, x_40ms, Y per neuron; snapshot and deferred LTD per edge
+            st["aux_final"] = jnp.zeros((len(PRE), 2), jnp.float32)
+            st["H_final"] = jnp.zeros((N, 3), jnp.float32)
         v, spikes, src, diag = sim(params, edges, N_STEPS, DT, k2, drive_schedule=sched, noise_scale=0.0,
-                                   init_state=st, hdp_rule=R.NAME, hdp_rule_params=rp,
+                                   init_state=st, hdp_rule=RULE, hdp_rule_params=rp,
                                    record_weight_trace=False, plasticity_mask=mask, v_floor=V_FLOOR)
         if full:
             return v, spikes, src
@@ -151,7 +159,10 @@ def main():
     ap.add_argument("--n-inh", type=int, default=300)
     ap.add_argument("--n-test-per-ori", type=int, default=20)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--rule", choices=(R.NAME, RH.NAME2), default=R.NAME)
     a = ap.parse_args()
+    global RULE
+    RULE = a.rule
     t0 = time.time()
     K.DT = DT
     amp, w_cancel = K.calibrate()
@@ -179,7 +190,7 @@ def main():
     resp_t, resp_u = rate_t >= 0.5, rate_u >= 0.5
     res = dict(
         params=dict(seed=a.seed, n_exc=a.n_exc, n_inh=a.n_inh, n_test_per_ori=a.n_test_per_ori, dt_ms=DT,
-                    pulse_amp=amp, w_cancel=w_cancel, scale=s, n_edges=int(len(PRE)), stim=C.STIM),
+                    pulse_amp=amp, w_cancel=w_cancel, scale=s, n_edges=int(len(PRE)), stim=C.STIM, rule=RULE),
         wall_s=round(time.time() - t0, 1),
         osi_trained_median=float(np.median(osi_t[resp_t])) if resp_t.any() else None, n_resp_trained=int(resp_t.sum()),
         osi_untrained_median=float(np.median(osi_u[resp_u])) if resp_u.any() else None, n_resp_untrained=int(resp_u.sum()),
