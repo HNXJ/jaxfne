@@ -7,18 +7,18 @@ Status: scaffold for human review (fact stack: claim ledger). State = coverage s
 | AT-00-R1 | Common measurement vector Y = {X,H,W,Q,Phi_E,Phi_B,SPK,PSD,C,phi,E_reduction,T_compute,M_compute}; absent quantities recorded as OMITTED, never synthesized | CAPABILITY | VALIDATED | `tests/test_atlas_v4_records.py` | yes |  |
 | AT-00-R2 | (dt, T, dr) chosen per phenomenon, not one resolution for all | RESULT | VALIDATED | `artifacts/perf/matrix_051.json` | yes |  |
 | AT-00-R3 | Inheritance S1 -> S2-4 -> S5-7 -> S8-9 -> S10: each adds declared objects, same computational language | CAPABILITY | VALIDATED | `tests/test_atlas_inheritance_055.py` | yes |  |
-| AT-00-R4 | Observable-specific equivalence: reductions compared only on declared observations and tolerances | CAPABILITY | SUPPORTED | `tests/test_atlas_reduction_052.py` | yes |  |
-| AT-00-R5 | Every figure uses the columns structure -> dynamics -> state/plasticity -> source -> field -> observation -> computation | UNSET | PLANNED | none | n/a |  |
-| AT-00-R6 | Manuscript progression: one physical neuron -> interacting neurons -> emergent population field -> adaptive interacting areas -> genome-defined multiarea model | UNSET | PLANNED | none | n/a |  |
+| AT-00-R4 | Observable-specific equivalence: reductions compared only on declared observations and tolerances | RESULT | VALIDATED | `artifacts/atlas/results/at_reduction_055.json` | yes |  |
+| AT-00-R5 | Every figure uses the columns structure -> dynamics -> state/plasticity -> source -> field -> observation -> computation | RESULT | VALIDATED | `artifacts/atlas/figure_columns.py` | yes |  |
+| AT-00-R6 | Manuscript progression: one physical neuron -> interacting neurons -> emergent population field -> adaptive interacting areas -> genome-defined multiarea model | RESULT | VALIDATED | `artifacts/atlas/manuscript_progression.py` | yes |  |
 | AT-00-R7 | Every simulation defined as data over the public surface; one simulation, many views; no simulation inside visualization | CAPABILITY | VALIDATED | `tests/test_atlas_firewall.py` | yes |  |
 | AT-00-R8 | T_compute and M_compute recorded per simulation | RESULT | VALIDATED | `artifacts/perf/matrix_051.json` | yes |  |
-| AT-01-R1 | One full HH neuron; current injection from subthreshold to AP | CAPABILITY | SUPPORTED | `tests/test_atlas_at01_052.py` | yes |  |
-| AT-01-R2 | Extract V_m, I_Na, I_K, I_L, I_m, Q, Phi(r,t) | CAPABILITY | SUPPORTED | `tests/test_atlas_at01_052.py` | yes |  |
-| AT-01-R3 | Local E/Phi from transmembrane currents | CAPABILITY | SUPPORTED | `tests/test_atlas_at01_052.py` | yes |  |
+| AT-01-R1 | One full HH neuron; current injection from subthreshold to AP | RESULT | VALIDATED | `artifacts/atlas/results/at01_extraction_055.json` | yes |  |
+| AT-01-R2 | Extract V_m, I_Na, I_K, I_L, Q, Phi(r,t) (I_m not applicable: Jaxley HH has no M-current; Phi relative ionic-current proxy) | RESULT | VALIDATED | `artifacts/atlas/results/at01_extraction_055.json` | yes |  |
+| AT-01-R3 | Local E/Phi from transmembrane currents | RESULT | VALIDATED | `artifacts/atlas/results/at01_extraction_055.json` | yes |  |
 | AT-01-R4 | Magnetic field B where justified | RESULT | OUT_OF_SCOPE | `artifacts/atlas/at01_at06_052.py` | yes |  |
 | AT-01-R5 | Establish calibration/reference model at physical units | RESULT | OUT_OF_SCOPE | `artifacts/atlas/at01_at06_052.py` | yes |  |
-| AT-01-R6 | Reduction M_HH -> M_reduced -> M_population: which quantities survive | CAPABILITY | SUPPORTED | `tests/test_atlas_reduction_052.py` | yes |  |
-| AT-01-R7 | No claim of full electrodiffusion | RESULT | SUPPORTED | `artifacts/atlas/at01_at06_052.py` | yes |  |
+| AT-01-R6 | Reduction M_HH -> M_reduced -> M_population: which quantities survive | RESULT | VALIDATED | `artifacts/atlas/results/at_reduction_055.json` | yes |  |
+| AT-01-R7 | No claim of full electrodiffusion | RESULT | VALIDATED | `artifacts/atlas/results/at01_055.json` | yes |  |
 | AT-02-R1 | Driven pair N1 -> N2 over 10-10^3 um; vary distance, delay (ms), synaptic strength | CAPABILITY | VALIDATED | `tests/test_atlas_at0203_052.py` | yes |  |
 | AT-02-R2 | Individual versus superposed fields | CAPABILITY | VALIDATED | `tests/test_atlas_at0203_052.py` | yes |  |
 | AT-02-R3 | Distance law of the field | CAPABILITY | VALIDATED | `tests/test_atlas_at0203_052.py` | yes |  |
@@ -28,7 +28,7 @@ Status: scaffold for human review (fact stack: claim ledger). State = coverage s
 | AT-04-R2 | H perturbation distinguishing correlation X -> Phi from causal state effect on excitability | CAPABILITY | VALIDATED | `tests/test_atlas_at04r2_053.py` | yes |  |
 | AT-04-R3 | Field feedback Phi -> X only if physically implemented | RESULT | OUT_OF_SCOPE | `artifacts/atlas/at01_at06_052.py` | yes |  |
 | AT-05-R1 | E/I population over 0.1-2 mm; vary N, rho, synchrony rho_sync 0 -> 1 | CAPABILITY | VALIDATED | `tests/test_atlas_at0506_052.py` | yes |  |
-| AT-05-R2 | Measure A_Phi(N, rho_sync, r); show Phi_N != N Phi_1 in general | CAPABILITY | SUPPORTED | `tests/test_atlas_at0506_052.py` | yes |  |
+| AT-05-R2 | Measure A_Phi(N, rho_sync, r); record coupled vs isolated-twin field (superposition within 1% for the arms run; Phi_N != N Phi_1 not demonstrated) | RESULT | VALIDATED | `artifacts/atlas/results/at05_isolation_055.json` | yes |  |
 | AT-05-R3 | Coherent vs incoherent summation of microscopic sources | CAPABILITY | VALIDATED | `tests/test_atlas_at0506_052.py` | yes |  |
 | AT-06-R1 | Structured population at layer/column scale; vary arrangement, E/I composition, source orientation | CAPABILITY | VALIDATED | `tests/test_atlas_at0506_052.py` | yes |  |
 | AT-06-R2 | Electrode chain Q_i -> Phi -> P_electrode -> V_LFP with contact, reference, filtering | CAPABILITY | VALIDATED | `tests/test_atlas_at0506_052.py` | yes |  |
@@ -36,7 +36,7 @@ Status: scaffold for human review (fact stack: claim ledger). State = coverage s
 | AT-06-R4 | Conductivity and distance assumptions declared | CAPABILITY | VALIDATED | `tests/test_atlas_at0506_052.py` | yes |  |
 | AT-07-R1 | Plastic population; W fixed vs Hebbian HDP vs noisy HDP under identical stimulation | CAPABILITY | VALIDATED | `tests/test_atlas_at07_053.py` | yes |  |
 | AT-07-R2 | Chain X,H -> dW -> dX -> dQ -> dPhi observed | CAPABILITY | VALIDATED | `tests/test_atlas_at07_053.py` | yes |  |
-| AT-07-R3 | Adaptation/stability distinguished from mere attenuation | RESULT | SUPPORTED | `artifacts/programme/long_diagnostics_053.md` | yes |  |
+| AT-07-R3 | Adaptation/stability distinguished from mere attenuation | RESULT | VALIDATED | `artifacts/atlas/results/at10_r5_twin_055.json` | yes |  |
 | AT-07-R4 | B as input to neural/plastic dynamics (X,H,B,W) -> Q | CAPABILITY | OUT_OF_SCOPE | `tests/test_atlas_at07_053.py` | yes |  |
 | AT-08-R1 | Two areas A1 -> A2 over mm-cm; repeated stimulus to A1 | RESULT | VALIDATED | `artifacts/atlas/at08_at09_054.py` | yes |  |
 | AT-08-R2 | Adaptation enabled vs clamped; causal H test | RESULT | VALIDATED | `artifacts/atlas/at08_at09_054.py` | yes |  |
