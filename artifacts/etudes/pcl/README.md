@@ -449,6 +449,17 @@ normalization); K1 (Izhikevich). The seed-0 smoke was known when O1 was
 declared. A test of learned tuning needs a criterion calibrated on a
 control, declared before it is applied.
 
+A1 at 0.3 is closed for this column: one oriented kernel family does not
+reach it. Descriptive, not gated: C1 trained OSI as a fraction of the
+oriented control on the same seeds and test draws (untrained OSI identical
+in both runs).
+
+| seed | C1 trained OSI | O1 oriented OSI | ratio |
+|---|---|---|---|
+| 10 | 0.123 | 0.267 | 0.459 |
+| 11 | 0.121 | 0.266 | 0.454 |
+| 12 | 0.100 | 0.272 | 0.370 |
+
 ## Deviations from the paper
 
 | item | paper | here | reason |

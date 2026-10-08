@@ -484,8 +484,9 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
    - Control O1 (one hand-set oriented kernel family, LIF column): misses
      A1 (OSI 0.27 on bars, decoding 1.00), so the C1 and C1b A1 failures
      are uninformative about learning; K1 not tested (README).
-   - Next (Hamm): declare a tuning criterion calibrated on O1 (e.g. trained
-     OSI as a fraction of O1's), or close A1 as untestable.
+   - A1 at 0.3 closed for the C1 column (README, Control O1); C1 trained
+     OSI is 0.37-0.46 of the oriented control. A learned-tuning test
+     needs a new declared criterion.
    - Open: the column weights behind the paper's figures are not committed
      (npz is gitignored); regenerate them with `pcl_column_hdp.py`.
 0a. Controlled model augmentation (human, 2026-09-30): the canonical order is
