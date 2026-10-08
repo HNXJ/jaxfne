@@ -349,10 +349,16 @@ unchanged in all three (A1 FAIL, A2 and A3 PASS).
 | 11 | spikes, decoding, keep_q differ | 130 | 0.71/0.70/0.28 → 0.69/0.74/0.21 |
 | 12 | spikes, decoding, keep_q, OSI differ | 135 | 0.74/0.68/0.29 → 0.68/0.71/0.26 |
 
-Reading (inferred, not shown): the rule is equal to `pcl_stdp` on the unit
-tests, the smoke run and all of seed 10, so float rounding of the snapshot
-subtraction, amplified over 900 training sequences of spiking dynamics, is
-the likely source. Not checked: the first sequence where the two runs split.
+Divergence, seed 11 (`k1h_divergence.py`, both rules in lockstep from the
+same weights and draws; its runner matches the driver's bit for bit). All
+weights are equal until phase 1 sequence 1, step 133 (66.5 ms), where one
+`c_loc` edge (797 → 793) updates to −419.5366 under `pcl_stdp` and −419.53656
+under `pcl_stdp_h2`: one float32 ulp, from identical weights and spikes. The
+sequence ends 3 ulp apart on 2 edges with equal spike counts; the gap reaches
+14.7 at the end of phase 1 and 130 at the end of phase 2; total spike counts
+per sequence first differ at phase 1 sequence 497. So the split is arithmetic rounding amplified by
+the spiking dynamics, not a rule difference (observed); that the snapshot
+subtraction is the rounding site is inferred.
 
 ## Deviations from the paper
 
