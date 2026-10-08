@@ -35,17 +35,17 @@ def experimental_poisson_1d(
     matrix (verified in tests/test_experimental_poisson_1d_layered.py) --
     zero behavior change for every existing caller.
 
-    KNOWN LIMITATION (confirmed 2026-07-18, both conductivity paths): the
-    dense ``jnp.linalg.lstsq`` solve's residual grows sharply above roughly
-    N~150-200 grid points in float32 -- ``convergence_status`` correctly
-    self-reports ``"failed"`` in that regime rather than returning a silently
-    wrong answer (see tests/test_experimental_poisson_1d_convergence.py,
-    which reproduces this on both the scalar and layered paths and confirms
-    it is NOT fixed by removing the 1/dx**2 matrix-scale factor before
-    solving -- that hypothesis was tested and rejected). Root cause is most
-    likely the dense discrete-Laplacian solve's inherent conditioning at
-    this size, not yet addressed; treat this function as validated only up
-    to roughly N~150 until a better-conditioned or sparse solve replaces it.
+    KNOWN LIMITATION (float32 dense ``lstsq``, both conductivity paths): an
+    observed conditioning failure, not a universal grid-size law. The
+    2026-07-18 sweep recorded in
+    ``tests/test_experimental_poisson_1d_convergence.py`` has residual_norm
+    about 1e-3 at N=161 and a failed solve at N=321; the live test still
+    requires N=321 to report ``convergence_status="failed"`` with
+    residual_norm > 1e-3, on the layered path, and removing the 1/dx**2
+    scale did not move that failure. N=21, 41, and 81 converge in the flux
+    check in that file. ``precision="float64"`` with x64 enabled converges
+    at N=300 there, so the failure is this float32 dense solve, not every
+    solve of this size.
 
     Parameters
     ----------
@@ -202,9 +202,9 @@ def experimental_poisson_1d_from_neuron_table(
         caller-supplied; jaxfne has no calibrated conductivity data, so this
         is never inferred from the network itself.
     n_bins : int
-        Number of depth-grid nodes for the 1D solve. Per
-        :func:`experimental_poisson_1d`'s documented limitation, keep this
-        below roughly 150 for a reliably converged solve.
+        Number of depth-grid nodes for the 1D solve. The float32 dense
+        solve is observed to fail its 1e-3 residual check at N=321; that
+        is not a universal ceiling (see :func:`experimental_poisson_1d`).
     z_min, z_max : float, optional
         Depth range for the grid; default to the min/max ``z`` actually
         present in ``neuron_table``.

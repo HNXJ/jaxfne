@@ -39,6 +39,21 @@ class TestDeprecatedMetricsWarnings:
         with pytest.warns(DeprecationWarning, match=r"jnwb\.fano_factor"):
             fano_factor(spikes, bin_size_ms=10, dt_ms=0.1)
 
+    def test_burst_index_value_ignores_bin_ms(self):
+        spikes = np.zeros((2, 4))
+        spikes[:, 0] = 1.0
+        with pytest.warns(DeprecationWarning, match="bin_ms is accepted but unused"):
+            fine = burst_index(spikes, bin_ms=1.0, dt_ms=0.1)
+        with pytest.warns(DeprecationWarning, match="bin_ms is accepted but unused"):
+            coarse = burst_index(spikes, bin_ms=50.0, dt_ms=0.1)
+        assert fine == coarse == 0.25
+
+    def test_fano_factor_population_sum_value(self):
+        spikes = np.array([[1.0, 0.0, 1.0, 0.0], [0.0, 0.0, 1.0, 1.0]])
+        with pytest.warns(DeprecationWarning, match="population-summed"):
+            value = fano_factor(spikes, bin_size_ms=1.0, dt_ms=1.0)
+        assert value == 0.5
+
 
 class TestMeanPairwiseSpikeCorrelation:
     """Test mean_pairwise_spike_correlation metric."""

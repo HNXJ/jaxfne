@@ -71,8 +71,9 @@ output object and no new public API is proposed.
   for the standard laminar proxy projection workflow — the default evidence
   path for field readouts.
 - Use `experimental_poisson_1d` only for the explicit one-dimensional,
-  mean-zero-Neumann / mean-zero-gauge experimental PDE workflow, and keep
-  `n_bins` below roughly 150 for a reliably converged float32 solve.
+  mean-zero-Neumann / mean-zero-gauge experimental PDE workflow. The float32
+  dense solve is observed to fail its 1e-3 residual check at N=321; that
+  observation is not a universal ceiling.
 - Use `experimental_poisson_1d_from_neuron_table` when the source values
   start on a `Model.neuron_table()` (per-neuron depths and sources).
 - `field_solver_status` distinguishes implementation type; it does not change
