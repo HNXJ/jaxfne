@@ -439,12 +439,15 @@ Result: O1 misses A1 for both stimuli.
 | segments, 8 px | 11 | 0.127 (0.081) | 2 (66) | 0.86 (0.42) |
 | segments, 8 px | 12 | 0.172 (0.072) | 1 (40) | 0.81 (0.40) |
 
-Oriented kernels decode orientation perfectly from bars yet reach a median
-OSI of 0.27; with segments almost no oriented cell passes the
-responsiveness threshold. A1 at 0.3 is out of reach of this stimulus and
-OSI measure, so the A1 failures of C1, C1b and K1 say nothing about
-learning. A test of learned orientation tuning needs a criterion
-calibrated on this control, declared before it is applied.
+With one hand-set kernel family (σ 0.5 px, lobes ±1 px), the LIF column
+decodes orientation perfectly from bars yet reaches a median OSI of 0.27;
+with 8 px segments almost no oriented cell passes the responsiveness
+threshold. Under that kernel family the C1 and C1b A1 failures are
+uninformative about learning. Not tested: other kernel widths, spacings or
+lengths; what caps OSI (input noise, the ON/OFF pairing, the drive
+normalization); K1 (Izhikevich). The seed-0 smoke was known when O1 was
+declared. A test of learned tuning needs a criterion calibrated on a
+control, declared before it is applied.
 
 ## Deviations from the paper
 

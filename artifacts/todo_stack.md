@@ -481,9 +481,9 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
    - K1h-nf (seeds 13-15, H rule against a one-ulp noise floor): PASS
      (README). `pcl_stdp_h2` is the rule for new work; `pcl_stdp` stays the
      default to reproduce K1 and the replication.
-   - Control O1 (hand-set oriented kernels): misses A1 (OSI 0.27 on bars,
-     decoding 1.00), so A1 at 0.3 cannot be met here and the A1 failures
-     say nothing about learning (README).
+   - Control O1 (one hand-set oriented kernel family, LIF column): misses
+     A1 (OSI 0.27 on bars, decoding 1.00), so the C1 and C1b A1 failures
+     are uninformative about learning; K1 not tested (README).
    - Next (Hamm): declare a tuning criterion calibrated on O1 (e.g. trained
      OSI as a fraction of O1's), or close A1 as untestable.
    - Open: the column weights behind the paper's figures are not committed
