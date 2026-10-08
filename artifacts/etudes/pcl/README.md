@@ -380,6 +380,24 @@ nonzero initial phase-1 weight moved one float32 ulp up) and H
 - On PASS the per-edge rule `pcl_stdp` is retired in favour of
   `pcl_stdp_h2`; on FAIL both stay. Evaluated by `k1h_nf_gate.py`.
 
+Result: PASS. T = 0.0688; max |H − base| = 0 in every gated field of every
+seed; A1–A3 the same in all three (A1 FAIL, A2 and A3 PASS).
+
+| seed | nudge vs base: max decoding diff / max weight diff | H vs base: gated fields / max weight diff |
+|---|---|---|
+| 13 | 0.0688 / 123 | all equal / 0.0014 |
+| 14 | 0.0500 / 153 | all equal / 0.0012 |
+| 15 | 0.0688 / 126 | all equal / 0.0017 |
+
+H also matched base in spike counts, keep fraction and OSI. Its rounding
+differences stayed below a spike in all three seeds, as in K1h seed 10; a
+one-ulp change of the initial weights alone moves decoding by up to 0.069.
+The H run took about 20 % longer than base (868 s against 720 s).
+
+Retirement: `pcl_stdp_h2` is the rule for new work. `pcl_stdp` stays the
+driver default and is kept, unchanged, to reproduce K1 and the replication
+results; the commands recorded above stay valid.
+
 ## Deviations from the paper
 
 | item | paper | here | reason |

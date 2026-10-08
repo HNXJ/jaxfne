@@ -36,9 +36,11 @@ def gate(runs):
 def main():
     runs = {s: {a: json.loads((D / f"k1nf_{a}_seed{s}.json").read_text()) for a in ("base", "nudge", "h")}
             for s in SEEDS}
+    want = {"base": ("pcl_stdp", 0), "nudge": ("pcl_stdp", 1), "h": ("pcl_stdp_h2", 0)}
     for s in SEEDS:
-        assert runs[s]["nudge"]["params"]["nudge_ulp"] == 1 and runs[s]["base"]["params"]["nudge_ulp"] == 0, s
-        assert runs[s]["h"]["params"]["rule"] == "pcl_stdp_h2" and runs[s]["base"]["params"]["rule"] == "pcl_stdp", s
+        for a, (rule, ulp) in want.items():
+            p = runs[s][a]["params"]
+            assert (p["seed"], p["rule"], p["nudge_ulp"]) == (s, rule, ulp), (s, a)
     v, t, dh, same = gate(runs)
     for s in SEEDS:
         print(f"seed {s}: A1-A3 base {verdicts(runs[s]['base'])} h {verdicts(runs[s]['h'])} match={same[s]}")

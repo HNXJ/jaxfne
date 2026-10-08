@@ -478,9 +478,9 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
      (`artifacts/etudes/pcl/README.md`). The per-edge-trace rule stays.
    - Seed 11 split located (`k1h_divergence.py`, README): one float32 ulp
      on one edge at phase 1 sequence 1, step 133, amplified by the dynamics.
-   - Next (Hamm): declare a tolerance gate for the H-state rule (equality is
-     unattainable in float32 over 900 sequences), then retire the per-edge
-     rule if it passes.
+   - K1h-nf (seeds 13-15, H rule against a one-ulp noise floor): PASS
+     (README). `pcl_stdp_h2` is the rule for new work; `pcl_stdp` stays the
+     default to reproduce K1 and the replication.
    - Open: orientation tuning failed in all column variants; the column
      weights behind the paper's figures are not committed (npz is
      gitignored); regenerate them with `pcl_column_hdp.py`.
