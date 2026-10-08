@@ -61,11 +61,20 @@ augmentation, training and scientific reduction keep their own APIs.
 
 1. Gap audit: consumer paths, tests and manifests per row; replaces the
    table above. No new abstraction without a shown gap.
-2. State and training: continuation ownership schema; restart equivalence;
-   frozen values under momentum, weight decay, HDP and optimizer-state
-   restore.
+2. State and training: `ownership_053.md` and `continuation_053.md` stay
+   the authority (no second schema). Checkpoint as a round trip,
+   Run_{a+b}(h0) ~ Run_b(Load(Save(Run_a(h0)))), with the equivalence class
+   declared per numerical regime and a check against the model's static
+   identity on load. Frozen values under momentum, weight decay, HDP and
+   optimizer-state restore.
 3. Transformations: extend the `augment` record pattern to pruning,
-   compression, reparameterization and state migration; existing API kept.
+   reparameterization and state migration; existing API kept. Compression
+   (changes representation or removes degrees of freedom) and distillation
+   (fits a reduced model to a reference) stay separate, with separate
+   evidence. Compression starts with one falsifiable reduction, e.g. rank r
+   on one dense N x N operator: storage 2Nr < N^2 only if 2r < N, and a
+   speedup only if the execution path consumes the factors; sparse graphs
+   are never densified for it.
 4. Artifacts: version pinning and compatibility checks on the existing
    serialization; Safetensors only on measured benefit.
 5. Ecosystem: signal packets, CLI, later a UI, over the existing execution
