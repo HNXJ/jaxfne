@@ -1,0 +1,68 @@
+{
+  "_quiet": {
+    "load_percent_before": 13,
+    "started_local": "2026-10-09T12:25:18.244-05:00",
+    "cell_id": "n1"
+  },
+  "cell": {
+    "id": "n1",
+    "status": "MEASURED",
+    "declared_drive": null,
+    "params": {
+      "n_neurons": 1,
+      "duration_ms": 100.0,
+      "dt_ms": 0.1,
+      "recording": "minimal",
+      "mechanism": "fixed_W",
+      "chunks": 1,
+      "seed": 0
+    },
+    "output_checksum": {
+      "spike_count_total": 2,
+      "V_sum": -66827.796875
+    },
+    "n_neurons_realized": 1,
+    "n_edges": 0,
+    "delay_steps_max": null,
+    "phases_ms": {
+      "construct_ms": 2858.8598999995156,
+      "simulate_first_call_ms": 455.78370000293944,
+      "simulate_warm_ms_median": 92.17789999820525,
+      "simulate_warm_ms_range": [
+        79.94660000258591,
+        93.13939999992726
+      ],
+      "simulate_warm_ms_all": [
+        93.13939999992726,
+        92.17789999820525,
+        79.94660000258591
+      ],
+      "compile_est_ms": 363.6058000047342,
+      "probe_observe_ms": 0.008499999239575118,
+      "manifest_ms": 0.4580000022542663
+    },
+    "rss_mb": {
+      "start": 36.33152,
+      "after_construct": 318.971904,
+      "after_first_sim": 346.615808,
+      "after_warm": 356.089856,
+      "cell_peak": 357.801984
+    },
+    "recording": {
+      "spikes": {
+        "bytes": 4000
+      },
+      "V_m": {
+        "bytes": 4000
+      },
+      "sources": {
+        "bytes": 4000
+      },
+      "field": {
+        "bytes": null
+      }
+    },
+    "notes": [],
+    "wall_s": 3.6182143688201904
+  }
+}
