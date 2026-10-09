@@ -176,10 +176,18 @@ ATLAS
    population → 2A → 20A), which observations survive within the
    predeclared tolerance and which do not; failures stay in the matrix.
    Existing row: `at01_at06_052.run_reduction` (HH → reduced → population;
-   covered by `tests/test_atlas_reduction_052.py`). Missing rows: population
-   → 2A → 20A (AT-10 / `AT-10-N20`); predeclare each tolerance before the
-   run, record failures as failures, feed E_reduction to item 8 and to
-   coverage rows in item 9.
+   covered by `tests/test_atlas_reduction_052.py`). That recorded row,
+   including its failures, stays.
+   DECISION 2026-10-09 (Hamm): population → 2A → 20A reduction equivalence
+   is UNSUPPORTED for 0.5.5 and was not executed. The builders are different
+   realizations, and the 20-area model has no source or field observation,
+   so there is no common observation operator. This is a scope correction,
+   not a failed experiment. Quiet-matrix cells stay computational
+   characterization. `artifacts/perf/matrix_055.json` stays
+   LOADED_NON_FINAL. A within-system reduction operator is deferred.
+   This comparison is not an `atlas_coverage.json` row. AT-01-R6 remains
+   HH → reduced → population. Coverage counts stay 42 VALIDATED and
+   6 OUT_OF_SCOPE.
 8. Performance/reduction map: T_compute and M_compute per AT beside
    E_reduction. `artifacts/perf/matrix_051.json` ran the
    `benchmark_050_baseline` models at the default drives; their declared
@@ -348,11 +356,12 @@ ATLAS
    rejects direct pushes (PR + 2 required checks). Only AT-10-R6 is SUPPORTED
    (kept by Hamm); items 10-14 and quiet-machine matrix timings stay open, so
    the 100/100 seal is not met: no tag or release.
-   Coverage state (2026-10-09, after the quiet AT-10-R6 repeat): 48 rows,
-   42 VALIDATED, 0 SUPPORTED, 6 OUT_OF_SCOPE. Every row is VALIDATED,
-   CANONICAL, or OUT_OF_SCOPE. Items 10-14, the quiet-machine matrix, the
-   population→2A→20A reduction rows, and the release/rc gates stay open, so
-   the seal is not met.
+   Coverage state (2026-10-09): 48 rows, 42 VALIDATED, 0 SUPPORTED,
+   6 OUT_OF_SCOPE. Every coverage row is VALIDATED, CANONICAL, or
+   OUT_OF_SCOPE. Population → 2A → 20A reduction equivalence is a programme
+   item, not a coverage row, and is UNSUPPORTED for 0.5.5 (not executed).
+   Items 10–14 and the release/rc gates stay open. Quiet receipts exist;
+   the loaded matrix stays LOADED_NON_FINAL. The seal is not met.
 
 MANUSCRIPT (ends 0.5.5)
 9. Atlas coverage matrix: every section, figure, simulation and claim in the
@@ -392,6 +401,11 @@ ACCEPTANCE (0.5.5 seal = end of programme)
   T_agent_task, E_semantic = 0, C_scientific retained.
 - Every manuscript claim traces to a ledger row with PASS evidence; negative
   and failed results reported as such.
+- Population → 2A → 20A reduction equivalence is UNSUPPORTED for 0.5.5
+  (not executed). The builders are not one reference system, and the
+  20-area model has no common source or field operator. Quiet-matrix
+  scale measurements are not that claim. `run_reduction()` is unchanged.
+  The comparison is not an Atlas coverage row.
 
 ## Compaction track (audited 2026-10-06)
 
@@ -459,6 +473,8 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
 `w3a_stability_analysis.py` (own tests and receipts).
 
 ## Open work outside the release stacks (after 0.5.5 unless a trigger fires)
+
+WSL2 CUDA qualification (2026-10-09, jchat p-jaxfne #237–#238, `vwin-claude-sonnet55-jaxfne`): 20-area GPU feasibility test after the 0.5.5 seal. Local receipts only, `scratch/wsl_cuda_2026-10-09/` (gitignored). Not a 0.5.5 claim. Open there: CSD agreement, peak VRAM, one unexplained failed GPU run, and the 20-area test.
 
 0. Literature reproduction études, HDP off/on (human, 2026-09-29): plan in
    `artifacts/etudes/literature_reproduction_plan.md`. P0 table done
