@@ -28,10 +28,10 @@ def test_checker_fails_on_altered_state_in_temp_copy(tmp_path, capsys):
     shutil.copyfile(REPO_ROOT / "artifacts" / "programme" / "atlas_coverage.json", coverage)
     text = ledger.read_text(encoding="utf-8")
     target = (
-        "| AT-10-R6 | Reduced fast model with very long T | RESULT | SUPPORTED | "
-        "`artifacts/atlas/results/at10_r6_long_055.json` | yes | supported only |"
+        "| AT-10-R6 | Reduced fast model with very long T | RESULT | VALIDATED | "
+        "`artifacts/atlas/results/at10_r6_long_quiet_055.json` | yes | under the tested conditions |"
     )
-    altered = target.replace("| RESULT | SUPPORTED |", "| RESULT | VALIDATED |")
+    altered = target.replace("| RESULT | VALIDATED |", "| RESULT | SUPPORTED |")
     assert target in text and altered != target
     ledger.write_text(text.replace(target, altered), encoding="utf-8", newline="")
 

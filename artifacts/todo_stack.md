@@ -276,6 +276,12 @@ ATLAS
    `chunk_index` test for `run_continuation_strided` added (`082fcc47`). Open:
    RSS grows +80-98 MB over 4 chunks in all 3 runs (leak vs XLA cache
    unresolved; check before any run longer than 100 s).
+   QUIET REPEAT 2026-10-09 (`artifacts/atlas/results/at10_r6_long_quiet_055.json`,
+   `run_r6_long` defaults, seed 11, 100 s, load 2% before start): every
+   scientific field matches `at10_r6_long_055.json` (max abs diff 0). Wall
+   time is not part of that comparison. Seeds 12 and 13 stay the loaded
+   replicate file. Wording stays chunk-mean rates, one quiet seed, RELATIVE_PROXY.
+   Row -> VALIDATED, wording class `under the tested conditions`.
    RESULT FILES 2026-10-06 (`scripts/emit_atlas_results_055.py`; Hamm chose a
    result JSON per SUPPORTED row; rows stay SUPPORTED until reviewed and
    accepted): `at01_055.json` (AT-01-R1/R2/R3/R7), `at_reduction_055.json`
@@ -342,11 +348,11 @@ ATLAS
    rejects direct pushes (PR + 2 required checks). Only AT-10-R6 is SUPPORTED
    (kept by Hamm); items 10-14 and quiet-machine matrix timings stay open, so
    the 100/100 seal is not met: no tag or release.
-   Coverage state (2026-10-08, `python scripts/check_atlas_coverage.py` and
-   `python scripts/check_claim_ledger_055.py`, both VALID): 48 rows,
-   41 VALIDATED, 1 SUPPORTED (`AT-10-R6`, kept by Hamm), 6 OUT_OF_SCOPE.
-   The earlier 30/8/4 split is superseded. Items 10-14 and the quiet-machine
-   matrix stay open, so the seal is not met.
+   Coverage state (2026-10-09, after the quiet AT-10-R6 repeat): 48 rows,
+   42 VALIDATED, 0 SUPPORTED, 6 OUT_OF_SCOPE. Every row is VALIDATED,
+   CANONICAL, or OUT_OF_SCOPE. Items 10-14, the quiet-machine matrix, the
+   population→2A→20A reduction rows, and the release/rc gates stay open, so
+   the seal is not met.
 
 MANUSCRIPT (ends 0.5.5)
 9. Atlas coverage matrix: every section, figure, simulation and claim in the

@@ -15,5 +15,6 @@ Generator ran against jaxfne 0.5.5.
 | `at10_r5_hspace_055.json` | - | - | - | 11 | - | - |
 | `at10_r5_twin_055.json` | - | - | - | 11 | - | - |
 | `at10_r6_long_055.json` | AT-10-N20-R6 | RELATIVE_PROXY | - | 11 | - | - |
+| `at10_r6_long_quiet_055.json` | AT-10-N20-R6 | RELATIVE_PROXY | - | 11 | - | - |
 | `at10_r6_replicates_055.json` | - | - | - | - | - | - |
 | `at_reduction_055.json` | REDUCTION | RELATIVE_PROXY | {"field_frac": 0.75, "rate_hz": 10.0, "v_peak_mv": 20.0} | - | 0.5.0 | at01_at06_052:run_reduction |
