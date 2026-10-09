@@ -25,8 +25,8 @@ class TestAgentContextHygiene:
         assert len(content) > 500, "Context file too short (< 500 chars)"
 
     def test_durable_context_has_key_sections(self):
-        """Assert context includes key guidance sections."""
-        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        """Assert the archived context includes key guidance sections."""
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE_ARCHIVE.md")
         content = context_path.read_text(encoding="utf-8").lower()
 
         required_sections = [
@@ -47,8 +47,8 @@ class TestAgentContextHygiene:
             assert section in content, f"Missing section: {section}"
 
     def test_durable_context_mentions_canonical_api(self):
-        """Assert context documents canonical Configuration API."""
-        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        """Assert the archived context documents the historical Configuration API."""
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE_ARCHIVE.md")
         content = context_path.read_text(encoding="utf-8")
 
         api_terms = [
@@ -66,8 +66,8 @@ class TestAgentContextHygiene:
             assert term in content, f"Missing API reference: {term}"
 
     def test_durable_context_mentions_public_private_separation(self):
-        """Assert context explains public/private surface boundaries."""
-        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        """Assert the archived context explains public/private surface boundaries."""
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE_ARCHIVE.md")
         content = context_path.read_text(encoding="utf-8")
 
         # Should mention docs, tutorials as public
@@ -78,16 +78,16 @@ class TestAgentContextHygiene:
         assert "internal_docs" in content.lower(), "Missing private surface: internal_docs"
 
     def test_durable_context_mentions_generated_output_policy(self):
-        """Assert context documents generated output handling."""
-        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        """Assert the archived context documents generated output handling."""
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE_ARCHIVE.md")
         content = context_path.read_text(encoding="utf-8")
 
         assert "tutorial_outputs" in content, "Missing generated output location"
         assert "JAXFNE_VALIDATE_TUTORIAL_OUTPUTS" in content, "Missing artifact gate env var"
 
     def test_durable_context_mentions_report_contract(self):
-        """Assert context specifies validation report requirements."""
-        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        """Assert the archived context specifies validation report requirements."""
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE_ARCHIVE.md")
         content = context_path.read_text(encoding="utf-8")
 
         report_items = ["SHA", "branch", "test", "report", "receipt"]
@@ -112,8 +112,8 @@ class TestAgentContextHygiene:
         assert ".claude" in content, ".claude/ not in .gitignore"
 
     def test_durable_context_warns_against_common_mistakes(self):
-        """Assert context documents known failure modes."""
-        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        """Assert the archived context documents known failure modes."""
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE_ARCHIVE.md")
         content = context_path.read_text(encoding="utf-8")
 
         mistake_keywords = [
@@ -136,6 +136,11 @@ class TestAgentContextHygiene:
 
         assert "ARCHIVAL ONLY" in content
         assert "not active worker authority" in content
+
+        # The live CLAUDE.md is a pointer; stale identity/API strings must
+        # only live in CLAUDE_ARCHIVE.md.
+        assert "0.3.5" not in content, "Pointer file revives stale version string: 0.3.5"
+        assert "Configuration()" not in content, "Pointer file revives stale API name"
 
     def test_active_context_uses_current_grammars(self):
         """The active guide keeps scientific and software grammars distinct."""

@@ -130,6 +130,7 @@ artifacts/legacy/internal_docs/agent_context/*
 !artifacts/legacy/internal_docs/agent_context/claude
 artifacts/legacy/internal_docs/agent_context/claude/*
 !artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md
+!artifacts/legacy/internal_docs/agent_context/claude/CLAUDE_ARCHIVE.md
 !artifacts/legacy/internal_docs/skills
 artifacts/legacy/internal_docs/skills/*
 !artifacts/legacy/internal_docs/skills/skill_visual_outputs.md
