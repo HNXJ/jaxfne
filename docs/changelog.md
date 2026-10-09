@@ -9,6 +9,8 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+## v0.5.5 (candidate)
+
 ### Added
 
 - Controlled model augmentation (`jaxfne.augment`, `clone_tensor`,
@@ -44,6 +46,25 @@ the rules those releases were held to and are historical context for readers.
   unchanged.
 - A declared `noise_scale` is honored on the baseline and registered-rule
   paths; earlier releases ignored it there.
+- Stored-but-unconsumed per-cell-type drives are refused (P-014, owner
+  ruling 2026-09-26): `Configuration.cell_type_drives(...)` stored per-type
+  drives that construction never read, so suite2 presets, `experiment_a`,
+  `protocol_e`, tests, scripts and tutorials ran at the emitter default
+  drive. The call now raises `TypeError` naming
+  `drive(baseline_drive_by_cell_type=...)`, and every caller uses that path
+  with its declared values, so those runs change; the HDP etude regression
+  model drops its drive because its frozen metrics were made at the default.
+  The same ruling logs P-015 for the unconsumed `drive()` layer/area fields.
+- AT-10-N20 follow-up from adversarial review: the assay spec carries its
+  criteria (kicks, `H_0`, ratio, threshold, late windows, replicate seeds) so
+  the result digest tracks them, and the runner docstring states the
+  selection status (gain, HDP gains and kicks were chosen on the same
+  regime; results are descriptive, not confirmatory). Assay records
+  `w_unchanged`; disabled arms keep W bit-identical in all 9 runs (tested).
+  `w_mech` validation is unified on both paths (bool, string, NaN and inf
+  refused; finite and positive required; absolute default and `H_0`
+  sensitivity asserted in tests), and `drive()` rejects non-mapping
+  layer/area/oddball fields with `ValueError`.
 
 ### Deprecated
 

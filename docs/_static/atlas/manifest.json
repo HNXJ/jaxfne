@@ -8,7 +8,7 @@
   "sim_identity": "seed=0 duration_ms=1000.0 dt_ms=0.5",
   "recording_class": "large",
   "recording_budget": "population H, selected traces, summaries; no full T\u00d7E",
-  "jaxfne_version": "0.5.0",
+  "jaxfne_version": "0.5.5",
   "seed": 0,
   "duration_ms": 1000.0,
   "n_neurons": 1000,
@@ -36,7 +36,7 @@
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 76144,
+      "bytes": 76194,
       "inputs": {
         "source_artifact": "model",
         "variable": "params.positions + params.edge_list",
@@ -116,14 +116,14 @@
       }
     }
   ],
-  "sha256": "4c81b0f8e2b5bf77",
+  "sha256": "af15e48477083936",
   "promotion": [
     {
       "to": "validated",
-      "reason": "P-022 re-pin (bae3c41c) regenerated the canonical atlas, which reset its state; broad gate on 3dc3c2c5: 4843 passed, 1 failed = the stale gallery index this restores",
+      "reason": "0.5.5 version bump regenerated the canonical atlas (config hash 91f037cf383e0bdb unchanged, jaxfne_version 0.5.0 -> 0.5.5), which reset its state; restores the prior validated state",
       "promoter": "promote_atlas_state.py",
-      "git_head": "3dc3c2c50d2e8a877f648556db2ac9afceb79fb1",
-      "utc": "2026-09-30T17:58:59.416870+00:00"
+      "git_head": "7169dfc6d77974b36915fbbf98878149c1acbcb1",
+      "utc": "2026-10-09T14:58:05.034089+00:00"
     }
   ]
 }

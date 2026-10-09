@@ -8,7 +8,9 @@ pip install -U jaxfne
 
 The published **PyPI** release is **`jaxfne==0.5.0`** (tag `v0.5.0`),
 built and validated for commit `499c54f`. The previous release is **`0.4.25`**
-(tag `v0.4.25`). The **development** public API on `dev` is documented in
+(tag `v0.4.25`). The tree version `0.5.5` is a release candidate: the published
+PyPI release stays `jaxfne==0.5.0` until the 0.5.5 publication completes. The
+**development** public API on `dev` is documented in
 [Public API contract](public_surface_contract.md) (205-symbol surface). To pin
 the published PyPI release explicitly:
 

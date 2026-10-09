@@ -208,7 +208,7 @@ State `validated` · N=12 · edges=132 · steps=2000 · config `a07c380b8304` ·
 
 ### `atlas` — Canonical V1 Column (1000n)
 
-State `validated` · N=1000 · edges=215785 · steps=2000 · config `91f037cf383e` · jaxfne 0.5.0
+State `validated` · N=1000 · edges=215785 · steps=2000 · config `91f037cf383e` · jaxfne 0.5.5
 
 <iframe class="jx-frame" src="_static/atlas/index.html" loading="lazy" title="Canonical V1 Column (1000n) dashboard"></iframe>
 
