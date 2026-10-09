@@ -342,17 +342,11 @@ ATLAS
    rejects direct pushes (PR + 2 required checks). Only AT-10-R6 is SUPPORTED
    (kept by Hamm); items 10-14 and quiet-machine matrix timings stay open, so
    the 100/100 seal is not met: no tag or release.
-   Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
-   30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
-   VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),
-   AT-00-R6 (manuscript progression; item 14), AT-10-R5 (perturbation/control
-   assay: bounded != returning != homeostatically stabilized; needs a new
-   S10 run on `AT-10-N20`; protocol proposed in
-   `artifacts/programme/at10_r5_protocol_proposal.md`, choices approved
-   2026-10-06; next: build the runner, run after the matrix window), AT-10-R6 (reduced fast model, very long T; takes
-   its envelope from item 8); SUPPORTED AT-00-R4, AT-01-R1/R2/R3/R6/R7,
-   AT-05-R2, AT-07-R3 (promote with evidence at the seal; AT-00-R4 and
-   AT-01-R6 follow item 7).
+   Coverage state (2026-10-08, `python scripts/check_atlas_coverage.py` and
+   `python scripts/check_claim_ledger_055.py`, both VALID): 48 rows,
+   41 VALIDATED, 1 SUPPORTED (`AT-10-R6`, kept by Hamm), 6 OUT_OF_SCOPE.
+   The earlier 30/8/4 split is superseded. Items 10-14 and the quiet-machine
+   matrix stay open, so the seal is not met.
 
 MANUSCRIPT (ends 0.5.5)
 9. Atlas coverage matrix: every section, figure, simulation and claim in the
