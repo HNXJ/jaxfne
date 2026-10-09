@@ -575,8 +575,12 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
    reached T2 (`artifacts/etudes/theory_f1/README.md`, 3019589d). L2's lazy
    snapshot is not built: the kernel updates every edge each step and has no
    event-driven path, so it would save one multiply per edge. Open: a T3 Lean
-   proof of L1 and L3 (Lean is not installed). F2 declared
-   (`artifacts/etudes/theory_f2/README.md`); its runs are next.
+   proof of L1 and L3 (Lean is not installed). L5 is refuted: the LTD
+   accumulator factors (exact, with float rebasing needed). F2 done: one ulp
+   leaves spike counts equal until a first difference at sequence 61–357,
+   then D_w jumps and stays ≤ 0.11·D_sat (H2.2 rejected). Next family: F3,
+   F4 or F5 (Hamm's pick); Haiku 5.5 evaluation in
+   `artifacts/harness/haiku55_evaluation_2026-10-09.md`.
 1. A8 gh-pages publishing policy. Trigger: publishing D1 or Atlas figures
    to the public site.
 2. Architecture candidates (`emitters.py` variant split, entry

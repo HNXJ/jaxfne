@@ -68,6 +68,21 @@ B_e(t) = B_e(t−1) + a·s_i(t)·Y_j(t−1), reset at postsynaptic spikes, is bi
 not factor into finite per-neuron states of i and j. Not proved; listed so that F1
 does not claim more than L1–L3.
 
+**L5 is false** (2026-10-09). The refutation came from a Haiku 5.5 audit at xhigh effort; the
+dispatcher checked it. Y_j is set to 1 at j's spikes and otherwise decays by a, and B_e resets
+at the same spikes. So within an interval after j's last spike τ_j, Y_j(t′−1) = a^(t′−1−τ_j), and
+
+    B_e(t) = Σ_{τ_j < t′ ≤ t} s_i(t′)·a^(t′−τ_j) = a^(−τ_j)·(z_i(t) − z_i(τ_j)),
+    z_i(t) = Σ_{t′ ≤ t} s_i(t′)·a^(t′),
+
+with z_i per neuron and z_i(τ_j) a per-edge snapshot written at j's spikes; B_e = 0 before j's
+first spike. This holds exactly in rational arithmetic: `l5_check.py`, 3 seeds, 300 steps.
+In floating point the form loses precision as a^(−τ_j) grows. The float64 relative error is
+4e-16 at 300 steps, 8e-12 at 1000 and 0.28 at 3000, so an implementation must rebase z and
+the snapshots periodically. The per-edge state count stays two (S and the z snapshot), but
+both are written only at postsynaptic spikes. The factorization uses the reset-to-one
+postsynaptic trace; it does not cover a general bilinear accumulator. Tier T2 (second-reviewer, 2026-10-09).
+
 ## Checks (to be built, all float64 unless stated)
 
 1. L1: random spike and reset trains, scalar and d = 2 classes; max |direct − factored|

@@ -12,6 +12,16 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
 )
 
 import artifacts.etudes.theory_f1.f1_check as F  # noqa: E402
+import artifacts.etudes.theory_f1.l5_check as L5  # noqa: E402
+
+
+def test_l5_refuted_ltd_accumulator_factors_exactly():
+    assert L5.exact_equal(0)
+
+
+def test_l5_factored_form_loses_precision_in_float64():
+    assert L5.float64_rel_err(300) < 1e-12
+    assert L5.float64_rel_err(3000) > 1e-3
 
 
 def test_l1_factored_equals_direct_float64():

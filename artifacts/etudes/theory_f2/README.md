@@ -55,3 +55,46 @@ full phase 1 and K1h's split needs another explanation.
 with D_w and D_s per sequence for each arm pair, D_sat, λ with its interval, the window,
 n* and wall time. The verdicts are computed by a separate function that reads only the
 JSON files.
+
+## Result (2026-10-09, seeds 20–22, 600 sequences, about 1580 s per seed)
+
+| seed | first spike difference | D_w just before → at it | max D_w / D_sat | λ per sequence (95% interval), window length | n* |
+|---|---|---|---|---|---|
+| 20 | sequence 61 | 2.4e-7 → 2.4e-4 | 0.061 | 1.09e-3 (1.02e-3, 1.17e-3), 540 | none |
+| 21 | sequence 110 | 2.8e-7 → 2.3e-4 | 0.113 | 6.55e-3 (6.26e-3, 6.84e-3), 420 | none |
+| 22 | sequence 357 | 3.0e-7 → 8.5e-4 | 0.092 | 2.66e-3 (2.42e-3, 2.90e-3), 244 | none |
+
+D_sat was 0.047–0.049. Verdicts by the declared rules:
+- **H2.1** is supported, but its model does not fit; see the reading below.
+- **H2.2** is rejected in all three seeds.
+- **H2.3** is supported: in the frozen arm D_w stayed at 8.8e-8 and D_s showed no trend. Seeds
+  20 and 22 pass on an all-zero D_s series (a degenerate interval); seed 21 reached at most 0.03
+  in a single sequence.
+
+**Reading.** The divergence is not a smooth exponential. Until the first sequence in which
+per-cell spike counts differ (sequence 61, 110 and 357), the counts are identical; spike times
+were not compared. Over that stretch D_w stays at float32 rounding level (7e-8 to 3e-7). At that
+sequence D_w jumps by three orders of magnitude. It then drifts slowly, at λ of 1e-3 to 7e-3 per
+sequence, and its maximum is 6–11% of the distance between unrelated training histories (seed
+20 ends at 4.6%). After the first difference, mean D_s was
+0.011–0.027, against 0.16–0.17 for the reference arm. The fitted λ describes this slow drift,
+so H2.1 passes by the letter of its rule while the declared model, exponential growth from
+one ulp, does not describe the data.
+
+**Consequence, and a departure from the declaration.** The declaration said that if H2.2
+failed, pointwise gates would remain valid over a full phase 1. That conditional assumed that
+failing to reach 0.5·D_sat meant staying equal. The data show a third case it did not anticipate:
+a jump that ends equality but stays below 0.5·D_sat. Pointwise equality of two implementations
+holds up to the first spike-count difference, which came 61 to 357 sequences in and varied by
+seed. Beyond it, runs one ulp apart stay close, at about a tenth of the reference distance at
+most, but they are not equal. A replication gate on this column should therefore compare
+against a measured one-ulp noise floor, as K1h-nf did, and not demand equality past the first
+difference. K1h's split is consistent with this picture; that was not tested here.
+
+**Departures and limits.**
+- Seed 21's window is the set of sequences meeting the declared bounds, which is not
+  contiguous. The first contiguous run (sequences 110–446) gives λ = 8.5e-3; the verdict is
+  unchanged.
+- The least-squares interval assumes independent residuals. The drift series is
+  autocorrelated, so the intervals are likely too narrow.
+- Phase 1 only, one rule (`pcl_stdp`), float32.
