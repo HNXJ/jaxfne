@@ -578,9 +578,11 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
      entries delegate or are deprecated; frozen receipts stay untouched.
 0b. Theory programme (Hamm, 2026-10-08):
    `artifacts/programme/theory_programme_proposal.md`. F1 is open, and L1–L3
-   reached T2 (`artifacts/etudes/theory_f1/README.md`, 3019589d). Next for F1:
-   L2's lazy snapshot as a reduction pass in the rule grammar; a T3 Lean proof of
-   L1 and L3 (Lean is not installed). F2–F5 wait for Hamm's pick.
+   reached T2 (`artifacts/etudes/theory_f1/README.md`, 3019589d). L2's lazy
+   snapshot is not built: the kernel updates every edge each step and has no
+   event-driven path, so it would save one multiply per edge. Open: a T3 Lean
+   proof of L1 and L3 (Lean is not installed). F2 declared
+   (`artifacts/etudes/theory_f2/README.md`); its runs are next.
 1. A8 gh-pages publishing policy. Trigger: publishing D1 or Atlas figures
    to the public site.
 2. Architecture candidates (`emitters.py` variant split, entry
