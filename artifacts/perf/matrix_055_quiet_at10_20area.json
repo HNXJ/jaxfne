@@ -1,0 +1,74 @@
+{
+  "id": "at10_20area",
+  "status": "MEASURED",
+  "declared_drive": null,
+  "params": {
+    "n_neurons": 20000,
+    "duration_ms": 100.0,
+    "dt_ms": 0.5,
+    "recording": "minimal",
+    "mechanism": "fixed_W",
+    "chunks": 1,
+    "seed": 0
+  },
+  "coupling": {
+    "mode": "coupled_ring",
+    "inter_edges_est": 432000,
+    "inter_fraction": 0.09099142742801777,
+    "delay": "zero (tensor path carries none)"
+  },
+  "n_neurons_realized": 20000,
+  "n_edges": 4747700,
+  "delay_steps_max": null,
+  "scaffold_ms": {
+    "single_column_probe_ms": 5264.321399998153
+  },
+  "phases_ms": {
+    "construct_ms": 59456.233999997494,
+    "simulate_first_call_ms": 3847.4241999938386,
+    "simulate_warm_ms_median": 2442.2216000020853,
+    "simulate_warm_ms_range": [
+      2433.869100001175,
+      2494.1746999975294
+    ],
+    "simulate_warm_ms_all": [
+      2433.869100001175,
+      2442.2216000020853,
+      2494.1746999975294
+    ],
+    "compile_est_ms": 1405.2025999917532,
+    "probe_observe_ms": 0.02130000211764127,
+    "manifest_ms": 229.5196000050055
+  },
+  "rss_mb": {
+    "after_construct": 665.694208,
+    "after_first_sim": 810.115072,
+    "after_warm": 866.148352,
+    "cell_peak": 1286.828032
+  },
+  "recording": {
+    "spikes": {
+      "bytes": 16000000
+    },
+    "V_m": {
+      "bytes": 16000000
+    },
+    "sources": {
+      "bytes": 16000000
+    }
+  },
+  "notes": [
+    "scaffold single column n_edges=215785; pop sizes: {('L1', 'E'): 50, ('L1', 'SST'): 15, ('L1', 'VIP'): 35, ('L2', 'E'): 162, ('L2', 'PV'): 50, ('L2', 'SST'): 25, ('L2', 'VIP'): 13, ('L3', 'E'): 160, ('L3', 'PV'): 16, ('L3', 'SST'): 16, ('L3', 'VIP'): 8, ('L4', 'E'): 75, ('L4', 'PV'): 18, ('L4', 'SST'): 4, ('L4', 'VIP'): 3, ('L5', 'E'): 176, ('L5', 'PV'): 12, ('L5', 'SST'): 8, ('L5', 'VIP'): 4, ('L6', 'E'): 135, ('L6', 'PV'): 8, ('L6', 'SST'): 4, ('L6', 'VIP'): 3}",
+    "ring pair ('L3', 'E')->('L6', 'E') gives 21600 edges/area vs 10% target 21578",
+    "tensor path fixes AreaConnection density at probability=1.0 (full bipartite); random-target thinning is not expressible \u2014 counts approximate ~10%, placement is bipartite (recorded deviation)",
+    "tensor path carries no per-edge delay (TFNE delay arrives 0.5.2); delay_steps=0 (recorded)",
+    "coupled: n=20000 edges=4747700 inter_est=432000 frac=0.09099142742801777",
+    "simulate backend edge_list (dense 20k^2 infeasible)"
+  ],
+  "wall_s": 76.17496514320374,
+  "_quiet": {
+    "load_percent_before": 19,
+    "started_local": "2026-10-09T12:55:26-05:00",
+    "cell_id": "at10_20area"
+  }
+}

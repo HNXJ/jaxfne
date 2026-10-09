@@ -1,0 +1,82 @@
+{
+  "id": "mech_hdp",
+  "status": "MEASURED",
+  "declared_drive": {
+    "E": 8.0,
+    "PV": 8.0
+  },
+  "params": {
+    "n_neurons": 100,
+    "duration_ms": 100.0,
+    "dt_ms": 0.1,
+    "recording": "minimal",
+    "mechanism": "HDP",
+    "chunks": 1,
+    "seed": 42
+  },
+  "output_checksum": {
+    "spike_count_total": 398,
+    "V_sum": -6432929.0
+  },
+  "n_neurons_realized": 100,
+  "n_edges": 9900,
+  "delay_steps_max": null,
+  "phases_ms": {
+    "construct_ms": 4155.944099999033,
+    "simulate_first_call_ms": 1899.8958000011044,
+    "simulate_warm_ms_median": 451.6018000067561,
+    "simulate_warm_ms_range": [
+      431.00370000320254,
+      460.65960000123596
+    ],
+    "simulate_warm_ms_all": [
+      431.00370000320254,
+      451.6018000067561,
+      460.65960000123596
+    ],
+    "compile_est_ms": 1448.2939999943483,
+    "probe_observe_ms": 0.011099997209385037,
+    "manifest_ms": 0.9126999939326197
+  },
+  "rss_mb": {
+    "start": 36.356096,
+    "after_construct": 364.46208,
+    "after_first_sim": 509.468672,
+    "after_warm": 560.631808,
+    "cell_peak": 559.804416
+  },
+  "recording": {
+    "spikes": {
+      "bytes": 400000
+    },
+    "V_m": {
+      "bytes": 400000
+    },
+    "sources": {
+      "bytes": 400000
+    },
+    "field": {
+      "bytes": null
+    },
+    "H_trace": {
+      "bytes": 400000,
+      "recorded": true
+    },
+    "w_trace": {
+      "bytes": 39600000,
+      "recorded": true
+    }
+  },
+  "notes": [
+    "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.",
+    "HDP runtime mirrored from benchmark_050_baseline._hdp_runtime",
+    "declared drive applied {'E': 8.0, 'PV': 8.0} (benchmark_050_baseline._hdp_model; executes since P-018)"
+  ],
+  "wall_s": 7.482883453369141,
+  "_rerun": {
+    "load_percent_before": 9.0,
+    "started_local": "2026-10-09T12:43:28-05:00",
+    "cell_id": "mech_hdp",
+    "quiet_eligible": true
+  }
+}

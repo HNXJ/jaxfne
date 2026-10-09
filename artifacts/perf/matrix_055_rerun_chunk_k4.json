@@ -1,0 +1,84 @@
+{
+  "id": "chunk_k4",
+  "status": "MEASURED",
+  "declared_drive": null,
+  "params": {
+    "n_neurons": 100,
+    "duration_ms": 100.0,
+    "dt_ms": 0.1,
+    "recording": "minimal",
+    "mechanism": "fixed_W",
+    "chunks": 4,
+    "seed": 42
+  },
+  "chunked": {
+    "segments": 4,
+    "spike_rows": 1000,
+    "spike_count_total": 173,
+    "V_sum": -6652058.0,
+    "vs_chunk_ref": {
+      "spike_count_equal": true,
+      "V_sum_abs_diff": 0.0,
+      "chunk_k4_spikes": 173,
+      "chunk_ref_spikes": 173
+    }
+  },
+  "output_checksum": {
+    "spike_count_total": 98,
+    "V_sum": -1730394.75
+  },
+  "n_neurons_realized": 100,
+  "n_edges": 9900,
+  "delay_steps_max": null,
+  "phases_ms": {
+    "construct_ms": 4273.165399994468,
+    "simulate_first_call_ms": 2121.032399998512,
+    "simulate_warm_ms_median": 273.75149999716086,
+    "simulate_warm_ms_range": [
+      266.3498999972944,
+      940.4634000020451
+    ],
+    "simulate_warm_ms_all": [
+      940.4634000020451,
+      273.75149999716086,
+      266.3498999972944
+    ],
+    "compile_est_ms": 1847.2809000013513,
+    "probe_observe_ms": 0.011900003300979733,
+    "manifest_ms": 1.2263999960850924
+  },
+  "rss_mb": {
+    "start": 36.450304,
+    "after_construct": 358.89152,
+    "after_first_sim": 470.102016,
+    "after_warm": 497.549312,
+    "cell_peak": 517.046272
+  },
+  "recording": {
+    "spikes": {
+      "bytes": 100000
+    },
+    "V_m": {
+      "bytes": 100000
+    },
+    "sources": {
+      "bytes": 100000
+    },
+    "field": {
+      "bytes": null
+    }
+  },
+  "notes": [
+    "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more.",
+    "edge_list backend required by the continuation path",
+    "chunk_k4 first_call = full 4-segment chained run (compile+run)",
+    "warm repeats are single-segment (T/4) runs; first_call covers the chained run"
+  ],
+  "wall_s": 7.940504789352417,
+  "_rerun": {
+    "load_percent_before": 29.0,
+    "started_local": "2026-10-09T12:43:46-05:00",
+    "cell_id": "chunk_k4",
+    "quiet_eligible": false
+  }
+}
