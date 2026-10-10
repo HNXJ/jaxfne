@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -97,15 +98,22 @@ def main(argv: list[str] | None = None) -> int:
     reports = {}
     ok = True
     for path in ci_paths:
-        report = compare(rc, load(path))
+        ci_python = None
+        match = re.fullmatch(r"pytest-results-(\d+\.\d+)\.xml", path.name)
+        if match:
+            ci_python = match.group(1)
+        report = compare(rc, load(path), ci_python=ci_python)
         justified = [d for d in report["outcome_differences"]
                      if d["classification"] == "INTENTIONAL_PLATFORM_DIFFERENCE"]
+        versioned = [d for d in report["outcome_differences"]
+                     if d["classification"] == "INTENTIONAL_VERSION_DIFFERENCE"]
         reports[path.name] = {
             "rc_count": report["rc_count"],
             "ci_count": report["ci_count"],
             "rc_only": report["rc_only"],
             "ci_only": report["ci_only"],
             "justified_platform_differences": [d["node_id"] for d in justified],
+            "justified_version_differences": [d["node_id"] for d in versioned],
             "unjustified_differences": report["unjustified_differences"],
             "failures_or_errors": report["failures_or_errors"],
             "pass": report["pass"],
@@ -114,12 +122,15 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"{status}  {path.name}: rc={report['rc_count']} ci={report['ci_count']} "
             f"rc_only={len(report['rc_only'])} ci_only={len(report['ci_only'])} "
-            f"justified={len(justified)} unjustified={len(report['unjustified_differences'])} "
+            f"justified={len(justified) + len(versioned)} "
+            f"unjustified={len(report['unjustified_differences'])} "
             f"failures={len(report['failures_or_errors'])}",
             flush=True,
         )
         for diff in justified:
             print(f"    justified platform difference: {diff['node_id']}", flush=True)
+        for diff in versioned:
+            print(f"    justified version difference: {diff['node_id']}", flush=True)
         for diff in report["unjustified_differences"]:
             print(
                 f"    UNJUSTIFIED [{diff['classification']}/{diff['kind']}] {diff['node_id']}",
