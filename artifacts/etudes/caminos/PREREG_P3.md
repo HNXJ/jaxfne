@@ -1,7 +1,8 @@
 # L2-P3 preregistration: CAMINOS reference model (PLoS CB 2026, Fig. 1)
 
-Status: draft v6 for Hamm's batch sign-off (batch per release, after a second-review PASS;
-decided 2026-10-11). It revises v1 (PASS with notes), v2 (FAIL: the R1 null was vacuous), v3
+Status: **signed v6**, Hamm, 2026-10-11 (batch with PCL Fig. 3 v4), on the text at
+`l2-caminos` d26f2631. Scored runs may start from here; any later change to this file is an
+amendment with its own signature. It revises v1 (PASS with notes), v2 (FAIL: the R1 null was vacuous), v3
 (FAIL: the ratio criterion fails on sloped spectra; R4 was asymmetric; partial runs were
 accepted), v4 (calibration gate infeasible by design) and v5 (gate failed: a 3 s window is too
 short, and the PSD local-maximum rule rejects broad peaks), after the reviews of 2026-10-11. No scored run before the signature. G0 single-cell checks
