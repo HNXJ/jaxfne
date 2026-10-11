@@ -1,7 +1,7 @@
 # L1-P3 preregistration: PCL Fig. 3 (simple and complex cell tuning)
 
-Status: draft v3 for Hamm's batch sign-off. It revises v1 (FAIL) and v2 (PASS with
-notes) after the second reviews of 2026-10-11. No scored analysis runs before the signature. Pilots
+Status: draft v4 for Hamm's batch sign-off. It revises v1 (FAIL), v2 (PASS with notes)
+and v3 (PASS with notes, three blocking) after the reviews of 2026-10-11. No scored analysis runs before the signature. Pilots
 are allowed and are not scored: timing, determinism and the axis and timing checks of the
 input.
 
@@ -47,10 +47,14 @@ Every numerical criterion below is ours, not the paper's.
     its centre lies at cx + 1.5. Columns 2 and 3 tie on both axes.
   - The paper averages over 32 complex cells. We use the four tied columns rather than pick
     one of them.
-- **Inclusion:** a cell enters T3 and T4 only if it fires at least 20 spikes at its
-  preferred (ori\*, sf\*), summed over phases 0–9 and both trials. This floor binds,
-  because a typical cell fires about 6 spikes per stimulus. If more than half of a set is
-  excluded, the test fails for that set.
+- **Inclusion.** Each test has a floor on the spikes it actually uses:
+  - T1 and T2: at least 20 spikes in the fit fold.
+  - T3: at least 50 spikes at (ori\*, sf\*) over phases 0–9 and both trials, about 5 per
+    phase.
+  - T4: at least 10 spikes at (ori\*, sf\*, phase\*) over both trials.
+  - A cell whose L is not finite is excluded.
+  - Every exclusion is counted and reported. If more than half of a set is excluded from a
+    test, that test fails for the set.
 
 ## Estimands and criteria
 
@@ -61,25 +65,42 @@ Every numerical criterion below is ours, not the paper's.
 - Within a fold, the preference is (ori\*, sf\*), the argmax of the count summed over that
   fold's phases.
 
-### Null for T1 and T2
+"Generalises" here means across spatial phase: the fit and scored folds are different
+phases of the same (ori, sf) stimuli.
 
-The whole fit-then-score procedure is rerun 1000 times. Each time, the (ori, sf) labels
-of the scored fold are shuffled within each cell. The null therefore contains the same
-argmax selection step as the real analysis.
+### Nulls for T1 and T2 (both must be exceeded)
+
+- **N-label.** The scored fold's (ori, sf) labels are shuffled within each cell, and the
+  fit-then-score procedure is rerun. This is the null of "no structure in the scored
+  fold".
+- **N-pref.** Fitted preferences are permuted across the cells of the set, and the scored
+  curves are recomputed.
+  - This is the null of "the tuning is a stimulus-wide drive effect shared by all cells".
+    An example is input event density that varies with sf.
+  - It is exceeded only when each cell's own preference predicts its own held-out
+    response better than another cell's preference does.
+- Each null uses 1000 draws. The distribution of fitted preferences is reported beside
+  them.
+
+R_sf's flank is computed per cell, as the mean of each cell's own responses at
+|Δsf| ≥ 6, and then averaged over cells.
 
 | Id | Statistic (scored fold) | Pass, for each cell set separately |
 |---|---|---|
-| T1 | Population orientation curve at sf\*, aligned to ori\*. R_ori = mean response at Δori = 0 / mean at Δori = 90° | R_ori ≥ 2 and above the 99th percentile of its null |
-| T2 | Population spatial-frequency curve at ori\*, aligned to sf\*. R_sf = mean response at Δsf = 0 / mean at \|Δsf\| ≥ 6 | R_sf ≥ 2 and above the 99th percentile of its null |
-| T3 | Per cell, PMI = (max − min)/(max + min) of the count over phases 0–9 at (ori\*, sf\*), with the preference fitted on all phases and both trials pooled | median PMI simple ≥ 0.3; median PMI complex ≤ 0.5 × median PMI simple |
+| T1 | Population orientation curve at sf\*, aligned to ori\*. R_ori = mean response at Δori = 0 / mean at Δori = 90° | R_ori ≥ 2, above the 99th percentile of N-label and of N-pref |
+| T2 | Population spatial-frequency curve at ori\*, aligned to sf\*. R_sf = mean response at Δsf = 0 / mean per-cell flank | R_sf ≥ 2, above the 99th percentile of N-label and of N-pref |
+| T3 | Per cell, excess modulation X = PMI − PMI₀, where PMI = (max − min)/(max + min) of the count over phases 0–9 at (ori\*, sf\*) (all phases, trials pooled) and PMI₀ is the mean PMI of 1000 draws of 10 Poisson counts with the cell's mean count per phase | median X simple ≥ 0.15; median X complex ≤ 0.5 × median X simple. The Poisson null makes the comparison fair across the two sets' different counts; it is conservative, since the data are sub-Poisson |
 | T4 | Per cell, the log ratio L = log(A(2ω)/A(ω)) of its spike train at (ori\*, sf\*, phase\*), trials pooled, as below | median L simple < 0 < median L complex, and median L complex − median L simple above the 99th percentile of a null that permutes cells between the two sets 1000 times |
 
 ### T4 frequency doubling
 
 - **ω** is the grating's contrast-reversal temporal frequency, measured from the input.
-  - It is the fundamental of the ON-event train of the single most active pixel in the
-    stimulus file, searched over 1–3 Hz.
+  - It is measured separately for every stimulus file, as the fundamental of the
+    ON-event train of the single most active pixel in that file, searched over 1–3 Hz on a
+    0.001 Hz grid.
   - In three test7 files it is 1.98–1.99 Hz (second review).
+  - A file whose ω falls outside 1.9–2.1 Hz is reported, and its cells are excluded from
+    T4.
   - The window holds about 3.6 cycles, so the frequency resolution is about 0.55 Hz.
     Amplitudes are therefore evaluated at exactly ω and 2ω, not at FFT bins.
 - **Amplitude:** A(f) = |Σ exp(−2πift)| over a cell's spikes, divided by the duration.
