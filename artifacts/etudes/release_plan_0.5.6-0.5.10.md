@@ -159,4 +159,8 @@ review, then the release branch is cut from dev.
 2. Where generated assets live (§6.1).
 3. The AdEx (0.5.6) and LIF (0.5.7) API additions.
 4. Is the stated purpose right: replications as building blocks for omission modelling?
-5. Batch signature on the two v3 preregistrations, after their re-review.
+
+Decided 2026-10-11 (on meeting 3790d96e): preregistrations are signed in a batch per release,
+each after a second-review PASS and a passing calibration gate; manuscript sections 1–7 freeze
+on the 0.5.5 evidence and this programme fills section 8; bindings B1–B7 are standing rules
+(`artifacts/todo_stack.md`); the jnwb short list folds into the 0.5.6 library lane.

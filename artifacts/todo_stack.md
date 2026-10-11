@@ -138,6 +138,43 @@ Short list for the jnwb move (human, 2026-09-30), in order:
   in `at10_n20_055.json`) answer the plasticity question the trace would
   serve. X(t)/H(t)/Phi(t) remain measured in panels and assay. Reversible:
   flip the flag and re-run with traces on to re-open.
+- 2026-10-11 (human, on meeting 3790d96e, approved p = 0.93): T1 option A,
+  manuscript sections 1–7 freeze on the 0.5.5 evidence and 0.5.6–0.5.10 fill
+  section 8, citing a replication only at a signed-prereg verdict; bindings
+  B1–B7 are standing rules (rows below); preregistrations are signed in a
+  batch per release, each after a second-review PASS; the jnwb short list
+  (items 2–4) folds into the 0.5.6 library lane. Plan:
+  `artifacts/etudes/release_plan_0.5.6-0.5.10.md`.
+
+## 0.5.6–0.5.10 programme rules (B1–B7, adopted 2026-10-11)
+
+Each row is a standing rule with the check that enforces it.
+
+- [A] B1 library path: no paper counts as replicated with jaxfne without a
+  recorded library-path attempt, even a failed one. Check: the replication
+  index row names the attempt and its receipt.
+- [A] B2 negative verdicts: "not reproduced" and "not testable" go in the
+  claim ledger with their reason, never tuned away. Check: every scored
+  criterion has a ledger row, pass or fail.
+- [H] B3 one emitter per release, authorized by Hamm, gated by a P4 test
+  that perturbs every accepted parameter (0, None, boundary, non-default)
+  and requires a realized change or an explicit refusal. Check: that test
+  fails on a build that stores a parameter unconsumed.
+- [A] B4 narrowing: removal of unused code, unreferenced files and exact
+  duplicates proceeds one class per commit with its gate (sweep 1: dev
+  3ef19b73..283dacdd); moving generated assets waits for Hamm (plan §10.2).
+  Check: `scripts/check_tree_size.py --check` in CI.
+- [A] B5 GPU: one job at a time, claimed with a typed `claim` in jchat;
+  first the 20-area benchmark at 28ccee1d, then the CAMINOS scored seeds
+  after signature. Check: the claims board shows one open GPU claim.
+- [A] B6 each accepted binding becomes a row here the same session (this
+  section). Check: the meeting minutes link these rows.
+- [A] B7 calibrate before signature: every quantitative criterion runs on
+  synthetic nulls and known positives at a stated signal strength before
+  Hamm signs. Check: the prereg holds a passing calibration table.
+- [A] jnwb short list items 2–4: one state line and proving command each;
+  done items close, open ones become one 0.5.6 library-lane row; `to_jnwb`
+  joins the top-level surface when items 2–4 close.
 
 ## 0.5.5 stack
 
