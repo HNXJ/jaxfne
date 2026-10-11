@@ -145,6 +145,10 @@ Short list for the jnwb move (human, 2026-09-30), in order:
   batch per release, each after a second-review PASS; the jnwb short list
   (items 2–4) folds into the 0.5.6 library lane. Plan:
   `artifacts/etudes/release_plan_0.5.6-0.5.10.md`.
+- 2026-10-11 (human): compression audit P1 and P2 approved (lanes X and Y on
+  dev e4c124fa); PCL P3 T3 is scored per trial (PMI₀ at each trial's mean);
+  every JAX run above about 1000 neurons runs on WSL2 CUDA, and each run
+  packet names its backend.
 
 ## 0.5.6–0.5.10 programme rules (B1–B7, adopted 2026-10-11)
 
@@ -510,6 +514,24 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
 `w3a_stability_analysis.py` (own tests and receipts).
 
 ## Open work outside the release stacks (after 0.5.5 unless a trigger fires)
+
+Signature batch (2026-10-11, second review PASS with notes, fixes applied):
+PCL Fig. 3 P3 v4 (`pcl-port` cd18a693, `artifacts/etudes/pcl/prereg/P3_fig3.md`) and
+CAMINOS v6 (`l2-caminos` d26f2631, `artifacts/etudes/caminos/PREREG_P3.md`, calibration
+PASS at θ = 4, weakest row 190/200). [H] sign both; then score Fig. 3 and S1 (both runs
+complete, 3168/3168, failed 0) and run the CAMINOS scored seeds on the GPU after a jchat claim.
+
+Compression and lanes, open:
+- [A] tasks-proto (`C:/workspace/w_tasks`): task registry + Q-learning; review PASS with
+  notes; corridor7 task added so the state code matters; then integrate.
+- [H] dense backend drops `connections()` rules silently (edge counts 3250 vs 3219,
+  identical spikes; `_runtime_config.py:76`, `_model_simulate.py:650`): honour or refuse
+  is a public-semantics call (B3 class).
+- [H] P3 audit owner calls: benchmark scripts, sync scripts, unwired gates
+  (`scripts/lab_balance.py` crashes at `build_edges` on dev), docs pages, manuscript tree,
+  archive moves; generated assets (50.7 MB) location.
+- [A] two `artifacts/.lab/*.json` entries name scripts deleted in d883563d.
+- [A] CI dedupe (examples list and wheel smoke in three places): integration lane.
 
 WSL2 CUDA qualification (2026-10-09, jchat p-jaxfne #237–#238, `vwin-claude-sonnet55-jaxfne`): 20-area GPU feasibility test after the 0.5.5 seal. Local receipts only, `scratch/wsl_cuda_2026-10-09/` (gitignored). Not a 0.5.5 claim. Open there: CSD agreement, peak VRAM, one unexplained failed GPU run, and the 20-area test.
 
