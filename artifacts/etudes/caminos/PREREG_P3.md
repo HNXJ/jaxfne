@@ -49,7 +49,8 @@ coloured noise. v4 measures the peak over a fitted aperiodic background instead.
 
 1. **Spectrum.** Welch PSD of the E rate over the kept 10 s: 1 s Hann windows, 50 % overlap.
 2. **Background.** Fit an aperiodic model, log10 P = a − log10(k + f^χ), by least squares
-   on 10–150 Hz.
+   on 10–150 Hz, with χ in [0, 5] and k ≥ 0, starting at k = 1, χ = 1 and a set from the
+   data.
 3. **Peak.** f_pk is the frequency of the largest residual in 20–80 Hz.
 4. **Refit.** Refit the background with f_pk ± 8 Hz excluded.
 5. **Peak excess.** PE = P(f_pk) / background(f_pk).
@@ -60,8 +61,8 @@ coloured noise. v4 measures the peak over a fitted aperiodic background instead.
    v4 and v5 also required f_pk to be a local maximum of the raw PSD. v6 drops that rule.
    f_pk is the largest residual in the band, so it is already a local maximum of the
    residual. On a broad, noisy peak the raw-PSD test rejected true peaks whose largest residual
-   sits on a flank. It was the main cause of the narrowband misses (9 % of draws on the
-   τ = 30 ms, 2× floor at true peak excess 8).
+   sits on a flank. On the same seeded draws, dropping it raised the AR(2) row on the
+   τ = 30 ms, 2× floor (true peak excess 8) from 0.875 to 0.980.
 
 **Calibration gate (v6), run before signature on synthetic signals only.** It uses no
 network data. Each row has 200 draws of a 10 s E rate at NE = 8000, R0 = 1.2 Hz, dt = 0.1 ms.
@@ -89,14 +90,18 @@ v5 history (tables in `caminos/calibration/`):
 - At 3 s, θ = 5 and 11 of 14 detection rows fell below 95 % (0.805–0.945). A 3 s window gives
   5 Welch segments, so the PSD at one bin is too noisy.
 - At 10 s, θ = 4 held 0 % false positives on every floor. All 7 sinusoid rows passed. The 7
-  AR(2) rows reached only 0.875–0.915, mostly through the local-maximum rule.
+  AR(2) row on white Poisson passed (0.970); the 6 on AR(1) floors reached only 0.875–0.915,
+  mostly through the local-maximum rule.
 
 **v6 result (2026-10-11; table in `caminos/calibration/calibration_v6.md`): PASS, θ = 4.**
 - Null floors: 0/200 false positives on all 7 floors at every θ in the grid.
 - Detection rows: 14 of 14 at ≥ 95 %, realised peak excess 7.85–8.03 (target 8), median
   f_pk 35.0 Hz in every row.
 - The weakest row is the AR(2) bump on the τ = 8 ms, 8× floor, at exactly 0.950 (190/200):
-  it passes with no margin. The sinusoid on the same floor gives 0.955.
+  it passes with no margin. The sinusoid on the same floor gives 0.955. The gate is an
+  observed result on 200 seeded draws, and the rule was revised after the same draws failed
+  under v5, so there is no held-out check. The 95 % Wilson interval of the weakest row is
+  0.91–0.97.
 
 The unscored seed-0 pilot (12 s, p = 0.07, 10 s kept), scored at θ = 4: E 1.058, PV 11.180
 and SOM 6.590 Hz; f_pk 35.0 Hz, PE 15.1, lag 7.2 ms; it oscillates, and f_pk is also a raw-PSD
@@ -118,8 +123,8 @@ changed the analysis only, and the rescore uses the v6 code.
 - Every run needs T = 12 s, dt = 0.1 ms and one code SHA.
 - Anything else scores as "incomplete", which counts as a fail.
 
-When a population fires no spike in a run, its oscillation and lag are undefined. The run
-counts as "does not oscillate" and is reported.
+When E fires no spike in a run, its oscillation is undefined and the run counts as "does
+not oscillate". When PV or SOM fires none, the lag is undefined. Both are reported.
 
 ## Sensitivity (reported, not scored)
 
