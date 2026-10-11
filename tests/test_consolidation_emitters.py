@@ -355,4 +355,5 @@ def test_scan_path_reproduces_pinned_outputs(name, record, with_schedule):
         if key == "spikes":
             np.testing.assert_array_equal(actual, expected, err_msg=key)
         else:
-            np.testing.assert_allclose(actual, expected, rtol=0, atol=0, err_msg=key)
+            # exact on Windows before and after Y3; float32 pins tolerate XLA builds on other OSes
+            np.testing.assert_allclose(actual, expected, rtol=1e-6, atol=1e-6, err_msg=key)
