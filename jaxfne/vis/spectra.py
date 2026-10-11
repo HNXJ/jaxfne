@@ -10,7 +10,7 @@ import jax
 import numpy as np
 from scipy import signal
 
-from .core import FigureResult, prepare_static_plot_matrix, require_matplotlib
+from .core import FigureResult, prepare_static_plot_matrix, require_matplotlib, welch_psd
 
 
 def plot_spectrogram_profiles(lfp_signals_tensor: jax.Array, time_steps: np.ndarray) -> Any:
@@ -71,8 +71,7 @@ def psd(signals: Any, **kwargs: Any) -> Any:
             dt_ms = 0.1
 
     fs = 1000.0 / dt_ms
-    nperseg = min(256, data.shape[0])
-    freqs, psds = signal.welch(data, fs=fs, axis=0, nperseg=nperseg)
+    freqs, psds = welch_psd(data, fs, nperseg=256)
 
     if psds.ndim > 1:
         mean_psd = np.mean(psds, axis=1)

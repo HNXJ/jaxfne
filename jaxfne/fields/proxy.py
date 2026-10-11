@@ -910,9 +910,9 @@ def spectrolaminar_psd(
     psd_list = []
     for ch in range(n_ch):
         try:
-            from scipy.signal import welch
+            from ..vis.core import welch_psd as _welch_psd
 
-            f, pxx = welch(signal_arr[:, ch], fs=fs, nperseg=min(1024, T))
+            f, pxx = _welch_psd(signal_arr[:, ch], float(fs), nperseg=min(1024, T))
             pxx_interp = np.interp(freqs, f, pxx)
         except (ImportError, ValueError):
             fft_vals = np.abs(np.fft.rfft(signal_arr[:, ch] - signal_arr[:, ch].mean())) ** 2
@@ -1103,11 +1103,12 @@ def cross_area_coherence(
 
     try:
         from scipy.signal import csd as _csd
-        from scipy.signal import welch as _welch
+
+        from ..vis.core import welch_psd as _welch_psd
 
         seg = int(min(1024, t))
-        _f, pxx = _welch(xa, fs=fs, nperseg=seg)
-        _f, pyy = _welch(ya, fs=fs, nperseg=seg)
+        _f, pxx = _welch_psd(xa, float(fs), nperseg=seg)
+        _f, pyy = _welch_psd(ya, float(fs), nperseg=seg)
         _f, pxy = _csd(xa, ya, fs=fs, nperseg=seg)
         pxx_i = np.interp(freqs, _f, pxx)
         pyy_i = np.interp(freqs, _f, pyy)
