@@ -575,7 +575,44 @@ def test_mutant_no_poisson_baseline_fails_lowcount_complex():
         res = fa.t3(cs, cc, np.random.default_rng(104), 300)
         assert not res["t3_complex_pass"], "mutant without PMI0 should fail flat low-count complex"
 
-    _run_mutant("pmi0[i] = float(_pmi_of_rows(draws).mean())", "pmi0[i] = 0.0", check)
+    _run_mutant("pmi0[i] = float(pmi0_t.mean())", "pmi0[i] = 0.0", check)
+
+
+def _duplicated_untuned(seed, n=24, lam=5.0):
+    """Untuned cells (Poisson lam per phase per trial) whose two trials are identical."""
+    one = np.random.default_rng(seed).poisson(lam, size=(8, 18, 10, 1, n))
+    return np.concatenate([one, one], axis=3)
+
+
+def _pooled_x_median(counts, seed):
+    """Median X under the v4 draft's pooled null (pooled PMI vs Poisson at the pooled mean)."""
+    o, f, _ = fa.fit_prefs_all(counts)
+    cell = np.arange(counts.shape[4])
+    v = counts[o, f, :, :, cell].sum(axis=2).astype(np.float64)  # [cell, phase]
+    rng = np.random.default_rng(seed)
+    pmi0 = [fa._pmi_of_rows(rng.poisson(row.mean(), size=(300, 10)).astype(np.float64)).mean()
+            for row in v]
+    return float(np.median(fa._pmi_of_rows(v) - np.array(pmi0)))
+
+
+def test_t3_duplicated_trials_untuned_is_not_modulated():
+    """P3 v4 T3 (second review): near-identical trials must not inflate X on untuned cells."""
+    counts = _duplicated_untuned(106)
+    assert _pooled_x_median(counts, 106) > 0.1  # precondition: the pooled null is biased here
+    res = fa.t3(counts, counts, np.random.default_rng(106), 300)
+    assert abs(res["median_X_simple"]) < 0.05, res["median_X_simple"]
+    assert not res["t3_simple_pass"], res
+
+
+def test_mutant_pooled_trials_inflates_duplicated_untuned():
+    counts = _duplicated_untuned(106)
+
+    def check():
+        res = fa.t3(counts, counts, np.random.default_rng(106), 300)
+        assert res["median_X_simple"] > 0.1, "pooling both trials should inflate X"
+
+    _run_mutant("        per_trial = v[i].T  # [trial, phase]",
+                "        per_trial = v[i].sum(axis=1)[None, :]  # mutant: trials pooled", check)
 
 
 def test_mutant_floor49_includes_boundary_cell():

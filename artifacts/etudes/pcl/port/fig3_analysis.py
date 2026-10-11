@@ -362,25 +362,31 @@ def _pmi_of_rows(v):
 def _pmi_set(counts, rng, n_draws=N_PMI_DRAWS):
     """Per-cell excess modulation X = PMI - PMI0 with the 50-spike floor (P3 v4 T3).
 
-    PMI is (max-min)/(max+min) of the trials-pooled count over phases 0-9 at
-    (ori*, sf*). PMI0 is the mean PMI of ``n_draws`` draws of 10 Poisson
-    counts at the cell's mean count per phase. Cells below the floor are
+    Per trial, PMI is (max-min)/(max+min) of the count over phases 0-9 at
+    (ori*, sf*), and PMI0 is the mean PMI of ``n_draws`` draws of 10 Poisson
+    counts at that trial's mean count per phase. X, PMI and PMI0 are means
+    over the two trials. Per-trial nulls stay unbiased when trials are
+    correlated; pooling near-identical trials doubles the variance a pooled
+    Poisson null assumes. The floor counts both trials. Cells below it are
     excluded (X is nan).
     """
     o_star, f_star, _ = fit_prefs_all(counts)
     n_cells = np.asarray(counts).shape[4]
     cell = np.arange(n_cells)
-    v = np.asarray(counts)[o_star, f_star, :, :, cell].sum(axis=2).T.astype(np.float64)
-    total = v.sum(axis=0)
+    v = np.asarray(counts)[o_star, f_star, :, :, cell].astype(np.float64)  # [cell, phase, trial]
+    total = v.sum(axis=(1, 2))
     included = total >= T3_MIN_SPIKES
     pmi = np.full(n_cells, np.nan)
     pmi0 = np.full(n_cells, np.nan)
     x = np.full(n_cells, np.nan)
     for i in np.flatnonzero(included):
-        pmi[i] = float(_pmi_of_rows(v[:, i][None, :])[0])
-        lam = float(v[:, i].mean())
-        draws = rng.poisson(lam, size=(int(n_draws), N_PHASE)).astype(np.float64)
-        pmi0[i] = float(_pmi_of_rows(draws).mean())
+        per_trial = v[i].T  # [trial, phase]
+        pmi_t = _pmi_of_rows(per_trial)
+        pmi0_t = np.array([_pmi_of_rows(rng.poisson(lam, size=(int(n_draws), N_PHASE))
+                                        .astype(np.float64)).mean()
+                           for lam in per_trial.mean(axis=1)])
+        pmi[i] = float(pmi_t.mean())
+        pmi0[i] = float(pmi0_t.mean())
         x[i] = float(pmi[i] - pmi0[i])
     return x, pmi, pmi0, included
 
