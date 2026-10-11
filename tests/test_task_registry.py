@@ -9,13 +9,25 @@ import numpy as np
 import pytest
 
 import jaxfne.tasks._registry as registry_mod
-from jaxfne.tasks import CHAIN5, TaskDescriptor, get_task, list_tasks, make_chain5, register_task
+from jaxfne.tasks import (
+    CHAIN5,
+    CORRIDOR7,
+    TaskDescriptor,
+    get_task,
+    list_tasks,
+    make_chain5,
+    make_corridor7,
+    register_task,
+)
 
 TASKS = list_tasks()
 CAP = 50
 SEEDS = 16
 # Tasks whose reset must not depend on the rng. Any other task must vary with the seed.
 DETERMINISTIC_RESET_TASKS = frozenset({"chain5"})
+# Declared terminal states. A new task must declare its own, so the absorbing and
+# done-on-entry checks cannot pass by accident.
+TERMINAL_STATES = {"chain5": frozenset({4}), "corridor7": frozenset({0, 6})}
 
 
 def _last_action_policy(desc):
@@ -166,6 +178,63 @@ def test_q_star_shape_and_bellman_consistency(name):
             )
 
 
+@pytest.mark.parametrize("name", TASKS)
+def test_terminal_states_are_absorbing_and_end_episodes(name):
+    assert name in TERMINAL_STATES, f"{name}: declare its terminal states in TERMINAL_STATES"
+    terminal = TERMINAL_STATES[name]
+    desc, task = get_task(name)
+    assert terminal and all(0 <= s < desc.n_states for s in terminal)
+    for s in sorted(terminal):
+        for a in range(desc.n_actions):
+            assert task.step(s, a) == (s, 0.0, True), f"terminal {s} not absorbing under {a}"
+    for s in range(desc.n_states):
+        if s in terminal:
+            continue
+        for a in range(desc.n_actions):
+            s2, _reward, done = task.step(s, a)
+            assert bool(done) == (int(s2) in terminal), (s, a, s2, done)
+
+
+def value_iteration(desc, task, tol=1e-14, max_iter=100_000):
+    """Optimal Q by value iteration on the task's own step function."""
+    table = {
+        (s, a): task.step(s, a)
+        for s in range(desc.n_states)
+        for a in range(desc.n_actions)
+    }
+    q = np.zeros((desc.n_states, desc.n_actions))
+    for _ in range(max_iter):
+        nxt = np.zeros_like(q)
+        for (s, a), (s2, reward, done) in table.items():
+            nxt[s, a] = float(reward) if done else float(reward) + desc.gamma * float(np.max(q[int(s2)]))
+        delta = float(np.max(np.abs(nxt - q)))
+        q = nxt
+        if delta < tol:
+            return q
+    raise AssertionError("value iteration did not converge")
+
+
+@pytest.mark.parametrize("name", TASKS)
+def test_q_star_matches_value_iteration(name):
+    desc, task = get_task(name)
+    if not desc.has_q_star:
+        pytest.skip(f"{name} declares no q_star")
+    np.testing.assert_allclose(
+        np.asarray(task.q_star(), dtype=np.float64),
+        value_iteration(desc, task),
+        rtol=1e-12,
+        atol=1e-12,
+        err_msg=f"{name}: analytic q_star differs from value iteration",
+    )
+
+
+def test_corridor7_descriptor_and_factory():
+    _, task = get_task("corridor7")
+    assert (CORRIDOR7.n_states, CORRIDOR7.n_actions) == (7, 2)
+    assert CORRIDOR7.gamma == 0.9 and CORRIDOR7.has_q_star is True
+    assert hasattr(make_corridor7(), "q_star")
+
+
 def test_chain5_descriptor_and_factory():
     assert CHAIN5.name == "chain5"
     assert (CHAIN5.n_states, CHAIN5.n_actions) == (5, 2)
@@ -206,3 +275,22 @@ def test_register_accepts_gamma_zero(sandbox):
 def test_register_refuses_zero_sizes(sandbox, field):
     with pytest.raises(ValueError, match=field):
         register_task(_desc(name="toy_zero", **{field: 0}), _ToyTask)
+
+
+@pytest.mark.parametrize("name", [None, 3, b"toy"])
+def test_register_refuses_non_str_name(sandbox, name):
+    with pytest.raises(ValueError, match="name"):
+        register_task(_desc(name=name), _ToyTask)
+
+
+@pytest.mark.parametrize("field", ["n_states", "n_actions"])
+@pytest.mark.parametrize("value", [2.5, True, None, "3"])
+def test_register_refuses_non_int_sizes(sandbox, field, value):
+    with pytest.raises(ValueError, match=field):
+        register_task(_desc(name="toy_type", **{field: value}), _ToyTask)
+
+
+@pytest.mark.parametrize("gamma", ["0.5", False, True, None])
+def test_register_refuses_non_real_gamma(sandbox, gamma):
+    with pytest.raises(ValueError, match="gamma"):
+        register_task(_desc(name="toy_gamma_type", gamma=gamma), _ToyTask)

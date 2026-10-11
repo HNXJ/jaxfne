@@ -9,6 +9,7 @@ that validates at registration, and ``get_task`` that refuses an unknown name.
 
 from __future__ import annotations
 
+import numbers
 from dataclasses import dataclass
 from typing import Any, Callable
 
@@ -29,21 +30,30 @@ class TaskDescriptor:
 _REGISTRY: dict[str, tuple[TaskDescriptor, TaskFactory]] = {}
 
 
+def _is_int(value: Any) -> bool:
+    return isinstance(value, numbers.Integral) and not isinstance(value, bool)
+
+
+def _is_real(value: Any) -> bool:
+    return isinstance(value, numbers.Real) and not isinstance(value, bool)
+
+
 def register_task(descriptor: TaskDescriptor, factory: TaskFactory) -> None:
     """Register a task factory by descriptor name; validate at registration."""
+    if not isinstance(descriptor.name, str):
+        raise ValueError(f"task name must be a str, got {descriptor.name!r}")
     if descriptor.name in _REGISTRY:
         raise ValueError(f"task {descriptor.name!r} is already registered")
-    if int(descriptor.n_states) < 1:
+    for field in ("n_states", "n_actions"):
+        value = getattr(descriptor, field)
+        if not _is_int(value) or value < 1:
+            raise ValueError(
+                f"task {descriptor.name!r} declares {field} {value!r}; expected an int >= 1"
+            )
+    gamma = descriptor.gamma
+    if not _is_real(gamma) or not (0.0 <= float(gamma) < 1.0):
         raise ValueError(
-            f"task {descriptor.name!r} declares n_states {descriptor.n_states!r}; expected >= 1"
-        )
-    if int(descriptor.n_actions) < 1:
-        raise ValueError(
-            f"task {descriptor.name!r} declares n_actions {descriptor.n_actions!r}; expected >= 1"
-        )
-    if not (0.0 <= float(descriptor.gamma) < 1.0):
-        raise ValueError(
-            f"task {descriptor.name!r} declares gamma {descriptor.gamma!r}; expected 0 <= gamma < 1"
+            f"task {descriptor.name!r} declares gamma {gamma!r}; expected a real 0 <= gamma < 1"
         )
     _REGISTRY[descriptor.name] = (descriptor, factory)
 

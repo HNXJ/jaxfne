@@ -6,15 +6,18 @@ from qlearn_jaxfne import (
     ALPHA,
     A_LEFT,
     A_RIGHT,
-    N_E,
+    CORRIDOR_TASK,
+    corridor_features,
     driven_cells,
     episodes_to_policy,
     features_for_seed,
     greedy_policy,
     max_normalised_for_seed_state,
-    phi_for_seed_state,
+    optimal_actions,
+    policy_states,
     q_star,
     q_values,
+    run_corridor,
     run_q_learning,
 )
 
@@ -107,3 +110,44 @@ def test_7_episodes_to_policy_is_first_episode_of_the_final_correct_run():
     assert len(out["policy_correct"]) == 20, "one correctness entry per episode"
     assert not any(out["policy_correct"]), "zero weights never choose right"
     assert out["episodes_to_policy"] is None
+
+
+def _shown(out):
+    return "never" if out["episodes_to_policy"] is None else out["episodes_to_policy"]
+
+
+def test_8_corridor_flat_control_is_state_blind_and_never_reaches_policy():
+    q_opt = CORRIDOR_TASK.q_star()
+    opt = optimal_actions(q_opt)
+    states = policy_states(q_opt)
+    assert states == [1, 2, 3, 4, 5], "precondition: policy states are 1..5"
+    left_only = [s for s in states if opt[s, A_LEFT] and not opt[s, A_RIGHT]]
+    right_only = [s for s in states if opt[s, A_RIGHT] and not opt[s, A_LEFT]]
+    assert left_only == [1, 2] and right_only == [4, 5], "precondition: corridor discriminates"
+    flat = corridor_features("flat", 0)
+    assert all(np.array_equal(flat[s], flat[0]) for s in range(len(flat))), "flat is constant"
+    for seed in range(5):
+        out = run_corridor("flat", seed)
+        print(f"\nflat seed {seed}: episodes-to-policy = {_shown(out)}, "
+              f"final greedy (states 1..5) = {out['greedy']}, max |Q - Q*| = {out['max_err']:.6f}")
+        assert len(set(out["greedy"])) == 1, f"seed {seed}: flat greedy varies over states"
+        assert not any(out["policy_correct"]), f"seed {seed}: flat reached the policy"
+        assert out["episodes_to_policy"] is None, f"seed {seed}: flat has a policy episode"
+
+
+def test_9_network_reaches_and_holds_policy_on_corridor_tabular_reported():
+    # Every row is printed before the assertion, so a failing seed does not hide the others.
+    # The network features must reach and hold the policy in every seed. Tabular is a control:
+    # at alpha 0.1 and epsilon 0.1 a rarely visited (state, action) can stay under-trained within
+    # 1000 episodes (seed 3: Q(2, left) 0.722 after 19 updates vs Q(2, right) about 0.729), so it
+    # must reach the policy in at least 4 of 5 seeds.
+    held = {"tabular": [], "network": []}
+    for kind in ("tabular", "network"):
+        for seed in range(5):
+            out = run_corridor(kind, seed)
+            print(f"\n{kind} seed {seed}: episodes-to-policy = {_shown(out)}, "
+                  f"final greedy (states 1..5) = {out['greedy']}, "
+                  f"max |Q - Q*| = {out['max_err']:.6f}")
+            held[kind].append(out["episodes_to_policy"] is not None and out["final_correct"])
+    assert all(held["network"]), f"network not reached and held: {held['network']}"
+    assert sum(held["tabular"]) >= 4, f"tabular reached in fewer than 4 seeds: {held['tabular']}"
