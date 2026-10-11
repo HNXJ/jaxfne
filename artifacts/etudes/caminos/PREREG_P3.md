@@ -1,7 +1,7 @@
 # L2-P3 preregistration: CAMINOS reference model (PLoS CB 2026, Fig. 1)
 
-Status: draft v2 for Hamm's batch sign-off. It revises v1 after the second review
-(2026-10-11, PASS with notes). No scored run before the signature. G0 single-cell checks
+Status: draft v3 for Hamm's batch sign-off. It revises v1 (PASS with notes) and v2
+(FAIL: the R1 null was vacuous) after the second reviews of 2026-10-11. No scored run before the signature. G0 single-cell checks
 and timing pilots are not scored.
 
 ## Source claims (PLoS CB 2026 Results, reference model)
@@ -40,15 +40,17 @@ written before that pilot, and v2 keeps them. Seed 0 is excluded from scoring.
 The spectral peak ratio is the Welch power at the peak in 20–80 Hz divided by the median
 power in 20–80 Hz. Welch uses 1 s Hann windows with 50 % overlap over the 3 s kept.
 
-The null for the ratio comes from 200 phase-randomised surrogates of the same E-rate
-signal: Fourier amplitudes are kept and phases are drawn uniformly.
+A run "oscillates" when its peak ratio is at least 5. The second review measured about
+2.6 for an asynchronous Poisson rate signal under the same Welch settings, so 5 is
+roughly twice the asynchronous level. A phase-randomised surrogate null was dropped in
+v3: it keeps the amplitude spectrum, so it cannot test a spectral peak.
 
 | Id | Estimand | Pass |
 |---|---|---|
-| R1 | Peak frequency in 20–80 Hz, mean over seeds | 30–40 Hz, with the peak ratio above the 99th percentile of the surrogate null in every seed |
-| R2 | Lag of the PV→SOM rate cross-correlation peak, searched over −25 to +25 ms, after 2 ms Gaussian smoothing; mean over seeds | lag positive (SOM after PV) in every seed; mean lag 6–11 ms |
+| R1 | Peak frequency in 20–80 Hz, mean over seeds | 30–40 Hz, and every seed oscillates |
+| R2 | Lag of the PV→SOM rate cross-correlation peak, searched over −14 to +14 ms (under half a 35 Hz period), after 2 ms Gaussian smoothing; mean over seeds | lag positive (SOM after PV) in every seed; mean lag 6–11 ms |
 | R3 | Mean rate per population over the kept 3 s | PV > SOM > E in every seed; mean E rate 1–3 Hz |
-| R4 | Peak ratio at p = 0.02, 0.03, …, 0.10, seeds 1–3 each, using the R1 surrogate test per seed. A p value "oscillates" when every seed passes | p = 0.02 does not oscillate, p = 0.07 oscillates; the smallest oscillating p is reported |
+| R4 | Peak ratio at p = 0.02, 0.03, …, 0.10, seeds 1–3 each. A p value "oscillates" when every seed oscillates | p = 0.02 does not oscillate and p = 0.07 does; the smallest oscillating p is reported |
 
 When a population fires no spike in a run, its ratio and its lags are undefined. The run
 counts as "does not oscillate" and is reported.
