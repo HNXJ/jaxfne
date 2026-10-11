@@ -1,7 +1,7 @@
 """Fig. 3 analysis: preregistered simple/complex tuning tests T1-T4.
 
 Implements exactly the estimands of ``artifacts/etudes/pcl/prereg/P3_fig3.md``
-(draft v3, cited per function as P3 sections). Synthetic data only: nothing
+(draft v4, cited per function as P3 sections). Synthetic data only: nothing
 here may be run on the scored outputs until the preregistration is signed; the
 CLI refuses ``F:/warehouse/pcl/runs/*`` unless ``--signed`` is passed.
 """
@@ -32,19 +32,26 @@ CX, CY, CD = 6, 6, 32
 SIMPLE_COL = (4, 4)
 COMPLEX_COLS = ((2, 2), (2, 3), (3, 2), (3, 3))
 
-# Criteria (P3 table rows T1-T4 and "Inclusion").
+# Criteria (P3 table rows T1-T4 and "Inclusion", draft v4).
 T1_R_MIN = 2.0
 T2_R_MIN = 2.0
 NULL_PCTL = 99.0
-T3_PMI_MIN_SIMPLE = 0.3
+T3_X_MIN_SIMPLE = 0.15
 T3_COMPLEX_FRAC = 0.5
-MIN_SPIKES = 20
+MIN_SPIKES_FIT = 20
+T3_MIN_SPIKES = 50
+T4_MIN_SPIKES = 10
 MAX_EXCLUDE_FRAC = 0.5
+N_PMI_DRAWS = 1000
 
 # omega search band (P3 "T4 frequency doubling": searched over 1-3 Hz).
 _OM_FMIN = 1.0
 _OM_FMAX = 3.0
 _OM_STEP = 0.001
+# Per-file omega acceptance band and trial-agreement tolerance (P3 v4 T4).
+_OM_ACCEPT_LO = 1.9
+_OM_ACCEPT_HI = 2.1
+_OM_TRIAL_DIFF_TOL = 0.01
 
 # Scored-data guard for the CLI.
 _RUNS_ROOT = "F:/warehouse/pcl/runs"
@@ -165,6 +172,11 @@ def omega_from_input(npz_path, step=_OM_STEP):
     return float(freqs[int(np.argmax(amp))])
 
 
+def _input_path(input_dir, o, f, p, s):
+    """Stimulus-file path for one grid point (run_tuning.py feed layout)."""
+    return Path(input_dir) / ORIS[int(o)] / str(int(f)) / str(int(p)) / f"{int(s)}.npz"
+
+
 def _ratio(num, den):
     """Peak/flank ratio with a zero-denominator rule (0/0 -> 1, x/0 -> inf)."""
     num, den = float(num), float(den)
@@ -175,9 +187,9 @@ def _ratio(num, den):
     return num / den
 
 
-def _passes(r, thr, p99):
-    """Pass rule shared by T1 and T2 (P3 table: R >= 2 and above the null 99th percentile)."""
-    return bool(r >= thr and r > p99)
+def _passes(r, thr, p99_label, p99_pref):
+    """Pass rule shared by T1 and T2 (P3 v4 table: R >= 2 and above both null 99th percentiles)."""
+    return bool(r >= thr and r > p99_label and r > p99_pref)
 
 
 def _ori_curve(flat, o_star, f_star):
@@ -210,51 +222,117 @@ def _sf_curve(flat, o_star, f_star):
     return curve
 
 
-def t1_t2(counts, rng, n_null=1000):
-    """Folded orientation/sf tuning with the selection-matched null.
+def _sf_flank_per_cell(flat, o_star, f_star):
+    """Per-cell sf flank (P3 v4: each cell's mean response at |dsf| >= 6).
 
-    P3 "Preference folds" and "Null for T1 and T2": preferences fit on even
-    phases, scored on odd phases (trials pooled throughout); the null
-    shuffles the scored fold's (ori, sf) labels within each cell and reruns
-    the fit-then-score procedure (the argmax fit on the even phases is
-    unaffected by the shuffle, so the same selection step is retained).
+    Only offsets landing inside 0..17 contribute to a cell's mean; the
+    caller averages the per-cell means over cells.
+    """
+    n_cells = flat.shape[1]
+    fl = np.full(n_cells, np.nan)
+    sfs = np.arange(N_SF)
+    for i in range(n_cells):
+        sel = np.abs(sfs - int(f_star[i])) >= 6
+        if np.any(sel):
+            fl[i] = flat[int(o_star[i]) * N_SF + sfs[sel], i].mean()
+    return fl
+
+
+def t1_t2(counts, rng, n_null=1000):
+    """Folded orientation/sf tuning with both selection-matched nulls.
+
+    P3 v4 "Preference folds", "Nulls for T1 and T2" and "Inclusion":
+    preferences fit on even phases, scored on odd phases (trials pooled
+    throughout). N-label shuffles the scored fold's (ori, sf) labels within
+    each cell and reruns fit-then-score; N-pref permutes the fitted
+    (ori*, sf*) pairs across the cells of the set and recomputes the scored
+    curves. Cells with fewer than 20 spikes in the fit fold are excluded; if
+    more than half the set is excluded the test fails for the set. The fitted
+    preference distribution (counts per ori*, per sf*) is reported.
     """
     pooled = np.asarray(counts).sum(axis=3)  # trials pooled, never folds
     n_cells = pooled.shape[3]
     fit = pooled[:, :, list(EVEN_PHASES), :].sum(axis=2)
     sco = pooled[:, :, list(ODD_PHASES), :].sum(axis=2)
-    lin = fit.reshape(N_ORI * N_SF, n_cells).argmax(axis=0)
+    fit_tot = fit.sum(axis=(0, 1))
+    incl = fit_tot >= MIN_SPIKES_FIT
+    n_excluded = int((~incl).sum())
+    excluded_frac = float(n_excluded / n_cells) if n_cells else 1.0
+    keep = np.flatnonzero(incl)
+    base = {
+        "n_null": int(n_null),
+        "n_excluded": n_excluded,
+        "excluded_frac": excluded_frac,
+        "pref_ori_counts": [0] * N_ORI,
+        "pref_sf_counts": [0] * N_SF,
+    }
+    if keep.size == 0:
+        nan = float("nan")
+        return {
+            **base,
+            "o_star": [],
+            "f_star": [],
+            "r_ori": nan,
+            "r_ori_null99": nan,
+            "r_ori_npref99": nan,
+            "t1_pass": False,
+            "r_sf": nan,
+            "r_sf_null99": nan,
+            "r_sf_npref99": nan,
+            "t2_pass": False,
+        }
+
+    fit_k = fit[:, :, keep]
+    sco_k = sco[:, :, keep]
+    lin = fit_k.reshape(N_ORI * N_SF, keep.size).argmax(axis=0)
     o_star, f_star = lin // N_SF, lin % N_SF
 
-    flat = sco.reshape(N_ORI * N_SF, n_cells).astype(np.float64)
+    flat = sco_k.reshape(N_ORI * N_SF, keep.size).astype(np.float64)
     curve_ori = _ori_curve(flat, o_star, f_star)
     r_ori = _ratio(curve_ori[0], curve_ori[N_ORI // 2])
     curve_sf = _sf_curve(flat, o_star, f_star)
-    flank = curve_sf[np.abs(np.arange(len(curve_sf)) - (N_SF - 1)) >= 6]
+    flank = _sf_flank_per_cell(flat, o_star, f_star)
     r_sf = _ratio(curve_sf[N_SF - 1], np.nanmean(flank))
 
-    cols = np.arange(n_cells)
-    null_ori = np.empty(n_null)
-    null_sf = np.empty(n_null)
+    cols = np.arange(keep.size)
+    null_ori_label = np.empty(int(n_null))
+    null_sf_label = np.empty(int(n_null))
+    null_ori_pref = np.empty(int(n_null))
+    null_sf_pref = np.empty(int(n_null))
     for b in range(int(n_null)):
-        order = np.argsort(rng.random((N_ORI * N_SF, n_cells)), axis=0)
-        sh = flat[order, np.broadcast_to(cols, (N_ORI * N_SF, n_cells))]
+        order = np.argsort(rng.random((N_ORI * N_SF, keep.size)), axis=0)
+        sh = flat[order, np.broadcast_to(cols, (N_ORI * N_SF, keep.size))]
         co = _ori_curve(sh, o_star, f_star)
-        null_ori[b] = _ratio(co[0], co[N_ORI // 2])
+        null_ori_label[b] = _ratio(co[0], co[N_ORI // 2])
         cs = _sf_curve(sh, o_star, f_star)
-        fl = cs[np.abs(np.arange(len(cs)) - (N_SF - 1)) >= 6]
-        null_sf[b] = _ratio(cs[N_SF - 1], np.nanmean(fl))
-    p99_ori, p99_sf = float(np.percentile(null_ori, NULL_PCTL)), float(np.percentile(null_sf, NULL_PCTL))
+        fl = _sf_flank_per_cell(sh, o_star, f_star)
+        null_sf_label[b] = _ratio(cs[N_SF - 1], np.nanmean(fl))
+        perm = rng.permutation(keep.size)
+        op, fp = o_star[perm], f_star[perm]
+        po = _ori_curve(flat, op, fp)
+        null_ori_pref[b] = _ratio(po[0], po[N_ORI // 2])
+        ps = _sf_curve(flat, op, fp)
+        pf = _sf_flank_per_cell(flat, op, fp)
+        null_sf_pref[b] = _ratio(ps[N_SF - 1], np.nanmean(pf))
+    p99_ori_lab = float(np.percentile(null_ori_label, NULL_PCTL))
+    p99_sf_lab = float(np.percentile(null_sf_label, NULL_PCTL))
+    p99_ori_pref = float(np.percentile(null_ori_pref, NULL_PCTL))
+    p99_sf_pref = float(np.percentile(null_sf_pref, NULL_PCTL))
+    over_excluded = excluded_frac > MAX_EXCLUDE_FRAC
     return {
+        **base,
         "o_star": o_star.astype(int).tolist(),
         "f_star": f_star.astype(int).tolist(),
+        "pref_ori_counts": np.bincount(o_star, minlength=N_ORI).tolist(),
+        "pref_sf_counts": np.bincount(f_star, minlength=N_SF).tolist(),
         "r_ori": float(r_ori),
-        "r_ori_null99": p99_ori,
-        "t1_pass": _passes(r_ori, T1_R_MIN, p99_ori),
+        "r_ori_null99": p99_ori_lab,
+        "r_ori_npref99": p99_ori_pref,
+        "t1_pass": bool(_passes(r_ori, T1_R_MIN, p99_ori_lab, p99_ori_pref) and not over_excluded),
         "r_sf": float(r_sf),
-        "r_sf_null99": p99_sf,
-        "t2_pass": _passes(r_sf, T2_R_MIN, p99_sf),
-        "n_null": int(n_null),
+        "r_sf_null99": p99_sf_lab,
+        "r_sf_npref99": p99_sf_pref,
+        "t2_pass": bool(_passes(r_sf, T2_R_MIN, p99_sf_lab, p99_sf_pref) and not over_excluded),
     }
 
 
@@ -270,39 +348,77 @@ def fit_prefs_all(counts):
     return o_star, f_star, p_star
 
 
-def _pmi_set(counts):
-    """Per-cell PMI at the all-phase preference with the 20-spike floor (P3 T3)."""
+def _pmi_of_rows(v):
+    """PMI = (max-min)/(max+min) per row of an [..., 10] array (0/0 -> 0)."""
+    mx = v.max(axis=-1)
+    mn = v.min(axis=-1)
+    tot = mx + mn
+    out = np.zeros_like(tot, dtype=np.float64)
+    ok = tot > 0
+    out[ok] = (mx[ok] - mn[ok]) / tot[ok]
+    return out
+
+
+def _pmi_set(counts, rng, n_draws=N_PMI_DRAWS):
+    """Per-cell excess modulation X = PMI - PMI0 with the 50-spike floor (P3 v4 T3).
+
+    PMI is (max-min)/(max+min) of the trials-pooled count over phases 0-9 at
+    (ori*, sf*). PMI0 is the mean PMI of ``n_draws`` draws of 10 Poisson
+    counts at the cell's mean count per phase. Cells below the floor are
+    excluded (X is nan).
+    """
     o_star, f_star, _ = fit_prefs_all(counts)
-    cell = np.arange(np.asarray(counts).shape[4])
+    n_cells = np.asarray(counts).shape[4]
+    cell = np.arange(n_cells)
     v = np.asarray(counts)[o_star, f_star, :, :, cell].sum(axis=2).T.astype(np.float64)
     total = v.sum(axis=0)
-    included = total >= MIN_SPIKES
-    pmi = np.full(v.shape[1], np.nan)
-    ok = included & (v.max(axis=0) + v.min(axis=0) > 0)
-    mx, mn = v.max(axis=0), v.min(axis=0)
-    pmi[ok] = (mx[ok] - mn[ok]) / (mx[ok] + mn[ok])
-    return pmi, included
+    included = total >= T3_MIN_SPIKES
+    pmi = np.full(n_cells, np.nan)
+    pmi0 = np.full(n_cells, np.nan)
+    x = np.full(n_cells, np.nan)
+    for i in np.flatnonzero(included):
+        pmi[i] = float(_pmi_of_rows(v[:, i][None, :])[0])
+        lam = float(v[:, i].mean())
+        draws = rng.poisson(lam, size=(int(n_draws), N_PHASE)).astype(np.float64)
+        pmi0[i] = float(_pmi_of_rows(draws).mean())
+        x[i] = float(pmi[i] - pmi0[i])
+    return x, pmi, pmi0, included
 
 
-def t3(counts_s, counts_c):
-    """Phase tuning of both sets (P3 row T3 and "Inclusion").
+def t3(counts_s, counts_c, rng=None, n_pmi=N_PMI_DRAWS):
+    """Phase tuning of both sets (P3 v4 row T3 and "Inclusion").
 
-    PMI = (max-min)/(max+min) of the count over phases 0-9 at (ori*, sf*).
-    A set with more than half its cells below the 20-spike floor fails.
+    Excess modulation X = PMI - PMI0 per cell; a set passes when its median
+    X clears its bar (simple >= 0.15; complex <= 0.5 x simple median). A set
+    with more than half its cells below the 50-spike floor fails.
     """
-    pmi_s, incl_s = _pmi_set(counts_s)
-    pmi_c, incl_c = _pmi_set(counts_c)
-    med_s = float(np.median(pmi_s[incl_s])) if np.any(incl_s) else float("nan")
-    med_c = float(np.median(pmi_c[incl_c])) if np.any(incl_c) else float("nan")
-    excl_s = float(1.0 - incl_s.mean()) if len(incl_s) else 1.0
-    excl_c = float(1.0 - incl_c.mean()) if len(incl_c) else 1.0
-    t3_simple_pass = bool(excl_s <= MAX_EXCLUDE_FRAC and med_s >= T3_PMI_MIN_SIMPLE)
-    t3_complex_pass = bool(excl_c <= MAX_EXCLUDE_FRAC and med_c <= T3_COMPLEX_FRAC * med_s)
+    if rng is None:
+        rng = np.random.default_rng(0)
+    x_s, pmi_s, pmi0_s, incl_s = _pmi_set(counts_s, rng, n_pmi)
+    x_c, pmi_c, pmi0_c, incl_c = _pmi_set(counts_c, rng, n_pmi)
+    med_xs = float(np.median(x_s[incl_s])) if np.any(incl_s) else float("nan")
+    med_xc = float(np.median(x_c[incl_c])) if np.any(incl_c) else float("nan")
+    med_ps = float(np.median(pmi_s[incl_s])) if np.any(incl_s) else float("nan")
+    med_pc = float(np.median(pmi_c[incl_c])) if np.any(incl_c) else float("nan")
+    n_excl_s = int((~incl_s).sum())
+    n_excl_c = int((~incl_c).sum())
+    excl_s = float(n_excl_s / len(incl_s)) if len(incl_s) else 1.0
+    excl_c = float(n_excl_c / len(incl_c)) if len(incl_c) else 1.0
+    t3_simple_pass = bool(excl_s <= MAX_EXCLUDE_FRAC and med_xs >= T3_X_MIN_SIMPLE)
+    t3_complex_pass = bool(excl_c <= MAX_EXCLUDE_FRAC and med_xc <= T3_COMPLEX_FRAC * med_xs)
     return {
+        "X_simple": x_s.tolist(),
+        "X_complex": x_c.tolist(),
         "pmi_simple": pmi_s.tolist(),
         "pmi_complex": pmi_c.tolist(),
-        "median_pmi_simple": med_s,
-        "median_pmi_complex": med_c,
+        "pmi0_simple": pmi0_s.tolist(),
+        "pmi0_complex": pmi0_c.tolist(),
+        "median_X_simple": med_xs,
+        "median_X_complex": med_xc,
+        "median_pmi_simple": med_ps,
+        "median_pmi_complex": med_pc,
+        "n_excluded_simple": n_excl_s,
+        "n_excluded_complex": n_excl_c,
         "excluded_frac_simple": excl_s,
         "excluded_frac_complex": excl_c,
         "t3_simple_pass": t3_simple_pass,
@@ -334,40 +450,88 @@ def _log_ratio(spikes, omega):
     return float(math.log(a_hi / a_lo))
 
 
-def _cell_Ls(times, pref, omega):
-    """Per-cell L at (ori*, sf*, phase*), trials pooled, with the floor (P3 T3/T4)."""
+def _omega_for(omegas, key):
+    """Omega of one stimulus file: a scalar holds for all files, else a dict lookup."""
+    if isinstance(omegas, dict):
+        return float(omegas[tuple(int(v) for v in key)])
+    return float(omegas)
+
+
+def _cell_Ls(times, pref, omegas):
+    """Per-cell L at (ori*, sf*, phase*), trials pooled, with floors (P3 v4 T4/"Inclusion").
+
+    ``omegas`` is one float for every file or a dict mapping
+    ``(ori, sf, phase, trial)`` to that file's measured omega. A cell's L
+    uses the omegas of the two files its spikes come from; trials whose
+    omegas differ by more than 0.01 Hz are reported and averaged. A cell is
+    excluded when it has fewer than 10 spikes at (ori*, sf*, phase*) over
+    both trials, when either file's omega falls outside 1.9-2.1 Hz, or when
+    its L is not finite. Every exclusion is counted by cause.
+    """
     o_star, f_star, p_star = pref
     n_cells = len(o_star)
     Ls = np.full(n_cells, np.nan)
-    incl = np.zeros(n_cells, dtype=bool)
+    used = np.full(n_cells, np.nan)
+    count_ok = np.zeros(n_cells, dtype=bool)
+    band_ok = np.zeros(n_cells, dtype=bool)
+    bad_files = []
+    mismatches = []
+    n_spikes = np.zeros(n_cells, dtype=int)
     for i in range(n_cells):
-        tot = 0
-        for p in range(N_PHASE):
-            for s in range(N_TRIAL):
-                pos, t = times[(int(o_star[i]), int(f_star[i]), p, s)]
-                tot += int((pos == i).sum())
-        incl[i] = tot >= MIN_SPIKES
-        if incl[i]:
-            sel = []
-            for s in range(N_TRIAL):
-                pos, t = times[(int(o_star[i]), int(f_star[i]), int(p_star[i]), s)]
-                sel.append(np.asarray(t)[pos == i])
-            pooled = np.concatenate(sel) if sel else np.zeros(0)
-            Ls[i] = _log_ratio(pooled, omega)
-    return Ls, incl
+        o, f, p = int(o_star[i]), int(f_star[i]), int(p_star[i])
+        per_trial = []
+        for s in range(N_TRIAL):
+            pos, t = times[(o, f, p, s)]
+            per_trial.append(np.asarray(t)[pos == i])
+        tot = sum(len(v) for v in per_trial)
+        n_spikes[i] = tot
+        count_ok[i] = tot >= T4_MIN_SPIKES
+        w0 = _omega_for(omegas, (o, f, p, 0))
+        w1 = _omega_for(omegas, (o, f, p, 1))
+        ok0 = _OM_ACCEPT_LO <= w0 <= _OM_ACCEPT_HI
+        ok1 = _OM_ACCEPT_LO <= w1 <= _OM_ACCEPT_HI
+        band_ok[i] = bool(ok0 and ok1)
+        if not ok0:
+            bad_files.append([o, f, p, 0, w0])
+        if not ok1:
+            bad_files.append([o, f, p, 1, w1])
+        if abs(w0 - w1) > _OM_TRIAL_DIFF_TOL:
+            mismatches.append({"key": [o, f, p], "w0": w0, "w1": w1})
+        w = (w0 + w1) / 2.0
+        used[i] = w
+        if count_ok[i] and band_ok[i]:
+            pooled = np.concatenate(per_trial) if per_trial else np.zeros(0)
+            Ls[i] = _log_ratio(pooled, w)
+    finite = np.isfinite(Ls)
+    included = count_ok & band_ok & finite
+    return {
+        "Ls": Ls,
+        "used": used,
+        "included": included,
+        "count_ok": count_ok,
+        "band_ok": band_ok,
+        "finite": finite,
+        "bad_files": bad_files,
+        "mismatches": mismatches,
+        "n_spikes": n_spikes,
+    }
 
 
 def t4(times, omega, prefs, rng, n_null=1000):
-    """Frequency doubling of both sets (P3 row T4 and "T4 frequency doubling").
+    """Frequency doubling of both sets (P3 v4 row T4, "T4 frequency doubling", "Inclusion").
 
     ``times`` is ``(times_simple, times_complex)`` as returned by
     :func:`load_run`; ``prefs`` is ``(pref_simple, pref_complex)`` from
-    :func:`fit_prefs_all`. The null permutes cells between the two sets.
+    :func:`fit_prefs_all`. ``omega`` is one float for every stimulus file or
+    a dict mapping ``(ori, sf, phase, trial)`` to that file's omega. The null
+    permutes cells between the two sets.
     """
-    Ls, incl_s = _cell_Ls(times[0], prefs[0], float(omega))
-    Lc, incl_c = _cell_Ls(times[1], prefs[1], float(omega))
-    vs = Ls[incl_s & np.isfinite(Ls)]
-    vc = Lc[incl_c & np.isfinite(Lc)]
+    rs = _cell_Ls(times[0], prefs[0], omega)
+    rc = _cell_Ls(times[1], prefs[1], omega)
+    Ls, Lc = rs["Ls"], rc["Ls"]
+    incl_s, incl_c = rs["included"], rc["included"]
+    vs = Ls[incl_s]
+    vc = Lc[incl_c]
     med_s = float(np.median(vs)) if vs.size else float("nan")
     med_c = float(np.median(vc)) if vc.size else float("nan")
     diff = float(med_c - med_s) if vs.size and vc.size else float("nan")
@@ -378,10 +542,13 @@ def t4(times, omega, prefs, rng, n_null=1000):
         gs, gc = perm[: len(vs)], perm[len(vs):]
         null_diff[b] = float(np.median(pool[gc]) - np.median(pool[gs]))
     p99 = float(np.percentile(null_diff, NULL_PCTL)) if pool.size else float("nan")
-    excl_s = float(1.0 - (incl_s & np.isfinite(Ls)).mean()) if len(Ls) else 1.0
-    excl_c = float(1.0 - (incl_c & np.isfinite(Lc)).mean()) if len(Lc) else 1.0
+    n_excl_s = int((~incl_s).sum())
+    n_excl_c = int((~incl_c).sum())
+    excl_s = float(n_excl_s / len(Ls)) if len(Ls) else 1.0
+    excl_c = float(n_excl_c / len(Lc)) if len(Lc) else 1.0
     t4_pass = bool(excl_s <= MAX_EXCLUDE_FRAC and excl_c <= MAX_EXCLUDE_FRAC
                    and med_s < 0.0 and 0.0 < med_c and diff > p99)
+    bad = sorted({tuple(e[:4]) for e in rs["bad_files"] + rc["bad_files"]})
     return {
         "L_simple": Ls.tolist(),
         "L_complex": Lc.tolist(),
@@ -389,21 +556,56 @@ def t4(times, omega, prefs, rng, n_null=1000):
         "median_L_complex": med_c,
         "diff": diff,
         "diff_null99": p99,
+        "n_excluded_simple": n_excl_s,
+        "n_excluded_complex": n_excl_c,
+        "n_low_count_simple": int((~rs["count_ok"]).sum()),
+        "n_low_count_complex": int((~rc["count_ok"]).sum()),
+        "n_bad_omega_simple": int((~rs["band_ok"]).sum()),
+        "n_bad_omega_complex": int((~rc["band_ok"]).sum()),
+        "n_nonfinite_simple": int((rs["count_ok"] & rs["band_ok"] & ~rs["finite"]).sum()),
+        "n_nonfinite_complex": int((rc["count_ok"] & rc["band_ok"] & ~rc["finite"]).sum()),
         "excluded_frac_simple": excl_s,
         "excluded_frac_complex": excl_c,
+        "omega_bad_files": [list(k) for k in bad],
+        "omega_mismatches": rs["mismatches"] + rc["mismatches"],
+        "used_omega_simple": rs["used"].tolist(),
+        "used_omega_complex": rc["used"].tolist(),
         "t4_pass": t4_pass,
         "n_null": int(n_null),
     }
 
 
-def _probe_paths(input_dir):
-    """Three probe stimulus files used for the global omega (P3: 1.98-1.99 Hz in test7 files)."""
-    input_dir = Path(input_dir)
-    return [input_dir / ORIS[0] / str(f) / "0" / "0.npz" for f in (0, 9, 17)]
+def _omega_map(input_dir, prefs_s, prefs_c, omegas=None):
+    """Per-file omegas for the files T4 cells draw spikes from (P3 v4 T4).
+
+    ``omegas`` overrides the file reads: a float holds for every file, a
+    dict maps ``(ori, sf, phase, trial)`` to omega. Otherwise each needed
+    stimulus file is measured once with :func:`omega_from_input`.
+    """
+    keys = set()
+    for pref in (prefs_s, prefs_c):
+        o_star, f_star, p_star = pref
+        for i in range(len(o_star)):
+            for s in range(N_TRIAL):
+                keys.add((int(o_star[i]), int(f_star[i]), int(p_star[i]), int(s)))
+    if omegas is None:
+        out = {}
+        for key in sorted(keys):
+            o, f, p, s = key
+            out[key] = omega_from_input(_input_path(input_dir, o, f, p, s))
+        return out
+    if isinstance(omegas, dict):
+        return {tuple(int(v) for v in k): float(v_) for k, v_ in omegas.items()}
+    return {k: float(omegas) for k in keys}
 
 
-def score(run_dir, input_dir, seed=0, n_null=1000):
-    """All T1-T4 statistics and pass flags for a tuning run directory."""
+def score(run_dir, input_dir, seed=0, n_null=1000, omegas=None):
+    """All T1-T4 statistics and pass flags for a tuning run directory.
+
+    ``omegas`` overrides the per-file omega measurement (a float for every
+    file or a dict); it exists so synthetic runs can be scored without
+    stimulus files.
+    """
     sets = cell_sets()
     counts_s, times_s, counts_c, times_c = _load_grid(run_dir, sets["simple"], sets["complex"])
     rng = np.random.default_rng(seed)
@@ -411,29 +613,45 @@ def score(run_dir, input_dir, seed=0, n_null=1000):
     r_c = t1_t2(counts_c, rng, n_null)
     prefs_s = fit_prefs_all(counts_s)
     prefs_c = fit_prefs_all(counts_c)
-    omegas = [omega_from_input(p) for p in _probe_paths(input_dir)]
-    omega = float(np.median(omegas))
-    res3 = t3(counts_s, counts_c)
-    res4 = t4((times_s, times_c), omega, (prefs_s, prefs_c), rng, n_null)
+    omap = _omega_map(input_dir, prefs_s, prefs_c, omegas)
+    res3 = t3(counts_s, counts_c, rng)
+    res4 = t4((times_s, times_c), omap, (prefs_s, prefs_c), rng, n_null)
+    flat_vals = list(omap.values())
+    omega_med = float(np.median(flat_vals)) if flat_vals else float("nan")
     return {
         "seed": int(seed),
         "n_null": int(n_null),
-        "omega": omega,
-        "omega_probes": [float(o) for o in omegas],
+        "omega": omega_med,
+        "omega_bad_files": res4["omega_bad_files"],
+        "omega_mismatches": res4["omega_mismatches"],
         "t1_r_ori_simple": r_s["r_ori"],
         "t1_r_ori_simple_null99": r_s["r_ori_null99"],
+        "t1_r_ori_simple_npref99": r_s["r_ori_npref99"],
         "t1_simple_pass": r_s["t1_pass"],
         "t1_r_ori_complex": r_c["r_ori"],
         "t1_r_ori_complex_null99": r_c["r_ori_null99"],
+        "t1_r_ori_complex_npref99": r_c["r_ori_npref99"],
         "t1_complex_pass": r_c["t1_pass"],
         "t2_r_sf_simple": r_s["r_sf"],
         "t2_r_sf_simple_null99": r_s["r_sf_null99"],
+        "t2_r_sf_simple_npref99": r_s["r_sf_npref99"],
         "t2_simple_pass": r_s["t2_pass"],
         "t2_r_sf_complex": r_c["r_sf"],
         "t2_r_sf_complex_null99": r_c["r_sf_null99"],
+        "t2_r_sf_complex_npref99": r_c["r_sf_npref99"],
         "t2_complex_pass": r_c["t2_pass"],
+        "pref_ori_counts_simple": r_s["pref_ori_counts"],
+        "pref_sf_counts_simple": r_s["pref_sf_counts"],
+        "pref_ori_counts_complex": r_c["pref_ori_counts"],
+        "pref_sf_counts_complex": r_c["pref_sf_counts"],
+        "n_excluded_t12_simple": r_s["n_excluded"],
+        "n_excluded_t12_complex": r_c["n_excluded"],
+        "median_X_simple": res3["median_X_simple"],
+        "median_X_complex": res3["median_X_complex"],
         "median_pmi_simple": res3["median_pmi_simple"],
         "median_pmi_complex": res3["median_pmi_complex"],
+        "n_excluded_t3_simple": res3["n_excluded_simple"],
+        "n_excluded_t3_complex": res3["n_excluded_complex"],
         "excluded_frac_simple": res3["excluded_frac_simple"],
         "excluded_frac_complex": res3["excluded_frac_complex"],
         "t3_simple_pass": res3["t3_simple_pass"],
@@ -442,6 +660,8 @@ def score(run_dir, input_dir, seed=0, n_null=1000):
         "median_L_complex": res4["median_L_complex"],
         "t4_diff": res4["diff"],
         "t4_diff_null99": res4["diff_null99"],
+        "n_excluded_t4_simple": res4["n_excluded_simple"],
+        "n_excluded_t4_complex": res4["n_excluded_complex"],
         "t4_pass": res4["t4_pass"],
         "all_pass": bool(
             r_s["t1_pass"] and r_c["t1_pass"] and r_s["t2_pass"] and r_c["t2_pass"]

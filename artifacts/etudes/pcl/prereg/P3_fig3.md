@@ -48,7 +48,8 @@ Every numerical criterion below is ours, not the paper's.
   - The paper averages over 32 complex cells. We use the four tied columns rather than pick
     one of them.
 - **Inclusion.** Each test has a floor on the spikes it actually uses:
-  - T1 and T2: at least 20 spikes in the fit fold.
+  - T1 and T2: at least 20 spikes in the fit fold, summed over every stimulus in it
+    (8 ori × 18 sf × 5 even phases × 2 trials).
   - T3: at least 50 spikes at (ori\*, sf\*) over phases 0–9 and both trials, about 5 per
     phase.
   - T4: at least 10 spikes at (ori\*, sf\*, phase\*) over both trials.
