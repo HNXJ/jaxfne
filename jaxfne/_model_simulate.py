@@ -76,6 +76,35 @@ def _refuse_dense_receptor_kernel(runtime_cfg: RuntimeConfig) -> None:
         )
 
 
+def _refuse_dense_connection_rules(model: Any, runtime_cfg: RuntimeConfig) -> None:
+    """Refuse a dense run when compiled ``connections()`` rules exist.
+
+    Rule edges are appended to ``params["edge_list"]`` at construct time; the
+    dense kernel runs on ``emitter.W`` only, so it would silently drop them.
+    Base-graph declarations (``within_gain``, ``p_connect`` mask, ``edge_seed``
+    for the base sampling, ``feedforward_gain``/``feedback_gain``) are baked
+    into ``emitter.W`` and stay accepted -- only materialized rule edges
+    (``compiled_n_edges > 0``) trigger. A rule that matched no edges drops
+    nothing, so it does not trigger either.
+    """
+    if runtime_cfg.recurrent_backend == "edge_list":
+        return
+    metadata = getattr(getattr(model, "cfg", None), "metadata", None) or {}
+    rules = (metadata.get("circuit", {}) or {}).get("connections", []) or []
+    n_rule_edges = sum(
+        int(rule.get("compiled_n_edges", 0) or 0)
+        for rule in rules
+        if isinstance(rule, Mapping)
+    )
+    if n_rule_edges > 0:
+        raise ValueError(
+            f"{n_rule_edges} edge(s) compiled from connections() rules are not "
+            "carried by the dense backend (it runs on emitter.W, which the "
+            "rules never touch); use recurrent_backend='edge_list' to run the "
+            "declared connectivity"
+        )
+
+
 def _hdp_kernel_kwargs(hp: Mapping[str, Any]) -> dict[str, Any]:
     """Resolve one shared HDP parameter contract for every execution path."""
     from ._hdp_adaptive import normalize_hdp_params_boundary
@@ -647,6 +676,7 @@ def _simulate_arrays(
         return V, S, src
 
     _refuse_dense_receptor_kernel(runtime_cfg)
+    _refuse_dense_connection_rules(self, runtime_cfg)
     if runtime_cfg.recurrent_backend == "edge_list":
         edges: EdgeList = self.params["edge_list"]
         if ablation_mode == "disconnected_null":
@@ -1495,6 +1525,10 @@ def simulate_batch(
             "exponential synaptic kernel."
         )
     _refuse_dense_receptor_kernel(runtime_cfg)
+    if not hdp_on and not homeo_on:
+        # HDP/homeostasis paths always use the sparse-edge kernel; only the
+        # plain backend dispatch below can hand the dense kernel rule edges.
+        _refuse_dense_connection_rules(self, runtime_cfg)
     edge_kernel_fn = (
         simulate_receptor_exponential_izhikevich
         if runtime_cfg.synaptic_kernel == "receptor_exponential"
