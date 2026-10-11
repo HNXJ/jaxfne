@@ -7,7 +7,7 @@
   "authorization": {
     "granted_by": "Hamm",
     "date": "2026-10-10",
-    "scope": "protected dev -> main merge and v0.5.5 publication, conditional on final verification; verification passed (origin/dev tip == 63266722, Fast CI green on the receipt commit, main fast-false check of tree equality)"
+    "scope": "protected dev -> main merge and v0.5.5 publication, conditional on final verification; verification passed (origin/dev tip == 63266722, Fast CI green on the receipt commit, main-tip tree verified byte-identical to the receipt-commit tree, 20e3ad34)"
   },
   "merge": {
     "pull_request": 102,
