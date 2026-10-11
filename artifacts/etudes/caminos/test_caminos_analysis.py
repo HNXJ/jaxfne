@@ -4,7 +4,9 @@ Covers PREREG_P3.md (v4) R1-R4 estimators: E-rate aperiodic-background peak
 excess on AR(1)-coloured asynchronous floors, PV->SOM lag, rate recovery,
 undefined rules, the scorer's completeness and pass rules, the run driver's
 manifest merge and reuse rules, the signature gate and pilot smoke, plus
-failing mutants (restored byte-exact).
+failing mutants (restored byte-exact). The v5 calibration gate is covered too:
+threshold selection, true-PE component scaling, the AR(2) pole formula and FWHM,
+and the pe_threshold parameter.
 """
 
 from __future__ import annotations
@@ -228,11 +230,11 @@ def test_ar1_coloured_async_does_not_oscillate(tau_ms, c):
     """An AR(1)-coloured asynchronous E rate must not oscillate (replaces the white-only
     fixture, which a sloped spectrum can fool)."""
     counts, e_rate = cal.synth_e(np.random.default_rng([int(tau_ms), int(10 * c), 7]),
-                                 tau_ms, c, mod=False)
+                                 tau_ms, c)
     # the generator must build the named AR(1) floor: check it on a 60 s realisation,
     # since one 3 s window scatters by about +-0.15 around the population value
     long_counts, _ = cal.synth_e(np.random.default_rng([int(tau_ms), int(10 * c), 99]),
-                                 tau_ms, c, mod=False, kept_s=60.0)
+                                 tau_ms, c, kept_s=60.0)
     acf, expected = cal.count_acf(long_counts), cal.expected_count_acf(tau_ms, c)
     assert abs(acf - expected) < 0.1, (acf, expected)
     pk = ca.spectral_peak(e_rate, DT)
@@ -404,7 +406,83 @@ def test_mutant_wide_window_fails():
 
 def test_mutant_low_threshold_fails():
     def check():
-        _, e_rate = cal.synth_e(np.random.default_rng(5), 30.0, 2.0, mod=False)
+        _, e_rate = cal.synth_e(np.random.default_rng(5), 30.0, 2.0)
         pk = ca.spectral_peak(e_rate, DT)
         assert pk["oscillates"], pk["peak_excess"]  # AR(1) async now "oscillates"
     _run_mutant(b"PE_THRESHOLD = 4.0", b"PE_THRESHOLD = 1.0", check)
+
+
+def test_pe_threshold_changes_oscillates():
+    """A fixed signal whose PE lies between 4 and 8 oscillates at pe_threshold 4, not at 8."""
+    _, e_rate = cal.synth_e(np.random.default_rng(12345), None, None)
+    t = np.arange(e_rate.size) * DT
+    sig = e_rate + 0.04 * np.sin(2.0 * np.pi * F_GAMMA * t + 0.3)
+    pe = ca.spectral_peak(sig, DT)["peak_excess"]
+    assert 4.0 <= pe < 8.0, pe  # precondition: the PE lies between the two thresholds
+    lo = ca.spectral_peak(sig, DT, pe_threshold=4.0)
+    hi = ca.spectral_peak(sig, DT, pe_threshold=8.0)
+    assert lo["oscillates"] and not hi["oscillates"], (lo["oscillates"], hi["oscillates"])
+    assert lo["peak_excess"] == hi["peak_excess"]  # only the call changes, not the estimate
+
+
+def test_threshold_passes_through_analyze_run_and_score(tmp_path):
+    """analyze_run and score pass pe_threshold on; the default 4 is unchanged."""
+    counts = _mod_counts(11, {"E": 2.0, "PV": 12.0, "SOM": 7.0}, SIZES, depth=0.9)
+    assert ca.analyze_run(counts, DT, SIZES)["oscillates"]  # precondition
+    assert not ca.analyze_run(counts, DT, SIZES, pe_threshold=1e6)["oscillates"]
+    runs = [_run(s, 0.07, REF_RATES, depth=0.9, delays={"SOM": 0.0085}) for s in (1, 2, 3, 4, 5)]
+    run_dir = _write_dir(tmp_path, runs)
+    assert ca.score(run_dir)["r1"]["all_oscillate"]  # precondition
+    assert not ca.score(run_dir, pe_threshold=1e6)["r1"]["all_oscillate"]
+
+
+def test_theta_selects_smallest_qualifying():
+    """Theta 4 fails one floor (0.06 > 5 %); 5 is the smallest value every floor passes."""
+    table = {"a": {4.0: 0.06, 5.0: 0.04, 6.0: 0.0, 8.0: 0.0},
+             "b": {4.0: 0.0, 5.0: 0.05, 6.0: 0.0, 8.0: 0.0}}
+    assert table["a"][4.0] > cal.FP_MAX  # precondition: theta 4 fails
+    assert cal.select_theta(table) == 5.0
+    assert cal.select_theta({"a": {4.0: 0.0, 5.0: 0.0, 6.0: 0.0, 8.0: 0.0}}) == 4.0
+
+
+def test_theta_refuses_when_none_qualifies():
+    table = {"a": {4.0: 0.2, 5.0: 0.1, 6.0: 0.07, 8.0: 0.06}}
+    with pytest.raises(ValueError, match="no theta"):
+        cal.select_theta(table)
+
+
+def test_true_pe_scaling_hits_target_on_white_floor():
+    """A component scaled to true PE 8 on the white floor realises PE 8, within 10 %."""
+    n = 200
+    null = [cal.synth_e(np.random.default_rng([cal.STAGE_NULL, 0, d]), None, None)[1]
+            for d in range(n)]
+    floor_psd = float(np.mean([cal.psd35(e) for e in null]))
+    # precondition: the white floor has no line at 35 Hz (PSD there matches 4-12 Hz either side)
+    freqs = ca.e_welch(null[0], cal.DT)[0]
+    mean_psd = np.mean([ca.e_welch(e, cal.DT)[1] for e in null], axis=0)
+    off = np.abs(freqs - F_GAMMA)
+    i35 = int(np.argmin(off))
+    side = (off >= 4.0) & (off <= 12.0)
+    assert abs(mean_psd[i35] / mean_psd[side].mean() - 1.0) <= 0.15, mean_psd[i35]
+    res = cal.run_component(0, None, None, "sinusoid", 8.0, floor_psd, n, cal.STAGE_DETECT,
+                            (0, 0), peaks=False)
+    # The 10 % realised check alone is too loose to catch a one-unit scale error (cross-term noise
+    # is about 3 % at 200 draws), so the measured component-to-floor PSD ratio must be pe - 1 exactly.
+    assert abs(res["comp_over_floor"] - 7.0) <= 1e-6 * 7.0, res["comp_over_floor"]
+    assert abs(res["realised_pe"] / 8.0 - 1.0) <= cal.REALISED_TOL, res["realised_pe"]
+
+
+def test_ar2_fwhm_matches_pole_formula():
+    """AR(2) poles sit at radius 1 - pi FWHM dt and angle 2 pi 35 dt; FWHM is 5 Hz."""
+    a1, a2 = cal.ar2_params()
+    roots = np.roots([1.0, -a1, -a2])
+    assert np.allclose(np.abs(roots), 1.0 - np.pi * 5.0 * DT, rtol=0, atol=1e-12), roots
+    assert np.isclose(np.max(np.abs(np.angle(roots))), 2.0 * np.pi * F_GAMMA * DT, rtol=1e-9)
+    f = np.linspace(30.0, 40.0, 200001)
+    h2 = 1.0 / np.abs(1.0 - a1 * np.exp(-2j * np.pi * f * DT) - a2 * np.exp(-4j * np.pi * f * DT)) ** 2
+    above = f[h2 >= h2.max() / 2.0]
+    assert abs((above[-1] - above[0]) - 5.0) <= 0.05, above[[0, -1]]  # analytic |H|^2
+    x = cal.ar2_unit(np.random.default_rng([4]), int(round(600.0 / DT)))
+    fwhm, peak = cal.measure_fwhm(x[int(round(cal.BURN_S / DT)):])
+    assert abs(peak - F_GAMMA) <= 1.0, peak  # precondition: the bump sits at 35 Hz
+    assert abs(fwhm - 5.0) <= 0.5, fwhm  # realisation within 10 %

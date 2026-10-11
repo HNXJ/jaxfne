@@ -15,8 +15,9 @@ Estimators (prereg text):
   its mean, Welch 1 s Hann windows with 50 % overlap. Aperiodic fit
   log10 P = a - log10(k + f**chi) on 10-150 Hz; f_pk is the largest residual
   in 20-80 Hz; the background is refit with f_pk +- 8 Hz excluded; peak excess
-  PE = P(f_pk) / background(f_pk). A run "oscillates" when PE >= 4, f_pk is a
-  local maximum of the PSD, and f_pk is not within 2 Hz of 20 or 80 Hz.
+  PE = P(f_pk) / background(f_pk). A run "oscillates" when PE >= pe_threshold
+  (default 4, the v4 value; the v5 calibration gate sets it), f_pk is a local
+  maximum of the PSD, and f_pk is not within 2 Hz of 20 or 80 Hz.
 * Lag (R2): PV and SOM rates smoothed with a 2 ms Gaussian, peak of the
   cross-correlation over -14..+14 ms; positive means SOM after PV.
 * Undefined rules (prereg text): a population with zero spikes in the
@@ -145,20 +146,31 @@ def fit_aperiodic(freqs, pxx, keep):
     return tuple(float(v) for v in popt)
 
 
-def spectral_peak(e_rate, dt):
-    """Peak excess and oscillation call for the E rate (R1, R4; v4).
-
-    ``e_rate`` is the E population rate in ``dt`` bins; the mean is removed
-    here (prereg Runs). Returns a dict: ``peak_freq_Hz`` (f_pk), ``peak_excess``
-    (PE), ``background_Hz`` (refit background at f_pk), ``local_max``,
-    ``edge_ok``, ``oscillates``, the refit parameters ``fit`` and the first
-    fit's parameters ``fit_pass1``.
-    """
+def e_welch(e_rate, dt):
+    """Welch PSD of the E rate as the scorer computes it: mean removed, 1 s Hann, 50 % overlap."""
     x = np.asarray(e_rate, dtype=float)
     x = x - x.mean()
     fs = 1.0 / dt
     nperseg = int(round(WIN_S * fs))
-    freqs, pxx = welch_spectrum(x, fs, nperseg, nperseg // 2)
+    return welch_spectrum(x, fs, nperseg, nperseg // 2)
+
+
+def oscillation_call(peak_excess, local_max, edge_ok, pe_threshold=PE_THRESHOLD):
+    """The v4 rule (item 6): PE >= pe_threshold, f_pk a local maximum, f_pk off the band edges."""
+    return bool(peak_excess >= pe_threshold and local_max and edge_ok)
+
+
+def spectral_peak(e_rate, dt, pe_threshold=PE_THRESHOLD):
+    """Peak excess and oscillation call for the E rate (R1, R4; v4).
+
+    ``e_rate`` is the E population rate in ``dt`` bins; the mean is removed
+    here (prereg Runs). ``pe_threshold`` is the peak excess that counts as
+    oscillating (default 4, the v4 value; the v5 calibration sets it). Returns
+    a dict: ``peak_freq_Hz`` (f_pk), ``peak_excess`` (PE), ``background_Hz``
+    (refit background at f_pk), ``local_max``, ``edge_ok``, ``oscillates``, the
+    refit parameters ``fit`` and the first fit's parameters ``fit_pass1``.
+    """
+    freqs, pxx = e_welch(e_rate, dt)
     fit_band = (freqs >= FIT_LO_HZ) & (freqs <= FIT_HI_HZ)
     pk_idx = np.flatnonzero((freqs >= BAND_LO_HZ) & (freqs <= BAND_HI_HZ))
     if pk_idx.size == 0:
@@ -180,7 +192,7 @@ def spectral_peak(e_rate, dt):
         "background_Hz": background,
         "local_max": local_max,
         "edge_ok": edge_ok,
-        "oscillates": bool(pe >= PE_THRESHOLD and local_max and edge_ok),
+        "oscillates": oscillation_call(pe, local_max, edge_ok, pe_threshold),
         "fit": pars2,
         "fit_pass1": pars1,
     }
@@ -225,8 +237,11 @@ def pv_som_lag(counts, dt, sizes):
     return float(lag_ms)
 
 
-def analyze_run(counts, dt, sizes):
-    """Full R1-R4 estimator set for one run; undefined per prereg text."""
+def analyze_run(counts, dt, sizes, pe_threshold=PE_THRESHOLD):
+    """Full R1-R4 estimator set for one run; undefined per prereg text.
+
+    ``pe_threshold`` is passed to :func:`spectral_peak` (default 4, v4).
+    """
     arr = _as_float_counts(counts)
     keep = arr[kept_slice(arr.shape[0], dt)]
     spikes = {p: int(keep[:, i].sum()) for i, p in enumerate(POPS)}
@@ -247,7 +262,7 @@ def analyze_run(counts, dt, sizes):
     if spikes["E"] == 0:
         out["undefined"].append("peak")
     else:
-        pk = spectral_peak(keep[:, 0] / dt / sizes["E"], dt)
+        pk = spectral_peak(keep[:, 0] / dt / sizes["E"], dt, pe_threshold)
         out["peak_freq_E_Hz"] = pk["peak_freq_Hz"]
         out["peak_excess_E"] = pk["peak_excess"]
         out["background_E_Hz"] = pk["background_Hz"]
@@ -295,7 +310,7 @@ def _t_ok(entry, steps):
     return entry.get("T") is not None and abs(float(entry["T"]) - REF_T) < 1e-12 and steps == REF_STEPS
 
 
-def score(run_dir):
+def score(run_dir, pe_threshold=PE_THRESHOLD):
     """Score a run directory written by ``run_caminos.py`` (R1-R4, prereg v4).
 
     Only reference-configuration runs are scored. A result is incomplete
@@ -306,7 +321,7 @@ def score(run_dir):
     R1: every seed oscillates with f_pk in 30-40 Hz. R2: lag positive in
     every seed, mean 6-11 ms. R3: PV > SOM > E in every seed, mean E rate
     1-3 Hz. R4: no seed oscillates at p = 0.02, and every seed oscillates
-    at p = 0.07.
+    at p = 0.07. ``pe_threshold`` is the oscillation threshold (default 4).
     """
     run_dir = Path(run_dir)
     manifest = json.loads((run_dir / "manifest.json").read_text())
@@ -319,7 +334,7 @@ def score(run_dir):
         if not _t_ok(entry, int(counts.shape[0])):
             not_t.append(entry["file"])  # listed as incomplete, never analysed
             continue
-        res = analyze_run(counts, float(entry["dt"]), entry["sizes"])
+        res = analyze_run(counts, float(entry["dt"]), entry["sizes"], pe_threshold)
         res["seed"] = entry["seed"]
         res["p"] = entry["p"]
         res["file"] = entry["file"]
