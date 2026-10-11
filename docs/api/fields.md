@@ -492,11 +492,12 @@ A separate discrete-flux-conservation check (current is exactly zero outside
 a source/sink span and exactly constant within it) is verified directly
 against the solver's own output in `tests/test_experimental_poisson_1d_convergence.py`.
 
-**Known limitation:** the dense `jnp.linalg.lstsq` solve's residual grows
-sharply above roughly N~150-200 grid points in float32, on both the scalar and
-layered paths — `convergence_status` correctly self-reports `"failed"` in that
-regime rather than returning a silently wrong answer. Treat this function as
-validated up to roughly N~150 until a sparse/preconditioned solve replaces it.
+**Known limitation:** an observed float32 conditioning failure of the dense
+`jnp.linalg.lstsq` solve, not a universal grid-size law. The recorded sweep
+has residual_norm about 1e-3 at N=161 and a failed solve at N=321; the live
+test requires N=321 to report `convergence_status="failed"` with residual_norm
+> 1e-3. `precision="float64"` with x64 enabled converges at N=300 in that
+test file.
 
 **Returns:** `(phi, residual, manifest)` —
 - `phi` (`jax.Array`): solved potential array.

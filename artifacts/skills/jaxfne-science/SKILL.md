@@ -14,6 +14,7 @@ SCIENCE work: scientific simulation, falsification, HDP/TFNE analysis, Etudes, a
 2. Protocol rules (e.g. `docs/doctrine/rbs_rbd_hdp.md`).
 
 ## RULES
+- Numerical dtype is part of the declared protocol. Release gates and the current etudes use float32. Do not promote arrays to float64 unless that protocol says so.
 - Hypothesis, observables, nulls, protocol, metrics, and acceptance criteria declared beforehand.
 - Failed prospective runs are preserved (never tuned after observing validation).
 - No biological mechanism inferred beyond implemented model; proxy quantities have explicit status.

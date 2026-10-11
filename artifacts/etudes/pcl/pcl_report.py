@@ -1,7 +1,7 @@
 """Build the PCL report (figures + one self-contained HTML page) from committed results.
 
-Inputs: fig2.json (P0), fig2_hdp_avg.json (K0b), confirm/{c1,k1,c1b}_seed*.json, the K2 confirmatory
-json/npz, and report_data.npz from pcl_report_data.py. Every number in the page is read from
+Inputs: fig2.json (P0), fig2_hdp_avg.json (K0b), confirm/{c1,k1,c1b,k1h}_seed*.json, the K1h-nf and
+O1 json, the K2 confirmatory json/npz, and report_data.npz from pcl_report_data.py. Every number in the page is read from
 these files. Figures are SVG with text as text; black and the series colors are rewritten to CSS
 variables so the page follows the viewer's light or dark theme.
 """
@@ -227,6 +227,29 @@ def gate_numbers():
     return out
 
 
+def later_gates():
+    """K1h (equality with K1), K1h-nf (noise floor) and control O1 (oriented kernels), as page strings."""
+    import k1h_nf_gate as NF
+    v = {}
+    same = [load(f"confirm/k1h_seed{s}.json")[k] == load(f"confirm/k1_seed{s}.json")[k]
+            for s in (10, 11, 12) for k in ("spikes", "acc")]
+    v["k1h_equal"] = f"{sum(all(same[i:i + 2]) for i in (0, 2, 4))} of 3"
+    runs = {s: {a: load(f"confirm/k1nf_{a}_seed{s}.json") for a in ("base", "nudge", "h")} for s in NF.SEEDS}
+    verdict, t, dh, _ = NF.gate(runs)
+    v["nf_verdict"], v["nf_cls"], v["nf_t"] = verdict, verdict.lower(), f"{t:.3f}"
+    v["nf_diff"] = ("did not differ from the per-edge rule in any decoding value" if dh == 0
+                    else f"differed from the per-edge rule by at most {dh:.3f} in decoding")
+    o1 = [load(f"confirm/o1_bar_seed{s}.json") for s in (10, 11, 12)]
+    c1 = [load(f"confirm/c1_seed{s}.json") for s in (10, 11, 12)]
+    osi = [r["oriented"]["osi_median"] for r in o1]
+    ratio = [c["osi_trained_median"] / r["oriented"]["osi_median"] for c, r in zip(c1, o1)]
+    v["o1_osi"] = f"{min(osi):.3f}–{max(osi):.3f}"
+    v["o1_dec"] = f2(min(r["oriented"]["acc_simple"] for r in o1))
+    v["o1_ratio"] = f"{min(ratio):.2f}–{max(ratio):.2f}"
+    v["o1_seg_resp"] = f"{max(load(f'confirm/o1_seg8_seed{s}.json')['oriented']['n_resp'] for s in (10, 11, 12))}"
+    return v
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", type=Path, default=HERE / "report" / "report_data.npz")
@@ -240,7 +263,7 @@ def main():
     figs = {"network": fig_network(d, p0, k0b), "third": fig_third(k2, tr),
             "column": fig_column(d, gates), "lfp": fig_lfp(d)}
     tmpl = (HERE / "report" / "template.html").read_text(encoding="utf-8")
-    vals = context(p0, k0b, k2, gates, d)
+    vals = context(p0, k0b, k2, gates, d) | later_gates()
     html = tmpl
     for k, v in figs.items():
         html = html.replace("{{fig:" + k + "}}", v)

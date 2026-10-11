@@ -13,23 +13,16 @@ By Gauss's law in 1D, the discrete current (flux)
 [src_node, sink_node) span and exactly constant within it -- a structural
 property of the PDE itself (current conservation), verified directly below.
 
-REAL FINDING (2026-07-18, confirmed via a full N-sweep, not assumed): the
-solver's convergence degrades sharply above roughly N~150-200 in float32 --
-residual_norm grows from ~1e-3 at N=161 to ~1.6-1.7 at N=321+, well past the
-code's own "converged" threshold (1e-3), and this is NOT specific to the new
-layered path -- the pre-existing scalar-conductivity path shows the
-identical failure pattern at the same N (confirmed with a random balanced
-source array, uniform conductivity=1.5). A hypothesis that the 1/dx**2
-matrix-scale blowup was the cause was tested and REJECTED (rescaling the
-linear system to remove that factor before solving did not change the
-failure point at all -- N=321 still failed identically). The more likely
-cause is the dense jnp.linalg.lstsq solve's inherent conditioning behavior
-for a discrete 1D Laplacian at this size in float32, not something this
-pass fixes -- documented honestly here and in the function's docstring
-instead. The solver's own convergence_status field already self-reports
-"failed" correctly in this regime (good pre-existing design, matching
-jaxfne-harden's "fallbacks must report why they triggered"), so this is a
-now-documented limitation, not a silent landmine.
+REAL FINDING (2026-07-18 sweep, recorded here, not a universal limit):
+residual_norm is about 1e-3 at N=161 and the float32 solve is failed at
+N=321 (residual past the 1e-3 "converged" threshold). The same pattern
+appeared on the scalar-conductivity path with a random balanced source and
+uniform conductivity 1.5. Removing the 1/dx**2 scale did not move the
+N=321 failure. The live test pins that N=321 layered case as
+convergence_status "failed". precision="float64" with x64 enabled
+converges at N=300, so the failure is this dense float32 lstsq, not every
+solve of this size. convergence_status reports "failed" rather than a
+silent wrong answer.
 """
 from __future__ import annotations
 
@@ -140,13 +133,11 @@ print("OK")
 
 
 def test_precision_float64_converges_at_n300_when_x64_enabled():
-    """The explicit opt-in (precision='float64') resolves the documented
-    float32 N~150-200 convergence ceiling: N=300 -- previously failing in
-    float32 (see test_solver_honestly_self_reports_failure_above_the_
-    confirmed_ceiling, which fails already by N=321) -- converges cleanly
-    once the caller has enabled x64 and passes precision='float64'. Run in a
-    subprocess so this test's process-wide jax_enable_x64 flip cannot leak
-    into any other test in the suite."""
+    """precision='float64' with x64 enabled converges at N=300. The float32
+    failure pinned by test_solver_honestly_self_reports_failure_above_the_
+    confirmed_ceiling is at N=321; it is an observed dense-lstsq failure,
+    not a universal grid-size limit. Run in a subprocess so this test's
+    process-wide jax_enable_x64 flip cannot leak into any other test."""
     import subprocess
     import sys
 

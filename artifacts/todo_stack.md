@@ -176,10 +176,18 @@ ATLAS
    population → 2A → 20A), which observations survive within the
    predeclared tolerance and which do not; failures stay in the matrix.
    Existing row: `at01_at06_052.run_reduction` (HH → reduced → population;
-   covered by `tests/test_atlas_reduction_052.py`). Missing rows: population
-   → 2A → 20A (AT-10 / `AT-10-N20`); predeclare each tolerance before the
-   run, record failures as failures, feed E_reduction to item 8 and to
-   coverage rows in item 9.
+   covered by `tests/test_atlas_reduction_052.py`). That recorded row,
+   including its failures, stays.
+   DECISION 2026-10-09 (Hamm): population → 2A → 20A reduction equivalence
+   is UNSUPPORTED for 0.5.5 and was not executed. The builders are different
+   realizations, and the 20-area model has no source or field observation,
+   so there is no common observation operator. This is a scope correction,
+   not a failed experiment. Quiet-matrix cells stay computational
+   characterization. `artifacts/perf/matrix_055.json` stays
+   LOADED_NON_FINAL. A within-system reduction operator is deferred.
+   This comparison is not an `atlas_coverage.json` row. AT-01-R6 remains
+   HH → reduced → population. Coverage counts stay 42 VALIDATED and
+   6 OUT_OF_SCOPE.
 8. Performance/reduction map: T_compute and M_compute per AT beside
    E_reduction. `artifacts/perf/matrix_051.json` ran the
    `benchmark_050_baseline` models at the default drives; their declared
@@ -276,6 +284,12 @@ ATLAS
    `chunk_index` test for `run_continuation_strided` added (`082fcc47`). Open:
    RSS grows +80-98 MB over 4 chunks in all 3 runs (leak vs XLA cache
    unresolved; check before any run longer than 100 s).
+   QUIET REPEAT 2026-10-09 (`artifacts/atlas/results/at10_r6_long_quiet_055.json`,
+   `run_r6_long` defaults, seed 11, 100 s, load 2% before start): every
+   scientific field matches `at10_r6_long_055.json` (max abs diff 0). Wall
+   time is not part of that comparison. Seeds 12 and 13 stay the loaded
+   replicate file. Wording stays chunk-mean rates, one quiet seed, RELATIVE_PROXY.
+   Row -> VALIDATED, wording class `under the tested conditions`.
    RESULT FILES 2026-10-06 (`scripts/emit_atlas_results_055.py`; Hamm chose a
    result JSON per SUPPORTED row; rows stay SUPPORTED until reviewed and
    accepted): `at01_055.json` (AT-01-R1/R2/R3/R7), `at_reduction_055.json`
@@ -342,17 +356,12 @@ ATLAS
    rejects direct pushes (PR + 2 required checks). Only AT-10-R6 is SUPPORTED
    (kept by Hamm); items 10-14 and quiet-machine matrix timings stay open, so
    the 100/100 seal is not met: no tag or release.
-   Coverage state (`python scripts/check_atlas_coverage.py`, VALID, 48 rows:
-   30 VALIDATED, 8 SUPPORTED, 4 PLANNED, 6 OUT_OF_SCOPE). Rows still short of
-   VALIDATED for 0.5.5: PLANNED AT-00-R5 (figure column order; item 10),
-   AT-00-R6 (manuscript progression; item 14), AT-10-R5 (perturbation/control
-   assay: bounded != returning != homeostatically stabilized; needs a new
-   S10 run on `AT-10-N20`; protocol proposed in
-   `artifacts/programme/at10_r5_protocol_proposal.md`, choices approved
-   2026-10-06; next: build the runner, run after the matrix window), AT-10-R6 (reduced fast model, very long T; takes
-   its envelope from item 8); SUPPORTED AT-00-R4, AT-01-R1/R2/R3/R6/R7,
-   AT-05-R2, AT-07-R3 (promote with evidence at the seal; AT-00-R4 and
-   AT-01-R6 follow item 7).
+   Coverage state (2026-10-09): 48 rows, 42 VALIDATED, 0 SUPPORTED,
+   6 OUT_OF_SCOPE. Every coverage row is VALIDATED, CANONICAL, or
+   OUT_OF_SCOPE. Population → 2A → 20A reduction equivalence is a programme
+   item, not a coverage row, and is UNSUPPORTED for 0.5.5 (not executed).
+   Items 10–14 and the release/rc gates stay open. Quiet receipts exist;
+   the loaded matrix stays LOADED_NON_FINAL. The seal is not met.
 
 MANUSCRIPT (ends 0.5.5)
 9. Atlas coverage matrix: every section, figure, simulation and claim in the
@@ -392,6 +401,11 @@ ACCEPTANCE (0.5.5 seal = end of programme)
   T_agent_task, E_semantic = 0, C_scientific retained.
 - Every manuscript claim traces to a ledger row with PASS evidence; negative
   and failed results reported as such.
+- Population → 2A → 20A reduction equivalence is UNSUPPORTED for 0.5.5
+  (not executed). The builders are not one reference system, and the
+  20-area model has no common source or field operator. Quiet-matrix
+  scale measurements are not that claim. `run_reduction()` is unchanged.
+  The comparison is not an Atlas coverage row.
 
 ## Compaction track (audited 2026-10-06)
 
@@ -460,6 +474,8 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
 
 ## Open work outside the release stacks (after 0.5.5 unless a trigger fires)
 
+WSL2 CUDA qualification (2026-10-09, jchat p-jaxfne #237–#238, `vwin-claude-sonnet55-jaxfne`): 20-area GPU feasibility test after the 0.5.5 seal. Local receipts only, `scratch/wsl_cuda_2026-10-09/` (gitignored). Not a 0.5.5 claim. Open there: CSD agreement, peak VRAM, one unexplained failed GPU run, and the 20-area test.
+
 0. Literature reproduction études, HDP off/on (human, 2026-09-29): plan in
    `artifacts/etudes/literature_reproduction_plan.md`. P0 table done
    (`literature_p0_candidates.md`); P1 partly done
@@ -473,11 +489,23 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
    - Done (human, 2026-10-07): `pcl_stdp_h` in `artifacts/etudes/pcl_h/`,
      traces in the H state, equal to `pcl_stdp` on single- and multi-input
      neurons; K0b reproduces (NOTES.md).
-   - Next: run the column (K1) on `pcl_stdp_h` and, if it matches, retire the
-     per-edge-trace rule.
-   - Open: orientation tuning failed in all column variants; the column
-     weights behind the paper's figures are not committed (npz is
-     gitignored); regenerate them with `pcl_column_hdp.py`.
+   - K1h (column on `pcl_stdp_h2`): FAIL on the declared equality, seed 10
+     equal, seeds 11 and 12 diverge with A1-A3 outcomes unchanged
+     (`artifacts/etudes/pcl/README.md`).
+   - Seed 11 split located (`k1h_divergence.py`, README): one float32 ulp
+     on one edge at phase 1 sequence 1, step 133, amplified by the dynamics.
+   - K1h-nf (seeds 13-15, H rule against a one-ulp noise floor): PASS
+     (README). `pcl_stdp_h2` is the rule for new work; `pcl_stdp` stays the
+     default to reproduce K1 and the replication.
+   - Control O1 (one hand-set oriented kernel family, LIF column): misses
+     A1 (OSI 0.27 on bars, decoding 1.00), so the C1 and C1b A1 failures
+     are uninformative about learning; K1 not tested (README).
+   - A1 at 0.3 closed for the C1 column (README, Control O1); C1 trained
+     OSI is 0.37-0.46 of the oriented control. A learned-tuning test
+     needs a new declared criterion.
+   - Working paper covers K1h, K1h-nf and O1. Its K1 weights are not
+     committed (npz is gitignored); `pcl_column_hdp.py --seed 10` reproduces
+     k1_seed10.json on every committed value (2026-10-08).
 0a. Controlled model augmentation (human, 2026-09-30): the canonical order is
    N, then G, then Theta_C, then Theta_X, then W0, then H0. Transforms act on
    a NeuronalTensor before construct. Scaling N keeps w/sqrt(N). Stochastic
@@ -564,6 +592,17 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
      as float32 (option C), then
      delegate all of it. Then migrate the rest in inventory order. Old
      entries delegate or are deprecated; frozen receipts stay untouched.
+0b. Theory programme (Hamm, 2026-10-08):
+   `artifacts/programme/theory_programme_proposal.md`. F1 is open, and L1–L3
+   reached T2 (`artifacts/etudes/theory_f1/README.md`, 3019589d). L2's lazy
+   snapshot is not built: the kernel updates every edge each step and has no
+   event-driven path, so it would save one multiply per edge. Open: a T3 Lean
+   proof of L1 and L3 (Lean is not installed). L5 is refuted: the LTD
+   accumulator factors (exact, with float rebasing needed). F2 done: one ulp
+   leaves spike counts equal until a first difference at sequence 61–357,
+   then D_w jumps and stays ≤ 0.11·D_sat (H2.2 rejected). Next family: F3,
+   F4 or F5 (Hamm's pick); Haiku 5.5 evaluation in
+   `artifacts/harness/haiku55_evaluation_2026-10-09.md`.
 1. A8 gh-pages publishing policy. Trigger: publishing D1 or Atlas figures
    to the public site.
 2. Architecture candidates (`emitters.py` variant split, entry

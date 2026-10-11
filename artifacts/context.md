@@ -67,6 +67,7 @@ This file is the **only** first-contact router. Deeper policy lives in
 | Running a model | `artifacts/skills/jaxfne-simulate/SKILL.md` |
 | Configured/realized/executed identity | `artifacts/skills/jaxfne-verify/SKILL.md` |
 | Reading what a model or run contains | `artifacts/skills/jaxfne-inspect/SKILL.md` |
+| End-to-end scientific task | `artifacts/skills/jaxfne-workflow/SKILL.md` |
 
 Version-specific release targets (receipt path, acceptance goal list, candidate SHA)
 live in `artifacts/release/current_release_authorities.json`, not in generic skills.

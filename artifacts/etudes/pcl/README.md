@@ -349,10 +349,116 @@ unchanged in all three (A1 FAIL, A2 and A3 PASS).
 | 11 | spikes, decoding, keep_q differ | 130 | 0.71/0.70/0.28 → 0.69/0.74/0.21 |
 | 12 | spikes, decoding, keep_q, OSI differ | 135 | 0.74/0.68/0.29 → 0.68/0.71/0.26 |
 
-Reading (inferred, not shown): the rule is equal to `pcl_stdp` on the unit
-tests, the smoke run and all of seed 10, so float rounding of the snapshot
-subtraction, amplified over 900 training sequences of spiking dynamics, is
-the likely source. Not checked: the first sequence where the two runs split.
+Divergence, seed 11 (`k1h_divergence.py`, both rules in lockstep from the
+same weights and draws; its runner matches the driver's bit for bit). All
+weights are equal until phase 1 sequence 1, step 133 (66.5 ms), where one
+`c_loc` edge (797 → 793) updates to −419.5366 under `pcl_stdp` and −419.53656
+under `pcl_stdp_h2`: one float32 ulp, from identical weights and spikes. The
+sequence ends 3 ulp apart on 2 edges with equal spike counts; the gap reaches
+14.7 at the end of phase 1 and 130 at the end of phase 2; total spike counts
+per sequence first differ at phase 1 sequence 497. So the split is
+arithmetic rounding amplified by the spiking dynamics, not a rule difference (observed); that the snapshot
+subtraction is the rounding site is inferred.
+
+## Gate K1h-nf: H-state rule against the float32 noise floor
+
+Hamm 2026-10-08. Declared and committed before any run. K1h stands as
+declared (FAIL on equality); this gate asks whether the H-state rule differs
+from `pcl_stdp` by more than a one-ulp perturbation of `pcl_stdp` itself.
+
+Fresh seeds 13, 14, 15 (none run before for K1 or K1h), each run once, K1
+settings unchanged. Per seed three runs of `pcl_column_hdp.py`:
+base (`--rule pcl_stdp`), nudge (`--rule pcl_stdp --nudge-ulp 1`: every
+nonzero initial phase-1 weight moved one float32 ulp up) and H
+(`--rule pcl_stdp_h2`). Fields: the seven decoding values
+(pcl, no_inh: simple, complex, both; random: simple).
+
+- Noise floor T = max over seeds and fields of |nudge − base|.
+- Pass: max over seeds and fields of |H − base| ≤ T, and in every seed the
+  A1–A3 verdicts of H equal those of base.
+- T = 0 (the nudge changed nothing) makes the gate ERROR, not PASS.
+- On PASS the per-edge rule `pcl_stdp` is retired in favour of
+  `pcl_stdp_h2`; on FAIL both stay. Evaluated by `k1h_nf_gate.py`.
+
+Result: PASS. T = 0.0688; max |H − base| = 0 in every gated field of every
+seed; A1–A3 the same in all three (A1 FAIL, A2 and A3 PASS).
+
+| seed | nudge vs base: max decoding diff / max weight diff | H vs base: gated fields / max weight diff |
+|---|---|---|
+| 13 | 0.0688 / 123 | all equal / 0.0014 |
+| 14 | 0.0500 / 153 | all equal / 0.0012 |
+| 15 | 0.0688 / 126 | all equal / 0.0016 |
+
+H also matched base in spike counts, keep fraction and OSI. Its rounding
+differences stayed below a spike in all three seeds, as in K1h seed 10; a
+one-ulp change of the initial weights alone moves decoding by up to 0.069.
+The H run took about 20 % longer than base (868 s against 720 s).
+
+Retirement, for new work only: `pcl_stdp_h2` replaces `pcl_stdp`, which is
+not removed. `pcl_stdp` stays the
+driver default and is kept, unchanged, to reproduce K1 and the replication
+results; the commands recorded above stay valid.
+
+## Control O1: hand-set oriented kernels
+
+Hamm 2026-10-08. Declared and committed before the confirmatory runs. A1
+failed in C1, C1b and K1, with and without weight sharing. O1 asks whether
+the A1 measurement can reach its threshold when the simple-cell kernels are
+oriented by construction.
+
+`pcl_orient_control.py`: the C1 column with the 16 `s_exc` kernels set by
+hand (feature 2k + q: bar orientation kπ/8; ON lobe one pixel ahead of the
+receptive-field centre along the bar normal and OFF lobe one pixel behind,
+or the reverse; Gaussian across the bar, σ = 0.5 px, flat along it;
+normalized like the initial weights), local inhibition at its random initial
+weights, no learning, distant and top-down inhibition off, as in the A1
+measurement. Same OSI, responsiveness threshold (0.5 spikes per sequence)
+and decoding as A1. Seeds 10, 11, 12, run once, 20 test sequences per
+orientation, for each frozen stimulus: bars (C1) and segments of length 8
+(C1b).
+
+- O1 reaches A1: median OSI of the oriented network ≥ 0.3 in every seed of
+  a stimulus. Then the A1 failures are failures of learning.
+- O1 misses A1: median OSI < 0.3 in any seed. Then A1 at 0.3 cannot be met
+  under this stimulus and OSI measure even by oriented kernels, and the A1
+  outcomes of C1, C1b and K1 are not evidence about learning.
+- Reported, not gated: the untrained network's OSI, responsive cells and
+  decoding.
+
+Smoke (seed 0, bars, 5 sequences per orientation): median OSI 0.27
+oriented against 0.09 untrained; decoding 1.00 against 0.48.
+
+Result: O1 misses A1 for both stimuli.
+
+| stimulus | seed | median OSI oriented (untrained) | responsive cells oriented (untrained) | decoding oriented (untrained) |
+|---|---|---|---|---|
+| bars | 10 | 0.267 (0.053) | 256 (256) | 1.00 (0.73) |
+| bars | 11 | 0.266 (0.045) | 256 (256) | 1.00 (0.54) |
+| bars | 12 | 0.272 (0.049) | 255 (256) | 1.00 (0.61) |
+| segments, 8 px | 10 | none (0.078) | 0 (31) | 0.84 (0.46) |
+| segments, 8 px | 11 | 0.127 (0.081) | 2 (66) | 0.86 (0.42) |
+| segments, 8 px | 12 | 0.172 (0.072) | 1 (40) | 0.81 (0.40) |
+
+With one hand-set kernel family (σ 0.5 px, lobes ±1 px), the LIF column
+decodes orientation perfectly from bars yet reaches a median OSI of 0.27;
+with 8 px segments almost no oriented cell passes the responsiveness
+threshold. Under that kernel family the C1 and C1b A1 failures are
+uninformative about learning. Not tested: other kernel widths, spacings or
+lengths; what caps OSI (input noise, the ON/OFF pairing, the drive
+normalization); K1 (Izhikevich). The seed-0 smoke was known when O1 was
+declared. A test of learned tuning needs a criterion calibrated on a
+control, declared before it is applied.
+
+A1 at 0.3 is closed for this column: one oriented kernel family does not
+reach it. Descriptive, not gated: C1 trained OSI as a fraction of the
+oriented control on the same seeds and test draws (untrained OSI identical
+in both runs).
+
+| seed | C1 trained OSI | O1 oriented OSI | ratio |
+|---|---|---|---|
+| 10 | 0.123 | 0.267 | 0.459 |
+| 11 | 0.121 | 0.266 | 0.454 |
+| 12 | 0.100 | 0.272 | 0.370 |
 
 ## Deviations from the paper
 

@@ -9,14 +9,18 @@ and skip/xfail reason. Differences are classified:
 
   INTENTIONAL_PLATFORM_DIFFERENCE - skip reason names a platform
     (POSIX, Windows, Linux, macOS, executable bit).
+  INTENTIONAL_VERSION_DIFFERENCE - the CI file is Python 3.11 and the
+    skip is the declared jnwb contract (pyproject extra installs jnwb
+    only for Python >= 3.12). Not applied to any other CI Python.
   ENVIRONMENT_DEFECT - a required capability is missing on one side
     (reportlab/viz; extends to importorskip names when the reason
     names the distribution).
   UNKNOWN - everything else.
 
 Exit codes: 0 when node sets match and every outcome difference is
-INTENTIONAL_PLATFORM_DIFFERENCE; 1 otherwise (node-set mismatch,
-any ENVIRONMENT_DEFECT/UNKNOWN diff, or any failure/error).
+INTENTIONAL_PLATFORM_DIFFERENCE or INTENTIONAL_VERSION_DIFFERENCE;
+1 otherwise (node-set mismatch, any ENVIRONMENT_DEFECT/UNKNOWN diff,
+or any failure/error).
 """
 
 from __future__ import annotations
@@ -29,6 +33,18 @@ from pathlib import Path
 
 PLATFORM_MARKERS = ("posix", "windows", "linux", "macos", "darwin", "executable bit")
 ENV_MARKERS = ("reportlab", "viz extra", "not installed")
+# pyproject.toml: jnwb extra installs jnwb only when python_version >= 3.12.
+# These are the skip texts the 3.11 tests emit. They justify a 3.11 CI
+# file only; a 3.14 CI skip with the same text stays UNKNOWN.
+JNWB_311_SKIP_MARKERS = (
+    "no module named 'jnwb'",
+    'no module named "jnwb"',
+    "installed jnwb has no compute_psd",
+)
+PASSING_DIFFERENCES = frozenset({
+    "INTENTIONAL_PLATFORM_DIFFERENCE",
+    "INTENTIONAL_VERSION_DIFFERENCE",
+})
 
 
 def _outcome(case: ET.Element) -> tuple[str, str]:
@@ -54,16 +70,18 @@ def load(path: Path) -> dict[str, dict]:
     return out
 
 
-def classify(node: str, a: dict, b: dict) -> str:
+def classify(node: str, a: dict, b: dict, ci_python: str | None = None) -> str:
     reason = f"{a.get('reason', '')} {b.get('reason', '')}".lower()
     if any(m in reason for m in PLATFORM_MARKERS):
         return "INTENTIONAL_PLATFORM_DIFFERENCE"
+    if ci_python == "3.11" and any(m in reason for m in JNWB_311_SKIP_MARKERS):
+        return "INTENTIONAL_VERSION_DIFFERENCE"
     if any(m in reason for m in ENV_MARKERS):
         return "ENVIRONMENT_DEFECT"
     return "UNKNOWN"
 
 
-def compare(rc: dict, ci: dict) -> dict:
+def compare(rc: dict, ci: dict, ci_python: str | None = None) -> dict:
     rc_ids, ci_ids = set(rc), set(ci)
     diffs = []
     for node in sorted((rc_ids ^ ci_ids) | {
@@ -79,10 +97,10 @@ def compare(rc: dict, ci: dict) -> dict:
                           "classification": "UNKNOWN", "kind": "rc_only"})
         else:
             diffs.append({"node_id": node, "rc": rc[node], "ci": ci[node],
-                          "classification": classify(node, rc[node], ci[node]),
+                          "classification": classify(node, rc[node], ci[node], ci_python),
                           "kind": "outcome"})
     unjustified = [d for d in diffs
-                   if d["classification"] != "INTENTIONAL_PLATFORM_DIFFERENCE"]
+                   if d["classification"] not in PASSING_DIFFERENCES]
     failures = [n for n, r in {**rc, **ci}.items()
                 if r["outcome"] in ("failure", "error")]
     return {

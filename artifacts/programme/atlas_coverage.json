@@ -489,8 +489,8 @@
    "capability": "performance envelope from 0.5.1 matrix",
    "release": "0.5.5",
    "candidate": false,
-   "evidence": "artifacts/atlas/results/at10_r6_long_055.json",
-   "state": "SUPPORTED"
+   "evidence": "artifacts/atlas/results/at10_r6_long_quiet_055.json",
+   "state": "VALIDATED"
   },
   {
    "id": "AT-10-R7",

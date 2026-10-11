@@ -147,37 +147,40 @@ def burst_index(
         Spike indicator array. Shape: (n_neurons, n_time_steps).
         Values: binary (0/1) or continuous [0,1].
     bin_ms : float
-        Binning window in milliseconds (used for conceptual framing only;
-        actual binning is determined by dt_ms scaling).
+        Accepted and unused. There is no binning, and the returned fraction
+        does not depend on this value.
     dt_ms : float
-        Simulation timestep in milliseconds. Must be > 0.
+        Must be > 0. It is checked and then unused; the fraction is one count
+        per time step.
     active_fraction_threshold : float, default=0.5
-        Fraction of neurons firing required to mark bin as "active" (burst).
-        Range: [0, 1]. Default 0.5 = "50% of neurons firing".
+        A time step counts when the mean across neurons at that step is at
+        least this value. Range [0, 1]. This is not a burst definition.
 
     Returns
     -------
     float
-        Burst index in [0, 1]. Fraction of time steps where ≥ active_fraction_threshold
-        of neurons are spiking.
-        0 = no bursting (distributed); 1 = continuous bursting.
+        Fraction of time steps whose cross-neuron mean is at least
+        ``active_fraction_threshold``. In [0, 1]. Not a burst rate and not a
+        per-neuron statistic.
 
     Examples
     --------
     >>> import numpy as np
     >>> from jaxfne.analysis import burst_index
-    >>> spikes = np.random.rand(20, 1000) > 0.8  # sparse spiking
-    >>> bi = burst_index(spikes, bin_ms=10, dt_ms=0.1)
-    >>> print(f"Burst index: {bi:.3f}")
-    >>> if bi > 0.3:
-    ...     print("Network exhibits strong bursting")
+    >>> spikes = np.zeros((2, 4))
+    >>> spikes[:, 0] = 1.0
+    >>> fraction = burst_index(spikes, bin_ms=10, dt_ms=0.1)
+    >>> fraction
+    0.25
 
     Notes
     -----
-    - Metric is dimensionless.
-    - dt_ms parameter is provided for user framing; computation is invariant to dt.
-    - NaN/Inf spikes are treated as 0 (not firing).
-    - Claim level: computational_scaffold (no oscillatory/biological claim).
+    - Dimensionless. ``bin_ms`` does not enter the value.
+    - NaN/Inf entries are treated as 0 before the mean.
+    - ``jnwb.network_burst_index`` bins spike times and applies a rate
+      threshold and a minimum duration. This fraction does neither, so the
+      two quantities are not equivalent.
+    - Computational scaffold: no oscillatory or biological claim.
     """
     warnings.warn(
         "burst_index computes the fraction of time steps where the per-step"
@@ -251,29 +254,26 @@ def fano_factor(
     Returns
     -------
     float
-        Fano factor (variance / mean of binned spike counts).
-        Returns 0.0 if mean count is zero (no spiking).
+        Variance divided by the mean of the population-summed binned counts
+        (one value, ``np.var`` with its default divisor). Not a per-neuron
+        Fano factor. Returns 0.0 when the mean count is zero or the ratio
+        is not finite.
 
     Examples
     --------
     >>> import numpy as np
     >>> from jaxfne.analysis import fano_factor
-    >>> spikes = np.random.rand(20, 10000) > 0.9  # moderately sparse
-    >>> ff = fano_factor(spikes, bin_size_ms=10, dt_ms=0.1)
-    >>> print(f"Fano factor: {ff:.3f}")
-    >>> if ff > 1.5:
-    ...     print("Irregular (Poisson-like) spiking")
-    >>> elif ff < 0.5:
-    ...     print("Regular (oscillatory) spiking")
+    >>> spikes = np.array([[1.0, 0.0, 1.0, 0.0], [0.0, 0.0, 1.0, 1.0]])
+    >>> fano_factor(spikes, bin_size_ms=1, dt_ms=1)
+    0.5
 
     Notes
     -----
-    - Metric is dimensionless.
-    - Bins are computed from dt_ms: bin_samples = int(bin_size_ms / dt_ms).
-    - Computes spike count per bin, then var/mean across all bins.
-    - Handles zero-mean case by returning 0.
-    - NaN/Inf spike counts are removed before var/mean.
-    - Claim level: computational_scaffold (no biological interpretation).
+    - Dimensionless. Population counts are summed across neurons, then
+      grouped into bins of ``max(1, round(bin_size_ms / dt_ms))`` steps.
+    - ``jnwb.fano_factor`` summarizes per-unit trial counts. This ratio
+      does not, so the two quantities are not equivalent.
+    - Computational scaffold: the number is not a regularity or Poisson claim.
     """
     warnings.warn(
         "fano_factor computes variance/mean of the population-summed binned"

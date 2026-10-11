@@ -1,0 +1,69 @@
+{
+  "id": "dt05",
+  "status": "MEASURED",
+  "declared_drive": null,
+  "params": {
+    "n_neurons": 100,
+    "duration_ms": 100.0,
+    "dt_ms": 0.5,
+    "recording": "minimal",
+    "mechanism": "fixed_W",
+    "chunks": 1,
+    "seed": 42
+  },
+  "output_checksum": {
+    "spike_count_total": 173,
+    "V_sum": -1325148.75
+  },
+  "n_neurons_realized": 100,
+  "n_edges": 9900,
+  "delay_steps_max": null,
+  "phases_ms": {
+    "construct_ms": 4141.616200002318,
+    "simulate_first_call_ms": 609.8210999989533,
+    "simulate_warm_ms_median": 128.3895999949891,
+    "simulate_warm_ms_range": [
+      123.4279999989667,
+      131.01409999944735
+    ],
+    "simulate_warm_ms_all": [
+      128.3895999949891,
+      123.4279999989667,
+      131.01409999944735
+    ],
+    "compile_est_ms": 481.4315000039642,
+    "probe_observe_ms": 0.009800001862458885,
+    "manifest_ms": 0.770499995269347
+  },
+  "rss_mb": {
+    "start": 36.339712,
+    "after_construct": 361.443328,
+    "after_first_sim": 397.656064,
+    "after_warm": 408.813568,
+    "cell_peak": 423.34208
+  },
+  "recording": {
+    "spikes": {
+      "bytes": 80000
+    },
+    "V_m": {
+      "bytes": 80000
+    },
+    "sources": {
+      "bytes": 80000
+    },
+    "field": {
+      "bytes": null
+    }
+  },
+  "notes": [
+    "build warning UserWarning: Explicitly requested dtype float64 requested in astype is not available, and will be truncated to dtype float32. To enable more dtypes, set the jax_enable_x64 configuration option or the JAX_ENABLE_X64 shell environment variable. See https://github.com/jax-ml/jax#current-gotchas for more."
+  ],
+  "wall_s": 5.200319051742554,
+  "_rerun": {
+    "load_percent_before": 13.0,
+    "started_local": "2026-10-09T12:43:05-05:00",
+    "cell_id": "dt05",
+    "quiet_eligible": true
+  }
+}

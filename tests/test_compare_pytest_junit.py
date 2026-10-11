@@ -48,6 +48,28 @@ def test_platform_skip_difference_is_justified(tmp_path):
     assert rep["pass"] is True
 
 
+def test_python_311_jnwb_skip_is_a_version_difference(tmp_path):
+    """jnwb is installed only for Python >= 3.12 (pyproject extra marker)."""
+    cases = [
+        ("tests.test_jnwb_view::test_jnwb_consumes_the_view",
+         "could not import 'jnwb': No module named 'jnwb'"),
+        ("tests.test_jnwb_view::test_welch_psd_through_jnwb_is_bit_identical",
+         "installed jnwb has no compute_psd(axis=, nperseg=)"),
+        ("tests.test_pynwb_compat::test_jnwb_reads_the_written_spikes",
+         "could not import 'jnwb': No module named 'jnwb'"),
+    ]
+    rc = _junit(tmp_path / "rc.xml", [(n, "passed", "") for n, _ in cases])
+    ci = _junit(tmp_path / "ci.xml", [(n, "skipped", reason) for n, reason in cases])
+    excused = compare(load(rc), load(ci), ci_python="3.11")
+    assert excused["pass"] is True
+    assert {d["classification"] for d in excused["outcome_differences"]} == {
+        "INTENTIONAL_VERSION_DIFFERENCE"
+    }
+    not_excused = compare(load(rc), load(ci), ci_python="3.14")
+    assert not_excused["pass"] is False
+    assert not_excused["outcome_differences"][0]["classification"] == "UNKNOWN"
+
+
 def test_reportlab_difference_is_environment_defect(tmp_path):
     rc = _junit(tmp_path / "rc.xml", [("a::t1", "passed", "")])
     ci = _junit(tmp_path / "ci.xml", [("a::t1", "skipped", "reportlab not installed (viz extra not in dev CI)")])

@@ -1,0 +1,30 @@
+{
+ "params": {
+  "seed": 11,
+  "n_test_per_ori": 20,
+  "stim": {
+   "kind": "bar",
+   "width": 2.0,
+   "period": 6.0,
+   "length": 6.0,
+   "speed": 0.13,
+   "events": 3.0,
+   "noise_hz": 2.0,
+   "seq_ms": 200.0
+  },
+  "sigma_px": 0.5
+ },
+ "oriented": {
+  "osi_median": 0.2657989442800074,
+  "n_resp": 256,
+  "spikes": 25508,
+  "acc_simple": 1.0
+ },
+ "untrained": {
+  "osi_median": 0.044639185209116194,
+  "n_resp": 256,
+  "spikes": 34291,
+  "acc_simple": 0.5375
+ },
+ "wall_s": 143.7
+}

@@ -91,6 +91,14 @@ def init_weights(rng, s, types):
     return np.where(np.isin(TYP, types), w, 0.0)
 
 
+def nudge_ulp(w, n):
+    """Move every nonzero entry ``n`` float32 ulp up; zeros stay zero (gate K1h-nf noise floor)."""
+    w = np.asarray(w, np.float32)
+    for _ in range(n):
+        w = np.where(w != 0, np.nextafter(w, np.float32(np.inf)), w)
+    return w
+
+
 def rule_params(s):
     conn = np.array([C.CONN[t] for t in TYPES])  # w_max, eta, f, mean
     counts = np.bincount(GROUP, minlength=N * len(TYPES))[GROUP]
@@ -160,6 +168,7 @@ def main():
     ap.add_argument("--n-test-per-ori", type=int, default=20)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--rule", choices=(R.NAME, RH.NAME2), default=R.NAME)
+    ap.add_argument("--nudge-ulp", type=int, default=0)
     a = ap.parse_args()
     global RULE
     RULE = a.rule
@@ -172,7 +181,7 @@ def main():
     k_p1, k_p2, k_test, k_rm = jax.random.split(key, 4)
     labels = np.repeat(np.arange(C.N_ORI), a.n_test_per_ori)
     frozen = make_runner(s, amp, ())
-    w0 = init_weights(rng, s, (0, 1, 4, 5))
+    w0 = nudge_ulp(init_weights(rng, s, (0, 1, 4, 5)), a.nudge_ulp)
     _, s_untr, _, _ = block(frozen, jnp.asarray(w0, jnp.float32), k_test, 0, labels)
     w1, *_ = block(make_runner(s, amp, (0, 1, 4, 5)), jnp.asarray(w0, jnp.float32), k_p1, a.n_exc)
     w1 = np.asarray(w1)
@@ -190,7 +199,7 @@ def main():
     resp_t, resp_u = rate_t >= 0.5, rate_u >= 0.5
     res = dict(
         params=dict(seed=a.seed, n_exc=a.n_exc, n_inh=a.n_inh, n_test_per_ori=a.n_test_per_ori, dt_ms=DT,
-                    pulse_amp=amp, w_cancel=w_cancel, scale=s, n_edges=int(len(PRE)), stim=C.STIM, rule=RULE),
+                    pulse_amp=amp, w_cancel=w_cancel, scale=s, n_edges=int(len(PRE)), stim=C.STIM, rule=RULE, nudge_ulp=a.nudge_ulp),
         wall_s=round(time.time() - t0, 1),
         osi_trained_median=float(np.median(osi_t[resp_t])) if resp_t.any() else None, n_resp_trained=int(resp_t.sum()),
         osi_untrained_median=float(np.median(osi_u[resp_u])) if resp_u.any() else None, n_resp_untrained=int(resp_u.sum()),

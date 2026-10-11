@@ -21,12 +21,22 @@ Verified bibliography for JaxFNE/TFNE. Every entry is DOI-resolved with title/au
 - Ermentrout, G. B. & Kleinfeld, D. Traveling electrical waves in cortex: insights from phase dynamics and speculation on a computational role. *Neuron* 29, 33–44 (2001). doi:10.1016/S0896-6273(01)00178-7
 - Muller, L. et al. Cortical travelling waves. *Nat. Rev. Neurosci.* 19, 255–268 (2018). doi:10.1038/nrn.2018.20
 
+## Circuits, rhythms and plasticity
+
+- Kopell, N., Ermentrout, G. B., Whittington, M. A. & Traub, R. D. Gamma rhythms and beta rhythms have different synchronization properties. *Proc. Natl. Acad. Sci. USA* 97, 1867–1872 (2000). doi:10.1073/pnas.97.4.1867
+- Börgers, C. & Kopell, N. Synchronization in networks of excitatory and inhibitory neurons with sparse, random connectivity. *Neural Comput.* 15, 509–538 (2003). doi:10.1162/089976603321192059
+- Prinz, A. A., Bucher, D. & Marder, E. Similar network activity from disparate circuit parameters. *Nat. Neurosci.* 7, 1345–1352 (2004). doi:10.1038/nn1352
+- Clopath, C., Büsing, L., Vasilaki, E. & Gerstner, W. Connectivity reflects coding: a model of voltage-based STDP with homeostasis. *Nat. Neurosci.* 13, 344–352 (2010). doi:10.1038/nn.2479
+- Mejias, J. F., Murray, J. D., Kennedy, H. & Wang, X.-J. Feedforward and feedback frequency-dependent interactions in a large-scale laminar network of the primate cortex. *Sci. Adv.* 2, e1601335 (2016). doi:10.1126/sciadv.1601335
+- Arkhipov, A. et al. Visual physiology of the layer 4 cortical circuit in silico. *PLoS Comput. Biol.* 14, e1006535 (2018). doi:10.1371/journal.pcbi.1006535
+
 ## Sources and extracellular observation
 
 - Lindén, H. et al. LFPy: a tool for biophysical simulation of extracellular potentials. *Front. Neuroinform.* 7 (2014). doi:10.3389/fninf.2013.00041
 - Hagen, E. et al. Multimodal Modeling With LFPy 2.0. *Front. Neuroinform.* 12, 92 (2018). doi:10.3389/fninf.2018.00092
 - Herreras, O. Local Field Potentials: Myths and Misunderstandings. *Front. Neural Circuits* 10, 101 (2016). doi:10.3389/fncir.2016.00101
 - Pettersen, K. H. et al. Extracellular spikes and CSD. *Handbook of Neural Activity Measurement* (Brette & Destexhe, eds.), CUP (2012). doi:10.1017/CBO9780511979958.004
+- Einevoll, G. T., Kayser, C., Logothetis, N. K. & Panzeri, S. Modelling and analysis of local field potentials for studying the function of cortical circuits. *Nat. Rev. Neurosci.* 14, 770–785 (2013). doi:10.1038/nrn3599
 - Einevoll, G. T. Extracellular Potentials, Forward Modeling of. *Encyclopedia of Computational Neuroscience* (2020). doi:10.1007/978-1-4614-7320-6_59-2
 - Vorwerk, J. et al. A guideline for head volume conductor modeling. *NeuroImage* 100, 590–607 (2014). doi:10.1016/j.neuroimage.2014.06.040
 

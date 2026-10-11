@@ -1,0 +1,127 @@
+{
+  "schema": "jaxfne.release_receipt.v1",
+  "programme": "v0.5.5",
+  "version": "0.5.5",
+  "status": "gates_pass_not_sealed",
+  "seal_verdict": "PENDING: release and RC gates pass and blocking CI is green on the tested SHA; tag, GitHub Release, PyPI upload, and merge to main are not authorized and were not performed.",
+  "receipt_timestamp_utc": "2026-10-10T03:03:18Z",
+  "published_predecessor": "v0.5.0",
+  "supersedes": "artifacts/release/v0_5_0_release_receipt.json",
+  "write_once": false,
+  "tested_sha": "556d7a2523c2045a69a871453aa3de99cd5a5273",
+  "tested_tree_sha": "894809eed20b8f70e0387bf8cb2497bf6921cf9b",
+  "branch": "dev",
+  "receipt_commit_note": "The receipt commit is a new SHA and cannot contain its own hash; record it externally at commit time. The tested SHA above carries all gates and CI evidence in this file.",
+  "gates": {
+    "rc_gate": {
+      "command": "python scripts/run_test_gate.py rc",
+      "exit_code": 0,
+      "elapsed_s": 2290.1,
+      "log": "C:\\workspace\\pytest_temp\\rc_556d7a25.log",
+      "attestation": "artifacts/attestations/rc_gate_attestation.json (gitignored by design; schema jaxfne.rc_gate_attestation.v2)",
+      "attestation_commit_sha": "556d7a2523c2045a69a871453aa3de99cd5a5273",
+      "attestation_working_tree_clean": true,
+      "families": {
+        "pytest_broad": "4968 passed, 74 skipped in 441.92 s",
+        "pytest_slow": "33 passed, 1 skipped in 133.94 s",
+        "pytest_notebook": "30 passed, 4 deselected in 1244.25 s",
+        "docs_build_strict": "PASS (mkdocs --strict)",
+        "package_build": "PASS (jaxfne-0.5.5 wheel + sdist)",
+        "twine_check": "PASS",
+        "isolated_wheel_smoke": "PASS (site-packages install, version 0.5.5, simulate/readout/manifest smoke, allow_nan=False)"
+      },
+      "earlier_release_gate_on_82e3dbc2": {
+        "exit_code": 0,
+        "elapsed_s": 2184.4,
+        "log": "C:\\workspace\\pytest_temp\\release_82e3dbc2.log",
+        "note": "Preceded the parity-classification commit; superseded as tip evidence by the rc gate on 556d7a25, which re-runs all release families."
+      }
+    },
+    "junit_parity": {
+      "checker": "scripts/check_junit_parity.py",
+      "verdict": "PASS both matrix legs",
+      "release_ci_run": 38009432267,
+      "release_ci_sha": "556d7a2523c2045a69a871453aa3de99cd5a5273",
+      "python_3_11": {
+        "pass": true,
+        "rc_nodes": 5106,
+        "ci_nodes": 5106,
+        "justified_platform_differences": 4,
+        "justified_version_differences": 3,
+        "unjustified": 0,
+        "failures": 0
+      },
+      "python_3_14": {
+        "pass": true,
+        "rc_nodes": 5106,
+        "ci_nodes": 5106,
+        "justified_platform_differences": 4,
+        "justified_version_differences": 0,
+        "unjustified": 0,
+        "failures": 0
+      },
+      "classification_contract": {
+        "INTENTIONAL_VERSION_DIFFERENCE": "Applies only when the CI JUnit file is pytest-results-3.11.xml and the skip reason is the declared jnwb boundary: the pyproject extra installs jnwb only for python_version >= '3.12' (comment records that on 3.11 the extra installs only pynwb). The three nodes are tests.test_jnwb_view::test_jnwb_consumes_the_view, tests.test_jnwb_view::test_welch_psd_through_jnwb_is_bit_identical, tests.test_pynwb_compat::test_jnwb_reads_the_written_spikes.",
+        "guard": "The same skip text under any other CI Python stays UNKNOWN and fails the gate; 3.14 CI shows zero version differences. Global skip exemption was not introduced and parity remains per-node with failures blocking.",
+        "historical_validation": "The classifier was first validated against the preserved run 38001882954 artifacts at SHA 82e3dbc2 (3.11: 7 justified, 3.14: 4 justified) before the commit; the blocking evidence above is from the run on the tested SHA itself."
+      }
+    }
+  },
+  "ci": {
+    "workflow": "release_ci.yml",
+    "run_id": 38009432267,
+    "event": "workflow_dispatch",
+    "head_sha": "556d7a2523c2045a69a871453aa3de99cd5a5273",
+    "conclusion": "success",
+    "url": "https://github.com/HNXJ/jaxfne/actions/runs/38009432267",
+    "jobs": {
+      "release-test-3.11": "success",
+      "release-test-3.14": "success",
+      "release-build": "success"
+    },
+    "push_note": "Pushes to dev bypass the three required status checks at push time (branch protection evaluates pre-push); this workflow_dispatch run supplies the completed blocking evidence for the tested SHA.",
+    "fast_ci_on_receipt_tip": "Fast CI (ci.yml) triggers on the receipt push; verify on the receipt commit SHA externally, since the receipt cannot contain its own SHA."
+  },
+  "scope_decisions": {
+    "cross_scale_reduction_equivalence": {
+      "verdict": "UNSUPPORTED for 0.5.5",
+      "decided_by": "Hamm, 2026-10-09",
+      "meaning": "Not executed: no common reference realization or observation operator links population, two-area, and twenty-area realizations. This is a scope correction, not a falsifying experiment; NEGATIVE is reserved for that.",
+      "recorded_in": "artifacts/todo_stack.md (DECISION 2026-10-09 and acceptance bullet); not added as a 49th Atlas coverage row and not counted in coverage totals",
+      "preserved": "Existing run_reduction() (HH -> reduced -> population) with failures kept; 10.0 Hz and 0.75 remain that pathway's tolerances only."
+    },
+    "at10_r6": "VALIDATED via the quiet repeat of the existing at10_r6_long protocol (same duration 100000 ms, seed 11); wording 'under the tested conditions'; evidence artifacts/atlas/results/at10_r6_long_quiet_055.json.",
+    "atlas_coverage_counts": "48 rows: 42 VALIDATED, 0 SUPPORTED, 6 OUT_OF_SCOPE (AT-01-R4, AT-01-R5, AT-04-R3, AT-07-R4, AT-10-R4, AT-10-R7). AT-02..AT-06 write-once publication pages stay until a full Atlas regeneration."
+  },
+  "performance_status": {
+    "loaded_matrix": "artifacts/perf/matrix_055.json stays LOADED_NON_FINAL; quiet-final was never claimed.",
+    "quiet_receipts": "All 17 cells have committed quiet receipts (<25% load at cell start) matching the loaded output_checksum, chunked, coupling, n_edges, and status fields.",
+    "known_limits": "Per-cell quiet receipts omit the _env() block (jax/jaxlib/platform/device/jaxfne version); the loaded 2026-10-06 environment file records jax/jaxlib 0.10.1, Windows, cpu:0, jaxfne_version 0.5.0 (runs predate the version bump). Checksum agreement is stored-quantity consistency, not full-state equivalence or performance stability."
+  },
+  "scientific_status_gates": {
+    "claim_level": "computational_scaffold",
+    "field_solver_status": "linear_solver",
+    "field_claim_level": "proxy_readout",
+    "physical_amplitude_calibrated": false,
+    "notes": "VALIDATED denotes in-repo reproduction under the tested conditions and is not biological validation. Float32 is the release default. pcl_stdp_h2 is the new-work rule; pcl_stdp remains the driver default. Theory families F1-F5 are outside the 0.5.5 ledger. WSL2/CUDA qualification is a post-seal todo (artifacts/todo_stack.md), not a 0.5.5 claim; the 20-area GPU handout lives outside the repo until that gate."
+  },
+  "distribution": {
+    "build_backend": "hatchling",
+    "local_verification": "wheel jaxfne-0.5.5-py3-none-any.whl and sdist jaxfne-0.5.5.tar.gz built in the rc gate and passed twine check + isolated install smoke (temporary directories, not retained)",
+    "tag": null,
+    "github_release": null,
+    "pypi": null,
+    "pypi_publish_method": "trusted publishing (GitHub Actions Publish workflow on release) per v0.5.0 precedent; not invoked"
+  },
+  "preserved_logs": [
+    "C:\\workspace\\pytest_temp\\release_82e3dbc2.log (release gate EXIT=0, 2184.4 s, SHA 82e3dbc2)",
+    "C:\\workspace\\pytest_temp\\rc_82e3dbc2.log (first rc attempt EXIT=1; only failure was missing release_ci evidence for an unpushed SHA; preserved)",
+    "C:\\workspace\\pytest_temp\\rc_556d7a25_download_collision.log (second rc attempt EXIT=1; only failure was a gh artifact download colliding with pre-existing CI JUnit files, after all pytest/doc/example families had passed; parity then verified PASS on its own freshly written JUnit)",
+    "C:\\workspace\\pytest_temp\\rc_556d7a25.log (final rc run EXIT=0, 2290.1 s, SHA 556d7a25)"
+  ],
+  "blockers_to_seal": [
+    "Tag v0.5.5, GitHub Release, and PyPI upload require explicit user authorization and are not performed.",
+    "Merge dev to main requires a PR with required checks and is not performed.",
+    "Fast CI on the receipt commit must be read after push; the receipt commit SHA is recorded externally."
+  ]
+}
