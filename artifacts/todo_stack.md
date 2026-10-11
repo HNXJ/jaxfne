@@ -537,14 +537,17 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
 
 Signed by Hamm 2026-10-11 (batch): PCL Fig. 3 P3 v4 (`pcl-port` f6d9dc38) and CAMINOS v6
 (`l2-caminos` e2501025), both branches on GitHub.
-- [A] score Fig. 3 and S1 (`fig3_analysis.py --signed`, outputs `F:/warehouse/pcl/scores/`).
+- Fig. 3 scored: FAIL (T1, T3 pass; T2, T4 fail; S1 disagrees), `pcl-port` 412f7cf5
+  (`artifacts/etudes/pcl/prereg/P3_fig3_result.md`, `LEDGER.md`).
+- [A] PCL S2 and S3 analysis options (opencode, `pcl-port`), then report them.
 - [A] CAMINOS scored seeds (R1–R4) and S1–S2 on the WSL2 GPU after a jchat claim; S3–S5
   need driver options first.
+- [A] `artifacts/etudes/REPLICATIONS.md` index (release plan §5) once CAMINOS is scored.
 
 Compression and lanes, open:
-- [A] dense backend refuses `connections()` rules it would ignore (Hamm 2026-10-11:
-  refuse explicitly; was a silent drop, edge counts 3250 vs 3219 with identical spikes);
-  opencode packet with a failing test first, then second review.
+- [A] `docs/quickstart.md` `connections()` snippet after the dense refusal (dev 0d2b1018):
+  `model.simulate` with a default runtime now raises; the reviewer reports `jtfne.simulate`
+  takes `edge_list` from the cfg. Check both and tell the docs lane if a fix is needed.
 - Kept by Hamm 2026-10-11: `artifacts/legacy/AGENTS.md`.
 - [H] P3 audit owner calls: benchmark scripts, sync scripts, unwired gates
   (`scripts/lab_balance.py` crashes at `build_edges` on dev), docs pages, manuscript tree,
