@@ -176,9 +176,20 @@ Each row is a standing rule with the check that enforces it.
 - [A] B7 calibrate before signature: every quantitative criterion runs on
   synthetic nulls and known positives at a stated signal strength before
   Hamm signs. Check: the prereg holds a passing calibration table.
-- [A] jnwb short list items 2–4: one state line and proving command each;
-  done items close, open ones become one 0.5.6 library-lane row; `to_jnwb`
-  joins the top-level surface when items 2–4 close.
+- [A] jnwb short list items 2–4, 0.5.6 library lane (state checked 2026-10-11 at
+  e4c124fa, jnwb 0.2.10):
+  - 2 partly: only `vis/core.py:164` `welch_psd` delegates to `jnwb.compute_psd`
+    (probe: bit-identical); scipy, rfft or JAX spectra remain at `vis/spectra.py:75`,
+    `vis/fields.py:162,866`, `vis/tutorial_panels.py:305`, `fields/proxy.py:913,918,1106`,
+    `tutorial_utils.py:69`, `protocol_c/estimator.py:74`, `analysis/spectral.py:23,86`.
+    Frozen pin: `artifacts/atlas/results/at10_n20_055.json:387`.
+  - 3 logged, not fixed: `analysis/metrics.py:226` Fano of the population sum, `:122`
+    `burst_index` ignores `bin_ms`, `:19` unbinned correlation; pinned by
+    `tests/test_analysis_metrics.py:27-51`. jnwb has `fano_factor`,
+    `network_burst_index`, `spike_count_correlation`.
+  - 4 partly: `to_jnwb` exists (`jaxfne/jnwb_view.py:104`) but is not in
+    `jaxfne.__all__`; bandpower, spectrogram, CSD, rasters, metrics, connectivity
+    and decoding have not moved. `to_jnwb` joins the top-level surface when 2–4 close.
 
 ## 0.5.5 stack
 
