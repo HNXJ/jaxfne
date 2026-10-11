@@ -13,16 +13,16 @@ to `PCL_C++/libs/network/src/` unless stated. Read 2026-10-11 by Claude.
 | Simple layer | 9×9 positions × 64 depths per patch; RF 10×10×2 (polarity); overlap 3 (stride 7) | patches x {150}, y {100}: one patch |
 | Complex layer | 6×6 × 32; RF 4×4×64 simple cells; overlap 3 | |
 | Weight sharing | `patch`: one simple weight tensor per (patch, depth); the local-inhibition vector is shared per depth | `SpikingNetwork.cpp:188` |
-| Inhibition | local (other depths at the same x, y, plastic, shared), lateral dynamic (range 4 in x and y, all depths, plastic per pair), top-down (complex to simple, plastic per pair) | `connectLayer` `:347` |
+| Inhibition | local (other depths at the same x, y, plastic, shared), lateral dynamic (range 4 in x and y, all depths, plastic per pair), top-down (complex to simple, plastic per pair). The default config enables local only (`DefaultConfig.cpp:15`); PCL's lateral and top-down inhibition come from each trained network's own config | `connectLayer` `:347` |
 | Propagation | event-driven and depth-first: a spiking simple cell updates its weights, then sends local inhibition, then lateral inhibition (only when `m_activation` is on), then excites complex cells, which can spike and send top-down inhibition, all at the same timestamp | `addEvent` `:41`, `addNeuronEvent` `:87` |
 
 ## Neuron (`neurons/Neuron.cpp`, `SimpleNeuron.cpp`, `ComplexNeuron.cpp`)
 
 On each input of weight w at time t:
 `V ← V·exp(−Δt/τ_m)`, `A ← A·exp(−Δt/τ_SRA)`, `V ← V + w − η_RP·exp(−(t−t_s)/τ_RP) − A`,
-clamp at a negative limit, spike if `V > θ`, then `V ← V_reset` and `A ← A + Δ_SRA`.
-Inhibitory inputs subtract w and add the refractory and adaptation terms rather than
-subtract them (`SimpleNeuron.cpp:61`). Complex cells have no A term.
+clamp at −20 (`Neuron.cpp:26`), spike if `V > θ`, then `V ← V_reset` and `A ← A + Δ_SRA`.
+Inhibitory inputs subtract w as well as the refractory and adaptation terms
+(`SimpleNeuron.cpp:61`). Complex cells have no A term.
 
 | Parameter | Simple | Complex |
 |---|---|---|
@@ -45,8 +45,12 @@ L1-normalise to NORM_FACTOR. The inhibitory rules have the same form with `w_max
 factor 0.02, normalised per type (local to ETA_INH, top-down to TOPDOWN_NORM_FACTOR,
 lateral to LATERAL_NORM_FACTOR).
 
-The soft-bound constants (3, 0.33, 50, 0.02 for simple cells; 4, 0.25 for complex cells)
-are hard-coded and are not in the paper's equation. The code is authoritative for
+The effective rates are scaled: `η_LTP·NORM_FACTOR` and `η_ILTP·ETA_INH` (`Neuron.cpp:31-34`).
+The soft-bound constants (3, 0.33, 50, 0.02 for simple cells; 4, 0.25 excitatory and 25,
+0.04 inhibitory for complex cells, `ComplexNeuron.cpp:144`) are hard-coded and are not in
+the paper's equation. The complex-cell excitatory rule is counter-gated and pairs the last
+two spikes (`ComplexNeuron.cpp:97-141`). The default config's complex η_LTD is +0.002, so its
+LTD branch potentiates. The code is authoritative for
 replication; each difference from the Methods equation is recorded as a deviation.
 
 ## Port design
