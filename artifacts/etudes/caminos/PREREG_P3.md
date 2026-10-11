@@ -1,8 +1,9 @@
 # L2-P3 preregistration: CAMINOS reference model (PLoS CB 2026, Fig. 1)
 
-Status: draft v4 for Hamm's batch sign-off. It revises v1 (PASS with notes), v2 (FAIL:
-the R1 null was vacuous) and v3 (FAIL: the ratio criterion fails on sloped spectra; R4 was
-asymmetric; partial runs were accepted), after the reviews of 2026-10-11. No scored run before the signature. G0 single-cell checks
+Status: draft v5 for Hamm's batch sign-off. It revises v1 (PASS with notes), v2 (FAIL:
+the R1 null was vacuous), v3 (FAIL: the ratio criterion fails on sloped spectra; R4 was
+asymmetric; partial runs were accepted) and v4 (calibration gate infeasible by design),
+after the reviews of 2026-10-11. No scored run before the signature. G0 single-cell checks
 and timing pilots are not scored.
 
 ## Source claims (PLoS CB 2026 Results, reference model)
@@ -51,23 +52,34 @@ coloured noise. v4 measures the peak over a fitted aperiodic background instead.
 4. **Refit.** Refit the background with f_pk ± 8 Hz excluded.
 5. **Peak excess.** PE = P(f_pk) / background(f_pk).
 6. **Rule.** A run oscillates when all of these hold:
-   - PE ≥ 4;
+   - PE ≥ θ, the threshold set by the calibration gate below (v4 used 4);
    - f_pk is a local maximum of the PSD;
    - f_pk is not within 2 Hz of 20 or 80 Hz.
 
-**Calibration gate, run before signature on synthetic signals only.** The criterion stands
-when all of these hold:
+**Calibration gate (v5), run before signature on synthetic signals only.** It uses no
+network data. Each row has 200 draws of a 3 s E rate at NE = 8000, R0 = 1.2 Hz, dt = 0.1 ms.
 
-| Synthetic signal (3 s, NE = 8000) | Required |
-|---|---|
-| White Poisson rate | false-positive rate ≤ 5 % |
-| Poisson plus AR(1) fluctuations, τ = 8 and 30 ms, variance 0.5×, 2× and 8× the Poisson variance | false-positive rate ≤ 5 % |
-| 35 Hz rate modulation at depth 0.1 on the white and AR(1) floors | detection ≥ 95 % |
+- **Null floors (7):** white Poisson; Poisson on a lognormal AR(1) rate with τ = 8 and
+  30 ms, at variance 0.5×, 2× and 8× the Poisson count variance.
+- **Threshold θ:** the smallest of 4, 5, 6 and 8 for which every null floor has a
+  false-positive rate ≤ 5 %. If none qualifies, the fit is revised here before signature.
+- **Detection rows (14):** each null floor plus an additive 35 Hz component, in two forms:
+  a sinusoid with random phase, and a narrowband AR(2) bump with a 5 Hz full width at
+  half maximum.
+  - The component is scaled per floor so that the true peak excess at 35 Hz is 2θ. True
+    peak excess is (component + floor) / floor in the mean Welch PSD over 200 null draws.
+  - Required: detection ≥ 95 %, with f_pk within 2 Hz of 35 Hz.
+- **Reported, not gated:** detection against true peak excess at 2, 3, 4, 6 and 8 on
+  every floor, for both forms.
 
-The calibration table goes into this file. If the gate fails, the threshold or the fit is
-revised here, with the table, before the signature. The calibration uses no network data.
+v4 set the detection rows at a fixed modulation depth of 0.1. On the AR(1) floors that
+gives a true peak excess of only 1.04–2.66, below the threshold of 4, so no criterion could
+have detected it. The v4 gate therefore failed by design: 6 of 7 detection rows (detection
+0.5–23.5 %) and the τ = 30 ms, 8× null floor (false positives 9.0 %). v5 sets each
+detection row by its true peak excess instead.
 
-The unscored seed-0 pilot is rescored under v4 and reported here before signature.
+The calibration table goes into this file. The unscored seed-0 pilot (5 s, p = 0.07) is
+rescored under the calibrated θ and reported here before signature.
 
 | Id | Estimand | Pass |
 |---|---|---|
