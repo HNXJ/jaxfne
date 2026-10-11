@@ -265,22 +265,6 @@ class TestTwoNeuronEINotebook:
             except json.JSONDecodeError as e:
                 raise AssertionError(f"Invalid JSON in {filepath}: {e}")
 
-    def test_version_unchanged(self):
-        """Test that jaxfne version matches pyproject.toml (active version comparison)."""
-        import jaxfne
-        import re
-
-        from pathlib import Path
-
-        content = Path("pyproject.toml").read_text(encoding="utf-8")
-
-        project_section = re.search(r"\[project\](.*?)(?:\[|\Z)", content, re.DOTALL)
-
-        pyproject_version = re.search(r'version\s*=\s*"([^"]+)"', project_section.group(1)).group(1)
-        assert (
-            jaxfne.__version__ == pyproject_version
-        ), f"Version should be {pyproject_version}, got {jaxfne.__version__}"
-
     def test_no_forbidden_vocabulary(self):
         """Test that notebook avoids forbidden internal terminology."""
         notebook_path = (

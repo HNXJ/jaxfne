@@ -12,41 +12,12 @@ import pytest
 
 from jaxfne.emitters import (
     EdgeList,
-    IzhikevichParams,
     _rbd_advance_h,
     _rbd_restoring_term,
     simulate_edge_recurrent_izhikevich_rbd,
 )
 
-
-def _isolated_neuron_params() -> IzhikevichParams:
-    jdtype = jnp.float32
-    return IzhikevichParams(
-        v0=jnp.asarray([-65.0], dtype=jdtype),
-        u0=jnp.zeros((1,), dtype=jdtype),
-        a=jnp.asarray([0.02], dtype=jdtype),
-        b=jnp.asarray([0.2], dtype=jdtype),
-        c=jnp.asarray([-65.0], dtype=jdtype),
-        d=jnp.asarray([8.0], dtype=jdtype),
-        drive=jnp.zeros((1,), dtype=jdtype),
-        sign=jnp.ones((1,), dtype=jdtype),
-        W=jnp.zeros((1, 1), dtype=jdtype),
-        source_scale=jnp.ones((1,), dtype=jdtype),
-        labels=("E",),
-        layer_labels=("L4",),
-        source_calibration_status="uncalibrated_izhikevich_native_current",
-    )
-
-
-def _empty_edges() -> EdgeList:
-    jdtype = jnp.float32
-    return EdgeList(
-        pre=jnp.zeros((0,), dtype=jnp.int32),
-        post=jnp.zeros((0,), dtype=jnp.int32),
-        weight=jnp.zeros((0,), dtype=jdtype),
-        receptor_index=jnp.zeros((0,), dtype=jnp.int32),
-        tau_ms=jnp.zeros((0,), dtype=jdtype),
-    )
+from _shared_fixtures import _empty_edges, _isolated_neuron_params
 
 
 H0_GRID = (0.5, 0.8, 1.0, 1.2, 2.0)

@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 import jax.numpy as jnp
 
+from _shared_fixtures import MockNeuronsDataFrame as _SharedMockNeurons
 from jaxfne.fields import (
     spectrolaminar_psd,
     spectrolaminar_bandpower,
@@ -16,23 +17,25 @@ from jaxfne.fields import (
 )
 
 
-class MockNeuronsDataFrame:
-    """Mock neuron dataframe for testing."""
+class MockNeuronsDataFrame(_SharedMockNeurons):
+    """Shared mock plus explicit L4-relative positions.
 
-    def __init__(self, n=20, areas=None, layers=None, cell_types=None):
-        self.n = n
-        self.data = {
-            "area": areas or (["V1"] * (n // 2) + ["PFC"] * (n - n // 2)),
-            "layer": layers or (["L4"] * (n // 2) + ["L5"] * (n - n // 2)),
-            "cell_type": cell_types or (["E"] * int(0.75 * n) + ["PV"] * (n - int(0.75 * n))),
-            "pos_from_l4": np.linspace(-0.5, 0.5, n),
-        }
+    ``with_positions=False`` drops the ``pos_from_l4`` key so the readout
+    exercises its linspace fallback (``jaxfne/fields/proxy.py``).
+    """
 
-    def __len__(self):
-        return self.n
+    def __init__(
+        self, n=20, areas=None, layers=None, cell_types=None, with_positions=True
+    ):
+        super().__init__(n=n, areas=areas, layers=layers, cell_types=cell_types)
+        if with_positions:
+            self.data["pos_from_l4"] = np.linspace(-0.5, 0.5, n)
 
-    def get(self, key, default=None):
-        return self.data.get(key, default)
+
+@pytest.fixture(params=[True, False], ids=["explicit_pos", "fallback_pos"])
+def with_positions(request):
+    """Run readout tests over both neuron-position flavors."""
+    return request.param
 
 
 # ============================================================================
@@ -153,9 +156,9 @@ def test_spectrolaminar_bandpower_finite():
 # ============================================================================
 
 
-def test_spectrolaminar_readout_shape_and_keys():
+def test_spectrolaminar_readout_shape_and_keys(with_positions):
     """Test that readout has correct structure."""
-    neurons = MockNeuronsDataFrame(n=20)
+    neurons = MockNeuronsDataFrame(n=20, with_positions=with_positions)
     signal = np.random.randn(500, 20).astype(np.float32)
 
     readout = spectrolaminar_readout(signal, neurons, area="V1")
@@ -201,9 +204,9 @@ def test_spectrolaminar_readout_no_scoring():
     assert "S_lam" not in readout
 
 
-def test_spectrolaminar_readout_normalized_power():
+def test_spectrolaminar_readout_normalized_power(with_positions):
     """Test that band powers sum to ≤ 1 (relative power)."""
-    neurons = MockNeuronsDataFrame(n=25)
+    neurons = MockNeuronsDataFrame(n=25, with_positions=with_positions)
     signal = np.random.randn(500, 25).astype(np.float32)
 
     readout = spectrolaminar_readout(signal, neurons, area="V1")
@@ -213,9 +216,9 @@ def test_spectrolaminar_readout_normalized_power():
     assert np.all(total_profile <= 1.01), "Profile sum should be <= 1"
 
 
-def test_spectrolaminar_readout_missing_area():
+def test_spectrolaminar_readout_missing_area(with_positions):
     """Test that readout handles missing area gracefully."""
-    neurons = MockNeuronsDataFrame(n=20, areas=["V1"] * 20)
+    neurons = MockNeuronsDataFrame(n=20, areas=["V1"] * 20, with_positions=with_positions)
     signal = np.random.randn(500, 20).astype(np.float32)
 
     readout = spectrolaminar_readout(signal, neurons, area="PFC")
@@ -226,12 +229,13 @@ def test_spectrolaminar_readout_missing_area():
     assert readout["area"] == "PFC"
 
 
-def test_spectrolaminar_readout_layer_specificity():
+def test_spectrolaminar_readout_layer_specificity(with_positions):
     """Test that readout captures depth information."""
     neurons = MockNeuronsDataFrame(
         n=30,
         areas=["V1"] * 30,
         layers=["L1"] * 5 + ["L2"] * 5 + ["L3"] * 5 + ["L4"] * 5 + ["L5"] * 5 + ["L6"] * 5,
+        with_positions=with_positions,
     )
     signal = np.random.randn(500, 30).astype(np.float32)
 
@@ -242,9 +246,9 @@ def test_spectrolaminar_readout_layer_specificity():
     assert len(readout["pos_from_l4"]) == 6
 
 
-def test_spectrolaminar_readout_json_serializable():
+def test_spectrolaminar_readout_json_serializable(with_positions):
     """Test that readout is JSON-serializable."""
-    neurons = MockNeuronsDataFrame(n=20)
+    neurons = MockNeuronsDataFrame(n=20, with_positions=with_positions)
     signal = np.random.randn(300, 20).astype(np.float32)
 
     readout = spectrolaminar_readout(signal, neurons, area="V1")
@@ -263,12 +267,13 @@ def test_spectrolaminar_readout_json_serializable():
         pytest.fail(f"Readout not JSON-serializable: {e}")
 
 
-def test_spectrolaminar_readout_n_contacts_limit():
+def test_spectrolaminar_readout_n_contacts_limit(with_positions):
     """Test that n_contacts parameter limits contact number."""
     neurons = MockNeuronsDataFrame(
         n=30,
         areas=["V1"] * 30,
         layers=["L1"] * 5 + ["L2"] * 5 + ["L3"] * 5 + ["L4"] * 5 + ["L5"] * 5 + ["L6"] * 5,
+        with_positions=with_positions,
     )
     signal = np.random.randn(500, 30).astype(np.float32)
 
@@ -279,12 +284,13 @@ def test_spectrolaminar_readout_n_contacts_limit():
     assert readout_6["n_contacts"] == 6
 
 
-def test_spectrolaminar_readout_psd_shape_matches_contacts():
+def test_spectrolaminar_readout_psd_shape_matches_contacts(with_positions):
     """Test that PSD shape matches number of contacts."""
     neurons = MockNeuronsDataFrame(
         n=30,
         areas=["V1"] * 30,
         layers=["L1"] * 5 + ["L2"] * 5 + ["L3"] * 5 + ["L4"] * 5 + ["L5"] * 5 + ["L6"] * 5,
+        with_positions=with_positions,
     )
     signal = np.random.randn(500, 30).astype(np.float32)
 
@@ -295,9 +301,9 @@ def test_spectrolaminar_readout_psd_shape_matches_contacts():
     assert len(readout["gamma"]) == 5
 
 
-def test_spectrolaminar_readout_zero_signal():
+def test_spectrolaminar_readout_zero_signal(with_positions):
     """Test that zero signal produces zero power."""
-    neurons = MockNeuronsDataFrame(n=10)
+    neurons = MockNeuronsDataFrame(n=10, with_positions=with_positions)
     signal = np.zeros((500, 10), dtype=np.float32)
 
     readout = spectrolaminar_readout(signal, neurons, area="V1")
@@ -306,16 +312,36 @@ def test_spectrolaminar_readout_zero_signal():
     assert np.allclose(readout["relative_power"], 0.0, atol=1e-6)
 
 
+def test_readout_pos_fallback_matches_explicit_default():
+    """Fallback positions must equal the documented linspace default.
+
+    Pins the ``neurons.get("pos_from_l4", np.linspace(-0.5, 0.5, N))``
+    default in ``jaxfne/fields/proxy.py``: any mutant of that default
+    makes the fallback readout diverge from the explicit one.
+    """
+    signal = np.random.default_rng(0).standard_normal((500, 20)).astype(np.float32)
+    explicit = spectrolaminar_readout(
+        signal, MockNeuronsDataFrame(n=20, with_positions=True), area="V1"
+    )
+    fallback = spectrolaminar_readout(
+        signal, MockNeuronsDataFrame(n=20, with_positions=False), area="V1"
+    )
+
+    assert np.array_equal(explicit["pos_from_l4"], fallback["pos_from_l4"])
+    assert np.array_equal(explicit["contact_depths_m"], fallback["contact_depths_m"])
+
+
 # ============================================================================
 # Tests: multi_area_spectrolaminar_readout
 # ============================================================================
 
 
-def test_multi_area_readout_shape():
+def test_multi_area_readout_shape(with_positions):
     """Test that multi-area readout covers all areas."""
     neurons = MockNeuronsDataFrame(
         n=30,
         areas=["V1"] * 10 + ["V4"] * 10 + ["PFC"] * 10,
+        with_positions=with_positions,
     )
     signal = np.random.randn(500, 30).astype(np.float32)
 

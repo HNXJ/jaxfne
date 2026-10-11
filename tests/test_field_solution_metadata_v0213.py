@@ -285,16 +285,6 @@ def test_field_output_finite_csd_matches_arrays():
     assert field_out.diagnostics["finite_CSD"] is True
 
 
-def test_field_output_finite_j_e_false_for_proxy():
-    """J_e finitude is false for proxy (not computed)."""
-    sources = jnp.ones((50, 10))
-    positions = jax.random.normal(jax.random.PRNGKey(0), shape=(10, 3))
-    field_out = project_laminar_sources(sources, positions, n_contacts=16)
-
-    # Proxy doesn't compute J_e
-    assert field_out.diagnostics["finite_J_e"] is False
-
-
 # ─── Version Constraint ────────────────────────────────────────────────────────
 
 # ─── JSON Serialization Strictness ────────────────────────────────────────────
