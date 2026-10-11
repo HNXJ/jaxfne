@@ -1,8 +1,24 @@
 # Release plan 0.5.6–0.5.10: replications plus narrowing
 
 Requested by Hamm, 2026-10-11. This is a draft, so every release, tag and API addition
-still needs his word. Citations marked *(mem)* were written from memory; P1 checks them
-against the source.
+still needs his word. Citations marked *(mem)* were written from memory. Each was then checked against
+Crossref and Europe PMC on 2026-10-11 (see the table below).
+
+| Paper | DOI | Open copy |
+|---|---|---|
+| Brunel 2000, J Comput Neurosci 8:183 | 10.1023/a:1008925309027 | none found |
+| Vogels et al. 2011, Science 334:1569 | 10.1126/science.1211095 | none found |
+| Potjans and Diesmann 2014, Cereb Cortex 24:785 | 10.1093/cercor/bhs358 | PMC3920768 |
+| Mejias et al. 2016, Sci Adv 2:e1601335 | 10.1126/sciadv.1601335 | PMC5262462 |
+| Mazzoni et al. 2015, PLoS CB 11:e1004584 | 10.1371/journal.pcbi.1004584 | PMC4682791; ModelDB 152539 |
+| Izhikevich 2003, IEEE TNN 14:1569 | 10.1109/tnn.2003.820440 | none found |
+| van Vreeswijk and Farkhooi 2025, bioRxiv | 10.1101/2025.09.04.674182 | preprint, CC BY-NC-ND |
+| Lee, Pennartz, Mejias 2025, PLoS CB 21:e1013469 | 10.1371/journal.pcbi.1013469 | PMC12443261 |
+| Ness et al. 2025, PLoS CB 21:e1012303 | 10.1371/journal.pcbi.1012303 | PMC12052147 |
+| Páscoa dos Santos and Verschure 2025, Netw Neurosci 9:938 | 10.1162/netn_a_00460 | PMC12543307 |
+
+Methods completeness and code availability are still to be checked for all but Mazzoni
+(P1).
 
 ## 1. Purpose
 
@@ -65,7 +81,7 @@ Standing rules:
 | 0.5.6 | 1. N'dri et al. 2025, PCL Figs. 2–3 (T-port). 2. Tahvili, Vinck, di Volo, PLoS CB 2026: CAMINOS Figs. 1–3 (T-methods, then T-jaxfne). 3. Tahvili et al., Cell Reports 2025, if its methods can be read; otherwise Izhikevich 2003 *(mem)* on the existing emitter | AdEx emitter with conductance synapses | P3 signatures; the Cell Reports methods |
 | 0.5.7 | 4. Brunel 2000 *(mem)*: AI, SR and SI states. 5. Vogels et al. 2011 *(mem)*: inhibitory plasticity. 6. Calcium-regulated synaptic homeostasis (bioRxiv 2025). 7. PCL Fig. 4: suppression effects | working LIF emitter (a placeholder today) | 0.5.6 conductance synapses |
 | 0.5.8 | 8. Potjans and Diesmann 2014 *(mem)*: microcircuit. 9. Mejias et al. 2016 *(mem)*: laminar multi-area. 10. Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply) on 8 and 9 | laminar readout, if needed | 0.5.7 LIF; GPU time |
-| 0.5.9 | 11. Multiple interneuron types in predictive coding (candidate #4). 12. Lane L5, predictive coding. 13. PCL Figs. 5–6. 14. PCL trained from scratch (L1-G3) | event input for PCL, if earned | the PCL suppression data and N-MNIST/DVS sets |
+| 0.5.9 | 11–12. Lee, Pennartz, Mejias, PLoS CB 2025 (lane L5, candidate #4, which are the same paper): PV, SST and VIP silencing, deviant enhancement, the ~6 Hz rhythm; closest to the omission and oddball paradigm. 13. PCL Figs. 5–6. 14. PCL trained from scratch (L1-G3) | event input for PCL, if earned | the PCL suppression data and N-MNIST/DVS sets |
 | 0.5.10 | 15. Validity of EEG predictions from rates (candidate #9). 16. Mazzoni et al. 2015 *(mem)*: LFP proxies. 17. E–I metastability (candidate #11), if it reduces to one area | none | 0.5.8 laminar models |
 
 A paper that cannot pass P1 moves to the next release without blocking its own. Each
