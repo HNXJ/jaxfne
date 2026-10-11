@@ -107,7 +107,10 @@ The unscored seed-0 pilot (12 s, p = 0.07, 10 s kept), scored at θ = 4: E 1.058
 and SOM 6.590 Hz; f_pk 35.0 Hz, PE 15.1, lag 7.2 ms; it oscillates, and f_pk is also a raw-PSD
 local maximum. The 5 s pilot under v5 gave E 1.04, PV 11.07 and SOM 6.55 Hz, with f_pk
 35.0 Hz, PE 26.7 and a lag of 7.6 ms. The pilot's spikes were simulated at f41738a5; v6
-changed the analysis only, and the rescore uses the v6 code.
+changed the analysis only, and the rescore uses the v6 code. That pilot ran on Windows CPU
+JAX, against the Runs line. Rerun on WSL2 CUDA (a6ae7353, 133 s against 3824 s): E 1.051, PV
+11.101 and SOM 6.562 Hz; f_pk 34.0 Hz, PE 15.7, lag 7.3 ms; it oscillates. The spike trains
+differ, as float rounding diverges a spiking network; the rates agree within 1 %, f_pk within one 1 Hz bin and the lag within 0.1 ms.
 
 | Id | Estimand | Pass |
 |---|---|---|
