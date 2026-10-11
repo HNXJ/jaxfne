@@ -105,7 +105,14 @@ R_sf's flank is computed per cell, as the mean of each cell's own responses at
   - The window holds about 3.6 cycles, so the frequency resolution is about 0.55 Hz.
     Amplitudes are therefore evaluated at exactly ω and 2ω, not at FFT bins.
 - **Amplitude:** A(f) = |Σ exp(−2πift)| over a cell's spikes, divided by the duration.
-- T3 and T4 fit preferences on all phases, because phase is the tested axis.
+- T3 and T4 fit preferences on all phases, because phase is the tested axis. phase\* is the
+  argmax over phases 0–9 of the trial-pooled count at (ori\*, sf\*); ties go to the lowest
+  phase.
+- A file with no ON event uses all its events for ω. The two trials' ω are averaged, and a
+  difference over 0.01 Hz is reported.
+- Ratios R_ori and R_sf: 0/0 counts as 1 and x/0 (x > 0) as infinite.
+- Spike floors count every spike in the pooled trials, including spikes repeated across
+  trials.
 
 ## Sensitivity (reported, not scored)
 
