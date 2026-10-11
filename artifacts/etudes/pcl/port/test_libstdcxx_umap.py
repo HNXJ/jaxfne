@@ -2,12 +2,13 @@
 
 Three checks. (1) Hand-derived cases of the rules in libstdcxx_umap.py. (2) The prime table against
 the bytes of libstdc++-6.dll (skipped when the DLL is absent). (3) The g++ 13.3 libstdc++ output
-(umap_gxx13_order.txt) on every key set in umap_gxx_keys.txt. The g++ program (umap_gxx_order.cpp)
+(umap_gxx13_order.txt.gz) on every key set in umap_gxx_keys.txt.gz (gzip -9 -n). The g++ program (umap_gxx_order.cpp)
 was built and run by the dispatcher in WSL; this worker did not compile or run any C++.
 """
 
 from __future__ import annotations
 
+import gzip
 import random
 import struct
 import sys
@@ -22,8 +23,8 @@ import pytest  # noqa: E402
 import libstdcxx_umap as um  # noqa: E402
 
 DLL = Path("C:/Program Files/Git/mingw64/bin/libstdc++-6.dll")
-GXX_KEYS = HERE / "umap_gxx_keys.txt"  # one key set per line, in insertion order
-GXX_ORDER = HERE / "umap_gxx13_order.txt"  # g++ 13.3 libstdc++ iteration order of each line
+GXX_KEYS = HERE / "umap_gxx_keys.txt.gz"  # one key set per line, in insertion order
+GXX_ORDER = HERE / "umap_gxx13_order.txt.gz"  # g++ 13.3 libstdc++ iteration order of each line
 
 
 def _is_prime(n: int) -> bool:
@@ -132,8 +133,8 @@ def test_random_keys_form_a_permutation_with_contiguous_buckets():
 
 
 def test_iteration_order_matches_gxx13_on_every_key_set():
-    keys_lines = GXX_KEYS.read_text(encoding="utf-8").splitlines()
-    order_lines = GXX_ORDER.read_text(encoding="utf-8").splitlines()
+    keys_lines = gzip.decompress(GXX_KEYS.read_bytes()).decode("utf-8").splitlines()
+    order_lines = gzip.decompress(GXX_ORDER.read_bytes()).decode("utf-8").splitlines()
     assert len(keys_lines) == 162 and len(order_lines) == 162, "fixture: 162 key sets"
     not_ascending = 0
     for n, (kl, ol) in enumerate(zip(keys_lines, order_lines)):

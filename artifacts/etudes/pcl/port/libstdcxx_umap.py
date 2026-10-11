@@ -18,7 +18,8 @@ Provenance, stated so that each claim can be checked:
 - g++ check: umap_gxx_order.cpp (a program of ours, not the authors' code) was built and run by the
   dispatcher with g++ 13.3.0 libstdc++ under WSL. It inserts each line of umap_gxx_keys.txt (the
   lateral_keys and topdown_keys of all 81 simple positions, 162 lines) with operator[] into a fresh
-  std::unordered_map<size_t, double> and prints the iteration order (umap_gxx13_order.txt).
+  std::unordered_map<size_t, double> and prints the iteration order (umap_gxx13_order.txt). Both
+  files are tracked gzipped (.txt.gz) to fit the tree size gate.
   iteration_order equals that output on all 162 key sets
   (test_iteration_order_matches_gxx13_on_every_key_set). This worker did not compile or run C++.
   The check covers libstdc++ 13 on Linux (LP64) only, for these key counts.
