@@ -12,7 +12,10 @@ pilots are not scored.
 
 Portable: no host paths are hardcoded (the output directory is an
 argument), so this runs unchanged on WSL2 CUDA. Writes are atomic
-(temp file + replace) and resumable (existing outputs are skipped).
+(temp file + replace). The manifest merges entries across invocations,
+keyed by file name, and never drops an earlier run. An existing output is
+reused only when its manifest entry matches the request (seed, p, dtype,
+dt, T, pilot, sizes); one that does not match is refused, never overwritten.
 """
 
 from __future__ import annotations
@@ -77,8 +80,31 @@ def build_parser():
     return ap
 
 
-def run_filename(seed, p):
-    return "counts_seed%d_p%g.npy" % (seed, p)
+def run_filename(seed, p, dtype, dt):
+    """File name carries dtype and dt, so runs at other precision or step never share a file."""
+    return "counts_seed%d_p%g_%s_dt%.0e.npy" % (seed, p, dtype, dt)
+
+
+def _reusable(old, seed, args, sizes):
+    """True when a manifest entry was made by this request, so its file may be reused.
+
+    The file name carries seed, p, dtype and dt; T, pilot and sizes are not in
+    it, so they are compared too.
+    """
+    return (old.get("seed") == seed
+            and abs(float(old.get("p", -1.0)) - args.p) < 1e-12
+            and old.get("dtype") == args.dtype
+            and abs(float(old.get("dt", -1.0)) - args.dt) < 1e-15
+            and abs(float(old.get("T", -1.0)) - args.T) < 1e-12
+            and bool(old.get("pilot")) == bool(args.pilot)
+            and old.get("sizes") == sizes)
+
+
+def _write_manifest(out, manifest):
+    """Atomic manifest write (temp file + replace)."""
+    mtmp = out / "manifest.json.tmp"
+    mtmp.write_text(json.dumps(manifest, indent=2))
+    os.replace(mtmp, out / "manifest.json")
 
 
 def main(argv=None):
@@ -110,26 +136,44 @@ def main(argv=None):
         sha = git_sha()
     except RuntimeError:
         sha = "unknown"
+    prior = None
+    if (out / "manifest.json").exists():
+        prior = json.loads((out / "manifest.json").read_text())
+    entries = {e["file"]: e for e in prior["runs"]} if prior else {}
+    invocations = list(prior.get("invocations", [])) if prior else []
+    # Decide every seed before simulating: a file this request cannot match is refused.
+    plan = []
+    for seed in args.seeds:
+        fname = run_filename(seed, args.p, args.dtype, args.dt)
+        fpath = out / fname
+        if fpath.exists() and fpath.stat().st_size > 0:
+            old = entries.get(fname)
+            if old is None or not _reusable(old, seed, args, sizes):
+                print("Refusing to overwrite %s: its manifest entry is missing or its "
+                      "seed, p, dtype, dt, T, pilot or sizes differ from this request." % fpath)
+                raise SystemExit(2)
+            plan.append((seed, fname, True))
+        else:
+            plan.append((seed, fname, False))
+    invocation = {"start_time": start_time, "git_sha": sha,
+                  "args": {"seeds": list(args.seeds), "p": args.p, "T": args.T,
+                           "dt": args.dt, "dtype": args.dtype, "pilot": args.pilot,
+                           "signed": bool(args.signed)},
+                  "reused": [], "computed": []}
+    invocations.append(invocation)
     manifest = {
         "git_sha": sha,
-        "args": {"seeds": list(args.seeds), "p": args.p, "T": args.T,
-                 "dt": args.dt, "dtype": args.dtype, "pilot": args.pilot,
-                 "signed": bool(args.signed)},
         "jax_version": jax.__version__,
         "jax_devices": [str(d) for d in jax.devices()],
         "start_time": start_time,
-        "dt": args.dt,
-        "T": args.T,
-        "sizes": sizes,
-        "runs": [],
+        "invocations": invocations,
+        "runs": list(entries.values()),
     }
-    for seed in args.seeds:
-        fname = run_filename(seed, args.p)
-        fpath = out / fname
-        if fpath.exists() and fpath.stat().st_size > 0:
-            manifest["runs"].append({"seed": seed, "p": args.p, "file": fname,
-                                     "wall_s": 0.0, "skipped": True})
+    for seed, fname, reuse in plan:
+        if reuse:
+            invocation["reused"].append(fname)
             continue
+        fpath = out / fname
         t0 = time.time()
         key = jax.random.PRNGKey(seed)
         counts, _final = cj.simulate(key, args.T, dt=args.dt, p=args.p,
@@ -140,13 +184,17 @@ def main(argv=None):
         with open(tmp, "wb") as f:
             np.save(f, counts)
         os.replace(tmp, fpath)
-        manifest["runs"].append({"seed": seed, "p": args.p, "file": fname,
-                                 "wall_s": time.time() - t0, "skipped": False,
-                                 "steps": int(counts.shape[0])})
-    mpath = out / "manifest.json"
-    mtmp = out / "manifest.json.tmp"
-    mtmp.write_text(json.dumps(manifest, indent=2))
-    os.replace(mtmp, mpath)
+        entries[fname] = {"seed": seed, "p": args.p, "file": fname,
+                          "dtype": args.dtype, "dt": args.dt, "T": args.T,
+                          "pilot": bool(args.pilot), "sizes": sizes,
+                          "git_sha": sha, "start_time": start_time,
+                          "wall_s": time.time() - t0,
+                          "steps": int(counts.shape[0])}
+        invocation["computed"].append(fname)
+        manifest["runs"] = list(entries.values())
+        _write_manifest(out, manifest)  # after each run, so a crash keeps finished runs
+    manifest["runs"] = list(entries.values())
+    _write_manifest(out, manifest)
     return manifest
 
 

@@ -11,10 +11,12 @@ Estimators (prereg text):
 
 * Rates (R3): mean rate per population over the kept window (first 2 s
   discarded).
-* Spectrum (R1, R4): E population rate in ``dt`` bins, minus its mean,
-  Welch 1 s Hann windows with 50 % overlap; peak frequency in 20-80 Hz
-  and peak ratio (peak power / median power in 20-80 Hz). A run
-  "oscillates" when the ratio is at least 5.
+* Spectrum (R1, R4; v4 criterion): E population rate in ``dt`` bins, minus
+  its mean, Welch 1 s Hann windows with 50 % overlap. Aperiodic fit
+  log10 P = a - log10(k + f**chi) on 10-150 Hz; f_pk is the largest residual
+  in 20-80 Hz; the background is refit with f_pk +- 8 Hz excluded; peak excess
+  PE = P(f_pk) / background(f_pk). A run "oscillates" when PE >= 4, f_pk is a
+  local maximum of the PSD, and f_pk is not within 2 Hz of 20 or 80 Hz.
 * Lag (R2): PV and SOM rates smoothed with a 2 ms Gaussian, peak of the
   cross-correlation over -14..+14 ms; positive means SOM after PV.
 * Undefined rules (prereg text): a population with zero spikes in the
@@ -29,16 +31,34 @@ import json
 from pathlib import Path
 
 import numpy as np
+from scipy.optimize import curve_fit
 
 DISCARD_S = 2.0  # prereg Runs: first 2 s discarded (4 x tau_w)
 WIN_S = 1.0  # prereg: Welch 1 s Hann windows
 OVERLAP_FRAC = 0.5  # prereg: 50 % overlap
-BAND_LO_HZ = 20.0  # prereg: 20-80 Hz band
+FIT_LO_HZ = 10.0  # v4: aperiodic fit band
+FIT_HI_HZ = 150.0
+BAND_LO_HZ = 20.0  # v4: peak search band
 BAND_HI_HZ = 80.0
-RATIO_THRESHOLD = 5.0  # prereg: oscillates when peak ratio >= 5
+EXCL_HALF_HZ = 8.0  # v4: refit excludes f_pk +- 8 Hz
+PE_THRESHOLD = 4.0  # v4: oscillates when peak excess >= 4
+EDGE_HZ = 2.0  # v4: f_pk not within 2 Hz of 20 or 80 Hz
+CHI_BOUNDS = (0.0, 5.0)  # v4: exponent bounds
+K_MIN = 0.0  # v4: offset lower bound
+INIT_K = 1.0  # v4: fit start, k0
+INIT_CHI = 1.0  # v4: fit start, chi0 (a0 is set from the data)
 LAG_WINDOW_MS = 14.0  # prereg R2: search -14..+14 ms
 SMOOTH_MS = 2.0  # prereg R2: 2 ms Gaussian smoothing
 POPS = ("E", "PV", "SOM")
+REF_P = 0.07  # prereg Runs: reference connectivity
+REF_SEEDS = (1, 2, 3, 4, 5)  # prereg Runs: R1-R3 seeds
+R4_P_GRID = tuple(round(0.02 + 0.01 * i, 2) for i in range(9))  # prereg R4
+R4_LOW_P = 0.02  # prereg R4: must be silent
+R4_SEEDS = (1, 2, 3)  # prereg R4: seeds per p
+REF_DTYPE = "float32"  # prereg Runs
+REF_DT = 1e-4  # s, prereg Runs Euler step
+REF_T = 5.0  # s, prereg Runs duration
+REF_STEPS = int(round(REF_T / REF_DT))
 
 
 def _as_float_counts(counts):
@@ -103,23 +123,67 @@ def welch_spectrum(x, fs, nperseg, noverlap):
                   noverlap=noverlap, detrend=False, scaling="density")
 
 
-def spectral_peak(e_rate, dt):
-    """Peak frequency and peak ratio of the E rate in 20-80 Hz (R1, R4).
+def aperiodic_log10(f, a, k, chi):
+    """Aperiodic model in log10 power (v4): log10 P = a - log10(k + f**chi)."""
+    return a - np.log10(k + np.power(f, chi))
 
-    ``e_rate`` is the E population rate in ``dt`` bins; the mean is
-    removed here (prereg Runs). Returns ``(peak_freq_Hz, peak_ratio)``.
+
+def fit_aperiodic(freqs, pxx, keep):
+    """Bounded least-squares fit of the aperiodic model on the bins in ``keep``.
+
+    Bounds: k >= 0, chi in [0, 5], a free. Start: k0 = 1, chi0 = 1, and a0 set
+    so the model equals the median log10 power at the median fitted frequency.
+    Returns ``(a, k, chi)``.
+    """
+    f = freqs[keep]
+    y = np.log10(pxx[keep])
+    a0 = float(np.median(y) + np.log10(INIT_K + np.median(f) ** INIT_CHI))
+    popt, _ = curve_fit(aperiodic_log10, f, y, p0=[a0, INIT_K, INIT_CHI],
+                        bounds=([-np.inf, K_MIN, CHI_BOUNDS[0]],
+                                [np.inf, np.inf, CHI_BOUNDS[1]]),
+                        maxfev=20000)
+    return tuple(float(v) for v in popt)
+
+
+def spectral_peak(e_rate, dt):
+    """Peak excess and oscillation call for the E rate (R1, R4; v4).
+
+    ``e_rate`` is the E population rate in ``dt`` bins; the mean is removed
+    here (prereg Runs). Returns a dict: ``peak_freq_Hz`` (f_pk), ``peak_excess``
+    (PE), ``background_Hz`` (refit background at f_pk), ``local_max``,
+    ``edge_ok``, ``oscillates``, the refit parameters ``fit`` and the first
+    fit's parameters ``fit_pass1``.
     """
     x = np.asarray(e_rate, dtype=float)
     x = x - x.mean()
     fs = 1.0 / dt
     nperseg = int(round(WIN_S * fs))
     freqs, pxx = welch_spectrum(x, fs, nperseg, nperseg // 2)
-    band = (freqs >= BAND_LO_HZ) & (freqs <= BAND_HI_HZ)
-    if not band.any():
+    fit_band = (freqs >= FIT_LO_HZ) & (freqs <= FIT_HI_HZ)
+    pk_idx = np.flatnonzero((freqs >= BAND_LO_HZ) & (freqs <= BAND_HI_HZ))
+    if pk_idx.size == 0:
         raise ValueError("no frequency bins in 20-80 Hz")
-    fb, pb = freqs[band], pxx[band]
-    i = int(np.argmax(pb))
-    return float(fb[i]), float(pb[i] / np.median(pb))
+    pars1 = fit_aperiodic(freqs, pxx, fit_band)
+    resid = np.log10(pxx) - aperiodic_log10(freqs, *pars1)
+    i = int(pk_idx[np.argmax(resid[pk_idx])])
+    f_pk = float(freqs[i])
+    pars2 = fit_aperiodic(freqs, pxx,
+                          fit_band & (np.abs(freqs - f_pk) > EXCL_HALF_HZ))
+    background = float(10.0 ** aperiodic_log10(f_pk, *pars2))
+    pe = float(pxx[i]) / background
+    local_max = bool(pxx[i] > pxx[i - 1] and pxx[i] > pxx[i + 1])
+    edge_ok = bool(abs(f_pk - BAND_LO_HZ) > EDGE_HZ
+                   and abs(f_pk - BAND_HI_HZ) > EDGE_HZ)
+    return {
+        "peak_freq_Hz": f_pk,
+        "peak_excess": pe,
+        "background_Hz": background,
+        "local_max": local_max,
+        "edge_ok": edge_ok,
+        "oscillates": bool(pe >= PE_THRESHOLD and local_max and edge_ok),
+        "fit": pars2,
+        "fit_pass1": pars1,
+    }
 
 
 def _gaussian_kernel(sigma_steps):
@@ -143,11 +207,20 @@ def pv_som_lag(counts, dt, sizes):
     kernel = _gaussian_kernel(SMOOTH_MS / dt_ms)
     pv_s = np.convolve(pv, kernel, mode="same")
     som_s = np.convolve(som, kernel, mode="same")
-    cc = np.correlate(som_s - som_s.mean(), pv_s - pv_s.mean(), mode="full")
-    lags = np.arange(-(len(pv_s) - 1), len(pv_s))
+    a = som_s - som_s.mean()
+    v = pv_s - pv_s.mean()
+    n = len(a)
     max_lag = int(round(LAG_WINDOW_MS / dt_ms))
-    sel = np.abs(lags) <= max_lag
-    lag_steps = int(lags[sel][int(np.argmax(cc[sel]))])
+    # Correlation only inside the window: the full np.correlate is O(N^2) (about
+    # 14 s per run) and gives the same argmax.
+    lags = np.arange(-max_lag, max_lag + 1)
+    cc = np.empty(lags.size)
+    for j, lag in enumerate(lags):
+        if lag >= 0:
+            cc[j] = np.dot(a[lag:], v[:n - lag])
+        else:
+            cc[j] = np.dot(a[:n + lag], v[-lag:])
+    lag_steps = int(lags[int(np.argmax(cc))])
     lag_ms = lag_steps * dt_ms  # positive: SOM after PV
     return float(lag_ms)
 
@@ -162,18 +235,26 @@ def analyze_run(counts, dt, sizes):
         "rates_Hz": rates,
         "spikes_kept": spikes,
         "peak_freq_E_Hz": None,
-        "peak_ratio_E": None,
+        "peak_excess_E": None,
+        "background_E_Hz": None,
+        "peak_local_max": None,
+        "peak_edge_ok": None,
+        "fit_E": None,
         "oscillates": False,
         "lag_PV_SOM_ms": None,
         "undefined": [],
     }
     if spikes["E"] == 0:
-        out["undefined"].append("ratio")
+        out["undefined"].append("peak")
     else:
-        freq, ratio = spectral_peak(keep[:, 0] / dt / sizes["E"], dt)
-        out["peak_freq_E_Hz"] = freq
-        out["peak_ratio_E"] = ratio
-        out["oscillates"] = bool(ratio >= RATIO_THRESHOLD)
+        pk = spectral_peak(keep[:, 0] / dt / sizes["E"], dt)
+        out["peak_freq_E_Hz"] = pk["peak_freq_Hz"]
+        out["peak_excess_E"] = pk["peak_excess"]
+        out["background_E_Hz"] = pk["background_Hz"]
+        out["peak_local_max"] = pk["local_max"]
+        out["peak_edge_ok"] = pk["edge_ok"]
+        out["fit_E"] = {"refit": list(pk["fit"]), "pass1": list(pk["fit_pass1"])}
+        out["oscillates"] = pk["oscillates"]
     if spikes["PV"] == 0 or spikes["SOM"] == 0:
         out["undefined"].append("lag")
     else:
@@ -186,73 +267,134 @@ def _mean(xs):
     return float(np.mean(xs)) if xs else None
 
 
-def score(run_dir):
-    """Score a run directory written by ``run_caminos.py`` (R1-R4 table).
+def _same(a, b):
+    """Equal p values (floats from JSON) within 1e-9."""
+    return abs(float(a) - float(b)) < 1e-9
 
-    R1: mean peak 30-40 Hz and every seed oscillates. R2: lag positive
-    in every seed, mean 6-11 ms. R3: PV > SOM > E in every seed, mean E
-    rate 1-3 Hz. R4: per-p groups; a p "oscillates" when every seed at
-    that p oscillates; pass needs p = 0.02 silent and p = 0.07
-    oscillating, else ``pass`` is None.
+
+def _rows_at(per_run, p, seeds):
+    return [r for r in per_run if _same(r["p"], p) and r["seed"] in seeds]
+
+
+def _is_reference(entry):
+    """Scored configuration: seed not 0, not a pilot, float32, dt = 1e-4 (prereg).
+
+    Seed 0 is the unscored pilot (prereg Prior exposure). Sensitivity runs
+    (float64, other dt) and pilots may share a directory; they are listed as
+    not scored and never enter R1-R4.
+    """
+    return (entry.get("seed") != 0
+            and not entry.get("pilot", False)
+            and entry.get("dtype") == REF_DTYPE
+            and entry.get("dt") is not None
+            and abs(float(entry["dt"]) - REF_DT) < 1e-12)
+
+
+def _t_ok(entry, steps):
+    """Run lasted T = 5 s at dt = 1e-4 (manifest value and saved step count)."""
+    return entry.get("T") is not None and abs(float(entry["T"]) - REF_T) < 1e-12 and steps == REF_STEPS
+
+
+def score(run_dir):
+    """Score a run directory written by ``run_caminos.py`` (R1-R4, prereg v4).
+
+    Only reference-configuration runs are scored. A result is incomplete
+    (pass False) unless R1-R3 have exactly seeds 1-5 at p = 0.07 (seed 0
+    excluded), R4 has seeds 1-3 at all nine p, and every run in those sets
+    has T = 5 s and one 40-character git SHA.
+
+    R1: every seed oscillates with f_pk in 30-40 Hz. R2: lag positive in
+    every seed, mean 6-11 ms. R3: PV > SOM > E in every seed, mean E rate
+    1-3 Hz. R4: no seed oscillates at p = 0.02, and every seed oscillates
+    at p = 0.07.
     """
     run_dir = Path(run_dir)
     manifest = json.loads((run_dir / "manifest.json").read_text())
-    dt = float(manifest["dt"])
-    sizes = manifest["sizes"]
+    selected = [e for e in manifest["runs"] if _is_reference(e)]
+    not_scored = [e["file"] for e in manifest["runs"] if not _is_reference(e)]
     per_run = []
-    for entry in manifest["runs"]:
+    not_t = []
+    for entry in selected:
         counts = np.load(run_dir / entry["file"])
-        res = analyze_run(counts, dt, sizes)
+        if not _t_ok(entry, int(counts.shape[0])):
+            not_t.append(entry["file"])  # listed as incomplete, never analysed
+            continue
+        res = analyze_run(counts, float(entry["dt"]), entry["sizes"])
         res["seed"] = entry["seed"]
         res["p"] = entry["p"]
+        res["file"] = entry["file"]
+        res["T"] = entry["T"]
+        res["git_sha"] = entry.get("git_sha")
+        res["steps"] = int(counts.shape[0])
         per_run.append(res)
 
-    # R1-R3 score the reference model only: p = 0.07, seeds 1-5 (prereg Runs);
-    # the R4 grid and the seed-0 pilot may share the directory.
-    ref = [r for r in per_run if abs(r["p"] - 0.07) < 1e-12 and r["seed"] in (1, 2, 3, 4, 5)]
+    ref_rows = _rows_at(per_run, REF_P, REF_SEEDS)
+    shas = {e.get("git_sha") for e in selected}
+    common = []
+    if not (len(shas) == 1 and all(isinstance(s, str) and len(s) == 40 for s in shas)):
+        common.append("scored runs do not share one 40-character git SHA (%d distinct)"
+                      % len(shas))
+    if not_t:
+        common.append("runs not at T = 5 s and dt = 1e-4: %s" % ", ".join(sorted(not_t)))
+
+    ref_seeds = sorted(r["seed"] for r in per_run if _same(r["p"], REF_P))
+    ref_reasons = list(common)
+    if ref_seeds != list(REF_SEEDS):
+        ref_reasons.append("p = 0.07 seeds are %s, need exactly 1-5" % ref_seeds)
+    ref_complete = not ref_reasons
+
+    grid_reasons = list(common)
+    for g in R4_P_GRID:
+        seeds_g = sorted(r["seed"] for r in _rows_at(per_run, g, R4_SEEDS))
+        if seeds_g != list(R4_SEEDS):
+            grid_reasons.append("p = %g seeds are %s, need 1-3" % (g, seeds_g))
+    grid_complete = not grid_reasons
+
+    band_every = bool(ref_rows) and all(
+        r["oscillates"] and r["peak_freq_E_Hz"] is not None
+        and 30.0 <= r["peak_freq_E_Hz"] <= 40.0 for r in ref_rows)
     r1 = {
-        "n_runs": len(ref),
-        "mean_peak_freq_Hz": _mean([r["peak_freq_E_Hz"] for r in ref]),
-        "all_oscillate": bool(ref) and all(r["oscillates"] for r in ref),
+        "n_runs": len(ref_rows),
+        "mean_peak_freq_Hz": _mean([r["peak_freq_E_Hz"] for r in ref_rows]),
+        "all_oscillate": bool(ref_rows) and all(r["oscillates"] for r in ref_rows),
+        "complete": ref_complete,
+        "reasons": ref_reasons,
     }
-    r1["pass"] = (r1["mean_peak_freq_Hz"] is not None
-                  and 30.0 <= r1["mean_peak_freq_Hz"] <= 40.0
-                  and r1["all_oscillate"])
+    r1["pass"] = bool(ref_complete and band_every)
 
-    lags = [r["lag_PV_SOM_ms"] for r in ref]
-    r2 = {
-        "mean_lag_ms": _mean(lags),
-        "all_positive": all(v is not None and v > 0 for v in lags),
-    }
-    r2["pass"] = (r2["mean_lag_ms"] is not None and bool(lags)
-                  and all(v is not None and v > 0 for v in lags)
-                  and 6.0 <= r2["mean_lag_ms"] <= 11.0)
+    lags = [r["lag_PV_SOM_ms"] for r in ref_rows]
+    all_pos = bool(lags) and all(v is not None and v > 0 for v in lags)
+    mean_lag = _mean(lags)
+    r2 = {"mean_lag_ms": mean_lag, "all_positive": all_pos,
+          "complete": ref_complete, "reasons": ref_reasons}
+    r2["pass"] = bool(ref_complete and all_pos and mean_lag is not None
+                      and 6.0 <= mean_lag <= 11.0)
 
-    r3 = {
-        "order_ok_every_seed": bool(ref) and all(
-            r["rates_Hz"]["PV"] > r["rates_Hz"]["SOM"] > r["rates_Hz"]["E"]
-            for r in ref),
-        "mean_E_Hz": _mean([r["rates_Hz"]["E"] for r in ref]),
-    }
-    r3["pass"] = (r3["order_ok_every_seed"] and r3["mean_E_Hz"] is not None
-                  and 1.0 <= r3["mean_E_Hz"] <= 3.0)
+    order_ok = bool(ref_rows) and all(
+        r["rates_Hz"]["PV"] > r["rates_Hz"]["SOM"] > r["rates_Hz"]["E"] for r in ref_rows)
+    mean_e = _mean([r["rates_Hz"]["E"] for r in ref_rows])
+    r3 = {"order_ok_every_seed": order_ok, "mean_E_Hz": mean_e,
+          "complete": ref_complete, "reasons": ref_reasons}
+    r3["pass"] = bool(ref_complete and order_ok and mean_e is not None
+                      and 1.0 <= mean_e <= 3.0)
 
-    by_p = {}
-    for r in per_run:
-        if r["seed"] in (1, 2, 3):  # prereg R4: seeds 1-3 at each p
-            by_p.setdefault(r["p"], []).append(r["oscillates"])
-    p_osc = {p: (len(v) > 0 and all(v)) for p, v in by_p.items()}
-    lo = next((p for p in by_p if abs(p - 0.02) < 1e-12), None)
-    hi = next((p for p in by_p if abs(p - 0.07) < 1e-12), None)
-    osc_ps = sorted(p for p, o in p_osc.items() if o)
-    r4 = {"p_oscillates": {str(p): o for p, o in sorted(p_osc.items())},
-          "smallest_oscillating_p": osc_ps[0] if osc_ps else None}
-    if lo is None or hi is None:
-        r4["pass"] = None
-    else:
-        r4["pass"] = (not p_osc[lo]) and p_osc[hi]
+    low = _rows_at(per_run, R4_LOW_P, R4_SEEDS)
+    high = _rows_at(per_run, REF_P, R4_SEEDS)
+    low_silent = bool(low) and not any(r["oscillates"] for r in low)
+    high_all = bool(high) and all(r["oscillates"] for r in high)
+    p_osc = {}
+    for g in R4_P_GRID:
+        rows = _rows_at(per_run, g, R4_SEEDS)
+        p_osc[g] = bool(rows) and all(r["oscillates"] for r in rows)
+    osc_ps = [g for g in R4_P_GRID if p_osc[g]]
+    r4 = {"p_oscillates": {"%g" % g: p_osc[g] for g in R4_P_GRID},
+          "smallest_oscillating_p": osc_ps[0] if osc_ps else None,
+          "low_p_silent": low_silent, "ref_p_all_oscillate": high_all,
+          "complete": grid_complete, "reasons": grid_reasons}
+    r4["pass"] = bool(grid_complete and low_silent and high_all)
 
-    return {"per_run": per_run, "r1": r1, "r2": r2, "r3": r3, "r4": r4}
+    return {"per_run": per_run, "not_scored": not_scored,
+            "r1": r1, "r2": r2, "r3": r3, "r4": r4}
 
 
 def main(argv=None):
