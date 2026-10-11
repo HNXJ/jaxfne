@@ -3,21 +3,14 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
 from typing import Any
 
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BUNDLE_ROOT = REPO_ROOT / "artifacts" / "protocol_c"
 RECEIPT_PATH = BUNDLE_ROOT / "c2_delay_continuation_receipt.json"
-
-
-def _git_head() -> str:
-    return subprocess.check_output(
-        ["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True
-    ).strip()
 
 
 def load_c2_receipt() -> dict[str, Any]:
@@ -39,7 +32,7 @@ def write_c2_receipt(*, package_head: str | None = None) -> dict[str, Any]:
     receipt: dict[str, Any] = {
         "schema": "jaxfne.protocol_c.c2_delay_continuation_receipt.v1",
         "checkpoint": "C2",
-        "package_head": package_head or _git_head(),
+        "package_head": package_head or _git_head(REPO_ROOT),
         "c2_pass": exit_code == 0,
         "scope": "canonical_model_simulate_delay_state_continuation",
         "equivalence_contract": "Sim(T1+T2)(X0) == Sim(T2)(Sim(T1)(X0)) bit-exact on X,H,B_t,synaptic state",

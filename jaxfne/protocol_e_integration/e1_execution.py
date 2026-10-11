@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from collections import defaultdict
 from typing import Any, Mapping
 
@@ -12,7 +11,7 @@ import numpy as np
 
 import jaxfne as jtfne
 from jaxfne.emitters import _edge_delay_steps_host
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_e_integration.e1_protocol import (
     E1_EXECUTION_RECEIPT_PATH,
     load_e1_spec,
@@ -31,10 +30,6 @@ _EDGE_CLASS_BY_RULE: dict[str, str] = {
     "FF": "FF_A1_to_A2",
     "FB": "FB_A2_to_A1",
 }
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def _layer_names(spec: dict[str, Any]) -> list[str]:
@@ -427,7 +422,7 @@ def run_e1_hierarchy_runtime(*, package_head: str | None = None) -> dict[str, An
         "checkpoint": "E1",
         "status": "FROZEN",
         "write_once": True,
-        "package_head": package_head or _git_head(),
+        "package_head": package_head or _git_head(REPO_ROOT),
         "spec_path": "artifacts/protocol_e_integration/e1_hierarchy_runtime_spec.json",
         "scientific_question": (
             "Can jaxfne execute a two-area laminar hierarchy while preserving "

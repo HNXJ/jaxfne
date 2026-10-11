@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +14,7 @@ from jaxfne.emitters import (
     simulate_edge_recurrent_izhikevich,
     simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery,
 )
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_d_biological_rbs.d1_execution import _build_isolated_circuit, _drive_schedule
 from jaxfne.protocol_d_biological_rbs.d1_protocol import load_d1_spec
 from jaxfne.protocol_d_biological_rbs.d2a_protocol import (
@@ -26,10 +25,6 @@ from jaxfne.protocol_d_biological_rbs.d2a_protocol import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def h_k_f1_analytic(h0: float, t_ms: np.ndarray, *, tau_k_ms: float) -> np.ndarray:
@@ -223,7 +218,7 @@ def run_d2a_autonomous_relaxation(
         "checkpoint": "D2a",
         "status": "FROZEN",
         "write_once": True,
-        "package_head": package_head or _git_head(),
+        "package_head": package_head or _git_head(REPO_ROOT),
         "spec_path": "artifacts/protocol_d_biological_rbs/d2a_autonomous_h_k_relaxation_spec.json",
         "tau_k_ms": tau_k,
         "dynamics": "tau_K * dH_K/dt = 1 - H_K; kappa_K = 0",

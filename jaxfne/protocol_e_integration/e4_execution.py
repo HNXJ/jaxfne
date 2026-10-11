@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, Literal
@@ -15,7 +14,7 @@ import numpy as np
 import jaxfne as jtfne
 from jaxfne.experiment_a.canonical import array_sha256
 from jaxfne.fields import csd_proxy_probe, lfp_proxy_probe, project_laminar_sources
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_e_integration.e1_execution import build_identity_map
 from jaxfne.protocol_e_integration.e2_execution import (
     build_e2_model,
@@ -80,10 +79,6 @@ class E4ObservationResult:
     q_hash_before: str
     q_hash_after: str
     semantic_status: str
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def _digest(obj: Any) -> str:
@@ -534,7 +529,7 @@ def run_e4_observation_composition(*, package_head: str | None = None) -> dict[s
         "checkpoint": "E4",
         "status": "FROZEN",
         "write_once": True,
-        "package_head": package_head or _git_head(),
+        "package_head": package_head or _git_head(REPO_ROOT),
         "spec_path": "artifacts/protocol_e_integration/e4_observation_chain_spec.json",
         "scientific_question": spec["question"],
         "composition_claim": "hierarchy + delays + local RBD + downstream observation without mutating E3 dynamics",

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +16,7 @@ from jaxfne.emitters import (
     simulate_edge_recurrent_izhikevich,
     simulate_edge_recurrent_izhikevich_static_h_k_recovery,
 )
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_d_biological_rbs.d1_protocol import (
     D1_EXECUTION_RECEIPT_PATH,
     d1_h_k_sweep_values,
@@ -26,10 +25,6 @@ from jaxfne.protocol_d_biological_rbs.d1_protocol import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def _build_isolated_circuit(spec: dict[str, Any]) -> tuple[IzhikevichParams, EdgeList]:
@@ -267,7 +262,7 @@ def run_d1_static_expression(
         "checkpoint": "D1",
         "status": "FROZEN",
         "write_once": True,
-        "package_head": package_head or _git_head(),
+        "package_head": package_head or _git_head(REPO_ROOT),
         "spec_path": str(
             (D1_EXECUTION_RECEIPT_PATH.parent / "d1_static_h_k_expression_spec.json").relative_to(REPO_ROOT)
         ),

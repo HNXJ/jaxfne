@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -16,7 +15,7 @@ from jaxfne.emitters import (
     simulate_edge_recurrent_izhikevich_activity_h_k_rbd,
     simulate_edge_recurrent_izhikevich_static_h_k_recovery,
 )
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_d_biological_rbs.d1_execution import _build_isolated_circuit
 from jaxfne.protocol_d_biological_rbs.d1_protocol import load_d1_spec
 from jaxfne.protocol_d_biological_rbs.d2b_protocol import load_d2b_spec
@@ -27,10 +26,6 @@ from jaxfne.protocol_d_biological_rbs.d3_protocol import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def _ms_to_step(t_ms: float, *, dt_ms: float) -> int:
@@ -428,7 +423,7 @@ def run_d3_adaptation_recovery(
         "status": "FROZEN",
         "write_once": True,
         "implementation_authorized": True,
-        "package_head": package_head or _git_head(),
+        "package_head": package_head or _git_head(REPO_ROOT),
         "spec_path": "artifacts/protocol_d_biological_rbs/d3_adaptation_recovery_phenotype_spec.json",
         "n_cells": len(cells),
         "response_window_semantics": build_d3_response_window_overlap_metadata(spec),

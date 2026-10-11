@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 from dataclasses import dataclass
 from typing import Any, Literal
 
@@ -15,7 +14,7 @@ import numpy as np
 import jaxfne as jtfne
 from jaxfne.emitters import simulate_edge_recurrent_izhikevich_owned_h_k_delayed
 from jaxfne.experiment_a.canonical import array_sha256
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_e_integration.e1_execution import build_identity_map
 from jaxfne.protocol_e_integration.e2_execution import build_e2_model, hierarchy_fingerprint
 from jaxfne.protocol_e_integration.e3_execution import (
@@ -69,10 +68,6 @@ class FrozenE5Trajectory:
     traj: FrozenE4Trajectory
     gamma_h_enabled: bool
     observation: dict[str, Any]
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def _population_indices(identity_map: list[dict[str, Any]], owners: list[int]) -> dict[str, list[int]]:
@@ -484,7 +479,7 @@ def run_e5_causal_perturbation(*, package_head: str | None = None) -> tuple[dict
         "checkpoint": "E5",
         "status": "FROZEN",
         "write_once": True,
-        "execution_parent_sha": package_head or _git_head(),
+        "execution_parent_sha": package_head or _git_head(REPO_ROOT),
         "spec_path": "artifacts/protocol_e_integration/e5_causal_perturbation_spec.json",
         "scientific_question": spec["question"],
         "design": {

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -11,10 +10,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 D_CLOSURE_RECEIPT_PATH = (
     REPO_ROOT / "artifacts" / "protocol_d_biological_rbs" / "d_closure_interpretation_receipt.json"
 )
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def load_d_closure_receipt() -> dict[str, Any]:
