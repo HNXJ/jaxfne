@@ -58,6 +58,25 @@ Each sweep runs as a read-only inventory first (opencode or `match-cleaner`), th
 packet per class. A class is gated by: the full suite at 0 failed, the docs build, the
 link check, and the vocabulary audit in check mode.
 
+## First inventory (69bd4274, 2026-10-11)
+
+Without touching tests or public names, 31 files plus 17 in-file items can leave or merge:
+1.80 MB in all, 1.4 % of bytes. The receipts sit in the session scratchpad
+(`sweep/_temp_receipts.txt`).
+
+The volume sits elsewhere, in generated visual assets:
+
+| Area | Size | Content |
+|---|---|---|
+| `artifacts/publication` | 23.7 MB | mostly atlas HTML at 3.4 MB each |
+| `docs/assets` | 22.5 MB | interactive and 3D HTML at 4.7–6.8 MB each |
+| `docs/_static` | 15.4 MB | |
+| `artifacts/tutorials` | 14.9 MB | 3D network HTML, notebooks with outputs |
+
+The −10 % target needs one decision from Hamm. The options are to regenerate these
+assets at docs build, or to move them to release assets. Either way the docs keep their
+inline embeds.
+
 ## Release gate (unchanged)
 
 rc gate, CI green on the SHA, second review, receipt. Tag, main and PyPI only on Hamm's
