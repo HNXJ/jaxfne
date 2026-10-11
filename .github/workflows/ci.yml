@@ -99,6 +99,11 @@ jobs:
         # the API; runs inside broad/release/rc gates too via run_test_gate.
         run: PYTHONPATH=. python scripts/audit_doc_code_integrity.py --check
 
+      - name: Tracked tree-size gate (blobs, budget + caps)
+        # Fails when the tracked tree grows back: over-cap files must be
+        # allow-listed, listed files may not grow >10%, total must fit budget.
+        run: PYTHONPATH=. python scripts/check_tree_size.py --check
+
       - name: Run fast tests (curated dev gate ~90s, viz boundary — reportlab skips)
         if: github.ref != 'refs/heads/main'
         run: |
