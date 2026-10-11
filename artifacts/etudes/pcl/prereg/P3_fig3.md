@@ -1,7 +1,7 @@
 # L1-P3 preregistration: PCL Fig. 3 (simple and complex cell tuning)
 
-Status: draft v2 for Hamm's batch sign-off. It revises v1 after the second review on
-2026-10-11, which found v1 failed. No scored analysis runs before the signature. Pilots
+Status: draft v3 for Hamm's batch sign-off. It revises v1 (FAIL) and v2 (PASS with
+notes) after the second reviews of 2026-10-11. No scored analysis runs before the signature. Pilots
 are allowed and are not scored: timing, determinism and the axis and timing checks of the
 input.
 
@@ -40,12 +40,17 @@ Every numerical criterion below is ours, not the paper's.
     column 40 = (4,4) if ids run column × 64 + depth. That convention is an assumption.
   - The stimulated patch drives several columns; (4,4) is one of the central ones.
   - S3 repeats the analysis on columns (3,3), (3,4) and (4,3).
-- **Complex:** the 32 cells of the complex column whose input zone centre lies nearest
-  simple column (4,4), by the port's geometry. On a tie, all tied columns are used and the
-  count is reported.
-- **Inclusion:** a cell enters a test only if it fires at least 50 spikes over all 1440
-  stimuli used (8 × 18 × 10, trials pooled). If more than half of a set is excluded, every
-  test on that set fails.
+- **Complex:** the 128 cells of complex columns (2,2), (2,3), (3,2) and (3,3).
+  - The rule is geometric: these are the complex columns whose input zone is centred
+    nearest simple column (4,4).
+  - From `pcl_event_ref.py:409-411`, complex column cx pools simple columns cx..cx+3, so
+    its centre lies at cx + 1.5. Columns 2 and 3 tie on both axes.
+  - The paper averages over 32 complex cells. We use the four tied columns rather than pick
+    one of them.
+- **Inclusion:** a cell enters T3 and T4 only if it fires at least 20 spikes at its
+  preferred (ori\*, sf\*), summed over phases 0–9 and both trials. This floor binds,
+  because a typical cell fires about 6 spikes per stimulus. If more than half of a set is
+  excluded, the test fails for that set.
 
 ## Estimands and criteria
 
@@ -56,35 +61,29 @@ Every numerical criterion below is ours, not the paper's.
 - Within a fold, the preference is (ori\*, sf\*), the argmax of the count summed over that
   fold's phases.
 
-### Null
+### Null for T1 and T2
 
-Each cell gets an (ori, sf) preference drawn uniformly at random, 1000 times. The aligned
-population curve is recomputed each time, giving a null distribution for every
-statistic. Random draws are used rather than a permutation across cells, because a
-permutation is no null when the cells of a column share a preference.
+The whole fit-then-score procedure is rerun 1000 times. Each time, the (ori, sf) labels
+of the scored fold are shuffled within each cell. The null therefore contains the same
+argmax selection step as the real analysis.
 
 | Id | Statistic (scored fold) | Pass, for each cell set separately |
 |---|---|---|
-| T1 | Population orientation curve at sf\*, aligned to ori\*. Statistic R_ori = mean response at Δori = 0 / mean at Δori = 90° | R_ori ≥ 1.5 and above the 99th percentile of its null |
-| T2 | Population spatial-frequency curve at ori\*, aligned to sf\*. Statistic R_sf = mean response at Δsf = 0 / mean at \|Δsf\| ≥ 6 | R_sf ≥ 1.5 and above the 99th percentile of its null |
-| T3 | Phase modulation at (ori\*, sf\*) fitted on all phases. Excess modulation per cell, X = PMI − E[PMI under Poisson with the cell's mean count], where PMI = (max − min)/(max + min) over phases 0–9 and the expectation is from 1000 Poisson draws | median X simple ≥ 0.15; median X complex ≤ 0.05; median X simple − median X complex ≥ 0.15 |
-| T4 | Response-time spectra at (ori\*, sf\*, phase\*), trials pooled, as below | simple: A(ω) > A(2ω), with A(ω) above the 99th percentile of its null; complex: A(2ω) > A(ω), with A(2ω) above the 99th percentile of its null |
+| T1 | Population orientation curve at sf\*, aligned to ori\*. R_ori = mean response at Δori = 0 / mean at Δori = 90° | R_ori ≥ 2 and above the 99th percentile of its null |
+| T2 | Population spatial-frequency curve at ori\*, aligned to sf\*. R_sf = mean response at Δsf = 0 / mean at \|Δsf\| ≥ 6 | R_sf ≥ 2 and above the 99th percentile of its null |
+| T3 | Per cell, PMI = (max − min)/(max + min) of the count over phases 0–9 at (ori\*, sf\*), with the preference fitted on all phases and both trials pooled | median PMI simple ≥ 0.3; median PMI complex ≤ 0.5 × median PMI simple |
+| T4 | Per cell, the log ratio L = log(A(2ω)/A(ω)) of its spike train at (ori\*, sf\*, phase\*), trials pooled, as below | median L simple < 0 < median L complex, and median L complex − median L simple above the 99th percentile of a null that permutes cells between the two sets 1000 times |
 
 ### T4 frequency doubling
 
 - **ω** is the grating's contrast-reversal temporal frequency, measured from the input.
-  For counterphase gratings, the summed event rate has its fundamental at 2ω.
-  - So ω = half the summed-event-rate fundamental. It must equal the fundamental of the
-    ON-event train of the single most active pixel, within one frequency bin.
-  - If the two disagree, T4 fails.
-- **Amplitudes:** for each cell, the Fourier amplitude of its spike train (sum of
-  exp(−2πift) over spikes, divided by duration) at ω and 2ω. A(f) is the mean of these
-  amplitudes across the cells in the set.
-- **Null:** 1000 surrogates in which each cell's spikes are placed uniformly at random in
-  the stimulus window, keeping each cell's count.
-
-T3 and T4 use preferences fitted on all phases, because phase is the tested axis. Their
-nulls carry the correction for noise.
+  - It is the fundamental of the ON-event train of the single most active pixel in the
+    stimulus file, searched over 1–3 Hz.
+  - In three test7 files it is 1.98–1.99 Hz (second review).
+  - The window holds about 3.6 cycles, so the frequency resolution is about 0.55 Hz.
+    Amplitudes are therefore evaluated at exactly ω and 2ω, not at FFT bins.
+- **Amplitude:** A(f) = |Σ exp(−2πift)| over a cell's spikes, divided by the duration.
+- T3 and T4 fit preferences on all phases, because phase is the tested axis.
 
 ## Sensitivity (reported, not scored)
 
