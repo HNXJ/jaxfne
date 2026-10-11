@@ -550,7 +550,6 @@ Compression and lanes, open:
 - [H] P3 audit owner calls: benchmark scripts, sync scripts, unwired gates
   (`scripts/lab_balance.py` crashes at `build_edges` on dev), docs pages, manuscript tree,
   archive moves; generated assets (50.7 MB) location.
-- [A] two `artifacts/.lab/*.json` entries name scripts deleted in d883563d.
 - [A] CI dedupe (examples list and wheel smoke in three places): integration lane.
 
 WSL2 CUDA qualification (2026-10-09, jchat p-jaxfne #237–#238, `vwin-claude-sonnet55-jaxfne`): 20-area GPU feasibility test after the 0.5.5 seal. Local receipts only, `scratch/wsl_cuda_2026-10-09/` (gitignored). Not a 0.5.5 claim. Open there: CSD agreement, peak VRAM, one unexplained failed GPU run, and the 20-area test.
