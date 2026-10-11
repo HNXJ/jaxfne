@@ -36,8 +36,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 import numpy as np
 
 import jaxfne as jtfne
-from jaxfne.tasks import get_task
-from jaxfne.tasks.chain import A_LEFT, A_RIGHT
+
+assert "site-packages" not in jtfne.__file__, (
+    "P-025: expected the repo jaxfne on sys.path, not site-packages"
+)
+
+from jaxfne.tasks import get_task  # noqa: E402
+from jaxfne.tasks.chain import A_LEFT, A_RIGHT  # noqa: E402
 
 TASK_DESC, TASK = get_task("chain5")
 CORRIDOR_DESC, CORRIDOR_TASK = get_task("corridor7")

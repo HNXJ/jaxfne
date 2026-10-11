@@ -1,8 +1,13 @@
 """Tests for the Q-learning etude (lane QL). Each test asserts its precondition."""
 
-import numpy as np
+import sys
+from pathlib import Path
 
-from qlearn_jaxfne import (
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+
+import numpy as np  # noqa: E402
+
+from qlearn_jaxfne import (  # noqa: E402
     ALPHA,
     A_LEFT,
     A_RIGHT,
