@@ -34,6 +34,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
 from _figure_common import (
+    _read_json_if_exists,
     save_matplotlib_figure,
     ensure_evidence_dirs,
     repo_root,
@@ -133,15 +134,6 @@ def _structural_scan(nb_path: Path) -> dict[str, Any]:
         "committed_error_count": error_count,
         "has_jaxfne_import": has_jaxfne,
     }
-
-
-def _read_json_if_exists(path: Path) -> dict | None:
-    if not path.is_file():
-        return None
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return None
 
 
 def _load_prior_ed03_receipt(root: Path) -> dict[str, dict]:

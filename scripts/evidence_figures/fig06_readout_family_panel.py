@@ -14,7 +14,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 
-import jax.numpy as jnp
 import matplotlib
 
 matplotlib.use("Agg")
@@ -34,6 +33,8 @@ from jaxfne.fields import (
 )
 
 from _figure_common import (
+    _finite_array,
+    _two_neuron_config,
     save_matplotlib_figure,
     ensure_evidence_dirs,
     repo_root,
@@ -75,29 +76,6 @@ _dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "fig06_readout_family_panel.png"
 
 
-def _two_neuron_config() -> jtfne.Configuration:
-    return (
-        jtfne.configuration()
-        .network(
-            name="two_neuron_ei",
-            kind="coupled_neurons",
-            n=2,
-            cell_types={"E": 0.5, "I": 0.5},
-        )
-        .emitter(family="izhikevich", preset="cortical_eig")
-        .field(
-            domain="laminar_column",
-            conductivity="proxy",
-            boundary="declared_proxy",
-            gauge="mean_zero",
-        )
-        .probe(
-            name="multimodal_two_neuron_ei",
-            modes=["spikes", "V_m", "source", "phi_e", "J_e", "CSD", "LFP"],
-        )
-    )
-
-
 def collect_readouts(signals) -> dict[str, object]:
     """Apply all eight probe operators and return ProbeReadout map."""
     readouts: dict[str, object] = {
@@ -116,12 +94,6 @@ def collect_readouts(signals) -> dict[str, object]:
     readouts["meg_proxy"] = meg_proxy_probe(field_signal)
     readouts["emm_proxy"] = emm_proxy_probe(field_signal)
     return readouts
-
-
-def _finite_array(data) -> bool:
-    if data is None or not hasattr(data, "shape"):
-        return True
-    return bool(jnp.all(jnp.isfinite(jnp.asarray(data))))
 
 
 def _probe_receipt(name: str, readout) -> dict:

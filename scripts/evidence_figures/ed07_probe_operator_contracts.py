@@ -22,7 +22,6 @@ import json
 import platform
 from typing import Any
 
-import jax.numpy as jnp
 import matplotlib
 
 matplotlib.use("Agg")
@@ -43,6 +42,8 @@ from jaxfne.fields import (
 from jaxfne.io import json_safe
 
 from _figure_common import (
+    _finite_array,
+    _two_neuron_config,
     save_matplotlib_figure,
     ensure_evidence_dirs,
     repo_root,
@@ -99,29 +100,6 @@ FIGURE_PATH = _dirs["figures"] / "ed07_probe_operator_contracts.png"
 RECEIPT_PATH = _dirs["outputs"] / "ed07_probe_operator_contracts_receipt.json"
 
 
-def _two_neuron_config() -> jtfne.Configuration:
-    return (
-        jtfne.configuration()
-        .network(
-            name="two_neuron_ei",
-            kind="coupled_neurons",
-            n=2,
-            cell_types={"E": 0.5, "I": 0.5},
-        )
-        .emitter(family="izhikevich", preset="cortical_eig")
-        .field(
-            domain="laminar_column",
-            conductivity="proxy",
-            boundary="declared_proxy",
-            gauge="mean_zero",
-        )
-        .probe(
-            name="multimodal_two_neuron_ei",
-            modes=["spikes", "V_m", "source", "phi_e", "J_e", "CSD", "LFP"],
-        )
-    )
-
-
 def collect_readouts(signals) -> dict[str, object]:
     readouts: dict[str, object] = {
         "spk": spk_probe(signals.spikes),
@@ -139,12 +117,6 @@ def collect_readouts(signals) -> dict[str, object]:
     readouts["meg_proxy"] = meg_proxy_probe(field_signal)
     readouts["emm_proxy"] = emm_proxy_probe(field_signal)
     return readouts
-
-
-def _finite_array(data) -> bool:
-    if data is None or not hasattr(data, "shape"):
-        return True
-    return bool(jnp.all(jnp.isfinite(jnp.asarray(data))))
 
 
 def _json_strict_ok(report: dict) -> bool:

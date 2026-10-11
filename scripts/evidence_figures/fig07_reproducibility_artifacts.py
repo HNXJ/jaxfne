@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 from _figure_common import (
+    _load_checklist,
     save_matplotlib_figure,
     evidence_checklist_path,
     ensure_evidence_dirs,
@@ -83,11 +84,6 @@ def _load_inventory() -> dict:
     from evidence_inventory import build_inventory
 
     return build_inventory()
-
-
-def _load_checklist() -> dict:
-    path = evidence_checklist_path()
-    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _manifest_entry(root: Path, png_name: str) -> dict | None:

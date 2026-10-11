@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
 from _figure_common import (
+    _load_checklist,
     save_matplotlib_figure,
     evidence_checklist_path,
     ensure_evidence_dirs,
@@ -96,11 +97,6 @@ _dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "ed05_manifest_hashes.png"
 MANIFEST_PATH = _dirs["outputs"] / "ed05_manifest_hashes_manifest.json"
 RECEIPT_PATH = _dirs["outputs"] / "ed05_manifest_hashes_receipt.json"
-
-
-def _load_checklist() -> dict:
-    path = evidence_checklist_path()
-    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _load_inventory() -> dict:
