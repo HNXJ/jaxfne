@@ -486,3 +486,77 @@ def test_ar2_fwhm_matches_pole_formula():
     fwhm, peak = cal.measure_fwhm(x[int(round(cal.BURN_S / DT)):])
     assert abs(peak - F_GAMMA) <= 1.0, peak  # precondition: the bump sits at 35 Hz
     assert abs(fwhm - 5.0) <= 0.5, fwhm  # realisation within 10 %
+
+
+# Pinned from the unedited v5 code (kept 3 s) on this machine, from
+# caminos_cal6/pin/pin_kept3_v5_before.json: 5 draws of two rows. Compared exactly.
+PIN_NULL = {
+    "pe": [2.9350866466885486, 2.32366835294268, 3.046495841671252, 3.386943668336916,
+           3.68062483612754],
+    "f_pk": [25.0, 58.0, 57.0, 36.0, 60.0],
+    "floor_psd35": 0.07124590061351634,
+}
+PIN_DETECT = {  # AR(1) tau 30 ms, var 8x, ar2, true PE 10 (theta 5); floor from PIN_NULL
+    "pe": [6.346915749242348, 34.70578305528509, 3.099623279328028, 26.252566399712723,
+           11.699158720489764],
+    "f_pk": [36.0, 35.0, 57.0, 34.0, 34.0],
+    "scale": 0.004344016428606357,
+    "realised_pe": 9.455987020207637,
+    "comp_over_floor": 8.999999999999996,
+}
+
+
+def test_kept_3_reproduces_v5_rows_bit_for_bit():
+    """Kept 3 s, default and explicit, reproduces the pinned v5 rows exactly (5 draws, 2 rows)."""
+    label, tau, c = cal.floors()[6]
+    assert label == "AR(1) tau 30 ms, var 8x", label  # precondition: the pinned floor
+    for kw in ({}, {"kept_s": 3.0}):
+        null = cal.run_null(6, label, tau, c, 5, **kw)
+        assert null["pe"].tolist() == PIN_NULL["pe"], null["pe"]
+        assert null["f_pk"].tolist() == PIN_NULL["f_pk"], null["f_pk"]
+        assert null["floor_psd35"] == PIN_NULL["floor_psd35"], null["floor_psd35"]
+        res = cal.run_component(6, tau, c, "ar2", 10.0, null["floor_psd35"], 5,
+                                cal.STAGE_DETECT, (6, 1), **kw)
+        assert res["pe"].tolist() == PIN_DETECT["pe"], res["pe"]
+        assert res["f_pk"].tolist() == PIN_DETECT["f_pk"], res["f_pk"]
+        assert res["scale"] == PIN_DETECT["scale"], res["scale"]
+        assert res["realised_pe"] == PIN_DETECT["realised_pe"], res["realised_pe"]
+        assert res["comp_over_floor"] == PIN_DETECT["comp_over_floor"], res["comp_over_floor"]
+
+
+def test_kept_10_gives_19_welch_segments():
+    """Kept 10 s is 100000 steps and 19 scorer segments (1 s Hann, 50 % overlap); 3 s gives 5."""
+    nperseg = int(round(ca.WIN_S / DT))
+    for kept_s, n_seg in ((3.0, 5), (10.0, 19)):
+        _, e_rate = cal.synth_e(np.random.default_rng([cal.STAGE_NULL, 0, 0]), None, None,
+                                kept_s=kept_s)
+        assert e_rate.size == int(round(kept_s / DT)), (kept_s, e_rate.size)
+        starts = range(0, e_rate.size - nperseg + 1, nperseg // 2)
+        assert len(starts) == n_seg, (kept_s, len(starts))
+        unit = cal.component_unit("ar2", np.random.default_rng([3]), kept_s=kept_s)
+        assert unit.size == e_rate.size, (kept_s, unit.size)
+
+
+def test_main_threads_kept_s_to_every_synthetic_draw(tmp_path, monkeypatch):
+    """--kept-s 10 reaches every null draw and the component draws; a main that drops it fails."""
+    seen = []
+    real_null = cal.run_null
+
+    class _Stop(Exception):
+        pass
+
+    def spy_null(*a, **kw):
+        seen.append(("null", kw.get("kept_s")))
+        return real_null(*a, **kw)
+
+    def spy_component(*a, **kw):
+        seen.append(("component", kw.get("kept_s")))
+        raise _Stop
+
+    monkeypatch.setattr(cal, "run_null", spy_null)
+    monkeypatch.setattr(cal, "run_component", spy_component)
+    monkeypatch.setattr(cal, "select_theta", lambda fp_table: 5.0)  # 1-draw FP table is not the test
+    with pytest.raises(_Stop):
+        cal.main(["--out", str(tmp_path), "--draws", "1", "--power-draws", "1", "--kept-s", "10"])
+    expected = [("null", 10.0)] * len(cal.floors()) + [("component", 10.0)]
+    assert seen == expected, seen

@@ -22,8 +22,10 @@ the rule is not restated here.
   |f_pk - 35| <= 2 Hz; gate >= 95 % on all 14 rows.
 * Power curve (not gated): true PE 2, 3, 4, 6, 8 on every floor and form.
 
-Run: python calibrate_oscillation.py --out DIR [--draws N] [--power-draws M]
+Run: python calibrate_oscillation.py --out DIR [--draws N] [--power-draws M] [--kept-s S]
 Smoke: --draws 10 --power-draws 10 (prints SMOKE; not a gate).
+--kept-s (default 3, the v5 gate) sets the kept window in s on every synthetic draw;
+any other value prints DIAGNOSTIC and is not the prereg gate.
 """
 
 from __future__ import annotations
@@ -235,19 +237,19 @@ def _empty_fields(label, draws):
             "edge_ok": np.zeros(draws, dtype=bool), "f_pk": np.zeros(draws)}
 
 
-def run_null(row, label, tau, c, draws):
+def run_null(row, label, tau, c, draws, kept_s=KEPT_S):
     """Null floor: peak fields per draw and the mean floor PSD at 35 Hz over the draws."""
     res = _empty_fields(label, draws)
     psd_sum = 0.0
     for d in range(draws):
-        _, e_rate = synth_e(np.random.default_rng([STAGE_NULL, row, d]), tau, c)
+        _, e_rate = synth_e(np.random.default_rng([STAGE_NULL, row, d]), tau, c, kept_s)
         _peak_fields(res, d, ca.spectral_peak(e_rate, DT))
         psd_sum += psd35(e_rate)
     res["floor_psd35"] = psd_sum / draws
     return res
 
 
-def component_draws(row, tau, c, form, stage, key, draws):
+def component_draws(row, tau, c, form, stage, key, draws, kept_s=KEPT_S):
     """(floor E rate, unit component) per draw.
 
     The floor is null draw ``d`` of its row (the seeds of ``run_null``), so each
@@ -256,13 +258,14 @@ def component_draws(row, tau, c, form, stage, key, draws):
     """
     pairs = []
     for d in range(draws):
-        _, e_floor = synth_e(np.random.default_rng([STAGE_NULL, row, d]), tau, c)
-        unit = component_unit(form, np.random.default_rng([stage, *key, d]))
+        _, e_floor = synth_e(np.random.default_rng([STAGE_NULL, row, d]), tau, c, kept_s)
+        unit = component_unit(form, np.random.default_rng([stage, *key, d]), kept_s)
         pairs.append((e_floor, unit))
     return pairs
 
 
-def run_component(row, tau, c, form, pe_target, floor_psd35, draws, stage, key, peaks=True):
+def run_component(row, tau, c, form, pe_target, floor_psd35, draws, stage, key, peaks=True,
+                  kept_s=KEPT_S):
     """Floor plus a 35 Hz component whose mean PSD at 35 Hz is (pe_target - 1) x floor_psd35.
 
     ``floor_psd35`` is the floor's mean PSD at 35 Hz over the 200 null draws (the
@@ -270,7 +273,7 @@ def run_component(row, tau, c, form, pe_target, floor_psd35, draws, stage, key, 
     floor) over that reference. ``peaks=False`` skips the spectral-peak fits
     (scaling checks only).
     """
-    pairs = component_draws(row, tau, c, form, stage, key, draws)
+    pairs = component_draws(row, tau, c, form, stage, key, draws, kept_s)
     unit_psd = float(np.mean([psd35(u) for _, u in pairs]))
     scale = math.sqrt((pe_target - 1.0) * floor_psd35 / unit_psd)
     res = _empty_fields(form, draws)
@@ -353,13 +356,20 @@ def main(argv=None):
     ap.add_argument("--out", required=True, help="directory for the rows JSONL and calibration_v5.md")
     ap.add_argument("--draws", type=int, default=DRAWS)
     ap.add_argument("--power-draws", type=int, default=POWER_DRAWS)
+    ap.add_argument("--kept-s", type=float, default=KEPT_S,
+                    help="kept window in s (default 3, the v5 gate); other values are diagnostics")
     args = ap.parse_args(argv)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    tag = "" if (args.draws, args.power_draws) == (DRAWS, POWER_DRAWS) else "SMOKE, not a gate: "
+    kept_s = args.kept_s
+    tag = ""
+    if (args.draws, args.power_draws) != (DRAWS, POWER_DRAWS):
+        tag += "SMOKE, not a gate: "
+    if kept_s != KEPT_S:
+        tag += "DIAGNOSTIC kept %g s, not the v5 gate: " % kept_s
     meta = ("NE=%d, dt=%g s, kept %g s, R0=%g Hz; draws=%d (power %d); theta grid %s; "
             "FP <= %g %%; detection >= %g %% with |f_pk - 35| <= %g Hz; realised within %g %%."
-            % (NE, DT, KEPT_S, R0, args.draws, args.power_draws, THETA_GRID,
+            % (NE, DT, kept_s, R0, args.draws, args.power_draws, THETA_GRID,
                100 * FP_MAX, 100 * DETECT_MIN, FREQ_TOL_HZ, 100 * REALISED_TOL))
     print(tag + meta, flush=True)
     with open(out / ROWS_NAME, "w") as rows:
@@ -370,7 +380,7 @@ def main(argv=None):
 
         null = []
         for i, (label, tau, c) in enumerate(floors()):
-            res = run_null(i, label, tau, c, args.draws)
+            res = run_null(i, label, tau, c, args.draws, kept_s=kept_s)
             null.append(res)
             emit({"stage": "null", "floor": label, "draws": args.draws,
                   "floor_psd35": res["floor_psd35"],
@@ -388,7 +398,7 @@ def main(argv=None):
         for i, (label, tau, c) in enumerate(floors()):
             for j, form in enumerate(FORMS):
                 res = run_component(i, tau, c, form, 2.0 * theta, null[i]["floor_psd35"],
-                                    args.draws, STAGE_DETECT, (i, j))
+                                    args.draws, STAGE_DETECT, (i, j), kept_s=kept_s)
                 rec = component_record(label, res, theta, args.draws)
                 rec["stage"] = "detect"
                 rec["pass"] = bool(rec["rate"] >= DETECT_MIN - 1e-12 and rec["realised_ok"])
@@ -399,7 +409,8 @@ def main(argv=None):
             for j, form in enumerate(FORMS):
                 for k, pe in enumerate(POWER_PE):
                     res = run_component(i, tau, c, form, pe, null[i]["floor_psd35"],
-                                        args.power_draws, STAGE_POWER, (i, j, k))
+                                        args.power_draws, STAGE_POWER, (i, j, k),
+                                        kept_s=kept_s)
                     rec = component_record(label, res, theta, args.power_draws)
                     rec["stage"] = "power"
                     power.append(rec)
