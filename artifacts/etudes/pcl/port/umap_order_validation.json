@@ -1,0 +1,32 @@
+{
+ "criterion": {
+  "gap_min": 0.1,
+  "mean_r_min": 0.2,
+  "strict_best_fraction_min": 0.75
+ },
+ "tdi": {
+  "map": "tdi",
+  "neurons": 5184,
+  "finite": 5184,
+  "length_mismatch": 0,
+  "mean_r_emulated": 0.007432495331621383,
+  "mean_r_ascending": -0.002620649609454262,
+  "mean_r_descending": -0.005839449394647983,
+  "gap_E_minus_best_alternative": 0.010053144941075644,
+  "fraction_E_strict_best": 0.4880401234567901,
+  "clearly_wins": false
+ },
+ "li": {
+  "map": "li",
+  "neurons": 5184,
+  "finite": 5184,
+  "length_mismatch": 0,
+  "mean_r_emulated": -0.07560641871344634,
+  "mean_r_ascending": 0.002008184256759635,
+  "mean_r_descending": -0.015109966225624898,
+  "gap_E_minus_best_alternative": -0.07761460297020598,
+  "fraction_E_strict_best": 0.02546296296296296,
+  "clearly_wins": false
+ },
+ "emulated_order_cache_entries": 162
+}

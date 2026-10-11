@@ -18,7 +18,8 @@ Deviations from the C++ (also in the port report):
 - Weights load only in the .npy layout that SpikingNetwork::loadWeights reads (.npz is not
   reached by that path). Lateral (<i>li.npy) and top-down (<i>tdi.npy) maps are WeightMap
   (std::unordered_map): the file holds values in the map's iteration order (WeightMap.cpp:131-145),
-  which the C++ does not fix and the files do not record. They are refused when a file exists.
+  which the files do not record. They load in the order libstdcxx_umap.iteration_order gives for the
+  insertion sequence (ascending index). That order is a declared assumption (libstdcxx_umap.py docstring).
 - "static" in layerInhibitions is read as "local" (declared alias). The trained configs use
   "static"; the C++ checks only "local" (SpikingNetwork.cpp:351), so it runs them without local
   inhibition.
@@ -54,6 +55,11 @@ if sys.path[:1] != [_ROOT]:
 
 import h5py  # noqa: E402
 import numpy as np  # noqa: E402
+
+_HERE = str(Path(__file__).resolve().parent)
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
+import libstdcxx_umap as um  # noqa: E402
 
 E3 = 1000  # Config.hpp:25, microseconds per millisecond
 E6 = 1000000  # Config.hpp:26
@@ -475,11 +481,9 @@ class PCLEventRef:
         d0 = wdir / "0"
         if (d0 / "0.npy").is_file():
             if self.lat_on and (d0 / "0li.npy").is_file():
-                raise NotImplementedError("lateral weight files exist: their order is the std::unordered_map "
-                                          "iteration order (WeightMap.cpp:131-145), not recorded in the files")
+                self._load_inhibition_maps(d0, "li", self.lat_mask, self.LAT)  # loadLateralInhibitionWeights
             if self.td_on and (d0 / "0tdi.npy").is_file():
-                raise NotImplementedError("top-down weight files exist: their order is the std::unordered_map "
-                                          "iteration order (WeightMap.cpp:131-145), not recorded in the files")
+                self._load_inhibition_maps(d0, "tdi", self.td_mask, self.TD)  # loadTopDownInhibitionWeights
             for k in range(self.ND):  # patch sharing: neurons 0..ND-1 at (0,0), SpikingNetwork.cpp:666-678
                 shape = self.w_s[k].shape
                 self.w_s[k] = _npy(d0 / f"{k}.npy", self.w_s[k].size).reshape(shape)
@@ -502,6 +506,26 @@ class PCLEventRef:
                 self.w_c[cz] = w
                 self.wi_c[cz] = wi
             self._load_states(d1, self.c_cells)
+
+    def _load_inhibition_maps(self, d: Path, suffix: str, mask: np.ndarray, target: np.ndarray) -> None:
+        """Lateral (<n>li.npy) or top-down (<n>tdi.npy) map of every simple cell n, one file per cell.
+
+        WeightMap::loadNumpyFile gives the t-th file value to the t-th node of the map in iteration
+        order (WeightMap.cpp:139-145). Cell n's map has one key per source in mask[n], inserted in
+        ascending index (SpikingNetwork.cpp:409-442, :368-400), so its t-th node is
+        libstdcxx_umap.iteration_order(keys)[t]. Rows are targets: target[n, key] is the weight from
+        key to n, which is how the pure path (LAT[m, n], TD[s, c]) and the numba path read them.
+        The order rests on a declared assumption (libstdcxx_umap.py docstring).
+        """
+        orders: dict[bytes, np.ndarray] = {}  # the order depends only on the key set: 81 distinct sets
+        for n in range(self.NS):
+            keys = np.flatnonzero(mask[n])
+            sig = keys.tobytes()
+            order = orders.get(sig)
+            if order is None:
+                order = np.asarray(um.iteration_order(keys.tolist()), dtype=np.int64)
+                orders[sig] = order
+            target[n, order] = _npy(d / f"{n}{suffix}.npy", keys.size)
 
     @staticmethod
     def _load_states(d: Path, cells: list) -> None:

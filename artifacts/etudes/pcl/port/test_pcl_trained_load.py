@@ -1,8 +1,8 @@
 """Acceptance tests for loading the trained PCL network and the numba run path (port stage A).
 
 Spec: artifacts/etudes/pcl/PORT_SPEC.md. Reference: pcl_event_ref.py (pure Python), pcl_event_ref_numba.py.
-Blocked items are strict xfails: the lateral and top-down maps (0li.npy, 0tdi.npy) of the trained
-network have an order the files do not record (pcl_event_ref.py docstring).
+The lateral and top-down maps (<n>li.npy, <n>tdi.npy) of the trained network load in the emulated
+libstdc++ order (libstdcxx_umap.py; pcl_event_ref.py docstring), so the full-network tests run unmarked.
 """
 
 from __future__ import annotations
@@ -40,8 +40,6 @@ TEST7 = Path("F:/warehouse/pcl/data/PCL_datasets_and_networks/grating/counterpha
 SHAPES = Path("F:/warehouse/pcl/code/Predictive-Coding-Light_code/PCL_C++/data/events/shapes.h5")
 # Trained weights with the lateral and top-down maps dropped (test ablation, not the authors' network).
 ABLATE = [["static"], ["static"]]
-BLOCKED = ("lateral (0li.npy) and top-down (0tdi.npy) map order is unresolved: WeightMap iterates an "
-           "std::unordered_map (WeightMap.cpp:131-145); see the port report")
 
 
 def _grating_events(n: int):
@@ -122,21 +120,32 @@ def test_a_round_trip_three_named_files_and_state():
     assert net.s_cells[5].decay == float(st["learning_decay"])
 
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason=BLOCKED)
 def test_a_full_trained_network_loads():
     net = ref.PCLEventRef(CSTDP3, learning=False)
     assert net.lat_on and net.td_on
     assert net.LAT.shape == (net.NS, net.NS) and net.TD.shape == (net.NS, net.NC)
+    w = CSTDP3 / "weights" / "0"
+    for n in (0, 2600):  # a corner cell and an interior cell: each file holds exactly its map's values
+        li, tdi = np.load(w / f"{n}li.npy"), np.load(w / f"{n}tdi.npy")
+        assert np.array_equal(np.sort(net.LAT[n, net.lat_mask[n]]), np.sort(li)), f"li of cell {n}"
+        assert np.array_equal(np.sort(net.TD[n, net.td_mask[n]]), np.sort(tdi)), f"tdi of cell {n}"
+        assert np.all(net.LAT[n, ~net.lat_mask[n]] == 0) and np.all(net.TD[n, ~net.td_mask[n]] == 0)
 
 
 # ----- (b) grating stimulus, trained weights ----------------------------------------------------
 
-@pytest.mark.xfail(strict=True, raises=NotImplementedError, reason=BLOCKED)
-def test_b_cstdp3_full_network_on_100k_grating_events_matches_numba():
+def test_b_cstdp3_full_network_on_100k_grating_events_matches_numba(capsys):
     t, x, y, p = _grating_events(100000)
     py, nbn, sec_py, sec_nb = _run_both(
         lambda: ref.PCLEventRef(CSTDP3, learning=False), t, x, y, p)
     _assert_same_state(py, nbn)
+    n_simple = sum(len(c.spikes) for c in py.s_cells)
+    n_complex = sum(len(c.spikes) for c in py.c_cells)
+    assert n_simple > 0 and n_complex > 0, "fixture must spike in both layers"
+    with capsys.disabled():
+        print(f"\n[b-full] cSTDP3 full network, 1e5 grating events: simple spikes {n_simple}, "
+              f"complex spikes {n_complex}")
+        print(f"[b-full] pure {sec_py:.2f} s per 1e5 events; numba {sec_nb:.3f} s per 1e5 events")
 
 
 def test_b_trained_weights_ablated_100k_grating_pure_vs_numba(capsys):
