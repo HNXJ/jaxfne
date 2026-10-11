@@ -535,18 +535,17 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
 
 ## Open work outside the release stacks (after 0.5.5 unless a trigger fires)
 
-Signature batch (2026-10-11, second review PASS with notes, fixes applied):
-PCL Fig. 3 P3 v4 (`pcl-port` cd18a693, `artifacts/etudes/pcl/prereg/P3_fig3.md`) and
-CAMINOS v6 (`l2-caminos` d26f2631, `artifacts/etudes/caminos/PREREG_P3.md`, calibration
-PASS at θ = 4, weakest row 190/200). [H] sign both; then score Fig. 3 and S1 (both runs
-complete, 3168/3168, failed 0) and run the CAMINOS scored seeds on the GPU after a jchat claim.
+Signed by Hamm 2026-10-11 (batch): PCL Fig. 3 P3 v4 (`pcl-port` f6d9dc38) and CAMINOS v6
+(`l2-caminos` e2501025), both branches on GitHub.
+- [A] score Fig. 3 and S1 (`fig3_analysis.py --signed`, outputs `F:/warehouse/pcl/scores/`).
+- [A] CAMINOS scored seeds (R1–R4) and S1–S2 on the WSL2 GPU after a jchat claim; S3–S5
+  need driver options first.
 
 Compression and lanes, open:
-- [A] tasks-proto (`C:/workspace/w_tasks`): task registry + Q-learning; review PASS with
-  notes; corridor7 task added so the state code matters; then integrate.
-- [H] dense backend drops `connections()` rules silently (edge counts 3250 vs 3219,
-  identical spikes; `_runtime_config.py:76`, `_model_simulate.py:650`): honour or refuse
-  is a public-semantics call (B3 class).
+- [A] dense backend refuses `connections()` rules it would ignore (Hamm 2026-10-11:
+  refuse explicitly; was a silent drop, edge counts 3250 vs 3219 with identical spikes);
+  opencode packet with a failing test first, then second review.
+- Kept by Hamm 2026-10-11: `artifacts/legacy/AGENTS.md`.
 - [H] P3 audit owner calls: benchmark scripts, sync scripts, unwired gates
   (`scripts/lab_balance.py` crashes at `build_edges` on dev), docs pages, manuscript tree,
   archive moves; generated assets (50.7 MB) location.
