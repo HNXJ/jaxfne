@@ -1,6 +1,8 @@
 # L1-P3 preregistration: PCL Fig. 3 (simple and complex cell tuning)
 
-Status: draft v4 for Hamm's batch sign-off. It revises v1 (FAIL), v2 (PASS with notes)
+Status: **signed v4**, Hamm, 2026-10-11 (batch with CAMINOS v6), on the text at `pcl-port`
+cd18a693. Scored analysis may run from here; any later change to this file is an amendment
+with its own signature. It revises v1 (FAIL), v2 (PASS with notes)
 and v3 (PASS with notes, three blocking) after the reviews of 2026-10-11. No scored analysis runs before the signature. Pilots
 are allowed and are not scored: timing, determinism and the axis and timing checks of the
 input.
