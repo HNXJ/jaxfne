@@ -1208,172 +1208,48 @@ def _simulate_edge_recurrent_izhikevich_delayed(
                 int(n_steps), dtype=jnp.int32
             )
 
-    if record_edge_current or record_current_trace or record_u_trace:
+    record_traces = record_edge_current or record_current_trace or record_u_trace
+    has_schedule = drive_schedule is not None
+    if has_schedule:
+        sched = drive_schedule.astype(jdtype)
 
-        def step_delayed(carry, xs_t):
-            t_idx, noise_t = xs_t
-            v, u, prev_spikes, syn_state, spike_hist = carry
-            edge_current = weight * syn_state
-            syn = _segment_sum(edge_current, post, n_neurons)
-            current_native = drive + syn + noise_coef * noise_t
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
-            v_next = v + dt * dv
-            u_next = u + dt * du
-            v_next = jnp.where(s_mask > 0.5, v_next, c)
-            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
-            spikes = spikes_bool.astype(jdtype)
-            v_reset = jnp.where(spikes_bool, c, v_next)
-            u_reset = jnp.where(spikes_bool, u_next + d, u_next)
-            presyn = _delayed_presynaptic_spikes(spikes, spike_hist, t_idx, pre, delay_steps)
-            syn_next = syn_state * decay + presyn
-            slot = jnp.mod(t_idx, bufsize)
-            spike_hist_next = spike_hist.at[slot].set(spikes)
-            source_proxy = _source_proxy_from_components(
-                current_native, spikes, source_scale, dtype=jdtype
-            )
-            return (v_reset, u_reset, spikes, syn_next, spike_hist_next), (
-                v_reset,
-                spikes,
-                source_proxy,
-                presyn,
-                edge_current,
-                current_native,
-                u_reset,
-            )
-
-        if drive_schedule is not None:
-            sched = drive_schedule.astype(jdtype)
-
-            def step_delayed_sched(carry, xs_t):
-                t_idx, sched_t, noise_t = xs_t
-                v, u, prev_spikes, syn_state, spike_hist = carry
-                edge_current = weight * syn_state
-                syn = _segment_sum(edge_current, post, n_neurons)
-                current_native = drive + sched_t + syn + noise_coef * noise_t
-                dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
-                v_next = v + dt * dv
-                u_next = u + dt * du
-                v_next = jnp.where(s_mask > 0.5, v_next, c)
-                spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
-                spikes = spikes_bool.astype(jdtype)
-                v_reset = jnp.where(spikes_bool, c, v_next)
-                u_reset = jnp.where(spikes_bool, u_next + d, u_next)
-                presyn = _delayed_presynaptic_spikes(spikes, spike_hist, t_idx, pre, delay_steps)
-                syn_next = syn_state * decay + presyn
-                slot = jnp.mod(t_idx, bufsize)
-                spike_hist_next = spike_hist.at[slot].set(spikes)
-                source_proxy = _source_proxy_from_components(
-                    current_native, spikes, source_scale, dtype=jdtype
-                )
-                return (v_reset, u_reset, spikes, syn_next, spike_hist_next), (
-                    v_reset,
-                    spikes,
-                    source_proxy,
-                    presyn,
-                    edge_current,
-                    current_native,
-                    u_reset,
-                )
-
-            (
-                final,
-                (
-                    voltages,
-                    spikes,
-                    sources,
-                    presyn_trace,
-                    edge_current_trace,
-                    current_trace,
-                    u_trace,
-                ),
-            ) = jax.lax.scan(
-                step_delayed_sched,
-                init,
-                xs=(step_indices, sched, bulk_noise),
-            )
+    def step_delayed(carry, xs_t):
+        if has_schedule:
+            t_idx, sched_t, noise_t = xs_t
         else:
-            (
-                final,
-                (
-                    voltages,
-                    spikes,
-                    sources,
-                    presyn_trace,
-                    edge_current_trace,
-                    current_trace,
-                    u_trace,
-                ),
-            ) = jax.lax.scan(step_delayed, init, xs=(step_indices, bulk_noise))
-    else:
-
-        def step_delayed(carry, xs_t):
             t_idx, noise_t = xs_t
-            v, u, prev_spikes, syn_state, spike_hist = carry
-            edge_current = weight * syn_state
-            syn = _segment_sum(edge_current, post, n_neurons)
-            current_native = drive + syn + noise_coef * noise_t
-            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
-            v_next = v + dt * dv
-            u_next = u + dt * du
-            v_next = jnp.where(s_mask > 0.5, v_next, c)
-            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
-            spikes = spikes_bool.astype(jdtype)
-            v_reset = jnp.where(spikes_bool, c, v_next)
-            u_reset = jnp.where(spikes_bool, u_next + d, u_next)
-            presyn = _delayed_presynaptic_spikes(spikes, spike_hist, t_idx, pre, delay_steps)
-            syn_next = syn_state * decay + presyn
-            slot = jnp.mod(t_idx, bufsize)
-            spike_hist_next = spike_hist.at[slot].set(spikes)
-            source_proxy = _source_proxy_from_components(
-                current_native, spikes, source_scale, dtype=jdtype
-            )
-            return (v_reset, u_reset, spikes, syn_next, spike_hist_next), (
-                v_reset,
-                spikes,
-                source_proxy,
-                presyn,
-            )
-
-        if drive_schedule is not None:
-            sched = drive_schedule.astype(jdtype)
-
-            def step_delayed_sched(carry, xs_t):
-                t_idx, sched_t, noise_t = xs_t
-                v, u, prev_spikes, syn_state, spike_hist = carry
-                edge_current = weight * syn_state
-                syn = _segment_sum(edge_current, post, n_neurons)
-                current_native = drive + sched_t + syn + noise_coef * noise_t
-                dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
-                v_next = v + dt * dv
-                u_next = u + dt * du
-                v_next = jnp.where(s_mask > 0.5, v_next, c)
-                spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
-                spikes = spikes_bool.astype(jdtype)
-                v_reset = jnp.where(spikes_bool, c, v_next)
-                u_reset = jnp.where(spikes_bool, u_next + d, u_next)
-                presyn = _delayed_presynaptic_spikes(spikes, spike_hist, t_idx, pre, delay_steps)
-                syn_next = syn_state * decay + presyn
-                slot = jnp.mod(t_idx, bufsize)
-                spike_hist_next = spike_hist.at[slot].set(spikes)
-                source_proxy = _source_proxy_from_components(
-                    current_native, spikes, source_scale, dtype=jdtype
-                )
-                return (v_reset, u_reset, spikes, syn_next, spike_hist_next), (
-                    v_reset,
-                    spikes,
-                    source_proxy,
-                    presyn,
-                )
-
-            final, (voltages, spikes, sources, presyn_trace) = jax.lax.scan(
-                step_delayed_sched,
-                init,
-                xs=(step_indices, sched, bulk_noise),
-            )
+        v, u, prev_spikes, syn_state, spike_hist = carry
+        edge_current = weight * syn_state
+        syn = _segment_sum(edge_current, post, n_neurons)
+        if has_schedule:
+            current_native = drive + sched_t + syn + noise_coef * noise_t
         else:
-            final, (voltages, spikes, sources, presyn_trace) = jax.lax.scan(
-                step_delayed, init, xs=(step_indices, bulk_noise)
-            )
+            current_native = drive + syn + noise_coef * noise_t
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        v_next = v + dt * dv
+        u_next = u + dt * du
+        v_next = jnp.where(s_mask > 0.5, v_next, c)
+        spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
+        spikes = spikes_bool.astype(jdtype)
+        v_reset = jnp.where(spikes_bool, c, v_next)
+        u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+        presyn = _delayed_presynaptic_spikes(spikes, spike_hist, t_idx, pre, delay_steps)
+        syn_next = syn_state * decay + presyn
+        slot = jnp.mod(t_idx, bufsize)
+        spike_hist_next = spike_hist.at[slot].set(spikes)
+        source_proxy = _source_proxy_from_components(
+            current_native, spikes, source_scale, dtype=jdtype
+        )
+        ys = (v_reset, spikes, source_proxy, presyn)
+        if record_traces:
+            ys = ys + (edge_current, current_native, u_reset)
+        return (v_reset, u_reset, spikes, syn_next, spike_hist_next), ys
+
+    xs = (step_indices, sched, bulk_noise) if has_schedule else (step_indices, bulk_noise)
+    final, ys = jax.lax.scan(step_delayed, init, xs=xs)
+    voltages, spikes, sources, presyn_trace = ys[:4]
+    if record_traces:
+        edge_current_trace, current_trace, u_trace = ys[4:]
 
     final_state = {
         "v": final[0],
