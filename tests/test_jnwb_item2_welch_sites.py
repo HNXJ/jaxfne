@@ -1,16 +1,22 @@
 """jnwb short-list item 2: plain Welch sites route through ``welch_psd`` bit-identically.
 
-Each case recomputes the site's exact ``scipy.signal.welch`` call on fixed
-seeded inputs and asserts ``np.array_equal`` against ``welch_psd`` (exact;
-both make the same scipy call). Passes before the rewire (contract holds)
-and after (outputs unchanged). Fixture asserts nonzero power so the
-comparison is not vacuous.
+Each site test calls the public function that contains the site on a fixed
+seeded input, records the ``welch_psd`` call the site makes (shape, fs,
+nperseg, input and output), and checks it against ``scipy.signal.welch``
+called the pre-rewire way (exact; same scipy call). A mutated nperseg at a
+site fails that site's test. Fixtures assert nonzero power so the comparison
+is not vacuous. The ``_check`` cases pin the ``welch_psd`` contract for the
+clamp and proxy paths.
 """
 
+from types import SimpleNamespace
+
 import numpy as np
+import pytest
 from scipy import signal as _signal
 
 from jaxfne.fields.proxy import cross_area_coherence, spectrolaminar_psd
+from jaxfne.vis import core as _core
 from jaxfne.vis.core import welch_psd
 
 
@@ -30,25 +36,142 @@ def _check(site, x, fs, nperseg):
     assert np.array_equal(np.asarray(gpxx), np.asarray(epxx)), site
 
 
-def test_spectra_psd_site():
+@pytest.fixture
+def agg():
+    """Matplotlib on the Agg backend; skips without matplotlib; closes figures after."""
+    mpl = pytest.importorskip("matplotlib")
+    mpl.use("Agg")
+    yield
+    _core.close_all()
+
+
+def _spy_welch(monkeypatch, owner, calls):
+    """Replace ``owner.welch_psd`` with a recorder that runs the real ``welch_psd``."""
+    real = welch_psd
+
+    def spy(x, fs_hz, *, nperseg=256, freq_max_hz=None):
+        arr = np.array(x, copy=True)
+        freqs, pxx = real(x, fs_hz, nperseg=nperseg, freq_max_hz=freq_max_hz)
+        calls.append(
+            {
+                "shape": arr.shape,
+                "fs": float(fs_hz),
+                "nperseg": nperseg,
+                "x": arr,
+                "freqs": np.array(freqs, copy=True),
+                "pxx": np.array(pxx, copy=True),
+            }
+        )
+        return freqs, pxx
+
+    monkeypatch.setattr(owner, "welch_psd", spy)
+
+
+def _assert_site(calls, site, *, shape, fs, nperseg):
+    """Exactly one welch_psd call at ``site`` with this shape, fs and nperseg, whose
+    output equals scipy.signal.welch called the pre-rewire way (nperseg clamped to T)."""
+    assert len(calls) == 1, f"{site}: expected one welch_psd call, got {len(calls)}"
+    call = calls[0]
+    assert call["shape"] == shape, f"{site}: input shape {call['shape']} != {shape}"
+    assert call["fs"] == fs, f"{site}: fs {call['fs']} != {fs}"
+    assert call["nperseg"] == nperseg, f"{site}: nperseg {call['nperseg']} != {nperseg}"
+    ef, epxx = _signal.welch(call["x"], fs=fs, axis=0, nperseg=int(min(nperseg, shape[0])))
+    assert np.asarray(epxx).sum() > 0, f"{site}: fixture must carry nonzero power"
+    assert np.array_equal(call["freqs"], np.asarray(ef)), site
+    assert np.array_equal(call["pxx"], np.asarray(epxx)), site
+
+
+def test_spectra_psd_site(monkeypatch, agg):
+    # spectra.py psd() holds the site (welch_psd nperseg=256).
+    from jaxfne.vis import spectra
+
+    calls = []
+    _spy_welch(monkeypatch, spectra, calls)
     for dtype in (np.float64, np.float32):
-        _check("spectra.py:75", _fixture_2d(dtype), 10000.0, 256)
+        calls.clear()
+        x = _fixture_2d(dtype)
+        spectra.psd(x, dt_ms=0.1)
+        _assert_site(calls, "spectra.py psd", shape=x.shape, fs=1000.0 / 0.1, nperseg=256)
 
 
-def test_fields_spectrolaminar_site():
+def test_fields_spectrolaminar_site(monkeypatch, agg):
+    # fields.py spectrolaminar() holds the site (welch_psd nperseg=256).
+    from jaxfne.vis import fields
+
+    calls = []
+    _spy_welch(monkeypatch, fields, calls)
     for dtype in (np.float64, np.float32):
-        _check("fields.py:162", _fixture_2d(dtype), 20000.0, 256)
+        calls.clear()
+        lfp = _fixture_2d(dtype)
+        signals = {
+            "time_ms": np.arange(lfp.shape[0]) * 0.05,
+            "field": {
+                "lfp_proxy": lfp,
+                "csd_proxy": lfp,
+                "contact_depths": np.arange(lfp.shape[1]) * 0.1,
+            },
+            "metadata": {"dt_ms": 0.05},
+        }
+        fields.spectrolaminar(signals)
+        _assert_site(
+            calls, "fields.py spectrolaminar", shape=lfp.shape, fs=1000.0 / 0.05, nperseg=256
+        )
 
 
-def test_fields_suite_site():
+def test_fields_suite_site(monkeypatch, agg):
+    # fields.py spectrolaminar_suite() holds the site: nperseg = psd_nperseg, else 512.
+    from jaxfne.vis import fields
+
+    calls = []
+    _spy_welch(monkeypatch, fields, calls)
+    rng = np.random.default_rng(1)
     for dtype in (np.float64, np.float32):
-        _check("fields.py:866", _fixture_2d(dtype, t=800), 10000.0, 512)
-    _check("fields.py:866-custom", _fixture_2d(np.float64, t=800), 10000.0, 128)
+        lfp = _fixture_2d(dtype, t=800)
+        signals = SimpleNamespace(
+            spikes=(rng.random(lfp.shape) < 0.05).astype(float),
+            time_ms=np.arange(lfp.shape[0]) * 0.2,
+            field=SimpleNamespace(lfp_proxy=lfp, csd_proxy=lfp),
+            metadata={"dt_ms": 0.2},
+        )
+        for kwargs, nperseg in (({}, 512), ({"psd_nperseg": 128}, 128)):
+            calls.clear()
+            fields.spectrolaminar_suite(signals, **kwargs)
+            _assert_site(
+                calls,
+                f"fields.py spectrolaminar_suite {kwargs}",
+                shape=lfp.shape,
+                fs=1000.0 / 0.2,
+                nperseg=nperseg,
+            )
 
 
-def test_tutorial_panels_site():
+def test_tutorial_panels_site(monkeypatch, agg):
+    # tutorial_panels.py activity_trace_suite() holds the site (welch_psd nperseg=256).
+    # It imports welch_psd from core inside the function, so the spy goes on core.
+    from jaxfne.vis import tutorial_panels
+
+    calls = []
+    _spy_welch(monkeypatch, _core, calls)
+    t, n_trials, n_ch = 800, 2, 4
+    rng = np.random.default_rng(2)
     for dtype in (np.float64, np.float32):
-        _check("tutorial_panels.py:305", _fixture_2d(dtype), 10000.0, 256)
+        calls.clear()
+        base = _fixture_2d(dtype, t=t, c=n_ch)
+        lfp = np.stack([base, 0.5 * base]).astype(dtype)
+        trials = {
+            "spikes": (rng.random((n_trials, t, 3)) < 0.05).astype(float),
+            "time_ms": np.arange(t) * 0.2,
+            "lfp_contacts": lfp,
+            "csd_contacts": lfp,
+        }
+        tutorial_panels.activity_trace_suite(trials, SimpleNamespace(dt_ms=0.2))
+        _assert_site(
+            calls,
+            "tutorial_panels.py activity_trace_suite",
+            shape=(t, n_ch),
+            fs=1000.0 / 0.2,
+            nperseg=256,
+        )
 
 
 def test_short_input_clamp_site():
