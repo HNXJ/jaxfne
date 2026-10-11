@@ -3,12 +3,15 @@
 import numpy as np
 
 from qlearn_jaxfne import (
+    ALPHA,
     A_LEFT,
     A_RIGHT,
-    GROUP,
     N_E,
+    driven_cells,
+    episodes_to_policy,
     features_for_seed,
     greedy_policy,
+    max_normalised_for_seed_state,
     phi_for_seed_state,
     q_star,
     q_values,
@@ -34,13 +37,16 @@ def test_2_jaxfne_features_learn_right_policy_all_seeds():
         assert all(phi[s].sum() > 0 for s in range(5)), "every phi(s) spikes"
         out = run_q_learning(phi, seed=seed, alpha=0.1, epsilon=0.1,
                              n_episodes=1000)
-        ep = out["first_policy_ep"]
+        ep = out["episodes_to_policy"]
         # Q* is specified on the non-terminal states 0..3 (state 4 is
         # terminal and never visited, so linear Q generalizes there).
         err = float(np.abs(q_values(out["w"], phi[:4]) - q_star()[:4]).max())
-        print(f"\nseed {seed}: episodes-to-policy = {ep}, max |Q - Q*| = {err:.6f}")
+        final = greedy_policy(out["w"], phi[:4])
+        shown = "never" if ep is None else ep
+        print(f"\nseed {seed}: episodes-to-policy = {shown}, final greedy = {final}, "
+              f"max |Q - Q*| = {err:.6f}")
         assert ep is not None and ep <= 1000, f"seed {seed} never learned right"
-        assert greedy_policy(out["w"], phi[:4]) == [A_RIGHT] * 4
+        assert final == [A_RIGHT] * 4
 
 
 def test_3_identical_features_cannot_learn_policy():
@@ -58,10 +64,10 @@ def test_4_two_seeds_give_different_network_features():
     phi1 = features_for_seed(1)
     assert all(phi0[s].sum() > 0 and phi1[s].sum() > 0 for s in range(5))
     assert float(np.abs(phi0 - phi1).max()) > 0, "seeds must differ"
-    for phi in (phi0, phi1):  # driven E group carries the max: network-made code
+    for phi in (phi0, phi1):  # the driven cells carry the max: network-made code
         for s in range(5):
             top = set(np.flatnonzero(phi[s] == phi[s].max()).tolist())
-            assert top <= set(range(s * GROUP, s * GROUP + GROUP)), (s, sorted(top))
+            assert top <= set(driven_cells(s)), (s, sorted(top))
 
 
 def test_5_alpha_zero_leaves_weights_unchanged():
@@ -70,3 +76,34 @@ def test_5_alpha_zero_leaves_weights_unchanged():
     out = run_q_learning(phi, seed=0, alpha=0.0, epsilon=0.1, n_episodes=50)
     assert out["attempts"] > 0, "loop must run update attempts"
     assert np.array_equal(out["w"], np.zeros_like(out["w"])), "alpha=0 froze w"
+
+
+def test_6_unit_norm_caps_alpha_phi_squared_at_alpha():
+    # The max-normalised features of the earlier design put alpha * ||phi||^2 above 2
+    # (divergence). The unit-norm features must keep every state at alpha or below.
+    for seed in range(5):
+        old = np.stack(
+            [max_normalised_for_seed_state(seed, s) for s in range(5)]
+        ).astype(np.float64)
+        old_sq = ALPHA * (old ** 2).sum(axis=1)
+        assert old_sq.max() > 2, f"precondition: seed {seed} old features stay under 2"
+        phi = features_for_seed(seed).astype(np.float64)
+        new_sq = ALPHA * (phi ** 2).sum(axis=1)
+        assert np.all(new_sq <= ALPHA * (1 + 1e-6)), (seed, new_sq.tolist())
+
+
+def test_7_episodes_to_policy_is_first_episode_of_the_final_correct_run():
+    # Constructed histories (True = greedy policy correct after that episode).
+    # First-hit would answer 1 for the first one; the definition answers 3.
+    assert episodes_to_policy([True, False, True, True]) == 3
+    assert episodes_to_policy([False, True, False, True, True]) == 4
+    assert episodes_to_policy([True, True, True]) == 1
+    assert episodes_to_policy([True, False]) is None, "last episode wrong: never"
+    assert episodes_to_policy([]) is None
+    # Wiring: one entry per episode; alpha = 0 keeps w at zero, so the greedy
+    # policy (ties go left) is wrong at every episode and the value is "never".
+    rng = np.random.default_rng(7)
+    out = run_q_learning(rng.random((5, 6)), seed=0, alpha=0.0, epsilon=0.1, n_episodes=20)
+    assert len(out["policy_correct"]) == 20, "one correctness entry per episode"
+    assert not any(out["policy_correct"]), "zero weights never choose right"
+    assert out["episodes_to_policy"] is None

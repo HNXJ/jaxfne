@@ -1,19 +1,22 @@
 """Q-learning etude on a small jaxfne E/I network (lane QL).
 
-Task: 5-state chain (states 0..4, actions left/right). Start at 0; moving
-right from 3 into 4 gives r = 1 and ends the episode; left at 0 stays at 0;
-all other rewards are 0. gamma = 0.9, episode cap 50 steps.
+Task: the registered ``chain5`` task (``jaxfne.tasks``). 5 states (0..4), actions
+left/right, start at 0. Moving right from 3 into 4 gives r = 1 and ends the
+episode; gamma = 0.9; episode cap 50 steps.
 
-State code: a 40 E + 10 I jaxfne network (default izhikevich family, built and
-simulated exactly as in examples/00_minimal_column.py and
-examples/05_network_100_ei_multimodal.py). State s is a 200 ms drive to one
-of 5 disjoint 8-cell E input groups. phi(s) = E spike counts over the window,
-float32, divided by their max; simulated once per (seed, s) and cached.
+State code: a 40 E + 10 I jaxfne network (izhikevich family, public Configuration
+builder). The deterministic all-to-all base graph (make_eig) is unchanged. One
+connections() rule adds E-to-E edges with probability 0.5 and weight 1.0, and
+connectivity(edge_seed=seed) fixes that random subset per seed. The rule takes
+effect only on the edge_list backend: the default dense backend ignores it, so the
+seed does not reach phi there. State s is a 200 ms drive of amplitude 10 to two
+neighbouring 8-cell E groups, s and (s + 1) mod 5, so neighbouring states share a
+group. phi(s) = E spike counts over the window, divided by their max, then scaled
+to unit L2 norm (float32); simulated once per (seed, s) and cached. The unit norm
+keeps alpha * ||phi||^2 = alpha (see README).
 
-Seeds 0..4 drive both the network realization and the agent: each seed fixes
-a per-seed input gain of the drive schedule (the public Configuration path
-builds fixed dense weights, so the seeded gain is what makes the realized
-network response seed-dependent) and seeds the exploration RNG.
+Seeds 0..4 fix the network realization (edge_seed) and the simulation noise
+(simulation seed), and seed the exploration RNG.
 
 Agent: linear Q(s, a) = w_a . phi(s); Q-learning with epsilon = 0.1,
 alpha = 0.1. Tabular baseline uses one-hot phi with the same loop.
@@ -29,11 +32,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 import numpy as np
 
 import jaxfne as jtfne
+from jaxfne.tasks import get_task
+from jaxfne.tasks.chain import A_LEFT, A_RIGHT
 
-N_STATES = 5
-A_LEFT = 0
-A_RIGHT = 1
-GAMMA = 0.9
+TASK_DESC, TASK = get_task("chain5")
+N_STATES = TASK_DESC.n_states
+GAMMA = TASK_DESC.gamma
 ALPHA = 0.1
 EPSILON = 0.1
 EPISODE_CAP = 50
@@ -44,38 +48,28 @@ N_NEURONS = N_E + N_I
 GROUP = 8
 STIM_MS = 200.0
 DT_MS = 0.5
+DRIVE_GAIN = 10.0
+RECURRENT_P = 0.5
+RECURRENT_WEIGHT = 1.0
 
 
-def input_gain(seed: int) -> float:
-    """Fixed per-seed drive gain: the seed-dependent network realization."""
-    return 10.0 + 2.0 * float(seed)
+def driven_cells(s: int) -> list[int]:
+    """E cells driven in state s: groups s and (s + 1) mod N_STATES."""
+    groups = (s, (s + 1) % N_STATES)
+    return sorted({g * GROUP + i for g in groups for i in range(GROUP)})
 
 
-def q_star(gamma: float = GAMMA) -> np.ndarray:
-    """Analytic Q*: Q*(s, right) = gamma**(3-s), Q*(s, left) from V*."""
-    qs = np.zeros((N_STATES, 2), dtype=np.float64)
-    qs[:4, A_RIGHT] = gamma ** (3 - np.arange(4))
-    v = np.zeros(N_STATES, dtype=np.float64)
-    v[:4] = qs[:4, A_RIGHT]
-    for s in range(N_STATES - 1):
-        qs[s, A_LEFT] = gamma * v[max(s - 1, 0)]
-    # Row 4 is terminal: no outgoing action, Q*(4, .) = 0.
-    return qs
+def q_star() -> np.ndarray:
+    """Analytic Q* of the registered chain task."""
+    return TASK.q_star()
 
 
-def step_env(s: int, a: int):
-    """One chain step; returns (s_next, reward, done)."""
-    if a == A_RIGHT:
-        if s >= 3:
-            return 4, 1.0, True
-        return s + 1, 0.0, False
-    if s <= 0:
-        return 0, 0.0, False
-    return s - 1, 0.0, False
+def build_model(seed: int):
+    """40 E + 10 I network with one seeded E-to-E connections() rule.
 
-
-def build_model():
-    """40 E + 10 I network; same build pattern as examples 00/05."""
+    Without connectivity(edge_seed=...) the construct route is deterministic and
+    the seed would not reach the network's code.
+    """
     cfg = (
         jtfne.configuration()
         .network(
@@ -84,6 +78,14 @@ def build_model():
             n=N_NEURONS,
             cell_types={"E": 0.8, "I": 0.2},
         )
+        .connections(
+            name="rec_ee",
+            source={"cell_type": "E"},
+            target={"cell_type": "E"},
+            probability=RECURRENT_P,
+            weight=RECURRENT_WEIGHT,
+        )
+        .connectivity(edge_seed=int(seed))
         .emitter(family="izhikevich", preset="cortical_eig")
         .field(
             domain="laminar_column",
@@ -97,26 +99,30 @@ def build_model():
 
 
 _MODEL_CACHE: dict[int, object] = {}
+_RAW_CACHE: dict[tuple[int, int], np.ndarray] = {}
 _PHI_CACHE: dict[tuple[int, int], np.ndarray] = {}
 
 
-def phi_for_seed_state(seed: int, s: int) -> np.ndarray:
-    """E spike-count feature for state s under seed; cached, float32."""
+def max_normalised_for_seed_state(seed: int, s: int) -> np.ndarray:
+    """E spike counts for state s under seed, divided by their max; cached, float32.
+
+    These are the features of the earlier design: alpha * ||phi||^2 is above 2 for
+    them, so the learner diverges (see README).
+    """
     key = (int(seed), int(s))
-    if key not in _PHI_CACHE:
+    if key not in _RAW_CACHE:
         if key[0] not in _MODEL_CACHE:
-            _MODEL_CACHE[key[0]] = build_model()
+            _MODEL_CACHE[key[0]] = build_model(key[0])
         model = _MODEL_CACHE[key[0]]
-        group = list(range(s * GROUP, s * GROUP + GROUP))
         sched = jtfne.stimulus_schedule(
             [
                 {
                     "onset_ms": 0.0,
                     "duration_ms": STIM_MS,
-                    "amplitude": input_gain(seed),
+                    "amplitude": DRIVE_GAIN,
                     "label": f"state_{s}",
                     "is_drive_event": True,
-                    "target_indices": group,
+                    "target_indices": driven_cells(key[1]),
                 }
             ],
             N_NEURONS,
@@ -124,12 +130,22 @@ def phi_for_seed_state(seed: int, s: int) -> np.ndarray:
         sim = jtfne.simulation(
             duration_ms=STIM_MS, dt_ms=DT_MS, seed=seed,
             record_sources=False, record_fields=False,
+            runtime=jtfne.runtime(recurrent_backend="edge_list", seed=seed),
         )
         signals = model.simulate(sim, paradigm=sched)
         counts = np.asarray(signals.spikes)[:, :N_E].sum(axis=0)
         assert counts.sum() > 0, f"phi({seed}, {s}) has no spikes"
         peak = counts.max()
-        _PHI_CACHE[key] = (counts / peak).astype(np.float32)
+        _RAW_CACHE[key] = (counts / peak).astype(np.float32)
+    return _RAW_CACHE[key]
+
+
+def phi_for_seed_state(seed: int, s: int) -> np.ndarray:
+    """phi(s): max-normalised counts scaled to unit L2 norm; cached, float32."""
+    key = (int(seed), int(s))
+    if key not in _PHI_CACHE:
+        v = max_normalised_for_seed_state(seed, s).astype(np.float64)
+        _PHI_CACHE[key] = (v / np.linalg.norm(v)).astype(np.float32)
     return _PHI_CACHE[key]
 
 
@@ -152,6 +168,19 @@ def greedy_policy(w: np.ndarray, phi: np.ndarray) -> list[int]:
             for s in range(phi.shape[0])]
 
 
+def episodes_to_policy(policy_correct: list[bool]) -> int | None:
+    """First episode E (1-based) after which the greedy policy is correct after E and
+    after every later episode. None ("never") if the last episode is wrong."""
+    if not policy_correct or not policy_correct[-1]:
+        return None
+    first = len(policy_correct)
+    for i in range(len(policy_correct) - 1, -1, -1):
+        if not policy_correct[i]:
+            break
+        first = i + 1
+    return first
+
+
 def run_q_learning(
     phi: np.ndarray,
     *,
@@ -168,8 +197,8 @@ def run_q_learning(
     w = np.zeros((2, n_feat), dtype=np.float64)
     visits = np.zeros((n_states, 2), dtype=np.int64)
     attempts = 0
-    first_policy_ep: int | None = None
-    for ep in range(1, n_episodes + 1):
+    policy_correct: list[bool] = []
+    for _ep in range(1, n_episodes + 1):
         s = 0
         for _ in range(cap):
             q = q_values(w, phi[s : s + 1])[0]
@@ -179,7 +208,7 @@ def run_q_learning(
                 a = int(rng.integers(2))  # exact tie: random, else ties trap left
             else:
                 a = int(np.argmax(q))
-            s2, r, done = step_env(s, a)
+            s2, r, done = TASK.step(s, a)
             target = r if done else r + gamma * float(np.max(q_values(w, phi[s2 : s2 + 1])[0]))
             delta = target - float(w[a] @ phi[s])
             w[a] += alpha * delta * phi[s]
@@ -188,9 +217,8 @@ def run_q_learning(
             s = s2
             if done:
                 break
-        if first_policy_ep is None and all(
-            a == A_RIGHT for a in greedy_policy(w, phi[:4])
-        ):
-            first_policy_ep = ep
+        # Checked after every episode: is the greedy policy correct now?
+        policy_correct.append(all(a == A_RIGHT for a in greedy_policy(w, phi[:4])))
     return {"w": w, "visits": visits, "attempts": attempts,
-            "first_policy_ep": first_policy_ep}
+            "policy_correct": policy_correct,
+            "episodes_to_policy": episodes_to_policy(policy_correct)}
