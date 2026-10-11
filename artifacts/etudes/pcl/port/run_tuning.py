@@ -53,6 +53,7 @@ import pcl_event_ref_numba as nb  # noqa: E402
 NETWORK = Path("F:/warehouse/pcl/data/PCL_datasets_and_networks/add_simulations_cSTDP/cSTDP3")
 TEST_SET = Path("F:/warehouse/pcl/data/PCL_datasets_and_networks/grating/counterphase_gratingComplex/test7")
 OUT_DIR = Path("F:/warehouse/pcl/runs/fig3_cSTDP3")
+OUT_S1 = Path("F:/warehouse/pcl/runs/fig3_cSTDP3_S1")  # S1 (P3_fig3.md): local inhibition only
 ORIS = ("0", "23", "45", "68", "90", "113", "135", "158")  # checked against the test set listing
 WORKERS = 12
 CENTRAL_COL = (4, 4)  # recorded in the manifest only; no output is filtered by it
@@ -73,6 +74,50 @@ AXES_NOTE = (
 
 # Process-level state, set by _init_worker.
 _PRISTINE = None
+_INHIBITION = "full"
+
+
+def apply_inhibition_mode(net, inhibition: str):
+    """Zero the lateral and top-down weight maps in place for S1 (local inhibition only).
+
+    Both run paths read the same arrays: the pure path uses LAT[m, n] and TD[s, c]
+    (pcl_event_ref.py), and run_numba passes net.LAT and net.TD (.T) straight to the
+    kernel (pcl_event_ref_numba.py). The flags, masks and local weights are untouched.
+    """
+    if inhibition == "full":
+        return net
+    if inhibition != "local-only":
+        raise ValueError(f"unknown inhibition {inhibition!r}")
+    if net.lat_on and net.LAT is not None:
+        net.LAT[:] = 0.0
+    if net.td_on and net.TD is not None:
+        net.TD[:] = 0.0
+    return net
+
+
+def resolve_out_dir(out: str | None, inhibition: str) -> Path:
+    """Default output directory for the inhibition mode; an explicit --out wins."""
+    if out is not None:
+        return Path(out)
+    return OUT_S1 if inhibition == "local-only" else OUT_DIR
+
+
+def check_out_dir(out: Path, inhibition: str) -> None:
+    """Refuse an out dir whose manifest records the other inhibition mode.
+
+    A manifest without an "inhibition" key predates the flag and means the full run.
+    The S1 dir is additionally never the full run's dir.
+    """
+    out = Path(out)
+    if inhibition == "local-only" and out == OUT_DIR:
+        raise ValueError(f"refusing local-only into the full run's dir {out}")
+    path = out / "manifest.json"
+    if not path.is_file():
+        return
+    found = json.loads(path.read_text(encoding="utf-8")).get("inhibition", "full")
+    if found != inhibition:
+        raise ValueError(f"refusing --out {out}: manifest says inhibition={found!r}, "
+                         f"asked {inhibition!r}")
 
 
 def tasks_for(subset: str) -> list[tuple[str, str, str, str]]:
@@ -99,10 +144,12 @@ def _gather(cells: list) -> tuple[np.ndarray, np.ndarray]:
     return t[order], o[order]
 
 
-def _init_worker() -> None:
+def _init_worker(inhibition: str = "full") -> None:
     """Load the trained network once per process and compile the kernel outside the timed region."""
-    global _PRISTINE
+    global _PRISTINE, _INHIBITION
+    _INHIBITION = inhibition
     _PRISTINE = ref.PCLEventRef(NETWORK, learning=False)  # as test_pcl_trained_load.py
+    apply_inhibition_mode(_PRISTINE, inhibition)
     nb.warm_up()
 
 
@@ -155,7 +202,10 @@ def _write_manifest(out: Path, record: dict, static: dict) -> None:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--subset", choices=("pilot", "all"), required=True)
-    ap.add_argument("--out", default=str(OUT_DIR))
+    ap.add_argument("--inhibition", choices=("full", "local-only"), default="full",
+                    help="S1 (P3_fig3.md): local-only zeroes the lateral and top-down maps")
+    ap.add_argument("--out", default=None,
+                    help="default: the full dir, or fig3_cSTDP3_S1 for local-only")
     ap.add_argument("--workers", type=int, default=WORKERS)
     ap.add_argument("--start-utc", default=None,
                     help="start time for the manifest, from `date -u +%%Y-%%m-%%dT%%H:%%M:%%SZ`")
@@ -163,7 +213,12 @@ def main(argv=None) -> int:
 
     cfg = json.loads((NETWORK / "configs" / "network_config.json").read_text(encoding="utf-8"))
     _, ny, nd = (int(v) for v in cfg["layerSizes"][0])  # simple layer grid: nx, ny, depth
-    out = Path(args.out)
+    out = resolve_out_dir(args.out, args.inhibition)
+    try:
+        check_out_dir(out, args.inhibition)
+    except ValueError as exc:
+        print(f"error: {exc}", flush=True)
+        return 2
     jobs = []
     for o, f, p, s in tasks_for(args.subset):
         src = TEST_SET / o / f / p / f"{s}.npz"
@@ -183,6 +238,7 @@ def main(argv=None) -> int:
         "config_note": "'static' is read as local inhibition (pcl_event_ref.py docstring)",
         "test_set": str(TEST_SET),
         "learning": False,
+        "inhibition": args.inhibition,
         "feed": "camera 0 only, raw file timestamps (not rebased), as test_pcl_trained_load.py",
         "workers": args.workers,
         "output_fields": "simple_counts int32 (5184), complex_counts int32 (1152), n_events int64, wall_s; "
@@ -205,7 +261,8 @@ def main(argv=None) -> int:
 
     done = failed = 0
     t0 = time.perf_counter()
-    with ProcessPoolExecutor(max_workers=args.workers, initializer=_init_worker) as ex:
+    with ProcessPoolExecutor(max_workers=args.workers, initializer=_init_worker,
+                             initargs=(args.inhibition,)) as ex:
         futs = {ex.submit(_run_one, job): job for job in pending}
         for fut in as_completed(futs):
             src, dst = futs[fut]
