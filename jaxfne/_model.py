@@ -1036,17 +1036,6 @@ class Model:
         return _manifest_impl(self, *args, **kwargs)
 
 
-def _mean_pairwise_corr_proxy(spikes: jax.Array) -> jax.Array:
-    x = spikes.astype(jnp.float32)
-    x = x - jnp.mean(x, axis=0, keepdims=True)
-    denom = jnp.std(x, axis=0, keepdims=True) + 1e-6
-    z = x / denom
-    corr = (z.T @ z) / jnp.maximum(1, z.shape[0] - 1)
-    n = corr.shape[0]
-    mask = 1.0 - jnp.eye(n)
-    return jnp.sum(jnp.abs(corr) * mask) / jnp.maximum(1.0, jnp.sum(mask))
-
-
 def with_emitter_parameters(
     model: Model,
     *,

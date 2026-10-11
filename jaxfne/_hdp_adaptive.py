@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from typing import Any, Literal, Mapping
 
 import jax.numpy as jnp
-import numpy as np
 
 Locality = Literal["node", "population"]
 ChannelKind = Literal["edge", "intrinsic"]
@@ -258,31 +257,3 @@ def reject_population_continuation(locality: Locality, *, context: str) -> None:
             "full-state continuation in this release; use Model.simulate() "
             "or reject explicitly"
         )
-
-
-def population_layout_fingerprint(layout: PopulationRestoringLayout) -> tuple:
-    """Hashable fingerprint for JIT cache keys (arrays via content hash)."""
-    parts: list[Any] = [
-        ("h_dim", layout.h_dim),
-        ("lambda", layout.lambda_),
-        ("tau_H_s", layout.tau_H_s),
-        ("tau_theta_s", layout.tau_theta_s),
-        ("setpoint_E_hz", layout.setpoint_E_hz),
-        ("setpoint_I_hz", layout.setpoint_I_hz),
-    ]
-    for arr_name, arr in (
-        ("B", np.asarray(layout.B)),
-        ("e_mask", np.asarray(layout.e_mask)),
-        ("i_mask", np.asarray(layout.i_mask)),
-        ("w_sign", np.asarray(layout.w_sign)),
-        ("w_baseline", np.asarray(layout.w_baseline)),
-    ):
-        parts.append((arr_name, arr.shape, str(arr.dtype), hash(arr.tobytes())))
-    for i, ch in enumerate(layout.channels):
-        if ch.edge_mask is not None:
-            em = np.asarray(ch.edge_mask)
-            parts.append((f"ch{i}_edge", em.shape, hash(em.tobytes())))
-        if ch.neuron_mask is not None:
-            nm = np.asarray(ch.neuron_mask)
-            parts.append((f"ch{i}_neuron", nm.shape, hash(nm.tobytes())))
-    return tuple(parts)
