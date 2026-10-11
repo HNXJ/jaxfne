@@ -476,6 +476,8 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
 
 WSL2 CUDA qualification (2026-10-09, jchat p-jaxfne #237–#238, `vwin-claude-sonnet55-jaxfne`): 20-area GPU feasibility test after the 0.5.5 seal. Local receipts only, `scratch/wsl_cuda_2026-10-09/` (gitignored). Not a 0.5.5 claim. Open there: CSD agreement, peak VRAM, one unexplained failed GPU run, and the 20-area test.
 
+Python 3.15 (human, 2026-10-10: every project 3.15 compatible). Done on dev: JAX ceiling `<0.12`, 3.15 extras markers, broad suite green on 3.15.0rc1 + JAX 0.11.2 except `test_audit_public_private_boundary` (needs pyyaml). Open: add 3.15 to the CI matrix and the 3.15 classifier once 3.15.0 final ships and pyyaml, h5py and zarr publish cp315 wheels (the `io` and `jnwb` extras need them).
+
 0. Literature reproduction études, HDP off/on (human, 2026-09-29): plan in
    `artifacts/etudes/literature_reproduction_plan.md`. P0 table done
    (`literature_p0_candidates.md`); P1 partly done

@@ -19,6 +19,11 @@ ROOT = Path(__file__).resolve().parents[1]
 GATE = ROOT / "scripts" / "publication_figures" / "equivalence_gate.py"
 TRACKED_REPORT = ROOT / "artifacts" / "publication" / "equivalence_report.json"
 FROZEN_MANIFEST = ROOT / "artifacts/publication/frozen_manifest.json"
+# Python 3.15 has no matplotlib 3.10 wheel, so the dev extra cannot pin the
+# frozen-figure renderer there and the gate refuses the installed one by design.
+no_frozen_renderer = pytest.mark.skipif(
+    sys.version_info >= (3, 15), reason="no matplotlib 3.10 wheel for Python 3.15"
+)
 
 
 def _run_gate(*, report_dir: Path) -> dict:
@@ -54,6 +59,7 @@ def test_equivalence_gate_tracked_report_exists_and_schema():
         assert not c["temp_png"].startswith("/")
 
 
+@no_frozen_renderer
 def test_equivalence_gate_reproducible_7_of_7(tmp_path):
     assert FROZEN_MANIFEST.is_file()
     report = _run_gate(report_dir=tmp_path)
@@ -78,6 +84,7 @@ def test_equivalence_gate_reproducible_7_of_7(tmp_path):
 @pytest.mark.slow  # 0.5.1-4b(1): duplicate full-generator rerun; the
 # representative full track (test_equivalence_gate_reproducible_7_of_7) stays
 # in broad. This comparison still runs in the slow sweep (release/rc gates).
+@no_frozen_renderer
 def test_equivalence_gate_tracked_report_matches_fresh_run(tmp_path):
     fresh = _run_gate(report_dir=tmp_path)
     if not fresh["byte_identity_pinned"]:

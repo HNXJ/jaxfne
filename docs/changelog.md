@@ -9,6 +9,15 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+### Changed
+- Python 3.15 groundwork. JAX/jaxlib ceiling raised from `<0.11` to `<0.12`, because jaxlib's first
+  Python 3.15 wheels are 0.11.1. The homeostatic-EI `cubic_penalty` NaN that set the old pin
+  no longer reproduces: its 30 tests (slow included) pass on JAX 0.11.2. JAX 0.11 rounds 2 of the
+  48 laminar projection kernel entries 1 ulp differently (max relative 8.8e-8); the oracle pins
+  both hashes. On Python 3.15 the `dev`/`viz` extras take scipy 1.18.1 and matplotlib 3.11, which
+  have 3.15 wheels, and the frozen-figure equivalence gate tests skip there. CI does not yet run
+  3.15, and pyyaml and h5py (the `io` and `jnwb` extras) publish no 3.15 wheels yet.
+
 ## v0.5.5 (candidate)
 
 ### Added

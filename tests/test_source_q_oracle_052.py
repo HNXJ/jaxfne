@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 
+import jax
 import numpy as np
 import pytest
 import jax.numpy as jnp
@@ -53,6 +54,7 @@ ORACLE = {
     "emm": "59307b82eaf3a352",
     "sample": "95a4ebfea8d62b81",
     "proj_kernel": "d3b7938fabe1228f",
+    "proj_kernel_jax011": "4fb3d8d8ccb95b0a",
     "q_total": "b40fa73903159f8b",
     "q_spike": "3f8f6ac99ab0b999",
     "csd_t": "34f77db0e3577da0",
@@ -173,7 +175,11 @@ def test_oracle_array_path_matches_prechange(frozen):
     pad64 = np.pad(phi_f64, ((0, 0), (1, 1)), mode="edge")
     ref_csd64 = -(pad64[:, 2:] - 2.0 * pad64[:, 1:-1] + pad64[:, :-2]) / (dz64 * dz64)
     np.testing.assert_allclose(np.asarray(fo.csd_proxy), ref_csd64, rtol=1e-5, atol=1e-8)
-    assert _h(fo.kernel) == ORACLE["proj_kernel"]
+    # JAX 0.11 rounds 2 of the 48 kernel entries 1 ulp differently (max rel
+    # 8.8e-8, measured 2026-10-10 against 0.10.1); still bit-pinned per JAX line.
+    assert _h(fo.kernel) == ORACLE[
+        "proj_kernel_jax011" if jax.__version__.startswith("0.11.") else "proj_kernel"
+    ]
     q1, _ = construct_source_tensor(
         mode="total_membrane_current_proxy",
         total_membrane_current=jnp.asarray(f["src"]),
