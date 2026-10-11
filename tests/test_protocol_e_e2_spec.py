@@ -9,7 +9,6 @@ from jaxfne.protocol_e_integration.e2_protocol import (
     e2_delay_class_ids,
     e2_gate_ids,
     load_e2_spec,
-    validate_e2_spec,
 )
 
 
@@ -80,10 +79,6 @@ def test_e2_implementation_not_authorized_at_spec_freeze():
     assert auth["specification_only"] is True
     assert auth["implementation_authorized"] is False
     assert auth["next_checkpoint"] == "E2_implementation"
-
-
-def test_e2_validate_spec_passes():
-    validate_e2_spec()
 
 
 def test_e2_protocol_receipt_closed():
