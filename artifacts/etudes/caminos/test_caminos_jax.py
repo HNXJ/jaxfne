@@ -158,3 +158,99 @@ def test_route_inputs_signs(src):
         assert ge.sum() > 0 and gi.sum() == 0
     else:
         assert gi.sum() > 0 and ge.sum() == 0
+
+
+def test_delay_ring_twenty_steps():
+    """Docstring: an arrival read from the ring enters the V update of the
+    same step, 20 steps (2 ms at dt = 0.1 ms) after the presynaptic spike
+    step. ``simulate`` exposes no conductance trace (only per-step counts
+    plus final gE/gI), so this reproduces the ring indexing from the
+    docstring and checks the read step through the real ``route_inputs``:
+    a spike pushed at step 5 first raises a postsynaptic conductance at
+    step 25."""
+    dt = float(cj.PARAMS["dt_s"])
+    n_delay = max(int(round(float(cj.PARAMS["tau_d_s"]) / dt)), 1)
+    assert n_delay == 20, n_delay
+    sizes = {"E": 2, "PV": 1, "SOM": 1}
+    net = cj.build_network(jax.random.key(0), p=1.0, NE=2, NPV=1, NSOM=1)
+    ee = np.asarray(net["blocks"][("E", "E")])
+    assert bool(ee[0, 1]), ee  # E0 -> E1 present (p = 1, no autapse)
+    q = {
+        "q_ee": jnp.asarray(cj.PARAMS["Q_E_E_S"], jnp.float32),
+        "q_ep": jnp.asarray(cj.PARAMS["Q_E_PV_S"], jnp.float32),
+        "q_es": jnp.asarray(cj.PARAMS["Q_E_SOM_S"], jnp.float32),
+        "q_pe": jnp.asarray(cj.PARAMS["Q_PV_E_S"], jnp.float32),
+        "q_pp": jnp.asarray(cj.PARAMS["Q_PV_PV_S"], jnp.float32),
+        "q_se": jnp.asarray(cj.PARAMS["Q_SOM_E_S"], jnp.float32),
+        "q_sp": jnp.asarray(cj.PARAMS["Q_SOM_PV_S"], jnp.float32),
+        "q_ext": jnp.asarray(cj.PARAMS["Q_ext_S"], jnp.float32),
+    }
+    n_tot = 4
+    ring = np.zeros((n_delay, n_tot), bool)
+    ering = np.zeros((n_delay, 3), np.int32)  # NE + NPV external counts
+    spike = np.zeros(n_tot, bool)
+    spike[0] = True
+    head = 0
+    first = None
+    for t in range(45):
+        arr = ring[head].copy()
+        ge, _ = cj.route_inputs(net["blocks"], q, jnp.asarray(arr),
+                                jnp.asarray(ering[head]), sizes, jnp.float32)
+        ge = np.asarray(ge)
+        if t == 5:
+            ring[head] = spike  # push presynaptic spike of step 5
+        else:
+            ring[head] = np.zeros(n_tot, bool)
+        ering[head] = np.zeros(3, np.int32)
+        if ge.sum() > 0 and first is None:
+            first = t
+            assert t == 25, t
+            assert ge[1] > 0, ge  # E0 -> E1 conductance arrives here
+        head = (head + 1) % n_delay
+    assert first == 25, first
+
+
+def test_refractory_clamp_fifty_steps():
+    """adex_step under a strong constant current: consecutive spikes are at
+    least round(Tref/dt) + 1 steps apart and V equals Vreset on each of the
+    50 steps after a spike (docstring clamp)."""
+    dt = float(cj.PARAMS["dt_s"])
+    n_ref = int(round(float(cj.PARAMS["E_Tref_s"]) / dt))
+    assert n_ref == 50, n_ref
+    p = {k: jnp.asarray(v, dtype=jnp.float64) for k, v in cj.cell_params("E").items()}
+    vreset = float(p["Vreset_V"])
+    cur = jnp.asarray(3000.0 * 1e-12, dtype=jnp.float64)
+    state = (jnp.asarray(p["EL_V"]), jnp.asarray(0.0, dtype=jnp.float64),
+             jnp.asarray(0, jnp.int32))
+    spikes = []
+    vs = []
+    for t in range(2000):
+        state, spk = cj.adex_step(state, cur, p, dt)
+        vs.append(float(state[0]))
+        if bool(spk):
+            spikes.append(t)
+    assert len(spikes) >= 2, "fixture must spike repeatedly"
+    assert min(np.diff(spikes)) >= n_ref + 1, (spikes[:6], min(np.diff(spikes)))
+    vs = np.asarray(vs)
+    for s in spikes:
+        if s + n_ref >= len(vs):
+            break
+        seg = vs[s + 1:s + 1 + n_ref]
+        assert np.all(seg == vreset), (s, seg[:6])
+
+
+def test_external_drive_mean_within_3se():
+    """External drive: summed input per E cell per step is Poisson(0.224);
+    mean over 10 s of steps within 3 SE (same jax.random.poisson call path
+    as ``simulate``)."""
+    lam_live = (float(cj.PARAMS["ext_sources"]) * float(cj.PARAMS["ext_rate_Hz"])
+                * float(cj.PARAMS["dt_s"]))
+    assert lam_live == pytest.approx(0.224), lam_live
+    steps = int(round(10.0 / float(cj.PARAMS["dt_s"])))
+    assert steps == 100000, steps
+    n_e = 5
+    x = jax.random.poisson(jax.random.key(0), lam_live, shape=(steps, n_e))
+    jax.block_until_ready(x)
+    x = np.asarray(x, dtype=np.float64)
+    se = float(np.sqrt(0.224 / x.size))
+    assert abs(x.mean() - 0.224) <= 3 * se, (x.mean(), se)
