@@ -483,8 +483,9 @@ Python 3.15 (human, 2026-10-10: every project 3.15 compatible). Done on dev: JAX
    (`literature_p0_candidates.md`); P1 partly done
    (`literature_p1_verification.md`: 5 sources verified, row 3 parameters read
    from the authors' code, row 10 equations unread). Targets confirmed. Next:
-   PDF for row 10, P2 GAP list for row 3 (no AdEx emitter), then P3 sign-off. Starts after the
-   0.5.5 seal, with its own stack.
+   PDF for row 10, P2 GAP list for row 3 (no AdEx emitter), then P3 sign-off. Started
+   2026-10-10 (human: replicate every paper possible, PCL and oscillations first, on WSL2
+   CUDA in float32). Lanes, decisions and order: `artifacts/etudes/replication_programme.md`.
 0b. PCL étude (`artifacts/etudes/pcl/`, docs `docs/etudes/pcl.md`):
    - Done on dev: P0, K0/K0b, C1, K1, C1b, K2b (FAIL) and the working paper
      `artifacts/etudes/pcl/report/pcl_report.html`.
