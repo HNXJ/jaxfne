@@ -187,9 +187,18 @@ Each row is a standing rule with the check that enforces it.
     `burst_index` ignores `bin_ms`, `:19` unbinned correlation; pinned by
     `tests/test_analysis_metrics.py:27-51`. jnwb has `fano_factor`,
     `network_burst_index`, `spike_count_correlation`.
+  - 2 done for plain Welch (dev 541f7604: six sites through `welch_psd`, bit-identical;
+    empty LFP now raises in four vis plots).
   - 4 partly: `to_jnwb` exists (`jaxfne/jnwb_view.py:104`) but is not in
-    `jaxfne.__all__`; bandpower, spectrogram, CSD, rasters, metrics, connectivity
-    and decoding have not moved. `to_jnwb` joins the top-level surface when 2–4 close.
+    `jaxfne.__all__`. Equivalence map at 130d0952 (jnwb 0.2.10, seeded probes): no
+    remaining family is a drop-in. Band power: jaxfne means the caller's Welch bins and
+    `bandpower_jax` peak-normalises, jnwb `band_power` runs its own Welch (rel. diff 0.34).
+    CSD: relative units with edge padding vs physical units with trimming (ratio σ/pitch²).
+    Metrics: other estimands (Fano 1.06 vs 7.46, burst 0.0 vs 0.97). Coherence: other grid
+    plus surrogates. Spectrogram (STFT vs Morlet) and rasters (figure vs PSTH) differ in
+    kind; spectrolaminar-jax and decoding have no counterpart. [H] each move is a
+    definition change: move with a declared change, or keep jaxfne's.
+    `to_jnwb` joins the top-level surface when 2–4 close.
 
 ## 0.5.5 stack
 
