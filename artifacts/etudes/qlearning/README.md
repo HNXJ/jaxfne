@@ -101,8 +101,9 @@ Results (corridor7, seeds 0-4, 1000 episodes; from the test run, `pytest -s`):
 
 Reading: the flat control never learns the corridor, so the task needs state
 information. The network code learns it in every seed, later than tabular (222-486
-episodes against 2-23) but with a third of the Q error (0.08-0.11 against 0.23-0.40),
-because overlapping codes share each update across neighbouring states.
+episodes against 2-23) but with a third of the Q error (0.08-0.11 against 0.23-0.40).
+That overlapping codes share each update across neighbouring states is a likely cause,
+not tested here (no ablation).
 
 Tabular seed 3, the only "never" outside the flat control: in
 state 2 the greedy action is right, but the optimal action is left: `Q*(2, left) = 0.9`
