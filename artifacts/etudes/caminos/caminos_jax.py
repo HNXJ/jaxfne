@@ -21,6 +21,11 @@ Conventions
 * Refractory: on spike V is reset to Vreset and clamped there for Tref
   (integer step counter); w keeps evolving during the clamp, as in
   Brian2, with V = Vreset in its driving term. w += b at the spike.
+* Step order differs from Brian2 by one step in two places (second review,
+  2026-10-11): an arrival read from the ring enters the V update of the same
+  step, so the effective delay is one step shorter than Brian2's; and the
+  clamp covers the 50 steps after the spike step, so the refractory period is
+  one step longer. PREREG_P3.md S5 tests both.
 """
 
 from __future__ import annotations

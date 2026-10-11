@@ -55,8 +55,10 @@ Synapses are conductance based, `I_syn = g (E_rev − V)`, with
 Network:
 
 - NE = 8000, NPV = 750, NSOM = 750.
-- Every pair connects independently with p = 0.07; no autapse rule is stated.
-- External drive: p·NE = 560 independent Poisson sources at 4 Hz per target neuron.
+- Every pair connects independently with p = 0.07. The source states no autapse rule;
+  the port removes autapses (our choice).
+- External drive: p·NE = 560 Poisson sources at 4 Hz. The port gives each target neuron
+  its own sources. That reading is an assumption: the text also allows 560 shared sources.
 - Brian2, Euler, dt = 0.1 ms.
 - Population rate in Δt = 0.1 ms bins, smoothed with a 2 ms Gaussian for display.
 
