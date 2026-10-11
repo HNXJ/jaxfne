@@ -1,7 +1,7 @@
-"""v5 calibration gate for the CAMINOS oscillation criterion (PREREG_P3.md).
+"""v6 calibration gate for the CAMINOS oscillation criterion (PREREG_P3.md).
 
-Spec: ``PREREG_P3.md``, "Calibration gate (v5)". Synthetic signals only; no
-network data. Each draw is a 3 s E rate at NE = 8000, R0 = 1.2 Hz, dt = 1e-4 s,
+Spec: ``PREREG_P3.md``, "Calibration gate (v6)". Synthetic signals only; no
+network data. Each draw is a 10 s E rate at NE = 8000, R0 = 1.2 Hz, dt = 1e-4 s,
 Poisson sampled. The gate calls the scorer's own functions
 (``caminos_analysis.spectral_peak``, ``e_welch`` and ``oscillation_call``), so
 the rule is not restated here.
@@ -24,7 +24,7 @@ the rule is not restated here.
 
 Run: python calibrate_oscillation.py --out DIR [--draws N] [--power-draws M] [--kept-s S]
 Smoke: --draws 10 --power-draws 10 (prints SMOKE; not a gate).
---kept-s (default 3, the v5 gate) sets the kept window in s on every synthetic draw;
+--kept-s (default 10, the v6 gate) sets the kept window in s on every synthetic draw;
 any other value prints DIAGNOSTIC and is not the prereg gate.
 """
 
@@ -47,7 +47,7 @@ NE = 8000
 DT = 1e-4  # s
 R0 = 1.2  # Hz, E baseline rate
 BURN_S = 1.0  # s, discarded so the AR(1) floor and the AR(2) component are stationary
-KEPT_S = 3.0  # s, prereg kept window
+KEPT_S = 10.0  # s, prereg kept window (v6: 12 s run less the 2 s discard)
 MOD_HZ = 35.0  # component centre
 AR2_FWHM_HZ = 5.0  # AR(2) component full width at half maximum
 FREQ_TOL_HZ = 2.0  # detection: |f_pk - 35| <= 2 Hz
@@ -64,8 +64,8 @@ REALISED_TOL = 0.10  # realised (component + floor) / floor within 10 % of its t
 FWHM_S = 600.0  # s, long AR(2) realisation for the FWHM check
 COUNT_LAG_MS = 1.0  # lag of the realised-autocorrelation precondition in tests
 STAGE_NULL, STAGE_DETECT, STAGE_POWER, STAGE_FWHM = 1, 2, 3, 4  # seed streams
-ROWS_NAME = "calibration_v5_rows.jsonl"
-MD_NAME = "calibration_v5.md"
+ROWS_NAME = "calibration_v6_rows.jsonl"
+MD_NAME = "calibration_v6.md"
 
 
 def sigma_for_ratio(c):
@@ -196,8 +196,8 @@ def psd35(e_rate):
 
 def oscillating(res, theta):
     """Per-draw oscillation call at ``theta`` from the stored peak fields, by the scorer's rule."""
-    return np.array([ca.oscillation_call(p, lm, eo, theta)
-                     for p, lm, eo in zip(res["pe"], res["local_max"], res["edge_ok"])],
+    return np.array([ca.oscillation_call(p, eo, theta)
+                     for p, eo in zip(res["pe"], res["edge_ok"])],
                     dtype=bool)
 
 
@@ -306,9 +306,9 @@ def component_record(label, res, theta, draws):
 
 
 def render_md(meta, gate, null, fp_table, theta, detect, power, fwhm):
-    """calibration_v5.md: the tables the prereg cites, with the gate line."""
-    lines = ["# CAMINOS calibration gate v5", "",
-             "Spec: `artifacts/etudes/caminos/PREREG_P3.md`, \"Calibration gate (v5)\". "
+    """calibration_v6.md: the tables the prereg cites, with the gate line."""
+    lines = ["# CAMINOS calibration gate v6", "",
+             "Spec: `artifacts/etudes/caminos/PREREG_P3.md`, \"Calibration gate (v6)\". "
              "Synthetic only; no network data.", "", meta, "", "Gate: `%s`" % gate, "",
              "## 1. Null floors: FP rate by theta (hits/draws)", "",
              "| Null floor | Floor PSD at 35 Hz | FP theta 4 | FP theta 5 | FP theta 6 | FP theta 8 |",
@@ -351,13 +351,13 @@ def render_md(meta, gate, null, fp_table, theta, detect, power, fwhm):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="v5 calibration gate for the CAMINOS criterion "
+    ap = argparse.ArgumentParser(description="v6 calibration gate for the CAMINOS criterion "
                                              "(synthetic only).")
-    ap.add_argument("--out", required=True, help="directory for the rows JSONL and calibration_v5.md")
+    ap.add_argument("--out", required=True, help="directory for the rows JSONL and calibration_v6.md")
     ap.add_argument("--draws", type=int, default=DRAWS)
     ap.add_argument("--power-draws", type=int, default=POWER_DRAWS)
     ap.add_argument("--kept-s", type=float, default=KEPT_S,
-                    help="kept window in s (default 3, the v5 gate); other values are diagnostics")
+                    help="kept window in s (default 10, the v6 gate); other values are diagnostics")
     args = ap.parse_args(argv)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -366,7 +366,7 @@ def main(argv=None):
     if (args.draws, args.power_draws) != (DRAWS, POWER_DRAWS):
         tag += "SMOKE, not a gate: "
     if kept_s != KEPT_S:
-        tag += "DIAGNOSTIC kept %g s, not the v5 gate: " % kept_s
+        tag += "DIAGNOSTIC kept %g s, not the v6 gate: " % kept_s
     meta = ("NE=%d, dt=%g s, kept %g s, R0=%g Hz; draws=%d (power %d); theta grid %s; "
             "FP <= %g %%; detection >= %g %% with |f_pk - 35| <= %g Hz; realised within %g %%."
             % (NE, DT, kept_s, R0, args.draws, args.power_draws, THETA_GRID,
@@ -389,7 +389,7 @@ def main(argv=None):
         try:
             theta = select_theta(fp_table)
         except ValueError as exc:
-            gate = "%sGate v5: FAIL, %s" % (tag, exc)
+            gate = "%sGate v6: FAIL, %s" % (tag, exc)
             (out / MD_NAME).write_text(render_md(meta, gate, null, fp_table, None, [], [], None))
             print(gate, flush=True)
             return 1
@@ -424,10 +424,10 @@ def main(argv=None):
     if failed:
         reasons = ["%s, %s: detection %.3f, realised PE %.3f (target %g)" % (
             r["floor"], r["form"], r["rate"], r["realised_pe"], r["pe_target"]) for r in failed]
-        gate = "%sGate v5: FAIL (theta = %g; %d of %d detection rows fail): %s" % (
+        gate = "%sGate v6: FAIL (theta = %g; %d of %d detection rows fail): %s" % (
             tag, theta, len(failed), len(detect), "; ".join(reasons))
     else:
-        gate = ("%sGate v5: PASS (theta = %g; %d of %d detection rows >= 95 %%, "
+        gate = ("%sGate v6: PASS (theta = %g; %d of %d detection rows >= 95 %%, "
                 "realised within 10 %%)" % (tag, theta, len(detect), len(detect)))
     (out / MD_NAME).write_text(render_md(meta, gate, null, fp_table, theta, detect, power, fwhm))
     print(gate, flush=True)

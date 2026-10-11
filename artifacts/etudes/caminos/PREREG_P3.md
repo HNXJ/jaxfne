@@ -91,9 +91,18 @@ v5 history (tables in `caminos/calibration/`):
 - At 10 s, θ = 4 held 0 % false positives on every floor. All 7 sinusoid rows passed. The 7
   AR(2) rows reached only 0.875–0.915, mostly through the local-maximum rule.
 
-The calibration table goes into this file. The unscored seed-0 pilot (12 s, p = 0.07) is
-rescored under the calibrated θ and reported here before signature. The 5 s pilot under v5
-gave E 1.04, PV 11.07 and SOM 6.55 Hz, with f_pk 35.0 Hz, PE 26.7 and a lag of 7.6 ms.
+**v6 result (2026-10-11; table in `caminos/calibration/calibration_v6.md`): PASS, θ = 4.**
+- Null floors: 0/200 false positives on all 7 floors at every θ in the grid.
+- Detection rows: 14 of 14 at ≥ 95 %, realised peak excess 7.85–8.03 (target 8), median
+  f_pk 35.0 Hz in every row.
+- The weakest row is the AR(2) bump on the τ = 8 ms, 8× floor, at exactly 0.950 (190/200):
+  it passes with no margin. The sinusoid on the same floor gives 0.955.
+
+The unscored seed-0 pilot (12 s, p = 0.07, 10 s kept), scored at θ = 4: E 1.058, PV 11.180
+and SOM 6.590 Hz; f_pk 35.0 Hz, PE 15.1, lag 7.2 ms; it oscillates, and f_pk is also a raw-PSD
+local maximum. The 5 s pilot under v5 gave E 1.04, PV 11.07 and SOM 6.55 Hz, with f_pk
+35.0 Hz, PE 26.7 and a lag of 7.6 ms. The pilot's spikes were simulated at f41738a5; v6
+changed the analysis only, and the rescore uses the v6 code.
 
 | Id | Estimand | Pass |
 |---|---|---|

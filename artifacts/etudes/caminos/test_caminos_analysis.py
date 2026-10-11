@@ -4,9 +4,10 @@ Covers PREREG_P3.md (v4) R1-R4 estimators: E-rate aperiodic-background peak
 excess on AR(1)-coloured asynchronous floors, PV->SOM lag, rate recovery,
 undefined rules, the scorer's completeness and pass rules, the run driver's
 manifest merge and reuse rules, the signature gate and pilot smoke, plus
-failing mutants (restored byte-exact). The v5 calibration gate is covered too:
+failing mutants (restored byte-exact). The v6 calibration gate is covered too:
 threshold selection, true-PE component scaling, the AR(2) pole formula and FWHM,
-and the pe_threshold parameter.
+and the pe_threshold parameter. v6 drops the PSD local-maximum test and runs 12 s
+(10 s kept), so T = 12 s here.
 """
 
 from __future__ import annotations
@@ -26,25 +27,25 @@ import caminos_analysis as ca
 import calibrate_oscillation as cal
 
 DT = 1e-4  # s, prereg Runs Euler step
-T = 5.0  # s, prereg Runs duration
+T = 12.0  # s, prereg Runs duration (v6)
 STEPS = int(round(T / DT))
 KEPT_S = T - ca.DISCARD_S
 SIZES = {"E": 1000, "PV": 50, "SOM": 50}
 F_GAMMA = 35.0
 
 
-def _mod_counts(seed, rates, sizes=SIZES, depth=0.0, freq=F_GAMMA, delays=None):
+def _mod_counts(seed, rates, sizes=SIZES, depth=0.0, freq=F_GAMMA, delays=None, steps=STEPS):
     """Poisson counts [steps, 3]; optionally rate-modulated per population.
 
     ``delays`` maps a population to its modulation delay in seconds
-    (SOM delayed = SOM after PV).
+    (SOM delayed = SOM after PV). ``steps`` defaults to the reference run length.
     """
     rng = np.random.default_rng(seed)
     delays = delays or {}
-    t = np.arange(STEPS) * DT
-    counts = np.zeros((STEPS, 3), dtype=np.int64)
+    t = np.arange(steps) * DT
+    counts = np.zeros((steps, 3), dtype=np.int64)
     for i, pop in enumerate(("E", "PV", "SOM")):
-        lam = np.full(STEPS, rates[pop] * DT)
+        lam = np.full(steps, rates[pop] * DT)
         if depth:
             d = delays.get(pop, 0.0)
             lam = lam * (1.0 + depth * np.sin(2.0 * np.pi * freq * (t - d)))
@@ -103,7 +104,7 @@ def test_score_scopes_r1_r3_to_reference_runs(tmp_path):
     assert res["r3"]["pass"], res["r3"]
     assert res["r4"]["complete"] and res["r4"]["pass"], res["r4"]
     assert sorted(res["not_scored"]) == sorted(
-        ["pilot_s1.npy", "s1_p0.07_float64_T5.npy", "s0_p0.07_float32_T5.npy"]), res["not_scored"]
+        ["pilot_s1.npy", "s1_p0.07_float64_T12.npy", "s0_p0.07_float32_T12.npy"]), res["not_scored"]
 
 
 def test_r1_seed_at_25hz_fails_band(tmp_path):
@@ -201,7 +202,7 @@ def test_mixed_sha_or_short_run_is_incomplete(tmp_path, field):
     if field == "git_sha":
         assert any("git SHA" in m for m in res["r1"]["reasons"]), res["r1"]["reasons"]
     else:
-        assert any("T = 5 s" in m for m in res["r1"]["reasons"]), res["r1"]["reasons"]
+        assert any("T = 12 s" in m for m in res["r1"]["reasons"]), res["r1"]["reasons"]
 
 
 def test_welch_numpy_sinusoid():
@@ -232,7 +233,7 @@ def test_ar1_coloured_async_does_not_oscillate(tau_ms, c):
     counts, e_rate = cal.synth_e(np.random.default_rng([int(tau_ms), int(10 * c), 7]),
                                  tau_ms, c)
     # the generator must build the named AR(1) floor: check it on a 60 s realisation,
-    # since one 3 s window scatters by about +-0.15 around the population value
+    # since one 10 s kept window scatters around the population value
     long_counts, _ = cal.synth_e(np.random.default_rng([int(tau_ms), int(10 * c), 99]),
                                  tau_ms, c, kept_s=60.0)
     acf, expected = cal.count_acf(long_counts), cal.expected_count_acf(tau_ms, c)
@@ -258,9 +259,15 @@ def test_lag_negative():
 
 
 def test_lag_noisy_dataset_passes_true_window():
+    """Noisy 10-cell fixture: the estimate lies within 0.5 ms of 8.5 ms (the true window).
+
+    Steps are the 5 s this test was written on (v5). At 12 s, seed 21 gives 7.6 ms, and seeds
+    21-30 spread 7.2-11.4 ms with one estimate at the -14 ms window edge (seed 26). The 0.5 ms
+    check therefore holds for this 5 s realisation only.
+    """
     sizes = {"E": 1000, "PV": 10, "SOM": 10}
     counts = _mod_counts(21, {"E": 2.0, "PV": 6.0, "SOM": 5.0}, sizes,
-                         depth=0.7, delays={"SOM": 0.0085})
+                         depth=0.7, delays={"SOM": 0.0085}, steps=int(round(5.0 / DT)))
     assert abs(ca.pv_som_lag(counts, DT, sizes) - 8.5) <= 0.5
 
 
@@ -286,7 +293,7 @@ def test_zero_spike_undefined():
 def test_run_refuses_scored_without_signed(tmp_path, capsys):
     import run_caminos
     with pytest.raises(SystemExit) as ei:
-        run_caminos.main(["--seeds", "1", "--p", "0.07", "--T", "5.0",
+        run_caminos.main(["--seeds", "1", "--p", "0.07", "--T", "12.0",
                           "--out", str(tmp_path / "runs")])
     assert ei.value.code != 0
     out = capsys.readouterr().out
@@ -398,7 +405,7 @@ def test_mutant_wide_window_fails():
 
     def check():
         counts = _mod_counts(21, {"E": 2.0, "PV": 6.0, "SOM": 5.0}, sizes,
-                             depth=0.7, delays={"SOM": 0.0085})
+                             depth=0.7, delays={"SOM": 0.0085}, steps=int(round(5.0 / DT)))
         lag = ca.pv_som_lag(counts, DT, sizes)
         assert not abs(lag - 8.5) <= 0.5, lag  # 25 ms window admits the alias
     _run_mutant(b"LAG_WINDOW_MS = 14.0", b"LAG_WINDOW_MS = 25.0", check)
@@ -507,21 +514,25 @@ PIN_DETECT = {  # AR(1) tau 30 ms, var 8x, ar2, true PE 10 (theta 5); floor from
 
 
 def test_kept_3_reproduces_v5_rows_bit_for_bit():
-    """Kept 3 s, default and explicit, reproduces the pinned v5 rows exactly (5 draws, 2 rows)."""
+    """Explicit kept 3 s reproduces the pinned v5 rows exactly (5 draws, 2 rows).
+
+    The default kept window is 10 s since v6, so the pins are checked only with the
+    explicit 3 s argument; the peak fields they pin are unchanged by v6.
+    """
     label, tau, c = cal.floors()[6]
     assert label == "AR(1) tau 30 ms, var 8x", label  # precondition: the pinned floor
-    for kw in ({}, {"kept_s": 3.0}):
-        null = cal.run_null(6, label, tau, c, 5, **kw)
-        assert null["pe"].tolist() == PIN_NULL["pe"], null["pe"]
-        assert null["f_pk"].tolist() == PIN_NULL["f_pk"], null["f_pk"]
-        assert null["floor_psd35"] == PIN_NULL["floor_psd35"], null["floor_psd35"]
-        res = cal.run_component(6, tau, c, "ar2", 10.0, null["floor_psd35"], 5,
-                                cal.STAGE_DETECT, (6, 1), **kw)
-        assert res["pe"].tolist() == PIN_DETECT["pe"], res["pe"]
-        assert res["f_pk"].tolist() == PIN_DETECT["f_pk"], res["f_pk"]
-        assert res["scale"] == PIN_DETECT["scale"], res["scale"]
-        assert res["realised_pe"] == PIN_DETECT["realised_pe"], res["realised_pe"]
-        assert res["comp_over_floor"] == PIN_DETECT["comp_over_floor"], res["comp_over_floor"]
+    kw = {"kept_s": 3.0}
+    null = cal.run_null(6, label, tau, c, 5, **kw)
+    assert null["pe"].tolist() == PIN_NULL["pe"], null["pe"]
+    assert null["f_pk"].tolist() == PIN_NULL["f_pk"], null["f_pk"]
+    assert null["floor_psd35"] == PIN_NULL["floor_psd35"], null["floor_psd35"]
+    res = cal.run_component(6, tau, c, "ar2", 10.0, null["floor_psd35"], 5,
+                            cal.STAGE_DETECT, (6, 1), **kw)
+    assert res["pe"].tolist() == PIN_DETECT["pe"], res["pe"]
+    assert res["f_pk"].tolist() == PIN_DETECT["f_pk"], res["f_pk"]
+    assert res["scale"] == PIN_DETECT["scale"], res["scale"]
+    assert res["realised_pe"] == PIN_DETECT["realised_pe"], res["realised_pe"]
+    assert res["comp_over_floor"] == PIN_DETECT["comp_over_floor"], res["comp_over_floor"]
 
 
 def test_kept_10_gives_19_welch_segments():
@@ -560,3 +571,56 @@ def test_main_threads_kept_s_to_every_synthetic_draw(tmp_path, monkeypatch):
         cal.main(["--out", str(tmp_path), "--draws", "1", "--power-draws", "1", "--kept-s", "10"])
     expected = [("null", 10.0)] * len(cal.floors()) + [("component", 10.0)]
     assert seen == expected, seen
+
+
+# v6 fixture. Found by a scratch scan of seeds 1-40 (2026-10-11): a 10 s white Poisson floor plus
+# V6_AMP times a unit-std 35 Hz AR(2) bump (the calibrated 5 Hz form). Seed 26 is the only
+# seed at this amplitude whose largest residual is off a raw-PSD local maximum with PE >= 4.
+V6_SEED = 26
+V6_AMP = 0.2
+
+
+def _v6_fixture_rate():
+    """10 s E rate: white Poisson floor plus V6_AMP times a unit-std 35 Hz AR(2) bump."""
+    _, floor = cal.synth_e(np.random.default_rng([9, V6_SEED]), None, None, kept_s=10.0)
+    bump = cal.component_unit("ar2", np.random.default_rng([8, V6_SEED]), kept_s=10.0)
+    return floor + V6_AMP * bump / bump.std()
+
+
+def test_v6_fixture_oscillates_under_v6_not_v5():
+    """The largest residual is not a raw-PSD local maximum: it oscillates under v6, not under v5."""
+    pk = ca.spectral_peak(_v6_fixture_rate(), DT)
+    assert not pk["local_max"] and pk["edge_ok"], pk  # precondition: the named case
+    assert pk["peak_excess"] >= ca.PE_THRESHOLD, pk["peak_excess"]
+    assert abs(pk["peak_freq_Hz"] - F_GAMMA) <= 2.0, pk["peak_freq_Hz"]
+    v5_call = bool(pk["peak_excess"] >= ca.PE_THRESHOLD and pk["local_max"] and pk["edge_ok"])
+    assert pk["oscillates"], pk  # v6: peak excess and band edges only
+    assert not v5_call  # v4/v5: the same peak was rejected for lacking a local maximum
+
+
+def test_mutant_restored_local_max_fails_v6_fixture():
+    """Restoring the local-max requirement at the call site rejects the v6 fixture."""
+    def check():
+        pk = ca.spectral_peak(_v6_fixture_rate(), DT)
+        assert not pk["oscillates"], pk["peak_excess"]  # restored rule: the fixture is rejected
+    _run_mutant(b'"oscillates": oscillation_call(pe, edge_ok, pe_threshold),',
+                b'"oscillates": oscillation_call(pe, edge_ok, pe_threshold) and local_max,', check)
+
+
+def test_t5_runs_are_refused_as_incomplete(tmp_path):
+    """Runs made at the old T = 5 s are not analysed: R1-R3 are incomplete and cite T = 12 s."""
+    runs = [_run(s, 0.07, REF_RATES, depth=0.9, delays={"SOM": 0.0085}, T_run=5.0)
+            for s in (1, 2, 3, 4, 5)]
+    res = ca.score(_write_dir(tmp_path, runs))
+    assert res["r1"]["n_runs"] == 0, res["r1"]  # precondition: no 5 s run is analysed
+    for key in ("r1", "r2", "r3"):
+        assert not res[key]["complete"] and not res[key]["pass"], (key, res[key])
+        assert any("T = 12 s" in m for m in res[key]["reasons"]), res[key]["reasons"]
+
+
+def test_v6_defaults_are_12_s_run_and_10_s_kept():
+    """Scorer REF_T 12 s, calibration kept 10 s (= REF_T - 2 s), run driver default T 12 s."""
+    import run_caminos
+    assert ca.REF_T == 12.0 and T == ca.REF_T
+    assert cal.KEPT_S == 10.0 == ca.REF_T - ca.DISCARD_S
+    assert run_caminos.build_parser().parse_args(["--seeds", "1", "--out", "x"]).T == 12.0

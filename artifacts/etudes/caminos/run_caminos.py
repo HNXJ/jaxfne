@@ -70,7 +70,7 @@ def build_parser():
     ap = argparse.ArgumentParser(description="Run the CAMINOS reference net (PREREG_P3.md).")
     ap.add_argument("--seeds", nargs="+", type=int, required=True)
     ap.add_argument("--p", type=float, default=0.07)
-    ap.add_argument("--T", type=float, default=5.0)
+    ap.add_argument("--T", type=float, default=12.0)
     ap.add_argument("--out", required=True)
     ap.add_argument("--dtype", choices=DTYPE_CHOICES, default="float32")
     ap.add_argument("--dt", type=float, default=1e-4)

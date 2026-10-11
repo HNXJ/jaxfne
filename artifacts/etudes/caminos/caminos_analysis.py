@@ -16,8 +16,9 @@ Estimators (prereg text):
   log10 P = a - log10(k + f**chi) on 10-150 Hz; f_pk is the largest residual
   in 20-80 Hz; the background is refit with f_pk +- 8 Hz excluded; peak excess
   PE = P(f_pk) / background(f_pk). A run "oscillates" when PE >= pe_threshold
-  (default 4, the v4 value; the v5 calibration gate sets it), f_pk is a local
-  maximum of the PSD, and f_pk is not within 2 Hz of 20 or 80 Hz.
+  (default 4, the v4 value; the v6 calibration gate sets it) and f_pk is not
+  within 2 Hz of 20 or 80 Hz. v6 dropped the PSD local-maximum test; ``local_max``
+  is reported only.
 * Lag (R2): PV and SOM rates smoothed with a 2 ms Gaussian, peak of the
   cross-correlation over -14..+14 ms; positive means SOM after PV.
 * Undefined rules (prereg text): a population with zero spikes in the
@@ -58,7 +59,7 @@ R4_LOW_P = 0.02  # prereg R4: must be silent
 R4_SEEDS = (1, 2, 3)  # prereg R4: seeds per p
 REF_DTYPE = "float32"  # prereg Runs
 REF_DT = 1e-4  # s, prereg Runs Euler step
-REF_T = 5.0  # s, prereg Runs duration
+REF_T = 12.0  # s, prereg Runs duration (v6; kept window is REF_T - DISCARD_S)
 REF_STEPS = int(round(REF_T / REF_DT))
 
 
@@ -155,9 +156,9 @@ def e_welch(e_rate, dt):
     return welch_spectrum(x, fs, nperseg, nperseg // 2)
 
 
-def oscillation_call(peak_excess, local_max, edge_ok, pe_threshold=PE_THRESHOLD):
-    """The v4 rule (item 6): PE >= pe_threshold, f_pk a local maximum, f_pk off the band edges."""
-    return bool(peak_excess >= pe_threshold and local_max and edge_ok)
+def oscillation_call(peak_excess, edge_ok, pe_threshold=PE_THRESHOLD):
+    """The v6 rule (item 6): PE >= pe_threshold, f_pk off the band edges. No local-max test."""
+    return bool(peak_excess >= pe_threshold and edge_ok)
 
 
 def spectral_peak(e_rate, dt, pe_threshold=PE_THRESHOLD):
@@ -165,7 +166,7 @@ def spectral_peak(e_rate, dt, pe_threshold=PE_THRESHOLD):
 
     ``e_rate`` is the E population rate in ``dt`` bins; the mean is removed
     here (prereg Runs). ``pe_threshold`` is the peak excess that counts as
-    oscillating (default 4, the v4 value; the v5 calibration sets it). Returns
+    oscillating (default 4, the v4 value; the v6 calibration sets it). Returns
     a dict: ``peak_freq_Hz`` (f_pk), ``peak_excess`` (PE), ``background_Hz``
     (refit background at f_pk), ``local_max``, ``edge_ok``, ``oscillates``, the
     refit parameters ``fit`` and the first fit's parameters ``fit_pass1``.
@@ -192,7 +193,7 @@ def spectral_peak(e_rate, dt, pe_threshold=PE_THRESHOLD):
         "background_Hz": background,
         "local_max": local_max,
         "edge_ok": edge_ok,
-        "oscillates": oscillation_call(pe, local_max, edge_ok, pe_threshold),
+        "oscillates": oscillation_call(pe, edge_ok, pe_threshold),
         "fit": pars2,
         "fit_pass1": pars1,
     }
@@ -306,17 +307,17 @@ def _is_reference(entry):
 
 
 def _t_ok(entry, steps):
-    """Run lasted T = 5 s at dt = 1e-4 (manifest value and saved step count)."""
+    """Run lasted T = REF_T (12 s) at dt = 1e-4 (manifest value and saved step count)."""
     return entry.get("T") is not None and abs(float(entry["T"]) - REF_T) < 1e-12 and steps == REF_STEPS
 
 
 def score(run_dir, pe_threshold=PE_THRESHOLD):
-    """Score a run directory written by ``run_caminos.py`` (R1-R4, prereg v4).
+    """Score a run directory written by ``run_caminos.py`` (R1-R4, prereg v6).
 
     Only reference-configuration runs are scored. A result is incomplete
     (pass False) unless R1-R3 have exactly seeds 1-5 at p = 0.07 (seed 0
     excluded), R4 has seeds 1-3 at all nine p, and every run in those sets
-    has T = 5 s and one 40-character git SHA.
+    has T = 12 s and one 40-character git SHA.
 
     R1: every seed oscillates with f_pk in 30-40 Hz. R2: lag positive in
     every seed, mean 6-11 ms. R3: PV > SOM > E in every seed, mean E rate
@@ -350,7 +351,8 @@ def score(run_dir, pe_threshold=PE_THRESHOLD):
         common.append("scored runs do not share one 40-character git SHA (%d distinct)"
                       % len(shas))
     if not_t:
-        common.append("runs not at T = 5 s and dt = 1e-4: %s" % ", ".join(sorted(not_t)))
+        common.append("runs not at T = %g s and dt = 1e-4: %s"
+                      % (REF_T, ", ".join(sorted(not_t))))
 
     ref_seeds = sorted(r["seed"] for r in per_run if _same(r["p"], REF_P))
     ref_reasons = list(common)
