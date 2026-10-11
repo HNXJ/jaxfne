@@ -1,90 +1,146 @@
 # Release plan 0.5.6–0.5.10: replications plus narrowing
 
 Requested by Hamm, 2026-10-11. This is a draft, so every release, tag and API addition
-still needs his word.
+still needs his word. Citations marked *(mem)* were written from memory; P1 checks them
+against the source.
 
-Each release carries:
+## 1. Purpose
 
-1. Three or four paper replications, each with its own preregistration that Hamm signs in
-   a batch.
-2. A narrowing sweep over code, docs and skills. The sweep ends with less tracked
-   volume, and it does not lose a test.
+Each release shows that jaxfne reproduces published results and teaches something beyond
+them, while the repository shrinks. The replications are not the end point. They are
+validated building blocks for modelling the visual omission paradigm: a model joins that
+work only after it has been replicated.
 
-Citations marked *(mem)* were written from memory. P1 checks them against the source
-before any work starts.
+## 2. Definitions
 
-## Baseline volume (dev 69bd4274, measured 2026-10-11)
+**Fidelity tier.** Every replication states one tier:
 
-| Area | Files | Size |
-|---|---|---|
-| tracked total | 2529 | 126.0 MB |
-| `jaxfne/` package | — | 74.9k lines of Python |
-| `tests/` | 443 .py | 77.8k lines |
-| `docs/` | 502 | 42.2 MB |
-| `artifacts/` | 1179 | 35.2 MB |
-| skills (`artifacts/skills` and others) | 17 SKILL.md | — |
+| Tier | Meaning |
+|---|---|
+| T-port | the authors' code or trained artefacts, run in our port (PCL Figs. 2–3) |
+| T-methods | a reimplementation from the published methods (CAMINOS) |
+| T-jaxfne | the same result through the jaxfne public API |
 
-## Releases
+A paper counts as replicated *with jaxfne* only at T-jaxfne. The etudes are the oracle
+that the library path must match.
 
-| Release | Theme | Papers | Library change (needs Hamm) |
+**Claim ledger.** For each paper, one table lists every claim we test. Each row gives the
+claim, its observable, our estimand, the preregistered criterion, the result, and a
+verdict.
+
+**Verdict scale:**
+
+- reproduced
+- reproduced with a declared deviation
+- not reproduced
+- not testable, with the reason (for example, methods unavailable)
+
+A negative verdict is a result: it is published and is not tuned away.
+
+## 3. Pipeline per paper (stages P0–P7)
+
+| Stage | Output | Gate | Who |
 |---|---|---|---|
-| 0.5.6 | Gamma and V1 tuning | 1. N'dri et al. 2025 PCL, Figs. 2–3 on the authors' trained network. 2. Tahvili, Vinck, di Volo, PLoS CB 2026: CAMINOS Fig. 1, plus PV silencing and randomisation (Figs. 2–3). 3. Tahvili et al., Cell Reports 2025, if its STAR Methods can be read; otherwise Izhikevich 2003 *(mem)*, the 1000-neuron network with its rhythms, on the existing emitter | AdEx emitter with conductance synapses (stage B of L2) |
-| 0.5.7 | LIF and balance | 4. Brunel 2000 *(mem)*: AI, SR and SI states. 5. Vogels et al. 2011 *(mem)*: inhibitory plasticity restores balance. 6. Calcium-regulated synaptic homeostasis (bioRxiv 2025, candidate #10, lane L4). 7. PCL Fig. 4: surround, orientation-tuned and cross-orientation suppression | a working LIF emitter (a placeholder today) |
-| 0.5.8 | Laminar | 8. Potjans and Diesmann 2014 *(mem)*: the cortical microcircuit, per-layer rates, on GPU in float32. 9. Mejias et al. 2016 *(mem)*: laminar multi-area rate model, gamma up and alpha down, feedforward and feedback. 10. Spectrolaminar motif (Nat Neurosci 2023, with the 2025 reply; lane L3) as a target observable on 8 and 9 | laminar readout helpers, if 8–10 need them |
-| 0.5.9 | Predictive coding | 11. Multiple interneuron types and oscillations during predictive coding (candidate #4). 12. Lane L5, predictive coding. 13. PCL Figs. 5–6: spikes removed against N-MNIST and DVS Gesture accuracy, and sparseness. 14. PCL trained from scratch on the natural set (L1-G3) | event-input path for PCL in `jaxfne`, if the etude earns it |
-| 0.5.10 | Readout and consolidation | 15. On the validity of EEG predictions from population rates (candidate #9). 16. Mazzoni et al. 2015 *(mem)*: LFP proxies from LIF networks. 17. Metastability from local E–I homeostasis (candidate #11), if reducible to one area | none planned; the release closes the cycle |
+| P0 select | why this paper, the insight sought, jaxfne features needed | in the release table | Claude, with Hamm |
+| P1 source | methods complete; code and data; licence; citation checked | a gap list with no unknowns | agy or a worker; Claude checks |
+| P2 spec | `PORT_SPEC.md`: model, parameters with sources, assumptions | second review | Claude |
+| P3 prereg | `PREREG_P3.md`: estimands, bands, nulls, seeds, sensitivity | second review, then Hamm's batch signature | Claude drafts |
+| P4 build | etude code and tests (known-answer, mutant-checked); unscored pilot on seed 0 | suite green | opencode or a worker; Claude verifies |
+| P5 score | scored run with manifest; analysis JSON; claim ledger | second review of the numbers | Claude |
+| P6 library | the same estimands through the jaxfne API | equivalence to P5 within the declared tolerance | worker, Claude |
+| P7 insight | one perturbation beyond the paper, one static figure, one gallery page | second review | Claude |
 
-The order follows what the code can carry. Each release adds at most one emitter. A
-paper whose methods cannot be obtained moves to the next release and does not block its
-own.
+Standing rules:
 
-## Narrowing sweep, every release
+- Seed 0 is for pilots only.
+- Scored runs wait for Hamm's signature.
+- Float32 is the default. A float64 sensitivity run on one seed checks every scored
+  result.
+- Runs of 5 minutes or more go detached; a run is not complete until its receipt exists.
 
-Target per release: −10 % tracked files and −10 % docs bytes against the previous
-release. The test count stays the same or grows. Each class gets its own commit and gate:
+## 4. Releases
 
-1. **Unused code.** Modules, functions and options that nothing imports or tests
-   (`match-cleanup`). Public API is excepted; its removal goes to Hamm.
-2. **Docs.** Pages superseded by a newer page (`tutorials_v030`, duplicated guides);
-   `docs/_static` assets that nothing references.
-3. **Artifacts.** Closed programmes and protocol trees (`artifacts/legacy`,
-   `protocol_*`, `e2`, `.lab`) move to a tagged archive branch plus one index file. Git
-   history keeps the bytes, and the tree loses them.
-4. **Skills.** Merge the 17 into the few that are used, and delete the rest.
-5. **Tests.** Merge duplicates that pin the same behaviour. Kill a test only when a
-   mutant shows another test catches what it caught.
+| Release | Papers (P0) | Library work (needs Hamm) | Depends on |
+|---|---|---|---|
+| 0.5.6 | 1. N'dri et al. 2025, PCL Figs. 2–3 (T-port). 2. Tahvili, Vinck, di Volo, PLoS CB 2026: CAMINOS Figs. 1–3 (T-methods, then T-jaxfne). 3. Tahvili et al., Cell Reports 2025, if its methods can be read; otherwise Izhikevich 2003 *(mem)* on the existing emitter | AdEx emitter with conductance synapses | P3 signatures; the Cell Reports methods |
+| 0.5.7 | 4. Brunel 2000 *(mem)*: AI, SR and SI states. 5. Vogels et al. 2011 *(mem)*: inhibitory plasticity. 6. Calcium-regulated synaptic homeostasis (bioRxiv 2025). 7. PCL Fig. 4: suppression effects | working LIF emitter (a placeholder today) | 0.5.6 conductance synapses |
+| 0.5.8 | 8. Potjans and Diesmann 2014 *(mem)*: microcircuit. 9. Mejias et al. 2016 *(mem)*: laminar multi-area. 10. Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply) on 8 and 9 | laminar readout, if needed | 0.5.7 LIF; GPU time |
+| 0.5.9 | 11. Multiple interneuron types in predictive coding (candidate #4). 12. Lane L5, predictive coding. 13. PCL Figs. 5–6. 14. PCL trained from scratch (L1-G3) | event input for PCL, if earned | the PCL suppression data and N-MNIST/DVS sets |
+| 0.5.10 | 15. Validity of EEG predictions from rates (candidate #9). 16. Mazzoni et al. 2015 *(mem)*: LFP proxies. 17. E–I metastability (candidate #11), if it reduces to one area | none | 0.5.8 laminar models |
 
-Each sweep runs as a read-only inventory first (opencode or `match-cleaner`), then one
-packet per class. A class is gated by: the full suite at 0 failed, the docs build, the
-link check, and the vocabulary audit in check mode.
+A paper that cannot pass P1 moves to the next release without blocking its own. Each
+release adds at most one emitter.
 
-## First inventory (69bd4274, 2026-10-11)
+## 5. Definition of done, per release
 
-Without touching tests or public names, 31 files plus 17 in-file items can leave or merge:
-1.80 MB in all, 1.4 % of bytes. The receipts sit in the session scratchpad
-(`sweep/_temp_receipts.txt`).
+1. Every paper has a verdict and is at P6, or has a stated reason why P6 does not apply.
+2. A replication index (`artifacts/etudes/REPLICATIONS.md`) lists each paper's tier,
+   verdict, ledger, receipts and gallery page.
+3. The narrowing target is met (§6) and the size gate is green.
+4. The usual release gate: rc gate, CI green on the SHA, second review, receipt.
+5. Tag, main and PyPI happen on Hamm's word.
 
-The volume sits elsewhere, in generated visual assets:
+## 6. Narrowing
 
-| Area | Size | Content |
-|---|---|---|
-| `artifacts/publication` | 23.7 MB | mostly atlas HTML at 3.4 MB each |
-| `docs/assets` | 22.5 MB | interactive and 3D HTML at 4.7–6.8 MB each |
-| `docs/_static` | 15.4 MB | |
-| `artifacts/tutorials` | 14.9 MB | 3D network HTML, notebooks with outputs |
+Baseline (69bd4274): 2525 tracked files, 126.0 MB. Docs take 42 MB and artifacts 35 MB.
+There are 17 skills.
 
-The −10 % target needs one decision from Hamm. The options are to regenerate these
-assets at docs build, or to move them to release assets. Either way the docs keep their
-inline embeds.
+The first inventory found that safe removals come to only 1.4 %. Most of the bytes are
+generated HTML: about 50 MB across `artifacts/publication`, `docs/assets`, `docs/_static`
+and `artifacts/tutorials`.
 
-## Release gate (unchanged)
+Plan:
 
-rc gate, CI green on the SHA, second review, receipt. Tag, main and PyPI only on Hamm's
-word.
+1. **Decide where generated assets live** (Hamm): regenerate them at the docs build
+   (recommended), or keep them as release assets. The docs keep their inline embeds
+   either way.
+2. **Size gate in CI**, so the tree does not grow back:
+   - no new tracked file over 1 MB without an allow-list entry;
+   - a total-byte budget per release.
+3. **Per release, one class per commit**, each with its gate: unused code, docs,
+   artifacts to an archive branch plus an index, skills merged, duplicate tests merged.
+   A removed test needs a mutant caught elsewhere.
+4. **Results stay small:** each replication ships one static figure and one page, with
+   no new interactive HTML unless it is generated.
 
-## Split of work (proposed)
+Targets: −10 % files and −10 % bytes per release once decision 1 is made, and no loss of
+tests or public names.
 
-- Claude (vwin): the replication lanes, preregistrations, science review.
-- Cursor: release engineering and the GPU benchmark.
-- opencode: sweep inventories and bounded build packets.
-- agy: literature crawl and P1 checks of the *(mem)* citations.
+## 7. Structure in the repo
+
+```
+artifacts/etudes/<paper>/      PORT_SPEC.md, PREREG_P3.md, code, tests, LEDGER.md
+artifacts/etudes/REPLICATIONS.md   index across releases
+F:\warehouse\<paper>\         source data, downloads, scored runs (outside git)
+docs/replications/<paper>.md  gallery page, one static figure (P7)
+```
+
+Branches: one per lane, each in its own worktree. Each lane merges to dev after a second
+review, then the release branch is cut from dev.
+
+## 8. Roles
+
+- Claude (vwin): the lanes, specs, preregistrations, verdicts, insight.
+- Cursor: release engineering, sweep commits, size gate, GPU benchmark.
+- opencode: bounded builds and tests.
+- agy and workers: P1 checks and inventories.
+- Hamm: selection, signatures, API additions, tags.
+
+## 9. Risks
+
+| Risk | Mitigation |
+|---|---|
+| Methods unavailable (Cell Reports) | companion papers; move the paper to the next release; Hamm opens the page |
+| Etude results never reach the library path | P6 is part of the definition of done |
+| Pilot results leak into the bands | seed 0 excluded; prior exposure stated in each prereg |
+| The GPU is shared with Cursor | one job at a time, claimed in jchat |
+| Licences (bioRxiv CC-BY-NC) | no copied figures or text; cite only |
+| Assumptions stack up (map order, drive reading) | sensitivity runs named in each prereg |
+
+## 10. Open decisions (Hamm)
+
+1. Approve the release table and the order.
+2. Where generated assets live (§6.1).
+3. The AdEx (0.5.6) and LIF (0.5.7) API additions.
+4. Is the stated purpose right: replications as building blocks for omission modelling?
+5. Batch signature on the two v3 preregistrations, after their re-review.
