@@ -1,0 +1,61 @@
+{
+  "schema": "jaxfne.release_receipt.v1",
+  "kind": "publication_addendum",
+  "programme": "v0.5.5",
+  "addendum_timestamp_utc": "2026-10-11T05:04:13Z",
+  "supplements": "artifacts/release/v0_5_5_release_receipt.json (committed at 63266722c68b12f7b006456e94f4a64e2ac35385; its blockers_to_seal described the state at receipt time and are now resolved by the events below)",
+  "authorization": {
+    "granted_by": "Hamm",
+    "date": "2026-10-10",
+    "scope": "protected dev -> main merge and v0.5.5 publication, conditional on final verification; verification passed (origin/dev tip == 63266722, Fast CI green on the receipt commit, main fast-false check of tree equality)"
+  },
+  "merge": {
+    "pull_request": 102,
+    "url": "https://github.com/HNXJ/jaxfne/pull/102",
+    "method": "merge commit",
+    "pre_merge_checks": "fast-test 3.11, fast-test 3.14, fast-build all SUCCESS; PR release_ci leg run 38105471816 SUCCESS",
+    "note": "Branch policy blocked despite green checks and no required review; merged with the administrator bypass under the explicit authorization above.",
+    "main_tip_sha": "28ccee1dd2194c74799d5966d14d80783a277233",
+    "parents": ["bac0630a31ffb247b0bd8584e89a0b1499cbf7c4", "63266722c68b12f7b006456e94f4a64e2ac35385"],
+    "tree_sha": "20e3ad34787749c0d3b27b9e0c492019ed01fbe6",
+    "tree_note": "identical to the receipt commit tree"
+  },
+  "ci_on_main_tip": {
+    "fast": {
+      "run_id": 38107679108,
+      "conclusion": "success",
+      "jobs": ["fast-test (3.11)", "fast-test (3.14)", "fast-build"]
+    },
+    "release": {
+      "run_id": 38107679114,
+      "conclusion": "success",
+      "jobs": ["release-test (3.11)", "release-test (3.14)", "release-build"],
+      "artifacts": ["pytest-results-3.11", "pytest-results-3.14", "release-dist"]
+    }
+  },
+  "tag": {
+    "name": "v0.5.5",
+    "object_sha": "223d318bf86640f666b04479df0503e49b28a29d",
+    "peeled_sha": "28ccee1dd2194c74799d5966d14d80783a277233",
+    "note": "Tagged the post-merge main tip because PyPI trusted publishing fetches the CI-built release-dist for the exact tagged commit; release_ci.yml produces that artifact only for main pushes and workflow dispatch."
+  },
+  "github_release": {
+    "url": "https://github.com/HNXJ/jaxfne/releases/tag/v0.5.5",
+    "triggered_publish_run": 38112078715
+  },
+  "pypi": {
+    "publish_run_id": 38112078715,
+    "workflow": "Publish (publish-pypi, release event, environment pypi, trusted publishing)",
+    "hash_gate": "SHA256 equality of fetched release-dist against RELEASE_MANIFEST.json verified in CI before upload",
+    "method_note": "Deliberately no rebuild: the uploaded bytes are the release-build artifacts the rc gate's twine check and wheel smoke ran against.",
+    "url": "https://pypi.org/project/jaxfne/0.5.5/"
+  },
+  "pypi_clean_install_verification": {
+    "command": "isolated venv; pip install jaxfne==0.5.5; construct/network(8)/emitter/field/probe(4); simulate 5 ms dt 0.1; compute_readout; manifest; json.dumps allow_nan=False",
+    "result": "PYPI CLEAN INSTALL OK: version 0.5.5 from site-packages",
+    "asserted": ["'site-packages' in jtfne.__file__", "jtfne.__version__ == '0.5.5'", "manifest['physical_amplitude_calibrated'] is False"],
+    "first_attempt_note": "First smoke run asserted the local repo tree because the shell cwd was the repo; rerun from a cwd outside the repo (as the rc gate does) passed. Install itself was unaffected."
+  },
+  "status_after_publication": "sealed_published",
+  "residual_bookkeeping": "This addendum records publication; the release receipt itself stays byte-for-byte as committed at 63266722. History before 2026-10-10 lives on the retired Vercel jchat hub; coordination moved to the local hub."
+}
