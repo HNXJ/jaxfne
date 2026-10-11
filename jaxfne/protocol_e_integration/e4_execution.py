@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 from collections import defaultdict
 from dataclasses import dataclass
@@ -21,6 +20,7 @@ from jaxfne.protocol_e_integration.e2_execution import (
     hierarchy_fingerprint,
 )
 from jaxfne.protocol_e_integration.e3_execution import (
+    _digest,
     delay_table_digest,
     load_e3_execution_receipt,
     run_e3_kernel,
@@ -79,11 +79,6 @@ class E4ObservationResult:
     q_hash_before: str
     q_hash_after: str
     semantic_status: str
-
-
-def _digest(obj: Any) -> str:
-    payload = json.dumps(json_safe(obj), sort_keys=True, separators=(",", ":"))
-    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def _field_params(spec: dict[str, Any], field_id: str = "lfp_ref") -> dict[str, Any]:

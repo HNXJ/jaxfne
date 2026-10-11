@@ -462,12 +462,6 @@ def compute_conservation_proxy_diagnostics(
             raise ValueError(f"non-finite diagnostic value: {f}")
         return f
 
-    def _norm_l1(arr: np.ndarray) -> float | None:
-        try:
-            return _safe_float(np.mean(np.abs(arr)))
-        except Exception:
-            return None
-
     def _norm_l2(arr: np.ndarray) -> float | None:
         try:
             return _safe_float(np.sqrt(np.mean(arr**2)))
@@ -508,7 +502,7 @@ def compute_conservation_proxy_diagnostics(
     _csd = _coerce(_csd)
     _lfp = _coerce(_lfp)
 
-    source_norm_l1: float | None = _norm_l1(_src) if _src is not None else None
+    source_norm_l1: float | None = _abs_mean(_src) if _src is not None else None
     source_norm_l2: float | None = _norm_l2(_src) if _src is not None else None
     source_abs_mean: float | None = _abs_mean(_src) if _src is not None else None
 

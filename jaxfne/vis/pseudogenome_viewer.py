@@ -34,20 +34,12 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 
 from .core import is_E_cell_type as _is_E
+from .column_viewer import _classify_edge as _edge_category
 
 
 # ---------------------------------------------------------------------------
 # Helpers — pure NumPy/JAX host reads, no simulation re-run beyond develop+construct
 # ---------------------------------------------------------------------------
-
-def _edge_category(pre_is_E: bool, post_is_E: bool) -> str:
-    if pre_is_E and post_is_E:
-        return "E→E"
-    if pre_is_E and not post_is_E:
-        return "E→I"
-    if not pre_is_E and post_is_E:
-        return "I→E"
-    return "I→I"
 
 
 def _collect_one_development(genome, seed: int, *, construct_seed: int = 7, duration_ms: float = 200.0, dt_ms: float = 0.5) -> dict[str, Any]:

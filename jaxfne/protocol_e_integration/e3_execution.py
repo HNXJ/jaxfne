@@ -14,6 +14,7 @@ import jaxfne as jtfne
 from jaxfne.emitters import simulate_edge_recurrent_izhikevich_owned_h_k_delayed
 from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_e_integration.e2_execution import (
+    _spike_event_times,
     build_e2_model,
     delay_step_occupancy,
     hierarchy_fingerprint,
@@ -197,11 +198,6 @@ def run_e2_reference_kernel(
         "sources": np.asarray(src, dtype=np.float64),
         "final_state": st,
     }
-
-
-def _spike_event_times(spikes: np.ndarray, *, dt_ms: float) -> list[tuple[int, int, float]]:
-    idx = np.argwhere(np.asarray(spikes) > 0.5)
-    return [(int(r[0]), int(r[1]), float(r[0]) * float(dt_ms)) for r in idx]
 
 
 def verify_e3_continuation(
