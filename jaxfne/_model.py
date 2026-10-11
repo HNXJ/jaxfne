@@ -969,71 +969,30 @@ class Model:
         )
         return spec.resolve(self.neuron_table(), allow_empty=allow_empty)
 
-    def _simulate_arrays(self, *args, **kwargs):
-        return _simulate_arrays_impl(self, *args, **kwargs)
-
-    def _resolve_stimulus_schedule(self, *args, **kwargs):
-        return _resolve_stimulus_schedule_impl(self, *args, **kwargs)
-
-    def simulate(self, *args, **kwargs):
-        return _simulate_impl(self, *args, **kwargs)
-
-    def _simulate_homeostatic_ei(self, *args, **kwargs):
-        return _simulate_homeostatic_ei_impl(self, *args, **kwargs)
-
-    def last_homeostasis_diagnostics(self, *args, **kwargs):
-        return _last_homeostasis_diagnostics_impl(self, *args, **kwargs)
-
-    def last_hdp_diagnostics(self, *args, **kwargs):
-        return _last_hdp_diagnostics_impl(self, *args, **kwargs)
-
-    def simulate_condition(self, *args, **kwargs):
-        return _simulate_condition_impl(self, *args, **kwargs)
-
-    def simulate_batch(self, *args, **kwargs):
-        return _simulate_batch_impl(self, *args, **kwargs)
-
-    def run_trials(self, *args, **kwargs):
-        return _run_trials_impl(self, *args, **kwargs)
-
-    def run_receipt(self, *args, **kwargs):
-        return _run_receipt_impl(self, *args, **kwargs)
-
-    def compute_readout(self, *args, **kwargs):
-        return _compute_readout_impl(self, *args, **kwargs)
-
-    def probe(self, *args, **kwargs):
-        return _probe_impl(self, *args, **kwargs)
-
-    def record(self, *args, **kwargs):
-        return _record_impl(self, *args, **kwargs)
-
-    def evaluate(self, *args, **kwargs):
-        return _evaluate_impl(self, *args, **kwargs)
-
-    def evaluate_report(self, *args, **kwargs):
-        return _evaluate_report_impl(self, *args, **kwargs)
-
-    def _evaluate_group_rate_targets(self, *args, **kwargs):
-        return _evaluate_group_rate_targets_impl(self, *args, **kwargs)
-
-    def tune(self, *args, **kwargs):
-        return _tune_impl(self, *args, **kwargs)
-
-    def _tune_multiparameter(self, *args, **kwargs):
-        return _tune_multiparameter_impl(self, *args, **kwargs)
-
-    def with_emitter_parameters(self, *args, **kwargs):
-        return _with_emitter_parameters_method_impl(self, *args, **kwargs)
-
-    def with_hdp_initial_state(self, *args, **kwargs):
-        return _with_hdp_initial_state_impl(self, *args, **kwargs)
-
-    def with_recurrent_coupling(self, *args, **kwargs):
-        return _with_recurrent_coupling_impl(self, *args, **kwargs)
-
-    def manifest(self, *args, **kwargs):
-        return _manifest_impl(self, *args, **kwargs)
+    # Method bodies live in the sibling modules imported above; binding them here
+    # keeps one definition per method (the forwarding wrappers added nothing).
+    _simulate_arrays = _simulate_arrays_impl
+    _resolve_stimulus_schedule = _resolve_stimulus_schedule_impl
+    simulate = _simulate_impl
+    _simulate_homeostatic_ei = _simulate_homeostatic_ei_impl
+    last_homeostasis_diagnostics = _last_homeostasis_diagnostics_impl
+    last_hdp_diagnostics = _last_hdp_diagnostics_impl
+    simulate_condition = _simulate_condition_impl
+    simulate_batch = _simulate_batch_impl
+    run_trials = _run_trials_impl
+    run_receipt = _run_receipt_impl
+    compute_readout = _compute_readout_impl
+    probe = _probe_impl
+    record = _record_impl
+    evaluate = _evaluate_impl
+    evaluate_report = _evaluate_report_impl
+    _evaluate_group_rate_targets = _evaluate_group_rate_targets_impl
+    tune = _tune_impl
+    _tune_multiparameter = _tune_multiparameter_impl
+    with_emitter_parameters = _with_emitter_parameters_method_impl
+    with_hdp_initial_state = _with_hdp_initial_state_impl
+    with_recurrent_coupling = _with_recurrent_coupling_impl
+    manifest = _manifest_impl
 
 
 def with_emitter_parameters(
