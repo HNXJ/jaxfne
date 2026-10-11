@@ -16,8 +16,17 @@ Deviations from the C++ (also in the port report):
 - Initial weights come from a seeded numpy RNG. The C++ draws them from std::random_device
   (WeightMatrix.cpp:7), so no C++ run can be reproduced bit for bit.
 - Weights load only in the .npy layout that SpikingNetwork::loadWeights reads (.npz is not
-  reached by that path). Lateral and top-down maps are WeightMap (unordered_map); their file
-  order is not reproducible, so they are refused when a file exists.
+  reached by that path). Lateral (<i>li.npy) and top-down (<i>tdi.npy) maps are WeightMap
+  (std::unordered_map): the file holds values in the map's iteration order (WeightMap.cpp:131-145),
+  which the C++ does not fix and the files do not record. They are refused when a file exists.
+- "static" in layerInhibitions is read as "local" (declared alias). The trained configs use
+  "static"; the C++ checks only "local" (SpikingNetwork.cpp:351), so it runs them without local
+  inhibition.
+- Loaded neuron state is what Neuron::readJson reads (Neuron.cpp:495-500): spiking_rate and
+  learning_decay. The C++ writes threshold but does not read it (Neuron.cpp:497 is commented out),
+  and count_spike feeds m_totalSpike, which no dynamics reads.
+- Complex neurons of one depth hold one shared matrix (ComplexNeuron.hpp:14-15), so their files
+  must agree. A disagreement is refused.
 - Sums use numpy (pairwise), so weights agree with the C++ to about 1e-15 relative, not bitwise.
 """
 
@@ -311,10 +320,12 @@ class PCLEventRef:
 
     directory: a network folder as the C++ reads it (configs/*.json, weights/...). None uses
     the DefaultConfig.cpp values and random initial weights.
+    layer_inhibitions: test ablation only. Replaces the config's layerInhibitions and keeps the
+    trained weights, e.g. [["static"], ["static"]] drops the lateral and top-down maps.
     """
 
     def __init__(self, directory=None, *, seed: int = 0, learning: bool = True,
-                 activation: bool = True) -> None:
+                 activation: bool = True, layer_inhibitions=None) -> None:
         if directory is None:
             net = copy.deepcopy(DEFAULT_NETWORK)
             simple_raw = copy.deepcopy(DEFAULT_SIMPLE)
@@ -326,6 +337,8 @@ class PCLEventRef:
             simple_raw = _read_json(root / "configs" / "simple_cell_config.json")
             complex_raw = _read_json(root / "configs" / "complex_cell_config.json")
             weights_dir = root / "weights"
+        if layer_inhibitions is not None:
+            net["layerInhibitions"] = copy.deepcopy(layer_inhibitions)
         self.learning = bool(learning)  # False freezes all plasticity (weightUpdate not applied)
         self.activation = bool(activation)  # SpikingNetwork::m_activation
         self.scfg = CellConfig("simple", simple_raw)
@@ -358,7 +371,8 @@ class PCLEventRef:
         for layer in net["layerPatches"]:
             if any(len(dim) != 1 for dim in layer):
                 raise NotImplementedError("only one patch per layer is ported")
-        inh = [list(v) for v in net["layerInhibitions"]]
+        # Declared alias: the trained configs say "static" for local inhibition (module docstring).
+        inh = [["local" if v == "static" else v for v in layer] for layer in net["layerInhibitions"]]
         if not set(inh[0]) <= {"local", "lateral", "topdown"}:
             raise NotImplementedError(f"unknown inhibition in layer 0: {inh[0]}")
         if not set(inh[1]) <= {"local", "lateral", "topdown"}:
@@ -461,9 +475,11 @@ class PCLEventRef:
         d0 = wdir / "0"
         if (d0 / "0.npy").is_file():
             if self.lat_on and (d0 / "0li.npy").is_file():
-                raise NotImplementedError("lateral weight files exist: WeightMap order not reproducible")
+                raise NotImplementedError("lateral weight files exist: their order is the std::unordered_map "
+                                          "iteration order (WeightMap.cpp:131-145), not recorded in the files")
             if self.td_on and (d0 / "0tdi.npy").is_file():
-                raise NotImplementedError("top-down weight files exist: WeightMap order not reproducible")
+                raise NotImplementedError("top-down weight files exist: their order is the std::unordered_map "
+                                          "iteration order (WeightMap.cpp:131-145), not recorded in the files")
             for k in range(self.ND):  # patch sharing: neurons 0..ND-1 at (0,0), SpikingNetwork.cpp:666-678
                 shape = self.w_s[k].shape
                 self.w_s[k] = _npy(d0 / f"{k}.npy", self.w_s[k].size).reshape(shape)
@@ -471,11 +487,20 @@ class PCLEventRef:
             self._load_states(d0, self.s_cells)
         d1 = wdir / "1"
         if (d1 / "0.npy").is_file():
-            for c in range(self.NC):  # every complex cell writes its shared tensor, in index order
+            # Complex cells of one depth share one matrix (ComplexNeuron.hpp:14-15), so each depth's
+            # files must agree. The C++ loads them in index order, last one wins; a disagreement is refused.
+            shared: dict[int, tuple[np.ndarray, np.ndarray]] = {}
+            for c in range(self.NC):
                 cz = c % self.CD
-                shape = self.w_c[cz].shape
-                self.w_c[cz] = _npy(d1 / f"{c}.npy", self.w_c[cz].size).reshape(shape)
-                self.wi_c[cz] = _npy(d1 / f"{c}lli.npy", self.CD)
+                w = _npy(d1 / f"{c}.npy", self.w_c[cz].size).reshape(self.w_c[cz].shape)
+                wi = _npy(d1 / f"{c}lli.npy", self.CD)
+                if cz not in shared:
+                    shared[cz] = (w, wi)
+                elif not (np.array_equal(shared[cz][0], w) and np.array_equal(shared[cz][1], wi)):
+                    raise ValueError(f"complex weight files of depth {cz} disagree (cell {c})")
+            for cz, (w, wi) in shared.items():
+                self.w_c[cz] = w
+                self.wi_c[cz] = wi
             self._load_states(d1, self.c_cells)
 
     @staticmethod
