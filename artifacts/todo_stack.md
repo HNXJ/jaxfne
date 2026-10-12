@@ -547,6 +547,22 @@ amendment v7 (`l2-caminos` 1e768f9d; p = 0.07 identical to v6 in seeds 1–5); P
   p = 0.07 within the seed range, R4 against the v7 sweep. Shared-drive variant dropped
   (Hamm 2026-10-12): v6 (fixed drive) and v7 (p·NE) already separate drive from connectivity.
 - [A] Each new score: update `dashboard/sources.json` (lane SHA), regenerate, push to dev.
+- [A] G-2 features (design map 2026-10-12): new `emitters_adex` module (AdEx, conductance
+  synapses inside its kernel, ADVANCED tier, no root export); `connections(sampling="bernoulli")`;
+  `poisson_drive` independent sources per target cell type; "SOM" in the AdEx cell table and the
+  proxy sign map (`fields/proxy.py:775` defaults unknown types to +1). Each: failing test first,
+  second review. Then the P6 prereg for Hamm's signature.
+- [A] Push `fix-poisson-target` (P-1) after the skip-count check (5029 passed, 85 skipped vs
+  75 skipped on 902d75e7).
+
+Meet 204dfdaa (2026-10-12, APPROVED p=0.86, agent consensus) jaxfne actions:
+- [A] G-1: port jnwb's `changelog.d` fragments, `assemble_changelog.py`, `release_body.py` and
+  claim check; release body as tables (header, does this affect you, added, changed and fixed,
+  deprecations, verification). Check: `release_body.py --tag <next>` passes the claim check.
+- [A] G-3: CAMINOS p = 0.07 as an NWB excerpt plus provenance file for jnwb `tests/`.
+- [A] List generated files and their `--check` commands in `artifacts/state.md` (item 7).
+- [H] Root router: the tree has no root `CLAUDE.md` or `AGENTS.md`, so `artifacts/AGENTS.md` is
+  not loaded at session start (hygiene checker major). Add a root pointer, or keep as is.
 
 Compression and lanes, open:
 - [A] `docs/quickstart.md` `connections()` snippet after the dense refusal (dev 0d2b1018):
