@@ -30,8 +30,9 @@ v6 sweep gave each cell 560 sources where p·NE gives 160.
 - The p = 0.07 runs must reproduce the v6 counts bit for bit (same seed, same drive). A
   mismatch voids the run.
 - Runs: WSL2 CUDA, float32, one at a time after a jchat GPU claim (B5).
-- The code SHA (driver option `--ext-sources pNE`, and the scorer accepting it as the v7
-  reference) is fixed here before signing.
+- Code: `l2-caminos` baca68e7. Runs use `run_caminos.py --seeds 1 2 3 --p <p> --T 12.0
+  --ext-sources pNE --signed`; scoring uses `caminos_analysis.py <dir> --ext-sources pNE`,
+  which scores only default-variant runs with the p·NE drive.
 
 ## Outcome language
 
