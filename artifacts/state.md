@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@3c255d03 · 2026-10-12 (written 2026-10-12T14:55:36Z)
+Stamp: jaxfne@dev@325751d2 · 2026-10-12 (written 2026-10-12T15:23:01Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
@@ -12,20 +12,22 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - CAMINOS Fig. 1: R1–R3 PASS (v6), R4 FAIL (v6), R4v7 PASS (drive p·NE, onset p = 0.04);
   p = 0.07 counts equal v6 in seeds 1–5. Lane `l2-caminos` 1e768f9d.
 - PCL Fig. 3: v4 FAIL (T2, T4) stands; diagnostic at `pcl-port` 5640ce18.
+- `poisson_drive` targets other than "all" are refused since 7d4eaa8c.
+- Agent context: root `AGENTS.md` loads `artifacts/AGENTS.md` (3c255d03); root `MEMORY.md`
+  merged into `artifacts/memory.md` and `todo_stack.md` cut to 13 KB (325751d2).
 
 ## Broken or in flight
 
-- P-1 fix on branch `fix-poisson-target` (worktree `C:/workspace/wt_poisson`): broad gate 5039
-  passed, 0 failed, 75 skipped (an earlier run's 85 skips were xdist ordering: jaxley-import and
-  x64 skips); second review PASS. Not pushed.
-- Root `AGENTS.md` loads `artifacts/AGENTS.md` since 3c255d03.
-- G-2 features: design map done, nothing built.
+- G-2 F1 `connections(sampling="bernoulli")` on branch `f1-bernoulli` (clone `C:/workspace/oc_f1`):
+  review FAIL, storing `sampling` changes `config_hash` (README atlas pin
+  `91f037cf383e0bdb`); fix: store the key only for "bernoulli". Broad gate: 1 failed (that pin),
+  5038 passed.
 
 ## Last gate results
 
-- Broad gate, dashboard branch at 902d75e7: 5032 passed, 75 skipped.
-- `build_dashboard_data.py --check`, `audit_vocabulary.py --check`, `report_hygiene_check.py`:
-  pass at 2d5dc284.
+- Broad gate, dev at 7d4eaa8c (poisson fix): 5039 passed, 0 failed, 75 skipped.
+- `tests/test_agent_context_hygiene.py`, `test_artifacts_root_layout.py`, `test_memory_brief.py`:
+  39 passed at 325751d2; `report_hygiene_check.py` clean.
 
 ## Generated files and their checks
 
@@ -41,4 +43,4 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-Resolve the skip-count difference, push P-1, then build the G-2 features one at a time.
+Fix F1's stored key, re-run the gate and review, push; then F2–F6.
