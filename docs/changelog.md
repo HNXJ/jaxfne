@@ -18,6 +18,11 @@ the rules those releases were held to and are historical context for readers.
   have 3.15 wheels, and the frozen-figure equivalence gate tests skip there. CI does not yet run
   3.15, and pyyaml and h5py (the `io` and `jnwb` extras) publish no 3.15 wheels yet.
 
+### Fixed
+- `Simulation(poisson_drive={"target": ...})` raises `ValueError` for any target other than
+  `"all"`. The target was never read: `{"target": "E"}` drove every neuron while the run
+  metadata recorded `"E"`. `"all"` and an omitted target draw as before.
+
 ## v0.5.5 (candidate)
 
 ### Added

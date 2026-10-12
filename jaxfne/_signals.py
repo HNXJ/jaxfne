@@ -718,7 +718,14 @@ def _make_poisson_drive(
     Returns (n_steps, n_neurons) float32 array. Each timestep, each neuron
     has an independent Poisson event with probability rate_hz * dt_ms / 1000.
     Events inject `amplitude` native current units. Output is finite and bounded.
+    Only ``target="all"`` is implemented; any other target raises ``ValueError``
+    rather than driving every neuron under another name.
     """
+    if target != "all":
+        raise ValueError(
+            f"poisson_drive target {target!r} is not implemented; only 'all' "
+            "(every neuron) is supported"
+        )
     prob = float(rate_hz) * float(dt_ms) / 1000.0
     prob = min(max(prob, 0.0), 1.0)
     key = jax.random.PRNGKey(int(seed))
