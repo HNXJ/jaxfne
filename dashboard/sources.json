@@ -1,0 +1,191 @@
+{
+  "schema": "jaxfne-dashboard-sources/1",
+  "repo_url": "https://github.com/hnxj/jaxfne",
+  "key_syntax": "Dotted path into a JSON file named in 'files'. 'per_run' specs select list items with 'where' (exact match) and read 'key' from each.",
+  "papers": [
+    {
+      "id": "caminos",
+      "title": "CAMINOS reference model, Fig. 1",
+      "citation": "Tahvili, Vinck and di Volo, PLoS Comput Biol 2026",
+      "release": "0.5.6",
+      "tier": "T-methods",
+      "stage": "P5",
+      "lane": {"branch": "l2-caminos", "sha": "20045e9a46cda81638a8c9fd75477be06dda34d0"},
+      "verdict": "not reproduced",
+      "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07; the critical-p onset (R4) runs in reverse with the external drive fixed at 560 sources. R4 is rescored under amendment v7 (drive p·NE).",
+      "preregs": [
+        {"id": "v6", "signed": "2026-10-11", "path": "artifacts/etudes/caminos/PREREG_P3.md"},
+        {"id": "v7 (R4 only)", "signed": "2026-10-12", "path": "artifacts/etudes/caminos/PREREG_P3_v7_R4.md"}
+      ],
+      "files": {
+        "main": "artifacts/etudes/caminos/scores/score.json",
+        "sens": "artifacts/etudes/caminos/scores/sensitivity_S1_S5.json",
+        "v7": {"path": "artifacts/etudes/caminos/scores/score_v7.json", "allow_missing": true}
+      },
+      "criteria": [
+        {"id": "R1", "claim": "the network oscillates at about 35 Hz", "estimand": "peak frequency f_pk of the E rate spectrum, seeds 1–5 at p = 0.07", "criterion": "every seed oscillates, f_pk 30–40 Hz",
+         "value": {"file": "main", "key": "r1.mean_peak_freq_Hz"}, "unit": "Hz", "value_label": "mean f_pk",
+         "verdict": {"file": "main", "key": "r1.pass"}, "prereg": "v6"},
+        {"id": "R2", "claim": "SOM fires after PV within each cycle, about 8.5 ms", "estimand": "lag of the PV→SOM rate cross-correlation peak, mean over seeds", "criterion": "lag positive in every seed, mean 6–11 ms",
+         "value": {"file": "main", "key": "r2.mean_lag_ms"}, "unit": "ms", "value_label": "mean lag",
+         "verdict": {"file": "main", "key": "r2.pass"}, "prereg": "v6"},
+        {"id": "R3", "claim": "rates order PV > SOM > E, E at 1–3 Hz", "estimand": "mean rate per population over the kept 10 s", "criterion": "PV > SOM > E in every seed, mean E 1–3 Hz",
+         "value": {"file": "main", "key": "r3.mean_E_Hz"}, "unit": "Hz", "value_label": "mean E rate",
+         "verdict": {"file": "main", "key": "r3.pass"}, "prereg": "v6"},
+        {"id": "R4", "claim": "oscillations appear above a critical p (Fig. 1E)", "estimand": "oscillation at p = 0.02–0.10, seeds 1–3, drive 560 sources", "criterion": "no seed oscillates at p = 0.02; all seeds oscillate at p = 0.07",
+         "value": {"file": "main", "key": "r4.smallest_oscillating_p"}, "unit": "", "value_label": "smallest p where all seeds oscillate",
+         "verdict": {"file": "main", "key": "r4.pass"}, "prereg": "v6",
+         "reason": "every run oscillates, p = 0.02 included; peak excess is largest at low p"},
+        {"id": "R4v7", "claim": "oscillations appear above a critical p (Fig. 1E)", "estimand": "as R4, with drive round(p·NE) sources", "criterion": "no seed oscillates at p = 0.02 while E fires (≥ 0.1 Hz); all seeds oscillate at p = 0.07",
+         "value": {"file": "v7", "key": "r4.smallest_oscillating_p"}, "unit": "", "value_label": "smallest p where all seeds oscillate",
+         "verdict": {"file": "v7", "key": "r4.pass"}, "prereg": "v7 (R4 only)",
+         "floor": {"file": "v7", "from": "per_run", "where": {"p": 0.02}, "key": "rates_Hz.E", "min": 0.1},
+         "reason": ""}
+      ],
+      "sensitivity": [
+        {"id": "S1", "label": "float64", "status": "agrees", "note": "every shift inside the seed range except f_pk (+1 Hz, the grid step)"},
+        {"id": "S2", "label": "dt 0.05 ms", "status": "agrees", "note": "every shift inside the seed range"},
+        {"id": "S3", "label": "fixed in-degree", "status": "agrees", "note": "inside the R1–R3 bands; f_pk +1 Hz, E, PV and lag slightly below the seed range"},
+        {"id": "S4", "label": "shared drive (560 trains at p)", "status": "invalid", "note": "a cell sees about 39 sources instead of 560, so the drive falls 14-fold and E is silent; not a test of shared input"},
+        {"id": "S5", "label": "Brian2 step order", "status": "agrees", "note": "inside the R1–R3 bands; E, PV and SOM slightly above the seed range"}
+      ],
+      "sensitivity_metrics": [
+        {"metric": "f_pk", "unit": "Hz", "key": "peak_freq_E_Hz"},
+        {"metric": "E rate", "unit": "Hz", "key": "rates_Hz.E"},
+        {"metric": "PV rate", "unit": "Hz", "key": "rates_Hz.PV"},
+        {"metric": "SOM rate", "unit": "Hz", "key": "rates_Hz.SOM"},
+        {"metric": "PV→SOM lag", "unit": "ms", "key": "lag_PV_SOM_ms"}
+      ],
+      "sensitivity_source": {"file": "sens", "key_prefix": "<id>."},
+      "sensitivity_ref": {"file": "main", "from": "per_run", "where": {"p": 0.07, "seed": 1}},
+      "sensitivity_range": {"file": "main", "from": "per_run", "where": {"p": 0.07}},
+      "charts": [
+        {"id": "r4_peak_excess", "kind": "lines", "title": "Oscillation strength against p",
+         "x": {"label": "connection probability p"}, "y": {"label": "peak excess (E spectrum)", "log": true},
+         "series": [
+           {"group": "v6: 560 sources", "file": "main", "from": "per_run", "where": {}, "x": "p", "y": "peak_excess_E", "split": "seed", "seeds": [1, 2, 3]},
+           {"group": "v7: p·NE sources", "file": "v7", "from": "per_run", "where": {}, "x": "p", "y": "peak_excess_E", "split": "seed", "seeds": [1, 2, 3]}
+         ],
+         "refs": [{"kind": "hline", "y": 4, "label": "oscillation threshold 4"}],
+         "caption": "Peak excess of the E rate spectrum per run; a run oscillates above 4. Lines join one seed across p."},
+        {"id": "r4_rates", "kind": "lines", "title": "Population rates against p",
+         "x": {"label": "connection probability p"}, "y": {"label": "rate", "unit": "Hz", "log": true},
+         "series": [
+           {"group": "v6 E", "file": "main", "from": "per_run", "where": {}, "x": "p", "y": "rates_Hz.E", "split": "seed", "seeds": [1, 2, 3]},
+           {"group": "v6 PV", "file": "main", "from": "per_run", "where": {}, "x": "p", "y": "rates_Hz.PV", "split": "seed", "seeds": [1, 2, 3]},
+           {"group": "v7 E", "file": "v7", "from": "per_run", "where": {}, "x": "p", "y": "rates_Hz.E", "split": "seed", "seeds": [1, 2, 3]},
+           {"group": "v7 PV", "file": "v7", "from": "per_run", "where": {}, "x": "p", "y": "rates_Hz.PV", "split": "seed", "seeds": [1, 2, 3]}
+         ],
+         "refs": [{"kind": "hline", "y": 0.1, "label": "v7 E floor 0.1 Hz"}],
+         "caption": "Mean rates over the kept 10 s, seeds 1–3."},
+        {"id": "ref_seeds", "kind": "lines", "title": "Reference point p = 0.07, seeds 1–5",
+         "x": {"label": "seed"}, "y": {"label": "f_pk", "unit": "Hz"},
+         "series": [{"group": "f_pk", "file": "main", "from": "per_run", "where": {"p": 0.07}, "x": "seed", "y": "peak_freq_E_Hz", "markers_only": true}],
+         "refs": [{"kind": "band", "y0": 30, "y1": 40, "label": "R1 band 30–40 Hz"}],
+         "caption": "Peak frequency per seed at the reference point."}
+      ],
+      "open": [
+        "R4v7 scoring: runs in progress (identity check passed 2026-10-12).",
+        "Shared drive at equal mean drive (NE trains at probability p) is untested.",
+        "P6 library path not attempted (B1)."
+      ]
+    },
+    {
+      "id": "pcl-fig3",
+      "title": "Predictive coding light, Fig. 3 (simple and complex cell tuning)",
+      "citation": "N'dri et al. 2025",
+      "release": "0.5.6",
+      "tier": "T-port",
+      "stage": "P5",
+      "lane": {"branch": "pcl-port", "sha": "5640ce18a42b25f572530508628a215081811b4b"},
+      "verdict": "not reproduced",
+      "summary": "Orientation tuning and the simple/complex phase split reproduce; sf tuning is broad (R_sf about 1.5 against 2) and complex cells show no frequency doubling.",
+      "preregs": [{"id": "v4", "signed": "2026-10-11", "path": "artifacts/etudes/pcl/prereg/P3_fig3.md"}],
+      "files": {
+        "main": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+        "S1": "artifacts/etudes/pcl/prereg/scores/fig3_v4_S1.json",
+        "S2": "artifacts/etudes/pcl/prereg/scores/fig3_v4_S2.json",
+        "S3_33": "artifacts/etudes/pcl/prereg/scores/fig3_v4_S3_3_3.json",
+        "S3_34": "artifacts/etudes/pcl/prereg/scores/fig3_v4_S3_3_4.json",
+        "S3_43": "artifacts/etudes/pcl/prereg/scores/fig3_v4_S3_4_3.json"
+      },
+      "criteria": [
+        {"id": "T1", "group": "simple", "claim": "simple cells are orientation tuned", "estimand": "R_ori, held-out phases", "criterion": "R_ori ≥ 2 and above both null 99th percentiles",
+         "value": {"file": "main", "key": "t1_r_ori_simple"}, "unit": "", "value_label": "R_ori",
+         "extra": [{"label": "N-label 99th", "file": "main", "key": "t1_r_ori_simple_null99"}, {"label": "N-pref 99th", "file": "main", "key": "t1_r_ori_simple_npref99"}],
+         "verdict": {"file": "main", "key": "t1_simple_pass"}, "prereg": "v4"},
+        {"id": "T1", "group": "complex", "claim": "complex cells are orientation tuned", "estimand": "R_ori, held-out phases", "criterion": "R_ori ≥ 2 and above both null 99th percentiles",
+         "value": {"file": "main", "key": "t1_r_ori_complex"}, "unit": "", "value_label": "R_ori",
+         "extra": [{"label": "N-label 99th", "file": "main", "key": "t1_r_ori_complex_null99"}, {"label": "N-pref 99th", "file": "main", "key": "t1_r_ori_complex_npref99"}],
+         "verdict": {"file": "main", "key": "t1_complex_pass"}, "prereg": "v4"},
+        {"id": "T2", "group": "simple", "claim": "simple cells are spatial-frequency tuned", "estimand": "R_sf, held-out phases", "criterion": "R_sf ≥ 2 and above both null 99th percentiles",
+         "value": {"file": "main", "key": "t2_r_sf_simple"}, "unit": "", "value_label": "R_sf",
+         "extra": [{"label": "N-label 99th", "file": "main", "key": "t2_r_sf_simple_null99"}, {"label": "N-pref 99th", "file": "main", "key": "t2_r_sf_simple_npref99"}],
+         "verdict": {"file": "main", "key": "t2_simple_pass"}, "prereg": "v4", "reason": "above both nulls, under the ratio of 2"},
+        {"id": "T2", "group": "complex", "claim": "complex cells are spatial-frequency tuned", "estimand": "R_sf, held-out phases", "criterion": "R_sf ≥ 2 and above both null 99th percentiles",
+         "value": {"file": "main", "key": "t2_r_sf_complex"}, "unit": "", "value_label": "R_sf",
+         "extra": [{"label": "N-label 99th", "file": "main", "key": "t2_r_sf_complex_null99"}, {"label": "N-pref 99th", "file": "main", "key": "t2_r_sf_complex_npref99"}],
+         "verdict": {"file": "main", "key": "t2_complex_pass"}, "prereg": "v4", "reason": "above both nulls, under the ratio of 2"},
+        {"id": "T3", "group": "simple", "claim": "simple cells are phase modulated", "estimand": "median excess modulation X (per trial, Poisson null)", "criterion": "median X ≥ 0.15",
+         "value": {"file": "main", "key": "median_X_simple"}, "unit": "", "value_label": "median X",
+         "verdict": {"file": "main", "key": "t3_simple_pass"}, "prereg": "v4"},
+        {"id": "T3", "group": "complex", "claim": "complex cells are phase invariant", "estimand": "median excess modulation X", "criterion": "median X ≤ 0.5 × simple median X",
+         "value": {"file": "main", "key": "median_X_complex"}, "unit": "", "value_label": "median X",
+         "verdict": {"file": "main", "key": "t3_complex_pass"}, "prereg": "v4"},
+        {"id": "T4", "group": "both", "claim": "complex cells frequency-double, simple cells do not", "estimand": "median L = log(A(2ω)/A(ω)) per set", "criterion": "median L simple < 0 < median L complex, difference above its null 99th",
+         "value": {"file": "main", "key": "median_L_complex"}, "unit": "", "value_label": "median L complex",
+         "extra": [{"label": "median L simple", "file": "main", "key": "median_L_simple"}, {"label": "difference", "file": "main", "key": "t4_diff"}, {"label": "null 99th", "file": "main", "key": "t4_diff_null99"}],
+         "verdict": {"file": "main", "key": "t4_pass"}, "prereg": "v4", "reason": "complex median below 0; the set difference beats its null"}
+      ],
+      "sensitivity": [
+        {"id": "S1", "label": "lateral and top-down maps zeroed", "status": "differs", "file": "S1", "note": "T1 and simple T3 fail: the maps matter, so map order is not excluded"},
+        {"id": "S2", "label": "preferences on all phases", "status": "agrees", "file": "S2", "keys_prefix": "s2_", "note": "the fold does not explain T2"},
+        {"id": "S3 (3,3)", "label": "simple column (3,3)", "status": "agrees", "file": "S3_33", "note": "same verdicts"},
+        {"id": "S3 (3,4)", "label": "simple column (3,4)", "status": "agrees", "file": "S3_34", "note": "same verdicts"},
+        {"id": "S3 (4,3)", "label": "simple column (4,3)", "status": "agrees", "file": "S3_43", "note": "same verdicts"}
+      ],
+      "sensitivity_metrics": [
+        {"metric": "R_ori simple", "key": "t1_r_ori_simple"},
+        {"metric": "R_ori complex", "key": "t1_r_ori_complex"},
+        {"metric": "R_sf simple", "key": "t2_r_sf_simple"},
+        {"metric": "R_sf complex", "key": "t2_r_sf_complex"},
+        {"metric": "median X simple", "key": "median_X_simple", "skip_with_prefix": true},
+        {"metric": "median L complex", "key": "median_L_complex", "skip_with_prefix": true}
+      ],
+      "sensitivity_ref": {"file": "main"},
+      "charts": [
+        {"id": "t1t2", "kind": "bars", "title": "T1 and T2 ratios against nulls and criterion",
+         "categories": ["R_ori simple", "R_ori complex", "R_sf simple", "R_sf complex"],
+         "y": {"label": "ratio"},
+         "series": [
+           {"group": "scored", "file": "main", "keys": ["t1_r_ori_simple", "t1_r_ori_complex", "t2_r_sf_simple", "t2_r_sf_complex"]},
+           {"group": "N-label 99th", "file": "main", "keys": ["t1_r_ori_simple_null99", "t1_r_ori_complex_null99", "t2_r_sf_simple_null99", "t2_r_sf_complex_null99"]},
+           {"group": "N-pref 99th", "file": "main", "keys": ["t1_r_ori_simple_npref99", "t1_r_ori_complex_npref99", "t2_r_sf_simple_npref99", "t2_r_sf_complex_npref99"]}
+         ],
+         "refs": [{"kind": "hline", "y": 2, "label": "criterion 2"}],
+         "caption": "Held-out ratios with the 99th percentiles of both nulls (1000 draws)."},
+        {"id": "t3t4", "kind": "bars", "title": "T3 phase modulation and T4 frequency doubling",
+         "categories": ["median X simple", "median X complex", "median L simple", "median L complex"],
+         "y": {"label": "statistic"},
+         "series": [{"group": "scored", "file": "main", "keys": ["median_X_simple", "median_X_complex", "median_L_simple", "median_L_complex"]}],
+         "refs": [{"kind": "hline", "y": 0, "label": "0"}, {"kind": "hline", "y": 0.15, "label": "T3 simple floor 0.15"}],
+         "caption": "T4 needs median L complex above 0."},
+        {"id": "sens_rsf", "kind": "bars", "title": "R_sf across sensitivity runs",
+         "categories": ["scored (4,4)", "S1 maps off", "S2 all phases", "S3 (3,3)", "S3 (3,4)", "S3 (4,3)"],
+         "y": {"label": "R_sf"},
+         "series": [
+           {"group": "simple", "pairs": [["main", "t2_r_sf_simple"], ["S1", "t2_r_sf_simple"], ["S2", "s2_t2_r_sf_simple"], ["S3_33", "t2_r_sf_simple"], ["S3_34", "t2_r_sf_simple"], ["S3_43", "t2_r_sf_simple"]]},
+           {"group": "complex", "pairs": [["main", "t2_r_sf_complex"], ["S1", "t2_r_sf_complex"], ["S2", "s2_t2_r_sf_complex"], ["S3_33", "t2_r_sf_complex"], ["S3_34", "t2_r_sf_complex"], ["S3_43", "t2_r_sf_complex"]]}
+         ],
+         "refs": [{"kind": "hline", "y": 2, "label": "criterion 2"}],
+         "caption": "R_sf stays under 2 in every variant."}
+      ],
+      "open": [
+        "The authors compute neither an sf selectivity index nor F1/F0; T2's ratio and T4's log ratio are the prereg's (diagnostic, unscored).",
+        "21 % of complex cells prefer the lowest tested sf.",
+        "The authors' tuning-curve data archive is not opened (Hamm's call).",
+        "P6 library path not attempted (B1)."
+      ]
+    }
+  ]
+}
