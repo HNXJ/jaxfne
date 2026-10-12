@@ -243,21 +243,21 @@ function criteriaTable(paper) {
   table.className = "criteria";
   var head = document.createElement("thead");
   var headRow = document.createElement("tr");
-  ["ID", "Claim", "Criterion", "Value", "Verdict", "Reason"].forEach(function (h) {
+  var labels = ["ID", "Claim", "Criterion", "Paper", "Ours", "Verdict", "Reason"];
+  labels.forEach(function (h) {
     headRow.appendChild(el("th", h));
   });
   head.appendChild(headRow);
   table.appendChild(head);
   var body = document.createElement("tbody");
   var lastGroup = null;
-  var labels = ["ID", "Claim", "Criterion", "Value", "Verdict", "Reason"];
   criteria.forEach(function (c) {
     var group = c.group === undefined || c.group === null ? "" : String(c.group);
     if (group && group !== lastGroup) {
       var grow = document.createElement("tr");
       grow.className = "group-row";
       var gth = el("th", group);
-      gth.colSpan = 6;
+      gth.colSpan = 7;
       grow.appendChild(gth);
       body.appendChild(grow);
       lastGroup = group;
@@ -278,6 +278,7 @@ function criteriaTable(paper) {
     var critCell = document.createElement("td");
     critCell.appendChild(el("span", c.criterion || ""));
     row.appendChild(critCell);
+    row.appendChild(el("td", c.paper_value || "—"));
     var valCell = valueCell(c);
     row.appendChild(valCell);
     var verdictCell = document.createElement("td");
@@ -299,6 +300,44 @@ function criteriaTable(paper) {
   return wrap;
 }
 
+/* Static PNG rendered from the same data by scripts/build_dashboard_figures.py. */
+function staticFigure(paper, chart) {
+  var box = el("details");
+  box.className = "static-fig";
+  box.appendChild(el("summary", "Static figure"));
+  var img = el("img");
+  img.src = "figures/" + paper.id + "-" + chart.id + ".png";
+  img.alt = chart.title + " (static)";
+  img.loading = "lazy";
+  img.addEventListener("error", function () { box.hidden = true; });
+  box.appendChild(img);
+  return box;
+}
+
+function dataTable(chart) {
+  var box = el("details");
+  box.appendChild(el("summary", "Data table"));
+  var table = el("table");
+  table.className = "data-table";
+  var hr = el("tr");
+  ["Series", chart.kind === "bars" ? "Category" : axisTitle(chart.x), axisTitle(chart.y) || "value"].forEach(function (h) {
+    hr.appendChild(el("th", h));
+  });
+  table.appendChild(hr);
+  (chart.traces || []).forEach(function (t) {
+    var xs = chart.kind === "bars" ? chart.categories : t.x;
+    (t.y || []).forEach(function (y, i) {
+      var row = el("tr");
+      row.appendChild(el("td", t.name));
+      row.appendChild(el("td", xs && xs[i] !== undefined ? String(xs[i]) : ""));
+      row.appendChild(el("td", y === null || y === undefined ? "—" : String(y)));
+      table.appendChild(row);
+    });
+  });
+  box.appendChild(table);
+  return box;
+}
+
 function chartsSection(paper) {
   var charts = paper.charts || [];
   var section = document.createElement("div");
@@ -317,6 +356,8 @@ function chartsSection(paper) {
     fig.appendChild(div);
     var caption = el("figcaption", (chart.caption || ""));
     fig.appendChild(caption);
+    fig.appendChild(staticFigure(paper, chart));
+    fig.appendChild(dataTable(chart));
     var ev = evidenceNode(chart.evidence);
     if (ev) {
       var evLine = el("div");
@@ -444,120 +485,363 @@ function openSection(paper) {
   return list;
 }
 
-function renderCards(data, selectedId) {
-  var cards = document.getElementById("cards");
-  while (cards.firstChild) cards.removeChild(cards.firstChild);
-  (data.papers || []).forEach(function (paper) {
-    var card = el("button");
-    card.type = "button";
-    card.className = "card";
-    if (paper.id === selectedId) card.setAttribute("aria-current", "true");
-    card.setAttribute("aria-label", paper.title + ", " + paper.verdict + ", " + passCount(paper));
-    card.appendChild(el("h2", paper.title));
-    card.appendChild(el("p", "Release " + (paper.release || "") + " · " + (paper.tier || "") + " · " + (paper.citation || "")));
-    card.appendChild(stageTrack(paper.stage));
-    var verdictRow = el("p");
-    verdictRow.appendChild(verdictChip(paper.verdict));
-    card.appendChild(verdictRow);
-    var count = el("p", passCount(paper));
-    count.className = "pass-count";
-    card.appendChild(count);
-    card.addEventListener("click", function () {
-      if (location.hash !== "#" + paper.id) location.hash = "#" + paper.id;
-      else renderDetail(window.__data);
-    });
-    card.addEventListener("keydown", function (ev) {
-      if (ev.key === "Enter" || ev.key === " ") {
-        ev.preventDefault();
-        location.hash = "#" + paper.id;
-      }
-    });
-    cards.appendChild(card);
-  });
+/* ---- v2: classes, tabs, model pages ---- */
+
+var CLASSES = [
+  { id: "verified", label: "Verified replication", chip: "chip-pass", symbol: "✓",
+    def: "Every primary criterion of a signed preregistration passes, run through the jaxfne library (B1)." },
+  { id: "partial", label: "Partial replication", chip: "chip-partial", symbol: "◐",
+    def: "A signed preregistration is scored and some criteria pass, or all pass on a standalone port only." },
+  { id: "not reproduced", label: "Not reproduced", chip: "chip-fail", symbol: "✗",
+    def: "A signed preregistration is scored and its verdict is a fail, shown with the same prominence as a pass (B2)." },
+  { id: "demonstration", label: "Demonstration", chip: "chip-incomplete", symbol: "◌",
+    def: "A published model runs in jaxfne without a scored numerical comparison to the paper. It carries no verdict." }
+];
+var TABS = ["overview", "models", "validation", "roadmap", "method"];
+
+function classInfo(id) {
+  var hit = null;
+  CLASSES.forEach(function (c) { if (c.id === id) hit = c; });
+  return hit || { id: id, label: String(id), chip: "chip-incomplete", symbol: "?", def: "" };
 }
 
-function purgePlots(root) {
-  if (!window.Plotly) return;
-  var plots = root.querySelectorAll(".chart-div");
-  Array.prototype.forEach.call(plots, function (d) {
-    try { window.Plotly.purge(d); } catch (e) { /* already empty */ }
-  });
+function classChip(id) {
+  var info = classInfo(id);
+  var span = el("span", info.symbol + " " + info.label);
+  span.className = "chip chip-class " + info.chip;
+  span.title = info.def;
+  return span;
 }
 
-function renderDetail(data) {
-  var detail = document.getElementById("detail");
-  purgePlots(detail);
-  while (detail.firstChild) detail.removeChild(detail.firstChild);
-  var papers = data.papers || [];
-  if (!papers.length) {
-    detail.appendChild(el("p", "No papers in this data file."));
-    return;
+function clear(node) {
+  while (node.firstChild) node.removeChild(node.firstChild);
+}
+
+function scored(papers) {
+  return papers.filter(function (p) { return p.class !== "demonstration"; });
+}
+
+function countVerdicts(papers) {
+  var n = { pass: 0, fail: 0, pending: 0 };
+  papers.forEach(function (p) {
+    (p.criteria || []).forEach(function (c) { if (c.verdict in n) n[c.verdict] += 1; });
+  });
+  return n;
+}
+
+function kpi(value, label) {
+  var box = el("div");
+  box.className = "kpi";
+  box.appendChild(el("div", String(value))).className = "kpi-value";
+  box.appendChild(el("div", label)).className = "kpi-label";
+  return box;
+}
+
+/* Markdown with TeX: math is cut out before marked runs and rendered by KaTeX afterwards. */
+function renderMarkdown(text) {
+  var box = el("div");
+  box.className = "model-md";
+  if (!window.marked) {
+    var pre = el("pre", text);
+    box.appendChild(pre);
+    return box;
   }
-  var hash = location.hash ? location.hash.slice(1) : "";
-  var paper = null;
-  papers.forEach(function (p) { if (p.id === hash) paper = p; });
-  if (!paper) paper = papers[0];
-  renderCards(data, paper.id);
+  var math = [];
+  var cut = text.replace(/\$\$([\s\S]+?)\$\$/g, function (_, tex) {
+    math.push({ tex: tex, display: true });
+    return "@@MATH" + (math.length - 1) + "@@";
+  }).replace(/\$([^$\n]+?)\$/g, function (_, tex) {
+    math.push({ tex: tex, display: false });
+    return "@@MATH" + (math.length - 1) + "@@";
+  });
+  var html = window.marked.parse(cut);
+  html = html.replace(/@@MATH(\d+)@@/g, function (_, i) {
+    var m = math[Number(i)];
+    if (window.katex) {
+      return window.katex.renderToString(m.tex, { displayMode: m.display, throwOnError: false });
+    }
+    var esc = m.tex.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    return m.display ? "<pre>" + esc + "</pre>" : "<code>" + esc + "</code>";
+  });
+  box.innerHTML = html; // committed, reviewed files from this repository only
+  return box;
+}
 
-  var card = el("div");
+function paperCard(paper) {
+  var card = el("a");
+  card.className = "card";
+  card.href = "#model/" + paper.id;
+  card.appendChild(el("h3", paper.title));
+  card.appendChild(el("p", (paper.citation || "") + " · release " + (paper.release || ""))).className = "small";
+  var chips = el("p");
+  chips.appendChild(classChip(paper["class"]));
+  if (paper.verdict && paper.verdict !== paper["class"]) {
+    chips.appendChild(el("span", " "));
+    chips.appendChild(verdictChip(paper.verdict));
+    if (paper.verdict_note) chips.appendChild(el("span", " " + paper.verdict_note));
+  }
+  card.appendChild(chips);
+  if (paper.question) card.appendChild(el("p", paper.question));
+  if ((paper.criteria || []).length) card.appendChild(el("p", passCount(paper))).className = "pass-count";
+  return card;
+}
+
+function renderOverview(view, data) {
+  var papers = data.papers || [];
+  view.appendChild(el("h2", "Overview"));
+  var kpis = el("div");
+  kpis.className = "kpis";
+  CLASSES.forEach(function (c) {
+    var n = papers.filter(function (p) { return p["class"] === c.id; }).length;
+    kpis.appendChild(kpi(n, c.label));
+  });
+  var v = countVerdicts(scored(papers));
+  kpis.appendChild(kpi(v.pass + " / " + v.fail + " / " + v.pending, "preregistered criteria pass / fail / pending"));
+  view.appendChild(kpis);
+  CLASSES.forEach(function (c) {
+    var group = papers.filter(function (p) { return p["class"] === c.id; });
+    if (!group.length) return;
+    var h = el("h3", c.label);
+    view.appendChild(h);
+    view.appendChild(el("p", c.def)).className = "small";
+    var cards = el("div");
+    cards.className = "cards";
+    group.forEach(function (p) { cards.appendChild(paperCard(p)); });
+    view.appendChild(cards);
+  });
+}
+
+function renderModels(view, data) {
+  view.appendChild(el("h2", "Models"));
+  var cards = el("div");
+  cards.className = "cards";
+  (data.papers || []).forEach(function (p) { cards.appendChild(paperCard(p)); });
+  view.appendChild(cards);
+}
+
+function renderModel(view, data, paper) {
+  var card = el("article");
   card.className = "detail-card";
   card.appendChild(el("h2", paper.title));
-  card.appendChild(el("p", paper.summary || ""));
-  var sub = el("p", (paper.citation || "") + " · Release " + (paper.release || "") +
-    " · " + (paper.tier || "") + " · Stage " + (paper.stage || ""));
+  var sub = el("p", (paper.citation || "") + " · release " + (paper.release || "") + " · " + (paper.tier || "") +
+    (paper.stage ? " · stage " + paper.stage : ""));
   sub.className = "sub";
   card.appendChild(sub);
+  var chips = el("p");
+  chips.appendChild(classChip(paper["class"]));
+  if (paper.verdict) {
+    chips.appendChild(el("span", " Preregistered verdict: "));
+    chips.appendChild(verdictChip(paper.verdict));
+    if (paper.verdict_note) chips.appendChild(el("span", " " + paper.verdict_note));
+  }
+  card.appendChild(chips);
+  if (paper.stage) card.appendChild(stageTrack(paper.stage));
   var lane = paper.lane || {};
   var laneLine = el("p");
   laneLine.className = "small";
-  laneLine.appendChild(el("span", "Lane " + (lane.branch || "") + " @ "));
-  if (lane.sha) laneLine.appendChild(link("https://github.com/hnxj/jaxfne/commit/" + lane.sha, shortSha(lane.sha)));
+  laneLine.appendChild(el("span", "Code and results at " + (lane.branch || "") + " @ "));
+  if (lane.sha) laneLine.appendChild(link("https://github.com/hnxj/jaxfne/tree/" + lane.sha, shortSha(lane.sha)));
   card.appendChild(laneLine);
-  var verdictRow = el("p");
-  verdictRow.appendChild(verdictChip(paper.verdict));
-  verdictRow.appendChild(el("span", " " + passCount(paper)));
-  card.appendChild(verdictRow);
+  card.appendChild(el("p", paper.summary || ""));
 
-  card.appendChild(el("h3", "Criteria"));
+  var md = el("div");
+  md.className = "model-page";
+  card.appendChild(md);
+  if (paper.page) {
+    md.appendChild(el("p", "Loading the model page…"));
+    fetch(paper.page).then(function (r) {
+      if (!r.ok) throw new Error("missing");
+      return r.text();
+    }).then(function (text) {
+      clear(md);
+      md.appendChild(renderMarkdown(text));
+    }).catch(function () {
+      clear(md);
+      md.appendChild(el("p", "The model page did not load."));
+    });
+  }
+
+  card.appendChild(el("h3", paper["class"] === "demonstration" ? "Declared checks" : "Original and replicated"));
   card.appendChild(criteriaTable(paper));
-  card.appendChild(el("h3", "Charts"));
-  card.appendChild(chartsSection(paper));
-  card.appendChild(el("h3", "Sensitivity"));
-  card.appendChild(sensitivitySection(paper));
+  if ((paper.charts || []).length) {
+    card.appendChild(el("h3", "Figures"));
+    card.appendChild(chartsSection(paper));
+  }
+  if ((paper.sensitivity || []).length) {
+    card.appendChild(el("h3", "Sensitivity"));
+    card.appendChild(sensitivitySection(paper));
+  }
   card.appendChild(el("h3", "Preregistrations"));
   card.appendChild(preregsSection(paper));
   card.appendChild(el("h3", "Open items"));
   card.appendChild(openSection(paper));
-  detail.appendChild(card);
+  view.appendChild(card);
+  drawCharts(paper);
+}
+
+function drawCharts(paper) {
   (paper.charts || []).forEach(function (chart) {
     var div = document.getElementById("chart-" + paper.id + "-" + chart.id);
     if (!div) return;
     if (!window.Plotly) {
-      div.appendChild(el("p", "Chart library did not load."));
+      div.appendChild(el("p", "The chart library did not load; the static figure and the data table below hold the same values."));
       return;
     }
     try {
       if (chart.kind === "bars") renderBarsChart(div, chart);
       else renderLinesChart(div, chart);
     } catch (e) {
-      div.appendChild(el("p", "Chart failed to render."));
+      div.appendChild(el("p", "Chart failed to render; see the data table below."));
     }
+  });
+}
+
+function renderValidation(view, data) {
+  view.appendChild(el("h2", "Validation"));
+  view.appendChild(el("p", "Every scored criterion across models. Values are copied from the scorer files at the commits shown; the page computes no verdict.")).className = "small";
+  var label = el("label", "Show ");
+  var select = el("select");
+  ["all", "pass", "fail", "pending"].forEach(function (v) {
+    var o = el("option", v);
+    o.value = v;
+    select.appendChild(o);
+  });
+  label.appendChild(select);
+  view.appendChild(label);
+  var table = el("table");
+  table.className = "criteria";
+  var head = el("thead");
+  var hr = el("tr");
+  var labels = ["Model", "Class", "ID", "Claim", "Paper", "Ours", "Verdict"];
+  labels.forEach(function (h) { hr.appendChild(el("th", h)); });
+  head.appendChild(hr);
+  table.appendChild(head);
+  var body = el("tbody");
+  table.appendChild(body);
+  view.appendChild(table);
+  function fill() {
+    clear(body);
+    (data.papers || []).forEach(function (p) {
+      (p.criteria || []).forEach(function (c) {
+        if (select.value !== "all" && c.verdict !== select.value) return;
+        var row = el("tr");
+        var m = el("td");
+        m.appendChild(link("#model/" + p.id, p.title));
+        row.appendChild(m);
+        row.appendChild(el("td", classInfo(p["class"]).label));
+        row.appendChild(el("td", c.id + (c.group ? " (" + c.group + ")" : "")));
+        row.appendChild(el("td", c.claim || ""));
+        row.appendChild(el("td", c.paper_value || "—"));
+        row.appendChild(valueCell(c));
+        var vc = el("td");
+        vc.appendChild(verdictChip(c.verdict));
+        row.appendChild(vc);
+        Array.prototype.forEach.call(row.children, function (td, i) {
+          var lab = el("span", labels[i] + ": ");
+          lab.className = "cell-label";
+          td.insertBefore(lab, td.firstChild);
+        });
+        body.appendChild(row);
+      });
+    });
+  }
+  select.addEventListener("change", fill);
+  fill();
+}
+
+function renderRoadmap(view, data) {
+  view.appendChild(el("h2", "Roadmap"));
+  view.appendChild(el("p", "Planned models by release. None has a scored run yet.")).className = "small";
+  var table = el("table");
+  table.className = "criteria";
+  var hr = el("tr");
+  ["Release", "Model", "Needs"].forEach(function (h) { hr.appendChild(el("th", h)); });
+  var head = el("thead");
+  head.appendChild(hr);
+  table.appendChild(head);
+  var body = el("tbody");
+  (data.roadmap || []).forEach(function (r) {
+    var row = el("tr");
+    row.appendChild(el("td", r.release || ""));
+    row.appendChild(el("td", r.model || ""));
+    row.appendChild(el("td", r.needs || ""));
+    body.appendChild(row);
+  });
+  table.appendChild(body);
+  view.appendChild(table);
+}
+
+function renderMethod(view) {
+  view.appendChild(el("h2", "Method"));
+  var dl = el("dl");
+  dl.className = "classes";
+  CLASSES.forEach(function (c) {
+    var dt = el("dt");
+    dt.appendChild(classChip(c.id));
+    dl.appendChild(dt);
+    dl.appendChild(el("dd", c.def));
+  });
+  view.appendChild(dl);
+  var rules = el("ul");
+  [
+    "The class sits beside the preregistered verdict, which always stays visible.",
+    "The page computes no verdict: values and verdicts are copied by scripts/build_dashboard_data.py from scorer files at pinned commits, and its --check runs in CI.",
+    "Failures carry the same prominence as passes (B2).",
+    "Agreement with a paper is claimed only where a paper value sits beside ours in the table.",
+    "A replication counts as done with jaxfne only when it runs through the library (B1); a standalone port is labelled as one."
+  ].forEach(function (t) { rules.appendChild(el("li", t)); });
+  view.appendChild(rules);
+}
+
+function route() {
+  var h = location.hash ? decodeURIComponent(location.hash.slice(1)) : "overview";
+  if (h.indexOf("model/") === 0) return { tab: "models", id: h.slice(6) };
+  if (TABS.indexOf(h) >= 0) return { tab: h, id: null };
+  return { tab: "models", id: h }; // v1 links: #<paper id>
+}
+
+function render(data) {
+  var view = document.getElementById("view");
+  purgePlots(view);
+  clear(view);
+  var r = route();
+  Array.prototype.forEach.call(document.querySelectorAll("#tabs a"), function (a) {
+    if (a.getAttribute("data-tab") === r.tab) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
+  var papers = data.papers || [];
+  if (r.tab === "models" && r.id) {
+    var paper = null;
+    papers.forEach(function (p) { if (p.id === r.id) paper = p; });
+    if (paper) renderModel(view, data, paper);
+    else view.appendChild(el("p", "No model with id " + r.id + "."));
+  } else if (r.tab === "models") renderModels(view, data);
+  else if (r.tab === "validation") renderValidation(view, data);
+  else if (r.tab === "roadmap") renderRoadmap(view, data);
+  else if (r.tab === "method") renderMethod(view);
+  else renderOverview(view, data);
+  view.focus();
+}
+
+function purgePlots(root) {
+  if (!window.Plotly) return;
+  Array.prototype.forEach.call(root.querySelectorAll(".chart-div"), function (d) {
+    try { window.Plotly.purge(d); } catch (e) { /* already empty */ }
   });
 }
 
 function renderHeader(data) {
   var generated = document.getElementById("generated");
-  while (generated.firstChild) generated.removeChild(generated.firstChild);
+  clear(generated);
   generated.appendChild(el("span", "Generated " + ((data.generated && data.generated.utc) || "unknown")));
   var sha = (data.generated && data.generated.dev_sha) || "";
   var devLink = document.getElementById("devsha");
-  while (devLink.firstChild) devLink.removeChild(devLink.firstChild);
-  devLink.appendChild(el("span", "dev " + shortSha(sha)));
+  clear(devLink);
+  devLink.appendChild(el("span", "build dev@" + shortSha(sha)));
   devLink.href = "https://github.com/hnxj/jaxfne/commit/" + sha;
   var doc = document.getElementById("replications-doc");
   doc.href = "https://github.com/hnxj/jaxfne/blob/" + sha + "/artifacts/etudes/REPLICATIONS.md";
-  var banner = document.getElementById("banner");
-  banner.hidden = !data.sample;
+  document.getElementById("banner").hidden = !data.sample;
 }
 
 function loadData() {
@@ -573,14 +857,13 @@ function loadData() {
 }
 
 window.addEventListener("hashchange", function () {
-  if (window.__data) renderDetail(window.__data);
+  if (window.__data) render(window.__data);
 });
 
 loadData().then(function (data) {
   window.__data = data;
   renderHeader(data);
-  renderDetail(data);
+  render(data);
 }).catch(function () {
-  var detail = document.getElementById("detail");
-  detail.appendChild(el("p", "Could not load replication data."));
+  document.getElementById("view").appendChild(el("p", "Could not load replication data."));
 });

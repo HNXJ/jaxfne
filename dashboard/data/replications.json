@@ -1,15 +1,18 @@
 {
-  "schema": "jaxfne-replications/1",
+  "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-12T14:17:27Z",
-    "dev_sha": "44d42ea9dc97f3728eb7d7a24801554b2d192bef"
+    "utc": "2026-10-12T18:39:23Z",
+    "dev_sha": "423c65543f0ce53ec1b3faab6bb3530b22fbf1b6"
   },
   "papers": [
     {
       "id": "caminos",
       "title": "CAMINOS reference model, Fig. 1",
       "citation": "Tahvili, Vinck and di Volo, PLoS Comput Biol 2026",
+      "class": "partial",
+      "question": "Does the E–PV–SOM AdEx network give about 35 Hz gamma, SOM after PV, PV > SOM > E and an onset above a critical p?",
+      "page": "models/caminos.md",
       "release": "0.5.6",
       "tier": "T-methods",
       "stage": "P5",
@@ -18,6 +21,7 @@
         "sha": "1e768f9db04a7cef405d78429f5a67580348b8b9"
       },
       "verdict": "reproduced",
+      "verdict_note": "under v7 (amended after v6 R4 failed)",
       "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07. The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep. At p = 0.07 the v6 and v7 runs are identical for all five seeds, so R1–R3 and R4v7 score one realization there.",
       "preregs": [
         {
@@ -43,6 +47,7 @@
           "value": 33.8,
           "value_text": "33.8",
           "value_label": "mean f_pk",
+          "paper_value": "≈ 35 Hz",
           "unit": "Hz",
           "extra": [],
           "verdict": "pass",
@@ -62,6 +67,7 @@
           "value": 7.040000000000001,
           "value_text": "7.04",
           "value_label": "mean lag",
+          "paper_value": "≈ 8.5 ms",
           "unit": "ms",
           "extra": [],
           "verdict": "pass",
@@ -81,6 +87,7 @@
           "value": 1.1060075,
           "value_text": "1.11",
           "value_label": "mean E rate",
+          "paper_value": null,
           "unit": "Hz",
           "extra": [],
           "verdict": "pass",
@@ -100,6 +107,7 @@
           "value": 0.02,
           "value_text": "0.02",
           "value_label": "smallest p where all seeds oscillate",
+          "paper_value": null,
           "unit": "",
           "extra": [],
           "verdict": "fail",
@@ -119,6 +127,7 @@
           "value": 0.04,
           "value_text": "0.04",
           "value_label": "smallest p where all seeds oscillate",
+          "paper_value": null,
           "unit": "",
           "extra": [],
           "verdict": "pass",
@@ -309,7 +318,7 @@
           "id": "S4",
           "label": "shared drive (560 trains at p)",
           "status": "invalid",
-          "note": "a cell sees about 39 sources instead of 560, so the drive falls 14-fold and E is silent; not a test of shared input",
+          "note": "a cell sees about 39 sources instead of 560, so the drive falls 14-fold and E is silent; shared input remains untested",
           "rows": [
             {
               "metric": "f_pk",
@@ -1023,7 +1032,10 @@
     {
       "id": "pcl-fig3",
       "title": "Predictive coding light, Fig. 3 (simple and complex cell tuning)",
-      "citation": "N'dri et al. 2025",
+      "citation": "N'dri, Barbier, Teulière and Triesch, Nat Commun 2025",
+      "class": "not reproduced",
+      "question": "Do the trained network's simple and complex cells show the paper's orientation, spatial-frequency and phase tuning?",
+      "page": "models/pcl_fig3.md",
       "release": "0.5.6",
       "tier": "T-port",
       "stage": "P5",
@@ -1032,6 +1044,7 @@
         "sha": "5640ce18a42b25f572530508628a215081811b4b"
       },
       "verdict": "not reproduced",
+      "verdict_note": null,
       "summary": "Orientation tuning and the simple/complex phase split reproduce; sf tuning is broad (R_sf about 1.5 against 2) and complex cells show no frequency doubling.",
       "preregs": [
         {
@@ -1051,6 +1064,7 @@
           "value": 3.56935630099728,
           "value_text": "3.57",
           "value_label": "R_ori",
+          "paper_value": null,
           "unit": "",
           "extra": [
             {
@@ -1081,6 +1095,7 @@
           "value": 5.296587926509186,
           "value_text": "5.3",
           "value_label": "R_ori",
+          "paper_value": null,
           "unit": "",
           "extra": [
             {
@@ -1111,6 +1126,7 @@
           "value": 1.4501077748383944,
           "value_text": "1.45",
           "value_label": "R_sf",
+          "paper_value": null,
           "unit": "",
           "extra": [
             {
@@ -1141,6 +1157,7 @@
           "value": 1.4614570059322958,
           "value_text": "1.46",
           "value_label": "R_sf",
+          "paper_value": null,
           "unit": "",
           "extra": [
             {
@@ -1171,6 +1188,7 @@
           "value": 0.5297606025394588,
           "value_text": "0.53",
           "value_label": "median X",
+          "paper_value": null,
           "unit": "",
           "extra": [],
           "verdict": "pass",
@@ -1190,6 +1208,7 @@
           "value": -0.1217135118523045,
           "value_text": "-0.122",
           "value_label": "median X",
+          "paper_value": null,
           "unit": "",
           "extra": [],
           "verdict": "pass",
@@ -1209,6 +1228,7 @@
           "value": -0.1894670650698595,
           "value_text": "-0.189",
           "value_label": "median L complex",
+          "paper_value": null,
           "unit": "",
           "extra": [
             {
@@ -1655,6 +1675,240 @@
         "The authors' tuning-curve data archive is not opened (Hamm's call).",
         "P6 library path not attempted (B1)."
       ]
+    },
+    {
+      "id": "pcl-fig2",
+      "title": "Predictive coding light, Fig. 2 (inhibitory STDP removes predictable spikes)",
+      "citation": "N'dri, Barbier, Teulière and Triesch, Nat Commun 2025",
+      "class": "demonstration",
+      "question": "Are learned inhibitory weights and spike suppression ordered by predictability?",
+      "page": "models/pcl_fig2.md",
+      "release": "0.5.6",
+      "tier": "T-port",
+      "stage": "",
+      "lane": {
+        "branch": "dev",
+        "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
+      },
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Weights and suppression are ordered 1 > 2 > 3 in every network on the standalone model (P0) and on the jaxfne HDP kernel with the time-averaged weight (K0b); the end-of-epoch weight fails in 1 of 3 networks (K0). The paper's Fig. 2d values were not available, so there is no numerical comparison.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "A scored comparison needs the paper's Fig. 2d values."
+      ]
+    },
+    {
+      "id": "hh-at01",
+      "title": "Hodgkin–Huxley reference against a reduced jaxfne neuron (AT-01)",
+      "citation": "Hodgkin and Huxley 1952, through Jaxley",
+      "class": "demonstration",
+      "question": "How closely does a reduced jaxfne neuron follow a Hodgkin–Huxley cell under the same current step?",
+      "page": "models/hh_at01.md",
+      "release": "0.5.5",
+      "tier": "T-reference",
+      "stage": "",
+      "lane": {
+        "branch": "dev",
+        "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
+      },
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Rate agrees; peak voltage, resting voltage and first-spike time are outside the tolerances declared before the run.",
+      "preregs": [],
+      "criteria": [
+        {
+          "id": "rate",
+          "group": "",
+          "claim": "same firing rate",
+          "estimand": "spike count over 50 ms",
+          "criterion": "|difference| ≤ 10 Hz",
+          "value": 0.0,
+          "value_text": "0",
+          "value_label": "|difference|",
+          "paper_value": null,
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
+          "evidence": {
+            "path": "artifacts/atlas/results/at01_055.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json"
+          }
+        },
+        {
+          "id": "v_peak",
+          "group": "",
+          "claim": "same spike peak",
+          "estimand": "maximum V",
+          "criterion": "|difference| ≤ 20 mV",
+          "value": 25.90669059753418,
+          "value_text": "25.9",
+          "value_label": "|difference|",
+          "paper_value": null,
+          "unit": "mV",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "",
+          "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
+          "evidence": {
+            "path": "artifacts/atlas/results/at01_055.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json"
+          }
+        },
+        {
+          "id": "v_rest",
+          "group": "",
+          "claim": "same resting voltage",
+          "estimand": "resting V",
+          "criterion": "|difference| ≤ 10 mV",
+          "value": 10.774839401245117,
+          "value_text": "10.8",
+          "value_label": "|difference|",
+          "paper_value": null,
+          "unit": "mV",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "",
+          "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
+          "evidence": {
+            "path": "artifacts/atlas/results/at01_055.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json"
+          }
+        },
+        {
+          "id": "spike_time",
+          "group": "",
+          "claim": "same first-spike time",
+          "estimand": "time of the first spike",
+          "criterion": "|difference| ≤ 2 ms",
+          "value": 10.0,
+          "value_text": "10",
+          "value_label": "|difference|",
+          "paper_value": null,
+          "unit": "ms",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "",
+          "prereg": "tolerances declared in artifacts/atlas/at01_at06_052.py",
+          "evidence": {
+            "path": "artifacts/atlas/results/at01_055.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/517a6a2673c277bd589e91da7be8a8eeb83f01c7/artifacts/atlas/results/at01_055.json"
+          }
+        }
+      ],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "No overall verdict is recorded.",
+        "One run; each arm fires one spike in 50 ms."
+      ]
+    },
+    {
+      "id": "qlearning",
+      "title": "Q-learning on jaxfne network features",
+      "citation": "Watkins and Dayan 1992 (learning rule)",
+      "class": "demonstration",
+      "question": "Can a linear Q-learner on network spike counts learn the optimal policy of chain5 and corridor7?",
+      "page": "models/qlearning.md",
+      "release": "0.5.6",
+      "tier": "T-task",
+      "stage": "",
+      "lane": {
+        "branch": "dev",
+        "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
+      },
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Network features reach and hold the corridor7 policy in 5 of 5 seeds, later than tabular (222–486 episodes against 2–23) with about a third of its Q error; the flat control never learns it.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Why the network code has lower Q error is untested (no ablation)."
+      ]
+    },
+    {
+      "id": "izhikevich2003",
+      "title": "Izhikevich 2003 cell-type presets",
+      "citation": "Izhikevich, IEEE Trans Neural Netw 2003",
+      "class": "demonstration",
+      "question": "Do the library's four presets reproduce the paper's firing patterns?",
+      "page": "models/izhikevich2003.md",
+      "release": "0.1.1",
+      "tier": "T-presets",
+      "stage": "",
+      "lane": {
+        "branch": "dev",
+        "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
+      },
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "The presets are metadata only; no run compares their firing patterns with the paper.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Scoring the firing patterns is a candidate first étude."
+      ]
+    }
+  ],
+  "roadmap": [
+    {
+      "release": "0.5.7",
+      "model": "Brunel 2000: asynchronous irregular, synchronous regular and synchronous irregular states",
+      "needs": "working LIF emitter"
+    },
+    {
+      "release": "0.5.7",
+      "model": "Vogels et al. 2011: inhibitory plasticity",
+      "needs": "working LIF emitter"
+    },
+    {
+      "release": "0.5.7",
+      "model": "Calcium-regulated synaptic homeostasis (bioRxiv 2025)",
+      "needs": "working LIF emitter"
+    },
+    {
+      "release": "0.5.7",
+      "model": "PCL Fig. 4: suppression effects",
+      "needs": "0.5.6 conductance synapses"
+    },
+    {
+      "release": "0.5.8",
+      "model": "Potjans and Diesmann 2014: cortical microcircuit",
+      "needs": "laminar readout; GPU time"
+    },
+    {
+      "release": "0.5.8",
+      "model": "Mejias et al. 2016: laminar multi-area model",
+      "needs": "laminar readout; GPU time"
+    },
+    {
+      "release": "0.5.8",
+      "model": "Spectrolaminar motif (Nat Neurosci 2023 and the 2025 reply)",
+      "needs": "the 0.5.8 laminar models"
+    },
+    {
+      "release": "0.5.9",
+      "model": "Lee, Pennartz and Mejias, PLoS Comput Biol 2025: interneuron silencing, deviant enhancement",
+      "needs": "event input"
+    },
+    {
+      "release": "0.5.9",
+      "model": "PCL Figs. 5–6",
+      "needs": "the PCL suppression data and N-MNIST/DVS sets"
+    },
+    {
+      "release": "0.5.10",
+      "model": "Mazzoni et al. 2015: LFP proxies",
+      "needs": "the 0.5.8 laminar models"
     }
   ]
 }
