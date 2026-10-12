@@ -12,7 +12,9 @@ state it for the sweep. Nothing was tuned after scoring.
   2026-10-12T13:12Z to 14:04Z. All 27 runs carry git SHA 6d0fd783; its caminos code equals
   baca68e7.
 - Identity check: the p = 0.07 count arrays equal the v6 arrays for seeds 1–3
-  (`numpy.array_equal`, PASS).
+  (`numpy.array_equal`, PASS). Extended to seeds 4–5 at the same commit (Hamm 2026-10-12;
+  2026-10-12T14:12Z–14:16Z, `F:\warehouse\caminos\scored\v7_id45_20261012\`): PASS. R1–R3
+  (v6) and R4v7 therefore score one realization at p = 0.07 for all five reference seeds.
 - Scoring: `caminos_analysis.py <dir> --ext-sources pNE`; `r4.pass` true, complete, 27 runs.
   E-rate floor (≥ 0.1 Hz in each p = 0.02 seed): 0.619, 0.606, 0.606 Hz, met.
 - Outputs: `F:\warehouse\caminos\scored\v7_20261012\`. Score copied to `scores/score_v7.json`.
