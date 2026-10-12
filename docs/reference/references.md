@@ -1,82 +1,120 @@
-# References — Canonical Scientific Bibliography
+# References
 
-Verified bibliography for JaxFNE/TFNE. Every entry is DOI-resolved with title/authors/year/venue exact via Crossref/publisher. Single canonical owner; do not duplicate entries across guides.
+Published sources for jaxfne. Each row of a method table names the result jaxfne implements and
+the functions that implement it, and each of those functions cites the same DOI in its
+docstring; `tests/test_references_page.py` holds the two to each other. The replication table
+lists papers whose results jaxfne ports compare against. The background tables list work that
+jaxfne builds on, compares itself with or follows as practice, without implementing a result
+from it. Every DOI below resolved on 2026-10-12, and each matched the title, first author and
+year of its Crossref record (the Equinox preprint, of its DataCite record). Where jaxfne departs
+from the published result, the row and the docstring say how.
 
 ## Neural dynamics
 
-- Hodgkin, A. L. & Huxley, A. F. A quantitative description of membrane current. *J. Physiol.* 117, 500–544 (1952). doi:10.1113/jphysiol.1952.sp004764
-- FitzHugh, R. Impulses and Physiological States in Theoretical Models of Nerve Membrane. *Biophys. J.* 1, 445–466 (1961). doi:10.1016/S0006-3495(61)86902-6
-- Nagumo, J., Arimoto, S. & Yoshizawa, S. An Active Pulse Transmission Line Simulating Nerve Axon. *Proc. IRE* 50, 2061–2070 (1962). doi:10.1109/JRPROC.1962.288235
-- Morris, C. & Lecar, H. Voltage oscillations in the barnacle giant muscle fiber. *Biophys. J.* 35, 193–213 (1981). doi:10.1016/S0006-3495(81)84782-0
-- Izhikevich, E. M. Simple model of spiking neurons. *IEEE Trans. Neural Netw.* 14, 1569–1572 (2003). doi:10.1109/TNN.2003.820440
-- Brette, R. & Gerstner, W. Adaptive Exponential Integrate-and-Fire Model. *J. Neurophysiol.* 94, 3637–3642 (2005). doi:10.1152/jn.00686.2005
-- Wilson, H. R. & Cowan, J. D. Excitatory and Inhibitory Interactions in Localized Populations. *Biophys. J.* 12, 1–24 (1972). doi:10.1016/S0006-3495(72)86068-5
-- Jansen, B. H. & Rit, V. G. Electroencephalogram and visual evoked potential generation in a mathematical model of coupled cortical columns. *Biol. Cybern.* 73, 357–366 (1995). doi:10.1007/BF00199471
-
-## Population and spatial models
-
-- Montbrió, E., Pazó, D. & Roxin, A. Macroscopic Description for Networks of Spiking Neurons. *Phys. Rev. X* 5, 021028 (2015). doi:10.1103/PhysRevX.5.021028
-- Coombes, S. Waves, bumps, and patterns in neural field theories. *Biol. Cybern.* 93, 91–108 (2005). doi:10.1007/s00422-005-0574-y
-- Cook et al. Neural Field Models: A mathematical overview and unifying framework. *Math. Neurosci. Appl.* 2, 7284 (2022). doi:10.46298/mna.7284
-- Ermentrout, G. B. & Kleinfeld, D. Traveling electrical waves in cortex: insights from phase dynamics and speculation on a computational role. *Neuron* 29, 33–44 (2001). doi:10.1016/S0896-6273(01)00178-7
-- Muller, L. et al. Cortical travelling waves. *Nat. Rev. Neurosci.* 19, 255–268 (2018). doi:10.1038/nrn.2018.20
-
-## Circuits, rhythms and plasticity
-
-- Kopell, N., Ermentrout, G. B., Whittington, M. A. & Traub, R. D. Gamma rhythms and beta rhythms have different synchronization properties. *Proc. Natl. Acad. Sci. USA* 97, 1867–1872 (2000). doi:10.1073/pnas.97.4.1867
-- Börgers, C. & Kopell, N. Synchronization in networks of excitatory and inhibitory neurons with sparse, random connectivity. *Neural Comput.* 15, 509–538 (2003). doi:10.1162/089976603321192059
-- Prinz, A. A., Bucher, D. & Marder, E. Similar network activity from disparate circuit parameters. *Nat. Neurosci.* 7, 1345–1352 (2004). doi:10.1038/nn1352
-- Clopath, C., Büsing, L., Vasilaki, E. & Gerstner, W. Connectivity reflects coding: a model of voltage-based STDP with homeostasis. *Nat. Neurosci.* 13, 344–352 (2010). doi:10.1038/nn.2479
-- Mejias, J. F., Murray, J. D., Kennedy, H. & Wang, X.-J. Feedforward and feedback frequency-dependent interactions in a large-scale laminar network of the primate cortex. *Sci. Adv.* 2, e1601335 (2016). doi:10.1126/sciadv.1601335
-- Arkhipov, A. et al. Visual physiology of the layer 4 cortical circuit in silico. *PLoS Comput. Biol.* 14, e1006535 (2018). doi:10.1371/journal.pcbi.1006535
+| Reference | Result implemented | Functions |
+|---|---|---|
+| Hodgkin, A. L., & Huxley, A. F. (1952). A quantitative description of membrane current and its application to conduction and excitation in nerve. *The Journal of Physiology* 117(4), 500-544. [doi:10.1113/jphysiol.1952.sp004764](https://doi.org/10.1113/jphysiol.1952.sp004764) | The single-compartment membrane equation with Na⁺, K⁺ and leak conductances and the rate functions of the gating variables m, h and n. jaxfne uses the modern form: resting potential −65 mV, depolarization positive, E_Na 50 mV, E_K −77 mV, E_L −54.387 mV, integrated by forward Euler with the gates updated before the voltage | `jaxfne.bridges.hh_numpy_reference_trace` |
+| Izhikevich, E. M. (2003). Simple model of spiking neurons. *IEEE Transactions on Neural Networks* 14(6), 1569-1572. [doi:10.1109/TNN.2003.820440](https://doi.org/10.1109/TNN.2003.820440) | Eqs. 1-3: $\dot v = 0.04v^2 + 5v + 140 - u + I$, $\dot u = a(bv - u)$, reset $v \leftarrow c$, $u \leftarrow u + d$ at $v \ge 30$ mV; the RS, FS and LTS parameters of Fig. 2 (`jaxfne.presets.CELL_TYPE_PRESETS`). The kernels take one forward-Euler step of `dt` for both variables and test for a spike after the update; the paper's network code takes two 0.5 ms steps for $v$ per 1 ms step of $u$ | `jaxfne.emitters.simulate_eig_izhikevich`, `jaxfne.emitters.simulate_edge_recurrent_izhikevich` |
+| Brette, R., & Gerstner, W. (2005). Adaptive exponential integrate-and-fire model as an effective description of neuronal activity. *Journal of Neurophysiology* 94(5), 3637-3642. [doi:10.1152/jn.00686.2005](https://doi.org/10.1152/jn.00686.2005) | The adaptive exponential integrate-and-fire cell: $C\dot V = g_L(E_L - V) + g_L\Delta_T e^{(V - V_T)/\Delta_T} - w + I$, $\tau_w \dot w = a(V - E_L) - w$, $w \leftarrow w + b$ at a spike. The refractory period and the clip of the exponential's argument follow Tahvili et al. (2026) | `jaxfne.emitters.adex_step`, `jaxfne.emitters.simulate_adex` |
+| Tahvili, F., Vinck, M., & di Volo, M. (2026). A mean-field model of neural networks with PV and SOM interneurons reveals connectivity-based mechanisms of gamma oscillations. *PLOS Computational Biology* 22(6), e1014378. [doi:10.1371/journal.pcbi.1014378](https://doi.org/10.1371/journal.pcbi.1014378) | Methods Eqs. 15-18 and Tables 1-2: the E, PV and SOM AdEx network with conductance synapses, synaptic delays and an external Poisson conductance drive. The kernel matches a transcription of the authors' step bit for bit (`tests/test_emitters_adex.py`); `decay="exp"` also offers the exact exponential decay of the conductances | `jaxfne.emitters.simulate_adex`, `jaxfne.emitters.make_adex_params` |
 
 ## Sources and extracellular observation
 
-- Lindén, H. et al. LFPy: a tool for biophysical simulation of extracellular potentials. *Front. Neuroinform.* 7 (2014). doi:10.3389/fninf.2013.00041
-- Hagen, E. et al. Multimodal Modeling With LFPy 2.0. *Front. Neuroinform.* 12, 92 (2018). doi:10.3389/fninf.2018.00092
-- Herreras, O. Local Field Potentials: Myths and Misunderstandings. *Front. Neural Circuits* 10, 101 (2016). doi:10.3389/fncir.2016.00101
-- Pettersen, K. H. et al. Extracellular spikes and CSD. *Handbook of Neural Activity Measurement* (Brette & Destexhe, eds.), CUP (2012). doi:10.1017/CBO9780511979958.004
-- Einevoll, G. T., Kayser, C., Logothetis, N. K. & Panzeri, S. Modelling and analysis of local field potentials for studying the function of cortical circuits. *Nat. Rev. Neurosci.* 14, 770–785 (2013). doi:10.1038/nrn3599
-- Einevoll, G. T. Extracellular Potentials, Forward Modeling of. *Encyclopedia of Computational Neuroscience* (2020). doi:10.1007/978-1-4614-7320-6_59-2
-- Vorwerk, J. et al. A guideline for head volume conductor modeling. *NeuroImage* 100, 590–607 (2014). doi:10.1016/j.neuroimage.2014.06.040
+| Reference | Result implemented | Functions |
+|---|---|---|
+| Nicholson, C., & Freeman, J. A. (1975). Theory of current source-density analysis and determination of conductivity tensor for anuran cerebellum. *Journal of Neurophysiology* 38(2), 356-368. [doi:10.1152/jn.1975.38.2.356](https://doi.org/10.1152/jn.1975.38.2.356) | Current source density $-\sigma\,\partial^2\phi/\partial z^2$ in one dimension, by the three-point second difference along the contact axis. jaxfne omits $\sigma$ and pads the edges, so the output is a CSD proxy in the units of the potential proxy | `jaxfne.fields.csd_tensor` |
 
-## Simulation and model languages
+| Reference | Relation to jaxfne |
+|---|---|
+| Lindén, H., et al. (2014). LFPy: a tool for biophysical simulation of extracellular potentials generated by detailed model neurons. *Frontiers in Neuroinformatics* 7, 41. [doi:10.3389/fninf.2013.00041](https://doi.org/10.3389/fninf.2013.00041) | Forward modelling of extracellular potentials from detailed neurons. jaxfne fields are uncalibrated proxies and solve no forward model |
+| Hagen, E., et al. (2018). Multimodal modeling of neural network activity: computing LFP, ECoG, EEG, and MEG signals with LFPy 2.0. *Frontiers in Neuroinformatics* 12, 92. [doi:10.3389/fninf.2018.00092](https://doi.org/10.3389/fninf.2018.00092) | The same forward models across LFP, ECoG, EEG and MEG; the reference for what a calibrated field would require |
+| Herreras, O. (2016). Local field potentials: myths and misunderstandings. *Frontiers in Neural Circuits* 10, 101. [doi:10.3389/fncir.2016.00101](https://doi.org/10.3389/fncir.2016.00101) | Interpretation limits of the LFP that the proxy status of jaxfne fields keeps in view |
+| Pettersen, K. H., et al. (2012). Extracellular spikes and CSD. In *Handbook of Neural Activity Measurement* (Brette & Destexhe, eds.), 92-135. Cambridge University Press. [doi:10.1017/CBO9780511979958.004](https://doi.org/10.1017/CBO9780511979958.004) | Review of extracellular spikes, CSD and the receptor kinetics the field appendix cites |
+| Einevoll, G. T., Kayser, C., Logothetis, N. K., & Panzeri, S. (2013). Modelling and analysis of local field potentials for studying the function of cortical circuits. *Nature Reviews Neuroscience* 14(11), 770-785. [doi:10.1038/nrn3599](https://doi.org/10.1038/nrn3599) | Review of LFP modelling; context for the source and field stages |
+| Einevoll, G. T. (2020). Extracellular potentials, forward modeling of. *Encyclopedia of Computational Neuroscience*. [doi:10.1007/978-1-4614-7320-6_59-2](https://doi.org/10.1007/978-1-4614-7320-6_59-2) | Short account of the forward model that jaxfne fields approximate as proxies |
+| Vorwerk, J., et al. (2014). A guideline for head volume conductor modeling in EEG and MEG. *NeuroImage* 100, 590-607. [doi:10.1016/j.neuroimage.2014.06.040](https://doi.org/10.1016/j.neuroimage.2014.06.040) | Volume-conductor modelling for EEG and MEG; the calibration step `eeg_proxy_transform` does not perform |
 
-- Cannon, R. C. et al. LEMS: a language for expressing complex biological models. *Front. Neuroinform.* 8 (2014). doi:10.3389/fninf.2014.00079
-- Gleeson, P. et al. NeuroML: A Language for Describing Data Driven Models. *PLoS Comput. Biol.* 6, e1000815 (2010). doi:10.1371/journal.pcbi.1000815
-- Vella, M. et al. libNeuroML and PyLEMS. *Front. Neuroinform.* 8 (2014). doi:10.3389/fninf.2014.00038
-- Dura-Bernal, S. et al. NetPyNE. *eLife* 8, e44494 (2019). doi:10.7554/eLife.44494
-- Dai, K. et al. Brain Modeling ToolKit. *PLoS Comput. Biol.* 16, e1008386 (2020). doi:10.1371/journal.pcbi.1008386
-- Sanz Leon, P. et al. The Virtual Brain. *Front. Neuroinform.* 7 (2013). doi:10.3389/fninf.2013.00010
-- Stimberg, M. et al. Brian 2. *eLife* 8, e47314 (2019). doi:10.7554/eLife.47314
-- Yavuz, E. et al. GeNN. *Sci. Rep.* 6, 18854 (2016). doi:10.1038/srep18854
-- Vitay, J. et al. ANNarchy. *Front. Neuroinform.* 9 (2015). doi:10.3389/fninf.2015.00019
-- Bekolay, T. et al. Nengo. *Front. Neuroinform.* 7 (2014). doi:10.3389/fninf.2013.00048
-- Hines, M. L. & Carnevale, N. T. The NEURON simulation environment. *Neural Comput.* 9, 1179–1209 (1997). doi:10.1162/neco.1997.9.6.1179
-- Gewaltig, M.-O. & Diesmann, M. NEST. *Scholarpedia* 2, 1430 (2007). doi:10.4249/scholarpedia.1430
-- Akar, N. A. et al. Arbor — morphologically-detailed library. *Proc. PDP 2019*, 274–282 (2019). doi:10.1109/EMPDP.2019.8671560
+## Replicated papers
 
-## JAX/differentiable computation
+| Reference | Result compared | Where |
+|---|---|---|
+| Tahvili, F., Vinck, M., & di Volo, M. (2026). *PLOS Computational Biology* 22(6), e1014378. [doi:10.1371/journal.pcbi.1014378](https://doi.org/10.1371/journal.pcbi.1014378) | Fig. 1: gamma frequency, the PV→SOM lag, the rate order and the onset of oscillation with connection probability | [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/caminos), `artifacts/etudes/caminos/` |
+| Tahvili, F., Vinck, M., & di Volo, M. (2025). PV and SOM cells play distinct causal roles in controlling network oscillations and stability. *Cell Reports* 44(8), 116131. [doi:10.1016/j.celrep.2025.116131](https://doi.org/10.1016/j.celrep.2025.116131) | The network the PLOS paper takes as its reference model; its STAR Methods are not yet compared with the port | `artifacts/etudes/caminos/PORT_SPEC.md` |
+| N'dri, A. W., Barbier, T., Teulière, C., & Triesch, J. (2025). Predictive Coding Light. *Nature Communications* 16, 8880. [doi:10.1038/s41467-025-64234-z](https://doi.org/10.1038/s41467-025-64234-z) | Fig. 2: learned inhibitory weights and spike suppression ordered by predictability. Fig. 3: the preregistered comparison, not reproduced | Dashboard: [Fig. 2](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig2), [Fig. 3](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig3); `artifacts/etudes/pcl/` |
+| Watkins, C. J. C. H., & Dayan, P. (1992). Q-learning. *Machine Learning* 8(3-4), 279-292. [doi:10.1007/BF00992698](https://doi.org/10.1007/BF00992698) | The tabular Q-learning update, run as a demonstration on two chain tasks | [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/qlearning), `artifacts/etudes/qlearning/` |
 
-- Wang, C. et al. BrainPy. *eLife* 12, e86365 (2023). doi:10.7554/eLife.86365
-- Deistler, M. et al. Jaxley. *Nature Methods* 22, 2649–2657 (2025). doi:10.1038/s41592-025-02895-w
-- Pille, M. et al. Fast and easy whole-brain network model parameter estimation with automatic differentiation. *bioRxiv* (2025). doi:10.1101/2025.11.18.689003
-- Huh, D. & Sejnowski, T. J. Gradient descent for spiking neural networks. *Adv. Neural Inf. Process. Syst.* 31, 1433–1443 (2018).
-- Kidger, P. & Garcia, C. Equinox. *arXiv* 2111.00254 (2021) — workshop preprint, differentiable JAX composition.
+## Background: reduced and population models
 
-## Reproducibility and provenance
+| Reference | Relation to jaxfne |
+|---|---|
+| FitzHugh, R. (1961). Impulses and physiological states in theoretical models of nerve membrane. *Biophysical Journal* 1(6), 445-466. [doi:10.1016/S0006-3495(61)86902-6](https://doi.org/10.1016/S0006-3495(61)86902-6) | Two-variable reduction of the Hodgkin-Huxley model; the programme the Izhikevich and AdEx emitters belong to |
+| Nagumo, J., Arimoto, S., & Yoshizawa, S. (1962). An active pulse transmission line simulating nerve axon. *Proceedings of the IRE* 50(10), 2061-2070. [doi:10.1109/JRPROC.1962.288235](https://doi.org/10.1109/JRPROC.1962.288235) | The circuit form of the FitzHugh reduction |
+| Morris, C., & Lecar, H. (1981). Voltage oscillations in the barnacle giant muscle fiber. *Biophysical Journal* 35(1), 193-213. [doi:10.1016/S0006-3495(81)84782-0](https://doi.org/10.1016/S0006-3495(81)84782-0) | A second two-variable conductance model in the same programme |
+| Wilson, H. R., & Cowan, J. D. (1972). Excitatory and inhibitory interactions in localized populations of model neurons. *Biophysical Journal* 12(1), 1-24. [doi:10.1016/S0006-3495(72)86068-5](https://doi.org/10.1016/S0006-3495(72)86068-5) | Population rate model; jaxfne implements no rate node |
+| Jansen, B. H., & Rit, V. G. (1995). Electroencephalogram and visual evoked potential generation in a mathematical model of coupled cortical columns. *Biological Cybernetics* 73(4), 357-366. [doi:10.1007/BF00199471](https://doi.org/10.1007/BF00199471) | Neural-mass model of the EEG; jaxfne implements no neural mass |
+| Montbrió, E., Pazó, D., & Roxin, A. (2015). Macroscopic description for networks of spiking neurons. *Physical Review X* 5(2), 021028. [doi:10.1103/PhysRevX.5.021028](https://doi.org/10.1103/PhysRevX.5.021028) | Exact mean field of quadratic integrate-and-fire networks; jaxfne simulates the spiking network itself |
+| Coombes, S. (2005). Waves, bumps, and patterns in neural field theories. *Biological Cybernetics* 93(2), 91-108. [doi:10.1007/s00422-005-0574-y](https://doi.org/10.1007/s00422-005-0574-y) | Neural field theory; background |
+| Cook, B. J., et al. (2022). Neural field models: a mathematical overview and unifying framework. *Mathematical Neuroscience and Applications* 2, 7284. [doi:10.46298/mna.7284](https://doi.org/10.46298/mna.7284) | The same, as a unified framework |
+| Ermentrout, G. B., & Kleinfeld, D. (2001). Traveling electrical waves in cortex: insights from phase dynamics and speculation on a computational role. *Neuron* 29(1), 33-44. [doi:10.1016/S0896-6273(01)00178-7](https://doi.org/10.1016/S0896-6273(01)00178-7) | Cortical travelling waves; jaxfne implements no wave model |
+| Muller, L., Chavane, F., Reynolds, J., & Sejnowski, T. J. (2018). Cortical travelling waves: mechanisms and computational principles. *Nature Reviews Neuroscience* 19(5), 255-268. [doi:10.1038/nrn.2018.20](https://doi.org/10.1038/nrn.2018.20) | Review of the same |
 
-- Nosek, B. A. et al. Promoting an open research culture. *Science* 348, 1422–1425 (2015). doi:10.1126/science.aab2374
-- Grant, S. et al. (on behalf of the TOP Advisory Board). TOP 2025: An update to the Transparency and Openness Promotion guidelines. *Res. Integr. Peer Rev.* 11, 2 (2026). doi:10.1186/s41073-026-00223-0
-- Heil, B. J. et al. Reproducibility standards for machine learning in the life sciences. *Nat. Methods* 18, 1132–1135 (2021). doi:10.1038/s41592-021-01256-7
-- Miłkowski, M. et al. Replicability or reproducibility? *J. Comput. Neurosci.* 45, 163–172 (2018). doi:10.1007/s10827-018-0702-z
-- Wilkinson, M. D. et al. The FAIR Guiding Principles. *Sci. Data* 3, 160018 (2016). doi:10.1038/sdata.2016.18
-- Rübel, O. et al. The Neurodata Without Borders ecosystem. *eLife* 11, e78362 (2022). doi:10.7554/eLife.78362
-- Dai, K. et al. The SONATA data format. *PLoS Comput. Biol.* 16, e1007696 (2020). doi:10.1371/journal.pcbi.1007696
-- Crüwell, S. & Evans, N. J. Preregistration in diverse contexts. *R. Soc. Open Sci.* 8, 210155 (2021). doi:10.1098/rsos.210155
+## Background: circuits, rhythms and plasticity
 
-## Developmental / generative (background, not manuscript bibliography)
+| Reference | Relation to jaxfne |
+|---|---|
+| Kopell, N., Ermentrout, G. B., Whittington, M. A., & Traub, R. D. (2000). Gamma rhythms and beta rhythms have different synchronization properties. *PNAS* 97(4), 1867-1872. [doi:10.1073/pnas.97.4.1867](https://doi.org/10.1073/pnas.97.4.1867) | Gamma and beta synchronization in E-I networks; background for the CAMINOS gamma replication |
+| Börgers, C., & Kopell, N. (2003). Synchronization in networks of excitatory and inhibitory neurons with sparse, random connectivity. *Neural Computation* 15(3), 509-538. [doi:10.1162/089976603321192059](https://doi.org/10.1162/089976603321192059) | The PING mechanism in sparse random E-I networks; the same background |
+| Prinz, A. A., Bucher, D., & Marder, E. (2004). Similar network activity from disparate circuit parameters. *Nature Neuroscience* 7(12), 1345-1352. [doi:10.1038/nn1352](https://doi.org/10.1038/nn1352) | Parameter degeneracy in circuit models; background for fitting with `Model.tune` |
+| Clopath, C., Büsing, L., Vasilaki, E., & Gerstner, W. (2010). Connectivity reflects coding: a model of voltage-based STDP with homeostasis. *Nature Neuroscience* 13(3), 344-352. [doi:10.1038/nn.2479](https://doi.org/10.1038/nn.2479) | Voltage-based STDP with homeostasis; a comparator for the pair-trace STDP and HDP rules, which implement neither |
+| Mejias, J. F., Murray, J. D., Kennedy, H., & Wang, X.-J. (2016). Feedforward and feedback frequency-dependent interactions in a large-scale laminar network of the primate cortex. *Science Advances* 2(11), e1601335. [doi:10.1126/sciadv.1601335](https://doi.org/10.1126/sciadv.1601335) | Laminar multi-area model; on the replication roadmap |
+| Arkhipov, A., et al. (2018). Visual physiology of the layer 4 cortical circuit in silico. *PLOS Computational Biology* 14(11), e1006535. [doi:10.1371/journal.pcbi.1006535](https://doi.org/10.1371/journal.pcbi.1006535) | Biophysically detailed layer 4 model; a scale comparator |
 
-- Waddington (1957), Kitano (1990), Gruau (1995), Elman (1993), Stanley (2002, 2009), Zador (2019), Palm (2021) — retained for JDNA theory; not counted toward 40–45 manuscript bibliography.
+## Background: simulators and model languages
 
-*RBS/RBD/HDP semantics follow `docs/doctrine/rbs_rbd_hdp.md` and `tfne_containment_architecture.md`; see HDP guide [`../guides/hdp.md`](../guides/hdp.md).*
+| Reference | Relation to jaxfne |
+|---|---|
+| Cannon, R. C., et al. (2014). LEMS: a language for expressing complex biological models in concise and hierarchical form and its use in underpinning NeuroML 2. *Frontiers in Neuroinformatics* 8, 79. [doi:10.3389/fninf.2014.00079](https://doi.org/10.3389/fninf.2014.00079) | Declarative model language; comparator for `CircuitSpec` |
+| Gleeson, P., et al. (2010). NeuroML: a language for describing data driven models of neurons and networks with a high degree of biological detail. *PLoS Computational Biology* 6(6), e1000815. [doi:10.1371/journal.pcbi.1000815](https://doi.org/10.1371/journal.pcbi.1000815) | The same |
+| Vella, M., et al. (2014). libNeuroML and PyLEMS: using Python to combine procedural and declarative modeling approaches in computational neuroscience. *Frontiers in Neuroinformatics* 8, 38. [doi:10.3389/fninf.2014.00038](https://doi.org/10.3389/fninf.2014.00038) | The Python side of the same |
+| Dura-Bernal, S., et al. (2019). NetPyNE, a tool for data-driven multiscale modeling of brain circuits. *eLife* 8, e44494. [doi:10.7554/eLife.44494](https://doi.org/10.7554/eLife.44494) | Network builder over NEURON; comparator |
+| Dai, K., et al. (2020). Brain Modeling ToolKit: an open source software suite for multiscale modeling of brain circuits. *PLOS Computational Biology* 16(11), e1008386. [doi:10.1371/journal.pcbi.1008386](https://doi.org/10.1371/journal.pcbi.1008386) | Comparator |
+| Sanz Leon, P., et al. (2013). The Virtual Brain: a simulator of primate brain network dynamics. *Frontiers in Neuroinformatics* 7, 10. [doi:10.3389/fninf.2013.00010](https://doi.org/10.3389/fninf.2013.00010) | Whole-brain mean-field simulator; comparator |
+| Stimberg, M., Brette, R., & Goodman, D. F. M. (2019). Brian 2, an intuitive and efficient neural simulator. *eLife* 8, e47314. [doi:10.7554/eLife.47314](https://doi.org/10.7554/eLife.47314) | Comparator; `step_order="brian2"` reproduces its update order in the AdEx kernel |
+| Yavuz, E., Turner, J., & Nowotny, T. (2016). GeNN: a code generation framework for accelerated brain simulations. *Scientific Reports* 6, 18854. [doi:10.1038/srep18854](https://doi.org/10.1038/srep18854) | GPU code generation; comparator |
+| Vitay, J., Dinkelbach, H. Ü., & Hamker, F. H. (2015). ANNarchy: a code generation approach to neural simulations on parallel hardware. *Frontiers in Neuroinformatics* 9, 19. [doi:10.3389/fninf.2015.00019](https://doi.org/10.3389/fninf.2015.00019) | Comparator |
+| Bekolay, T., et al. (2014). Nengo: a Python tool for building large-scale functional brain models. *Frontiers in Neuroinformatics* 7, 48. [doi:10.3389/fninf.2013.00048](https://doi.org/10.3389/fninf.2013.00048) | Comparator |
+| Hines, M. L., & Carnevale, N. T. (1997). The NEURON simulation environment. *Neural Computation* 9(6), 1179-1209. [doi:10.1162/neco.1997.9.6.1179](https://doi.org/10.1162/neco.1997.9.6.1179) | Compartmental simulator; the detailed end of the resolution range |
+| Gewaltig, M.-O., & Diesmann, M. (2007). NEST (NEural Simulation Tool). *Scholarpedia* 2(4), 1430. [doi:10.4249/scholarpedia.1430](https://doi.org/10.4249/scholarpedia.1430) | Point-neuron network simulator; comparator |
+| Akar, N. A., et al. (2019). Arbor: a morphologically-detailed neural network simulation library for contemporary high-performance computing architectures. *27th Euromicro PDP*, 274-282. [doi:10.1109/EMPDP.2019.8671560](https://doi.org/10.1109/EMPDP.2019.8671560) | Compartmental simulator; comparator |
+
+## Background: differentiable computation
+
+| Reference | Relation to jaxfne |
+|---|---|
+| Wang, C., et al. (2023). BrainPy, a flexible, integrative, efficient, and extensible framework for general-purpose brain dynamics programming. *eLife* 12, e86365. [doi:10.7554/eLife.86365](https://doi.org/10.7554/eLife.86365) | JAX brain-dynamics framework; nearest comparator |
+| Deistler, M., et al. (2025). Jaxley: differentiable simulation enables large-scale training of detailed biophysical models of neural dynamics. *Nature Methods* 22, 2649-2657. [doi:10.1038/s41592-025-02895-w](https://doi.org/10.1038/s41592-025-02895-w) | `jaxfne.bridges.JaxleyBridge` mounts Jaxley cells as emitters, and `hh_jaxley_reference_trace` runs Jaxley's HH channel |
+| Pille, M., et al. (2025). Fast and easy whole-brain network model parameter estimation with automatic differentiation. *bioRxiv*. [doi:10.1101/2025.11.18.689003](https://doi.org/10.1101/2025.11.18.689003) | Gradient-based fitting of whole-brain models; comparator for `Model.tune` |
+| Huh, D., & Sejnowski, T. J. (2018). Gradient descent for spiking neural networks. *Advances in Neural Information Processing Systems* 31, 1433-1443. | Gradients through spiking dynamics; background for differentiable spiking kernels |
+| Kidger, P., & Garcia, C. (2021). Equinox: neural networks in JAX via callable PyTrees and filtered transformations. *arXiv* 2111.00254. [doi:10.48550/arXiv.2111.00254](https://doi.org/10.48550/arXiv.2111.00254) | Model composition as PyTrees in JAX; background |
+
+## Background: reproducibility and data standards
+
+| Reference | Relation to jaxfne |
+|---|---|
+| Nosek, B. A., et al. (2015). Promoting an open research culture. *Science* 348(6242), 1422-1425. [doi:10.1126/science.aab2374](https://doi.org/10.1126/science.aab2374) | Transparency and openness guidelines; background for the preregistered replications |
+| Grant, S., et al. (2026). TOP 2025: an update to the Transparency and Openness Promotion guidelines. *Research Integrity and Peer Review* 11, 40. [doi:10.1186/s41073-026-00223-0](https://doi.org/10.1186/s41073-026-00223-0) | The current version of the same guidelines |
+| Heil, B. J., et al. (2021). Reproducibility standards for machine learning in the life sciences. *Nature Methods* 18(10), 1132-1135. [doi:10.1038/s41592-021-01256-7](https://doi.org/10.1038/s41592-021-01256-7) | Standards for released code, data and seeds |
+| Miłkowski, M., Hensel, W. M., & Hohol, M. (2018). Replicability or reproducibility? On the replication crisis in computational neuroscience and sharing only relevant detail. *Journal of Computational Neuroscience* 45(3), 163-172. [doi:10.1007/s10827-018-0702-z](https://doi.org/10.1007/s10827-018-0702-z) | The distinction the replication classes use |
+| Wilkinson, M. D., et al. (2016). The FAIR Guiding Principles for scientific data management and stewardship. *Scientific Data* 3, 160018. [doi:10.1038/sdata.2016.18](https://doi.org/10.1038/sdata.2016.18) | Data management principles |
+| Rübel, O., et al. (2022). The Neurodata Without Borders ecosystem for neurophysiological data science. *eLife* 11, e78362. [doi:10.7554/eLife.78362](https://doi.org/10.7554/eLife.78362) | Data format for recorded and simulated signals; `jaxfne.pynwb_compat.write_nwb` writes simulation output as NWB |
+| Dai, K., et al. (2020). The SONATA data format for efficient description of large-scale network models. *PLOS Computational Biology* 16(2), e1007696. [doi:10.1371/journal.pcbi.1007696](https://doi.org/10.1371/journal.pcbi.1007696) | Network description format; comparator |
+| Crüwell, S., & Evans, N. J. (2021). Preregistration in diverse contexts: a preregistration template for the application of cognitive models. *Royal Society Open Science* 8(10), 210155. [doi:10.1098/rsos.210155](https://doi.org/10.1098/rsos.210155) | Preregistration of model applications; the form of the replication preregistrations |
+
+## Developmental and generative background
+
+Waddington (1957), Kitano (1990), Gruau (1995), Elman (1993), Stanley (2002, 2009), Zador (2019)
+and Palm (2021) are the scholarly ancestry of the JDNA theory and sit outside the manuscript
+bibliography.
+
+RBS, RBD and HDP semantics follow `docs/doctrine/rbs_rbd_hdp.md` and
+`tfne_containment_architecture.md`; see the HDP guide [`../guides/hdp.md`](../guides/hdp.md).

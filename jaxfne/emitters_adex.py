@@ -68,6 +68,8 @@ def make_adex_params(
 ) -> AdExParams:
     """Build :class:`AdExParams` for one cell type per neuron.
 
+    Defaults: Tahvili, Vinck & di Volo (2026), Table 1, doi:10.1371/journal.pcbi.1014378.
+
     ``overrides`` maps a cell type to a dict of field overrides (field names as in
     :class:`AdExParams`). Unknown cell types, unknown fields, and overrides for a cell
     type absent from ``labels`` raise ``ValueError``.
@@ -105,6 +107,9 @@ def make_adex_params(
 
 def adex_step(state, I_pA, params: AdExParams, dt_ms: float, step_order: str = "default"):
     """One explicit-Euler step of the AdEx equations for a vector of cells.
+
+    Cell model: Brette & Gerstner (2005), doi:10.1152/jn.00686.2005; the refractory
+    clamp and the spike threshold ``VT + 5 * Delta`` follow Tahvili et al. (2026).
 
     ``state`` is ``(V, w, ref)``: membrane voltage (mV), adaptation (pA), and refractory
     steps remaining (int). ``I_pA`` is injected current. A cell with ``ref > 0`` is clamped
@@ -290,6 +295,10 @@ def simulate_adex(
     key=None,
 ) -> dict[str, Any]:
     """Simulate conductance-based AdEx cells on a sparse edge list.
+
+    Cells: Brette & Gerstner (2005), doi:10.1152/jn.00686.2005. Network, synapses and
+    external drive: Tahvili, Vinck & di Volo (2026), Methods Eqs. 15-18,
+    doi:10.1371/journal.pcbi.1014378.
 
     Each edge ``e`` runs from ``edge_pre[e]`` to ``edge_post[e]`` through receptor
     ``edge_receptor[e]``, with weight ``edge_weight_nS[e]`` and delay ``edge_delay_steps[e]``.

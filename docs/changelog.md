@@ -38,6 +38,9 @@ the rules those releases were held to and are historical context for readers.
   transcription of it spike for spike).
 
 ### Changed
+- The references page lists, per source, the result jaxfne implements and the functions that
+  implement it; those functions cite the same DOI, and `tests/test_references_page.py` holds the
+  two together. Replicated papers and background work have their own tables.
 - Python 3.15 groundwork. JAX/jaxlib ceiling raised from `<0.11` to `<0.12`, because jaxlib's first
   Python 3.15 wheels are 0.11.1. The homeostatic-EI `cubic_penalty` NaN that set the old pin
   no longer reproduces: its 30 tests (slow included) pass on JAX 0.11.2. JAX 0.11 rounds 2 of the

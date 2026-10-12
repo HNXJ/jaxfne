@@ -453,6 +453,9 @@ def simulate_eig_izhikevich(
 ) -> tuple[jax.Array, jax.Array, jax.Array]:
     """Simulate a reduced EIG Izhikevich scaffold using ``jax.lax.scan``.
 
+    Cell model: Izhikevich (2003), Eqs. 1-3, doi:10.1109/TNN.2003.820440, one
+    forward-Euler step of ``dt_ms`` for ``v`` and ``u`` with the spike test after it.
+
     Synaptic semantics: the dense backend couples ``weights @ prev_spikes``
     — an instantaneous one-step spike-jump current with no synaptic time
     constant. This is a distinct supported synaptic model, NOT a
@@ -1290,6 +1293,9 @@ def simulate_edge_recurrent_izhikevich(
     record_u_trace: bool = False,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate reduced Izhikevich emitters with sparse recurrent synapses.
+
+    Cell model: Izhikevich (2003), Eqs. 1-3, doi:10.1109/TNN.2003.820440, one
+    forward-Euler step of ``dt_ms`` for ``v`` and ``u`` with the spike test after it.
 
     Synaptic semantics: each edge carries a receptor-filtered exponential
     synaptic state (``tau_ms`` per edge); this is a distinct supported

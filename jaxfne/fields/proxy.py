@@ -1204,7 +1204,9 @@ def csd_tensor(phi_e_proxy: jax.Array | CanonicalSource, dz: jax.Array | float) 
     """Spatial second-derivative CSD tensor (readout family, depth-axis stage).
 
     ``csd_proxy[c] = -(phi[c+1] - 2*phi[c] + phi[c-1]) / dz**2`` along the
-    contact axis, edge-padded at the boundaries. Standard pipeline shape:
+    contact axis, edge-padded at the boundaries: the three-point estimate of
+    Nicholson & Freeman (1975), doi:10.1152/jn.1975.38.2.356, without the
+    conductivity. Standard pipeline shape:
 
     ``source -> project_laminar_sources (-> phi_e_proxy) -> csd_tensor -> csd_proxy``
 
