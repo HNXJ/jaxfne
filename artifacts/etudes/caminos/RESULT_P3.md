@@ -56,6 +56,22 @@ lag 6.9–7.3):
 | S1 float64 | 34 | 1.121 | 11.42 | 7.26 | 7.0 | yes |
 | S2 dt 0.05 ms | 33 | 1.129 | 11.33 | 7.22 | 7.05 | yes |
 
+S3–S5 ran later at `l2-caminos` 6ff832a1 (code = baca68e7, second review PASS):
+
+| Run | f_pk | E | PV | SOM | lag | oscillates |
+|---|---|---|---|---|---|---|
+| S3 fixed in-degree | 35 | 1.040 | 11.09 | 6.69 | 6.8 | yes |
+| S4 shared drive | — | 0.000 | 0.0004 | 0.000 | — | no (E silent: 0 spikes; PV 3) |
+| S5 Brian2 step order | 33 | 1.146 | 11.47 | 7.47 | 7.0 | yes |
+
+- S3 and S5 stay inside the R1–R3 bands. Their shifts are at or just past the seed range
+  (S3: f_pk +1 Hz, E, PV and lag slightly low; S5: E, PV and SOM slightly high).
+- S4 as preregistered is not a test of shared input alone. With 560 shared trains, each
+  reaching a cell with probability p, a cell sees about p·560 ≈ 39 sources instead of 560,
+  so its mean drive falls about 14-fold and the network goes silent. A shared-drive test at
+  equal mean drive needs NE = 8000 trains at probability p (p·NE = 560 per cell); that is
+  a new run.
+
 Every S1/S2 shift is below the between-seed range except S1's f_pk. That shift is 1 Hz,
 equal to the seed range and to the 1 Hz spectral grid. `score()` lists these runs as not
 scored (they are not the reference configuration); the values come from `analyze_run` on

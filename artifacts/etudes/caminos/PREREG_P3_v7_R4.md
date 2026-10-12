@@ -52,4 +52,6 @@ v6 sweep gave each cell 560 sources where p·NE gives 160.
 - R4v7 passes: "With external drive p·NE, the port shows the critical-p onset of Fig. 1E."
   The overall CAMINOS Fig. 1 verdict is then R1–R3 (v6) plus R4v7.
 - R4v7 fails: reported with its numbers. Private p·NE sources are then excluded as the
-  cause; other drive readings (S4, shared trains) and S3 and S5 remain candidates.
+  cause; shared trains at equal mean drive (NE trains at probability p; the v6 S4 run cut
+  the drive about 14-fold and fell silent) remains a candidate. S3 and S5 left R1–R3 inside
+  their bands at p = 0.07.
