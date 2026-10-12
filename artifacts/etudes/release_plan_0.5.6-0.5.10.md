@@ -164,3 +164,7 @@ Decided 2026-10-11 (on meeting 3790d96e): preregistrations are signed in a batch
 each after a second-review PASS and a passing calibration gate; manuscript sections 1–7 freeze
 on the 0.5.5 evidence and this programme fills section 8; bindings B1–B7 are standing rules
 (`artifacts/todo_stack.md`); the jnwb short list folds into the 0.5.6 library lane.
+
+Decided 2026-10-12 (Hamm): AdEx is public as `emitter(family="adex")` plus ADVANCED names in
+`jaxfne.emitters` (decision 3, AdEx part); generated assets are regenerated at the docs build
+(decision 2, §6.1); the third 0.5.6 paper is Izhikevich 2003 on the existing emitter.
