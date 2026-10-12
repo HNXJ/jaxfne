@@ -231,6 +231,8 @@ ALLOW_PHRASES = (
     "standard framework terminology",
     # bibliography titles (verbatim, cannot be rephrased)
     "unifying framework",
+    "code generation framework",
+    "extensible framework",
     # epistemic / gate vocabulary in fixed technical phrases
     "ground truth",
     "epistemic truth",
