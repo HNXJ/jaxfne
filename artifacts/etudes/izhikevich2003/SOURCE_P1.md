@@ -48,6 +48,6 @@ values.
 - The Fig. 3 claims are qualitative except "around 8 Hz" and "10 and 40 Hz"; criteria and
   bands will be ours (P3).
 - No seed or random generator is given; replicates are seeds of our generator.
-- The library presets in `jaxfne/presets.py` cite "Izhikevich 2003 Table 1". The paper has no
+- The library presets in `jaxfne/presets.py` cited "Izhikevich 2003 Table 1" (corrected). The paper has no
   table; RS, FS and LTS match Fig. 2, and `VIP_IS` (b −0.10, c −55, d 6) appears nowhere in
   this paper.

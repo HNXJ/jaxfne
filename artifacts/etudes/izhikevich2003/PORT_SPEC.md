@@ -50,6 +50,6 @@ seeded per run. Scored statistics are computed on both arms; S1 reports the diff
 
 ## Finding outside the étude
 
-`jaxfne/presets.py` cites "Izhikevich 2003 Table 1" for its four presets. The paper has no
-table; RS, FS and LTS match Fig. 2, and `VIP_IS` does not appear in the paper. The citation
-needs correcting (todo).
+`jaxfne/presets.py` cited "Izhikevich 2003 Table 1" for its four presets. The paper has no
+table; RS, FS and LTS match Fig. 2, and `VIP_IS` does not appear in the paper. The `source`
+strings now cite Fig. 2 and mark `VIP_IS` as outside the paper (`tests/test_presets_citation.py`).

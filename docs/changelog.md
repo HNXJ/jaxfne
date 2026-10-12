@@ -22,7 +22,7 @@ the rules those releases were held to and are historical context for readers.
   (`I = sum_r g_r (E_r - V)`; `decay="exp"` or `"euler"`, required) and a per-edge delay ring
   (delays >= 1 step). The cell step and the recurrent synaptic step match a float64
   transcription of the CAMINOS reference within rtol 1e-6; `step_order="brian2"` adds one delay
-  step and removes one refractory step. No external conductance drive yet.
+  step and removes one refractory step.
   `Configuration.emitter(family="adex")` builds these cells over `network(n=, cell_types=)`
   (E/PV/SOM), wires them with `mechanisms()` receptors and `connections()` rules, and
   `simulate` runs the kernel on the compiled edges. The route refuses, by name, every
@@ -50,6 +50,8 @@ the rules those releases were held to and are historical context for readers.
 - `Simulation(poisson_drive={"target": ...})` raises `ValueError` for any target other than
   `"all"`. The target was never read: `{"target": "E"}` drove every neuron while the run
   metadata recorded `"E"`. `"all"` and an omitted target draw as before.
+- `jaxfne.presets.CELL_TYPE_PRESETS` sources cite Izhikevich (2003) Fig. 2 for RS, FS and LTS;
+  the paper has no table. `VIP_IS` is marked as absent from the paper.
 
 ## v0.5.5 (candidate)
 
