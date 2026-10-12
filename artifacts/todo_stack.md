@@ -102,7 +102,8 @@ https://hnxj.github.io/jaxfne/dashboard/ (`dashboard/DESIGN.md`), programme
 - [H] PCL Fig. 3 after the diagnostic: new prereg for T2/T4, P6 library path anyway (B1), or move on.
 - [A] G-2 features, one at a time, failing test first, second review (design: CAMINOS port spec
   and the 2026-10-12 code map; F1 landed in 5ddfd8f2, its connection table does not yet record
-  `sampling`): F2–F4 `emitters_adex` module (AdEx, conductance synapses and delay ring inside its kernel,
+  `sampling`; Hamm 2026-10-12: AdEx is public as `emitter(family="adex")` plus ADVANCED names
+  in `jaxfne.emitters`, contract 283 → 288; kernel landed in 8138a5c3): F2–F4 route (part B) `emitters_adex` module (AdEx, conductance synapses and delay ring inside its kernel,
   ADVANCED tier, no root export); F5 `poisson_drive` independent sources per target cell type;
   F6 "SOM" in the AdEx table and `fields/proxy.py:775` (unknown types default to +1). Then the
   CAMINOS P6 prereg for Hamm's signature. Shared-drive variant dropped (Hamm 2026-10-12).

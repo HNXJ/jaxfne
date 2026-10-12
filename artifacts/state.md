@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@5ddfd8f2 · 2026-10-12 (written 2026-10-12T16:10:23Z)
+Stamp: jaxfne@dev@8138a5c3 · 2026-10-12 (written 2026-10-12T16:50:14Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
@@ -18,6 +18,8 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
   adopted (c7b3a056).
 - `connections(sampling="bernoulli")` (G-2 F1) since 5ddfd8f2; default path and config hashes
   unchanged.
+- AdEx conductance kernel `jaxfne.emitters.simulate_adex` (ADVANCED, 8138a5c3): matches the
+  CAMINOS reference cell and recurrent step within rtol 1e-6 (float64); no external drive yet.
 
 ## Broken or in flight
 
@@ -25,8 +27,7 @@ In `artifacts/open_stack.md`.
 
 ## Last gate results
 
-- Broad gate, F1 (9aa342e1 tree): 5047 passed, 9 failed under outside memory pressure (another
-  pytest at 24 GB, GoogleDriveFS 47 GB); all 9 pass alone. Second review PASS.
+- Broad gate, AdEx kernel (76955729 tree): 5093 passed, 0 failed, 75 skipped. Second review PASS.
 - `tests/test_agent_context_hygiene.py`, `test_artifacts_root_layout.py`, `test_memory_brief.py`:
   39 passed at c7b3a056; `report_hygiene_check.py` clean.
 
@@ -44,4 +45,4 @@ In `artifacts/open_stack.md`.
 
 ## Next action
 
-G-2 F2–F4: the `emitters_adex` module (AdEx, conductance synapses, delay ring), then F5, F6.
+G-2 F2–F4 part B (the "adex" route), then F5 (in-kernel Poisson conductance drive), F6.
