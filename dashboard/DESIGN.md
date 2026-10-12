@@ -101,5 +101,12 @@ Desktop at 1440 px; one column at 390 px with no horizontal scroll.
 ## Publishing
 
 `gh-pages` holds the old MkDocs build (v0.4.20) at the site root. The dashboard goes to
-`gh-pages:/dashboard/` only, and nothing else on the branch changes. Publishing is a push to a
-public branch and waits for Hamm's yes.
+`gh-pages:/dashboard/` only, and nothing else on the branch changes (Hamm 2026-10-12). The
+`Dashboard` workflow publishes it on each dev push that touches `dashboard/` or the generator,
+after `build_dashboard_data.py --check` passes. URL: https://hnxj.github.io/jaxfne/dashboard/.
+
+Do not run `mkdocs gh-deploy` against this repository: it replaces the whole gh-pages tree and
+would delete `/dashboard/`.
+
+Updating: change `sources.json` (for a new score, its lane SHA and file), run
+`python scripts/build_dashboard_data.py`, commit both, push to dev.

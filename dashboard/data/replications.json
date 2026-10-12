@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/1",
   "sample": false,
   "generated": {
-    "utc": "2026-10-12T13:34:58Z",
-    "dev_sha": "3e1aa8c796662595d407e87e251aa45f4973443f"
+    "utc": "2026-10-12T13:49:29Z",
+    "dev_sha": "9ef7b4139adb088062ef104f5e9669889c1e3269"
   },
   "papers": [
     {
@@ -18,7 +18,7 @@
         "sha": "20045e9a46cda81638a8c9fd75477be06dda34d0"
       },
       "verdict": "not reproduced",
-      "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07; the critical-p onset (R4) runs in reverse with the external drive fixed at 560 sources. R4 is rescored under amendment v7 (drive p·NE).",
+      "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07; the critical-p onset (R4) runs in reverse with the external drive fixed at 560 sources. R4 is being rescored under amendment v7 (drive p·NE).",
       "preregs": [
         {
           "id": "v6",
@@ -250,8 +250,8 @@
         {
           "id": "S3",
           "label": "fixed in-degree",
-          "status": "agrees",
-          "note": "inside the R1–R3 bands; f_pk +1 Hz, E, PV and lag slightly below the seed range",
+          "status": "differs",
+          "note": "small shifts past the seed range (f_pk +1 Hz; E, PV and lag slightly low); R1–R3 bands still met",
           "rows": [
             {
               "metric": "f_pk",
@@ -366,8 +366,8 @@
         {
           "id": "S5",
           "label": "Brian2 step order",
-          "status": "agrees",
-          "note": "inside the R1–R3 bands; E, PV and SOM slightly above the seed range",
+          "status": "differs",
+          "note": "small shifts past the seed range (E, PV and SOM slightly high); R1–R3 bands still met",
           "rows": [
             {
               "metric": "f_pk",
