@@ -32,7 +32,7 @@ inhibitory. Tuning-group identity is therefore **not** encoded via
   order (`[0:5]`=`AB`, `[5:10]`=`A`, `[10:15]`=`B`, unioned across L4 and L6 for
   10+10+10 combined).
 
-This is a deliberate, explicit design choice, with no
+This is a deliberate, explicit design choice rather than a
 workaround pending a real feature -- see `tuning_group_indices()` in the
 script.
 

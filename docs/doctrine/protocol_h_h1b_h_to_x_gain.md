@@ -75,7 +75,7 @@ Ladder:
 
 ## 3. Gain interface doctrine (not biological interpretation)
 
-\(H \rightarrow x\) must be a **gain interface** on emitter quantities, with no
+\(H \rightarrow x\) must be a **gain interface** on emitter quantities rather than a
 special biological reading baked into RBS coordinates.
 
 Template:

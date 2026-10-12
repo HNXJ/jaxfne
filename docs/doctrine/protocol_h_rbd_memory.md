@@ -365,7 +365,7 @@ H4 outcome — **observed** under the frozen prospective run (see §13).
 Directional conjecture \(\mathcal M_X^{LH} > \mathcal M_X^{SU}\): **not supported**
 (0 vs 0). Factorial point estimates: \(\alpha_L\simeq 0\), \(\alpha_D=+0.052\),
 \(\alpha_{L\times D}=-0.052\). The positive \(\alpha_D\) is **entirely** from the
-short+heterogeneous cell; it is an exploratory prospective estimate, with no
+short+heterogeneous cell; it is an exploratory prospective estimate rather than a
 general heterogeneity confirmation (no bootstrap CIs).
 
 Fixed \(\dot W=0\), fixed \(F_H\) family per row block, shared H3 decoder protocol:

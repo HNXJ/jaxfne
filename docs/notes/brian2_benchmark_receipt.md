@@ -20,7 +20,7 @@ settings on both sides (no hand-tuning either tool).
   **not** a jaxfne dependency, this is a one-off comparison, which adds no feature.
   Code-generation backend: `auto`, which resolved to the compiled Cython
   path (confirmed available in the test environment) — the representative
-  "out of the box" experience for a typical Brian2 user, with no
+  "out of the box" experience for a typical Brian2 user rather than a
   maximally-tuned comparison (Brian2 also offers a `cpp_standalone` mode,
   not used here).
 
@@ -61,7 +61,7 @@ since both scripts use a fixed seed — 99,738 / 3,000 for Brian2 and 96,183 /
 - **Brian2's `construct()` time includes JIT/compile overhead** that Brian2
   itself would likely amortize across repeated runs at the same N within one
   process (code-generation is cached); each of the 2 runs recorded here used
-  a fresh Brian2 venv/process, so both are cold-start measurements, with no
+  a fresh Brian2 venv/process, so both are cold-start measurements rather than a
   warm-cache steady-state comparison for either tool.
 - Neither tool's absolute wall-clock times here should be treated as
   hardware-independent — this ran on the same single machine for both

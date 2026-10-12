@@ -108,8 +108,8 @@ Sections 1–4 describe structural analogy, rather than a capability or superior
   homeostatic controller (`H_i`) driving synaptic weight plasticity — a mechanism not
   present in this specific form in Jaxley, Brian2, or NEST.
 - The source-to-field readout (`jaxfne.fields.project_laminar_sources`) is a static,
-  non-learned linear projection (`field_solver_status = "linear_solver"`), with no
-  differentiable solve and no elliptic/PDE field equation. Per
+  non-learned linear projection (`field_solver_status = "linear_solver"`) rather than a
+  differentiable solve or an elliptic/PDE field equation. Per
   `docs/source_field_equations.md`, the physically-grounded source modes
   (`total_membrane_current`, `decomposed_cap_ion_syn`) remain reserved and unimplemented.
 

@@ -76,7 +76,7 @@ Criterion — a change is "visible but gradual" if the hottest synapse reaches
 - To evolve over **~hundreds of ms**: **scale ≈ 0.1–1.0**.
 
 **Recommended band: `global_stdp ≈ 0.01 – 0.1`.**
-`< 0.001` is effectively frozen; `> 1` saturates/clips (10–100 is clipping, with no
+`< 0.001` is effectively frozen; `> 1` saturates/clips (10–100 is clipping rather than
 learning); negative values are anti-Hebbian contrast only.
 
 > **Closed-loop + homeostasis (resolved):** post-hoc bands are an upper bound on
