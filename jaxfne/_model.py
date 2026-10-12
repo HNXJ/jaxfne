@@ -19,6 +19,7 @@ one-directional (core.py -> _model.py), not a cycle.
 
 from __future__ import annotations
 
+import functools
 import json
 import math
 import warnings
@@ -523,6 +524,27 @@ def _restored_delay_steps(archive) -> "jnp.ndarray":
     return jnp.zeros(archive["edge_pre"].shape[0], dtype=jnp.int32)
 
 
+def _adex_refused(reason: str):
+    """Wrap a Model method so an adex model refuses it by name before the method runs.
+
+    ``reason`` says what the method reads that the adex route does not have. The wrapper keeps
+    the wrapped function's signature and docstring (``functools.wraps``).
+    """
+
+    def wrap(fn):
+        @functools.wraps(fn)
+        def refused(self, *args, **kwargs):
+            if self.static.get("adex") is not None:
+                raise NotImplementedError(
+                    f"Model.{fn.__name__}() is not realized for emitter family 'adex': {reason}"
+                )
+            return fn(self, *args, **kwargs)
+
+        return refused
+
+    return wrap
+
+
 @dataclass(frozen=True)
 class Model:
     """Immutable, runnable model built from a validated :class:`Configuration`.
@@ -548,9 +570,8 @@ class Model:
         if not isinstance(emitter, IzhikevichParams):
             raise NotImplementedError(
                 f"Model.{method_name}() is not yet supported for the "
-                f"{type(emitter).__name__} emitter family -- only "
-                "construct()/simulate()/probe()/evaluate()/tune() (matrix-parameter "
-                "tuning) are supported for homeostatic_ei this pass."
+                f"{type(emitter).__name__} emitter family: it reads Izhikevich "
+                "parameters (v0, W, a-d), which this family does not have."
             )
         return emitter
 
@@ -577,6 +598,10 @@ class Model:
 
     _CONNECTIVITY_EXACT_STATS_MAX_EDGES = 5_000_000
 
+    @_adex_refused(
+        "the edges live in static['adex'] and this report reads params['edge_list'], and the "
+        "per-rule counts are not kept on this route"
+    )
     def connectivity_summary(self) -> dict[str, Any]:
         """Report realized connectivity and how it was composed.
 
@@ -668,6 +693,11 @@ class Model:
         Includes pre/post neuron identifiers and area/layer/cell_type metadata
         consistent with :meth:`neuron_table`.
         """
+        if self.static.get("adex") is not None:
+            raise NotImplementedError(
+                "Model.edge_table() is not realized for emitter family 'adex': its edges live in "
+                "static['adex'] and params['edge_list'] is None"
+            )
         el = self.params.get("edge_list")
         if el is None:
             emitter = self.params.get("emitter")
@@ -933,6 +963,11 @@ class Model:
         """
         from .connectivity import compile_connection_rules
 
+        if self.static.get("adex") is not None:
+            raise NotImplementedError(
+                "Model.compile_connections() is not realized for emitter family 'adex': the route "
+                "compiles its edges once with connectivity(edge_seed=), read them from static['adex']"
+            )
         circuit = dict(self.cfg.metadata.get("circuit", {}))
         return compile_connection_rules(
             self.neuron_table(),
@@ -980,19 +1015,32 @@ class Model:
     simulate_condition = _simulate_condition_impl
     simulate_batch = _simulate_batch_impl
     run_trials = _run_trials_impl
-    run_receipt = _run_receipt_impl
+    run_receipt = _adex_refused(
+        "it reads params['edge_list'] and the recurrent backend, which this route does not have; "
+        "Signals.metadata records the run"
+    )(_run_receipt_impl)
     compute_readout = _compute_readout_impl
     probe = _probe_impl
     record = _record_impl
     evaluate = _evaluate_impl
     evaluate_report = _evaluate_report_impl
     _evaluate_group_rate_targets = _evaluate_group_rate_targets_impl
-    tune = _tune_impl
+    tune = _adex_refused(
+        "tune() sets Izhikevich scalar parameters (source_scale, drive_gain, synaptic_gain, gAMPA), "
+        "and this route has none"
+    )(_tune_impl)
     _tune_multiparameter = _tune_multiparameter_impl
     with_emitter_parameters = _with_emitter_parameters_method_impl
-    with_hdp_initial_state = _with_hdp_initial_state_impl
-    with_recurrent_coupling = _with_recurrent_coupling_impl
-    manifest = _manifest_impl
+    with_hdp_initial_state = _adex_refused(
+        "the route runs no HDP controller, so the initial state would never be read"
+    )(_with_hdp_initial_state_impl)
+    with_recurrent_coupling = _adex_refused(
+        "the route does not read static['recurrent_coupling'], so the coupling would never be applied"
+    )(_with_recurrent_coupling_impl)
+    manifest = _adex_refused(
+        "it reads params['edge_list'] and the recurrent backend, which this route does not have; "
+        "Signals.metadata records the run"
+    )(_manifest_impl)
 
 
 def with_emitter_parameters(

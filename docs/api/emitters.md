@@ -732,3 +732,76 @@ scripts/experiments needing a `HomeostaticEIParams` without
 `Configuration`/`construct()`. `G_max` defaults to `10.0/n` —
 holds the aggregate per-row Hebbian feedback ceiling (`n * G_max`) constant across `n`.
 </content>
+
+## AdEx family (conductance-based, `jaxfne/emitters_adex.py`)
+
+`family="adex"` builds conductance-based AdEx cells (Tahvili, Vinck and di Volo 2026, Methods
+Eqs. 15-18). The population is `network(n=, cell_types=)` over `E`, `PV` and `SOM`. Each synapse
+type is a `mechanisms()` declaration (one receptor each, indexed in declaration order), and
+`connections()` rules wire them. Every rule names a mechanism and gives `weight` (nS; `|w|` is
+used) and `delay_ms`.
+
+```python
+import jaxfne as jtfne
+
+cfg = (
+    jtfne.Configuration()
+    .network(name="adex60", n=60, cell_types={"E": 0.8, "PV": 0.1, "SOM": 0.1})
+    .emitter(family="adex", adex_decay="exp", adex_step_order="default")
+    .mechanisms(name="ampa", kind="receptor", params={"tau_ms": 2.0, "reversal_mV": 0.0})
+    .mechanisms(name="gaba", kind="receptor", params={"tau_ms": 8.0, "reversal_mV": -80.0})
+    .connections(name="e_e", source={"cell_type": "E"}, target={"cell_type": "E"},
+                 probability=0.2, weight=0.5, mechanism="ampa", delay_ms=2.0,
+                 sampling="bernoulli")
+    .connections(name="pv_e", source={"cell_type": "PV"}, target={"cell_type": "E"},
+                 probability=0.2, weight=2.0, mechanism="gaba", delay_ms=2.0,
+                 sampling="bernoulli")
+    .connectivity(edge_seed=11)
+)
+model = jtfne.construct(cfg)
+signals = model.simulate(jtfne.Simulation(duration_ms=50.0, dt_ms=0.1, seed=0))
+print(signals.V_m.shape)
+```
+
+- `adex_decay` is required: construct refuses it when absent. `"exp"` uses `exp(-dt/tau)`, and
+  `"euler"` uses `1 - dt/tau` (the CAMINOS reference).
+- `adex_step_order` is `"default"` or `"brian2"`; `"brian2"` shifts the refractory count and the
+  delay ring by one step (see `simulate_adex`).
+- Edges are drawn with `connectivity(edge_seed=)`, or with the runtime seed when that is unset,
+  as the plain route does.
+- `simulate` realizes `round(delay_ms / dt_ms)` steps, rounded half up from the float quotient, and
+  refuses a delay under one step, naming the rule. It returns `time_ms`, `V_m` (mV), `spikes` and
+  metadata; `sources` and `field` are `None`, and `metadata["not_recorded"]` lists both.
+- The route applies a zero input current for now, so the cells in the example stay silent.
+  `simulate_adex` takes `I_ext_pA` and `V0_mV` directly.
+- The `Model` methods that read the edge list, the recurrent backend, the Izhikevich parameters or
+  an HDP or coupling state raise `NotImplementedError` naming the method: `edge_table()`,
+  `compile_connections()`, `connectivity_summary()`, `manifest()`, `run_receipt()`, `tune()`,
+  `with_hdp_initial_state()`, `with_recurrent_coupling()`, `with_emitter_parameters()`,
+  `summary()`, `checkpoint()` and `dense_recurrent_weights()`. The edges live in `static["adex"]`.
+  `Model.probe()` returns the arrays of the signals it is given.
+- Allowlist. The route reads a fixed set of fields. Every other field of `Configuration`,
+  `RuntimeConfig` and `Simulation` must equal its default. Construct or simulate refuses a field set
+  away from its default and names the field and its value. The fields the route reads are:
+  - `network(name=, n=, cell_types=)`: `name` labels the run (`metadata["network"]`); `n` and
+    `cell_types` set the population.
+  - `emitter(family="adex", adex_decay=, adex_step_order=)`.
+  - `mechanisms(name=, kind="receptor", params={"tau_ms": ..., "reversal_mV": ...})`: `name` labels
+    the receptor (`metadata["receptors"]`).
+  - `connections(name=, source=, target=, probability=, weight=, mechanism=, delay_ms=, sampling=)`:
+    `name` labels the rule (`metadata["rules"]`).
+  - `connectivity(edge_seed=)`, or `runtime(seed=)` when that is unset: the edge seed draws the edges.
+  - `runtime(dt_ms=, duration_ms=)`: each must equal the Simulation's value, or simulate refuses the
+    conflict.
+- Route defaults: `runtime(recurrent_backend=)` defaults to `"edge_list"`; every other default is the
+  `RuntimeConfig` default. A `RuntimeConfig` passed to `simulate` therefore sets
+  `recurrent_backend="edge_list"`.
+- Record flags: `Simulation(record_sources=, record_fields=)` are accepted at their defaults only and
+  change nothing on this route.
+- Refused by name, for example: `network(p_connect=)`, `runtime(backend=)`, `runtime(device_type=)`,
+  `runtime(precision=)`, `runtime(vmap=)`, `runtime(enable_hdp=)`, `runtime(jit=)` other than
+  `"auto"`, `emitter(preset=)`, `drive()`, `field()`, `probe()`, `trainables()`, `optimizer()`,
+  `connections(sign=)`, `Simulation(plasticity=)`, `Simulation(poisson_drive=)` and
+  `Simulation(ablation=)`.
+- Refused explicitly: `continuation`, `return_state`, `paradigm`, `simulate_batch` and
+  `simulate_condition`.

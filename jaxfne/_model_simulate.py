@@ -31,6 +31,7 @@ from .emitters import (
     simulate_receptor_exponential_izhikevich,
 )
 from .emitters_homeostatic_ei import HomeostaticEIParams, simulate_homeostatic_ei
+from .emitters_adex import AdExParams, simulate_adex
 from .fields import project_laminar_sources
 from .io import config_hash, json_safe
 from ._runtime_config import RuntimeConfig, _device_scope
@@ -1138,6 +1139,10 @@ def simulate(
     object.__setattr__(self, "_last_hdp_diag", None)
     object.__setattr__(self, "_last_homeostasis_diag", None)
 
+    if isinstance(self.params["emitter"], AdExParams):
+        _refuse_adex_inputs(self, sim, paradigm, continuation, return_state)
+        return _simulate_adex(self, sim, runtime_cfg)
+
     if isinstance(self.params["emitter"], HomeostaticEIParams):
         if continuation is not None or return_state:
             raise ValueError("full-state continuation is not available for homeostatic_ei")
@@ -1409,6 +1414,71 @@ def _simulate_homeostatic_ei(
     )
 
 
+def _refuse_adex_inputs(
+    model: "Model", sim: Simulation, paradigm: Any, continuation: Any, return_state: bool
+) -> None:
+    """Refuse the simulate() inputs the adex route does not consume, naming each.
+
+    The argument refusals come first; every Simulation and RuntimeConfig field is then checked
+    against the allowlist (``_construct_adex.ADEX_CONSUMED``).
+    """
+    from ._construct_adex import refuse_adex_simulation
+
+    if continuation is not None or return_state:
+        raise ValueError(
+            "simulate(continuation=..., return_state=...) is not realized for emitter family "
+            "'adex': the route has no full-state continuation"
+        )
+    if paradigm is not None:
+        raise ValueError(
+            "simulate(paradigm=...) is not realized for emitter family 'adex': the route has no "
+            "input current, so a paradigm would not drive the cells"
+        )
+    refuse_adex_simulation(sim, model.cfg)
+
+
+def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -> Signals:
+    """The adex emitter family's ``simulate()`` path (``jaxfne/emitters_adex.py``).
+
+    Runs the conductance kernel on the compiled edges (``_construct_adex.adex_kernel_args``
+    supplies its arguments). The cells start at rest and no input current is applied, so
+    the run has no drive yet; no field is built (``field`` is None).
+    """
+    from ._construct_adex import adex_kernel_args
+
+    dtype = runtime_cfg.jnp_dtype
+    kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+    out = simulate_adex(**kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True)
+    time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
+    static = self.static["adex"]
+    metadata: dict[str, Any] = {
+        "config_hash": config_hash(self.cfg),
+        "emitter_family": "adex",
+        "step_order": kwargs["step_order"],
+        "decay": kwargs["decay"],
+        "n_edges": int(static["pre"].shape[0]),
+        "edge_seed": int(static["edge_seed"]),
+        "duration_ms": float(sim.duration_ms),
+        "dt_ms": float(sim.dt_ms),
+        "n_steps": int(sim.n_steps),
+        "runtime": runtime_cfg.runtime_report(),
+        "physical_amplitude_calibrated": False,
+        "network": static["network"],
+        "receptors": list(static["receptor_names"]),
+        "rules": [name for name, _ in static["rules"]],
+        # The route records no sources and no field; the record flags change nothing here.
+        "not_recorded": ["sources", "field"],
+    }
+    return Signals(
+        time_ms=time_ms,
+        V_m=out["V_mV"].astype(dtype),
+        spikes=out["spikes"],
+        sources=None,
+        field=None,
+        metadata=metadata,
+    )
+
+
 def last_homeostasis_diagnostics(self) -> "Optional[dict[str, Any]]":
     """Return the full per-step homeostasis diagnostics from the most recent
     ``simulate(...)`` call with ``enable_homeostasis=True``.
@@ -1460,6 +1530,11 @@ def simulate_condition(
     override of ``drive_amplitude`` and ``event_duration_ms``.
     No calibrated amplitude, PDE, or empirical claim is introduced.
     """
+    if isinstance(self.params["emitter"], AdExParams):
+        raise ValueError(
+            "simulate_condition(condition=...) is not realized for emitter family 'adex': it "
+            "drives a paradigm, and the adex route consumes no input current"
+        )
     schedule = stimulus_schedule(
         condition.events,
         n_neurons=self.params["emitter"].n_neurons,

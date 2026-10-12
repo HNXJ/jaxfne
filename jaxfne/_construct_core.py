@@ -63,6 +63,7 @@ from ._construct_population import (
     _neuron_population_from_config,
 )
 from ._construct_extras import operator_status
+from ._construct_adex import construct_adex_model
 
 
 def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
@@ -498,14 +499,18 @@ def _homeostasis_params_cache_fingerprint(hp: Mapping[str, Any]) -> tuple:
     return tuple(items)
 
 
-_SUPPORTED_EMITTER_FAMILIES = frozenset({"izhikevich", "homeostatic_ei"})
+_SUPPORTED_EMITTER_FAMILIES = frozenset({"izhikevich", "homeostatic_ei", "adex"})
 
 
 def _construct_validate_config(cfg: "Configuration") -> None:
     """``construct()`` stage: validate config + fail loudly on unsupported emitter family."""
-    validation = cfg.validate()
-    if not validation["valid"]:
-        raise ValueError(f"Invalid jaxfne configuration: {validation['issues']}")
+    issues = cfg.validate()["issues"]
+    if cfg.emitters and cfg.emitters[0].get("family") == "adex":
+        # The adex route refuses field() and probe() at construct, so the generic
+        # requirement that one be declared does not apply to it.
+        issues = [i for i in issues if i not in ("no_field_declared", "no_probes_declared")]
+    if issues:
+        raise ValueError(f"Invalid jaxfne configuration: {issues}")
     # Fail loudly on explicitly declared unsupported emitter families. The
     # construct/simulate path only implements the Izhikevich kernel; any other
     # explicitly named family (e.g. "lif", "glif") must raise rather than
@@ -1348,7 +1353,7 @@ def _construct_from_configuration(
     """Validate a :class:`Configuration` and build a runnable :class:`Model`.
 
     Raises ``ValueError`` if the configuration is invalid or names an
-    unsupported emitter family (only the Izhikevich and homeostatic_ei
+    unsupported emitter family (only the Izhikevich, homeostatic_ei and adex
     kernels are implemented; an explicitly declared family such as
     ``"lif"``/``"glif"`` fails loudly rather than silently substituting
     Izhikevich). An optional :class:`LaminarSourceGeometry` overrides
@@ -1364,6 +1369,13 @@ def _construct_from_configuration(
                 "positions come from the canonical E/I layout"
             )
         return _construct_homeostatic_ei_model(cfg)
+    if cfg.emitters and cfg.emitters[0].get("family") == "adex":
+        if geometry is not None:
+            raise ValueError(
+                f"construct(geometry={geometry!r}) is not realized on the adex route: "
+                "its cells sit at zero positions and no geometry is read"
+            )
+        return construct_adex_model(cfg)
     net = cfg.networks[0]
     dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
 

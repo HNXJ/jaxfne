@@ -23,6 +23,12 @@ the rules those releases were held to and are historical context for readers.
   (delays >= 1 step). The cell step and the recurrent synaptic step match a float64
   transcription of the CAMINOS reference within rtol 1e-6; `step_order="brian2"` adds one delay
   step and removes one refractory step. No external conductance drive yet.
+  `Configuration.emitter(family="adex")` builds these cells over `network(n=, cell_types=)`
+  (E/PV/SOM), wires them with `mechanisms()` receptors and `connections()` rules, and
+  `simulate` runs the kernel on the compiled edges. The route refuses, by name, every
+  `Configuration`, `RuntimeConfig` and `Simulation` field outside its allowlist (see the AdEx
+  family section of the emitters API doc). `Model` methods that need the Izhikevich emitter, the
+  edge list or an HDP or coupling state raise `NotImplementedError` naming the method.
 
 ### Changed
 - Python 3.15 groundwork. JAX/jaxlib ceiling raised from `<0.11` to `<0.12`, because jaxlib's first

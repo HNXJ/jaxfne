@@ -298,7 +298,12 @@ def _check_probe_kwargs(kwargs: Mapping[str, Any]) -> None:
                              f"{sorted({*_PROBE_LABELS, 'width', 'contact_depths', 'position', 'reference', 'filter_spec'})}")
 
 
-_EMITTER_KEYS = ("family", "preset", "homeostatic_ei_rules", "homeostatic_ei_bound_mode")
+_EMITTER_KEYS = (
+    "family", "preset", "homeostatic_ei_rules", "homeostatic_ei_bound_mode",
+    "adex_decay", "adex_step_order",
+)
+_ADEX_DECAYS = ("exp", "euler")
+_ADEX_STEP_ORDERS = ("default", "brian2")
 # construct reads name, n and cell_types; kind is a label; p_connect is checked against the
 # route's connectivity; layers come from column(). column()/cell_types() build _BUILT_NETWORK_KINDS.
 _NETWORK_KEYS = ("name", "n", "cell_types", "kind", "p_connect", "layers")
@@ -501,6 +506,16 @@ class Configuration:
                 f"emitter({rule_keys[0]}=...) is not realized for family={kwargs.get('family')!r}: "
                 "construct reads it for family='homeostatic_ei' only"
             )
+        adex_keys = sorted(k for k in kwargs if k.startswith("adex_"))
+        if adex_keys and kwargs.get("family") != "adex":
+            raise ValueError(
+                f"emitter({adex_keys[0]}=...) is not realized for family={kwargs.get('family')!r}: "
+                "construct reads it for family='adex' only"
+            )
+        if kwargs.get("adex_decay") is not None:
+            _refuse_unrealized("emitter", "adex_decay", kwargs["adex_decay"], _ADEX_DECAYS)
+        if kwargs.get("adex_step_order") is not None:
+            _refuse_unrealized("emitter", "adex_step_order", kwargs["adex_step_order"], _ADEX_STEP_ORDERS)
         if self.emitters:
             check_emitter_conflict(self.emitters[0], kwargs)
         return replace(self, emitters=[*self.emitters, dict(kwargs)])
