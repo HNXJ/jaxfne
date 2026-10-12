@@ -18,10 +18,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Broken or in flight
 
-- G-2 F1 `connections(sampling="bernoulli")` on branch `f1-bernoulli` (clone `C:/workspace/oc_f1`):
-  review FAIL, storing `sampling` changes `config_hash` (README atlas pin
-  `91f037cf383e0bdb`); fix: store the key only for "bernoulli". Broad gate: 1 failed (that pin),
-  5038 passed.
+In `artifacts/open_stack.md`.
 
 ## Last gate results
 

@@ -4,6 +4,10 @@ Remaining work only. Done work lives in git, receipts and results; the full pre-
 
 Rules: `artifacts/AGENTS.md`. Facts (human edit only): `artifacts/fact_stack.md`. Open issues: `artifacts/issue_log/ISSUE_LOG.md`. Atlas source: `artifacts/project_sources/8_atlas.md`; requirement rows: `artifacts/programme/atlas_coverage.json`. Other editors also change this file: re-read before editing, amend in place, keep diffs you did not make.
 
+## Now
+
+- T-1 fix P-2: `connections(sampling="bernoulli")` with the `probability` docstring corrected (G-2 F1, branch `f1-bernoulli`). Closes when: `pytest -q tests/test_connections_bernoulli_sampling.py` passes on dev. Blocked by: none.
+
 ## Goals in plain words (0.5.x)
 
 Want: a faster JaxFNE that runs the full Atlas, from one neuron to twenty
@@ -144,7 +148,7 @@ Deferred, each with its trigger:
 2. Architecture split (`emitters/`, `tfne.py`; `artifacts/audit/deep_review_89_2026-10-04.md` §5) only as a measured bottleneck.
 3. C5–C7 numerical deferrals: need a signed-zero/NaN exactness contract.
 4. UNTESTED-exact refusal tail; placeholder notebooks and artifact-gated skips; post-0.4.14 aliases.
-5. P-001 `scripts/` lint (ruff 171): first `audit_w3_broad_handlers.py` `_OVERRIDES` (duplicate keys, drifted line keys; running it rewrites `artifacts/audit/w3_broad_handler_tally.json`): re-key by content or retire with the tally.
+5. `scripts/` lint (P-001, ruff 171): first `audit_w3_broad_handlers.py` `_OVERRIDES` (duplicate keys, drifted line keys; running it rewrites `artifacts/audit/w3_broad_handler_tally.json`): re-key by content or retire with the tally.
 6. S27 population definition family, when CTX-01 cannot express one.
 7. Agent-native step 10: MCP or another transport.
 8. From 0.5.4: item 1b (S20.1 ordering, needs Hamm's authorization) and item 0 (`X[k]` frontier override).
