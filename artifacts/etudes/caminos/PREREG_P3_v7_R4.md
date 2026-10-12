@@ -1,7 +1,8 @@
 # L2-P3 amendment v7: CAMINOS R4 with external drive p·NE
 
-Status: **draft**, for Hamm's signature. It amends R4 of `PREREG_P3.md` (signed v6) only.
-R1–R3 and their v6 verdicts stand. No scored v7 run before the signature.
+Status: **signed v7**, Hamm, 2026-10-12, on the text at `l2-caminos` 207cdaaf. It amends R4
+of `PREREG_P3.md` (signed v6) only. R1–R3 and their v6 verdicts stand. Any later change to
+this file is a new amendment with its own signature.
 
 ## Why
 
