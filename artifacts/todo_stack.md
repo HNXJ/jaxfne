@@ -96,6 +96,11 @@ Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked
 
 ## Open work outside the release stacks (after 0.5.5 unless a trigger fires)
 
+- [A] From jnwb (`artifacts/harness/jnwb_cross_learning.md`): changelog fragments assembled at
+  release (check: two lanes add entries without a conflict), then one newline policy for docs
+  with a test (check: `docs/changelog.md` has 0 LF-only lines). Then the errors page, a
+  proxy-claim wording gate and AST-hash freezing of bit-for-bit validated kernels.
+
 Replications: index `artifacts/etudes/REPLICATIONS.md`, dashboard
 https://hnxj.github.io/jaxfne/dashboard/ (`dashboard/DESIGN.md`), programme
 `artifacts/etudes/replication_programme.md`. CAMINOS passes under amendment v7 (`l2-caminos`
