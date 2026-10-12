@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@2d5dc284 · 2026-10-12 (written 2026-10-12T14:37:21Z)
+Stamp: jaxfne@dev@3c255d03 · 2026-10-12 (written 2026-10-12T14:55:36Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
@@ -15,9 +15,10 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Broken or in flight
 
-- P-1 fix on branch `fix-poisson-target` (worktree `C:/workspace/wt_poisson`): broad gate 5029
-  passed, 0 failed, 85 skipped; second review PASS; skip count differs from 902d75e7 (75), rerun
-  with `-rs` in progress. Not pushed.
+- P-1 fix on branch `fix-poisson-target` (worktree `C:/workspace/wt_poisson`): broad gate 5039
+  passed, 0 failed, 75 skipped (an earlier run's 85 skips were xdist ordering: jaxley-import and
+  x64 skips); second review PASS. Not pushed.
+- Root `AGENTS.md` loads `artifacts/AGENTS.md` since 3c255d03.
 - G-2 features: design map done, nothing built.
 
 ## Last gate results
