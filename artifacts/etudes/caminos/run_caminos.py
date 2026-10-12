@@ -77,19 +77,58 @@ def build_parser():
     ap.add_argument("--signed", action="store_true")
     ap.add_argument("--pilot", action="store_true",
                     help="tiny net (NE=80, NPV=8, NSOM=8), not scored")
+    ap.add_argument("--indegree", choices=("bernoulli", "fixed"), default="bernoulli",
+                    help="S3: exact round(p*N_pre) partners per post cell (default bernoulli)")
+    ap.add_argument("--ext", choices=("private", "shared"), default="private",
+                    help="S4: shared 560-train drive instead of private sources")
+    ap.add_argument("--step-order", choices=("default", "brian2"), default="default",
+                    help="S5: 21-step ring and 49-step clamp (default 20 and 50)")
+    ap.add_argument("--ext-sources", default="fixed",
+                    help="exploratory: 'fixed' (560), 'pNE' (round(p*NE)), or a positive int")
     return ap
 
 
-def run_filename(seed, p, dtype, dt):
-    """File name carries dtype and dt, so runs at other precision or step never share a file."""
-    return "counts_seed%d_p%g_%s_dt%.0e.npy" % (seed, p, dtype, dt)
+def _resolve_ext_sources(value):
+    """Normalise ``--ext-sources`` to 'fixed', 'pNE' or a positive int (refused otherwise)."""
+    if value in ("fixed", "pNE"):
+        return value
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        raise SystemExit("error: --ext-sources must be 'fixed', 'pNE' or a positive int, "
+                         "got %r" % (value,))
+    if n <= 0:
+        raise SystemExit("error: --ext-sources must be 'fixed', 'pNE' or a positive int, "
+                         "got %r" % (value,))
+    return n
+
+
+def run_filename(seed, p, dtype, dt, indegree="bernoulli", ext="private",
+                 step_order="default", ext_sources="fixed"):
+    """File name carries dtype and dt, so runs at other precision or step never share a file.
+
+    Non-default variants extend the name, so a variant run never shares a file
+    with a reference run.
+    """
+    base = "counts_seed%d_p%g_%s_dt%.0e.npy" % (seed, p, dtype, dt)
+    tag = ""
+    if indegree != "bernoulli":
+        tag += "_indeg-%s" % indegree
+    if ext != "private":
+        tag += "_ext-%s" % ext
+    if step_order != "default":
+        tag += "_order-%s" % step_order
+    if str(ext_sources) != "fixed":
+        tag += "_src-%s" % ext_sources
+    return base[:-4] + tag + ".npy" if tag else base
 
 
 def _reusable(old, seed, args, sizes):
     """True when a manifest entry was made by this request, so its file may be reused.
 
     The file name carries seed, p, dtype and dt; T, pilot and sizes are not in
-    it, so they are compared too.
+    it, so they are compared too. Variant values default for entries written
+    before the variants existed.
     """
     return (old.get("seed") == seed
             and abs(float(old.get("p", -1.0)) - args.p) < 1e-12
@@ -97,7 +136,11 @@ def _reusable(old, seed, args, sizes):
             and abs(float(old.get("dt", -1.0)) - args.dt) < 1e-15
             and abs(float(old.get("T", -1.0)) - args.T) < 1e-12
             and bool(old.get("pilot")) == bool(args.pilot)
-            and old.get("sizes") == sizes)
+            and old.get("sizes") == sizes
+            and old.get("indegree", "bernoulli") == getattr(args, "indegree", "bernoulli")
+            and old.get("ext", "private") == getattr(args, "ext", "private")
+            and old.get("step_order", "default") == getattr(args, "step_order", "default")
+            and str(old.get("ext_sources", "fixed")) == str(getattr(args, "ext_sources", "fixed")))
 
 
 def _write_manifest(out, manifest):
@@ -113,6 +156,7 @@ def main(argv=None):
         print("Refusing: PREREG_P3.md is unsigned. Scored runs (seeds 1-5 "
               "or the R4 p-grid) need --signed; seed 0 and --pilot do not.")
         raise SystemExit(2)
+    args.ext_sources = _resolve_ext_sources(args.ext_sources)
 
     import jax
     import numpy as np
@@ -144,13 +188,15 @@ def main(argv=None):
     # Decide every seed before simulating: a file this request cannot match is refused.
     plan = []
     for seed in args.seeds:
-        fname = run_filename(seed, args.p, args.dtype, args.dt)
+        fname = run_filename(seed, args.p, args.dtype, args.dt, args.indegree,
+                             args.ext, args.step_order, args.ext_sources)
         fpath = out / fname
         if fpath.exists() and fpath.stat().st_size > 0:
             old = entries.get(fname)
             if old is None or not _reusable(old, seed, args, sizes):
                 print("Refusing to overwrite %s: its manifest entry is missing or its "
-                      "seed, p, dtype, dt, T, pilot or sizes differ from this request." % fpath)
+                      "seed, p, dtype, dt, T, pilot, sizes or variants differ from this request."
+                      % fpath)
                 raise SystemExit(2)
             plan.append((seed, fname, True))
         else:
@@ -158,7 +204,9 @@ def main(argv=None):
     invocation = {"start_time": start_time, "git_sha": sha,
                   "args": {"seeds": list(args.seeds), "p": args.p, "T": args.T,
                            "dt": args.dt, "dtype": args.dtype, "pilot": args.pilot,
-                           "signed": bool(args.signed)},
+                           "signed": bool(args.signed), "indegree": args.indegree,
+                           "ext": args.ext, "step_order": args.step_order,
+                           "ext_sources": args.ext_sources},
                   "reused": [], "computed": []}
     invocations.append(invocation)
     manifest = {
@@ -178,7 +226,10 @@ def main(argv=None):
         key = jax.random.PRNGKey(seed)
         counts, _final = cj.simulate(key, args.T, dt=args.dt, p=args.p,
                                      dtype=dtype, NE=sizes["E"],
-                                     NPV=sizes["PV"], NSOM=sizes["SOM"])
+                                     NPV=sizes["PV"], NSOM=sizes["SOM"],
+                                     indegree=args.indegree, ext=args.ext,
+                                     step_order=args.step_order,
+                                     ext_sources=args.ext_sources)
         counts = np.asarray(counts, dtype=np.int32)
         tmp = out / (fname + ".tmp")
         with open(tmp, "wb") as f:
@@ -187,6 +238,11 @@ def main(argv=None):
         entries[fname] = {"seed": seed, "p": args.p, "file": fname,
                           "dtype": args.dtype, "dt": args.dt, "T": args.T,
                           "pilot": bool(args.pilot), "sizes": sizes,
+                          "indegree": args.indegree, "ext": args.ext,
+                          "step_order": args.step_order,
+                          "ext_sources": args.ext_sources,
+                          "ext_sources_n": cj.ext_source_count(args.p, sizes["E"],
+                                                              args.ext_sources),
                           "git_sha": sha, "start_time": start_time,
                           "wall_s": time.time() - t0,
                           "steps": int(counts.shape[0])}

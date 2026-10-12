@@ -292,18 +292,25 @@ def _rows_at(per_run, p, seeds):
     return [r for r in per_run if _same(r["p"], p) and r["seed"] in seeds]
 
 
-def _is_reference(entry):
+def _is_reference(entry, ext_sources="fixed"):
     """Scored configuration: seed not 0, not a pilot, float32, dt = 1e-4 (prereg).
 
     Seed 0 is the unscored pilot (prereg Prior exposure). Sensitivity runs
-    (float64, other dt) and pilots may share a directory; they are listed as
-    not scored and never enter R1-R4.
+    (float64, other dt, the S3-S5 variants) and pilots may share a directory;
+    they are listed as not scored and never enter R1-R4. Entries written
+    before the variants existed carry no variant keys and count as defaults.
+    ``ext_sources`` is the drive the scored set must use: "fixed" (v6) or
+    "pNE" (amendment v7, R4).
     """
     return (entry.get("seed") != 0
             and not entry.get("pilot", False)
             and entry.get("dtype") == REF_DTYPE
             and entry.get("dt") is not None
-            and abs(float(entry["dt"]) - REF_DT) < 1e-12)
+            and abs(float(entry["dt"]) - REF_DT) < 1e-12
+            and entry.get("indegree", "bernoulli") == "bernoulli"
+            and entry.get("ext", "private") == "private"
+            and entry.get("step_order", "default") == "default"
+            and str(entry.get("ext_sources", "fixed")) == ext_sources)
 
 
 def _t_ok(entry, steps):
@@ -311,8 +318,11 @@ def _t_ok(entry, steps):
     return entry.get("T") is not None and abs(float(entry["T"]) - REF_T) < 1e-12 and steps == REF_STEPS
 
 
-def score(run_dir, pe_threshold=PE_THRESHOLD):
+def score(run_dir, pe_threshold=PE_THRESHOLD, ext_sources="fixed"):
     """Score a run directory written by ``run_caminos.py`` (R1-R4, prereg v6).
+
+    ``ext_sources="pNE"`` scores the amendment v7 drive instead (R4v7 uses
+    the same R4 rule); the default scores v6.
 
     Only reference-configuration runs are scored. A result is incomplete
     (pass False) unless R1-R3 have exactly seeds 1-5 at p = 0.07 (seed 0
@@ -326,8 +336,10 @@ def score(run_dir, pe_threshold=PE_THRESHOLD):
     """
     run_dir = Path(run_dir)
     manifest = json.loads((run_dir / "manifest.json").read_text())
-    selected = [e for e in manifest["runs"] if _is_reference(e)]
-    not_scored = [e["file"] for e in manifest["runs"] if not _is_reference(e)]
+    if ext_sources not in ("fixed", "pNE"):
+        raise ValueError("ext_sources must be 'fixed' or 'pNE', got %r" % (ext_sources,))
+    selected = [e for e in manifest["runs"] if _is_reference(e, ext_sources)]
+    not_scored = [e["file"] for e in manifest["runs"] if not _is_reference(e, ext_sources)]
     per_run = []
     not_t = []
     for entry in selected:
@@ -419,8 +431,10 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="Score a CAMINOS run directory (PREREG_P3.md R1-R4).")
     ap.add_argument("run_dir")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--ext-sources", choices=("fixed", "pNE"), default="fixed",
+                    help="drive of the scored set: fixed 560 (v6) or p*NE (amendment v7)")
     args = ap.parse_args(argv)
-    result = score(args.run_dir)
+    result = score(args.run_dir, ext_sources=args.ext_sources)
     out = Path(args.out) if args.out else Path(args.run_dir) / "score.json"
     tmp = out.with_suffix(".tmp")
     tmp.write_text(json.dumps(result, indent=2))

@@ -107,6 +107,24 @@ def test_score_scopes_r1_r3_to_reference_runs(tmp_path):
         ["pilot_s1.npy", "s1_p0.07_float64_T12.npy", "s0_p0.07_float32_T12.npy"]), res["not_scored"]
 
 
+def test_variant_runs_never_enter_reference(tmp_path):
+    """S3-S5 and pNE runs sharing the directory are not scored as v6 reference runs; the
+    pNE runs are the reference set under ext_sources='pNE'."""
+    runs = [_run(s, 0.07, REF_RATES, depth=0.9, delays={"SOM": 0.0085}) for s in (1, 2, 3, 4, 5)]
+    variants = [("indegree", "fixed"), ("ext", "shared"), ("step_order", "brian2"),
+                ("ext_sources", "pNE")]
+    for key, val in variants:
+        e, c = _run(6, 0.07, REF_RATES, depth=0.9)
+        e[key], e["file"] = val, "v_%s.npy" % key
+        runs.append((e, c))
+    d = _write_dir(tmp_path, runs)
+    res = ca.score(d)
+    assert res["r1"]["n_runs"] == 5, res["r1"]
+    assert sorted(res["not_scored"]) == sorted("v_%s.npy" % k for k, _ in variants), res
+    res7 = ca.score(d, ext_sources="pNE")
+    assert [r["file"] for r in res7["per_run"]] == ["v_ext_sources.npy"], res7["per_run"]
+
+
 def test_r1_seed_at_25hz_fails_band(tmp_path):
     """A seed that oscillates at 25 Hz is outside the R1 band (30-40 Hz): R1 fails."""
     runs = [_run(s, 0.07, REF_RATES, depth=0.9) for s in (1, 2, 3, 4)]
