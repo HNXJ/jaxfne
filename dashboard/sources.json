@@ -43,7 +43,7 @@
          "reason": ""}
       ],
       "sensitivity": [
-        {"id": "S1", "label": "float64", "status": "agrees", "note": "every shift inside the seed range except f_pk (+1 Hz, the grid step)"},
+        {"id": "S1", "label": "float64", "status": "agrees", "note": "every value inside the seed range; f_pk moves 1 Hz from seed 1, equal to the seed range and the 1 Hz grid step"},
         {"id": "S2", "label": "dt 0.05 ms", "status": "agrees", "note": "every shift inside the seed range"},
         {"id": "S3", "label": "fixed in-degree", "status": "agrees", "note": "inside the R1–R3 bands; f_pk +1 Hz, E, PV and lag slightly below the seed range"},
         {"id": "S4", "label": "shared drive (560 trains at p)", "status": "invalid", "note": "a cell sees about 39 sources instead of 560, so the drive falls 14-fold and E is silent; not a test of shared input"},

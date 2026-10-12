@@ -1,0 +1,1417 @@
+{
+  "schema": "jaxfne-replications/1",
+  "sample": false,
+  "generated": {
+    "utc": "2026-10-12T13:34:58Z",
+    "dev_sha": "3e1aa8c796662595d407e87e251aa45f4973443f"
+  },
+  "papers": [
+    {
+      "id": "caminos",
+      "title": "CAMINOS reference model, Fig. 1",
+      "citation": "Tahvili, Vinck and di Volo, PLoS Comput Biol 2026",
+      "release": "0.5.6",
+      "tier": "T-methods",
+      "stage": "P5",
+      "lane": {
+        "branch": "l2-caminos",
+        "sha": "20045e9a46cda81638a8c9fd75477be06dda34d0"
+      },
+      "verdict": "not reproduced",
+      "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07; the critical-p onset (R4) runs in reverse with the external drive fixed at 560 sources. R4 is rescored under amendment v7 (drive p·NE).",
+      "preregs": [
+        {
+          "id": "v6",
+          "signed": "2026-10-11",
+          "path": "artifacts/etudes/caminos/PREREG_P3.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/PREREG_P3.md"
+        },
+        {
+          "id": "v7 (R4 only)",
+          "signed": "2026-10-12",
+          "path": "artifacts/etudes/caminos/PREREG_P3_v7_R4.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/PREREG_P3_v7_R4.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "R1",
+          "group": "",
+          "claim": "the network oscillates at about 35 Hz",
+          "estimand": "peak frequency f_pk of the E rate spectrum, seeds 1–5 at p = 0.07",
+          "criterion": "every seed oscillates, f_pk 30–40 Hz",
+          "value": 33.8,
+          "value_text": "33.8",
+          "value_label": "mean f_pk",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v6",
+          "evidence": {
+            "path": "artifacts/etudes/caminos/scores/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+          }
+        },
+        {
+          "id": "R2",
+          "group": "",
+          "claim": "SOM fires after PV within each cycle, about 8.5 ms",
+          "estimand": "lag of the PV→SOM rate cross-correlation peak, mean over seeds",
+          "criterion": "lag positive in every seed, mean 6–11 ms",
+          "value": 7.040000000000001,
+          "value_text": "7.04",
+          "value_label": "mean lag",
+          "unit": "ms",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v6",
+          "evidence": {
+            "path": "artifacts/etudes/caminos/scores/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+          }
+        },
+        {
+          "id": "R3",
+          "group": "",
+          "claim": "rates order PV > SOM > E, E at 1–3 Hz",
+          "estimand": "mean rate per population over the kept 10 s",
+          "criterion": "PV > SOM > E in every seed, mean E 1–3 Hz",
+          "value": 1.1060075,
+          "value_text": "1.11",
+          "value_label": "mean E rate",
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v6",
+          "evidence": {
+            "path": "artifacts/etudes/caminos/scores/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+          }
+        },
+        {
+          "id": "R4",
+          "group": "",
+          "claim": "oscillations appear above a critical p (Fig. 1E)",
+          "estimand": "oscillation at p = 0.02–0.10, seeds 1–3, drive 560 sources",
+          "criterion": "no seed oscillates at p = 0.02; all seeds oscillate at p = 0.07",
+          "value": 0.02,
+          "value_text": "0.02",
+          "value_label": "smallest p where all seeds oscillate",
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "every run oscillates, p = 0.02 included; peak excess is largest at low p",
+          "prereg": "v6",
+          "evidence": {
+            "path": "artifacts/etudes/caminos/scores/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+          }
+        },
+        {
+          "id": "R4v7",
+          "group": "",
+          "claim": "oscillations appear above a critical p (Fig. 1E)",
+          "estimand": "as R4, with drive round(p·NE) sources",
+          "criterion": "no seed oscillates at p = 0.02 while E fires (≥ 0.1 Hz); all seeds oscillate at p = 0.07",
+          "value": null,
+          "value_text": "—",
+          "value_label": "smallest p where all seeds oscillate",
+          "unit": "",
+          "extra": [],
+          "verdict": "pending",
+          "reason": "",
+          "prereg": "v7 (R4 only)",
+          "evidence": {
+            "path": "artifacts/etudes/caminos/scores/score_v7.json",
+            "url": null
+          }
+        }
+      ],
+      "sensitivity": [
+        {
+          "id": "S1",
+          "label": "float64",
+          "status": "agrees",
+          "note": "every value inside the seed range; f_pk moves 1 Hz from seed 1, equal to the seed range and the 1 Hz grid step",
+          "rows": [
+            {
+              "metric": "f_pk",
+              "unit": "Hz",
+              "value": 34.0,
+              "ref": 33.0,
+              "ref_range": [
+                33.0,
+                34.0
+              ]
+            },
+            {
+              "metric": "E rate",
+              "unit": "Hz",
+              "value": 1.120575,
+              "ref": 1.134525,
+              "ref_range": [
+                1.0535125,
+                1.13555
+              ]
+            },
+            {
+              "metric": "PV rate",
+              "unit": "Hz",
+              "value": 11.418666666666667,
+              "ref": 11.422133333333333,
+              "ref_range": [
+                11.257066666666665,
+                11.422133333333333
+              ]
+            },
+            {
+              "metric": "SOM rate",
+              "unit": "Hz",
+              "value": 7.256,
+              "ref": 7.290533333333332,
+              "ref_range": [
+                6.601733333333334,
+                7.32
+              ]
+            },
+            {
+              "metric": "PV→SOM lag",
+              "unit": "ms",
+              "value": 7.0,
+              "ref": 6.9,
+              "ref_range": [
+                6.9,
+                7.300000000000001
+              ]
+            }
+          ]
+        },
+        {
+          "id": "S2",
+          "label": "dt 0.05 ms",
+          "status": "agrees",
+          "note": "every shift inside the seed range",
+          "rows": [
+            {
+              "metric": "f_pk",
+              "unit": "Hz",
+              "value": 33.0,
+              "ref": 33.0,
+              "ref_range": [
+                33.0,
+                34.0
+              ]
+            },
+            {
+              "metric": "E rate",
+              "unit": "Hz",
+              "value": 1.1288624999999999,
+              "ref": 1.134525,
+              "ref_range": [
+                1.0535125,
+                1.13555
+              ]
+            },
+            {
+              "metric": "PV rate",
+              "unit": "Hz",
+              "value": 11.329600000000001,
+              "ref": 11.422133333333333,
+              "ref_range": [
+                11.257066666666665,
+                11.422133333333333
+              ]
+            },
+            {
+              "metric": "SOM rate",
+              "unit": "Hz",
+              "value": 7.215466666666667,
+              "ref": 7.290533333333332,
+              "ref_range": [
+                6.601733333333334,
+                7.32
+              ]
+            },
+            {
+              "metric": "PV→SOM lag",
+              "unit": "ms",
+              "value": 7.050000000000001,
+              "ref": 6.9,
+              "ref_range": [
+                6.9,
+                7.300000000000001
+              ]
+            }
+          ]
+        },
+        {
+          "id": "S3",
+          "label": "fixed in-degree",
+          "status": "agrees",
+          "note": "inside the R1–R3 bands; f_pk +1 Hz, E, PV and lag slightly below the seed range",
+          "rows": [
+            {
+              "metric": "f_pk",
+              "unit": "Hz",
+              "value": 35.0,
+              "ref": 33.0,
+              "ref_range": [
+                33.0,
+                34.0
+              ]
+            },
+            {
+              "metric": "E rate",
+              "unit": "Hz",
+              "value": 1.0400999999999998,
+              "ref": 1.134525,
+              "ref_range": [
+                1.0535125,
+                1.13555
+              ]
+            },
+            {
+              "metric": "PV rate",
+              "unit": "Hz",
+              "value": 11.085466666666667,
+              "ref": 11.422133333333333,
+              "ref_range": [
+                11.257066666666665,
+                11.422133333333333
+              ]
+            },
+            {
+              "metric": "SOM rate",
+              "unit": "Hz",
+              "value": 6.693466666666668,
+              "ref": 7.290533333333332,
+              "ref_range": [
+                6.601733333333334,
+                7.32
+              ]
+            },
+            {
+              "metric": "PV→SOM lag",
+              "unit": "ms",
+              "value": 6.800000000000001,
+              "ref": 6.9,
+              "ref_range": [
+                6.9,
+                7.300000000000001
+              ]
+            }
+          ]
+        },
+        {
+          "id": "S4",
+          "label": "shared drive (560 trains at p)",
+          "status": "invalid",
+          "note": "a cell sees about 39 sources instead of 560, so the drive falls 14-fold and E is silent; not a test of shared input",
+          "rows": [
+            {
+              "metric": "f_pk",
+              "unit": "Hz",
+              "value": null,
+              "ref": 33.0,
+              "ref_range": [
+                33.0,
+                34.0
+              ]
+            },
+            {
+              "metric": "E rate",
+              "unit": "Hz",
+              "value": 0.0,
+              "ref": 1.134525,
+              "ref_range": [
+                1.0535125,
+                1.13555
+              ]
+            },
+            {
+              "metric": "PV rate",
+              "unit": "Hz",
+              "value": 0.00039999999999999996,
+              "ref": 11.422133333333333,
+              "ref_range": [
+                11.257066666666665,
+                11.422133333333333
+              ]
+            },
+            {
+              "metric": "SOM rate",
+              "unit": "Hz",
+              "value": 0.0,
+              "ref": 7.290533333333332,
+              "ref_range": [
+                6.601733333333334,
+                7.32
+              ]
+            },
+            {
+              "metric": "PV→SOM lag",
+              "unit": "ms",
+              "value": null,
+              "ref": 6.9,
+              "ref_range": [
+                6.9,
+                7.300000000000001
+              ]
+            }
+          ]
+        },
+        {
+          "id": "S5",
+          "label": "Brian2 step order",
+          "status": "agrees",
+          "note": "inside the R1–R3 bands; E, PV and SOM slightly above the seed range",
+          "rows": [
+            {
+              "metric": "f_pk",
+              "unit": "Hz",
+              "value": 33.0,
+              "ref": 33.0,
+              "ref_range": [
+                33.0,
+                34.0
+              ]
+            },
+            {
+              "metric": "E rate",
+              "unit": "Hz",
+              "value": 1.1461625,
+              "ref": 1.134525,
+              "ref_range": [
+                1.0535125,
+                1.13555
+              ]
+            },
+            {
+              "metric": "PV rate",
+              "unit": "Hz",
+              "value": 11.474266666666667,
+              "ref": 11.422133333333333,
+              "ref_range": [
+                11.257066666666665,
+                11.422133333333333
+              ]
+            },
+            {
+              "metric": "SOM rate",
+              "unit": "Hz",
+              "value": 7.465466666666667,
+              "ref": 7.290533333333332,
+              "ref_range": [
+                6.601733333333334,
+                7.32
+              ]
+            },
+            {
+              "metric": "PV→SOM lag",
+              "unit": "ms",
+              "value": 7.0,
+              "ref": 6.9,
+              "ref_range": [
+                6.9,
+                7.300000000000001
+              ]
+            }
+          ]
+        }
+      ],
+      "charts": [
+        {
+          "id": "r4_peak_excess",
+          "title": "Oscillation strength against p",
+          "kind": "lines",
+          "x": {
+            "label": "connection probability p",
+            "unit": ""
+          },
+          "y": {
+            "label": "peak excess (E spectrum)",
+            "unit": "",
+            "log": true
+          },
+          "traces": [
+            {
+              "name": "v6: 560 sources seed 1",
+              "group": "v6: 560 sources",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                89.89082717604451,
+                96.44279428753697,
+                62.577570514438335,
+                29.979990093604606,
+                14.95893273919613,
+                13.772280184885354,
+                10.308305854877805,
+                13.244996482528709,
+                7.124497468437959
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v6: 560 sources seed 2",
+              "group": "v6: 560 sources",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                98.22776994947431,
+                79.70375809905445,
+                62.06433665440797,
+                27.892489345542405,
+                21.06413797457953,
+                16.27787865212775,
+                13.091562022564219,
+                11.4116233338085,
+                7.106653564244801
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v6: 560 sources seed 3",
+              "group": "v6: 560 sources",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                55.03864053116703,
+                71.8987478189084,
+                61.722998240025646,
+                33.55046287297134,
+                21.033413202947308,
+                14.93022878520787,
+                10.178933890767304,
+                9.88461016613895,
+                9.233456306308376
+              ],
+              "markers_only": false
+            }
+          ],
+          "refs": [
+            {
+              "kind": "hline",
+              "y": 4,
+              "label": "oscillation threshold 4"
+            }
+          ],
+          "caption": "Peak excess of the E rate spectrum per run; a run oscillates above 4. Lines join one seed across p.",
+          "evidence": {
+            "path": "artifacts/etudes/caminos/scores/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+          }
+        },
+        {
+          "id": "r4_rates",
+          "title": "Population rates against p",
+          "kind": "lines",
+          "x": {
+            "label": "connection probability p",
+            "unit": ""
+          },
+          "y": {
+            "label": "rate",
+            "unit": "Hz",
+            "log": true
+          },
+          "traces": [
+            {
+              "name": "v6 E seed 1",
+              "group": "v6 E",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                3.594375,
+                2.5111125000000003,
+                1.9136125,
+                1.5478375000000002,
+                1.2928125,
+                1.134525,
+                0.9916875,
+                0.8565125,
+                0.7672374999999999
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v6 E seed 2",
+              "group": "v6 E",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                3.4731750000000003,
+                2.4655,
+                1.870325,
+                1.5261125,
+                1.2712625,
+                1.09965,
+                0.9577749999999999,
+                0.8532875,
+                0.7593624999999999
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v6 E seed 3",
+              "group": "v6 E",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                3.4228625000000004,
+                2.42625,
+                1.8549125,
+                1.5127000000000002,
+                1.2802625,
+                1.1068,
+                0.9726125,
+                0.878675,
+                0.7735875
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v6 PV seed 1",
+              "group": "v6 PV",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                31.172,
+                22.73626666666667,
+                17.838133333333335,
+                14.828399999999998,
+                12.788933333333334,
+                11.422133333333333,
+                10.3176,
+                9.351733333333334,
+                8.638666666666667
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v6 PV seed 2",
+              "group": "v6 PV",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                31.4468,
+                22.894,
+                17.964533333333332,
+                14.989733333333332,
+                12.8772,
+                11.412933333333335,
+                10.311866666666667,
+                9.4352,
+                8.648
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v6 PV seed 3",
+              "group": "v6 PV",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                31.232266666666668,
+                22.779733333333333,
+                17.7772,
+                14.815333333333333,
+                12.7568,
+                11.375466666666668,
+                10.2036,
+                9.491733333333334,
+                8.642933333333334
+              ],
+              "markers_only": false
+            }
+          ],
+          "refs": [
+            {
+              "kind": "hline",
+              "y": 0.1,
+              "label": "v7 E floor 0.1 Hz"
+            }
+          ],
+          "caption": "Mean rates over the kept 10 s, seeds 1–3.",
+          "evidence": {
+            "path": "artifacts/etudes/caminos/scores/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+          }
+        },
+        {
+          "id": "ref_seeds",
+          "title": "Reference point p = 0.07, seeds 1–5",
+          "kind": "lines",
+          "x": {
+            "label": "seed",
+            "unit": ""
+          },
+          "y": {
+            "label": "f_pk",
+            "unit": "Hz",
+            "log": false
+          },
+          "traces": [
+            {
+              "name": "f_pk",
+              "group": "f_pk",
+              "x": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "y": [
+                33.0,
+                34.0,
+                34.0,
+                34.0,
+                34.0
+              ],
+              "markers_only": true
+            }
+          ],
+          "refs": [
+            {
+              "kind": "band",
+              "y0": 30,
+              "y1": 40,
+              "label": "R1 band 30–40 Hz"
+            }
+          ],
+          "caption": "Peak frequency per seed at the reference point.",
+          "evidence": {
+            "path": "artifacts/etudes/caminos/scores/score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+          }
+        }
+      ],
+      "open": [
+        "R4v7 scoring: runs in progress (identity check passed 2026-10-12).",
+        "Shared drive at equal mean drive (NE trains at probability p) is untested.",
+        "P6 library path not attempted (B1)."
+      ]
+    },
+    {
+      "id": "pcl-fig3",
+      "title": "Predictive coding light, Fig. 3 (simple and complex cell tuning)",
+      "citation": "N'dri et al. 2025",
+      "release": "0.5.6",
+      "tier": "T-port",
+      "stage": "P5",
+      "lane": {
+        "branch": "pcl-port",
+        "sha": "5640ce18a42b25f572530508628a215081811b4b"
+      },
+      "verdict": "not reproduced",
+      "summary": "Orientation tuning and the simple/complex phase split reproduce; sf tuning is broad (R_sf about 1.5 against 2) and complex cells show no frequency doubling.",
+      "preregs": [
+        {
+          "id": "v4",
+          "signed": "2026-10-11",
+          "path": "artifacts/etudes/pcl/prereg/P3_fig3.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/P3_fig3.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "T1",
+          "group": "simple",
+          "claim": "simple cells are orientation tuned",
+          "estimand": "R_ori, held-out phases",
+          "criterion": "R_ori ≥ 2 and above both null 99th percentiles",
+          "value": 3.56935630099728,
+          "value_text": "3.57",
+          "value_label": "R_ori",
+          "unit": "",
+          "extra": [
+            {
+              "label": "N-label 99th",
+              "value": 1.208977104590967,
+              "value_text": "1.21"
+            },
+            {
+              "label": "N-pref 99th",
+              "value": 1.3674483005690845,
+              "value_text": "1.37"
+            }
+          ],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+          }
+        },
+        {
+          "id": "T1",
+          "group": "complex",
+          "claim": "complex cells are orientation tuned",
+          "estimand": "R_ori, held-out phases",
+          "criterion": "R_ori ≥ 2 and above both null 99th percentiles",
+          "value": 5.296587926509186,
+          "value_text": "5.3",
+          "value_label": "R_ori",
+          "unit": "",
+          "extra": [
+            {
+              "label": "N-label 99th",
+              "value": 1.2742562844065055,
+              "value_text": "1.27"
+            },
+            {
+              "label": "N-pref 99th",
+              "value": 1.4540024049728022,
+              "value_text": "1.45"
+            }
+          ],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+          }
+        },
+        {
+          "id": "T2",
+          "group": "simple",
+          "claim": "simple cells are spatial-frequency tuned",
+          "estimand": "R_sf, held-out phases",
+          "criterion": "R_sf ≥ 2 and above both null 99th percentiles",
+          "value": 1.4501077748383944,
+          "value_text": "1.45",
+          "value_label": "R_sf",
+          "unit": "",
+          "extra": [
+            {
+              "label": "N-label 99th",
+              "value": 1.1572554525248622,
+              "value_text": "1.16"
+            },
+            {
+              "label": "N-pref 99th",
+              "value": 1.0716748512818457,
+              "value_text": "1.07"
+            }
+          ],
+          "verdict": "fail",
+          "reason": "above both nulls, under the ratio of 2",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+          }
+        },
+        {
+          "id": "T2",
+          "group": "complex",
+          "claim": "complex cells are spatial-frequency tuned",
+          "estimand": "R_sf, held-out phases",
+          "criterion": "R_sf ≥ 2 and above both null 99th percentiles",
+          "value": 1.4614570059322958,
+          "value_text": "1.46",
+          "value_label": "R_sf",
+          "unit": "",
+          "extra": [
+            {
+              "label": "N-label 99th",
+              "value": 1.1872426719322022,
+              "value_text": "1.19"
+            },
+            {
+              "label": "N-pref 99th",
+              "value": 1.0993275509762044,
+              "value_text": "1.1"
+            }
+          ],
+          "verdict": "fail",
+          "reason": "above both nulls, under the ratio of 2",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+          }
+        },
+        {
+          "id": "T3",
+          "group": "simple",
+          "claim": "simple cells are phase modulated",
+          "estimand": "median excess modulation X (per trial, Poisson null)",
+          "criterion": "median X ≥ 0.15",
+          "value": 0.5297606025394588,
+          "value_text": "0.53",
+          "value_label": "median X",
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+          }
+        },
+        {
+          "id": "T3",
+          "group": "complex",
+          "claim": "complex cells are phase invariant",
+          "estimand": "median excess modulation X",
+          "criterion": "median X ≤ 0.5 × simple median X",
+          "value": -0.1217135118523045,
+          "value_text": "-0.122",
+          "value_label": "median X",
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+          }
+        },
+        {
+          "id": "T4",
+          "group": "both",
+          "claim": "complex cells frequency-double, simple cells do not",
+          "estimand": "median L = log(A(2ω)/A(ω)) per set",
+          "criterion": "median L simple < 0 < median L complex, difference above its null 99th",
+          "value": -0.1894670650698595,
+          "value_text": "-0.189",
+          "value_label": "median L complex",
+          "unit": "",
+          "extra": [
+            {
+              "label": "median L simple",
+              "value": -1.0166759258729505,
+              "value_text": "-1.02"
+            },
+            {
+              "label": "difference",
+              "value": 0.827208860803091,
+              "value_text": "0.827"
+            },
+            {
+              "label": "null 99th",
+              "value": 0.4150285524829793,
+              "value_text": "0.415"
+            }
+          ],
+          "verdict": "fail",
+          "reason": "complex median below 0; the set difference beats its null",
+          "prereg": "v4",
+          "evidence": {
+            "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+          }
+        }
+      ],
+      "sensitivity": [
+        {
+          "id": "S1",
+          "label": "lateral and top-down maps zeroed",
+          "status": "differs",
+          "note": "T1 and simple T3 fail: the maps matter, so map order is not excluded",
+          "rows": [
+            {
+              "metric": "R_ori simple",
+              "unit": "",
+              "value": 1.405582771050929,
+              "ref": 3.56935630099728,
+              "ref_range": null
+            },
+            {
+              "metric": "R_ori complex",
+              "unit": "",
+              "value": 1.4578581264785848,
+              "ref": 5.296587926509186,
+              "ref_range": null
+            },
+            {
+              "metric": "R_sf simple",
+              "unit": "",
+              "value": 1.1923539147802358,
+              "ref": 1.4501077748383944,
+              "ref_range": null
+            },
+            {
+              "metric": "R_sf complex",
+              "unit": "",
+              "value": 1.089778173261829,
+              "ref": 1.4614570059322958,
+              "ref_range": null
+            },
+            {
+              "metric": "median X simple",
+              "unit": "",
+              "value": 0.023179467305682544,
+              "ref": 0.5297606025394588,
+              "ref_range": null
+            },
+            {
+              "metric": "median L complex",
+              "unit": "",
+              "value": -0.30037336841229295,
+              "ref": -0.1894670650698595,
+              "ref_range": null
+            }
+          ]
+        },
+        {
+          "id": "S2",
+          "label": "preferences on all phases",
+          "status": "agrees",
+          "note": "the fold does not explain T2",
+          "rows": [
+            {
+              "metric": "R_ori simple",
+              "unit": "",
+              "value": 3.5802605431662617,
+              "ref": 3.56935630099728,
+              "ref_range": null
+            },
+            {
+              "metric": "R_ori complex",
+              "unit": "",
+              "value": 5.219587083112758,
+              "ref": 5.296587926509186,
+              "ref_range": null
+            },
+            {
+              "metric": "R_sf simple",
+              "unit": "",
+              "value": 1.4902805107169843,
+              "ref": 1.4501077748383944,
+              "ref_range": null
+            },
+            {
+              "metric": "R_sf complex",
+              "unit": "",
+              "value": 1.4748445899322455,
+              "ref": 1.4614570059322958,
+              "ref_range": null
+            }
+          ]
+        },
+        {
+          "id": "S3 (3,3)",
+          "label": "simple column (3,3)",
+          "status": "agrees",
+          "note": "same verdicts",
+          "rows": [
+            {
+              "metric": "R_ori simple",
+              "unit": "",
+              "value": 3.9875078076202373,
+              "ref": 3.56935630099728,
+              "ref_range": null
+            },
+            {
+              "metric": "R_ori complex",
+              "unit": "",
+              "value": 5.296587926509186,
+              "ref": 5.296587926509186,
+              "ref_range": null
+            },
+            {
+              "metric": "R_sf simple",
+              "unit": "",
+              "value": 1.5240562957812476,
+              "ref": 1.4501077748383944,
+              "ref_range": null
+            },
+            {
+              "metric": "R_sf complex",
+              "unit": "",
+              "value": 1.4614570059322958,
+              "ref": 1.4614570059322958,
+              "ref_range": null
+            },
+            {
+              "metric": "median X simple",
+              "unit": "",
+              "value": 0.4995951210104677,
+              "ref": 0.5297606025394588,
+              "ref_range": null
+            },
+            {
+              "metric": "median L complex",
+              "unit": "",
+              "value": -0.1894670650698595,
+              "ref": -0.1894670650698595,
+              "ref_range": null
+            }
+          ]
+        },
+        {
+          "id": "S3 (3,4)",
+          "label": "simple column (3,4)",
+          "status": "agrees",
+          "note": "same verdicts",
+          "rows": [
+            {
+              "metric": "R_ori simple",
+              "unit": "",
+              "value": 3.7132616487455197,
+              "ref": 3.56935630099728,
+              "ref_range": null
+            },
+            {
+              "metric": "R_ori complex",
+              "unit": "",
+              "value": 5.296587926509186,
+              "ref": 5.296587926509186,
+              "ref_range": null
+            },
+            {
+              "metric": "R_sf simple",
+              "unit": "",
+              "value": 1.5101461882164413,
+              "ref": 1.4501077748383944,
+              "ref_range": null
+            },
+            {
+              "metric": "R_sf complex",
+              "unit": "",
+              "value": 1.4614570059322958,
+              "ref": 1.4614570059322958,
+              "ref_range": null
+            },
+            {
+              "metric": "median X simple",
+              "unit": "",
+              "value": 0.5233469259197587,
+              "ref": 0.5297606025394588,
+              "ref_range": null
+            },
+            {
+              "metric": "median L complex",
+              "unit": "",
+              "value": -0.1894670650698595,
+              "ref": -0.1894670650698595,
+              "ref_range": null
+            }
+          ]
+        },
+        {
+          "id": "S3 (4,3)",
+          "label": "simple column (4,3)",
+          "status": "agrees",
+          "note": "same verdicts",
+          "rows": [
+            {
+              "metric": "R_ori simple",
+              "unit": "",
+              "value": 3.5479249011857705,
+              "ref": 3.56935630099728,
+              "ref_range": null
+            },
+            {
+              "metric": "R_ori complex",
+              "unit": "",
+              "value": 5.296587926509186,
+              "ref": 5.296587926509186,
+              "ref_range": null
+            },
+            {
+              "metric": "R_sf simple",
+              "unit": "",
+              "value": 1.467212878767475,
+              "ref": 1.4501077748383944,
+              "ref_range": null
+            },
+            {
+              "metric": "R_sf complex",
+              "unit": "",
+              "value": 1.4614570059322958,
+              "ref": 1.4614570059322958,
+              "ref_range": null
+            },
+            {
+              "metric": "median X simple",
+              "unit": "",
+              "value": 0.5266695663781277,
+              "ref": 0.5297606025394588,
+              "ref_range": null
+            },
+            {
+              "metric": "median L complex",
+              "unit": "",
+              "value": -0.1894670650698595,
+              "ref": -0.1894670650698595,
+              "ref_range": null
+            }
+          ]
+        }
+      ],
+      "charts": [
+        {
+          "id": "t1t2",
+          "title": "T1 and T2 ratios against nulls and criterion",
+          "kind": "bars",
+          "x": {
+            "label": "",
+            "unit": ""
+          },
+          "y": {
+            "label": "ratio",
+            "unit": "",
+            "log": false
+          },
+          "categories": [
+            "R_ori simple",
+            "R_ori complex",
+            "R_sf simple",
+            "R_sf complex"
+          ],
+          "traces": [
+            {
+              "name": "scored",
+              "group": "scored",
+              "y": [
+                3.56935630099728,
+                5.296587926509186,
+                1.4501077748383944,
+                1.4614570059322958
+              ]
+            },
+            {
+              "name": "N-label 99th",
+              "group": "N-label 99th",
+              "y": [
+                1.208977104590967,
+                1.2742562844065055,
+                1.1572554525248622,
+                1.1872426719322022
+              ]
+            },
+            {
+              "name": "N-pref 99th",
+              "group": "N-pref 99th",
+              "y": [
+                1.3674483005690845,
+                1.4540024049728022,
+                1.0716748512818457,
+                1.0993275509762044
+              ]
+            }
+          ],
+          "refs": [
+            {
+              "kind": "hline",
+              "y": 2,
+              "label": "criterion 2"
+            }
+          ],
+          "caption": "Held-out ratios with the 99th percentiles of both nulls (1000 draws).",
+          "evidence": {
+            "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+          }
+        },
+        {
+          "id": "t3t4",
+          "title": "T3 phase modulation and T4 frequency doubling",
+          "kind": "bars",
+          "x": {
+            "label": "",
+            "unit": ""
+          },
+          "y": {
+            "label": "statistic",
+            "unit": "",
+            "log": false
+          },
+          "categories": [
+            "median X simple",
+            "median X complex",
+            "median L simple",
+            "median L complex"
+          ],
+          "traces": [
+            {
+              "name": "scored",
+              "group": "scored",
+              "y": [
+                0.5297606025394588,
+                -0.1217135118523045,
+                -1.0166759258729505,
+                -0.1894670650698595
+              ]
+            }
+          ],
+          "refs": [
+            {
+              "kind": "hline",
+              "y": 0,
+              "label": "0"
+            },
+            {
+              "kind": "hline",
+              "y": 0.15,
+              "label": "T3 simple floor 0.15"
+            }
+          ],
+          "caption": "T4 needs median L complex above 0.",
+          "evidence": {
+            "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+          }
+        },
+        {
+          "id": "sens_rsf",
+          "title": "R_sf across sensitivity runs",
+          "kind": "bars",
+          "x": {
+            "label": "",
+            "unit": ""
+          },
+          "y": {
+            "label": "R_sf",
+            "unit": "",
+            "log": false
+          },
+          "categories": [
+            "scored (4,4)",
+            "S1 maps off",
+            "S2 all phases",
+            "S3 (3,3)",
+            "S3 (3,4)",
+            "S3 (4,3)"
+          ],
+          "traces": [
+            {
+              "name": "simple",
+              "group": "simple",
+              "y": [
+                1.4501077748383944,
+                1.1923539147802358,
+                1.4902805107169843,
+                1.5240562957812476,
+                1.5101461882164413,
+                1.467212878767475
+              ]
+            },
+            {
+              "name": "complex",
+              "group": "complex",
+              "y": [
+                1.4614570059322958,
+                1.089778173261829,
+                1.4748445899322455,
+                1.4614570059322958,
+                1.4614570059322958,
+                1.4614570059322958
+              ]
+            }
+          ],
+          "refs": [
+            {
+              "kind": "hline",
+              "y": 2,
+              "label": "criterion 2"
+            }
+          ],
+          "caption": "R_sf stays under 2 in every variant.",
+          "evidence": {
+            "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+          }
+        }
+      ],
+      "open": [
+        "The authors compute neither an sf selectivity index nor F1/F0; T2's ratio and T4's log ratio are the prereg's (diagnostic, unscored).",
+        "21 % of complex cells prefer the lowest tested sf.",
+        "The authors' tuning-curve data archive is not opened (Hamm's call).",
+        "P6 library path not attempted (B1)."
+      ]
+    }
+  ]
+}
