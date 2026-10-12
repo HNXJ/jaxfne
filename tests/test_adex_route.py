@@ -711,6 +711,7 @@ DRIVE_SCHEMA_REFUSALS = [
     ({"mechanism": "nmda"}, "mechanism"),
     ({"target_cell_types": ["E", "SST"]}, "target_cell_types"),
     ({"delay_ms": 0.04}, "delay_ms"),
+    ({"delay_ms": 0.0}, "delay_ms"),
     ({"seed": "x"}, "seed"),
 ]
 

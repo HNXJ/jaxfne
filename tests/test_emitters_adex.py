@@ -552,18 +552,19 @@ def test_external_drive_matches_reference_transcription_bit_for_bit():
     )
 
 
-# 9. The first d steps carry no external drive; step d does.
-def test_external_drive_arrives_after_the_delay():
+# 9. The first d steps carry no external drive; step d does (d + 1 under brian2).
+@pytest.mark.parametrize("step_order, d", [("default", 20), ("brian2", 21)])
+def test_external_drive_arrives_after_the_delay(step_order, d):
     params = make_adex_params(("E",) * 8 + ("PV",) * 2)
     key = jax.random.PRNGKey(5)
     kw = dict(
         receptor_reversal_mV=(0.0,), receptor_tau_ms=(2.0,), decay="euler",
         ext_targets=np.arange(8), ext_lambda=2.0, ext_weight_nS=2.5,
-        ext_receptor=0, ext_delay_steps=20, key=key,
+        ext_receptor=0, ext_delay_steps=20, key=key, step_order=step_order,
     )
-    before = simulate_adex(params, n_steps=20, dt_ms=DT_MS, **kw)
+    before = simulate_adex(params, n_steps=d, dt_ms=DT_MS, **kw)
     np.testing.assert_array_equal(np.asarray(before["g"]), np.zeros((10, 1)))
-    after = simulate_adex(params, n_steps=21, dt_ms=DT_MS, **kw)
+    after = simulate_adex(params, n_steps=d + 1, dt_ms=DT_MS, **kw)
     g = np.asarray(after["g"])
     assert float(np.abs(g[:8, 0]).max()) > 0.0, "a drawn count must reach a target"
     np.testing.assert_array_equal(g[8:, 0], np.zeros(2))
