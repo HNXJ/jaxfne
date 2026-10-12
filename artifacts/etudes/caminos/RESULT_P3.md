@@ -1,8 +1,47 @@
-# CAMINOS P3 result (scored under signed v6)
+# CAMINOS P3 result (scored under signed v6 and amendment v7)
 
-Verdict: **FAIL.** R1–R3 pass; R4 fails. The reference model reproduces gamma, the PV→SOM
-lag and the rate order at p = 0.07, but not the critical-p onset of Fig. 1E. Nothing was
-tuned after scoring.
+Verdict: **PASS under v7.** R1–R3 pass (v6); R4 fails under v6 and R4v7 passes. With the
+external drive at p·NE sources, the port shows the critical-p onset of Fig. 1E: no seed
+oscillates at p = 0.02 while E fires at 0.61–0.62 Hz, and all seeds oscillate from p = 0.04.
+This rests on the v7 assumption that Fig. 1E scales the drive with p; the paper does not
+state it for the sweep. Nothing was tuned after scoring.
+
+## R4v7 (amendment v7, signed 2026-10-12)
+
+- Runs: WSL2 CUDA, float32, dt 0.1 ms, T 12 s, seeds 1–3 at p = 0.02–0.10, one run at a time,
+  2026-10-12T13:12Z to 14:04Z. All 27 runs carry git SHA 6d0fd783; its caminos code equals
+  baca68e7.
+- Identity check: the p = 0.07 count arrays equal the v6 arrays for seeds 1–3
+  (`numpy.array_equal`, PASS).
+- Scoring: `caminos_analysis.py <dir> --ext-sources pNE`; `r4.pass` true, complete, 27 runs.
+  E-rate floor (≥ 0.1 Hz in each p = 0.02 seed): 0.619, 0.606, 0.606 Hz, met.
+- Outputs: `F:\warehouse\caminos\scored\v7_20261012\`. Score copied to `scores/score_v7.json`.
+
+| p | f_pk (Hz) | peak excess | oscillates | E (Hz) | PV (Hz) | SOM (Hz) | lag (ms) |
+|---|---|---|---|---|---|---|---|
+| 0.02 | 20–21 | 2.8–3.1 | 0 of 3 | 0.61–0.62 | 6.3–6.4 | 0.7–0.8 | 14.0 |
+| 0.03 | 22–23 | 22.3–38.0 | 1 of 3 | 0.95–0.97 | 8.9–9.0 | 2.1 | 11.8–12.4 |
+| 0.04 | 27–28 | 34.1–47.2 | 3 of 3 | 1.06–1.08 | 9.9–10.0 | 3.3 | 10.5–10.8 |
+| 0.05 | 30 | 32.4–35.7 | 3 of 3 | 1.09–1.10 | 10.4–10.6 | 4.5–4.6 | 9.0–9.2 |
+| 0.06 | 32 | 15.9–21.1 | 3 of 3 | 1.11–1.12 | 10.9–11.1 | 5.8–6.0 | 7.6–8.0 |
+| 0.07 | 33–34 | 13.8–16.3 | 3 of 3 | 1.10–1.13 | 11.4 | 7.0–7.3 | 6.9–7.1 |
+| 0.08 | 35–36 | 11.6–14.2 | 3 of 3 | 1.06–1.10 | 11.5–11.6 | 7.9–8.1 | 6.5–6.6 |
+| 0.09 | 37–38 | 8.3–12.5 | 3 of 3 | 1.02–1.06 | 11.6–11.7 | 8.6–9.1 | 6.0–6.3 |
+| 0.10 | 38–39 | 8.4–9.1 | 3 of 3 | 0.99–1.00 | 11.6–11.8 | 9.4–9.7 | 5.8–5.9 |
+
+- The smallest p at which all seeds oscillate is 0.04.
+- At p = 0.02 the peak excess (2.8–3.1) is below the threshold of 4.
+- At p = 0.03, seeds 2 and 3 fail only the band-edge rule: f_pk is 22 Hz, within 2 Hz of
+  20 Hz, while their peak excess is 22–26. The onset between 0.02 and 0.04 therefore
+  depends partly on the band edge.
+- f_pk rises with p, from 20–21 Hz to 38–39 Hz, and the PV→SOM lag falls from 14.0 to 5.9 ms.
+
+The v6 section below is kept as scored (B2).
+
+## v6 result
+
+v6 verdict: **FAIL.** R1–R3 pass; R4 fails. The reference model reproduces gamma, the PV→SOM
+lag and the rate order at p = 0.07, but not the critical-p onset of Fig. 1E.
 
 - Prereg: `PREREG_P3.md`, signed v6 (Hamm, 2026-10-11), code at `l2-caminos` e2501025.
 - Runs: WSL2 CUDA, float32, dt 0.1 ms, T 12 s, one run at a time, 2026-10-11T23:11Z to
