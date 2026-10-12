@@ -539,11 +539,13 @@ Signed by Hamm 2026-10-11 (batch): PCL Fig. 3 P3 v4 (`pcl-port` f6d9dc38) and CA
 (`l2-caminos` e2501025), both branches on GitHub.
 Verdicts and ledgers are indexed in `artifacts/etudes/REPLICATIONS.md` and on the dashboard
 (https://hnxj.github.io/jaxfne/dashboard/, `dashboard/DESIGN.md`). CAMINOS passes under
-amendment v7 (`l2-caminos` bbedbbab); PCL Fig. 3 v4 FAIL stands, diagnostic at `pcl-port` 5640ce18.
+amendment v7 (`l2-caminos` 1e768f9d; p = 0.07 identical to v6 in seeds 1–5); PCL Fig. 3 v4 FAIL stands, diagnostic at `pcl-port` 5640ce18.
 - [H] PCL Fig. 3 after the diagnostic: a new prereg for T2/T4, P6 library path anyway (B1),
   or move on in the release table.
-- [H] CAMINOS: P6 library path (B1), and whether the shared-drive test at equal mean drive
-  (NE trains at probability p) runs.
+- [A] CAMINOS P6 library-path prereg draft for Hamm's signature: realized connectivity and
+  external source counts per p, consumed synapse and delay parameters, R1–R3 values at
+  p = 0.07 within the seed range, R4 against the v7 sweep. Shared-drive variant dropped
+  (Hamm 2026-10-12): v6 (fixed drive) and v7 (p·NE) already separate drive from connectivity.
 - [A] Each new score: update `dashboard/sources.json` (lane SHA), regenerate, push to dev.
 
 Compression and lanes, open:

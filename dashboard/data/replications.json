@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/1",
   "sample": false,
   "generated": {
-    "utc": "2026-10-12T14:08:28Z",
-    "dev_sha": "902d75e7d4a596da2377a9af1c63644c2ab29d46"
+    "utc": "2026-10-12T14:17:27Z",
+    "dev_sha": "44d42ea9dc97f3728eb7d7a24801554b2d192bef"
   },
   "papers": [
     {
@@ -15,22 +15,22 @@
       "stage": "P5",
       "lane": {
         "branch": "l2-caminos",
-        "sha": "bbedbbabeb7c35925a13a7632adfddd34b7030d7"
+        "sha": "1e768f9db04a7cef405d78429f5a67580348b8b9"
       },
       "verdict": "reproduced",
-      "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07. The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep.",
+      "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07. The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep. At p = 0.07 the v6 and v7 runs are identical for all five seeds, so R1–R3 and R4v7 score one realization there.",
       "preregs": [
         {
           "id": "v6",
           "signed": "2026-10-11",
           "path": "artifacts/etudes/caminos/PREREG_P3.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/PREREG_P3.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/PREREG_P3.md"
         },
         {
           "id": "v7 (R4 only)",
           "signed": "2026-10-12",
           "path": "artifacts/etudes/caminos/PREREG_P3_v7_R4.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/PREREG_P3_v7_R4.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/PREREG_P3_v7_R4.md"
         }
       ],
       "criteria": [
@@ -50,7 +50,7 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -69,7 +69,7 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -88,7 +88,7 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -107,7 +107,7 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -126,7 +126,7 @@
           "prereg": "v7 (R4 only)",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score_v7.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score_v7.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score_v7.json"
           }
         }
       ],
@@ -610,7 +610,7 @@
           "caption": "Peak excess of the E rate spectrum per run; a run oscillates above 4. Lines join one seed across p.",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -962,7 +962,7 @@
           "caption": "Mean rates over the kept 10 s, seeds 1–3.",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -1010,13 +1010,13 @@
           "caption": "Peak frequency per seed at the reference point.",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
           }
         }
       ],
       "open": [
         "R4v7 rests on the drive scaling as p·NE across the sweep; the paper does not state it.",
-        "Shared drive at equal mean drive (NE trains at probability p) is untested.",
+        "With the drive fixed at 560 sources (v6), every p oscillates; the onset needs the drive to scale with p. Shared-drive variant dropped (Hamm 2026-10-12).",
         "P6 library path not attempted (B1)."
       ]
     },
