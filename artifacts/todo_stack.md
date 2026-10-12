@@ -52,7 +52,7 @@ neurons run on WSL2 CUDA.
 - [A] B1 no paper counts as replicated without a recorded library-path attempt. Check: the replication index row.
 - [A] B2 negative verdicts go in the claim ledger with their reason. Check: one ledger row per scored criterion.
 - [H] B3 one emitter per release, authorized by Hamm, gated by a P4 test perturbing every accepted parameter. Check: that test fails on a stored-but-unconsumed parameter.
-- [A] B4 narrowing, one class per commit with its gate; generated assets are regenerated at the docs build (Hamm 2026-10-12): inventory each generated tree and its generator, wire the generators into the docs build, then untrack. Check: `scripts/check_tree_size.py --check`.
+- [A] B4 narrowing, one class per commit with its gate; generated assets are regenerated at the docs build (Hamm 2026-10-12): inventory each generated tree and its generator, wire the generators into the docs build, then untrack. Check: `scripts/check_tree_size.py --check`. Inventory and steps: `artifacts/etudes/narrowing_plan.md`; first step: five Plotly HTML files embed plotly.js (about 26 MB), swap for a pinned CDN tag and fix their generators.
 - [A] Izhikevich 2003 is the third 0.5.6 paper (Hamm 2026-10-12), on the existing emitter: P1 done (`artifacts/etudes/izhikevich2003/SOURCE_P1.md`); P2 `PORT_SPEC.md` drafted, needs second review; then P3 prereg for the batch signature.
 - [A] `jaxfne/presets.py` cites "Izhikevich 2003 Table 1": the paper has no table; RS, FS, LTS match its Fig. 2; `VIP_IS` is not in it. Correct the `source` strings. Check: `git grep -n "2003 Table 1" -- jaxfne` is empty.
 - [A] B5 GPU: one job at a time, claimed in jchat. Check: one open GPU claim.
@@ -105,9 +105,8 @@ https://hnxj.github.io/jaxfne/dashboard/ (`dashboard/DESIGN.md`), programme
 - [A] G-2 features, one at a time, failing test first, second review (design: CAMINOS port spec
   and the 2026-10-12 code map; F1 landed in 5ddfd8f2, its connection table does not yet record
   `sampling`; Hamm 2026-10-12: AdEx is public as `emitter(family="adex")` plus ADVANCED names
-  in `jaxfne.emitters`, contract 283 → 288; kernel landed in 8138a5c3): F2–F4 route (part B) `emitters_adex` module (AdEx, conductance synapses and delay ring inside its kernel,
-  ADVANCED tier, no root export); F5 `poisson_drive` independent sources per target cell type;
-  F6 "SOM" in the AdEx table and `fields/proxy.py:775` (unknown types default to +1). Then the
+  in `jaxfne.emitters`, contract 283 → 288; kernel 8138a5c3, route d10c93f2, external Poisson
+  drive b7581aed): F6 "SOM" in the AdEx table and `fields/proxy.py:775` (unknown types default to +1). Then the
   CAMINOS P6 prereg for Hamm's signature. Shared-drive variant dropped (Hamm 2026-10-12).
 - [A] Each new score: update `dashboard/sources.json` (lane SHA), regenerate, push to dev.
 - [A] G-1 (meet 204dfdaa): port jnwb's `changelog.d`, `assemble_changelog.py`, `release_body.py`

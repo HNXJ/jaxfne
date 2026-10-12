@@ -19,7 +19,11 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - `connections(sampling="bernoulli")` (G-2 F1) since 5ddfd8f2; default path and config hashes
   unchanged.
 - AdEx conductance kernel `jaxfne.emitters.simulate_adex` (ADVANCED, 8138a5c3): matches the
-  CAMINOS reference cell and recurrent step within rtol 1e-6 (float64); no external drive yet.
+  CAMINOS reference cell and recurrent step within rtol 1e-6 (float64). Public route
+  `emitter(family="adex")` (d10c93f2); external Poisson conductance drive through
+  `Simulation(poisson_drive=)`, bit for bit with a transcription of the reference (b7581aed).
+- Dashboard v2 (423c6554, d92064d5): four classes, model pages, validation and roadmap tabs,
+  static figures (`scripts/build_dashboard_figures.py --check`).
 
 ## Broken or in flight
 
@@ -36,6 +40,7 @@ In `artifacts/open_stack.md`.
 | File | Generator | Check |
 |---|---|---|
 | `dashboard/data/replications.json` | `scripts/build_dashboard_data.py` | `--check` (CI `Dashboard` workflow) |
+| `dashboard/figures/*.png`, `manifest.json` | `scripts/build_dashboard_figures.py` | `--check` (CI `Dashboard` workflow) |
 | `artifacts/public_surface_contract_v0413.json` | `scripts/generate_public_surface_contract.py` | `tests/test_public_surface_contract_v0413.py` |
 
 ## Environment
@@ -45,4 +50,5 @@ In `artifacts/open_stack.md`.
 
 ## Next action
 
-G-2 F2–F4 part B (the "adex" route), then F5 (in-kernel Poisson conductance drive), F6.
+G-2 F6 (SOM in the AdEx table and the field proxy sign), then the CAMINOS P6 prereg;
+Izhikevich 2003 P2 review and P3 prereg; narrowing step 1.
