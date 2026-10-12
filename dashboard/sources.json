@@ -10,9 +10,9 @@
       "release": "0.5.6",
       "tier": "T-methods",
       "stage": "P5",
-      "lane": {"branch": "l2-caminos", "sha": "20045e9a46cda81638a8c9fd75477be06dda34d0"},
-      "verdict": "not reproduced",
-      "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07; the critical-p onset (R4) runs in reverse with the external drive fixed at 560 sources. R4 is being rescored under amendment v7 (drive p·NE).",
+      "lane": {"branch": "l2-caminos", "sha": "bbedbbabeb7c35925a13a7632adfddd34b7030d7"},
+      "verdict": "reproduced",
+      "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07. The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep.",
       "preregs": [
         {"id": "v6", "signed": "2026-10-11", "path": "artifacts/etudes/caminos/PREREG_P3.md"},
         {"id": "v7 (R4 only)", "signed": "2026-10-12", "path": "artifacts/etudes/caminos/PREREG_P3_v7_R4.md"}
@@ -40,7 +40,7 @@
          "value": {"file": "v7", "key": "r4.smallest_oscillating_p"}, "unit": "", "value_label": "smallest p where all seeds oscillate",
          "verdict": {"file": "v7", "key": "r4.pass"}, "prereg": "v7 (R4 only)",
          "floor": {"file": "v7", "from": "per_run", "where": {"p": 0.02}, "key": "rates_Hz.E", "min": 0.1},
-         "reason": ""}
+         "reason": "at p = 0.03, 2 of 3 seeds fail only the 20 Hz band-edge rule (f_pk 22 Hz, peak excess 22–26)"}
       ],
       "sensitivity": [
         {"id": "S1", "label": "float64", "status": "agrees", "note": "every value inside the seed range; f_pk moves 1 Hz from seed 1, equal to the seed range and the 1 Hz grid step"},
@@ -85,7 +85,7 @@
          "caption": "Peak frequency per seed at the reference point."}
       ],
       "open": [
-        "R4v7 scoring: runs in progress (identity check passed 2026-10-12).",
+        "R4v7 rests on the drive scaling as p·NE across the sweep; the paper does not state it.",
         "Shared drive at equal mean drive (NE trains at probability p) is untested.",
         "P6 library path not attempted (B1)."
       ]

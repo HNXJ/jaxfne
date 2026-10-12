@@ -537,11 +537,14 @@ Not duplicates (keep): `jaxfne/w3_stability_analysis.py` vs
 
 Signed by Hamm 2026-10-11 (batch): PCL Fig. 3 P3 v4 (`pcl-port` f6d9dc38) and CAMINOS v6
 (`l2-caminos` e2501025), both branches on GitHub.
-Both scored FAIL; verdicts and ledgers are indexed in `artifacts/etudes/REPLICATIONS.md`.
-- [A] CAMINOS S3–S5 driver options (fixed in-degree, shared sources, step order), then
-  run them: they bear on the R4 reversal (oscillation strongest at low p).
-- [H] next step for each paper after a FAIL: a diagnostic of the failed criterion (PCL T2
-  and T4, CAMINOS R4), P6 library path anyway (B1), or move on in the release table.
+Verdicts and ledgers are indexed in `artifacts/etudes/REPLICATIONS.md` and on the dashboard
+(https://hnxj.github.io/jaxfne/dashboard/, `dashboard/DESIGN.md`). CAMINOS passes under
+amendment v7 (`l2-caminos` bbedbbab); PCL Fig. 3 v4 FAIL stands, diagnostic at `pcl-port` 5640ce18.
+- [H] PCL Fig. 3 after the diagnostic: a new prereg for T2/T4, P6 library path anyway (B1),
+  or move on in the release table.
+- [H] CAMINOS: P6 library path (B1), and whether the shared-drive test at equal mean drive
+  (NE trains at probability p) runs.
+- [A] Each new score: update `dashboard/sources.json` (lane SHA), regenerate, push to dev.
 
 Compression and lanes, open:
 - [A] `docs/quickstart.md` `connections()` snippet after the dense refusal (dev 0d2b1018):
