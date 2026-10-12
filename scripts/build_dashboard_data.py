@@ -22,8 +22,10 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA = "jaxfne-replications/1"
-SOURCES_SCHEMA = "jaxfne-dashboard-sources/1"
+SCHEMA = "jaxfne-replications/2"
+SOURCES_SCHEMA = "jaxfne-dashboard-sources/2"
+# Status classes (Hamm 2026-10-12, dashboard/ARCHITECTURE_v2.md). A demonstration carries no verdict.
+CLASSES = ("verified", "partial", "not reproduced", "demonstration")
 TOL = 1e-9
 FLOOR_REASON = "E-rate floor not met"
 NO_VALUE = "—"
@@ -247,6 +249,7 @@ def build_criterion(p, c):
         "value": value,
         "value_text": value_text(value),
         "value_label": c.get("value_label", ""),
+        "paper_value": c.get("paper_value"),
         "unit": c.get("unit", ""),
         "extra": [build_extra(p, e) for e in c.get("extra", [])],
         "verdict": verdict,
@@ -419,17 +422,41 @@ def build_chart(p, ch):
     return out
 
 
+def model_page(spec):
+    """Dashboard-relative path of the model's markdown page, or None. A named page must exist."""
+    rel = spec.get("page")
+    if rel is None:
+        return None
+    if not (ROOT / "dashboard" / rel).is_file():
+        raise BuildError(f"paper {spec['id']}: page dashboard/{rel} does not exist")
+    return rel
+
+
+def check_class(spec):
+    cls = spec.get("class")
+    if cls not in CLASSES:
+        raise BuildError(f"paper {spec['id']}: class {cls!r} is not one of {list(CLASSES)}")
+    if cls == "demonstration" and spec.get("verdict") is not None:
+        raise BuildError(f"paper {spec['id']}: a demonstration carries no verdict")
+    if cls != "demonstration" and not spec.get("preregs"):
+        raise BuildError(f"paper {spec['id']}: class {cls!r} needs a signed preregistration")
+    return cls
+
+
 def build_paper(spec, files, repo_url):
     p = Paper(spec, files, repo_url)
     return {
         "id": spec["id"],
         "title": spec["title"],
         "citation": spec["citation"],
+        "class": check_class(spec),
+        "question": spec.get("question", ""),
+        "page": model_page(spec),
         "release": spec["release"],
         "tier": spec["tier"],
         "stage": spec["stage"],
         "lane": {"branch": spec["lane"]["branch"], "sha": spec["lane"]["sha"]},
-        "verdict": spec["verdict"],
+        "verdict": spec.get("verdict"),
         "summary": spec["summary"],
         "preregs": [
             {"id": pr["id"], "signed": pr["signed"], "path": pr["path"], "url": p.prereg_url(pr["path"])}
@@ -467,6 +494,7 @@ def build_document():
             "dev_sha": dev_sha(),
         },
         "papers": papers,
+        "roadmap": list(sources.get("roadmap", [])),
     }
 
 

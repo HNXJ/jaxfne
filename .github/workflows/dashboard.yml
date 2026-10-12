@@ -10,6 +10,7 @@ on:
     paths:
       - "dashboard/**"
       - "scripts/build_dashboard_data.py"
+      - "scripts/build_dashboard_figures.py"
       - ".github/workflows/dashboard.yml"
   workflow_dispatch:
 
@@ -35,13 +36,16 @@ jobs:
       - name: Data file matches sources and lane files
         run: python scripts/build_dashboard_data.py --check
 
+      - name: Static figures match the chart data
+        run: python scripts/build_dashboard_figures.py --check
+
       - name: Copy dashboard into gh-pages
         run: |
           git fetch origin gh-pages
           git worktree add ../pages origin/gh-pages
           rm -rf ../pages/dashboard
           mkdir -p ../pages/dashboard
-          cp -r dashboard/index.html dashboard/app.js dashboard/style.css dashboard/data ../pages/dashboard/
+          cp -r dashboard/index.html dashboard/app.js dashboard/style.css dashboard/data dashboard/models dashboard/figures ../pages/dashboard/
           cd ../pages
           git add -A dashboard
           if git diff --cached --quiet; then

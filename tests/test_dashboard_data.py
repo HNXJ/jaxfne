@@ -52,9 +52,9 @@ def make_repo(root, files):
     return git(root, "rev-parse", "HEAD")
 
 
-def write_sources(root, papers):
+def write_sources(root, papers, **extra):
     (root / "dashboard").mkdir(exist_ok=True)
-    doc = {"schema": "jaxfne-dashboard-sources/1", "repo_url": REPO_URL, "papers": papers}
+    doc = {"schema": "jaxfne-dashboard-sources/2", "repo_url": REPO_URL, "papers": papers, **extra}
     (root / "dashboard" / "sources.json").write_text(json.dumps(doc), encoding="utf-8")
 
 
@@ -62,7 +62,8 @@ def paper(sha, **over):
     """A minimal valid paper entry; keyword arguments replace or add fields."""
     base = {
         "id": "fixture", "title": "Fixture", "citation": "test", "release": "0.0.0", "tier": "T-test",
-        "stage": "P0", "lane": {"branch": "test", "sha": sha}, "verdict": "pending", "summary": "fixture",
+        "class": "demonstration",
+        "stage": "P0", "lane": {"branch": "test", "sha": sha}, "summary": "fixture",
         "preregs": [], "files": {}, "criteria": [], "sensitivity": [], "charts": [], "open": [],
     }
     base.update(over)
@@ -341,3 +342,44 @@ def test_value_text_three_significant_figures():
     assert len(cases) >= 8
     for value, want in cases:
         assert module.value_text(value) == want, f"value_text({value!r}) != {want!r}"
+
+
+@pytest.mark.parametrize("over, needle", [
+    ({"class": "replicated"}, "class 'replicated'"),
+    ({"class": "demonstration", "verdict": "pass"}, "a demonstration carries no verdict"),
+    ({"class": "partial", "preregs": []}, "needs a signed preregistration"),
+])
+def test_class_rules_refuse_and_name_the_paper(tmp_path, over, needle):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5}})
+    write_sources(root, [paper(sha, **over)])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and needle in proc.stderr, proc.stderr
+    assert not (root / REL_OUT).exists(), "no data file may be written on error"
+
+
+def test_class_page_paper_value_and_roadmap_are_copied(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5, "ok": True}})
+    (root / "dashboard" / "models").mkdir(parents=True)
+    (root / "dashboard" / "models" / "fixture.md").write_text("## Question\n", encoding="utf-8")
+    prereg = [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}]
+    r1 = criterion(value={"file": "main", "key": "val"}, paper_value="≈ 1.4")
+    roadmap = [{"release": "9.9.9", "model": "m", "needs": "n"}]
+    write_sources(root, [paper(sha, **{"class": "partial", "verdict": "pass", "preregs": prereg,
+                                       "page": "models/fixture.md", "files": {"main": "scores/main.json"},
+                                       "criteria": [r1]})], roadmap=roadmap)
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    doc = load_out(root)
+    got = doc["papers"][0]
+    assert (got["class"], got["verdict"], got["page"]) == ("partial", "pass", "models/fixture.md")
+    assert got["criteria"][0]["paper_value"] == "≈ 1.4" and got["criteria"][0]["value"] == 1.5
+    assert doc["roadmap"] == roadmap
+
+    (root / "dashboard" / "models" / "fixture.md").unlink()
+    proc = run(root)
+    assert proc.returncode == 1 and "models/fixture.md does not exist" in proc.stderr, proc.stderr

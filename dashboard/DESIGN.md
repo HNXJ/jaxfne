@@ -28,11 +28,20 @@ shows scored results only from committed evidence.
 | `tests/test_dashboard_data.py` | worker | generator tests |
 | `dashboard/index.html`, `app.js`, `style.css` | opencode | the page |
 
-## Data contract (`replications.json`, schema `jaxfne-replications/1`)
+## Data contract (`replications.json`, schema `jaxfne-replications/2`)
+
+Schema 2 (Hamm 2026-10-12, `ARCHITECTURE_v2.md`) adds per paper `class` (verified | partial |
+not reproduced | demonstration), `question`, `page` (`models/<id>.md`, rendered with marked and
+KaTeX), per criterion `paper_value` (text, or null where the paper gives none), and a top-level
+`roadmap` list of `{release, model, needs}`. The generator refuses an unknown class, a
+demonstration with a verdict, a scored class without a preregistration, and a named page that
+does not exist. `verdict` is null for a demonstration. Static PNGs of every chart come from
+`scripts/build_dashboard_figures.py` (`dashboard/figures/`, manifest of chart-data hashes;
+`--check` in the workflow).
 
 ```
 {
-  "schema": "jaxfne-replications/1",
+  "schema": "jaxfne-replications/2",
   "sample": false,                       // true only in the sample file; the page shows a banner
   "generated": {"utc": "...Z", "dev_sha": "<40 hex>"},
   "papers": [{
@@ -68,22 +77,24 @@ shows scored results only from committed evidence.
 
 ## Layout
 
-Desktop at 1440 px; one column at 390 px with no horizontal scroll.
+Desktop at 1440 px; one column at 390 px with no horizontal scroll. Hash-routed tabs:
 
-1. **Header.** "jaxfne replications", generated time (UTC) and dev SHA, links to the Read the
-   Docs site and to `artifacts/etudes/REPLICATIONS.md`. A sample banner when `sample` is true.
-2. **Summary strip.** One card per paper: title, release, tier, a P0–P7 stage track (filled to
-   the current stage), the verdict chip, and "k of n criteria pass". Clicking a card opens its
-   detail.
-3. **Paper detail** (one at a time, selected by card or by `#<paper id>` in the URL):
-   - **Criteria table**: id, claim, criterion, value, verdict chip, reason; the evidence link
-     on the value. Rows group by `group` (for example "simple" and "complex").
-   - **Charts**: one Plotly figure per `charts` entry, in a responsive grid (two columns on
-     desktop, one on mobile), caption under each, evidence link.
-   - **Sensitivity**: one row per run; each metric drawn as a dot (value) against a band
-     (`ref_range`) and a tick (`ref`), plus the status chip and note.
-   - **Preregistrations** (signed versions, dates, links) and **Open items**.
-4. **Footer.** "Failures are kept with the same prominence as passes (B2)."
+1. **Header.** "jaxfne replications", generated time (UTC) and build dev SHA, links to the Read
+   the Docs site and to `artifacts/etudes/REPLICATIONS.md`, a sample banner when `sample` is
+   true, and the tabs.
+2. **Overview** (`#overview`, default). KPI cards: models per class and the preregistered
+   criteria pass / fail / pending (demonstrations excluded). Then the model cards grouped by
+   class, each with its class chip, its verdict chip where one exists, and its question.
+3. **Models** (`#models`; one model at `#model/<id>`; v1 links `#<id>` still open it): title,
+   citation, class chip beside the preregistered verdict, stage track, code SHA, summary; the
+   model page (question, formulation, implementation, deviations and limitations, reproduce);
+   then the criteria table (paper value beside ours), figures (Plotly with the static PNG and a
+   data table under each), sensitivity, preregistrations and open items.
+4. **Validation** (`#validation`): every criterion across models in one table, filtered by
+   verdict.
+5. **Roadmap** (`#roadmap`): planned models by release.
+6. **Method** (`#method`): the class definitions and the rules of this file.
+7. **Footer.** "Failures are kept with the same prominence as passes (B2)."
 
 ## Visual style
 
@@ -96,7 +107,7 @@ Desktop at 1440 px; one column at 390 px with no horizontal scroll.
 - Grounds: white page, cards on `#e9f5fc`; threshold lines and bands in gold `#cfb87c`.
 - Dark theme by `prefers-color-scheme`, with contrast at least 4.5:1 for text.
 - Plotly: no top or right axis lines, frameless legend, axis labels with units, `responsive`.
-- Chart traces in one group share a color; seeds differ by dash or marker, not hue.
+- Chart traces in one group share a color; seeds differ by dash or marker.
 
 ## Publishing
 
@@ -109,4 +120,5 @@ Do not run `mkdocs gh-deploy` against this repository: it replaces the whole gh-
 would delete `/dashboard/`.
 
 Updating: change `sources.json` (for a new score, its lane SHA and file), run
-`python scripts/build_dashboard_data.py`, commit both, push to dev.
+`python scripts/build_dashboard_data.py`, then `python scripts/build_dashboard_figures.py`,
+commit the sources, the data file and `dashboard/figures/`, push to dev.
