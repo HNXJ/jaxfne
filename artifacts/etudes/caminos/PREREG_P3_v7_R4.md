@@ -23,20 +23,31 @@ v6 sweep gave each cell 560 sources where p·NE gives 160.
 
 | Id | Estimand | Pass |
 |---|---|---|
-| R4v7 | Oscillation at p = 0.02, 0.03, …, 0.10, seeds 1–3, drive p·NE | no seed oscillates at p = 0.02, and all seeds oscillate at p = 0.07; the smallest p at which all seeds oscillate is reported |
+| R4v7 | Oscillation at p = 0.02, 0.03, …, 0.10, seeds 1–3, drive p·NE | no seed oscillates at p = 0.02 while E still fires (mean E rate ≥ 0.1 Hz in every p = 0.02 seed), and all seeds oscillate at p = 0.07; the smallest p at which all seeds oscillate is reported |
 
+- The E rate floor separates "asynchronous" from "silent": a silent network at p = 0.02
+  meets "does not oscillate" vacuously (v6 rule), so it does not pass. E, PV and SOM rates
+  are reported at every p.
 - Completeness: all 9 values of p × seeds 1–3, T = 12 s, dt = 0.1 ms, one code SHA. Anything
-  else scores as "incomplete" (fail).
-- The p = 0.07 runs must reproduce the v6 counts bit for bit (same seed, same drive). A
-  mismatch voids the run.
+  else scores as "incomplete" (fail). Scoring with `--ext-sources pNE` also prints R1–R3;
+  they read "incomplete" (no seeds 4–5) and are not part of v7.
+- Identity check before scoring: for seeds 1–3, the p = 0.07 count arrays
+  (`counts_seed<s>_p0.07_float32_dt1e-04_src-pNE.npy`) must equal the v6 arrays
+  (`F:\warehouse\caminos\scored\caminos_scored\counts_seed<s>_p0.07_float32_dt1e-04.npy`)
+  element for element (`numpy.array_equal`). Both come from the same WSL2 CUDA environment
+  (`~/venv_jaxfne`). A mismatch stops scoring and is reported; the code and the environment
+  are then checked before any rerun.
 - Runs: WSL2 CUDA, float32, one at a time after a jchat GPU claim (B5).
-- Code: `l2-caminos` baca68e7. Runs use `run_caminos.py --seeds 1 2 3 --p <p> --T 12.0
-  --ext-sources pNE --signed`; scoring uses `caminos_analysis.py <dir> --ext-sources pNE`,
-  which scores only default-variant runs with the p·NE drive.
+- Code: the runs check out the commit that carries this signed text. Its caminos code files
+  (`caminos_jax.py`, `run_caminos.py`, `caminos_analysis.py`) must equal `l2-caminos`
+  baca68e7 (`git diff --quiet baca68e7 -- <files>`); every run records that one commit SHA.
+  Runs use `run_caminos.py --seeds 1 2 3 --p <p> --T 12.0 --ext-sources pNE --signed`;
+  scoring uses `caminos_analysis.py <dir> --ext-sources pNE`, which scores only
+  default-variant runs with the p·NE drive.
 
 ## Outcome language
 
 - R4v7 passes: "With external drive p·NE, the port shows the critical-p onset of Fig. 1E."
   The overall CAMINOS Fig. 1 verdict is then R1–R3 (v6) plus R4v7.
-- R4v7 fails: reported with its numbers. The drive reading is then excluded as the cause,
-  and S3–S5 are the next candidates.
+- R4v7 fails: reported with its numbers. Private p·NE sources are then excluded as the
+  cause; other drive readings (S4, shared trains) and S3 and S5 remain candidates.
