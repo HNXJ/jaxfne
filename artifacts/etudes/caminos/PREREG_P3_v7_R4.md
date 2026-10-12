@@ -26,8 +26,10 @@ v6 sweep gave each cell 560 sources where p·NE gives 160.
 | R4v7 | Oscillation at p = 0.02, 0.03, …, 0.10, seeds 1–3, drive p·NE | no seed oscillates at p = 0.02 while E still fires (mean E rate ≥ 0.1 Hz in every p = 0.02 seed), and all seeds oscillate at p = 0.07; the smallest p at which all seeds oscillate is reported |
 
 - The E rate floor separates "asynchronous" from "silent": a silent network at p = 0.02
-  meets "does not oscillate" vacuously (v6 rule), so it does not pass. E, PV and SOM rates
-  are reported at every p.
+  meets "does not oscillate" vacuously (v6 rule), so it does not pass. The scorer's
+  `r4.pass` does not apply the floor; R4v7 passes only when `r4.pass` is true and
+  `per_run[].rates_Hz.E ≥ 0.1` for each p = 0.02 seed in the same `score.json`. E, PV and
+  SOM rates are reported at every p.
 - Completeness: all 9 values of p × seeds 1–3, T = 12 s, dt = 0.1 ms, one code SHA. Anything
   else scores as "incomplete" (fail). Scoring with `--ext-sources pNE` also prints R1–R3;
   they read "incomplete" (no seeds 4–5) and are not part of v7.
