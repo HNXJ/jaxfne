@@ -34,16 +34,18 @@ def _kernel_args(model, dt_ms):
 
 
 def _plumbing_cfg(*, decay="exp", step_order="default", edge_seed=11, probability=0.2,
-                  sampling="bernoulli"):
+                  sampling="bernoulli", e_e_weight=0.5, e_e_delay=2.0,
+                  ampa_tau=2.0, ampa_rev=0.0):
     return (
         jtfne.Configuration()
         .network(name="adex60", n=N, cell_types=CELL_TYPES)
         .emitter(family="adex", adex_decay=decay, adex_step_order=step_order)
-        .mechanisms(name="ampa", kind="receptor", params={"tau_ms": 2.0, "reversal_mV": 0.0})
+        .mechanisms(name="ampa", kind="receptor",
+                    params={"tau_ms": ampa_tau, "reversal_mV": ampa_rev})
         .mechanisms(name="gaba", kind="receptor", params={"tau_ms": 8.0, "reversal_mV": -80.0})
         .connections(name="e_e", source={"cell_type": "E"}, target={"cell_type": "E"},
-                     probability=probability, weight=0.5, mechanism="ampa", delay_ms=2.0,
-                     sampling=sampling)
+                     probability=probability, weight=e_e_weight, mechanism="ampa",
+                     delay_ms=e_e_delay, sampling=sampling)
         .connections(name="e_pv", source={"cell_type": "E"}, target={"cell_type": "PV"},
                      probability=probability, weight=1.0, mechanism="ampa", delay_ms=1.3,
                      sampling=sampling)
@@ -640,3 +642,130 @@ def test_public_model_method_on_adex_returns_checked_or_refuses_by_name(
     else:
         result = call(walk_model, walk_signals, tmp_path)
         _check_walk_result(name, result, walk_model, walk_signals)
+
+
+# The CAMINOS external drive on the route: Simulation(poisson_drive=...) reaches the kernel
+# with the reference scaling, and the run records the drive in its metadata.
+DRIVE = {
+    "n_sources": 560, "rate_hz": 4.0, "weight_nS": 2.5, "mechanism": "ampa",
+    "target_cell_types": ["E", "PV"], "delay_ms": 2.0, "seed": 7,
+}
+
+
+def _drive_sim(**kwargs):
+    drive = dict(DRIVE)
+    drive.update(kwargs)
+    return _sim(poisson_drive=drive)
+
+
+def test_route_passes_drive_kwargs_to_the_kernel(kernel_calls):
+    model = jtfne.construct(_base())
+    model.simulate(_drive_sim())
+    assert len(kernel_calls) == 1, "simulate must run the kernel once"
+    kw = kernel_calls[0][0]
+    np.testing.assert_allclose(kw["ext_lambda"], 560 * 4.0 * (DT_MS / 1000.0), rtol=1e-12)
+    assert kw["ext_weight_nS"] == pytest.approx(2.5)
+    assert kw["ext_receptor"] == 0, "ampa is the first declared mechanism"
+    assert kw["ext_delay_steps"] == 20, "2 ms at dt 0.1 ms"
+    labels = tuple(model.params["emitter"].labels)
+    want = [i for i, lab in enumerate(labels) if lab in ("E", "PV")]
+    assert np.asarray(kw["ext_targets"]).tolist() == want
+    assert "key" in kw
+
+
+def test_route_drive_spikes_and_is_recorded_in_metadata():
+    model = jtfne.construct(_base())
+    quiet = model.simulate(_sim())
+    assert int(np.sum(np.asarray(quiet.spikes))) == 0, "fixture runs quiet with no drive"
+    assert "poisson_drive" not in quiet.metadata
+    signals = model.simulate(_drive_sim())
+    assert int(np.sum(np.asarray(signals.spikes))) > 0, "the drive must spike the fixture"
+    recorded = signals.metadata["poisson_drive"]
+    assert recorded["status"] == "stochastic_drive_applied"
+    assert recorded["ext_lambda"] == pytest.approx(560 * 4.0 * (DT_MS / 1000.0), rel=1e-12)
+    for key in DRIVE:
+        assert recorded[key] == DRIVE[key]
+
+
+@pytest.mark.parametrize(
+    "key, value",
+    [
+        ("n_sources", 100), ("rate_hz", 1.0), ("weight_nS", 0.5), ("mechanism", "gaba"),
+        ("target_cell_types", ["E"]), ("delay_ms", 1.0), ("seed", 8),
+    ],
+)
+def test_route_drive_field_perturbation_changes_spikes(key, value):
+    model = jtfne.construct(_base())
+    ref = np.asarray(model.simulate(_drive_sim()).spikes)
+    assert ref.sum() > 0, "fixture must spike"
+    got = np.asarray(model.simulate(_drive_sim(**{key: value})).spikes)
+    assert not np.array_equal(ref, got), f"changing {key} must change the spikes"
+
+
+DRIVE_SCHEMA_REFUSALS = [
+    ({}, "missing"),
+    ({"extra": 1}, "unknown keys"),
+    ({"n_sources": 0}, "n_sources"),
+    ({"rate_hz": 0.0}, "rate_hz"),
+    ({"weight_nS": -1.0}, "weight_nS"),
+    ({"mechanism": "nmda"}, "mechanism"),
+    ({"target_cell_types": ["E", "SST"]}, "target_cell_types"),
+    ({"delay_ms": 0.04}, "delay_ms"),
+    ({"seed": "x"}, "seed"),
+]
+
+
+@pytest.mark.parametrize("override, needle", DRIVE_SCHEMA_REFUSALS)
+def test_route_drive_schema_refusals_name_poisson_drive_and_key(override, needle):
+    model = jtfne.construct(_base())
+    drive = dict(DRIVE)
+    if needle == "missing":
+        del drive["seed"]
+    else:
+        drive.update(override)
+    with pytest.raises(ValueError) as info:
+        model.simulate(_sim(poisson_drive=drive))
+    msg = str(info.value)
+    assert "poisson_drive" in msg, msg
+    assert needle in msg, msg
+
+
+def _drive_run(cfg):
+    return np.asarray(jtfne.construct(cfg).simulate(_drive_sim()).spikes)
+
+
+# Packet test 6: with the drive on, every consumed configuration field moves the spikes.
+# Each case sets one field to a non-default value through the same builders the tests above
+# use; the comparison is on Signals.spikes, never on kernel kwargs.
+CONFIG_FIELD_VARIANTS = [
+    ("adex_decay", {"decay": "euler"}),
+    ("adex_step_order", {"step_order": "brian2"}),
+    ("rule weight", {"e_e_weight": 2.0}),
+    ("rule delay", {"e_e_delay": 1.0}),
+    ("mechanism tau", {"ampa_tau": 4.0}),
+    ("mechanism reversal", {"ampa_rev": 20.0}),
+    ("rule probability", {"probability": 0.05}),
+    ("edge seed", {"edge_seed": 12}),
+]
+
+
+@pytest.mark.parametrize(
+    "label, override", CONFIG_FIELD_VARIANTS, ids=[v[0] for v in CONFIG_FIELD_VARIANTS]
+)
+def test_consumed_configuration_field_changes_driven_spikes(label, override):
+    ref = _drive_run(_base())
+    assert ref.sum() > 0, "the drive must spike the fixture"
+    got = _drive_run(_plumbing_cfg(**override))
+    assert not np.array_equal(ref, got), (
+        f"{label} is consumed: a non-default value must change the driven spikes"
+    )
+
+
+@pytest.mark.parametrize("key, value", [("amplitude", 0.5), ("target", "all")])
+def test_drive_current_schema_keys_refused_by_name(key, value):
+    model = jtfne.construct(_base())
+    with pytest.raises(ValueError) as info:
+        model.simulate(_sim(poisson_drive=dict(DRIVE, **{key: value})))
+    msg = str(info.value)
+    assert "poisson_drive" in msg, msg
+    assert key in msg, msg

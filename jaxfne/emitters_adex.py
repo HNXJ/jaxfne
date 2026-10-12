@@ -12,6 +12,7 @@ Function-level only. Configuration, construct and simulate wiring is not here.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping, Sequence
 from typing import Any, NamedTuple
 
@@ -144,6 +145,81 @@ _EDGE_ARGS = (
     "edge_pre", "edge_post", "edge_weight_nS", "edge_receptor", "edge_delay_steps",
 )
 
+_EXT_ARGS = (
+    "ext_targets", "ext_lambda", "ext_weight_nS", "ext_receptor", "ext_delay_steps", "key",
+)
+
+
+def _check_external_drive(N, R, given):
+    """Validate the six external-drive arguments; return a dict, or None when all are absent."""
+    missing = [k for k in _EXT_ARGS if given[k] is None]
+    if missing and len(missing) < len(_EXT_ARGS):
+        raise ValueError(
+            "external drive arguments (ext_targets, ext_lambda, ext_weight_nS, ext_receptor, "
+            f"ext_delay_steps, key) must be all given or all None; missing {missing}"
+        )
+    if missing:
+        return None
+    targets = np.asarray(given["ext_targets"])
+    if targets.ndim != 1:
+        raise ValueError(f"ext_targets must be one-dimensional, got shape {targets.shape}")
+    t64 = targets.astype(np.float64)
+    if not np.all(np.isfinite(t64)) or np.any(t64 != np.round(t64)):
+        raise ValueError("ext_targets must hold integers")
+    t64 = t64.astype(np.int64)
+    if t64.size == 0:
+        raise ValueError("ext_targets must hold at least one cell index")
+    if t64.min() < 0 or t64.max() >= N:
+        raise ValueError(
+            f"ext_targets must index cells in [0, {N}); got min {t64.min()}, max {t64.max()}"
+        )
+    if np.unique(t64).size != t64.size:
+        raise ValueError(f"ext_targets must hold unique cell indices; got {t64.tolist()}")
+
+    def _nonneg_float(name, value):
+        try:
+            out = float(value)
+        except (TypeError, ValueError):
+            raise ValueError(f"{name} must be a number; got {value!r}")
+        if isinstance(value, bool) or not math.isfinite(out) or out < 0.0:
+            raise ValueError(f"{name} must be a finite float >= 0; got {value!r}")
+        return out
+
+    lam = _nonneg_float("ext_lambda", given["ext_lambda"])
+    weight = _nonneg_float("ext_weight_nS", given["ext_weight_nS"])
+    rec = given["ext_receptor"]
+    if (
+        isinstance(rec, bool)
+        or not isinstance(rec, (int, np.integer, float, np.floating))
+        or not math.isfinite(float(rec))
+        or float(rec) != round(float(rec))
+        or int(rec) < 0
+        or int(rec) >= R
+    ):
+        raise ValueError(f"ext_receptor must index receptors in [0, {R}); got {rec!r}")
+    delay = given["ext_delay_steps"]
+    if (
+        isinstance(delay, bool)
+        or not isinstance(delay, (int, np.integer, float, np.floating))
+        or not math.isfinite(float(delay))
+        or float(delay) != round(float(delay))
+        or int(delay) < 1
+    ):
+        raise ValueError(f"ext_delay_steps must be an integer >= 1; got {delay!r}")
+    try:
+        key = given["key"]
+        jax.random.split(key)
+    except Exception:
+        raise ValueError(f"key must be a JAX PRNG key; got {given['key']!r}")
+    return {
+        "targets": t64,
+        "lambda": lam,
+        "weight": weight,
+        "receptor": int(rec),
+        "delay": int(delay),
+        "key": key,
+    }
+
 
 def _check_edges(N, R, given):
     """Validate the five edge arrays; return numpy arrays, or None when all are absent."""
@@ -206,6 +282,12 @@ def simulate_adex(
     I_ext_pA=None,
     V0_mV=None,
     record_v: bool = False,
+    ext_targets=None,
+    ext_lambda=None,
+    ext_weight_nS=None,
+    ext_receptor=None,
+    ext_delay_steps=None,
+    key=None,
 ) -> dict[str, Any]:
     """Simulate conductance-based AdEx cells on a sparse edge list.
 
@@ -216,18 +298,29 @@ def simulate_adex(
 
     Per step ``t``, in order:
 
-    1. arrivals: each edge reads the spike vector of step ``t - d_e`` (``d_e`` plus 1 under
-       ``step_order="brian2"``) from a ring of length ``max(d_e)`` (plus 1 for brian2);
-    2. conductance ``g[N, R] = g * decay_r + scatter_add(post, receptor, |w| * arrival)``,
+    1. the drive key is split once (``rkey, ks = split(rkey)``); with no external drive
+       the key stays absent and no draw happens;
+    2. arrivals: each edge reads the spike vector of step ``t - d_e`` (``d_e`` plus 1 under
+       ``step_order="brian2"``) from a ring of length ``max(d_e)`` (plus 1 for brian2), and
+       each external target reads the Poisson count drawn ``d_ext`` steps earlier (plus 1
+       under ``step_order="brian2"``) from an int32 ring of the same length;
+    3. conductance ``g[N, R] = g * decay_r + scatter_add(post, receptor, |w| * arrival)``,
        with ``decay_r = exp(-dt / tau_r)`` for ``decay="exp"`` or ``1 - dt / tau_r`` for
        ``decay="euler"`` (the CAMINOS reference; required, no default, because the two differ
-       by 0.951229 vs 0.95 per step at dt 0.1 ms, tau 2 ms);
-    3. current ``I = sum_r g[:, r] * (E_r - V) + I_ext[t]``;
-    4. :func:`adex_step`;
-    5. this step's spikes are written into the ring.
+       by 0.951229 vs 0.95 per step at dt 0.1 ms, tau 2 ms); each external target adds
+       ``ext_weight_nS * count`` at ``[target, ext_receptor]``, keeping multiplicities;
+    4. current ``I = sum_r g[:, r] * (E_r - V) + I_ext[t]``;
+    5. :func:`adex_step`;
+    6. this step's spikes are written into the ring, and fresh counts
+       ``poisson(ks, ext_lambda)`` per target are written into the external ring, so a
+       count drawn at step ``t`` acts at step ``t + d_ext`` and the first ``d_ext`` steps
+       carry no external drive.
 
-    There is no external conductance drive yet (the reference adds ``Q_ext * Poisson`` counts
-    to the excitatory conductance); only a current ``I_ext_pA``.
+    The external drive is opt-in through six keyword arguments that are all given or all
+    None: ``ext_targets`` (int ``[M]`` cell indices, unique, in range), ``ext_lambda``
+    (mean count per step per target, >= 0), ``ext_weight_nS`` (conductance per count, >= 0),
+    ``ext_receptor`` (a valid receptor index), ``ext_delay_steps`` (int >= 1; plus 1 under
+    ``step_order="brian2"``, as for edges), and ``key`` (a JAX PRNG key).
 
     ``I_ext_pA`` is None, shape ``[N]`` (every step), or ``[n_steps, N]``. ``V0_mV`` is None
     (rest at ``EL``) or shape ``[N]``. ``edge_*`` arrays are all given or all None. Edge
@@ -289,7 +382,27 @@ def simulate_adex(
         }
     E = int(edges["pre"].shape[0])
     delay_eff = edges["delay"] + (1 if step_order == "brian2" else 0)
-    L = int(delay_eff.max()) if E else 1
+    ext = _check_external_drive(
+        N,
+        R,
+        {
+            "ext_targets": ext_targets,
+            "ext_lambda": ext_lambda,
+            "ext_weight_nS": ext_weight_nS,
+            "ext_receptor": ext_receptor,
+            "ext_delay_steps": ext_delay_steps,
+            "key": key,
+        },
+    )
+    L_edge = int(delay_eff.max()) if E else 0
+    if ext is None:
+        L = L_edge if E else 1
+        d_ext = 0
+        M = 0
+    else:
+        d_ext = int(ext["delay"]) + (1 if step_order == "brian2" else 0)
+        L = max(L_edge, d_ext, 1)
+        M = int(ext["targets"].shape[0])
 
     pre_j = jnp.asarray(edges["pre"], jnp.int32)
     seg_j = jnp.asarray(edges["post"] * R + edges["receptor"], jnp.int32)
@@ -298,6 +411,11 @@ def simulate_adex(
     decay_r = np.exp(-dt_ms / tau) if decay == "exp" else 1.0 - dt_ms / tau
     decay_j = jnp.asarray(decay_r, dtype)
     rev_j = jnp.asarray(rev, dtype)
+    if ext is not None:
+        targets_j = jnp.asarray(ext["targets"], jnp.int32)
+        w_ext_j = jnp.asarray(ext["weight"], dtype)
+        lam_f = float(ext["lambda"])
+        rec_ext = int(ext["receptor"])
 
     # A constant current is closed over, so no [n_steps, N] array is built for it.
     I_const = jnp.zeros((N,), dtype)
@@ -321,7 +439,9 @@ def simulate_adex(
             raise ValueError(f"V0_mV must be None or shape ({N},); got {V0.shape}")
 
     def body(carry, I_t):
-        V, w, ref, g, ring, t = carry
+        V, w, ref, g, ring, ering, t, rkey = carry
+        if ext is not None:
+            rkey, ks = jax.random.split(rkey)
         I_t = I_const if I_t is None else I_t
         if E:
             arrived = ring[(t - lag_j) % L, pre_j]
@@ -331,21 +451,35 @@ def simulate_adex(
         else:
             added = jnp.zeros((N, R), dtype)
         g = g * decay_j[None, :] + added
+        if ext is not None:
+            earr = ering[(t - d_ext) % L]
+            g = g.at[targets_j, rec_ext].add(w_ext_j * earr.astype(dtype))
         I_tot = jnp.sum(g * (rev_j[None, :] - V[:, None]), axis=1) + I_t
         (V, w, ref), spk = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
         ring = ring.at[t % L].set(spk)
+        if ext is not None:
+            extc = jax.random.poisson(ks, lam_f, shape=(M,)).astype(jnp.int32)
+            ering = ering.at[t % L].set(extc)
         out = (spk, V) if record_v else spk
-        return (V, w, ref, g, ring, t + 1), out
+        return (V, w, ref, g, ring, ering, t + 1, rkey), out
 
+    if ext is not None:
+        rkey0 = ext["key"]
+        ering0 = jnp.zeros((L, M), jnp.int32)
+    else:
+        rkey0 = jnp.zeros((), jnp.int32)
+        ering0 = jnp.zeros((0,), jnp.int32)
     carry0 = (
         V0,
         jnp.zeros((N,), dtype),
         jnp.zeros((N,), jnp.int32),
         jnp.zeros((N, R), dtype),
         jnp.zeros((L, N), bool),
+        ering0,
         jnp.int32(0),
+        rkey0,
     )
-    (V, w, ref, g, _, _), ys = jax.lax.scan(body, carry0, I_all, length=n_steps)
+    (V, w, ref, g, _, _, _, _), ys = jax.lax.scan(body, carry0, I_all, length=n_steps)
     result = {
         "spikes": ys[0] if record_v else ys,
         "V": V,

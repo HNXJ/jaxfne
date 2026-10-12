@@ -19,6 +19,7 @@ import numbers
 from collections.abc import Mapping
 from typing import Any
 
+import jax
 import jax.numpy as jnp
 import numpy as np
 
@@ -36,6 +37,7 @@ ADEX_CONSUMED = (
     ("Simulation", "duration_ms"),
     ("Simulation", "dt_ms"),
     ("Simulation", "runtime"),
+    ("Simulation", "poisson_drive"),
     # RuntimeConfig seed and n_steps are owned by Simulation (resolved_runtime replaces them, and
     # Simulation.__post_init__ refuses a conflicting value).
     ("RuntimeConfig", "seed"),
@@ -414,4 +416,102 @@ def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> di
         "receptor_tau_ms": st["receptor_tau_ms"],
         "decay": st["decay"],
         "step_order": st["step_order"],
+    }
+
+
+# ``Simulation(poisson_drive=...)`` on the adex route: the CAMINOS external drive, one Poisson
+# count stream per target cell added to one receptor's conductance after a delay.
+_DRIVE_KEYS = (
+    "n_sources", "rate_hz", "weight_nS", "mechanism", "target_cell_types", "delay_ms", "seed",
+)
+
+
+def _drive_error(detail: str) -> ValueError:
+    return ValueError(
+        f"Simulation(poisson_drive={detail}) is not realized for emitter family 'adex': "
+        "the drive needs exactly the keys "
+        f"{list(_DRIVE_KEYS)} (n_sources: int >= 1, rate_hz > 0, weight_nS >= 0, "
+        "mechanism: a declared mechanism name, target_cell_types: a non-empty list of "
+        "declared cell types, delay_ms, seed: int)"
+    )
+
+
+def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
+    """Keyword arguments for the kernel's external drive on ``model`` (``ext_*`` plus ``key``).
+
+    Empty when ``sim.poisson_drive`` is None. ``ext_lambda`` is
+    ``n_sources * rate_hz * dt_ms / 1000`` (ms to s); the key is
+    ``jax.random.PRNGKey(seed)``; targets are the cells whose type is listed in
+    ``target_cell_types``, in index order; the receptor is the mechanism's declaration
+    index; the delay is realized by the plain route's rule. Every refusal names
+    ``poisson_drive`` and the offending key.
+    """
+    drive = sim.poisson_drive
+    if drive is None:
+        return {}
+    if not isinstance(drive, Mapping):
+        raise _drive_error(repr(drive))
+    unknown = [k for k in drive if k not in _DRIVE_KEYS]
+    if unknown:
+        raise _drive_error(f"{dict(drive)!r} has unknown keys {unknown}")
+    missing = [k for k in _DRIVE_KEYS if k not in drive]
+    if missing:
+        raise _drive_error(f"{dict(drive)!r} is missing keys {missing}")
+    st = model.static["adex"]
+    receptor_names = list(st["receptor_names"])
+    labels = tuple(model.params["emitter"].labels)
+    n_sources = drive["n_sources"]
+    if isinstance(n_sources, bool) or not isinstance(n_sources, (int, np.integer)):
+        raise _drive_error(f"n_sources={n_sources!r} must be an int >= 1")
+    if int(n_sources) < 1:
+        raise _drive_error(f"n_sources={n_sources!r} must be an int >= 1")
+    rate_hz = drive["rate_hz"]
+    if not (_finite_real(rate_hz) and float(rate_hz) > 0):
+        raise _drive_error(f"rate_hz={rate_hz!r} must be > 0")
+    weight_nS = drive["weight_nS"]
+    if not (_finite_real(weight_nS) and float(weight_nS) >= 0):
+        raise _drive_error(f"weight_nS={weight_nS!r} must be >= 0")
+    mechanism = drive["mechanism"]
+    if mechanism not in receptor_names:
+        raise _drive_error(
+            f"mechanism={mechanism!r} names an undeclared mechanism; declared: {receptor_names}"
+        )
+    wanted = drive["target_cell_types"]
+    if (
+        not isinstance(wanted, (list, tuple))
+        or not wanted
+        or any(not isinstance(t, str) for t in wanted)
+        or any(t not in set(labels) for t in wanted)
+    ):
+        raise _drive_error(
+            f"target_cell_types={wanted!r} must be a non-empty list of declared cell types "
+            f"{sorted(set(labels))}"
+        )
+    delay_ms = drive["delay_ms"]
+    if not _finite_real(delay_ms):
+        raise _drive_error(f"delay_ms={delay_ms!r} must be a number")
+    dt = float(sim.dt_ms)
+    try:
+        delay_steps = delay_steps_from_ms(float(delay_ms), dt)
+    except ValueError as exc:
+        raise _drive_error(
+            f"delay_ms={delay_ms!r} at dt_ms={dt} rounds to 0 steps; the drive needs >= 1"
+        ) from exc
+    if delay_steps < 1:
+        raise _drive_error(
+            f"delay_ms={delay_ms!r} at dt_ms={dt} is {delay_steps} steps; the drive needs >= 1"
+        )
+    seed = drive["seed"]
+    if isinstance(seed, bool) or not isinstance(seed, (int, np.integer)):
+        raise _drive_error(f"seed={seed!r} must be an int")
+    targets = np.asarray(
+        [i for i, lab in enumerate(labels) if lab in set(wanted)], dtype=np.int64
+    )
+    return {
+        "ext_targets": targets,
+        "ext_lambda": float(int(n_sources) * float(rate_hz) * dt / 1000.0),
+        "ext_weight_nS": float(weight_nS),
+        "ext_receptor": int(receptor_names.index(mechanism)),
+        "ext_delay_steps": int(delay_steps),
+        "key": jax.random.PRNGKey(int(seed)),
     }

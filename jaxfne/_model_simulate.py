@@ -1441,14 +1441,19 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
     """The adex emitter family's ``simulate()`` path (``jaxfne/emitters_adex.py``).
 
     Runs the conductance kernel on the compiled edges (``_construct_adex.adex_kernel_args``
-    supplies its arguments). The cells start at rest and no input current is applied, so
-    the run has no drive yet; no field is built (``field`` is None).
+    supplies its arguments). ``Simulation(poisson_drive=...)`` adds the CAMINOS external
+    drive (``_construct_adex.adex_external_drive_kwargs`` supplies the kernel's ``ext_*``
+    arguments); without it the cells start at rest and run with no drive. No field is
+    built (``field`` is None).
     """
-    from ._construct_adex import adex_kernel_args
+    from ._construct_adex import adex_external_drive_kwargs, adex_kernel_args
 
     dtype = runtime_cfg.jnp_dtype
     kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
-    out = simulate_adex(**kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True)
+    drive_kwargs = adex_external_drive_kwargs(self, sim)
+    out = simulate_adex(
+        **kwargs, **drive_kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True
+    )
     time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
     static = self.static["adex"]
     metadata: dict[str, Any] = {
@@ -1469,6 +1474,18 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
         # The route records no sources and no field; the record flags change nothing here.
         "not_recorded": ["sources", "field"],
     }
+    if sim.poisson_drive is not None:
+        metadata["poisson_drive"] = {
+            "n_sources": int(sim.poisson_drive["n_sources"]),
+            "rate_hz": float(sim.poisson_drive["rate_hz"]),
+            "weight_nS": float(sim.poisson_drive["weight_nS"]),
+            "mechanism": str(sim.poisson_drive["mechanism"]),
+            "target_cell_types": list(sim.poisson_drive["target_cell_types"]),
+            "delay_ms": float(sim.poisson_drive["delay_ms"]),
+            "seed": int(sim.poisson_drive["seed"]),
+            "ext_lambda": float(drive_kwargs["ext_lambda"]),
+            "status": "stochastic_drive_applied",
+        }
     return Signals(
         time_ms=time_ms,
         V_m=out["V_mV"].astype(dtype),

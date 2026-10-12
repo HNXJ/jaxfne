@@ -29,6 +29,13 @@ the rules those releases were held to and are historical context for readers.
   `Configuration`, `RuntimeConfig` and `Simulation` field outside its allowlist (see the AdEx
   family section of the emitters API doc). `Model` methods that need the Izhikevich emitter, the
   edge list or an HDP or coupling state raise `NotImplementedError` naming the method.
+- `Simulation(poisson_drive=...)` drives `emitter(family="adex")` models with the CAMINOS
+  external drive: each cell of the listed types draws Poisson counts with mean
+  `n_sources * rate_hz * dt / 1000` per step; each count adds `weight_nS` to the named
+  mechanism's conductance after `delay_ms`. `simulate_adex` gains the matching `ext_targets`,
+  `ext_lambda`, `ext_weight_nS`, `ext_receptor`, `ext_delay_steps` and `key` keyword arguments
+  (all given or all None; the kernel draws in the reference's split order and matches a
+  transcription of it spike for spike).
 
 ### Changed
 - Python 3.15 groundwork. JAX/jaxlib ceiling raised from `<0.11` to `<0.12`, because jaxlib's first

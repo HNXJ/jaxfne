@@ -430,3 +430,191 @@ def test_dtype_follows_params():
         assert out["V_mV"].dtype == np.float32
     finally:
         jax.config.update("jax_enable_x64", True)
+
+
+# 8. External Poisson conductance drive matches a JAX transcription of the reference step.
+DRIVE_STEPS = 2000  # 200 ms at dt 0.1 ms
+DRIVE_DELAY = 20  # 2 ms at dt 0.1 ms
+DRIVE_SEED = 11  # edge draw seed (numpy); the drive key is a separate PRNGKey
+DRIVE_KEY = 3
+DRIVE_LAMBDA = 560 * 4.0 * (DT_MS / 1000.0)  # n_sources * rate_hz * dt
+DRIVE_WEIGHT_N_S = 2.5  # CAMINOS Q_ext
+# CAMINOS Table 2 Q values in nS, keyed by (pre, post) type.
+DRIVE_Q_N_S = {
+    ("E", "E"): 2.0, ("E", "PV"): 3.0, ("E", "SOM"): 3.0, ("PV", "E"): 5.0,
+    ("PV", "PV"): 5.0, ("SOM", "E"): 5.0, ("SOM", "PV"): 5.0,
+}
+DRIVE_PAIRS = [("E", "E"), ("E", "PV"), ("E", "SOM"), ("PV", "E"),
+               ("PV", "PV"), ("SOM", "E"), ("SOM", "PV")]
+DRIVE_SIZES = {"E": 80, "PV": 10, "SOM": 10}
+DRIVE_OFF = {"E": 0, "PV": 80, "SOM": 90}
+
+
+def _drive_fixture():
+    """Shared edge list (p 0.2 Bernoulli blocks, no autapses) and drive arguments."""
+    labels = ("E",) * 80 + ("PV",) * 10 + ("SOM",) * 10
+    params = make_adex_params(labels)
+    rng = np.random.default_rng(DRIVE_SEED)
+    pre, post, w, rec, blocks = [], [], [], [], {}
+    for a, b in DRIVE_PAIRS:
+        blk = rng.random((DRIVE_SIZES[a], DRIVE_SIZES[b])) < 0.2
+        if a == b:
+            np.fill_diagonal(blk, False)
+        blocks[(a, b)] = blk
+        ii, jj = np.nonzero(blk)
+        pre += (ii + DRIVE_OFF[a]).tolist()
+        post += (jj + DRIVE_OFF[b]).tolist()
+        w += [DRIVE_Q_N_S[(a, b)]] * len(ii)
+        rec += [0 if a == "E" else 1] * len(ii)
+    targets = np.array(
+        [i for i, lab in enumerate(labels) if lab in ("E", "PV")], dtype=np.int64
+    )
+    edges = dict(
+        edge_pre=np.array(pre, dtype=np.int64),
+        edge_post=np.array(post, dtype=np.int64),
+        edge_weight_nS=np.array(w, dtype=np.float64),
+        edge_receptor=np.array(rec, dtype=np.int64),
+        edge_delay_steps=np.full(len(pre), DRIVE_DELAY, dtype=np.int64),
+    )
+    drive = dict(
+        ext_targets=targets,
+        ext_lambda=DRIVE_LAMBDA,
+        ext_weight_nS=DRIVE_WEIGHT_N_S,
+        ext_receptor=0,
+        ext_delay_steps=DRIVE_DELAY,
+        key=jax.random.PRNGKey(DRIVE_KEY),
+    )
+    receptors = dict(receptor_reversal_mV=(0.0, -80.0), receptor_tau_ms=(2.0, 8.0))
+    return labels, params, edges, drive, receptors, blocks
+
+
+def _drive_transcription(params, edges, drive, receptors, blocks):
+    """Independent JAX transcription of the reference step: dense blocks, rings, one
+    split per step, euler decay, external counts added to the E/PV conductance."""
+    del edges  # the transcription routes through the dense blocks, as the reference does
+    n_tot = sum(DRIVE_SIZES.values())
+    n_tgt = int(np.asarray(drive["ext_targets"]).shape[0])
+    tblk = {pair: jnp.asarray(blk, jnp.float64) for pair, blk in blocks.items()}
+    decay_e = 1.0 - DT_MS / 2.0
+    decay_i = 1.0 - DT_MS / 8.0
+    V = jnp.asarray(params.EL_mV)
+    w = jnp.zeros((n_tot,), jnp.float64)
+    ref = jnp.zeros((n_tot,), jnp.int32)
+    g = jnp.zeros((n_tot, 2), jnp.float64)
+    ring = jnp.zeros((DRIVE_DELAY, n_tot), bool)
+    ering = jnp.zeros((DRIVE_DELAY, n_tgt), jnp.int32)
+
+    def step(carry, _):
+        V, w, ref, g, ring, ering, t, rkey = carry
+        rkey, ks = jax.random.split(rkey)
+        ae = ring[(t - DRIVE_DELAY) % DRIVE_DELAY, :80].astype(jnp.float64)
+        ap = ring[(t - DRIVE_DELAY) % DRIVE_DELAY, 80:90].astype(jnp.float64)
+        as_ = ring[(t - DRIVE_DELAY) % DRIVE_DELAY, 90:].astype(jnp.float64)
+        ge = jnp.concatenate([
+            DRIVE_Q_N_S[("E", "E")] * (tblk[("E", "E")].T @ ae),
+            DRIVE_Q_N_S[("E", "PV")] * (tblk[("E", "PV")].T @ ae),
+            DRIVE_Q_N_S[("E", "SOM")] * (tblk[("E", "SOM")].T @ ae),
+        ])
+        gi = jnp.concatenate([
+            DRIVE_Q_N_S[("PV", "E")] * (tblk[("PV", "E")].T @ ap)
+            + DRIVE_Q_N_S[("SOM", "E")] * (tblk[("SOM", "E")].T @ as_),
+            DRIVE_Q_N_S[("PV", "PV")] * (tblk[("PV", "PV")].T @ ap)
+            + DRIVE_Q_N_S[("SOM", "PV")] * (tblk[("SOM", "PV")].T @ as_),
+            jnp.zeros((10,), jnp.float64),
+        ])
+        earr = ering[(t - DRIVE_DELAY) % DRIVE_DELAY].astype(jnp.float64)
+        ge = ge.at[:80].add(DRIVE_WEIGHT_N_S * earr[:80])
+        ge = ge.at[80:90].add(DRIVE_WEIGHT_N_S * earr[80:])
+        gE = g[:, 0] * decay_e + ge
+        gI = g[:, 1] * decay_i + gi
+        I_tot = gE * (0.0 - V) + gI * (-80.0 - V)
+        (V, w, ref), spk = adex_step((V, w, ref), I_tot, params, DT_MS)
+        extc = jax.random.poisson(ks, DRIVE_LAMBDA, shape=(n_tgt,)).astype(jnp.int32)
+        ring = ring.at[t % DRIVE_DELAY].set(spk)
+        ering = ering.at[t % DRIVE_DELAY].set(extc)
+        return (V, w, ref, jnp.stack([gE, gI], axis=1), ring, ering, t + 1, rkey), spk
+
+    init = (V, w, ref, g, ring, ering, jnp.int32(0), drive["key"])
+    _, spikes = jax.lax.scan(step, init, None, length=DRIVE_STEPS)
+    return np.asarray(spikes)
+
+
+def test_external_drive_matches_reference_transcription_bit_for_bit():
+    labels, params, edges, drive, receptors, blocks = _drive_fixture()
+    out = simulate_adex(
+        params, n_steps=DRIVE_STEPS, dt_ms=DT_MS, **edges, **receptors,
+        decay="euler", **drive,
+    )
+    spikes = np.asarray(out["spikes"])
+    assert spikes.sum() > 0, "fixture must spike"
+    np.testing.assert_array_equal(
+        spikes, _drive_transcription(params, edges, drive, receptors, blocks)
+    )
+
+
+# 9. The first d steps carry no external drive; step d does.
+def test_external_drive_arrives_after_the_delay():
+    params = make_adex_params(("E",) * 8 + ("PV",) * 2)
+    key = jax.random.PRNGKey(5)
+    kw = dict(
+        receptor_reversal_mV=(0.0,), receptor_tau_ms=(2.0,), decay="euler",
+        ext_targets=np.arange(8), ext_lambda=2.0, ext_weight_nS=2.5,
+        ext_receptor=0, ext_delay_steps=20, key=key,
+    )
+    before = simulate_adex(params, n_steps=20, dt_ms=DT_MS, **kw)
+    np.testing.assert_array_equal(np.asarray(before["g"]), np.zeros((10, 1)))
+    after = simulate_adex(params, n_steps=21, dt_ms=DT_MS, **kw)
+    g = np.asarray(after["g"])
+    assert float(np.abs(g[:8, 0]).max()) > 0.0, "a drawn count must reach a target"
+    np.testing.assert_array_equal(g[8:, 0], np.zeros(2))
+
+
+# 10. Seeds: two seeds differ, one seed repeats.
+def test_external_drive_seed_changes_spikes_and_repeats():
+    labels, params, edges, drive, receptors, _ = _drive_fixture()
+    kw = dict(n_steps=300, dt_ms=DT_MS, **edges, **receptors, decay="euler")
+
+    def run(seed):
+        out = simulate_adex(params, **kw, **{**drive, "key": jax.random.PRNGKey(seed)})
+        return np.asarray(out["spikes"])
+
+    a, a_again, b = run(21), run(21), run(22)
+    assert a.sum() > 0, "fixture must spike"
+    np.testing.assert_array_equal(a, a_again)
+    assert not np.array_equal(a, b), "a second seed must draw different counts"
+
+
+# 11. Each external-drive refusal names its argument.
+def _drive_base():
+    params = make_adex_params(("E", "PV"))
+    return params, dict(
+        n_steps=10, dt_ms=DT_MS,
+        receptor_reversal_mV=(0.0,), receptor_tau_ms=(2.0,), decay="euler",
+    )
+
+
+def _drive_full():
+    key = jax.random.PRNGKey(0)
+    return dict(
+        ext_targets=[0], ext_lambda=1.0, ext_weight_nS=1.0, ext_receptor=0,
+        ext_delay_steps=20, key=key,
+    )
+
+
+DRIVE_REFUSALS = [
+    (dict({k: v for k, v in _drive_full().items() if k != "ext_lambda"}), "ext_lambda"),
+    (dict({k: v for k, v in _drive_full().items() if k != "key"}), "key"),
+    ({**_drive_full(), "ext_lambda": -1.0}, "ext_lambda"),
+    ({**_drive_full(), "ext_weight_nS": -1.0}, "ext_weight_nS"),
+    ({**_drive_full(), "ext_targets": [99]}, "ext_targets"),
+    ({**_drive_full(), "ext_targets": [0, 0]}, "ext_targets"),
+    ({**_drive_full(), "ext_receptor": 4}, "ext_receptor"),
+    ({**_drive_full(), "ext_delay_steps": 0}, "ext_delay_steps"),
+]
+
+
+@pytest.mark.parametrize("override,name", DRIVE_REFUSALS)
+def test_external_drive_refusals_name_the_argument(override, name):
+    params, base = _drive_base()
+    with pytest.raises(ValueError, match=name):
+        simulate_adex(params, **base, **override)

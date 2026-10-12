@@ -772,8 +772,19 @@ print(signals.V_m.shape)
 - `simulate` realizes `round(delay_ms / dt_ms)` steps, rounded half up from the float quotient, and
   refuses a delay under one step, naming the rule. It returns `time_ms`, `V_m` (mV), `spikes` and
   metadata; `sources` and `field` are `None`, and `metadata["not_recorded"]` lists both.
-- The route applies a zero input current for now, so the cells in the example stay silent.
-  `simulate_adex` takes `I_ext_pA` and `V0_mV` directly.
+- With the drive off, the cells start at rest with zero input current.
+  `simulate_adex` takes `I_ext_pA` and `V0_mV` directly, and it takes the external
+  conductance drive through `ext_targets`, `ext_lambda`, `ext_weight_nS`, `ext_receptor`,
+  `ext_delay_steps` and `key` (all given or all None; see `simulate_adex`).
+- `Simulation(poisson_drive=...)` drives the cells. It carries exactly the keys `n_sources`
+  (int >= 1), `rate_hz` (> 0), `weight_nS` (>= 0), `mechanism` (a declared mechanism name),
+  `target_cell_types` (a non-empty list of declared cell types), `delay_ms` and `seed`
+  (int). Each target cell draws a Poisson count per step with mean
+  `n_sources * rate_hz * dt_ms / 1000`; each count adds `weight_nS` to the mechanism's
+  conductance after `delay_ms` (realized by the same half-up step rule as rule delays). The
+  key is `jax.random.PRNGKey(seed)`. A count drawn at step `t` acts at step `t + d`, so the
+  external drive starts at step `d`. Unknown or missing keys refuse by name, as do
+  `amplitude` and `target` from the current-drive schema.
 - The `Model` methods that read the edge list, the recurrent backend, the Izhikevich parameters or
   an HDP or coupling state raise `NotImplementedError` naming the method: `edge_table()`,
   `compile_connections()`, `connectivity_summary()`, `manifest()`, `run_receipt()`, `tune()`,
@@ -793,6 +804,7 @@ print(signals.V_m.shape)
   - `connectivity(edge_seed=)`, or `runtime(seed=)` when that is unset: the edge seed draws the edges.
   - `runtime(dt_ms=, duration_ms=)`: each must equal the Simulation's value, or simulate refuses the
     conflict.
+  - `Simulation(poisson_drive=)`: the external drive described above.
 - Route defaults: `runtime(recurrent_backend=)` defaults to `"edge_list"`; every other default is the
   `RuntimeConfig` default. A `RuntimeConfig` passed to `simulate` therefore sets
   `recurrent_backend="edge_list"`.
@@ -801,7 +813,6 @@ print(signals.V_m.shape)
 - Refused by name, for example: `network(p_connect=)`, `runtime(backend=)`, `runtime(device_type=)`,
   `runtime(precision=)`, `runtime(vmap=)`, `runtime(enable_hdp=)`, `runtime(jit=)` other than
   `"auto"`, `emitter(preset=)`, `drive()`, `field()`, `probe()`, `trainables()`, `optimizer()`,
-  `connections(sign=)`, `Simulation(plasticity=)`, `Simulation(poisson_drive=)` and
-  `Simulation(ablation=)`.
+  `connections(sign=)`, `Simulation(plasticity=)` and `Simulation(ablation=)`.
 - Refused explicitly: `continuation`, `return_state`, `paradigm`, `simulate_batch` and
   `simulate_condition`.
