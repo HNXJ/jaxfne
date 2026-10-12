@@ -99,7 +99,7 @@ fig = jtfne.vis.lfp(sources)
 
 ## 5. Positioning: what would make this non-redundant with existing tools (honest status, 2026-07-17)
 
-Sections 1–4 describe structural analogy, not a capability or superiority claim (see `scripts/evidence_figures/fig08_adjacent_tools_comparison.py`, which disclaims speedup/accuracy/biological-validity claims). This section states what is and is not true today, and names the unbuilt capability that would make the combination non-redundant.
+Sections 1–4 describe structural analogy, rather than a capability or superiority claim (see `scripts/evidence_figures/fig08_adjacent_tools_comparison.py`, which disclaims speedup/accuracy/biological-validity claims). This section states what is and is not true today, and names the unbuilt capability that would make the combination non-redundant.
 
 **True today:**
 - jaxfne's spiking simulation (`simulate_edge_recurrent_izhikevich*`) is implemented in
@@ -108,10 +108,10 @@ Sections 1–4 describe structural analogy, not a capability or superiority clai
   homeostatic controller (`H_i`) driving synaptic weight plasticity — a mechanism not
   present in this specific form in Jaxley, Brian2, or NEST.
 - The source-to-field readout (`jaxfne.fields.project_laminar_sources`) is a static,
-  non-learned linear projection (`field_solver_status = "linear_solver"`), not a
-  differentiable solve and not an elliptic/PDE field equation. Per
+  non-learned linear projection (`field_solver_status = "linear_solver"`), with no
+  differentiable solve and no elliptic/PDE field equation. Per
   `docs/source_field_equations.md`, the physically-grounded source modes
-  (`total_membrane_current`, `decomposed_cap_ion_syn`) remain reserved, not implemented.
+  (`total_membrane_current`, `decomposed_cap_ion_syn`) remain reserved and unimplemented.
 
 **Not yet true — the actual, unbuilt differentiation opportunity:** no tool surveyed
 here (jaxfne included, as of this writing) offers a single differentiable pipeline from

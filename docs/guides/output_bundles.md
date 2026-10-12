@@ -67,7 +67,7 @@ This ensures:
 ## The canonical path: `run_receipt` and `evaluate_report`
 
 `Model.manifest()` (shown above) is a **compatibility method retained from
-v0.0.4–v0.0.14**. It still works and is not scheduled for removal, but for
+v0.0.4–v0.0.14**. It still works and is not scheduled for removal. For
 new code the canonical workflow is two typed, immutable, JSON-safe
 alternatives:
 

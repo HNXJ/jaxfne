@@ -97,7 +97,7 @@ kernels.
 
 **Deterministic/stochastic behavior.** Deterministic in `seed`; the jitter is
 pseudo-random (JAX PRNG), i.e. reproducible. Variation across seeds is
-*computational pseudo-genomic variation*, not biological genetic variability.
+*computational pseudo-genomic variation*; biological genetic variability is not modeled.
 
 **Status.** CANONICAL (0.4.17).
 

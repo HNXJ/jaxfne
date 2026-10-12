@@ -4,7 +4,7 @@
 
 jaxfne uses four named validation gates. **The executable definitions live in
 `scripts/run_test_gate.py`** (Makefile targets mirror them). Documentation
-refers to gate names only — not duplicated file lists.
+refers to gate names only, and file lists are not duplicated.
 
 | Gate | Command | Scope | Typical wall time |
 |------|---------|-------|-------------------|
@@ -136,8 +136,8 @@ editing either field by hand cannot authorize a release. See
 
 ## Environment parity
 
-The subsumption invariant is about *executed tests*, not about check family
-names, so it depends on the gate environment being able to run everything CI
+The subsumption invariant is about *executed tests* alone. Check family
+names play no part, so it depends on the gate environment being able to run everything CI
 runs. When an optional dependency is absent, a module guarded by
 `pytest.importorskip` is skipped at **collection**: its tests produce no node
 IDs, nothing fails, and the family still reports PASS while the gate quietly
@@ -174,7 +174,7 @@ do not describe them as independently CI-tested.
 `3.10` is not supported: the `dev`/`viz` extras pin `scipy==1.17.1`, which
 publishes no cp310 wheels, and the `jax`/`jaxlib` line the package resolves
 against already floors at `>=3.11`. Dropping nominal 3.10 support is evidence
-alignment, not removal of a validated configuration.
+alignment, and no validated configuration is removed.
 
 Wheel availability for both endpoints was checked against the package index
 rather than assumed -- `scipy 1.17.1`, `matplotlib 3.10.9` and `jaxlib 0.10.2`
@@ -264,5 +264,5 @@ current, and do not reconcile it against a release SHA.
 
 ## Performance benchmarks
 
-Deterministic benchmark scripts exist for documentation; they are **not**
-automatic CI gates. See the repository-local performance baseline notes (not part of the built site).
+Deterministic benchmark scripts exist for documentation and sit
+outside the CI gates. See the repository-local performance baseline notes (not part of the built site).

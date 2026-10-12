@@ -32,7 +32,7 @@ inhibitory. Tuning-group identity is therefore **not** encoded via
   order (`[0:5]`=`AB`, `[5:10]`=`A`, `[10:15]`=`B`, unioned across L4 and L6 for
   10+10+10 combined).
 
-This is a deliberate, explicit design choice, not a
+This is a deliberate, explicit design choice, with no
 workaround pending a real feature -- see `tuning_group_indices()` in the
 script.
 
@@ -111,26 +111,26 @@ restoring force on the weight magnitude toward its calibrated
 baseline (`|edges.weight|`), mirroring `K_ctrl`'s form for `H`. `K_HDP`
 and `K_w_ctrl` ship as a named, reproducible preset --
 `jaxfne.hdp_network.DEFAULT_HDP_V1_PFC_AAAB` / `v1_pfc_aaab_hdp_params()`
--- not bare magic constants, mirroring `DEFAULT_HDP`/
+-- named constants, mirroring `DEFAULT_HDP`/
 `DEFAULT_HDP_DESYNC`'s existing precedent.
 
 ## Verified results
 
 A real 100-trial run (`carry_weights=True`, the default) holds
-stable across the **entire** run, not just the first few trials:
+stable across the **entire** run, including beyond the first few trials:
 
 - `spike_rate_hz_mean` held at 12.53-12.55Hz across all 100 trials (trial 1
   == trial 100).
 - `w_final_mean` (mean synaptic weight magnitude) held at 0.012248-0.012254
-  across all 100 trials -- a range of 6e-6, i.e. essentially flat, not
-  runaway.
+  across all 100 trials -- a range of 6e-6, i.e. essentially
+  flat.
 - `H_final_mean` converged 1.027 → 1.067 with `H_final_std` tightening
-  0.0201 → 0.0034 (homeostatic settling, not divergence).
+  0.0201 → 0.0034 (homeostatic settling rather than divergence).
 - Zero NaN in any of the 100 trial summaries.
 
 This is consistent with homeostatic settling over 100 trials with
 trial-to-trial weight plasticity -- weights essentially flat (6e-6 range),
-H settling not diverging -- not just a working-but-static
+H settling without divergence -- beyond a working-but-static
 H-only pipeline (`carry_weights=False` stays available to reproduce that
 earlier, more conservative behavior for comparison).
 
@@ -152,7 +152,7 @@ longer run. Receipt (when generated):
   15 for L4's growth (canonical 10 → 15), holding V1 at 100
   neurons total. L1, L2, L5, and all of PFC keep the canonical
   E:PV:SST:VIP fractions and layer-size proportions unchanged.
-- Script-driven smoke test, not a polished tutorial notebook --
+- Script-driven smoke test, short of a polished tutorial notebook --
   no Colab badge and no `tutorials/*.ipynb` file for it yet.
 
 ## Interactive atlas (dark)

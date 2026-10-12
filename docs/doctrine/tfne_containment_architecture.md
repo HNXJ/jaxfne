@@ -41,7 +41,7 @@ E_\theta \rightarrow S_\psi \rightarrow F_\gamma \rightarrow P_\eta
 \]
 
 Individual emitters, source maps, fields, and probes are **replaceable
-implementations of typed roles**, not one universal physical equation.
+implementations of typed roles**; no single universal physical equation applies.
 
 ## 3. RBS — unified dependency state (not one equation)
 
@@ -49,7 +49,7 @@ implementations of typed roles**, not one universal physical equation.
 \boxed{\mathbf H(t)\in\mathbb R^{d_H}}
 \]
 
-is a **finite-dimensional state-space container**, not a single homeostatic
+is a **finite-dimensional state-space container**, rather than a single homeostatic
 equation.
 
 See [RBS/RBD/HDP](rbs_rbd_hdp.md) for the canonical RBS definition.
@@ -91,7 +91,7 @@ mutually identifiable or calibrated to the same units.
 \]
 
 is the general **Relative Biophysical Dynamics** container. Examples as
-**realizations**, not definitions:
+**realizations** (instances, rather than definitions):
 
 | Realization | Sketch |
 |-------------|--------|
@@ -141,7 +141,7 @@ cross-operator leakage.
 
 ### 5.1 Operator-parameterized TFNE (target architecture)
 
-RBS may parameterize **any physically appropriate TFNE operator**, not only the
+RBS may parameterize **any physically appropriate TFNE operator**, and more than the
 emitter:
 
 \[
@@ -162,7 +162,7 @@ Examples (declared couplings only):
 | \(H\rightarrow E,S,F,P\) | Full operator chain may depend on selected \(H\) coordinates |
 
 Current implementation (H1a/H1b) centers the **first** coupling on the emitter
-(\(H\leftrightarrow x\)). That is a minimal slice of this architecture, not its
+(\(H\leftrightarrow x\)). That is a minimal slice of this architecture, short of its
 full scope.
 
 ## 6. Parameter sharing template
@@ -222,7 +222,7 @@ Progressive resolution ladder (illustrative):
 | **Future** | Field/source couplings \(H\rightarrow S,F\) with explicit typing |
 
 Do not open H3 \(M(\Delta)\) until emitter-local \(H\rightarrow x\) exists (H1c).
-Broader operator couplings are **architectural target**, not H1 scope.
+Broader operator couplings are an **architectural target**, outside H1 scope.
 
 ## 9. References
 

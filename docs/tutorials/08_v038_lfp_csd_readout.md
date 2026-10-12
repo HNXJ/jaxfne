@@ -19,7 +19,7 @@ The core concepts:
 5. **Probe Readout:** eight multimodal operators for spikes, voltage, sources, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy
 6. **Scope Clarity:** metadata gates (`amplitude_status=False`) block amplitude overstates
 
-This is a **computational scaffold**, not a biophysically validated model.
+This is a **computational scaffold**; no biophysically validated model is claimed.
 
 ---
 
@@ -192,7 +192,7 @@ for layer, indices in layer_indices.items():
 
 ## Probe Modes & Field Computation
 
-See [Probe Operators](../guides/probe_operators.md) for the eight operators; here: `spikes`, `V_m`, `source`, `LFP-proxy`, `CSD-proxy` (see table in [Source Bookkeeping](07_v037_source_bookkeeping.md)). Proxy fields use fast convolution, not PDE-solved.
+See [Probe Operators](../guides/probe_operators.md) for the eight operators; here: `spikes`, `V_m`, `source`, `LFP-proxy`, `CSD-proxy` (see table in [Source Bookkeeping](07_v037_source_bookkeeping.md)). Proxy fields use fast convolution; no PDE solve is performed.
 
 ---
 

@@ -14,7 +14,7 @@ You will learn:
 2. **EEG-Proxy Projection** — project laminar potentials to simulated scalp sensors.
 3. **MEG-Proxy Projection** — project oriented current dipoles to simulated magnetometers.
 4. **Metabolic EMM-Proxy** — summarize activity costs as a separate metabolic proxy stream.
-5. **Operator Separation** — keep sensor paths distinct, not merged into one generic signal.
+5. **Operator Separation** — keep sensor paths distinct; do not merge them into one generic signal.
 
 ---
 

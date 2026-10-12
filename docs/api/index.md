@@ -26,7 +26,7 @@ importable from submodules but are not root exports.
 !!! note "Biological scaffold — uncalibrated biology"
     The canonical V1 column (`canonical-v1-column-1000n`) is a qualitative laminar scaffold
     (`qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false`).
-    Per-layer fractions (`L1 E 0.50` etc.) and typed connectivity are scaffold values (`value_tag="relative"`), without quantitative calibration; reduced labels `E`/`PV`/`SST`/`VIP` are functional scaffold identities, not warranted literal cell-type identities. See [Scope & status — Biological calibration](../scope_and_status.md#biological-calibration-status-canonical-v1-column) and [Calibration — Biological status](../guides/calibration.md#biological-calibration-status).
+    Per-layer fractions (`L1 E 0.50` etc.) and typed connectivity are scaffold values (`value_tag="relative"`), without quantitative calibration; reduced labels `E`/`PV`/`SST`/`VIP` are functional scaffold identities; literal cell-type identity is not warranted. See [Scope & status — Biological calibration](../scope_and_status.md#biological-calibration-status-canonical-v1-column) and [Calibration — Biological status](../guides/calibration.md#biological-calibration-status).
 
 ## Conceptual form
 

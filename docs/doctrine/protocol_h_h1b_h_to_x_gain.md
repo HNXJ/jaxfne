@@ -42,7 +42,7 @@ must be realized somewhere if hidden biophysical state is to influence emitter
 behavior and thereby express adaptation or memory through **neural observables**.
 
 Building \(M(\Delta)\) in H3 before \(H \rightarrow x\) is specified risks measuring
-mostly **direct access to \(H\)**, not memory expressed through dynamics.
+mostly **direct access to \(H\)**, rather than memory expressed through dynamics.
 
 ## 2. Coupling grammar (frozen distinction)
 
@@ -75,7 +75,7 @@ Ladder:
 
 ## 3. Gain interface doctrine (not biological interpretation)
 
-\(H \rightarrow x\) must be a **gain interface** on emitter quantities, not a
+\(H \rightarrow x\) must be a **gain interface** on emitter quantities, with no
 special biological reading baked into RBS coordinates.
 
 Template:
@@ -120,12 +120,12 @@ Per-neuron quantities that can host \(g(H)\) without changing graph topology:
 | **E. Parameter `b`** | \(b_i^{\mathrm{eff}}=g_b(H_i)\,b_i\) | Yes (via \(du/dt\)) | Indirect | Alters subthreshold integration; spike threshold unchanged |
 | **F. Parameter `a` / `d`** | \(a_i^{\mathrm{eff}}, d_i^{\mathrm{eff}}\) | Yes (reset kinetics) | Indirect | High risk of disguised cell-type change |
 | **G. Spike threshold** | \(V_{\mathrm{th},i}^{\mathrm{eff}}(H_i)\) | Yes | Via spikes | Not currently a public per-neuron field (hardcoded 30 mV) |
-| **H. `source_scale`** | \(Q \propto source\_scale\) | **No** | Yes only | Readout gain, not plant — **unsuitable** for \(H\rightarrow x\) on dynamics |
+| **H. `source_scale`** | \(Q \propto source\_scale\) | **No** | Yes only | Readout gain outside the plant — **unsuitable** for \(H\rightarrow x\) on dynamics |
 
-**Precedent (HDP, not Protocol H):** `H_boost_gain` applies
+**Precedent (HDP; separate from Protocol H):** `H_boost_gain` applies
 `boost = 1 + H_boost_gain * max(0, 1-H)` to `(drive + sched)` only — a
-**one-sided** extrinsic boost, not a generic bidirectional gain with \(g(1)=1\) in
-the multiplicative sense. Useful ancestry, not the H1b template.
+**one-sided** extrinsic boost. A generic bidirectional gain with \(g(1)=1\) in
+the multiplicative sense does not apply. Useful ancestry; the H1b template is separate.
 
 **Recommended shortlist for H1c decision** (pending review):
 
@@ -162,9 +162,9 @@ drive. There is no subtraction of a running baseline in the current kernel.
 | **Driven steady state** | \(H^\*\) solving \(R(H^\*) + \kappa_H\,\mathbb E[I^{\mathrm{rel}}]=0\) under ongoing input |
 
 When \(\kappa_H>0\) and \(\mathbb E[I^{\mathrm{rel}}]\neq 0\), generally \(H^\*\neq 1\).
-That is not a bug: **baseline-one is a reference calibration**, not a claim that
+Here **baseline-one is a reference calibration**, rather than a claim that
 the driven attractor sits at \(H=1\). H3 receipts must record which baseline is used
-for perturbations (\(H_k=1+\delta_H\) about coordinate 1, not necessarily about
+for perturbations (\(H_k=1+\delta_H\) about coordinate 1; they need not be about
 \(H^\*\)).
 
 With \(\kappa_H=0\) and no input coupling, \(H^\*=1\) for both F1 and F2 (where defined).

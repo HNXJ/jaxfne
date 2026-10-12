@@ -77,7 +77,7 @@ sig.metadata["homeostasis"]   # controller params + framing gates
 
 `k_gain=0` is a clean null (no bias). The controller runs at *window* cadence (Jaxley's
 `integrate` is a closed scan), a documented approximation of the per-step Izhikevich
-homeostatic kernel. **Framing:** this is a computational control proxy, not a biological
+homeostatic kernel. **Framing:** this is a computational control proxy, rather than a claim of a biological
 mechanism — `biological_learning_claim=False`, `mechanism_claim_status="not_claimed"`.
 Note: Jaxley single-compartment HH has a non-monotonic f-I curve (high current →
 depolarization block), so keep currents in the ~0.002–0.02 nA band for the default compartment.

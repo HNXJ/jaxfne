@@ -19,7 +19,7 @@ emitters, source tensors, field proxies, probes, objectives, and manifests — i
 
 How biophysical the output is — amplitude calibration, morphology, channel detail —
 follows how much detail you put into the `Configuration` (and any
-[Jaxley](jaxley_interop.md) models you bridge in), not a fixed ceiling in the
+[Jaxley](jaxley_interop.md) models you bridge in); there is no fixed ceiling in the
 backend. Each method below adds specificity to the same chain.
 
 Each method returns a `Configuration`, so the whole model reads as one fluent
@@ -121,8 +121,8 @@ runs entirely on the unchanged sign-only path. See
 `tests/test_mechanism_aware_connection_compiler.py` for the parity and
 divergence checks.
 
-**Composition.** `.connections()` augments the realized graph; it does not
-replace prior edges. Connectivity composes as an additive multiset union:
+**Composition.** `.connections()` augments the realized graph and
+replaces no prior edges. Connectivity composes as an additive multiset union:
 baseline within-area edges (from `.connectivity(p_connect=...)`) plus each
 compiled rule. Parallel `(pre, post)` pairs are retained when rules overlap;
 their synaptic currents sum at the postsynaptic segment reduction. Set

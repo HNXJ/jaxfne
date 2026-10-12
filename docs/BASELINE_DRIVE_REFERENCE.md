@@ -121,7 +121,7 @@ noise_amplitude_by_cell_type = {
 
 > Note: "AGSDR Tuning" here refers to the sanity-checker's connectivity-gain
 > **grid search** (`np.linspace` over 64 gain candidates) — a deterministic
-> sweep, not the AGSDR (Adaptive Genetic Stochastic Delta Rule) optimizer.
+> sweep, separate from the AGSDR (Adaptive Genetic Stochastic Delta Rule) optimizer.
 > For the canonical AGSDR tuning path see `jtfne.agsdr()` + `Model.tune`.
 
 ### Delta-Test Status

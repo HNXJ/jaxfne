@@ -46,7 +46,7 @@ with explicit proxy readout status (`physical_amplitude_calibrated = False`).
 | local stability | \(\max_i \Re\lambda_i(J_{\mathrm{slow}})<0\) | bounded slow error dynamics |
 | finite-amplitude authority | \(r^\*\in\mathcal R(U,\mathcal C)\) | setpoint reachable under \(U\) and parameter box \(\mathcal C\) |
 
-**Frozen vector-H controller** (derived analytically from measured \(J_S\), not trained):
+**Frozen vector-H controller** (derived analytically from measured \(J_S\); no training step):
 
 \[
 \tau_H \dot H = -e - \Lambda H,\qquad
@@ -134,7 +134,7 @@ Vector-H at \(U_1=1.5U_0\): \(R_E=0.988\), \(R_I=0.561\), \(R_{EI}=0.570\) — E
 
 **Receipts:** `hdp_mvc_validation_v2.json`, `hdp_mvc_posthoc_scalar_vector.json`, `hdp_mvc_frozen_validation.json`
 
-Protocol frozen before execution (`hdp_mvc_protocol_v2.json`); setpoint \(r_0\) measured pre-perturbation, not design-target AGS DR.
+Protocol frozen before execution (`hdp_mvc_protocol_v2.json`); setpoint \(r_0\) measured pre-perturbation, rather than the design target AGS DR.
 
 ---
 

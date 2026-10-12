@@ -62,9 +62,9 @@ Network-size scaling up to 10,000 neurons IS now measured; see "Scaling Evidence
 
 ## Scaling Evidence (N=100 / 1,000 / 10,000)
 
-**Measured, not assumed.** `scripts/benchmarks/scaling_benchmark.py` runs construct+simulate+probe
+**Measured; nothing is assumed.** `scripts/benchmarks/scaling_benchmark.py` runs construct+simulate+probe
 at three network sizes with `duration_ms`/`dt_ms` held fixed, each case in its own subprocess
-(so `peak_rss_mb` is per-case, not a cumulative process maximum).
+(so `peak_rss_mb` is per-case, rather than a cumulative process maximum).
 
 ### Current receipt (2026-08-21, ox-alpha resolution pass)
 
@@ -111,15 +111,15 @@ Growth ratio per 10x step in N (single run, Apple Silicon CPU, jax 0.10.0):
 | 1,000 → 10,000 | 1.2x | 20.6x | 8.7x |
 
 **Reading this honestly:** `construct` stays flat across all three sizes in both environments —
-the measured cost here is dominated by fixed JAX/JIT setup overhead, not network-size-dependent
+the measured cost here is dominated by fixed JAX/JIT setup overhead that does not depend on network size
 work, at least up to N=10,000. `simulate` and `peak_rss_mb` are a different story: going from
 N=1,000 to N=10,000 (a 10x step) costs 20.6x more simulate wall-clock / 8.7x more peak
 memory on Apple Silicon (2026-05-23) and 55.1x / 7.2x on Windows (2026-08-21).
 Both ratios are well above the ~10x a linear-in-N path would show, and are in the direction
 consistent with the dense (`recurrent_backend="dense"`) O(N²) recurrent weight matrix documented
 in `jaxfne/core.py` (search `O(N^2)` there for the exact call sites). This is **evidence that the
-dense path is currently the dominant cost at N=10,000 in wall-clock and memory**, not a closed-form
-complexity proof — the script measures three points, not a continuous curve, and runs on one
+dense path is currently the dominant cost at N=10,000 in wall-clock and memory**, rather than a closed-form
+complexity proof — the script measures three points only, rather than a continuous curve, and runs on one
 machine, one time.
 
 **What this changes about the "Statement Boundaries" below:** "Time scales linearly with neuron
@@ -269,4 +269,4 @@ All reserved work will maintain `local_environment_receipt_only` framing and avo
 **Physical Amplitude Statement Allowed:** `False`  
 **Empirical Validation:** `Not empirically validated`
 
-Performance measurements are **audit artifacts** (reproducibility, determinism), not scientific evidence. Time values do not imply biological correspondence or simulator superiority.
+Performance measurements are **audit artifacts** (reproducibility, determinism) and carry no scientific evidence. Time values do not imply biological correspondence or simulator superiority.

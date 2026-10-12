@@ -29,7 +29,7 @@ LFP/CSD outputs are laminar **proxy** readouts:
 
 - Built from a depth-dependent Gaussian leadfield over per-neuron Izhikevich source traces.
 - No PDE/field solver runs; no calibrated-amplitude claim is made.
-- The spectrolaminar motif is **emergent** from dynamics and leadfield — not imposed.
+- The spectrolaminar motif is **emergent** from dynamics and leadfield, rather than imposed.
 
 ## Colab setup
 
@@ -123,7 +123,7 @@ The lesioned population stays silenced for the run; per-area firing rates are co
 
 ## Interactive atlas (dark)
 
-This page's workshop flow runs through `tutorial_utils` (dict-based trials, not a `Model`), so the panels below come from the closest `Model` equivalent — `suite2_v1_v4_config` (80 neurons/area, 1000 ms, dt 0.5 ms, seed 42): [index](../_static/atlas/v1v4_80/index.html) · [schema](../_static/atlas/v1v4_80/schema.html) · [3D](../_static/atlas/v1v4_80/network_3d.html) · [raster](../_static/atlas/v1v4_80/raster.html) · [LFP](../_static/atlas/v1v4_80/lfp.html) · [H](../_static/atlas/v1v4_80/h_dynamics.html) · [HDP](../_static/atlas/v1v4_80/hdp.html) · [oscillatory](../_static/atlas/v1v4_80/oscillatory.html).
+This page's workshop flow runs through `tutorial_utils` (dict-based trials, rather than a `Model`), so the panels below come from the closest `Model` equivalent — `suite2_v1_v4_config` (80 neurons/area, 1000 ms, dt 0.5 ms, seed 42): [index](../_static/atlas/v1v4_80/index.html) · [schema](../_static/atlas/v1v4_80/schema.html) · [3D](../_static/atlas/v1v4_80/network_3d.html) · [raster](../_static/atlas/v1v4_80/raster.html) · [LFP](../_static/atlas/v1v4_80/lfp.html) · [H](../_static/atlas/v1v4_80/h_dynamics.html) · [HDP](../_static/atlas/v1v4_80/hdp.html) · [oscillatory](../_static/atlas/v1v4_80/oscillatory.html).
 
 Regenerate: `python scripts/generate_doc_page_atlases.py --slug v1v4_80`.
 

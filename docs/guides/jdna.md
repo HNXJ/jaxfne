@@ -26,7 +26,7 @@ Legend — G is the PseudoGenome, D is JDNA develop, K_D is the developmental ke
 
 **Rules → realization.** A PseudoGenome may declare per-layer population fractions (e.g., excitatory/inhibitory base fractions), bounded developmental ranges (fraction tolerance bands), laminar geometry (depth bands, x/y ranges, distribution), and distance- or class-dependent connection rules. Development turns these rules into explicit NeuronalTensor arrays and edges: integer counts per cell type in declared bands, positions, per-neuron parameters, edges, weights, and delays.
 
-**Cortical column (1000 neurons).** The canonical 6-layer cortical-column PseudoGenome declares layer-wise counts and composition rules, geometry, and typed inter-layer connection schemes. Developing it with a given `K_D` realizes a concrete 1000-neuron phenotype — specific counts, positions, parameters, edges, weights, and delays — within the declared constraints. The PseudoGenome stores the generative rules, not 1000 per-neuron records.
+**Cortical column (1000 neurons).** The canonical 6-layer cortical-column PseudoGenome declares layer-wise counts and composition rules, geometry, and typed inter-layer connection schemes. Developing it with a given `K_D` realizes a concrete 1000-neuron phenotype — specific counts, positions, parameters, edges, weights, and delays — within the declared constraints. The PseudoGenome stores the generative rules alone; the 1000 per-neuron records are not stored.
 
 **Same genome, different K_D; same K_D, same phenotype.** Two developments of the same PseudoGenome with different `K_D` values (e.g., `seed=0` vs `seed=1`) share the same rules but realize different phenotypes within the same constraint bands. Conversely, development is deterministic in `K_D`: the same PseudoGenome and the same `K_D` reproduce the same phenotype.
 
@@ -83,7 +83,7 @@ constants); the developmental operator executes them (`D` is the rule engine);
 developmental state evolves under them (`H_D`, `Z_D`); the terminal structural
 phenotype is a NeuronalTensor.
 
-### Generative rules, not stored phenotype
+### Generative rules; no stored phenotype
 
 The defining invariant:
 
@@ -145,9 +145,8 @@ domains:
    tolerance).
 4. No structural mutation occurs inside `simulate()` in 0.4.22.
 5. No developmental state crosses into the runtime model: the runtime RBS
-   (`h_state`) arises from the ordinary construct path, not from development.
-6. Development may be ordinary Python/JAX orchestration; it is not forced into
-   JIT-compiled simulation kernels.
+   (`h_state`) arises from the ordinary construct path; development does not produce it.
+6. Development may be ordinary Python/JAX orchestration. Compilation into JIT-compiled simulation kernels is optional.
 
 ## Relationships
 
@@ -206,7 +205,7 @@ first-class.
   `H_D \subset Z_D` possibility is documented but not exercised by an
   implemented genome.
 - The stochastic variation produced is *computational pseudo-genomic /
-   developmental variation*, not biological genetic variability.
+   developmental variation*; biological genetic variability is not modeled.
 
 Realization of `N` via `develop` does not establish effectiveness (`ΔX` under intervention).
 

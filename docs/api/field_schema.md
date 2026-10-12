@@ -3,7 +3,7 @@
 Field outputs in jaxfne are computational-scaffold proxy readouts produced by
 the field solver functions in `jaxfne/fields/`. This page documents the
 metadata contract every solver output carries: claim level, solver status, and
-amplitude-calibration status. It is a contract description, not a class
+amplitude-calibration status. It is a contract description. No class
 reference.
 
 ## Scope
@@ -76,8 +76,8 @@ output object and no new public API is proposed.
   observation is not a universal ceiling.
 - Use `experimental_poisson_1d_from_neuron_table` when the source values
   start on a `Model.neuron_table()` (per-neuron depths and sources).
-- `field_solver_status` distinguishes implementation type; it does not change
-  the proxy-readout claim boundary. Every path on this page remains
+- `field_solver_status` distinguishes implementation type and leaves
+  the proxy-readout claim boundary unchanged. Every path on this page remains
   `field_claim_level = "proxy_readout"` with
   `physical_amplitude_calibrated = False`.
 

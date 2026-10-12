@@ -2,7 +2,7 @@
 
 This page specifies **when a full elliptic (Poisson-type) field solve would be
 well-posed and consistent** in jaxfne's reserved field regimes. The **shipped
-package uses laminar proxy readouts**, not this solver — read this if you are
+package uses laminar proxy readouts** — read this if you are
 extending or validating a future PDE path.
 
 > **Scope:** Admissibility mathematics (well-posedness, accuracy, consistency)
@@ -13,7 +13,7 @@ extending or validating a future PDE path.
 
 ## Overview
 
-This document specifies the mathematical contract for the elliptic field regime in jaxfne. It defines what constitutes an "admissible" solution: one that is mathematically well-posed and passes the five numerical gates below. Admissibility is a numerical check, not a physical-consistency claim.
+This document specifies the mathematical contract for the elliptic field regime in jaxfne. It defines what constitutes an "admissible" solution: one that is mathematically well-posed and passes the five numerical gates below. Admissibility is a numerical check; it makes no physical-consistency claim.
 
 **Status:** Specification of the admissibility conditions. The elliptic field regime is reserved; see
 [../computation_basis.md](../computation_basis.md) for the `solved_poisson` regime gating rule.

@@ -1,14 +1,14 @@
 # Operator composition
 
 **Chain tensor operators** from raw spikes to laminar LFP/CSD or scalp EEG/MEG
-proxies. This page shows real composed pipelines — shapes and dtypes at each
-handoff — not single-operator definitions.
+proxies. This page shows real composed pipelines, with shapes and dtypes at each
+handoff. Single-operator definitions are outside its scope.
 
 For single-operator contracts see Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site) and
 the Tensor Operator Registry (`docs/api/tensor_operators.md` — repository-internal reference, excluded from the built site). The chains here were
 verified in
 [`tests/test_tensor_pipeline_custom_cfg.py`](https://github.com/HNXJ/jaxfne/blob/main/tests/test_tensor_pipeline_custom_cfg.py)
-on a non-canonical 3-layer configuration, not only the default column.
+on a non-canonical 3-layer configuration, as well as the default column.
 
 ## Chain 1: source → synaptic filter → cable filter → CSD-proxy
 
@@ -59,7 +59,7 @@ syn = jtfne.synaptic_current_tensor(jnp.asarray(source_native), tau_syn_ms, dt_m
 
 Domain: a raw per-neuron source (spike/current proxy). Codomain: the same
 shape, filtered by the receptor time constant resolved from each neuron's
-declared synaptic mechanism — the optional pre-filter stage, not the depth-dependent one.
+declared synaptic mechanism — the optional pre-filter stage (the depth-dependent stage is excluded).
 
 ### Stage 2 — Cable-filter Tensor
 
@@ -101,8 +101,8 @@ csd_standalone = jtfne.csd_tensor(fo.phi_e_proxy, dz)
 `csd_tensor` is the named operator that `project_laminar_sources` calls
 internally to derive `csd_proxy` from `phi_e_proxy` (the finite-difference
 second spatial derivative). Calling it standalone on `fo.phi_e_proxy`
-reproduces `fo.csd_proxy` exactly — this is the composability check, not an
-illustrative claim: `jnp.allclose(csd_standalone, fo.csd_proxy)` is `True` for
+reproduces `fo.csd_proxy` exactly — this is a tested composability check:
+`jnp.allclose(csd_standalone, fo.csd_proxy)` is `True` for
 this run.
 
 ```python
@@ -119,9 +119,8 @@ meg = jtfne.meg_proxy_transform(fo.lfp_proxy, meg_leadfield)
 ```
 
 `eeg_proxy_transform` / `meg_proxy_transform` take the same `lfp_proxy`
-codomain as input and apply a declared leadfield (a linear, not learned,
-spatial mixing matrix you supply) — they compose directly off the field
-stage, not the raw source.
+codomain as input and apply a declared leadfield (a linear spatial mixing matrix you supply, rather than a learned one) — they compose directly off the field
+stage, rather than the raw source.
 
 All five tensors in this chain (`syn`, `cab`, `fo.lfp_proxy`, `eeg`, `meg`)
 were finite end to end in this run.
@@ -154,8 +153,8 @@ Regenerate: `python scripts/generate_doc_page_atlases.py --slug operator_chain_4
 builder methods that *specify* a model. Operator Doctrine (`docs/operator_doctrine.md` — repository-internal reference, excluded from the built site)
 documents the 7-stage *rule* each tensor operator satisfies on its own.
 Neither one shows that the codomain of one operator is the domain of the
-next with no conversion step — that the chain typechecks, not
-just on paper. `tests/test_tensor_pipeline_custom_cfg.py` is what makes that
+next with no conversion step — that the chain typechecks when executed, and
+`tests/test_tensor_pipeline_custom_cfg.py` is what makes that
 claim checkable; this page is what makes it readable.
 
 ## See also

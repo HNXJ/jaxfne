@@ -82,7 +82,7 @@ Result: I_syn is counted twice (once in total membrane, once in q_syn_extra)
 ```
 
 **Why it's forbidden:**
-- Current conservation: ∇·q must balance all currents once, not twice
+- Current conservation: ∇·q must balance all currents exactly once
 - Gauge invariance breaks: mean-zero gauge cannot hold if synaptic current is duplicated
 - Probe readout corruption: CSD, LFP, and EMM metrics become nonphysical
 
@@ -160,7 +160,7 @@ field_solver_status = "linear_solver"
 
 **What it means:**
 - The field equation $\nabla \cdot (-\sigma_e \nabla \phi_e) = q$ is **declared for reference; forward-field computation uses laminar-proxy approximation**
-- $\phi_e$, $\mathbf{J}_e$, and $\mathrm{CSD}$ are computed from $q$ using laminar-proxy kernels (proxy approximation, not full PDE solve, no conductivity calibration)
+- $\phi_e$, $\mathbf{J}_e$, and $\mathrm{CSD}$ are computed from $q$ using laminar-proxy kernels (proxy approximation rather than a full PDE solve or conductivity calibration)
 - Boundary conditions and gauge are metadata-only (informational, separate from proxy computation)
 - CSD sign convention is declared: positive = extracellular source (current flowing outward)
 

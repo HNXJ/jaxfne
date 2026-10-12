@@ -230,7 +230,7 @@ Notes:
 - **Kernel** is the declared computation; single-pole decay (matches `simulate_edge_recurrent_izhikevich` / `simulate_receptor_exponential_izhikevich`).
 - **Conductance** column: the shipped dynamics are current-based; `g_mech`/`reversal_potentials_mV` in `StaticParams` and `ReceptorSpec.reversal_mV` are provenance metadata surfacing in `cfg.metadata["circuit"]["mechanisms"]`.
 - **Reversal** values are the standard specs (`standard_receptor_specs()`); they are declarative specifications.
-- The default `EdgeList` construction from dense weights assigns `tau=2.0` for `weight >= 0` and `tau=5.0` for `weight < 0`; mechanism-specific dynamics need the mechanism-aware `edges.tau_ms` wiring (see `synaptic_tau_from_mechanism` inertness note — additive, not yet compiled into `core._compile_connection_rules`).
+- The default `EdgeList` construction from dense weights assigns `tau=2.0` for `weight >= 0` and `tau=5.0` for `weight < 0`; mechanism-specific dynamics need the mechanism-aware `edges.tau_ms` wiring (see `synaptic_tau_from_mechanism` inertness note — additive; compilation into `core._compile_connection_rules` is pending).
 
 ---
 
@@ -472,7 +472,7 @@ by `hdp_rule` (`"signed_linear"` default, or `"signed_quadratic"`, `"hebbian_pro
 `Delta_H = H_post - H_pre` and `w = q*m`; the difference-family magnitude term is
 `q*K_HDP*phi(Delta_H)*m`, with `phi(x)=x` for `"signed_linear"` and
 `phi(x)=x*abs(x)` for `"signed_quadratic"`. `"hebbian_product"` is separate product
-modulation using `H_pre*H_post`, not another difference rule. The independent
+modulation using `H_pre*H_post`, a product rule. The independent
 `K_w_ctrl*(m0-m)` term restores magnitude toward the declared baseline. All
 H income/spending gains (`alpha`, `beta`, `gamma`, `delta`, `C_spike`) default to
 `0.0`, and `K_HDP` defaults to `1.0` but multiplies a zero weight-update
@@ -719,7 +719,7 @@ custom Python callable bypasses `Configuration` entirely, via
   `~2.58` at the canonical `dt_x`) can diverge to
   `NaN` — reproduced at N=16 with the shipped flat `G_max=5.0` default.
 - `"stable"`: smooth `tanh` soft-bound (`_soft_bound`) on `x`, `G`, and `H`
-  every step instead of `jnp.clip` — a bounded *codomain*, not a *force*: cannot be
+  every step instead of `jnp.clip` — a bounded *codomain* constraint: cannot be
   outrun by any step size, N, or gain, and is gradient-friendly everywhere
   (unlike `jnp.clip`'s zero-gradient boundary). Requires `HomeostaticEIParams.x_min`/
   `.x_max` (new fields; default a very wide `+-1e6`, safe/inert for `"minimal"` mode).

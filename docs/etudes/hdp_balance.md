@@ -1,7 +1,7 @@
 # Étude: homeostatic balance learning
 
 **Status:** exploratory; every stage fails at least one criterion  
-**Bundle:** `artifacts/etudes/hdp_balance/` (standalone JAX, not the jaxfne kernels)
+**Bundle:** `artifacts/etudes/hdp_balance/` (standalone JAX, independent of the jaxfne kernels)
 
 ## Question
 

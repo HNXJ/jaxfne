@@ -1,6 +1,6 @@
 # RBS, RBD, and HDP
 
-See [RBS/RBD/HDP doctrine](../doctrine/rbs_rbd_hdp.md) for the canonical RBS container definition (\(\mathbf H_i(t)\in\mathbb R^{d_H}\), finite-dimensional dependency-state, typed gain maps) and the coupled dynamics \(\dot{\mathbf x}=F_x,\ \dot{\mathbf H}=F_H,\ \dot{\mathbf W}=F_W\) (HDP only, \(\dot W=0\) remains RBD). Coordinates may be \(H_k=z_k/z_k^\star\) or reduced \(H_k=\mathcal R_k(\mathbf z)\); RBD covers adaptation, memory and delayed coupling without requiring plasticity. RBS is relative, not necessarily normalized physical variables; homeostasis is a regime of selected \(F_H\), not the definition.
+See [RBS/RBD/HDP doctrine](../doctrine/rbs_rbd_hdp.md) for the canonical RBS container definition (\(\mathbf H_i(t)\in\mathbb R^{d_H}\), finite-dimensional dependency-state, typed gain maps) and the coupled dynamics \(\dot{\mathbf x}=F_x,\ \dot{\mathbf H}=F_H,\ \dot{\mathbf W}=F_W\) (HDP only, \(\dot W=0\) remains RBD). Coordinates may be \(H_k=z_k/z_k^\star\) or reduced \(H_k=\mathcal R_k(\mathbf z)\); RBD covers adaptation, memory and delayed coupling without requiring plasticity. RBS is relative: its variables need not be normalized physical quantities; homeostasis is a regime of selected \(F_H\); the definition of RBS does not depend on it.
 
 ### Canonical Definitions
 
@@ -49,7 +49,7 @@ no effect there, and are not silently reinterpreted): `alpha`, `beta`,
 population branch uses `controller_*` coefficients, the channel masks
 (`m_ei_edge_mask`, `e_neuron_mask`), and channel bounds
 (`theta_m_EI_bounds`, `theta_eta_a_bounds`) instead. This is a documented
-inert-by-design surface, not a hidden behavior change.
+inert-by-design surface, rather than a hidden behavior change.
 
 ## Continuation scope
 
@@ -90,8 +90,8 @@ dm_ij/dt = q_ij * K_HDP * phi(Delta_H_ij) * m_ij
 
 For the difference family, `phi(x) = x` for `signed_linear` and
 `phi(x) = x*abs(x)` for `signed_quadratic`. `hebbian_product` is a separate
-product modulation with `phi = H_pre*H_post`; it does not compare pre/post
-RBS coordinates.
+product modulation with `phi = H_pre*H_post`. Pre/post
+RBS coordinates are not compared.
 
 Use explicit null names (see `4_tfne_theory_and_neural_tensor.md` §8.4):
 
@@ -248,7 +248,7 @@ memory for large networks run over many steps (e.g. 10,000 steps x
 2,000,000 edges x 4 bytes = 80GB -- a real reproduced OOM). Scalar `H_trace`
 and spike/voltage traces use `(n_steps, n_neurons)`; vector `H_trace` uses
 `(n_steps, n_neurons, h_state_dim)`. These remain ~100x smaller at a typical
-`max_in_degree` and are not the source of this. If you don't need the
+`max_in_degree`, so `w_trace` sets this memory cost. If you don't need the
 full per-step weight history, set `hdp_params={"record_weight_trace": False, ...}`
 -- `w_final` (the terminal weights) and HDP's actual dynamics are
 unaffected either way; only `w_trace` becomes `None`.

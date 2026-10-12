@@ -26,7 +26,7 @@ field proxies, tuning objectives, and exporting manifests.
 ## Advanced workflows
 
 - **[Operator Composition](operator_composition.md)** — composing field/probe/objective operators
-- **[Tensor-field workflows](tensor_field_workflows.md)** — Pipeline overview and organization (source/field tensors — not to be confused with `NeuronalTensor`, the circuit-definition data model covered in Configuration Grammar above)
+- **[Tensor-field workflows](tensor_field_workflows.md)** — Pipeline overview and organization (source/field tensors; distinct from `NeuronalTensor`, the circuit-definition data model covered in Configuration Grammar above)
 - **[Jaxley interoperability](jaxley_interop.md)** — Using Jaxley-style models with jaxfne
 - **[Calibration](calibration.md)** — Preparing workflows for empirical validation
 - **Poisson Admissibility (`docs/guides/poisson_admissibility.md` — repository-internal reference, excluded from the built site)** — admissibility conditions for the elliptic field equation specification

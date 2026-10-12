@@ -5,7 +5,7 @@ Invariant checks and validation functions for numerical consistency and structur
 **Module note (2026-07-24):** the functions in "Signal & Field Validation" and "Conservation
 Diagnostics" below (`validate_source_field_status`, `validate_projection_invariants`,
 `compute_conservation_proxy_diagnostics`) are physically implemented in
-`jaxfne/fields/proxy.py`/`jaxfne/fields/diagnostics.py`, not `jaxfne/validation.py` — they're
+`jaxfne/fields/proxy.py`/`jaxfne/fields/diagnostics.py`; `jaxfne/validation.py` does not hold them — they're
 documented here (and in [Fields](fields.md#validation-diagnostics)) because they're the
 signal/field-facing validation surface a caller reaches for alongside `is_valid_signal`.
 The rest of this page (Conductivity Validators onward) documents `jaxfne/validation.py`'s own
@@ -235,8 +235,8 @@ Each returns a JSON-safe `dict`, all under the same status-gate discipline:
 - `make_gauge_diagnostic(...)` (`:622`)
 - `make_boundary_diagnostic(...)` (`:675`)
 - `make_manufactured_residual_diagnostic(...)` (`:708`)
-- `make_field_operator_status(...)` (`:753`) — **not** the same function as
-  `jtfne.operator_status()` documented above; this one builds a per-field-operator status
+- `make_field_operator_status(...)` (`:753`) — a separate function from
+  `jtfne.operator_status()` documented above; it builds a per-field-operator status
   dict scoped to a single validation report.
 
 ## Poisson Admissibility Gates
@@ -256,7 +256,7 @@ solver that now exists, `jaxfne.fields.experimental_poisson_1d`, is documented i
 
 - `validate_basis_spec(spec) -> dict` (`:1115`) — lazy-imports `BasisSpec`/
   `_FUTURE_FIELD_REGIMES` from `.core` inside the function body specifically to avoid a
-  circular import (`core` imports `validation`, not vice versa).
+  circular import (`core` imports `validation`; `validation` does not import `core`).
 - `basis_claim_gate(...)` (`:1177`).
 
 ## JAX Re-compilation Guard

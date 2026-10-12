@@ -11,7 +11,7 @@ empirical quantity.
 | # | Proposition | Manuscript paragraph | Evidence authority |
 |---|-------------|----------------------|--------------------|
 | P1 | Simulation studies span dynamics, fields, and readouts; differentiable/JAX generation and established general-purpose simulators cover this space | Para 1 | Citations 1-8 (verified 2026-08-17); no empirical claim |
-| P2 | Stage relationships (frozen-trajectory vs separate machinery; relative vs calibrated; hidden-state influence; pathway ownership) are per-tool conventions, not typed contracts; no surveyed framework exposes them as typed, verifiable elements | Para 2 | Survey R2 working notes (artifacts/developer/introduction_working_notes.md); citations 1,2,9; NOT-FOUND finding |
+| P2 | Stage relationships (frozen-trajectory vs separate machinery; relative vs calibrated; hidden-state influence; pathway ownership) are per-tool conventions and not typed contracts; no surveyed framework exposes them as typed, verifiable elements | Para 2 | Survey R2 working notes (artifacts/developer/introduction_working_notes.md); citations 1,2,9; NOT-FOUND finding |
 | P3 | Opacity of claim provenance conflicts with verification-oriented reproducibility practice | Para 3 | Citations 10-12 (TOP 2025; Nosek 2015; Heil 2021) |
 | P4 | TFNE typed operator grammar: dynamics → source → field → probe; observations are pure downstream compositions; written hidden state can be computationally latent; relative/calibrated semantics is part of the contract | Para 4 | CL-01 (representational grammar); CL-16 (observation boundary); CL-17 (N0==N1 bit-exact under Gamma_H=I); evidence-index anchor sentence |
 | P5 | jaxfne is JAX-native; each extension defined by a reduction identity (neutral state restores base; no delays restores instantaneous; no observations restores substrate) | Para 5 | CL-07 (H_K=1 restores base emitter); CL-14 (tau=0 recovers E1); CL-16 (observation-disabled reduction); Methods layers 2-6 |
@@ -31,7 +31,7 @@ empirical quantity.
 | bit-identical / bit-exact | Results bit-exact N0==N1; CL-17 | MATCH |
 | reduction identity | Methods reduction ladder (E2->E1, E3->E2, observation-disabled); CL-07/14/16 | MATCH |
 | attenuation cannot be attributed to the written state | Results D3 paragraph (D minus N2 null identical); CL-08 | MATCH |
-| closed-loop dynamics remains unresolved | Results W3b paragraph; CL-11/19 (unresolved, not negative) | MATCH |
+| closed-loop dynamics remains unresolved | Results W3b paragraph; CL-11/19 (unresolved) | MATCH |
 
 ## Banned-word / overclaim audit
 
@@ -57,7 +57,7 @@ empirical quantity.
 | 7 Gewaltig & Diesmann 2007;2(4):1430 | VERIFIED | Scholarpedia record; doi 10.4249/scholarpedia.1430 |
 | 8 Stimberg 2019;8:e47314 | VERIFIED | eLife record; doi 10.7554/eLife.47314 |
 | 9 Huh & Sejnowski NeurIPS 2018;31:1433-1443 | VERIFIED | ML Anthology record |
-| 10 Nosek 2015;348(6242):1422-1425 | VERIFIED | Science record; doi 10.1126/science.aab2374; volume corrected (348, not 349) |
+| 10 Nosek 2015;348(6242):1422-1425 | VERIFIED | Science record; doi 10.1126/science.aab2374; volume corrected to 348 (previously 349) |
 | 11 TOP 2025 | VERIFIED | Res Integr Peer Rev 2026; DOI 10.1186/s41073-026-00223-0 |
 | 12 Heil 2021;18:1132-1135 | VERIFIED | Nat Methods 18:1132-1135; DOI 10.1038/s41592-021-01256-7 |
 | 13 Ermentrout & Kleinfeld 2001;29:33-44 | VERIFIED | Neuron 29:33-44, 2001 |

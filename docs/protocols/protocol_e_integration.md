@@ -25,7 +25,7 @@ hierarchical multi-area system without semantic or dynamical failure?}
 }
 \]
 
-E is a **composition experiment**, not a phenotype-manufacturing experiment.
+E is a **composition experiment** and manufactures no phenotypes.
 
 ## Composition target
 
@@ -251,13 +251,13 @@ E4\equiv E3
 
 **Classification:** `NO_EFFECT` | `LOCAL_EXPRESSION` | `HIERARCHICAL_PROPAGATION` | `UNRESOLVED` — **HIERARCHICAL_PROPAGATION not required to close E5**.
 
-**A1 interpretation:** any A1 effect is structural propagation via frozen **FB** pathway A2\(\rightarrow\)A1, not FF/FB functional/spectral claim.
+**A1 interpretation:** any A1 effect is structural propagation via frozen **FB** pathway A2\(\rightarrow\)A1; no FF/FB functional or spectral claim is made.
 
 **Workflow:** one neural trajectory per arm/seed \(\rightarrow\) freeze \(\rightarrow\) E4 \(F/P\) (no re-simulate per observation).
 
 **Seeds:** `[11, 12, 13]` fixed (no added sample size without spec amendment).
 
-**Post-close policy:** hard 0.4.17 scientific feature freeze; next work is publication evidence (Figures 1–7), not E6.
+**Post-close policy:** hard 0.4.17 scientific feature freeze; next work is publication evidence (Figures 1–7); E6 is out of scope.
 
 **Provenance housekeeping (prospective):** distinguish `execution_parent_sha` from `artifact_commit_sha` in publication manifest; do not retroactively rewrite E3/E4 write-once receipts.
 

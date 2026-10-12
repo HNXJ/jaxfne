@@ -40,7 +40,7 @@ do not invent a DOI before it exists.
 ## Zenodo DOI (maintainers)
 
 Permanent version DOIs come from the **GitHub–Zenodo** integration when a
-**GitHub Release** is published and archived. A versioned snapshot is citable; it is **not** equivalent to a peer-reviewed methods paper.
+**GitHub Release** is published and archived. A versioned snapshot is citable as software; a peer-reviewed methods paper is a separate citation.
 
 **One-time setup** (repository admin):
 

@@ -26,7 +26,7 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 | `public_surface.py` comment | "H-state is the latent representation; not identical to HDP theory" | Already partially aligned; refine to RBS | **A** |
 | Project sources README | "v0.4.8" bundle snapshot | Version drift vs live `v0.4.15` — **do not treat inventory as current implementation** | **C** note |
 
-**No implementation contradiction** found that blocks the doctrine (e.g. HDP kernel math matches generalized \(F_H, F_W\)); conflict is **terminological**, not numerical.
+**No implementation contradiction** found that blocks the doctrine (e.g. HDP kernel math matches generalized \(F_H, F_W\)); conflict is **terminological**; no numerical conflict is found.
 
 ---
 
@@ -87,7 +87,7 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 | File | Notes |
 |------|-------|
 | `skills/jaxfne-science/SKILL.md` | F_H/F_Theta grammar — add RBS/RBD labels |
-| `.cursor/skills/jaxfne-core/SKILL.md` | dynamics/H routing | **REMOVED** — `.cursor/skills/` is gitignored, not tracked |
+| `.cursor/skills/jaxfne-core/SKILL.md` | dynamics/H routing | **REMOVED** — `.cursor/skills/` is gitignored and untracked |
 
 ---
 
@@ -134,7 +134,7 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 | `simulate_edge_recurrent_izhikevich_hdp` | ADVANCED namespace | Keep symbol |
 | `HDPColumnConfig`, `hdp_network.build_model` | public builders | Keep; optional alias later |
 | `K_HDP`, `K_ctrl`, `hdp_rule` | parameter keys | Keep — HDP still valid acronym |
-| `EdgeList.delay_steps` | Protocol D (uncommitted) | **orthogonal** — RBD delay, not RBS |
+| `EdgeList.delay_steps` | Protocol D (uncommitted) | **orthogonal** — RBD delay, a quantity outside RBS |
 
 **Evidence:** `artifacts/public_surface_contract_v0413.json`, `tests/test_public_surface_contract_v0413.py`
 
@@ -171,7 +171,7 @@ rg -n 'homeostasis-dependent plasticity|homeostatic state|HDP|H-state' jaxfne do
 
 ---
 
-## Proposed migration order (post D checkpoint — **not executed**)
+## Proposed migration order (post D checkpoint; pending)
 
 1. Revise `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` (upstream)
 2. Propagate to `1_`…`6_` project sources

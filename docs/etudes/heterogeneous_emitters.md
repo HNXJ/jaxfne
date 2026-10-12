@@ -2,7 +2,7 @@
 
 **Protocol identity:** `heterogeneous_emitters_v0415b`  
 **Supersedes:** `v0415` (n=10 HEI, `bound_mode=minimal`, \(U_{\rm hei}=0.5\)), which produced nonfinite \(Q\) (`hei_error=true`). Failed receipt: `artifacts/etudes/heterogeneous_emitters/failed_v0415/`.  
-**Revision reason:** the composition claim requires a finite declared source, not a prettier spectrum. `homeostatic_ei` at n=10 under extra drive with unbounded \(x\) is a known numerical regime of that kernel; the canonical mature circuit is n=2 with `bound_mode=stable`.
+**Revision reason:** the composition claim requires a finite declared source. `homeostatic_ei` at n=10 under extra drive with unbounded \(x\) is a known numerical regime of that kernel; the canonical mature circuit is n=2 with `bound_mode=stable`.
 **Package baseline:** `jaxfne/` unchanged since `d5cf9a6`; repo HEAD at etude start recorded in the bundle  
 **Bundle:** `artifacts/etudes/heterogeneous_emitters/`  
 **Package code:** not modified for this étude  
@@ -41,7 +41,7 @@ E\text{ may change while }S\rightarrow F\rightarrow P
 }
 \]
 
-Checkmarks mean **composable under declared semantics**, not numerical
+Checkmarks mean **composable under declared semantics**, rather than numerical
 equality. In particular
 
 \[
@@ -60,10 +60,10 @@ unless an explicit calibration map exists (none is applied).
 | `hei` | continuous bounded E/I state \(x\) with \(G,H\) (`homeostatic_ei`, canonical cubic/hebbian/linear, `bound_mode=stable`) | `uncalibrated_homeostatic_ei_native_current` | 2 |
 
 LIF/GLIF are unimplemented placeholders and are not used.
-HDP-on Izhikevich is the same \(F_X\) plus \(F_H\); it is not a second family.
+HDP-on Izhikevich is the same \(F_X\) plus \(F_H\), and it belongs to the same family.
 
-`hei` \(V_m\) is native \(x\), not millivolts. Spikes are threshold-crossing
-indicators on \(x\), not Izhikevich resets.
+`hei` \(V_m\) is native \(x\), rather than on a millivolt scale. Spikes are threshold-crossing
+indicators on \(x\), distinct from Izhikevich resets.
 
 ---
 
@@ -94,8 +94,8 @@ constant extra drive. `izh` amplitudes `{0,2,4,8,12}`; `hei` amplitudes
 `hei` uses the supported kernel path `simulate_homeostatic_ei(..., drive_schedule=U)`.
 `Model.simulate`'s live docstring is the Izhikevich vertical slice; the HEI
 branch returns before paradigm resolution. Classification:
-**ANALYSIS_GAP** (family-specific drive surface), not a 0.4.15 observation
-defect. Do not patch in this étude. Closure may add an HEI caveat to
+**ANALYSIS_GAP** (family-specific drive surface); the 0.4.15 observations
+stand. Do not patch in this étude. Closure may add an HEI caveat to
 `docs/api/core.md` or reject unused `paradigm` on HEI; that is out of scope
 here.
 

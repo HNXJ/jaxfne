@@ -82,7 +82,7 @@ readout = model.probe(signals, ["spikes", "V_m"])
 # Model.probe(self, signals: Signals, modes: Sequence[str] | None = None) -> dict[str, Any]
 ```
 
-`probe()` lives on `Model`, not on `Signals` — `Signals` only exposes `.get()`
+`probe()` lives on `Model`. `Signals` only exposes `.get()`
 and `.summary()`.
 
 ### 6. Objective
@@ -95,7 +95,7 @@ objective = jtfne.rate_targets(groups, {"E": 10.0})
 ```
 
 `jtfne.rate_targets(...)` always takes both `groups` *and* `targets_hz` —
-`targets_hz` is required, not optional. `jtfne.rate_synchrony_targets(...)` adds
+`targets_hz` is required. `jtfne.rate_synchrony_targets(...)` adds
 a synchrony (`kappa`) term to the same kind of objective.
 
 ### 7. tune()
@@ -108,11 +108,11 @@ result = model.tune(objective=objective, optimizer=jtfne.agsdr(), steps=2, seed=
 #            objectives=None) -> TuneResult
 ```
 
-Tuning is a method on `Model` (`model.tune(...)`), not a free
+Tuning is a method on `Model` (`model.tune(...)`), rather than a free-standing
 `jtfne.optimize(...)` function — there is no top-level `optimize()`.
 `jtfne.agsdr(alpha=0.7, exploration=0.05, deselect_factor=2.0)` returns the
 canonical AGSDR (Adaptive Genetic Stochastic Delta Rule) optimizer spec — a
-state spec, not a stateful optimizer object with its own `.optimize()` method;
+state spec, rather than a stateful optimizer object or an `.optimize()` method;
 `model.tune()` is the entry point that runs it. (The legacy
 `jtfne.AGSDR` class is a COMPATIBILITY adapter retained for old notebooks —
 prefer `jtfne.agsdr(...)`.)

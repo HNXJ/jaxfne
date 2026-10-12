@@ -106,7 +106,7 @@ the rules those releases were held to and are historical context for readers.
   criteria (kicks, `H_0`, ratio, threshold, late windows, replicate seeds) so
   the result digest tracks them, and the runner docstring states the
   selection status (gain, HDP gains and kicks were chosen on the same
-  regime; results are descriptive, not confirmatory). Assay records
+  regime; results are descriptive; no confirmatory claim is made). Assay records
   `w_unchanged`; disabled arms keep W bit-identical in all 9 runs (tested).
   `w_mech` validation is unified on both paths (bool, string, NaN and inf
   refused; finite and positive required; absolute default and `H_0`
@@ -242,7 +242,7 @@ export.
   `scripts/release/reconcile_release_target.py`).
 - Exact RC/release test-set reconciliation: the three RC marker sweeps are
   proven exhaustive, and release CI selects the identical node set
-  (verified per-node via JUnit comparison, not aggregate counts).
+  (verified per-node via JUnit comparison; aggregate counts were not used).
 - JUnit per-node evidence: blocking CI uploads `--junitxml` artifacts and
   the RC gate writes gitignored sweep JUnit; `scripts/compare_pytest_junit.py`
   compares node-by-node with explicit platform/environment classification.
@@ -590,7 +590,7 @@ GitHub Release / TestPyPI / PyPI since v0.4.5.
 
 ### Added
 - **Étude 6 — Multi-Area Network**: V1→V2→V4→PFC hierarchy with feedforward + feedback, inter-areal connectivity census, interactive 3D layout, per-area depth rasters, and an async-irregular (κ) gate.
-- **Étude 7 — Multi-Trial Spectrolaminar Motif**: multi-trial depth × frequency relative power on a 1k canonical column, with the synchrony (κ) trust gate and the regime-based crossover caveat (oscillatory layers + low κ — not N alone).
+- **Étude 7 — Multi-Trial Spectrolaminar Motif**: multi-trial depth × frequency relative power on a 1k canonical column, with the synchrony (κ) trust gate and the regime-based crossover caveat (oscillatory layers + low κ; N alone does not suffice).
 
 ## v0.4.3 (2026-06-21)
 

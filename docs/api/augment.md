@@ -30,7 +30,7 @@ jtfne.W0                    # W_0 axis (initial gain)
 jtfne.H0                    # H_0 axis  (initial hidden state)
 ```
 
-`jtfne.augment` is the function, not the module: after `import
+`jtfne.augment` is the function; the module is shadowed by it: after `import
 jaxfne.augment` (with or without `as m`), the attribute `jaxfne.augment` is
 the function, as is a `monkeypatch` string target `"jaxfne.augment.X"`. Import names with `from jaxfne.augment import ...`
 or use the root names above.
@@ -91,7 +91,7 @@ distinct object, zero changed values.
   spec can fail for some `K_V`.
 - `construct` quantises `delay_ms` to `round(delay_ms / dt_ms)` steps, so a
   small delay change may leave the model unchanged, and a positive delay
-  rounding to 0 steps is refused by `construct`, not here.
+  rounding to 0 steps is refused by `construct`, and augmentation does not check it.
 - `H_0` reaches the model as the target-group mean of `H`
   (`model.params["hdp_initial_H"]`) and is inert unless HDP is on.
 - `Theta_X` scales only `g_mech[conn.mechanism]` — the key `construct`

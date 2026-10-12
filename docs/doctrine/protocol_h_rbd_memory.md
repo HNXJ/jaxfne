@@ -43,7 +43,7 @@ Protocol H is the first rung; do not develop H and W simultaneously.
 
 Protocol W specification opens after Protocol H closure (H4). Its question is whether
 \(\Delta\mathbf H \rightarrow \Delta\mathbf W\) extends memory onto another
-timescale — not whether delays alone produce waves, and **not** to rescue H4.
+timescale. Whether delays alone produce waves is not tested here. H4 stays closed.
 See `docs/doctrine/protocol_w_hdp_parameter_memory.md`.
 
 ## 3. Markov state
@@ -160,7 +160,7 @@ Distinguish:
 | **Driven steady state** | \(H^\*\) solving \(R(H^\*)+\kappa_H\mathbb E[I^{\mathrm{rel}}]=0\) |
 
 When \(\kappa_H>0\), generally \(H^\*\neq 1\). Baseline-one is a **reference
-calibration**, not a claim that the driven attractor is at \(H=1\). With
+calibration**, rather than a claim that the driven attractor is at \(H=1\). With
 \(\kappa_H=0\) and no input coupling, \(H^\*=1\) for F1/F2.
 
 ### 4.6 H1 phase portrait (isolated, \(I^{\mathrm{rel}}=0\))
@@ -173,7 +173,7 @@ matched Jacobian at \(H=1\). Receipt: `tests/test_protocol_h_rbd_h1_phase_portra
 
 The legacy HDP income/spending kernel (including the exploratory scalar term
 \(\rho_{\mathrm{passive}}/H_i^2\), sometimes informally written “\(100/H\)”) is
-**one candidate realization**, not canonical RBD theory.
+**one candidate realization**; canonical RBD theory is not claimed.
 
 Protocol H must compare **at least two** scalar \(F_H\) families under identical
 falsification metrics:
@@ -187,7 +187,7 @@ R_2(H)=H^{-1}-1,\qquad
 \tau_H\dot H_i = R_2(H_i)+\kappa_H I_i^{\mathrm{rel}},
 \]
 
-documented as **ancestry** from the toy passive-income rule, not mathematical
+documented as **ancestry** from the toy passive-income rule, rather than a mathematical
 identity. F1 and F2 share equilibrium \(H^\*=1\) and first-order relaxation
 rate at \(H=1\): \(R_1'(1)=R_2'(1)=-1\).
 
@@ -208,7 +208,7 @@ Additional families (e.g. trace-filtered activity drive) may be added only if th
 are **pre-registered** with the same \(M(\Delta)\) pipeline.
 
 **Design constraint:** do not tune \(F_H\) to maximize visual memory. Select among
-families by **pre-registered decodability metrics**, not raster aesthetics.
+families by **pre-registered decodability metrics**; raster aesthetics play no role.
 
 ### 4.4 Timescales
 
@@ -230,7 +230,7 @@ This interrogates \(\Delta H \rightarrow x/H/\mathcal B \rightarrow\) distribute
 fading state without the confound \(u\rightarrow x\rightarrow H\).
 
 **Secondary:** pulse-current perturbation — introduces an additional transfer path,
-reserved for later cross-checks, not the first memory test.
+reserved for later cross-checks, with the first memory test elsewhere.
 
 **Post-perturbation baseline:**
 
@@ -302,7 +302,7 @@ Report \(M(\Delta)\) vs \(\Delta\) (in ms or steps), with confidence intervals
 over seeds and perturbation instances. **No memory claim** without a quantitative
 \(M(\Delta)\) curve (doctrine stop rule §16 in `rbs_rbd_hdp.md`).
 
-Secondary metrics (optional, not substitutes): perturbation-aligned response
+Secondary metrics (optional; none substitutes for a primary one): perturbation-aligned response
 difference between matched-input trajectories, autocorrelation of \(H\), recovery
 time constants — all pre-registered.
 
@@ -328,7 +328,7 @@ Interpretation receipt:
 Complete \(M_X(\Delta)\) curves are mandatory evidence (area alone can hide
 distinct kernels, e.g. exponential decay vs delayed recurrent peaks).
 
-**Directional conjecture (falsifiable, not acceptance criterion):**
+**Directional conjecture (falsifiable; it sets no acceptance criterion):**
 
 \[
 \mathcal M_X^{\mathrm{long,hetero}}
@@ -365,7 +365,7 @@ H4 outcome — **observed** under the frozen prospective run (see §13).
 Directional conjecture \(\mathcal M_X^{LH} > \mathcal M_X^{SU}\): **not supported**
 (0 vs 0). Factorial point estimates: \(\alpha_L\simeq 0\), \(\alpha_D=+0.052\),
 \(\alpha_{L\times D}=-0.052\). The positive \(\alpha_D\) is **entirely** from the
-short+heterogeneous cell; it is an exploratory prospective estimate, not a
+short+heterogeneous cell; it is an exploratory prospective estimate, with no
 general heterogeneity confirmation (no bootstrap CIs).
 
 Fixed \(\dot W=0\), fixed \(F_H\) family per row block, shared H3 decoder protocol:
@@ -393,10 +393,10 @@ Definitions:
 Ring topology uses directed recurrent edges (one neighbor or k-nearest on a ring);
 exact edge lists are frozen in the étude/script receipt.
 
-**Mechanistic alignment (diagnostic only, not scored):** compare secondary
+**Mechanistic alignment (diagnostic only; unscored):** compare secondary
 \(M_X(\Delta)\) peaks to predicted loop-return times
 \(T_{\mathrm{loop}}=\sum_{e\in\mathrm{loop}}\tau_e\) (and harmonics). Peaks must
-emerge from data; they are not hypothesis targets.
+emerge from data. No hypothesis target is defined by them.
 
 **Interpretation scope:** H4 tests only distributed **fading dynamical** memory in
 RBD. A negative H4 does not negate P1/P2 (RBS retention and \(H\!\rightarrow\!X\)
@@ -503,7 +503,7 @@ P_3 &: \text{network geometry/delays extend activity memory} && \text{(H4: prere
 **H4 methodological limitation (permanent):** cross-\(N\) identity decoding differs
 in chance level (\(1/3\) vs \(1/12\)), sample complexity, and feature dimensionality.
 The defensible length statement is narrower: **no positive length effect was detected
-by the preregistered H4 identity-decoding assay** — not “length has no effect on
+by the preregistered H4 identity-decoding assay**. No claim that “length has no effect on
 memory.” Future protocols may use matched binary perturbation decoding or
 information-normalized metrics.
 

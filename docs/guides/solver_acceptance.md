@@ -6,8 +6,8 @@ proxy projection and to any future solver added to `jaxfne/fields/`.
 
 > **Scope:** Every jaxfne field output is a **Relative** proxy readout inside a
 > computational scaffold. Passing the checklist documents that a solver behaves
-> correctly as a *computational* operator; it does **not** elevate the output
-> beyond the proxy readout boundary.
+> correctly as a *computational* operator; the output stays inside the proxy
+> readout boundary.
 
 ## Why the checklist is needed
 
@@ -28,7 +28,7 @@ behavioral tests (not by inspecting source):
    `a + b` equals the sum of projecting `a` and projecting `b`, component for
    component, within a tolerance appropriate to the array dtype.
 3. **JAX execution.** The solver must run inside `jax.jit` and produce finite
-   arrays from valid array inputs. This is tested by executing it, not by
+   arrays from valid array inputs. This is tested by executing it, rather than by
    looking for a decorator.
 4. **Field claim metadata.** The output exposes `field_claim_level` on its
    metadata surface.
@@ -43,9 +43,9 @@ yields exact zero proxy outputs (with correct shapes) under the solver's dtype.
 All field output in jaxfne sits under the same claim boundary:
 
 - `field_claim_level = "proxy_readout"` — the arrays are structural proxy
-  readouts, not measurements.
+  readouts; no measurement is made.
 - `field_solver_status` distinguishes the implementation (`linear_solver`,
-  `experimental_pde_solver`); it does not change the claim level.
+  `experimental_pde_solver`); the claim level is unchanged.
 - `physical_amplitude_calibrated = False` on every solver path.
 
 A solver that passes the checklist is still bound by these three values. The

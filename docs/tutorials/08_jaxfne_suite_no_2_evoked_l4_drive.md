@@ -138,7 +138,7 @@ LFP-proxy shows a depolarizing L4 sink during the stimulus (inward synaptic curr
 
 ### Post-stimulus suppression
 
-After offset, some neurons show brief rebound burst (adaptation-current deinactivation), then return to baseline. This rebound is a proxy artifact, not biological post-stimulus adaptation.
+After offset, some neurons show brief rebound burst (adaptation-current deinactivation), then return to baseline. This rebound is a proxy artifact and reflects no biological post-stimulus adaptation.
 
 ## Failure modes & exercises
 

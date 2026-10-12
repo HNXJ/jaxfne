@@ -22,7 +22,7 @@ numerical property of the frozen evidence set; no physical calibration was perfo
 ## Relative computational readouts
 
 Local field-potential and current-source-density traces are relative computational readouts
-of that same frozen source Q, not experimental recordings {Q01}. The toy EEG/MEG leadfields
+of that same frozen source Q. No experimental recordings are used {Q01}. The toy EEG/MEG leadfields
 of Fig. 4 are analysis-only computational readouts for which physical amplitude calibration
 was not performed. These quantities are defined on the same evidence regime as Q; no
 equivalence with experimental recordings exists within this paper.
@@ -112,8 +112,8 @@ regime remained closer to $|G_{\mathrm{prop}}| \ll 1$ (extinction/near-silence) 
 into synchrony, standing/flipping, or structured gate-failing states; $G_{\mathrm{prop}}$
 is used here only as a schematic concept and was not numerically estimated. An
 additional spatially structured recurrent/excitable regime consistent with these
-observations would be one candidate dynamical requirement, not claimed as the unique
-missing biological mechanism. No claim is made for regimes outside the tested
+observations would be one candidate dynamical requirement among possible others
+for the missing biological mechanism. No claim is made for regimes outside the tested
 geometry/delay domain, and none outside this simulator.
 
 ## Typed vector RBS extends the classical emitter
@@ -158,8 +158,8 @@ each; D: 9 NO_ADAPTATION {Q20}; the mechanism gates are evaluated where H_K is w
 D arm), so the null arms' ADAPTATION labels reflect matching observables without the gate,
 not a differing observable. Observably, attenuation is identical across arms (D minus N2
 null on A_adapt, 0.2857 vs 0.2857) {Q20}; therefore attenuation is not attributable to
-H_K writing, and the D arm is classified and reported as NO_ADAPTATION — attenuation is
-reported as attenuation, not adaptation.
+H_K writing, and the D arm is classified and reported as NO_ADAPTATION. The observed effect is
+reported as attenuation.
 
 ## W3b: the active stability region remains unresolved
 
@@ -179,8 +179,8 @@ the DESYNC preset H ∈ [1.0000, 1.0310], |w| ∈ [5.8692, 6.1684], growth ratio
 No tested state approaches a clamp boundary — H ⊂ [0.1, 10], |w| ⊂ [0.01, 10], |V| ≤ 150,
 |u| ≤ 2000, |syn| ≤ 1e4 — and no adaptive weight tuning occurred (control gains at kernel
 defaults; K_w_ctrl = 0.0) {Q22}. These trajectories remained bounded over the tested
-parameter and time domain; this does not resolve the W3b stability classification of the
-active region .
+parameter and time domain. The W3b stability classification of the
+active region remains unresolved by these runs.
 
 ## Hierarchy, delays, and local RBS compose
 

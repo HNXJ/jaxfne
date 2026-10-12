@@ -89,7 +89,7 @@ Single-notebook courses that each cover a full workflow arc.
 [![Open Suite 3 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb)
 
 All notebooks follow the [Colab notebook standard](notebook_standard.md).
-Frozen scientific demonstrations are the **[Études](../etudes/index.md)**, not tutorials.
+Frozen scientific demonstrations are the **[Études](../etudes/index.md)**; the pages on this index are tutorials.
 
 ??? note "Archive: earlier stand-alone tutorials (superseded by the track)"
 

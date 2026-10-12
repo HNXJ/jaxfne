@@ -24,7 +24,7 @@ print(f"kappa={kappa:.3f}")  # expect ≈0 (async-irregular)
 
 Rules:
 - Freeze `X, Q`; then `K_a ≠ K_b ⇒ Y_a ≠ Y_b` (distinct operators give distinct readouts on same trajectory).
-- CSD = `Dzz·LFP` suppresses the broad deep alpha/beta — compute the spectrolaminar crossover on **LFP**, not CSD (`signal_key="lfp_contacts"`).
+- CSD = `Dzz·LFP` suppresses the broad deep alpha/beta. Compute the spectrolaminar crossover on **LFP** (`signal_key="lfp_contacts"`).
 - EEG/MEG/EMM are toy/declared linear leadfields (`analysis_only`); field amplitudes are `proxy_relative` / `physical_amplitude_calibrated=False`.
 
 <!-- jx-figure -->

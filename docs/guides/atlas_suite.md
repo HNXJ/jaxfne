@@ -96,7 +96,7 @@ python scripts/generate_readme_atlas.py
 That rebuilds the interactive panels under `docs/_static/atlas/` **and**
 rasterizes the same figure objects to `docs/assets/readme/*.png`, which is what
 the GitHub README shows inline. The README stills are thus reproducible
-from a clean checkout, not hand-added binaries.
+from a clean checkout; hand-added binaries are not used.
 
 The pinned configuration is:
 
@@ -108,13 +108,13 @@ The pinned configuration is:
 | Realized | 1000 neurons, 215785 edges, 2000 steps |
 
 The generator checks `config_hash` before writing and aborts on drift, so a
-change to the canonical column must be an explicit decision, not a
+change to the canonical column must be an explicit decision, rather than a
 silent republish. PNG rasterization needs `kaleido` (`pip install ".[viz]"`);
 `--html-only` skips it.
 
 ### A note on panel 6's name
 
-Panel 6 is `state_summary`, not `operating_point`. It reports the time-averaged
+Panel 6 is `state_summary`, distinct from `operating_point`. It reports the time-averaged
 firing rate per cell type and the share of silent units over the simulated
 window. That is a descriptive summary of the realized trajectory: no fixed
 point is solved for, no equilibrium condition is checked, and no stationarity

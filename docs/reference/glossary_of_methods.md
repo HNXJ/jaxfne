@@ -83,7 +83,7 @@ $$
 |---|---|
 | `SDR` | spectral descent response transform |
 | `GSDR` | generalized spectral descent response transform |
-| `AGSDR` | Adaptive Genetic Stochastic Delta Rule (canonical multi-parameter engine `_run_agsdr_optimization_loop`; the legacy scalar path `propose_blackbox_candidates` is COMPATIBILITY, not canonical) |
+| `AGSDR` | Adaptive Genetic Stochastic Delta Rule (canonical multi-parameter engine `_run_agsdr_optimization_loop`; the legacy scalar path `propose_blackbox_candidates` is COMPATIBILITY, rather than canonical status) |
 | random search | bounded stochastic search over declared parameter spaces |
 
 ## Configuration objects

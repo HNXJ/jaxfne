@@ -66,8 +66,8 @@ than force-mapped:
 
 ## Operators by pipeline stage
 
-This table lists the concrete functions behind each stage — not the abstract
-registry symbols above, but the actual callables `jaxfne.__all__` exports.
+This table lists the concrete functions behind each stage. The abstract
+registry symbols above are a separate layer; the rows here are the actual callables `jaxfne.__all__` exports.
 
 ### Source operators
 
@@ -109,14 +109,14 @@ Lead-field transforms: `eeg_proxy_transform(...)`, `meg_proxy_transform(...)`, `
 - `config_truth_boundary(cfg)` — **REMOVED (2026-06-30).** Deleted along with
   the rest of the `JaxFNEConfig` config-path API; see [Validation](validation.md)
   for the replacement pointer (status-gate metadata now lives on the fluent
-  pipeline's own objects, e.g. `FieldOutput`/`RunReceipt`, not a standalone call).
+  pipeline's own objects, e.g. `FieldOutput`/`RunReceipt`; no standalone call is involved).
 
 ---
 
 ## Report shapes
 
-Every report-producing function above returns a plain JSON-safe `dict`, not a
-typed dataclass. This is a deliberate, repo-wide convention — reports must
+Every report-producing function above returns a plain JSON-safe `dict`; no
+typed dataclass is returned. This is a deliberate, repo-wide convention — reports must
 round-trip through `json.dumps(..., allow_nan=False)` for write-once receipts —
 rather than a gap to fill. `jaxfne/experimental_hpc/contracts.py` incubates a
 future typed-tensor architecture; every dataclass there raises

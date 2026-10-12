@@ -34,7 +34,7 @@ Remarks:
 - The S3 record's `frequency_hz` field stores the **estimate**; ground truth is 10.0 Hz in all
   12 cases (executor `scripts/p2v_a2_sensitivity_floor.py`).
 - The 250 ms / 4.0 Hz spacing is the only grid on which 10.0 Hz is off-grid; ε_f = 2.0 there is
-  structural quantization of the rectangular-window argmax, not estimator noise or a band-pass
+  structural quantization of the rectangular-window argmax; that error is not estimator noise or a band-pass
   artifact. A byte-faithful replay of the exact executor code path (same Butterworth order-4
   band [8/1000, 13/1000] of Nyquist 1,000 Hz, filtfilt, summed-site rfft power, inclusive band
   mask) reproduced all 12 stored (f̂, ε_f) pairs exactly on 2026-08-16.
@@ -43,7 +43,7 @@ Remarks:
 - The A-2 S1 lattice also uses 2000 ms and records ε_f = 0 for all 40 cases.
 - Consequence for the classification gates: the S3 stage's purpose is lane/cutoff set-pointing,
   and all 12 cases classify TRAVELING_WAVE at every duration; the 250 ms ε_f = 2.0 limit is
-  reported, not hidden, and no Results claim quantifies frequency error below the S3 floor.
+  reported rather than hidden, and no Results claim quantifies frequency error below the S3 floor.
 
 ## S.2 — Units and magnitude convention table (review item M1.3)
 

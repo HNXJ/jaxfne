@@ -26,7 +26,7 @@ Data artifacts: `cortex_calibration/{fi_curves.json, network_rate.json}`,
 
 > These scripts and artifact files are not preserved in this repo (verified
 > absent from working tree and full git history 2026-07-03). This report
-> documents a historical result, not a currently-reproducible one. **This
+> documents a historical result that is not currently reproducible. **This
 > note applies to every report in the STDP/calibration group** (Homeostatic,
 > Closed-Loop, Global Scale, Low-Rate Regime) — each links back here instead
 > of repeating it.
@@ -45,7 +45,7 @@ noise. Intrinsic baseline drive (built into each type) is added on top:
 | **SST** | 3.5 | 0 | 0 | 0 | 0 | 28.9 | 97.8 | 172.8 | 376 | 668 |
 | **VIP** | 3.0 | 0 | 0 | 0 | 0 | 0 | 0 | 5.0 | 104 | 272 |
 
-- **Negative drive (≤ −10 nA) silences every type** — a cliff, not graded suppression.
+- **Negative drive (≤ −10 nA) silences every type** — a cliff, rather than graded suppression.
 - **E** is the only type with a usable graded curve (10 → 54 Hz over drive 0 → 20).
 - **PV is fast-spiking**: 0 → 185 Hz between drive 0 and 10; no low-rate DC regime.
 - **SST is tonically active** (28.9 Hz at injected 0).
@@ -69,14 +69,14 @@ noise. Intrinsic baseline drive (built into each type) is added on top:
 | 100 | −8.0e−4 | 5.8e−3 | ~1450 (pure clipping) |
 
 Criterion — a change is "visible but gradual" if the hottest synapse reaches
-~10% of w_max (≈ 0.15) over a useful window, not in one step and not never:
+~10% of w_max (≈ 0.15) over a useful window, in gradual steps:
 
 - At **scale 1.0**, hot synapse hits 0.15 in **~250 ms** → over a 25 s closed loop that is **massive saturation**. (The post-hoc bulk mean looked flat only because post-hoc does not accumulate.)
 - To evolve weights over the **whole multi-second run**: per-step ≈ 6e−7 → **scale ≈ 0.01**.
 - To evolve over **~hundreds of ms**: **scale ≈ 0.1–1.0**.
 
 **Recommended band: `global_stdp ≈ 0.01 – 0.1`.**
-`< 0.001` is effectively frozen; `> 1` saturates/clips (10–100 is clipping, not
+`< 0.001` is effectively frozen; `> 1` saturates/clips (10–100 is clipping, with no
 learning); negative values are anti-Hebbian contrast only.
 
 > **Closed-loop + homeostasis (resolved):** post-hoc bands are an upper bound on
@@ -149,10 +149,10 @@ Single-neuron drive needed to reach each target rate:
 
 \* PV/SST collapse to a single threshold — between drive 0 and first firing they
 jump past all four targets (185 Hz at +10). **They have no graded DC sweetpoints**;
-their rate is set by network inhibition, not DC.
+their rate is set by network inhibition.
 
 - **Only E has clean, separable sweetpoints**: 1–5 Hz at slightly negative drive, 10 Hz at ~0, 20 Hz at +4.
-- **PV/SST**: control rate via the I↔E loop, not DC.
+- **PV/SST**: control rate via the I↔E loop.
 - **VIP**: high-threshold knob, usable from +20 nA upward.
 
 ---

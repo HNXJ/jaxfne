@@ -2,7 +2,7 @@
 
 This guide covers setup, validation, and
 expectations for human contributors. If you are an AI agent, read
-`artifacts/AGENTS.md` in the repository checkout (repository file, not part of
+`artifacts/AGENTS.md` in the repository checkout (repository file, outside
 this documentation build).
 
 ## Quick links

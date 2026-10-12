@@ -2,12 +2,12 @@
 
 The source of a simulation is the raw proxy-current trace that each emitter kernel returns
 as its third value. This page documents the shape, metadata surfaces, and claim status of
-that trace across every emitter path. It is a contract description, not a class reference:
+that trace across every emitter path. It is a contract description; no class reference follows:
 there is no `Source` or `SourceTensor` object in jaxfne.
 
 ## Scope
 
-- The source is an array, not an object. Every emitter kernel returns
+- The source is a bare array. Every emitter kernel returns
   `(spikes, ...intermediate_state..., source)` where `source` is the third return value.
 - No `Source` class, `SourceTensor` class, per-kernel metadata field, or compatibility
   adapter exists or is planned. Downstream code consumes the plain array plus the metadata

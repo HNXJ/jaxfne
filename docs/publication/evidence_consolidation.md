@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Immutable claim → protocol → receipt → arrays → analysis → figure-panel index for the **0.4.17 hard feature freeze**. Figures 1–7 must be generated from this index, not from memory or ad hoc scripts.
+Immutable claim → protocol → receipt → arrays → analysis → figure-panel index for the **0.4.17 hard feature freeze**. Figures 1–7 must be generated from this index. Memory and ad hoc scripts are not sources.
 
 ## Version semantics (resolve the 0.4.16 vs 0.4.17 axes)
 

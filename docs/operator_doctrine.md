@@ -31,7 +31,7 @@ table, gathered from where each fact is declared:
 - [Tensor-Field Workflows](guides/tensor_field_workflows.md) — the probe-operator
   tensor form.
 
-This page indexes those contracts, not their derivations.
+This page indexes those contracts and does not give their derivations.
 
 ---
 
@@ -41,19 +41,19 @@ This page indexes those contracts, not their derivations.
 |---|---|---|---|---|---|---|
 | **Emitter** | parameters `theta`, input `u(t)`, initial state | state trajectory `z(t)` | rank-2 `[T, N]` | dynamical | Izhikevich default; explicit `PRNGKey` required; Relative-value state | mV / ms; `claim_level = "computational_scaffold"` |
 | **Source** | state `z(t)`, drive `I(t)`, spatial basis `chi(x)` | source density `q(x,t)` | rank-2 `[T, N]` | source projection | no synaptic double-counting (see Source/Field Equations); Relative-value coefficients | relative units; `source_calibration_status` |
-| **Field** | source density `q` | `lfp_proxy`, `csd_proxy` | rank-2 `[T, n_contacts]` | field projection (declared, not solved) | isotropic conductivity assumed; the field equation is declared, not solved (`field_solver_status = "linear_solver"`) | relative units; `physical_amplitude_calibrated = False` |
+| **Field** | source density `q` | `lfp_proxy`, `csd_proxy` | rank-2 `[T, n_contacts]` | field projection (declared and unsolved) | isotropic conductivity assumed; the field equation is declared and unsolved (`field_solver_status = "linear_solver"`) | relative units; `physical_amplitude_calibrated = False` |
 | **Probe** | field + source + state | channel readout `Y_c(t)` | depends on operator (eight operators) | readout | a proxy reading unless lead-field geometry is calibrated to real electrodes | relative units; see [Probe Operators](guides/probe_operators.md) |
 | **Objective** | signals + declared targets | scalar/vector score | rank-0 / rank-1 | evaluation | strict mode raises on a non-finite score | dimensionless |
 | **Optimizer** | objective + parameters | updated parameters | matches the parameter tensor | search / gradient | hard spike reset has no gradient without a surrogate; `Model.tune()` checks `gradient_path_safe()` | n/a |
-| **Manifest** | full run state | JSON-safe report `dict` | n/a (a dict, not a tensor) | bookkeeping / truth gate | write-once; `allow_nan=False` | n/a |
+| **Manifest** | full run state | JSON-safe report `dict` | n/a (a dict rather than a tensor) | bookkeeping / truth gate | write-once; `allow_nan=False` | n/a |
 
 Every row's validation status is reported at runtime by `jaxfne.operator_status()`;
 see [Tensor Operator Registry](api/tensor_operators.md) for the live registry and
 its symbol-to-stage mapping.
 
 > **Scope note:** this table names stages in full (Emitter, …, Objective, …).
-> Bare $O$/$P$ letters belong to the TFNE specification algebra — ordered
-> composition and proportion maps — not to these runtime stages (see
+> Bare $O$/$P$ letters belong to the TFNE specification algebra, which consists of ordered
+> composition and proportion maps, separate from these runtime stages (see
 > [TFNE Algebra](doctrine/tfne_algebra.md)).
 
 **On the name "Validation" for the final stage:** some external descriptions of this
@@ -69,7 +69,7 @@ There is no separate eighth "Validation" stage to implement; "Validation" and
 
 ## Operator classes
 
-The "Class" column groups operators by what they do, not their pipeline position:
+The "Class" column groups operators by what they do, independent of their pipeline position:
 
 | Class | Description | Example |
 |---|---|---|

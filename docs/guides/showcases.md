@@ -102,12 +102,12 @@ acting on uncorrelated, random drive.
 The excitatory weight distribution shifts down over the 10 s run (mean
 0.0547 → 0.0510): the stimulus lacks temporal structure, so little causal
 pre-before-post pairing occurs and net synaptic depression dominates — a
-measured STDP effect, not a flat line.
+measured STDP effect, visible as a departure from a flat line.
 
 ## Spectrolaminar motif with depth-graded ("slow-deep") homeostasis
 
 The deep-α/β vs superficial-γ spectrolaminar crossover is a **regime property**
-(band-limited layer-local oscillations while global κ stays low), not a connectivity-
+(band-limited layer-local oscillations while global κ stays low), rather than a connectivity-
 weight or neuron-count effect alone — see `jaxfne-spectrolaminar-suite` and
 `artifacts/tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb`. This run uses the
 canonical 10,000-neuron V1 column and layers a depth-graded homeostatic profile: deep layers (L5/L6) get a
@@ -194,8 +194,8 @@ density rising toward deep layers, I subtypes — PV/SST/VIP — concentrated
 superficial) directly from `model.neuron_table()`, independent of the
 spectral panels. The crossing panel shows the alpha/beta and gamma
 depth-distributions tracking each other closely (97% similarity by total
-overlap) while still crossing three times — consistent with the "occasionally
-uncrossed, not globally dominant" picture rather than a clean superficial/deep
+overlap) while still crossing three times — consistent with occasional
+uncrossing and no global dominance, rather than a clean superficial/deep
 split.
 
 **A second correction: the relative crossings are real, but there is no
@@ -240,7 +240,7 @@ riding on a spectrum that lacks genuine absolute band-selectivity — treat them
 as exactly that, rather than as evidence of a deep resonator or superficial filter.
 
 **Honest summary.** Crossings are real and reproducible — the earlier "zero
-crossover" claim was a method error, not a model finding. But
+crossover" claim was a method error, and no model finding supports it. But
 the absolute-power test above shows those crossings lack any genuine
 band-selective mechanism behind them: the spectrum carries flat depth gain and
 the same 1/f shape at every depth. What remains **unreproduced** is the
@@ -304,14 +304,14 @@ weaker gamma flip (0.93, barely below parity); `order=2` (two cascaded
 single-pole sections) is the validated default for a clean split. Pushing
 `tau_e_deep` further (e.g. 8 ms) over-attenuates and erodes the alpha/beta
 deep-dominance it's supposed to preserve — the cutoff has to sit *between*
-alpha/beta and gamma, not below alpha/beta.
+alpha/beta and gamma, which excludes anything below alpha/beta.
 
 **Honest scope.** This is still a phenomenological filter tuned to produce
-the qualitative literature pattern (deep alpha/beta, superficial gamma), not
-a cable-equation solve, and the tau values are not derived from any measured
+the qualitative literature pattern (deep alpha/beta, superficial gamma). No
+cable-equation solve is performed, and the tau values are not derived from any measured
 or published dendritic biophysics — they were hand-tuned against this one
 falsification test. It is a different *mechanism class* from the
-flat-gain depth/dipole-size readout above (frequency-selective, not just
+flat-gain depth/dipole-size readout above (frequency-selective, beyond just
 depth-selective), and it composes cleanly with the existing LFP-proxy and
 EEG-/MEG-proxy readouts since all three take the same `[T, N]` source array.
 

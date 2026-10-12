@@ -17,7 +17,7 @@ jaxfne.vis.network_hspice(model, path="circuit.png")
 A block schematic: input left, output right, areas as blocks, layers as
 rows, cell classes as chips, and one annotated arrow per cross-area projection with
 its edge count, mean weight and sign. No single neurons drawn — a
-construction receipt, not a connectivity plot.
+construction receipt rather than a connectivity plot.
 
 ![circuit](../_static/model_inspection/case2_three_area_hspice_light.png)
 

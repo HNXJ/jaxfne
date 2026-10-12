@@ -2,7 +2,7 @@
 
 > Continued from [06 — Add state](06_add_state.md). Same `model`; enable dynamics.
 
-Two frozen presets (imported, not retuned) show the stability↔variability tradeoff on the same kernel:
+Two frozen presets (imported, rather than retuned) show the stability↔variability tradeoff on the same kernel:
 
 ```python
 import jaxfne as jtfne
@@ -40,6 +40,6 @@ Next: [08 — Compare](08_compare_nulls.md) — nulls, lesions, and authority.
 
 ## Interactive atlas (dark)
 
-HDP dynamics change the trajectory, not the circuit: the pinned non-HDP reference panels are [here](../_static/atlas/index.html) ([schema](../_static/atlas/schema.html) · [3D](../_static/atlas/network_3d.html) · [raster](../_static/atlas/raster.html) · [LFP](../_static/atlas/lfp.html) · [H](../_static/atlas/h_dynamics.html) · [HDP](../_static/atlas/hdp.html) · [oscillatory](../_static/atlas/oscillatory.html)), and the small-mechanistic HDP run with full recording is [here](../_static/atlas/hdp_10/index.html) ([schema](../_static/atlas/hdp_10/schema.html) · [3D](../_static/atlas/hdp_10/network_3d.html) · [raster](../_static/atlas/hdp_10/raster.html) · [LFP](../_static/atlas/hdp_10/lfp.html) · [H](../_static/atlas/hdp_10/h_dynamics.html) · [HDP](../_static/atlas/hdp_10/hdp.html) · [oscillatory](../_static/atlas/hdp_10/oscillatory.html)). A short HDP run of the builder-path 1000-neuron column (weight trace off by recording budget) is [here](../_static/atlas/hdp_1000/index.html).
+HDP dynamics change the trajectory and leave the circuit as it is: the pinned non-HDP reference panels are [here](../_static/atlas/index.html) ([schema](../_static/atlas/schema.html) · [3D](../_static/atlas/network_3d.html) · [raster](../_static/atlas/raster.html) · [LFP](../_static/atlas/lfp.html) · [H](../_static/atlas/h_dynamics.html) · [HDP](../_static/atlas/hdp.html) · [oscillatory](../_static/atlas/oscillatory.html)), and the small-mechanistic HDP run with full recording is [here](../_static/atlas/hdp_10/index.html) ([schema](../_static/atlas/hdp_10/schema.html) · [3D](../_static/atlas/hdp_10/network_3d.html) · [raster](../_static/atlas/hdp_10/raster.html) · [LFP](../_static/atlas/hdp_10/lfp.html) · [H](../_static/atlas/hdp_10/h_dynamics.html) · [HDP](../_static/atlas/hdp_10/hdp.html) · [oscillatory](../_static/atlas/hdp_10/oscillatory.html)). A short HDP run of the builder-path 1000-neuron column (weight trace off by recording budget) is [here](../_static/atlas/hdp_1000/index.html).
 
 Regenerate: `python scripts/generate_readme_atlas.py --html-only` and `python scripts/generate_doc_page_atlases.py --slug hdp_10,hdp_1000`.

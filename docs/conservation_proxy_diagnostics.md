@@ -11,7 +11,7 @@ and produce JSON-safe scalar summaries for source/field validation.
 - `amplitude_status: false` (immutable).
 - `metabolism_status: false` (immutable).
 - `j_dot_e_proxy: null` — J_e is not computed in `linear_solver` mode.
-- `poynting_flux_proxy: null` — not implemented.
+- `poynting_flux_proxy: null` — unimplemented.
 - `poisson_solver_status: not_implemented`.
 - `maxwell_solver_status: not_implemented`.
 - `stress_energy_tensor_status: not_implemented`.
@@ -44,7 +44,7 @@ $$\mathrm{source\_conservation\_proxy\_residual} = \frac{1}{T}\sum_t \mathrm{res
 At each timestep, compute the spatial mean of the source. Average the absolute value of this
 spatial mean over time. A value near zero suggests the source is approximately spatially balanced.
 
-**Run boundary:** This is a spatial-mean proxy for ∫q dV ≈ 0, not a PDE-enforced conservation
+**Run boundary:** This is a spatial-mean proxy for ∫q dV ≈ 0, distinct from a PDE-enforced conservation
 check. The true conservation integral requires a solved field with boundary conditions.
 
 ### Potential-Field Gradient Proxy
@@ -64,7 +64,7 @@ $$E_\mathrm{proxy} = \|\nabla \phi_e\|^2_\mathrm{proxy}$$
 
 **Worded equation:**
 `field_energy_like_proxy` = same as `phi_gradient_proxy_norm2`. It is named separately to
-distinguish it as a proxy analog of field energy density; it is not a physical energy.
+distinguish it as a proxy analog of field energy density. No physical energy is claimed.
 
 **Run boundary:** No calibrated conductivity. This is not ½ σ |∇φ_e|² (physical field energy).
 

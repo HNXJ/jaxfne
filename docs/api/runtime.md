@@ -189,14 +189,14 @@ signals_b, state_b = jtfne.simulate(
 The returned `ContinuationState` carries the complete recurrent dynamic state
 and the next explicit PRNG key. The same model, timestep, runtime kernel, and
 segment drive schedule must be used for exact continuation. This is a runtime
-state object, not a manifest or archive format.
+state object, and manifest or archive formats do not apply to it.
 
 The continuation path currently supports the exponential edge-list kernel only.
 Unsupported synaptic kernels and ablation modes are rejected explicitly.
 
 `Model.with_hdp_initial_state(H0=..., w0=...)` remains partial initialization
 of homeostatic/plastic variables. It does not restore membrane, previous-spike,
-or synaptic state and is not an exact recurrent continuation contract.
+or synaptic state. No exact recurrent continuation contract is provided.
 
 ---
 
@@ -274,7 +274,7 @@ For a smaller, standalone device/dtype probe that doesn't require a `RuntimeConf
 `get_jax_backend_report()` instead — keys `available_devices`, `default_backend`,
 `x64_enabled`, `dtype_default` (it does NOT return jaxfne/numpy/python version or platform
 info; no jaxfne helper currently reports those). See "jaxfne.runtime Module Helpers" below
-for the access path — note it is `importlib.import_module("jaxfne.runtime")`, not
+for the access path, which is `importlib.import_module("jaxfne.runtime")`; the attribute form
 `jaxfne.runtime.get_jax_backend_report()` (that expression resolves to a different function
 due to a name collision, see below).
 
@@ -294,8 +294,8 @@ from `jaxfne/core.py` (see above) and additionally defines three standalone help
 (`__all__` in `jaxfne/runtime.py`), independent of `RuntimeConfig`.
 
 **Name-collision landmine:** `jaxfne.runtime` (attribute access on the `jaxfne` package)
-resolves to the `runtime()` *function* (re-exported from `core.py`), not the `runtime.py`
-*module* — this is deliberate, see the `_RuntimeModuleWrapper` in `jaxfne/__init__.py`.
+resolves to the `runtime()` *function* (re-exported from `core.py`); the `runtime.py`
+*module* is shadowed — this is deliberate, see the `_RuntimeModuleWrapper` in `jaxfne/__init__.py`.
 Neither `jtfne.runtime.get_jax_backend_report()` nor `import jaxfne.runtime as jtfne_runtime`
 reaches the module (both resolve `runtime` to the function via the same `__getattr__`
 interception, so `jtfne_runtime.get_jax_backend_report()` raises `AttributeError`). The only
@@ -323,7 +323,7 @@ building anything.
 result = jtfne_runtime.set_precision_policy(dtype="float64", enable_x64=True)
 ```
 
-Sets JAX's *global* `jax_enable_x64` flag (process-wide, not per-`RuntimeConfig`). Returns
+Sets JAX's *global* `jax_enable_x64` flag (process-wide; it applies to every `RuntimeConfig`). Returns
 `{requested_dtype, actual_dtype, x64_enabled, status}`. If `dtype="float64"` is requested
 without `enable_x64=True`, it warns (or raises under `JAXFNE_STRICT=1`) and falls back to
 float32 rather than silently claiming float64. Call this once at startup, matching the
