@@ -37,8 +37,13 @@ tuned after scoring.
 The trend runs against Fig. 1E. Peak excess falls overall as p rises, from seed means
 of 81–83 at p = 0.02–0.03 to 8 at p = 0.10, so the sparsest networks oscillate most
 strongly. The threshold is 4; the lowest run is 7.1. Lower p also raises E and PV rates, so the network at low p sits in a
-higher-drive regime. Which spec element produces this (the external drive, weight scaling
-with p, or the step order) is not tested here; S3–S5 need driver options first.
+higher-drive regime. Which spec element produces this is not tested here; S3–S5 need driver options first.
+
+Candidate (inferred, untested): the external drive does not follow p. The Methods give
+the source count as p·NE, and the prereg fixed it at 560 (p·NE at p = 0.07) for every p
+(`caminos_jax.py:289`, `ext_sources`). If Fig. 1E scales the drive with p, the sweep gave
+p = 0.02 3.5× its drive (560 against 160 sources), which matches the rate rise at low p.
+Testing this changes the spec, so it needs its own preregistered run.
 
 ## Sensitivity (reported, not scored)
 
