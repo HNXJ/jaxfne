@@ -43,8 +43,30 @@ S1 does not agree with the full run: orientation tuning (T1) and simple-cell pha
 modulation (T3) need the lateral and top-down maps. So the map-order assumption can matter
 for Fig. 3, and it is not excluded by this test.
 
-S2 (preferences fitted on all phases) and S3 (simple columns (3,3), (3,4), (4,3)) are not
-run: `fig3_analysis.py` has no option for either yet.
+S2 and S3 were scored after the options landed (`--s2-all-phases`, `--simple-col`). A
+default rerun with that code is byte-identical to `fig3_v4_full.json`. Outputs:
+`scores/fig3_v4_S2.json` and `scores/fig3_v4_S3_<i>_<j>.json`.
+
+S2, preferences fitted and scored on all phases 0–9 (the authors' procedure):
+
+| Test | simple | complex |
+|---|---|---|
+| T1 R_ori | 3.58 PASS | 5.22 PASS |
+| T2 R_sf | 1.49 FAIL | 1.47 FAIL |
+
+The fold does not explain T2: without it R_sf stays under 1.5.
+
+S3, the other central simple columns (complex set unchanged):
+
+| Column | T1 R_ori | T2 R_sf | T3 median X | T4 median L simple; difference vs null 99th |
+|---|---|---|---|---|
+| (4,4) scored | 3.57 PASS | 1.45 FAIL | 0.53 PASS | −1.02; 0.83 vs 0.42 |
+| (3,3) | 3.99 PASS | 1.52 FAIL | 0.50 PASS | −0.93; 0.74 vs 0.28 |
+| (3,4) | 3.71 PASS | 1.51 FAIL | 0.52 PASS | −0.99; 0.80 vs 0.37 |
+| (4,3) | 3.55 PASS | 1.47 FAIL | 0.53 PASS | −0.96; 0.77 vs 0.34 |
+
+The verdict does not depend on the simple column: T1 and T3 pass and T2 fails in all four,
+and T4 fails in all four on the complex median (−0.19, the same complex set, below 0).
 
 ## Ledger
 
