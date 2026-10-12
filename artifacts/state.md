@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@325751d2 · 2026-10-12 (written 2026-10-12T15:23:01Z)
+Stamp: jaxfne@dev@5ddfd8f2 · 2026-10-12 (written 2026-10-12T16:10:23Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
@@ -14,7 +14,10 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - PCL Fig. 3: v4 FAIL (T2, T4) stands; diagnostic at `pcl-port` 5640ce18.
 - `poisson_drive` targets other than "all" are refused since 7d4eaa8c.
 - Agent context: root `AGENTS.md` loads `artifacts/AGENTS.md` (3c255d03); root `MEMORY.md`
-  merged into `artifacts/memory.md` and `todo_stack.md` cut to 13 KB (325751d2).
+  merged into `artifacts/memory.md` and `todo_stack.md` cut to 13 KB (325751d2); open stack
+  adopted (c7b3a056).
+- `connections(sampling="bernoulli")` (G-2 F1) since 5ddfd8f2; default path and config hashes
+  unchanged.
 
 ## Broken or in flight
 
@@ -22,9 +25,10 @@ In `artifacts/open_stack.md`.
 
 ## Last gate results
 
-- Broad gate, dev at 7d4eaa8c (poisson fix): 5039 passed, 0 failed, 75 skipped.
+- Broad gate, F1 (9aa342e1 tree): 5047 passed, 9 failed under outside memory pressure (another
+  pytest at 24 GB, GoogleDriveFS 47 GB); all 9 pass alone. Second review PASS.
 - `tests/test_agent_context_hygiene.py`, `test_artifacts_root_layout.py`, `test_memory_brief.py`:
-  39 passed at 325751d2; `report_hygiene_check.py` clean.
+  39 passed at c7b3a056; `report_hygiene_check.py` clean.
 
 ## Generated files and their checks
 
@@ -40,4 +44,4 @@ In `artifacts/open_stack.md`.
 
 ## Next action
 
-Fix F1's stored key, re-run the gate and review, push; then F2–F6.
+G-2 F2–F4: the `emitters_adex` module (AdEx, conductance synapses, delay ring), then F5, F6.

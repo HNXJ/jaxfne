@@ -4,10 +4,6 @@ Remaining work only. Done work lives in git, receipts and results; the full pre-
 
 Rules: `artifacts/AGENTS.md`. Facts (human edit only): `artifacts/fact_stack.md`. Open issues: `artifacts/issue_log/ISSUE_LOG.md`. Atlas source: `artifacts/project_sources/8_atlas.md`; requirement rows: `artifacts/programme/atlas_coverage.json`. Other editors also change this file: re-read before editing, amend in place, keep diffs you did not make.
 
-## Now
-
-- T-1 fix P-2: `connections(sampling="bernoulli")` with the `probability` docstring corrected (G-2 F1, branch `f1-bernoulli`). Closes when: `pytest -q tests/test_connections_bernoulli_sampling.py` passes on dev. Blocked by: none.
-
 ## Goals in plain words (0.5.x)
 
 Want: a faster JaxFNE that runs the full Atlas, from one neuron to twenty
@@ -105,8 +101,8 @@ https://hnxj.github.io/jaxfne/dashboard/ (`dashboard/DESIGN.md`), programme
 1e768f9d; p = 0.07 identical to v6 in seeds 1–5); PCL Fig. 3 v4 FAIL stands (`pcl-port` 5640ce18).
 - [H] PCL Fig. 3 after the diagnostic: new prereg for T2/T4, P6 library path anyway (B1), or move on.
 - [A] G-2 features, one at a time, failing test first, second review (design: CAMINOS port spec
-  and the 2026-10-12 code map): F1 `connections(sampling="bernoulli")` (branch `f1-bernoulli`);
-  F2–F4 `emitters_adex` module (AdEx, conductance synapses and delay ring inside its kernel,
+  and the 2026-10-12 code map; F1 landed in 5ddfd8f2, its connection table does not yet record
+  `sampling`): F2–F4 `emitters_adex` module (AdEx, conductance synapses and delay ring inside its kernel,
   ADVANCED tier, no root export); F5 `poisson_drive` independent sources per target cell type;
   F6 "SOM" in the AdEx table and `fields/proxy.py:775` (unknown types default to +1). Then the
   CAMINOS P6 prereg for Hamm's signature. Shared-drive variant dropped (Hamm 2026-10-12).
