@@ -322,7 +322,9 @@ Roles and edit rules: `artifacts/AGENTS.md` (Project control). Coverage rows:
   subagent overlap/interruption → disjoint file sets, `git status` + gates before trust;
   text-mode CRLF whole-file diffs → binary-safe patches for existing `.py`;
   stash ownership → never bare-pop, pre-existing stashes read-only;
-  per-step local-only verification → read each push's CI result before next step.
+  per-step local-only verification → read each push's CI result before next step;
+  "state-only" push that adds a tracked file → run `tests/test_artifacts_root_layout.py`
+  (allowlists `artifacts/` root; CI Fast does not run it; 380b76ff broke it locally).
 
 ## 9. Where to look first for common tasks
 
