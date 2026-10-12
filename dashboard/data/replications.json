@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/1",
   "sample": false,
   "generated": {
-    "utc": "2026-10-12T13:49:29Z",
-    "dev_sha": "9ef7b4139adb088062ef104f5e9669889c1e3269"
+    "utc": "2026-10-12T14:08:28Z",
+    "dev_sha": "902d75e7d4a596da2377a9af1c63644c2ab29d46"
   },
   "papers": [
     {
@@ -15,22 +15,22 @@
       "stage": "P5",
       "lane": {
         "branch": "l2-caminos",
-        "sha": "20045e9a46cda81638a8c9fd75477be06dda34d0"
+        "sha": "bbedbbabeb7c35925a13a7632adfddd34b7030d7"
       },
-      "verdict": "not reproduced",
-      "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07; the critical-p onset (R4) runs in reverse with the external drive fixed at 560 sources. R4 is being rescored under amendment v7 (drive p·NE).",
+      "verdict": "reproduced",
+      "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07. The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep.",
       "preregs": [
         {
           "id": "v6",
           "signed": "2026-10-11",
           "path": "artifacts/etudes/caminos/PREREG_P3.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/PREREG_P3.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/PREREG_P3.md"
         },
         {
           "id": "v7 (R4 only)",
           "signed": "2026-10-12",
           "path": "artifacts/etudes/caminos/PREREG_P3_v7_R4.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/PREREG_P3_v7_R4.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/PREREG_P3_v7_R4.md"
         }
       ],
       "criteria": [
@@ -50,7 +50,7 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -69,7 +69,7 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -88,7 +88,7 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -107,7 +107,7 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -116,17 +116,17 @@
           "claim": "oscillations appear above a critical p (Fig. 1E)",
           "estimand": "as R4, with drive round(p·NE) sources",
           "criterion": "no seed oscillates at p = 0.02 while E fires (≥ 0.1 Hz); all seeds oscillate at p = 0.07",
-          "value": null,
-          "value_text": "—",
+          "value": 0.04,
+          "value_text": "0.04",
           "value_label": "smallest p where all seeds oscillate",
           "unit": "",
           "extra": [],
-          "verdict": "pending",
-          "reason": "",
+          "verdict": "pass",
+          "reason": "at p = 0.03, 2 of 3 seeds fail only the 20 Hz band-edge rule (f_pk 22 Hz, peak excess 22–26)",
           "prereg": "v7 (R4 only)",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score_v7.json",
-            "url": null
+            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score_v7.json"
           }
         }
       ],
@@ -517,6 +517,87 @@
                 9.233456306308376
               ],
               "markers_only": false
+            },
+            {
+              "name": "v7: p·NE sources seed 1",
+              "group": "v7: p·NE sources",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                3.0924967559919048,
+                38.025083574128466,
+                34.13147248756678,
+                32.39938698701563,
+                15.904978327141931,
+                13.772280184885354,
+                11.60798806559277,
+                9.916281332087866,
+                8.887099967961316
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v7: p·NE sources seed 2",
+              "group": "v7: p·NE sources",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                2.794262068231107,
+                22.25459504393034,
+                47.205037890227,
+                35.70198356202418,
+                18.481937346997594,
+                16.27787865212775,
+                14.244376098284357,
+                12.479316107775878,
+                8.446732641427571
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v7: p·NE sources seed 3",
+              "group": "v7: p·NE sources",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                3.083925270679232,
+                26.382697044791843,
+                41.07681106887032,
+                32.540503030752504,
+                21.115077103705854,
+                14.93022878520787,
+                11.641536433197487,
+                8.265163470078749,
+                9.147220521173029
+              ],
+              "markers_only": false
             }
           ],
           "refs": [
@@ -529,7 +610,7 @@
           "caption": "Peak excess of the E rate spectrum per run; a run oscillates above 4. Lines join one seed across p.",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -707,6 +788,168 @@
                 8.642933333333334
               ],
               "markers_only": false
+            },
+            {
+              "name": "v7 E seed 1",
+              "group": "v7 E",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                0.6187625,
+                0.9748375,
+                1.0806624999999999,
+                1.1022625000000001,
+                1.1208125,
+                1.134525,
+                1.0959124999999998,
+                1.032425,
+                0.990075
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v7 E seed 2",
+              "group": "v7 E",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                0.6055499999999999,
+                0.9645125,
+                1.05795,
+                1.09655,
+                1.1221625,
+                1.09965,
+                1.0580625,
+                1.0228875,
+                1.0047125
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v7 E seed 3",
+              "group": "v7 E",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                0.605975,
+                0.9540375,
+                1.0582874999999998,
+                1.09425,
+                1.1089749999999998,
+                1.1068,
+                1.075675,
+                1.0621625,
+                0.9977999999999999
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v7 PV seed 1",
+              "group": "v7 PV",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                6.3268,
+                8.8936,
+                9.903599999999999,
+                10.45,
+                10.941866666666666,
+                11.422133333333333,
+                11.552133333333334,
+                11.630666666666666,
+                11.642266666666668
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v7 PV seed 2",
+              "group": "v7 PV",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                6.395866666666667,
+                8.9552,
+                9.975866666666667,
+                10.575199999999999,
+                11.143600000000001,
+                11.412933333333335,
+                11.533333333333333,
+                11.591199999999999,
+                11.827066666666665
+              ],
+              "markers_only": false
+            },
+            {
+              "name": "v7 PV seed 3",
+              "group": "v7 PV",
+              "x": [
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06,
+                0.07,
+                0.08,
+                0.09,
+                0.1
+              ],
+              "y": [
+                6.345066666666667,
+                8.940533333333333,
+                9.913866666666665,
+                10.4464,
+                10.990266666666667,
+                11.375466666666668,
+                11.49,
+                11.743733333333333,
+                11.6724
+              ],
+              "markers_only": false
             }
           ],
           "refs": [
@@ -719,7 +962,7 @@
           "caption": "Mean rates over the kept 10 s, seeds 1–3.",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -767,12 +1010,12 @@
           "caption": "Peak frequency per seed at the reference point.",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/20045e9a46cda81638a8c9fd75477be06dda34d0/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/bbedbbabeb7c35925a13a7632adfddd34b7030d7/artifacts/etudes/caminos/scores/score.json"
           }
         }
       ],
       "open": [
-        "R4v7 scoring: runs in progress (identity check passed 2026-10-12).",
+        "R4v7 rests on the drive scaling as p·NE across the sweep; the paper does not state it.",
         "Shared drive at equal mean drive (NE trains at probability p) is untested.",
         "P6 library path not attempted (B1)."
       ]
