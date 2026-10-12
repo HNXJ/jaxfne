@@ -75,14 +75,19 @@ def _read_one(job):
     return oi, f, p, s, col, tc[sel], tu[sel]
 
 
-def cell_sets():
+def cell_sets(simple_col=None):
     """Flat cell ids of the two preregistered sets (P3 "Cell sets").
 
-    Simple: the 64 cells of simple column (4,4). Complex: the 128 cells of
-    complex columns (2,2), (2,3), (3,2), (3,3). Ids are computed from the
-    grid sizes with the port's flat index (i*NY+j)*ND+k, not typed literally.
+    Simple: the 64 cells of simple column ``simple_col`` (default
+    ``SIMPLE_COL`` (4, 4); S3 passes another central column). Complex: the
+    128 cells of complex columns (2,2), (2,3), (3,2), (3,3). Ids are computed
+    from the grid sizes with the port's flat index (i*NY+j)*ND+k, not typed
+    literally. A column outside the NX x NY grid raises ValueError.
     """
-    s_base = (SIMPLE_COL[0] * NY + SIMPLE_COL[1]) * ND
+    col = SIMPLE_COL if simple_col is None else tuple(int(v) for v in simple_col)
+    if len(col) != 2 or not (0 <= col[0] < NX and 0 <= col[1] < NY):
+        raise ValueError(f"simple column {simple_col!r} outside the {NX}x{NY} grid")
+    s_base = (col[0] * NY + col[1]) * ND
     simple = s_base + np.arange(ND, dtype=np.int64)
     parts = []
     for cx, cy in COMPLEX_COLS:
@@ -238,12 +243,14 @@ def _sf_flank_per_cell(flat, o_star, f_star):
     return fl
 
 
-def t1_t2(counts, rng, n_null=1000):
+def t1_t2(counts, rng, n_null=1000, fit_phases=None, score_phases=None):
     """Folded orientation/sf tuning with both selection-matched nulls.
 
     P3 v4 "Preference folds", "Nulls for T1 and T2" and "Inclusion":
     preferences fit on even phases, scored on odd phases (trials pooled
-    throughout). N-label shuffles the scored fold's (ori, sf) labels within
+    throughout). ``fit_phases``/``score_phases`` override the fold (default
+    EVEN_PHASES/ODD_PHASES); S2 passes all phases 0-9 for both, i.e. the
+    authors' no-fold procedure. N-label shuffles the scored fold's (ori, sf) labels within
     each cell and reruns fit-then-score; N-pref permutes the fitted
     (ori*, sf*) pairs across the cells of the set and recomputes the scored
     curves. Cells with fewer than 20 spikes in the fit fold are excluded; if
@@ -252,8 +259,12 @@ def t1_t2(counts, rng, n_null=1000):
     """
     pooled = np.asarray(counts).sum(axis=3)  # trials pooled, never folds
     n_cells = pooled.shape[3]
-    fit = pooled[:, :, list(EVEN_PHASES), :].sum(axis=2)
-    sco = pooled[:, :, list(ODD_PHASES), :].sum(axis=2)
+    if fit_phases is None:
+        fit_phases = EVEN_PHASES
+    if score_phases is None:
+        score_phases = ODD_PHASES
+    fit = pooled[:, :, list(fit_phases), :].sum(axis=2)
+    sco = pooled[:, :, list(score_phases), :].sum(axis=2)
     fit_tot = fit.sum(axis=(0, 1))
     incl = fit_tot >= MIN_SPIKES_FIT
     n_excluded = int((~incl).sum())
@@ -605,14 +616,22 @@ def _omega_map(input_dir, prefs_s, prefs_c, omegas=None):
     return {k: float(omegas) for k in keys}
 
 
-def score(run_dir, input_dir, seed=0, n_null=1000, omegas=None):
+def score(run_dir, input_dir, seed=0, n_null=1000, omegas=None,
+          s2_all_phases=False, simple_col=None):
     """All T1-T4 statistics and pass flags for a tuning run directory.
 
     ``omegas`` overrides the per-file omega measurement (a float for every
     file or a dict); it exists so synthetic runs can be scored without
-    stimulus files.
+    stimulus files. ``s2_all_phases`` adds the S2 sensitivity (P3
+    "Sensitivity"): T1/T2 refit with preferences on all phases 0-9 and
+    scored on the same phases, under ``s2_``-prefixed keys beside the normal
+    keys; T3 and T4 are unchanged. ``simple_col`` is the S3 sensitivity (P3
+    "Sensitivity"): the (I, J) simple column replacing ``SIMPLE_COL`` for
+    this run (default (4, 4)); the complex set is unchanged, and the column
+    used is recorded as ``simple_col``. With both options off the result is
+    exactly the preregistered dict (no ``s2_`` or ``simple_col`` keys).
     """
-    sets = cell_sets()
+    sets = cell_sets(simple_col=simple_col)
     counts_s, times_s, counts_c, times_c = _load_grid(run_dir, sets["simple"], sets["complex"])
     rng = np.random.default_rng(seed)
     r_s = t1_t2(counts_s, rng, n_null)
@@ -624,7 +643,7 @@ def score(run_dir, input_dir, seed=0, n_null=1000, omegas=None):
     res4 = t4((times_s, times_c), omap, (prefs_s, prefs_c), rng, n_null)
     flat_vals = list(omap.values())
     omega_med = float(np.median(flat_vals)) if flat_vals else float("nan")
-    return {
+    res = {
         "seed": int(seed),
         "n_null": int(n_null),
         "omega": omega_med,
@@ -674,6 +693,28 @@ def score(run_dir, input_dir, seed=0, n_null=1000, omegas=None):
             and res3["t3_simple_pass"] and res3["t3_complex_pass"] and res4["t4_pass"]
         ),
     }
+    if simple_col is not None:
+        res["simple_col"] = [int(simple_col[0]), int(simple_col[1])]
+    if s2_all_phases:
+        # Same nulls and floors as the folded run, fit and scored on all
+        # phases 0-9 (P3 S2). Drawn after the main T1-T4 nulls so enabling S2
+        # never changes the main keys.
+        all_phases = list(range(N_PHASE))
+        r2_s = t1_t2(counts_s, rng, n_null, fit_phases=all_phases, score_phases=all_phases)
+        r2_c = t1_t2(counts_c, rng, n_null, fit_phases=all_phases, score_phases=all_phases)
+        for tag, r2 in (("simple", r2_s), ("complex", r2_c)):
+            res[f"s2_t1_r_ori_{tag}"] = r2["r_ori"]
+            res[f"s2_t1_r_ori_{tag}_null99"] = r2["r_ori_null99"]
+            res[f"s2_t1_r_ori_{tag}_npref99"] = r2["r_ori_npref99"]
+            res[f"s2_t1_{tag}_pass"] = r2["t1_pass"]
+            res[f"s2_t2_r_sf_{tag}"] = r2["r_sf"]
+            res[f"s2_t2_r_sf_{tag}_null99"] = r2["r_sf_null99"]
+            res[f"s2_t2_r_sf_{tag}_npref99"] = r2["r_sf_npref99"]
+            res[f"s2_t2_{tag}_pass"] = r2["t2_pass"]
+            res[f"s2_pref_ori_counts_{tag}"] = r2["pref_ori_counts"]
+            res[f"s2_pref_sf_counts_{tag}"] = r2["pref_sf_counts"]
+            res[f"s2_n_excluded_t12_{tag}"] = r2["n_excluded"]
+    return res
 
 
 def _refuses(path):
@@ -692,6 +733,14 @@ def main(argv=None):
     ap.add_argument("--n-null", type=int, default=1000)
     ap.add_argument("--out", required=True)
     ap.add_argument("--signed", action="store_true")
+    ap.add_argument("--s2-all-phases", action="store_true",
+                    help="S2 sensitivity (P3): refit T1/T2 preferences on all "
+                         "phases 0-9 and score on the same phases, beside the "
+                         "folded result (keys prefixed s2_). T3/T4 unchanged.")
+    ap.add_argument("--simple-col", nargs=2, type=int, default=None, metavar=("I", "J"),
+                    help="S3 sensitivity (P3): simple column replacing (4, 4) "
+                         "for this run; the complex set is unchanged. The "
+                         "column used is recorded as simple_col.")
     args = ap.parse_args(argv)
     if not args.signed and _refuses(args.run_dir):
         print(
@@ -702,7 +751,9 @@ def main(argv=None):
             file=sys.stderr,
         )
         return _REFUSAL_CODE
-    res = score(args.run_dir, args.input_dir, seed=args.seed, n_null=args.n_null)
+    res = score(args.run_dir, args.input_dir, seed=args.seed, n_null=args.n_null,
+                s2_all_phases=args.s2_all_phases,
+                simple_col=tuple(args.simple_col) if args.simple_col is not None else None)
     Path(args.out).write_text(json.dumps(res, indent=2) + "\n", encoding="utf-8")
     print(f"wrote {args.out} all_pass={res['all_pass']}")
     return 0
