@@ -4951,3 +4951,12 @@ from .emitters_homeostatic_ei import (  # noqa: E402
     make_minimal_ei_params,
     make_hebbian_pairwise_rule,
 )
+
+# AdEx conductance kernel, same pattern (jaxfne/emitters_adex.py).
+from .emitters_adex import (  # noqa: E402
+    ADEX_CELL_TYPE_DEFAULTS,
+    AdExParams,
+    adex_step,
+    make_adex_params,
+    simulate_adex,
+)

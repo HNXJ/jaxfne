@@ -16,6 +16,13 @@ the rules those releases were held to and are historical context for readers.
   pairs). `"bernoulli"` includes each (pre, post) pair independently with probability
   `p` at any size on both compiler paths. Anything else raises `ValueError`, and
   `"bernoulli"` with `max_in_degree` is refused.
+- `jaxfne.emitters` gains the AdEx conductance kernel (ADVANCED): `simulate_adex`,
+  `adex_step`, `AdExParams`, `make_adex_params`, `ADEX_CELL_TYPE_DEFAULTS` (E/PV/SOM, Tahvili,
+  Vinck and di Volo 2026, Table 1), in mV/ms/pF/nS/pA. Conductance synapses
+  (`I = sum_r g_r (E_r - V)`; `decay="exp"` or `"euler"`, required) and a per-edge delay ring
+  (delays >= 1 step). The cell step and the recurrent synaptic step match a float64
+  transcription of the CAMINOS reference within rtol 1e-6; `step_order="brian2"` adds one delay
+  step and removes one refractory step. No external conductance drive yet.
 
 ### Changed
 - Python 3.15 groundwork. JAX/jaxlib ceiling raised from `<0.11` to `<0.12`, because jaxlib's first
