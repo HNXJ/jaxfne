@@ -27,8 +27,9 @@ current units.
 ## Deviations and limitations
 
 - No run compares a preset's firing pattern with the paper.
-- The code cites "Izhikevich 2003 Table 1" for each preset; that table reference has not been
-  checked against the paper here.
+- The code cites "Izhikevich 2003 Table 1" for each preset. The paper has no table: RS, FS and
+  LTS match its Fig. 2, and `VIP_IS` does not appear in it
+  (`artifacts/etudes/izhikevich2003/SOURCE_P1.md`).
 - The mapping of patterns to PV, SST and VIP interneurons is the library's labelling.
 
 ## Reproduce

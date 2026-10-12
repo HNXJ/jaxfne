@@ -427,6 +427,8 @@ def model_page(spec):
     rel = spec.get("page")
     if rel is None:
         return None
+    if not re.fullmatch(r"models/[a-z0-9_]+\.md", rel):
+        raise BuildError(f"paper {spec['id']}: page {rel!r} is not models/<name>.md")
     if not (ROOT / "dashboard" / rel).is_file():
         raise BuildError(f"paper {spec['id']}: page dashboard/{rel} does not exist")
     return rel
@@ -457,6 +459,7 @@ def build_paper(spec, files, repo_url):
         "stage": spec["stage"],
         "lane": {"branch": spec["lane"]["branch"], "sha": spec["lane"]["sha"]},
         "verdict": spec.get("verdict"),
+        "verdict_note": spec.get("verdict_note"),
         "summary": spec["summary"],
         "preregs": [
             {"id": pr["id"], "signed": pr["signed"], "path": pr["path"], "url": p.prereg_url(pr["path"])}

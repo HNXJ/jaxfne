@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-12T17:17:41Z",
-    "dev_sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
+    "utc": "2026-10-12T18:39:23Z",
+    "dev_sha": "423c65543f0ce53ec1b3faab6bb3530b22fbf1b6"
   },
   "papers": [
     {
@@ -21,6 +21,7 @@
         "sha": "1e768f9db04a7cef405d78429f5a67580348b8b9"
       },
       "verdict": "reproduced",
+      "verdict_note": "under v7 (amended after v6 R4 failed)",
       "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07. The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep. At p = 0.07 the v6 and v7 runs are identical for all five seeds, so R1–R3 and R4v7 score one realization there.",
       "preregs": [
         {
@@ -317,7 +318,7 @@
           "id": "S4",
           "label": "shared drive (560 trains at p)",
           "status": "invalid",
-          "note": "a cell sees about 39 sources instead of 560, so the drive falls 14-fold and E is silent; not a test of shared input",
+          "note": "a cell sees about 39 sources instead of 560, so the drive falls 14-fold and E is silent; shared input remains untested",
           "rows": [
             {
               "metric": "f_pk",
@@ -1043,6 +1044,7 @@
         "sha": "5640ce18a42b25f572530508628a215081811b4b"
       },
       "verdict": "not reproduced",
+      "verdict_note": null,
       "summary": "Orientation tuning and the simple/complex phase split reproduce; sf tuning is broad (R_sf about 1.5 against 2) and complex cells show no frequency doubling.",
       "preregs": [
         {
@@ -1689,6 +1691,7 @@
         "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
       },
       "verdict": null,
+      "verdict_note": null,
       "summary": "Weights and suppression are ordered 1 > 2 > 3 in every network on the standalone model (P0) and on the jaxfne HDP kernel with the time-averaged weight (K0b); the end-of-epoch weight fails in 1 of 3 networks (K0). The paper's Fig. 2d values were not available, so there is no numerical comparison.",
       "preregs": [],
       "criteria": [],
@@ -1713,6 +1716,7 @@
         "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
       },
       "verdict": null,
+      "verdict_note": null,
       "summary": "Rate agrees; peak voltage, resting voltage and first-spike time are outside the tolerances declared before the run.",
       "preregs": [],
       "criteria": [
@@ -1819,6 +1823,7 @@
         "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
       },
       "verdict": null,
+      "verdict_note": null,
       "summary": "Network features reach and hold the corridor7 policy in 5 of 5 seeds, later than tabular (222–486 episodes against 2–23) with about a third of its Q error; the flat control never learns it.",
       "preregs": [],
       "criteria": [],
@@ -1843,6 +1848,7 @@
         "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
       },
       "verdict": null,
+      "verdict_note": null,
       "summary": "The presets are metadata only; no run compares their firing patterns with the paper.",
       "preregs": [],
       "criteria": [],

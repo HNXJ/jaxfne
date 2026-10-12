@@ -578,6 +578,7 @@ function paperCard(paper) {
   if (paper.verdict && paper.verdict !== paper["class"]) {
     chips.appendChild(el("span", " "));
     chips.appendChild(verdictChip(paper.verdict));
+    if (paper.verdict_note) chips.appendChild(el("span", " " + paper.verdict_note));
   }
   card.appendChild(chips);
   if (paper.question) card.appendChild(el("p", paper.question));
@@ -631,6 +632,7 @@ function renderModel(view, data, paper) {
   if (paper.verdict) {
     chips.appendChild(el("span", " Preregistered verdict: "));
     chips.appendChild(verdictChip(paper.verdict));
+    if (paper.verdict_note) chips.appendChild(el("span", " " + paper.verdict_note));
   }
   card.appendChild(chips);
   if (paper.stage) card.appendChild(stageTrack(paper.stage));
@@ -782,7 +784,7 @@ function renderMethod(view) {
   view.appendChild(dl);
   var rules = el("ul");
   [
-    "The class sits beside the preregistered verdict and never replaces it.",
+    "The class sits beside the preregistered verdict, which always stays visible.",
     "The page computes no verdict: values and verdicts are copied by scripts/build_dashboard_data.py from scorer files at pinned commits, and its --check runs in CI.",
     "Failures carry the same prominence as passes (B2).",
     "Agreement with a paper is claimed only where a paper value sits beside ours in the table.",

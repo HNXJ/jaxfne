@@ -35,7 +35,8 @@ Two routes, both in `artifacts/etudes/pcl/`:
   dt = 0.1 ms, RS Izhikevich cells (a 0.02, b 0.2, c −65, d 8), GABA_A-indexed inhibitory edges
   with τ = 2 ms, inputs as 1 ms current pulses at 1.5× firing threshold. Weights convert at
   1 mV ↔ 4.85 native units, calibrated on the smallest weight that blocks a pulse 1 ms after
-  neuron 0's (25.7 native units against the paper's 5.3 mV).
+  neuron 0's (25.7 native units against 5.3 mV, which we derive from the paper's parameters as
+  (15 − 10)/e^(−1/18); `artifacts/etudes/pcl/README.md`).
 
 ## Results against our gates
 
@@ -46,8 +47,8 @@ Two routes, both in `artifacts/etudes/pcl/`:
 | K0b | library (weight averaged over the last epoch, declared before the run) | 10, 11, 12 | 3 of 3 | 3 of 3 | PASS |
 
 P0 means of 3 networks: final weights 38.08 / 23.87 / 15.15 mV; suppression 0.693 / 0.482 /
-0.315. K0b suppression is about half the standalone magnitude (0.38–0.41 / 0.18–0.20 /
-0.08–0.12), and the averaged weights are compressed (≈ 22 / 19 / 16 mV).
+0.315. K0b suppression (0.38–0.41 / 0.18–0.20 / 0.08–0.12) is 0.55–0.59 / 0.37–0.41 /
+0.25–0.38 of the standalone mean per neuron, and the averaged weights are compressed (≈ 22 / 19 / 16 mV).
 
 ## Deviations and limitations
 

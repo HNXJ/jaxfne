@@ -14,7 +14,7 @@ the demonstrations 3–6 and the new layout on 2026-10-12.
 | Not reproduced | a signed preregistration is scored and its verdict is a fail (shown with the same prominence, B2) | scorer JSON, ledger |
 | Demonstration | a published model runs in jaxfne without a scored numerical comparison to the paper | code path, run command |
 
-The class sits beside the preregistered verdict; it never replaces it.
+The class sits beside the preregistered verdict, which always stays visible.
 
 ## Inventory, ranked by readiness
 

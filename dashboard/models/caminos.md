@@ -50,8 +50,8 @@ recurrent step within rtol 1e-6 (`tests/test_emitters_adex.py`).
 - Values come from the PLoS CB Methods. That they equal the Cell Reports network is an
   assumption until its STAR Methods are read.
 - Autapses are removed (our choice; the source states no rule).
-- Each E and PV cell gets its own 560 sources; the text also allows shared sources (tested as
-  sensitivity S4).
+- Each E and PV cell gets its own 560 sources; the text also allows shared sources. Shared
+  input is untested: sensitivity S4 was invalid, since E fell silent at the reduced drive.
 - R4 (onset with p) fails with the drive fixed at 560 sources: every p from 0.02 oscillates.
   It passes under amendment v7, which scales the drive as round(p·NE) sources, an assumption
   the paper does not state for the sweep. At p = 0.03, 2 of 3 seeds fail only the 20 Hz

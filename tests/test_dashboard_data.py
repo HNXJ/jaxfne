@@ -368,18 +368,24 @@ def test_class_page_paper_value_and_roadmap_are_copied(tmp_path):
     prereg = [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}]
     r1 = criterion(value={"file": "main", "key": "val"}, paper_value="≈ 1.4")
     roadmap = [{"release": "9.9.9", "model": "m", "needs": "n"}]
-    write_sources(root, [paper(sha, **{"class": "partial", "verdict": "pass", "preregs": prereg,
-                                       "page": "models/fixture.md", "files": {"main": "scores/main.json"},
-                                       "criteria": [r1]})], roadmap=roadmap)
+    spec = {"class": "partial", "verdict": "pass", "verdict_note": "under v2", "preregs": prereg,
+            "page": "models/fixture.md", "files": {"main": "scores/main.json"}, "criteria": [r1]}
+    write_sources(root, [paper(sha, **spec)], roadmap=roadmap)
 
     proc = run(root)
     assert proc.returncode == 0, proc.stderr
     doc = load_out(root)
     got = doc["papers"][0]
     assert (got["class"], got["verdict"], got["page"]) == ("partial", "pass", "models/fixture.md")
+    assert got["verdict_note"] == "under v2"
     assert got["criteria"][0]["paper_value"] == "≈ 1.4" and got["criteria"][0]["value"] == 1.5
     assert doc["roadmap"] == roadmap
 
     (root / "dashboard" / "models" / "fixture.md").unlink()
     proc = run(root)
     assert proc.returncode == 1 and "models/fixture.md does not exist" in proc.stderr, proc.stderr
+
+    for bad in ("../README.md", "models/../x.md", "https://x/y.md", "models/a.html"):
+        write_sources(root, [paper(sha, **{**spec, "page": bad})], roadmap=roadmap)
+        proc = run(root)
+        assert proc.returncode == 1 and "is not models/<name>.md" in proc.stderr, (bad, proc.stderr)
