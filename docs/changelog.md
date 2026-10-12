@@ -9,6 +9,14 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+### Added
+- `Configuration.connections()` gains `sampling="density" | "bernoulli"` (default
+  `"density"`). `"density"` keeps each compiler's existing draw (with mechanisms, the
+  exact count `round(p*n_pre*n_post)`; without, per-pair Bernoulli up to 4M candidate
+  pairs). `"bernoulli"` includes each (pre, post) pair independently with probability
+  `p` at any size on both compiler paths. Anything else raises `ValueError`, and
+  `"bernoulli"` with `max_in_degree` is refused.
+
 ### Changed
 - Python 3.15 groundwork. JAX/jaxlib ceiling raised from `<0.11` to `<0.12`, because jaxlib's first
   Python 3.15 wheels are 0.11.1. The homeostatic-EI `cubic_penalty` NaN that set the old pin

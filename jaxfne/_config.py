@@ -966,6 +966,7 @@ class Configuration:
         max_in_degree: Optional[int] = None,
         spatial_sigma: Optional[float] = None,
         delay_ms: Optional[float] = None,
+        sampling: str = "density",
     ) -> "Configuration":
         """Declare a connection rule that ``construct()`` compiles into edges.
 
@@ -975,8 +976,15 @@ class Configuration:
         with ``compiled_n_edges``). ``source``/``target`` are selector mappings over
         ``area``, ``layer``/``layers`` (tolerant of merged ``"L2/3"`` vs split
         ``"L2"``/``"L3"``), and ``cell_type``/``cell_types``; a missing key means
-        "any". ``probability`` is Bernoulli edge inclusion (1.0 = full, 0.0 = none;
-        default 1.0), ``weight`` is the native edge magnitude (default ``1/sqrt(n)``),
+        "any". ``probability`` is the target edge fraction (1.0 = full, 0.0 = none;
+        default 1.0), and ``sampling`` selects how it is realized. ``"density"``
+        (default) keeps each compiler's existing draw: with mechanisms, an exact edge
+        count ``round(p*n_pre*n_post)``; without, per-pair Bernoulli up to 4M candidate
+        pairs and an approximate draw above. ``"bernoulli"`` includes each
+        (pre, post) pair independently with probability ``p`` at any size (with
+        mechanisms, ``p`` resolves to multiples of 2**-23 unless x64 is on); it is
+        refused with ``max_in_degree``. ``weight`` is the native edge magnitude
+        (default ``1/sqrt(n)``),
         and ``sign`` is ``"excitatory"``/``"inhibitory"``/``"signed"`` (``"signed"`` or
         unset follows the presynaptic neuron's intrinsic sign). When any rule
         materializes edges the model runs on the edge_list backend so the connections
@@ -1034,6 +1042,16 @@ class Configuration:
                 raise ValueError(
                     f"connection {name!r} delay_ms must be finite and >= 0; got {delay_ms!r}"
                 )
+        if not isinstance(sampling, str) or sampling not in {"density", "bernoulli"}:
+            raise ValueError(
+                f"connection {name!r} sampling must be 'density' or 'bernoulli'; "
+                f"got {sampling!r}"
+            )
+        if sampling == "bernoulli" and max_in_degree is not None:
+            raise ValueError(
+                f"connection {name!r} sampling='bernoulli' is not implemented with "
+                "max_in_degree (localized sampling); omit one of them"
+            )
         entry = {
             "name": str(name),
             "source": _circuit_json_safe(dict(source), "connections.source"),
@@ -1051,6 +1069,9 @@ class Configuration:
             "delay_ms": float(delay_ms) if delay_ms is not None else None,
             "status": "declared_not_compiled",
         }
+        if sampling == "bernoulli":
+            # Stored only when non-default so existing config hashes stay unchanged.
+            entry["sampling"] = "bernoulli"
         cfg = self._append_circuit("connections", entry, dedup_name=True)
         # Unknown-mechanism reference is a WARNING in this declaration-only phase;
         # the v0.3.30 compiler will promote it to a hard error.

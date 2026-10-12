@@ -87,7 +87,7 @@ Lead-field transforms: `eeg_proxy_transform(...)`, `meg_proxy_transform(...)`, `
 
 ### Connectivity operators
 
-- `compile_connection_rules(...)` — compiles `.connections()` declarations into edges; see [Configuration Grammar](../guides/configuration_grammar.md#connectivity) for the sign-only vs mechanism-aware compiler split.
+- `compile_connection_rules(...)` — compiles `.connections()` declarations into edges; see [Configuration Grammar](../guides/configuration_grammar.md#connectivity) for the sign-only vs mechanism-aware compiler split. Each rule's `sampling` selects how `probability` is realized: `"density"` (default) keeps each compiler's existing draw (mechanism-aware: exact count `round(p*n_pre*n_post)`), while `"bernoulli"` includes each (pre, post) pair independently with probability `p` (tiled past 4M candidate pairs, so no dense mask is materialized; refused with `max_in_degree`).
 
 ### Paradigm operators
 
