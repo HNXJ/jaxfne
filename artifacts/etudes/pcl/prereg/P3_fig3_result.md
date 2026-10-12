@@ -7,7 +7,8 @@ jaxfne port. T1 and T3 pass; T2 and T4 fail. Nothing was tuned after scoring.
 - Runs: `F:\warehouse\pcl\runs\fig3_cSTDP3\` (full) and `fig3_cSTDP3_S1\` (S1), port at 5d101eb3.
 - Scoring: `port/fig3_analysis.py --signed`, seed 0, 1000 null draws. Outputs copied to
   `scores/fig3_v4_full.json` and `scores/fig3_v4_S1.json`.
-- ω = 1.981 Hz in every file; no file outside 1.9–2.1 Hz, no trial mismatch.
+- ω: median 1.981 Hz, per file 1.966–1.986 Hz (314 files); no file outside 1.9–2.1 Hz, no
+  trial mismatch.
 
 ## Scored tests (full network)
 
