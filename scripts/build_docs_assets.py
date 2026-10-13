@@ -31,6 +31,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -99,6 +100,20 @@ def load_registry() -> dict:
         dupes = sorted({v for v in values if values.count(v) > 1})
         if dupes:
             raise SystemExit(f"{rel(REGISTRY)}: duplicate {key} entries {dupes}")
+    copies = registry.get("copies", [])
+    if not isinstance(copies, list):
+        raise SystemExit(f"{rel(REGISTRY)}: copies is not a list: {copies!r}")
+    seen = set()
+    for entry in copies:
+        if not isinstance(entry, dict) or "dest" not in entry or "source" not in entry:
+            raise SystemExit(f"{rel(REGISTRY)}: malformed copies entry {entry!r}; need dest and source")
+        if not entry["dest"].startswith("docs/"):
+            raise SystemExit(f"{rel(REGISTRY)}: copies dest outside docs/ {entry!r}")
+        if entry["dest"] in seen:
+            raise SystemExit(f"{rel(REGISTRY)}: duplicate copies dest {entry['dest']!r}")
+        seen.add(entry["dest"])
+        if not (ROOT / entry["source"]).is_file():
+            raise SystemExit(f"{rel(REGISTRY)}: copies source missing on disk {entry!r}")
     return registry
 
 
@@ -122,17 +137,19 @@ def entry_from_manifest(manifest_path: Path) -> dict:
 
 def write_registry() -> int:
     entries = [entry_from_manifest(p) for p in discover()]
-    # Etudes are declared by hand, not read from manifests: keep the tracked list.
-    etudes = read_json(REGISTRY).get("etudes", []) if REGISTRY.exists() else []
+    # Etudes and copies are declared by hand, not read from manifests: keep the tracked lists.
+    tracked = read_json(REGISTRY) if REGISTRY.exists() else {}
     doc = {
         "schema": SCHEMA,
         "built_from": "tracked manifests (build_docs_assets.py --registry-write)",
         "compared_fields": list(COMPARED_FIELDS),
         "atlases": entries,
-        "etudes": etudes,
+        "etudes": tracked.get("etudes", []),
     }
+    if "copies" in tracked:
+        doc["copies"] = tracked["copies"]
     REGISTRY.write_bytes((json.dumps(doc, indent=2) + "\n").replace("\n", "\r\n").encode("utf-8"))
-    print(f"registry: {len(entries)} atlases, {len(etudes)} etudes -> {rel(REGISTRY)}")
+    print(f"registry: {len(entries)} atlases, {len(doc['etudes'])} etudes -> {rel(REGISTRY)}")
     return 0
 
 
@@ -285,7 +302,44 @@ def check() -> int:
     for p in link_problems:
         print(f"  - {p}")
     print(f"docs links: {links} .html links ({atlas_links} atlas), {len(link_problems)} problems")
-    return 1 if problems or link_problems or examined == 0 or atlas_links == 0 else 0
+    copy_problems = check_copies(registry)
+    for p in copy_problems:
+        print(f"  - {p}")
+    print(f"copies: {len(registry.get('copies', []))} checked, {len(copy_problems)} problems")
+    failed = bool(problems or link_problems or copy_problems)
+    return 1 if failed or examined == 0 or atlas_links == 0 else 0
+
+
+def run_copies(registry: dict) -> int:
+    """Copy each registry source to its dest byte-exact. Returns the number of errors."""
+    copies = registry.get("copies", [])
+    errors = 0
+    for entry in copies:
+        try:
+            dest = ROOT / entry["dest"]
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / entry["source"], dest)
+        except OSError as exc:
+            errors += 1
+            print(f"  ERROR {entry['dest']}: copy from {entry['source']} failed: {exc}")
+    if errors:
+        print(f"copies: {len(copies) - errors} ok, {errors} error")
+    else:
+        print(f"copies: {len(copies)} ok")
+    return errors
+
+
+def check_copies(registry: dict) -> list[str]:
+    """Dests that exist but differ from their source.
+
+    A missing dest is an unbuilt product, not an error, as with atlas HTML.
+    """
+    problems = []
+    for entry in registry.get("copies", []):
+        dest = ROOT / entry["dest"]
+        if dest.is_file() and dest.read_bytes() != (ROOT / entry["source"]).read_bytes():
+            problems.append(f"ERROR {entry['dest']}: differs from {entry['source']}")
+    return problems
 
 
 def _child_env() -> dict:
@@ -411,13 +465,14 @@ def build(slugs: list[str]) -> int:
         print("etudes: skipped (--slug builds atlases only)")
     else:
         etude_errors = run_etudes(registry)
+    copy_errors = run_copies(registry)
     if counts["MISMATCH"] or counts["ERROR"]:
         print("gallery: not rewritten (an atlas failed)")
         return 1
     gallery = _run([sys.executable, str(ROOT / "scripts" / "generate_gallery.py"), "--write"])
     gallery_tail = _tail(gallery.stdout + gallery.stderr, 1)
     print(f"gallery: rc={gallery.returncode} {gallery_tail[0] if gallery_tail else ''}")
-    return 0 if gallery.returncode == 0 and not etude_errors else 1
+    return 0 if gallery.returncode == 0 and not etude_errors and not copy_errors else 1
 
 
 def main(argv: list[str] | None = None) -> int:

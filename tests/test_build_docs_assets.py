@@ -167,9 +167,15 @@ def test_build_fails_when_a_registry_html_file_is_not_written(tmp_path, monkeypa
         return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
 
     assert "index.html" not in entry["panels"], "fixture: index.html is outside the panel list"
+    # The real registry's copies sources are not under tmp ROOT: check them out of this atlas case.
+    reg = bda.load_registry()
+    reg.pop("copies", None)
+    tmp_reg = tmp_path / "atlas_registry.json"
+    tmp_reg.write_text(json.dumps(reg), encoding="utf-8")
     monkeypatch.setattr(bda, "ROOT", tmp_path)
     monkeypatch.setattr(bda, "_run", run)
     monkeypatch.setattr(bda, "_repo_guard", lambda: None)
+    monkeypatch.setattr(bda, "REGISTRY", tmp_reg)
     assert bda.build(["two_neuron_ei"]) == 1
     out = capsys.readouterr().out
     assert "HTML not written by this build: ['index.html']" in out, out
@@ -362,3 +368,61 @@ def test_build_fails_an_etude_whose_generator_exits_nonzero(tmp_path, monkeypatc
     assert _build_with_etude(tmp_path, monkeypatch, _etude(), rc=1) == 1
     out = capsys.readouterr().out
     assert "generator rc=1" in out and "boom" in out, out
+
+
+def _copies_registry(copies):
+    return {"schema": bda.SCHEMA, "atlases": [], "etudes": [], "copies": copies}
+
+
+def test_build_copies_each_source_to_its_dest_byte_exact(tmp_path, monkeypatch, capsys):
+    src = tmp_path / "artifacts/etudes/pcl/confirm/c1_seed10_kernels.png"
+    src.parent.mkdir(parents=True)
+    src.write_bytes(b"\x89PNG fixture-bytes")
+    registry = _copies_registry([{
+        "dest": "docs/assets/etudes/pcl/c1_kernels.png",
+        "source": "artifacts/etudes/pcl/confirm/c1_seed10_kernels.png",
+    }])
+    monkeypatch.setattr(bda, "load_registry", lambda: registry)
+    monkeypatch.setattr(bda, "ROOT", tmp_path)
+    monkeypatch.setattr(bda, "_repo_guard", lambda: None)
+    monkeypatch.setattr(bda, "_run", _fake_run([], 0))
+    assert bda.build([]) == 0
+    assert (tmp_path / "docs/assets/etudes/pcl/c1_kernels.png").read_bytes() == b"\x89PNG fixture-bytes"
+    assert "copies: 1 ok" in capsys.readouterr().out
+
+
+def test_registry_refuses_a_malformed_copies_entry(tmp_path, monkeypatch):
+    import pytest
+
+    src = "artifacts/etudes/pcl/confirm/c1_seed10_kernels.png"
+    assert (REPO / src).is_file(), "fixture needs a tracked source figure"
+    dest = "docs/assets/etudes/pcl/c1_kernels.png"
+    bad = [
+        [{"dest": dest}],  # no source
+        [{"source": src}],  # no dest
+        [{"dest": "assets/etudes/pcl/c1_kernels.png", "source": src}],  # dest outside docs/
+        [{"dest": dest, "source": src}, {"dest": dest, "source": src}],  # duplicate dest
+        [{"dest": dest, "source": "artifacts/etudes/no_such_figure.png"}],  # source missing
+    ]
+    for copies in bad:
+        path = tmp_path / "atlas_registry.json"
+        path.write_text(json.dumps(_copies_registry(copies)), encoding="utf-8")
+        monkeypatch.setattr(bda, "REGISTRY", path)
+        with pytest.raises(SystemExit):
+            bda.load_registry()
+
+
+def test_check_flags_a_copy_whose_dest_differs(tmp_path, monkeypatch, capsys):
+    (tmp_path / "artifacts").mkdir(parents=True)
+    (tmp_path / "artifacts/fig.png").write_bytes(b"source-bytes")
+    dest_rel = "docs/assets/etudes/fig.png"
+    (tmp_path / "docs/assets/etudes").mkdir(parents=True)
+    (tmp_path / dest_rel).write_bytes(b"different-bytes")
+    registry = _copies_registry([{"dest": dest_rel, "source": "artifacts/fig.png"}])
+    monkeypatch.setattr(bda, "load_registry", lambda: registry)
+    monkeypatch.setattr(bda, "ROOT", tmp_path)
+    assert bda.check() == 1
+    out = capsys.readouterr().out
+    assert "ERROR" in out and dest_rel in out, out
+    (tmp_path / dest_rel).write_bytes(b"source-bytes")
+    assert bda.check_copies(registry) == []

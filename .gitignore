@@ -171,3 +171,13 @@ docs/_static/etudes/experiment_a/*.html
 docs/_static/etudes/hdp_controllability_reachability/*.html
 docs/_static/etudes/multiscale_observation/*.html
 docs/_static/etudes/heterogeneous_emitters/*.html
+# Etude figures under docs/assets are build products too: build_docs_assets.py --build copies them from artifacts/etudes/.
+docs/assets/etudes/pcl/c1b_kernels.png
+docs/assets/etudes/pcl/c1_kernels.png
+docs/assets/etudes/multiscale_observation.png
+docs/assets/etudes/hdp_controllability_reachability.png
+docs/assets/etudes/heterogeneous_emitters.png
+docs/assets/etudes/hdp_balance/stage1.png
+docs/assets/etudes/hdp_balance/stage1b.png
+docs/assets/etudes/hdp_balance/stage1c.png
+docs/assets/etudes/hdp_balance/stage1d.png

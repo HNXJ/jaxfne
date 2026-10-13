@@ -20,13 +20,23 @@ def _on_files(files, config):
 
 
 def _registry_uris(section="atlases"):
-    """URIs of the build products one registry section declares: atlas panels or etude HTML."""
+    """URIs of the build products one registry section declares: atlas panels, etude HTML, or copy dests."""
     registry = json.loads((REPO / "docs/_static/atlas_registry.json").read_text(encoding="utf-8"))
     uris = set()
     for e in registry[section]:
-        names = set(e["html"]) if section == "etudes" else set(e["panels"]) | {"index.html"}
-        uris |= {f"{pathlib.Path(e['dir']).relative_to('docs').as_posix()}/{name}" for name in names}
+        if section == "etudes":
+            names = set(e["html"])
+            uris |= {f"{pathlib.Path(e['dir']).relative_to('docs').as_posix()}/{name}" for name in names}
+        elif section == "copies":
+            uris.add(pathlib.Path(e["dest"]).relative_to("docs").as_posix())
+        else:
+            names = set(e["panels"]) | {"index.html"}
+            uris |= {f"{pathlib.Path(e['dir']).relative_to('docs').as_posix()}/{name}" for name in names}
     return uris
+
+
+def _products():
+    return _registry_uris() | _registry_uris("etudes") | _registry_uris("copies")
 
 
 def test_stand_ins_cover_exactly_the_unbuilt_registry_files():
@@ -36,7 +46,9 @@ def test_stand_ins_cover_exactly_the_unbuilt_registry_files():
     assert len(atlas) == 200, "fixture: the registry declares 200 atlas files"
     etudes = _registry_uris("etudes")
     assert len(etudes) == 25, "fixture: the registry declares 25 etude HTML files"
-    products = atlas | etudes
+    copies = _registry_uris("copies")
+    assert len(copies) == 9, "fixture: the registry declares 9 copy dests"
+    products = atlas | etudes | copies
     # A fresh clone: no build product among the documentation files.
     fresh = Files([f for f in files if f.src_uri not in products])
     assert not any(fresh.get_file_from_path(u) for u in products), "fixture must lack every build product"
@@ -48,7 +60,7 @@ def test_stand_ins_cover_exactly_the_unbuilt_registry_files():
 
 def _with_built(config, built, tmp_path):
     """The docs files with only `built` build products present, written under tmp_path."""
-    products = _registry_uris() | _registry_uris("etudes")
+    products = _products()
     files = [f for f in get_files(config) if f.src_uri not in products]
     for uri in built:
         (tmp_path / uri).parent.mkdir(parents=True, exist_ok=True)
@@ -61,7 +73,7 @@ def _with_built(config, built, tmp_path):
 
 def test_a_stand_in_fails_the_build_on_read_the_docs(monkeypatch, tmp_path):
     config = load_config(str(REPO / "mkdocs.yml"))
-    products = sorted(_registry_uris() | _registry_uris("etudes"))
+    products = sorted(_products())
     one_missing = _with_built(config, products[1:], tmp_path)
     monkeypatch.setenv("READTHEDOCS", "True")
     with pytest.raises(Exception, match="1 atlas or etude files would be published as stand-ins"):
@@ -70,7 +82,7 @@ def test_a_stand_in_fails_the_build_on_read_the_docs(monkeypatch, tmp_path):
 
 def test_no_stand_in_for_a_built_file(tmp_path):
     config = load_config(str(REPO / "mkdocs.yml"))
-    products = sorted(_registry_uris() | _registry_uris("etudes"))
+    products = sorted(_products())
     out = _on_files(_with_built(config, products[:1], tmp_path), config)
     added = {f.src_uri for f in out if f.generated_by}
     assert products[0] not in added and added == set(products[1:])
