@@ -41,6 +41,10 @@ the rules those releases were held to and are historical context for readers.
 - The references page lists, per source, the result jaxfne implements and the functions that
   implement it; those functions cite the same DOI, and `tests/test_references_page.py` holds the
   two together. Replicated papers and background work have their own tables.
+- `vis.visualize_network_3d(output_html=...)` loads plotly.js from the Plotly CDN, as the other
+  `jaxfne.vis` HTML writers do; the file no longer embeds the 4.8 MB bundle and needs a network
+  connection to render. Five tracked Plotly pages now reference plotly.js 3.5.0 on the CDN with an
+  SRI hash (their bundle was byte-identical to the CDN file), which cuts the tracked tree by 24 MB.
 - Python 3.15 groundwork. JAX/jaxlib ceiling raised from `<0.11` to `<0.12`, because jaxlib's first
   Python 3.15 wheels are 0.11.1. The homeostatic-EI `cubic_penalty` NaN that set the old pin
   no longer reproduces: its 30 tests (slow included) pass on JAX 0.11.2. JAX 0.11 rounds 2 of the

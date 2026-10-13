@@ -390,7 +390,8 @@ def visualize_network_3d(
     point_size : float
         Marker size (pixels) for the single-point neuron soma body.
     output_html : str | Path | None
-        If provided, write an interactive HTML file to this path.
+        If provided, write an interactive HTML file to this path. plotly.js loads from
+        the Plotly CDN, as in the other ``jaxfne.vis`` HTML writers.
     return_node_table : bool
         If True, return ``(fig, rows)`` instead of just ``fig``.
     cell_type_colors : dict | None
@@ -628,7 +629,7 @@ def visualize_network_3d(
     if output_html is not None:
         out = Path(output_html)
         out.parent.mkdir(parents=True, exist_ok=True)
-        fig.write_html(str(out))
+        fig.write_html(str(out), include_plotlyjs="cdn")
 
     if return_node_table:
         return fig, rows
