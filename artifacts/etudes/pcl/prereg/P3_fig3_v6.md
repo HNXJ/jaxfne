@@ -1,6 +1,19 @@
 # L1-P3 preregistration v6: PCL Fig. 3 T2 amendment (post hoc)
 
-Status: **draft v6**, unsigned. Hamm (2026-10-13) asked for this draft after the v5 FAIL on T2.
+Status: **withdrawn draft** (2026-10-13), never signed. Review (Muse, REVISE) found the column
+term mis-scaled: one 32-cell column against the 4-column pool has expected squared difference
+1.25 σ²_col. Recomputed with that term on the v4 runs (even phases):
+- Complex: the tolerances become 0.14–0.49 and the guard limit 0.528. A flat line at the figure's
+  mean (SSE 0.393) would pass, so the criterion no longer discriminates. With the port's own column
+  spread, one figure column cannot test the complex sf shape.
+- Simple: v6 still fails, on fraction (0.625) and on level (ours 0.095 above the figure,
+  against ε = 0.04).
+
+Read: the complex failure is a resolution limit, and the simple failure is a real offset. The
+port's simple cells respond about 0.1 more at non-preferred sf, which points at the model and its
+training. The text below is the withdrawn draft, kept as the record.
+
+Original status: draft v6, unsigned. Hamm (2026-10-13) asked for this draft after the v5 FAIL on T2.
 **Post hoc:** declared after `P3_fig3_diagnostic.md` Q7, which scored T2 under many analysis
 choices on the same runs. The v4 and v5 verdicts stand.
 

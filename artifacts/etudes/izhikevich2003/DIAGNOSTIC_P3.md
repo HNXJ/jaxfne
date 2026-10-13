@@ -1,6 +1,6 @@
 # Izhikevich 2003 P3: diagnostics of the failed criteria (unscored)
 
-Status: unscored, after the P3 v7 verdict. Hamm (2026-10-13) asked for modifications and other
+Status: unscored, after the P3 v7 verdict. C4 section corrected 2026-10-13. Hamm (2026-10-13) asked for modifications and other
 ideas to find the small thing behind each failure. Nothing here changes the P3 v7 FAIL. A criterion
 that changes becomes a new prereg version, P3 v8, with this note as its prior exposure. Scripts:
 float64 forward Euler at dt 0.1 ms in the kernel's order. The reviewer of P3 found this reproduces
@@ -25,16 +25,25 @@ At I = 10 the FS ISIs are 4.2, 5.8, 7.2, then 7.6 ms to the end (133 Hz). The ce
 three spikes and stays periodic. Last/first is 1.81, so C4 fails at ≤ 1.2. The paper's FS fires
 "practically without any adaptation (slowing down)" (p. 1570).
 
+On the v7 kernel receipts (`scored_v7\fig2`):
+
 | Cell | ISIs (ms) | Last/first | Time to steady firing |
 |---|---|---|---|
-| RS | 17.8, 45.2, then 45.1 | 2.53 | 63 ms |
-| FS | 4.2, 5.8, 7.2, 7.6, then 7.6 | 1.81 | 14 ms |
-| LTS | 3.1, 3.8, 4.8, 6.8, 10.5, … 13.6 | 4.39 | none in 300 ms |
+| RS (C1) | 17.8, 45.2, then 45.1 | 2.53 | 21.4 ms |
+| FS (C4) | 4.2, 5.8, 7.2, 7.6, … 7.8 | 1.86 | 13.6 ms |
+| LTS (C5) | 3.1, 3.8, 4.8, 6.8, 10.5, … 13.6 | 4.39 | 31.5 ms |
 
-Time to steady firing is the time of the first spike from which every later ISI lies within 10 % of
-the last ISI. Last/third separates nothing (RS 1.00, FS 1.06). Proposal for v8: C4 passes on rate
-≥ 50 Hz and time to steady firing ≤ 10 % of the window (30 ms). It discriminates FS from RS and
-LTS.
+Time to steady firing is the time from the input event of the earliest spike followed by at least
+3 ISIs in the window that all lie within 10 % of their median. It does not separate FS from RS:
+both settle within about 20 ms. A first draft of this note reported RS at 63 ms, which was an
+arithmetic error, and proposed this estimand for v8; the proposal is withdrawn (v8 review,
+2026-10-13). Last/third separates nothing (RS 1.00, FS 1.06).
+
+FS has the smallest adaptation ratio of the three (1.86 against RS 2.53 and LTS 4.39), but in
+absolute terms its ISI still lengthens 86 % from the first to the last ISI, at I = 10 from rest. The
+only estimand found that passes is a relative one (FS ratio below RS and LTS). Whether to declare it
+post hoc, or to keep C4 as a FAIL of the model against "practically without adaptation", is
+Hamm's call.
 
 ## N2: Poisson-like trains
 
