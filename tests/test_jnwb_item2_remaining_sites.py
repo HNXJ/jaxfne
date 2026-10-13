@@ -134,7 +134,7 @@ def test_proxy_coherence_differs_from_jnwb_by_coherence_ratio():
     out = cross_area_coherence(x, y, dt_ms=0.5)
     assert out["method"] == "welch"
     assert bool(np.asarray(out["valid"]).any()), "fixture must carry nonzero power"
-    fs, seg = 2000.0, min(1024, t)
+    fs, seg = 2000.0, min(1024, (2 * t) // 9)
     # The site's autospectra go through welch_psd (the jnwb path for float64).
     _f, pxx = _core.welch_psd(np.asarray(x, dtype=np.float64), fs, nperseg=seg)
     _f, pyy = _core.welch_psd(np.asarray(y, dtype=np.float64), fs, nperseg=seg)

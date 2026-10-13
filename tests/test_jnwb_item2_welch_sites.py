@@ -207,7 +207,7 @@ def test_proxy_coherence_site():
     out = cross_area_coherence(x, y, dt_ms=0.5)
     assert out["method"] == "welch"
     assert bool(np.asarray(out["valid"]).any()), "fixture must carry nonzero power"
-    fs, seg = 2000.0, min(1024, t)
+    fs, seg = 2000.0, min(1024, (2 * t) // 9)
     _f, pxx = _signal.welch(np.asarray(x, dtype=np.float64), fs=fs, nperseg=seg)
     _f, pyy = _signal.welch(np.asarray(y, dtype=np.float64), fs=fs, nperseg=seg)
     from scipy.signal import csd as _csd

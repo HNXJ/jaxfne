@@ -94,6 +94,11 @@ AT-08/AT-09 → VALIDATED.
 - AT-09 (cross-only / member-only / frozen masks): cross moves (max
   1.48) with members bit-frozen and vice versa; frozen arm dW = 0 while
   H deviates 0.0094 (R2 separation); C_12 0.50/0.45/0.45 (R3). 2/2 PASS.
+  Declared change 2026-10-13 (T-12): those C_12 came from about 2 Welch
+  segments, biased upward. With at least 8 segments the same runs read
+  0.105/0.110/0.111 (cross/member/frozen), at the independent-noise level
+  of about 1/8: no coherence difference between arms. The verdict rests
+  on the W declarations and stands.
 - Schema v3: 13 v1/v2 names stable and in order + 10 appended cells
   (SPK/H/Phi per area, W_12/W_21, C_12/dphi_12). Phi_B REFUSED;
   E_reduction is 0.5.5.

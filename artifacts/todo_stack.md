@@ -74,8 +74,10 @@ run on WSL2 CUDA.
   (`C:/workspace/pytest_temp/coh_single_segment.py`): median coherence 0.81 at T = 1000, 0.40 at
   1536 (2 segments), 0.22 at 2048, 0.10 at 4000. AT-09 (`artifacts/atlas/at08_at09_054.py`, 1000 ms,
   T = 2000) reads it in 8–25 Hz with about 2 segments. Hamm 2026-10-13: shrink nperseg so Welch
-  has at least 8 half-overlapping segments, refuse when that leaves nperseg < 64; AT-09 reruns
-  as a declared change. Closes when: a test pins it and AT-09 is rerun and promoted.
+  has at least 8 half-overlapping segments, refuse when that leaves nperseg < 64. Landed with
+  tests; AT-09 C_12 falls from 0.50/0.45/0.45 to 0.105/0.110/0.111 (noise level, no arm
+  difference), recorded in `artifacts/programme/composition_054.md`; the AT-09 verdict stands.
+  Closes when: the change is on dev with the broad gate green.
 - T-13 [A] jnwb item 3: `analysis/metrics.py:226,122,19` (Fano of the population sum,
   `burst_index` ignoring `bin_ms`, unbinned pairwise correlation), pinned by
   `tests/test_analysis_metrics.py:27-51`. Hamm 2026-10-13: declare all three (per-neuron Fano,

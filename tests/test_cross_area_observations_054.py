@@ -89,6 +89,26 @@ def test_coherence_refusals():
         cross_area_coherence(np.ones(7), np.ones(7), DT_MS)
 
 
+@pytest.mark.parametrize("t", [288, 1000, 2000, 4608, 10000])
+def test_coherence_uses_at_least_eight_segments(t):
+    # T-12: one Welch segment gives coherence 1 at every bin; K segments bias
+    # independent noise to about 1/K. nperseg = min(1024, 2T // 9) keeps K >= 8.
+    rng = np.random.default_rng(t)
+    out = cross_area_coherence(rng.standard_normal(t), rng.standard_normal(t), DT_MS)
+    seg = out["nperseg"]
+    assert seg == min(1024, (2 * t) // 9)
+    k = (t - seg // 2) // (seg - seg // 2)
+    assert k >= 8, f"T={t}: {k} segments"
+    median = float(np.median(np.asarray(out["coherence"])[np.asarray(out["valid"])]))
+    assert median < 0.25, f"T={t}: independent noise reads median coherence {median:.3f}"
+
+
+def test_coherence_refuses_below_288_samples():
+    rng = np.random.default_rng(0)
+    with pytest.raises(ValueError, match="T >= 288"):
+        cross_area_coherence(rng.standard_normal(287), rng.standard_normal(287), DT_MS)
+
+
 def test_coherence_refuses_when_welch_fails(monkeypatch):
     # No periodogram fallback: one segment gives coherence 1 at every bin (T-12).
     from jaxfne.vis import core as _core
@@ -106,7 +126,7 @@ def test_ensemble_per_area_and_cross_observations():
     def _col(name, n, seed):
         cfg = (
             jtfne.Configuration()
-            .runtime(duration_ms=40, dt_ms=DT_MS, seed=seed, recurrent_backend="edge_list")
+            .runtime(duration_ms=150, dt_ms=DT_MS, seed=seed, recurrent_backend="edge_list")
             .column(name, layers=["L2/3", "L4"], n=n)
             .cell_types({"E": 0.8, "PV": 0.2})
             .connectivity()
@@ -117,11 +137,12 @@ def test_ensemble_per_area_and_cross_observations():
 
     m1, m2 = _col("V1", 12, 0), _col("V2", 8, 1)
     ens = jtfne.connect(m1, m2, namespace=("A", "B"))
-    sig = jtfne.simulate(ens, duration_ms=40.0, dt_ms=DT_MS, seed=7)
+    # 150 ms = 300 samples: cross_area_coherence needs T >= 288 (T-12).
+    sig = jtfne.simulate(ens, duration_ms=150.0, dt_ms=DT_MS, seed=7)
     spikes = np.asarray(sig.V_m) * 0.0 + np.asarray(sig.spikes)
     r0 = np.asarray(population_rate(spikes[:, :12], DT_MS))
     r1 = np.asarray(population_rate(spikes[:, 12:], DT_MS))
-    assert r0.shape == r1.shape == (80,)
+    assert r0.shape == r1.shape == (300,)
     assert bool(np.isfinite(r0).all()) and bool(np.isfinite(r1).all())
     neurons = {"area": np.array(["A/V1"] * 12 + ["A/V2"] * 8)}
     ros = multi_area_spectrolaminar_readout(np.asarray(sig.V_m), neurons, dt_ms=DT_MS)

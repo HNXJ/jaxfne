@@ -1089,13 +1089,15 @@ def cross_area_coherence(
 
     Declared cross-area observation operator: ``Cxy(f) = |Pxy|^2 /
     (Pxx * Pyy)`` with ``cross_phase_rad(f) = angle(Pxy)`` on a shared
-    frequency grid, from Welch segments. A failed Welch estimate raises:
-    a single periodogram gives coherence 1 at every bin.
+    frequency grid, from Welch segments of ``nperseg = min(1024, 2T // 9)``
+    samples with half overlap, so at least 8 segments (independent signals
+    read about 1/K). T < 288 (``nperseg`` < 64) and a failed Welch estimate
+    raise: a single segment gives coherence 1 at every bin.
 
     Bins where either auto-spectrum vanishes are observationally silent:
     ``valid`` is False there and coherence/phase read exactly 0.0 — a
     declared refusal, never a silent NaN. Inputs must be finite 1D series
-    of equal length (T >= 8); violations fail closed.
+    of equal length; violations fail closed. ``nperseg`` is returned.
     """
     dt = float(dt_ms)
     if not np.isfinite(dt) or dt <= 0.0:
@@ -1112,12 +1114,19 @@ def cross_area_coherence(
     fs = 1000.0 / dt
     freqs = np.linspace(float(freq_min), float(freq_max), int(n_freqs))
 
+    # At least 8 half-overlapping segments (K = 2T/seg - 1): one segment gives
+    # coherence 1 at every bin, K segments bias independent signals by ~1/K (T-12).
+    seg = int(min(1024, (2 * t) // 9))
+    if seg < 64:
+        raise ValueError(
+            f"cross_area_coherence needs T >= 288 samples for 8 Welch segments of at "
+            f"least 64 samples; got T = {t}"
+        )
     try:
         from scipy.signal import csd as _csd
 
         from ..vis.core import welch_psd as _welch_psd
 
-        seg = int(min(1024, t))
         _f, pxx = _welch_psd(xa, float(fs), nperseg=seg)
         _f, pyy = _welch_psd(ya, float(fs), nperseg=seg)
         _f, pxy = _csd(xa, ya, fs=fs, nperseg=seg)
@@ -1146,6 +1155,7 @@ def cross_area_coherence(
         "cross_phase_rad": np.asarray(phase, dtype=np.float32),
         "valid": np.asarray(valid, dtype=bool),
         "method": method,
+        "nperseg": seg,
         "dt_ms": dt,
     }
 
