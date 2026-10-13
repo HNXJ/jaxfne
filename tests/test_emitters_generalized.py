@@ -80,3 +80,29 @@ def test_placeholders_throw():
         
     with pytest.raises(NotImplementedError, match="LIFEmitter"):
         jtfne.emitters.LIFEmitter(n=10)
+
+
+def _realized_noise_coef(dt_ms):
+    """Noise coefficient realized by one IzhikevichEmitter.step at ``dt_ms``.
+
+    Two initial states differ only in their RNG key (seed), so v_next differs
+    only by dt * coef * (z1 - z2), with z the step's own normal draw.
+    """
+    n = 64
+    emitter = jtfne.emitters.IzhikevichEmitter(n=n, dtype="float32")
+    zero = jnp.zeros((n,), dtype=jnp.float32)
+    v_next, z = [], []
+    for seed in (1, 2):
+        state = emitter.initial_state(seed=seed)
+        k = state.key
+        nxt, out = emitter.step(state, zero, dt_ms=dt_ms)
+        assert not bool(jnp.any(out.spikes)), "fixture must not spike (reset hides noise)"
+        v_next.append(np.asarray(nxt.v, dtype=np.float64))
+        z.append(np.asarray(jax.random.normal(jax.random.split(k)[1], shape=(n,)), dtype=np.float64))
+    return float(np.median((v_next[0] - v_next[1]) / (dt_ms * (z[0] - z[1]))))
+
+
+def test_izhikevich_emitter_step_noise_is_dt_invariant():
+    """Noise coefficient is 0.5 at dt 0.5 ms and scales by sqrt(0.5 / dt) (D1)."""
+    np.testing.assert_allclose(_realized_noise_coef(0.5), 0.5, rtol=1e-3)
+    np.testing.assert_allclose(_realized_noise_coef(0.125), 1.0, rtol=1e-3)

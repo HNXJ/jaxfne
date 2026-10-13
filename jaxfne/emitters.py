@@ -4609,7 +4609,7 @@ def simulate_dynamic_ei_coupling(
         """Documented public function `step`."""
         v, u, prev_spikes, syn_traces, rng = carry
         rng, noise_key = jax.random.split(rng)
-        noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(
+        noise = _noise_coef(None, dt_ms, jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(
             jdtype
         )
 
@@ -4855,7 +4855,7 @@ class IzhikevichEmitter(Emitter):
         jdtype = _dtype_from_policy(self.dtype)
         rng, noise_key = jax.random.split(state.key)
         input_t = jnp.asarray(input_t, dtype=jdtype)
-        noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(
+        noise = _noise_coef(None, dt_ms, jdtype) * jax.random.normal(
             noise_key, shape=state.v.shape
         ).astype(jdtype)
         syn = self.params.W.astype(jdtype) @ state.spikes.astype(jdtype)
