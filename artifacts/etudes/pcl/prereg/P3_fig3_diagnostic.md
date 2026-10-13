@@ -134,3 +134,31 @@ faithful than the scored map at index 17. The 9.67 and 5.8 px of A2 came from th
 v4 check. The ori 90 check is uninformative (an x-profile cannot see a horizontal grating).
 The simple-set failure holds under S6 and S7; the complex result depends on the window (S7
 passes at 0.48 against 0.5).
+
+## Q7: T2 across analysis choices, and the no-local-inhibition grid (unscored, 2026-10-13)
+
+Hamm (2026-10-13): try modifications and other ideas for the failed criteria. Nothing here changes
+the v5 verdict. Script: `diag/q7_t2_sweep.py`; criterion and reference are `port/fig3_v5_t2.py`'s.
+Output: `F:\warehouse\pcl\diag_scores\t2_sweep_v4runs.json`.
+
+v4 runs, 5 phase subsets (even, odd, all, 0–4, 5–9) × 5 simple columns, complex pooled and per
+column:
+
+- Simple: SSE 0.17–0.38 in all 25 cells against a guard limit of 0.117. The point fraction
+  reaches 0.8 in 13 of 25. The guard is out of reach: a flat line at the figure's mean already
+  meets 15 of 16 points of Fig. 3c, so the panel's shape beyond flat is within its digitization
+  error, and the guard asks the model to match that residual twice as well as flat does.
+- Complex: passes only pooled with all 10 phases (SSE 0.193, limit 0.197) and column (3,2) with
+  odd phases (0.140). Single columns range 0.14–1.09 in SSE. The figure is one 32-cell column, so
+  column-to-column spread in the port is larger than the guard's margin.
+
+No-local inhibition (`F:\warehouse\pcl\diag_runs\fig3_cSTDP3_nolocal\`, 3168/3168 runs, the C++
+cSTDP3 setting), even phases: simple 15/16 points (SSE 0.244, flat 0.233, guard fails); complex
+2/15, curve flat near 0.95 (sf tuning lost). Local inhibition is needed for complex sf tuning.
+Output: `F:\warehouse\pcl\diag_scores\nolocal_v5_t2.json`.
+
+Reading (dispatcher): the T2 failure is the criterion's, in two places. The simple guard cannot
+pass for a panel that is flat within ε. The complex margin is smaller than the port's own
+between-column spread. A v6 that tests the shape against the port's column spread, and tests
+Fig. 3c by level and fraction only, is Hamm's call; any phase or column choice made from this table
+is post hoc.
