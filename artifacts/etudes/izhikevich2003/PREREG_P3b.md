@@ -1,6 +1,6 @@
 # Izhikevich 2003 P3b preregistration: net.m update-order arm
 
-Status: **draft v2**, unsigned (Hamm asked for the draft 2026-10-13). Nothing scored runs before
+Status: **draft v3**, unsigned (Hamm asked for the draft 2026-10-13). Nothing scored runs before
 signature. P3 (signed v7) stays FAIL whatever P3b finds. P3b asks a single question: do the paper's
 Fig. 3 claims hold when the kernel uses `net.m`'s own update order?
 
@@ -8,6 +8,10 @@ v1 review (Muse, 2026-10-13): REVISE. Fixed here:
 - the shared-draw change is now named;
 - the gate is injectable and has a fallback bar;
 - every implementer choice is pinned.
+
+v2 review (Muse, 2026-10-13): REVISE. Fixed here: the network constructor is named, the gate's
+generators and injection are pinned, gate step 1 has a rounding-flip bar, the remaining
+implementer choices are pinned, and the kernel arm's S1 numbers are listed.
 
 Trigger: `PREREG_P3.md` §Sensitivity, S1. The reference arm fails N3 in every seed while the
 kernel passes it (`RESULT_P3.md`, corrected S1 table).
@@ -24,7 +28,11 @@ Known before this draft, on the S1 reference arm, seeds 1–5, corrected scoring
 | N4 | passes every seed |
 | Extra u per spike | 3.04–3.09 |
 
-Also known: the CV, CV2 and Fano numbers in `DIAGNOSTIC_P3.md`.
+The S1 kernel arm (the scored P3 kernel) on the same seeds: N1 8.48–8.83 Hz, N2 0.400–0.410, N3
+and N4 pass every seed (`RESULT_P3.md`, corrected S1 table).
+
+Also known: the CV, CV2 and Fano numbers in `DIAGNOSTIC_P3.md`. Not known: any output of the P3b
+arm; `kernel_net_m.py` does not exist at this draft.
 
 The variant reproduces the reference's update order, so the expected outcome is FAIL on N2 and N3.
 That expectation is a prediction; it sets no criterion. Every band, θ and setting below is P3 v7's,
@@ -60,28 +68,34 @@ Changes from the scored P3 arm, all of them `net.m`'s:
 
 Network and keys are P3's:
 - `k_r, k_w, k_noise = jax.random.split(PRNGKey(seed), 3)`.
-- r, a, b, c, d and S drawn as in `run_izh.build_fig3_network`, with `w_multiple = 1`.
+- a, b, c, d and W = S from `run_izh.build_sens_fig3_network(seed, dtype, w_multiple=1.0)`; its
+  noise, drive and v₀/u₀ outputs are not used.
 - v₀ = −65, u₀ = b v₀.
 - thal[t] = `jax.random.normal(jax.random.fold_in(k_noise, t), (1000,))` × 5 for E and × 2 for I.
 
 ## Equivalence gate (before signature)
 
-`net_reference.simulate` gains optional `thal` (shape (n_steps, n)) and `net` arguments. When they
-are given, it uses them instead of its own rng. Its default path is unchanged and checked
-byte-for-byte against `e67f3b86` on seed 1. The gate runs in float64, with x64 enabled before any
-array is built.
+`net_reference.simulate` gains one optional argument, `thal` (float64, shape (n_steps, n)). When it
+is given, row t replaces the step's draw and `rng` is never read (it may be None); `drive` stays 0.
+Its default path is unchanged and checked byte-for-byte against `e67f3b86` on seed 1. Both arms
+take a, b, c, d and S from the same `net` dict (`net_reference.build_network`), cast to the arm's
+dtype. The gate runs in float64, with x64 enabled before any array is built.
 
-1. **Bit identity, small and noise-free.** 50 cells (40 E, 10 I) from `build_network` with a fixed
-   NumPy seed, thal = 0, constant drive 6 to every cell, 1000 ms. Spike rasters must be identical row
-   for row, and extra u must agree at rtol 1e-9.
-2. **Full network.** Seed 1, 1000 ms, the network and per-ms thal from NumPy passed to both arms.
+1. **Small, noise-free.** 50 cells: `build_network(np.random.default_rng(20261013), n_e=40,
+   n_i=10)`. thal = 6.0 for every cell and row (the constant drive, given as thal to both arms),
+   1000 ms. Rasters must be identical row for row, and extra u must agree at rtol 1e-9. A differing
+   row passes only as a rounding flip: every cell that differs there has |v − 30| < 1e-9 at that
+   test in both arms; then the step-2 bar applies to the rest of the run.
+2. **Full network.** `build_network(np.random.default_rng(1))`, 1000 ms. thal from
+   `np.random.default_rng(2)`: per row, 5·standard_normal(800) then 2·standard_normal(200),
+   concatenated, the same arrays passed to both arms.
    - Up to the first row where the rasters differ (reported), rasters must be identical and extra u
      must agree at rtol 1e-9.
    - Over the whole run, total spike counts must agree within 1 %.
    - One-ulp threshold flips between JAX and NumPy can cascade, so full-run raster identity is not
      required.
-3. **Precision report.** Float32 against float64 variant on the inputs of 2: spike-count difference
-   and first divergent row (reported only).
+3. **Precision report.** The variant with net and thal cast to float32 against the float64 variant,
+   on the inputs of 2: spike-count difference and first divergent row (reported only).
 
 A failure of 1 or 2 revises the variant before signature.
 
@@ -89,10 +103,12 @@ A failure of 1 or 2 revises the variant before signature.
 
 - Seeds 1–5, 10.2 s, the first 200 ms discarded, float32.
 - One code SHA: `git rev-parse HEAD`, covering `run_izh.py`, `kernel_net_m.py` and
-  `izh_analysis.py`. Runs on a dirty tree are refused.
+  `izh_analysis.py`. `p3b` exits 2 before any run when `git status --porcelain` lists a tracked
+  change.
 - Command: `run_izh.py p3b --seeds 1 2 3 4 5 --T 10.2 --out F:\warehouse\izh2003\p3b_scored --signed`.
 - Each npz carries `dt_ms = 1.0`. The manifest carries `"arm": "net_m_order"` and the code SHA.
-- Scoring: `run_izh.py p3b-score`, which reads `dt_ms` from each npz. Signal: the population rate of
+- Scoring: `run_izh.py p3b-score`, which reads `dt_ms` from each npz and calls
+  `score_network_seed` unchanged. Signal: the population rate of
   all 1000 cells in 1 ms bins minus its mean, P3's signal.
 - Criteria: N1–N4 as in `PREREG_P3.md` §Fig. 3:
   - same estimands and the "every seed" rule;
