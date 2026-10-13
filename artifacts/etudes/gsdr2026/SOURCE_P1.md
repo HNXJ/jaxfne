@@ -43,7 +43,7 @@ the difference is listed as a declared deviation.
 - Absent (searched PLOS/PMC/methods text + repo raws): Eq-5 form, parameter Tables, paper dt/duration/integrator, HH capacitance, DynaSim-vs-Jaxley split, recording methods tail.
 - jaxfne needs (inferred): Jaxley-backed HH emitters + OU-noise channel; graded AMPA/GABAa with tanh activation (Vth −20, slope 5) and settable tauR/tauD/E_rev; E→all / global-I→all / local-I→10% wiring; half-E 120 Hz-convolved step stimulus; per-neuron PSD + band-ratio metrics; kappa synchrony; MXE-style low-rate penalty; GSDR loop (SDR inner + shifted-correlation MCDP + α mixture + C-threshold revert + clamps); Izhikevich emitter variant for S16–18.
 
-## 5. P2 plan: what jaxfne has (Muse sweep, 2026-10-13; dispatcher spot-checks pending)
+## 5. P2 plan: what jaxfne has (Muse sweep, 2026-10-13; `gsdr`, `agsdr`, `JaxleyEmitterBridge`, `fleiss_kappa_binary` and the absence of OU noise checked by the dispatcher)
 
 | Need | Status | jaxfne |
 |---|---|---|
