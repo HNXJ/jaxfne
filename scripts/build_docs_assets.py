@@ -217,6 +217,13 @@ def built_files(entry: dict) -> set[str]:
     return set(entry["panels"]) | {"index.html"}
 
 
+def unwritten(entry: dict, since: float) -> list[str]:
+    """Registry HTML files of an atlas that are absent or older than ``since``."""
+    atlas_dir = ROOT / entry["dir"]
+    return sorted(name for name in built_files(entry)
+                  if not (atlas_dir / name).is_file() or (atlas_dir / name).stat().st_mtime < since)
+
+
 def check_links(registry: dict, pages: dict[Path, str]) -> tuple[list[str], int, int]:
     """Every relative .html link in the docs pages must resolve.
 
@@ -328,6 +335,8 @@ def build(slugs: list[str]) -> int:
             verdict = "ERROR"
             detail = [f"manifest not rewritten; generator process exited rc={proc.returncode}"]
             detail += [f"  {ln}" for ln in _tail(proc.stderr or proc.stdout)]
+        elif stale := unwritten(entry, started):
+            verdict, detail = "ERROR", [f"HTML not written by this build: {stale}"]
         else:
             fresh = read_json(manifest_path)
             detail = compare(entry, fresh)

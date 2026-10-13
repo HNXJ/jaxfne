@@ -39,6 +39,17 @@ def test_stand_ins_cover_exactly_the_unbuilt_registry_files():
     assert out.get_file_from_path("_static/atlas/two_neuron_ei/typo.html") is None
 
 
+def test_a_stand_in_fails_the_build_on_read_the_docs(monkeypatch):
+    config = load_config(str(REPO / "mkdocs.yml"))
+    atlas = sorted(_registry_uris())
+    files = get_files(config)
+    one_missing = Files([f for f in files if f.src_uri != atlas[0]])
+    assert one_missing.get_file_from_path(atlas[0]) is None, "fixture must lack one atlas file"
+    monkeypatch.setenv("READTHEDOCS", "True")
+    with pytest.raises(Exception, match="1 atlas files would be published as stand-ins"):
+        _on_files(one_missing, config)
+
+
 def test_no_stand_in_for_a_built_file():
     config = load_config(str(REPO / "mkdocs.yml"))
     atlas = sorted(_registry_uris())

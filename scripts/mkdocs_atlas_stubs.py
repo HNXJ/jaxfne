@@ -3,15 +3,18 @@
 The atlas HTML is a build product of scripts/build_docs_assets.py --build (Read the Docs runs
 it before mkdocs). A checkout without it would fail `mkdocs build --strict` on every atlas
 link, so this hook adds a stand-in for each file that docs/_static/atlas_registry.json declares
-and the docs tree lacks. A link to a file outside the registry still fails strict validation.
+and the docs tree lacks. A link to a file outside the registry still fails strict validation,
+and on Read the Docs any stand-in fails the build.
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import os
 from pathlib import Path
 
+from mkdocs.exceptions import PluginError
 from mkdocs.structure.files import File
 
 log = logging.getLogger("mkdocs.hooks.atlas_stubs")
@@ -34,4 +37,7 @@ def on_files(files, config):
                 files.append(File.generated(config, uri, content=STUB))
                 added += 1
     log.info("atlas stand-ins: %d (0 when the atlas HTML is built)", added)
+    if added and os.environ.get("READTHEDOCS") == "True":
+        raise PluginError(f"{added} atlas files would be published as stand-ins; "
+                          "Read the Docs runs build_docs_assets.py --build first")
     return files

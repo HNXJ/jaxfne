@@ -135,6 +135,33 @@ def test_build_attributes_a_crashed_generator_and_skips_the_gallery(monkeypatch,
     assert len(calls) == 1, "the gallery generator must not run after a failed atlas"
 
 
+def test_build_fails_when_a_registry_html_file_is_not_written(tmp_path, monkeypatch, capsys):
+    import subprocess
+
+    entry = _entry("two_neuron_ei")
+    atlas = tmp_path / entry["dir"]
+    atlas.mkdir(parents=True)
+    manifest_bytes = (REPO / entry["dir"] / "manifest.json").read_bytes()
+    calls = []
+
+    def run(cmd):
+        # The generator rewrites the manifest and every panel, and skips index.html.
+        calls.append(cmd)
+        (atlas / "manifest.json").write_bytes(manifest_bytes)
+        for name in entry["panels"]:
+            (atlas / name).write_text("<html></html>", encoding="utf-8")
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    assert "index.html" not in entry["panels"], "fixture: index.html is outside the panel list"
+    monkeypatch.setattr(bda, "ROOT", tmp_path)
+    monkeypatch.setattr(bda, "_run", run)
+    monkeypatch.setattr(bda, "_repo_guard", lambda: None)
+    assert bda.build(["two_neuron_ei"]) == 1
+    out = capsys.readouterr().out
+    assert "HTML not written by this build: ['index.html']" in out, out
+    assert len(calls) == 1, "the gallery generator must not run after a failed atlas"
+
+
 def test_build_reads_a_failed_line_for_its_own_slug_only(monkeypatch, capsys):
     calls = []
     monkeypatch.setattr(bda, "_run", _fake_run(calls, 1, stdout="[hdp_1000] FAILED: ValueError('x')\n"))
