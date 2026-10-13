@@ -42,3 +42,21 @@ the difference is listed as a declared deviation.
 - Mismatches (observed): stim 1 nA vs 0.6; onset "time 0" vs 500–1000/1500 ms; "random half of E" vs every-other-E; local-I tauD 2.0 (`main.py`) vs 5.0 (`models.py`); OU tau/amp ranges differ between the two builders; GSDR defaults differ (C 2 vs 3, checkpoint 10 vs 5, a_init 0.5 vs 0.0).
 - Absent (searched PLOS/PMC/methods text + repo raws): Eq-5 form, parameter Tables, paper dt/duration/integrator, HH capacitance, DynaSim-vs-Jaxley split, recording methods tail.
 - jaxfne needs (inferred): Jaxley-backed HH emitters + OU-noise channel; graded AMPA/GABAa with tanh activation (Vth −20, slope 5) and settable tauR/tauD/E_rev; E→all / global-I→all / local-I→10% wiring; half-E 120 Hz-convolved step stimulus; per-neuron PSD + band-ratio metrics; kappa synchrony; MXE-style low-rate penalty; GSDR loop (SDR inner + shifted-correlation MCDP + α mixture + C-threshold revert + clamps); Izhikevich emitter variant for S16–18.
+
+## 5. P2 plan: what jaxfne has (Muse sweep, 2026-10-13; dispatcher spot-checks pending)
+
+| Need | Status | jaxfne |
+|---|---|---|
+| HH emitter | partial | `JaxleyEmitterBridge` (`jaxfne/bridges.py`); no native HH network emitter |
+| OU noise current | missing | — |
+| Graded AMPA/GABAa (tanh, tauR/tauD, E_rev) | missing | — |
+| E→all, global I→all, local I→10 % | partial | `compile_connection_rules`, `connect`; the 10 % mask is étude-local |
+| Stimulus on every other E | partial | `stimulus_schedule`, `Paradigm`; the 120 Hz kernel is étude-local |
+| Per-neuron PSD, band ratio | partial | `spectrolaminar_psd_jax`, `bandpower_jax`; the 15–60 Hz / 40-bin grid is étude-local |
+| kappa synchrony | have | `fleiss_kappa_binary` |
+| Low-rate penalty | partial | `objective(firing_rate_target=…)`; the one-sided 5/50 Hz form is étude-local |
+| GSDR loop | partial | `gsdr()`, `agsdr()` (`jaxfne/optim/core.py`); the correlation MCDP, α mixture, C revert and clamps of the paper's Eqs 2–4 are étude-local |
+
+Smallest P2: the circuit (36 E, 8 global I, 6 local I) through the public API as CAMINOS does,
+with étude-local HH + OU + graded-synapse kernels, and no library change. A native HH emitter or
+graded synapse in the library would be a public-API addition.
