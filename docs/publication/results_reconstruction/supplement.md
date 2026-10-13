@@ -111,7 +111,7 @@ full reconciliation.
 |---|---|---|---|---|
 | Non-finite spectral/phasor input | — | `finite_status` gate → UNRESOLVED | No (all executed fields finite) | Latent guard; exercised in unit suite only |
 | Fewer than 4 qualifying band sites | — | site-count gate → UNRESOLVED | No | Latent guard |
-| R² < 0.35 AND coherence < 0.55 | UNRESOLVED (registered) | not a distinct branch: the output is NO_WAVE via `structured_but_fails` when gates fail | No C-series, A-series, D3, or W3b input produced it | Registration-only condition; never policy-determinative |
+| R² < 0.35 AND coherence < 0.55 | UNRESOLVED (registered) | not a distinct branch: the output is NO_WAVE via `structured_but_fails` when gates fail | No C-series, A-series, D3, or W3b input produced it | Registration-only condition |
 
 Basis: C0 spec (waves appendix), estimator source, and the executed receipts (C3 60/60,
 A-1a 53, A-2 S1 40 + S2 3×γ-lattices + S3 12, A-1b 45, D3, E5, W3b). No Results claim routes
@@ -597,7 +597,7 @@ by clean-room bisection, 2026-08-15).
 Canonical source: `artifacts/etudes/experiment_a/canonical_source.npz` is a tracked frozen
 publication-evidence exception (`.gitignore` exception, added 2026-08-16); its SHA-256 is
 recorded in `b1_canonical_receipt.json`; regeneration verification remains available via
-`python3 scripts/run_experiment_a.py` (verification-first: receipts compared, never rewritten).
+`python3 scripts/run_experiment_a.py` (verification-first: receipts compared rather than rewritten).
 
 Basis: Methods §14; `REVIEW_NAVIGATION.md`; `artifacts/publication/publication_evidence_index.json`.
 
@@ -817,7 +817,7 @@ This supplement preserves the frozen receipts byte-for-byte; defects are **discl
 
 - Stable derivation: `e2_exec_lib.py:108-134` `splitmix64` + `domain_keys(master, replicate_idx, offsets, canonical_order)` via `jax.random.fold_in` chained through canonical order `structure→stimulus→runtime→probe→analysis` + `child_seed(parent_key, tag)` via `sha256(parent_bytes||tag)` (replaces `hash()`; offsets `4096/8192/12288/16384/20480` exactly as `e2_ssa_spec.v6.json:236-244,363-381`).
 - Independent frozen-only rescoring required before interpretation: `v1_rescored_frozen_only.json` (`v1_rescored_frozen_only.v1`, 0/5 PING_LIKE) and `v2_rescored_frozen_only.json` (`v2_rescored_frozen_only.v1`, pooled SI −0.084, swap 0.426, agreement) — independent implementations, no shared analysis code, generate gates from JSON only.
-- Memory-safe JIT: kernel outputs consumed under `jit`/sliced aggregation, never materializing `presyn_trace` (10–13 GB risk, `e2_ssa_spec.v6.json:455` caution adopted); atomic resumable receipts; `consumed_keys_must_lie_in_declared_domains: true`.
+- Memory-safe JIT: kernel outputs consumed under `jit`/sliced aggregation rather than materializing `presyn_trace` (10–13 GB risk, `e2_ssa_spec.v6.json:455` caution adopted); atomic resumable receipts; `consumed_keys_must_lie_in_declared_domains: true`.
 
 V2 executed only after LFNI gate + adversarial code review passed (synthesis `Executor defects … repaired as infrastructure before V2 execution`). Per-replicate seed domains now lie inside declared ranges (`v2_runs/rep_*.json: seed_domains` e.g. structure 3311337696077133527 etc derived via fold_in).
 

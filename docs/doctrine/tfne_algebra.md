@@ -84,7 +84,7 @@ a placeholder. A rule without a mechanism means direct coupling
 (`tfne_direct`, 0.1 ms, rather than a receptor claim). The realization record still
 carries `tau_ms: None` with status `declared_not_simulated` (identity only);
 execution inherits the bridge-resolved tau (P-023): the structural bridge
-derives it from each connection's own `static.dT_ms`, never a default.
+derives it from each connection's own `static.dT_ms`.
 Synaptic kinetics is independent of `dt`, so refining the
 timestep integrates the same synapse model rather than changing it.
 
@@ -94,7 +94,7 @@ fractions of the sampled (area, layer) block's extent within [0,1]: a
 declared sub-range changes the executed positions (sampled inside it),
 while an absent declaration — or a full [0,1] range — takes the
 historical path bit-identically. A range outside [0,1] is refused
-(`E_GEOMETRY_OUT_OF_RANGE`), never rescaled: relative coordinates carry
+(`E_GEOMETRY_OUT_OF_RANGE`): relative coordinates carry
 no physical (mm/um/conductivity/distance) semantics. Geometry is what
 field observables are computed against, so field claims rest on the
 manifest-recorded fractional domains (`tfne_geometry`).

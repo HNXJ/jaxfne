@@ -91,7 +91,7 @@ full reconciliation.
 |---|---|---|---|---|
 | Non-finite spectral/phasor input | — | `finite_status` gate → UNRESOLVED | No (all executed fields finite) | Latent guard; exercised in unit suite only |
 | Fewer than 4 qualifying band sites | — | site-count gate → UNRESOLVED | No | Latent guard |
-| R² < 0.35 AND coherence < 0.55 | UNRESOLVED (registered) | not a distinct branch: the output is NO_WAVE via `structured_but_fails` when gates fail | No C-series, A-series, D3, or W3b input produced it | Registration-only condition; never policy-determinative |
+| R² < 0.35 AND coherence < 0.55 | UNRESOLVED (registered) | not a distinct branch: the output is NO_WAVE via `structured_but_fails` when gates fail | No C-series, A-series, D3, or W3b input produced it | Registration-only condition |
 
 Basis: C0 spec (waves appendix), estimator source, and the executed receipts (C3 60/60,
 A-1a 53, A-2 S1 40 + S2 3×γ-lattices + S3 12, A-1b 45, D3, E5, W3b). No Results claim routes

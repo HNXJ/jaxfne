@@ -79,7 +79,7 @@ the rules those releases were held to and are historical context for readers.
 
 ### Changed
 
-- Synaptic time constants are required, never defaulted (P-023, owner
+- Synaptic time constants are required (P-023, owner
   ruling 2026-09-30): `StaticParams.dT_ms` of `None` is refused at wiring
   time, as are 0, negative, NaN, inf, bools and strings. JDNA genomes
   declare per-mechanism kinetics in `mechanism_tau_ms`; `develop` copies
@@ -173,7 +173,7 @@ proven bitwise-identical by stash-compared trajectory hashes).
   guide.
 - Seven-panel dark atlas (`schema`, `network_3d`, `raster`, `lfp`,
   `h_dynamics`, `hdp`, `oscillatory`) with per-panel data contracts:
-  unmeetable contracts render explicit omission cards, never substitutes.
+  unmeetable contracts render explicit omission cards.
 - Per-page atlases for every doc simulation + frozen-étude HTML panels
   (post-hoc or deterministic reruns with hash/claims verification).
 - Provenance manifests (`tfne_digest`, `K_D`, sim identity, per-panel

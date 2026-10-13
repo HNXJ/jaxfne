@@ -19,7 +19,7 @@ $$B,\quad R,\quad E,\quad T$$
 | **B** — base/model quantity | Physical/model baseline. Retains its actual units and semantics. Static/shared baseline that relative state modulates around. | physical (or declared model) units | `edges.weight` baseline `m0`; base drive `b`; base intrinsic `a_base` |
 | **R** — relative quantity | Dimensionless internal dynamic state or modulation. Zero (or another declared reference) represents the reference/base state where applicable. Its admissible domain is fixed by its geometry. | dimensionless | `H_i` (RBS coordinate), `r_p` relative gain modulation, `fraction` cell-type fractions |
 | **E** — effective quantity | The quantity actually used in dynamics, produced from a base and a relative modulation through an explicit mapping. | inherits base units | `p_eff = C_p(p0, r_p)` |
-| **T** — physical time quantity | Dimensional time (clock, delays, time constants, integration windows, timescales). Not a relative quantity; never normalized into the R convention. | milliseconds (or seconds where the controller law declares `s`) | `dt_ms`, `duration_ms`, `delay_steps`, `tau_0_ms`, `tau_H_s`, timestamps |
+| **T** — physical time quantity | Dimensional time (clock, delays, time constants, integration windows, timescales). Not a relative quantity. Do not normalize it into the R convention. | milliseconds (or seconds where the controller law declares `s`) | `dt_ms`, `duration_ms`, `delay_steps`, `tau_0_ms`, `tau_H_s`, timestamps |
 
 Effective physical values must be produced through **explicit mappings**; a
 relative value must never be silently treated as a physical quantity.
@@ -44,7 +44,7 @@ shapes:
 Rules:
 
 - **Audit before assigning.** Domains are derived from the actual variables
-  and their clamps/equations, never imposed retroactively. Do not
+  and their clamps/equations. Do not
   retroactively reinterpret quantities whose established semantics are
   genuinely dimensional.
 - **Zero = reference where applicable.** A relative value of zero represents

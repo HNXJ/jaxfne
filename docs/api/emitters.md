@@ -57,7 +57,7 @@ This runs inside the `jax.lax.scan` step functions of:
 
 `I` (`current_native` in source) is an **uncalibrated internal drive**, distinct from a physical current in
 amperes — every kernel in this module sets `source_calibration_status` to a value such as
-`"uncalibrated_izhikevich_native_current"`, never a physical-calibration claim.
+`"uncalibrated_izhikevich_native_current"`.
 
 ### Canonical source representation
 

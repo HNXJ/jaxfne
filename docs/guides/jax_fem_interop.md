@@ -22,7 +22,7 @@ geometry.
 
 jax-fem is **GPLv3-licensed**, with commercial licensing available separately
 directly from the author (see jax-fem's own README/LICENSE). It is
-deliberately kept as an **optional extra**, never a core jaxfne dependency,
+deliberately kept as an **optional extra**,
 and is **not** included in the `jaxfne[all]` bundle — installing it is a
 separate, explicit choice:
 

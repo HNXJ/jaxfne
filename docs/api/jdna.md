@@ -46,7 +46,7 @@ declared tolerance bands, geometry, and typed connection schemes.
 `develop`.
 
 **Ownership.** `jaxfne.jdna.genome`. Serialized as JSON data
-(`pseudogenome_v1`), never as code.
+(`pseudogenome_v1`).
 
 **Invariants.** Every layer declares positive `n_neurons`, a valid depth band
 `0 <= lo < hi <= 1`, and cell-type fractions summing to 1. Tolerances are

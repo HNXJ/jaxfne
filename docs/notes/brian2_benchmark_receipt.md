@@ -1,7 +1,7 @@
 # Brian2 vs. jaxfne benchmark receipt (2026-07-18)
 
 First quantitative cross-tool comparison. Prior benchmarking compared jaxfne
-against itself across backends, never against an incumbent tool. This is a small
+against itself across backends. This is a small
 smoke comparison and a first data point. No benchmark suite is included, and no definitive claim is made.
 
 ## Setup

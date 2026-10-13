@@ -21,8 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # tracked docs. Keys are "path:line text" (the raw line, stripped); values are
 # the reason a hit stays. A hit is rewritten, or it is listed here with the
 # packet rule that keeps it: a defined label or a quotation (rule 3).
-X_NOT_Y_ALLOWLIST: dict[str, str] = {
-}
+X_NOT_Y_ALLOWLIST: dict[str, str] = {}
 
 X_NOT_Y_PATTERNS = (
     re.compile(r', not\b', re.IGNORECASE),
@@ -32,6 +31,7 @@ X_NOT_Y_PATTERNS = (
     re.compile(r'\bnot [^.;]{1,60}, but\b', re.IGNORECASE),
     re.compile(r'\band (is |are )?not (a|an|the)\b', re.IGNORECASE),
     re.compile(r'\bnot\b[^.;]{1,60}\bbut\b', re.IGNORECASE),
+    re.compile(r'(,|;|—|–|\() never\b', re.IGNORECASE),
 )
 
 # One known positive per pattern, in the same order. The gate test asserts that
@@ -44,6 +44,7 @@ X_NOT_Y_KNOWN_POSITIVES = (
     "not the claim X, but the claim Y",
     "reported as attenuation and is not a classification",
     "the rate is not assumed but measured",
+    "the sweep, never the AGSDR optimizer",
 )
 
 # Emphasis markers are stripped before matching, so ", **not** Y" counts as ", not Y".

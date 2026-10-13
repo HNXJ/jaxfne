@@ -207,7 +207,7 @@ any upload step runs. If no successful `release_ci` run exists for the commit,
 or the manifest names a different commit, or a hash differs, publishing fails
 rather than falling back to a build.
 
-The manifest is generated, never committed. Committing it would change the tree,
+The manifest is generated. Do not commit it. Committing it would change the tree,
 and therefore the commit SHA it claims to certify — the same self-reference the
 release-candidate attestation avoids. Retained artifacts live in the gitignored
 `artifacts/release_candidate/` locally and as CI artifacts remotely.

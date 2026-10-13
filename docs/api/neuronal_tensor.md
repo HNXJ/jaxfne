@@ -152,7 +152,7 @@ this layer (all cell types combined).
 class StaticParams:
     g_mech: dict = field(default_factory=dict)          # mechanism → conductance
     reversal_potentials_mV: dict = field(default_factory=dict)  # mechanism → E_rev (mV)
-    dT_ms: float | None = None   # REQUIRED (P-023): None is refused, never defaulted
+    dT_ms: float | None = None   # REQUIRED (P-023): None is refused
     value_tag: ValueTag = "relative"
 ```
 
@@ -349,7 +349,7 @@ Serialise a `NeuronalTensor` to JSON via `jaxfne.io.save_json`.
 
 Returns the path written as a string.
 
-> **Convention:** configs are data, never code. Build a `NeuronalTensor` once,
+> **Convention:** configs are data. Build a `NeuronalTensor` once,
 > then keep all variants as JSON files.
 
 ```python
@@ -516,7 +516,7 @@ Returns a `Configuration` for `jaxfne.construct`.
 
 Every `InterConnection` / `AreaConnection` declares its synaptic time
 constant in `static` (`StaticParams(dT_ms=...)`, milliseconds). `None` is
-refused at wiring time — never defaulted — as is any other inadmissible
+refused at wiring time, as is any other inadmissible
 value (0, negative, NaN, inf, bools, strings). Named receptors use
 `jaxfne.presets.RECEPTOR_KINETICS` values (AMPA 2.0, GABA_A 5.0, NMDA 100.0,
 GABA_B 150.0 ms).

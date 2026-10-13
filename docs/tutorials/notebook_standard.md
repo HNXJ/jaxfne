@@ -67,7 +67,7 @@ Notebooks **must** use the canonical vocabulary in repository file
 **Avoid:** generic meta-words (`doctrine`, `truth`, `framework` as filler),
 undeclared placeholders, and equating proxies with physical measurements.
 
-Always frame readouts as computational or declared proxy, never as validated physical measurements without supporting validation workflow and evidence.
+Always frame readouts as computational or declared proxy rather than as validated physical measurements without supporting validation workflow and evidence.
 
 ## Notebook Structure
 

@@ -327,7 +327,7 @@ Sets JAX's *global* `jax_enable_x64` flag (process-wide; it applies to every `Ru
 `{requested_dtype, actual_dtype, x64_enabled, status}`. If `dtype="float64"` is requested
 without `enable_x64=True`, it warns (or raises under `JAXFNE_STRICT=1`) and falls back to
 float32 rather than silently claiming float64. Call this once at startup, matching the
-project-wide "x64 is a startup policy, never mid-code" rule — do not call it after arrays
+project-wide rule that x64 is set at startup — do not call it after arrays
 have already been built.
 
 ### `safe_jit(fn, strict=False, **jit_kwargs)` / `safe_vmap(fn, in_axes=0, strict=False, **vmap_kwargs)`

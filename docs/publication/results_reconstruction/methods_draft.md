@@ -22,7 +22,7 @@ where X are neural state trajectories (including membrane potential v, recovery 
 - **F_γ**: `q_t ↦ φ_t` — the field operator maps the stacked source to field-coordinate proxies Φ (layer 6).
 - **P_η**: `φ_t ↦ y_t` — the probe operator maps field quantities to readout Y (layer 6).
 
-These operators are not assumed linear, and F, P are applied **post-hoc on frozen trajectories**: exactly one neural simulation is executed per seed, after which X, H, and Q are frozen and every observation operator runs on that single frozen trace (anti-drift rule). Differences between readouts therefore arise from (F, P), never from re-simulated neural trajectories. Nothing computed by a downstream estimator may feed upstream into S, F, the emitters, or the simulation state (upstream-feed prohibition); the estimator is a pure function of its inputs.
+These operators are not assumed linear, and F, P are applied **post-hoc on frozen trajectories**: exactly one neural simulation is executed per seed, after which X, H, and Q are frozen and every observation operator runs on that single frozen trace (anti-drift rule). Differences between readouts therefore arise only from (F, P). Nothing computed by a downstream estimator may feed upstream into S, F, the emitters, or the simulation state (upstream-feed prohibition); the estimator is a pure function of its inputs.
 
 ## 2. Circuit specification and construction path
 
@@ -76,7 +76,7 @@ A silence mask (when active) replaces v with c for masked neurons and suppresses
 Q_t = s_scale · (I_native,t + g_spk·s_t),   g_spk = 20.0 (Relative)   (5)
 ```
 
-with s_t the binary spike vector, I_native the summed drive + recurrent + stochastic current, and s_scale a per-population relative scale. Q is the substrate consumed by all field operators; Q is **Relative**, never a calibrated physical current.
+with s_t the binary spike vector, I_native the summed drive + recurrent + stochastic current, and s_scale a per-population relative scale. Q is the substrate consumed by all field operators; Q is **Relative**.
 
 ## 4. Finite conduction-delay coupling
 
@@ -105,7 +105,7 @@ Protocols D, E, and W operate on typed hidden coordinates H (per-neuron, Relativ
 τ_i·dH_i/dt = α·I_syn,i + β − γ·H_i·r_i − δ·W_i + ρ_passive/H_i² + K_ctrl·(1 − H_i) − dC/dH_i   (7)
 ```
 
-with r_i the previous-step spike indicator, W_i = Σ_e: pre(e)=i |w_e| the outgoing weight burden, and the asymmetric safety barrier potential C(H) = barrier_c/(H − H_min) + barrier_d/(H_max − H); the drive term entering I_native is additionally multiplied per neuron by the activity boost 1 + H_boost_gain·max(0, 1 − H_i) (H_boost_gain = 4.0 in both shipped presets; the boost is ≈ 1 wherever H_i ≈ 1, and it scales only drive + scheduled current, never the recurrent or noise terms); barrier denominators are floored at barrier_eps = 1e-3. On the neuron's own spike, H is additionally drained discretely by C_spike (C_spike = 0.0 in every shipped preset, hence inert in all runs reported here).
+with r_i the previous-step spike indicator, W_i = Σ_e: pre(e)=i |w_e| the outgoing weight burden, and the asymmetric safety barrier potential C(H) = barrier_c/(H − H_min) + barrier_d/(H_max − H); the drive term entering I_native is additionally multiplied per neuron by the activity boost 1 + H_boost_gain·max(0, 1 − H_i) (H_boost_gain = 4.0 in both shipped presets; the boost is ≈ 1 wherever H_i ≈ 1, and it scales only drive + scheduled current); barrier denominators are floored at barrier_eps = 1e-3. On the neuron's own spike, H is additionally drained discretely by C_spike (C_spike = 0.0 in every shipped preset, hence inert in all runs reported here).
 
 ### 5.2 HDP weight plasticity
 

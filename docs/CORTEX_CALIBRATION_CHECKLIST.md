@@ -132,7 +132,7 @@ Baseline E-drive sweep (100-neuron cortex, 2 s, noise on):
 1. **Per-neuron < 100 Hz holds in-network at every drive** (max 79 Hz even at 50 nA): recurrent inhibition tames interneurons that hit 1000 Hz in isolation. The hard per-neuron bound is **structurally respected**.
 2. **Mean < 10 Hz requires baseline E-drive ≤ ~2 nA.** Using 10 nA gives ~18 Hz mean — about 2× over budget.
 
-> **Action:** cap baseline E-drive at ~2–3 nA; never inject DC directly into PV/SST.
+> **Action:** cap baseline E-drive at ~2–3 nA. Do not inject DC directly into PV/SST.
 
 ---
 

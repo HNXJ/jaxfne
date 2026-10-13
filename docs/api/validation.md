@@ -192,7 +192,7 @@ else:
 ## Conductivity Validators
 
 `jaxfne/validation.py`'s own API starts here — each returns a JSON-safe `dict` with
-`is_valid`/`is_finite`/`status`/`evidence` keys, never raising on bad input:
+`is_valid`/`is_finite`/`status`/`evidence` keys rather than raising on bad input:
 
 - `validate_scalar_conductivity(sigma, *, tolerance=1e-10)` (`:104`) — finite, positive scalar.
 - `validate_diagonal_conductivity(sigma, *, tolerance=1e-10)` (`:138`) — per-axis diagonal

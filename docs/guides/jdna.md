@@ -200,7 +200,7 @@ first-class.
 - No birth, death, migration, or developmental-time structural mutation in
   0.4.22.
 - No genome-level optimization: AGSDR optimizes runtime parameters
-  (\(\Theta_R'\)), never \(\Theta_D\) or \(\Theta_G\).
+  (\(\Theta_R'\)) rather than \(\Theta_D\) or \(\Theta_G\).
 - No developmental RBS (`H_D`) is declared by the canonical genome; the
   `H_D \subset Z_D` possibility is documented but not exercised by an
   implemented genome.

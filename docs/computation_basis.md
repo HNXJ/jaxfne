@@ -105,7 +105,7 @@ When adding a new dimension:
 1. **Name it explicitly** in docstrings and Manifest
 2. **Document its size and meaning** (as "spike_threshold_samples", rather than "axis 2")
 3. **Test shape stability** — if shape changes unexpectedly, it breaks downstream operators
-4. **Collapse or broadcast** — never silently drop or pad dimensions
+4. **Collapse or broadcast.** Do not silently drop or pad dimensions
 
 ---
 

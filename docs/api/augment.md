@@ -8,7 +8,7 @@ base spec -> augmentation spec -> JDNA completion -> NeuronalTensor
     -> augment -> NeuronalTensor -> construct -> Model -> simulate
 ```
 
-Transforms never mutate a `Model`, never add a simulation path, and never
+Transforms never mutate a `Model`, add a simulation path, or
 extend the TFNE grammar. The input tensor is never touched: the result is a
 deep copy with only the targeted values rewritten.
 
@@ -87,7 +87,7 @@ distinct object, zero changed values.
 
 ## Limits
 
-- A probability pushed above 1 is refused, never clipped, so a stochastic
+- A probability pushed above 1 is refused, so a stochastic
   spec can fail for some `K_V`.
 - `construct` quantises `delay_ms` to `round(delay_ms / dt_ms)` steps, so a
   small delay change may leave the model unchanged, and a positive delay

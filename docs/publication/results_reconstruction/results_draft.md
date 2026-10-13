@@ -8,7 +8,7 @@ with a single `construct()` dispatch entry point unifying its circuit-specificat
 (Configuration, NeuronalTensor, and the narrower HDPColumnConfig) onto one `Model`; and the
 TFNE operator grammar `Emitter → Source → Field → Probe → Objective → Optimizer → Manifest`,
 the scientific pipeline this paper's evidence follows. Paradigm and Trainer enter
-the API only as optional downstream workflow components, never as stages of either grammar.
+the API only as optional downstream workflow components outside both grammars.
 Fig. 1 is a representational grammar map of the execution pipeline; it reports no empirical
 quantity.
 
@@ -226,7 +226,7 @@ reproduction is claimed only within the recorded equivalence gate.
 Registration: primary protocol suite and figures frozen at the pre-revision baseline
 (2026-08); the estimator module revision SHA is `684859a98da51de79887ec26ba8d7134e2fa0e97`
 (see Results above). Secondary, independently registered validation runs (executed after
-registration; results reported separately in the paragraphs above; never alter the
+registration; results reported separately in the paragraphs above rather than altering the
 registered claims):
 
 | Internal tag | Content | Artifact |

@@ -46,7 +46,7 @@ declare their own `source_mode_class` and input representation.
   [Emitters API](emitters.md) page), with no conversion to a physical unit.
 - Do not infer the schema from the shape alone: `(T, N)` also describes intermediate state
   arrays. The metadata surfaces below are the authoritative descriptors; tests assert on
-  metadata, never on shape.
+  metadata.
 
 ## Metadata surfaces
 
@@ -131,7 +131,7 @@ synaptic operators.
 
 - `tests/test_phaseD_source_schema.py` covers all five emitter paths: array convention,
   exact status strings, presence/absence of `source_bookkeeping` per path, and the status gate
-  (`physical_amplitude_calibrated` never `True`).
+  (`physical_amplitude_calibrated` always `False`).
 - `tests/test_source_bookkeeping_v020.py` covers the bookkeeping metadata contract for the
   standard paths.
-- Both suites assert on metadata surfaces, never on trace shape alone.
+- Both suites assert on metadata surfaces.

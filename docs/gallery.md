@@ -94,7 +94,7 @@ All panels represent computational proxies and relative uncalibrated states (`ca
 **Status:** `relative_proxy_coordinates`  
 **Description:** Realized spatial locations and cell-class identities in a three-area laminar hierarchy with bidirectional feedforward/feedback connectivity.
 
-Seven fixed panels, always emitted (`schema`, `network_3d`, `raster` as **OBSERVED**; `lfp`, `h_dynamics`, `hdp`, `oscillatory` as **DERIVED**), each carrying a provenance card (`config_hash`, N, edges, steps, dt, jaxfne version). A panel whose declared inputs cannot be met renders an explicit omission card, never a substitute:
+Seven fixed panels, always emitted (`schema`, `network_3d`, `raster` as **OBSERVED**; `lfp`, `h_dynamics`, `hdp`, `oscillatory` as **DERIVED**), each carrying a provenance card (`config_hash`, N, edges, steps, dt, jaxfne version). A panel whose declared inputs cannot be met renders an explicit omission card:
 
 <iframe class="jx-frame" src="_static/atlas_three_area/index.html" loading="lazy" title="Three-area atlas dashboard"></iframe>
 

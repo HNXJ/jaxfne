@@ -59,7 +59,7 @@ feedforward = [
         source_area="V1", source_layer=layer, source_neuron_type="E",
         target_area="PFC", target_layer="L4", target_neuron_type="E",
         mechanism="AMPA",
-        # P-023: time constants are required, never defaulted (AMPA 2.0 ms
+        # P-023: time constants are required (AMPA 2.0 ms
         # from jaxfne.presets.RECEPTOR_KINETICS).
         static=StaticParams(dT_ms=2.0),
         # PlasticParams.H defaults to 0.0, outside the valid HDP range

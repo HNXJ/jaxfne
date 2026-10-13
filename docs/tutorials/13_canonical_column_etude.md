@@ -278,7 +278,7 @@ Regenerate: `python scripts/generate_doc_page_atlases.py --slug canonical_etude_
   "computational diagnostic". Laminar fields are proxies, rather than a solved
   field; amplitudes uncalibrated. `E`/`PV`/`SST`/`VIP` denote reduced
   Izhikevich dynamical heterogeneity; literal cell-type identity is not warranted.
-- **Scaffold, without quantitative calibration.** Fractions and motifs above are qualitative scaffold values (`quantitative_cell_fraction = false`, `quantitative_connectivity = false`) with declared provenance — never present as empirically calibrated V1 composition or connectivity.
+- **Scaffold, without quantitative calibration.** Fractions and motifs above are qualitative scaffold values (`quantitative_cell_fraction = false`, `quantitative_connectivity = false`) with declared provenance.
 
 ## Next step
 
