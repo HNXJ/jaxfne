@@ -34,17 +34,22 @@ spike rows in all seven checked runs: C4 and C8 fail on the kernel's dynamics, n
 ## Sensitivity S1 (reported only)
 
 Reference arm `net_reference.py` (float64 NumPy transcription of `net.m`, code `e67f3b86`), seeds
-1–5; `sensitivity_v7\s1_report.json`. Mean extra u per spike from the first half-step overshoot
-3.04–3.09.
+1–5. Mean extra u per spike from the first half-step overshoot 3.04–3.09.
+
+Correction (2026-10-13): `cmd_s1` scored the reference arm's 1 ms rows as 0.5 ms rows, which
+doubled its rate and halved its time axis. The first report, `sensitivity_v7\s1_report.json`
+(`scores/p3_v7_s1_report.json`), is kept as a receipt. The table below is from
+`scores/p3_v7_s1_report_dtfix.json`: same runs, each arm scored on its own step (fix and test
+`test_p3_s1_scores_each_arm_on_its_own_step`, 2026-10-13).
 
 | | N1 Hz | N2 CV | N3 (f_pk, PE) | N4 (f_pk, PE) |
 |---|---|---|---|---|
-| reference | 14.12–14.46 | 0.388–0.400 | 9.5–13.0 Hz, 0.32–1.95: fails all seeds | 42.0–48.5 Hz, 3.27–6.13: fails seeds 2, 5 |
+| reference | 7.05–7.23 | 0.387–0.399 | seed 1: 11.0 Hz, 0.96; seeds 2–5: 8.0–8.5 Hz, 6.65–11.34, inside the 1 Hz edge: fails all seeds | 33.0–40.0 Hz, 4.25–7.93: passes all seeds |
 | kernel | 8.48–8.83 | 0.400–0.410 | passes all seeds | passes all seeds |
 
 N2 fails on both arms: the low CV belongs to the network as specified, not to the kernel. S1 moves
-N3 and N4 across their band edge, which by the prereg calls for a separately preregistered kernel
-variant arm that reproduces the overshoot (Hamm's decision).
+N3 across its band edge (the reference alpha peak sits at 8.0–8.5 Hz), so the prereg calls for a
+kernel variant arm (`PREREG_P3b.md`, draft).
 
 ## Sensitivity S2–S4 (reported only)
 

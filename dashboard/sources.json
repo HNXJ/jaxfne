@@ -364,7 +364,7 @@
       ],
       "sensitivity": [],
       "charts": [],
-      "open": ["S1 moves N3 and N4 across their band edge: the prereg calls for a separately preregistered kernel variant arm that reproduces the net.m overshoot (Hamm's decision).", "S2–S4 need runner support before they run."]
+      "open": ["S1 (rescored on each arm's own step, 2026-10-13) moves N3 across its band edge: the net.m update-order arm is drafted as PREREG_P3b.md, unsigned.", "Diagnostics (unscored, DIAGNOSTIC_P3.md): C8 passes with a 2 x 1 ms pulse; C4 passes on time to steady firing; N2 fails on the paper's own net.m too. A P3 v8 is Hamm's call."]
     }
   ],
   "roadmap": [

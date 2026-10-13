@@ -460,6 +460,30 @@ def test_p3_s1_reference_writes_and_reports(tmp_path, monkeypatch):
     assert arms["reference"]["N1"]["numbers"]["mean_rate_hz"] > 0
 
 
+def test_p3_s1_scores_each_arm_on_its_own_step(tmp_path):
+    """The same spike times at 1 ms rows (reference) and 0.5 ms rows (kernel) give one rate."""
+    import json as _json
+
+    r = _load_run_izh()
+    t_ms = np.arange(0, 2000, 100)  # 10 Hz for every cell over 2 s
+    cols = np.repeat(np.arange(1000), t_ms.size)
+    times = np.tile(t_ms, 1000) + (cols % 50)  # stagger cells inside each 100 ms
+    for name, dt in (("ref", 1.0), ("ker", 0.5)):
+        d = tmp_path / name
+        d.mkdir()
+        np.savez(d / "1.npz", spike_rows=(times / dt).astype(np.int64),
+                 spike_cols=cols.astype(np.int64), n_steps=np.int64(round(2000 / dt)),
+                 n_cells=np.int64(1000), dt_ms=np.float64(dt))
+    (tmp_path / "ref" / "manifest.json").write_text(_json.dumps(
+        {"sensitivity": "S1", "code_sha": "x",
+         "runs": [{"seed": 1, "mean_extra_u_per_spike": 0.0}]}))
+    rep = r.cmd_s1(tmp_path / "ref", tmp_path / "ker", tmp_path / "s1.json")
+    ref = rep["seeds"]["1"]["reference"]["N1"]["numbers"]["mean_rate_hz"]
+    ker = rep["seeds"]["1"]["kernel"]["N1"]["numbers"]["mean_rate_hz"]
+    assert ref == pytest.approx(ker, rel=1e-12)
+    assert ref == pytest.approx(10.0, rel=0.05), ref
+
+
 def test_p3_sensitivity_runs_never_enter_score(tmp_path):
     import json as _json
 

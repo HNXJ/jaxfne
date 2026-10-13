@@ -770,7 +770,9 @@ def cmd_s1(ref_dir, kernel_dir, out_path):
         arms = {}
         for arm, d in (("reference", ref_dir), ("kernel", kernel_dir)):
             cells, n_steps = _seed_cells(d, seed)
-            res = score_network_seed(cells, n_steps, FIG3_DT, theta, alpha_band)
+            # Each arm's own step: the reference rows are 1 ms, the kernel rows 0.5 ms.
+            dt_ms = float(np.load(Path(d) / f"{seed}.npz")["dt_ms"])
+            res = score_network_seed(cells, n_steps, dt_ms, theta, alpha_band)
             arms[arm] = {n: res[n] for n in ("N1", "N2", "N3", "N4")}
         seeds[str(seed)] = dict(arms, mean_extra_u_per_spike=entry["mean_extra_u_per_spike"])
     report = {"sensitivity": "S1", "reported_only": True, "code_sha": _git_sha(),
