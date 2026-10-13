@@ -27,6 +27,17 @@ def test_artifacts_root_holds_only_control_files():
     assert loose <= ROOT_FILES, f"move into a subfolder: {sorted(loose - ROOT_FILES)}"
 
 
+def test_readme_lists_every_tracked_folder():
+    tracked = subprocess.run(
+        ["git", "-C", str(REPO), "ls-files", "artifacts"], capture_output=True, text=True, check=True
+    ).stdout.split()
+    folders = {p.split("/")[1] for p in tracked if p.count("/") >= 2}
+    readme = (REPO / "artifacts" / "README.md").read_text(encoding="utf-8")
+    assert len(folders) > 20, "fixture must see the artifacts folders"
+    missing = sorted(f for f in folders if f"`{f}/`" not in readme)
+    assert not missing, f"add to artifacts/README.md: {missing}"
+
+
 def test_viewer_defaults_write_into_a_subfolder():
     import inspect
 
