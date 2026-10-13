@@ -1,6 +1,6 @@
 # Izhikevich 2003 P3 v8: Fig. 2 amendment (post hoc)
 
-Status: **draft v8.1**, unsigned. Hamm (2026-10-13) asked for this draft after the v7 FAIL and the
+Status: **draft v8.2**, unsigned (C4 per Hamm's call; ready for review and signature). Hamm (2026-10-13) asked for this draft after the v7 FAIL and the
 unscored diagnostics. **Post hoc:** the change was chosen knowing its outcome
 (`DIAGNOSTIC_P3.md`), so a pass under v8 describes the kernel and is not a prospective test. The
 v7 verdict (FAIL: C4, C8, N2) stays on record unchanged.
@@ -12,7 +12,7 @@ withdrawn. C4 is open (below).
 Everything not named here is `PREREG_P3.md` signed v7 verbatim: kernel, dt, float32, initial
 state, time convention, windows, burst definition, the other criteria, the scorer, and Fig. 3.
 
-## Change
+## Changes
 
 | Id | v7 | v8 | Reason |
 |---|---|---|---|
@@ -26,15 +26,16 @@ The rows are unchanged:
 
 Only the amplitude in the 10 pulse rows changes.
 
-## C4 (open, Hamm's call)
+## C4 (Hamm 2026-10-13: relative criterion)
 
-FS adapts 86 % from the first to the last ISI at I = 10 from rest (ratio 1.86). That is the smallest
-of the three adapting types (RS 2.53, LTS 4.39). Options:
-- (a) C4 stays FAIL, as a model property against "practically without adaptation";
-- (b) post hoc relative criterion: rate ≥ 50 Hz and FS ISI ratio below both the RS (C1) and the LTS
-  (C5) ratio.
+| | v7 | v8 |
+|---|---|---|
+| C4 pass | rate ≥ 50 Hz and ISI ratio ≤ 1.2 | rate ≥ 50 Hz, and the C4 ISI ratio (last/first, v7's formula) strictly below both the C1 (RS) and the C5 (LTS) ISI ratios from the same scored run set |
 
-v8 is completed once Hamm chooses.
+FS adapts 86 % from the first to the last ISI at I = 10 from rest (ratio 1.86). That is the
+smallest of the three adapting types (RS 2.53, LTS 4.39 on the v7 receipts), so v8 reads
+"practically without adaptation" as "adapts least". A C1 or C5 verdict of incomplete makes C4
+incomplete. C4 needs no new run: the v7 C1, C4 and C5 runs are used.
 
 ## N2 (Hamm 2026-10-13)
 
@@ -51,6 +52,6 @@ itself gives per-cell ISI CV 0.39, CV2 0.42 and Fano factor 0.19.
 ## Outcome language
 
 - C1–C8 pass under v8: "Izhikevich 2003 Fig. 2 firing patterns reproduce on the jaxfne Izhikevich
-  kernel under amendment v8 (post hoc: C8 pulse amplitude chosen after the v7 FAIL)". The C4 basis
-  is named.
+  kernel under amendment v8 (post hoc: C8 pulse amplitude and a relative C4 criterion, both chosen
+  after the v7 FAIL)".
 - Fig. 3 keeps the v7 language: N1, N3 and N4 pass, and N2 fails as a paper claim.
