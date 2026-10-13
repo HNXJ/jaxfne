@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-13T17:26:59Z",
-    "dev_sha": "3ccb54f93713aae5d6e45b19e3bb7b9dd3f82cec"
+    "utc": "2026-10-13T19:42:56Z",
+    "dev_sha": "67652a8d67c2ddf0c65914244fb10666b55a7b3b"
   },
   "papers": [
     {
@@ -2042,15 +2042,15 @@
       "id": "izhikevich2003",
       "title": "Izhikevich 2003, Figs. 2 and 3 (single-cell patterns and the 1000-cell network)",
       "citation": "Izhikevich, IEEE Trans Neural Netw 2003",
-      "class": "in progress",
+      "class": "not reproduced",
       "question": "Does jaxfne's existing Izhikevich kernel reproduce the paper's single-cell firing patterns (Fig. 2) and the 1000-cell network rhythm (Fig. 3)?",
       "page": "models/izhikevich2003.md",
-      "release": "0.5.6",
+      "release": "0.5.7",
       "tier": "T-jaxfne",
-      "stage": "P3",
+      "stage": "P5",
       "lane": {
-        "branch": "dev",
-        "sha": "e0e818ab9f1026d2febe61193f9e0cbf4c84815a"
+        "branch": "izh2003",
+        "sha": "34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518"
       },
       "stage_artifacts": [
         {
@@ -2059,7 +2059,7 @@
             {
               "label": "source",
               "path": "artifacts/etudes/izhikevich2003/SOURCE_P1.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/e0e818ab9f1026d2febe61193f9e0cbf4c84815a/artifacts/etudes/izhikevich2003/SOURCE_P1.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/SOURCE_P1.md"
             }
           ]
         },
@@ -2069,21 +2069,314 @@
             {
               "label": "port spec",
               "path": "artifacts/etudes/izhikevich2003/PORT_SPEC.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/e0e818ab9f1026d2febe61193f9e0cbf4c84815a/artifacts/etudes/izhikevich2003/PORT_SPEC.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/PORT_SPEC.md"
+            }
+          ]
+        },
+        {
+          "stage": "P3",
+          "items": [
+            {
+              "label": "prereg v7",
+              "path": "artifacts/etudes/izhikevich2003/PREREG_P3.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/PREREG_P3.md"
+            }
+          ]
+        },
+        {
+          "stage": "P4",
+          "items": [
+            {
+              "label": "runner and scorer",
+              "path": "artifacts/etudes/izhikevich2003/run_izh.py",
+              "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/run_izh.py"
+            },
+            {
+              "label": "reference arm",
+              "path": "artifacts/etudes/izhikevich2003/net_reference.py",
+              "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/net_reference.py"
+            }
+          ]
+        },
+        {
+          "stage": "P5",
+          "items": [
+            {
+              "label": "result",
+              "path": "artifacts/etudes/izhikevich2003/RESULT_P3.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/RESULT_P3.md"
+            },
+            {
+              "label": "scores",
+              "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            },
+            {
+              "label": "S1 report",
+              "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json"
             }
           ]
         }
       ],
-      "verdict": null,
+      "verdict": "not reproduced",
       "verdict_note": null,
-      "summary": "P1 source and P2 port spec done (second review PASS 2026-10-12). The P3 preregistration is drafted and waits for its calibration gate and Hamm's signature; nothing is scored yet.",
-      "preregs": [],
-      "criteria": [],
+      "summary": "Six of eight single-cell patterns reproduce; FS adapts (ISI ratio 1.86) and the resonator spikes once. The network has the paper's rate, alpha and gamma peaks, but its firing is too regular (median ISI CV 0.40 against 0.6 to 1.5), and the float64 reference arm of net.m gives 0.39 too.",
+      "preregs": [
+        {
+          "id": "v7",
+          "signed": "2026-10-13",
+          "path": "artifacts/etudes/izhikevich2003/PREREG_P3.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/PREREG_P3.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "group": "Fig. 2",
+          "claim": "RS: tonic spiking with adaptation",
+          "estimand": "ISI ratio last/first",
+          "criterion": "as PREREG_P3.md C1",
+          "value": 2.533707865168539,
+          "value_text": "2.53",
+          "value_label": "ISI ratio",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C2",
+          "group": "Fig. 2",
+          "claim": "IB: initial burst, then tonic",
+          "estimand": "tail spikes after the burst",
+          "criterion": "as PREREG_P3.md C2",
+          "value": 8,
+          "value_text": "8",
+          "value_label": "tail spikes",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C3",
+          "group": "Fig. 2",
+          "claim": "CH: repetitive bursts",
+          "estimand": "burst count",
+          "criterion": "as PREREG_P3.md C3",
+          "value": 5,
+          "value_text": "5",
+          "value_label": "bursts",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C4",
+          "group": "Fig. 2",
+          "claim": "FS: fast spiking without adaptation",
+          "estimand": "ISI ratio last/first",
+          "criterion": "ISI ratio ≤ 1.2",
+          "value": 1.8571428571428572,
+          "value_text": "1.86",
+          "value_label": "ISI ratio",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "the FS cell adapts",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C5",
+          "group": "Fig. 2",
+          "claim": "LTS fires faster than RS",
+          "estimand": "rate",
+          "criterion": "as PREREG_P3.md C5",
+          "value": 83.33333333333334,
+          "value_text": "83.3",
+          "value_label": "rate",
+          "paper_value": null,
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C6",
+          "group": "Fig. 2",
+          "claim": "TC: tonic mode",
+          "estimand": "first passing I+ of the ascending search",
+          "criterion": "as PREREG_P3.md C6",
+          "value": 1.0,
+          "value_text": "1",
+          "value_label": "I+",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C7",
+          "group": "Fig. 2",
+          "claim": "TC: rebound burst",
+          "estimand": "burst latency after release",
+          "criterion": "within 50 ms",
+          "value": 5.7,
+          "value_text": "5.7",
+          "value_label": "latency",
+          "paper_value": null,
+          "unit": "ms",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C8",
+          "group": "Fig. 2",
+          "claim": "RZ: damped subthreshold oscillation, no spike",
+          "estimand": "spike count",
+          "criterion": "no spike; ≥ 2 decreasing maxima",
+          "value": 1,
+          "value_text": "1",
+          "value_label": "spikes",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "one spike after the pulse",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "N1",
+          "group": "Fig. 3",
+          "claim": "mean rate around 8 Hz",
+          "estimand": "mean rate, seed 1 (all five seeds 8.48–8.83)",
+          "criterion": "4–16 Hz in every seed",
+          "value": 8.5936,
+          "value_text": "8.59",
+          "value_label": "rate",
+          "paper_value": null,
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "N2",
+          "group": "Fig. 3",
+          "claim": "Poisson-like firing",
+          "estimand": "median ISI CV, seed 1 (all five 0.400–0.410)",
+          "criterion": "0.6–1.5 in every seed",
+          "value": 0.4027227588843355,
+          "value_text": "0.403",
+          "value_label": "median CV",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "too regular; the reference arm gives 0.39",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "N3",
+          "group": "Fig. 3",
+          "claim": "alpha rhythm",
+          "estimand": "peak excess in 8–13 Hz, seed 1",
+          "criterion": "PE ≥ 4 in every seed",
+          "value": 6.209281055935908,
+          "value_text": "6.21",
+          "value_label": "PE",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "N4",
+          "group": "Fig. 3",
+          "claim": "gamma rhythm",
+          "estimand": "peak excess in 30–50 Hz, seed 1",
+          "criterion": "PE ≥ 4 in every seed",
+          "value": 4.951555938400134,
+          "value_text": "4.95",
+          "value_label": "PE",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        }
+      ],
       "sensitivity": [],
       "charts": [],
       "open": [
-        "P3: calibration gate on synthetic signals, then the batch signature.",
-        "P4: build the scored arm and the NumPy reference arm (S1)."
+        "S1 moves N3 and N4 across their band edge: the prereg calls for a separately preregistered kernel variant arm that reproduces the net.m overshoot (Hamm's decision).",
+        "S2–S4 need runner support before they run."
       ]
     }
   ],
