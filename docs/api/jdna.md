@@ -65,7 +65,7 @@ NeuronalTensor directly — JDNA is optional.
 **Determinism.** Purely deterministic; equality is structural (frozen
 dataclass).
 
-**Status.** CANONICAL (0.4.17).
+**Status.** CANONICAL since 0.4.17.
 
 ## develop
 
@@ -99,7 +99,7 @@ kernels.
 pseudo-random (JAX PRNG), i.e. reproducible. Variation across seeds is
 *computational pseudo-genomic variation*; biological genetic variability is not modeled.
 
-**Status.** CANONICAL (0.4.17).
+**Status.** CANONICAL since 0.4.17.
 
 ## Loaders
 

@@ -14,8 +14,10 @@ import re
 REPO = pathlib.Path(__file__).resolve().parent.parent
 DOCS = REPO / "docs"
 CURRENCY = re.compile(
-    r"\b(?:current(?:ly)?|live|development tree|as of|status:)[^\n]{0,40}?\bv?(\d+)\.(\d+)\.\d+",
+    r"\b(?:current(?:ly)?|live|development tree|as of|status\b)([^\n]{0,40}?)\bv?(\d+)\.(\d+)\.\d+",
     re.IGNORECASE)
+# Words between the currency phrase and the version that make it history.
+HISTORY = re.compile(r"\b(?:since|introduced|from|added)\b", re.IGNORECASE)
 
 
 def package_minor() -> tuple[int, int]:
@@ -65,7 +67,7 @@ def current_pages() -> list[pathlib.Path]:
 
 def stale_claims(text: str, current: tuple[int, int]) -> list[str]:
     return [m.group(0) for m in CURRENCY.finditer(text)
-            if (int(m.group(1)), int(m.group(2))) < current]
+            if (int(m.group(2)), int(m.group(3))) < current and not HISTORY.search(m.group(1))]
 
 
 def test_fixture_lists_split_the_docs():
@@ -80,6 +82,9 @@ def test_rule_flags_an_old_current_claim_and_passes_history():
     assert stale_claims("current development tree: 0.4.8", (0, 5))
     assert stale_claims("introduced in jaxfne 0.2.19; since 0.4.7 the default", (0, 5)) == []
     assert stale_claims("current 0.5.0", (0, 5)) == []
+    assert stale_claims("**Status.** CANONICAL (0.4.17).", (0, 5))
+    assert stale_claims("**Status.** CANONICAL since 0.4.17.", (0, 5)) == []
+    assert stale_claims("amplitude_status 0.4.1", (0, 5)) == []
 
 
 def test_current_pages_state_no_older_minor_as_current():
