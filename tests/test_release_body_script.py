@@ -65,9 +65,20 @@ def test_the_body_tables_state_what_the_tree_declares(tmp_path):
     assert "7.0.0" not in body and "Unreleased" not in body, body
 
 
-def test_a_candidate_section_counts_as_a_section(tmp_path):
+def test_a_candidate_section_renders_but_fails_the_dated_check(tmp_path):
     root = _tree(tmp_path, "7.1.0", CHANGELOG.replace("## v7.1.0 (2026-10-01)", "## v7.1.0 (candidate)"))
     body, violations = build_body(root, "v7.1.0")
+    assert violations == [] and body is not None, "the body still renders a candidate section"
+
+    checked, failures = build_body(root, "v7.1.0", require_dated=True)
+    assert checked is None
+    assert len(failures) == 1 and "must be dated before release" in failures[0], failures
+    assert "candidate" in failures[0], failures
+
+
+def test_a_dated_section_passes_the_dated_check(tmp_path):
+    root = _tree(tmp_path, "7.1.0", CHANGELOG)
+    body, violations = build_body(root, "v7.1.0", require_dated=True)
     assert violations == [] and body is not None
 
 
@@ -131,6 +142,17 @@ class TestTheCommand:
         assert "PASS:" in passing.stdout, passing.stdout
         failing = self._run("--tag", "v7.2.0", "--check", "--root", str(root))
         assert failing.returncode == 1, (failing.stdout, failing.stderr)
+
+    def test_check_refuses_a_candidate_section(self, tmp_path):
+        root = _tree(tmp_path, "7.1.0",
+                     CHANGELOG.replace("## v7.1.0 (2026-10-01)", "## v7.1.0 (candidate)"))
+        assert "## v7.1.0 (candidate)" in (root / "docs" / "changelog.md").read_text(encoding="utf-8")
+        rendered = self._run("--tag", "v7.1.0", "--root", str(root))
+        assert rendered.returncode == 0, (rendered.stdout, rendered.stderr)
+        checked = self._run("--tag", "v7.1.0", "--check", "--root", str(root))
+        assert checked.returncode == 1, (checked.stdout, checked.stderr)
+        assert "must be dated before release" in checked.stderr, checked.stderr
+        assert checked.stdout == "", checked.stdout
 
     def test_a_passing_body_is_written_with_lf_endings(self, tmp_path):
         root = _tree(tmp_path, "7.1.0", CHANGELOG)

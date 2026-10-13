@@ -42,7 +42,7 @@ def _changelog(unreleased_body: bytes = b"\n", older: bytes = b"") -> bytes:
     return b"# Changelog\n\n## [Unreleased]\n" + unreleased_body + older
 
 
-OLDER = b"\n## v0.1.0 (2026-09-01)\n\n### Added\n\n- old\n"
+OLDER = b"## v0.1.0 (2026-09-01)\n\n### Added\n\n- old\n"
 
 
 def _write(directory: Path, name: str, body: bytes) -> Path:
@@ -67,8 +67,15 @@ def test_assembly_inserts_a_dated_section_below_unreleased(tmp_path):
     assert assembled == (
         b"# Changelog\n\n## [Unreleased]\n"
         b"\n## v0.1.1 (2026-09-02)\n\n### Added\n\n- new thing\n\n### Fixed\n\n- a fix\n\n"
-        b"## v0.1.0 (2026-09-01)\n\n### Added\n\n- old\n"
+        + OLDER
     )
+
+
+def test_an_empty_fragment_directory_is_refused(tmp_path):
+    changelog = _changelog(older=OLDER)
+    assert list(tmp_path.iterdir()) == [], "fixture must hold no fragments"
+    with pytest.raises(FragmentError, match="no fragments"):
+        assemble(changelog, "0.1.1", "2026-09-02", read_fragments(tmp_path))
 
 
 def test_existing_bytes_are_kept_byte_for_byte_including_crlf(tmp_path):
@@ -86,10 +93,11 @@ def test_existing_bytes_are_kept_byte_for_byte_including_crlf(tmp_path):
     marker_end = crlf.index(b"## [Unreleased]") + len(b"## [Unreleased]\r\n")
     head, tail = crlf[:marker_end], crlf[marker_end:]
     cut = tail.find(b"\n## ")
-    rest = tail[cut + 1:]
-    assert assembled == head + b"\n" + section + rest
-    assert b"\r" in head and b"\r" in rest, "fixture must bracket the insertion with CRLF"
-    assert assembled.count(b"\r") == head.count(b"\r") + rest.count(b"\r")
+    gap, rest = tail[:cut + 1], tail[cut + 1:]
+    assert assembled == head + gap + section + rest
+    assert b"\r" in gap and b"\r" in rest, "fixture must bracket the insertion with CRLF"
+    assert assembled.count(section) == 1, "the section is inserted exactly once"
+    assert assembled.replace(section, b"", 1) == crlf, "every original byte survives"
 
 
 def test_a_released_version_is_refused(tmp_path):
@@ -198,7 +206,9 @@ def test_two_parallel_fragments_merge_without_conflict(tmp_path):
     changelog = (repo / "docs" / "changelog.md").read_bytes()
     assembled = assemble(changelog, "0.1.1", "2026-09-02",
                          read_fragments(repo / "artifacts" / "changelog.d"))
-    assert "### Added\n\n- gamma\n\n### Fixed\n\n- delta\n\n## v0.1.0" in assembled.decode("utf-8")
+    text = assembled.decode("utf-8")
+    assert "### Added\n\n- gamma\n\n### Fixed\n\n- delta\n" in text
+    assert "## v0.1.0 (2026-09-01)" in text
 
 
 @needs_git
@@ -212,7 +222,7 @@ def test_the_same_two_changes_written_under_unreleased_conflict(tmp_path):
 
 def test_the_command_writes_the_section_and_consumes_its_fragments(tmp_path, capsys):
     changelog = tmp_path / "CHANGELOG.md"
-    original = b"# Changelog\n\n## [Unreleased]\n" + OLDER
+    original = b"# Changelog\n\n## [Unreleased]\n\n" + OLDER
     changelog.write_bytes(original)
     fragments = tmp_path / "artifacts" / "changelog.d"
     _write(fragments, "a.added.md", b"- new\n")
@@ -228,7 +238,7 @@ def test_the_command_writes_the_section_and_consumes_its_fragments(tmp_path, cap
     assert main(common) == 0
     assert changelog.read_bytes() == (
         b"# Changelog\n\n## [Unreleased]\n\n## v0.1.1 (2026-09-02)\n\n### Added\n\n- new\n\n"
-        b"## v0.1.0 (2026-09-01)\n\n### Added\n\n- old\n")
+        + OLDER)
     assert sorted(p.name for p in fragments.iterdir()) == ["README.md"]
 
 

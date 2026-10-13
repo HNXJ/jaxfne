@@ -3,9 +3,10 @@
 The body is two tables, in order: release metadata (package, version, Python
 support, extras, install command) read from ``pyproject.toml``, and the
 version's section of ``docs/changelog.md``. ``--check`` verifies the tag names
-``pyproject.toml``'s version and the changelog carries a section for it, and
-exits nonzero otherwise. The check reads files only; it never calls the
-network or ``gh``.
+``pyproject.toml``'s version, the changelog carries a section for it, and the section
+is dated (``## vX.Y.Z (YYYY-MM-DD)``): a ``(candidate)`` section fails the check,
+while the body without ``--check`` still renders it. The check reads files only; it
+never calls the network or ``gh``.
 
     python scripts/release_body.py --tag v0.5.5
     python scripts/release_body.py --tag v0.5.5 --check
@@ -74,6 +75,10 @@ def changelog_section(changelog: str, version: str) -> Optional[str]:
     return section.strip("\n") if body.strip() else None
 
 
+def _dated_heading(version: str) -> re.Pattern:
+    return re.compile(r"^## v" + re.escape(version) + r" \(\d{4}-\d{2}-\d{2}\)", re.MULTILINE)
+
+
 def render_body(metadata: ReleaseMetadata, section: str) -> str:
     supported = ", ".join(metadata.python_supported)
     extras = ", ".join(metadata.extras) if metadata.extras else "none"
@@ -94,17 +99,27 @@ def render_body(metadata: ReleaseMetadata, section: str) -> str:
     )
 
 
-def build_body(root: pathlib.Path, tag: str) -> tuple[Optional[str], List[str]]:
-    """``(body, [])`` when the tag matches and the section exists, else ``(None, violations)``."""
+def build_body(root: pathlib.Path, tag: str, require_dated: bool = False
+               ) -> tuple[Optional[str], List[str]]:
+    """``(body, [])`` when the tag matches and the section exists, else ``(None, violations)``.
+
+    With ``require_dated``, a section whose heading carries no ``(YYYY-MM-DD)`` date --
+    a ``(candidate)`` section -- is a violation: the section must be dated before release.
+    Without it the body renders whatever section the version has.
+    """
     metadata = release_metadata(root)
     if tag != f"v{metadata.version}":
         return None, [f"tag {tag!r} does not match pyproject version "
                       f"{metadata.version!r} (expected 'v{metadata.version}')"]
-    raw = (root / "docs" / "changelog.md").read_bytes().decode("utf-8")
-    section = changelog_section(raw.replace("\r\n", "\n"), metadata.version)
+    changelog = (root / "docs" / "changelog.md").read_bytes().decode("utf-8").replace("\r\n", "\n")
+    section = changelog_section(changelog, metadata.version)
     if section is None:
         return None, [f"docs/changelog.md has no non-empty section headed "
                       f"'## v{metadata.version} ...'"]
+    if require_dated and _dated_heading(metadata.version).search(changelog) is None:
+        heading = section.split("\n", 1)[0]
+        return None, [f"docs/changelog.md carries {heading!r} for v{metadata.version}: "
+                      f"the section must be dated before release"]
     return render_body(metadata, section), []
 
 
@@ -112,12 +127,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--tag", required=True, help="the release tag, e.g. v0.5.5")
     parser.add_argument("--check", action="store_true",
-                        help="verify only: exit 0 when the body would pass, 1 otherwise")
+                        help="verify the tag, the section and its date; "
+                             "a candidate section fails the check")
     parser.add_argument("--root", type=pathlib.Path, default=pathlib.Path(__file__).resolve().parents[1],
                         help="the repository whose metadata and changelog are read")
     args = parser.parse_args(argv)
 
-    body, violations = build_body(args.root, args.tag)
+    body, violations = build_body(args.root, args.tag, require_dated=args.check)
     if body is None:
         for violation in violations:
             print(f"release body: {violation}", file=sys.stderr)

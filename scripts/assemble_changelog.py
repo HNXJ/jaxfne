@@ -126,8 +126,9 @@ def assemble(changelog: bytes, version: str, date: str,
              fragments: Sequence[Tuple[str, str, Path]]) -> bytes:
     """``changelog`` with the release section for ``fragments`` inserted below ``[Unreleased]``.
 
-    Bytes in, bytes out: no existing byte is changed, so the file's mixed CRLF/LF
-    line endings survive the insertion.
+    Bytes in, bytes out: head, gap and rest are kept verbatim -- the section goes
+    after the existing blank gap, so no existing byte is changed and the file's
+    mixed CRLF/LF line endings survive the insertion.
     """
     if _version_heading(version).search(changelog):
         raise FragmentError(f"docs/changelog.md already has a section for v{version}")
@@ -136,11 +137,13 @@ def assemble(changelog: bytes, version: str, date: str,
         raise FragmentError("docs/changelog.md has no '## [Unreleased]' line")
     head, tail = changelog[:marker.end()], changelog[marker.end():]
     cut = tail.find(b"\n## ")
-    body, rest = (tail, b"") if cut == -1 else (tail[:cut + 1], tail[cut + 1:])
-    if body.strip():
+    gap, rest = (tail, b"") if cut == -1 else (tail[:cut + 1], tail[cut + 1:])
+    if gap.strip():
         raise FragmentError("'## [Unreleased]' carries hand-written lines; move them into fragments first")
+    if not gap.endswith(b"\n"):
+        gap = gap + b"\n"
     section = render_section(version, date, fragments).encode("utf-8")
-    return head + b"\n" + section + rest
+    return head + gap + section + rest
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
