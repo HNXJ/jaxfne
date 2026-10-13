@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 from typing import Any, Literal
 
 import jax
@@ -13,8 +12,9 @@ import numpy as np
 
 import jaxfne as jtfne
 from jaxfne.emitters import simulate_edge_recurrent_izhikevich_owned_h_k_delayed
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_e_integration.e2_execution import (
+    _spike_event_times,
     build_e2_model,
     delay_step_occupancy,
     hierarchy_fingerprint,
@@ -45,10 +45,6 @@ _BANNED_RECEIPT_TERMS = (
     "hdp",
     "field_evidence",
 )
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def owner_flat_indices(spec: dict[str, Any] | None = None) -> list[int]:
@@ -202,11 +198,6 @@ def run_e2_reference_kernel(
         "sources": np.asarray(src, dtype=np.float64),
         "final_state": st,
     }
-
-
-def _spike_event_times(spikes: np.ndarray, *, dt_ms: float) -> list[tuple[int, int, float]]:
-    idx = np.argwhere(np.asarray(spikes) > 0.5)
-    return [(int(r[0]), int(r[1]), float(r[0]) * float(dt_ms)) for r in idx]
 
 
 def verify_e3_continuation(
@@ -436,7 +427,7 @@ def run_e3_rbs_composition(*, package_head: str | None = None) -> dict[str, Any]
         "checkpoint": "E3",
         "status": "FROZEN",
         "write_once": True,
-        "package_head": package_head or _git_head(),
+        "package_head": package_head or _git_head(REPO_ROOT),
         "spec_path": "artifacts/protocol_e_integration/e3_rbs_composition_spec.json",
         "scientific_question": spec["question"],
         "composition_claim": (

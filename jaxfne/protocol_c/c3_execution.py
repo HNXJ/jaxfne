@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import math
-import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +13,7 @@ import numpy as np
 import jaxfne as jtfne
 from jaxfne.core import StimulusSchedule
 from jaxfne.h4_matrix import build_ring_params_edges
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_c.c3_protocol import (
     C3_SPEC_PATH,
     c3_total_cells,
@@ -28,10 +27,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 BUNDLE_ROOT = REPO_ROOT / "artifacts" / "protocol_c"
 C3_EXECUTION_RECEIPT_PATH = BUNDLE_ROOT / "c3_execution_receipt.json"
 C3_CONDITION_SUMMARY_PATH = BUNDLE_ROOT / "c3_condition_summary.json"
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def _fisher_yates_permutation(n: int, seed: int) -> np.ndarray:
@@ -284,7 +279,7 @@ def run_c3_prospective_execution(
         "checkpoint": "C3",
         "status": "FROZEN",
         "write_once": True,
-        "package_head": package_head or _git_head(),
+        "package_head": package_head or _git_head(REPO_ROOT),
         "spec_path": str(C3_SPEC_PATH.relative_to(REPO_ROOT)),
         "n_cells": len(cells),
         "expected_n_cells": c3_total_cells(spec),

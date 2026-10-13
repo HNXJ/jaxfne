@@ -180,8 +180,13 @@ def _compile_connection_rules(
 
     Each rule selects a source and target neuron set (see
     :func:`_connection_selector_mask`) and adds edges source->target. ``probability``
-    is Bernoulli inclusion over candidate pairs (1.0 = full, 0.0 = none; default 1.0),
-    ``weight`` is the native edge magnitude (default ``1/sqrt(n)``), and ``sign`` maps
+    is the target edge fraction (1.0 = full, 0.0 = none; default 1.0), realized
+    per pair by Bernoulli inclusion, and ``sampling`` selects the large-rule
+    regime: ``"density"`` (default) falls back to approximate binomial sampling
+    past :data:`_CONNECTIONS_EXACT_PRODUCT_CAP` candidates, while
+    ``"bernoulli"`` stays exact at any scale via chunked per-pair draws (no
+    approximate fallback, no warning). ``weight`` is the native edge magnitude
+    (default ``1/sqrt(n)``), and ``sign`` maps
     ``"excitatory"``->positive, ``"inhibitory"``->negative, ``"signed"``/unset->the
     presynaptic neuron's intrinsic sign. Self-edges are dropped. Edge construction is
     sparse: the exact (pre x post) product is used for selective rules, falling back to
@@ -222,6 +227,14 @@ def _compile_connection_rules(
                 "is known at construction; a delay cannot be realized to steps "
                 "without its timestep"
             )
+        # Validated before any skip, so an empty or p <= 0 rule cannot carry a bad value.
+        sampling = rule.get("sampling")
+        sampling = "density" if sampling is None else sampling
+        if not isinstance(sampling, str) or sampling not in ("density", "bernoulli"):
+            raise ValueError(
+                f"connection rule {rule.get('name')!r} sampling must be 'density' "
+                f"or 'bernoulli'; got {sampling!r}"
+            )
         pre_idx = _np.where(
             _connection_selector_mask(src, area_labels, layer_labels, cell_labels, model_labels)
         )[0]
@@ -249,6 +262,32 @@ def _compile_connection_rules(
             pre_flat, post_flat = pre_flat[non_self], post_flat[non_self]
             keep = _np.ones(pre_flat.size, bool) if p >= 1.0 else (rng.random(pre_flat.size) < p)
             pre_g, post_g = pre_flat[keep], post_flat[keep]
+        elif sampling == "bernoulli":
+            # Exact per-pair Bernoulli at any scale: chunked uniform draws so no
+            # dense (pre x post) grid is ever materialized; no warning, since
+            # nothing approximate happens here.
+            c_post = max(1, min(post_idx.size, _CONNECTIONS_EXACT_PRODUCT_CAP // max(pre_idx.size, 1)))
+            c_pre = max(1, min(pre_idx.size, _CONNECTIONS_EXACT_PRODUCT_CAP // max(c_post, 1)))
+            pre_parts, post_parts = [], []
+            for js in range(0, post_idx.size, c_post):
+                chunk_post = post_idx[js : js + c_post]
+                for i_s in range(0, pre_idx.size, c_pre):
+                    chunk_pre = pre_idx[i_s : i_s + c_pre]
+                    if p >= 1.0:
+                        keep = _np.ones((chunk_pre.size, chunk_post.size), dtype=bool)
+                    else:
+                        keep = rng.random((chunk_pre.size, chunk_post.size)) < p
+                    keep &= chunk_pre[:, None] != chunk_post[None, :]
+                    hit = _np.argwhere(keep)
+                    if hit.size:
+                        pre_parts.append(chunk_pre[hit[:, 0]])
+                        post_parts.append(chunk_post[hit[:, 1]])
+            if pre_parts:
+                pre_g = _np.concatenate(pre_parts)
+                post_g = _np.concatenate(post_parts)
+            else:
+                pre_g = _np.empty(0, dtype=pre_idx.dtype)
+                post_g = _np.empty(0, dtype=post_idx.dtype)
         else:
             # Sparse fallback for huge unselective rules (statistical, not exact).
             import warnings as _warnings

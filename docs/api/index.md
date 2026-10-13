@@ -6,16 +6,13 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-The root public contract is **190 symbols** (177 CANONICAL + 13 COMPATIBILITY) in
-`jaxfne.__all__`. The 5-symbol JDNA additive surface (`PseudoGenome`,
-`develop`, `load_pseudogenome`, `load_canonical_pseudogenome`,
-`list_canonical_pseudogenomes`) is added in 0.4.17 on top of the frozen
-0.4.13 contract. Tier membership is authoritative in
+The root public contract is **205 symbols** (192 CANONICAL + 13 COMPATIBILITY) in
+`jaxfne.__all__`. Tier membership is authoritative in
 [`jaxfne/public_surface.py`](https://github.com/HNXJ/jaxfne/blob/main/jaxfne/public_surface.py)
 and [`artifacts/public_surface_contract_v0413.json`](https://github.com/HNXJ/jaxfne/blob/main/artifacts/public_surface_contract_v0413.json).
 See [Public surface contract](../public_surface_contract.md).
 
-**Advanced** symbols (62) and **experimental/internal** symbols (18) are
+**Advanced** symbols (70) and **experimental/internal** symbols (13) are
 importable from submodules but are not root exports.
 
 !!! note "Proxy readouts"
@@ -26,7 +23,7 @@ importable from submodules but are not root exports.
 !!! note "Biological scaffold — uncalibrated biology"
     The canonical V1 column (`canonical-v1-column-1000n`) is a qualitative laminar scaffold
     (`qualitative_laminar_scaffold = true`, `quantitative_cell_fraction = false`, `quantitative_connectivity = false`).
-    Per-layer fractions (`L1 E 0.50` etc.) and typed connectivity are scaffold values (`value_tag="relative"`), without quantitative calibration; reduced labels `E`/`PV`/`SST`/`VIP` are functional scaffold identities, not warranted literal cell-type identities. See [Scope & status — Biological calibration](../scope_and_status.md#biological-calibration-status-canonical-v1-column) and [Calibration — Biological status](../guides/calibration.md#biological-calibration-status).
+    Per-layer fractions (`L1 E 0.50` etc.) and typed connectivity are scaffold values (`value_tag="relative"`), without quantitative calibration; reduced labels `E`/`PV`/`SST`/`VIP` are functional scaffold identities; literal cell-type identity is not warranted. See [Scope & status — Biological calibration](../scope_and_status.md#biological-calibration-status-canonical-v1-column) and [Calibration — Biological status](../guides/calibration.md#biological-calibration-status).
 
 ## Conceptual form
 
@@ -139,7 +136,7 @@ Representative symbols: `manifest`, `asset_hashes`, `config_hash`,
 
 ### Compatibility
 
-Deprecated aliases retained through 0.4.14. Prefer canonical names in new code.
+Deprecated aliases kept in the root namespace. Prefer canonical names in new code.
 
 | Symbol | Use instead |
 |--------|-------------|

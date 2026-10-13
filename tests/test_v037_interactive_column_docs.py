@@ -10,6 +10,7 @@ Validates:
 """
 
 import json
+import re
 import pytest
 from pathlib import Path
 
@@ -261,13 +262,18 @@ class TestInteractiveExperienceValidation:
     """Validate the interactive experience works."""
 
     def test_html_can_be_loaded(self):
-        """Assert HTML file size is reasonable (not empty/corrupt)."""
+        """Assert the HTML loads a pinned plotly.js from the CDN and draws a figure with data."""
         html_path = Path("docs/assets/interactive/v037_source_column_3d.html")
-        size_bytes = html_path.stat().st_size
+        content = html_path.read_text(encoding="utf-8")
 
-        # Expect at least 100 KB (Plotly + data)
-        assert size_bytes > 100_000, \
-            f"HTML file too small ({size_bytes} bytes); likely corrupt or empty"
+        # plotly.js comes from the CDN with a version and SRI hash (not embedded)
+        assert re.search(
+            r'<script charset="utf-8" src="https://cdn\.plot\.ly/plotly-\d+\.\d+\.\d+\.min\.js" '
+            r'integrity="sha256-[A-Za-z0-9+/=]+" crossorigin="anonymous"></script>',
+            content,
+        ), "Missing pinned plotly.js CDN tag"
+        assert "Plotly.newPlot(" in content, "Missing Plotly.newPlot call"
+        assert '"type":"scatter3d"' in content, "Missing scatter3d trace data"
 
     def test_html_contains_neuron_count(self):
         """Assert HTML references the expected neuron count."""

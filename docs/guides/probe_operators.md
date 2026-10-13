@@ -31,7 +31,7 @@ Emitter → Source → Field → Probe → Objective → Optimizer
 - Spike matrix: `[T, N]` (time × neurons)
 - Event table: rows with timestamp, neuron_id, area, layer, cell_type
 
-**Status (verified v0.4.8, development tree):** Simulated spike readout from emitter.
+**Status:** Simulated spike readout from emitter.
 
 ---
 
@@ -45,7 +45,7 @@ Emitter → Source → Field → Probe → Objective → Optimizer
 - `units_or_status: mV_or_model_state_variable`
 - `operator_status: simulated_proxy`
 
-**Status (verified v0.4.8, development tree):** State voltage from emitter; proxy readout.
+**Status:** State voltage from emitter; proxy readout.
 
 ---
 
@@ -59,7 +59,7 @@ Emitter → Source → Field → Probe → Objective → Optimizer
 - `source_decomposition: proxy_reduced_emitter` (or other declared mode)
 - `source_calibration_status: proxy_izhikevich_current` (or calibrated status)
 
-**Status (verified v0.4.8, development tree):** Proxy source from emitter state; computational readout.
+**Status:** Proxy source from emitter state; computational readout.
 
 ---
 
@@ -81,7 +81,7 @@ Emitter → Source → Field → Probe → Objective → Optimizer
 
 **Important:** jaxfne uses `-proxy` terminology to declare operator status explicitly. Proxy-scale operators are computational readouts suitable for tutorial and validation workflows.
 
-**Status (verified v0.4.8, development tree):** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
+**Status:** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
 
 ---
 
@@ -106,7 +106,7 @@ Emitter → Source → Field → Probe → Objective → Optimizer
 - Finite output
 - Sign convention exported
 
-**Status (verified v0.4.8, development tree):** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
+**Status:** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
 
 ---
 
@@ -133,7 +133,7 @@ where `s_k(t)` is a declared source/current/potential feature and `L_eeg` is a t
 
 **Scope:** EEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in [Limitations and future plans](../limitations_and_future_plans.md).
 
-**Status (verified v0.4.8, development tree):** Simulated EEG-proxy readout; proxy-scale calibration for tutorial workflows.
+**Status:** Simulated EEG-proxy readout; proxy-scale calibration for tutorial workflows.
 
 ---
 
@@ -159,7 +159,7 @@ y_meg(t, c) = sum_k L_meg[c, k] * Q_k(t)
 
 **Scope:** MEG-proxy readouts are relative linear maps on scalar ``Q``. They do not claim current orientation or physical MEG semantics. Calibration against empirical reference data is covered in [Limitations and future plans](../limitations_and_future_plans.md).
 
-**Status (verified v0.4.8, development tree):** Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.
+**Status:** Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.
 
 ---
 
@@ -196,7 +196,7 @@ EMM(t) = w_spk * normalized_spike_rate(t)
 
 **Important:** EMM-proxy is valid for relative within-run comparisons. It represents a signaling-energy proxy suitable for optimization workflows.
 
-**Status (verified v0.4.8, development tree):** Normalized activity cost proxy; exploratory metric for optimization.
+**Status:** Normalized activity cost proxy; exploratory metric for optimization.
 
 ---
 
@@ -262,7 +262,7 @@ Each operator returns a JSON-safe report $R_k$ declaring operator type, computat
 
 ## Current Status: Simulated / Proxy
 
-All eight operators remain simulated or proxy readouts as of v0.4.8:
+All eight operators remain simulated or proxy readouts in 0.5.x:
 
 | Operator | Status | Notes |
 |----------|--------|-------|
@@ -332,11 +332,6 @@ print(emm_readout.report)
 - This terminology explicitly declares computational intent and prevents informal analogy with empirically validated readouts.
 - All operators are "simulated" or "proxy". Statements of physical equivalence require separate calibration and validation evidence.
 - EMM-proxy is valid for relative within-run comparisons; it represents a signaling-energy proxy.
-
----
-
-**Document version:** v0.4.8 (development tree)  
-**Last updated:** 2026-07-03
 
 ## Interactive atlas (dark)
 

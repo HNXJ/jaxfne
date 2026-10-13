@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -24,7 +23,7 @@ from jaxfne.experiment_a.metrics import max_rel_diff, mean_r90
 from jaxfne.experiment_a.observe import apply_independent_probe, materialize_field, verify_b2_invariants
 from jaxfne.experiment_a.protocol import PROTOCOL_ID, PROTOCOL_SPEC_PATH, load_protocol_spec
 from jaxfne.fields import LinearReadout, eeg_proxy_transform, meg_proxy_transform, project_laminar_sources
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 
 BUNDLE_ROOT = Path(__file__).resolve().parents[2] / "artifacts" / "etudes" / "experiment_a"
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -36,10 +35,6 @@ Y_DISTINCT_RTOL = 1e-3
 
 def _sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def _git_head(root: Path) -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
 
 
 def gaussian_leadfield(z: np.ndarray, centers: np.ndarray, widths: np.ndarray) -> np.ndarray:

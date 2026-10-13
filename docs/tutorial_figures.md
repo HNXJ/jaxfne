@@ -214,7 +214,7 @@ Global manifest fields:
 ## Status Status
 
 All figures are:
-- **Exploratory:** Teaching artifacts, not biological validation
+- **Exploratory:** Teaching artifacts rather than biological validation
 - **Proxy-only:** Proxy-based field projection; elliptic and volumetric field solvers are reserved regimes ([Limitations and future plans](limitations_and_future_plans.md))
 - **Izhikevich native:** Phenomenological neuron model (uncalibrated current units)
 - **Laminar proxy:** Forward-field model for demonstrating source-to-field mapping

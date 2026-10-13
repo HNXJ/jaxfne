@@ -9,6 +9,94 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+### Added
+- `Configuration.connections()` gains `sampling="density" | "bernoulli"` (default
+  `"density"`). `"density"` keeps each compiler's existing draw (with mechanisms, the
+  exact count `round(p*n_pre*n_post)`; without, per-pair Bernoulli up to 4M candidate
+  pairs). `"bernoulli"` includes each (pre, post) pair independently with probability
+  `p` at any size on both compiler paths. Anything else raises `ValueError`, and
+  `"bernoulli"` with `max_in_degree` is refused.
+- `jaxfne.emitters` gains the AdEx conductance kernel (ADVANCED): `simulate_adex`,
+  `adex_step`, `AdExParams`, `make_adex_params`, `ADEX_CELL_TYPE_DEFAULTS` (E/PV/SOM, Tahvili,
+  Vinck and di Volo 2026, Table 1), in mV/ms/pF/nS/pA. Conductance synapses
+  (`I = sum_r g_r (E_r - V)`; `decay="exp"` or `"euler"`, required) and a per-edge delay ring
+  (delays >= 1 step). The cell step and the recurrent synaptic step match a float64
+  transcription of the CAMINOS reference within rtol 1e-6; `step_order="brian2"` adds one delay
+  step and removes one refractory step.
+  `Configuration.emitter(family="adex")` builds these cells over `network(n=, cell_types=)`
+  (E/PV/SOM), wires them with `mechanisms()` receptors and `connections()` rules, and
+  `simulate` runs the kernel on the compiled edges. The route refuses, by name, every
+  `Configuration`, `RuntimeConfig` and `Simulation` field outside its allowlist (see the AdEx
+  family section of the emitters API doc). `Model` methods that need the Izhikevich emitter, the
+  edge list or an HDP or coupling state raise `NotImplementedError` naming the method.
+- `Simulation(poisson_drive=...)` drives `emitter(family="adex")` models with the CAMINOS
+  external drive: each cell of the listed types draws Poisson counts with mean
+  `n_sources * rate_hz * dt / 1000` per step; each count adds `weight_nS` to the named
+  mechanism's conductance after `delay_ms`. `simulate_adex` gains the matching `ext_targets`,
+  `ext_lambda`, `ext_weight_nS`, `ext_receptor`, `ext_delay_steps` and `key` keyword arguments
+  (all given or all None; the kernel draws in the reference's split order and matches a
+  transcription of it spike for spike).
+
+### Changed
+- The docs have a top-level Archive section for pages whose results predate 0.5.0: the
+  earlier tutorials, the suites, four études and the 0.4.16–0.4.17 experiment pages. Their
+  files stay in place; the current sections list 0.5.x material.
+- Current pages regenerated at 0.5.5: the three-area atlas (same config hash, now built by
+  `generate_doc_page_atlases.py --slug three_area`), the Colab page (installs 0.5.5; two cells
+  read manifest keys that no longer exist and now read `claim_level` and
+  `physical_amplitude_calibrated`), the HDP preset table in tutorial 07 (re-measured by
+  `scripts/measure_hdp_presets.py`; `DEFAULT_HDP_DESYNC` realizes H = 1.016 ± 0.017), the
+  public-surface counts (205 symbols), the run-receipt example, and the version stamps on the
+  install, citation, JDNA and probe-operator pages.
+- A Replications page in the docs, generated from `dashboard/sources.json`
+  (`scripts/generate_replications_page.py`, checked in the Dashboard workflow), links each
+  paper's dashboard page. The dashboard gains the class "in progress" (on the pipeline at a stage,
+  before a signed preregistration and a verdict); Izhikevich 2003, Figs. 2 and 3 moves to it at P3.
+- `scripts/v1_pfc_continuous_aaab_smoke_test.py` declares its AMPA time constant (0.1 ms,
+  the value used before P-023 made it required), so the V1-PFC atlas regenerates again with
+  the same configuration hash.
+- `scripts/build_docs_assets.py` regenerates the 25 docs atlases in one pass (about 3 min on
+  CPU) and checks each against `docs/_static/atlas_registry.json` (configuration hash, sizes,
+  seed, timing and panel status), then restores the registry's validated state and rewrites
+  the gallery. The `hdp_1000` and `homeostasis_1000` atlases are regenerated: the 0.5.5
+  H1 (e) commit (9958a72) changed their declared configuration hash; neuron and edge counts
+  are unchanged.
+- Docs iframes resolve on the built site: 34 of the 47 were raw HTML written one directory
+  too shallow (or deep) for mkdocs directory URLs and pointed at nonexistent paths. The gallery
+  generator and eight pages now use the page-URL depth. `build_docs_assets.py --check`
+  resolves every relative `.html` link in the docs (atlas links against the registry, the
+  rest on disk), and Read the Docs regenerates the atlases before mkdocs runs.
+- The 200 atlas HTML files (9.7 MB) leave the repository as build products; the 25
+  manifests and `atlas_registry.json` stay tracked. The tracked-tree budget drops from
+  102665681 to 91226112 bytes. A checkout before the HTML build gets a stand-in page for
+  each registry panel (`scripts/mkdocs_atlas_stubs.py`), so `mkdocs build --strict` passes there.
+- `tests/test_docs_version_currency.py` keeps the current docs current: a published page
+  outside the Archive section that calls an older minor version current, live or its status
+  fails the dev gate.
+- The replication dashboard links each finished stage of a paper to its files at the lane
+  commit (port spec, preregistration, model and tests, result, ledger, scores).
+- The references page lists, per source, the result jaxfne implements and the functions that
+  implement it; those functions cite the same DOI, and `tests/test_references_page.py` holds the
+  two together. Replicated papers and background work have their own tables.
+- `vis.visualize_network_3d(output_html=...)` loads plotly.js from the Plotly CDN, as the other
+  `jaxfne.vis` HTML writers do; the file no longer embeds the 4.8 MB bundle and needs a network
+  connection to render. Five tracked Plotly pages now reference plotly.js 3.5.0 on the CDN with an
+  SRI hash (their bundle was byte-identical to the CDN file), which cuts the tracked tree by 24 MB.
+- Python 3.15 groundwork. JAX/jaxlib ceiling raised from `<0.11` to `<0.12`, because jaxlib's first
+  Python 3.15 wheels are 0.11.1. The homeostatic-EI `cubic_penalty` NaN that set the old pin
+  no longer reproduces: its 30 tests (slow included) pass on JAX 0.11.2. JAX 0.11 rounds 2 of the
+  48 laminar projection kernel entries 1 ulp differently (max relative 8.8e-8); the oracle pins
+  both hashes. On Python 3.15 the `dev`/`viz` extras take scipy 1.18.1 and matplotlib 3.11, which
+  have 3.15 wheels, and the frozen-figure equivalence gate tests skip there. CI does not yet run
+  3.15, and pyyaml and h5py (the `io` and `jnwb` extras) publish no 3.15 wheels yet.
+
+### Fixed
+- `Simulation(poisson_drive={"target": ...})` raises `ValueError` for any target other than
+  `"all"`. The target was never read: `{"target": "E"}` drove every neuron while the run
+  metadata recorded `"E"`. `"all"` and an omitted target draw as before.
+- `jaxfne.presets.CELL_TYPE_PRESETS` sources cite Izhikevich (2003) Fig. 2 for RS, FS and LTS;
+  the paper has no table. `VIP_IS` is marked as absent from the paper.
+
 ## v0.5.5 (candidate)
 
 ### Added
@@ -28,7 +116,7 @@ the rules those releases were held to and are historical context for readers.
 
 ### Changed
 
-- Synaptic time constants are required, never defaulted (P-023, owner
+- Synaptic time constants are required (P-023, owner
   ruling 2026-09-30): `StaticParams.dT_ms` of `None` is refused at wiring
   time, as are 0, negative, NaN, inf, bools and strings. JDNA genomes
   declare per-mechanism kinetics in `mechanism_tau_ms`; `develop` copies
@@ -59,7 +147,7 @@ the rules those releases were held to and are historical context for readers.
   criteria (kicks, `H_0`, ratio, threshold, late windows, replicate seeds) so
   the result digest tracks them, and the runner docstring states the
   selection status (gain, HDP gains and kicks were chosen on the same
-  regime; results are descriptive, not confirmatory). Assay records
+  regime; results are descriptive; no confirmatory claim is made). Assay records
   `w_unchanged`; disabled arms keep W bit-identical in all 9 runs (tested).
   `w_mech` validation is unified on both paths (bool, string, NaN and inf
   refused; finite and positive required; absolute default and `H_0`
@@ -122,7 +210,7 @@ proven bitwise-identical by stash-compared trajectory hashes).
   guide.
 - Seven-panel dark atlas (`schema`, `network_3d`, `raster`, `lfp`,
   `h_dynamics`, `hdp`, `oscillatory`) with per-panel data contracts:
-  unmeetable contracts render explicit omission cards, never substitutes.
+  unmeetable contracts render explicit omission cards.
 - Per-page atlases for every doc simulation + frozen-étude HTML panels
   (post-hoc or deterministic reruns with hash/claims verification).
 - Provenance manifests (`tfne_digest`, `K_D`, sim identity, per-panel
@@ -195,7 +283,7 @@ export.
   `scripts/release/reconcile_release_target.py`).
 - Exact RC/release test-set reconciliation: the three RC marker sweeps are
   proven exhaustive, and release CI selects the identical node set
-  (verified per-node via JUnit comparison, not aggregate counts).
+  (verified per-node via JUnit comparison; aggregate counts were not used).
 - JUnit per-node evidence: blocking CI uploads `--junitxml` artifacts and
   the RC gate writes gitignored sweep JUnit; `scripts/compare_pytest_junit.py`
   compares node-by-node with explicit platform/environment classification.
@@ -543,7 +631,7 @@ GitHub Release / TestPyPI / PyPI since v0.4.5.
 
 ### Added
 - **Étude 6 — Multi-Area Network**: V1→V2→V4→PFC hierarchy with feedforward + feedback, inter-areal connectivity census, interactive 3D layout, per-area depth rasters, and an async-irregular (κ) gate.
-- **Étude 7 — Multi-Trial Spectrolaminar Motif**: multi-trial depth × frequency relative power on a 1k canonical column, with the synchrony (κ) trust gate and the regime-based crossover caveat (oscillatory layers + low κ — not N alone).
+- **Étude 7 — Multi-Trial Spectrolaminar Motif**: multi-trial depth × frequency relative power on a 1k canonical column, with the synchrony (κ) trust gate and the regime-based crossover caveat (oscillatory layers + low κ; N alone does not suffice).
 
 ## v0.4.3 (2026-06-21)
 

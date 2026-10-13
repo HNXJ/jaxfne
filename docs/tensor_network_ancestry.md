@@ -186,7 +186,7 @@ A **reserved cerebellar/sensorimotor tutorial** could use jaxfne's basis-transfo
 This path is **deferred and not promised:**
 - Require separate validation evidence
 - Use separate status checks (distinct from computational_scaffold)
-- Be a distinct research module, not a core jaxfne function
+- Be a distinct research module, outside the core jaxfne functions
 
 ---
 

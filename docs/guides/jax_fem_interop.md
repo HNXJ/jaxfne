@@ -10,7 +10,7 @@ for the tracked field-solver backlog entry this serves.
 
 jaxfne's laminar source-to-field readout (`jaxfne.fields.project_laminar_sources`)
 is currently a static, non-learned linear projection
-(`field_solver_status = "linear_solver"`) — not a differentiable elliptic/PDE
+(`field_solver_status = "linear_solver"`), rather than a differentiable elliptic/PDE
 solve. [jax-fem](https://github.com/deepmodeling/jax-fem) is an actively
 maintained differentiable GPU-accelerated FEM library built on JAX, showing
 that a differentiable elliptic solve composing with jaxfne's existing
@@ -22,7 +22,7 @@ geometry.
 
 jax-fem is **GPLv3-licensed**, with commercial licensing available separately
 directly from the author (see jax-fem's own README/LICENSE). It is
-deliberately kept as an **optional extra**, never a core jaxfne dependency,
+deliberately kept as an **optional extra**,
 and is **not** included in the `jaxfne[all]` bundle — installing it is a
 separate, explicit choice:
 

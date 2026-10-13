@@ -10,7 +10,7 @@ cited receipt resolves to the receipt.
 
 **Evidence boundary:** the scientific evidence boundary is closed. New analysis is not part of
 this checkpoint; if assembly had revealed an unsupported manuscript proposition, it would be
-reported, not repaired here.
+reported and not repaired here.
 
 **Assembly corrections to the pre-authorization material**
 (`supplement_material.md`, tracked with the Methods seal lineage, retained unmodified):
@@ -49,7 +49,7 @@ Remarks (corrected):
 - The S3 record's `frequency_hz` field stores the **estimate**; ground truth is 10.0 Hz in all
   12 cases (executor `scripts/p2v_a2_sensitivity_floor.py`).
 - The 250 ms / 4.0 Hz spacing is the only grid on which 10.0 Hz is off-grid; ε_f = 2.0 there is
-  structural quantization of the rectangular-window argmax, not estimator noise or a band-pass
+  structural quantization of the rectangular-window argmax; that error is not estimator noise or a band-pass
   artifact. A byte-faithful replay of the exact executor code path (same Butterworth order-4
   band [8/1000, 13/1000] of Nyquist 1,000 Hz, filtfilt, summed-site rfft power, inclusive band
   mask) reproduced all 12 stored (f̂, ε_f) pairs exactly on 2026-08-16.
@@ -61,8 +61,8 @@ Remarks (corrected):
   {8.5, 10.0, 12.5} Hz map to integer bins (17, 20, 25), so every A-1a ε_f = 0 as recorded.
 - The A-2 S1 lattice also uses 2000 ms and records ε_f = 0 for all 40 cases.
 - Consequence for the classification gates: the S3 stage's purpose is lane/cutoff set-pointing;
-  the 250 ms ε_f = 2.0 limit is reported, not hidden, and the n_sites = 6 classification
-  failure at 500/2000 ms is reported, not hidden. No Results claim quantifies frequency error
+  the 250 ms ε_f = 2.0 limit is reported rather than hidden, and the n_sites = 6 classification
+  failure at 500/2000 ms is reported rather than hidden. No Results claim quantifies frequency error
   below the S3 floor, and no claim requires TRAVELING_WAVE at n_sites = 6 for any duration.
 
 ## S.2 — Units and magnitude convention table (review item M1.3)
@@ -111,7 +111,7 @@ full reconciliation.
 |---|---|---|---|---|
 | Non-finite spectral/phasor input | — | `finite_status` gate → UNRESOLVED | No (all executed fields finite) | Latent guard; exercised in unit suite only |
 | Fewer than 4 qualifying band sites | — | site-count gate → UNRESOLVED | No | Latent guard |
-| R² < 0.35 AND coherence < 0.55 | UNRESOLVED (registered) | not a distinct branch: the output is NO_WAVE via `structured_but_fails` when gates fail | No C-series, A-series, D3, or W3b input produced it | Registration-only condition; never policy-determinative |
+| R² < 0.35 AND coherence < 0.55 | UNRESOLVED (registered) | not a distinct branch: the output is NO_WAVE via `structured_but_fails` when gates fail | No C-series, A-series, D3, or W3b input produced it | Registration-only condition |
 
 Basis: C0 spec (waves appendix), estimator source, and the executed receipts (C3 60/60,
 A-1a 53, A-2 S1 40 + S2 3×γ-lattices + S3 12, A-1b 45, D3, E5, W3b). No Results claim routes
@@ -175,7 +175,7 @@ D1/D2a-type H_K RBS owned by A2:L5:E (flat indices 70–76, Γ_H: H_K → b_eff 
 τ_K = 100 ms, H_K0 = 1.2 on owners at t₀⁺); E4 downstream observation chain per the frozen
 workflow; E5 causal perturbation with arms N0 (Γ_H = I, dot H_K = 0), N1 (technical: H_K
 trajectory identical to D on owners; Γ_H = I), D (Γ_H = H_K·b active on owners). Contrast
-D − N1 isolates Γ_H expression, not hidden-state presence alone. All readouts post-hoc on one
+D − N1 isolates Γ_H expression. Hidden-state presence alone is not isolated by this contrast. All readouts post-hoc on one
 simulated trajectory per arm/seed.
 
 Basis: Methods §11; `e5_causal_perturbation_spec.json`, `e5_interpretation_receipt.json`.
@@ -196,7 +196,7 @@ Basis: Methods §11; `artifacts/etudes/experiment_a/`.
 1. deterministic property; 2. parameter-domain characterization; 3. seed robustness;
 4. model generalization; 5. empirical inference. No statistical tool computes or reports
 p-values. Reported spread values are ranges or exact extremal values (min–max) across the
-enumerated seeds/cells; uncertainties are declared as ranges, not standard errors. Unresolved
+enumerated seeds/cells; uncertainties are declared as ranges. No standard errors are computed. Unresolved
 classes are never collapsed into negatives (UNRESOLVED → NO_WAVE forbidden; N_S = 0 ≠ negative
 without N_X = 0).
 
@@ -207,7 +207,7 @@ band power; no cell reaches the traveling gates). The three ordered conditions
 (ordered_uniform, ordered_geometry_derived, ordered_delay_shuffled) produce **bit-identical
 estimator outputs cell-for-cell per seed** — identical classifications, frequencies, wave
 vectors, and reasons — despite their different delay policies; a provenance property of the
-frozen lineage, not a result of estimator noise.
+frozen lineage; that property is not a result of estimator noise.
 
 | Condition | Seed | R² | Coherence | Null score | Reason |
 |---|---|---|---|---|---|
@@ -337,7 +337,7 @@ amplitude γ and phase φ0: classifications by γ:
 
 Frozen reason strings of the carrier cells are preserved in the receipt. The flip threshold
 γ* = 1.0 (the lowest injected γ classified TRAVELING_WAVE) is a set-point of the estimator's
-lane, not a biological amplitude calibration.
+lane. No biological amplitude calibration is performed.
 
 ### S.8.3 S3: duration × site-count limits (12 cases)
 
@@ -450,7 +450,7 @@ machinery sanity check).
 | short_heterogeneous | 0.3333 | 0.3333 | 0.3333 | 0.3333 | 0.3333 | 0.3333 | 0.3292 (Δ = 20) | 0.0521 |
 
 The only positive M_X_area is short_heterogeneous (0.0521), produced by the Δ = 20 shuffle
-depression (M_X_shuffle 0.3292 vs M_X 0.3333), not by any M_X excess peak
+depression (M_X_shuffle 0.3292 vs M_X 0.3333); no M_X excess peak contributes
 (M_X_excess_peaks = [] and M_X_secondary_peaks = [] on all cells).
 
 ### S.11.2 Factorial point estimates and interpretation
@@ -467,7 +467,7 @@ depression (M_X_shuffle 0.3292 vs M_X 0.3333), not by any M_X excess peak
   not statistical evidence of no effect.
 - α_heterogeneity = +0.0521 arises entirely from the short+heterogeneous cell; not a general
   heterogeneity effect. **Bootstrap confidence intervals were not computed; +0.0521 is a
-  prospective point estimate only, not statistically established.**
+  prospective point estimate only, and it is not statistically established.**
 - α_interaction cancels the short-hetero signal in the long-hetero cell.
 - Directional conjecture M_X^{long,hetero} > M_X^{short,uniform}: supported = false.
 
@@ -480,7 +480,7 @@ depression (M_X_shuffle 0.3292 vs M_X 0.3333), not by any M_X excess peak
 3. Future topology-specific protocols may use matched binary perturbation decoding or
    information-normalized metrics.
 4. Recurrence diagnostic: loop-aligned secondary peaks detected = false; extending Δ_max
-   would be H5/new protocol, not an H4 correction.
+   would be H5/new protocol; that extension is not an H4 correction.
 
 Basis: `h4_matrix/h4_matrix_receipt.json`, `h4_matrix/h4_interpretation_receipt.json`
 (status FROZEN_NEGATIVE_RESULT; repository SHA at run 8f01ae75…).
@@ -597,7 +597,7 @@ by clean-room bisection, 2026-08-15).
 Canonical source: `artifacts/etudes/experiment_a/canonical_source.npz` is a tracked frozen
 publication-evidence exception (`.gitignore` exception, added 2026-08-16); its SHA-256 is
 recorded in `b1_canonical_receipt.json`; regeneration verification remains available via
-`python3 scripts/run_experiment_a.py` (verification-first: receipts compared, never rewritten).
+`python3 scripts/run_experiment_a.py` (verification-first: receipts compared rather than rewritten).
 
 Basis: Methods §14; `REVIEW_NAVIGATION.md`; `artifacts/publication/publication_evidence_index.json`.
 
@@ -673,7 +673,7 @@ field); family mapping follows Methods §12.
 
 **Disposition:** supplement-first per `artifacts/e2/E2_SYNTHESIS.md:63-69` — both V1/V2 arms are confirmatory **negatives** (methods-level interest in falsification harness and pulse-regime characterization). Main-text entry would require a new separately declared experiment with its own development/confirmation split targeting a PING-capable or SSA-capable regime — explicitly **not** a repair of these preregistered negatives. This section is append-only to the 2026-08-16 final assembly draft; frozen publication artifacts (28/28 per `artifacts/publication/frozen_manifest.json` at `aeca6d01a18ab1be…`) are preserved unchanged.
 
-**Operating point theta* (tie-break-selected, not optimized):** `drive_E=4.0, drive_I=2.0, weight_mu=0.25, noise_scale=0.0, W_ms=60` — write-once selection from `artifacts/e2/preregistration/E2a_search/e2a_search_receipt.json:811-823` (`result.theta*` id `theta0`). See S18-1 E2a tie disclosure. No claim of optimality; `W_ms` is H7 compatibility-only for V1 (corrigendum D6). Authority: `e2_ping_prereg.json` spec_hash `b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f` (schema `e2_ping_prereg.v1`), `e2_ssa_spec.v6.json` spec_hash `0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570` (sha256 `0BC86A301BE7D5511141C0DC964ADD3257B59CB33189158C34697F50FEE25CFF`, parent `e2_ssa_spec.v5` `fb9ace28413b731e006a388267344e3473fe5eecc6869e1b25fe453e9df304a5`, parent chain `e2_ssa_spec.v1` `6ca10a960fc408819618f2f0b4032be900d00c7420620409766066955a1781b0`, parent_e1 `07b1c04af9ea98176bc45350528f3312375f7d24`).
+**Operating point theta* (selected by tie-break, rather than optimized):** `drive_E=4.0, drive_I=2.0, weight_mu=0.25, noise_scale=0.0, W_ms=60` — write-once selection from `artifacts/e2/preregistration/E2a_search/e2a_search_receipt.json:811-823` (`result.theta*` id `theta0`). See S18-1 E2a tie disclosure. No claim of optimality; `W_ms` is H7 compatibility-only for V1 (corrigendum D6). Authority: `e2_ping_prereg.json` spec_hash `b89a09c466186330a58eb70c632d597a7989803f6e418a2d9d778385a498af1f` (schema `e2_ping_prereg.v1`), `e2_ssa_spec.v6.json` spec_hash `0df9bfe24bae0e2e04cb0b9c1a2b41988981a62587d4bcd9f53f864a6d520570` (sha256 `0BC86A301BE7D5511141C0DC964ADD3257B59CB33189158C34697F50FEE25CFF`, parent `e2_ssa_spec.v5` `fb9ace28413b731e006a388267344e3473fe5eecc6869e1b25fe453e9df304a5`, parent chain `e2_ssa_spec.v1` `6ca10a960fc408819618f2f0b4032be900d00c7420620409766066955a1781b0`, parent_e1 `07b1c04af9ea98176bc45350528f3312375f7d24`).
 
 ### S18-1 Adequacy — V1 5/5 and V2 20/20 (operational definitions from `e2_ssa_spec.v6.json:14-22`)
 
@@ -707,7 +707,7 @@ Blinded development search `D_dev` seeds `9000–9004` disjoint from confirmator
 | theta4 | 10.0 | 5.0 | 0.55 | 0.3 | 100 | **1.0** (5/5) |
 | theta5 | 6.0 | 3.0 | 0.35 | 0.0 | 80 | **1.0** (5/5) |
 
-All 6 candidates rate **1.0** (6/6 adequate); `result.candidates:6`, `C2a: theta*` lexicographic `theta0` selected — **not** a unique optimum. Blinding check: E2a artifact contains only `G_finite/G_active/G_population/G_adequate/mean_rate/n_spiking/active_E/I` (no `G_spec/SI/ΔPLV/PING_LIKE/S0-S4`), `forbidden_grep_hits:0`. Basis: `E2a_search/e2a_search_receipt.json:13-22,62-829`.
+All 6 candidates rate **1.0** (6/6 adequate); `result.candidates:6`, `C2a: theta*` lexicographic `theta0` selected among tied optima. Blinding check: E2a artifact contains only `G_finite/G_active/G_population/G_adequate/mean_rate/n_spiking/active_E/I` (no `G_spec/SI/ΔPLV/PING_LIKE/S0-S4`), `forbidden_grep_hits:0`. Basis: `E2a_search/e2a_search_receipt.json:13-22,62-829`.
 
 Sufficient-detail provenance (existing Supplement convention): every magnitude not declared Absolute is Relative; time ms, frequency Hz; probe fields Relative.
 
@@ -717,21 +717,21 @@ Sufficient-detail provenance (existing Supplement convention): every magnitude n
 
 ### S18-2 V1 pulse regime — harmonic-comb diagnosis (reused frozen metrics, no new detector)
 
-Frozen verdict (robust): `V1 NEGATIVE / NEGATIVE_NOT_PING_LIKE — CONFIRMED ROBUST` under every scoring combination (frozen-only strings, sign-flipped dphi, with all four executor-added conjuncts struck). Intact fails ≥3 frozen gates per seed. Corrigendum C2: single ~7.2 Hz globally synchronous population-pulse train, not two oscillators; C1 direction correction E-leads-I (see S18-3). No new detector invented; reuse of `v1_ping_receipt.json` and `v1_corrigendum_and_adjudication.json:1-44` (schema `e2b_v1_corrigendum.v1`) and `S_PULSE_CHARACTERIZATION.md` (supplement-only reuse, no new simulation).
+Frozen verdict (robust): `V1 NEGATIVE / NEGATIVE_NOT_PING_LIKE — CONFIRMED ROBUST` under every scoring combination (frozen-only strings, sign-flipped dphi, with all four executor-added conjuncts struck). Intact fails ≥3 frozen gates per seed. Corrigendum C2: single ~7.2 Hz globally synchronous population-pulse train, which is not two oscillators; C1 direction correction E-leads-I (see S18-3). No new detector invented; reuse of `v1_ping_receipt.json` and `v1_corrigendum_and_adjudication.json:1-44` (schema `e2b_v1_corrigendum.v1`) and `S_PULSE_CHARACTERIZATION.md` (supplement-only reuse, no new simulation).
 
 | # | Parameter | Frozen value (C0_intact @ theta*, n=5) | Definition / derivation | Gate context (frozen 4) |
 |---|---|---|---|---|
 | 1 | Fundamental pulse frequency **f0** | **~7.22 Hz** | Envelope rhythm; corrigendum C2: `f0 = 1 / 138.5 ms = 7.22 Hz` from envelope/pulse-picking on `v1_rates_window.npz` population rates (2×1000 bins @1 ms, see C4) | Not a PING gate; diagnoses carrier |
 | 2 | Envelope interpulse interval | **138.5 ms** (median) | Interval between successive population pulses | Same as (1) |
 | 3 | Duty cycle **D** | **~0.05** | Pulse width / period (median pulse duration E ~16–17 ms `md_E` over 138.5 ms at low end; `md_E 17.08, 17.36, 17.16, 16.93, 17.29` ms) | — |
-| 4 | Spectral teeth (harmonic comb) | **E fpk ~36.1 Hz (k=5), I fpk ~43.3 Hz (k=6)** | Welch PSD peaks (fs 2000 Hz, Hann 256 ms, nfft 1024, overlap 50%) fall on adjacent teeth of f0 comb: `36.1 ≈ 5×7.22`, `43.3 ≈ 6×7.22`; per-seed E peaks 36.09–36.14 Hz, I peaks 43.30–43.35 Hz; `|fpk_E − fpk_I| ≈ 7.2 Hz` equals one harmonic spacing (comb artifact, not two oscillators) | Triggers `G_spec` failure + `OptionA |dfp|>5` discordance artifact; corrected by C2 |
+| 4 | Spectral teeth (harmonic comb) | **E fpk ~36.1 Hz (k=5), I fpk ~43.3 Hz (k=6)** | Welch PSD peaks (fs 2000 Hz, Hann 256 ms, nfft 1024, overlap 50%) fall on adjacent teeth of f0 comb: `36.1 ≈ 5×7.22`, `43.3 ≈ 6×7.22`; per-seed E peaks 36.09–36.14 Hz, I peaks 43.30–43.35 Hz; `|fpk_E − fpk_I| ≈ 7.2 Hz` equals one harmonic spacing (comb artifact) | Triggers `G_spec` failure + `OptionA |dfp|>5` discordance artifact; corrected by C2 |
 | 5 | AC sidepeak (gamma-lag) | **Negative: executor AC ~ −0.10, independent rescoring ac_min −0.064 to −0.067** | Autocorrelation sidepeak at gamma period from population rates; executor per-seed `xcorr_shifted 0.44–0.45` surrogate vs `xcorr 0.97–0.98` | Frozen `G_rate` requires `AC >= 0.25` — fails by sign and magnitude (convention-independent, robust per C5) |
-| 6 | Cycle count **n_cycles** | **3–4** | Number of gamma-period cycles in W [1500,2000) ms; `cycles: 3,3,3,4,3` in 5 C0 seeds (C3d shows 6 with FF>180, not intact) | Frozen `G_cycle` requires `N_cycles >= 10` — fails in every intact seed |
+| 6 | Cycle count **n_cycles** | **3–4** | Number of gamma-period cycles in W [1500,2000) ms; `cycles: 3,3,3,4,3` in 5 C0 seeds (C3d shows 6 with FF>180; C3d is not intact) | Frozen `G_cycle` requires `N_cycles >= 10` — fails in every intact seed |
 | 7 | Participation | **~1.0** | Fraction neurons spiking per pulse; `participation 1.0` in all 5 C0 seeds (rescoring 1.0-equiv) | Not a classifier gate; diagnoses globally synchronous |
 | 8 | Fano factor **FF** | **~0** (0.0) | Across-pulse count variability; `ff 0.0` all C0 intact (vs 187–480 in some C3 arms) | Sub-component of `G_cycle` (`FF <=0.60` passes but `N_cycles` fails) |
 | 9 | Phase ordering **E-leads-I** | **+6.8 ms phase / +16 ms pulse-pair (E first)** | `dt_lag_ms −6.76, −6.56, −6.95, −6.85, −6.80` (executor sign `dphi=phi_I−phi_E`; negative = E leads); corrigendum C1: `dphi_deg` is −85..−91, −6.8 is ms not deg; rederived median pulse-pair offset **+16 ms E-first**; PLV ~0.91 | Frozen `G_phase` requires `dphi in [15,90] deg` and `dt in [2,8] ms` E-leading — fails degree window (sign canonical but band not met); listed last per C5 |
 | 10 | Prominence (gamma band) | **5.41–5.65 dB (UNRESOLVED)** | Welch prominence at fpk; intact `prom_dB 5.54, 5.47, 5.65, 5.64, 5.41`; rescoring `prom_dB 5.23–5.82` (labels `NO_PING|GRAY:UNRESOLVED_PROMINENCE`) | Frozen `G_spec` requires `prominence >= 6 dB` with gray `[5,6)` → `UNRESOLVED_PROMINENCE` every intact seed (robust near-threshold) |
-| 11 | Band ratio / stationarity | `band_ratio ~0.35` (0.346–0.357); `stationarity_ok false` (executor) | W1 vs W bandpower within 3 dB + freq within 5 Hz (executor-added D1, not frozen 4) | Not part of frozen four strings; disclosed defect D1, verdict-neutral |
+| 11 | Band ratio / stationarity | `band_ratio ~0.35` (0.346–0.357); `stationarity_ok false` (executor) | W1 vs W bandpower within 3 dB + freq within 5 Hz (executor-added D1, beyond frozen 4) | Not part of frozen four strings; disclosed defect D1, verdict-neutral |
 
 Regime summary (corrigendum-licensed): ~7 Hz globally synchronous population-pulse regime (participation ~1.0, FF~0, duty ~0.05, 138.5 ms) whose gamma peaks at 36.1/43.3 Hz are adjacent harmonic teeth k=5/6 of one slow rhythm; neither canonical PING nor ING — C2 (I→E zeroed) preserves phenotype (not loop-dependent), C1 (E→I zeroed) silences I entirely.
 
@@ -763,7 +763,7 @@ Frozen `G_phase` (verbatim `e2_ping_prereg.json:classified G_phase`): `delta_phi
 | **PLV** | **0.910–0.916** (0.912, 0.916, 0.910, 0.913, 0.913; rescoring 0.85–0.94) | `>= 0.40` (gray `[0.35,0.40)` → UNRESOLVED) | Pass (high synchrony) but conjunction fails |
 | **dt_lag_ms** | **−6.56 to −6.95 ms** (mean −6.76, corr. C1: E-leads-I by ~6.8 ms phase; rederived pulse-pair +16 ms) | `in [2,8] ms` with E-leading convention | **Sign-convention fail** (magnitude 6.8 would pass if sign-flipped; not robust discriminator, listed last per corrigendum C5) |
 | **Rayleigh p** | **~0** (executor `0.0` exact underflow; C3_I_to_E `3e-246..5e-253`; rescoring uses circular test) | `<0.01` | Pass (phase concentration real; corrected storage should be log-p) |
-| **PLV_surr (phase-randomized surrogate)** | **0.15–0.67** intact surrogate distribution (executor `plv_surr 0.278, 0.403, 0.296, 0.476, 0.670`; intact PLV 0.91 >> surr median 0.27–0.67) vs C2 I→E `0.45–0.57` and C1 `~0.11` | Not a frozen gate (executor-added D1 surrogate `plv_surr<0.25` struck) | PLV elevation is deliberate (synchrony), not PING-specific; disclosed D1 invented conjunct |
+| **PLV_surr (phase-randomized surrogate)** | **0.15–0.67** intact surrogate distribution (executor `plv_surr 0.278, 0.403, 0.296, 0.476, 0.670`; intact PLV 0.91 >> surr median 0.27–0.67) vs C2 I→E `0.45–0.57` and C1 `~0.11` | Not a frozen gate (executor-added D1 surrogate `plv_surr<0.25` struck) | PLV elevation is deliberate (synchrony); PLV alone does not identify PING; disclosed D1 invented conjunct |
 
 Additional rate criteria (G_rate): `MD >=0.50` and `AC >=0.25` and `|xcorr|>=0.40` — intact `md_E 16.9–17.4, md_I 21.5–22.4` (passes MD), but **AC negative** (see S18-2) and `|xcorr| 0.97` (passes) → G_rate fails on AC. G_cycle: `CV_T <=0.35 and FF<=0.60 and median p_i >=0.10 and N_cycles>=10` — `CV_T ~0.0017` passes, `FF 0` passes, but `N_cycles 3–4 <10` → fails.
 
@@ -787,7 +787,7 @@ Execution grammar: `dt_ms 0.5, blocks_per_replicate 5 (80+80+80+40+20 events, IS
 | **SI_source** (mean |sources| co-primary) | **0.0026** (`SI_source_pool 0.00259`; per-rep ±0.009) | Sign consistency `SI_source sign==SI` required for S2 | **Fail** (source SI near 0, inconsistent with SI) |
 | **S3 recovery** | **delta_rec +4.00 Hz** (`R_rec500 − R_late`; BCa lower `3.90`, `p_rec 0.00050`), **I_rec_all_gt_02 false**, **rho = −0.77** (Spearman pooled per-event recovery responses vs ISI {500,1000}) | S3 requires `d_rec>0.5 lower_BCa>0 && p_rec<0.025 && I_rec>0.20 && rho>=0.20` | **FAIL** (`rho −0.77 <0.20` inverted ladder; I_rec guard fails) — reported as-is |
 
-Classification hierarchy: `S2 stimulus_specific` requires `SI>0.10 lower_BCa>0.10 && dR>0.8 && g>0.40 && p_perm<0.025 && SI_source sign==SI && |SI_shuf|<0.03 && |SI_many|<0.10 && abs(swap)<=0.10` — every rep fails SI gate and swap; pooled fails at gate entry. `S3 delta_rec +4.0 p<0.001 BUT rho −0.77` (inverted ladder) — not passed. `S4 mechanism matrix 8 cells` `CONFIRMATORY_DEFERRED_v3` per `factor_staging` (requires S2-in-D context, 20-rep×8-cell envelope deferred; thresholds untouched).
+Classification hierarchy: `S2 stimulus_specific` requires `SI>0.10 lower_BCa>0.10 && dR>0.8 && g>0.40 && p_perm<0.025 && SI_source sign==SI && |SI_shuf|<0.03 && |SI_many|<0.10 && abs(swap)<=0.10` — every rep fails SI gate and swap; pooled fails at gate entry. `S3 delta_rec +4.0 p<0.001 BUT rho −0.77` (inverted ladder) — gate failed. `S4 mechanism matrix 8 cells` `CONFIRMATORY_DEFERRED_v3` per `factor_staging` (requires S2-in-D context, 20-rep×8-cell envelope deferred; thresholds untouched).
 
 Basis: `E2b_confirmatory/v2_ssa_confirmatory_receipt.json:1-364` (pooled 0.084 BCa etc, runs 20/20, S3), `v2_rescored_frozen_only.json:1-13` (independent vectorized rescorer, agreement), `v2_runs/rep_*.json` (per-rep SI/dR/swap), `e2_ssa_spec.v6.json:14-90,301-488` (metrics, classifiers, execution_grammar).
 
@@ -797,7 +797,7 @@ Basis: `E2b_confirmatory/v2_ssa_confirmatory_receipt.json:1-364` (pooled 0.084 B
 
 ### S18-5 Disclosure — executor defects R-A .. R-D, correction receipt H3, post-review corrections
 
-This supplement preserves the frozen receipts byte-for-byte; defects are **disclosed**, not silently patched, and all verdicts are shown to survive correction via independent frozen-only rescoring.
+This supplement preserves the frozen receipts byte-for-byte; defects are **disclosed** rather than silently patched, and all verdicts are shown to survive correction via independent frozen-only rescoring.
 
 #### R-A — classifiers generated from JSON, typed units Deg/Ms/dB/Hz
 
@@ -817,7 +817,7 @@ This supplement preserves the frozen receipts byte-for-byte; defects are **discl
 
 - Stable derivation: `e2_exec_lib.py:108-134` `splitmix64` + `domain_keys(master, replicate_idx, offsets, canonical_order)` via `jax.random.fold_in` chained through canonical order `structure→stimulus→runtime→probe→analysis` + `child_seed(parent_key, tag)` via `sha256(parent_bytes||tag)` (replaces `hash()`; offsets `4096/8192/12288/16384/20480` exactly as `e2_ssa_spec.v6.json:236-244,363-381`).
 - Independent frozen-only rescoring required before interpretation: `v1_rescored_frozen_only.json` (`v1_rescored_frozen_only.v1`, 0/5 PING_LIKE) and `v2_rescored_frozen_only.json` (`v2_rescored_frozen_only.v1`, pooled SI −0.084, swap 0.426, agreement) — independent implementations, no shared analysis code, generate gates from JSON only.
-- Memory-safe JIT: kernel outputs consumed under `jit`/sliced aggregation, never materializing `presyn_trace` (10–13 GB risk, `e2_ssa_spec.v6.json:455` caution adopted); atomic resumable receipts; `consumed_keys_must_lie_in_declared_domains: true`.
+- Memory-safe JIT: kernel outputs consumed under `jit`/sliced aggregation rather than materializing `presyn_trace` (10–13 GB risk, `e2_ssa_spec.v6.json:455` caution adopted); atomic resumable receipts; `consumed_keys_must_lie_in_declared_domains: true`.
 
 V2 executed only after LFNI gate + adversarial code review passed (synthesis `Executor defects … repaired as infrastructure before V2 execution`). Per-replicate seed domains now lie inside declared ranges (`v2_runs/rep_*.json: seed_domains` e.g. structure 3311337696077133527 etc derived via fold_in).
 

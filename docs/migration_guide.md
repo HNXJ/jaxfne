@@ -1,6 +1,6 @@
 # Migration Guide: Configuration → NeuronalTensor
 
-As of 0.4.7, **`NeuronalTensor` + `RuntimeConfiguration` is the preferred way
+Since 0.4.7, **`NeuronalTensor` + `RuntimeConfiguration` is the preferred way
 to define and run a circuit.** `Configuration` (the original fluent builder)
 remains fully supported — nothing built on it breaks — but new README, quickstart,
 and tutorial material starts from the preferred path.
@@ -53,7 +53,7 @@ signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
   to rewrite working code to adopt this guide.
 - You're doing multi-trial spectrolaminar sweeps via `jaxfne.tutorial_utils`
   (`make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials`),
-  which is built on `Configuration` and returns a plain `dict`, not `Model`/`Signals`.
+  which is built on `Configuration` and returns a plain `dict`. `Model` and `Signals` are not returned.
 - You prefer the fluent method-chaining style for incremental, exploratory
   circuit construction.
 

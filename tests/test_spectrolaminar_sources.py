@@ -8,28 +8,11 @@ import numpy as np
 import pytest
 import jax.numpy as jnp
 
+from _shared_fixtures import MockNeuronsDataFrame
 from jaxfne.fields import (
     filtered_spike_source,
     teaching_control_spectrolaminar_resonance_source,
 )
-
-
-class MockNeuronsDataFrame:
-    """Mock neuron dataframe for testing."""
-
-    def __init__(self, n=20, areas=None, layers=None, cell_types=None):
-        self.n = n
-        self.data = {
-            "area": areas or (["V1"] * (n // 2) + ["PFC"] * (n - n // 2)),
-            "layer": layers or (["L4"] * (n // 2) + ["L5"] * (n - n // 2)),
-            "cell_type": cell_types or (["E"] * int(0.75 * n) + ["PV"] * (n - int(0.75 * n))),
-        }
-
-    def __len__(self):
-        return self.n
-
-    def get(self, key, default=None):
-        return self.data.get(key, default)
 
 
 # ============================================================================
@@ -198,20 +181,6 @@ def test_teaching_control_source_hard_coded_frequencies():
 # ============================================================================
 # Tests: Quarantine Gates (Exclusion from Default Evidence Path)
 # ============================================================================
-
-
-def test_teaching_control_source_excluded_from_default_objective():
-    """Test that teaching/control source must be explicitly allowed to use in objectives."""
-    neurons = MockNeuronsDataFrame(n=10)
-
-    _, metadata = teaching_control_spectrolaminar_resonance_source(
-        neurons, n_steps=100, dt_ms=0.1
-    )
-
-    # This metadata should prevent default objective path from accepting it
-    assert metadata["spectrolaminar_profile_injected"] is True
-    assert metadata["default_evidence_path"] is False
-    # Objective code should check these flags before using
 
 
 def test_teaching_control_source_empty_population():

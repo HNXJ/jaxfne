@@ -44,7 +44,7 @@ operator factorization this language compiles into.
 | Inspect | $\mathcal{I}$ | Flat state back to TFNE names and paths |
 
 Design principle: factor at specification time; flatten at execution time.
-Flattening changes representation, not TFNE semantics.
+Flattening changes representation only; TFNE semantics are unchanged.
 
 TFNE constrains, possibly underdetermined; completion under `D + K_D`
 (JDNA), realization (Model), and execution are separate stages — see the
@@ -81,10 +81,10 @@ receptors execute at their canonical taus (AMPA 2.0, GABA_A 5.0, NMDA
 100.0, GABA_B 150.0 ms), custom mechanisms at their declared `tau_ms`,
 and anything unresolvable is refused at execution rather than inheriting
 a placeholder. A rule without a mechanism means direct coupling
-(`tfne_direct`, 0.1 ms, not a receptor claim). The realization record still
+(`tfne_direct`, 0.1 ms, rather than a receptor claim). The realization record still
 carries `tau_ms: None` with status `declared_not_simulated` (identity only);
 execution inherits the bridge-resolved tau (P-023): the structural bridge
-derives it from each connection's own `static.dT_ms`, never a default.
+derives it from each connection's own `static.dT_ms`.
 Synaptic kinetics is independent of `dt`, so refining the
 timestep integrates the same synapse model rather than changing it.
 
@@ -94,7 +94,7 @@ fractions of the sampled (area, layer) block's extent within [0,1]: a
 declared sub-range changes the executed positions (sampled inside it),
 while an absent declaration — or a full [0,1] range — takes the
 historical path bit-identically. A range outside [0,1] is refused
-(`E_GEOMETRY_OUT_OF_RANGE`), never rescaled: relative coordinates carry
+(`E_GEOMETRY_OUT_OF_RANGE`): relative coordinates carry
 no physical (mm/um/conductivity/distance) semantics. Geometry is what
 field observables are computed against, so field claims rest on the
 manifest-recorded fractional domains (`tfne_geometry`).
@@ -105,7 +105,7 @@ areas, layers and cell types, but it cannot carry connection parameters:
 field (declared delays ride the bridge as `delay_ms` for inspection only).
 That is why execution goes through the resolved specs rather than
 through the tensor alone, and why the Execute row means the kernels consume the
-realized connectivity, not merely a tensor rebuilt from the same text.
+realized connectivity, which is more than a tensor rebuilt from the same text.
 
 ## Mapping to JaxFNE components
 

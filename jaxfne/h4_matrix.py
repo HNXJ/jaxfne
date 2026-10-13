@@ -57,19 +57,11 @@ class H4ProtocolConfig:
     )
 
 
-def build_ring_params_edges(
-    n_neurons: int,
-    *,
-    delay_steps: np.ndarray | int,
-    weight: float = 6.0,
-    tau_ms: float = 3.0,
-) -> tuple[IzhikevichParams, EdgeList]:
-    """Directed one-neighbor ring with matched local coupling."""
-    if n_neurons < 2:
-        raise ValueError("ring requires n_neurons >= 2")
+def _ring_izhikevich_params(n_neurons: int) -> IzhikevichParams:
+    """Uncalibrated Izhikevich parameters shared by the directed ring builders."""
     jdtype = jnp.float32
     labels = tuple("E" for _ in range(n_neurons))
-    params = IzhikevichParams(
+    return IzhikevichParams(
         v0=jnp.full((n_neurons,), -65.0, dtype=jdtype),
         u0=jnp.zeros((n_neurons,), dtype=jdtype),
         a=jnp.full((n_neurons,), 0.02, dtype=jdtype),
@@ -84,6 +76,20 @@ def build_ring_params_edges(
         layer_labels=labels,
         source_calibration_status="uncalibrated_izhikevich_native_current",
     )
+
+
+def build_ring_params_edges(
+    n_neurons: int,
+    *,
+    delay_steps: np.ndarray | int,
+    weight: float = 6.0,
+    tau_ms: float = 3.0,
+) -> tuple[IzhikevichParams, EdgeList]:
+    """Directed one-neighbor ring with matched local coupling."""
+    if n_neurons < 2:
+        raise ValueError("ring requires n_neurons >= 2")
+    jdtype = jnp.float32
+    params = _ring_izhikevich_params(n_neurons)
     pre = np.arange(n_neurons, dtype=np.int32)
     post = np.roll(pre, -1)
     if isinstance(delay_steps, int):
@@ -125,22 +131,7 @@ def build_ring_params_edges_km(
     if arc_delay_steps.shape != (k_neighbors,):
         raise ValueError(f"arc_delay_steps must have shape ({k_neighbors},)")
     jdtype = jnp.float32
-    labels = tuple("E" for _ in range(n_neurons))
-    params = IzhikevichParams(
-        v0=jnp.full((n_neurons,), -65.0, dtype=jdtype),
-        u0=jnp.zeros((n_neurons,), dtype=jdtype),
-        a=jnp.full((n_neurons,), 0.02, dtype=jdtype),
-        b=jnp.full((n_neurons,), 0.2, dtype=jdtype),
-        c=jnp.full((n_neurons,), -65.0, dtype=jdtype),
-        d=jnp.full((n_neurons,), 8.0, dtype=jdtype),
-        drive=jnp.zeros((n_neurons,), dtype=jdtype),
-        sign=jnp.ones((n_neurons,), dtype=jdtype),
-        W=jnp.zeros((n_neurons, n_neurons), dtype=jdtype),
-        source_scale=jnp.ones((n_neurons,), dtype=jdtype),
-        labels=labels,
-        layer_labels=labels,
-        source_calibration_status="uncalibrated_izhikevich_native_current",
-    )
+    params = _ring_izhikevich_params(n_neurons)
     n_edges = n_neurons * k_neighbors
     pre_blocks = [np.arange(n_neurons, dtype=np.int32) for _ in range(k_neighbors)]
     post_blocks = [

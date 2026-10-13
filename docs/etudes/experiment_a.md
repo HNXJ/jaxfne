@@ -74,7 +74,7 @@ python scripts/run_experiment_a.py
 
 === "Interactive"
 
-    <iframe class="jx-frame" src="../_static/etudes/experiment_a/index.html" loading="lazy" title="Experiment A bundle figure"></iframe>
+    <iframe class="jx-frame" src="../../_static/etudes/experiment_a/index.html" loading="lazy" title="Experiment A bundle figure"></iframe>
 
 Rendered still from the frozen `canonical_source.npz` (no resimulation; `python scripts/plot_experiment_a_still.py`). [Open full page](../_static/etudes/experiment_a/index.html).
 

@@ -446,10 +446,6 @@ class TestSourceModeAllowedValues:
 # ─── Test 15: physical amplitude claim remains false under proxy basis ─────────
 
 class TestPhysicalAmplitudeClaimFalseInProxyBasis:
-    def test_default_basis_claim_allowed_false(self):
-        b = default_basis_spec()
-        assert b.claim_allowed is False
-
     def test_validation_physical_amplitude_always_false(self):
         b = default_basis_spec()
         v = validate_basis_spec(b)

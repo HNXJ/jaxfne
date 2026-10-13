@@ -28,7 +28,7 @@ Concept DOI (all versions): 10.5281/zenodo.0000000   ← put this in CITATION.cf
 
 ## What triggers an update
 
-Zenodo watches **published GitHub Releases**, not bare git tags.
+Zenodo watches **published GitHub Releases** only.
 
 | Event | Zenodo archives? |
 |-------|------------------|

@@ -57,7 +57,7 @@ This runs inside the `jax.lax.scan` step functions of:
 
 `I` (`current_native` in source) is an **uncalibrated internal drive**, distinct from a physical current in
 amperes — every kernel in this module sets `source_calibration_status` to a value such as
-`"uncalibrated_izhikevich_native_current"`, never a physical-calibration claim.
+`"uncalibrated_izhikevich_native_current"`.
 
 ### Canonical source representation
 
@@ -230,7 +230,7 @@ Notes:
 - **Kernel** is the declared computation; single-pole decay (matches `simulate_edge_recurrent_izhikevich` / `simulate_receptor_exponential_izhikevich`).
 - **Conductance** column: the shipped dynamics are current-based; `g_mech`/`reversal_potentials_mV` in `StaticParams` and `ReceptorSpec.reversal_mV` are provenance metadata surfacing in `cfg.metadata["circuit"]["mechanisms"]`.
 - **Reversal** values are the standard specs (`standard_receptor_specs()`); they are declarative specifications.
-- The default `EdgeList` construction from dense weights assigns `tau=2.0` for `weight >= 0` and `tau=5.0` for `weight < 0`; mechanism-specific dynamics need the mechanism-aware `edges.tau_ms` wiring (see `synaptic_tau_from_mechanism` inertness note — additive, not yet compiled into `core._compile_connection_rules`).
+- The default `EdgeList` construction from dense weights assigns `tau=2.0` for `weight >= 0` and `tau=5.0` for `weight < 0`; mechanism-specific dynamics need the mechanism-aware `edges.tau_ms` wiring (see `synaptic_tau_from_mechanism` inertness note — additive; compilation into `core._compile_connection_rules` is pending).
 
 ---
 
@@ -472,7 +472,7 @@ by `hdp_rule` (`"signed_linear"` default, or `"signed_quadratic"`, `"hebbian_pro
 `Delta_H = H_post - H_pre` and `w = q*m`; the difference-family magnitude term is
 `q*K_HDP*phi(Delta_H)*m`, with `phi(x)=x` for `"signed_linear"` and
 `phi(x)=x*abs(x)` for `"signed_quadratic"`. `"hebbian_product"` is separate product
-modulation using `H_pre*H_post`, not another difference rule. The independent
+modulation using `H_pre*H_post`, a product rule. The independent
 `K_w_ctrl*(m0-m)` term restores magnitude toward the declared baseline. All
 H income/spending gains (`alpha`, `beta`, `gamma`, `delta`, `C_spike`) default to
 `0.0`, and `K_HDP` defaults to `1.0` but multiplies a zero weight-update
@@ -719,7 +719,7 @@ custom Python callable bypasses `Configuration` entirely, via
   `~2.58` at the canonical `dt_x`) can diverge to
   `NaN` — reproduced at N=16 with the shipped flat `G_max=5.0` default.
 - `"stable"`: smooth `tanh` soft-bound (`_soft_bound`) on `x`, `G`, and `H`
-  every step instead of `jnp.clip` — a bounded *codomain*, not a *force*: cannot be
+  every step instead of `jnp.clip` — a bounded *codomain* constraint: cannot be
   outrun by any step size, N, or gain, and is gradient-friendly everywhere
   (unlike `jnp.clip`'s zero-gradient boundary). Requires `HomeostaticEIParams.x_min`/
   `.x_max` (new fields; default a very wide `+-1e6`, safe/inert for `"minimal"` mode).
@@ -732,3 +732,87 @@ scripts/experiments needing a `HomeostaticEIParams` without
 `Configuration`/`construct()`. `G_max` defaults to `10.0/n` —
 holds the aggregate per-row Hebbian feedback ceiling (`n * G_max`) constant across `n`.
 </content>
+
+## AdEx family (conductance-based, `jaxfne/emitters_adex.py`)
+
+`family="adex"` builds conductance-based AdEx cells (Tahvili, Vinck and di Volo 2026, Methods
+Eqs. 15-18). The population is `network(n=, cell_types=)` over `E`, `PV` and `SOM`. Each synapse
+type is a `mechanisms()` declaration (one receptor each, indexed in declaration order), and
+`connections()` rules wire them. Every rule names a mechanism and gives `weight` (nS; `|w|` is
+used) and `delay_ms`.
+
+```python
+import jaxfne as jtfne
+
+cfg = (
+    jtfne.Configuration()
+    .network(name="adex60", n=60, cell_types={"E": 0.8, "PV": 0.1, "SOM": 0.1})
+    .emitter(family="adex", adex_decay="exp", adex_step_order="default")
+    .mechanisms(name="ampa", kind="receptor", params={"tau_ms": 2.0, "reversal_mV": 0.0})
+    .mechanisms(name="gaba", kind="receptor", params={"tau_ms": 8.0, "reversal_mV": -80.0})
+    .connections(name="e_e", source={"cell_type": "E"}, target={"cell_type": "E"},
+                 probability=0.2, weight=0.5, mechanism="ampa", delay_ms=2.0,
+                 sampling="bernoulli")
+    .connections(name="pv_e", source={"cell_type": "PV"}, target={"cell_type": "E"},
+                 probability=0.2, weight=2.0, mechanism="gaba", delay_ms=2.0,
+                 sampling="bernoulli")
+    .connectivity(edge_seed=11)
+)
+model = jtfne.construct(cfg)
+signals = model.simulate(jtfne.Simulation(duration_ms=50.0, dt_ms=0.1, seed=0))
+print(signals.V_m.shape)
+```
+
+- `adex_decay` is required: construct refuses it when absent. `"exp"` uses `exp(-dt/tau)`, and
+  `"euler"` uses `1 - dt/tau` (the CAMINOS reference).
+- `adex_step_order` is `"default"` or `"brian2"`; `"brian2"` shifts the refractory count and the
+  delay ring by one step (see `simulate_adex`).
+- Edges are drawn with `connectivity(edge_seed=)`, or with the runtime seed when that is unset,
+  as the plain route does.
+- `simulate` realizes `round(delay_ms / dt_ms)` steps, rounded half up from the float quotient, and
+  refuses a delay under one step, naming the rule. It returns `time_ms`, `V_m` (mV), `spikes` and
+  metadata; `sources` and `field` are `None`, and `metadata["not_recorded"]` lists both.
+- With the drive off, the cells start at rest with zero input current.
+  `simulate_adex` takes `I_ext_pA` and `V0_mV` directly, and it takes the external
+  conductance drive through `ext_targets`, `ext_lambda`, `ext_weight_nS`, `ext_receptor`,
+  `ext_delay_steps` and `key` (all given or all None; see `simulate_adex`).
+- `Simulation(poisson_drive=...)` drives the cells. It carries exactly the keys `n_sources`
+  (int >= 1), `rate_hz` (> 0), `weight_nS` (>= 0), `mechanism` (a declared mechanism name),
+  `target_cell_types` (a non-empty list of declared cell types), `delay_ms` and `seed`
+  (int). Each target cell draws a Poisson count per step with mean
+  `n_sources * rate_hz * dt_ms / 1000`; each count adds `weight_nS` to the mechanism's
+  conductance after `delay_ms` (realized by the same half-up step rule as rule delays). The
+  key is `jax.random.PRNGKey(seed)`. A count drawn at step `t` acts at step `t + d`, so the
+  external drive starts at step `d`. Unknown or missing keys refuse by name, as do
+  `amplitude` and `target` from the current-drive schema.
+- The `Model` methods that read the edge list, the recurrent backend, the Izhikevich parameters or
+  an HDP or coupling state raise `NotImplementedError` naming the method: `edge_table()`,
+  `compile_connections()`, `connectivity_summary()`, `manifest()`, `run_receipt()`, `tune()`,
+  `with_hdp_initial_state()`, `with_recurrent_coupling()`, `with_emitter_parameters()`,
+  `summary()`, `checkpoint()` and `dense_recurrent_weights()`. The edges live in `static["adex"]`.
+  `Model.probe()` returns the arrays of the signals it is given.
+- Allowlist. The route reads a fixed set of fields. Every other field of `Configuration`,
+  `RuntimeConfig` and `Simulation` must equal its default. Construct or simulate refuses a field set
+  away from its default and names the field and its value. The fields the route reads are:
+  - `network(name=, n=, cell_types=)`: `name` labels the run (`metadata["network"]`); `n` and
+    `cell_types` set the population.
+  - `emitter(family="adex", adex_decay=, adex_step_order=)`.
+  - `mechanisms(name=, kind="receptor", params={"tau_ms": ..., "reversal_mV": ...})`: `name` labels
+    the receptor (`metadata["receptors"]`).
+  - `connections(name=, source=, target=, probability=, weight=, mechanism=, delay_ms=, sampling=)`:
+    `name` labels the rule (`metadata["rules"]`).
+  - `connectivity(edge_seed=)`, or `runtime(seed=)` when that is unset: the edge seed draws the edges.
+  - `runtime(dt_ms=, duration_ms=)`: each must equal the Simulation's value, or simulate refuses the
+    conflict.
+  - `Simulation(poisson_drive=)`: the external drive described above.
+- Route defaults: `runtime(recurrent_backend=)` defaults to `"edge_list"`; every other default is the
+  `RuntimeConfig` default. A `RuntimeConfig` passed to `simulate` therefore sets
+  `recurrent_backend="edge_list"`.
+- Record flags: `Simulation(record_sources=, record_fields=)` are accepted at their defaults only and
+  change nothing on this route.
+- Refused by name, for example: `network(p_connect=)`, `runtime(backend=)`, `runtime(device_type=)`,
+  `runtime(precision=)`, `runtime(vmap=)`, `runtime(enable_hdp=)`, `runtime(jit=)` other than
+  `"auto"`, `emitter(preset=)`, `drive()`, `field()`, `probe()`, `trainables()`, `optimizer()`,
+  `connections(sign=)`, `Simulation(plasticity=)` and `Simulation(ablation=)`.
+- Refused explicitly: `continuation`, `return_state`, `paradigm`, `simulate_batch` and
+  `simulate_condition`.

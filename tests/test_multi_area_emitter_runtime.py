@@ -4,25 +4,8 @@ import numpy as np
 import pytest
 import jax
 
+from _shared_fixtures import MockNeuronsDataFrame
 from jaxfne.emitters import simulate_multi_area_izhikevich
-
-
-class MockNeuronsDataFrame:
-    """Mock neuron dataframe for testing."""
-
-    def __init__(self, n=20, areas=None, layers=None, cell_types=None):
-        self.n = n
-        self.data = {
-            "area": areas or (["V1"] * (n // 2) + ["PFC"] * (n - n // 2)),
-            "layer": layers or (["L4"] * (n // 2) + ["L5"] * (n - n // 2)),
-            "cell_type": cell_types or (["E"] * int(0.75 * n) + ["PV"] * (n - int(0.75 * n))),
-        }
-
-    def __len__(self):
-        return self.n
-
-    def get(self, key, default=None):
-        return self.data.get(key, default)
 
 
 def test_multi_area_emitter_spike_bounds():

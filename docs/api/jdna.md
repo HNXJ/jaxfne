@@ -46,7 +46,7 @@ declared tolerance bands, geometry, and typed connection schemes.
 `develop`.
 
 **Ownership.** `jaxfne.jdna.genome`. Serialized as JSON data
-(`pseudogenome_v1`), never as code.
+(`pseudogenome_v1`).
 
 **Invariants.** Every layer declares positive `n_neurons`, a valid depth band
 `0 <= lo < hi <= 1`, and cell-type fractions summing to 1. Tolerances are
@@ -65,7 +65,7 @@ NeuronalTensor directly — JDNA is optional.
 **Determinism.** Purely deterministic; equality is structural (frozen
 dataclass).
 
-**Status.** CANONICAL (0.4.17).
+**Status.** CANONICAL since 0.4.17.
 
 ## develop
 
@@ -97,9 +97,9 @@ kernels.
 
 **Deterministic/stochastic behavior.** Deterministic in `seed`; the jitter is
 pseudo-random (JAX PRNG), i.e. reproducible. Variation across seeds is
-*computational pseudo-genomic variation*, not biological genetic variability.
+*computational pseudo-genomic variation*; biological genetic variability is not modeled.
 
-**Status.** CANONICAL (0.4.17).
+**Status.** CANONICAL since 0.4.17.
 
 ## Loaders
 

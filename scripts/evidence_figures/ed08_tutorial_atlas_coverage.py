@@ -29,6 +29,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
 from _figure_common import (
+    _read_json_if_exists,
     save_matplotlib_figure,
     ensure_evidence_dirs,
     repo_root,
@@ -85,15 +86,6 @@ MATRIX_COLUMNS = ["import", "receipt", "ci_test", "artifacts", "gates"]
 _dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "ed08_tutorial_atlas_coverage.png"
 RECEIPT_PATH = _dirs["outputs"] / "ed08_tutorial_atlas_coverage_receipt.json"
-
-
-def _read_json_if_exists(path: Path) -> dict | None:
-    if not path.is_file():
-        return None
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return None
 
 
 def _discover_notebooks(root: Path) -> list[Path]:

@@ -10,7 +10,7 @@ it on does three things at once:
 - **Models short-term adaptation** — the slow rate trace yields spike-frequency
   adaptation.
 
-It is a *control method*, not a claimed biological plasticity mechanism — a
+It is a *control method*, rather than a claim of a biological plasticity mechanism — a
 restoring controller on excitability, useful as stabilizer and as adaptation
 proxy. jaxfne is the mathematical backend; the configuration sets the
 controller's role in a model.

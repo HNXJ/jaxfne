@@ -90,7 +90,7 @@ Contact-depth operators (declared Gaussian rows, `LinearReadout`):
 | `contact_shallow` | 0.20 | 0.10 |
 | `contact_deep` | 0.80 | 0.10 |
 
-Locality metric (1-D laminar, not a new package primitive):
+Locality metric (1-D laminar; no new package primitive):
 
 \[
 R_{90}(p)=\min\left\{R:\sum_{i:|z_i-c_p|\le R}|K_{p i}|
@@ -100,7 +100,7 @@ R_{90}(p)=\min\left\{R:\sum_{i:|z_i-c_p|\le R}|K_{p i}|
 Frequency-dependent effective contributing population: replace \(|K_{pi}|\)
 by \(|K_{pi}|\,P_{Q,i}(f_{\rm band})\) and recompute \(R_{90}\). Static \(K\)
 is not a frequency-dependent medium; any band dependence is source-structure
-× operator, not impedance.
+× operator rather than impedance.
 
 Authority target:
 
@@ -140,8 +140,8 @@ For burn-in-trimmed traces, package `spectrolaminar_psd_jax` at
 P_Q(f),\; P_{\rm LFP}(f),\; P_{\rm CSD}(f),\; P_{\rm EEG}(f).
 \]
 
-Ask which structures are preserved, attenuated, amplified, or mixed — not
-merely whether PSDs differ.
+Ask which structures are preserved, attenuated, amplified, or mixed. The question is more than
+whether PSDs differ.
 
 ### Negative control
 
@@ -163,8 +163,8 @@ identical numerical \(O\) ⇒ identical \(Y\) (negative control).
 
 **Level C — neurophysiological consequence.** Operator changes alter
 interpretable spatial/spectral measurements (e.g. \(R_{90}\) vs width;
-LFP vs CSD spectral centroid; superficial vs deep EEG band ratios), not
-merely bitwise inequality.
+LFP vs CSD spectral centroid; superficial vs deep EEG band ratios), beyond
+bitwise inequality.
 
 ---
 
@@ -203,7 +203,7 @@ Emitter variation is a **later** étude on the same observation stack.
 
 === "Interactive"
 
-    <iframe class="jx-frame" src="../_static/etudes/multiscale_observation/index.html" loading="lazy" title="Multiscale observation bundle figure"></iframe>
+    <iframe class="jx-frame" src="../../_static/etudes/multiscale_observation/index.html" loading="lazy" title="Multiscale observation bundle figure"></iframe>
 
 Committed bundle still (`artifacts/etudes/multiscale_observation/figure.png`). [Open full page](../_static/etudes/multiscale_observation/index.html).
 

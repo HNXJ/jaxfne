@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_c.c3_execution import (
     C3_CONDITION_SUMMARY_PATH,
     C3_EXECUTION_RECEIPT_PATH,
@@ -20,10 +19,6 @@ from jaxfne.protocol_c.c3_protocol import c3_condition_ids, load_c3_spec
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BUNDLE_ROOT = REPO_ROOT / "artifacts" / "protocol_c"
 C4_INTERPRETATION_RECEIPT_PATH = BUNDLE_ROOT / "c4_interpretation_receipt.json"
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def _count_classifications(cells: list[dict[str, Any]], condition_id: str) -> dict[str, int]:
@@ -191,7 +186,7 @@ def build_c4_interpretation(
             "checkpoint": "C4",
             "status": "FROZEN",
             "write_once": True,
-            "package_head": package_head or _git_head(),
+            "package_head": package_head or _git_head(REPO_ROOT),
             "execution_receipt": str(C3_EXECUTION_RECEIPT_PATH.relative_to(REPO_ROOT)),
             "condition_summary": str(C3_CONDITION_SUMMARY_PATH.relative_to(REPO_ROOT)),
             "outcome_letter": outcome,

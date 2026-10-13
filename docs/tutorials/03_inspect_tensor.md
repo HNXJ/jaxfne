@@ -16,7 +16,7 @@ print(len(tensor.areas[0].layers))  # 6
 print(sum(l.n_neurons for l in tensor.areas[0].layers))  # 1000
 print(sum(1 for a in genome.areas for c in a.inter_connections))  # 48 declared rules
 
-# round-trip: configs are data, never code
+# round-trip: configs are data
 path = jtfne.save_neuronal_tensor(tensor, "/tmp/cumulative_1000n.json")
 assert jtfne.load_neuronal_tensor(path).name == tensor.name
 ```

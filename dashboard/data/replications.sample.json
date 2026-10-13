@@ -1,0 +1,85 @@
+{
+  "schema": "jaxfne-replications/1",
+  "sample": true,
+  "generated": {"utc": "2026-10-12T00:00:00Z", "dev_sha": "0000000000000000000000000000000000000000"},
+  "papers": [
+    {
+      "id": "demo-a",
+      "title": "SAMPLE paper A, Fig. 1",
+      "citation": "Sample et al. 2026",
+      "release": "0.5.6",
+      "tier": "T-methods",
+      "stage": "P5",
+      "lane": {"branch": "lane-a", "sha": "1111111111111111111111111111111111111111"},
+      "verdict": "not reproduced",
+      "summary": "SAMPLE: three criteria pass, one fails, one is pending.",
+      "preregs": [
+        {"id": "v1", "signed": "2026-10-11", "path": "artifacts/etudes/a/PREREG.md", "url": "https://github.com/hnxj/jaxfne/blob/1111111111111111111111111111111111111111/artifacts/etudes/a/PREREG.md"}
+      ],
+      "criteria": [
+        {"id": "R1", "group": "", "claim": "oscillates near 35 Hz", "estimand": "peak frequency", "criterion": "30–40 Hz in every seed",
+         "value": 33.8, "value_text": "33.8", "value_label": "mean f_pk", "unit": "Hz", "extra": [],
+         "verdict": "pass", "reason": "", "prereg": "v1",
+         "evidence": {"path": "artifacts/etudes/a/score.json", "url": "https://github.com/hnxj/jaxfne/blob/1111111111111111111111111111111111111111/artifacts/etudes/a/score.json"}},
+        {"id": "R2", "group": "", "claim": "SOM after PV", "estimand": "lag", "criterion": "mean 6–11 ms",
+         "value": 7.04, "value_text": "7.04", "value_label": "mean lag", "unit": "ms", "extra": [],
+         "verdict": "pass", "reason": "", "prereg": "v1",
+         "evidence": {"path": "artifacts/etudes/a/score.json", "url": "https://github.com/hnxj/jaxfne/blob/1111111111111111111111111111111111111111/artifacts/etudes/a/score.json"}},
+        {"id": "R3", "group": "", "claim": "onset above critical p", "estimand": "oscillation against p", "criterion": "silent at 0.02",
+         "value": 0.02, "value_text": "0.02", "value_label": "smallest p", "unit": "",
+         "extra": [{"label": "N-label 99th", "value": 1.21, "value_text": "1.21"}],
+         "verdict": "fail", "reason": "SAMPLE: every p oscillates", "prereg": "v1",
+         "evidence": {"path": "artifacts/etudes/a/score.json", "url": "https://github.com/hnxj/jaxfne/blob/1111111111111111111111111111111111111111/artifacts/etudes/a/score.json"}},
+        {"id": "R3v2", "group": "", "claim": "onset above critical p", "estimand": "as R3, amended drive", "criterion": "silent at 0.02",
+         "value": null, "value_text": "—", "value_label": "smallest p", "unit": "", "extra": [],
+         "verdict": "pending", "reason": "", "prereg": "v2",
+         "evidence": {"path": "artifacts/etudes/a/score_v2.json", "url": null}}
+      ],
+      "sensitivity": [
+        {"id": "S1", "label": "float64", "status": "agrees", "note": "SAMPLE",
+         "rows": [{"metric": "f_pk", "unit": "Hz", "value": 34.0, "ref": 33.0, "ref_range": [33.0, 34.0]},
+                  {"metric": "E rate", "unit": "Hz", "value": 1.121, "ref": 1.135, "ref_range": [1.054, 1.136]}]},
+        {"id": "S4", "label": "shared drive", "status": "invalid", "note": "SAMPLE: silent network",
+         "rows": [{"metric": "f_pk", "unit": "Hz", "value": null, "ref": 33.0, "ref_range": [33.0, 34.0]},
+                  {"metric": "E rate", "unit": "Hz", "value": 0.0, "ref": 1.135, "ref_range": [1.054, 1.136]}]}
+      ],
+      "charts": [
+        {"id": "lines_demo", "title": "SAMPLE peak excess against p", "kind": "lines",
+         "x": {"label": "connection probability p", "unit": ""}, "y": {"label": "peak excess", "unit": "", "log": true},
+         "traces": [
+           {"name": "v6 seed 1", "group": "v6", "x": [0.02, 0.05, 0.07, 0.1], "y": [89.9, 30.0, 13.8, 7.1], "markers_only": false},
+           {"name": "v6 seed 2", "group": "v6", "x": [0.02, 0.05, 0.07, 0.1], "y": [98.2, 27.9, 16.3, 7.1], "markers_only": false},
+           {"name": "v7 seed 1", "group": "v7", "x": [0.02, 0.05, 0.07, 0.1], "y": [1.2, 3.0, 13.8, 20.0], "markers_only": false}
+         ],
+         "refs": [{"kind": "hline", "y": 4, "label": "threshold 4"}, {"kind": "band", "y0": 30, "y1": 40, "label": "band"}],
+         "caption": "SAMPLE caption.", "evidence": {"path": "artifacts/etudes/a/score.json", "url": "https://github.com/hnxj/jaxfne/blob/1111111111111111111111111111111111111111/artifacts/etudes/a/score.json"}},
+        {"id": "bars_demo", "title": "SAMPLE ratios against nulls", "kind": "bars",
+         "x": {"label": "", "unit": ""}, "y": {"label": "ratio", "unit": "", "log": false},
+         "categories": ["R_ori simple", "R_ori complex", "R_sf simple", "R_sf complex"],
+         "traces": [
+           {"name": "scored", "group": "scored", "y": [3.57, 5.30, 1.45, 1.46]},
+           {"name": "N-label 99th", "group": "N-label 99th", "y": [1.21, 1.27, 1.16, 1.19]}
+         ],
+         "refs": [{"kind": "hline", "y": 2, "label": "criterion 2"}],
+         "caption": "SAMPLE caption.", "evidence": {"path": "artifacts/etudes/a/score.json", "url": "https://github.com/hnxj/jaxfne/blob/1111111111111111111111111111111111111111/artifacts/etudes/a/score.json"}}
+      ],
+      "open": ["SAMPLE open item."]
+    },
+    {
+      "id": "demo-b",
+      "title": "SAMPLE paper B",
+      "citation": "Sample 2025",
+      "release": "0.5.7",
+      "tier": "T-port",
+      "stage": "P3",
+      "lane": {"branch": "lane-b", "sha": "2222222222222222222222222222222222222222"},
+      "verdict": "pending",
+      "summary": "SAMPLE: preregistration drafted, not scored.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": []
+    }
+  ]
+}

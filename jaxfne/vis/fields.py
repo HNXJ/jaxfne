@@ -14,10 +14,14 @@ from typing import Any
 import jax
 import matplotlib.figure
 import numpy as np
-from scipy import signal
 
 from ..core import Signals
-from .core import neuron_rows as _neuron_rows, prepare_static_plot_matrix, require_matplotlib
+from .core import (
+    neuron_rows as _neuron_rows,
+    prepare_static_plot_matrix,
+    require_matplotlib,
+    welch_psd,
+)
 
 
 def plot_laminar_field_interpolation(field_potential_tensor: jax.Array, grid_coords: dict) -> Any:
@@ -157,9 +161,8 @@ def spectrolaminar(signals: Signals, **kwargs: Any) -> Any:
     dt_ms = float(meta.get("dt_ms", 0.05)) if isinstance(meta, dict) else 0.05
     fs = 1000.0 / dt_ms  # Sampling frequency in Hz
 
-    # Compute Power Spectral Density (PSD) via SciPy Welch for each laminar contact
-    nperseg = min(256, lfp.shape[0])
-    freqs, psds = signal.welch(lfp, fs=fs, axis=0, nperseg=nperseg)
+    # Compute Power Spectral Density (PSD) via the shared Welch contract for each laminar contact
+    freqs, psds = welch_psd(lfp, fs, nperseg=256)
 
     # Slice frequency axis to neurophysiologically relevant band (0 to 150 Hz)
     freq_mask = freqs <= 150.0
@@ -862,8 +865,8 @@ def spectrolaminar_suite(
             else 0.1
         )
         fs = 1000.0 / dt_ms
-        nperseg = psd_nperseg if psd_nperseg is not None else min(512, lfp_arr.shape[0])
-        freqs, pxx = signal.welch(lfp_arr, fs=fs, axis=0, nperseg=int(nperseg))
+        nperseg = psd_nperseg if psd_nperseg is not None else 512
+        freqs, pxx = welch_psd(lfp_arr, fs, nperseg=int(nperseg))
         mask = (freqs >= freq_min_hz) & (freqs <= freq_max_hz)
         axes[3].plot(freqs[mask], np.mean(pxx[mask], axis=1))
         axes[3].set_title("Mean PSD")

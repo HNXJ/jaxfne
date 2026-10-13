@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 from dataclasses import replace
 from typing import Any, Mapping
 
@@ -13,7 +12,7 @@ import numpy as np
 
 import jaxfne as jtfne
 from jaxfne.emitters import _edge_delay_steps_host
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_e_integration.e1_execution import (
     build_edge_provenance_table,
     build_e1_configuration,
@@ -44,10 +43,6 @@ _BANNED_RECEIPT_TERMS = (
     "hdp",
     "field_evidence",
 )
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def _e2_runtime() -> jtfne.RuntimeConfig:
@@ -497,7 +492,7 @@ def run_e2_delayed_coupling(*, package_head: str | None = None) -> dict[str, Any
         "checkpoint": "E2",
         "status": "FROZEN",
         "write_once": True,
-        "package_head": package_head or _git_head(),
+        "package_head": package_head or _git_head(REPO_ROOT),
         "spec_path": "artifacts/protocol_e_integration/e2_delayed_coupling_spec.json",
         "scientific_question": spec["question"],
         "composition_claim": (

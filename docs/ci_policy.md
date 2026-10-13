@@ -4,7 +4,7 @@
 
 jaxfne uses four named validation gates. **The executable definitions live in
 `scripts/run_test_gate.py`** (Makefile targets mirror them). Documentation
-refers to gate names only — not duplicated file lists.
+refers to gate names only, and file lists are not duplicated.
 
 | Gate | Command | Scope | Typical wall time |
 |------|---------|-------|-------------------|
@@ -136,8 +136,8 @@ editing either field by hand cannot authorize a release. See
 
 ## Environment parity
 
-The subsumption invariant is about *executed tests*, not about check family
-names, so it depends on the gate environment being able to run everything CI
+The subsumption invariant is about *executed tests* alone. Check family
+names play no part, so it depends on the gate environment being able to run everything CI
 runs. When an optional dependency is absent, a module guarded by
 `pytest.importorskip` is skipped at **collection**: its tests produce no node
 IDs, nothing fails, and the family still reports PASS while the gate quietly
@@ -174,7 +174,7 @@ do not describe them as independently CI-tested.
 `3.10` is not supported: the `dev`/`viz` extras pin `scipy==1.17.1`, which
 publishes no cp310 wheels, and the `jax`/`jaxlib` line the package resolves
 against already floors at `>=3.11`. Dropping nominal 3.10 support is evidence
-alignment, not removal of a validated configuration.
+alignment, and no validated configuration is removed.
 
 Wheel availability for both endpoints was checked against the package index
 rather than assumed -- `scipy 1.17.1`, `matplotlib 3.10.9` and `jaxlib 0.10.2`
@@ -207,7 +207,7 @@ any upload step runs. If no successful `release_ci` run exists for the commit,
 or the manifest names a different commit, or a hash differs, publishing fails
 rather than falling back to a build.
 
-The manifest is generated, never committed. Committing it would change the tree,
+The manifest is generated. Do not commit it. Committing it would change the tree,
 and therefore the commit SHA it claims to certify — the same self-reference the
 release-candidate attestation avoids. Retained artifacts live in the gitignored
 `artifacts/release_candidate/` locally and as CI artifacts remotely.
@@ -253,8 +253,10 @@ Admin pushes therefore still bypass the required checks.
 ## Documentation surfaces
 
 [ReadTheDocs](https://jaxfne.readthedocs.io/) is the **authoritative** published
-documentation: it builds `mkdocs.yml` from the repository on every push, and the
-build's recorded commit is what the docs correspond to.
+documentation: it builds `mkdocs.yml` from `main` (latest) and each release tag
+(stable), and the build's recorded commit is what the docs correspond to. Before
+mkdocs runs, `scripts/build_docs_assets.py --build` regenerates the atlas HTML and
+fails the build when an atlas departs from `docs/_static/atlas_registry.json`.
 
 The `gh-pages` branch is **historical and inactive**. It holds an older
 deployment (release candidate docs for v0.4.20) and is intentionally not
@@ -264,5 +266,5 @@ current, and do not reconcile it against a release SHA.
 
 ## Performance benchmarks
 
-Deterministic benchmark scripts exist for documentation; they are **not**
-automatic CI gates. See the repository-local performance baseline notes (not part of the built site).
+Deterministic benchmark scripts exist for documentation and sit
+outside the CI gates. See the repository-local performance baseline notes (not part of the built site).

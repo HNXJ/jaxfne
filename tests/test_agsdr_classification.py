@@ -166,7 +166,7 @@ class TestDocsClassification:
     def test_mislabeled_grid_search_relabeled(self):
         text = (REPO_ROOT / "docs/BASELINE_DRIVE_REFERENCE.md").read_text(encoding="utf-8")
         assert "grid search" in text.lower()
-        assert "not the AGSDR" in text
+        assert "separate from the AGSDR" in text
 
     def test_objective_grammar_uses_factory_not_legacy_class(self):
         text = (REPO_ROOT / "docs/guides/objective_grammar.md").read_text(encoding="utf-8")

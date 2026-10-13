@@ -352,6 +352,75 @@ def _candidate_pairs(
     return sorted(all_pairs[int(i)] for i in idx)
 
 
+#: Tile budget (candidate pairs) for chunked Bernoulli sampling: a rule whose
+#: n_pre x n_post product exceeds this never materializes the dense pair grid;
+#: uniform draws are taken per tile instead. Matches the sign-only compiler's
+#: ``_CONNECTIONS_EXACT_PRODUCT_CAP`` so both paths switch regime together.
+_BERNOULLI_TILE_ELEMENTS = 4_000_000
+
+
+def _candidate_pairs_bernoulli(
+    pre_ids: list[int],
+    post_ids: list[int],
+    *,
+    probability: Optional[float],
+    allow_self: bool,
+    key: jax.Array,
+) -> list[tuple[int, int]]:
+    """Return (pre, post) edge pairs via independent per-pair Bernoulli draws.
+
+    Each (pre, post) candidate is included independently with probability ``p``;
+    with ``allow_self=False``, ``i == i`` pairs are excluded after the draw.
+    ``probability=None`` -> full bipartite (sparse list, no dense mask);
+    ``p >= 1`` -> full all-to-all (minus self unless allowed); ``p <= 0`` ->
+    no edges. Sampling is deterministic given ``key``. Rules larger than
+    :data:`_BERNOULLI_TILE_ELEMENTS` candidate pairs are drawn per tile of
+    post cells (tiled over pre cells too if one column still exceeds the
+    budget), so no dense n_pre x n_post array is ever materialized.
+    """
+    n_pre, n_post = len(pre_ids), len(post_ids)
+    if n_pre == 0 or n_post == 0:
+        return []
+
+    def _all_pairs():
+        return [(a, b) for a in pre_ids for b in post_ids if allow_self or a != b]
+
+    if probability is None:
+        return _all_pairs()
+    p = float(probability)
+    if p <= 0.0:
+        return []
+    if p >= 1.0:
+        return _all_pairs()
+
+    pre_arr = np.asarray(pre_ids)
+    post_arr = np.asarray(post_ids)
+    c_post = max(1, min(n_post, _BERNOULLI_TILE_ELEMENTS // max(n_pre, 1)))
+    c_pre = max(1, min(n_pre, _BERNOULLI_TILE_ELEMENTS // max(c_post, 1)))
+    pairs: list[tuple[int, int]] = []
+    tile = 0
+    for js in range(0, n_post, c_post):
+        chunk_post = post_arr[js : js + c_post]
+        for i_s in range(0, n_pre, c_pre):
+            chunk_pre = pre_arr[i_s : i_s + c_pre]
+            u = np.asarray(
+                jax.random.uniform(jax.random.fold_in(key, tile), (chunk_pre.size, chunk_post.size))
+            )
+            tile += 1
+            hit = np.argwhere(u < p)
+            if hit.size == 0:
+                continue
+            sel_pre = chunk_pre[hit[:, 0]].tolist()
+            sel_post = chunk_post[hit[:, 1]].tolist()
+            if allow_self:
+                pairs.extend(zip(sel_pre, sel_post))
+            else:
+                pairs.extend(
+                    (int(a), int(b)) for a, b in zip(sel_pre, sel_post) if a != b
+                )
+    return sorted(pairs)
+
+
 def _spatial_bucket_key(pos: np.ndarray, cell_size: float) -> tuple[int, int, int]:
     return tuple(int(math.floor(c / cell_size)) for c in pos)
 
@@ -603,6 +672,13 @@ def compile_connection_rules(
     target.
     Requires every selected neuron row to carry ``x``/``y``/``z``.
 
+    A rule may set ``sampling`` to ``"density"`` (default: the realized unique
+    edge count is exactly ``round(p*n_pre*n_post)``) or ``"bernoulli"`` (each
+    (pre, post) pair is included independently with probability ``p`` via
+    :func:`_candidate_pairs_bernoulli`, tiled past 4M candidate pairs so no
+    dense mask is materialized). Any other ``sampling`` value raises
+    ``ValueError``.
+
     A rule may set ``delay_ms`` (configured axonal delay in ms, None =
     undeclared): validated here (finite, >= 0), fanned out per edge onto
     ``edge_delay_ms``, and recorded on the connection-table row. Realization
@@ -661,6 +737,19 @@ def compile_connection_rules(
         # Configured delay (ms) is a per-rule constant: validated once here,
         # fanned out per edge below, realized to steps at construction.
         rule_delay_ms = _validate_rule_delay_ms(rname, rule.get("delay_ms"))
+        # Validated before any skip, so an empty or localized rule cannot carry a bad value.
+        sampling = rule.get("sampling")
+        sampling = "density" if sampling is None else sampling
+        if not isinstance(sampling, str) or sampling not in ("density", "bernoulli"):
+            raise ValueError(
+                f"connection {rname!r} sampling must be 'density' or 'bernoulli'; "
+                f"got {sampling!r}"
+            )
+        if sampling == "bernoulli" and rule.get("max_in_degree") is not None:
+            raise ValueError(
+                f"connection {rname!r} sampling='bernoulli' is not implemented with "
+                "max_in_degree (localized sampling); omit one of them"
+            )
         # _select_indices honors allow_empty internally (returns [] vs raises on
         # zero-match) and ALWAYS raises on a structurally invalid (non-mapping)
         # selector. No try/except here: structural errors must surface loudly,
@@ -711,13 +800,22 @@ def compile_connection_rules(
                 key=rkey,
             )
         else:
-            pairs = _candidate_pairs(
-                pre_ids,
-                post_ids,
-                probability=rule.get("probability"),
-                allow_self=rule_self,
-                key=rkey,
-            )
+            if sampling == "bernoulli":
+                pairs = _candidate_pairs_bernoulli(
+                    pre_ids,
+                    post_ids,
+                    probability=rule.get("probability"),
+                    allow_self=rule_self,
+                    key=rkey,
+                )
+            else:
+                pairs = _candidate_pairs(
+                    pre_ids,
+                    post_ids,
+                    probability=rule.get("probability"),
+                    allow_self=rule_self,
+                    key=rkey,
+                )
         pre_pos = {nid: i for i, nid in enumerate(pre_ids)}
         post_pos = {nid: i for i, nid in enumerate(post_ids)}
         weights = _edge_weights(

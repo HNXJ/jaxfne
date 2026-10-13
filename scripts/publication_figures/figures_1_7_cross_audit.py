@@ -43,7 +43,7 @@ def build_summary(audit: dict) -> str:
         f"- H4: demonstrated **negative** (M_X^long,hetero=0; conjecture not supported) — `{fb['H4_demonstrated_negative']}`",
         f"- C3: demonstrated **negative** NO_WAVE (outcome C) — `{fb['C3_demonstrated_negative_NO_WAVE']}`",
         f"- D3: demonstrated **NO_ADAPTATION** (9/9) — `{fb['D3_NO_ADAPTATION']}`",
-        f"- W3b: **UNRESOLVED, NOT NEGATIVE** (N_S=0, N_X=1944, N_U=0) — `{fb['W3b_unresolved_not_negative']}`",
+        f"- W3b: **UNRESOLVED** (N_S=0, N_X=1944, N_U=0) — `{fb['W3b_unresolved_not_negative']}`",
         f"- E5: demonstrated **HIERARCHICAL_PROPAGATION** — `{fb['E5_HIERARCHICAL_PROPAGATION']}`",
         f"- Experiment A Q hash invariant (Fig 2–4): `{checks['experiment_a_q_hash_invariant_fig02_04']}`",
         f"- EEG/MEG analysis-only (Fig 4): `{fb['EEG_MEG_analysis_only']}`",

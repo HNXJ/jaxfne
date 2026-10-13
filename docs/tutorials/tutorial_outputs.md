@@ -15,7 +15,7 @@ The 4 core jaxfne example scripts generate self-contained evidence bundles. Each
 
 These rules keep tutorials reproducible, verifiable, and explicit about scope.
 
-**Key principle:** All outputs are **computational evidence**, not biological proof. No empirical validation. No mechanism statements. Status checks are frozen: `amplitude_status=False`.
+**Key principle:** All outputs are **computational evidence**, rather than biological proof. No empirical validation. No mechanism statements. Status checks are frozen: `amplitude_status=False`.
 
 ---
 
@@ -68,7 +68,7 @@ Each tutorial creates an output directory with 5 required JSON files plus option
 - All 8 operators must be present (even if status is "unavailable")
 - Each operator must have `operator_status` field
 - No NaN/Inf in any numeric fields
-- All proxy operators are **simulated, not empirically validated**
+- All proxy operators are **simulated, rather than empirically validated**
 
 ### 3. metrics.json
 
@@ -160,7 +160,7 @@ except ImportError:
 **Key points:**
 - matplotlib is optional [viz] extra dependency
 - Non-interactive Agg backend for headless/CI environments
-- Figures generated from real simulation data, not manually pre-created
+- Figures generated from real simulation data, rather than manually pre-created
 - Figures are hashed and integrity verified
 
 ### Tutorial-Specific Figures

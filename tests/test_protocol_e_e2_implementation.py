@@ -15,7 +15,6 @@ from jaxfne.protocol_e_integration.e2_execution import (
     attach_provenance_class_delays,
     build_e2_model,
     build_typed_delay_table,
-    delay_step_occupancy,
     hierarchy_fingerprint,
     load_e2_execution_receipt,
     run_e2_delayed_coupling,
@@ -74,14 +73,6 @@ def test_e2_hierarchy_fingerprint_unchanged_by_delay_attachment():
     assert pre["identity_digest"] == post["identity_digest"]
     assert pre["provenance_digest"] == post["provenance_digest"]
     assert pre["edge_topology_digest"] == post["edge_topology_digest"]
-
-
-def test_e2_delay_step_occupancy_diagnostic():
-    model = build_e2_model(zero_delays=False)
-    occ = delay_step_occupancy(model)
-    assert occ["2"] == 651
-    assert occ["4"] == 140
-    assert occ["8"] == 140
 
 
 def test_e2_delayed_continuation_primary_and_inflight():

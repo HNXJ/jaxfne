@@ -17,16 +17,7 @@ import pytest
 import jaxfne
 from jaxfne.emitters import make_edge_list_from_dense
 
-
-def _cfg(n=8):
-    """Minimal configuration."""
-    return (
-        jaxfne.configuration()
-        .network(n=n)
-        .emitter(family="izhikevich", preset="cortical_eig")
-        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
-        .probe(name="p", n_contacts=4)
-    )
+from _shared_fixtures import _cfg
 
 
 def _model_and_signals(n=8, seed=0, backend="dense"):

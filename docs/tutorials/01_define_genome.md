@@ -2,7 +2,7 @@
 
 > Cumulative step 01/08 — endpoint `canonical-v1-column-1000n`. This page defines the generative rules; the next page develops them. See [Tutorials overview](index.md) and [PseudoGenome guide](../guides/jdna.md).
 
-A **PseudoGenome** stores rules, never the phenotype (`G ≠ D`, `G ≠ H_D`). The canonical 1000-neuron V1 column declares 6 laminar layers, per-layer cell-type base fractions with tolerance bands, geometry, and 48 typed connection rules.
+A **PseudoGenome** stores rules (`G ≠ D`, `G ≠ H_D`). The canonical 1000-neuron V1 column declares 6 laminar layers, per-layer cell-type base fractions with tolerance bands, geometry, and 48 typed connection rules.
 
 ```python
 import jaxfne as jtfne

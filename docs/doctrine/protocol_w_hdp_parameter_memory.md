@@ -7,7 +7,7 @@
 **W0 receipt:** `artifacts/protocol_w/w0_mathematical_contract.json`  
 **Out of scope:** H4 rescue, Protocol H extensions, W3 implementation, conservation/competition in W1
 
-Protocol W is a **new dynamical problem** — not an H4 topology/delay extension.
+Protocol W is a **new dynamical problem** and sits apart from the H4 topology/delay extension.
 
 ## 1. Scientific question
 
@@ -32,7 +32,7 @@ Protocol W must **not** be introduced to “fix” H4.
 H \xrightarrow{F_W} \omega \xrightarrow{\exp} W.
 \]
 
-STDP, BCM, neuromodulated learning, and scaling are future alternative \(D\) choices, not separate architectural species.
+STDP, BCM, neuromodulated learning, and scaling are future alternative \(D\) choices; none is a separate architectural species.
 
 ## 3. Inputs from Protocol H
 
@@ -127,7 +127,7 @@ Immediately \(W_{ij}>0\) without discontinuous projection. Relative interpretati
 
 This is the preferred W0 admissibility architecture (replaces any earlier implicit “clip \(W\)” boundedness sketch).
 
-### 5.3 Excitatory / inhibitory sign (typed, not via \(W\) sign)
+### 5.3 Excitatory / inhibitory sign (typed, independent of the \(W\) sign)
 
 \(W_{ij}>0\) is appropriate for **magnitude / gain**. Synaptic **sign** is a separate typed property:
 
@@ -423,7 +423,7 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 | \(\max\Re((\lambda_{\mathrm{step}}-1)/\Delta t)<0\) | **Pass** |
 | \(b_{HW}\neq 0\) (loop active at rest) | **Fail** (exactly zero) |
 
-**W3 kernel implementation:** remains **not authorized** — rest equilibrium certifies marginal discrete stability but not active closed-loop coupling; transient/post-perturbation analysis requires a separately versioned protocol if an activity-enabled operating point is needed.
+**W3 kernel implementation:** remains **not authorized** — rest equilibrium certifies marginal discrete stability, rather than active closed-loop coupling; transient/post-perturbation analysis requires a separately versioned protocol if an activity-enabled operating point is needed.
 
 ### 5.12 W3a — activity-enabled stability (**frozen analysis; W3 kernel not authorized**)
 
@@ -450,7 +450,7 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 - Active drive: \(b_{HW}\neq0\), \(L_{\mathrm{HDP}}\) grows with mean synaptic occupancy
 - Floquet instability bracket: margin crosses zero between \(I_{\mathrm{tonic}}\approx 8\) and \(10\) ms-equivalent drive units (nominal parameters)
 
-**Margin policy:** margins below \(0.01\) are **near-critical**, not robustly stable.
+**Margin policy:** margins below \(0.01\) are **near-critical**; robust stability is not established.
 
 **Artifacts:** `artifacts/protocol_w/w3a_stability/w3a_stability_spec.json`, `w3a_stability_receipt.json`, `jaxfne/w3a_stability_analysis.py`
 
@@ -464,17 +464,17 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 
 | Root cause | Effect |
 |------------|--------|
-| `period=1` false positives | Monodromy = single-step Jacobian, not orbit return map |
+| `period=1` false positives | Monodromy = single-step Jacobian, rather than the orbit return map |
 | Subleading \(|\lambda|\) selection | Alternating S/U labels at adjacent \(I_{\mathrm{tonic}}\) |
 | Mixed metrics at \(\mathrm{syn}\approx 0\) | Step Jacobian at drifting non-equilibrium |
 
-**W3b rule:** regime labels use corrected \(m_F=1-\rho_{\mathrm{nonneutral}}(M)\) with validated `period>=2` only. Reduced \(J_{\mathrm{red}}\) is explanatory, not a classifier.
+**W3b rule:** regime labels use corrected \(m_F=1-\rho_{\mathrm{nonneutral}}(M)\) with validated `period>=2` only. Reduced \(J_{\mathrm{red}}\) is explanatory only.
 
 ### 5.14 W3b — parameter-domain map (**domain receipt frozen**)
 
 **Question:** what parameter domain permits simultaneously **active, bounded, nontrivial, robust** HDP?
 
-**Type:** parameter-domain characterization — **not** post-hoc tuning to pass W3.
+**Type:** parameter-domain characterization.
 
 **Varied:** \(\kappa_H,\kappa_W,\lambda_W,\tau_H,\tau_W\). **Frozen:** \(W_0\), emitter, topology, synapse geometry. **Operating axis:** \(I_{\mathrm{tonic}}\).
 
@@ -495,7 +495,7 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 | \(N_D\) | 243 |
 | \(N_U\) | 0 |
 
-**Branch:** `N_S_eq_0_and_N_X_gt_0` — no robust active domain demonstrated; active regimes stability-unresolved. **Next:** W3c orbit characterization, **not** law redesign.
+**Branch:** `N_S_eq_0_and_N_X_gt_0` — no robust active domain demonstrated; active regimes stability-unresolved. **Next:** W3c orbit characterization, with the law unchanged.
 
 **Not concluded:** \(\mathcal D_{\mathrm{useful}}=\emptyset\) scientifically (requires \(N_X=0\)).
 
@@ -503,10 +503,10 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 
 **Artifacts:** `artifacts/protocol_w/w3b_parameter_domain/w3b_parameter_domain_spec.json`, `jaxfne/w3b_parameter_domain.py`
 
-### 5.16 W3b interpretation receipt (**frozen — unresolved, not negative**)
+### 5.16 W3b interpretation receipt (**frozen — unresolved**)
 
 **Receipt:** `artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json`  
-**Outcome:** `unresolved, not negative` — **not** a negative domain result.
+**Outcome:** `unresolved`: the domain question stays open.
 
 | Level | W3b establishes |
 |-------|-----------------|
@@ -516,7 +516,7 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 
 **Prohibited:** \(N_S=0 \Rightarrow \mathcal D_{\mathrm{useful}}=\emptyset\) when \(N_X>0\); treating **X** as **U**; authorizing W3 or new \(F_W\) from this receipt.
 
-**Release:** `release_blocking: false` for 0.4.16. **W3c** is parallel science, not on the 0.4.16 critical path.
+**Release:** `release_blocking: false` for 0.4.16. **W3c** is parallel science, outside the 0.4.16 critical path.
 
 **Protocol W scientific development:** **CLOSED at W3b interpretation** for 0.4.16. Next main path: **0.4.16 RC** \(\to\) **0.4.17-A Figure Requirements Matrix v2**.
 
@@ -556,7 +556,7 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 | W2 | **frozen** — receipt locked; do not mutate configuration |
 | W3 | **silent-rest stability frozen** — kernel blocked |
 | W3a | **activity stability frozen** — margin audit addendum |
-| W3b | **interpretation frozen** — unresolved not negative; 0.4.16 science closed |
+| W3b | **interpretation frozen** — unresolved; 0.4.16 science closed |
 | W4+ | **no** |
 
 W3 implementation remains blocked until stability analysis receipt passes.
@@ -590,7 +590,7 @@ W3 implementation remains blocked until stability analysis receipt passes.
 | `jaxfne/w3a_stability_analysis.py` | W3a activity-enabled stability scan (no closed-loop kernel) |
 | `tests/test_protocol_w_w3a_stability.py` | W3a stability receipts |
 | `simulate_edge_recurrent_izhikevich_rbd` | RBD substrate (\(\dot W=0\)) |
-| `simulate_edge_recurrent_izhikevich_hdp` | Legacy reference — **not** canonical W; lacks W0 \(\omega\) grammar |
+| `simulate_edge_recurrent_izhikevich_hdp` | Legacy reference outside canonical W; lacks W0 \(\omega\) grammar |
 | `docs/doctrine/rbs_rbd_hdp.md` | RBS/RBD/HDP authority |
 
 ## 9. Evidence and receipts

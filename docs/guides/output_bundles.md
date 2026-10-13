@@ -5,48 +5,27 @@ metrics, and provenance metadata in one strict JSON-safe package.
 
 ## Structure
 
-A typical output bundle includes:
+A run receipt, `model.run_receipt(signals).to_dict()`, holds (jaxfne 0.5.5, a 2-neuron run):
 
 ```python
 {
-  "receipt_id": "uuid-...",
-  "version": "0.4.8",
-  "signals": {
-    "spikes": [[...], [...], ...],
-    "V_m": [[...], [...], ...],
-    "sources": [[...], [...], ...] or null,
-    "field": {
-      "lfp": [[...], [...], ...],
-      "csd": [[...], [...], ...]
-    }
-  },
-  "readouts": [
-    {
-      "name": "spike_rate",
-      "metric": "spike_rate_hz",
-      "value": 12.5,
-      "status": "simulated_proxy"
-    },
-    ...
-  ],
-  "metadata": {
-    "simulation_duration_ms": 100.0,
-    "dt_ms": 0.1,
-    "n_neurons": 100,
-    "seed": 0,
-    "execution_time_ms": 245.3
-  },
-  "operator_reports": [
-    {
-      "kind": "spk",
-      "operator_status": "simulated_proxy",
-      "method": "threshold_or_emitter_spike_array",
-      "units_or_status": "binary_spike_indicator"
-    },
-    ...
-  ]
+  "receipt_id": "654659fcb116e3ee",
+  "jaxfne_version": "0.5.5",
+  "config_hash": "e4e23aeea421a75a",
+  "simulation": {"duration_ms", "dt_ms", "seed", "n_steps", "record_sources", "record_fields"},
+  "signals_summary": {"n_steps", "n_units", "dt_ms", "spike_count_total", "spike_rate_hz_mean",
+                      "V_m_mean", "field_status", "field_claim_level"},
+  "truth": {"claim_level", "source_calibration_status", "field_solver_status", "field_claim_level",
+            "physical_amplitude_calibrated", "empirical_validation_status", "mechanism_claim_status"},
+  "claim_labels": {"receipt_status", "empirical_validation_status", "mechanism_claim_status",
+                   "physical_amplitude_calibrated"},
+  "backend": {"recurrent_backend", "synaptic_kernel", "source_model", "source_mode",
+              "source_bookkeeping", "edge_list_n_edges", "edge_list_backend", ...},
+  "tags": {},
 }
 ```
+
+Arrays (spikes, `V_m`, field proxies) stay on `Signals`; the receipt carries their summary.
 
 ## Validation and serialization
 
@@ -67,7 +46,7 @@ This ensures:
 ## The canonical path: `run_receipt` and `evaluate_report`
 
 `Model.manifest()` (shown above) is a **compatibility method retained from
-v0.0.4–v0.0.14**. It still works and is not scheduled for removal, but for
+v0.0.4–v0.0.14**. It still works and is not scheduled for removal. For
 new code the canonical workflow is two typed, immutable, JSON-safe
 alternatives:
 

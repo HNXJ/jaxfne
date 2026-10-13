@@ -26,7 +26,7 @@ Legend — G is the PseudoGenome, D is JDNA develop, K_D is the developmental ke
 
 **Rules → realization.** A PseudoGenome may declare per-layer population fractions (e.g., excitatory/inhibitory base fractions), bounded developmental ranges (fraction tolerance bands), laminar geometry (depth bands, x/y ranges, distribution), and distance- or class-dependent connection rules. Development turns these rules into explicit NeuronalTensor arrays and edges: integer counts per cell type in declared bands, positions, per-neuron parameters, edges, weights, and delays.
 
-**Cortical column (1000 neurons).** The canonical 6-layer cortical-column PseudoGenome declares layer-wise counts and composition rules, geometry, and typed inter-layer connection schemes. Developing it with a given `K_D` realizes a concrete 1000-neuron phenotype — specific counts, positions, parameters, edges, weights, and delays — within the declared constraints. The PseudoGenome stores the generative rules, not 1000 per-neuron records.
+**Cortical column (1000 neurons).** The canonical 6-layer cortical-column PseudoGenome declares layer-wise counts and composition rules, geometry, and typed inter-layer connection schemes. Developing it with a given `K_D` realizes a concrete 1000-neuron phenotype — specific counts, positions, parameters, edges, weights, and delays — within the declared constraints. The PseudoGenome stores the generative rules alone; the 1000 per-neuron records are not stored.
 
 **Same genome, different K_D; same K_D, same phenotype.** Two developments of the same PseudoGenome with different `K_D` values (e.g., `seed=0` vs `seed=1`) share the same rules but realize different phenotypes within the same constraint bands. Conversely, development is deterministic in `K_D`: the same PseudoGenome and the same `K_D` reproduce the same phenotype.
 
@@ -83,7 +83,7 @@ constants); the developmental operator executes them (`D` is the rule engine);
 developmental state evolves under them (`H_D`, `Z_D`); the terminal structural
 phenotype is a NeuronalTensor.
 
-### Generative rules, not stored phenotype
+### Generative rules; no stored phenotype
 
 The defining invariant:
 
@@ -104,7 +104,7 @@ never stores positions, edges, or population arrays.
 
 Do not assume \(H_D = H_R\). Developmental state lives in
 \(\mathbb R^{d_D}\); runtime RBS lives in \(\mathbb R^{d_R}\); in general
-\(d_D \ne d_R\). No developmental-to-runtime state projection exists in 0.4.22
+\(d_D \ne d_R\). No developmental-to-runtime state projection exists in 0.5.x
 unless an implementation requires and scientifically defines one.
 
 ### Build-time scope
@@ -143,11 +143,10 @@ domains:
 3. Development realizes only phenotypes satisfying the genome-declared
    constraint bands (exact neuron counts, per-layer fractions within declared
    tolerance).
-4. No structural mutation occurs inside `simulate()` in 0.4.22.
+4. No structural mutation occurs inside `simulate()` in 0.5.x.
 5. No developmental state crosses into the runtime model: the runtime RBS
-   (`h_state`) arises from the ordinary construct path, not from development.
-6. Development may be ordinary Python/JAX orchestration; it is not forced into
-   JIT-compiled simulation kernels.
+   (`h_state`) arises from the ordinary construct path; development does not produce it.
+6. Development may be ordinary Python/JAX orchestration. Compilation into JIT-compiled simulation kernels is optional.
 
 ## Relationships
 
@@ -160,7 +159,7 @@ domains:
 | construct | Ordinary `(NeuronalTensor, RuntimeConfiguration) -> Model`. |
 | Model / simulate | Ordinary simulation; no JDNA branches. |
 | RBS (runtime) | `H_R` arises at construct (PlasticParams.H aggregation); development declares no `H_D` for the canonical genome. |
-| AGSDR | Optimizes runtime/model/objective parameters \(\Theta_R'\); does not evolve PseudoGenomes in 0.4.22. |
+| AGSDR | Optimizes runtime/model/objective parameters \(\Theta_R'\); does not evolve PseudoGenomes in 0.5.x. |
 
 ## Implementation mapping
 
@@ -199,14 +198,14 @@ first-class.
   connection schemes. Positions and edges are realized by the ordinary
   construct path under `K_S`.
 - No birth, death, migration, or developmental-time structural mutation in
-  0.4.22.
+  0.5.x.
 - No genome-level optimization: AGSDR optimizes runtime parameters
-  (\(\Theta_R'\)), never \(\Theta_D\) or \(\Theta_G\).
+  (\(\Theta_R'\)) rather than \(\Theta_D\) or \(\Theta_G\).
 - No developmental RBS (`H_D`) is declared by the canonical genome; the
   `H_D \subset Z_D` possibility is documented but not exercised by an
   implemented genome.
 - The stochastic variation produced is *computational pseudo-genomic /
-   developmental variation*, not biological genetic variability.
+   developmental variation*; biological genetic variability is not modeled.
 
 Realization of `N` via `develop` does not establish effectiveness (`ΔX` under intervention).
 

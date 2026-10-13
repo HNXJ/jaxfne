@@ -19,7 +19,7 @@ import jaxfne
 REPO = pathlib.Path(__file__).resolve().parent.parent
 BRIEF = REPO / "artifacts" / "memory.md"
 PATH_ROOTS = ("jaxfne/", "tests/", "scripts/", "artifacts/", "docs/", "examples/", ".github/")
-ROOT_FILES = ("README.md", "MEMORY.md", "Makefile", "pyproject.toml", "mkdocs.yml", "CITATION.cff")
+ROOT_FILES = ("README.md", "Makefile", "pyproject.toml", "mkdocs.yml", "CITATION.cff")
 TICKS = re.compile(r"`([^`\n]+)`")
 IDENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 

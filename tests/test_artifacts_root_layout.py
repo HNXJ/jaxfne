@@ -4,12 +4,17 @@ Library defaults and scripts that wrote viewers/findings into the root made it
 grow without bound. A new root file needs a reason here.
 """
 
+import re
 import subprocess
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 ROOT_FILES = {
     "AGENTS.md", "README.md", "context.md", "fact_stack.md", "memory.md", "todo_stack.md",
+    # state roles of the shared workspace layout (meet 204dfdaa, Hamm 2026-10-12)
+    "goal_stack.md", "problem_stack.md", "state.md",
+    # open-items role (keeper proposal, Hamm 2026-10-12)
+    "open_stack.md",
     # pinned by tests/test_public_surface_contract_v0413.py, test_public_api_snapshot_v034.py
     "public_api_before.json", "public_surface_contract_v0413.json",
 }
@@ -21,6 +26,20 @@ def test_artifacts_root_holds_only_control_files():
     ).stdout.split()
     loose = {p.split("/", 1)[1] for p in tracked if p.count("/") == 1}
     assert loose <= ROOT_FILES, f"move into a subfolder: {sorted(loose - ROOT_FILES)}"
+
+
+def test_readme_lists_every_tracked_folder():
+    tracked = subprocess.run(
+        ["git", "-C", str(REPO), "ls-files", "artifacts"], capture_output=True, text=True, check=True
+    ).stdout.split()
+    folders = {p.split("/")[1] for p in tracked if p.count("/") >= 2}
+    readme = (REPO / "artifacts" / "README.md").read_text(encoding="utf-8")
+    # Only the first cell of a table row lists a folder; mentions in other cells do not count.
+    listed = {name for line in readme.splitlines() if line.startswith("| ")
+              for name in re.findall(r"`([^`/]+)/`", line.split("|")[1])}
+    assert len(folders) > 20, "fixture must see the artifacts folders"
+    missing = sorted(folders - listed)
+    assert not missing, f"add to artifacts/README.md: {missing}"
 
 
 def test_viewer_defaults_write_into_a_subfolder():

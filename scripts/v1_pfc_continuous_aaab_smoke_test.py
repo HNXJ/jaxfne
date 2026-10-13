@@ -110,6 +110,7 @@ from jaxfne.neuronal_tensor import (
     NeuronType,
     NeuronalTensor,
     PlasticParams,
+    StaticParams,
     construct_neuronal_tensor,
 )
 
@@ -198,6 +199,10 @@ def build_tensor() -> NeuronalTensor:
             # (verified: this was the actual cause of the H_final/w_final NaN
             # seen during development, not a jaxfne-side HDP bug).
             plastic=PlasticParams(H=1.0),
+            # P-023 requires a declared time constant; 0.1 ms is the value
+            # StaticParams.dT_ms defaulted to before P-023, so the published
+            # run is unchanged.
+            static=StaticParams(dT_ms=0.1),
         )
         for layer in ("L4", "L6")
     ]

@@ -462,12 +462,6 @@ def compute_conservation_proxy_diagnostics(
             raise ValueError(f"non-finite diagnostic value: {f}")
         return f
 
-    def _norm_l1(arr: np.ndarray) -> float | None:
-        try:
-            return _safe_float(np.mean(np.abs(arr)))
-        except Exception:
-            return None
-
     def _norm_l2(arr: np.ndarray) -> float | None:
         try:
             return _safe_float(np.sqrt(np.mean(arr**2)))
@@ -508,7 +502,7 @@ def compute_conservation_proxy_diagnostics(
     _csd = _coerce(_csd)
     _lfp = _coerce(_lfp)
 
-    source_norm_l1: float | None = _norm_l1(_src) if _src is not None else None
+    source_norm_l1: float | None = _abs_mean(_src) if _src is not None else None
     source_norm_l2: float | None = _norm_l2(_src) if _src is not None else None
     source_abs_mean: float | None = _abs_mean(_src) if _src is not None else None
 
@@ -916,9 +910,9 @@ def spectrolaminar_psd(
     psd_list = []
     for ch in range(n_ch):
         try:
-            from scipy.signal import welch
+            from ..vis.core import welch_psd as _welch_psd
 
-            f, pxx = welch(signal_arr[:, ch], fs=fs, nperseg=min(1024, T))
+            f, pxx = _welch_psd(signal_arr[:, ch], float(fs), nperseg=min(1024, T))
             pxx_interp = np.interp(freqs, f, pxx)
         except (ImportError, ValueError):
             fft_vals = np.abs(np.fft.rfft(signal_arr[:, ch] - signal_arr[:, ch].mean())) ** 2
@@ -1109,11 +1103,12 @@ def cross_area_coherence(
 
     try:
         from scipy.signal import csd as _csd
-        from scipy.signal import welch as _welch
+
+        from ..vis.core import welch_psd as _welch_psd
 
         seg = int(min(1024, t))
-        _f, pxx = _welch(xa, fs=fs, nperseg=seg)
-        _f, pyy = _welch(ya, fs=fs, nperseg=seg)
+        _f, pxx = _welch_psd(xa, float(fs), nperseg=seg)
+        _f, pyy = _welch_psd(ya, float(fs), nperseg=seg)
         _f, pxy = _csd(xa, ya, fs=fs, nperseg=seg)
         pxx_i = np.interp(freqs, _f, pxx)
         pyy_i = np.interp(freqs, _f, pyy)
@@ -1209,7 +1204,9 @@ def csd_tensor(phi_e_proxy: jax.Array | CanonicalSource, dz: jax.Array | float) 
     """Spatial second-derivative CSD tensor (readout family, depth-axis stage).
 
     ``csd_proxy[c] = -(phi[c+1] - 2*phi[c] + phi[c-1]) / dz**2`` along the
-    contact axis, edge-padded at the boundaries. Standard pipeline shape:
+    contact axis, edge-padded at the boundaries: the three-point estimate of
+    Nicholson & Freeman (1975), doi:10.1152/jn.1975.38.2.356, without the
+    conductivity. Standard pipeline shape:
 
     ``source -> project_laminar_sources (-> phi_e_proxy) -> csd_tensor -> csd_proxy``
 

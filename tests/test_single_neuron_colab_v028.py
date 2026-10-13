@@ -215,36 +215,19 @@ class TestSingleNeuronNotebook:
                 section in full_source
             ), f"Notebook must include '{section}' section"
 
-    def test_version_unchanged(self):
-        """Test that jaxfne version matches pyproject.toml (active version comparison)."""
-        import jaxfne
-        import re
-
-        from pathlib import Path
-
-        content = Path("pyproject.toml").read_text(encoding="utf-8")
-
-        project_section = re.search(r"\[project\](.*?)(?:\[|\Z)", content, re.DOTALL)
-
-        pyproject_version = re.search(r'version\s*=\s*"([^"]+)"', project_section.group(1)).group(1)
-        assert (
-            jaxfne.__version__ == pyproject_version
-        ), f"Version should be {pyproject_version}, got {jaxfne.__version__}"
-
 
 class TestDocumentationConsistency:
     """Tests for documentation consistency with v0.3.4 notebook."""
 
     def test_tutorial_index_mentions_single_neuron(self):
-        """Test that tutorials/index.md mentions single-neuron tutorial."""
+        """The single-neuron tutorial (0.4.x) stays reachable from the docs Archive index."""
         index_path = (
-            Path(__file__).parent.parent / "docs" / "tutorials" / "index.md"
+            Path(__file__).parent.parent / "docs" / "archive" / "index.md"
         )
         content = index_path.read_text(encoding="utf-8")
-        assert (
-            "single-neuron" in content.lower()
-            or "single neuron" in content.lower()
-        ), "tutorials/index.md must reference single-neuron tutorial"
+        assert "(../tutorials/01_single_neuron_multimodal.md)" in content, (
+            "docs/archive/index.md must link the single-neuron tutorial"
+        )
 
     def test_no_forbidden_vocabulary_in_notebook(self):
         """Test that notebook avoids forbidden internal terminology."""

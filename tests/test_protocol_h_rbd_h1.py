@@ -20,6 +20,8 @@ from jaxfne.emitters import (
     simulate_edge_recurrent_izhikevich_rbd,
 )
 
+from _shared_fixtures import _empty_edges
+
 
 def _isolated_neuron_params(
     *,
@@ -41,17 +43,6 @@ def _isolated_neuron_params(
         labels=tuple("E" for _ in range(n)),
         layer_labels=tuple("L4" for _ in range(n)),
         source_calibration_status="uncalibrated_izhikevich_native_current",
-    )
-
-
-def _empty_edges() -> EdgeList:
-    jdtype = jnp.float32
-    return EdgeList(
-        pre=jnp.zeros((0,), dtype=jnp.int32),
-        post=jnp.zeros((0,), dtype=jnp.int32),
-        weight=jnp.zeros((0,), dtype=jdtype),
-        receptor_index=jnp.zeros((0,), dtype=jnp.int32),
-        tau_ms=jnp.zeros((0,), dtype=jdtype),
     )
 
 

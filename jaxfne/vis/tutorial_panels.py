@@ -217,7 +217,7 @@ def activity_trace_suite(
     from .core import require_matplotlib
     require_matplotlib()
     import matplotlib.pyplot as plt
-    from scipy import signal
+    from .core import welch_psd
 
     spikes = trials['spikes']  # (trials, T, N)
     time_ms = trials['time_ms']  # (T,)
@@ -301,8 +301,7 @@ def activity_trace_suite(
             dt_ms = float(cfg["dt_ms"])
         
         fs = 1000.0 / dt_ms
-        nperseg = min(256, lfp_mean.shape[0])
-        freq_hz, psd = signal.welch(lfp_mean, fs=fs, axis=0, nperseg=nperseg)
+        freq_hz, psd = welch_psd(lfp_mean, fs, nperseg=256)
         # mask within frequency range
         mask_psd = (freq_hz >= psd_freq_range_hz[0]) & (freq_hz <= psd_freq_range_hz[1])
         freq_hz = freq_hz[mask_psd]

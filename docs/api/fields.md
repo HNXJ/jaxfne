@@ -4,7 +4,7 @@ Field solvers, source projection, and spatial operators for neural field computa
 
 ## Overview
 
-The fields module maps point-source neural currents into field readouts (LFP, CSD, EEG, MEG). All field computations are **proxy approximations** for tutorial-scale simulations, not full PDE solutions.
+The fields module maps point-source neural currents into field readouts (LFP, CSD, EEG, MEG). All field computations are **proxy approximations** for tutorial-scale simulations, rather than full PDE solutions.
 
 ```
 Emitter currents → Source projection → Field convolution → Probe readouts
@@ -51,13 +51,13 @@ EEG separates operator identity (`linear_leadfield`) from
 jaxfne.LaminarSourceGeometry
 ```
 
-*(Defined in `jaxfne/core.py`, not `jaxfne/fields/` — re-exported at package
+*(Defined in `jaxfne/core.py`, outside `jaxfne/fields/`; re-exported at package
 level as `jaxfne.LaminarSourceGeometry`.)*
 
 A frozen dataclass grouping named `LaminarPopulation` descriptors and
 materializing a deterministic `(n_units_total, 3)` positions array for
 `project_laminar_sources`/`project_sources_to_laminar_field`. Depths are
-proxy-normalized `[0, 1]` coordinates, not physical microns; no
+proxy-normalized `[0, 1]` coordinates, rather than physical microns; no
 physical-amplitude, PDE, or calibration claim is made.
 
 ### Attributes
@@ -138,7 +138,7 @@ Project emitter sources into laminar contact space.
 **Returns:** `FieldOutput`
 
 **Description:**
-Maps point-emitter sources into distributed laminar-contact density via a Gaussian-kernel proxy projection — not a full dipole/PDE solve.
+Maps point-emitter sources into distributed laminar-contact density via a Gaussian-kernel proxy projection. No full dipole or PDE solve is performed.
 
 **Example:**
 ```python
@@ -287,7 +287,7 @@ current density is never synthesized without a real field solver.
 
 **Description:**
 An accessor over the laminar proxy outputs. All returned arrays are proxy
-readouts (`field_solver_status = "linear_solver"`), not physical signals.
+readouts (`field_solver_status = "linear_solver"`), which are proxies and carry no physical-signal meaning.
 
 **Example:**
 ```python
@@ -312,7 +312,7 @@ Assemble a proxy source tensor for laminar projection from the named `mode`.
 
 **Returns:** `(source_array, metadata)` — the proxy source array plus a JSON-safe
 metadata dict recording the mode and proxy status. A proxy source
-basis, not a physical current density.
+basis; no physical current density is represented.
 
 **Example:**
 ```python
@@ -432,7 +432,7 @@ boundaries. Factored out of `project_laminar_sources` (which still calls this
 function internally — confirmed byte-identical via regression test) so CSD
 can be recomputed standalone from any `[T, n_contacts]` potential-proxy array
 without re-running the full projection. Unlike `cable_filter_sources`, this is
-purely spatial, not frequency-domain — CSD is the 2nd
+purely spatial (no frequency-domain analysis) — CSD is the 2nd
 spatial derivative of its input LFP-proxy, nothing more.
 
 **Example:**
@@ -456,7 +456,7 @@ from the fenced multi-dimensional placeholder below.
 - **`experimental_poisson_1d` (this function):** assembles and solves a real
   1D linear system `d/dx (conductivity * d/dx phi) = -sources` via
   `jnp.linalg.lstsq`, declaring `field_solver_status="experimental_pde_solver"`
-  in its returned manifest. It is a minimal, single-dimension PDE solve — not
+  in its returned manifest. It is a minimal, single-dimension PDE solve. This is separate from
   the calibrated multi-dimensional volume-conductor solver the package's
   longer-term scope describes.
 - **`solve_volume_conductor_experimental` / `PhysicalFieldSolverSpec`**
@@ -493,7 +493,7 @@ a source/sink span and exactly constant within it) is verified directly
 against the solver's own output in `tests/test_experimental_poisson_1d_convergence.py`.
 
 **Known limitation:** an observed float32 conditioning failure of the dense
-`jnp.linalg.lstsq` solve, not a universal grid-size law. The recorded sweep
+`jnp.linalg.lstsq` solve; no universal grid-size law is established. The recorded sweep
 has residual_norm about 1e-3 at N=161 and a failed solve at N=321; the live
 test requires N=321 to report `convergence_status="failed"` with residual_norm
 > 1e-3. `precision="float64"` with x64 enabled converges at N=300 in that
@@ -623,7 +623,7 @@ Check structural invariants of the laminar proxy projection (kernel
 row-normalization, finiteness, shape consistency). See
 [Validation API](validation.md#validate_projection_invariants-sources-positions-kernel-source_proxy-phi_e_proxy-csd_proxy-lfp_proxy-moderow_normalize-dict)
 for the full parameter list — all keyword-only, returns a `dict` of
-pass/fail diagnostics, not a `bool`.
+pass/fail diagnostics.
 
 **Example:**
 ```python
@@ -636,7 +636,7 @@ report = jtfne.validate_projection_invariants(
 
 ### `compute_conservation_proxy_diagnostics(*, source=None, phi_e=None, csd=None, lfp=None, field_solution=None, source_calibration_status="uncalibrated_izhikevich_native_current", field_solver_status="linear_solver", field_claim_level="proxy_readout") -> dict`
 
-Compute conservation-inspired diagnostics (keyword-only; pass `source=` and/or `field_solution=`, not positionals).
+Compute conservation-inspired diagnostics (keyword-only; pass `source=` and/or `field_solution=`; positional arguments are not accepted).
 
 **Parameters (all keyword-only, all optional):**
 - `source` (jax.Array): Source signals [time, locations]
@@ -678,12 +678,12 @@ padding; input is `phi_e_proxy`, output is relative
 
 ⚠️ **All field computations are proxy approximations:**
 
-- **Not a full PDE solve:** No coupled Maxwell/Poisson equations
-- **No 3D conductivity:** Anatomy is declared, not solved
+- **No full PDE solve:** no coupled Maxwell/Poisson equations
+- **No 3D conductivity:** Anatomy is declared metadata; no solver runs on it
 - **No extracellular detail:** Simplified layer-to-layer projections
-- **Proxy LFP/CSD:** Spatial convolution, not source localization
+- **Proxy LFP/CSD:** Spatial convolution only
 - **Sign convention:** Positive CSD = extracellular current source (outward transmembrane current); negative CSD = extracellular current sink (inward transmembrane current). `csd_proxy = -d²φ/dz²` along the depth axis.
-- **Field model status:** `"proxy_readout"` — not physical amplitude
+- **Field model status:** `"proxy_readout"` (relative amplitude)
 
 **Use for:**
 - Tutorial visualization

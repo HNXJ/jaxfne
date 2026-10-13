@@ -55,6 +55,11 @@ DEV_PYTEST_TARGETS = [
     # An atlas regeneration resets figure_state, which silently dropped the
     # canonical atlas from docs/gallery.md twice; dev CI never collected this.
     "tests/test_generate_gallery.py",
+    # Docs atlas registry and .html link resolution; 34 of 47 docs iframes resolved
+    # nowhere under directory URLs before this gate.
+    "tests/test_build_docs_assets.py",
+    # Docs currency: no published current page states an older minor version as current.
+    "tests/test_docs_version_currency.py",
 ]
 
 # 0.5.1-4b(4): parallelize the independent pytest sweeps with xdist (already
@@ -128,6 +133,7 @@ CHECK_FAMILIES = {
     "vocabulary_audit",
     "docs_orphans_check",
     "doc_code_integrity_audit",
+    "tree_size_audit",
     "docs_build_strict",
     "pytest_broad",
     "pytest_slow",
@@ -145,6 +151,7 @@ RELEASE_CI_GATE_FAMILIES = {
     "notebook_grammar_audit",
     "docs_orphans_check",
     "doc_code_integrity_audit",
+    "tree_size_audit",
     "docs_build_strict",
     "pytest_broad",
     "pytest_slow",
@@ -172,6 +179,7 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "tree_size_audit",
         "pytest_broad",
     },
     "release": {
@@ -182,6 +190,7 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "tree_size_audit",
         "docs_build_strict",
         "pytest_broad",
         "pytest_slow",
@@ -198,6 +207,7 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "tree_size_audit",
         "docs_build_strict",
         "pytest_broad",
         "pytest_slow",
@@ -344,6 +354,10 @@ def gate_broad() -> None:
     _run(
         [sys.executable, "scripts/audit_doc_code_integrity.py", "--check"],
         family="doc_code_integrity_audit",
+    )
+    _run(
+        [sys.executable, "scripts/check_tree_size.py", "--check"],
+        family="tree_size_audit",
     )
     # Per-node evidence: each sweep writes JUnit into the gitignored
     # artifacts/attestations/ dir (same provenance home as the RC

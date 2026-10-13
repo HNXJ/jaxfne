@@ -103,9 +103,9 @@ signals.V_m.shape = [T, N]  # Canonical: time × units
 When adding a new dimension:
 
 1. **Name it explicitly** in docstrings and Manifest
-2. **Document its size and meaning** (not "axis 2" but "spike_threshold_samples")
+2. **Document its size and meaning** (as "spike_threshold_samples", rather than "axis 2")
 3. **Test shape stability** — if shape changes unexpectedly, it breaks downstream operators
-4. **Collapse or broadcast** — never silently drop or pad dimensions
+4. **Collapse or broadcast.** Do not silently drop or pad dimensions
 
 ---
 
@@ -283,7 +283,7 @@ Computation-basis objects implemented in jaxfne:
 | `manifest["basis"]` | `jaxfne.core.Model.manifest()` | Nested basis metadata block in every run manifest (populated by `jaxfne.core._default_basis_dict()`) |
 
 > **Note (re-verified 2026-07-03):** `basis_statement_gate()` does not exist —
-> not in `jaxfne.validation`, not anywhere in the `jaxfne` package, and not in
+> absent from `jaxfne.validation`, from the whole `jaxfne` package, and from
 > `jaxfne.__all__`. This table previously claimed it as implemented; that was
 > false and has been removed. Physical-amplitude/claim-level eligibility is
 > represented directly in report dicts (`claim_level`,

@@ -2,13 +2,13 @@
   "suite": "atlas_suite.v2",
   "title": "Homeostasis column (1000n)",
   "figure_state": "validated",
-  "config_hash": "bcb3203f32e27035",
+  "config_hash": "4dbc78e758181d5f",
   "tfne_digest": null,
   "k_d": null,
   "sim_identity": "seed=0 duration_ms=1000.0 dt_ms=0.5",
   "recording_class": "large",
   "recording_budget": "population H, selected traces, summaries; no full T\u00d7E",
-  "jaxfne_version": "0.5.0",
+  "jaxfne_version": "0.5.5",
   "seed": 0,
   "duration_ms": 1000.0,
   "n_neurons": 1000,
@@ -22,7 +22,7 @@
       "panel": "Circuit schematic",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 13566,
+      "bytes": 13500,
       "inputs": {
         "source_artifact": "model",
         "variable": "neuron_table + params.edge_list",
@@ -36,7 +36,7 @@
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 84213,
+      "bytes": 84175,
       "inputs": {
         "source_artifact": "model",
         "variable": "params.positions + params.edge_list",
@@ -50,7 +50,7 @@
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 93419,
+      "bytes": 93331,
       "inputs": {
         "source_artifact": "signals",
         "variable": "spikes [T,N] + neuron_table",
@@ -64,7 +64,7 @@
       "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 362153,
+      "bytes": 362065,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field proxy",
@@ -78,7 +78,7 @@
       "panel": "H dynamics",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 108833,
+      "bytes": 108753,
       "inputs": {
         "source_artifact": "model diagnostics",
         "variable": "H_trace / r_trace",
@@ -92,7 +92,7 @@
       "panel": "HDP plasticity",
       "evidence": "DERIVED",
       "status": "OMITTED",
-      "bytes": 10388,
+      "bytes": 10302,
       "inputs": {
         "source_artifact": "model diagnostics",
         "variable": "w_trace",
@@ -106,7 +106,7 @@
       "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 21611,
+      "bytes": 21523,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field traces",
@@ -116,14 +116,14 @@
       }
     }
   ],
-  "sha256": "92e0e3ec1d514d60",
+  "sha256": "6a8f5eb0495bd5b8",
   "promotion": [
     {
       "to": "validated",
-      "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+      "reason": "0.5.6 docs-asset build: regenerated after the authorized H1 (e) repair 9958a72 changed the declared config hash; N and edges unchanged",
       "promoter": "promote_atlas_state.py",
-      "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
-      "utc": "2026-09-28T01:29:54.199646+00:00"
+      "git_head": "e0e818ab9f1026d2febe61193f9e0cbf4c84815a",
+      "utc": "2026-10-13T02:35:07.930088+00:00"
     }
   ]
 }

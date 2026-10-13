@@ -15,7 +15,7 @@ Until a Zenodo DOI is minted (see below), cite the GitHub release or PyPI packag
   year = {2026},
   url = {https://github.com/HNXJ/jaxfne},
   version = {0.5.5},
-  note = {Computational scaffold / proxy readouts; tag v0.4.25}
+  note = {Computational scaffold / proxy readouts; tag v0.5.5}
 }
 ```
 
@@ -40,7 +40,7 @@ do not invent a DOI before it exists.
 ## Zenodo DOI (maintainers)
 
 Permanent version DOIs come from the **GitHub–Zenodo** integration when a
-**GitHub Release** is published and archived. A versioned snapshot is citable; it is **not** equivalent to a peer-reviewed methods paper.
+**GitHub Release** is published and archived. A versioned snapshot is citable as software; a peer-reviewed methods paper is a separate citation.
 
 **One-time setup** (repository admin):
 

@@ -27,7 +27,7 @@
       "key_findings": [
         "The file is 626 lines with three pluggable rule registries: ACTIVATION_RULES (linear/cubic/logistic, lines 90-94), CONDUCTANCE_RULES (hebbian/bcm/linear/hebbian_pairwise, lines 165-170), and HOMEOSTASIS_RULES (linear/logistic/cubic_penalty/cubic_penalty_coupled, lines 260-265), plus the HomeostaticEIParams frozen dataclass registered as a JAX pytree (lines 276-373).",
         "simulate_homeostatic_ei (lines 438-626) is jax.jit-compiled with static_argnames including n_steps/activation_rule/conductance_rule/homeostasis_rule/freeze_G/freeze_H/dtype/bound_mode (lines 431-437), and at lines 509-520 it emits a RuntimeWarning when the dense (n_steps, N, N) G_history would exceed ~500MB, citing that this emitter has no sparse conductance variant.",
-        "grep across the repo shows this module is imported/used by jaxfne/_construct_core.py, jaxfne/_model_simulate.py, jaxfne/_model.py, jaxfne/emitters.py, and jaxfne/_config.py, plus 10 dedicated test files (tests/test_homeostatic_ei_*.py) and 2 scripts (scripts/ed10_hdp_pairwise_ei_selective_rescue.py, scripts/homeostatic_ei_dc_pulse_adaptation.py).",
+        "grep across the repo shows this module is imported/used by jaxfne/_construct_core.py, jaxfne/_model_simulate.py, jaxfne/_model.py, jaxfne/emitters.py, and jaxfne/_config.py, plus 10 dedicated test files (tests/test_homeostatic_ei_*.py) and 1 script (scripts/ed10_hdp_pairwise_ei_selective_rescue.py).",
         "git log shows this file was introduced in commit 2d0d4f4 ('homeostatic_ei canonical HDP sanity emitter'), extended in 645d988 (N-generalization, cubic_penalty, cross-population coupling, soft bounds, pairwise synaptic HDP), and last touched in 87961bd ('close 2 tracked O(N^2) risk gaps from Phase 1 audit'); `git status --short` on this file is currently clean (no uncommitted diff), contradicting the working-tree modification noted in the outer session's git status for other files.",
         "make_minimal_ei_params (lines 376-428) documents a real fixed bug it corrects: prior test-local `_make_params`/`_make` helper duplicates in 3 test files never set `labels` explicitly at N>2, silently leaving the default length-2 labels while x0/H0/drive were length N (lines 394-401)."
       ],
@@ -55,7 +55,6 @@
         "tests/test_homeostatic_ei_dt_invariance.py",
         "tests/test_homeostatic_ei_soft_bound.py",
         "scripts/ed10_hdp_pairwise_ei_selective_rescue.py",
-        "scripts/homeostatic_ei_dc_pulse_adaptation.py",
         "jaxfne/_construct_core.py",
         "jaxfne/_model_simulate.py",
         "jaxfne/_model.py",

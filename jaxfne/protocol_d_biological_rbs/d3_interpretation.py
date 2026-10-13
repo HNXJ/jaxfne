@@ -3,23 +3,18 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_d_biological_rbs.d3_execution import (
     REPO_ROOT,
     load_d3_execution_receipt,
     write_d3_execution_receipt,
 )
 from jaxfne.protocol_d_biological_rbs.d3_protocol import D3_INTERPRETATION_RECEIPT_PATH, load_d3_spec
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def _count_labels(cells: list[dict[str, Any]], *, null_arm: str | None = None) -> dict[str, int]:
@@ -242,7 +237,7 @@ def build_d3_interpretation(
             "checkpoint": "D3",
             "status": "FROZEN",
             "write_once": True,
-            "package_head": package_head or _git_head(),
+            "package_head": package_head or _git_head(REPO_ROOT),
             "execution_receipt": "artifacts/protocol_d_biological_rbs/d3_execution_receipt.json",
             "spec_path": "artifacts/protocol_d_biological_rbs/d3_adaptation_recovery_phenotype_spec.json",
             "headline": headline,

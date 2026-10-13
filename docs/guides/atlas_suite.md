@@ -15,9 +15,9 @@ The atlas keeps direct simulation observations (**OBSERVED**) apart from compute
 | 1 | `schema.html` | Block schematic (areas/layers/classes/links) | **OBSERVED** | `network_hspice_plotly(model)` | Single box, no arrows if uncoupled. |
 | 2 | `network_3d.html` | Realized 3D architecture | **OBSERVED** | `plot_network_3d(model)` | Single point in space if $N=1$; no edges drawn if uncoupled. |
 | 3 | `raster.html` | Spike events (ms-grid raster) | **OBSERVED** | `plot_raster(signals, model)` | Clean axes showing 0 events if network is silent. |
-| 4 | `lfp.html` | Laminar LFP/CSD proxy readouts | **DERIVED** | `plot_lfp` / `plot_csd` | Explicit omission card when no field is recorded — never substituted. |
+| 4 | `lfp.html` | Laminar LFP/CSD proxy readouts | **DERIVED** | `plot_lfp` / `plot_csd` | Explicit omission card when no field is recorded. |
 | 5 | `h_dynamics.html` | Recorded hidden-state trajectory | **DERIVED** | HDP `H_trace` / homeostasis trace | Explicit omission card when no H is recorded. |
-| 6 | `hdp.html` | Mutable weight diagnostics | **DERIVED** | HDP `w_trace` | Explicit omission card when HDP is off or the trace is unrecorded — never inferred from activity. |
+| 6 | `hdp.html` | Mutable weight diagnostics | **DERIVED** | HDP `w_trace` | Explicit omission card when HDP is off or the trace is unrecorded. |
 | 7 | `oscillatory.html` | Power spectral density / time-frequency | **DERIVED** | `plot_psd` (+ `plot_spectrogram`) | Welch PSD fallback when duration is too short for 2D spectrogram. |
 
 ---
@@ -96,7 +96,7 @@ python scripts/generate_readme_atlas.py
 That rebuilds the interactive panels under `docs/_static/atlas/` **and**
 rasterizes the same figure objects to `docs/assets/readme/*.png`, which is what
 the GitHub README shows inline. The README stills are thus reproducible
-from a clean checkout, not hand-added binaries.
+from a clean checkout; hand-added binaries are not used.
 
 The pinned configuration is:
 
@@ -108,13 +108,13 @@ The pinned configuration is:
 | Realized | 1000 neurons, 215785 edges, 2000 steps |
 
 The generator checks `config_hash` before writing and aborts on drift, so a
-change to the canonical column must be an explicit decision, not a
+change to the canonical column must be an explicit decision, rather than a
 silent republish. PNG rasterization needs `kaleido` (`pip install ".[viz]"`);
 `--html-only` skips it.
 
 ### A note on panel 6's name
 
-Panel 6 is `state_summary`, not `operating_point`. It reports the time-averaged
+Panel 6 is `state_summary`, distinct from `operating_point`. It reports the time-averaged
 firing rate per cell type and the share of silent units over the simulated
 window. That is a descriptive summary of the realized trajectory: no fixed
 point is solved for, no equilibrium condition is checked, and no stationarity

@@ -406,14 +406,14 @@ def main():
 
     # Save 3D column as primary output
     html_path = output_dir / "v037_source_column_3d.html"
-    fig_3d.write_html(str(html_path))
+    fig_3d.write_html(str(html_path), include_plotlyjs="cdn")
     print(f"  ✓ Saved: {html_path}")
 
     # Also create and embed readout panels
     print("[5/5] Creating readout panels...")
     fig_readouts = create_readout_panels(signals)
     readout_path = output_dir / "v037_readout_panels.html"
-    fig_readouts.write_html(str(readout_path))
+    fig_readouts.write_html(str(readout_path), include_plotlyjs="cdn")
     print(f"  ✓ Saved: {readout_path}")
 
     # Create and save manifest

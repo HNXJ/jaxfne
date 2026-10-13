@@ -11,8 +11,101 @@ Truth:
 
 import json
 import re
+import subprocess
 from pathlib import Path
 import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+
+# Owner ruling (Hamm, 2026-10-12): no "X, not Y" contrast in README.md or
+# tracked docs. Keys are "path:line text" (the raw line, stripped); values are
+# the reason a hit stays. A hit is rewritten, or it is listed here with the
+# packet rule that keeps it: a defined label or a quotation (rule 3).
+X_NOT_Y_ALLOWLIST: dict[str, str] = {}
+
+X_NOT_Y_PATTERNS = (
+    re.compile(r', not\b', re.IGNORECASE),
+    re.compile(r'[—–-] not\b', re.IGNORECASE),
+    re.compile(r'; (it|this|they|these|that) (is|are|was|were|do|does|did) not\b', re.IGNORECASE),
+    re.compile(r'\b(is|are) not [^.;]{1,60}; (it|this|they) (is|are)\b', re.IGNORECASE),
+    re.compile(r'\bnot [^.;]{1,60}, but\b', re.IGNORECASE),
+    re.compile(r'\band (is |are )?not (a|an|the)\b', re.IGNORECASE),
+    re.compile(r'\bnot\b[^.;]{1,60}\bbut\b', re.IGNORECASE),
+    re.compile(r'(,|;|—|–|\() never\b', re.IGNORECASE),
+)
+
+# One known positive per pattern, in the same order. The gate test asserts that
+# each pattern matches its positive, so a broken regex cannot pass silently.
+X_NOT_Y_KNOWN_POSITIVES = (
+    "the sweep, not the AGSDR optimizer",
+    "a bounded negative result — not a statement about untested regimes",
+    "a checked property; it is not a design promise",
+    "the step is not performed here; it is deferred",
+    "not the claim X, but the claim Y",
+    "reported as attenuation and is not a classification",
+    "the rate is not assumed but measured",
+    "the sweep, never the AGSDR optimizer",
+)
+
+# Emphasis markers are stripped before matching, so ", **not** Y" counts as ", not Y".
+# Underscores inside identifiers (H_K) stay.
+X_NOT_Y_EMPHASIS = re.compile(r"\*{1,3}|(?<![A-Za-z0-9])_{1,2}|_{1,2}(?![A-Za-z0-9])")
+X_NOT_Y_EMPHASIS_POSITIVE = "a parameter-domain characterization — **not** post-hoc tuning"
+
+
+def _x_not_y_prose_lines(text):
+    """Yield (line_no, raw_line, prose) with fenced blocks and code spans removed."""
+    in_fence = False
+    for no, raw in enumerate(text.splitlines(), start=1):
+        if raw.lstrip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        yield no, raw, X_NOT_Y_EMPHASIS.sub("", re.sub(r"`[^`]*`", "", raw))
+
+
+def test_docs_have_no_x_not_y():
+    """README.md and tracked docs/*.md must not state a contrast as 'X, not Y'.
+
+    Scans prose only (fenced code and inline code are skipped). Fails on a
+    hit that is not in X_NOT_Y_ALLOWLIST, and on an allowlist entry that no
+    longer matches a hit.
+    """
+    assert len(X_NOT_Y_PATTERNS) == len(X_NOT_Y_KNOWN_POSITIVES)
+    assert X_NOT_Y_PATTERNS[0].search("the sweep, NOT the AGSDR optimizer"), "patterns must ignore case"
+    for pattern, positive in zip(X_NOT_Y_PATTERNS, X_NOT_Y_KNOWN_POSITIVES):
+        assert pattern.search(positive), (
+            f"pattern {pattern.pattern!r} misses its known positive {positive!r}"
+        )
+    _, _, bare = next(_x_not_y_prose_lines(X_NOT_Y_EMPHASIS_POSITIVE))
+    assert any(p.search(bare) for p in X_NOT_Y_PATTERNS), "emphasis hides a known positive"
+    listed = subprocess.run(
+        ["git", "ls-files", "--", "README.md", "docs"],
+        cwd=ROOT, capture_output=True, text=True, check=True,
+    ).stdout.split()
+    files = sorted(p for p in listed if p.endswith(".md"))
+    assert files, "git ls-files found no tracked README.md or docs/*.md"
+
+    scanned = 0
+    hits = {}
+    for rel in files:
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        for no, raw, prose in _x_not_y_prose_lines(text):
+            scanned += 1
+            if any(p.search(prose) for p in X_NOT_Y_PATTERNS):
+                hits[f"{rel}:{no} {raw.strip()}"] = f"{rel}:{no}"
+    assert scanned > 0, "no prose lines were scanned"
+
+    unlisted = [key for key in hits if key not in X_NOT_Y_ALLOWLIST]
+    stale = [key for key in X_NOT_Y_ALLOWLIST if key not in hits]
+    missing_reason = [k for k, v in X_NOT_Y_ALLOWLIST.items() if not v.strip()]
+    assert not stale, f"allowlist entries match no hit: {stale}"
+    assert not missing_reason, f"allowlist entries without a reason: {missing_reason}"
+    assert not unlisted, (
+        f"{len(unlisted)} 'X, not Y' hit(s) of {len(hits)} in {len(files)} files:\n  "
+        + "\n  ".join(hits[key] for key in unlisted)
+    )
 
 
 class TestPublicDocsHardRules:

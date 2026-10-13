@@ -142,6 +142,19 @@ def test_output_html_is_written(tmp_path):
     assert html_path.stat().st_size > 100
 
 
+def test_output_html_loads_plotlyjs_from_cdn(tmp_path):
+    """output_html references plotly.js on the CDN and does not embed the bundle."""
+    _require_plotly_or_skip()
+    import jaxfne.vis as vis
+
+    html_path = tmp_path / "network.html"
+    vis.visualize_network_3d(_minimal_rows(), output_html=html_path)
+    text = html_path.read_text(encoding="utf-8")
+    assert 'src="https://cdn.plot.ly/plotly-' in text
+    assert "* plotly.js v" not in text
+    assert html_path.stat().st_size < 500_000
+
+
 def test_return_node_table_returns_rows():
     """return_node_table=True returns (fig, list[dict]) with required keys."""
     _require_plotly_or_skip()

@@ -669,6 +669,10 @@ def hh_numpy_reference_trace(
 ) -> tuple[Any, Any, Any]:
     """Standalone tutorial/reference Hodgkin-Huxley single-compartment trace.
 
+    Model: Hodgkin & Huxley (1952), doi:10.1113/jphysiol.1952.sp004764, in the
+    modern form (rest -65 mV, E_Na 50, E_K -77, E_L -54.387 mV), forward Euler
+    with the gates updated before the voltage.
+
     This is a standalone tutorial/reference HH utility, NOT Jaxley bridge validation,
     and NOT evidence that JaxleyBridge executed.
     """

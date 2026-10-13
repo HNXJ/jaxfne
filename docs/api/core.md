@@ -154,7 +154,7 @@ physical signals.
 #### `simulate(sim: Simulation, paradigm: Any | None = None, *, continuation: Any | None = None, return_state: bool = False) -> Signals`
 
 `_model.py`. Runs the default **Izhikevich / edge-list EIG vertical slice**.
-`sim` is a **required, positional `Simulation` object** — not `duration_ms`/`dt_ms`/`seed`
+`sim` is a **required, positional `Simulation` object**. `duration_ms`, `dt_ms`, and `seed` are not accepted as
 keywords directly on `Model.simulate`. Use the module-level `jtfne.simulate(model,
 duration_ms=..., ...)` helper (below) for the kwarg form.
 
@@ -252,7 +252,7 @@ jaxfne.Simulation
 - `runtime` (`RuntimeConfig | None`, default `None`)
 - `ablation` (`str | None`, default `None`)
 
-`n_steps` is a **property** (`round(duration_ms / dt_ms)`), not a constructor
+`n_steps` is a derived **property** (`round(duration_ms / dt_ms)`) rather than a constructor
 field, and `__post_init__` raises `ValueError` if it is `<= 0`.
 
 **Example:**
@@ -278,7 +278,7 @@ Real fields (`_signals.py`):
 - `V_m` (`jax.Array`) — membrane voltage, shape `(n_steps, n_units)`
 - `spikes` (`jax.Array`) — spike raster, shape `(n_steps, n_units)`
 - `sources` (`jax.Array | None`) — source density (present when `record_sources=True`)
-- `field` (`FieldOutput | None`) — laminar proxy field output (LFP/CSD/EEG/MEG proxies live inside this object, not as separate top-level `Signals` fields; present when `record_fields=True`)
+- `field` (`FieldOutput | None`) — laminar proxy field output (LFP/CSD/EEG/MEG proxies live inside this object, rather than as separate top-level `Signals` fields; present when `record_fields=True`)
 - `metadata` (`dict[str, Any]`)
 
 `sources` (plural) is the source-density array; field
@@ -322,7 +322,7 @@ jaxfne.Objective
 `_signals.py`. Frozen dataclass — declarative objective specification (losses,
 regularizers, diagnostic gates). All specs are plain dicts (no callables), so the
 objective is always JSON-serializable. Gate pass/fail is a computational
-diagnostic, not empirical validation.
+diagnostic rather than empirical validation.
 
 ### Fields
 
@@ -400,7 +400,7 @@ extracting a scalar feature from `Signals`.
 - `metadata` (`dict | None`, keyword-only)
 
 Note: `name` and `metric` are positional-or-keyword; the remaining three are
-**keyword-only** (`*` in the signature) — `jtfne.readout_spec("x", "spike_rate_hz", time_window_ms=(0, 100))`, not a positional third argument.
+**keyword-only** (`*` in the signature) — `jtfne.readout_spec("x", "spike_rate_hz", time_window_ms=(0, 100))`; a positional third argument is not accepted.
 
 **Available metrics** (`_KNOWN_READOUT_METRICS`, `_construct_extras.py`): `spike_rate_hz`,
 `spike_count`, `mean_V_m`, `csd_abs_mean`, `lfp_abs_mean`, `source_abs_mean`.
@@ -514,4 +514,4 @@ ran with `record_fields=False`) rather than fabricating a placeholder.
 ### `objective() -> Objective`
 
 See [Objective](#objective) above — documented there since it's the constructor
-entry point for that class, not a standalone helper with its own parameters.
+entry point for that class.

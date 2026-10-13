@@ -2,12 +2,12 @@
 
 The source of a simulation is the raw proxy-current trace that each emitter kernel returns
 as its third value. This page documents the shape, metadata surfaces, and claim status of
-that trace across every emitter path. It is a contract description, not a class reference:
+that trace across every emitter path. It is a contract description; no class reference follows:
 there is no `Source` or `SourceTensor` object in jaxfne.
 
 ## Scope
 
-- The source is an array, not an object. Every emitter kernel returns
+- The source is a bare array. Every emitter kernel returns
   `(spikes, ...intermediate_state..., source)` where `source` is the third return value.
 - No `Source` class, `SourceTensor` class, per-kernel metadata field, or compatibility
   adapter exists or is planned. Downstream code consumes the plain array plus the metadata
@@ -46,7 +46,7 @@ declare their own `source_mode_class` and input representation.
   [Emitters API](emitters.md) page), with no conversion to a physical unit.
 - Do not infer the schema from the shape alone: `(T, N)` also describes intermediate state
   arrays. The metadata surfaces below are the authoritative descriptors; tests assert on
-  metadata, never on shape.
+  metadata.
 
 ## Metadata surfaces
 
@@ -131,7 +131,7 @@ synaptic operators.
 
 - `tests/test_phaseD_source_schema.py` covers all five emitter paths: array convention,
   exact status strings, presence/absence of `source_bookkeeping` per path, and the status gate
-  (`physical_amplitude_calibrated` never `True`).
+  (`physical_amplitude_calibrated` always `False`).
 - `tests/test_source_bookkeeping_v020.py` covers the bookkeeping metadata contract for the
   standard paths.
-- Both suites assert on metadata surfaces, never on trace shape alone.
+- Both suites assert on metadata surfaces.

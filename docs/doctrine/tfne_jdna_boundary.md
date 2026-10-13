@@ -108,6 +108,6 @@ through unchanged; JDNA turns them into coordinates.
 
 Development, construction/simulation, and optimization use independently
 controlled PRNG domains: `K_D ≠ K_S ≠ K_A`. `K_D` is threaded explicitly
-(JAX keys are split, never reused); changing one domain never silently alters
+(JAX keys are split rather than reused); changing one domain never silently alters
 another. Same `K_D` reproduces the same completion; different `K_D` realizes
 different phenotypes within the same constraint bands.

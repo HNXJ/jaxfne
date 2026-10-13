@@ -1,0 +1,62 @@
+name: Dashboard
+
+# Publishes the committed replication dashboard to gh-pages:/dashboard/ (Hamm 2026-10-12).
+# Only that directory on gh-pages changes; the rest of the branch is left as it is.
+# The data file is never regenerated here: the job fails if it is stale.
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "dashboard/**"
+      - "scripts/build_dashboard_data.py"
+      - "scripts/build_dashboard_figures.py"
+      - "scripts/generate_replications_page.py"
+      - "docs/replications.md"
+      - ".github/workflows/dashboard.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dashboard-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # the generator reads lane branches at pinned SHAs
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Data file matches sources and lane files
+        run: python scripts/build_dashboard_data.py --check
+
+      - name: Static figures match the chart data
+        run: python scripts/build_dashboard_figures.py --check
+
+      - name: Docs replications page matches sources
+        run: python scripts/generate_replications_page.py --check
+
+      - name: Copy dashboard into gh-pages
+        run: |
+          git fetch origin gh-pages
+          git worktree add ../pages origin/gh-pages
+          rm -rf ../pages/dashboard
+          mkdir -p ../pages/dashboard
+          cp -r dashboard/index.html dashboard/app.js dashboard/style.css dashboard/data dashboard/models dashboard/figures ../pages/dashboard/
+          cd ../pages
+          git add -A dashboard
+          if git diff --cached --quiet; then
+            echo "dashboard unchanged"
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "Publish dashboard from dev ${GITHUB_SHA}"
+          git push origin HEAD:gh-pages

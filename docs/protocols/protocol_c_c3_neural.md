@@ -92,7 +92,7 @@ Do **not** collapse `UNRESOLVED` into `NO_WAVE`.
 
 Velocity/direction summaries are **conditional** on `TRAVELING_WAVE` and must not hide nondetections.
 
-## Directional conjecture (optional, not required for success)
+## Directional conjecture (optional; success does not require it)
 
 \[
 p_W(\text{ordered, geometry-derived}) > p_W(\text{ordered, uniform})

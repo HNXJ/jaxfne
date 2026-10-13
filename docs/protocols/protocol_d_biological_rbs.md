@@ -59,9 +59,9 @@ X
 
 | Coordinate | D1 scope |
 |------------|----------|
-| \(H_{\mathrm{Na}}\) | Reserved — not implemented in D1 |
+| \(H_{\mathrm{Na}}\) | Reserved; unimplemented in D1 |
 | \(H_{\mathrm{K}}\) | Realized in D1 |
-| \(H_{\mathrm{Ca}}\) | Reserved — not implemented in D1 |
+| \(H_{\mathrm{Ca}}\) | Reserved; unimplemented in D1 |
 
 **Resolution principle (frozen):**
 
@@ -80,7 +80,7 @@ changing the grammar.
 ## First coordinate: \(H_{\mathrm{K}}\)
 
 **Physical typing (frozen):** effective **K-associated recovery/adaptation contribution**
-in the reduced Izhikevich realization — not literal \(g_K\), not concentration.
+in the reduced Izhikevich realization — no literal \(g_K\) and no concentration.
 
 Four separable specification layers:
 
@@ -100,8 +100,8 @@ Local mathematical receipt:
 
 > \(H_{\mathrm{K}}\) is an effective relative K-associated recovery coordinate in the
 > Izhikevich realization. It demonstrates typed RBS containment of a reduced biophysical
-> dependency; it is not an explicit potassium concentration, Nernst potential, or
-> Hodgkin–Huxley potassium-conductance model.
+> dependency. No explicit potassium concentration, Nernst potential, or
+> Hodgkin–Huxley potassium-conductance model is represented.
 
 **What \(H_{\mathrm{K}}\) is not:** potassium concentration, Nernst potential, STDP,
 or neurotransmitter availability.
@@ -146,8 +146,8 @@ H_{\mathrm{K}}(t) \rightarrow b_{\mathrm{eff}}(t) \rightarrow X(t).
 invariance (bit-exact classical); positivity; repeatability; \(|V_{\mathrm{ext}}-V_{\mathrm{class}}|\)
 decays in tail as \(H_{\mathrm{K}}\rightarrow 1\).
 
-**Coordinate semantics (standardized):** effective **K-associated recovery state** — not “channel
-availability” until a realization models availability/inactivation kinetics explicitly.
+**Coordinate semantics (standardized):** effective **K-associated recovery state**. No “channel
+availability” reading applies until a realization models availability/inactivation kinetics explicitly.
 
 ## D2b — two-timescale activity→\(H_{\mathrm{K}}\) coupling (executed)
 
@@ -184,7 +184,7 @@ S_i \rightarrow H_{A,i} \rightarrow H_{K,i} \rightarrow b_i^{\mathrm{eff}} \righ
 \kappa_{\mathrm{AK}} > 0.
 \]
 
-**Timescales (frozen, not optimized for D3):** \(\tau_{\mathrm{A}}=25\) ms, \(\tau_{\mathrm{K}}=100\) ms, \(\tau_{\mathrm{A}}<\tau_{\mathrm{K}}\).
+**Timescales (frozen, rather than optimized for D3):** \(\tau_{\mathrm{A}}=25\) ms, \(\tau_{\mathrm{K}}=100\) ms, \(\tau_{\mathrm{A}}<\tau_{\mathrm{K}}\).
 
 **Discrete causal ordering:**
 
@@ -233,7 +233,7 @@ admissibility \(H_{\mathrm{K}}>0\); post-stimulus analytic/discrete two-timescal
 }
 \]
 
-**Phenomenon (frozen label):** activity-dependent **adaptation with recovery** — not
+**Phenomenon (frozen label):** activity-dependent **adaptation with recovery**. Its label does not imply
 “fatigue” as a formal microscopic mechanism.
 
 **Pulse train:** \(m=6\) identical pulses (\(u_1=\cdots=u_m\)); amplitude \(15\),
@@ -263,7 +263,7 @@ R_{\mathrm{recovery}}=
 {\overline R_{\mathrm{early}}-\overline R_{\mathrm{late}}}.
 \]
 
-**Recovery intervals (from D2b timescales, not tuned post hoc):** short \(50\) ms
+**Recovery intervals (from D2b timescales, rather than post hoc tuning):** short \(50\) ms
 (\(2\tau_{\mathrm{A}}\)), medium \(100\) ms (\(\tau_{\mathrm{K}}\)), long \(250\) ms
 (\(2.5\,\tau_{\mathrm{K}}\)).
 
@@ -286,7 +286,7 @@ allows activity history to write \(H_{\mathrm{K}}\)).
 `ADAPTATION` requires \(A_{\mathrm{adapt}}>\theta_A\), \(H_{\mathrm{K}}^{\mathrm{late}}>1+\theta_H\),
 and sufficient early signal (\(\overline R_{\mathrm{early}}\ge 1\)). `NO_ADAPTATION` is a
 valid outcome (including \(A_{\mathrm{adapt}}\le 0\) with adequate signal). `UNRESOLVED`
-when early response is too sparse — silence is not adaptation.
+when early response is too sparse, silence falls outside ADAPTATION.
 
 **Frozen thresholds:** \(\theta_A=0.15\), \(\theta_H=0.01\).
 
@@ -350,7 +350,7 @@ questions — keep separate panels and narrative.
 | D2a | Autonomous F1 relaxation **executed** |
 | D2b | Two-coordinate \((H_{\mathrm{A}},H_{\mathrm{K}})\) coupling — **executed** |
 | D3 | Adaptation/recovery phenotype — **executed** (`NO_ADAPTATION`) |
-| D4 | Optional second RBS class — **not authorized** |
+| D4 | Optional second RBS class — unauthorized |
 
 ## Protocol D closed @ D3
 

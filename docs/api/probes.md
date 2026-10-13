@@ -267,7 +267,7 @@ shaped things exist under similar names — treat them as distinct from the
 removed `ProbeReport`:
 
 1. **`jaxfne.io.probe_report(n_probes, probe_types=None, metadata=None)`**
-   (`jaxfne/io.py:218-234`) — a plain JSON-bundle builder, not a per-probe
+   (`jaxfne/io.py:218-234`) — a plain JSON-bundle builder rather than a per-probe
    report object. It returns:
    ```python
    {
@@ -296,7 +296,7 @@ plain dict returned by `Model.probe()`.
 
 All probe/readout paths here are computational proxies:
 
-- **Simulated, not measured:** results carry no empirical validation.
+- **Simulated:** results are model outputs and carry no empirical validation.
 - **Amplitude scale:** `physical_amplitude_calibrated=False` throughout; state mV/µV claims only alongside separate calibration evidence.
 - **Relative metrics only:** use for comparative analysis rather than absolute scaling.
 - **Sign convention:** `csd_proxy = -d²φ/dz²` (spatial second difference along

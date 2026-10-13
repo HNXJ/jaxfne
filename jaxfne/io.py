@@ -6,6 +6,7 @@ import dataclasses
 import hashlib
 import json
 import math
+import subprocess
 import warnings
 from pathlib import Path
 from typing import Any, Optional
@@ -282,3 +283,8 @@ def asset_hashes(
 
 # Backwards-compatible name from v0.0.1.
 hash_file = sha256_file
+
+
+def _git_head(root: str | Path) -> str:
+    """HEAD commit of the git repository at ``root`` (provenance stamp)."""
+    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()

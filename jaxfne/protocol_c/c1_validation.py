@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_c.estimator import WaveEstimate, estimate_traveling_wave
 from jaxfne.protocol_c.protocol import PROTOCOL_ID, load_protocol_spec
 from jaxfne.protocol_c.synthetic import (
@@ -25,10 +24,6 @@ from jaxfne.protocol_c.synthetic import (
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BUNDLE_ROOT = REPO_ROOT / "artifacts" / "protocol_c"
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def _ground_truth(f_hz: float, k_vector: np.ndarray) -> dict[str, Any]:
@@ -116,7 +111,7 @@ def run_c1_synthetic_validation(*, package_head: str | None = None) -> dict[str,
         "checkpoint": "C1",
         "status": "FROZEN",
         "protocol_id": PROTOCOL_ID,
-        "package_head": package_head or _git_head(),
+        "package_head": package_head or _git_head(REPO_ROOT),
         "question": "Does W_hat correctly identify known wave and non-wave fields?",
         "scope": "synthetic_fields_only_no_neural_simulation",
         "tolerances_from_c0": tol,

@@ -23,7 +23,6 @@ import time
 from typing import Any
 
 import jax
-import jax.numpy as jnp
 import matplotlib
 
 matplotlib.use("Agg")
@@ -33,6 +32,7 @@ import numpy as np
 import jaxfne as jtfne
 
 from _figure_common import (
+    _finite_status,
     save_matplotlib_figure,
     ensure_evidence_dirs,
     repo_root,
@@ -143,14 +143,6 @@ def _build_config(n_neurons: int, n_contacts: int) -> jtfne.Configuration:
             n_contacts=n_contacts,
         )
     )
-
-
-def _finite_status(signals, readout: dict) -> bool:
-    checks = [jnp.all(jnp.isfinite(signals.V_m)), jnp.all(jnp.isfinite(signals.spikes))]
-    for key in ("CSD", "LFP", "csd_proxy", "lfp_proxy"):
-        if key in readout and hasattr(readout[key], "shape"):
-            checks.append(jnp.all(jnp.isfinite(readout[key])))
-    return bool(all(checks))
 
 
 def run_benchmark_grid() -> list[dict[str, Any]]:

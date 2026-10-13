@@ -7,7 +7,7 @@ jaxfne treats **AI-agent readability as a first-class design goal**, alongside h
 |---------|----------|------|
 | `docs/` + README | Humans | Tutorials, API reference, guides |
 | `artifacts/context.md` + `artifacts/skills/` + `artifacts/AGENTS.md` | AI coding agents | Router, verified workflows, and repository policy |
-| `artifacts/developer/` | Maintainers / agents, **local-only** | Developer working notes — gitignored since 2026-07-14, not present in a fresh clone |
+| `artifacts/developer/` | Maintainers / agents, **local-only** | Developer working notes — gitignored since 2026-07-14 and absent from a fresh clone |
 
 ## Start here (agents)
 
@@ -26,7 +26,7 @@ Scientific/operator grammar:     Emitter -> Source -> Field -> Probe -> Objectiv
 Software execution grammar:      CircuitSpec -> construct -> Model -> simulate -> Signals
 ```
 
-Paradigm, Objective, and Trainer are optional downstream workflow components, not stages of either grammar.
+Paradigm, Objective, and Trainer are optional downstream workflow components and are stages of neither grammar.
 
 `construct()` is the single dispatch — extend it, do not bypass.
 

@@ -31,6 +31,7 @@ from .emitters import (
     simulate_receptor_exponential_izhikevich,
 )
 from .emitters_homeostatic_ei import HomeostaticEIParams, simulate_homeostatic_ei
+from .emitters_adex import AdExParams, simulate_adex
 from .fields import project_laminar_sources
 from .io import config_hash, json_safe
 from ._runtime_config import RuntimeConfig, _device_scope
@@ -73,6 +74,35 @@ def _refuse_dense_receptor_kernel(runtime_cfg: RuntimeConfig) -> None:
         raise ValueError(
             "synaptic_kernel='receptor_exponential' runs only on "
             "recurrent_backend='edge_list'; the dense backend would ignore it"
+        )
+
+
+def _refuse_dense_connection_rules(model: Any, runtime_cfg: RuntimeConfig) -> None:
+    """Refuse a dense run when compiled ``connections()`` rules exist.
+
+    Rule edges are appended to ``params["edge_list"]`` at construct time; the
+    dense kernel runs on ``emitter.W`` only, so it would silently drop them.
+    Base-graph declarations (``within_gain``, ``p_connect`` mask, ``edge_seed``
+    for the base sampling, ``feedforward_gain``/``feedback_gain``) are baked
+    into ``emitter.W`` and stay accepted -- only materialized rule edges
+    (``compiled_n_edges > 0``) trigger. A rule that matched no edges drops
+    nothing, so it does not trigger either.
+    """
+    if runtime_cfg.recurrent_backend == "edge_list":
+        return
+    metadata = getattr(getattr(model, "cfg", None), "metadata", None) or {}
+    rules = (metadata.get("circuit", {}) or {}).get("connections", []) or []
+    n_rule_edges = sum(
+        int(rule.get("compiled_n_edges", 0) or 0)
+        for rule in rules
+        if isinstance(rule, Mapping)
+    )
+    if n_rule_edges > 0:
+        raise ValueError(
+            f"{n_rule_edges} edge(s) compiled from connections() rules are not "
+            "carried by the dense backend (it runs on emitter.W, which the "
+            "rules never touch); use recurrent_backend='edge_list' to run the "
+            "declared connectivity"
         )
 
 
@@ -647,6 +677,7 @@ def _simulate_arrays(
         return V, S, src
 
     _refuse_dense_receptor_kernel(runtime_cfg)
+    _refuse_dense_connection_rules(self, runtime_cfg)
     if runtime_cfg.recurrent_backend == "edge_list":
         edges: EdgeList = self.params["edge_list"]
         if ablation_mode == "disconnected_null":
@@ -1108,6 +1139,10 @@ def simulate(
     object.__setattr__(self, "_last_hdp_diag", None)
     object.__setattr__(self, "_last_homeostasis_diag", None)
 
+    if isinstance(self.params["emitter"], AdExParams):
+        _refuse_adex_inputs(self, sim, paradigm, continuation, return_state)
+        return _simulate_adex(self, sim, runtime_cfg)
+
     if isinstance(self.params["emitter"], HomeostaticEIParams):
         if continuation is not None or return_state:
             raise ValueError("full-state continuation is not available for homeostatic_ei")
@@ -1379,6 +1414,88 @@ def _simulate_homeostatic_ei(
     )
 
 
+def _refuse_adex_inputs(
+    model: "Model", sim: Simulation, paradigm: Any, continuation: Any, return_state: bool
+) -> None:
+    """Refuse the simulate() inputs the adex route does not consume, naming each.
+
+    The argument refusals come first; every Simulation and RuntimeConfig field is then checked
+    against the allowlist (``_construct_adex.ADEX_CONSUMED``).
+    """
+    from ._construct_adex import refuse_adex_simulation
+
+    if continuation is not None or return_state:
+        raise ValueError(
+            "simulate(continuation=..., return_state=...) is not realized for emitter family "
+            "'adex': the route has no full-state continuation"
+        )
+    if paradigm is not None:
+        raise ValueError(
+            "simulate(paradigm=...) is not realized for emitter family 'adex': the route has no "
+            "input current, so a paradigm would not drive the cells"
+        )
+    refuse_adex_simulation(sim, model.cfg)
+
+
+def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -> Signals:
+    """The adex emitter family's ``simulate()`` path (``jaxfne/emitters_adex.py``).
+
+    Runs the conductance kernel on the compiled edges (``_construct_adex.adex_kernel_args``
+    supplies its arguments). ``Simulation(poisson_drive=...)`` adds the CAMINOS external
+    drive (``_construct_adex.adex_external_drive_kwargs`` supplies the kernel's ``ext_*``
+    arguments); without it the cells start at rest and run with no drive. No field is
+    built (``field`` is None).
+    """
+    from ._construct_adex import adex_external_drive_kwargs, adex_kernel_args
+
+    dtype = runtime_cfg.jnp_dtype
+    kwargs = adex_kernel_args(self, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+    drive_kwargs = adex_external_drive_kwargs(self, sim)
+    out = simulate_adex(
+        **kwargs, **drive_kwargs, n_steps=sim.n_steps, dt_ms=sim.dt_ms, record_v=True
+    )
+    time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
+    static = self.static["adex"]
+    metadata: dict[str, Any] = {
+        "config_hash": config_hash(self.cfg),
+        "emitter_family": "adex",
+        "step_order": kwargs["step_order"],
+        "decay": kwargs["decay"],
+        "n_edges": int(static["pre"].shape[0]),
+        "edge_seed": int(static["edge_seed"]),
+        "duration_ms": float(sim.duration_ms),
+        "dt_ms": float(sim.dt_ms),
+        "n_steps": int(sim.n_steps),
+        "runtime": runtime_cfg.runtime_report(),
+        "physical_amplitude_calibrated": False,
+        "network": static["network"],
+        "receptors": list(static["receptor_names"]),
+        "rules": [name for name, _ in static["rules"]],
+        # The route records no sources and no field; the record flags change nothing here.
+        "not_recorded": ["sources", "field"],
+    }
+    if sim.poisson_drive is not None:
+        metadata["poisson_drive"] = {
+            "n_sources": int(sim.poisson_drive["n_sources"]),
+            "rate_hz": float(sim.poisson_drive["rate_hz"]),
+            "weight_nS": float(sim.poisson_drive["weight_nS"]),
+            "mechanism": str(sim.poisson_drive["mechanism"]),
+            "target_cell_types": list(sim.poisson_drive["target_cell_types"]),
+            "delay_ms": float(sim.poisson_drive["delay_ms"]),
+            "seed": int(sim.poisson_drive["seed"]),
+            "ext_lambda": float(drive_kwargs["ext_lambda"]),
+            "status": "stochastic_drive_applied",
+        }
+    return Signals(
+        time_ms=time_ms,
+        V_m=out["V_mV"].astype(dtype),
+        spikes=out["spikes"],
+        sources=None,
+        field=None,
+        metadata=metadata,
+    )
+
+
 def last_homeostasis_diagnostics(self) -> "Optional[dict[str, Any]]":
     """Return the full per-step homeostasis diagnostics from the most recent
     ``simulate(...)`` call with ``enable_homeostasis=True``.
@@ -1430,6 +1547,11 @@ def simulate_condition(
     override of ``drive_amplitude`` and ``event_duration_ms``.
     No calibrated amplitude, PDE, or empirical claim is introduced.
     """
+    if isinstance(self.params["emitter"], AdExParams):
+        raise ValueError(
+            "simulate_condition(condition=...) is not realized for emitter family 'adex': it "
+            "drives a paradigm, and the adex route consumes no input current"
+        )
     schedule = stimulus_schedule(
         condition.events,
         n_neurons=self.params["emitter"].n_neurons,
@@ -1495,6 +1617,10 @@ def simulate_batch(
             "exponential synaptic kernel."
         )
     _refuse_dense_receptor_kernel(runtime_cfg)
+    if not hdp_on and not homeo_on:
+        # HDP/homeostasis paths always use the sparse-edge kernel; only the
+        # plain backend dispatch below can hand the dense kernel rule edges.
+        _refuse_dense_connection_rules(self, runtime_cfg)
     edge_kernel_fn = (
         simulate_receptor_exponential_izhikevich
         if runtime_cfg.synaptic_kernel == "receptor_exponential"

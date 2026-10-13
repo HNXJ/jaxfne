@@ -8,7 +8,7 @@ rules.
 ## 1. Quantity kinds
 
 Every numerical quantity in a jaxfne model belongs to exactly one of these
-kinds. The distinction is semantic, not a Python wrapper — inside JAX hot
+kinds. The distinction is semantic, rather than a Python wrapper — inside JAX hot
 kernels the values are plain arrays; the grammar governs *what the numbers
 mean* and *how they combine*.
 
@@ -19,7 +19,7 @@ $$B,\quad R,\quad E,\quad T$$
 | **B** — base/model quantity | Physical/model baseline. Retains its actual units and semantics. Static/shared baseline that relative state modulates around. | physical (or declared model) units | `edges.weight` baseline `m0`; base drive `b`; base intrinsic `a_base` |
 | **R** — relative quantity | Dimensionless internal dynamic state or modulation. Zero (or another declared reference) represents the reference/base state where applicable. Its admissible domain is fixed by its geometry. | dimensionless | `H_i` (RBS coordinate), `r_p` relative gain modulation, `fraction` cell-type fractions |
 | **E** — effective quantity | The quantity actually used in dynamics, produced from a base and a relative modulation through an explicit mapping. | inherits base units | `p_eff = C_p(p0, r_p)` |
-| **T** — physical time quantity | Dimensional time (clock, delays, time constants, integration windows, timescales). Not a relative quantity; never normalized into the R convention. | milliseconds (or seconds where the controller law declares `s`) | `dt_ms`, `duration_ms`, `delay_steps`, `tau_0_ms`, `tau_H_s`, timestamps |
+| **T** — physical time quantity | Dimensional time (clock, delays, time constants, integration windows, timescales). Not a relative quantity. Do not normalize it into the R convention. | milliseconds (or seconds where the controller law declares `s`) | `dt_ms`, `duration_ms`, `delay_steps`, `tau_0_ms`, `tau_H_s`, timestamps |
 
 Effective physical values must be produced through **explicit mappings**; a
 relative value must never be silently treated as a physical quantity.
@@ -44,7 +44,7 @@ shapes:
 Rules:
 
 - **Audit before assigning.** Domains are derived from the actual variables
-  and their clamps/equations, never imposed retroactively. Do not
+  and their clamps/equations. Do not
   retroactively reinterpret quantities whose established semantics are
   genuinely dimensional.
 - **Zero = reference where applicable.** A relative value of zero represents
@@ -58,8 +58,7 @@ Rules:
 
 ## 3. Physical time (class T)
 
-**Time is a distinct dimensional class, not a relative quantity.** It is never
-normalized into the relative-value convention.
+**Time is a distinct dimensional class, outside the relative quantities.** It is kept outside the relative-value convention.
 
 - `dt_ms`, `duration_ms`, delays (`delay_steps`, delay_ms), time constants
   (`tau_0_ms`, `tau_syn_ms`, `tau_r_ms`, `tau_H_s`, `tau_theta_s`),
@@ -67,8 +66,7 @@ normalized into the relative-value convention.
   physical time units (milliseconds, or seconds where the controller law
   declares `s`).
 - The causal invariant is `t[n+1] > t[n]` — the simulation clock is
-  physical, monotonic, and forward-causal. Constant `dt` is a convenience, not
-  a requirement.
+  physical, monotonic, and forward-causal. Constant `dt` is a convenience and is optional.
 - Dimensionless state dynamics may use dimensional timescales:
   `tau_H * dH/dt = F(H, ...)` where `H` and `F` are dimensionless and `tau_H`
   carries time units.
@@ -97,7 +95,7 @@ h_k = (meaning, domain, R_k, Gamma_k)
   better expressed as an emergent phenotype of several parameter gains.
 - `H` is **not** intrinsically synonymous with homeostasis. A particular
   realization may contain homeostatic/restoring terms, but that is a
-  specialization, not the definition.
+  specialization that does not define `H`.
 
 The concrete per-coordinate table for the shipped HDP kernels lives in
 [`docs/guides/hdp.md`](../guides/hdp.md) and
@@ -121,7 +119,7 @@ The concrete HDP mappings:
 | Parameter | Base `p0` | Relative `r_p` | `p_eff = C_p(p0, r_p)` |
 |---|---|---|---|
 | Synaptic weight magnitude (node HDP) | `m0 = \|edges.weight\|` | H-derived basis `basis(H_post − H_pre)` | weight is an **integrated ODE state**: `dm/dt = ±K_HDP·basis·m + K_w_ctrl·(m0 − m)`; when plasticity is null (`K_HDP=0 ∧ K_w_ctrl=0`), `w(t) = w0` bitwise; when weight plasticity is active, subfloor weights (`\|w0\| < w_floor`) are clipped to `w_floor` |
-| Edge weight (population restoring) | sign of `w_baseline` (base magnitude not carried) | `θ_0 ∈ [0.1, 5.0]` | `w_eff = sign(w_baseline)·θ_0` — **magnitude-replacing**, not multiplicative on base magnitude; θ=1 gives unit magnitude, so the base magnitude is not recovered. Documented limitation of this controller. |
+| Edge weight (population restoring) | sign of `w_baseline` (base magnitude not carried) | `θ_0 ∈ [0.1, 5.0]` | `w_eff = sign(w_baseline)·θ_0` — **magnitude-replacing**; the base magnitude is replaced, rather than multiplicatively scaled; θ=1 gives unit magnitude, so the base magnitude is not recovered. Documented limitation of this controller. |
 | Intrinsic `a` (population restoring) | `a_base` | `θ_1 ∈ [0.25, 4.0]` | `a_eff = a_base·θ_1` — multiplicative; θ=1 ⇒ `a_eff = a_base` (exact recovery) |
 
 ## 6. Language and claim gates

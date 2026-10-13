@@ -43,7 +43,7 @@ $F_\theta$ is the **Emitter → Source** bridge. It transforms parameter choices
 **Run boundary:**
 
 - **Computational scaffold** unless $F_\theta$ is calibrated to empirical neural response
-- **Not biological proof** without comparison to experimental data
+- **Biological proof** requires comparison to experimental data
 - **Izhikevich default** in jaxfne; other emitters supported via custom models
 
 **Implementation:**
@@ -197,7 +197,7 @@ CSD turns a field-current pattern into a source/sink-like readout. It is the pri
 
 - **CSD-proxy** unless source AND field are calibrated/solved
 - **Sign convention** in jaxfne: `positive_equals_extracellular_source` (positive CSD = current flowing outward)
-- **Not a direct biological measurement** (no physical conductivity or solved field)
+- **Proxy-derived, rather than a direct biological measurement** (no physical conductivity or solved field)
 
 **Implementation:**
 - `jaxfne.fields.project_laminar_sources()` — computes CSD proxy directly
@@ -259,12 +259,12 @@ $$\boxed{\mathrm{EMM\text{-proxy}} = \text{weighted normalized source activity +
 
 **Critical bridge term:**
 
-EMM-proxy is a **relative within-run cost/activity index**, not a biological energy-consumption measurement. It combines source, field-gradient, and current-density norms to measure "computational cost" or "activity intensity."
+EMM-proxy is a **relative within-run cost/activity index**. Biological energy consumption is not measured. It combines source, field-gradient, and current-density norms to measure "computational cost" or "activity intensity."
 
 **Run boundary:**
 
 - **Proxy-only**
-- **Computational cost metric** — combines source and field norms, not ATP consumption or metabolic rate
+- **Computational cost metric** — combines source and field norms. ATP consumption and metabolic rate are not measured
 - **Valid for relative within-run comparison** (e.g., which timestep is most active)
 - **Requires empirical calibration** for any biological interpretation statements
 
@@ -330,7 +330,7 @@ Gaussian kernel is linear in source amplitude but not in neuron placement.
 
 **Code:** `jaxfne/fields/proxy.py` (`project_laminar_sources`), `validate_projection_invariants`.
 
-**Boundary:** superposition holds for the **proxy operator**, not for a future
+**Boundary:** superposition holds for the **proxy operator** rather than for a future
 nonlinear PDE solve (P2+ in Tensor Electromagnetics Scope (`docs/tensor_electromagnetics_scope.md` — repository-internal reference, excluded from the built site)).
 
 ### Source projection
@@ -349,7 +349,7 @@ inside the modeled population.
 **Formal:** $\mathrm{CSD}(z,t) \approx \partial^2 \phi_e / \partial z^2$ on the contact axis.
 
 **Practice:** CSD-proxy is computed along the laminar contact grid after spatial
-projection — it is a discrete second difference on `phi_e_proxy`, not a volume
+projection — it is a discrete second difference on `phi_e_proxy`, rather than a volume
 divergence solve. Use `csd_tensor` when you need the stage factored out of the
 full projection chain.
 
@@ -360,8 +360,8 @@ full projection chain.
 **Formal:** $\int q\,\mathrm{d}V \approx 0$ is checked via the spatial mean of $q$ over contacts.
 
 **Practice:** `compute_conservation_proxy_diagnostics` reports
-`source_conservation_proxy_residual` — a scalar summary, not a PDE residual.
-Values near zero indicate spatial balance of the **proxy source**, not enforced
+`source_conservation_proxy_residual` — a scalar summary, distinct from a PDE residual.
+Values near zero indicate spatial balance of the **proxy source**, rather than enforced
 continuity at a tissue boundary.
 
 **Code:** `jaxfne/fields/diagnostics.py`, Conservation Proxy Diagnostics (`docs/conservation_proxy_diagnostics.md` — repository-internal reference, excluded from the built site).

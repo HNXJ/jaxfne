@@ -159,7 +159,7 @@ The crossover is **not guaranteed by column geometry or N alone**: in an
 asynchronous-irregular regime the LFP stays broadband at every depth. A deep-α/β vs
 superficial-γ crossing needs band-limited **oscillations** localized by layer
 with global κ low — see `skills/jaxfne-spectrolaminar-suite/SKILL.md`.
-Multi-trial averaging and ≥1k neurons help **estimate** the readout, not create the regime.
+Multi-trial averaging and ≥1k neurons help **estimate** the readout and do not create the regime.
 
 ## Hidden-state Dependent Plasticity (HDP) for long-duration spectrolaminar runs
 
@@ -184,14 +184,14 @@ dm_ij/dt = q_ij*K_HDP*phi(Delta_H_ij)*m_ij
 
 For the difference family, `phi(x)=x` (`signed_linear`) and
 `phi(x)=x*abs(x)` (`signed_quadratic`). `hebbian_product` is separate
-product modulation (`phi=H_pre*H_post`), not another difference rule.
+product modulation (`phi=H_pre*H_post`), a product rule.
 `K_ctrl*(1-H_i)` restores `H_i` toward `H_i=1`;
 `K_w_ctrl*(m0_ij-m_ij)` restores edge magnitude independently. `tau_i =
 tau_0_ms * size_i**3` slows `H_i` integration in larger (e.g. E) cells.
 Implementation: `jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp`. One
 config-driven builder for HDP-ready laminar columns of any size lives in
 `jaxfne.hdp_network` (`HDPColumnConfig` + `build_model`/`apply_drive_correction`/`run`) —
-size is a config field, not a per-N function.
+size is a config field, rather than a per-N function.
 
 HDP runs through `RuntimeConfig(enable_hdp=True, hdp_params=...)`. This
 tutorial also shows the `jaxfne.hdp_network` convenience builder, driving
@@ -251,7 +251,7 @@ Verified 5-seed stable (N=500, 2000ms):
 - `H` fluctuates (`H=1.028±0.023`, range `[0.953, 1.227]`); every neuron stays clear of the `H_min`/`H_max` clamp rails.
 - `kappa_synchrony` holds at 0.044 (still async-irregular).
 
-Second-pass refinement of an earlier, wider, more skewed candidate (`H=[0.96, 1.47]`): raising `gamma` 0.3 → 0.5 tightened both tails, since the rate-drain term is rate-bounded rather than weight-multiplicative and avoids amplifying the H>1 weight-growth feedback loop the way `alpha` does; `gamma>=0.55` hits a stability cliff (weight runaway) at every `K_ctrl`/`alpha` tried. `H` range has yet to symmetrically span `[0.8, 1.2]` — the floor (~0.95) looks structurally bottlenecked by E neurons' large `tau_i` (size=5 for E), not these three gains; treat as current best candidate, still open, unlike frozen `DEFAULT_HDP`.
+Second-pass refinement of an earlier, wider, more skewed candidate (`H=[0.96, 1.47]`): raising `gamma` 0.3 → 0.5 tightened both tails, since the rate-drain term is rate-bounded rather than weight-multiplicative and avoids amplifying the H>1 weight-growth feedback loop the way `alpha` does; `gamma>=0.55` hits a stability cliff (weight runaway) at every `K_ctrl`/`alpha` tried. `H` range has yet to symmetrically span `[0.8, 1.2]` — the floor (~0.95) looks structurally bottlenecked by E neurons' large `tau_i` (size=5 for E); the three gains do not explain it; treat as current best candidate, still open, unlike frozen `DEFAULT_HDP`.
 
 ### Two distinct, intentionally-separate operating modes
 
@@ -384,7 +384,7 @@ VIP: negative `b` (bistable subthreshold), higher reset `c` → irregular firing
 | `E_weight_range` | `(0.5, 2.0)` | a.u. | Excitatory weight range |
 | `I_weight_range` | `(-1.5, -0.5)` | a.u. | Inhibitory weight range |
 | `synaptic_tau_ms` | `5.0` | ms | Exponential synapse decay constant |
-| `sign_policy` | `"intrinsic"` | string | Sign from emitter type, not overridden |
+| `sign_policy` | `"intrinsic"` | string | Sign from emitter type; no override applies |
 | `seed` | `None` | integer | Edge-weight PRNG seed |
 
 ### Drive domain (`cfg.drive`)
@@ -541,8 +541,7 @@ bundle_tuned = jtfne.suite2_run_bundle(tuned_model, seed=7, duration_ms=1000.0, 
 ```
 
 The surrogate optimizer minimizes squared deviation from the firing-rate
-target. **The surrogate path is for inner-loop optimization only; it does not
-produce physical amplitude statuss.**
+target. **The surrogate path is for inner-loop optimization only. It produces no physical amplitude status.**
 
 ---
 
@@ -634,14 +633,14 @@ If observed rates are >2× outside these ranges, the network is unstable or froz
 
 ### Expected spectrolaminar proxy power
 
-**Compute the spectrolaminar crossover from the LFP proxy, not the CSD proxy.**
+**Compute the spectrolaminar crossover from the LFP proxy; the CSD proxy is not used.**
 The depth × frequency crossover (deep alpha/beta vs superficial gamma) is an LFP
 phenomenon. CSD-proxy is the second spatial derivative of the LFP: it sharpens
 local sinks/sources and *suppresses* the broad, slow, spatially extended deep
 alpha/beta component — so a CSD-measured crossover yields a false "deep alpha/beta
 absent" result. Use `signal_key="lfp_contacts"` (the
 `summarize_spectrolaminar_similarity` default) for the crossover; CSD-proxy stays a
-complementary readout of local sinks/sources, not the band crossover.
+complementary readout of local sinks/sources, rather than a band crossover.
 
 LFP-proxy power is in **proxy relative units** (not µV²):
 

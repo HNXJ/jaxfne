@@ -156,3 +156,8 @@ local/
 
 # Script-generated visualization artifacts (regenerate via scripts/)
 scripts/out/
+
+# Docs atlas HTML is a build product: scripts/build_docs_assets.py --build writes it
+# (Read the Docs runs it before mkdocs); the manifests and atlas_registry.json stay tracked.
+docs/_static/atlas/**/*.html
+docs/_static/atlas_three_area/*.html

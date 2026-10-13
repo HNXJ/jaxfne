@@ -8,7 +8,7 @@ conservation diagnostics / partial, elliptic field solver / reserved, full
 electrodynamic solver / reserved). This page expands the two reserved rows into
 named sub-stages so a reader can see what "reserved" would require, stage by
 stage, without implying any of it is scheduled. Every stage past P0 is
-**deferred and not promised**; this page is a scope statement, not a release plan. It follows the reserved-path tone of [Tensor-Network Ancestry, Part 6](tensor_network_ancestry.md#part-6-reserved-optional-path-not-implemented).
+**deferred, rather than promised**; this page is a scope statement, rather than a release plan. It follows the reserved-path tone of [Tensor-Network Ancestry, Part 6](tensor_network_ancestry.md#part-6-reserved-optional-path-not-implemented).
 
 ---
 
@@ -17,13 +17,13 @@ stage, without implying any of it is scheduled. Every stage past P0 is
 | Stage | Description | Status |
 |---|---|---|
 | **P0** | Proxy projection — Gaussian-leadfield source-to-field projection, finite-difference CSD | shipped |
-| **P1** | Declared geometry — boundary/gauge/conductivity fields carried as metadata, not solved | shipped (`physical_field_solver_v040.PhysicalFieldSolverSpec`) |
+| **P1** | Declared geometry — boundary/gauge/conductivity fields carried as metadata and unsolved | shipped (`physical_field_solver_v040.PhysicalFieldSolverSpec`) |
 | **P2** | Boundary-aware solve — an elliptic field solve that honors a declared boundary condition and gauge | reserved |
 | **P3** | Discrete volume solve — a mesh/volume-conductor solve over declared geometry | reserved |
 | **P4** | Differentiable adjoint — a solve path compatible with gradient-based tuning | reserved |
 | **P5** | External validation — comparison against reference physical measurements | reserved |
 
-P0 and P1 ship today. P2 through P5 are not implemented, not scheduled, and not
+P0 and P1 ship today. P2 through P5 are unimplemented, unscheduled, and not
 promised; they record where the proxy/solved boundary lies.
 
 ---

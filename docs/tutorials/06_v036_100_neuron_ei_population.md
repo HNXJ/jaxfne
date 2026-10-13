@@ -34,7 +34,7 @@ cfg = (jtfne.Configuration()
     .probes(["SPK", "Vm", "source", "LFP-proxy", "CSD-proxy"]))
 ```
 
-**Proxy-Scale Readouts:** Field outputs (LFP, CSD) are computed via convolution-based proxies, not full PDE solutions. This enables fast visualization and relative comparison without stating physical amplitude.
+**Proxy-Scale Readouts:** Field outputs (LFP, CSD) are computed via convolution-based proxies, rather than full PDE solutions. This enables fast visualization and relative comparison without stating physical amplitude.
 
 ---
 

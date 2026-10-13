@@ -26,12 +26,14 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 ATLAS_ROOT = ROOT / "docs" / "_static" / "atlas"
+# The three-area hierarchy (welcome page, gallery) lives beside atlas/.
+OUT_DIRS = {"three_area": ROOT / "docs" / "_static" / "atlas_three_area"}
 
 
 def _build_atlas(slug: str, title: str, model, signals, **manifest_kw):
     from jaxfne.vis import build_atlas
 
-    out_dir = ATLAS_ROOT / slug
+    out_dir = OUT_DIRS.get(slug, ATLAS_ROOT / slug)
     manifest = build_atlas(model, signals, out_dir=str(out_dir), title=title, **manifest_kw)
     print(f"[{slug}] {title}: sha256={manifest['sha256']}", flush=True)
     for p in manifest["panels"]:
@@ -365,6 +367,27 @@ def spec_v1v4_80():
     )
 
 
+def spec_three_area():
+    import jaxfne as jtfne
+
+    # The recipe printed on docs/gallery.md.
+    cfg = (
+        jtfne.build_multi_area_columns(["V1", "V4", "PFC"], n_per_area=100, ei_profile="canonical")
+        .runtime(seed=0)
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m"])
+        .field(domain="laminar_column", conductivity="proxy")
+    )
+    model = jtfne.construct(cfg)
+    signals = jtfne.simulate(model, jtfne.simulation(duration_ms=500.0, dt_ms=0.5, seed=0))
+    return (
+        "V1-V4-PFC three-area hierarchy (100/area)",
+        model,
+        signals,
+        dict(duration_ms=500.0, dt_ms=0.5, seed=0),
+    )
+
+
 def spec_canonical_etude_1000():
     import jaxfne as jtfne
 
@@ -662,6 +685,7 @@ SPECS = {
     # (extra probe modes change no panel); tutorial 09 links the shared slug.
     "omission_60": spec_omission_60,
     "v1v4_80": spec_v1v4_80,
+    "three_area": spec_three_area,
     "canonical_etude_1000": spec_canonical_etude_1000,
     "hdp_10": spec_hdp_10,
     "hdp_1000": spec_hdp_1000,

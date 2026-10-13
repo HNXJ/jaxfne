@@ -49,8 +49,8 @@ H = homeostatic state
 HDP = homeostasis-dependent plasticity
 ```
 
-Homeostasis is a possible property/regime of the dynamics, not the
-definition of `H`.
+Homeostasis is a possible property/regime of the dynamics. The definition of
+`H` does not rest on homeostasis.
 
 Define:
 
@@ -110,7 +110,7 @@ calibrated.
 
 The scalar toy model is simply \(d_H=1\).
 
-**State-space container, not one equation.** \(\dot{\mathbf H}=F_H(\ldots)\)
+**State-space container.** \(\dot{\mathbf H}=F_H(\ldots)\)
 subsumes ionic, metabolic, trace, neuromodulatory, and plasticity coordinates
 as **realizations** with typed readouts (e.g. \(\dot W=F_W(\mathbf H,\ldots)\)),
 not parallel architectural subsystems. Unification:
@@ -123,7 +123,7 @@ H_{\mathrm{Na}}\neq H_{\mathrm{DA}}\neq H_{\mathrm{STDP}}.
 \]
 
 **Operator scope.** RBS may eventually parameterize any physically appropriate
-TFNE operator (\(E,S,F,P\)), not only the emitter. Current code (H1a/H1b) is
+TFNE operator (\(E,S,F,P\)), covering more than the emitter. Current code (H1a/H1b) is
 the minimal emitter-local slice. Cross-operator coupling requires explicit typed
 maps — see `docs/doctrine/tfne_containment_architecture.md`.
 
@@ -143,9 +143,9 @@ H_{\text{generic}}:\quad \text{“homeostatic state”}\rightarrow\text{RBS},
 `NeuronalTensor.PlasticParams.H` field docstring calls the seeding scalar a
 "homeostatic H-factor". This falls under the kernel-specific carve-out above:
 the label describes the *seeding role of that parameter inside the
-HDP/RBD kernels it feeds* (a legacy per-neuron balance trace), not the
-definition of RBS. RBS itself remains a finite-dimensional dependency-state
-container, not intrinsically homeostatic; no code or doc may generalize the
+HDP/RBD kernels it feeds* (a legacy per-neuron balance trace). The label does not
+define RBS. RBS itself remains a finite-dimensional dependency-state
+container, rather than intrinsic homeostasis; no code or doc may generalize the
 "homeostatic" qualifier from `PlasticParams.H` to `H` at large.
 
 ## 2. RBD — Relative Biophysical Dynamics
@@ -283,7 +283,7 @@ For LFP-like, CSD-like, EEG-like, MEG-like, and related readouts,
 preserve proxy-safe naming until source semantics, geometry, operator,
 units, calibration, and validation justify stronger claims.
 
-A fixed linear projection remains a projection, not a PDE solve.
+A fixed linear projection remains a projection; no PDE is solved.
 
 ## 6. Geometry/calibration boundary
 
@@ -386,7 +386,7 @@ Experimental ladder (see `docs/doctrine/protocol_h_rbd_memory.md`):
 | Test | Claim | Protocol |
 |------|-------|----------|
 | T1 | RBS state closure / full-state continuation (incl. \(\mathcal B_t\)) | H |
-| T2 | RBD equilibrium/stability (homeostasis established per equation, not by name) | H |
+| T2 | RBD equilibrium/stability (homeostasis established per equation; the name alone does not establish it) | H |
 | T3 | H-only fading memory with \(W\) frozen — quantitative \(M(\Delta)\) | H |
 | T4 | Topology/delay memory (no extension is valid) | H (**negative at H4**) |
 | T5 | HDP persistent parameter traces | W (W0 frozen; `docs/doctrine/protocol_w_hdp_parameter_memory.md`) |
@@ -444,7 +444,7 @@ Upstream project sources and repository docs listed in the agent handout. Requir
 6. A normalized projection is not a physical PDE solve.
 7. Homeostasis, adaptation, memory, plasticity, prediction, and surprise minimization are distinct claims.
 8. RBS/RBD/HDP unify mechanisms only where equations and falsification justify it.
-9. Quantization is implementation optimization, not scientific evidence.
+9. Quantization is an implementation optimization and carries no scientific evidence.
 10. Qualitative figures do not substitute for quantitative metrics.
 
 ## 15. Desired conceptual grammar

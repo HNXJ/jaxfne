@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +16,7 @@ from jaxfne.emitters import (
     simulate_edge_recurrent_izhikevich_activity_h_k_rbd,
     simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery,
 )
-from jaxfne.io import json_safe
+from jaxfne.io import _git_head, json_safe
 from jaxfne.protocol_d_biological_rbs.d1_execution import _build_isolated_circuit, _drive_schedule
 from jaxfne.protocol_d_biological_rbs.d1_protocol import load_d1_spec
 from jaxfne.protocol_d_biological_rbs.d2a_protocol import load_d2a_spec
@@ -28,10 +27,6 @@ from jaxfne.protocol_d_biological_rbs.d2b_protocol import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-
-
-def _git_head() -> str:
-    return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True).strip()
 
 
 def h_a_analytic(a0: float, t_ms: np.ndarray, *, tau_a_ms: float) -> np.ndarray:
@@ -376,7 +371,7 @@ def run_d2b_activity_h_k_coupling(
         "status": "FROZEN",
         "write_once": True,
         "implementation_authorized": True,
-        "package_head": package_head or _git_head(),
+        "package_head": package_head or _git_head(REPO_ROOT),
         "spec_path": "artifacts/protocol_d_biological_rbs/d2b_activity_h_k_coupling_spec.json",
         "activity_input_S": "binary spike indicator S_n in {0,1} per Euler step (timestep-independent)",
         "causal_ordering": "H_K^{n+1} uses H_A^n not H_A^{n+1}",

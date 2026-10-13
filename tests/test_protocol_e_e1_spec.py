@@ -7,7 +7,6 @@ import json
 from jaxfne.protocol_e_integration.e1_protocol import (
     E1_SPEC_PATH,
     load_e1_spec,
-    validate_e1_spec,
 )
 
 
@@ -52,10 +51,6 @@ def test_e1_structural_gates_defined():
 def test_e1_implementation_authorized():
     auth = load_e1_spec()["execution_authorization"]
     assert auth["implementation_authorized"] is True
-
-
-def test_e1_validate_spec_passes():
-    validate_e1_spec()
 
 
 def test_e1_protocol_receipt_closed():

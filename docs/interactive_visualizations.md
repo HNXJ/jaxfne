@@ -173,7 +173,7 @@ Interactive visualizations propagate the immutable status checks:
 
 - `amplitude_status`: Always **False** (no amplitude calibration)
 - `model_status`: Always **"computational_scaffold"** (no biological statements)
-- `field_model_status`: Always **"proxy_readout"** (simulated fields, not real)
+- `field_model_status`: Always **"proxy_readout"** (simulated fields, rather than real ones)
 
 **What interactive HTML shows:**
 - Mathematical relationships between simulation variables (spike times, field power)

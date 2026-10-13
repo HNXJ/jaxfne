@@ -1,8 +1,8 @@
 # Brian2 vs. jaxfne benchmark receipt (2026-07-18)
 
 First quantitative cross-tool comparison. Prior benchmarking compared jaxfne
-against itself across backends, never against an incumbent tool. This is a small
-smoke comparison, not a benchmark suite: a first data point, not a definitive claim.
+against itself across backends. This is a small
+smoke comparison and a first data point. No benchmark suite is included, and no definitive claim is made.
 
 ## Setup
 
@@ -17,10 +17,10 @@ settings on both sides (no hand-tuning either tool).
   dimensionless Izhikevich equations matching Brian2's own official example
   style, `p_connect = min(1, 100/n)` Erdos-Renyi connectivity. Run in an
   isolated throwaway venv (`pip install brian2`) — Brian2 is intentionally
-  **not** a jaxfne dependency, this is a one-off comparison, not a feature.
+  **not** a jaxfne dependency, this is a one-off comparison, which adds no feature.
   Code-generation backend: `auto`, which resolved to the compiled Cython
   path (confirmed available in the test environment) — the representative
-  "out of the box" experience for a typical Brian2 user, not a
+  "out of the box" experience for a typical Brian2 user rather than a
   maximally-tuned comparison (Brian2 also offers a `cpp_standalone` mode,
   not used here).
 
@@ -48,12 +48,12 @@ since both scripts use a fixed seed — 99,738 / 3,000 for Brian2 and 96,183 /
 ## Honest caveats
 
 - **Edge/synapse counts and spike counts differ slightly between tools at
-  the same N** — expected, not a bug. Both target ~100 in-degree via a
+  the same N** — expected, and no bug is involved. Both target ~100 in-degree via a
   connection *probability*, so the realized edge count is a random draw
   (binomial), and each tool draws it from its own RNG stream (Brian2:
   `numpy.random.seed`; jaxfne: JAX PRNG) — the task specification matches,
   the specific random realization doesn't need to.
-- **Small-scale smoke test, not a benchmark suite.** Only 2 sizes tested,
+- **Small-scale smoke test.** No benchmark suite was run. Only 2 sizes tested,
   only CPU, only this specific task shape (sparse Izhikevich, no plasticity).
   Does not generalize to claims about "jaxfne is faster than Brian2" in
   general — only that it was faster on this specific matched task at these
@@ -61,7 +61,7 @@ since both scripts use a fixed seed — 99,738 / 3,000 for Brian2 and 96,183 /
 - **Brian2's `construct()` time includes JIT/compile overhead** that Brian2
   itself would likely amortize across repeated runs at the same N within one
   process (code-generation is cached); each of the 2 runs recorded here used
-  a fresh Brian2 venv/process, so both are cold-start measurements, not a
+  a fresh Brian2 venv/process, so both are cold-start measurements rather than a
   warm-cache steady-state comparison for either tool.
 - Neither tool's absolute wall-clock times here should be treated as
   hardware-independent — this ran on the same single machine for both

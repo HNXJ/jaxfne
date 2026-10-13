@@ -1,0 +1,765 @@
+{
+  "schema": "atlas_registry.v1",
+  "built_from": "tracked manifests (build_docs_assets.py --registry-write)",
+  "compared_fields": [
+    "config_hash",
+    "n_neurons",
+    "n_edges",
+    "n_steps",
+    "seed",
+    "duration_ms",
+    "dt_ms"
+  ],
+  "atlases": [
+    {
+      "slug": "calibration_100",
+      "dir": "docs/_static/atlas/calibration_100",
+      "config_hash": "96761084e1107d82",
+      "n_neurons": 100,
+      "n_edges": 9900,
+      "n_steps": 400,
+      "seed": 0,
+      "duration_ms": 200.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 H1: regenerated after the spec dropped unconsumed field depths and probe contact_depths; panel data identical to the validated run (only config_hash, div ids, timestamps differ); broad gate green",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:47:28.949184+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "canonical_etude_1000",
+      "dir": "docs/_static/atlas/canonical_etude_1000",
+      "config_hash": "b8ec3bc1536dec6f",
+      "n_neurons": 1000,
+      "n_edges": 999000,
+      "n_steps": 2000,
+      "seed": 0,
+      "duration_ms": 1000.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:52.861016+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "config_grammar_1000",
+      "dir": "docs/_static/atlas/config_grammar_1000",
+      "config_hash": "4665fb608374843e",
+      "n_neurons": 1000,
+      "n_edges": 999000,
+      "n_steps": 400,
+      "seed": 0,
+      "duration_ms": 200.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:53.081199+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "ei_population_100",
+      "dir": "docs/_static/atlas/ei_population_100",
+      "config_hash": "8c242da2a84dc05f",
+      "n_neurons": 100,
+      "n_edges": 9900,
+      "n_steps": 2000,
+      "seed": 42,
+      "duration_ms": 1000.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:53.304736+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "evoked_l4",
+      "dir": "docs/_static/atlas/evoked_l4",
+      "config_hash": "872f598151ed1466",
+      "n_neurons": 100,
+      "n_edges": 9900,
+      "n_steps": 3000,
+      "seed": 7,
+      "duration_ms": 1500.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:53.535183+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "hdp_10",
+      "dir": "docs/_static/atlas/hdp_10",
+      "config_hash": "14c5b4f994b934e9",
+      "n_neurons": 10,
+      "n_edges": 90,
+      "n_steps": 200,
+      "seed": 0,
+      "duration_ms": 100.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "AVAILABLE",
+        "hdp.html": "AVAILABLE",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 P-018: regenerated after the plain route applied the declared drive; broad gate green on b0817dc",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "b0817dcf0e93c87fe873f30aec8ff4c8b0749139",
+          "utc": "2026-09-28T14:43:22.621365+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "hdp_1000",
+      "dir": "docs/_static/atlas/hdp_1000",
+      "config_hash": "a6746c86b439713e",
+      "n_neurons": 1000,
+      "n_edges": 999000,
+      "n_steps": 400,
+      "seed": 0,
+      "duration_ms": 200.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "AVAILABLE",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.6 docs-asset build: regenerated after the authorized H1 (e) repair 9958a72 changed the declared config hash; N and edges unchanged",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "e0e818ab9f1026d2febe61193f9e0cbf4c84815a",
+          "utc": "2026-10-13T02:35:07.617261+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "homeostasis_1000",
+      "dir": "docs/_static/atlas/homeostasis_1000",
+      "config_hash": "4dbc78e758181d5f",
+      "n_neurons": 1000,
+      "n_edges": 999000,
+      "n_steps": 2000,
+      "seed": 0,
+      "duration_ms": 1000.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "AVAILABLE",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.6 docs-asset build: regenerated after the authorized H1 (e) repair 9958a72 changed the declared config hash; N and edges unchanged",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "e0e818ab9f1026d2febe61193f9e0cbf4c84815a",
+          "utc": "2026-10-13T02:35:07.930088+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "lfp_csd_12",
+      "dir": "docs/_static/atlas/lfp_csd_12",
+      "config_hash": "a07c380b8304e490",
+      "n_neurons": 12,
+      "n_edges": 132,
+      "n_steps": 2000,
+      "seed": 42,
+      "duration_ms": 1000.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:54.431813+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "readme",
+      "dir": "docs/_static/atlas",
+      "config_hash": "91f037cf383e0bdb",
+      "n_neurons": 1000,
+      "n_edges": 215785,
+      "n_steps": 2000,
+      "seed": 0,
+      "duration_ms": 1000.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 version bump regenerated the canonical atlas (config hash 91f037cf383e0bdb unchanged, jaxfne_version 0.5.0 -> 0.5.5), which reset its state; restores the prior validated state",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "7169dfc6d77974b36915fbbf98878149c1acbcb1",
+          "utc": "2026-10-09T14:58:05.034089+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "network_100_ei",
+      "dir": "docs/_static/atlas/network_100_ei",
+      "config_hash": "e58d761836660352",
+      "n_neurons": 100,
+      "n_edges": 9900,
+      "n_steps": 1000,
+      "seed": 42,
+      "duration_ms": 100.0,
+      "dt_ms": 0.09999847412109375,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:54.668980+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "objective_60",
+      "dir": "docs/_static/atlas/objective_60",
+      "config_hash": "48f956974352b5cb",
+      "n_neurons": 60,
+      "n_edges": 3540,
+      "n_steps": 400,
+      "seed": 1,
+      "duration_ms": 200.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "P-027: standard stimulus honestly at pre_stimulus_buffer_ms=50 (dead onset arg removed); paradigm tests 24 green",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "a15a7e1ebbb614af67f029e4d4a11092b0d1277a",
+          "utc": "2026-10-04T22:56:56.435092+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "omission_60",
+      "dir": "docs/_static/atlas/omission_60",
+      "config_hash": "f3305c1339655fd0",
+      "n_neurons": 60,
+      "n_edges": 3540,
+      "n_steps": 2000,
+      "seed": 42,
+      "duration_ms": 1000.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:55.119139+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "operator_chain_40",
+      "dir": "docs/_static/atlas/operator_chain_40",
+      "config_hash": "d22bc040c6525a25",
+      "n_neurons": 40,
+      "n_edges": 1560,
+      "n_steps": 200,
+      "seed": 3,
+      "duration_ms": 100.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:55.351006+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "probe_32",
+      "dir": "docs/_static/atlas/probe_32",
+      "config_hash": "5690a65f088b1e71",
+      "n_neurons": 32,
+      "n_edges": 992,
+      "n_steps": 400,
+      "seed": 0,
+      "duration_ms": 200.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 H1: restores the validated state lost to byte-level regeneration (root atlas d8cfa82 and D1; probe_32 12da866 and D1); the stale gallery index hid the downgrade; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:34:48.793743+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "scale_100",
+      "dir": "docs/_static/atlas/scale_100",
+      "config_hash": "96a6c894ecada402",
+      "n_neurons": 100,
+      "n_edges": 9900,
+      "n_steps": 2000,
+      "seed": 2303,
+      "duration_ms": 1000.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:55.571558+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "single_neuron",
+      "dir": "docs/_static/atlas/single_neuron",
+      "config_hash": "0cb7b98c0189042d",
+      "n_neurons": 1,
+      "n_edges": 0,
+      "n_steps": 1000,
+      "seed": 0,
+      "duration_ms": 100.0,
+      "dt_ms": 0.09999847412109375,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:55.799372+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "source_column_48",
+      "dir": "docs/_static/atlas/source_column_48",
+      "config_hash": "e29a9e61e9eb131a",
+      "n_neurons": 48,
+      "n_edges": 2256,
+      "n_steps": 2000,
+      "seed": 42,
+      "duration_ms": 1000.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:56.016717+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "suite1_column",
+      "dir": "docs/_static/atlas/suite1_column",
+      "config_hash": "316023c3edc9c239",
+      "n_neurons": 48,
+      "n_edges": 2256,
+      "n_steps": 2000,
+      "seed": 44,
+      "duration_ms": 1000.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:56.240695+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "suite2_net1",
+      "dir": "docs/_static/atlas/suite2_net1",
+      "config_hash": "2cc90a7c1ef078db",
+      "n_neurons": 100,
+      "n_edges": 9900,
+      "n_steps": 2000,
+      "seed": 7,
+      "duration_ms": 1000.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:56.473526+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "two_neuron_ei",
+      "dir": "docs/_static/atlas/two_neuron_ei",
+      "config_hash": "8ae5b8435e856e10",
+      "n_neurons": 2,
+      "n_edges": 2,
+      "n_steps": 1000,
+      "seed": 0,
+      "duration_ms": 500.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 H1 review fix: two-neuron E/I example now declares fractions {E: 0.5, PV: 0.5} (the plain route read {E: 1, PV: 1} as two E cells) and drops weights nothing read; broad gate 4597 passed, only failure this pending promotion",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "bdf56cb9ed0cded42d4ef347c6413c2b82071c76",
+          "utc": "2026-09-28T02:55:35.363647+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "v1_column",
+      "dir": "docs/_static/atlas/v1_column",
+      "config_hash": "c79b0c87047fc5f7",
+      "n_neurons": 600,
+      "n_edges": 359400,
+      "n_steps": 2000,
+      "seed": 0,
+      "duration_ms": 1000.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:56.913707+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "v1_pfc_dual",
+      "dir": "docs/_static/atlas/v1_pfc_dual",
+      "config_hash": "f9433f57d4d5bd7a",
+      "n_neurons": 200,
+      "n_edges": 240,
+      "n_steps": 2000,
+      "seed": 0,
+      "duration_ms": 1000.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:57.147362+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "v1v4_80",
+      "dir": "docs/_static/atlas/v1v4_80",
+      "config_hash": "0699b80ad44b5f32",
+      "n_neurons": 160,
+      "n_edges": 12891,
+      "n_steps": 2000,
+      "seed": 42,
+      "duration_ms": 1000.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.5 D1/H1: regenerated after authorized repairs (P-014 drives, H1 declarations); restores the prior validated state; broad gate green on d3e768a",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "d3e768adbff4068399dfc42374a25f33839b779a",
+          "utc": "2026-09-28T01:29:57.371783+00:00"
+        }
+      ]
+    },
+    {
+      "slug": "three_area",
+      "dir": "docs/_static/atlas_three_area",
+      "config_hash": "84f67ccf815ff923",
+      "n_neurons": 300,
+      "n_edges": 30105,
+      "n_steps": 1000,
+      "seed": 0,
+      "duration_ms": 500.0,
+      "dt_ms": 0.5,
+      "panels": {
+        "schema.html": "AVAILABLE",
+        "network_3d.html": "AVAILABLE",
+        "raster.html": "AVAILABLE",
+        "lfp.html": "AVAILABLE",
+        "h_dynamics.html": "OMITTED",
+        "hdp.html": "OMITTED",
+        "oscillatory.html": "AVAILABLE"
+      },
+      "figure_state": "validated",
+      "promotion": [
+        {
+          "to": "validated",
+          "reason": "0.5.x regen via generate_doc_page_atlases.py --slug three_area; config_hash and n_edges match the 0.4.25 build",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "7f4d4a6b044203c39ed4a052decbc7c310ea0b50",
+          "utc": "2026-10-13T00:56:04.279473+00:00"
+        }
+      ]
+    }
+  ]
+}

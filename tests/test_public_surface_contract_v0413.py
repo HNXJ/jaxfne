@@ -107,9 +107,11 @@ def test_public_symbol_count_contraction_from_baseline():
     GeometryTransform/PoseEdit/RangeEdit, ThetaC, ThetaX, W0, H0);
     +2 long-horizon H-space diagnostics ADVANCED for AT-10-R5
     (boundedness_report, stability_report: root-reachable, namespace-mapped
-    to jaxfne._long_diagnostics, outside the 205-name contract)."""
+    to jaxfne._long_diagnostics, outside the 205-name contract);
+    +5 AdEx conductance kernel ADVANCED under jaxfne.emitters (ADEX_CELL_TYPE_DEFAULTS,
+    AdExParams, adex_step, make_adex_params, simulate_adex; Hamm 2026-10-12)."""
     summary = public_surface_summary()
-    assert summary["counts"]["baseline_all"] == 283
+    assert summary["counts"]["baseline_all"] == 288
     assert summary["counts"]["public_exports"] == 205
     assert summary["counts"]["compatibility"] == 13
     assert summary["counts"]["experimental_internal"] == 13
