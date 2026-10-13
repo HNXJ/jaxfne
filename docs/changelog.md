@@ -96,6 +96,11 @@ the rules those releases were held to and are historical context for readers.
   stay tracked.
 
 ### Fixed
+- `fields.filtered_spike_source` (and `combined_multi_area_source`) signs each cell type from
+  the emitter tables: `I`, `Inl`, `Ing` and the AdEx `SOM` were signed +1 (excitatory) because
+  any type outside E, PV, SST, VIP defaulted to +1; they are now -1. A cell type absent from the
+  table raises `ValueError` naming it; pass `cell_signs=` to sign it. The package, its scripts
+  and frozen results call neither function.
 - `Simulation(poisson_drive={"target": ...})` raises `ValueError` for any target other than
   `"all"`. The target was never read: `{"target": "E"}` drove every neuron while the run
   metadata recorded `"E"`. `"all"` and an omitted target draw as before.

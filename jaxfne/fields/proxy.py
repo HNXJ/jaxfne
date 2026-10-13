@@ -770,14 +770,25 @@ def filtered_spike_source(
     dt_ms: float = 0.1,
     cell_signs: Mapping[str, int] | None = None,
 ) -> tuple[jax.Array, dict[str, Any]]:
-    """Documented public function `filtered_spike_source`."""
+    """Documented public function `filtered_spike_source`.
+
+    ``cell_signs`` defaults to the signs of the emitter tables (Izhikevich ``sign``; the AdEx
+    types E +1, PV and SOM -1). A cell type without a sign is refused.
+    """
     if cell_signs is None:
-        cell_signs = {"E": 1, "PV": -1, "SST": -1, "VIP": -1}
+        from ..emitters import IZHIKEVICH_CELL_TYPE_DEFAULTS
+
+        cell_signs = {ct: int(p["sign"]) for ct, p in IZHIKEVICH_CELL_TYPE_DEFAULTS.items()}
+        cell_signs["SOM"] = -1
 
     cell_types = neurons.get("cell_type", ["E"] * spikes.shape[1])
+    unsigned = sorted({str(ct) for ct in cell_types if ct not in cell_signs})
+    if unsigned:
+        raise ValueError(f"filtered_spike_source: cell types {unsigned} have no sign; "
+                         f"pass cell_signs= with a sign for each (known: {sorted(cell_signs)})")
     trace = exponential_synaptic_trace(spikes, tau_ms, dt_ms)
 
-    signs = jnp.array([cell_signs.get(ct, 1) for ct in cell_types], dtype=jnp.float32)
+    signs = jnp.array([cell_signs[ct] for ct in cell_types], dtype=jnp.float32)
     source = trace * signs[None, :]
 
     metadata = {
