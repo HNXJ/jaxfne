@@ -259,3 +259,253 @@ def test_peak_excess_without_a_fit_is_no_peak(monkeypatch):
     assert counts.sum() > 0  # fixture: a nonzero PSD reaches the fit
     res = izh.peak_excess(counts, 1000.0, (8.0, 13.0))
     assert res["pe"] is None and not izh.holds(res, 2.0)
+
+
+# --- P3 runner/scorer tests (run_izh.py, net_reference.py) --------------------------------------
+#
+# Spec: PREREG_P3.md (Fig. 2 C1-C8, Fig. 3 N1-N4, completeness, S1). Each test
+# loads its module by path inside the function, so on the baseline (no
+# run_izh.py / net_reference.py) every test below fails while the tests above
+# still run.
+
+RUN_IZH_PATH = REPO_ROOT / "artifacts" / "etudes" / "izhikevich2003" / "run_izh.py"
+NETREF_PATH = REPO_ROOT / "artifacts" / "etudes" / "izhikevich2003" / "net_reference.py"
+
+
+def _load_run_izh() -> types.ModuleType:
+    spec = importlib.util.spec_from_file_location("run_izh", RUN_IZH_PATH)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_netref() -> types.ModuleType:
+    spec = importlib.util.spec_from_file_location("net_reference", NETREF_PATH)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_p3_c1_pass_and_fail():
+    r = _load_run_izh()
+    rows = [0, 100, 300, 600]  # ISIs 10, 20, 30 ms in the window
+    got = r.eval_c1(rows, 0, DT_MS)
+    assert got["verdict"] == "pass" and got["numbers"]["isi_ratio"] == pytest.approx(3.0)
+    assert r.eval_c1([0, 100], 0, DT_MS)["verdict"] == "fail"  # 2 spikes
+
+
+def test_p3_c2_pass_and_fail():
+    r = _load_run_izh()
+    good = [0, 40, 80, 300, 600, 900]  # burst then a 30 ms tail
+    assert r.eval_c2(good, 0, DT_MS)["verdict"] == "pass"
+    assert r.eval_c2([0, 300, 600, 900], 0, DT_MS)["verdict"] == "fail"  # no burst
+    assert r.eval_c2([0, 40, 80, 300, 600], 0, DT_MS)["verdict"] == "fail"  # 2 tail spikes
+
+
+def test_p3_c3_pass_and_fail():
+    r = _load_run_izh()
+    rows = [s + d for s in (0, 400, 800) for d in (0, 30)]  # 3 bursts, 40 ms apart
+    got = r.eval_c3(rows, 0, DT_MS)
+    assert got["verdict"] == "pass" and got["numbers"]["onset_freq_hz"] == pytest.approx(25.0)
+    assert r.eval_c3(rows[:4], 0, DT_MS)["verdict"] == "fail"  # 2 bursts
+
+
+def test_p3_c4_pass_and_fail():
+    r = _load_run_izh()
+    fast = list(range(0, 3000, 50))  # 200 Hz, ISI ratio 1
+    got = r.eval_c4(fast, 0, DT_MS)
+    assert got["verdict"] == "pass" and got["numbers"]["rate_hz"] == pytest.approx(200.0)
+    adapting = [0, 100, 300, 600]  # ISI ratio 3
+    assert r.eval_c4(adapting, 0, DT_MS)["verdict"] == "fail"
+
+
+def test_p3_c5_is_relational_to_c1():
+    r = _load_run_izh()
+    rows = [0, 100, 250, 450, 700, 1000, 1350, 1750, 2200, 2700]  # ratio 5, 33.3 Hz
+    got = r.eval_c5(rows, 0, DT_MS, 26.0)
+    assert got["verdict"] == "pass" and got["numbers"]["rate_hz"] == pytest.approx(100 / 3)
+    assert r.eval_c5(rows, 0, DT_MS, 40.0)["verdict"] == "fail"  # not above RS
+    assert r.eval_c5([0, 100], 0, DT_MS, 1.0)["verdict"] == "fail"  # too few spikes
+
+
+def test_p3_c6_ascending_search():
+    r = _load_run_izh()
+    regular = [0, 100, 200, 300]  # 4 spikes, no burst, CV 0
+    assert r.eval_c6_search([(1.0, [0, 10], 0), (2.0, regular, 0)], DT_MS)["numbers"][
+        "selected_I_plus"] == 2.0
+    good = r.eval_c6_search([(1.0, [0, 10], 0), (2.0, regular, 0)], DT_MS)
+    assert good["verdict"] == "pass"
+    assert r.eval_c6_search([(1.0, [0, 10], 0)], DT_MS)["verdict"] == "fail"
+    assert r.eval_c6_search([], DT_MS)["verdict"] == "fail"  # empty search fails
+
+
+def test_p3_c7_burst_within_50ms_of_release():
+    r = _load_run_izh()
+    assert r.eval_c7([100, 150, 2000, 2300, 2600], 0, DT_MS)["verdict"] == "pass"
+    late = r.eval_c7([1000, 1050, 2000, 2300, 2600], 0, DT_MS)
+    assert late["verdict"] == "fail"  # burst onset 100 ms after release
+    assert r.eval_c7([100, 400, 700, 1000], 0, DT_MS)["verdict"] == "fail"  # no burst
+
+
+def test_p3_c8_pass_and_fail():
+    r = _load_run_izh()
+    t = np.arange(1000) * 1e-4
+    v = -62.5 + 2.0 * np.exp(-t / 0.05) * np.sin(2 * np.pi * 20.0 * t)
+    got = r.eval_c8(v, 0, DT_MS, [])
+    assert got["verdict"] == "pass"
+    assert abs(got["numbers"]["freq_hz"] - 20.0) < 0.1
+    assert r.eval_c8(v, 0, DT_MS, [500])["verdict"] == "fail"  # a spike fails C8
+    idx = np.arange(1000)
+    flat = -62.5 + 2.0 * np.exp(-idx * 1e-4 / 0.05) + 0.01 * np.where(idx % 2 == 0, 1.0, -1.0)
+    assert r.eval_c8(flat, 0, DT_MS, [])["verdict"] == "fail"  # no maxima
+
+
+def test_p3_fig2_missing_or_misconfigured_run_is_incomplete(tmp_path):
+    import json as _json
+
+    r = _load_run_izh()
+    (tmp_path / "manifest.json").write_text(_json.dumps({"sensitivity": None, "runs": {}}))
+    got = r.score_fig2_dir(tmp_path, 4.0, (8.0, 13.0))
+    assert got["overall"] == "incomplete"  # every run missing
+    assert all(v == "incomplete" for v in got["verdicts"].values())
+    bad = dict(r.expected_fig2_settings()["C1"], file="C1.npz", dt_ms=0.5)
+    (tmp_path / "manifest.json").write_text(
+        _json.dumps({"sensitivity": None, "runs": {"C1": bad}}))
+    got = r.score_fig2_dir(tmp_path, 4.0, (8.0, 13.0))
+    assert got["criteria"]["C1"]["verdict"] == "incomplete"  # misconfigured run
+
+
+def test_p3_zero_spike_seed_fails_n1_to_n4():
+    r = _load_run_izh()
+    got = r.score_network_seed([[]] * 10, 2000, 0.5, 4.0, (8.0, 13.0))
+    assert got["N1"]["numbers"]["mean_rate_hz"] == 0.0
+    assert all(got[n]["verdict"] == "fail" for n in ("N1", "N2", "N3", "N4"))
+    assert got["N3"]["numbers"]["pe"] is None and got["N4"]["numbers"]["pe"] is None
+
+
+def test_p3_fig3_keys_split_in_prereg_order():
+    import jax
+
+    r = _load_run_izh()
+    k_r, k_w, k_noise = r.fig3_keys(1)
+    for got, want in zip((k_r, k_w, k_noise), jax.random.split(jax.random.PRNGKey(1), 3)):
+        assert np.array_equal(np.asarray(got), np.asarray(want))
+    assert not np.array_equal(np.asarray(k_r), np.asarray(k_w))  # order matters
+    p1, _, _ = r.build_fig3_network(1)
+    p2, _, _ = r.build_fig3_network(1)
+    assert np.array_equal(np.asarray(p1.W), np.asarray(p2.W))  # fixture: same seed, same W
+    p3, _, _ = r.build_fig3_network(2)
+    assert not np.array_equal(np.asarray(p1.W), np.asarray(p3.W))  # fixture: seed changes W
+
+
+def test_p3_out_dir_with_scored_needs_signed():
+    r = _load_run_izh()
+    with pytest.raises(SystemExit):
+        r.check_out("results/scored_run", False)
+    r.check_out("results/scored_run", True)
+    r.check_out("results/smoke_run", False)
+
+
+def test_p3_review_completeness_rules(tmp_path, monkeypatch):
+    """Review notes: C8 counts every spike, check_out ignores case, C6 needs amplitudes 1..n,
+    and fig2 and fig3 must share one code SHA."""
+    import json as _json
+
+    r = _load_run_izh()
+    t = np.arange(1000) * 1e-4
+    v = -62.5 + 2.0 * np.exp(-t / 0.05) * np.sin(2 * np.pi * 50.0 * t)
+    assert r.eval_c8(v, 200, DT_MS, [])["verdict"] == "pass", "fixture must pass without spikes"
+    assert r.eval_c8(v, 200, DT_MS, [100])["verdict"] == "fail"  # spike before start_row
+    with pytest.raises(SystemExit):
+        r.check_out("results/Scored_run", False)
+
+    expected = r.expected_fig2_settings()
+    runs = {}
+    for rid, rows in (("C6_I1", [0, 10]), ("C6_I3", [0, 100, 200, 300])):
+        np.savez(tmp_path / f"{rid}.npz", spike_rows=np.asarray(rows, dtype=np.int64))
+        runs[rid] = dict(expected[rid], file=f"{rid}.npz")
+    (tmp_path / "manifest.json").write_text(_json.dumps({"sensitivity": None, "runs": runs}))
+    got = r.score_fig2_dir(tmp_path, 4.0, (8.0, 13.0))
+    assert got["criteria"]["C6"]["verdict"] == "incomplete"  # amplitude 2 missing
+
+    d2, d3 = tmp_path / "f2", tmp_path / "f3"
+    for d, sha in ((d2, "a" * 40), (d3, "b" * 40)):
+        d.mkdir()
+        (d / "manifest.json").write_text(_json.dumps({"code_sha": sha}))
+    monkeypatch.setattr(r, "score_fig2_dir", lambda *a: {"overall": "pass"})
+    monkeypatch.setattr(r, "score_fig3_dir", lambda *a: {"arm": "pass"})
+    rep = r.cmd_score(d2, d3, tmp_path / "score.json")
+    assert rep["fig2"]["overall"] == "incomplete" and rep["fig3"]["arm"] == "incomplete"
+    (d3 / "manifest.json").write_text(_json.dumps({"code_sha": "a" * 40}))
+    rep = r.cmd_score(d2, d3, tmp_path / "score.json")
+    assert rep["fig2"]["overall"] == "pass" and rep["fig3"]["arm"] == "pass"
+
+
+def test_p3_s1_reference_writes_and_reports(tmp_path, monkeypatch):
+    """net_reference.write_seed writes paired rows and cols; cmd_s1 scores both arms."""
+    import json as _json
+
+    nref = _load_netref()
+    r = _load_run_izh()
+    entry = nref.write_seed(tmp_path, 1, 0.2)
+    z = np.load(tmp_path / "1.npz")
+    assert entry["n_spikes"] > 0, "fixture must spike"
+    assert z["spike_rows"].shape == z["spike_cols"].shape == (entry["n_spikes"],)
+    assert int(z["spike_cols"].max()) < 1000 and int(z["spike_rows"].max()) < entry["n_steps"]
+    (tmp_path / "manifest.json").write_text(_json.dumps(
+        {"sensitivity": "S1", "code_sha": "x", "runs": [entry]}))
+    rep = r.cmd_s1(tmp_path, tmp_path, tmp_path / "s1.json")
+    arms = rep["seeds"]["1"]
+    assert arms["reference"]["N1"] == arms["kernel"]["N1"]  # same files, same numbers
+    assert arms["reference"]["N1"]["numbers"]["mean_rate_hz"] > 0
+
+
+def test_p3_sensitivity_runs_never_enter_score(tmp_path):
+    import json as _json
+
+    r = _load_run_izh()
+    (tmp_path / "manifest.json").write_text(_json.dumps({"sensitivity": "S1", "runs": {}}))
+    with pytest.raises(SystemExit):
+        r.score_fig2_dir(tmp_path, 4.0, (8.0, 13.0))
+    with pytest.raises(SystemExit):
+        r.score_fig3_dir(tmp_path, 4.0, (8.0, 13.0))
+
+
+def test_p3_reference_arm_matches_kernel_first_spikes():
+    import jax
+    import jax.numpy as jnp
+
+    from jaxfne.emitters import IzhikevichParams, simulate_eig_izhikevich
+
+    nref = _load_netref()
+    rng = np.random.default_rng(0)
+    net = nref.build_network(rng, n_e=40, n_i=10)
+    ref = nref.simulate(net, 200, np.random.default_rng(1), noise_on=False, drive=8.0)
+    ref_spikes = ref["spikes"]
+    assert ref_spikes.sum() > 0  # fixture: the driven reference spikes
+    assert ref["mean_extra_u_per_spike"] > 0  # fixture: the overshoot adds u
+    n = 50
+    params = IzhikevichParams(
+        a=jnp.asarray(net["a"], dtype=jnp.float32),
+        b=jnp.asarray(net["b"], dtype=jnp.float32),
+        c=jnp.asarray(net["c"], dtype=jnp.float32),
+        d=jnp.asarray(net["d"], dtype=jnp.float32),
+        drive=jnp.full((n,), 8.0, dtype=jnp.float32),
+        sign=jnp.concatenate([jnp.ones((40,)), -jnp.ones((10,))]),
+        W=jnp.asarray(net["S"], dtype=jnp.float32),
+        v0=jnp.full((n,), -65.0, dtype=jnp.float32),
+        u0=(jnp.asarray(net["b"], dtype=jnp.float32) * -65.0).astype(jnp.float32),
+        source_scale=jnp.ones((n,), dtype=jnp.float32),
+        labels=("E",) * 40 + ("I",) * 10)
+    _, ksp, _ = simulate_eig_izhikevich(params, 400, 0.5, jax.random.PRNGKey(0),
+                                        dtype="float32", noise_scale=0.0)
+    ksp = np.asarray(ksp)
+    assert ksp.sum() > 0  # fixture: the driven kernel spikes
+    for cell in range(n):
+        rt = np.flatnonzero(ref_spikes[:, cell])
+        kt = np.flatnonzero(ksp[:, cell])
+        assert len(rt) > 0 and len(kt) > 0  # fixture: every cell spikes on both arms
+        # First spikes agree within one kernel half-step (PREREG_P3: the kernel
+        # tests the threshold every 0.5 ms, the reference every 1 ms).
+        assert abs(float(rt[0]) - (float(kt[0]) + 1.0) * 0.5) <= 0.5
+

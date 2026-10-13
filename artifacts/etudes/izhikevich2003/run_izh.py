@@ -1,0 +1,651 @@
+"""Runner and scorer for the signed Izhikevich 2003 P3 preregistration.
+
+Spec: ``artifacts/etudes/izhikevich2003/PREREG_P3.md`` (signed v7); network
+per ``PORT_SPEC.md``. Subcommands ``fig2``, ``fig3`` and ``score``. No scored
+run: an ``--out`` containing "scored" is refused unless ``--signed`` is
+passed. Sensitivity S1 runs through ``net_reference.py``; S2–S4 need runner
+support that does not exist yet. A directory whose manifest carries a
+sensitivity label never enters ``score``.
+"""
+
+from __future__ import annotations
+
+import argparse
+import importlib.util
+import json
+import subprocess
+from pathlib import Path
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+_ANALYSIS = HERE / "izh_analysis.py"
+_spec = importlib.util.spec_from_file_location("izh_analysis_for_run", _ANALYSIS)
+izh = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(izh)
+
+CALIBRATION_FILE = HERE / "calibration" / "calibration_v7_15f36087.json"
+GAMMA_BAND = (30.0, 50.0)
+DISCARD_MS = 200.0
+
+FIG2_DT = 0.1
+FIG2_DTYPE = "float32"
+FIG2_TYPES = {
+    "RS": (0.02, 0.2, -65.0, 8.0),
+    "IB": (0.02, 0.2, -55.0, 4.0),
+    "CH": (0.02, 0.2, -50.0, 2.0),
+    "FS": (0.1, 0.2, -65.0, 2.0),
+    "LTS": (0.02, 0.25, -65.0, 2.0),
+    "TC": (0.02, 0.25, -65.0, 0.05),
+    "RZ": (0.1, 0.26, -65.0, 2.0),
+}
+FIG2_RUNS = {
+    # run_id: (type, segments in (ms, current), event row, steps, kind)
+    "C1": ("RS", ((10.0, 0.0), (310.0, 10.0)), 100, 3200, "step"),
+    "C2": ("IB", ((10.0, 0.0), (310.0, 10.0)), 100, 3200, "step"),
+    "C3": ("CH", ((10.0, 0.0), (310.0, 10.0)), 100, 3200, "step"),
+    "C4": ("FS", ((10.0, 0.0), (310.0, 10.0)), 100, 3200, "step"),
+    "C5": ("LTS", ((10.0, 0.0), (310.0, 10.0)), 100, 3200, "step"),
+    "C7": ("TC", ((10.0, 0.0), (100.0, -36.5), (410.0, 0.0)), 1100, 5200, "release"),
+    "C8": ("RZ", ((10.0, 0.0), (1.0, 5.0), (311.0, 0.0)), 110, 3220, "pulse"),
+}
+C6_AMPLITUDES = list(range(1, 11))
+FIG2_RUNS_C6_SEGS = {i: ((10.0, 0.0), (310.0, float(i))) for i in C6_AMPLITUDES}
+FIG3_DT = 0.5
+FIG3_DTYPE = "float32"
+FIG3_SEEDS = [1, 2, 3, 4, 5]
+FIG3_T = 10.2
+
+
+def fixed_point_vstar(b):
+    """Resting fixed point at I = 0: the lower root of 0.04 v^2 + (5-b) v + 140.
+
+    Computed in float64 (Python float) and cast by the caller.
+    """
+    disc = (5.0 - b) ** 2 - 4.0 * 0.04 * 140.0
+    return (-(5.0 - b) - np.sqrt(disc)) / (2.0 * 0.04)
+
+
+def check_out(out, signed):
+    """Refuse an --out containing "scored" unless --signed is passed."""
+    if "scored" in str(out).lower() and not signed:
+        raise SystemExit("refusing --out containing 'scored' without --signed")
+
+
+def _repo_root():
+    p = Path(__file__).resolve()
+    for q in (p,) + tuple(p.parents):
+        if (q / ".git").exists():
+            return q
+    return HERE.parents[3]
+
+
+def _git_sha():
+    try:
+        out = subprocess.run(["git", "-C", str(_repo_root()), "rev-parse", "HEAD"],
+                             capture_output=True, text=True).stdout.strip()
+        return out or "unknown"
+    except OSError:
+        return "unknown"
+
+
+def _jax_backend():
+    import jax
+
+    return jax.devices()[0].platform
+
+
+def load_calibration():
+    receipt = json.loads(CALIBRATION_FILE.read_text(encoding="utf-8"))
+    return float(receipt["theta"]), (float(receipt["alpha_band"][0]),
+                                     float(receipt["alpha_band"][1]))
+
+
+def fig3_keys(seed):
+    """k_r, k_w, k_noise for the parameter draw, the weights, the kernel noise."""
+    import jax
+
+    k_r, k_w, k_noise = jax.random.split(jax.random.PRNGKey(seed), 3)
+    return k_r, k_w, k_noise
+
+
+def _segments_to_schedule(segments, n_steps, dt_ms):
+    sched = np.zeros(n_steps)
+    row = 0
+    for ms, cur in segments:
+        n = int(round(ms / dt_ms))
+        sched[row:row + n] = cur
+        row += n
+    assert row == n_steps
+    return sched
+
+
+def run_single_cell(type_name, segments, n_steps, dt_ms=FIG2_DT,
+                    dtype=FIG2_DTYPE, key_seed=0):
+    """One Fig. 2 kernel run from the resting fixed point; returns (v, spike_rows)."""
+    import jax
+    import jax.numpy as jnp
+
+    from jaxfne.emitters import IzhikevichParams, simulate_eig_izhikevich
+
+    a, b, c, d = FIG2_TYPES[type_name]
+    vstar = fixed_point_vstar(b)
+    jdtype = jnp.float32 if dtype == "float32" else jnp.float64
+    params = IzhikevichParams(
+        a=jnp.asarray([a], dtype=jdtype), b=jnp.asarray([b], dtype=jdtype),
+        c=jnp.asarray([c], dtype=jdtype), d=jnp.asarray([d], dtype=jdtype),
+        drive=jnp.zeros((1,), dtype=jdtype), sign=jnp.ones((1,), dtype=jdtype),
+        W=jnp.zeros((1, 1), dtype=jdtype),
+        v0=jnp.asarray([vstar], dtype=jdtype),
+        u0=jnp.asarray([b * vstar], dtype=jdtype),
+        source_scale=jnp.ones((1,), dtype=jdtype), labels=(type_name,))
+    sched = _segments_to_schedule(segments, n_steps, dt_ms)
+    voltages, spikes, _ = simulate_eig_izhikevich(
+        params, n_steps, dt_ms, jax.random.PRNGKey(key_seed), dtype=dtype,
+        drive_schedule=jnp.asarray(sched, dtype=jdtype).reshape(n_steps, 1),
+        noise_scale=0.0)
+    v = np.asarray(voltages[:, 0], dtype=float)
+    rows = [int(r) for r in np.flatnonzero(np.asarray(spikes[:, 0]))]
+    return v, rows
+
+
+def expected_fig2_settings():
+    """Prereg settings per run id; the scorer compares the manifest against these."""
+    out = {}
+    for run_id, (t, segs, event, n, kind) in FIG2_RUNS.items():
+        a, b, c, d = FIG2_TYPES[t]
+        out[run_id] = {"type": t, "a": a, "b": b, "c": c, "d": d,
+                       "vstar": fixed_point_vstar(b),
+                       "segments": [[ms, cur] for ms, cur in segs],
+                       "event_row": event, "n_steps": n, "dt_ms": FIG2_DT,
+                       "dtype": FIG2_DTYPE, "key_seed": 0,
+                       "noise_scale": 0.0, "kind": kind}
+    for i in C6_AMPLITUDES:
+        a, b, c, d = FIG2_TYPES["TC"]
+        out[f"C6_I{i}"] = {"type": "TC", "a": a, "b": b, "c": c, "d": d,
+                           "vstar": fixed_point_vstar(b),
+                           "segments": [[10.0, 0.0], [310.0, float(i)]],
+                           "event_row": 100, "n_steps": 3200, "dt_ms": FIG2_DT,
+                           "dtype": FIG2_DTYPE, "key_seed": 0,
+                           "noise_scale": 0.0, "kind": "tonic", "I_plus": float(i)}
+    return out
+
+
+def cmd_fig2(out_dir, sensitivity=None):
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    expected = expected_fig2_settings()
+    manifest_runs = {}
+    c6_passed = False
+    for run_id in list(FIG2_RUNS) + [f"C6_I{i}" for i in C6_AMPLITUDES]:
+        if run_id.startswith("C6_"):
+            if c6_passed:
+                break  # ascending search stops at the first passing amplitude
+            i = int(run_id.split("C6_I")[1])
+            settings = expected[run_id]
+            v, rows = run_single_cell(settings["type"], FIG2_RUNS_C6_SEGS[i],
+                                      settings["n_steps"])
+        else:
+            settings = expected[run_id]
+            t, segs, event, n, kind = FIG2_RUNS[run_id]
+            v, rows = run_single_cell(t, segs, n)
+        np.savez_compressed(out / f"{run_id}.npz",
+                            spike_rows=np.asarray(rows, dtype=np.int64), v=v)
+        manifest_runs[run_id] = dict(settings, file=f"{run_id}.npz",
+                                     n_spikes=len(rows))
+        if run_id.startswith("C6_"):
+            win = izh.window_rows(rows, settings["event_row"], FIG2_DT)
+            c6_passed = _c6_run_ok(win, FIG2_DT)
+    manifest = {"prereg": "PREREG_P3.md signed v7, Fig. 2",
+                "code_sha": _git_sha(), "backend": _jax_backend(),
+                "kernel": "jaxfne.emitters.simulate_eig_izhikevich",
+                "dtype": FIG2_DTYPE, "dt_ms": FIG2_DT,
+                "sensitivity": sensitivity, "runs": manifest_runs}
+    (out / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
+    print(f"wrote {len(manifest_runs)} Fig. 2 runs to {out}")
+    return manifest
+
+
+def build_fig3_network(seed):
+    """1000-cell network per PORT_SPEC: W = 2S, noise_scale = paper sigma x sqrt(2)."""
+    import jax
+    import jax.numpy as jnp
+
+    from jaxfne.emitters import IzhikevichParams
+
+    k_r, k_w, k_noise = fig3_keys(seed)
+    r = jax.random.uniform(k_r, (1000,))
+    r_e, r_i = r[:800], r[800:]
+    a = jnp.concatenate([jnp.full((800,), 0.02), 0.02 + 0.08 * r_i])
+    b = jnp.concatenate([jnp.full((800,), 0.2), 0.25 - 0.05 * r_i])
+    c = jnp.concatenate([-65.0 + 15.0 * r_e ** 2, jnp.full((200,), -65.0)])
+    d = jnp.concatenate([8.0 - 6.0 * r_e ** 2, jnp.full((200,), 2.0)])
+    u = jax.random.uniform(k_w, (1000, 1000))
+    col_e = jnp.arange(1000)[None, :] < 800
+    s = jnp.where(col_e, 0.5 * u, -u)
+    w = 2.0 * s
+    noise = jnp.concatenate([jnp.full((800,), 5.0 * np.sqrt(2.0)),
+                             jnp.full((200,), 2.0 * np.sqrt(2.0))])
+    params = IzhikevichParams(
+        a=a, b=b, c=c, d=d, drive=jnp.zeros((1000,)),
+        sign=jnp.concatenate([jnp.ones((800,)), -jnp.ones((200,))]), W=w,
+        v0=jnp.full((1000,), -65.0), u0=b * -65.0,
+        source_scale=jnp.ones((1000,)), labels=("E",) * 800 + ("I",) * 200)
+    return params, noise, (k_r, k_w, k_noise)
+
+
+def run_fig3_seed(seed, t_s):
+    """One Fig. 3 kernel run; returns (rows, cols) spike indices."""
+    from jaxfne.emitters import simulate_eig_izhikevich
+
+    params, noise, keys = build_fig3_network(seed)
+    n_steps = int(round(t_s * 1000.0 / FIG3_DT))
+    _, spikes, _ = simulate_eig_izhikevich(
+        params, n_steps, FIG3_DT, keys[2], dtype=FIG3_DTYPE, noise_scale=noise)
+    idx = np.flatnonzero(np.asarray(spikes))
+    rows = (idx // 1000).astype(np.int64)
+    cols = (idx % 1000).astype(np.int64)
+    key_hex = ["-".join(str(int(x)) for x in np.asarray(k)) for k in keys]
+    return rows, cols, n_steps, key_hex
+
+
+def cmd_fig3(out_dir, seeds, t_s, sensitivity=None):
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    entries = {}
+    for seed in seeds:
+        rows, cols, n_steps, key_hex = run_fig3_seed(seed, t_s)
+        np.savez_compressed(out / f"{seed}.npz",
+                            spike_rows=rows, spike_cols=cols,
+                            n_steps=np.int64(n_steps),
+                            n_cells=np.int64(1000), dt_ms=np.float64(FIG3_DT))
+        entries[str(seed)] = {"seed": seed, "file": f"{seed}.npz",
+                              "n_steps": n_steps, "dt_ms": FIG3_DT,
+                              "dtype": FIG3_DTYPE, "T_s": t_s,
+                              "W": "2S", "noise": "paper_sigma*sqrt2",
+                              "key_order": ["k_r", "k_w", "k_noise"],
+                              "key_hex": key_hex, "n_spikes": int(rows.size)}
+    manifest = {"prereg": "PREREG_P3.md signed v7, Fig. 3",
+                "code_sha": _git_sha(), "backend": _jax_backend(),
+                "kernel": "jaxfne.emitters.simulate_eig_izhikevich",
+                "dtype": FIG3_DTYPE, "dt_ms": FIG3_DT, "T_s": t_s,
+                "seeds": list(seeds), "sensitivity": sensitivity, "runs": entries}
+    (out / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
+    print(f"wrote {len(entries)} Fig. 3 seeds to {out}")
+    return manifest
+
+
+# --- scorer -------------------------------------------------------------------------------------
+
+
+def _c6_run_ok(win, dt_ms):
+    return (len(win) >= 3 and not izh.bursts(win, dt_ms)
+            and (izh.isi_cv(win) is not None) and izh.isi_cv(win) <= 0.3)
+
+
+def _numbers(win, dt_ms):
+    return {"n_spikes": len(win), "rate_hz": izh.rate_hz(win),
+            "isi_ratio": izh.isi_ratio(win), "isi_cv": izh.isi_cv(win)}
+
+
+def eval_c1(rows, event_row, dt_ms):
+    win = izh.window_rows(rows, event_row, dt_ms)
+    ratio = izh.isi_ratio(win)
+    ok = len(win) >= 4 and ratio is not None and ratio >= 1.5
+    return {"verdict": "pass" if ok else "fail", "numbers": _numbers(win, dt_ms)}
+
+
+def eval_c2(rows, event_row, dt_ms):
+    win = izh.window_rows(rows, event_row, dt_ms)
+    ok = izh.c2_burst_then_tail(win, dt_ms)
+    found = izh.bursts(win, dt_ms)
+    tail_n = len(win) - len(found[0]) if (win and found and found[0][0] == win[0]) else 0
+    numbers = _numbers(win, dt_ms)
+    numbers.update({"initial_burst": bool(win and found and found[0][0] == win[0]),
+                    "tail_n_spikes": tail_n})
+    return {"verdict": "pass" if ok else "fail", "numbers": numbers}
+
+
+def eval_c3(rows, event_row, dt_ms):
+    win = izh.window_rows(rows, event_row, dt_ms)
+    n_b = len(izh.bursts(win, dt_ms))
+    freq = izh.burst_onset_frequency_hz(win, dt_ms)
+    ok = n_b >= 3 and freq is not None and 15.0 <= freq <= 50.0
+    numbers = _numbers(win, dt_ms)
+    numbers.update({"n_bursts": n_b, "onset_freq_hz": freq})
+    return {"verdict": "pass" if ok else "fail", "numbers": numbers}
+
+
+def eval_c4(rows, event_row, dt_ms):
+    win = izh.window_rows(rows, event_row, dt_ms)
+    ratio = izh.isi_ratio(win)
+    ok = izh.rate_hz(win) >= 50.0 and ratio is not None and ratio <= 1.2
+    return {"verdict": "pass" if ok else "fail", "numbers": _numbers(win, dt_ms)}
+
+
+def eval_c5(rows, event_row, dt_ms, rs_rate_hz):
+    win = izh.window_rows(rows, event_row, dt_ms)
+    ratio = izh.isi_ratio(win)
+    rate = izh.rate_hz(win)
+    ok = (len(win) >= 4 and rate > rs_rate_hz
+          and ratio is not None and ratio >= 1.2)
+    numbers = _numbers(win, dt_ms)
+    numbers.update({"rs_rate_hz": rs_rate_hz})
+    return {"verdict": "pass" if ok else "fail", "numbers": numbers}
+
+
+def eval_c6_search(runs_in_order, dt_ms):
+    """runs_in_order: list of (I_plus, rows, event_row). Ascending search rule."""
+    outcomes = []
+    for i_plus, rows, event_row in runs_in_order:
+        win = izh.window_rows(rows, event_row, dt_ms)
+        cv = izh.isi_cv(win)
+        ok = _c6_run_ok(win, dt_ms)
+        outcomes.append({"I_plus": i_plus, "n_spikes": len(win),
+                         "has_burst": bool(izh.bursts(win, dt_ms)),
+                         "isi_cv": cv, "ok": ok})
+    selected = next((o["I_plus"] for o in outcomes if o["ok"]), None)
+    return {"verdict": "pass" if selected is not None else "fail",
+            "numbers": {"outcomes": outcomes, "selected_I_plus": selected}}
+
+
+def eval_c7(rows, release_row, dt_ms):
+    win = izh.window_rows(rows, release_row, dt_ms)
+    lat = None
+    for burst in izh.bursts(win, dt_ms):
+        gap = burst[0] - release_row
+        if 0 <= gap < round(50.0 / dt_ms):
+            lat = gap * dt_ms
+            break
+    ok = lat is not None
+    numbers = _numbers(win, dt_ms)
+    numbers.update({"burst_latency_ms": lat})
+    return {"verdict": "pass" if ok else "fail", "numbers": numbers}
+
+
+def eval_c8(v, start_row, dt_ms, rows):
+    win_spikes = [int(r) for r in rows]  # "no spike" (PREREG_P3.md C8): the whole run
+    maxima = izh.c8_maxima(np.asarray(v, dtype=float), start_row)
+    freq = izh.c8_frequency_hz(maxima, dt_ms)
+    decreasing = bool(len(maxima) >= 2 and v[maxima[1]] < v[maxima[0]])
+    ok = (not win_spikes) and len(maxima) >= 2 and decreasing
+    return {"verdict": "pass" if ok else "fail",
+            "numbers": {"n_spikes": len(win_spikes), "n_maxima": len(maxima),
+                        "decreasing": decreasing, "freq_hz": freq,
+                        "maxima_rows": [int(m) for m in maxima]}}
+
+
+def _safe_peak_excess(signal, fs, band):
+    if len(signal) < izh.WELCH_NPERSEG:
+        return {"f_pk": None, "pe": None, "local_max": False, "edge_ok": False}
+    try:
+        return izh.peak_excess(np.asarray(signal, dtype=float), fs, band)
+    except (ValueError, RuntimeError):
+        return {"f_pk": None, "pe": None, "local_max": False, "edge_ok": False}
+
+
+def score_network_seed(cells_rows, n_steps, dt_ms, theta, alpha_band, gamma_band=GAMMA_BAND):
+    """N1-N4 for one seed. cells_rows: list of per-cell absolute spike rows."""
+    n_cells = len(cells_rows)
+    discard = int(round(DISCARD_MS / dt_ms))
+    kept = [[int(r) for r in rows if int(r) >= discard] for rows in cells_rows]
+    kept_s = (n_steps - discard) * dt_ms / 1000.0
+    n1 = sum(len(w) for w in kept) / (n_cells * kept_s) if kept_s > 0 else 0.0
+    cvs, n_qual = [], 0
+    for w in kept:
+        if len(w) >= 10:
+            n_qual += 1
+            cvs.append(izh.isi_cv(w))
+    n2 = float(np.median(cvs)) if cvs else None
+    steps_per_bin = int(round(1.0 / dt_ms))
+    bins = {}
+    for w in kept:
+        for r in w:
+            b = (r - discard) // steps_per_bin
+            bins[b] = bins.get(b, 0) + 1
+    n_bins = (n_steps - discard) // steps_per_bin
+    signal = np.array([bins.get(b, 0) for b in range(n_bins)], dtype=float)
+    alpha = _safe_peak_excess(signal, 1000.0, alpha_band)
+    gamma = _safe_peak_excess(signal, 1000.0, gamma_band)
+    return {
+        "N1": {"verdict": "pass" if 4.0 <= n1 <= 16.0 else "fail",
+               "numbers": {"mean_rate_hz": n1}},
+        "N2": {"verdict": "pass" if (n_qual >= 500 and n2 is not None
+                                     and 0.6 <= n2 <= 1.5) else "fail",
+               "numbers": {"median_cv": n2, "n_qualifying_cells": n_qual}},
+        "N3": {"verdict": "pass" if izh.holds(alpha, theta) else "fail",
+               "numbers": {"f_pk": alpha["f_pk"], "pe": alpha["pe"],
+                           "local_max": alpha["local_max"], "edge_ok": alpha["edge_ok"]}},
+        "N4": {"verdict": "pass" if izh.holds(gamma, theta) else "fail",
+               "numbers": {"f_pk": gamma["f_pk"], "pe": gamma["pe"],
+                           "local_max": gamma["local_max"], "edge_ok": gamma["edge_ok"]}},
+    }
+
+
+def _load_run_npz(fig_dir, run_id):
+    z = np.load(Path(fig_dir) / f"{run_id}.npz")
+    return [int(r) for r in np.asarray(z["spike_rows"]).tolist()], \
+        (np.asarray(z["v"], dtype=float).tolist() if "v" in z else None)
+
+
+def score_fig2_dir(fig_dir, theta, alpha_band):
+    manifest = json.loads((Path(fig_dir) / "manifest.json").read_text(encoding="utf-8"))
+    if manifest.get("sensitivity"):
+        raise SystemExit("sensitivity runs never enter score")
+    expected = expected_fig2_settings()
+    out = {}
+    data = {}
+
+    def _get(run_id):
+        if run_id not in manifest.get("runs", {}):
+            return "incomplete", None
+        got = {k: v for k, v in manifest["runs"][run_id].items()
+               if k in expected.get(run_id, {})}
+        if got != expected.get(run_id):
+            return "incomplete", None
+        try:
+            rows, v = _load_run_npz(fig_dir, run_id)
+        except OSError:
+            return "incomplete", None
+        return "ok", (rows, v)
+
+    for run_id in ("C1", "C2", "C3", "C4", "C5", "C7", "C8"):
+        status, payload = _get(run_id)
+        if status == "incomplete":
+            out[run_id] = {"verdict": "incomplete", "numbers": {}}
+        else:
+            data[run_id] = payload
+    # C6: the ascending search must stop at the first passing amplitude.
+    c6_ids = [f"C6_I{i}" for i in C6_AMPLITUDES if f"C6_I{i}" in manifest.get("runs", {})]
+    c6_ids_sorted = sorted(c6_ids, key=lambda s: int(s.split("C6_I")[1]))
+    c6_amps = [int(s.split("C6_I")[1]) for s in c6_ids_sorted]
+    c6_complete = bool(c6_amps) and c6_amps == list(range(1, len(c6_amps) + 1))
+    c6_payloads = []
+    for rid in c6_ids_sorted:
+        got = {k: v for k, v in manifest["runs"][rid].items() if k in expected[rid]}
+        if got != expected[rid]:
+            c6_complete = False
+            break
+        try:
+            rows, _ = _load_run_npz(fig_dir, rid)
+        except OSError:
+            c6_complete = False
+            break
+        c6_payloads.append((float(manifest["runs"][rid]["I_plus"]), rows,
+                            expected[rid]["event_row"]))
+    c6_runs = eval_c6_search(c6_payloads, FIG2_DT) if (c6_complete and c6_payloads) else None
+    if c6_runs is not None:
+        n_run = len(c6_payloads)
+        oks = [o["ok"] for o in c6_runs["numbers"]["outcomes"]]
+        stop_ok = ((not any(oks)) and n_run == 10
+                   or (any(oks) and oks.index(True) == n_run - 1))
+        c6_complete = c6_complete and stop_ok
+    if not c6_complete or c6_runs is None:
+        out["C6"] = {"verdict": "incomplete", "numbers": {}}
+    else:
+        out["C6"] = c6_runs
+    if "C1" in data:
+        rows, _ = data["C1"]
+        out["C1"] = eval_c1(rows, expected["C1"]["event_row"], FIG2_DT)
+    if "C2" in data:
+        rows, _ = data["C2"]
+        out["C2"] = eval_c2(rows, expected["C2"]["event_row"], FIG2_DT)
+    if "C3" in data:
+        rows, _ = data["C3"]
+        out["C3"] = eval_c3(rows, expected["C3"]["event_row"], FIG2_DT)
+    if "C4" in data:
+        rows, _ = data["C4"]
+        out["C4"] = eval_c4(rows, expected["C4"]["event_row"], FIG2_DT)
+    if "C5" in data:
+        rows, _ = data["C5"]
+        if out["C1"].get("verdict") == "incomplete":
+            out["C5"] = {"verdict": "incomplete", "numbers": {}}
+        else:
+            out["C5"] = eval_c5(rows, expected["C5"]["event_row"], FIG2_DT,
+                                out["C1"]["numbers"]["rate_hz"])
+    if "C7" in data:
+        rows, _ = data["C7"]
+        out["C7"] = eval_c7(rows, expected["C7"]["event_row"], FIG2_DT)
+    if "C8" in data:
+        rows, v = data["C8"]
+        out["C8"] = eval_c8(v, expected["C8"]["event_row"], FIG2_DT, rows)
+    verdicts = {k: out[k]["verdict"] for k in
+                ("C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8")}
+    overall = ("pass" if all(v == "pass" for v in verdicts.values())
+               else "incomplete" if any(v == "incomplete" for v in verdicts.values())
+               else "fail")
+    return {"criteria": out, "verdicts": verdicts, "overall": overall}
+
+
+def score_fig3_dir(fig_dir, theta, alpha_band):
+    manifest = json.loads((Path(fig_dir) / "manifest.json").read_text(encoding="utf-8"))
+    if manifest.get("sensitivity"):
+        raise SystemExit("sensitivity runs never enter score")
+    complete = (manifest.get("seeds") == FIG3_SEEDS
+                and abs(float(manifest.get("T_s", -1)) - FIG3_T) < 1e-12
+                and abs(float(manifest.get("dt_ms", -1)) - FIG3_DT) < 1e-12
+                and manifest.get("dtype") == FIG3_DTYPE)
+    seeds_out = {}
+    for seed in FIG3_SEEDS:
+        entry = manifest.get("runs", {}).get(str(seed))
+        if entry is None or not complete:
+            seeds_out[str(seed)] = {"verdict": "incomplete", "numbers": {}}
+            continue
+        try:
+            z = np.load(Path(fig_dir) / f"{seed}.npz")
+            n_steps = int(z["n_steps"])
+            n_cells = int(z["n_cells"])
+            srows = np.asarray(z["spike_rows"]).tolist()
+            scols = np.asarray(z["spike_cols"]).tolist()
+        except OSError:
+            seeds_out[str(seed)] = {"verdict": "incomplete", "numbers": {}}
+            continue
+        if (n_steps != entry.get("n_steps") or n_steps != round(FIG3_T * 1000.0 / FIG3_DT)
+                or n_cells != 1000 or len(srows) != entry.get("n_spikes")):
+            seeds_out[str(seed)] = {"verdict": "incomplete", "numbers": {}}
+            continue
+        cells = [[] for _ in range(n_cells)]
+        for r, c_ in zip(srows, scols):
+            cells[int(c_)].append(int(r))
+        res = score_network_seed(cells, n_steps, FIG3_DT, theta, alpha_band)
+        seeds_out[str(seed)] = res
+    overall = {}
+    for nid in ("N1", "N2", "N3", "N4"):
+        vs = [seeds_out[str(s)].get(nid, {}).get("verdict") for s in FIG3_SEEDS]
+        if not complete or any(v == "incomplete" for v in vs):
+            overall[nid] = "incomplete"
+        else:
+            overall[nid] = "pass" if all(v == "pass" for v in vs) else "fail"
+    arm = ("pass" if all(v == "pass" for v in overall.values())
+           else "incomplete" if any(v == "incomplete" for v in overall.values())
+           else "fail")
+    return {"seeds": seeds_out, "overall": overall, "arm": arm,
+            "complete": complete}
+
+
+def cmd_score(fig2_dir, fig3_dir, out_path):
+    theta, alpha_band = load_calibration()
+    fig2 = score_fig2_dir(fig2_dir, theta, alpha_band)
+    fig3 = score_fig3_dir(fig3_dir, theta, alpha_band)
+    # Completeness: every scored run uses one code SHA (PREREG_P3.md).
+    shas = {json.loads((Path(d) / "manifest.json").read_text(encoding="utf-8")).get("code_sha")
+            for d in (fig2_dir, fig3_dir)}
+    if len(shas) != 1 or None in shas:
+        fig2["overall"] = fig3["arm"] = "incomplete"
+    report = {"prereg": "PREREG_P3.md signed v7", "code_sha": _git_sha(),
+              "run_code_shas": sorted(str(s) for s in shas),
+              "theta": theta, "alpha_band": list(alpha_band),
+              "gamma_band": list(GAMMA_BAND),
+              "fig2": fig2, "fig3": fig3}
+    Path(out_path).write_text(json.dumps(report, indent=1), encoding="utf-8")
+    print(f"fig2={fig2['overall']} fig3={fig3['arm']} -> {out_path}")
+    return report
+
+
+def _seed_cells(fig_dir, seed):
+    z = np.load(Path(fig_dir) / f"{seed}.npz")
+    cells = [[] for _ in range(int(z["n_cells"]))]
+    for r, c_ in zip(np.asarray(z["spike_rows"]).tolist(), np.asarray(z["spike_cols"]).tolist()):
+        cells[int(c_)].append(int(r))
+    return cells, int(z["n_steps"])
+
+
+def cmd_s1(ref_dir, kernel_dir, out_path):
+    """Sensitivity S1, reported only: N1-N4 on the reference arm and the kernel arm, per seed."""
+    theta, alpha_band = load_calibration()
+    ref_manifest = json.loads((Path(ref_dir) / "manifest.json").read_text(encoding="utf-8"))
+    if ref_manifest.get("sensitivity") != "S1":
+        raise SystemExit("cmd_s1 reads a manifest labelled sensitivity S1")
+    seeds = {}
+    for entry in ref_manifest["runs"]:
+        seed = entry["seed"]
+        arms = {}
+        for arm, d in (("reference", ref_dir), ("kernel", kernel_dir)):
+            cells, n_steps = _seed_cells(d, seed)
+            res = score_network_seed(cells, n_steps, FIG3_DT, theta, alpha_band)
+            arms[arm] = {n: res[n] for n in ("N1", "N2", "N3", "N4")}
+        seeds[str(seed)] = dict(arms, mean_extra_u_per_spike=entry["mean_extra_u_per_spike"])
+    report = {"sensitivity": "S1", "reported_only": True, "code_sha": _git_sha(),
+              "reference_code_sha": ref_manifest.get("code_sha"), "seeds": seeds}
+    Path(out_path).write_text(json.dumps(report, indent=1), encoding="utf-8")
+    print(f"S1 report -> {out_path}")
+    return report
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    p2 = sub.add_parser("fig2")
+    p2.add_argument("--out", required=True)
+    p2.add_argument("--signed", action="store_true")
+    p3 = sub.add_parser("fig3")
+    p3.add_argument("--seeds", type=int, nargs="+", required=True)
+    p3.add_argument("--T", type=float, required=True)
+    p3.add_argument("--out", required=True)
+    p3.add_argument("--signed", action="store_true")
+    ps = sub.add_parser("score")
+    ps.add_argument("--fig2", required=True)
+    ps.add_argument("--fig3", required=True)
+    ps.add_argument("--out", required=True)
+    ps.add_argument("--signed", action="store_true")
+    p1 = sub.add_parser("s1")
+    p1.add_argument("--reference", required=True)
+    p1.add_argument("--kernel", required=True)
+    p1.add_argument("--out", required=True)
+    a = ap.parse_args()
+    if a.cmd == "s1":
+        cmd_s1(a.reference, a.kernel, a.out)
+        return
+    if a.cmd == "fig2":
+        check_out(a.out, a.signed)
+        cmd_fig2(a.out)
+    elif a.cmd == "fig3":
+        check_out(a.out, a.signed)
+        cmd_fig3(a.out, a.seeds, a.T)
+    else:
+        check_out(a.out, a.signed)
+        cmd_score(a.fig2, a.fig3, a.out)
+
+
+if __name__ == "__main__":
+    main()
