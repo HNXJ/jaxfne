@@ -660,3 +660,29 @@ def test_v6_defaults_are_12_s_run_and_10_s_kept():
     assert ca.REF_T == 12.0 and T == ca.REF_T
     assert cal.KEPT_S == 10.0 == ca.REF_T - ca.DISCARD_S
     assert run_caminos.build_parser().parse_args(["--seeds", "1", "--out", "x"]).T == 12.0
+
+
+def _p6_inputs(e_low):
+    """Complete synthetic P6 score inputs; p = 0.02 seeds 1-3 silent with E rate ``e_low``."""
+    runs = []
+    for p in (0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10):
+        for s in (1, 2, 3, 4, 5) if abs(p - 0.07) < 1e-9 else (1, 2, 3):
+            runs.append({"p": p, "seed": s, "T": 12.0, "git_sha": "a" * 40,
+                         "oscillates": p >= 0.04, "peak_freq_E_Hz": 33.8, "lag_PV_SOM_ms": 7.04,
+                         "rates_Hz": {"E": e_low if p < 0.03 else 1.106, "PV": 11.37, "SOM": 7.05}})
+    main = {"per_run": runs, **{k: {"pass": True} for k in ("r1", "r2", "r3", "r4")}}
+    c1 = {"per_run": [{"T": 12.0, "git_sha": "a" * 40, "oscillates": True,
+                       "peak_freq_E_Hz": 29.0, "peak_excess_E": 80.0}]}
+    return main, c1
+
+
+def test_score_p6_q4_needs_the_e_floor_at_p002():
+    """Q4 R4v7 passes only while E fires at p = 0.02 (>= 0.1 Hz); a silent E fails P6."""
+    import score_p6
+    main, c1 = _p6_inputs(0.6)
+    assert all(not r["oscillates"] for r in main["per_run"] if r["p"] == 0.02)  # precondition
+    assert score_p6.score(main, c1)["verdict"] == "pass"
+    main, c1 = _p6_inputs(0.05)
+    res = score_p6.score(main, c1)
+    assert res["criteria"]["Q4"]["r4"].get("e_floor_ok") is False
+    assert res["verdict"] == "fail"

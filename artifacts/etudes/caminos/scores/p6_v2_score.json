@@ -45,7 +45,8 @@
     },
     "r4": {
      "pass_p6": true,
-     "pass": true
+     "pass": true,
+     "e_floor_ok": true
     },
     "pass": true
    },

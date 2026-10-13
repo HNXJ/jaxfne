@@ -10,6 +10,7 @@ P5 = {"f_pk": 33.8, "lag": 7.04, "E": 1.106, "PV": 11.37, "SOM": 7.05}
 MARGIN = {"f_pk": 1.0, "lag": 0.34, "E": 0.061, "PV": 0.012, "SOM": 0.082}  # Hz, ms, relative
 P5_Q4 = {"r1": True, "r2": True, "r3": True, "r4": True}
 P5_ONSET = 0.04
+E_FLOOR_HZ = 0.1
 SWEEP_P = (0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10)
 
 
@@ -50,6 +51,11 @@ def score(main, c1):
         "Q4": {k: {"pass_p6": bool(main[k]["pass"]), "pass": bool(main[k]["pass"]) == P5_Q4[k]}
                for k in P5_Q4},
     }
+    # R4v7 counts p = 0.02 as silent only while E fires (PREREG_P3_v7_R4.md, PREREG_P6.md Q4).
+    e_low = [by_p[0.02][s]["rates_Hz"]["E"] for s in (1, 2, 3)]
+    floor_ok = all(e >= E_FLOOR_HZ for e in e_low)
+    q["Q4"]["r4"]["e_floor_ok"] = floor_ok
+    q["Q4"]["r4"]["pass"] = q["Q4"]["r4"]["pass"] and floor_ok
     q["Q3"]["pass"] = all(v["pass"] for v in q["Q3"].values() if isinstance(v, dict))
     q["Q4"]["pass"] = all(v["pass"] for v in q["Q4"].values() if isinstance(v, dict))
     onset = next((p for p in SWEEP_P
