@@ -7,7 +7,8 @@ in 8–13 Hz, and 0.864–0.938 on the six AR(1) floors after widening to 7–14
 largest residual, fell on the bump's flank, where the PSD is not a strict local maximum (a
 diagnostic outside the receipt, draws $j = 0$–299 of rows 16 and 32 at θ = 4 in 7–14 Hz: 23 and
 39 local-maximum failures, against 2 each with f_pk off target). v7 revises step 3 as the gate requires;
-the alpha band returns to 8–13 Hz and the gate reruns from the start. v5 review (2026-10-13): REVISE on three minor
+the alpha band returns to 8–13 Hz and the gate reruns from the start. The v7 gate passed at θ = 4
+(table under "Detector calibration"). v5 review (2026-10-13): REVISE on three minor
 points (float time comparisons, calibration seeds and AR(2) form, the widening trigger), fixed
 here; `PORT_SPEC.md` line 12 was changed after its PASS to point at the fixed-point start below.
 v4 failed review (2026-10-13):
@@ -186,7 +187,26 @@ constructed inputs; each must hold exactly.
 - N2: 1000 Poisson trains at 8 Hz over 10 s give a median CV in 0.6–1.5; 1000 regular 8 Hz trains
   give a median CV below 0.6.
 
-The calibration table is written into this file before signature.
+**Calibration result (v7 estimator, code 15f36087, receipt
+`calibration/calibration_v7_15f36087.json`, 2026-10-13).** θ = 4; the alpha band stays 8–13 Hz.
+θ = 2 and 3 fail (i); every θ meets (ii) at 40 Hz, and θ ≥ 3 at 10 Hz.
+
+| Row set (at θ = 4) | Range over floors |
+|---|---|
+| False positives, alpha / gamma (1000 draws) | max 1.5 % (τ = 30 ms, 2×) / max 0.1 % |
+| Detection at 3θ, 10 Hz sinusoid / AR(2) | 100 % / 95.4–97.6 % |
+| Detection at 3θ, 40 Hz sinusoid / AR(2) | 99.8–100 % / 99.4–100 % |
+| Reported: 1.5θ, 10 Hz sinusoid / AR(2) | 95.4–100 % / 88.0–96.4 % |
+| Reported: 1.5θ, 40 Hz sinusoid / AR(2) | 71.6–98.0 % / 83.2–97.4 % |
+| Reported: 2θ, 10 Hz sinusoid / AR(2) | 99.2–100 % / 93.6–97.4 % |
+| Reported: 2θ, 40 Hz sinusoid / AR(2) | 97.6–100 % / 97.4–98.8 % |
+| Reported: intermittent (20 % duty), white floor | sinusoid 0.6 % (10 Hz), 1.6 % (40 Hz); AR(2) 26.0 %, 32.6 % |
+| Reported: intermittent, τ = 30 ms 8× floor | sinusoid 20.8 % (10 Hz), 2.4 % (40 Hz); AR(2) 49.4 %, 35.2 % |
+
+Standard error of the reference means: F at most 3.4 %, C at most 2.7 % of the mean. The
+intermittent rows mean that N3 and N4 detect a rhythm present throughout the run; synchronized
+episodes covering 20 % of it at the continuous rows' amplitude are mostly missed, so a fail of N3
+or N4 does not exclude the paper's "occasional" episodes.
 
 **Completeness.** Every scored run (C1–C8 and N1–N4) uses one code SHA. C1–C5, C7 and C8: one run
 each at the settings above; C6: the ascending search above. N1–N4: exactly seeds 1–5 at
