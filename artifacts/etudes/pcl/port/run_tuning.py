@@ -55,6 +55,7 @@ TEST_SET = Path("F:/warehouse/pcl/data/PCL_datasets_and_networks/grating/counter
 OUT_DIR = Path("F:/warehouse/pcl/runs/fig3_cSTDP3")
 OUT_S1 = Path("F:/warehouse/pcl/runs/fig3_cSTDP3_S1")  # S1 (P3_fig3.md): local inhibition only
 OUT_NOLOCAL = Path("F:/warehouse/pcl/diag_runs/fig3_cSTDP3_nolocal")  # diagnostic: no local inhibition, not scored
+OUT_NOLOCAL_SIMPLE = Path("F:/warehouse/pcl/diag_runs/fig3_cSTDP3_nolocal_simple")  # diagnostic, not scored
 ORIS = ("0", "23", "45", "68", "90", "113", "135", "158")  # checked against the test set listing
 WORKERS = 12
 CENTRAL_COL = (4, 4)  # recorded in the manifest only; no output is filtered by it
@@ -88,12 +89,13 @@ def apply_inhibition_mode(net, inhibition: str):
     no-local (diagnostic): clear local_s and local_c. The pure path gates on them at
     pcl_event_ref.py:686 and :725; run_numba packs them at pcl_event_ref_numba.py:233-235 and
     the kernel reads them as G_LOCS and G_LOCC (:123, :148, :173). Lateral and top-down maps stay.
+    no-local-simple (diagnostic): clear local_s only; complex local inhibition stays.
     """
     if inhibition == "full":
         return net
-    if inhibition == "no-local":
+    if inhibition in ("no-local", "no-local-simple"):
         net.local_s = False
-        net.local_c = False
+        net.local_c = inhibition == "no-local-simple" and net.local_c
         return net
     if inhibition != "local-only":
         raise ValueError(f"unknown inhibition {inhibition!r}")
@@ -110,6 +112,8 @@ def resolve_out_dir(out: str | None, inhibition: str) -> Path:
         return Path(out)
     if inhibition == "local-only":
         return OUT_S1
+    if inhibition == "no-local-simple":
+        return OUT_NOLOCAL_SIMPLE
     return OUT_NOLOCAL if inhibition == "no-local" else OUT_DIR
 
 
@@ -213,9 +217,11 @@ def _write_manifest(out: Path, record: dict, static: dict) -> None:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--subset", choices=("pilot", "all"), required=True)
-    ap.add_argument("--inhibition", choices=("full", "local-only", "no-local"), default="full",
+    ap.add_argument("--inhibition", choices=("full", "local-only", "no-local", "no-local-simple"),
+                    default="full",
                     help="S1 (P3_fig3.md): local-only zeroes the lateral and top-down maps; "
-                         "no-local clears the local flags (diagnostic)")
+                         "no-local clears the local flags; no-local-simple clears the simple "
+                         "layer's only (diagnostics)")
     ap.add_argument("--out", default=None,
                     help="default: the full dir, fig3_cSTDP3_S1 for local-only, or "
                          "diag_runs/fig3_cSTDP3_nolocal for no-local")

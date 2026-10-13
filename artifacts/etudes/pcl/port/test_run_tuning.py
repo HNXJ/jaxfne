@@ -108,6 +108,19 @@ def test_no_local_changes_what_run_numba_consumes():
     assert _counts(nolocal) != _counts(full)
 
 
+def test_no_local_simple_clears_only_the_simple_flag():
+    full = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    mixed = copy.deepcopy(full)
+    rt.apply_inhibition_mode(mixed, "no-local-simple")
+    assert not mixed.local_s and mixed.local_c and mixed.lat_on and mixed.td_on
+
+    nb.run_numba(full, *_burst())
+    nb.run_numba(mixed, *_burst())
+    assert _counts(full)[0] > 0, "fixture must spike"
+    assert _counts(mixed) != _counts(full)
+    assert rt.resolve_out_dir(None, "no-local-simple") == rt.OUT_NOLOCAL_SIMPLE
+
+
 def test_unknown_mode_refused():
     net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
     try:
