@@ -13,18 +13,15 @@ T-14, T-17 (calls in each item); T-1 (a) landed in e3a7a41b; T-2
 bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 `artifacts/etudes/REPLICATIONS.md`).
 
-- T-3 [H] PCL Fig. 3 stays in progress (Hamm 2026-10-13: it must replicate). v4 FAIL stands
-  (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). Next: a new declared prereg (v5), then P6
-  (B1). Hamm's calls for v5 (2026-10-13): T2 scores the normalized Δsf tuning curve against the
-  authors' curve with a declared tolerance per Δsf point; T4 tests the paper's claim C3
-  (frequency doubling, stated qualitatively; the authors' notebook has no measure of it) and
-  counts toward "reproduced", with our log A(2ω)/A(ω) estimand and a qualitative criterion
-  (complex median above simple median, plus the permutation null); the reference is the published
-  Fig. 3 curves, digitized with a declared digitization error (the authors' archives hold the
-  grating stimuli as DVS events and the trained weights, no network responses). Cells z = 0–63
-  of `neuron_id = 2560` are column (4,4): cSTDP3 `weights/layout_0.npy` (9×9×64) holds ids
-  2560–2623 at (4, 4, 0–63). Hamm signs v5. Closes when: a signed prereg reproduces Fig. 3 and the P6
-  attempt is recorded.
+- T-3 [A] PCL Fig. 3 stays in progress (Hamm 2026-10-13: it must replicate). v4 FAIL stands
+  (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). v5 signed by Hamm 2026-10-13 on `pcl-port`
+  89e45191 (`prereg/P3_fig3_v5.md`; signature recorded in 640cb97c): T2 runs the authors'
+  `plot_fqcy` procedure on the port and scores it per K/k point against Fig. 3c,d digitized
+  (`reference/fig3_freq_digitized.json`, ε 0.04) with a shape guard; A1 even phases; T4 drops
+  the sign requirement, and its outcome is known from v4. Next: the T2 scorer (Muse packet in
+  flight), second review, the scored run, then P6 (B1). Open in v5: S6 (K/k from measured
+  periods) and S7 (window from 62.5 ms) have no implementation yet. Closes when: v5 is scored
+  and the P6 attempt is recorded.
 
 ## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
