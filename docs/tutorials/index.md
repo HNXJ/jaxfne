@@ -73,41 +73,10 @@ hierarchy order, one chord per connected pair, chord width by edge count.
 [Open full page](../_static/visuals/area_graph_n20.html). Reference atlas of the
 1000 ms column run: [index](../_static/atlas/index.html) · [schema](../_static/atlas/schema.html) · [3D](../_static/atlas/network_3d.html) · [raster](../_static/atlas/raster.html) · [LFP](../_static/atlas/lfp.html) · [oscillatory](../_static/atlas/oscillatory.html).
 
-## Suites
-
-Single-notebook courses that each cover a full workflow arc.
-
-| Suite | Topic | Focus |
-|-------|-------|-------|
-| **[Suite 1](06_jaxfne_suite_no_1_computational_biophysics.md)** | Computational biophysics | Single neurons → vectorized circuits → laminar readouts → optimization |
-| **[Suite 2](07_jaxfne_suite_no_2_spectrolaminar_motif.md)** | Spectrolaminar motif | Column anatomy → population simulation → multimodal proxies |
-| **[Suite 2 (Evoked L4)](08_jaxfne_suite_no_2_evoked_l4_drive.md)** | Evoked L4 drive | Baseline-vs-driven L4 contrast |
-| **[Suite 3](08_jaxfne_suite_no_3_low_frequency_scaling.md)** | Low-frequency scaling | Scale-dependent PSD, bandpower, synchrony |
-
-[![Open Suite 1 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb)
-[![Open Suite 2 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb)
-[![Open Suite 3 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb)
-
 All notebooks follow the [Colab notebook standard](notebook_standard.md).
 Frozen scientific demonstrations are the **[Études](../etudes/index.md)**; the pages on this index are tutorials.
-
-??? note "Archive: earlier stand-alone tutorials (superseded by the track)"
-
-    | # | Topic | Where it lives in the track |
-    |---|-------|-----------------------------|
-    | [01](01_single_neuron_multimodal.md) | Single-neuron multimodal | Contrast box in 03 |
-    | [02](02_two_neuron_ei.md) | Two-neuron E/I | Contrast box in 03 |
-    | [03](03_network_100_ei.md) | 100-neuron network | Smoke preamble for 02–05 |
-    | [04](04_v1_column.md) | 600n population, laminar readout | Replaced by the layered 1000n column in 01 |
-    | [06](06_v036_100_neuron_ei_population.md) | Chainable Configuration | On-ramp box in 04 |
-    | [07](07_v037_source_bookkeeping.md) | Source bookkeeping | 05 §1 |
-    | [08](08_v038_lfp_csd_readout.md) | LFP/CSD readout | 05 §2 |
-    | [09](09_v0310_eeg_meg_emm_proxy_bundle.md) | EEG/MEG/EMM proxies | 05 §3 |
-    | [10](10_v0313_omission_oddball.md) | Omission and oddball | Variant box in 08 |
-    | [05](05_v1_pfc_dual_column.md) | V1–PFC dual column | Multi-area variant in 08 |
-    | [11](11_multi_laminar_cortical_agsdr.md) | Multi-area laminar model | Tuning in 07, knock-out in 08 |
-    | [12](12_izhikevich_single_emitter_explorer.md) | Izhikevich explorer | Appendix |
-    | [13](13_canonical_column_etude.md) | Canonical cortical column | Cross-links to 01–08 |
+Earlier stand-alone tutorials and the suites, written for 0.4.x, are in the
+[Archive](../archive/index.md).
 
 ## Running
 

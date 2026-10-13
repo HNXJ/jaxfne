@@ -38,6 +38,16 @@ the rules those releases were held to and are historical context for readers.
   transcription of it spike for spike).
 
 ### Changed
+- The docs have a top-level Archive section for pages whose results predate 0.5.0: the
+  earlier tutorials, the suites, four études and the 0.4.16–0.4.17 experiment pages. Their
+  files stay in place; the current sections list 0.5.x material.
+- Current pages regenerated at 0.5.5: the three-area atlas (same config hash, now built by
+  `generate_doc_page_atlases.py --slug three_area`), the Colab page (installs 0.5.5; two cells
+  read manifest keys that no longer exist and now read `claim_level` and
+  `physical_amplitude_calibrated`), the HDP preset table in tutorial 07 (re-measured by
+  `scripts/measure_hdp_presets.py`; `DEFAULT_HDP_DESYNC` realizes H = 1.016 ± 0.017), the
+  public-surface counts (205 symbols), the run-receipt example, and the version stamps on the
+  install, citation, JDNA and probe-operator pages.
 - The references page lists, per source, the result jaxfne implements and the functions that
   implement it; those functions cite the same DOI, and `tests/test_references_page.py` holds the
   two together. Replicated papers and background work have their own tables.

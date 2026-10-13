@@ -11,7 +11,7 @@ Docs build: `mkdocs build --strict` in CI (`ci.yml`) and on Read the Docs (`.rea
 | docs/_static/etudes | 29 | 3076 | `scripts/plot_frozen_etude_panels.py`, `rerun_etude_figures.py` | from frozen receipts: regenerate at build |
 | docs/_static/tutorial_figures | 13 | 572 | `scripts/generate_tutorial_figures.py --output-dir` | regenerate at build |
 | docs/_static/gallery | 10 | 1221 | `scripts/generate_release_gallery.py` | regenerate at build |
-| docs/_static/atlas_three_area | 9 | 322 | none found in scripts/ or jaxfne/ | find producer or keep tracked |
+| docs/_static/atlas_three_area | 9 | 322 | `scripts/generate_doc_page_atlases.py --slug three_area` | regenerate at build (step 3) |
 | docs/assets | 37 | 21460 | showcases, readme, visuals, interactive (`build_v037_source_column_3d.py`), etudes | step 1, then regenerate |
 | artifacts/tutorials | 50 | 15269 | notebooks (sources) | keep; strip outputs if large |
 | artifacts/etudes, artifacts/publication, artifacts/figures | 592 | 48385 | evidence, frozen | keep (frozen manifest) |

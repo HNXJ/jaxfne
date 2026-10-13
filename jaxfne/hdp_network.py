@@ -130,6 +130,9 @@ BASE_HDP_KWARGS_DEFAULT = dict(
 # [0.8,1.2] floor -- treat as the current best candidate, not a finished/
 # frozen point like DEFAULT_HDP.
 # Note (0.4.7 HDP v2 blocking F-017): K_ctrl=0.15 remains active; rho_passive abandoned.
+# 0.5.5 re-measure (scripts/measure_hdp_presets.py, per-neuron means over the last
+# 1 s, no layer size inflation): rate 12.6 Hz, H 1.016+-0.017 in [0.986,1.077],
+# kappa 0.032 on 0.5 ms bins; the H statistic of the figures above is unrecorded.
 DEFAULT_HDP_DESYNC = dict(
     K_HDP=0.01,
     tau_0_ms=5.0,

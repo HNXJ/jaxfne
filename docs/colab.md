@@ -1,7 +1,7 @@
 # Google Colab Quick Start
 
 Run jaxfne examples in Google Colab without local setup. Installs the
-published PyPI release `jaxfne==0.5.0` (tag `v0.5.0`; previous release `0.4.25`).
+published PyPI release `jaxfne==0.5.5` (tag `v0.5.5`; previous release `0.5.0`).
 
 ---
 
@@ -20,7 +20,7 @@ Open a new Colab notebook: https://colab.research.google.com/
 **Expected output:**
 ```
 Installing collected packages: jaxfne
-Successfully installed jaxfne-0.5.0
+Successfully installed jaxfne-0.5.5
 ```
 
 ---
@@ -54,7 +54,7 @@ print(f"Claim level: {manifest['claim_level']}")
 print(f"Physical amplitude calibrated: {manifest['physical_amplitude_calibrated']}")
 print(f"Field solver status: {manifest['field_solver_status']}")
 
-print("\n=== CONSERVATION PROXY DIAGNOSTICS (v0.4.8) ===")
+print("\n=== CONSERVATION PROXY DIAGNOSTICS ===")
 cpd = manifest.get("conservation_proxy_diagnostics")
 if cpd:
     print(f"Status: {cpd['diagnostic_status']}")
@@ -82,7 +82,7 @@ print(f"Spike rate: {signals.spikes.sum() / len(signals.time_ms):.2f} spikes/ms"
 **Expected output:**
 ```
 === Computation Contract ===
-Version: 0.5.0
+Version: 0.5.5
 Claim level: computational_scaffold
 Physical amplitude calibrated: False
 Field solver status: linear_solver
@@ -176,7 +176,7 @@ output_dict = {
     "time_ms": signals.time_ms.tolist(),
     "voltage_mV": signals.V_m.tolist(),
     "spikes": signals.spikes.tolist(),
-    "model_status": manifest["basis"]["model_status"],
+    "claim_level": manifest["claim_level"],
     "run_status": "tutorial_scaffold"
 }
 
@@ -187,12 +187,12 @@ print("✓ Simulation output saved to simulation_output.json")
 
 ---
 
-## Status Status and Scientific Statements
+## Status and Scientific Statements
 
 **Value status:** every output below is Relative unless you supply an explicit
 calibration step. See [Scope & status](scope_and_status.md).
 
-### Statement boundaries (v0.4.8)
+### Statement boundaries
 
 | Statement | Value | Notes |
 |-------|--------|-------|
@@ -201,7 +201,7 @@ calibration step. See [Scope & status](scope_and_status.md).
 | **Field readouts** | Relative | CSD/LFP outputs are forward-field projections |
 | **Solver** | `linear_solver` | Elliptic/volumetric solvers are a reserved future regime; current diagnostics use a Relative-value projection |
 
-### What v0.4.8 is
+### What jaxfne 0.5.x is
 
 - Exploratory computational neuroscience model
 - Multi-scale emitter (Izhikevich, HH) to field-proxy pipeline
@@ -210,7 +210,7 @@ calibration step. See [Scope & status](scope_and_status.md).
 
 ---
 
-## Example: Conservation Proxy Diagnostics (v0.4.8)
+## Example: Conservation Proxy Diagnostics
 
 If your model includes field outputs, conservation diagnostics are available:
 
@@ -224,7 +224,7 @@ cpd = manifest.get("conservation_proxy_diagnostics")
 if cpd:
     print("=== CONSERVATION PROXY DIAGNOSTICS ===")
     print(f"Diagnostic version: {cpd['diagnostic_version']}")
-    print(f"Physical amplitude status: {cpd['amplitude_status']}")
+    print(f"Physical amplitude calibrated: {cpd['physical_amplitude_calibrated']}")
     
     if cpd.get('source_norm_l1') is not None:
         print(f"Source norm (L1): {cpd['source_norm_l1']:.4f}")

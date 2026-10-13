@@ -220,15 +220,14 @@ class TestDocumentationConsistency:
     """Tests for documentation consistency with v0.3.4 notebook."""
 
     def test_tutorial_index_mentions_single_neuron(self):
-        """Test that tutorials/index.md mentions single-neuron tutorial."""
+        """The single-neuron tutorial (0.4.x) stays reachable from the docs Archive index."""
         index_path = (
-            Path(__file__).parent.parent / "docs" / "tutorials" / "index.md"
+            Path(__file__).parent.parent / "docs" / "archive" / "index.md"
         )
         content = index_path.read_text(encoding="utf-8")
-        assert (
-            "single-neuron" in content.lower()
-            or "single neuron" in content.lower()
-        ), "tutorials/index.md must reference single-neuron tutorial"
+        assert "(../tutorials/01_single_neuron_multimodal.md)" in content, (
+            "docs/archive/index.md must link the single-neuron tutorial"
+        )
 
     def test_no_forbidden_vocabulary_in_notebook(self):
         """Test that notebook avoids forbidden internal terminology."""

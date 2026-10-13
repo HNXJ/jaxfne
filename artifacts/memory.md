@@ -92,6 +92,7 @@ Roles and edit rules: `artifacts/AGENTS.md` (Project control). Coverage rows: `a
 - Units: time in ms; doc atlases use binary-exact `dt_ms=0.5`. Delay realizes as `round(delay_ms / dt_ms)` steps; a positive delay rounding to 0 steps is refused.
 - Configured ≠ realized ≠ executed ≠ effective: inspect each stage; equal counts or names are too weak; perturbations must be asymmetric.
 - Frozen: `artifacts/publication/frozen_manifest.json` files, frozen etude bundles (`scripts/gate_etude_no_resim.py`), write-once Atlas outputs.
+- Docs currency (Hamm 2026-10-12): at version N.M.x the docs nav carries N.M.x results; pages with results from N.(M−1).x and earlier are regenerated or listed under the top-level Archive section (`docs/archive/index.md`), files kept in place, titles without "Archive:" prefixes. Prose states what a thing is: no "X, not Y" or "X, never Y" (gate: `tests/test_public_docs_hygiene.py`).
 - Public surface: tiers owned by `jaxfne/public_surface.py`; regenerate pins with `scripts/generate_public_surface_contract.py`; check CI on the pushed SHA after any export change.
 
 ## 9. Where to look first

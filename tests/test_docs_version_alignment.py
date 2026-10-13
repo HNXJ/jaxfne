@@ -69,9 +69,9 @@ def test_generated_version_md_comparison():
 # publication updates one literal and every docs surface is re-checked against
 # it; the tests never reach the network, so this is the one thing a human must
 # advance when a release goes out.
-PUBLISHED_PYPI_VERSION = "0.5.0"
+PUBLISHED_PYPI_VERSION = "0.5.5"
 
-PREVIOUS_PYPI_VERSION = "0.4.25"
+PREVIOUS_PYPI_VERSION = "0.5.0"
 
 
 def test_install_md_latest_pypi_version():
@@ -135,7 +135,17 @@ def test_api_index_md_structural_contract_reference():
     root_dir = Path(__file__).resolve().parent.parent
     content = (root_dir / "docs" / "api" / "index.md").read_text(encoding="utf-8")
 
-    assert "190" in content
+    import json
+
+    counts = json.loads(
+        (root_dir / "artifacts" / "public_surface_contract_v0413.json").read_text(encoding="utf-8")
+    )["counts"]
+    assert (
+        f"**{counts['public_exports']} symbols** ({counts['canonical']} CANONICAL + "
+        f"{counts['compatibility']} COMPATIBILITY)"
+    ) in content
+    assert f"**Advanced** symbols ({counts['advanced']})" in content
+    assert f"**experimental/internal** symbols ({counts['experimental_internal']})" in content
     assert "public_surface_contract" in content
     assert "Latest PyPI release" not in content
 

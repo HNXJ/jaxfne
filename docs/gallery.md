@@ -328,7 +328,7 @@ State `validated` · N=160 · edges=12891 · steps=2000 · config `0699b80ad44b`
 
 ### `atlas_three_area` — V1-V4-PFC three-area hierarchy (100/area)
 
-State `validated` · N=300 · edges=30105 · steps=1000 · config `84f67ccf815f` · jaxfne 0.4.25
+State `validated` · N=300 · edges=30105 · steps=1000 · config `84f67ccf815f` · jaxfne 0.5.5
 
 <iframe class="jx-frame" src="_static/atlas_three_area/index.html" loading="lazy" title="V1-V4-PFC three-area hierarchy (100/area) dashboard"></iframe>
 

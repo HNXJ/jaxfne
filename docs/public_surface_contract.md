@@ -1,8 +1,7 @@
 # Public API
 
-This page records the **frozen public export contract** for jaxfne 0.4.13 — frozen public API at 0.4.13 Pass 1.
-Implementation checkpoint: `dev @ 0678557` (Pass 1); closure reconciles
-documentation, tutorial metadata, and public evidence semantics.
+This page records the **public export contract** of jaxfne 0.5.5: 205 root symbols in
+`jaxfne.__all__`, with tier membership defined in `jaxfne/public_surface.py`.
 
 Machine-readable receipt: `artifacts/public_surface_contract_v0413.json`.
 
@@ -11,7 +10,7 @@ Machine-readable receipt: `artifacts/public_surface_contract_v0413.json`.
 | Tier | Meaning |
 |------|---------|
 | **CANONICAL** | Root `__all__` — supported TFNE grammar |
-| **COMPATIBILITY** | Root `__all__` — deprecated aliases retained through 0.4.14 |
+| **COMPATIBILITY** | Root `__all__` — deprecated aliases |
 | **ADVANCED** | Importable from submodules; not root `__all__` |
 | **EXPERIMENTAL_INTERNAL** | Not part of the public contract |
 
