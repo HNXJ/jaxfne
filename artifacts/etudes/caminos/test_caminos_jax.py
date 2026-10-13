@@ -456,3 +456,180 @@ def test_run_driver_variant_flags():
     assert tag != ref and tag.endswith(".npy"), tag
     for bit in ("indeg-fixed", "ext-shared", "order-brian2", "src-pNE"):
         assert bit in tag, tag
+
+
+# --- P6 library-path gates (PREREG_P6.md, B0 route (c)) ---
+
+def _p6api():
+    """Import caminos_api (function-level so each gate fails on the baseline)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import caminos_api
+
+    return caminos_api
+
+
+@pytest.fixture(scope="module")
+def _p6_model():
+    api = _p6api()
+    import jaxfne as jtfne
+
+    return api, jtfne.construct(api.build_spec(0.07, 1))
+
+
+def test_p6_gate1_parameter_identity(_p6_model):
+    """Gate 1: every PORT_SPEC table value read back from the realized model, exact."""
+    api, model = _p6_model
+    from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args
+
+    labels = tuple(model.params["emitter"].labels)
+    assert len(labels) == 9500, len(labels)
+    assert {t: labels.count(t) for t in ("E", "PV", "SOM")} == {
+        "E": 8000, "PV": 750, "SOM": 750}
+    first = {t: labels.index(t) for t in ("E", "PV", "SOM")}
+    # PORT_SPEC Table 1 in jaxfne units (mV, ms, pF, nS, pA).
+    want = {
+        "E": {"C_pF": 200.0, "gL_nS": 10.0, "EL_mV": -65.0, "VT_mV": -50.0,
+              "Delta_mV": 2.0, "Vreset_mV": -65.0, "tauw_ms": 500.0,
+              "a_nS": 4.0, "b_pA": 50.0, "Tref_ms": 5.0},
+        "PV": {"C_pF": 200.0, "gL_nS": 10.0, "EL_mV": -65.0, "VT_mV": -50.0,
+               "Delta_mV": 0.5, "Vreset_mV": -65.0, "tauw_ms": 500.0,
+               "a_nS": 0.0, "b_pA": 0.0, "Tref_ms": 5.0},
+        "SOM": {"C_pF": 200.0, "gL_nS": 10.0, "EL_mV": -55.0, "VT_mV": -50.0,
+                "Delta_mV": 2.0, "Vreset_mV": -65.0, "tauw_ms": 500.0,
+                "a_nS": 4.0, "b_pA": 80.0, "Tref_ms": 5.0},
+    }
+    for ctype, fields in want.items():
+        for field, value in fields.items():
+            got = float(np.asarray(getattr(model.params["emitter"], field))[first[ctype]])
+            assert got == value, (ctype, field, got, value)
+    # PORT_SPEC Table 2: receptors, weights, delay.
+    st = model.static["adex"]
+    assert tuple(st["receptor_tau_ms"]) == (2.0, 8.0), st["receptor_tau_ms"]
+    assert tuple(st["receptor_reversal_mV"]) == (0.0, -80.0)
+    assert tuple(st["receptor_names"]) == ("ampa", "gaba")
+    rules = {r["name"]: r for r in model.cfg.metadata["circuit"]["connections"]}
+    assert sorted(rules) == ["e_e", "e_pv", "e_som", "pv_e", "pv_pv", "som_e", "som_pv"]
+    want_rules = {
+        "e_e": ("E", "E", 2.0, "ampa"), "e_pv": ("E", "PV", 3.0, "ampa"),
+        "e_som": ("E", "SOM", 3.0, "ampa"), "pv_e": ("PV", "E", 5.0, "gaba"),
+        "pv_pv": ("PV", "PV", 5.0, "gaba"), "som_e": ("SOM", "E", 5.0, "gaba"),
+        "som_pv": ("SOM", "PV", 5.0, "gaba"),
+    }
+    for name, (pre, post, weight, mech) in want_rules.items():
+        r = rules[name]
+        assert r["source"] == {"cell_type": pre}, (name, r["source"])
+        assert r["target"] == {"cell_type": post}, (name, r["target"])
+        assert r["probability"] == 0.07, (name, r["probability"])
+        assert r["weight"] == weight, (name, r["weight"])
+        assert r["mechanism"] == mech, (name, r["mechanism"])
+        assert r["delay_ms"] == 2.0, (name, r["delay_ms"])
+        assert r["sampling"] == "bernoulli", (name, r.get("sampling"))
+    assert int(st["edge_seed"]) == 1, st["edge_seed"]
+    # Drive: round(p*NE) sources at 4 Hz to E and PV, seeds from seed 1.
+    sim = api.build_sim(0.07, 1, 0.5)
+    assert sim.dt_ms == 0.1 and sim.seed == 0, (sim.dt_ms, sim.seed)
+    drive = sim.poisson_drive
+    assert drive == {"n_sources": 560, "rate_hz": 4.0, "weight_nS": 2.5,
+                     "mechanism": "ampa", "target_cell_types": ["E", "PV"],
+                     "delay_ms": 2.0, "seed": 1}, drive
+    dk = adex_external_drive_kwargs(model, sim)
+    assert dk["ext_lambda"] == 560 * 4.0 * 0.1 / 1000.0, dk["ext_lambda"]
+    assert dk["ext_weight_nS"] == 2.5 and dk["ext_receptor"] == 0, dk
+    assert dk["ext_delay_steps"] == 20, dk["ext_delay_steps"]
+    assert np.asarray(dk["ext_targets"]).tolist() == list(range(8750)), (
+        len(dk["ext_targets"]))
+    kw = adex_kernel_args(model, sim.dt_ms)
+    assert kw["decay"] == "euler" and kw["step_order"] == "default", (
+        kw["decay"], kw["step_order"])
+    assert bool((np.asarray(kw["edge_delay_steps"]) == 20).all()), (
+        np.unique(kw["edge_delay_steps"]))
+
+
+def test_p6_gate2_realized_connectivity(_p6_model):
+    """Gate 2: at p 0.07 seed 1 each block within 4 SD, no autapses, no PV->SOM/SOM->SOM."""
+    _, model = _p6_model
+    st = model.static["adex"]
+    labels = np.asarray(model.params["emitter"].labels)
+    pre = np.asarray(st["pre"])
+    post = np.asarray(st["post"])
+    assert pre.size > 0, "fixture must realize edges"
+    assert not bool((pre == post).any()), "autapses realized"
+    pairs = set(zip(labels[pre].tolist(), labels[post].tolist()))
+    assert ("PV", "SOM") not in pairs and ("SOM", "SOM") not in pairs, pairs
+    sizes = {"E": 8000, "PV": 750, "SOM": 750}
+    blocks = [("E", "E"), ("E", "PV"), ("E", "SOM"), ("PV", "E"),
+              ("PV", "PV"), ("SOM", "E"), ("SOM", "PV")]
+    got = {(a, b): int(((labels[pre] == a) & (labels[post] == b)).sum())
+           for a, b in blocks}
+    assert sum(got.values()) == pre.size, "every edge must sit in one of the seven blocks"
+    for (a, b), count in got.items():
+        n = sizes[a] * sizes[b]
+        mean = 0.07 * n
+        sd = (n * 0.07 * 0.93) ** 0.5
+        assert abs(count - mean) <= 4 * sd, (a, b, count, mean, sd)
+
+
+def test_p6_route_c_identity():
+    """B0 route (c): record_v=False spikes equal model.simulate() spikes exactly."""
+    api = _p6api()
+    import jaxfne as jtfne
+    from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args
+    from jaxfne.emitters_adex import simulate_adex
+
+    cfg = (
+        jtfne.Configuration()
+        .network(name="caminos-small", n=60,
+                 cell_types={"E": 0.8, "PV": 0.1, "SOM": 0.1})
+        .emitter(family="adex", adex_decay="euler", adex_step_order="default")
+        .mechanisms(name="ampa", kind="receptor",
+                    params={"tau_ms": api.TAU_E_MS, "reversal_mV": api.REV_E_MV})
+        .mechanisms(name="gaba", kind="receptor",
+                    params={"tau_ms": api.TAU_I_MS, "reversal_mV": api.REV_I_MV})
+    )
+    for name, pre, post, weight, mechanism in api.RULES:
+        cfg = cfg.connections(
+            name=name, source={"cell_type": pre}, target={"cell_type": post},
+            probability=0.2, weight=weight, mechanism=mechanism,
+            delay_ms=api.DELAY_MS, sampling="bernoulli")
+    cfg = cfg.connectivity(edge_seed=3)
+    model = jtfne.construct(cfg)
+    sim = jtfne.Simulation(duration_ms=20.0, dt_ms=api.DT_MS,
+                           poisson_drive=api.drive_spec(0.2, 3))
+    signals = model.simulate(sim)
+    assert int(np.asarray(signals.spikes).sum()) > 0, "fixture must spike"
+    runtime_cfg = sim.resolved_runtime
+    kwargs = adex_kernel_args(model, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+    drive_kwargs = adex_external_drive_kwargs(model, sim)
+    out = simulate_adex(**kwargs, **drive_kwargs, n_steps=sim.n_steps,
+                        dt_ms=sim.dt_ms, record_v=False)
+    assert "V_mV" not in out, sorted(out)
+    np.testing.assert_array_equal(np.asarray(out["spikes"]),
+                                  np.asarray(signals.spikes))
+
+
+def test_p6_gate4_converter_known_answer(tmp_path):
+    """Gate 4: synthetic raster -> per-step sums; score() reads the converted run."""
+    api = _p6api()
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import caminos_analysis as ca
+
+    rng = np.random.default_rng(0)
+    raster = rng.random((3000, 60)) < 0.01
+    raster[10, :] = False
+    raster[10, 0] = True
+    raster[10, 40] = True
+    raster[10, 50] = True
+    sizes = {"E": 40, "PV": 10, "SOM": 10}
+    counts = api.spikes_to_counts(raster, sizes)
+    assert counts.dtype == np.int32 and counts.shape == (3000, 3), (
+        counts.dtype, counts.shape)
+    assert counts[10].tolist() == [1, 1, 1], counts[10].tolist()
+    np.testing.assert_array_equal(
+        counts,
+        np.stack([raster[:, :40].sum(axis=1), raster[:, 40:50].sum(axis=1),
+                  raster[:, 50:].sum(axis=1)], axis=1).astype(np.int32))
+    api.write_run(tmp_path, p=0.07, seed=1, T_s=0.3, counts=counts, sizes=sizes,
+                  wall_s=0.0, start_time="t", sha="a" * 40)
+    result = ca.score(str(tmp_path), ext_sources="pNE")
+    assert isinstance(result, dict), result
+    assert "counts_seed1_p0.07_float32_dt1e-04.npy" not in result["not_scored"], result
