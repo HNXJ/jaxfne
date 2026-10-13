@@ -38,7 +38,29 @@ def load_nodes(lab_dir: Path) -> tuple[dict, list[str]]:
     """Every *.json in .lab that actually carries an `id` is a node. Anything else
     (suggestions.json, and whatever else the toolchain drops there) is skipped and
     reported rather than silently ignored -- a malformed node would otherwise vanish
-    from the metrics and make the graph look better than it is."""
+    from the metrics and make the graph look better than it is.
+
+    When artifacts/.lab/bundle.json exists it is the single source: each value is
+    parsed exactly as a file's content would be, with the same node filter."""
+    bundle = lab_dir / "bundle.json"
+    if bundle.is_file():
+        try:
+            files = json.loads(bundle.read_text(encoding="utf-8"))["files"]
+            items = sorted(files.items())
+        except (json.JSONDecodeError, OSError, KeyError, AttributeError) as exc:
+            return {}, [f"bundle.json (unreadable: {type(exc).__name__})"]
+        nodes, skipped = {}, []
+        for name, text in items:
+            try:
+                data = json.loads(text)
+            except (json.JSONDecodeError, AttributeError) as exc:
+                skipped.append(f"{name} (unreadable: {type(exc).__name__})")
+                continue
+            if isinstance(data, dict) and "id" in data:
+                nodes[data["id"]] = data
+            else:
+                skipped.append(name)
+        return nodes, skipped
     nodes, skipped = {}, []
     for path in sorted(lab_dir.glob("*.json")):
         try:
@@ -59,7 +81,10 @@ def build_edges(nodes: dict) -> tuple[dict, dict, collections.Counter, set]:
     in_adj = collections.defaultdict(list)
     relations = collections.Counter()
     for node_id, node in nodes.items():
-        for link in node.get("generated", {}).get("links", []):
+        generated = node.get("generated", {})
+        if not isinstance(generated, dict):
+            continue  # e.g. jaxfne-progress.json carries a prose stub, not links
+        for link in generated.get("links", []):
             target = link.get("to")
             if not target:
                 continue

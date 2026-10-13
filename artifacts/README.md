@@ -45,6 +45,6 @@ stay where they are and new work goes into the folder of its kind.
 | `private_acceptance/` | 0.4.x acceptance scorecards | release authorities |
 | `archive/` | sealed stacks and decisions, byte-for-byte | |
 | `legacy/` | pre-0.4.x notebooks and docs (kept by Hamm 2026-10-11) | |
-| `.lab/` | Labyrinth API graph nodes read by `scripts/lab_balance.py` | |
+| `.lab/` | Labyrinth API graph nodes in `bundle.json`, read by `scripts/lab_balance.py` | |
 
 Untracked: `attestations/` (gitignored test XML), `developer/` (local notes).

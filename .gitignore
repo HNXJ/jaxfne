@@ -111,6 +111,10 @@ artifacts/developer/
 # plan-* nodes mirror plans.json items, so tracking them would re-leak the same
 # content), plus per-run churn that would conflict between machines.
 artifacts/.lab/plan-*.json
+# Since 2026-10-13 the nodes are tracked as one file, artifacts/.lab/bundle.json
+# (scripts/lab_bundle.py --pack / --unpack); loose node files stay local.
+artifacts/.lab/*.json
+!artifacts/.lab/bundle.json
 artifacts/.lab/Archive/
 artifacts/.lab/.formation_backups/
 artifacts/.lab/suggestions.json
