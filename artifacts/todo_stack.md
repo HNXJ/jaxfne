@@ -26,7 +26,8 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 ## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
 - R2 narrowing met at 33413a12 (2268 files, `budget_files` 2269 in
-  `scripts/tree_size_allowlist.json`). Further narrowing waits: most files in `tutorial_figures`,
+  `scripts/tree_size_allowlist.json`). Raised to 2300 for the 31 lane evidence files of
+  l2-caminos and pcl-port merged 2026-10-13 (Hamm 2026-10-13). Further narrowing waits: most files in `tutorial_figures`,
   `_static/gallery` and `docs/assets` drift on regeneration, which is a declared figure change.
 - T-7 [A] R5: every paper row in `REPLICATIONS.md` carries a verdict or a reason (2026-10-13).
   Closes when: `python scripts/build_dashboard_data.py --check` passes on the pushed SHA.
