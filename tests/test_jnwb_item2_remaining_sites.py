@@ -20,10 +20,11 @@ nperseg=None)``, a ``scipy.signal.welch`` wrapper):
 - vis/spectra.py ``plot_spectrogram_profiles``: a segmented-STFT tiling with adaptive nperseg
 """
 
-import jnwb
 import numpy as np
 import pytest
 from scipy import signal as _signal
+
+jnwb = pytest.importorskip("jnwb")
 
 from jaxfne.vis import core as _core
 
