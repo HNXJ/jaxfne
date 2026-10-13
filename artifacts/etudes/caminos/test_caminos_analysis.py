@@ -13,7 +13,7 @@ and the pe_threshold parameter. v6 drops the PSD local-maximum test and runs 12 
 from __future__ import annotations
 
 import hashlib
-import importlib
+import importlib.util
 import json
 import sys
 from pathlib import Path
@@ -389,34 +389,51 @@ def test_manifest_merges_across_invocations(tmp_path):
 _ANALYSIS = Path(__file__).resolve().parent / "caminos_analysis.py"
 
 
-def _run_mutant(old: bytes, new: bytes, check):
-    """Apply a one-anchor mutant, run ``check`` on it, restore byte-exact."""
+_MUTANT_SEQ = 0
+
+
+def _run_mutant(monkeypatch, tmp_path, old: bytes, new: bytes, check):
+    """Run ``check`` with the test module's ``ca`` bound to a mutated copy.
+
+    The mutated source is written to a ``tmp_path`` copy and imported under a
+    fresh module name via ``importlib.util.spec_from_file_location``; the real
+    file is never rewritten, so no bytecode cache of it can serve stale code
+    across tests (same-length rewrites plus ``reload`` did: the wide-window and
+    low-threshold mutants passed alone but failed in the full file). The real
+    file's sha256 is unchanged afterwards.
+    """
+    global _MUTANT_SEQ
     raw = _ANALYSIS.read_bytes()
     sha_before = hashlib.sha256(raw).hexdigest()
     assert raw.count(old) == 1, "mutant anchor not unique"
+    _MUTANT_SEQ += 1
+    name = "caminos_analysis_mutant_%d" % _MUTANT_SEQ
+    (tmp_path / (name + ".py")).write_bytes(raw.replace(old, new))
+    spec = importlib.util.spec_from_file_location(name, tmp_path / (name + ".py"))
+    assert spec is not None and spec.loader is not None, "cannot load mutant copy"
+    mutant = importlib.util.module_from_spec(spec)
+    monkeypatch.setitem(sys.modules, name, mutant)
+    spec.loader.exec_module(mutant)
+    monkeypatch.setattr(sys.modules[__name__], "ca", mutant)
     try:
-        _ANALYSIS.write_bytes(raw.replace(old, new))
-        importlib.reload(ca)
         check()
     finally:
-        _ANALYSIS.write_bytes(raw)
-        importlib.reload(ca)
-        sha_after = hashlib.sha256(_ANALYSIS.read_bytes()).hexdigest()
-        assert sha_after == sha_before, "restore not byte-exact"
+        assert hashlib.sha256(_ANALYSIS.read_bytes()).hexdigest() == sha_before, \
+            "real file changed"
 
 
-def test_mutant_lag_sign_flipped_fails():
+def test_mutant_lag_sign_flipped_fails(monkeypatch, tmp_path):
     def check():
         counts = _mod_counts(21, {"E": 2.0, "PV": 12.0, "SOM": 7.0}, SIZES,
                              depth=0.9, delays={"SOM": 0.0085})
         lag = ca.pv_som_lag(counts, DT, SIZES)
         assert lag < 0.0, lag  # sign flipped: acceptance (8.5 +- 0.5) fails
         assert not abs(lag - 8.5) <= 0.5
-    _run_mutant(b"lag_ms = lag_steps * dt_ms  # positive: SOM after PV",
+    _run_mutant(monkeypatch, tmp_path, b"lag_ms = lag_steps * dt_ms  # positive: SOM after PV",
                 b"lag_ms = -lag_steps * dt_ms  # positive: SOM after PV", check)
 
 
-def test_mutant_wide_window_fails():
+def test_mutant_wide_window_fails(monkeypatch, tmp_path):
     # Noisier lag data (seed 21): unmutated window gives 8.3 ms; the
     # 25 ms window admits the one-period alias at about -19 ms.
     sizes = {"E": 1000, "PV": 10, "SOM": 10}
@@ -426,15 +443,15 @@ def test_mutant_wide_window_fails():
                              depth=0.7, delays={"SOM": 0.0085}, steps=int(round(5.0 / DT)))
         lag = ca.pv_som_lag(counts, DT, sizes)
         assert not abs(lag - 8.5) <= 0.5, lag  # 25 ms window admits the alias
-    _run_mutant(b"LAG_WINDOW_MS = 14.0", b"LAG_WINDOW_MS = 25.0", check)
+    _run_mutant(monkeypatch, tmp_path, b"LAG_WINDOW_MS = 14.0", b"LAG_WINDOW_MS = 25.0", check)
 
 
-def test_mutant_low_threshold_fails():
+def test_mutant_low_threshold_fails(monkeypatch, tmp_path):
     def check():
         _, e_rate = cal.synth_e(np.random.default_rng(5), 30.0, 2.0)
         pk = ca.spectral_peak(e_rate, DT)
         assert pk["oscillates"], pk["peak_excess"]  # AR(1) async now "oscillates"
-    _run_mutant(b"PE_THRESHOLD = 4.0", b"PE_THRESHOLD = 1.0", check)
+    _run_mutant(monkeypatch, tmp_path, b"PE_THRESHOLD = 4.0", b"PE_THRESHOLD = 1.0", check)
 
 
 def test_pe_threshold_changes_oscillates():
@@ -531,26 +548,27 @@ PIN_DETECT = {  # AR(1) tau 30 ms, var 8x, ar2, true PE 10 (theta 5); floor from
 }
 
 
-def test_kept_3_reproduces_v5_rows_bit_for_bit():
-    """Explicit kept 3 s reproduces the pinned v5 rows exactly (5 draws, 2 rows).
+def test_kept_3_reproduces_v5_rows():
+    """Explicit kept 3 s reproduces the pinned v5 rows (5 draws, 2 rows).
 
     The default kept window is 10 s since v6, so the pins are checked only with the
-    explicit 3 s argument; the peak fields they pin are unchanged by v6.
+    explicit 3 s argument; the peak fields they pin are unchanged by v6. f_pk is exact;
+    pe comes from the curve_fit aperiodic fit and differs by up to 1.8e-7 relative
+    between scipy 1.17.1 (Windows) and 1.18.1 (WSL), so it is pinned at rtol 1e-6.
     """
     label, tau, c = cal.floors()[6]
     assert label == "AR(1) tau 30 ms, var 8x", label  # precondition: the pinned floor
     kw = {"kept_s": 3.0}
     null = cal.run_null(6, label, tau, c, 5, **kw)
-    assert null["pe"].tolist() == PIN_NULL["pe"], null["pe"]
+    np.testing.assert_allclose(null["pe"], PIN_NULL["pe"], rtol=1e-6, atol=0)
     assert null["f_pk"].tolist() == PIN_NULL["f_pk"], null["f_pk"]
-    assert null["floor_psd35"] == PIN_NULL["floor_psd35"], null["floor_psd35"]
+    np.testing.assert_allclose(null["floor_psd35"], PIN_NULL["floor_psd35"], rtol=1e-12, atol=0)
     res = cal.run_component(6, tau, c, "ar2", 10.0, null["floor_psd35"], 5,
                             cal.STAGE_DETECT, (6, 1), **kw)
-    assert res["pe"].tolist() == PIN_DETECT["pe"], res["pe"]
+    np.testing.assert_allclose(res["pe"], PIN_DETECT["pe"], rtol=1e-6, atol=0)
     assert res["f_pk"].tolist() == PIN_DETECT["f_pk"], res["f_pk"]
-    assert res["scale"] == PIN_DETECT["scale"], res["scale"]
-    assert res["realised_pe"] == PIN_DETECT["realised_pe"], res["realised_pe"]
-    assert res["comp_over_floor"] == PIN_DETECT["comp_over_floor"], res["comp_over_floor"]
+    for key in ("scale", "realised_pe", "comp_over_floor"):
+        np.testing.assert_allclose(res[key], PIN_DETECT[key], rtol=1e-12, atol=0, err_msg=key)
 
 
 def test_kept_10_gives_19_welch_segments():
@@ -616,12 +634,12 @@ def test_v6_fixture_oscillates_under_v6_not_v5():
     assert not v5_call  # v4/v5: the same peak was rejected for lacking a local maximum
 
 
-def test_mutant_restored_local_max_fails_v6_fixture():
+def test_mutant_restored_local_max_fails_v6_fixture(monkeypatch, tmp_path):
     """Restoring the local-max requirement at the call site rejects the v6 fixture."""
     def check():
         pk = ca.spectral_peak(_v6_fixture_rate(), DT)
         assert not pk["oscillates"], pk["peak_excess"]  # restored rule: the fixture is rejected
-    _run_mutant(b'"oscillates": oscillation_call(pe, edge_ok, pe_threshold),',
+    _run_mutant(monkeypatch, tmp_path, b'"oscillates": oscillation_call(pe, edge_ok, pe_threshold),',
                 b'"oscillates": oscillation_call(pe, edge_ok, pe_threshold) and local_max,', check)
 
 
