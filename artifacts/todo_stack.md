@@ -84,11 +84,11 @@ run on WSL2 CUDA.
   (`artifacts/harness/jnwb_cross_learning.md`).
 - T-11 [A] G-3: CAMINOS p = 0.07 seed 1 as an NWB excerpt plus provenance for jnwb `tests/`
   (waits on O-2). Closes when: the excerpt's recovery test passes in jnwb `tests/`.
-- T-12 [A] jnwb item 2, two sites outside the listed set: `vis/spectra.py` `spectrogram` calls
-  and the `cross_area_coherence` periodogram fallback (`fields/proxy.py`). The listed sites are
-  done: four plain Welch (`tests/test_jnwb_item2_welch_sites.py`), seven declared different
-  (`tests/test_jnwb_item2_remaining_sites.py`). Closes when: each of the two has an equivalence
-  or declared-difference test.
+- T-12 [H] `fields/proxy.py` `cross_area_coherence` periodogram fallback (taken when `welch_psd`
+  raises): single-segment coherence is identically 1 at the FFT bins (|X Y*|² = |X|²|Y|²); values
+  below 1 come only from interpolation onto the 128-bin grid, so the fallback's coherence carries
+  no information. Pinned as is in `tests/test_jnwb_item2_remaining_sites.py`. Hamm: refuse in
+  the fallback, or segment it. Closes when: the call is recorded and the pin follows it.
 - T-13 [H] jnwb item 3: `analysis/metrics.py:226,122,19` (Fano of the population sum,
   `burst_index` ignoring `bin_ms`, unbinned pairwise correlation), pinned by
   `tests/test_analysis_metrics.py:27-51`; needs a declared definition change. Closes when: the
