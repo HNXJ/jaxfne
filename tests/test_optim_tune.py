@@ -754,12 +754,8 @@ def test_suite_no1_rejects_group_specific_gampa_knobs():
         # The main check: forbidden names must not be the KEYS in best_parameters
 
 
-def test_matrix_inner_loop_unexpected_error_propagates(monkeypatch):
-    """An unexpected exception from a matrix-tune candidate must propagate.
-
-    Counted fallbacks cover failing candidates (ArithmeticError/ValueError);
-    anything else (e.g. an infrastructure RuntimeError) is a real bug.
-    """
+def _matrix_tune_with_failing_simulate(monkeypatch, exc):
+    """Run a one-candidate matrix tune whose every Model.simulate raises ``exc``."""
     import optax
 
     from jaxfne._model import Model
@@ -786,8 +782,22 @@ def test_matrix_inner_loop_unexpected_error_propagates(monkeypatch):
     )
 
     def _boom(self, simulation, **kwargs):
-        raise RuntimeError("boom")
+        raise exc
 
     monkeypatch.setattr(Model, "simulate", _boom)
-    with pytest.raises(RuntimeError, match="boom"):
-        model.tune(objectives=objective, optimizer=optimizer, simulation=sim)
+    return model.tune(objectives=objective, optimizer=optimizer, simulation=sim)
+
+
+def test_matrix_tune_unexpected_error_propagates(monkeypatch):
+    """A TypeError from a candidate is a bug, not a failing candidate: it propagates."""
+    with pytest.raises(TypeError, match="boom"):
+        _matrix_tune_with_failing_simulate(monkeypatch, TypeError("boom"))
+
+
+@pytest.mark.parametrize("exc", [RuntimeError("xla"), FloatingPointError("fp"), ValueError("v")])
+def test_matrix_tune_candidate_failure_is_counted(monkeypatch, exc):
+    """A candidate failing with a runtime, arithmetic or value error is counted and scored inf."""
+    result = _matrix_tune_with_failing_simulate(monkeypatch, exc)
+    counts = result.summary["fallback_counts"]
+    assert counts["final_scoring_failed"] >= 1
+    assert result.best_score == float("inf")

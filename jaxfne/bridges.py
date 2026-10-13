@@ -490,7 +490,7 @@ def _recorded_compartment_positions(module: Any, state: str = "v") -> Any:
             return None
 
         return nodes.loc[idx, ["x", "y", "z"]].to_numpy(dtype=float)
-    except (AttributeError, KeyError, TypeError, ValueError):
+    except (AttributeError, IndexError, KeyError, TypeError, ValueError):
         return None
 
 
@@ -759,7 +759,7 @@ def _hh_compartment_indices(module: Any) -> list[int]:
         present = nodes.loc[np.asarray([bool(x) and x == x for x in mask]),
                             "global_comp_index"]
         return sorted(int(i) for i in present.tolist())
-    except (AttributeError, KeyError, TypeError, ValueError):
+    except (AttributeError, IndexError, KeyError, TypeError, ValueError):
         return []
 
 
