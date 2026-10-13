@@ -108,7 +108,8 @@ run on WSL2 CUDA.
 - T-19 [A] Deep audit and code critique (Muse, 2026-10-13, at aef3129e). Landed: 0df3da9d,
   68c61e92, 10d80c08 (NaN metrics, refusals, narrowed excepts), 5090af24 and c4dc0922 (D1 noise
   sqrt(dt_ref/dt)), and the `compute_fields` model check plus the last emitters.py broad except
-  (this commit's successor of 73165ced). Open:
+  (this commit's successor of 73165ced), and the differentiable gAMPA / synaptic_gain refusal on
+  edge-list models (fc6be3a1). Open:
   - Design (no wrong result shown): HDP kernel with about 78 parameters
     (`emitters.py:3155-3232`); duplicated scan bodies behind record flags (`emitters.py:1412-1474`);
     return arity that depends on a flag (`_model_simulate.py:381-383`, `simulate(return_state=)`);

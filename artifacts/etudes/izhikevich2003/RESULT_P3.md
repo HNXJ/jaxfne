@@ -45,3 +45,18 @@ Reference arm `net_reference.py` (float64 NumPy transcription of `net.m`, code `
 N2 fails on both arms: the low CV belongs to the network as specified, not to the kernel. S1 moves
 N3 and N4 across their band edge, which by the prereg calls for a separately preregistered kernel
 variant arm that reproduces the overshoot (Hamm's decision).
+
+## Sensitivity S2–S4 (reported only)
+
+Code `4a506210`, WSL CPU, seed 1; `sensitivity_v7\S{2,3,4}*`, merged in
+`scores/p3_v7_sens_S2_S4.json`. S3 passes noise_scale = paper σ·√2, which the kernel's
+√(0.5/dt) scaling realizes as 2σ (10 E, 4 I) at dt 0.25, the per-ms variance of the scored run.
+
+| Run | N1 Hz | N2 CV | N3 (f_pk, PE) | N4 (f_pk, PE) |
+|---|---|---|---|---|
+| scored, seed 1 | 8.59 | 0.403 fail | 9.0, 6.21 | 39.5, 4.95 |
+| S2 float64 | 8.65 | 0.412 fail | 9.0, 5.22 | 38.0, 5.72 |
+| S3 dt 0.25, W = 4S | 8.77 | 0.399 fail | 9.5, 6.26 | 43.5, 4.72 |
+
+S4 (C7 with I = −10 during the step): pass, burst 8.4 ms after release, 3 spikes (scored: 5.7 ms,
+7 spikes). No verdict changes with precision, step or the C7 hold current.
