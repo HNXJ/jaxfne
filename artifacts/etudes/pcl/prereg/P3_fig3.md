@@ -1,6 +1,8 @@
 # L1-P3 preregistration: PCL Fig. 3 (simple and complex cell tuning)
 
-Status: draft v4 for Hamm's batch sign-off. It revises v1 (FAIL), v2 (PASS with notes)
+Status: **signed v4**, Hamm, 2026-10-11 (batch with CAMINOS v6), on the text at `pcl-port`
+cd18a693. Scored analysis may run from here; any later change to this file is an amendment
+with its own signature. It revises v1 (FAIL), v2 (PASS with notes)
 and v3 (PASS with notes, three blocking) after the reviews of 2026-10-11. No scored analysis runs before the signature. Pilots
 are allowed and are not scored: timing, determinism and the axis and timing checks of the
 input.
@@ -90,7 +92,7 @@ R_sf's flank is computed per cell, as the mean of each cell's own responses at
 |---|---|---|
 | T1 | Population orientation curve at sf\*, aligned to ori\*. R_ori = mean response at Δori = 0 / mean at Δori = 90° | R_ori ≥ 2, above the 99th percentile of N-label and of N-pref |
 | T2 | Population spatial-frequency curve at ori\*, aligned to sf\*. R_sf = mean response at Δsf = 0 / mean per-cell flank | R_sf ≥ 2, above the 99th percentile of N-label and of N-pref |
-| T3 | Per cell, excess modulation X = PMI − PMI₀, where PMI = (max − min)/(max + min) of the count over phases 0–9 at (ori\*, sf\*) (all phases, trials pooled) and PMI₀ is the mean PMI of 1000 draws of 10 Poisson counts with the cell's mean count per phase | median X simple ≥ 0.15; median X complex ≤ 0.5 × median X simple. The Poisson null makes the comparison fair across the two sets' different counts; it is conservative, since the data are sub-Poisson |
+| T3 | Per cell and per trial, excess modulation PMI − PMI₀, where PMI = (max − min)/(max + min) of that trial's count over phases 0–9 at (ori\*, sf\*), and PMI₀ is the mean PMI of 1000 draws of 10 Poisson counts at that trial's mean count per phase. X is the mean over the two trials | median X simple ≥ 0.15; median X complex ≤ 0.5 × median X simple. The Poisson null makes the comparison fair across the two sets' different counts. It is applied per trial because the trials are near-identical (r = 0.95): pooled, an untuned cell gives X ≈ +0.13 to +0.20 (simulated with duplicated trials at 2.5–10 spikes per phase) |
 | T4 | Per cell, the log ratio L = log(A(2ω)/A(ω)) of its spike train at (ori\*, sf\*, phase\*), trials pooled, as below | median L simple < 0 < median L complex, and median L complex − median L simple above the 99th percentile of a null that permutes cells between the two sets 1000 times |
 
 ### T4 frequency doubling
@@ -105,7 +107,14 @@ R_sf's flank is computed per cell, as the mean of each cell's own responses at
   - The window holds about 3.6 cycles, so the frequency resolution is about 0.55 Hz.
     Amplitudes are therefore evaluated at exactly ω and 2ω, not at FFT bins.
 - **Amplitude:** A(f) = |Σ exp(−2πift)| over a cell's spikes, divided by the duration.
-- T3 and T4 fit preferences on all phases, because phase is the tested axis.
+- T3 and T4 fit preferences on all phases, because phase is the tested axis. phase\* is the
+  argmax over phases 0–9 of the trial-pooled count at (ori\*, sf\*); ties go to the lowest
+  phase.
+- A file with no ON event uses all its events for ω. The two trials' ω are averaged, and a
+  difference over 0.01 Hz is reported.
+- Ratios R_ori and R_sf: 0/0 counts as 1 and x/0 (x > 0) as infinite.
+- Spike floors count every spike in the pooled trials, including spikes repeated across
+  trials.
 
 ## Sensitivity (reported, not scored)
 
