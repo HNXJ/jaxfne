@@ -26,15 +26,15 @@ first, amend in place.
 ## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
 - T-4 [A] R2 narrowing to -10 % files and bytes against the 0.5.5 tag (2522 files, 125982465
-  bytes; targets 2269 and 113384218). At 226a7952: 2402 files, 90302671 bytes; bytes done, 133
+  bytes; targets 2269 and 113384218). At b9e55903: 2391 files, 88960885 bytes; bytes done, 122
   files to go. One class per commit, generator wired into the docs build first, then untracked.
   Closes when: `scripts/check_tree_size.py --check` passes with the lowered budget.
-  - Ready: etude bundles `experiment_a` and `hdp_mcc3` (14 files) regenerate (22 s and 29 s).
+  - Largest lever: `.lab` bundled into one file (T-2) removes 107; with the 13 multiscale and
+    heterogeneous etude HTML files (T-1) that is 120 of 122.
   - Not ready: of 53 files in `tutorial_figures`, `_static/gallery` and `docs/assets` only 3
     regenerate byte-identical (tutorials 08, 09, circuit geometry); 36 drift, 6 are copies no
     script writes, 1 gallery PNG is never written, 7 have no generator. Regenerating them is a
     declared figure change.
-  - After T-1 and T-2: multiscale and heterogeneous etudes, `.lab`.
 - T-5 [A] dev → main (Hamm 2026-10-12): broad gate on a fresh clone of the head, push dev, release
   CI with slow tests on dev, `gh pr create --base main --head dev`, required checks, merge; then
   main CI, the Read the Docs latest build (first `pre_build` atlas build) and the Dashboard
