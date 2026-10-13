@@ -112,3 +112,49 @@ def test_p3b_return_v_shape_and_first_row():
     assert got["v_test"].shape == (steps, n)
     assert np.array_equal(got["v_test"][0], np.full(n, -65.0))  # v before any update
     assert "v_test" not in nref.simulate(net, steps, None, thal=thal)
+
+
+def _arm(spikes, extra, v):
+    return {"spikes": spikes, "extra_u": extra, "v_test": v,
+            "mean_extra_u_per_spike": float(extra[spikes].mean()) if spikes.any() else 0.0}
+
+
+def _v5_case(r_row, kernel_flip_row, extra_rel=0.0, kernel_extra_spikes=0):
+    """10 rows x 4 cells; control v departs by 1e-3 at r_row; kernel flips a spike at kernel_flip_row."""
+    steps, n = 10, 4
+    sp = np.zeros((steps, n), dtype=bool)
+    sp[::2, :] = True  # 20 spikes
+    extra = np.where(sp, 2.0, 0.0)
+    v = np.zeros((steps, n))
+    ctrl_v = v.copy()
+    if r_row is not None:
+        ctrl_v[r_row:, 0] += 1e-3
+    ker_sp = sp.copy()
+    if kernel_flip_row is not None:
+        ker_sp[kernel_flip_row, 1] = not ker_sp[kernel_flip_row, 1]
+    for k in range(kernel_extra_spikes):
+        ker_sp[1 + 2 * k, 2] = True
+    ker_extra = extra * (1.0 + extra_rel)
+    return _arm(sp, extra, v), _arm(ker_sp, ker_extra, v), _arm(sp, extra, ctrl_v)
+
+
+def test_p3b_v5_bar_ignores_flips_after_r_and_counts_them():
+    gate = _load(ETUDE / "gate_p3b.py", "p3b_gate")
+    ref, ker, ctrl = _v5_case(r_row=5, kernel_flip_row=7)
+    got = gate.v5_step(ref, ker, ctrl)
+    assert got["R"] == 5 and got["kernel_first_divergent_row"] == 7
+    assert got["rasters_identical_before_R"] and got["verdict"] == "FAIL"  # 21 vs 20: 5 % off
+    ref, ker, ctrl = _v5_case(r_row=5, kernel_flip_row=None)
+    assert gate.v5_step(ref, ker, ctrl)["verdict"] == "PASS"
+
+
+def test_p3b_v5_bar_fails_a_flip_before_r_and_extra_u_off():
+    gate = _load(ETUDE / "gate_p3b.py", "p3b_gate")
+    ref, ker, ctrl = _v5_case(r_row=5, kernel_flip_row=2)
+    got = gate.v5_step(ref, ker, ctrl)
+    assert not got["rasters_identical_before_R"] and got["verdict"] == "FAIL"
+    ref, ker, ctrl = _v5_case(r_row=None, kernel_flip_row=None, extra_rel=1e-5)
+    got = gate.v5_step(ref, ker, ctrl)
+    assert got["R"] == 10 and not got["extra_u_rtol1e-6_before_R"]
+    ref, ker, ctrl = _v5_case(r_row=None, kernel_flip_row=None, extra_rel=1e-7)
+    assert gate.v5_step(ref, ker, ctrl)["verdict"] == "PASS"
