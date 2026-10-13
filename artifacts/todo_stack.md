@@ -24,17 +24,9 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 
 ## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
-- T-2 [A] Bundle `artifacts/.lab` (108 Labyrinth JSON nodes) into one file with pack and unpack;
-  `scripts/lab_balance.py` reads the bundle. Closes when: `tests/test_lab_bundle.py` passes and
-  the 108 node files are untracked.
-- T-4 [A] R2 narrowing to -10 % files and bytes against the 0.5.5 tag (2522 files, 125982465
-  bytes; targets 2269 and 113384218). At e3a7a41b: 2381 files, 87327262 bytes; bytes done, 112
-  files to go; T-2 removes 107. One class per commit, generator wired into the docs build first,
-  then untracked. Closes when: `scripts/check_tree_size.py --check` passes with the lowered budget.
-  - Not ready: of 53 files in `tutorial_figures`, `_static/gallery` and `docs/assets` only 3
-    regenerate byte-identical (tutorials 08, 09, circuit geometry); 36 drift, 6 are copies no
-    script writes, 1 gallery PNG is never written, 7 have no generator. Regenerating them is a
-    declared figure change.
+- R2 narrowing met at 33413a12 (2268 files, `budget_files` 2269 in
+  `scripts/tree_size_allowlist.json`). Further narrowing waits: most files in `tutorial_figures`,
+  `_static/gallery` and `docs/assets` drift on regeneration, which is a declared figure change.
 - T-7 [A] R5: every paper row in `REPLICATIONS.md` carries a verdict or a reason (2026-10-13).
   Closes when: `python scripts/build_dashboard_data.py --check` passes on the pushed SHA.
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
