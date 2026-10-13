@@ -40,8 +40,9 @@ first, amend in place.
   landed (F6 57f40ddf, F1 table c571ba9f). Closes when: the prereg is signed and its equivalence
   test is written.
 - T-7 [A] R5: each paper ships at its P5 verdict; stated reasons for PCL Fig. 3 (after T-3) and
-  Izhikevich 2003 in `artifacts/etudes/REPLICATIONS.md`. Izhikevich 2003: P3 prereg (batch
-  signature, S1 reference arm `net_reference.py`), calibration gate first (B7). Closes when:
+  Izhikevich 2003 in `artifacts/etudes/REPLICATIONS.md`. Izhikevich 2003: P3 prereg draft v6
+  (b0a12a36, second review PASS) awaits Hamm's batch signature; then the calibration gate and
+  detector known-answer tests (B7), S1 reference arm `net_reference.py`. Closes when:
   every paper row in `REPLICATIONS.md` carries a verdict or a reason and
   `python scripts/build_dashboard_data.py --check` passes.
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
@@ -106,7 +107,9 @@ run on WSL2 CUDA.
 - T-18 [A] Inhibitory-type lists that omit `I`, `Inl`, `Ing`, `SOM` (F6 review, 57f40ddf):
   `tutorial_utils.py:1564` (`simulate_laminar_trials` zeroes same-layer input only onto
   PV/SST/VIP, a model rule), `tutorial_utils.py:800` (default `cell_signs`), `util.py:712`
-  (diagnostic grouping). First find callers that pass those types; a change to 1564 is a model
+  (diagnostic grouping). Callers checked (b0a12a36): every caller of `make_laminar_column_config`
+  and `simulate_laminar_trials` (4 notebooks, `tests/test_tutorial_utils.py`, `tune_laminar_agsdr`)
+  passes only E/PV/SST/VIP, so no realized run is affected today. A change to 1564 is a model
   change for Hamm. Closes when: each site reads the emitter table's sign or carries a stated scope.
 - Frozen, do not move: `artifacts/publication/frozen_manifest.json`,
   `artifacts/release/current_release_authorities.json`, hash-pinned skills and `AGENTS.md`;
