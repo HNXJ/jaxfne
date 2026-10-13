@@ -11,6 +11,7 @@ Tests cover:
 import json
 import numpy as np
 import pytest
+import warnings
 from jaxfne.analysis import (
     mean_pairwise_spike_correlation,
     burst_index,
@@ -18,41 +19,53 @@ from jaxfne.analysis import (
     fleiss_kappa_binary,
 )
 
-pytestmark = pytest.mark.filterwarnings("ignore::DeprecationWarning")
 
+class TestDeclaredDefinitions:
+    """T-13 declared definitions: shared binning, per-neuron Fano, binned burst/correlation."""
 
-class TestDeprecatedMetricsWarnings:
-    """P-026: the three misnamed metrics warn and name the jnwb replacement."""
+    def test_fano_per_neuron_differs_from_population_sum(self):
+        # Hand computation at bin 1 step (b=1): each row [1,0,0,0] has
+        # mean 0.25 and var ((0.75**2 + 3 * 0.25**2) / 4) = 0.1875, so
+        # F_i = 0.1875 / 0.25 = 0.75 per neuron, mean 0.75. The old
+        # population-summed series [2,0,0,0] has mean 0.5 and var 0.75,
+        # i.e. 1.5, so the definitions differ here.
+        spikes = np.array([[1.0, 0.0, 0.0, 0.0], [1.0, 0.0, 0.0, 0.0]])
+        assert fano_factor(spikes, bin_size_ms=1.0, dt_ms=1.0) == pytest.approx(0.75)
 
-    def test_mean_pairwise_spike_correlation_warns(self):
-        spikes = np.random.rand(5, 100) > 0.8
-        with pytest.warns(DeprecationWarning, match="spike_count_correlation"):
+    def test_burst_index_changes_with_bin_ms(self):
+        # Hand computation on [[1,0,1,0],[0,0,1,1]] at threshold 0.5: at
+        # bin 1 step the per-bin active fractions are [0.5, 0.0, 1.0, 0.5],
+        # so 3/4 = 0.75 reach threshold; at bin 2 steps the binned counts
+        # are [[1,1],[0,2]], fractions [0.5, 1.0], so 2/2 = 1.0.
+        spikes = np.array([[1.0, 0.0, 1.0, 0.0], [0.0, 0.0, 1.0, 1.0]])
+        fine = burst_index(spikes, bin_ms=1.0, dt_ms=1.0)
+        coarse = burst_index(spikes, bin_ms=2.0, dt_ms=1.0)
+        assert fine == pytest.approx(0.75)
+        assert coarse == pytest.approx(1.0)
+
+    def test_binned_correlation_differs_from_per_step(self):
+        # Hand computation on [[1,0,0,1],[0,1,1,0]]: per-step rows have
+        # means 0.5, covariance -0.25 and variances 0.25, so r = -1.0. At
+        # bin 2 steps the binned rows are [1,1] and [1,1], both without
+        # variance, so the metric returns 0.0.
+        spikes = np.array([[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 1.0, 0.0]])
+        per_step = mean_pairwise_spike_correlation(spikes, bin_ms=1.0, dt_ms=1.0)
+        binned = mean_pairwise_spike_correlation(spikes, bin_ms=2.0, dt_ms=1.0)
+        assert per_step == pytest.approx(-1.0)
+        assert binned == 0.0
+
+    def test_correlation_requires_bin_ms_and_dt_ms(self):
+        spikes = np.array([[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 1.0, 0.0]])
+        with pytest.raises(TypeError):
             mean_pairwise_spike_correlation(spikes)
 
-    def test_burst_index_warns(self):
-        spikes = np.random.rand(5, 100) > 0.8
-        with pytest.warns(DeprecationWarning, match="network_burst_index"):
-            burst_index(spikes, bin_ms=10, dt_ms=0.1)
-
-    def test_fano_factor_warns(self):
-        spikes = np.random.rand(5, 1000) > 0.9
-        with pytest.warns(DeprecationWarning, match=r"jnwb\.fano_factor"):
-            fano_factor(spikes, bin_size_ms=10, dt_ms=0.1)
-
-    def test_burst_index_value_ignores_bin_ms(self):
-        spikes = np.zeros((2, 4))
-        spikes[:, 0] = 1.0
-        with pytest.warns(DeprecationWarning, match="bin_ms is accepted but unused"):
-            fine = burst_index(spikes, bin_ms=1.0, dt_ms=0.1)
-        with pytest.warns(DeprecationWarning, match="bin_ms is accepted but unused"):
-            coarse = burst_index(spikes, bin_ms=50.0, dt_ms=0.1)
-        assert fine == coarse == 0.25
-
-    def test_fano_factor_population_sum_value(self):
+    def test_no_deprecation_warning_emitted(self):
         spikes = np.array([[1.0, 0.0, 1.0, 0.0], [0.0, 0.0, 1.0, 1.0]])
-        with pytest.warns(DeprecationWarning, match="population-summed"):
-            value = fano_factor(spikes, bin_size_ms=1.0, dt_ms=1.0)
-        assert value == 0.5
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            fano_factor(spikes, bin_size_ms=1.0, dt_ms=1.0)
+            burst_index(spikes, bin_ms=1.0, dt_ms=1.0)
+            mean_pairwise_spike_correlation(spikes, bin_ms=1.0, dt_ms=1.0)
 
 
 class TestMeanPairwiseSpikeCorrelation:
@@ -61,7 +74,7 @@ class TestMeanPairwiseSpikeCorrelation:
     def test_json_safe_output(self):
         """Output must be JSON-safe float."""
         spikes = np.random.rand(10, 100) > 0.8
-        result = mean_pairwise_spike_correlation(spikes)
+        result = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
         assert isinstance(result, (int, float))
         assert np.isfinite(result)
         # Verify JSON serializable
@@ -70,45 +83,45 @@ class TestMeanPairwiseSpikeCorrelation:
     def test_empty_array(self):
         """Empty array should return 0.0."""
         spikes = np.zeros((0, 100))
-        assert mean_pairwise_spike_correlation(spikes) == 0.0
+        assert mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1) == 0.0
 
     def test_single_neuron(self):
         """Single neuron returns 0.0 (no pairs)."""
         spikes = np.random.rand(1, 100) > 0.8
-        assert mean_pairwise_spike_correlation(spikes) == 0.0
+        assert mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1) == 0.0
 
     def test_no_variance(self):
         """All same spike values returns 0.0."""
         spikes = np.ones((10, 100))
-        assert mean_pairwise_spike_correlation(spikes) == 0.0
+        assert mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1) == 0.0
 
     def test_perfectly_correlated(self):
         """Identical spike trains return correlation near 1.0."""
         rng = np.random.default_rng(7)
         spike_pattern = rng.random(100) > 0.8
         spikes = np.tile(spike_pattern, (5, 1))
-        result = mean_pairwise_spike_correlation(spikes)
+        result = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
         assert result > 0.9  # Near perfect correlation
 
     def test_uncorrelated_spikes(self):
         """Random independent spikes return correlation near 0.0."""
         np.random.seed(42)
         spikes = np.random.rand(20, 1000) > 0.8
-        result = mean_pairwise_spike_correlation(spikes)
+        result = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
         assert -0.3 < result < 0.3  # Should be near 0
 
     def test_min_neurons_filter(self):
         """Only neurons with variance should be included."""
         spikes = np.zeros((10, 100))
         spikes[0:5, :] = np.random.rand(5, 100) > 0.5  # Only 5 active
-        result = mean_pairwise_spike_correlation(spikes, min_neurons=3)
+        result = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1, min_neurons=3)
         assert np.isfinite(result)
 
     def test_range_output(self):
         """Output must be in [-1, 1]."""
         for _ in range(5):
             spikes = np.random.rand(10, 1000) > 0.8
-            result = mean_pairwise_spike_correlation(spikes)
+            result = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
             assert -1.0 <= result <= 1.0
 
     def test_nan_handling(self):
@@ -116,20 +129,20 @@ class TestMeanPairwiseSpikeCorrelation:
         spikes = np.random.rand(10, 100) > 0.8
         spikes = spikes.astype(float)
         spikes[0, :5] = np.nan
-        result = mean_pairwise_spike_correlation(spikes)
+        result = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
         assert np.isfinite(result)
 
     def test_continuous_spike_proxy(self):
         """Continuous values in [0,1] should work."""
         spikes = np.random.rand(10, 100)  # [0,1] values
-        result = mean_pairwise_spike_correlation(spikes)
+        result = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
         assert isinstance(result, (int, float))
         assert np.isfinite(result)
 
     def test_short_timeseries(self):
         """Very short timeseries should return 0.0."""
         spikes = np.random.rand(10, 1)
-        assert mean_pairwise_spike_correlation(spikes) == 0.0
+        assert mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1) == 0.0
 
 
 class TestBurstIndex:
@@ -240,10 +253,12 @@ class TestFanoFactor:
 
     def test_regular_spikes(self):
         """Periodic spikes should have Fano < 1.0."""
+        # One spike per bin per neuron: b = round(10 / 0.1) = 100 steps over
+        # 1000 steps gives 10 bins; each neuron's counts are [1] * 10, so
+        # var 0 and F_i = 0 for every neuron.
         spikes = np.zeros((20, 1000))
-        # Every 10th timestep, one neuron fires
         for i in range(20):
-            spikes[i, i * 50 : i * 50 + 100 : 10] = 1
+            spikes[i, ::100] = 1
         result = fano_factor(spikes, bin_size_ms=10, dt_ms=0.1)
         # Periodic should have FF < 1
         assert result < 1.0
@@ -418,15 +433,15 @@ class TestCrossMetricConsistency:
     def test_identical_metrics_on_same_input(self):
         """Repeated calls with same input should give identical results."""
         spikes = np.random.rand(20, 1000) > 0.8
-        c1 = mean_pairwise_spike_correlation(spikes)
-        c2 = mean_pairwise_spike_correlation(spikes)
+        c1 = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
+        c2 = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
         assert c1 == c2
 
     def test_deterministic_output_all_metrics(self):
         """All metrics should be deterministic."""
         spikes = np.random.rand(30, 5000) > 0.8
         for _ in range(3):
-            c = mean_pairwise_spike_correlation(spikes)
+            c = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
             b = burst_index(spikes, bin_ms=10, dt_ms=0.1)
             f = fano_factor(spikes, bin_size_ms=10, dt_ms=0.1)
             k = fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1)
@@ -438,7 +453,7 @@ class TestCrossMetricConsistency:
     def test_all_metrics_produce_json_safe_output(self):
         """All metrics must be JSON-serializable."""
         spikes = np.random.rand(30, 5000) > 0.8
-        c = mean_pairwise_spike_correlation(spikes)
+        c = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
         b = burst_index(spikes, bin_ms=10, dt_ms=0.1)
         f = fano_factor(spikes, bin_size_ms=10, dt_ms=0.1)
         k = fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1)
@@ -464,7 +479,7 @@ class TestEdgeCases:
         """All metrics should handle minimal valid arrays."""
         # 2 neurons, 2 timesteps minimum
         spikes = np.array([[1, 0], [0, 1]])
-        c = mean_pairwise_spike_correlation(spikes)
+        c = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
         b = burst_index(spikes, bin_ms=1, dt_ms=1)
         f = fano_factor(spikes, bin_size_ms=1, dt_ms=1)
         k = fleiss_kappa_binary(spikes, bin_ms=1, dt_ms=1)
@@ -478,7 +493,7 @@ class TestEdgeCases:
         """All metrics should handle large arrays efficiently."""
         # 1000 neurons, 100k timesteps
         spikes = np.random.rand(100, 10000) > 0.95
-        c = mean_pairwise_spike_correlation(spikes)
+        c = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
         b = burst_index(spikes, bin_ms=10, dt_ms=0.1)
         f = fano_factor(spikes, bin_size_ms=10, dt_ms=0.1)
         k = fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1)
@@ -488,7 +503,7 @@ class TestEdgeCases:
     def test_all_metrics_with_extreme_sparsity(self):
         """All metrics should handle very sparse spikes."""
         spikes = np.random.rand(100, 100000) > 0.99
-        c = mean_pairwise_spike_correlation(spikes)
+        c = mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
         b = burst_index(spikes, bin_ms=10, dt_ms=0.1)
         f = fano_factor(spikes, bin_size_ms=10, dt_ms=0.1)
         k = fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1)
