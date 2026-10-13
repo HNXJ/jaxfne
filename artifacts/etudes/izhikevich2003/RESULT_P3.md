@@ -66,6 +66,22 @@ Code `4a506210`, WSL CPU, seed 1; `sensitivity_v7\S{2,3,4}*`, merged in
 S4 (C7 with I = −10 during the step): pass, burst 8.4 ms after release, 3 spikes (scored: 5.7 ms,
 7 spikes). No verdict changes with precision, step or the C7 hold current.
 
+## Amendment v8.2 (post hoc, signed 2026-10-13): Fig. 2 passes 8 of 8
+
+`PREREG_P3_v8.md`. Post hoc: both changes were chosen after the v7 FAIL and the diagnostics, so this
+describes the kernel and is not a prospective test. The v7 verdict above stands.
+Score `scores/p3_v8_score.json` (`F:\warehouse\izh2003\v8\`); v7 runs at `423a2f88`, the v8 C8 run
+at `9f93d76e` (WSL CPU, float32).
+
+| Criterion | v8 rule | Result |
+|---|---|---|
+| C4 | rate ≥ 50 Hz, ISI ratio below both C1 and C5 | 133 Hz, 1.857 against RS 2.534 and LTS 4.387: pass |
+| C8 | pulse I = 2 for 1 ms; v7's rule | 0 spikes, 3 maxima decreasing, 25.2 Hz: pass |
+| C1–C3, C5–C7 | v7 | pass (copied) |
+
+Fig. 3 keeps the v7 verdicts: N1, N3 and N4 pass; N2 fails as a paper claim (`net.m` itself gives
+CV 0.39).
+
 ## P3b (net.m update order): STOPPED at the equivalence gate
 
 `PREREG_P3b.md` signed v4, gate amendment v5 (Hamm, 2026-10-13). No scored run took place. P3
