@@ -35,10 +35,10 @@ first, amend in place.
     regenerate byte-identical (tutorials 08, 09, circuit geometry); 36 drift, 6 are copies no
     script writes, 1 gallery PNG is never written, 7 have no generator. Regenerating them is a
     declared figure change.
-- T-6 [A] F6 (G-2): "SOM" in the AdEx table and `fields/proxy.py:775` (unknown types default to
-  +1); failing test first, second review. Then the CAMINOS P6 prereg for Hamm's signature.
-  The F1 connection table does not yet record `sampling`. Closes when: the F6 test passes and
-  fails on the pre-fix code.
+- T-6 [A] G-2: the CAMINOS P6 prereg (Fig. 1 through the jaxfne API: `emitter(family="adex")`,
+  `connections(sampling="bernoulli")`, `Simulation(poisson_drive=)`) for Hamm's signature; F1-F6
+  landed (F6 57f40ddf, F1 table c571ba9f). Closes when: the prereg is signed and its equivalence
+  test is written.
 - T-7 [A] R5: each paper ships at its P5 verdict; stated reasons for PCL Fig. 3 (after T-3) and
   Izhikevich 2003 in `artifacts/etudes/REPLICATIONS.md`. Izhikevich 2003: P3 prereg (batch
   signature, S1 reference arm `net_reference.py`), calibration gate first (B7). Closes when:
@@ -103,6 +103,11 @@ run on WSL2 CUDA.
   (`make_delta_test_01_report.py`, `generate_mechanism_tutorials.py`, `repair_notebooks.py`),
   benchmark and sync scripts, unwired gates, the manuscript tree, archive moves. Closes when:
   each has Hamm's call recorded here.
+- T-18 [A] Inhibitory-type lists that omit `I`, `Inl`, `Ing`, `SOM` (F6 review, 57f40ddf):
+  `tutorial_utils.py:1564` (`simulate_laminar_trials` zeroes same-layer input only onto
+  PV/SST/VIP, a model rule), `tutorial_utils.py:800` (default `cell_signs`), `util.py:712`
+  (diagnostic grouping). First find callers that pass those types; a change to 1564 is a model
+  change for Hamm. Closes when: each site reads the emitter table's sign or carries a stated scope.
 - Frozen, do not move: `artifacts/publication/frozen_manifest.json`,
   `artifacts/release/current_release_authorities.json`, hash-pinned skills and `AGENTS.md`;
   `artifacts/legacy/AGENTS.md` kept by Hamm 2026-10-11.
