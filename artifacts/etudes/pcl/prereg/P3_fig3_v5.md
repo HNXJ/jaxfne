@@ -1,9 +1,10 @@
 # L1-P3 preregistration v5: PCL Fig. 3 (simple and complex cell tuning)
 
-Status: **DRAFT v5, unsigned.** Declared after the v4 FAIL (`P3_fig3_result.md`), which
-stands. v5 is a new protocol on Hamm's calls of 2026-10-13: T2 scores the normalized
-spatial-frequency curve against the published Fig. 3, and T4 tests the paper's claim C3 with a
-criterion that drops the sign requirement. No v5 scoring runs before the signature.
+Status: **signed v5**, Hamm, 2026-10-13, on the text at `pcl-port` 89e45191: T2 criterion as
+written, A1 = even phases. Any later change is an amendment with its own signature. Declared
+after the v4 FAIL (`P3_fig3_result.md`), which stands. v5 is a new protocol on Hamm's calls of
+2026-10-13: T2 scores the normalized spatial-frequency curve against the published Fig. 3, and
+T4 tests the paper's claim C3 with a criterion that drops the sign requirement.
 
 ## What is known before scoring
 
