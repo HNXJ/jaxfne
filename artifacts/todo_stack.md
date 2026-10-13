@@ -65,21 +65,26 @@ neurons run on WSL2 CUDA.
 
 Goals R1-R6 are G-5 in `goal_stack.md`. The 0.5.5 stack, manuscript items 9-14 and the 0.5.5
 acceptance list are archived byte-for-byte at `artifacts/archive/0.5.x/todo_055_sections_2026-10-13.md`;
-which of them were met at the v0.5.5 tag is not recorded (unknown), so Hamm says which carry over.
+none of them carries over (Hamm 2026-10-13); the one kept as a deferred trigger is item 12 below.
 
-- [A] R1 state matches reality: this cut; `state.md` and `open_stack.md` follow.
-- [A] R2 narrowing -10 % files and -10 % bytes against the 0.5.5 tag: generators wired into the
-  docs build (`narrowing_plan.md` step 2, `scripts/build_docs_assets.py`), then untrack, one class
-  per commit. Check: `scripts/check_tree_size.py --check` with the lowered budget.
-- [A] R3 docs for 0.5.x: Archive section and the 0.5.x regeneration (pending push); then one
-  Replications page in the docs linking each dashboard paper page (Hamm 2026-10-12, option a);
-  a version-currency test. Check: `mkdocs build --strict` and that test.
-- [A] R4 dashboard: each paper as a P0-P7 timeline (prereg, per-criterion verdict, figures,
-  receipts). Check: `scripts/build_dashboard_data.py --check`; every `REPLICATIONS.md` row shows.
+- [A] R2 narrowing -10 % files and -10 % bytes against the 0.5.5 tag (2522 files, 125982465
+  bytes): bytes already -20.7 % at e0e818ab (99922412); files +72 (2594), so about 324 files must
+  go. Generators wired into the docs build (`narrowing_plan.md` step 2,
+  `scripts/build_docs_assets.py`), then untrack, one class per commit. Measured 2026-10-13: the 25
+  atlas specs take about 115 s on CPU together; regenerated atlases differ from the tracked bytes
+  (version stamp, `figure_state` reset, Plotly byte drift) while config hashes match, so the
+  build check compares config hashes and panel status, never bytes. Check:
+  `scripts/check_tree_size.py --check` with the lowered budget.
+- [A] R3 docs for 0.5.x: Archive section, 0.5.x regeneration (d2b797df) and the Replications page
+  (`scripts/generate_replications_page.py`) done; left: a version-currency test. Check:
+  `mkdocs build --strict` and that test.
+- [A] R4 dashboard: stage track per paper exists; class "in progress" added and Izhikevich 2003
+  moved to it at P3. Left: each stage's artifact linked from the track (prereg, ledger, receipts).
+  Check: `scripts/build_dashboard_data.py --check`; every `REPLICATIONS.md` row shows.
 - [A] R5 papers (Hamm 2026-10-12, option a): ship at P5 verdicts; CAMINOS P6 if F6 lands; PCL
   Fig. 3 and Izhikevich 2003 carry a stated reason in the index. Izhikevich 2003 stays in 0.5.6.
 - [H] R6 release gate: rc gate, CI green on the SHA, second review, receipt; tag, main and PyPI
-  are Hamm's. PR #101 (dev -> main, since 2026-10-07) is Hamm's to merge or close.
+  are Hamm's.
 
 ## Compaction track (audit `6a99cc12`, 2026-10-06)
 
@@ -152,6 +157,7 @@ Deferred, each with its trigger:
 9. Owner decisions from the 2026-09-20 audit: `compile_step_fn **hdp_kwargs` unknown keys; `validate_hdp_params` non-dict pass; frozen protocols recording JAX versions (P-003).
 10. Field Approximation Atlas ladder after the seal (deep review 89 §7).
 11. Post-0.5.5 rule proposal (deep review 89 §12): new mechanism ⇒ reference model, discriminator and reduction test; adoption is Hamm's.
+12. AT-10-R6 RSS growth (+80-98 MB over 4 chunks of the 20-area run): resolve leak against XLA cache before any run over 100 s (0.5.8 laminar models on GPU).
 
 ## Tracks (standing directions, not tasks)
 
