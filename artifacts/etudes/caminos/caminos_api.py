@@ -144,7 +144,9 @@ def spikes_to_counts(spikes, sizes):
     return out
 
 
-def _refuse_scored_dir(out_dir):
+def _refuse_scored_dir(out_dir, signed=False):
+    if signed:
+        return
     parts = Path(out_dir).resolve().parts
     if any("scored" in part.lower() for part in parts):
         raise SystemExit("error: refusing to write under a directory containing "
@@ -172,6 +174,15 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha):
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     fname = run_filename(seed, p)
+    prior = None
+    if (out / "manifest.json").exists():
+        prior = json.loads((out / "manifest.json").read_text())
+        if prior.get("git_sha") != sha:
+            raise SystemExit("error: %s holds runs from code %s; this run is %s (one code SHA "
+                             "per directory)" % (out, prior.get("git_sha"), sha))
+    entries = {e["file"]: e for e in prior["runs"]} if prior else {}
+    if fname in entries or (out / fname).exists():
+        raise SystemExit("error: refusing to overwrite %s" % (out / fname))
     counts = np.asarray(counts, dtype=np.int32)
     if counts.ndim != 2 or counts.shape[1] != 3:
         raise ValueError("counts must be [steps, 3], got shape %r" % (counts.shape,))
@@ -188,8 +199,9 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha):
              "backend": "edge_list",
              "git_sha": sha, "start_time": start_time,
              "wall_s": float(wall_s), "steps": int(counts.shape[0])}
-    manifest = {"git_sha": sha, "start_time": start_time,
-                "runs": [entry]}
+    entries[fname] = entry
+    manifest = {"git_sha": sha, "start_time": prior["start_time"] if prior else start_time,
+                "runs": list(entries.values())}
     try:
         import jax
 
@@ -203,16 +215,16 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha):
     return out / fname
 
 
-def run(p, seed, T_s, out_dir):
+def run(p, seed, T_s, out_dir, signed=False):
     """B0 route (c): construct the model, run the kernel with ``record_v=False``.
 
     Writes the port's per-step population count array and ``manifest.json``
     exactly as ``caminos_analysis.score`` reads them. Refuses any ``out_dir``
-    containing "scored".
+    with a path part containing "scored" unless ``signed``.
     """
     import numpy as np
 
-    _refuse_scored_dir(out_dir)
+    _refuse_scored_dir(out_dir, signed)
     import jaxfne as jtfne
     from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args
     from jaxfne.emitters_adex import simulate_adex
@@ -222,6 +234,9 @@ def run(p, seed, T_s, out_dir):
     model = jtfne.construct(build_spec(p, seed))
     sim = build_sim(p, seed, T_s)
     runtime_cfg = sim.resolved_runtime
+    if str(runtime_cfg.actual_dtype) != "float32":
+        raise SystemExit("error: P6 runs are float32, runtime resolved %s"
+                         % runtime_cfg.actual_dtype)
     kwargs = adex_kernel_args(model, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
     drive_kwargs = adex_external_drive_kwargs(model, sim)
     out = simulate_adex(**kwargs, **drive_kwargs, n_steps=sim.n_steps,
@@ -247,12 +262,14 @@ def build_parser():
     ap.add_argument("--T", type=float, required=True,
                     help="duration in seconds")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--signed", action="store_true",
+                    help="allow a path containing 'scored' (signed P6 runs only)")
     return ap
 
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
-    run(args.p, args.seed, args.T, args.out)
+    run(args.p, args.seed, args.T, args.out, signed=args.signed)
 
 
 if __name__ == "__main__":

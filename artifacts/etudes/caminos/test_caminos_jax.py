@@ -628,8 +628,23 @@ def test_p6_gate4_converter_known_answer(tmp_path):
         counts,
         np.stack([raster[:, :40].sum(axis=1), raster[:, 40:50].sum(axis=1),
                   raster[:, 50:].sum(axis=1)], axis=1).astype(np.int32))
-    api.write_run(tmp_path, p=0.07, seed=1, T_s=0.3, counts=counts, sizes=sizes,
-                  wall_s=0.0, start_time="t", sha="a" * 40)
+    # Full-length synthetic runs (12 s): score() analyses them, and two seeds merge.
+    full = np.tile(counts, (40, 1))
+    assert full.shape[0] == ca.REF_STEPS, "fixture must be 12 s at dt 1e-4"
+    for seed in (1, 2):
+        api.write_run(tmp_path, p=0.07, seed=seed, T_s=12.0, counts=full, sizes=sizes,
+                      wall_s=0.0, start_time="t", sha="a" * 40)
+    import json
+
+    manifest = json.loads((tmp_path / "manifest.json").read_text())
+    assert sorted(e["seed"] for e in manifest["runs"]) == [1, 2]
     result = ca.score(str(tmp_path), ext_sources="pNE")
-    assert isinstance(result, dict), result
-    assert "counts_seed1_p0.07_float32_dt1e-04.npy" not in result["not_scored"], result
+    analysed = sorted(r["seed"] for r in result["per_run"])
+    assert analysed == [1, 2], result["per_run"]
+    assert result["not_scored"] == [], result["not_scored"]
+    with pytest.raises(SystemExit):  # same file again
+        api.write_run(tmp_path, p=0.07, seed=1, T_s=12.0, counts=full, sizes=sizes,
+                      wall_s=0.0, start_time="t", sha="a" * 40)
+    with pytest.raises(SystemExit):  # another code SHA into the same directory
+        api.write_run(tmp_path, p=0.07, seed=3, T_s=12.0, counts=full, sizes=sizes,
+                      wall_s=0.0, start_time="t", sha="b" * 40)
