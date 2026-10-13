@@ -68,13 +68,13 @@ acceptance list are archived byte-for-byte at `artifacts/archive/0.5.x/todo_055_
 none of them carries over (Hamm 2026-10-13); the one kept as a deferred trigger is item 12 below.
 
 - [A] R2 narrowing -10 % files and -10 % bytes against the 0.5.5 tag (2522 files, 125982465
-  bytes): bytes already -20.7 % at e0e818ab (99922412); files +72 (2594), so about 324 files must
-  go. Generators wired into the docs build (`narrowing_plan.md` step 2,
-  `scripts/build_docs_assets.py`), then untrack, one class per commit. Measured 2026-10-13: the 25
-  atlas specs take about 115 s on CPU together; regenerated atlases differ from the tracked bytes
-  (version stamp, `figure_state` reset, Plotly byte drift) while config hashes match, so the
-  build check compares config hashes and panel status, never bytes. Check:
-  `scripts/check_tree_size.py --check` with the lowered budget.
+  bytes; targets 2269 files, 113384218 bytes). At 7426505b: 2402 files, 90302671 bytes, so
+  bytes are done and 133 files must go. Done: `scripts/build_docs_assets.py` (registry,
+  --build, --check with the docs .html link gate), RTD pre_build, mkdocs stand-in hook, atlas HTML untracked (200
+  files), budget 91226112. Next classes, one per commit, each wired into the docs build first:
+  `_static/etudes` 29, `docs/assets` 37, `tutorial_figures` 13, `_static/gallery` 10 (89
+  together; the rest needs another class). Check: `scripts/check_tree_size.py --check` with the
+  lowered budget.
 - [A] R3 docs for 0.5.x: Archive section, 0.5.x regeneration (d2b797df) and the Replications page
   (`scripts/generate_replications_page.py`) done; left: a version-currency test. Check:
   `mkdocs build --strict` and that test.

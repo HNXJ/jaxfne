@@ -1,29 +1,30 @@
 # state
 
-Stamp: jaxfne@dev@7f4d4a6b · 2026-10-13 (written 2026-10-13T01:41:08Z)
+Stamp: jaxfne@dev@7426505b · 2026-10-13 (written 2026-10-13T04:16:41Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
 ## Works (with evidence)
 
-- dev 2d5dc284: CI (Fast) green on 44d42ea9 and 902d75e7; Dashboard workflow green.
-- Replication dashboard live at https://hnxj.github.io/jaxfne/dashboard/ (gh-pages `/dashboard/`
-  only; the old MkDocs root is untouched).
-- CAMINOS Fig. 1: R1–R3 PASS (v6), R4 FAIL (v6), R4v7 PASS (drive p·NE, onset p = 0.04);
-  p = 0.07 counts equal v6 in seeds 1–5. Lane `l2-caminos` 1e768f9d.
-- PCL Fig. 3: v4 FAIL (T2, T4) stands; diagnostic at `pcl-port` 5640ce18.
-- `poisson_drive` targets other than "all" are refused since 7d4eaa8c.
-- Agent context: root `AGENTS.md` loads `artifacts/AGENTS.md` (3c255d03); root `MEMORY.md`
-  merged into `artifacts/memory.md` and `todo_stack.md` cut to 13 KB (325751d2); open stack
-  adopted (c7b3a056).
-- `connections(sampling="bernoulli")` (G-2 F1) since 5ddfd8f2; default path and config hashes
-  unchanged.
-- AdEx conductance kernel `jaxfne.emitters.simulate_adex` (ADVANCED, 8138a5c3): matches the
-  CAMINOS reference cell and recurrent step within rtol 1e-6 (float64). Public route
-  `emitter(family="adex")` (d10c93f2); external Poisson conductance drive through
-  `Simulation(poisson_drive=)`, bit for bit with a transcription of the reference (b7581aed).
-- Dashboard v2 (423c6554, d92064d5): four classes, model pages, validation and roadmap tabs,
-  static figures (`scripts/build_dashboard_figures.py --check`).
+- dev 7426505b: CI (Fast) green (run 38345593663, head_sha 7426505b); Dashboard green on fea6676e.
+- Docs atlas HTML is a build product: `scripts/build_docs_assets.py` (`--build` regenerates the 25
+  atlases and checks each against `docs/_static/atlas_registry.json`; `--check` compares tracked
+  manifests and resolves every relative `.html` link in `docs/`). `.readthedocs.yaml` runs
+  `--build` before mkdocs; `scripts/mkdocs_atlas_stubs.py` adds stand-ins where the HTML is
+  unbuilt and fails on Read the Docs. WSL Ubuntu probe of those steps from a tree with no atlas
+  HTML: `--build` 123 s, 25/25 match, `mkdocs --strict` with `READTHEDOCS=True` passes, 0
+  stand-ins, 47/47 iframes resolve.
+- Docs iframes: 34 of 47 resolved to nonexistent paths under directory URLs before 932607e5; 0 since.
+- Tracked tree: 2402 files, 90302671 bytes (budget 91226112); 0.5.5 tag: 2522 files, 125982465.
+- Replication dashboard live at https://hnxj.github.io/jaxfne/dashboard/; the docs Replications
+  page links each paper's page (`scripts/generate_replications_page.py --check` in the
+  `Dashboard` workflow).
+- CAMINOS Fig. 1: R1–R3 PASS (v6), R4 FAIL (v6), R4v7 PASS (drive p·NE, onset p = 0.04).
+  PCL Fig. 3: v4 FAIL (T2, T4) stands. Izhikevich 2003: class "in progress", stage P3.
+- AdEx conductance kernel `jaxfne.emitters.simulate_adex` (ADVANCED): matches the CAMINOS
+  reference cell and recurrent step within rtol 1e-6 (float64); `emitter(family="adex")`;
+  `Simulation(poisson_drive=)` bit for bit with a transcription of the reference.
+- `connections(sampling="bernoulli")` (G-2 F1); default path and config hashes unchanged.
 
 ## Broken or in flight
 
@@ -31,9 +32,10 @@ In `artifacts/open_stack.md`.
 
 ## Last gate results
 
-- Broad gate, AdEx kernel (76955729 tree): 5093 passed, 0 failed, 75 skipped. Second review PASS.
-- `tests/test_agent_context_hygiene.py`, `test_artifacts_root_layout.py`, `test_memory_brief.py`:
-  39 passed at c7b3a056; `report_hygiene_check.py` clean.
+- Broad gate in a fresh clone of 7426505b (no atlas HTML on disk): 5356 passed, 0 failed, 90
+  skipped. CI fast gates: ALL fail=0. Second reviews of R2 steps 2-4 and the hook: findings fixed.
+- `tests/test_mkdocs_atlas_stubs.py` (needs mkdocs; skips in the jax venv): 3 passed under the
+  system Python.
 
 ## Generated files and their checks
 
@@ -41,15 +43,19 @@ In `artifacts/open_stack.md`.
 |---|---|---|
 | `dashboard/data/replications.json` | `scripts/build_dashboard_data.py` | `--check` (CI `Dashboard` workflow) |
 | `dashboard/figures/*.png`, `manifest.json` | `scripts/build_dashboard_figures.py` | `--check` (CI `Dashboard` workflow) |
+| `docs/replications.md` | `scripts/generate_replications_page.py` | `--check` (CI `Dashboard` workflow) |
+| `docs/_static/atlas*/**.html` (untracked), manifests | `scripts/build_docs_assets.py --build` | `--check`, `tests/test_build_docs_assets.py` |
+| `docs/gallery.md` atlas index | `scripts/generate_gallery.py` | `--check`, `tests/test_generate_gallery.py` |
 | `artifacts/public_surface_contract_v0413.json` | `scripts/generate_public_surface_contract.py` | `tests/test_public_surface_contract_v0413.py` |
 
 ## Environment
 
-- Windows: `C:/workspace/venv_py314_jax011` (Python 3.14, JAX 0.11). GPU runs: WSL2 CUDA
-  `~/venv_jaxfne`, one job at a time after a jchat claim.
+- Windows: `C:/workspace/venv_py314_jax011` (Python 3.14, JAX 0.11; no mkdocs). System Python
+  has mkdocs. GPU runs: WSL2 CUDA `~/venv_jaxfne`, one job at a time after a jchat claim.
 
 ## Next action
 
-0.5.6 release (G-5, R1-R6 in `todo_stack.md`): narrowing step 2 (R2), the docs Replications
-page and dashboard paper timelines (R3, R4); G-2 F6, then the CAMINOS P6 prereg; Izhikevich 2003
-P3 calibration gate. 0.5.5 is tagged v0.5.5 and on PyPI (2026-10-11).
+0.5.6 release (G-5, R2-R6 in `todo_stack.md`): R2 next asset classes toward -133 files; R3
+version-currency test; R4 stage artifacts on the dashboard track; G-2 F6, then the CAMINOS P6
+prereg; Izhikevich 2003 P3 calibration gate. RTD first runs the atlas build at the 0.5.6 merge
+to main. 0.5.5 is tagged v0.5.5 and on PyPI (2026-10-11).
