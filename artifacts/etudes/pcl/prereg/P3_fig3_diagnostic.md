@@ -162,3 +162,29 @@ pass for a panel that is flat within ε. The complex margin is smaller than the 
 between-column spread. A v6 that tests the shape against the port's column spread, and tests
 Fig. 3c by level and fraction only, is Hamm's call; any phase or column choice made from this table
 is post hoc.
+
+## Q9: model-side candidates for the simple-cell offset (unscored, 2026-10-13)
+
+Hamm (2026-10-13): model-side diagnostics. Candidates ranked by a Muse read of the port; the
+analysis-side ones (window, phases, column, K/k binning) are S6, S7 and Q7 above.
+
+- Cell parameters: excluded. `run_tuning.py` builds the net from the cSTDP3 directory, so
+  `configs/simple_cell_config.json` is loaded (`pcl_event_ref.py` constructor), and
+  `DEFAULT_SIMPLE` is unused. The saved neuron files hold threshold 10.0, equal to VTHRESH (checked
+  `weights/0/0.json`, `1.json`, `100.json`); the C++ does not read it back either.
+- Camera feed: excluded. `network_config.json` has `nbCameras` 1, and the port feeds camera 0.
+- Local inhibition: the simple-cell level offset tracks it. Even phases, `diag/q8_v6_numbers.py`:
+
+| Run | Simple points (v5) | Simple level offset (ε 0.04) | Complex points (withdrawn v6 tolerance) | Complex SSE |
+|---|---|---|---|---|
+| no-local (`diag_runs/fig3_cSTDP3_nolocal`) | 15/16 | 0.034 | 0/15 | 2.567 |
+| full (`runs/fig3_cSTDP3`, scored) | 10/16 | 0.095 | 15/15 | 0.204 |
+| local-only (`runs/fig3_cSTDP3_S1`) | 3/16 | 0.308 | 13/15 | 0.455 |
+
+The config writes "static" for both layers; the C++ checks only "local", so it runs without local
+inhibition, and the port reads "static" as local (declared alias, `pcl_event_ref.py` docstring).
+Without local inhibition the simple curve meets Fig. 3c in level, and the complex cells lose sf
+tuning. One setting does not fit both panels.
+
+Next (launched 2026-10-13T23:22:15Z, not complete): `run_tuning.py --inhibition no-local-simple`
+(simple layer's local flag off, complex's on), to `F:\warehouse\pcl\diag_runs\fig3_cSTDP3_nolocal_simple\`.
