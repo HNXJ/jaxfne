@@ -1,6 +1,6 @@
 # Migration Guide: Configuration → NeuronalTensor
 
-As of 0.4.7, **`NeuronalTensor` + `RuntimeConfiguration` is the preferred way
+Since 0.4.7, **`NeuronalTensor` + `RuntimeConfiguration` is the preferred way
 to define and run a circuit.** `Configuration` (the original fluent builder)
 remains fully supported — nothing built on it breaks — but new README, quickstart,
 and tutorial material starts from the preferred path.

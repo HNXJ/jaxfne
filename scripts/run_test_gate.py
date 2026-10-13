@@ -58,6 +58,8 @@ DEV_PYTEST_TARGETS = [
     # Docs atlas registry and .html link resolution; 34 of 47 docs iframes resolved
     # nowhere under directory URLs before this gate.
     "tests/test_build_docs_assets.py",
+    # Docs currency: no published current page states an older minor version as current.
+    "tests/test_docs_version_currency.py",
 ]
 
 # 0.5.1-4b(4): parallelize the independent pytest sweeps with xdist (already
