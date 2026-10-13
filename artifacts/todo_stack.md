@@ -95,6 +95,24 @@ run on WSL2 CUDA.
   and `simulate_laminar_trials` (4 notebooks, `tests/test_tutorial_utils.py`, `tune_laminar_agsdr`)
   passes only E/PV/SST/VIP, so no realized run is affected at b0a12a36. A change to 1564 is a model
   change for Hamm. Closes when: each site reads the emitter table's sign or carries a stated scope.
+- T-19 [A] Deep audit and code critique (Muse, 2026-10-13, at aef3129e). In progress: NaN for
+  undefined metrics and the Poisson p > 1 refusal (packet A); float64-without-x64, off-grid
+  duration, `JaxleyBridge.compartment_axis` and `select_neurons` refusals (packet B); noise
+  sqrt(dt_ref/dt) scaling, Hamm's call, after the dt inventory. Open, not started:
+  - `fields/proxy.py:492-503` `_coerce` turns non-finite input into None without a warning;
+    `proxy.py:465-475,510-525` diagnostics return None on any Exception.
+  - `_construct_core.py:144-156` `compute_fields(model, signals)` never reads `model`.
+  - Broad `except Exception` with a silent default: `bridges.py:480-494,751-762,829-832`,
+    `paradigm.py:110-113`, `optim/core.py:1475-1491` (counted), `emitters.py:201-202`.
+  - Design (no wrong result shown): HDP kernel with about 78 parameters
+    (`emitters.py:3155-3232`); duplicated scan bodies behind record flags (`emitters.py:1412-1474`);
+    return arity that depends on a flag (`_model_simulate.py:381-383`, `simulate(return_state=)`);
+    order-dependent construction stages (`_construct_core.py:292-293,1392-1401`); drive defaults
+    in two places (`_config.py:1620-1626`, `emitters.py:60-65`); no state clamp on the plain
+    Izhikevich path (`emitters.py:522-523`); `bridges.py` patches `jnp.clip` process-wide;
+    frozen dataclasses mutated through `object.__setattr__`; mixed `_s`/`_ms` parameters in
+    the HDP controller.
+  Closes when: each item is fixed with a test or recorded here with Hamm's call.
 - Frozen, do not move: `artifacts/publication/frozen_manifest.json`,
   `artifacts/release/current_release_authorities.json`, hash-pinned skills and `AGENTS.md`;
   `artifacts/legacy/AGENTS.md` kept by Hamm 2026-10-11.
