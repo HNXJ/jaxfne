@@ -834,21 +834,23 @@ def compile_connection_rules(
             all_mech.append(int(mech_idx))
             all_rule.append(int(rule_id))
             all_delay_ms.append(0.0 if rule_delay_ms is None else float(rule_delay_ms))
-        connection_table.append(
-            {
-                "name": rname,
-                "n_pre": len(pre_ids),
-                "n_post": len(post_ids),
-                "n_edges": len(pairs),
-                "mechanism": rule.get("mechanism"),
-                "probability": rule.get("probability"),
-                "max_in_degree": rule.get("max_in_degree"),
-                "sign": rule.get("sign"),
-                "control_key": rule.get("control_key"),
-                "delay_ms": rule_delay_ms,
-                "status": "compiled",
-            }
-        )
+        row = {
+            "name": rname,
+            "n_pre": len(pre_ids),
+            "n_post": len(post_ids),
+            "n_edges": len(pairs),
+            "mechanism": rule.get("mechanism"),
+            "probability": rule.get("probability"),
+            "max_in_degree": rule.get("max_in_degree"),
+            "sign": rule.get("sign"),
+            "control_key": rule.get("control_key"),
+            "delay_ms": rule_delay_ms,
+            "status": "compiled",
+        }
+        if sampling == "bernoulli":
+            # Recorded only when non-default, as in connections(), so density rows are unchanged.
+            row["sampling"] = "bernoulli"
+        connection_table.append(row)
 
     edge_pre = jnp.asarray(all_pre, dtype=jnp.int32)
     edge_post = jnp.asarray(all_post, dtype=jnp.int32)

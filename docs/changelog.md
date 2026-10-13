@@ -15,7 +15,8 @@ the rules those releases were held to and are historical context for readers.
   exact count `round(p*n_pre*n_post)`; without, per-pair Bernoulli up to 4M candidate
   pairs). `"bernoulli"` includes each (pre, post) pair independently with probability
   `p` at any size on both compiler paths. Anything else raises `ValueError`, and
-  `"bernoulli"` with `max_in_degree` is refused.
+  `"bernoulli"` with `max_in_degree` is refused. A compiled `"bernoulli"` rule's
+  `connection_table` row records `"sampling": "bernoulli"`; density rows are unchanged.
 - `jaxfne.emitters` gains the AdEx conductance kernel (ADVANCED): `simulate_adex`,
   `adex_step`, `AdExParams`, `make_adex_params`, `ADEX_CELL_TYPE_DEFAULTS` (E/PV/SOM, Tahvili,
   Vinck and di Volo 2026, Table 1), in mV/ms/pF/nS/pA. Conductance synapses

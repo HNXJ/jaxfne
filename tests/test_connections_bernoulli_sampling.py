@@ -170,6 +170,17 @@ def test_default_density_edges_unchanged():
         assert _edge_hash(r) == pin
 
 
+def test_connection_table_records_bernoulli_and_keeps_density_rows_unchanged():
+    neurons = _rows(20, "PRE") + _rows(30, "POST", start=20)
+    rule = {"name": "feed", "source": {"area": "PRE"}, "target": {"area": "POST"},
+            "probability": 0.2, "weight": 0.1, "mechanism": "ampa"}
+    bern = jtfne.compile_connection_rules(neurons, [dict(rule, sampling="bernoulli")], MECHS, seed=0)
+    dens = jtfne.compile_connection_rules(neurons, [dict(rule)], MECHS, seed=0)
+    assert bern.connection_table[0]["status"] == "compiled", "fixture: the rule must compile"
+    assert bern.connection_table[0]["sampling"] == "bernoulli"
+    assert "sampling" not in dens.connection_table[0]
+
+
 def _sign_only_labels(n):
     area = ["V1"] * n
     layer = ["L4"] * n
