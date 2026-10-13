@@ -68,7 +68,7 @@ the rules those releases were held to and are historical context for readers.
   rest on disk), and Read the Docs regenerates the atlases before mkdocs runs.
 - The 200 atlas HTML files (9.7 MB) leave the repository as build products; the 25
   manifests and `atlas_registry.json` stay tracked. The tracked-tree budget drops from
-  102665681 to 91226112 bytes. A checkout that has not built the HTML gets a stand-in page for
+  102665681 to 91226112 bytes. A checkout before the HTML build gets a stand-in page for
   each registry panel (`scripts/mkdocs_atlas_stubs.py`), so `mkdocs build --strict` passes there.
 - The references page lists, per source, the result jaxfne implements and the functions that
   implement it; those functions cite the same DOI, and `tests/test_references_page.py` holds the
