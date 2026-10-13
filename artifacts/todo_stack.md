@@ -83,11 +83,11 @@ run on WSL2 CUDA.
 - T-16 [A] C7: parametrize the protocol_e spec tests; merge the 8 `test_atlas_at*_05x` files
   after a per-test coverage run. CI dedupe (examples list and wheel smoke in three places).
   Closes when: `python scripts/run_test_gate.py broad` passes with coverage unchanged.
-- T-17 [A] P3 audit: unreferenced scripts left by `f4397bd6` (`make_delta_test_01_report.py`,
-  `generate_mechanism_tutorials.py`, `repair_notebooks.py`), benchmark and sync scripts, unwired
-  gates. Hamm 2026-10-13: archive them under `artifacts/archive/scripts/` with a reason each;
-  anything a test, CI or docs build references stays. The manuscript tree and other archive
-  moves remain open [H]. Closes when: the scripts are archived and the broad gate passes.
+- T-17 [H] P3 audit, remaining owner calls: the manuscript tree and other archive moves. Four
+  unreferenced scripts were archived 2026-10-13 (table in `artifacts/README.md`). Five more have
+  no reference but write tracked or frozen receipts that docs cite, so they stay:
+  `hdp_k_w_ctrl_sweep.py`, `p2v_a1b_dynamic_search.py`, `p2v_a1b_prefreeze_evidence.py`,
+  `p2v_a3_hdp_boundedness.py`, `p2v_a4_claim_language.py`. Closes when: each has Hamm's call.
 - T-18 [A] Inhibitory-type lists that omit `I`, `Inl`, `Ing`, `SOM` (F6 review, 57f40ddf):
   `tutorial_utils.py:1564` (`simulate_laminar_trials` zeroes same-layer input only onto
   PV/SST/VIP, a model rule), `tutorial_utils.py:800` (default `cell_signs`), `util.py:712`
