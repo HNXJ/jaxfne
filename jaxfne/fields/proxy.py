@@ -1089,8 +1089,8 @@ def cross_area_coherence(
 
     Declared cross-area observation operator: ``Cxy(f) = |Pxy|^2 /
     (Pxx * Pyy)`` with ``cross_phase_rad(f) = angle(Pxy)`` on a shared
-    frequency grid. Welch segments when scipy is available, periodogram
-    fallback otherwise (same convention as :func:`spectrolaminar_psd`).
+    frequency grid, from Welch segments. A failed Welch estimate raises:
+    a single periodogram gives coherence 1 at every bin.
 
     Bins where either auto-spectrum vanishes are observationally silent:
     ``valid`` is False there and coherence/phase read exactly 0.0 — a
@@ -1125,17 +1125,13 @@ def cross_area_coherence(
         pyy_i = np.interp(freqs, _f, pyy)
         pxy_i = np.interp(freqs, _f, pxy.real) + 1j * np.interp(freqs, _f, pxy.imag)
         method = "welch"
-    except (ImportError, ValueError):
-        xw = xa - xa.mean()
-        yw = ya - ya.mean()
-        xh = np.abs(np.fft.rfft(xw)) ** 2 / t
-        yh = np.abs(np.fft.rfft(yw)) ** 2 / t
-        ch = np.fft.rfft(xw) * np.conj(np.fft.rfft(yw)) / t
-        ff = np.fft.rfftfreq(t, 1.0 / fs)
-        pxx_i = np.interp(freqs, ff, xh)
-        pyy_i = np.interp(freqs, ff, yh)
-        pxy_i = np.interp(freqs, ff, ch.real) + 1j * np.interp(freqs, ff, ch.imag)
-        method = "periodogram"
+    except (ImportError, ValueError) as exc:
+        # A single-segment periodogram gives coherence 1 at every FFT bin
+        # (|X Y*|^2 = |X|^2 |Y|^2), so there is no fallback (T-12, Hamm 2026-10-13).
+        raise ValueError(
+            "cross_area_coherence needs the Welch estimate; it failed "
+            f"({type(exc).__name__}: {exc}), and a single periodogram carries no coherence"
+        ) from exc
 
     denom = pxx_i * pyy_i
     ceiling = float(np.max(denom)) if float(np.max(denom)) > 0.0 else 0.0

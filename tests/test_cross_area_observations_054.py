@@ -89,6 +89,19 @@ def test_coherence_refusals():
         cross_area_coherence(np.ones(7), np.ones(7), DT_MS)
 
 
+def test_coherence_refuses_when_welch_fails(monkeypatch):
+    # No periodogram fallback: one segment gives coherence 1 at every bin (T-12).
+    from jaxfne.vis import core as _core
+
+    def _raise(x, fs_hz, *, nperseg=256, freq_max_hz=None):
+        raise ValueError("forced Welch failure")
+
+    monkeypatch.setattr(_core, "welch_psd", _raise)
+    rng = np.random.default_rng(0)
+    with pytest.raises(ValueError, match="single periodogram carries no coherence"):
+        cross_area_coherence(rng.standard_normal(300), rng.standard_normal(300), DT_MS)
+
+
 def test_ensemble_per_area_and_cross_observations():
     def _col(name, n, seed):
         cfg = (

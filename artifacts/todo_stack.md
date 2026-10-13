@@ -13,9 +13,14 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 `artifacts/etudes/REPLICATIONS.md`).
 
 - T-3 [H] PCL Fig. 3 stays in progress (Hamm 2026-10-13: it must replicate). v4 FAIL stands
-  (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). Next: a new declared prereg (v5) aimed at the
-  T2/T4 failure cause in `prereg/P3_fig3_diagnostic.md`, then P6 (B1). Hamm signs v5. Closes
-  when: a signed prereg reproduces Fig. 3 and the P6 attempt is recorded.
+  (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). Next: a new declared prereg (v5), then P6
+  (B1). Hamm's calls for v5 (2026-10-13): T2 scores the normalized Δsf tuning curve against the
+  authors' curve with a declared tolerance per Δsf point; T4 (frequency doubling) stays, labeled
+  a jaxfne extension that does not count toward "reproduced"; the reference curves are
+  recomputed from the authors' test data (`PCL_Nat_testing_counterphase_grating_tuningcurve.zip`,
+  read as untrusted data, never their code), which also settles whether cells z = 0–63 are
+  column (4,4). Hamm signs v5. Closes when: a signed prereg reproduces Fig. 3 and the P6
+  attempt is recorded.
 
 ## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
@@ -69,11 +74,14 @@ run on WSL2 CUDA.
   (`artifacts/harness/jnwb_cross_learning.md`).
 - T-11 [A] G-3: CAMINOS p = 0.07 seed 1 as an NWB excerpt plus provenance for jnwb `tests/`
   (waits on O-2). Closes when: the excerpt's recovery test passes in jnwb `tests/`.
-- T-12 [H] `fields/proxy.py` `cross_area_coherence` periodogram fallback (taken when `welch_psd`
-  raises): single-segment coherence is identically 1 at the FFT bins (|X Y*|² = |X|²|Y|²); values
-  below 1 come only from interpolation onto the 128-bin grid, so the fallback's coherence carries
-  no information. Pinned as is in `tests/test_jnwb_item2_remaining_sites.py`. Hamm: refuse in
-  the fallback, or segment it. Closes when: the call is recorded and the pin follows it.
+- T-12 [H] `cross_area_coherence` Welch path (the periodogram fallback is refused since
+  Hamm's call, 2026-10-13): `nperseg = min(1024, T)` gives one segment for T < 1536 samples, so
+  coherence is 1 at the native bins there too. Independent white noise, dt 0.5 ms
+  (`C:/workspace/pytest_temp/coh_single_segment.py`): median coherence 0.81 at T = 1000, 0.40 at
+  1536 (2 segments), 0.22 at 2048, 0.10 at 4000. AT-09 (`artifacts/atlas/at08_at09_054.py`, 1000 ms,
+  T = 2000) reads it in 8–25 Hz with about 2 segments. Hamm: refuse below K segments, or shrink
+  nperseg to reach K; AT-09 then reruns as a declared change. Closes when: the call is recorded
+  and a test pins it.
 - T-13 [H] jnwb item 3: `analysis/metrics.py:226,122,19` (Fano of the population sum,
   `burst_index` ignoring `bin_ms`, unbinned pairwise correlation), pinned by
   `tests/test_analysis_metrics.py:27-51`; needs a declared definition change. Closes when: the

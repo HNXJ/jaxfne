@@ -18,7 +18,6 @@ nperseg=None)``, a ``scipy.signal.welch`` wrapper):
 - analysis/spectral.py ``bandpower_jax``: a max-normalized band profile
 - vis/spectra.py ``spectrogram``: a segmented-STFT time-frequency tiling
 - vis/spectra.py ``plot_spectrogram_profiles``: a segmented-STFT tiling with adaptive nperseg
-- fields/proxy.py ``cross_area_coherence`` fallback: unwindowed periodogram cross-spectrum ratio
 """
 
 import jnwb
@@ -367,58 +366,4 @@ def test_spectra_plot_profiles_differs_from_jnwb_by_time_frequency_tiling(monkey
     assert len(np.asarray(jf)) > 10, "compared arrays must have more than 10 bins"
     assert np.asarray(eSxx).ndim == 2 and np.asarray(jpxx).ndim == 1, (
         "site returns a (freqs, segments) tiling, jnwb a single PSD spectrum"
-    )
-
-
-def test_proxy_coherence_fallback_differs_from_jnwb_by_periodogram(monkeypatch):
-    # fields/proxy.py:1128-1138 except-branch: unwindowed periodogram
-    # cross-spectrum on the raw rfft grid, interpolated onto the linspace grid,
-    # then the |Pxy|^2/(Pxx*Pyy) ratio. No Welch segmentation. A common scale
-    # factor (the site's /T) cancels in the ratio, so this pin does not fix it.
-    from jaxfne.fields import proxy as _proxy
-
-    def _raise(x, fs_hz, *, nperseg=256, freq_max_hz=None):
-        raise ValueError("forced periodogram fallback")
-
-    monkeypatch.setattr(_core, "welch_psd", _raise)
-    rng = np.random.default_rng(0)
-    t, dt_ms = 300, 0.5
-    fs = 1000.0 / dt_ms
-    x = rng.standard_normal(t) + np.sin(np.arange(t) * 0.05)
-    y = rng.standard_normal(t) + np.cos(np.arange(t) * 0.05)
-    assert float(np.abs(x).sum()) > 0, "fixture must carry nonzero power"
-    assert float(np.abs(y).sum()) > 0, "fixture must carry nonzero power"
-    out = _proxy.cross_area_coherence(x, y, dt_ms=dt_ms)
-    assert out["method"] == "periodogram"
-    grid = np.linspace(1.0, 150.0, 128)
-    xa = np.asarray(x, dtype=np.float64).ravel()
-    ya = np.asarray(y, dtype=np.float64).ravel()
-    xw, yw = xa - xa.mean(), ya - ya.mean()
-    xh = np.abs(np.fft.rfft(xw)) ** 2 / t
-    yh = np.abs(np.fft.rfft(yw)) ** 2 / t
-    ch = np.fft.rfft(xw) * np.conj(np.fft.rfft(yw)) / t
-    ff = np.fft.rfftfreq(t, 1.0 / fs)
-    pxx_i = np.interp(grid, ff, xh)
-    pyy_i = np.interp(grid, ff, yh)
-    pxy_i = np.interp(grid, ff, ch.real) + 1j * np.interp(grid, ff, ch.imag)
-    denom = pxx_i * pyy_i
-    ceiling = float(np.max(denom)) if float(np.max(denom)) > 0.0 else 0.0
-    valid = denom > (ceiling * 1e-12) if ceiling > 0.0 else np.zeros_like(denom, dtype=bool)
-    coherence = np.zeros_like(denom)
-    phase = np.zeros_like(denom)
-    coherence[valid] = (np.abs(pxy_i[valid]) ** 2) / denom[valid]
-    phase[valid] = np.angle(pxy_i[valid])
-    np.testing.assert_array_equal(np.asarray(out["freq_hz"]), grid.astype(np.float32))
-    np.testing.assert_array_equal(
-        np.asarray(out["coherence"]), np.clip(coherence, 0.0, 1.0).astype(np.float32)
-    )
-    np.testing.assert_array_equal(np.asarray(out["cross_phase_rad"]), phase.astype(np.float32))
-    np.testing.assert_array_equal(np.asarray(out["valid"]), valid)
-    assert bool(np.asarray(out["valid"]).any()), "fixture must carry nonzero power"
-    assert float(np.asarray(out["coherence"]).sum()) > 0, "fixture must carry nonzero power"
-    assert np.asarray(out["coherence"]).shape[0] > 10, "compared arrays must have more than 10 bins"
-    jf, jpxx = jnwb.compute_psd(xa, fs, axis=0, nperseg=t)
-    assert len(np.asarray(jf)) > 10, "compared arrays must have more than 10 bins"
-    assert np.asarray(out["coherence"]).shape != np.asarray(jpxx).shape, (
-        "site returns a 128-bin periodogram coherence ratio, jnwb a 151-bin Welch PSD"
     )
