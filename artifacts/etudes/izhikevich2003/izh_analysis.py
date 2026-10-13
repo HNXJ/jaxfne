@@ -162,9 +162,10 @@ def peak_excess(signal, fs, band, fit_hz=(2, 200), excl_hz=2, edge_hz=1):
     """Peak excess of a population signal in ``band`` (PREREG_P3 "Peak excess", steps 1-6).
 
     Returns a dict with f_pk (Hz), pe (PE, or None when a fit does not converge),
-    local_max (f_pk is a strict local maximum of the PSD) and edge_ok (f_pk is at
-    least ``edge_hz`` from both band edges). A non-converging fit, or a PSD with a
-    zero bin in the fit range (no log), returns pe None.
+    local_max (f_pk is a strict local maximum of the PSD; true by step 3) and edge_ok
+    (f_pk is at least ``edge_hz`` from both band edges). A non-converging fit, a PSD
+    with a zero bin in the fit range (no log), or a band with no strict PSD local
+    maximum returns pe None.
     Use ``holds(result, theta)`` for the band call.
     """
     x = np.asarray(signal, dtype=float)
@@ -183,7 +184,12 @@ def peak_excess(signal, fs, band, fit_hz=(2, 200), excl_hz=2, edge_hz=1):
     except RuntimeError:
         return _no_peak(None)
     resid = np.log10(pxx) - aperiodic_log10(freqs, *pars1)
-    i = int(in_band[np.argmax(resid[in_band])])
+    # Step 3 (v7): candidates are the in-band bins that are strict local maxima of the PSD.
+    cand = in_band[(in_band > 0) & (in_band < pxx.size - 1)]
+    cand = cand[(pxx[cand] > pxx[cand - 1]) & (pxx[cand] > pxx[cand + 1])]
+    if cand.size == 0:
+        return _no_peak(None)
+    i = int(cand[np.argmax(resid[cand])])
     f_pk = float(freqs[i])
     try:
         pars2 = fit_aperiodic(freqs, pxx, fit_band & (np.abs(freqs - f_pk) > excl_hz))

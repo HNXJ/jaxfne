@@ -207,9 +207,23 @@ def test_peak_excess_edge_and_local_max_rules(monkeypatch):
     _constructed_psd(monkeypatch, izh, lambda f: np.where(f == 8.5, 5.0, 1.0))
     res = izh.peak_excess(np.zeros(10), 1000.0, (8.0, 13.0))
     assert res["f_pk"] == 8.5 and not res["edge_ok"] and not izh.holds(res, 2.0)
-    _constructed_psd(monkeypatch, izh, lambda f: np.where((f == 10.0) | (f == 10.5), 5.0, 1.0))
+    p = 10.0 ** izh.aperiodic_log10(np.array([10.0, 10.5]), 0.0, 1.0, 1.5)
+    # Exactly equal PSD at 10.0 and 10.5 Hz (a flat top): neither is a strict local maximum.
+    _constructed_psd(monkeypatch, izh,
+                     lambda f: np.where(f == 10.0, 5.0, np.where(f == 10.5, 5.0 * p[0] / p[1], 1.0)))
     res = izh.peak_excess(np.zeros(10), 1000.0, (8.0, 13.0))
-    assert res["f_pk"] in (10.0, 10.5) and not res["local_max"] and not izh.holds(res, 2.0)
+    assert res["pe"] is None and not izh.holds(res, 2.0)  # no strict PSD local maximum in band
+
+
+def test_peak_excess_picks_the_largest_residual_among_psd_local_maxima(monkeypatch):
+    izh = _load_module()
+    # Residual is largest at 10.5 Hz (x4.2), but on the falling background the PSD at 10.0 Hz
+    # (x4.0) is higher, so 10.5 Hz is a flank bin; f_pk must be the local maximum at 10.0 Hz.
+    _constructed_psd(monkeypatch, izh, lambda f: np.where(f == 10.0, 4.0, np.where(f == 10.5, 4.2, 1.0)))
+    p = 10.0 ** izh.aperiodic_log10(np.array([10.0, 10.5]), 0.0, 1.0, 1.5)
+    assert p[0] * 4.0 > p[1] * 4.2  # fixture: 10.5 Hz sits on the flank
+    res = izh.peak_excess(np.zeros(10), 1000.0, (8.0, 13.0))
+    assert res["f_pk"] == 10.0 and res["local_max"] and izh.holds(res, 2.0)
 
 
 def test_peak_excess_second_fit_failure_is_no_peak(monkeypatch):

@@ -1,6 +1,12 @@
 # Izhikevich 2003 P3 preregistration
 
-Status: draft v6 for Hamm's batch sign-off. v5 review (2026-10-13): REVISE on three minor
+Status: draft v7 for Hamm's batch sign-off. The v6 estimator failed its calibration gate
+(2026-10-13, receipt `calibration/calibration_v6_estimator_7ba10446.json`): false positives ≤ 5 %
+from θ = 4 and every 40 Hz row ≥ 95 %, but the 10 Hz AR(2) rows detected 0.858–0.944 at every θ
+in 8–13 Hz, and 0.864–0.938 on the six AR(1) floors after widening to 7–14 Hz (white 0.966–0.976). The misses were the local-maximum rule: f_pk, the
+largest residual, fell on the bump's flank, where the PSD is not a strict local maximum (23 and 39
+of 300 draws on two rows, against 2 with f_pk off target). v7 revises step 3 as the gate requires;
+the alpha band returns to 8–13 Hz and the gate reruns from the start. v5 review (2026-10-13): REVISE on three minor
 points (float time comparisons, calibration seeds and AR(2) form, the widening trigger), fixed
 here; `PORT_SPEC.md` line 12 was changed after its PASS to point at the fixed-point start below.
 v4 failed review (2026-10-13):
@@ -118,11 +124,12 @@ fit range (no logarithm), counts as no peak.
 1. Welch PSD: `scipy.signal.welch(x, fs=1000, window="hann", nperseg=2000, noverlap=1000,
    detrend=False, scaling="density")` (0.5 Hz bins, 9 windows over the kept 10 s).
 2. Fit log10 P = a − log10(k + f^χ) by bounded least squares on 2–200 Hz.
-3. f_pk = the frequency of the largest residual in the band.
+3. f_pk = the frequency of the largest residual among the in-band bins that are strict local
+   maxima of the PSD; a band with no such bin has no peak.
 4. Refit on 2–200 Hz with f_pk ± 2 Hz excluded.
 5. PE = P(f_pk) / background(f_pk).
-6. The band call holds when PE ≥ θ, f_pk is a local maximum of the PSD, and f_pk lies ≥ 1 Hz from
-   both band edges.
+6. The band call holds when PE ≥ θ, f_pk is a local maximum of the PSD (true by step 3), and
+   f_pk lies ≥ 1 Hz from both band edges.
 
 **Calibration gate (before signature, synthetic signals only).** A 10 s population count at
 N = 1000 and 8 Hz mean rate, 1 ms bins, through steps 1–6; 1000 draws per null row, 500 per
