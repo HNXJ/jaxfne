@@ -532,3 +532,20 @@ def test_unknown_hdp_rule_raises_error():
 
     with pytest.raises(ValueError, match="Unknown hdp_rule"):
         hdp_kernel(p, edges, 10, 0.5, key, hdp_rule="invalid_rule")
+
+
+def test_traced_C_spike_runs_under_jit_and_matches_eager():
+    """A traced C_spike takes the explicit-drain branch; a concrete nonzero one does too."""
+    p, edges = _make_params_edges(8, 64)
+    key = jax.random.PRNGKey(3)
+    kw = dict(alpha=0.0, beta=0.0, gamma=0.1, delta=0.0, K_HDP=0.0, K_ctrl=0.0,
+              rho_passive=0.0, barrier_c=0.0, barrier_d=0.0, tau_0_ms=5.0,
+              noise_scale=0.1, w_floor=0.01, w_ceiling=10.0)
+
+    def h_trace(c_spike):
+        return hdp_kernel(p, edges, 50, 0.5, key, C_spike=c_spike, **kw)[3]["H_trace"]
+
+    eager = np.asarray(h_trace(0.2))
+    jitted = np.asarray(jax.jit(h_trace)(jnp.asarray(0.2)))
+    assert not np.allclose(eager, eager[0]), "fixture must move H"
+    np.testing.assert_allclose(jitted, eager, rtol=1e-5, atol=1e-6)

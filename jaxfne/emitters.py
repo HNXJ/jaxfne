@@ -3632,7 +3632,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     C_spike_arr = _h_component_param(C_spike, "C_spike")
     try:
         _c_spike_off = bool(np.all(np.asarray(C_spike_arr) == 0))
-    except Exception:
+    except (jax.errors.ConcretizationTypeError, jax.errors.TracerArrayConversionError):
         _c_spike_off = False  # non-concrete gain: keep the explicit drain
     K_HDP_arr = jnp.asarray(K_HDP, dtype=jdtype)
     K_ctrl_arr = jnp.asarray(

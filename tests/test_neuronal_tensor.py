@@ -815,3 +815,20 @@ def test_compute_fields_raises_when_field_absent():
     )
     with pytest.raises(ValueError, match="signals.field is None"):
         jtfne.compute_fields(model, fieldless_signals)
+
+
+def test_compute_fields_refuses_signals_of_another_model():
+    def column(n):
+        return (
+            jtfne.build_laminar_column(n=n, ei_profile="canonical")
+            .set_emitter("izhikevich", "cortical_eig")
+            .probes(["spikes", "V_m", "source", "LFP", "CSD"], n_contacts=8)
+            .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+        )
+
+    model_a = jtfne.construct(column(30))
+    model_b = jtfne.construct(column(40))
+    signals = jtfne.simulate(model_a, duration_ms=2.0, dt_ms=0.5, seed=0)
+    assert signals.field is not None, "fixture must record a field"
+    with pytest.raises(ValueError, match="different model"):
+        jtfne.compute_fields(model_b, signals)
