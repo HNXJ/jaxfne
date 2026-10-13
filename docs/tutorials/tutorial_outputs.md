@@ -160,7 +160,7 @@ except ImportError:
 **Key points:**
 - matplotlib is optional [viz] extra dependency
 - Non-interactive Agg backend for headless/CI environments
-- Figures generated from real simulation data, rather than manually pre-created
+- Figures generated from real simulation data
 - Figures are hashed and integrity verified
 
 ### Tutorial-Specific Figures

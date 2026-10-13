@@ -42,7 +42,7 @@ In practice: configure a circuit, simulate spikes and membrane traces, extract
 field readouts. The shipped path uses a reduced laminar
 population scaffold; detailed emitters and interoperability bridges are
 supported where the API defines them. JAX is the execution
-substrate, rather than a scientific claim.
+substrate, an engineering choice that carries no scientific claim.
 
 ## Status fields
 

@@ -185,7 +185,7 @@ Measurements are CPU-based; other platforms (Linux/NVIDIA, Intel) may differ sig
 ### What CAN be stated:
 
 ✓ "jaxfne simulates 50 neurons for 100 ms in ~150 ms wall-clock on CPU" (with hardware/date caveat)  
-✓ "Time scales roughly linearly with neuron count up to N=1,000 on the dense backend" (measured)  
+✓ "Measured time scales roughly linearly with neuron count up to N=1,000 on the dense backend"  
 ✓ "Simulate cost and peak memory grow faster than linearly between N=1,000 and N=10,000 on the
   dense recurrent backend (measured 20.6x/8.7x on Apple Silicon 2026-05-23 and
   55.1x/7.2x on Windows 2026-08-21 for a 10x step in N)"  

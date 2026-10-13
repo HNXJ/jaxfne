@@ -230,7 +230,7 @@ $P_c$ is the **Field → Probe** bridge. It extracts spatially localized measure
 
 - **Simulated/proxy readout** unless:
   - Geometry (lead field) is calibrated to real electrodes
-  - Field is solved (not proxy)
+  - Field is solved by a physical forward solver
   - Validation against empirical data exists
 - **Eight multimodal operators** in jaxfne: SPK, Vm, source, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy
 - See [Probe Operators](guides/probe_operators.md) for operator-specific statement boundaries

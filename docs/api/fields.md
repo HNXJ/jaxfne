@@ -539,7 +539,7 @@ fully independent of `project_laminar_sources` and the default
   value is passed to `experimental_poisson_1d` exactly as-is — per that
   function's own convention (a node value `Q` produces a flux jump of
   `Q*dx`, confirmed in `tests/test_experimental_poisson_1d_convergence.py`).
-  An explicit modeling choice, always stated here rather than left implicit.
+  An explicit modeling choice, always stated here.
 - `conductivity` (float or `jax.Array`): scalar or per-face array of shape
   `(n_bins-1,)`, always caller-supplied — jaxfne treats every conductivity
   value as uncalibrated, so this is a required input here too, the same as

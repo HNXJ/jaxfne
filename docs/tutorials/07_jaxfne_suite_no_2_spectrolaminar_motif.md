@@ -191,7 +191,7 @@ tau_0_ms * size_i**3` slows `H_i` integration in larger (e.g. E) cells.
 Implementation: `jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp`. One
 config-driven builder for HDP-ready laminar columns of any size lives in
 `jaxfne.hdp_network` (`HDPColumnConfig` + `build_model`/`apply_drive_correction`/`run`) —
-size is a config field, rather than a per-N function.
+size is a config field.
 
 HDP runs through `RuntimeConfig(enable_hdp=True, hdp_params=...)`. This
 tutorial also shows the `jaxfne.hdp_network` convenience builder, driving

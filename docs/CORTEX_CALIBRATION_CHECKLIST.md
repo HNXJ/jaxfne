@@ -45,7 +45,7 @@ noise. Intrinsic baseline drive (built into each type) is added on top:
 | **SST** | 3.5 | 0 | 0 | 0 | 0 | 28.9 | 97.8 | 172.8 | 376 | 668 |
 | **VIP** | 3.0 | 0 | 0 | 0 | 0 | 0 | 0 | 5.0 | 104 | 272 |
 
-- **Negative drive (≤ −10 nA) silences every type** — a cliff, rather than graded suppression.
+- **Negative drive (≤ −10 nA) silences every type** — a cliff.
 - **E** is the only type with a usable graded curve (10 → 54 Hz over drive 0 → 20).
 - **PV is fast-spiking**: 0 → 185 Hz between drive 0 and 10; no low-rate DC regime.
 - **SST is tonically active** (28.9 Hz at injected 0).
