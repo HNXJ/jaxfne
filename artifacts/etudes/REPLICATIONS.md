@@ -21,5 +21,10 @@ Decisions (Hamm 2026-10-13):
   2003 `PREREG_P3.md` v7 signed; both run in opencode lanes under WSL, scored results land in
   0.5.7.
 
-B1: neither paper has a library-path (P6) attempt yet, so neither counts as replicated
-with jaxfne.
+B1: CAMINOS's library-path attempt is P6 v2 (PASS, 2026-10-13); PCL has none yet.
+
+## Queue
+
+| Paper | Tier | Stage | Note |
+|---|---|---|---|
+| Nejat, Sherfey, Bastos 2026, PLoS One 21(8): e0354021, "A genetic algorithm for self-supervised models of oscillatory neurodynamics" (GSDR) | T-jaxfne from the start (Hamm 2026-10-13: "just do it with jaxfne") | P0 | 50-cell HH E/PV/SST circuit, GSDR (stochastic delta rule plus MCDP plus genetic revert) on recurrent conductances; Figs. 2–4 and 6 are model claims, Fig. 5 is macaque MT/MST data. Code public (`HNXJ/GSDR`, DynaSim `devDL`), read as data only |
