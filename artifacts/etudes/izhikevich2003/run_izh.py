@@ -3,8 +3,9 @@
 Spec: ``artifacts/etudes/izhikevich2003/PREREG_P3.md`` (signed v7); network
 per ``PORT_SPEC.md``. Subcommands ``fig2``, ``fig3`` and ``score``. No scored
 run: an ``--out`` containing "scored" is refused unless ``--signed`` is
-passed. ``--sensitivity S1|S2|S3|S4`` labels sensitivity runs; a labelled
-directory never enters ``score``.
+passed. Sensitivity S1 runs through ``net_reference.py``; S2–S4 need runner
+support that does not exist yet. A directory whose manifest carries a
+sensitivity label never enters ``score``.
 """
 
 from __future__ import annotations
@@ -67,7 +68,7 @@ def fixed_point_vstar(b):
 
 def check_out(out, signed):
     """Refuse an --out containing "scored" unless --signed is passed."""
-    if "scored" in str(out) and not signed:
+    if "scored" in str(out).lower() and not signed:
         raise SystemExit("refusing --out containing 'scored' without --signed")
 
 
@@ -363,7 +364,7 @@ def eval_c7(rows, release_row, dt_ms):
 
 
 def eval_c8(v, start_row, dt_ms, rows):
-    win_spikes = [int(r) for r in rows if int(r) >= start_row]
+    win_spikes = [int(r) for r in rows]  # "no spike" (PREREG_P3.md C8): the whole run
     maxima = izh.c8_maxima(np.asarray(v, dtype=float), start_row)
     freq = izh.c8_frequency_hz(maxima, dt_ms)
     decreasing = bool(len(maxima) >= 2 and v[maxima[1]] < v[maxima[0]])
@@ -457,7 +458,8 @@ def score_fig2_dir(fig_dir, theta, alpha_band):
     # C6: the ascending search must stop at the first passing amplitude.
     c6_ids = [f"C6_I{i}" for i in C6_AMPLITUDES if f"C6_I{i}" in manifest.get("runs", {})]
     c6_ids_sorted = sorted(c6_ids, key=lambda s: int(s.split("C6_I")[1]))
-    c6_complete = bool(c6_ids_sorted) and [int(s.split("C6_I")[1]) for s in c6_ids_sorted][0] == 1
+    c6_amps = [int(s.split("C6_I")[1]) for s in c6_ids_sorted]
+    c6_complete = bool(c6_amps) and c6_amps == list(range(1, len(c6_amps) + 1))
     c6_payloads = []
     for rid in c6_ids_sorted:
         got = {k: v for k, v in manifest["runs"][rid].items() if k in expected[rid]}
@@ -538,7 +540,8 @@ def score_fig3_dir(fig_dir, theta, alpha_band):
         except OSError:
             seeds_out[str(seed)] = {"verdict": "incomplete", "numbers": {}}
             continue
-        if n_steps != entry.get("n_steps") or n_cells != 1000:
+        if (n_steps != entry.get("n_steps") or n_steps != round(FIG3_T * 1000.0 / FIG3_DT)
+                or n_cells != 1000 or len(srows) != entry.get("n_spikes")):
             seeds_out[str(seed)] = {"verdict": "incomplete", "numbers": {}}
             continue
         cells = [[] for _ in range(n_cells)]
@@ -564,7 +567,13 @@ def cmd_score(fig2_dir, fig3_dir, out_path):
     theta, alpha_band = load_calibration()
     fig2 = score_fig2_dir(fig2_dir, theta, alpha_band)
     fig3 = score_fig3_dir(fig3_dir, theta, alpha_band)
+    # Completeness: every scored run uses one code SHA (PREREG_P3.md).
+    shas = {json.loads((Path(d) / "manifest.json").read_text(encoding="utf-8")).get("code_sha")
+            for d in (fig2_dir, fig3_dir)}
+    if len(shas) != 1 or None in shas:
+        fig2["overall"] = fig3["arm"] = "incomplete"
     report = {"prereg": "PREREG_P3.md signed v7", "code_sha": _git_sha(),
+              "run_code_shas": sorted(str(s) for s in shas),
               "theta": theta, "alpha_band": list(alpha_band),
               "gamma_band": list(GAMMA_BAND),
               "fig2": fig2, "fig3": fig3}
@@ -578,13 +587,11 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     p2 = sub.add_parser("fig2")
     p2.add_argument("--out", required=True)
-    p2.add_argument("--sensitivity", choices=["S1", "S2", "S3", "S4"], default=None)
     p2.add_argument("--signed", action="store_true")
     p3 = sub.add_parser("fig3")
     p3.add_argument("--seeds", type=int, nargs="+", required=True)
     p3.add_argument("--T", type=float, required=True)
     p3.add_argument("--out", required=True)
-    p3.add_argument("--sensitivity", choices=["S1", "S2", "S3", "S4"], default=None)
     p3.add_argument("--signed", action="store_true")
     ps = sub.add_parser("score")
     ps.add_argument("--fig2", required=True)
@@ -594,10 +601,10 @@ def main():
     a = ap.parse_args()
     if a.cmd == "fig2":
         check_out(a.out, a.signed)
-        cmd_fig2(a.out, a.sensitivity)
+        cmd_fig2(a.out)
     elif a.cmd == "fig3":
         check_out(a.out, a.signed)
-        cmd_fig3(a.out, a.seeds, a.T, a.sensitivity)
+        cmd_fig3(a.out, a.seeds, a.T)
     else:
         check_out(a.out, a.signed)
         cmd_score(a.fig2, a.fig3, a.out)

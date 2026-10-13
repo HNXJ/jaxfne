@@ -406,6 +406,41 @@ def test_p3_out_dir_with_scored_needs_signed():
     r.check_out("results/smoke_run", False)
 
 
+def test_p3_review_completeness_rules(tmp_path, monkeypatch):
+    """Review notes: C8 counts every spike, check_out ignores case, C6 needs amplitudes 1..n,
+    and fig2 and fig3 must share one code SHA."""
+    import json as _json
+
+    r = _load_run_izh()
+    t = np.arange(1000) * 1e-4
+    v = -62.5 + 2.0 * np.exp(-t / 0.05) * np.sin(2 * np.pi * 50.0 * t)
+    assert r.eval_c8(v, 200, DT_MS, [])["verdict"] == "pass", "fixture must pass without spikes"
+    assert r.eval_c8(v, 200, DT_MS, [100])["verdict"] == "fail"  # spike before start_row
+    with pytest.raises(SystemExit):
+        r.check_out("results/Scored_run", False)
+
+    expected = r.expected_fig2_settings()
+    runs = {}
+    for rid, rows in (("C6_I1", [0, 10]), ("C6_I3", [0, 100, 200, 300])):
+        np.savez(tmp_path / f"{rid}.npz", spike_rows=np.asarray(rows, dtype=np.int64))
+        runs[rid] = dict(expected[rid], file=f"{rid}.npz")
+    (tmp_path / "manifest.json").write_text(_json.dumps({"sensitivity": None, "runs": runs}))
+    got = r.score_fig2_dir(tmp_path, 4.0, (8.0, 13.0))
+    assert got["criteria"]["C6"]["verdict"] == "incomplete"  # amplitude 2 missing
+
+    d2, d3 = tmp_path / "f2", tmp_path / "f3"
+    for d, sha in ((d2, "a" * 40), (d3, "b" * 40)):
+        d.mkdir()
+        (d / "manifest.json").write_text(_json.dumps({"code_sha": sha}))
+    monkeypatch.setattr(r, "score_fig2_dir", lambda *a: {"overall": "pass"})
+    monkeypatch.setattr(r, "score_fig3_dir", lambda *a: {"arm": "pass"})
+    rep = r.cmd_score(d2, d3, tmp_path / "score.json")
+    assert rep["fig2"]["overall"] == "incomplete" and rep["fig3"]["arm"] == "incomplete"
+    (d3 / "manifest.json").write_text(_json.dumps({"code_sha": "a" * 40}))
+    rep = r.cmd_score(d2, d3, tmp_path / "score.json")
+    assert rep["fig2"]["overall"] == "pass" and rep["fig3"]["arm"] == "pass"
+
+
 def test_p3_sensitivity_runs_never_enter_score(tmp_path):
     import json as _json
 
