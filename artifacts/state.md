@@ -51,4 +51,4 @@ In `artifacts/open_stack.md`.
 ## Next action
 
 G-2 F6 (SOM in the AdEx table and the field proxy sign), then the CAMINOS P6 prereg;
-Izhikevich 2003 P2 review and P3 prereg; narrowing step 1.
+Izhikevich 2003 P3 prereg; narrowing step 2.

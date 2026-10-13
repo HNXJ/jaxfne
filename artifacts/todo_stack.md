@@ -53,7 +53,7 @@ neurons run on WSL2 CUDA.
 - [A] B2 negative verdicts go in the claim ledger with their reason. Check: one ledger row per scored criterion.
 - [H] B3 one emitter per release, authorized by Hamm, gated by a P4 test perturbing every accepted parameter. Check: that test fails on a stored-but-unconsumed parameter.
 - [A] B4 narrowing, one class per commit with its gate; generated assets are regenerated at the docs build (Hamm 2026-10-12): inventory each generated tree and its generator, wire the generators into the docs build, then untrack. Check: `scripts/check_tree_size.py --check`. Inventory and steps: `artifacts/etudes/narrowing_plan.md`; first step: five Plotly HTML files embed plotly.js (about 26 MB), swap for a pinned CDN tag and fix their generators.
-- [A] Izhikevich 2003 is the third 0.5.6 paper (Hamm 2026-10-12), on the existing emitter: P1 done (`artifacts/etudes/izhikevich2003/SOURCE_P1.md`); P2 `PORT_SPEC.md` drafted, needs second review; then P3 prereg for the batch signature.
+- [A] Izhikevich 2003 is the third 0.5.6 paper (Hamm 2026-10-12), on the existing emitter: P1 done (`artifacts/etudes/izhikevich2003/SOURCE_P1.md`); P2 `PORT_SPEC.md` second review PASS (after the u-overshoot deviation was declared); next P3 prereg for the batch signature, with the S1 reference arm `net_reference.py`.
 - [A] B5 GPU: one job at a time, claimed in jchat. Check: one open GPU claim.
 - [A] B6 each accepted binding becomes a row here the same session.
 - [A] B7 calibrate before signature on synthetic nulls and known positives. Check: the prereg's calibration table.
