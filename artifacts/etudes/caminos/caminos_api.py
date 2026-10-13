@@ -167,6 +167,22 @@ def run_filename(seed, p):
     return "counts_seed%d_p%g_float32_dt1e-04.npy" % (int(seed), float(p))
 
 
+def _refuse_existing(out_dir, fname, sha):
+    """Refuse a directory holding another code SHA or this run's file; return its manifest."""
+    out = Path(out_dir)
+    prior = None
+    if (out / "manifest.json").exists():
+        prior = json.loads((out / "manifest.json").read_text())
+        if prior.get("git_sha") != sha:
+            raise SystemExit("error: %s holds runs from code %s; this run is %s (one code SHA "
+                             "per directory)" % (out, prior.get("git_sha"), sha))
+        if any(e["file"] == fname for e in prior["runs"]):
+            raise SystemExit("error: refusing to overwrite %s" % (out / fname))
+    if (out / fname).exists():
+        raise SystemExit("error: refusing to overwrite %s" % (out / fname))
+    return prior
+
+
 def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha):
     """Write the count array plus the manifest ``caminos_analysis.score`` reads."""
     import numpy as np
@@ -174,15 +190,8 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha):
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     fname = run_filename(seed, p)
-    prior = None
-    if (out / "manifest.json").exists():
-        prior = json.loads((out / "manifest.json").read_text())
-        if prior.get("git_sha") != sha:
-            raise SystemExit("error: %s holds runs from code %s; this run is %s (one code SHA "
-                             "per directory)" % (out, prior.get("git_sha"), sha))
+    prior = _refuse_existing(out, fname, sha)
     entries = {e["file"]: e for e in prior["runs"]} if prior else {}
-    if fname in entries or (out / fname).exists():
-        raise SystemExit("error: refusing to overwrite %s" % (out / fname))
     counts = np.asarray(counts, dtype=np.int32)
     if counts.ndim != 2 or counts.shape[1] != 3:
         raise ValueError("counts must be [steps, 3], got shape %r" % (counts.shape,))
@@ -225,6 +234,7 @@ def run(p, seed, T_s, out_dir, signed=False):
     import numpy as np
 
     _refuse_scored_dir(out_dir, signed)
+    _refuse_existing(out_dir, run_filename(seed, p), git_sha())  # before the compute
     import jaxfne as jtfne
     from jaxfne._construct_adex import adex_external_drive_kwargs, adex_kernel_args
     from jaxfne.emitters_adex import simulate_adex
