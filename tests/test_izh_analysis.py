@@ -509,3 +509,113 @@ def test_p3_reference_arm_matches_kernel_first_spikes():
         # tests the threshold every 0.5 ms, the reference every 1 ms).
         assert abs(float(rt[0]) - (float(kt[0]) + 1.0) * 0.5) <= 0.5
 
+
+# --- P3 sensitivity S2/S3/S4 (run_izh.py) ----------------------------------------------------------
+#
+# Spec: PREREG_P3.md "Sensitivity" (S2 line 223; S3 lines 224-225; S4 line 226).
+# Each S-run's realized settings are read back from the manifest the run wrote;
+# the label makes score refuse. Simulated T <= 0.5 s; no scored run.
+
+
+def test_p3_sens_builder_matches_scored_at_scored_settings():
+    r = _load_run_izh()
+    p0, n0, _ = r.build_fig3_network(1)
+    p1, n1, _ = r.build_sens_fig3_network(1)
+    for name in ("a", "b", "c", "d", "W"):
+        assert np.array_equal(np.asarray(getattr(p1, name)), np.asarray(getattr(p0, name)))
+    assert np.array_equal(np.asarray(n1), np.asarray(n0))
+    ps, _, _ = r.build_sens_fig3_network(2)
+    assert not np.array_equal(np.asarray(ps.W), np.asarray(p1.W))  # fixture: seed changes W
+
+
+def test_p3_sens_s2_float64_short(tmp_path):
+    import jax
+
+    r = _load_run_izh()
+    was = bool(jax.config.read("jax_enable_x64"))
+    try:
+        man = r.cmd_sens("S2", tmp_path / "s2", t_s=0.3)
+        e = man["runs"]["1"]
+        assert man["sensitivity"] == "S2"  # the label keeps it out of score
+        assert e["dtype"] == "float64" and e["output_dtype"] == "float64"  # run asserted it
+        assert e["dt_ms"] == 0.5 and e["W"] == "2S" and e["T_s"] == 0.3
+        assert bool(jax.config.read("jax_enable_x64"))  # set before any array was built
+        z = np.load(tmp_path / "s2" / "1.npz")
+        assert set(z.files) == {"spike_rows", "spike_cols", "n_steps", "n_cells", "dt_ms"}
+        assert int(z["n_steps"]) == e["n_steps"] == 600 and float(z["dt_ms"]) == 0.5
+        with pytest.raises(SystemExit):
+            r.score_fig3_dir(tmp_path / "s2", 4.0, (8.0, 13.0))
+    finally:
+        if not was:
+            jax.config.update("jax_enable_x64", False)
+    with pytest.raises(SystemExit):
+        r.cmd_sens("S9", tmp_path / "bad")
+
+
+def test_p3_sens_s3_settings_short(tmp_path):
+    r = _load_run_izh()
+    man = r.cmd_sens("S3", tmp_path / "s3", t_s=0.3)
+    e = man["runs"]["1"]
+    assert man["sensitivity"] == "S3"
+    assert e["dt_ms"] == 0.25 and e["W"] == "4S" and e["dtype"] == "float32"
+    # The kernel realizes 2 x the paper's sigma at dt 0.25 (its own _noise_coef, D1 scaling).
+    import jax.numpy as jnp
+    from jaxfne.emitters import _noise_coef
+
+    for ref, want in ((e["noise_ref_E"], 10.0), (e["noise_ref_I"], 4.0)):
+        got = float(_noise_coef(jnp.asarray(ref), 0.25, jnp.float32))
+        np.testing.assert_allclose(got, want, rtol=1e-6)
+    assert e["noise_realized_E"] == pytest.approx(10.0) and e["noise_realized_I"] == pytest.approx(4.0)
+    assert e["n_steps"] == 1200
+    p0, n0, _ = r.build_fig3_network(1)
+    p3, n3, _ = r.build_sens_fig3_network(1, w_multiple=4.0, noise_e=r.S3_NOISE_E,
+                                          noise_i=r.S3_NOISE_I)
+    assert np.array_equal(np.asarray(p3.W), 2.0 * np.asarray(p0.W))  # 4S is twice scored 2S
+    assert np.array_equal(np.asarray(n3), np.asarray(n0))  # same parameter; dt sets the realized value
+    with pytest.raises(SystemExit):
+        r.score_fig3_dir(tmp_path / "s3", 4.0, (8.0, 13.0))
+
+
+def test_p3_sens_s4_c7_current_and_report(tmp_path):
+    r = _load_run_izh()
+    man = r.cmd_sens("S4", tmp_path / "s4")
+    assert man["sensitivity"] == "S4"
+    e = man["runs"]["C7"]
+    assert e["segments"] == [[10.0, 0.0], [100.0, -10.0], [410.0, 0.0]]  # only the step differs
+    assert e["event_row"] == 1100 and e["n_steps"] == 5200 and e["kind"] == "release"
+    z = np.load(tmp_path / "s4" / "C7.npz")
+    assert set(z.files) == {"spike_rows", "v"}  # same format as fig2
+    assert e["n_spikes"] == len(z["spike_rows"])
+    with pytest.raises(SystemExit):
+        r.score_fig2_dir(tmp_path / "s4", 4.0, (8.0, 13.0))
+    kd = tmp_path / "k"
+    kd.mkdir()
+    np.savez(kd / "C7.npz", spike_rows=np.asarray([1100, 1150], dtype=np.int64),
+             v=np.zeros(5200))
+    rep = r.cmd_sens_report("S4", tmp_path / "s4", kd, tmp_path / "s4.json")
+    assert rep["reported_only"] and rep["sensitivity"] == "S4"
+    assert set(rep["C7"]) == {"sensitivity", "scored"}
+
+
+def test_p3_sens_report_scores_both_arms_short(tmp_path):
+    import json as _json
+
+    r = _load_run_izh()
+    kd, sd = tmp_path / "k", tmp_path / "s3"
+    r.cmd_fig3(kd, [1], 0.3)
+    kman = _json.loads((kd / "manifest.json").read_text(encoding="utf-8"))
+    assert kman["sensitivity"] is None and kman["dt_ms"] == 0.5  # scored path unchanged
+    rows, cols, _, _ = r.run_fig3_seed(1, 0.3)  # short scored seed is deterministic
+    z = np.load(kd / "1.npz")
+    assert np.array_equal(z["spike_rows"], rows) and np.array_equal(z["spike_cols"], cols)
+    r.cmd_sens("S3", sd, t_s=0.3)
+    rep = r.cmd_sens_report("S3", sd, kd, tmp_path / "rep.json")
+    assert rep["reported_only"] and rep["sensitivity"] == "S3" and rep["seed"] == 1
+    assert set(rep["arms"]) == {"sensitivity", "scored"}
+    assert rep["arm_settings"]["sensitivity"]["W"] == "4S"
+    cells, n_steps = r._seed_cells(kd, 1)
+    direct = r.score_network_seed(cells, n_steps, 0.5, 4.0, (8.0, 13.0))
+    assert rep["arms"]["scored"]["N1"] == direct["N1"]  # the report leaves scored numbers alone
+    with pytest.raises(SystemExit):
+        r.cmd_sens_report("S2", sd, kd, tmp_path / "bad.json")  # label mismatch
+

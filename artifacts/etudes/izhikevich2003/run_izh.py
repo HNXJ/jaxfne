@@ -1,11 +1,12 @@
 """Runner and scorer for the signed Izhikevich 2003 P3 preregistration.
 
 Spec: ``artifacts/etudes/izhikevich2003/PREREG_P3.md`` (signed v7); network
-per ``PORT_SPEC.md``. Subcommands ``fig2``, ``fig3`` and ``score``. No scored
-run: an ``--out`` containing "scored" is refused unless ``--signed`` is
-passed. Sensitivity S1 runs through ``net_reference.py``; S2–S4 need runner
-support that does not exist yet. A directory whose manifest carries a
-sensitivity label never enters ``score``.
+per ``PORT_SPEC.md``. Subcommands ``fig2``, ``fig3``, ``score``, ``sens``
+(S2/S3/S4) and ``sens-report``. No scored run: an ``--out`` containing
+"scored" is refused unless ``--signed`` is passed. Sensitivity S1 runs
+through ``net_reference.py``; S2-S4 run here with manifest sensitivity
+labels. A directory whose manifest carries a sensitivity label never
+enters ``score``.
 """
 
 from __future__ import annotations
@@ -60,6 +61,18 @@ FIG3_DT = 0.5
 FIG3_DTYPE = "float32"
 FIG3_SEEDS = [1, 2, 3, 4, 5]
 FIG3_T = 10.2
+
+SENS_IDS = ("S2", "S3", "S4")
+SENS_SEED = 1  # S2/S3 run the Fig. 3 network at seed 1 (PREREG_P3.md Sensitivity)
+S3_DT = 0.25
+S3_W_MULTIPLE = 4.0  # W = 4S, the paper's S (scored: 2S)
+# S3 realizes 2 x the paper's sigma (10 E, 4 I) at dt 0.25 (PREREG_P3.md S3). noise_scale is the
+# coefficient at DT_REF_MS = 0.5 and the kernel scales it by sqrt(0.5 / dt) (jaxfne/emitters.py
+# _noise_coef, D1), so the parameter is sigma x sqrt(2), as in the scored run.
+S3_NOISE_E = 5.0 * np.sqrt(2.0)
+S3_NOISE_I = 2.0 * np.sqrt(2.0)
+S3_REALIZED_NOISE = (10.0, 4.0)
+S4_I_STEP = -10.0  # C7 step current (scored: -36.5; fixed point -76.0 mV)
 
 
 def fixed_point_vstar(b):
@@ -278,6 +291,156 @@ def cmd_fig3(out_dir, seeds, t_s, sensitivity=None):
     (out / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
     print(f"wrote {len(entries)} Fig. 3 seeds to {out}")
     return manifest
+
+
+# --- sensitivity S2/S3/S4 (reported only) ---------------------------------------------------------
+#
+# Spec: PREREG_P3.md "Sensitivity" (S2: float64 seed 1 with jax_enable_x64 on;
+# S3: dt 0.25, W = 4S, noise 2 x paper sigma, seed 1; S4: C7 with I = -10).
+# The scored builders above are untouched; the sens builder below repeats
+# their expressions so that at scored settings it reproduces them exactly.
+
+
+def _ensure_x64():
+    """Enable jax_enable_x64 now, before the S2 run builds any array."""
+    import jax
+
+    if not bool(jax.config.read("jax_enable_x64")):
+        jax.config.update("jax_enable_x64", True)
+
+
+def build_sens_fig3_network(seed, dtype=FIG3_DTYPE, w_multiple=2.0,
+                            noise_e=5.0 * np.sqrt(2.0), noise_i=2.0 * np.sqrt(2.0)):
+    """Fig. 3 network with sensitivity settings; scored defaults reproduce build_fig3_network.
+
+    ``w_multiple`` scales the paper's S (scored: 2.0); ``noise_e``/``noise_i``
+    are the noise_scale parameters (scored: paper sigma x sqrt(2)). At
+    ``dtype="float64"`` x64 is enabled first and the arrays are cast (exact).
+    """
+    import jax
+    import jax.numpy as jnp
+
+    from jaxfne.emitters import IzhikevichParams
+
+    if dtype == "float64":
+        _ensure_x64()
+    k_r, k_w, k_noise = fig3_keys(seed)
+    r = jax.random.uniform(k_r, (1000,))
+    r_e, r_i = r[:800], r[800:]
+    a = jnp.concatenate([jnp.full((800,), 0.02), 0.02 + 0.08 * r_i])
+    b = jnp.concatenate([jnp.full((800,), 0.2), 0.25 - 0.05 * r_i])
+    c = jnp.concatenate([-65.0 + 15.0 * r_e ** 2, jnp.full((200,), -65.0)])
+    d = jnp.concatenate([8.0 - 6.0 * r_e ** 2, jnp.full((200,), 2.0)])
+    u = jax.random.uniform(k_w, (1000, 1000))
+    col_e = jnp.arange(1000)[None, :] < 800
+    s = jnp.where(col_e, 0.5 * u, -u)
+    w = float(w_multiple) * s
+    noise = jnp.concatenate([jnp.full((800,), float(noise_e)),
+                             jnp.full((200,), float(noise_i))])
+    if dtype == "float64":
+        a, b, c, d, w, noise = (x.astype(jnp.float64) for x in (a, b, c, d, w, noise))
+        v0 = jnp.full((1000,), -65.0, dtype=jnp.float64)
+        u0 = (b * -65.0).astype(jnp.float64)
+        drive = jnp.zeros((1000,), dtype=jnp.float64)
+        sign = jnp.concatenate([jnp.ones((800,), dtype=jnp.float64),
+                                -jnp.ones((200,), dtype=jnp.float64)])
+        source_scale = jnp.ones((1000,), dtype=jnp.float64)
+    else:
+        v0 = jnp.full((1000,), -65.0)
+        u0 = b * -65.0
+        drive = jnp.zeros((1000,))
+        sign = jnp.concatenate([jnp.ones((800,)), -jnp.ones((200,))])
+        source_scale = jnp.ones((1000,))
+    params = IzhikevichParams(
+        a=a, b=b, c=c, d=d, drive=drive, sign=sign, W=w,
+        v0=v0, u0=u0, source_scale=source_scale,
+        labels=("E",) * 800 + ("I",) * 200)
+    return params, noise, (k_r, k_w, k_noise)
+
+
+def run_sens_fig3_seed(seed, t_s, dtype, dt_ms, w_multiple, noise_e, noise_i):
+    """One sensitivity Fig. 3 run; asserts the kernel output dtype. Returns rows, cols, n_steps, keys, dtype."""
+    import jax.numpy as jnp
+
+    from jaxfne.emitters import simulate_eig_izhikevich
+
+    params, noise, keys = build_sens_fig3_network(seed, dtype, w_multiple, noise_e, noise_i)
+    n_steps = int(round(t_s * 1000.0 / dt_ms))
+    voltages, spikes, _ = simulate_eig_izhikevich(
+        params, n_steps, dt_ms, keys[2], dtype=dtype, noise_scale=noise)
+    want = jnp.float64 if dtype == "float64" else jnp.float32
+    if voltages.dtype != want:
+        raise SystemExit(f"S2/sens run built {voltages.dtype}, expected {want}")
+    idx = np.flatnonzero(np.asarray(spikes))
+    rows = (idx // 1000).astype(np.int64)
+    cols = (idx % 1000).astype(np.int64)
+    key_hex = ["-".join(str(int(x)) for x in np.asarray(k)) for k in keys]
+    return rows, cols, n_steps, key_hex, str(voltages.dtype)
+
+
+def _write_sens_fig3(out_dir, sens_id, dtype, dt_ms, t_s, w_label, w_multiple,
+                     noise_label, noise_e, noise_i):
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    rows, cols, n_steps, key_hex, out_dtype = run_sens_fig3_seed(
+        SENS_SEED, t_s, dtype, dt_ms, w_multiple, noise_e, noise_i)
+    np.savez_compressed(out / f"{SENS_SEED}.npz",
+                        spike_rows=rows, spike_cols=cols,
+                        n_steps=np.int64(n_steps),
+                        n_cells=np.int64(1000), dt_ms=np.float64(dt_ms))
+    entries = {str(SENS_SEED): {"seed": SENS_SEED, "file": f"{SENS_SEED}.npz",
+                                "n_steps": n_steps, "dt_ms": dt_ms,
+                                "dtype": dtype, "output_dtype": out_dtype,
+                                "T_s": t_s, "W": w_label,
+                                "noise": noise_label,
+                                "noise_ref_E": float(noise_e),
+                                "noise_ref_I": float(noise_i),
+                                "noise_realized_E": float(noise_e * np.sqrt(0.5 / dt_ms)),
+                                "noise_realized_I": float(noise_i * np.sqrt(0.5 / dt_ms)),
+                                "key_order": ["k_r", "k_w", "k_noise"],
+                                "key_hex": key_hex, "n_spikes": int(rows.size)}}
+    manifest = {"prereg": "PREREG_P3.md signed v7, Fig. 3",
+                "code_sha": _git_sha(), "backend": _jax_backend(),
+                "kernel": "jaxfne.emitters.simulate_eig_izhikevich",
+                "dtype": dtype, "output_dtype": out_dtype,
+                "dt_ms": dt_ms, "T_s": t_s,
+                "seeds": [SENS_SEED], "sensitivity": sens_id, "runs": entries}
+    (out / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
+    print(f"wrote sensitivity {sens_id} to {out}")
+    return manifest
+
+
+def _write_sens_s4(out_dir):
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    scored = expected_fig2_settings()["C7"]
+    segments = ((10.0, 0.0), (100.0, S4_I_STEP), (410.0, 0.0))
+    v, rows = run_single_cell("TC", segments, scored["n_steps"])
+    np.savez_compressed(out / "C7.npz",
+                        spike_rows=np.asarray(rows, dtype=np.int64), v=v)
+    settings = dict(scored, segments=[[ms, cur] for ms, cur in segments],
+                    file="C7.npz", n_spikes=len(rows))
+    manifest = {"prereg": "PREREG_P3.md signed v7, Fig. 2",
+                "code_sha": _git_sha(), "backend": _jax_backend(),
+                "kernel": "jaxfne.emitters.simulate_eig_izhikevich",
+                "dtype": FIG2_DTYPE, "dt_ms": FIG2_DT,
+                "sensitivity": "S4", "runs": {"C7": settings}}
+    (out / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
+    print(f"wrote sensitivity S4 to {out}")
+    return manifest
+
+
+def cmd_sens(sens_id, out_dir, t_s=FIG3_T):
+    """Sensitivity run S2/S3/S4; the manifest label keeps it out of ``score``."""
+    if sens_id == "S2":
+        return _write_sens_fig3(out_dir, "S2", "float64", FIG3_DT, t_s, "2S", 2.0,
+                                "paper_sigma*sqrt2", 5.0 * np.sqrt(2.0), 2.0 * np.sqrt(2.0))
+    if sens_id == "S3":
+        return _write_sens_fig3(out_dir, "S3", FIG3_DTYPE, S3_DT, t_s, "4S",
+                                S3_W_MULTIPLE, "2x_paper_sigma_realized", S3_NOISE_E, S3_NOISE_I)
+    if sens_id == "S4":
+        return _write_sens_s4(out_dir)
+    raise SystemExit(f"unknown sensitivity id {sens_id!r}; want one of {SENS_IDS}")
 
 
 # --- scorer -------------------------------------------------------------------------------------
@@ -617,6 +780,54 @@ def cmd_s1(ref_dir, kernel_dir, out_path):
     return report
 
 
+def _sens_fig3_arm(fig_dir, seed, theta, alpha_band):
+    z = np.load(Path(fig_dir) / f"{seed}.npz")
+    n_steps, n_cells = int(z["n_steps"]), int(z["n_cells"])
+    dt_ms = float(z["dt_ms"])
+    cells = [[] for _ in range(n_cells)]
+    for r_, c_ in zip(np.asarray(z["spike_rows"]).tolist(), np.asarray(z["spike_cols"]).tolist()):
+        cells[int(c_)].append(int(r_))
+    res = score_network_seed(cells, n_steps, dt_ms, theta, alpha_band)
+    manifest = json.loads((Path(fig_dir) / "manifest.json").read_text(encoding="utf-8"))
+    entry = manifest.get("runs", {}).get(str(seed), {})
+    settings = {k: entry.get(k) for k in
+                ("dt_ms", "dtype", "output_dtype", "W", "noise", "noise_ref_E",
+                 "noise_ref_I", "n_spikes")}
+    return {n: res[n] for n in ("N1", "N2", "N3", "N4")}, settings
+
+
+def cmd_sens_report(sens_id, sens_dir, kernel_dir, out_path):
+    """Sensitivity S2/S3/S4, reported only: criteria on the sens run and the scored run side by side."""
+    theta, alpha_band = load_calibration()
+    sens_manifest = json.loads((Path(sens_dir) / "manifest.json").read_text(encoding="utf-8"))
+    if sens_manifest.get("sensitivity") != sens_id:
+        raise SystemExit(f"cmd_sens_report reads a manifest labelled sensitivity {sens_id}")
+    if sens_id in ("S2", "S3"):
+        arms, arm_settings = {}, {}
+        for arm, d in (("sensitivity", sens_dir), ("scored", kernel_dir)):
+            res, settings = _sens_fig3_arm(d, SENS_SEED, theta, alpha_band)
+            arms[arm], arm_settings[arm] = res, settings
+        report = {"sensitivity": sens_id, "reported_only": True, "code_sha": _git_sha(),
+                  "seed": SENS_SEED, "theta": theta, "alpha_band": list(alpha_band),
+                  "gamma_band": list(GAMMA_BAND),
+                  "arms": arms, "arm_settings": arm_settings}
+    elif sens_id == "S4":
+        event_row = expected_fig2_settings()["C7"]["event_row"]
+        s_rows, _ = _load_run_npz(sens_dir, "C7")
+        k_rows, _ = _load_run_npz(kernel_dir, "C7")
+        report = {"sensitivity": "S4", "reported_only": True, "code_sha": _git_sha(),
+                  "C7": {"sensitivity": eval_c7(s_rows, event_row, FIG2_DT),
+                         "scored": eval_c7(k_rows, event_row, FIG2_DT)},
+                  "C7_settings": {
+                      "sensitivity": sens_manifest["runs"]["C7"]["segments"],
+                      "event_row": event_row, "dt_ms": FIG2_DT}}
+    else:
+        raise SystemExit(f"unknown sensitivity id {sens_id!r}; want one of {SENS_IDS}")
+    Path(out_path).write_text(json.dumps(report, indent=1), encoding="utf-8")
+    print(f"{sens_id} report -> {out_path}")
+    return report
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -637,9 +848,27 @@ def main():
     p1.add_argument("--reference", required=True)
     p1.add_argument("--kernel", required=True)
     p1.add_argument("--out", required=True)
+    psens = sub.add_parser("sens")
+    psens.add_argument("--id", required=True, choices=list(SENS_IDS))
+    psens.add_argument("--out", required=True)
+    psens.add_argument("--signed", action="store_true")
+    prep = sub.add_parser("sens-report")
+    prep.add_argument("--id", required=True, choices=list(SENS_IDS))
+    prep.add_argument("--dir", required=True)
+    prep.add_argument("--kernel", required=True)
+    prep.add_argument("--out", required=True)
+    prep.add_argument("--signed", action="store_true")
     a = ap.parse_args()
     if a.cmd == "s1":
         cmd_s1(a.reference, a.kernel, a.out)
+        return
+    if a.cmd == "sens":
+        check_out(a.out, a.signed)
+        cmd_sens(a.id, a.out)
+        return
+    if a.cmd == "sens-report":
+        check_out(a.out, a.signed)
+        cmd_sens_report(a.id, a.dir, a.kernel, a.out)
         return
     if a.cmd == "fig2":
         check_out(a.out, a.signed)
