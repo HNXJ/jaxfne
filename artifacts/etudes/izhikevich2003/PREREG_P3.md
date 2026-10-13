@@ -203,7 +203,7 @@ constructed inputs; each must hold exactly.
 | Reported: intermittent (20 % duty), white floor | sinusoid 0.6 % (10 Hz), 1.6 % (40 Hz); AR(2) 26.0 %, 32.6 % |
 | Reported: intermittent, τ = 30 ms 8× floor | sinusoid 20.8 % (10 Hz), 2.4 % (40 Hz); AR(2) 49.4 %, 35.2 % |
 
-Standard error of the reference means: F at most 3.4 %, C at most 2.7 % of the mean. The
+Standard error of the reference means: F at most 3.5 %, C at most 2.7 % of the mean. The
 intermittent rows mean that N3 and N4 detect a rhythm present throughout the run; synchronized
 episodes covering 20 % of it at the continuous rows' amplitude are mostly missed, so a fail of N3
 or N4 does not exclude the paper's "occasional" episodes.
