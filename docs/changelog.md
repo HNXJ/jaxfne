@@ -48,6 +48,13 @@ the rules those releases were held to and are historical context for readers.
   `scripts/measure_hdp_presets.py`; `DEFAULT_HDP_DESYNC` realizes H = 1.016 ± 0.017), the
   public-surface counts (205 symbols), the run-receipt example, and the version stamps on the
   install, citation, JDNA and probe-operator pages.
+- A Replications page in the docs, generated from `dashboard/sources.json`
+  (`scripts/generate_replications_page.py`, checked in the Dashboard workflow), links each
+  paper's dashboard page. The dashboard gains the class "in progress" (on the pipeline at a stage,
+  before a signed preregistration and a verdict); Izhikevich 2003, Figs. 2 and 3 moves to it at P3.
+- `scripts/v1_pfc_continuous_aaab_smoke_test.py` declares its AMPA time constant (0.1 ms,
+  the value used before P-023 made it required), so the V1-PFC atlas regenerates again with
+  the same configuration hash.
 - The references page lists, per source, the result jaxfne implements and the functions that
   implement it; those functions cite the same DOI, and `tests/test_references_page.py` holds the
   two together. Replicated papers and background work have their own tables.

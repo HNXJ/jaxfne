@@ -25,7 +25,7 @@ The class sits beside the preregistered verdict, which always stays visible.
 | 3 | PCL Fig. 2 (same paper) | demonstration: P0 PASS and K0b PASS against our own gates; the paper's Fig. 2d values were not available for a numeric comparison | `artifacts/etudes/pcl/README.md`, `fig2*.json`, library kernel route for K0b | a scored comparison would need the paper's numbers |
 | 4 | Hodgkin-Huxley reference vs reduced neuron (AT-01) | demonstration (reference check): rate passes; v_peak, v_rest, first-spike time fail | `artifacts/atlas/results/at01_055.json`, `at_reduction_055.json`, library bridge | an overall verdict is not recorded; no seed |
 | 5 | Q-learning on chain5/corridor7 vs analytic Q* | demonstration | `artifacts/etudes/qlearning/`, tests, seeds 0–4, command | no paper citation; no verdict word recorded |
-| 6 | Izhikevich 2003 cell types (library presets) | demonstration | `jaxfne/presets.py` (labelled "metadata only, no biological calibration") | no comparison; a cheap first scored étude (firing patterns of Table 1) |
+| 6 | Izhikevich 2003, Figs. 2 and 3 | in progress (P3) | `artifacts/etudes/izhikevich2003/` P1 source, P2 port spec; library presets in `jaxfne/presets.py` | signed prereg, P4 build, P5 score |
 
 Planned and unimplemented (roadmap tab only): Brunel 2000 and Vogels et al. 2011 (0.5.7), PCL Fig. 4
 (0.5.7), Potjans and Diesmann 2014 and Mejias et al. 2016 (0.5.8), PCL Figs. 5–6 (0.5.9), Mazzoni

@@ -11,6 +11,8 @@ on:
       - "dashboard/**"
       - "scripts/build_dashboard_data.py"
       - "scripts/build_dashboard_figures.py"
+      - "scripts/generate_replications_page.py"
+      - "docs/replications.md"
       - ".github/workflows/dashboard.yml"
   workflow_dispatch:
 
@@ -38,6 +40,9 @@ jobs:
 
       - name: Static figures match the chart data
         run: python scripts/build_dashboard_figures.py --check
+
+      - name: Docs replications page matches sources
+        run: python scripts/generate_replications_page.py --check
 
       - name: Copy dashboard into gh-pages
         run: |

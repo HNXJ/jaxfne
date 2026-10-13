@@ -25,7 +25,8 @@ from pathlib import Path
 SCHEMA = "jaxfne-replications/2"
 SOURCES_SCHEMA = "jaxfne-dashboard-sources/2"
 # Status classes (Hamm 2026-10-12, dashboard/ARCHITECTURE_v2.md). A demonstration carries no verdict.
-CLASSES = ("verified", "partial", "not reproduced", "demonstration")
+# An in-progress paper is on the replication pipeline with no scored preregistration yet: no verdict, a stage.
+CLASSES = ("verified", "partial", "not reproduced", "demonstration", "in progress")
 TOL = 1e-9
 FLOOR_REASON = "E-rate floor not met"
 NO_VALUE = "—"
@@ -440,7 +441,12 @@ def check_class(spec):
         raise BuildError(f"paper {spec['id']}: class {cls!r} is not one of {list(CLASSES)}")
     if cls == "demonstration" and spec.get("verdict") is not None:
         raise BuildError(f"paper {spec['id']}: a demonstration carries no verdict")
-    if cls != "demonstration" and not spec.get("preregs"):
+    if cls == "in progress":
+        if spec.get("verdict") is not None:
+            raise BuildError(f"paper {spec['id']}: an in-progress paper carries no verdict")
+        if not spec.get("stage"):
+            raise BuildError(f"paper {spec['id']}: an in-progress paper needs a non-empty stage")
+    elif cls != "demonstration" and not spec.get("preregs"):
         raise BuildError(f"paper {spec['id']}: class {cls!r} needs a signed preregistration")
     return cls
 

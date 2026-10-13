@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-12T18:39:23Z",
-    "dev_sha": "423c65543f0ce53ec1b3faab6bb3530b22fbf1b6"
+    "utc": "2026-10-13T01:46:23Z",
+    "dev_sha": "e0e818ab9f1026d2febe61193f9e0cbf4c84815a"
   },
   "papers": [
     {
@@ -1835,27 +1835,28 @@
     },
     {
       "id": "izhikevich2003",
-      "title": "Izhikevich 2003 cell-type presets",
+      "title": "Izhikevich 2003, Figs. 2 and 3 (single-cell patterns and the 1000-cell network)",
       "citation": "Izhikevich, IEEE Trans Neural Netw 2003",
-      "class": "demonstration",
-      "question": "Do the library's four presets reproduce the paper's firing patterns?",
+      "class": "in progress",
+      "question": "Does jaxfne's existing Izhikevich kernel reproduce the paper's single-cell firing patterns (Fig. 2) and the 1000-cell network rhythm (Fig. 3)?",
       "page": "models/izhikevich2003.md",
-      "release": "0.1.1",
-      "tier": "T-presets",
-      "stage": "",
+      "release": "0.5.6",
+      "tier": "T-jaxfne",
+      "stage": "P3",
       "lane": {
         "branch": "dev",
-        "sha": "517a6a2673c277bd589e91da7be8a8eeb83f01c7"
+        "sha": "e0e818ab9f1026d2febe61193f9e0cbf4c84815a"
       },
       "verdict": null,
       "verdict_note": null,
-      "summary": "The presets are metadata only; no run compares their firing patterns with the paper.",
+      "summary": "P1 source and P2 port spec done (second review PASS 2026-10-12). The P3 preregistration is drafted and waits for its calibration gate and Hamm's signature; nothing is scored yet.",
       "preregs": [],
       "criteria": [],
       "sensitivity": [],
       "charts": [],
       "open": [
-        "Scoring the firing patterns is a candidate first étude."
+        "P3: calibration gate on synthetic signals, then the batch signature.",
+        "P4: build the scored arm and the NumPy reference arm (S1)."
       ]
     }
   ],

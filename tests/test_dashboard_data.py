@@ -360,6 +360,41 @@ def test_class_rules_refuse_and_name_the_paper(tmp_path, over, needle):
     assert not (root / REL_OUT).exists(), "no data file may be written on error"
 
 
+def test_in_progress_builds_with_a_stage_and_no_verdict(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5}})
+    spec = paper(sha, **{"class": "in progress", "stage": "P3"})
+    assert "verdict" not in spec and spec["preregs"] == [], "fixture must carry no verdict and no prereg"
+    write_sources(root, [spec])
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    got = load_out(root)["papers"][0]
+    assert (got["class"], got["stage"], got["verdict"], got["preregs"]) == ("in progress", "P3", None, [])
+
+
+def test_in_progress_with_a_verdict_is_refused(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5}})
+    write_sources(root, [paper(sha, **{"class": "in progress", "stage": "P3", "verdict": "pass"})])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and "an in-progress paper carries no verdict" in proc.stderr, proc.stderr
+    assert not (root / REL_OUT).exists(), "no data file may be written on error"
+
+
+def test_in_progress_with_an_empty_stage_is_refused(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"val": 1.5}})
+    write_sources(root, [paper(sha, **{"class": "in progress", "stage": ""})])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and "an in-progress paper needs a non-empty stage" in proc.stderr, proc.stderr
+    assert not (root / REL_OUT).exists(), "no data file may be written on error"
+
+
 def test_class_page_paper_value_and_roadmap_are_copied(tmp_path):
     root = tmp_path / "repo"
     sha = make_repo(root, {"scores/main.json": {"val": 1.5, "ok": True}})

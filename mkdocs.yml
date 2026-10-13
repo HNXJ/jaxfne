@@ -114,6 +114,7 @@ nav:
       - Quickstart: quickstart.md
       - Colab quick start: colab.md
       - Gallery: gallery.md
+      - Replications: replications.md
       - Public API: public_surface_contract.md
       - Scope & status: scope_and_status.md
       - Limitations & roadmap: limitations_and_future_plans.md

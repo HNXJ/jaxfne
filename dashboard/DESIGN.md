@@ -31,11 +31,13 @@ shows scored results only from committed evidence.
 ## Data contract (`replications.json`, schema `jaxfne-replications/2`)
 
 Schema 2 (Hamm 2026-10-12, `ARCHITECTURE_v2.md`) adds per paper `class` (verified | partial |
-not reproduced | demonstration), `question`, `page` (`models/<id>.md`, rendered with marked and
+not reproduced | demonstration | in progress), `question`, `page` (`models/<id>.md`, rendered with marked and
 KaTeX), per criterion `paper_value` (text, or null where the paper gives none), and a top-level
 `roadmap` list of `{release, model, needs}`. The generator refuses an unknown class, a
 demonstration with a verdict, a scored class without a preregistration, and a named page that
-does not exist. `verdict` is null for a demonstration. Static PNGs of every chart come from
+does not exist. `verdict` is null for a demonstration. An in-progress paper carries no verdict and
+needs a non-empty `stage`; it needs no signed preregistration, since the scored-class rule applies
+to verified, partial and not reproduced only. Static PNGs of every chart come from
 `scripts/build_dashboard_figures.py` (`dashboard/figures/`, manifest of chart-data hashes;
 `--check` in the workflow).
 
@@ -83,7 +85,7 @@ Desktop at 1440 px; one column at 390 px with no horizontal scroll. Hash-routed 
    the Docs site and to `artifacts/etudes/REPLICATIONS.md`, a sample banner when `sample` is
    true, and the tabs.
 2. **Overview** (`#overview`, default). KPI cards: models per class and the preregistered
-   criteria pass / fail / pending (demonstrations excluded). Then the model cards grouped by
+   criteria pass / fail / pending (demonstrations and in-progress papers excluded). Then the model cards grouped by
    class, each with its class chip, its verdict chip where one exists, and its question.
 3. **Models** (`#models`; one model at `#model/<id>`; v1 links `#<id>` still open it): title,
    citation, class chip beside the preregistered verdict, stage track, code SHA, summary; the
