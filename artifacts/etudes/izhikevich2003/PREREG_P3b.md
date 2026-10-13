@@ -1,7 +1,7 @@
 # Izhikevich 2003 P3b preregistration: net.m update-order arm
 
 Status: **signed v4** (Hamm, 2026-10-13T23:27:00Z, after three review rounds; he asked for the
-draft 2026-10-13). Nothing scored runs before
+draft 2026-10-13), **amended v5** (gate bar, Hamm 2026-10-13, see Equivalence gate). Nothing scored runs before
 signature. P3 (signed v7) stays FAIL whatever P3b finds. P3b asks a single question: do the paper's
 Fig. 3 claims hold when the kernel uses `net.m`'s own update order?
 
@@ -104,6 +104,24 @@ The gate runs in float64, with x64 enabled before any array is built.
    on the inputs of 2: spike-count difference and first divergent row (reported only).
 
 A failure of 1 or 2 revises the variant before signature.
+
+### Amendment v5: the gate bar (Hamm, 2026-10-13, after signature, before any scored run)
+
+The v4 gate failed (receipt `scores/p3b_gate_v4.json`). The reference fails the same bar against
+itself when thal moves by one ulp (`np.nextafter(thal, inf)`): step 1 diverges at row 310 against
+the kernel's 270, and v differs by more than 1e-9 from row 71 against 42. No implementation that is
+not bit-identical to NumPy can meet the v4 bar, so v5 measures the kernel against the reference's
+own sensitivity. The arm, the inputs of steps 1–3 and everything after this section are unchanged.
+
+For steps 1 and 2, the gate also runs the **ulp control**: the reference on `np.nextafter(thal, inf)`.
+R is the first row where max over cells of |v_test(reference) − v_test(control)| exceeds 1e-6, or
+n_steps if none. A step passes when all three hold:
+1. rasters of the kernel and the reference are identical on rows < R;
+2. extra u agrees elementwise at rtol 1e-6 (atol 0) on rows < R;
+3. total spike counts agree within 1 % over the whole run.
+
+The v4 rounding-flip bar and the rtol 1e-9 checks are removed. Reported: R, the control's first
+divergent row and counts, and the kernel's first divergent row. A v5 failure stops P3b.
 
 ## Scored run
 
