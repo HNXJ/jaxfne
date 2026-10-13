@@ -8,45 +8,25 @@ first, amend in place.
 
 ## 1. Decisions waiting on Hamm (they unblock items below)
 
-- T-1 [H] Etude drift. First bad commit 9cc45659 ("refuse inert Configuration.cell_type_drives"):
-  the frozen multiscale and heterogeneous etudes ran with an inert E/PV drive of 8.0; the
-  migration to `.drive(baseline_drive_by_cell_type=...)` makes it act
-  (`scripts/run_multiscale_observation_etude.py:128`, `scripts/run_heterogeneous_emitters_etude.py:103`),
-  so `rerun_etude_figures.py` aborts for both. (a, recommended) restore the realized frozen
-  protocol by removing the drive call, with a note; (b) declare a new protocol and regenerate.
-  Unblocks T-4. Closes when: `python scripts/rerun_etude_figures.py --etude multiscale` and
-  `--etude heterogeneous` exit 0.
-- T-2 [H] `artifacts/.lab` (108 Labyrinth JSON nodes, read only by `scripts/lab_balance.py`, which
-  crashes at `build_edges`): bundle into one file, retire, or keep. Unblocks part of T-4.
-  Closes when: Hamm's choice is recorded here and `scripts/check_tree_size.py --check` passes.
-- T-3 [H] PCL Fig. 3 after the diagnostic (v4 FAIL stands, `pcl-port` 5640ce18): new prereg for
-  T2/T4, the P6 library path anyway (B1), or move on with a stated reason (T-7). Closes when:
-  the choice is recorded in `artifacts/etudes/REPLICATIONS.md`.
+Open: T-12, T-13, T-14, T-17 in §3. Decided 2026-10-13: T-1 (a) landed in e3a7a41b; T-2
+bundle; PCL Fig. 3 moves on, Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
+`artifacts/etudes/REPLICATIONS.md`).
 
 ## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
+- T-2 [A] Bundle `artifacts/.lab` (108 Labyrinth JSON nodes) into one file with pack and unpack;
+  `scripts/lab_balance.py` reads the bundle. Closes when: `tests/test_lab_bundle.py` passes and
+  the 108 node files are untracked.
 - T-4 [A] R2 narrowing to -10 % files and bytes against the 0.5.5 tag (2522 files, 125982465
-  bytes; targets 2269 and 113384218). At b9e55903: 2391 files, 88960885 bytes; bytes done, 122
-  files to go. One class per commit, generator wired into the docs build first, then untracked.
-  Closes when: `scripts/check_tree_size.py --check` passes with the lowered budget.
-  - Largest lever: `.lab` bundled into one file (T-2) removes 107; with the 13 multiscale and
-    heterogeneous etude HTML files (T-1) that is 120 of 122.
+  bytes; targets 2269 and 113384218). At e3a7a41b: 2381 files, 87327262 bytes; bytes done, 112
+  files to go; T-2 removes 107. One class per commit, generator wired into the docs build first,
+  then untracked. Closes when: `scripts/check_tree_size.py --check` passes with the lowered budget.
   - Not ready: of 53 files in `tutorial_figures`, `_static/gallery` and `docs/assets` only 3
     regenerate byte-identical (tutorials 08, 09, circuit geometry); 36 drift, 6 are copies no
     script writes, 1 gallery PNG is never written, 7 have no generator. Regenerating them is a
     declared figure change.
-- T-6 [A] G-2: the CAMINOS P6 prereg (Fig. 1 through the jaxfne API: `emitter(family="adex")`,
-  `connections(sampling="bernoulli")`, `Simulation(poisson_drive=)`) for Hamm's signature; F1-F6
-  landed (F6 57f40ddf, F1 table c571ba9f). Closes when: the prereg is signed and its equivalence
-  test is written.
-- T-7 [A] R5: each paper ships at its P5 verdict; stated reasons for PCL Fig. 3 (after T-3) and
-  Izhikevich 2003 in `artifacts/etudes/REPLICATIONS.md`. Izhikevich 2003: P3 prereg draft v7
-  awaits Hamm's batch signature; its calibration gate passed at θ = 4 (receipt
-  `calibration/calibration_v7_15f36087.json`; v6 estimator failed, receipt kept) and the detector
-  known-answer tests pass (`tests/test_izh_analysis.py`). Next after signature: S1 reference arm
-  `net_reference.py`, then the scored runs. Closes when:
-  every paper row in `REPLICATIONS.md` carries a verdict or a reason and
-  `python scripts/build_dashboard_data.py --check` passes.
+- T-7 [A] R5: every paper row in `REPLICATIONS.md` carries a verdict or a reason (2026-10-13).
+  Closes when: `python scripts/build_dashboard_data.py --check` passes on the pushed SHA.
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
   push dev. Standing item. Closes when: `python scripts/build_dashboard_data.py --check` passes
   on each push.
@@ -108,7 +88,7 @@ run on WSL2 CUDA.
   PV/SST/VIP, a model rule), `tutorial_utils.py:800` (default `cell_signs`), `util.py:712`
   (diagnostic grouping). Callers checked (b0a12a36): every caller of `make_laminar_column_config`
   and `simulate_laminar_trials` (4 notebooks, `tests/test_tutorial_utils.py`, `tune_laminar_agsdr`)
-  passes only E/PV/SST/VIP, so no realized run is affected today. A change to 1564 is a model
+  passes only E/PV/SST/VIP, so no realized run is affected at b0a12a36. A change to 1564 is a model
   change for Hamm. Closes when: each site reads the emitter table's sign or carries a stated scope.
 - Frozen, do not move: `artifacts/publication/frozen_manifest.json`,
   `artifacts/release/current_release_authorities.json`, hash-pinned skills and `AGENTS.md`;
@@ -152,6 +132,11 @@ run on WSL2 CUDA.
 11. Field Approximation Atlas ladder (deep review 89 §7).
 12. Rule proposal (deep review 89 §12): new mechanism ⇒ reference model, discriminator and
     reduction test; adoption is Hamm's.
+13. 0.5.7 (Hamm 2026-10-13): Izhikevich 2003 P3 prereg draft v7 (calibration passed at θ = 4,
+    `artifacts/etudes/izhikevich2003/calibration/calibration_v7_15f36087.json`) for signature,
+    then S1 reference arm `net_reference.py` and the scored runs. CAMINOS P6 prereg (Fig. 1
+    through `emitter(family="adex")`, `connections(sampling="bernoulli")`,
+    `Simulation(poisson_drive=)`; F1–F6 landed) for signature and its equivalence test.
 
 Tracks (standing directions): P performance (optimize profiled components only) · T testing
 (cheapest gate per defect class) · S skills · I integration (one implementation, many entrances) ·
