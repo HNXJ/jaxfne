@@ -1004,8 +1004,8 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
         # jnp.where (not numpy boolean-indexed assignment) -- keeps this branch
         # jax-traceable/differentiable too; bit-identical result for concrete
         # inputs (verified: scales only W > 0 entries, leaves the rest untouched).
-        scale = float(value)
         if is_placeholder_dense_W(emitter.W, emitter.n_neurons) and "edge_list" in model.params:
+            scale = float(value)  # host-side edge list: concrete values only
             return _scale_edge_list_weights(model, lambda w: np.where(w > 0, w * scale, w))
         W = emitter.W
         scale_arr = jnp.asarray(value, dtype=W.dtype)

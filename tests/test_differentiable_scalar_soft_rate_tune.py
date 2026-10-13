@@ -70,6 +70,8 @@ def test_gampa_real_gradient_descent_works():
     )
     assert result.summary["tuning_status"] == "differentiable_scalar_soft_rate_loop_v0.1"
     assert result.best_parameters
+    history = result.summary["gradient_history"]
+    assert any(h["gradient"] != 0.0 for h in history), "gAMPA must backpropagate (traced value)"
 
 
 def test_falls_back_to_stub_for_non_rate_targets_objective():
