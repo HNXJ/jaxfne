@@ -70,6 +70,11 @@ the rules those releases were held to and are historical context for readers.
   manifests and `atlas_registry.json` stay tracked. The tracked-tree budget drops from
   102665681 to 91226112 bytes. A checkout before the HTML build gets a stand-in page for
   each registry panel (`scripts/mkdocs_atlas_stubs.py`), so `mkdocs build --strict` passes there.
+- `tests/test_docs_version_currency.py` keeps the current docs current: a published page
+  outside the Archive section that calls an older minor version current, live or its status
+  fails the dev gate.
+- The replication dashboard links each finished stage of a paper to its files at the lane
+  commit (port spec, preregistration, model and tests, result, ledger, scores).
 - The references page lists, per source, the result jaxfne implements and the functions that
   implement it; those functions cite the same DOI, and `tests/test_references_page.py` holds the
   two together. Replicated papers and background work have their own tables.

@@ -126,6 +126,8 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
 }
 .stage-track li.stage-fill { background: var(--seg-fill); color: var(--seg-fill-fg); }
 .stage-track li.stage-empty { background: var(--seg-empty); color: var(--seg-empty-fg); }
+.stage-artifacts { list-style: none; padding: 0; margin: 0 0 8px; }
+.stage-artifacts li { margin: 2px 0; }
 
 /* Verdict chips: text plus symbol, never color alone */
 .chip {

@@ -395,6 +395,39 @@ def test_in_progress_with_an_empty_stage_is_refused(tmp_path):
     assert not (root / REL_OUT).exists(), "no data file may be written on error"
 
 
+def test_stage_artifacts_link_lane_files_in_stage_order(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"spec.json": {}, "prereg.json": {}, "result.json": {}})
+    artifacts = {"P5": [{"label": "result", "path": "result.json"}],
+                 "P2": [{"label": "port spec", "path": "spec.json"}],
+                 "P3": [{"label": "prereg", "path": "prereg.json"}]}
+    write_sources(root, [paper(sha, stage="P5", stage_artifacts=artifacts)])
+
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    got = load_out(root)["papers"][0]["stage_artifacts"]
+    assert [s["stage"] for s in got] == ["P2", "P3", "P5"], "stages must come out in pipeline order"
+    assert got[0]["items"] == [{"label": "port spec", "path": "spec.json",
+                                "url": f"{REPO_URL}/blob/{sha}/spec.json"}]
+
+
+@pytest.mark.parametrize("artifacts, needle", [
+    ({"P6": [{"label": "x", "path": "spec.json"}]}, "past the paper's stage P5"),
+    ({"P9": [{"label": "x", "path": "spec.json"}]}, "key 'P9' is not one of"),
+    ({"P2": [{"label": "x", "path": "absent.json"}]}, "P2 artifact absent.json is missing at lane sha"),
+])
+def test_stage_artifacts_refuse_and_name_the_paper(tmp_path, artifacts, needle):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"spec.json": {}})
+    assert not exists_at(root, sha, "absent.json"), "fixture must lack absent.json"
+    write_sources(root, [paper(sha, stage="P5", stage_artifacts=artifacts)])
+
+    proc = run(root)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "fixture" in proc.stderr and needle in proc.stderr, proc.stderr
+    assert not (root / REL_OUT).exists(), "no data file may be written on error"
+
+
 def test_class_page_paper_value_and_roadmap_are_copied(tmp_path):
     root = tmp_path / "repo"
     sha = make_repo(root, {"scores/main.json": {"val": 1.5, "ok": True}})

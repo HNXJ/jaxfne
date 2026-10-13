@@ -77,6 +77,22 @@ function stageTrack(stage) {
   return list;
 }
 
+// Files behind each finished stage, at the paper's lane commit.
+function stageArtifacts(paper) {
+  var list = el("ul");
+  list.className = "stage-artifacts small";
+  (paper.stage_artifacts || []).forEach(function (s) {
+    var item = el("li");
+    item.appendChild(el("span", s.stage + ": "));
+    s.items.forEach(function (a, i) {
+      if (i) item.appendChild(el("span", " · "));
+      item.appendChild(link(a.url, a.label));
+    });
+    list.appendChild(item);
+  });
+  return list;
+}
+
 // Plotly places annotations on a log axis in log10 units; shapes take data units.
 function annotY(chart, v) {
   return chart.y && chart.y.log ? Math.log10(v) : v;
@@ -638,6 +654,7 @@ function renderModel(view, data, paper) {
   }
   card.appendChild(chips);
   if (paper.stage) card.appendChild(stageTrack(paper.stage));
+  if ((paper.stage_artifacts || []).length) card.appendChild(stageArtifacts(paper));
   var lane = paper.lane || {};
   var laneLine = el("p");
   laneLine.className = "small";

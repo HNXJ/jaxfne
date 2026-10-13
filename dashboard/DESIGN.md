@@ -50,6 +50,9 @@ to verified, partial and not reproduced only. Static PNGs of every chart come fr
     "id": "caminos", "title": "...", "citation": "...", "release": "0.5.6",
     "tier": "T-methods", "stage": "P5",  // P0..P7 (release plan §3)
     "lane": {"branch": "l2-caminos", "sha": "<40 hex>"},
+    "stage_artifacts": [{"stage": "P2", "items": [{"label": "port spec", "path": "...", "url": "..."}]}],
+                                          // files per finished stage at the lane sha, P0..P7 order;
+                                          // a stage past "stage" or a path absent at the lane is refused
     "verdict": "not reproduced",          // reproduced | not reproduced | pending | not testable
     "summary": "one sentence",
     "preregs": [{"id": "v6", "signed": "2026-10-11", "path": "...", "url": "..."}],

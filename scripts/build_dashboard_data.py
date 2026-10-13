@@ -451,6 +451,31 @@ def check_class(spec):
     return cls
 
 
+STAGES = ("P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7")
+
+
+def build_stage_artifacts(p, spec):
+    """Per-stage files at the lane SHA, in stage order. A stage past the paper's own stage, an
+    unknown stage, or a path the lane does not hold is an error."""
+    declared = spec.get("stage_artifacts", {})
+    if declared and spec.get("stage") not in STAGES:
+        raise BuildError(f"paper {p.id}: stage_artifacts need a stage in {list(STAGES)}")
+    out = []
+    for stage, items in declared.items():
+        if stage not in STAGES:
+            raise BuildError(f"paper {p.id}: stage_artifacts key {stage!r} is not one of {list(STAGES)}")
+        if STAGES.index(stage) > STAGES.index(spec["stage"]):
+            raise BuildError(f"paper {p.id}: stage_artifacts list {stage}, past the paper's stage {spec['stage']}")
+        links = []
+        for item in items:
+            if not p.files.exists(p.sha, item["path"]):
+                raise BuildError(f"paper {p.id}: {stage} artifact {item['path']} is missing at lane sha {p.sha}")
+            links.append({"label": item["label"], "path": item["path"], "url": p.url(item["path"])})
+        out.append({"stage": stage, "items": links})
+    out.sort(key=lambda s: STAGES.index(s["stage"]))
+    return out
+
+
 def build_paper(spec, files, repo_url):
     p = Paper(spec, files, repo_url)
     return {
@@ -464,6 +489,7 @@ def build_paper(spec, files, repo_url):
         "tier": spec["tier"],
         "stage": spec["stage"],
         "lane": {"branch": spec["lane"]["branch"], "sha": spec["lane"]["sha"]},
+        "stage_artifacts": build_stage_artifacts(p, spec),
         "verdict": spec.get("verdict"),
         "verdict_note": spec.get("verdict_note"),
         "summary": spec["summary"],
