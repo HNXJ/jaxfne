@@ -126,7 +126,11 @@ cfg = (cfg
     .connections(name="L4_recurrent", source={"layer": "L4"}, target={"layer": "L4"},
                  probability=0.2, weight=0.5)
     .homeostasis(relative_baseline=1.0, r_star=8.0, k_gain=1.0)
-)
+    .set_emitter("izhikevich", "cortical_eig")
+    .probes(["spikes", "V_m"], n_contacts=8)
+    .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann"))
+model   = jtfne.construct(cfg)
+signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
 ```
 
 `plasticity()` records manifest intent only — STDP runs via separate `run_stdp_stream`; `simulate()` does not run it.
@@ -143,7 +147,10 @@ See [H-state / HDP guide](guides/hdp.md) and the [controllability étude](etudes
 
 ```python
 cfg = jtfne.build_laminar_column(n=1000, ei_profile="canonical")
-model = jtfne.construct(cfg.set_emitter("izhikevich", "cortical_eig"))
+model = jtfne.construct(cfg
+    .set_emitter("izhikevich", "cortical_eig")
+    .probes(["spikes"], n_contacts=4)
+    .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann"))
 jtfne.vis.visualize_network_3d(model, output_html="network3d.html")
 ```
 
