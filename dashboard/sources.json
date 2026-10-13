@@ -310,7 +310,7 @@
       "release": "0.5.7",
       "tier": "T-jaxfne",
       "stage": "P5",
-      "lane": {"branch": "izh2003", "sha": "34c38273bb49f621e8ffa0bf5ae9ff5ee8d46518"},
+      "lane": {"branch": "izh2003", "sha": "a8477940e79eb2ed6a359d03965e8efcb4a924f9"},
       "stage_artifacts": {
         "P1": [{"label": "source", "path": "artifacts/etudes/izhikevich2003/SOURCE_P1.md"}],
         "P2": [{"label": "port spec", "path": "artifacts/etudes/izhikevich2003/PORT_SPEC.md"}],
@@ -319,11 +319,13 @@
                {"label": "reference arm", "path": "artifacts/etudes/izhikevich2003/net_reference.py"}],
         "P5": [{"label": "result", "path": "artifacts/etudes/izhikevich2003/RESULT_P3.md"},
                {"label": "scores", "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"},
-               {"label": "S1 report", "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json"}]
+               {"label": "S1 report", "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json"},
+               {"label": "v8.2 scores (post hoc)", "path": "artifacts/etudes/izhikevich2003/scores/p3_v8_score.json"}]
       },
       "verdict": "not reproduced",
       "summary": "Six of eight single-cell patterns reproduce; FS adapts (ISI ratio 1.86) and the resonator spikes once. The network has the paper's rate, alpha and gamma peaks, but its firing is too regular (median ISI CV 0.40 against 0.6 to 1.5), and the float64 reference arm of net.m gives 0.39 too.",
-      "preregs": [{"id": "v7", "signed": "2026-10-13", "path": "artifacts/etudes/izhikevich2003/PREREG_P3.md"}],
+      "preregs": [{"id": "v7", "signed": "2026-10-13", "path": "artifacts/etudes/izhikevich2003/PREREG_P3.md"},
+                  {"id": "v8.2", "signed": "2026-10-13", "path": "artifacts/etudes/izhikevich2003/PREREG_P3_v8.md"}],
       "files": {
         "main": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
         "S1": "artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json"
@@ -368,7 +370,7 @@
       ],
       "sensitivity": [],
       "charts": [],
-      "open": ["S1 (rescored on each arm's own step, 2026-10-13) moves N3 across its band edge: the net.m update-order arm is drafted as PREREG_P3b.md, unsigned.", "Diagnostics (unscored, DIAGNOSTIC_P3.md): C8 passes with a 2 x 1 ms pulse; C4 passes on time to steady firing; N2 fails on the paper's own net.m too. A P3 v8 is Hamm's call."]
+      "open": ["Amendment v8.2 (post hoc, signed 2026-10-13; scores/p3_v8_score.json): Fig. 2 passes 8 of 8 with the C8 pulse at I = 2 and C4 as the least-adapting type (FS 1.86 against RS 2.53 and LTS 4.39). N2 stays a failed paper claim.", "S1 (rescored on each arm's own step) moves N3 across its band edge. The net.m update-order arm (PREREG_P3b.md) stopped at its equivalence gate (v5): the JAX arm drifts from the NumPy reference faster than a one-ulp input change (RESULT_P3.md)."]
     }
   ],
   "roadmap": [
