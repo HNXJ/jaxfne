@@ -124,6 +124,20 @@ def _fake_run(calls, rc, stdout="", stderr=""):
     return run
 
 
+def _generated(path, data):
+    """Write a fake generator's output, stamped just after the build start.
+
+    The build compares each file's mtime with time.time() taken at its start; a write in the
+    same clock tick as that start can read back earlier, so the stamp moves ahead.
+    """
+    import os
+    import time
+
+    path.write_bytes(data)
+    later = time.time() + 2
+    os.utime(path, (later, later))
+
+
 def test_build_attributes_a_crashed_generator_and_skips_the_gallery(monkeypatch, capsys):
     calls = []
     monkeypatch.setattr(bda, "_run", _fake_run(calls, 1, stderr="Traceback\nMemoryError: out of memory"))
@@ -147,9 +161,9 @@ def test_build_fails_when_a_registry_html_file_is_not_written(tmp_path, monkeypa
     def run(cmd):
         # The generator rewrites the manifest and every panel, and skips index.html.
         calls.append(cmd)
-        (atlas / "manifest.json").write_bytes(manifest_bytes)
+        _generated(atlas / "manifest.json", manifest_bytes)
         for name in entry["panels"]:
-            (atlas / name).write_text("<html></html>", encoding="utf-8")
+            _generated(atlas / name, b"<html></html>")
         return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
 
     assert "index.html" not in entry["panels"], "fixture: index.html is outside the panel list"
@@ -218,8 +232,9 @@ def test_atlas_link_must_name_a_built_file():
 
 
 def test_other_html_link_must_name_a_file_on_disk():
-    target = "../../_static/etudes/experiment_a/index.html"
-    assert (REPO / "docs/_static/etudes/experiment_a/index.html").is_file(), "fixture needs a tracked page"
+    # heterogeneous_emitters is not a registry etude: its tracked HTML is checked on disk.
+    target = "../../_static/etudes/heterogeneous_emitters/index.html"
+    assert (REPO / "docs/_static/etudes/heterogeneous_emitters/index.html").is_file(), "fixture needs a tracked page"
     assert _link_problems("docs/etudes/p.md", f'<iframe src="{target}"></iframe>') == []
     missing = _link_problems("docs/etudes/p.md", '<iframe src="../../_static/etudes/none.html"></iframe>')
     assert len(missing) == 1 and "names no file" in missing[0], missing
@@ -234,3 +249,116 @@ def test_registry_refuses_a_null_compared_field(tmp_path):
     path.write_text(json.dumps(manifest), encoding="utf-8")
     with pytest.raises(SystemExit, match="seed"):
         bda.entry_from_manifest(path)
+
+
+def _etude(slug="fixture_etude", html=("index.html", "fixture_panel.html")):
+    """A registry etude entry. Its HTML is not on disk: the tests build their own case."""
+    return {
+        "slug": slug,
+        "dir": f"docs/_static/etudes/{slug}",
+        "generator": ["scripts/fixture_etude.py", "--etude", slug],
+        "html": list(html),
+    }
+
+
+def _etude_link_problems(target):
+    registry = {"atlases": [], "etudes": [_etude()]}
+    text = f'<iframe src="{target}"></iframe>'
+    problems, examined, _ = bda.check_links(registry, {REPO / "docs/etudes/p.md": text})
+    assert examined == 1, "fixture page must hold exactly one .html link"
+    return problems
+
+
+def test_etude_link_resolves_against_its_registry_html():
+    # fixture_panel.html is listed but not on disk: the registry says the build writes it.
+    assert _etude_link_problems("../../_static/etudes/fixture_etude/fixture_panel.html") == []
+
+
+def test_etude_link_outside_its_registry_html_fails():
+    problems = _etude_link_problems("../../_static/etudes/fixture_etude/no_such_panel.html")
+    assert len(problems) == 1 and "is not an etude file the build writes" in problems[0], problems
+
+
+def _write_registry(tmp_path, monkeypatch, etudes):
+    path = tmp_path / "atlas_registry.json"
+    path.write_text(json.dumps({"schema": bda.SCHEMA, "atlases": [], "etudes": etudes}), encoding="utf-8")
+    monkeypatch.setattr(bda, "REGISTRY", path)
+
+
+def test_registry_refuses_an_etude_missing_a_required_key(tmp_path, monkeypatch):
+    import pytest
+
+    entry = _etude()
+    del entry["html"]
+    _write_registry(tmp_path, monkeypatch, [entry])
+    with pytest.raises(SystemExit, match="lacks \\['html'\\]"):
+        bda.load_registry()
+
+
+def test_registry_refuses_duplicate_etude_slugs(tmp_path, monkeypatch):
+    import pytest
+
+    _write_registry(tmp_path, monkeypatch, [_etude(), _etude()])
+    with pytest.raises(SystemExit, match="duplicate slug entries"):
+        bda.load_registry()
+
+
+def test_registry_write_keeps_the_etudes_list(tmp_path, monkeypatch):
+    _write_registry(tmp_path, monkeypatch, [_etude()])
+    assert bda.write_registry() == 0
+    assert bda.read_json(bda.REGISTRY).get("etudes") == [_etude()]
+
+
+TRACKED_ETUDE_MANIFEST = {"figure_state": "validated", "bytes": 1,
+                          "promotion": [{"from": "generated", "to": "validated"}]}
+
+
+def _build_with_etude(tmp_path, monkeypatch, entry, rc=0, written=("index.html",)):
+    """build([]) over one etude whose fake generator writes `written` and exits with `rc`."""
+    import subprocess
+
+    registry = {"schema": bda.SCHEMA, "atlases": [], "etudes": [entry]}
+    monkeypatch.setattr(bda, "load_registry", lambda: registry)
+    monkeypatch.setattr(bda, "ROOT", tmp_path)
+    monkeypatch.setattr(bda, "_repo_guard", lambda: None)
+    out_dir = tmp_path / entry["dir"]
+    out_dir.mkdir(parents=True, exist_ok=True)
+    bda.write_manifest(out_dir / "manifest.json", TRACKED_ETUDE_MANIFEST)
+
+    def run(cmd):
+        if str(cmd[1]).endswith("fixture_etude.py"):
+            # The real generators rewrite the manifest with a reset figure state.
+            bda.write_manifest(out_dir / "manifest.json", {"figure_state": "GENERATED", "bytes": 2})
+            for name in written:
+                _generated(out_dir / name, b"<html></html>")
+            return subprocess.CompletedProcess(cmd, rc, stdout="", stderr="Traceback\nboom" if rc else "")
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(bda, "_run", run)
+    return bda.build([])
+
+
+def test_build_passes_an_etude_that_writes_every_listed_html(tmp_path, monkeypatch, capsys):
+    both = ("index.html", "fixture_panel.html")
+    assert _build_with_etude(tmp_path, monkeypatch, _etude(), written=both) == 0
+    assert "docs/_static/etudes/fixture_etude  OK" in capsys.readouterr().out
+
+
+def test_build_keeps_the_tracked_etude_figure_state(tmp_path, monkeypatch):
+    both = ("index.html", "fixture_panel.html")
+    assert _build_with_etude(tmp_path, monkeypatch, _etude(), written=both) == 0
+    fresh = bda.read_json(tmp_path / _etude()["dir"] / "manifest.json")
+    assert fresh["bytes"] == 2, "fixture: the generator's manifest must be the one kept"
+    assert fresh["figure_state"] == "validated"
+    assert fresh["promotion"] == TRACKED_ETUDE_MANIFEST["promotion"]
+
+
+def test_build_fails_an_etude_with_a_listed_html_file_missing(tmp_path, monkeypatch, capsys):
+    assert _build_with_etude(tmp_path, monkeypatch, _etude()) == 1
+    assert "HTML not written by this build: ['fixture_panel.html']" in capsys.readouterr().out
+
+
+def test_build_fails_an_etude_whose_generator_exits_nonzero(tmp_path, monkeypatch, capsys):
+    assert _build_with_etude(tmp_path, monkeypatch, _etude(), rc=1) == 1
+    out = capsys.readouterr().out
+    assert "generator rc=1" in out and "boom" in out, out

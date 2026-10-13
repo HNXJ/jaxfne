@@ -161,3 +161,7 @@ scripts/out/
 # (Read the Docs runs it before mkdocs); the manifests and atlas_registry.json stay tracked.
 docs/_static/atlas/**/*.html
 docs/_static/atlas_three_area/*.html
+# Etude HTML is a build product too: scripts/build_docs_assets.py --build runs the etude generators;
+# their manifest.json files stay tracked.
+docs/_static/etudes/experiment_a/*.html
+docs/_static/etudes/hdp_controllability_reachability/*.html

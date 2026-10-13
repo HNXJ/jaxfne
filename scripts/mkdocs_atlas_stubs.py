@@ -1,9 +1,9 @@
-"""mkdocs hook: a stand-in page for each atlas panel this checkout has not built.
+"""mkdocs hook: a stand-in page for each atlas panel and etude HTML file this checkout has not built.
 
-The atlas HTML is a build product of scripts/build_docs_assets.py --build (Read the Docs runs
-it before mkdocs). A checkout without it would fail `mkdocs build --strict` on every atlas
-link, so this hook adds a stand-in for each file that docs/_static/atlas_registry.json declares
-and the docs tree lacks. A link to a file outside the registry still fails strict validation,
+The atlas and etude HTML are build products of scripts/build_docs_assets.py --build (Read the
+Docs runs it before mkdocs). A checkout without them would fail `mkdocs build --strict` on every
+link to them, so this hook adds a stand-in for each file that docs/_static/atlas_registry.json
+declares and the docs tree lacks. A link to a file outside the registry still fails strict validation,
 and on Read the Docs any stand-in fails the build.
 """
 
@@ -29,15 +29,16 @@ def on_files(files, config):
     docs = Path(config["docs_dir"])
     registry = json.loads((docs / "_static" / "atlas_registry.json").read_text(encoding="utf-8"))
     added = 0
-    for entry in registry["atlases"]:
+    for entry in registry["atlases"] + registry["etudes"]:
         rel_dir = Path(entry["dir"]).relative_to("docs").as_posix()
-        for name in sorted(set(entry["panels"]) | {"index.html"}):
+        names = entry["html"] if "html" in entry else set(entry["panels"]) | {"index.html"}
+        for name in sorted(set(names)):
             uri = f"{rel_dir}/{name}"
             if files.get_file_from_path(uri) is None:
                 files.append(File.generated(config, uri, content=STUB))
                 added += 1
-    log.info("atlas stand-ins: %d (0 when the atlas HTML is built)", added)
+    log.info("atlas and etude stand-ins: %d (0 when the build products are built)", added)
     if added and os.environ.get("READTHEDOCS") == "True":
-        raise PluginError(f"{added} atlas files would be published as stand-ins; "
+        raise PluginError(f"{added} atlas or etude files would be published as stand-ins; "
                           "Read the Docs runs build_docs_assets.py --build first")
     return files

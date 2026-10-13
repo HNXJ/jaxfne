@@ -19,10 +19,14 @@ def _on_files(files, config):
     return config.plugins.on_files(files, config=config)
 
 
-def _registry_uris():
+def _registry_uris(section="atlases"):
+    """URIs of the build products one registry section declares: atlas panels or etude HTML."""
     registry = json.loads((REPO / "docs/_static/atlas_registry.json").read_text(encoding="utf-8"))
-    return {f"{pathlib.Path(e['dir']).relative_to('docs').as_posix()}/{name}"
-            for e in registry["atlases"] for name in set(e["panels"]) | {"index.html"}}
+    uris = set()
+    for e in registry[section]:
+        names = set(e["html"]) if section == "etudes" else set(e["panels"]) | {"index.html"}
+        uris |= {f"{pathlib.Path(e['dir']).relative_to('docs').as_posix()}/{name}" for name in names}
+    return uris
 
 
 def test_stand_ins_cover_exactly_the_unbuilt_registry_files():
@@ -30,40 +34,43 @@ def test_stand_ins_cover_exactly_the_unbuilt_registry_files():
     files = get_files(config)
     atlas = _registry_uris()
     assert len(atlas) == 200, "fixture: the registry declares 200 atlas files"
-    # A fresh clone: no atlas HTML among the documentation files.
-    fresh = Files([f for f in files if f.src_uri not in atlas])
-    assert not any(fresh.get_file_from_path(u) for u in atlas), "fixture must lack every atlas file"
+    etudes = _registry_uris("etudes")
+    assert len(etudes) == 12, "fixture: the registry declares 12 etude HTML files"
+    products = atlas | etudes
+    # A fresh clone: no build product among the documentation files.
+    fresh = Files([f for f in files if f.src_uri not in products])
+    assert not any(fresh.get_file_from_path(u) for u in products), "fixture must lack every build product"
     out = _on_files(fresh, config)
     added = {f.src_uri for f in out if f.generated_by}
-    assert added == atlas
+    assert added == products
     assert out.get_file_from_path("_static/atlas/two_neuron_ei/typo.html") is None
 
 
 def _with_built(config, built, tmp_path):
-    """The docs files with only `built` atlas files present, written under tmp_path."""
-    atlas = _registry_uris()
-    files = [f for f in get_files(config) if f.src_uri not in atlas]
+    """The docs files with only `built` build products present, written under tmp_path."""
+    products = _registry_uris() | _registry_uris("etudes")
+    files = [f for f in get_files(config) if f.src_uri not in products]
     for uri in built:
         (tmp_path / uri).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / uri).write_text("<p>built</p>", encoding="utf-8")
         files.append(File(uri, str(tmp_path), config["site_dir"], config["use_directory_urls"]))
     out = Files(files)
-    assert {u for u in atlas if out.get_file_from_path(u)} == set(built), "fixture: built set"
+    assert {u for u in products if out.get_file_from_path(u)} == set(built), "fixture: built set"
     return out
 
 
 def test_a_stand_in_fails_the_build_on_read_the_docs(monkeypatch, tmp_path):
     config = load_config(str(REPO / "mkdocs.yml"))
-    atlas = sorted(_registry_uris())
-    one_missing = _with_built(config, atlas[1:], tmp_path)
+    products = sorted(_registry_uris() | _registry_uris("etudes"))
+    one_missing = _with_built(config, products[1:], tmp_path)
     monkeypatch.setenv("READTHEDOCS", "True")
-    with pytest.raises(Exception, match="1 atlas files would be published as stand-ins"):
+    with pytest.raises(Exception, match="1 atlas or etude files would be published as stand-ins"):
         _on_files(one_missing, config)
 
 
 def test_no_stand_in_for_a_built_file(tmp_path):
     config = load_config(str(REPO / "mkdocs.yml"))
-    atlas = sorted(_registry_uris())
-    out = _on_files(_with_built(config, atlas[:1], tmp_path), config)
+    products = sorted(_registry_uris() | _registry_uris("etudes"))
+    out = _on_files(_with_built(config, products[:1], tmp_path), config)
     added = {f.src_uri for f in out if f.generated_by}
-    assert atlas[0] not in added and added == set(atlas[1:])
+    assert products[0] not in added and added == set(products[1:])

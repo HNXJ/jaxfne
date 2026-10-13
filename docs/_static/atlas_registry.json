@@ -761,5 +761,41 @@
         }
       ]
     }
+  ],
+  "etudes": [
+    {
+      "slug": "experiment_a",
+      "dir": "docs/_static/etudes/experiment_a",
+      "generator": [
+        "scripts/plot_frozen_etude_panels.py",
+        "--etude",
+        "experiment_a"
+      ],
+      "html": [
+        "h_dynamics.html",
+        "index.html",
+        "lfp.html",
+        "oscillatory.html",
+        "raster.html",
+        "traces.html"
+      ]
+    },
+    {
+      "slug": "hdp_controllability_reachability",
+      "dir": "docs/_static/etudes/hdp_controllability_reachability",
+      "generator": [
+        "scripts/rerun_etude_figures.py",
+        "--etude",
+        "hdp_mcc3"
+      ],
+      "html": [
+        "h_dynamics.html",
+        "hdp.html",
+        "index.html",
+        "oscillatory.html",
+        "raster.html",
+        "traces.html"
+      ]
+    }
   ]
 }
