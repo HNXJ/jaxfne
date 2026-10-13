@@ -98,15 +98,11 @@ run on WSL2 CUDA.
   and `simulate_laminar_trials` (4 notebooks, `tests/test_tutorial_utils.py`, `tune_laminar_agsdr`)
   passes only E/PV/SST/VIP, so no realized run is affected at b0a12a36. A change to 1564 is a model
   change for Hamm. Closes when: each site reads the emitter table's sign or carries a stated scope.
-- T-19 [A] Deep audit and code critique (Muse, 2026-10-13, at aef3129e). In progress: NaN for
-  undefined metrics and the Poisson p > 1 refusal (packet A); float64-without-x64, off-grid
-  duration, `JaxleyBridge.compartment_axis` and `select_neurons` refusals (packet B); noise
-  sqrt(dt_ref/dt) scaling, Hamm's call, after the dt inventory. Open, not started:
-  - `fields/proxy.py:492-503` `_coerce` turns non-finite input into None without a warning;
-    `proxy.py:465-475,510-525` diagnostics return None on any Exception.
+- T-19 [A] Deep audit and code critique (Muse, 2026-10-13, at aef3129e). Landed: 0df3da9d,
+  68c61e92, 10d80c08 (NaN metrics, refusals, narrowed excepts). In progress: noise
+  sqrt(dt_ref/dt) scaling (D1). Open:
   - `_construct_core.py:144-156` `compute_fields(model, signals)` never reads `model`.
-  - Broad `except Exception` with a silent default: `bridges.py:480-494,751-762,829-832`,
-    `paradigm.py:110-113`, `optim/core.py:1475-1491` (counted), `emitters.py:201-202`.
+  - `emitters.py:201-202` broad `except Exception` (left while D1 edits emitters.py).
   - Design (no wrong result shown): HDP kernel with about 78 parameters
     (`emitters.py:3155-3232`); duplicated scan bodies behind record flags (`emitters.py:1412-1474`);
     return arity that depends on a flag (`_model_simulate.py:381-383`, `simulate(return_state=)`);
