@@ -23,8 +23,14 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   (higher off-peak response at K/k 0.6–0.8 and 1.3); complex 12/15, SSE 0.52 × flat (guard 0.5;
   passes with all 10 phases, not scored). S6/S7 diagnostic (unscored, `prereg/
   P3_fig3_diagnostic.md`): simple fails under both; complex passes with the 62.5 ms window
-  (0.48); measured periods follow (20 − i)/2 px, supporting A2. Next: Hamm's call on a v6 or
-  closing Fig. 3 as not reproduced, then P6 (B1). Closes when: a signed prereg reproduces Fig. 3, or Hamm
+  (0.48); measured periods follow (20 − i)/2 px, supporting A2. Hamm 2026-10-13: investigate port
+  fidelity, port-side only (never run the authors' code). Fidelity audit (read-only): (1) the
+  C++ runs cSTDP3 without local inhibition ("static" is not "local", SpikingNetwork.cpp:351);
+  the port reads "static" as local (declared alias, untested); (2) the C++ keeps STDP on and
+  weights across files during tuning, the port freezes and reloads; (3) the authors' writer
+  reads neuron files 0–63, which by index is column (0,0), against the port's (4,4)
+  (unresolved: (0,0) lies outside the stimulated band). In flight: an unscored tuning run with
+  local inhibition off (`F:\warehouse\pcl\diag_runs\`). Then P6 (B1). Closes when: a signed prereg reproduces Fig. 3, or Hamm
   closes it, and the P6 attempt is recorded.
 
 ## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
