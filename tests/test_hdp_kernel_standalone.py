@@ -549,3 +549,7 @@ def test_traced_C_spike_runs_under_jit_and_matches_eager():
     jitted = np.asarray(jax.jit(h_trace)(jnp.asarray(0.2)))
     assert not np.allclose(eager, eager[0]), "fixture must move H"
     np.testing.assert_allclose(jitted, eager, rtol=1e-5, atol=1e-6)
+    vmapped = np.asarray(jax.vmap(h_trace)(jnp.asarray([0.2, 0.2])))
+    np.testing.assert_allclose(vmapped[0], eager, rtol=1e-5, atol=1e-6)
+    grad = jax.grad(lambda c: h_trace(c)[-1].sum())(jnp.asarray(0.2))
+    assert np.isfinite(float(grad))
