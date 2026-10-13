@@ -207,10 +207,13 @@ def test_peak_excess_edge_and_local_max_rules(monkeypatch):
     _constructed_psd(monkeypatch, izh, lambda f: np.where(f == 8.5, 5.0, 1.0))
     res = izh.peak_excess(np.zeros(10), 1000.0, (8.0, 13.0))
     assert res["f_pk"] == 8.5 and not res["edge_ok"] and not izh.holds(res, 2.0)
-    p = 10.0 ** izh.aperiodic_log10(np.array([10.0, 10.5]), 0.0, 1.0, 1.5)
     # Exactly equal PSD at 10.0 and 10.5 Hz (a flat top): neither is a strict local maximum.
-    _constructed_psd(monkeypatch, izh,
-                     lambda f: np.where(f == 10.0, 5.0, np.where(f == 10.5, 5.0 * p[0] / p[1], 1.0)))
+    freqs = np.arange(0, 500.5, 0.5)
+    pxx = 10.0 ** izh.aperiodic_log10(freqs, 0.0, 1.0, 1.5)
+    pxx[20] *= 5.0
+    pxx[21] = pxx[20]
+    assert freqs[20] == 10.0 and freqs[21] == 10.5 and pxx[20] == pxx[21]  # fixture: flat top
+    monkeypatch.setattr(izh, "welch", lambda *a, **k: (freqs, pxx))
     res = izh.peak_excess(np.zeros(10), 1000.0, (8.0, 13.0))
     assert res["pe"] is None and not izh.holds(res, 2.0)  # no strict PSD local maximum in band
 

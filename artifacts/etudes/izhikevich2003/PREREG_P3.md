@@ -4,8 +4,9 @@ Status: draft v7 for Hamm's batch sign-off. The v6 estimator failed its calibrat
 (2026-10-13, receipt `calibration/calibration_v6_estimator_7ba10446.json`): false positives ≤ 5 %
 from θ = 4 and every 40 Hz row ≥ 95 %, but the 10 Hz AR(2) rows detected 0.858–0.944 at every θ
 in 8–13 Hz, and 0.864–0.938 on the six AR(1) floors after widening to 7–14 Hz (white 0.966–0.976). The misses were the local-maximum rule: f_pk, the
-largest residual, fell on the bump's flank, where the PSD is not a strict local maximum (23 and 39
-of 300 draws on two rows, against 2 with f_pk off target). v7 revises step 3 as the gate requires;
+largest residual, fell on the bump's flank, where the PSD is not a strict local maximum (a
+diagnostic outside the receipt, draws $j = 0$–299 of rows 16 and 32 at θ = 4 in 7–14 Hz: 23 and
+39 local-maximum failures, against 2 each with f_pk off target). v7 revises step 3 as the gate requires;
 the alpha band returns to 8–13 Hz and the gate reruns from the start. v5 review (2026-10-13): REVISE on three minor
 points (float time comparisons, calibration seeds and AR(2) form, the widening trigger), fixed
 here; `PORT_SPEC.md` line 12 was changed after its PASS to point at the fixed-point start below.
@@ -118,8 +119,8 @@ fit range, exclusion and edge rule are this study's, set here and passed as para
 function `peak_excess(signal, fs, band, fit_hz=(2, 200), excl_hz=2, edge_hz=1)` in
 `artifacts/etudes/izhikevich2003/izh_analysis.py`. CAMINOS's `spectral_peak`, whose constants are
 fixed to CAMINOS's bands, is not used. Fit bounds and starts are `fit_aperiodic`'s (k ≥ 0,
-χ ∈ [0, 5], start k = 1, χ = 1); a fit that does not converge, or a PSD with a zero bin in the
-fit range (no logarithm), counts as no peak.
+χ ∈ [0, 5], start k = 1, χ = 1); a fit that does not converge, a PSD with a zero bin in the
+fit range (no logarithm), or a band with no strict PSD local maximum (step 3) counts as no peak.
 
 1. Welch PSD: `scipy.signal.welch(x, fs=1000, window="hann", nperseg=2000, noverlap=1000,
    detrend=False, scaling="density")` (0.5 Hz bins, 9 windows over the kept 10 s).
