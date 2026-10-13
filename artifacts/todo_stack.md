@@ -21,17 +21,18 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   the sign requirement, and its outcome is known from v4. v5 scored 2026-10-13 (`pcl-port`
   8f75acd0, `prereg/P3_fig3_v5_result.md`): FAIL on T2. Simple 10/16 points, SSE 1.50 × flat
   (higher off-peak response at K/k 0.6–0.8 and 1.3); complex 12/15, SSE 0.52 × flat (guard 0.5;
-  passes with all 10 phases, not scored). Next: a diagnostic (unscored) of the simple cells'
-  off-peak response against the authors' window and phase handling (S6 measured periods, S7
-  window from 62.5 ms), then P6 (B1). Closes when: a signed prereg reproduces Fig. 3, or Hamm
+  passes with all 10 phases, not scored). S6/S7 diagnostic (unscored, `prereg/
+  P3_fig3_diagnostic.md`): simple fails under both; complex passes with the 62.5 ms window
+  (0.48); measured periods follow (20 − i)/2 px, supporting A2. Next: Hamm's call on a v6 or
+  closing Fig. 3 as not reproduced, then P6 (B1). Closes when: a signed prereg reproduces Fig. 3, or Hamm
   closes it, and the P6 attempt is recorded.
 
 ## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
 - R2 narrowing met at 33413a12 (2268 files, `budget_files` 2269 in
   `scripts/tree_size_allowlist.json`). Raised to 2300 for the 31 lane evidence files of
-  l2-caminos and pcl-port merged 2026-10-13 (Hamm 2026-10-13), and to 2306 for the PCL v5
-  scorer, result and scores merged the same day (same reason). Further narrowing waits: most files in `tutorial_figures`,
+  l2-caminos and pcl-port merged 2026-10-13 (Hamm 2026-10-13), and to 2307 for the PCL v5
+  scorer, result, scores and S6/S7 diagnostic merged the same day (same reason). Further narrowing waits: most files in `tutorial_figures`,
   `_static/gallery` and `docs/assets` drift on regeneration, which is a declared figure change.
 - T-7 [A] R5: every paper row in `REPLICATIONS.md` carries a verdict or a reason (2026-10-13).
   Closes when: `python scripts/build_dashboard_data.py --check` passes on the pushed SHA.
