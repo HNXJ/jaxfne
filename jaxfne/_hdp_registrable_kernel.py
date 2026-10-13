@@ -28,6 +28,7 @@ from .emitters import (
     _edge_delays_any_positive,
     _edge_max_delay_steps,
     _izhikevich_dv_du,
+    _noise_coef,
     _rbd_continuation_step_offset_array,
     _rbd_delay_state_from_init,
     _segment_sum,
@@ -87,6 +88,8 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     draws; the Model plain path passes the continuation-chain schedule so
     chunked == continuous (membrane and per-rule streams), while ``None``
     keeps the legacy bulk draw bit-identical for direct kernel callers.
+    ``noise_scale`` is defined at the reference step 0.5 ms (``DT_REF_MS``);
+    the realized coefficient is scaled by ``sqrt(0.5 / dt_ms)``.
     """
     _validate_edge_delays_nonnegative_eager(edges)
     has_delay = _edge_delays_any_positive(edges)
@@ -121,11 +124,7 @@ def simulate_edge_recurrent_izhikevich_hdp_registered(
     drive = params.drive.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
-    noise_coef = (
-        jnp.asarray(0.5, dtype=jdtype)
-        if noise_scale is None
-        else jnp.asarray(noise_scale, dtype=jdtype)
-    )
+    noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     w_baseline = _resolved_edge_weight(edges, jdtype, params)

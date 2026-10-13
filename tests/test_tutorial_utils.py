@@ -519,6 +519,193 @@ class TestEmitterNoiseScale:
         # Same key + same noise_scale should give same result
         assert np.allclose(np.asarray(v1), np.asarray(v2))
 
+    def test_noise_dt_ref_bit_identical(self):
+        """noise_scale is defined at DT_REF_MS=0.5: dt=0.5 matches the old formula bit-exactly."""
+        import jax
+        import jax.numpy as jnp
+        from jaxfne import emitters
+        from jaxfne.emitters import (
+            _dtype_from_policy,
+            _izhikevich_dv_du,
+            _source_proxy_from_components,
+            izhikevich_eig_params,
+            simulate_eig_izhikevich,
+        )
+
+        assert emitters.DT_REF_MS == 0.5
+        jdtype = _dtype_from_policy("float32")
+        for ns in (None, 0.5, 0.0, 1.0):
+            old = (
+                jnp.asarray(0.5, dtype=jdtype)
+                if ns is None
+                else jnp.asarray(ns, dtype=jdtype)
+            )
+            new = emitters._noise_coef(ns, 0.5, jdtype)
+            assert bool(jnp.array_equal(old, new)), f"helper must equal old formula at dt=0.5 for {ns!r}"
+        nsv = jnp.asarray([0.0, 0.25, 0.5, 1.0], dtype=jdtype)
+        assert bool(jnp.array_equal(nsv, emitters._noise_coef(nsv, 0.5, jdtype)))
+
+        # Kernel level: dt=0.5 output equals a local scan using the old formula.
+        params = izhikevich_eig_params(2, {"E": 1.0})
+        n_steps, dt_ms, key = 10, 0.5, jax.random.PRNGKey(0)
+        v_new, _, _ = simulate_eig_izhikevich(
+            params, n_steps=n_steps, dt_ms=dt_ms, key=key, dtype="float32", noise_scale=0.5
+        )
+        a = params.a.astype(jdtype)
+        b = params.b.astype(jdtype)
+        c = params.c.astype(jdtype)
+        d = params.d.astype(jdtype)
+        drive = params.drive.astype(jdtype)
+        weights = params.W.astype(jdtype)
+        source_scale = params.source_scale.astype(jdtype)
+        dt = jnp.asarray(dt_ms, dtype=jdtype)
+        noise_coef = jnp.asarray(0.5, dtype=jdtype)  # baseline formula
+        s_mask = jnp.ones(2, dtype=jdtype)
+        _, noise_key = jax.random.split(key)
+        bulk_noise = jax.random.normal(noise_key, shape=(n_steps, 2), dtype=jdtype)
+        sched = jnp.zeros((n_steps, 2), dtype=jdtype)
+
+        def step(carry, xs_t):
+            sched_t, noise_t = xs_t
+            v, u, prev_spikes = carry
+            syn = weights @ prev_spikes
+            current_native = drive + sched_t + syn + noise_coef * noise_t
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            v_next = v + dt * dv
+            u_next = u + dt * du
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
+            spikes = spikes_bool.astype(jdtype)
+            v_reset = jnp.where(spikes_bool, c, v_next)
+            u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+            source_proxy = _source_proxy_from_components(
+                current_native, spikes, source_scale, dtype=jdtype
+            )
+            return (v_reset, u_reset, spikes), (v_reset, spikes, source_proxy)
+
+        init = (
+            params.v0.astype(jdtype),
+            params.u0.astype(jdtype),
+            jnp.zeros_like(params.v0, dtype=jdtype),
+        )
+        _, (v_old, _, _) = jax.lax.scan(step, init, xs=(sched, bulk_noise))
+        assert np.array_equal(np.asarray(v_new), np.asarray(v_old))
+
+    def test_noise_per_ms_variance_dt_invariant(self):
+        """Per-ms noise variance of the voltage increment is equal at dt 0.1 and 0.5."""
+        import dataclasses
+        import jax
+        import jax.numpy as jnp
+        import pytest
+        from jaxfne import emitters
+        from jaxfne.emitters import (
+            _dtype_from_policy,
+            izhikevich_eig_params,
+            simulate_eig_izhikevich,
+        )
+
+        # Helper algebra: dt * coef^2 is dt-invariant.
+        jdtype = _dtype_from_policy("float32")
+        c05 = float(emitters._noise_coef(0.5, 0.5, jdtype))
+        c01 = float(emitters._noise_coef(0.5, 0.1, jdtype))
+        assert (0.5 * c05**2) == pytest.approx(0.1 * c01**2, rel=1e-6)
+
+        # Kernel level: isolated noise current read out via sources
+        # (zero drive/recurrence, spike-free so sources == noise current).
+        base = izhikevich_eig_params(1, {"E": 1.0})
+        v0 = jnp.full((1,), -70.0, dtype=jnp.float32)
+        params = dataclasses.replace(
+            base,
+            drive=jnp.zeros((1,), dtype=jnp.float32),
+            W=jnp.zeros((1, 1), dtype=jnp.float32),
+            v0=v0,
+            u0=base.b.astype(jnp.float32) * v0,
+        )
+
+        def per_ms(dt_ms, n_steps, seed):
+            _, spk, src = simulate_eig_izhikevich(
+                params,
+                n_steps=n_steps,
+                dt_ms=dt_ms,
+                key=jax.random.PRNGKey(seed),
+                dtype="float32",
+                noise_scale=0.5,
+            )
+            assert int(np.asarray(spk).sum()) == 0, "fixture must stay spike-free"
+            return float(dt_ms) * float(np.var(np.asarray(src)))
+
+        m05 = per_ms(0.5, 10000, 0)
+        m01 = per_ms(0.1, 10000, 1)
+        assert abs(m01 - m05) / ((m01 + m05) / 2) < 0.05
+
+    def test_noise_scale_zero_exact_at_every_dt(self):
+        """noise_scale=0.0 gives exactly zero noise at every dt."""
+        import jax
+        import jax.numpy as jnp
+        from jaxfne import emitters
+        from jaxfne.emitters import (
+            _dtype_from_policy,
+            izhikevich_eig_params,
+            simulate_eig_izhikevich,
+        )
+
+        jdtype = _dtype_from_policy("float32")
+        for dt_ms in (0.1, 0.5, 1.0):
+            z = emitters._noise_coef(0.0, dt_ms, jdtype)
+            assert bool(jnp.array_equal(z, jnp.zeros((), dtype=jdtype))), dt_ms
+            zv = emitters._noise_coef(jnp.zeros((2,), dtype=jdtype), dt_ms, jdtype)
+            assert bool(jnp.array_equal(zv, jnp.zeros((2,), dtype=jdtype))), dt_ms
+        params = izhikevich_eig_params(2, {"E": 1.0})
+        for dt_ms in (0.1, 0.5, 1.0):
+            v1, _, _ = simulate_eig_izhikevich(
+                params, n_steps=10, dt_ms=dt_ms, key=jax.random.PRNGKey(0),
+                dtype="float32", noise_scale=0.0,
+            )
+            v2, _, _ = simulate_eig_izhikevich(
+                params, n_steps=10, dt_ms=dt_ms, key=jax.random.PRNGKey(1),
+                dtype="float32", noise_scale=0.0,
+            )
+            assert np.array_equal(np.asarray(v1), np.asarray(v2)), dt_ms
+
+    def test_receptor_exponential_noise_scales(self):
+        """The receptor-exponential kernel scales its noise term the same way."""
+        import dataclasses
+        import jax
+        import jax.numpy as jnp
+        from jaxfne.emitters import (
+            EdgeList,
+            izhikevich_eig_params,
+            simulate_receptor_exponential_izhikevich,
+        )
+
+        base = izhikevich_eig_params(1, {"E": 1.0})
+        v0 = jnp.full((1,), -70.0, dtype=jnp.float32)
+        params = dataclasses.replace(
+            base,
+            drive=jnp.zeros((1,), dtype=jnp.float32),
+            v0=v0,
+            u0=base.b.astype(jnp.float32) * v0,
+        )
+        edges = EdgeList(
+            pre=jnp.asarray([0]),
+            post=jnp.asarray([0]),
+            weight=jnp.asarray([0.0], dtype=jnp.float32),
+            receptor_index=jnp.asarray([0], dtype=jnp.int32),
+            tau_ms=jnp.asarray([10.0], dtype=jnp.float32),
+        )
+
+        def per_ms(dt_ms, n_steps, seed):
+            _, spk, src, _ = simulate_receptor_exponential_izhikevich(
+                params, edges, n_steps=n_steps, dt_ms=dt_ms,
+                key=jax.random.PRNGKey(seed), dtype="float32",
+            )
+            assert int(np.asarray(spk).sum()) == 0, "fixture must stay spike-free"
+            return float(dt_ms) * float(np.var(np.asarray(src)))
+
+        m05 = per_ms(0.5, 10000, 0)
+        m01 = per_ms(0.1, 10000, 1)
+        assert abs(m01 - m05) / ((m01 + m05) / 2) < 0.05
+
 
 def test_make_laminar_column_config_clamps_claim_level_escalation():
     """A caller passing claim_level="validated"/physical_amplitude_calibrated=True

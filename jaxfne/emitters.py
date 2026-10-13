@@ -51,6 +51,31 @@ def _source_proxy_from_components(
     return source_scale * (current_native + spike_gain * spikes)
 
 
+# Reference step (ms) at which ``noise_scale`` is defined. The per-step unit
+# Gaussian draw is scaled so the per-ms noise variance is dt-invariant.
+DT_REF_MS = 0.5
+
+
+def _noise_coef(
+    noise_scale: "jax.Array | float | None", dt_ms: float, dtype: Any
+) -> jax.Array:
+    """Realize the dt-invariant stochastic-current coefficient.
+
+    ``noise_scale`` carries the coefficient at ``DT_REF_MS``; the realized
+    value is scaled by ``sqrt(DT_REF_MS / dt_ms)``. At ``dt_ms == DT_REF_MS``
+    the unscaled value is returned exactly (bit-identical to the historical
+    behavior).
+    """
+    base = (
+        jnp.asarray(0.5, dtype=dtype)
+        if noise_scale is None
+        else jnp.asarray(noise_scale, dtype=dtype)
+    )
+    dt = jnp.asarray(dt_ms, dtype=dtype)
+    ref = jnp.asarray(DT_REF_MS, dtype=dtype)
+    return jnp.where(dt == ref, base, base * jnp.sqrt(ref / dt))
+
+
 # Canonical Izhikevich cell-type parameter defaults.
 # Single source of truth for E/PV-like/SST-like/VIP-like reduced-model parameters.
 # Labels "E", "PV", "SST", "VIP" denote reduced emitter classes (E-like, PV-like,
@@ -475,7 +500,9 @@ def simulate_eig_izhikevich(
     ``params.drive`` at each timestep as native (uncalibrated) current.
     ``noise_scale`` sets the stochastic-current coefficient: ``None`` keeps the
     historical 0.5 scalar; a scalar or ``(n_neurons,)`` array gives per-neuron
-    control of the internal noise. No physical-amplitude or calibration claim is
+    control of the internal noise. The coefficient is defined at the reference
+    step 0.5 ms (``DT_REF_MS``); the realized value is scaled by
+    ``sqrt(0.5 / dt_ms)``. No physical-amplitude or calibration claim is
     introduced.
     """
 
@@ -488,11 +515,7 @@ def simulate_eig_izhikevich(
     weights = params.W.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
-    noise_coef = (
-        jnp.asarray(0.5, dtype=jdtype)
-        if noise_scale is None
-        else jnp.asarray(noise_scale, dtype=jdtype)
-    )
+    noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
 
     if silence_mask is not None:
         s_mask = silence_mask.astype(jdtype)
@@ -1138,11 +1161,7 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     drive = params.drive.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
-    noise_coef = (
-        jnp.asarray(0.5, dtype=jdtype)
-        if noise_scale is None
-        else jnp.asarray(noise_scale, dtype=jdtype)
-    )
+    noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = _resolved_edge_weight(edges, jdtype, params)
@@ -1317,6 +1336,8 @@ def simulate_edge_recurrent_izhikevich(
     native uncalibrated current at each timestep. ``noise_scale`` sets the
     stochastic-current coefficient: ``None`` keeps the historical 0.5 scalar; a
     scalar or ``(n_neurons,)`` array gives per-neuron control of internal noise.
+    It is defined at the reference step 0.5 ms (``DT_REF_MS``); the realized
+    coefficient is scaled by ``sqrt(0.5 / dt_ms)``.
     ``noise_schedule`` optionally supplies the exact per-step unit-noise
     draws; the Model plain path passes the continuation-chain schedule so
     chunked == continuous, while ``None`` keeps the legacy bulk draw.
@@ -1359,11 +1380,7 @@ def simulate_edge_recurrent_izhikevich(
     drive = params.drive.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
-    noise_coef = (
-        jnp.asarray(0.5, dtype=jdtype)
-        if noise_scale is None
-        else jnp.asarray(noise_scale, dtype=jdtype)
-    )
+    noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = _resolved_edge_weight(edges, jdtype, params)
@@ -1519,6 +1536,8 @@ def simulate_edge_recurrent_izhikevich_static_h_k_recovery(
     :func:`simulate_edge_recurrent_izhikevich` zero-delay kernel (bit-exact target
     with ``noise_scale`` matched). Nonzero edge delays are rejected — use the
     classical delay kernel without RBS for delay studies.
+    ``noise_scale`` is defined at the reference step 0.5 ms (``DT_REF_MS``); the
+    realized coefficient is scaled by ``sqrt(0.5 / dt_ms)``.
     """
     if _edge_delays_any_positive(edges):
         raise ValueError(
@@ -1545,11 +1564,7 @@ def simulate_edge_recurrent_izhikevich_static_h_k_recovery(
     drive = params.drive.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
-    noise_coef = (
-        jnp.asarray(0.5, dtype=jdtype)
-        if noise_scale is None
-        else jnp.asarray(noise_scale, dtype=jdtype)
-    )
+    noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = _resolved_edge_weight(edges, jdtype, params)
@@ -1661,6 +1676,8 @@ def simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery(
 
     When ``H_K \\equiv 1``, ``dH_K/dt = 0`` and the kernel matches the classical
     :func:`simulate_edge_recurrent_izhikevich` zero-delay path (bit-exact target).
+    ``noise_scale`` is defined at the reference step 0.5 ms (``DT_REF_MS``); the
+    realized coefficient is scaled by ``sqrt(0.5 / dt_ms)``.
     """
     if tau_k_ms <= 0:
         raise ValueError("tau_k_ms must be > 0")
@@ -1688,11 +1705,7 @@ def simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery(
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
     tau_k = jnp.asarray(tau_k_ms, dtype=jdtype)
-    noise_coef = (
-        jnp.asarray(0.5, dtype=jdtype)
-        if noise_scale is None
-        else jnp.asarray(noise_scale, dtype=jdtype)
-    )
+    noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = _resolved_edge_weight(edges, jdtype, params)
@@ -1817,6 +1830,8 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
     coordinate).
 
     Supports finite edge delays (E2 composition) with ``delay_state`` continuation.
+    ``noise_scale`` is defined at the reference step 0.5 ms (``DT_REF_MS``); the
+    realized coefficient is scaled by ``sqrt(0.5 / dt_ms)``.
     """
     if dynamic and tau_k_ms <= 0:
         raise ValueError("dynamic owned H_K requires tau_k_ms > 0")
@@ -1838,11 +1853,7 @@ def simulate_edge_recurrent_izhikevich_owned_h_k_delayed(
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
     tau_k = jnp.asarray(tau_k_ms, dtype=jdtype)
-    noise_coef = (
-        jnp.asarray(0.5, dtype=jdtype)
-        if noise_scale is None
-        else jnp.asarray(noise_scale, dtype=jdtype)
-    )
+    noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = _resolved_edge_weight(edges, jdtype, params)
@@ -2066,6 +2077,8 @@ def simulate_edge_recurrent_izhikevich_activity_h_k_rbd(
 
     ``kappa_AK = 0`` reduces to D2a ``H_K`` dynamics; ``H_A`` may still evolve from
     local spikes but does not write ``H_K``.
+    ``noise_scale`` is defined at the reference step 0.5 ms (``DT_REF_MS``); the
+    realized coefficient is scaled by ``sqrt(0.5 / dt_ms)``.
     """
     if tau_a_ms <= 0 or tau_k_ms <= 0:
         raise ValueError("tau_a_ms and tau_k_ms must be > 0")
@@ -2105,11 +2118,7 @@ def simulate_edge_recurrent_izhikevich_activity_h_k_rbd(
     tau_a = jnp.asarray(tau_a_ms, dtype=jdtype)
     tau_k = jnp.asarray(tau_k_ms, dtype=jdtype)
     kappa = jnp.asarray(kappa_ak, dtype=jdtype)
-    noise_coef = (
-        jnp.asarray(0.5, dtype=jdtype)
-        if noise_scale is None
-        else jnp.asarray(noise_scale, dtype=jdtype)
-    )
+    noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = _resolved_edge_weight(edges, jdtype, params)
@@ -2436,6 +2445,8 @@ def simulate_edge_recurrent_izhikevich_rbd(
     requires full ``init_state`` including ``delay_state`` (alias
     ``spike_history``) and ``continuation_step_offset`` (global step index at
     segment start).
+    ``noise_scale`` is defined at the reference step 0.5 ms (``DT_REF_MS``); the
+    realized coefficient is scaled by ``sqrt(0.5 / dt_ms)``.
     """
     family = _validate_rbd_family(rbd_family)
     if tau_h_ms <= 0:
@@ -2457,11 +2468,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
     kappa = jnp.asarray(kappa_h, dtype=jdtype)
     beta = jnp.asarray(beta_h, dtype=jdtype)
     i_ref_arr = jnp.asarray(i_ref, dtype=jdtype)
-    noise_coef = (
-        jnp.asarray(0.5, dtype=jdtype)
-        if noise_scale is None
-        else jnp.asarray(noise_scale, dtype=jdtype)
-    )
+    noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = _resolved_edge_weight(edges, jdtype, params)
@@ -2779,6 +2786,8 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     Args:
         params, edges, n_steps, dt_ms, key: as in simulate_edge_recurrent_izhikevich
         dtype, drive_schedule, silence_mask, noise_scale: as in simulate_edge_recurrent_izhikevich
+        (``noise_scale`` is defined at the reference step 0.5 ms (``DT_REF_MS``);
+        the realized coefficient is scaled by ``sqrt(0.5 / dt_ms)``)
         noise_schedule: optional exact per-step unit-noise array (chain schedule from the
             Model path); None keeps the legacy bulk draw, bit-identical.
         r_star: target activity trace (default 0.05, ~expected spikes/step)
@@ -2813,11 +2822,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     drive = params.drive.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
-    noise_coef = (
-        jnp.asarray(0.5, dtype=jdtype)
-        if noise_scale is None
-        else jnp.asarray(noise_scale, dtype=jdtype)
-    )
+    noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = _resolved_edge_weight(edges, jdtype, params)
@@ -3352,6 +3357,8 @@ def simulate_edge_recurrent_izhikevich_hdp(
     Args:
         params, edges, n_steps, dt_ms, key: as in simulate_edge_recurrent_izhikevich
         dtype, drive_schedule, silence_mask, noise_scale: as in simulate_edge_recurrent_izhikevich
+        (``noise_scale`` is defined at the reference step 0.5 ms (``DT_REF_MS``);
+        the realized coefficient is scaled by ``sqrt(0.5 / dt_ms)``)
         H_min, H_max: clamp bounds for H_i (default [0.1, 10.0])
         tau_0_ms: base H_i integration time constant (default 100 ms);
             per-neuron tau_i = tau_0_ms * size_i**3 (larger/slower for E,
@@ -3507,11 +3514,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     drive = params.drive.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
-    noise_coef = (
-        jnp.asarray(0.5, dtype=jdtype)
-        if noise_scale is None
-        else jnp.asarray(noise_scale, dtype=jdtype)
-    )
+    noise_coef = _noise_coef(noise_scale, dt_ms, jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     tau_syn_ms = jnp.maximum(resolve_edge_tau_ms(edges, jdtype), jnp.asarray(1e-6, dtype=jdtype))
@@ -4464,6 +4467,7 @@ def simulate_receptor_exponential_izhikevich(
     drive = params.drive.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
+    noise_coef = _noise_coef(0.5, dt_ms, jdtype)
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = _resolved_edge_weight(edges, jdtype, params)
@@ -4503,7 +4507,7 @@ def simulate_receptor_exponential_izhikevich(
         v, u, prev_spikes, syn_state = carry
         edge_drive = weight * syn_state
         syn = _segment_sum(edge_drive, post, n_neurons)
-        current_native = drive + sched_t + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
+        current_native = drive + sched_t + syn + noise_coef * noise_t
         dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
         v_next = v + dt * dv
         u_next = u + dt * du
