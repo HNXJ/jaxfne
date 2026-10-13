@@ -1,6 +1,6 @@
 # Izhikevich 2003 P3b preregistration: net.m update-order arm
 
-Status: **draft v3**, unsigned (Hamm asked for the draft 2026-10-13). Nothing scored runs before
+Status: **draft v4**, unsigned, ready for signature (Hamm asked for the draft 2026-10-13). Nothing scored runs before
 signature. P3 (signed v7) stays FAIL whatever P3b finds. P3b asks a single question: do the paper's
 Fig. 3 claims hold when the kernel uses `net.m`'s own update order?
 
@@ -11,7 +11,9 @@ v1 review (Muse, 2026-10-13): REVISE. Fixed here:
 
 v2 review (Muse, 2026-10-13): REVISE. Fixed here: the network constructor is named, the gate's
 generators and injection are pinned, gate step 1 has a rounding-flip bar, the remaining
-implementer choices are pinned, and the kernel arm's S1 numbers are listed.
+implementer choices are pinned, and the kernel arm's S1 numbers are listed. v3 review: REVISE on
+two items, fixed here (v4): both arms expose the tested v for the gate, and the keys come from
+`fig3_keys`.
 
 Trigger: `PREREG_P3.md` §Sensitivity, S1. The reference arm fails N3 in every seed while the
 kernel passes it (`RESULT_P3.md`, corrected S1 table).
@@ -67,7 +69,8 @@ Changes from the scored P3 arm, all of them `net.m`'s:
 | Threshold test | every 0.5 ms | every 1 ms, with overshoot |
 
 Network and keys are P3's:
-- `k_r, k_w, k_noise = jax.random.split(PRNGKey(seed), 3)`.
+- `k_r, k_w, k_noise = run_izh.fig3_keys(seed)` (`jax.random.split(PRNGKey(seed), 3)`); the
+  constructor below calls the same function, so one split serves both.
 - a, b, c, d and W = S from `run_izh.build_sens_fig3_network(seed, dtype, w_multiple=1.0)`; its
   noise, drive and v₀/u₀ outputs are not used.
 - v₀ = −65, u₀ = b v₀.
@@ -79,13 +82,15 @@ Network and keys are P3's:
 is given, row t replaces the step's draw and `rng` is never read (it may be None); `drive` stays 0.
 Its default path is unchanged and checked byte-for-byte against `e67f3b86` on seed 1. Both arms
 take a, b, c, d and S from the same `net` dict (`net_reference.build_network`), cast to the arm's
-dtype. The gate runs in float64, with x64 enabled before any array is built.
+dtype. For the gate, both arms take an optional `return_v` flag; when set they also return
+`v_test` (n_steps, n), the v each step's threshold test reads. The default outputs are unchanged.
+The gate runs in float64, with x64 enabled before any array is built.
 
 1. **Small, noise-free.** 50 cells: `build_network(np.random.default_rng(20261013), n_e=40,
    n_i=10)`. thal = 6.0 for every cell and row (the constant drive, given as thal to both arms),
    1000 ms. Rasters must be identical row for row, and extra u must agree at rtol 1e-9. A differing
-   row passes only as a rounding flip: every cell that differs there has |v − 30| < 1e-9 at that
-   test in both arms; then the step-2 bar applies to the rest of the run.
+   row passes only as a rounding flip: every cell that differs there has |v_test − 30| < 1e-9 at
+   that row in both arms; then the step-2 bar applies to the rest of the run.
 2. **Full network.** `build_network(np.random.default_rng(1))`, 1000 ms. thal from
    `np.random.default_rng(2)`: per row, 5·standard_normal(800) then 2·standard_normal(200),
    concatenated, the same arrays passed to both arms.
