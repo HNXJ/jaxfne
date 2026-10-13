@@ -14,11 +14,16 @@ import argparse
 import importlib.util
 import json
 import subprocess
+import sys
 from pathlib import Path
 
-import numpy as np
-
 HERE = Path(__file__).resolve().parent
+
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+
+import numpy as np  # noqa: E402
 _ANALYSIS = HERE / "izh_analysis.py"
 _spec = importlib.util.spec_from_file_location("izh_analysis_for_run", _ANALYSIS)
 izh = importlib.util.module_from_spec(_spec)

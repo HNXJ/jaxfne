@@ -14,7 +14,7 @@ as done with jaxfne only when it runs through the library (P6).
 | [Predictive coding light, Fig. 2 (inhibitory STDP removes predictable spikes)](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig2)<br>N'dri, Barbier, Teulière and Triesch, Nat Commun 2025 | demonstration | 0.5.6 | — | — |
 | [Hodgkin–Huxley reference against a reduced jaxfne neuron (AT-01)](https://hnxj.github.io/jaxfne/dashboard/#model/hh-at01)<br>Hodgkin and Huxley 1952, through Jaxley | demonstration | 0.5.5 | — | — |
 | [Q-learning on jaxfne network features](https://hnxj.github.io/jaxfne/dashboard/#model/qlearning)<br>Watkins and Dayan 1992 (learning rule) | demonstration | 0.5.6 | — | — |
-| [Izhikevich 2003, Figs. 2 and 3 (single-cell patterns and the 1000-cell network)](https://hnxj.github.io/jaxfne/dashboard/#model/izhikevich2003)<br>Izhikevich, IEEE Trans Neural Netw 2003 | in progress | 0.5.6 | P3 | — |
+| [Izhikevich 2003, Figs. 2 and 3 (single-cell patterns and the 1000-cell network)](https://hnxj.github.io/jaxfne/dashboard/#model/izhikevich2003)<br>Izhikevich, IEEE Trans Neural Netw 2003 | not reproduced | 0.5.7 | P5 | not reproduced |
 
 ## Planned
 

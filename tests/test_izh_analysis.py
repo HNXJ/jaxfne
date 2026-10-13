@@ -447,7 +447,7 @@ def test_p3_s1_reference_writes_and_reports(tmp_path, monkeypatch):
 
     nref = _load_netref()
     r = _load_run_izh()
-    entry = nref.write_seed(tmp_path, 1, 0.2)
+    entry = nref.write_seed(tmp_path, 1, 0.5)  # longer than the 200 ms discard
     z = np.load(tmp_path / "1.npz")
     assert entry["n_spikes"] > 0, "fixture must spike"
     assert z["spike_rows"].shape == z["spike_cols"].shape == (entry["n_spikes"],)
