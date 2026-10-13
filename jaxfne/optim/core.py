@@ -1912,6 +1912,23 @@ def _tune_scalar_soft_rate_optax(
 
     from jaxfne.core import TuneResult, json_safe, _model_with_scalar_parameter, _evaluate_soft_rate_targets
 
+    # Edge-list-authoritative models (placeholder emitter.W, topology in
+    # params["edge_list"]) scale through host-side numpy in
+    # _model_with_scalar_parameter's synaptic_gain/gAMPA branches, which is
+    # concrete-only: under jax.value_and_grad it raises a raw
+    # ConcretizationTypeError. Refuse explicitly before the gradient loop.
+    if parameter in ("synaptic_gain", "gAMPA"):
+        from jaxfne.emitters import is_placeholder_dense_W
+
+        emitter = model.params["emitter"]
+        if is_placeholder_dense_W(emitter.W, emitter.n_neurons) and "edge_list" in model.params:
+            raise ValueError(
+                f"Differentiable tuning of {parameter!r} is not supported for "
+                "edge_list-authoritative models (placeholder emitter.W): the "
+                "edge_list scaling path is concrete-only; use the black-box "
+                "tune path instead"
+            )
+
     groups: dict = {}
     targets_hz: dict = {}
     for gate_spec in getattr(objective, "gates", []):

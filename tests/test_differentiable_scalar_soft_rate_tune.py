@@ -111,3 +111,80 @@ def test_gampa_scalar_parameter_edit_is_behaviorally_identical_to_prior_numpy_im
     new_model = _model_with_scalar_parameter(model, "gAMPA", value)
     actual = np.asarray(new_model.params["emitter"].W)
     assert np.array_equal(expected, actual)
+
+
+def _edge_list_authoritative_model():
+    """Small edge-list-authoritative model: placeholder emitter.W, topology in edge_list."""
+    from dataclasses import replace
+
+    import jax.numpy as jnp
+
+    from jaxfne._model import Model
+    from jaxfne.emitters import is_placeholder_dense_W
+
+    base = _model()
+    emitter = base.params["emitter"]
+    assert "edge_list" in base.params
+    assert int(base.params["edge_list"].n_edges) > 0
+    new_emitter = replace(emitter, W=jnp.zeros((0, 0), dtype=emitter.W.dtype))
+    model = Model(cfg=base.cfg, params={**base.params, "emitter": new_emitter}, static=dict(base.static))
+    assert is_placeholder_dense_W(model.params["emitter"].W, model.params["emitter"].n_neurons)
+    return model
+
+
+def test_edge_list_synaptic_gain_refuses_differentiable_loop():
+    import pytest
+
+    model = _edge_list_authoritative_model()
+    with pytest.raises(ValueError) as excinfo:
+        model.tune(
+            objectives=_rate_objective(), optimizer=_optax_adam(), simulation=_sim(),
+            parameter="synaptic_gain", steps=5,
+        )
+    assert "synaptic_gain" in str(excinfo.value)
+    assert "edge_list" in str(excinfo.value)
+
+
+def test_edge_list_gampa_refuses_differentiable_loop():
+    import pytest
+
+    model = _edge_list_authoritative_model()
+    with pytest.raises(ValueError) as excinfo:
+        model.tune(
+            objectives=_rate_objective(), optimizer=_optax_adam(), simulation=_sim(),
+            parameter="gAMPA", steps=5,
+        )
+    assert "gAMPA" in str(excinfo.value)
+    assert "edge_list" in str(excinfo.value)
+
+
+def test_concrete_edge_list_scaling_unchanged_at_asymmetric_values():
+    """Concrete (non-traced) edge-list scaling keeps working at 0.7 and 1.3.
+
+    This fixture's edge_list uses compact scalar-magnitude storage
+    (``magnitude_times_presynaptic_sign`` with one ``weight_magnitude``), so
+    both parameters scale every resolved weight by the factor -- positive-only
+    gAMPA selectivity needs per-edge storage. The test pins that behavior.
+    """
+    import numpy as np
+
+    from jaxfne._model import _model_with_scalar_parameter
+    from jaxfne.emitters import resolve_edge_weight
+
+    model = _edge_list_authoritative_model()
+    sign = np.asarray(model.params["emitter"].sign)
+    el0 = model.params["edge_list"]
+    assert el0.weight_magnitude is not None
+    base_weights = np.asarray(resolve_edge_weight(el0, el0.weight.dtype, presynaptic_sign=sign))
+
+    seen = {}
+    for parameter in ("synaptic_gain", "gAMPA"):
+        for scale in (0.7, 1.3):
+            scaled = _model_with_scalar_parameter(model, parameter, scale)
+            assert np.asarray(scaled.params["emitter"].W).shape == (0, 0)
+            el = scaled.params["edge_list"]
+            weights = np.asarray(resolve_edge_weight(el, el.weight.dtype, presynaptic_sign=sign))
+            np.testing.assert_allclose(weights, base_weights * scale, rtol=1e-6, atol=0)
+            seen[(parameter, scale)] = weights
+    assert not np.array_equal(seen[("synaptic_gain", 0.7)], seen[("synaptic_gain", 1.3)])
+    assert not np.array_equal(seen[("gAMPA", 0.7)], seen[("gAMPA", 1.3)])
