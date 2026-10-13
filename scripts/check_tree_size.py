@@ -86,6 +86,9 @@ def check_tree(
             violations.append(f"stale-allowlist-entry: {path}")
     if total > budget:
         violations.append(f"over-budget: total={total} budget={budget}")
+    budget_files = allow.get("budget_files")
+    if budget_files is not None and len(sizes) > int(budget_files):
+        violations.append(f"over-file-budget: files={len(sizes)} budget_files={budget_files}")
     info = {
         "files": len(sizes),
         "total": total,
