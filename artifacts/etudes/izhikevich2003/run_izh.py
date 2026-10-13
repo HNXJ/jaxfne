@@ -830,6 +830,186 @@ def cmd_sens_report(sens_id, sens_dir, kernel_dir, out_path):
     return report
 
 
+# --- amendment v8.2 (PREREG_P3_v8.md, signed v8.2) ---------------------------------------------------
+#
+# The v7 entries above (FIG2_RUNS, cmd_fig2, cmd_score) are unchanged; v8 adds
+# new names only. v8 scores one new run (C8 at pulse amplitude 2.0) and a
+# relative C4 rule against the v7 C1/C4/C5 runs.
+
+V8_AMENDMENT = "v8.2"
+V8_PREREG = "PREREG_P3_v8.md signed v8.2"
+V8_C8_AMPLITUDE = 2.0
+FIG2_V8_RUNS = {
+    # run_id: (type, segments in (ms, current), event row, steps, kind)
+    "C8": ("RZ", ((10.0, 0.0), (1.0, V8_C8_AMPLITUDE), (311.0, 0.0)), 110, 3220, "pulse"),
+}
+
+
+def expected_fig2_v8_settings():
+    """Prereg settings of the v8 C8 run; the v7 C8 entry keeps amplitude 5.0."""
+    t, segs, event, n, kind = FIG2_V8_RUNS["C8"]
+    a, b, c, d = FIG2_TYPES[t]
+    return {"C8": {"type": t, "a": a, "b": b, "c": c, "d": d,
+                   "vstar": fixed_point_vstar(b),
+                   "segments": [[ms, cur] for ms, cur in segs],
+                   "event_row": event, "n_steps": n, "dt_ms": FIG2_DT,
+                   "dtype": FIG2_DTYPE, "key_seed": 0,
+                   "noise_scale": 0.0, "kind": kind}}
+
+
+def _git_status_porcelain():
+    """Porcelain status; a failed git call reads as a tracked change, so the run is refused."""
+    try:
+        res = subprocess.run(["git", "-C", str(_repo_root()), "status", "--porcelain"],
+                             capture_output=True, text=True)
+    except OSError:
+        return " M <git unavailable>"
+    return res.stdout if res.returncode == 0 else " M <git status failed>"
+
+
+def _v8_tree_dirty(status=None):
+    """True when `git status --porcelain` lists a tracked change (`??` rows are untracked)."""
+    if status is None:
+        status = _git_status_porcelain()
+    for line in str(status).splitlines():
+        if line.strip() and not line.startswith("??"):
+            return True
+    return False
+
+
+def cmd_fig2_v8(out_dir):
+    """v8 Fig. 2 C8 run at pulse amplitude 2.0; refuses on a dirty tree (exit 2)."""
+    if _v8_tree_dirty():
+        raise SystemExit(2)
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    expected = expected_fig2_v8_settings()["C8"]
+    t, segs, event, n, _kind = FIG2_V8_RUNS["C8"]
+    v, rows = run_single_cell(t, segs, n)
+    np.savez_compressed(out / "C8.npz",
+                        spike_rows=np.asarray(rows, dtype=np.int64), v=v)
+    settings = dict(expected, file="C8.npz", n_spikes=len(rows))
+    manifest = {"prereg": V8_PREREG + ", Fig. 2 C8",
+                "amendment": V8_AMENDMENT,
+                "code_sha": _git_sha(), "backend": _jax_backend(),
+                "kernel": "jaxfne.emitters.simulate_eig_izhikevich",
+                "dtype": FIG2_DTYPE, "dt_ms": FIG2_DT,
+                "sensitivity": None, "runs": {"C8": settings}}
+    (out / "manifest.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
+    print(f"wrote v8 Fig. 2 C8 run to {out}")
+    return manifest
+
+
+def eval_c4_v8(c4_rows, c1_rows, c5_rows, dt_ms=FIG2_DT,
+               c4_event=100, c1_event=100, c5_event=100):
+    """v8 C4: rate >= 50 Hz and the C4 ISI ratio strictly below the C1 and C5 ratios.
+
+    Ratios use v7's formula (last/first). Any None ratio fails; a missing run is
+    reported as incomplete by cmd_v8, not here.
+    """
+    c4_win = izh.window_rows([int(r) for r in c4_rows], c4_event, dt_ms)
+    c1_win = izh.window_rows([int(r) for r in c1_rows], c1_event, dt_ms)
+    c5_win = izh.window_rows([int(r) for r in c5_rows], c5_event, dt_ms)
+    r4, r1, r5 = (izh.isi_ratio(c4_win), izh.isi_ratio(c1_win), izh.isi_ratio(c5_win))
+    rate = izh.rate_hz(c4_win)
+    numbers = {"n_spikes": len(c4_win), "rate_hz": rate,
+               "isi_ratio": r4, "c1_isi_ratio": r1, "c5_isi_ratio": r5}
+    ok = (rate >= 50.0 and r4 is not None and r1 is not None and r5 is not None
+          and r4 < r1 and r4 < r5)
+    return {"verdict": "pass" if ok else "fail", "numbers": numbers}
+
+
+def _dir_shas(fig_dir):
+    """code_sha values of every manifest.json under a run dir."""
+    shas = set()
+    for m in sorted(Path(fig_dir).rglob("manifest.json")):
+        try:
+            shas.add(json.loads(m.read_text(encoding="utf-8")).get("code_sha"))
+        except (OSError, ValueError):
+            shas.add(None)
+    return shas
+
+
+def cmd_v8(v7_score_path, v7_fig2_dir, v8_fig2_dir, out_path):
+    """v8 scorer: C1-C3/C5-C7 and Fig. 3 copied from the v7 score, C8 on the v8 run, C4 relative."""
+    v7_report = json.loads(Path(v7_score_path).read_text(encoding="utf-8"))
+    v7_shas = _dir_shas(v7_fig2_dir) | set(v7_report.get("run_code_shas", []))
+    v8_shas = _dir_shas(v8_fig2_dir)
+    if len(v7_shas) != 1 or None in v7_shas or len(v8_shas) != 1 or None in v8_shas:
+        raise SystemExit(f"v8 needs one SHA per side: "
+                         f"v7={sorted(map(str, v7_shas))} v8={sorted(map(str, v8_shas))}")
+    v7_sha = next(iter(v7_shas))
+    v8_sha = next(iter(v8_shas))
+    v7_fig2 = v7_report.get("fig2", {}).get("criteria", {})
+    criteria = {}
+    for rid in ("C1", "C2", "C3", "C5", "C6", "C7"):
+        entry = v7_fig2.get(rid)
+        if entry is None:
+            criteria[rid] = {"verdict": "incomplete", "numbers": {}}
+        else:
+            criteria[rid] = json.loads(json.dumps(entry))
+    expected = expected_fig2_settings()
+    expected_v8 = expected_fig2_v8_settings()
+
+    def _v7_run(run_id):
+        try:
+            man = json.loads((Path(v7_fig2_dir) / "manifest.json").read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+        exp = expected.get(run_id)
+        got = man.get("runs", {}).get(run_id)
+        if exp is None or got is None:
+            return None
+        if {k: v for k, v in got.items() if k in exp} != exp:
+            return None
+        try:
+            rows, _ = _load_run_npz(v7_fig2_dir, run_id)
+        except OSError:
+            return None
+        return rows
+
+    c1_rows = _v7_run("C1")
+    c4_rows = _v7_run("C4")
+    c5_rows = _v7_run("C5")
+    if c1_rows is None or c4_rows is None or c5_rows is None:
+        criteria["C4"] = {"verdict": "incomplete", "numbers": {}}
+    else:
+        criteria["C4"] = eval_c4_v8(c4_rows, c1_rows, c5_rows, FIG2_DT,
+                                   expected["C4"]["event_row"],
+                                   expected["C1"]["event_row"],
+                                   expected["C5"]["event_row"])
+    exp8 = expected_v8["C8"]
+    try:
+        man8 = json.loads((Path(v8_fig2_dir) / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        man8 = {}
+    got8 = man8.get("runs", {}).get("C8")
+    if got8 is None or {k: v for k, v in got8.items() if k in exp8} != exp8:
+        criteria["C8"] = {"verdict": "incomplete", "numbers": {}}
+    else:
+        try:
+            rows8, v8 = _load_run_npz(v8_fig2_dir, "C8")
+        except OSError:
+            rows8, v8 = None, None
+        if rows8 is None or v8 is None:
+            criteria["C8"] = {"verdict": "incomplete", "numbers": {}}
+        else:
+            criteria["C8"] = eval_c8(v8, exp8["event_row"], FIG2_DT, rows8)
+    verdicts = {k: criteria[k]["verdict"] for k in
+                ("C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8")}
+    overall = ("pass" if all(v == "pass" for v in verdicts.values())
+               else "incomplete" if any(v == "incomplete" for v in verdicts.values())
+               else "fail")
+    report = {"prereg": V8_PREREG, "amendment": V8_AMENDMENT,
+              "code_sha": _git_sha(), "v7_sha": v7_sha, "v8_sha": v8_sha,
+              "v7_score": str(v7_score_path),
+              "fig2": {"criteria": criteria, "verdicts": verdicts, "overall": overall},
+              "fig3": json.loads(json.dumps(v7_report.get("fig3", {})))}
+    Path(out_path).write_text(json.dumps(report, indent=1), encoding="utf-8")
+    print(f"fig2={overall} fig3=copied (v7) -> {out_path}")
+    return report
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -860,7 +1040,24 @@ def main():
     prep.add_argument("--kernel", required=True)
     prep.add_argument("--out", required=True)
     prep.add_argument("--signed", action="store_true")
+    p8 = sub.add_parser("fig2-v8")
+    p8.add_argument("--out", required=True)
+    p8.add_argument("--signed", action="store_true")
+    pv = sub.add_parser("v8")
+    pv.add_argument("--v7-score", required=True)
+    pv.add_argument("--v7-fig2", required=True)
+    pv.add_argument("--v8-fig2", required=True)
+    pv.add_argument("--out", required=True)
+    pv.add_argument("--signed", action="store_true")
     a = ap.parse_args()
+    if a.cmd == "fig2-v8":
+        check_out(a.out, a.signed)
+        cmd_fig2_v8(a.out)
+        return
+    if a.cmd == "v8":
+        check_out(a.out, a.signed)
+        cmd_v8(a.v7_score, a.v7_fig2, a.v8_fig2, a.out)
+        return
     if a.cmd == "s1":
         cmd_s1(a.reference, a.kernel, a.out)
         return
