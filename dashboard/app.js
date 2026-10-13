@@ -494,6 +494,8 @@ var CLASSES = [
     def: "A signed preregistration is scored and some criteria pass, or all pass on a standalone port only." },
   { id: "not reproduced", label: "Not reproduced", chip: "chip-fail", symbol: "✗",
     def: "A signed preregistration is scored and its verdict is a fail, shown with the same prominence as a pass (B2)." },
+  { id: "in progress", label: "In progress", chip: "chip-incomplete", symbol: "…",
+    def: "On the replication pipeline (P0–P7) with no scored preregistration yet; the stage track shows how far it is." },
   { id: "demonstration", label: "Demonstration", chip: "chip-incomplete", symbol: "◌",
     def: "A published model runs in jaxfne without a scored numerical comparison to the paper. It carries no verdict." }
 ];
@@ -518,7 +520,7 @@ function clear(node) {
 }
 
 function scored(papers) {
-  return papers.filter(function (p) { return p.class !== "demonstration"; });
+  return papers.filter(function (p) { return p.class !== "demonstration" && p.class !== "in progress"; });
 }
 
 function countVerdicts(papers) {
@@ -661,7 +663,8 @@ function renderModel(view, data, paper) {
     });
   }
 
-  card.appendChild(el("h3", paper["class"] === "demonstration" ? "Declared checks" : "Original and replicated"));
+  var unscoredClass = paper["class"] === "demonstration" || paper["class"] === "in progress";
+  card.appendChild(el("h3", unscoredClass ? "Declared checks" : "Original and replicated"));
   card.appendChild(criteriaTable(paper));
   if ((paper.charts || []).length) {
     card.appendChild(el("h3", "Figures"));

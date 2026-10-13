@@ -1,9 +1,6 @@
 ## Question
 
-Do the library's four Izhikevich cell-type presets reproduce the firing patterns of Izhikevich
-(2003, IEEE Trans Neural Netw 14:1569)? No comparison has been run. This page is a
-demonstration that records what the presets contain; scoring the firing patterns is a candidate
-first étude.
+Does jaxfne's existing Izhikevich kernel reproduce the paper's single-cell firing patterns (Fig. 2) and the 1000-cell network rhythm (Fig. 3)? The port spec is `artifacts/etudes/izhikevich2003/PORT_SPEC.md`.
 
 ## Formulation
 
@@ -20,9 +17,11 @@ At $v \ge 30$ mV: $v \leftarrow c$, $u \leftarrow u + d$.
 
 ## Implementation
 
-`jaxfne/presets.py` (`CELL_TYPE_PRESETS`), public through `jaxfne`. The module labels them
-metadata only, with no biological calibration or empirical validation; drives are in native
-current units.
+The scored arm will be the existing dense kernel `jaxfne.emitters.simulate_eig_izhikevich` with
+per-cell $a, b, c, d$ arrays (`PORT_SPEC.md`); a NumPy transcription of the paper's program is the
+reference arm. The table above lists the library's cell-type presets (`jaxfne/presets.py`,
+`CELL_TYPE_PRESETS`), which the module labels metadata only, with no biological calibration or
+empirical validation; drives are in native current units.
 
 ## Deviations and limitations
 
@@ -33,4 +32,4 @@ current units.
 
 ## Reproduce
 
-There is no run to reproduce. The parameters are in `jaxfne/presets.py`.
+Nothing is scored yet. The commands arrive with the P4 build.
