@@ -34,6 +34,10 @@ All items labeled **observed** (with source) or **inferred**. No passage quotes 
 
 ## 4. Gaps, inconsistencies, jaxfne needs
 
+Hamm (2026-10-13): the port follows the code that produced Fig. 6 (`main.py` run: C 3,
+checkpoint 5, a_init 0.0, local-I tauD 2.0, 15–60 Hz / 40-bin grid). Where the paper text differs,
+the difference is listed as a declared deviation.
+
 - Gamma band (observed): 35–100 (Fig-3 text) vs 40–90 (Fig-3 caption) vs >35 (Fig-4 text) vs 55–75 middle gamma (Fig-4) vs 35–60 (code `band_definitions`). Beta: 15–30 vs ~10–30 vs 13–30 (code). **Inferred**: adopt per-task bands; Fig-6 code grid (15–60 Hz, 40 bins) is the replicable choice.
 - Mismatches (observed): stim 1 nA vs 0.6; onset "time 0" vs 500–1000/1500 ms; "random half of E" vs every-other-E; local-I tauD 2.0 (`main.py`) vs 5.0 (`models.py`); OU tau/amp ranges differ between the two builders; GSDR defaults differ (C 2 vs 3, checkpoint 10 vs 5, a_init 0.5 vs 0.0).
 - Absent (searched PLOS/PMC/methods text + repo raws): Eq-5 form, parameter Tables, paper dt/duration/integrator, HH capacitance, DynaSim-vs-Jaxley split, recording methods tail.

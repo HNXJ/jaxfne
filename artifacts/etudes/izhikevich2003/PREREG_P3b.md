@@ -1,6 +1,7 @@
 # Izhikevich 2003 P3b preregistration: net.m update-order arm
 
-Status: **draft v4**, unsigned, ready for signature (Hamm asked for the draft 2026-10-13). Nothing scored runs before
+Status: **signed v4** (Hamm, 2026-10-13T23:27:00Z, after three review rounds; he asked for the
+draft 2026-10-13). Nothing scored runs before
 signature. P3 (signed v7) stays FAIL whatever P3b finds. P3b asks a single question: do the paper's
 Fig. 3 claims hold when the kernel uses `net.m`'s own update order?
 

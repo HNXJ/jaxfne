@@ -1,6 +1,6 @@
 # Izhikevich 2003 P3 v8: Fig. 2 amendment (post hoc)
 
-Status: **draft v8.2**, unsigned (C4 per Hamm's call; ready for review and signature). Hamm (2026-10-13) asked for this draft after the v7 FAIL and the
+Status: **signed v8.2** (Hamm, 2026-10-13T23:27:00Z, after two review rounds). Hamm (2026-10-13) asked for this draft after the v7 FAIL and the
 unscored diagnostics. **Post hoc:** the change was chosen knowing its outcome
 (`DIAGNOSTIC_P3.md`), so a pass under v8 describes the kernel and is not a prospective test. The
 v7 verdict (FAIL: C4, C8, N2) stays on record unchanged.
