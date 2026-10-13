@@ -11,8 +11,9 @@ pass or fail (B2). Ledgers and results live on the lane branch until it merges t
 
 Decisions (Hamm 2026-10-13):
 
-- PCL Fig. 3 ships at its v4 verdict and the lane moves on. A new prereg for T2 and T4 would be
-  written after seeing their outcome; the P6 library path waits for a later release.
+- PCL Fig. 3 stays in progress (Hamm 2026-10-13: it must replicate). The v4 FAIL stands as
+  recorded; the next attempt is a new, separately declared protocol, and the P6 library path
+  follows (B1).
 - Izhikevich 2003 ships unscored in 0.5.6: the P3 prereg is drafted and calibrated, not signed.
   Signature, S1 reference arm and scored runs move to 0.5.7.
 - CAMINOS P6 (library path) moves to 0.5.7.

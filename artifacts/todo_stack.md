@@ -9,8 +9,13 @@ first, amend in place.
 ## 1. Decisions waiting on Hamm (they unblock items below)
 
 Open: T-12, T-13, T-14, T-17 in §3. Decided 2026-10-13: T-1 (a) landed in e3a7a41b; T-2
-bundle; PCL Fig. 3 moves on, Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
+bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 `artifacts/etudes/REPLICATIONS.md`).
+
+- T-3 [H] PCL Fig. 3 stays in progress (Hamm 2026-10-13: it must replicate). v4 FAIL stands
+  (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). Next: a new declared prereg (v5) aimed at the
+  T2/T4 failure cause in `prereg/P3_fig3_diagnostic.md`, then P6 (B1). Hamm signs v5. Closes
+  when: a signed prereg reproduces Fig. 3 and the P6 attempt is recorded.
 
 ## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
