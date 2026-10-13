@@ -133,7 +133,11 @@ reported-only rows in the order listed. Draw $j$ of row $i$ uses one generator
 phase, AR(2) innovations or episode placement).
 
 - Null floors (7): white Poisson; Poisson on a lognormal AR(1) rate with τ = 8 and 30 ms at
-  variance 0.5×, 2× and 8× the Poisson count variance.
+  variance 0.5×, 2× and 8× the Poisson count variance, listed τ-major (τ = 8: 0.5×, 2×, 8×; then
+  τ = 30). The count in bin $t$ is Poisson($\lambda_t$), $\lambda_t = 8\,e^{\sigma z_t - \sigma^2/2}$,
+  $z_t = \phi z_{t-1} + \sqrt{1-\phi^2}\,\varepsilon_t$, $\phi = e^{-1/\tau}$ ($\tau$ in bins),
+  $z_0, \varepsilon_t \sim N(0, 1)$; $\operatorname{Var}\lambda_t = 64(e^{\sigma^2} - 1) = m \cdot 8$ for
+  multiple $m$, so $\sigma^2 = \ln(1 + m/8)$. The generator draws $z$ first, then the counts.
 - θ: the smallest of 2, 3, 4, 6 for which (i) every null floor has a false-positive rate ≤ 5 % in
   each band and (ii) every detection row at true peak excess 3θ detects ≥ 95 %. If some θ meets
   (i) and every 40 Hz row at it, but the 10 Hz rows fail (ii) at every such θ, the alpha band widens
@@ -142,18 +146,23 @@ phase, AR(2) innovations or episode placement).
 - Detection rows (28): each floor plus an additive component at 10 Hz and, separately, at 40 Hz,
   in two forms: a random-phase sinusoid and a narrowband AR(2) bump of 3 Hz FWHM
   ($x_t = 2r\cos\omega\,x_{t-1} - r^2 x_{t-2} + e_t$, $\omega = 2\pi f_0/1000$,
-  $r = e^{-\pi \cdot 3/1000}$, 1000 burn-in samples discarded). The component is scaled per floor
+  $r = e^{-\pi \cdot 3/1000}$, $x_0 = x_1 = 0$, 11 000 innovations drawn in one call, the first
+  1000 samples discarded). The component is scaled per floor
   so that the true peak excess at the target is 3θ. True peak excess is (C + F) / F at the target
   bin, where F is the floor's mean Welch PSD over its null draws $j = 0$–199 and C is the
   component's mean Welch PSD over 200 draws of the component alone, from
   `default_rng([20261013, 1000 + i, j])`, $j = 0$–199; the component adds to the floor, so C + F is
-  the expected PSD of a detection draw. F and C are fixed estimates, so the bisection (true peak
-  excess within 2 % of 3θ) is deterministic; their sampling error (about 2 %) is reported. A
+  the expected PSD of a detection draw. C is computed at unit amplitude (sinusoid amplitude 1,
+  AR(2) innovations N(0, 1)) and scales with amplitude squared, so the amplitude is
+  $\sqrt{(3\theta - 1)F/C}$ exactly (no bisection is needed); F and C are fixed estimates and their
+  sampling error is reported. The same draws $j$ serve every θ; only the amplitude changes. A
   detection counts when the band call holds with f_pk within 1.5 Hz of the target.
 - Reported only: detection at true peak excess 1.5θ and 2θ on every floor, both forms; and
-  intermittent rows, the 3θ component (the continuous row's amplitude) present only in randomly placed 500 ms episodes covering
-  20 % of the 10 s (the paper's "occasional" synchronized episodes), on the white and the
-  τ = 30 ms, 8× floors.
+  intermittent rows, the 3θ component (the continuous row's amplitude) present only in 4 of the
+  20 aligned 500 ms slots (20 % of the 10 s; slots from `rng.choice(20, 4, replace=False)` after
+  the component), the paper's "occasional" synchronized episodes, on the white and the τ = 30 ms,
+  8× floors. Reported-only rows are ordered 1.5θ rows, 2θ rows (each as the detection rows), then
+  intermittent rows (white before τ = 30 ms 8×, then 10 before 40 Hz, then sinusoid before AR(2)).
 
 **Detector calibration (before signature, known answers).** Unit tests of `izh_analysis.py` on
 constructed inputs; each must hold exactly.
