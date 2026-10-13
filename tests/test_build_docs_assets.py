@@ -148,6 +148,54 @@ def test_build_reads_a_failed_line_for_its_own_slug_only(monkeypatch, capsys):
     assert "[hdp_1000] FAILED" in lines[i1000[0] + 1]
 
 
+def _link_problems(page_rel, text):
+    problems, examined, _ = bda.check_links(bda.load_registry(), {REPO / page_rel: text})
+    assert examined == 1, "fixture page must hold exactly one .html link"
+    return problems
+
+
+def test_links_on_tree_resolve():
+    problems, examined, atlas_links = bda.check_links(bda.load_registry(), bda.docs_pages())
+    assert problems == []
+    assert atlas_links > 0 and examined > atlas_links, "the gate must examine atlas and other links"
+
+
+def test_raw_iframe_resolves_from_the_page_url():
+    # docs/guides/p.md is served at /guides/p/: a raw src needs two levels up to reach _static.
+    frame = '<iframe src="{}_static/atlas/two_neuron_ei/index.html"></iframe>'
+    shallow = _link_problems("docs/guides/p.md", frame.format("../"))
+    assert len(shallow) == 1 and "raw HTML" in shallow[0], shallow
+    assert _link_problems("docs/guides/p.md", frame.format("../../")) == []
+    # An index page is served at its own directory: one level up is enough.
+    assert _link_problems("docs/guides/index.md", frame.format("../")) == []
+
+
+def test_markdown_link_resolves_from_the_file():
+    assert _link_problems("docs/guides/p.md", "[i](../_static/atlas/two_neuron_ei/index.html)") == []
+    deep = _link_problems("docs/guides/p.md", "[i](../../_static/atlas/two_neuron_ei/index.html)")
+    assert len(deep) == 1 and "markdown" in deep[0], deep
+
+
+def test_reference_style_and_uppercase_links_are_examined():
+    ref = _link_problems("docs/guides/p.md", "[i]: ../_static/atlas/two_neuron_ei/missing.html\n")
+    assert len(ref) == 1, ref
+    upper = _link_problems("docs/guides/p.md", '<iframe SRC="../_static/atlas/two_neuron_ei/index.HTML">')
+    assert len(upper) == 1 and "raw HTML" in upper[0], upper
+
+
+def test_atlas_link_must_name_a_built_file():
+    problems = _link_problems("docs/guides/p.md", "[x](../_static/atlas/two_neuron_ei/no_such_panel.html)")
+    assert len(problems) == 1 and "is not an atlas file the build writes" in problems[0], problems
+
+
+def test_other_html_link_must_name_a_file_on_disk():
+    target = "../../_static/etudes/experiment_a/index.html"
+    assert (REPO / "docs/_static/etudes/experiment_a/index.html").is_file(), "fixture needs a tracked page"
+    assert _link_problems("docs/etudes/p.md", f'<iframe src="{target}"></iframe>') == []
+    missing = _link_problems("docs/etudes/p.md", '<iframe src="../../_static/etudes/none.html"></iframe>')
+    assert len(missing) == 1 and "names no file" in missing[0], missing
+
+
 def test_registry_refuses_a_null_compared_field(tmp_path):
     import pytest
 

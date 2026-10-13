@@ -203,7 +203,7 @@ Emitter variation is a **later** étude on the same observation stack.
 
 === "Interactive"
 
-    <iframe class="jx-frame" src="../_static/etudes/multiscale_observation/index.html" loading="lazy" title="Multiscale observation bundle figure"></iframe>
+    <iframe class="jx-frame" src="../../_static/etudes/multiscale_observation/index.html" loading="lazy" title="Multiscale observation bundle figure"></iframe>
 
 Committed bundle still (`artifacts/etudes/multiscale_observation/figure.png`). [Open full page](../_static/etudes/multiscale_observation/index.html).
 

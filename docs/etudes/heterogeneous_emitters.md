@@ -165,7 +165,7 @@ PYTHONPATH=. python3 scripts/run_heterogeneous_emitters_etude.py
 
 === "Interactive"
 
-    <iframe class="jx-frame" src="../_static/etudes/heterogeneous_emitters/index.html" loading="lazy" title="Heterogeneous emitters bundle figure"></iframe>
+    <iframe class="jx-frame" src="../../_static/etudes/heterogeneous_emitters/index.html" loading="lazy" title="Heterogeneous emitters bundle figure"></iframe>
 
 Committed bundle still (`artifacts/etudes/heterogeneous_emitters/figure.png`). [Open full page](../_static/etudes/heterogeneous_emitters/index.html).
 

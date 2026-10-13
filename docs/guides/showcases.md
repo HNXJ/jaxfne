@@ -27,7 +27,7 @@ jtfne.vis.visualize_network_3d(
 ```
 
 <iframe
-  src="../assets/showcases/v1_v4_pfc_network3d.html"
+  src="../../assets/showcases/v1_v4_pfc_network3d.html"
   width="100%"
   height="700px"
   style="border: 1px solid #2e2e3a; border-radius: 8px; background: #0d0d10;"

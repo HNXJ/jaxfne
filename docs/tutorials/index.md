@@ -68,7 +68,7 @@ hierarchy order, one chord per connected pair, chord width by edge count.
 
 === "Interactive"
 
-    <iframe class="jx-frame" src="../../_static/visuals/area_graph_n20.html" loading="lazy" title="G_20 area graph"></iframe>
+    <iframe class="jx-frame" src="../_static/visuals/area_graph_n20.html" loading="lazy" title="G_20 area graph"></iframe>
 
 [Open full page](../_static/visuals/area_graph_n20.html). Reference atlas of the
 1000 ms column run: [index](../_static/atlas/index.html) · [schema](../_static/atlas/schema.html) · [3D](../_static/atlas/network_3d.html) · [raster](../_static/atlas/raster.html) · [LFP](../_static/atlas/lfp.html) · [oscillatory](../_static/atlas/oscillatory.html).

@@ -186,7 +186,7 @@ Package-native operators used: `Signals` field proxy (`phi_e_proxy`, `csd_proxy`
 
 === "Interactive"
 
-    <iframe class="jx-frame" src="../_static/etudes/hdp_controllability_reachability/index.html" loading="lazy" title="HDP controllability bundle figure"></iframe>
+    <iframe class="jx-frame" src="../../_static/etudes/hdp_controllability_reachability/index.html" loading="lazy" title="HDP controllability bundle figure"></iframe>
 
 Panels A–L (panel E = OFF | scalar | vector rasters; MVC #1 inset in D). [Open full page](../_static/etudes/hdp_controllability_reachability/index.html).
 

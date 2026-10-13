@@ -159,7 +159,7 @@ Use jaxfne when you want to:
 The bridge returns `Signals` without a `Model`, so there is no full atlas for it — instead, the dark-theme membrane-potential panel of the HH run above, generated with the canonical `plot_membrane_potentials` plotter:
 
 <iframe
-  src="../_static/jaxley_interop/vm_dark.html"
+  src="../../_static/jaxley_interop/vm_dark.html"
   width="100%"
   height="520px"
   style="border: 1px solid #2e2e3a; border-radius: 8px; background: #0d1117;"

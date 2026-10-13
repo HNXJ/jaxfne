@@ -61,6 +61,11 @@ the rules those releases were held to and are historical context for readers.
   the gallery. The `hdp_1000` and `homeostasis_1000` atlases are regenerated: the 0.5.5
   H1 (e) commit (9958a72) changed their declared configuration hash; neuron and edge counts
   are unchanged.
+- Docs iframes resolve on the built site: 34 of the 47 were raw HTML written one directory
+  too shallow (or deep) for mkdocs directory URLs and pointed at nonexistent paths. The gallery
+  generator and eight pages now use the page-URL depth. `build_docs_assets.py --check`
+  resolves every relative `.html` link in the docs (atlas links against the registry, the
+  rest on disk), and Read the Docs regenerates the atlases before mkdocs runs.
 - The references page lists, per source, the result jaxfne implements and the functions that
   implement it; those functions cite the same DOI, and `tests/test_references_page.py` holds the
   two together. Replicated papers and background work have their own tables.

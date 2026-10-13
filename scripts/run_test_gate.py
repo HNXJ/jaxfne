@@ -55,6 +55,9 @@ DEV_PYTEST_TARGETS = [
     # An atlas regeneration resets figure_state, which silently dropped the
     # canonical atlas from docs/gallery.md twice; dev CI never collected this.
     "tests/test_generate_gallery.py",
+    # Docs atlas registry and .html link resolution; 34 of 47 docs iframes resolved
+    # nowhere under directory URLs before this gate.
+    "tests/test_build_docs_assets.py",
 ]
 
 # 0.5.1-4b(4): parallelize the independent pytest sweeps with xdist (already

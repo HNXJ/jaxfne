@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -183,12 +184,82 @@ def check_registry(registry: dict, manifest_paths: list[Path]) -> tuple[list[str
     return problems, len(entries)
 
 
+# Relative .html links: a markdown link target, or a raw HTML src/href attribute.
+MD_HTML_LINK = re.compile(r"\]\(([^)\s#?]+\.html)|^ {0,3}\[[^\]]+\]:\s*<?([^>\s#?]+\.html)",
+                          re.IGNORECASE | re.MULTILINE)
+RAW_HTML_LINK = re.compile(r"""(?:src|href)\s*=\s*["']([^"'#?]+\.html)""", re.IGNORECASE)
+ATLAS_DIRS = (STATIC / "atlas", STATIC / "atlas_three_area")
+
+
+def link_base(page: Path, raw_html: bool) -> Path:
+    """Directory a docs link resolves from.
+
+    mkdocs rewrites markdown links relative to the source file. A raw HTML attribute
+    reaches the browser unrewritten and resolves from the page URL, which with directory
+    URLs is docs/<a>/<page>/ for docs/<a>/<page>.md and docs/<a>/ for docs/<a>/index.md.
+    """
+    if raw_html and page.name != "index.md":
+        return page.with_suffix("")
+    return page.parent
+
+
+def html_links(text: str):
+    """(offset, link, raw_html) for each relative .html link in a docs page."""
+    for pattern, raw_html in ((MD_HTML_LINK, False), (RAW_HTML_LINK, True)):
+        for match in pattern.finditer(text):
+            link = next(g for g in match.groups() if g)
+            if not re.match(r"^[a-z][a-z0-9+.-]*:|^/", link):
+                yield match.start(), link, raw_html
+
+
+def built_files(entry: dict) -> set[str]:
+    """HTML files a build writes into one atlas directory: its panels and index.html."""
+    return set(entry["panels"]) | {"index.html"}
+
+
+def check_links(registry: dict, pages: dict[Path, str]) -> tuple[list[str], int, int]:
+    """Every relative .html link in the docs pages must resolve.
+
+    A link into an atlas directory names a build product, so it is checked against the
+    registry; any other link must name a file on disk. Returns the problems, the links
+    examined and, of those, the atlas links.
+    """
+    entries = {e["dir"]: e for e in registry["atlases"]}
+    problems, examined, atlas_links = [], 0, 0
+    for page, text in pages.items():
+        for offset, link, raw_html in html_links(text):
+            examined += 1
+            target = Path(os.path.normpath(link_base(page, raw_html) / link))
+            if any(d == target.parent or d in target.parents for d in ATLAS_DIRS):
+                atlas_links += 1
+                entry = entries.get(rel(target.parent))
+                ok = entry is not None and target.name in built_files(entry)
+                why = "is not an atlas file the build writes"
+            else:
+                ok, why = target.is_file(), "names no file"
+            if not ok:
+                kind = "raw HTML" if raw_html else "markdown"
+                line = text.count("\n", 0, offset) + 1
+                problems.append(f"{rel(page)}:{line}: {kind} link {link} {why}")
+    return problems, examined, atlas_links
+
+
+def docs_pages() -> dict[Path, str]:
+    paths = sorted(p for p in (ROOT / "docs").rglob("*.md") if STATIC not in p.parents)
+    return {p: p.read_text(encoding="utf-8") for p in paths}
+
+
 def check() -> int:
-    problems, examined = check_registry(load_registry(), discover())
+    registry = load_registry()
+    problems, examined = check_registry(registry, discover())
     for p in problems:
         print(f"  - {p}")
     print(f"registry check: {examined} atlases, {len(problems)} problems")
-    return 1 if problems or examined == 0 else 0
+    link_problems, links, atlas_links = check_links(registry, docs_pages())
+    for p in link_problems:
+        print(f"  - {p}")
+    print(f"docs links: {links} .html links ({atlas_links} atlas), {len(link_problems)} problems")
+    return 1 if problems or link_problems or examined == 0 or atlas_links == 0 else 0
 
 
 def _child_env() -> dict:
