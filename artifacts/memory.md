@@ -80,6 +80,7 @@ signals = jtfne.simulate(model)  # inherits duration/dt/seed from runtime
 
 - Gates: `dev` (curated architecture), `broad` (`-m "not slow"`), `release` (broad + slow + notebook + strict docs + examples), `rc` (release + parity, build, twine, isolated smoke, attestation). Run them with `python scripts/run_test_gate.py <gate>` (aliases in `Makefile`).
 - CI Fast (`ci.yml`, Ubuntu, py 3.11 and 3.14): compileall → ruff → docs audits → atlas firewall and coverage → docs strict build → doc↔code integrity → `run_test_gate.py dev` (dev) or `broad` (main) → examples → wheel smoke.
+- Run environment (Hamm 2026-10-13: every agent, every jaxfne run): WSL Ubuntu, venv `~/venv_jaxfne` (Python 3.12, jax CUDA, pytest). From a Windows clone, in Git Bash: `wsl --cd "$(pwd -W)" -- bash -lc 'PYTHONPATH=. ~/venv_jaxfne/bin/python -m pytest -q -p no:cacheprovider <tests>'`; scripts the same way with `python <script>`. Tests and small runs set `JAX_PLATFORMS=cpu`; GPU only for a run claimed in jchat (B5), float32, backend and dtype in its manifest. PCL's numba port and the broad pre-push gate keep their Windows interpreters until a Linux gate run is recorded.
 - Attestations and JUnit land gitignored in `artifacts/attestations/`; a tracked attestation changes the attested SHA. Docs policy: `docs/ci_policy.md`.
 
 ## 7. Project state and control files
