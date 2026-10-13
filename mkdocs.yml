@@ -7,6 +7,10 @@ repo_name: HNXJ/jaxfne
 
 docs_dir: docs
 
+# Stand-ins for atlas HTML a checkout has not built (scripts/build_docs_assets.py --build).
+hooks:
+  - scripts/mkdocs_atlas_stubs.py
+
 exclude_docs: |
   _generated/version.md
   for_ai_agents.md
