@@ -179,6 +179,8 @@ def test_markdown_link_resolves_from_the_file():
 def test_reference_style_and_uppercase_links_are_examined():
     ref = _link_problems("docs/guides/p.md", "[i]: ../_static/atlas/two_neuron_ei/missing.html\n")
     assert len(ref) == 1, ref
+    angle = "[i](<../_static/atlas/two_neuron_ei/index.html>)"
+    assert _link_problems("docs/guides/p.md", angle) == []
     upper = _link_problems("docs/guides/p.md", '<iframe SRC="../_static/atlas/two_neuron_ei/index.HTML">')
     assert len(upper) == 1 and "raw HTML" in upper[0], upper
 

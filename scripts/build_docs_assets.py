@@ -185,7 +185,7 @@ def check_registry(registry: dict, manifest_paths: list[Path]) -> tuple[list[str
 
 
 # Relative .html links: a markdown link target, or a raw HTML src/href attribute.
-MD_HTML_LINK = re.compile(r"\]\(([^)\s#?]+\.html)|^ {0,3}\[[^\]]+\]:\s*<?([^>\s#?]+\.html)",
+MD_HTML_LINK = re.compile(r"\]\(<?([^)\s#?<>]+\.html)|^ {0,3}\[[^\]]+\]:\s*<?([^>\s#?]+\.html)",
                           re.IGNORECASE | re.MULTILINE)
 RAW_HTML_LINK = re.compile(r"""(?:src|href)\s*=\s*["']([^"'#?]+\.html)""", re.IGNORECASE)
 ATLAS_DIRS = (STATIC / "atlas", STATIC / "atlas_three_area")

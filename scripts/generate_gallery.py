@@ -4,7 +4,8 @@
 `docs/gallery.md` is output, not source, between the markers
 ``<!-- ATLAS-INDEX:START -->`` / ``<!-- ATLAS-INDEX:END -->``. Only atlases
 whose manifest reads VALIDATED or CANONICAL are listed — GENERATED outputs
-never enter the gallery. Every link is checked against the file on disk.
+never enter the gallery. Every link is checked against docs/_static/atlas_registry.json,
+the record of the panels the docs build writes.
 
 Usage:
     python scripts/generate_gallery.py --check   # verify gallery matches manifests
@@ -25,8 +26,24 @@ END = "<!-- ATLAS-INDEX:END -->"
 LISTED_STATES = ("validated", "canonical")
 
 
+REGISTRY = STATIC / "atlas_registry.json"
+
+
+def _unbuilt(rel: str, panels: list[dict], registry: dict) -> list[str]:
+    """Panel files the docs build does not write for this atlas.
+
+    The HTML is a build product (scripts/build_docs_assets.py), so links are checked
+    against the tracked registry rather than files on disk.
+    """
+    built = registry.get(f"docs/_static/{rel}")
+    return [p["file"] for p in panels] if built is None else [
+        p["file"] for p in panels if p["file"] not in built]
+
+
 def collect() -> tuple[list[dict], list[str]]:
     entries, problems = [], []
+    registry = {e["dir"]: set(e["panels"])
+                for e in json.loads(REGISTRY.read_text(encoding="utf-8"))["atlases"]}
     paths = sorted(STATIC.glob("atlas/**/manifest.json"))
     for manifest_path in paths:
         rel = manifest_path.parent.relative_to(STATIC).as_posix()
@@ -39,11 +56,9 @@ def collect() -> tuple[list[dict], list[str]]:
         state = str(manifest.get("figure_state", "generated")).lower()
         if state not in LISTED_STATES:
             continue
-        panels = manifest.get("panels", [])
-        missing = [p["file"] for p in panels
-                   if not (manifest_path.parent / p["file"]).exists()]
+        missing = _unbuilt(rel, manifest.get("panels", []), registry)
         if missing:
-            problems.append(f"{slug}: missing panel files {missing}")
+            problems.append(f"{slug}: panel files outside the registry {missing}")
             continue
         entries.append({"slug": slug, "base": f"_static/{rel}/",
                         "manifest": manifest, "state": state})
@@ -58,11 +73,9 @@ def collect() -> tuple[list[dict], list[str]]:
         state = str(manifest.get("figure_state", "generated")).lower()
         if state not in LISTED_STATES:
             continue
-        panels = manifest.get("panels", [])
-        missing = [p["file"] for p in panels
-                   if not (manifest_path.parent / p["file"]).exists()]
+        missing = _unbuilt(rel, manifest.get("panels", []), registry)
         if missing:
-            problems.append(f"{rel}: missing panel files {missing}")
+            problems.append(f"{rel}: panel files outside the registry {missing}")
             continue
         entries.append({"slug": rel, "base": f"_static/{rel}/",
                         "manifest": manifest, "state": state})
