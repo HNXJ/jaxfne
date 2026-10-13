@@ -35,11 +35,6 @@ first, amend in place.
     regenerate byte-identical (tutorials 08, 09, circuit geometry); 36 drift, 6 are copies no
     script writes, 1 gallery PNG is never written, 7 have no generator. Regenerating them is a
     declared figure change.
-- T-5 [A] dev → main (Hamm 2026-10-12): broad gate on a fresh clone of the head, push dev, release
-  CI with slow tests on dev, `gh pr create --base main --head dev`, required checks, merge; then
-  main CI, the Read the Docs latest build (first `pre_build` atlas build) and the Dashboard
-  workflow. Closes when: `gh run list -R HNXJ/jaxfne --branch main -L 1` shows success on the
-  merge SHA.
 - T-6 [A] F6 (G-2): "SOM" in the AdEx table and `fields/proxy.py:775` (unknown types default to
   +1); failing test first, second review. Then the CAMINOS P6 prereg for Hamm's signature.
   The F1 connection table does not yet record `sampling`. Closes when: the F6 test passes and
