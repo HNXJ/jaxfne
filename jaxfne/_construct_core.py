@@ -75,8 +75,8 @@ def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
     set on a Configuration is actually honored by the high-level ``simulate`` path.
     Only non-None known keys are applied, so a config without explicit runtime
     knobs yields the default RuntimeConfig (float32, dense, eager) — unchanged
-    behavior. ``dtype="float64"`` still requires JAX x64 enabled to take effect
-    (see ``RuntimeConfig.actual_dtype``).
+    behavior. ``dtype="float64"`` raises unless JAX x64 is enabled before array
+    construction (see ``RuntimeConfig.actual_dtype``).
     """
     kw: dict[str, Any] = {}
     for k in RUNTIME_METADATA_KEYS:

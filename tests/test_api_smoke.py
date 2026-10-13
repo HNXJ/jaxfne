@@ -2,6 +2,7 @@ import json
 
 import jax
 import jax.numpy as jnp
+import pytest
 
 import jaxfne as jtfne
 
@@ -92,14 +93,16 @@ def test_runtime_config_and_dtype_float32():
 def test_runtime_float64_truthful_behavior():
     rt = jtfne.runtime(dtype="float64")
     model = jtfne.construct(_cfg(5))
-    signals = model.simulate(jtfne.simulation(duration_ms=2.0, dt_ms=0.1, seed=0, runtime=rt))
     if bool(jax.config.read("jax_enable_x64")):
+        signals = model.simulate(jtfne.simulation(duration_ms=2.0, dt_ms=0.1, seed=0, runtime=rt))
         assert signals.V_m.dtype == jnp.float64
+        manifest = model.manifest(signals)
+        assert manifest["runtime"]["requested_dtype"] == "float64"
+        assert manifest["runtime"]["actual_dtype"] == "float64"
     else:
-        assert signals.V_m.dtype == jnp.float32
-    manifest = model.manifest(signals)
-    assert manifest["runtime"]["requested_dtype"] == "float64"
-    assert manifest["runtime"]["actual_dtype"] in {"float32", "float64"}
+        # float64 without x64 refuses instead of silently running float32.
+        with pytest.raises(ValueError, match="jax_enable_x64"):
+            model.simulate(jtfne.simulation(duration_ms=2.0, dt_ms=0.1, seed=0, runtime=rt))
 
 
 def test_source_probe_invariants():

@@ -46,7 +46,7 @@ def validate_runtime_config(cfg: RuntimeConfig, *, strict: bool = False) -> list
     reasoning, which ``__post_init__`` cannot do at construction time:
 
     - ``dtype="float64"`` requested while ``jax_enable_x64`` is currently off
-      (the dtype will silently downgrade to float32 at simulate-time).
+      (realization raises instead of silently downgrading to float32).
     - ``backend`` requested but unavailable on this machine.
     - ``homeostasis_params``/``hdp_params`` missing a key the kernel reads
       (a missing key means that term silently behaves as if it were absent,
@@ -61,7 +61,7 @@ def validate_runtime_config(cfg: RuntimeConfig, *, strict: bool = False) -> list
     if cfg.dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
         warnings.append(
             "dtype='float64' requested but jax_enable_x64 is False; "
-            "actual_dtype will downgrade to float32 at simulate-time"
+            "realization raises ValueError at simulate-time"
         )
 
     if cfg.backend in ("cpu", "gpu", "tpu"):

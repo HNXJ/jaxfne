@@ -129,6 +129,12 @@ class ConnectionCompileResult:
         """
         from .emitters import EdgeList
 
+        if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
+            raise ValueError(
+                "dtype='float64' requested but JAX x64 is not enabled -- call "
+                'jax.config.update("jax_enable_x64", True) before creating any array '
+                "in this process; refusing to silently build float32"
+            )
         jdtype = (
             jnp.float64
             if (dtype == "float64" and bool(jax.config.read("jax_enable_x64")))
@@ -686,6 +692,12 @@ def compile_connection_rules(
     (0.5.2 decision 0b), where ``dt`` is known — never here.
     """
     artifacts = dict(artifacts or {})
+    if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
+        raise ValueError(
+            "dtype='float64' requested but JAX x64 is not enabled -- call "
+            'jax.config.update("jax_enable_x64", True) before creating any array '
+            "in this process; refusing to silently build float32"
+        )
     jdtype = (
         jnp.float64
         if (dtype == "float64" and bool(jax.config.read("jax_enable_x64")))

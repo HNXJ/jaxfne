@@ -239,7 +239,13 @@ class EIGNetwork:
 
 
 def _dtype_from_policy(dtype: str) -> jnp.dtype:
-    if dtype == "float64" and bool(jax.config.read("jax_enable_x64")):
+    if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
+        raise ValueError(
+            "dtype='float64' requested but JAX x64 is not enabled -- call "
+            'jax.config.update("jax_enable_x64", True) before creating any array '
+            "in this process; refusing to silently build float32"
+        )
+    if dtype == "float64":
         return jnp.float64
     return jnp.float32
 

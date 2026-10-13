@@ -798,6 +798,11 @@ def _reconstruct_hh_ionic_current(v, m, h, n, params: dict[str, Any]):
 class JaxleyBridge:
     """Jaxley-focused biophysical emitter bridge."""
     def __init__(self, model: Any, source_mode: str = "transmembrane_current", compartment_axis: str = "last"):
+        if compartment_axis != "last":
+            raise ValueError(
+                f"JaxleyBridge compartment_axis={compartment_axis!r} is not implemented; "
+                "only the default 'last' is supported"
+            )
         self.model = model
         self.source_mode = source_mode
         self.compartment_axis = compartment_axis
