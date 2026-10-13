@@ -55,6 +55,12 @@ the rules those releases were held to and are historical context for readers.
 - `scripts/v1_pfc_continuous_aaab_smoke_test.py` declares its AMPA time constant (0.1 ms,
   the value used before P-023 made it required), so the V1-PFC atlas regenerates again with
   the same configuration hash.
+- `scripts/build_docs_assets.py` regenerates the 25 docs atlases in one pass (about 3 min on
+  CPU) and checks each against `docs/_static/atlas_registry.json` (configuration hash, sizes,
+  seed, timing and panel status), then restores the registry's validated state and rewrites
+  the gallery. The `hdp_1000` and `homeostasis_1000` atlases are regenerated: the 0.5.5
+  H1 (e) commit (9958a72) changed their declared configuration hash; neuron and edge counts
+  are unchanged.
 - The references page lists, per source, the result jaxfne implements and the functions that
   implement it; those functions cite the same DOI, and `tests/test_references_page.py` holds the
   two together. Replicated papers and background work have their own tables.

@@ -184,7 +184,7 @@ State `validated` · N=10 · edges=90 · steps=200 · config `14c5b4f994b9` · j
 
 ### `atlas/hdp_1000` — HDP column, short run (1000n, 200 ms)
 
-State `validated` · N=1000 · edges=999000 · steps=400 · config `95bf84df66d3` · jaxfne 0.5.0
+State `validated` · N=1000 · edges=999000 · steps=400 · config `a6746c86b439` · jaxfne 0.5.5
 
 <iframe class="jx-frame" src="_static/atlas/hdp_1000/index.html" loading="lazy" title="HDP column, short run (1000n, 200 ms) dashboard"></iframe>
 
@@ -192,7 +192,7 @@ State `validated` · N=1000 · edges=999000 · steps=400 · config `95bf84df66d3
 
 ### `atlas/homeostasis_1000` — Homeostasis column (1000n)
 
-State `validated` · N=1000 · edges=999000 · steps=2000 · config `bcb3203f32e2` · jaxfne 0.5.0
+State `validated` · N=1000 · edges=999000 · steps=2000 · config `4dbc78e75818` · jaxfne 0.5.5
 
 <iframe class="jx-frame" src="_static/atlas/homeostasis_1000/index.html" loading="lazy" title="Homeostasis column (1000n) dashboard"></iframe>
 
