@@ -441,6 +441,25 @@ def test_p3_review_completeness_rules(tmp_path, monkeypatch):
     assert rep["fig2"]["overall"] == "pass" and rep["fig3"]["arm"] == "pass"
 
 
+def test_p3_s1_reference_writes_and_reports(tmp_path, monkeypatch):
+    """net_reference.write_seed writes paired rows and cols; cmd_s1 scores both arms."""
+    import json as _json
+
+    nref = _load_netref()
+    r = _load_run_izh()
+    entry = nref.write_seed(tmp_path, 1, 0.2)
+    z = np.load(tmp_path / "1.npz")
+    assert entry["n_spikes"] > 0, "fixture must spike"
+    assert z["spike_rows"].shape == z["spike_cols"].shape == (entry["n_spikes"],)
+    assert int(z["spike_cols"].max()) < 1000 and int(z["spike_rows"].max()) < entry["n_steps"]
+    (tmp_path / "manifest.json").write_text(_json.dumps(
+        {"sensitivity": "S1", "code_sha": "x", "runs": [entry]}))
+    rep = r.cmd_s1(tmp_path, tmp_path, tmp_path / "s1.json")
+    arms = rep["seeds"]["1"]
+    assert arms["reference"]["N1"] == arms["kernel"]["N1"]  # same files, same numbers
+    assert arms["reference"]["N1"]["numbers"]["mean_rate_hz"] > 0
+
+
 def test_p3_sensitivity_runs_never_enter_score(tmp_path):
     import json as _json
 

@@ -120,7 +120,7 @@ def write_seed(out_dir, seed, t_s):
     net = build_network(rng)
     n_steps = int(round(t_s * 1000.0 / DT_MS))
     res = simulate(net, n_steps, rng, noise_on=True)
-    rows, cols = np.flatnonzero(res["spikes"])
+    rows, cols = np.nonzero(np.asarray(res["spikes"]))  # (n_steps, n_cells)
     path = Path(out_dir) / f"{seed}.npz"
     np.savez_compressed(path, spike_rows=rows.astype(np.int64),
                         spike_cols=cols.astype(np.int64),

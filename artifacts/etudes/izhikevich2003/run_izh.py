@@ -582,6 +582,36 @@ def cmd_score(fig2_dir, fig3_dir, out_path):
     return report
 
 
+def _seed_cells(fig_dir, seed):
+    z = np.load(Path(fig_dir) / f"{seed}.npz")
+    cells = [[] for _ in range(int(z["n_cells"]))]
+    for r, c_ in zip(np.asarray(z["spike_rows"]).tolist(), np.asarray(z["spike_cols"]).tolist()):
+        cells[int(c_)].append(int(r))
+    return cells, int(z["n_steps"])
+
+
+def cmd_s1(ref_dir, kernel_dir, out_path):
+    """Sensitivity S1, reported only: N1-N4 on the reference arm and the kernel arm, per seed."""
+    theta, alpha_band = load_calibration()
+    ref_manifest = json.loads((Path(ref_dir) / "manifest.json").read_text(encoding="utf-8"))
+    if ref_manifest.get("sensitivity") != "S1":
+        raise SystemExit("cmd_s1 reads a manifest labelled sensitivity S1")
+    seeds = {}
+    for entry in ref_manifest["runs"]:
+        seed = entry["seed"]
+        arms = {}
+        for arm, d in (("reference", ref_dir), ("kernel", kernel_dir)):
+            cells, n_steps = _seed_cells(d, seed)
+            res = score_network_seed(cells, n_steps, FIG3_DT, theta, alpha_band)
+            arms[arm] = {n: res[n] for n in ("N1", "N2", "N3", "N4")}
+        seeds[str(seed)] = dict(arms, mean_extra_u_per_spike=entry["mean_extra_u_per_spike"])
+    report = {"sensitivity": "S1", "reported_only": True, "code_sha": _git_sha(),
+              "reference_code_sha": ref_manifest.get("code_sha"), "seeds": seeds}
+    Path(out_path).write_text(json.dumps(report, indent=1), encoding="utf-8")
+    print(f"S1 report -> {out_path}")
+    return report
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -598,7 +628,14 @@ def main():
     ps.add_argument("--fig3", required=True)
     ps.add_argument("--out", required=True)
     ps.add_argument("--signed", action="store_true")
+    p1 = sub.add_parser("s1")
+    p1.add_argument("--reference", required=True)
+    p1.add_argument("--kernel", required=True)
+    p1.add_argument("--out", required=True)
     a = ap.parse_args()
+    if a.cmd == "s1":
+        cmd_s1(a.reference, a.kernel, a.out)
+        return
     if a.cmd == "fig2":
         check_out(a.out, a.signed)
         cmd_fig2(a.out)
