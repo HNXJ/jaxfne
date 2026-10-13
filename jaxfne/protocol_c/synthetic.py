@@ -6,7 +6,9 @@ import numpy as np
 
 
 def make_time_axis(duration_ms: float, dt_ms: float) -> np.ndarray:
-    n_steps = int(round(duration_ms / dt_ms))
+    from jaxfne._signals import _n_steps_from_grid
+
+    n_steps = _n_steps_from_grid(duration_ms, dt_ms, owner="make_time_axis")
     return np.arange(n_steps, dtype=np.float64) * float(dt_ms) / 1000.0
 
 

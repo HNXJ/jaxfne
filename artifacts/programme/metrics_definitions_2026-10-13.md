@@ -43,5 +43,6 @@ placeholder 0.0. A real computed 0.0 stays 0.0.
 - `fano_factor`: NaN when zero full bins result, no neuron has a positive
   mean count, or the mean ratio is not finite.
 - `fleiss_kappa_binary`: NaN exactly where kappa is mathematically
-  undefined: fewer than 2 neurons, zero time steps, expected agreement
-  `p_e == 1`, or a non-finite kappa.
+  undefined: fewer than 2 neurons, zero time steps, zero full bins
+  (`n_bins == 0`, i.e. the bin window covers the whole trace), expected
+  agreement `p_e == 1`, or a non-finite kappa.

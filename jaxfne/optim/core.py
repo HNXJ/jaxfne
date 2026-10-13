@@ -1486,7 +1486,7 @@ def _tune_matrix_agsdr_optax(
             else:
                 # Fallback: mean V_m should be near threshold
                 loss = jnp.mean(jnp.abs(sigs.V_m - (-45.0)))
-        except Exception:
+        except (ArithmeticError, ValueError):
             fallback_counts["inner_loop_step_failed"] += 1
             loss = jnp.asarray(float("inf"), dtype=_wdtype_outer)
         return loss
@@ -1620,7 +1620,7 @@ def _tune_matrix_agsdr_optax(
                             param_lower = float(param_specs.get("gAMPA_w").bounds[0]) if "gAMPA_w" in param_specs else -1000.0
                             param_upper = float(param_specs.get("gAMPA_w").bounds[1]) if "gAMPA_w" in param_specs else 1000.0
                             current_W = jnp.clip(current_W, param_lower, param_upper)
-                        except Exception:
+                        except (ArithmeticError, ValueError):
                             fallback_counts["inner_loop_step_failed"] += 1
                             break  # Inner loop failed; use AGSDR candidate as-is
 
@@ -1635,7 +1635,7 @@ def _tune_matrix_agsdr_optax(
                         new_params = dict(candidate_model.params)
                         new_params["emitter"] = new_emitter
                         candidate_model = _replace(candidate_model, params=new_params)
-                except Exception:
+                except (ArithmeticError, ValueError):
                     fallback_counts["candidate_refinement_failed"] += 1  # Fall back to unrefined AGSDR candidate
 
             # FINAL SCORING: real objective

@@ -2,6 +2,8 @@
 
 import json
 
+import pytest
+
 import jaxfne as jtfne
 
 
@@ -750,3 +752,42 @@ def test_suite_no1_rejects_group_specific_gampa_knobs():
     for forbidden_name in forbidden:
         assert forbidden_name not in summary_json or f'"{forbidden_name}"' not in summary_json or True
         # The main check: forbidden names must not be the KEYS in best_parameters
+
+
+def test_matrix_inner_loop_unexpected_error_propagates(monkeypatch):
+    """An unexpected exception from a matrix-tune candidate must propagate.
+
+    Counted fallbacks cover failing candidates (ArithmeticError/ValueError);
+    anything else (e.g. an infrastructure RuntimeError) is a real bug.
+    """
+    import optax
+
+    from jaxfne._model import Model
+
+    cfg = (
+        jtfne.configuration()
+        .network(name="V1", kind="cortical_column", n=8, cell_types={"E": 0.5, "PV": 0.5})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        .probe(name="probe", modes=["spikes", "V_m"])
+    )
+    model = jtfne.construct(cfg)
+    objective = jtfne.rate_targets(
+        groups={"all": list(range(8))}, targets_hz={"all": 15.0}
+    )
+    sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0)
+    optimizer = jtfne.agsdr(
+        parameters={"gAMPA_w": jtfne.matrix_parameter(mask="all", bounds=(0.3, 3.0))},
+        generations=1,
+        population_size=1,
+        inner_optimizer=optax.adam(1e-2),
+        inner_steps=1,
+        seed=0,
+    )
+
+    def _boom(self, simulation, **kwargs):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(Model, "simulate", _boom)
+    with pytest.raises(RuntimeError, match="boom"):
+        model.tune(objectives=objective, optimizer=optimizer, simulation=sim)

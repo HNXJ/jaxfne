@@ -2,6 +2,7 @@ import json
 import math
 import jax
 import jax.numpy as jnp
+import numpy as np
 import pytest
 from dataclasses import replace
 
@@ -188,3 +189,37 @@ def test_batch_path_no_condition_support_yet():
     
     # The batch metadata should not claim stimulus injection
     assert "stimulus_injection_status" not in res
+
+
+def test_to_array_float64_without_x64_refused():
+    """to_array must refuse float64 without x64 like to_array_jax does."""
+    import jax as _jax
+
+    assert not bool(_jax.config.read("jax_enable_x64"))
+    sched = jtfne.stimulus_schedule(
+        ({"label": "ev", "onset_ms": 1.0, "duration_ms": 2.0, "amplitude": 1.0},),
+        n_neurons=4,
+    )
+    with pytest.raises(ValueError, match="jax_enable_x64"):
+        sched.to_array(n_steps=100, dt_ms=0.1, dtype="float64")
+
+
+def test_compute_kappa_undefined_is_nan():
+    """Undefined kappa (malformed, < 2 neurons, < 2 valid) is NaN, not 0.0."""
+    from jaxfne._signals import _compute_kappa_synchrony_metric
+
+    assert math.isnan(_compute_kappa_synchrony_metric(np.zeros((10, 0))))
+    assert math.isnan(_compute_kappa_synchrony_metric(np.ones((10, 1))))
+    assert math.isnan(_compute_kappa_synchrony_metric(np.zeros((20, 5))))
+    assert math.isnan(_compute_kappa_synchrony_metric(np.ones((10,))))
+
+
+def test_compute_kappa_defined_zero_stays():
+    """A defined 0.0 correlation stays 0.0 (orthogonal spike trains)."""
+    from jaxfne._signals import _compute_kappa_synchrony_metric
+
+    spikes = np.array(
+        [[1.0, 1.0], [1.0, 0.0], [0.0, 1.0], [0.0, 0.0]]
+    )
+    value = _compute_kappa_synchrony_metric(spikes)
+    assert value == 0.0 and not math.isnan(value)

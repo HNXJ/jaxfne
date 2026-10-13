@@ -589,3 +589,12 @@ class TestUndefinedIsNaN:
     def test_kappa_single_neuron_is_nan(self):
         spikes = np.random.rand(1, 100) > 0.5
         assert np.isnan(fleiss_kappa_binary(spikes, bin_ms=1, dt_ms=1))
+
+    def test_zero_full_bins_is_nan(self):
+        """A bin window covering the whole trace (n_bins == 0) is undefined -> NaN."""
+        spikes = np.zeros((4, 10))
+        spikes[0, 0] = 1.0
+        spikes[1, 5] = 1.0
+        bin_ms, dt_ms = 1000.0, 0.1
+        assert spikes.shape[1] // max(1, int(round(bin_ms / dt_ms))) == 0
+        assert np.isnan(fleiss_kappa_binary(spikes, bin_ms=bin_ms, dt_ms=dt_ms))

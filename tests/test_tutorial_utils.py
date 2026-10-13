@@ -538,3 +538,24 @@ def test_make_laminar_column_config_clamps_claim_level_escalation():
     assert cfg.physical_amplitude_calibrated is False
     assert cfg.field_solver_status == "linear_solver"
     assert cfg.field_claim_level == "proxy_readout"
+
+
+def test_kappa_synchrony_undefined_is_nan():
+    """Undefined kappa (empty, < 2 neurons, < 2 valid) is NaN, not 0.0."""
+    from jaxfne.tutorial_utils import kappa_synchrony
+
+    assert np.isnan(kappa_synchrony(np.array([])))
+    assert np.isnan(kappa_synchrony(np.ones((10, 1))))
+    assert np.isnan(kappa_synchrony(np.zeros((20, 5))))
+    assert np.isnan(kappa_synchrony(np.ones((10,))))
+
+
+def test_kappa_synchrony_defined_zero_stays():
+    """A defined 0.0 correlation stays 0.0 (orthogonal spike trains)."""
+    from jaxfne.tutorial_utils import kappa_synchrony
+
+    spikes = np.array(
+        [[1.0, 1.0], [1.0, 0.0], [0.0, 1.0], [0.0, 0.0]]
+    )
+    value = kappa_synchrony(spikes)
+    assert value == 0.0 and not np.isnan(value)

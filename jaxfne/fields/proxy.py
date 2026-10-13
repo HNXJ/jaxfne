@@ -460,7 +460,15 @@ def compute_conservation_proxy_diagnostics(
     field_solver_status: str = "linear_solver",
     field_claim_level: str = "proxy_readout",
 ) -> dict[str, Any]:
-    """Compute conservation-inspired proxy diagnostics over existing source/field arrays."""
+    """Compute conservation-inspired proxy diagnostics over existing source/field arrays.
+
+    Non-finite entries in a caller-supplied array (``source``, ``phi_e``,
+    ``csd``, ``lfp``, or any proxy of ``field_solution``) are invalid input
+    and raise :class:`ValueError` naming the argument. ``None`` is returned
+    for a diagnostic only when that diagnostic is legitimately undefined
+    (missing input, or a reduction that is undefined on the coerced finite
+    data); it never masks a non-finite input.
+    """
 
     def _safe_float(v: Any) -> float:
         f = float(v)
@@ -471,13 +479,13 @@ def compute_conservation_proxy_diagnostics(
     def _norm_l2(arr: np.ndarray) -> float | None:
         try:
             return _safe_float(np.sqrt(np.mean(arr**2)))
-        except Exception:
+        except (ArithmeticError, ValueError):
             return None
 
     def _abs_mean(arr: np.ndarray) -> float | None:
         try:
             return _safe_float(np.mean(np.abs(arr)))
-        except Exception:
+        except (ArithmeticError, ValueError):
             return None
 
     _src = source
@@ -495,18 +503,21 @@ def compute_conservation_proxy_diagnostics(
         if _lfp is None:
             _lfp = field_solution.lfp_proxy
 
-    def _coerce(arr: Any) -> np.ndarray | None:
+    def _coerce(arr: Any, *, name: str) -> np.ndarray | None:
         if arr is None:
             return None
         a = np.asarray(arr)
         if not bool(np.all(np.isfinite(a))):
-            return None
+            raise ValueError(
+                f"compute_conservation_proxy_diagnostics got a non-finite {name!r} "
+                "array; non-finite inputs are invalid (diagnostics never mask them)"
+            )
         return a
 
-    _src = _coerce(_src)
-    _phi = _coerce(_phi)
-    _csd = _coerce(_csd)
-    _lfp = _coerce(_lfp)
+    _src = _coerce(_src, name="source")
+    _phi = _coerce(_phi, name="phi_e")
+    _csd = _coerce(_csd, name="csd")
+    _lfp = _coerce(_lfp, name="lfp")
 
     source_norm_l1: float | None = _abs_mean(_src) if _src is not None else None
     source_norm_l2: float | None = _norm_l2(_src) if _src is not None else None
@@ -517,7 +528,7 @@ def compute_conservation_proxy_diagnostics(
         try:
             spatial_mean = np.mean(_src, axis=-1)
             source_conservation_proxy_residual = _safe_float(np.mean(np.abs(spatial_mean)))
-        except Exception:
+        except (ArithmeticError, ValueError):
             source_conservation_proxy_residual = None
 
     phi_abs_mean: float | None = _abs_mean(_phi) if _phi is not None else None
@@ -527,7 +538,7 @@ def compute_conservation_proxy_diagnostics(
         try:
             grad = np.gradient(_phi, axis=1)
             phi_gradient_proxy_norm2 = _safe_float(np.mean(grad**2))
-        except Exception:
+        except (ArithmeticError, ValueError):
             phi_gradient_proxy_norm2 = None
 
     csd_abs_mean: float | None = _abs_mean(_csd) if _csd is not None else None

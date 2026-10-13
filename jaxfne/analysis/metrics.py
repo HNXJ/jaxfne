@@ -349,8 +349,8 @@ def fleiss_kappa_binary(
     float
         Fleiss-kappa-like metric in [-1, 1].
         Returns NaN when kappa is mathematically undefined (fewer than 2
-        neurons, zero time steps, expected agreement ``p_e == 1``, or a
-        non-finite kappa) (undefined).
+        neurons, zero time steps, zero full bins (``n_bins == 0``), expected
+        agreement ``p_e == 1``, or a non-finite kappa) (undefined).
 
     Examples
     --------
@@ -394,8 +394,7 @@ def fleiss_kappa_binary(
     n_bins = n_time // bin_samples
 
     if n_bins == 0:
-        n_bins = 1
-        bin_samples = n_time
+        return float("nan")
 
     # Bin the spikes (binarize to "active" or "silent")
     binned_raw = spikes_array[:, : n_bins * bin_samples].reshape(

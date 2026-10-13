@@ -805,6 +805,12 @@ class StimulusSchedule:
 
         Supports optional target_indices in event to apply amplitude only to selected neurons.
         """
+        if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
+            raise ValueError(
+                "dtype='float64' requested but JAX x64 is not enabled -- call "
+                'jax.config.update("jax_enable_x64", True) before creating any array '
+                "in this process; refusing to silently build float32"
+            )
         schedule = _np.zeros((int(n_steps), int(self.n_neurons)), dtype=_np.float32)
         for ev in self.events:
             if not ev.get("is_drive_event", True):
@@ -1093,21 +1099,23 @@ def _compute_kappa_synchrony_metric(spikes: Any) -> Optional[float]:
     Pearson correlation over neuron pairs with non-zero temporal variance —
     but computed as a single correlation matrix multiply for speed in the
     per-candidate tuning loop.  Proxy diagnostic; not a biological invariant.
-    Expects ``spikes`` shaped ``[n_timesteps, n_neurons]``.
+    Expects ``spikes`` shaped ``[n_timesteps, n_neurons]``. Returns NaN where
+    the correlation is undefined (malformed input, fewer than 2 neurons, or
+    fewer than 2 neurons with non-zero variance); a defined 0.0 stays 0.0.
     """
     import numpy as _np
 
     x = _np.asarray(spikes, dtype=float)
     if x.ndim != 2:
-        return 0.0
+        return float("nan")
     n_timesteps, n_neurons = x.shape
     if n_neurons < 2 or n_timesteps < 1:
-        return 0.0
+        return float("nan")
     std = x.std(axis=0)
     valid = std > 0
     n_valid = int(valid.sum())
     if n_valid < 2:
-        return 0.0
+        return float("nan")
     xv = x[:, valid]
     z = (xv - xv.mean(axis=0)) / xv.std(axis=0)
     corr = (z.T @ z) / n_timesteps
