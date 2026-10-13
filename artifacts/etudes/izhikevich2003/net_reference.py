@@ -55,10 +55,16 @@ def build_network(rng, n_e=N_E, n_i=N_I):
     return {"a": a, "b": b, "c": c, "d": d, "S": s, "n_e": n_e, "n_i": n_i}
 
 
-def simulate(net, n_steps, rng, noise_on=True, drive=0.0):
+def simulate(net, n_steps, rng, noise_on=True, drive=0.0, thal=None, return_v=False):
     """Run the reference update for ``n_steps`` 1 ms steps.
 
     ``drive`` is a constant baseline current (the study uses 0.0).
+    ``thal`` (float64, shape (n_steps, n)) optionally replaces the per-step
+    thalamic draw: row t is used in place of the step's draw and ``rng`` is
+    never read (it may be None). ``drive`` stays 0 in that use. When
+    ``return_v`` is set, the result also carries ``v_test`` (n_steps, n):
+    the v each step's threshold test reads. The default path (``thal`` None,
+    ``return_v`` False) is unchanged.
     Returns a dict with ``spikes`` (bool (n_steps, n) array: row t holds the
     cells fired at the test opening step t), ``extra_u`` (the overshoot extra
     u increment recorded at each first-half-step crossing) and
@@ -67,22 +73,32 @@ def simulate(net, n_steps, rng, noise_on=True, drive=0.0):
     a, b, c, d, s = net["a"], net["b"], net["c"], net["d"], net["S"]
     n = a.size
     n_e = int(net["n_e"])
+    use_thal = thal is not None
+    if use_thal:
+        thal_arr = np.asarray(thal, dtype=np.float64)
+        if thal_arr.shape != (n_steps, n):
+            raise ValueError(f"thal shape {thal_arr.shape} != ({n_steps}, {n})")
     v = np.full(n, V_INIT)
     u = b * v
     spikes = np.zeros((n_steps, n), dtype=bool)
     extra = np.zeros((n_steps, n))
     will = np.zeros((n_steps, n), dtype=bool)
+    v_test = np.zeros((n_steps, n)) if return_v else None
     for t in range(n_steps):
-        if noise_on:
-            thal = np.concatenate([5.0 * rng.standard_normal(n_e),
-                                   2.0 * rng.standard_normal(n - n_e)])
+        if use_thal:
+            cur_thal = thal_arr[t]
+        elif noise_on:
+            cur_thal = np.concatenate([5.0 * rng.standard_normal(n_e),
+                                       2.0 * rng.standard_normal(n - n_e)])
         else:
-            thal = np.zeros(n)
+            cur_thal = np.zeros(n)
+        if return_v:
+            v_test[t] = v
         fired = v >= 30.0
         spikes[t] = fired
         v = np.where(fired, c, v)
         u = np.where(fired, u + d, u)
-        cur = thal + drive + (s[:, fired].sum(axis=1) if fired.any() else 0.0)
+        cur = cur_thal + drive + (s[:, fired].sum(axis=1) if fired.any() else 0.0)
         v = v + 0.5 * (0.04 * v * v + 5.0 * v + 140.0 - u + cur)
         # Cells crossing 30 on the first half-step overshoot on the second and
         # are detected at the next step; that v enters the u step below.
@@ -93,8 +109,11 @@ def simulate(net, n_steps, rng, noise_on=True, drive=0.0):
         extra[t, will_fire] = a[will_fire] * b[will_fire] * (v[will_fire] - 30.0)
         u = u + a * (b * v - u)
     mean_extra = float(extra[will].mean()) if will.any() else 0.0
-    return {"spikes": spikes, "extra_u": extra,
-            "mean_extra_u_per_spike": mean_extra}
+    out = {"spikes": spikes, "extra_u": extra,
+           "mean_extra_u_per_spike": mean_extra}
+    if return_v:
+        out["v_test"] = v_test
+    return out
 
 
 def _repo_root():
