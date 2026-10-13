@@ -40,9 +40,11 @@ first, amend in place.
   landed (F6 57f40ddf, F1 table c571ba9f). Closes when: the prereg is signed and its equivalence
   test is written.
 - T-7 [A] R5: each paper ships at its P5 verdict; stated reasons for PCL Fig. 3 (after T-3) and
-  Izhikevich 2003 in `artifacts/etudes/REPLICATIONS.md`. Izhikevich 2003: P3 prereg draft v6
-  (b0a12a36, second review PASS) awaits Hamm's batch signature; then the calibration gate and
-  detector known-answer tests (B7), S1 reference arm `net_reference.py`. Closes when:
+  Izhikevich 2003 in `artifacts/etudes/REPLICATIONS.md`. Izhikevich 2003: P3 prereg draft v7
+  awaits Hamm's batch signature; its calibration gate passed at θ = 4 (receipt
+  `calibration/calibration_v7_15f36087.json`; v6 estimator failed, receipt kept) and the detector
+  known-answer tests pass (`tests/test_izh_analysis.py`). Next after signature: S1 reference arm
+  `net_reference.py`, then the scored runs. Closes when:
   every paper row in `REPLICATIONS.md` carries a verdict or a reason and
   `python scripts/build_dashboard_data.py --check` passes.
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
@@ -82,11 +84,11 @@ run on WSL2 CUDA.
   (`artifacts/harness/jnwb_cross_learning.md`).
 - T-11 [A] G-3: CAMINOS p = 0.07 seed 1 as an NWB excerpt plus provenance for jnwb `tests/`
   (waits on O-2). Closes when: the excerpt's recovery test passes in jnwb `tests/`.
-- T-12 [A] jnwb item 2 (plain Welch done, dev 541f7604): remaining spectra at `vis/spectra.py:75`,
-  `vis/fields.py:162,866`, `vis/tutorial_panels.py:305`, `fields/proxy.py:913,918,1106`,
-  `tutorial_utils.py:69`, `protocol_c/estimator.py:74`, `analysis/spectral.py:23,86`; each equals
-  `jnwb.compute_psd` within float tolerance or is declared. Closes when: one equivalence test
-  per site passes.
+- T-12 [A] jnwb item 2, two sites outside the listed set: `vis/spectra.py` `spectrogram` calls
+  and the `cross_area_coherence` periodogram fallback (`fields/proxy.py`). The listed sites are
+  done: four plain Welch (`tests/test_jnwb_item2_welch_sites.py`), seven declared different
+  (`tests/test_jnwb_item2_remaining_sites.py`). Closes when: each of the two has an equivalence
+  or declared-difference test.
 - T-13 [H] jnwb item 3: `analysis/metrics.py:226,122,19` (Fano of the population sum,
   `burst_index` ignoring `bin_ms`, unbinned pairwise correlation), pinned by
   `tests/test_analysis_metrics.py:27-51`; needs a declared definition change. Closes when: the
@@ -94,9 +96,6 @@ run on WSL2 CUDA.
 - T-14 [H] jnwb item 4: no remaining family is a drop-in (band power, CSD, metrics, coherence);
   each move is a declared change or keeps jaxfne's (`artifacts/programme/jnwb_inventory.md`).
   Closes when: every inventory row is marked moved, declared or kept.
-- T-15 [A] `docs/quickstart.md` `connections()` snippet after the dense refusal (0d2b1018):
-  check `model.simulate` vs `jtfne.simulate`. Closes when: a test runs the snippet
-  and passes.
 - T-16 [A] C7: parametrize the protocol_e spec tests; merge the 8 `test_atlas_at*_05x` files
   after a per-test coverage run. CI dedupe (examples list and wheel smoke in three places).
   Closes when: `python scripts/run_test_gate.py broad` passes with coverage unchanged.
