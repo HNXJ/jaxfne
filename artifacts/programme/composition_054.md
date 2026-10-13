@@ -57,7 +57,8 @@ probe — and are NOT claimed identical; changing that is out of scope.)
 
 `population_rate` (mean spikes → Hz, exact, validated) and
 `cross_area_coherence` (magnitude-squared coherence + cross-spectrum
-phase, Welch with periodogram fallback, silent bins declared
+phase, Welch with periodogram fallback (the fallback is refused since
+2026-10-13, T-12), silent bins declared
 `valid=False` with exact 0.0, never NaN) in `jaxfne.fields` (no root
 export, no contract churn). Verified: identical sines cohere ~1, 5 ms
 delay reads as −2πf·d phase, independent noise < 0.7, ensemble per-area

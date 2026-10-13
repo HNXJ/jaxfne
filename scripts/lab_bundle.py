@@ -43,11 +43,25 @@ def iter_node_files(lab_dir: Path) -> list[Path]:
     return files
 
 
+def read_bundle(path: Path) -> dict:
+    """The bundle's {name: text} map; ValueError when it is not a lab bundle."""
+    try:
+        bundle = json.loads(path.read_bytes().decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"{path.name} is not UTF-8 JSON: {exc}") from exc
+    if not isinstance(bundle, dict) or bundle.get("format") != FORMAT:
+        raise ValueError(f"{path.name}: not a {FORMAT} bundle")
+    files = bundle.get("files")
+    if not isinstance(files, dict) or not all(isinstance(t, str) for t in files.values()):
+        raise ValueError(f"{path.name}: files must map names to text")
+    return files
+
+
 def pack(lab_dir: Path = DEFAULT_LAB) -> Path:
     files = {p.name: p.read_bytes().decode("utf-8") for p in iter_node_files(lab_dir)}
     out = lab_dir / BUNDLE_NAME
     if out.is_file():
-        held = len(json.loads(out.read_bytes().decode("utf-8"))["files"])
+        held = len(read_bundle(out))
         if len(files) < held:
             raise ValueError(f"pack would write {len(files)} nodes over a bundle of {held}; "
                              "unpack into the lab directory first")
@@ -61,17 +75,16 @@ def pack(lab_dir: Path = DEFAULT_LAB) -> Path:
 
 
 def unpack(dest: Path, lab_dir: Path = DEFAULT_LAB) -> list[Path]:
-    bundle = json.loads((lab_dir / BUNDLE_NAME).read_bytes().decode("utf-8"))
-    if bundle["format"] != FORMAT:
-        raise ValueError(f"unknown bundle format: {bundle['format']!r}")
-    bad = [n for n in bundle["files"] if Path(n).name != n or not n.endswith(".json") or n == BUNDLE_NAME]
+    files = read_bundle(lab_dir / BUNDLE_NAME)
+    bad = [n for n in files
+           if Path(n).name != n or not n.endswith(".json") or n.lower() == BUNDLE_NAME]
     if bad:
         raise ValueError(f"bundle names that are not plain node file names: {sorted(bad)}")
     dest.mkdir(parents=True, exist_ok=True)
     written = []
-    for name in sorted(bundle["files"]):
+    for name in sorted(files):
         target = dest / name
-        target.write_bytes(bundle["files"][name].encode("utf-8"))
+        target.write_bytes(files[name].encode("utf-8"))
         written.append(target)
     return written
 

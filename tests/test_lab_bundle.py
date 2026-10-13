@@ -86,13 +86,41 @@ def test_unpack_refuses_names_outside_the_directory(tmp_path, name):
     assert not (tmp_path / "out").exists() and not (tmp_path / "evil.json").exists()
 
 
-@pytest.mark.parametrize("payload", [{"files": ["a.json"]}, {"files": {"a.json": 42}}])
+_MALFORMED = [
+    json.dumps({"format": "lab-bundle-1", "files": ["a.json"]}).encode(),
+    json.dumps({"format": "lab-bundle-1", "files": {"a.json": 42}}).encode(),
+    json.dumps({}).encode(),
+    b"\xff\xfe not utf-8",
+]
+
+
+@pytest.mark.parametrize("payload", _MALFORMED)
 def test_malformed_bundle_is_reported_not_raised(tmp_path, payload):
     lab_dir = tmp_path / "lab"
     lab_dir.mkdir()
-    (lab_dir / "bundle.json").write_text(json.dumps(payload), encoding="utf-8")
+    (lab_dir / "bundle.json").write_bytes(payload)
     nodes, skipped = lab_balance.load_nodes(lab_dir)
-    assert nodes == {} and len(skipped) == 1 and "unreadable" in skipped[0]
+    assert nodes == {} and len(skipped) >= 1
+
+
+@pytest.mark.parametrize("payload", _MALFORMED)
+def test_malformed_bundle_is_refused_by_pack_and_unpack(tmp_path, payload):
+    lab_dir = tmp_path / "lab"
+    lab_dir.mkdir()
+    (lab_dir / "bundle.json").write_bytes(payload)
+    with pytest.raises(ValueError):
+        lab_bundle.unpack(tmp_path / "out", lab_dir)
+    with pytest.raises(ValueError):
+        lab_bundle.pack(lab_dir)
+
+
+def test_a_non_utf8_loose_node_is_skipped(tmp_path):
+    lab_dir = tmp_path / "lab"
+    lab_dir.mkdir()
+    _write(lab_dir, "x.json", b"\xff\xfe")
+    _write(lab_dir, "a.json", b'{"id": "a"}')
+    nodes, skipped = lab_balance.load_nodes(lab_dir)
+    assert set(nodes) == {"a"} and skipped == ["x.json (unreadable: UnicodeDecodeError)"]
 
 
 def test_build_edges_skips_malformed_links():

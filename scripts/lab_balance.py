@@ -47,7 +47,7 @@ def load_nodes(lab_dir: Path) -> tuple[dict, list[str]]:
         try:
             files = json.loads(bundle.read_text(encoding="utf-8"))["files"]
             items = sorted(files.items())
-        except (json.JSONDecodeError, OSError, KeyError, AttributeError, TypeError) as exc:
+        except (ValueError, OSError, KeyError, AttributeError, TypeError) as exc:
             return {}, [f"bundle.json (unreadable: {type(exc).__name__})"]
         nodes, skipped = {}, []
         for name, text in items:
@@ -65,7 +65,7 @@ def load_nodes(lab_dir: Path) -> tuple[dict, list[str]]:
     for path in sorted(lab_dir.glob("*.json")):
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError) as exc:
+        except (ValueError, OSError) as exc:  # JSONDecodeError and UnicodeDecodeError are ValueErrors
             skipped.append(f"{path.name} (unreadable: {type(exc).__name__})")
             continue
         if isinstance(data, dict) and "id" in data:

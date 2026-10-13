@@ -58,6 +58,19 @@ def test_stand_ins_cover_exactly_the_unbuilt_registry_files():
     assert out.get_file_from_path("_static/atlas/two_neuron_ei/typo.html") is None
 
 
+def test_a_copy_stand_in_is_a_png(tmp_path):
+    from scripts.mkdocs_atlas_stubs import PNG_STUB
+
+    config = load_config(str(REPO / "mkdocs.yml"), site_dir=str(tmp_path / "site"))
+    out = _on_files(_with_built(config, [], tmp_path), config)
+    copies = sorted(_registry_uris("copies"))
+    assert copies, "fixture: the registry declares copies"
+    stand_in = out.get_file_from_path(copies[0])
+    assert stand_in.content_bytes == PNG_STUB and PNG_STUB.startswith(b"\x89PNG")
+    stand_in.copy_file()
+    assert pathlib.Path(stand_in.abs_dest_path).read_bytes() == PNG_STUB
+
+
 def _with_built(config, built, tmp_path):
     """The docs files with only `built` build products present, written under tmp_path."""
     products = _products()
