@@ -81,10 +81,6 @@ run on WSL2 CUDA.
   `tests/test_analysis_metrics.py:27-51`. Hamm 2026-10-13: declare all three (per-neuron Fano,
   `burst_index` honoring `bin_ms`, correlation on binned counts). Closes when: the declaration
   is written and those tests pin the new definitions.
-- T-14 [A] jnwb item 4 (`artifacts/programme/jnwb_inventory.md`). Hamm 2026-10-13: keep
-  jaxfne's band power, CSD, metrics and coherence, each row marked "kept" with its stated
-  difference; a family moves only once jnwb has an exact equivalent. Closes when: every
-  inventory row is marked.
 - T-16 [A] C7: parametrize the protocol_e spec tests; merge the 8 `test_atlas_at*_05x` files
   after a per-test coverage run. CI dedupe (examples list and wheel smoke in three places).
   Closes when: `python scripts/run_test_gate.py broad` passes with coverage unchanged.
