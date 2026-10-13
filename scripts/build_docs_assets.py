@@ -406,7 +406,11 @@ def build(slugs: list[str]) -> int:
         for line in detail:
             print(f"    {line}")
     print(f"atlases: {counts['OK']} ok, {counts['MISMATCH']} mismatch, {counts['ERROR']} error")
-    etude_errors = 0 if slugs else run_etudes(registry)
+    if slugs:
+        etude_errors = 0
+        print("etudes: skipped (--slug builds atlases only)")
+    else:
+        etude_errors = run_etudes(registry)
     if counts["MISMATCH"] or counts["ERROR"]:
         print("gallery: not rewritten (an atlas failed)")
         return 1
