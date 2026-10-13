@@ -16,6 +16,9 @@ nperseg=None)``, a ``scipy.signal.welch`` wrapper):
 - protocol_c/estimator.py ``estimate_traveling_wave``: a scalar peak frequency
 - analysis/spectral.py ``spectrolaminar_psd_jax``: DFT magnitude projection on 96 bins
 - analysis/spectral.py ``bandpower_jax``: a max-normalized band profile
+- vis/spectra.py ``spectrogram``: a segmented-STFT time-frequency tiling
+- vis/spectra.py ``plot_spectrogram_profiles``: a segmented-STFT tiling with adaptive nperseg
+- fields/proxy.py ``cross_area_coherence`` fallback: unwindowed periodogram cross-spectrum ratio
 """
 
 import jnwb
@@ -24,6 +27,36 @@ import pytest
 from scipy import signal as _signal
 
 from jaxfne.vis import core as _core
+
+
+@pytest.fixture
+def agg():
+    """Matplotlib on the Agg backend; closes figures after."""
+    mpl = pytest.importorskip("matplotlib")
+    mpl.use("Agg")
+    yield
+    _core.close_all()
+
+
+def _spy_spectrogram(monkeypatch, calls):
+    """Replace ``scipy.signal.spectrogram`` with a recorder running the real call."""
+    real = _signal.spectrogram
+
+    def spy(x, *args, **kwargs):
+        out = real(x, *args, **kwargs)
+        calls.append(
+            {
+                "x": np.array(x, copy=True),
+                "kwargs": dict(kwargs),
+                "freqs": np.array(out[0], copy=True),
+                "times": np.array(out[1], copy=True),
+                "sxx": np.array(out[2], copy=True),
+            }
+        )
+        return out
+
+    monkeypatch.setattr(_signal, "spectrogram", spy)
+    return real
 
 
 def test_proxy_spectrolaminar_differs_from_jnwb_by_float32_interp_grid():
@@ -263,4 +296,128 @@ def test_bandpower_differs_from_jnwb_by_normalized_profile():
     assert len(np.asarray(jf)) > 10, "compared arrays must have more than 10 bins"
     assert prof.shape != np.asarray(jpxx).shape, (
         "site returns an (n_contacts,) normalized profile, jnwb a 201-bin PSD"
+    )
+
+
+def test_spectra_spectrogram_differs_from_jnwb_by_time_frequency_tiling(monkeypatch, agg):
+    # vis/spectra.py:125 segmented-STFT spectrogram of the first column with
+    # nperseg=min(128, T). Output is a (freqs, segments) tiling, not an
+    # averaged Welch PSD.
+    import matplotlib.pyplot as plt
+
+    from jaxfne.vis import spectra
+
+    calls = []
+    real = _spy_spectrogram(monkeypatch, calls)
+    rng = np.random.default_rng(0)
+    t, dt_ms, fs = 1000, 1.0, 1000.0
+    col = rng.standard_normal(t) + np.sin(np.arange(t) * 0.05)
+    assert float(np.abs(col).sum()) > 0, "fixture must carry nonzero power"
+    data = np.stack([col, 0.5 * col], axis=1)
+    fig = spectra.spectrogram(data, dt_ms=dt_ms)
+    assert isinstance(fig, plt.Figure)
+    assert len(calls) == 1, f"spectrogram site: expected one call, got {len(calls)}"
+    call = calls[0]
+    assert call["kwargs"]["fs"] == fs, "site must pass fs=1000.0"
+    assert call["kwargs"]["nperseg"] == min(128, t), "site must pass nperseg=min(128, T)"
+    np.testing.assert_array_equal(call["x"], col)
+    ef, _et, eSxx = real(col, fs=fs, nperseg=min(128, t))
+    np.testing.assert_array_equal(call["freqs"], ef)
+    np.testing.assert_array_equal(call["sxx"], eSxx)
+    assert float(np.asarray(eSxx).sum()) > 0, "fixture must carry nonzero power"
+    assert np.asarray(eSxx).shape[0] > 10, "compared arrays must have more than 10 bins"
+    jf, jpxx = jnwb.compute_psd(col, fs, axis=0, nperseg=min(128, t))
+    assert len(np.asarray(jf)) > 10, "compared arrays must have more than 10 bins"
+    assert np.asarray(eSxx).ndim == 2 and np.asarray(jpxx).ndim == 1, (
+        "site returns a (freqs, segments) tiling, jnwb a single PSD spectrum"
+    )
+
+
+def test_spectra_plot_profiles_differs_from_jnwb_by_time_frequency_tiling(monkeypatch, agg):
+    # vis/spectra.py:35 segmented-STFT spectrogram of the first row with
+    # adaptive nperseg=min(256, max(8, T // 4)). Output is a (freqs,
+    # segments) tiling, not an averaged Welch PSD.
+    import matplotlib.pyplot as plt
+
+    from jaxfne.vis import spectra
+
+    calls = []
+    real = _spy_spectrogram(monkeypatch, calls)
+    rng = np.random.default_rng(0)
+    t, dt_ms = 1000, 1.0
+    row = rng.standard_normal(t) + np.sin(np.arange(t) * 0.05)
+    assert float(np.abs(row).sum()) > 0, "fixture must carry nonzero power"
+    arr = np.stack([row, 0.5 * row], axis=0)
+    steps = np.arange(t) * dt_ms
+    fs = 1000.0 / float(np.median(np.diff(steps)))
+    nperseg = min(256, max(8, t // 4))
+    fig = spectra.plot_spectrogram_profiles(arr, steps)
+    assert isinstance(fig, plt.Figure)
+    assert len(calls) == 1, f"profiles site: expected one call, got {len(calls)}"
+    call = calls[0]
+    assert call["kwargs"]["fs"] == fs, "site must pass fs from the step grid"
+    assert call["kwargs"]["nperseg"] == nperseg, "site must pass adaptive nperseg"
+    np.testing.assert_array_equal(call["x"], row)
+    ef, _et, eSxx = real(row, fs=fs, nperseg=nperseg)
+    np.testing.assert_array_equal(call["freqs"], ef)
+    np.testing.assert_array_equal(call["sxx"], eSxx)
+    assert float(np.asarray(eSxx).sum()) > 0, "fixture must carry nonzero power"
+    assert np.asarray(eSxx).shape[0] > 10, "compared arrays must have more than 10 bins"
+    jf, jpxx = jnwb.compute_psd(row, fs, axis=0, nperseg=nperseg)
+    assert len(np.asarray(jf)) > 10, "compared arrays must have more than 10 bins"
+    assert np.asarray(eSxx).ndim == 2 and np.asarray(jpxx).ndim == 1, (
+        "site returns a (freqs, segments) tiling, jnwb a single PSD spectrum"
+    )
+
+
+def test_proxy_coherence_fallback_differs_from_jnwb_by_periodogram(monkeypatch):
+    # fields/proxy.py:1128-1138 except-branch: unwindowed periodogram
+    # cross-spectrum |rfft|^2 / T on the raw rfft grid, interpolated onto the
+    # linspace grid, then the |Pxy|^2/(Pxx*Pyy) ratio. No Welch segmentation.
+    from jaxfne.fields import proxy as _proxy
+
+    def _raise(x, fs_hz, *, nperseg=256, freq_max_hz=None):
+        raise ValueError("forced periodogram fallback")
+
+    monkeypatch.setattr(_core, "welch_psd", _raise)
+    rng = np.random.default_rng(0)
+    t, dt_ms = 300, 0.5
+    fs = 1000.0 / dt_ms
+    x = rng.standard_normal(t) + np.sin(np.arange(t) * 0.05)
+    y = rng.standard_normal(t) + np.cos(np.arange(t) * 0.05)
+    assert float(np.abs(x).sum()) > 0, "fixture must carry nonzero power"
+    assert float(np.abs(y).sum()) > 0, "fixture must carry nonzero power"
+    out = _proxy.cross_area_coherence(x, y, dt_ms=dt_ms)
+    assert out["method"] == "periodogram"
+    grid = np.linspace(1.0, 150.0, 128)
+    xa = np.asarray(x, dtype=np.float64).ravel()
+    ya = np.asarray(y, dtype=np.float64).ravel()
+    xw, yw = xa - xa.mean(), ya - ya.mean()
+    xh = np.abs(np.fft.rfft(xw)) ** 2 / t
+    yh = np.abs(np.fft.rfft(yw)) ** 2 / t
+    ch = np.fft.rfft(xw) * np.conj(np.fft.rfft(yw)) / t
+    ff = np.fft.rfftfreq(t, 1.0 / fs)
+    pxx_i = np.interp(grid, ff, xh)
+    pyy_i = np.interp(grid, ff, yh)
+    pxy_i = np.interp(grid, ff, ch.real) + 1j * np.interp(grid, ff, ch.imag)
+    denom = pxx_i * pyy_i
+    ceiling = float(np.max(denom)) if float(np.max(denom)) > 0.0 else 0.0
+    valid = denom > (ceiling * 1e-12) if ceiling > 0.0 else np.zeros_like(denom, dtype=bool)
+    coherence = np.zeros_like(denom)
+    phase = np.zeros_like(denom)
+    coherence[valid] = (np.abs(pxy_i[valid]) ** 2) / denom[valid]
+    phase[valid] = np.angle(pxy_i[valid])
+    np.testing.assert_array_equal(np.asarray(out["freq_hz"]), grid.astype(np.float32))
+    np.testing.assert_array_equal(
+        np.asarray(out["coherence"]), np.clip(coherence, 0.0, 1.0).astype(np.float32)
+    )
+    np.testing.assert_array_equal(np.asarray(out["cross_phase_rad"]), phase.astype(np.float32))
+    np.testing.assert_array_equal(np.asarray(out["valid"]), valid)
+    assert bool(np.asarray(out["valid"]).any()), "fixture must carry nonzero power"
+    assert float(np.asarray(out["coherence"]).sum()) > 0, "fixture must carry nonzero power"
+    assert np.asarray(out["coherence"]).shape[0] > 10, "compared arrays must have more than 10 bins"
+    jf, jpxx = jnwb.compute_psd(xa, fs, axis=0, nperseg=t)
+    assert len(np.asarray(jf)) > 10, "compared arrays must have more than 10 bins"
+    assert np.asarray(out["coherence"]).shape != np.asarray(jpxx).shape, (
+        "site returns a 128-bin periodogram coherence ratio, jnwb a 151-bin Welch PSD"
     )
