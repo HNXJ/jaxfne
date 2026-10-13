@@ -8,7 +8,8 @@ first, amend in place.
 
 ## 1. Decisions waiting on Hamm (they unblock items below)
 
-Open: T-12, T-13, T-14, T-17 in §3. Decided 2026-10-13: T-1 (a) landed in e3a7a41b; T-2
+Open: the manuscript tree and other archive moves (T-17). Decided 2026-10-13: T-12, T-13,
+T-14, T-17 (calls in each item); T-1 (a) landed in e3a7a41b; T-2
 bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 `artifacts/etudes/REPLICATIONS.md`).
 
@@ -66,28 +67,31 @@ run on WSL2 CUDA.
   (`artifacts/harness/jnwb_cross_learning.md`).
 - T-11 [A] G-3: CAMINOS p = 0.07 seed 1 as an NWB excerpt plus provenance for jnwb `tests/`
   (waits on O-2). Closes when: the excerpt's recovery test passes in jnwb `tests/`.
-- T-12 [H] `cross_area_coherence` Welch path (the periodogram fallback is refused since
+- T-12 [A] `cross_area_coherence` Welch path (the periodogram fallback is refused since
   Hamm's call, 2026-10-13): `nperseg = min(1024, T)` gives one segment for T < 1536 samples, so
   coherence is 1 at the native bins there too. Independent white noise, dt 0.5 ms
   (`C:/workspace/pytest_temp/coh_single_segment.py`): median coherence 0.81 at T = 1000, 0.40 at
   1536 (2 segments), 0.22 at 2048, 0.10 at 4000. AT-09 (`artifacts/atlas/at08_at09_054.py`, 1000 ms,
-  T = 2000) reads it in 8–25 Hz with about 2 segments. Hamm: refuse below K segments, or shrink
-  nperseg to reach K; AT-09 then reruns as a declared change. Closes when: the call is recorded
-  and a test pins it.
-- T-13 [H] jnwb item 3: `analysis/metrics.py:226,122,19` (Fano of the population sum,
+  T = 2000) reads it in 8–25 Hz with about 2 segments. Hamm 2026-10-13: shrink nperseg so Welch
+  has at least 8 half-overlapping segments, refuse when that leaves nperseg < 64; AT-09 reruns
+  as a declared change. Closes when: a test pins it and AT-09 is rerun and promoted.
+- T-13 [A] jnwb item 3: `analysis/metrics.py:226,122,19` (Fano of the population sum,
   `burst_index` ignoring `bin_ms`, unbinned pairwise correlation), pinned by
-  `tests/test_analysis_metrics.py:27-51`; needs a declared definition change. Closes when: the
-  declaration is signed and those tests pin the new definitions.
-- T-14 [H] jnwb item 4: no remaining family is a drop-in (band power, CSD, metrics, coherence);
-  each move is a declared change or keeps jaxfne's (`artifacts/programme/jnwb_inventory.md`).
-  Closes when: every inventory row is marked moved, declared or kept.
+  `tests/test_analysis_metrics.py:27-51`. Hamm 2026-10-13: declare all three (per-neuron Fano,
+  `burst_index` honoring `bin_ms`, correlation on binned counts). Closes when: the declaration
+  is written and those tests pin the new definitions.
+- T-14 [A] jnwb item 4 (`artifacts/programme/jnwb_inventory.md`). Hamm 2026-10-13: keep
+  jaxfne's band power, CSD, metrics and coherence, each row marked "kept" with its stated
+  difference; a family moves only once jnwb has an exact equivalent. Closes when: every
+  inventory row is marked.
 - T-16 [A] C7: parametrize the protocol_e spec tests; merge the 8 `test_atlas_at*_05x` files
   after a per-test coverage run. CI dedupe (examples list and wheel smoke in three places).
   Closes when: `python scripts/run_test_gate.py broad` passes with coverage unchanged.
-- T-17 [H] P3 audit owner calls: unreferenced scripts left by `f4397bd6`
-  (`make_delta_test_01_report.py`, `generate_mechanism_tutorials.py`, `repair_notebooks.py`),
-  benchmark and sync scripts, unwired gates, the manuscript tree, archive moves. Closes when:
-  each has Hamm's call recorded here.
+- T-17 [A] P3 audit: unreferenced scripts left by `f4397bd6` (`make_delta_test_01_report.py`,
+  `generate_mechanism_tutorials.py`, `repair_notebooks.py`), benchmark and sync scripts, unwired
+  gates. Hamm 2026-10-13: archive them under `artifacts/archive/scripts/` with a reason each;
+  anything a test, CI or docs build references stays. The manuscript tree and other archive
+  moves remain open [H]. Closes when: the scripts are archived and the broad gate passes.
 - T-18 [A] Inhibitory-type lists that omit `I`, `Inl`, `Ing`, `SOM` (F6 review, 57f40ddf):
   `tutorial_utils.py:1564` (`simulate_laminar_trials` zeroes same-layer input only onto
   PV/SST/VIP, a model rule), `tutorial_utils.py:800` (default `cell_signs`), `util.py:712`
