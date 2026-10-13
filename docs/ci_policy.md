@@ -253,8 +253,10 @@ Admin pushes therefore still bypass the required checks.
 ## Documentation surfaces
 
 [ReadTheDocs](https://jaxfne.readthedocs.io/) is the **authoritative** published
-documentation: it builds `mkdocs.yml` from the repository on every push, and the
-build's recorded commit is what the docs correspond to.
+documentation: it builds `mkdocs.yml` from `main` (latest) and each release tag
+(stable), and the build's recorded commit is what the docs correspond to. Before
+mkdocs runs, `scripts/build_docs_assets.py --build` regenerates the atlas HTML and
+fails the build when an atlas departs from `docs/_static/atlas_registry.json`.
 
 The `gh-pages` branch is **historical and inactive**. It holds an older
 deployment (release candidate docs for v0.4.20) and is intentionally not

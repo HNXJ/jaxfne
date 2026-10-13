@@ -66,6 +66,9 @@ the rules those releases were held to and are historical context for readers.
   generator and eight pages now use the page-URL depth. `build_docs_assets.py --check`
   resolves every relative `.html` link in the docs (atlas links against the registry, the
   rest on disk), and Read the Docs regenerates the atlases before mkdocs runs.
+- The 200 atlas HTML files (9.7 MB) leave the repository as build products; the 25
+  manifests and `atlas_registry.json` stay tracked. The tracked-tree budget drops from
+  102665681 to 91226112 bytes.
 - The references page lists, per source, the result jaxfne implements and the functions that
   implement it; those functions cite the same DOI, and `tests/test_references_page.py` holds the
   two together. Replicated papers and background work have their own tables.

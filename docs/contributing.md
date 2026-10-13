@@ -39,6 +39,7 @@ Use **`python3`** (3.11 and 3.14 tested). Canonical import: `import jaxfne as jt
 ```bash
 python3 scripts/evidence_inventory.py
 python3 -m compileall -q scripts jaxfne tests
+python3 scripts/build_docs_assets.py --check
 python3 -m mkdocs build --strict
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest \
   tests/test_api_smoke.py tests/test_root_import_lightweight.py \
@@ -50,6 +51,9 @@ Broader local check (optional, slower):
 ```bash
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests -q -m "not slow" --tb=short
 ```
+
+The atlas HTML under `docs/_static/atlas*/` is a build product: `python3 scripts/build_docs_assets.py --build`
+writes it (about 3 min on CPU) before a local `mkdocs serve` shows the atlas panels.
 
 Docs-only PRs: run `mkdocs build --strict` at minimum. If you change `docs/guides/showcases.md`,
 regenerate figures with `python3 scripts/generate_showcase_figures.py`.
