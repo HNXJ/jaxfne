@@ -18,6 +18,7 @@ stay where they are and new work goes into the folder of its kind.
 |---|---|---|
 | `issue_log/` | open issues P-NNN | release authorities |
 | `release/` | release receipts and `current_release_authorities.json` | release authorities |
+| `changelog.d/` | release-note fragments assembled into `docs/changelog.md` | |
 | `publication/` | manuscript figure specs, receipts, claim ledger, `frozen_manifest.json` | frozen + harness |
 | `figures/` | publication figure renders | `publication/` fig01–fig07 frozen |
 | `etudes/` | paper replications (`REPLICATIONS.md`, one folder per paper) and etude bundles | cited by publication |
