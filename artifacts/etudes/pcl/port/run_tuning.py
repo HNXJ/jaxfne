@@ -56,6 +56,8 @@ OUT_DIR = Path("F:/warehouse/pcl/runs/fig3_cSTDP3")
 OUT_S1 = Path("F:/warehouse/pcl/runs/fig3_cSTDP3_S1")  # S1 (P3_fig3.md): local inhibition only
 OUT_NOLOCAL = Path("F:/warehouse/pcl/diag_runs/fig3_cSTDP3_nolocal")  # diagnostic: no local inhibition, not scored
 OUT_NOLOCAL_SIMPLE = Path("F:/warehouse/pcl/diag_runs/fig3_cSTDP3_nolocal_simple")  # diagnostic, not scored
+MODE_DIRS = {"full": OUT_DIR, "local-only": OUT_S1, "no-local": OUT_NOLOCAL,
+             "no-local-simple": OUT_NOLOCAL_SIMPLE}  # default out dir per --inhibition mode
 ORIS = ("0", "23", "45", "68", "90", "113", "135", "158")  # checked against the test set listing
 WORKERS = 12
 CENTRAL_COL = (4, 4)  # recorded in the manifest only; no output is filtered by it
@@ -112,20 +114,19 @@ def resolve_out_dir(out: str | None, inhibition: str) -> Path:
         return Path(out)
     if inhibition == "local-only":
         return OUT_S1
-    if inhibition == "no-local-simple":
-        return OUT_NOLOCAL_SIMPLE
-    return OUT_NOLOCAL if inhibition == "no-local" else OUT_DIR
+    return MODE_DIRS[inhibition]
 
 
 def check_out_dir(out: Path, inhibition: str) -> None:
     """Refuse an out dir whose manifest records the other inhibition mode.
 
     A manifest without an "inhibition" key predates the flag and means the full run.
-    A non-full mode is additionally never written into the full run's dir.
+    No mode is ever written into another mode's default dir, manifest or not.
     """
     out = Path(out)
-    if inhibition != "full" and out == OUT_DIR:
-        raise ValueError(f"refusing {inhibition} into the full run's dir {out}")
+    for owner, d in MODE_DIRS.items():
+        if owner != inhibition and out == Path(d):
+            raise ValueError(f"refusing {inhibition} into the {owner} run's dir {out}")
     path = out / "manifest.json"
     if not path.is_file():
         return
@@ -223,8 +224,8 @@ def main(argv=None) -> int:
                          "no-local clears the local flags; no-local-simple clears the simple "
                          "layer's only (diagnostics)")
     ap.add_argument("--out", default=None,
-                    help="default: the full dir, fig3_cSTDP3_S1 for local-only, or "
-                         "diag_runs/fig3_cSTDP3_nolocal for no-local")
+                    help="default: the mode's dir in MODE_DIRS (full, fig3_cSTDP3_S1, "
+                         "diag_runs/fig3_cSTDP3_nolocal, diag_runs/fig3_cSTDP3_nolocal_simple)")
     ap.add_argument("--workers", type=int, default=WORKERS)
     ap.add_argument("--start-utc", default=None,
                     help="start time for the manifest, from `date -u +%%Y-%%m-%%dT%%H:%%M:%%SZ`")

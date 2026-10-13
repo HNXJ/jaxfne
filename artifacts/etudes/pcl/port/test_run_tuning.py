@@ -1,6 +1,7 @@
-"""Inhibition switch for the Fig. 3 run: --inhibition {full,local-only,no-local}.
+"""Inhibition switch for the Fig. 3 run: --inhibition {full,local-only,no-local,no-local-simple}.
 
-local-only is the S1 sensitivity (P3_fig3.md); no-local is a diagnostic (local flags off).
+local-only is the S1 sensitivity (P3_fig3.md); no-local (local flags off) and no-local-simple
+(the simple layer's local flag off) are diagnostics.
 
 Fast synthetic-network tests: no trained weights, no test7 files. The synthetic net uses
 the default layout with lateral and top-down inhibition enabled, so LAT/TD are nonzero
@@ -113,6 +114,8 @@ def test_no_local_simple_clears_only_the_simple_flag():
     mixed = copy.deepcopy(full)
     rt.apply_inhibition_mode(mixed, "no-local-simple")
     assert not mixed.local_s and mixed.local_c and mixed.lat_on and mixed.td_on
+    assert np.array_equal(mixed.LAT, full.LAT) and np.array_equal(mixed.TD, full.TD)
+    assert np.array_equal(mixed.wi_s, full.wi_s)
 
     nb.run_numba(full, *_burst())
     nb.run_numba(mixed, *_burst())
@@ -134,7 +137,7 @@ def test_unknown_mode_refused():
 
 def test_no_local_refused_in_full_run_dir(tmp_path, monkeypatch):
     scored = tmp_path / "runs" / "fig3_cSTDP3"
-    monkeypatch.setattr(rt, "OUT_DIR", scored)
+    monkeypatch.setitem(rt.MODE_DIRS, "full", scored)
     try:
         rt.check_out_dir(scored, "no-local")
     except ValueError:
@@ -184,5 +187,23 @@ def test_default_out_dirs():
     assert rt.resolve_out_dir(None, "full") == Path("F:/warehouse/pcl/runs/fig3_cSTDP3")
     assert rt.resolve_out_dir(None, "local-only") == Path("F:/warehouse/pcl/runs/fig3_cSTDP3_S1")
     assert rt.resolve_out_dir(None, "no-local") == Path("F:/warehouse/pcl/diag_runs/fig3_cSTDP3_nolocal")
-    assert rt.OUT_S1 != rt.OUT_DIR != rt.OUT_NOLOCAL
+    assert rt.resolve_out_dir(None, "no-local-simple") == Path(
+        "F:/warehouse/pcl/diag_runs/fig3_cSTDP3_nolocal_simple")
+    assert len({rt.OUT_DIR, rt.OUT_S1, rt.OUT_NOLOCAL, rt.OUT_NOLOCAL_SIMPLE}) == 4
     assert rt.resolve_out_dir(str(rt.OUT_DIR), "local-only") == rt.OUT_DIR  # explicit wins
+
+
+def test_every_mode_refused_in_another_modes_default_dir(tmp_path, monkeypatch):
+    dirs = {m: tmp_path / m for m in rt.MODE_DIRS}  # fresh, manifest-less dirs
+    monkeypatch.setattr(rt, "MODE_DIRS", dirs)
+    for mode in dirs:
+        for owner, d in dirs.items():
+            if owner == mode:
+                rt.check_out_dir(d, mode)  # its own default dir passes
+                continue
+            try:
+                rt.check_out_dir(d, mode)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError(f"{mode} into {owner}'s default dir must be refused")
