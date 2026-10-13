@@ -25,7 +25,7 @@ the P5 seed spread. No API run of this network exists.
 | Bernoulli connectivity at probability p; seven blocks, none PV→SOM or SOM→SOM | seven `connections(..., probability=p, sampling="bernoulli")` rules |
 | Conductances Q, synaptic time constants, delay | `mechanisms()` and `connections(weight=, delay_ms=)` |
 | Private 4 Hz Poisson drive, round(p·NE) sources per E and PV cell; SOM undriven | `Simulation(poisson_drive={"n_sources": round(p·NE), "rate_hz": 4, "target_cell_types": ["E", "PV"], ...})` |
-| Seed s | `RuntimeConfig(seed=s)` (edge seed) and `poisson_drive["seed"]`; `Simulation(seed=)` is refused on this route |
+| Seed s | `connectivity(edge_seed=s)` (edges) and `poisson_drive["seed"]` (drive); `Simulation(seed=)` is refused on this route |
 | dt 0.1 ms; T 12 s, first 2 s discarded | `Simulation(dt_ms=0.1, duration_ms=12000)` |
 
 The API draws connectivity and drive with its own keys, so spike trains differ from the port's
@@ -34,8 +34,11 @@ at equal seed. Equivalence is stated on the estimands.
 ## Build prerequisite
 
 B0. The adex route records V at every step (`_model_simulate.py:1455`, `record_v=True`): a 12 s
-run holds about 4.6 GB of V plus 1.1 GB of spikes. P6 needs a declared way to run without
-recording V (failing test first, second review) before any scored run.
+run holds about 4.6 GB of V plus 1.1 GB of spikes. P6 needs a way to run without recording V
+(failing test first, second review) before any scored run. Hamm's choice: (a) a public
+`Simulation` field every route consumes or refuses; (b) an adex-route option; (c) the ADVANCED
+kernel `jaxfne.emitters.simulate_adex(record_v=False)` on the route's compiled arguments, which
+leaves the public surface unchanged.
 
 ## Before scoring (gates; a failure stops the run)
 
@@ -54,9 +57,11 @@ recording V (failing test first, second review) before any scored run.
 
 - p = 0.07, seeds 1–5 (Q1–Q3, R1–R3); p = 0.02, 0.03, …, 0.10, seeds 1–3, drive p·NE (R4v7).
   The sweep's p = 0.07 seeds 1–3 are the same runs as seeds 1–3 above.
-- Control (falsifier): p = 0.02, seed 1, with the v6 fixed drive of 560 sources. P5 v6 found
-  this network oscillating (peak excess 55–98 against threshold 4); the API run must oscillate
-  too, showing the pipeline separates the two drives.
+- Drive control C1: p = 0.02, seed 1, with the v6 fixed drive of 560 sources, in its own
+  directory, scored with `--ext-sources fixed`. P5 v6 found this network oscillating (peak
+  excess 55–98 against threshold 4, f_pk 28–29 Hz); the API run must oscillate too, showing the
+  route honours `n_sources`. C1 is read from `per_run[].oscillates` (that scoring prints
+  "incomplete" for R1–R4 by design). Gates 1–3 cover decay, step order and parameters.
 - WSL2 CUDA, float32, one GPU job at a time after a jchat claim (B5); one code SHA per run.
 - Analysis: `caminos_analysis.py` as at `l2-caminos` baca68e7, unchanged.
 
@@ -86,7 +91,7 @@ False-fail is the chance that an API identical to the port fails Q1–Q3 by seed
 | Option | Q1 | Q2 | Q3 | False-fail |
 |---|---|---|---|---|
 | A | 1 Hz | 0.5 ms | 5 % | 6.4 % (mostly SOM) |
-| C (recommended) | 1 Hz | 2 SD of the P5 seeds (0.34 ms) | 2 SD of the P5 seeds (E 6.0 %, PV 1.2 %, SOM 8.2 %) | about 0.5 % |
+| C (recommended) | 1 Hz | 2 SD of the P5 seeds (0.34 ms) | 2 SD of the P5 seeds (E 6.1 %, PV 1.2 %, SOM 8.2 %) | about 0.8 % |
 
 For scale: 1 Hz in f_pk is about 0.005 in p along the v7 sweep (1.85 Hz per 0.01).
 
