@@ -221,6 +221,12 @@ def verdict_of(p, c):
     if p.absent(spec["file"]):
         return "pending", reason
     flag = p.value(spec["file"], spec["key"])
+    if spec.get("form") == "pass_fail":
+        # Scorers that write "pass" / "fail" / "incomplete"; incomplete scores as a fail.
+        if flag not in ("pass", "fail", "incomplete"):
+            raise BuildError(f"paper {p.id}: verdict file {spec['file']} key {spec['key']} "
+                             f"is not pass, fail or incomplete")
+        flag = flag == "pass"
     if not isinstance(flag, bool):
         raise BuildError(f"paper {p.id}: verdict file {spec['file']} key {spec['key']} is not a boolean")
     if "floor" in c:
