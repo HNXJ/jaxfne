@@ -2,14 +2,14 @@
   "suite": "etude_posthoc.v1",
   "etude": "multiscale_observation",
   "figure_state": "validated",
-  "jaxfne_version": "0.4.25",
+  "jaxfne_version": "0.5.5",
   "panels": [
     {
       "file": "raster.html",
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 15644,
+      "bytes": 15556,
       "inputs": {
         "source_artifact": "reproduced group-A run (claims-checked P-003: spikes/positions hash-exact, V_m/Q float drift, published claims re-verified)",
         "transform": "Spike raster",
@@ -22,7 +22,7 @@
       "panel": "Membrane traces",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 269763,
+      "bytes": 269675,
       "inputs": {
         "source_artifact": "reproduced group-A run (claims-checked P-003: spikes/positions hash-exact, V_m/Q float drift, published claims re-verified)",
         "transform": "Membrane traces",
@@ -35,7 +35,7 @@
       "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 267890,
+      "bytes": 267802,
       "inputs": {
         "source_artifact": "reproduced group-A run (claims-checked P-003: spikes/positions hash-exact, V_m/Q float drift, published claims re-verified)",
         "transform": "LFP proxy",
@@ -48,7 +48,7 @@
       "panel": "CSD proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 271225,
+      "bytes": 271137,
       "inputs": {
         "source_artifact": "reproduced group-A run (claims-checked P-003: spikes/positions hash-exact, V_m/Q float drift, published claims re-verified)",
         "transform": "CSD proxy",
@@ -61,7 +61,7 @@
       "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 11562,
+      "bytes": 11499,
       "inputs": {
         "source_artifact": "reproduced group-A run (claims-checked P-003: spikes/positions hash-exact, V_m/Q float drift, published claims re-verified)",
         "transform": "Oscillatory response",
@@ -70,8 +70,8 @@
       }
     }
   ],
-  "sha256": "c8e85a91788ca5a0",
-  "generated_utc": "2026-09-20T06:55:03.476408+00:00",
+  "sha256": "26cc8630c619804d",
+  "generated_utc": "2026-10-13T14:02:55.318069+00:00",
   "source_bundle": "artifacts/etudes/multiscale_observation",
   "verification_tier": "claims",
   "reproduced_cause_hashes": {
@@ -88,10 +88,10 @@
   "promotion": [
     {
       "to": "validated",
-      "reason": "C6 post-bump: deterministic regen on 0.4.25 tree, panels bit-identical (shas match pre-bump), gates green",
+      "reason": "T-1 (a), Hamm 2026-10-13: frozen protocol restored (inert drive call removed); against the 0.4.25 panels, rasters, LFP and CSD exact, traces and spectra within 3.5e-5 relative (float32); HTML bytes differ by Plotly 4.1.1 and element ids",
       "promoter": "promote_atlas_state.py",
-      "git_head": "63f0333bf0585157cad66914269e3249e5b1a821",
-      "utc": "2026-09-20T06:56:10.736961+00:00"
+      "git_head": "a1493c96cbf31348b54d8e7e95e9a7bc893d553e",
+      "utc": "2026-10-13T14:04:45.758817+00:00"
     }
   ]
 }

@@ -796,6 +796,41 @@
         "raster.html",
         "traces.html"
       ]
+    },
+    {
+      "slug": "multiscale_observation",
+      "dir": "docs/_static/etudes/multiscale_observation",
+      "generator": [
+        "scripts/rerun_etude_figures.py",
+        "--etude",
+        "multiscale"
+      ],
+      "html": [
+        "csd.html",
+        "index.html",
+        "lfp.html",
+        "oscillatory.html",
+        "raster.html",
+        "traces.html"
+      ]
+    },
+    {
+      "slug": "heterogeneous_emitters",
+      "dir": "docs/_static/etudes/heterogeneous_emitters",
+      "generator": [
+        "scripts/rerun_etude_figures.py",
+        "--etude",
+        "heterogeneous"
+      ],
+      "html": [
+        "index.html",
+        "lfp_hei.html",
+        "lfp_izh.html",
+        "oscillatory.html",
+        "raster_izh.html",
+        "traces_hei.html",
+        "traces_izh.html"
+      ]
     }
   ]
 }

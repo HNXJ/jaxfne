@@ -132,7 +132,8 @@ def build_config() -> Any:
         )
         .cell_types({"E": 0.7, "PV": 0.3})
         .geometry(layer_thickness={"L2/3": 0.33, "L4": 0.34, "L5": 0.33})
-        .drive(baseline_drive_by_cell_type={"E": 8.0, "PV": 8.0})
+        # No .drive(): the frozen figures ran at the emitter default drive, since the
+        # E/PV drive of 8.0 they declared was inert before 9cc45659 (T-1, Hamm 2026-10-13).
         .set_emitter("izhikevich", "cortical_eig")
         .field(
             domain="laminar_column",

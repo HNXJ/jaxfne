@@ -35,7 +35,7 @@ def test_stand_ins_cover_exactly_the_unbuilt_registry_files():
     atlas = _registry_uris()
     assert len(atlas) == 200, "fixture: the registry declares 200 atlas files"
     etudes = _registry_uris("etudes")
-    assert len(etudes) == 12, "fixture: the registry declares 12 etude HTML files"
+    assert len(etudes) == 25, "fixture: the registry declares 25 etude HTML files"
     products = atlas | etudes
     # A fresh clone: no build product among the documentation files.
     fresh = Files([f for f in files if f.src_uri not in products])

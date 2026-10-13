@@ -165,3 +165,5 @@ docs/_static/atlas_three_area/*.html
 # their manifest.json files stay tracked.
 docs/_static/etudes/experiment_a/*.html
 docs/_static/etudes/hdp_controllability_reachability/*.html
+docs/_static/etudes/multiscale_observation/*.html
+docs/_static/etudes/heterogeneous_emitters/*.html

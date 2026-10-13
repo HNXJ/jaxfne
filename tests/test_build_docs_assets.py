@@ -232,9 +232,9 @@ def test_atlas_link_must_name_a_built_file():
 
 
 def test_other_html_link_must_name_a_file_on_disk():
-    # heterogeneous_emitters is not a registry etude: its tracked HTML is checked on disk.
-    target = "../../_static/etudes/heterogeneous_emitters/index.html"
-    assert (REPO / "docs/_static/etudes/heterogeneous_emitters/index.html").is_file(), "fixture needs a tracked page"
+    # visuals/ is not a registry product: its tracked HTML is checked on disk.
+    target = "../../_static/visuals/column_network.html"
+    assert (REPO / "docs/_static/visuals/column_network.html").is_file(), "fixture needs a tracked page"
     assert _link_problems("docs/etudes/p.md", f'<iframe src="{target}"></iframe>') == []
     missing = _link_problems("docs/etudes/p.md", '<iframe src="../../_static/etudes/none.html"></iframe>')
     assert len(missing) == 1 and "names no file" in missing[0], missing
