@@ -112,7 +112,8 @@ fit range, exclusion and edge rule are this study's, set here and passed as para
 function `peak_excess(signal, fs, band, fit_hz=(2, 200), excl_hz=2, edge_hz=1)` in
 `artifacts/etudes/izhikevich2003/izh_analysis.py`. CAMINOS's `spectral_peak`, whose constants are
 fixed to CAMINOS's bands, is not used. Fit bounds and starts are `fit_aperiodic`'s (k ≥ 0,
-χ ∈ [0, 5], start k = 1, χ = 1); a fit that does not converge counts as no peak.
+χ ∈ [0, 5], start k = 1, χ = 1); a fit that does not converge, or a PSD with a zero bin in the
+fit range (no logarithm), counts as no peak.
 
 1. Welch PSD: `scipy.signal.welch(x, fs=1000, window="hann", nperseg=2000, noverlap=1000,
    detrend=False, scaling="density")` (0.5 Hz bins, 9 windows over the kept 10 s).
