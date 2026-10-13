@@ -372,8 +372,9 @@ def test_spectra_plot_profiles_differs_from_jnwb_by_time_frequency_tiling(monkey
 
 def test_proxy_coherence_fallback_differs_from_jnwb_by_periodogram(monkeypatch):
     # fields/proxy.py:1128-1138 except-branch: unwindowed periodogram
-    # cross-spectrum |rfft|^2 / T on the raw rfft grid, interpolated onto the
-    # linspace grid, then the |Pxy|^2/(Pxx*Pyy) ratio. No Welch segmentation.
+    # cross-spectrum on the raw rfft grid, interpolated onto the linspace grid,
+    # then the |Pxy|^2/(Pxx*Pyy) ratio. No Welch segmentation. A common scale
+    # factor (the site's /T) cancels in the ratio, so this pin does not fix it.
     from jaxfne.fields import proxy as _proxy
 
     def _raise(x, fs_hz, *, nperseg=256, freq_max_hz=None):
