@@ -54,6 +54,7 @@ NETWORK = Path("F:/warehouse/pcl/data/PCL_datasets_and_networks/add_simulations_
 TEST_SET = Path("F:/warehouse/pcl/data/PCL_datasets_and_networks/grating/counterphase_gratingComplex/test7")
 OUT_DIR = Path("F:/warehouse/pcl/runs/fig3_cSTDP3")
 OUT_S1 = Path("F:/warehouse/pcl/runs/fig3_cSTDP3_S1")  # S1 (P3_fig3.md): local inhibition only
+OUT_NOLOCAL = Path("F:/warehouse/pcl/diag_runs/fig3_cSTDP3_nolocal")  # diagnostic: no local inhibition, not scored
 ORIS = ("0", "23", "45", "68", "90", "113", "135", "158")  # checked against the test set listing
 WORKERS = 12
 CENTRAL_COL = (4, 4)  # recorded in the manifest only; no output is filtered by it
@@ -78,13 +79,21 @@ _INHIBITION = "full"
 
 
 def apply_inhibition_mode(net, inhibition: str):
-    """Zero the lateral and top-down weight maps in place for S1 (local inhibition only).
+    """Switch off one inhibition family in place; "full" leaves the trained network as it is.
 
-    Both run paths read the same arrays: the pure path uses LAT[m, n] and TD[s, c]
-    (pcl_event_ref.py), and run_numba passes net.LAT and net.TD (.T) straight to the
-    kernel (pcl_event_ref_numba.py). The flags, masks and local weights are untouched.
+    local-only (S1): zero the lateral and top-down weight maps. Both run paths read the same
+    arrays: the pure path uses LAT[m, n] and TD[s, c] (pcl_event_ref.py), and run_numba passes
+    net.LAT and net.TD (.T) straight to the kernel (pcl_event_ref_numba.py). The flags, masks
+    and local weights are untouched.
+    no-local (diagnostic): clear local_s and local_c. The pure path gates on them at
+    pcl_event_ref.py:686 and :725; run_numba packs them at pcl_event_ref_numba.py:233-235 and
+    the kernel reads them as G_LOCS and G_LOCC (:123, :148, :173). Lateral and top-down maps stay.
     """
     if inhibition == "full":
+        return net
+    if inhibition == "no-local":
+        net.local_s = False
+        net.local_c = False
         return net
     if inhibition != "local-only":
         raise ValueError(f"unknown inhibition {inhibition!r}")
@@ -99,18 +108,20 @@ def resolve_out_dir(out: str | None, inhibition: str) -> Path:
     """Default output directory for the inhibition mode; an explicit --out wins."""
     if out is not None:
         return Path(out)
-    return OUT_S1 if inhibition == "local-only" else OUT_DIR
+    if inhibition == "local-only":
+        return OUT_S1
+    return OUT_NOLOCAL if inhibition == "no-local" else OUT_DIR
 
 
 def check_out_dir(out: Path, inhibition: str) -> None:
     """Refuse an out dir whose manifest records the other inhibition mode.
 
     A manifest without an "inhibition" key predates the flag and means the full run.
-    The S1 dir is additionally never the full run's dir.
+    A non-full mode is additionally never written into the full run's dir.
     """
     out = Path(out)
-    if inhibition == "local-only" and out == OUT_DIR:
-        raise ValueError(f"refusing local-only into the full run's dir {out}")
+    if inhibition != "full" and out == OUT_DIR:
+        raise ValueError(f"refusing {inhibition} into the full run's dir {out}")
     path = out / "manifest.json"
     if not path.is_file():
         return
@@ -202,10 +213,12 @@ def _write_manifest(out: Path, record: dict, static: dict) -> None:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--subset", choices=("pilot", "all"), required=True)
-    ap.add_argument("--inhibition", choices=("full", "local-only"), default="full",
-                    help="S1 (P3_fig3.md): local-only zeroes the lateral and top-down maps")
+    ap.add_argument("--inhibition", choices=("full", "local-only", "no-local"), default="full",
+                    help="S1 (P3_fig3.md): local-only zeroes the lateral and top-down maps; "
+                         "no-local clears the local flags (diagnostic)")
     ap.add_argument("--out", default=None,
-                    help="default: the full dir, or fig3_cSTDP3_S1 for local-only")
+                    help="default: the full dir, fig3_cSTDP3_S1 for local-only, or "
+                         "diag_runs/fig3_cSTDP3_nolocal for no-local")
     ap.add_argument("--workers", type=int, default=WORKERS)
     ap.add_argument("--start-utc", default=None,
                     help="start time for the manifest, from `date -u +%%Y-%%m-%%dT%%H:%%M:%%SZ`")
