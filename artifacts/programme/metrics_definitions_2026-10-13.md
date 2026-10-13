@@ -29,3 +29,19 @@ per-step, and the 2-step binned rows `[1,1]` and `[0,2]` leave only one row
 with variance, so 0.0). The burst index moves 0.75 -> 1.0 when binning at 2
 steps, since both binned windows then reach the 0.5 active-fraction
 threshold.
+
+## Undefined values (2026-10-13)
+
+Owner's call 2026-10-13: an undefined metric returns NaN, never a
+placeholder 0.0. A real computed 0.0 stays 0.0.
+
+- `mean_pairwise_spike_correlation`: NaN when fewer than 2 bins result,
+  fewer than `min_neurons` binned-count rows have variance, fewer than
+  `min_events` bins carry any activity, or no finite pair remains.
+- `burst_index`: NaN when there are zero neurons or zero full bins. A
+  defined fraction 0.0 (e.g. no spikes) stays 0.0.
+- `fano_factor`: NaN when zero full bins result, no neuron has a positive
+  mean count, or the mean ratio is not finite.
+- `fleiss_kappa_binary`: NaN exactly where kappa is mathematically
+  undefined: fewer than 2 neurons, zero time steps, expected agreement
+  `p_e == 1`, or a non-finite kappa.

@@ -727,7 +727,15 @@ def _make_poisson_drive(
             "(every neuron) is supported"
         )
     prob = float(rate_hz) * float(dt_ms) / 1000.0
-    prob = min(max(prob, 0.0), 1.0)
+    if not float(rate_hz) >= 0:  # also refuses NaN
+        raise ValueError(
+            f"poisson_drive rate_hz={rate_hz!r} must be >= 0"
+        )
+    if prob > 1:
+        raise ValueError(
+            "poisson_drive rate_hz * dt_ms / 1000 exceeds 1, "
+            "one event per step at most; lower dt_ms or rate_hz"
+        )
     key = jax.random.PRNGKey(int(seed))
     noise = jax.random.bernoulli(key, p=prob, shape=(int(n_steps), int(n_neurons)))
     return (jnp.asarray(noise, dtype=jnp.float32) * float(amplitude))

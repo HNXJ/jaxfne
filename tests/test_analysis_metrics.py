@@ -1,7 +1,7 @@
 """Test suite for jaxfne.analysis.metrics (Phase J1).
 
 Tests cover:
-- JSON-safe outputs (floats, no NaN/Inf)
+- JSON-safe outputs for defined inputs (floats); NaN for undefined inputs
 - Boundary conditions (empty, single neuron, no spikes)
 - Parametrized test cases with known outputs
 - Signals compatibility
@@ -52,7 +52,7 @@ class TestDeclaredDefinitions:
         per_step = mean_pairwise_spike_correlation(spikes, bin_ms=1.0, dt_ms=1.0)
         binned = mean_pairwise_spike_correlation(spikes, bin_ms=2.0, dt_ms=1.0)
         assert per_step == pytest.approx(-1.0)
-        assert binned == 0.0
+        assert np.isnan(binned)
 
     def test_correlation_requires_bin_ms_and_dt_ms(self):
         spikes = np.array([[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 1.0, 0.0]])
@@ -81,19 +81,19 @@ class TestMeanPairwiseSpikeCorrelation:
         json.dumps({"correlation": result})
 
     def test_empty_array(self):
-        """Empty array should return 0.0."""
+        """Empty array is undefined -> NaN."""
         spikes = np.zeros((0, 100))
-        assert mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1) == 0.0
+        assert np.isnan(mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1))
 
     def test_single_neuron(self):
-        """Single neuron returns 0.0 (no pairs)."""
+        """Single neuron is undefined (no pairs) -> NaN."""
         spikes = np.random.rand(1, 100) > 0.8
-        assert mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1) == 0.0
+        assert np.isnan(mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1))
 
     def test_no_variance(self):
-        """All same spike values returns 0.0."""
+        """All same spike values is undefined -> NaN."""
         spikes = np.ones((10, 100))
-        assert mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1) == 0.0
+        assert np.isnan(mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1))
 
     def test_perfectly_correlated(self):
         """Identical spike trains return correlation near 1.0."""
@@ -140,9 +140,9 @@ class TestMeanPairwiseSpikeCorrelation:
         assert np.isfinite(result)
 
     def test_short_timeseries(self):
-        """Very short timeseries should return 0.0."""
+        """Very short timeseries is undefined (fewer than 2 bins) -> NaN."""
         spikes = np.random.rand(10, 1)
-        assert mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1) == 0.0
+        assert np.isnan(mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1))
 
 
 class TestBurstIndex:
@@ -157,9 +157,9 @@ class TestBurstIndex:
         json.dumps({"burst_index": result})
 
     def test_empty_array(self):
-        """Empty array returns 0.0."""
+        """Empty array is undefined -> NaN."""
         spikes = np.zeros((0, 1000))
-        assert burst_index(spikes, bin_ms=10, dt_ms=0.1) == 0.0
+        assert np.isnan(burst_index(spikes, bin_ms=10, dt_ms=0.1))
 
     def test_no_spikes(self):
         """No spikes returns 0.0."""
@@ -233,14 +233,14 @@ class TestFanoFactor:
         json.dumps({"fano_factor": result})
 
     def test_empty_array(self):
-        """Empty array returns 0.0."""
+        """Empty array is undefined -> NaN."""
         spikes = np.zeros((0, 1000))
-        assert fano_factor(spikes, bin_size_ms=10, dt_ms=0.1) == 0.0
+        assert np.isnan(fano_factor(spikes, bin_size_ms=10, dt_ms=0.1))
 
     def test_no_spikes(self):
-        """No spikes returns 0.0 (zero mean)."""
+        """No spikes is undefined (zero mean) -> NaN."""
         spikes = np.zeros((20, 1000))
-        assert fano_factor(spikes, bin_size_ms=10, dt_ms=0.1) == 0.0
+        assert np.isnan(fano_factor(spikes, bin_size_ms=10, dt_ms=0.1))
 
     def test_poisson_like_spikes(self):
         """Poisson-like spike train should have Fano ≈ 1.0."""
@@ -302,10 +302,10 @@ class TestFanoFactor:
             assert np.isfinite(result)
 
     def test_large_bin_exceeding_duration(self):
-        """Bin size larger than array should still work."""
+        """Bin size larger than array gives zero full bins -> NaN."""
         spikes = np.random.rand(20, 100) > 0.9
         result = fano_factor(spikes, bin_size_ms=1000, dt_ms=0.1)
-        assert np.isfinite(result)
+        assert np.isnan(result)
 
 
 class TestFleissKappaBinary:
@@ -314,20 +314,20 @@ class TestFleissKappaBinary:
     def test_json_safe_output(self):
         """Output must be JSON-safe float in [-1, 1]."""
         spikes = np.random.rand(30, 10000) > 0.8
-        result = fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1)
+        result = fleiss_kappa_binary(spikes, bin_ms=1, dt_ms=0.1)
         assert isinstance(result, (int, float))
         assert -1.0 <= result <= 1.0
         json.dumps({"kappa": result})
 
     def test_empty_array(self):
-        """Empty array returns 0.0."""
+        """Empty array is undefined -> NaN."""
         spikes = np.zeros((0, 1000))
-        assert fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1) == 0.0
+        assert np.isnan(fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1))
 
     def test_single_neuron(self):
-        """Single neuron returns 0.0 (need >= 2)."""
+        """Single neuron is undefined (need >= 2) -> NaN."""
         spikes = np.random.rand(1, 1000) > 0.8
-        assert fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1) == 0.0
+        assert np.isnan(fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1))
 
     def test_high_agreement(self):
         """Population with high but not perfect agreement should give κ > 0."""
@@ -339,21 +339,34 @@ class TestFleissKappaBinary:
         assert result > 0.5  # High agreement on activity blocks
 
     def test_no_agreement(self):
-        """Independent neurons should give κ near 0.0."""
+        """Half unanimous and half independent bins give κ near 0.0."""
+        # Dense independent spikes saturate wide bins (every bin active),
+        # which makes kappa undefined (NaN); this mixture keeps bins
+        # defined with observed agreement near expected agreement.
+        rng = np.random.default_rng(1)
+        n, t = 30, 4000
+        spikes = np.zeros((n, t))
+        spikes[:, : t // 2] = (rng.random(t // 2) > 0.5)[None, :]
+        spikes[:, t // 2 :] = rng.random((n, t // 2)) > 0.5
+        result = fleiss_kappa_binary(spikes, bin_ms=0.1, dt_ms=0.1)
+        assert -0.2 < result < 0.2
+
+    def test_dense_saturation_is_nan(self):
+        """Independent dense spikes saturate every bin -> NaN (undefined)."""
         np.random.seed(42)
         spikes = np.random.rand(30, 10000) > 0.5
         result = fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1)
-        assert -0.2 < result < 0.2
+        assert np.isnan(result)
 
     def test_alternating_activity(self):
-        """Alternating neuron activity should give κ near 0."""
+        """Alternating firing saturates every wide bin -> NaN (undefined)."""
         # Alternating pattern: neurons fire in different bins
         spikes = np.zeros((30, 1000))
         # Even neurons fire in odd bins, odd neurons in even bins
         spikes[::2, ::2] = 1  # Every other neuron, every other bin
         spikes[1::2, 1::2] = 1
         result = fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1)
-        assert -0.3 < result < 0.3  # Weak agreement
+        assert np.isnan(result)
 
     def test_invalid_dt(self):
         """Invalid dt_ms should raise ValueError."""
@@ -368,28 +381,38 @@ class TestFleissKappaBinary:
         spikes = np.random.rand(30, 1000) > 0.8
         spikes = spikes.astype(float)
         spikes[:10, :] = np.nan
-        result = fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1)
+        result = fleiss_kappa_binary(spikes, bin_ms=1, dt_ms=0.1)
         assert np.isfinite(result)
 
     def test_range_output(self):
         """Output must be in [-1, 1]."""
         for _ in range(5):
             spikes = np.random.rand(30, 1000) > 0.8
-            result = fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1)
+            result = fleiss_kappa_binary(spikes, bin_ms=1, dt_ms=0.1)
             assert -1.0 <= result <= 1.0
 
     def test_varying_bin_sizes(self):
-        """Different bin sizes should all produce valid results."""
-        spikes = np.random.rand(30, 10000) > 0.8
-        for bin_ms in [1, 5, 10, 20, 50, 100]:
+        """Narrow bins give defined results; saturated wide bins give NaN."""
+        rng = np.random.default_rng(3)
+        spikes = rng.random((30, 10000)) > 0.8
+        result = fleiss_kappa_binary(spikes, bin_ms=1, dt_ms=0.1)
+        assert -1.0 <= result <= 1.0
+        for bin_ms in [10, 50, 100]:
             result = fleiss_kappa_binary(spikes, bin_ms=bin_ms, dt_ms=0.1)
-            assert -1.0 <= result <= 1.0
+            assert np.isnan(result)
 
     def test_continuous_spike_values(self):
-        """Continuous [0,1] spike values should work."""
+        """Float-valued spike input should work."""
+        rng = np.random.default_rng(4)
+        spikes = (rng.random((30, 1000)) > 0.9).astype(float)
+        result = fleiss_kappa_binary(spikes, bin_ms=1, dt_ms=0.1)
+        assert -1.0 <= result <= 1.0
+
+    def test_all_active_input_is_nan(self):
+        """Continuous (0, 1) values binarize to all-active -> NaN."""
         spikes = np.random.rand(30, 1000)  # [0,1]
         result = fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1)
-        assert -1.0 <= result <= 1.0
+        assert np.isnan(result)
 
 
 class TestModuleImports:
@@ -509,3 +532,60 @@ class TestEdgeCases:
         k = fleiss_kappa_binary(spikes, bin_ms=10, dt_ms=0.1)
 
         assert all(np.isfinite(x) for x in [c, b, f, k])
+
+
+class TestUndefinedIsNaN:
+    """Undefined inputs return NaN; defined zeros stay 0.0 (2026-10-13)."""
+
+    def test_correlation_fewer_than_two_bins_is_nan(self):
+        spikes = np.random.rand(4, 1)
+        assert np.isnan(mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1))
+
+    def test_correlation_too_few_variance_rows_is_nan(self):
+        spikes = np.array([[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 1.0, 0.0]])
+        assert np.isnan(
+            mean_pairwise_spike_correlation(spikes, bin_ms=2.0, dt_ms=1.0)
+        )
+
+    def test_correlation_too_few_active_bins_is_nan(self):
+        spikes = np.zeros((3, 8))
+        spikes[0, 0] = 1.0
+        spikes[1, 0] = 1.0
+        spikes[2, 0] = 1.0
+        assert np.isnan(
+            mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1)
+        )
+
+    def test_correlation_defined_zero_stays_zero(self):
+        spikes = np.array([[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 1.0, 0.0]])
+        assert mean_pairwise_spike_correlation(spikes, bin_ms=1, dt_ms=1) == pytest.approx(-1.0)
+
+    def test_burst_zero_full_bins_is_nan(self):
+        spikes = np.random.rand(4, 3)
+        assert np.isnan(burst_index(spikes, bin_ms=100.0, dt_ms=1.0))
+
+    def test_burst_defined_zero_stays_zero(self):
+        spikes = np.zeros((4, 8))
+        assert burst_index(spikes, bin_ms=1, dt_ms=1) == 0.0
+
+    def test_fano_zero_full_bins_is_nan(self):
+        spikes = np.random.rand(4, 3)
+        assert np.isnan(fano_factor(spikes, bin_size_ms=100.0, dt_ms=1.0))
+
+    def test_fano_no_positive_mean_is_nan(self):
+        spikes = np.zeros((4, 8))
+        assert np.isnan(fano_factor(spikes, bin_size_ms=1, dt_ms=1))
+
+    def test_fano_defined_zero_stays_zero(self):
+        spikes = np.ones((4, 8))
+        assert fano_factor(spikes, bin_size_ms=1, dt_ms=1) == 0.0
+
+    def test_kappa_no_variance_is_nan(self):
+        spikes = np.zeros((4, 100))
+        assert np.isnan(fleiss_kappa_binary(spikes, bin_ms=1, dt_ms=1))
+        spikes = np.ones((4, 100))
+        assert np.isnan(fleiss_kappa_binary(spikes, bin_ms=1, dt_ms=1))
+
+    def test_kappa_single_neuron_is_nan(self):
+        spikes = np.random.rand(1, 100) > 0.5
+        assert np.isnan(fleiss_kappa_binary(spikes, bin_ms=1, dt_ms=1))

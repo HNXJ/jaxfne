@@ -84,8 +84,9 @@ def mean_pairwise_spike_correlation(
     -------
     float
         Mean pairwise Pearson correlation in [-1, 1].
-        Returns 0.0 if the binned population has insufficient variance
-        or activity, or when fewer than 2 bins result.
+        Returns NaN when the correlation is undefined (fewer than 2 bins,
+        fewer than ``min_neurons`` rows with variance, fewer than
+        ``min_events`` active bins, or no finite pair).
 
     Examples
     --------
@@ -109,26 +110,26 @@ def mean_pairwise_spike_correlation(
     binned = _bin_counts(spikes, bin_ms, dt_ms)
 
     if binned.shape[1] == 0:
-        return 0.0
+        return float("nan")
 
     n_neurons, n_bins = binned.shape
 
     if n_neurons < 2 or n_bins < 2:
-        return 0.0
+        return float("nan")
 
     # Filter neurons with nonzero variance
     has_variance = np.std(binned, axis=1) > 0
     n_active = np.sum(has_variance)
 
     if n_active < min_neurons:
-        return 0.0
+        return float("nan")
 
     # Filter bins with any activity
     has_activity = np.sum(binned, axis=0) > 0
     n_active_bins = np.sum(has_activity)
 
     if n_active_bins < min_events:
-        return 0.0
+        return float("nan")
 
     # Compute pairwise correlations
     active_binned = binned[has_variance, :]
@@ -137,7 +138,7 @@ def mean_pairwise_spike_correlation(
     # Extract upper triangle (off-diagonal pairs only)
     n_active = active_binned.shape[0]
     if n_active < 2:
-        return 0.0
+        return float("nan")
 
     upper_idx = np.triu_indices(n_active, k=1)
     pairwise_corrs = corr_matrix[upper_idx]
@@ -146,7 +147,7 @@ def mean_pairwise_spike_correlation(
     finite_corrs = pairwise_corrs[np.isfinite(pairwise_corrs)]
 
     if len(finite_corrs) == 0:
-        return 0.0
+        return float("nan")
 
     return float(np.mean(finite_corrs))
 
@@ -183,8 +184,8 @@ def burst_index(
     -------
     float
         Fraction of bins whose active-neuron fraction is at least
-        ``active_fraction_threshold``. In [0, 1]. Returns 0.0 when fewer
-        than 1 bin results.
+        ``active_fraction_threshold``. In [0, 1]. Returns NaN when undefined
+        (zero neurons or fewer than 1 bin results).
 
     Examples
     --------
@@ -218,12 +219,12 @@ def burst_index(
 
     n_neurons = spikes_array.shape[0]
     if n_neurons == 0:
-        return 0.0
+        return float("nan")
 
     binned = _bin_counts(spikes_array, bin_ms, dt_ms)
 
     if binned.shape[1] == 0:
-        return 0.0
+        return float("nan")
 
     # Fraction of neurons with at least one spike per bin
     active_fractions = np.mean(binned > 0, axis=0)
@@ -261,9 +262,9 @@ def fano_factor(
     -------
     float
         Mean of the per-neuron variance/mean ratios over neurons with
-        positive mean counts. Returns 0.0 when no neuron has a positive
-        mean, when fewer than 1 bin results, or when the mean ratio is
-        not finite.
+        positive mean counts. Returns NaN when undefined (fewer than 1 bin
+        results, no neuron with a positive mean count, or a non-finite
+        mean ratio).
 
     Examples
     --------
@@ -298,7 +299,7 @@ def fano_factor(
     binned = _bin_counts(spikes_array, bin_size_ms, dt_ms)
 
     if binned.shape[1] == 0:
-        return 0.0
+        return float("nan")
 
     # Per-neuron variance/mean over neurons with positive mean counts
     means = np.mean(binned, axis=1)
@@ -308,13 +309,13 @@ def fano_factor(
     valid = (means > 0) & np.isfinite(ratios)
 
     if not np.any(valid):
-        return 0.0
+        return float("nan")
 
     ff = float(np.mean(ratios[valid]))
 
     # Handle NaN/Inf
     if not np.isfinite(ff):
-        return 0.0
+        return float("nan")
 
     return ff
 
@@ -347,7 +348,9 @@ def fleiss_kappa_binary(
     -------
     float
         Fleiss-kappa-like metric in [-1, 1].
-        Returns 0.0 if no sufficient variance for agreement.
+        Returns NaN when kappa is mathematically undefined (fewer than 2
+        neurons, zero time steps, expected agreement ``p_e == 1``, or a
+        non-finite kappa) (undefined).
 
     Examples
     --------
@@ -384,7 +387,7 @@ def fleiss_kappa_binary(
     n_neurons, n_time = spikes_array.shape
 
     if n_neurons < 2 or n_time < 1:
-        return 0.0
+        return float("nan")
 
     # Compute bin size
     bin_samples = max(1, int(np.round(bin_ms / dt_ms)))
@@ -422,14 +425,14 @@ def fleiss_kappa_binary(
 
     # Fleiss-kappa
     if p_e >= 1.0:
-        # No variance; return 0
-        return 0.0
+        # No variance: expected agreement is 1, so kappa is undefined
+        return float("nan")
 
     kappa = (p_o - p_e) / (1.0 - p_e)
 
     # Handle NaN/Inf
     if not np.isfinite(kappa):
-        return 0.0
+        return float("nan")
 
     # Clamp to [-1, 1] (can exceed due to binning)
     kappa = float(np.clip(kappa, -1.0, 1.0))
