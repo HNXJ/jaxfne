@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Pack/unpack the Labyrinth `.lab/` graph nodes as one tracked bundle.
 
-`artifacts/.lab/` holds one tracked JSON file per graph node. Tracking all of
-them as one file (`artifacts/.lab/bundle.json`) keeps the tree small without
-losing a byte: pack stores each file's exact UTF-8 text, unpack writes it back
-byte-exact (line endings included).
+git tracks the graph nodes as one file, `artifacts/.lab/bundle.json`; loose node
+files in `artifacts/.lab/` stay local (gitignored). Pack stores each node file's
+exact UTF-8 text, unpack writes it back byte-exact (line endings included).
+Pack refuses to write fewer nodes than the bundle holds: on a fresh clone the
+loose files are absent, so unpack them first.
 
-    python scripts/lab_bundle.py --pack          # write artifacts/.lab/bundle.json
-    python scripts/lab_bundle.py --unpack DIR    # restore every file into DIR
+    python scripts/lab_bundle.py --unpack artifacts/.lab   # restore the node files
+    python scripts/lab_bundle.py --pack                    # write artifacts/.lab/bundle.json
 """
 from __future__ import annotations
 
@@ -45,6 +46,11 @@ def iter_node_files(lab_dir: Path) -> list[Path]:
 def pack(lab_dir: Path = DEFAULT_LAB) -> Path:
     files = {p.name: p.read_bytes().decode("utf-8") for p in iter_node_files(lab_dir)}
     out = lab_dir / BUNDLE_NAME
+    if out.is_file():
+        held = len(json.loads(out.read_bytes().decode("utf-8"))["files"])
+        if len(files) < held:
+            raise ValueError(f"pack would write {len(files)} nodes over a bundle of {held}; "
+                             "unpack into the lab directory first")
     out.write_text(
         json.dumps({"format": FORMAT, "files": files},
                    indent=1, ensure_ascii=False, sort_keys=True) + "\n",
@@ -58,6 +64,9 @@ def unpack(dest: Path, lab_dir: Path = DEFAULT_LAB) -> list[Path]:
     bundle = json.loads((lab_dir / BUNDLE_NAME).read_bytes().decode("utf-8"))
     if bundle["format"] != FORMAT:
         raise ValueError(f"unknown bundle format: {bundle['format']!r}")
+    bad = [n for n in bundle["files"] if Path(n).name != n or not n.endswith(".json") or n == BUNDLE_NAME]
+    if bad:
+        raise ValueError(f"bundle names that are not plain node file names: {sorted(bad)}")
     dest.mkdir(parents=True, exist_ok=True)
     written = []
     for name in sorted(bundle["files"]):
@@ -74,12 +83,16 @@ def main() -> int:
     group.add_argument("--unpack", type=Path, metavar="DIR", help="restore every file into DIR")
     args = parser.parse_args()
 
-    if args.pack:
-        out = pack()
-        print(f"packed {len(iter_node_files(DEFAULT_LAB))} files -> {out}")
-    else:
-        written = unpack(args.unpack)
-        print(f"unpacked {len(written)} files -> {args.unpack}")
+    try:
+        if args.pack:
+            out = pack()
+            print(f"packed {len(iter_node_files(DEFAULT_LAB))} files -> {out}")
+        else:
+            written = unpack(args.unpack)
+            print(f"unpacked {len(written)} files -> {args.unpack}")
+    except ValueError as exc:
+        print(f"lab_bundle: {exc}", file=sys.stderr)
+        return 1
     return 0
 
 

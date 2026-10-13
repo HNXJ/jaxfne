@@ -107,8 +107,9 @@ def izh_config() -> Any:
         .population(N_IZH, neurons={"E": 0.7, "I": 0.3}, layers=["L2/3", "L4"], name="V1")
         .cell_types({"E": 0.7, "PV": 0.3})
         .geometry(layer_thickness={"L2/3": 0.5, "L4": 0.5})
-        # No .drive(): the frozen figures ran at the emitter default drive, since the
-        # E/PV drive of 8.0 they declared was inert before 9cc45659 (T-1, Hamm 2026-10-13).
+        # No .drive(): the frozen figures ran at the emitter default drive. Their E/PV drive
+        # of 8.0 was declared through .cell_type_drives(), which construction never read
+        # (P-014); 9cc45659 moved it to .drive(), where it acts (T-1, Hamm 2026-10-13).
         .set_emitter("izhikevich", "cortical_eig")
         .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
         .probe(name="etude_probe", modes=["spikes", "V_m"])

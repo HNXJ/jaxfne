@@ -47,13 +47,13 @@ def load_nodes(lab_dir: Path) -> tuple[dict, list[str]]:
         try:
             files = json.loads(bundle.read_text(encoding="utf-8"))["files"]
             items = sorted(files.items())
-        except (json.JSONDecodeError, OSError, KeyError, AttributeError) as exc:
+        except (json.JSONDecodeError, OSError, KeyError, AttributeError, TypeError) as exc:
             return {}, [f"bundle.json (unreadable: {type(exc).__name__})"]
         nodes, skipped = {}, []
         for name, text in items:
             try:
                 data = json.loads(text)
-            except (json.JSONDecodeError, AttributeError) as exc:
+            except (json.JSONDecodeError, AttributeError, TypeError) as exc:
                 skipped.append(f"{name} (unreadable: {type(exc).__name__})")
                 continue
             if isinstance(data, dict) and "id" in data:
@@ -64,7 +64,7 @@ def load_nodes(lab_dir: Path) -> tuple[dict, list[str]]:
     nodes, skipped = {}, []
     for path in sorted(lab_dir.glob("*.json")):
         try:
-            data = json.loads(path.read_text())
+            data = json.loads(path.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError) as exc:
             skipped.append(f"{path.name} (unreadable: {type(exc).__name__})")
             continue
@@ -84,7 +84,10 @@ def build_edges(nodes: dict) -> tuple[dict, dict, collections.Counter, set]:
         generated = node.get("generated", {})
         if not isinstance(generated, dict):
             continue  # e.g. jaxfne-progress.json carries a prose stub, not links
-        for link in generated.get("links", []):
+        links = generated.get("links", [])
+        for link in links if isinstance(links, list) else []:
+            if not isinstance(link, dict):
+                continue
             target = link.get("to")
             if not target:
                 continue
