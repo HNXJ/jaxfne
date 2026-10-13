@@ -17,7 +17,7 @@ import argparse
 import pathlib
 import re
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
+ROOT = pathlib.Path(__file__).resolve().parents[3]  # archived: artifacts/archive/scripts/
 DOCS = ROOT / "docs"
 
 PATTERNS = [

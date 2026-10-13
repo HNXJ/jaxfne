@@ -28,7 +28,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # archived: artifacts/archive/scripts/
 
 import hashlib
 import json
@@ -42,7 +42,7 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 RUN_ID = "delta_test_01"
 OUT_DIR = REPO_ROOT / "outputs" / RUN_ID
 FIG_DIR = OUT_DIR / "figures"
