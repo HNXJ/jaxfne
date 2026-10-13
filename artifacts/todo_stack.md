@@ -16,8 +16,10 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 - T-3 [H] PCL Fig. 3 stays in progress (Hamm 2026-10-13: it must replicate). v4 FAIL stands
   (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). Next: a new declared prereg (v5), then P6
   (B1). Hamm's calls for v5 (2026-10-13): T2 scores the normalized Δsf tuning curve against the
-  authors' curve with a declared tolerance per Δsf point; T4 (frequency doubling) stays, labeled
-  a jaxfne extension that does not count toward "reproduced"; the reference is the published
+  authors' curve with a declared tolerance per Δsf point; T4 tests the paper's claim C3
+  (frequency doubling, stated qualitatively; the authors' notebook has no measure of it) and
+  counts toward "reproduced", with our log A(2ω)/A(ω) estimand and a qualitative criterion
+  (complex median above simple median, plus the permutation null); the reference is the published
   Fig. 3 curves, digitized with a declared digitization error (the authors' archives hold the
   grating stimuli as DVS events and the trained weights, no network responses). Cells z = 0–63
   of `neuron_id = 2560` are column (4,4): cSTDP3 `weights/layout_0.npy` (9×9×64) holds ids
@@ -78,11 +80,6 @@ run on WSL2 CUDA.
   tests; AT-09 C_12 falls from 0.50/0.45/0.45 to 0.105/0.110/0.111 (noise level, no arm
   difference), recorded in `artifacts/programme/composition_054.md`; the AT-09 verdict stands.
   Closes when: the change is on dev with the broad gate green.
-- T-13 [A] jnwb item 3: `analysis/metrics.py:226,122,19` (Fano of the population sum,
-  `burst_index` ignoring `bin_ms`, unbinned pairwise correlation), pinned by
-  `tests/test_analysis_metrics.py:27-51`. Hamm 2026-10-13: declare all three (per-neuron Fano,
-  `burst_index` honoring `bin_ms`, correlation on binned counts). Closes when: the declaration
-  is written and those tests pin the new definitions.
 - T-16 [A] C7: parametrize the protocol_e spec tests; merge the 8 `test_atlas_at*_05x` files
   after a per-test coverage run. CI dedupe (examples list and wheel smoke in three places).
   Closes when: `python scripts/run_test_gate.py broad` passes with coverage unchanged.
