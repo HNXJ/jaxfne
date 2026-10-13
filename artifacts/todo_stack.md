@@ -11,7 +11,7 @@ brain areas, and a manuscript built on it. Need: old results never change
 unless an authorized correctness repair says so; new abilities are switched
 on explicitly; every claim has evidence.
 
-0.5.5 (current, last release of the programme): one Atlas showing the same
+0.5.5 (tagged v0.5.5, on PyPI 2026-10-11): one Atlas showing the same
 model language works from 1 neuron to 20 areas, and the manuscript. Needs:
 the 20-area simulation (done: `AT-10-N20`); one shared list of measurements;
 what survives each simplification; generated figures; every manuscript claim
@@ -61,30 +61,25 @@ neurons run on WSL2 CUDA.
 - [H] jnwb item 3 (logged, not fixed): `analysis/metrics.py:226,122,19`, pinned by `tests/test_analysis_metrics.py:27-51`; needs a declared definition change.
 - [H] jnwb item 4: no remaining family is a drop-in (band power, CSD, metrics, coherence differ in definition); each move is a declared change or keeps jaxfne's.
 
-## 0.5.5 stack
+## 0.5.6 release (Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
-Legend: [A] an agent can run it now · [H] needs a human decision · [B] blocked.
+Goals R1-R6 are G-5 in `goal_stack.md`. The 0.5.5 stack, manuscript items 9-14 and the 0.5.5
+acceptance list are archived byte-for-byte at `artifacts/archive/0.5.x/todo_055_sections_2026-10-13.md`;
+which of them were met at the v0.5.5 tag is not recorded (unknown), so Hamm says which carry over.
 
-- [A] Next release owned by the cursor agent (hub main #335); quiet-matrix timing run waits for an idle machine.
-- [A] Seal notes for the receipt: H1 (e) 9958a72 (0 → 173 inter-area edges at defaults); P-017 runs whose drive changed (f8960a0); `build_laminar_column` geometry keys now written; AT-02…AT-06 records carry the pre-correction spec digest (regenerate; `tests/test_agent_bench_055.py`).
-- [A] ATLAS 8 `artifacts/perf/matrix_055.json`: quiet-machine rerun before the seal; add `T_test` and per-cell drive provenance; null-drive `output_checksum` equals `matrix_051.json` (only `mech_hdp` may differ). Items 9–14 take deltas from it.
-- [A] AT-10-R6 RSS growth (+80–98 MB over 4 chunks): resolve leak vs XLA cache before any run over 100 s.
-- [A] `_meta.jaxfne_version` reads 0.5.0 in `artifacts/atlas/results/at01_055.json`, `at05_055.json`, `at07_055.json`, `at_reduction_055.json`. Blocked by: the version bump.
-- Coverage (checked 2026-10-12): 48 rows, 42 VALIDATED, 6 OUT_OF_SCOPE. Seal not met; no tag. PR #101 (dev → main, Hamm 2026-10-07) not re-checked.
-
-## MANUSCRIPT (ends 0.5.5), open
-
-- [A] Item 9 coverage matrix 100% mapped or marked out of scope. Blocked by: human scope marks.
-- [A] Item 10 figures via `scripts/publication_figures/` from generated Atlas data. Blocked by: item 9.
-- [H] Item 11 claim ledger `artifacts/programme/claim_ledger_055.md` (48 rows): Hamm confirms each `kind` and fills 4 PLANNED rows.
-- [A] Item 12 methods quoted from manifests. Blocked by: item 10.
-- [A] Item 13 citations primary-verified; NMDA, GABA_B and AMPA owed.
-- [H] Item 14 text consistent with the ledger; submission is Hamm's. Blocked by: items 9–13.
-
-## ACCEPTANCE (0.5.5 seal = end of programme), open
-
-- [H] Canonical configurations bit-identical to the frozen baseline except authorized repairs (P-014), listed in the seal receipt; `python scripts/run_test_gate.py release`, then `rc`. Tag, main merge and release are Hamm's.
-- [A] AT-01…AT-10 and AT-10-N20 regenerate from manifests; coverage 100%; deltas vs v0.4.25 measured (T_simulation, M_peak, T_test, T_agent_task, E_semantic = 0); every claim traces to a PASS ledger row, negatives reported.
+- [A] R1 state matches reality: this cut; `state.md` and `open_stack.md` follow.
+- [A] R2 narrowing -10 % files and -10 % bytes against the 0.5.5 tag: generators wired into the
+  docs build (`narrowing_plan.md` step 2, `scripts/build_docs_assets.py`), then untrack, one class
+  per commit. Check: `scripts/check_tree_size.py --check` with the lowered budget.
+- [A] R3 docs for 0.5.x: Archive section and the 0.5.x regeneration (pending push); then one
+  Replications page in the docs linking each dashboard paper page (Hamm 2026-10-12, option a);
+  a version-currency test. Check: `mkdocs build --strict` and that test.
+- [A] R4 dashboard: each paper as a P0-P7 timeline (prereg, per-criterion verdict, figures,
+  receipts). Check: `scripts/build_dashboard_data.py --check`; every `REPLICATIONS.md` row shows.
+- [A] R5 papers (Hamm 2026-10-12, option a): ship at P5 verdicts; CAMINOS P6 if F6 lands; PCL
+  Fig. 3 and Izhikevich 2003 carry a stated reason in the index. Izhikevich 2003 stays in 0.5.6.
+- [H] R6 release gate: rc gate, CI green on the SHA, second review, receipt; tag, main and PyPI
+  are Hamm's. PR #101 (dev -> main, since 2026-10-07) is Hamm's to merge or close.
 
 ## Compaction track (audit `6a99cc12`, 2026-10-06)
 

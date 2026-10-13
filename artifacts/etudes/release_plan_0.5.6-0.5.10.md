@@ -168,3 +168,9 @@ on the 0.5.5 evidence and this programme fills section 8; bindings B1–B7 are s
 Decided 2026-10-12 (Hamm): AdEx is public as `emitter(family="adex")` plus ADVANCED names in
 `jaxfne.emitters` (decision 3, AdEx part); generated assets are regenerated at the docs build
 (decision 2, §6.1); the third 0.5.6 paper is Izhikevich 2003 on the existing emitter.
+
+Decided 2026-10-12 (Hamm, on the 0.5.6 review): 0.5.6 is mostly cleaning, organizing, a major
+docs update and a dashboard page per paper. §5 item 1 is relaxed for 0.5.6: papers ship at their
+P5 verdicts, CAMINOS reaches P6 if F6 lands, and PCL Fig. 3 and Izhikevich 2003 carry a stated
+reason. The dashboard holds the per-paper pages; the docs carry one Replications page linking
+them, in place of `docs/replications/<paper>.md` (§7).

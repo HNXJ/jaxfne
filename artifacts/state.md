@@ -1,6 +1,6 @@
 # state
 
-Stamp: jaxfne@dev@8138a5c3 · 2026-10-12 (written 2026-10-12T16:50:14Z)
+Stamp: jaxfne@dev@7f4d4a6b · 2026-10-13 (written 2026-10-13T01:41:08Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
@@ -50,5 +50,6 @@ In `artifacts/open_stack.md`.
 
 ## Next action
 
-G-2 F6 (SOM in the AdEx table and the field proxy sign), then the CAMINOS P6 prereg;
-Izhikevich 2003 P3 prereg; narrowing step 2.
+0.5.6 release (G-5, R1-R6 in `todo_stack.md`): narrowing step 2 (R2), the docs Replications
+page and dashboard paper timelines (R3, R4); G-2 F6, then the CAMINOS P6 prereg; Izhikevich 2003
+P3 calibration gate. 0.5.5 is tagged v0.5.5 and on PyPI (2026-10-11).
