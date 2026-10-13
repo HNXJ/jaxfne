@@ -17,10 +17,11 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). Next: a new declared prereg (v5), then P6
   (B1). Hamm's calls for v5 (2026-10-13): T2 scores the normalized Δsf tuning curve against the
   authors' curve with a declared tolerance per Δsf point; T4 (frequency doubling) stays, labeled
-  a jaxfne extension that does not count toward "reproduced"; the reference curves are
-  recomputed from the authors' test data (`PCL_Nat_testing_counterphase_grating_tuningcurve.zip`,
-  read as untrusted data, never their code), which also settles whether cells z = 0–63 are
-  column (4,4). Hamm signs v5. Closes when: a signed prereg reproduces Fig. 3 and the P6
+  a jaxfne extension that does not count toward "reproduced"; the reference is the published
+  Fig. 3 curves, digitized with a declared digitization error (the authors' archives hold the
+  grating stimuli as DVS events and the trained weights, no network responses). Cells z = 0–63
+  of `neuron_id = 2560` are column (4,4): cSTDP3 `weights/layout_0.npy` (9×9×64) holds ids
+  2560–2623 at (4, 4, 0–63). Hamm signs v5. Closes when: a signed prereg reproduces Fig. 3 and the P6
   attempt is recorded.
 
 ## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
