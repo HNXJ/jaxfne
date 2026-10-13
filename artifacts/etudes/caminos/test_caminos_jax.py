@@ -607,6 +607,20 @@ def test_p6_route_c_identity():
                                   np.asarray(signals.spikes))
 
 
+def test_p6_c1_fixed_drive_reaches_the_kernel(_p6_model):
+    """C1 control: --ext-sources fixed gives the kernel 560 sources' rate (pNE gives p*NE)."""
+    api, model = _p6_model
+    from jaxfne._construct_adex import adex_external_drive_kwargs
+
+    # ext_lambda = n_sources * rate_hz * dt_ms / 1000 = n_sources * 4e-4
+    low = adex_external_drive_kwargs(model, api.build_sim(0.02, 1, 0.01, "pNE"))
+    fixed = adex_external_drive_kwargs(model, api.build_sim(0.02, 1, 0.01, "fixed"))
+    assert float(np.asarray(low["ext_lambda"]).ravel()[0]) == pytest.approx(160 * 4e-4, rel=1e-6)
+    assert float(np.asarray(fixed["ext_lambda"]).ravel()[0]) == pytest.approx(560 * 4e-4, rel=1e-6)
+    with pytest.raises(ValueError):
+        api.drive_spec(0.02, 1, "other")
+
+
 def test_p6_gate4_converter_known_answer(tmp_path):
     """Gate 4: synthetic raster -> per-step sums; score() reads the converted run."""
     api = _p6api()

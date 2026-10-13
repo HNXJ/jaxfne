@@ -62,15 +62,23 @@ RULES = (
 POPS = ("E", "PV", "SOM")
 
 
-def ext_source_count(p):
-    """Private Poisson sources per E and PV cell: ``round(p * NE)`` (PREREG_P6.md)."""
-    return int(round(float(p) * NE))
+EXT_SOURCES_FIXED = 560  # v6 fixed drive, used only by the C1 control (PREREG_P6.md)
 
 
-def drive_spec(p, seed):
+def ext_source_count(p, ext_sources="pNE"):
+    """Private Poisson sources per E and PV cell: ``round(p * NE)`` (PREREG_P6.md), or the v6
+    fixed 560 for the C1 control."""
+    if ext_sources == "pNE":
+        return int(round(float(p) * NE))
+    if ext_sources == "fixed":
+        return EXT_SOURCES_FIXED
+    raise ValueError("ext_sources must be 'pNE' or 'fixed', got %r" % (ext_sources,))
+
+
+def drive_spec(p, seed, ext_sources="pNE"):
     """The ``Simulation(poisson_drive=...)`` dict for the CAMINOS drive."""
     return {
-        "n_sources": ext_source_count(p),
+        "n_sources": ext_source_count(p, ext_sources),
         "rate_hz": EXT_RATE_HZ,
         "weight_nS": Q_EXT,
         "mechanism": "ampa",
@@ -108,7 +116,7 @@ def build_spec(p, seed):
     return cfg.connectivity(edge_seed=int(seed))
 
 
-def build_sim(p, seed, T_s):
+def build_sim(p, seed, T_s, ext_sources="pNE"):
     """The ``Simulation`` for a run: dt 0.1 ms, the ``drive_spec`` drive.
 
     ``Simulation(seed=)`` stays at its default: the route refuses it, and the
@@ -118,7 +126,7 @@ def build_sim(p, seed, T_s):
     import jaxfne as jtfne
 
     return jtfne.Simulation(duration_ms=float(T_s) * 1000.0, dt_ms=DT_MS,
-                            poisson_drive=drive_spec(p, seed))
+                            poisson_drive=drive_spec(p, seed, ext_sources))
 
 
 def spikes_to_counts(spikes, sizes):
@@ -183,7 +191,8 @@ def _refuse_existing(out_dir, fname, sha):
     return prior
 
 
-def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha):
+def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
+              ext_sources="pNE"):
     """Write the count array plus the manifest ``caminos_analysis.score`` reads."""
     import numpy as np
 
@@ -203,8 +212,8 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha):
              "dtype": "float32", "dt": DT_S, "T": float(T_s),
              "pilot": False, "sizes": dict(sizes),
              "indegree": "bernoulli", "ext": "private",
-             "step_order": "default", "ext_sources": "pNE",
-             "ext_sources_n": ext_source_count(p),
+             "step_order": "default", "ext_sources": ext_sources,
+             "ext_sources_n": ext_source_count(p, ext_sources),
              "backend": "edge_list",
              "git_sha": sha, "start_time": start_time,
              "wall_s": float(wall_s), "steps": int(counts.shape[0])}
@@ -224,7 +233,7 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha):
     return out / fname
 
 
-def run(p, seed, T_s, out_dir, signed=False):
+def run(p, seed, T_s, out_dir, signed=False, ext_sources="pNE"):
     """B0 route (c): construct the model, run the kernel with ``record_v=False``.
 
     Writes the port's per-step population count array and ``manifest.json``
@@ -242,7 +251,7 @@ def run(p, seed, T_s, out_dir, signed=False):
     start_time = datetime.now(timezone.utc).isoformat()
     t0 = time.time()
     model = jtfne.construct(build_spec(p, seed))
-    sim = build_sim(p, seed, T_s)
+    sim = build_sim(p, seed, T_s, ext_sources)
     runtime_cfg = sim.resolved_runtime
     if str(runtime_cfg.actual_dtype) != "float32":
         raise SystemExit("error: P6 runs are float32, runtime resolved %s"
@@ -259,7 +268,8 @@ def run(p, seed, T_s, out_dir, signed=False):
     counts = spikes_to_counts(np.asarray(out["spikes"]), sizes)
     wall_s = time.time() - t0
     write_run(out_dir, p=p, seed=seed, T_s=T_s, counts=counts, sizes=sizes,
-              wall_s=wall_s, start_time=start_time, sha=git_sha())
+              wall_s=wall_s, start_time=start_time, sha=git_sha(),
+              ext_sources=ext_sources)
     return {"counts": counts, "sizes": sizes, "steps": sim.n_steps,
             "wall_s": wall_s}
 
@@ -272,6 +282,8 @@ def build_parser():
     ap.add_argument("--T", type=float, required=True,
                     help="duration in seconds")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--ext-sources", choices=("pNE", "fixed"), default="pNE",
+                    help="drive: round(p*NE) sources, or the v6 fixed 560 (C1 control only)")
     ap.add_argument("--signed", action="store_true",
                     help="allow a path containing 'scored' (signed P6 runs only)")
     return ap
@@ -279,7 +291,7 @@ def build_parser():
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
-    run(args.p, args.seed, args.T, args.out, signed=args.signed)
+    run(args.p, args.seed, args.T, args.out, signed=args.signed, ext_sources=args.ext_sources)
 
 
 if __name__ == "__main__":
