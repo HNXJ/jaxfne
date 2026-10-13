@@ -4,6 +4,7 @@ Library defaults and scripts that wrote viewers/findings into the root made it
 grow without bound. A new root file needs a reason here.
 """
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -33,8 +34,11 @@ def test_readme_lists_every_tracked_folder():
     ).stdout.split()
     folders = {p.split("/")[1] for p in tracked if p.count("/") >= 2}
     readme = (REPO / "artifacts" / "README.md").read_text(encoding="utf-8")
+    # Only the first cell of a table row lists a folder; mentions in other cells do not count.
+    listed = {name for line in readme.splitlines() if line.startswith("| ")
+              for name in re.findall(r"`([^`/]+)/`", line.split("|")[1])}
     assert len(folders) > 20, "fixture must see the artifacts folders"
-    missing = sorted(f for f in folders if f"`{f}/`" not in readme)
+    missing = sorted(folders - listed)
     assert not missing, f"add to artifacts/README.md: {missing}"
 
 

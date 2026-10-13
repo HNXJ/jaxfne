@@ -19,10 +19,10 @@ stay where they are and new work goes into the folder of its kind.
 | `issue_log/` | open issues P-NNN | release authorities |
 | `release/` | release receipts and `current_release_authorities.json` | release authorities |
 | `publication/` | manuscript figure specs, receipts, claim ledger, `frozen_manifest.json` | frozen + harness |
-| `figures/` | publication figure renders | frozen |
-| `etudes/` | paper replications (`REPLICATIONS.md`, one folder per paper) and etude bundles | |
+| `figures/` | publication figure renders | `publication/` fig01–fig07 frozen |
+| `etudes/` | paper replications (`REPLICATIONS.md`, one folder per paper) and etude bundles | cited by publication |
 | `programme/` | plans, Atlas gap reports, `atlas_coverage.json`, jnwb inventory | release authorities |
-| `atlas/` | Atlas AT-01…AT-10 scripts and bundle tooling | |
+| `atlas/` | Atlas AT-01…AT-10 scripts, results and bundle tooling | cited by publication |
 | `protocol_c/` | Protocol C (waves) specs and receipts | cited by publication |
 | `protocol_d_biological_rbs/` | Protocol D (biological RBS) specs and receipts | cited by publication |
 | `protocol_e_integration/` | Protocol E (integration) specs and receipts | cited by publication |
@@ -34,7 +34,7 @@ stay where they are and new work goes into the folder of its kind.
 | `hdp_presets/` | realized `H` per preset (`scripts/measure_hdp_presets.py`) | |
 | `perf/` | performance baselines, matrices, profiles | |
 | `benchmark/` | agent benchmark (0.5.5) | |
-| `audit/` | audits and deep reviews | |
+| `audit/` | audits and deep reviews | cited by publication |
 | `project_sources/` | mathematical specification (the project-source set) | |
 | `vocabulary/` | `JAXFNE_VOCABULARY.md` | |
 | `skills/` | canonical agent skills (mirrored by `scripts/harness/sync_skills.py`) | harness |
