@@ -34,8 +34,9 @@ Only the amplitude in the 10 pulse rows changes.
 
 FS adapts 86 % from the first to the last ISI at I = 10 from rest (ratio 1.86). That is the
 smallest of the three adapting types (RS 2.53, LTS 4.39 on the v7 receipts), so v8 reads
-"practically without adaptation" as "adapts least". A C1 or C5 verdict of incomplete makes C4
-incomplete. C4 needs no new run: the v7 C1, C4 and C5 runs are used.
+"practically without adaptation" as "adapts least". The C1 and C5 ratios are used whether those criteria pass or fail. If either ratio is undefined
+(fewer than 2 ISIs in its window), or the C4 ratio is, C4 fails. A C1 or C5 run that is missing
+(incomplete) makes C4 incomplete. C4 needs no new run: the v7 C1, C4 and C5 runs are used.
 
 ## N2 (Hamm 2026-10-13)
 
@@ -45,7 +46,9 @@ itself gives per-cell ISI CV 0.39, CV2 0.42 and Fano factor 0.19.
 ## Runs and scoring
 
 - One new run, C8 at I = 2, to `F:\warehouse\izh2003\v8\fig2`. C1–C7 are v7's runs and verdicts.
-- v7's one-SHA rule applies per directory, and the v8 report lists both SHAs.
+- One-SHA rule: the v7 directories keep their single SHA (`423a2f88`), and the v8 directory is
+  internally one SHA. v8 completes only when both hold. Fig. 3 verdicts are reused from v7 unchanged.
+  The v8 report lists both SHAs.
 - Scorer: a `v8` subcommand of `run_izh.py` that reads the v7 score for C1–C7 and the v8 C8 run.
   Every v7 path stays byte-identical, with a test on the v7 receipts.
 
