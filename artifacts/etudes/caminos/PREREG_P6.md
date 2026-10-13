@@ -1,7 +1,7 @@
 # L2-P6 preregistration: CAMINOS Fig. 1 through the jaxfne API
 
-Status: **draft v2 for Hamm's signature** (2026-10-13; v1 fbf98698 revised after a second
-review). Nothing here is run until it is signed. The P5 verdicts (`PREREG_P3.md` signed v6,
+Status: **signed v2** (Hamm 2026-10-13, as drafted at 32e2d8db; margins option C; B0 route (c)).
+v1 fbf98698 was revised after a second review. The P5 verdicts (`PREREG_P3.md` signed v6,
 amendment v7; scores on `l2-caminos` 1e768f9d) are the oracle. A signed P6 that fails leaves
 the P5 verdicts as they are.
 

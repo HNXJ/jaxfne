@@ -1,6 +1,6 @@
 # Izhikevich 2003 P3 preregistration
 
-Status: draft v7 for Hamm's batch sign-off. The v6 estimator failed its calibration gate
+Status: **signed v7** (Hamm 2026-10-13, as drafted at 1951552d). The v6 estimator failed its calibration gate
 (2026-10-13, receipt `calibration/calibration_v6_estimator_7ba10446.json`): false positives ≤ 5 %
 from θ = 4 and every 40 Hz row ≥ 95 %, but the 10 Hz AR(2) rows detected 0.858–0.944 at every θ
 in 8–13 Hz, and 0.864–0.938 on the six AR(1) floors after widening to 7–14 Hz (white 0.966–0.976). The misses were the local-maximum rule: f_pk, the

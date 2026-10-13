@@ -17,6 +17,9 @@ Decisions (Hamm 2026-10-13):
 - Izhikevich 2003 ships unscored in 0.5.6: the P3 prereg is drafted and calibrated, not signed.
   Signature, S1 reference arm and scored runs move to 0.5.7.
 - CAMINOS P6 (library path) moves to 0.5.7.
+- Later the same day: CAMINOS `PREREG_P6.md` v2 signed (margins C, B0 route (c)) and Izhikevich
+  2003 `PREREG_P3.md` v7 signed; both run in opencode lanes under WSL, scored results land in
+  0.5.7.
 
 B1: neither paper has a library-path (P6) attempt yet, so neither counts as replicated
 with jaxfne.
