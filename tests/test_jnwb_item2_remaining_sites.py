@@ -20,6 +20,7 @@ nperseg=None)``, a ``scipy.signal.welch`` wrapper):
 
 import jnwb
 import numpy as np
+import pytest
 from scipy import signal as _signal
 
 from jaxfne.vis import core as _core
@@ -102,8 +103,9 @@ def test_proxy_coherence_differs_from_jnwb_by_coherence_ratio():
     assert out["method"] == "welch"
     assert bool(np.asarray(out["valid"]).any()), "fixture must carry nonzero power"
     fs, seg = 2000.0, min(1024, t)
-    _f, pxx = _signal.welch(np.asarray(x, dtype=np.float64), fs=fs, nperseg=seg)
-    _f, pyy = _signal.welch(np.asarray(y, dtype=np.float64), fs=fs, nperseg=seg)
+    # The site's autospectra go through welch_psd (the jnwb path for float64).
+    _f, pxx = _core.welch_psd(np.asarray(x, dtype=np.float64), fs, nperseg=seg)
+    _f, pyy = _core.welch_psd(np.asarray(y, dtype=np.float64), fs, nperseg=seg)
     from scipy.signal import csd as _csd
 
     _f, pxy = _csd(
@@ -166,7 +168,9 @@ def test_estimator_differs_from_jnwb_by_peak_frequency():
     from jaxfne.protocol_c.estimator import estimate_traveling_wave
 
     dt_ms, fs, t, n = 1.0, 1000.0, 1000, 8
-    band = (8.0, 13.0)
+    from jaxfne.protocol_c.protocol import load_protocol_spec
+
+    band = tuple(load_protocol_spec()["preregistered_estimator_parameters"]["frequency_band_hz"])
     positions = np.arange(n, dtype=np.float64)[:, None]
     tt = np.arange(t, dtype=np.float64) / fs
     phi = np.sin(2.0 * np.pi * 10.0 * tt[:, None] + 0.5 * positions.T)
@@ -254,7 +258,7 @@ def test_bandpower_differs_from_jnwb_by_normalized_profile():
     expect = (band_power / (band_power.max() + 1e-12)).astype(np.float32)
     np.testing.assert_allclose(prof, expect, rtol=1e-6, atol=1e-7)
     assert prof.shape == (n_ch,)
-    assert float(prof.max()) == 1.0
+    assert float(prof.max()) == pytest.approx(1.0, abs=1e-6)  # max / (max + 1e-12)
     jf, jpxx = jnwb.compute_psd(sig[0, :, 0].astype(np.float64), fs, axis=0, nperseg=n_steps)
     assert len(np.asarray(jf)) > 10, "compared arrays must have more than 10 bins"
     assert prof.shape != np.asarray(jpxx).shape, (
