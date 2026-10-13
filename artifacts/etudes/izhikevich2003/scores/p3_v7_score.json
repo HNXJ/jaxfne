@@ -1,0 +1,297 @@
+{
+ "prereg": "PREREG_P3.md signed v7",
+ "code_sha": "423a2f88379c63e7922b28b18e25244b23730c8f",
+ "run_code_shas": [
+  "423a2f88379c63e7922b28b18e25244b23730c8f"
+ ],
+ "theta": 4.0,
+ "alpha_band": [
+  8.0,
+  13.0
+ ],
+ "gamma_band": [
+  30.0,
+  50.0
+ ],
+ "fig2": {
+  "criteria": {
+   "C6": {
+    "verdict": "pass",
+    "numbers": {
+     "outcomes": [
+      {
+       "I_plus": 1.0,
+       "n_spikes": 7,
+       "has_burst": false,
+       "isi_cv": 0.2510961097184713,
+       "ok": true
+      }
+     ],
+     "selected_I_plus": 1.0
+    }
+   },
+   "C1": {
+    "verdict": "pass",
+    "numbers": {
+     "n_spikes": 8,
+     "rate_hz": 26.666666666666668,
+     "isi_ratio": 2.533707865168539,
+     "isi_cv": 0.23193182219131955
+    }
+   },
+   "C2": {
+    "verdict": "pass",
+    "numbers": {
+     "n_spikes": 11,
+     "rate_hz": 36.66666666666667,
+     "isi_ratio": 13.166666666666666,
+     "isi_cv": 0.44798431395113253,
+     "initial_burst": true,
+     "tail_n_spikes": 8
+    }
+   },
+   "C3": {
+    "verdict": "pass",
+    "numbers": {
+     "n_spikes": 28,
+     "rate_hz": 93.33333333333334,
+     "isi_ratio": 3.125,
+     "isi_cv": 1.6661724553177777,
+     "n_bursts": 5,
+     "onset_freq_hz": 16.12253123740427
+    }
+   },
+   "C4": {
+    "verdict": "fail",
+    "numbers": {
+     "n_spikes": 40,
+     "rate_hz": 133.33333333333334,
+     "isi_ratio": 1.8571428571428572,
+     "isi_cv": 0.08370935763732941
+    }
+   },
+   "C5": {
+    "verdict": "pass",
+    "numbers": {
+     "n_spikes": 25,
+     "rate_hz": 83.33333333333334,
+     "isi_ratio": 4.387096774193548,
+     "isi_cv": 0.28375173355646005,
+     "rs_rate_hz": 26.666666666666668
+    }
+   },
+   "C7": {
+    "verdict": "pass",
+    "numbers": {
+     "n_spikes": 7,
+     "rate_hz": 23.333333333333336,
+     "isi_ratio": 2.9285714285714284,
+     "isi_cv": 0.4007514209420085,
+     "burst_latency_ms": 5.7
+    }
+   },
+   "C8": {
+    "verdict": "fail",
+    "numbers": {
+     "n_spikes": 1,
+     "n_maxima": 3,
+     "decreasing": true,
+     "freq_hz": 29.76190476190476,
+     "maxima_rows": [
+      160,
+      496,
+      898
+     ]
+    }
+   }
+  },
+  "verdicts": {
+   "C1": "pass",
+   "C2": "pass",
+   "C3": "pass",
+   "C4": "fail",
+   "C5": "pass",
+   "C6": "pass",
+   "C7": "pass",
+   "C8": "fail"
+  },
+  "overall": "fail"
+ },
+ "fig3": {
+  "seeds": {
+   "1": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 8.5936
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.4027227588843355,
+      "n_qualifying_cells": 975
+     }
+    },
+    "N3": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 9.0,
+      "pe": 6.209281055935908,
+      "local_max": true,
+      "edge_ok": true
+     }
+    },
+    "N4": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 39.5,
+      "pe": 4.951555938400134,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "2": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 8.4791
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.40048531234372486,
+      "n_qualifying_cells": 966
+     }
+    },
+    "N3": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 9.5,
+      "pe": 5.253115134895526,
+      "local_max": true,
+      "edge_ok": true
+     }
+    },
+    "N4": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 37.0,
+      "pe": 7.848550557208349,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "3": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 8.787
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.40074205749842184,
+      "n_qualifying_cells": 974
+     }
+    },
+    "N3": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 9.0,
+      "pe": 7.755411326797712,
+      "local_max": true,
+      "edge_ok": true
+     }
+    },
+    "N4": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 42.0,
+      "pe": 6.177330387636177,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "4": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 8.8331
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.41018386484565905,
+      "n_qualifying_cells": 974
+     }
+    },
+    "N3": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 9.0,
+      "pe": 12.796795818371352,
+      "local_max": true,
+      "edge_ok": true
+     }
+    },
+    "N4": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 36.0,
+      "pe": 4.6718730941898645,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "5": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 8.6939
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.3998280992095798,
+      "n_qualifying_cells": 972
+     }
+    },
+    "N3": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 9.0,
+      "pe": 8.029330193416051,
+      "local_max": true,
+      "edge_ok": true
+     }
+    },
+    "N4": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 36.0,
+      "pe": 5.481363538741966,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   }
+  },
+  "overall": {
+   "N1": "pass",
+   "N2": "fail",
+   "N3": "pass",
+   "N4": "pass"
+  },
+  "arm": "fail",
+  "complete": true
+ }
+}

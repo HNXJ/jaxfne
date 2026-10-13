@@ -1,0 +1,353 @@
+{
+ "sensitivity": "S1",
+ "reported_only": true,
+ "code_sha": "e67f3b86e75c8caf321143ba26d1a043bb06bcca",
+ "reference_code_sha": "e67f3b86e75c8caf321143ba26d1a043bb06bcca",
+ "seeds": {
+  "1": {
+   "reference": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 14.35734693877551
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.3932728064436555,
+      "n_qualifying_cells": 952
+     }
+    },
+    "N3": {
+     "verdict": "fail",
+     "numbers": {
+      "f_pk": 12.5,
+      "pe": 1.95354500070948,
+      "local_max": true,
+      "edge_ok": false
+     }
+    },
+    "N4": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 42.0,
+      "pe": 6.125862441256706,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "kernel": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 8.5936
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.4027227588843355,
+      "n_qualifying_cells": 975
+     }
+    },
+    "N3": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 9.0,
+      "pe": 6.209281055935908,
+      "local_max": true,
+      "edge_ok": true
+     }
+    },
+    "N4": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 39.5,
+      "pe": 4.951555938400134,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "mean_extra_u_per_spike": 3.047785149465319
+  },
+  "2": {
+   "reference": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 14.31469387755102
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.399727828745574,
+      "n_qualifying_cells": 952
+     }
+    },
+    "N3": {
+     "verdict": "fail",
+     "numbers": {
+      "f_pk": 9.5,
+      "pe": 0.3191873660855045,
+      "local_max": true,
+      "edge_ok": true
+     }
+    },
+    "N4": {
+     "verdict": "fail",
+     "numbers": {
+      "f_pk": 46.0,
+      "pe": 3.2743907851108447,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "kernel": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 8.4791
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.40048531234372486,
+      "n_qualifying_cells": 966
+     }
+    },
+    "N3": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 9.5,
+      "pe": 5.253115134895526,
+      "local_max": true,
+      "edge_ok": true
+     }
+    },
+    "N4": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 37.0,
+      "pe": 7.848550557208349,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "mean_extra_u_per_spike": 3.0940167501043088
+  },
+  "3": {
+   "reference": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 14.118367346938776
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.39436851753318797,
+      "n_qualifying_cells": 958
+     }
+    },
+    "N3": {
+     "verdict": "fail",
+     "numbers": {
+      "f_pk": 12.5,
+      "pe": 1.5212329455772478,
+      "local_max": true,
+      "edge_ok": false
+     }
+    },
+    "N4": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 48.5,
+      "pe": 4.757151465986358,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "kernel": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 8.787
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.40074205749842184,
+      "n_qualifying_cells": 974
+     }
+    },
+    "N3": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 9.0,
+      "pe": 7.755411326797712,
+      "local_max": true,
+      "edge_ok": true
+     }
+    },
+    "N4": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 42.0,
+      "pe": 6.177330387636177,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "mean_extra_u_per_spike": 3.052014654060479
+  },
+  "4": {
+   "reference": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 14.462244897959184
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.39476668778044616,
+      "n_qualifying_cells": 955
+     }
+    },
+    "N3": {
+     "verdict": "fail",
+     "numbers": {
+      "f_pk": 13.0,
+      "pe": 0.6694989343489016,
+      "local_max": true,
+      "edge_ok": false
+     }
+    },
+    "N4": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 47.0,
+      "pe": 4.115085614100722,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "kernel": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 8.8331
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.41018386484565905,
+      "n_qualifying_cells": 974
+     }
+    },
+    "N3": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 9.0,
+      "pe": 12.796795818371352,
+      "local_max": true,
+      "edge_ok": true
+     }
+    },
+    "N4": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 36.0,
+      "pe": 4.6718730941898645,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "mean_extra_u_per_spike": 3.07720242375664
+  },
+  "5": {
+   "reference": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 14.253061224489796
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.3876598655792472,
+      "n_qualifying_cells": 949
+     }
+    },
+    "N3": {
+     "verdict": "fail",
+     "numbers": {
+      "f_pk": 10.5,
+      "pe": 0.4352723227129616,
+      "local_max": true,
+      "edge_ok": true
+     }
+    },
+    "N4": {
+     "verdict": "fail",
+     "numbers": {
+      "f_pk": 43.0,
+      "pe": 3.499115421225054,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "kernel": {
+    "N1": {
+     "verdict": "pass",
+     "numbers": {
+      "mean_rate_hz": 8.6939
+     }
+    },
+    "N2": {
+     "verdict": "fail",
+     "numbers": {
+      "median_cv": 0.3998280992095798,
+      "n_qualifying_cells": 972
+     }
+    },
+    "N3": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 9.0,
+      "pe": 8.029330193416051,
+      "local_max": true,
+      "edge_ok": true
+     }
+    },
+    "N4": {
+     "verdict": "pass",
+     "numbers": {
+      "f_pk": 36.0,
+      "pe": 5.481363538741966,
+      "local_max": true,
+      "edge_ok": true
+     }
+    }
+   },
+   "mean_extra_u_per_spike": 3.0352541567365208
+  }
+ }
+}
