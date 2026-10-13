@@ -9,7 +9,7 @@ import pytest
 
 pytest.importorskip("mkdocs")
 from mkdocs.config import load_config  # noqa: E402
-from mkdocs.structure.files import Files, get_files  # noqa: E402
+from mkdocs.structure.files import File, Files, get_files  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 
@@ -39,22 +39,31 @@ def test_stand_ins_cover_exactly_the_unbuilt_registry_files():
     assert out.get_file_from_path("_static/atlas/two_neuron_ei/typo.html") is None
 
 
-def test_a_stand_in_fails_the_build_on_read_the_docs(monkeypatch):
+def _with_built(config, built, tmp_path):
+    """The docs files with only `built` atlas files present, written under tmp_path."""
+    atlas = _registry_uris()
+    files = [f for f in get_files(config) if f.src_uri not in atlas]
+    for uri in built:
+        (tmp_path / uri).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / uri).write_text("<p>built</p>", encoding="utf-8")
+        files.append(File(uri, str(tmp_path), config["site_dir"], config["use_directory_urls"]))
+    out = Files(files)
+    assert {u for u in atlas if out.get_file_from_path(u)} == set(built), "fixture: built set"
+    return out
+
+
+def test_a_stand_in_fails_the_build_on_read_the_docs(monkeypatch, tmp_path):
     config = load_config(str(REPO / "mkdocs.yml"))
     atlas = sorted(_registry_uris())
-    files = get_files(config)
-    one_missing = Files([f for f in files if f.src_uri != atlas[0]])
-    assert one_missing.get_file_from_path(atlas[0]) is None, "fixture must lack one atlas file"
+    one_missing = _with_built(config, atlas[1:], tmp_path)
     monkeypatch.setenv("READTHEDOCS", "True")
     with pytest.raises(Exception, match="1 atlas files would be published as stand-ins"):
         _on_files(one_missing, config)
 
 
-def test_no_stand_in_for_a_built_file():
+def test_no_stand_in_for_a_built_file(tmp_path):
     config = load_config(str(REPO / "mkdocs.yml"))
     atlas = sorted(_registry_uris())
-    files = get_files(config)
-    built = Files([f for f in files if f.src_uri not in atlas[1:]])
-    out = _on_files(built, config)
+    out = _on_files(_with_built(config, atlas[:1], tmp_path), config)
     added = {f.src_uri for f in out if f.generated_by}
     assert atlas[0] not in added and added == set(atlas[1:])
