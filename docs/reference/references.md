@@ -5,7 +5,7 @@ the functions that implement it, and each of those functions cites the same DOI 
 docstring; `tests/test_references_page.py` holds the two to each other. The replication table
 lists papers whose results jaxfne ports compare against. The background tables list work that
 jaxfne builds on, compares itself with or follows as practice, without implementing a result
-from it. Every DOI below resolved on 2026-10-12, and each matched the title, first author and
+from it. Every DOI below resolved on 2026-10-12 (Nejat et al. 2026 on 2026-10-14), and each matched the title, first author and
 year of its Crossref record (the Equinox preprint, of its DataCite record). Where jaxfne departs
 from the published result, the row and the docstring say how.
 
@@ -41,6 +41,7 @@ from the published result, the row and the docstring say how.
 | Tahvili, F., Vinck, M., & di Volo, M. (2026). *PLOS Computational Biology* 22(6), e1014378. [doi:10.1371/journal.pcbi.1014378](https://doi.org/10.1371/journal.pcbi.1014378) | Fig. 1: gamma frequency, the PV→SOM lag, the rate order and the onset of oscillation with connection probability | [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/caminos), `artifacts/etudes/caminos/` |
 | Tahvili, F., Vinck, M., & di Volo, M. (2025). PV and SOM cells play distinct causal roles in controlling network oscillations and stability. *Cell Reports* 44(8), 116131. [doi:10.1016/j.celrep.2025.116131](https://doi.org/10.1016/j.celrep.2025.116131) | The network the PLOS paper takes as its reference model; its STAR Methods are not yet compared with the port | `artifacts/etudes/caminos/PORT_SPEC.md` |
 | N'dri, A. W., Barbier, T., Teulière, C., & Triesch, J. (2025). Predictive Coding Light. *Nature Communications* 16, 8880. [doi:10.1038/s41467-025-64234-z](https://doi.org/10.1038/s41467-025-64234-z) | Fig. 2: learned inhibitory weights and spike suppression ordered by predictability. Fig. 3 is not reproduced under its preregistration | Dashboard: [Fig. 2](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig2), [Fig. 3](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig3); `artifacts/etudes/pcl/` |
+| Nejat, H., Sherfey, J., & Bastos, A. M. (2026). A genetic algorithm for self-supervised models of oscillatory neurodynamics. *PLOS One* 21(8), e0354021. [doi:10.1371/journal.pone.0354021](https://doi.org/10.1371/journal.pone.0354021) | Fig. 6: a 50-neuron E, SST-like and PV-like circuit fitted by GSDR to recorded spectra. In progress; no score yet | `artifacts/etudes/gsdr2026/` |
 | Watkins, C. J. C. H., & Dayan, P. (1992). Q-learning. *Machine Learning* 8(3-4), 279-292. [doi:10.1007/BF00992698](https://doi.org/10.1007/BF00992698) | The tabular Q-learning update, run as a demonstration on two chain tasks | [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/qlearning), `artifacts/etudes/qlearning/` |
 
 ## Background: reduced and population models
