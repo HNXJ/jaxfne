@@ -998,7 +998,10 @@ class Configuration:
         pairs and an approximate draw above. ``"bernoulli"`` includes each
         (pre, post) pair independently with probability ``p`` at any size (with
         mechanisms, ``p`` resolves to multiples of 2**-23 unless x64 is on); it is
-        refused with ``max_in_degree``. ``weight`` is the native edge magnitude
+        refused with ``max_in_degree``. ``"capped_bernoulli"`` takes the Bernoulli
+        draws and keeps the first ``int(n_pre*p)`` per post cell in pre order; it is
+        likewise refused with ``max_in_degree``, and refused on the sign-only
+        fallback path (which honours ``"density"``/``"bernoulli"`` only). ``weight`` is the native edge magnitude
         (default ``1/sqrt(n)``),
         and ``sign`` is ``"excitatory"``/``"inhibitory"``/``"signed"`` (``"signed"`` or
         unset follows the presynaptic neuron's intrinsic sign). When any rule
@@ -1057,14 +1060,16 @@ class Configuration:
                 raise ValueError(
                     f"connection {name!r} delay_ms must be finite and >= 0; got {delay_ms!r}"
                 )
-        if not isinstance(sampling, str) or sampling not in {"density", "bernoulli"}:
+        if not isinstance(sampling, str) or sampling not in {
+            "density", "bernoulli", "capped_bernoulli",
+        }:
             raise ValueError(
-                f"connection {name!r} sampling must be 'density' or 'bernoulli'; "
-                f"got {sampling!r}"
+                f"connection {name!r} sampling must be 'density', 'bernoulli' or "
+                f"'capped_bernoulli'; got {sampling!r}"
             )
-        if sampling == "bernoulli" and max_in_degree is not None:
+        if sampling in ("bernoulli", "capped_bernoulli") and max_in_degree is not None:
             raise ValueError(
-                f"connection {name!r} sampling='bernoulli' is not implemented with "
+                f"connection {name!r} sampling={sampling!r} is not implemented with "
                 "max_in_degree (localized sampling); omit one of them"
             )
         entry = {
@@ -1084,9 +1089,9 @@ class Configuration:
             "delay_ms": float(delay_ms) if delay_ms is not None else None,
             "status": "declared_not_compiled",
         }
-        if sampling == "bernoulli":
+        if sampling in ("bernoulli", "capped_bernoulli"):
             # Stored only when non-default so existing config hashes stay unchanged.
-            entry["sampling"] = "bernoulli"
+            entry["sampling"] = sampling
         cfg = self._append_circuit("connections", entry, dedup_name=True)
         # Unknown-mechanism reference is a WARNING in this declaration-only phase;
         # the v0.3.30 compiler will promote it to a hard error.

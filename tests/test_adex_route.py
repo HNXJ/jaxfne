@@ -13,7 +13,11 @@ import pytest
 
 import jaxfne as jtfne
 import jaxfne._model_simulate as route_simulate
-from jaxfne._construct_adex import ADEX_CONSUMED, _runtime_defaults
+from jaxfne._construct_adex import (
+    ADEX_CONSUMED,
+    _apply_triple_param_overrides,
+    _runtime_defaults,
+)
 from jaxfne._model import Model
 from jaxfne._runtime_config import RuntimeConfig
 from jaxfne._signals import ObjectiveReport, Signals, Simulation
@@ -770,3 +774,97 @@ def test_drive_current_schema_keys_refused_by_name(key, value):
     msg = str(info.value)
     assert "poisson_drive" in msg, msg
     assert key in msg, msg
+
+
+# G12. Zero-delay edges are refused on the adex route: the kernel reads each
+# edge's spikes from a ring of past steps, so 0 steps has no slot to read from.
+# Delays realize at simulate time, when dt is known, so the refusal fires there.
+def test_zero_delay_edge_refusal_names_rounding_and_adex_route():
+    model = jtfne.construct(_plumbing_cfg(e_e_delay=0.04))
+    with pytest.raises(ValueError) as info:
+        model.simulate(_sim())
+    msg = str(info.value)
+    assert "rounds to 0 steps" in msg, msg
+    assert "zero-delay edges are refused on the adex route" in msg, msg
+
+
+# G14 on the route: per-triple Vpeak_mV overrides must lie above the neuron's
+# (post-override) EL_mV; absence is omitting the key, never an explicit value.
+def _triple_rows():
+    return [{"neuron_id": 0, "area": "V1", "layer": "L4", "cell_type": "E"}]
+
+
+def test_triple_vpeak_override_is_applied():
+    params = make_adex_params(("E",))
+    got = _apply_triple_param_overrides(
+        params, _triple_rows(), {("V1", "L4", "E"): {"Vpeak_mV": -40.0}}
+    )
+    np.testing.assert_array_equal(np.asarray(got.Vpeak_mV), [-40.0])
+
+
+def test_triple_vpeak_override_below_el_is_refused():
+    params = make_adex_params(("E",))
+    with pytest.raises(ValueError, match="Vpeak_mV"):
+        _apply_triple_param_overrides(
+            params, _triple_rows(), {("V1", "L4", "E"): {"Vpeak_mV": -70.0}}
+        )
+
+
+def test_triple_vpeak_checked_against_post_override_el():
+    params = make_adex_params(("E",))
+    with pytest.raises(ValueError, match="Vpeak_mV"):
+        _apply_triple_param_overrides(
+            params, _triple_rows(),
+            {("V1", "L4", "E"): {"EL_mV": -40.0, "Vpeak_mV": -45.0}},
+        )
+
+
+# G13 on the route: the optional t_start_ms/t_stop_ms window rides as the
+# kernel's ext_t_start_steps/ext_t_stop_steps; undeclared, neither key is passed.
+def test_route_drive_window_reaches_kernel(kernel_calls):
+    model = jtfne.construct(_base())
+    model.simulate(_drive_sim(t_start_ms=10.0, t_stop_ms=50.0))
+    assert len(kernel_calls) == 1, "simulate must run the kernel once"
+    kw = kernel_calls[0][0]
+    assert kw["ext_t_start_steps"] == 100, "10 ms at dt 0.1 ms"
+    assert kw["ext_t_stop_steps"] == 500, "50 ms at dt 0.1 ms"
+
+
+def test_route_full_window_matches_no_window_run():
+    model = jtfne.construct(_base())
+    ref = np.asarray(model.simulate(_drive_sim()).spikes)
+    assert ref.sum() > 0, "the drive must spike the fixture"
+    got = np.asarray(model.simulate(_drive_sim(t_start_ms=0.0, t_stop_ms=50.0)).spikes)
+    np.testing.assert_array_equal(got, ref)
+
+
+def test_route_partial_window_moves_spikes():
+    model = jtfne.construct(_base())
+    ref = np.asarray(model.simulate(_drive_sim()).spikes)
+    assert ref.sum() > 0, "the drive must spike the fixture"
+    got = np.asarray(model.simulate(_drive_sim(t_start_ms=25.0, t_stop_ms=50.0)).spikes)
+    assert not np.array_equal(got, ref), "silencing the first half must move spikes"
+
+
+WINDOW_SCHEMA_REFUSALS = [
+    ({"t_start_ms": 10.0}, "t_start_ms", "without the other"),
+    ({"t_stop_ms": 10.0}, "t_stop_ms", "without the other"),
+    ({"t_start_ms": 20.0, "t_stop_ms": 10.0}, "t_start_ms", "must be below"),
+    ({"t_start_ms": 10.0, "t_stop_ms": 10.0}, "t_start_ms", "must be below"),
+    ({"t_start_ms": -1.0, "t_stop_ms": 10.0}, "t_start_ms", "finite number"),
+    ({"t_start_ms": 0.0, "t_stop_ms": 60.0}, "t_stop_ms", "realize to steps"),
+    ({"t_start_ms": "x", "t_stop_ms": 10.0}, "t_start_ms", "finite number"),
+]
+
+
+@pytest.mark.parametrize("override, needle, detail", WINDOW_SCHEMA_REFUSALS)
+def test_route_drive_window_refusals_name_poisson_drive_and_key(
+    override, needle, detail
+):
+    model = jtfne.construct(_base())
+    with pytest.raises(ValueError) as info:
+        model.simulate(_sim(poisson_drive=dict(DRIVE, **override)))
+    msg = str(info.value)
+    assert "poisson_drive" in msg, msg
+    assert needle in msg, msg
+    assert detail in msg, msg

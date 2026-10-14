@@ -43,6 +43,7 @@ ADEX_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
 
 _PARAM_FIELDS = (
     "C_pF", "gL_nS", "EL_mV", "VT_mV", "Delta_mV", "Vreset_mV", "tauw_ms", "a_nS", "b_pA", "Tref_ms",
+    "Vpeak_mV",
 )
 
 
@@ -59,6 +60,7 @@ class AdExParams(NamedTuple):
     a_nS: jax.Array
     b_pA: jax.Array
     Tref_ms: jax.Array
+    Vpeak_mV: jax.Array
     labels: tuple[str, ...]
 
 
@@ -73,6 +75,11 @@ def make_adex_params(
     ``overrides`` maps a cell type to a dict of field overrides (field names as in
     :class:`AdExParams`). Unknown cell types, unknown fields, and overrides for a cell
     type absent from ``labels`` raise ``ValueError``.
+
+    ``Vpeak_mV`` is the per-type spike-detection threshold (NaN = absent = the
+    reference ``VT + 5 * Delta``). An explicit value must be finite and above
+    that type's ``EL`` (bools refused, never coerced); absent, every entry is
+    NaN and the kernel runs the reference threshold bit-identically.
     """
     labels = tuple(str(lab) for lab in labels)
     for lab in labels:
@@ -95,14 +102,59 @@ def make_adex_params(
                     f"unknown AdEx parameter field {field!r} for cell type {ctype!r}; "
                     f"expected one of {_PARAM_FIELDS}"
                 )
+        if "Vpeak_mV" in fields:
+            _check_vpeak_override(ctype, fields["Vpeak_mV"], overrides.get(ctype, {}))
     columns = {}
     for field in _PARAM_FIELDS:
-        values = [
-            float(overrides.get(lab, {}).get(field, ADEX_CELL_TYPE_DEFAULTS[lab][field]))
-            for lab in labels
-        ]
+        if field == "Vpeak_mV":
+            values = [
+                float(overrides.get(lab, {}).get(field, math.nan)) for lab in labels
+            ]
+        else:
+            values = [
+                float(overrides.get(lab, {}).get(field, ADEX_CELL_TYPE_DEFAULTS[lab][field]))
+                for lab in labels
+            ]
         columns[field] = jnp.asarray(np.asarray(values, dtype=np.float64))
     return AdExParams(labels=labels, **columns)
+
+
+def _check_vpeak_override(ctype: str, value: Any, type_fields: Mapping[str, float]) -> None:
+    """Refuse a non-finite ``Vpeak_mV`` override or one at or below ``EL``.
+
+    ``EL`` is the type's override when one is declared, else its reference
+    value; NaN (or any other non-finite value, or a bool) is refused — absence
+    is declared by omitting the key, never by an explicit NaN.
+    """
+    if isinstance(value, bool):
+        raise ValueError(
+            f"overrides for cell type {ctype!r}: Vpeak_mV must be a finite float "
+            f"above EL; got {value!r}"
+        )
+    try:
+        vpeak = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"overrides for cell type {ctype!r}: Vpeak_mV must be a finite float "
+            f"above EL; got {value!r}"
+        )
+    if not math.isfinite(vpeak):
+        raise ValueError(
+            f"overrides for cell type {ctype!r}: Vpeak_mV must be a finite float "
+            f"above EL; got {value!r}"
+        )
+    el_raw = type_fields.get("EL_mV", ADEX_CELL_TYPE_DEFAULTS[ctype]["EL_mV"])
+    if isinstance(el_raw, bool):
+        raise ValueError(
+            f"overrides for cell type {ctype!r}: Vpeak_mV={vpeak} cannot be checked "
+            f"against a non-real EL_mV={el_raw!r}"
+        )
+    el = float(el_raw)
+    if not math.isfinite(el) or vpeak <= el:
+        raise ValueError(
+            f"overrides for cell type {ctype!r}: Vpeak_mV={vpeak} must be above "
+            f"EL_mV={el_raw!r}"
+        )
 
 
 def adex_step(state, I_pA, params: AdExParams, dt_ms: float, step_order: str = "default"):
@@ -114,8 +166,9 @@ def adex_step(state, I_pA, params: AdExParams, dt_ms: float, step_order: str = "
     ``state`` is ``(V, w, ref)``: membrane voltage (mV), adaptation (pA), and refractory
     steps remaining (int). ``I_pA`` is injected current. A cell with ``ref > 0`` is clamped
     at ``Vreset`` while ``w`` keeps evolving with ``V = Vreset``. An active cell spikes when
-    its updated V reaches ``VT + 5 * Delta``; on spike V is reset, ``w += b``, and ``ref`` is
-    set to ``round(Tref / dt)`` (one fewer under ``step_order="brian2"``).
+    its updated V reaches ``Vpeak`` where declared (per-cell ``params.Vpeak_mV``, NaN =
+    absent), else the reference ``VT + 5 * Delta``; on spike V is reset, ``w += b``, and
+    ``ref`` is set to ``round(Tref / dt)`` (one fewer under ``step_order="brian2"``).
 
     Returns ``((V, w, ref), spk)`` with boolean spike vector ``spk``. Pure ``jax.numpy``;
     dtype follows the inputs.
@@ -124,7 +177,9 @@ def adex_step(state, I_pA, params: AdExParams, dt_ms: float, step_order: str = "
         raise ValueError(f"step_order must be 'default' or 'brian2', got {step_order!r}")
     V, w, ref = state
     p = params
-    v_thr = p.VT_mV + 5.0 * p.Delta_mV
+    v_thr = jnp.where(
+        jnp.isnan(p.Vpeak_mV), p.VT_mV + 5.0 * p.Delta_mV, p.Vpeak_mV
+    )
     arg = jnp.minimum((V - p.VT_mV) / p.Delta_mV, _EXP_ARG_MAX)
     dV = (
         p.gL_nS * (p.EL_mV - V)
@@ -153,6 +208,75 @@ _EDGE_ARGS = (
 _EXT_ARGS = (
     "ext_targets", "ext_lambda", "ext_weight_nS", "ext_receptor", "ext_delay_steps", "key",
 )
+
+
+def _nonneg_float(name, value):
+    try:
+        out = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{name} must be a number; got {value!r}")
+    if isinstance(value, bool) or not math.isfinite(out) or out < 0.0:
+        raise ValueError(f"{name} must be a finite float >= 0; got {value!r}")
+    return out
+
+
+def _checked_lambda(value):
+    """Validate ``ext_lambda``: a scalar mean or a per-step schedule array.
+
+    A scalar (or 0-d) value takes the historical path: a finite float >= 0.
+    Anything else must be a 1-d (``[n_steps]``) or 2-d (``[n_steps, M]``)
+    array of finite values >= 0 (bools refused, never coerced); its shape is
+    checked against the run in :func:`simulate_adex` and
+    :func:`simulate_adex_hdp_registered`, where ``n_steps`` and ``M`` are
+    known. Returns ``("scalar", lam)`` or ``("schedule", array)``.
+    """
+    try:
+        arr = np.asarray(value, dtype=np.float64)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "ext_lambda must be a finite float >= 0, a 1-d [n_steps] array, or a "
+            f"2-d [n_steps, M] array; got {value!r}"
+        ) from exc
+    if arr.ndim == 0:
+        return ("scalar", _nonneg_float("ext_lambda", value))
+    if np.asarray(value).dtype == np.bool_ or arr.ndim not in (1, 2):
+        raise ValueError(
+            "ext_lambda must be a finite float >= 0, a 1-d [n_steps] array, or a "
+            f"2-d [n_steps, M] array; got {value!r}"
+        )
+    if arr.shape[0] == 0 or (arr.ndim == 2 and arr.shape[1] == 0):
+        raise ValueError(f"ext_lambda schedule must be non-empty; got shape {arr.shape}")
+    if not bool(np.all(np.isfinite(arr))) or bool(np.any(arr < 0.0)):
+        raise ValueError("ext_lambda schedule must hold finite values >= 0")
+    return ("schedule", arr)
+
+
+def _check_drive_window(n_steps, t_start_steps, t_stop_steps) -> "tuple[int, int] | None":
+    """Validate the kernel's optional drive-window step bounds.
+
+    Both bounds come together or not at all; absent, the drive runs every
+    step (the historical path). Present, they must be integers with
+    ``0 <= t_start < t_stop <= n_steps``: the schedule carries the scalar
+    mean on steps ``[t_start, t_stop)`` and 0 elsewhere, drawn under the same
+    key stream, so windowed steps reproduce the scalar run bit-for-bit.
+    """
+    if t_start_steps is None and t_stop_steps is None:
+        return None
+    for name, bound in (("ext_t_start_steps", t_start_steps), ("ext_t_stop_steps", t_stop_steps)):
+        if (
+            isinstance(bound, bool)
+            or not isinstance(bound, (int, np.integer))
+        ):
+            raise ValueError(
+                f"{name} must be an int step index or None (with its pair); got {bound!r}"
+            )
+    t0, t1 = int(t_start_steps), int(t_stop_steps)
+    if not (0 <= t0 < t1 <= int(n_steps)):
+        raise ValueError(
+            f"ext_t_start_steps={t0} and ext_t_stop_steps={t1} must satisfy "
+            f"0 <= t_start < t_stop <= n_steps ({int(n_steps)})"
+        )
+    return (t0, t1)
 
 
 def _check_external_drive(N, R, given):
@@ -190,7 +314,7 @@ def _check_external_drive(N, R, given):
             raise ValueError(f"{name} must be a finite float >= 0; got {value!r}")
         return out
 
-    lam = _nonneg_float("ext_lambda", given["ext_lambda"])
+    lam = _checked_lambda(given["ext_lambda"])
     weight = _nonneg_float("ext_weight_nS", given["ext_weight_nS"])
     rec = given["ext_receptor"]
     if (
@@ -293,6 +417,8 @@ def simulate_adex(
     ext_receptor=None,
     ext_delay_steps=None,
     key=None,
+    ext_t_start_steps=None,
+    ext_t_stop_steps=None,
 ) -> dict[str, Any]:
     """Simulate conductance-based AdEx cells on a sparse edge list.
 
@@ -327,9 +453,22 @@ def simulate_adex(
 
     The external drive is opt-in through six keyword arguments that are all given or all
     None: ``ext_targets`` (int ``[M]`` cell indices, unique, in range), ``ext_lambda``
-    (mean count per step per target, >= 0), ``ext_weight_nS`` (conductance per count, >= 0),
+    (mean count per step per target, >= 0 — either a scalar float, or a per-step
+    schedule array ``[n_steps]`` (shared by every target) or ``[n_steps, M]`` (per
+    target); finite values >= 0, bools refused), ``ext_weight_nS`` (conductance per count, >= 0),
     ``ext_receptor`` (a valid receptor index), ``ext_delay_steps`` (int >= 1; plus 1 under
-    ``step_order="brian2"``, as for edges), and ``key`` (a JAX PRNG key).
+    ``step_order="brian2"``, as for edges), and ``key`` (a JAX PRNG key). A scalar
+    ``ext_lambda`` takes the historical path bit-identically; a schedule is drawn
+    per step (``poisson(ks, lam[t])`` under the same one-split-per-step key
+    stream) and validated against ``(n_steps, M)`` here, where both are known.
+
+    ``ext_t_start_steps``/``ext_t_stop_steps`` (both given or both None) restrict
+    the drive to steps ``[t_start, t_stop)``: they must be int step indices with
+    ``0 <= t_start < t_stop <= n_steps``. Every step still splits the drive key,
+    and the Poisson count is drawn and then zeroed outside the window, so steps
+    inside the window reproduce the all-steps drive run bit-for-bit. Given
+    without the six drive arguments, they are refused rather than silently
+    ignored.
 
     ``I_ext_pA`` is None, shape ``[N]`` (every step), or ``[n_steps, N]``. ``V0_mV`` is None
     (rest at ``EL``) or shape ``[N]``. ``edge_*`` arrays are all given or all None. Edge
@@ -405,13 +544,21 @@ def simulate_adex(
     )
     L_edge = int(delay_eff.max()) if E else 0
     if ext is None:
+        if ext_t_start_steps is not None or ext_t_stop_steps is not None:
+            raise ValueError(
+                "ext_t_start_steps/ext_t_stop_steps need the external drive; got "
+                f"{ext_t_start_steps!r}/{ext_t_stop_steps!r} with no ext_targets — "
+                "pass the six drive arguments or neither bound"
+            )
         L = L_edge if E else 1
         d_ext = 0
         M = 0
+        window = None
     else:
         d_ext = int(ext["delay"]) + (1 if step_order == "brian2" else 0)
         L = max(L_edge, d_ext, 1)
         M = int(ext["targets"].shape[0])
+        window = _check_drive_window(n_steps, ext_t_start_steps, ext_t_stop_steps)
 
     pre_j = jnp.asarray(edges["pre"], jnp.int32)
     seg_j = jnp.asarray(edges["post"] * R + edges["receptor"], jnp.int32)
@@ -423,8 +570,31 @@ def simulate_adex(
     if ext is not None:
         targets_j = jnp.asarray(ext["targets"], jnp.int32)
         w_ext_j = jnp.asarray(ext["weight"], dtype)
-        lam_f = float(ext["lambda"])
         rec_ext = int(ext["receptor"])
+        lam_kind, lam_val = ext["lambda"]
+        if lam_kind == "scalar":
+            lam_f: Any = float(lam_val)
+            lam_1d = None
+            lam_2d = None
+        else:
+            lam_f = None
+            sched = np.asarray(lam_val, dtype=np.float64)
+            if sched.ndim == 1:
+                if sched.shape[0] != n_steps:
+                    raise ValueError(
+                        "ext_lambda schedule with one shared rate must have shape "
+                        f"({n_steps},); got {sched.shape}"
+                    )
+                lam_1d = jnp.asarray(sched, dtype)
+                lam_2d = None
+            else:
+                if sched.shape != (n_steps, M):
+                    raise ValueError(
+                        "ext_lambda schedule with per-target rates must have shape "
+                        f"({n_steps}, {M}); got {sched.shape}"
+                    )
+                lam_1d = None
+                lam_2d = jnp.asarray(sched, dtype)
 
     # A constant current is closed over, so no [n_steps, N] array is built for it.
     I_const = jnp.zeros((N,), dtype)
@@ -467,7 +637,16 @@ def simulate_adex(
         (V, w, ref), spk = adex_step((V, w, ref), I_tot, params, dt_ms, step_order)
         ring = ring.at[t % L].set(spk)
         if ext is not None:
-            extc = jax.random.poisson(ks, lam_f, shape=(M,)).astype(jnp.int32)
+            if lam_1d is None and lam_2d is None:
+                lam_t = lam_f
+            elif lam_2d is None:
+                lam_t = lam_1d[t]
+            else:
+                lam_t = lam_2d[t]
+            extc = jax.random.poisson(ks, lam_t, shape=(M,)).astype(jnp.int32)
+            if window is not None:
+                t0, t1 = window
+                extc = jnp.where((t >= t0) & (t < t1), extc, jnp.zeros_like(extc))
             ering = ering.at[t % L].set(extc)
         out = (spk, V) if record_v else spk
         return (V, w, ref, g, ring, ering, t + 1, rkey), out
@@ -524,6 +703,8 @@ def simulate_adex_hdp_registered(
     ext_receptor=None,
     ext_delay_steps=None,
     key=None,
+    ext_t_start_steps=None,
+    ext_t_stop_steps=None,
     hdp_rule: str,
     hdp_rule_params: Mapping[str, Any] | None = None,
     plasticity_mask=None,
@@ -636,13 +817,21 @@ def simulate_adex_hdp_registered(
     )
     L_edge = int(delay_eff.max()) if E else 0
     if ext is None:
+        if ext_t_start_steps is not None or ext_t_stop_steps is not None:
+            raise ValueError(
+                "ext_t_start_steps/ext_t_stop_steps need the external drive; got "
+                f"{ext_t_start_steps!r}/{ext_t_stop_steps!r} with no ext_targets — "
+                "pass the six drive arguments or neither bound"
+            )
         L = L_edge if E else 1
         d_ext = 0
         M = 0
+        window = None
     else:
         d_ext = int(ext["delay"]) + (1 if step_order == "brian2" else 0)
         L = max(L_edge, d_ext, 1)
         M = int(ext["targets"].shape[0])
+        window = _check_drive_window(n_steps, ext_t_start_steps, ext_t_stop_steps)
 
     descriptor, rule_step, rule_params = resolve_registered_rule(hdp_rule, hdp_rule_params)
     check_rule_family_support(descriptor, family="adex", rule_name=hdp_rule)
@@ -669,8 +858,31 @@ def simulate_adex_hdp_registered(
     if ext is not None:
         targets_j = jnp.asarray(ext["targets"], jnp.int32)
         w_ext_j = jnp.asarray(ext["weight"], dtype)
-        lam_f = float(ext["lambda"])
         rec_ext = int(ext["receptor"])
+        lam_kind, lam_val = ext["lambda"]
+        if lam_kind == "scalar":
+            lam_f: Any = float(lam_val)
+            lam_1d = None
+            lam_2d = None
+        else:
+            lam_f = None
+            sched = np.asarray(lam_val, dtype=np.float64)
+            if sched.ndim == 1:
+                if sched.shape[0] != n_steps:
+                    raise ValueError(
+                        "ext_lambda schedule with one shared rate must have shape "
+                        f"({n_steps},); got {sched.shape}"
+                    )
+                lam_1d = jnp.asarray(sched, dtype)
+                lam_2d = None
+            else:
+                if sched.shape != (n_steps, M):
+                    raise ValueError(
+                        "ext_lambda schedule with per-target rates must have shape "
+                        f"({n_steps}, {M}); got {sched.shape}"
+                    )
+                lam_1d = None
+                lam_2d = jnp.asarray(sched, dtype)
 
     # A constant current is closed over, so no [n_steps, N] array is built for it.
     I_const = jnp.zeros((N,), dtype)
@@ -753,7 +965,16 @@ def simulate_adex_hdp_registered(
         )
         ring = ring.at[t % L].set(spk)
         if ext is not None:
-            extc = jax.random.poisson(ks, lam_f, shape=(M,)).astype(jnp.int32)
+            if lam_1d is None and lam_2d is None:
+                lam_t = lam_f
+            elif lam_2d is None:
+                lam_t = lam_1d[t]
+            else:
+                lam_t = lam_2d[t]
+            extc = jax.random.poisson(ks, lam_t, shape=(M,)).astype(jnp.int32)
+            if window is not None:
+                t0, t1 = window
+                extc = jnp.where((t >= t0) & (t < t1), extc, jnp.zeros_like(extc))
             ering = ering.at[t % L].set(extc)
         carry_out = (
             V, w, ref, g, ring, ering, t + 1, rkey,

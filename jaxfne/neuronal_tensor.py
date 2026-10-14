@@ -361,6 +361,28 @@ def _check_connection_allow_self(allow_self: "bool | None", *, label: str) -> "b
     return allow_self
 
 
+#: Sampling modes the compiler honours per connection rule (None = undeclared
+#: = the ``density`` default).
+_CONNECTION_SAMPLINGS = ("density", "bernoulli", "capped_bernoulli")
+
+
+def _check_connection_sampling(sampling: "str | None", *, label: str) -> "str | None":
+    """Validate the compiler sampling mode shared by both connection types.
+
+    None = undeclared = the compiler default (density); a declared value
+    must name a mode the compiler honours (anything else, including
+    non-strings, refused, never coerced).
+    """
+    if sampling is None:
+        return None
+    if not isinstance(sampling, str) or sampling not in _CONNECTION_SAMPLINGS:
+        raise ValueError(
+            f"{label} sampling must be one of {list(_CONNECTION_SAMPLINGS)}; "
+            f"got {sampling!r}"
+        )
+    return sampling
+
+
 def _check_connection_max_in_degree(max_in_degree: "int | None", *, label: str) -> "int | None":
     """Validate the localized-sampling fan-in cap shared by both connection types.
 
@@ -448,6 +470,11 @@ class InterConnection:
     # sampling path of :func:`jaxfne.connectivity.compile_connection_rules`;
     # ``False`` states the default explicitly. Must be a bool when set.
     allow_self: "bool | None" = None
+    # Per-rule compiler sampling mode (None = undeclared = the ``density``
+    # default). Forwarded into the compiled connection rule by
+    # :func:`_wire_connection` and :func:`_wire_adex_connection`; must name a
+    # mode the compiler honours when set.
+    sampling: "str | None" = None
 
     def __post_init__(self) -> None:
         if self.delay_ms is not None:
@@ -486,6 +513,10 @@ class InterConnection:
         object.__setattr__(
             self, "allow_self",
             _check_connection_allow_self(self.allow_self, label="InterConnection"),
+        )
+        object.__setattr__(
+            self, "sampling",
+            _check_connection_sampling(self.sampling, label="InterConnection"),
         )
 
 
@@ -621,6 +652,9 @@ class AreaConnection:
     # Per-rule self-edge opt-in (None = undeclared = self-edges dropped).
     # Same forwarding semantics as InterConnection.allow_self.
     allow_self: "bool | None" = None
+    # Per-rule compiler sampling mode (None = undeclared = the ``density``
+    # default). Same forwarding semantics as InterConnection.sampling.
+    sampling: "str | None" = None
 
     def __post_init__(self) -> None:
         import math as _math
@@ -679,6 +713,10 @@ class AreaConnection:
         object.__setattr__(
             self, "allow_self",
             _check_connection_allow_self(self.allow_self, label="AreaConnection"),
+        )
+        object.__setattr__(
+            self, "sampling",
+            _check_connection_sampling(self.sampling, label="AreaConnection"),
         )
 
 
@@ -801,6 +839,7 @@ _CONNECTION_DEFAULTS_056 = {
     "spatial_sigma": None,
     "max_in_degree": None,
     "allow_self": None,
+    "sampling": None,
 }
 
 
@@ -985,6 +1024,7 @@ def _load_neuronal_tensor_impl(
                 spatial_sigma=ac.get("spatial_sigma"),
                 max_in_degree=ac.get("max_in_degree"),
                 allow_self=ac.get("allow_self"),
+                sampling=ac.get("sampling"),
             )
             for ac in raw_area_connections
         ]
@@ -1019,6 +1059,7 @@ def _load_neuronal_tensor_impl(
                         spatial_sigma=ic.get("spatial_sigma"),
                         max_in_degree=ic.get("max_in_degree"),
                         allow_self=ic.get("allow_self"),
+                        sampling=ic.get("sampling"),
                     )
                     for ic in a.get("inter_connections", [])
                 ]
@@ -1969,6 +2010,11 @@ def _wire_connection(
             1.0 if getattr(conn, "probability", None) is None
             else float(conn.probability)
         )
+    conn_sampling = getattr(conn, "sampling", None)
+    if conn_sampling is not None:
+        # Validated at declaration; None leaves the rule without the key
+        # (the compiler default).
+        wire_kw["sampling"] = conn_sampling
     cfg = cfg.connections(
         name=rule_name,
         source={
@@ -2027,7 +2073,8 @@ def _wire_adex_connection(
     required, since the adex compiler refuses a rule without a delay. The
     P-023 mechanism-name vocabulary is not applied here: adex receptors are
     user-named (``"ampa"``, ``"gaba"``, ...), resolved against the declared
-    set by name.
+    set by name. A declared ``sampling`` is forwarded into the rule (None
+    leaves the rule without the key, the compiler default).
     """
     label = _connection_label(conn, source_area, target_area)
     _refuse_impossible_allow_self(conn, source_area, target_area, label=label)
@@ -2105,6 +2152,12 @@ def _wire_adex_connection(
             f"{label} declares neither delay_ms nor "
             "conduction_velocity_m_per_s; the adex route needs one delay per rule"
         )
+    conn_sampling = getattr(conn, "sampling", None)
+    wire_kw: dict[str, object] = {}
+    if conn_sampling is not None:
+        # Validated at declaration; None leaves the rule without the key
+        # (the compiler default).
+        wire_kw["sampling"] = conn_sampling
     return_cfg = cfg.connections(
         name=rule_name,
         source={
@@ -2122,6 +2175,7 @@ def _wire_adex_connection(
         weight=weight_nS,
         mechanism=mech_name,
         delay_ms=rule_delay_ms,
+        **wire_kw,  # type: ignore[arg-type]
     )
     if getattr(conn, "allow_self", None) is not None:
         # Same per-rule opt-in as the current-based route; the shared
@@ -2714,8 +2768,13 @@ def neuronal_tensor_to_adex_configuration(
             "positions and rows come as a harvested pair; pass both or neither"
         )
     if rows is None:
+        # Standalone harvest, identical to the construct path
+        # (:func:`_construct_adex_tensor_impl`): the harvest strips the
+        # tensor's connections and aliases non-Izhikevich cell types, so the
+        # population sampler draws the same counts — then labels are restored.
+        harvest_tensor, restore = _adex_harvest_tensor(tensor)
         harvest_cfg = neuronal_tensor_to_configuration(
-            tensor,
+            harvest_tensor,
             seed=seed,
             duration_ms=duration_ms,
             dt_ms=dt_ms,
@@ -2728,9 +2787,18 @@ def neuronal_tensor_to_adex_configuration(
         _, positions, geometry_meta, _ = _neuron_population_from_config(
             harvest_cfg, dtype=dtype
         )
+        rows = geometry_meta["neuron_rows"]
+        if restore:
+            rows = [
+                dict(
+                    row,
+                    cell_type=restore.get(str(row["cell_type"]), str(row["cell_type"])),
+                )
+                for row in rows
+            ]
         # Pose as the construct path does, so velocity delays read A's geometry.
         positions, rows = _pose_positions_and_rows(
-            positions, geometry_meta["neuron_rows"], tensor
+            positions, rows, tensor
         )
     rows = list(rows)
     if not rows:

@@ -20,6 +20,7 @@ from jaxfne.emitters_adex import (
     adex_step,
     make_adex_params,
     simulate_adex,
+    simulate_adex_hdp_registered,
 )
 
 DT_MS = 0.1
@@ -619,3 +620,196 @@ def test_external_drive_refusals_name_the_argument(override, name):
     params, base = _drive_base()
     with pytest.raises(ValueError, match=name):
         simulate_adex(params, **base, **override)
+
+
+# G14. Per-type spike-detection threshold Vpeak_mV (NaN = absent = VT + 5 * Delta).
+def _reference_vpeak(labels):
+    return {
+        lab: ADEX_CELL_TYPE_DEFAULTS[lab]["VT_mV"]
+        + 5.0 * ADEX_CELL_TYPE_DEFAULTS[lab]["Delta_mV"]
+        for lab in dict.fromkeys(labels)
+    }
+
+
+def test_vpeak_absent_by_default():
+    params = make_adex_params(("E", "PV", "SOM"))
+    assert bool(jnp.isnan(params.Vpeak_mV).all()), "absence is NaN on every cell"
+
+
+def test_vpeak_at_reference_threshold_reproduces_default_bit_for_bit():
+    labels, _, edges, drive, receptors, _ = _drive_fixture()
+    ref = _reference_vpeak(labels)
+    params = make_adex_params(labels, {lab: {"Vpeak_mV": ref[lab]} for lab in ref})
+    kw = dict(n_steps=DRIVE_STEPS, dt_ms=DT_MS, **edges, **receptors, decay="euler")
+    expected = np.asarray(simulate_adex(make_adex_params(labels), **kw, **drive)["spikes"])
+    assert expected.sum() > 0, "fixture must spike"
+    got = np.asarray(simulate_adex(params, **kw, **drive)["spikes"])
+    np.testing.assert_array_equal(got, expected)
+
+
+def test_declared_vpeak_is_consumed_and_moves_spikes():
+    labels, _, edges, drive, receptors, _ = _drive_fixture()
+    kw = dict(n_steps=DRIVE_STEPS, dt_ms=DT_MS, **edges, **receptors, decay="euler")
+    ref = np.asarray(simulate_adex(make_adex_params(labels), **kw, **drive)["spikes"])
+    assert ref.sum() > 0, "fixture must spike"
+    lowered = make_adex_params(
+        labels,
+        {"E": {"Vpeak_mV": -45.0}, "PV": {"Vpeak_mV": -49.0}, "SOM": {"Vpeak_mV": -45.0}},
+    )
+    got = np.asarray(simulate_adex(lowered, **kw, **drive)["spikes"])
+    assert not np.array_equal(got, ref), "a declared Vpeak must move the spikes"
+
+
+VPEAK_REFUSALS = [
+    {"Vpeak_mV": float("nan")},
+    {"Vpeak_mV": float("inf")},
+    {"Vpeak_mV": -float("inf")},
+    {"Vpeak_mV": -65.0},
+    {"Vpeak_mV": -70.0},
+    {"Vpeak_mV": True},
+    {"Vpeak_mV": "high"},
+]
+
+
+@pytest.mark.parametrize("fields", VPEAK_REFUSALS)
+def test_vpeak_override_refusals_name_vpeak(fields):
+    with pytest.raises(ValueError) as info:
+        make_adex_params(("E",), {"E": dict(fields)})
+    msg = str(info.value)
+    assert "Vpeak_mV" in msg, msg
+    assert "above EL" in msg, msg
+
+
+def test_vpeak_checked_against_post_override_el():
+    # Above the reference EL (-65) but below the overridden EL (-40): refused.
+    with pytest.raises(ValueError, match="Vpeak_mV"):
+        make_adex_params(("E",), {"E": {"EL_mV": -40.0, "Vpeak_mV": -45.0}})
+    params = make_adex_params(("E",), {"E": {"EL_mV": -40.0, "Vpeak_mV": -30.0}})
+    np.testing.assert_array_equal(np.asarray(params.Vpeak_mV), [-30.0])
+
+
+# G13. Time-varying external drive: ext_lambda as a per-step schedule array.
+def test_constant_schedule_matches_scalar_run_bit_for_bit():
+    labels, params, edges, drive, receptors, _ = _drive_fixture()
+    kw = dict(n_steps=DRIVE_STEPS, dt_ms=DT_MS, **edges, **receptors, decay="euler")
+    ref = np.asarray(simulate_adex(params, **kw, **drive)["spikes"])
+    assert ref.sum() > 0, "fixture must spike"
+    one_d = dict(drive, ext_lambda=np.full(DRIVE_STEPS, DRIVE_LAMBDA))
+    np.testing.assert_array_equal(
+        np.asarray(simulate_adex(params, **kw, **one_d)["spikes"]), ref
+    )
+    n_tgt = int(np.asarray(drive["ext_targets"]).shape[0])
+    two_d = dict(drive, ext_lambda=np.full((DRIVE_STEPS, n_tgt), DRIVE_LAMBDA))
+    np.testing.assert_array_equal(
+        np.asarray(simulate_adex(params, **kw, **two_d)["spikes"]), ref
+    )
+
+
+def test_varying_schedule_moves_spikes():
+    labels, params, edges, drive, receptors, _ = _drive_fixture()
+    kw = dict(n_steps=DRIVE_STEPS, dt_ms=DT_MS, **edges, **receptors, decay="euler")
+    ref = np.asarray(simulate_adex(params, **kw, **drive)["spikes"])
+    assert ref.sum() > 0, "fixture must spike"
+    ramp = np.full(DRIVE_STEPS, DRIVE_LAMBDA)
+    ramp[DRIVE_STEPS // 2 :] *= 4.0
+    got = np.asarray(
+        simulate_adex(params, **kw, **dict(drive, ext_lambda=ramp))["spikes"]
+    )
+    assert not np.array_equal(got, ref), "a varying schedule must move the spikes"
+
+
+SCHEDULE_REFUSALS = [
+    (np.full(DRIVE_STEPS + 1, DRIVE_LAMBDA), "shared rate"),
+    (np.full((DRIVE_STEPS, 3), DRIVE_LAMBDA), "per-target rates"),
+    (np.zeros((DRIVE_STEPS, DRIVE_STEPS, 1)), "[n_steps]"),
+    (np.full(DRIVE_STEPS, -1.0), "finite values >= 0"),
+    (np.full(DRIVE_STEPS, np.nan), "finite values >= 0"),
+    (np.zeros(DRIVE_STEPS, dtype=bool), "[n_steps]"),
+    (np.zeros(0), "non-empty"),
+    ("high", "[n_steps]"),
+    (["x"] * DRIVE_STEPS, "[n_steps]"),
+]
+
+
+@pytest.mark.parametrize("schedule,needle", SCHEDULE_REFUSALS)
+def test_ext_lambda_schedule_refusals_name_ext_lambda(schedule, needle):
+    params, base = _drive_base()
+    bad = dict(_drive_full(), ext_lambda=schedule)
+    with pytest.raises(ValueError) as info:
+        simulate_adex(params, **base, **bad)
+    msg = str(info.value)
+    assert "ext_lambda" in msg, msg
+    assert needle in msg, msg
+
+
+# Drive window: ext_t_start_steps/ext_t_stop_steps restrict the drive to
+# [t_start, t_stop); every step still splits the drive key, so windowed steps
+# reproduce the all-steps run bit-for-bit.
+def test_full_window_matches_all_steps_run_bit_for_bit():
+    labels, params, edges, drive, receptors, _ = _drive_fixture()
+    kw = dict(n_steps=DRIVE_STEPS, dt_ms=DT_MS, **edges, **receptors, decay="euler")
+    ref = np.asarray(simulate_adex(params, **kw, **drive)["spikes"])
+    assert ref.sum() > 0, "fixture must spike"
+    win = dict(drive, ext_t_start_steps=0, ext_t_stop_steps=DRIVE_STEPS)
+    np.testing.assert_array_equal(
+        np.asarray(simulate_adex(params, **kw, **win)["spikes"]), ref
+    )
+
+
+def test_partial_window_keeps_early_spikes_and_moves_late_ones():
+    labels, params, edges, drive, receptors, _ = _drive_fixture()
+    kw = dict(n_steps=DRIVE_STEPS, dt_ms=DT_MS, **edges, **receptors, decay="euler")
+    ref = np.asarray(simulate_adex(params, **kw, **drive)["spikes"])
+    assert ref.sum() > 0, "fixture must spike"
+    win = dict(drive, ext_t_start_steps=1000, ext_t_stop_steps=DRIVE_STEPS)
+    got = np.asarray(simulate_adex(params, **kw, **win)["spikes"])
+    # Zeroed draws arrive after ext_delay_steps, so pre-delay spikes are untouched.
+    np.testing.assert_array_equal(got[:DRIVE_DELAY], ref[:DRIVE_DELAY])
+    assert not np.array_equal(got, ref), "silencing the first half must move spikes"
+
+
+WINDOW_REFUSALS = [
+    (dict(ext_t_start_steps=0), "ext_t_stop_steps"),
+    (dict(ext_t_stop_steps=5), "ext_t_start_steps"),
+    (dict(ext_t_start_steps=5, ext_t_stop_steps=5), "ext_t_start_steps"),
+    (dict(ext_t_start_steps=6, ext_t_stop_steps=5), "ext_t_start_steps"),
+    (dict(ext_t_start_steps=-1, ext_t_stop_steps=5), "ext_t_start_steps"),
+    (dict(ext_t_start_steps=0, ext_t_stop_steps=11), "ext_t_stop_steps"),
+    (dict(ext_t_start_steps=0.5, ext_t_stop_steps=5), "ext_t_start_steps"),
+    (dict(ext_t_start_steps=True, ext_t_stop_steps=5), "ext_t_start_steps"),
+]
+
+
+@pytest.mark.parametrize("window,name", WINDOW_REFUSALS)
+def test_drive_window_refusals_name_the_bound(window, name):
+    params, base = _drive_base()
+    bad = dict(_drive_full(), **window)
+    with pytest.raises(ValueError, match=name):
+        simulate_adex(params, **base, **bad)
+
+
+def test_drive_window_without_drive_is_refused():
+    params, base = _drive_base()
+    with pytest.raises(ValueError, match="ext_t_start_steps"):
+        simulate_adex(
+            params, **base, ext_t_start_steps=0, ext_t_stop_steps=5
+        )
+
+
+def test_hdp_constant_schedule_matches_scalar_run():
+    params = make_adex_params(("E", "PV"))
+    kw = dict(
+        n_steps=100, dt_ms=DT_MS,
+        edge_pre=[0], edge_post=[1], edge_weight_nS=[3.0],
+        edge_receptor=[0], edge_delay_steps=[20],
+        receptor_reversal_mV=(0.0,), receptor_tau_ms=(2.0,), decay="exp",
+        ext_targets=[0], ext_weight_nS=1.0, ext_receptor=0,
+        ext_delay_steps=20, key=jax.random.PRNGKey(0),
+        hdp_rule="synthetic_presyn_gain",
+    )
+    ref = simulate_adex_hdp_registered(params, ext_lambda=1.0, **kw)
+    assert np.asarray(ref["spikes"]).sum() > 0, "fixture must spike"
+    sched = simulate_adex_hdp_registered(
+        params, ext_lambda=np.full(100, 1.0), **kw
+    )
+    np.testing.assert_array_equal(np.asarray(sched["spikes"]), np.asarray(ref["spikes"]))

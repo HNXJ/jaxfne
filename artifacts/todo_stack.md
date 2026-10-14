@@ -132,12 +132,11 @@ run on WSL2 CUDA.
   (and its placeholder pass 0.95 at :484). `--check` parsed and ignored in
   `scripts/release/assert_release_freeze.py` and `scripts/sync_release_metadata.py` (both
   check-only). Closes when: each is used, removed or ruled harmless.
-- T-21 [A] Core gaps G12–G14 and F7 for Destexhe 2009 (packet drafted): optional AdEx
-  `Vpeak_mV` detection threshold (default VT + 5Δ), time-varying `ext_lambda`, capped-Bernoulli
-  sampling, a clearer zero-delay refusal; then delete the étude's `simulate_adex_gated_drive`
-  fork and re-run Destexhe (seeds 1–3, held-out 4–8). Also: the standalone
-  `neuronal_tensor_to_adex_configuration` harvests from `tensor`, the construct path from
-  `_adex_harvest_tensor(tensor)`; align or refuse. Closes when: Destexhe has a verdict on core z.
+- T-21 [A] Destexhe 2009 on the core: G12–G14 and F7 are in the core (`Vpeak_mV`, `ext_lambda`
+  schedule and drive window, `sampling="capped_bernoulli"`, zero-delay refusal). Remaining:
+  rebase the Destexhe lane onto them, delete its `simulate_adex_gated_drive` fork, set Vpeak to
+  the authors' detection (about VT) and the capped rule, re-run seeds 1–3, held-out 4–8.
+  Closes when: Destexhe has a verdict on core z.
 - Frozen, do not move: `artifacts/publication/frozen_manifest.json`,
   `artifacts/release/current_release_authorities.json`, hash-pinned skills and `AGENTS.md`;
   `artifacts/legacy/AGENTS.md` kept by Hamm 2026-10-11.

@@ -383,7 +383,9 @@ def _apply_triple_param_overrides(
     exactly that triple, matching drive semantics — two triples sharing a
     cell type may carry different values. Unknown fields, non-finite
     values (bools refused, never coerced) and entries matching no harvested
-    neuron are refused. Returns the params with the overridden columns
+    neuron are refused. A ``Vpeak_mV`` override must lie above that neuron's
+    (post-override) ``EL_mV`` — absence is omitting the key (NaN), never an
+    explicit value at or below rest. Returns the params with the overridden columns
     replaced (same dtype handling as the caller: float64 here, cast later).
     """
     if not isinstance(param_overrides, Mapping):
@@ -441,6 +443,25 @@ def _apply_triple_param_overrides(
                 column = np.asarray(getattr(params, field), dtype=np.float64).copy()
                 columns[field] = column
             column[matched] = float(value)
+    if "Vpeak_mV" in columns:
+        el_column = columns.get("EL_mV")
+        el_arr = np.asarray(
+            el_column if el_column is not None else getattr(params, "EL_mV"),
+            dtype=np.float64,
+        )
+        vp_arr = np.asarray(columns["Vpeak_mV"], dtype=np.float64)
+        bad = [
+            i
+            for i in range(vp_arr.shape[0])
+            if math.isfinite(float(vp_arr[i])) and not float(vp_arr[i]) > float(el_arr[i])
+        ]
+        if bad:
+            first = bad[0]
+            raise ValueError(
+                f"param_overrides leaves Vpeak_mV={float(vp_arr[first])} at or below "
+                f"EL_mV={float(el_arr[first])} on neuron {first}; Vpeak_mV must be "
+                "above EL (absent = the key omitted = the reference VT + 5*Delta)"
+            )
     if not columns:
         return params
     return params._replace(
@@ -588,18 +609,23 @@ def construct_adex_model(
 
 
 def _rule_delay_steps(name: str, delay_ms: float, dt_ms: float) -> int:
-    """``round(delay_ms / dt_ms)`` (the plain route's rule); refuse anything below one step."""
+    """``round(delay_ms / dt_ms)`` (the plain route's rule); zero-delay refused.
+
+    The kernel reads each edge's spikes from a ring of past steps, so a rule
+    realizing to 0 steps has no slot to read from: anything below one step is
+    refused rather than run undelayed.
+    """
     try:
         steps = delay_steps_from_ms(delay_ms, dt_ms)
     except ValueError as exc:
         raise ValueError(
             f"connections(name={name!r}) delay_ms={delay_ms} at dt_ms={dt_ms} rounds to 0 steps; "
-            "the adex route needs >= 1"
+            "zero-delay edges are refused on the adex route (it needs >= 1 step)"
         ) from exc
     if steps < 1:
         raise ValueError(
             f"connections(name={name!r}) delay_ms={delay_ms} at dt_ms={dt_ms} is {steps} steps; "
-            "the adex route needs >= 1"
+            "zero-delay edges are refused on the adex route (it needs >= 1 step)"
         )
     return steps
 
@@ -647,6 +673,9 @@ def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> di
 _DRIVE_KEYS = (
     "n_sources", "rate_hz", "weight_nS", "mechanism", "target_cell_types", "delay_ms", "seed",
 )
+# Optional drive-window bounds in ms (both declared or neither): the drive runs on steps
+# [t_start, t_stop) only, realized with the plain route's rule at the run's dt.
+_DRIVE_WINDOW_KEYS = ("t_start_ms", "t_stop_ms")
 
 
 def _drive_error(detail: str) -> ValueError:
@@ -655,7 +684,9 @@ def _drive_error(detail: str) -> ValueError:
         "the drive needs exactly the keys "
         f"{list(_DRIVE_KEYS)} (n_sources: int >= 1, rate_hz > 0, weight_nS >= 0, "
         "mechanism: a declared mechanism name, target_cell_types: a non-empty list of "
-        "declared cell types, delay_ms, seed: int)"
+        "declared cell types, delay_ms, seed: int), plus optionally "
+        f"{list(_DRIVE_WINDOW_KEYS)} (t_start_ms/t_stop_ms in ms, both or neither, "
+        "with t_start_ms < t_stop_ms)"
     )
 
 
@@ -666,15 +697,19 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     ``n_sources * rate_hz * dt_ms / 1000`` (ms to s); the key is
     ``jax.random.PRNGKey(seed)``; targets are the cells whose type is listed in
     ``target_cell_types``, in index order; the receptor is the mechanism's declaration
-    index; the delay is realized by the plain route's rule. Every refusal names
-    ``poisson_drive`` and the offending key.
+    index; the delay is realized by the plain route's rule. The optional
+    ``t_start_ms``/``t_stop_ms`` window rides as the kernel's
+    ``ext_t_start_steps``/``ext_t_stop_steps`` (realized by the same rule at
+    the run's ``dt_ms``, refused unless ``0 <= t_start < t_stop <= n_steps``);
+    undeclared, neither key is passed and the drive runs every step. Every
+    refusal names ``poisson_drive`` and the offending key.
     """
     drive = sim.poisson_drive
     if drive is None:
         return {}
     if not isinstance(drive, Mapping):
         raise _drive_error(repr(drive))
-    unknown = [k for k in drive if k not in _DRIVE_KEYS]
+    unknown = [k for k in drive if k not in _DRIVE_KEYS and k not in _DRIVE_WINDOW_KEYS]
     if unknown:
         raise _drive_error(f"{dict(drive)!r} has unknown keys {unknown}")
     missing = [k for k in _DRIVE_KEYS if k not in drive]
@@ -730,7 +765,7 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
     targets = np.asarray(
         [i for i, lab in enumerate(labels) if lab in set(wanted)], dtype=np.int64
     )
-    return {
+    out = {
         "ext_targets": targets,
         "ext_lambda": float(int(n_sources) * float(rate_hz) * dt / 1000.0),
         "ext_weight_nS": float(weight_nS),
@@ -738,3 +773,37 @@ def adex_external_drive_kwargs(model: Model, sim: Any) -> dict[str, Any]:
         "ext_delay_steps": int(delay_steps),
         "key": jax.random.PRNGKey(int(seed)),
     }
+    t_start_ms = drive.get("t_start_ms")
+    t_stop_ms = drive.get("t_stop_ms")
+    if (t_start_ms is None) != (t_stop_ms is None):
+        missing = "t_stop_ms" if t_start_ms is not None else "t_start_ms"
+        raise _drive_error(
+            f"{dict(drive)!r} declares one window bound without the other; "
+            f"declare t_start_ms and t_stop_ms together ({missing} is missing)"
+        )
+    if t_start_ms is not None:
+        for key_name, bound in (("t_start_ms", t_start_ms), ("t_stop_ms", t_stop_ms)):
+            if not (_finite_real(bound) and float(bound) >= 0.0):
+                raise _drive_error(f"{key_name}={bound!r} must be a finite number >= 0 in ms")
+        if not float(t_start_ms) < float(t_stop_ms):
+            raise _drive_error(
+                f"t_start_ms={t_start_ms!r} must be below t_stop_ms={t_stop_ms!r}"
+            )
+        n_steps = int(sim.n_steps)
+        try:
+            t0 = int(delay_steps_from_ms(float(t_start_ms), dt))
+            t1 = int(delay_steps_from_ms(float(t_stop_ms), dt))
+        except ValueError as exc:
+            raise _drive_error(
+                f"t_start_ms={t_start_ms!r} and t_stop_ms={t_stop_ms!r} at dt_ms={dt}: "
+                f"{exc}"
+            ) from exc
+        if not (0 <= t0 < t1 <= n_steps):
+            raise _drive_error(
+                f"t_start_ms={t_start_ms!r} and t_stop_ms={t_stop_ms!r} realize to steps "
+                f"{t0} and {t1} at dt_ms={dt}, which must satisfy "
+                f"0 <= t_start < t_stop <= n_steps ({n_steps})"
+            )
+        out["ext_t_start_steps"] = t0
+        out["ext_t_stop_steps"] = t1
+    return out

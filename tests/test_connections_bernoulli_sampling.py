@@ -266,3 +266,220 @@ def test_bernoulli_tiles_draw_independently(monkeypatch):
     assert mask.sum() > 0, "fixture must draw edges"
     tiles = [mask[:, j:j + 10] for j in range(0, n, 10)]
     assert len({t.tobytes() for t in tiles}) == 4
+
+
+# F7. capped_bernoulli: the Bernoulli draws truncated to int(n_pre * p) kept
+# edges per post cell, scanning pre cells in order.
+def _capped_rule(**kw):
+    rule = {"name": "feed", "source": {"area": "PRE"}, "target": {"area": "POST"},
+            "probability": 0.2, "weight": 0.1, "mechanism": "ampa",
+            "sampling": "capped_bernoulli"}
+    rule.update(kw)
+    return rule
+
+
+def _capped_fixture(n_pre=50, n_post=40, **kw):
+    neurons = _rows(n_pre, "PRE") + _rows(n_post, "POST", start=n_pre)
+    return neurons, _capped_rule(**kw)
+
+
+def _indegrees(result, n_post, offset):
+    return np.bincount(np.asarray(result.edge_post) - offset, minlength=n_post)
+
+
+def test_capped_bernoulli_respects_per_post_cap():
+    n_pre, n_post, p = 50, 40, 0.2
+    neurons, rule = _capped_fixture(n_pre, n_post, probability=p)
+    r = jtfne.compile_connection_rules(neurons, [rule], MECHS, seed=0)
+    cap = int(n_pre * p)
+    indeg = _indegrees(r, n_post, n_pre)
+    assert indeg.max() <= cap, "no post cell keeps more than int(n_pre * p) edges"
+    assert indeg.max() == cap, "the fixture must bind the cap on some post cell"
+    bern = jtfne.compile_connection_rules(
+        neurons, [dict(rule, sampling="bernoulli")], MECHS, seed=0)
+    assert r.n_edges <= bern.n_edges, "truncation only removes Bernoulli draws"
+
+
+def test_capped_nonbinding_equals_bernoulli():
+    # n_pre = 10 without self pairs: 9 candidates per post cell, and
+    # cap = int(10 * 0.95) = 9 covers every candidate.
+    n, p = 10, 0.95
+    neurons = _rows(n, "V1")
+    base = {"name": "rec", "source": {"area": "V1"}, "target": {"area": "V1"},
+            "probability": p, "weight": 0.1, "mechanism": "ampa"}
+    capped = jtfne.compile_connection_rules(
+        neurons, [dict(base, sampling="capped_bernoulli")], MECHS, seed=0)
+    bern = jtfne.compile_connection_rules(
+        neurons, [dict(base, sampling="bernoulli")], MECHS, seed=0)
+    assert capped.n_edges > 0, "fixture must draw edges"
+    np.testing.assert_array_equal(np.asarray(capped.edge_pre), np.asarray(bern.edge_pre))
+    np.testing.assert_array_equal(
+        np.asarray(capped.edge_post), np.asarray(bern.edge_post))
+
+
+def test_capped_is_subset_of_bernoulli_and_deterministic():
+    neurons, rule = _capped_fixture()
+    a = jtfne.compile_connection_rules(neurons, [dict(rule)], MECHS, seed=4)
+    b = jtfne.compile_connection_rules(neurons, [dict(rule)], MECHS, seed=4)
+    np.testing.assert_array_equal(np.asarray(a.edge_pre), np.asarray(b.edge_pre))
+    np.testing.assert_array_equal(np.asarray(a.edge_post), np.asarray(b.edge_post))
+    bern = jtfne.compile_connection_rules(
+        neurons, [dict(rule, sampling="bernoulli")], MECHS, seed=4)
+    capped_pairs = set(
+        zip(np.asarray(a.edge_pre).tolist(), np.asarray(a.edge_post).tolist()))
+    bern_pairs = set(
+        zip(np.asarray(bern.edge_pre).tolist(), np.asarray(bern.edge_post).tolist()))
+    assert capped_pairs <= bern_pairs, "capped keeps a subset of the Bernoulli draws"
+    assert a.n_edges < bern.n_edges, "the fixture must truncate something"
+
+
+def test_connections_stores_capped_bernoulli():
+    """Non-default sampling is stored, so the default path keeps no key."""
+    cfg = jtfne.configuration().connections(
+        name="cap", source={}, target={}, sampling="capped_bernoulli")
+    assert cfg.metadata["circuit"]["connections"][-1]["sampling"] == "capped_bernoulli"
+
+
+def test_connections_refuses_capped_bernoulli_with_max_in_degree():
+    with pytest.raises(ValueError, match="max_in_degree"):
+        jtfne.configuration().connections(
+            name="x", source={}, target={}, max_in_degree=2,
+            sampling="capped_bernoulli")
+
+
+def test_connection_table_records_capped_and_keeps_density_rows_unchanged():
+    neurons = _rows(20, "PRE") + _rows(30, "POST", start=20)
+    rule = {"name": "feed", "source": {"area": "PRE"}, "target": {"area": "POST"},
+            "probability": 0.2, "weight": 0.1, "mechanism": "ampa"}
+    capped = jtfne.compile_connection_rules(
+        neurons, [dict(rule, sampling="capped_bernoulli")], MECHS, seed=0)
+    dens = jtfne.compile_connection_rules(neurons, [dict(rule)], MECHS, seed=0)
+    assert capped.connection_table[0]["status"] == "compiled"
+    assert capped.connection_table[0]["sampling"] == "capped_bernoulli"
+    assert "sampling" not in dens.connection_table[0]
+
+
+def test_capped_bernoulli_with_max_in_degree_is_refused():
+    """Localized sampling ignores `sampling`, so the pair must be refused, not dropped."""
+    neurons = [dict(r, x=0.1 * i, y=0.0, z=0.0) for i, r in enumerate(_rows(6, "V1"))]
+    rule = {"name": "loc", "source": {}, "target": {}, "weight": 0.1, "mechanism": "ampa",
+            "max_in_degree": 2, "sampling": "capped_bernoulli"}
+    with pytest.raises(ValueError, match="max_in_degree"):
+        jtfne.compile_connection_rules(neurons, [rule], MECHS, seed=0)
+
+
+def test_sign_only_capped_bernoulli_is_refused_while_full_path_compiles():
+    """The sign-only fallback honours density/bernoulli only: capped stays
+    fail-closed there, while the full compiler path accepts it."""
+    from jaxfne._construct_connectivity import _compile_connection_rules
+
+    neurons, rule = _capped_fixture(n_pre=8, n_post=8, probability=0.5)
+    full = jtfne.compile_connection_rules(neurons, [rule], MECHS, seed=0)
+    assert full.n_edges > 0, "the full path must compile capped_bernoulli"
+    area, layer, cell, sign = _sign_only_labels(8)
+    rules = [{"name": "c", "source": {}, "target": {}, "probability": 0.5,
+              "weight": 0.5, "sampling": "capped_bernoulli"}]
+    with pytest.raises(ValueError, match="sampling"):
+        _compile_connection_rules(rules, area, layer, cell, sign, 8, jnp.float32, 0)
+
+
+# Tensor sampling: InterConnection/AreaConnection declare the compiler mode
+# (None = the density default); the bridges forward it into the compiled rule.
+def _tensor_conn_kwargs():
+    from jaxfne import neuronal_tensor as nt
+
+    return dict(
+        source_layer="L4", source_neuron_type="E",
+        target_layer="L4", target_neuron_type="E",
+        mechanism="AMPA",
+        static=nt.StaticParams(dT_ms=5.0, reversal_potentials_mV={"AMPA": 0.0}),
+        delay_ms=1.0,
+    )
+
+
+def _tensor_conn(cls, **kw):
+    from jaxfne import neuronal_tensor as nt
+
+    kwargs = _tensor_conn_kwargs()
+    kwargs.update(kw)
+    if cls == "inter":
+        return nt.InterConnection(**kwargs)
+    return nt.AreaConnection(
+        source_area="V1", target_area="V4", **kwargs
+    )
+
+
+@pytest.mark.parametrize("cls", ["inter", "area"])
+def test_tensor_sampling_defaults_to_none_and_round_trips(cls):
+    assert _tensor_conn(cls).sampling is None
+    assert _tensor_conn(cls, sampling="capped_bernoulli").sampling == "capped_bernoulli"
+
+
+@pytest.mark.parametrize("cls", ["inter", "area"])
+@pytest.mark.parametrize("bad", ["bogus", "Bernoulli", 0, ["capped_bernoulli"]])
+def test_tensor_sampling_refusals_name_sampling(cls, bad):
+    with pytest.raises(ValueError, match="sampling"):
+        _tensor_conn(cls, sampling=bad)
+
+
+def _sampling_dict_tensor(cls, sampling):
+    from jaxfne import neuronal_tensor as nt
+
+    def area(name, conns):
+        return nt.Area(
+            name=name,
+            layers=[nt.Layer(
+                name="L4", n_neurons=2,
+                neuron_types=[nt.NeuronType.make("E", emitter="adex")])],
+            **({"inter_connections": conns} if cls == "inter" else {}),
+        )
+
+    conn = _tensor_conn(cls, sampling=sampling)
+    if cls == "inter":
+        return nt.NeuronalTensor(
+            name="sampling-dict", areas=[area("V1", [conn])])
+    return nt.NeuronalTensor(
+        name="sampling-dict",
+        areas=[area("V1", []), area("V4", [])],
+        area_connections=[conn],
+    )
+
+
+@pytest.mark.parametrize("cls", ["inter", "area"])
+def test_tensor_sampling_to_dict_omits_default_and_writes_set(cls):
+    tensor = _sampling_dict_tensor(cls, None)
+    if cls == "inter":
+        assert "sampling" not in tensor.to_dict()["areas"][0]["inter_connections"][0]
+        raw = _sampling_dict_tensor(
+            cls, "capped_bernoulli").to_dict()["areas"][0]["inter_connections"][0]
+    else:
+        assert "sampling" not in tensor.to_dict()["area_connections"][0]
+        raw = _sampling_dict_tensor(
+            cls, "capped_bernoulli").to_dict()["area_connections"][0]
+    assert raw["sampling"] == "capped_bernoulli"
+
+
+def _sampling_tensor(sampling):
+    from jaxfne import neuronal_tensor as nt
+
+    types = [nt.NeuronType.make("E", emitter="adex")]
+    conn = _tensor_conn("inter", sampling=sampling)
+    return nt.NeuronalTensor(
+        name="sampling",
+        areas=[nt.Area(
+            name="V1",
+            layers=[nt.Layer(name="L4", n_neurons=8, neuron_types=types)],
+            inter_connections=[conn])],
+    )
+
+
+def test_tensor_sampling_forwards_to_the_adex_rule():
+    from jaxfne import neuronal_tensor as nt
+
+    kw = dict(seed=0, duration_ms=20.0, dt_ms=0.5)
+    cfg = nt.neuronal_tensor_to_adex_configuration(
+        _sampling_tensor("capped_bernoulli"), **kw)
+    rules = cfg.metadata["circuit"]["connections"]
+    assert rules[-1]["sampling"] == "capped_bernoulli"
+    plain = nt.neuronal_tensor_to_adex_configuration(_sampling_tensor(None), **kw)
+    assert "sampling" not in plain.metadata["circuit"]["connections"][-1]

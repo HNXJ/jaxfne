@@ -515,3 +515,31 @@ def test_standalone_adex_bridge_reads_posed_distances():
     d_far = _areaconn_delay_ms(nt.neuronal_tensor_to_adex_configuration(far, dt_ms=DT_MS))
     assert d_near > 0.0
     assert d_far > d_near + 20.0, (d_near, d_far)
+
+
+def test_standalone_adex_bridge_matches_construct_path():
+    """The rows=None bridge harvests exactly like construct (SOM aliases out
+    and back): same config, same edges, same restored labels."""
+    from jaxfne._construct_adex import construct_adex_model
+
+    types = [_nt("E", emitter="adex"), _nt("SOM", emitter="adex")]
+    tensor = _single_area_tensor(types, [_ee_conn()])
+    model = _construct(tensor)
+    rows = model.static["neuron_metadata"]
+    assert sorted({r["cell_type"] for r in rows}) == ["E", "SOM"], \
+        "SOM must survive the harvest alias round-trip"
+    positions = np.asarray(model.params["positions"])
+    kw = dict(seed=0, duration_ms=DUR_MS, dt_ms=DT_MS)
+    standalone = nt.neuronal_tensor_to_adex_configuration(tensor, **kw)
+    explicit = nt.neuronal_tensor_to_adex_configuration(
+        tensor, positions=positions, rows=rows, **kw)
+    assert standalone.metadata["circuit"] == explicit.metadata["circuit"]
+    assert standalone.networks == explicit.networks
+    m_standalone = construct_adex_model(standalone, neuron_rows=rows, positions=positions)
+    for key in ("pre", "post", "receptor", "weight_nS", "delay_ms"):
+        np.testing.assert_array_equal(
+            np.asarray(m_standalone.static["adex"][key]),
+            np.asarray(model.static["adex"][key]),
+        )
+    assert [r["cell_type"] for r in m_standalone.static["neuron_metadata"]] == \
+        [r["cell_type"] for r in rows]
