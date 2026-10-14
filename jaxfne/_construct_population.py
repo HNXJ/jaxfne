@@ -214,6 +214,71 @@ def _apply_baseline_drive(
     return replace(params, drive=jnp.asarray(drive, dtype=params.drive.dtype))
 
 
+def _apply_tensor_triple_drive(
+    params: IzhikevichParams,
+    neuron_rows: Sequence[Mapping[str, Any]],
+    metadata: Mapping[str, Any],
+    declared: set[str],
+) -> IzhikevichParams:
+    """Apply ``NeuronType.drive`` declarations bridged as ``tensor_triple_drive``.
+
+    The bridge records one entry per declaring (area, layer, type) triple;
+    each entry overrides the drive of every built neuron that triple
+    selected, after ``drive(baseline_drive_by_cell_type=)`` and before
+    ``cell_params()``. Absent metadata (every tensor without a declared
+    drive) returns the params unchanged. An entry naming no built neuron is
+    refused unless its cell type is in the declared composition (declared
+    but rounded away: accepted, applies to no neuron); a non-finite drive
+    (metadata surgery bypassing the bridge) fails as ValueError.
+    """
+    import numpy as np
+
+    entries = metadata.get("tensor_triple_drive")
+    if not entries:
+        return params
+    drive = np.array(np.asarray(params.drive).tolist(), dtype=float)
+    for entry in entries:
+        try:
+            area = str(entry["area"])
+            layer = str(entry["layer"])
+            cell_type = str(entry["cell_type"])
+            value = entry["drive"]
+        except (KeyError, TypeError):
+            raise ValueError(
+                f"tensor_triple_drive entry {entry!r} is not realized: it takes "
+                "{area, layer, cell_type, drive}"
+            )
+        if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
+            raise ValueError(
+                f"tensor_triple_drive(area={area!r}, layer={layer!r}, "
+                f"cell_type={cell_type!r}, drive={value!r}) is not realized: "
+                "it takes a finite real number"
+            )
+        matched = sum(
+            1
+            for row in neuron_rows
+            if str(row.get("area")) == area
+            and str(row.get("layer")) == layer
+            and str(row.get("cell_type")) == cell_type
+        )
+        if not matched:
+            if str(cell_type) in declared:
+                continue
+            raise ValueError(
+                f"tensor_triple_drive(area={area!r}, layer={layer!r}, "
+                f"cell_type={cell_type!r}) is not realized: it matches no neuron "
+                "of the built population"
+            )
+        for i, row in enumerate(neuron_rows):
+            if (
+                str(row.get("area")) == area
+                and str(row.get("layer")) == layer
+                and str(row.get("cell_type")) == cell_type
+            ):
+                drive[i] = float(value)
+    return replace(params, drive=jnp.asarray(drive, dtype=params.drive.dtype))
+
+
 def _apply_cell_params(
     params: IzhikevichParams,
     labels: Sequence[str],
@@ -443,6 +508,10 @@ def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float3
         build_dense_connectivity=False,
     )
     
+    params = _apply_tensor_triple_drive(
+        params, neuron_rows, metadata, _declared_cell_types(cfg)
+    )
+
     params = _apply_cell_params(params, labels, layer_labels, metadata, jdtype, _declared_cell_types(cfg))
 
     positions = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3), dtype=jdtype)

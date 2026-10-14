@@ -67,6 +67,7 @@ ADEX_CONSUMED = (
     ("Configuration", "metadata", "circuit", "connections", "*", "weight"),
     ("Configuration", "metadata", "circuit", "connections", "*", "mechanism"),
     ("Configuration", "metadata", "circuit", "connections", "*", "delay_ms"),
+    ("Configuration", "metadata", "circuit", "connections", "*", "allow_self_connections"),
     ("Configuration", "metadata", "circuit", "connections", "*", "sampling"),
     ("Configuration", "metadata", "circuit", "connections", "*", "status"),
     # Builder bookkeeping: mechanisms() and connections() write these; _BUILDER_FLAGS checks the value.

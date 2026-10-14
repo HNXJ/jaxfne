@@ -48,6 +48,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import numbers
 import warnings
 import weakref
 from dataclasses import dataclass, field, asdict, replace
@@ -83,8 +84,12 @@ INHIBITORY_MECHANISMS = frozenset({"GABA_A", "GABA_B"})
 
 #: Emitter families the NeuronalTensor bridge routes to a constructor today.
 #: Any other registered name is declaration-valid (see
-#: :mod:`jaxfne.emitter_registry`) but refused at bridge time as unroutable.
-ROUTABLE_TENSOR_EMITTER_FAMILIES = frozenset({"izhikevich", "lif", "glif", "adex"})
+#: :mod:`jaxfne.emitter_registry`) but refused at bridge time as unroutable:
+#: ``lif``/``glif`` have no kernel in ``construct``/``simulate``, so a tensor
+#: resolving to them is refused here rather than failing late inside
+#: construct with an explicitly-declared-but-unbuilt emitter. Declared
+#: dynamics always equal executed dynamics ((h, y) = f(x, h')).
+ROUTABLE_TENSOR_EMITTER_FAMILIES = frozenset({"izhikevich", "adex"})
 
 #: Length units accepted for geometry-derived delays
 #: (:attr:`InterConnection.length_unit` / :attr:`AreaConnection.length_unit`).
@@ -176,6 +181,20 @@ class NeuronType:
     # :mod:`jaxfne.emitter_registry`; unconsumed keys are refused.
     emitter: Optional[str] = None
     emitter_params: Optional[dict] = None
+    # Per-triple baseline drive (None = undeclared = the emitter default for
+    # this type). A declared value overrides the drive of every neuron built
+    # from this NeuronType — i.e. one (area, layer, type) triple — and is
+    # applied at construction after ``drive(baseline_drive_by_cell_type=)``
+    # and before ``cell_params()``. Must be a finite real number; NaN, inf,
+    # bools and strings are refused, never coerced. No consumer exists on
+    # the conductance (adex) route, so a declared drive there is refused.
+    drive: Optional[float] = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self, "drive",
+            _check_triple_drive(self.drive, label=f"NeuronType {self.name!r}"),
+        )
 
     @classmethod
     def make(
@@ -186,6 +205,7 @@ class NeuronType:
         value_tag: ValueTag = "relative",
         emitter: Optional[str] = None,
         emitter_params: Optional[dict] = None,
+        drive: Optional[float] = None,
     ) -> "NeuronType":
         return cls(
             name=name,
@@ -196,6 +216,7 @@ class NeuronType:
             value_tag=value_tag,
             emitter=emitter,
             emitter_params=dict(emitter_params) if emitter_params is not None else None,
+            drive=drive,
         )
 
 
@@ -279,6 +300,71 @@ def _refuse_delay_and_velocity(delay_ms: "float | None", velocity: "float | None
         )
 
 
+def _check_connection_spatial_sigma(
+    spatial_sigma: "float | None", *, label: str
+) -> "float | None":
+    """Validate the local sampling width shared by both connection types.
+
+    None = undeclared = the compiler default; a declared value must be a
+    finite real number > 0 in mm (bools and strings refused, never coerced).
+    """
+    if spatial_sigma is None:
+        return None
+    if isinstance(spatial_sigma, bool) or isinstance(spatial_sigma, str):
+        raise ValueError(
+            f"{label} spatial_sigma must be a finite number > 0 in mm; "
+            f"got {spatial_sigma!r}"
+        )
+    try:
+        sigma = float(spatial_sigma)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"{label} spatial_sigma must be a finite number > 0 in mm; "
+            f"got {spatial_sigma!r}"
+        )
+    if not (math.isfinite(sigma) and sigma > 0.0):
+        raise ValueError(
+            f"{label} spatial_sigma must be finite and > 0 in mm; got {spatial_sigma!r}"
+        )
+    return sigma
+
+
+def _check_connection_allow_self(allow_self: "bool | None", *, label: str) -> "bool | None":
+    """Validate the per-rule self-edge opt-in shared by both connection types.
+
+    None = undeclared = self-edges dropped; a declared value must be a bool
+    (fail-closed: only an explicit True keeps ``i == i`` pairs).
+    """
+    if allow_self is None:
+        return None
+    if not isinstance(allow_self, bool):
+        raise ValueError(
+            f"{label} allow_self must be a bool; got {allow_self!r}"
+        )
+    return allow_self
+
+
+def _check_triple_drive(drive: "float | None", *, label: str) -> "float | None":
+    """Validate a per-(area, layer, type) drive declaration.
+
+    None = undeclared = the emitter default for the type; a declared value
+    must be a finite real number (bools, NaN, inf and strings refused, never
+    coerced), mirroring ``Configuration.drive``.
+    """
+    if drive is None:
+        return None
+    if isinstance(drive, bool) or not isinstance(drive, numbers.Real):
+        raise ValueError(
+            f"{label} drive must be a finite real number; got {drive!r}"
+        )
+    value = float(drive)
+    if not math.isfinite(value):
+        raise ValueError(
+            f"{label} drive must be finite; got {drive!r}"
+        )
+    return value
+
+
 @dataclass
 class InterConnection:
     """Within-area connection: [source(Layer,NeuronType), target(Layer,NeuronType), mechanism]."""
@@ -301,6 +387,17 @@ class InterConnection:
     # exclusive with ``delay_ms``. ``length_unit`` names the distance unit.
     conduction_velocity_m_per_s: "float | None" = None
     length_unit: str = "mm"
+    # Local sampling width in mm (None = undeclared = the compiler default).
+    # Forwarded into the compiled connection rule, where the localized
+    # (``max_in_degree``) sampler reads it; probability rules carry it as
+    # declared metadata. Must be finite and > 0 when set. No consumer exists
+    # on the conductance (adex) route, so a declared value there is refused.
+    spatial_sigma: "float | None" = None
+    # Per-rule self-edge opt-in (None = undeclared = self-edges dropped, the
+    # historical behaviour). ``True`` keeps ``i == i`` pairs on every
+    # sampling path of :func:`jaxfne.connectivity.compile_connection_rules`;
+    # ``False`` states the default explicitly. Must be a bool when set.
+    allow_self: "bool | None" = None
 
     def __post_init__(self) -> None:
         if self.delay_ms is not None:
@@ -327,6 +424,14 @@ class InterConnection:
         )
         _refuse_delay_and_velocity(
             self.delay_ms, self.conduction_velocity_m_per_s, label="InterConnection"
+        )
+        object.__setattr__(
+            self, "spatial_sigma",
+            _check_connection_spatial_sigma(self.spatial_sigma, label="InterConnection"),
+        )
+        object.__setattr__(
+            self, "allow_self",
+            _check_connection_allow_self(self.allow_self, label="InterConnection"),
         )
 
 
@@ -431,6 +536,13 @@ class AreaConnection:
     # the all-to-all behaviour before 0.5.5). JDNA's exponential-distance
     # rule derives it per area pair.
     probability: "float | None" = None
+    # Local sampling width in mm (None = undeclared = the compiler default).
+    # Same forwarding semantics as InterConnection.spatial_sigma; no consumer
+    # on the conductance (adex) route.
+    spatial_sigma: "float | None" = None
+    # Per-rule self-edge opt-in (None = undeclared = self-edges dropped).
+    # Same forwarding semantics as InterConnection.allow_self.
+    allow_self: "bool | None" = None
 
     def __post_init__(self) -> None:
         import math as _math
@@ -471,6 +583,14 @@ class AreaConnection:
                     f"AreaConnection probability must be in (0, 1]; got {self.probability!r}"
                 )
             object.__setattr__(self, "probability", p)
+        object.__setattr__(
+            self, "spatial_sigma",
+            _check_connection_spatial_sigma(self.spatial_sigma, label="AreaConnection"),
+        )
+        object.__setattr__(
+            self, "allow_self",
+            _check_connection_allow_self(self.allow_self, label="AreaConnection"),
+        )
 
 
 @dataclass
@@ -1663,6 +1783,11 @@ def _wire_connection(
         # Both InterConnection and AreaConnection carry an optional
         # configured delay_ms for inspection; validated again here.
         wire_kw["delay_ms"] = float(conn_delay)
+    conn_sigma = getattr(conn, "spatial_sigma", None)
+    if conn_sigma is not None:
+        # Validated at declaration (finite, > 0); read by the localized
+        # (``max_in_degree``) sampler, carried as declared metadata otherwise.
+        wire_kw["spatial_sigma"] = float(conn_sigma)
     cfg = cfg.connections(
         name=rule_name,
         source={
@@ -1682,6 +1807,17 @@ def _wire_connection(
         mechanism=mech_name,
         **wire_kw,  # type: ignore[arg-type]
     )
+    if getattr(conn, "allow_self", None) is not None:
+        # Per-rule self-edge opt-in (None = undeclared = self-edges dropped).
+        # Configuration.connections has no allow_self_connections kwarg, so
+        # the opt-in is recorded through the connectivity helper, which
+        # copies the named rule entry; the compiler reads the per-rule key
+        # on every sampling path.
+        from .connectivity import with_rule_allow_self_connections
+
+        cfg = with_rule_allow_self_connections(
+            cfg, rule_name, bool(getattr(conn, "allow_self"))
+        )
     return cfg
 
 
@@ -1713,6 +1849,12 @@ def _wire_adex_connection(
     set by name.
     """
     label = _connection_label(conn, source_area, target_area)
+    if getattr(conn, "spatial_sigma", None) is not None:
+        raise ValueError(
+            f"{label} declares spatial_sigma={getattr(conn, 'spatial_sigma')!r}; "
+            "the conductance (adex) route has no consumer for it — leave it "
+            "undeclared there"
+        )
     tau_ms = _checked_tau_ms(conn, label)
     reversal = conn.static.reversal_potentials_mV.get(conn.mechanism)
     if reversal is None:
@@ -1754,7 +1896,7 @@ def _wire_adex_connection(
             f"{label} declares neither delay_ms nor "
             "conduction_velocity_m_per_s; the adex route needs one delay per rule"
         )
-    return cfg.connections(
+    return_cfg = cfg.connections(
         name=rule_name,
         source={
             "area": source_area,
@@ -1772,6 +1914,16 @@ def _wire_adex_connection(
         mechanism=mech_name,
         delay_ms=rule_delay_ms,
     )
+    if getattr(conn, "allow_self", None) is not None:
+        # Same per-rule opt-in as the current-based route; the shared
+        # compiler reads it on every sampling path, and ADEX_CONSUMED admits
+        # exactly this rule key (spatial_sigma stays refused above).
+        from .connectivity import with_rule_allow_self_connections
+
+        return_cfg = with_rule_allow_self_connections(
+            return_cfg, rule_name, bool(getattr(conn, "allow_self"))
+        )
+    return return_cfg
 
 
 def _velocity_edge_delays(
@@ -2086,6 +2238,27 @@ def neuronal_tensor_to_configuration(
     total_weight = sum(fallback_weight.values()) or 1.0
     cfg = cfg.cell_types({name: weight / total_weight for name, weight in fallback_weight.items()})
 
+    # Per-(area, layer, type) drive declarations (NeuronType.drive): recorded
+    # as data for the population builder, which applies them after
+    # drive(baseline_drive_by_cell_type=) and before cell_params(). None
+    # anywhere (the common case) writes nothing, so undeclared tensors take
+    # the historical path byte-identically.
+    triple_drives: list[dict[str, object]] = []
+    for area in tensor.areas:
+        for layer in area.layers:
+            for nt in layer.neuron_types:
+                if nt.drive is not None:
+                    triple_drives.append(
+                        {
+                            "area": area.name,
+                            "layer": layer.name,
+                            "cell_type": nt.name,
+                            "drive": float(nt.drive),
+                        }
+                    )
+    if triple_drives:
+        cfg = cfg.update_metadata(tensor_triple_drive=triple_drives)
+
     geometry_domains = _tensor_geometry_domains(tensor, dict(cfg.metadata))
     if geometry_domains:
         # `declared` keeps the column-relative ranges as written; `domains`
@@ -2145,12 +2318,10 @@ def neuronal_tensor_to_configuration(
 
     if family == "izhikevich":
         cfg = cfg.set_emitter("izhikevich", "cortical_eig")
-    elif family == "lif":
-        cfg = cfg.set_emitter("lif")
-    elif family == "glif":
-        cfg = cfg.set_emitter("glif")
     else:  # unreachable: the resolver admits routable families only, minus adex above
-        raise ValueError(f"Unknown emitter: {family}. Choose from: izhikevich, lif, glif")
+        raise ValueError(
+            f"Unknown emitter: {family}. Choose from: {sorted(ROUTABLE_TENSOR_EMITTER_FAMILIES)}"
+        )
 
     cfg = cfg.probes(["spikes", "V_m"], n_contacts=n_contacts)
     cfg = cfg.field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
@@ -2193,6 +2364,19 @@ def neuronal_tensor_to_adex_configuration(
     family, _ = _resolve_tensor_emitter_family(tensor, "adex")
     if family != "adex":  # unreachable: agreement forces "adex" here
         raise ValueError(f"tensor resolves to emitter {family!r}, not 'adex'")
+    declared_drives = sorted(
+        f"{area.name}.{layer.name}.{nt.name}"
+        for area in tensor.areas
+        for layer in area.layers
+        for nt in layer.neuron_types
+        if nt.drive is not None
+    )
+    if declared_drives:
+        raise ValueError(
+            "tensor declares NeuronType.drive on "
+            f"{declared_drives}, but the conductance (adex) route has no "
+            "consumer for it; leave drive undeclared there"
+        )
     if adex_decay not in _ADEX_DECAYS:
         raise ValueError(
             f"adex_decay must be one of {list(_ADEX_DECAYS)}; got {adex_decay!r}"
@@ -2264,8 +2448,10 @@ def neuronal_tensor_to_adex_configuration(
                 and str(r["layer"]) == conn.target_layer
                 and str(r["cell_type"]) == conn.target_neuron_type
             ]
-            # Selected pairs mirror the compiler (self pairs dropped: the
-            # tensor bridge never opts into allow_self_connections).
+            # Selected pairs mirror the compiler's distinct-pair sampling
+            # (self pairs dropped from the representative delay even when a
+            # rule opts into allow_self_connections: the median describes
+            # inter-neuron distance, never a zero self-distance).
             dists = [
                 float(_np.linalg.norm(xyz_all[a] - xyz_all[b]))
                 for a in pre_sel for b in post_sel

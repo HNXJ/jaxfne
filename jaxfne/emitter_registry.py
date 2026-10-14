@@ -7,8 +7,8 @@ geometry driving dynamics can be specified at the tensor level. This module
 is the declaration registry: it validates names and parameter keys, mirroring
 :mod:`jaxfne.hdp_rule` (``register`` / ``get`` / ``is_registered`` / ``list``).
 Routing (which families construct today) lives in
-:mod:`jaxfne.neuronal_tensor`; only ``izhikevich``, ``lif``, ``glif`` and
-``adex`` route, and a uniform non-built-in family is refused at bridge time.
+:mod:`jaxfne.neuronal_tensor`; only ``izhikevich`` and ``adex`` route, and a
+uniform non-built-in family is refused at bridge time.
 """
 
 from __future__ import annotations

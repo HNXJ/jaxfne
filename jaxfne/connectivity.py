@@ -25,7 +25,7 @@ import hashlib
 import math
 import warnings
 from functools import partial
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace as _dc_replace
 from typing import Any, Mapping, Optional, Sequence
 
 import jax
@@ -895,6 +895,40 @@ def compile_connection_rules(
         diagnostics=diagnostics,
         edge_delay_ms=edge_delay_ms,
     )
+
+
+def with_rule_allow_self_connections(cfg: Any, rule_name: str, value: bool = True) -> Any:
+    """Return a copy of ``cfg`` with ``allow_self_connections`` set on one rule.
+
+    :meth:`Configuration.connections` has no ``allow_self_connections`` kwarg,
+    so a caller that wires one (the NeuronalTensor bridge's per-connection
+    ``allow_self`` opt-in) records it through here instead of metadata
+    surgery: the named rule entry is copied with
+    ``allow_self_connections=bool(value)`` and everything else byte-identical.
+    The rule must exist exactly once; a non-bool ``value`` is refused
+    (fail-closed: only an explicit ``True``/``False`` opts a rule in or out).
+    :func:`compile_connection_rules` reads the per-rule key on every sampling
+    path; an absent key keeps the global default (self-edges dropped).
+    """
+    if not isinstance(value, bool):
+        raise ValueError(
+            f"allow_self_connections for rule {rule_name!r} must be a bool; got {value!r}"
+        )
+    metadata = dict(cfg.metadata)
+    circuit = {k: list(v) for k, v in dict(metadata.get("circuit", {})).items()}
+    rules = list(circuit.get("connections", []))
+    hits = [i for i, rule in enumerate(rules) if rule.get("name") == rule_name]
+    if len(hits) != 1:
+        raise ValueError(
+            f"rule {rule_name!r} must exist exactly once to opt into "
+            f"allow_self_connections; found {len(hits)}"
+        )
+    patched = dict(rules[hits[0]], allow_self_connections=value)
+    rules[hits[0]] = patched
+    circuit["connections"] = rules
+    metadata["circuit"] = circuit
+    metadata["circuit_compiled"] = False
+    return _dc_replace(cfg, metadata=metadata)
 
 
 @partial(jax.jit, static_argnums=(4,))
