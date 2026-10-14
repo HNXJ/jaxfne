@@ -329,6 +329,9 @@ _CANONICAL: Final[frozenset[str]] = frozenset(
         "validation_report",
         # Tutorial / analysis helpers on critical paths
         "kappa_synchrony",
+        "activity_regime",
+        "activity_regimes",
+        "wang_buzsaki_kappa",
         "select_neurons",
         "spectrolaminar_motif_score",
         # Validation (runtime contract checks)

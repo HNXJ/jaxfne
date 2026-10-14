@@ -17,13 +17,26 @@ fano_factor
 
 fleiss_kappa_binary
     Compute Fleiss-kappa-like agreement metric for population synchrony.
+
+wang_buzsaki_kappa
+    Compute mean pairwise coincidence of binary binned spike trains.
+
+activity_regime
+    Classify one population activity trace into a standard regime.
+
+activity_regimes
+    Classify named neuron subsets of one trace.
 """
 
 from .metrics import (
+    ACTIVITY_REGIME_DEFAULTS,
+    activity_regime,
+    activity_regimes,
     burst_index,
     fano_factor,
     fleiss_kappa_binary,
     mean_pairwise_spike_correlation,
+    wang_buzsaki_kappa,
 )
 from .spectral import (
     spectrolaminar_psd_jax,
@@ -39,6 +52,10 @@ __all__ = [
     "burst_index",
     "fano_factor",
     "fleiss_kappa_binary",
+    "wang_buzsaki_kappa",
+    "activity_regime",
+    "activity_regimes",
+    "ACTIVITY_REGIME_DEFAULTS",
     "spectrolaminar_psd_jax",
     "bandpower_jax",
     "spectrolaminar_readout_kernel_jax",

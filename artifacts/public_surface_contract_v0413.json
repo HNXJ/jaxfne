@@ -2,12 +2,12 @@
   "schema": "jaxfne.public_surface_contract.v0.4.13-pass1",
   "version": "0.4.13-pass1",
   "counts": {
-    "canonical": 192,
+    "canonical": 195,
     "advanced": 70,
     "compatibility": 13,
     "experimental_internal": 13,
-    "public_exports": 205,
-    "baseline_all": 288
+    "public_exports": 208,
+    "baseline_all": 291
   },
   "public_exports": [
     "AGSDR",
@@ -91,6 +91,8 @@
     "TrialSpec",
     "TuneResult",
     "W0",
+    "activity_regime",
+    "activity_regimes",
     "agsdr",
     "agsdr_transform",
     "asset_hashes",
@@ -214,6 +216,7 @@
     "validate_source_field_status",
     "validation_report",
     "vis",
+    "wang_buzsaki_kappa",
     "with_emitter_parameters"
   ],
   "compatibility_deprecations": {
