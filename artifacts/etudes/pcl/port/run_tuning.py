@@ -1,7 +1,10 @@
 """Fig. 3 tuning run: the trained PCL network (cSTDP3) over the counterphase grating test set (test7).
 
 Each input file test7/<ori>/<sf>/<phase>/<trial>.npz is fed through the numba run path with learning
-off, from a fresh copy of the loaded network. Output per file, in the port's flat index order:
+off, from a fresh copy of the loaded network. --engine core routes the same feed through the
+jaxfne core kernel instead; the full-network core cascade is not mapped yet (CORE_GAP below),
+so a core tuning run is refused and only the edge-scale core smoke in test_run_tuning.py
+produces z from core. Output per file, in the port's flat index order:
 simple_counts (int32, 5184 cells), complex_counts (int32, 1152 cells), n_events (camera-0 events fed),
 wall_s, and the spike times of every cell: simple_times_us (int64) with simple_times_cell (int32), and
 complex_times_us (int64) with complex_times_cell (int32). Times are in microseconds, sorted by time then
@@ -79,6 +82,16 @@ AXES_NOTE = (
 # Process-level state, set by _init_worker.
 _PRISTINE = None
 _INHIBITION = "full"
+_ENGINE = "numba"
+# Full-network core cascade gap (Lane 2 finding): the depth-sequential local-inhibition
+# cascade (SpikingNetwork.cpp:41-67, visit order with iterative R_ROUNDS rounds), the
+# cover-table feed and the complex-layer pooling (pcl_event_ref.py:41-179, :474-489) have
+# no mapping onto the edge-list core kernel (jaxfne/emitters_lif.py, function-level only).
+# Until that mapping exists, engine="core" refuses the tuning run; z comes from the tree's
+# jaxfne core only at edge scale (test_run_tuning.py core smoke), never from the oracle.
+CORE_GAP = ("engine core refused: the depth-sequential local-inhibition cascade, "
+            "cover-table feed and complex pooling have no core mapping yet "
+            "(pcl_event_ref.py:41-179, :474-489); see artifacts/etudes/pcl/CALIBRATION.md")
 
 
 def apply_inhibition_mode(net, inhibition: str):
@@ -160,10 +173,13 @@ def _gather(cells: list) -> tuple[np.ndarray, np.ndarray]:
     return t[order], o[order]
 
 
-def _init_worker(inhibition: str = "full") -> None:
+def _init_worker(inhibition: str = "full", engine: str = "numba") -> None:
     """Load the trained network once per process and compile the kernel outside the timed region."""
-    global _PRISTINE, _INHIBITION
+    global _PRISTINE, _INHIBITION, _ENGINE
     _INHIBITION = inhibition
+    _ENGINE = engine
+    if engine == "core":
+        raise NotImplementedError(CORE_GAP)
     _PRISTINE = ref.PCLEventRef(NETWORK, learning=False)  # as test_pcl_trained_load.py
     apply_inhibition_mode(_PRISTINE, inhibition)
     nb.warm_up()
@@ -171,6 +187,8 @@ def _init_worker(inhibition: str = "full") -> None:
 
 def _run_one(job: tuple[str, str]) -> float:
     """Run one input file from a fresh copy of the loaded network; write its output atomically."""
+    if _ENGINE == "core":
+        raise NotImplementedError(CORE_GAP)
     src, dst = Path(job[0]), Path(job[1])
     t_start = time.perf_counter()
     with np.load(src, allow_pickle=False) as z:
@@ -215,7 +233,7 @@ def _write_manifest(out: Path, record: dict, static: dict) -> None:
     os.replace(tmp, path)
 
 
-def main(argv=None) -> int:
+def _build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--subset", choices=("pilot", "all"), required=True)
     ap.add_argument("--inhibition", choices=("full", "local-only", "no-local", "no-local-simple"),
@@ -223,13 +241,25 @@ def main(argv=None) -> int:
                     help="S1 (P3_fig3.md): local-only zeroes the lateral and top-down maps; "
                          "no-local clears the local flags; no-local-simple clears the simple "
                          "layer's only (diagnostics)")
+    ap.add_argument("--engine", choices=("numba", "core"), default="numba",
+                    help="numba runs the oracle path; core routes z through jaxfne core, "
+                         "which refuses the full-network run until the cascade is mapped "
+                         "(CORE_GAP; default: numba, behaviour unchanged)")
     ap.add_argument("--out", default=None,
                     help="default: the mode's dir in MODE_DIRS (full, fig3_cSTDP3_S1, "
                          "diag_runs/fig3_cSTDP3_nolocal, diag_runs/fig3_cSTDP3_nolocal_simple)")
     ap.add_argument("--workers", type=int, default=WORKERS)
     ap.add_argument("--start-utc", default=None,
                     help="start time for the manifest, from `date -u +%%Y-%%m-%%dT%%H:%%M:%%SZ`")
-    args = ap.parse_args(argv)
+    return ap
+
+
+def main(argv=None) -> int:
+    args = _build_parser().parse_args(argv)
+
+    if args.engine == "core":
+        print(f"error: {CORE_GAP}", flush=True)
+        return 2
 
     cfg = json.loads((NETWORK / "configs" / "network_config.json").read_text(encoding="utf-8"))
     _, ny, nd = (int(v) for v in cfg["layerSizes"][0])  # simple layer grid: nx, ny, depth
@@ -259,6 +289,7 @@ def main(argv=None) -> int:
         "test_set": str(TEST_SET),
         "learning": False,
         "inhibition": args.inhibition,
+        "engine": args.engine,
         "feed": "camera 0 only, raw file timestamps (not rebased), as test_pcl_trained_load.py",
         "workers": args.workers,
         "output_fields": "simple_counts int32 (5184), complex_counts int32 (1152), n_events int64, wall_s; "
@@ -282,7 +313,7 @@ def main(argv=None) -> int:
     done = failed = 0
     t0 = time.perf_counter()
     with ProcessPoolExecutor(max_workers=args.workers, initializer=_init_worker,
-                             initargs=(args.inhibition,)) as ex:
+                             initargs=(args.inhibition, args.engine)) as ex:
         futs = {ex.submit(_run_one, job): job for job in pending}
         for fut in as_completed(futs):
             src, dst = futs[fut]

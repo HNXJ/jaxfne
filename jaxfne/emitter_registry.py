@@ -7,8 +7,8 @@ geometry driving dynamics can be specified at the tensor level. This module
 is the declaration registry: it validates names and parameter keys, mirroring
 :mod:`jaxfne.hdp_rule` (``register`` / ``get`` / ``is_registered`` / ``list``).
 Routing (which families construct today) lives in
-:mod:`jaxfne.neuronal_tensor`; only ``izhikevich`` and ``adex`` route, and a
-uniform non-built-in family is refused at bridge time.
+:mod:`jaxfne.neuronal_tensor`; only ``izhikevich``, ``lif`` and ``adex``
+route, and a uniform non-built-in family is refused at bridge time.
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from typing import Any, Mapping
 
 from .emitters_adex import _PARAM_FIELDS as _ADEX_PARAM_FIELDS
+from .emitters_lif import _PARAM_FIELDS as _LIF_PARAM_FIELDS
 
 
 @dataclass(frozen=True)
@@ -102,7 +103,7 @@ def check_emitter_params(name: str, params: Mapping[str, Any] | None) -> dict[st
 
 def _register_builtin_emitters() -> None:
     register_emitter(EmitterDescriptor(name="izhikevich"))
-    register_emitter(EmitterDescriptor(name="lif"))
+    register_emitter(EmitterDescriptor(name="lif", params=tuple(_LIF_PARAM_FIELDS)))
     register_emitter(EmitterDescriptor(name="glif"))
     register_emitter(EmitterDescriptor(name="adex", params=tuple(_ADEX_PARAM_FIELDS)))
 

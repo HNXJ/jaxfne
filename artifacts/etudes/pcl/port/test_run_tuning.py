@@ -214,3 +214,58 @@ def test_every_mode_refused_in_another_modes_default_dir(tmp_path, monkeypatch):
         pass
     else:
         raise AssertionError("a '..' spelling of another mode's dir must be refused")
+
+
+def test_engine_flag_defaults_to_numba():
+    args = rt._build_parser().parse_args(["--subset", "pilot"])
+    assert args.engine == "numba"
+    args = rt._build_parser().parse_args(["--subset", "pilot", "--engine", "core"])
+    assert args.engine == "core"
+
+
+def test_core_full_run_refused_names_gap():
+    old = rt._ENGINE
+    rt._ENGINE = "core"
+    try:
+        try:
+            rt._run_one(("missing-src.npz", "missing-dst.npz"))
+        except NotImplementedError as exc:
+            assert "cascade" in str(exc)
+        else:
+            raise AssertionError("engine core must refuse the full-network run")
+        try:
+            rt._init_worker("full", "core")
+        except NotImplementedError as exc:
+            assert "cascade" in str(exc)
+        else:
+            raise AssertionError("engine core must refuse the worker init")
+    finally:
+        rt._ENGINE = old
+    assert rt._ENGINE == old
+
+
+def test_core_smoke_z_from_tree_core():
+    """ENGINE RULE: this z comes from the tree's jaxfne core, never the oracle."""
+    import jax.numpy as jnp
+
+    import jaxfne
+    from jaxfne.emitters_lif import make_lif_params, simulate_lif_edge
+
+    root = Path(rt._ROOT).resolve()
+    assert Path(jaxfne.__file__).resolve().is_relative_to(root), (
+        f"must use the tree jaxfne, got {jaxfne.__file__}")
+    p = make_lif_params(("simple", "simple"))
+    p = p._replace(**{f: jnp.asarray(getattr(p, f), jnp.float32) for f in (
+        "tau_m_ms", "v_thresh_mV", "v_reset_mV", "v_min_mV", "eta_rp_mV",
+        "tau_rp_ms", "tau_sra_ms", "delta_sra_mV")})
+    drive = np.zeros((3, 2), np.float32)
+    drive[0, 0] = 30.0
+    out = simulate_lif_edge(
+        p, n_steps=3, dt_ms=0.5,
+        edge_pre=np.array([0]), edge_post=np.array([1]),
+        edge_weight=np.array([12.0]), edge_delay_steps=np.array([1]),
+        I_ext_pA=jnp.asarray(drive),
+    )
+    spk = np.asarray(out["spikes"])
+    assert spk[0, 0] and not spk[0, 1]
+    assert spk[1, 1], spk  # 12 mV arrival crosses threshold 10

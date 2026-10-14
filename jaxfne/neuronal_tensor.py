@@ -89,7 +89,7 @@ INHIBITORY_MECHANISMS = frozenset({"GABA_A", "GABA_B"})
 #: resolving to them is refused here rather than failing late inside
 #: construct with an explicitly-declared-but-unbuilt emitter. Declared
 #: dynamics always equal executed dynamics ((h, y) = f(x, h')).
-ROUTABLE_TENSOR_EMITTER_FAMILIES = frozenset({"izhikevich", "adex"})
+ROUTABLE_TENSOR_EMITTER_FAMILIES = frozenset({"izhikevich", "lif", "adex"})
 
 #: Length units accepted for geometry-derived delays
 #: (:attr:`InterConnection.length_unit` / :attr:`AreaConnection.length_unit`).
@@ -1393,6 +1393,26 @@ def _construct_neuronal_tensor_impl(
     an explicit empty declaration) compiles only the declared graph.
     """
     family, overrides = _resolve_tensor_emitter_family(tensor, emitter)
+    if family == "lif":
+        from ._construct_lif import construct_lif_tensor_model
+
+        if n_contacts != 16:
+            raise ValueError(
+                f"n_contacts={n_contacts!r} is not consumed on the lif tensor route "
+                "(no laminar probe readout there); leave the default"
+            )
+        return construct_lif_tensor_model(
+            tensor,
+            seed=seed,
+            duration_ms=duration_ms,
+            dt_ms=dt_ms,
+            dtype=dtype,
+            backend=backend,
+            jit=jit,
+            vmap=vmap,
+            n_contacts=n_contacts,
+            param_overrides=overrides,
+        )
     if family == "adex":
         if n_contacts != 16:
             raise ValueError(
@@ -2502,6 +2522,12 @@ def neuronal_tensor_to_configuration(
         family = emitter
     else:
         family, _ = _resolve_tensor_emitter_family(tensor, emitter)
+        if family == "lif":
+            raise ValueError(
+                "tensor resolves to emitter 'lif'; the PCL LIF route is "
+                "built by construct_neuronal_tensor, not this "
+                "current-based bridge"
+            )
         if family == "adex":
             raise ValueError(
                 "tensor resolves to emitter 'adex'; the conductance route is "
@@ -2678,7 +2704,8 @@ def neuronal_tensor_to_configuration(
 
     if family == "izhikevich":
         cfg = cfg.set_emitter("izhikevich", "cortical_eig")
-    else:  # unreachable: the resolver admits routable families only, minus adex above
+    else:  # unreachable: the resolver admits routable families only, minus
+        # lif/adex refused above (a Configuration route exists for neither)
         raise ValueError(
             f"Unknown emitter: {family}. Choose from: {sorted(ROUTABLE_TENSOR_EMITTER_FAMILIES)}"
         )

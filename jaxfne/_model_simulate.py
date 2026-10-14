@@ -32,6 +32,7 @@ from .emitters import (
 )
 from .emitters_homeostatic_ei import HomeostaticEIParams, simulate_homeostatic_ei
 from .emitters_adex import AdExParams, simulate_adex
+from .emitters_lif import LIFNetworkParams
 from .fields import project_laminar_sources
 from .io import config_hash, json_safe
 from ._runtime_config import RuntimeConfig, _device_scope
@@ -1143,6 +1144,10 @@ def simulate(
         _refuse_adex_inputs(self, sim, paradigm, continuation, return_state)
         return _simulate_adex(self, sim, runtime_cfg)
 
+    if isinstance(self.params["emitter"], LIFNetworkParams):
+        _refuse_lif_inputs(self, sim, paradigm, continuation, return_state)
+        return _simulate_lif(self, sim, runtime_cfg)
+
     if isinstance(self.params["emitter"], HomeostaticEIParams):
         if continuation is not None or return_state:
             raise ValueError("full-state continuation is not available for homeostatic_ei")
@@ -1496,6 +1501,174 @@ def _simulate_adex(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -
     )
 
 
+def _refuse_lif_inputs(
+    model: "Model", sim: Simulation, paradigm: Any, continuation: Any, return_state: bool
+) -> None:
+    """Refuse the simulate() inputs the lif route does not consume, naming each.
+
+    Continuation, paradigms and the Simulation/RuntimeConfig fields named in
+    ``_construct_lif.refuse_lif_simulation`` have no lif consumer.
+    """
+    from ._construct_lif import refuse_lif_simulation
+
+    if continuation is not None or return_state:
+        raise ValueError(
+            "simulate(continuation=..., return_state=...) is not realized for emitter family "
+            "'lif': the route has no full-state continuation"
+        )
+    if paradigm is not None:
+        raise ValueError(
+            "simulate(paradigm=...) is not realized for emitter family 'lif': the route has no "
+            "paradigm-driven input current, so a paradigm would not drive the cells"
+        )
+    refuse_lif_simulation(sim, sim.resolved_runtime)
+
+
+#: ``hdp_params`` keys the lif route consumes when HDP runs (a registered
+#: rule only): the rule name, its params, and the per-edge plasticity gate.
+#: Every other key — including the legacy current-based gain vocabulary the
+#: default ``RuntimeConfig`` carries — is refused by name: those gains drive
+#: the Izhikevich HDP kernel, which the LIF equations cannot run.
+_LIF_HDP_CONSUMED_KEYS = frozenset({"hdp_rule", "hdp_rule_params", "plasticity_mask"})
+
+
+def _simulate_lif(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -> Signals:
+    """The lif emitter family's ``simulate()`` path (``jaxfne/emitters_lif.py``).
+
+    Runs the PCL LIF edge kernel on the compiled edges
+    (``_construct_lif.lif_edge_arrays`` supplies its arguments, flooring
+    zero-step edges to 1 step with a metadata receipt). The step input is the
+    emitter's constant drive channel plus ``Simulation(poisson_drive=...)``
+    (same seed rule as the current-based route: ``poisson_drive["seed"]``,
+    else ``sim.seed + 7919``), both as native mV. No field is built
+    (``field`` is None) and no sources are recorded.
+
+    HDP runs a registered rule only (``RuntimeConfig(enable_hdp=True,
+    hdp_params={"hdp_rule": ..., "hdp_rule_params": ...})``); ``pcl_stdp``
+    is ensured registered here. The seeded ``hdp_initial_H`` carry rides
+    the rule; ``hdp_initial_w`` is refused under a rule (edge weights come
+    from the edge list) and the seeded H stays inert without one.
+    """
+    from ._construct_lif import lif_edge_arrays
+    from .emitters_lif import simulate_lif_edge
+
+    dtype = runtime_cfg.jnp_dtype
+    emitter: LIFNetworkParams = self.params["emitter"]
+    edges = lif_edge_arrays(self)
+    n_neurons = emitter.n_neurons
+
+    drive = jnp.asarray(emitter.drive, dtype=dtype)
+    if sim.poisson_drive is not None:
+        _pd = sim.poisson_drive
+        _poisson_arr = _make_poisson_drive(
+            n_steps=sim.n_steps,
+            n_neurons=n_neurons,
+            rate_hz=float(_pd.get("rate_hz", 2.0)),
+            amplitude=float(_pd.get("amplitude", 0.5)),
+            dt_ms=sim.dt_ms,
+            seed=poisson_chunk_seed(int(_pd.get("seed", sim.seed + 7919)), 0),
+            target=str(_pd.get("target", "all")),
+        )
+        drive_2d = jnp.broadcast_to(drive, (sim.n_steps, n_neurons)) + jnp.asarray(
+            _poisson_arr, dtype=dtype
+        )
+    else:
+        drive_2d = jnp.broadcast_to(drive, (sim.n_steps, n_neurons))
+
+    hdp_kwargs: dict[str, Any] = {}
+    hdp_rule_name: Any = None
+    if bool(getattr(runtime_cfg, "enable_hdp", False)):
+        from .hdp_rule import is_registered_hdp_rule
+
+        hp = dict(runtime_cfg.hdp_params or {})
+        hdp_rule_name = hp.get("hdp_rule")
+        if not is_registered_hdp_rule(hdp_rule_name):
+            from .hdp_rule import list_registered_hdp_rules
+
+            raise ValueError(
+                "RuntimeConfig(enable_hdp=True) on emitter family 'lif' needs a "
+                f"registered hdp_rule; got hdp_rule={hdp_rule_name!r} with "
+                f"hdp_params keys {sorted(hp, key=repr)} (registered: "
+                f"{list(list_registered_hdp_rules())}). The lif route runs no "
+                "legacy gain kernel: pass hdp_params={'hdp_rule': ..., "
+                "'hdp_rule_params': {...}}"
+            )
+        refused = sorted(set(hp) - _LIF_HDP_CONSUMED_KEYS, key=repr)
+        if refused:
+            raise ValueError(
+                f"hdp_params keys {refused} are not consumed on emitter family 'lif' "
+                f"(consumed: {sorted(_LIF_HDP_CONSUMED_KEYS)}); leave them unset"
+            )
+        from .hdp_rule import get_hdp_rule
+
+        from ._hdp_family_kernel import check_rule_family_support
+        from .hdp_rules_pcl import register as _ensure_pcl_stdp_registered
+
+        _ensure_pcl_stdp_registered()
+        descriptor, _ = get_hdp_rule(str(hdp_rule_name))
+        check_rule_family_support(
+            descriptor, family="lif", rule_name=str(hdp_rule_name)
+        )
+        if self.params.get("hdp_initial_w") is not None:
+            raise ValueError(
+                "hdp_initial_w is not realized for emitter family 'lif' under a "
+                "registered rule: edge weights come from params['edge_list']; "
+                "seed per-neuron state with with_hdp_initial_state(H0=...) only"
+            )
+        hdp_kwargs = {
+            "hdp_rule": str(hdp_rule_name),
+            "hdp_rule_params": hp.get("hdp_rule_params"),
+            "plasticity_mask": hp.get("plasticity_mask"),
+            "H0": self.params.get("hdp_initial_H"),
+            "key": jax.random.PRNGKey(sim.seed),
+        }
+
+    out = simulate_lif_edge(
+        emitter.to_lif_params(),
+        n_steps=sim.n_steps,
+        dt_ms=sim.dt_ms,
+        edge_pre=edges["pre"],
+        edge_post=edges["post"],
+        edge_weight=edges["weight"],
+        edge_delay_steps=edges["delay_steps"],
+        I_ext_pA=drive_2d,
+        record_v=True,
+        **hdp_kwargs,
+    )
+    time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
+    metadata: dict[str, Any] = {
+        "config_hash": config_hash(self.cfg),
+        "emitter_family": "lif",
+        "n_edges": int(edges["pre"].shape[0]),
+        "n_floored_to_one_step": int(edges["n_floored_to_one_step"]),
+        "duration_ms": float(sim.duration_ms),
+        "dt_ms": float(sim.dt_ms),
+        "n_steps": int(sim.n_steps),
+        "runtime": runtime_cfg.runtime_report(),
+        "physical_amplitude_calibrated": False,
+        # The route records no sources and no field; the record flags change nothing here.
+        "not_recorded": ["sources", "field"],
+    }
+    if sim.poisson_drive is not None:
+        metadata["poisson_drive"] = {
+            "rate_hz": float(sim.poisson_drive.get("rate_hz", 2.0)),
+            "amplitude": float(sim.poisson_drive.get("amplitude", 0.5)),
+            "seed": int(sim.poisson_drive.get("seed", sim.seed + 7919)),
+            "status": "stochastic_drive_applied",
+        }
+    if hdp_rule_name is not None:
+        metadata["hdp_rule"] = str(hdp_rule_name)
+        metadata["hdp_rule_registered"] = True
+    return Signals(
+        time_ms=time_ms,
+        V_m=out["V_mV"].astype(dtype),
+        spikes=out["spikes"],
+        sources=None,
+        field=None,
+        metadata=metadata,
+    )
+
+
 def last_homeostasis_diagnostics(self) -> "Optional[dict[str, Any]]":
     """Return the full per-step homeostasis diagnostics from the most recent
     ``simulate(...)`` call with ``enable_homeostasis=True``.
@@ -1551,6 +1724,11 @@ def simulate_condition(
         raise ValueError(
             "simulate_condition(condition=...) is not realized for emitter family 'adex': it "
             "drives a paradigm, and the adex route consumes no input current"
+        )
+    if isinstance(self.params["emitter"], LIFNetworkParams):
+        raise ValueError(
+            "simulate_condition(condition=...) is not realized for emitter family 'lif': it "
+            "drives a paradigm, and the lif route consumes no paradigm-driven input current"
         )
     schedule = stimulus_schedule(
         condition.events,

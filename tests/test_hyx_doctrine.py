@@ -93,16 +93,24 @@ def _drive_simulate(model, emitter):
             duration_ms=ADEX_DUR_MS, dt_ms=DT_MS,
             poisson_drive=_adex_poisson_drive(model),
             runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")))
+    if emitter == "lif":
+        # A direct Model.simulate call carries no cfg-metadata inheritance,
+        # so the edge-list backend the lif route needs rides an explicit
+        # runtime here (jtfne.simulate(model) inherits it from the model).
+        return model.simulate(jtfne.Simulation(
+            duration_ms=DUR_MS, dt_ms=DT_MS, seed=1,
+            poisson_drive={"rate_hz": 50.0, "amplitude": 100.0},
+            runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")))
     return model.simulate(jtfne.Simulation(
         duration_ms=DUR_MS, dt_ms=DT_MS, seed=1,
         poisson_drive={"rate_hz": 50.0, "amplitude": 100.0}))
 
 
-@pytest.mark.parametrize("runtime_emitter", [*ROUTABLE, "lif"])
+@pytest.mark.parametrize("runtime_emitter", [*ROUTABLE, "glif"])
 def test_declared_but_unbuildable_dynamics_refused_at_bridge(runtime_emitter):
-    """A lif declaration cannot execute under any runtime: refused at the bridge, never a late kernel."""
+    """A glif declaration cannot execute under any runtime: refused at the bridge, never a late kernel."""
     tensor = _single_area_tensor(
-        [_nt("E", emitter="lif"), _nt("PV", emitter="lif")], [_ee_conn()])
+        [_nt("E", emitter="glif"), _nt("PV", emitter="glif")], [_ee_conn()])
     with pytest.raises(ValueError, match="not routed"):
         _construct(tensor, emitter=runtime_emitter)
 
@@ -196,6 +204,14 @@ def test_single_self_exciting_neuron_is_a_model(emitter):
         driven = model.simulate(jtfne.Simulation(
             duration_ms=ADEX_DUR_MS, dt_ms=DT_MS,
             poisson_drive=_adex_poisson_drive(model, rate_hz=500.0, weight_nS=5.0),
+            runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")))
+    elif emitter == "lif":
+        # As in _drive_simulate: a direct Model.simulate call carries no
+        # cfg-metadata inheritance, so the edge-list backend rides an
+        # explicit runtime here.
+        driven = model.simulate(jtfne.Simulation(
+            duration_ms=DUR_MS, dt_ms=DT_MS, seed=1,
+            poisson_drive={"rate_hz": 50.0, "amplitude": 100.0},
             runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")))
     else:
         driven = model.simulate(jtfne.Simulation(
