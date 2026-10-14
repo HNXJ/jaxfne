@@ -308,6 +308,13 @@
           "promoter": "promote_atlas_state.py",
           "git_head": "7169dfc6d77974b36915fbbf98878149c1acbcb1",
           "utc": "2026-10-09T14:58:05.034089+00:00"
+        },
+        {
+          "to": "validated",
+          "reason": "0.5.6 candidate: version bump regenerated the canonical atlas (config hash 91f037cf383e0bdb unchanged, jaxfne_version 0.5.5 -> 0.5.6, which reset its state). Trace data identical except float32 rounding up to 2.4e-7 in the oscillatory panel; Plotly.js 3.4.0 -> 4.1.1 is the environment renderer; committed README stills were stale against fccdf7be. Dispatcher-accepted 2026-10-14.",
+          "promoter": "promote_atlas_state.py",
+          "git_head": "f508648b552af5310c74a3d31fccf219b8890d25",
+          "utc": "2026-10-14T19:47:37.764184+00:00"
         }
       ]
     },

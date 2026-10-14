@@ -8,7 +8,7 @@
   "sim_identity": "seed=0 duration_ms=1000.0 dt_ms=0.5",
   "recording_class": "large",
   "recording_budget": "population H, selected traces, summaries; no full T\u00d7E",
-  "jaxfne_version": "0.5.5",
+  "jaxfne_version": "0.5.6",
   "seed": 0,
   "duration_ms": 1000.0,
   "n_neurons": 1000,
@@ -36,7 +36,7 @@
       "panel": "Network 3D",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 76194,
+      "bytes": 76096,
       "inputs": {
         "source_artifact": "model",
         "variable": "params.positions + params.edge_list",
@@ -50,7 +50,7 @@
       "panel": "Spike raster",
       "evidence": "OBSERVED",
       "status": "AVAILABLE",
-      "bytes": 107778,
+      "bytes": 107680,
       "inputs": {
         "source_artifact": "signals",
         "variable": "spikes [T,N] + neuron_table",
@@ -64,7 +64,7 @@
       "panel": "LFP proxy",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 362329,
+      "bytes": 362231,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field proxy",
@@ -78,7 +78,7 @@
       "panel": "H dynamics",
       "evidence": "DERIVED",
       "status": "OMITTED",
-      "bytes": 10443,
+      "bytes": 10350,
       "inputs": {
         "source_artifact": "model diagnostics",
         "variable": "H_trace / r_trace",
@@ -92,7 +92,7 @@
       "panel": "HDP plasticity",
       "evidence": "DERIVED",
       "status": "OMITTED",
-      "bytes": 10389,
+      "bytes": 10293,
       "inputs": {
         "source_artifact": "model diagnostics",
         "variable": "w_trace",
@@ -106,7 +106,7 @@
       "panel": "Oscillatory response",
       "evidence": "DERIVED",
       "status": "AVAILABLE",
-      "bytes": 21582,
+      "bytes": 21484,
       "inputs": {
         "source_artifact": "signals",
         "variable": "field traces",
@@ -116,7 +116,7 @@
       }
     }
   ],
-  "sha256": "af15e48477083936",
+  "sha256": "b0da382200c47c0b",
   "promotion": [
     {
       "to": "validated",
@@ -124,6 +124,13 @@
       "promoter": "promote_atlas_state.py",
       "git_head": "7169dfc6d77974b36915fbbf98878149c1acbcb1",
       "utc": "2026-10-09T14:58:05.034089+00:00"
+    },
+    {
+      "to": "validated",
+      "reason": "0.5.6 candidate: version bump regenerated the canonical atlas (config hash 91f037cf383e0bdb unchanged, jaxfne_version 0.5.5 -> 0.5.6, which reset its state). Trace data identical except float32 rounding up to 2.4e-7 in the oscillatory panel; Plotly.js 3.4.0 -> 4.1.1 is the environment renderer; committed README stills were stale against fccdf7be. Dispatcher-accepted 2026-10-14.",
+      "promoter": "promote_atlas_state.py",
+      "git_head": "f508648b552af5310c74a3d31fccf219b8890d25",
+      "utc": "2026-10-14T19:47:37.764184+00:00"
     }
   ]
 }
