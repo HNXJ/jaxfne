@@ -251,10 +251,71 @@ def construct_lif_tensor_model(
                 "order": str(spec["order"]),
             })
     if declared_inhibition:
+        # One spec executes as a whole-population cap; several distinct
+        # specs (different rounds or order) are refused by name — the kernel
+        # runs a single intra-step fixed point per step.
+        _distinct = sorted(
+            {(e["rounds"], e["order"]) for e in declared_inhibition})
+        if len(_distinct) > 1:
+            raise ValueError(
+                "local_inhibition declares distinct specs "
+                f"{[{'rounds': r, 'order': o} for r, o in _distinct]}; the lif route "
+                "executes one whole-population cap per step — declare one spec only"
+            )
         # Recorded (and echoed onto the connection table by the compiler, so
-        # it rides the manifest); execution refuses it until the kernel runs
-        # the intra-step fixed point (fail-closed, never silent).
+        # it rides the manifest); the lif edge kernel executes the intra-step
+        # fixed point (R rounds in the declared order per step).
         new_static["lif"]["local_inhibition"] = declared_inhibition
+    sharing_groups: list[int] = []
+    _next_singleton = 0
+    _n_shared_rules = 0
+    _rows = [r for r in (model.cfg.metadata.get("circuit", {}) or {}).get("connections", [])
+             if isinstance(r, Mapping)]
+    _compiled_total = sum(int(r.get("compiled_n_edges", 0) or 0) for r in _rows)
+    _n_total = int(model.params["edge_list"].n_edges)
+    _n_prebuilt = _n_total - _compiled_total
+    if _n_prebuilt < 0:
+        raise ValueError(
+            "lif sharing groups disagree with the edge list: "
+            f"{_n_total} executed edges but {_compiled_total} compiled rule edges"
+        )
+    # Executed order is prebuilt (dense-derived) edges first, then compiled
+    # rules in declaration order (_concat_edge_lists appends, and class
+    # compaction keeps order and count); prebuilt edges are unshared
+    # singletons. Per-rule groups come from the compiler's own
+    # sharing_group_of_edge echo (same order as that rule's executed edges),
+    # remapped onto dense global ids so rules never share a group.
+    sharing_groups.extend(range(_next_singleton, _next_singleton + _n_prebuilt))
+    _next_singleton += _n_prebuilt
+    for _row in _rows:
+        _n = int(_row.get("compiled_n_edges", 0) or 0)
+        if _row.get("weight_sharing") is not None:
+            _g = _row.get("sharing_group_of_edge")
+            if _g is None or len([int(g) for g in _g]) != _n:
+                raise ValueError(
+                    f"connection rule {_row.get('name')!r} declares weight_sharing but its "
+                    f"compiled sharing_group_of_edge disagrees with compiled_n_edges ({_n})"
+                )
+            _g = [int(g) for g in _g]
+            _base = _next_singleton
+            _remapped = [g + _base for g in _g]
+            sharing_groups.extend(_remapped)
+            _next_singleton = (max(_remapped) + 1) if _remapped else _base
+            _n_shared_rules += 1
+        else:
+            sharing_groups.extend(range(_next_singleton, _next_singleton + _n))
+            _next_singleton += _n
+    if len(sharing_groups) != _n_total:
+        raise ValueError(
+            "lif sharing groups disagree with the edge list: "
+            f"{len(sharing_groups)} groups for {_n_total} edges"
+        )
+    if _n_shared_rules:
+        # Per-edge sharing-group ids in executed edge order (global, dense:
+        # unshared rules contribute one singleton group per edge); the kernel
+        # collapses each group's weights to one shared value.
+        new_static["lif"]["sharing_group_of_edge"] = [int(g) for g in sharing_groups]
+        new_static["lif"]["n_sharing_groups"] = int(_next_singleton)
     model = replace(model, static=new_static)
 
     h_sum: dict[tuple[str, str, str], float] = {}
@@ -289,6 +350,12 @@ def lif_edge_arrays(model: "Any") -> dict[str, Any]:
     cannot advance the kernel's bool ring, so they floor to 1 step here;
     the count rides the returned dict (``n_floored_to_one_step``) for the
     simulate-time receipt. Constructed delays are untouched.
+
+    With declared ``weight_sharing`` (``static["lif"]["sharing_group_of_edge"]``),
+    each group's executed weights collapse to the group mean, so one shared
+    weight runs per group; the per-edge group ids ride ``"group"`` for the
+    kernel's shared HDP accumulation. Without a declaration every edge is
+    its own group and weights pass through unchanged.
     """
     from .emitters import resolve_edge_delay_steps, resolve_edge_weight
 
@@ -314,6 +381,28 @@ def lif_edge_arrays(model: "Any") -> dict[str, Any]:
             "lif route edge arrays disagree: "
             f"{pre.shape} vs {post.shape} vs {weight.shape} vs {delay.shape}"
         )
+    group = np.asarray(
+        (model.static.get("lif", {}) or {}).get("sharing_group_of_edge",
+                                                np.arange(pre.shape[0])),
+        dtype=np.int64,
+    ).ravel()
+    if group.shape != pre.shape:
+        raise ValueError(
+            "lif route sharing groups disagree with the edge list: "
+            f"{group.shape} vs {pre.shape}"
+        )
+    if bool((group < 0).any()):
+        raise ValueError("lif route sharing groups must be >= 0")
+    shared = bool((model.static.get("lif", {}) or {}).get("sharing_group_of_edge"))
+    if shared and pre.shape[0]:
+        # One executed weight per group: the group mean (per-edge magnitudes
+        # from the compiler differ only by the shared scalar-weight convention,
+        # so the mean is the shared row the HDP rule accumulates onto).
+        mean = np.zeros(int(group.max()) + 1, dtype=np.float64)
+        count = np.zeros(int(group.max()) + 1, dtype=np.float64)
+        np.add.at(mean, group, weight)
+        np.add.at(count, group, 1.0)
+        weight = (mean / np.maximum(count, 1.0))[group]
     floored = int(np.sum(delay < 1))
     return {
         "pre": pre,
@@ -321,6 +410,8 @@ def lif_edge_arrays(model: "Any") -> dict[str, Any]:
         "weight": weight,
         "delay_steps": np.maximum(delay, 1),
         "n_floored_to_one_step": floored,
+        "group": group,
+        "weight_sharing": shared,
     }
 
 

@@ -124,7 +124,8 @@ def make_lif_params(
     return LIFParams(labels=labels, **columns)
 
 
-def lif_step(state, I_mV, n_arr, t_ms, params: LIFParams, dt_ms: float):
+def lif_step(state, I_mV, n_arr, t_ms, params: LIFParams, dt_ms: float,
+             *, cap_rounds=None, cap_order: str = "ascending"):
     """One clock step of the PCL LIF equations for a vector of cells.
 
     ``state`` is ``(V, A, t_last)``: membrane voltage (mV), adaptation (mV) and
@@ -134,6 +135,16 @@ def lif_step(state, I_mV, n_arr, t_ms, params: LIFParams, dt_ms: float):
     ``t_ms`` is the step time. A cell spikes on strict ``V > v_thresh``
     (``SimpleNeuron.cpp`` / ``ComplexNeuron.cpp``); on spike ``V`` resets,
     ``A`` grows by ``delta_sra`` and ``t_last`` stamps ``t_ms``.
+
+    ``cap_rounds``/``cap_order`` (both None by default: the step is unchanged)
+    apply the declared same-step local-inhibition cap inside the step: when
+    more cells cross threshold than ``cap_rounds``, only the first
+    ``cap_rounds`` winners in ``cap_order`` (``"ascending"``/``"descending"``
+    neuron index) keep their spikes; the rest revert to their non-spike state
+    exactly (pre-reset voltage, undecayed adaptation, unstamped time), as if
+    they had not crossed. Downstream (ring, HDP context) sees the capped
+    spikes. A non-None ``cap_rounds`` must be a positive int; ``cap_order``
+    one of the two orders — anything else is refused.
 
     Returns ``((V, A, t_last), spk)`` with boolean spike vector ``spk``. Pure
     ``jax.numpy``; dtype follows the inputs.
@@ -147,7 +158,24 @@ def lif_step(state, I_mV, n_arr, t_ms, params: LIFParams, dt_ms: float):
     has = t_last > HAS_SPIKED
     R = jnp.where(has, p.eta_rp_mV * jnp.exp(-(t_ms - t_last) / p.tau_rp_ms), 0.0)
     V_new = jnp.maximum(p.v_min_mV, Vd + I_mV - n_arr * (R + Ad))
-    spk = V_new > p.v_thresh_mV
+    raw = V_new > p.v_thresh_mV
+    if cap_rounds is None:
+        spk = raw
+    else:
+        from .pcl_topology import LOCAL_INHIBITION_ORDERS, validate_rounds
+
+        n_rounds = validate_rounds(cap_rounds, label="local_inhibition")
+        if cap_order not in LOCAL_INHIBITION_ORDERS:
+            raise ValueError(
+                f"local_inhibition order must be one of {list(LOCAL_INHIBITION_ORDERS)}; "
+                f"got {cap_order!r}"
+            )
+        n = int(raw.shape[0])
+        idx = jnp.arange(n) if cap_order == "ascending" else jnp.arange(n - 1, -1, -1)
+        ordered = raw[idx]
+        keep_ordered = ordered & (jnp.cumsum(ordered.astype(jnp.int32)) <= n_rounds)
+        keep = jnp.zeros_like(raw).at[idx].set(keep_ordered)
+        spk = raw & keep
     V_out = jnp.where(spk, p.v_reset_mV, V_new)
     A_out = jnp.where(spk, Ad + p.delta_sra_mV, Ad)
     t_out = jnp.where(spk, t_ms, t_last)
@@ -353,6 +381,7 @@ def simulate_lif_edge(
     edge_post=None,
     edge_weight=None,
     edge_delay_steps=None,
+    edge_group=None,
     t0_ms: float = 0.0,
     I_ext_pA=None,
     V0_mV=None,
@@ -361,6 +390,8 @@ def simulate_lif_edge(
     hdp_rule=None,
     hdp_rule_params=None,
     plasticity_mask=None,
+    local_inhibition_rounds=None,
+    local_inhibition_order: str = "ascending",
     key=None,
 ) -> dict[str, Any]:
     """Simulate current-based PCL LIF cells on a sparse signed edge list.
@@ -375,13 +406,28 @@ def simulate_lif_edge(
     2. input ``I = segment_sum(w_e * arrival_e)`` and count ``n`` per neuron,
        plus ``I_ext`` and the rule's per-neuron ``bias`` (0 unless the rule
        declares the ``drive_bias`` target);
-    3. :func:`lif_step`;
+    3. :func:`lif_step` (with the ``local_inhibition_rounds``/``order`` cap
+       when declared: at most that many winners keep their spikes per step,
+       in that index order, inside the step);
     4. the registered rule (if any) observes the step through the
        :class:`HDPRuleContext` contract and its rate update integrates as
        ``x + dt * dx`` (H clipped to the descriptor bounds, weight magnitudes
        to ``w_bounds`` with the initial sign kept, ``plasticity_mask`` gating
        which edges learn);
     5. this step's spikes are written into the ring.
+
+    ``edge_group`` (None, or int ids of shape ``(n_edges,)``) names the
+    weight-sharing group of each edge: members of one group execute one
+    shared weight (the group mean of ``edge_weight``) and every HDP update
+    is scatter-averaged back onto the shared row, so an update arriving on
+    one member moves all of them. ``None`` gives every edge its own group.
+
+    ``local_inhibition_rounds`` (None, or a positive int) with
+    ``local_inhibition_order`` (``"ascending"``/``"descending"``) is the
+    generic-tensor realization of the declared B3 intra-step fixed point
+    (rounds and order from A): retinotopic per-position competition reduces
+    to a whole-population spike cap here, since a generic tensor declares no
+    co-located depth slots. Both change who spikes, so both ride the call.
 
     ``I_ext_pA`` is None, shape ``[N]`` (every step), or ``[n_steps, N]``.
     ``V0_mV`` is None (rest at 0, as the C++ ``m_potential`` starts) or shape
@@ -468,6 +514,33 @@ def simulate_lif_edge(
     post_j = jnp.asarray(edges["post"], jnp.int32)
     w0 = jnp.asarray(edges["weight"], dtype)
     lag_j = jnp.asarray(edges["delay"], jnp.int32)
+    if edge_group is None:
+        group_np = np.arange(E, dtype=np.int64)
+    else:
+        group_np = np.asarray(edge_group, dtype=np.int64).ravel()
+        if group_np.shape != (E,):
+            raise ValueError(
+                f"edge_group must have shape ({E},); got {group_np.shape}"
+            )
+        if E and bool((group_np < 0).any()):
+            raise ValueError("edge_group ids must be >= 0")
+    n_groups = int(group_np.max() + 1) if E else 0
+    group_j = jnp.asarray(group_np, dtype=jnp.int32)
+    if local_inhibition_rounds is not None:
+        from .pcl_topology import LOCAL_INHIBITION_ORDERS, validate_rounds
+
+        validate_rounds(local_inhibition_rounds, label="local_inhibition")
+        if local_inhibition_order not in LOCAL_INHIBITION_ORDERS:
+            raise ValueError(
+                "local_inhibition_order must be one of "
+                f"{list(LOCAL_INHIBITION_ORDERS)}; got {local_inhibition_order!r}"
+            )
+    if E:
+        # One shared weight per group: the group mean (signed; members of a
+        # sharing group carry one plastic row).
+        _sums = _seg_sum(w0, group_j, n_groups)
+        _counts = _seg_sum(jnp.ones_like(w0), group_j, n_groups)
+        w0 = _sums[group_j] / jnp.maximum(_counts[group_j], 1.0)
     exc_mask = w0 >= 0
     L = int(edges["delay"].max()) if E else 1
 
@@ -541,7 +614,10 @@ def simulate_lif_edge(
         I_tot = I_tot + I_net
         if use_b:
             I_tot = I_tot + bias
-        (V_n, A_n, t_n), spk = lif_step((V, A, t_last), I_tot, n_net, t, params, float(dt_ms))
+        (V_n, A_n, t_n), spk = lif_step(
+            (V, A, t_last), I_tot, n_net, t, params, float(dt_ms),
+            cap_rounds=local_inhibition_rounds, cap_order=local_inhibition_order,
+        )
         if descriptor is not None:
             from .hdp_rule import HDPRuleContext  # lazy: hdp_rule pulls in emitters
 
@@ -567,7 +643,21 @@ def simulate_lif_edge(
                 wmag = jnp.abs(w)
                 wmag_next = jnp.clip(wmag + dt * upd.d_theta["edge_weight"], w_floor, w_ceiling)
                 w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
-                w = jnp.where(plastic_edge, w_next, w) if plastic_edge is not None else w_next
+                w_next = jnp.where(plastic_edge, w_next, w) if plastic_edge is not None else w_next
+                if E:
+                    # Shared accumulation: each group's update is the mean of
+                    # its plastic members' updates, so STDP arriving on one
+                    # member moves the whole shared row (members stay equal).
+                    if plastic_edge is not None:
+                        _pmask = plastic_edge.astype(dtype)
+                    else:
+                        _pmask = jnp.ones_like(w)
+                    _upd = w_next - w
+                    _num = _seg_sum(_upd * _pmask, group_j, n_groups)[group_j]
+                    _den = jnp.maximum(_seg_sum(_pmask, group_j, n_groups)[group_j], 1.0)
+                    w = w + _num / _den
+                else:
+                    w = w_next
             if use_b:
                 db = (upd.d_theta or {}).get("drive_bias")
                 if db is not None:

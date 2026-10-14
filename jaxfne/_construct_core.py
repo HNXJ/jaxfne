@@ -855,7 +855,7 @@ def _construct_compile_connections(
                 )
             else:
                 _positions_np = _np.asarray(positions) if _needs_positions else None
-            _conn_edges, _counts = _compile_mechanism_aware_connection_rules(
+            _conn_edges, _counts, _sharing = _compile_mechanism_aware_connection_rules(
                 _conn_rules,
                 _conn_mechanisms,
                 _area_labels,
@@ -881,14 +881,24 @@ def _construct_compile_connections(
                     ".mechanisms() declaration. Declare mechanisms for all rules, or drop "
                     "max_in_degree -- the cap cannot be applied on the sign-only path."
                 )
-            _fp = [r.get("name") for r in _conn_rules if r.get("footprint") is not None]
-            if _fp:
+            _uncompilable = {}
+            for r in _conn_rules:
+                _keys = [
+                    k for k in ("footprint", "weight_sharing", "local_inhibition")
+                    if r.get(k) is not None
+                ]
+                if _keys:
+                    _uncompilable[r.get("name")] = _keys
+            if _uncompilable:
                 raise ValueError(
-                    f"connection rule(s) {_fp} declare footprint, which is only "
-                    "honoured by the mechanism-aware compiler. That compiler runs only when "
-                    "every declared rule carries a mechanism= reference resolvable against a "
-                    ".mechanisms() declaration. Declare mechanisms for all rules, or drop "
-                    "footprint -- retinotopic pairs cannot be compiled on the sign-only path."
+                    f"connection rule(s) {sorted(_uncompilable)} declare "
+                    f"{_uncompilable}, which the sign-only path cannot compile. The "
+                    "mechanism-aware compiler runs only when every declared rule "
+                    "carries a mechanism= reference resolvable against a "
+                    ".mechanisms() declaration; weight_sharing and "
+                    "local_inhibition execute on the lif route only. Declare "
+                    "mechanisms for all rules (and build the lif route for the "
+                    "lif-only keys), or drop them."
                 )
             _sigma = [r.get("name") for r in _conn_rules if r.get("spatial_sigma") is not None]
             if _sigma:
@@ -909,6 +919,10 @@ def _construct_compile_connections(
                 int(edge_seed_from_metadata(cfg.metadata)),
                 dt_ms=_construct_dt_ms,
             )
+            # The sign-only compiler selects no footprint pairs, so it emits
+            # no sharing groups (rules carrying those keys were refused
+            # above); the echo stays None on this path.
+            _sharing = None
         declared_edge_count = sum(int(count) for count in _counts)
         if connectivity_mode == "explicit" and _conn_edges is not None:
             _reject_duplicate_explicit_edges(_conn_edges)
@@ -921,7 +935,7 @@ def _construct_compile_connections(
                 f"{_conn_edges.n_edges} edge(s) were materialized from "
                 ".connections() rules, which the dense W does not carry",
             )
-        cfg = _mark_connections_compiled(cfg, _counts)
+        cfg = _mark_connections_compiled(cfg, _counts, _sharing)
     if connectivity_mode is not None:
         cfg = _record_connectivity_compilation(
             cfg,

@@ -1148,6 +1148,22 @@ def simulate(
         _refuse_lif_inputs(self, sim, paradigm, continuation, return_state)
         return _simulate_lif(self, sim, runtime_cfg)
 
+    for _row in (self.cfg.metadata.get("circuit", {}) or {}).get("connections", []):
+        if isinstance(_row, dict) and _row.get("weight_sharing") is not None:
+            raise ValueError(
+                f"connection rule {_row.get('name')!r} declares "
+                f"weight_sharing={_row.get('weight_sharing')!r}; the shared weights execute "
+                "on the lif route only (only None is admitted here) — build the lif route, "
+                "or drop weight_sharing"
+            )
+        if isinstance(_row, dict) and _row.get("local_inhibition") is not None:
+            raise ValueError(
+                f"connection rule {_row.get('name')!r} declares "
+                f"local_inhibition={_row.get('local_inhibition')!r}; local inhibition executes "
+                "on the lif route only (only None is admitted here) — build the lif route, "
+                "or drop local_inhibition"
+            )
+
     if isinstance(self.params["emitter"], HomeostaticEIParams):
         if continuation is not None or return_state:
             raise ValueError("full-state continuation is not available for homeostatic_ei")
@@ -1523,33 +1539,25 @@ def _refuse_lif_inputs(
         )
     declared = model.static.get("lif", {}).get("local_inhibition")
     if declared:
-        from .emitters import resolve_edge_delay_steps
+        # Executed: the kernel runs the intra-step cap (rounds and order from
+        # A) inside the step; the declaration is validated here so a bad spec
+        # fails closed naming itself. Several distinct specs on one generic
+        # tensor are refused: the whole-population cap realizes one spec.
+        from .pcl_topology import validate_local_inhibition
 
-        import numpy as _np
-
-        edges = model.params.get("edge_list")
-        raw = (
-            _np.asarray(resolve_edge_delay_steps(edges)).ravel()
-            if edges is not None
-            else _np.asarray([])
-        )
-        if bool((raw < 1).any()):
-            raise ValueError(
-                f"local_inhibition={declared!r} is declared on the tensor and "
-                "the compiled edges carry delay 0: delay 0 names resolution "
-                "inside the step (the ruled B3 intra-step fixed point), which "
-                "the 'lif' edge kernel cannot run (it floors 0-step edges to "
-                "the next-step ring); the run is refused rather than silently "
-                "late by one step"
+        specs = set()
+        for entry in declared:
+            spec = validate_local_inhibition(
+                {"rounds": entry.get("rounds"), "order": entry.get("order")},
+                label="local_inhibition",
             )
-        raise ValueError(
-            f"local_inhibition={declared!r} is declared on the tensor but not "
-            "executed on emitter family 'lif': the ruled B3 intra-step fixed "
-            "point (R rounds in the declared order per position, delay 0 "
-            "resolved inside the step) has no kernel consumer yet; the edge "
-            "kernel would run the next-step ring instead, so the run is "
-            "refused rather than silently wrong"
-        )
+            specs.add((int(spec["rounds"]), str(spec["order"])))
+        if len(specs) > 1:
+            raise ValueError(
+                f"local_inhibition={declared!r} declares several distinct "
+                "(rounds, order) specs on one tensor; the lif route's "
+                "whole-population cap realizes one spec — declare one"
+            )
     refuse_lif_simulation(sim, sim.resolved_runtime)
 
 
@@ -1657,6 +1665,11 @@ def _simulate_lif(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) ->
     edge_post = edges["post"]
     edge_weight = edges["weight"]
     edge_delay_steps = edges["delay_steps"]
+    edge_group = edges.get("group")
+    inhibition_spec: dict[str, Any] | None = None
+    for entry in (self.static.get("lif", {}) or {}).get("local_inhibition", []):
+        inhibition_spec = {
+            "rounds": int(entry["rounds"]), "order": str(entry["order"])}
     n_steps = sim.n_steps
     dt_ms = sim.dt_ms
 
@@ -1672,8 +1685,13 @@ def _simulate_lif(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) ->
             edge_post=edge_post,
             edge_weight=edge_weight,
             edge_delay_steps=edge_delay_steps,
+            edge_group=edge_group,
             I_ext_pA=drive_in,
             record_v=True,
+            local_inhibition_rounds=(
+                None if inhibition_spec is None else inhibition_spec["rounds"]),
+            local_inhibition_order=(
+                "ascending" if inhibition_spec is None else inhibition_spec["order"]),
             **kw,
         )
 
@@ -1737,6 +1755,21 @@ def _simulate_lif(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) ->
     if hdp_rule_name is not None:
         metadata["hdp_rule"] = str(hdp_rule_name)
         metadata["hdp_rule_registered"] = True
+        import numpy as _np
+
+        object.__setattr__(self, "_last_hdp_diag", {
+            "w_final": _np.asarray(out["w_final"], dtype=float),
+            "H_final": _np.asarray(out["H_final"], dtype=float),
+            "w_trace": None,
+            "H_trace": None,
+        })
+    if bool(edges.get("weight_sharing", False)) and int(edges["pre"].shape[0]) > 0:
+        import numpy as _np_sh
+
+        metadata["weight_sharing"] = "patch"
+        metadata["n_sharing_groups"] = int(_np_sh.asarray(edge_group).max() + 1)
+    if inhibition_spec is not None:
+        metadata["local_inhibition"] = dict(inhibition_spec)
     return Signals(
         time_ms=time_ms,
         V_m=out["V_mV"].astype(dtype),

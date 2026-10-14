@@ -390,6 +390,14 @@ def _compile_mechanism_aware_connection_rules(
     delay with no known ``dt_ms`` raises rather than zeroing. ``dt_ms=None``
     keeps the pre-0.5.2 EdgeList exactly.
 
+    Returns ``(edges, counts, sharing)``: the compiled edge list (None when
+    no rule produced edges), per-rule edge counts, and per-rule
+    weight-sharing group lists (the compiler table's
+    ``sharing_group_of_edge`` for footprint rules declaring
+    ``weight_sharing``, else None) — the groups align with each rule's
+    edges in order, for consumers (the lif route) that execute one shared
+    weight per group.
+
     Validated for exact parity with :func:`_compile_connection_rules` when a
     declared mechanism's tau mirrors the legacy hardcoded default (AMPA-like
     exc=2ms, GABA_A-like inh=5ms) at ``probability=1.0`` -- see
@@ -434,8 +442,9 @@ def _compile_mechanism_aware_connection_rules(
         neuron_rows, rules, mechanisms, seed=int(default_seed), allow_empty=True, dtype=dtype_name
     )
     counts = [int(row.get("n_edges", 0)) for row in result.connection_table]
+    sharing = [row.get("sharing_group_of_edge") for row in result.connection_table]
     if result.n_edges == 0:
-        return None, counts
+        return None, counts, sharing
 
     edges = result.to_edge_list(dtype=dtype_name, dt_ms=dt_ms)
     edge_rule_id = _np.asarray(result.edge_rule_id)
@@ -450,7 +459,7 @@ def _compile_mechanism_aware_connection_rules(
         sgn = rule.get("sign")
         out_weight[mask] = _apply_edge_sign_policy(sgn, raw_weight[mask], pre_np[mask], sign_np)
     edges = replace(edges, weight=jnp.asarray(out_weight, dtype=jdtype))
-    return edges, counts
+    return edges, counts, sharing
 
 
 def _concat_edge_lists(
@@ -479,12 +488,21 @@ def _concat_edge_lists(
     return try_compact_edge_list_class_storage(combined)
 
 
-def _mark_connections_compiled(cfg: "Configuration", counts: Sequence[int]) -> "Configuration":
+def _mark_connections_compiled(
+    cfg: "Configuration",
+    counts: Sequence[int],
+    sharing: "Sequence[Sequence[int] | None] | None" = None,
+) -> "Configuration":
     """Flip each connection rule's status from declared to compiled.
 
     Honestly lifts the ``declared_not_compiled`` fence: a rule that produced edges
     becomes ``"compiled"`` (with ``compiled_n_edges``); a rule that matched no
     neurons/edges becomes ``"compiled_no_matching_edges"`` so the no-op is visible.
+    When ``sharing`` is given, a rule's compiler-side ``sharing_group_of_edge``
+    (per-edge group ids in executed edge order, present only for footprint
+    rules declaring ``weight_sharing``) is echoed onto its metadata row with
+    ``n_sharing_groups``, so the lif route executes one shared weight per
+    group; rules without sharing carry neither key (None passes through).
     """
     metadata = {**cfg.metadata}
     circuit = {**metadata.get("circuit", {})}
@@ -492,13 +510,16 @@ def _mark_connections_compiled(cfg: "Configuration", counts: Sequence[int]) -> "
     updated = []
     for i, rule in enumerate(conns):
         c = int(counts[i]) if i < len(counts) else 0
-        updated.append(
-            {
-                **rule,
-                "status": "compiled" if c > 0 else "compiled_no_matching_edges",
-                "compiled_n_edges": c,
-            }
-        )
+        row = {
+            **rule,
+            "status": "compiled" if c > 0 else "compiled_no_matching_edges",
+            "compiled_n_edges": c,
+        }
+        groups = sharing[i] if sharing is not None and i < len(sharing) else None
+        if groups is not None:
+            row["sharing_group_of_edge"] = [int(g) for g in groups]
+            row["n_sharing_groups"] = (max(int(g) for g in groups) + 1) if groups else 0
+        updated.append(row)
     circuit["connections"] = updated
     metadata["circuit"] = circuit
     return replace(cfg, metadata=metadata)

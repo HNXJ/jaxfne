@@ -2246,13 +2246,6 @@ def _wire_adex_connection(
             "(rule max_in_degree/spatial_sigma are refused there: only None "
             "is admitted) — leave max_in_degree undeclared there"
         )
-    if getattr(conn, "footprint", None) is not None:
-        raise ValueError(
-            f"{label} declares footprint={getattr(conn, 'footprint')!r}; "
-            "the conductance (adex) route has no footprint-rule consumer "
-            "(deterministic retinotopic pairs are refused there: only None "
-            "is admitted) — leave footprint undeclared there"
-        )
     if getattr(conn, "weight_sharing", None) is not None:
         raise ValueError(
             f"{label} declares weight_sharing={getattr(conn, 'weight_sharing')!r}; "
@@ -2264,6 +2257,13 @@ def _wire_adex_connection(
             f"{label} declares local_inhibition={getattr(conn, 'local_inhibition')!r}; "
             "the conductance (adex) route has no intra-step fixed-point consumer "
             "(only None is admitted) — leave local_inhibition undeclared there"
+        )
+    if getattr(conn, "footprint", None) is not None:
+        raise ValueError(
+            f"{label} declares footprint={getattr(conn, 'footprint')!r}; "
+            "the conductance (adex) route has no footprint-rule consumer "
+            "(deterministic retinotopic pairs are refused there: only None "
+            "is admitted) — leave footprint undeclared there"
         )
     if conn.allow_self is True and conn.conduction_velocity_m_per_s is not None:
         raise ValueError(
@@ -2670,6 +2670,43 @@ def neuronal_tensor_to_configuration(
     if not tensor.areas:
         raise ValueError("NeuronalTensor must declare at least one area to bridge")
     _refuse_mixed_pose_specification(tensor)
+    if not _skip_emitter_resolution:
+        # The current-based (izhikevich) bridge is the only non-skip caller:
+        # the lif bridge and the adex harvest pass _skip_emitter_resolution
+        # (lif executes both keys; the harvest tensor carries no connections).
+        for _area in tensor.areas:
+            for _conn in list(_area.inter_connections):
+                _lbl = _connection_label(_conn, _area.name, _area.name)
+                if getattr(_conn, "weight_sharing", None) is not None:
+                    raise ValueError(
+                        f"{_lbl} declares weight_sharing={getattr(_conn, 'weight_sharing')!r}; "
+                        "the current-based (izhikevich) route has no shared-weight consumer "
+                        "(only None is admitted) — weight sharing executes on the lif "
+                        "route only; leave weight_sharing undeclared there"
+                    )
+                if getattr(_conn, "local_inhibition", None) is not None:
+                    raise ValueError(
+                        f"{_lbl} declares local_inhibition={getattr(_conn, 'local_inhibition')!r}; "
+                        "the current-based (izhikevich) route has no intra-step fixed-point "
+                        "consumer (only None is admitted) — local inhibition executes on "
+                        "the lif route only; leave local_inhibition undeclared there"
+                    )
+        for _conn in list(tensor.area_connections):
+            _lbl = _connection_label(_conn, _conn.source_area, _conn.target_area)
+            if getattr(_conn, "weight_sharing", None) is not None:
+                raise ValueError(
+                    f"{_lbl} declares weight_sharing={getattr(_conn, 'weight_sharing')!r}; "
+                    "the current-based (izhikevich) route has no shared-weight consumer "
+                    "(only None is admitted) — weight sharing executes on the lif "
+                    "route only; leave weight_sharing undeclared there"
+                )
+            if getattr(_conn, "local_inhibition", None) is not None:
+                raise ValueError(
+                    f"{_lbl} declares local_inhibition={getattr(_conn, 'local_inhibition')!r}; "
+                    "the current-based (izhikevich) route has no intra-step fixed-point "
+                    "consumer (only None is admitted) — local inhibition executes on "
+                    "the lif route only; leave local_inhibition undeclared there"
+                )
 
     if _skip_emitter_resolution:
         family = emitter

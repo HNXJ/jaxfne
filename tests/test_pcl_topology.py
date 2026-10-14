@@ -465,24 +465,30 @@ def _construct(tensor, emitter="izhikevich"):
 
 def test_tensor_footprint_reaches_the_compiled_rule():
     tensor = _tensor(footprint={"size": [10.0, 10.0], "offset": [-5.0, -5.0]},
-                     weight_sharing="patch", allow_self=True)
+                     allow_self=True)
     model = _construct(tensor)
     rules = model.cfg.metadata["circuit"]["connections"]
     assert rules[0]["footprint"] == {"size": [10.0, 10.0], "offset": [-5.0, -5.0]}
-    assert rules[0]["weight_sharing"] == "patch"
     assert rules[0]["probability"] is None
     rows = model.neuron_table()
     ids = [int(r["neuron_id"]) for r in rows]
-    xy = np.array([(float(r["x"]), float(r["y"])) for r in rows])
-    want, groups = footprint_pairs(ids, xy, ids, xy, {"size": [10.0, 10.0],
-                                                       "offset": [-5.0, -5.0]})
+    xy = {int(r["neuron_id"]): (float(r["x"]), float(r["y"])) for r in rows}
+    # Hand-built window expectation (not footprint_pairs itself): a pair
+    # (pre, post) is selected iff the pre position falls in the rectangle
+    # [post + offset, post + offset + size) (allow_self=True keeps diagonals).
+    sx, sy = 10.0, 10.0
+    ox, oy = -5.0, -5.0
+    want = {
+        (a, b)
+        for a in ids for b in ids
+        if 0.0 <= xy[a][0] - (xy[b][0] + ox) < sx
+        and 0.0 <= xy[a][1] - (xy[b][1] + oy) < sy
+    }
+    assert len(want) > 0, "fixture must select at least one footprint pair"
     edges = model.params["edge_list"]
-    got = [(int(a), int(b)) for a, b in zip(np.asarray(edges.pre),
-                                            np.asarray(edges.post))]
+    got = {(int(a), int(b)) for a, b in zip(np.asarray(edges.pre),
+                                            np.asarray(edges.post))}
     assert got == want
-    # Per-edge sharing groups live on the compiler's connection-table row
-    # (pinned by test_compiler_footprint_rule_with_sharing_groups above);
-    # the model receipt carries the declaration (footprint + mode).
 
 
 def test_undeclared_footprint_writes_no_rule_key():
@@ -578,17 +584,156 @@ def test_local_inhibition_reaches_the_compiled_row_and_lif_receipt():
         "rule": "V1.L4.E->V1.L4.E", "rounds": 2, "order": "descending"}]
 
 
-def test_local_inhibition_refused_on_adex_and_unexecuted_on_lif():
+def _adex_tensor(**conn_kwargs):
+    conn = nt.InterConnection(
+        source_layer="L4", source_neuron_type="E",
+        target_layer="L4", target_neuron_type="E",
+        mechanism="AMPA",
+        static=nt.StaticParams(
+            dT_ms=5.0, reversal_potentials_mV={"AMPA": 0.0}),
+        delay_ms=1.0, **conn_kwargs)
+    return nt.NeuronalTensor(
+        name="pcl-topology-adex",
+        areas=[nt.Area(
+            name="V1",
+            layers=[nt.Layer(name="L4", n_neurons=4,
+                             neuron_types=[_nt("E", emitter="adex")])],
+            inter_connections=[conn])])
+
+
+def _sharing_tensor(**conn_kwargs):
+    return _tensor(
+        footprint={"size": [10.0, 10.0], "offset": [-5.0, -5.0]},
+        weight_sharing="patch", allow_self=True, **conn_kwargs)
+
+
+def test_weight_sharing_refused_on_the_izhikevich_and_default_routes():
+    tensor = _sharing_tensor()
+    with pytest.raises(ValueError, match="weight_sharing"):
+        _construct(tensor, emitter="izhikevich")
+    with pytest.raises(ValueError, match="weight_sharing"):
+        jtfne.construct(tensor, nt.RuntimeConfiguration(
+            seed=0, duration_ms=DUR_MS, dt_ms=DT_MS))
+
+
+def test_weight_sharing_refused_on_the_adex_route():
+    tensor = _adex_tensor(
+        footprint={"size": [10.0, 10.0]}, weight_sharing="patch")
+    with pytest.raises(ValueError, match="weight_sharing"):
+        _construct(tensor, emitter="adex")
+
+
+def _sign_only_column():
+    cfg = (
+        jtfne.Configuration()
+        .runtime(seed=1, dtype="float32", duration_ms=20.0, dt_ms=0.5)
+        .column(name="c", layers=["L4"], n=20).cell_types({"E": 1.0})
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes"])
+        .field(domain="laminar_column", conductivity="proxy",
+               boundary="mean_zero_neumann")
+    )
+    return cfg
+
+
+def test_weight_sharing_refused_on_the_sign_only_fallback():
+    cfg = _sign_only_column().connections(
+        name="rec", source={}, target={}, weight=0.03,
+        footprint={"size": [10.0, 10.0]}, weight_sharing="patch")
+    with pytest.raises(ValueError, match="weight_sharing"):
+        jtfne.construct(cfg)
+
+
+def test_weight_sharing_refused_on_the_default_simulate_path():
+    mech = dict(name="ampa", kind="exponential",
+                params={"tau_ms": 2.0, "receptor": "AMPA"})
+    cfg = _sign_only_column().mechanisms(**mech).connections(
+        name="rec", source={}, target={}, mechanism="ampa", weight=0.03,
+        footprint={"size": [10.0, 10.0]}, weight_sharing="patch")
+    model = jtfne.construct(cfg)
+    with pytest.raises(ValueError, match="weight_sharing"):
+        model.simulate(jtfne.Simulation(duration_ms=20.0, dt_ms=0.5))
+
+
+def test_local_inhibition_refused_on_adex_izhikevich_and_default():
     tensor = _tensor(local_inhibition={"rounds": 2})
     with pytest.raises(ValueError, match="local_inhibition"):
         _construct(tensor, emitter="adex")
-    model = _construct(tensor, emitter="lif")
     with pytest.raises(ValueError, match="local_inhibition"):
-        jtfne.simulate(model)
+        _construct(tensor, emitter="izhikevich")
+    with pytest.raises(ValueError, match="local_inhibition"):
+        jtfne.construct(tensor, nt.RuntimeConfiguration(
+            seed=0, duration_ms=DUR_MS, dt_ms=DT_MS))
 
 
-def test_local_inhibition_delay_zero_refused_as_inside_step():
+def test_local_inhibition_refused_on_the_adex_route():
+    tensor = _adex_tensor(local_inhibition={"rounds": 2})
+    with pytest.raises(ValueError, match="local_inhibition"):
+        _construct(tensor, emitter="adex")
+
+
+def test_local_inhibition_refused_on_the_sign_only_fallback():
+    from jaxfne.connectivity import with_rule_local_inhibition
+
+    cfg = with_rule_local_inhibition(
+        _sign_only_column().connections(
+            name="rec", source={}, target={}, weight=0.03),
+        "rec", {"rounds": 2, "order": "ascending"})
+    with pytest.raises(ValueError, match="local_inhibition"):
+        jtfne.construct(cfg)
+
+
+def test_local_inhibition_refused_on_the_default_simulate_path():
+    from jaxfne.connectivity import with_rule_local_inhibition
+
+    mech = dict(name="ampa", kind="exponential",
+                params={"tau_ms": 2.0, "receptor": "AMPA"})
+    cfg = with_rule_local_inhibition(
+        _sign_only_column().mechanisms(**mech).connections(
+            name="rec", source={}, target={}, mechanism="ampa",
+            weight=0.03),
+        "rec", {"rounds": 2, "order": "ascending"})
+    model = jtfne.construct(cfg)
+    with pytest.raises(ValueError, match="local_inhibition"):
+        model.simulate(jtfne.Simulation(duration_ms=20.0, dt_ms=0.5))
+
+
+def test_local_inhibition_delay_zero_runs_inside_the_step():
     tensor = _tensor(delay_ms=0.0, local_inhibition={"rounds": 2})
     model = _construct(tensor, emitter="lif")
-    with pytest.raises(ValueError, match="inside the step"):
-        jtfne.simulate(model)
+    signals = model.simulate(jtfne.Simulation(
+        duration_ms=DUR_MS, dt_ms=DT_MS, seed=1,
+        runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")))
+    assert signals.metadata["local_inhibition"] == {
+        "rounds": 2, "order": "ascending"}
+    assert int(signals.metadata["n_floored_to_one_step"]) > 0
+    assert bool(np.isfinite(np.asarray(signals.V_m)).all())
+
+
+def _two_inhibition_tensor(spec0, spec1):
+    def _conn(layer, spec):
+        return nt.InterConnection(
+            source_layer=layer, source_neuron_type="E",
+            target_layer=layer, target_neuron_type="E",
+            mechanism="AMPA", static=_ampa_static(),
+            local_inhibition=spec)
+    return nt.NeuronalTensor(
+        name="pcl-topology-two",
+        areas=[nt.Area(
+            name="V1",
+            layers=[nt.Layer(name="L4", n_neurons=4,
+                             neuron_types=[_nt("E")]),
+                    nt.Layer(name="L23", n_neurons=4,
+                             neuron_types=[_nt("E")])],
+            inter_connections=[
+                _conn("L4", spec0), _conn("L23", spec1)])])
+
+
+def test_distinct_local_inhibition_specs_refused_on_lif():
+    tensor = _two_inhibition_tensor(
+        {"rounds": 1}, {"rounds": 2, "order": "descending"})
+    with pytest.raises(ValueError, match="local_inhibition"):
+        _construct(tensor, emitter="lif")
+    same = _two_inhibition_tensor({"rounds": 2}, {"rounds": 2})
+    model = _construct(same, emitter="lif")
+    assert len(model.static["lif"]["local_inhibition"]) == 2

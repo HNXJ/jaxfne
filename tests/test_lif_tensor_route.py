@@ -364,3 +364,100 @@ def test_lif_refuses_foreign_hdp_params_without_a_rule():
         _lif_sim(model=_lif_model(), runtime=jtfne.RuntimeConfig(
             recurrent_backend="edge_list", enable_hdp=False,
             hdp_params={"noise_scale": 3.0}))
+
+
+def _sharing_tensor():
+    conn = nt.InterConnection(
+        source_layer="L4", source_neuron_type="E",
+        target_layer="L4", target_neuron_type="E",
+        mechanism="AMPA", static=nt.StaticParams(dT_ms=5.0),
+        footprint={"size": [10.0, 10.0], "offset": [-5.0, -5.0]},
+        weight_sharing="patch", allow_self=True,
+    )
+    return nt.NeuronalTensor(
+        name="lif-sharing",
+        areas=[nt.Area(
+            name="V1",
+            layers=[nt.Layer(name="L4", n_neurons=6,
+                             neuron_types=[_nt("E")])],
+            inter_connections=[conn])],
+    )
+
+
+def test_lif_weight_sharing_runs_one_weight_per_group():
+    """Shared edges carry one executed weight before and after an HDP run."""
+    from jaxfne._construct_lif import lif_edge_arrays
+
+    model = _lif_model(_sharing_tensor())
+    edges = lif_edge_arrays(model)
+    assert bool(edges["weight_sharing"]) is True
+    group = np.asarray(edges["group"])
+    w_init = np.asarray(edges["weight"], dtype=float)
+    members = np.flatnonzero(group == group[0])
+    assert members.shape[0] >= 2, "fixture needs a shared pair"
+    assert np.all(w_init[members] == w_init[members[0]])
+    n_edges = int(group.shape[0])
+    signals = _lif_sim(
+        model, seed=1,
+        poisson_drive={"rate_hz": 50.0, "amplitude": 100.0},
+        runtime=_lif_hdp_runtime(_pcl_rule_params(n_edges, eta=0.5)))
+    spikes = np.asarray(signals.spikes)
+    assert int(spikes.sum()) > 0, "fixture must spike"
+    w_final = np.asarray(
+        model.last_hdp_diagnostics()["w_final"], dtype=float)
+    assert np.all(w_final[members] == w_final[members[0]])
+    assert bool((w_final[members] != w_init[members]).any())
+    # Non-vacuous: a member pair with differing presynaptic trains, so
+    # per-edge STDP updates differ and only the shared accumulation keeps
+    # the pair equal.
+    pre = np.asarray(edges["pre"])
+    pair = next(
+        ((a, b) for x, a in enumerate(members) for b in members[x + 1:]
+         if bool((spikes[:, pre[a]] != spikes[:, pre[b]]).any())),
+        None)
+    assert pair is not None, "fixture needs a pair with differing drive"
+    assert signals.metadata["weight_sharing"] == "patch"
+    assert signals.metadata["n_sharing_groups"] == int(group.max()) + 1
+
+
+def _inhibition_tensor(spec):
+    conn = nt.InterConnection(
+        source_layer="L4", source_neuron_type="E",
+        target_layer="L4", target_neuron_type="E",
+        mechanism="AMPA", static=nt.StaticParams(dT_ms=5.0),
+        local_inhibition=spec,
+    )
+    return nt.NeuronalTensor(
+        name="lif-inhibition",
+        areas=[nt.Area(
+            name="V1",
+            layers=[nt.Layer(name="L4", n_neurons=6,
+                             neuron_types=[_nt("E"), _nt("PV")])],
+            inter_connections=[conn])],
+    )
+
+
+def _driven_spikes(tensor, **kwargs):
+    return np.asarray(_lif_sim(
+        model=_lif_model(tensor), seed=1,
+        poisson_drive={"rate_hz": 50.0, "amplitude": 100.0},
+        **kwargs).spikes)
+
+
+def test_lif_local_inhibition_changes_spikes():
+    """The declared cap runs inside the step: capped spikes differ."""
+    plain = _driven_spikes(_tensor())
+    assert int(plain.sum()) > 0, "fixture must spike"
+    capped = _driven_spikes(_inhibition_tensor({"rounds": 1}))
+    assert int(capped.sum(axis=1).max()) <= 1
+    assert not np.array_equal(capped, plain)
+
+
+def test_lif_local_inhibition_rounds_and_order_matter():
+    """R and the round order select different winners: spikes differ."""
+    asc = _driven_spikes(_inhibition_tensor({"rounds": 1}))
+    desc = _driven_spikes(
+        _inhibition_tensor({"rounds": 1, "order": "descending"}))
+    assert not np.array_equal(asc, desc), "order must select winners"
+    wider = _driven_spikes(_inhibition_tensor({"rounds": 2}))
+    assert not np.array_equal(asc, wider), "R must admit more winners"
