@@ -376,6 +376,10 @@ from .hdp_rule import (
     HDPRuleUpdate,
     register_hdp_rule,
 )
+# Lane 7 (G3/G8): AdEx registered-HDP entry and model-aware field positions
+# (ADVANCED tier: root attrs, not __all__).
+from .emitters_adex import simulate_adex_hdp_registered
+from .fields.proxy import project_model_sources
 from .analysis.spectral import (
     spectrolaminar_psd_jax,
     bandpower_jax,
