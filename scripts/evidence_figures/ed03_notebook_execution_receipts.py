@@ -222,7 +222,6 @@ def _portable_kernel_context():
 def _execute_notebook_smoke(nb_path: Path, *, timeout_s: int = 300) -> dict[str, Any]:
     """Execute notebook with nbclient; return execution receipt fields."""
     nbformat = __import__("nbformat")
-    nbclient = __import__("nbclient")
     from nbclient import NotebookClient
 
     nb = nbformat.read(str(nb_path), as_version=4)

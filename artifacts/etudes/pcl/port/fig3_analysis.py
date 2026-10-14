@@ -203,7 +203,6 @@ def _ori_curve(flat, o_star, f_star):
     ``flat`` is scored-fold totals reshaped to [(ori, sf) 144, cell];
     orientation wraps circularly (8 steps of ~22.5 deg, so d=4 is 90 deg).
     """
-    n_cells = flat.shape[1]
     d = np.arange(N_ORI)[:, None]
     idx = ((o_star[None, :] + d) % N_ORI) * N_SF + f_star[None, :]
     return np.take_along_axis(flat, idx, axis=0).mean(axis=1)

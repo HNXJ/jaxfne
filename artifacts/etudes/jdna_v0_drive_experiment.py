@@ -234,7 +234,6 @@ def run_experiment():
         record_sources=True,
         record_fields=False,
     )
-    n_steps = sim_spec.n_steps
     dt_ms = sim_spec.dt_ms
     amplitude_scale = 5.0  # native Izhikevich current units
 

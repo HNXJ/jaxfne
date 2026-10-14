@@ -142,17 +142,17 @@ def run_benchmark_case(case: BenchmarkCase) -> BenchmarkResult:
 
     # Phase 5: Probing/readout
     t0 = time.time()
-    readout = model.probe(signals, modes=["spikes", "V_m", "CSD", "LFP"])
+    model.probe(signals, modes=["spikes", "V_m", "CSD", "LFP"])
     timings.append({"phase": "probe_readout", "elapsed_ms": float((time.time() - t0) * 1000.0)})
 
     # Phase 6: Objective evaluation
     t0 = time.time()
-    report = model.evaluate(signals, objective="smoke")
+    model.evaluate(signals, objective="smoke")
     timings.append({"phase": "evaluate_objective", "elapsed_ms": float((time.time() - t0) * 1000.0)})
 
     # Phase 7: Manifest/receipt generation
     t0 = time.time()
-    manifest = model.manifest(signals)
+    model.manifest(signals)
     timings.append({"phase": "manifest_generation", "elapsed_ms": float((time.time() - t0) * 1000.0)})
 
     total_elapsed_ms = (time.time() - total_start) * 1000.0

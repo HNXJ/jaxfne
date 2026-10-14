@@ -324,8 +324,6 @@ class Parser:
         if self.cur().kind != "IDENT":
             return None
         # peek ahead to see if after Ident chain we have MINUS or STAR
-        # Save pos, try to parse TargetRef
-        start = self.pos
         # parse area
         area = self.expect_ident()
         layer = None
@@ -1191,7 +1189,6 @@ def desugar_file(text: str, registry: Optional[Dict[str,Any]]=None):
             # handle compose? For now, if compose_with present, we just record but not merge at genome level (tensor level)
             # The use "as" rename
             final_name = stmt.as_name or f"{stmt.base}_tweaked"
-            tweaked_typed = tweaked  # already PseudoGenome, need to rename
             from jaxfne.jdna.genome import PseudoGenome
             # recreate with new name
             renamed = PseudoGenome(name=final_name, description=tweaked.description, development_parameters=dict(tweaked.development_parameters), areas=tweaked.areas, area_connections=tweaked.area_connections)
@@ -1211,7 +1208,6 @@ def desugar_file(text: str, registry: Optional[Dict[str,Any]]=None):
                             pass
                 # pose arity check
                 if stmt.poses is not None:
-                    total_areas = sum(len(reg[n].areas) for n in [stmt.base] + stmt.compose_with if n in reg)
                     # But reg[final_name] is tweaked version of base, not base itself; use final_name count + others
                     # Count areas in tweaked + compose targets
                     t_areas = len(renamed.areas)

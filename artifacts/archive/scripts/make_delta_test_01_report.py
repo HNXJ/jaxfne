@@ -142,7 +142,7 @@ def _repo_sha() -> str:
 
 
 def _image_size(path: Path) -> tuple[int, int]:
-    Image = _require("PIL.Image", "pillow")  # noqa: N806
+    _require("PIL.Image", "pillow")
     from PIL import Image as PILImage
 
     with PILImage.open(path) as im:

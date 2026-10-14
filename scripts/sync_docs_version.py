@@ -34,7 +34,6 @@ def sync_mkdocs_version(version: str):
     if extra_match:
         # Check if 'jaxfne_version:' exists under 'extra:'
         # We look for jaxfne_version under extra, indented by spaces
-        version_pattern = r"(?<=extra:\n)((\s+.*\n)*?)(\s+jaxfne_version:\s*\"[^\"]*\")(.*)"
         # But simpler: let's match any jaxfne_version under extra
         # Let's check if jaxfne_version exists anywhere
         if re.search(r"^\s+jaxfne_version:", content, re.MULTILINE):

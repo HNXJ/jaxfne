@@ -133,7 +133,6 @@ def extract_neuron_metadata(
     """
     n_neurons = len(LAYERS) * n_per_layer
     spikes = np.asarray(signals.spikes)
-    dt_ms = float(DURATION_MS / spikes.shape[0])
 
     neuron_ids = []
     layers = []

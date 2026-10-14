@@ -111,9 +111,6 @@ def compute_firing_rates_hz(spikes_array, duration_ms, baseline_drive_by_cell_ty
     Returns:
         rates_hz: shape (n_neurons,), firing rate in Hz (spike-derived, no post-hoc floor)
     """
-    n_steps = spikes_array.shape[0]
-    n_neurons = spikes_array.shape[1]
-
     # Count spikes per neuron (observed, ground truth)
     spike_counts = np.sum(spikes_array > 0.5, axis=0)  # (n_neurons,)
 
