@@ -55,11 +55,26 @@ prereg's verdict stays on record unchanged. Everything here is post hoc, and res
 - the claim: "reproduced after calibration of [θ ∈ D] (post hoc), held-out seeds 4–8" or
   "needs X: [form], |a| = …".
 
+## Engine: jaxfne core only
+
+Hamm (2026-10-13): every replication runs on jaxfne's core and grammar
+(`CircuitSpec`/`Configuration -> construct -> Model -> simulate -> Signals`, registered emitters,
+HDP rules, probes, `jaxfne.optim`). z is always the core model's output.
+
+- A mechanism the paper needs and the core lacks (an emitter, a synapse family, a plasticity
+  rule, a probe) is added to `jaxfne/` as a core component: its own module, registered through
+  the existing registries, with unit tests and refusal of unconsumed parameters (P-014, P-015).
+  An étude-local simulation kernel is never the scored engine.
+- A transcription of the authors' algorithm (event-exact, numba, C++ order) is an **oracle**:
+  it checks the core model (agreement gates), and its numbers are never reported as z.
+- A residual X(x) from the steps above is written as a core component too, so a finding of the
+  form "needs X" names a jaxfne object.
+
 ## Runs
 
 - WSL Linux, JAX on CUDA: `~/venv_jaxfne` (jax with CudaDevice; optax installed 2026-10-13),
   float32 unless a test needs x64.
-- One GPU: wrap every GPU job as `flock /tmp/jaxfne_gpu.lock <command>`. CPU-only engines (the PCL
-  numba port) run in WSL without the lock.
+- One GPU: wrap every GPU job as `flock /tmp/jaxfne_gpu.lock <command>`. CPU oracles (the PCL numba
+  port) run in WSL without the lock.
 - Every run's manifest records code SHA, backend, dtype and seeds.
 - Never run the authors' code; read it as data.
