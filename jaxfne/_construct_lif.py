@@ -226,6 +226,35 @@ def construct_lif_tensor_model(
         ),
         "label_sign": {lab: float(LIF_LABEL_SIGN.get(lab, 1.0)) for lab in sorted(set(labels))},
     }
+    declared_inhibition = []
+    for area in tensor.areas:
+        for ic in area.inter_connections:
+            spec = getattr(ic, "local_inhibition", None)
+            if spec is not None:
+                declared_inhibition.append({
+                    "rule": (
+                        f"{area.name}.{ic.source_layer}.{ic.source_neuron_type}"
+                        f"->{area.name}.{ic.target_layer}.{ic.target_neuron_type}"
+                    ),
+                    "rounds": int(spec["rounds"]),
+                    "order": str(spec["order"]),
+                })
+    for ac in tensor.area_connections:
+        spec = getattr(ac, "local_inhibition", None)
+        if spec is not None:
+            declared_inhibition.append({
+                "rule": (
+                    f"{ac.source_area}.{ac.source_layer}.{ac.source_neuron_type}"
+                    f"->{ac.target_area}.{ac.target_layer}.{ac.target_neuron_type}"
+                ),
+                "rounds": int(spec["rounds"]),
+                "order": str(spec["order"]),
+            })
+    if declared_inhibition:
+        # Recorded (and echoed onto the connection table by the compiler, so
+        # it rides the manifest); execution refuses it until the kernel runs
+        # the intra-step fixed point (fail-closed, never silent).
+        new_static["lif"]["local_inhibition"] = declared_inhibition
     model = replace(model, static=new_static)
 
     h_sum: dict[tuple[str, str, str], float] = {}
@@ -320,3 +349,25 @@ def refuse_lif_simulation(sim: "Any", runtime_cfg: "Any") -> None:
             "emitter family 'lif': edges live only in params['edge_list'] "
             "(the dense kernel would drop them); use 'edge_list'"
         )
+    if bool(runtime_cfg.resolve_vmap(1)):
+        raise ValueError(
+            f"RuntimeConfig(vmap={runtime_cfg.vmap!r}) is not realized for emitter "
+            "family 'lif': single-trial simulate() runs one trial with no batch "
+            "to vectorize; leave vmap False"
+        )
+    if not bool(getattr(runtime_cfg, "enable_hdp", False)):
+        from ._runtime_config import RuntimeConfig
+
+        null_keys = frozenset(RuntimeConfig().hdp_params)
+        foreign = sorted(
+            set(dict(getattr(runtime_cfg, "hdp_params", None) or {})) - null_keys,
+            key=repr,
+        )
+        if foreign:
+            raise ValueError(
+                f"hdp_params keys {foreign} are not consumed on emitter family 'lif' "
+                "without enable_hdp: the lif kernel runs no noise stream without a "
+                "registered rule (only the default null-control gains are admitted "
+                "there); pass enable_hdp=True with hdp_params={'hdp_rule': ...} "
+                "or leave hdp_params at its default"
+            )

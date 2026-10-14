@@ -267,6 +267,23 @@ def test_local_inhibition_matches_oracle_complex_rows():
     np.testing.assert_allclose(out["v_next"], [c.V for c in cells], rtol=1e-12)
 
 
+def test_local_inhibition_order_change_alters_winners():
+    kw = dict(
+        v=np.array([28.0, 28.0]), adapt=np.zeros(2),
+        t_last=np.zeros(2), t_spike=np.zeros(2), t_now=1000.0,
+        thr=30.0, inputs=np.array([5.0, 5.0]), inhib=np.zeros((2, 2)),
+        tau_m=18000.0, tau_adapt=100000.0, delta_adapt=0.0,
+        delta_rp=10.0, tau_rp=5000.0, v_reset=-10.0,
+        neg_limit=-20.0, adaptive=True, rounds=1,
+    )
+    asc = resolve_local_inhibition(**kw, order="ascending")
+    desc = resolve_local_inhibition(**kw, order="descending")
+    assert asc["winners"].tolist() == [True, False]
+    assert desc["winners"].tolist() == [False, True]
+    with pytest.raises(ValueError, match="order"):
+        resolve_local_inhibition(**kw, order="sideways")
+
+
 def test_local_inhibition_rounds_limit_winners_in_depth_order():
     out = resolve_local_inhibition(
         v=np.array([28.0, 28.0, 28.0]), adapt=np.zeros(3),
@@ -516,3 +533,62 @@ def test_footprint_refused_on_the_adex_route():
                 footprint={"size": [10.0, 10.0]})])])
     with pytest.raises(ValueError, match="footprint"):
         _construct(tensor, emitter="adex")
+
+
+# B3 declaration: R and the round order are part of A (Hamm 2026-10-14).
+def test_local_inhibition_declaration_validates_and_normalizes():
+    from jaxfne.pcl_topology import validate_local_inhibition
+
+    assert validate_local_inhibition(None, label="probe") is None
+    assert validate_local_inhibition({"rounds": 2}, label="probe") == {
+        "rounds": 2, "order": "ascending"}
+    assert validate_local_inhibition(
+        {"rounds": 3, "order": "descending"}, label="probe") == {
+        "rounds": 3, "order": "descending"}
+    for bad in [0, -1, True, 1.5, "2", None]:
+        with pytest.raises(ValueError, match="rounds"):
+            validate_local_inhibition({"rounds": bad}, label="probe")
+    with pytest.raises(ValueError, match="order"):
+        validate_local_inhibition({"rounds": 2, "order": "depth"}, label="probe")
+    with pytest.raises(ValueError, match="unknown keys"):
+        validate_local_inhibition({"rounds": 2, "R": 2}, label="probe")
+    with pytest.raises(ValueError, match="rounds"):
+        validate_local_inhibition({"order": "ascending"}, label="probe")
+    with pytest.raises(ValueError, match="local_inhibition"):
+        _tensor(local_inhibition={"rounds": 0})
+
+
+def test_undeclared_local_inhibition_writes_no_keys():
+    model = _construct(_tensor())
+    assert "local_inhibition" not in model.cfg.metadata["circuit"]["connections"][0]
+    d = _tensor().to_dict()
+    assert "local_inhibition" not in d["areas"][0]["inter_connections"][0]
+
+
+def test_local_inhibition_reaches_the_compiled_row_and_lif_receipt():
+    tensor = _tensor(local_inhibition={"rounds": 2, "order": "descending"})
+    d = tensor.to_dict()
+    assert d["areas"][0]["inter_connections"][0]["local_inhibition"] == {
+        "rounds": 2, "order": "descending"}
+    model = _construct(tensor, emitter="lif")
+    rules = model.cfg.metadata["circuit"]["connections"]
+    assert rules[0]["local_inhibition"] == {"rounds": 2, "order": "descending"}
+    receipt = model.static["lif"]["local_inhibition"]
+    assert receipt == [{
+        "rule": "V1.L4.E->V1.L4.E", "rounds": 2, "order": "descending"}]
+
+
+def test_local_inhibition_refused_on_adex_and_unexecuted_on_lif():
+    tensor = _tensor(local_inhibition={"rounds": 2})
+    with pytest.raises(ValueError, match="local_inhibition"):
+        _construct(tensor, emitter="adex")
+    model = _construct(tensor, emitter="lif")
+    with pytest.raises(ValueError, match="local_inhibition"):
+        jtfne.simulate(model)
+
+
+def test_local_inhibition_delay_zero_refused_as_inside_step():
+    tensor = _tensor(delay_ms=0.0, local_inhibition={"rounds": 2})
+    model = _construct(tensor, emitter="lif")
+    with pytest.raises(ValueError, match="inside the step"):
+        jtfne.simulate(model)

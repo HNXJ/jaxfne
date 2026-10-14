@@ -152,6 +152,15 @@ def test_declared_drive_is_the_executed_drive(emitter):
         assert bool((drives[[x == "PV" for x in labels]] == 3.0).all())
         signals = _simulate(model, emitter)
         assert bool(np.isfinite(np.asarray(signals.V_m)).all())
+        idle = _simulate(
+            _construct(
+                _single_area_tensor([_nt("E"), _nt("PV")], [_ee_conn()]),
+                emitter=emitter),
+            emitter)
+        assert bool(np.isfinite(np.asarray(idle.V_m)).all())
+        assert float(np.max(np.abs(
+            np.asarray(signals.V_m, dtype=float)
+            - np.asarray(idle.V_m, dtype=float)))) > 0.0
 
 
 @pytest.mark.parametrize("emitter", ROUTABLE)
@@ -224,8 +233,9 @@ def test_single_self_exciting_neuron_is_a_model(emitter):
 def test_same_declaration_same_seed_same_signals(emitter):
     """(h, y) = f(x, h'): one declaration plus one seed gives one trajectory."""
     tensor = _single_area_tensor([_nt("E"), _nt("PV")], [_ee_conn()], name="hyx-det")
-    first = _simulate(_construct(tensor, emitter=emitter), emitter)
-    second = _simulate(_construct(tensor, emitter=emitter), emitter)
+    first = _drive_simulate(_construct(tensor, emitter=emitter), emitter)
+    second = _drive_simulate(_construct(tensor, emitter=emitter), emitter)
+    assert int(np.sum(np.asarray(first.spikes))) > 0, "fixture must spike"
     assert np.array_equal(np.asarray(first.spikes), np.asarray(second.spikes))
     assert bool(np.isfinite(np.asarray(first.V_m)).all())
     assert np.asarray(first.spikes).shape == np.asarray(second.spikes).shape

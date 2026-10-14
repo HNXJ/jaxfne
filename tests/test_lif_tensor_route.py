@@ -331,3 +331,36 @@ def test_lif_has_no_configuration_route():
             seed=0, duration_ms=DUR_MS, dt_ms=DT_MS, emitter="glif"))
     with pytest.raises(ValueError, match="n_contacts"):
         jtfne.construct(_tensor(), _lif_runtime(n_contacts=8))
+
+
+def test_lif_simulate_honours_jit_and_backend():
+    """jit=True compiles (bit-identical to eager); backend=cpu runs scoped."""
+    model = _lif_model()
+    eager = _lif_sim(model)
+    compiled = _lif_sim(
+        model, runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list", jit=True))
+    assert np.array_equal(
+        np.asarray(compiled.spikes), np.asarray(eager.spikes))
+    assert np.array_equal(np.asarray(compiled.V_m), np.asarray(eager.V_m))
+    assert any(
+        key[0] == "simulate_lif" for key in model._compiled_cache
+    ), "jit=True must compile the lif kernel through the shared guard"
+    scoped = _lif_sim(
+        model, runtime=jtfne.RuntimeConfig(
+            recurrent_backend="edge_list", backend="cpu"))
+    assert np.array_equal(np.asarray(scoped.spikes), np.asarray(eager.spikes))
+
+
+def test_lif_simulate_refuses_vmap():
+    """Single-trial simulate() has no batch to vectorize: vmap refused."""
+    with pytest.raises(ValueError, match="vmap"):
+        _lif_sim(model=_lif_model(), runtime=jtfne.RuntimeConfig(
+            recurrent_backend="edge_list", vmap=True))
+
+
+def test_lif_refuses_foreign_hdp_params_without_a_rule():
+    """noise_scale with enable_hdp=False is refused by name (no noise stream)."""
+    with pytest.raises(ValueError, match="noise_scale"):
+        _lif_sim(model=_lif_model(), runtime=jtfne.RuntimeConfig(
+            recurrent_backend="edge_list", enable_hdp=False,
+            hdp_params={"noise_scale": 3.0}))

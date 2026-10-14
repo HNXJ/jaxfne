@@ -63,7 +63,7 @@ from .core import Configuration, Model, construct
 from ._config import check_n_contacts
 from .emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
 from .emitter_registry import check_emitter_params, is_registered_emitter
-from .pcl_topology import validate_footprint, validate_weight_sharing
+from .pcl_topology import validate_footprint, validate_local_inhibition, validate_weight_sharing
 from .presets import RECEPTOR_KINETICS
 
 ValueTag = Literal["calibrated", "calibrated_proxy", "relative"]
@@ -487,6 +487,11 @@ class InterConnection:
     # shares one plastic row per receiving-depth slot (the footprint rule's
     # co-located post slots); needs ``footprint`` (refused without it).
     weight_sharing: "str | None" = None
+    # Same-step local inhibition (None = undeclared = no intra-step fixed
+    # point). When set, ``{"rounds": R, "order": ...}`` declares the ruled B3
+    # form: R winners resolve per retinotopic position inside the step in the
+    # declared depth visit order; delay 0 means "resolved inside the step".
+    local_inhibition: "dict | None" = None
 
     def __post_init__(self) -> None:
         if self.delay_ms is not None:
@@ -537,6 +542,10 @@ class InterConnection:
         object.__setattr__(
             self, "weight_sharing",
             validate_weight_sharing(self.weight_sharing, label="InterConnection"),
+        )
+        object.__setattr__(
+            self, "local_inhibition",
+            validate_local_inhibition(self.local_inhibition, label="InterConnection"),
         )
         if self.footprint is not None and self.max_in_degree is not None:
             raise ValueError(
@@ -703,6 +712,9 @@ class AreaConnection:
     # Weight-sharing mode (None = undeclared = per-edge weights). Same
     # semantics as InterConnection.weight_sharing; needs ``footprint``.
     weight_sharing: "str | None" = None
+    # Same-step local inhibition (None = undeclared). Same semantics as
+    # InterConnection.local_inhibition: the ruled B3 intra-step fixed point.
+    local_inhibition: "dict | None" = None
 
     def __post_init__(self) -> None:
         import math as _math
@@ -773,6 +785,10 @@ class AreaConnection:
         object.__setattr__(
             self, "weight_sharing",
             validate_weight_sharing(self.weight_sharing, label="AreaConnection"),
+        )
+        object.__setattr__(
+            self, "local_inhibition",
+            validate_local_inhibition(self.local_inhibition, label="AreaConnection"),
         )
         if self.footprint is not None and self.probability is not None:
             raise ValueError(
@@ -926,6 +942,7 @@ _CONNECTION_DEFAULTS_056 = {
     "sampling": None,
     "footprint": None,
     "weight_sharing": None,
+    "local_inhibition": None,
 }
 
 
@@ -2171,6 +2188,16 @@ def _wire_connection(
         cfg = with_rule_allow_self_connections(
             cfg, rule_name, bool(getattr(conn, "allow_self"))
         )
+    if getattr(conn, "local_inhibition", None) is not None:
+        # Same idiom: Configuration.connections has no local_inhibition
+        # kwarg, so the declared intra-step fixed point (R and the round
+        # order, validated and normalized at declaration) is recorded on
+        # the named rule entry; the compiler echoes it onto the
+        # connection-table row so it rides the manifest.
+        from .connectivity import with_rule_local_inhibition
+
+        spec = getattr(conn, "local_inhibition")
+        cfg = with_rule_local_inhibition(cfg, rule_name, spec)
     return cfg
 
 
@@ -2231,6 +2258,12 @@ def _wire_adex_connection(
             f"{label} declares weight_sharing={getattr(conn, 'weight_sharing')!r}; "
             "the conductance (adex) route has no shared-weight consumer "
             "(only None is admitted) — leave weight_sharing undeclared there"
+        )
+    if getattr(conn, "local_inhibition", None) is not None:
+        raise ValueError(
+            f"{label} declares local_inhibition={getattr(conn, 'local_inhibition')!r}; "
+            "the conductance (adex) route has no intra-step fixed-point consumer "
+            "(only None is admitted) — leave local_inhibition undeclared there"
         )
     if conn.allow_self is True and conn.conduction_velocity_m_per_s is not None:
         raise ValueError(

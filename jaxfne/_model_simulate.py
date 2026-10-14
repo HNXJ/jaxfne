@@ -1521,6 +1521,35 @@ def _refuse_lif_inputs(
             "simulate(paradigm=...) is not realized for emitter family 'lif': the route has no "
             "paradigm-driven input current, so a paradigm would not drive the cells"
         )
+    declared = model.static.get("lif", {}).get("local_inhibition")
+    if declared:
+        from .emitters import resolve_edge_delay_steps
+
+        import numpy as _np
+
+        edges = model.params.get("edge_list")
+        raw = (
+            _np.asarray(resolve_edge_delay_steps(edges)).ravel()
+            if edges is not None
+            else _np.asarray([])
+        )
+        if bool((raw < 1).any()):
+            raise ValueError(
+                f"local_inhibition={declared!r} is declared on the tensor and "
+                "the compiled edges carry delay 0: delay 0 names resolution "
+                "inside the step (the ruled B3 intra-step fixed point), which "
+                "the 'lif' edge kernel cannot run (it floors 0-step edges to "
+                "the next-step ring); the run is refused rather than silently "
+                "late by one step"
+            )
+        raise ValueError(
+            f"local_inhibition={declared!r} is declared on the tensor but not "
+            "executed on emitter family 'lif': the ruled B3 intra-step fixed "
+            "point (R rounds in the declared order per position, delay 0 "
+            "resolved inside the step) has no kernel consumer yet; the edge "
+            "kernel would run the next-step ring instead, so the run is "
+            "refused rather than silently wrong"
+        )
     refuse_lif_simulation(sim, sim.resolved_runtime)
 
 
@@ -1623,18 +1652,67 @@ def _simulate_lif(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) ->
             "key": jax.random.PRNGKey(sim.seed),
         }
 
-    out = simulate_lif_edge(
-        emitter.to_lif_params(),
-        n_steps=sim.n_steps,
-        dt_ms=sim.dt_ms,
-        edge_pre=edges["pre"],
-        edge_post=edges["post"],
-        edge_weight=edges["weight"],
-        edge_delay_steps=edges["delay_steps"],
-        I_ext_pA=drive_2d,
-        record_v=True,
-        **hdp_kwargs,
-    )
+    lif_params = emitter.to_lif_params()
+    edge_pre = edges["pre"]
+    edge_post = edges["post"]
+    edge_weight = edges["weight"]
+    edge_delay_steps = edges["delay_steps"]
+    n_steps = sim.n_steps
+    dt_ms = sim.dt_ms
+
+    def _run_lif_kernel(drive_in, key_in):
+        kw = dict(hdp_kwargs)
+        if "key" in kw:
+            kw["key"] = key_in
+        return simulate_lif_edge(
+            lif_params,
+            n_steps=n_steps,
+            dt_ms=dt_ms,
+            edge_pre=edge_pre,
+            edge_post=edge_post,
+            edge_weight=edge_weight,
+            edge_delay_steps=edge_delay_steps,
+            I_ext_pA=drive_in,
+            record_v=True,
+            **kw,
+        )
+
+    # The route honours the shared execution policy: requested backends run
+    # inside _device_scope and an effective jit compiles the kernel (same
+    # resolve_jit/_device_scope pattern as the izhikevich edge route).
+    effective_jit = runtime_cfg.resolve_jit(sim.n_steps, n_neurons)
+    if effective_jit:
+        if not hasattr(self, "_compiled_cache"):
+            object.__setattr__(self, "_compiled_cache", {})
+        from .validation import make_recompilation_guard
+
+        n_edges = int(edge_pre.shape[0])
+        guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+        cache_key = (
+            "simulate_lif",
+            int(n_neurons),
+            int(sim.n_steps),
+            n_edges,
+            runtime_cfg.actual_dtype,
+            runtime_cfg.selected_backend,
+            hdp_rule_name,
+        )
+        with _device_scope(runtime_cfg.selected_backend):
+            if cache_key not in self._compiled_cache:
+                target_fn = make_recompilation_guard(
+                    _run_lif_kernel,
+                    name="simulate_lif",
+                    recompilation_guard=guard_mode,
+                    B=1,
+                    Z=n_edges,
+                    C=int(n_neurons),
+                    T=int(sim.n_steps),
+                )
+                self._compiled_cache[cache_key] = jax.jit(target_fn)
+            out = self._compiled_cache[cache_key](drive_2d, hdp_kwargs.get("key"))
+    else:
+        with _device_scope(runtime_cfg.selected_backend):
+            out = _run_lif_kernel(drive_2d, hdp_kwargs.get("key"))
     time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
     metadata: dict[str, Any] = {
         "config_hash": config_hash(self.cfg),

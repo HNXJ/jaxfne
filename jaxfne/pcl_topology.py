@@ -51,6 +51,52 @@ WEIGHT_SHARING_MODES = ("patch",)
 #: Keys a footprint declaration may carry. Anything else is refused.
 _FOOTPRINT_KEYS = ("size", "offset")
 
+#: Visit orders a local-inhibition declaration may name. ``"ascending"`` is
+#: the oracle's depth order (depths visited ascending, oracle:671-681);
+#: ``"descending"`` visits them in reverse. Anything else is refused by
+#: :func:`validate_local_inhibition`.
+LOCAL_INHIBITION_ORDERS = ("ascending", "descending")
+
+#: Keys a local-inhibition declaration may carry. Anything else is refused.
+_LOCAL_INHIBITION_KEYS = ("rounds", "order")
+
+
+def validate_local_inhibition(value: Mapping[str, Any] | None, *, label: str) -> dict | None:
+    """Validate a same-step local-inhibition declaration (fail-closed).
+
+    ``None`` passes through (undeclared = no intra-step fixed point). A
+    declared value must be a mapping with ``rounds`` (required: positive
+    integer winners resolved per retinotopic position per step, the ruled
+    ``R``) and ``order`` (optional, default ``"ascending"``: the depth visit
+    order the rounds resolve in). Returns the normalized spec.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, Mapping):
+        raise ValueError(
+            f"{label} local_inhibition must be a mapping with 'rounds' "
+            f"(and optional 'order'); got {value!r}"
+        )
+    unknown = [k for k in value if k not in _LOCAL_INHIBITION_KEYS]
+    if unknown:
+        raise ValueError(
+            f"{label} local_inhibition carries unknown keys {unknown!r}; "
+            f"expected a subset of {_LOCAL_INHIBITION_KEYS}"
+        )
+    if "rounds" not in value:
+        raise ValueError(
+            f"{label} local_inhibition needs 'rounds' (winners resolved per "
+            f"position per step); got {dict(value)!r}"
+        )
+    rounds = validate_rounds(value["rounds"], label=f"{label} local_inhibition")
+    order = value.get("order", "ascending")
+    if not isinstance(order, str) or order not in LOCAL_INHIBITION_ORDERS:
+        raise ValueError(
+            f"{label} local_inhibition order must be one of "
+            f"{list(LOCAL_INHIBITION_ORDERS)}; got {order!r}"
+        )
+    return {"rounds": rounds, "order": order}
+
 
 def pcl_grid_origins(patch: float, size: float, overlap: float, n: int) -> list[int]:
     """Origins of ``n`` cells along one grid axis (oracle:408-411).
@@ -257,6 +303,7 @@ def resolve_local_inhibition(
     neg_limit: float,
     adaptive: bool,
     rounds: int,
+    order: str = "ascending",
     label: str = "local_inhibition",
 ) -> dict[str, Any]:
     """Same-step local inhibition at one retinotopic position (B3).
@@ -267,18 +314,26 @@ def resolve_local_inhibition(
     (``M == 1`` for the simple feed; one row per incoming simple spike for
     the complex layer); ``inhib[d, k]`` is the weight from spiking depth
     ``k`` onto depth ``d`` with a zero diagonal. Per input, depths are
-    visited ascending: decay to ``t`` (``t`` rides ``t_last``... see below),
-    add the input minus refractory (and adaptation) terms, clamp at
-    ``neg_limit``; a depth strictly above ``thr`` spikes (reset to
-    ``v_reset``, adaptation increment when ``adaptive``) and immediately
-    inhibits the other depths (decay, subtract, clamp). At most ``rounds``
-    winners resolve; further crossings keep their excitation but neither
-    spike nor inhibit, and are counted as ``missed``.
+    visited in ``order`` (``"ascending"`` is the oracle's depth order,
+    oracle:671-681; ``"descending"`` visits them in reverse): decay to ``t``
+    (``t`` rides ``t_last``... see below), add the input minus refractory
+    (and adaptation) terms, clamp at ``neg_limit``; a depth strictly above
+    ``thr`` spikes (reset to ``v_reset``, adaptation increment when
+    ``adaptive``) and immediately inhibits the other depths (decay,
+    subtract, clamp). At most ``rounds`` winners resolve; further crossings
+    keep their excitation but neither spike nor inhibit, and are counted as
+    ``missed``. Both ``rounds`` and ``order`` change who spikes, so both
+    are part of the declaration on A (Hamm 2026-10-14).
 
     Times share one unit (the oracle uses integer microseconds,
     oracle:64-65); ``t_now`` is the single timestamp of this call.
     """
     n_rounds = validate_rounds(rounds, label=label)
+    if not isinstance(order, str) or order not in LOCAL_INHIBITION_ORDERS:
+        raise ValueError(
+            f"{label} order must be one of {list(LOCAL_INHIBITION_ORDERS)}; "
+            f"got {order!r}"
+        )
     vec = np.asarray(v, dtype=float).ravel().copy()
     if vec.size == 0:
         raise ValueError(f"{label} v must hold at least one depth")
@@ -336,7 +391,8 @@ def resolve_local_inhibition(
     n_winners = 0
     missed = 0
     for row in seq.tolist():
-        for d in range(dep):
+        visit = range(dep) if order == "ascending" else range(dep - 1, -1, -1)
+        for d in visit:
             dt = t_now - float(last[d])
             if dt < 0:
                 raise ValueError(

@@ -32,7 +32,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from .pcl_topology import footprint_pairs, validate_footprint, validate_weight_sharing
+from .pcl_topology import footprint_pairs, validate_footprint, validate_local_inhibition, validate_weight_sharing
 
 __all__ = [
     "compile_connection_rules",
@@ -1010,6 +1010,15 @@ def compile_connection_rules(
                 row["n_sharing_groups"] = (
                     max(sharing_groups) + 1 if sharing_groups else 0
                 )
+        inhibition_spec = validate_local_inhibition(
+            rule.get("local_inhibition"), label=f"connection {rname!r}")
+        if inhibition_spec is not None:
+            # Echoed so the declared intra-step fixed point (R and the round
+            # order on A) stays inspectable through the manifest.
+            row["local_inhibition"] = {
+                "rounds": int(inhibition_spec["rounds"]),
+                "order": str(inhibition_spec["order"]),
+            }
         if sampling in ("bernoulli", "capped_bernoulli"):
             # Recorded only when non-default, as in connections(), so density rows are unchanged.
             row["sampling"] = sampling
@@ -1075,6 +1084,39 @@ def with_rule_allow_self_connections(cfg: Any, rule_name: str, value: bool = Tru
             f"allow_self_connections; found {len(hits)}"
         )
     patched = dict(rules[hits[0]], allow_self_connections=value)
+    rules[hits[0]] = patched
+    circuit["connections"] = rules
+    metadata["circuit"] = circuit
+    metadata["circuit_compiled"] = False
+    return _dc_replace(cfg, metadata=metadata)
+
+
+def with_rule_local_inhibition(cfg: Any, rule_name: str, spec: Any) -> Any:
+    """Return a copy of ``cfg`` with ``local_inhibition`` set on one rule.
+
+    Same idiom as :func:`with_rule_allow_self_connections` (:meth:
+    `Configuration.connections` has no ``local_inhibition`` kwarg): the
+    named rule entry is copied with ``local_inhibition={"rounds", "order"}``
+    and everything else byte-identical. ``spec`` is revalidated here
+    (fail-closed); :func:`compile_connection_rules` echoes it onto the
+    connection-table row so the declared intra-step fixed point rides the
+    manifest. The rule must exist exactly once.
+    """
+    normalized = validate_local_inhibition(spec, label=f"rule {rule_name!r}")
+    assert normalized is not None
+    metadata = dict(cfg.metadata)
+    circuit = {k: list(v) for k, v in dict(metadata.get("circuit", {})).items()}
+    rules = list(circuit.get("connections", []))
+    hits = [i for i, rule in enumerate(rules) if rule.get("name") == rule_name]
+    if len(hits) != 1:
+        raise ValueError(
+            f"rule {rule_name!r} must exist exactly once to declare "
+            f"local_inhibition; found {len(hits)}"
+        )
+    patched = dict(
+        rules[hits[0]],
+        local_inhibition={"rounds": normalized["rounds"], "order": normalized["order"]},
+    )
     rules[hits[0]] = patched
     circuit["connections"] = rules
     metadata["circuit"] = circuit
