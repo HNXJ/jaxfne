@@ -779,7 +779,35 @@ class NeuronalTensor:
             raise TypeError(f"NeuronalTensor.name must be a str, got {type(self.name).__name__}")
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        d = asdict(self)
+        # Optional fields added in 0.5.6 are written only when set, so saved
+        # files and identity/phenotype digests of tensors that do not use them
+        # stay byte-identical to earlier releases (loading fills the defaults).
+        for area in d.get("areas", []):
+            for layer in area.get("layers", []):
+                for nt_d in layer.get("neuron_types", []):
+                    _drop_defaults(nt_d, _NEURON_TYPE_DEFAULTS_056)
+            for conn in area.get("inter_connections", []):
+                _drop_defaults(conn, _CONNECTION_DEFAULTS_056)
+        for conn in d.get("area_connections", []):
+            _drop_defaults(conn, _CONNECTION_DEFAULTS_056)
+        return d
+
+
+_NEURON_TYPE_DEFAULTS_056 = {"emitter": None, "emitter_params": None, "drive": None}
+_CONNECTION_DEFAULTS_056 = {
+    "conduction_velocity_m_per_s": None,
+    "length_unit": "mm",
+    "spatial_sigma": None,
+    "max_in_degree": None,
+    "allow_self": None,
+}
+
+
+def _drop_defaults(d: dict, defaults: dict) -> None:
+    for key, default in defaults.items():
+        if key in d and d[key] == default and type(d[key]) is type(default):
+            del d[key]
 
 
 def make_minimal_ei_tensor(

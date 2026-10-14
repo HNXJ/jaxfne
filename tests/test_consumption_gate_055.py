@@ -186,7 +186,7 @@ TENSOR_RT_CASES = {
     "dt_ms": ({"dt_ms": 0.25}, "output", None),
     "seed": ({"seed": 3}, "output", None),
     "dtype": ({"dtype": "float16"}, "refuse", "dtype"),
-    "emitter": ({"emitter": "lif"}, "refuse", "Unsupported emitter family"),
+    "emitter": ({"emitter": "lif"}, "refuse", "not routed by the NeuronalTensor bridge"),
     "device": ({"device": "cpu"}, "policy", None),
     "jit": ({"jit": True}, "policy", None),
     "vmap": ({"vmap": True}, "refuse", "vmap is not consumed"),
@@ -195,6 +195,10 @@ TENSOR_RT_CASES = {
     "probes": ({"probes": ["LFP"]}, "refuse", "reserved"),
     "outputs": ({"outputs": {"lfp": True}}, "refuse", "reserved"),
     "optimizer": ({"optimizer": "AGSDR"}, "refuse", "reserved"),
+    # Consumed on the adex route (tests/test_neuronal_tensor_geometry.py); the
+    # minimal tensor here is Izhikevich, where a non-default knob is unconsumed.
+    "adex_decay": ({"adex_decay": "euler"}, "refuse", "not consumed"),
+    "adex_step_order": ({"adex_step_order": "brian2"}, "refuse", "not consumed"),
 }
 
 
