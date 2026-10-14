@@ -23,9 +23,7 @@ from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
 
-_repo_root = _HERE
-while _repo_root.parent != _repo_root and not (_repo_root / "pyproject.toml").exists():
-    _repo_root = _repo_root.parent
+_repo_root = Path(__file__).resolve().parents[3]
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
