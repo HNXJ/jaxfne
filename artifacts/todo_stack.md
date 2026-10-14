@@ -36,17 +36,20 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 
 ## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
-- R2 narrowing met at 33413a12 (2268 files, `budget_files` 2269 in
-  `scripts/tree_size_allowlist.json`). Raised to 2300 for the 31 lane evidence files of
-  l2-caminos and pcl-port merged 2026-10-13 (Hamm 2026-10-13), and to 2307 for the PCL v5
-  scorer, result, scores and S6/S7 diagnostic merged the same day (same reason), and to 2330 for
-  the Izhikevich 2003 and CAMINOS P6 lanes (Hamm 2026-10-13), and to 2336 for the Izhikevich
-  v8 and P3b code, tests, gate receipts and the v8 score, and to 2337 for
-  `artifacts/etudes/RESIDUAL_PROTOCOL.md` (Hamm's five-lane programme, 2026-10-14) (after folding the P3b result and tests into existing
-  files), and to 2353 for the 16 core-gap and CAMINOS-final files of lanes 3, 6, 7 and 8 (same
-  programme, 2026-10-14: emitter registry, HDP family kernel, parameter handles, their tests, the
-  CAMINOS calibration, scorers and model page). Further narrowing waits: most files in `tutorial_figures`,
-  `_static/gallery` and `docs/assets` drift on regeneration, which is a declared figure change.
+- R2 restated (Hamm 2026-10-14): bytes -10% against the 0.5.5 tag (met: 86.8 MB
+  tracked at 1bfdaa84 against 126.0 MB at the tag) plus files at the recorded budget with
+  reasons on record (2353 tracked, `budget_files` 2353 in
+  `scripts/tree_size_allowlist.json`; each raise from 2269, its reason and authorization are in
+  this line's git history, last at 1bfdaa84). The
+  regenerable docs assets are untracked already: the 9 registry `copies` dests under
+  `docs/assets/etudes/` and all atlas/etude HTML are build products of
+  `scripts/build_docs_assets.py --build` (the Read the Docs `pre_build` path) and gitignored.
+  No further class qualifies: the 9 `docs/_static/gallery/*.png` (embedded by `docs/gallery.md`,
+  rewritten only as an index by `generate_gallery.py --write`, never rasterized by the build
+  path), the 12 `docs/_static/tutorial_figures/*.png` (no caller in the build path), and every
+  other tracked `docs/assets/` file (its generator, if one exists, is not in the build path;
+  `--html-only` skips PNG rasterization) would leave broken embeds if untracked, so all stay
+  tracked.
 - T-7 [A] R5: every paper row in `REPLICATIONS.md` carries a verdict or a reason (2026-10-13).
   Closes when: `python scripts/build_dashboard_data.py --check` passes on the pushed SHA.
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
