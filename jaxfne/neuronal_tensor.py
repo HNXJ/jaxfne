@@ -63,6 +63,7 @@ from .core import Configuration, Model, construct
 from ._config import check_n_contacts
 from .emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
 from .emitter_registry import check_emitter_params, is_registered_emitter
+from .pcl_topology import validate_footprint, validate_weight_sharing
 from .presets import RECEPTOR_KINETICS
 
 ValueTag = Literal["calibrated", "calibrated_proxy", "relative"]
@@ -475,6 +476,17 @@ class InterConnection:
     # :func:`_wire_connection` and :func:`_wire_adex_connection`; must name a
     # mode the compiler honours when set.
     sampling: "str | None" = None
+    # Retinotopic footprint rule (None = undeclared = the density/localized
+    # paths). When set, the rule compiles deterministic (pre, post) pairs
+    # from posed positions (:func:`jaxfne.pcl_topology.footprint_pairs`):
+    # ``{"size": (sx, sy)}`` is required, ``{"offset": (ox, oy)}`` defaults
+    # to zero. Mutually exclusive with ``max_in_degree`` and with a
+    # non-default ``sampling`` (refused); forwarded into the compiled rule.
+    footprint: "dict | None" = None
+    # Weight-sharing mode (None = undeclared = per-edge weights). ``"patch"``
+    # shares one plastic row per receiving-depth slot (the footprint rule's
+    # co-located post slots); needs ``footprint`` (refused without it).
+    weight_sharing: "str | None" = None
 
     def __post_init__(self) -> None:
         if self.delay_ms is not None:
@@ -518,6 +530,35 @@ class InterConnection:
             self, "sampling",
             _check_connection_sampling(self.sampling, label="InterConnection"),
         )
+        object.__setattr__(
+            self, "footprint",
+            validate_footprint(self.footprint, label="InterConnection"),
+        )
+        object.__setattr__(
+            self, "weight_sharing",
+            validate_weight_sharing(self.weight_sharing, label="InterConnection"),
+        )
+        if self.footprint is not None and self.max_in_degree is not None:
+            raise ValueError(
+                "InterConnection declares both footprint="
+                f"{self.footprint!r} and max_in_degree={self.max_in_degree!r}; "
+                "the footprint rule selects pairs deterministically — "
+                "declare one or neither"
+            )
+        if self.footprint is not None and self.sampling is not None:
+            raise ValueError(
+                "InterConnection declares both footprint="
+                f"{self.footprint!r} and sampling={self.sampling!r}; the "
+                "footprint rule selects pairs deterministically — leave "
+                "sampling at its default"
+            )
+        if self.footprint is None and self.weight_sharing is not None:
+            raise ValueError(
+                "InterConnection declares weight_sharing="
+                f"{self.weight_sharing!r} without footprint; sharing groups "
+                "are the footprint rule's co-located post slots — declare "
+                "both or neither"
+            )
 
 
 @dataclass
@@ -655,6 +696,13 @@ class AreaConnection:
     # Per-rule compiler sampling mode (None = undeclared = the ``density``
     # default). Same forwarding semantics as InterConnection.sampling.
     sampling: "str | None" = None
+    # Retinotopic footprint rule (None = undeclared). Same semantics as
+    # InterConnection.footprint; mutually exclusive with ``probability`` and
+    # ``max_in_degree`` and with a non-default ``sampling`` (refused).
+    footprint: "dict | None" = None
+    # Weight-sharing mode (None = undeclared = per-edge weights). Same
+    # semantics as InterConnection.weight_sharing; needs ``footprint``.
+    weight_sharing: "str | None" = None
 
     def __post_init__(self) -> None:
         import math as _math
@@ -718,6 +766,42 @@ class AreaConnection:
             self, "sampling",
             _check_connection_sampling(self.sampling, label="AreaConnection"),
         )
+        object.__setattr__(
+            self, "footprint",
+            validate_footprint(self.footprint, label="AreaConnection"),
+        )
+        object.__setattr__(
+            self, "weight_sharing",
+            validate_weight_sharing(self.weight_sharing, label="AreaConnection"),
+        )
+        if self.footprint is not None and self.probability is not None:
+            raise ValueError(
+                "AreaConnection declares both footprint="
+                f"{self.footprint!r} and probability={self.probability!r}; "
+                "the footprint rule selects pairs deterministically — "
+                "declare one or neither"
+            )
+        if self.footprint is not None and self.max_in_degree is not None:
+            raise ValueError(
+                "AreaConnection declares both footprint="
+                f"{self.footprint!r} and max_in_degree={self.max_in_degree!r}; "
+                "the footprint rule selects pairs deterministically — "
+                "declare one or neither"
+            )
+        if self.footprint is not None and self.sampling is not None:
+            raise ValueError(
+                "AreaConnection declares both footprint="
+                f"{self.footprint!r} and sampling={self.sampling!r}; the "
+                "footprint rule selects pairs deterministically — leave "
+                "sampling at its default"
+            )
+        if self.footprint is None and self.weight_sharing is not None:
+            raise ValueError(
+                "AreaConnection declares weight_sharing="
+                f"{self.weight_sharing!r} without footprint; sharing groups "
+                "are the footprint rule's co-located post slots — declare "
+                "both or neither"
+            )
 
 
 @dataclass
@@ -840,6 +924,8 @@ _CONNECTION_DEFAULTS_056 = {
     "max_in_degree": None,
     "allow_self": None,
     "sampling": None,
+    "footprint": None,
+    "weight_sharing": None,
 }
 
 
@@ -1967,7 +2053,12 @@ def _wire_connection(
     ``probability`` density path (the two are mutually exclusive, so the
     rule carries ``probability=None`` then); a declared ``spatial_sigma``
     without ``max_in_degree`` has no consumer on the density path, so it
-    is refused here (``spatial_sigma needs max_in_degree``). Sampling reads
+    is refused here (``spatial_sigma needs max_in_degree``). A declared
+    ``footprint`` compiles deterministic pairs from the posed positions
+    instead of sampling (``probability=None`` on the rule; ``probability``,
+    ``max_in_degree`` and non-default ``sampling`` alongside it are refused
+    at declaration); a declared ``weight_sharing`` rides the rule for the
+    HDP rule to consume. Sampling reads
     the posed neuron positions — each area's ``Pose3D`` is applied to a
     wiring copy before edge compilation, and the same pose maps the stored
     positions afterwards — so moving an area changes the realized edges
@@ -2035,6 +2126,22 @@ def _wire_connection(
         # Validated at declaration; None leaves the rule without the key
         # (the compiler default).
         wire_kw["sampling"] = conn_sampling
+    conn_footprint = getattr(conn, "footprint", None)
+    if conn_footprint is not None:
+        # Validated and normalized at declaration ({"size", "offset"}); the
+        # footprint rule selects pairs deterministically from posed
+        # positions, so the rule carries no density probability (the
+        # compiler refuses the combination).
+        wire_kw["footprint"] = {
+            "size": list(conn_footprint["size"]),
+            "offset": list(conn_footprint["offset"]),
+        }
+        wire_probability = None
+    conn_sharing = getattr(conn, "weight_sharing", None)
+    if conn_sharing is not None:
+        # Validated at declaration; needs footprint (refused without it at
+        # declaration and again at compile time).
+        wire_kw["weight_sharing"] = str(conn_sharing)
     cfg = cfg.connections(
         name=rule_name,
         source={
@@ -2111,6 +2218,19 @@ def _wire_adex_connection(
             "the conductance (adex) route has no localized-sampling consumer "
             "(rule max_in_degree/spatial_sigma are refused there: only None "
             "is admitted) — leave max_in_degree undeclared there"
+        )
+    if getattr(conn, "footprint", None) is not None:
+        raise ValueError(
+            f"{label} declares footprint={getattr(conn, 'footprint')!r}; "
+            "the conductance (adex) route has no footprint-rule consumer "
+            "(deterministic retinotopic pairs are refused there: only None "
+            "is admitted) — leave footprint undeclared there"
+        )
+    if getattr(conn, "weight_sharing", None) is not None:
+        raise ValueError(
+            f"{label} declares weight_sharing={getattr(conn, 'weight_sharing')!r}; "
+            "the conductance (adex) route has no shared-weight consumer "
+            "(only None is admitted) — leave weight_sharing undeclared there"
         )
     if conn.allow_self is True and conn.conduction_velocity_m_per_s is not None:
         raise ValueError(

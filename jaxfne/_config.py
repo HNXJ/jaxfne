@@ -982,6 +982,8 @@ class Configuration:
         spatial_sigma: Optional[float] = None,
         delay_ms: Optional[float] = None,
         sampling: str = "density",
+        footprint: Optional[Mapping[str, Any]] = None,
+        weight_sharing: Optional[str] = None,
     ) -> "Configuration":
         """Declare a connection rule that ``construct()`` compiles into edges.
 
@@ -1021,7 +1023,14 @@ class Configuration:
         ``round(delay_ms / dt_ms)`` (0.5.2 decision 0b) at the configuration's
         ``dt_ms``, and both the configured ms and the realized steps are
         recorded. A positive delay rounding to 0 steps is refused rather than
-        dropped. Distinct from :meth:`connectivity`, which records
+        dropped. ``footprint`` (None = undeclared) selects pairs
+        deterministically from posed positions
+        (``jaxfne.pcl_topology.footprint_pairs``: ``{"size": (sx, sy),
+        "offset": (ox, oy)}``); it is refused with ``probability``,
+        ``max_in_degree`` and non-default ``sampling``. ``weight_sharing``
+        (None = per-edge weights; ``"patch"`` = one shared row per
+        receiving-depth slot) needs ``footprint``.
+        Distinct from :meth:`connectivity`, which records
         feedforward/feedback bookkeeping. ``plasticity`` and ``control_key`` have
         no consumer in the compiler and accept only None.
         """
@@ -1072,6 +1081,36 @@ class Configuration:
                 f"connection {name!r} sampling={sampling!r} is not implemented with "
                 "max_in_degree (localized sampling); omit one of them"
             )
+        from .pcl_topology import validate_footprint, validate_weight_sharing
+
+        footprint_spec = validate_footprint(footprint, label=f"connection {name!r}")
+        sharing_mode = validate_weight_sharing(weight_sharing, label=f"connection {name!r}")
+        if footprint_spec is None:
+            if sharing_mode is not None:
+                raise ValueError(
+                    f"connection {name!r} declares weight_sharing={sharing_mode!r} "
+                    "without footprint; sharing groups are the footprint rule's "
+                    "co-located post slots -- declare both or neither"
+                )
+        else:
+            if probability is not None:
+                raise ValueError(
+                    f"connection {name!r} declares footprint with "
+                    f"probability={probability!r}; the footprint rule selects "
+                    "pairs deterministically -- declare one or neither"
+                )
+            if max_in_degree is not None:
+                raise ValueError(
+                    f"connection {name!r} declares footprint with "
+                    f"max_in_degree={max_in_degree!r}; the footprint rule selects "
+                    "pairs deterministically -- declare one or neither"
+                )
+            if sampling != "density":
+                raise ValueError(
+                    f"connection {name!r} declares footprint with "
+                    f"sampling={sampling!r}; the footprint rule selects pairs "
+                    "deterministically -- leave sampling at its default"
+                )
         entry = {
             "name": str(name),
             "source": _circuit_json_safe(dict(source), "connections.source"),
@@ -1089,6 +1128,14 @@ class Configuration:
             "delay_ms": float(delay_ms) if delay_ms is not None else None,
             "status": "declared_not_compiled",
         }
+        if footprint_spec is not None:
+            # Stored only when declared so existing config hashes stay unchanged.
+            entry["footprint"] = {
+                "size": list(footprint_spec["size"]),
+                "offset": list(footprint_spec["offset"]),
+            }
+        if sharing_mode is not None:
+            entry["weight_sharing"] = sharing_mode
         if sampling in ("bernoulli", "capped_bernoulli"):
             # Stored only when non-default so existing config hashes stay unchanged.
             entry["sampling"] = sampling

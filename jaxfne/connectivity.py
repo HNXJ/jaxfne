@@ -32,6 +32,8 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from .pcl_topology import footprint_pairs, validate_footprint, validate_weight_sharing
+
 __all__ = [
     "compile_connection_rules",
     "ConnectionCompileResult",
@@ -818,6 +820,42 @@ def compile_connection_rules(
                 "without max_in_degree; spatial_sigma needs max_in_degree "
                 "(localized sampling) -- declare both or neither"
             )
+        # A declared footprint selects pairs deterministically from posed
+        # positions (jaxfne.pcl_topology.footprint_pairs), so the stochastic
+        # pair selectors must not also apply: probability, max_in_degree and
+        # a non-default sampling alongside it are refused rather than
+        # silently ignored. Weight sharing without a footprint is refused:
+        # sharing groups are the footprint's co-located post slots.
+        footprint_spec = validate_footprint(
+            rule.get("footprint"), label=f"connection {rname!r}")
+        sharing_mode = validate_weight_sharing(
+            rule.get("weight_sharing"), label=f"connection {rname!r}")
+        if footprint_spec is None:
+            if sharing_mode is not None:
+                raise ValueError(
+                    f"connection {rname!r} declares weight_sharing={sharing_mode!r} "
+                    "without footprint; sharing groups are the footprint rule's "
+                    "co-located post slots -- declare both or neither"
+                )
+        else:
+            if rule.get("probability") is not None:
+                raise ValueError(
+                    f"connection {rname!r} declares footprint with "
+                    f"probability={rule.get('probability')!r}; the footprint "
+                    "rule selects pairs deterministically -- declare one or neither"
+                )
+            if rule.get("max_in_degree") is not None:
+                raise ValueError(
+                    f"connection {rname!r} declares footprint with "
+                    f"max_in_degree={rule.get('max_in_degree')!r}; the footprint "
+                    "rule selects pairs deterministically -- declare one or neither"
+                )
+            if sampling != "density":
+                raise ValueError(
+                    f"connection {rname!r} declares footprint with "
+                    f"sampling={sampling!r}; the footprint rule selects pairs "
+                    "deterministically -- leave sampling at its default"
+                )
         # _select_indices honors allow_empty internally (returns [] vs raises on
         # zero-match) and ALWAYS raises on a structurally invalid (non-mapping)
         # selector. No try/except here: structural errors must surface loudly,
@@ -846,7 +884,42 @@ def compile_connection_rules(
         mech_idx = _resolve_mechanism(rule.get("mechanism"), mech_index, rname)
         rkey = jax.random.fold_in(base_key, rule_id)
         max_in_degree = rule.get("max_in_degree")
-        if max_in_degree is not None:
+        sharing_groups: list[int] | None = None
+        if footprint_spec is not None:
+            try:
+                xy_by_id = {
+                    int(row["neuron_id"]): (float(row["x"]), float(row["y"]))
+                    for row in neurons
+                }
+            except (KeyError, TypeError, ValueError) as exc:
+                raise ValueError(
+                    f"connection {rname!r} declares footprint but a neuron row "
+                    f"lacks x/y posed positions ({exc})"
+                )
+            if any(
+                not (math.isfinite(x) and math.isfinite(y))
+                for x, y in xy_by_id.values()
+            ):
+                raise ValueError(
+                    f"connection {rname!r} declares footprint but a neuron row "
+                    "carries a non-finite x/y posed position"
+                )
+            pairs_all, groups_all = footprint_pairs(
+                [int(i) for i in pre_ids],
+                np.array([xy_by_id[int(i)] for i in pre_ids], dtype=float),
+                [int(i) for i in post_ids],
+                np.array([xy_by_id[int(i)] for i in post_ids], dtype=float),
+                {"size": footprint_spec["size"], "offset": footprint_spec["offset"]},
+                label=f"connection {rname!r}",
+            )
+            if not rule_self:
+                kept = [(a, b, g) for (a, b), g in zip(pairs_all, groups_all) if a != b]
+            else:
+                kept = [(a, b, g) for (a, b), g in zip(pairs_all, groups_all)]
+            pairs = [(a, b) for a, b, _ in kept]
+            if sharing_mode is not None:
+                sharing_groups = [g for _, _, g in kept]
+        elif max_in_degree is not None:
             neuron_xyz = {
                 int(row["neuron_id"]): np.asarray([row["x"], row["y"], row["z"]], dtype=float)
                 for row in neurons
@@ -923,6 +996,20 @@ def compile_connection_rules(
             "delay_ms": rule_delay_ms,
             "status": "compiled",
         }
+        if footprint_spec is not None:
+            # Echoed so the realized geometry stays inspectable; the
+            # per-edge groups align with this rule's edges (global indices
+            # estart:estart + n_edges) for the HDP rule to consume.
+            row["footprint"] = {
+                "size": list(footprint_spec["size"]),
+                "offset": list(footprint_spec["offset"]),
+            }
+            row["weight_sharing"] = sharing_mode
+            if sharing_groups is not None:
+                row["sharing_group_of_edge"] = [int(g) for g in sharing_groups]
+                row["n_sharing_groups"] = (
+                    max(sharing_groups) + 1 if sharing_groups else 0
+                )
         if sampling in ("bernoulli", "capped_bernoulli"):
             # Recorded only when non-default, as in connections(), so density rows are unchanged.
             row["sampling"] = sampling

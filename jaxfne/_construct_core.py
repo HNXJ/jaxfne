@@ -830,10 +830,14 @@ def _construct_compile_connections(
         # closed inside the compilers rather than zeroing.
         _construct_dt_ms = cfg.metadata.get("dt_ms")
         if _all_connection_rules_declare_resolvable_mechanism(_conn_rules, _conn_mechanisms):
-            _needs_positions = any(r.get("max_in_degree") is not None for r in _conn_rules)
+            _needs_positions = any(
+                r.get("max_in_degree") is not None or r.get("footprint") is not None
+                for r in _conn_rules
+            )
             if _needs_positions and positions is None:
                 raise ValueError(
                     "connection rule(s) declare max_in_degree (spatially-localized sampling) "
+                    "or footprint (retinotopic pairs) "
                     "but no neuron positions are available at this construct() stage"
                 )
             # Tensor-posed wiring: the tensor bridge records each area's
@@ -876,6 +880,15 @@ def _construct_compile_connections(
                     "every declared rule carries a mechanism= reference resolvable against a "
                     ".mechanisms() declaration. Declare mechanisms for all rules, or drop "
                     "max_in_degree -- the cap cannot be applied on the sign-only path."
+                )
+            _fp = [r.get("name") for r in _conn_rules if r.get("footprint") is not None]
+            if _fp:
+                raise ValueError(
+                    f"connection rule(s) {_fp} declare footprint, which is only "
+                    "honoured by the mechanism-aware compiler. That compiler runs only when "
+                    "every declared rule carries a mechanism= reference resolvable against a "
+                    ".mechanisms() declaration. Declare mechanisms for all rules, or drop "
+                    "footprint -- retinotopic pairs cannot be compiled on the sign-only path."
                 )
             _sigma = [r.get("name") for r in _conn_rules if r.get("spatial_sigma") is not None]
             if _sigma:
