@@ -58,7 +58,7 @@ Ruling (Hamm, 2026-10-14, relayed by the coordinator): PLoS CB is primary. The 2
 | PV→SOM lag, ref. 42 (seeds 1–3; 4–8) | ≈ 8.5 | 6.47; 6.32 | 0.239; 0.257 | off | finding: needs X |
 | PV→SOM lag, P3 estimator (seeds 1–5) | ≈ 8.5 | 7.22 | 0.151 | off | finding: needs X |
 
-Sensitivity: a 0.1 ms synaptic and drive delay (one step, the core minimum) gives a ref. 42 lag of 6.97 ms (seeds 1–3) and 7.07 ms (seeds 4–8), and a P3 lag of 7.10 and 6.96 ms. Every e against the preprint's about 7 ms is at most 0.014. The oscillation moves to 43–46 Hz (primary 34 Hz), so this is a different network state and not the primary model. True zero delay runs once core gap G12 closes.
+Sensitivity: a 0.1 ms synaptic and drive delay (one step, the core minimum) gives a ref. 42 lag of 6.97 ms (seeds 1–3) and 7.07 ms (seeds 4–8), and a P3 lag of 7.10 and 6.96 ms. Every e against the preprint's about 7 ms is at most 0.014. The oscillation moves to 43–46 Hz (primary 34 Hz), so this is a different network state from the primary model. True zero delay runs once core gap G12 closes.
 
 ## Receipts
 
