@@ -24,9 +24,20 @@ import numpy as np
 import pytest
 from scipy import signal as _signal
 
-jnwb = pytest.importorskip("jnwb")
-
 from jaxfne.vis import core as _core
+
+jnwb = None
+
+
+@pytest.fixture(autouse=True)
+def _require_jnwb():
+    """Skip each test when jnwb is absent (Python 3.11), so every node reports its own skip.
+
+    A module-level skip reports one node on 3.11 against nine on 3.12+, which the
+    JUnit parity check cannot pair.
+    """
+    global jnwb
+    jnwb = pytest.importorskip("jnwb")
 
 
 @pytest.fixture
