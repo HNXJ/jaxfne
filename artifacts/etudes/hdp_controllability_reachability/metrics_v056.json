@@ -1,0 +1,69 @@
+{
+  "mvc2_recovery": {
+    "off": {
+      "R_EI": 0.3890279554981927,
+      "terminal_error_weighted": 0.7920944172250103
+    },
+    "scalar": {
+      "R_EI": 0.3890279554981927,
+      "terminal_error_weighted": 0.7920944172250103
+    },
+    "vector": {
+      "R_EI": 0.9305648517067326,
+      "terminal_error_weighted": 0.06978483015069033
+    }
+  },
+  "provenance": {
+    "authorized_by": "Hamm 2026-10-14: re-baseline post-D1, following the v0.4.23 precedent",
+    "baseline_for": "v0.5.6",
+    "reason": "D1: Izhikevich noise scaled by sqrt(0.5 / dt_ms), commit 5090af24 (Hamm 2026-10-13); re-baseline authorized by Hamm 2026-10-14",
+    "change": "off, scalar and vector arms of mvc2_recovery re-computed at the post-D1 tree. Scalar equals off bit-exactly, as in v0.4.23 (null-HDP params route to the baseline kernel). Previous values are kept side by side under provenance.previous.",
+    "computed_at_commit": "f508648b",
+    "method": "Test body of test_population_restoring_etude_regression_metrics (tests/test_hdp_population_restoring.py) replicated line for line, using the test module's helpers. WSL venv ~/venv_jaxfne_gate, JAX_PLATFORMS=cpu, jax 0.11.2, jax_enable_x64 False. Two independent runs gave byte-identical output.",
+    "dt_ms": 0.1,
+    "duration_ms": 15000.0,
+    "perturb_ms": 3000.0,
+    "burn_ms": 20.0,
+    "final_window_ms": [13000.0, 15000.0],
+    "seed": 17,
+    "r0_hz_computed": {
+      "r_E_hz": 10.934798820659319,
+      "r_I_hz": 6.321946402929173
+    },
+    "previous": {
+      "frozen_metrics_json": {
+        "r0_hz": {
+          "r_E_hz": 10.902550498031129,
+          "r_I_hz": 9.14117463285841
+        },
+        "off": {
+          "R_EI": 0.38110494571266207,
+          "terminal_error_weighted": 0.5149233904923189
+        },
+        "scalar": {
+          "R_EI": 0.43378372611986105,
+          "terminal_error_weighted": 0.5249066020968771
+        },
+        "vector": {
+          "R_EI": 0.9599033810845434,
+          "terminal_error_weighted": 0.00280088258438386
+        }
+      },
+      "metrics_v0423_json": {
+        "off": {
+          "R_EI": 0.38110494571266207,
+          "terminal_error_weighted": 0.5149233904923189
+        },
+        "scalar": {
+          "R_EI": 0.38110494571266207,
+          "terminal_error_weighted": 0.5149233904923189
+        },
+        "vector": {
+          "R_EI": 0.9599033810845434,
+          "terminal_error_weighted": 0.029602456101573416
+        }
+      }
+    },
+    "note": "metrics_v0423.json vector terminal (0.029602456101573416) differs from the frozen metrics.json vector terminal (0.00280088258438386), although its provenance says the vector arm is unchanged. Recorded as found; not resolved here. The frozen bundle and metrics_v0423.json are left untouched."
+  }
+}
