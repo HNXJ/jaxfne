@@ -336,8 +336,8 @@ with open(md_path,'w') as f:
     f.write(f"Active falsifiers: {', '.join(falsifiers) if falsifiers else 'none'}\n\n")
     f.write(f"Rarity-penalty H2 supported (penalty direction + SI_many clean): {rarity_supported and verdict=='FALSIFIED'}\n\n")
     f.write(f"Phase-matched rarity control: {phase_matched_status} -- declaration satisfies prereg; execution required before mechanistic claim beyond discrimination.\n\n")
-    f.write(f"Blinding: E2d_blinded_adequacy.json contains only G_finite/G_A/G_B/G_adequate + mean_rate; grep forbidden =0. Phenotype metrics in this receipt only after unblinding.\n\n")
-    f.write(f"Evidence preserved: every run hashed (seq_hash per block) in e2d_confirmatory_receipt.json per_replicate; V2_RUNS_MANIFEST_copy.json retains 20 rep files; washout exactly first 2 events; max forbidden max_over_reps not used as gate (diagnostic only in V2).\n")
+    f.write("Blinding: E2d_blinded_adequacy.json contains only G_finite/G_A/G_B/G_adequate + mean_rate; grep forbidden =0. Phenotype metrics in this receipt only after unblinding.\n\n")
+    f.write("Evidence preserved: every run hashed (seq_hash per block) in e2d_confirmatory_receipt.json per_replicate; V2_RUNS_MANIFEST_copy.json retains 20 rep files; washout exactly first 2 events; max forbidden max_over_reps not used as gate (diagnostic only in V2).\n")
 
 print(f"DONE verdict={verdict} {reason}")
 print(f"DeltaR_A {mean_A:.3f} [{lo_A:.3f},{hi_A:.3f}] upper<0={fals_Delta_A}")

@@ -189,7 +189,7 @@ def agsdr_objective(candidate_gain, baseline_rates_all, target_mean_hz, min_neur
 
 def main():
     """Run delta-test validation pipeline with AGSDR tuning."""
-    print(f"=== Delta-Test Notebook 01 Runner (with AGSDR) ===")
+    print("=== Delta-Test Notebook 01 Runner (with AGSDR) ===")
     print(f"Mode: {'SMOKE (quick)' if SMOKE_MODE else 'FULL (1000ms)'}")
     print(f"N per area: {GLOBAL['N_PER_COLUMN']}")
     print(f"Duration: {GLOBAL['duration_ms']} ms")
@@ -499,7 +499,7 @@ def main():
         # Summary
         print()
         print("=== DELTA-TEST SUMMARY ===")
-        print(f"Status: ✓ PASS" if tuning_status in ["pass", "smoke_not_decisive"] else "Status: ⚠ PARTIAL")
+        print("Status: ✓ PASS" if tuning_status in ["pass", "smoke_not_decisive"] else "Status: ⚠ PARTIAL")
         print(f"Output directory: {OUTPUT_DIR}")
         print(f"Files generated: {len(list(OUTPUT_DIR.glob('*')))}")
         print()
@@ -514,10 +514,10 @@ def main():
         print(f"  Tuning status: {tuning_status}")
         print()
         print("Truth status:")
-        print(f"  claim_level: computational_scaffold")
-        print(f"  field_solver_status: linear_solver")
-        print(f"  physical_amplitude_calibrated: false")
-        print(f"  biological_learning_claim: false")
+        print("  claim_level: computational_scaffold")
+        print("  field_solver_status: linear_solver")
+        print("  physical_amplitude_calibrated: false")
+        print("  biological_learning_claim: false")
         print()
         print("✓ Delta-test notebook with AGSDR validated")
 

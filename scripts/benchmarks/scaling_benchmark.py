@@ -354,7 +354,7 @@ def main() -> None:
     with open(output_file, "w") as f:
         json.dump(report, f, indent=2, allow_nan=False)
 
-    print(f"\nGrowth ratios (per 10x step in N):")
+    print("\nGrowth ratios (per 10x step in N):")
     for g in growth:
         print(f"  {g['from']} -> {g['to']}: construct x{g['construct_ratio']:.1f}, "
               f"simulate x{g['simulate_ratio']:.1f}, rss x{g['rss_ratio']:.1f}")

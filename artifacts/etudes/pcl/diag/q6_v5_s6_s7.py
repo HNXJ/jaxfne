@@ -218,7 +218,7 @@ def main():
                  f"(max curve gap simple {gaps['simple']:.1e}, complex {gaps['complex']:.1e}; "
                  f"frac, SSE and flat match).")
     lines.append("")
-    lines.append(f"### S6 periods (px per cycle; DFT over 2 to 20 px, step 1e-4 cycles/px)")
+    lines.append("### S6 periods (px per cycle; DFT over 2 to 20 px, step 1e-4 cycles/px)")
     lines.append("")
     lines.append(f"| sf index | 20 - i | ori {PRIMARY_ORI}: period | width | edge | "
                  f"ori {CHECK_ORI}: period | width | edge |")

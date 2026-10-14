@@ -342,7 +342,7 @@ def draw_figure(rows: list[dict[str, Any]], runtime: dict[str, Any]) -> None:
     root = next(r for r in rows if r["check_id"] == "root_import_lightweight")["receipt"]
     lines = [
         f"module_count_after_root_import: {root.get('module_count')}",
-        f"optional_dependency_claim_scope: local_subprocess_receipt",
+        "optional_dependency_claim_scope: local_subprocess_receipt",
         f"jaxfne: {runtime['jaxfne_version']}  repo_sha: {runtime['repo_sha'][:12]}",
         "physical_amplitude_calibrated: false",
     ]

@@ -237,7 +237,7 @@ def main():
             baseline_drive[cell_type] = round(noise_amp, 2)
             print(f"  {cell_type:>5}: {noise_amp:6.2f} nA")
 
-    print(f"\nThen set noise_amplitude to same values for ~2 Hz expected rate.")
+    print("\nThen set noise_amplitude to same values for ~2 Hz expected rate.")
     print()
 
     # Print implementation guidance

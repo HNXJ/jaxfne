@@ -57,6 +57,7 @@ from typing import Any
 
 import numpy as np
 
+import jaxfne
 from jaxfne.hdp_network import (
     HDPColumnConfig, build_model, apply_drive_correction, run,
     BASE_HDP_KWARGS_DEFAULT, DEFAULT_HDP, BASE_DRIVE_BY_CELL_TYPE_DEFAULT,
@@ -116,7 +117,7 @@ def window_summary(labels: np.ndarray, spikes: np.ndarray, H_trace: np.ndarray,
     }
 
 
-def run_one(model: "jtfne.core.Model", K_HDP: float, tau_0_ms: float) -> dict[str, Any]:
+def run_one(model: "jaxfne.Model",K_HDP: float, tau_0_ms: float) -> dict[str, Any]:
     hdp_kwargs = dict(BASE_HDP_KWARGS)
     hdp_kwargs["K_HDP"] = K_HDP
     hdp_kwargs["tau_0_ms"] = tau_0_ms

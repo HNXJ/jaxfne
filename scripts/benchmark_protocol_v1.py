@@ -383,7 +383,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     except GpuUnavailable:
         report = gpu_skip_report()
         _write_report(report, args.json_out)
-        print(f"SKIP: GPU backend requested but unavailable; no CPU fallback (exit 0).")
+        print("SKIP: GPU backend requested but unavailable; no CPU fallback (exit 0).")
         return 0
 
     preset = PRESETS[args.preset]
