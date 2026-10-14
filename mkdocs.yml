@@ -162,6 +162,7 @@ nav:
       - Overview: etudes/index.md
       - Homeostatic balance learning: etudes/hdp_balance.md
       - Predictive Coding Light: etudes/pcl.md
+      - CAMINOS reference model: models/caminos.md
 
   - Theory and Experiments:
       - Foundations:

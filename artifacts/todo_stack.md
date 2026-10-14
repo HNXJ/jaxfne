@@ -42,7 +42,9 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   the Izhikevich 2003 and CAMINOS P6 lanes (Hamm 2026-10-13), and to 2336 for the Izhikevich
   v8 and P3b code, tests, gate receipts and the v8 score, and to 2337 for
   `artifacts/etudes/RESIDUAL_PROTOCOL.md` (Hamm's five-lane programme, 2026-10-14) (after folding the P3b result and tests into existing
-  files). Further narrowing waits: most files in `tutorial_figures`,
+  files), and to 2353 for the 16 core-gap and CAMINOS-final files of lanes 3, 6, 7 and 8 (same
+  programme, 2026-10-14: emitter registry, HDP family kernel, parameter handles, their tests, the
+  CAMINOS calibration, scorers and model page). Further narrowing waits: most files in `tutorial_figures`,
   `_static/gallery` and `docs/assets` drift on regeneration, which is a declared figure change.
 - T-7 [A] R5: every paper row in `REPLICATIONS.md` carries a verdict or a reason (2026-10-13).
   Closes when: `python scripts/build_dashboard_data.py --check` passes on the pushed SHA.
