@@ -51,8 +51,8 @@ the rules those releases were held to and are historical context for readers.
 - Activity-regime classifier on executed runs: `wang_buzsaki_kappa`,
   `activity_regime`, `activity_regimes`.
 - CAMINOS calibration record (`artifacts/etudes/caminos/CALIBRATION.md` §10): ref. 42
-  LFP and phase-delay scorers, the P6 v2 library-path PASS through the public API,
-  and the 0.1 ms delay sensitivity run.
+  LFP and phase-delay scorers, the P6 v2 run on the core through the public API
+  (mixed verdict, Hamm 2026-10-14), and the 0.1 ms delay sensitivity run.
 - GSDR P1 source record (`artifacts/etudes/gsdr2026/SOURCE_P1.md`) for the 50-cell HH
   circuit and the paper's Eqs. 2–4 update, plus the P2 jaxfne-coverage plan.
 - Izhikevich amendment v8.2 scores and the P3b `net.m`-order arm with its equivalence
