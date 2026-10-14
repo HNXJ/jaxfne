@@ -328,6 +328,16 @@ from .optim import (
     step_gsgd_transform,
 )
 
+# Lane 8 named parameter handles (ADVANCED tier: root attrs, not __all__).
+from ._param_handles import (
+    get_parameter,
+    is_differentiable_handle,
+    is_handle_path,
+    list_parameters,
+    set_parameter,
+)
+from .optim.handles import tune_handles
+
 # v0.3.18: sharding stubs — imported lazily so single-device users have no overhead.
 from .sharding_utils import (
     get_sharding_context,
