@@ -124,6 +124,20 @@ run on WSL2 CUDA.
     frozen dataclasses mutated through `object.__setattr__`; mixed `_s`/`_ms` parameters in
     the HDP controller.
   Closes when: each item is fixed with a test or recorded here with Hamm's call.
+- T-20 [A] Lint leftovers (2026-10-14). F841 suspects, a value computed and unused while a panel
+  or check hard-codes it: `scripts/audit_methods_draft.py:126,132,147,151`,
+  `scripts/evidence_figures/ed05_manifest_hashes.py:223`,
+  `scripts/internal/publication/fig08_e2_ping.py:190`, `fig09_e2_ssa.py:180`,
+  `scripts/run_delta_notebook_01.py:277`, `artifacts/archive/scripts/make_delta_test_01_report.py:470`
+  (and its placeholder pass 0.95 at :484). `--check` parsed and ignored in
+  `scripts/release/assert_release_freeze.py` and `scripts/sync_release_metadata.py` (both
+  check-only). Closes when: each is used, removed or ruled harmless.
+- T-21 [A] Core gaps G12–G14 and F7 for Destexhe 2009 (packet drafted): optional AdEx
+  `Vpeak_mV` detection threshold (default VT + 5Δ), time-varying `ext_lambda`, capped-Bernoulli
+  sampling, a clearer zero-delay refusal; then delete the étude's `simulate_adex_gated_drive`
+  fork and re-run Destexhe (seeds 1–3, held-out 4–8). Also: the standalone
+  `neuronal_tensor_to_adex_configuration` harvests from `tensor`, the construct path from
+  `_adex_harvest_tensor(tensor)`; align or refuse. Closes when: Destexhe has a verdict on core z.
 - Frozen, do not move: `artifacts/publication/frozen_manifest.json`,
   `artifacts/release/current_release_authorities.json`, hash-pinned skills and `AGENTS.md`;
   `artifacts/legacy/AGENTS.md` kept by Hamm 2026-10-11.
