@@ -186,5 +186,15 @@ inhibition, and the port reads "static" as local (declared alias, `pcl_event_ref
 Without local inhibition the simple curve meets Fig. 3c in level, and the complex cells lose sf
 tuning. One setting does not fit both panels.
 
-Next (launched 2026-10-13T23:22:15Z, not complete): `run_tuning.py --inhibition no-local-simple`
-(simple layer's local flag off, complex's on), to `F:\warehouse\pcl\diag_runs\fig3_cSTDP3_nolocal_simple\`.
+No-local-simple (`run_tuning.py --inhibition no-local-simple`: the simple layer's local flag off,
+the complex layer's on; `F:\warehouse\pcl\diag_runs\fig3_cSTDP3_nolocal_simple\`, 3168/3168 runs,
+code `eaadaf01`), even phases:
+- Simple: 9/16 points, level offset 0.108; v5 T2 fails.
+- Complex: v5 T2 passes (SSE 0.191 against the guard limit 0.197); 15/15 points under the withdrawn
+  v6 tolerance.
+- Output: `F:\warehouse\pcl\diag_scores\nolocal_simple_v5_t2.json`.
+
+Reading (inferred): switching off the simple layer's own local inhibition does not remove the
+simple offset (0.095 → 0.108). The offset falls to 0.034 only when the complex layer's local
+inhibition goes too, so it comes through the complex layer, plausibly its top-down inhibition onto
+simple cells. Any setting chosen from this table is post hoc.
