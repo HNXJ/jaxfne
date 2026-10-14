@@ -16,7 +16,7 @@ from __future__ import annotations
 import dataclasses
 import math
 import numbers
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 import jax
