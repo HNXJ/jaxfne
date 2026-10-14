@@ -69,6 +69,14 @@ HDP rules, probes, `jaxfne.optim`). z is always the core model's output.
   it checks the core model (agreement gates), and its numbers are never reported as z.
 - A residual X(x) from the steps above is written as a core component too, so a finding of the
   form "needs X" names a jaxfne object.
+- Every model is written in the form (h, y) = f(x, h') on a neural tensor A (x : A : y): h the
+  state, x and y the inputs and outputs or interactions, A a multi-area, multi-layer
+  `NeuronalTensor` (N = 1 included: one self-exciting neuron is one area, one layer, one
+  connection, 3-D space and 1-D time). The core must be sufficient for any such model; where it
+  is not, the gap is closed in the core.
+- Geometry is part of A. Each replication declares its geometry (layer `Geometry3D`, area
+  `Pose3D`), and every term that depends on space (delays, connection probability, fields)
+  reads it from A, so a transformation A -> A' changes the dynamics exactly through those terms.
 
 ## Runs
 
