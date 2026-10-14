@@ -183,6 +183,43 @@ def test_identity_rule_matches_baseline_adex():
     assert_freeze_allclose(hdp_out["H_final"], [1.0, 1.0])
 
 
+def test_identity_rule_matches_baseline_adex_multi_edge():
+    """Three cells, five edges on two receptors with mixed delays, a
+    reciprocal pair and noisy sustained drive: the identity rule leaves
+    spikes and V equal to simulate_adex and every |w| untouched."""
+    n_steps = 600
+    rng = np.random.default_rng(7)
+    I_pA = 150.0 + 300.0 * rng.standard_normal((n_steps, 3))
+    I_pA[::40, 0] += 1e5
+    I_pA[::55, 2] += 1e5
+    w0 = [3.0, 1.5, 2.0, 4.0, 0.7]
+    edges = dict(
+        edge_pre=[0, 1, 0, 2, 1],
+        edge_post=[1, 0, 2, 1, 2],
+        edge_weight_nS=w0,
+        edge_receptor=[0, 1, 0, 0, 1],
+        edge_delay_steps=[20, 5, 1, 13, 7],
+        receptor_reversal_mV=(0.0, -80.0),
+        receptor_tau_ms=(2.0, 8.0),
+    )
+    common = dict(
+        n_steps=n_steps, dt_ms=DT_MS, **edges, decay="exp", I_ext_pA=I_pA, record_v=True
+    )
+    params = make_adex_params(("E", "PV", "SOM"))
+    hdp_out = simulate_adex_hdp_registered(params, **common, hdp_rule="synthetic_presyn_gain")
+    base_out = simulate_adex(params, **common)
+    spikes = np.asarray(base_out["spikes"])
+    assert spikes[:, 1].sum() > 0 and spikes.sum(axis=0).min() > 0, (
+        "fixture must spike every cell"
+    )
+    assert np.array_equal(np.asarray(hdp_out["spikes"]), spikes)
+    np.testing.assert_allclose(
+        np.asarray(hdp_out["V_mV"]), np.asarray(base_out["V_mV"]), rtol=1e-12, atol=0.0
+    )
+    assert_freeze_allclose(hdp_out["w_final_nS"], w0)
+    assert_freeze_allclose(hdp_out["H_final"], [1.0, 1.0, 1.0])
+
+
 def _bias_probe_step(ctx):
     return HDPRuleUpdate(
         dH=jnp.zeros_like(ctx.H),
