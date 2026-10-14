@@ -1,11 +1,15 @@
 """Lane 6: geometry drives dynamics on the NeuronalTensor path.
 
 Covers: per-NeuronType emitter dispatch (uniform adex tensors route to the
-conductance builder with harvested rows, posed positions and per-type param
+conductance builder with harvested rows, posed positions and per-triple param
 overrides), geometry-derived per-edge delays on both families (constant-delay
 edges untouched), cross-family position equality, the N=1 self-edge drop on
 both families, and refusal of unknown/partial/heterogeneous emitter
-declarations, unconsumed params, and missing adex delays/reversals.
+declarations, emitter_params without an emitter, unconsumed params, missing
+adex delays/reversals, unspecified AdEx connectivity, and mixed
+declared/undeclared area poses. Lane 6f: localized sampling reads the posed
+layout (one area's translation rewires; a whole-tensor rigid motion preserves
+the edge set, within-area included).
 """
 
 import numpy as np
@@ -111,7 +115,7 @@ def test_adex_tensor_drive_evokes_spikes():
     assert int(np.sum(np.asarray(signals.spikes))) > 0, "the drive must spike the fixture"
 
 
-def test_adex_per_type_overrides_reach_the_kernel_params():
+def test_adex_per_triple_overrides_reach_the_kernel_params():
     types = [_nt("E", emitter="adex", emitter_params={"C_pF": 150.0}),
              _nt("PV", emitter="adex")]
     model = _construct(_single_area_tensor(types, [_ee_conn()]))
@@ -142,7 +146,8 @@ def _two_area_velocity_tensor(emitter, velocity=1.0, delay_ms=None):
         delay_ms=delay_ms, conduction_velocity_m_per_s=velocity)
     return nt.NeuronalTensor(
         name="lane6-velocity",
-        areas=[area("V1"), area("V4", pose=nt.Pose3D(translation=(10.0, 0.0, 0.0)))],
+        areas=[area("V1", pose=nt.Pose3D()),
+               area("V4", pose=nt.Pose3D(translation=(10.0, 0.0, 0.0)))],
         area_connections=[conn])
 
 
@@ -303,3 +308,210 @@ def test_nondefault_adex_knobs_refused_off_route():
 def test_unknown_adex_decay_refused_on_route():
     with pytest.raises(ValueError, match="adex_decay"):
         _construct(_adex_tensor(), adex_decay="rk4")
+
+
+# Lane 6e: emitter_params need a declared emitter; overrides apply per triple.
+def test_emitter_params_without_emitter_refused():
+    with pytest.raises(ValueError, match="emitter_params"):
+        _nt("E", emitter_params={"C_pF": 150.0})
+
+
+def test_per_triple_overrides_do_not_leak_across_layers():
+    """One type name in two layers carries two values, one per triple."""
+    def conn(layer):
+        return nt.InterConnection(
+            source_layer=layer, source_neuron_type="E",
+            target_layer=layer, target_neuron_type="E",
+            mechanism="AMPA", static=_ampa_static(), delay_ms=1.0)
+    tensor = nt.NeuronalTensor(
+        name="lane6e-triple-leak",
+        areas=[nt.Area(
+            name="V1",
+            layers=[nt.Layer(
+                        name="L4", n_neurons=2,
+                        neuron_types=[_nt("E", emitter="adex",
+                                          emitter_params={"C_pF": 150.0})]),
+                    nt.Layer(
+                        name="L23", n_neurons=2,
+                        neuron_types=[_nt("E", emitter="adex",
+                                          emitter_params={"C_pF": 250.0})])],
+            inter_connections=[conn("L4"), conn("L23")],
+        )],
+    )
+    model = _construct(tensor)
+    rows = model.static["neuron_metadata"]
+    got = np.asarray(model.params["emitter"].C_pF, dtype=float).tolist()
+    assert len(got) == 4
+    for value, row in zip(got, rows):
+        assert value == pytest.approx(150.0 if row["layer"] == "L4" else 250.0)
+
+
+# Lane 6e: the conductance route wires only declared connections.
+def _unspecified_tensor(types, n_neurons=4, name="lane6e-unspec"):
+    return nt.NeuronalTensor(
+        name=name,
+        areas=[nt.Area(
+            name="V1",
+            layers=[nt.Layer(name="L4", n_neurons=n_neurons, neuron_types=types)],
+        )],
+    )
+
+
+def test_adex_unspecified_connectivity_refused():
+    tensor = _unspecified_tensor(_adex_types())
+    assert tensor.connectivity_mode == "unspecified"
+    with pytest.raises(ValueError, match="0 edges"):
+        _construct(tensor)
+    plain = _construct(_unspecified_tensor([_nt("E")]), emitter="izhikevich")
+    assert len(np.asarray(plain.params["edge_list"].pre)) > 0
+
+
+# Lane 6e: rigid motion holds only when every area pose is explicit.
+def _two_area_pose_tensor(v1_pose, v4_pose):
+    def area(name, pose):
+        kw = {} if pose is None else {"pose": pose}
+        return nt.Area(
+            name=name,
+            layers=[nt.Layer(name="L4", n_neurons=2, neuron_types=[_nt("E")])],
+            **kw)
+    return nt.NeuronalTensor(
+        name="lane6e-pose",
+        areas=[area("V1", v1_pose), area("V4", v4_pose)],
+        area_connections=[nt.AreaConnection(
+            source_area="V1", source_layer="L4", source_neuron_type="E",
+            target_area="V4", target_layer="L4", target_neuron_type="E",
+            mechanism="AMPA", static=_ampa_static(), delay_ms=1.0)],
+    )
+
+
+def test_mixed_pose_specification_refused():
+    tensor = _two_area_pose_tensor(None, nt.Pose3D(translation=(10.0, 0.0, 0.0)))
+    with pytest.raises(ValueError, match="mixes declared poses"):
+        _construct(tensor, emitter="izhikevich")
+
+
+def test_default_valued_pose_counts_as_declared():
+    tensor = _two_area_pose_tensor(None, nt.Pose3D())
+    with pytest.raises(ValueError, match="mixes declared poses"):
+        _construct(tensor, emitter="izhikevich")
+
+
+def test_uniform_poses_build_on_both_families():
+    for v1, v4 in [(None, None),
+                   (nt.Pose3D(), nt.Pose3D(translation=(10.0, 0.0, 0.0)))]:
+        tensor = _two_area_pose_tensor(v1, v4)
+        izhi = _construct(tensor, emitter="izhikevich")
+        assert len(np.asarray(izhi.params["edge_list"].pre)) > 0
+        adex_types = _two_area_pose_tensor(v1, v4)
+        adex_types.areas[0].layers[0].neuron_types = [_nt("E", emitter="adex")]
+        adex_types.areas[1].layers[0].neuron_types = [_nt("E", emitter="adex")]
+        adex = _construct(adex_types)
+        assert len(adex.static["adex"]["pre"]) > 0
+
+
+def test_merged_tensors_keep_pose_uniformity():
+    left = _single_area_tensor([_nt("E")], [_ee_conn()], n_neurons=2, name="l")
+    right = _single_area_tensor([_nt("E")], [_ee_conn()], n_neurons=2, name="r")
+    right.areas[0].name = "V2"
+    merged = jtfne.merge_neuronal_tensors([left, right], name="lane6e-merged")
+    assert len(np.asarray(
+        _construct(merged, emitter="izhikevich").params["edge_list"].pre)) > 0
+
+
+# Lane 6f: localized (max_in_degree) sampling reads the posed layout, so
+# geometry moves the realized edges; a rigid motion of the whole tensor
+# preserves them. sigma=1.0 over a 3.0 mm cell keeps the whole cloud in one
+# sampler bucket, so candidate order is selector order in both layouts.
+def _localized_two_area(v1_pose, v4_pose, name="lane6f-posed"):
+    mk = lambda nm, pose: nt.Area(
+        name=nm, layers=[nt.Layer(name="L4", n_neurons=8, neuron_types=[_nt("E")])],
+        pose=pose)
+    conn = nt.AreaConnection(
+        source_area="V1", source_layer="L4", source_neuron_type="E",
+        target_area="V4", target_layer="L4", target_neuron_type="E",
+        mechanism="AMPA", static=_ampa_static(),
+        delay_ms=1.0, max_in_degree=3, spatial_sigma=1.0)
+    return nt.NeuronalTensor(
+        name=name, areas=[mk("V1", v1_pose), mk("V4", v4_pose)],
+        area_connections=[conn])
+
+
+def _localized_one_area(pose, name="lane6f-posed-one"):
+    conn = nt.InterConnection(
+        source_layer="L4", source_neuron_type="E",
+        target_layer="L4", target_neuron_type="E",
+        mechanism="AMPA", static=_ampa_static(),
+        delay_ms=1.0, max_in_degree=3, spatial_sigma=1.0)
+    return nt.NeuronalTensor(
+        name=name,
+        areas=[nt.Area(name="V1", layers=[nt.Layer(
+            name="L4", n_neurons=8, neuron_types=[_nt("E")])],
+            pose=pose, inter_connections=[conn])])
+
+
+def _localized_edges(tensor, seed=0):
+    runtime = nt.RuntimeConfiguration(
+        seed=seed, duration_ms=DUR_MS, dt_ms=DT_MS, emitter="izhikevich")
+    edge = jtfne.construct(tensor, runtime).params["edge_list"]
+    return set(zip(np.asarray(edge.pre).tolist(), np.asarray(edge.post).tolist()))
+
+
+def test_translating_one_area_changes_localized_edges():
+    """(a) moving V4 20 mm out changes the realized localized edge set."""
+    origin = nt.Pose3D(translation=(0.0, 0.0, 0.0))
+    base = _localized_edges(_localized_two_area(origin, origin, name="lane6f-a0"))
+    assert len(base) > 0, "fixture must wire edges before the move"
+    moved = _localized_edges(_localized_two_area(
+        origin, nt.Pose3D(translation=(20.0, 0.0, 0.0)), name="lane6f-a1"))
+    assert moved != base, "posed layout feeds the sampler, so the move rewires"
+
+
+def _rigid_pair():
+    # Base: explicit non-default poses on both areas (all-default poses skip
+    # origin subtraction, so the base must be explicit for one geometry).
+    # Image: the same cloud under a 180-degree rigid motion plus (8, 1.5, 1).
+    base = nt.Pose3D(translation=(4.0, 1.5, 1.0))
+    moved = nt.Pose3D(rotation_deg=180.0, translation=(8.0, 1.5, 1.0))
+    return base, moved
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2, 3, 4, 5])
+def test_whole_tensor_rigid_motion_preserves_localized_edges(seed):
+    """(b) one rigid motion of both areas preserves the edge set."""
+    base_pose, moved_pose = _rigid_pair()
+    base = _localized_edges(
+        _localized_two_area(base_pose, base_pose, name="lane6f-b0"), seed=seed)
+    moved = _localized_edges(
+        _localized_two_area(moved_pose, moved_pose, name="lane6f-b1"), seed=seed)
+    assert len(base) > 0, "fixture must wire edges"
+    assert moved == base
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2, 3, 4, 5])
+def test_area_rotation_preserves_within_area_localized_edges(seed):
+    """(c) the same rigid motion preserves within-area (InterConnection) edges."""
+    base_pose, moved_pose = _rigid_pair()
+    base = _localized_edges(
+        _localized_one_area(base_pose, name="lane6f-c0"), seed=seed)
+    moved = _localized_edges(
+        _localized_one_area(moved_pose, name="lane6f-c1"), seed=seed)
+    assert len(base) > 0, "fixture must wire edges"
+    assert moved == base
+
+
+def _areaconn_delay_ms(cfg):
+    rules = [r for r in cfg.metadata["circuit"]["connections"] if r["name"] == "areaconn_0"]
+    assert len(rules) == 1, "fixture must bridge exactly one area connection"
+    return rules[0]["delay_ms"]
+
+
+def test_standalone_adex_bridge_reads_posed_distances():
+    """The standalone bridge (no harvested pair) poses like construct: moving
+    V4 from 10 to 40 mm lengthens the velocity delay."""
+    near = _two_area_velocity_tensor(emitter="adex")
+    far = _two_area_velocity_tensor(emitter="adex")
+    far.areas[1].pose = nt.Pose3D(translation=(40.0, 0.0, 0.0))
+    d_near = _areaconn_delay_ms(nt.neuronal_tensor_to_adex_configuration(near, dt_ms=DT_MS))
+    d_far = _areaconn_delay_ms(nt.neuronal_tensor_to_adex_configuration(far, dt_ms=DT_MS))
+    assert d_near > 0.0
+    assert d_far > d_near + 20.0, (d_near, d_far)

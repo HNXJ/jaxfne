@@ -762,6 +762,15 @@ def compile_connection_rules(
                 f"connection {rname!r} sampling='bernoulli' is not implemented with "
                 "max_in_degree (localized sampling); omit one of them"
             )
+        # A declared spatial_sigma has no consumer on the density path: it
+        # only parametrizes localized (max_in_degree) sampling, so carrying
+        # it without the cap is refused rather than silently ignored.
+        if rule.get("max_in_degree") is None and rule.get("spatial_sigma") is not None:
+            raise ValueError(
+                f"connection {rname!r} declares spatial_sigma={rule.get('spatial_sigma')!r} "
+                "without max_in_degree; spatial_sigma needs max_in_degree "
+                "(localized sampling) -- declare both or neither"
+            )
         # _select_indices honors allow_empty internally (returns [] vs raises on
         # zero-match) and ALWAYS raises on a structurally invalid (non-mapping)
         # selector. No try/except here: structural errors must surface loudly,

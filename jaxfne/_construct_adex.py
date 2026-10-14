@@ -27,6 +27,7 @@ from ._config import Configuration, _counts_from_fractions, edge_seed_from_metad
 from ._model import Model
 from .connectivity import compile_connection_rules, delay_steps_from_ms
 from .emitters_adex import AdExParams, make_adex_params
+from .emitters_adex import _PARAM_FIELDS as _ADEX_PARAM_FIELDS
 
 # The allowlist. A path starts at its root (Configuration, Simulation or RuntimeConfig). "*"
 # matches one list index or dict key; "**" matches the whole subtree below it. A field that is
@@ -76,6 +77,10 @@ ADEX_CONSUMED = (
     # Edge seed: connectivity(edge_seed=), else the runtime seed (edge_seed_from_metadata).
     ("Configuration", "metadata", "connectivity", "edge_seed"),
     ("Configuration", "metadata", "seed"),
+    # Per-(area, layer, type) drive declarations bridged as tensor_triple_drive
+    # (neuronal_tensor_to_adex_configuration records them; construct_adex_model
+    # realizes them as constant external current).
+    ("Configuration", "metadata", "tensor_triple_drive", "**"),
     # runtime(dt_ms=, duration_ms=) are checked against the Simulation's values (one source).
     ("Configuration", "metadata", "dt_ms"),
     ("Configuration", "metadata", "duration_ms"),
@@ -297,9 +302,150 @@ def _adex_rules(cfg: Configuration, receptor_names: list[str]) -> list[dict[str,
     return rules
 
 
+def _adex_triple_drive_pA(
+    metadata: Mapping[str, Any], rows: "Sequence[dict]", labels: "tuple[str, ...]"
+) -> "np.ndarray | None":
+    """Per-neuron constant current (pA) from bridged ``tensor_triple_drive``.
+
+    One declared drive unit reads as one pA on every neuron of exactly the
+    declared (area, layer, type) triple; undeclared triples carry none.
+    Absent metadata (every tensor without a declared drive, and every
+    non-tensor config) returns None, so the kernel path stays unchanged.
+    An entry naming no built neuron is refused unless its cell type is in
+    the built composition (declared but rounded away: accepted, applies to
+    no neuron); a non-finite drive (metadata surgery bypassing the bridge)
+    fails as ValueError. Mirrors ``_apply_tensor_triple_drive`` in
+    ``jaxfne/_construct_population.py`` (current-based route).
+    """
+    entries = (metadata or {}).get("tensor_triple_drive")
+    if not entries:
+        return None
+    if not isinstance(entries, (list, tuple)):
+        raise ValueError(
+            f"tensor_triple_drive {entries!r} is not realized: it takes "
+            "a list of {area, layer, cell_type, drive}"
+        )
+    drive = np.zeros(len(rows), dtype=np.float64)
+    declared = set(labels)
+    for entry in entries:
+        try:
+            area = str(entry["area"])
+            layer = str(entry["layer"])
+            cell_type = str(entry["cell_type"])
+            value = entry["drive"]
+        except (KeyError, TypeError):
+            raise ValueError(
+                f"tensor_triple_drive entry {entry!r} is not realized: it takes "
+                "{area, layer, cell_type, drive}"
+            )
+        if isinstance(value, bool) or not isinstance(value, numbers.Real) or not math.isfinite(value):
+            raise ValueError(
+                f"tensor_triple_drive(area={area!r}, layer={layer!r}, "
+                f"cell_type={cell_type!r}, drive={value!r}) is not realized: "
+                "it takes a finite real number"
+            )
+        matched = [
+            i
+            for i, row in enumerate(rows)
+            if str(row.get("area")) == area
+            and str(row.get("layer")) == layer
+            and str(row.get("cell_type")) == cell_type
+        ]
+        if not matched:
+            if cell_type in declared:
+                continue
+            raise ValueError(
+                f"tensor_triple_drive(area={area!r}, layer={layer!r}, "
+                f"cell_type={cell_type!r}) is not realized: it matches no neuron "
+                "of the built population"
+            )
+        for i in matched:
+            drive[i] = float(value)
+    return drive
+
+
 def _cast_params(params: AdExParams, dtype) -> AdExParams:
     fields = {f: jnp.asarray(getattr(params, f), dtype=dtype) for f in params._fields if f != "labels"}
     return params._replace(**fields)
+
+
+def _apply_triple_param_overrides(
+    params: AdExParams,
+    rows: "Sequence[dict]",
+    param_overrides: "Mapping[tuple[str, str, str], Mapping[str, float]]",
+) -> AdExParams:
+    """Apply per-(area, layer, type) param overrides onto per-neuron columns.
+
+    ``param_overrides`` maps an ``(area, layer, cell_type)`` triple to a
+    ``{field: value}`` mapping (the shape
+    :func:`jaxfne.neuronal_tensor._resolve_tensor_emitter_family` returns):
+    each entry overrides the named AdEx fields on every harvested neuron of
+    exactly that triple, matching drive semantics — two triples sharing a
+    cell type may carry different values. Unknown fields, non-finite
+    values (bools refused, never coerced) and entries matching no harvested
+    neuron are refused. Returns the params with the overridden columns
+    replaced (same dtype handling as the caller: float64 here, cast later).
+    """
+    if not isinstance(param_overrides, Mapping):
+        raise ValueError(
+            f"param_overrides {param_overrides!r} is not realized: it takes "
+            "a mapping of (area, layer, cell_type) triple to {field: value}"
+        )
+    columns: dict[str, Any] = {}
+    for key, fields in param_overrides.items():
+        triple: "tuple[str, str, str] | None" = None
+        if isinstance(key, (tuple, list)) and len(key) == 3:
+            try:
+                triple = (str(key[0]), str(key[1]), str(key[2]))
+            except (TypeError, ValueError):
+                triple = None
+        if triple is None:
+            raise ValueError(
+                f"param_overrides key {key!r} is not realized: it takes an "
+                "(area, layer, cell_type) triple"
+            )
+        if not isinstance(fields, Mapping):
+            raise ValueError(
+                f"param_overrides[{key!r}] {fields!r} is not realized: it takes "
+                "a mapping of AdEx field name to value"
+            )
+        for field, value in fields.items():
+            if field not in _ADEX_PARAM_FIELDS:
+                raise ValueError(
+                    f"param_overrides[{key!r}] names unknown AdEx parameter field "
+                    f"{field!r}; expected one of {list(_ADEX_PARAM_FIELDS)}"
+                )
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, numbers.Real)
+                or not math.isfinite(value)
+            ):
+                raise ValueError(
+                    f"param_overrides[{key!r}][{field!r}]={value!r} is not "
+                    "realized: it takes a finite real number"
+                )
+        matched = [
+            i
+            for i, row in enumerate(rows)
+            if (str(row.get("area")), str(row.get("layer")), str(row.get("cell_type")))
+            == triple
+        ]
+        if not matched:
+            raise ValueError(
+                f"param_overrides[{key!r}] is not realized: it matches no neuron "
+                "of the harvested population"
+            )
+        for field, value in fields.items():
+            column = columns.get(field)
+            if column is None:
+                column = np.asarray(getattr(params, field), dtype=np.float64).copy()
+                columns[field] = column
+            column[matched] = float(value)
+    if not columns:
+        return params
+    return params._replace(
+        **{field: jnp.asarray(column, dtype=jnp.float64) for field, column in columns.items()}
+    )
 
 
 def construct_adex_model(
@@ -307,7 +453,7 @@ def construct_adex_model(
     *,
     neuron_rows: "Sequence[dict] | None" = None,
     positions: Any = None,
-    param_overrides: "Mapping[str, Mapping[str, float]] | None" = None,
+    param_overrides: "Mapping[tuple[str, str, str], Mapping[str, float]] | None" = None,
 ) -> Model:
     """Build a :class:`Model` for the ``adex`` family (see the module docstring).
 
@@ -317,8 +463,10 @@ def construct_adex_model(
 
     The tensor path passes its harvested ``neuron_rows`` (real area/layer/cell
     types, so the selector rules compile against them), the posed
-    ``positions``, and per-``NeuronType`` ``param_overrides`` (forwarded to
-    :func:`jaxfne.emitters_adex.make_adex_params`); the pair comes together or
+    ``positions``, and per-triple ``param_overrides`` (one
+    ``{field: value}`` mapping per ``(area, layer, cell_type)`` triple,
+    applied onto the per-neuron param columns by
+    :func:`_apply_triple_param_overrides`); the pair comes together or
     not at all. Without them the model keeps the historical behavior
     (fraction-ordered labels, ``"adex"`` rows, zero positions).
     """
@@ -380,13 +528,25 @@ def construct_adex_model(
                 f"{sorted(set(labels))} vs {sorted(set(want))}"
             )
         params = _cast_params(
-            make_adex_params(labels, overrides=param_overrides), jnp.dtype(dtype_name)
+            _apply_triple_param_overrides(
+                make_adex_params(labels), rows,
+                {} if param_overrides is None else param_overrides,
+            ),
+            jnp.dtype(dtype_name),
         )
         area_names = sorted({str(row["area"]) for row in rows})
         layer_names = sorted({str(row["layer"]) for row in rows})
         model_positions = jnp.asarray(np.asarray(positions, dtype=np.float64).reshape(n, 3))
     # The edge seed is the plain route's: connectivity(edge_seed=) or else the runtime seed.
     edge_seed = edge_seed_from_metadata(cfg.metadata)
+    # Per-(area, layer, type) drive declarations (tensor_triple_drive metadata):
+    # one unit reads as one pA of constant external current on every neuron
+    # of the declaring triple; undeclared triples carry none, and absent
+    # metadata (every tensor without a declared drive, every non-tensor
+    # config) keeps the historical path (None: no I_ext_pA downstream).
+    triple_drive = _adex_triple_drive_pA(
+        cfg.metadata, rows, tuple(sorted(set(labels)))
+    )
     result = compile_connection_rules(rows, rules, mechanisms, seed=edge_seed, dtype=dtype_name)
 
     static = _construct_build_static(cfg, geometry_meta=None)
@@ -411,6 +571,10 @@ def construct_adex_model(
         "decay": str(decay),
         "step_order": str(step_order),
         "edge_seed": int(edge_seed),
+        "triple_drive_pA": (
+            None if triple_drive is None
+            else np.asarray(triple_drive, dtype=np.float64)
+        ),
     }
     return Model(
         cfg=cfg,
@@ -445,7 +609,10 @@ def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> di
 
     Returns ``params``, the five ``edge_*`` arrays (delays in steps at ``dt_ms``), the
     receptor reversal/tau tuples, ``decay`` and ``step_order``. The caller adds ``n_steps``,
-    ``dt_ms``, ``record_v`` and optionally ``I_ext_pA``/``V0_mV``. ``dtype`` casts the cell
+    ``dt_ms``, ``record_v`` and optionally ``V0_mV``. ``I_ext_pA`` is included exactly
+    when the model was built with a declared per-triple drive (``static["adex"]``
+    ``["triple_drive_pA"]``); models built without one take the historical path
+    (no key: the kernel runs undriven). ``dtype`` casts the cell
     parameters (and so the kernel's dtype); None keeps them as built.
     """
     emitter = model.params["emitter"]
@@ -458,7 +625,7 @@ def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> di
     steps = np.asarray(
         [delay_steps_from_ms(float(ms), dt) for ms in st["delay_ms"]], dtype=np.int64
     )
-    return {
+    out: dict[str, Any] = {
         "params": emitter,
         "edge_pre": st["pre"],
         "edge_post": st["post"],
@@ -470,6 +637,9 @@ def adex_kernel_args(model: Model, dt_ms: float, dtype: str | None = None) -> di
         "decay": st["decay"],
         "step_order": st["step_order"],
     }
+    if st.get("triple_drive_pA", None) is not None:
+        out["I_ext_pA"] = st["triple_drive_pA"]
+    return out
 
 
 # ``Simulation(poisson_drive=...)`` on the adex route: the CAMINOS external drive, one Poisson

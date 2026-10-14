@@ -148,6 +148,19 @@ def test_mixed_rule_set_with_and_without_mechanism_falls_back_to_sign_only():
     assert 100.0 not in np.unique(tau), "mixed rule set must fall back to sign-only (no partial switch)"
 
 
+def test_sign_only_path_refuses_spatial_sigma():
+    """The sign-only compiler never reads spatial_sigma: refused, not ignored."""
+    import pytest
+
+    cfg = (
+        jtfne.laminar_cortex_config(**BASE_KW)
+        .connections(name="e_to_i", source={"cell_type": "E"}, target={"cell_type": "PV"},
+                     probability=1.0, weight=0.5, sign="excitatory", spatial_sigma=0.3)
+    )
+    with pytest.raises(ValueError, match="spatial_sigma needs max_in_degree"):
+        jtfne.construct(cfg)
+
+
 def test_gate_helper_directly():
     from jaxfne.core import _all_connection_rules_declare_resolvable_mechanism as gate
 

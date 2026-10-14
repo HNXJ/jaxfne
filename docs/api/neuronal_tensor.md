@@ -102,12 +102,23 @@ class NeuronType:
     relative_size: float = 1.0
     fraction: float | None = None
     value_tag: ValueTag = "relative"
+    emitter: str | None = None
+    emitter_params: dict | None = None
+    drive: float | None = None
 ```
 
 `fraction` is an optional per-type population fraction. If every `NeuronType`
 in a `Layer` declares a `fraction`, `neuronal_tensor_to_configuration` uses
 those (normalized) fractions instead of splitting the layer population
 evenly across its declared types.
+
+`emitter` plus `emitter_params` declare one emitter family for the triple
+(see [Per-type emitters and geometry-derived delays](#per-type-emitters-and-geometry-derived-delays)).
+`emitter_params` with `emitter=None` is refused (the params are validated
+against the declared emitter and ignored without one). `drive` is a
+per-triple constant drive (finite real, `None` = undeclared), applied after
+the baseline drive and before `cell_params`; on the AdEx route one drive
+unit reads as one pA of constant external current on the triple's neurons.
 
 **Class method:**
 
@@ -205,6 +216,11 @@ class InterConnection:
     static: StaticParams = field(default_factory=StaticParams)
     plastic: PlasticParams = field(default_factory=PlasticParams)
     delay_ms: float | None = None
+    conduction_velocity_m_per_s: float | None = None
+    length_unit: str = "mm"
+    spatial_sigma: float | None = None
+    max_in_degree: int | None = None
+    allow_self: bool | None = None
 ```
 
 **Within-area** connection from `(source_layer, source_neuron_type)` to
@@ -213,7 +229,30 @@ class InterConnection:
 - `delay_ms`: Configured axonal delay in milliseconds (`None` = undeclared).
   When declared, must be a finite number `>= 0.0`. Forwarded into the compiled
   connection rule and realized to simulation steps at model construction
-  where simulation `dt` is known.
+  where simulation `dt` is known. Refused together with
+  `conduction_velocity_m_per_s` (declare one or neither).
+- `conduction_velocity_m_per_s`: Geometry-derived delays in m/s
+  (`None` = undeclared). Each compiled edge gets
+  `delay_ms = pairwise distance / velocity` from the constructed positions.
+  `length_unit` names the distance unit: tensor positions are mm, so only
+  `"mm"` is accepted and any other value is refused.
+- `spatial_sigma` / `max_in_degree`: Localized distance-weighted sampling
+  (`None` = undeclared = the `probability` density path). `max_in_degree`
+  is a positive integer fan-in cap per post neuron; when set, the rule
+  compiles through the localized sampler (carrying `probability=None`)
+  instead of the density path, and `spatial_sigma` (mm, finite, `> 0`)
+  sets the Gaussian falloff. A declared sigma changes the realized edges.
+  A declared `spatial_sigma` without `max_in_degree` has no consumer on
+  the density path, so the bridge refuses it (`spatial_sigma needs
+  max_in_degree`): declare both or neither. Both are refused on the
+  conductance (AdEx) route, which has no localized-sampling consumer.
+- `allow_self`: Per-rule self-edge opt-in (`None` = undeclared = self-edges
+  dropped, the historical behaviour). `True` keeps `i == i` pairs.
+  Refused where no self pair can exist (source and target area, layer and
+  type must agree). On the AdEx route, `allow_self=True` together with
+  `conduction_velocity_m_per_s` is refused (a zero-distance self edge
+  realizes to 0 delay steps); on the current-based route the combination
+  keeps zero-step self edges.
 
 ---
 
@@ -254,12 +293,19 @@ class Area:
     name: str
     layers: Sequence[Layer] = ()
     inter_connections: Sequence[InterConnection] = omitted
-    pose: Pose3D = field(default_factory=Pose3D)
+    pose: Pose3D | None = None
     connectivity_mode: Literal["unspecified", "explicit"] | None = None
 ```
 
 One cortical area: `Layer` populations, `InterConnection`
-within-area wiring, and a `Pose3D` for 3D placement.
+within-area wiring, and a `Pose3D` for 3D placement. `pose=None` means
+undeclared (the historical stacked layout applies). Whether the pose was
+declared is recorded separately: even a default-valued `Pose3D()` counts as
+declared. Rigid motion holds only when every area's pose is explicit, so a
+tensor mixing declared and undeclared poses across areas is refused at bridge
+time, while an all-undeclared tensor keeps the historical layout
+byte-identically. `merge_neuronal_tensors` preserves each area's
+declared/undeclared status (an explicit `poses=` entry is a declaration).
 
 ---
 
@@ -279,6 +325,11 @@ class AreaConnection:
     plastic: PlasticParams = field(default_factory=PlasticParams)
     delay_ms: float | None = None
     probability: float | None = None
+    conduction_velocity_m_per_s: float | None = None
+    length_unit: str = "mm"
+    spatial_sigma: float | None = None
+    max_in_degree: int | None = None
+    allow_self: bool | None = None
 ```
 
 **Between-area** connection with the full
@@ -291,6 +342,11 @@ Unlike `InterConnection`, `mechanism` defaults to
   connection rule and realized to simulation steps at model construction.
 - `probability`: Per-pair connection probability in `(0.0, 1.0]` (`None` =
   undeclared = `1.0`, full bipartite between the declared layer × cell-type pair).
+  Mutually exclusive with `max_in_degree` (declare one or neither).
+- `conduction_velocity_m_per_s` / `length_unit`, `spatial_sigma` /
+  `max_in_degree`, `allow_self`: same semantics as `InterConnection`
+  (geometry-derived delays, localized sampling, self-edge opt-in with the
+  same refusals).
 
 ---
 
@@ -501,7 +557,11 @@ Returns a `Configuration` for `jaxfne.construct`.
 - Per-layer geometry (`Layer.geometry`, P-022) is preserved via fractional
   domains in `Configuration.metadata["tfne_geometry"]["domains"]`.
   `Area.pose` is not applied by `neuronal_tensor_to_configuration`; only
-  `construct` applies it.
+  `construct` applies it. When some area pose is non-default, the bridge
+  also records each area's `Pose3D` as plain data in
+  `Configuration.metadata["tensor_pose"]`, so localized (`max_in_degree`)
+  edge sampling reads the posed layout; all-default poses write nothing
+  and keep the historical path byte-identical.
 
 **Known fidelity gaps (not yet wired):**
 
@@ -569,7 +629,10 @@ Both entry points reach the same internal implementation (`_construct_neuronal_t
 2. Samples each layer's local neuron positions from its declared `Geometry3D`
    (currently `"uniform_random"` only).
 3. Applies each area's `Pose3D` (plane + rotation + translation) to map
-   local positions into global 3D space.
+   local positions into global 3D space. Localized (`max_in_degree`) edge
+   sampling reads a copy posed by the same rule before compilation, so
+   moving one area rewires the localized edge set while a rigid motion of
+   the whole tensor preserves it.
 4. Overwrites `model.params["positions"]` and
    `model.static["neuron_metadata"]` so field/LFP/EEG/MEG proxy readouts
    — which read positions from there — see the real layout.
@@ -671,12 +734,22 @@ model = construct(merged, RuntimeConfiguration(seed=1, duration_ms=1000.0))
 Each `NeuronType` carries an `emitter` name plus optional `emitter_params`,
 validated against `jaxfne.emitter_registry`. When no type declares an
 emitter, the runtime emitter applies. When any type declares one, every type
-declares the same family and the runtime agrees with it. A tensor that
+declares the same family and the runtime agrees with it. `emitter_params`
+apply per (`area`, `layer`, `type`) triple, matching drive semantics, so two
+triples sharing a type name may declare different values. A tensor that
 resolves to `adex` builds through the conductance route: population size and
 positions come from the same sampler as the current route, each connection
 becomes one receptor rule (reversal required, delay constant or
-velocity-derived), and per-type `emitter_params` override the AdEx cell
-parameters by type.
+velocity-derived), and per-triple `emitter_params` override the AdEx cell
+parameters on exactly that triple's neurons.
+
+Registered-but-unroutable families (`lif`, `glif`) are refused at bridge
+time: `construct` already fails for them, so the bridge refuses early rather
+than building a model whose kernel cannot execute.
+
+The AdEx bridge wires only declared connections, so a tensor with
+`connectivity_mode="unspecified"` is refused there (it would silently build
+0 edges, while the current-based route builds the default topology).
 
 A connection with `conduction_velocity_m_per_s` gets one delay per compiled
 edge from the constructed positions (`delay_ms = distance * mm_per_unit /

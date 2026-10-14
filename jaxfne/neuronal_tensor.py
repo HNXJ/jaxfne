@@ -186,11 +186,20 @@ class NeuronType:
     # from this NeuronType — i.e. one (area, layer, type) triple — and is
     # applied at construction after ``drive(baseline_drive_by_cell_type=)``
     # and before ``cell_params()``. Must be a finite real number; NaN, inf,
-    # bools and strings are refused, never coerced. No consumer exists on
-    # the conductance (adex) route, so a declared drive there is refused.
+    # bools and strings are refused, never coerced. On the conductance
+    # (adex) route a declared value reads as constant external current (one
+    # drive unit = one pA on every neuron of the triple); undeclared
+    # triples carry none.
     drive: Optional[float] = None
 
     def __post_init__(self) -> None:
+        if self.emitter is None and self.emitter_params is not None:
+            raise ValueError(
+                f"NeuronType {self.name!r} declares emitter_params="
+                f"{self.emitter_params!r} with emitter=None; emitter_params "
+                "are validated against the declared emitter and ignored "
+                "without one — declare an emitter or drop emitter_params"
+            )
         object.__setattr__(
             self, "drive",
             _check_triple_drive(self.drive, label=f"NeuronType {self.name!r}"),
@@ -264,14 +273,22 @@ def _check_conduction_velocity(
 ) -> "float | None":
     """Validate geometry-derived delay fields shared by both connection types.
 
-    ``length_unit`` names the unit pairwise distances convert through (one of
-    ``{"um", "mm", "m"}``, default ``"mm"``); ``velocity`` (m/s, None =
+    ``length_unit`` names the unit pairwise distances convert through; tensor
+    positions are mm, so only ``"mm"`` is accepted (any other value in
+    ``{"um", "mm", "m"}`` is refused rather than silently rescaled, and
+    anything outside the set is refused as unknown); ``velocity`` (m/s, None =
     undeclared) must be finite and > 0 when given.
     """
     if length_unit not in LENGTH_UNITS:
         raise ValueError(
             f"{label} length_unit must be one of {sorted(LENGTH_UNITS)}; "
             f"got {length_unit!r}"
+        )
+    if length_unit != "mm":
+        raise ValueError(
+            f"{label} length_unit must be 'mm' (tensor positions are mm); "
+            f"got {length_unit!r} — relabelling the geometry unit is refused, "
+            "declare distances in mm"
         )
     if velocity is None:
         return None
@@ -344,6 +361,31 @@ def _check_connection_allow_self(allow_self: "bool | None", *, label: str) -> "b
     return allow_self
 
 
+def _check_connection_max_in_degree(max_in_degree: "int | None", *, label: str) -> "int | None":
+    """Validate the localized-sampling fan-in cap shared by both connection types.
+
+    None = undeclared = the compiler's density path; a declared value must
+    be a positive integer (bools, non-integral numbers and values < 1 are
+    refused, never coerced). When set, the rule compiles through the
+    localized (distance-weighted, ``spatial_sigma``) sampler instead of the
+    ``probability`` density path, so the two are mutually exclusive.
+    """
+    if max_in_degree is None:
+        return None
+    if isinstance(max_in_degree, bool) or not isinstance(max_in_degree, numbers.Integral):
+        raise ValueError(
+            f"{label} max_in_degree must be a positive integer; "
+            f"got {max_in_degree!r}"
+        )
+    degree = int(max_in_degree)
+    if degree < 1:
+        raise ValueError(
+            f"{label} max_in_degree must be a positive integer; "
+            f"got {max_in_degree!r}"
+        )
+    return degree
+
+
 def _check_triple_drive(drive: "float | None", *, label: str) -> "float | None":
     """Validate a per-(area, layer, type) drive declaration.
 
@@ -393,6 +435,14 @@ class InterConnection:
     # declared metadata. Must be finite and > 0 when set. No consumer exists
     # on the conductance (adex) route, so a declared value there is refused.
     spatial_sigma: "float | None" = None
+    # Localized-sampling fan-in cap (None = undeclared = the ``probability``
+    # density path). When set, the rule compiles through the localized
+    # distance-weighted (``spatial_sigma``) sampler with this per-post-neuron
+    # cap instead of the density path; mutually exclusive with a declared
+    # ``probability`` (refused jointly). Must be a positive integer when set.
+    # No consumer exists on the conductance (adex) route, so a declared
+    # value there is refused.
+    max_in_degree: "int | None" = None
     # Per-rule self-edge opt-in (None = undeclared = self-edges dropped, the
     # historical behaviour). ``True`` keeps ``i == i`` pairs on every
     # sampling path of :func:`jaxfne.connectivity.compile_connection_rules`;
@@ -430,6 +480,10 @@ class InterConnection:
             _check_connection_spatial_sigma(self.spatial_sigma, label="InterConnection"),
         )
         object.__setattr__(
+            self, "max_in_degree",
+            _check_connection_max_in_degree(self.max_in_degree, label="InterConnection"),
+        )
+        object.__setattr__(
             self, "allow_self",
             _check_connection_allow_self(self.allow_self, label="InterConnection"),
         )
@@ -461,10 +515,22 @@ class Area:
         default_factory=lambda: _UNSPECIFIED_CONNECTIONS,
         repr=False,
     )
-    pose: Pose3D = field(default_factory=Pose3D)
+    # Placement of this area's layer stack in global 3D space. None =
+    # undeclared = the historical stacked layout (converted to a default
+    # ``Pose3D()`` at construction, which applies as the identity). Whether
+    # the pose was declared is recorded separately (``_pose_specified``):
+    # rigid motion holds only when every area's pose is explicit, so a
+    # tensor mixing declared and undeclared poses across areas is refused
+    # at bridge time, while an all-undeclared tensor keeps the historical
+    # layout byte-identically.
+    pose: "Pose3D | None" = field(default=None)
     connectivity_mode: ConnectivityMode | None = None
 
     def __setattr__(self, name: str, value: Any) -> None:
+        if name == "pose":
+            # None = undeclared (converted to Pose3D() in __post_init__);
+            # any Pose3D value, even a default-valued one, is a declaration.
+            object.__setattr__(self, "_pose_specified", value is not None)
         if name == "inter_connections" and "_connectivity_initialized" in self.__dict__:
             object.__setattr__(self, "_connectivity_specified", True)
             object.__setattr__(self, "connectivity_mode", "explicit")
@@ -493,6 +559,12 @@ class Area:
         object.__setattr__(self, "inter_connections", connections)
         object.__setattr__(self, "connectivity_mode", mode)
         object.__setattr__(self, "_connectivity_specified", specified)
+        if self.pose is None:
+            object.__setattr__(self, "pose", Pose3D())
+        if "_pose_specified" not in self.__dict__:
+            # Pose assigned without the __setattr__ hook (e.g. unpickled or
+            # otherwise restored state): fall back to value comparison.
+            object.__setattr__(self, "_pose_specified", self.pose != Pose3D())
         if not isinstance(self.name, str):
             raise TypeError(f"Area.name must be a str, got {type(self.name).__name__}")
         if not all(isinstance(layer, Layer) for layer in self.layers):
@@ -540,6 +612,12 @@ class AreaConnection:
     # Same forwarding semantics as InterConnection.spatial_sigma; no consumer
     # on the conductance (adex) route.
     spatial_sigma: "float | None" = None
+    # Localized-sampling fan-in cap (None = undeclared = the ``probability``
+    # density path). Same forwarding semantics as
+    # InterConnection.max_in_degree; mutually exclusive with a declared
+    # ``probability`` (refused jointly). No consumer exists on the
+    # conductance (adex) route.
+    max_in_degree: "int | None" = None
     # Per-rule self-edge opt-in (None = undeclared = self-edges dropped).
     # Same forwarding semantics as InterConnection.allow_self.
     allow_self: "bool | None" = None
@@ -587,6 +665,17 @@ class AreaConnection:
             self, "spatial_sigma",
             _check_connection_spatial_sigma(self.spatial_sigma, label="AreaConnection"),
         )
+        object.__setattr__(
+            self, "max_in_degree",
+            _check_connection_max_in_degree(self.max_in_degree, label="AreaConnection"),
+        )
+        if self.max_in_degree is not None and self.probability is not None:
+            raise ValueError(
+                "AreaConnection declares both max_in_degree="
+                f"{self.max_in_degree!r} and probability={self.probability!r}; "
+                "localized sampling and the density path are mutually exclusive "
+                "sampling modes — declare one or neither"
+            )
         object.__setattr__(
             self, "allow_self",
             _check_connection_allow_self(self.allow_self, label="AreaConnection"),
@@ -865,6 +954,9 @@ def _load_neuronal_tensor_impl(
                 probability=ac.get("probability"),
                 conduction_velocity_m_per_s=ac.get("conduction_velocity_m_per_s"),
                 length_unit=ac.get("length_unit", "mm"),
+                spatial_sigma=ac.get("spatial_sigma"),
+                max_in_degree=ac.get("max_in_degree"),
+                allow_self=ac.get("allow_self"),
             )
             for ac in raw_area_connections
         ]
@@ -896,6 +988,9 @@ def _load_neuronal_tensor_impl(
                         delay_ms=ic.get("delay_ms"),  # dropped on load before 0.5.5
                         conduction_velocity_m_per_s=ic.get("conduction_velocity_m_per_s"),
                         length_unit=ic.get("length_unit", "mm"),
+                        spatial_sigma=ic.get("spatial_sigma"),
+                        max_in_degree=ic.get("max_in_degree"),
+                        allow_self=ic.get("allow_self"),
                     )
                     for ic in a.get("inter_connections", [])
                 ]
@@ -974,17 +1069,23 @@ def merge_neuronal_tensors(
             rename_map[area.name] = new_name
             pose = poses[pose_idx] if poses is not None else area.pose
             pose_idx += 1
+            # dataclasses.replace re-passes pose explicitly, which would mark
+            # every merged area pose-specified; inherit the declaration flag
+            # instead (an explicit poses= entry is a declaration).
+            pose_specified = True if poses is not None else bool(
+                getattr(area, "_pose_specified", area.pose != Pose3D())
+            )
             if area.connectivity_mode == "unspecified":
-                merged_areas.append(
-                    replace(
-                        area,
-                        name=new_name,
-                        pose=pose,
-                        inter_connections=_UNSPECIFIED_CONNECTIONS,
-                    )
+                merged = replace(
+                    area,
+                    name=new_name,
+                    pose=pose,
+                    inter_connections=_UNSPECIFIED_CONNECTIONS,
                 )
             else:
-                merged_areas.append(replace(area, name=new_name, pose=pose))
+                merged = replace(area, name=new_name, pose=pose)
+            object.__setattr__(merged, "_pose_specified", pose_specified)
+            merged_areas.append(merged)
         for ac in tensor.area_connections:
             merged_connections.append(
                 replace(
@@ -1210,10 +1311,13 @@ def _construct_neuronal_tensor_impl(
 
     Positions already carry each ``Layer.geometry``: the bridge wrote it
     into the ``Configuration`` (``tfne_geometry`` domains), so
-    :func:`jaxfne.construct` sampled it. This then applies only each
-    ``Area``'s ``Pose3D`` placement (plane + rotation + translation) onto
-    those constructed positions — no re-sampling, one source of truth for
-    geometry. A default pose is the identity, bit-exact.
+    :func:`jaxfne.construct` sampled it — and the bridge also wrote each
+    ``Area``'s ``Pose3D`` (``tensor_pose`` metadata, only when some pose is
+    non-default), so localized (``max_in_degree``) edge sampling reads the
+    posed layout. This then applies the same placement (plane + rotation +
+    translation) onto those constructed positions — no re-sampling, one
+    source of truth for geometry. A default pose is the identity,
+    bit-exact.
 
     Connectivity mode is preserved from the tensor: omitted connectivity uses
     the configuration default topology, while explicit connectivity (including
@@ -1360,7 +1464,7 @@ def _construct_adex_tensor_impl(
     dtype: str = "float32",
     adex_decay: str = "exp",
     adex_step_order: str = "default",
-    param_overrides: "dict[str, dict[str, float]] | None" = None,
+    param_overrides: "dict[tuple[str, str, str], dict[str, float]] | None" = None,
 ) -> Model:
     """Build a conductance (``adex``) model from a tensor resolving to ``"adex"``.
 
@@ -1368,7 +1472,7 @@ def _construct_adex_tensor_impl(
     (with emitter resolution skipped, so no family switch fires), posed with
     the shared helper, then bridged into the adex configuration and built by
     :func:`jaxfne._construct_adex.construct_adex_model` with the harvested
-    rows, posed positions and per-type param overrides. Geometry-derived
+    rows, posed positions and per-triple param overrides. Geometry-derived
     delays overwrite each velocity edge afterward.
     """
     from ._construct_adex import construct_adex_model
@@ -1594,7 +1698,7 @@ def _check_connection_mechanism_sign(
 def _resolve_tensor_emitter_family(
     tensor: NeuronalTensor, runtime_emitter: str
 ) -> "tuple[str, dict[str, dict[str, float]]]":
-    """Resolve which emitter family builds ``tensor`` and its per-type params.
+    """Resolve which emitter family builds ``tensor`` and its per-triple params.
 
     Every :class:`NeuronType` declares ``emitter`` plus optional
     ``emitter_params`` (validated against :mod:`jaxfne.emitter_registry`;
@@ -1602,12 +1706,13 @@ def _resolve_tensor_emitter_family(
     the runtime emitter applies as before. When any type declares, every
     type must declare, the family must be uniform, and the runtime emitter
     must agree; a registered-but-unroutable family is refused at bridge
-    time. Returns ``(family, overrides)`` where ``overrides`` maps a neuron
-    type name to its declared params (empty unless the family consumes
-    per-type params); conflicting params for one type name across layers
-    are refused.
+    time. Returns ``(family, overrides)`` where ``overrides`` maps an
+    (area, layer, type) triple to its declared params (empty unless the
+    family consumes per-type params): params apply per triple, matching
+    drive semantics, so two triples sharing a type name may declare
+    different values without conflict.
     """
-    declared: list[tuple[str, str, "dict | None"]] = []
+    declared: list[tuple[str, str, str, str, "dict | None"]] = []
     undeclared: list[str] = []
     for area in tensor.areas:
         for layer in area.layers:
@@ -1617,7 +1722,7 @@ def _resolve_tensor_emitter_family(
                     undeclared.append(key)
                 else:
                     params = check_emitter_params(nt.emitter, nt.emitter_params)
-                    declared.append((key, nt.emitter, params))
+                    declared.append((area.name, layer.name, nt.name, nt.emitter, params))
     if not declared:
         family = runtime_emitter
         if not is_registered_emitter(family):
@@ -1638,11 +1743,11 @@ def _resolve_tensor_emitter_family(
             f"types declare no emitter while others do: {undeclared}; declare "
             "an emitter on every NeuronType or on none"
         )
-    families = {emitter for _, emitter, _ in declared}
+    families = {emitter for _, _, _, emitter, _ in declared}
     if len(families) > 1:
         by_family: dict[str, list[str]] = {}
-        for key, emitter, _ in declared:
-            by_family.setdefault(emitter, []).append(key)
+        for area, layer, typename, emitter, _ in declared:
+            by_family.setdefault(emitter, []).append(f"{area}.{layer}.{typename}")
         detail = "; ".join(f"{fam}: {keys}" for fam, keys in sorted(by_family.items()))
         raise ValueError(
             "heterogeneous per-NeuronType emitter declaration is refused "
@@ -1662,17 +1767,10 @@ def _resolve_tensor_emitter_family(
             f"RuntimeConfiguration(emitter={family!r}) or leave every "
             "NeuronType undeclared"
         )
-    overrides: dict[str, dict[str, float]] = {}
-    for key, _, params in declared:
-        typename = key.rsplit(".", 1)[-1]
+    overrides: dict[tuple[str, str, str], dict[str, float]] = {}
+    for area, layer, typename, _, params in declared:
         if params:
-            if typename in overrides and overrides[typename] != params:
-                raise ValueError(
-                    f"NeuronType {typename!r} declares conflicting emitter_params "
-                    f"across layers ({overrides[typename]!r} vs {params!r}); "
-                    "one param set per type name"
-                )
-            overrides.setdefault(typename, params)
+            overrides[(area, layer, typename)] = params
     return family, overrides
 
 
@@ -1720,6 +1818,33 @@ def _connection_label(
     )
 
 
+def _refuse_impossible_allow_self(
+    conn: "InterConnection | AreaConnection",
+    source_area: str,
+    target_area: str,
+    *,
+    label: str,
+) -> None:
+    """Refuse ``allow_self=True`` where no self pair can exist.
+
+    A self edge needs one neuron selected as both pre and post, so the
+    source and target triples must agree in area, layer and type. Opting
+    into self-edges across areas, layers or types wires nothing and hides
+    a misspecified selector, so it is refused rather than compiled empty.
+    """
+    if conn.allow_self is True and (
+        source_area != target_area
+        or conn.source_layer != conn.target_layer
+        or conn.source_neuron_type != conn.target_neuron_type
+    ):
+        raise ValueError(
+            f"{label} declares allow_self=True but no self pair can exist "
+            f"({source_area}.{conn.source_layer}.{conn.source_neuron_type}"
+            f"->{target_area}.{conn.target_layer}.{conn.target_neuron_type}): "
+            "self-edges need the same area, layer and type on both sides"
+        )
+
+
 def _wire_connection(
     cfg: Configuration,
     conn: "InterConnection | AreaConnection",
@@ -1748,6 +1873,16 @@ def _wire_connection(
     sharing both don't raise on ``Configuration``'s duplicate-name guard.
     A declared ``InterConnection.delay_ms`` is forwarded into the rule;
     ``None`` leaves the rule without a delay (current behaviour).
+    A declared ``max_in_degree`` routes the rule through the localized
+    (distance-weighted, ``spatial_sigma``) sampler instead of the
+    ``probability`` density path (the two are mutually exclusive, so the
+    rule carries ``probability=None`` then); a declared ``spatial_sigma``
+    without ``max_in_degree`` has no consumer on the density path, so it
+    is refused here (``spatial_sigma needs max_in_degree``). Sampling reads
+    the posed neuron positions — each area's ``Pose3D`` is applied to a
+    wiring copy before edge compilation, and the same pose maps the stored
+    positions afterwards — so moving an area changes the realized edges
+    while a rigid motion of the whole tensor preserves them.
     Sign follows the P-023 mechanism vocabulary
     (:func:`_check_connection_mechanism_sign`), except for TFNE-derived
     tensors (``_tfne_resolved``: TFNE carries its own fail-closed mechanism
@@ -1756,6 +1891,7 @@ def _wire_connection(
     custom-mechanism, direct-coupling and polarity tests).
     """
     label = _connection_label(conn, source_area, target_area)
+    _refuse_impossible_allow_self(conn, source_area, target_area, label=label)
     tau_ms = _checked_tau_ms(conn, label)
     mech_key = (conn.mechanism, tau_ms)
     mech_name = declared_mechanisms.get(mech_key)
@@ -1784,10 +1920,27 @@ def _wire_connection(
         # configured delay_ms for inspection; validated again here.
         wire_kw["delay_ms"] = float(conn_delay)
     conn_sigma = getattr(conn, "spatial_sigma", None)
+    conn_degree = getattr(conn, "max_in_degree", None)
+    if conn_sigma is not None and conn_degree is None:
+        raise ValueError(
+            f"{label} declares spatial_sigma={conn_sigma!r} without "
+            "max_in_degree; spatial_sigma needs max_in_degree (localized "
+            "sampling) — declare both or neither"
+        )
     if conn_sigma is not None:
         # Validated at declaration (finite, > 0); read by the localized
-        # (``max_in_degree``) sampler, carried as declared metadata otherwise.
+        # (``max_in_degree``) sampler.
         wire_kw["spatial_sigma"] = float(conn_sigma)
+    if conn_degree is not None:
+        # Localized sampling replaces the density path (Configuration
+        # refuses the combination), so the rule carries probability=None.
+        wire_kw["max_in_degree"] = int(conn_degree)
+        wire_probability = None
+    else:
+        wire_probability = (
+            1.0 if getattr(conn, "probability", None) is None
+            else float(conn.probability)
+        )
     cfg = cfg.connections(
         name=rule_name,
         source={
@@ -1800,8 +1953,7 @@ def _wire_connection(
             "layer": conn.target_layer,
             "cell_type": conn.target_neuron_type,
         },
-        probability=(1.0 if getattr(conn, "probability", None) is None
-                     else float(conn.probability)),
+        probability=wire_probability,
         weight=_connection_edge_weight(conn, total_n),
         sign=sign,
         mechanism=mech_name,
@@ -1840,7 +1992,8 @@ def _wire_adex_connection(
     P-023 check, reversal mandatory — refused when missing, since the kernel
     has no default), no ``sign`` is set (conductance semantics: polarity
     rides on the weight, positive from E sources, negative otherwise), and
-    the weight is in nS. ``delay_ms`` is the declared constant, or
+    the weight is in nS (a declaration realizing to 0 nS is refused: a
+    declared edge that carries no conductance has no effect). ``delay_ms`` is the declared constant, or
     ``velocity_delay_ms`` (the median over the rule's selected pairs when the
     connection carries ``conduction_velocity_m_per_s``); one of the two is
     required, since the adex compiler refuses a rule without a delay. The
@@ -1849,11 +2002,30 @@ def _wire_adex_connection(
     set by name.
     """
     label = _connection_label(conn, source_area, target_area)
+    _refuse_impossible_allow_self(conn, source_area, target_area, label=label)
     if getattr(conn, "spatial_sigma", None) is not None:
         raise ValueError(
             f"{label} declares spatial_sigma={getattr(conn, 'spatial_sigma')!r}; "
-            "the conductance (adex) route has no consumer for it — leave it "
-            "undeclared there"
+            "the conductance (adex) route has no localized-sampling consumer "
+            "(rule max_in_degree/spatial_sigma are refused there: only None "
+            "is admitted) — leave spatial_sigma undeclared there"
+        )
+    if getattr(conn, "max_in_degree", None) is not None:
+        raise ValueError(
+            f"{label} declares max_in_degree={getattr(conn, 'max_in_degree')!r}; "
+            "the conductance (adex) route has no localized-sampling consumer "
+            "(rule max_in_degree/spatial_sigma are refused there: only None "
+            "is admitted) — leave max_in_degree undeclared there"
+        )
+    if conn.allow_self is True and conn.conduction_velocity_m_per_s is not None:
+        raise ValueError(
+            f"{label} declares allow_self=True with "
+            "conduction_velocity_m_per_s="
+            f"{float(conn.conduction_velocity_m_per_s)!r}; a zero-distance "
+            "self edge realizes to 0 delay steps and fails at simulate — "
+            "the combination is refused on the conductance (adex) route "
+            "(true zero delay is handled separately); drop allow_self or "
+            "the velocity there"
         )
     tau_ms = _checked_tau_ms(conn, label)
     reversal = conn.static.reversal_potentials_mV.get(conn.mechanism)
@@ -1887,6 +2059,15 @@ def _wire_adex_connection(
         declared_mechanisms[mech_key] = mech_name
     polarity = 1.0 if conn.source_neuron_type == "E" else -1.0
     weight_nS = polarity * _connection_edge_weight(conn, total_n)
+    if weight_nS == 0.0:
+        raise ValueError(
+            f"{label} realizes to an edge weight of 0 nS on the conductance "
+            f"(adex) route (plastic.w_mech={conn.plastic.w_mech!r} scaled by "
+            f"static.g_mech[{conn.mechanism!r}]="
+            f"{conn.static.g_mech.get(conn.mechanism, 1.0)!r}); a declared "
+            "edge that carries no conductance is refused — declare a nonzero "
+            "gain or drop the connection"
+        )
     if conn.delay_ms is not None:
         rule_delay_ms = float(conn.delay_ms)
     elif velocity_delay_ms is not None:
@@ -2049,6 +2230,95 @@ def _tensor_identity_digest(tensor: NeuronalTensor) -> str:
     return hashlib.sha256(blob).hexdigest()
 
 
+def _refuse_mixed_pose_specification(tensor: NeuronalTensor) -> None:
+    """Refuse a tensor mixing declared and undeclared area poses.
+
+    A default ``Pose3D`` on area k >= 1 sits at k * spacing, while an
+    explicit near-zero pose sits near the origin, so rigid motion holds
+    only when every area's pose is explicit. An all-undeclared tensor keeps
+    the historical layout byte-identically; a mixed one is refused rather
+    than built on an ambiguous frame. Explicitness is the declaration, not
+    the value: even a default-valued ``Pose3D()`` counts as declared.
+    """
+    declared = [a.name for a in tensor.areas if a._pose_specified]
+    undeclared = [a.name for a in tensor.areas if not a._pose_specified]
+    if declared and undeclared:
+        raise ValueError(
+            "tensor mixes declared poses "
+            f"({', '.join(declared)}) with undeclared poses "
+            f"({', '.join(undeclared)}); rigid motion holds only when every "
+            "area's pose is explicit — declare a pose on every area or on none"
+        )
+
+
+def _tensor_pose_spec(tensor: NeuronalTensor) -> "dict[str, object] | None":
+    """Plain-data pose record for the construction wiring, or None when idle.
+
+    Returns None when every area's pose is the default ``Pose3D()`` — then
+    no metadata is written and the historical path runs byte-identically.
+    Otherwise returns ``{"order", "origin_x", "poses"}`` with each area's
+    column origin (``k * AREA_X_SPACING_MM``) and pose fields, so
+    :func:`jaxfne.construct` can pose a wiring copy of the sampled
+    positions before edge compilation.
+    """
+    from ._construct_population import AREA_X_SPACING_MM
+
+    if all(a.pose == Pose3D() for a in tensor.areas):
+        return None
+    return {
+        "order": [a.name for a in tensor.areas],
+        "origin_x": {
+            a.name: float(k * AREA_X_SPACING_MM) for k, a in enumerate(tensor.areas)
+        },
+        "poses": {
+            a.name: {
+                "plane": a.pose.plane,
+                "rotation_deg": float(a.pose.rotation_deg),
+                "translation": [float(v) for v in a.pose.translation],
+            }
+            for a in tensor.areas
+        },
+    }
+
+
+def _posed_wiring_positions(
+    positions: "jax.Array", area_labels: Sequence[str], pose_spec: dict
+) -> "jax.Array":
+    """Pose a wiring copy of constructed positions (one geometry, pre-compile).
+
+    Applies the same rule as :func:`_pose_positions_and_rows`
+    element-for-element (the same :func:`_apply_pose` call on
+    ``chunk - origin`` per area) but reads the plain-data ``pose_spec``
+    with per-neuron ``area_labels``, so :func:`jaxfne.construct` can sample
+    localized edges from the posed layout while the stored positions are
+    posed by the same rule afterwards. ``positions`` itself is never
+    mutated; default-valued poses pass their area through untouched.
+    """
+    import numpy as _np
+
+    order = [str(name) for name in pose_spec["order"]]
+    origins = dict(pose_spec["origin_x"])
+    poses = dict(pose_spec["poses"])
+    out = _np.asarray(positions).copy()
+    for area_name in order:
+        spec = poses[area_name]
+        pose = Pose3D(
+            plane=spec["plane"],
+            rotation_deg=float(spec["rotation_deg"]),
+            translation=tuple(float(v) for v in spec["translation"]),
+        )
+        if pose == Pose3D():
+            continue
+        idx = [i for i, name in enumerate(area_labels) if name == area_name]
+        if not idx:
+            continue
+        chunk = jnp.asarray(out[idx], dtype=positions.dtype) - jnp.asarray(
+            [float(origins[area_name]), 0.0, 0.0], dtype=positions.dtype
+        )
+        out[idx] = _np.asarray(_apply_pose(chunk, pose))
+    return jnp.asarray(out, dtype=positions.dtype)
+
+
 def neuronal_tensor_to_configuration(
     tensor: NeuronalTensor,
     *,
@@ -2144,6 +2414,7 @@ def neuronal_tensor_to_configuration(
     """
     if not tensor.areas:
         raise ValueError("NeuronalTensor must declare at least one area to bridge")
+    _refuse_mixed_pose_specification(tensor)
 
     if _skip_emitter_resolution:
         family = emitter
@@ -2185,6 +2456,13 @@ def neuronal_tensor_to_configuration(
     # alone can collapse distinct tensors to equal metadata.
     cfg = cfg.update_metadata(tensor_identity=_tensor_identity_digest(tensor))
     cfg = cfg.update_metadata(connectivity_mode=connectivity_mode)
+    pose_spec = _tensor_pose_spec(tensor)
+    if pose_spec is not None:
+        # Posed wiring: construct() poses a copy of the sampled positions
+        # before edge compilation, so localized (max_in_degree) sampling
+        # sees the posed layout. All-default poses write nothing, so the
+        # historical path stays byte-identical.
+        cfg = cfg.update_metadata(tensor_pose=pose_spec)
     fallback_weight: dict[str, float] = {}
     area_n_by_name: dict[str, int] = {}
     for area in tensor.areas:
@@ -2353,30 +2631,48 @@ def neuronal_tensor_to_adex_configuration(
     or velocity-median over the rule's selected pairs, computed from
     ``positions``). The returned config carries only fields the adex route
     consumes (no probes, fields, geometry domains, or tensor-identity
-    metadata — each is refused there), so :func:`jaxfne.construct` routes it
-    to ``construct_adex_model`` unchanged.
+    metadata — each is refused there); declared per-triple drives ride
+    along as ``tensor_triple_drive`` metadata for
+    :func:`jaxfne._construct_adex.construct_adex_model`, so
+    :func:`jaxfne.construct` routes it to ``construct_adex_model`` unchanged.
     """
     from .emitters_adex import _DECAYS as _ADEX_DECAYS
     from .emitters_adex import _STEP_ORDERS as _ADEX_STEP_ORDERS
 
     if not tensor.areas:
         raise ValueError("NeuronalTensor must declare at least one area to bridge")
+    _refuse_mixed_pose_specification(tensor)
+    if tensor.connectivity_mode == "unspecified":
+        raise ValueError(
+            "tensor connectivity_mode is 'unspecified' (no declared "
+            "connections); the conductance (adex) route wires only declared "
+            "connections — one receptor rule per connection, each needing a "
+            "delay — so it would silently build 0 edges, while the "
+            "current-based route builds the default topology there. Declare "
+            "inter_connections/area_connections (or connectivity_mode="
+            "'explicit') for the adex route"
+        )
     family, _ = _resolve_tensor_emitter_family(tensor, "adex")
     if family != "adex":  # unreachable: agreement forces "adex" here
         raise ValueError(f"tensor resolves to emitter {family!r}, not 'adex'")
-    declared_drives = sorted(
-        f"{area.name}.{layer.name}.{nt.name}"
-        for area in tensor.areas
-        for layer in area.layers
-        for nt in layer.neuron_types
-        if nt.drive is not None
-    )
-    if declared_drives:
-        raise ValueError(
-            "tensor declares NeuronType.drive on "
-            f"{declared_drives}, but the conductance (adex) route has no "
-            "consumer for it; leave drive undeclared there"
-        )
+    # Per-(area, layer, type) drive declarations (NeuronType.drive): recorded
+    # as data, one entry per declaring triple, for construct_adex_model,
+    # which realizes each entry as constant external current on the
+    # triple's neurons. None anywhere writes nothing, so undeclared tensors
+    # take the historical path unchanged.
+    triple_drives: list[dict[str, object]] = []
+    for area in tensor.areas:
+        for layer in area.layers:
+            for ntype in layer.neuron_types:
+                if ntype.drive is not None:
+                    triple_drives.append(
+                        {
+                            "area": area.name,
+                            "layer": layer.name,
+                            "cell_type": ntype.name,
+                            "drive": float(ntype.drive),
+                        }
+                    )
     if adex_decay not in _ADEX_DECAYS:
         raise ValueError(
             f"adex_decay must be one of {list(_ADEX_DECAYS)}; got {adex_decay!r}"
@@ -2404,7 +2700,10 @@ def neuronal_tensor_to_adex_configuration(
         _, positions, geometry_meta, _ = _neuron_population_from_config(
             harvest_cfg, dtype=dtype
         )
-        rows = geometry_meta["neuron_rows"]
+        # Pose as the construct path does, so velocity delays read A's geometry.
+        positions, rows = _pose_positions_and_rows(
+            positions, geometry_meta["neuron_rows"], tensor
+        )
     rows = list(rows)
     if not rows:
         raise ValueError("adex tensor bridge harvested no neurons")
@@ -2419,6 +2718,8 @@ def neuronal_tensor_to_adex_configuration(
     )
     cfg = cfg.network(name=tensor.name, n=total_n, cell_types=fractions)
     cfg = cfg.emitter(family="adex", adex_decay=adex_decay, adex_step_order=adex_step_order)
+    if triple_drives:
+        cfg = cfg.update_metadata(tensor_triple_drive=triple_drives)
 
     velocity_median: dict[int, float] = {}
     velocity_conns = [
