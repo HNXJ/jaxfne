@@ -666,6 +666,14 @@ class TestWangBuzsakiKappa:
             (1.0 + 2.0 / np.sqrt(2.0)) / 3.0
         )
 
+    def test_non_positive_values_are_silence_per_step(self):
+        _, _, _, wang_buzsaki_kappa = _regime_api()
+        # Cell 0 fires at step 0; the -5 at step 1 is silence, so its bin is
+        # active. Summing raw values first would give -4 and drop the cell.
+        spikes = np.array([[1.0, 1.0], [-5.0, 0.0]])
+        assert spikes[0, 0] > 0 and spikes[:, 0].sum() < 0, "fixture must mix signs"
+        assert wang_buzsaki_kappa(spikes, 1.0, bin_ms=2.0) == pytest.approx(1.0)
+
     def test_disjoint_trains_kappa_zero(self):
         _, _, _, wang_buzsaki_kappa = _regime_api()
         spikes = np.zeros((4, 2), dtype=bool)

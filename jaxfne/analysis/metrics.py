@@ -549,7 +549,9 @@ def wang_buzsaki_kappa(
 
     # Shared binning with the sibling metrics: _bin_counts takes
     # (n_neurons, n_time) count windows, so the input goes in transposed.
-    counts = _bin_counts(spikes_array.T, bin_ms, dt_ms)
+    # Binarize per step first: a non-positive value is silence and must not
+    # cancel a spike in the same bin.
+    counts = _bin_counts((spikes_array > 0).T.astype(float), bin_ms, dt_ms)
 
     if counts.shape[1] == 0:
         return float("nan")
