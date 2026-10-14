@@ -125,7 +125,7 @@ def check_out_dir(out: Path, inhibition: str) -> None:
     """
     out = Path(out)
     for owner, d in MODE_DIRS.items():
-        if owner != inhibition and out == Path(d):
+        if owner != inhibition and out.resolve() == Path(d).resolve():
             raise ValueError(f"refusing {inhibition} into the {owner} run's dir {out}")
     path = out / "manifest.json"
     if not path.is_file():

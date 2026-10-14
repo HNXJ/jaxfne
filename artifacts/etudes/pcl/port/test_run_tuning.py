@@ -207,3 +207,10 @@ def test_every_mode_refused_in_another_modes_default_dir(tmp_path, monkeypatch):
                 pass
             else:
                 raise AssertionError(f"{mode} into {owner}'s default dir must be refused")
+    detour = dirs["local-only"] / ".." / "full"  # another spelling of the full run's dir
+    try:
+        rt.check_out_dir(detour, "no-local")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("a '..' spelling of another mode's dir must be refused")
