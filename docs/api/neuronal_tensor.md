@@ -663,3 +663,23 @@ merged.area_connections = [
 
 model = construct(merged, RuntimeConfiguration(seed=1, duration_ms=1000.0))
 ```
+
+---
+
+## Per-type emitters and geometry-derived delays
+
+Each `NeuronType` carries an `emitter` name plus optional `emitter_params`,
+validated against `jaxfne.emitter_registry`. When no type declares an
+emitter, the runtime emitter applies. When any type declares one, every type
+declares the same family and the runtime agrees with it. A tensor that
+resolves to `adex` builds through the conductance route: population size and
+positions come from the same sampler as the current route, each connection
+becomes one receptor rule (reversal required, delay constant or
+velocity-derived), and per-type `emitter_params` override the AdEx cell
+parameters by type.
+
+A connection with `conduction_velocity_m_per_s` gets one delay per compiled
+edge from the constructed positions (`delay_ms = distance * mm_per_unit /
+velocity`). The per-edge values overwrite the rule-compiled delays after
+construction on both routes; on the AdEx route the rule itself carries the
+median over its selected pairs.

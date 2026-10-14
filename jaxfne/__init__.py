@@ -90,6 +90,11 @@ from .core import (
 from . import paradigm
 from . import tutorial_utils
 
+# Per-NeuronType emitter declaration registry, ADVANCED tier: reachable as
+# jaxfne.emitter_registry (module attribute only, not in __all__), mirroring
+# the jaxfne.tfne pattern above.
+from . import emitter_registry
+
 # TFNE specification-language compiler, ADVANCED tier: reachable as
 # jaxfne.tfne so the documented entry point can actually get to it. Module
 # level imports are stdlib plus numpy, so this costs nothing at import time;

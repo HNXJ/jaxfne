@@ -989,6 +989,8 @@ def construct(
             jit=runtime.jit,
             vmap=runtime.vmap,
             n_contacts=runtime.n_contacts,
+            adex_decay=runtime.adex_decay,
+            adex_step_order=runtime.adex_step_order,
         )
 
     if runtime is not None:

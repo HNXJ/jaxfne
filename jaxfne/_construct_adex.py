@@ -301,17 +301,38 @@ def _cast_params(params: AdExParams, dtype) -> AdExParams:
     return params._replace(**fields)
 
 
-def construct_adex_model(cfg: Configuration) -> Model:
+def construct_adex_model(
+    cfg: Configuration,
+    *,
+    neuron_rows: "Sequence[dict] | None" = None,
+    positions: Any = None,
+    param_overrides: "Mapping[str, Mapping[str, float]] | None" = None,
+) -> Model:
     """Build a :class:`Model` for the ``adex`` family (see the module docstring).
 
     The edges live in ``static["adex"]`` (``params["edge_list"]`` is None: the adex route runs
     its own kernel). ``static["adex"]`` keeps the declared per-rule delays; the delay in steps
     is realized at simulate time, when dt is known (:func:`adex_kernel_args`).
+
+    The tensor path passes its harvested ``neuron_rows`` (real area/layer/cell
+    types, so the selector rules compile against them), the posed
+    ``positions``, and per-``NeuronType`` ``param_overrides`` (forwarded to
+    :func:`jaxfne.emitters_adex.make_adex_params`); the pair comes together or
+    not at all. Without them the model keeps the historical behavior
+    (fraction-ordered labels, ``"adex"`` rows, zero positions).
     """
     # Local import: _construct_core imports this module at load time.
     from ._construct_core import _construct_build_static
 
     refuse_adex_configuration(cfg)
+    if (neuron_rows is None) != (positions is None):
+        raise ValueError(
+            "neuron_rows and positions come as a harvested pair; pass both or neither"
+        )
+    if param_overrides is not None and neuron_rows is None:
+        raise ValueError(
+            "param_overrides needs the harvested neuron_rows it overrides; pass both or neither"
+        )
     emitter = cfg.emitters[0]
     decay = emitter.get("adex_decay")
     if decay is None:
@@ -323,15 +344,46 @@ def construct_adex_model(cfg: Configuration) -> Model:
 
     n, labels = _adex_population(cfg)
     dtype_name = str(cfg.metadata.get("dtype", "float32"))
-    params = _cast_params(make_adex_params(labels), jnp.dtype(dtype_name))
     mechanisms = list((cfg.metadata.get("circuit") or {}).get("mechanisms", []))
     receptor_names, receptor_tau, receptor_reversal = _adex_mechanisms(cfg)
     rules = _adex_rules(cfg, receptor_names)
     network_name = cfg.networks[0].get("name") if cfg.networks else None
 
-    rows = [
-        {"neuron_id": i, "area": "adex", "layer": "adex", "cell_type": labels[i]} for i in range(n)
-    ]
+    if neuron_rows is None:
+        params = _cast_params(make_adex_params(labels), jnp.dtype(dtype_name))
+        rows = [
+            {"neuron_id": i, "area": "adex", "layer": "adex", "cell_type": labels[i]} for i in range(n)
+        ]
+        area_names = ["adex"]
+        layer_names = ["adex"]
+        model_positions = jnp.zeros((n, 3), dtype=jnp.dtype(dtype_name))
+    else:
+        rows = [dict(row) for row in neuron_rows]
+        if len(rows) != n:
+            raise ValueError(
+                f"neuron_rows holds {len(rows)} rows but network(n={n}); pass the harvested pair unchanged"
+            )
+        # Row order (construction order), not the fraction-grouped order of
+        # _adex_population: the kernel indexes params by neuron, so params
+        # follow the rows. The multiset must still match the declared
+        # fractions exactly.
+        labels = tuple(str(row["cell_type"]) for row in rows)
+        net = cfg.networks[0] if cfg.networks else {}
+        want = _counts_from_fractions(n, dict(net.get("cell_types") or {}))
+        from collections import Counter as _Counter
+
+        want_labels = [lab for lab, count in want.items() for _ in range(count)]
+        if _Counter(labels) != _Counter(want_labels):
+            raise ValueError(
+                "neuron_rows cell types disagree with network(cell_types=...): "
+                f"{sorted(set(labels))} vs {sorted(set(want))}"
+            )
+        params = _cast_params(
+            make_adex_params(labels, overrides=param_overrides), jnp.dtype(dtype_name)
+        )
+        area_names = sorted({str(row["area"]) for row in rows})
+        layer_names = sorted({str(row["layer"]) for row in rows})
+        model_positions = jnp.asarray(np.asarray(positions, dtype=np.float64).reshape(n, 3))
     # The edge seed is the plain route's: connectivity(edge_seed=) or else the runtime seed.
     edge_seed = edge_seed_from_metadata(cfg.metadata)
     result = compile_connection_rules(rows, rules, mechanisms, seed=edge_seed, dtype=dtype_name)
@@ -340,8 +392,8 @@ def construct_adex_model(cfg: Configuration) -> Model:
     static["neuron_metadata"] = rows
     static["neuron_metadata_summary"] = {
         "n_rows": n,
-        "areas": ["adex"],
-        "layers": ["adex"],
+        "areas": area_names,
+        "layers": layer_names,
         "cell_types": sorted(set(labels)),
     }
     static["adex"] = {
@@ -363,7 +415,7 @@ def construct_adex_model(cfg: Configuration) -> Model:
         cfg=cfg,
         params={
             "emitter": params,
-            "positions": jnp.zeros((n, 3), dtype=jnp.dtype(dtype_name)),
+            "positions": model_positions,
             "edge_list": None,
         },
         static=static,
