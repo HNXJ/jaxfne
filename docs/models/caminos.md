@@ -22,7 +22,7 @@ with the cell parameters of the paper's Table 1. Synapses are conductance based,
 
 ## Estimands and bands
 
-The bands follow the residual protocol: exact (e = 0), close (every e ≤ 0.05), off (any e > 0.05), with e = |z − y| / |y|. Here z comes from the jaxfne core route: the P6 v2 run (p = 0.07, seeds 1–5) through `caminos_api` into the core kernel `simulate_adex` with `record_v=False`. The analysis is `caminos_analysis.py`. y is the paper's value. The étude-local kernel `caminos_jax.py` is an oracle only and provides no z value.
+The bands are exact (e = 0), close (every e ≤ 0.05), off (any e > 0.05), with e = |z − y| / |y|. Here z comes from the jaxfne core route: the P6 v2 run (p = 0.07, seeds 1–5) through `caminos_api` into the core kernel `simulate_adex` with `record_v=False`. The analysis is `caminos_analysis.py`. y is the paper's value. The étude-local kernel `caminos_jax.py` is an oracle only and provides no z value.
 
 | Estimand | Paper (y) | Port (z) | e | Band |
 |---|---|---|---|---|
