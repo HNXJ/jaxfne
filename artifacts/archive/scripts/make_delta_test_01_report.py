@@ -142,7 +142,7 @@ def _repo_sha() -> str:
 
 
 def _image_size(path: Path) -> tuple[int, int]:
-    Image = _require("PIL.Image", "pillow")  # noqa: N806
+    _require("PIL.Image", "pillow")
     from PIL import Image as PILImage
 
     with PILImage.open(path) as im:
@@ -236,7 +236,7 @@ def build_pdf(data: dict, figure_records: list[dict], spectrolaminar_audit: dict
             "",
             f"notebook:           {NOTEBOOK_PATH}",
             f"executed notebook:  {EXECUTED_NOTEBOOK_PATH}",
-            f"branch:             feat/v0331-delta-test-notebook",
+            "branch:             feat/v0331-delta-test-notebook",
             f"repo SHA:           {sha}",
             f"generated:          {now}",
             f"python:             {boot.get('python_executable', sys.executable)}",
@@ -291,10 +291,10 @@ def build_pdf(data: dict, figure_records: list[dict], spectrolaminar_audit: dict
         png_present = sum(1 for r in figure_records)
         val_lines = [
             "## Validation",
-            f"notebook execution:        pass (allow_errors=False, 0 error cells)",
+            "notebook execution:        pass (allow_errors=False, 0 error cells)",
             f"JSON strict (no NaN/Inf):  {'pass' if data['strict_json_pass'] else 'FAIL'}",
             f"PNG count:                 {png_present}/9",
-            f"save/load/reconstruct:     pass (manifest round-trip + re-simulate finite)",
+            "save/load/reconstruct:     pass (manifest round-trip + re-simulate finite)",
             f"observed target gate:      {'pass' if m.get('target_gate_pass') else 'FAIL'}",
             f"observed min-rate gate:    {'pass' if m.get('min_rate_gate_pass') else 'FAIL'}",
             f"min_rate_gate_basis:       {m.get('min_rate_gate_basis')}",

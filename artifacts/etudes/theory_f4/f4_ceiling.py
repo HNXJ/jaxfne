@@ -192,7 +192,7 @@ def main():
     for rf in RF_SWEEP:
         print(f"RF {rf}: ceiling {bests[rf]['median_osi']:.4f} at h = {bests[rf]['h']:.3f}, "
               f"{bests[rf]['n_units']} units")
-    print(f"per-feature argmax at ceiling (kernel orientation -> argmax, OSI): "
+    print("per-feature argmax at ceiling (kernel orientation -> argmax, OSI): "
           + ", ".join(f"{p['kernel_orientation']}->{p['argmax_orientation']} ({p['osi']:.3f})" for p in per_feature))
     print(f"features whose argmax differs from kernel orientation: {n_differs} of {C.FS}")
     print(f"smallest RF reaching criterion: {smallest}")

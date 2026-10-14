@@ -25,7 +25,7 @@ import hashlib
 import math
 import warnings
 from functools import partial
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace as _dc_replace
 from typing import Any, Mapping, Optional, Sequence
 
 import jax
@@ -427,6 +427,49 @@ def _candidate_pairs_bernoulli(
     return sorted(pairs)
 
 
+def _candidate_pairs_capped_bernoulli(
+    pre_ids: list[int],
+    post_ids: list[int],
+    *,
+    probability: Optional[float],
+    allow_self: bool,
+    key: jax.Array,
+) -> list[tuple[int, int]]:
+    """Bernoulli draws truncated to a per-post-cell cap.
+
+    The draws are exactly :func:`_candidate_pairs_bernoulli`'s (same tiles,
+    same folded keys, same ``key``), then each post cell keeps its first
+    ``C = int(n_pre * p)`` hits scanning pre cells in order (self pairs
+    excluded first when ``allow_self`` is False, so the cap counts kept
+    edges). ``probability=None`` -> full bipartite; ``p <= 0`` -> no edges;
+    ``p >= 1`` -> full all-to-all (minus self unless allowed), as for
+    Bernoulli. When the cap binds no post cell (``C`` covers every
+    candidate), the result equals the Bernoulli draw bit-for-bit.
+    Deterministic given ``key``.
+    """
+    n_pre = len(pre_ids)
+    if probability is None:
+        return [(a, b) for a in pre_ids for b in post_ids if allow_self or a != b]
+    p = float(probability)
+    if p <= 0.0:
+        return []
+    if p >= 1.0:
+        return [(a, b) for a in pre_ids for b in post_ids if allow_self or a != b]
+    cap = int(n_pre * p)
+    pairs = _candidate_pairs_bernoulli(
+        pre_ids, post_ids, probability=probability, allow_self=allow_self, key=key
+    )
+    kept: list[tuple[int, int]] = []
+    seen_post: dict[int, int] = {}
+    for a, b in pairs:  # sorted by (pre, post): the pre-order scan per post cell
+        n_kept = seen_post.get(b, 0)
+        if n_kept >= cap:
+            continue
+        seen_post[b] = n_kept + 1
+        kept.append((a, b))
+    return kept
+
+
 def _spatial_bucket_key(pos: np.ndarray, cell_size: float) -> tuple[int, int, int]:
     return tuple(int(math.floor(c / cell_size)) for c in pos)
 
@@ -679,11 +722,13 @@ def compile_connection_rules(
     Requires every selected neuron row to carry ``x``/``y``/``z``.
 
     A rule may set ``sampling`` to ``"density"`` (default: the realized unique
-    edge count is exactly ``round(p*n_pre*n_post)``) or ``"bernoulli"`` (each
+    edge count is exactly ``round(p*n_pre*n_post)``), ``"bernoulli"`` (each
     (pre, post) pair is included independently with probability ``p`` via
     :func:`_candidate_pairs_bernoulli`, tiled past 4M candidate pairs so no
-    dense mask is materialized). Any other ``sampling`` value raises
-    ``ValueError``.
+    dense mask is materialized) or ``"capped_bernoulli"`` (the Bernoulli
+    draws truncated to ``int(n_pre*p)`` kept edges per post cell, scanning
+    pre cells in order, via :func:`_candidate_pairs_capped_bernoulli`).
+    Any other ``sampling`` value raises ``ValueError``.
 
     A rule may set ``delay_ms`` (configured axonal delay in ms, None =
     undeclared): validated here (finite, >= 0), fanned out per edge onto
@@ -752,15 +797,26 @@ def compile_connection_rules(
         # Validated before any skip, so an empty or localized rule cannot carry a bad value.
         sampling = rule.get("sampling")
         sampling = "density" if sampling is None else sampling
-        if not isinstance(sampling, str) or sampling not in ("density", "bernoulli"):
+        if not isinstance(sampling, str) or sampling not in (
+            "density", "bernoulli", "capped_bernoulli",
+        ):
             raise ValueError(
-                f"connection {rname!r} sampling must be 'density' or 'bernoulli'; "
-                f"got {sampling!r}"
+                f"connection {rname!r} sampling must be 'density', 'bernoulli' or "
+                f"'capped_bernoulli'; got {sampling!r}"
             )
-        if sampling == "bernoulli" and rule.get("max_in_degree") is not None:
+        if sampling in ("bernoulli", "capped_bernoulli") and rule.get("max_in_degree") is not None:
             raise ValueError(
-                f"connection {rname!r} sampling='bernoulli' is not implemented with "
+                f"connection {rname!r} sampling={sampling!r} is not implemented with "
                 "max_in_degree (localized sampling); omit one of them"
+            )
+        # A declared spatial_sigma has no consumer on the density path: it
+        # only parametrizes localized (max_in_degree) sampling, so carrying
+        # it without the cap is refused rather than silently ignored.
+        if rule.get("max_in_degree") is None and rule.get("spatial_sigma") is not None:
+            raise ValueError(
+                f"connection {rname!r} declares spatial_sigma={rule.get('spatial_sigma')!r} "
+                "without max_in_degree; spatial_sigma needs max_in_degree "
+                "(localized sampling) -- declare both or neither"
             )
         # _select_indices honors allow_empty internally (returns [] vs raises on
         # zero-match) and ALWAYS raises on a structurally invalid (non-mapping)
@@ -820,6 +876,14 @@ def compile_connection_rules(
                     allow_self=rule_self,
                     key=rkey,
                 )
+            elif sampling == "capped_bernoulli":
+                pairs = _candidate_pairs_capped_bernoulli(
+                    pre_ids,
+                    post_ids,
+                    probability=rule.get("probability"),
+                    allow_self=rule_self,
+                    key=rkey,
+                )
             else:
                 pairs = _candidate_pairs(
                     pre_ids,
@@ -859,9 +923,9 @@ def compile_connection_rules(
             "delay_ms": rule_delay_ms,
             "status": "compiled",
         }
-        if sampling == "bernoulli":
+        if sampling in ("bernoulli", "capped_bernoulli"):
             # Recorded only when non-default, as in connections(), so density rows are unchanged.
-            row["sampling"] = "bernoulli"
+            row["sampling"] = sampling
         connection_table.append(row)
 
     edge_pre = jnp.asarray(all_pre, dtype=jnp.int32)
@@ -895,6 +959,40 @@ def compile_connection_rules(
         diagnostics=diagnostics,
         edge_delay_ms=edge_delay_ms,
     )
+
+
+def with_rule_allow_self_connections(cfg: Any, rule_name: str, value: bool = True) -> Any:
+    """Return a copy of ``cfg`` with ``allow_self_connections`` set on one rule.
+
+    :meth:`Configuration.connections` has no ``allow_self_connections`` kwarg,
+    so a caller that wires one (the NeuronalTensor bridge's per-connection
+    ``allow_self`` opt-in) records it through here instead of metadata
+    surgery: the named rule entry is copied with
+    ``allow_self_connections=bool(value)`` and everything else byte-identical.
+    The rule must exist exactly once; a non-bool ``value`` is refused
+    (fail-closed: only an explicit ``True``/``False`` opts a rule in or out).
+    :func:`compile_connection_rules` reads the per-rule key on every sampling
+    path; an absent key keeps the global default (self-edges dropped).
+    """
+    if not isinstance(value, bool):
+        raise ValueError(
+            f"allow_self_connections for rule {rule_name!r} must be a bool; got {value!r}"
+        )
+    metadata = dict(cfg.metadata)
+    circuit = {k: list(v) for k, v in dict(metadata.get("circuit", {})).items()}
+    rules = list(circuit.get("connections", []))
+    hits = [i for i, rule in enumerate(rules) if rule.get("name") == rule_name]
+    if len(hits) != 1:
+        raise ValueError(
+            f"rule {rule_name!r} must exist exactly once to opt into "
+            f"allow_self_connections; found {len(hits)}"
+        )
+    patched = dict(rules[hits[0]], allow_self_connections=value)
+    rules[hits[0]] = patched
+    circuit["connections"] = rules
+    metadata["circuit"] = circuit
+    metadata["circuit_compiled"] = False
+    return _dc_replace(cfg, metadata=metadata)
 
 
 @partial(jax.jit, static_argnums=(4,))

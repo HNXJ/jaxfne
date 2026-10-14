@@ -319,7 +319,7 @@ def main() -> int:
     manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
-    print(f"wrote: outputs/evidence/inventory.json")
+    print("wrote: outputs/evidence/inventory.json")
     print(f"sha256: {sha}")
     print(f"figure_id: {manifest['figure_id']}")
     print(

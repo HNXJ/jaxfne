@@ -253,7 +253,7 @@ def check_gate0(
 
     if strict_clean and dirty_lines:
         print("--------------------------------------------------------------------------------")
-        print(f"GATE 0 RESULT: FAIL (Dirty working tree not permitted under strict_clean)")
+        print("GATE 0 RESULT: FAIL (Dirty working tree not permitted under strict_clean)")
         print("================================================================================")
         return 1
 

@@ -20,7 +20,6 @@ Exit codes:
 """
 
 import argparse
-import json
 import re
 import sys
 import tarfile
@@ -123,7 +122,7 @@ def main():
             print("dist/ is empty. --allow-missing-dist set. Skipping.")
             sys.exit(0)
         else:
-            print(f"ERROR: dist/ is empty. Build artifacts first.")
+            print("ERROR: dist/ is empty. Build artifacts first.")
             sys.exit(1)
 
     sdists = [f for f in artifacts if f.name.endswith(".tar.gz")]

@@ -11,8 +11,6 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
-import numpy as np
-
 _REPO = Path(__file__).resolve().parents[3]
 
 

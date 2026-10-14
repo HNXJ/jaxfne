@@ -73,23 +73,48 @@ def ext_source_count(p, ext_sources="pNE"):
     raise ValueError("ext_sources must be 'pNE' or 'fixed', got %r" % (ext_sources,))
 
 
-def drive_spec(p, seed, ext_sources="pNE"):
-    """The ``Simulation(poisson_drive=...)`` dict for the CAMINOS drive."""
+def _delay(delay_ms):
+    """The synaptic and drive delay in ms: the port's 2 ms (Table 2) unless a declared override."""
+    return DELAY_MS if delay_ms is None else float(delay_ms)
+
+
+def drive_spec(p, seed, ext_sources="pNE", gain=None, delay_ms=None):
+    """The ``Simulation(poisson_drive=...)`` dict for the CAMINOS drive.
+
+    ``gain`` None keeps 4 Hz per source. A gain ``a`` sets the mean drive to
+    ``560 + a * (n - 560)`` sources at 4 Hz, ``n`` the source count (RESIDUAL_PROTOCOL.md
+    step 3). The core draws one Poisson count per cell with mean
+    ``n_sources * rate_hz * dt``, so ``n_sources`` stays at ``n`` and ``rate_hz`` carries the
+    scaling. A gain that makes the mean drive non-positive is refused. ``delay_ms`` None keeps
+    the port's 2 ms; a value is a declared sensitivity (the core refuses below one step).
+    """
+    n = ext_source_count(p, ext_sources)
+    rate = EXT_RATE_HZ
+    if gain is not None:
+        n_eff = EXT_SOURCES_FIXED + float(gain) * (n - EXT_SOURCES_FIXED)
+        if not n_eff > 0:
+            raise ValueError("gain %r gives a non-positive drive (%g sources)" % (gain, n_eff))
+        rate = EXT_RATE_HZ * n_eff / n
     return {
-        "n_sources": ext_source_count(p, ext_sources),
-        "rate_hz": EXT_RATE_HZ,
+        "n_sources": n,
+        "rate_hz": rate,
         "weight_nS": Q_EXT,
         "mechanism": "ampa",
         "target_cell_types": ["E", "PV"],
-        "delay_ms": DELAY_MS,
+        "delay_ms": _delay(delay_ms),
         "seed": int(seed),
     }
 
 
-def build_spec(p, seed):
-    """The CAMINOS network built only from the public API (PREREG_P6.md table)."""
+def build_spec(p, seed, delay_ms=None):
+    """The CAMINOS network built only from the public API (PREREG_P6.md table).
+
+    ``delay_ms`` None keeps the port's 2 ms on every connection; a value is a declared
+    sensitivity applied to all seven rules.
+    """
     import jaxfne as jtfne
 
+    d = _delay(delay_ms)
     cfg = (
         jtfne.Configuration()
         .network(name="caminos", n=N,
@@ -108,13 +133,13 @@ def build_spec(p, seed):
             probability=float(p),
             weight=weight,
             mechanism=mechanism,
-            delay_ms=DELAY_MS,
+            delay_ms=d,
             sampling="bernoulli",
         )
     return cfg.connectivity(edge_seed=int(seed))
 
 
-def build_sim(p, seed, T_s, ext_sources="pNE"):
+def build_sim(p, seed, T_s, ext_sources="pNE", gain=None, delay_ms=None):
     """The ``Simulation`` for a run: dt 0.1 ms, the ``drive_spec`` drive.
 
     ``Simulation(seed=)`` stays at its default: the route refuses it, and the
@@ -124,7 +149,7 @@ def build_sim(p, seed, T_s, ext_sources="pNE"):
     import jaxfne as jtfne
 
     return jtfne.Simulation(duration_ms=float(T_s) * 1000.0, dt_ms=DT_MS,
-                            poisson_drive=drive_spec(p, seed, ext_sources))
+                            poisson_drive=drive_spec(p, seed, ext_sources, gain, delay_ms))
 
 
 def spikes_to_counts(spikes, sizes):
@@ -148,6 +173,97 @@ def spikes_to_counts(spikes, sizes):
     out[:, 1] = arr[:, n_e:n_e + n_pv].sum(axis=1)
     out[:, 2] = arr[:, n_e + n_pv:].sum(axis=1)
     return out
+
+
+# Ref. 42 phase method (Tahvili, Vinck, di Volo, bioRxiv 10.1101/2025.02.23.639719v1, Methods
+# "Measuring spike phase differences" and "Population activity"; dispatcher ruling 2026-10-13).
+# Declared here, not stated in the paper: the filter type and band, and the reading of the
+# Gaussian kernel width as sigma.
+REF42_DROP_S = 2.0  # the first 2 s are dropped
+REF42_KEEP_S = 10.0  # 10 s are analysed
+REF42_LFP_SIGMA_MS = 1.0  # "1 ms Gaussian kernel", read as sigma
+REF42_BUTTER_ORDER = 4  # zero-phase Butterworth, applied with sosfiltfilt
+
+
+def _ref42_window(n_steps, dt_s):
+    """Row bounds (first, end) of the analysed window."""
+    fs = 1.0 / float(dt_s)
+    i0 = int(round(REF42_DROP_S * fs))
+    i1 = i0 + int(round(REF42_KEEP_S * fs))
+    if n_steps < i1:
+        raise ValueError("run has %d steps; the ref. 42 window needs %d" % (n_steps, i1))
+    return i0, i1
+
+
+def ref42_lfp(counts, dt_s):
+    """LFP proxy of the ref. 42 method: E spikes per bin, Gaussian-smoothed, analysed window.
+
+    The smoothing runs on the whole run, so the window edges are not truncated kernels.
+    """
+    import numpy as np
+
+    c = np.asarray(counts)
+    if c.ndim != 2 or c.shape[1] != 3:
+        raise ValueError("counts must be [steps, 3], got shape %r" % (c.shape,))
+    fs = 1.0 / float(dt_s)
+    sigma = REF42_LFP_SIGMA_MS * 1e-3 * fs
+    half = int(np.ceil(4.0 * sigma))
+    t = np.arange(-half, half + 1, dtype=float)
+    kernel = np.exp(-0.5 * (t / sigma) ** 2)
+    kernel /= kernel.sum()
+    lfp = np.convolve(c[:, 0].astype(float), kernel, mode="same")
+    i0, i1 = _ref42_window(c.shape[0], dt_s)
+    return lfp[i0:i1]
+
+
+def ref42_phase_delay(counts, dt_s, f_peak_hz, half_band_hz=5.0):
+    """PV->SOM delay by the ref. 42 phase method, from population counts in [E | PV | SOM] order.
+
+    ``counts`` is the per-step group sums of the core raster (``spikes_to_counts``). A circular
+    mean over a group's spikes equals the mean over its per-step counts, so no per-cell raster is
+    needed. The LFP proxy (``ref42_lfp``) is band-passed zero-phase with a 4th-order Butterworth
+    filter at f_peak +- half_band_hz, then Hilbert-transformed. Each group's mean phase is the
+    circular mean over its spikes. The delay is the wrapped difference (SOM minus PV) divided by
+    2 pi f_peak, in ms; it is positive when SOM fires after PV. PV or SOM with no spikes in the
+    window gives ``delay_ms`` None.
+
+    Returns a dict: delay_ms, phase_PV_rad, phase_SOM_rad, n_spikes_PV, n_spikes_SOM,
+    f_peak_Hz, half_band_Hz.
+    """
+    import numpy as np
+    from scipy import signal
+
+    c = np.asarray(counts)
+    if c.ndim != 2 or c.shape[1] != 3:
+        raise ValueError("counts must be [steps, 3], got shape %r" % (c.shape,))
+    f_peak = float(f_peak_hz)
+    half = float(half_band_hz)
+    fs = 1.0 / float(dt_s)
+    if not (0.0 < half < f_peak and f_peak + half < fs / 2.0):
+        raise ValueError("band must satisfy 0 < half_band_hz < f_peak_hz and "
+                         "f_peak_hz + half_band_hz < Nyquist (got half=%r, f=%r)" % (half, f_peak))
+    x = ref42_lfp(c, dt_s)
+    sos = signal.butter(REF42_BUTTER_ORDER, [(f_peak - half) / (fs / 2.0), (f_peak + half) / (fs / 2.0)],
+                        btype="bandpass", output="sos")
+    phase = np.angle(signal.hilbert(signal.sosfiltfilt(sos, x)))
+    i0, i1 = _ref42_window(c.shape[0], dt_s)
+    w = c[i0:i1].astype(float)
+
+    def group_phase(col):
+        n = w[:, col].sum()
+        if n <= 0:
+            return None, 0
+        return float(np.angle(np.sum(w[:, col] * np.exp(1j * phase)))), int(round(n))
+
+    pv_phi, n_pv = group_phase(1)
+    som_phi, n_som = group_phase(2)
+    delay_ms = None
+    if pv_phi is not None and som_phi is not None:
+        d = float(np.angle(np.exp(1j * (som_phi - pv_phi))))
+        delay_ms = d / (2.0 * np.pi * f_peak) * 1e3
+    return {"delay_ms": delay_ms, "phase_PV_rad": pv_phi, "phase_SOM_rad": som_phi,
+            "n_spikes_PV": n_pv, "n_spikes_SOM": n_som,
+            "f_peak_Hz": f_peak, "half_band_Hz": half}
 
 
 def _refuse_scored_dir(out_dir, signed=False):
@@ -190,7 +306,7 @@ def _refuse_existing(out_dir, fname, sha):
 
 
 def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
-              ext_sources="pNE"):
+              ext_sources="pNE", delay_ms=None):
     """Write the count array plus the manifest ``caminos_analysis.score`` reads."""
     import numpy as np
 
@@ -212,6 +328,7 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
              "indegree": "bernoulli", "ext": "private",
              "step_order": "default", "ext_sources": ext_sources,
              "ext_sources_n": ext_source_count(p, ext_sources),
+             "delay_ms": _delay(delay_ms),
              "backend": "edge_list",
              "git_sha": sha, "start_time": start_time,
              "wall_s": float(wall_s), "steps": int(counts.shape[0])}
@@ -231,12 +348,13 @@ def write_run(out_dir, *, p, seed, T_s, counts, sizes, wall_s, start_time, sha,
     return out / fname
 
 
-def run(p, seed, T_s, out_dir, signed=False, ext_sources="pNE"):
+def run(p, seed, T_s, out_dir, signed=False, ext_sources="pNE", delay_ms=None):
     """B0 route (c): construct the model, run the kernel with ``record_v=False``.
 
     Writes the port's per-step population count array and ``manifest.json``
     exactly as ``caminos_analysis.score`` reads them. Refuses any ``out_dir``
-    with a path part containing "scored" unless ``signed``.
+    with a path part containing "scored" unless ``signed``. ``delay_ms`` None is
+    the port's 2 ms; a value is a declared sensitivity and is recorded in the manifest.
     """
     import numpy as np
 
@@ -248,8 +366,8 @@ def run(p, seed, T_s, out_dir, signed=False, ext_sources="pNE"):
 
     start_time = datetime.now(timezone.utc).isoformat()
     t0 = time.time()
-    model = jtfne.construct(build_spec(p, seed))
-    sim = build_sim(p, seed, T_s, ext_sources)
+    model = jtfne.construct(build_spec(p, seed, delay_ms))
+    sim = build_sim(p, seed, T_s, ext_sources, delay_ms=delay_ms)
     runtime_cfg = sim.resolved_runtime
     if str(runtime_cfg.actual_dtype) != "float32":
         raise SystemExit("error: P6 runs are float32, runtime resolved %s"
@@ -267,7 +385,7 @@ def run(p, seed, T_s, out_dir, signed=False, ext_sources="pNE"):
     wall_s = time.time() - t0
     write_run(out_dir, p=p, seed=seed, T_s=T_s, counts=counts, sizes=sizes,
               wall_s=wall_s, start_time=start_time, sha=git_sha(),
-              ext_sources=ext_sources)
+              ext_sources=ext_sources, delay_ms=delay_ms)
     return {"counts": counts, "sizes": sizes, "steps": sim.n_steps,
             "wall_s": wall_s}
 
@@ -284,12 +402,15 @@ def build_parser():
                     help="drive: round(p*NE) sources, or the v6 fixed 560 (C1 control only)")
     ap.add_argument("--signed", action="store_true",
                     help="allow a path containing 'scored' (signed P6 runs only)")
+    ap.add_argument("--delay-ms", type=float, default=None,
+                    help="declared sensitivity: synaptic and drive delay in ms (default 2, the port)")
     return ap
 
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
-    run(args.p, args.seed, args.T, args.out, signed=args.signed, ext_sources=args.ext_sources)
+    run(args.p, args.seed, args.T, args.out, signed=args.signed, ext_sources=args.ext_sources,
+        delay_ms=args.delay_ms)
 
 
 if __name__ == "__main__":

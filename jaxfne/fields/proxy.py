@@ -364,6 +364,97 @@ def project_sources_to_laminar_field(
     )
 
 
+def project_model_sources(
+    model: Any,
+    sources: jax.Array | CanonicalSource,
+    *,
+    positions: jax.Array | None = None,
+    n_contacts: int = 16,
+    width: float = 0.10,
+    mode: str = "density_preserving",
+    dtype: str = "float32",
+) -> FieldOutput:
+    """Project sources at model-owned positions onto laminar contacts (G8).
+
+    Model-aware wrapper over :func:`project_laminar_sources`: ``positions``
+    defaults to ``model.params["positions"]`` (the constructed geometry), so
+    the field projection reads the same coordinates the execution path
+    realized. An explicit ``positions`` override is allowed but must carry
+    the model's neuron count ``N``; a mismatch is refused naming the source.
+
+    Adds ``positions_source`` (``"model"`` or ``"explicit"``) and
+    ``positions_match_model`` to the output diagnostics on the eager path;
+    under ``jax.jit`` tracers diagnostics stay empty per the delegate's
+    contract.
+    """
+    try:
+        model_positions = model.params["positions"]
+    except (AttributeError, KeyError, TypeError):
+        raise ValueError(
+            "project_model_sources needs model.params['positions']; "
+            f"got {type(model).__name__} without it"
+        ) from None
+    model_n = int(jnp.shape(model_positions)[0])
+    sources_unwrapped, _ = _unwrap_probe_input(sources)
+    sources_shape = tuple(int(d) for d in jnp.shape(jnp.asarray(sources_unwrapped)))
+    if len(sources_shape) != 2:
+        raise ValueError(
+            f"sources must have shape (T, N); got {sources_shape}"
+        )
+    sources_n = sources_shape[1]
+    if sources_n != model_n:
+        raise ValueError(
+            f"sources carry N = {sources_n} but model.params['positions'] "
+            f"carries N = {model_n}; refusing model-unmatched projection"
+        )
+    if positions is None:
+        use_positions = model_positions
+        positions_source = "model"
+    else:
+        use_positions = positions
+        positions_source = "explicit"
+        explicit_n = int(jnp.shape(jnp.asarray(use_positions))[0])
+        if explicit_n != model_n:
+            raise ValueError(
+                f"explicit positions carry N = {explicit_n} but model carries "
+                f"N = {model_n}; refusing model-unmatched projection"
+            )
+    use_arr = jnp.asarray(use_positions)
+    if use_arr.ndim != 2 or int(use_arr.shape[1]) != 3:
+        raise ValueError(
+            f"positions must have shape (N, 3); got {tuple(use_arr.shape)}"
+        )
+    out = project_laminar_sources(
+        sources,
+        use_positions,
+        n_contacts=n_contacts,
+        width=width,
+        mode=mode,
+        dtype=dtype,
+    )
+    if isinstance(sources, jax.core.Tracer) or isinstance(use_positions, jax.core.Tracer):
+        return out
+    diagnostics = dict(out.diagnostics)
+    diagnostics["positions_source"] = positions_source
+    if positions_source == "model":
+        diagnostics["positions_match_model"] = True
+    else:
+        diagnostics["positions_match_model"] = bool(
+            np.array_equal(np.asarray(use_positions), np.asarray(model_positions))
+        )
+    return FieldOutput(
+        source_proxy=out.source_proxy,
+        phi_e_proxy=out.phi_e_proxy,
+        csd_proxy=out.csd_proxy,
+        lfp_proxy=out.lfp_proxy,
+        kernel=out.kernel,
+        contact_depths=out.contact_depths,
+        diagnostics=diagnostics,
+        epistemic_level=out.epistemic_level,
+        calibration=out.calibration,
+    )
+
+
 def validate_source_field_status(
     field_output: FieldOutput | None = None,
     cfg_metadata: Mapping[str, Any] | None = None,

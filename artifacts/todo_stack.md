@@ -40,8 +40,11 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   l2-caminos and pcl-port merged 2026-10-13 (Hamm 2026-10-13), and to 2307 for the PCL v5
   scorer, result, scores and S6/S7 diagnostic merged the same day (same reason), and to 2330 for
   the Izhikevich 2003 and CAMINOS P6 lanes (Hamm 2026-10-13), and to 2336 for the Izhikevich
-  v8 and P3b code, tests, gate receipts and the v8 score (after folding the P3b result and tests into existing
-  files). Further narrowing waits: most files in `tutorial_figures`,
+  v8 and P3b code, tests, gate receipts and the v8 score, and to 2337 for
+  `artifacts/etudes/RESIDUAL_PROTOCOL.md` (Hamm's five-lane programme, 2026-10-14) (after folding the P3b result and tests into existing
+  files), and to 2353 for the 16 core-gap and CAMINOS-final files of lanes 3, 6, 7 and 8 (same
+  programme, 2026-10-14: emitter registry, HDP family kernel, parameter handles, their tests, the
+  CAMINOS calibration, scorers and model page). Further narrowing waits: most files in `tutorial_figures`,
   `_static/gallery` and `docs/assets` drift on regeneration, which is a declared figure change.
 - T-7 [A] R5: every paper row in `REPLICATIONS.md` carries a verdict or a reason (2026-10-13).
   Closes when: `python scripts/build_dashboard_data.py --check` passes on the pushed SHA.
@@ -121,6 +124,19 @@ run on WSL2 CUDA.
     frozen dataclasses mutated through `object.__setattr__`; mixed `_s`/`_ms` parameters in
     the HDP controller.
   Closes when: each item is fixed with a test or recorded here with Hamm's call.
+- T-20 [A] Lint leftovers (2026-10-14). F841 suspects, a value computed and unused while a panel
+  or check hard-codes it: `scripts/audit_methods_draft.py:126,132,147,151`,
+  `scripts/evidence_figures/ed05_manifest_hashes.py:223`,
+  `scripts/internal/publication/fig08_e2_ping.py:190`, `fig09_e2_ssa.py:180`,
+  `scripts/run_delta_notebook_01.py:277`, `artifacts/archive/scripts/make_delta_test_01_report.py:470`
+  (and its placeholder pass 0.95 at :484). `--check` parsed and ignored in
+  `scripts/release/assert_release_freeze.py` and `scripts/sync_release_metadata.py` (both
+  check-only). Closes when: each is used, removed or ruled harmless.
+- T-21 [A] Destexhe 2009 on the core: G12–G14 and F7 are in the core (`Vpeak_mV`, `ext_lambda`
+  schedule and drive window, `sampling="capped_bernoulli"`, zero-delay refusal). Remaining:
+  rebase the Destexhe lane onto them, delete its `simulate_adex_gated_drive` fork, set Vpeak to
+  the authors' detection (about VT) and the capped rule, re-run seeds 1–3, held-out 4–8.
+  Closes when: Destexhe has a verdict on core z.
 - Frozen, do not move: `artifacts/publication/frozen_manifest.json`,
   `artifacts/release/current_release_authorities.json`, hash-pinned skills and `AGENTS.md`;
   `artifacts/legacy/AGENTS.md` kept by Hamm 2026-10-11.

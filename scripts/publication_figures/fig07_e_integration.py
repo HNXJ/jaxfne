@@ -408,7 +408,7 @@ def main() -> int:
     out_path = dirs["figures"] / FIGURE_NAME
 
     if figures_match_records([(out_path, dirs["artifacts"] / "fig07_semantic_audit.json")]):
-        print(f"fig07: committed figure byte-matches semantic audit; skipping re-render")
+        print("fig07: committed figure byte-matches semantic audit; skipping re-render")
         return 0
 
     fig = build_figure(h1, delays, owner, obs, nulls, arms, prop)

@@ -413,7 +413,7 @@ def _gap_review(metrics: dict[str, Any]) -> str:
             f"- Rates (Hz): `{json.dumps(metrics['rates_hz'])}`",
             f"- N: `{json.dumps(metrics['n'])}`",
             f"- Similar-rate / different-Q control (null if False): `{metrics['similar_rate_different_Q']}`",
-            f"- v0415b revision: finite/stable declared Q, not figure appearance.",
+            "- v0415b revision: finite/stable declared Q, not figure appearance.",
             "",
             "| item | class | note |",
             "|------|-------|------|",

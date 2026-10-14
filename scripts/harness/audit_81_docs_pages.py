@@ -25,9 +25,9 @@ def extract_nav(nav_item):
 
 nav_pairs = extract_nav(mk.get("nav", []))
 
-print(f"================================================================================")
-print(f"JAXFNE 81-PAGE DOCUMENTATION COMPREHENSIVE AUDIT")
-print(f"================================================================================")
+print("================================================================================")
+print("JAXFNE 81-PAGE DOCUMENTATION COMPREHENSIVE AUDIT")
+print("================================================================================")
 
 audit_rows = []
 for title, rel in nav_pairs:

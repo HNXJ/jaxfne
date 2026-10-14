@@ -1,39 +1,41 @@
 # state
 
-Stamp: jaxfne@dev@b9e55903 · 2026-10-13 (written 2026-10-13T08:09:54Z)
+Stamp: jaxfne@dev@6f85f5c3 · 2026-10-14 (written 2026-10-14T16:36:48Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
 ## Works (with evidence)
 
-- main ff89b24b (PR #103, merge of dev 4dce6512): CI (Release & Scheduled, all tests including
-  slow) success, run 38361054020; CI (Fast) success. Read the Docs `latest` build 35110238 of
-  ff89b24b succeeded with the atlas `pre_build`; published panels are real (plotly CDN, no
-  stand-in text).
-- dev b9e55903: experiment_a and hdp_controllability_reachability etude HTML (12 files) is a
-  build product (`build_docs_assets.py --build` runs both etude generators, which hash-check the
-  frozen bundles, and keeps the tracked figure state). CI (Fast) success.
-- Linux probe of the Read the Docs steps at ededf86f (WSL, fresh venv, Python 3.12; RTD uses
-  3.13): 25/25 atlases ok, both etudes ok (3.4 s, 14.3 s), `mkdocs build --strict` with
-  `READTHEDOCS=True` rc 0, 0 stand-ins, published etude manifests `validated`.
-- Tracked tree: 2391 files, 88960885 bytes (budget 89128960, 85 MiB); 0.5.5 tag: 2522 files,
-  125982465. Target 2269 files: 122 to go (T-4).
-- Replication dashboard live at https://hnxj.github.io/jaxfne/dashboard/ (HTTP 200).
-- CAMINOS Fig. 1: R1–R3 PASS (v6), R4 FAIL (v6), R4v7 PASS. PCL Fig. 3: v4 FAIL stands.
-  Izhikevich 2003: "in progress", stage P3.
+- dev 6f85f5c3 (core AdEx for Destexhe 2009: `Vpeak_mV`, `ext_lambda` schedules and drive
+  window, `sampling="capped_bernoulli"`, one harvest for both tensor bridges): CI (Fast) success.
+  Previous push 25b7c1d5 (integration of lanes 1, 3, 6, 7, 8): CI (Fast) success.
+- NeuronalTensor on dev: emitter registry and AdEx route, posed geometry for wiring and delays,
+  HDP on AdEx, `project_model_sources`, parameter handles. `NeuronalTensor.to_dict` omits the
+  0.5.6 optional fields at their defaults, so pinned identity and phenotype hashes are unchanged.
+- CAMINOS Fig. 1 against PLoS CB (primary, Hamm 2026-10-14; `artifacts/etudes/caminos/CALIBRATION.md`
+  §10): f_pk 33.80 Hz, rate order and R4 (v7) reproduced on the core route; PV→SOM lag 6.47 ms
+  against 8.5 ms by the ref. 42 method (off, a finding that needs X). Dashboard row updated.
+- Tracked tree: 2353 files (budget 2353, raised from 2337 for the lane files), 86796770 bytes
+  (budget 89128960).
+- main 413fb4a2.
 
 ## Broken or in flight
 
-- CI (Fast) on dev bf541dd0 failed once: `test_build_fails_when_a_registry_html_file_is_not_written`
-  compared a fake file's mtime with the build start in the same clock tick. Fixed in ededf86f
-  (fixtures stamp outputs 2 s after the start); b9e55903 green.
-- Hamm's decisions T-1 (etude drift), T-2 (`.lab`), T-3 (PCL Fig. 3). Others: `open_stack.md`.
+- Lane 2b (PCL rebuilt as a NeuronalTensor on the core; LIF route, footprint rule, pooling,
+  same-step inhibition, oracle gate): running.
+- Lane 4f (GSDR fit, 350 generations): running; at generation 200 best loss 4082 (flat since
+  about generation 150), κ ≈ 0.95 against 0.0156 in the data, active fraction 1.0 (inferred: a
+  regime where every neuron fires every cycle).
+- Lane 5d (Destexhe 2009 on the core): migration and fidelity done in its clone (lane tests
+  28 passed); S2 seeds 1–8 queued on the GPU lock behind 4f.
+- Open items: T-20 (lint leftovers, ignored `--check` flags), T-21 (Destexhe on core), T-9 and
+  T-17 wait on Hamm.
 
 ## Last gate results
 
-- Broad gate in a fresh clone of b9e55903: 5377 passed, 0 failed, 86 skipped;
-  `tests/test_mkdocs_atlas_stubs.py` under system Python (mkdocs): 3 passed.
-- Second reviews: ededf86f FAIL (budget 1202 bytes under the total) → fixed in b9e55903.
+- Broad gate on 6f85f5c3 (WSL, self-contained clone): 5850 passed, 0 failed.
+- Dashboard: `build_dashboard_data.py --check`, `build_dashboard_figures.py --check`,
+  `generate_replications_page.py --check` fresh after the CAMINOS row update.
 
 ## Generated files and their checks
 
@@ -48,11 +50,11 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Environment
 
-- Windows: `C:/workspace/venv_py314_jax011` (Python 3.14, JAX 0.11; no mkdocs). System Python
-  has mkdocs. WSL: `~/venv_rtd313` (actually Python 3.12, `.[viz]` + docs requirements) for
-  Read the Docs probes; `~/venv_jaxfne` for GPU runs, one job at a time after a jchat claim.
+- Windows: `C:/workspace/venv_py314_jax011` (Python 3.14, JAX 0.11). WSL: `~/venv_jaxfne_gate`
+  (broad gate, CPU), `~/venv_jaxfne` (CUDA; one job at a time under `flock /tmp/jaxfne_gpu.lock`),
+  `~/venv_rtd313` (Read the Docs probes).
 
 ## Next action
 
-T-4 waits mostly on T-1 and T-2 (120 of the 122 files). Independent of Hamm: T-6 (F6 "SOM" in
-the AdEx table, then the CAMINOS P6 prereg), T-7 (Izhikevich 2003 P3 calibration gate).
+Integrate lanes as they land (review, broad gate, dashboard checks, push dev, CI on the exact
+SHA): 5d after its S2 scoring, 4f with a diagnosis of the all-fire regime, 2b stage by stage.

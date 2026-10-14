@@ -38,7 +38,6 @@ import time
 
 import numpy as np
 import jax
-import jax.numpy as jnp
 
 import jaxfne as jtfne
 from jaxfne.hdp_network import (

@@ -39,7 +39,6 @@ import pathlib
 
 import numpy as np
 import jax
-import jax.numpy as jnp
 import jaxfne as jtfne
 from jaxfne.emitters_homeostatic_ei import (
     make_minimal_ei_params, simulate_homeostatic_ei, make_hebbian_pairwise_rule,

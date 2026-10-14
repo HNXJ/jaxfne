@@ -89,6 +89,7 @@ from .core import (
     _tune_source_scale_optax,
     _tune_scalar_soft_rate_optax,
 )
+from .handles import tune_handles
 
 __all__ = [
     "step_agsdr_transform",

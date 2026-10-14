@@ -24,7 +24,7 @@ import hashlib
 import json
 import math
 import subprocess
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import numpy as np
 

@@ -90,6 +90,11 @@ from .core import (
 from . import paradigm
 from . import tutorial_utils
 
+# Per-NeuronType emitter declaration registry, ADVANCED tier: reachable as
+# jaxfne.emitter_registry (module attribute only, not in __all__), mirroring
+# the jaxfne.tfne pattern above.
+from . import emitter_registry
+
 # TFNE specification-language compiler, ADVANCED tier: reachable as
 # jaxfne.tfne so the documented entry point can actually get to it. Module
 # level imports are stdlib plus numpy, so this costs nothing at import time;
@@ -328,6 +333,16 @@ from .optim import (
     step_gsgd_transform,
 )
 
+# Lane 8 named parameter handles (ADVANCED tier: root attrs, not __all__).
+from ._param_handles import (
+    get_parameter,
+    is_differentiable_handle,
+    is_handle_path,
+    list_parameters,
+    set_parameter,
+)
+from .optim.handles import tune_handles
+
 # v0.3.18: sharding stubs — imported lazily so single-device users have no overhead.
 from .sharding_utils import (
     get_sharding_context,
@@ -376,6 +391,10 @@ from .hdp_rule import (
     HDPRuleUpdate,
     register_hdp_rule,
 )
+# Lane 7 (G3/G8): AdEx registered-HDP entry and model-aware field positions
+# (ADVANCED tier: root attrs, not __all__).
+from .emitters_adex import simulate_adex_hdp_registered
+from .fields.proxy import project_model_sources
 from .analysis.spectral import (
     spectrolaminar_psd_jax,
     bandpower_jax,

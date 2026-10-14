@@ -189,7 +189,6 @@ def draw_panel_c(ax, spec: dict, c3_exec: dict) -> None:
 def draw_panel_d(ax, summary: dict, c4: dict) -> None:
     _panel_label(ax, "D", "Six-condition prospective result (60 cells)")
     conds = [row["condition_id"] for row in summary["per_condition"]]
-    y = np.arange(len(conds))
     ax.set_xlim(0, 1)
     ax.set_ylim(-0.5, len(conds) - 0.5)
     for i, row in enumerate(summary["per_condition"]):

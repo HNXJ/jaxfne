@@ -18,7 +18,6 @@ import hashlib
 import json
 import pathlib
 import sys
-from typing import Dict, List
 
 
 # Tutorial output directories and expected figures
@@ -146,7 +145,7 @@ def validate_tutorial_output(
                 if "amplitude_status" in data:
                     if data["amplitude_status"] is not False:
                         raise ValueError(
-                            f"amplitude_status in validation_report must be False"
+                            "amplitude_status in validation_report must be False"
                         )
 
             # Extract metrics
@@ -190,7 +189,7 @@ def validate_tutorial_output(
         if source_data.get("model_status") != "computational_scaffold":
             raise ValueError(f"source_data.json model_status must be computational_scaffold, got {source_data.get('model_status')}")
         if source_data.get("amplitude_status") is not False:
-            raise ValueError(f"source_data.json amplitude_status must be False")
+            raise ValueError("source_data.json amplitude_status must be False")
 
         # Validate source data kind and arrays
         source_data_kind = source_data.get("source_data_kind")
@@ -222,7 +221,7 @@ def validate_tutorial_output(
             if len(alpha_beta) == 0 or len(gamma) == 0 or len(layers) == 0:
                 raise ValueError("source_data.json spectrolaminar_profile: arrays must be non-empty")
             if not (len(alpha_beta) == len(gamma) == len(layers)):
-                raise ValueError(f"source_data.json spectrolaminar_profile: profile length mismatch")
+                raise ValueError("source_data.json spectrolaminar_profile: profile length mismatch")
             # Verify finite values
             if not all(isinstance(v, (int, float)) and -1e10 < float(v) < 1e10 for v in alpha_beta + gamma):
                 raise ValueError("source_data.json spectrolaminar_profile: non-finite values")
@@ -412,7 +411,7 @@ def main():
             print(f"❌ {tutorial_info['name']}: {e}", file=sys.stderr)
 
     # Print summary
-    print(f"\n=== Tutorial Output Validation Summary ===")
+    print("\n=== Tutorial Output Validation Summary ===")
     print(f"Output root: {output_root}")
     print(f"Status: {all_results['status']}")
     print(f"Tutorials validated: {len([t for t in all_results['tutorials']])}/{len(TUTORIAL_OUTPUTS)}")
@@ -426,19 +425,19 @@ def main():
         )
 
     if all_results["errors"]:
-        print(f"\nValidation Errors:")
+        print("\nValidation Errors:")
         for error in all_results["errors"]:
             print(f"  - {error}")
 
     # Print JSON report
-    print(f"\n=== JSON Report ===")
+    print("\n=== JSON Report ===")
     print(json.dumps(all_results, indent=2))
 
     # Return appropriate exit code
     if all_results["status"] == "invalid":
         sys.exit(1)
     else:
-        print(f"\n✓ All tutorial outputs validated successfully.")
+        print("\n✓ All tutorial outputs validated successfully.")
         sys.exit(0)
 
 

@@ -73,7 +73,7 @@ def cycles(rE, fpk):
     dist = max(int(0.5 * 1000.0 / fpk / DT), 1)
     pk, _ = find_peaks(rE, distance=dist)
     T = np.diff(pk) * DT
-    spk = None  # participation needs spikes; npz has rates only -> gate fails closed on missing metrics
+    # participation needs spikes; npz has rates only -> gate fails closed on missing metrics
     return dict(n_cycles=int(max(len(pk) - 1, 0)), cv_T=float(np.std(T) / np.mean(T)) if len(T) > 1 else None,
                 part_med=None, ff=None)
 

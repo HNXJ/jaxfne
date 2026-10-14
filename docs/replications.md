@@ -9,7 +9,7 @@ as done with jaxfne only when it runs through the library (P6).
 
 | Paper | Class | Release | Stage | Verdict |
 |---|---|---|---|---|
-| [CAMINOS reference model, Fig. 1](https://hnxj.github.io/jaxfne/dashboard/#model/caminos)<br>Tahvili, Vinck and di Volo, PLoS Comput Biol 2026 | verified | 0.5.7 | P6 | reproduced: under v7 (amended after v6 R4 failed); P6 v2 PASS through the public API (Q1–Q5, C1) |
+| [CAMINOS reference model, Fig. 1](https://hnxj.github.io/jaxfne/dashboard/#model/caminos)<br>Tahvili, Vinck and di Volo, PLoS Comput Biol 2026 | verified | 0.5.7 | P6 | reproduced: under v7 (amended after v6 R4 failed); P6 v2 PASS through the public API (Q1–Q5, C1). Against PLoS CB (primary, Hamm 2026-10-14) the PV→SOM lag by the ref. 42 method is 6.47 ms against 8.5 ms (off, e 0.24): a finding that needs X. The 0.1 ms delay sensitivity gives the preprint's ≈ 7 ms |
 | [Predictive coding light, Fig. 3 (simple and complex cell tuning)](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig3)<br>N'dri, Barbier, Teulière and Triesch, Nat Commun 2025 | not reproduced | 0.5.6 | P5 | not reproduced |
 | [Predictive coding light, Fig. 2 (inhibitory STDP removes predictable spikes)](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig2)<br>N'dri, Barbier, Teulière and Triesch, Nat Commun 2025 | demonstration | 0.5.6 | — | — |
 | [Hodgkin–Huxley reference against a reduced jaxfne neuron (AT-01)](https://hnxj.github.io/jaxfne/dashboard/#model/hh-at01)<br>Hodgkin and Huxley 1952, through Jaxley | demonstration | 0.5.5 | — | — |

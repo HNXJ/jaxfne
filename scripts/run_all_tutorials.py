@@ -24,7 +24,6 @@ import argparse
 import json
 import pathlib
 import subprocess
-from typing import Optional
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "examples"))
@@ -453,7 +452,7 @@ def main():
             print(f"[FAIL] {tutorial['name']}: {e}", file=sys.stderr)
 
     # Print summary
-    print(f"\n=== Tutorial Run Summary ===")
+    print("\n=== Tutorial Run Summary ===")
     print(f"Status: {all_results['status']}")
     print(f"Tutorials completed: {len([t for t in all_results['tutorials'] if t['exit_code'] == 0])}/{len(TUTORIALS)}")
 
@@ -462,12 +461,12 @@ def main():
         print(f"{status_str} {result['name']}: exit_code={result['exit_code']}")
 
     if all_results["errors"]:
-        print(f"\nErrors:")
+        print("\nErrors:")
         for error in all_results["errors"]:
             print(f"  - {error}")
 
     # Print JSON report
-    print(f"\n=== JSON Report ===")
+    print("\n=== JSON Report ===")
     print(json.dumps(all_results, indent=2))
 
     # Return appropriate exit code

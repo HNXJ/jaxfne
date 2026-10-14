@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
 from .emitters import is_placeholder_dense_W, materialize_dense_W_from_edge_list
 from .io import json_safe
+from ._param_handles import is_handle_path, set_parameter
 from ._signals import Objective, Simulation, _finite_or_none
 from ._model import EdgeParameterSpec, MatrixParameterSpec, TuneResult
 
@@ -373,6 +374,28 @@ def tune(
                 seed=seed,
                 base_report=base_report,
             )
+
+        # Lane 8 handles: a single named parameter path shares the gradient
+        # entry point when optax is available; legacy names and the
+        # optax-missing case fall through to the guard below unchanged.
+        # (A non-differentiable handle raises naming the path -- Model.tune
+        # takes no surrogate= argument.)
+        if optax_status == "available" and is_handle_path(parameter):
+            from .optim.handles import _tune_single_handle_optax
+
+            handled = _tune_single_handle_optax(
+                model=self,
+                simulation=sim,
+                objective=objective,
+                spec=spec,
+                parameter=parameter,
+                bounds=bounds,
+                n_steps=n_steps,
+                seed=seed,
+                base_report=base_report,
+            )
+            if handled is not None:
+                return handled
 
         report = {
             **base_report,
@@ -960,7 +983,12 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
     - drive_scale_a: multiplicative gain on first-half neuron drive signals
     - drive_scale_b: multiplicative gain on second-half neuron drive signals
     - gAMPA: multiplicative gain on all excitatory (positive) synaptic weights
+    - Lane 8 handle paths (``edges.weight[...]``,
+      ``cells.<family>.<field>[...]``, ``drive.<name>.rate``): applied via
+      :func:`jaxfne._param_handles.set_parameter` (one scalar knob).
     """
+    if is_handle_path(parameter):
+        return set_parameter(model, parameter, value)
     emitter = model.params["emitter"]
 
     # source_scale/drive_gain/synaptic_gain/gAMPA are pure jnp elementwise ops --
@@ -1343,7 +1371,10 @@ def _model_with_parameters(
     """Return a Model copy with multiple emitter parameters changed.
 
     Dispatches each parameter to the scalar or matrix path depending on
-    whether param_specs contains a :class: for that name.
+    whether param_specs contains a :class: for that name. Lane 8 handle
+    paths (``edges.weight[...]``, ``cells.<family>.<field>[...]``,
+    ``drive.<name>.rate``) without a spec entry apply as scalar knobs via
+    :func:`jaxfne._param_handles.set_parameter`.
 
     Parameters
     ----------
@@ -1370,5 +1401,10 @@ def _model_with_parameters(
             if isinstance(spec, MatrixParameterSpec):
                 result = _model_with_matrix_parameter(result, param_name, spec, float(param_value))
                 continue
+        if is_handle_path(param_name):
+            # Lane 8 handles: named core-model degrees of freedom share the
+            # multi-parameter call path as scalar knobs.
+            result = set_parameter(result, param_name, float(param_value))
+            continue
         result = _model_with_scalar_parameter(result, param_name, float(param_value))
     return result

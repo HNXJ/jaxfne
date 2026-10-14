@@ -111,9 +111,6 @@ def compute_firing_rates_hz(spikes_array, duration_ms, baseline_drive_by_cell_ty
     Returns:
         rates_hz: shape (n_neurons,), firing rate in Hz (spike-derived, no post-hoc floor)
     """
-    n_steps = spikes_array.shape[0]
-    n_neurons = spikes_array.shape[1]
-
     # Count spikes per neuron (observed, ground truth)
     spike_counts = np.sum(spikes_array > 0.5, axis=0)  # (n_neurons,)
 
@@ -189,7 +186,7 @@ def agsdr_objective(candidate_gain, baseline_rates_all, target_mean_hz, min_neur
 
 def main():
     """Run delta-test validation pipeline with AGSDR tuning."""
-    print(f"=== Delta-Test Notebook 01 Runner (with AGSDR) ===")
+    print("=== Delta-Test Notebook 01 Runner (with AGSDR) ===")
     print(f"Mode: {'SMOKE (quick)' if SMOKE_MODE else 'FULL (1000ms)'}")
     print(f"N per area: {GLOBAL['N_PER_COLUMN']}")
     print(f"Duration: {GLOBAL['duration_ms']} ms")
@@ -499,7 +496,7 @@ def main():
         # Summary
         print()
         print("=== DELTA-TEST SUMMARY ===")
-        print(f"Status: ✓ PASS" if tuning_status in ["pass", "smoke_not_decisive"] else "Status: ⚠ PARTIAL")
+        print("Status: ✓ PASS" if tuning_status in ["pass", "smoke_not_decisive"] else "Status: ⚠ PARTIAL")
         print(f"Output directory: {OUTPUT_DIR}")
         print(f"Files generated: {len(list(OUTPUT_DIR.glob('*')))}")
         print()
@@ -514,10 +511,10 @@ def main():
         print(f"  Tuning status: {tuning_status}")
         print()
         print("Truth status:")
-        print(f"  claim_level: computational_scaffold")
-        print(f"  field_solver_status: linear_solver")
-        print(f"  physical_amplitude_calibrated: false")
-        print(f"  biological_learning_claim: false")
+        print("  claim_level: computational_scaffold")
+        print("  field_solver_status: linear_solver")
+        print("  physical_amplitude_calibrated: false")
+        print("  biological_learning_claim: false")
         print()
         print("✓ Delta-test notebook with AGSDR validated")
 

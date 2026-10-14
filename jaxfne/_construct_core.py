@@ -836,7 +836,21 @@ def _construct_compile_connections(
                     "connection rule(s) declare max_in_degree (spatially-localized sampling) "
                     "but no neuron positions are available at this construct() stage"
                 )
-            _positions_np = _np.asarray(positions) if _needs_positions else None
+            # Tensor-posed wiring: the tensor bridge records each area's
+            # Pose3D as metadata["tensor_pose"]; the localized sampler reads
+            # a posed copy, while the stored positions are posed by the same
+            # rule after construction — one geometry. Absent (plain configs
+            # and all-default poses) the historical array passes through
+            # untouched.
+            _pose_spec = (cfg.metadata or {}).get("tensor_pose")
+            if _needs_positions and _pose_spec is not None:
+                from .neuronal_tensor import _posed_wiring_positions
+
+                _positions_np = _np.asarray(
+                    _posed_wiring_positions(positions, _area_labels, _pose_spec)
+                )
+            else:
+                _positions_np = _np.asarray(positions) if _needs_positions else None
             _conn_edges, _counts = _compile_mechanism_aware_connection_rules(
                 _conn_rules,
                 _conn_mechanisms,
@@ -862,6 +876,14 @@ def _construct_compile_connections(
                     "every declared rule carries a mechanism= reference resolvable against a "
                     ".mechanisms() declaration. Declare mechanisms for all rules, or drop "
                     "max_in_degree -- the cap cannot be applied on the sign-only path."
+                )
+            _sigma = [r.get("name") for r in _conn_rules if r.get("spatial_sigma") is not None]
+            if _sigma:
+                raise ValueError(
+                    f"connection rule(s) {_sigma} declare spatial_sigma, which only "
+                    "parametrizes max_in_degree sampling on the mechanism-aware compiler; "
+                    "spatial_sigma needs max_in_degree. Declare mechanisms and both keys, "
+                    "or neither."
                 )
             _conn_edges, _counts = _compile_connection_rules(
                 _conn_rules,
@@ -989,6 +1011,8 @@ def construct(
             jit=runtime.jit,
             vmap=runtime.vmap,
             n_contacts=runtime.n_contacts,
+            adex_decay=runtime.adex_decay,
+            adex_step_order=runtime.adex_step_order,
         )
 
     if runtime is not None:
