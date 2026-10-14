@@ -2,6 +2,8 @@
 
 import json
 
+import pytest
+
 import jaxfne as jtfne
 
 
@@ -222,3 +224,31 @@ def test_paradigm_batch_method():
     weights = {"AAAB": 2.0, "AAAX": 1.0}
     batch_weighted = paradigm.batch(n_trials=100, seed=42, condition_weights=weights)
     assert batch_weighted["condition_weights"] == weights
+
+
+def test_presentation_summary_unexpected_error_propagates(monkeypatch):
+    """Only expected serialization failures fall back to repr; the rest propagate."""
+    import jaxfne.paradigm as paradigm_mod
+
+    def _boom(spec):
+        raise RuntimeError("boom")
+
+    monkeypatch.setitem(
+        paradigm_mod._summarize_presentations.__globals__, "json_safe", _boom
+    )
+    with pytest.raises(RuntimeError, match="boom"):
+        paradigm_mod._summarize_presentations({"tok": object()})
+
+
+def test_presentation_summary_expected_error_falls_back(monkeypatch):
+    """A documented serialization failure still yields the repr fallback."""
+    import jaxfne.paradigm as paradigm_mod
+
+    def _fail(spec):
+        raise TypeError("not serializable")
+
+    monkeypatch.setitem(
+        paradigm_mod._summarize_presentations.__globals__, "json_safe", _fail
+    )
+    out = paradigm_mod._summarize_presentations({"tok": object()})
+    assert out["tok"]["kind"] == "repr"

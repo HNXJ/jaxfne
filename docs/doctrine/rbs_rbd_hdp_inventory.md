@@ -115,7 +115,7 @@ Upstream authority (pending revision): `artifacts/project_sources/*.md`
 | `artifacts/project_sources/README.md` | v0.4.8 snapshot label |
 | `docs/v047_refactor_audit.md` → `artifacts/legacy/v047_refactor_audit.md` | prior audit (relocated DOC-01) |
 | `artifacts/hdp_v2_rho_sweep/*` | measured receipts |
-| `artifacts/.lab/*` | generated API snapshots |
+| `artifacts/.lab/bundle.json` | generated API snapshots |
 | `artifacts/legacy/reports/{HDP_REPORT,STDP_*}.md` (were `docs/`) | legacy internal reports (relocated DOC-01) |
 | Committed étude metrics at `v0.4.15` | frozen evidence |
 

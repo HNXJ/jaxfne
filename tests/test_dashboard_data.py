@@ -191,6 +191,24 @@ def test_missing_required_key_or_file_exits_1_and_names_it(tmp_path, kind):
     assert not (root / REL_OUT).exists(), "no data file may be written on error"
 
 
+def test_pass_fail_verdict_form(tmp_path):
+    root = tmp_path / "repo"
+    sha = make_repo(root, {"scores/main.json": {"v": 1.0, "a": "pass", "b": "fail", "c": "incomplete",
+                                                "d": "maybe"}})
+    crits = [criterion(id=k, value={"file": "main", "key": "v"},
+                       verdict={"file": "main", "key": k, "form": "pass_fail"}) for k in "abc"]
+    write_sources(root, [paper(sha, files={"main": "scores/main.json"}, criteria=crits)])
+    proc = run(root)
+    assert proc.returncode == 0, proc.stderr
+    got = [c["verdict"] for c in load_out(root)["papers"][0]["criteria"]]
+    assert got == ["pass", "fail", "fail"]
+    bad = [criterion(id="d", value={"file": "main", "key": "v"},
+                     verdict={"file": "main", "key": "d", "form": "pass_fail"})]
+    write_sources(root, [paper(sha, files={"main": "scores/main.json"}, criteria=bad)])
+    proc = run(root)
+    assert proc.returncode == 1 and "is not pass, fail or incomplete" in proc.stderr, proc.stderr
+
+
 @pytest.mark.parametrize("energies, want_verdict, want_reason", [
     ([0.5, 0.3, 0.2], "pass", "source reason"),
     ([0.5, 0.05, 0.2], "fail", "E-rate floor not met"),

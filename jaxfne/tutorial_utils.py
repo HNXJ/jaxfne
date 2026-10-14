@@ -234,12 +234,22 @@ def select_neurons(model, area: str | None = None, layer: str | None = None,
     """
     # Access neuron table from model
     if not hasattr(model, 'neuron_table') or not callable(model.neuron_table):
-        return np.array([], dtype=int)
+        raise ValueError(
+            "select_neurons requires a model with a callable neuron_table; "
+            f"got {type(model).__name__} with no usable neuron_table"
+        )
 
     try:
         rows = model.neuron_table()
-    except Exception:
-        return np.array([], dtype=int)
+    except Exception as exc:
+        raise ValueError(
+            f"select_neurons could not read model.neuron_table(): {exc!r}"
+        ) from exc
+
+    if rows is None:
+        raise ValueError(
+            "select_neurons got no neuron table (model.neuron_table() returned None)"
+        )
 
     if not rows:
         return np.array([], dtype=int)
@@ -270,6 +280,9 @@ def kappa_synchrony(spikes: np.ndarray, dt_ms: float = 0.1) -> float:
         0 indicates asynchronous spiking.
         1 indicates perfect synchrony.
         -1 indicates perfect anti-synchrony.
+        NaN where the correlation is undefined (empty input, fewer than 2
+        neurons, or fewer than 2 neurons with non-zero variance); a defined
+        0.0 stays 0.0.
 
     Notes:
         - Computes pairwise correlation of spike trains across neurons (columns)
@@ -289,12 +302,12 @@ def kappa_synchrony(spikes: np.ndarray, dt_ms: float = 0.1) -> float:
     """
     spikes = np.asarray(spikes, dtype=float)
     if spikes.size == 0 or spikes.ndim != 2:
-        return 0.0
+        return float("nan")
 
     # Shape is [T, N] — n_neurons is the second dimension
     n_timesteps, n_neurons = spikes.shape
     if n_neurons < 2 or n_timesteps < 1:
-        return 0.0
+        return float("nan")
 
     # Keep only neurons with non-zero variance (silent/constant trains contribute
     # no defined correlation and were skipped by the original pairwise loop).
@@ -302,7 +315,7 @@ def kappa_synchrony(spikes: np.ndarray, dt_ms: float = 0.1) -> float:
     valid = std > 0.0
     n_valid = int(valid.sum())
     if n_valid < 2:
-        return 0.0
+        return float("nan")
 
     cols = spikes[:, valid]
     normalized = (cols - cols.mean(axis=0)) / cols.std(axis=0)  # [T, M], z-scored
@@ -1138,7 +1151,9 @@ def make_stimulus(
     ndarray of shape (n_steps,)
         Stimulus array
     """
-    n_steps = int(round(duration_ms / dt_ms))
+    from ._signals import _n_steps_from_grid
+
+    n_steps = _n_steps_from_grid(duration_ms, dt_ms, owner="make_stimulus")
     t = np.arange(n_steps) * dt_ms
 
     if offset_ms is None:
@@ -1440,7 +1455,9 @@ def simulate_laminar_trials(
 
     neurons_df = model['neurons']
     n_neurons = len(neurons_df)
-    n_steps = int(round(cfg.duration_ms / cfg.dt_ms))
+    from ._signals import _n_steps_from_grid
+
+    n_steps = _n_steps_from_grid(cfg.duration_ms, cfg.dt_ms, owner="simulate_laminar_trials")
     areas = tuple(cfg.areas)
     n_areas = len(areas)
 
@@ -1681,7 +1698,9 @@ def single_cell_waveforms(
     if overrides is None:
         overrides = getattr(cfg, "cell_type_izh_params", None) if cfg is not None else None
     overrides = overrides or {}
-    n_steps = int(round(duration_ms / dt_ms))
+    from ._signals import _n_steps_from_grid
+
+    n_steps = _n_steps_from_grid(duration_ms, dt_ms, owner="single_cell_waveforms")
     out: dict = {}
     for ct in cell_types:
         params = izhikevich_params_from_labels((str(ct),), dtype="float32")

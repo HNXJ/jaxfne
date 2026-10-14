@@ -60,3 +60,29 @@ def test_all_and_default_target_drive_every_neuron():
     assert np.array_equal(np.asarray(a.V_m), np.asarray(b.V_m))
     off = _simulate(model, target="all", amplitude=0.0)
     assert not np.array_equal(np.asarray(a.V_m), np.asarray(off.V_m)), "drive must be consumed"
+
+
+def test_probability_over_one_raises():
+    """rate_hz * dt_ms / 1000 > 1 is refused, not clamped."""
+    with pytest.raises(ValueError, match="exceeds 1"):
+        _make_poisson_drive(10, N, rate_hz=5000.0, amplitude=4.0, dt_ms=DT, seed=1,
+                            target="all")
+    with pytest.raises(ValueError, match="exceeds 1"):
+        _simulate(_model(), rate_hz=5000.0)
+
+
+def test_negative_rate_raises():
+    """A negative rate_hz is refused, not clamped to 0."""
+    with pytest.raises(ValueError, match="rate_hz"):
+        _make_poisson_drive(10, N, rate_hz=-1.0, amplitude=4.0, dt_ms=DT, seed=1,
+                            target="all")
+    with pytest.raises(ValueError, match="rate_hz"):
+        _make_poisson_drive(10, N, rate_hz=float("nan"), amplitude=4.0, dt_ms=DT, seed=1,
+                            target="all")
+
+
+def test_probability_exactly_one_is_allowed():
+    """rate_hz * dt_ms / 1000 == 1 still draws (boundary, not over)."""
+    arr = _make_poisson_drive(10, N, rate_hz=2000.0, amplitude=4.0, dt_ms=DT, seed=1,
+                              target="all")
+    assert float(arr.sum()) == 10 * N * 4.0

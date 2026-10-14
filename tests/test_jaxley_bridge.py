@@ -79,3 +79,73 @@ def test_jaxley_bridge_simulate_is_implemented():
     sig = jtfne.bridges.JaxleyBridge(model=cell).simulate(duration_ms=40.0, dt_ms=0.025)
     assert sig.V_m.ndim == 2 and sig.field is None
     assert sig.metadata["physical_amplitude_calibrated"] is False
+
+
+def test_recorded_positions_unexpected_error_propagates():
+    """Only structural lookup failures fall back to None; anything else propagates."""
+    from jaxfne.bridges import _recorded_compartment_positions
+
+    class BadModule:
+        @property
+        def recordings(self):
+            raise RuntimeError("boom")
+
+    with pytest.raises(RuntimeError, match="boom"):
+        _recorded_compartment_positions(BadModule())
+
+
+def test_hh_indices_unexpected_error_propagates():
+    """Only structural lookup failures fall back to []; anything else propagates."""
+    from jaxfne.bridges import _hh_compartment_indices
+
+    class BadModule:
+        @property
+        def nodes(self):
+            raise RuntimeError("boom")
+
+    with pytest.raises(RuntimeError, match="boom"):
+        _hh_compartment_indices(BadModule())
+
+
+def test_simulate_recording_probe_error_propagates(monkeypatch):
+    """A failing recordings probe must propagate, not read as 'no recordings'."""
+    import jaxfne.bridges as bridges
+
+    class BadModule:
+        @property
+        def recordings(self):
+            raise RuntimeError("boom")
+
+        def record(self, *args, **kwargs):
+            raise AssertionError("record must not be reached")
+
+    monkeypatch.setattr(bridges, "require_jaxley", lambda: object())
+    monkeypatch.setattr(
+        bridges, "jaxley_to_signals", lambda *a, **k: (_ for _ in ()).throw(
+            AssertionError("unreachable"))
+    )
+    with pytest.raises(RuntimeError, match="boom"):
+        bridges.JaxleyBridge(model=BadModule()).simulate(duration_ms=1.0, dt_ms=0.025)
+
+
+def test_source_mode_non_default_refused():
+    """source_mode is reported, never executed: a non-default value is refused."""
+    with pytest.raises(ValueError, match="source_mode"):
+        jtfne.bridges.JaxleyBridge(model="mock_model", source_mode="voltage_proxy")
+
+
+def test_homeostatic_off_grid_window_refused():
+    """simulate_homeostatic refuses an off-grid window_ms instead of rounding."""
+    import jaxfne.bridges as bridges
+    from types import SimpleNamespace
+
+    import pandas as pd
+
+    module = SimpleNamespace(
+        recordings=pd.DataFrame({"state": ["v"], "rec_index": [0]})
+    )
+    with pytest.raises(ValueError, match="grid-aligned"):
+        bridges.JaxleyBridge(model=module).simulate_homeostatic(
+            duration_ms=400.0, window_ms=20.03, dt_ms=0.025,
+            base_current_nA=0.01, target_rate_hz=40.0,
+        )

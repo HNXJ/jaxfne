@@ -474,8 +474,8 @@ def _recorded_compartment_positions(module: Any, state: str = "v") -> Any:
     Reads ``module.recordings`` (``rec_index`` = global compartment index) and
     ``module.nodes`` (x/y/z columns). Returns an ``(n_recorded, 3)`` numpy array
     aligned with the recordings order, or ``None`` if positions are unavailable
-    (no geometry, no matching recordings, or any structural mismatch). Never
-    raises — geometry is an optional enrichment, not a contract.
+    (no geometry, no matching recordings, or any structural mismatch). Only
+    structural lookup failures fall back to ``None`` — anything else propagates.
     """
     try:
         recs = module.recordings
@@ -490,7 +490,7 @@ def _recorded_compartment_positions(module: Any, state: str = "v") -> Any:
             return None
 
         return nodes.loc[idx, ["x", "y", "z"]].to_numpy(dtype=float)
-    except Exception:
+    except (AttributeError, IndexError, KeyError, TypeError, ValueError):
         return None
 
 
@@ -759,7 +759,7 @@ def _hh_compartment_indices(module: Any) -> list[int]:
         present = nodes.loc[np.asarray([bool(x) and x == x for x in mask]),
                             "global_comp_index"]
         return sorted(int(i) for i in present.tolist())
-    except Exception:
+    except (AttributeError, IndexError, KeyError, TypeError, ValueError):
         return []
 
 
@@ -798,6 +798,18 @@ def _reconstruct_hh_ionic_current(v, m, h, n, params: dict[str, Any]):
 class JaxleyBridge:
     """Jaxley-focused biophysical emitter bridge."""
     def __init__(self, model: Any, source_mode: str = "transmembrane_current", compartment_axis: str = "last"):
+        if compartment_axis != "last":
+            raise ValueError(
+                f"JaxleyBridge compartment_axis={compartment_axis!r} is not implemented; "
+                "only the default 'last' is supported"
+            )
+        if source_mode != "transmembrane_current":
+            raise ValueError(
+                f"JaxleyBridge source_mode={source_mode!r} is not implemented; "
+                "only the default 'transmembrane_current' is supported "
+                "(source_mode is reported, not executed, so a non-default "
+                "value would be stored and never read)"
+            )
         self.model = model
         self.source_mode = source_mode
         self.compartment_axis = compartment_axis
@@ -828,7 +840,7 @@ class JaxleyBridge:
         module = self.model
         try:
             has_rec = len(module.recordings) > 0
-        except Exception:
+        except (AttributeError, TypeError):
             has_rec = False
         if not has_rec:
             module.record(record_state)
@@ -938,9 +950,10 @@ class JaxleyBridge:
 
         base = np.broadcast_to(np.asarray(base_current_nA, dtype=float), (n_cells,)).astype(float)
         dt = float(dt_ms)
-        n_win_steps = max(1, int(round(float(window_ms) / dt)))
+        from ._signals import _n_steps_from_grid
+        n_win_steps = _n_steps_from_grid(float(window_ms), dt, owner="simulate_homeostatic window_ms")
         win_ms_eff = n_win_steps * dt
-        n_windows = max(1, int(round(float(duration_ms) / win_ms_eff)))
+        n_windows = _n_steps_from_grid(float(duration_ms), win_ms_eff, owner="simulate_homeostatic duration_ms")
         decay_r = float(np.exp(-win_ms_eff / float(tau_r_ms)))
 
         views = [module.select(nodes=[k]) for k in gidx]

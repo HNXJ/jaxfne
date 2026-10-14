@@ -33,6 +33,7 @@ from .emitters_homeostatic_ei import (
     HomeostaticEIParams,
 )
 from .fields import FieldOutput
+from .io import config_hash
 from ._config import (
     RUNTIME_METADATA_KEYS,
     Configuration,
@@ -75,8 +76,8 @@ def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
     set on a Configuration is actually honored by the high-level ``simulate`` path.
     Only non-None known keys are applied, so a config without explicit runtime
     knobs yields the default RuntimeConfig (float32, dense, eager) — unchanged
-    behavior. ``dtype="float64"`` still requires JAX x64 enabled to take effect
-    (see ``RuntimeConfig.actual_dtype``).
+    behavior. ``dtype="float64"`` raises unless JAX x64 is enabled before array
+    construction (see ``RuntimeConfig.actual_dtype``).
     """
     kw: dict[str, Any] = {}
     for k in RUNTIME_METADATA_KEYS:
@@ -152,10 +153,16 @@ def compute_fields(model: "Model", signals: "Signals") -> "FieldOutput":
     than fabricating one; it raises if no field was computed, instead of
     silently returning ``None`` or synthesizing a placeholder.
 
-    ``model`` is accepted (not just ``signals``) to match the canonical
-    pipeline signature; the current thin-accessor implementation does not
-    read it.
+    ``model`` must be the model that produced ``signals``: signals whose
+    ``metadata["config_hash"]`` differs from ``model``'s configuration hash
+    are refused.
     """
+    produced_by = (signals.metadata or {}).get("config_hash")
+    if produced_by is not None and produced_by != config_hash(model.cfg):
+        raise ValueError(
+            "compute_fields(): signals were produced by a different model "
+            f"(config_hash {produced_by} != {config_hash(model.cfg)})."
+        )
     if signals.field is None:
         raise ValueError(
             "signals.field is None -- the Simulation ran with record_fields=False. "

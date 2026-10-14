@@ -71,7 +71,9 @@ def main() -> int:
     dirs = ensure_publication_dirs()
     out = dirs["artifacts"] / "figures_1_7_cross_figure_audit.json"
     write_json_strict(out, audit)
-    SUMMARY_PATH.write_text(build_summary(audit), encoding="utf-8")
+    # Keep the tracked file's newline style, so a run on Linux or Windows writes the same bytes.
+    newline = "\r\n" if SUMMARY_PATH.exists() and b"\r\n" in SUMMARY_PATH.read_bytes() else "\n"
+    SUMMARY_PATH.write_bytes(build_summary(audit).replace("\n", newline).encode("utf-8"))
     print(f"wrote: {out.relative_to(repo_root())}")
     print(f"wrote: {SUMMARY_PATH.relative_to(repo_root())}")
     print(f"status: {audit['status']}")

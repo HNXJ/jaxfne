@@ -26,6 +26,23 @@ Conventions
   step, so the effective delay is one step shorter than Brian2's; and the
   clamp covers the 50 steps after the spike step, so the refractory period is
   one step longer. PREREG_P3.md S5 tests both.
+
+Opt-in variants (PREREG_P3.md "Sensitivity", reported, never scored). Each
+is a keyword of :func:`build_network` / :func:`simulate` and a
+``run_caminos.py`` flag, default off; defaults reproduce the reference
+bit-for-bit for the same key.
+
+* ``indegree="fixed"`` (S3): every post cell gets exactly
+  ``round(p * N_pre)`` presynaptic partners per block, drawn without
+  replacement (no autapses in E->E, PV->PV).
+* ``ext="shared"`` (S4): 560 shared Poisson trains at 4 Hz instead of
+  private sources; each train projects to each E and PV cell with
+  probability ``p`` (one boolean map drawn from the key). The per-cell
+  external count per step is the sum over its connected trains' spikes.
+* ``step_order="brian2"`` (S5): 21-step delay ring and 49-step refractory
+  clamp (default 20 and 50).
+* ``ext_sources="pNE"`` (exploratory): source count ``round(p * NE)``
+  instead of the fixed 560. Default ``"fixed"`` stays 560.
 """
 
 from __future__ import annotations
@@ -124,7 +141,43 @@ def cell_params(kind):
     }
 
 
-def adex_step(state, I, p, dt):
+def delay_steps(dt, step_order="default"):
+    """Delay-ring length for step ``dt``: ``round(tau_d / dt)`` by default
+    (20 at dt = 0.1 ms), one more under ``step_order="brian2"`` (S5)."""
+    if step_order not in ("default", "brian2"):
+        raise ValueError("step_order must be 'default' or 'brian2', got %r" % (step_order,))
+    n = max(int(round(PARAMS["tau_d_s"] / float(dt))), 1)
+    return n + 1 if step_order == "brian2" else n
+
+
+def refractory_steps(tref_s, dt, step_order="default"):
+    """Refractory clamp length: ``round(Tref / dt)`` by default (50 at
+    dt = 0.1 ms), one fewer under ``step_order="brian2"`` (S5)."""
+    if step_order not in ("default", "brian2"):
+        raise ValueError("step_order must be 'default' or 'brian2', got %r" % (step_order,))
+    n = int(round(float(tref_s) / float(dt)))
+    return n - 1 if step_order == "brian2" else n
+
+
+def ext_source_count(p, NE, ext_sources="fixed"):
+    """External source count: the fixed 560 by default, ``round(p * NE)``
+    under ``ext_sources="pNE"`` (exploratory), or a positive int as given."""
+    if ext_sources == "fixed":
+        return int(PARAMS["ext_sources"])
+    if ext_sources == "pNE":
+        return int(round(float(p) * int(NE)))
+    if isinstance(ext_sources, int) and ext_sources > 0:
+        return int(ext_sources)
+    raise ValueError("ext_sources must be 'fixed', 'pNE' or a positive int, got %r"
+                     % (ext_sources,))
+
+
+def external_lam(p, NE, dt, ext_sources="fixed"):
+    """Per-cell external Poisson mean per step: ``n_src * rate * dt``."""
+    return ext_source_count(p, NE, ext_sources) * PARAMS["ext_rate_Hz"] * float(dt)
+
+
+def adex_step(state, I, p, dt, step_order="default"):
     """One explicit-Euler step of Eqs. 15-16 for a vector of cells.
 
     ``state`` is ``(V, w, ref)``: membrane voltage (V), adaptation (A),
@@ -135,10 +188,13 @@ def adex_step(state, I, p, dt):
     A cell with ``ref > 0`` is clamped at Vreset (V held, w still
     evolving with V = Vreset). An active cell spikes when its updated V
     reaches ``VT + 5 * Delta``; on spike V is reset, w += b, and ref is
-    set to ``round(Tref / dt)``. Pure jax.numpy; dtype follows inputs.
+    set to ``round(Tref / dt)`` (one fewer under ``step_order="brian2"``,
+    PREREG_P3.md S5). Pure jax.numpy; dtype follows inputs.
     Returns ``(new_state, spk)`` with boolean spike vector ``spk``.
     """
     V, w, ref = state
+    if step_order not in ("default", "brian2"):
+        raise ValueError("step_order must be 'default' or 'brian2', got %r" % (step_order,))
     v_thr = p["VT_V"] + 5.0 * p["Delta_V"]
     arg = jnp.minimum((V - p["VT_V"]) / p["Delta_V"], _EXP_ARG_MAX)
     dV = (
@@ -150,6 +206,8 @@ def adex_step(state, I, p, dt):
     dw_act = (p["a_S"] * (V - p["EL_V"]) - w) / p["tauw_s"] * dt
     dw_ref = (p["a_S"] * (p["Vreset_V"] - p["EL_V"]) - w) / p["tauw_s"] * dt
     n_ref = jnp.round(p["Tref_s"] / dt).astype(jnp.int32)
+    if step_order == "brian2":
+        n_ref = n_ref - jnp.int32(1)
     active = ref <= 0
     v_cand = V + dV
     spk = active & (v_cand >= v_thr)
@@ -159,13 +217,64 @@ def adex_step(state, I, p, dt):
     return (v_new, w_new, ref_new), spk
 
 
-def build_network(key, p=0.07, NE=8000, NPV=750, NSOM=750):
+def _fixed_block(key, p, n_pre, n_post, forbid_diag):
+    """One block with exactly ``round(p * n_pre)`` partners per post cell (S3).
+
+    Uniform scores per pair, top-k per column; diagonal scores are -1 so an
+    autapse is never picked (``k`` is capped at ``n_pre - 1`` then).
+    """
+    n_pre, n_post = int(n_pre), int(n_post)
+    k = int(round(float(p) * n_pre))
+    k = min(k, n_pre - 1) if forbid_diag else min(k, n_pre)
+    blk = jnp.zeros((n_pre, n_post), bool)
+    if k <= 0:
+        return blk
+    u = jax.random.uniform(key, (n_pre, n_post))
+    if forbid_diag:
+        u = u.at[jnp.arange(n_pre), jnp.arange(n_pre)].set(-1.0)
+    top = jnp.argsort(u, axis=0)[n_pre - k:, :]
+    cols = jnp.broadcast_to(jnp.arange(n_post)[None, :], top.shape)
+    return blk.at[(top, cols)].set(True)
+
+
+def build_ext_map(key, p, n_src, n_tgt):
+    """Shared-drive projection (S4): each of ``n_src`` trains reaches each of
+    the ``n_tgt`` target cells independently with probability ``p``.
+
+    Returns a dense boolean array of shape ``[n_src, n_tgt]``.
+    """
+    return jax.random.bernoulli(key, float(p), (int(n_src), int(n_tgt)))
+
+
+def shared_external_counts(key, steps, n_src, n_tgt, p, rate_hz, dt):
+    """S4 drive in one call: a fixed boolean map (:func:`build_ext_map`)
+    drawn once from ``key``, plus one Poisson draw per train per step at
+    ``rate_hz``. Per-cell counts are the sums over connected trains' spikes.
+
+    Returns ``(counts, ext_map)``: integer ``[steps, n_tgt]`` per-cell
+    external counts and the boolean ``[n_src, n_tgt]`` map. :func:`simulate`
+    draws the same construction one step at a time inside its scan.
+    """
+    k_map, k_tr = jax.random.split(key)
+    ext_map = build_ext_map(k_map, p, n_src, n_tgt)
+    lam_tr = float(rate_hz) * float(dt)
+    trains = jax.random.poisson(k_tr, lam_tr,
+                               shape=(int(steps), int(n_src))).astype(jnp.int32)
+    counts = jnp.matmul(trains, ext_map.astype(jnp.int32))
+    return counts, ext_map
+
+
+def build_network(key, p=0.07, NE=8000, NPV=750, NSOM=750, indegree="bernoulli"):
     """Bernoulli connectivity between the E/PV/SOM blocks.
 
     Every ordered pair connects independently with probability ``p``;
     diagonal (autapse) entries of the E->E and PV->PV blocks are forced
     to zero. PV->SOM and SOM->SOM are absent in the reference model, so
     no blocks are built for them.
+
+    Under ``indegree="fixed"`` (S3) every post cell instead gets exactly
+    ``round(p * N_pre)`` presynaptic partners per block, drawn without
+    replacement (no autapses in E->E, PV->PV).
 
     Returns a dict with sizes, ``p``, and ``blocks`` mapping
     ``(pre, post)`` pairs to dense boolean arrays of shape
@@ -177,9 +286,15 @@ def build_network(key, p=0.07, NE=8000, NPV=750, NSOM=750):
     sizes = {"E": NE, "PV": NPV, "SOM": NSOM}
     pairs = [("E", "E"), ("E", "PV"), ("E", "SOM"), ("PV", "E"),
              ("PV", "PV"), ("SOM", "E"), ("SOM", "PV")]
+    if indegree not in ("bernoulli", "fixed"):
+        raise ValueError("indegree must be 'bernoulli' or 'fixed', got %r" % (indegree,))
     keys = jax.random.split(key, len(pairs))
     blocks = {}
     for k, (pre, post) in zip(keys, pairs):
+        if indegree == "fixed":
+            blocks[(pre, post)] = _fixed_block(k, p, sizes[pre], sizes[post],
+                                               forbid_diag=(pre == post))
+            continue
         blk = jax.random.bernoulli(k, p, (sizes[pre], sizes[post]))
         if pre == post:  # no autapses
             n = sizes[pre]
@@ -225,7 +340,8 @@ def route_inputs(blocks, q, arr, earr, sizes, dtype):
 
 
 def simulate(key, T, dt=1e-4, p=0.07, dtype=jnp.float32, record="counts",
-             NE=None, NPV=None, NSOM=None):
+             NE=None, NPV=None, NSOM=None, indegree="bernoulli", ext="private",
+             step_order="default", ext_sources="fixed"):
     """Run the full E/PV/SOM network for ``T`` seconds (Euler, step ``dt``).
 
     ``NE/NPV/NSOM`` default to the reference sizes in ``PARAMS`` and are
@@ -233,6 +349,14 @@ def simulate(key, T, dt=1e-4, p=0.07, dtype=jnp.float32, record="counts",
     must be ``"counts"`` (any other value is refused). Seeding comes
     only through ``key``: one split builds connectivity, the other
     drives the external Poisson sources inside the scan.
+
+    Opt-in variants (PREREG_P3.md Sensitivity; defaults reproduce the
+    reference bit-for-bit): ``indegree="fixed"`` (S3, exact in-degree per
+    post cell), ``ext="shared"`` (S4, one boolean train->cell map drawn
+    once from the key, per-cell counts summed over connected trains),
+    ``step_order="brian2"`` (S5, 21-step ring and 49-step clamp),
+    ``ext_sources="pNE"`` (exploratory, ``round(p*NE)`` sources instead of
+    the fixed 560).
 
     Per step, in order: (i) pop spikes (recurrent booleans, external
     integer counts) delayed by ``round(tau_d / dt)`` steps from the ring
@@ -246,17 +370,25 @@ def simulate(key, T, dt=1e-4, p=0.07, dtype=jnp.float32, record="counts",
     """
     if record != "counts":
         raise ValueError("only record='counts' is supported, got %r" % (record,))
+    if ext not in ("private", "shared"):
+        raise ValueError("ext must be 'private' or 'shared', got %r" % (ext,))
     NE = PARAMS["NE"] if NE is None else NE
     NPV = PARAMS["NPV"] if NPV is None else NPV
     NSOM = PARAMS["NSOM"] if NSOM is None else NSOM
     sizes = {"E": NE, "PV": NPV, "SOM": NSOM}
     n_tot = NE + NPV + NSOM
     steps = int(round(T / dt))
-    n_delay = max(int(round(PARAMS["tau_d_s"] / dt)), 1)
+    n_delay = delay_steps(dt, step_order)
+    n_src = ext_source_count(p, NE, ext_sources)
 
     k_net, k_ext = jax.random.split(key)
-    net = build_network(k_net, p=p, NE=NE, NPV=NPV, NSOM=NSOM)
+    net = build_network(k_net, p=p, NE=NE, NPV=NPV, NSOM=NSOM, indegree=indegree)
     blocks = net["blocks"]
+    if ext == "shared":
+        k_map, k_ext = jax.random.split(k_ext)
+        ext_map_i = build_ext_map(k_map, p, n_src, NE + NPV).astype(jnp.int32).T
+    else:
+        ext_map_i = None
     par = _concat_params(sizes, dtype)
 
     def _f(x):
@@ -286,7 +418,8 @@ def simulate(key, T, dt=1e-4, p=0.07, dtype=jnp.float32, record="counts",
     q_se = _f(PARAMS["Q_SOM_E_S"])
     q_sp = _f(PARAMS["Q_SOM_PV_S"])
     q_ext = _f(PARAMS["Q_ext_S"])
-    lam = PARAMS["ext_sources"] * PARAMS["ext_rate_Hz"] * dt
+    lam = external_lam(p, NE, dt, ext_sources)
+    lam_tr = PARAMS["ext_rate_Hz"] * float(dt)
     sl = {"E": slice(0, NE), "PV": slice(NE, NE + NPV),
           "SOM": slice(NE + NPV, n_tot)}
     q ={"q_ee": q_ee, "q_ep": q_ep, "q_es": q_es, "q_pe": q_pe, "q_pp": q_pp,
@@ -299,10 +432,15 @@ def simulate(key, T, dt=1e-4, p=0.07, dtype=jnp.float32, record="counts",
         gE = gE * decay_e + inc_gE
         gI = gI * decay_i + inc_gI
         I = gE * (erev_e - V) + gI * (erev_i - V)
-        (V, w, ref), spk = adex_step((V, w, ref), I, par, dt)
-        ext = jax.random.poisson(ks, lam, shape=(NE + NPV,)).astype(jnp.int32)
+        (V, w, ref), spk = adex_step((V, w, ref), I, par, dt, step_order)
+        if ext == "shared":
+            rkey, kt = jax.random.split(rkey)
+            trains = jax.random.poisson(kt, lam_tr, shape=(n_src,)).astype(jnp.int32)
+            extc = jnp.matmul(ext_map_i, trains).astype(jnp.int32)
+        else:
+            extc = jax.random.poisson(ks, lam, shape=(NE + NPV,)).astype(jnp.int32)
         ring = ring.at[head].set(spk)
-        ering = ering.at[head].set(ext)
+        ering = ering.at[head].set(extc)
         head = (head + 1) % n_delay
         ce = jnp.sum(spk[sl["E"]]).astype(jnp.int32)
         cp = jnp.sum(spk[sl["PV"]]).astype(jnp.int32)

@@ -9,12 +9,12 @@ as done with jaxfne only when it runs through the library (P6).
 
 | Paper | Class | Release | Stage | Verdict |
 |---|---|---|---|---|
-| [CAMINOS reference model, Fig. 1](https://hnxj.github.io/jaxfne/dashboard/#model/caminos)<br>Tahvili, Vinck and di Volo, PLoS Comput Biol 2026 | partial | 0.5.6 | P5 | reproduced: under v7 (amended after v6 R4 failed) |
+| [CAMINOS reference model, Fig. 1](https://hnxj.github.io/jaxfne/dashboard/#model/caminos)<br>Tahvili, Vinck and di Volo, PLoS Comput Biol 2026 | verified | 0.5.7 | P6 | reproduced: under v7 (amended after v6 R4 failed); P6 v2 PASS through the public API (Q1–Q5, C1) |
 | [Predictive coding light, Fig. 3 (simple and complex cell tuning)](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig3)<br>N'dri, Barbier, Teulière and Triesch, Nat Commun 2025 | not reproduced | 0.5.6 | P5 | not reproduced |
 | [Predictive coding light, Fig. 2 (inhibitory STDP removes predictable spikes)](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig2)<br>N'dri, Barbier, Teulière and Triesch, Nat Commun 2025 | demonstration | 0.5.6 | — | — |
 | [Hodgkin–Huxley reference against a reduced jaxfne neuron (AT-01)](https://hnxj.github.io/jaxfne/dashboard/#model/hh-at01)<br>Hodgkin and Huxley 1952, through Jaxley | demonstration | 0.5.5 | — | — |
 | [Q-learning on jaxfne network features](https://hnxj.github.io/jaxfne/dashboard/#model/qlearning)<br>Watkins and Dayan 1992 (learning rule) | demonstration | 0.5.6 | — | — |
-| [Izhikevich 2003, Figs. 2 and 3 (single-cell patterns and the 1000-cell network)](https://hnxj.github.io/jaxfne/dashboard/#model/izhikevich2003)<br>Izhikevich, IEEE Trans Neural Netw 2003 | in progress | 0.5.6 | P3 | — |
+| [Izhikevich 2003, Figs. 2 and 3 (single-cell patterns and the 1000-cell network)](https://hnxj.github.io/jaxfne/dashboard/#model/izhikevich2003)<br>Izhikevich, IEEE Trans Neural Netw 2003 | not reproduced | 0.5.7 | P5 | not reproduced |
 
 ## Planned
 

@@ -2,11 +2,14 @@
 
 import json
 
+import jax
 import jax.numpy as jnp
 import numpy as np
 import pytest
 
 import jaxfne as jtfne
+from jaxfne.emitters import _dtype_from_policy
+from jaxfne.fields.proxy import project_laminar_sources
 
 
 def test_net_alias_warns_and_returns_model():
@@ -104,3 +107,142 @@ def test_shared_stdp_kernel_hand_computed():
     )
     # LTP only: dW_ltp = [[1, 2], [1, 2]]; diagonal masked (no autapse).
     assert jnp.array_equal(out, jnp.array([[0.0, 2.0], [1.0, 0.0]]))
+
+# Silent fallbacks become errors (Hamm 2026-10-13): D3 float64 without x64, D4
+# off-grid duration, F3 unconsumed compartment_axis, F7 select_neurons fallbacks.
+
+
+@pytest.fixture()
+def x64_off():
+    orig = bool(jax.config.read("jax_enable_x64"))
+    jax.config.update("jax_enable_x64", False)
+    try:
+        yield
+    finally:
+        jax.config.update("jax_enable_x64", orig)
+
+
+_NEURONS = [
+    {"neuron_id": 0, "area": "V1", "layer": "L4", "cell_type": "E"},
+    {"neuron_id": 1, "area": "V1", "layer": "L4", "cell_type": "E"},
+    {"neuron_id": 2, "area": "V1", "layer": "L4", "cell_type": "PV"},
+    {"neuron_id": 3, "area": "V4", "layer": "L2", "cell_type": "E"},
+]
+_MECHS = [{"name": "ampa", "kind": "synapse", "params": {"tau_ms": 5.0, "sign": 1.0}}]
+_RULE = {
+    "name": "rec",
+    "source": {"area": "V1"},
+    "target": {"area": "V1"},
+    "probability": 0.5,
+    "weight": 0.1,
+    "mechanism": "ampa",
+    "allow_self_connections": True,
+}
+
+
+class TestD3Float64Refusal:
+    def test_dtype_from_policy_float64_raises_without_x64(self, x64_off):
+        with pytest.raises(ValueError, match="jax_enable_x64"):
+            _dtype_from_policy("float64")
+
+    def test_dtype_from_policy_float32_passes_without_x64(self, x64_off):
+        assert _dtype_from_policy("float32") == jnp.float32
+
+    def test_compile_connection_rules_float64_raises_without_x64(self, x64_off):
+        with pytest.raises(ValueError, match="jax_enable_x64"):
+            jtfne.compile_connection_rules(_NEURONS, [_RULE], _MECHS, seed=0, dtype="float64")
+
+    def test_to_edge_list_float64_raises_without_x64(self, x64_off):
+        compiled = jtfne.compile_connection_rules(_NEURONS, [_RULE], _MECHS, seed=0)
+        with pytest.raises(ValueError, match="jax_enable_x64"):
+            compiled.to_edge_list(dtype="float64")
+
+    def test_project_laminar_sources_float64_raises_without_x64(self, x64_off):
+        sources = jnp.ones((10, 4), dtype=jnp.float32)
+        positions = jnp.asarray(
+            [[0.0, 0.0, 0.1], [0.0, 0.0, 0.4], [0.0, 0.0, 0.7], [0.0, 0.0, 0.9]]
+        )
+        with pytest.raises(ValueError, match="jax_enable_x64"):
+            project_laminar_sources(sources, positions, n_contacts=4, dtype="float64")
+
+    def test_drive_schedule_to_array_jax_float64_raises_without_x64(self, x64_off):
+        from jaxfne._signals import StimulusSchedule
+
+        sched = StimulusSchedule(events=(), n_neurons=2)
+        with pytest.raises(ValueError, match="jax_enable_x64"):
+            sched.to_array_jax(10, 0.5, dtype="float64")
+
+    def test_runtime_config_actual_dtype_float64_raises_without_x64(self, x64_off):
+        rt = jtfne.RuntimeConfig(dtype="float64")
+        with pytest.raises(ValueError, match="jax_enable_x64"):
+            _ = rt.actual_dtype
+
+
+class TestD4OffGridDuration:
+    def test_simulation_off_grid_raises(self):
+        with pytest.raises(ValueError, match="grid-aligned"):
+            jtfne.Simulation(duration_ms=100.0, dt_ms=0.3)
+
+    def test_simulation_grid_aligned_ok(self):
+        sim = jtfne.Simulation(duration_ms=200.0, dt_ms=0.5)
+        assert sim.n_steps == 400
+
+    def test_make_stimulus_off_grid_raises(self):
+        with pytest.raises(ValueError, match="grid-aligned"):
+            jtfne.make_stimulus(duration_ms=100.0, dt_ms=0.3)
+
+    def test_hdp_run_off_grid_raises(self):
+        from jaxfne import hdp_network as hn
+
+        cfg = hn.HDPColumnConfig(n_neurons=8, duration_ms=10.0, dt_ms=0.5, seed=6)
+        model = hn.build_model(cfg)
+        with pytest.raises(ValueError, match="grid-aligned"):
+            hn.run(model, cfg, 10.1, 6, hdp_kwargs=hn.disable_plasticity({"K_HDP": 0.01}))
+
+
+class TestF3CompartmentAxis:
+    def test_nondefault_axis_raises_without_jaxley(self):
+        # Constructor stores the value; no jaxley import needed.
+        with pytest.raises(ValueError, match="compartment_axis"):
+            jtfne.bridges.JaxleyBridge(model="mock_model", compartment_axis="first")
+
+    def test_default_axis_ok_without_jaxley(self):
+        bridge = jtfne.bridges.JaxleyBridge(model="mock_model")
+        assert bridge.compartment_axis == "last"
+
+
+class TestF7SelectNeurons:
+    def test_missing_table_raises(self):
+        with pytest.raises(ValueError, match="neuron_table"):
+            jtfne.select_neurons(object(), area="V1")
+
+    def test_raising_table_raises(self):
+        class _Bad:
+            def neuron_table(self):
+                raise RuntimeError("boom")
+
+        with pytest.raises(ValueError, match="neuron_table"):
+            jtfne.select_neurons(_Bad())
+
+    def test_zero_match_returns_empty(self):
+        rows = [{"neuron_id": 0, "area": "V1", "layer": "L4", "cell_type": "E"}]
+
+        class _Model:
+            def neuron_table(self):
+                return list(rows)
+
+        out = jtfne.select_neurons(_Model(), area="V4")
+        assert isinstance(out, np.ndarray) and out.size == 0
+
+    def test_match_returns_ids(self):
+        rows = [
+            {"neuron_id": 0, "area": "V1", "layer": "L4", "cell_type": "E"},
+            {"neuron_id": 1, "area": "V4", "layer": "L4", "cell_type": "E"},
+        ]
+
+        class _Model:
+            def neuron_table(self):
+                return list(rows)
+
+        out = jtfne.select_neurons(_Model(), area="V1")
+        assert list(out) == [0]

@@ -58,6 +58,25 @@ def test_filtered_spike_source_e_i_signs():
     assert np.mean(source[:, n_e:]) < 0.0, "I source should be negative"
 
 
+@pytest.mark.parametrize("inhibitory", ["SOM", "I", "Inl", "Ing"])
+def test_filtered_spike_source_signs_every_declared_inhibitory_type_negative(inhibitory):
+    """SOM (the AdEx table) and I, Inl, Ing (the Izhikevich table) are inhibitory."""
+    neurons = MockNeuronsDataFrame(n=2, cell_types=["E", inhibitory])
+    spikes = np.ones((20, 2), dtype=np.float32)
+    source, _ = filtered_spike_source(spikes, neurons)
+    assert float(source[-1, 0]) > 0.0, "fixture: the E column must be positive"
+    assert float(source[-1, 1]) == pytest.approx(-float(source[-1, 0]), rel=1e-6)
+
+
+def test_filtered_spike_source_refuses_a_cell_type_without_a_sign():
+    neurons = MockNeuronsDataFrame(n=2, cell_types=["E", "Pyr"])
+    with pytest.raises(ValueError, match=r"'Pyr'.*cell_signs"):
+        filtered_spike_source(np.ones((5, 2), dtype=np.float32), neurons)
+    source, _ = filtered_spike_source(np.ones((5, 2), dtype=np.float32), neurons,
+                                      cell_signs={"E": 1, "Pyr": 1})
+    assert float(source[-1, 1]) > 0.0
+
+
 def test_filtered_spike_source_zero_spikes():
     """Test that zero spikes produce zero source."""
     neurons = MockNeuronsDataFrame(n=20)

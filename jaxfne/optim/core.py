@@ -34,6 +34,10 @@ _VALID_SURROGATE: frozenset[str] = frozenset({
 })
 _VALID_OPTIMIZER_CLASS: frozenset[str] = frozenset({"differentiable", "blackbox", "hybrid"})
 
+# A failing optimizer candidate (divergence, a refused configuration, a JAX runtime error such
+# as XlaRuntimeError) is counted and scored inf; any other exception is a bug and propagates.
+_CANDIDATE_FAILURES: tuple[type[BaseException], ...] = (ArithmeticError, ValueError, RuntimeError)
+
 
 @jax.jit
 def _quadratic_target_loss(
@@ -221,7 +225,7 @@ class AGSDROptimizerSpec:
                     }
                 else:
                     params_serial[k] = [float(v[0]), float(v[1])]
-            except Exception:
+            except (AttributeError, IndexError, TypeError, ValueError):
                 params_serial[k] = str(v)
 
         # Serialize inner_optimizer: only store metadata, never the Optax object
@@ -1486,7 +1490,7 @@ def _tune_matrix_agsdr_optax(
             else:
                 # Fallback: mean V_m should be near threshold
                 loss = jnp.mean(jnp.abs(sigs.V_m - (-45.0)))
-        except Exception:
+        except _CANDIDATE_FAILURES:
             fallback_counts["inner_loop_step_failed"] += 1
             loss = jnp.asarray(float("inf"), dtype=_wdtype_outer)
         return loss
@@ -1620,7 +1624,7 @@ def _tune_matrix_agsdr_optax(
                             param_lower = float(param_specs.get("gAMPA_w").bounds[0]) if "gAMPA_w" in param_specs else -1000.0
                             param_upper = float(param_specs.get("gAMPA_w").bounds[1]) if "gAMPA_w" in param_specs else 1000.0
                             current_W = jnp.clip(current_W, param_lower, param_upper)
-                        except Exception:
+                        except _CANDIDATE_FAILURES:
                             fallback_counts["inner_loop_step_failed"] += 1
                             break  # Inner loop failed; use AGSDR candidate as-is
 
@@ -1635,7 +1639,7 @@ def _tune_matrix_agsdr_optax(
                         new_params = dict(candidate_model.params)
                         new_params["emitter"] = new_emitter
                         candidate_model = _replace(candidate_model, params=new_params)
-                except Exception:
+                except _CANDIDATE_FAILURES:
                     fallback_counts["candidate_refinement_failed"] += 1  # Fall back to unrefined AGSDR candidate
 
             # FINAL SCORING: real objective
@@ -1649,7 +1653,7 @@ def _tune_matrix_agsdr_optax(
                 if score is None:
                     score = 0.0 if gates_pass else float("inf")
                 score = float(score)
-            except Exception:
+            except _CANDIDATE_FAILURES:
                 fallback_counts["final_scoring_failed"] += 1
                 score = float("inf")
 
@@ -1671,8 +1675,8 @@ def _tune_matrix_agsdr_optax(
                             tuned_W = np.asarray(candidate_model.params["emitter"].W, dtype=np.float32)
                             # Convert to JSON-safe nested list
                             best_parameters[matrix_name] = tuned_W.tolist()
-                        except Exception:
-                            # If extraction fails, keep scalar as placeholder
+                        except (KeyError, AttributeError):
+                            # No dense emitter W (edge-list placeholder): keep scalar as placeholder
                             fallback_counts["matrix_extraction_failed"] += 1
                 best_model = candidate_model
 
@@ -1716,7 +1720,7 @@ def _tune_matrix_agsdr_optax(
                     "mean": float(np.mean(W_array)) if np.isfinite(W_array).all() else None,
                     "nonzero": int(np.count_nonzero(W_array)),
                 }
-            except Exception:
+            except (AttributeError, KeyError, TypeError, ValueError):
                 fallback_counts["diagnostics_failed"] += 1
 
     _fallback_warnings = [
@@ -1908,6 +1912,23 @@ def _tune_scalar_soft_rate_optax(
 
     from jaxfne.core import TuneResult, json_safe, _model_with_scalar_parameter, _evaluate_soft_rate_targets
 
+    # Edge-list-authoritative models (placeholder emitter.W, topology in
+    # params["edge_list"]) scale through host-side numpy in
+    # _model_with_scalar_parameter's synaptic_gain/gAMPA branches, which is
+    # concrete-only: under jax.value_and_grad it raises a raw
+    # ConcretizationTypeError. Refuse explicitly before the gradient loop.
+    if parameter in ("synaptic_gain", "gAMPA"):
+        from jaxfne.emitters import is_placeholder_dense_W
+
+        emitter = model.params["emitter"]
+        if is_placeholder_dense_W(emitter.W, emitter.n_neurons) and "edge_list" in model.params:
+            raise ValueError(
+                f"Differentiable tuning of {parameter!r} is not supported for "
+                "edge_list-authoritative models (placeholder emitter.W): the "
+                "edge_list scaling path is concrete-only; use the black-box "
+                "tune path instead"
+            )
+
     groups: dict = {}
     targets_hz: dict = {}
     for gate_spec in getattr(objective, "gates", []):
@@ -1953,7 +1974,7 @@ def _tune_scalar_soft_rate_optax(
             loss_val, grad = jax.value_and_grad(loss_fn)(value)
             loss_val = float(loss_val)
             grad_val = float(grad)
-        except Exception:
+        except _CANDIDATE_FAILURES:
             fallback_count += 1
             loss_val = float("nan")
             grad_val = 0.0

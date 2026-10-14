@@ -15,7 +15,8 @@ the rules those releases were held to and are historical context for readers.
   exact count `round(p*n_pre*n_post)`; without, per-pair Bernoulli up to 4M candidate
   pairs). `"bernoulli"` includes each (pre, post) pair independently with probability
   `p` at any size on both compiler paths. Anything else raises `ValueError`, and
-  `"bernoulli"` with `max_in_degree` is refused.
+  `"bernoulli"` with `max_in_degree` is refused. A compiled `"bernoulli"` rule's
+  `connection_table` row records `"sampling": "bernoulli"`; density rows are unchanged.
 - `jaxfne.emitters` gains the AdEx conductance kernel (ADVANCED): `simulate_adex`,
   `adex_step`, `AdExParams`, `make_adex_params`, `ADEX_CELL_TYPE_DEFAULTS` (E/PV/SOM, Tahvili,
   Vinck and di Volo 2026, Table 1), in mV/ms/pF/nS/pA. Conductance synapses
@@ -89,8 +90,18 @@ the rules those releases were held to and are historical context for readers.
   both hashes. On Python 3.15 the `dev`/`viz` extras take scipy 1.18.1 and matplotlib 3.11, which
   have 3.15 wheels, and the frozen-figure equivalence gate tests skip there. CI does not yet run
   3.15, and pyyaml and h5py (the `io` and `jnwb` extras) publish no 3.15 wheels yet.
+- Etude HTML under `docs/_static/etudes/experiment_a/` and
+  `docs/_static/etudes/hdp_controllability_reachability/` is a build product, like the atlas HTML.
+  `scripts/build_docs_assets.py --build` runs each etude generator and checks the files listed
+  in the registry's `etudes` section. The 12 HTML files leave git; their `manifest.json` files
+  stay tracked.
 
 ### Fixed
+- `fields.filtered_spike_source` (and `combined_multi_area_source`) signs each cell type from
+  the emitter tables: `I`, `Inl`, `Ing` and the AdEx `SOM` were signed +1 (excitatory) because
+  any type outside E, PV, SST, VIP defaulted to +1; they are now -1. A cell type absent from the
+  table raises `ValueError` naming it; pass `cell_signs=` to sign it. The package, its scripts
+  and frozen results call neither function.
 - `Simulation(poisson_drive={"target": ...})` raises `ValueError` for any target other than
   `"all"`. The target was never read: `{"target": "E"}` drove every neuron while the run
   metadata recorded `"E"`. `"all"` and an omitted target draw as before.

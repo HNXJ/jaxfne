@@ -72,6 +72,15 @@ def test_total_over_budget_fails(tmp_path):
     assert any("over-budget" in v for v in violations)
 
 
+def test_file_count_over_budget_fails(tmp_path):
+    repo = _make_repo(tmp_path / "count", {"a.txt": b"x", "b.txt": b"y", "c.txt": b"z"})
+    violations, info = check_tree(repo, _allow(budget_files=2))
+    assert info["files"] == 3, "fixture must track three files"
+    assert any("over-file-budget: files=3 budget_files=2" in v for v in violations)
+    violations, _ = check_tree(repo, _allow(budget_files=3))
+    assert violations == []
+
+
 def test_stale_entry_fails(tmp_path):
     repo = _make_repo(tmp_path / "stale", {"a.txt": b"x" * 10})
     from scripts.check_tree_size import tracked_sizes

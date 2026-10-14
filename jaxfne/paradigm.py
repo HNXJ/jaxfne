@@ -109,7 +109,7 @@ def _summarize_presentations(presentations: Optional[Mapping[str, Any]]) -> dict
             continue
         try:
             summary[str(token)] = json_safe(spec)
-        except Exception:
+        except (TypeError, ValueError):
             summary[str(token)] = {"kind": "repr", "repr": repr(spec)}
     return summary
 

@@ -2,23 +2,23 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-13T04:33:55Z",
-    "dev_sha": "8ddae284d23fe863c8234b8e9977f6fd8bf1a227"
+    "utc": "2026-10-13T23:46:45Z",
+    "dev_sha": "a8477940e79eb2ed6a359d03965e8efcb4a924f9"
   },
   "papers": [
     {
       "id": "caminos",
       "title": "CAMINOS reference model, Fig. 1",
       "citation": "Tahvili, Vinck and di Volo, PLoS Comput Biol 2026",
-      "class": "partial",
+      "class": "verified",
       "question": "Does the E–PV–SOM AdEx network give about 35 Hz gamma, SOM after PV, PV > SOM > E and an onset above a critical p?",
       "page": "models/caminos.md",
-      "release": "0.5.6",
-      "tier": "T-methods",
-      "stage": "P5",
+      "release": "0.5.7",
+      "tier": "T-jaxfne",
+      "stage": "P6",
       "lane": {
-        "branch": "l2-caminos",
-        "sha": "1e768f9db04a7cef405d78429f5a67580348b8b9"
+        "branch": "caminos-p6",
+        "sha": "5ed67635d2412b0378d153a83efd1765aadf0942"
       },
       "stage_artifacts": [
         {
@@ -27,7 +27,7 @@
             {
               "label": "port spec",
               "path": "artifacts/etudes/caminos/PORT_SPEC.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/PORT_SPEC.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/PORT_SPEC.md"
             }
           ]
         },
@@ -37,12 +37,12 @@
             {
               "label": "prereg v6",
               "path": "artifacts/etudes/caminos/PREREG_P3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/PREREG_P3.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/PREREG_P3.md"
             },
             {
               "label": "prereg v7 (R4)",
               "path": "artifacts/etudes/caminos/PREREG_P3_v7_R4.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/PREREG_P3_v7_R4.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/PREREG_P3_v7_R4.md"
             }
           ]
         },
@@ -52,12 +52,12 @@
             {
               "label": "model",
               "path": "artifacts/etudes/caminos/caminos_jax.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/caminos_jax.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/caminos_jax.py"
             },
             {
               "label": "tests",
               "path": "artifacts/etudes/caminos/test_caminos_jax.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/test_caminos_jax.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/test_caminos_jax.py"
             }
           ]
         },
@@ -67,36 +67,62 @@
             {
               "label": "result",
               "path": "artifacts/etudes/caminos/RESULT_P3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/RESULT_P3.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/RESULT_P3.md"
             },
             {
               "label": "ledger",
               "path": "artifacts/etudes/caminos/LEDGER.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/LEDGER.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/LEDGER.md"
             },
             {
               "label": "scores v7",
               "path": "artifacts/etudes/caminos/scores/score_v7.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score_v7.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/scores/score_v7.json"
+            }
+          ]
+        },
+        {
+          "stage": "P6",
+          "items": [
+            {
+              "label": "prereg P6 v2",
+              "path": "artifacts/etudes/caminos/PREREG_P6.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/PREREG_P6.md"
+            },
+            {
+              "label": "result P6",
+              "path": "artifacts/etudes/caminos/RESULT_P6.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/RESULT_P6.md"
+            },
+            {
+              "label": "scores P6",
+              "path": "artifacts/etudes/caminos/scores/p6_v2_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/scores/p6_v2_score.json"
             }
           ]
         }
       ],
       "verdict": "reproduced",
-      "verdict_note": "under v7 (amended after v6 R4 failed)",
+      "verdict_note": "under v7 (amended after v6 R4 failed); P6 v2 PASS through the public API (Q1–Q5, C1)",
       "summary": "Gamma, the PV→SOM lag and the rate order reproduce at p = 0.07. The critical-p onset (Fig. 1E) runs in reverse with the external drive fixed at 560 sources (v6) and appears at p = 0.04 with the drive at p·NE sources (v7), an assumption the paper does not state for the sweep. At p = 0.07 the v6 and v7 runs are identical for all five seeds, so R1–R3 and R4v7 score one realization there.",
       "preregs": [
         {
           "id": "v6",
           "signed": "2026-10-11",
           "path": "artifacts/etudes/caminos/PREREG_P3.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/PREREG_P3.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/PREREG_P3.md"
         },
         {
           "id": "v7 (R4 only)",
           "signed": "2026-10-12",
           "path": "artifacts/etudes/caminos/PREREG_P3_v7_R4.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/PREREG_P3_v7_R4.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/PREREG_P3_v7_R4.md"
+        },
+        {
+          "id": "P6 v2 (library path)",
+          "signed": "2026-10-13",
+          "path": "artifacts/etudes/caminos/PREREG_P6.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/PREREG_P6.md"
         }
       ],
       "criteria": [
@@ -117,7 +143,7 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -137,7 +163,7 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -157,7 +183,7 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -177,7 +203,7 @@
           "prereg": "v6",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -197,7 +223,7 @@
           "prereg": "v7 (R4 only)",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score_v7.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score_v7.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/scores/score_v7.json"
           }
         }
       ],
@@ -681,7 +707,7 @@
           "caption": "Peak excess of the E rate spectrum per run; a run oscillates above 4. Lines join one seed across p.",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -1033,7 +1059,7 @@
           "caption": "Mean rates over the kept 10 s, seeds 1–3.",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/scores/score.json"
           }
         },
         {
@@ -1081,7 +1107,7 @@
           "caption": "Peak frequency per seed at the reference point.",
           "evidence": {
             "path": "artifacts/etudes/caminos/scores/score.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/1e768f9db04a7cef405d78429f5a67580348b8b9/artifacts/etudes/caminos/scores/score.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/5ed67635d2412b0378d153a83efd1765aadf0942/artifacts/etudes/caminos/scores/score.json"
           }
         }
       ],
@@ -1103,7 +1129,7 @@
       "stage": "P5",
       "lane": {
         "branch": "pcl-port",
-        "sha": "5640ce18a42b25f572530508628a215081811b4b"
+        "sha": "8f75acd064882184c77b897890c298db75cc32c5"
       },
       "stage_artifacts": [
         {
@@ -1112,7 +1138,7 @@
             {
               "label": "port spec",
               "path": "artifacts/etudes/pcl/PORT_SPEC.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/PORT_SPEC.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/PORT_SPEC.md"
             }
           ]
         },
@@ -1122,7 +1148,12 @@
             {
               "label": "prereg v4",
               "path": "artifacts/etudes/pcl/prereg/P3_fig3.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/P3_fig3.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3.md"
+            },
+            {
+              "label": "prereg v5",
+              "path": "artifacts/etudes/pcl/prereg/P3_fig3_v5.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3_v5.md"
             }
           ]
         },
@@ -1132,12 +1163,12 @@
             {
               "label": "tuning run",
               "path": "artifacts/etudes/pcl/port/run_tuning.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/port/run_tuning.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/port/run_tuning.py"
             },
             {
               "label": "analysis tests",
               "path": "artifacts/etudes/pcl/port/test_fig3_analysis.py",
-              "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/port/test_fig3_analysis.py"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/port/test_fig3_analysis.py"
             }
           ]
         },
@@ -1147,30 +1178,46 @@
             {
               "label": "result",
               "path": "artifacts/etudes/pcl/prereg/P3_fig3_result.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/P3_fig3_result.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3_result.md"
             },
             {
               "label": "ledger",
               "path": "artifacts/etudes/pcl/LEDGER.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/LEDGER.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/LEDGER.md"
             },
             {
               "label": "scores",
               "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-              "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            },
+            {
+              "label": "result v5",
+              "path": "artifacts/etudes/pcl/prereg/P3_fig3_v5_result.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3_v5_result.md"
+            },
+            {
+              "label": "scores v5",
+              "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json"
             }
           ]
         }
       ],
       "verdict": "not reproduced",
       "verdict_note": null,
-      "summary": "Orientation tuning and the simple/complex phase split reproduce; sf tuning is broad (R_sf about 1.5 against 2) and complex cells show no frequency doubling.",
+      "summary": "Orientation tuning and the simple/complex phase split reproduce. v5 scores the sf curve against the digitized Fig. 3: simple cells fail (10/16 points, error 1.5 times a flat line), complex cells miss the shape guard by 0.02. Under v5, T4 (frequency doubling, C3) passes on the v4 numbers.",
       "preregs": [
         {
           "id": "v4",
           "signed": "2026-10-11",
           "path": "artifacts/etudes/pcl/prereg/P3_fig3.md",
-          "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/P3_fig3.md"
+          "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3.md"
+        },
+        {
+          "id": "v5",
+          "signed": "2026-10-13",
+          "path": "artifacts/etudes/pcl/prereg/P3_fig3_v5.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/P3_fig3_v5.md"
         }
       ],
       "criteria": [
@@ -1202,7 +1249,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
           }
         },
         {
@@ -1233,7 +1280,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
           }
         },
         {
@@ -1264,7 +1311,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
           }
         },
         {
@@ -1295,7 +1342,69 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+          }
+        },
+        {
+          "id": "T2 v5",
+          "group": "simple",
+          "claim": "simple-cell sf curve matches Fig. 3c",
+          "estimand": "authors' plot_fqcy curve, 16 K/k points",
+          "criterion": "≥ 80% of points within 0.04 + 2 SE, and SSE ≤ 0.5 × SSE of a flat line",
+          "value": 0.625,
+          "value_text": "0.625",
+          "value_label": "fraction of points",
+          "paper_value": null,
+          "unit": "",
+          "extra": [
+            {
+              "label": "SSE",
+              "value": 0.3488344229308904,
+              "value_text": "0.349"
+            },
+            {
+              "label": "SSE flat",
+              "value": 0.23315575000000002,
+              "value_text": "0.233"
+            }
+          ],
+          "verdict": "fail",
+          "reason": "worse than a flat line",
+          "prereg": "v5",
+          "evidence": {
+            "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json"
+          }
+        },
+        {
+          "id": "T2 v5",
+          "group": "complex",
+          "claim": "complex-cell sf curve matches Fig. 3d",
+          "estimand": "authors' plot_fqcy curve, 15 K/k points",
+          "criterion": "≥ 80% of points within 0.04 + 2 SE, and SSE ≤ 0.5 × SSE of a flat line",
+          "value": 0.8,
+          "value_text": "0.8",
+          "value_label": "fraction of points",
+          "paper_value": null,
+          "unit": "",
+          "extra": [
+            {
+              "label": "SSE",
+              "value": 0.20433365598316092,
+              "value_text": "0.204"
+            },
+            {
+              "label": "SSE flat",
+              "value": 0.39338200000000006,
+              "value_text": "0.393"
+            }
+          ],
+          "verdict": "fail",
+          "reason": "shape guard missed by 0.02",
+          "prereg": "v5",
+          "evidence": {
+            "path": "artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v5_t2_even.json"
           }
         },
         {
@@ -1315,7 +1424,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
           }
         },
         {
@@ -1335,7 +1444,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
           }
         },
         {
@@ -1371,7 +1480,7 @@
           "prereg": "v4",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
           }
         }
       ],
@@ -1675,7 +1784,7 @@
           "caption": "Held-out ratios with the 99th percentiles of both nulls (1000 draws).",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
           }
         },
         {
@@ -1724,7 +1833,7 @@
           "caption": "T4 needs median L complex above 0.",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
           }
         },
         {
@@ -1784,7 +1893,7 @@
           "caption": "R_sf stays under 2 in every variant.",
           "evidence": {
             "path": "artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json",
-            "url": "https://github.com/hnxj/jaxfne/blob/5640ce18a42b25f572530508628a215081811b4b/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
+            "url": "https://github.com/hnxj/jaxfne/blob/8f75acd064882184c77b897890c298db75cc32c5/artifacts/etudes/pcl/prereg/scores/fig3_v4_full.json"
           }
         }
       ],
@@ -1959,15 +2068,15 @@
       "id": "izhikevich2003",
       "title": "Izhikevich 2003, Figs. 2 and 3 (single-cell patterns and the 1000-cell network)",
       "citation": "Izhikevich, IEEE Trans Neural Netw 2003",
-      "class": "in progress",
+      "class": "not reproduced",
       "question": "Does jaxfne's existing Izhikevich kernel reproduce the paper's single-cell firing patterns (Fig. 2) and the 1000-cell network rhythm (Fig. 3)?",
       "page": "models/izhikevich2003.md",
-      "release": "0.5.6",
+      "release": "0.5.7",
       "tier": "T-jaxfne",
-      "stage": "P3",
+      "stage": "P5",
       "lane": {
-        "branch": "dev",
-        "sha": "e0e818ab9f1026d2febe61193f9e0cbf4c84815a"
+        "branch": "izh2003",
+        "sha": "a8477940e79eb2ed6a359d03965e8efcb4a924f9"
       },
       "stage_artifacts": [
         {
@@ -1976,7 +2085,7 @@
             {
               "label": "source",
               "path": "artifacts/etudes/izhikevich2003/SOURCE_P1.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/e0e818ab9f1026d2febe61193f9e0cbf4c84815a/artifacts/etudes/izhikevich2003/SOURCE_P1.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/SOURCE_P1.md"
             }
           ]
         },
@@ -1986,21 +2095,325 @@
             {
               "label": "port spec",
               "path": "artifacts/etudes/izhikevich2003/PORT_SPEC.md",
-              "url": "https://github.com/hnxj/jaxfne/blob/e0e818ab9f1026d2febe61193f9e0cbf4c84815a/artifacts/etudes/izhikevich2003/PORT_SPEC.md"
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PORT_SPEC.md"
+            }
+          ]
+        },
+        {
+          "stage": "P3",
+          "items": [
+            {
+              "label": "prereg v7",
+              "path": "artifacts/etudes/izhikevich2003/PREREG_P3.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PREREG_P3.md"
+            }
+          ]
+        },
+        {
+          "stage": "P4",
+          "items": [
+            {
+              "label": "runner and scorer",
+              "path": "artifacts/etudes/izhikevich2003/run_izh.py",
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/run_izh.py"
+            },
+            {
+              "label": "reference arm",
+              "path": "artifacts/etudes/izhikevich2003/net_reference.py",
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/net_reference.py"
+            }
+          ]
+        },
+        {
+          "stage": "P5",
+          "items": [
+            {
+              "label": "result",
+              "path": "artifacts/etudes/izhikevich2003/RESULT_P3.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/RESULT_P3.md"
+            },
+            {
+              "label": "scores",
+              "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+            },
+            {
+              "label": "S1 report",
+              "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_s1_report.json"
+            },
+            {
+              "label": "v8.2 scores (post hoc)",
+              "path": "artifacts/etudes/izhikevich2003/scores/p3_v8_score.json",
+              "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v8_score.json"
             }
           ]
         }
       ],
-      "verdict": null,
+      "verdict": "not reproduced",
       "verdict_note": null,
-      "summary": "P1 source and P2 port spec done (second review PASS 2026-10-12). The P3 preregistration is drafted and waits for its calibration gate and Hamm's signature; nothing is scored yet.",
-      "preregs": [],
-      "criteria": [],
+      "summary": "Six of eight single-cell patterns reproduce; FS adapts (ISI ratio 1.86) and the resonator spikes once. The network has the paper's rate, alpha and gamma peaks, but its firing is too regular (median ISI CV 0.40 against 0.6 to 1.5), and the float64 reference arm of net.m gives 0.39 too.",
+      "preregs": [
+        {
+          "id": "v7",
+          "signed": "2026-10-13",
+          "path": "artifacts/etudes/izhikevich2003/PREREG_P3.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PREREG_P3.md"
+        },
+        {
+          "id": "v8.2",
+          "signed": "2026-10-13",
+          "path": "artifacts/etudes/izhikevich2003/PREREG_P3_v8.md",
+          "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/PREREG_P3_v8.md"
+        }
+      ],
+      "criteria": [
+        {
+          "id": "C1",
+          "group": "Fig. 2",
+          "claim": "RS: tonic spiking with adaptation",
+          "estimand": "ISI ratio last/first",
+          "criterion": "as PREREG_P3.md C1",
+          "value": 2.533707865168539,
+          "value_text": "2.53",
+          "value_label": "ISI ratio",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C2",
+          "group": "Fig. 2",
+          "claim": "IB: initial burst, then tonic",
+          "estimand": "tail spikes after the burst",
+          "criterion": "as PREREG_P3.md C2",
+          "value": 8,
+          "value_text": "8",
+          "value_label": "tail spikes",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C3",
+          "group": "Fig. 2",
+          "claim": "CH: repetitive bursts",
+          "estimand": "burst count",
+          "criterion": "as PREREG_P3.md C3",
+          "value": 5,
+          "value_text": "5",
+          "value_label": "bursts",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C4",
+          "group": "Fig. 2",
+          "claim": "FS: fast spiking without adaptation",
+          "estimand": "ISI ratio last/first",
+          "criterion": "ISI ratio ≤ 1.2",
+          "value": 1.8571428571428572,
+          "value_text": "1.86",
+          "value_label": "ISI ratio",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "the FS cell adapts",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C5",
+          "group": "Fig. 2",
+          "claim": "LTS fires faster than RS",
+          "estimand": "rate",
+          "criterion": "as PREREG_P3.md C5",
+          "value": 83.33333333333334,
+          "value_text": "83.3",
+          "value_label": "rate",
+          "paper_value": null,
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C6",
+          "group": "Fig. 2",
+          "claim": "TC: tonic mode",
+          "estimand": "first passing I+ of the ascending search",
+          "criterion": "as PREREG_P3.md C6",
+          "value": 1.0,
+          "value_text": "1",
+          "value_label": "I+",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C7",
+          "group": "Fig. 2",
+          "claim": "TC: rebound burst",
+          "estimand": "burst latency after release",
+          "criterion": "within 50 ms",
+          "value": 5.7,
+          "value_text": "5.7",
+          "value_label": "latency",
+          "paper_value": null,
+          "unit": "ms",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "C8",
+          "group": "Fig. 2",
+          "claim": "RZ: damped subthreshold oscillation, no spike",
+          "estimand": "spike count",
+          "criterion": "no spike; ≥ 2 decreasing maxima",
+          "value": 1,
+          "value_text": "1",
+          "value_label": "spikes",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "one spike after the pulse",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "N1",
+          "group": "Fig. 3",
+          "claim": "mean rate around 8 Hz",
+          "estimand": "mean rate, seed 1 (all five seeds 8.48–8.83)",
+          "criterion": "4–16 Hz in every seed",
+          "value": 8.5936,
+          "value_text": "8.59",
+          "value_label": "rate",
+          "paper_value": null,
+          "unit": "Hz",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "N2",
+          "group": "Fig. 3",
+          "claim": "Poisson-like firing",
+          "estimand": "median ISI CV, seed 1 (all five 0.400–0.410)",
+          "criterion": "0.6–1.5 in every seed",
+          "value": 0.4027227588843355,
+          "value_text": "0.403",
+          "value_label": "median CV",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "fail",
+          "reason": "too regular; the reference arm gives 0.39",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "N3",
+          "group": "Fig. 3",
+          "claim": "alpha rhythm",
+          "estimand": "peak excess in 8–13 Hz, seed 1",
+          "criterion": "PE ≥ 4 in every seed",
+          "value": 6.209281055935908,
+          "value_text": "6.21",
+          "value_label": "PE",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        },
+        {
+          "id": "N4",
+          "group": "Fig. 3",
+          "claim": "gamma rhythm",
+          "estimand": "peak excess in 30–50 Hz, seed 1",
+          "criterion": "PE ≥ 4 in every seed",
+          "value": 4.951555938400134,
+          "value_text": "4.95",
+          "value_label": "PE",
+          "paper_value": null,
+          "unit": "",
+          "extra": [],
+          "verdict": "pass",
+          "reason": "",
+          "prereg": "v7",
+          "evidence": {
+            "path": "artifacts/etudes/izhikevich2003/scores/p3_v7_score.json",
+            "url": "https://github.com/hnxj/jaxfne/blob/a8477940e79eb2ed6a359d03965e8efcb4a924f9/artifacts/etudes/izhikevich2003/scores/p3_v7_score.json"
+          }
+        }
+      ],
       "sensitivity": [],
       "charts": [],
       "open": [
-        "P3: calibration gate on synthetic signals, then the batch signature.",
-        "P4: build the scored arm and the NumPy reference arm (S1)."
+        "Amendment v8.2 (post hoc, signed 2026-10-13; scores/p3_v8_score.json): Fig. 2 passes 8 of 8 with the C8 pulse at I = 2 and C4 as the least-adapting type (FS 1.86 against RS 2.53 and LTS 4.39). N2 stays a failed paper claim.",
+        "S1 (rescored on each arm's own step) moves N3 across its band edge. The net.m update-order arm (PREREG_P3b.md) stopped at its equivalence gate (v5): the JAX arm drifts from the NumPy reference faster than a one-ulp input change (RESULT_P3.md)."
       ]
     }
   ],

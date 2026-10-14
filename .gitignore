@@ -111,6 +111,10 @@ artifacts/developer/
 # plan-* nodes mirror plans.json items, so tracking them would re-leak the same
 # content), plus per-run churn that would conflict between machines.
 artifacts/.lab/plan-*.json
+# Since 2026-10-13 the nodes are tracked as one file, artifacts/.lab/bundle.json
+# (scripts/lab_bundle.py --pack / --unpack); loose node files stay local.
+artifacts/.lab/*.json
+!artifacts/.lab/bundle.json
 artifacts/.lab/Archive/
 artifacts/.lab/.formation_backups/
 artifacts/.lab/suggestions.json
@@ -161,3 +165,19 @@ scripts/out/
 # (Read the Docs runs it before mkdocs); the manifests and atlas_registry.json stay tracked.
 docs/_static/atlas/**/*.html
 docs/_static/atlas_three_area/*.html
+# Etude HTML is a build product too: scripts/build_docs_assets.py --build runs the etude generators;
+# their manifest.json files stay tracked.
+docs/_static/etudes/experiment_a/*.html
+docs/_static/etudes/hdp_controllability_reachability/*.html
+docs/_static/etudes/multiscale_observation/*.html
+docs/_static/etudes/heterogeneous_emitters/*.html
+# Etude figures under docs/assets are build products too: build_docs_assets.py --build copies them from artifacts/etudes/.
+docs/assets/etudes/pcl/c1b_kernels.png
+docs/assets/etudes/pcl/c1_kernels.png
+docs/assets/etudes/multiscale_observation.png
+docs/assets/etudes/hdp_controllability_reachability.png
+docs/assets/etudes/heterogeneous_emitters.png
+docs/assets/etudes/hdp_balance/stage1.png
+docs/assets/etudes/hdp_balance/stage1b.png
+docs/assets/etudes/hdp_balance/stage1c.png
+docs/assets/etudes/hdp_balance/stage1d.png

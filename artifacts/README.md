@@ -18,6 +18,7 @@ stay where they are and new work goes into the folder of its kind.
 |---|---|---|
 | `issue_log/` | open issues P-NNN | release authorities |
 | `release/` | release receipts and `current_release_authorities.json` | release authorities |
+| `changelog.d/` | release-note fragments assembled into `docs/changelog.md` | |
 | `publication/` | manuscript figure specs, receipts, claim ledger, `frozen_manifest.json` | frozen + harness |
 | `figures/` | publication figure renders | `publication/` fig01–fig07 frozen |
 | `etudes/` | paper replications (`REPLICATIONS.md`, one folder per paper) and etude bundles | cited by publication |
@@ -45,6 +46,15 @@ stay where they are and new work goes into the folder of its kind.
 | `private_acceptance/` | 0.4.x acceptance scorecards | release authorities |
 | `archive/` | sealed stacks and decisions, byte-for-byte | |
 | `legacy/` | pre-0.4.x notebooks and docs (kept by Hamm 2026-10-11) | |
-| `.lab/` | Labyrinth API graph nodes read by `scripts/lab_balance.py` | |
+| `.lab/` | Labyrinth API graph nodes in `bundle.json`, read by `scripts/lab_balance.py` | |
 
 Untracked: `attestations/` (gitignored test XML), `developer/` (local notes).
+
+`archive/scripts/` holds scripts with no reference in the tree, archived 2026-10-13 (T-17):
+
+| script | lines | last commit before the move | what it did |
+|---|---|---|---|
+| `audit_semantic_negatives.py` | 114 | 19aef19a 2026-09-19 | semantic-negative docs gate (Batch B7), never wired |
+| `generate_mechanism_tutorials.py` | 524 | 9958a725 2026-09-28 | generated the three mechanism notebooks 01–03 |
+| `make_delta_test_01_report.py` | 629 | baf43d49 2026-09-30 | built the v0.3.31 Delta-Test 01 companion bundle from receipts |
+| `repair_notebooks.py` | 198 | 0635f3a8 2026-08-26 | split long notebook code cells into chunks of at most 10 lines |

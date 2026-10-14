@@ -31,8 +31,9 @@ class RuntimeConfig:
     ``construct(tensor, runtime=...)`` bridges into these same resolved
     semantics; the two types are path-scoped views, not competing policies.
 
-    ``dtype='float64'`` is honored only when JAX x64 is enabled.  The manifest
-    always reports both requested and actual dtype policy.
+    ``dtype='float64'`` raises (via ``actual_dtype``) unless JAX x64 is enabled
+    before array construction.  The manifest always reports both requested
+    and actual dtype policy.
 
     jit selects XLA compilation: True/False force it on/off,
     auto (default) enables it iff n_steps * n_units * batch > 50000.
@@ -185,7 +186,13 @@ class RuntimeConfig:
     @property
     def actual_dtype(self) -> str:
         """Documented public function `actual_dtype`."""
-        if self.requested_dtype == "float64" and bool(jax.config.read("jax_enable_x64")):
+        if self.requested_dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
+            raise ValueError(
+                "dtype='float64' requested but JAX x64 is not enabled -- call "
+                'jax.config.update("jax_enable_x64", True) before creating any array '
+                "in this process; refusing to silently report float32"
+            )
+        if self.requested_dtype == "float64":
             return "float64"
         if self.requested_dtype == "bfloat16":
             return "bfloat16"

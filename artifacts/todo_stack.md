@@ -8,47 +8,43 @@ first, amend in place.
 
 ## 1. Decisions waiting on Hamm (they unblock items below)
 
-- T-1 [H] Etude drift. First bad commit 9cc45659 ("refuse inert Configuration.cell_type_drives"):
-  the frozen multiscale and heterogeneous etudes ran with an inert E/PV drive of 8.0; the
-  migration to `.drive(baseline_drive_by_cell_type=...)` makes it act
-  (`scripts/run_multiscale_observation_etude.py:128`, `scripts/run_heterogeneous_emitters_etude.py:103`),
-  so `rerun_etude_figures.py` aborts for both. (a, recommended) restore the realized frozen
-  protocol by removing the drive call, with a note; (b) declare a new protocol and regenerate.
-  Unblocks T-4. Closes when: `python scripts/rerun_etude_figures.py --etude multiscale` and
-  `--etude heterogeneous` exit 0.
-- T-2 [H] `artifacts/.lab` (108 Labyrinth JSON nodes, read only by `scripts/lab_balance.py`, which
-  crashes at `build_edges`): bundle into one file, retire, or keep. Unblocks part of T-4.
-  Closes when: Hamm's choice is recorded here and `scripts/check_tree_size.py --check` passes.
-- T-3 [H] PCL Fig. 3 after the diagnostic (v4 FAIL stands, `pcl-port` 5640ce18): new prereg for
-  T2/T4, the P6 library path anyway (B1), or move on with a stated reason (T-7). Closes when:
-  the choice is recorded in `artifacts/etudes/REPLICATIONS.md`.
+Open: the manuscript tree and other archive moves (T-17). Decided 2026-10-13: T-12, T-13,
+T-14, T-17 (calls in each item); T-1 (a) landed in e3a7a41b; T-2
+bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
+`artifacts/etudes/REPLICATIONS.md`).
+
+- T-3 [A] PCL Fig. 3 stays in progress (Hamm 2026-10-13: it must replicate). v4 FAIL stands
+  (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). v5 signed by Hamm 2026-10-13 on `pcl-port`
+  89e45191 (`prereg/P3_fig3_v5.md`; signature recorded in 640cb97c): T2 runs the authors'
+  `plot_fqcy` procedure on the port and scores it per K/k point against Fig. 3c,d digitized
+  (`reference/fig3_freq_digitized.json`, ε 0.04) with a shape guard; A1 even phases; T4 drops
+  the sign requirement, and its outcome is known from v4. v5 scored 2026-10-13 (`pcl-port`
+  8f75acd0, `prereg/P3_fig3_v5_result.md`): FAIL on T2. Simple 10/16 points, SSE 1.50 × flat
+  (higher off-peak response at K/k 0.6–0.8 and 1.3); complex 12/15, SSE 0.52 × flat (guard 0.5;
+  passes with all 10 phases, not scored). S6/S7 diagnostic (unscored, `prereg/
+  P3_fig3_diagnostic.md`): simple fails under both; complex passes with the 62.5 ms window
+  (0.48); measured periods follow (20 − i)/2 px, supporting A2. Hamm 2026-10-13: investigate port
+  fidelity, port-side only (never run the authors' code). Fidelity audit (read-only): (1) the
+  C++ runs cSTDP3 without local inhibition ("static" is not "local", SpikingNetwork.cpp:351);
+  the port reads "static" as local (declared alias, untested); (2) the C++ keeps STDP on and
+  weights across files during tuning, the port freezes and reloads; (3) the authors' writer
+  reads neuron files 0–63, which by index is column (0,0), against the port's (4,4)
+  (unresolved: (0,0) lies outside the stimulated band). In flight: an unscored tuning run with
+  local inhibition off (`F:\warehouse\pcl\diag_runs\`). Then P6 (B1). Closes when: a signed prereg reproduces Fig. 3, or Hamm
+  closes it, and the P6 attempt is recorded.
 
 ## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
-- T-4 [A] R2 narrowing to -10 % files and bytes against the 0.5.5 tag (2522 files, 125982465
-  bytes; targets 2269 and 113384218). At 226a7952: 2402 files, 90302671 bytes; bytes done, 133
-  files to go. One class per commit, generator wired into the docs build first, then untracked.
-  Closes when: `scripts/check_tree_size.py --check` passes with the lowered budget.
-  - Ready: etude bundles `experiment_a` and `hdp_mcc3` (14 files) regenerate (22 s and 29 s).
-  - Not ready: of 53 files in `tutorial_figures`, `_static/gallery` and `docs/assets` only 3
-    regenerate byte-identical (tutorials 08, 09, circuit geometry); 36 drift, 6 are copies no
-    script writes, 1 gallery PNG is never written, 7 have no generator. Regenerating them is a
-    declared figure change.
-  - After T-1 and T-2: multiscale and heterogeneous etudes, `.lab`.
-- T-5 [A] dev → main (Hamm 2026-10-12): broad gate on a fresh clone of the head, push dev, release
-  CI with slow tests on dev, `gh pr create --base main --head dev`, required checks, merge; then
-  main CI, the Read the Docs latest build (first `pre_build` atlas build) and the Dashboard
-  workflow. Closes when: `gh run list -R HNXJ/jaxfne --branch main -L 1` shows success on the
-  merge SHA.
-- T-6 [A] F6 (G-2): "SOM" in the AdEx table and `fields/proxy.py:775` (unknown types default to
-  +1); failing test first, second review. Then the CAMINOS P6 prereg for Hamm's signature.
-  The F1 connection table does not yet record `sampling`. Closes when: the F6 test passes and
-  fails on the pre-fix code.
-- T-7 [A] R5: each paper ships at its P5 verdict; stated reasons for PCL Fig. 3 (after T-3) and
-  Izhikevich 2003 in `artifacts/etudes/REPLICATIONS.md`. Izhikevich 2003: P3 prereg (batch
-  signature, S1 reference arm `net_reference.py`), calibration gate first (B7). Closes when:
-  every paper row in `REPLICATIONS.md` carries a verdict or a reason and
-  `python scripts/build_dashboard_data.py --check` passes.
+- R2 narrowing met at 33413a12 (2268 files, `budget_files` 2269 in
+  `scripts/tree_size_allowlist.json`). Raised to 2300 for the 31 lane evidence files of
+  l2-caminos and pcl-port merged 2026-10-13 (Hamm 2026-10-13), and to 2307 for the PCL v5
+  scorer, result, scores and S6/S7 diagnostic merged the same day (same reason), and to 2330 for
+  the Izhikevich 2003 and CAMINOS P6 lanes (Hamm 2026-10-13), and to 2336 for the Izhikevich
+  v8 and P3b code, tests, gate receipts and the v8 score (after folding the P3b result and tests into existing
+  files). Further narrowing waits: most files in `tutorial_figures`,
+  `_static/gallery` and `docs/assets` drift on regeneration, which is a declared figure change.
+- T-7 [A] R5: every paper row in `REPLICATIONS.md` carries a verdict or a reason (2026-10-13).
+  Closes when: `python scripts/build_dashboard_data.py --check` passes on the pushed SHA.
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
   push dev. Standing item. Closes when: `python scripts/build_dashboard_data.py --check` passes
   on each push.
@@ -86,28 +82,45 @@ run on WSL2 CUDA.
   (`artifacts/harness/jnwb_cross_learning.md`).
 - T-11 [A] G-3: CAMINOS p = 0.07 seed 1 as an NWB excerpt plus provenance for jnwb `tests/`
   (waits on O-2). Closes when: the excerpt's recovery test passes in jnwb `tests/`.
-- T-12 [A] jnwb item 2 (plain Welch done, dev 541f7604): remaining spectra at `vis/spectra.py:75`,
-  `vis/fields.py:162,866`, `vis/tutorial_panels.py:305`, `fields/proxy.py:913,918,1106`,
-  `tutorial_utils.py:69`, `protocol_c/estimator.py:74`, `analysis/spectral.py:23,86`; each equals
-  `jnwb.compute_psd` within float tolerance or is declared. Closes when: one equivalence test
-  per site passes.
-- T-13 [H] jnwb item 3: `analysis/metrics.py:226,122,19` (Fano of the population sum,
-  `burst_index` ignoring `bin_ms`, unbinned pairwise correlation), pinned by
-  `tests/test_analysis_metrics.py:27-51`; needs a declared definition change. Closes when: the
-  declaration is signed and those tests pin the new definitions.
-- T-14 [H] jnwb item 4: no remaining family is a drop-in (band power, CSD, metrics, coherence);
-  each move is a declared change or keeps jaxfne's (`artifacts/programme/jnwb_inventory.md`).
-  Closes when: every inventory row is marked moved, declared or kept.
-- T-15 [A] `docs/quickstart.md` `connections()` snippet after the dense refusal (0d2b1018):
-  check `model.simulate` vs `jtfne.simulate`. Closes when: a test runs the snippet
-  and passes.
+- T-12 [A] `cross_area_coherence` Welch path (the periodogram fallback is refused since
+  Hamm's call, 2026-10-13): `nperseg = min(1024, T)` gives one segment for T < 1536 samples, so
+  coherence is 1 at the native bins there too. Independent white noise, dt 0.5 ms
+  (`C:/workspace/pytest_temp/coh_single_segment.py`): median coherence 0.81 at T = 1000, 0.40 at
+  1536 (2 segments), 0.22 at 2048, 0.10 at 4000. AT-09 (`artifacts/atlas/at08_at09_054.py`, 1000 ms,
+  T = 2000) reads it in 8–25 Hz with about 2 segments. Hamm 2026-10-13: shrink nperseg so Welch
+  has at least 8 half-overlapping segments, refuse when that leaves nperseg < 64. Landed with
+  tests; AT-09 C_12 falls from 0.50/0.45/0.45 to 0.105/0.110/0.111 (noise level, no arm
+  difference), recorded in `artifacts/programme/composition_054.md`; the AT-09 verdict stands.
+  Closes when: the change is on dev with the broad gate green.
 - T-16 [A] C7: parametrize the protocol_e spec tests; merge the 8 `test_atlas_at*_05x` files
   after a per-test coverage run. CI dedupe (examples list and wheel smoke in three places).
   Closes when: `python scripts/run_test_gate.py broad` passes with coverage unchanged.
-- T-17 [H] P3 audit owner calls: unreferenced scripts left by `f4397bd6`
-  (`make_delta_test_01_report.py`, `generate_mechanism_tutorials.py`, `repair_notebooks.py`),
-  benchmark and sync scripts, unwired gates, the manuscript tree, archive moves. Closes when:
-  each has Hamm's call recorded here.
+- T-17 [H] P3 audit, remaining owner calls: the manuscript tree and other archive moves. Four
+  unreferenced scripts were archived 2026-10-13 (table in `artifacts/README.md`). Five more have
+  no reference but write tracked or frozen receipts that docs cite, so they stay:
+  `hdp_k_w_ctrl_sweep.py`, `p2v_a1b_dynamic_search.py`, `p2v_a1b_prefreeze_evidence.py`,
+  `p2v_a3_hdp_boundedness.py`, `p2v_a4_claim_language.py`. Closes when: each has Hamm's call.
+- T-18 [A] Inhibitory-type lists that omit `I`, `Inl`, `Ing`, `SOM` (F6 review, 57f40ddf):
+  `tutorial_utils.py:1564` (`simulate_laminar_trials` zeroes same-layer input only onto
+  PV/SST/VIP, a model rule), `tutorial_utils.py:800` (default `cell_signs`), `util.py:712`
+  (diagnostic grouping). Callers checked (b0a12a36): every caller of `make_laminar_column_config`
+  and `simulate_laminar_trials` (4 notebooks, `tests/test_tutorial_utils.py`, `tune_laminar_agsdr`)
+  passes only E/PV/SST/VIP, so no realized run is affected at b0a12a36. A change to 1564 is a model
+  change for Hamm. Closes when: each site reads the emitter table's sign or carries a stated scope.
+- T-19 [A] Deep audit and code critique (Muse, 2026-10-13, at aef3129e). Landed: 0df3da9d,
+  68c61e92, 10d80c08 (NaN metrics, refusals, narrowed excepts), 5090af24 and c4dc0922 (D1 noise
+  sqrt(dt_ref/dt)), and the `compute_fields` model check plus the last emitters.py broad except
+  (this commit's successor of 73165ced), and the differentiable gAMPA / synaptic_gain refusal on
+  edge-list models (fc6be3a1). Open:
+  - Design (no wrong result shown): HDP kernel with about 78 parameters
+    (`emitters.py:3155-3232`); duplicated scan bodies behind record flags (`emitters.py:1412-1474`);
+    return arity that depends on a flag (`_model_simulate.py:381-383`, `simulate(return_state=)`);
+    order-dependent construction stages (`_construct_core.py:292-293,1392-1401`); drive defaults
+    in two places (`_config.py:1620-1626`, `emitters.py:60-65`); no state clamp on the plain
+    Izhikevich path (`emitters.py:522-523`); `bridges.py` patches `jnp.clip` process-wide;
+    frozen dataclasses mutated through `object.__setattr__`; mixed `_s`/`_ms` parameters in
+    the HDP controller.
+  Closes when: each item is fixed with a test or recorded here with Hamm's call.
 - Frozen, do not move: `artifacts/publication/frozen_manifest.json`,
   `artifacts/release/current_release_authorities.json`, hash-pinned skills and `AGENTS.md`;
   `artifacts/legacy/AGENTS.md` kept by Hamm 2026-10-11.
@@ -150,6 +163,11 @@ run on WSL2 CUDA.
 11. Field Approximation Atlas ladder (deep review 89 §7).
 12. Rule proposal (deep review 89 §12): new mechanism ⇒ reference model, discriminator and
     reduction test; adoption is Hamm's.
+13. 0.5.7 (Hamm 2026-10-13): Izhikevich 2003 P3 prereg draft v7 (calibration passed at θ = 4,
+    `artifacts/etudes/izhikevich2003/calibration/calibration_v7_15f36087.json`) for signature,
+    then S1 reference arm `net_reference.py` and the scored runs. CAMINOS P6 prereg (Fig. 1
+    through `emitter(family="adex")`, `connections(sampling="bernoulli")`,
+    `Simulation(poisson_drive=)`; F1–F6 landed) for signature and its equivalence test.
 
 Tracks (standing directions): P performance (optimize profiled components only) · T testing
 (cheapest gate per defect class) · S skills · I integration (one implementation, many entrances) ·

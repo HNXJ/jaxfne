@@ -356,7 +356,9 @@ def run(
     from .hdp_rule import reject_unknown_hdp_kwargs
 
     reject_unknown_hdp_kwargs(kw, kernel="hdp")
-    n_steps = int(round(duration_ms / cfg.dt_ms))
+    from ._signals import _n_steps_from_grid
+
+    n_steps = _n_steps_from_grid(duration_ms, cfg.dt_ms, owner="hdp run")
     key = jax.random.PRNGKey(seed)
     voltages, spikes, sources, diagnostics = simulate_edge_recurrent_izhikevich_hdp(
         model.params["emitter"], model.params["edge_list"], n_steps, cfg.dt_ms, key,

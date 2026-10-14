@@ -48,6 +48,26 @@ Class: **overlap** (both have it; migrate), **jaxfne-only** (keep in jaxfne),
 
 Scale: `jaxfne/vis` + `jaxfne/analysis` hold 11,799 lines.
 
+### Status (Hamm 2026-10-13, T-14)
+
+jaxfne keeps its own version of each family below until jnwb has an exact equivalent.
+
+| Row | Status | Stated difference |
+|---|---|---|
+| `welch_psd`, `spectra.psd` | moved (delegated) | finite float64 input goes to `jnwb.compute_psd`, bit-identical |
+| band power (`inband_power_mean`, `bandpower_jax`) | kept | band-edge inclusion and the jax path differ from `band_power` |
+| `spectrogram`, `windowed_band_power` | kept | STFT, where jnwb has Morlet |
+| CSD (`traces.csd`, `plot_csd`) | kept | proxy units; jnwb needs volts, µm pitch and S/m |
+| `binned_population_rate_hz` | kept | exact reshape of dense counts |
+| rasters | kept | dense per-step input |
+| `fano_factor`, `mean_pairwise_spike_correlation`, `burst_index` | declared | definitions declared 2026-10-13 (T-13); no jnwb equivalent on dense counts |
+| `fleiss_kappa_binary` | kept | no jnwb counterpart |
+| `spectrolaminar_*_jax` | kept | jax kernels for gradients |
+| coherence (`fields.cross_area_coherence`) | kept | Welch on dense rates with a segment floor (T-12) |
+| model-structure and plasticity views, evidence export | kept | jaxfne-only |
+| `write_nwb`, `read_nwb` | moved (wired) | `to_jnwb` view |
+| connectivity, decoding, RSA, trajectory, statistics | jnwb-only | reached through the seam |
+
 ## Consequence for the plan
 
 - The step-3 equality bound does not hold for spectra: the estimator

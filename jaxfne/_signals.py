@@ -46,6 +46,24 @@ from .paradigm import (
 _ABLATION_MODES = frozenset({"E_silence", "I_silence", "disconnected_null", "shuffled_timing"})
 
 
+def _n_steps_from_grid(duration_ms: float, dt_ms: float, *, owner: str) -> int:
+    """Step count for a user-supplied duration on a fixed timestep grid.
+
+    ``duration_ms / dt_ms`` must be an integer within 1e-9 relative tolerance
+    (mirroring ``edge_delay_steps_from_ms``); off-grid durations raise rather
+    than round.
+    """
+    quotient = float(duration_ms) / float(dt_ms)
+    nearest = round(quotient)
+    if abs(quotient - nearest) > 1e-9 * max(1.0, abs(quotient)):
+        raise ValueError(
+            f"{owner} duration_ms must be grid-aligned to dt_ms "
+            f"(duration_ms/dt_ms not integer within tolerance; "
+            f"duration_ms={duration_ms}, dt_ms={dt_ms})"
+        )
+    return int(nearest)
+
+
 @dataclass(frozen=True)
 class Simulation:
     """Immutable specification of one simulation run.
@@ -58,8 +76,9 @@ class Simulation:
     ``record_sources``/``record_fields`` (recording toggles), ``poisson_drive``
     (optional drive spec), ``runtime`` (:class:`RuntimeConfig` override), and
     ``ablation`` (None or one of ``E_silence``, ``I_silence``,
-    ``disconnected_null``, ``shuffled_timing``). ``n_steps`` is derived as
-    ``round(duration_ms / dt_ms)`` and must be > 0. Seed and n_steps belong to
+    ``disconnected_null``, ``shuffled_timing``). ``n_steps`` is
+    ``duration_ms / dt_ms``, which must be an integer within 1e-9 relative
+    tolerance (off-grid durations raise) and must be > 0. Seed and n_steps belong to
     the Simulation: a ``runtime`` carrying different non-zero values is refused.
     """
 
@@ -82,7 +101,7 @@ class Simulation:
             raise ValueError(
                 f"Simulation.dt_ms must be positive and finite; got {self.dt_ms!r}"
             )
-        n = int(round(self.duration_ms / self.dt_ms))
+        n = _n_steps_from_grid(self.duration_ms, self.dt_ms, owner="Simulation")
         if n <= 0:
             raise ValueError(
                 f"Simulation produces n_steps={n} <= 0 for "
@@ -110,7 +129,7 @@ class Simulation:
 
     @property
     def n_steps(self) -> int:
-        return int(round(self.duration_ms / self.dt_ms))
+        return _n_steps_from_grid(self.duration_ms, self.dt_ms, owner="Simulation")
 
     @property
     def resolved_runtime(self) -> RuntimeConfig:
@@ -727,7 +746,15 @@ def _make_poisson_drive(
             "(every neuron) is supported"
         )
     prob = float(rate_hz) * float(dt_ms) / 1000.0
-    prob = min(max(prob, 0.0), 1.0)
+    if not float(rate_hz) >= 0:  # also refuses NaN
+        raise ValueError(
+            f"poisson_drive rate_hz={rate_hz!r} must be >= 0"
+        )
+    if prob > 1:
+        raise ValueError(
+            "poisson_drive rate_hz * dt_ms / 1000 exceeds 1, "
+            "one event per step at most; lower dt_ms or rate_hz"
+        )
     key = jax.random.PRNGKey(int(seed))
     noise = jax.random.bernoulli(key, p=prob, shape=(int(n_steps), int(n_neurons)))
     return (jnp.asarray(noise, dtype=jnp.float32) * float(amplitude))
@@ -778,6 +805,12 @@ class StimulusSchedule:
 
         Supports optional target_indices in event to apply amplitude only to selected neurons.
         """
+        if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
+            raise ValueError(
+                "dtype='float64' requested but JAX x64 is not enabled -- call "
+                'jax.config.update("jax_enable_x64", True) before creating any array '
+                "in this process; refusing to silently build float32"
+            )
         schedule = _np.zeros((int(n_steps), int(self.n_neurons)), dtype=_np.float32)
         for ev in self.events:
             if not ev.get("is_drive_event", True):
@@ -834,6 +867,12 @@ class StimulusSchedule:
         optional ``frequency_hz`` sinusoidal-drive key (flat amplitude only).
         ``Model.simulate`` calls :meth:`to_array`, not this method.
         """
+        if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
+            raise ValueError(
+                "dtype='float64' requested but JAX x64 is not enabled -- call "
+                'jax.config.update("jax_enable_x64", True) before creating any array '
+                "in this process; refusing to silently build float32"
+            )
         jdtype = jnp.float64 if (dtype == "float64" and bool(jax.config.read("jax_enable_x64"))) else jnp.float32
         time_ms = jnp.arange(n_steps, dtype=jdtype) * dt_ms
         
@@ -1060,21 +1099,23 @@ def _compute_kappa_synchrony_metric(spikes: Any) -> Optional[float]:
     Pearson correlation over neuron pairs with non-zero temporal variance —
     but computed as a single correlation matrix multiply for speed in the
     per-candidate tuning loop.  Proxy diagnostic; not a biological invariant.
-    Expects ``spikes`` shaped ``[n_timesteps, n_neurons]``.
+    Expects ``spikes`` shaped ``[n_timesteps, n_neurons]``. Returns NaN where
+    the correlation is undefined (malformed input, fewer than 2 neurons, or
+    fewer than 2 neurons with non-zero variance); a defined 0.0 stays 0.0.
     """
     import numpy as _np
 
     x = _np.asarray(spikes, dtype=float)
     if x.ndim != 2:
-        return 0.0
+        return float("nan")
     n_timesteps, n_neurons = x.shape
     if n_neurons < 2 or n_timesteps < 1:
-        return 0.0
+        return float("nan")
     std = x.std(axis=0)
     valid = std > 0
     n_valid = int(valid.sum())
     if n_valid < 2:
-        return 0.0
+        return float("nan")
     xv = x[:, valid]
     z = (xv - xv.mean(axis=0)) / xv.std(axis=0)
     corr = (z.T @ z) / n_timesteps

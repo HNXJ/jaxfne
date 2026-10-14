@@ -1,4 +1,7 @@
-"""S1 switch for the Fig. 3 run (P3_fig3.md Sensitivity S1): --inhibition {full,local-only}.
+"""Inhibition switch for the Fig. 3 run: --inhibition {full,local-only,no-local,no-local-simple}.
+
+local-only is the S1 sensitivity (P3_fig3.md); no-local (local flags off) and no-local-simple
+(the simple layer's local flag off) are diagnostics.
 
 Fast synthetic-network tests: no trained weights, no test7 files. The synthetic net uses
 the default layout with lateral and top-down inhibition enabled, so LAT/TD are nonzero
@@ -80,6 +83,83 @@ def test_full_path_unchanged():
     assert _counts(net) == (REF_SIMPLE_N, REF_COMPLEX_N, REF_SIMPLE_T_SUM, REF_COMPLEX_T_SUM)
 
 
+def test_no_local_clears_both_flags_and_keeps_maps():
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    assert net.local_s and net.local_c and net.lat_on and net.td_on
+    lat_before, td_before = net.LAT.copy(), net.TD.copy()
+    wi_before = net.wi_s.copy()
+
+    rt.apply_inhibition_mode(net, "no-local")
+
+    assert not net.local_s and not net.local_c
+    assert net.lat_on and net.td_on
+    assert np.array_equal(net.LAT, lat_before) and np.array_equal(net.TD, td_before)
+    assert float(np.abs(net.LAT).sum()) > 0.0 and float(np.abs(net.TD).sum()) > 0.0
+    assert np.array_equal(net.wi_s, wi_before)
+
+
+def test_no_local_changes_what_run_numba_consumes():
+    full = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    nolocal = copy.deepcopy(full)
+    rt.apply_inhibition_mode(nolocal, "no-local")
+
+    nb.run_numba(full, *_burst())
+    nb.run_numba(nolocal, *_burst())
+    assert _counts(full)[0] > 0, "fixture must spike"
+    assert _counts(nolocal) != _counts(full)
+
+
+def test_no_local_simple_clears_only_the_simple_flag():
+    full = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    mixed = copy.deepcopy(full)
+    rt.apply_inhibition_mode(mixed, "no-local-simple")
+    assert not mixed.local_s and mixed.local_c and mixed.lat_on and mixed.td_on
+    assert np.array_equal(mixed.LAT, full.LAT) and np.array_equal(mixed.TD, full.TD)
+    assert np.array_equal(mixed.wi_s, full.wi_s)
+
+    nb.run_numba(full, *_burst())
+    nb.run_numba(mixed, *_burst())
+    assert _counts(full)[0] > 0, "fixture must spike"
+    assert _counts(mixed) != _counts(full)
+    assert rt.resolve_out_dir(None, "no-local-simple") == rt.OUT_NOLOCAL_SIMPLE
+
+
+def test_unknown_mode_refused():
+    net = ref.PCLEventRef(seed=0, learning=False, layer_inhibitions=copy.deepcopy(INH))
+    try:
+        rt.apply_inhibition_mode(net, "nolocal")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("an unknown inhibition mode must be refused")
+    assert net.local_s and net.local_c  # a refused mode changes nothing
+
+
+def test_no_local_refused_in_full_run_dir(tmp_path, monkeypatch):
+    scored = tmp_path / "runs" / "fig3_cSTDP3"
+    monkeypatch.setitem(rt.MODE_DIRS, "full", scored)
+    try:
+        rt.check_out_dir(scored, "no-local")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("no-local into the full run's dir must be refused")
+
+
+def test_no_local_manifest_mismatch_refused(tmp_path):
+    d = tmp_path / "fig3_cSTDP3_nolocal"
+    d.mkdir()
+    (d / "manifest.json").write_text(json.dumps({"inhibition": "full"}), encoding="utf-8")
+    try:
+        rt.check_out_dir(d, "no-local")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("no-local into a full manifest dir must be refused")
+    (d / "manifest.json").write_text(json.dumps({"inhibition": "no-local"}), encoding="utf-8")
+    rt.check_out_dir(d, "no-local")  # matching mode passes
+
+
 def test_out_dir_mismatch_refused(tmp_path):
     full_dir = tmp_path / "fig3_cSTDP3"
     full_dir.mkdir()
@@ -104,7 +184,33 @@ def test_out_dir_mismatch_refused(tmp_path):
 
 
 def test_default_out_dirs():
-    assert rt.resolve_out_dir(None, "local-only") == rt.OUT_S1
-    assert rt.resolve_out_dir(None, "full") == rt.OUT_DIR
-    assert rt.OUT_S1 != rt.OUT_DIR
+    assert rt.resolve_out_dir(None, "full") == Path("F:/warehouse/pcl/runs/fig3_cSTDP3")
+    assert rt.resolve_out_dir(None, "local-only") == Path("F:/warehouse/pcl/runs/fig3_cSTDP3_S1")
+    assert rt.resolve_out_dir(None, "no-local") == Path("F:/warehouse/pcl/diag_runs/fig3_cSTDP3_nolocal")
+    assert rt.resolve_out_dir(None, "no-local-simple") == Path(
+        "F:/warehouse/pcl/diag_runs/fig3_cSTDP3_nolocal_simple")
+    assert len({rt.OUT_DIR, rt.OUT_S1, rt.OUT_NOLOCAL, rt.OUT_NOLOCAL_SIMPLE}) == 4
     assert rt.resolve_out_dir(str(rt.OUT_DIR), "local-only") == rt.OUT_DIR  # explicit wins
+
+
+def test_every_mode_refused_in_another_modes_default_dir(tmp_path, monkeypatch):
+    dirs = {m: tmp_path / m for m in rt.MODE_DIRS}  # fresh, manifest-less dirs
+    monkeypatch.setattr(rt, "MODE_DIRS", dirs)
+    for mode in dirs:
+        for owner, d in dirs.items():
+            if owner == mode:
+                rt.check_out_dir(d, mode)  # its own default dir passes
+                continue
+            try:
+                rt.check_out_dir(d, mode)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError(f"{mode} into {owner}'s default dir must be refused")
+    detour = dirs["local-only"] / ".." / "full"  # another spelling of the full run's dir
+    try:
+        rt.check_out_dir(detour, "no-local")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("a '..' spelling of another mode's dir must be refused")

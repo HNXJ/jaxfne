@@ -2,6 +2,8 @@
 
 import json
 
+import pytest
+
 import jaxfne as jtfne
 
 
@@ -750,3 +752,52 @@ def test_suite_no1_rejects_group_specific_gampa_knobs():
     for forbidden_name in forbidden:
         assert forbidden_name not in summary_json or f'"{forbidden_name}"' not in summary_json or True
         # The main check: forbidden names must not be the KEYS in best_parameters
+
+
+def _matrix_tune_with_failing_simulate(monkeypatch, exc):
+    """Run a one-candidate matrix tune whose every Model.simulate raises ``exc``."""
+    import optax
+
+    from jaxfne._model import Model
+
+    cfg = (
+        jtfne.configuration()
+        .network(name="V1", kind="cortical_column", n=8, cell_types={"E": 0.5, "PV": 0.5})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        .probe(name="probe", modes=["spikes", "V_m"])
+    )
+    model = jtfne.construct(cfg)
+    objective = jtfne.rate_targets(
+        groups={"all": list(range(8))}, targets_hz={"all": 15.0}
+    )
+    sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0)
+    optimizer = jtfne.agsdr(
+        parameters={"gAMPA_w": jtfne.matrix_parameter(mask="all", bounds=(0.3, 3.0))},
+        generations=1,
+        population_size=1,
+        inner_optimizer=optax.adam(1e-2),
+        inner_steps=1,
+        seed=0,
+    )
+
+    def _boom(self, simulation, **kwargs):
+        raise exc
+
+    monkeypatch.setattr(Model, "simulate", _boom)
+    return model.tune(objectives=objective, optimizer=optimizer, simulation=sim)
+
+
+def test_matrix_tune_unexpected_error_propagates(monkeypatch):
+    """A TypeError from a candidate is a bug, not a failing candidate: it propagates."""
+    with pytest.raises(TypeError, match="boom"):
+        _matrix_tune_with_failing_simulate(monkeypatch, TypeError("boom"))
+
+
+@pytest.mark.parametrize("exc", [RuntimeError("xla"), FloatingPointError("fp"), ValueError("v")])
+def test_matrix_tune_candidate_failure_is_counted(monkeypatch, exc):
+    """A candidate failing with a runtime, arithmetic or value error is counted and scored inf."""
+    result = _matrix_tune_with_failing_simulate(monkeypatch, exc)
+    counts = result.summary["fallback_counts"]
+    assert counts["final_scoring_failed"] >= 1
+    assert result.best_score == float("inf")

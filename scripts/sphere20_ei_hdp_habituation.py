@@ -282,7 +282,10 @@ def build_trial_events(
     events: list[dict] = []
     t = 0.0
     for i, token in enumerate(sequence):
-        delay_ms = float(rng.uniform(DELAY_MEAN_MS - DELAY_JITTER_MS, DELAY_MEAN_MS + DELAY_JITTER_MS))
+        # Drawn on the DT_MS grid: an off-grid trial duration is refused by Simulation.
+        delay_ms = DT_MS * round(
+            float(rng.uniform(DELAY_MEAN_MS - DELAY_JITTER_MS, DELAY_MEAN_MS + DELAY_JITTER_MS)) / DT_MS
+        )
         events.append({
             "label": f"delay{i + 1}",
             "onset_ms": t,

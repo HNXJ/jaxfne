@@ -9,8 +9,8 @@ is the scored arm; a NumPy transcription of the paper's program is the reference
 
 One cell per type, parameters from the `SOURCE_P1.md` table, `IzhikevichParams` built
 directly (per-cell a, b, c, d arrays). Kernel `dt_ms = 0.1` (the figure's resolution), forward
-Euler, noise off (`noise_scale = 0`), `W = 0`. Initial $v = -65$ (−70 for TC and RZ, assumed),
-$u = bv$. Input: `drive_schedule` holds $I = 0$ for 10 ms (assumed: the figure shows a lead-in
+Euler, noise off (`noise_scale = 0`), `W = 0`. Initial state: each cell's resting fixed point at
+$I = 0$ (P3 draft v5; earlier drafts assumed $v = -65$, −70 for TC and RZ). Input: `drive_schedule` holds $I = 0$ for 10 ms (assumed: the figure shows a lead-in
 without a value), then a step to 10 (RS, IB, CH, FS, LTS). TC: two runs, a positive step from rest and a negative step that holds $v$ near −90 mV
 before release (amplitudes assumed, declared in P3). RZ: a brief pulse (assumed).
 

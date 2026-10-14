@@ -429,3 +429,53 @@ class TestNoDoubleCountingRegression:
         """compute_conservation_proxy_diagnostics is importable from top-level jaxfne."""
         assert hasattr(jaxfne, "compute_conservation_proxy_diagnostics")
         assert callable(jaxfne.compute_conservation_proxy_diagnostics)
+
+
+# ─── Test 9: no silent error-swallowing (2026-10-13 audit) ───────────────────
+
+import warnings as _warnings  # noqa: E402
+
+
+class TestNonFiniteRefusal:
+    def test_nonfinite_source_raises(self, rng_arrays):
+        _, phi, csd, lfp = rng_arrays
+        bad = np.array(phi)
+        bad[0, 0] = np.nan
+        with pytest.raises(ValueError, match="non-finite"):
+            compute_conservation_proxy_diagnostics(
+                source=bad, phi_e=phi, csd=csd, lfp=lfp
+            )
+
+    def test_nonfinite_field_solution_proxy_raises(self, rng_arrays):
+        from jaxfne.fields import FieldOutput
+
+        src, phi, csd, lfp = rng_arrays
+        bad_phi = np.array(phi)
+        bad_phi[0, 0] = np.inf
+        fo = FieldOutput(
+            source_proxy=np.asarray(src),
+            phi_e_proxy=bad_phi,
+            csd_proxy=np.asarray(csd),
+            lfp_proxy=np.asarray(lfp),
+            kernel=np.eye(4),
+            contact_depths=np.zeros(4),
+            diagnostics={},
+        )
+        with pytest.raises(ValueError, match="non-finite"):
+            compute_conservation_proxy_diagnostics(field_solution=fo)
+
+    def test_unexpected_reduction_error_propagates(self, rng_arrays, monkeypatch):
+        """An unexpected exception type inside a diagnostic reduction must propagate.
+
+        Only arithmetic/value failures of the reduction itself fall back to None.
+        """
+        import numpy as _np
+
+        src, _, _, _ = rng_arrays
+
+        def _boom(*args, **kwargs):
+            raise RuntimeError("boom")
+
+        monkeypatch.setattr(_np, "mean", _boom)
+        with pytest.raises(RuntimeError, match="boom"):
+            compute_conservation_proxy_diagnostics(source=src)

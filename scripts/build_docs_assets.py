@@ -10,7 +10,9 @@ Modes:
     --registry-write        rebuild the registry from the tracked manifests
     --build [--slug a,b]    regenerate atlases in fresh processes; compare each fresh
                             manifest with the registry; on a match write the registry's
-                            figure state and promotion into it; then rewrite gallery.md
+                            figure state and promotion into it. A full build (no --slug)
+                            also runs each etude generator once and checks its HTML.
+                            Then rewrite gallery.md
     --check                 compare the tracked manifests with the registry; generate nothing
 
 Slugs are registry slugs: the atlas/<slug> directories, ``three_area`` for
@@ -29,6 +31,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -47,6 +50,7 @@ COMPARED_FIELDS = ("config_hash", "n_neurons", "n_edges", "n_steps", "seed", "du
 STATE_FIELDS = ("figure_state", "promotion")
 README_SLUG = "readme"
 THREE_AREA_SLUG = "three_area"
+ETUDE_KEYS = ("slug", "dir", "generator", "html")
 
 
 def rel(path: Path) -> str:
@@ -85,11 +89,31 @@ def load_registry() -> dict:
     registry = read_json(REGISTRY)
     if registry.get("schema") != SCHEMA:
         raise SystemExit(f"{rel(REGISTRY)}: schema {registry.get('schema')!r} != {SCHEMA!r}")
+    if "etudes" not in registry:
+        raise SystemExit(f"{rel(REGISTRY)}: no etudes list; restore it from git")
+    for e in registry["etudes"]:
+        missing = [k for k in ETUDE_KEYS if k not in e]
+        if missing:
+            raise SystemExit(f"{rel(REGISTRY)}: etude {e.get('slug')!r} lacks {missing}")
     for key in ("slug", "dir"):
-        values = [e[key] for e in registry["atlases"]]
+        values = [e[key] for e in registry["atlases"] + registry["etudes"]]
         dupes = sorted({v for v in values if values.count(v) > 1})
         if dupes:
             raise SystemExit(f"{rel(REGISTRY)}: duplicate {key} entries {dupes}")
+    copies = registry.get("copies", [])
+    if not isinstance(copies, list):
+        raise SystemExit(f"{rel(REGISTRY)}: copies is not a list: {copies!r}")
+    seen = set()
+    for entry in copies:
+        if not isinstance(entry, dict) or "dest" not in entry or "source" not in entry:
+            raise SystemExit(f"{rel(REGISTRY)}: malformed copies entry {entry!r}; need dest and source")
+        if not entry["dest"].startswith("docs/"):
+            raise SystemExit(f"{rel(REGISTRY)}: copies dest outside docs/ {entry!r}")
+        if entry["dest"] in seen:
+            raise SystemExit(f"{rel(REGISTRY)}: duplicate copies dest {entry['dest']!r}")
+        seen.add(entry["dest"])
+        if not (ROOT / entry["source"]).is_file():
+            raise SystemExit(f"{rel(REGISTRY)}: copies source missing on disk {entry!r}")
     return registry
 
 
@@ -113,14 +137,19 @@ def entry_from_manifest(manifest_path: Path) -> dict:
 
 def write_registry() -> int:
     entries = [entry_from_manifest(p) for p in discover()]
+    # Etudes and copies are declared by hand, not read from manifests: keep the tracked lists.
+    tracked = read_json(REGISTRY) if REGISTRY.exists() else {}
     doc = {
         "schema": SCHEMA,
         "built_from": "tracked manifests (build_docs_assets.py --registry-write)",
         "compared_fields": list(COMPARED_FIELDS),
         "atlases": entries,
+        "etudes": tracked.get("etudes", []),
     }
+    if "copies" in tracked:
+        doc["copies"] = tracked["copies"]
     REGISTRY.write_bytes((json.dumps(doc, indent=2) + "\n").replace("\n", "\r\n").encode("utf-8"))
-    print(f"registry: {len(entries)} atlases -> {rel(REGISTRY)}")
+    print(f"registry: {len(entries)} atlases, {len(doc['etudes'])} etudes -> {rel(REGISTRY)}")
     return 0
 
 
@@ -213,12 +242,14 @@ def html_links(text: str):
 
 
 def built_files(entry: dict) -> set[str]:
-    """HTML files a build writes into one atlas directory: its panels and index.html."""
+    """HTML files a build writes into one directory: an etude's listed html, or an atlas's panels and index.html."""
+    if "html" in entry:
+        return set(entry["html"])
     return set(entry["panels"]) | {"index.html"}
 
 
 def unwritten(entry: dict, since: float) -> list[str]:
-    """Registry HTML files of an atlas that are absent or older than ``since``."""
+    """Registry HTML files of one directory that are absent or older than ``since``."""
     atlas_dir = ROOT / entry["dir"]
     return sorted(name for name in built_files(entry)
                   if not (atlas_dir / name).is_file() or (atlas_dir / name).stat().st_mtime < since)
@@ -227,11 +258,12 @@ def unwritten(entry: dict, since: float) -> list[str]:
 def check_links(registry: dict, pages: dict[Path, str]) -> tuple[list[str], int, int]:
     """Every relative .html link in the docs pages must resolve.
 
-    A link into an atlas directory names a build product, so it is checked against the
-    registry; any other link must name a file on disk. Returns the problems, the links
-    examined and, of those, the atlas links.
+    A link into an atlas or registered etude directory names a build product, so it is
+    checked against the registry; any other link must name a file on disk. Returns the
+    problems, the links examined and, of those, the atlas links.
     """
-    entries = {e["dir"]: e for e in registry["atlases"]}
+    entries = {e["dir"]: e for e in registry["atlases"] + registry["etudes"]}
+    etude_dirs = [ROOT / e["dir"] for e in registry["etudes"]]
     problems, examined, atlas_links = [], 0, 0
     for page, text in pages.items():
         for offset, link, raw_html in html_links(text):
@@ -242,6 +274,10 @@ def check_links(registry: dict, pages: dict[Path, str]) -> tuple[list[str], int,
                 entry = entries.get(rel(target.parent))
                 ok = entry is not None and target.name in built_files(entry)
                 why = "is not an atlas file the build writes"
+            elif any(d == target.parent or d in target.parents for d in etude_dirs):
+                entry = entries.get(rel(target.parent))
+                ok = entry is not None and target.name in built_files(entry)
+                why = "is not an etude file the build writes"
             else:
                 ok, why = target.is_file(), "names no file"
             if not ok:
@@ -266,7 +302,44 @@ def check() -> int:
     for p in link_problems:
         print(f"  - {p}")
     print(f"docs links: {links} .html links ({atlas_links} atlas), {len(link_problems)} problems")
-    return 1 if problems or link_problems or examined == 0 or atlas_links == 0 else 0
+    copy_problems = check_copies(registry)
+    for p in copy_problems:
+        print(f"  - {p}")
+    print(f"copies: {len(registry.get('copies', []))} checked, {len(copy_problems)} problems")
+    failed = bool(problems or link_problems or copy_problems)
+    return 1 if failed or examined == 0 or atlas_links == 0 else 0
+
+
+def run_copies(registry: dict) -> int:
+    """Copy each registry source to its dest byte-exact. Returns the number of errors."""
+    copies = registry.get("copies", [])
+    errors = 0
+    for entry in copies:
+        try:
+            dest = ROOT / entry["dest"]
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / entry["source"], dest)
+        except OSError as exc:
+            errors += 1
+            print(f"  ERROR {entry['dest']}: copy from {entry['source']} failed: {exc}")
+    if errors:
+        print(f"copies: {len(copies) - errors} ok, {errors} error")
+    else:
+        print(f"copies: {len(copies)} ok")
+    return errors
+
+
+def check_copies(registry: dict) -> list[str]:
+    """Dests that exist but differ from their source.
+
+    A missing dest is an unbuilt product, not an error, as with atlas HTML.
+    """
+    problems = []
+    for entry in registry.get("copies", []):
+        dest = ROOT / entry["dest"]
+        if dest.is_file() and dest.read_bytes() != (ROOT / entry["source"]).read_bytes():
+            problems.append(f"ERROR {entry['dest']}: differs from {entry['source']}")
+    return problems
 
 
 def _child_env() -> dict:
@@ -298,6 +371,42 @@ def _repo_guard() -> None:
 
     assert "site-packages" not in jaxfne.__file__, (
         "P-025: expected the repo jaxfne on sys.path, not site-packages")
+
+
+def _etude_cmd(entry: dict) -> list[str]:
+    script, *args = entry["generator"]
+    return [sys.executable, str(ROOT / script), *args]
+
+
+def run_etudes(registry: dict) -> int:
+    """Run each etude generator once. An etude is OK when it exits 0 and writes every listed HTML file.
+
+    Returns the number of etudes in ERROR.
+    """
+    errors = 0
+    for entry in registry["etudes"]:
+        manifest_path = ROOT / entry["dir"] / "manifest.json"
+        # The generators reset the figure state; the tracked manifest's state is kept, as for atlases.
+        state = {k: read_json(manifest_path)[k] for k in STATE_FIELDS}
+        started = time.time()
+        proc = _run(_etude_cmd(entry))
+        secs = time.time() - started
+        if proc.returncode != 0:
+            verdict = "ERROR"
+            detail = [f"generator rc={proc.returncode}"]
+            detail += [f"  {ln}" for ln in _tail(proc.stderr or proc.stdout)]
+        elif stale := unwritten(entry, started):
+            verdict, detail = "ERROR", [f"HTML not written by this build: {stale}"]
+        else:
+            write_manifest(manifest_path, apply_state(read_json(manifest_path), state))
+            verdict, detail = "OK", []
+        if verdict == "ERROR":
+            errors += 1
+        print(f"{entry['dir']}  {verdict}  ({secs:.1f}s)")
+        for line in detail:
+            print(f"    {line}")
+    print(f"etudes: {len(registry['etudes']) - errors} ok, {errors} error")
+    return errors
 
 
 def build(slugs: list[str]) -> int:
@@ -351,13 +460,19 @@ def build(slugs: list[str]) -> int:
         for line in detail:
             print(f"    {line}")
     print(f"atlases: {counts['OK']} ok, {counts['MISMATCH']} mismatch, {counts['ERROR']} error")
+    if slugs:
+        etude_errors = 0
+        print("etudes: skipped (--slug builds atlases only)")
+    else:
+        etude_errors = run_etudes(registry)
+    copy_errors = run_copies(registry)
     if counts["MISMATCH"] or counts["ERROR"]:
         print("gallery: not rewritten (an atlas failed)")
         return 1
     gallery = _run([sys.executable, str(ROOT / "scripts" / "generate_gallery.py"), "--write"])
     gallery_tail = _tail(gallery.stdout + gallery.stderr, 1)
     print(f"gallery: rc={gallery.returncode} {gallery_tail[0] if gallery_tail else ''}")
-    return 0 if gallery.returncode == 0 else 1
+    return 0 if gallery.returncode == 0 and not etude_errors and not copy_errors else 1
 
 
 def main(argv: list[str] | None = None) -> int:

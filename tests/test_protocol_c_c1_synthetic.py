@@ -161,3 +161,17 @@ def test_c1_frozen_receipt_in_repo():
     assert receipt["checkpoint"] == "C1"
     assert receipt["status"] == "FROZEN"
     assert receipt["summary"]["c1_pass"] is True
+
+
+def test_make_time_axis_off_grid_refused():
+    """make_time_axis refuses an off-grid duration instead of rounding."""
+    with pytest.raises(ValueError, match="grid-aligned"):
+        make_time_axis(2000.3, 0.5)
+
+
+def test_make_time_axis_on_grid_unchanged():
+    """On-grid durations keep the exact previous axis."""
+    axis = make_time_axis(2000.0, 0.5)
+    assert len(axis) == 4000
+    assert axis[0] == pytest.approx(0.0)
+    assert axis[-1] == pytest.approx((4000 - 1) * 0.5 / 1000.0)

@@ -108,7 +108,7 @@ def test_jaxley_homeostatic_single_neuron_float32_no_overflow():
     bridge = jtfne.JaxleyBridge(model=cell)
     # absurd base current -> clamped to current_clip_nA -> solver stays stable
     sig = bridge.simulate_homeostatic(
-        duration_ms=150.0, base_current_nA=1.0e6, target_rate_hz=40.0,
+        duration_ms=160.0, base_current_nA=1.0e6, target_rate_hz=40.0,
         k_gain=0.3, current_clip_nA=0.02, strict_finite=True,
     )
     V = np.asarray(sig.V_m)

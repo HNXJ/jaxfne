@@ -37,22 +37,22 @@ class TestKappaSynchrony:
         assert kappa > 0.5  # High synchrony
 
     def test_kappa_synchrony_single_neuron(self):
-        """Test that kappa returns 0 for single neuron."""
+        """Test that kappa returns NaN for single neuron (undefined)."""
         spikes = np.ones((100, 1), dtype=bool)
         kappa = jtfne.kappa_synchrony(spikes, dt_ms=0.1)
-        assert kappa == 0.0
+        assert np.isnan(kappa)
 
     def test_kappa_synchrony_empty_array(self):
-        """Test that kappa returns 0 for empty array."""
+        """Test that kappa returns NaN for empty array (undefined)."""
         spikes = np.array([])
         kappa = jtfne.kappa_synchrony(spikes, dt_ms=0.1)
-        assert kappa == 0.0
+        assert np.isnan(kappa)
 
     def test_kappa_synchrony_silent_neurons(self):
-        """Test that kappa handles completely silent neurons gracefully."""
+        """Test that kappa returns NaN for completely silent neurons (undefined)."""
         spikes = np.zeros((100, 5), dtype=bool)
         kappa = jtfne.kappa_synchrony(spikes, dt_ms=0.1)
-        assert kappa == 0.0
+        assert np.isnan(kappa)
 
 
 class TestRateSynchronyTargets:

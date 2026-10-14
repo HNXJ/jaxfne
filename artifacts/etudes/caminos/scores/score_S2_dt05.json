@@ -1,0 +1,67 @@
+{
+  "per_run": [],
+  "not_scored": [
+    "counts_seed1_p0.07_float32_dt5e-05.npy"
+  ],
+  "r1": {
+    "n_runs": 0,
+    "mean_peak_freq_Hz": null,
+    "all_oscillate": false,
+    "complete": false,
+    "reasons": [
+      "scored runs do not share one 40-character git SHA (0 distinct)",
+      "p = 0.07 seeds are [], need exactly 1-5"
+    ],
+    "pass": false
+  },
+  "r2": {
+    "mean_lag_ms": null,
+    "all_positive": false,
+    "complete": false,
+    "reasons": [
+      "scored runs do not share one 40-character git SHA (0 distinct)",
+      "p = 0.07 seeds are [], need exactly 1-5"
+    ],
+    "pass": false
+  },
+  "r3": {
+    "order_ok_every_seed": false,
+    "mean_E_Hz": null,
+    "complete": false,
+    "reasons": [
+      "scored runs do not share one 40-character git SHA (0 distinct)",
+      "p = 0.07 seeds are [], need exactly 1-5"
+    ],
+    "pass": false
+  },
+  "r4": {
+    "p_oscillates": {
+      "0.02": false,
+      "0.03": false,
+      "0.04": false,
+      "0.05": false,
+      "0.06": false,
+      "0.07": false,
+      "0.08": false,
+      "0.09": false,
+      "0.1": false
+    },
+    "smallest_oscillating_p": null,
+    "low_p_silent": false,
+    "ref_p_all_oscillate": false,
+    "complete": false,
+    "reasons": [
+      "scored runs do not share one 40-character git SHA (0 distinct)",
+      "p = 0.02 seeds are [], need 1-3",
+      "p = 0.03 seeds are [], need 1-3",
+      "p = 0.04 seeds are [], need 1-3",
+      "p = 0.05 seeds are [], need 1-3",
+      "p = 0.06 seeds are [], need 1-3",
+      "p = 0.07 seeds are [], need 1-3",
+      "p = 0.08 seeds are [], need 1-3",
+      "p = 0.09 seeds are [], need 1-3",
+      "p = 0.1 seeds are [], need 1-3"
+    ],
+    "pass": false
+  }
+}
