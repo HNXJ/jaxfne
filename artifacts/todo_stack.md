@@ -40,7 +40,8 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   l2-caminos and pcl-port merged 2026-10-13 (Hamm 2026-10-13), and to 2307 for the PCL v5
   scorer, result, scores and S6/S7 diagnostic merged the same day (same reason), and to 2330 for
   the Izhikevich 2003 and CAMINOS P6 lanes (Hamm 2026-10-13), and to 2336 for the Izhikevich
-  v8 and P3b code, tests, gate receipts and the v8 score (after folding the P3b result and tests into existing
+  v8 and P3b code, tests, gate receipts and the v8 score, and to 2337 for
+  `artifacts/etudes/RESIDUAL_PROTOCOL.md` (Hamm's five-lane programme, 2026-10-14) (after folding the P3b result and tests into existing
   files). Further narrowing waits: most files in `tutorial_figures`,
   `_static/gallery` and `docs/assets` drift on regeneration, which is a declared figure change.
 - T-7 [A] R5: every paper row in `REPLICATIONS.md` carries a verdict or a reason (2026-10-13).
