@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-import os
 import json
 import sys
-import glob
 from pathlib import Path
 from argparse import ArgumentParser
 

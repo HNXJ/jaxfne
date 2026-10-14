@@ -24,7 +24,6 @@ import os
 import platform
 import tempfile
 from contextlib import contextmanager
-from datetime import datetime, timezone
 from typing import Any
 
 import matplotlib

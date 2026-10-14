@@ -31,7 +31,6 @@ except ImportError:  # pragma: no cover
     resource = None
 import subprocess
 import sys
-import time
 from pathlib import Path
 from typing import Any
 

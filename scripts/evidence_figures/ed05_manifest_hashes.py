@@ -20,7 +20,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import json
 import platform
-import subprocess
 from typing import Any
 
 import matplotlib

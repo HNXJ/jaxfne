@@ -40,7 +40,7 @@ if str(_PERF) not in sys.path:
     sys.path.insert(0, str(_PERF))
 
 from w10_allocation_map import RSSSampler, build_config, describe, walk_arrays  # noqa: E402
-from w11_scaling_atlas import _component_of, _realized_degree, _split_bytes  # noqa: E402
+from w11_scaling_atlas import _realized_degree, _split_bytes  # noqa: E402
 
 OUT_DEFAULT = ROOT / "artifacts" / "audit" / "w8_baseline.json"
 

@@ -33,7 +33,6 @@ from _figure_common import (
     repo_root,
     save_figure_manifest,
     sha256_file,
-    write_json_strict,
 )
 
 assert "site-packages" not in sys.modules["jaxfne"].__file__, (

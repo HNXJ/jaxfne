@@ -18,7 +18,6 @@ import hashlib
 import json
 import pathlib
 import sys
-from typing import Dict, List
 
 
 # Tutorial output directories and expected figures

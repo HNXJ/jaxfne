@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Sync jaxfne version from pyproject.toml to mkdocs.yml and docs/_generated/version.md."""
 
-import os
 import re
 from pathlib import Path
 
