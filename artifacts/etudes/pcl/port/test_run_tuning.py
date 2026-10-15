@@ -18,7 +18,9 @@ from pathlib import Path
 import numpy as np
 
 _HERE = Path(__file__).resolve().parent
-_ROOT = _HERE.parents[3]
+_ROOT = str(Path(__file__).resolve().parents[4])
+if sys.path[:1] != [_ROOT]:
+    sys.path.insert(0, _ROOT)
 if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 
