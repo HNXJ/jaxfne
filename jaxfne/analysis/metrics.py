@@ -789,7 +789,7 @@ def activity_regime(
         and second_rate > limits["runaway_ratio"] * first_rate
     ):
         label = "runaway"
-    elif np.isfinite(excess) and excess >= limits["oscillation_floor"]:
+    elif not np.isnan(excess) and excess >= limits["oscillation_floor"]:
         label = "oscillatory"
     elif (
         kappa < limits["async_kappa"]

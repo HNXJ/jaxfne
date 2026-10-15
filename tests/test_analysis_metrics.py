@@ -756,6 +756,23 @@ class TestActivityRegimeLabels:
         assert out["spectral_peak_excess"] < 5.0
         assert out["label"] == "irregular"
 
+    def test_infinite_peak_excess_is_oscillatory(self, monkeypatch):
+        # No natural input reaches excess == inf: a bin-centred sinusoid leaves
+        # roundoff-sized positive median band power (excess about 6.5e28), so
+        # the spectral helper is replaced to return inf on a trace the real
+        # helper labels asynchronous (non-silent, non-saturated, non-runaway).
+        _, activity_regime, _, _ = _regime_api()
+        spikes = _t23_async_spikes()
+        base = activity_regime(spikes, 0.5)
+        assert base["label"] == "asynchronous"  # precondition: unpatched label
+        monkeypatch.setattr(
+            "jaxfne.analysis.metrics._spectral_peak_excess",
+            lambda *args, **kwargs: float("inf"),
+        )
+        out = activity_regime(spikes, 0.5)
+        assert out["spectral_peak_excess"] == float("inf")
+        assert out["label"] == "oscillatory"
+
 
 class TestActivityRegimeThresholds:
     """Each override below moves one label across a boundary value."""
