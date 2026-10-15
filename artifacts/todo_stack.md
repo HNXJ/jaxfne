@@ -57,6 +57,11 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   on each push.
 - T-9 [H] R6 release gate: rc gate, CI green on the SHA, second review, receipt; tag, main and
   PyPI are Hamm's. Closes when: the v0.5.6 tag exists and its release CI run succeeded.
+- T-26 [A] `scripts/check_junit_parity.py` downloads CI JUnit into
+  `artifacts/attestations/ci-junit/` without clearing it, so a rerun on a new SHA fails with
+  "file exists" from `gh run download` (seen 2026-10-14 on 65af8541; it fails closed, never
+  mixes SHAs). It also needs `gh` on the gate host (WSL has none; the 0.5.6 gate used a
+  `gh.exe` shim with `GH_REPO`). Closes when: the script clears its dest per SHA, with a test.
 
 ## 3. 0.5.6–0.5.10 programme
 
