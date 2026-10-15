@@ -236,4 +236,4 @@ nav:
           - RBD State Memory: doctrine/protocol_h_rbd_memory.md
           - HDP Parameter Memory: doctrine/protocol_w_hdp_parameter_memory.md
 extra:
-  jaxfne_version: "0.5.5"
+  jaxfne_version: "0.5.6"

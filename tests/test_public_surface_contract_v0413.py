@@ -107,12 +107,14 @@ def test_public_symbol_count_contraction_from_baseline():
     GeometryTransform/PoseEdit/RangeEdit, ThetaC, ThetaX, W0, H0);
     +2 long-horizon H-space diagnostics ADVANCED for AT-10-R5
     (boundedness_report, stability_report: root-reachable, namespace-mapped
-    to jaxfne._long_diagnostics, outside the 205-name contract);
+    to jaxfne._long_diagnostics, outside the 208-name contract);
     +5 AdEx conductance kernel ADVANCED under jaxfne.emitters (ADEX_CELL_TYPE_DEFAULTS,
-    AdExParams, adex_step, make_adex_params, simulate_adex; Hamm 2026-10-12)."""
+    AdExParams, adex_step, make_adex_params, simulate_adex; Hamm 2026-10-12);
+    +3 activity-regime classifier CANONICAL for T-23 (activity_regime,
+    activity_regimes, wang_buzsaki_kappa; Hamm 2026-10-14)."""
     summary = public_surface_summary()
-    assert summary["counts"]["baseline_all"] == 288
-    assert summary["counts"]["public_exports"] == 205
+    assert summary["counts"]["baseline_all"] == 291
+    assert summary["counts"]["public_exports"] == 208
     assert summary["counts"]["compatibility"] == 13
     assert summary["counts"]["experimental_internal"] == 13
 
@@ -128,7 +130,7 @@ def test_surrogate_config_pair_is_experimental_not_public():
 
 def test_registrable_hdp_surface_is_advanced_not_public():
     """Post-0.4.24 audit: the generic registration surface is ADVANCED —
-    root-reachable and namespace-mapped, but outside the 205-name contract."""
+    root-reachable and namespace-mapped, but outside the 208-name contract."""
     from jaxfne.public_surface import ADVANCED_NAMESPACE
 
     for name in ("register_hdp_rule", "HDPRuleDescriptor", "HDPRuleUpdate", "HDPRuleContext"):

@@ -9,6 +9,8 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
+## v0.5.6 (candidate)
+
 ### Added
 - `Configuration.connections()` gains `sampling="density" | "bernoulli"` (default
   `"density"`). `"density"` keeps each compiler's existing draw (with mechanisms, the
@@ -37,6 +39,30 @@ the rules those releases were held to and are historical context for readers.
   `ext_lambda`, `ext_weight_nS`, `ext_receptor`, `ext_delay_steps` and `key` keyword arguments
   (all given or all None; the kernel draws in the reference's split order and matches a
   transcription of it spike for spike).
+- `NeuronalTensor` gains an emitter registry with an AdEx route: posed positions,
+  distance-derived delays, per-triple drives, `spatial_sigma`, `allow_self`, and
+  family routing that refuses unknown fields by name.
+- `Vpeak_mV` spike-detection threshold on the AdEx route, `ext_lambda` drive
+  schedules with a drive window, and `capped_bernoulli` connection sampling;
+  zero-delay requests are refused with the compile-time wording.
+- Named parameter handles for any core model, fit by `agsdr` and `optax_adam`.
+- Registered HDP rules on AdEx cells, with an identity test over three cells, five
+  edges, two receptors and noisy drive; fields read positions from the model.
+- Activity-regime classifier on executed runs: `wang_buzsaki_kappa`,
+  `activity_regime`, `activity_regimes`.
+- CAMINOS calibration record (`artifacts/etudes/caminos/CALIBRATION.md` §10): ref. 42
+  LFP and phase-delay scorers, the P6 v2 run on the core through the public API
+  (mixed verdict, Hamm 2026-10-14), and the 0.1 ms delay sensitivity run.
+- GSDR P1 source record (`artifacts/etudes/gsdr2026/SOURCE_P1.md`) for the 50-cell HH
+  circuit and the paper's Eqs. 2–4 update, plus the P2 jaxfne-coverage plan.
+- Izhikevich amendment v8.2 scores and the P3b `net.m`-order arm with its equivalence
+  gate and FAIL receipt.
+- PCL diagnostics across phase subsets and columns, the `no-local-simple` inhibition
+  arm, and per-mode run directories that refuse other modes.
+- Calibrated reproduction protocol: exact / within-5% / off bands, residual gain
+  absorbed into declared degrees of freedom, held-out seeds.
+- Changelog tooling: `assemble_changelog.py` and `release_body.py` with tests; an
+  undated section fails `--check`.
 
 ### Changed
 - The docs have a top-level Archive section for pages whose results predate 0.5.0: the
@@ -95,6 +121,13 @@ the rules those releases were held to and are historical context for readers.
   `scripts/build_docs_assets.py --build` runs each etude generator and checks the files listed
   in the registry's `etudes` section. The 12 HTML files leave git; their `manifest.json` files
   stay tracked.
+- `NeuronalTensor.to_dict` writes the new optional fields when set, leaving identity
+  and phenotype hashes of existing tensors unchanged.
+- Public surface at 208 symbols (195 CANONICAL) after the regime-classifier exports.
+- The references page cites Nejat, Sherfey and Bastos 2026 (GSDR) and Wang and Buzsaki
+  1996, each bound to the functions that implement the result.
+- The `jnwb` remaining-sites tests skip when `jnwb` is absent, so the release-test
+  environment collects cleanly.
 
 ### Fixed
 - `fields.filtered_spike_source` (and `combined_multi_area_source`) signs each cell type from
@@ -107,8 +140,10 @@ the rules those releases were held to and are historical context for readers.
   metadata recorded `"E"`. `"all"` and an omitted target draw as before.
 - `jaxfne.presets.CELL_TYPE_PRESETS` sources cite Izhikevich (2003) Fig. 2 for RS, FS and LTS;
   the paper has no table. `VIP_IS` is marked as absent from the paper.
+- `wang_buzsaki_kappa` binarizes spikes per step before binning, so a non-positive
+  value stays inside its own bin.
 
-## v0.5.5 (candidate)
+## v0.5.5 (2026-10-10)
 
 ### Added
 

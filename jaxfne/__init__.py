@@ -161,6 +161,13 @@ from .bridges import (
 )
 from . import analysis
 
+# T-23 activity-regime classifier (Hamm 2026-10-14): canonical root surface.
+from .analysis.metrics import (
+    activity_regime,
+    activity_regimes,
+    wang_buzsaki_kappa,
+)
+
 # `vis` (and its plot_* convenience re-exports) is NOT imported here -- it
 # pulls in the full jaxfne.vis.plotly tree (matplotlib/plotly). Importing it
 # eagerly would mean `import jaxfne.core` alone loads graphics libraries,

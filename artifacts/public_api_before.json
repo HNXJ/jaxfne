@@ -82,6 +82,8 @@
     "TrialSpec",
     "TuneResult",
     "W0",
+    "activity_regime",
+    "activity_regimes",
     "agsdr",
     "agsdr_transform",
     "asset_hashes",
@@ -205,6 +207,7 @@
     "validate_source_field_status",
     "validation_report",
     "vis",
+    "wang_buzsaki_kappa",
     "with_emitter_parameters"
   ],
   "has_Configuration": true,

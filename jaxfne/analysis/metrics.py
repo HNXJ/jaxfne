@@ -9,7 +9,10 @@ descriptors, not biological validation. No biological truth claims are supported
 """
 
 import numpy as np
+import operator
 from typing import Union, TYPE_CHECKING
+
+from scipy.signal import welch
 
 if TYPE_CHECKING:
     import jax
@@ -437,3 +440,426 @@ def fleiss_kappa_binary(
     kappa = float(np.clip(kappa, -1.0, 1.0))
 
     return kappa
+
+
+# --- T-23 activity-regime classifier (Hamm 2026-10-14) -------------------------
+
+#: Default decision boundaries for :func:`activity_regime`. Every threshold the
+#: classifier applies lives in this dict; per-study overrides pass through the
+#: ``thresholds`` argument, which may replace any named entry here.
+ACTIVITY_REGIME_DEFAULTS = {
+    "silent_rate_hz": 0.1,
+    "silent_active_fraction": 0.05,
+    "saturated_active_fraction": 0.95,
+    "saturated_kappa": 0.5,
+    "saturated_rate_hz": 100.0,
+    "runaway_ratio": 2.0,
+    "oscillation_floor": 5.0,
+    "async_kappa": 0.1,
+    "async_cv_lo": 0.7,
+    "async_cv_hi": 1.5,
+    "bin_ms": 5.0,
+    "welch_nperseg": 256,
+}
+
+
+def _validate_bin_steps(bin_ms: float, dt_ms: float) -> int:
+    """Steps per bin, refusing a bin width that misses the time grid."""
+    if dt_ms <= 0:
+        raise ValueError(f"dt_ms must be > 0, got {dt_ms}")
+    if bin_ms <= 0:
+        raise ValueError(f"bin_ms must be > 0, got {bin_ms}")
+    ratio = bin_ms / dt_ms
+    steps = int(round(ratio))
+    if steps < 1 or abs(ratio - steps) > 1e-9 * abs(ratio):
+        raise ValueError(
+            f"bin_ms={bin_ms!r} must be a positive multiple of dt_ms={dt_ms!r} "
+            f"(bin_ms / dt_ms = {ratio!r}, tolerance 1e-9 relative)"
+        )
+    return steps
+
+
+def wang_buzsaki_kappa(
+    spikes: Union[np.ndarray, "jax.Array"],
+    dt_ms: float,
+    bin_ms: float = 5.0,
+) -> float:
+    r"""Mean pairwise coincidence of binary binned spike trains.
+
+    Each cell is reduced to a binary train over non-overlapping bins of
+    ``bin_ms`` (1 when the cell fires at least once in the bin, else 0; the
+    trailing partial bin is dropped). For cells ``i`` and ``j`` with binned
+    trains ``X_i`` and ``X_j``::
+
+        kappa_ij = sum(X_i * X_j) / sqrt(sum(X_i) * sum(X_j)).
+
+    The metric is the mean of ``kappa_ij`` over pairs ``i != j`` whose trains
+    are both non-empty.
+
+    Parameters
+    ----------
+    spikes : (n_steps, n_neurons) ndarray
+        Spike indicator array with one row per time step and one column per
+        neuron. Values: binary indicators (0/1); any positive value counts as
+        a spike, non-positive values (including NaN) count as silence.
+    dt_ms : float
+        Simulation timestep in milliseconds. Must be > 0.
+    bin_ms : float, default=5.0
+        Binning window in milliseconds. Must be a positive multiple of
+        ``dt_ms`` within 1e-9 relative, else ValueError naming ``bin_ms``.
+
+    Returns
+    -------
+    float
+        Mean pairwise coincidence in [0, 1]. Returns NaN when undefined
+        (fewer than 2 cells with a non-empty binned train, or zero full
+        bins).
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from jaxfne.analysis import wang_buzsaki_kappa
+    >>> spikes = np.array([[1, 0], [0, 1], [1, 0], [0, 0]], dtype=bool)
+    >>> wang_buzsaki_kappa(spikes, 1.0, bin_ms=2.0)
+    0.0
+
+    Notes
+    -----
+    Declared 2026-10-14 (T-23, Hamm): the Wang-Buzsaki coherence on binary
+    spike counts in declared bins. It measures coincidence of active bins,
+    while ``tutorial_utils.kappa_synchrony`` is a Pearson correlation at dt
+    resolution and ``fleiss_kappa_binary`` is an agreement-against-chance
+    score; the three kappas answer different questions.
+
+    References
+    ----------
+    Wang, X.-J., & Buzsáki, G. (1996). Gamma oscillation by synaptic
+    inhibition in a hippocampal interneuronal network model. *The Journal
+    of Neuroscience* 16(20), 6402-6413.
+    doi:10.1523/JNEUROSCI.16-20-06402.1996
+    """
+    spikes_array = np.asarray(spikes)
+
+    if spikes_array.ndim != 2:
+        raise ValueError(
+            f"spikes must be 2D [n_steps, n_neurons], got {spikes_array.ndim}D"
+        )
+
+    _validate_bin_steps(bin_ms, dt_ms)
+
+    # Shared binning with the sibling metrics: _bin_counts takes
+    # (n_neurons, n_time) count windows, so the input goes in transposed.
+    # Binarize per step first: a non-positive value is silence and must not
+    # cancel a spike in the same bin.
+    counts = _bin_counts((spikes_array > 0).T.astype(float), bin_ms, dt_ms)
+
+    if counts.shape[1] == 0:
+        return float("nan")
+
+    binary = (counts.T > 0).astype(float)  # (n_bins, n_neurons)
+    totals = binary.sum(axis=0)
+    has_train = totals > 0
+
+    if int(np.sum(has_train)) < 2:
+        return float("nan")
+
+    active = binary[:, has_train]
+    sums = totals[has_train]
+    gram = active.T @ active
+    scale = np.sqrt(np.outer(sums, sums))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        pairwise = gram / scale
+    n_active = active.shape[1]
+    return float((pairwise.sum() - n_active) / (n_active * (n_active - 1)))
+
+
+def _resolve_thresholds(thresholds: Union[dict, None]) -> dict:
+    """Merge a per-call override over :data:`ACTIVITY_REGIME_DEFAULTS`."""
+    merged = dict(ACTIVITY_REGIME_DEFAULTS)
+    if thresholds is None:
+        return merged
+    unknown = [key for key in thresholds if key not in merged]
+    if unknown:
+        raise ValueError(
+            f"unknown activity_regime threshold(s): {sorted(unknown)}; "
+            f"known: {sorted(merged)}"
+        )
+    merged.update(thresholds)
+    return merged
+
+
+def _spectral_peak_excess(
+    population_rate_hz: np.ndarray,
+    dt_ms: float,
+    nperseg: int,
+) -> float:
+    """Peak-over-median Welch power of the population rate in 5-200 Hz."""
+    n_points = int(population_rate_hz.size)
+    try:
+        segments = int(nperseg)
+    except (TypeError, ValueError):
+        return float("nan")
+    segments = min(segments, n_points)
+    if segments < 8:
+        return float("nan")
+    freqs, power = welch(
+        np.asarray(population_rate_hz, dtype=float),
+        fs=1000.0 / dt_ms,
+        nperseg=segments,
+        detrend="constant",
+    )
+    band = power[(freqs >= 5.0) & (freqs <= 200.0)]
+    if band.size == 0:
+        return float("nan")
+    median = float(np.median(band))
+    peak = float(band.max())
+    if median <= 0.0:
+        return float("inf") if peak > 0.0 else 1.0
+    return float(peak / median)
+
+
+def activity_regime(
+    spikes: Union[np.ndarray, "jax.Array"],
+    dt_ms: float,
+    *,
+    kept_window: Union[tuple, list, None] = None,
+    thresholds: Union[dict, None] = None,
+) -> dict:
+    r"""Classify one population activity trace into a standard regime.
+
+    The classifier aggregates the kept window into scalar descriptors and
+    applies the decision boundaries in order, returning the first match:
+
+    silent
+        Mean rate below ``silent_rate_hz`` or active fraction below
+        ``silent_active_fraction``.
+    saturated
+        Active fraction above ``saturated_active_fraction`` with kappa above
+        ``saturated_kappa``, or mean rate above ``saturated_rate_hz``.
+    runaway
+        Second-half rate above ``runaway_ratio`` times the first-half rate
+        (first-half rate above zero).
+    oscillatory
+        Welch spectral peak excess of the per-step population rate
+        (peak over median power in 5-200 Hz) at or above
+        ``oscillation_floor``.
+    asynchronous
+        Kappa below ``async_kappa`` with CV_ISI inside
+        [``async_cv_lo``, ``async_cv_hi``].
+    irregular
+        None of the above.
+
+    Parameters
+    ----------
+    spikes : (n_steps, n_neurons) ndarray
+        Spike indicator array with one row per time step and one column per
+        neuron. Any positive value counts as a spike.
+    dt_ms : float
+        Simulation timestep in milliseconds. Must be > 0.
+    kept_window : (start_step, end_step) or None, default=None
+        Half-open step window the labels are computed over; None keeps the
+        whole trace. Must satisfy ``0 <= start < end <= n_steps``, else
+        ValueError naming ``kept_window``.
+    thresholds : dict or None, default=None
+        Per-call overrides of named entries of
+        :data:`ACTIVITY_REGIME_DEFAULTS`. An unknown key raises ValueError
+        naming it.
+
+    Returns
+    -------
+    dict
+        Per-call dict with ``rate_hz`` (mean spikes per neuron per second),
+        ``active_fraction`` (cells with at least one spike), ``kappa``
+        (:func:`wang_buzsaki_kappa` at ``bin_ms``), ``cv_isi`` (mean
+        ISI coefficient of variation over cells with at least 3 spikes, NaN
+        when no cell qualifies), ``rate_ratio`` (second-half over first-half
+        rate; inf when only the second half fires, NaN when neither does),
+        ``spectral_peak_excess``, ``label`` (one of ``"silent"``,
+        ``"saturated"``, ``"runaway"``, ``"asynchronous"``,
+        ``"oscillatory"``, ``"irregular"``), and ``thresholds`` (the merged
+        boundaries this call applied).
+
+    Notes
+    -----
+    Declared 2026-10-14 (T-23, Hamm): one standard classifier on the executed
+    population activity, applied per population over the kept window with
+    study-overridable defaults. It is distinct from
+    ``jaxfne.w3b_parameter_domain.classify_regime``, which classifies a
+    parameter point from synthesis diagnostics rather than executed spikes.
+    Its ``kappa`` descriptor is :func:`wang_buzsaki_kappa`.
+
+    References
+    ----------
+    Wang, X.-J., & Buzsáki, G. (1996). Gamma oscillation by synaptic
+    inhibition in a hippocampal interneuronal network model. *The Journal
+    of Neuroscience* 16(20), 6402-6413.
+    doi:10.1523/JNEUROSCI.16-20-06402.1996
+    """
+    spikes_array = np.asarray(spikes)
+
+    if spikes_array.ndim != 2:
+        raise ValueError(
+            f"spikes must be 2D [n_steps, n_neurons], got {spikes_array.ndim}D"
+        )
+
+    if dt_ms <= 0:
+        raise ValueError(f"dt_ms must be > 0, got {dt_ms}")
+
+    n_steps, n_cells = spikes_array.shape
+
+    if kept_window is None:
+        start, end = 0, n_steps
+    else:
+        expect = (
+            "kept_window must be (start_step, end_step) with "
+            f"0 <= start_step < end_step <= {n_steps}, got {kept_window!r}"
+        )
+        try:
+            first, last = kept_window
+            start, end = operator.index(first), operator.index(last)
+        except (TypeError, ValueError):
+            raise ValueError(expect) from None
+        if not (0 <= start < end <= n_steps):
+            raise ValueError(expect)
+
+    limits = _resolve_thresholds(thresholds)
+
+    kept = spikes_array[start:end]
+    fired = kept > 0
+    window_steps = end - start
+    duration_s = window_steps * dt_ms / 1000.0
+    per_cell = fired.sum(axis=0)
+
+    if n_cells and duration_s > 0:
+        rate_hz = float(fired.sum() / (n_cells * duration_s))
+        active_fraction = float(np.sum(per_cell > 0) / n_cells)
+    else:
+        rate_hz = float("nan")
+        active_fraction = float("nan")
+
+    kappa = wang_buzsaki_kappa(kept, dt_ms, bin_ms=limits["bin_ms"])
+
+    cvs = []
+    for j in range(n_cells):
+        onsets = np.flatnonzero(fired[:, j])
+        if onsets.size >= 3:
+            isi_ms = np.diff(onsets).astype(float) * dt_ms
+            cvs.append(float(isi_ms.std() / isi_ms.mean()))
+    cv_isi = float(np.mean(cvs)) if cvs else float("nan")
+
+    half = window_steps // 2
+    if half == 0 or n_cells == 0:
+        first_rate = second_rate = float("nan")
+        rate_ratio = float("nan")
+    else:
+        first_rate = float(fired[:half].sum() / (n_cells * half * dt_ms / 1000.0))
+        rest = window_steps - half
+        second_rate = float(fired[half:].sum() / (n_cells * rest * dt_ms / 1000.0))
+        if first_rate > 0.0:
+            rate_ratio = float(second_rate / first_rate)
+        elif second_rate > 0.0:
+            rate_ratio = float("inf")
+        else:
+            rate_ratio = float("nan")
+
+    if n_cells:
+        population_rate_hz = fired.sum(axis=1).astype(float) / (
+            n_cells * dt_ms / 1000.0
+        )
+    else:
+        population_rate_hz = np.zeros(window_steps)
+    excess = _spectral_peak_excess(
+        population_rate_hz, dt_ms, limits["welch_nperseg"]
+    )
+
+    if (
+        not np.isfinite(rate_hz)
+        or rate_hz < limits["silent_rate_hz"]
+        or active_fraction < limits["silent_active_fraction"]
+    ):
+        label = "silent"
+    elif (
+        active_fraction > limits["saturated_active_fraction"]
+        and kappa > limits["saturated_kappa"]
+    ) or rate_hz > limits["saturated_rate_hz"]:
+        label = "saturated"
+    elif (
+        np.isfinite(first_rate)
+        and first_rate > 0.0
+        and second_rate > limits["runaway_ratio"] * first_rate
+    ):
+        label = "runaway"
+    elif not np.isnan(excess) and excess >= limits["oscillation_floor"]:
+        label = "oscillatory"
+    elif (
+        kappa < limits["async_kappa"]
+        and limits["async_cv_lo"] <= cv_isi <= limits["async_cv_hi"]
+    ):
+        label = "asynchronous"
+    else:
+        label = "irregular"
+
+    return {
+        "rate_hz": rate_hz,
+        "active_fraction": active_fraction,
+        "kappa": kappa,
+        "cv_isi": cv_isi,
+        "rate_ratio": rate_ratio,
+        "spectral_peak_excess": excess,
+        "label": label,
+        "thresholds": dict(limits),
+    }
+
+
+def activity_regimes(
+    spikes: Union[np.ndarray, "jax.Array"],
+    dt_ms: float,
+    populations: dict,
+    *,
+    kept_window: Union[tuple, list, None] = None,
+    thresholds: Union[dict, None] = None,
+) -> dict:
+    r"""Classify named neuron subsets of one trace with :func:`activity_regime`.
+
+    Parameters
+    ----------
+    spikes : (n_steps, n_neurons) ndarray
+        Spike indicator array with one row per time step and one column per
+        neuron. Any positive value counts as a spike.
+    dt_ms : float
+        Simulation timestep in milliseconds. Must be > 0.
+    populations : dict[str, index array]
+        Mapping of population name to the neuron columns it covers. Each
+        entry is classified independently over the same kept window.
+    kept_window : (start_step, end_step) or None, default=None
+        Half-open step window shared by every population.
+    thresholds : dict or None, default=None
+        Per-call overrides shared by every population.
+
+    Returns
+    -------
+    dict
+        Mapping of population name to its :func:`activity_regime` dict.
+    """
+    spikes_array = np.asarray(spikes)
+
+    if spikes_array.ndim != 2:
+        raise ValueError(
+            f"spikes must be 2D [n_steps, n_neurons], got {spikes_array.ndim}D"
+        )
+
+    if not isinstance(populations, dict) or len(populations) == 0:
+        raise ValueError(
+            "populations must be a non-empty dict of name -> neuron index "
+            f"array, got {populations!r}"
+        )
+
+    return {
+        name: activity_regime(
+            spikes_array[:, np.asarray(index)],
+            dt_ms,
+            kept_window=kept_window,
+            thresholds=thresholds,
+        )
+        for name, index in populations.items()
+    }

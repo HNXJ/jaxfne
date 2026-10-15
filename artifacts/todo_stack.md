@@ -9,7 +9,8 @@ first, amend in place.
 ## 1. Decisions waiting on Hamm (they unblock items below)
 
 Open: the manuscript tree and other archive moves (T-17). Decided 2026-10-13: T-12, T-13,
-T-14, T-17 (calls in each item); T-1 (a) landed in e3a7a41b; T-2
+T-14, T-17 (calls in each item). Decided 2026-10-14: hyx standardization (T-22–T-25),
+Destexhe Vpeak, GSDR diagnosis, CAMINOS lag (§3); T-1 (a) landed in e3a7a41b; T-2
 bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 `artifacts/etudes/REPLICATIONS.md`).
 
@@ -35,17 +36,20 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 
 ## 2. 0.5.6 release (G-5; Hamm 2026-10-12: cleaning, organizing, docs, dashboard)
 
-- R2 narrowing met at 33413a12 (2268 files, `budget_files` 2269 in
-  `scripts/tree_size_allowlist.json`). Raised to 2300 for the 31 lane evidence files of
-  l2-caminos and pcl-port merged 2026-10-13 (Hamm 2026-10-13), and to 2307 for the PCL v5
-  scorer, result, scores and S6/S7 diagnostic merged the same day (same reason), and to 2330 for
-  the Izhikevich 2003 and CAMINOS P6 lanes (Hamm 2026-10-13), and to 2336 for the Izhikevich
-  v8 and P3b code, tests, gate receipts and the v8 score, and to 2337 for
-  `artifacts/etudes/RESIDUAL_PROTOCOL.md` (Hamm's five-lane programme, 2026-10-14) (after folding the P3b result and tests into existing
-  files), and to 2353 for the 16 core-gap and CAMINOS-final files of lanes 3, 6, 7 and 8 (same
-  programme, 2026-10-14: emitter registry, HDP family kernel, parameter handles, their tests, the
-  CAMINOS calibration, scorers and model page). Further narrowing waits: most files in `tutorial_figures`,
-  `_static/gallery` and `docs/assets` drift on regeneration, which is a declared figure change.
+- R2 restated (Hamm 2026-10-14): bytes -10% against the 0.5.5 tag (met: 86.8 MB
+  tracked at 1bfdaa84 against 126.0 MB at the tag) plus files at the recorded budget with
+  reasons on record (2353 tracked, `budget_files` 2353 in
+  `scripts/tree_size_allowlist.json`; each raise from 2269, its reason and authorization are in
+  this line's git history, last at 1bfdaa84). The
+  regenerable docs assets are untracked already: the 9 registry `copies` dests under
+  `docs/assets/etudes/` and all atlas/etude HTML are build products of
+  `scripts/build_docs_assets.py --build` (the Read the Docs `pre_build` path) and gitignored.
+  No further class qualifies: the 9 `docs/_static/gallery/*.png` (embedded by `docs/gallery.md`,
+  rewritten only as an index by `generate_gallery.py --write`, never rasterized by the build
+  path), the 12 `docs/_static/tutorial_figures/*.png` (no caller in the build path), and every
+  other tracked `docs/assets/` file (its generator, if one exists, is not in the build path;
+  `--html-only` skips PNG rasterization) would leave broken embeds if untracked, so all stay
+  tracked.
 - T-7 [A] R5: every paper row in `REPLICATIONS.md` carries a verdict or a reason (2026-10-13).
   Closes when: `python scripts/build_dashboard_data.py --check` passes on the pushed SHA.
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
@@ -53,6 +57,11 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   on each push.
 - T-9 [H] R6 release gate: rc gate, CI green on the SHA, second review, receipt; tag, main and
   PyPI are Hamm's. Closes when: the v0.5.6 tag exists and its release CI run succeeded.
+- T-26 [A] `scripts/check_junit_parity.py` downloads CI JUnit into
+  `artifacts/attestations/ci-junit/` without clearing it, so a rerun on a new SHA fails with
+  "file exists" from `gh run download` (seen 2026-10-14 on 65af8541; it fails closed, never
+  mixes SHAs). It also needs `gh` on the gate host (WSL has none; the 0.5.6 gate used a
+  `gh.exe` shim with `GH_REPO`). Closes when: the script clears its dest per SHA, with a test.
 
 ## 3. 0.5.6–0.5.10 programme
 
@@ -135,8 +144,35 @@ run on WSL2 CUDA.
 - T-21 [A] Destexhe 2009 on the core: G12–G14 and F7 are in the core (`Vpeak_mV`, `ext_lambda`
   schedule and drive window, `sampling="capped_bernoulli"`, zero-delay refusal). Remaining:
   rebase the Destexhe lane onto them, delete its `simulate_adex_gated_drive` fork, set Vpeak to
-  the authors' detection (about VT) and the capped rule, re-run seeds 1–3, held-out 4–8.
-  Closes when: Destexhe has a verdict on core z.
+  the authors' detection (about VT) and the capped rule, re-run seeds 1–3, held-out 4–8. Hamm
+  2026-10-14: the authors' Vpeak is primary, with a declared sensitivity at VT + 5Δ beside it.
+  Closes when: Destexhe has a verdict on core z and the Vpeak sensitivity is reported.
+
+hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
+- T-22 [A] Same-step interactions (PCL local inhibition, CAMINOS zero delay, gap G12) are a
+  declared intra-step fixed point: f applies R ordered rounds, with R and the order part of A and
+  recorded in the manifest; delay 0 means "resolved inside the step". Closes when: the operator is
+  in the core with tests, PCL B3 uses it, and the CAMINOS 0-delay sensitivity runs on it.
+- T-23 [A] One regime classifier on y in the core, reported in every manifest and usable as a fit
+  constraint. Labels per population over the kept window, defaults overridable per study: silent
+  (rate < 0.1 Hz or active fraction < 5 %); saturated (active fraction > 95 % and κ > 0.5, or rate
+  > 100 Hz); runaway (rate rises > 2× between window halves); asynchronous (κ < 0.1, CV_ISI
+  0.7–1.5); oscillatory (spectral peak excess above a declared floor). κ is the Wang–Buzsáki
+  coherence on binary spike counts in declared bins (default 5 ms; Hamm 2026-10-14), distinct from
+  the dt-resolution Pearson κ in `tutorial_utils.kappa_synchrony`. Seeds in a different regime
+  are reported, never dropped; a mixed-regime result is a finding. Closes when: the classifier and
+  its tests are on dev and the replication scorers report it.
+- T-24 [A] Constant drive (bias current, external Poisson rate) is part of x: a declared input
+  source with a schedule (constant is a special case); the emitter `drive` field becomes a
+  shorthand that compiles to an x source, existing numerics unchanged. Closes when: both routes
+  compile drive to x with a byte-identity test on the old path.
+- T-25 [A] Plastic weights: W is state in h during a run; A holds W₀ and its ownership. A trained
+  network is A' = A with W₀ ← W_T, recorded with provenance. Closes when: the tensor carries W₀
+  provenance and PCL's trained weights load as A'.
+- GSDR (lane 4f): Hamm's first suspicion for the saturated regime (κ ≈ 0.95 against 0.0156) is weak
+  inhibition: sweep g = J_I/J_E at fixed drive before any further fit.
+- CAMINOS lag (6.47 against 8.5 ms): Hamm attributes the gap to the paper's estimator rather than
+  the model; class stays verified, the lag stays a recorded finding, no fit.
 - Frozen, do not move: `artifacts/publication/frozen_manifest.json`,
   `artifacts/release/current_release_authorities.json`, hash-pinned skills and `AGENTS.md`;
   `artifacts/legacy/AGENTS.md` kept by Hamm 2026-10-11.

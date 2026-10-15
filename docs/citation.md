@@ -14,8 +14,8 @@ Until a Zenodo DOI is minted (see below), cite the GitHub release or PyPI packag
   title = {jaxfne: JAX Field Neural Equations},
   year = {2026},
   url = {https://github.com/HNXJ/jaxfne},
-  version = {0.5.5},
-  note = {Computational scaffold / proxy readouts; tag v0.5.5}
+  version = {0.5.6},
+  note = {Computational scaffold / proxy readouts; tag v0.5.6}
 }
 ```
 
@@ -30,7 +30,7 @@ Zenodo record, for example:
   publisher = {Zenodo},
   doi = {10.5281/zenodo.XXXXXXX},
   url = {https://github.com/HNXJ/jaxfne},
-  version = {0.5.5}
+  version = {0.5.6}
 }
 ```
 
