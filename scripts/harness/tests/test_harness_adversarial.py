@@ -27,10 +27,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import hashlib
 import json
-import os
 import subprocess
 import tempfile
-import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
 from scripts.harness.gate0_git_reality import check_gate0, EXPECTED_REMOTES

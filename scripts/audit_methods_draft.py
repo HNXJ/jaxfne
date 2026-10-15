@@ -123,13 +123,15 @@ def main() -> int:
     a1a = load_json("protocol_c/p2v_a1a_synthetic_control/p2v_a1a_spec.json")
     a1b = load_json("protocol_c/p2v_a1b_dynamic_search/p2v_a1b_spec.json")
     a2 = load_json("protocol_c/p2v_a2_sensitivity_floor/p2v_a2_spec.json")
-    a3 = load_json("protocol_c/p2v_a3_hdp_boundedness/p2v_a3_receipt.json")
+    # Existence/parse probes: these receipts must load, but no value below is
+    # drawn from them, so the bindings stay unassigned (ruff F841).
+    load_json("protocol_c/p2v_a3_hdp_boundedness/p2v_a3_receipt.json")
     d3 = load_json("protocol_d_biological_rbs/d3_adaptation_recovery_phenotype_spec.json")
     d1 = load_json("protocol_d_biological_rbs/d1_static_h_k_expression_spec.json")
     h4i = load_json("protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json")
     h4m = load_json("protocol_h_rbd/h4_matrix/h4_matrix_receipt.json")
     w3b = load_json("protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json")
-    e5e = load_json("protocol_e_integration/e5_execution_receipt.json")
+    load_json("protocol_e_integration/e5_execution_receipt.json")
     e5i = load_json("protocol_e_integration/e5_interpretation_receipt.json")
     b0 = load_json("etudes/experiment_a/b0_protocol_spec.json")
 
@@ -144,11 +146,13 @@ def main() -> int:
                 missing.append(f"{text}~{val}")
         check(code, label, not missing, f"missing/off: {missing}")
 
-    top = c3["frozen_topology_and_weights"]
+    # Key-presence probes: N01/N02 audit literal values, but the spec keys must
+    # exist; the bindings stay unassigned (ruff F841).
+    c3["frozen_topology_and_weights"]
     num("N01", "ring topology values (w, tau, N, R)", [
         ("edge_weight", 6.0), ("syn_tau_ms", 3.0), ("n_neurons", 24.0), ("ring_radius_mm", 1.0)
     ])
-    sim = c3["simulation_policy"]
+    c3["simulation_policy"]
     num("N02", "C3 simulation policy (duration, dt, seeds)", [
         ("duration_ms", 2000.0), ("dt_ms", 0.5), ("seeds", 1001.0), ("seeds", 1010.0)
     ])

@@ -8,7 +8,6 @@ Audits:
    scratch trees, agent configurations, and developer plans.
 """
 import re
-import subprocess
 import sys
 import tarfile
 import zipfile

@@ -187,7 +187,6 @@ def draw_E_cycle(ax, v1):
     n_cyc = [r["cycles"] for r in c0]
     cv = [r["cv_T"] for r in c0]
     ff = [r["ff"] for r in c0]
-    part = [r["participation"] for r in c0]
     x = np.arange(5)
     ax.bar(x-0.2, n_cyc, 0.4, label="N_cycles (need ≥10)", color="#1A4A8A", alpha=0.7)
     ax.axhline(10, color="red", ls="--", lw=0.8)

@@ -220,7 +220,6 @@ def _audit_figure_entry(
 
     png_exists = png_path.is_file()
     script_exists = script_path.is_file() if script_path else False
-    manifest_exists_before = manifest_path.is_file()
     receipt_exists = receipt_path is not None
 
     manifest_data, synthesized = _ensure_figure_manifest(

@@ -82,7 +82,9 @@ def check_consistency():
 def main():
     parser = ArgumentParser(description="Check consistency of release metadata versions.")
     parser.add_argument("--check", action="store_true", help="Check consistency")
-    args = parser.parse_args()
+    # NOTE: --check is accepted for CLI compatibility but not consulted below;
+    # main() only ever checks (check_consistency) and never writes.
+    parser.parse_args()
 
     # --check is the primary verification gate
     success = check_consistency()

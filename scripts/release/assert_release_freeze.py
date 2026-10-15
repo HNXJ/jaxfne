@@ -95,7 +95,9 @@ def read_freeze_from_lockfile():
 def main():
     parser = argparse.ArgumentParser(description="Assert release freeze state.")
     parser.add_argument("--check", action="store_true", help="Check-only mode (no side effects)")
-    args = parser.parse_args()
+    # NOTE: --check is accepted for CLI compatibility but not consulted below;
+    # main() always runs the check-only path (no side effects by construction).
+    parser.parse_args()
 
     # Sources of freeze state (lockfile takes priority if present)
     lock_freeze, lock_sha = read_freeze_from_lockfile()

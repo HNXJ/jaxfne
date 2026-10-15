@@ -136,8 +136,6 @@ MECHANISM_NOT_PERMITTED = "NOT_PERMITTED"
 #: as documented placeholder rather than a biological claim.
 DIRECT_MECHANISM_TAU_MS = 0.1
 
-_PN_TOL = 1e-9
-
 
 class TFNEError(ValueError):
     """Deterministic TFNE specification/realization failure."""

@@ -63,14 +63,14 @@ def audit_jaxley_bridge() -> dict:
     status = "green"
     details = []
     try:
-        import jaxfne.bridges as bridges
+        import jaxfne.bridges as bridges  # noqa: F401  (import success is the check)
         details.append("jaxfne.bridges imported successfully.")
     except Exception as e:
         status = "red"
         details.append(f"Fail: jaxfne.bridges failed to import: {e}")
         
     try:
-        from jaxfne.bridges import require_jaxley
+        from jaxfne.bridges import require_jaxley  # noqa: F401  (import success is the check)
         details.append("require_jaxley found.")
     except Exception as e:
         status = "red"

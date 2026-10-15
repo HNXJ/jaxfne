@@ -192,7 +192,6 @@ def _mode_from_receipt(data: dict) -> str | None:
 def _portable_kernel_context():
     import shutil
 
-    import nbformat as _nbf
     from jupyter_client.kernelspec import KernelSpecManager
 
     spec = {

@@ -177,7 +177,6 @@ def draw_F_ladder(ax, v2, v2_resc):
     panel_label(ax,"F","Classification ladder S0→S4 (prospective)")
     ax.axis("off")
     # S2 gate requires SI>0.10 etc; S3 recovery; S4 deferred
-    pooled = v2["pooled"]
     # thresholds
     gates = [
         ("S0 no decrement", "abs(SI)<0.10 & |dR|<0.5 & CI includes 0", "2/20 S0 (reps 17,??)"),
