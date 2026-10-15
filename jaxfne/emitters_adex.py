@@ -709,6 +709,7 @@ def simulate_adex_hdp_registered(
     hdp_rule_params: Mapping[str, Any] | None = None,
     plasticity_mask=None,
     hdp_key=None,
+    seed: int | None = None,
     record_w_trace: bool = True,
 ) -> dict[str, Any]:
     """AdEx conductance network with a registered HDP rule (lane 7, gap G3).
@@ -739,9 +740,12 @@ def simulate_adex_hdp_registered(
     within the rule's ``w_bounds`` (the declared clip still applies).
 
     ``plasticity_mask`` is ``None`` (every edge plastic) or a per-edge
-    finite mask; ``hdp_key`` seeds the per-step rule-noise stream
-    (``fold_in`` of the external key when present, else a fixed base —
-    never drawn from, so the external stream stays bit-identical).
+    finite mask; ``hdp_key`` seeds the per-step rule-noise stream, else
+    ``seed`` (an int seed) via ``PRNGKey(seed)``, else ``fold_in`` of the
+    external key when present, else a fixed base — never drawn from, so
+    the external stream stays bit-identical. No seed reaches this kernel
+    from the model, so callers pass ``seed`` explicitly; a non-int seed
+    is refused by name.
     ``record_w_trace`` records per-step ``|w|``. Returns the
     :func:`simulate_adex` dict plus ``H_final``, ``w_final_nS``,
     ``aux_final``, ``H_trace``, ``w_trace_nS`` (when recorded),
@@ -914,6 +918,10 @@ def simulate_adex_hdp_registered(
         except Exception:
             raise ValueError(f"hdp_key must be a JAX PRNG key; got {hdp_key!r}")
         rule_base = hdp_key
+    elif seed is not None:
+        if isinstance(seed, bool) or not isinstance(seed, (int, np.integer)):
+            raise ValueError(f"seed must be an int or None; got {seed!r}")
+        rule_base = jax.random.PRNGKey(int(seed))
     elif ext is not None:
         rule_base = jax.random.fold_in(ext["key"], 9147)
     else:

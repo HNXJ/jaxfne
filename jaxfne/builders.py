@@ -220,7 +220,7 @@ def default_cortical_column_config(
     cfg = (
         Configuration()
         .runtime(
-            seed=seed or 42,
+            seed=seed if seed is not None else 42,
             duration_ms=duration_ms,
             dt_ms=dt_ms,
             dtype="float32",
@@ -231,7 +231,7 @@ def default_cortical_column_config(
         .cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
         .uniform3d(radius_mm=0.25, height_mm=1.6)
         .connectivity(
-            within_area="all_to_all_uniform_random", within_gain=0.45, edge_seed=seed or 42
+            within_area="all_to_all_uniform_random", within_gain=0.45, edge_seed=seed if seed is not None else 42
         )
         .set_emitter("izhikevich", "cortical_eig")
         .probes(["spikes", "V_m", "source", "LFP", "CSD"], n_contacts=16)
@@ -307,7 +307,7 @@ def default_complete_configuration(
 
     cfg = (
         Configuration()
-        .runtime(seed=seed or 42, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
+        .runtime(seed=seed if seed is not None else 42, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
         .areas([column_name, nucleus_name])
         .column(column_name, layers=layers, n=n_column)
         .column(nucleus_name, layers=["core"], n=n_nucleus)
@@ -318,7 +318,7 @@ def default_complete_configuration(
         )
         .area_layer_cell_types(nucleus_name, {"core": {"E": 0.70, "PV": 0.30}})
         .connectivity(
-            within_area="all_to_all_uniform_random", within_gain=0.40, edge_seed=seed or 42
+            within_area="all_to_all_uniform_random", within_gain=0.40, edge_seed=seed if seed is not None else 42
         )
         .inter_column_connectivity(
             source_area=column_name,
