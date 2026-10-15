@@ -1,28 +1,35 @@
 # state
 
-Stamp: jaxfne@dev@6f85f5c3 · 2026-10-14 (written 2026-10-14T16:36:48Z)
+Stamp: jaxfne@dev@95324945 · 2026-10-15 (written 2026-10-15T15:53:47Z)
 
 Overwritten each session. Where this file and git or a gate disagree, git and the gate win.
 
 ## Works (with evidence)
 
-- dev 6f85f5c3 (core AdEx for Destexhe 2009: `Vpeak_mV`, `ext_lambda` schedules and drive
-  window, `sampling="capped_bernoulli"`, one harvest for both tensor bridges): CI (Fast) success.
-  Previous push 25b7c1d5 (integration of lanes 1, 3, 6, 7, 8): CI (Fast) success.
+- dev 95324945 (PCL lane: LIF tensor route with event input, per-position local inhibition,
+  cover-table feed, simple-to-complex pooling, `resolution="event_scan"`): Stage C exact on 20
+  clips through the tensor route; Muse adversarial review PASS. Dev Release CI run 38764130367:
+  dispatched, result pending.
 - NeuronalTensor on dev: emitter registry and AdEx route, posed geometry for wiring and delays,
   HDP on AdEx, `project_model_sources`, parameter handles. `NeuronalTensor.to_dict` omits the
   0.5.6 optional fields at their defaults, so pinned identity and phenotype hashes are unchanged.
 - CAMINOS Fig. 1 against PLoS CB (primary, Hamm 2026-10-14; `artifacts/etudes/caminos/CALIBRATION.md`
   §10): f_pk 33.80 Hz, rate order and R4 (v7) reproduced on the core route; PV→SOM lag 6.47 ms
   against 8.5 ms by the ref. 42 method (off, a finding that needs X). Dashboard row updated.
-- Tracked tree: 2353 files (budget 2353, raised from 2337 for the lane files), 86796770 bytes
-  (budget 89128960).
-- main 413fb4a2.
+- Tracked tree: 2365 files (budget 2365, `budget_files` in `scripts/tree_size_allowlist.json`).
+  Bytes not re-measured in this update; last recorded 86796770 (budget 89128960).
+- main a98e6149: 0.5.6 merged from dev 4842b87c by PR 108 (2026-10-15). Main CI green: CI Fast
+  run 38757281037, Release CI with slow tests run 38757281031. rc gate PASS on 4842b87c with
+  JUnit parity against Release CI run 38743501399 (3.11 and 3.14 each 6030/6030, 0 unjustified).
+- Version state: 0.5.6 is on main, not tagged. Tag v0.5.6, GitHub Release and PyPI are Hamm's.
+- Dependabot PR 106 (ruff 0.17.0 in the dev extra) and PR 107 (docs pymdown-extensions >= 12.2)
+  merged into dev and closed on GitHub.
 
 ## Broken or in flight
 
-- Lane 2b (PCL rebuilt as a NeuronalTensor on the core; LIF route, footprint rule, pooling,
-  same-step inhibition, oracle gate): running.
+- PCL lane (lane 2b, rebuilt as a NeuronalTensor on the core): Stage C passed through the tensor
+  route on 20 clips (CALIBRATION.md Step 9). Open in the record: the `no construct route (OPEN)`
+  marker (CALIBRATION.md:24) is not marked closed.
 - Lane 4f (GSDR fit, 350 generations): running; at generation 200 best loss 4082 (flat since
   about generation 150), κ ≈ 0.95 against 0.0156 in the data, active fraction 1.0 (inferred: a
   regime where every neuron fires every cycle).
@@ -33,7 +40,9 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Last gate results
 
-- Broad gate on 6f85f5c3 (WSL, self-contained clone): 5850 passed, 0 failed.
+- Broad gate on 95324945 (WSL, self-contained clone): 6020 passed; the 2 tag-receipt tests that
+  failed there (clone origin set to a Windows path) pass alone after the origin fix.
+- rc gate on 4842b87c: PASS (broad 5895, notebook 33, slow 30; JUnit parity; twine check).
 - Dashboard: `build_dashboard_data.py --check`, `build_dashboard_figures.py --check`,
   `generate_replications_page.py --check` fresh after the CAMINOS row update.
 
@@ -56,5 +65,6 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 
 ## Next action
 
-Integrate lanes as they land (review, broad gate, dashboard checks, push dev, CI on the exact
-SHA): 5d after its S2 scoring, 4f with a diagnosis of the all-fire regime, 2b stage by stage.
+Hamm: tag v0.5.6 on a98e6149, GitHub Release, PyPI. Agents: confirm dev Release CI run
+38764130367; integrate lanes as they land (review, broad gate, dashboard checks, push dev, CI on
+the exact SHA): 5d (Destexhe) after its S2 scoring, 4f (GSDR) on Hamm's next-step choice; T-26.

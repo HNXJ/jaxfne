@@ -58,6 +58,7 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   on each push.
 - T-9 [H] R6 release gate: rc gate, CI green on the SHA, second review, receipt; tag, main and
   PyPI are Hamm's. Closes when: the v0.5.6 tag exists and its release CI run succeeded.
+  Remaining, Hamm: tag v0.5.6 on a98e6149, the GitHub Release, PyPI (main merge done 2026-10-15).
 - T-26 [A] `scripts/check_junit_parity.py` downloads CI JUnit into
   `artifacts/attestations/ci-junit/` without clearing it, so a rerun on a new SHA fails with
   "file exists" from `gh run download` (seen 2026-10-14 on 65af8541; it fails closed, never
@@ -185,6 +186,10 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   bit-identical; runs 1k → 2k → 5k, then a 10k decision.
 - PCL: `pcl_stdp_h2` for new work, `pcl_stdp` stays default for K1 and the replication; a
   learned-tuning A1 test needs a declared criterion (`artifacts/etudes/pcl/README.md`).
+  Lane 2 (tensor route): Stage C passed 2026-10-15, 20 of 20 clips exact (receipt
+  `artifacts/etudes/pcl/stage_c_tensor_route_20clip.json`; CALIBRATION.md Steps 8–9). Open in the
+  record: the `no construct route (OPEN)` marker (CALIBRATION.md:24) is not marked closed; Step 9
+  lists no next items. T-3 (Fig. 3) is separate and unchanged.
 - Structural HDP (2026-09-29, `artifacts/programme/structural_hdp_design.md`): existence over a
   declared candidate set, opt-in; API and hard-vs-graded existence open.
 - Primate primary-connection mode (2026-09-29): label FF/FB defaults uncalibrated; a macaque-only

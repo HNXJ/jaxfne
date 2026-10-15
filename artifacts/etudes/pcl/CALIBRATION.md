@@ -21,7 +21,7 @@ port 5d101eb3, `runs/fig3_cSTDP3` (3168 tasks, camera-0 feed, learning off).
 ## Core modules added (exact oracle math at edge scale)
 
 - `jaxfne/emitters_lif.py`: current-based LIF with PCL refractory terms, clock-driven
-  `lax.scan` translation; function-level only, no construct route (OPEN).
+  `lax.scan` translation; reached through `construct` -> `simulate` since Step 9.
 - `jaxfne/hdp_rules_pcl.py`: registered core rule `pcl_stdp`, update copied exactly
   from `artifacts/etudes/pcl/pcl_hdp_rule.py` (whose `register()` now skips it).
 - Exports: re-export in `jaxfne/emitters.py`, +5 ADVANCED in `jaxfne/public_surface.py`,
