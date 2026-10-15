@@ -1,6 +1,6 @@
 # F2: replication under divergence (declaration, 2026-10-09)
 
-Family F2 of `artifacts/programme/theory_programme_proposal.md`. Declared before the
+Family F2 of `artifacts/programme/design/plans/theory_programme_proposal.md`. Declared before the
 script exists or any run starts. Source evidence: K1h-nf, where a one-ulp change of the
 initial weights moved decoding by up to 0.069, and K1h, where `pcl_stdp_h2` split from
 `pcl_stdp` on one ulp in one weight.

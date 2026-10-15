@@ -39,7 +39,7 @@
    "capability": "benchmark matrix across dt/T/N; per-AT resolution declared in manifest",
    "release": "0.5.1",
    "candidate": false,
-   "evidence": "artifacts/perf/matrix_051.json",
+   "evidence": "artifacts/perf/matrices_051/matrix_051.json",
    "state": "VALIDATED"
   },
   {
@@ -99,7 +99,7 @@
    "capability": "benchmark harness receipts",
    "release": "0.5.1",
    "candidate": false,
-   "evidence": "artifacts/perf/matrix_051.json",
+   "evidence": "artifacts/perf/matrices_051/matrix_051.json",
    "state": "VALIDATED"
   },
   {

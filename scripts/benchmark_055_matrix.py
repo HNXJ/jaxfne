@@ -3,7 +3,7 @@
 
 Copy of the scripts/benchmark_051_matrix.py harness pattern (fresh process
 per cell, block_until_ready timing, RSS peak-hold sampler, same phases).
-Measures per artifacts/perf/matrix_055_spec.json (frozen).
+Measures per artifacts/perf/matrices_055/matrix_055_spec.json (frozen).
 
 Only measurement change vs 051: each cell uses its model's DECLARED drive
 (model configs / drive() declarations per P-018). Of the 051 grid, exactly
@@ -15,8 +15,8 @@ defaults (E 5.0, PV 3.0, SST 3.5, VIP 3.0) — the defaults 051 measured.
 The declared-drive map below names this explicitly; cells without an entry
 run the 051-identical builder chain.
 
-Writes artifacts/perf/matrix_055.json (new). NEVER writes
-artifacts/perf/matrix_051.json or artifacts/perf/baseline_050.json.
+Writes artifacts/perf/matrices_055/matrix_055.json (new). NEVER writes
+artifacts/perf/matrices_051/matrix_051.json or artifacts/perf/baselines/baseline_050.json.
 
 Usage:
     python scripts/benchmark_055_matrix.py [--only-missing] [--cells id,...]
@@ -37,8 +37,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-SPEC = ROOT / "artifacts" / "perf" / "matrix_055_spec.json"
-OUT = ROOT / "artifacts" / "perf" / "matrix_055.json"
+SPEC = ROOT / "artifacts" / "perf" / "matrices_055" / "matrix_055_spec.json"
+OUT = ROOT / "artifacts" / "perf" / "matrices_055" / "matrix_055.json"
 
 MEMORY_METHOD = (
     "psutil process RSS: boundary samples at every phase edge plus a "
@@ -821,7 +821,7 @@ def main() -> int:
                 json.dumps(
                     {
                         "series": "matrix_055",
-                        "spec": "artifacts/perf/matrix_055_spec.json (frozen, committed before measuring)",
+                        "spec": "artifacts/perf/matrices_055/matrix_055_spec.json (frozen, committed before measuring)",
                         "env": _env(),
                         "memory_method": MEMORY_METHOD,
                         "claim": "local_environment_receipt_only",
@@ -853,7 +853,7 @@ def main() -> int:
         json.dumps(
             {
                 "series": "matrix_055",
-                "spec": "artifacts/perf/matrix_055_spec.json (frozen, committed before measuring)",
+                "spec": "artifacts/perf/matrices_055/matrix_055_spec.json (frozen, committed before measuring)",
                 "env": _env(),
                 "memory_method": MEMORY_METHOD,
                 "claim": "local_environment_receipt_only",

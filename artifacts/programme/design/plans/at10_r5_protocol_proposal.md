@@ -14,7 +14,7 @@ protocol if changed).
   0.5.5 measurement-vector item) so the Atlas run can import them.
 - `artifacts/atlas/at10_n20_055.py::run_phases` (20-area run, per-area PSD,
   boundedness, spread).
-- Intervention grammar (`artifacts/programme/intervention_053.md`).
+- Intervention grammar (`artifacts/programme/receipts/engine_053_054/intervention_053.md`).
 
 ## Reuse finding (2026-10-06, before any run)
 

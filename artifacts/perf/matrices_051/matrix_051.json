@@ -1,6 +1,6 @@
 {
   "series": "matrix_051",
-  "spec": "artifacts/perf/matrix_051_spec.json (frozen, committed before measuring)",
+  "spec": "artifacts/perf/matrices_051/matrix_051_spec.json (frozen, committed before measuring)",
   "env": {
     "jax": "0.10.1",
     "jaxlib": "0.10.1",

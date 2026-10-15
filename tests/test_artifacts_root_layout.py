@@ -80,3 +80,55 @@ def test_p0_p1_folders_live_at_new_layout():
         assert (REPO / "artifacts" / rel).is_dir(), f"missing after P0/P1 move: {rel}"
     for rel in sorted(OLD_FOLDERS):
         assert not (REPO / "artifacts" / rel).exists(), f"stale after P0/P1 move: {rel}"
+
+
+# P2 reorganization (Hamm 2026-10-15): perf/ and programme/ split by kind.
+P2_FOLDERS = {
+    "perf/baselines",
+    "perf/matrices_051",
+    "perf/matrices_055",
+    "perf/matrices_055/quiet",
+    "perf/matrices_055/rerun",
+    "perf/profiles",
+    "perf/scaling",
+    "perf/workflow",
+    "programme/coverage",
+    "programme/gaps",
+    "programme/design/plans",
+    "programme/design/capabilities",
+    "programme/receipts/v0_4_23",
+    "programme/receipts/v0_4_24",
+    "programme/receipts/tfne",
+    "programme/receipts/engine_053_054",
+    "programme/receipts/investigations",
+}
+
+# Dated files keep the paths they were written with.
+P2_PROGRAMME_ROOT_FILES = {
+    "handout_opencode_2026-09-29.md",
+    "metrics_definitions_2026-10-13.md",
+    "refreeze_p016_p020_2026-09-30.md",
+}
+
+P2_KEY_FILES = {
+    "perf/baselines/baseline_050.json",
+    "perf/matrices_051/matrix_051.json",
+    "perf/matrices_051/matrix_051_spec.json",
+    "perf/matrices_055/matrix_055.json",
+    "perf/matrices_055/matrix_055_spec.json",
+    "perf/scaling/w11_atlas_10k.jsonl",
+    "programme/coverage/atlas_coverage.json",
+    "programme/coverage/claim_ledger_055.md",
+    "programme/coverage/methods_055.md",
+}
+
+
+def test_p2_folders_live_at_new_layout():
+    for rel in sorted(P2_FOLDERS):
+        assert (REPO / "artifacts" / rel).is_dir(), f"missing after P2 move: {rel}"
+    for rel in sorted(P2_KEY_FILES):
+        assert (REPO / "artifacts" / rel).is_file(), f"missing after P2 move: {rel}"
+    perf_loose = {p.name for p in (REPO / "artifacts" / "perf").iterdir() if p.is_file()}
+    assert perf_loose == set(), f"stale after P2 move: {sorted(perf_loose)}"
+    prog_loose = {p.name for p in (REPO / "artifacts" / "programme").iterdir() if p.is_file()}
+    assert prog_loose == P2_PROGRAMME_ROOT_FILES, f"unexpected programme/ root: {sorted(prog_loose)}"

@@ -2,7 +2,7 @@
 
 Every value is read from ``artifacts/atlas/results/*.json``; nothing is typed
 by hand. Usage: ``python scripts/gen_methods_055.py`` rewrites
-``artifacts/programme/methods_055.md``; ``--check`` exits 1 if it is stale.
+``artifacts/programme/coverage/methods_055.md``; ``--check`` exits 1 if it is stale.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
 )
 
 RES = ROOT / "artifacts" / "atlas" / "results"
-OUT = ROOT / "artifacts" / "programme" / "methods_055.md"
+OUT = ROOT / "artifacts" / "programme" / "coverage" / "methods_055.md"
 TOL_KEYS = ("tolerances_predeclared", "tolerance_predeclared", "verdict_tolerances_predeclared")
 SEED_KEYS = ("noise_seed", "seed", "seeds")
 # Level/seed fields that actually occur in the atlas results beyond the top

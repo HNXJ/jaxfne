@@ -1,7 +1,7 @@
 # Bottlenecks 051 — ranked from matrix_051 (item 2)
 
-Authority: `artifacts/perf/matrix_051.json` (14/14 MEASURED) against
-`artifacts/perf/matrix_051_spec.json` (frozen). Thresholds per spec:
+Authority: `artifacts/perf/matrices_051/matrix_051.json` (14/14 MEASURED) against
+`artifacts/perf/matrices_051/matrix_051_spec.json` (frozen). Thresholds per spec:
 a phase is a bottleneck if ≥25% of warm-total time
 (warm_median + probe + manifest; compile_est reported separately) or ≥25%
 of peak memory in any cell. Env: jax/jaxlib 0.10.1, Windows-11, cpu:0,

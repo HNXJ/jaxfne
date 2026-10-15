@@ -1,7 +1,7 @@
 """Cross-implementation numeric gates (Item-10 adjudication, 0.5.0).
 
 Rule (human-authorized correction, immutable original FAIL recorded in
-``artifacts/programme/item10_adjudication_receipt.md``): cross-implementation
+``artifacts/programme/receipts/investigations/item10_adjudication_receipt.md``): cross-implementation
 float comparisons use allclose semantics
 
     |x - y| <= max(eps_abs, eps_rel * max(|x|, |y|)),

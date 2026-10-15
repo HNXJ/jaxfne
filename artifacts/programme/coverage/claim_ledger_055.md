@@ -5,13 +5,13 @@ Status: scaffold for human review (fact stack: claim ledger). State = coverage s
 | id | claim (Atlas requirement) | kind | state | evidence path | path exists | wording strength |
 |---|---|---|---|---|---|---|
 | AT-00-R1 | Common measurement vector Y = {X,H,W,Q,Phi_E,Phi_B,SPK,PSD,C,phi,E_reduction,T_compute,M_compute}; absent quantities recorded as OMITTED, never synthesized | CAPABILITY | VALIDATED | `tests/test_atlas_v4_records.py` | yes | numerical test confirms |
-| AT-00-R2 | (dt, T, dr) chosen per phenomenon, not one resolution for all | RESULT | VALIDATED | `artifacts/perf/matrix_051.json` | yes | numerical test confirms |
+| AT-00-R2 | (dt, T, dr) chosen per phenomenon, not one resolution for all | RESULT | VALIDATED | `artifacts/perf/matrices_051/matrix_051.json` | yes | numerical test confirms |
 | AT-00-R3 | Inheritance S1 -> S2-4 -> S5-7 -> S8-9 -> S10: each adds declared objects, same computational language | CAPABILITY | VALIDATED | `tests/test_atlas_inheritance_055.py` | yes | numerical test confirms |
 | AT-00-R4 | Observable-specific equivalence: reductions compared only on declared observations and tolerances | RESULT | VALIDATED | `artifacts/atlas/results/at_reduction_055.json` | yes | tolerance comparison, failures kept |
 | AT-00-R5 | Every figure uses the columns structure -> dynamics -> state/plasticity -> source -> field -> observation -> computation | RESULT | VALIDATED | `artifacts/atlas/figure_columns.py` | yes | numerical test confirms |
 | AT-00-R6 | Manuscript progression: one physical neuron -> interacting neurons -> emergent population field -> adaptive interacting areas -> genome-defined multiarea model | RESULT | VALIDATED | `artifacts/atlas/manuscript_progression.py` | yes | numerical test confirms |
 | AT-00-R7 | Every simulation defined as data over the public surface; one simulation, many views; no simulation inside visualization | CAPABILITY | VALIDATED | `tests/test_atlas_firewall.py` | yes | numerical test confirms |
-| AT-00-R8 | T_compute and M_compute recorded per simulation | RESULT | VALIDATED | `artifacts/perf/matrix_051.json` | yes | numerical test confirms |
+| AT-00-R8 | T_compute and M_compute recorded per simulation | RESULT | VALIDATED | `artifacts/perf/matrices_051/matrix_051.json` | yes | numerical test confirms |
 | AT-01-R1 | One full HH neuron; current injection from subthreshold to AP | RESULT | VALIDATED | `artifacts/atlas/results/at01_extraction_055.json` | yes | model produced |
 | AT-01-R2 | Extract V_m, I_Na, I_K, I_L, Q, Phi(r,t) (I_m not applicable: Jaxley HH has no M-current; Phi relative ionic-current proxy) | RESULT | VALIDATED | `artifacts/atlas/results/at01_extraction_055.json` | yes | model produced |
 | AT-01-R3 | Local E/Phi from transmembrane currents | RESULT | VALIDATED | `artifacts/atlas/results/at01_extraction_055.json` | yes | model produced |

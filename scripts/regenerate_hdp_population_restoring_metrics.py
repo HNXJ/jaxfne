@@ -14,7 +14,7 @@ artifacts/etudes/hdp_controllability_reachability/metrics.json.
 Cause of the move (P-016): commit 865e74b ("0.5.3 item 3 (W1): P-010
 chain-noise fix + continuation all-state") changed the plain-path noise
 schedule, moving vector terminal error 0.0296 -> ~0.0028 (smaller, out of
-the old pin). See artifacts/programme/bisect_p016_receipt.md and
+the old pin). See artifacts/programme/receipts/investigations/bisect_p016_receipt.md and
 artifacts/programme/refreeze_p016_p020_2026-09-30.md.
 """
 

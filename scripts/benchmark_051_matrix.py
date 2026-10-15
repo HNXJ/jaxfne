@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """0.5.1 ENGINE item 1b-1e: benchmark matrix harness.
 
-Declares nothing; measures per artifacts/perf/matrix_051_spec.json (frozen).
+Declares nothing; measures per artifacts/perf/matrices_051/matrix_051_spec.json (frozen).
 Reuses the phase timing of scripts/benchmark_050_baseline.py
 (construct | simulate_first_call | simulate_warm | probe | manifest) and the
 RSS method of scripts/profile_050_phases.py, plus a 10ms peak-hold sampler
 for measured process peak. Declared array bytes reported alongside.
 
-Writes artifacts/perf/matrix_051.json (tracked). NEVER writes
-artifacts/perf/baseline_050.json.
+Writes artifacts/perf/matrices_051/matrix_051.json (tracked). NEVER writes
+artifacts/perf/baselines/baseline_050.json.
 
 Usage:
     python scripts/benchmark_051_matrix.py [--only-missing]
@@ -29,8 +29,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-SPEC = ROOT / "artifacts" / "perf" / "matrix_051_spec.json"
-OUT = ROOT / "artifacts" / "perf" / "matrix_051.json"
+SPEC = ROOT / "artifacts" / "perf" / "matrices_051" / "matrix_051_spec.json"
+OUT = ROOT / "artifacts" / "perf" / "matrices_051" / "matrix_051.json"
 
 MEMORY_METHOD = (
     "psutil process RSS: boundary samples at every phase edge plus a "
@@ -787,7 +787,7 @@ def main() -> int:
                 json.dumps(
                     {
                         "series": "matrix_051",
-                        "spec": "artifacts/perf/matrix_051_spec.json (frozen, committed before measuring)",
+                        "spec": "artifacts/perf/matrices_051/matrix_051_spec.json (frozen, committed before measuring)",
                         "env": _env(),
                         "memory_method": MEMORY_METHOD,
                         "claim": "local_environment_receipt_only",
@@ -819,7 +819,7 @@ def main() -> int:
         json.dumps(
             {
                 "series": "matrix_051",
-                "spec": "artifacts/perf/matrix_051_spec.json (frozen, committed before measuring)",
+                "spec": "artifacts/perf/matrices_051/matrix_051_spec.json (frozen, committed before measuring)",
                 "env": _env(),
                 "memory_method": MEMORY_METHOD,
                 "claim": "local_environment_receipt_only",

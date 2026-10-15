@@ -108,7 +108,7 @@ run on WSL2 CUDA.
   T = 2000) reads it in 8–25 Hz with about 2 segments. Hamm 2026-10-13: shrink nperseg so Welch
   has at least 8 half-overlapping segments, refuse when that leaves nperseg < 64. Landed with
   tests; AT-09 C_12 falls from 0.50/0.45/0.45 to 0.105/0.110/0.111 (noise level, no arm
-  difference), recorded in `artifacts/programme/composition_054.md`; the AT-09 verdict stands.
+  difference), recorded in `artifacts/programme/receipts/engine_053_054/composition_054.md`; the AT-09 verdict stands.
   Closes when: the change is on dev with the broad gate green.
 - T-16 [A] C7: parametrize the protocol_e spec tests; merge the 8 `test_atlas_at*_05x` files
   after a per-test coverage run. CI dedupe (examples list and wheel smoke in three places).
@@ -185,7 +185,7 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 
 ## 4. Directions recorded by Hamm, open
 
-- Augmentation science runs (2026-10-01, `artifacts/programme/augment_science_runs_plan.md`): an
+- Augmentation science runs (2026-10-01, `artifacts/programme/design/plans/augment_science_runs_plan.md`): an
   opt-in "balanced" preset with a measured asynchronous-irregular regime, canonical 1000n column
   bit-identical; runs 1k → 2k → 5k, then a 10k decision.
 - PCL: `pcl_stdp_h2` for new work, `pcl_stdp` stays default for K1 and the replication; a
@@ -194,12 +194,12 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   `artifacts/etudes/pcl/stage_c_tensor_route_20clip.json`; CALIBRATION.md Steps 8–9). Open in the
   record: the `no construct route (OPEN)` marker (CALIBRATION.md:24) is not marked closed; Step 9
   lists no next items. T-3 (Fig. 3) is separate and unchanged.
-- Structural HDP (2026-09-29, `artifacts/programme/structural_hdp_design.md`): existence over a
+- Structural HDP (2026-09-29, `artifacts/programme/design/plans/structural_hdp_design.md`): existence over a
   declared candidate set, opt-in; API and hard-vs-graded existence open.
 - Primate primary-connection mode (2026-09-29): label FF/FB defaults uncalibrated; a macaque-only
   evidence table (direct / anatomical-only / functional / unknown, cited), SLN in [0,1],
   heavy-tailed FLN with a distance rule; unknown edges refused.
-- Theory programme (2026-10-08, `artifacts/programme/theory_programme_proposal.md`): next family
+- Theory programme (2026-10-08, `artifacts/programme/design/plans/theory_programme_proposal.md`): next family
   F3, F4 or F5 is Hamm's pick; T3 Lean proofs of L1 and L3 need Lean.
 - Python 3.15 in CI and the classifier once 3.15.0 ships and pyyaml, h5py and zarr publish cp315
   wheels.

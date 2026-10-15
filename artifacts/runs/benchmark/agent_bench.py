@@ -162,8 +162,8 @@ ARMS = ("skills", "direct")
 _ANSWER_PATHS = (
     "artifacts/atlas", "artifacts/publication/atlas", "artifacts/runs/benchmark",
     "scripts/generate_atlas_figures.py", "scripts/benchmark_051_matrix.py",
-    "artifacts/programme/atlas_gap_052.md", "artifacts/programme/atlas_gap_053.md",
-    "artifacts/programme/atlas_gap_054.md", "tests/test_atlas_*.py", "tests/test_agent_bench_055.py",
+    "artifacts/programme/gaps/atlas_gap_052.md", "artifacts/programme/gaps/atlas_gap_053.md",
+    "artifacts/programme/gaps/atlas_gap_054.md", "tests/test_atlas_*.py", "tests/test_agent_bench_055.py",
 )
 _SKILL_PATHS = ("artifacts/skills", "jaxfne/agent.py", "tests/test_agent_*.py")
 SOLUTION = "bench_solution.py"

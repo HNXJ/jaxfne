@@ -47,7 +47,7 @@ Keep a paper when at least three hold:
 Reject: no explicit model; parameters unavailable; needs a solved field (the
 shipped path is proxy); needs structural plasticity beyond a declared candidate set (structural HDP
 covers only existence over declared candidates; see
-`artifacts/programme/structural_hdp_design.md`, not yet built).
+`artifacts/programme/design/plans/structural_hdp_design.md`, not yet built).
 
 ## HDP off / on
 

@@ -1,4 +1,4 @@
-"""Coverage check for artifacts/programme/atlas_coverage.json (0.5.1 ATLAS item 8b).
+"""Coverage check for artifacts/programme/coverage/atlas_coverage.json (0.5.1 ATLAS item 8b).
 
 Validates: schema tag, unique well-formed IDs, release values, states,
 sim/ID consistency; every non-PLANNED row must name an evidence path that
@@ -151,7 +151,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--coverage",
-        default="artifacts/programme/atlas_coverage.json",
+        default="artifacts/programme/coverage/atlas_coverage.json",
         help="path to atlas_coverage.json (repo-relative or absolute)",
     )
     parser.add_argument("--root", default=".", help="repo root for evidence paths")

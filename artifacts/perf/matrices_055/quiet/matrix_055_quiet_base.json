@@ -4,7 +4,7 @@
     "started_local": "2026-10-09T11:44:47-05:00",
     "cell_id": "base",
     "runner": "scripts/benchmark_055_matrix.py --cells base (single cell, fresh process)",
-    "note": "quiet cell receipt only; the loaded non-final receipt artifacts/perf/matrix_055.json was restored byte-identical after the run; matrix NOT complete"
+    "note": "quiet cell receipt only; the loaded non-final receipt artifacts/perf/matrices_055/matrix_055.json was restored byte-identical after the run; matrix NOT complete"
   },
   "cell": {
     "id": "base",

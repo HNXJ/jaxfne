@@ -6,7 +6,7 @@ construct | simulate_first_call (compile+run) | simulate_second_call (run)
 | probe | manifest. Memory is reported as declared array bytes (wall-clock
 only; device-peak measurement is a listed limitation, not claimed here).
 
-Writes artifacts/perf/baseline_050.json (tracked). Local-environment
+Writes artifacts/perf/baselines/baseline_050.json (tracked). Local-environment
 receipt only; no universal performance claims.
 
 Usage:
@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-OUT = ROOT / "artifacts" / "perf" / "baseline_050.json"
+OUT = ROOT / "artifacts" / "perf" / "baselines" / "baseline_050.json"
 
 
 def _ms(t0: float) -> float:

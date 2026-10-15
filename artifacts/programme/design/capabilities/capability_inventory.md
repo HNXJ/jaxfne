@@ -6,7 +6,7 @@ row names the operation, its entry function(s), how to inspect the result,
 and its standing. Epistemic levels are NOT assigned here (0.5.2 item 4 owns
 them): everything below is RELATIVE_PROXY or uncalibrated native dynamics
 unless its row says otherwise. Candidate rows (`candidate: true` in
-`artifacts/programme/atlas_coverage.json`) are out of scope until human
+`artifacts/programme/coverage/atlas_coverage.json`) are out of scope until human
 authorization; they are listed under Refused/Omitted, never as operations.
 
 ## Agent tool surface (agent-native step 5, 0.5.5 item 5a)

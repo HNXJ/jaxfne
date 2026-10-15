@@ -85,7 +85,7 @@ signals = jtfne.simulate(model)  # inherits duration/dt/seed from runtime
 
 ## 7. Project state and control files
 
-Roles and edit rules: `artifacts/AGENTS.md` (Project control). Coverage rows: `artifacts/programme/atlas_coverage.json`, checked by `scripts/check_atlas_coverage.py`.
+Roles and edit rules: `artifacts/AGENTS.md` (Project control). Coverage rows: `artifacts/programme/coverage/atlas_coverage.json`, checked by `scripts/check_atlas_coverage.py`.
 
 ## 8. Conventions and pitfalls
 
@@ -106,7 +106,7 @@ Roles and edit rules: `artifacts/AGENTS.md` (Project control). Coverage rows: `a
 | Plasticity (HDP, RBD) | `docs/guides/hdp.md`, `jaxfne/hdp_rule.py`, `jaxfne/hdp_network.py` |
 | Fields, probes, calibration | `docs/guides/calibration.md`, `jaxfne/fields/`, `docs/api/fields.md` |
 | Visualize (never simulate in vis) | `docs/guides/atlas_suite.md`, `jaxfne/vis/atlas_suite.py` |
-| Atlas simulation or gap row | `artifacts/project_sources/8_atlas.md`, `artifacts/programme/atlas_coverage.json`, `artifacts/atlas/at*.py` |
+| Atlas simulation or gap row | `artifacts/project_sources/8_atlas.md`, `artifacts/programme/coverage/atlas_coverage.json`, `artifacts/atlas/at*.py` |
 | Numeric mismatch, dtype, determinism | `tests/_numeric_gates.py`, `jaxfne/util.py`, §10 |
 
 ## 10. Verified reusable lessons

@@ -12,7 +12,7 @@ mechanisms, delays, relative geometry.
 
 ## AUTHORITIES
 1. TFNE grammar: `artifacts/project_sources/7_tfne_algebra.md`.
-2. Capability rows: `artifacts/programme/capability_inventory.md` (Specify, Complete / realize).
+2. Capability rows: `artifacts/programme/design/capabilities/capability_inventory.md` (Specify, Complete / realize).
 3. Live code: `jaxfne/tfne.py` (`parse`, `resolve`, `realize`, `to_configuration`).
 
 ## RULES

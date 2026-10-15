@@ -46,7 +46,7 @@ samples the same declaration upstream for completion (origins recorded).
 
 - `docs/doctrine/tfne_algebra.md` — Pipeline (relative geometry,
   executed) and the conformance entry (fractional domains, refusal).
-- Receipt: `artifacts/programme/tfne_param04_receipt.md`.
+- Receipt: `artifacts/programme/receipts/tfne/tfne_param04_receipt.md`.
 
 ## Skill
 

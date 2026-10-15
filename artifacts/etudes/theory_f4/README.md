@@ -1,6 +1,6 @@
 # F4: criterion reachability (declaration, 2026-10-09)
 
-Family F4 of `artifacts/programme/theory_programme_proposal.md`, opened by Hamm on 2026-10-09.
+Family F4 of `artifacts/programme/design/plans/theory_programme_proposal.md`, opened by Hamm on 2026-10-09.
 Declared before any script exists. Source evidence: control O1
 (`artifacts/etudes/pcl/pcl_orient_control.py`). Hand-set oriented kernels in the standalone
 column decoded orientation at 1.00 but reached a median OSI of only 0.266–0.272, below the 0.3

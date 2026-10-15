@@ -1,6 +1,6 @@
 # F1: state reduction for HDP traces (declaration, 2026-10-08)
 
-Family F1 of `artifacts/programme/theory_programme_proposal.md`, opened by Hamm on
+Family F1 of `artifacts/programme/design/plans/theory_programme_proposal.md`, opened by Hamm on
 2026-10-08. Declared before any check runs. Source evidence: K1h and K1h-nf
 (`artifacts/etudes/pcl/`), where `pcl_stdp_h` (`artifacts/etudes/pcl_h/pcl_h_rule.py`)
 rewrites the per-edge reset trace of `pcl_stdp` as a per-neuron H trace minus a

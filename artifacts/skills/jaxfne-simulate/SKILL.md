@@ -10,7 +10,7 @@ metadata:
 Executing any model.
 
 ## AUTHORITIES
-1. Capability rows: `artifacts/programme/capability_inventory.md` (Simulate).
+1. Capability rows: `artifacts/programme/design/capabilities/capability_inventory.md` (Simulate).
 2. Live code: `jaxfne.agent.simulate`, `jaxfne.simulate` (`continuation=`,
    `return_state=True`), `Model.simulate_batch`.
 

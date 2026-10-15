@@ -265,13 +265,13 @@
     "wall_budget": "per-cell wall_budget_s above; over budget -> cell status SKIPPED_BUDGET with time-spent recorded; infeasible corners -> UNSUPPORTED with reason; never force",
     "bottleneck_thresholds": "a phase is a bottleneck if >=25% of warm-total time (construct + warm + observe on the warm path; compile_est reported separately) or >=25% of peak memory in any cell",
     "env_receipt": "every output carries jax/jaxlib versions, platform, cpu/device list (P-003 rule: ISSUE_LOG P-003 — frozen evidence must record the full environment)",
-    "never_write": "scripts/benchmark_051_matrix.py never writes artifacts/perf/baseline_050.json; baseline hash verified unchanged via git status at seal",
+    "never_write": "scripts/benchmark_051_matrix.py never writes artifacts/perf/baselines/baseline_050.json; baseline hash verified unchanged via git status at seal",
     "equivalence_default": "bit-exact; any tolerance need stops that optimization and is reported for human authorization"
   },
   "cell_status_values": ["MEASURED", "UNSUPPORTED", "SKIPPED_BUDGET"],
   "outputs": {
     "harness": "scripts/benchmark_051_matrix.py (reuses phase timing of scripts/benchmark_050_baseline.py + RSS method of scripts/profile_050_phases.py)",
-    "result": "artifacts/perf/matrix_051.json"
+    "result": "artifacts/perf/matrices_051/matrix_051.json"
   },
   "done_when": "spec committed before any result; every cell MEASURED or marked UNSUPPORTED/SKIPPED_BUDGET with reason; baseline_050.json hash unchanged",
   "spec_env": {
