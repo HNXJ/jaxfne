@@ -1,0 +1,100 @@
+{
+  "schema": "jaxfne.release_receipt.v1",
+  "programme": "v0.5.6",
+  "version": "0.5.6",
+  "status": "gates_pass_not_sealed",
+  "seal_verdict": "PENDING: rc and release gates pass on the candidate SHA and main CI is green on the main merge commit; tag v0.5.6, GitHub Release and PyPI upload follow this commit (Hamm 2026-10-15) and are recorded after.",
+  "receipt_timestamp_utc": "2026-10-15T18:13:20Z",
+  "published_predecessor": "v0.5.5",
+  "supersedes": "artifacts/release/v0_5_5_release_receipt.json",
+  "write_once": false,
+  "tested_sha": "4842b87cc4e1ca9e90322a63df25ddcfdedb3206",
+  "tested_tree_sha": "pending",
+  "branch": "dev",
+  "receipt_commit_note": "The receipt commit is a new SHA and cannot contain its own hash; record it externally at commit time. The tested SHA above carries all gates and CI evidence in this file.",
+  "gates": {
+    "rc_gate": {
+      "command": "python scripts/run_test_gate.py rc",
+      "verdict": "PASS on 4842b87c",
+      "exit_code": 0,
+      "elapsed_s": "pending",
+      "log": "WSL run of scripts/run_test_gate.py rc in a self-contained clone (session log, not kept in the repo)",
+      "attestation": "artifacts/attestations/rc_gate_attestation.json (gate output, untracked): 19 families PASS",
+      "attestation_commit_sha": "4842b87cc4e1ca9e90322a63df25ddcfdedb3206",
+      "attestation_working_tree_clean": true,
+      "families": {
+        "pytest_broad": "5895 passed, 71 skipped",
+        "pytest_slow": "33 passed, 1 skipped",
+        "pytest_notebook": "30 passed, 4 deselected",
+        "docs_build_strict": "PASS",
+        "package_build": "PASS",
+        "twine_check": "PASSED on jaxfne-0.5.6-py3-none-any.whl and jaxfne-0.5.6.tar.gz",
+        "isolated_wheel_smoke": "PASS"
+      },
+      "earlier_release_gate": "pending"
+    },
+    "junit_parity": {
+      "checker": "scripts/check_junit_parity.py",
+      "verdict": "PASS both matrix legs",
+      "release_ci_run": 38743501399,
+      "release_ci_sha": "4842b87cc4e1ca9e90322a63df25ddcfdedb3206",
+      "python_3_11": {
+        "pass": true,
+        "rc_nodes": 6030,
+        "ci_nodes": 6030,
+        "justified_platform_differences": 0,
+        "justified_version_differences": 12,
+        "unjustified": 0,
+        "failures": 0
+      },
+      "python_3_14": {
+        "pass": true,
+        "rc_nodes": 6030,
+        "ci_nodes": 6030,
+        "justified_platform_differences": 0,
+        "justified_version_differences": 0,
+        "unjustified": 0,
+        "failures": 0
+      },
+      "classification_contract": "pending"
+    }
+  },
+  "ci": {
+    "release_ci_parity_source": {
+      "workflow": "release_ci.yml",
+      "run_id": 38743501399,
+      "head_sha": "4842b87cc4e1ca9e90322a63df25ddcfdedb3206",
+      "conclusion": "pending"
+    },
+    "main_merge": {
+      "commit": "a98e61490fe2e07e1a498dce3d64711bc1fcc389",
+      "pull_request": 108,
+      "CI (Fast)": {
+        "run_id": 38757281037,
+        "conclusion": "success"
+      },
+      "Release CI (push, slow tests included)": {
+        "workflow": "release_ci.yml",
+        "run_id": 38757281031,
+        "conclusion": "success"
+      }
+    },
+    "reviews": "Muse release review PASS after a changelog fix; Macroscope thread on metrics.py fixed and resolved."
+  },
+  "scope_decisions": "pending",
+  "performance_status": "pending",
+  "scientific_status_gates": "pending",
+  "distribution": {
+    "build_backend": "pending",
+    "local_verification": "twine check PASSED on jaxfne-0.5.6-py3-none-any.whl and jaxfne-0.5.6.tar.gz (rc gate on 4842b87c)",
+    "tag": "pending",
+    "github_release": "pending",
+    "pypi": "pending",
+    "pypi_publish_method": "trusted publishing (GitHub Actions Publish workflow on release) per v0.5.0 precedent; not invoked"
+  },
+  "preserved_logs": "pending",
+  "blockers_to_seal": [
+    "Tag v0.5.6, GitHub Release, and PyPI upload require explicit user authorization and are not performed.",
+    "Published-state wording in docs/install.md and docs/colab.md is not updated; decision pending (see release report)."
+  ]
+}
