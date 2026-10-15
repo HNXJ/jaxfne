@@ -55,7 +55,7 @@ Paradigm, Objective, optimization/training utilities, visualization, and export 
 |------|------|
 | `artifacts/fact_stack.md` | Stable, human-authorized facts. Read, use, test, challenge; **do not edit without explicit human authorization.** Not evidence. |
 | `artifacts/todo_stack.md` | Remaining work only; done items are deleted (git and receipts keep history). Sealed stacks are archived byte-for-byte under `artifacts/archive/`. |
-| `artifacts/issue_log/ISSUE_LOG.md` | Open issues (P-NNN). |
+| `artifacts/assurance/issue_log/ISSUE_LOG.md` | Open issues (P-NNN). |
 
 Work loop `P (R G)^N S`: prepare from the todo stack → review the last result → do the next item → test → commit + push `dev` → repeat; stop only for a human decision that blocks all remaining work. After each feature, run an adversarial review with a separate agent (opencode muse, `review` tier; packet template `artifacts/harness/review_packet_template.md`) and fix or record every finding.
 

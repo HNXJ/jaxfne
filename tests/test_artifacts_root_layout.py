@@ -51,3 +51,32 @@ def test_viewer_defaults_write_into_a_subfolder():
     for fn in (render_column_viewer, render_pseudogenome_development_viewer):
         default = Path(inspect.signature(fn).parameters["output_path"].default)
         assert default.parent != Path("artifacts"), f"{fn.__name__} writes into artifacts/ root"
+
+
+# P0/P1 reorganization (Hamm 2026-10-15): low-reference folders grouped by kind.
+MOVED_FOLDERS = {
+    "assurance/private_acceptance",
+    "assurance/issue_log",
+    "runs/benchmark",
+    "runs/mcc3_10s_checkpoint",
+    "protocols/hdp/hdp_k_w_ctrl_sweep",
+    "protocols/hdp/hdp_v2_rho_sweep",
+    "protocols/hdp/hdp_presets",
+}
+
+OLD_FOLDERS = {
+    "private_acceptance",
+    "issue_log",
+    "benchmark",
+    "mcc3_10s_checkpoint",
+    "hdp_k_w_ctrl_sweep",
+    "hdp_v2_rho_sweep",
+    "hdp_presets",
+}
+
+
+def test_p0_p1_folders_live_at_new_layout():
+    for rel in sorted(MOVED_FOLDERS):
+        assert (REPO / "artifacts" / rel).is_dir(), f"missing after P0/P1 move: {rel}"
+    for rel in sorted(OLD_FOLDERS):
+        assert not (REPO / "artifacts" / rel).exists(), f"stale after P0/P1 move: {rel}"

@@ -3,7 +3,7 @@
 Top = next. Prerequisites sit above dependents. `[A]` agent can do it, `[H]` needs Hamm. Done items
 are deleted (history: git; the pre-2026-09-27 stack and the sealed 0.5.0–0.5.5 sections are under
 `artifacts/archive/0.5.x/`). Rules: `artifacts/AGENTS.md`. Facts: `artifacts/fact_stack.md` (Hamm
-edits). Open issues: `artifacts/issue_log/ISSUE_LOG.md`. Other editors change this file: re-read
+edits). Open issues: `artifacts/assurance/issue_log/ISSUE_LOG.md`. Other editors change this file: re-read
 first, amend in place.
 
 ## 1. Decisions waiting on Hamm (they unblock items below)

@@ -74,7 +74,7 @@
   "generated_utc": "2026-09-20T06:55:52.865917+00:00",
   "source_bundle": "artifacts/etudes/hdp_controllability_reachability",
   "verification_tier": "hash",
-  "checkpoint": "artifacts/mcc3_10s_checkpoint",
+  "checkpoint": "artifacts/runs/mcc3_10s_checkpoint",
   "reproduced_theta_hat": {
     "m_EE": 1.4332973957061768,
     "m_EI": 1.111473560333252,

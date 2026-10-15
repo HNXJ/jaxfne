@@ -8,7 +8,7 @@ min, max), population rate, per-neuron rate std, and kappa (mean pairwise spike-
 correlation, jaxfne._signals._compute_kappa_synchrony_metric).
 
 Usage:
-    python scripts/measure_hdp_presets.py --out artifacts/hdp_presets/realized_h.json
+    python scripts/measure_hdp_presets.py --out artifacts/protocols/hdp/hdp_presets/realized_h.json
 """
 
 from __future__ import annotations

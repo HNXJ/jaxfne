@@ -11,7 +11,7 @@ future reviewer evaluates the same 100 rows.
 ## Canonical location
 
 ```
-artifacts/private_acceptance/jaxfne_v0_4_17_final_goals_v2.md
+artifacts/assurance/private_acceptance/jaxfne_v0_4_17_final_goals_v2.md
 ```
 
 ## Ingestion requirements (W1)

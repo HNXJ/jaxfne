@@ -21,5 +21,5 @@ OUT       Findings ranked by severity, each with file:line, the concrete failing
           scenario, and a proposed fix. Say "no finding" per check when clean.
 ```
 
-After the review: fix each finding or record it in `artifacts/issue_log/ISSUE_LOG.md`
+After the review: fix each finding or record it in `artifacts/assurance/issue_log/ISSUE_LOG.md`
 with its reason; verify every claimed defect yourself before acting on it.

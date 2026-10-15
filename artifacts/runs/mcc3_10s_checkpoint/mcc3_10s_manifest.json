@@ -18,11 +18,11 @@
     "agsdr_note": "AGSDR rerun with exact accepted MCC-3 optimizer configuration; training sim remains 100 ms, evaluation sim is 10 s."
   },
   "artifacts": {
-    "figure_png": "artifacts\\mcc3_10s_checkpoint\\mcc3_10s_pre_post.png",
-    "metrics_json": "artifacts\\mcc3_10s_checkpoint\\mcc3_10s_metrics.json",
-    "rates_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_rates.csv",
-    "weights_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_weights.csv",
-    "H_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_H.csv"
+    "figure_png": "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_pre_post.png",
+    "metrics_json": "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_metrics.json",
+    "rates_csv": "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_rates.csv",
+    "weights_csv": "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_weights.csv",
+    "H_csv": "artifacts/runs/mcc3_10s_checkpoint/mcc3_10s_H.csv"
   },
   "hashes": {
     "mcc3_10s_pre_post.png": "a44a7384f280db1347b2ed2564b20c0bdb83cf34d42f2a21766962aab8dd6035",

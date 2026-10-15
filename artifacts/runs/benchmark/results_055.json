@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "task_set": "artifacts/benchmark/agent_tasks_055.json",
+ "task_set": "artifacts/runs/benchmark/agent_tasks_055.json",
  "base_commit": "aa36312",
  "executor": "opencode-go/muse-spark-1.3-contributor via opencode-delegate (code tier)",
  "trials_per_task_per_arm": 3,

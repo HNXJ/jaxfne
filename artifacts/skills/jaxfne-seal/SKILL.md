@@ -11,7 +11,7 @@ Final independent verification before tag, release publication, or PyPI upload.
 
 ## AUTHORITIES
 1. Version-specific paths: `artifacts/release/current_release_authorities.json`.
-2. Issue log: `artifacts/issue_log/ISSUE_LOG.md`.
+2. Issue log: `artifacts/assurance/issue_log/ISSUE_LOG.md`.
 3. Gate 0: `scripts/harness/gate0_git_reality.py`.
 4. Repository `artifacts/AGENTS.md` (evidence discipline).
 

@@ -238,7 +238,7 @@ exclude = [
   "scratch",
   "skills",
   "scripts/harness",
-  "artifacts/private_acceptance",
+  "artifacts/assurance/private_acceptance",
   "artifacts/.lab",
   "artifacts/legacy/**",
   "artifacts/legacy",

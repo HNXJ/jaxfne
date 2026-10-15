@@ -3,8 +3,9 @@
 Development state and evidence for jaxfne. Excluded from the wheel and sdist (`pyproject.toml`).
 Every tracked folder is listed here (`tests/test_artifacts_root_layout.py`). Frozen means hashed in
 `publication/frozen_manifest.json`, `scripts/harness/HARNESS_MANIFEST.json` or
-`release/current_release_authorities.json`; receipts point at each other by path, so folders
-stay where they are and new work goes into the folder of its kind.
+`release/current_release_authorities.json`. Each folder holds at most 7 direct entries where it
+can (Hamm 2026-10-15); new work goes into the folder of its kind. Past records (old release
+receipts, dated audits, `archive/`, `legacy/`) keep the paths they were written with.
 
 ## State (root files)
 
@@ -16,7 +17,10 @@ stay where they are and new work goes into the folder of its kind.
 
 | Folder | Holds | Frozen |
 |---|---|---|
-| `issue_log/` | open issues P-NNN | release authorities |
+| `assurance/` | `issue_log/` open issues P-NNN, `private_acceptance/` 0.4.x acceptance scorecards | release authorities |
+| `viewers/` | standalone column and pseudogenome HTML viewers (default output path of `jaxfne.vis`) | |
+| `runs/` | `benchmark/` agent benchmark (0.5.5), `mcc3_10s_checkpoint/` MCC3 10 s scientific checkpoint (cited by the etude manifest) | |
+| `protocols/` | protocol families; `protocols/hdp/` holds `hdp_v2_rho_sweep/`, `hdp_k_w_ctrl_sweep/` HDP sweep outputs (cited by `protocol_c/` P2V-A3) and `hdp_presets/` realized `H` per preset (`scripts/measure_hdp_presets.py`) | |
 | `release/` | release receipts and `current_release_authorities.json` | release authorities |
 | `changelog.d/` | release-note fragments assembled into `docs/changelog.md` | |
 | `publication/` | manuscript figure specs, receipts, claim ledger, `frozen_manifest.json` | frozen + harness |
@@ -30,11 +34,7 @@ stay where they are and new work goes into the folder of its kind.
 | `protocol_h_rbd/` | Protocol H (RBD, H4 matrix) receipts | cited by publication |
 | `protocol_w/` | Protocol W (closed-loop W) contract and receipts | cited by publication |
 | `e2/` | E2 preregistration, execution, confirmatory run, audit | |
-| `hdp_v2_rho_sweep/`, `hdp_k_w_ctrl_sweep/` | HDP sweep outputs (cited by `protocol_c/` P2V-A3) | |
-| `mcc3_10s_checkpoint/` | MCC3 10 s scientific checkpoint (cited by the etude manifest) | |
-| `hdp_presets/` | realized `H` per preset (`scripts/measure_hdp_presets.py`) | |
 | `perf/` | performance baselines, matrices, profiles | |
-| `benchmark/` | agent benchmark (0.5.5) | |
 | `audit/` | audits and deep reviews | cited by publication |
 | `project_sources/` | mathematical specification (the project-source set) | |
 | `vocabulary/` | `JAXFNE_VOCABULARY.md` | |
@@ -42,13 +42,19 @@ stay where they are and new work goes into the folder of its kind.
 | `subagents/` | subagent procedures (vocabulary critic, developer, pool) | |
 | `harness/` | evidence and workflow rules, review packet template | |
 | `tutorials/` | tutorial notebooks and their status | |
-| `viewers/` | standalone column and pseudogenome HTML viewers | |
-| `private_acceptance/` | 0.4.x acceptance scorecards | release authorities |
 | `archive/` | sealed stacks and decisions, byte-for-byte | |
 | `legacy/` | pre-0.4.x notebooks and docs (kept by Hamm 2026-10-11) | |
 | `.lab/` | Labyrinth API graph nodes in `bundle.json`, read by `scripts/lab_balance.py` | |
 
 Untracked: `attestations/` (gitignored test XML), `developer/` (local notes).
+
+Accepted exceptions to the thin-root rule (Hamm 2026-10-15; do not move): the 12 control
+files at `artifacts/` root (state roles plus the two test-pinned JSONs); `publication/`
+frozen entries and `figures/` (`frozen_manifest.json` keys — write-once evidence);
+`release/current_release_authorities.json` (live release authority, paths updated in place);
+`legacy/` (pre-0.4.x notebooks and docs, kept by Hamm 2026-10-11); `viewers/` (the
+`jaxfne.vis` viewers' default `output_path`; moving it changes a public default); archive bytes
+(`archive/` stays as written, including its old-path references).
 
 `archive/scripts/` holds scripts with no reference in the tree, archived 2026-10-13 (T-17):
 

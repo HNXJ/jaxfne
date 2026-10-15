@@ -31,12 +31,12 @@ EXPECTED_REMOTES = [
 MODE_AUTHORITIES = {
     "RELEASE": [
         "artifacts/release/current_release_authorities.json",
-        "artifacts/issue_log/ISSUE_LOG.md",
+        "artifacts/assurance/issue_log/ISSUE_LOG.md",
         "scratch/CURRENT_TASK.md",
     ],
     "RELEASE_PREPARATION": [
         "artifacts/release/current_release_authorities.json",
-        "artifacts/issue_log/ISSUE_LOG.md",
+        "artifacts/assurance/issue_log/ISSUE_LOG.md",
         "scratch/CURRENT_TASK.md",
     ],
     "PUBLICATION": [

@@ -47,7 +47,7 @@ extend the scientifically validated candidate claim.
 
 ## Acceptance goals (5/5 required)
 
-Authority: `artifacts/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md`
+Authority: `artifacts/assurance/private_acceptance/jaxfne_v0_4_22_programme_acceptance.md`
 
 | # | Goal | Class | Evidence |
 | --- | --- | --- | --- |

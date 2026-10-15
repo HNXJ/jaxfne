@@ -21,7 +21,7 @@ print(diag["H_trace"].shape, diag["w_trace"].shape)
 | `DEFAULT_HDP` | 200.0 | 5.0 | 0.01 | 0.0 | 1.0 | `1.001±0.001` pinned | frozen (freeze gate: 5 seeds × 20 s) |
 | `DEFAULT_HDP_DESYNC` | 5.0 | 0.15 | 0.05 | 0.5 | 1.2 | `1.016±0.017` fluctuating | best-of-two-pass, still open |
 
-Realized `H` is the per-neuron mean over the last 1 s of a 2 s run (N=500, seeds 0–4, jaxfne 0.5.5, per-cell-type kernel sizes without the deep-layer size inflation), as mean±std across the 2500 neurons pooled over seeds; population rate is 7.6 Hz and 12.6 Hz, and `kappa` (mean pairwise spike-train correlation) is 0.021 and 0.032, respectively; both are async-irregular. Receipt: `artifacts/hdp_presets/realized_h.json` (`scripts/measure_hdp_presets.py`). `H` restoration is `K_ctrl·(1-H_i)`; weight magnitude restoration `K_w_ctrl·(m0-m)` is independent. No new gains here.
+Realized `H` is the per-neuron mean over the last 1 s of a 2 s run (N=500, seeds 0–4, jaxfne 0.5.5, per-cell-type kernel sizes without the deep-layer size inflation), as mean±std across the 2500 neurons pooled over seeds; population rate is 7.6 Hz and 12.6 Hz, and `kappa` (mean pairwise spike-train correlation) is 0.021 and 0.032, respectively; both are async-irregular. Receipt: `artifacts/protocols/hdp/hdp_presets/realized_h.json` (`scripts/measure_hdp_presets.py`). `H` restoration is `K_ctrl·(1-H_i)`; weight magnitude restoration `K_w_ctrl·(m0-m)` is independent. No new gains here.
 
 <!-- jx-figure -->
 ## Figure

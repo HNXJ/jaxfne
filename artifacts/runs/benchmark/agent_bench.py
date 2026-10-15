@@ -23,7 +23,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import hashlib
 import json
@@ -160,7 +160,7 @@ def score(task: dict[str, Any], candidate: dict[str, dict[str, Any]]) -> dict[st
 # agent surface, so it works from the package and repository alone.
 ARMS = ("skills", "direct")
 _ANSWER_PATHS = (
-    "artifacts/atlas", "artifacts/publication/atlas", "artifacts/benchmark",
+    "artifacts/atlas", "artifacts/publication/atlas", "artifacts/runs/benchmark",
     "scripts/generate_atlas_figures.py", "scripts/benchmark_051_matrix.py",
     "artifacts/programme/atlas_gap_052.md", "artifacts/programme/atlas_gap_053.md",
     "artifacts/programme/atlas_gap_054.md", "tests/test_atlas_*.py", "tests/test_agent_bench_055.py",
@@ -185,7 +185,7 @@ def prepare_worktree(root: Path, arm: str) -> list[str]:
 
     if arm not in ARMS:
         raise ValueError(f"arm must be one of {ARMS}")
-    source = Path(__file__).resolve().parents[2]
+    source = Path(__file__).resolve().parents[3]
     if not (root / ".git").exists() or root.resolve() == source:
         raise ValueError(f"{root} is not a disposable git checkout; refusing to delete files")
     removed = []

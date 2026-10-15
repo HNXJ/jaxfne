@@ -49,7 +49,7 @@ DT_MS = 0.5
 SEEDS = [0, 1, 2, 3, 4]
 K_W_CTRL_CANDIDATES = [0.0, 0.0001, 0.001]
 
-OUT_DIR = Path("artifacts/hdp_k_w_ctrl_sweep")
+OUT_DIR = Path("artifacts/protocols/hdp/hdp_k_w_ctrl_sweep")
 
 
 def _run_one(k_w_ctrl: float, seed: int) -> dict:

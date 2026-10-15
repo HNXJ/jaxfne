@@ -3,11 +3,11 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-10-08T20:30:16",
+  "generated_at": "2026-10-15T16:29:26",
   "components": {
     "project_agents": {
       "file": "artifacts/AGENTS.md",
-      "sha256": "fd75046a6f7c439e9abadc70d78013681f16d3b6367466a21c2eb58a957fadc1"
+      "sha256": "2d36cb75e8cfc7d4597beff2b1a32dacd15f0262222ef227455649b3bc7225bf"
     },
     "canonical_skills": {
       "jaxfne-audit": "c275d9cdff33a3d682a4ab1e75deef479507a0d47b2cfbdc5cd02f4a788f72ba",
@@ -20,7 +20,7 @@
       "jaxfne-release": "d5abfe5f30362a7679540ceb508bb63123d60f5766a67de4c1e1cebc188cb66a",
       "jaxfne-repo": "94a48bd6c82c68662ecdc06042495d665cdcdc05c87131f68628e31683a95c3e",
       "jaxfne-science": "eb18e5f95d462eb65d2aba92ab63c8f31583f8faefde3586389765e1a7d91bee",
-      "jaxfne-seal": "765975a6878f1e8f9ac2e0029b0bd43924f2afc0b61f9a4312d45d321a5ba7d0",
+      "jaxfne-seal": "a02332b042f9588f476a6984a3781ac73090a689436b55ce61ed049e2354ca61",
       "jaxfne-simulate": "7ffaf0cb90536b0d5d8e384d1948a8cb9db7f89c5a9f45535a94c0bb501ee333",
       "jaxfne-state": "abc7943edc2d1d0d2126b3e89fd8afc4b059e189fff93cd6af6bd90364fdda9d",
       "jaxfne-verify": "5a00f375cfc544c3444d2bde517d110046b1c03a02c84bfb95f386725cb120cd",

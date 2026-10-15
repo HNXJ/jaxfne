@@ -85,7 +85,7 @@ def audit_distributions() -> list[str]:
         ".opencode/",
         ".cursor/",
         "scratch/",
-        "artifacts/private_acceptance/",
+        "artifacts/assurance/private_acceptance/",
         "scripts/harness/",
     )
 
