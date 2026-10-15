@@ -261,8 +261,7 @@ fails the build when an atlas departs from `docs/_static/atlas_registry.json`.
 The `gh-pages` branch serves the replication dashboard. The `Dashboard` workflow
 publishes `gh-pages:/dashboard/` and a root `index.html` that redirects there. The rest
 of the branch is an older deployment (release candidate docs for v0.4.20), kept so
-existing links do not 404; it is not current, and no gate reads it. The current docs
-are on Read the Docs.
+existing links do not 404. No gate reads it. The current docs are on Read the Docs.
 
 ## Performance benchmarks
 
