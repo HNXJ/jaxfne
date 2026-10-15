@@ -9,7 +9,7 @@ the rules those releases were held to and are historical context for readers.
 
 ## [Unreleased]
 
-## v0.5.6 (candidate)
+## v0.5.6 (2026-10-15)
 
 ### Added
 - `Configuration.connections()` gains `sampling="density" | "bernoulli"` (default
