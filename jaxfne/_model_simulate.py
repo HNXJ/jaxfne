@@ -1237,11 +1237,14 @@ def simulate(
     field_output = None
     poisson_final_step = None
     if sim.record_fields:
+        # The proxy admits only float32/float64 (refuses bfloat16 by name,
+        # like the sibling poisson solver); bfloat16 dynamics project in
+        # float32 — the same exact upcast _pipeline applies before np.savez.
         field_output = project_laminar_sources(
             sources=sources,
             positions=positions,
             n_contacts=self.static.get("n_contacts", 16),
-            dtype=runtime_cfg.actual_dtype,
+            dtype="float32" if runtime_cfg.actual_dtype == "bfloat16" else runtime_cfg.actual_dtype,
         )
         poisson_final_step = _maybe_poisson_final_step(self, sources)
 
@@ -1379,11 +1382,13 @@ def _simulate_homeostatic_ei(
     field_output = None
     if sim.record_fields:
         positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_dtype)
+        # bfloat16 dynamics project in float32; the proxy refuses bfloat16
+        # by name (see _resolve_proxy_dtype), like the sibling poisson solver.
         field_output = project_laminar_sources(
             sources=sources,
             positions=positions,
             n_contacts=self.static.get("n_contacts", 16),
-            dtype=runtime_cfg.actual_dtype,
+            dtype="float32" if runtime_cfg.actual_dtype == "bfloat16" else runtime_cfg.actual_dtype,
         )
         field_output = replace(
             field_output,

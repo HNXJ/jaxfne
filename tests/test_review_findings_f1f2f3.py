@@ -3,13 +3,21 @@
 F1: ``seed=0`` must stay 0 through the default builders, never collapse to
     42; seed 0 vs seed 42 realize different connectivity; the default
     (``seed=None``) path still records 42.
-F2: ``population_rate`` and ``cable_filter_sources`` follow the
-    ``project_laminar_sources`` dtype contract: ``dtype="float64"`` computes
-    in float64 with x64 enabled and is refused by name without it; the
-    default stays float32.
+F2: ``population_rate``, ``cable_filter_sources`` and
+    ``project_laminar_sources`` follow the input when ``dtype`` is not
+    given: float64 input with x64 enabled computes in float64, otherwise
+    float32 (with x64 off a float64 input reads float32, which is JAX's
+    own canonicalization). An explicit ``dtype="float64"`` still
+    requires x64 and is refused by name without it.
 F3: a stochastic registered HDP rule with no external drive draws its
     per-step noise from ``seed``: seeds 1 vs 2 differ, the same seed
-    repeats exactly.
+    repeats exactly, and an explicit ``seed=0`` never equals the unset
+    key (the adex ``simulate()`` route runs ``simulate_adex`` and
+    refuses HDP inputs — pinned by
+    ``tests/test_adex_route.py::test_construct_refusals_name_the_argument[runtime enable_hdp]`` —
+    so no model path reaches this kernel).
+F1 residual: the tensor bridge refuses a declared ``n_neurons <= 0``
+    by name instead of promoting it to one.
 """
 
 from __future__ import annotations
@@ -21,7 +29,12 @@ import pytest
 
 import jaxfne as jtfne
 from jaxfne.emitters_adex import make_adex_params, simulate_adex_hdp_registered
-from jaxfne.fields import cable_filter_sources, cable_filter_tau, population_rate
+from jaxfne.fields import (
+    cable_filter_sources,
+    cable_filter_tau,
+    population_rate,
+    project_laminar_sources,
+)
 from jaxfne.hdp_rule import (
     HDPRuleDescriptor,
     HDPRuleUpdate,
@@ -158,3 +171,63 @@ def test_f3_seeds_differ_and_repeat():
 def test_f3_non_int_seed_refused_by_name():
     with pytest.raises(ValueError, match="seed"):
         _run_key_noise(seed="1")
+
+
+def test_f2_proxy_dtype_follows_float64_input_with_x64():
+    _enable_x64()
+    try:
+        spikes64 = np.ones((50, 4), dtype=np.float64)
+        out = population_rate(spikes64, 0.5)
+        assert np.asarray(out).dtype == np.float64
+        assert np.allclose(np.asarray(out), 1000.0 / 0.5)
+        filt = cable_filter_sources(
+            spikes64, np.full(4, 0.005, dtype=np.float64), 0.5, order=2
+        )
+        assert np.asarray(filt).dtype == np.float64
+        field = project_laminar_sources(
+            spikes64, np.zeros((4, 3), dtype=np.float64), n_contacts=4
+        )
+        assert np.asarray(field.source_proxy).dtype == np.float64
+        out32 = population_rate(np.ones((50, 4), dtype=np.float32), 0.5)
+        assert np.asarray(out32).dtype == np.float32
+    finally:
+        _disable_x64()
+
+
+def test_f2_proxy_float64_input_without_x64_stays_float32():
+    assert not bool(jax.config.read("jax_enable_x64"))
+    out = population_rate(np.ones((50, 4), dtype=np.float64), 0.5)
+    assert np.asarray(out).dtype == np.float32
+
+
+def test_f3_seed_zero_differs_from_unset():
+    w0 = np.asarray(_run_key_noise(seed=0)["w_final_nS"])
+    assert not np.allclose(w0, 3.0), "rule applied no noise (precondition)"
+    w_unset = np.asarray(_run_key_noise(seed=None)["w_final_nS"])
+    assert not np.array_equal(w0, w_unset), "seed=0 collapsed to the unset key"
+    assert np.array_equal(w0, np.asarray(_run_key_noise(seed=0)["w_final_nS"]))
+
+
+def test_f1_bridge_refuses_zero_neuron_layer_by_name():
+    from jaxfne.neuronal_tensor import (
+        Area,
+        Layer,
+        NeuronalTensor,
+        neuronal_tensor_to_configuration,
+    )
+
+    tensor = NeuronalTensor(
+        areas=[Area(name="V1", layers=[Layer(name="L4", n_neurons=0)])]
+    )
+    with pytest.raises(ValueError, match="n_neurons"):
+        neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
+
+
+def test_f2_proxy_refuses_bfloat16_by_name():
+    spikes = np.ones((10, 4), dtype=np.float32)
+    with pytest.raises(ValueError, match="bfloat16"):
+        population_rate(spikes, 0.5, dtype="bfloat16")
+    with pytest.raises(ValueError, match="bfloat16"):
+        cable_filter_sources(spikes, np.full(4, 0.005), 0.5, dtype="bfloat16")
+    with pytest.raises(ValueError, match="bfloat16"):
+        project_laminar_sources(spikes, np.zeros((4, 3)), n_contacts=4, dtype="bfloat16")

@@ -71,7 +71,7 @@ tau_cable_s = jtfne.cable_filter_tau(cell_type, depth_z)
 # tau_cable_s.shape == (40,), in SECONDS (e.g. 0.00114, 0.00138, ...)
 
 cab = jtfne.cable_filter_sources(jnp.asarray(source_native), tau_cable_s, dt_ms=0.5, order=2)
-# cable_filter_sources(sources, tau_s, dt_ms, *, order=2) -> jax.Array
+# cable_filter_sources(sources, tau_s, dt_ms, *, order=2, dtype=None) -> jax.Array
 # cab.shape == (200, 40)
 ```
 

@@ -2764,7 +2764,16 @@ def neuronal_tensor_to_configuration(
     fallback_weight: dict[str, float] = {}
     area_n_by_name: dict[str, int] = {}
     for area in tensor.areas:
+        for layer in area.layers:
+            if layer.n_neurons <= 0:
+                raise ValueError(
+                    f"Area {area.name!r} Layer {layer.name!r}: n_neurons must be "
+                    f"positive, got {layer.n_neurons!r}; a zero-neuron layer is "
+                    "refused, never promoted to one"
+                )
         layer_names = [layer.name for layer in area.layers] or ["single"]
+        # `or 1` covers only the layer-less Area (the historical single-neuron
+        # default column); declared layers are all positive above.
         area_n = sum(layer.n_neurons for layer in area.layers) or 1
         area_n_by_name[area.name] = area_n
         if area.layers:
@@ -2780,7 +2789,7 @@ def neuronal_tensor_to_configuration(
             # default -- so a Layer's declared n_neurons is now honored.
             cfg = cfg.population(
                 area_n,
-                neurons={layer.name: (layer.n_neurons or 1) for layer in area.layers},
+                neurons={layer.name: layer.n_neurons for layer in area.layers},
                 name=area.name,
                 layers=layer_names,
             )

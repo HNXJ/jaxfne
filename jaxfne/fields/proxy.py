@@ -184,7 +184,11 @@ def _resolve_proxy_dtype(dtype: str, *, name: str):
     Same contract as :func:`project_laminar_sources`: ``"float32"`` computes
     in float32; ``"float64"`` computes in float64 but requires the caller to
     have enabled x64 first, else it is refused by name rather than silently
-    downgraded. Anything else is refused by name.
+    downgraded. Anything else — including ``"bfloat16"`` — is refused by
+    name, matching the sibling ``experimental_poisson_1d`` solver
+    (``jaxfne/fields/solvers.py``), which admits only ``"float32"`` and
+    ``"float64"``. The bfloat16-dynamics runtime path upcasts to
+    ``"float32"`` before calling, so it never reaches this refusal.
     """
     if dtype not in ("float32", "float64"):
         raise ValueError(
@@ -199,6 +203,22 @@ def _resolve_proxy_dtype(dtype: str, *, name: str):
     return jnp.float64 if dtype == "float64" else jnp.float32
 
 
+def _infer_proxy_dtype(*arrays: jax.Array):
+    """Working dtype when ``dtype`` is not given: follow the input.
+
+    float64 input with x64 enabled computes in float64; anything else
+    computes in float32. A float64 input with x64 off still reads
+    float32 — that is JAX's own canonicalization (``jnp.asarray`` of a
+    float64 array with x64 disabled), not a second truncation, so it is
+    kept, not refused.
+    """
+    if bool(jax.config.read("jax_enable_x64")):
+        for array in arrays:
+            if jnp.asarray(array).dtype == jnp.float64:
+                return jnp.float64
+    return jnp.float32
+
+
 def project_laminar_sources(
     sources: jax.Array | CanonicalSource,
     positions: jax.Array,
@@ -206,7 +226,7 @@ def project_laminar_sources(
     n_contacts: int = 16,
     width: float = 0.10,
     mode: str = "density_preserving",
-    dtype: str = "float32",
+    dtype: str | None = None,
 ) -> FieldOutput:
     """Project source traces to laminar proxy contacts.
 
@@ -231,20 +251,15 @@ def project_laminar_sources(
         the stance already documented for ``JaxleyBridge.simulate_laminar_field``
         (``docs/api/bridges.md``).
     dtype:
-        Requested dtype policy.
+        Requested dtype policy (``None`` follows the input: float64
+        input with x64 enabled computes in float64, otherwise
+        float32).
     """
-    if dtype == "float64" and not bool(jax.config.read("jax_enable_x64")):
-        raise ValueError(
-            "dtype='float64' requested but JAX x64 is not enabled -- call "
-            'jax.config.update("jax_enable_x64", True) before creating any array '
-            "in this process; refusing to silently build float32"
-        )
-    if dtype == "float64" and bool(jax.config.read("jax_enable_x64")):
-        jdtype = jnp.float64
-    else:
-        jdtype = jnp.float32
-
     sources, _ = _unwrap_probe_input(sources)
+    if dtype is None:
+        jdtype = _infer_proxy_dtype(sources, positions)
+    else:
+        jdtype = _resolve_proxy_dtype(dtype, name="project_laminar_sources")
     sources = jnp.asarray(sources, dtype=jdtype)
     positions = jnp.asarray(positions, dtype=jdtype)
     depth = positions[:, 2]
@@ -366,7 +381,7 @@ def project_sources_to_laminar_field(
     n_contacts: int = 16,
     *,
     mode: str = "density_preserving",
-    dtype: str = "float32",
+    dtype: str | None = None,
 ) -> FieldOutput:
     """Project sources onto ``n_contacts`` laminar contacts (proxy field).
 
@@ -393,7 +408,7 @@ def project_model_sources(
     n_contacts: int = 16,
     width: float = 0.10,
     mode: str = "density_preserving",
-    dtype: str = "float32",
+    dtype: str | None = None,
 ) -> FieldOutput:
     """Project sources at model-owned positions onto laminar contacts (G8).
 
@@ -1188,17 +1203,22 @@ def population_rate(
     spikes: jax.Array,
     dt_ms: float = 0.1,
     *,
-    dtype: str = "float32",
+    dtype: str | None = None,
 ) -> jax.Array:
     """Mean population firing rate in Hz (0.5.4 item 3, per-area Q signal).
 
     ``rate[t] = mean_n(spikes[t, n]) * 1000 / dt_ms``. Pure observation
     operator: no smoothing, no thresholding, no plotting-side computation.
     ``dtype`` follows the :func:`project_laminar_sources` contract:
-    ``"float32"`` (default) computes in float32, ``"float64"`` computes in
-    float64 and requires x64 to be enabled first.
+    ``None`` (default) follows the input (float64 input with x64 enabled
+    computes in float64, otherwise float32), ``"float32"`` computes in
+    float32, ``"float64"`` computes in float64 and requires x64 to be
+    enabled first.
     """
-    jdtype = _resolve_proxy_dtype(dtype, name="population_rate")
+    if dtype is None:
+        jdtype = _infer_proxy_dtype(spikes)
+    else:
+        jdtype = _resolve_proxy_dtype(dtype, name="population_rate")
     np_dtype = np.float64 if jdtype == jnp.float64 else np.float32
     dt = float(dt_ms)
     if not np.isfinite(dt) or dt <= 0.0:
@@ -1441,7 +1461,7 @@ def cable_filter_sources(
     dt_ms: float,
     *,
     order: int = 2,
-    dtype: str = "float32",
+    dtype: str | None = None,
 ) -> jax.Array:
     """Apply a depth/cell-type-dependent passive-cable low-pass TENSOR to sources.
 
@@ -1497,12 +1517,15 @@ def cable_filter_sources(
         see above).
     dtype:
         Requested dtype policy (same contract as
-        :func:`project_laminar_sources`): ``"float32"`` (default) computes
-        in float32, ``"float64"`` computes in float64 and requires x64 to
-        be enabled first.
+        :func:`project_laminar_sources`): ``None`` (default) follows the
+        input, ``"float32"`` computes in float32, ``"float64"`` computes
+        in float64 and requires x64 to be enabled first.
     """
-    jdtype = _resolve_proxy_dtype(dtype, name="cable_filter_sources")
     sources, _ = _unwrap_probe_input(sources)
+    if dtype is None:
+        jdtype = _infer_proxy_dtype(sources, tau_s)
+    else:
+        jdtype = _resolve_proxy_dtype(dtype, name="cable_filter_sources")
     sources = jnp.asarray(sources, dtype=jdtype)
     tau_s = jnp.asarray(tau_s, dtype=jdtype)
     if sources.ndim != 2:

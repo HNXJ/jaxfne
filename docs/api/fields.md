@@ -123,7 +123,7 @@ positions = geom.positions_array()  # (250, 3), feed into project_laminar_source
 
 ---
 
-### `project_laminar_sources(sources, positions, *, n_contacts=16, width=0.10, mode="density_preserving", dtype="float32") -> FieldOutput`
+### `project_laminar_sources(sources, positions, *, n_contacts=16, width=0.10, mode="density_preserving", dtype=None) -> FieldOutput`
 
 Project emitter sources into laminar contact space.
 
@@ -133,7 +133,7 @@ Project emitter sources into laminar contact space.
 - `n_contacts` (int): Number of laminar contacts, default `16`
 - `width` (float): Gaussian kernel width, default `0.10`
 - `mode` (str): `"density_preserving"` (default) preserves absolute scale; `"row_normalize"` erases attenuation for contacts outside the modeled population
-- `dtype` (str): Output dtype, default `"float32"`
+- `dtype` (str | None): `None` (default) follows the input — float64 input with x64 enabled computes in float64, otherwise float32; `"float32"` / `"float64"` force the dtype (`"float64"` needs x64 first)
 
 **Returns:** `FieldOutput`
 
@@ -147,7 +147,7 @@ field = jtfne.project_laminar_sources(sources, positions, n_contacts=16)
 
 ---
 
-### `project_sources_to_laminar_field(sources, positions, n_contacts=16, *, mode="density_preserving", dtype="float32") -> FieldOutput`
+### `project_sources_to_laminar_field(sources, positions, n_contacts=16, *, mode="density_preserving", dtype=None) -> FieldOutput`
 
 Convenience wrapper over `project_laminar_sources` with `n_contacts` as a
 positional parameter.
@@ -157,7 +157,7 @@ positional parameter.
 - `positions` (jax.Array): Emitter positions `[n_emitters, 3]`
 - `n_contacts` (int, positional): Number of laminar contacts, default `16`
 - `mode` (str, keyword-only): `"density_preserving"` (default) | `"row_normalize"`
-- `dtype` (str, keyword-only): Output dtype, default `"float32"`
+- `dtype` (str | None, keyword-only): `None` (default) follows the input, see `project_laminar_sources`
 
 **Returns:** `FieldOutput` containing LFP and CSD proxy arrays
 
@@ -350,7 +350,7 @@ tau_s = jtfne.cable_filter_tau(nt["cell_type"], nt["z"])
 
 ---
 
-### `cable_filter_sources(sources, tau_s, dt_ms, *, order=2) -> filtered_sources`
+### `cable_filter_sources(sources, tau_s, dt_ms, *, order=2, dtype=None) -> filtered_sources`
 
 Apply a depth/cell-type-dependent passive-cable low-pass **tensor** to
 per-neuron source-proxy traces. Standard pipeline stage:
@@ -367,6 +367,7 @@ emitter -> (source_scale gain tensor) -> source
   `[N]`. Build with `cable_filter_tau`.
 - `dt_ms` (float): simulation timestep in milliseconds.
 - `order` (int, default `2`): number of cascaded single-pole RC sections.
+- `dtype` (str | None): `None` (default) follows the input, see `project_laminar_sources`.
 
 **Returns:** filtered source-proxy traces, shape `[T, N]`.
 

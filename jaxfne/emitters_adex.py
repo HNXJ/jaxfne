@@ -741,11 +741,14 @@ def simulate_adex_hdp_registered(
 
     ``plasticity_mask`` is ``None`` (every edge plastic) or a per-edge
     finite mask; ``hdp_key`` seeds the per-step rule-noise stream, else
-    ``seed`` (an int seed) via ``PRNGKey(seed)``, else ``fold_in`` of the
-    external key when present, else a fixed base — never drawn from, so
-    the external stream stays bit-identical. No seed reaches this kernel
-    from the model, so callers pass ``seed`` explicitly; a non-int seed
-    is refused by name.
+    ``seed`` (an int seed) via a domain-separated fold of
+    ``PRNGKey(seed)`` so an explicit ``seed=0`` never equals the
+    all-None ``PRNGKey(0)`` below, else ``fold_in`` of the external key
+    when present, else a fixed base — never drawn from, so
+    the external stream stays bit-identical. This kernel has no model
+    route (the adex ``simulate()`` path runs ``simulate_adex`` and
+    refuses HDP inputs), so callers pass ``seed`` explicitly; a non-int
+    seed is refused by name.
     ``record_w_trace`` records per-step ``|w|``. Returns the
     :func:`simulate_adex` dict plus ``H_final``, ``w_final_nS``,
     ``aux_final``, ``H_trace``, ``w_trace_nS`` (when recorded),
@@ -921,7 +924,7 @@ def simulate_adex_hdp_registered(
     elif seed is not None:
         if isinstance(seed, bool) or not isinstance(seed, (int, np.integer)):
             raise ValueError(f"seed must be an int or None; got {seed!r}")
-        rule_base = jax.random.PRNGKey(int(seed))
+        rule_base = jax.random.fold_in(jax.random.PRNGKey(int(seed)), 0xAD3E)
     elif ext is not None:
         rule_base = jax.random.fold_in(ext["key"], 9147)
     else:
