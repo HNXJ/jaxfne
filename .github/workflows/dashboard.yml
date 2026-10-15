@@ -1,7 +1,7 @@
 name: Dashboard
 
 # Publishes the committed replication dashboard to gh-pages:/dashboard/ (Hamm 2026-10-12).
-# The gh-pages root holds only a redirect to /dashboard/ (Hamm 2026-10-15).
+# The gh-pages root index.html redirects to /dashboard/ (Hamm 2026-10-15); other old files stay.
 # The data file is never regenerated here: the job fails if it is stale.
 
 on:
@@ -53,16 +53,13 @@ jobs:
           cp -r dashboard/index.html dashboard/app.js dashboard/style.css dashboard/data dashboard/models dashboard/figures ../pages/dashboard/
           cd ../pages
           # The site root opens the dashboard (Hamm 2026-10-15); the docs live on Read the Docs.
-          # Anything else at the root is a stale docs build (last deployed 2026-09-03) and is removed.
-          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .nojekyll ! -name dashboard -exec git rm -rq --ignore-unmatch {} +
-          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .nojekyll ! -name dashboard -exec rm -rf {} +
-          touch .nojekyll
+          # The old v0.4.20 docs pages stay so existing deep links do not 404 (Hamm 2026-10-12).
           printf '%s\n' '<!doctype html>' '<meta charset="utf-8">' '<title>jaxfne dashboard</title>' \
             '<meta http-equiv="refresh" content="0; url=dashboard/">' \
             '<link rel="canonical" href="dashboard/">' \
             '<p><a href="dashboard/">jaxfne replication dashboard</a> · <a href="https://jaxfne.readthedocs.io/">documentation</a></p>' \
             > index.html
-          git add -A .
+          git add -A dashboard index.html
           if git diff --cached --quiet; then
             echo "dashboard unchanged"
             exit 0

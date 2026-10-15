@@ -258,11 +258,11 @@ documentation: it builds `mkdocs.yml` from `main` (latest) and each release tag
 mkdocs runs, `scripts/build_docs_assets.py --build` regenerates the atlas HTML and
 fails the build when an atlas departs from `docs/_static/atlas_registry.json`.
 
-The `gh-pages` branch is **historical and inactive**. It holds an older
-deployment (release candidate docs for v0.4.20) and is intentionally not
-synchronized with `main`; nothing publishes to it and no gate reads it. It is
-retained only so existing links do not 404. Do not treat its contents as
-current, and do not reconcile it against a release SHA.
+The `gh-pages` branch serves the replication dashboard. The `Dashboard` workflow
+publishes `gh-pages:/dashboard/` and a root `index.html` that redirects there. The rest
+of the branch is an older deployment (release candidate docs for v0.4.20), kept so
+existing links do not 404; it is not current, and no gate reads it. The current docs
+are on Read the Docs.
 
 ## Performance benchmarks
 

@@ -116,8 +116,9 @@ Desktop at 1440 px; one column at 390 px with no horizontal scroll. Hash-routed 
 
 ## Publishing
 
-`gh-pages` holds the old MkDocs build (v0.4.20) at the site root. The dashboard goes to
-`gh-pages:/dashboard/` only, and nothing else on the branch changes (Hamm 2026-10-12). The
+The dashboard goes to `gh-pages:/dashboard/`, and the root `index.html` redirects there
+(Hamm 2026-10-15). The old MkDocs build (v0.4.20) stays at the root for existing links
+(Hamm 2026-10-12). The
 `Dashboard` workflow publishes it on each dev push that touches `dashboard/` or the generator,
 after `build_dashboard_data.py --check` passes. URL: https://hnxj.github.io/jaxfne/dashboard/.
 
