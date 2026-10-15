@@ -37,7 +37,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field as _dc_field
+from dataclasses import dataclass
 from typing import Any, NamedTuple
 
 import jax
@@ -465,7 +465,6 @@ def lif_network_params_from_labels(
             columns[f].append(float(over.get(f, LIF_CELL_TYPE_DEFAULTS[row][f])))
         drive.append(overrides.get(lab, LIF_DEFAULT_DRIVE_MV))
         sign.append(LIF_LABEL_SIGN.get(lab, 1.0))
-    n = len(label_tuple)
     return LIFNetworkParams(
         **{f: jnp.asarray(columns[f], dtype=jdtype) for f in _PARAM_FIELDS},
         drive=jnp.asarray(drive, dtype=jdtype),
