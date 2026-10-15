@@ -1014,11 +1014,16 @@ def compile_connection_rules(
             rule.get("local_inhibition"), label=f"connection {rname!r}")
         if inhibition_spec is not None:
             # Echoed so the declared intra-step fixed point (R and the round
-            # order on A) stays inspectable through the manifest.
+            # order on A) stays inspectable through the manifest. The
+            # resolution echoes only when explicitly declared, so default
+            # specs echo byte-identically.
             row["local_inhibition"] = {
                 "rounds": int(inhibition_spec["rounds"]),
                 "order": str(inhibition_spec["order"]),
             }
+            if "resolution" in inhibition_spec:
+                row["local_inhibition"]["resolution"] = str(
+                    inhibition_spec["resolution"])
         if sampling in ("bernoulli", "capped_bernoulli"):
             # Recorded only when non-default, as in connections(), so density rows are unchanged.
             row["sampling"] = sampling
@@ -1097,7 +1102,8 @@ def with_rule_local_inhibition(cfg: Any, rule_name: str, spec: Any) -> Any:
     Same idiom as :func:`with_rule_allow_self_connections` (:meth:
     `Configuration.connections` has no ``local_inhibition`` kwarg): the
     named rule entry is copied with ``local_inhibition={"rounds", "order"}``
-    and everything else byte-identical. ``spec`` is revalidated here
+    (plus ``"resolution"`` when explicitly declared, so default specs stay
+    byte-identical) and everything else byte-identical. ``spec`` is revalidated here
     (fail-closed); :func:`compile_connection_rules` echoes it onto the
     connection-table row so the declared intra-step fixed point rides the
     manifest. The rule must exist exactly once.
@@ -1115,7 +1121,11 @@ def with_rule_local_inhibition(cfg: Any, rule_name: str, spec: Any) -> Any:
         )
     patched = dict(
         rules[hits[0]],
-        local_inhibition={"rounds": normalized["rounds"], "order": normalized["order"]},
+        local_inhibition={
+            "rounds": normalized["rounds"], "order": normalized["order"],
+            **({"resolution": normalized["resolution"]}
+               if "resolution" in normalized else {}),
+        },
     )
     rules[hits[0]] = patched
     circuit["connections"] = rules

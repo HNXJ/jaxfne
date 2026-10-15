@@ -43,8 +43,9 @@ def _tensor(types=None, delay_ms=1.0):
 
 
 def _lif_runtime(**kwargs):
+    kwargs.setdefault("duration_ms", DUR_MS)
     return nt.RuntimeConfiguration(
-        seed=0, duration_ms=DUR_MS, dt_ms=DT_MS, emitter="lif", **kwargs)
+        seed=0, dt_ms=DT_MS, emitter="lif", **kwargs)
 
 
 def _lif_model(tensor=None):
@@ -273,15 +274,56 @@ def _lif_sim(model, **kwargs):
         jtfne.Simulation(duration_ms=DUR_MS, dt_ms=DT_MS, **kwargs))
 
 
-def test_lif_refuses_paradigm_continuation_and_ablation():
-    """No paradigm current, no continuation, no ablation mask on lif."""
+def _solo_tensor():
+    """Four independent lif cells with no baseline drive (no edges)."""
+    return nt.NeuronalTensor(
+        name="lif-solo",
+        areas=[nt.Area(
+            name="V1",
+            layers=[nt.Layer(name="L4", n_neurons=4,
+                             neuron_types=[_nt("E", drive=0.0)])],
+            inter_connections=[])],
+    )
+
+
+def test_lif_paradigm_schedule_drives_targeted_cells_only():
+    """A StimulusSchedule rides the lif route as input current (part of x).
+
+    Fail-first for Gap 1: the lif route refuses paradigm drive, so DVS
+    clips cannot feed a core tensor.
+    """
+    model = _lif_model(_solo_tensor())
+    off = np.asarray(_lif_sim(model, seed=1).spikes)
+    assert int(off.sum()) == 0, "fixture must be silent without drive"
+    schedule = jtfne.stimulus_schedule(
+        [{"onset_ms": 0.0, "duration_ms": DUR_MS, "amplitude": 60.0,
+          "target_indices": [0, 1]}],
+        n_neurons=4)
+    signals = model.simulate(
+        jtfne.Simulation(
+            duration_ms=DUR_MS, dt_ms=DT_MS, seed=1,
+            runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")),
+        paradigm=schedule)
+    spikes = np.asarray(signals.spikes)
+    assert int(spikes[:, [0, 1]].sum()) > 0, "targeted cells must spike"
+    assert int(spikes[:, 2:].sum()) == 0, "untargeted cells must stay silent"
+    assert signals.metadata["paradigm"] is not None
+
+
+def test_lif_refuses_a_non_schedule_paradigm():
+    """A paradigm of unknown type is refused, naming paradigm."""
     model = _lif_model()
-    with pytest.raises(ValueError, match="paradigm"):
+    with pytest.raises((ValueError, TypeError), match="paradigm"):
         model.simulate(
             jtfne.Simulation(
                 duration_ms=DUR_MS, dt_ms=DT_MS,
                 runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list")),
             paradigm="no-drive")
+
+
+def test_lif_refuses_continuation_and_ablation():
+    """No continuation, no ablation mask on lif (paradigm now drives)."""
+    model = _lif_model()
     with pytest.raises(ValueError, match="continuation"):
         model.simulate(
             jtfne.Simulation(
@@ -427,12 +469,18 @@ def _inhibition_tensor(spec):
         mechanism="AMPA", static=nt.StaticParams(dT_ms=5.0),
         local_inhibition=spec,
     )
+    # One retinotopic position: the degenerate point co-locates all 6 cells,
+    # so rounds compete across the whole layer (random positions would leave
+    # every cell a singleton group and the cap inert).
     return nt.NeuronalTensor(
         name="lif-inhibition",
         areas=[nt.Area(
             name="V1",
-            layers=[nt.Layer(name="L4", n_neurons=6,
-                             neuron_types=[_nt("E"), _nt("PV")])],
+            layers=[nt.Layer(
+                name="L4", n_neurons=6,
+                neuron_types=[_nt("E"), _nt("PV")],
+                geometry=nt.Geometry3D(
+                    x_range=(0.0, 0.0), y_range=(0.0, 0.0)))],
             inter_connections=[conn])],
     )
 
@@ -461,3 +509,152 @@ def test_lif_local_inhibition_rounds_and_order_matter():
     assert not np.array_equal(asc, desc), "order must select winners"
     wider = _driven_spikes(_inhibition_tensor({"rounds": 2}))
     assert not np.array_equal(asc, wider), "R must admit more winners"
+
+
+def _two_row_tensor():
+    """One simple-row cell and one complex-row cell with an S->C edge."""
+    conn = nt.InterConnection(
+        source_layer="LS", source_neuron_type="E",
+        target_layer="LC", target_neuron_type="complex",
+        mechanism="AMPA", static=nt.StaticParams(dT_ms=5.0),
+    )
+    return nt.NeuronalTensor(
+        name="lif-two-rows",
+        areas=[nt.Area(
+            name="V1",
+            layers=[
+                nt.Layer(name="LS", n_neurons=1,
+                         neuron_types=[_nt("E", drive=0.0)],
+                         geometry=nt.Geometry3D(
+                             x_range=(0.0, 0.0), y_range=(0.0, 0.0))),
+                nt.Layer(name="LC", n_neurons=1,
+                         neuron_types=[_nt("complex", drive=0.0)],
+                         geometry=nt.Geometry3D(
+                             x_range=(5.0, 5.0), y_range=(0.0, 0.0))),
+            ],
+            inter_connections=[conn])],
+    )
+
+
+def test_lif_pcl_labels_route_to_pcl_rows():
+    """Fail-first for Gap 3a: lif-only labels build through the lif bridge.
+
+    ``"complex"`` names no Izhikevich row, so the bridge cannot sample it;
+    the lif route aliases it for the bridge population only and restores
+    the PCL row (tau 50 ms, threshold 3 mV) afterwards.
+    """
+    model = _lif_model(_two_row_tensor())
+    params = model.params["emitter"]
+    labels = [str(x) for x in params.labels]
+    assert labels == ["E", "complex"]
+    taus = np.asarray(params.tau_m_ms, dtype=float)
+    assert taus.tolist() == [18.0, 50.0]
+    assert np.asarray(params.v_thresh_mV, dtype=float).tolist() == [10.0, 3.0]
+    assert np.asarray(params.drive, dtype=float).tolist() == [0.0, 0.0]
+    assert np.asarray(params.sign, dtype=float).tolist() == [1.0, 1.0]
+    assert bool(np.isfinite(np.asarray(jtfne.simulate(model).V_m)).all())
+
+
+def _tiny_scan_case():
+    """One covered pixel, 2 simples + 1 complex, 3 feed events."""
+    from jaxfne.pcl_topology import (
+        EventScanDrive,
+        build_s1_scan_tensor,
+        event_scan_events,
+        event_scan_tables,
+        local_inhibition_blocks,
+        scan_inhibition_triplets,
+    )
+
+    nx = ny = cx = cy = cd = 1
+    nd, ns, nc = 2, 2, 1
+    wi_s = np.array([[0.0, 0.1], [0.1, 0.0]])
+    wi_c = np.array([[0.0]])
+    tables = event_scan_tables(
+        nx, ny, nd, cx, cy, cd,
+        origins_x=[0], origins_y=[0], size=(1, 1),
+        weights=np.full((nd, 2, 1, 1), 4.0),
+        c_cover={(0, 0): [(0, 0)]}, c_ox=[0], c_oy=[0],
+        c_size=(1, 1), c_weights=np.zeros((cd, 1, 1, nd)),
+        vw=4, vh=4, inhib_range=(0, 0))
+    groups = np.array([0, 0, 1], dtype=np.int64)
+    pre, post, mag = scan_inhibition_triplets(
+        nx, ny, nd, cx, cy, cd, ns, wi_s, wi_c)
+    blocks = local_inhibition_blocks(groups, pre, post, mag)
+    t = np.array([0, 500, 1000], dtype=np.int64)
+    n_steps = int(t.max() // 500) + 1 + 3
+    events = event_scan_events(
+        t, np.zeros(3, dtype=np.int64), np.zeros(3, dtype=np.int64),
+        np.zeros(3, dtype=np.int64), dt_ms=DT_MS, n_steps=n_steps,
+        vw=4, vh=4)
+    drive = EventScanDrive(
+        events, tables, blocks, groups, dt_ms=DT_MS, n_steps=n_steps)
+    return drive, build_s1_scan_tensor(ns=ns, nc=nc), n_steps
+
+
+def test_lif_event_scan_tensor_route_matches_edge_kernel():
+    """Fail-first for Step 9: the tensor route replays the scan exactly.
+
+    A short event slice through ``construct -> simulate`` (paradigm is the
+    scan x-source) must equal ``simulate_lif_edge`` spike-for-spike; the
+    tensor path refuses ``event_scan`` by name on baseline.
+    """
+    from jaxfne.emitters_lif import make_lif_params, simulate_lif_edge
+
+    drive, tensor, n_steps = _tiny_scan_case()
+    model = jtfne.construct(
+        tensor, _lif_runtime(duration_ms=n_steps * DT_MS))
+    sim = jtfne.Simulation(
+        duration_ms=n_steps * DT_MS, dt_ms=DT_MS, seed=1,
+        runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list"))
+    signals = model.simulate(sim, paradigm=drive)
+    ref = simulate_lif_edge(
+        make_lif_params(["simple"] * 2 + ["complex"]),
+        n_steps=n_steps, dt_ms=DT_MS,
+        local_inhibition_groups=drive.groups,
+        local_inhibition_resolution="event_scan",
+        local_inhibition_blocks=drive.blocks,
+        event_scan_events=drive.events,
+        event_scan_tables=drive.tables)
+    got = np.asarray(signals.spikes)
+    assert int(got.sum()) > 0, "fixture must spike"
+    assert np.array_equal(got, np.asarray(ref["spikes"]))
+    assert np.array_equal(
+        np.asarray(signals.metadata["scan_counts"]),
+        np.asarray(ref["counts"]))
+    assert np.array_equal(
+        np.asarray(signals.metadata["scan_first_spike_us"]),
+        np.asarray(ref["first_spike_us"]))
+    assert bool(np.isnan(np.asarray(signals.V_m)).all())
+
+
+def test_lif_event_scan_refuses_unmapped_inputs_by_name():
+    """The mapped scan case refuses schedule/poisson/absent/HDP channels."""
+    drive, tensor, n_steps = _tiny_scan_case()
+    model = jtfne.construct(
+        tensor, _lif_runtime(duration_ms=n_steps * DT_MS))
+
+    def _sim(**kwargs):
+        kwargs.setdefault(
+            "runtime", jtfne.RuntimeConfig(recurrent_backend="edge_list"))
+        return jtfne.Simulation(
+            duration_ms=n_steps * DT_MS, dt_ms=DT_MS, **kwargs)
+
+    with pytest.raises(ValueError, match="StimulusSchedule"):
+        model.simulate(
+            _sim(), paradigm=jtfne.stimulus_schedule(
+                [{"onset_ms": 0.0, "duration_ms": 1.0, "amplitude": 1.0}],
+                n_neurons=3))
+    with pytest.raises(ValueError, match="EventScanDrive"):
+        model.simulate(_sim(), paradigm=None)
+    with pytest.raises(ValueError, match="poisson_drive"):
+        model.simulate(
+            _sim(poisson_drive={"rate_hz": 50.0, "amplitude": 100.0}),
+            paradigm=drive)
+    with pytest.raises(ValueError, match="enable_hdp"):
+        model.simulate(
+            _sim(runtime=jtfne.RuntimeConfig(
+                recurrent_backend="edge_list", enable_hdp=True)),
+            paradigm=drive)
+    with pytest.raises((ValueError, TypeError), match="paradigm"):
+        _lif_sim(model=_lif_model(), paradigm=drive)

@@ -1146,7 +1146,7 @@ def simulate(
 
     if isinstance(self.params["emitter"], LIFNetworkParams):
         _refuse_lif_inputs(self, sim, paradigm, continuation, return_state)
-        return _simulate_lif(self, sim, runtime_cfg)
+        return _simulate_lif(self, sim, runtime_cfg, paradigm)
 
     for _row in (self.cfg.metadata.get("circuit", {}) or {}).get("connections", []):
         if isinstance(_row, dict) and _row.get("weight_sharing") is not None:
@@ -1522,8 +1522,11 @@ def _refuse_lif_inputs(
 ) -> None:
     """Refuse the simulate() inputs the lif route does not consume, naming each.
 
-    Continuation, paradigms and the Simulation/RuntimeConfig fields named in
-    ``_construct_lif.refuse_lif_simulation`` have no lif consumer.
+    Continuation and the Simulation/RuntimeConfig fields named in
+    ``_construct_lif.refuse_lif_simulation`` have no lif consumer. A
+    paradigm resolves to a StimulusSchedule and rides the route as input
+    current (see ``_simulate_lif``); an unresolvable paradigm type fails
+    closed in ``_resolve_stimulus_schedule``, naming itself.
     """
     from ._construct_lif import refuse_lif_simulation
 
@@ -1532,31 +1535,32 @@ def _refuse_lif_inputs(
             "simulate(continuation=..., return_state=...) is not realized for emitter family "
             "'lif': the route has no full-state continuation"
         )
-    if paradigm is not None:
-        raise ValueError(
-            "simulate(paradigm=...) is not realized for emitter family 'lif': the route has no "
-            "paradigm-driven input current, so a paradigm would not drive the cells"
-        )
     declared = model.static.get("lif", {}).get("local_inhibition")
     if declared:
         # Executed: the kernel runs the intra-step cap (rounds and order from
-        # A) inside the step; the declaration is validated here so a bad spec
-        # fails closed naming itself. Several distinct specs on one generic
-        # tensor are refused: the whole-population cap realizes one spec.
+        # A, grouped per retinotopic position) inside the step; the declaration
+        # is validated here so a bad spec fails closed naming itself. Several
+        # distinct specs on one generic tensor are refused: the grouped cap
+        # realizes one spec.
         from .pcl_topology import validate_local_inhibition
 
         specs = set()
         for entry in declared:
             spec = validate_local_inhibition(
-                {"rounds": entry.get("rounds"), "order": entry.get("order")},
+                {"order": entry.get("order"),
+                 **({"rounds": entry["rounds"]}
+                    if entry.get("rounds") is not None else {}),
+                 **({"resolution": entry["resolution"]}
+                    if "resolution" in entry else {})},
                 label="local_inhibition",
             )
-            specs.add((int(spec["rounds"]), str(spec["order"])))
+            specs.add((spec.get("rounds"), str(spec["order"]),
+                       str(spec.get("resolution", "whole_step"))))
         if len(specs) > 1:
             raise ValueError(
                 f"local_inhibition={declared!r} declares several distinct "
-                "(rounds, order) specs on one tensor; the lif route's "
-                "whole-population cap realizes one spec — declare one"
+                "(rounds, order, resolution) specs on one tensor; the lif route's "
+                "grouped cap realizes one spec — declare one"
             )
     refuse_lif_simulation(sim, sim.resolved_runtime)
 
@@ -1569,15 +1573,22 @@ def _refuse_lif_inputs(
 _LIF_HDP_CONSUMED_KEYS = frozenset({"hdp_rule", "hdp_rule_params", "plasticity_mask"})
 
 
-def _simulate_lif(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) -> Signals:
-    """The lif emitter family's ``simulate()`` path (``jaxfne/emitters_lif.py``).
+def _simulate_lif(
+    self: "Model",
+    sim: Simulation,
+    runtime_cfg: RuntimeConfig,
+    paradigm: Any = None,
+) -> Signals:
+    """The lif emitter family's ``simulate()`` path (``jaxfne/emitters_lif``).
 
     Runs the PCL LIF edge kernel on the compiled edges
     (``_construct_lif.lif_edge_arrays`` supplies its arguments, flooring
     zero-step edges to 1 step with a metadata receipt). The step input is the
     emitter's constant drive channel plus ``Simulation(poisson_drive=...)``
     (same seed rule as the current-based route: ``poisson_drive["seed"]``,
-    else ``sim.seed + 7919``), both as native mV. No field is built
+    else ``sim.seed + 7919``), plus a ``paradigm`` resolved to a
+    ``StimulusSchedule`` and materialized as native mV per step (input drive
+    is part of x), all as native mV. No field is built
     (``field`` is None) and no sources are recorded.
 
     HDP runs a registered rule only (``RuntimeConfig(enable_hdp=True,
@@ -1594,7 +1605,51 @@ def _simulate_lif(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) ->
     edges = lif_edge_arrays(self)
     n_neurons = emitter.n_neurons
 
+    lif_params = emitter.to_lif_params()
+    inhibition_spec: dict[str, Any] | None = None
+    for entry in (self.static.get("lif", {}) or {}).get("local_inhibition", []):
+        inhibition_spec = {
+            "order": str(entry["order"]),
+            **({"rounds": int(entry["rounds"])}
+               if entry.get("rounds") is not None else {}),
+            **({"resolution": str(entry["resolution"])}
+               if "resolution" in entry else {}),
+        }
+    if inhibition_spec is not None and inhibition_spec.get(
+            "resolution", "whole_step") == "event_order":
+        raise ValueError(
+            f"local_inhibition resolution {inhibition_spec.get('resolution', 'whole_step')!r} "
+            "is not realized on the "
+            "tensor simulate path: the cascade needs the per-step visit order "
+            "and per-position blocks of the DVS feed — run simulate_lif_edge "
+            "with local_inhibition_blocks/visit_order built by "
+            "jaxfne.pcl_topology.inhibition_visit_order/local_inhibition_blocks"
+        )
+    if inhibition_spec is not None and inhibition_spec.get(
+            "resolution", "whole_step") == "event_scan":
+        # The scan replays the paradigm's declared event stream instead of
+        # any drive channel, so it dispatches before schedule resolution
+        # (which would refuse the EventScanDrive object by name).
+        return _simulate_lif_scan(
+            self, sim, runtime_cfg, paradigm, emitter, edges,
+            inhibition_spec)
+
     drive = jnp.asarray(emitter.drive, dtype=dtype)
+    schedule = self._resolve_stimulus_schedule(paradigm, sim, runtime_cfg)
+    paradigm_arr: Any = None
+    if schedule is not None:
+        if int(schedule.n_neurons) != int(n_neurons):
+            raise ValueError(
+                f"paradigm StimulusSchedule has n_neurons={int(schedule.n_neurons)} "
+                f"but the lif model has {int(n_neurons)} neurons; pass a schedule "
+                "built for this population"
+            )
+        paradigm_arr = schedule.to_array(
+            sim.n_steps, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+        drive_2d_base = jnp.broadcast_to(drive, (sim.n_steps, n_neurons))
+        drive_2d_sched = drive_2d_base + jnp.asarray(paradigm_arr, dtype=dtype)
+    else:
+        drive_2d_sched = jnp.broadcast_to(drive, (sim.n_steps, n_neurons))
     if sim.poisson_drive is not None:
         _pd = sim.poisson_drive
         _poisson_arr = _make_poisson_drive(
@@ -1606,11 +1661,11 @@ def _simulate_lif(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) ->
             seed=poisson_chunk_seed(int(_pd.get("seed", sim.seed + 7919)), 0),
             target=str(_pd.get("target", "all")),
         )
-        drive_2d = jnp.broadcast_to(drive, (sim.n_steps, n_neurons)) + jnp.asarray(
+        drive_2d = drive_2d_sched + jnp.asarray(
             _poisson_arr, dtype=dtype
         )
     else:
-        drive_2d = jnp.broadcast_to(drive, (sim.n_steps, n_neurons))
+        drive_2d = drive_2d_sched
 
     hdp_kwargs: dict[str, Any] = {}
     hdp_rule_name: Any = None
@@ -1660,16 +1715,21 @@ def _simulate_lif(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) ->
             "key": jax.random.PRNGKey(sim.seed),
         }
 
-    lif_params = emitter.to_lif_params()
     edge_pre = edges["pre"]
     edge_post = edges["post"]
     edge_weight = edges["weight"]
     edge_delay_steps = edges["delay_steps"]
     edge_group = edges.get("group")
-    inhibition_spec: dict[str, Any] | None = None
-    for entry in (self.static.get("lif", {}) or {}).get("local_inhibition", []):
-        inhibition_spec = {
-            "rounds": int(entry["rounds"]), "order": str(entry["order"])}
+    inhibition_groups = None
+    if inhibition_spec is not None:
+        inhibition_groups = jnp.asarray(
+            self.static["lif"]["local_inhibition_group_of_neuron"], dtype=jnp.int32)
+        if int(inhibition_groups.shape[0]) != int(n_neurons):
+            raise ValueError(
+                "local_inhibition groups "
+                f"({int(inhibition_groups.shape[0])}) disagree with the lif "
+                f"population ({int(n_neurons)})"
+            )
     n_steps = sim.n_steps
     dt_ms = sim.dt_ms
 
@@ -1692,6 +1752,7 @@ def _simulate_lif(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) ->
                 None if inhibition_spec is None else inhibition_spec["rounds"]),
             local_inhibition_order=(
                 "ascending" if inhibition_spec is None else inhibition_spec["order"]),
+            local_inhibition_groups=inhibition_groups,
             **kw,
         )
 
@@ -1732,6 +1793,11 @@ def _simulate_lif(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) ->
         with _device_scope(runtime_cfg.selected_backend):
             out = _run_lif_kernel(drive_2d, hdp_kwargs.get("key"))
     time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
+    paradigm_meta: Optional[dict[str, Any]] = None
+    if isinstance(paradigm, Mapping):
+        paradigm_meta = dict(paradigm)
+    elif hasattr(paradigm, "to_dict"):
+        paradigm_meta = paradigm.to_dict()
     metadata: dict[str, Any] = {
         "config_hash": config_hash(self.cfg),
         "emitter_family": "lif",
@@ -1740,6 +1806,7 @@ def _simulate_lif(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) ->
         "duration_ms": float(sim.duration_ms),
         "dt_ms": float(sim.dt_ms),
         "n_steps": int(sim.n_steps),
+        "paradigm": paradigm_meta,
         "runtime": runtime_cfg.runtime_report(),
         "physical_amplitude_calibrated": False,
         # The route records no sources and no field; the record flags change nothing here.
@@ -1773,6 +1840,127 @@ def _simulate_lif(self: "Model", sim: Simulation, runtime_cfg: RuntimeConfig) ->
     return Signals(
         time_ms=time_ms,
         V_m=out["V_mV"].astype(dtype),
+        spikes=out["spikes"],
+        sources=None,
+        field=None,
+        metadata=metadata,
+    )
+
+
+def _simulate_lif_scan(
+    self: "Model",
+    sim: Simulation,
+    runtime_cfg: RuntimeConfig,
+    paradigm: Any,
+    emitter: Any,
+    edges: dict,
+    inhibition_spec: dict,
+) -> Signals:
+    """The lif route's event-scan replay (``resolution="event_scan"``).
+
+    The scan replays the timestamped stream carried by the paradigm
+    :class:`jaxfne.pcl_topology.EventScanDrive` event by event through
+    ``simulate_lif_edge`` — each event excites its covered cells with
+    exact inter-event decay, and each spike inhibits, lateralizes and
+    forwards immediately. The replay resolves every event (no rounds
+    cap), so every other simulate input that would change nothing is
+    refused by name: non-scan paradigms (including schedules),
+    ``poisson_drive``, HDP, and compiled edges (the scan tensor's replay
+    connection compiles none — anything else has no scan expression).
+
+    The scan returns finals only: ``V_m`` is all-NaN with per-cell
+    counts and first-spike times in the metadata receipt.
+    """
+    from .emitters_lif import simulate_lif_edge
+    from .pcl_topology import EventScanDrive
+
+    import numpy as _np
+
+    if not isinstance(paradigm, EventScanDrive):
+        raise ValueError(
+            "local_inhibition resolution 'event_scan' replays a declared "
+            "event stream, but paradigm is "
+            f"{type(paradigm).__name__}; pass "
+            "paradigm=EventScanDrive(events, tables, blocks, groups, "
+            "dt_ms=..., n_steps=...) from jaxfne.pcl_topology"
+        )
+    if sim.poisson_drive is not None:
+        raise ValueError(
+            "Simulation(poisson_drive=...) is not realized with "
+            "local_inhibition resolution 'event_scan': the replay feeds "
+            "from the declared EventScanDrive stream, not a poisson "
+            "channel — leave poisson_drive None"
+        )
+    if bool(getattr(runtime_cfg, "enable_hdp", False)):
+        raise ValueError(
+            "RuntimeConfig(enable_hdp=True) is not realized with "
+            "local_inhibition resolution 'event_scan': the replay runs "
+            "frozen weights — leave enable_hdp False"
+        )
+    n_edges = int(edges["pre"].shape[0])
+    if n_edges:
+        raise ValueError(
+            "local_inhibition resolution 'event_scan' replays the event "
+            f"stream, but the tensor compiled {n_edges} edges; compiled "
+            "edges have no scan expression and would silently change "
+            "nothing — the scan tensor declares the replay connection only"
+        )
+    drive = paradigm
+    if int(sim.n_steps) != int(drive.n_steps):
+        raise ValueError(
+            f"EventScanDrive n_steps={int(drive.n_steps)} disagrees with "
+            f"the Simulation grid ({int(sim.n_steps)} steps); build the "
+            "drive for the simulated grid"
+        )
+    if float(sim.dt_ms) != float(drive.dt_ms):
+        raise ValueError(
+            f"EventScanDrive dt_ms={float(drive.dt_ms)} disagrees with the "
+            f"Simulation dt_ms={float(sim.dt_ms)}; the replay indexes the "
+            "stream on the simulated grid"
+        )
+    n_neurons = emitter.n_neurons
+    if int(_np.asarray(drive.groups).shape[0]) != int(n_neurons):
+        raise ValueError(
+            f"EventScanDrive groups cover "
+            f"{int(_np.asarray(drive.groups).shape[0])} cells but the lif "
+            f"model has {int(n_neurons)} neurons; build the drive for "
+            "this population"
+        )
+    dtype = runtime_cfg.jnp_dtype
+    with _device_scope(runtime_cfg.selected_backend):
+        out = simulate_lif_edge(
+            emitter.to_lif_params(),
+            n_steps=int(sim.n_steps),
+            dt_ms=float(sim.dt_ms),
+            local_inhibition_groups=jnp.asarray(drive.groups),
+            local_inhibition_resolution="event_scan",
+            local_inhibition_blocks=drive.blocks,
+            event_scan_events=_np.asarray(drive.events),
+            event_scan_tables=drive.tables,
+        )
+    time_ms = jnp.arange(sim.n_steps, dtype=dtype) * jnp.asarray(sim.dt_ms, dtype=dtype)
+    metadata: dict = {
+        "config_hash": config_hash(self.cfg),
+        "emitter_family": "lif",
+        "n_edges": 0,
+        "n_floored_to_one_step": int(edges["n_floored_to_one_step"]),
+        "duration_ms": float(sim.duration_ms),
+        "dt_ms": float(sim.dt_ms),
+        "n_steps": int(sim.n_steps),
+        "paradigm": drive.to_dict(),
+        "runtime": runtime_cfg.runtime_report(),
+        "physical_amplitude_calibrated": False,
+        # The replay returns finals only; the record flags change nothing here.
+        "not_recorded": ["sources", "field"],
+        "local_inhibition": dict(inhibition_spec),
+        "scan_resolution": "event_scan",
+        "scan_counts": _np.asarray(out["counts"], dtype=_np.int64),
+        "scan_first_spike_us": _np.asarray(out["first_spike_us"]),
+    }
+    return Signals(
+        time_ms=time_ms,
+        V_m=jnp.full(
+            (int(sim.n_steps), int(n_neurons)), jnp.nan, dtype=dtype),
         spikes=out["spikes"],
         sources=None,
         field=None,
@@ -1838,8 +2026,8 @@ def simulate_condition(
         )
     if isinstance(self.params["emitter"], LIFNetworkParams):
         raise ValueError(
-            "simulate_condition(condition=...) is not realized for emitter family 'lif': it "
-            "drives a paradigm, and the lif route consumes no paradigm-driven input current"
+            "simulate_condition(condition=...) is not realized for emitter family 'lif': "
+            "pass an explicit StimulusSchedule as simulate(paradigm=...) instead"
         )
     schedule = stimulus_schedule(
         condition.events,
