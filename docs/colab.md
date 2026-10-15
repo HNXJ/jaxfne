@@ -1,7 +1,7 @@
 # Google Colab Quick Start
 
 Run jaxfne examples in Google Colab without local setup. Installs the
-published PyPI release `jaxfne==0.5.5` (tag `v0.5.5`; previous release `0.5.0`).
+published PyPI release `jaxfne==0.5.6` (tag `v0.5.6`; previous release `0.5.5`).
 
 ---
 
@@ -20,7 +20,7 @@ Open a new Colab notebook: https://colab.research.google.com/
 **Expected output:**
 ```
 Installing collected packages: jaxfne
-Successfully installed jaxfne-0.5.5
+Successfully installed jaxfne-0.5.6
 ```
 
 ---
@@ -82,7 +82,7 @@ print(f"Spike rate: {signals.spikes.sum() / len(signals.time_ms):.2f} spikes/ms"
 **Expected output:**
 ```
 === Computation Contract ===
-Version: 0.5.5
+Version: 0.5.6
 Claim level: computational_scaffold
 Physical amplitude calibrated: False
 Field solver status: linear_solver

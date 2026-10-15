@@ -56,9 +56,6 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 - T-8 [A] Each new score: `dashboard/sources.json` (lane SHA, stage artifacts), regenerate,
   push dev. Standing item. Closes when: `python scripts/build_dashboard_data.py --check` passes
   on each push.
-- T-9 [H] R6 release gate: rc gate, CI green on the SHA, second review, receipt; tag, main and
-  PyPI are Hamm's. Closes when: the v0.5.6 tag exists and its release CI run succeeded.
-  Remaining, Hamm: tag v0.5.6 on a98e6149, the GitHub Release, PyPI (main merge done 2026-10-15).
 - T-26 [A] `scripts/check_junit_parity.py` downloads CI JUnit into
   `artifacts/attestations/ci-junit/` without clearing it, so a rerun on a new SHA fails with
   "file exists" from `gh run download` (seen 2026-10-14 on 65af8541; it fails closed, never
@@ -115,11 +112,11 @@ run on WSL2 CUDA.
   `hdp_k_w_ctrl_sweep.py`, `p2v_a1b_dynamic_search.py`, `p2v_a1b_prefreeze_evidence.py`,
   `p2v_a3_hdp_boundedness.py`, `p2v_a4_claim_language.py`. Closes when: each has Hamm's call.
 - T-18 [A] Inhibitory-type lists that omit `I`, `Inl`, `Ing`, `SOM` (F6 review, 57f40ddf):
-  `tutorial_utils.py:1564` (`simulate_laminar_trials` zeroes same-layer input only onto
-  PV/SST/VIP, a model rule), `tutorial_utils.py:800` (default `cell_signs`), `util.py:712`
+  `tutorial_utils.py:1581` (`simulate_laminar_trials` zeroes same-layer input only onto
+  PV/SST/VIP, a model rule; applied at :1587), `tutorial_utils.py:813` (default `cell_signs`), `util.py:712`
   (diagnostic grouping). Callers checked (b0a12a36): every caller of `make_laminar_column_config`
   and `simulate_laminar_trials` (4 notebooks, `tests/test_tutorial_utils.py`, `tune_laminar_agsdr`)
-  passes only E/PV/SST/VIP, so no realized run is affected at b0a12a36. A change to 1564 is a model
+  passes only E/PV/SST/VIP, so no realized run is affected at b0a12a36. A change to 1581/1587 is a model
   change for Hamm. Closes when: each site reads the emitter table's sign or carries a stated scope.
 - T-19 [A] Deep audit and code critique (Muse, 2026-10-13, at aef3129e). Landed: 0df3da9d,
   68c61e92, 10d80c08 (NaN metrics, refusals, narrowed excepts), 5090af24 and c4dc0922 (D1 noise
