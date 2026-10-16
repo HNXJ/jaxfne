@@ -6,7 +6,6 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 
 ## In flight
 
-- O-2 jnwb ground-truth excerpt (G-3): waiting for jnwb to name the path | jnwb agent | since 2026-10-12 | closes when the CAMINOS p = 0.07 seed 1 excerpt lands in jnwb `tests/`
 - O-3 artifacts/ reorg P4 (perf into runs/, audit/ split; atlas, e2, protocol_* stay) | keeper | since 2026-10-15 | closes when on dev with the broad gate and dev CI green
 - O-4 artifacts/ reorg P5 (skills, harness, subagents, vocabulary, .lab into control/; manifest regenerated) | Muse | since 2026-10-15 | closes when on dev, `sync_skills.py --check` OK, dev CI green
 - O-5 Record-integrity gate, tag-receipt test fixture, rename-aware hygiene, T-27 (guards lane; review round 2 found a hash-swap bypass and `--add` laundering) | Muse | since 2026-10-15 | closes when a second review passes and it is on dev
@@ -17,12 +16,10 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 ## Waiting on others
 
 - O-10 Harness proposals (lane-clone helper, worker background guard, jchat lane registry, lock holders in `who`, known-failures register, release events), jchat conference #29 | jynx keeper | since 2026-10-15 | closes when each is taken or refused
-- O-11 Read the Docs `latest` install page still names 0.5.5 published; it builds from main, where the published-version docs were updated on dev only | keeper | since 2026-10-15 | closes when the next main merge lands and the page reads 0.5.6
 - O-12 `fact_stack.md:107-110` cites `artifacts/perf/`, now `artifacts/runs/perf/` (P4); fact_stack is Hamm's | Hamm | since 2026-10-15 | closes when Hamm edits the two cells or rules them historical
 
 ## Hamm's calls
 
-- O-13 GSDR lane 4f: next step for the saturated regime (κ ≈ 0.95 against 0.0156) | Hamm | since 2026-10-14 | closes when Hamm picks a step (todo_stack GSDR)
 - O-14 T-28 `tfne._RESERVED_LOWER` {x, y, h, s} defined, never read: wire into name checks or delete (score about 60 either way) | Hamm | since 2026-10-15 | closes when Hamm picks one
 - O-15 T-20 `--check` accepted and ignored in `assert_release_freeze.py`, `sync_release_metadata.py` (score about 65 to change) | Hamm | since 2026-10-15 | closes when kept with a note or removed
 - O-22 `goal_stack.md:6` still lists G-5 (release 0.5.6), which is met: 0.5.6 is published (`artifacts/release/v0_5_6_release_receipt.json`) | Hamm | since 2026-10-15 | closes when Hamm deletes the row

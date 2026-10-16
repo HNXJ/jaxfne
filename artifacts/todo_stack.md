@@ -99,7 +99,7 @@ run on WSL2 CUDA.
   page, a proxy-claim wording gate, AST-hash freezing of validated kernels
   (`artifacts/harness/jnwb_cross_learning.md`).
 - T-11 [A] G-3: CAMINOS p = 0.07 seed 1 as an NWB excerpt plus provenance for jnwb `tests/`
-  (waits on O-2). Closes when: the excerpt's recovery test passes in jnwb `tests/`.
+  (waits on jnwb to name its tests/ path). Closes when: the excerpt's recovery test passes in jnwb `tests/`.
 - T-12 [A] `cross_area_coherence` Welch path (the periodogram fallback is refused since
   Hamm's call, 2026-10-13): `nperseg = min(1024, T)` gives one segment for T < 1536 samples, so
   coherence is 1 at the native bins there too. Independent white noise, dt 0.5 ms
