@@ -504,17 +504,18 @@ function openSection(paper) {
 /* ---- v2: classes, tabs, model pages ---- */
 
 var CLASSES = [
-  { id: "verified", label: "Verified replication", chip: "chip-pass", symbol: "✓",
-    def: "Every primary criterion of a signed preregistration passes, run through the jaxfne library (B1)." },
-  { id: "partial", label: "Partial replication", chip: "chip-partial", symbol: "◐",
-    def: "A signed preregistration is scored and some criteria pass, or all pass on a standalone port only." },
-  { id: "not reproduced", label: "Not reproduced", chip: "chip-fail", symbol: "✗",
-    def: "A signed preregistration is scored and its verdict is a fail, shown with the same prominence as a pass (B2)." },
+  { id: "reproduced", label: "Reproduced", chip: "chip-pass", symbol: "✓",
+    def: "Every primary criterion of a signed preregistration passes." },
+  { id: "reproduced (conditional)", label: "Reproduced (conditional)", chip: "chip-partial", symbol: "◐",
+    def: "A signed preregistration passes under a stated condition, shown beside the class." },
   { id: "in progress", label: "In progress", chip: "chip-incomplete", symbol: "…",
-    def: "On the replication pipeline (P0–P7) with no scored preregistration yet; the stage track shows how far it is." },
-  { id: "demonstration", label: "Demonstration", chip: "chip-incomplete", symbol: "◌",
-    def: "A published model runs in jaxfne without a scored numerical comparison to the paper. It carries no verdict." }
+    def: "On the replication pipeline (P0–P7); the stage track shows how far it is. A preregistration scored without a pass keeps the paper here, with its criteria shown." },
+  { id: "not started", label: "Not started", chip: "chip-incomplete", symbol: "○",
+    def: "Planned for a release; no work on the pipeline yet." },
+  { id: "failed", label: "Failed", chip: "chip-fail", symbol: "✗",
+    def: "Closed without reproducing the paper's result, with the reason stated (B2)." }
 ];
+var SCORED_CLASSES = ["reproduced", "reproduced (conditional)", "failed"];
 var TABS = ["overview", "models", "validation", "roadmap", "method"];
 
 function classInfo(id) {
@@ -536,7 +537,7 @@ function clear(node) {
 }
 
 function scored(papers) {
-  return papers.filter(function (p) { return p.class !== "demonstration" && p.class !== "in progress"; });
+  return papers.filter(function (p) { return SCORED_CLASSES.indexOf(p["class"]) >= 0; });
 }
 
 function countVerdicts(papers) {
@@ -609,8 +610,10 @@ function renderOverview(view, data) {
   view.appendChild(el("h2", "Overview"));
   var kpis = el("div");
   kpis.className = "kpis";
+  var planned = data.roadmap || [];
+  function extra(c) { return c.id === "not started" ? planned.length : 0; }
   CLASSES.forEach(function (c) {
-    var n = papers.filter(function (p) { return p["class"] === c.id; }).length;
+    var n = papers.filter(function (p) { return p["class"] === c.id; }).length + extra(c);
     kpis.appendChild(kpi(n, c.label));
   });
   var v = countVerdicts(scored(papers));
@@ -618,15 +621,29 @@ function renderOverview(view, data) {
   view.appendChild(kpis);
   CLASSES.forEach(function (c) {
     var group = papers.filter(function (p) { return p["class"] === c.id; });
-    if (!group.length) return;
+    if (!group.length && !extra(c)) return;
     var h = el("h3", c.label);
     view.appendChild(h);
     view.appendChild(el("p", c.def)).className = "small";
     var cards = el("div");
     cards.className = "cards";
     group.forEach(function (p) { cards.appendChild(paperCard(p)); });
+    if (extra(c)) planned.forEach(function (r) { cards.appendChild(plannedCard(r)); });
     view.appendChild(cards);
   });
+}
+
+function plannedCard(r) {
+  var card = el("a");
+  card.className = "card";
+  card.href = "#roadmap";
+  card.appendChild(el("h3", r.model || ""));
+  card.appendChild(el("p", "release " + (r.release || ""))).className = "small";
+  var chips = el("p");
+  chips.appendChild(classChip("not started"));
+  card.appendChild(chips);
+  if (r.needs) card.appendChild(el("p", "Needs: " + r.needs));
+  return card;
 }
 
 function renderModels(view, data) {
@@ -680,7 +697,7 @@ function renderModel(view, data, paper) {
     });
   }
 
-  var unscoredClass = paper["class"] === "demonstration" || paper["class"] === "in progress";
+  var unscoredClass = SCORED_CLASSES.indexOf(paper["class"]) < 0;
   card.appendChild(el("h3", unscoredClass ? "Declared checks" : "Original and replicated"));
   card.appendChild(criteriaTable(paper));
   if ((paper.charts || []).length) {
@@ -804,7 +821,7 @@ function renderMethod(view) {
   view.appendChild(dl);
   var rules = el("ul");
   [
-    "The class sits beside the preregistered verdict, which always stays visible.",
+    "Preregistered criteria and their pass or fail stay visible under every class.",
     "The page computes no verdict: values and verdicts are copied by scripts/build_dashboard_data.py from scorer files at pinned commits, and its --check runs in CI.",
     "Failures carry the same prominence as passes (B2).",
     "Agreement with a paper is claimed only where a paper value sits beside ours in the table.",
