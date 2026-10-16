@@ -15,6 +15,8 @@ as done with jaxfne only when it runs through the library (P6).
 | [Hodgkin–Huxley reference against a reduced jaxfne neuron (AT-01)](https://hnxj.github.io/jaxfne/dashboard/#model/hh-at01)<br>Hodgkin and Huxley 1952, through Jaxley | demonstration | 0.5.5 | — | — |
 | [Q-learning on jaxfne network features](https://hnxj.github.io/jaxfne/dashboard/#model/qlearning)<br>Watkins and Dayan 1992 (learning rule) | demonstration | 0.5.6 | — | — |
 | [Izhikevich 2003, Figs. 2 and 3 (single-cell patterns and the 1000-cell network)](https://hnxj.github.io/jaxfne/dashboard/#model/izhikevich2003)<br>Izhikevich, IEEE Trans Neural Netw 2003 | not reproduced | 0.5.7 | P5 | not reproduced |
+| [GSDR, Fig. 6 (a 50-neuron E, SST-like and PV-like circuit fitted to recorded spectra)](https://hnxj.github.io/jaxfne/dashboard/#model/gsdr2026)<br>Nejat, Sherfey and Bastos, PLOS One 2026 | in progress | 0.5.7 | P1 | — |
+| [Destexhe 2009, Fig. 6B (self-sustained asynchronous irregular state in an AdEx cortical network)](https://hnxj.github.io/jaxfne/dashboard/#model/destexhe2009)<br>Destexhe, J Comput Neurosci 2009 | in progress | 0.5.7 | P3 | — |
 
 ## Planned
 

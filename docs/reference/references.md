@@ -6,7 +6,7 @@ docstring; `tests/test_references_page.py` holds the two to each other. The repl
 lists papers whose results jaxfne ports compare against. The background tables list work that
 jaxfne builds on, compares itself with or follows as practice, without implementing a result
 from it. Every DOI below resolved on 2026-10-12 (Wang and Buzsáki 1996 and Nejat et al. 2026 on
-2026-10-14), and each matched the title, first author and
+2026-10-14, Destexhe 2009 on 2026-10-16), and each matched the title, first author and
 year of its Crossref record (the Equinox preprint, of its DataCite record). Where jaxfne departs
 from the published result, the row and the docstring say how.
 
@@ -44,6 +44,7 @@ from the published result, the row and the docstring say how.
 | Tahvili, F., Vinck, M., & di Volo, M. (2025). PV and SOM cells play distinct causal roles in controlling network oscillations and stability. *Cell Reports* 44(8), 116131. [doi:10.1016/j.celrep.2025.116131](https://doi.org/10.1016/j.celrep.2025.116131) | The network the PLOS paper takes as its reference model; its STAR Methods are not yet compared with the port | `artifacts/etudes/papers/caminos/PORT_SPEC.md` |
 | N'dri, A. W., Barbier, T., Teulière, C., & Triesch, J. (2025). Predictive Coding Light. *Nature Communications* 16, 8880. [doi:10.1038/s41467-025-64234-z](https://doi.org/10.1038/s41467-025-64234-z) | Fig. 2: learned inhibitory weights and spike suppression ordered by predictability. Fig. 3 is not reproduced under its preregistration | Dashboard: [Fig. 2](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig2), [Fig. 3](https://hnxj.github.io/jaxfne/dashboard/#model/pcl-fig3); `artifacts/etudes/papers/pcl/` |
 | Nejat, H., Sherfey, J., & Bastos, A. M. (2026). A genetic algorithm for self-supervised models of oscillatory neurodynamics. *PLOS One* 21(8), e0354021. [doi:10.1371/journal.pone.0354021](https://doi.org/10.1371/journal.pone.0354021) | Fig. 6: a 50-neuron E, SST-like and PV-like circuit fitted by GSDR to recorded spectra. In progress; no score yet | `artifacts/etudes/papers/gsdr2026/` |
+| Destexhe, A. (2009). Self-sustained asynchronous irregular states and Up-Down states in thalamic, cortical and thalamocortical networks of nonlinear integrate-and-fire neurons. *Journal of Computational Neuroscience* 27(3), 493-506. [doi:10.1007/s10827-009-0164-4](https://doi.org/10.1007/s10827-009-0164-4) | Fig. 6B: the cortical self-sustained asynchronous irregular state of an AdEx network. In progress; no score yet | [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/destexhe2009) |
 | Watkins, C. J. C. H., & Dayan, P. (1992). Q-learning. *Machine Learning* 8(3-4), 279-292. [doi:10.1007/BF00992698](https://doi.org/10.1007/BF00992698) | The tabular Q-learning update, run as a demonstration on two chain tasks | [Dashboard](https://hnxj.github.io/jaxfne/dashboard/#model/qlearning), `artifacts/etudes/papers/qlearning/` |
 
 ## Background: reduced and population models

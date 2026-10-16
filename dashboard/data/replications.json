@@ -2,8 +2,8 @@
   "schema": "jaxfne-replications/2",
   "sample": false,
   "generated": {
-    "utc": "2026-10-16T00:47:09Z",
-    "dev_sha": "c7cbdfe17c973c82a3840a5daf07b1c1369b29ca"
+    "utc": "2026-10-16T20:00:11Z",
+    "dev_sha": "7ac1bb47b5805b046a4790d9d6456ed23c706eb7"
   },
   "papers": [
     {
@@ -2434,6 +2434,71 @@
       "open": [
         "Amendment v8.2 (post hoc, signed 2026-10-13; scores/p3_v8_score.json): Fig. 2 passes 8 of 8 with the C8 pulse at I = 2 and C4 as the least-adapting type (FS 1.86 against RS 2.53 and LTS 4.39). N2 stays a failed paper claim.",
         "S1 (rescored on each arm's own step) moves N3 across its band edge. The net.m update-order arm (PREREG_P3b.md) stopped at its equivalence gate (v5): the JAX arm drifts from the NumPy reference faster than a one-ulp input change (RESULT_P3.md)."
+      ]
+    },
+    {
+      "id": "gsdr2026",
+      "title": "GSDR, Fig. 6 (a 50-neuron E, SST-like and PV-like circuit fitted to recorded spectra)",
+      "citation": "Nejat, Sherfey and Bastos, PLOS One 2026",
+      "class": "in progress",
+      "question": "Does GSDR fit the 50-neuron Hodgkin–Huxley circuit to the recorded spectra when the circuit and the optimizer run in jaxfne?",
+      "page": null,
+      "release": "0.5.7",
+      "tier": "T-jaxfne",
+      "stage": "P1",
+      "lane": {
+        "branch": "dev",
+        "sha": "7ac1bb47b5805b046a4790d9d6456ed23c706eb7"
+      },
+      "stage_artifacts": [
+        {
+          "stage": "P1",
+          "items": [
+            {
+              "label": "source record (draft)",
+              "path": "artifacts/etudes/papers/gsdr2026/SOURCE_P1.md",
+              "url": "https://github.com/hnxj/jaxfne/blob/7ac1bb47b5805b046a4790d9d6456ed23c706eb7/artifacts/etudes/papers/gsdr2026/SOURCE_P1.md"
+            }
+          ]
+        }
+      ],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "Source record drafted. A pilot fit in the lane reached a saturated regime (κ ≈ 0.95 against 0.0156 in the data); the next step is a sweep of g = J_I/J_E at fixed drive before any further fit.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Port spec, calibration record and the pilot fit are in the lane clone and wait for integration on dev.",
+        "The drive and J_E anchor for the g sweep are not yet recorded."
+      ]
+    },
+    {
+      "id": "destexhe2009",
+      "title": "Destexhe 2009, Fig. 6B (self-sustained asynchronous irregular state in an AdEx cortical network)",
+      "citation": "Destexhe, J Comput Neurosci 2009",
+      "class": "in progress",
+      "question": "Does the jaxfne AdEx core, at the paper's parameters, sustain the asynchronous irregular state of Fig. 6B with its rates, CV_ISI and pairwise correlation?",
+      "page": null,
+      "release": "0.5.7",
+      "tier": "T-port",
+      "stage": "P3",
+      "lane": {
+        "branch": "dev",
+        "sha": "6f85f5c3056edf91b89ea2a61efce758000d0a69"
+      },
+      "stage_artifacts": [],
+      "verdict": null,
+      "verdict_note": null,
+      "summary": "The AdEx core features the port needs are on dev (Vpeak detection threshold, external-drive schedules, capped Bernoulli sampling). The port is built in the lane clone (28 lane tests pass); its preregistration is drafted and unsigned, and scored seeds 1–8 (S2) are queued.",
+      "preregs": [],
+      "criteria": [],
+      "sensitivity": [],
+      "charts": [],
+      "open": [
+        "Rebase the lane onto the artifacts reorganization and integrate on dev (T-21).",
+        "Report the authors' Vpeak beside the VT + 5Δ sensitivity (Hamm 2026-10-14)."
       ]
     }
   ],
