@@ -316,6 +316,30 @@ def test_add_after_frozen_key_removal_is_refused_and_writes_nothing(tmp_path):
     assert hashes_path.read_bytes() == before, "refused --add must write nothing"
 
 
+def test_add_repins_frozen_only_move_with_key_update(tmp_path):
+    """A frozen-only record moved with its manifest key repins cleanly."""
+    repo = tmp_path / "repo"
+    rel = "artifacts/misc/blob.bin"  # frozen-only: no predicate class matches
+    (repo / rel).parent.mkdir(parents=True, exist_ok=True)
+    (repo / rel).write_bytes(b"frozen only bytes\n")
+    manifest = repo / "artifacts" / "publication" / "frozen_manifest.json"
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(json.dumps({"files": {rel: {}}}))
+    pinned = _pin_all(repo)
+    hashes_path = _write_hashes(tmp_path, pinned)
+    assert check_tree(repo, pinned) == []
+
+    moved = "artifacts/misc/moved.bin"
+    (repo / rel).rename(repo / moved)
+    manifest.write_text(json.dumps({"files": {moved: {}}}))
+    assert check_tree(repo, pinned) == []
+
+    assert add_paths([moved], repo_root=repo, hashes_path=hashes_path) == 0
+    saved = json.loads(hashes_path.read_text(encoding="utf-8"))
+    assert moved in saved["paths"] and rel not in saved["paths"]
+    assert check_tree(repo, saved) == []
+
+
 def test_moved_and_edited_record_fails(tmp_path):
     """A move whose bytes changed fails (missing hash, nowhere to be found)."""
     _build_tree(tmp_path, extra=True)

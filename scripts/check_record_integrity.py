@@ -446,7 +446,10 @@ def plan_add(
     if refusals:
         return [], pinned, refusals
     stored_counts = pinned.get("counts", {})
-    recounted = pinned_counts_for(pinned.get("paths", {}), frozen_keys)
+    # Recount over the merged paths (accepted move-sources replaced by their
+    # dests), not the pinned set: a repinned move carries its classes with it,
+    # while a manifest-key drop with no accepted move still shows as lost.
+    recounted = pinned_counts_for(merged_paths, frozen_keys)
     demoted = sorted(
         name for name in CLASSES if stored_counts.get(name, 0) > recounted.get(name, 0)
     )
