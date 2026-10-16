@@ -3,7 +3,7 @@
 Reference: N'dri, Barbier, Teuliere, Triesch, Nat Commun 16:8880 (2025),
 doi:10.1038/s41467-025-64234-z, Methods; the per-event update mirrors
 ``Neuron.cpp`` / ``SimpleNeuron.cpp`` / ``ComplexNeuron.cpp`` as transcribed in
-``artifacts/etudes/pcl/port/pcl_event_ref.py`` (read as data): on each input of
+``artifacts/etudes/papers/pcl/port/pcl_event_ref.py`` (read as data): on each input of
 weight ``w`` at time ``t``,
 
     V <- V * exp(-dt/tau_m);  A <- A * exp(-dt/tau_sra),

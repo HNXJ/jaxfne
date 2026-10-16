@@ -841,14 +841,14 @@
     }
   ],
   "copies": [
-    {"dest": "docs/assets/etudes/pcl/c1b_kernels.png", "source": "artifacts/etudes/pcl/confirm/c1b_seed10_kernels.png"},
-    {"dest": "docs/assets/etudes/pcl/c1_kernels.png", "source": "artifacts/etudes/pcl/confirm/c1_seed10_kernels.png"},
-    {"dest": "docs/assets/etudes/multiscale_observation.png", "source": "artifacts/etudes/multiscale_observation/figure.png"},
-    {"dest": "docs/assets/etudes/hdp_controllability_reachability.png", "source": "artifacts/etudes/hdp_controllability_reachability/figure.png"},
-    {"dest": "docs/assets/etudes/heterogeneous_emitters.png", "source": "artifacts/etudes/heterogeneous_emitters/figure.png"},
-    {"dest": "docs/assets/etudes/hdp_balance/stage1.png", "source": "artifacts/etudes/hdp_balance/confirm_figure.png"},
-    {"dest": "docs/assets/etudes/hdp_balance/stage1b.png", "source": "artifacts/etudes/hdp_balance/confirm_1b_figure.png"},
-    {"dest": "docs/assets/etudes/hdp_balance/stage1c.png", "source": "artifacts/etudes/hdp_balance/confirm_1c_figure.png"},
-    {"dest": "docs/assets/etudes/hdp_balance/stage1d.png", "source": "artifacts/etudes/hdp_balance/confirm_1d_figure.png"}
+    {"dest": "docs/assets/etudes/pcl/c1b_kernels.png", "source": "artifacts/etudes/papers/pcl/confirm/c1b_seed10_kernels.png"},
+    {"dest": "docs/assets/etudes/pcl/c1_kernels.png", "source": "artifacts/etudes/papers/pcl/confirm/c1_seed10_kernels.png"},
+    {"dest": "docs/assets/etudes/multiscale_observation.png", "source": "artifacts/etudes/bundles/multiscale_observation/figure.png"},
+    {"dest": "docs/assets/etudes/hdp_controllability_reachability.png", "source": "artifacts/etudes/bundles/hdp_controllability_reachability/figure.png"},
+    {"dest": "docs/assets/etudes/heterogeneous_emitters.png", "source": "artifacts/etudes/bundles/heterogeneous_emitters/figure.png"},
+    {"dest": "docs/assets/etudes/hdp_balance/stage1.png", "source": "artifacts/etudes/bundles/hdp_balance/confirm_figure.png"},
+    {"dest": "docs/assets/etudes/hdp_balance/stage1b.png", "source": "artifacts/etudes/bundles/hdp_balance/confirm_1b_figure.png"},
+    {"dest": "docs/assets/etudes/hdp_balance/stage1c.png", "source": "artifacts/etudes/bundles/hdp_balance/confirm_1c_figure.png"},
+    {"dest": "docs/assets/etudes/hdp_balance/stage1d.png", "source": "artifacts/etudes/bundles/hdp_balance/confirm_1d_figure.png"}
   ]
 }

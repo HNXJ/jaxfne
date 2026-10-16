@@ -2,7 +2,7 @@
 
 Reference: Tahvili, Vinck, di Volo, PLoS Comput Biol 2026 (DOI 10.1371/journal.pcbi.1014378),
 Methods Eqs. 15-18 and Tables 1-2. ``adex_step`` mirrors the CAMINOS etude's ``adex_step``
-(``artifacts/etudes/caminos/caminos_jax.py``, reference branch ``l2-caminos``); the cell table
+(``artifacts/etudes/papers/caminos/caminos_jax.py``, reference branch ``l2-caminos``); the cell table
 mirrors ``PORT_SPEC.md`` Table 1. Nothing is imported from the etude.
 
 Units are jaxfne's: mV, ms, pF, nS, pA (nS * mV = pA; pA / pF = mV / ms).

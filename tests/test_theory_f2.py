@@ -17,7 +17,7 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
-import artifacts.etudes.theory_f2.f2_divergence as F  # noqa: E402
+import artifacts.etudes.theory.theory_f2.f2_divergence as F  # noqa: E402
 
 N = 600
 

@@ -18,7 +18,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - NeuronalTensor on dev: emitter registry and AdEx route, posed geometry for wiring and delays,
   HDP on AdEx, `project_model_sources`, parameter handles. `NeuronalTensor.to_dict` omits the
   0.5.6 optional fields at their defaults, so pinned identity and phenotype hashes are unchanged.
-- CAMINOS Fig. 1 against PLoS CB (primary, Hamm 2026-10-14; `artifacts/etudes/caminos/CALIBRATION.md`
+- CAMINOS Fig. 1 against PLoS CB (primary, Hamm 2026-10-14; `artifacts/etudes/papers/caminos/CALIBRATION.md`
   §10): f_pk 33.80 Hz, rate order and R4 (v7) reproduced on the core route; PV→SOM lag 6.47 ms
   against 8.5 ms by the ref. 42 method (off, a finding that needs X). Dashboard row updated.
 - Tracked tree: 2365 files (budget 2365, `budget_files` in `scripts/tree_size_allowlist.json`).

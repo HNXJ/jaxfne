@@ -1,7 +1,7 @@
 # Etude: HDP controllability, reachability, and TFNE phenotype
 
 **Status:** consolidated computational evidence (relative/proxy readouts)  
-**Bundle:** `artifacts/etudes/hdp_controllability_reachability/`  
+**Bundle:** `artifacts/etudes/bundles/hdp_controllability_reachability/`  
 **Frozen protocol SHA256:** see `manifest.json`  
 **Branch / SHA at consolidation:** see `manifest.json`
 
@@ -76,7 +76,7 @@ At the scientific operating point (`scientific_agsdr_theta_star`), the synaptic-
 
 so \(\mathrm{rank}(J_W B)\le 1\) for all actuator maps \(B\). Scalar per-neuron H-state adds at most one additional adaptive direction, insufficient for independent 2D E/I regulation.
 
-**Receipt:** `artifacts/etudes/hdp_controllability_reachability/metrics.json` (`mvc2_recovery.scalar`)  
+**Receipt:** `artifacts/etudes/bundles/hdp_controllability_reachability/metrics.json` (`mvc2_recovery.scalar`)  
 **MVC #2 scalar-H control:** \(R_{EI}^{\mathrm{scalar}}=0.434\), terminal weighted error \(0.525\) — marginal improvement over HDP-off.
 
 ---
@@ -175,7 +175,7 @@ with weights \((1/15, 1/10, 0.05, 1, 1, 1, 1, 1)\) on relative/proxy units. For 
 
 Package-native operators used: `Signals` field proxy (`phi_e_proxy`, `csd_proxy`), `spectrolaminar_psd`, `kappa_synchrony`. No notebook-local engines.
 
-**Figure:** `artifacts/etudes/hdp_controllability_reachability/figure.png` (panels A–L; panel E = OFF | scalar | vector rasters; MVC #1 inset in D).
+**Figure:** `artifacts/etudes/bundles/hdp_controllability_reachability/figure.png` (panels A–L; panel E = OFF | scalar | vector rasters; MVC #1 inset in D).
 
 <!-- jx-figure -->
 ## Figure

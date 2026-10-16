@@ -30,6 +30,7 @@ NOTEBOOK_PATH = (
     Path(__file__).parent.parent
     / "artifacts"
     / "tutorials"
+    / "suite"
     / "jaxfne_suite_no_1_computational_biophysics.ipynb"
 )
 

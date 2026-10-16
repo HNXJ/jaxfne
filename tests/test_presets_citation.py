@@ -1,7 +1,7 @@
 """The cell-type presets cite what Izhikevich (2003) actually contains.
 
 The paper has no table. Its Fig. 2 gives RS, FS and LTS parameters; it has no VIP or IS cell
-(`artifacts/etudes/izhikevich2003/SOURCE_P1.md`).
+(`artifacts/etudes/papers/izhikevich2003/SOURCE_P1.md`).
 """
 
 import pytest

@@ -26,10 +26,10 @@ TUTORIALS_DIR = Path(__file__).parent.parent / "artifacts" / "tutorials"
 
 # Subset of RELEASE_FACING_NOTEBOOKS in test_notebook_execution_suite.py.
 FAST_NOTEBOOKS = [
-    "jaxfne_v031_single_neuron.ipynb",
-    "jaxfne_v033_two_neuron_ei.ipynb",
-    "jaxfne_v035_small_recurrent_ei.ipynb",
-    "jaxfne_suite_no_2_evoked_l4_drive.ipynb",
+    "versioned/jaxfne_v031_single_neuron.ipynb",
+    "versioned/jaxfne_v033_two_neuron_ei.ipynb",
+    "versioned/jaxfne_v035_small_recurrent_ei.ipynb",
+    "suite/jaxfne_suite_no_2_evoked_l4_drive.ipynb",
 ]
 
 

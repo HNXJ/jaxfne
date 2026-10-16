@@ -8,7 +8,7 @@ ascending depth order, tested against the oracle primitives on a hand-built
 2-3 cell case. Each mechanism reads posed positions; every misdeclaration
 is refused by name.
 
-Oracle (read-only): ``artifacts/etudes/pcl/port/pcl_event_ref.py``,
+Oracle (read-only): ``artifacts/etudes/papers/pcl/port/pcl_event_ref.py``,
 a transcription of the authors' C++. ``PCLEventRef(directory=None)`` uses
 the DefaultConfig.cpp layout with random weights, so no warehouse data is
 needed here. Times are integer microseconds throughout.
@@ -33,7 +33,7 @@ from jaxfne.pcl_topology import (
 
 pytest.importorskip("h5py", reason="the PCL oracle reads HDF5 event files")
 
-from artifacts.etudes.pcl.port import pcl_event_ref as oracle  # noqa: E402
+from artifacts.etudes.papers.pcl.port import pcl_event_ref as oracle  # noqa: E402
 
 DT_MS = 0.5
 DUR_MS = 20.0

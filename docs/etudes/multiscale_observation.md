@@ -2,7 +2,7 @@
 
 **Status:** prospectively frozen before the decisive run  
 **Package baseline:** `d5cf9a6` (O1/O3 observation provenance; no numerical F/P split)  
-**Bundle:** `artifacts/etudes/multiscale_observation/`  
+**Bundle:** `artifacts/etudes/bundles/multiscale_observation/`  
 **Package code:** not modified for this étude
 
 This document is the experimental protocol. Results live in the bundle
@@ -205,7 +205,7 @@ Emitter variation is a **later** étude on the same observation stack.
 
     <iframe class="jx-frame" src="../../_static/etudes/multiscale_observation/index.html" loading="lazy" title="Multiscale observation bundle figure"></iframe>
 
-Committed bundle still (`artifacts/etudes/multiscale_observation/figure.png`). [Open full page](../_static/etudes/multiscale_observation/index.html).
+Committed bundle still (`artifacts/etudes/bundles/multiscale_observation/figure.png`). [Open full page](../_static/etudes/multiscale_observation/index.html).
 
 ## Interactive panels (dark)
 

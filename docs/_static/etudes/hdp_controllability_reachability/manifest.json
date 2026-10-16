@@ -72,7 +72,7 @@
   ],
   "sha256": "fb7f17316fed6f99",
   "generated_utc": "2026-09-20T06:55:52.865917+00:00",
-  "source_bundle": "artifacts/etudes/hdp_controllability_reachability",
+  "source_bundle": "artifacts/etudes/bundles/hdp_controllability_reachability",
   "verification_tier": "hash",
   "checkpoint": "artifacts/runs/mcc3_10s_checkpoint",
   "reproduced_theta_hat": {

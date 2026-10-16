@@ -22,7 +22,7 @@ Tasks (`jaxfne.tasks`):
 
 ## Implementation
 
-`artifacts/etudes/qlearning/qlearn_jaxfne.py`, through the jaxfne library: a 40 E + 10 I
+`artifacts/etudes/papers/qlearning/qlearn_jaxfne.py`, through the jaxfne library: a 40 E + 10 I
 network on the edge-list backend, one `connections()` rule adding E→E edges (p 0.5, weight 1.0),
 `connectivity(edge_seed=seed)`. State $s$ drives two neighbouring 8-cell E groups at amplitude
 10 for 200 ms. Controls: tabular (one-hot features) and flat (one constant vector).
@@ -55,7 +55,7 @@ The network code learns later than tabular, with about a third of its Q error.
 ## Reproduce
 
 ```
-pytest -q -p no:cacheprovider artifacts/etudes/qlearning/
+pytest -q -p no:cacheprovider artifacts/etudes/papers/qlearning/
 ```
 
 Run from the repository root. Seeds 0–4 fix the network realization and the simulation noise;

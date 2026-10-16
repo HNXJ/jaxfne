@@ -12,8 +12,8 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
-import artifacts.etudes.pcl.k1h_nf_gate as G  # noqa: E402
-import artifacts.etudes.pcl.pcl_column_hdp as D  # noqa: E402
+import artifacts.etudes.papers.pcl.k1h_nf_gate as G  # noqa: E402
+import artifacts.etudes.papers.pcl.pcl_column_hdp as D  # noqa: E402
 
 
 def test_nudge_moves_nonzero_weights_one_ulp_and_zero_is_identity():

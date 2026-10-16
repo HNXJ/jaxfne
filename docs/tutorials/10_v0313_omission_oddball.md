@@ -2,7 +2,7 @@
 
 **Expected stimuli, unexpected deviants, and omission detection under package-native paradigm config.**
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_v0313_omission_oddball.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/versioned/jaxfne_v0313_omission_oddball.ipynb)
 
 ---
 

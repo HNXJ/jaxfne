@@ -12,7 +12,7 @@ Open: the manuscript tree and other archive moves (T-17). Decided 2026-10-13: T-
 T-14, T-17 (calls in each item). Decided 2026-10-14: hyx standardization (T-22–T-25),
 Destexhe Vpeak, GSDR diagnosis, CAMINOS lag (§3); T-1 (a) landed in e3a7a41b; T-2
 bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
-`artifacts/etudes/REPLICATIONS.md`).
+`artifacts/etudes/meta/REPLICATIONS.md`).
 
 - T-3 [A] PCL Fig. 3 stays in progress (Hamm 2026-10-13: it must replicate). v4 FAIL stands
   (`pcl-port` 5640ce18: T1, T3 pass; T2, T4 fail). v5 signed by Hamm 2026-10-13 on `pcl-port`
@@ -83,7 +83,7 @@ Rules B1–B7 (adopted 2026-10-11):
 - [H] B3 one emitter per release, authorized by Hamm, gated by a P4 test perturbing every
   accepted parameter.
 - [A] B4 narrowing, one class per commit with its gate; generated assets regenerate at the docs
-  build (T-4; plan `artifacts/etudes/narrowing_plan.md`).
+  build (T-4; plan `artifacts/etudes/meta/narrowing_plan.md`).
 - [A] B5 GPU: one job at a time, claimed in jchat. B6 each accepted binding becomes a row here the
   same session. B7 calibrate on synthetic nulls and known positives before a signature.
 
@@ -189,9 +189,9 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   opt-in "balanced" preset with a measured asynchronous-irregular regime, canonical 1000n column
   bit-identical; runs 1k → 2k → 5k, then a 10k decision.
 - PCL: `pcl_stdp_h2` for new work, `pcl_stdp` stays default for K1 and the replication; a
-  learned-tuning A1 test needs a declared criterion (`artifacts/etudes/pcl/README.md`).
+  learned-tuning A1 test needs a declared criterion (`artifacts/etudes/papers/pcl/README.md`).
   Lane 2 (tensor route): Stage C passed 2026-10-15, 20 of 20 clips exact (receipt
-  `artifacts/etudes/pcl/stage_c_tensor_route_20clip.json`; CALIBRATION.md Steps 8–9). Open in the
+  `artifacts/etudes/papers/pcl/stage_c_tensor_route_20clip.json`; CALIBRATION.md Steps 8–9). Open in the
   record: the `no construct route (OPEN)` marker (CALIBRATION.md:24) is not marked closed; Step 9
   lists no next items. T-3 (Fig. 3) is separate and unchanged.
 - Structural HDP (2026-09-29, `artifacts/programme/design/plans/structural_hdp_design.md`): existence over a
@@ -226,7 +226,7 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
 12. Rule proposal (deep review 89 §12): new mechanism ⇒ reference model, discriminator and
     reduction test; adoption is Hamm's.
 13. 0.5.7 (Hamm 2026-10-13): Izhikevich 2003 P3 prereg draft v7 (calibration passed at θ = 4,
-    `artifacts/etudes/izhikevich2003/calibration/calibration_v7_15f36087.json`) for signature,
+    `artifacts/etudes/papers/izhikevich2003/calibration/calibration_v7_15f36087.json`) for signature,
     then S1 reference arm `net_reference.py` and the scored runs. CAMINOS P6 prereg (Fig. 1
     through `emitter(family="adex")`, `connections(sampling="bernoulli")`,
     `Simulation(poisson_drive=)`; F1–F6 landed) for signature and its equivalence test.

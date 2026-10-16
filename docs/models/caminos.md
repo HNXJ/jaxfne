@@ -62,9 +62,9 @@ Sensitivity: a 0.1 ms synaptic and drive delay (one step, the core minimum) give
 
 ## Receipts
 
-- Prereg and results: `artifacts/etudes/caminos/PREREG_P3.md`, `PREREG_P3_v7_R4.md`, `PREREG_P6.md`, `RESULT_P3.md`, `RESULT_P6.md`.
-- Scores: `artifacts/etudes/caminos/scores/` (`score.json`, `score_v7.json`, `p6_v2_score.json`).
-- Calibration record: `artifacts/etudes/caminos/CALIBRATION.md`.
+- Prereg and results: `artifacts/etudes/papers/caminos/PREREG_P3.md`, `PREREG_P3_v7_R4.md`, `PREREG_P6.md`, `RESULT_P3.md`, `RESULT_P6.md`.
+- Scores: `artifacts/etudes/papers/caminos/scores/` (`score.json`, `score_v7.json`, `p6_v2_score.json`).
+- Calibration record: `artifacts/etudes/papers/caminos/CALIBRATION.md`.
 - Raw counts and manifests: `F:\warehouse\caminos\p6_scored_v2\`, `F:\warehouse\caminos\scored\v7_20261012\`, and the held-out runs `F:\warehouse\caminos\calib\heldout_p007\`.
-- Lag re-score by the phase method: `F:\warehouse\caminos\calib\lag_ref42_p007.json`, with the estimator in `artifacts/etudes/caminos/caminos_api.py` (`ref42_phase_delay`).
-- Sensitivity (0.1 ms delay): runs in `F:\warehouse\caminos\calib\sens_delay0p1_p007\`, scored to `F:\warehouse\caminos\calib\sens_delay0p1_score.json` by `artifacts/etudes/caminos/score_delay_sensitivity.py`.
+- Lag re-score by the phase method: `F:\warehouse\caminos\calib\lag_ref42_p007.json`, with the estimator in `artifacts/etudes/papers/caminos/caminos_api.py` (`ref42_phase_delay`).
+- Sensitivity (0.1 ms delay): runs in `F:\warehouse\caminos\calib\sens_delay0p1_p007\`, scored to `F:\warehouse\caminos\calib\sens_delay0p1_score.json` by `artifacts/etudes/papers/caminos/score_delay_sensitivity.py`.

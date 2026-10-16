@@ -860,7 +860,7 @@ function renderHeader(data) {
   devLink.appendChild(el("span", "build dev@" + shortSha(sha)));
   devLink.href = "https://github.com/hnxj/jaxfne/commit/" + sha;
   var doc = document.getElementById("replications-doc");
-  doc.href = "https://github.com/hnxj/jaxfne/blob/" + sha + "/artifacts/etudes/REPLICATIONS.md";
+  doc.href = "https://github.com/hnxj/jaxfne/blob/dev/artifacts/etudes/meta/REPLICATIONS.md";
   document.getElementById("banner").hidden = !data.sample;
 }
 

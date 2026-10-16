@@ -132,3 +132,72 @@ def test_p2_folders_live_at_new_layout():
     assert perf_loose == set(), f"stale after P2 move: {sorted(perf_loose)}"
     prog_loose = {p.name for p in (REPO / "artifacts" / "programme").iterdir() if p.is_file()}
     assert prog_loose == P2_PROGRAMME_ROOT_FILES, f"unexpected programme/ root: {sorted(prog_loose)}"
+
+
+# P3 reorganization (Hamm 2026-10-15): etudes/ and tutorials/ grouped by kind.
+P3_ETUDES_ROOT = {
+    "bundles",
+    "experiment_a",
+    "jdna",
+    "meta",
+    "papers",
+    "theory",
+}
+
+P3_TUTORIALS_ROOT = {
+    "etudes",
+    "intro",
+    "status",
+    "suite",
+    "templates",
+    "versioned",
+}
+
+P3_OLD_ETUDES = {
+    "caminos",
+    "gsdr2026",
+    "izhikevich2003",
+    "pcl",
+    "pcl_h",
+    "qlearning",
+    "hdp_balance",
+    "hdp_controllability_reachability",
+    "heterogeneous_emitters",
+    "multiscale_observation",
+    "theory_f1",
+    "theory_f2",
+    "theory_f4",
+    "jdna-compact-grammar",
+}
+
+P3_KEY_FILES = {
+    "etudes/papers/caminos/CALIBRATION.md",
+    "etudes/papers/pcl/README.md",
+    "etudes/bundles/hdp_balance/README.md",
+    "etudes/theory/theory_f1/README.md",
+    "etudes/jdna/jdna-compact-grammar/parser.py",
+    "etudes/meta/REPLICATIONS.md",
+    "tutorials/suite/jaxfne_suite_no_1_computational_biophysics.ipynb",
+    "tutorials/intro/jaxfne_neuronal_tensor_first.ipynb",
+    "tutorials/versioned/jaxfne_v031_single_neuron.ipynb",
+    "tutorials/status/NOTEBOOK_STATUS.md",
+}
+
+
+def test_p3_folders_live_at_new_layout():
+    etudes_root = {p.name for p in (REPO / "artifacts" / "etudes").iterdir()}
+    assert etudes_root == P3_ETUDES_ROOT, f"unexpected etudes/ root: {sorted(etudes_root)}"
+    tut_root = {p.name for p in (REPO / "artifacts" / "tutorials").iterdir()}
+    assert tut_root == P3_TUTORIALS_ROOT, f"unexpected tutorials/ root: {sorted(tut_root)}"
+    for rel in sorted(P3_OLD_ETUDES):
+        assert not (REPO / "artifacts" / "etudes" / rel).exists(), f"stale after P3 move: {rel}"
+    for rel in sorted(P3_KEY_FILES):
+        assert (REPO / "artifacts" / rel).is_file(), f"missing after P3 move: {rel}"
+    for sub in ("bundles", "papers", "theory", "jdna", "meta"):
+        entries = list((REPO / "artifacts" / "etudes" / sub).iterdir())
+        assert len(entries) <= 7, f"etudes/{sub} holds {len(entries)} entries"
+    # experiment_a/ stays as written (frozen cited path); tutorials/etudes/ keeps
+    # the lane notebook series and tutorials/versioned/ the versioned series.
+    for sub in ("intro", "status", "suite", "templates"):
+        entries = list((REPO / "artifacts" / "tutorials" / sub).iterdir())
+        assert len(entries) <= 7, f"tutorials/{sub} holds {len(entries)} entries"

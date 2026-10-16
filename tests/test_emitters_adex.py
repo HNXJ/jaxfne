@@ -1,7 +1,7 @@
 """Tests for the AdEx conductance kernel in ``jaxfne/emitters_adex.py``.
 
 Oracle: ``_oracle_adex_step`` is a float64 NumPy transcription of ``adex_step`` in
-``artifacts/etudes/caminos/caminos_jax.py`` of the reference worktree (branch
+``artifacts/etudes/papers/caminos/caminos_jax.py`` of the reference worktree (branch
 ``l2-caminos``, commit 1e768f9d; SI units, Eqs. 15-16 of Tahvili, Vinck, di Volo 2026,
 PLoS Comput Biol). Its cell parameters are typed from ``PORT_SPEC.md`` Table 1 in SI
 units, independently of the kernel's mV/pA table.

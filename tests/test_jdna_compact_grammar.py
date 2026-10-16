@@ -23,7 +23,7 @@ from jaxfne.jdna.genome import (
 from jaxfne.neuronal_tensor import merge_neuronal_tensors, Pose3D
 
 ROOT = Path(__file__).resolve().parents[1]
-PARSER_PATH = ROOT / "artifacts" / "etudes" / "jdna-compact-grammar" / "parser.py"
+PARSER_PATH = ROOT / "artifacts" / "etudes" / "jdna" / "jdna-compact-grammar" / "parser.py"
 
 def _load_parser():
     spec = importlib.util.spec_from_file_location("jdna_compact_parser", PARSER_PATH)
@@ -574,7 +574,7 @@ def test_no_jdna_imports_in_construct():
 # ---------------------------------------------------------------------------
 
 def test_H11_generates_outputs_in_tmp_path(tmp_path):
-    # This test itself verifies H11: all generated files are under tmp_path and fresh clone would still pass because we don't read artifacts/etudes/jdna-compact-grammar/*.json
+    # This test itself verifies H11: all generated files are under tmp_path and fresh clone would still pass because we don't read artifacts/etudes/jdna/jdna-compact-grammar/*.json
     # Generate a genome and tensor into tmp_path
     text = """
     define H11Test {
@@ -592,8 +592,8 @@ def test_H11_generates_outputs_in_tmp_path(tmp_path):
     tp = tmp_path / "tensor.json"
     jtfne.save_neuronal_tensor(t, tp)
     assert tp.exists()
-    # ensure no file under artifacts/etudes/jdna-compact-grammar was read as fixture
-    assert not (ROOT / "artifacts" / "etudes" / "jdna-compact-grammar" / "fixture.json").exists()
+    # ensure no file under artifacts/etudes/jdna/jdna-compact-grammar was read as fixture
+    assert not (ROOT / "artifacts" / "etudes" / "jdna" / "jdna-compact-grammar" / "fixture.json").exists()
 
 # ---------------------------------------------------------------------------
 # 10. FUTURE_API blocked: no jaxfne/jdna/*.py change
@@ -601,7 +601,7 @@ def test_H11_generates_outputs_in_tmp_path(tmp_path):
 
 def test_future_api_not_shipped():
     # Parser must live under artifacts, not jaxfne/jdna
-    assert (ROOT / "artifacts" / "etudes" / "jdna-compact-grammar" / "parser.py").exists()
+    assert (ROOT / "artifacts" / "etudes" / "jdna" / "jdna-compact-grammar" / "parser.py").exists()
     assert not (ROOT / "jaxfne" / "jdna" / "compact.py").exists()
     assert not (ROOT / "jaxfne" / "jdna" / "parser.py").exists()
 

@@ -2,7 +2,7 @@
 
 Reference: N'dri, Barbier, Teuliere, Triesch, Nat Commun 16:8880 (2025),
 doi:10.1038/s41467-025-64234-z. The oracle transcription
-``artifacts/etudes/pcl/port/pcl_event_ref.py`` (read-only) is the arbiter for
+``artifacts/etudes/papers/pcl/port/pcl_event_ref.py`` (read-only) is the arbiter for
 every claim below; cited as ``oracle:<line>``.
 
 Three mechanisms, each reading posed positions from the NeuronalTensor A:

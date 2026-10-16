@@ -2,7 +2,7 @@
 
 Suite No. 1 and Suite No. 4 already have dedicated execution tests
 (test_suite_no1_notebook_execution.py, test_suite_no4_notebook_execution.py).
-The other 26 release-facing notebooks (see artifacts/tutorials/NOTEBOOK_STATUS.md)
+The other 26 release-facing notebooks (see artifacts/tutorials/status/NOTEBOOK_STATUS.md)
 previously had zero execution coverage -- only structural/grammar checks.
 
 Each notebook below is executed end-to-end in a fresh kernel via nbclient;
@@ -31,10 +31,10 @@ from _notebook_exec_helpers import execute_notebook_via_nbclient, format_cell_er
 TUTORIALS_DIR = Path(__file__).parent.parent / "artifacts" / "tutorials"
 
 # Release-facing notebooks not already covered by a dedicated execution test.
-# Keep in sync with artifacts/tutorials/NOTEBOOK_STATUS.md's release-facing list.
+# Keep in sync with artifacts/tutorials/status/NOTEBOOK_STATUS.md's release-facing list.
 RELEASE_FACING_NOTEBOOKS = [
-    "jaxfne-sanity-checker-notebook-01.ipynb",
-    "jaxfne-sanity-delta-test-hierarchical-global-local-oddball.ipynb",
+    "intro/jaxfne-sanity-checker-notebook-01.ipynb",
+    "intro/jaxfne-sanity-delta-test-hierarchical-global-local-oddball.ipynb",
     "etudes/jaxfne_etude_no_1_base.ipynb",
     "etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb",
     "etudes/jaxfne_etude_no_4_homeostatic_V1_column.ipynb",
@@ -47,19 +47,19 @@ RELEASE_FACING_NOTEBOOKS = [
     "etudes/jaxfne_etude_no_11_omission_local.ipynb",
     "etudes/jaxfne_etude_no_12_omission_global_coop.ipynb",
     "etudes/jaxfne_etude_tcm_v1_6pop.ipynb",
-    "jaxfne_suite_no_2_evoked_l4_drive.ipynb",
-    "jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
-    "jaxfne_suite_no_3_low_frequency_scaling.ipynb",
-    "jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb",
-    "jaxfne_v0313_omission_oddball.ipynb",
-    "jaxfne_v031_single_neuron.ipynb",
-    "jaxfne_v032_parameter_sweep.ipynb",
-    "jaxfne_v033_two_neuron_ei.ipynb",
-    "jaxfne_v035_small_recurrent_ei.ipynb",
-    "jaxfne_v036_100_neuron_ei_population.ipynb",
-    "jaxfne_v038_lfp_csd_readout.ipynb",
-    "jaxfne_v040_continuous_omission_oddball.ipynb",
-    "jaxfne_v040_homeostasis_plasticity_dc_noise_sweep.ipynb",
+    "suite/jaxfne_suite_no_2_evoked_l4_drive.ipynb",
+    "suite/jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
+    "suite/jaxfne_suite_no_3_low_frequency_scaling.ipynb",
+    "versioned/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb",
+    "versioned/jaxfne_v0313_omission_oddball.ipynb",
+    "versioned/jaxfne_v031_single_neuron.ipynb",
+    "versioned/jaxfne_v032_parameter_sweep.ipynb",
+    "versioned/jaxfne_v033_two_neuron_ei.ipynb",
+    "versioned/jaxfne_v035_small_recurrent_ei.ipynb",
+    "versioned/jaxfne_v036_100_neuron_ei_population.ipynb",
+    "versioned/jaxfne_v038_lfp_csd_readout.ipynb",
+    "versioned/jaxfne_v040_continuous_omission_oddball.ipynb",
+    "versioned/jaxfne_v040_homeostasis_plasticity_dc_noise_sweep.ipynb",
 ]
 
 pytestmark = [pytest.mark.slow, pytest.mark.notebook]

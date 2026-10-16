@@ -1,4 +1,4 @@
-"""F1 (state reduction for HDP traces): L1-L3 checks and a hand case. See artifacts/etudes/theory_f1/README.md."""
+"""F1 (state reduction for HDP traces): L1-L3 checks and a hand case. See artifacts/etudes/theory/theory_f1/README.md."""
 from __future__ import annotations
 
 import sys
@@ -11,8 +11,8 @@ assert "site-packages" not in sys.modules["jaxfne"].__file__, (
     "P-025: expected the repo jaxfne on sys.path, not site-packages"
 )
 
-import artifacts.etudes.theory_f1.f1_check as F  # noqa: E402
-import artifacts.etudes.theory_f1.l5_check as L5  # noqa: E402
+import artifacts.etudes.theory.theory_f1.f1_check as F  # noqa: E402
+import artifacts.etudes.theory.theory_f1.l5_check as L5  # noqa: E402
 
 
 def test_l5_refuted_ltd_accumulator_factors_exactly():

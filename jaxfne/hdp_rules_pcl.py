@@ -2,7 +2,7 @@
 
 Reference: N'dri, Barbier, Teuliere, Triesch, Nat Commun 16:8880 (2025),
 doi:10.1038/s41467-025-64234-z, Eqs. 4-11. The update is copied exactly from
-the oracle transcription ``artifacts/etudes/pcl/pcl_hdp_rule.py`` (read as
+the oracle transcription ``artifacts/etudes/papers/pcl/pcl_hdp_rule.py`` (read as
 data); that module's ``register()`` now skips ``pcl_stdp`` as a no-op when
 this core module has already registered it.
 

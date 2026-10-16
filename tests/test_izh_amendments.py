@@ -17,7 +17,7 @@ import numpy as np
 import pytest
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
-RUN_IZH_PATH = REPO_ROOT / "artifacts" / "etudes" / "izhikevich2003" / "run_izh.py"
+RUN_IZH_PATH = REPO_ROOT / "artifacts" / "etudes" / "papers" / "izhikevich2003" / "run_izh.py"
 DT_MS = 0.1  # kernel dt of the Fig. 2 runs; 10 ms = 100 rows
 TEST_SHA = "a" * 40
 TEST_SHA_8 = "b" * 40
@@ -179,11 +179,11 @@ def test_v8_missing_v8_sha_refuses(tmp_path):
 
 def test_v8_tree_dirty_refuses_fig2_v8(tmp_path, monkeypatch):
     r = _load_run_izh()
-    assert r._v8_tree_dirty(" M artifacts/etudes/izhikevich2003/run_izh.py")
+    assert r._v8_tree_dirty(" M artifacts/etudes/papers/izhikevich2003/run_izh.py")
     assert not r._v8_tree_dirty("?? scratch/new-file.txt\n")
     assert not r._v8_tree_dirty("")
     monkeypatch.setattr(r, "_git_status_porcelain",
-                        lambda: " M artifacts/etudes/izhikevich2003/run_izh.py")
+                        lambda: " M artifacts/etudes/papers/izhikevich2003/run_izh.py")
     with pytest.raises(SystemExit) as exc:
         r.cmd_fig2_v8(tmp_path / "v8")
     assert exc.value.code == 2
@@ -203,7 +203,7 @@ def test_v8_failed_git_status_reads_dirty(monkeypatch):
 
 # --- P3b (PREREG_P3b.md signed v4, gate amendment v5) ---
 
-ETUDE = REPO_ROOT / "artifacts" / "etudes" / "izhikevich2003"
+ETUDE = REPO_ROOT / "artifacts" / "etudes" / "papers" / "izhikevich2003"
 NETREF_PATH = ETUDE / "net_reference.py"
 KERNEL_PATH = ETUDE / "kernel_net_m.py"
 

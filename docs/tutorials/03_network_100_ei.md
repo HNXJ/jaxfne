@@ -6,7 +6,7 @@ Build, simulate, and inspect a 100-neuron balanced excitatory/inhibitory (75E / 
 
 **Recommended:** Open the full interactive tutorial in Colab:
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/jaxfne_v036_100_neuron_ei_population.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/artifacts/tutorials/versioned/jaxfne_v036_100_neuron_ei_population.ipynb)
 
 Or run headless: `python examples/05_network_100_ei_multimodal.py`
 

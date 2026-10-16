@@ -27,7 +27,7 @@ fraction of a neuron's test spikes removed by the learned inhibition.
 
 ## Implementation
 
-Two routes, both in `artifacts/etudes/pcl/`:
+Two routes, both in `artifacts/etudes/papers/pcl/`:
 
 - **P0, standalone** (`pcl_fig2.py`): the LIF model and rule above, outside the jaxfne kernels.
 - **K0 and K0b, jaxfne library** (`pcl_fig2_hdp.py`): the rule registered as `pcl_stdp`
@@ -36,7 +36,7 @@ Two routes, both in `artifacts/etudes/pcl/`:
   with τ = 2 ms, inputs as 1 ms current pulses at 1.5× firing threshold. Weights convert at
   1 mV ↔ 4.85 native units, calibrated on the smallest weight that blocks a pulse 1 ms after
   neuron 0's (25.7 native units against 5.3 mV, which we derive from the paper's parameters as
-  (15 − 10)/e^(−1/18); `artifacts/etudes/pcl/README.md`).
+  (15 − 10)/e^(−1/18); `artifacts/etudes/papers/pcl/README.md`).
 
 ## Results against our gates
 
@@ -66,11 +66,11 @@ P0 means of 3 networks: final weights 38.08 / 23.87 / 15.15 mV; suppression 0.69
 ## Reproduce
 
 ```
-python artifacts/etudes/pcl/pcl_fig2.py --out artifacts/etudes/pcl/fig2.json
-python artifacts/etudes/pcl/pcl_fig2_hdp.py --out artifacts/etudes/pcl/fig2_hdp.json
-python artifacts/etudes/pcl/pcl_fig2_hdp.py --seeds 10 11 12 --out artifacts/etudes/pcl/fig2_hdp_avg.json
+python artifacts/etudes/papers/pcl/pcl_fig2.py --out artifacts/etudes/papers/pcl/fig2.json
+python artifacts/etudes/papers/pcl/pcl_fig2_hdp.py --out artifacts/etudes/papers/pcl/fig2_hdp.json
+python artifacts/etudes/papers/pcl/pcl_fig2_hdp.py --seeds 10 11 12 --out artifacts/etudes/papers/pcl/fig2_hdp_avg.json
 ```
 
 Seeds 0–2 (P0, K0) and 10–12 (K0b); `pcl_fig2_hdp.py` records both the end-of-epoch and the
-time-averaged weight. The receipts do not record the JAX platform. Results: `artifacts/etudes/pcl/fig2.json`,
+time-averaged weight. The receipts do not record the JAX platform. Results: `artifacts/etudes/papers/pcl/fig2.json`,
 `fig2_hdp.json`, `fig2_hdp_avg.json`, `fig2_hdp_avg_s012.json`.

@@ -8,7 +8,7 @@ Status: the gate PASSES on the tensor route (CALIBRATION.md Step 9):
 `build_s1_scan_tensor` + `EventScanDrive` through
 `construct -> Model -> simulate` reproduces the S1 oracle per-cell exact on
 all 20 clips (committed receipt
-`artifacts/etudes/pcl/stage_c_tensor_route_20clip.json`).
+`artifacts/etudes/papers/pcl/stage_c_tensor_route_20clip.json`).
 `test_stage_c_tensor_route_matches_oracle_on_slice` replays the first 300
 cam0 events of clip (0,0) live through the tensor route and checks the
 binned spike matrix against the oracle spike times; the receipt test checks
@@ -41,7 +41,7 @@ S1_ROOT = _warehouse_roots("runs", "fig3_cSTDP3_S1")
 NETWORK = _warehouse_roots("data", "PCL_datasets_and_networks/"
                            "add_simulations_cSTDP/cSTDP3")
 RECEIPT = (Path(__file__).resolve().parents[1] / "artifacts" / "etudes"
-           / "pcl" / "stage_c_tensor_route_20clip.json")
+           / "papers" / "pcl" / "stage_c_tensor_route_20clip.json")
 
 CLIPS = [(f, s) for f in range(10) for s in (0, 1)]  # ori 0, sf 0..9, phase 0
 

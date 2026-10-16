@@ -85,7 +85,7 @@ to verified, partial and not reproduced only. Static PNGs of every chart come fr
 Desktop at 1440 px; one column at 390 px with no horizontal scroll. Hash-routed tabs:
 
 1. **Header.** "jaxfne replications", generated time (UTC) and build dev SHA, links to the Read
-   the Docs site and to `artifacts/etudes/REPLICATIONS.md`, a sample banner when `sample` is
+   the Docs site and to `artifacts/etudes/meta/REPLICATIONS.md`, a sample banner when `sample` is
    true, and the tabs.
 2. **Overview** (`#overview`, default). KPI cards: models per class and the preregistered
    criteria pass / fail / pending (demonstrations and in-progress papers excluded). Then the model cards grouped by

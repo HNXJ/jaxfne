@@ -25,7 +25,7 @@ receipts, dated audits, `archive/`, `legacy/`) keep the paths they were written 
 | `changelog.d/` | release-note fragments assembled into `docs/changelog.md` | |
 | `publication/` | manuscript figure specs, receipts, claim ledger, `frozen_manifest.json` | frozen + harness |
 | `figures/` | publication figure renders | `publication/` fig01–fig07 frozen |
-| `etudes/` | paper replications (`REPLICATIONS.md`, one folder per paper) and etude bundles | cited by publication |
+| `etudes/` | `experiment_a/` frozen canonical bundle (stays: cited frozen path, `jaxfne/` defaults), paper replications (`papers/`: caminos, gsdr2026, izhikevich2003, pcl, pcl_h, qlearning), standalone bundles (`bundles/`), theory checks (`theory/`), compact-grammar lane (`jdna/`), lane records (`meta/`) | cited by publication |
 | `programme/` | plans (`design/plans/`), gap reports (`gaps/`), capabilities and inventories (`design/capabilities/`), live coverage triple (`coverage/`: `atlas_coverage.json`, `claim_ledger_055.md`, `methods_055.md`), receipts by version and family (`receipts/`), 3 dated files at root (kept paths) | release authorities |
 | `atlas/` | Atlas AT-01…AT-10 scripts, results and bundle tooling | cited by publication |
 | `protocol_c/` | Protocol C (waves) specs and receipts | cited by publication |
@@ -41,7 +41,7 @@ receipts, dated audits, `archive/`, `legacy/`) keep the paths they were written 
 | `skills/` | canonical agent skills (mirrored by `scripts/harness/sync_skills.py`) | harness |
 | `subagents/` | subagent procedures (vocabulary critic, developer, pool) | |
 | `harness/` | evidence and workflow rules, review packet template | |
-| `tutorials/` | tutorial notebooks and their status | |
+| `tutorials/` | tutorial notebooks by kind (`suite/` 5, `intro/` 5, `etudes/` lane notebooks, `templates/`), versioned series (`versioned/` 12), status records (`status/`) | |
 | `archive/` | sealed stacks and decisions, byte-for-byte | |
 | `legacy/` | pre-0.4.x notebooks and docs (kept by Hamm 2026-10-11) | |
 | `.lab/` | Labyrinth API graph nodes in `bundle.json`, read by `scripts/lab_balance.py` | |
@@ -56,7 +56,7 @@ frozen entries and `figures/` (`frozen_manifest.json` keys — write-once eviden
 `jaxfne.vis` viewers' default `output_path`; moving it changes a public default); archive bytes
 (`archive/` stays as written, including its old-path references). Version and family series
 (`programme/receipts/v0_4_23/`, `v0_4_24/`, `tfne/`, `engine_053_054/`) and the
-`perf/matrices_055/rerun/` cell series exceed 7 entries: each is one
+`perf/matrices_055/rerun/` cell series and the `tutorials/versioned/` notebook series exceed 7 entries: each is one
 release- or script-generated series kept whole so the set stays addressable.
 
 `archive/scripts/` holds scripts with no reference in the tree, archived 2026-10-13 (T-17):

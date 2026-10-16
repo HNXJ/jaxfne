@@ -9,7 +9,7 @@ arms exactly as ``test_population_restoring_etude_regression_metrics`` does
 
 Read-only: prints the six asserted values as JSON. The caller copies the
 moved leaf (vector ``terminal_error_weighted``) into
-artifacts/etudes/hdp_controllability_reachability/metrics.json.
+artifacts/etudes/bundles/hdp_controllability_reachability/metrics.json.
 
 Cause of the move (P-016): commit 865e74b ("0.5.3 item 3 (W1): P-010
 chain-noise fix + continuation all-state") changed the plain-path noise

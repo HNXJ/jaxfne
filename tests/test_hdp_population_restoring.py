@@ -13,7 +13,7 @@ import jaxfne as jtfne
 from jaxfne._model_tune import _edge_parameter_mask, _model_with_parameters
 
 ROOT = Path(__file__).resolve().parents[1]
-ETUDE_METRICS = ROOT / "artifacts/etudes/hdp_controllability_reachability/metrics.json"
+ETUDE_METRICS = ROOT / "artifacts/etudes/bundles/hdp_controllability_reachability/metrics.json"
 
 # Frozen controller from Etude checkpoint (internal test constants; not MVC receipt paths).
 ETUDE_CONTROLLER = {
@@ -223,7 +223,7 @@ def test_population_continuation_supported():
 def test_population_restoring_etude_regression_metrics():
     """Scientific regression against committed Etude metrics (MVC #2, alpha_U=1.2)."""
     # v0.5.6 re-baseline for all three arms (human-authorized; see
-    # artifacts/etudes/hdp_controllability_reachability/metrics_v056.json
+    # artifacts/etudes/bundles/hdp_controllability_reachability/metrics_v056.json
     # provenance): D1 scales the Izhikevich noise by sqrt(0.5 / dt_ms), which
     # moves the off, scalar and vector arms. Null-HDP params still route to the
     # baseline kernel, so scalar == off bit-exactly. The frozen bundle and

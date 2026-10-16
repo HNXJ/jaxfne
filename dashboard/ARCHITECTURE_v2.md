@@ -22,14 +22,14 @@ The class sits beside the preregistered verdict, which always stays visible.
 |---|---|---|---|---|
 | 1 | CAMINOS Fig. 1 (Tahvili, Vinck, di Volo 2026, PLoS Comput Biol) | partial: PASS under v7 on the standalone port (`l2-caminos` 1e768f9d); library path (P6) in build | prereg v6 + v7, scores, ledger with paper values beside ours (≈35 Hz vs 33.8 Hz; ≈8.5 ms vs 7.04 ms), sensitivity S1–S5, seeds 1–5, command | equations block, P6 result, a static figure |
 | 2 | PCL Fig. 3 (N'dri et al. 2025, Nat Commun) | not reproduced: T1, T3 pass; T2, T4 fail (`pcl-port` 5640ce18) | prereg v4, scores, ledger, unscored diagnostic | equations block, static figure; paper criteria are qualitative, so no paper numbers |
-| 3 | PCL Fig. 2 (same paper) | demonstration: P0 PASS and K0b PASS against our own gates; the paper's Fig. 2d values were not available for a numeric comparison | `artifacts/etudes/pcl/README.md`, `fig2*.json`, library kernel route for K0b | a scored comparison would need the paper's numbers |
+| 3 | PCL Fig. 2 (same paper) | demonstration: P0 PASS and K0b PASS against our own gates; the paper's Fig. 2d values were not available for a numeric comparison | `artifacts/etudes/papers/pcl/README.md`, `fig2*.json`, library kernel route for K0b | a scored comparison would need the paper's numbers |
 | 4 | Hodgkin-Huxley reference vs reduced neuron (AT-01) | demonstration (reference check): rate passes; v_peak, v_rest, first-spike time fail | `artifacts/atlas/results/at01_055.json`, `at_reduction_055.json`, library bridge | an overall verdict is not recorded; no seed |
-| 5 | Q-learning on chain5/corridor7 vs analytic Q* | demonstration | `artifacts/etudes/qlearning/`, tests, seeds 0–4, command | no paper citation; no verdict word recorded |
-| 6 | Izhikevich 2003, Figs. 2 and 3 | in progress (P3) | `artifacts/etudes/izhikevich2003/` P1 source, P2 port spec; library presets in `jaxfne/presets.py` | signed prereg, P4 build, P5 score |
+| 5 | Q-learning on chain5/corridor7 vs analytic Q* | demonstration | `artifacts/etudes/papers/qlearning/`, tests, seeds 0–4, command | no paper citation; no verdict word recorded |
+| 6 | Izhikevich 2003, Figs. 2 and 3 | in progress (P3) | `artifacts/etudes/papers/izhikevich2003/` P1 source, P2 port spec; library presets in `jaxfne/presets.py` | signed prereg, P4 build, P5 score |
 
 Planned and unimplemented (roadmap tab only): Brunel 2000 and Vogels et al. 2011 (0.5.7), PCL Fig. 4
 (0.5.7), Potjans and Diesmann 2014 and Mejias et al. 2016 (0.5.8), PCL Figs. 5–6 (0.5.9), Mazzoni
-et al. 2015 (0.5.10); held P0 rows listed in `artifacts/etudes/literature_p0_candidates.md`.
+et al. 2015 (0.5.10); held P0 rows listed in `artifacts/etudes/meta/literature/literature_p0_candidates.md`.
 
 Not shown: études with no published target (heterogeneous emitters, multiscale observation,
 experiment A, HDP balance and controllability, theory F1/F2/F4). They test our own claims.

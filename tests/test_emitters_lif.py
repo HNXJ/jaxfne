@@ -333,7 +333,7 @@ def test_event_order_cascade_matches_oracle_per_event_winners():
     # The oracle primitives in event order pick the same winner: cell 1's
     # event resolves first and its inhibition holds cell 0 down.
     pytest.importorskip("h5py", reason="the PCL oracle reads HDF5 event files")
-    from artifacts.etudes.pcl.port import pcl_event_ref as oracle
+    from artifacts.etudes.papers.pcl.port import pcl_event_ref as oracle
 
     ref = oracle.PCLEventRef(directory=None, learning=False)
     c0, c1 = oracle.Cell(thr=10.0), oracle.Cell(thr=10.0)
@@ -469,7 +469,7 @@ def test_event_scan_matches_oracle_event_for_event():
     # The oracle primitives in event order pick the same spikes: cell 1 at
     # 100 us (holding cell 0 down), then cell 0 at 300 us.
     pytest.importorskip("h5py", reason="the PCL oracle reads HDF5 event files")
-    from artifacts.etudes.pcl.port import pcl_event_ref as oracle
+    from artifacts.etudes.papers.pcl.port import pcl_event_ref as oracle
 
     ref = oracle.PCLEventRef(directory=None, learning=False)
     c0, c1 = oracle.Cell(thr=10.0), oracle.Cell(thr=10.0)
