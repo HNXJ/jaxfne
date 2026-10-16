@@ -39,7 +39,7 @@ Euler, dt = 0.1 ms.
 
 ## Implementation
 
-Standalone JAX port on lane `l2-caminos` (`artifacts/etudes/caminos/caminos_jax.py`), WSL2 CUDA,
+Standalone JAX port on lane `l2-caminos` (`artifacts/etudes/papers/caminos/caminos_jax.py`), WSL2 CUDA,
 float32. It imports no jaxfne code, so under rule B1 the paper is not yet replicated *with
 jaxfne*. The library path (P6) is in build: the AdEx conductance kernel
 `jaxfne.emitters.simulate_adex` matches a float64 transcription of this port's cell and
@@ -62,9 +62,9 @@ recurrent step within rtol 1e-6 (`tests/test_emitters_adex.py`).
 ## Reproduce
 
 ```
-python artifacts/etudes/caminos/run_caminos.py --seeds 1 2 3 4 5 --p 0.07 --T 12.0 --signed --out <dir>
-python artifacts/etudes/caminos/run_caminos.py --seeds 1 2 3 --p <p> --T 12.0 --ext-sources pNE --signed --out <dir>
-python artifacts/etudes/caminos/caminos_analysis.py <dir> --ext-sources pNE
+python artifacts/etudes/papers/caminos/run_caminos.py --seeds 1 2 3 4 5 --p 0.07 --T 12.0 --signed --out <dir>
+python artifacts/etudes/papers/caminos/run_caminos.py --seeds 1 2 3 --p <p> --T 12.0 --ext-sources pNE --signed --out <dir>
+python artifacts/etudes/papers/caminos/caminos_analysis.py <dir> --ext-sources pNE
 ```
 
 Seeds 1–5 (p = 0.07) and 1–3 (p sweep 0.02–0.10). Environment: WSL2 CUDA JAX, float32,
