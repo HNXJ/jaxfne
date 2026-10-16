@@ -221,3 +221,29 @@ def test_install_md_surface_count_matches_live_contract():
         f"docs/install.md claims a {match.group(1)}-symbol surface, "
         f"live jaxfne.__all__ has {len(jtfne.__all__)}"
     )
+
+
+def test_public_surface_contract_md_matches_live_surface():
+    """docs/public_surface_contract.md names the current version and root count.
+
+    The page states the live root public contract (``jaxfne X.Y.Z: N root
+    symbols``), so the version must equal ``jaxfne.__version__`` and N must
+    equal ``len(jaxfne.__all__)`` exactly.
+    """
+    import jaxfne as jtfne
+
+    root_dir = Path(__file__).resolve().parent.parent
+    content = (root_dir / "docs" / "public_surface_contract.md").read_text(encoding="utf-8")
+    match = re.search(r"jaxfne (\d+\.\d+\.\d+): (\d+) root symbols", content)
+    assert match, (
+        "Could not find the 'jaxfne X.Y.Z: N root symbols' claim "
+        "in docs/public_surface_contract.md"
+    )
+    assert match.group(1) == jtfne.__version__, (
+        f"docs/public_surface_contract.md claims jaxfne {match.group(1)!r}, "
+        f"live jaxfne.__version__ is {jtfne.__version__!r}"
+    )
+    assert int(match.group(2)) == len(jtfne.__all__), (
+        f"docs/public_surface_contract.md claims {match.group(2)} root symbols, "
+        f"live jaxfne.__all__ has {len(jtfne.__all__)}"
+    )

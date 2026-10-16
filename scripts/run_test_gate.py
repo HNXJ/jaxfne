@@ -133,6 +133,7 @@ CHECK_FAMILIES = {
     "vocabulary_audit",
     "docs_orphans_check",
     "doc_code_integrity_audit",
+    "record_integrity",
     "tree_size_audit",
     "docs_build_strict",
     "pytest_broad",
@@ -179,6 +180,7 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "record_integrity",
         "tree_size_audit",
         "pytest_broad",
     },
@@ -190,6 +192,7 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "record_integrity",
         "tree_size_audit",
         "docs_build_strict",
         "pytest_broad",
@@ -207,6 +210,7 @@ GATE_CHECK_FAMILIES = {
         "vocabulary_audit",
         "docs_orphans_check",
         "doc_code_integrity_audit",
+        "record_integrity",
         "tree_size_audit",
         "docs_build_strict",
         "pytest_broad",
@@ -358,6 +362,10 @@ def gate_broad() -> None:
     _run(
         [sys.executable, "scripts/check_tree_size.py", "--check"],
         family="tree_size_audit",
+    )
+    _run(
+        [sys.executable, "scripts/check_record_integrity.py", "--check"],
+        family="record_integrity",
     )
     # Per-node evidence: each sweep writes JUnit into the gitignored
     # artifacts/attestations/ dir (same provenance home as the RC

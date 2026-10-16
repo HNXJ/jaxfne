@@ -61,10 +61,6 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   "file exists" from `gh run download` (seen 2026-10-14 on 65af8541; it fails closed, never
   mixes SHAs). It also needs `gh` on the gate host (WSL has none; the 0.5.6 gate used a
   `gh.exe` shim with `GH_REPO`). Closes when: the script clears its dest per SHA, with a test.
-- T-27 [A] `docs/public_surface_contract.md:3` says "jaxfne 0.5.5: 205 root symbols"; the live
-  surface is 208 (`docs/install.md`, pinned to `len(jaxfne.__all__)` by
-  `tests/test_docs_version_alignment.py`). No test reads the contract page. Closes when: the page
-  names the current version and count, and a test pins the count to `jaxfne.__all__`.
 - T-28 [H] `jaxfne/tfne.py:211` `_RESERVED_LOWER = {"x", "y", "h", "s"}` is defined and never read
   (Muse cleanup, 2026-10-15). Wiring it into name validation changes which names are accepted;
   deleting it drops the stated reservation. Closes when: Hamm picks one.
