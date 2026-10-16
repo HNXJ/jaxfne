@@ -14,7 +14,7 @@ Overwritten each session. Where this file and git or a gate disagree, git and th
 - dev 95324945 (PCL lane: LIF tensor route with event input, per-position local inhibition,
   cover-table feed, simple-to-complex pooling, `resolution="event_scan"`): Stage C exact on 20
   clips through the tensor route; Muse adversarial review PASS. Dev Release CI run 38764130367:
-  dispatched, result pending.
+  success.
 - NeuronalTensor on dev: emitter registry and AdEx route, posed geometry for wiring and delays,
   HDP on AdEx, `project_model_sources`, parameter handles. `NeuronalTensor.to_dict` omits the
   0.5.6 optional fields at their defaults, so pinned identity and phenotype hashes are unchanged.
