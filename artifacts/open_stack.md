@@ -6,10 +6,8 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 
 ## In flight
 
-- O-3 artifacts/ reorg P4 (perf into runs/, audit/ split; atlas, e2, protocol_* stay) | keeper | since 2026-10-15 | closes when on dev with the broad gate and dev CI green
 - O-4 artifacts/ reorg P5 (skills, harness, subagents, vocabulary, .lab into control/; manifest regenerated) | Muse | since 2026-10-15 | closes when on dev, `sync_skills.py --check` OK, dev CI green
-- O-5 Record-integrity gate, tag-receipt test fixture, rename-aware hygiene, T-27 (guards lane; review round 2 found a hash-swap bypass and `--add` laundering) | Muse | since 2026-10-15 | closes when a second review passes and it is on dev
-- O-7 Gate-report and quick docs-gate commands (`scripts/`), after O-5 | keeper | since 2026-10-15 | closes when both exist, are documented in `artifacts/AGENTS.md` and used by the broad gate
+- O-7 Gate-report and quick docs-gate commands (`scripts/`) | keeper | since 2026-10-15 | closes when both exist, are documented in `artifacts/AGENTS.md` and used by the broad gate
 - O-8 Tree-degree test (at most 7 direct entries per folder under artifacts/, README exceptions) after O-4 | keeper | since 2026-10-15 | closes when the test is in the broad gate
 - O-9 Destexhe 2009 lane 5d: S2 scoring; 6 uncommitted files in its clone on 6f85f5c3 (pre-reorg paths) | keeper | since 2026-10-14 | closes when integrated on dev (T-21) or recorded with a reason
 
