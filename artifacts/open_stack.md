@@ -16,13 +16,11 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 ## Waiting on others
 
 - O-10 Harness proposals (lane-clone helper, worker background guard, jchat lane registry, lock holders in `who`, known-failures register, release events), jchat conference #29 | jynx keeper | since 2026-10-15 | closes when each is taken or refused
-- O-12 `fact_stack.md:107-110` cites `artifacts/perf/`, now `artifacts/runs/perf/` (P4); fact_stack is Hamm's | Hamm | since 2026-10-15 | closes when Hamm edits the two cells or rules them historical
 
 ## Hamm's calls
 
 - O-14 T-28 `tfne._RESERVED_LOWER` {x, y, h, s} defined, never read: wire into name checks or delete (score about 60 either way) | Hamm | since 2026-10-15 | closes when Hamm picks one
 - O-15 T-20 `--check` accepted and ignored in `assert_release_freeze.py`, `sync_release_metadata.py` (score about 65 to change) | Hamm | since 2026-10-15 | closes when kept with a note or removed
-- O-22 `goal_stack.md:6` still lists G-5 (release 0.5.6), which is met: 0.5.6 is published (`artifacts/release/v0_5_6_release_receipt.json`) | Hamm | since 2026-10-15 | closes when Hamm deletes the row
 - O-16 Branch `_temp_never-sweep` on origin, unmerged, 2026-10-12, owner unknown | Hamm | since 2026-10-15 | closes when its owner merges or deletes it
 
 ## Known gaps (recorded, no action yet)

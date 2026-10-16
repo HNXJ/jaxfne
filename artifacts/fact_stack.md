@@ -104,9 +104,9 @@ covers and what checks it); row 2 is the fact. Authorized by the human in the
 | An optimizer changes only declared parameters it owns, within bounds, keeps identity, topology and signs, and records the result in a manifest. |
 | **manifest, digest, seeds, versions** \| run manifests; manifest-quoted Methods |
 | A run manifest records the config digest, seeds, versions (jaxfne, JAX, libraries), units, calibration level and tolerances, quoted from generated artifacts and not typed. |
-| **optimization, profile, diff** \| `artifacts/perf/`; output diff against a frozen copy |
+| **optimization, profile, diff** \| `artifacts/runs/perf/`; output diff against a frozen copy |
 | A change is justified by a measured bottleneck and an output diff against a frozen copy, and leaves semantics, API and numerics unchanged (minimum complexity subject to complete required semantics). |
-| **performance, T_compute, M_compute, E_semantic** \| `artifacts/perf/`; measured artifact per AT |
+| **performance, T_compute, M_compute, E_semantic** \| `artifacts/runs/perf/`; measured artifact per AT |
 | A performance claim needs a traceable measured artifact (`T_compute`, `M_compute` per AT). Programme deltas against v0.4.25 are measured, with `E_semantic = 0`. |
 | **precision, dtype, declared** \| config `dtype`; precision-comparison tests |
 | Precision is declared in the config, never inferred. Accumulation and comparisons state their precision; a float32 result is not compared to float64 without a declared bound. |
