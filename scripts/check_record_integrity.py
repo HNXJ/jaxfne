@@ -26,10 +26,17 @@ The pinned state in ``scripts/record_hashes.json`` maps each record path to
 its content sha256, plus per-class counts. A pinned path that exists with
 different bytes fails (``changed-record``: this catches a swap of two records
 inside one class, which a hash multiset cannot see). A pinned path that is
-missing passes only when its hash is found at an unpinned path in the tree
-(a move, reported as ``moved-record`` so ``--add`` can repin it); otherwise it
-is ``deleted-record``. A live record pinned nowhere is ``unpinned-hash``. An
-empty class fails only when its pinned count is above zero.
+missing passes only as a move: its hash sits at a target the class discovery
+itself matches for at least one of the record's pinned classes, outside
+``NON_RECORD_PATHS`` and outside the pinned paths (reported as
+``moved-record`` so ``--add`` can repin it). Any other destination fails as
+``declassified-move``: a target no class matches, an excluded script, another
+pinned path, or a discovered path sharing no pinned class with the record.
+When the hash is nowhere it is ``deleted-record``. A live record pinned
+nowhere is ``unpinned-hash``. Per-class live counts must equal the pinned
+counts: below the pin is a deletion or a demotion (e.g. a manifest key removed
+around the file), above is unpinned; both fail as ``class-count-mismatch``
+naming the class.
 
 ``--add`` takes explicit paths, runs the check first, and refuses when any
 violation or unlisted move exists beyond the unpinned-hash or moved entries
@@ -207,9 +214,7 @@ def load_pinned() -> dict[str, dict]:
     return _load_pinned(HASHES_PATH)
 
 
-def pinned_counts_for(
-    paths: dict[str, str], frozen_keys: set[str]
-) -> dict[str, int]:
+def pinned_counts_for(paths: dict[str, str], frozen_keys: set[str]) -> dict[str, int]:
     """Per-class counts of pinned paths (missing files keep their rel class)."""
     counts = {name: 0 for name in CLASSES}
     for rel in paths:
@@ -218,14 +223,12 @@ def pinned_counts_for(
     return counts
 
 
-def _unpinned_hash_locations(
-    repo_root: Path, pinned_rels: set[str]
-) -> dict[str, list[str]]:
-    """Map sha256 to sorted unpinned paths for every file under artifacts/.
+def _hash_locations_all(repo_root: Path) -> dict[str, list[str]]:
+    """Map sha256 to sorted paths for every file under artifacts/.
 
-    Only built when a pinned path is missing, so a move to a path no class
-    matches is still found. Paths already pinned are excluded: a hash seen
-    only at another pinned path is a deletion, not a move.
+    Unlike the move scan this includes pinned and excluded paths, so bytes
+    laundered onto another pinned record or an excluded script are still
+    found; callers split valid move targets from violations.
     """
     base = repo_root / "artifacts"
     found: dict[str, list[str]] = {}
@@ -233,8 +236,6 @@ def _unpinned_hash_locations(
         return found
     for path in sorted(p for p in base.rglob("*") if p.is_file()):
         rel = path.relative_to(repo_root).as_posix()
-        if rel in pinned_rels:
-            continue
         try:
             digest = sha256_bytes(path.read_bytes())
         except OSError:
@@ -243,9 +244,28 @@ def _unpinned_hash_locations(
     return found
 
 
-def _analyze(
-    repo_root: Path, pinned: dict[str, dict]
-) -> tuple[list[str], list[tuple[str, str]]]:
+def _is_valid_move_target(
+    new: str,
+    old_classes: list[str],
+    frozen_keys: set[str],
+    pinned_rels: set[str],
+) -> bool:
+    """True when ``new`` keeps the record inside its pinned classes.
+
+    The target must be unpinned, outside ``NON_RECORD_PATHS``, and matched by
+    the class discovery for at least one of the record's pinned classes. A
+    frozen-manifest move counts ``frozen`` among the record's classes when the
+    manifest now points at the new path.
+    """
+    if new in NON_RECORD_PATHS or new in pinned_rels:
+        return False
+    new_classes = _classes_of_rel(new, frozen_keys)
+    if new in frozen_keys and "frozen" not in old_classes:
+        old_classes = [*old_classes, "frozen"]
+    return any(name in new_classes for name in old_classes)
+
+
+def _analyze(repo_root: Path, pinned: dict[str, dict]) -> tuple[list[str], list[tuple[str, str]]]:
     """Return (violations, moves) for one tree against pinned paths.
 
     - ``changed-record``: a pinned path exists with different bytes (names the
@@ -253,12 +273,15 @@ def _analyze(
     - ``unlisted-record``: the bytes are unchanged but the path is no longer
       discovered (e.g. a frozen manifest key removed around the file);
     - ``deleted-record``: a pinned path is gone and its hash is at no
-      unpinned path (names the class);
+      other path (names the class);
+    - ``declassified-move``: the hash sits at a path that is no valid move
+      target (outside every pinned class, an excluded script, another pinned
+      path, or a discovered path sharing no pinned class);
     - ``unpinned-hash``: a live record pinned nowhere (names the file);
-    - ``empty-class``: no live records while the pinned count is above zero,
-      discounted by moves that left the class;
-    - moves ``(old, new)``: a missing pinned path whose hash sits at an
-      unpinned path; reported, not violations.
+    - ``class-count-mismatch``: per-class live count differs from the pinned
+      count (below is a deletion or demotion, above is unpinned);
+    - moves ``(old, new)``: a missing pinned path whose hash sits at a valid
+      target; reported, not violations.
     """
     paths: dict[str, str] = pinned.get("paths", {})
     counts: dict[str, int] = pinned.get("counts", {})
@@ -271,14 +294,12 @@ def _analyze(
     }
     violations: list[str] = []
     moves: list[tuple[str, str]] = []
-    fallback: dict[str, list[str]] | None = None
+    locations: dict[str, list[str]] | None = None
     for old in sorted(paths):
         want = paths[old]
         if old in live:
             if live[old] != want:
-                violations.append(
-                    f"changed-record: {old} pinned={want} live={live[old]}"
-                )
+                violations.append(f"changed-record: {old} pinned={want} live={live[old]}")
             continue
         disk = repo_root / old
         if disk.is_file():
@@ -292,55 +313,55 @@ def _analyze(
                     " (bytes unchanged but path is no longer a record)"
                 )
             elif disk_hash is not None:
-                violations.append(
-                    f"changed-record: {old} pinned={want} live={disk_hash}"
-                )
+                violations.append(f"changed-record: {old} pinned={want} live={disk_hash}")
             continue
-        if fallback is None:
-            fallback = _unpinned_hash_locations(repo_root, set(paths))
-        destinations = fallback.get(want, [])
-        if destinations:
-            for new in destinations:
-                moves.append((old, new))
-        else:
+        if locations is None:
+            locations = _hash_locations_all(repo_root)
+        old_classes = _classes_of_rel(old, frozen_keys)
+        found = [rel for rel in locations.get(want, []) if rel != old]
+        targets = [
+            rel
+            for rel in found
+            if rel not in paths and _is_valid_move_target(rel, old_classes, frozen_keys, set(paths))
+        ]
+        for new in targets:
+            moves.append((old, new))
+        for rel in found:
+            if rel in targets:
+                continue
+            if rel in paths and live.get(rel, None) == paths[rel]:
+                # An unchanged pinned path holding identical bytes does not
+                # rescue the missing record; the deletion stands below.
+                continue
+            violations.append(
+                f"declassified-move: {old} -> {rel} sha256={want}"
+                " (not a class-preserving move target)"
+            )
+        if not found or all(rel in paths and live.get(rel, None) == paths[rel] for rel in found):
             classes = _classes_of_rel(old, frozen_keys)
             label = f" class={classes[0]}" if classes else ""
-            violations.append(
-                f"deleted-record:{label} {old} sha256={want}"
-            )
+            violations.append(f"deleted-record:{label} {old} sha256={want}")
     moved_new = {new for _, new in moves}
     for rel in sorted(live):
         if rel in paths or rel in moved_new:
             continue
         violations.append(f"unpinned-hash: {rel} sha256={live[rel]}")
     for name in CLASSES:
-        if len(by_class[name]) == 0 and counts.get(name, 0) > 0:
-            left = [
-                old
-                for old, new in moves
-                if name in _classes_of_rel(old, frozen_keys)
-                or (name == "frozen" and new in frozen_keys)
-            ]
-            if not left:
-                violations.append(
-                    f"empty-class: class={name}"
-                    f" pinned={counts.get(name, 0)} live=0"
-                )
+        live_n = len(by_class[name])
+        pin_n = counts.get(name, 0)
+        if live_n != pin_n:
+            violations.append(f"class-count-mismatch: class={name} pinned={pin_n} live={live_n}")
     return violations, moves
 
 
-def find_violations(
-    repo_root: Path = ROOT, pinned: dict[str, dict] | None = None
-) -> list[str]:
+def find_violations(repo_root: Path = ROOT, pinned: dict[str, dict] | None = None) -> list[str]:
     """Human-readable violations for one tree (moves excluded)."""
     owned = pinned if pinned is not None else load_pinned()
     violations, _ = _analyze(repo_root, owned)
     return violations
 
 
-def check_tree(
-    repo_root: Path = ROOT, pinned: dict[str, dict] | None = None
-) -> list[str]:
+def check_tree(repo_root: Path = ROOT, pinned: dict[str, dict] | None = None) -> list[str]:
     """All violations (changed, moved-away, or deleted bytes) for one tree."""
     return find_violations(repo_root, pinned)
 
@@ -352,15 +373,23 @@ def _allowed_for_add(
 ) -> tuple[bool, list[str]]:
     """True when every finding is covered by exactly the listed paths."""
     blocking: list[str] = []
+    deferred: list[str] = []
     for violation in violations:
         if violation.startswith("unpinned-hash:"):
             rel = violation.split("unpinned-hash: ", 1)[1].split(" sha256=", 1)[0]
             if rel in listed:
                 continue
+        elif violation.startswith("class-count-mismatch:"):
+            # A count delta caused only by the listed adds/repins reconciles
+            # when the merge recomputes counts; judge it after the rest.
+            deferred.append(violation)
+            continue
         blocking.append(violation)
     for old, new in moves:
         if new not in listed:
             blocking.append(f"unlisted-move: {old} -> {new} (not in --add paths)")
+    if blocking:
+        blocking.extend(deferred)
     return (not blocking), blocking
 
 
@@ -381,17 +410,16 @@ def plan_add(
         return [], pinned, [f"refused: {line}" for line in blocking]
     frozen_keys = _frozen_paths(repo_root)
     by_class = discover_records_by_class(repo_root)
-    discovered = {
-        p.relative_to(repo_root).as_posix()
-        for ps in by_class.values()
-        for p in ps
-    }
+    discovered = {p.relative_to(repo_root).as_posix() for ps in by_class.values() for p in ps}
     move_dest = {new: old for old, new in moves}
     merged_paths = dict(pinned.get("paths", {}))
     done: list[str] = []
     refusals: list[str] = []
     for rel in rels:
         if rel in move_dest:
+            if rel not in discovered:
+                refusals.append(f"refused: {rel} is not a record in any class")
+                continue
             old = move_dest[rel]
             digest = merged_paths.pop(old)
             merged_paths[rel] = digest
@@ -412,12 +440,32 @@ def plan_add(
             member = sorted(
                 name
                 for name, ps in by_class.items()
-                if rel
-                in {p.relative_to(repo_root).as_posix() for p in ps}
+                if rel in {p.relative_to(repo_root).as_posix() for p in ps}
             )
             done.append(f"pinned: class={'+'.join(member)} {rel} sha256={digest}")
     if refusals:
         return [], pinned, refusals
+    stored_counts = pinned.get("counts", {})
+    recounted = pinned_counts_for(pinned.get("paths", {}), frozen_keys)
+    demoted = sorted(
+        name for name in CLASSES if stored_counts.get(name, 0) > recounted.get(name, 0)
+    )
+    if demoted:
+        # A manifest-key drop demotes pinned records without touching them, so
+        # the deferred count mismatch alone would reconcile into the rewrite.
+        # A demotion is never resolved by --add: restore the keys first.
+        detail = ", ".join(
+            f"{name} pinned={stored_counts.get(name, 0)} live-keys={recounted.get(name, 0)}"
+            for name in demoted
+        )
+        return (
+            [],
+            pinned,
+            [
+                f"refused: pinned records lost class {detail};"
+                " restore the manifest keys before --add"
+            ],
+        )
     merged = {
         "paths": merged_paths,
         "counts": pinned_counts_for(merged_paths, frozen_keys),
@@ -425,9 +473,7 @@ def plan_add(
     return done, merged, []
 
 
-def add_paths(
-    rels: list[str], repo_root: Path = ROOT, hashes_path: Path = HASHES_PATH
-) -> int:
+def add_paths(rels: list[str], repo_root: Path = ROOT, hashes_path: Path = HASHES_PATH) -> int:
     """Pin explicit record paths; refuse when the tree is otherwise dirty."""
     pinned = _load_pinned(hashes_path)
     ok, merged, refusals = plan_add(repo_root, rels, pinned)
@@ -442,10 +488,7 @@ def add_paths(
     )
     for line in ok:
         print(line)
-    print(
-        f"record-integrity: added-paths={len(rels)}"
-        f" pinned-paths={len(merged['paths'])}"
-    )
+    print(f"record-integrity: added-paths={len(rels)} pinned-paths={len(merged['paths'])}")
     return 0
 
 

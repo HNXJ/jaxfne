@@ -4,12 +4,15 @@ Fail-first tests for the record-integrity lane: one fixture file per record
 class (receipts, archive, legacy, dated, prereg, benchmark, frozen). Per-path
 pins (``{rel: sha256}`` plus per-class counts): a one-byte edit fails as
 ``changed-record`` naming the file, a class-preserving move passes (after a
-clean check before the move), a move to a path no class matches passes via
-the moved-hash rule (and fails when the bytes changed), deleting one of two
-identical records fails, a within-class swap fails twice, a deletion fails
-naming the class, and an empty class fails only when pinned above zero.
-``--add`` runs the check first and refuses a ``mv``+edit launder through the
-writing function with the hashes file left byte-identical. The allowlist holds
+clean check before the move), a move outside every pinned class fails as
+``declassified-move`` (as do launders onto an excluded script or another
+pinned path), deleting one of two identical records fails, a within-class
+swap fails twice, a deletion fails naming its class, and per-class live counts
+must equal the pins (a dropped frozen key around an archived record fails
+naming frozen). ``--add`` runs the check first and refuses a ``mv``+edit
+launder through the writing function with the hashes file left byte-identical;
+a move is repinned only onto a discovered path, and a duplicate-bytes add is
+accepted only inside a class with counts consistent. The allowlist holds
 exactly the three live prereg scripts, and no script is pinned under dated or
 prereg.
 """
@@ -109,9 +112,7 @@ def _build_tree(root: Path, skip: str = "", extra: bool = False) -> dict[str, by
     manifest = root / "artifacts" / "publication" / "frozen_manifest.json"
     manifest.parent.mkdir(parents=True, exist_ok=True)
     keys = [r for r in rels if r.startswith("artifacts/frozen_data/")]
-    manifest.write_text(
-        json.dumps({"files": {key: {} for key in keys}}), encoding="utf-8"
-    )
+    manifest.write_text(json.dumps({"files": {key: {} for key in keys}}), encoding="utf-8")
     return written
 
 
@@ -160,8 +161,7 @@ def test_edited_byte_fails_and_names_file(tmp_path, cls):
 
     violations = check_tree(tmp_path, pinned)
     assert any(
-        target.name in violation and "changed-record" in violation
-        for violation in violations
+        target.name in violation and "changed-record" in violation for violation in violations
     ), f"edit of {cls} names no file: {violations}"
 
 
@@ -180,15 +180,13 @@ def test_moved_record_passes(tmp_path, cls):
         # The manifest key is the frozen record's locator: moving the file
         # means moving its key; the bytes (and their pinned hash) are unchanged.
         manifest = tmp_path / "artifacts" / "publication" / "frozen_manifest.json"
-        manifest.write_text(
-            json.dumps({"files": {CLASS_MOVES["frozen"]: {}}}), encoding="utf-8"
-        )
+        manifest.write_text(json.dumps({"files": {CLASS_MOVES["frozen"]: {}}}), encoding="utf-8")
 
     assert check_tree(tmp_path, pinned) == []
 
 
-def test_move_to_unmatched_path_passes_via_move_rule(tmp_path):
-    """A move to a path no class matches passes (hash found, reported move)."""
+def test_move_to_unmatched_path_fails(tmp_path):
+    """A move to a path no class matches fails as declassified-move."""
     _build_tree(tmp_path, extra=True)
     pinned = _pin_all(tmp_path)
     assert check_tree(tmp_path, pinned) == []
@@ -199,14 +197,130 @@ def test_move_to_unmatched_path_passes_via_move_rule(tmp_path):
     src.rename(dst)
 
     violations, moves = _analyze(tmp_path, pinned)
-    assert violations == [], f"classless move should pass: {violations}"
-    assert (CLASS_FILES["archive"], "artifacts/misc/note.md") in moves
+    assert moves == [], f"classless move must not be a move: {moves}"
+    assert any(
+        "declassified-move" in violation and CLASS_FILES["archive"] in violation
+        for violation in violations
+    ), f"classless move not reported: {violations}"
+
+
+def test_move_onto_excluded_script_fails(tmp_path):
+    """Bytes laundered onto an excluded script fail as declassified-move."""
+    _build_tree(tmp_path, extra=True)
+    pinned = _pin_all(tmp_path)
+    assert check_tree(tmp_path, pinned) == []
+
+    script = "artifacts/e2/preregistration/E2a_search/e2a_blinded_executor.py"
+    src = tmp_path / CLASS_FILES["archive"]
+    dst = tmp_path / script
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_bytes(src.read_bytes())
+    src.unlink()
+
+    violations, moves = _analyze(tmp_path, pinned)
+    assert moves == [], f"script overwrite must not be a move: {moves}"
+    assert any(
+        "declassified-move" in violation and script in violation for violation in violations
+    ), f"script overwrite not reported: {violations}"
+
+
+def test_identical_pair_deletion_is_not_a_move(tmp_path):
+    """Deleting one of two identical records fails; the twin is no rescue."""
+    _build_tree(tmp_path, extra=True)
+    first = tmp_path / CLASS_FILES["archive"]
+    second = tmp_path / SECOND_FILES["archive"]
+    second.write_bytes(first.read_bytes())
+    pinned = _pin_all(tmp_path)
+    assert check_tree(tmp_path, pinned) == []
+    # Sanity: the pair really shares bytes, so only the overwrite distinguishes.
+    assert pinned["paths"][CLASS_FILES["archive"]] == (pinned["paths"][SECOND_FILES["archive"]])
+
+    first.unlink()
+
+    violations, moves = _analyze(tmp_path, pinned)
+    assert moves == [], f"pinned-path launder must not be a move: {moves}"
+    assert any(
+        "deleted-record" in violation and CLASS_FILES["archive"] in violation
+        for violation in violations
+    ), f"pinned-path launder not reported: {violations}"
+
+
+def test_overwrite_pinned_path_with_other_bytes_fails(tmp_path):
+    """Bytes moved onto a live pinned path fail naming both paths."""
+    _build_tree(tmp_path, extra=True)
+    pinned = _pin_all(tmp_path)
+    assert check_tree(tmp_path, pinned) == []
+
+    first = tmp_path / CLASS_FILES["archive"]
+    second = tmp_path / SECOND_FILES["archive"]
+    second.write_bytes(first.read_bytes())
+    first.unlink()
+
+    violations = check_tree(tmp_path, pinned)
+    assert any(
+        "declassified-move" in violation and SECOND_FILES["archive"] in violation
+        for violation in violations
+    ), f"pinned-path overwrite not reported: {violations}"
+
+
+def test_frozen_key_removal_around_archived_record_fails(tmp_path):
+    """Dropping a manifest key demotes the record: the frozen count fails."""
+    repo = tmp_path / "repo"
+    rels = [
+        "artifacts/archive/frozen_dual_2026-10-04.md",
+        "artifacts/archive/frozen_dual_2026-10-05.md",
+    ]
+    for rel in rels:
+        (repo / rel).parent.mkdir(parents=True, exist_ok=True)
+        (repo / rel).write_bytes(f"dual-class record {rel}\n".encode())
+    manifest = repo / "artifacts" / "publication" / "frozen_manifest.json"
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(json.dumps({"files": {rel: {} for rel in rels}}))
+    pinned = _pin_all(repo)
+    assert set(pinned["paths"]) == set(rels)
+    assert check_tree(repo, pinned) == []
+
+    manifest.write_text(json.dumps({"files": {rels[1]: {}}}), encoding="utf-8")
+
+    violations = check_tree(repo, pinned)
+    assert any(
+        "class-count-mismatch" in violation and "class=frozen" in violation
+        for violation in violations
+    ), f"frozen demotion not reported: {violations}"
+
+
+def test_add_after_frozen_key_removal_is_refused_and_writes_nothing(tmp_path):
+    """A dropped manifest key is not laundered by ``--add`` of a fresh file."""
+    repo = tmp_path / "repo"
+    rels = [
+        "artifacts/archive/frozen_dual_2026-10-04.md",
+        "artifacts/archive/frozen_dual_2026-10-05.md",
+    ]
+    for rel in rels:
+        (repo / rel).parent.mkdir(parents=True, exist_ok=True)
+        (repo / rel).write_bytes(f"dual-class record {rel}\n".encode())
+    manifest = repo / "artifacts" / "publication" / "frozen_manifest.json"
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(json.dumps({"files": {rel: {} for rel in rels}}))
+    pinned = _pin_all(repo)
+    hashes_path = _write_hashes(tmp_path, pinned)
+    assert check_tree(repo, pinned) == []
+    before = hashes_path.read_bytes()
+
+    manifest.write_text(json.dumps({"files": {rels[1]: {}}}), encoding="utf-8")
+    fresh = "artifacts/audit/fresh_2026-10-06.md"
+    (repo / fresh).parent.mkdir(parents=True, exist_ok=True)
+    (repo / fresh).write_bytes(b"fresh dated record\n")
+
+    assert add_paths([fresh], repo_root=repo, hashes_path=hashes_path) == 1
+    assert hashes_path.read_bytes() == before, "refused --add must write nothing"
 
 
 def test_moved_and_edited_record_fails(tmp_path):
     """A move whose bytes changed fails (missing hash, nowhere to be found)."""
     _build_tree(tmp_path, extra=True)
     pinned = _pin_all(tmp_path)
+    assert check_tree(tmp_path, pinned) == []
 
     src = tmp_path / CLASS_FILES["archive"]
     dst = tmp_path / "artifacts" / "misc" / "note.md"
@@ -216,8 +330,7 @@ def test_moved_and_edited_record_fails(tmp_path):
 
     violations = check_tree(tmp_path, pinned)
     assert any(
-        "deleted-record" in violation and "class=archive" in violation
-        for violation in violations
+        "deleted-record" in violation and "class=archive" in violation for violation in violations
     ), f"moved-and-edited record not reported: {violations}"
 
 
@@ -230,9 +343,9 @@ def test_deleted_record_fails_and_names_class(tmp_path, cls):
     (tmp_path / CLASS_FILES[cls]).unlink()
 
     violations = check_tree(tmp_path, pinned)
-    assert any(
-        f"class={cls}" in violation for violation in violations
-    ), f"deletion in {cls} names no class: {violations}"
+    assert any(f"class={cls}" in violation for violation in violations), (
+        f"deletion in {cls} names no class: {violations}"
+    )
 
 
 def test_delete_one_of_identical_pair_fails(tmp_path):
@@ -284,7 +397,7 @@ def test_empty_class_fails_only_when_pinned(tmp_path, cls):
 
     violations = check_tree(tmp_path, pinned)
     assert any(
-        f"class={cls}" in violation and violation.startswith("empty-class")
+        f"class={cls}" in violation and violation.startswith("class-count-mismatch")
         for violation in violations
     ), f"empty {cls} not reported: {violations}"
 
@@ -303,9 +416,7 @@ def test_nonfinal_receipt_is_not_a_record(tmp_path):
     src.parent.mkdir(parents=True, exist_ok=True)
     src.write_bytes(
         (
-            json.dumps(
-                {"schema": "jaxfne.release_receipt.v1", "status": "gates_pass_not_sealed"}
-            )
+            json.dumps({"schema": "jaxfne.release_receipt.v1", "status": "gates_pass_not_sealed"})
             + "\n"
         ).encode("utf-8")
     )
@@ -322,8 +433,7 @@ def test_allowlist_is_exactly_the_three_live_scripts():
         assert rel.endswith(".py"), f"non-script allowlisted: {rel}"
         assert "prereg" in rel.lower(), f"allowlist entry outside prereg: {rel}"
     prereg_rels = {
-        p.relative_to(ROOT).as_posix()
-        for p in discover_records_by_class(ROOT)["prereg"]
+        p.relative_to(ROOT).as_posix() for p in discover_records_by_class(ROOT)["prereg"]
     }
     leaked = [rel for rel in NON_RECORD_PATHS if rel in prereg_rels]
     assert leaked == [], f"allowlisted paths still pinned: {leaked}"
@@ -431,3 +541,52 @@ def test_plan_add_reports_move_for_repin(tmp_path):
     assert any("repinned-move" in line and moved in line for line in ok), ok
     assert merged["paths"][moved] == pinned["paths"][CLASS_FILES["archive"]]
     assert CLASS_FILES["archive"] not in merged["paths"]
+
+
+def test_add_move_to_undiscovered_path_is_refused_and_writes_nothing(tmp_path):
+    """A move outside every class is no repin: ``--add`` refuses, writing nothing."""
+    repo = tmp_path / "repo"
+    _build_tree(repo, extra=True)
+    pinned = _pin_all(repo)
+    hashes_path = _write_hashes(tmp_path, pinned)
+    before = hashes_path.read_bytes()
+
+    moved = "artifacts/misc/note.md"
+    (repo / moved).parent.mkdir(parents=True, exist_ok=True)
+    (repo / CLASS_FILES["archive"]).rename(repo / moved)
+
+    assert add_paths([moved], repo_root=repo, hashes_path=hashes_path) == 1
+    assert hashes_path.read_bytes() == before, "refused --add must write nothing"
+
+
+def test_add_duplicate_bytes_in_class_is_accepted(tmp_path):
+    """A new in-class path holding a pinned record's bytes pins cleanly."""
+    repo = tmp_path / "repo"
+    _build_tree(repo, extra=True)
+    pinned = _pin_all(repo)
+    hashes_path = _write_hashes(tmp_path, pinned)
+
+    dup = "artifacts/archive/duplicate.md"
+    (repo / dup).write_bytes((repo / CLASS_FILES["archive"]).read_bytes())
+
+    assert add_paths([dup], repo_root=repo, hashes_path=hashes_path) == 0
+    saved = json.loads(hashes_path.read_text(encoding="utf-8"))
+    assert saved["paths"][dup] == pinned["paths"][CLASS_FILES["archive"]]
+    assert saved["counts"] == pinned_counts_for(saved["paths"], _frozen_paths(repo))
+    assert check_tree(repo, saved) == []
+
+
+def test_add_duplicate_bytes_outside_class_is_refused(tmp_path):
+    """Duplicate bytes at a classless path are refused; nothing is written."""
+    repo = tmp_path / "repo"
+    _build_tree(repo, extra=True)
+    pinned = _pin_all(repo)
+    hashes_path = _write_hashes(tmp_path, pinned)
+    before = hashes_path.read_bytes()
+
+    dup = "artifacts/misc/duplicate.md"
+    (repo / dup).parent.mkdir(parents=True, exist_ok=True)
+    (repo / dup).write_bytes((repo / CLASS_FILES["archive"]).read_bytes())
+
+    assert add_paths([dup], repo_root=repo, hashes_path=hashes_path) == 1
+    assert hashes_path.read_bytes() == before, "refused --add must write nothing"
