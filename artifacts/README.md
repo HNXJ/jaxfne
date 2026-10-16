@@ -19,7 +19,9 @@ receipts, dated audits, `archive/`, `legacy/`) keep the paths they were written 
 |---|---|---|
 | `assurance/` | `issue_log/` open issues P-NNN, `private_acceptance/` 0.4.x acceptance scorecards | release authorities |
 | `viewers/` | standalone column and pseudogenome HTML viewers (default output path of `jaxfne.vis`) | |
-| `runs/` | `benchmark/` agent benchmark (0.5.5), `mcc3_10s_checkpoint/` MCC3 10 s scientific checkpoint (cited by the etude manifest) | |
+| `runs/` | `benchmark/` agent benchmark (0.5.5), `mcc3_10s_checkpoint/` MCC3 10 s scientific checkpoint (cited by the etude manifest), `perf/` performance baselines, matrices, profiles, scaling and workflow benchmark | |
+| `e2/` | E2 preregistration, execution, confirmatory run and audit (stays: its preregistered records cite their own paths and hashes; manuscript-cited) | cited by publication |
+| `atlas/` | Atlas AT-01…AT-10 scripts, results and bundle tooling (stays: the frozen 0.5.5 agent benchmark `artifacts/runs/benchmark/agent_tasks_055.json` cites `artifacts/atlas/...` paths and its `spec_digest`s are frozen) | cited by benchmark |
 | `protocols/` | protocol families; `protocols/hdp/` holds `hdp_v2_rho_sweep/`, `hdp_k_w_ctrl_sweep/` HDP sweep outputs (cited by `protocol_c/` P2V-A3) and `hdp_presets/` realized `H` per preset (`scripts/measure_hdp_presets.py`) | |
 | `release/` | release receipts and `current_release_authorities.json` | release authorities |
 | `changelog.d/` | release-note fragments assembled into `docs/changelog.md` | |
@@ -27,15 +29,12 @@ receipts, dated audits, `archive/`, `legacy/`) keep the paths they were written 
 | `figures/` | publication figure renders | `publication/` fig01–fig07 frozen |
 | `etudes/` | `experiment_a/` frozen canonical bundle (stays: cited frozen path, `jaxfne/` defaults), paper replications (`papers/`: caminos, gsdr2026, izhikevich2003, pcl, pcl_h, qlearning), standalone bundles (`bundles/`), theory checks (`theory/`), compact-grammar lane (`jdna/`), lane records (`meta/`) | cited by publication |
 | `programme/` | plans (`design/plans/`), gap reports (`gaps/`), capabilities and inventories (`design/capabilities/`), live coverage triple (`coverage/`: `atlas_coverage.json`, `claim_ledger_055.md`, `methods_055.md`), receipts by version and family (`receipts/`), 3 dated files at root (kept paths) | release authorities |
-| `atlas/` | Atlas AT-01…AT-10 scripts, results and bundle tooling | cited by publication |
-| `protocol_c/` | Protocol C (waves) specs and receipts | cited by publication |
+| `protocol_c/` | Protocol C (waves) specs and receipts (stays: `jaxfne/` runtime defaults, FROZEN supplement rows) | cited by publication |
 | `protocol_d_biological_rbs/` | Protocol D (biological RBS) specs and receipts | cited by publication |
 | `protocol_e_integration/` | Protocol E (integration) specs and receipts | cited by publication |
 | `protocol_h_rbd/` | Protocol H (RBD, H4 matrix) receipts | cited by publication |
-| `protocol_w/` | Protocol W (closed-loop W) contract and receipts | cited by publication |
-| `e2/` | E2 preregistration, execution, confirmatory run, audit | |
-| `perf/` | baselines (`baselines/`), 0.5.1 matrix + spec (`matrices_051/`), 0.5.5 matrix + spec with `quiet/` and `rerun/` cell series (`matrices_055/`), profiles (`profiles/`), scaling (`scaling/`), workflow benchmark (`workflow/`) | |
-| `audit/` | audits and deep reviews | cited by publication |
+| `protocol_w/` | Protocol W (closed-loop W) contract and receipts (stays: `jaxfne/` runtime receipt paths, FROZEN supplement rows) | cited by publication |
+| `audit/` | audits and deep reviews, split by kind: `reviews/` prose reviews, `studies/` architecture studies, `probe_results/` probe-result JSONs, `capability/` v0417 capability inputs (the audit JSON itself stays at `audit/` root: the frozen `publication/publication_evidence_index.json` cites it), `baselines/` W-series baselines and tallies | cited by publication |
 | `project_sources/` | mathematical specification (the project-source set) | |
 | `vocabulary/` | `JAXFNE_VOCABULARY.md` | |
 | `skills/` | canonical agent skills (mirrored by `scripts/harness/sync_skills.py`) | harness |
@@ -56,8 +55,17 @@ frozen entries and `figures/` (`frozen_manifest.json` keys — write-once eviden
 `jaxfne.vis` viewers' default `output_path`; moving it changes a public default); archive bytes
 (`archive/` stays as written, including its old-path references). Version and family series
 (`programme/receipts/v0_4_23/`, `v0_4_24/`, `tfne/`, `engine_053_054/`) and the
-`perf/matrices_055/rerun/` cell series and the `tutorials/versioned/` notebook series exceed 7 entries: each is one
-release- or script-generated series kept whole so the set stays addressable.
+`runs/perf/matrices_055/rerun/` cell series and the `tutorials/versioned/` notebook series exceed 7 entries: each is one
+release- or script-generated series kept whole so the set stays addressable. P4 stay-decisions
+(Hamm 2026-10-15 packet): `protocol_c/`, `protocol_d_biological_rbs/`, `protocol_e_integration/`,
+`protocol_h_rbd/`, `protocol_w/` (every one carries a `jaxfne/` runtime default path and a FROZEN
+supplement row); `programme/` (live coverage triple read by its check scripts); `etudes/` and
+`tutorials/` (`experiment_a/` carries `jaxfne/` runtime defaults; P3 layout pinned by test);
+`changelog.d/` (release tooling path). `atlas/` stays at root: the frozen 0.5.5 agent
+benchmark `artifacts/runs/benchmark/agent_tasks_055.json` cites `artifacts/atlas/...` file
+paths and its `spec_digest`s are frozen, so a folder a frozen record cites by path stays
+where it is (P4 review, 2026-10-15). The same rule keeps `e2/` (self-citing preregistration
+records) and `audit/v0417_a_capability_audit.json` (cited by the frozen evidence index).
 
 `archive/scripts/` holds scripts with no reference in the tree, archived 2026-10-13 (T-17):
 

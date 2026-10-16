@@ -83,15 +83,16 @@ def test_p0_p1_folders_live_at_new_layout():
 
 
 # P2 reorganization (Hamm 2026-10-15): perf/ and programme/ split by kind.
+# P4 moved perf/ under runs/ (Hamm 2026-10-15 packet); programme/ stays.
 P2_FOLDERS = {
-    "perf/baselines",
-    "perf/matrices_051",
-    "perf/matrices_055",
-    "perf/matrices_055/quiet",
-    "perf/matrices_055/rerun",
-    "perf/profiles",
-    "perf/scaling",
-    "perf/workflow",
+    "runs/perf/baselines",
+    "runs/perf/matrices_051",
+    "runs/perf/matrices_055",
+    "runs/perf/matrices_055/quiet",
+    "runs/perf/matrices_055/rerun",
+    "runs/perf/profiles",
+    "runs/perf/scaling",
+    "runs/perf/workflow",
     "programme/coverage",
     "programme/gaps",
     "programme/design/plans",
@@ -111,12 +112,12 @@ P2_PROGRAMME_ROOT_FILES = {
 }
 
 P2_KEY_FILES = {
-    "perf/baselines/baseline_050.json",
-    "perf/matrices_051/matrix_051.json",
-    "perf/matrices_051/matrix_051_spec.json",
-    "perf/matrices_055/matrix_055.json",
-    "perf/matrices_055/matrix_055_spec.json",
-    "perf/scaling/w11_atlas_10k.jsonl",
+    "runs/perf/baselines/baseline_050.json",
+    "runs/perf/matrices_051/matrix_051.json",
+    "runs/perf/matrices_051/matrix_051_spec.json",
+    "runs/perf/matrices_055/matrix_055.json",
+    "runs/perf/matrices_055/matrix_055_spec.json",
+    "runs/perf/scaling/w11_atlas_10k.jsonl",
     "programme/coverage/atlas_coverage.json",
     "programme/coverage/claim_ledger_055.md",
     "programme/coverage/methods_055.md",
@@ -128,7 +129,7 @@ def test_p2_folders_live_at_new_layout():
         assert (REPO / "artifacts" / rel).is_dir(), f"missing after P2 move: {rel}"
     for rel in sorted(P2_KEY_FILES):
         assert (REPO / "artifacts" / rel).is_file(), f"missing after P2 move: {rel}"
-    perf_loose = {p.name for p in (REPO / "artifacts" / "perf").iterdir() if p.is_file()}
+    perf_loose = {p.name for p in (REPO / "artifacts" / "runs" / "perf").iterdir() if p.is_file()}
     assert perf_loose == set(), f"stale after P2 move: {sorted(perf_loose)}"
     prog_loose = {p.name for p in (REPO / "artifacts" / "programme").iterdir() if p.is_file()}
     assert prog_loose == P2_PROGRAMME_ROOT_FILES, f"unexpected programme/ root: {sorted(prog_loose)}"
@@ -201,3 +202,58 @@ def test_p3_folders_live_at_new_layout():
     for sub in ("intro", "status", "suite", "templates"):
         entries = list((REPO / "artifacts" / "tutorials" / sub).iterdir())
         assert len(entries) <= 7, f"tutorials/{sub} holds {len(entries)} entries"
+
+
+# P4 reorganization (Hamm 2026-10-15; amended on review the same day): perf/ grouped
+# under runs/; audit/ split by kind inside it. A folder a frozen record cites by path
+# stays: atlas/ (the frozen 0.5.5 agent benchmark artifacts/runs/benchmark/agent_tasks_055.json
+# cites artifacts/atlas/... and its spec_digests are frozen), e2/ (preregistered records
+# cite their own paths and hashes), audit/v0417_a_capability_audit.json (cited by the
+# frozen publication/publication_evidence_index.json). protocol_c/,
+# protocol_d_biological_rbs/, protocol_e_integration/, protocol_h_rbd/ and
+# protocol_w/ stay (jaxfne/ runtime defaults + FROZEN supplement rows), as do
+# programme/, etudes/, tutorials/ and changelog.d/ (artifacts/README.md).
+P4_RUNS_ROOT = {
+    "benchmark",
+    "mcc3_10s_checkpoint",
+    "perf",
+}
+
+P4_OLD_ROOT = {
+    "perf",
+}
+
+P4_AUDIT_ROOT = {
+    "reviews",
+    "studies",
+    "probe_results",
+    "capability",
+    "baselines",
+}
+
+P4_KEY_FILES = {
+    "atlas/at_manifest.py",
+    "atlas/results/at10_n20_055.json",
+    "e2/E2_SYNTHESIS.md",
+    "e2/preregistration/e2_ping_prereg.json",
+    "runs/perf/matrices_055/matrix_055.json",
+    "audit/reviews/deep_review_89_2026-10-04.md",
+    "audit/studies/jomission_downstream_lessons.md",
+    "audit/probe_results/h_representation_probe_results.json",
+    "audit/v0417_a_capability_audit.json",
+    "audit/baselines/w8_baseline.json",
+}
+
+
+def test_p4_folders_live_at_new_layout():
+    runs_root = {p.name for p in (REPO / "artifacts" / "runs").iterdir()}
+    assert runs_root == P4_RUNS_ROOT, f"unexpected runs/ root: {sorted(runs_root)}"
+    for rel in sorted(P4_OLD_ROOT):
+        assert not (REPO / "artifacts" / rel).exists(), f"stale after P4 move: {rel}"
+    audit_root = {p.name for p in (REPO / "artifacts" / "audit").iterdir() if p.is_dir()}
+    assert audit_root == P4_AUDIT_ROOT, f"unexpected audit/ root: {sorted(audit_root)}"
+    for rel in sorted(P4_KEY_FILES):
+        assert (REPO / "artifacts" / rel).is_file(), f"missing after P4 move: {rel}"
+    for sub in sorted(P4_AUDIT_ROOT):
+        entries = list((REPO / "artifacts" / "audit" / sub).iterdir())
+        assert len(entries) <= 7, f"audit/{sub} holds {len(entries)} entries"

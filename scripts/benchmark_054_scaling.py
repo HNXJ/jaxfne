@@ -4,8 +4,8 @@
 Chains k laminar columns (k = 1..4) with feedforward cross edges, runs one
 short simulation per k, and records wall time + peak RSS. This is a
 measurement, not a gate: it records that 0.5.5 is not the first multi-area
-scale test. The frozen 0.5.1 matrix (artifacts/perf/matrices_051/matrix_051*.json) is untouched;
-output goes to artifacts/perf/scaling/scaling_054.json (tracked).
+scale test. The frozen 0.5.1 matrix (artifacts/runs/perf/matrices_051/matrix_051*.json) is untouched;
+output goes to artifacts/runs/perf/scaling/scaling_054.json (tracked).
 
 Usage:
     python scripts/benchmark_054_scaling.py
@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-OUT = ROOT / "artifacts" / "perf" / "scaling" / "scaling_054.json"
+OUT = ROOT / "artifacts" / "runs" / "perf" / "scaling" / "scaling_054.json"
 
 DURATION_MS, DT_MS, SEED = 40.0, 0.5, 7
 N_PER_AREA = 12

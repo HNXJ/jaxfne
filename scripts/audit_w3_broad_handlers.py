@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """W3 inventory: broad ``except Exception`` / bare ``except:`` handlers in jaxfne.
 
-Emits ``artifacts/audit/w3_broad_handler_tally.json``. Classification only —
+Emits ``artifacts/audit/baselines/w3_broad_handler_tally.json``. Classification only —
 no code changes. Re-run after handler edits to refresh the tally.
 
 Classes (roadmap W3):
@@ -19,7 +19,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PKG = ROOT / "jaxfne"
-OUT = ROOT / "artifacts" / "audit" / "w3_broad_handler_tally.json"
+OUT = ROOT / "artifacts" / "audit" / "baselines" / "w3_broad_handler_tally.json"
 
 HANDLER_RE = re.compile(
     r"^\s*except\s+(Exception|BaseException)(\s+as\s+\w+)?\s*:|^\s*except\s*:"

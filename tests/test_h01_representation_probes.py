@@ -25,7 +25,7 @@ from jaxfne.emitters import (
 
 AUDIT_JSON = (
     Path(__file__).resolve().parents[1]
-    / "artifacts/audit/h_representation_probe_results.json"
+    / "artifacts/audit/probe_results/h_representation_probe_results.json"
 )
 
 COORDINATE_INVENTORY = [

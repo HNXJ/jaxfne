@@ -12,7 +12,7 @@ Memory buckets (aligned with W10):
 
 Usage:
     python scripts/audit_w7_dense_nxn_sites.py
-    python scripts/audit_w7_dense_nxn_sites.py --json artifacts/audit/w7_dense_nxn_inventory.json
+    python scripts/audit_w7_dense_nxn_sites.py --json artifacts/audit/baselines/w7_dense_nxn_inventory.json
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ from w10_allocation_map import (  # noqa: E402
     walk_arrays,
 )
 
-OUT_DEFAULT = ROOT / "artifacts" / "audit" / "w7_dense_nxn_inventory.json"
+OUT_DEFAULT = ROOT / "artifacts" / "audit" / "baselines" / "w7_dense_nxn_inventory.json"
 
 # Static registry: construction + simulation paths only (excludes tutorial/protocol/analysis-only).
 # roadmap_class mirrors ROADMAP §W7; role is the user-requested AUTHORITATIVE|... taxonomy.

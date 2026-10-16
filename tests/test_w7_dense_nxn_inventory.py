@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-INVENTORY = ROOT / "artifacts" / "audit" / "w7_dense_nxn_inventory.json"
+INVENTORY = ROOT / "artifacts" / "audit" / "baselines" / "w7_dense_nxn_inventory.json"
 
 
 def test_w7_inventory_exists_and_closed():

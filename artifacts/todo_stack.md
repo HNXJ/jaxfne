@@ -211,12 +211,12 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
    (`scratch/wsl_cuda_2026-10-09/`, gitignored): one unexplained failed GPU run. Closes when:
    RSS is flat over chunks with the XLA cache cleared.
 2. A8 gh-pages policy for D1 or Atlas figures (the dashboard is at `/dashboard/` only).
-3. Architecture split (`emitters/`, `tfne.py`; `artifacts/audit/deep_review_89_2026-10-04.md` §5)
+3. Architecture split (`emitters/`, `tfne.py`; `artifacts/audit/reviews/deep_review_89_2026-10-04.md` §5)
    only as a measured bottleneck.
 4. C5–C7 numerical deferrals: need a signed-zero/NaN exactness contract.
 5. UNTESTED-exact refusal tail; placeholder notebooks and artifact-gated skips; post-0.4.14 aliases.
 6. `scripts/` lint (P-001, ruff 171): first `audit_w3_broad_handlers.py` `_OVERRIDES` (running it
-   rewrites `artifacts/audit/w3_broad_handler_tally.json`): re-key by content or retire.
+   rewrites `artifacts/audit/baselines/w3_broad_handler_tally.json`): re-key by content or retire.
 7. S27 population definition family, when CTX-01 cannot express one.
 8. Agent-native step 10: MCP or another transport.
 9. From 0.5.4: item 1b (S20.1 ordering, needs Hamm) and item 0 (`X[k]` frontier override).

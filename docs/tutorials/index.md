@@ -50,7 +50,7 @@ and runtime keys are distinct (`K_D ≠ K_S`; see the [PseudoGenome guide](../gu
 | [**07**](07_add_dynamics.md) | add dynamics | HDP | `enable_hdp` (`DEFAULT_HDP` vs `DESYNC`), `H_trace/w_trace`, `K_HDP/K_ctrl/K_w_ctrl` | `model` |
 | [**08**](08_compare_nulls.md) | compare | Nulls, lesions | shuffled, `LESION_SPEC`, multi-area 3000n via `merge_neuronal_tensors`, `kappa` | all |
 
-The step table with receipts is audited in `artifacts/audit/tutorial_cumulative_audit.md`.
+The step table with receipts is audited in `artifacts/audit/reviews/tutorial_cumulative_audit.md`.
 The fluent `Configuration` builder is the other on-ramp; both converge on
 `construct → simulate` ([Configuration Grammar](../guides/configuration_grammar.md)).
 `NeuronalTensor` is the declarative `Areas × Layers × NeuronTypes` object the track
