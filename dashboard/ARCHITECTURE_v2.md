@@ -7,6 +7,11 @@ the demonstrations 3–6 and the new layout on 2026-10-12.
 
 ## Status classes (approved; the classification is Hamm's)
 
+Superseded on 2026-10-16 (Hamm): the classes are reproduced, reproduced (conditional), in
+progress, not started and failed; former demonstrations are in progress. `DESIGN.md` holds the
+rules. The table below
+is the 2026-10-12 record.
+
 | Class | Definition | Evidence required |
 |---|---|---|
 | Verified replication | every primary criterion of a signed preregistration passes, run through the jaxfne library (B1) | scorer JSON at a SHA, ledger row, library-path receipt |

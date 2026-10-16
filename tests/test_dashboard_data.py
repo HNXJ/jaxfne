@@ -62,7 +62,7 @@ def paper(sha, **over):
     """A minimal valid paper entry; keyword arguments replace or add fields."""
     base = {
         "id": "fixture", "title": "Fixture", "citation": "test", "release": "0.0.0", "tier": "T-test",
-        "class": "demonstration",
+        "class": "in progress",
         "stage": "P0", "lane": {"branch": "test", "sha": sha}, "summary": "fixture",
         "preregs": [], "files": {}, "criteria": [], "sensitivity": [], "charts": [], "open": [],
     }
@@ -364,8 +364,17 @@ def test_value_text_three_significant_figures():
 
 @pytest.mark.parametrize("over, needle", [
     ({"class": "replicated"}, "class 'replicated'"),
-    ({"class": "demonstration", "verdict": "pass"}, "a demonstration carries no verdict"),
-    ({"class": "partial", "preregs": []}, "needs a signed preregistration"),
+    ({"class": "not reproduced", "preregs": [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}]},
+     "class 'not reproduced' is not one of"),
+    ({"class": "verified", "preregs": [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}]},
+     "class 'verified' is not one of"),
+    ({"class": "demonstration"}, "class 'demonstration' is not one of"),
+    ({"class": "reproduced", "preregs": []}, "needs a signed preregistration"),
+    ({"class": "failed", "preregs": []}, "needs a signed preregistration"),
+    ({"class": "not started", "verdict": "pass"}, "a not-started paper carries no verdict and no criteria"),
+    ({"class": "reproduced (conditional)", "verdict": "pass",
+      "preregs": [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}]},
+     "a conditional reproduction states its condition in verdict_note"),
 ])
 def test_class_rules_refuse_and_name_the_paper(tmp_path, over, needle):
     root = tmp_path / "repo"
@@ -454,7 +463,7 @@ def test_class_page_paper_value_and_roadmap_are_copied(tmp_path):
     prereg = [{"id": "v1", "signed": "2026-01-01", "path": "prereg.md"}]
     r1 = criterion(value={"file": "main", "key": "val"}, paper_value="≈ 1.4")
     roadmap = [{"release": "9.9.9", "model": "m", "needs": "n"}]
-    spec = {"class": "partial", "verdict": "pass", "verdict_note": "under v2", "preregs": prereg,
+    spec = {"class": "reproduced (conditional)", "verdict": "pass", "verdict_note": "under v2", "preregs": prereg,
             "page": "models/fixture.md", "files": {"main": "scores/main.json"}, "criteria": [r1]}
     write_sources(root, [paper(sha, **spec)], roadmap=roadmap)
 
@@ -462,7 +471,7 @@ def test_class_page_paper_value_and_roadmap_are_copied(tmp_path):
     assert proc.returncode == 0, proc.stderr
     doc = load_out(root)
     got = doc["papers"][0]
-    assert (got["class"], got["verdict"], got["page"]) == ("partial", "pass", "models/fixture.md")
+    assert (got["class"], got["verdict"], got["page"]) == ("reproduced (conditional)", "pass", "models/fixture.md")
     assert got["verdict_note"] == "under v2"
     assert got["criteria"][0]["paper_value"] == "≈ 1.4" and got["criteria"][0]["value"] == 1.5
     assert doc["roadmap"] == roadmap

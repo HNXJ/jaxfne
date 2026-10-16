@@ -1,6 +1,6 @@
 # Étude: Predictive Coding Light
 
-**Status:** Fig. 2 reproduced standalone and on the HDP kernel; central claim reproduced in a small column; orientation tuning not reproduced  
+**Status:** Fig. 2 reproduced standalone and on the HDP kernel; central claim reproduced in a small column; Fig. 3 tuning in progress (preregistrations v4 and v5 did not pass)  
 **Bundle:** `artifacts/etudes/papers/pcl/`
 
 ## Claim and source

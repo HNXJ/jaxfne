@@ -30,14 +30,16 @@ shows scored results only from committed evidence.
 
 ## Data contract (`replications.json`, schema `jaxfne-replications/2`)
 
-Schema 2 (Hamm 2026-10-12, `ARCHITECTURE_v2.md`) adds per paper `class` (verified | partial |
-not reproduced | demonstration | in progress), `question`, `page` (`models/<id>.md`, rendered with marked and
-KaTeX), per criterion `paper_value` (text, or null where the paper gives none), and a top-level
-`roadmap` list of `{release, model, needs}`. The generator refuses an unknown class, a
-demonstration with a verdict, a scored class without a preregistration, and a named page that
-does not exist. `verdict` is null for a demonstration. An in-progress paper carries no verdict and
-needs a non-empty `stage`; it needs no signed preregistration, since the scored-class rule applies
-to verified, partial and not reproduced only. Static PNGs of every chart come from
+Schema 2 (Hamm 2026-10-12, `ARCHITECTURE_v2.md`) adds per paper `class`, `question`, `page`
+(`models/<id>.md`, rendered with marked and KaTeX), per criterion `paper_value` (text, or null
+where the paper gives none), and a top-level `roadmap` list of `{release, model, needs}`.
+Classes (Hamm 2026-10-16): reproduced | reproduced (conditional) | in progress | not started |
+failed. A model run without a scored preregistration is in progress. The scored classes (reproduced, reproduced (conditional), failed) need
+a signed preregistration, and a conditional reproduction states its condition in `verdict_note`.
+An in-progress paper carries no verdict and needs a non-empty `stage`; a preregistration scored
+without a pass keeps the paper in progress, with its criteria shown. A not-started paper carries
+no verdict and no criteria; the overview also lists every roadmap row as not started. The generator refuses an unknown class, a broken class rule
+and a named page that does not exist. Static PNGs of every chart come from
 `scripts/build_dashboard_figures.py` (`dashboard/figures/`, manifest of chart-data hashes;
 `--check` in the workflow).
 
@@ -53,7 +55,7 @@ to verified, partial and not reproduced only. Static PNGs of every chart come fr
     "stage_artifacts": [{"stage": "P2", "items": [{"label": "port spec", "path": "...", "url": "..."}]}],
                                           // files per finished stage at the lane sha, P0..P7 order;
                                           // a stage past "stage" or a path absent at the lane is refused
-    "verdict": "not reproduced",          // reproduced | not reproduced | pending | not testable
+    "verdict": "reproduced",              // reproduced | pending | not testable; null when unscored
     "summary": "one sentence",
     "preregs": [{"id": "v6", "signed": "2026-10-11", "path": "...", "url": "..."}],
     "criteria": [{
@@ -88,7 +90,7 @@ Desktop at 1440 px; one column at 390 px with no horizontal scroll. Hash-routed 
    the Docs site and to `artifacts/etudes/meta/REPLICATIONS.md`, a sample banner when `sample` is
    true, and the tabs.
 2. **Overview** (`#overview`, default). KPI cards: models per class and the preregistered
-   criteria pass / fail / pending (demonstrations and in-progress papers excluded). Then the model cards grouped by
+   criteria pass / fail / pending (scored classes only). Then the model cards grouped by
    class, each with its class chip, its verdict chip where one exists, and its question.
 3. **Models** (`#models`; one model at `#model/<id>`; v1 links `#<id>` still open it): title,
    citation, class chip beside the preregistered verdict, stage track, code SHA, summary; the

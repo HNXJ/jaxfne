@@ -19,7 +19,7 @@ def test_every_paper_links_its_dashboard_page():
 
 
 def test_pipe_in_a_title_does_not_split_the_row():
-    sources = {"papers": [{"id": "x", "title": "A | B", "citation": "C", "class": "partial",
+    sources = {"papers": [{"id": "x", "title": "A | B", "citation": "C", "class": "reproduced (conditional)",
                            "release": "0.5.6", "stage": "P5", "verdict": "reproduced"}]}
     row = [ln for ln in render(sources).splitlines() if "#model/x" in ln][0]
     assert row.count(" | ") == 4

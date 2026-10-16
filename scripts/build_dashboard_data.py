@@ -24,9 +24,12 @@ from pathlib import Path
 
 SCHEMA = "jaxfne-replications/2"
 SOURCES_SCHEMA = "jaxfne-dashboard-sources/2"
-# Status classes (Hamm 2026-10-12, dashboard/ARCHITECTURE_v2.md). A demonstration carries no verdict.
-# An in-progress paper is on the replication pipeline with no scored preregistration yet: no verdict, a stage.
-CLASSES = ("verified", "partial", "not reproduced", "demonstration", "in progress")
+# Status classes (Hamm 2026-10-16). reproduced, reproduced (conditional) and failed need a signed
+# preregistration; a conditional reproduction states its condition in verdict_note. An in-progress
+# paper has a stage and no verdict; a preregistration scored without a pass keeps it in progress.
+# A not-started paper has no verdict and no criteria.
+CLASSES = ("reproduced", "reproduced (conditional)", "in progress", "not started", "failed")
+SCORED_CLASSES = ("reproduced", "reproduced (conditional)", "failed")
 TOL = 1e-9
 FLOOR_REASON = "E-rate floor not met"
 NO_VALUE = "—"
@@ -445,15 +448,17 @@ def check_class(spec):
     cls = spec.get("class")
     if cls not in CLASSES:
         raise BuildError(f"paper {spec['id']}: class {cls!r} is not one of {list(CLASSES)}")
-    if cls == "demonstration" and spec.get("verdict") is not None:
-        raise BuildError(f"paper {spec['id']}: a demonstration carries no verdict")
     if cls == "in progress":
         if spec.get("verdict") is not None:
             raise BuildError(f"paper {spec['id']}: an in-progress paper carries no verdict")
         if not spec.get("stage"):
             raise BuildError(f"paper {spec['id']}: an in-progress paper needs a non-empty stage")
-    elif cls != "demonstration" and not spec.get("preregs"):
+    if cls == "not started" and (spec.get("verdict") is not None or spec.get("criteria")):
+        raise BuildError(f"paper {spec['id']}: a not-started paper carries no verdict and no criteria")
+    if cls in SCORED_CLASSES and not spec.get("preregs"):
         raise BuildError(f"paper {spec['id']}: class {cls!r} needs a signed preregistration")
+    if cls == "reproduced (conditional)" and not spec.get("verdict_note"):
+        raise BuildError(f"paper {spec['id']}: a conditional reproduction states its condition in verdict_note")
     return cls
 
 
