@@ -6,21 +6,9 @@ at the repository root — GitHub derives its **Cite this repository** button fr
 
 ## Software citation (current)
 
-Until a Zenodo DOI is minted (see below), cite the GitHub release or PyPI package:
-
-```bibtex
-@software{jaxfne2026,
-  author = {Nejat, Hamed},
-  title = {jaxfne: JAX Field Neural Equations},
-  year = {2026},
-  url = {https://github.com/HNXJ/jaxfne},
-  version = {0.5.6},
-  note = {Computational scaffold / proxy readouts; tag v0.5.6}
-}
-```
-
-After the first Zenodo archival of a tagged release, add the DOI line from the
-Zenodo record, for example:
+Every published GitHub Release is archived on Zenodo. All versions share one
+concept DOI, [10.5281/zenodo.21448155](https://doi.org/10.5281/zenodo.21448155),
+which resolves to the latest version. Cite it when referring to jaxfne as a project:
 
 ```bibtex
 @software{jaxfne2026,
@@ -28,14 +16,14 @@ Zenodo record, for example:
   title = {jaxfne: JAX Field Neural Equations},
   year = {2026},
   publisher = {Zenodo},
-  doi = {10.5281/zenodo.XXXXXXX},
+  doi = {10.5281/zenodo.21448155},
   url = {https://github.com/HNXJ/jaxfne},
   version = {0.5.6}
 }
 ```
 
-Replace `10.5281/zenodo.XXXXXXX` with the real DOI from [Zenodo](https://zenodo.org) —
-do not invent a DOI before it exists.
+When a result depends on an exact release, cite that release's version DOI
+instead; the Zenodo record's **Versions** panel lists one per release.
 
 ## Zenodo DOI (maintainers)
 
@@ -52,11 +40,8 @@ Permanent version DOIs come from the **GitHub–Zenodo** integration when a
 **Per release** (after step 10 publish authorization):
 
 1. Create/publish a GitHub Release for the tag (e.g. `v0.4.7`).
-2. Zenodo builds a deposit automatically; confirm on the Zenodo project page.
-3. Copy the new `10.5281/zenodo.*` DOI into:
-   - `CITATION.cff` (`identifiers` entry with `type: doi`, or top-level `doi:`)
-   - This page (replace the placeholder BibTeX above)
-   - Optional: `README.md` citation line
+2. Zenodo builds a deposit automatically under the concept DOI; confirm on the Zenodo project page.
+3. The concept DOI in `CITATION.cff`, `README.md` and this page stays unchanged.
 
 Detailed checklist: Zenodo release DOI guide (`docs/guides/zenodo_doi.md` — repository-internal reference, excluded from the built site).
 

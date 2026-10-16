@@ -18,13 +18,16 @@ Official reference: [Zenodo versioning FAQ](https://zenodo.org/help/versioning).
 | **Concept DOI** | Yes (one per project) | Landing page of the **latest** version | README badge, “cite this software” generically, `CITATION.cff` project id |
 | **Version DOI** | No (new one each Release) | That exact snapshot | Papers / receipts that must pin a specific release |
 
-Example pattern (numbers illustrative):
+jaxfne (Zenodo API, 2026-10-16: 16 versions, v0.4.7 to v0.5.6, all under one concept):
 
 ```text
-v0.4.7 (version DOI):  10.5281/zenodo.1111111
-v0.5.0 (version DOI):  10.5281/zenodo.2222222
-Concept DOI (all versions): 10.5281/zenodo.0000000   ← put this in CITATION.cff
+v0.4.7 (version DOI):  10.5281/zenodo.21448156
+v0.5.6 (version DOI):  10.5281/zenodo.23404707
+Concept DOI (all versions): 10.5281/zenodo.21448155   ← in CITATION.cff, README, citation.md
 ```
+
+Releases before v0.4.7 (v0.3.x to v0.4.5) predate the integration and are not
+archived; Zenodo does not backfill them.
 
 ## What triggers an update
 

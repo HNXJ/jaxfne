@@ -6,6 +6,7 @@
   <a href="https://pypi.org/project/jaxfne/"><img src="https://img.shields.io/pypi/v/jaxfne?color=brightgreen" alt="PyPI"></a>
   <a href="https://jaxfne.readthedocs.io/en/stable/"><img src="https://readthedocs.org/projects/jaxfne/badge/?version=stable" alt="Docs"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
+  <a href="https://doi.org/10.5281/zenodo.21448155"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21448155.svg" alt="DOI"></a>
 </p>
 
 # jaxfne
@@ -60,6 +61,7 @@ If you are an AI agent, read [`artifacts/AGENTS.md`](artifacts/AGENTS.md).
 
 ## Citation
 
+Concept DOI (all versions): [10.5281/zenodo.21448155](https://doi.org/10.5281/zenodo.21448155) ·
 [`CITATION.cff`](CITATION.cff) · [citation guide](docs/citation.md)
 
 ## Canonical Visualization Atlas
