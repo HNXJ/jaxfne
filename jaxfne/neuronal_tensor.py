@@ -2473,8 +2473,11 @@ def _tensor_identity_digest(tensor: NeuronalTensor) -> str:
 
     try:
         payload = dict(tensor.to_dict())
-    except Exception:  # defensive: never block construction on hashing
-        return ""
+    except Exception as exc:  # fail closed: never return a colliding "" identity
+        raise ValueError(
+            f"cannot compute identity digest for tensor "
+            f"{getattr(tensor, 'name', type(tensor).__name__)!r}: {exc}"
+        ) from exc
     payload.pop("provenance", None)
     blob = _json.dumps(
         payload,
