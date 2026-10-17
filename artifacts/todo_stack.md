@@ -38,10 +38,10 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
 
 - R2 restated (Hamm 2026-10-14): bytes -10% against the 0.5.5 tag (met: 86.8 MB
   tracked at 1bfdaa84 against 126.0 MB at the tag) plus files at the recorded budget with
-  reasons on record (2365 tracked, `budget_files` 2365 in
+  reasons on record (2382 tracked, `budget_files` 2400 in
   `scripts/tree_size_allowlist.json`; each raise from 2269, its reason and authorization are in
-  this line's git history; last raise +11 for the PCL tensor-route lane: 4 jaxfne modules, 5
-  tests, the PCL calibration record and its Stage C receipt, none regenerable). The
+  this line's git history and c4056347; last raise 2372 -> 2400 for the Destexhe lane, which
+  also covers the O-8 test `tests/test_artifacts_tree_degree.py`, 2026-10-16). The
   regenerable docs assets are untracked already: the 9 registry `copies` dests under
   `docs/assets/etudes/` and all atlas/etude HTML are build products of
   `scripts/build_docs_assets.py --build` (the Read the Docs `pre_build` path) and gitignored.
