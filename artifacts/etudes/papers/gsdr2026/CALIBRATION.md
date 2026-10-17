@@ -432,3 +432,49 @@ regime is stable across reps, but quoted seed-1 decimals wobble at
 the ~1 Hz / ~0.002 level. One first-in-process seed-1 run returned
 kappa 0.0 (unexplained outlier). OPEN: rerun-before-quote for any
 seed-1 decimal; the 0.0 needs one clean reproduction before it counts.
+
+### 6.7 Diagnosis: structural sweeps at g* (OBSERVED, no fitting)
+
+The structural diagnosis §6.4–6.6 left open. At g*, seeds 1–2 (the
+seed drives the OU noise only; g* fixes the conductances), three sweeps, `diag/structural_sweep.py`,
+`/mnt/f/warehouse/gsdr/diag_structural_2026-10-17.json` (26 rows).
+Regimes from the core `activity_regimes` on E / global-I / local-I over
+[500, 1000] ms, default thresholds. k_fit is the fit's
+`kappa_of_onsets` (§6.6); the JSON also holds the core
+`wang_buzsaki_kappa` at 5 ms. Rates are seed 1 / seed 2; sat = all three
+populations `saturated`.
+
+| sweep | factor | rate (Hz) | active | k_fit | regimes |
+|---|---|---|---|---|---|
+| all g × | 0.25 | 25.77 / 25.12 | 1.00 | 0.998 / 0.993 | sat |
+| all g × | 0.5 | 23.15 / 22.87 | 1.00 | 0.969 / 0.987 | sat |
+| all g × | 1 | 21.15 / 21.71 | 1.00 | 0.998 / 1.000 | sat |
+| all g × | 2 | 19.91 / 20.35 | 1.00 | 0.946 / 1.000 | sat |
+| AMPA × | 0 | 17.16 / 10.07 | 0.58 / 0.62 | 0.145 / 0.166 | irregular / silent / irregular |
+| AMPA × | 0.1 | 16.32 / 16.73 | 1.00 | 0.610 / 0.629 | sat |
+| AMPA × | 0.25 | 18.32 / 19.64 | 1.00 | 0.776 / 0.744 | sat |
+| AMPA × | 0.5 | 19.87 / 21.60 | 1.00 | 0.821 / 0.910 | sat |
+| stim | 0 | 20.43 / 20.29 | 1.00 | 0.949 / 0.930 | sat |
+| stim | 0.15 | 20.39 / 21.00 | 1.00 | 0.989 / 1.000 | sat |
+| stim | 0.3 | 21.13 / 20.93 | 1.00 | 0.904 / 0.996 | sat |
+| stim | 0.6 | 21.84 / 21.69 | 1.00 | 1.000 / 1.000 | sat |
+| stim | 1.2 | 21.81 / 21.65 | 1.00 | 1.000 / 1.000 | sat |
+
+Verdict: the saturation is self-sustained and AMPA-borne. With the
+stimulus off (stim 0) the network stays saturated at ~20 Hz, so
+stimulus entrainment is rejected. Scaling every conductance 0.25–2×
+changes the rate (26 → 20 Hz) and keeps every population saturated,
+so the lock is independent of overall gain. AMPA alone lowers kappa monotonically
+(0.5× 0.82–0.91, 0.1× 0.61–0.63) while every cell still fires;
+only AMPA 0 breaks saturation (active 0.58–0.62, kappa 0.15–0.17,
+global-I silent), at a rate penalty of 59–65. No row reaches the
+data regime (active ≤ 0.95 with kappa ≤ 0.5 and low rate).
+
+The first smoke run in the process returned 5.19 Hz, kappa 0.0 and an
+empty stimulus window; the next two calls gave 21.80 and 21.20 Hz.
+This is the second sighting of the §6.6 first-in-process outlier
+(inferred same family; cause unknown). OPEN: reproduce it on purpose
+(fresh process, first call, CPU vs GPU) before any number from a
+first call is quoted; then decide whether the port's E→E/E→I AMPA
+recurrence differs structurally from the authors' (connectivity
+density, delays, AMPA kinetics) before any further fit.
