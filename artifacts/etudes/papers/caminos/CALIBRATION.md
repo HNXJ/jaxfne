@@ -7,7 +7,7 @@ Status:
 - Ruling (Hamm, 2026-10-14, relayed by the coordinator): PLoS CB is primary. The signed 2 ms model and y = 8.5 ms stay (section 10).
 - Open fidelity item F1 (section 4): the port's 2 ms synaptic delay differs from the preprint's model. The 0.1 ms sensitivity (section 9) is recorded, not primary. True zero delay waits for core gap G12.
 
-Tree baseline: `3dd02ed060390ecf711e04860a1d6d46e854ef83`. Changed: `artifacts/etudes/caminos/caminos_api.py` (gain keyword; ref. 42 estimator; `--delay-ms` override, default 2 ms; default path unchanged), new `test_caminos_api.py`, new `score_lag_ref42.py`, new `score_delay_sensitivity.py`, new `CALIBRATION.md`, new `docs/models/caminos.md`. No commit.
+Tree baseline: `3dd02ed060390ecf711e04860a1d6d46e854ef83`. Changed: `artifacts/etudes/caminos/caminos_api.py` (gain keyword; ref. 42 estimator; `--delay-ms` override, default 2 ms; default path unchanged), new `test_caminos_api.py`, new `score_lag_ref42.py`, new `score_delay_sensitivity.py`, new `CALIBRATION.md`, new `docs/etudes/models/caminos.md`. No commit.
 
 Inputs:
 

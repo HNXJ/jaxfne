@@ -21,8 +21,8 @@ so a script run outside pytest imports that tree; pytest imports the tree under 
 
 | # | Practice | jnwb evidence | Why jaxfne needs it |
 |---|---|---|---|
-| 1 | Changelog fragments assembled at release | `tests/test_changelog_fragments.py`, `scripts/assemble_changelog.py` | Lanes are cherry-picked into one branch, and every lane edits `docs/changelog.md` |
-| 2 | One newline policy, tested on generated files | `tests/test_generated_files_are_byte_stable.py` | `docs/changelog.md` holds 653 CRLF and 5 LF lines; docs mix CRLF and LF files |
+| 1 | Changelog fragments assembled at release | `tests/test_changelog_fragments.py`, `scripts/assemble_changelog.py` | Lanes are cherry-picked into one branch, and every lane edits `docs/reference/changelog.md` |
+| 2 | One newline policy, tested on generated files | `tests/test_generated_files_are_byte_stable.py` | `docs/reference/changelog.md` holds 653 CRLF and 5 LF lines; docs mix CRLF and LF files |
 | 3 | Errors page with a test that every exported error is on it | `docs/errors.md`, `tests/test_errors_documented.py` | jaxfne refuses many inputs by name and documents none of the refusals in one place |
 | 4 | Claim-wording gate | `tests/test_claim_wording.py` | jaxfne's equivalent risk is calling a proxy a measured or calibrated quantity |
 | 5 | Frozen function bodies by AST hash | `tests/test_frozen_validated.py`, `artifacts/frozen_validated.json` | Kernels validated bit for bit (AdEx, Izhikevich) can change without notice; jaxfne freezes files, not functions |

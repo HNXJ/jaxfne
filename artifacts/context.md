@@ -39,7 +39,7 @@ either grammar.
 | Canonical prose vocabulary | `artifacts/control/vocabulary/JAXFNE_VOCABULARY.md` |
 | Reusable agent workflows | `artifacts/control/skills/` — in a repository checkout; not carried in the source distribution |
 | Which checks block a release? | `scripts/run_test_gate.py` |
-| CI, branch and documentation policy | `docs/ci_policy.md` |
+| CI, branch and documentation policy | `docs/reference/project/ci_policy.md` |
 
 Resolve a path, symbol or flag against the repository before relying on it. Any file that
 points at other files can name something that no longer exists without erroring, so treat a

@@ -11,7 +11,7 @@ SCIENCE work: scientific simulation, falsification, HDP/TFNE analysis, Etudes, a
 
 ## AUTHORITIES
 1. Repository `artifacts/AGENTS.md` (required tests, evidence pipeline).
-2. Protocol rules (e.g. `docs/doctrine/rbs_rbd_hdp.md`).
+2. Protocol rules (e.g. `docs/theory/doctrine/rbs_rbd_hdp.md`).
 
 ## RULES
 - Numerical dtype is part of the declared protocol. Release gates and the current etudes use float32. Do not promote arrays to float64 unless that protocol says so.

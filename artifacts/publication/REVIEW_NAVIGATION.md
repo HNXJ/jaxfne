@@ -118,7 +118,7 @@ Provenance semantics of the tracked evidence:
   status `ACTIVE`).
 - Version axes: the package version (`0.4.16` in `pyproject.toml` /
   `jaxfne._model.py`) and the publication milestone (`0.4.17` in
-  `docs/publication/evidence_consolidation.md`) are distinct identifiers with
+  `docs/theory/publication/evidence_consolidation.md`) are distinct identifiers with
   no ambiguity; both are current in their own axis.
 
 ## 5. Excluded from this snapshot

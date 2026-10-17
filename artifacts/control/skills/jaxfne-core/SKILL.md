@@ -12,7 +12,7 @@ Unfamiliar jaxfne tasks, or establishing governing authority before acting.
 ## AUTHORITIES
 1. Gate 0: `scripts/harness/gate0_git_reality.py`.
 2. Repository `artifacts/AGENTS.md`.
-3. Authoritative project-source sections under `docs/doctrine/`.
+3. Authoritative project-source sections under `docs/theory/doctrine/`.
 
 ## RULES
 - Symbols must be verified against live code before use (no invented names).

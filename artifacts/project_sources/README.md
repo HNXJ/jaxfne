@@ -5,7 +5,7 @@ label on this bundle. As of the RBS/RBD/HDP migration, `pyproject.toml` may
 report a newer release (e.g. `0.4.15`) than the snapshot note below.
 
 Basis: revised project-source set + live repository. When older source text
-conflicts with live code or `docs/doctrine/rbs_rbd_hdp.md`, the live checkout
+conflicts with live code or `docs/theory/doctrine/rbs_rbd_hdp.md`, the live checkout
 and doctrine file govern implementation; revise these sources to remove
 contradiction.
 
@@ -21,7 +21,7 @@ These files are intended to replace the older project-source bundle as current a
 4. `4_tfne_theory_and_neural_tensor.md` — full mathematical theory: TFNE operator closure, NeuralTensor, RBS/RBD/HDP, dynamics, source/field/probe operators, differentiability and validation.
 5. `5_docs_tutorials_etudes_and_suites.md` — executable documentation and evidence protocol.
 6. `6_other_important_notes.md` — current drift register, context corrections, publication/release roadmap, long-term plan.
-7. `7_tfne_algebra.md` — canonical TFNE algebra, version `tfne/2`, status `SEALED LANGUAGE`: the specification language (`x:A:y`, `O`/`X` composition, rules and `$L`/`$R` binding, frontiers, `N`/`P`/`R` realization, `(s,h0,I)`, semantic failure classes). Supersedes the `tfne/1` text and older architectural TFNE vocabulary on naming scope; the operator factorization (`Emitter -> ... -> Manifest`) is preserved. The language seal implies no parser or compiler: `jaxfne.tfne` is a compiler against this language, and the current conformance boundary is recorded in `docs/doctrine/tfne_algebra.md`.
+7. `7_tfne_algebra.md` — canonical TFNE algebra, version `tfne/2`, status `SEALED LANGUAGE`: the specification language (`x:A:y`, `O`/`X` composition, rules and `$L`/`$R` binding, frontiers, `N`/`P`/`R` realization, `(s,h0,I)`, semantic failure classes). Supersedes the `tfne/1` text and older architectural TFNE vocabulary on naming scope; the operator factorization (`Emitter -> ... -> Manifest`) is preserved. The language seal implies no parser or compiler: `jaxfne.tfne` is a compiler against this language, and the current conformance boundary is recorded in `docs/theory/doctrine/tfne_algebra.md`.
 8. `8_atlas.md` — canonical Atlas for the 0.5.x programme: ten simulations S1–S10 (≡ AT-01…AT-10) exposing one object `G -D-> N -> (X,H,W,B) -> Q -> Phi -> Y` from one HH neuron to a 20-area JDNA system, the common measurement vector `Y`, and the claim boundaries. Requirement IDs and mutable coverage state live in `artifacts/programme/coverage/atlas_coverage.json`, not here.
 
 ## Canonical distinction

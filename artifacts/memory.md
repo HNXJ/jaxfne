@@ -10,7 +10,7 @@ tests/test_memory_brief.py; keep SHAs, versions, counts and status out. -->
 - JAX package for Tensor-Field Neural Equations (TFNE): a containment and composition model for neural models at several resolutions, not one prescribed biophysical equation (`artifacts/AGENTS.md`, `README.md`).
 - Scientific grammar: `Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest`. Execution grammar: `CircuitSpec -> construct -> Model -> simulate -> Signals`.
 - Factor at specification time, flatten at execution time; biological identity, topology, signs and parameter ownership survive compilation.
-- Internal quantities stay relative; absolute units come only from explicit calibration transforms (`docs/doctrine/relative_quantity_grammar.md`).
+- Internal quantities stay relative; absolute units come only from explicit calibration transforms (`docs/theory/doctrine/relative_quantity_grammar.md`).
 - Evidence vocabulary: SPECIFIED / IMPLEMENTED / TESTED / OBSERVED. Failed prospective receipts are preserved, never tuned post hoc.
 
 ## 2. Repository map (paths present in this tree)
@@ -21,7 +21,7 @@ tests/test_memory_brief.py; keep SHAs, versions, counts and status out. -->
 | `tests/` | Verification; `_numeric_gates.py` holds shared numeric helpers |
 | `scripts/` | Gates, audits, generators, runners (§6) |
 | `artifacts/` | Project state, evidence, programme records (§7) |
-| `docs/` | Published docs (mkdocs strict); `docs/doctrine/` holds canonical math |
+| `docs/` | Published docs (mkdocs strict); `docs/theory/doctrine/` holds canonical math |
 | `examples/` | Release-smoked scripts |
 | `.github/workflows/` | `ci.yml` (Fast), `release_ci.yml`, `notebook_execution.yml`, `publish.yml` |
 | `artifacts/programme/`, `artifacts/atlas/` | Receipts, `atlas_coverage.json`, `claim_ledger_055.md`; Atlas assays `at*.py`, results in `artifacts/atlas/results/` |
@@ -63,14 +63,14 @@ model   = jtfne.construct(tensor, runtime)
 signals = jtfne.simulate(model)  # inherits duration/dt/seed from runtime
 ```
 
-- `Configuration` is the compatibility path (`docs/quickstart.md`). HDP: `RuntimeConfig(enable_hdp=True, hdp_params={...})` to `simulate`. STDP is separate: `run_stdp_stream`.
+- `Configuration` is the compatibility path (`docs/start/quickstart.md`). HDP: `RuntimeConfig(enable_hdp=True, hdp_params={...})` to `simulate`. STDP is separate: `run_stdp_stream`.
 - Continuation: `checkpoint_state` / `restore_state` / `run_continuation`; chunked ≡ continuous, bit-exact, delays in flight included.
 
 ## 5. Key concepts
 
 - **NeuronalTensor**: preferred CircuitSpec (`Area → Layer → NeuronType`, `InterConnection`, `AreaConnection`); canonical genomes in `jaxfne/configs/`. **Configuration**: fluent compatibility builder.
 - **source** `Q` is derived from executed activity `X`. **field** `Φ(r,t)` is a proxy solve (`conductivity="proxy"`), never calibrated unless validated. **probe** refuses invented contacts unless opted in.
-- **H / RBS, RBD, HDP, W**: relative biophysical state is a dependency container, not one homeostatic scalar; RBD is dynamics of H (fixed W is valid); HDP is per-rule plasticity `dΘ/dt`. Sources: `artifacts/fact_stack.md`, `docs/doctrine/rbs_rbd_hdp.md`.
+- **H / RBS, RBD, HDP, W**: relative biophysical state is a dependency container, not one homeostatic scalar; RBD is dynamics of H (fixed W is valid); HDP is per-rule plasticity `dΘ/dt`. Sources: `artifacts/fact_stack.md`, `docs/theory/doctrine/rbs_rbd_hdp.md`.
 - **connect / JDNA**: `connect()` composes areas; `develop(G, seed)` completes a PseudoGenome under the TFNE constraint.
 - **Atlas AT-01…AT-10**: canonical simulations from `artifacts/project_sources/8_atlas.md`. AT-10 is the 20-area system; its registry id is `AT-10-N20`.
 - **OMITTED / REFUSED**: absent or refused quantities are shown as sentinels, never synthesized (`jaxfne/vis/atlas_suite.py`).
@@ -81,7 +81,7 @@ signals = jtfne.simulate(model)  # inherits duration/dt/seed from runtime
 - Gates: `dev` (curated architecture), `broad` (`-m "not slow"`), `release` (broad + slow + notebook + strict docs + examples), `rc` (release + parity, build, twine, isolated smoke, attestation). Run them with `python scripts/run_test_gate.py <gate>` (aliases in `Makefile`).
 - CI Fast (`ci.yml`, Ubuntu, py 3.11 and 3.14): compileall → ruff → docs audits → atlas firewall and coverage → docs strict build → doc↔code integrity → `run_test_gate.py dev` (dev) or `broad` (main) → examples → wheel smoke.
 - Run environment (Hamm 2026-10-13: every agent, every jaxfne run): WSL Ubuntu, venv `~/venv_jaxfne` (Python 3.12, jax CUDA, pytest). From a Windows clone, in Git Bash: `wsl --cd "$(pwd -W)" -- bash -lc 'PYTHONPATH=. ~/venv_jaxfne/bin/python -m pytest -q -p no:cacheprovider <tests>'`; scripts the same way with `python <script>`. Tests and small runs set `JAX_PLATFORMS=cpu`; GPU only for a run claimed in jchat (B5), float32, backend and dtype in its manifest. PCL's numba port and the broad pre-push gate keep their Windows interpreters until a Linux gate run is recorded.
-- Attestations and JUnit land gitignored in `artifacts/attestations/`; a tracked attestation changes the attested SHA. Docs policy: `docs/ci_policy.md`.
+- Attestations and JUnit land gitignored in `artifacts/attestations/`; a tracked attestation changes the attested SHA. Docs policy: `docs/reference/project/ci_policy.md`.
 
 ## 7. Project state and control files
 
@@ -100,12 +100,12 @@ Roles and edit rules: `artifacts/AGENTS.md` (Project control). Coverage rows: `a
 
 | Task | Read first |
 |---|---|
-| Build and run a model | `docs/quickstart.md`, `docs/guides/configuration_grammar.md`, `docs/api/core.md` |
-| NeuronalTensor, canonical genomes | `jaxfne/neuronal_tensor.py`, `jaxfne/configs/`, `docs/guides/jdna.md` |
-| TFNE program → execution | `jaxfne/tfne.py`, `docs/doctrine/tfne_algebra.md`, `tests/test_tfne_execution.py` |
-| Plasticity (HDP, RBD) | `docs/guides/hdp.md`, `jaxfne/hdp_rule.py`, `jaxfne/hdp_network.py` |
-| Fields, probes, calibration | `docs/guides/calibration.md`, `jaxfne/fields/`, `docs/api/fields.md` |
-| Visualize (never simulate in vis) | `docs/guides/atlas_suite.md`, `jaxfne/vis/atlas_suite.py` |
+| Build and run a model | `docs/start/quickstart.md`, `docs/guides/grammar/configuration_grammar.md`, `docs/reference/api/core/core.md` |
+| NeuronalTensor, canonical genomes | `jaxfne/neuronal_tensor.py`, `jaxfne/configs/`, `docs/guides/grammar/jdna.md` |
+| TFNE program → execution | `jaxfne/tfne.py`, `docs/theory/doctrine/tfne_algebra.md`, `tests/test_tfne_execution.py` |
+| Plasticity (HDP, RBD) | `docs/guides/state/hdp.md`, `jaxfne/hdp_rule.py`, `jaxfne/hdp_network.py` |
+| Fields, probes, calibration | `docs/guides/state/calibration.md`, `jaxfne/fields/`, `docs/reference/api/readout/fields.md` |
+| Visualize (never simulate in vis) | `docs/guides/interop/atlas_suite.md`, `jaxfne/vis/atlas_suite.py` |
 | Atlas simulation or gap row | `artifacts/project_sources/8_atlas.md`, `artifacts/programme/coverage/atlas_coverage.json`, `artifacts/atlas/at*.py` |
 | Numeric mismatch, dtype, determinism | `tests/_numeric_gates.py`, `jaxfne/util.py`, §10 |
 

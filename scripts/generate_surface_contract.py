@@ -264,13 +264,13 @@ def classify_doc(path: str) -> dict[str, str | None]:
         return {"action": "KEEP", "grammar_bucket": "generated"}
     if path.startswith("docs/tutorials/"):
         return {"action": "KEEP", "grammar_bucket": "Tutorials"}
-    if path.startswith("docs/api/"):
+    if path.startswith("docs/reference/api/"):
         return {"action": "KEEP", "grammar_bucket": "API"}
     if path.startswith("docs/guides/"):
         return {"action": "KEEP", "grammar_bucket": "Guides"}
-    if path.startswith("docs/releases/"):
+    if path.startswith("docs/reference/releases/"):
         return {"action": "MERGE", "merge_target": "docs/reference/changelog.md"}
-    if path.startswith("docs/notes/"):
+    if path.startswith("docs/theory/notes/"):
         return {"action": "ARCHIVE", "merge_target": None}
     if "REPORT" in path or "CHECKLIST" in path or "CHARACTERIZATION" in path:
         return {"action": "MERGE", "merge_target": "docs/reports/index.md"}

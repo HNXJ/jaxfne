@@ -13,8 +13,8 @@ V(claim) → evidence. This skill routes and gates; it implements nothing.
 
 ## AUTHORITIES
 1. Repository `artifacts/AGENTS.md` (evidence discipline, work loop).
-2. Lifecycle semantics: `docs/doctrine/tfne_algebra.md`,
-   `docs/doctrine/tfne_jdna_boundary.md`.
+2. Lifecycle semantics: `docs/theory/doctrine/tfne_algebra.md`,
+   `docs/theory/doctrine/tfne_jdna_boundary.md`.
 3. Specialized skills below (invoked, never copied).
 
 ## ROUTING (invoke, do not reimplement)

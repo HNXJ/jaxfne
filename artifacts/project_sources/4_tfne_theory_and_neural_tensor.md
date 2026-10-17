@@ -8,8 +8,8 @@
 > compiles into. On naming scope, 7 governs: `H` is the H-state tensor only;
 > bare `O`/`X`/`P` letters are specification-time algebra.
 
-Repository-facing doctrine: `docs/doctrine/rbs_rbd_hdp.md`,
-`docs/doctrine/tfne_containment_architecture.md`. This file is the upstream
+Repository-facing doctrine: `docs/theory/doctrine/rbs_rbd_hdp.md`,
+`docs/theory/doctrine/tfne_containment_architecture.md`. This file is the upstream
 mathematical authority for the RBS/RBD/HDP semantic migration.
 
 ## 1. TFNE as containment and operator factorization
@@ -76,7 +76,7 @@ resources, transmitters, neuromodulators, plasticity traces, or other reduced
 sufficient variables — sharing a state-space interface without semantic
 equivalence. Influence on TFNE operators is declared through **typed
 gain/coupling maps** (e.g. \(\theta(H)\), \(\gamma(H)\), \(F_W(H,\ldots)\));
-see `docs/doctrine/tfne_containment_architecture.md`. Strict typing: no
+see `docs/theory/doctrine/tfne_containment_architecture.md`. Strict typing: no
 emitter-local \(H\) may modulate \(S\) or \(F\) without an explicit coupling
 declaration.
 
@@ -329,7 +329,7 @@ with optional
 
 Relative computation doctrine: compute in relative coordinates where
 information-preserving; calibrate physically only at explicit boundaries
-(see `docs/doctrine/rbs_rbd_hdp.md`).
+(see `docs/theory/doctrine/rbs_rbd_hdp.md`).
 
 ### 8.1 RBS
 

@@ -23,7 +23,7 @@ receipts, dated audits, `archive/`, `legacy/`) keep the paths they were written 
 | `atlas/` | Atlas AT-01…AT-10 scripts, results and bundle tooling (stays: the frozen 0.5.5 agent benchmark `artifacts/runs/benchmark/agent_tasks_055.json` cites `artifacts/atlas/...` paths and its `spec_digest`s are frozen) | cited by benchmark |
 | `protocols/` | protocol families; `protocols/hdp/` holds `hdp_v2_rho_sweep/`, `hdp_k_w_ctrl_sweep/` HDP sweep outputs (cited by `protocol_c/` P2V-A3) and `hdp_presets/` realized `H` per preset (`scripts/measure_hdp_presets.py`) | |
 | `release/` | release receipts and `current_release_authorities.json` | release authorities |
-| `changelog.d/` | release-note fragments assembled into `docs/changelog.md` | |
+| `changelog.d/` | release-note fragments assembled into `docs/reference/changelog.md` | |
 | `publication/` | manuscript figure specs, receipts, claim ledger, `frozen_manifest.json` | frozen + harness |
 | `figures/` | publication figure renders | `publication/` fig01–fig07 frozen |
 | `etudes/` | `experiment_a/` frozen canonical bundle (stays: cited frozen path, `jaxfne/` defaults), paper replications (`papers/`: caminos, gsdr2026, izhikevich2003, pcl, pcl_h, qlearning), standalone bundles (`bundles/`), theory checks (`theory/`), compact-grammar lane (`jdna/`), lane records (`meta/`) | cited by publication |

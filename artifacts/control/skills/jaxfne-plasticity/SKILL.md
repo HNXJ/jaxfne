@@ -10,7 +10,7 @@ metadata:
 Any run where weights change: HDP rules, masks, frozen controls, clamps.
 
 ## AUTHORITIES
-1. `docs/doctrine/rbs_rbd_hdp.md` (HDP is dW/dt = F_W(H, ...)).
+1. `docs/theory/doctrine/rbs_rbd_hdp.md` (HDP is dW/dt = F_W(H, ...)).
 2. Live code: `jaxfne/hdp_network.py` (`projection_mask`, `enable_plasticity`,
    `disable_plasticity`, `clamp_plasticity`, `pin_projection_weights`), `Configuration.hdp`.
 

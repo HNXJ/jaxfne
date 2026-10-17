@@ -32,9 +32,9 @@ CODE_GLOBS = ("jaxfne/**/*.py", "scripts/**/*.py", "tests/**/*.py")
 # Directories under docs/ that are explicitly dated snapshots or archived
 # material, not live public-facing pages -- excluded from the language check.
 EXEMPT_PREFIXES = (
-    "docs/releases/",
+    "docs/reference/releases/",
     "docs/v047_refactor_audit.md",
-    "docs/tutorials_v030/",
+    "docs/archive/tutorials_v030/",
     "docs/reference/changelog.md",
 )
 

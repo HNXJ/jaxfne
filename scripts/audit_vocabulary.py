@@ -54,21 +54,21 @@ DOC_SOURCES = (
 )
 
 # Exempt: dated snapshots / archived / frozen evidence / generated material not
-# live release-facing prose. docs/publication/, docs/etudes/, docs/doctrine/
-# protocol_*.md, and docs/protocols/ are frozen evidence surfaces; docs/releases/
-# are dated snapshots; inventory records are dated planning documents (developer
-# roadmap archived to artifacts/developer/fullroadmap.md, gitignored).
+# live release-facing prose. docs/theory/publication/, docs/etudes/,
+# docs/theory/memory/protocol_*.md, and docs/theory/protocols/ are frozen evidence
+# surfaces; docs/reference/releases/ are dated snapshots; inventory records are dated
+# planning documents (developer roadmap archived to artifacts/developer/fullroadmap.md,
+# gitignored).
 EXEMPT_PREFIXES = (
-    "docs/releases/",
+    "docs/reference/releases/",
     "docs/v047_refactor_audit.md",
-    "docs/tutorials_v030/",
+    "docs/archive/tutorials_v030/",
     "docs/reference/changelog.md",
     "docs/_generated/",
-    "docs/evidence_artifacts/",
-    "docs/publication/",
+    "docs/theory/publication/",
     "docs/etudes/",
-    "docs/doctrine/protocol_",
-    "docs/protocols/",
+    "docs/theory/memory/protocol_",
+    "docs/theory/protocols/",
     "docs/theory/doctrine/rbs_rbd_hdp_inventory.md",
     "docs/HDP_REPORT.md",
 )

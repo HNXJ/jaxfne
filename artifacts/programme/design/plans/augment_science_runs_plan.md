@@ -48,7 +48,7 @@ All models derive from the canonical column specification (`canonical-v1-column-
 Each simulation runs for $T = 1{,}000.0$ ms with $dt = 0.5$ ms ($2{,}000$ integration steps).
 
 ### 2.2 Heterogeneity Arms & Realized Jitter Distributions
-In accordance with `docs/api/augment.md`, `jaxfne.augment` implements bounded uniform draws
+In accordance with `docs/reference/api/core/augment.md`, `jaxfne.augment` implements bounded uniform draws
 (no log-normal distributions):
 - **Multiplicative Relative Uniform Jitter**: $x \sim U[(1 - j) x_0, (1 + j) x_0]$ for positive quantities:
   - $\Theta_X$: `g_mech` and `dT_ms` (`g_jitter=j`, `tau_jitter=j`).

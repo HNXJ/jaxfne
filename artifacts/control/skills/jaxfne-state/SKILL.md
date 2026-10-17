@@ -10,7 +10,7 @@ metadata:
 Setting, perturbing or reading the dependency state `H`, or running RBD with fixed `W`.
 
 ## AUTHORITIES
-1. `docs/doctrine/rbs_rbd_hdp.md`; `docs/doctrine/tfne_containment_architecture.md`.
+1. `docs/theory/doctrine/rbs_rbd_hdp.md`; `docs/theory/doctrine/tfne_containment_architecture.md`.
 2. Live code: `Model.with_hdp_initial_state` (`jaxfne/_model.py`),
    `Model.last_hdp_diagnostics`.
 

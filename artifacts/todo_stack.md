@@ -45,7 +45,7 @@ bundle; Izhikevich 2003 and CAMINOS P6 move to 0.5.7 (reasons in
   regenerable docs assets are untracked already: the 9 registry `copies` dests under
   `docs/assets/etudes/` and all atlas/etude HTML are build products of
   `scripts/build_docs_assets.py --build` (the Read the Docs `pre_build` path) and gitignored.
-  No further class qualifies: the 9 `docs/_static/gallery/*.png` (embedded by `docs/gallery.md`,
+  No further class qualifies: the 9 `docs/_static/gallery/*.png` (embedded by `docs/start/gallery.md`,
   rewritten only as an index by `generate_gallery.py --write`, never rasterized by the build
   path), the 12 `docs/_static/tutorial_figures/*.png` (no caller in the build path), and every
   other tracked `docs/assets/` file (its generator, if one exists, is not in the build path;
@@ -91,7 +91,7 @@ run on WSL2 CUDA.
 
 - T-10 [A] G-1 (meet 204dfdaa): port jnwb's `changelog.d`, `assemble_changelog.py`,
   `release_body.py` and claim check; release body as tables. Closes when: `release_body.py --tag <next>` passes.
-  Then one newline policy for docs (check: `docs/changelog.md` has 0 LF-only lines), the errors
+  Then one newline policy for docs (check: `docs/reference/changelog.md` has 0 LF-only lines), the errors
   page, a proxy-claim wording gate, AST-hash freezing of validated kernels
   (`artifacts/control/harness/jnwb_cross_learning.md`).
 - T-11 [A] G-3: CAMINOS p = 0.07 seed 1 as an NWB excerpt plus provenance for jnwb `tests/`

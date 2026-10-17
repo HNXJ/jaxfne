@@ -3,28 +3,28 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-10-16T21:56:36",
+  "generated_at": "2026-10-16T22:25:07",
   "components": {
     "project_agents": {
       "file": "artifacts/AGENTS.md",
-      "sha256": "53668081519065c33772aa322aa0bf01f19b8284a90577bfaacf365c69cd40ed"
+      "sha256": "c10c233eac504f88fa691b3168f3a94fd35eea402503139afa5ee00be2ffe8ba"
     },
     "canonical_skills": {
-      "jaxfne-audit": "c275d9cdff33a3d682a4ab1e75deef479507a0d47b2cfbdc5cd02f4a788f72ba",
-      "jaxfne-core": "03201f96cf261851f0b4edacd0db09707640c556ab7e252f9985f98ca157bb76",
+      "jaxfne-audit": "53f245b9f8adb2d9f761f22d04cc0db72791b8790eb46f361473eb7b8bf16b82",
+      "jaxfne-core": "b86fadae8df6e38eeeded487517106e3498c69f2486db172db12e5ba1e70c958",
       "jaxfne-fields": "fe9cd12f9aac0e098aebd1e68c631c6ae86a1487e76689a490c5b0f2fe88fedb",
       "jaxfne-inspect": "5b3a4b2cf7bd12fd165742f58c54593e0ff4b1858615897b05bbf8d65b8d256f",
       "jaxfne-model": "e869067c39a41866ae5ba438c9bf7f181f5e14dc35b733cef4a84cdb7915697f",
       "jaxfne-network": "938d4ed380d3f0e481f7809d05ad7011f7b1320725ea427706bb63b5b2495b56",
-      "jaxfne-plasticity": "7cced7bd0ec9973a1bb2e4a5cba08a0831d22174a3d18dd4532c6b14584c74e2",
+      "jaxfne-plasticity": "7d7803385c662436481b016c80a7b304cc427758c8a87559c55ec2b90869f080",
       "jaxfne-release": "d5abfe5f30362a7679540ceb508bb63123d60f5766a67de4c1e1cebc188cb66a",
       "jaxfne-repo": "94a48bd6c82c68662ecdc06042495d665cdcdc05c87131f68628e31683a95c3e",
-      "jaxfne-science": "eb18e5f95d462eb65d2aba92ab63c8f31583f8faefde3586389765e1a7d91bee",
+      "jaxfne-science": "e8792501d11068986f4864b663c6025fa20483fb64847659666d8cf026e9311b",
       "jaxfne-seal": "a02332b042f9588f476a6984a3781ac73090a689436b55ce61ed049e2354ca61",
       "jaxfne-simulate": "9af733c25e9900666673396b46f5b701168e5180f12c10a415cce2db1083c968",
-      "jaxfne-state": "abc7943edc2d1d0d2126b3e89fd8afc4b059e189fff93cd6af6bd90364fdda9d",
+      "jaxfne-state": "75cc9dbdeaa013a79cf13dab4b157636b2e3cf0736a53d7edbcf7fb2e74a1ebe",
       "jaxfne-verify": "c25b4ced013a42f1a3e6f03b92bf3565bca8567b47a524b475a862d8a7e602d7",
-      "jaxfne-workflow": "757b342d599fb2ed4be39d528d9af81451fd40e299e07b952ba790ffdb580cd7",
+      "jaxfne-workflow": "c65212691a65526b4af8d4932513b6a0f607f388ae0c513d2dea0665b9bff514",
       "vocabulary-audit": "58493e94cc7fbce7d9ec23e8d756df09091229b1bc2c61e0b52bf515fdeca106"
     },
     "project_config": {
@@ -46,7 +46,7 @@
       },
       "check_agent_refs": {
         "file": "scripts/harness/check_agent_refs.py",
-        "sha256": "c165c533e334a6f2edb3f6e3c3af72b7bac723adbafdfe531eb95b9475c30da2"
+        "sha256": "905fde7f90455888177adad640027574fc516dd108ad714f4cb7e5da0e122570"
       },
       "check_memory_hygiene": {
         "file": "scripts/harness/check_memory_hygiene.py",

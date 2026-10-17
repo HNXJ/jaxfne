@@ -59,7 +59,7 @@ contract (`edge_delay_steps_from_ms`, Protocol D) and does not round.
 
 ## Docs
 
-- `docs/doctrine/tfne_algebra.md` — Pipeline (delay ownership) and the
+- `docs/theory/doctrine/tfne_algebra.md` — Pipeline (delay ownership) and the
   tensor-bridge paragraph (bridge carries `delay_ms` for inspection;
   execution reads the specs).
 - Receipt: `artifacts/programme/receipts/tfne/tfne_param02_receipt.md`.
