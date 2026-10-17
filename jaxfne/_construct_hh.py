@@ -31,6 +31,10 @@ from .emitters_hh import (
     HH_GRADED_S0_DEFAULT,
     HH_GRADED_SLOPE_DEFAULT,
     HH_GRADED_VTH_DEFAULT,
+    HHMorphology,
+    _check_comp_range,
+    _check_morphology,
+    _comp_index_array,
     make_hh_params,
 )
 
@@ -163,11 +167,32 @@ def _hh_rules(cfg: Any, receptor_names: list[str]) -> list[dict[str, Any]]:
     return rules
 
 
-def construct_hh_model(cfg: Any) -> Model:
+def construct_hh_model(cfg: Any, morphology: Any = None, *,
+                       edge_pre_comp=None, edge_post_comp=None,
+                       stim_comp=None, record_comp=None,
+                       weight_unit: str = "density", gate_init=None) -> Model:
     """Build a :class:`Model` for the HH graded-synapse kernel (see module docstring).
 
     The edges live in ``static["hh"]`` (``params["edge_list"]`` is None: the hh
     route runs its own kernel, :func:`jaxfne.emitters_hh.simulate_hh`).
+
+    ``morphology`` is None (the default: one compartment per cell, the kernel
+    runs its single-compartment path bit-identically to before) or an
+    :class:`jaxfne.emitters_hh.HHMorphology` shared by every cell, with
+    per-edge ``edge_pre_comp``/``edge_post_comp`` (presynaptic-V and synapse
+    compartments, default 0) and per-cell ``stim_comp``/``record_comp``
+    (stimulus and spike-readout compartments, default 0). Any compartment
+    selection without ``morphology``, any unknown ``weight_unit``, or any
+    out-of-range compartment is refused. ``weight_unit`` is ``"density"``
+    (the default: edge weights are conductances in mS/cm2) or ``"uS"``
+    (point-process conductances in uS, converted by the target compartment
+    area at simulate time; needs ``morphology``). ``gate_init`` is None (the
+    default: single-compartment gates start at their rate fixed point,
+    multi-compartment gates at the reference default 0.2) or an explicit
+    gating value forwarded as the kernel ``gate_init`` argument. The weight
+    unit, gate init, morphology and compartment selections are stored in
+    ``static["hh"]`` and forwarded by :func:`hh_kernel_args`; point-process
+    inputs convert by the target compartment area at simulate time.
     """
     from ._construct_core import _construct_build_static
 
@@ -207,16 +232,76 @@ def construct_hh_model(cfg: Any) -> Model:
         "layers": ["hh"],
         "cell_types": sorted(set(labels)),
     }
+    if weight_unit not in ("density", "uS"):
+        raise ValueError(
+            f"weight_unit must be 'density' (mS/cm2) or 'uS' (point process); "
+            f"got {weight_unit!r}"
+        )
+    if weight_unit == "uS" and morphology is None:
+        raise ValueError(
+            "weight_unit='uS' needs morphology=... (an HHMorphology): "
+            "point-process conversion needs compartment areas"
+        )
+    if gate_init is None:
+        gate_init_f = None
+    else:
+        try:
+            gate_init_f = float(gate_init)
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"gate_init must be a finite number or None; got {gate_init!r}"
+            )
+        if not math.isfinite(gate_init_f):
+            raise ValueError(
+                f"gate_init must be a finite number or None; got {gate_init!r}"
+            )
+    if morphology is None:
+        for name, given in (("edge_pre_comp", edge_pre_comp),
+                            ("edge_post_comp", edge_post_comp),
+                            ("stim_comp", stim_comp),
+                            ("record_comp", record_comp)):
+            if given is not None:
+                raise ValueError(
+                    f"{name} needs morphology=... (an HHMorphology); got {given!r}"
+                )
+        morph_block: dict[str, Any] = {}
+    else:
+        mx = _check_morphology(morphology)
+        n_comp = int(mx["n_comp"])
+        n_e = int(np.asarray(result.edge_pre).shape[0])
+        pre_c = _comp_index_array(edge_pre_comp, n_e, "edge_pre_comp")
+        _check_comp_range(pre_c, n_comp, "edge_pre_comp")
+        post_c = _comp_index_array(edge_post_comp, n_e, "edge_post_comp")
+        _check_comp_range(post_c, n_comp, "edge_post_comp")
+        stim_c = _comp_index_array(stim_comp, n, "stim_comp")
+        _check_comp_range(stim_c, n_comp, "stim_comp")
+        rec_c = _comp_index_array(record_comp, n, "record_comp")
+        _check_comp_range(rec_c, n_comp, "record_comp")
+        morph_block = {
+            "morphology": {
+                "parents": tuple(int(p) for p in morphology.parents),
+                "length_um": tuple(float(v) for v in morphology.length_um),
+                "radius_um": tuple(float(v) for v in morphology.radius_um),
+                "ra_ohmcm": float(morphology.ra_ohmcm),
+            },
+            "edge_pre_comp": np.asarray(pre_c, dtype=np.int64),
+            "edge_post_comp": np.asarray(post_c, dtype=np.int64),
+            "stim_comp": np.asarray(stim_c, dtype=np.int64),
+            "record_comp": np.asarray(rec_c, dtype=np.int64),
+        }
     static["hh"] = {
         "pre": np.asarray(result.edge_pre, dtype=np.int64),
         "post": np.asarray(result.edge_post, dtype=np.int64),
         "weight": np.asarray(result.edge_weight, dtype=np.float64),
+        "weight_unit": weight_unit,
+        "gate_init": gate_init_f,
         "receptor": np.asarray(result.edge_mechanism, dtype=np.int64),
         "network": None if network_name is None else str(network_name),
         "receptor_names": tuple(receptor_names),
         "receptor_params": {k: tuple(v) for k, v in receptor_params.items()},
         "labels": tuple(labels),
         "edge_seed": int(edge_seed),
+        **morph_block,
     }
     return Model(
         cfg=cfg,
@@ -234,7 +319,13 @@ def hh_kernel_args(model: Model, dt_ms: float) -> dict[str, Any]:
 
     Returns ``params``, the four ``edge_*`` arrays and the ``receptor_*``
     tuples. The caller adds ``n_steps``, ``dt_ms``, ``ou_*``, ``I_ext``,
-    ``V0_mV`` and ``record_v``.
+    ``V0_mV`` and ``record_v``. When the model was constructed with a
+    morphology, the morphology and its compartment selections are forwarded
+    (rebuilt as :class:`jaxfne.emitters_hh.HHMorphology`), with the weight
+    array under ``edge_weight_uS`` for ``weight_unit="uS"`` and under
+    ``edge_weight`` otherwise, plus ``gate_init`` when set; without a
+    morphology the returned dict is the single-compartment form (plus
+    ``gate_init`` only when set).
     """
     dt = float(dt_ms)
     if not math.isfinite(dt) or dt <= 0:
@@ -245,11 +336,15 @@ def hh_kernel_args(model: Model, dt_ms: float) -> dict[str, Any]:
         raise ValueError(
             f"receptors declare mixed s0={rp['s0']!r}; the kernel takes one scalar receptor_s0"
         )
-    return {
+    wu = st.get("weight_unit", "density")
+    if wu not in ("density", "uS"):
+        raise ValueError(
+            f"unknown stored weight_unit {wu!r}; expected 'density' or 'uS'"
+        )
+    out: dict[str, Any] = {
         "params": model.params["emitter"],
         "edge_pre": st["pre"],
         "edge_post": st["post"],
-        "edge_weight": st["weight"],
         "edge_receptor": st["receptor"],
         "receptor_e_rev": rp["reversal_mV"],
         "receptor_tau_r": rp["tau_r_ms"],
@@ -258,3 +353,17 @@ def hh_kernel_args(model: Model, dt_ms: float) -> dict[str, Any]:
         "receptor_vth": rp["v_th_mV"],
         "receptor_s0": float(rp["s0"][0]),
     }
+    out["edge_weight_uS" if wu == "uS" else "edge_weight"] = st["weight"]
+    if st.get("gate_init") is not None:
+        out["gate_init"] = float(st["gate_init"])
+    if "morphology" in st:
+        m = st["morphology"]
+        out["morphology"] = HHMorphology(
+            parents=tuple(m["parents"]), length_um=tuple(m["length_um"]),
+            radius_um=tuple(m["radius_um"]), ra_ohmcm=float(m["ra_ohmcm"]),
+        )
+        out["edge_pre_comp"] = st["edge_pre_comp"]
+        out["edge_post_comp"] = st["edge_post_comp"]
+        out["stim_comp"] = st["stim_comp"]
+        out["record_comp"] = st["record_comp"]
+    return out

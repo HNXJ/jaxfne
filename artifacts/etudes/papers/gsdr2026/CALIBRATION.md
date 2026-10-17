@@ -603,3 +603,33 @@ reduction. OPEN: a multi-compartment HH route matching the reference
 geometry (4 compartments, axial coupling, implicit voltage solve,
 synapses and stimulus distal, spikes and presynaptic V proximal),
 then the §6.2 regime diagnostic at g* before any refit.
+
+### 6.11 Reference morphology lands; g* is saturated there too (OBSERVED)
+
+Hamm 2026-10-17: the 4-compartment layout is deliberate; S1 is retired.
+`jaxfne/emitters_hh.py` gains a multi-compartment route (morphology,
+axial coupling with jaxley's implicit voltage solve, per-edge and
+per-input compartment sites, uS point-process conversion by the target
+compartment's area, explicit gate init), carried through
+`construct_hh_model`; `run_gsdr.py --morphology {single,reference}`.
+Oracle (`tests/test_hh_multicompartment.py`): one 4-compartment cell,
+float64, current step into branch 1 loc 0.0, against jaxley 0.14.0
+`jx.integrate`: max |ΔV| 8.3e-12 mV over the 4 compartments. The
+synapse path has no jaxley oracle (jaxley ships no graded synapse).
+`single` stays bit-identical (CPU `run_trial` V sha256 `209ec74d…`
+before and after). Fidelity fix: the reference gates start at 0.2
+(PORT_SPEC §2).
+
+At g* (fitted on the one-compartment cell), stim 0.6, seed 1, CPU:
+
+| morphology | rate (Hz) | active | k_fit | spikes per 500 ms third |
+|---|---|---|---|---|
+| single | 21.17 | 1.00 | 1.000 | 536 / 603 / 449 |
+| reference | 70.73 | 1.00 | 0.606 | 1253 / 2948 / 1104 |
+
+The reference cell fires faster at g*, so the axial-bottleneck reading
+of §6.10 does not hold at these conductances (the stimulus now lands on
+one 20π µm² compartment, 4× the density of S2). g* was fitted on the
+reduced cell and says little about the reference one. Next: the paper's
+own procedure, the GSDR fit on `--morphology reference` (budget as
+§6.3), then the regime diagnostic at its g*.

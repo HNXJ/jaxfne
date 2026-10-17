@@ -33,7 +33,11 @@ wheel, read as data 2026-10-14): classic rate shapes (`channels/hh.py`
 `eNa = 50, eK = −77, eLeak = −54.3` (mV), `C_m = 1.0` (µF/cm², the compartment
 default), gates stepped by exact exponential Euler (`solver_gate.py`),
 voltages by `bwd_euler` (the `integrate` default), compartments init at
-`v = −70.0` mV with gates at their rate fixed point (`HH.init_state`), `exp`
+`v = −70.0` mV with gates at the channel defaults m = h = n = 0.2
+(`channels/hh.py:29-32`): `main_fig6.py` never calls `init_states` and
+`integrate` does not call it (corrected 2026-10-17; the multi-compartment
+oracle agrees with jaxley only at 0.2). The single-compartment lane path keeps
+its rate-fixed-point init; `--morphology reference` uses 0.2. `exp`
 arguments clipped at 20 (`save_exp`). The lane assumed `EL = −54.364`
 (classic textbook); the fidelity fix sets the read `−54.3`.
 

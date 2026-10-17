@@ -17,8 +17,10 @@ Numerics follow the reference solver (jaxley 0.14.0, read as data):
 gates advance by exact exponential Euler (``solver_gate``), voltages by
 backward Euler with the ionic and synaptic currents linearized at frozen
 gates (the reference ``bwd_euler`` split: channels stepped before voltage),
-compartments init at ``v = -70`` mV with gates at their rate fixed point
-(``HH.init_state``), and the ``exp`` arguments are clipped at 20
+compartments init at ``v = -70`` mV (single-compartment gates at their rate
+fixed point; multi-compartment gates at the reference default 0.2, since
+the reference never calls ``init_state``), and the ``exp`` arguments are
+clipped at 20
 (``save_exp``). The HH rate shapes are the classic ones; ``eLeak = -54.3``
 is the reference value (``channels/hh.py``).
 
@@ -70,6 +72,14 @@ HH_SPIKE_THR_MV = -20.0
 
 # Resting voltage used for V0 when the caller passes none (reference v_init).
 HH_V_REST_MV = -70.0
+
+# Reference gate default state (jaxley 0.14.0 ``channels/hh.py`` default
+# ``m = h = n = 0.2``). The reference integrate path never calls
+# ``init_state``, so gates start here, not at their rate fixed point. The
+# multi-compartment path uses this when ``gate_init`` is None; the
+# single-compartment path keeps its rate-fixed-point init unless
+# ``gate_init`` is given explicitly.
+HH_GATE_DEFAULT = 0.2
 
 # Clip of exp() arguments (the reference save_exp(max_value=20.0)).
 _SAVE_EXP_MAX = 20.0
@@ -146,6 +156,23 @@ def hh_gate_inf(v):
     """Rate fixed point ``(m, h, n)`` at voltage ``v`` (the reference init)."""
     am, bm, ah, bh, an, bn = _hh_rate_coeffs(v)
     return (am / (am + bm), ah / (ah + bh), an / (an + bn))
+
+
+def _check_gate_init(value: Any) -> float | None:
+    """Validate the ``gate_init`` kernel argument; return a float or None."""
+    if value is None:
+        return None
+    try:
+        g = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"gate_init must be a finite number or None; got {value!r}"
+        )
+    if not math.isfinite(g):
+        raise ValueError(
+            f"gate_init must be a finite number or None; got {value!r}"
+        )
+    return g
 
 
 class HHParams:
@@ -289,18 +316,34 @@ _EDGE_ARGS = ("edge_pre", "edge_post", "edge_weight", "edge_receptor")
 
 
 def _check_edges(N, R, given):
-    """Validate the four edge arrays; return numpy arrays, or None when all are absent."""
+    """Validate the four edge arrays; return numpy arrays, or None when all are absent.
+
+    ``edge_weight`` may be a JAX tracer (``jax.jit``/``jax.grad`` through the
+    kernel): only its static checks (ndim, length) apply then, since value
+    checks need concrete values. Every concrete input takes the strict path
+    exactly as before.
+    """
     missing = [k for k in _EDGE_ARGS if given[k] is None]
     if missing and len(missing) < len(_EDGE_ARGS):
         raise ValueError(f"edge arrays must be all given or all None; missing {missing}")
     if missing:
         return None
-    arrs = {}
+    arrs: dict[str, Any] = {}
+    abstract_weight = False
     for k in _EDGE_ARGS:
-        a = np.asarray(given[k])
-        if a.ndim != 1:
-            raise ValueError(f"{k} must be one-dimensional, got shape {a.shape}")
-        arrs[k] = a
+        v = given[k]
+        if k == "edge_weight" and isinstance(v, jax.Array):
+            try:
+                arrs[k] = np.asarray(v)
+            except Exception:
+                # A tracer under jit/grad (a concrete JAX array always
+                # converts): keep it in JAX land, check values never.
+                arrs[k] = jnp.asarray(v)
+                abstract_weight = True
+        else:
+            arrs[k] = np.asarray(v)
+        if arrs[k].ndim != 1:
+            raise ValueError(f"{k} must be one-dimensional, got shape {arrs[k].shape}")
     lengths = {k: a.shape[0] for k, a in arrs.items()}
     if len(set(lengths.values())) > 1:
         raise ValueError(f"edge arrays must have equal lengths; got {lengths}")
@@ -320,12 +363,206 @@ def _check_edges(N, R, given):
         raise ValueError(f"edge_post must index cells in [0, {N}); got min {post.min()}, max {post.max()}")
     if rec.size and (rec.min() < 0 or rec.max() >= R):
         raise ValueError(f"edge_receptor must index receptors in [0, {R}); got min {rec.min()}, max {rec.max()}")
-    weight = arrs["edge_weight"].astype(np.float64)
+    weight = arrs["edge_weight"]
+    if abstract_weight:
+        # Static checks only; finiteness and sign need concrete values.
+        return {"pre": pre, "post": post, "weight": weight, "receptor": rec}
+    weight = weight.astype(np.float64)
     if not np.all(np.isfinite(weight)):
         raise ValueError(f"edge_weight must be finite; got {weight}")
     if np.any(weight < 0.0):
         raise ValueError(f"edge_weight must be >= 0 (the reversal sets the sign); got min {weight.min()}")
     return {"pre": pre, "post": post, "weight": weight, "receptor": rec}
+
+
+# ---------------------------------------------------------------------------
+# Optional per-cell compartment morphology (multi-compartment HH route).
+#
+# The default kernel path is one compartment per cell. The reference GSDR
+# cell instead has 4 compartments (2 branches x ncomp=2, jaxley defaults
+# r = 1 um, l = 10 um, Ra = 5000 ohm cm, HH in every compartment;
+# ``artifacts/etudes/papers/gsdr2026/CALIBRATION.md`` section 6.10):
+# presynaptic V and recording at branch 0 loc 0.0, synapses onto branch 1
+# loc 1.0, stimulus onto branch 1 loc 0.0. The mapping to compartment
+# indices is branch 0 loc 0.0 -> 0, branch 0 loc 1.0 -> 1,
+# branch 1 loc 0.0 -> 2, branch 1 loc 1.0 -> 3
+# (:func:`reference_4comp_morphology`).
+#
+# Axial coupling follows the reference discretization (jaxley 0.14.0, read
+# as data): ``compute_axial_conductances`` in
+# ``site-packages/jaxley/utils/morph_attributes.py`` (half-segment
+# resistive loads ``(l/2)/r^2/pi``, series resistance over the two halves,
+# divided by the sink compartment area and capacitance, ``1e7`` for
+# ``S/cm/um`` -> ``mS/cm2``) and the implicit backward-Euler voltage update
+# ``step_voltage_implicit_with_dhs_solve`` in
+# ``site-packages/jaxley/solver_voltage.py`` (diagonals ``1 + dt*g/Cm``
+# plus the axial terms, right-hand side ``v + dt*c/Cm``; the reference
+# branchpoint node is eliminated by substitution, which for a pairwise
+# junction equals the two-half series formula used here). Per-compartment
+# HH gates step exactly as the single-compartment path
+# (:func:`_exp_euler_gate` at frozen voltage, then the linearized
+# backward-Euler voltage step). Point-process inputs convert by the target
+# compartment area (``convert_point_process_to_distributed`` in
+# ``site-packages/jaxley/utils/cell_utils.py``: ``nA / area_um2 * 1e5``).
+# ---------------------------------------------------------------------------
+
+
+def point_process_to_distributed(current_nA, area_um2):
+    """Convert a point-process current (nA) to a density (uA/cm2).
+
+    ``current_nA / area_um2 * 1e5``: the reference
+    ``convert_point_process_to_distributed`` (jaxley 0.14.0,
+    ``site-packages/jaxley/utils/cell_utils.py``), applied with the target
+    compartment area for synapse conductances (uS -> mS/cm2, same factor)
+    and stimulus currents (nA -> uA/cm2).
+    """
+    return np.asarray(current_nA, dtype=np.float64) / np.asarray(area_um2, dtype=np.float64) * 1e5
+
+
+class HHMorphology:
+    """Per-cell compartment geometry shared by every cell of a population.
+
+    ``parents[k]`` is the index of compartment ``k``'s parent, ``-1`` for
+    the root; ``length_um[k]`` / ``radius_um[k]`` are the per-compartment
+    cylinder length and radius (um); ``ra_ohmcm`` is the scalar axial
+    resistivity (ohm cm). Areas (um2) are ``2*pi*r*l`` per compartment.
+    """
+
+    def __init__(self, parents, length_um, radius_um, ra_ohmcm=5000.0) -> None:
+        self.parents = tuple(int(p) for p in parents)
+        self.length_um = tuple(float(v) for v in length_um)
+        self.radius_um = tuple(float(v) for v in radius_um)
+        self.ra_ohmcm = float(ra_ohmcm)
+        self.area_um2 = tuple(
+            2.0 * math.pi * r * le
+            for r, le in zip(self.radius_um, self.length_um)
+        )
+
+    @property
+    def n_comp(self) -> int:
+        """Number of compartments."""
+        return len(self.parents)
+
+
+def reference_4comp_morphology() -> HHMorphology:
+    """The GSDR reference geometry: 2 branches x 2 compartments (4 total).
+
+    jaxley defaults (``site-packages/jaxley/modules/compartment.py``:
+    ``Compartment.compartment_params``): length 10 um, radius 1 um, axial
+    resistivity 5000 ohm cm, capacitance 1 uF/cm2. Compartments form the
+    chain 0 - 1 - 2 - 3 (branch 0 loc 0.0 -> 0 through branch 1 loc 1.0
+    -> 3), so ``parents == (-1, 0, 1, 2)``.
+    """
+    return HHMorphology(
+        parents=(-1, 0, 1, 2),
+        length_um=(10.0, 10.0, 10.0, 10.0),
+        radius_um=(1.0, 1.0, 1.0, 1.0),
+        ra_ohmcm=5000.0,
+    )
+
+
+def _check_morphology(morphology) -> dict[str, Any]:
+    """Validate ``morphology``; return arrays, links and base axial conductances."""
+    if not isinstance(morphology, HHMorphology):
+        raise ValueError(
+            f"morphology must be an HHMorphology; got {morphology!r}"
+        )
+    parents = np.asarray(morphology.parents)
+    length = np.asarray(morphology.length_um, dtype=np.float64)
+    radius = np.asarray(morphology.radius_um, dtype=np.float64)
+    try:
+        ra = float(morphology.ra_ohmcm)
+    except (TypeError, ValueError):
+        raise ValueError(f"morphology ra_ohmcm must be a number; got {morphology.ra_ohmcm!r}")
+    area = np.asarray(morphology.area_um2, dtype=np.float64)
+    n_comp = int(parents.shape[0])
+    if not (length.shape == (n_comp,) and radius.shape == (n_comp,) and area.shape == (n_comp,)):
+        raise ValueError(
+            "morphology parents, length_um, radius_um and area_um2 must have "
+            f"equal lengths; got {parents.shape}, {length.shape}, {radius.shape}, {area.shape}"
+        )
+    if n_comp < 1:
+        raise ValueError(f"morphology must hold at least one compartment; got {n_comp}")
+    if not (np.all(np.isfinite(length)) and np.all(length > 0.0)):
+        raise ValueError(f"morphology length_um must be finite and > 0; got {length}")
+    if not (np.all(np.isfinite(radius)) and np.all(radius > 0.0)):
+        raise ValueError(f"morphology radius_um must be finite and > 0; got {radius}")
+    if not (math.isfinite(ra) and ra > 0.0):
+        raise ValueError(f"morphology ra_ohmcm must be finite and > 0; got {morphology.ra_ohmcm!r}")
+    if not (np.all(np.isfinite(area)) and np.all(area > 0.0)):
+        raise ValueError(f"morphology area_um2 must be finite and > 0; got {area}")
+    if not np.all(np.isfinite(parents)) or np.any(parents != np.round(parents)):
+        raise ValueError(f"morphology parents must hold integers; got {parents}")
+    parents = parents.astype(np.int64)
+    if int(np.sum(parents == -1)) != 1:
+        raise ValueError(
+            f"morphology parents must hold exactly one root (-1); got {parents.tolist()}"
+        )
+    if np.any(parents < -1) or np.any(parents >= n_comp):
+        raise ValueError(
+            f"morphology parents must index compartments in [0, {n_comp}) or be -1; "
+            f"got {parents.tolist()}"
+        )
+    if np.any(parents == np.arange(n_comp)):
+        raise ValueError(
+            f"morphology parents must not self-parent; got {parents.tolist()}"
+        )
+    for k in range(n_comp):
+        seen = 0
+        node = k
+        while parents[node] != -1:
+            node = int(parents[node])
+            seen += 1
+            if seen > n_comp:
+                raise ValueError(
+                    f"morphology parents must be acyclic; got {parents.tolist()}"
+                )
+    link_child = np.asarray(
+        [k for k in range(n_comp) if parents[k] != -1], dtype=np.int64
+    )
+    link_parent = parents[link_child]
+    # Base axial conductances (mS/cm2 at Cm = 1) per link and direction,
+    # sink side first: A[link, 0] sinks in link_child, A[link, 1] in
+    # link_parent (the reference ``compute_axial_conductances`` c2c form).
+    load = (length / 2.0) / radius ** 2 / math.pi
+    rsum = (load[link_child] + load[link_parent]) * ra
+    axial = np.zeros((link_child.shape[0], 2), dtype=np.float64)
+    axial[:, 0] = 1.0 / rsum / area[link_child] * 1e7
+    axial[:, 1] = 1.0 / rsum / area[link_parent] * 1e7
+    if not np.all(np.isfinite(axial)) or np.any(axial <= 0.0):
+        raise ValueError(f"morphology yields non-finite axial conductances; got {axial}")
+    return {
+        "n_comp": n_comp,
+        "parents": parents,
+        "area": area,
+        "link_child": link_child,
+        "link_parent": link_parent,
+        "axial_base": axial,
+    }
+
+
+def _comp_index_array(values, n, lo_name: str) -> np.ndarray:
+    """Broadcast-or-check an integer compartment selection of length ``n``."""
+    if values is None:
+        return np.zeros((n,), dtype=np.int64)
+    a = np.asarray(values, dtype=np.float64)
+    if a.ndim == 0:
+        a = np.full((n,), float(a))
+    if a.ndim != 1 or a.shape[0] != n:
+        raise ValueError(
+            f"{lo_name} must be a scalar or shape ({n},); got shape {a.shape}"
+        )
+    if not np.all(np.isfinite(a)) or np.any(a != np.round(a)):
+        raise ValueError(f"{lo_name} must hold integers; got {a}")
+    return a.astype(np.int64)
+
+
+def _check_comp_range(comp, n_comp: int, lo_name: str) -> None:
+    if comp.size and (comp.min() < 0 or comp.max() >= n_comp):
+        raise ValueError(
+            f"{lo_name} must index compartments in [0, {n_comp}); "
+            f"got min {comp.min()}, max {comp.max()}"
+        )
 
 
 def simulate_hh(
@@ -348,8 +585,16 @@ def simulate_hh(
     ou_key=None,
     noise_gain: float = 1.0,
     I_ext=None,
+    I_ext_nA=None,
     V0_mV=None,
+    gate_init=None,
     record_v: bool = True,
+    morphology=None,
+    edge_pre_comp=None,
+    edge_post_comp=None,
+    edge_weight_uS=None,
+    stim_comp=None,
+    record_comp=None,
 ) -> dict[str, Any]:
     """Simulate HH cells with OU noise and graded tanh synapses on an edge list.
 
@@ -373,7 +618,24 @@ def simulate_hh(
 
     ``I_ext`` is None, shape ``[N]`` (every step), or ``[n_steps, N]``:
     depolarizing-positive injected current. ``V0_mV`` is None (rest at -70 mV)
-    or shape ``[N]``.
+    or shape ``[N]``. ``gate_init`` is None (single-compartment gates start at
+    their rate fixed point) or an explicit gating value for every m/h/n gate.
+
+    Multi-compartment form: pass ``morphology`` (an :class:`HHMorphology`;
+    every cell shares it) with per-edge ``edge_pre_comp``/``edge_post_comp``
+    (presynaptic-V and synapse compartments, default 0), per-cell
+    ``stim_comp``/``record_comp`` (stimulus and spike-readout compartments,
+    default 0), and point-process inputs ``edge_weight_uS`` (uS, converted
+    by the post compartment area) and ``I_ext_nA`` (nA, converted by the
+    stimulus compartment area) instead of the density forms ``edge_weight``
+    (mS/cm2) and ``I_ext`` (uA/cm2). Mixing the two forms of either input
+    is refused, as is any out-of-range compartment. ``V_mV`` is then
+    ``[n_steps, N, C]`` and the final states are ``[N, C]``; spikes are
+    upward crossings of each cell's ``record_comp``. Gates init at the
+    reference default state 0.2 (``channels/hh.py``; the reference never
+    calls ``init_state``), unless ``gate_init`` gives an explicit value.
+    Without ``morphology`` (and no other new argument) the call runs the
+    single-compartment path bit-identically to before.
 
     Per step, in order: synapse gates update from the current voltages
     (a non-finite update keeps the old gating: the reference float32
@@ -398,6 +660,30 @@ def simulate_hh(
     if not (isinstance(n_steps, (int, np.integer)) and n_steps >= 1):
         raise ValueError(f"n_steps must be a positive integer, got {n_steps!r}")
     _require_finite_dt(dt_ms, "dt_ms")
+
+    if (
+        morphology is not None
+        or edge_pre_comp is not None
+        or edge_post_comp is not None
+        or edge_weight_uS is not None
+        or stim_comp is not None
+        or record_comp is not None
+        or I_ext_nA is not None
+    ):
+        return _simulate_hh_multi(
+            params, n_steps=n_steps, dt_ms=dt_ms,
+            edge_pre=edge_pre, edge_post=edge_post, edge_weight=edge_weight,
+            edge_receptor=edge_receptor, receptor_e_rev=receptor_e_rev,
+            receptor_tau_r=receptor_tau_r, receptor_tau_d=receptor_tau_d,
+            receptor_slope=receptor_slope, receptor_vth=receptor_vth,
+            receptor_s0=receptor_s0, ou_tau=ou_tau, ou_sigma=ou_sigma,
+            ou_key=ou_key, noise_gain=noise_gain, I_ext=I_ext,
+            I_ext_nA=I_ext_nA, V0_mV=V0_mV, gate_init=gate_init,
+            record_v=record_v, morphology=morphology,
+            edge_pre_comp=edge_pre_comp, edge_post_comp=edge_post_comp,
+            edge_weight_uS=edge_weight_uS, stim_comp=stim_comp,
+            record_comp=record_comp,
+        )
 
     N = int(jnp.shape(params.gNa_mS_cm2)[0])
     dtype = jnp.asarray(params.gNa_mS_cm2).dtype
@@ -564,12 +850,18 @@ def simulate_hh(
         rkey0 = jnp.zeros((), jnp.int32)
     else:
         rkey0 = ou_key
-    m0, h0, n0 = hh_gate_inf(V0)
+    g_init = _check_gate_init(gate_init)
+    if g_init is None:
+        m0, h0, n0 = hh_gate_inf(V0)
+        m0_j, h0_j, n0_j = (
+            jnp.asarray(m0, dtype), jnp.asarray(h0, dtype), jnp.asarray(n0, dtype))
+    else:
+        m0_j = h0_j = n0_j = jnp.full((N,), g_init, dtype)
     carry0 = (
         V0,
-        jnp.asarray(m0, dtype),
-        jnp.asarray(h0, dtype),
-        jnp.asarray(n0, dtype),
+        m0_j,
+        h0_j,
+        n0_j,
         jnp.zeros((N,), dtype),
         jnp.full((n_edges,), s0, dtype),
         V0,
@@ -578,6 +870,372 @@ def simulate_hh(
         jnp.zeros((), dtype=jnp.int32),
     )
     (v, m, h, n, ou, s, _, _, n_held_s, n_held_ou), ys = jax.lax.scan(body, carry0, I_all, length=n_steps)
+    result = {
+        "spikes": ys[0] if record_v else ys,
+        "v": v,
+        "m": m,
+        "h": h,
+        "n": n,
+        "ou": ou,
+        "s": s,
+        "held_steps": {"s": n_held_s, "ou": n_held_ou},
+    }
+    if record_v:
+        result["V_mV"] = ys[1]
+    return result
+
+
+def _simulate_hh_multi(
+    params: HHParams,
+    *,
+    n_steps: int,
+    dt_ms: float,
+    edge_pre=None,
+    edge_post=None,
+    edge_weight=None,
+    edge_receptor=None,
+    receptor_e_rev=(),
+    receptor_tau_r=(),
+    receptor_tau_d=(),
+    receptor_slope=(),
+    receptor_vth=(),
+    receptor_s0: float = HH_GRADED_S0_DEFAULT,
+    ou_tau=None,
+    ou_sigma=None,
+    ou_key=None,
+    noise_gain: float = 1.0,
+    I_ext=None,
+    I_ext_nA=None,
+    V0_mV=None,
+    gate_init=None,
+    record_v: bool = True,
+    morphology=None,
+    edge_pre_comp=None,
+    edge_post_comp=None,
+    edge_weight_uS=None,
+    stim_comp=None,
+    record_comp=None,
+) -> dict[str, Any]:
+    """Multi-compartment ``simulate_hh`` (see its docstring for the contract).
+
+    Same split as the single-compartment path, with per-compartment HH
+    gates and the reference implicit voltage solve over the axial tree.
+    """
+    if morphology is None:
+        raise ValueError(
+            "morphology is required when any compartment selection or "
+            "point-process input is given"
+        )
+    mx = _check_morphology(morphology)
+    C = mx["n_comp"]
+    N = int(jnp.shape(params.gNa_mS_cm2)[0])
+    dtype = jnp.asarray(params.gNa_mS_cm2).dtype
+
+    e_rev = np.asarray(receptor_e_rev, dtype=np.float64).reshape(-1)
+    tau_r = np.asarray(receptor_tau_r, dtype=np.float64).reshape(-1)
+    tau_d = np.asarray(receptor_tau_d, dtype=np.float64).reshape(-1)
+    slope = np.asarray(receptor_slope, dtype=np.float64).reshape(-1)
+    vth = np.asarray(receptor_vth, dtype=np.float64).reshape(-1)
+    if not (e_rev.shape == tau_r.shape == tau_d.shape == slope.shape == vth.shape):
+        raise ValueError(
+            "receptor_e_rev, receptor_tau_r, receptor_tau_d, receptor_slope and "
+            f"receptor_vth must have the same length; got {[a.size for a in (e_rev, tau_r, tau_d, slope, vth)]}"
+        )
+    if np.any(tau_r <= 0):
+        raise ValueError(f"receptor_tau_r must be > 0 for every receptor; got {tau_r.tolist()}")
+    if np.any(tau_d <= 0):
+        raise ValueError(f"receptor_tau_d must be > 0 for every receptor; got {tau_d.tolist()}")
+    if np.any(slope <= 0):
+        raise ValueError(f"receptor_slope must be > 0 for every receptor; got {slope.tolist()}")
+    try:
+        s0 = float(receptor_s0)
+    except (TypeError, ValueError):
+        raise ValueError(f"receptor_s0 must be a number; got {receptor_s0!r}")
+    if not math.isfinite(s0):
+        raise ValueError(f"receptor_s0 must be finite; got {receptor_s0!r}")
+    R = int(e_rev.size)
+
+    if edge_weight_uS is not None and edge_weight is not None:
+        raise ValueError(
+            "edge_weight_uS and edge_weight are alternative input forms; got both"
+        )
+    use_uS = edge_weight_uS is not None
+    if use_uS:
+        w_us_host = np.asarray(edge_weight_uS, dtype=np.float64) \
+            if not isinstance(edge_weight_uS, jax.Array) else None
+        if w_us_host is not None and int(w_us_host.shape[0]) == 0:
+            # An empty uS list behaves like an empty density list: no edges,
+            # even when the cell/post/receptor lists are absent.
+            return _simulate_hh_multi(
+                params, n_steps=n_steps, dt_ms=dt_ms,
+                edge_pre=None, edge_post=None, edge_weight=None,
+                edge_receptor=None, receptor_e_rev=receptor_e_rev,
+                receptor_tau_r=receptor_tau_r, receptor_tau_d=receptor_tau_d,
+                receptor_slope=receptor_slope, receptor_vth=receptor_vth,
+                receptor_s0=receptor_s0, ou_tau=ou_tau, ou_sigma=ou_sigma,
+                ou_key=ou_key, noise_gain=noise_gain, I_ext=I_ext,
+                I_ext_nA=I_ext_nA, V0_mV=V0_mV, gate_init=gate_init,
+                record_v=record_v, morphology=morphology,
+                edge_pre_comp=None, edge_post_comp=None,
+                edge_weight_uS=None, stim_comp=stim_comp,
+                record_comp=record_comp,
+            )
+        for k in ("edge_pre", "edge_post", "edge_receptor"):
+            given = {"edge_pre": edge_pre, "edge_post": edge_post,
+                     "edge_receptor": edge_receptor}[k]
+            if given is None:
+                raise ValueError(
+                    f"edge arrays must be all given or all None; missing {[k]}"
+                )
+        w_us = np.asarray(edge_weight_uS, dtype=np.float64)
+        if w_us.ndim != 1:
+            raise ValueError(f"edge_weight_uS must be one-dimensional, got shape {w_us.shape}")
+        post_c = _comp_index_array(edge_post_comp, int(w_us.shape[0]), "edge_post_comp")
+        _check_comp_range(post_c, C, "edge_post_comp")
+        pre_c = _comp_index_array(edge_pre_comp, int(w_us.shape[0]), "edge_pre_comp")
+        _check_comp_range(pre_c, C, "edge_pre_comp")
+        if not np.all(np.isfinite(w_us)):
+            raise ValueError(f"edge_weight_uS must be finite; got {w_us}")
+        if np.any(w_us < 0.0):
+            raise ValueError(
+                f"edge_weight_uS must be >= 0 (the reversal sets the sign); got min {w_us.min()}"
+            )
+        dens = point_process_to_distributed(w_us, mx["area"][post_c])
+        edges = _check_edges(
+            N, R,
+            {"edge_pre": edge_pre, "edge_post": edge_post,
+             "edge_weight": dens, "edge_receptor": edge_receptor},
+        )
+    else:
+        edges = _check_edges(
+            N, R,
+            {"edge_pre": edge_pre, "edge_post": edge_post,
+             "edge_weight": edge_weight, "edge_receptor": edge_receptor},
+        )
+        n_e = 0 if edges is None else int(edges["pre"].shape[0])
+        pre_c = _comp_index_array(edge_pre_comp, n_e, "edge_pre_comp")
+        _check_comp_range(pre_c, C, "edge_pre_comp")
+        post_c = _comp_index_array(edge_post_comp, n_e, "edge_post_comp")
+        _check_comp_range(post_c, C, "edge_post_comp")
+    if edges is None:
+        edges = {
+            "pre": np.zeros((0,), np.int64),
+            "post": np.zeros((0,), np.int64),
+            "weight": np.zeros((0,), np.float64),
+            "receptor": np.zeros((0,), np.int64),
+        }
+        pre_c = np.zeros((0,), np.int64)
+        post_c = np.zeros((0,), np.int64)
+    n_edges = int(edges["pre"].shape[0])
+
+    pre_j = jnp.asarray(edges["pre"], jnp.int32)
+    post_j = jnp.asarray(edges["post"], jnp.int32)
+    w_j = jnp.asarray(edges["weight"], dtype)
+    rec_j = jnp.asarray(edges["receptor"], jnp.int32)
+    erev_j = jnp.asarray(e_rev, dtype)
+    taur_j = jnp.asarray(tau_r, dtype)
+    taud_j = jnp.asarray(tau_d, dtype)
+    slope_j = jnp.asarray(slope, dtype)
+    vth_j = jnp.asarray(vth, dtype)
+    prec_j = jnp.asarray(pre_c, jnp.int32)
+    postc_j = jnp.asarray(post_c, jnp.int32)
+
+    stim_c = _comp_index_array(stim_comp, N, "stim_comp")
+    _check_comp_range(stim_c, C, "stim_comp")
+    rec_c = _comp_index_array(record_comp, N, "record_comp")
+    _check_comp_range(rec_c, C, "record_comp")
+    rec_cj = jnp.asarray(rec_c, jnp.int32)
+
+    if ou_sigma is None:
+        sig_j = jnp.zeros((N,), dtype)
+        eff_nonzero = False
+    else:
+        sig_host = np.asarray(ou_sigma, dtype=np.float64)
+        if sig_host.shape != (N,):
+            raise ValueError(f"ou_sigma must be None or shape ({N},); got {sig_host.shape}")
+        if not bool(np.all(np.isfinite(sig_host))):
+            raise ValueError(f"ou_sigma must be finite; got {ou_sigma!r}")
+        sig_j = jnp.asarray(ou_sigma, dtype)
+    try:
+        gain = float(noise_gain)
+    except (TypeError, ValueError):
+        raise ValueError(f"noise_gain must be a number; got {noise_gain!r}")
+    if not math.isfinite(gain) or gain < 0.0:
+        raise ValueError(f"noise_gain must be finite and >= 0; got {noise_gain!r}")
+    sig_j = sig_j * jnp.asarray(gain, dtype)
+    # Host-side nonzero check on the params-dtype values the scan consumes:
+    # identical to the old ``bool(jnp.any(...))`` eagerly, and keeps Python
+    # control flow off traced values (jittable).
+    if ou_sigma is None:
+        eff_nonzero = False
+    else:
+        eff_nonzero = bool(np.any(sig_host * float(np.asarray(gain, dtype=np.float64)) != 0.0))
+    if ou_tau is None:
+        if ou_key is not None and eff_nonzero:
+            raise ValueError(
+                "ou_tau is required when OU noise is live (ou_key given and "
+                "ou_sigma * noise_gain nonzero); got None"
+            )
+        tau_j = jnp.full((N,), HH_OU_TAU_FALLBACK_MS, dtype=dtype)
+    else:
+        tau_host = np.asarray(ou_tau, dtype=np.float64)
+        if tau_host.shape != (N,):
+            raise ValueError(f"ou_tau must be None or shape ({N},); got {tau_host.shape}")
+        if not bool(np.all(np.isfinite(tau_host))) or bool(np.any(tau_host <= 0.0)):
+            raise ValueError(f"ou_tau must be finite and > 0; got {ou_tau!r}")
+        tau_j = jnp.asarray(ou_tau, dtype)
+    if eff_nonzero and ou_key is None:
+        raise ValueError("ou_key is required when ou_sigma * noise_gain is nonzero")
+    noise_on = ou_key is not None
+    if ou_key is not None:
+        try:
+            jax.random.split(ou_key)
+        except (TypeError, ValueError):
+            raise ValueError(f"ou_key must be a JAX PRNG key; got {ou_key!r}")
+
+    if I_ext is not None and I_ext_nA is not None:
+        raise ValueError("I_ext and I_ext_nA are alternative input forms; got both")
+    I_all = None
+    I_const = None
+    if I_ext_nA is not None:
+        nA = np.asarray(I_ext_nA, dtype=np.float64)
+        if nA.shape == (N,):
+            I_all = None
+            I_const = point_process_to_distributed(nA, mx["area"][stim_c])
+        elif nA.shape == (n_steps, N):
+            I_all = point_process_to_distributed(
+                nA, np.broadcast_to(mx["area"][stim_c], (n_steps, N))
+            )
+        else:
+            raise ValueError(
+                f"I_ext_nA must be None, shape ({N},) or ({n_steps}, {N}); got {nA.shape}"
+            )
+    elif I_ext is not None:
+        I_arr = np.asarray(I_ext, dtype=np.float64)
+        if I_arr.shape == (N,):
+            I_const = I_arr
+        elif I_arr.shape == (n_steps, N):
+            I_all = I_arr
+        else:
+            raise ValueError(
+                f"I_ext must be None, shape ({N},) or ({n_steps}, {N}); got {I_arr.shape}"
+            )
+    onehot = np.zeros((N, C), dtype=np.float64)
+    onehot[np.arange(N), stim_c] = 1.0
+    onehot_j = jnp.asarray(onehot, dtype)
+    if I_const is None:
+        I_const_j = jnp.zeros((N, C), dtype)
+    else:
+        I_const_j = jnp.asarray(np.asarray(I_const, dtype=np.float64)[:, None] * onehot, dtype)
+    if I_all is not None:
+        I_all_j = jnp.asarray(np.asarray(I_all, dtype=np.float64)[:, :, None] * onehot_j[None], dtype)
+    else:
+        I_all_j = None
+
+    if V0_mV is None:
+        V0 = jnp.full((N, C), HH_V_REST_MV, dtype)
+    else:
+        V0 = jnp.asarray(V0_mV, dtype)
+        if V0.shape == (N,):
+            V0 = jnp.broadcast_to(V0[:, None], (N, C))
+        if V0.shape != (N, C):
+            raise ValueError(f"V0_mV must be None, shape ({N},) or ({N}, {C}); got {V0.shape}")
+
+    thr = jnp.asarray(HH_SPIKE_THR_MV, dtype)
+    cm_j = jnp.asarray(params.Cm_uF_cm2, dtype)
+    gna_j = jnp.asarray(params.gNa_mS_cm2, dtype)
+    gk_j = jnp.asarray(params.gK_mS_cm2, dtype)
+    gl_j = jnp.asarray(params.gL_mS_cm2, dtype)
+    ena_j = jnp.asarray(params.ENa_mV, dtype)
+    ek_j = jnp.asarray(params.EK_mV, dtype)
+    el_j = jnp.asarray(params.EL_mV, dtype)
+
+    # Axial conductances per cell (mS/cm2, already divided by Cm): the
+    # reference ``compute_axial_conductances`` values divided by each
+    # cell's capacitance.
+    la = jnp.asarray(mx["link_child"], jnp.int32)
+    lb = jnp.asarray(mx["link_parent"], jnp.int32)
+    ax0 = jnp.asarray(mx["axial_base"][:, 0], dtype) / cm_j[:, None]
+    ax1 = jnp.asarray(mx["axial_base"][:, 1], dtype) / cm_j[:, None]
+    eye_c = jnp.eye(C, dtype=dtype)
+
+    def body(carry, I_t):
+        v, m, h, n, ou, s, prev_v, rkey, n_held_s, n_held_ou = carry
+        if noise_on:
+            rkey, uk = jax.random.split(rkey)
+        I_t = I_const_j if I_t is None else I_t
+        g_syn = jnp.zeros((N, C), dtype)
+        c_syn = jnp.zeros((N, C), dtype)
+        if n_edges:
+            v_pre = v[pre_j, prec_j]
+            act = 0.5 * (1.0 + jnp.tanh((v_pre - vth_j[rec_j]) / slope_j[rec_j]))
+            new_s = s + ((-s / taud_j[rec_j]) + act * (1.0 - s) / taur_j[rec_j]) * dt_ms
+            n_held_s = n_held_s + jnp.sum((~jnp.isfinite(new_s)).astype(jnp.int32)).astype(jnp.int32)
+            s = jnp.where(jnp.isfinite(new_s), new_s, s)
+            gs = w_j * s
+            flat = (post_j * C + postc_j).astype(jnp.int32)
+            g_syn = jax.ops.segment_sum(gs, flat, num_segments=N * C).reshape(N, C)
+            c_syn = jax.ops.segment_sum(gs * erev_j[rec_j], flat, num_segments=N * C).reshape(N, C)
+        if noise_on:
+            xi = jax.random.normal(uk, shape=(N, C), dtype=dtype)
+            tau_c = tau_j[:, None]
+            sig_c = sig_j[:, None]
+            new_ou = ou + (0.0 - ou) / tau_c * dt_ms + sig_c * jnp.sqrt(2.0 / tau_c) * xi * jnp.sqrt(dt_ms)
+            n_held_ou = n_held_ou + jnp.sum((~jnp.isfinite(new_ou)).astype(jnp.int32)).astype(jnp.int32)
+            ou = jnp.where(jnp.isfinite(new_ou), new_ou, ou)
+        i_noise = -ou
+        am, bm, ah, bh, an, bn = _hh_rate_coeffs(v)
+        m = _exp_euler_gate(m, dt_ms, am, bm)
+        h = _exp_euler_gate(h, dt_ms, ah, bh)
+        n = _exp_euler_gate(n, dt_ms, an, bn)
+        g_na = gna_j[:, None] * m ** 3 * h
+        g_k = gk_j[:, None] * n ** 4
+        g_l = gl_j[:, None] * jnp.ones((N, C), dtype)
+        g_tot = g_na + g_k + g_l + g_syn
+        cm_c = cm_j[:, None]
+        c_tot = (g_na * ena_j[:, None] + g_k * ek_j[:, None]
+                 + g_l * el_j[:, None] + c_syn - i_noise + I_t)
+        # Implicit backward-Euler voltage solve over the axial tree (the
+        # reference ``step_voltage_implicit_with_dhs_solve`` system).
+        diag = 1.0 + dt_ms * g_tot / cm_c
+        if int(la.shape[0]):
+            diag = diag.at[:, la].add(dt_ms * ax0)
+            diag = diag.at[:, lb].add(dt_ms * ax1)
+        mat = eye_c[None, :, :] * diag[:, :, None]
+        if int(la.shape[0]):
+            mat = mat.at[:, la, lb].add(-dt_ms * ax0)
+            mat = mat.at[:, lb, la].add(-dt_ms * ax1)
+        rhs = v + dt_ms * c_tot / cm_c
+        v_new = jnp.linalg.solve(mat, rhs[..., None]).squeeze(-1)
+        rec_v = v_new[jnp.arange(N), rec_cj]
+        rec_prev = prev_v[jnp.arange(N), rec_cj]
+        spk = (rec_prev < thr) & (rec_v >= thr)
+        out = (spk, v_new) if record_v else spk
+        return (v_new, m, h, n, ou, s, v_new, rkey, n_held_s, n_held_ou), out
+
+    if ou_key is None:
+        rkey0 = jnp.zeros((), jnp.int32)
+    else:
+        rkey0 = ou_key
+    # Gate init is the reference default state 0.2 (jaxley 0.14.0,
+    # ``channels/hh.py`` default states; ``init_state`` is not called on the
+    # reference integrate path), not the rate fixed point the
+    # single-compartment path uses, unless ``gate_init`` is given explicitly.
+    g_init = _check_gate_init(gate_init)
+    gate0 = jnp.full((N, C), HH_GATE_DEFAULT if g_init is None else g_init, dtype)
+    carry0 = (
+        V0,
+        gate0,
+        gate0,
+        gate0,
+        jnp.zeros((N, C), dtype),
+        jnp.full((n_edges,), s0, dtype),
+        V0,
+        rkey0,
+        jnp.zeros((), dtype=jnp.int32),
+        jnp.zeros((), dtype=jnp.int32),
+    )
+    (v, m, h, n, ou, s, _, _, n_held_s, n_held_ou), ys = jax.lax.scan(body, carry0, I_all_j, length=n_steps)
     result = {
         "spikes": ys[0] if record_v else ys,
         "v": v,

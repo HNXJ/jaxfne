@@ -79,13 +79,24 @@ def target_grid():
     return np.linspace(15.0, 60.0, 40)
 
 
-def build_spec(local_seed=1, edge_seed=0):
-    """The 50-cell Fig. 6 circuit built only from the public API (PORT_SPEC.md)."""
+def build_spec(local_seed=1, edge_seed=0, weight_unit="density"):
+    """The 50-cell Fig. 6 circuit built only from the public API (PORT_SPEC.md).
+
+    ``weight_unit`` is ``"density"`` (the default: connection weights in
+    mS/cm2, converted from the reference uS with ``US_TO_MSCM2``) or
+    ``"uS"`` (reference point-process conductances, for the
+    multi-compartment reference morphology).
+    """
     import jax
     import jax.numpy as jnp
     import numpy as np
 
     import jaxfne as jtfne
+
+    if weight_unit not in ("density", "uS"):
+        raise ValueError(
+            f"weight_unit must be 'density' or 'uS'; got {weight_unit!r}")
+    scale = US_TO_MSCM2 if weight_unit == "density" else 1.0
 
     posts = np.asarray(
         jax.random.choice(jax.random.PRNGKey(int(local_seed)), jnp.arange(N_CELLS),
@@ -105,37 +116,43 @@ def build_spec(local_seed=1, edge_seed=0):
         .mechanisms(name="gaba_local", kind="receptor",
                     params={"tau_ms": 2.0, "reversal_mV": -80.0, "tau_r_ms": 0.5,
                             "slope_mV": 5.0, "v_th_mV": -20.0, "s0": 0.1})
-        # Reference conductances are uS (point processes); the kernel takes
-        # densities, converted with US_TO_MSCM2 (2.5/5.0 uS reference scale).
+        # Reference conductances are uS (point processes); in the density
+        # default the kernel takes densities, converted with US_TO_MSCM2
+        # (2.5/5.0 uS reference scale).
         .connections(name="e_all", source={"cell_type": "E"}, target={},
-                     probability=None, weight=2.5 * US_TO_MSCM2, mechanism="ampa",
+                     probability=None, weight=2.5 * scale, mechanism="ampa",
                      sign="excitatory")
         .connections(name="ig_all", source={"cell_type": "Ig"}, target={},
-                     probability=None, weight=5.0 * US_TO_MSCM2, mechanism="gaba_global",
+                     probability=None, weight=5.0 * scale, mechanism="gaba_global",
                      sign="inhibitory")
         .connections(name="il_local", source={"cell_type": "Il"},
                      target={"ids": [int(i) for i in posts.tolist()]},
-                     probability=None, weight=5.0 * US_TO_MSCM2, mechanism="gaba_local",
+                     probability=None, weight=5.0 * scale, mechanism="gaba_local",
                      sign="inhibitory")
     )
     return cfg.connectivity(edge_seed=int(edge_seed)), [int(i) for i in posts.tolist()]
 
 
-def init_conductances(key):
+def init_conductances(key, weight_unit="density"):
     """PORT_SPEC.md section 6: gAMPA ~ U(-4,10)->[0,8], gGABAa ~ U(2,10)->[0,10].
 
-    Drawn in the reference uS scale, converted to mS/cm2 (US_TO_MSCM2).
+    Drawn in the reference uS scale; in the density default converted to
+    mS/cm2 (US_TO_MSCM2), in ``"uS"`` returned as drawn.
     """
     import jax
     import jax.numpy as jnp
 
+    if weight_unit not in ("density", "uS"):
+        raise ValueError(
+            f"weight_unit must be 'density' or 'uS'; got {weight_unit!r}")
+    scale = US_TO_MSCM2 if weight_unit == "density" else 1.0
     k1, k2 = jax.random.split(key)
     g_ampa = jnp.clip(jax.random.uniform(k1, (N_AMPA_EDGES,), minval=-4.0, maxval=10.0),
                       0.0, 8.0)
     g_gaba = jnp.clip(jax.random.uniform(k2, (N_GABAA_GLOBAL_EDGES + N_GABAA_LOCAL_EDGES,),
                                          minval=2.0, maxval=10.0),
                       0.0, 10.0)
-    return (jnp.concatenate([g_ampa, g_gaba]) * US_TO_MSCM2).astype(jnp.float32)
+    return (jnp.concatenate([g_ampa, g_gaba]) * scale).astype(jnp.float32)
 
 
 def clip_conductances(g, lo=0.0, hi=10.0):
@@ -165,17 +182,21 @@ def ou_hyperparams(key):
     return tau.astype(jnp.float32), sigma.astype(jnp.float32)
 
 
-def stimulus_matrix(stim_amp, n_steps=N_STEPS, dt_ms=DT_MS):
+def stimulus_matrix(stim_amp, n_steps=N_STEPS, dt_ms=DT_MS, unit="density"):
     """Gated 120 Hz sine on [500, 1000] ms over the 18 every-other-E cells (D8).
 
-    ``stim_amp`` is the reference nA amplitude, converted to uA/cm2
-    (NA_TO_UACM2) for the density kernel.
+    ``stim_amp`` is the reference nA amplitude; in the density default it is
+    converted to uA/cm2 (NA_TO_UACM2) for the density kernel, in ``"nA"``
+    returned as drawn for the point-process reference morphology.
     """
     import numpy as np
 
+    if unit not in ("density", "nA"):
+        raise ValueError(f"unit must be 'density' or 'nA'; got {unit!r}")
+    scale = NA_TO_UACM2 if unit == "density" else 1.0
     t = np.arange(n_steps, dtype=np.float32) * np.float32(dt_ms)
     mask = (t >= np.float32(STIM_ON_MS)) & (t <= np.float32(STIM_OFF_MS))
-    wave = np.asarray(float(stim_amp) * NA_TO_UACM2, dtype=np.float32) * np.sin(
+    wave = np.asarray(float(stim_amp) * scale, dtype=np.float32) * np.sin(
         2.0 * np.pi * np.float32(STIM_FREQ_HZ) * (t / 1000.0))
     col = np.where(mask, wave, 0.0).astype(np.float32)
     mat = np.zeros((n_steps, N_CELLS), dtype=np.float32)
@@ -386,7 +407,8 @@ def git_sha():
 
 
 def run_trial(stim_amp, *, g_seed=0, ou_seed=0, local_seed=1, edge_seed=0,
-              t_max_ms=T_MAX_MS, g_override=None, noise_gain=1.0):
+              t_max_ms=T_MAX_MS, g_override=None, noise_gain=1.0,
+              morphology="single"):
     """One baseline trial: build, init, simulate, metrics. Returns (result, blobs).
 
     ``g_override`` is an optional conductance vector in the reference uS
@@ -394,6 +416,12 @@ def run_trial(stim_amp, *, g_seed=0, ou_seed=0, local_seed=1, edge_seed=0,
     converts it to densities. When None, ``init_conductances(PRNGKey(g_seed))``
     supplies the densities. ``noise_gain`` is the lane-4e residual X
     (``jaxfne.emitters_hh.simulate_hh`` noise level; 1.0 = reference).
+    ``morphology`` is ``"single"`` (the default: one compartment per cell,
+    the density kernel, bit-identical to before) or ``"reference"`` (the
+    Fig. 6 4-compartment cell: synapses onto branch 1 loc 1.0, presynaptic
+    V and recording at branch 0 loc 0.0, stimulus onto branch 1 loc 0.0,
+    gates at the reference default 0.2, point-process uS/nA inputs
+    converted by the target compartment area).
     """
     import jax
     import numpy as np
@@ -401,7 +429,66 @@ def run_trial(stim_amp, *, g_seed=0, ou_seed=0, local_seed=1, edge_seed=0,
     from jaxfne._construct_hh import construct_hh_model, hh_kernel_args
     from jaxfne.emitters_hh import simulate_hh
 
+    if morphology not in ("single", "reference"):
+        raise ValueError(
+            f"morphology must be 'single' or 'reference'; got {morphology!r}")
+
     n_steps = int(round(t_max_ms / DT_MS)) + 1
+    if morphology == "reference":
+        from jaxfne.emitters_hh import reference_4comp_morphology
+
+        cfg, local_posts = build_spec(local_seed=local_seed,
+                                      edge_seed=edge_seed, weight_unit="uS")
+        model = construct_hh_model(
+            cfg, morphology=reference_4comp_morphology(),
+            edge_pre_comp=0, edge_post_comp=3, stim_comp=2, record_comp=0,
+            weight_unit="uS", gate_init=0.2)
+        st = model.static["hh"]
+        assert int(st["pre"].shape[0]) == N_AMPA_EDGES + N_GABAA_GLOBAL_EDGES + N_GABAA_LOCAL_EDGES
+        rec = np.asarray(st["receptor"])
+        assert int((rec == 0).sum()) == N_AMPA_EDGES
+        assert int((rec == 1).sum()) == N_GABAA_GLOBAL_EDGES
+        assert int((rec == 2).sum()) == N_GABAA_LOCAL_EDGES
+        if str(model.params["emitter"].gNa_mS_cm2.dtype) != "float32":
+            raise SystemExit("error: GSDR runs are float32, params resolved %s"
+                             % model.params["emitter"].gNa_mS_cm2.dtype)
+        kwargs = hh_kernel_args(model, DT_MS)
+        if g_override is None:
+            g = init_conductances(jax.random.PRNGKey(int(g_seed)),
+                                  weight_unit="uS")
+        else:
+            g = np.asarray(g_override, dtype=np.float32)
+            if g.shape != (N_AMPA_EDGES + N_GABAA_GLOBAL_EDGES + N_GABAA_LOCAL_EDGES,):
+                raise ValueError("g_override must hold 2230 reference-uS values, got %s"
+                                 % (g.shape,))
+        kwargs["edge_weight_uS"] = np.asarray(g)
+        ou_key = jax.random.fold_in(jax.random.PRNGKey(int(ou_seed)), 0)
+        ou_tau, ou_sigma = ou_hyperparams(ou_key)
+        i_nA = stimulus_matrix(stim_amp, n_steps=n_steps, unit="nA")
+        t0 = time.time()
+        out = simulate_hh(**kwargs, n_steps=n_steps, dt_ms=DT_MS, I_ext_nA=i_nA,
+                          ou_tau=np.asarray(ou_tau), ou_sigma=np.asarray(ou_sigma),
+                          ou_key=ou_key, noise_gain=noise_gain, record_v=True)
+        jax.block_until_ready(out["V_mV"])
+        wall_s = time.time() - t0
+        # Metrics read the recorded compartment (branch 0 loc 0.0).
+        v = np.ascontiguousarray(
+            np.asarray(out["V_mV"], dtype=np.float32)[:, :, 0])
+        rates = firing_rates_hz(v, t_max_ms=t_max_ms)
+        result = {
+            "stim_amp": float(stim_amp),
+            "morphology": "reference",
+            "noise_gain": float(noise_gain),
+            "n_steps": int(n_steps),
+            "rates_hz": [float(r) for r in rates],
+            "mean_rate_hz": float(np.mean(rates)),
+            "rate_penalty": rate_penalty(rates),
+            "psd": [float(x) for x in psd_mean_voltage(v)],
+            "kappa": population_kappa(v),
+            "wall_s": float(wall_s),
+        }
+        return result, {"v": v, "g": np.asarray(g, dtype=np.float32),
+                        "local_posts": local_posts}
     cfg, local_posts = build_spec(local_seed=local_seed, edge_seed=edge_seed)
     model = construct_hh_model(cfg)
     st = model.static["hh"]
@@ -436,6 +523,7 @@ def run_trial(stim_amp, *, g_seed=0, ou_seed=0, local_seed=1, edge_seed=0,
     rates = firing_rates_hz(v, t_max_ms=t_max_ms)
     result = {
         "stim_amp": float(stim_amp),
+        "morphology": "single",
         "noise_gain": float(noise_gain),
         "n_steps": int(n_steps),
         "rates_hz": [float(r) for r in rates],
@@ -495,7 +583,7 @@ def write_trial(out_dir, trial, result, blobs, *, wall_s, start_time, sha, seeds
 
 
 def run(out_dir, *, amps=BATCH_AMPS, g_seed=0, ou_seed=0, local_seed=1,
-        edge_seed=0, t_max_ms=T_MAX_MS):
+        edge_seed=0, t_max_ms=T_MAX_MS, morphology="single"):
     """Baseline: one trial per amp. Writes traces plus ``manifest.json``."""
     _refuse_scored_dir(out_dir)
     sha = git_sha()
@@ -513,7 +601,7 @@ def run(out_dir, *, amps=BATCH_AMPS, g_seed=0, ou_seed=0, local_seed=1,
                   "local_seed": int(local_seed), "edge_seed": int(edge_seed)}
         result, blobs = run_trial(amp, g_seed=g_seed + trial, ou_seed=ou_seed + trial,
                                   local_seed=local_seed, edge_seed=edge_seed,
-                                  t_max_ms=t_max_ms)
+                                  t_max_ms=t_max_ms, morphology=morphology)
         write_trial(out_dir, trial, result, blobs, wall_s=result["wall_s"],
                     start_time=start_time, sha=sha, seeds=tseeds)
         results.append(result)
@@ -533,6 +621,9 @@ def build_parser():
     ap.add_argument("--local-seed", type=int, default=1)
     ap.add_argument("--edge-seed", type=int, default=0)
     ap.add_argument("--t-max-ms", type=float, default=T_MAX_MS)
+    ap.add_argument("--morphology", choices=["single", "reference"],
+                    default="single",
+                    help="compartment layout (default: single)")
     return ap
 
 
@@ -540,7 +631,8 @@ def main(argv=None):
     args = build_parser().parse_args(argv)
     run(args.out, amps=tuple(args.amps) if args.amps is not None else BATCH_AMPS,
         g_seed=args.g_seed, ou_seed=args.ou_seed, local_seed=args.local_seed,
-        edge_seed=args.edge_seed, t_max_ms=args.t_max_ms)
+        edge_seed=args.edge_seed, t_max_ms=args.t_max_ms,
+        morphology=args.morphology)
 
 
 if __name__ == "__main__":
