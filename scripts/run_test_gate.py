@@ -474,7 +474,7 @@ def gate_release() -> None:
         _run([sys.executable, example], family="examples_smoke")
     # Restore static docs figures that examples mirror to keep tree clean
     subprocess.run(
-        ["git", "checkout", "--", "docs/tutorials_v030/_static/figures"], cwd=ROOT, check=False
+        ["git", "checkout", "--", "docs/archive/tutorials_v030/_static/figures"], cwd=ROOT, check=False
     )
 
 

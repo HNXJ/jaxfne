@@ -45,7 +45,7 @@ from jaxfne.fields import (
 OUT = Path("outputs/v030_01_single_neuron_izhikevich")
 # Docs-stable figures directory
 STATIC_FIGS = Path(
-    os.environ.get("JAXFNE_TUTORIAL_STATIC_DIR", "docs/tutorials_v030/_static/figures")
+    os.environ.get("JAXFNE_TUTORIAL_STATIC_DIR", "docs/archive/tutorials_v030/_static/figures")
 )
 
 
@@ -69,7 +69,7 @@ def main(update_canonical: bool = False):
     Parameters
     ----------
     update_canonical : bool, default False
-        When True, write the canonical docs manifest to docs/tutorials_v030/manifests/.
+        When True, write the canonical docs manifest to docs/archive/tutorials_v030/manifests/.
         Tests should call main() with update_canonical=False (the default) to prevent
         tracked tutorial artifact drift.
     """

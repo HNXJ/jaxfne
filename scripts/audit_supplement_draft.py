@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Audit the final Supplement draft against the frozen evidence receipts.
 
-Re-derives every quantitative table value in docs/publication/results_reconstruction/
+Re-derives every quantitative table value in docs/theory/publication/results_reconstruction/
 supplement.md from the cited frozen receipts and fails (exit 1) on any mismatch.
 
 Checks

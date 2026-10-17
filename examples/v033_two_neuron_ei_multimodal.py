@@ -55,7 +55,7 @@ from jaxfne.fields import (
 OUT = Path("outputs/v030_03_two_neuron_ei_multimodal")
 # Docs-stable figures directory
 STATIC_FIGS = Path(
-    os.environ.get("JAXFNE_TUTORIAL_STATIC_DIR", "docs/tutorials_v030/_static/figures")
+    os.environ.get("JAXFNE_TUTORIAL_STATIC_DIR", "docs/archive/tutorials_v030/_static/figures")
 )
 
 # Simulation parameters
@@ -120,7 +120,7 @@ def main(update_canonical: bool = False):
     ----------
     update_canonical : bool, default False
         When True, write the canonical docs manifest to
-        docs/tutorials_v030/manifests/ (only for intentional docs-build runs).
+        docs/archive/tutorials_v030/manifests/ (only for intentional docs-build runs).
         Tests should always call main() with update_canonical=False (the default)
         to prevent tracked tutorial artifact drift.
     """

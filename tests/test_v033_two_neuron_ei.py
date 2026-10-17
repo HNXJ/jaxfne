@@ -131,7 +131,7 @@ def test_v033_json_files_allow_nan_false():
 
 def test_v033_figures_exist():
     """Test that expected figure files exist."""
-    figures_dir = pathlib.Path("docs/tutorials_v030/_static/figures")
+    figures_dir = pathlib.Path("docs/archive/tutorials_v030/_static/figures")
 
     required_figures = [
         "v0303_two_neuron_ei_voltage.png",
@@ -437,7 +437,7 @@ def test_v033_syntax_check():
 
 def test_v033_all_8_figures_exist_in_static():
     """All 8 required figures must exist in docs-stable _static/figures."""
-    figures_dir = pathlib.Path("docs/tutorials_v030/_static/figures")
+    figures_dir = pathlib.Path("docs/archive/tutorials_v030/_static/figures")
     required_figures = [
         "v0303_two_neuron_ei_voltage.png",
         "v0303_two_neuron_ei_raster.png",

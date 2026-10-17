@@ -21,7 +21,7 @@
     "edit": {
       "*": "allow",
       "~/.config/opencode/**": "deny",
-      "docs/doctrine/**": "ask",
+      "docs/theory/doctrine/**": "ask",
       "artifacts/protocol_*/**": "ask",
       "artifacts/publication/fig01_generation_receipt.json": "deny",
       "artifacts/publication/fig01_grammar_spec.json": "deny",

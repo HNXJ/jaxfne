@@ -144,7 +144,7 @@ PREFERRED_WORDS = {
 # Fixed scientific experiment / file / identifier names that legitimately keep
 # "protocol". Ordinary prose "protocol" uses "steps"/"rule".
 ALLOW_PROTOCOL_PREFIXES = (
-    "protocol_", "protocols/", "docs/protocols/", "Protocol C", "Protocol D",
+    "protocol_", "protocols/", "docs/theory/protocols/", "Protocol C", "Protocol D",
     "Protocol E", "Protocol H", "Protocol W", "Protocol B",
 )
 
