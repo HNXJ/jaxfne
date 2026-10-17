@@ -214,6 +214,8 @@ Declaration mapping used by `artifacts/etudes/gsdr2026/run_gsdr.py:build_spec`
 - S1 one compartment per cell: the reference cell is 2 branches × `ncomp=2`
   compartments (4 total). The lane carries one compartment with the
   whole-cell area and capacitance; there is no axial coupling.
+  Retired (Hamm 2026-10-17): the 4-compartment layout is deliberate and
+  the port keeps it; S1 removes the axial bottleneck (CALIBRATION §6.10).
 - S2 whole-cell area `AREA_CELL_UM2 = 80π ≈ 251.33` µm²: each compartment
   covers `2π·r·l` with `r = 1.0` µm (default) and `l = 10.0` µm (default —
   the `cell.length = 1.0` assignments are plain-attribute no-ops since

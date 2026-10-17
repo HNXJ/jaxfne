@@ -148,8 +148,11 @@ hyx standardization, Hamm's rulings 2026-10-14 (form (h, y) = f(x, h') on A):
   (identical on both sides). §6.7 structural sweeps: saturation persists with the stimulus off
   and across 0.25 to 2× overall gain; only AMPA 0 breaks it. §6.8–6.9: the 5.2 Hz, κ 0.0
   outlier is an early collapse to silence, GPU-only (3 of 30 calls; inferred cause: segment_sum
-  order), rare on CPU (2 of 40 at a 1e-2 mV kick, 0 of 40 noise seeds). Next, no fitting:
-  compare the port's AMPA recurrence (connectivity density, delays, kinetics) with the authors'. HH hardening landed; open low notes: `held_steps` counts edge elements while the
+  order), rare on CPU (2 of 40 at a 1e-2 mV kick, 0 of 40 noise seeds). §6.10: wiring matches;
+  the one-compartment reduction S1 removes the reference's axial bottleneck (inferred ~1e4×
+  more drive). Hamm 2026-10-17: the 4-compartment layout is deliberate; keep it (S1 retired).
+  Next: multi-compartment HH route in the core (jaxley 0.14.0 oracle), then the §6.2 regime
+  diagnostic at g*, then a refit. HH hardening landed; open low notes: `held_steps` counts edge elements while the
   docstring says steps, int32 count scalars, no full-kernel grad test, `dt="0.1"` coerced.
 - CAMINOS lag (6.47 against 8.5 ms): Hamm attributes the gap to the paper's estimator rather than
   the model; class stays verified, the lag stays a recorded finding, no fit.
