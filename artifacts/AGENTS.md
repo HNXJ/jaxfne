@@ -46,6 +46,7 @@ Paradigm, Objective, optimization/training utilities, visualization, and export 
 - Read `artifacts/memory.md` (project brief) and the smallest relevant skill under `artifacts/skills/` (router: `artifacts/context.md`).
 - Verify unfamiliar public symbols against live code. Prefer package-native operators; reusable plotting lives in the visualization layer.
 - Targeted tests while iterating; `python scripts/run_test_gate.py broad` before pushing code.
+- Quick status: `python scripts/run_test_gate.py report` (all audit checks, no pytest); docs edits: `python scripts/run_test_gate.py docs` (the documentation subset). Both record the same check families as the broad gate and reuse its audit list.
 - Routine non-force `git push origin dev` is part of step completion under an authorized task; tags, main, releases, force push need separate authorization.
 - Public docs are compact positive mathematical descriptions; agent governance stays out of them.
 

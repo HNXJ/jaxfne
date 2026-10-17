@@ -4,6 +4,8 @@
 Gate vocabulary (single source of truth for local runs and CI references):
 
   dev          Curated architectural gate (~1 minute)
+  report       All audit checks without the pytest sweeps (~1 minute)
+  docs         The documentation subset of the audit checks (~30 seconds)
   broad        Repository-wide ``-m "not slow"`` (~8 minutes)
   release      Broad + slow markers + release examples/docs checks
   rc           Full release-candidate verification (PRE_RELEASE_GATE >= RELEASE_CI_GATE)
@@ -184,6 +186,23 @@ GATE_CHECK_FAMILIES = {
         "tree_size_audit",
         "pytest_broad",
     },
+    "report": {
+        "lint_ruff",
+        "docs_language_audit",
+        "notebook_grammar_audit",
+        "vocabulary_audit",
+        "docs_orphans_check",
+        "doc_code_integrity_audit",
+        "record_integrity",
+        "tree_size_audit",
+    },
+    "docs": {
+        "docs_language_audit",
+        "notebook_grammar_audit",
+        "vocabulary_audit",
+        "docs_orphans_check",
+        "doc_code_integrity_audit",
+    },
     "release": {
         "compileall",
         "lint_ruff",
@@ -339,34 +358,57 @@ def gate_dev() -> None:
     _run([sys.executable, "scripts/audit_vocabulary.py", "--check"], family="vocabulary_audit")
 
 
+# The audit checks the broad gate runs before its pytest sweep, owned here and
+# shared with the report and docs gates. Order matters only for readability.
+AUDIT_STEPS: list[tuple[str, list[str]]] = [
+    ("lint_ruff", [sys.executable, "-m", "ruff", "check", "jaxfne/"]),
+    (
+        "docs_language_audit",
+        [sys.executable, "scripts/audit_public_docs_language.py", "--check"],
+    ),
+    (
+        "notebook_grammar_audit",
+        [sys.executable, "scripts/audit_notebook_grammar.py", "--check"],
+    ),
+    ("vocabulary_audit", [sys.executable, "scripts/audit_vocabulary.py", "--check"]),
+    ("docs_orphans_check", [sys.executable, "scripts/check_docs_orphans.py"]),
+    (
+        "doc_code_integrity_audit",
+        [sys.executable, "scripts/audit_doc_code_integrity.py", "--check"],
+    ),
+    ("tree_size_audit", [sys.executable, "scripts/check_tree_size.py", "--check"]),
+    ("record_integrity", [sys.executable, "scripts/check_record_integrity.py", "--check"]),
+]
+
+# The documentation subset: what a docs edit needs checked before pushing.
+DOCS_AUDIT_FAMILIES = {
+    "docs_language_audit",
+    "notebook_grammar_audit",
+    "vocabulary_audit",
+    "docs_orphans_check",
+    "doc_code_integrity_audit",
+}
+
+
+def gate_report() -> None:
+    """The audit checks only: a gate status report without the pytest sweeps."""
+    for family, cmd in AUDIT_STEPS:
+        _run(cmd, family=family)
+
+
+def gate_docs() -> None:
+    """Quick docs gate: the documentation subset of the audit checks."""
+    for family, cmd in AUDIT_STEPS:
+        if family in DOCS_AUDIT_FAMILIES:
+            _run(cmd, family=family)
+
+
 def gate_broad() -> None:
     _run(
         [sys.executable, "-m", "compileall", "-q", "jaxfne", "tests", "scripts", "examples"],
         family="compileall",
     )
-    _run([sys.executable, "-m", "ruff", "check", "jaxfne/"], family="lint_ruff")
-    _run(
-        [sys.executable, "scripts/audit_public_docs_language.py", "--check"],
-        family="docs_language_audit",
-    )
-    _run(
-        [sys.executable, "scripts/audit_notebook_grammar.py", "--check"],
-        family="notebook_grammar_audit",
-    )
-    _run([sys.executable, "scripts/audit_vocabulary.py", "--check"], family="vocabulary_audit")
-    _run([sys.executable, "scripts/check_docs_orphans.py"], family="docs_orphans_check")
-    _run(
-        [sys.executable, "scripts/audit_doc_code_integrity.py", "--check"],
-        family="doc_code_integrity_audit",
-    )
-    _run(
-        [sys.executable, "scripts/check_tree_size.py", "--check"],
-        family="tree_size_audit",
-    )
-    _run(
-        [sys.executable, "scripts/check_record_integrity.py", "--check"],
-        family="record_integrity",
-    )
+    gate_report()
     # Per-node evidence: each sweep writes JUnit into the gitignored
     # artifacts/attestations/ dir (same provenance home as the RC
     # attestation) so RC outcomes can be compared node-by-node against
@@ -588,6 +630,8 @@ def gate_publication() -> None:
 
 GATES = {
     "dev": gate_dev,
+    "report": gate_report,
+    "docs": gate_docs,
     "broad": gate_broad,
     "release": gate_release,
     "rc": gate_rc,
