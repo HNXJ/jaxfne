@@ -552,8 +552,47 @@ def _safe_peak_excess(signal, fs, band):
         return {"f_pk": None, "pe": None, "local_max": False, "edge_ok": False}
 
 
-def score_network_seed(cells_rows, n_steps, dt_ms, theta, alpha_band, gamma_band=GAMMA_BAND):
-    """N1-N4 for one seed. cells_rows: list of per-cell absolute spike rows."""
+def _kept_window_regime(cells_rows, n_steps, dt_ms, populations=None):
+    """Per-population activity regimes over the kept window (T-23 part 2).
+
+    Builds the (kept_steps, n_cells) spike matrix once and classifies each
+    named population with ``jaxfne.analysis.activity_regime``. ``None``
+    reports the whole network as ``"all"``. N1-N4 are untouched.
+    """
+    from jaxfne.analysis import activity_regime as _activity_regime
+
+    n_cells = len(cells_rows)
+    discard = int(round(DISCARD_MS / dt_ms))
+    kept_steps = n_steps - discard
+    mat = np.zeros((max(kept_steps, 0), n_cells), dtype=bool)
+    for j, rows in enumerate(cells_rows):
+        for row in rows:
+            k = int(row) - discard
+            if 0 <= k < kept_steps:
+                mat[k, j] = True
+    pops = dict(populations) if populations else {"all": np.arange(n_cells)}
+    regimes = {name: _activity_regime(mat[:, np.asarray(idx)], float(dt_ms))
+               for name, idx in pops.items()}
+    first = next(iter(regimes.values()))
+    return {"populations": regimes,
+            "labels": {name: reg["label"] for name, reg in regimes.items()},
+            "window_steps": [discard, n_steps],
+            "window_ms": [discard * float(dt_ms), n_steps * float(dt_ms)],
+            "bin_ms": first["thresholds"]["bin_ms"],
+            "dt_ms": float(dt_ms)}
+
+
+def score_network_seed(cells_rows, n_steps, dt_ms, theta, alpha_band, gamma_band=GAMMA_BAND,
+                       populations=None):
+    """N1-N4 for one seed. cells_rows: per-cell absolute spike rows.
+
+    ``populations`` maps a population name to its cell columns; the default
+    (None) reports the whole network as ``"all"``. T-23 part 2 (Hamm
+    2026-10-14): the returned dict also carries ``activity_regime`` with the
+    per-population regime labels and measured values (rate, active fraction,
+    kappa, CV_ISI) over the kept window, plus the window and bin. N1-N4 are
+    untouched.
+    """
     n_cells = len(cells_rows)
     discard = int(round(DISCARD_MS / dt_ms))
     kept = [[int(r) for r in rows if int(r) >= discard] for rows in cells_rows]
@@ -587,6 +626,7 @@ def score_network_seed(cells_rows, n_steps, dt_ms, theta, alpha_band, gamma_band
         "N4": {"verdict": "pass" if izh.holds(gamma, theta) else "fail",
                "numbers": {"f_pk": gamma["f_pk"], "pe": gamma["pe"],
                            "local_max": gamma["local_max"], "edge_ok": gamma["edge_ok"]}},
+        "activity_regime": _kept_window_regime(cells_rows, n_steps, dt_ms, populations),
     }
 
 
@@ -715,7 +755,10 @@ def score_fig3_dir(fig_dir, theta, alpha_band):
         cells = [[] for _ in range(n_cells)]
         for r, c_ in zip(srows, scols):
             cells[int(c_)].append(int(r))
-        res = score_network_seed(cells, n_steps, FIG3_DT, theta, alpha_band)
+        # T-23 part 2: E = cols 0-799, I = cols 800-999 per build_fig3_network.
+        res = score_network_seed(cells, n_steps, FIG3_DT, theta, alpha_band,
+                                 populations={"E": np.arange(800),
+                                              "I": np.arange(800, 1000)})
         seeds_out[str(seed)] = res
     overall = {}
     for nid in ("N1", "N2", "N3", "N4"):
@@ -727,8 +770,13 @@ def score_fig3_dir(fig_dir, theta, alpha_band):
     arm = ("pass" if all(v == "pass" for v in overall.values())
            else "incomplete" if any(v == "incomplete" for v in overall.values())
            else "fail")
+    regime_labels = {}
+    for seed in FIG3_SEEDS:
+        regime = seeds_out[str(seed)].get("activity_regime")
+        regime_labels[str(seed)] = (regime["labels"] if isinstance(regime, dict)
+                                    else None)
     return {"seeds": seeds_out, "overall": overall, "arm": arm,
-            "complete": complete}
+            "complete": complete, "activity_regime_labels": regime_labels}
 
 
 def cmd_score(fig2_dir, fig3_dir, out_path):

@@ -88,6 +88,22 @@ def cmd_score(args):
     cc = D.pairwise_cc(spikes, dt_ms, seed=args.seed)
     rate = D.mean_rate_hz(spikes, dt_ms)
     alive = bool(spikes[-int(1000.0 / dt_ms) :, :].sum() > 0)
+    # T-23 part 2 (Hamm 2026-10-14): report the activity regime of the scored
+    # raster. The raster stores no RS/FS split, so the regime is reported for
+    # the whole network only; no subpopulation is inferred. Scored numbers
+    # above are untouched.
+    from jaxfne.analysis import activity_regime as _activity_regime
+
+    network_regime = _activity_regime(np.asarray(spikes), float(dt_ms))
+    activity_regime_report = {
+        "populations": {"all": network_regime},
+        "labels": {"all": network_regime["label"]},
+        "window_steps": [0, int(spikes.shape[0])],
+        "window_ms": [0.0, float(spikes.shape[0]) * float(dt_ms)],
+        "bin_ms": 5.0,
+        "dt_ms": float(dt_ms),
+        "note": "whole-network population: the raster stores no RS/FS split",
+    }
     report = {
         "seed": args.seed,
         "tag": args.tag,
@@ -97,6 +113,7 @@ def cmd_score(args):
         "alive_last_s": alive,
         "n": int(spikes.shape[1]),
         "steps": int(spikes.shape[0]),
+        "activity_regime": activity_regime_report,
     }
     print(json.dumps(report, indent=2))
     if args.report:
