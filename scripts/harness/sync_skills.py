@@ -117,6 +117,8 @@ def update(refresh_manifest: bool) -> int:
         comp = m["components"]
         if "project_agents" in comp:
             comp["project_agents"]["sha256"] = sha(ROOT / "artifacts" / "AGENTS.md")
+        if "project_config" in comp:
+            comp["project_config"]["sha256"] = sha(ROOT / comp["project_config"]["file"])
         if "harness_scripts" in comp:
             comp["harness_scripts"] = {
                 name: {

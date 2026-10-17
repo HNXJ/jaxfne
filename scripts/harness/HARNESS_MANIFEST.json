@@ -3,7 +3,7 @@
   "harness_version": "2.1.0",
   "task_schema_version": 1,
   "scope": "project",
-  "generated_at": "2026-10-16T22:43:31",
+  "generated_at": "2026-10-17T17:46:28",
   "components": {
     "project_agents": {
       "file": "artifacts/AGENTS.md",
@@ -29,7 +29,7 @@
     },
     "project_config": {
       "file": "scripts/harness/project_safety_rules.json",
-      "sha256": "8ea0b6939a913e2c26931296d4ac3dd6686c824aae8ecd349c42a2055427bd97"
+      "sha256": "5e2228e271a48ecea00f6192a44782f40dbd12a7a76b716d1af068a79aa10281"
     },
     "frozen_paths": {
       "file": "artifacts/publication/frozen_manifest.json",
@@ -38,7 +38,7 @@
     "harness_scripts": {
       "sync_skills": {
         "file": "scripts/harness/sync_skills.py",
-        "sha256": "5e7c86b1e479fa8a3fb6d0cbf26ef570ebe94f24313f490e7ba53b1985062e26"
+        "sha256": "850b21aceb24eab0abe7189fd5161d2dbc061502f7a70eaa0d93f445298a2218"
       },
       "check_harness_integrity": {
         "file": "scripts/harness/check_harness_integrity.py",

@@ -139,6 +139,7 @@ CHECK_FAMILIES = {
     "docs_orphans_check",
     "doc_code_integrity_audit",
     "record_integrity",
+    "harness_integrity",
     "tree_size_audit",
     "docs_build_strict",
     "pytest_broad",
@@ -186,6 +187,7 @@ GATE_CHECK_FAMILIES = {
         "docs_orphans_check",
         "doc_code_integrity_audit",
         "record_integrity",
+        "harness_integrity",
         "tree_size_audit",
         "pytest_broad",
     },
@@ -197,6 +199,7 @@ GATE_CHECK_FAMILIES = {
         "docs_orphans_check",
         "doc_code_integrity_audit",
         "record_integrity",
+        "harness_integrity",
         "tree_size_audit",
     },
     "docs": {
@@ -215,6 +218,7 @@ GATE_CHECK_FAMILIES = {
         "docs_orphans_check",
         "doc_code_integrity_audit",
         "record_integrity",
+        "harness_integrity",
         "tree_size_audit",
         "docs_build_strict",
         "pytest_broad",
@@ -233,6 +237,7 @@ GATE_CHECK_FAMILIES = {
         "docs_orphans_check",
         "doc_code_integrity_audit",
         "record_integrity",
+        "harness_integrity",
         "tree_size_audit",
         "docs_build_strict",
         "pytest_broad",
@@ -475,6 +480,10 @@ AUDIT_STEPS: list[tuple[str, list[str]]] = [
     ),
     ("tree_size_audit", [sys.executable, "scripts/check_tree_size.py", "--check"]),
     ("record_integrity", [sys.executable, "scripts/check_record_integrity.py", "--check"]),
+    (
+        "harness_integrity",
+        [sys.executable, "scripts/harness/check_harness_integrity.py"],
+    ),
 ]
 
 # The documentation subset: what a docs edit needs checked before pushing.
