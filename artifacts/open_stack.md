@@ -26,5 +26,4 @@ it closes; at most 30 lines; a line older than 3 days moves to todo or problem, 
 - O-17 Frozen docs cite 6 paths that do not resolve, all predating the reorg: 3 in untracked `artifacts/developer/`, 3 pattern placeholders (`fig0X_...`) | keeper | since 2026-10-15 | closes when each is marked a placeholder or its target restored
 - O-18 Over-7 folders kept whole as one series: `programme/receipts/{v0_4_23,v0_4_24,tfne,engine_053_054}`, `runs/perf/matrices_055/rerun/`, `tutorials/{etudes,versioned}`, `etudes/experiment_a` | keeper | since 2026-10-15 | closes when split by kind or listed as exceptions in the O-8 test
 - O-20 Code markers: `scripts/run_delta_notebook_01.py:251` TODO (`cell_labels` from the model), `jaxfne/_config.py:1519-1528` UNCALIBRATED defaults ("todo 0c") | keeper | since 2026-10-15 | closes when each is done or moved to the todo stack with a reason
-- O-21 `docs/citation.md:31,37` Zenodo DOI is a placeholder | Hamm | since 2026-10-15 | closes when a Zenodo DOI is minted and pasted, or the placeholder removed
 - O-19 Scratch clones (58 `cl-*`) and finished Muse sessions | keeper | since 2026-10-15 | closes when deleted after O-3 to O-5 land
